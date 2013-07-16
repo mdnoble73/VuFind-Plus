@@ -3,20 +3,25 @@
 	{include file="header.tpl"}
 	<div data-role="content">
 		{if $user->cat_username}
-			<h3>{translate text='Your Holds'}</h3>
-			{if is_array($recordList) && count($recordList) > 0}
-				{foreach from=$recordList item=recordData key=sectionKey}
-				{* Check to see if there is data for the secion *}
-				<div class='holdSection'>
-					{if $sectionKey=='available'}
-						<a name="availableHoldsSection" rel="section"></a>
-					{else}
-						<a name="unavailableHoldsSection" rel="section"></a>
-					{/if}
-					<div class='holdSectionTitle'>{if $sectionKey=='available'}Arrived at pickup location{else}Requested items not yet available:{/if}</div>
-					<div class='holdSectionBody'>
+			{if $profile.web_note}
+				<div id="web_note">{$profile.web_note}</div>
+			{/if}
+			{* Check to see if there is data for the secion *}
+			<div class='holdSection'>
+				{assign var=sectionKey value='available'}
+				<div class='holdSectionBody'>
+					{if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
+						<h3 class='holdSectionTitle'>{translate text='Holds Ready For Pickup'}</h3>
+						{if $userNoticeFile}
+							{include file=$userNoticeFile}
+						{/if}
+						
+						{if $libraryHoursMessage}
+							<div class='libraryHours'>{$libraryHoursMessage}</div>
+						{/if}
+				
 						<ul class="results holds" data-role="listview">
-						{foreach from=$recordData item=resource name="recordLoop"}
+						{foreach from=$recordList.$sectionKey item=resource name="recordLoop"}
 							<li>
 								<a rel="external" href="{if !empty($resource.id)}{$path}/Record/{$resource.id|escape}{else}#{/if}">
 								<div class="result">
@@ -47,16 +52,15 @@
 									{/if}
 								</div>
 								</a>
-								<a href="{$path}/MyResearch/Holds?multiAction=cancelSelected&amp;selected[{$resource.xnum}~{$resource.cancelId|escape:"url"}~{$resource.cancelId|escape:"id"}]" rel="external" data-icon="delete">Cancel Hold</a>
+								<a href="{$path}/MyResearch/Holds?section=available&amp;multiAction=cancelSelected&amp;availableholdselected[]={$resource.cancelId|escape:"url"}" rel="external" data-icon="delete">Cancel Hold</a>
 							</li>
 						{/foreach}
 						</ul>
-					</div>
+					{else}
+						<p>{translate text='You do not have any holds ready for pickup'}.</p>
+					{/if}
 				</div>
-				{/foreach}
-			{else}
-				<p>{translate text='You do not have any holds placed'}.</p>
-			{/if}
+			</div>
 		{else}
 			You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
 		{/if}

@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/SolrStats.php';
-require_once 'RecordDrivers/Factory.php';
-require_once 'sys/Genealogy/Person.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/SolrStats.php';
+require_once ROOT_DIR . '/RecordDrivers/Factory.php';
+require_once ROOT_DIR . '/sys/Genealogy/Person.php';
 
 class Home extends Action
 {
@@ -41,17 +41,17 @@ class Home extends Action
 		}
 
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
-		 
+
 		//Load basic information needed in subclasses
 		if ($record_id == null || !isset($record_id)){
 			$this->id = $_GET['id'];
 		}else{
 			$this->id = $record_id;
 		}
-		 
+
 		// Setup Search Engine Connection
 		// Include Search Engine Class
-		require_once 'sys/' . $configArray['Genealogy']['engine'] . '.php';
+		require_once ROOT_DIR . '/sys/' . $configArray['Genealogy']['engine'] . '.php';
 		$timer->logTime('Include search engine');
 
 		// Initialise from the current search globals
@@ -60,7 +60,7 @@ class Home extends Action
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord('person' . $this->id))) {
-			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 		$this->record = $record;
 
@@ -97,9 +97,6 @@ class Home extends Action
 		//Do actions needed if this is the main action.
 		$interface->assign('id', $this->id);
 
-		$interface->assign('addHeader', '<link rel="alternate" type="application/rdf+xml" title="RDF Representation" href="' .
-		$configArray['Site']['url']  . '/Genealogy/' . urlencode($this->id) . '/RDF">');
-
 		// Retrieve User Search History
 		$interface->assign('lastsearch', isset($_SESSION['lastSearchURL']) ?
 		$_SESSION['lastSearchURL'] : false);
@@ -114,7 +111,7 @@ class Home extends Action
 
 		$formattedDeathdate = $person->formatPartialDate($person->deathDateDay, $person->deathDateMonth, $person->deathDateYear);
 		$interface->assign('deathDate', $formattedDeathdate);
-		
+
 		//Setup next and previous links based on the search results.
 		if (isset($_REQUEST['searchId'])){
 			//rerun the search
@@ -153,7 +150,7 @@ class Home extends Action
 					$nextResults = $nextSearchObject->getResultRecordSet();
 				}
 
-				if (PEAR::isError($result)) {
+				if (PEAR_Singleton::isError($result)) {
 					//If we get an error excuting the search, just eat it for now.
 				}else{
 					if ($searchObject->getResultTotal() < 1) {
@@ -200,7 +197,7 @@ class Home extends Action
 		//Build the actual view
 		$interface->setTemplate('view.tpl');
 
-		$titleField = $this->record['firstName'] . ' ' . $this->record['lastName'];
+		$titleField = $this->recordDriver->getName(); //$this->record['firstName'] . ' ' . $this->record['lastName'];
 		if ($titleField){
 			$interface->setPageTitle($titleField);
 		}

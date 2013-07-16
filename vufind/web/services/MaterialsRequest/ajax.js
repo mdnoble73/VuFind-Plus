@@ -4,19 +4,20 @@ function getWorldCatIdentifiers(){
 	var format = $("#format").val();
 	if (title == '' && author == ''){
 		alert("Please enter a title and author before checking for an ISBN and OCLC Number");
-		return false;
 	}else{
 		var requestUrl = path + "/MaterialsRequest/AJAX?method=GetWorldCatIdentifiers&title=" + encodeURIComponent(title) + "&author=" + encodeURIComponent(author)  + "&format=" + encodeURIComponent(format);
 		$.getJSON(requestUrl, function(data){
 			if (data.success == true){
 				//Dislay the results of the suggestions
-				$("#suggestedIdentifiers").html(data.formattedSuggestions);
-				$("#suggestedIdentifiers").slideDown();
+				var suggestedIdentifiers = $("#suggestedIdentifiers");
+				suggestedIdentifiers.html(data.formattedSuggestions);
+				suggestedIdentifiers.slideDown();
 			}else{
 				alert(data.error);
 			}
 		});
 	}
+	return false;
 }
 
 function cancelMaterialsRequest(id){
@@ -28,11 +29,9 @@ function cancelMaterialsRequest(id){
 				if (data.success){
 					alert("Your request was cancelled successfully.");
 					window.location.reload();
-					return true;
 				}else{
 					alert(data.error);
 				}
-				
 			}
 		);
 		return false;
@@ -65,10 +64,7 @@ function updateSelectedRequests(){
 		return false;
 	}
 	var selectedRequests = getSelectedRequests();
-	if (selectedRequests.length == 0){
-		return false;
-	}
-	return true;
+	return selectedRequests.length != 0;
 }
 
 function getSelectedRequests(){
@@ -101,9 +97,11 @@ function setFieldVisibility(){
 	var selectedFormat = $("#format option:selected").val();
 	$("." + selectedFormat + "Field").show();
 	
-	//Update labels as neded 
-	if (selectedFormat == 'dvd' || selectedFormat == 'vhs'){
-		$("#authorFieldLabel").html("Actor / Director <span class='requiredIndicator'>*</span>:");
+	//Update labels as neded
+	$("#author").addClass("required");
+	if (selectedFormat == 'bluray' || selectedFormat == 'dvd' || selectedFormat == 'vhs'){
+		$("#authorFieldLabel").html("Actor / Director:");
+		$("#author").removeClass("required");
 	}else if (selectedFormat == 'cdMusic'){
 		$("#authorFieldLabel").html("Artist / Composer <span class='requiredIndicator'>*</span>:");
 	}else{
@@ -112,22 +110,29 @@ function setFieldVisibility(){
 	
 	if (selectedFormat == 'article'){
 		$("#magazineTitle").addClass('required');
-		$("#magazineDate").addClass('required');
-		$("#magazineVolume").addClass('required');
-		$("#magazineNumber").addClass('required');
-		$("#magazinePageNumbers").addClass('required');
+		//$("#magazineDate").addClass('required');
+		//$("#magazineVolume").addClass('required');
+		//$("#magazineNumber").addClass('required');
+		//$("#magazinePageNumbers").addClass('required');
 		$("#acceptCopyrightYes").addClass('required');
 		$("#supplementalDetails").hide();
 		$("#titleLabel").html("Article Title <span class='requiredIndicator'>*</span>:");
 	}else{
 		$("#magazineTitle").removeClass('required');
-		$("#magazineDate").removeClass('required');
-		$("#magazineVolume").removeClass('required');
-		$("#magazineNumber").removeClass('required');
-		$("#magazinePageNumbers").removeClass('required');
+		//$("#magazineDate").removeClass('required');
+		//$("#magazineVolume").removeClass('required');
+		//$("#magazineNumber").removeClass('required');
+		//$("#magazinePageNumbers").removeClass('required');
 		$("#acceptCopyrightYes").removeClass('required');
 		$("#supplementalDetails").show();
 		$("#titleLabel").html("Title <span class='requiredIndicator'>*</span>:");
+	}
+	if (selectedFormat == 'ebook' || selectedFormat == 'eaudio'){
+		$("#illInfo").hide();
+		$("#pickupLocationField").hide();
+	}else{
+		$("#illInfo").show();
+		$("#pickupLocationField").show();
 	}
 }
 
@@ -147,7 +152,7 @@ function updateHoldOptions(){
 } 
 
 function materialsRequestLogin(){
-	var url = path + "/AJAX/JSON?method=loginUser"
+	var url = path + "/AJAX/JSON?method=loginUser";
 	$.ajax({url: url,
 		data: {username: $('#username').val(), password: $('#password').val()},
 		success: function(response){
@@ -157,7 +162,7 @@ function materialsRequestLogin(){
 				$('.loginOptions').hide();
         $('.logoutOptions').show();
 				$('#myAccountNameLink').html(response.result.name);
-				if (response.result.enableMaterialsRequest){
+				if (response.result.enableMaterialsRequest == 1){
 					$('#materialsRequestLogin').hide();
 					$('.materialsRequestLoggedInFields').show();
 					if (response.result.phone){
@@ -166,8 +171,9 @@ function materialsRequestLogin(){
 					if (response.result.email){
 						$('#email').val(response.result.email);
 					}
-					if (response.result.homeLocation){
-						$("#pickupLocation").val(response.result.homeLocation);
+					if (response.result.homeLocationId){
+						var optionToSelect = $("#pickupLocation option[value=" + response.result.homeLocationId + "]");
+						optionToSelect.attr("selected", "selected");
 					}
 				}else{
 					alert("Sorry, materials request functionality is only available to residents at this time.");

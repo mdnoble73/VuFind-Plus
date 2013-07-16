@@ -227,3 +227,21 @@ div.footer-text {
 	font-weight: bold;
 	color: #E58E29;
 }
+div.pageWarning{
+	font-weight: bold;
+	margin: 10px;
+	width: 100%;
+	text-align: center;
+	color: #990000;
+}
+#web_note{
+	text-align: center;
+	margin: 8px;
+	padding: 8px;
+	background-color: #EDEDED;
+	border: 1px solid #949494;
+	border-radius: 4px;
+	font-weight: bold;
+	font-family: sans-serif;
+	color: darkblue;
+}

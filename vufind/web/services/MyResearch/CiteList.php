@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/MyResearch/lib/User_list.php';
-require_once 'services/MyResearch/lib/FavoriteHandler.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
 
 class CiteList extends Action {
 	function launch() {

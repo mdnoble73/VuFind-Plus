@@ -27,6 +27,10 @@
 				</script>
 			{/if}
 
+			{if $profile.web_note}
+				<div id="web_note">{$profile.web_note}</div>
+			{/if}
+
 			<div class="myAccountTitle">{translate text='Titles On Hold'}</div>
 			{if $userNoticeFile}
 				{include file=$userNoticeFile}
@@ -42,6 +46,7 @@
 						<form id='withSelectedHoldsFormTop{$sectionKey}' action='{$fullPath}'>
 							<div>
 								<input type="hidden" name="withSelectedAction" value="" />
+								<input type="hidden" name="section" value="unavailable" />
 								<div id='holdsUpdateSelected{$sectionKey}'>
 									{if $allowFreezeHolds}
 										{if $showDateWhenSuspending}
@@ -53,11 +58,11 @@
 												});{/literal}
 											</script>
 										{/if}
-										<input type="submit" class="button" name="freezeSelected" value="Suspend Selected" title="Suspending a hold prevents the hold from being filled, but keeps your place in queue. This is great if you are going on vacation or want to space out your holds." onclick="return freezeSelectedHolds();"/>
-										<input type="submit" class="button" name="thawSelected" value="Activate Selected" title="Activate the hold to allow the hold to be filled again." onclick="return thawSelectedHolds();"/>
+										<input type="submit" class="button" name="freezeSelected" value="Freeze Selected" title="Freezing a hold prevents the hold from being filled, but keeps your place in queue. This is great if you are going on vacation or want to space out your holds." onclick="return freezeSelectedHolds();"/>
+										<input type="submit" class="button" name="thawSelected" value="Thaw Selected" title="Thawing the hold allows the hold to be filled again." onclick="return thawSelectedHolds();"/>
 									{/if}
 									<input type="submit" class="button" name="cancelSelected" value="Cancel Selected" onclick="return cancelSelectedHolds();"/>
-									<input type="submit" class="button" id="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" name="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" value="Export to Excel">
+									<input type="submit" class="button" id="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" name="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" value="Export to Excel" />
 								</div>
 							</div>
 						</form> {* End with selected controls for holds *}
@@ -127,7 +132,7 @@
 										{if $record.recordId}
 										<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.recordId|escape:"url"}">
 										{/if}
-										<img src="{$coverUrl}/bookcover.php?id={$record.recordId}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+										<img src="{$coverUrl}/bookcover.php?id={$record.recordId}&amp;issn={$record.issn}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 										{if $record.recordId}
 										</a>
 										{/if}
@@ -147,7 +152,7 @@
 												<div class="searchResultSectionInfo">
 													{$record.title2|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
 												</div>
-												{/if}f
+												{/if}
 										</div>
 
 										<div class="resultItemLine2">
@@ -206,33 +211,10 @@
 								</td>
 
 								<td class="myAccountCell">
-									<div id ="searchStars{$record.shortId|escape}" class="resultActions">
+									<div class="resultActions">
 										<div class="rate{$record.shortId|escape} stat">
-											<div class="statVal">
-												<span class="ui-rater">
-													<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
-													(<span class="ui-rater-rateCount-{$record.recordId|escape} ui-rater-rateCount">0</span>)
-												</span>
-											</div>
-												<div id="saveLink{$record.shortId|escape}">
-													{if $showFavorites == 1}
-													<a href="{$path}/Resource/Save?id={$record.recordId|escape:"url"}&amp;source=VuFind" style="padding-left:8px;" onclick="getSaveToListForm('{$record.recordId|escape}', 'VuFind'); return false;">{translate text='Add to'} <span class='myListLabel'>MyLIST</span></a>
-													{/if}
-													{if $user}
-														<div id="lists{$record.shortId|escape}"></div>
-												<script type="text/javascript">
-													getSaveStatuses('{$record.recordId|escape:"javascript"}');
-												</script>
-													{/if}
-												</div>
-											</div>
-											<script type="text/javascript">
-												$(
-													 function() {literal} { {/literal}
-															 $('.rate{$record.shortId|escape}').rater({literal}{ {/literal}module: 'Record', recordId: '{$record.recordId}',	rating:0.0, postHref: '{$path}/Record/{$record.recordId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
-													 {literal} } {/literal}
-												);
-											</script>
+											{* Let the user rate this title *}
+											{include file="Record/title-rating.tpl" ratingClass="" recordId=$record.id shortId=$record.shortId ratingData=$record.ratingData}
 
 											{assign var=id value=$record.recordId}
 											{assign var=shortId value=$record.shortId}
@@ -241,14 +223,11 @@
 
 										{if $record.recordId != -1}
 										<script type="text/javascript">
-											addRatingId('{$record.recordId|escape:"javascript"}');
 											$(document).ready(function(){literal} { {/literal}
 													resultDescription('{$record.recordId}','{$record.recordId}');
 											{literal} }); {/literal}
 										</script>
 										{/if}
-
-
 								</td>
 							</tr>
 						{/foreach}
@@ -271,14 +250,18 @@
 											});{/literal}
 										</script>
 									{/if}
-									<input type="submit" class="button" name="freezeSelected" value="Suspend Selected" title="Suspending a hold prevents the hold from being filled, but keeps your place in queue. This is great if you are going on vacation or want to space out your holds." onclick="return freezeSelectedHolds();"/>
-									<input type="submit" class="button" name="thawSelected" value="Activate Selected" title="Activate the hold to allow the hold to be filled again." onclick="return thawSelectedHolds();"/>
+									<input type="submit" class="button" name="freezeSelected" value="Freeze Selected" title="Freezing a hold prevents the hold from being filled, but keeps your place in queue. This is great if you are going on vacation or want to space out your holds." onclick="return freezeSelectedHolds();"/>
+									<input type="submit" class="button" name="thawSelected" value="Thaw Selected" title="Thawing the hold allows the hold to be filled again." onclick="return thawSelectedHolds();"/>
 								{/if}
 								<input type="submit" class="button" name="cancelSelected" value="Cancel Selected" onclick="return cancelSelectedHolds();"/>
 								{if $allowChangeLocation}
-									<div id='holdsUpdateBranchSelction'>
+									<div id='holdsUpdateBranchSelection'>
 										Change Pickup Location for Selected Items to:
-										{html_options name="withSelectedLocation" options=$pickupLocations selected=$resource.currentPickupId}
+										<select name="withSelectedLocation" id="withSelectedLocation">
+											{foreach from=$pickupLocations item=locationLabel key=locationId}
+												<option value="{$locationId}" {if $locationId == $resource.currentPickupId}selected="selected"{/if}>{$locationLabel}</option>
+											{/foreach}
+										</select>
 										<input type="submit" name="updateSelected" value="Go" onclick="return updateSelectedHolds();"/>
 									</div>
 								{/if}
@@ -286,6 +269,9 @@
 							</div>
 						</div>
 					</form>
+					{if $allowFreezeHolds}
+						<p class="note">Note: titles can only be frozen if they are in Pending status.</p>
+					{/if}
 				</div>
 			{else} {* Check to see if records are available *}
 				{translate text='You do not have any holds that are not available yet'}.
@@ -293,7 +279,6 @@
 		</div>
 		<script type="text/javascript">
 			$(document).ready(function() {literal} { {/literal}
-				doGetRatings();
 				$("#holdsTableavailable").tablesorter({literal}{cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: false}, 3: {sorter : 'date'}, 4: {sorter : 'date'}, 7: { sorter: false} } }{/literal});
 			{literal} }); {/literal}
 		</script>

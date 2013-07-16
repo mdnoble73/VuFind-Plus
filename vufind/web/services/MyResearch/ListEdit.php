@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'services/MyResearch/lib/User_list.php';
-require_once 'services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class ListEdit extends Action
 {
@@ -66,7 +66,7 @@ class ListEdit extends Action
 		} else {
 			if (isset($_REQUEST['submit'])) {
 				$result = $this->addList();
-				if (PEAR::isError($result)) {
+				if (PEAR_Singleton::isError($result)) {
 					$interface->assign('listError', $result->getMessage());
 				} else {
 					if (!empty($_REQUEST['recordId'])) {

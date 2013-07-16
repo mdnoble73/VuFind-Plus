@@ -2,9 +2,9 @@
 /**
  * Table Definition for Person
  */
-require_once 'sys/SolrDataObject.php';
-require_once 'sys/Genealogy/Marriage.php';
-require_once 'sys/Genealogy/Obituary.php';
+require_once ROOT_DIR . '/sys/SolrDataObject.php';
+require_once ROOT_DIR . '/sys/Genealogy/Marriage.php';
+require_once ROOT_DIR . '/sys/Genealogy/Obituary.php';
 
 class Person extends SolrDataObject
 {
@@ -332,17 +332,22 @@ class Person extends SolrDataObject
 		$this->addedBy = $user->id;
 		$this->modifiedBy = $user->id;
 		$this->lastModified = time();
-		parent::insert();
-		$this->saveMarriages();
-		$this->saveObituaries();
+		$ret = parent::insert();
+		if ($ret){
+			$this->saveMarriages();
+			$this->saveObituaries();
+		}
+		return $ret;
 	}
 
 	function update(){
 		$this->modifiedBy = $user->id;
 		$this->lastModified = time();
-		parent::update();
-		$this->saveMarriages();
-		$this->saveObituaries();
+		$ret = parent::update();
+		if ($ret){
+			$this->saveMarriages();
+			$this->saveObituaries();
+		}
 	}
 
 	function formatPartialDate($day, $month, $year){

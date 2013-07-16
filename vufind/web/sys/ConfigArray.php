@@ -34,10 +34,10 @@ function getExtraConfigArrayFile($name)
 	$filename = isset($configArray['Extra_Config'][$name]) ? $configArray['Extra_Config'][$name] : $name . '.ini';
 
 	//Check to see if there is a domain name based subfolder for he configuration
-	global $servername;
-	if (file_exists("../../sites/$servername/conf/$filename")){
+	global $serverName;
+	if (file_exists("../../sites/$serverName/conf/$filename")){
 		// Return the file path (note that all ini files are in the conf/ directory)
-		return "../../sites/$servername/conf/$filename";
+		return "../../sites/$serverName/conf/$filename";
 	}elseif (file_exists("../../sites/default/conf/$filename")){
 		// Return the file path (note that all ini files are in the conf/ directory)
 		return "../../sites/default/conf/$filename";
@@ -52,7 +52,7 @@ function getExtraConfigArrayFile($name)
  * Support function -- get the contents of one of the ini files specified in the
  * [Extra_Config] section of config.ini.
  *
- * @param   name        The ini's name from the [Extra_Config] section of config.ini
+ * @param   string $name        The ini's name from the [Extra_Config] section of config.ini
  * @return  array       The retrieved configuration settings.
  */
 function getExtraConfigArray($name)
@@ -74,7 +74,7 @@ function getExtraConfigArray($name)
 			global $librarySingleton;
 			$library = $librarySingleton->getActiveLibrary();
 			if (isset($library)){
-				if (strlen($library->defaultLibraryFacet) > 0 && $library->useScope){
+				if ($library->restrictSearchByLibrary && $library->useScope){
 					unset($extraConfigs[$name]['Results']['institution']);
 					unset($extraConfigs[$name]['Author']['institution']);
 				}
@@ -82,7 +82,7 @@ function getExtraConfigArray($name)
 			global $locationSingleton;
 			$activeLocation = $locationSingleton->getActiveLocation();
 			if (!is_null($activeLocation)){
-				if (strlen($activeLocation->defaultLocationFacet) && $activeLocation->useScope){
+				if ($activeLocation->restrictSearchByLocation && $activeLocation->useScope){
 					unset($extraConfigs[$name]['Results']['institution']);
 					unset($extraConfigs[$name]['Results']['building']);
 					unset($extraConfigs[$name]['Author']['institution']);
@@ -125,51 +125,137 @@ function readConfig()
 	//Read default configuration file
 	$configFile = '../../sites/default/conf/config.ini';
 	$mainArray = parse_ini_file($configFile, true);
-	
-	global $servername;
+
+	global $serverName;
 	$serverUrl = $_SERVER['SERVER_NAME'];
 	$server = $serverUrl;
 	$serverParts = explode('.', $server);
-	$servername = 'default';
+	$serverName = 'default';
 	while (count($serverParts) > 0){
 		$tmpServername = join('.', $serverParts);
 		$configFile = "../../sites/$tmpServername/conf/config.ini";
 		if (file_exists($configFile)){
 			$serverArray = parse_ini_file($configFile, true);
 			$mainArray = ini_merge($mainArray, $serverArray);
-			$servername = $tmpServername;
+			$serverName = $tmpServername;
 		}
 		array_shift($serverParts);
 	}
-	
-	if ($servername == 'default'){
+
+	// Sanity checking to make sure we loaded a good file
+	// @codeCoverageIgnoreStart
+	if ($serverName == 'default'){
 		global $logger;
-		$logger->log('Did not find servername for server ' . $_SERVER['SERVER_NAME'], PEAR_LOG_ERR);
-		PEAR::raiseError("Invalid configuration, could not find site for " . $_SERVER['SERVER_NAME']);
+		if ($logger){
+			$logger->log('Did not find servername for server ' . $_SERVER['SERVER_NAME'], PEAR_LOG_ERR);
+		}
+		PEAR_Singleton::raiseError("Invalid configuration, could not find site for " . $_SERVER['SERVER_NAME']);
 	}
-	
+
 	if ($mainArray == false){
 		echo("Unable to parse configuration file $configFile, please check syntax");
 	}
+	// @codeCoverageIgnoreEnd
+
 	//If we are accessing the site via a subdomain, need to preserve the subdomain
-	if (isset($_SERVER['HTTPS'])){
-		$mainArray['Site']['url'] = "https://" . $serverUrl;
-	}else{
-		$mainArray['Site']['url'] = "http://" . $serverUrl;
-	}
-	
-	if (isset($mainArray['Extra_Config']) &&
-	isset($mainArray['Extra_Config']['local_overrides'])) {
-		if (file_exists("../../sites/$servername/conf/" . $mainArray['Extra_Config']['local_overrides'])){
-			$file = trim("../../sites/$servername/conf/" . $mainArray['Extra_Config']['local_overrides']);
-			$localOverride = @parse_ini_file($file, true);
-		}else {
-			$file = trim('../../sites/default/conf/' . $mainArray['Extra_Config']['local_overrides']);
-			$localOverride = @parse_ini_file($file, true);
-		}
-		if ($localOverride) {
-			return ini_merge($mainArray, $localOverride);
-		}
-	}
+	//Don't try to preserve SSL since the combination of proxy and SSL does not work nicely.
+	//i.e. https://mesa.marmot.org is proxied to https://mesa.opac.marmot.org which does not have
+	//a valid SSL cert
+	$mainArray['Site']['url'] = "http://" . $serverUrl;
+
 	return $mainArray;
+}
+
+/**
+ * Update the configuration array as needed based on scoping rules defined
+ * by the subdomain.
+ *
+ * @param array $configArray the existing main configuration options.
+ *
+ * @return array the configuration options adjusted based on the scoping rules.
+ */
+function updateConfigForScoping($configArray) {
+	global $timer;
+	//Get the subdomain for the request
+	global $serverName;
+
+	//split the servername based on
+	global $subdomain;
+	$subdomain = null;
+	if(strpos($_SERVER['SERVER_NAME'], '.')){
+		$serverComponents = explode('.', $_SERVER['SERVER_NAME']);
+		if (count($serverComponents) >= 3){
+			//URL is probably of the form subdomain.marmot.org or subdomain.opac.marmot.org
+			$subdomain = $serverComponents[0];
+		} else if (count($serverComponents) == 2){
+			//URL could be either subdomain.localhost or marmot.org. Only use the subdomain
+			//If the second component is localhost.
+			if (strcasecmp($serverComponents[1], 'localhost') == 0){
+				$subdomain = $serverComponents[0];
+			}
+		}
+	}
+
+	$timer->logTime('got subdomain');
+
+	//Load the library system information
+	global $library;
+	global $locationSingleton;
+	if (isset($_SESSION['library']) && isset($_SESSION['location'])){
+		$library = $_SESSION['library'];
+		$locationSingleton = $_SESSION['library'];
+	}else{
+		$Library = new Library();
+		$Library->whereAdd("subdomain = '$subdomain'");
+		$Library->find();
+
+
+		if ($Library->N == 1) {
+			$Library->fetch();
+			//Make the library infroamtion global so we can work with it later.
+			$library = $Library;
+		}else{
+			//The subdomain can also indicate a location.
+			$Location = new Location();
+			$Location->whereAdd("code = '$subdomain'");
+			$Location->find();
+			if ($Location->N == 1){
+				$Location->fetch();
+				//We found a location for the subdomain, get the library.
+				global $librarySingleton;
+				$library = $librarySingleton->getLibraryForLocation($Location->locationId);
+				$locationSingleton->setActiveLocation(clone $Location);
+			}
+		}
+	}
+	if (isset($library) && $library != null){
+		//Update the title
+		$configArray['Site']['theme'] = $library->themeName . ',' . $configArray['Site']['theme'] . ',default';
+		$configArray['Site']['title'] = $library->displayName;
+
+		//Update the searches file
+		if (strlen($library->searchesFile) > 0 && $library->searchesFile != 'default'){
+			$file = trim("../../sites/$serverName/conf/searches/" . $library->searchesFile . '.ini');
+			if (file_exists($file)) {
+				$configArray['Extra_Config']['searches'] = 'searches/' . $library->searchesFile . '.ini';
+			}
+		}
+
+
+		$location = $locationSingleton->getActiveLocation();
+
+		//Add an extra css file for the location if it exists.
+		$themes = explode(',', $library->themeName);
+		foreach ($themes as $themeName){
+			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png')) {
+				$configArray['Site']['smallLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png';
+			}
+			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_large.png')) {
+				$configArray['Site']['largeLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_large.png';
+			}
+		}
+	}
+	$timer->logTime('finished update config for scoping');
+
+	return $configArray;
 }

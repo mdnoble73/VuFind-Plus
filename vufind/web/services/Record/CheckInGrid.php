@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 global $configArray;
 
@@ -27,7 +27,7 @@ class CheckInGrid extends Action {
 	{
 		global $interface;
 
-		require_once('Drivers/Marmot.php');
+		require_once(ROOT_DIR . '/Drivers/Marmot.php');
 		$driver = new Marmot();
 		$checkInGrid = $driver->getCheckInGrid(strip_tags($_REQUEST['id']), strip_tags($_REQUEST['lookfor']));
 		$interface->assign('checkInGrid', $checkInGrid);

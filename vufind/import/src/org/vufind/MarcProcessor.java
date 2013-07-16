@@ -1,12 +1,8 @@
 package org.vufind;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Method;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -17,15 +13,17 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
 import org.apache.log4j.Logger;
-import org.econtent.DetectionSettings;
 import org.ini4j.Ini;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
+import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.solrmarc.tools.Utils;
 
@@ -54,12 +52,12 @@ public class MarcProcessor {
 	private String													marcEncoding		= "UTF8";
 
 	protected String												marcRecordPath;
+	private String 													individualMarcPath;
 	private HashMap<String, MarcIndexInfo>	marcIndexInfo		= new HashMap<String, MarcIndexInfo>();
 
 	/** map: keys are solr field names, values inform how to get solr field values */
 	HashMap<String, String[]>								marcFieldProps	= new HashMap<String, String[]>();
 	
-	private boolean useThreads = false;
 	private String idsToProcess = null;
 	
 	public HashMap<String, String[]> getMarcFieldProps() {
@@ -86,27 +84,33 @@ public class MarcProcessor {
 
 	protected int													recordsProcessed		= 0;
 	protected int													maxRecordsToProcess	= -1;
+	private boolean                       forceIndividualMarcFileWrite = false;
 	private PreparedStatement							insertMarcInfoStmt;
 	private PreparedStatement							updateMarcInfoStmt;
 
-	private Set<String>								existingEContentIds	= Collections.synchronizedSet(new HashSet<String>());
-	private Map<String, Float>				printRatings				= Collections.synchronizedMap(new HashMap<String, Float>());
-	private Map<Long, Float>					econtentRatings			= Collections.synchronizedMap(new HashMap<Long, Float>());
-	private Map<String, Long>					librarySystemFacets	= Collections.synchronizedMap(new HashMap<String, Long>());
+	private Set<String>								existingEContentIds			= Collections.synchronizedSet(new HashSet<String>());
+	private Map<String, Float>				printRatings						= Collections.synchronizedMap(new HashMap<String, Float>());
+	private Map<Long, Float>					econtentRatings					= Collections.synchronizedMap(new HashMap<Long, Float>());
+	private Map<String, Long>					librarySystemFacets			= Collections.synchronizedMap(new HashMap<String, Long>());
 	private Map<Long, String>					libraryIdToSystemFacets	= Collections.synchronizedMap(new HashMap<Long, String>());
-	private Map<String, Long>					locationFacets			= Collections.synchronizedMap(new HashMap<String, Long>());
-	private Map<String, Long>					eContentLinkRules		= Collections.synchronizedMap(new HashMap<String, Long>());
-	private ArrayList<String>					advantageLibraryFacets = new ArrayList<String>();
-	private boolean useEContentDetectionSettings = true;
-	private ArrayList<DetectionSettings>	detectionSettings		= new ArrayList<DetectionSettings>();
+	private Map<String, Long>					locationFacets					= Collections.synchronizedMap(new HashMap<String, Long>());
+	private Map<String, Long>					eContentLinkRules				= Collections.synchronizedMap(new HashMap<String, Long>());
+	private ArrayList<String>					advantageLibraryFacets	= new ArrayList<String>();
+	private ArrayList<String>					locationCodes						= new ArrayList<String>();
+	private ArrayList<String>					librarySubdomains				= new ArrayList<String>();
+	private ArrayList<Long>						libraryIds				= new ArrayList<Long>();
+	private HashMap<Long, LibraryIndexingInfo> libraryIndexingInfo = new HashMap<Long, LibraryIndexingInfo>();
+	
+	private HashMap<Long, LoanRule> loanRules = new HashMap<Long, LoanRule>();
+	private ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<LoanRuleDeterminer>();
+	private ArrayList<Long> pTypes = new ArrayList<Long>();
+	
 	private HashMap<String, LexileData> lexileInfo = new HashMap<String, LexileData>();
 	
 	private String												itemTag;
 	private String												locationSubfield;
 	private String												urlSubfield;
 	private String												sharedEContentLocation;
-	private boolean												scrapeItemsForLinks;
-	private String												catalogUrl;
 
 	public static final int								RECORD_CHANGED_PRIMARY		= 1;
 	public static final int								RECORD_UNCHANGED					= 2;
@@ -114,13 +118,28 @@ public class MarcProcessor {
 	public static final int								RECORD_DELETED						= 4;
 	public static final int								RECORD_CHANGED_SECONDARY	= 1;
 	
+	private HashMap<Integer, String> eContentITypes = new HashMap<Integer, String>();
+	
+	private HashMap<String, ArrayList<OrderRecord>> orderRecords = new HashMap<String, ArrayList<OrderRecord>>();
+	
+	private Connection vufindConn;
+	private Connection econtentConn;
+	
 	public boolean init(String serverName, Ini configIni, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
+		this.vufindConn = vufindConn;
+		this.econtentConn = econtentConn;
 
 		marcRecordPath = configIni.get("Reindex", "marcPath");
 		// Get the directory where the marc records are stored.vufindConn
 		if (marcRecordPath == null || marcRecordPath.length() == 0) {
 			logger.error("Marc Record Path not found in Reindex Settings.  Please specify the path as the marcPath key.");
+			return false;
+		}
+		
+		individualMarcPath = configIni.get("Reindex", "individualMarcPath");
+		if (individualMarcPath == null || individualMarcPath.length() == 0) {
+			logger.error("Individual Marc Record Path not found in Reindex Settings.  Please specify the path as the marcPath key.");
 			return false;
 		}
 
@@ -130,20 +149,17 @@ public class MarcProcessor {
 			return false;
 		}
 		
-		//Determine whether or not we should use threads to reduce processing time
-		String useThreadsStr = configIni.get("Reindex", "useThreads");
-		if (marcEncoding == null || marcEncoding.length() == 0) {
-			useThreads = false;
-		}else{
-			useThreads = Boolean.parseBoolean(useThreadsStr);
-		}
-		
 		idsToProcess = Util.cleanIniValue(configIni.get("Reindex", "idsToProcess"));
 		if (idsToProcess == null || idsToProcess.length() == 0){
 			idsToProcess = null;
 			logger.debug("Did not load a set of idsToProcess");
 		}else{
 			logger.debug("idsToProcess = " + idsToProcess);
+		}
+
+		String forceIndividualMarcFileWriteStr = configIni.get("Reindex", "forceIndividualMarcFileWrite");
+		if (forceIndividualMarcFileWriteStr != null && forceIndividualMarcFileWriteStr.equalsIgnoreCase("true")){
+			forceIndividualMarcFileWrite = true;
 		}
 
 		// Setup where to look for translation maps
@@ -183,13 +199,8 @@ public class MarcProcessor {
 		urlSubfield = configIni.get("Reindex", "itemUrlSubfield");
 		locationSubfield = configIni.get("Reindex", "locationSubfield");
 		sharedEContentLocation = configIni.get("Reindex", "sharedEContentLocation");
-		String scrapeItemsForLinksStr = configIni.get("Reindex", "scrapeItemsForLinks");
-		if (scrapeItemsForLinksStr != null) {
-			scrapeItemsForLinks = Boolean.parseBoolean(scrapeItemsForLinksStr);
-		}
-		catalogUrl = configIni.get("Catalog", "url");
 
-		// Load the checksums of any marc records that have been loaded already
+		// Load the checksum of any marc records that have been loaded already
 		// This allows us to detect whether or not the record is new, has changed,
 		// or is deleted
 		logger.info("Loading existing checksums for records");
@@ -227,34 +238,6 @@ public class MarcProcessor {
 			return false;
 		}
 		
-		String useEContentDetectionSettingsStr = configIni.get("Reindex", "useEContentDetectionSettings");
-		if (useEContentDetectionSettingsStr != null){
-			useEContentDetectionSettings = Boolean.parseBoolean(useEContentDetectionSettingsStr);
-		}
-
-		// Load detection settings to determine if a record is eContent.
-		if (useEContentDetectionSettings){
-			logger.info("Loading record detection settings");
-			ReindexProcess.addNoteToCronLog("Loading record detection settings");
-			try {
-				PreparedStatement eContentDetectionSettingsStmt = econtentConn.prepareStatement("SELECT * FROM econtent_record_detection_settings", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				ResultSet eContentDetectionSettingsRS = eContentDetectionSettingsStmt.executeQuery();
-				while (eContentDetectionSettingsRS.next()) {
-					DetectionSettings settings = new DetectionSettings();
-					settings.setFieldSpec(eContentDetectionSettingsRS.getString("fieldSpec"));
-					settings.setValueToMatch(eContentDetectionSettingsRS.getString("valueToMatch"));
-					settings.setSource(eContentDetectionSettingsRS.getString("source"));
-					settings.setAccessType(eContentDetectionSettingsRS.getString("accessType"));
-					settings.setItem_type(eContentDetectionSettingsRS.getString("item_type"));
-					settings.setAdd856FieldsAsExternalLinks(eContentDetectionSettingsRS.getBoolean("add856FieldsAsExternalLinks"));
-					detectionSettings.add(settings);
-				}
-			} catch (SQLException e) {
-				logger.error("Unable to load detection settings for eContent.", e);
-				return false;
-			}
-		}
-
 		// Load ratings for print and eContent titles
 		logger.info("Loading ratings");
 		ReindexProcess.addNoteToCronLog("Loading ratings");
@@ -284,11 +267,24 @@ public class MarcProcessor {
 
 		// Load information from library table
 		try {
-			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, facetLabel, eContentLinkRules, overdriveAdvantageProductsKey from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, subdomain, facetLabel, defaultLibraryFacet, eContentLinkRules, overdriveAdvantageProductsKey, ilsCode from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet librarySystemFacetRS = librarySystemFacetStmt.executeQuery();
 			while (librarySystemFacetRS.next()) {
+				Long libraryId = librarySystemFacetRS.getLong("libraryId");
 				String facetLabel = librarySystemFacetRS.getString("facetLabel");
-				librarySystemFacets.put(facetLabel, librarySystemFacetRS.getLong("libraryId"));
+				String librarySubdomain = librarySystemFacetRS.getString("subdomain");
+				String ilsCode = librarySystemFacetRS.getString("ilsCode");
+				LibraryIndexingInfo libraryInfo = new LibraryIndexingInfo();
+				librarySubdomains.add(librarySubdomain);
+				libraryInfo.setLibraryId(libraryId);
+				libraryInfo.setSubdomain(librarySubdomain);
+				//libraryInfo.setScoped(defaultLibraryFacet.length() > 0);
+				libraryInfo.setFacetLabel(facetLabel);
+				libraryInfo.setIlsCode(ilsCode);
+				libraryIndexingInfo.put(libraryId, libraryInfo);
+				libraryIds.add(libraryId);
+				
+				librarySystemFacets.put(facetLabel, libraryId);
 				String eContentLinkRulesStr = librarySystemFacetRS.getString("eContentLinkRules");
 				if (eContentLinkRulesStr != null && eContentLinkRulesStr.length() > 0) {
 					eContentLinkRulesStr = ".*(" + eContentLinkRulesStr.toLowerCase() + ").*";
@@ -300,18 +296,39 @@ public class MarcProcessor {
 					advantageLibraryFacets.add(facetLabel);
 				}
 			}
+			logger.debug("Loaded " + librarySubdomains.size() + " librarySubdomains");
 		} catch (SQLException e) {
 			logger.error("Unable to load library System Facet information", e);
 			return false;
 		}
 		
 		try {
-			PreparedStatement locationFacetStmt = vufindConn.prepareStatement("SELECT locationId, facetLabel from location", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement locationFacetStmt = vufindConn.prepareStatement("SELECT locationId, libraryId, facetLabel, restrictSearchByLocation, code, extraLocationCodesToInclude, suppressHoldings from location", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet locationFacetRS = locationFacetStmt.executeQuery();
 			while (locationFacetRS.next()) {
+				Long libraryId = locationFacetRS.getLong("libraryId");
+				Long locationId = locationFacetRS.getLong("locationId");
+				String facetLabel = locationFacetRS.getString("facetLabel");
+				String code = locationFacetRS.getString("code").trim();
+				locationCodes.add(code);
+				//boolean restrictSearchByLocation = locationFacetRS.getBoolean("restrictSearchByLocation");
 				//logger.debug(locationFacetRS.getString("facetLabel") + " = " + locationFacetRS.getLong("locationId"));
-				locationFacets.put(locationFacetRS.getString("facetLabel"), locationFacetRS.getLong("locationId"));
+				locationFacets.put(facetLabel, locationId);
+				//Load information for indexing items
+				LibraryIndexingInfo libraryInfo = libraryIndexingInfo.get(libraryId);
+				
+				LocationIndexingInfo locationInfo = new LocationIndexingInfo();
+				locationInfo.setLibraryId(libraryId);
+				locationInfo.setLocationId(locationId);
+				locationInfo.setFacetLabel(facetLabel);
+				//locationInfo.setScoped(restrictSearchByLocation);
+				locationInfo.setCode(code);
+				locationInfo.setExtraLocationCodesToInclude(locationFacetRS.getString("extraLocationCodesToInclude").trim());
+				locationInfo.setSuppressHoldings(locationFacetRS.getBoolean("suppressHoldings"));
+				libraryInfo.addLocation(locationInfo);
+				
 			}
+			logger.debug("Loaded " + locationCodes.size() + " locations");
 		} catch (SQLException e) {
 			logger.error("Unable to load location Facet information", e);
 			return false;
@@ -321,6 +338,45 @@ public class MarcProcessor {
 		String lexileExportPath = configIni.get("Reindex", "lexileExportPath");
 		if (lexileExportPath != null && lexileExportPath.length() > 0){
 			loadLexileInfo(lexileExportPath);
+		}
+		
+		//Load loan rules
+		try {
+			PreparedStatement pTypesStmt = vufindConn.prepareStatement("SELECT pType from ptype", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet pTypesRS = pTypesStmt.executeQuery();
+			while (pTypesRS.next()) {
+				pTypes.add(pTypesRS.getLong("pType"));
+			}
+			
+			PreparedStatement loanRuleStmt = vufindConn.prepareStatement("SELECT * from loan_rules", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet loanRulesRS = loanRuleStmt.executeQuery();
+			while (loanRulesRS.next()) {
+				LoanRule loanRule = new LoanRule();
+				loanRule.setLoanRuleId(loanRulesRS.getLong("loanRuleId"));
+				loanRule.setName(loanRulesRS.getString("name"));
+				loanRule.setHoldable(loanRulesRS.getBoolean("holdable"));
+				
+				loanRules.put(loanRule.getLoanRuleId(), loanRule);
+			}
+			logger.debug("Loaded " + loanRules.size() + " loan rules");
+			
+			PreparedStatement loanRuleDeterminersStmt = vufindConn.prepareStatement("SELECT * from loan_rule_determiners where active = 1 order by rowNumber DESC", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet loanRuleDeterminersRS = loanRuleDeterminersStmt.executeQuery();
+			while (loanRuleDeterminersRS.next()) {
+				LoanRuleDeterminer loanRuleDeterminer = new LoanRuleDeterminer();
+				loanRuleDeterminer.setLocation(loanRuleDeterminersRS.getString("location"));
+				loanRuleDeterminer.setPatronType(loanRuleDeterminersRS.getString("patronType"));
+				loanRuleDeterminer.setItemType(loanRuleDeterminersRS.getString("itemType"));
+				loanRuleDeterminer.setLoanRuleId(loanRuleDeterminersRS.getLong("loanRuleId"));
+				loanRuleDeterminer.setRowNumber(loanRuleDeterminersRS.getLong("rowNumber"));
+				
+				loanRuleDeterminers.add(loanRuleDeterminer);
+			}
+			
+			logger.debug("Loaded " + loanRuleDeterminers.size() + " loan rule determiner");
+		} catch (SQLException e) {
+			logger.error("Unable to load loan rules", e);
+			return false;
 		}
 
 		// Setup additional statements
@@ -332,8 +388,99 @@ public class MarcProcessor {
 			logger.error("Unable to setup statements for updating marc_import table", e);
 			return false;
 		}
+		
+		//Define iTypes that are treated as eContent. 
+		loadEContentITypes();
+		
+		loadOrderRecords();
+		
 		ReindexProcess.addNoteToCronLog("Finished setting up MarcProcessor");
 		return true;
+	}
+	
+	private void loadOrderRecords() {
+		logger.debug("Loading order records");
+		//Order records have the filename format {library}.marc.orders and are in the regular marc directory
+		File marcRecordDir = new File(marcRecordPath);
+		File[] orderFiles = marcRecordDir.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith(".marc.orders");
+			}
+		});
+		for (File curFile : orderFiles){
+			ReindexProcess.addNoteToCronLog("Loading order record file " + curFile);
+			String orderingLibrary = curFile.getName().substring(0, curFile.getName().indexOf('.'));
+			InputStream input;
+			try {
+				input = new FileInputStream(curFile);
+			} catch (FileNotFoundException e) {
+				logger.error("Unable to load file " + curFile + " to get order information", e);
+				continue;
+			}
+			MarcReader reader = new MarcPermissiveStreamReader(input, true, true, marcEncoding);
+			int curRecordIdx = 0;
+			while (reader.hasNext()){
+				curRecordIdx++;
+				Record curRecord = reader.next();
+				//Get the main record number
+				DataField recordField = (DataField)curRecord.getVariableField("907");
+				if (recordField == null || recordField.getSubfield('a') == null){
+					logger.warn("Did not find a record field for record " + curRecordIdx + " in library file " + orderingLibrary);
+					continue;
+				}
+				String recordId = recordField.getSubfield('a').getData();
+				DataField orderField = (DataField)curRecord.getVariableField("908");
+				String orderRecordId = orderField.getSubfield('a').getData();
+				@SuppressWarnings("unchecked")
+				List<DataField> orderItems = (List<DataField>)curRecord.getVariableFields("988");
+				if (orderItems != null){
+					for (DataField curItem: orderItems){
+						if (curItem.getSubfield('j') == null){
+							logger.debug("Did not find a location code subfield for item in order record " + recordId + " for " + orderingLibrary);
+							continue;
+						}
+						String locationCode = curItem.getSubfield('j').getData();
+						String status = curItem.getSubfield('k').getData();
+						if (!status.equals("a") && !status.equals("z") && !status.equals("q") && !status.equals("f") && !status.equals("d")){
+							if (!(status.equals("o") || status.equals("1"))){
+								logger.debug("Found new order status " + status + " " + orderingLibrary + " " + recordId);
+							}
+							OrderRecord orderRecord = new OrderRecord();
+							orderRecord.setRecordId(recordId);
+							orderRecord.setOrderRecordId(orderRecordId);
+							orderRecord.setStatus(status);
+							orderRecord.setOrderingLibrary(orderingLibrary);
+							orderRecord.setLocationCode(locationCode);
+							if (orderRecords.containsKey(recordId)){
+								orderRecords.get(recordId).add(orderRecord);
+							}else{
+								ArrayList<OrderRecord> orderRecordColl = new ArrayList<OrderRecord>();
+								orderRecordColl.add(orderRecord);
+								orderRecords.put(recordId, orderRecordColl);
+							}
+						}
+					}
+				}
+			}
+		}
+		logger.debug("loaded order records for " + orderRecords.size() + " records");
+	}
+
+	private void loadEContentITypes(){
+		Properties props = Utils.loadProperties(propertyFilePaths, "econtent_itype_link_type_map.properties");
+		for (Object iTypeObj : props.keySet()){
+			String iType = (String)iTypeObj;
+			eContentITypes.put(Integer.parseInt(iType), props.getProperty(iType));
+		}
+	}
+	
+	public boolean hasEContentITypes(){
+		return eContentITypes.size() > 0;
+	}
+	
+	public boolean isITypeEContent(Integer iType){
+		return eContentITypes.containsKey(iType);
 	}
 
 	private void loadLexileInfo(String lexileExportPath) {
@@ -345,18 +492,21 @@ public class MarcProcessor {
 				//Skip the first line
 				reader.readNext();
 				while ((nextLine = reader.readNext()) != null) {
-					LexileData lexileData = new LexileData();
-					lexileData.setIsbn(nextLine[3]);
-					lexileData.setLexileCode(nextLine[4]);
-					if (nextLine[5] != null && nextLine[5].length() > 0){
-						lexileData.setLexileScore(nextLine[5]);
-					}else{
-						lexileData.setLexileScore(null);
+					if (nextLine.length >= 10){
+						LexileData lexileData = new LexileData();
+						lexileData.setIsbn(nextLine[3]);
+						lexileData.setLexileCode(nextLine[4]);
+						if (nextLine[5] != null && nextLine[5].length() > 0){
+							lexileData.setLexileScore(nextLine[5]);
+						}else{
+							lexileData.setLexileScore(null);
+						}
+						lexileData.setSeries(nextLine[9]);
+						lexileData.setAwards(nextLine[10]);
+						lexileInfo.put(lexileData.getIsbn(), lexileData);
 					}
-					lexileData.setSeries(nextLine[9]);
-					lexileData.setAwards(nextLine[10]);
-					lexileInfo.put(lexileData.getIsbn(), lexileData);
 				}
+				reader.close();
 				ReindexProcess.addNoteToCronLog("Finished loading lexile information.  Found " + lexileInfo.size() + " titles in lexile export.");
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -368,10 +518,6 @@ public class MarcProcessor {
 		}
 	}
 
-	public Set<String> getExistingEContentIds() {
-		return existingEContentIds;
-	}
-
 	public Map<String, Float> getPrintRatings() {
 		return printRatings;
 	}
@@ -380,14 +526,10 @@ public class MarcProcessor {
 		return econtentRatings;
 	}
 
-	public ArrayList<DetectionSettings> getDetectionSettings() {
-		return detectionSettings;
-	}
-
 	/**
 	 * Parse the properties
 	 * 
-	 * @param marcProperties
+	 * @param marcProperties properties file for defining the marc record creation
 	 */
 	private void processMarcFieldProperties(Properties marcProperties) {
 		Enumeration<?> en = marcProperties.propertyNames();
@@ -404,115 +546,116 @@ public class MarcProcessor {
 					// value is a constant if it starts with a quote
 					fieldDef[1] = "constant";
 					fieldDef[2] = propValue.trim().replaceAll("\"", "");
-				} else
-				// not a constant
-				{
-					// split it into two pieces at first comma or space
-					String values[] = propValue.split("[, ]+", 2);
-					if (values[0].startsWith("custom") || values[0].startsWith("script")) {
-						fieldDef[1] = values[0];
-
-						// parse sections of custom value assignment line in
-						// _index.properties file
-						String lastValues[];
-						// get rid of empty parens
-						if (values[1].indexOf("()") != -1) values[1] = values[1].replace("()", "");
-
-						// index of first open paren after custom method name
-						int parenIx = values[1].indexOf('(');
-
-						// index of first unescaped comma after method name
-						int commaIx = Utils.getIxUnescapedComma(values[1]);
-
-						if (parenIx != -1 && commaIx != -1 && parenIx < commaIx) {
-							// remainder should be split after close paren
-							// followed by comma (optional spaces in between)
-							lastValues = values[1].trim().split("\\) *,", 2);
-
-							// Reattach the closing parenthesis:
-							if (lastValues.length == 2) lastValues[0] += ")";
-						} else
-							// no parens - split comma preceded by optional spaces
-							lastValues = values[1].trim().split(" *,", 2);
-
-						fieldDef[2] = lastValues[0].trim();
-
-						fieldDef[3] = lastValues.length > 1 ? lastValues[1].trim() : null;
-						// is this a translation map?
-						if (fieldDef[3] != null && fieldDef[3].contains("map")) {
-							try {
-								fieldDef[3] = loadTranslationMap(marcProperties, fieldDef[3]);
-							} catch (IllegalArgumentException e) {
-								logger.error("Unable to find file containing specified translation map (" + fieldDef[3] + ")");
-								throw new IllegalArgumentException("Error: Problems reading specified translation map (" + fieldDef[3] + ")");
-							}
-						}
-					} // end custom
-					else if (values[0].equals("xml") || values[0].equals("raw") || values[0].equals("date") || values[0].equals("json") || values[0].equals("json2")
-							|| values[0].equals("index_date") || values[0].equals("era")) {
-						fieldDef[1] = "std";
-						fieldDef[2] = values[0];
-						fieldDef[3] = values.length > 1 ? values[1].trim() : null;
-						// NOTE: assuming no translation map here
-						if (fieldDef[2].equals("era") && fieldDef[3] != null) {
-							try {
-								fieldDef[3] = loadTranslationMap(marcProperties, fieldDef[3]);
-							} catch (IllegalArgumentException e) {
-								logger.error("Unable to find file containing specified translation map (" + fieldDef[3] + ")");
-								throw new IllegalArgumentException("Error: Problems reading specified translation map (" + fieldDef[3] + ")");
-							}
-						}
-					} else if (values[0].equalsIgnoreCase("FullRecordAsXML") || values[0].equalsIgnoreCase("FullRecordAsMARC")
-							|| values[0].equalsIgnoreCase("FullRecordAsJson") || values[0].equalsIgnoreCase("FullRecordAsJson2")
-							|| values[0].equalsIgnoreCase("FullRecordAsText") || values[0].equalsIgnoreCase("DateOfPublication")
-							|| values[0].equalsIgnoreCase("DateRecordIndexed")) {
-						fieldDef[1] = "std";
-						fieldDef[2] = values[0];
-						fieldDef[3] = values.length > 1 ? values[1].trim() : null;
-						// NOTE: assuming no translation map here
-					} else if (values.length == 1) {
-						fieldDef[1] = "all";
-						fieldDef[2] = values[0];
-						fieldDef[3] = null;
-					} else
-					// other cases of field definitions
-					{
-						String values2[] = values[1].trim().split("[ ]*,[ ]*", 2);
-						fieldDef[1] = "all";
-						if (values2[0].equals("first") || (values2.length > 1 && values2[1].equals("first"))) fieldDef[1] = "first";
-
-						if (values2[0].startsWith("join")) fieldDef[1] = values2[0];
-
-						if ((values2.length > 1 && values2[1].startsWith("join"))) fieldDef[1] = values2[1];
-
-						if (values2[0].equalsIgnoreCase("DeleteRecordIfFieldEmpty") || (values2.length > 1 && values2[1].equalsIgnoreCase("DeleteRecordIfFieldEmpty")))
-							fieldDef[1] = "DeleteRecordIfFieldEmpty";
-
-						fieldDef[2] = values[0];
-						fieldDef[3] = null;
-
-						// might we have a translation map?
-						if (!values2[0].equals("all") && !values2[0].equals("first") && !values2[0].startsWith("join")
-								&& !values2[0].equalsIgnoreCase("DeleteRecordIfFieldEmpty")) {
-							fieldDef[3] = values2[0].trim();
-							if (fieldDef[3] != null) {
-								try {
-									fieldDef[3] = loadTranslationMap(marcProperties, fieldDef[3]);
-								} catch (IllegalArgumentException e) {
-									logger.error("Unable to find file containing specified translation map (" + fieldDef[3] + ")");
-									throw new IllegalArgumentException("Error: Problems reading specified translation map (" + fieldDef[3] + ")");
-								}
-							}
-						}
-					} // other cases of field definitions
-
-				} // not a constant
+				} else { // not a constant
+					processNonConstantMarcField(marcProperties, propValue, fieldDef);
+				}
 
 				marcFieldProps.put(propName, fieldDef);
 
 			} // if not map or pattern_map
 
 		} // while enumerating through property names
+	}
+
+	private void processNonConstantMarcField(Properties marcProperties, String propValue, String[] fieldDef) {
+		// split it into two pieces at first comma or space
+		String values[] = propValue.split("[, ]+", 2);
+		if (values[0].startsWith("custom") || values[0].startsWith("script")) {
+			fieldDef[1] = values[0];
+
+			// parse sections of custom value assignment line in
+			// _index.properties file
+			String lastValues[];
+			// get rid of empty parens
+			if (values[1].contains("()")) values[1] = values[1].replace("()", "");
+
+			// index of first open paren after custom method name
+			int parenIx = values[1].indexOf('(');
+
+			// index of first unescaped comma after method name
+			int commaIx = Utils.getIxUnescapedComma(values[1]);
+
+			if (parenIx != -1 && commaIx != -1 && parenIx < commaIx) {
+				// remainder should be split after close paren
+				// followed by comma (optional spaces in between)
+				lastValues = values[1].trim().split("\\) *,", 2);
+
+				// Reattach the closing parenthesis:
+				if (lastValues.length == 2) lastValues[0] += ")";
+			} else
+				// no parens - split comma preceded by optional spaces
+				lastValues = values[1].trim().split(" *,", 2);
+
+			fieldDef[2] = lastValues[0].trim();
+
+			fieldDef[3] = lastValues.length > 1 ? lastValues[1].trim() : null;
+			// is this a translation map?
+			if (fieldDef[3] != null && fieldDef[3].contains("map")) {
+				try {
+					fieldDef[3] = loadTranslationMap(marcProperties, fieldDef[3]);
+				} catch (IllegalArgumentException e) {
+					logger.error("Unable to find file containing specified translation map (" + fieldDef[3] + ")");
+					throw new IllegalArgumentException("Error: Problems reading specified translation map (" + fieldDef[3] + ")");
+				}
+			}
+		} // end custom
+		else if (values[0].equals("xml") || values[0].equals("raw") || values[0].equals("date") || values[0].equals("json") || values[0].equals("json2")
+				|| values[0].equals("index_date") || values[0].equals("era")) {
+			fieldDef[1] = "std";
+			fieldDef[2] = values[0];
+			fieldDef[3] = values.length > 1 ? values[1].trim() : null;
+			// NOTE: assuming no translation map here
+			if (fieldDef[2].equals("era") && fieldDef[3] != null) {
+				try {
+					fieldDef[3] = loadTranslationMap(marcProperties, fieldDef[3]);
+				} catch (IllegalArgumentException e) {
+					logger.error("Unable to find file containing specified translation map (" + fieldDef[3] + ")");
+					throw new IllegalArgumentException("Error: Problems reading specified translation map (" + fieldDef[3] + ")");
+				}
+			}
+		} else if (values[0].equalsIgnoreCase("FullRecordAsXML") || values[0].equalsIgnoreCase("FullRecordAsMARC")
+				|| values[0].equalsIgnoreCase("FullRecordAsJson") || values[0].equalsIgnoreCase("FullRecordAsJson2")
+				|| values[0].equalsIgnoreCase("FullRecordAsText") || values[0].equalsIgnoreCase("DateOfPublication")
+				|| values[0].equalsIgnoreCase("DateRecordIndexed")) {
+			fieldDef[1] = "std";
+			fieldDef[2] = values[0];
+			fieldDef[3] = values.length > 1 ? values[1].trim() : null;
+			// NOTE: assuming no translation map here
+		} else if (values.length == 1) {
+			fieldDef[1] = "all";
+			fieldDef[2] = values[0];
+			fieldDef[3] = null;
+		} else
+		// other cases of field definitions
+		{
+			String values2[] = values[1].trim().split("[ ]*,[ ]*", 2);
+			fieldDef[1] = "all";
+			if (values2[0].equals("first") || (values2.length > 1 && values2[1].equals("first"))) fieldDef[1] = "first";
+
+			if (values2[0].startsWith("join")) fieldDef[1] = values2[0];
+
+			if ((values2.length > 1 && values2[1].startsWith("join"))) fieldDef[1] = values2[1];
+
+			if (values2[0].equalsIgnoreCase("DeleteRecordIfFieldEmpty") || (values2.length > 1 && values2[1].equalsIgnoreCase("DeleteRecordIfFieldEmpty")))
+				fieldDef[1] = "DeleteRecordIfFieldEmpty";
+
+			fieldDef[2] = values[0];
+			fieldDef[3] = null;
+
+			// might we have a translation map?
+			if (!values2[0].equals("all") && !values2[0].equals("first") && !values2[0].startsWith("join")
+					&& !values2[0].equalsIgnoreCase("DeleteRecordIfFieldEmpty")) {
+				fieldDef[3] = values2[0].trim();
+				if (fieldDef[3] != null) {
+					try {
+						fieldDef[3] = loadTranslationMap(marcProperties, fieldDef[3]);
+					} catch (IllegalArgumentException e) {
+						logger.error("Unable to find file containing specified translation map (" + fieldDef[3] + ")");
+						throw new IllegalArgumentException("Error: Problems reading specified translation map (" + fieldDef[3] + ")");
+					}
+				}
+			}
+		} // other cases of field definitions
 	}
 
 	/**
@@ -528,8 +671,8 @@ public class MarcProcessor {
 	protected String loadTranslationMap(Properties indexProps, String translationMapSpec) {
 		if (translationMapSpec.length() == 0) return null;
 
-		String mapName = null;
-		String mapKeyPrefix = null;
+		String mapName;
+		String mapKeyPrefix;
 		if (translationMapSpec.startsWith("(") && translationMapSpec.endsWith(")")) {
 			// translation map entries are in passed Properties object
 			mapName = translationMapSpec.replaceAll("[\\(\\)]", "");
@@ -537,19 +680,19 @@ public class MarcProcessor {
 			loadTranslationMapValues(indexProps, mapName, mapKeyPrefix);
 		} else {
 			// translation map is a separate file
-			String transMapFname = null;
+			String transMapFileName;
 			if (translationMapSpec.contains("(") && translationMapSpec.endsWith(")")) {
 				String mapSpec[] = translationMapSpec.split("(//s|[()])+");
-				transMapFname = mapSpec[0];
+				transMapFileName = mapSpec[0];
 				mapName = mapSpec[1];
 				mapKeyPrefix = mapName;
 			} else {
-				transMapFname = translationMapSpec;
+				transMapFileName = translationMapSpec;
 				mapName = translationMapSpec.replaceAll(".properties", "");
 				mapKeyPrefix = "";
 			}
 
-			if (findMap(mapName) == null) loadTranslationMapValues(transMapFname, mapName, mapKeyPrefix);
+			if (findMap(mapName) == null) loadTranslationMapValues(transMapFileName, mapName, mapKeyPrefix);
 		}
 
 		return mapName;
@@ -587,9 +730,8 @@ public class MarcProcessor {
 	 *          transMapMap)
 	 */
 	public void loadTranslationMapValues(String transMapName, String mapName, String mapKeyPrefix) {
-		Properties props = null;
-		props = Utils.loadProperties(propertyFilePaths, transMapName);
-		logger.debug("Loading Custom Map: " + transMapName + " found " + props.size() + " properties");
+		Properties props = Utils.loadProperties(propertyFilePaths, transMapName);
+		//logger.debug("Loading Custom Map: " + transMapName + " found " + props.size() + " properties");
 		loadTranslationMapValues(props, mapName, mapKeyPrefix);
 	}
 
@@ -633,13 +775,12 @@ public class MarcProcessor {
 	 * Process the marc record and extract all fields from the raw marc record
 	 * according to field rules.
 	 * 
-	 * @param marcRecord
-	 * @param logger
-	 * @return
+	 * @param marcRecord - The record to process
+	 * @param logger - logger to log to
+	 * @return information about the record that has been processed
 	 */
 	protected MarcRecordDetails mapMarcInfo(Record marcRecord, Logger logger) {
-		MarcRecordDetails basicInfo = new MarcRecordDetails(this, marcRecord, logger);
-		return basicInfo;
+		return new MarcRecordDetails(this, marcRecord, logger);
 	}
 
 	protected boolean processMarcFiles(final ArrayList<IMarcRecordProcessor> recordProcessors, final Logger logger) {
@@ -651,11 +792,7 @@ public class MarcProcessor {
 				marcFiles = marcRecordDirectory.listFiles(new FilenameFilter() {
 					@Override
 					public boolean accept(File dir, String name) {
-						if (name.matches("(?i).*?\\.(marc|mrc)")) {
-							return true;
-						} else {
-							return false;
-						}
+						return name.matches("(?i).*?\\.(marc|mrc)");
 					}
 				});
 			} else {
@@ -663,27 +800,8 @@ public class MarcProcessor {
 			}
 
 			// Loop through each marc record
-			if (useThreads){
-				ArrayList<MarcProcessorThread> indexingThreads = new ArrayList<MarcProcessorThread>();
-				for (final File marcFile : marcFiles) {
-					MarcProcessorThread marcFileProcess = new MarcProcessorThread(recordProcessors, logger, marcFile);
-					indexingThreads.add(marcFileProcess);
-					marcFileProcess.start();
-				}
-				
-				//Wait for the processes to stop
-				while (true){
-					for(MarcProcessorThread indexThread : indexingThreads){
-						if (!indexThread.isFinished()){
-							Thread.yield();
-							Thread.sleep(500);
-						}
-					}
-				}
-			}else{
-				for (final File marcFile : marcFiles) {
-					processMarcFile(recordProcessors, logger, marcFile);
-				}
+			for (final File marcFile : marcFiles) {
+				processMarcFile(recordProcessors, logger, marcFile);
 			}
 			return true;
 		} catch (Exception e) {
@@ -703,6 +821,10 @@ public class MarcProcessor {
 			InputStream input = new FileInputStream(marcFile);
 			MarcReader reader = new MarcPermissiveStreamReader(input, true, true, marcEncoding);
 			int recordNumber = 0;
+			
+			vufindConn.setAutoCommit(false);
+			econtentConn.setAutoCommit(false);
+			
 			while (reader.hasNext()) {
 				recordNumber++;
 				try {
@@ -716,7 +838,10 @@ public class MarcProcessor {
 						String id = marcInfo.getId();
 						if (id == null) {
 							System.out.println("Could not load id for marc record " + recordNumber);
-							System.out.println(marcFieldProps.get("id").toString());
+							String[] marcId = marcFieldProps.get("id");
+							if (marcId.length > 0){
+								System.out.println(marcId[0]);
+							}
 							continue;
 						}
 						//Check the list of ids to process if any to see if we should skip this recod
@@ -751,17 +876,32 @@ public class MarcProcessor {
 							logger.debug("Record is new");
 							recordStatus = RECORD_NEW;
 						}
+						//Write the individual file 
+						String shortId = marcInfo.getIlsId().replace(".", "");
+						String firstChars = shortId.substring(0, 4);
+						String basePath = individualMarcPath + "/" + firstChars;
+						String individualFilename = basePath + "/" + shortId + ".mrc";
+						File individualFile = new File(individualFilename);
+						if (recordStatus == RECORD_NEW || recordStatus == RECORD_CHANGED_PRIMARY || !individualFile.exists() || forceIndividualMarcFileWrite){
+							File baseFile = new File(basePath);
+							if (!baseFile.exists()){
+								if (!baseFile.mkdirs()){
+									logger.warn("Could not create ");
+								}
+							}
+
+							OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(individualFile,false), Charset.forName("UTF-8").newEncoder());
+							writer.write(marcInfo.getRawRecord());
+							writer.close();
+						}
 						
 						for (IMarcRecordProcessor processor : recordProcessors) {
-							// System.out.println("Running processor " +
-							// processor.getClass().getName());
 							//logger.debug(recordNumber + " - " + processor.getClass().getName() + " - " + marcInfo.getId());
 							processor.processMarcRecord(this, marcInfo, recordStatus, logger);
 						}
 
 						updateMarcRecordChecksum(marcRecordId, marcInfo, recordStatus, marcIndexedInfo);
 					}
-					marcInfo = null;
 					recordsProcessed++;
 					if (maxRecordsToProcess != -1 && recordsProcessed > maxRecordsToProcess) {
 						ReindexProcess.addNoteToCronLog("Stopping processing because maximum number of records to process was reached.");
@@ -770,6 +910,8 @@ public class MarcProcessor {
 					}
 					if (recordsProcessed % 1000 == 0){
 						ReindexProcess.updateLastUpdateTime();
+						vufindConn.commit();
+						econtentConn.commit();
 					}
 				} catch (Exception e) {
 					ReindexProcess.addNoteToCronLog("Exception processing record " + recordNumber + " - " + e.toString());
@@ -779,6 +921,10 @@ public class MarcProcessor {
 					logger.error("Error processing record " + recordNumber, e);
 				}
 			}
+			vufindConn.commit();
+			econtentConn.commit();
+			vufindConn.setAutoCommit(true);
+			econtentConn.setAutoCommit(true);
 			input.close();
 			logger.info("Finished processing file " + marcFile.toString() + " found " + recordNumber + " records");
 			ReindexProcess.addNoteToCronLog("Finished processing file " + marcFile.toString() + " found " + recordNumber + " records");
@@ -819,8 +965,8 @@ public class MarcProcessor {
 	 * a new BeanShell Interpreter, and have that Interpreter process the named
 	 * script.
 	 * 
-	 * @param scriptFileName
-	 * @return
+	 * @param scriptFileName - The name of the BeanShell script to run
+	 * @return An interpreter to process the field
 	 */
 	public Interpreter getInterpreterForScript(String scriptFileName) {
 		if (scriptMap.containsKey(scriptFileName)) {
@@ -864,6 +1010,9 @@ public class MarcProcessor {
 	public String getLibrarySystemFacetForId(Long libraryId){
 		return libraryIdToSystemFacets.get(libraryId);
 	}
+	public Set<String> getLibrarySystemFacets(){
+		return librarySystemFacets.keySet();
+	}
 	public Long getLocationIdFromFacet(String locationFacet){
 		return locationFacets.get(locationFacet);
 	}
@@ -875,33 +1024,6 @@ public class MarcProcessor {
 			}
 		}
 		return -1L;
-	}
-
-	public boolean isScrapeItemsForLinks() {
-		return scrapeItemsForLinks;
-	}
-	
-	private class MarcProcessorThread extends Thread {
-		private ArrayList<IMarcRecordProcessor> recordProcessors;
-		private Logger logger;
-		private File marcFile;
-		private boolean finished;
-		public MarcProcessorThread(ArrayList<IMarcRecordProcessor> recordProcessors, Logger logger, File marcFile) {
-			this.recordProcessors = recordProcessors;
-			this.logger = logger;
-			this.marcFile = marcFile;
-		}
-		public void run(){
-			MarcProcessor.this.processMarcFile(recordProcessors, logger, marcFile);
-			this.finished = true;
-		}
-		public boolean isFinished(){
-			return finished;
-		}
-	}
-
-	public String getCatalogUrl() {
-		return catalogUrl;
 	}
 
 	public LexileData getLexileDataForIsbn(String isbn) {
@@ -933,5 +1055,107 @@ public class MarcProcessor {
 
 	public ArrayList<String> getAdvantageLibraryFacets() {
 		return advantageLibraryFacets;
+	}
+
+	public LibraryIndexingInfo getLibraryIndexingInfo(Long libraryId) {
+		return libraryIndexingInfo.get(libraryId);
+	}
+
+	private HashMap<String, LocationIndexingInfo> locationIndexingInfoByCode = new HashMap<String, LocationIndexingInfo>();
+	public LocationIndexingInfo getLocationIndexingInfo(String locationCode) {
+		if (locationIndexingInfoByCode.containsKey(locationCode)){
+			return locationIndexingInfoByCode.get(locationCode);
+		}
+		for (LibraryIndexingInfo libraryInfo : libraryIndexingInfo.values()){
+			LocationIndexingInfo locationInfo = libraryInfo.getLocationIndexingInfo(locationCode);
+			if (locationInfo != null){
+				locationIndexingInfoByCode.put(locationCode, locationInfo);
+				return locationInfo;
+			}
+		}
+		return null;
+	}
+	
+	private HashMap<String, LinkedHashSet<String>> extraLocationIndexingInfoByCode = new HashMap<String, LinkedHashSet<String>>();
+	public LinkedHashSet<String> getExtraLocations(String locationCode) {
+		if (extraLocationIndexingInfoByCode.containsKey(locationCode)){
+			return extraLocationIndexingInfoByCode.get(locationCode);
+		}
+		LinkedHashSet<String> extraLocations = new LinkedHashSet<String>();
+		for (LibraryIndexingInfo libraryInfo : libraryIndexingInfo.values()){
+			LinkedHashSet<String> locationInfo = libraryInfo.getExtraLocationIndexingInfo(locationCode);
+			if (locationInfo != null){
+				extraLocations.addAll(locationInfo);
+			}
+		}
+		extraLocationIndexingInfoByCode.put(locationCode, extraLocations);
+		return extraLocations;
+	}
+
+	public ArrayList<String> getLocationCodes() {
+		return locationCodes;
+	}
+	
+	public ArrayList<String> getLibrarySubdomains() {
+		return librarySubdomains;
+	}
+	
+	public ArrayList<Long> getLibraryIds() {
+		return libraryIds;
+	}
+
+	private HashMap<String, LinkedHashSet<String>> ptypesByItypeAndLocation = new HashMap<String, LinkedHashSet<String>>();
+	public LinkedHashSet<String> getCompatiblePTypes(String iType, String locationCode) {
+		String cacheKey = iType + ":" + locationCode;
+		if (ptypesByItypeAndLocation.containsKey(cacheKey)){
+			return ptypesByItypeAndLocation.get(cacheKey);
+		}
+		//logger.debug("getCompatiblePTypes for " + cacheKey);
+		LinkedHashSet<String> result = new LinkedHashSet<String>();
+		Long iTypeLong = Long.parseLong(iType);
+		//Loop through all patron types to see if the item is holdable
+		for (Long pType : pTypes){
+			//logger.debug("  Checking pType " + pType);
+			//Loop through the loan rules to see if this itype can be used based on the location code
+			for (LoanRuleDeterminer curDeterminer : loanRuleDeterminers){
+				//logger.debug("   Checking determiner " + curDeterminer.getRowNumber() + " " + curDeterminer.getLocation());
+				//Make sure the location matchs
+				if (curDeterminer.matchesLocation(locationCode)){
+					//logger.debug("    " + curDeterminer.getRowNumber() + " matches location");
+					if (curDeterminer.getItemType().equals("999") || curDeterminer.getItemTypes().contains(iTypeLong)){
+						//logger.debug("    " + curDeterminer.getRowNumber() + " matches iType");
+						if (curDeterminer.getPatronType().equals("999") || curDeterminer.getPatronTypes().contains(pType)){
+							//logger.debug("    " + curDeterminer.getRowNumber() + " matches pType");
+							LoanRule loanRule = loanRules.get(curDeterminer.getLoanRuleId());
+							if (loanRule.getHoldable().equals(Boolean.TRUE)){
+								result.add(pType.toString());
+							}
+							//We got a match, stop processig
+							//logger.debug("    using determiner " + curDeterminer.getRowNumber() + " for ptype " + pType);
+							break;
+						}
+					}
+				}
+			}
+		}
+		//logger.debug("  " + result.size() + " ptypes can use this");
+		ptypesByItypeAndLocation.put(cacheKey, result);
+		return result;
+	}
+
+	private HashSet<String> allPtypes;
+	public Set<String> getAllPTypes() {
+		if (allPtypes != null){
+			return allPtypes;
+		}
+		allPtypes = new LinkedHashSet<String>();
+		for (Long pType : pTypes){
+			allPtypes.add(pType.toString());
+		}
+		return allPtypes;
+	}
+
+	public ArrayList<OrderRecord> getOrderRecordsById(String ilsId) {
+		return orderRecords.get(ilsId);
 	}
 }

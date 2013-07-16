@@ -4,7 +4,7 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
-require_once 'sys/SolrDataObject.php';
+require_once ROOT_DIR . '/sys/SolrDataObject.php';
 
 class EContentItem extends DB_DataObject {
 	public $__table = 'econtent_item';    // table name
@@ -41,7 +41,7 @@ class EContentItem extends DB_DataObject {
 		return array('id', 'filename', 'folder');
 	}
 
-	function getObjectStructure(){
+	static function getObjectStructure(){
 		global $configArray;
 
 		//Load Libraries for lookup values
@@ -357,7 +357,7 @@ class EContentItem extends DB_DataObject {
 		}
 		//If the file should be protected with the ACS server, submit the file
 		//to the ACS server for protection.
-		require_once 'sys/AdobeContentServer.php';
+		require_once ROOT_DIR . '/sys/AdobeContentServer.php';
 		global $configArray;
 		global $user;
 		$fileUploaded = false;
@@ -382,12 +382,13 @@ class EContentItem extends DB_DataObject {
 		}
 
 		//Make sure to also update the record this is attached to so the full text can be generated
-		if ($this->item_type == 'epub' || $this->item_type == 'pdf'){
+		//Do not update parent for now, it will be indexed the next time the index runs.
+		/*if ($this->item_type == 'epub' || $this->item_type == 'pdf'){
 			$record = new EContentRecord();
 			$record->id = $this->recordId;
 			$record->find(true);
 			$record->update();
-		}
+		}*/
 		return $ret;
 
 	}
@@ -397,7 +398,7 @@ class EContentItem extends DB_DataObject {
 			$this->reviewStatus = 'Not Reviewed';
 		}
 		if ($this->getAccessType() == 'acs' && ($this->item_type == 'epub' || $this->item_type == 'pdf')){
-			require_once 'sys/AdobeContentServer.php';
+			require_once ROOT_DIR . '/sys/AdobeContentServer.php';
 			global $configArray;
 			$uploadResults = AdobeContentServer::packageFile($configArray['EContent']['library'] . '/' . $this->filename, $this->recordId, $this->id, $this->acsId, $this->getAvailableCopies());
 			if ($uploadResults['success']){
@@ -433,7 +434,7 @@ class EContentItem extends DB_DataObject {
 			if ($this->item_type == 'text'){
 				return file_get_contents($textFile);
 			}elseif ($this->item_type == 'epub'){
-				require_once('sys/eReader/ebook.php');
+				require_once(ROOT_DIR . '/sys/eReader/ebook.php');
 				$epubFile = $configArray['EContent']['library'] . '/'. $this->filename;
 				$ebook = new ebook($epubFile);
 				if (!$ebook->readErrorOccurred()){
@@ -475,7 +476,7 @@ class EContentItem extends DB_DataObject {
 
 	function getRecord(){
 		if ($this->_record == null){
-			require_once('sys/eContent/EContentRecord.php');
+			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
 			$record = new EContentRecord();
 			$record->id = $this->recordId;
 			if ($record->find(true)){
@@ -525,23 +526,144 @@ class EContentItem extends DB_DataObject {
 			return 'Unknown';
 		}
 	}
+
+	function getFormatNotes(){
+		$notes = '';
+		if ($this->item_type == 'mp3'){
+
+		}else if ($this->item_type == 'epub'){
+
+		}else if ($this->item_type == 'kindle'){
+
+		}else if ($this->item_type == 'plucker'){
+
+		}else if ($this->item_type == 'pdf'){
+
+		}else if ($this->item_type == 'externalMP3'){
+
+		}else if ($this->item_type == 'external_ebook'){
+			$source = $this->getSource();
+			if ($source == 'SpringerLink'){
+				//$notes = "May be read online or downloaded as a PDF";
+			}elseif (preg_match('/ebsco/i', $source)){
+				$notes = "May be read online. Portions can be printed as a PDF.";
+			}
+
+		}else if ($this->item_type == 'externalLink'){
+
+		}else if ($this->item_type == 'overdrive'){
+			if ($this->externalFormatId == 'audiobook-mp3'){
+				$notes = "Works on MP3 Players, PCs, and Macs. Some mobile devices may require an application to be installed.";
+			}else if ($this->externalFormatId == 'audiobook-wma'){
+				$notes = "Works on Windows PCs and some devices that can be connected to a Windows PC.";
+			}else if ($this->externalFormatId == 'video-wmv'){
+				$notes = "Works on Windows PCs and some devices that can be connected to a Windows PC.";
+			}else if ($this->externalFormatId == 'music-wma'){
+				$notes = "Works on Windows PCs and some devices that can be connected to a Windows PC.";
+			}else if ($this->externalFormatId == 'ebook-kindle'){
+				$notes = "Works on Kindles and devices with a Kindle app installed.";
+			}else if ($this->externalFormatId == 'ebook-epub-adobe'){
+				$notes = "Works on all eReaders (except Kindles), desktop computers and mobile devices with with reading apps installed.";
+			}else if ($this->externalFormatId == 'ebook-pdf-adobe'){
+
+			}else if ($this->externalFormatId == 'ebook-epub-open'){
+				$notes = "Works on all eReaders (except Kindles), desktop computers and mobile devices with with reading apps installed.";
+			}else if ($this->externalFormatId == 'ebook-pdf-open'){
+
+			}else{
+
+			}
+		}else if ($this->item_type == 'external_eaudio'){
+
+		}else if ($this->item_type == 'external_emusic'){
+
+		}else if ($this->item_type == 'text'){
+
+		}else if ($this->item_type == 'itunes'){
+
+		}else if ($this->item_type == 'gifs'){
+
+		}else{
+
+		}
+		return $notes;
+	}
+
+	function getDisplayFormat(){
+		if ($this->externalFormat){
+			return $this->externalFormat;
+		}else{
+			return translate($this->item_type);
+		}
+	}
+
+	function getHelpText(){
+		$helpText = '';
+		if ($this->item_type == 'mp3'){
+			$helpText = "How to use a MP3";
+		}else if ($this->item_type == 'epub'){
+			$helpText = "How to use an EPUB eBook";
+		}else if ($this->item_type == 'kindle'){
+			$helpText = "How to use a Kindle eBook";
+		}else if ($this->item_type == 'plucker'){
+
+		}else if ($this->item_type == 'pdf'){
+			$helpText = "How to use a PDF eBook";
+		}else if ($this->item_type == 'externalMP3'){
+
+		}else if ($this->item_type == 'external_ebook'){
+			$source = $this->getSource();
+			if ($source == 'SpringerLink'){
+				//$helpText = "How to use SpringerLink eBooks";
+			}elseif (preg_match('/ebsco/i', $source)){
+				$helpText = "How to use an EBSCO eBook";
+			}
+		}else if ($this->item_type == 'externalLink'){
+
+		}else if ($this->item_type == 'overdrive'){
+			if ($this->externalFormatId == 'audiobook-mp3'){
+				$helpText = "How to use a MP3 Audiobook";
+			}else if ($this->externalFormatId == 'audiobook-wma'){
+				$helpText = "How to use a WMA Audiobook";
+			}else if ($this->externalFormatId == 'video-wmv'){
+				$helpText = "How to use a WMV Video";
+			}else if ($this->externalFormatId == 'music-wma'){
+				$helpText = "How to use WMA Music";
+			}else if ($this->externalFormatId == 'ebook-kindle'){
+				$helpText = "How to use a Kindle eBook";
+			}else if ($this->externalFormatId == 'ebook-epub-adobe'){
+				$helpText = "How to use an EPUB eBook";
+			}else if ($this->externalFormatId == 'ebook-pdf-adobe'){
+				$helpText = "How to use a PDF eBook";
+			}else if ($this->externalFormatId == 'ebook-epub-open'){
+				$helpText = "How to use an EPUB eBook";
+			}else if ($this->externalFormatId == 'ebook-pdf-open'){
+				$helpText = "How to use a PDF eBook";
+			}else{
+
+			}
+		}else if ($this->item_type == 'external_eaudio'){
+
+		}else if ($this->item_type == 'external_emusic'){
+
+		}else if ($this->item_type == 'text'){
+
+		}else if ($this->item_type == 'itunes'){
+
+		}else if ($this->item_type == 'gifs'){
+
+		}else{
+
+		}
+		return $helpText;
+	}
 	function getUsageNotes(){
 		$notes = '';
-		if ($this->libraryId == -1){
-			if ($this->getAccessType() == 'external'){
-				$notes = "Available from external provider.";
-			}elseif ($this->getAccessType() == 'free'){
-				$notes = "Must be checked out to read.";
-			}elseif ($this->getAccessType() == 'acs' || $this->getAccessType() == 'singleUse'){
-				$notes = "Must be checked out to read.";
-			}elseif ($this->isExternalItem()){
-				$notes = "Available from external provider.";
-			}
-		}else{
+		if ($this->libraryId != -1){
 			$library = new Library();
 			$library->libraryId = $this->libraryId;
 			if ($library->find(true)){
-				$notes = "Available to <b>{$library->abbreviatedDisplayName} patrons</b> only.";
+				$notes = "Available to <b>{$library->displayName} patrons</b> only.";
 			}else{
 				$notes = "Could not load library information.";
 			}

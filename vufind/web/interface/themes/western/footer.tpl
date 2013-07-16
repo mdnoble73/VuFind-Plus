@@ -11,6 +11,7 @@
 		{if $user}
 		<li><a href="{$path}/Search/History">{translate text='Search History'}</a></li>
 		{/if}
+		<li><a href="{$path}/Search/Results">{translate text='Standard Search'}</a></li>
 		<li><a href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a></li>
 	</ul>
 </div>
@@ -31,29 +32,11 @@
 		{if isset($suggestAPurchaseLink)}
 			<li><a href="{$suggestAPurchaseLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Suggest a Purchase'}</a></li>
 		{/if}
-		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
+		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510, scrollbars=yes'); return false;">{translate text='FAQs'}</a></li>
 	</ul>
 </div>
 
-<div class="footer_end"><a href="http://western.edu/academics/library">{translate text='Leslie J. Savage Library, WSCU'}</a></div>
+<div class="footer_end"><a href="http://western.edu/academics/library">{translate text='Leslie J. Savage Library, Western State College University'}</a></div>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}
-
-{* Add Google Analytics*}
-{literal}
-<script type="text/javascript">
-	var _gaq = _gaq || [];
-	_gaq.push(['_setAccount', 'UA-10641564-2']);
-	_gaq.push(['_setDomainName', '.marmot.org']);
-	_gaq.push(['_trackPageview']);
-	_gaq.push(['_trackPageLoadTime']);
-
-	(function() {
-		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-	})();
-
-</script>
-{/literal}

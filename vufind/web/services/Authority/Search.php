@@ -26,7 +26,7 @@
  * @link     http://vufind.org/wiki/building_a_module Wiki
  */
 require_once 'Base.php';
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
 /**
  * Search action for Authority module.
@@ -81,9 +81,6 @@ class Search extends Base
         );
 
         if ($this->searchObject->getResultTotal() > 0) {
-            // If the "jumpto" parameter is set, jump to the specified result index:
-            $this->_processJumpto($result);
-
             $summary = $this->searchObject->getResultSummary();
             $page = $summary['page'];
             $interface->assign('recordCount', $summary['resultTotal']);
@@ -116,7 +113,7 @@ class Search extends Base
                     $interface->assign('parseError', true);
                 } else {
                     // Unexpected error -- let's treat this as a fatal condition.
-                    PEAR::raiseError(
+                    PEAR_Singleton::raiseError(
                         new PEAR_Error(
                             'Unable to process query<br />Solr Returned: ' . $error
                         )
@@ -140,27 +137,6 @@ class Search extends Base
         $_SESSION['lastSearchURL'] = $this->searchObject->renderSearchUrl();
 
         $interface->display('layout.tpl');
-    }
-
-    /**
-     * Process the "jumpto" parameter.
-     *
-     * @param array $result Solr result returned by SearchObject
-     *
-     * @return void
-     * @access private
-     */
-    private function _processJumpto($result)
-    {
-        if (isset($_REQUEST['jumpto']) && is_numeric($_REQUEST['jumpto'])) {
-            $i = intval($_REQUEST['jumpto'] - 1);
-            if (isset($result['response']['docs'][$i])) {
-                $jumpUrl = 'Record?id=' .
-                    urlencode($result['response']['docs'][$i]['id']);
-                header('Location: ' . $jumpUrl);
-                die();
-            }
-        }
     }
 }
 

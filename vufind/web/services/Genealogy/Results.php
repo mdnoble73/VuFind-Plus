@@ -18,12 +18,12 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/MyResearch/lib/User.php';
-require_once 'services/MyResearch/lib/Search.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
 
-require_once 'sys/SolrStats.php';
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/sys/SolrStats.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
 class Results extends Action {
 
@@ -36,6 +36,7 @@ class Results extends Action {
 		global $configArray;
 		global $timer;
 		global $user;
+		global $analytics;
 
 		//Check to see if a user is logged in with admin permissions
 		if ($user && $user->hasRole('genealogyContributor')){
@@ -90,13 +91,13 @@ class Results extends Action {
 					$queryParamStrings[] = "&filter[]=$dateFilter:[$yearFrom+TO+$yearTo]";
 				}
 				$queryParamString = join('&', $queryParamStrings);
-				header("Location: {$configArray['Site']['url']}/Genealogy/Results?$queryParamString");
+				header("Location: {$configArray['Site']['path']}/Genealogy/Results?$queryParamString");
 				exit;
 			}
 		}
 
 		// Include Search Engine Class
-		require_once 'sys/' . $configArray['Genealogy']['engine'] . '.php';
+		require_once ROOT_DIR . '/sys/' . $configArray['Genealogy']['engine'] . '.php';
 		$timer->logTime('Include search engine');
 
 		// Initialise from the current search globals
@@ -133,8 +134,8 @@ class Results extends Action {
 
 		// Process Search
 		$result = $searchObject->processSearch(true, true);
-		if (PEAR::isError($result)) {
-			PEAR::raiseError($result->getMessage());
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result->getMessage());
 		}
 		$timer->logTime('Process Search');
 
@@ -166,6 +167,9 @@ class Results extends Action {
 		$currentPage = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 		$interface->assign('page', $currentPage);
 
+		$allSearchSources = SearchSources::getSearchSources();
+		$translatedScope = $allSearchSources[$searchSource]['name'];
+		$analytics->addSearch($translatedScope, $searchObject->displayQuery(), $searchObject->isAdvanced(), $searchObject->getFullSearchType(), $searchObject->hasAppliedFacets(), $searchObject->getResultTotal());
 		if ($searchObject->getResultTotal() < 1) {
 			// No record found
 			$interface->assign('sitepath', $configArray['Site']['path']);
@@ -184,7 +188,7 @@ class Results extends Action {
 
 					// Unexpected error -- let's treat this as a fatal condition.
 				} else {
-					PEAR::raiseError(new PEAR_Error('Unable to process query<br />' .
+					PEAR_Singleton::raiseError(new PEAR_Error('Unable to process query<br />' .
                         'Solr Returned: ' . $error));
 				}
 			}
@@ -193,9 +197,6 @@ class Results extends Action {
 
 		} else {
 			$timer->logTime('save search');
-
-			// If the "jumpto" parameter is set, jump to the specified result index:
-			$this->processJumpto($result);
 
 			// Assign interface variables
 			$summary = $searchObject->getResultSummary();
@@ -243,7 +244,7 @@ class Results extends Action {
 		}
 
 		/*if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
-		 require_once('Drivers/marmot_inc/SearchStat.php');
+		 require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
 		 $searchStat = new SearchStat();
 		 $searchStat->saveSearch( $_GET['lookfor'], $_GET['type'], $searchObject->getResultTotal());
 		 }*/
@@ -257,23 +258,4 @@ class Results extends Action {
 		// Done, display the page
 		$interface->display('layout.tpl');
 	} // End launch()
-
-	/**
-	 * Process the "jumpto" parameter.
-	 *
-	 * @access  private
-	 * @param   array       $result         Solr result returned by SearchObject
-	 */
-	private function processJumpto($result)
-	{
-		if (isset($_REQUEST['jumpto']) && is_numeric($_REQUEST['jumpto'])) {
-			$i = intval($_REQUEST['jumpto'] - 1);
-			if (isset($result['response']['docs'][$i])) {
-				$record = RecordDriverFactory::initRecordDriver($result['response']['docs'][$i]);
-				$jumpUrl = '../Record/' . urlencode($record->getUniqueID());
-				header('Location: ' . $jumpUrl);
-				die();
-			}
-		}
-	}
 }

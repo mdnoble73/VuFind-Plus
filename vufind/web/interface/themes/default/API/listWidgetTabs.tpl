@@ -1,5 +1,5 @@
 {strip}
-<div id="listWidget{$widget->id}" class="ui-tabs listWidget">
+<div id="listWidget{$widget->id}" class="ui-tabs listWidget {$widget->style}">
 	{if count($widget->lists) > 1}
 		{if !isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs'}
 			{* Display Tabs *}
@@ -45,10 +45,12 @@
 					{assign var="display" value="false"}
 				{/if}
 			{/if}
-			{if $widget->showMultipleTitles == 1}
-				{include file=titleScroller.tpl}
+			{if $widget->style == 'horizontal'}
+				{include file='titleScroller.tpl'}
+			{elseif $widget->style == 'vertical'}
+				{include file='verticalTitleScroller.tpl'}
 			{else}
-				{include file=singleTitleWidget.tpl}
+				{include file='singleTitleWidget.tpl'}
 			{/if}
 		{/if}
 	{/foreach}
@@ -65,7 +67,12 @@
 			
 		$(document).ready(function(){
 			{/literal}{if count($widget->lists) > 1 && (!isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs')}{literal}
-			$('#listWidget{/literal}{$widget->id}{literal}').tabs({ selected: 0 });
+			$('#listWidget{/literal}{$widget->id}{literal}').tabs({ 
+				selected: 0,
+				activate:function(event, ui) {
+					showList($('#listWidget{/literal}{$widget->id}{literal}').tabs("option", "active"));
+				}
+			});
 			{/literal}
 			{/if}
 			{assign var=index value=0}
@@ -73,18 +80,14 @@
 		 		{assign var="listName" value=$list->name|regex_replace:'/\W/':''|escape:url}
 				{if $list->displayFor == 'all' || ($list->displayFor == 'loggedIn' && $user) || ($list->displayFor == 'notLoggedIn' && !$user)}
 					{if $index == 0}
-						listScroller{$listName} = new TitleScroller('titleScroller{$listName}', '{$listName}', 'list{$listName}', {if $widget->showTitleDescriptions==1}true{else}false{/if}, '{$widget->onSelectCallback}', {if $widget->autoRotate==1}true{else}false{/if}, {if $widget->showMultipleTitles==1}true{else}false{/if});
+						listScroller{$listName} = new TitleScroller('titleScroller{$listName}', '{$listName}', 'list{$listName}', {if $widget->showTitleDescriptions==1}true{else}false{/if}, '{$widget->onSelectCallback}', {if $widget->autoRotate==1}true{else}false{/if}, '{$widget->style}');
 						listScroller{$listName}.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles%26id={$list->source|escape:url}%26scrollerName={$listName}', false);
 					{/if}
 					{assign var=index value=$index+1}
 				{/if}
 			{/foreach}
 
-			{if !isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs'}
-			$('#listWidget{$widget->id}').bind('tabsshow', function(event, ui) {literal}{
-				showList(ui.index);
-			});
-			{/literal}{/if}{literal}
+			{literal}
 		});
 
 		$(window).bind('beforeunload', function(e) {
@@ -126,7 +129,7 @@
 					{else}
 						else if (listIndex == {$index}){literal}{{/literal}
 							if (listScroller{$listName} == null){literal}{{/literal}
-								listScroller{$listName} = new TitleScroller('titleScroller{$listName}', '{$listName}', 'list{$listName}', {if $widget->showTitleDescriptions==1}true{else}false{/if}, '{$widget->onSelectCallback}');
+								listScroller{$listName} = new TitleScroller('titleScroller{$listName}', '{$listName}', 'list{$listName}', {if $widget->showTitleDescriptions==1}true{else}false{/if}, '{$widget->onSelectCallback}', {if $widget->autoRotate==1}true{else}false{/if}, '{$widget->style}');
 								listScroller{$listName}.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles%26id={$list->source|escape:url}%26scrollerName={$listName}', false);
 							{literal}}else{{/literal}
 								listScroller{$listName}.activateCurrentTitle();

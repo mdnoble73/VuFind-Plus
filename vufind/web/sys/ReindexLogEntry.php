@@ -27,7 +27,7 @@ class ReindexLogEntry extends DB_DataObject
 			$this->_processes = array();
 			$reindexProcess = new ReindexProcessLogEntry();
 			$reindexProcess->reindex_id = $this->id;
-			$reindexProcess->order('processName');
+			$reindexProcess->orderBy('processName');
 			$reindexProcess->find();
 			while ($reindexProcess->fetch()){
 				$this->_processes[] = clone $reindexProcess;
@@ -35,11 +35,11 @@ class ReindexLogEntry extends DB_DataObject
 		}
 		return $this->_processes;
 	}
-	
+
 	function getNumProcesses(){
 		return count($this->processes());
 	}
-	
+
 	function getHadErrors(){
 		foreach ($this->processes() as $process){
 			if ($process->numErrors > 0){

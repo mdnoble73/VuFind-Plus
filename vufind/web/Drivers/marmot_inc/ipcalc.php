@@ -4,7 +4,7 @@ $debug = 0;
 
 #-------------------------------------------------------
 
-Function bitcount($val)
+function bitcount($val)
 {
 	global $debug;
 
@@ -29,34 +29,35 @@ function ip2int($val)
 {
 	global $debug;
 
-	if ($val == "")
-	return (int) 0xffffffff;  // host mask
-	elseif (preg_match("/^([0-9]*)$/", $val))
-	{
-		if ($debug >= 50)
-		printf("DEBUG: input val to convert (num): %s\n", $val);
+	if ($val == ""){
+		return (int) 0xffffffff;  // host mask
+	}elseif (preg_match("/^([0-9]*)$/", $val)){
+		if ($debug >= 50){
+			printf("DEBUG: input val to convert (num): %s\n", $val);
+		}
 
 		$rv = 0;
-		for ($i = 32; $i > 0; $i--)
-		{
+		for ($i = 32; $i > 0; $i--){
 			$rv = $rv * 2 + (($val > 0) ? 1 : 0);
 
-			if ($val > 0)
-			{ $val--; }
+			if ($val > 0){
+				$val--;
+			}
 		}
-	}
-	else
-	{
-		if ($debug >= 50)
-		printf("DEBUG: input val to convert (cidr): %s\n", $val);
+	}else{
+		if ($debug >= 50){
+			printf("DEBUG: input val to convert (cidr): %s\n", $val);
+		}
 
 		$octets = explode('.', $val);
-		while (count($octets) < 4)
-		{ $octets[] = 0; }
+		while (count($octets) < 4){
+			$octets[] = 0;
+		}
 
 		$rv = 0;
-		foreach ($octets as $octet)
-		$rv = $rv * 256 + $octet;
+		foreach ($octets as $octet){
+			$rv = $rv * 256 + $octet;
+		}
 	}
 
 	if ($debug >= 50)
@@ -75,19 +76,18 @@ function FindBestMatch($ip, $subnet_array)
 	$bestmatch = null;
 	$bestmatchlen = -1;
 
-	foreach ($subnet_array as $nm)
-	{
+	foreach ($subnet_array as $nm) {
 		$subnet_and_mask = explode('/', $nm->ip);
 		$subnet_i = ip2int($subnet_and_mask[0]);
 		if (count($subnet_and_mask) == 2){
 			$mask_i = ip2int($subnet_and_mask[1]);
 
-			if ($debug >= 60)
-			printf("DEBUG: ip = %08x sn = %08x mask = %08x\n", $ip_i, $subnet_i, $mask_i);
+			if ($debug >= 60){
+				printf("DEBUG: ip = %08x sn = %08x mask = %08x\n", $ip_i, $subnet_i, $mask_i);
+			}
 
 			$v1 = ($subnet_i & $mask_i);
-			if ($v1 != $subnet_i)
-			{
+			if ($v1 != $subnet_i){
 				//MDN:  Temporarily ignore the errors.  Could also try to correct them.
 				//printf("ERROR: %s is NOT on a subnet boundary (%08x %08x/%08x)\n", $nm->ip, $v1, $subnet_i, $mask_i);
 				//printf("ERROR:   difference: %d (%s %s)\n", $v1 - $subnet_i, $v1, $subnet_i);
@@ -96,16 +96,16 @@ function FindBestMatch($ip, $subnet_array)
 			}
 
 			$bitlen = bitcount($mask_i);
-			if ($debug >= 50)
-			printf("DEBUG: bitcount for %s is %d\n", $nm->ip, $bitlen);
+			if ($debug >= 50){
+				printf("DEBUG: bitcount for %s is %d\n", $nm->ip, $bitlen);
+			}
 
-			if (($ip_i & $mask_i) == $subnet_i)
-			{
-				if ($debug >= 20)
-				printf("DEBUG: %s matches %s\n", $ip, $nm->ip);
+			if (($ip_i & $mask_i) == $subnet_i) {
+				if ($debug >= 20){
+					printf("DEBUG: %s matches %s\n", $ip, $nm->ip);
+				}
 
-				if ($bitlen > $bestmatchlen)
-				{
+				if ($bitlen > $bestmatchlen){
 					$bestmatchlen = $bitlen;
 					$bestmatch    = $nm;
 				}
@@ -118,4 +118,23 @@ function FindBestMatch($ip, $subnet_array)
 		}
 	}
 	return $bestmatch;
+}
+
+function getIpRange(  $cidr) {
+
+	list($ip, $mask) = explode('/', $cidr);
+
+	$maskBinStr =str_repeat("1", $mask ) . str_repeat("0", 32-$mask );      //net mask binary string
+	$inverseMaskBinStr = str_repeat("0", $mask ) . str_repeat("1",  32-$mask ); //inverse mask
+
+	$ipLong = ip2long( $ip );
+	$ipMaskLong = bindec( $maskBinStr );
+	$inverseIpMaskLong = bindec( $inverseMaskBinStr );
+	$netWork = $ipLong & $ipMaskLong;
+
+	//$start = $netWork+1;//ignore network ID(eg: 192.168.1.0)
+	$start = $netWork; //MDN, start at the network id
+
+	$end = ($netWork | $inverseIpMaskLong) -1 ; //ignore brocast IP(eg: 192.168.1.255)
+	return array( $start, $end );
 }

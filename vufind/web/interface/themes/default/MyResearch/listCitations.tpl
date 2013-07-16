@@ -6,7 +6,7 @@
 	</div>
 
 	<div id="main-content">
-		<h3 class="list" id='listTitle'><a href="{$path}/MyResearch/MyList/{$favList->id}">{$favList->title|escape:"html"}</a></h3>
+		<h3 id='listTitle'><a href="{$path}/MyResearch/MyList/{$favList->id}"><span class="silk list">&nbsp;</span>{$favList->title|escape:"html"}</a></h3>
 		{if $favList->description}<div class="listDescription alignleft" id="listDescription">{$favList->description|escape}</div>{/if}
 		<p>Citations in {$citationFormat} format.</p>
 		{if $citations}

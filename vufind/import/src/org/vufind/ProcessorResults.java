@@ -15,6 +15,7 @@ public class ProcessorResults {
 	private String processorName;
 	private int recordsProcessed;
 	private int eContentRecordsProcessed;
+	private int overDriveNonMarcRecordsProcessed;
 	private int resourcesProcessed;
 	private int numErrors;
 	private int numAdded;
@@ -43,8 +44,8 @@ public class ProcessorResults {
 	private void initStatements(){
 		if (saveResultsStmt == null){
 			try {
-				saveResultsStmt = vufindConn.prepareStatement("INSERT INTO reindex_process_log (reindex_id, processName, recordsProcessed, eContentRecordsProcessed, resourcesProcessed, numErrors, numAdded, numUpdated, numDeleted, numSkipped, notes ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ", PreparedStatement.RETURN_GENERATED_KEYS);
-				updateResultsStmt = vufindConn.prepareStatement("UPDATE reindex_process_log SET recordsProcessed = ?, eContentRecordsProcessed = ?, resourcesProcessed = ?, numErrors = ?, numAdded = ?, numUpdated = ?, numDeleted = ?, numSkipped = ?, notes = ? WHERE id = ?");
+				saveResultsStmt = vufindConn.prepareStatement("INSERT INTO reindex_process_log (reindex_id, processName, recordsProcessed, eContentRecordsProcessed, overDriveNonMarcRecordsProcessed, resourcesProcessed, numErrors, numAdded, numUpdated, numDeleted, numSkipped, notes ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ", PreparedStatement.RETURN_GENERATED_KEYS);
+				updateResultsStmt = vufindConn.prepareStatement("UPDATE reindex_process_log SET recordsProcessed = ?, eContentRecordsProcessed = ?, overDriveNonMarcRecordsProcessed = ?, resourcesProcessed = ?, numErrors = ?, numAdded = ?, numUpdated = ?, numDeleted = ?, numSkipped = ?, notes = ? WHERE id = ?");
 			} catch (SQLException e) {
 				logger.error("Error initializing statements to update results", e);
 			}
@@ -84,6 +85,7 @@ public class ProcessorResults {
 	public synchronized void addNote(String note) {
 		Date date = new Date();
 		this.notes.add(dateFormat.format(date) + " - " + note);
+		logger.debug(note);
 	}
 	public int getEContentRecordsProcessed() {
 		return eContentRecordsProcessed;
@@ -156,38 +158,50 @@ public class ProcessorResults {
 	public synchronized void saveResults() {
 		try {
 			if (resultsId == null){
-				saveResultsStmt.setLong(1, reindexLogId);
-				saveResultsStmt.setString(2, getProcessorName());
-				saveResultsStmt.setLong(3, getRecordsProcessed());
-				saveResultsStmt.setLong(4, geteContentRecordsProcessed());
-				saveResultsStmt.setLong(5, getResourcesProcessed());
-				saveResultsStmt.setLong(6, getNumErrors());
-				saveResultsStmt.setLong(7, getNumAdded());
-				saveResultsStmt.setLong(8, getNumUpdated());
-				saveResultsStmt.setLong(9, getNumDeleted());
-				saveResultsStmt.setLong(10, getNumSkipped());
-				saveResultsStmt.setString(11, getNotesHtml());
+				int curCol = 1;
+				saveResultsStmt.setLong(curCol++, reindexLogId);
+				saveResultsStmt.setString(curCol++, getProcessorName());
+				saveResultsStmt.setLong(curCol++, getRecordsProcessed());
+				saveResultsStmt.setLong(curCol++, geteContentRecordsProcessed());
+				saveResultsStmt.setLong(curCol++, getOverDriveNonMarcRecordsProcessed());
+				saveResultsStmt.setLong(curCol++, getResourcesProcessed());
+				saveResultsStmt.setLong(curCol++, getNumErrors());
+				saveResultsStmt.setLong(curCol++, getNumAdded());
+				saveResultsStmt.setLong(curCol++, getNumUpdated());
+				saveResultsStmt.setLong(curCol++, getNumDeleted());
+				saveResultsStmt.setLong(curCol++, getNumSkipped());
+				saveResultsStmt.setString(curCol++, getNotesHtml());
 				saveResultsStmt.executeUpdate();
 				ResultSet resultIdRS = saveResultsStmt.getGeneratedKeys();
 				if (resultIdRS.next()){
 					resultsId = resultIdRS.getLong(1); 
 				}
 			}else{
-				updateResultsStmt.setLong(1, getRecordsProcessed());
-				updateResultsStmt.setLong(2, geteContentRecordsProcessed());
-				updateResultsStmt.setLong(3, getResourcesProcessed());
-				updateResultsStmt.setLong(4, getNumErrors());
-				updateResultsStmt.setLong(5, getNumAdded());
-				updateResultsStmt.setLong(6, getNumUpdated());
-				updateResultsStmt.setLong(7, getNumDeleted());
-				updateResultsStmt.setLong(8, getNumSkipped());
-				updateResultsStmt.setString(9, getNotesHtml());
-				updateResultsStmt.setLong(10, resultsId);
+				int curCol = 1;
+				updateResultsStmt.setLong(curCol++, getRecordsProcessed());
+				updateResultsStmt.setLong(curCol++, geteContentRecordsProcessed());
+				updateResultsStmt.setLong(curCol++, getOverDriveNonMarcRecordsProcessed());
+				updateResultsStmt.setLong(curCol++, getResourcesProcessed());
+				updateResultsStmt.setLong(curCol++, getNumErrors());
+				updateResultsStmt.setLong(curCol++, getNumAdded());
+				updateResultsStmt.setLong(curCol++, getNumUpdated());
+				updateResultsStmt.setLong(curCol++, getNumDeleted());
+				updateResultsStmt.setLong(curCol++, getNumSkipped());
+				updateResultsStmt.setString(curCol++, getNotesHtml());
+				updateResultsStmt.setLong(curCol++, resultsId);
 				updateResultsStmt.executeUpdate();
 			}
 			//logger.info("Saved results for process " + getProcessorName());
 		} catch (Exception e) {
 			logger.error("Unable to save results of process to database", e);
 		}
+	}
+
+	public int getOverDriveNonMarcRecordsProcessed() {
+		return overDriveNonMarcRecordsProcessed;
+	}
+
+	public void incOverDriveNonMarcRecordsProcessed() {
+		this.overDriveNonMarcRecordsProcessed++;
 	}
 }

@@ -1,3 +1,1 @@
-<Reviews><![CDATA[
-{include file="$module/view-reviews.tpl"}
-]]></Reviews>
+<Reviews><![CDATA[{include file="$module/view-reviews.tpl"}]]></Reviews>

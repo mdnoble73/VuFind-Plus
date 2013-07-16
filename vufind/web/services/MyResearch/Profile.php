@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
 
 class Profile extends MyResearch
 {
@@ -28,17 +28,29 @@ class Profile extends MyResearch
 		global $interface;
 		global $user;
 
-		if (isset($_POST['update'])) {
-			$result = $this->catalog->updatePatronInfo($user->cat_password);
-			$_SESSION['profileUpdateErrors'] = $result;
+		global $librarySingleton;
+		$activeLibrary = $librarySingleton->getActiveLibrary();
+		if ($activeLibrary == null || $activeLibrary->allowProfileUpdates){
+			$canUpdateContactInfo = true;
+		}else{
+			$canUpdateContactInfo = false;
+		}
+		$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);
 
-			header("Location: " . $configArray['Site']['url'] . '/MyResearch/Profile');
+		if (isset($_POST['update'])) {
+			$result = $this->catalog->updatePatronInfo($canUpdateContactInfo);
+			$_SESSION['profileUpdateErrors'] = $result;
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$overDriveDriver = OverDriveDriverFactory::getDriver();
+			$result = $overDriveDriver->updateLendingOptions();
+
+			header("Location: " . $configArray['Site']['path'] . '/MyResearch/Profile');
 			exit();
 		}elseif (isset($_POST['updatePin'])) {
 			$result = $this->catalog->updatePin();
 			$_SESSION['profileUpdateErrors'] = $result;
 
-			header("Location: " . $configArray['Site']['url'] . '/MyResearch/Profile');
+			header("Location: " . $configArray['Site']['path'] . '/MyResearch/Profile');
 			exit();
 		}else if (isset($_POST['edit'])){
 			$interface->assign('edit', true);
@@ -46,17 +58,17 @@ class Profile extends MyResearch
 			$interface->assign('edit', false);
 		}
 
+		require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+		$overDriveDriver = OverDriveDriverFactory::getDriver();
+		if ($overDriveDriver->version >= 2){
+			$overDriveSummary = $overDriveDriver->getAccountDetails($user);
+			$interface->assign('overDriveLendingOptions', $overDriveSummary['lendingOptions']);
+		}
+
+
 		if (isset($_SESSION['profileUpdateErrors'])){
 			$interface->assign('profileUpdateErrors', $_SESSION['profileUpdateErrors']);
 			unset($_SESSION['profileUpdateErrors']);
-		}
-
-		global $librarySingleton;
-		$activeLibrary = $librarySingleton->getActiveLibrary();
-		if ($activeLibrary == null || $activeLibrary->allowProfileUpdates){
-			$interface->assign('canUpdate', true);
-		}else{
-			$interface->assign('canUpdate', false);
 		}
 
 		//Get the list of locations for display in the user interface.
@@ -69,7 +81,7 @@ class Profile extends MyResearch
 			$locationList[$locationSingleton->locationId] = $locationSingleton->displayName;
 		}
 		$interface->assign('locationList', $locationList);
-		
+
 		if ($this->catalog->checkFunction('isUserStaff')){
 			$userIsStaff = $this->catalog->isUserStaff();
 			$interface->assign('userIsStaff', $userIsStaff);

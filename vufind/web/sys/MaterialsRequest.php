@@ -43,6 +43,13 @@ class MaterialsRequest extends DB_DataObject
 	public $holdPickupLocation;
 	public $bookmobileStop;
 
+	//Dynamic properties setup by joins
+	public $numRequests;
+	public $description;
+	public $userId;
+	public $firstName;
+	public $lastName;
+
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('MaterialsRequest',$k,$v); }
 
@@ -77,26 +84,45 @@ class MaterialsRequest extends DB_DataObject
 		return $availableFormats;
 	}
 
-	static function enableMaterialsRequest(){
+	static $materialsRequestEnabled = null;
+	static function enableMaterialsRequest($forceReload = false){
+		if (MaterialsRequest::$materialsRequestEnabled != null && $forceReload == false){
+			return MaterialsRequest::$materialsRequestEnabled;
+		}
 		global $configArray;
 		global $user;
 		global $library;
+
+		//First make sure we are enabled in the config file
 		if (isset($configArray['MaterialsRequest']) && isset($configArray['MaterialsRequest']['enabled'])){
 			$enableMaterialsRequest = $configArray['MaterialsRequest']['enabled'];
-			if ($enableMaterialsRequest && isset($library) && $library->enableMaterialsRequest == 0){
-				$enableMaterialsRequest = false;
-			}elseif ($enableMaterialsRequest && isset($configArray['MaterialsRequest']['allowablePatronTypes'])){
-				//Check to see if we need to do additonal restrictions by patron type
-				$allowablePatronTypes = $configArray['MaterialsRequest']['allowablePatronTypes'];
-				if (strlen($allowablePatronTypes) > 0 && $user){
-					if (!preg_match("/^$allowablePatronTypes$/i", $user->patronType)){
+			//Now check if the library allows material requests
+			if ($enableMaterialsRequest){
+				if (isset($library) && $library->enableMaterialsRequest == 0){
+					$enableMaterialsRequest = false;
+				}else if ($user){
+					$homeLibrary = Library::getPatronHomeLibrary();
+					if (is_null($homeLibrary)){
 						$enableMaterialsRequest = false;
+					}else if ($homeLibrary->enableMaterialsRequest == 0){
+						$enableMaterialsRequest = false;
+					}else if ($homeLibrary->libraryId != $library->libraryId){
+						$enableMaterialsRequest = false;
+					}else if (isset($configArray['MaterialsRequest']['allowablePatronTypes'])){
+						//Check to see if we need to do additional restrictions by patron type
+						$allowablePatronTypes = $configArray['MaterialsRequest']['allowablePatronTypes'];
+						if (strlen($allowablePatronTypes) > 0){
+							if (!preg_match("/^$allowablePatronTypes$/i", $user->patronType)){
+								$enableMaterialsRequest = false;
+							}
+						}
 					}
 				}
 			}
 		}else{
 			$enableMaterialsRequest = false;
 		}
+		MaterialsRequest::$materialsRequestEnabled = $enableMaterialsRequest;
 		return $enableMaterialsRequest;
 	}
 }

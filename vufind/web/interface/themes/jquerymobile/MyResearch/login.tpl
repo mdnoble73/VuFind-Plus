@@ -18,7 +18,7 @@
 				{/if}
 			</div>
 			<div data-role="fieldcontain">
-				<input type="submit" name="submit" value="{translate text='Login'}"/>
+				<input type="submit" name="submit" value="{translate text='Login'}" id="loginFormSubmit"/>
 			</div>
 				{if $followup}<input type="hidden" name="followup" value="{$followup}"/>{/if}
 				{if $followupModule}<input type="hidden" name="followupModule" value="{$followupModule}"/>{/if}
@@ -26,7 +26,6 @@
 				{if $recordId}<input type="hidden" name="recordId" value="{$recordId|escape:"html"}"/>{/if}
 				{if $comment}<input type="hidden" name="comment" name="comment" value="{$comment|escape:"html"}"/>{/if}
 			</form>
-			{if $authMethod == 'DB'}<a rel="external" data-role="button" href="{$path}/MyResearch/Account">{translate text='Create New Account'}</a>{/if}
 		{/if}
 	</div>		
 	{include file="footer.tpl"}

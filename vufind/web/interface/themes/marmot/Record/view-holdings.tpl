@@ -7,13 +7,13 @@
 			{if $lastSection != $holding.section}
 				{if strlen($holding.section) > 0}
 				<tr class='holdings-section'>
-					<td colspan='3' class='holdings-section'>{$holding.section}</td>
+					<td colspan='3' id="holdings-section-{$holding.section|replace:' ':'_'}" class='holdings-section {if $holding.sectionId <=5}expanded{else}collapsed{/if}' onclick="toggleSection('{$holding.section|replace:' ':'_'}')">{$holding.section}</td>
 				</tr>
 				{/if}
 				{assign var=lastSection value=$holding.section}
 			{/if}
 			
-			<tr >
+			<tr class="{$holding.section|replace:' ':'_'}" {if $holding.sectionId > 5 && strlen($holding.section) > 0}style='display:none'{/if}>
 				<td style = "padding-bottom:5px;">
 					<span><strong>
 					{$holding.location|escape}
@@ -82,6 +82,7 @@
 					</script>
 					{/if}
 					{if $showCheckInGrid && $issueSummary.checkInGridId}
+					&nbsp;
 					<span id='showCheckInGrid-{$smarty.foreach.summaryLoop.iteration}' class='showCheckinGrid'>Show Check-in Grid</span>
 					<script	type="text/javascript">
 						$('#showCheckInGrid-{$smarty.foreach.summaryLoop.iteration}').click(function(){literal} { {/literal}

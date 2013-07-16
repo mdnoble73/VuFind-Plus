@@ -9,8 +9,8 @@
 		
 		<div id="filterContainer">
 			<form action="{$path}" method="get">
-			Source: <br/> 
-			<select id="sourceFilter" name="sourceFilter[]" multiple="multiple" size="5" class="multiSelectFilter">
+			Source: 
+			<select id="sourceFilter" name="sourceFilter[]" class="multiSelectFilter">
 				{section name=resultsSourceFilterRow loop=$resultsSourceFilter} 
 					<option value="{$resultsSourceFilter[resultsSourceFilterRow].SourceValue}" {if !isset($selectedSourceFilter)}selected='selected' {elseif $resultsSourceFilter[resultsSourceFilterRow].SourceValue|in_array:$selectedSourceFilter}selected='selected'{/if}>{$resultsSourceFilter[resultsSourceFilterRow].SourceValue}</option> 
 				{/section} 

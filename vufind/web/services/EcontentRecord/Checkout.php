@@ -18,12 +18,12 @@
  *
  */
 
-require_once 'Drivers/EContentDriver.php';
+require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class Checkout extends Action{
-	
+
 	function launch(){
 		global $interface;
 		global $configArray;
@@ -32,28 +32,30 @@ class Checkout extends Action{
 		$driver = new EContentDriver();
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
-		
+
 		global $logger;
-		
+
 		//Get title information for the record.
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $id;
 		if (!$eContentRecord->find(true)){
-			PEAR::raiseError("Unable to find eContent record for id: $id");
+			PEAR_Singleton::raiseError("Unable to find eContent record for id: $id");
 		}
-		
+
 		if (isset($_POST['submit']) || $user) {
 			if (isset($_REQUEST['username']) && isset($_REQUEST['password'])){
 				//Log the user in
 				$user = UserAccount::login();
 			}
 
-			if (!PEAR::isError($user) && $user){
+			if (!PEAR_Singleton::isError($user) && $user){
 				//The user is already logged in
 				$return = $driver->checkoutRecord($id, $user);
 				$interface->assign('result', $return['result']);
 				$message = $return['message'];
 				$interface->assign('message', $message);
+				global $logger;
+				$logger->log("Result of checkout " . print_r($return, true), PEAR_LOG_DEBUG);
 				$showMessage = true;
 			} else {
 				$message = 'Incorrect Patron Information';
@@ -69,16 +71,15 @@ class Checkout extends Action{
 			}
 
 			//Showing checkout form.
-			if (!PEAR::isError($user) && $user){
+			if (!PEAR_Singleton::isError($user) && $user){
 				//set focus to the submit button if the user is logged in since the campus will be correct most of the time.
 				$interface->assign('focusElementId', 'submit');
 			}else{
 				//set focus to the username field by default.
 				$interface->assign('focusElementId', 'username');
 			}
-
 		}
-		
+
 		if (isset($return) && $showMessage) {
 			$hold_message_data = array(
               'successful' => $return['result'] ? 'all' : 'none',
@@ -90,7 +91,7 @@ class Checkout extends Action{
 
 			$_SESSION['checkout_message'] = $hold_message_data;
 			if (isset($_SESSION['checkout_referrer'])){
-				$logger->log('Checkout Referrer is set, redirecting to there.  type = ' . $_REQUEST['type'], PEAR_LOG_INFO);
+				$logger->log('Checkout Referrer is set, redirecting to there.  referrer = ' . $_SESSION['checkout_referrer'], PEAR_LOG_INFO);
 
 				header("Location: " . $_SESSION['checkout_referrer']);
 				unset($_SESSION['checkout_referrer']);
@@ -98,18 +99,18 @@ class Checkout extends Action{
 					unset($_SESSION['autologout']);
 					UserAccount::softLogout();
 				}
-				
+
 			}else{
 				$logger->log('No referrer set, but there is a message to show, go to the main eContent page', PEAR_LOG_INFO);
-				header("Location: " . $configArray['Site']['url'] . '/MyResearch/EContentCheckedOut');
+				header("Location: /MyResearch/EContentCheckedOut");
 			}
 		} else {
 			//Var for the IDCLREADER TEMPLATE
 			$interface->assign('ButtonBack',true);
 			$interface->assign('ButtonHome',true);
 			$interface->assign('MobileTitle','Login to your account');
-			
-			
+
+
 			$logger->log('eContent checkout finished, do not need to show a message', PEAR_LOG_INFO);
 			$interface->setPageTitle('Checkout Item');
 			$interface->assign('subTemplate', 'checkout.tpl');

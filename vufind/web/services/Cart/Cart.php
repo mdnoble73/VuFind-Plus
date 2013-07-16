@@ -26,8 +26,8 @@
  * @link     http://vufind.org/wiki/building_a_module Wiki
  */
 
-require_once 'Action.php';
-require_once 'sys/Cart_Model.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/Cart_Model.php';
 
 
 /**

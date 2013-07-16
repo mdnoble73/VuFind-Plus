@@ -18,9 +18,9 @@
  *
  */
 
-require_once "Action.php";
-require_once 'services/MyResearch/lib/Tags.php';
-require_once 'services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . "/Action.php";
+require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 
 class RemoveTag extends Action
 {
@@ -43,17 +43,17 @@ class RemoveTag extends Action
 			if (isset($_REQUEST['resourceId'])){
 				$resource = $resource->staticGet('record_id', $_REQUEST['resourceId']);
 				$resource->removeTag($_REQUEST['tagId'], $user, false);
-				header('Location: ' . $configArray['Site']['url'] . '/Record/' . $_REQUEST['resourceId']);
+				header('Location: ' . $configArray['Site']['path'] . '/Record/' . $_REQUEST['resourceId']);
 				exit();
 			}else{
 				$resource->removeTag($_REQUEST['tagId'], $user, true);
-				header('Location: ' . $configArray['Site']['url'] . '/MyResearch/Favorites');
+				header('Location: ' . $configArray['Site']['path'] . '/MyResearch/Favorites');
 				exit();
 			}
 
 		}else{
 			//No id provided to delete raise an error?
-			PEAR::raiseError(new PEAR_Error('Tag Id Missing'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Tag Id Missing'));
 		}
 
 	}

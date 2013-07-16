@@ -1,4 +1,4 @@
-<form method="get" action="{$path}/Union/Search" data-ajax="false">
+<form method="get" action="{$path}/Union/Search" data-ajax="false" id="searchForm">
 	<div data-role="fieldcontain">
 		<label class="offscreen" for="searchForm_lookfor">
 				{translate text="Search"}
@@ -10,16 +10,16 @@
 				<option value="{$searchKey}" {if $searchKey == $searchSource}selected="selected"{/if} title="{$searchOption.description}">{if $searchOption.external}* {/if}{$searchOption.name}</option>
 			{/foreach}
 		</select>
-		
+
 		<label class="offscreen" for="searchForm_type">{translate text="Search Type"}</label>
-		<select id="searchForm_type" name="basicType" data-native-menu="false">
+		<select id="searchForm_type" name="basicType" data-native-menu="false" title="Search by Keyword to find subjects, titles, authors, etc. Search by Title or Author for more precise results.">
 			{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
 				<option value="{$searchVal}"{if $searchType == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
 			{/foreach}
 		</select>
 	</div>
 	<div data-role="fieldcontain">
-		<input type="submit" name="submit" value="{translate text="Find"}"/>
+		<input type="submit" name="submit" value="{translate text="Find"}" id="submitSearch"/>
 	</div>
 	{if $lastSort}<input type="hidden" name="sort" value="{$lastSort|escape}" />{/if}
 </form>

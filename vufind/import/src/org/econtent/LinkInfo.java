@@ -4,6 +4,7 @@ public class LinkInfo {
 	private long itemId;
 	private String link;
 	private long libraryId;
+	private String itemType;
 	
 	public long getItemId() {
 		return itemId;
@@ -22,6 +23,12 @@ public class LinkInfo {
 	}
 	public void setLibraryId(long libraryId) {
 		this.libraryId = libraryId;
+	}
+	public String getItemType() {
+		return itemType;
+	}
+	public void setItemType(String itemType) {
+		this.itemType = itemType;
 	}
 	
 }

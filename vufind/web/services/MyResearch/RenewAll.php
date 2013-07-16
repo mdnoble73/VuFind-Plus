@@ -17,9 +17,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class RenewAll extends Action
 {
@@ -41,14 +41,14 @@ class RenewAll extends Action
 
 		//Renew the hold
 		if (method_exists($this->catalog->driver, 'renewAll')) {
-			$renewResult = $this->catalog->driver->renewAll($user->cat_username);
+			$renewResult = $this->catalog->driver->renewAll();
 			$_SESSION['renew_message'] = $renewResult;
 		} else {
-			PEAR::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));
 		}
 
 		//Redirect back to the hold screen with status from the renewal
-		header("Location: " . $configArray['Site']['url'] . '/MyResearch/CheckedOut');
+		header("Location: " . $configArray['Site']['path'] . '/MyResearch/CheckedOut');
 	}
 
 }

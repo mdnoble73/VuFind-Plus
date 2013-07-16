@@ -4,7 +4,8 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
-require_once 'Drivers/marmot_inc/LocationHours.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/LocationHours.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/LocationFacetSetting.php';
 
 class Location extends DB_DataObject
 {
@@ -13,6 +14,7 @@ class Location extends DB_DataObject
 	public $code;					//varchar(5)
 	public $displayName;			//varchar(40)
 	public $libraryId;				//int(11)
+	public $extraLocationCodesToInclude;
 	public $validHoldPickupBranch;	//tinyint(4)
 	public $nearbyLocation1;		//int(11)
 	public $nearbyLocation2;		//int(11)
@@ -20,8 +22,8 @@ class Location extends DB_DataObject
 	public $scope;
 	public $useScope;
 	public $facetLabel;
-	public $defaultLocationFacet;
-	public $facetFile;
+	public $restrictSearchByLocation;
+	public $includeDigitalCollection;
 	public $showHoldButton;
 	public $showAmazonReviews;
 	public $showStandardReviews;
@@ -37,6 +39,12 @@ class Location extends DB_DataObject
 	public $homePageWidgetId;
 	public $boostByLocation;
 	public $recordsToBlackList;
+	public $automaticTimeoutLength;
+	public $automaticTimeoutLengthLoggedOut;
+	public $suppressHoldings;
+
+	/** @var  array $data */
+	protected $data;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Location',$k,$v); }
@@ -46,9 +54,14 @@ class Location extends DB_DataObject
 	}
 
 	function getObjectStructure(){
+		global $user;
 		//Load Libraries for lookup values
 		$library = new Library();
 		$library->orderBy('displayName');
+		if ($user->hasRole('libraryAdmin')){
+			$homeLibrary = Library::getPatronHomeLibrary();
+			$library->libraryId = $homeLibrary->libraryId;
+		}
 		$library->find();
 		$libraryList = array();
 		while ($library->fetch()){
@@ -74,50 +87,61 @@ class Location extends DB_DataObject
 		// because it is associated with this location only
 		unset($hoursStructure['locationId']);
 
+		$facetSettingStructure = LocationFacetSetting::getObjectStructure();
+		unset($facetSettingStructure['weight']);
+		unset($facetSettingStructure['locationId']);
+		unset($facetSettingStructure['numEntriesToShowByDefault']);
+		unset($facetSettingStructure['showAsDropDown']);
+		//unset($facetSettingStructure['sortMode']);
+
 		$structure = array(
-		array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),
-		array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user'),
-		array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
-		array('property'=>'nearbyLocation1', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 1', 'description'=>'A secondary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
-		array('property'=>'nearbyLocation2', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 2', 'description'=>'A tertiary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
+			array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),
+			array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user', 'size'=>'40'),
+			array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
+			array('property'=>'extraLocationCodesToInclude', 'type'=>'text', 'label'=> 'Extra Locations To Include', 'description'=>'A list of other location codes to include in this location for indexing special collections, juvenile collections, etc.', 'size' => '40', 'hideInLists' => true),
+			array('property'=>'nearbyLocation1', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 1', 'description'=>'A secondary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
+			array('property'=>'nearbyLocation2', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 2', 'description'=>'A tertiary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
+			array('property'=>'automaticTimeoutLength', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged in)', 'description'=>'The length of time before the user is automatically logged out in seconds.', 'size'=>'8', 'hideInLists' => true),
+			array('property'=>'automaticTimeoutLengthLoggedOut', 'type'=>'integer', 'label'=>'Automatic Timeout Length (logged out)', 'description'=>'The length of time before the catalog resets to the home page set to 0 to disable.', 'size'=>'8', 'hideInLists' => true),
 
-		array('property'=>'displaySection', 'type' => 'section', 'label' =>'Basic Display', 'hideInLists' => true, 'properties' => array(
-			array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'hideInLists' => true),
-			array('property'=>'homePageWidgetId', 'type'=>'integer', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page', 'hideInLists' => true,),
-			array('property'=>'footerTemplate', 'type'=>'text', 'label'=>'Footer Template', 'description'=>'The name of the footer file to display in the regular interface when scoped to a single school.  Use default to display the default footer', 'hideInLists' => true, 'default' => 'default'),
-		)),
+			array('property'=>'displaySection', 'type' => 'section', 'label' =>'Basic Display', 'hideInLists' => true, 'properties' => array(
+				array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'hideInLists' => true, 'size'=>'40'),
+				array('property'=>'homePageWidgetId', 'type'=>'integer', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page', 'hideInLists' => true),
+				array('property'=>'footerTemplate', 'type'=>'text', 'label'=>'Footer Template', 'description'=>'The name of the footer file to display in the regular interface when scoped to a single school.  Use default to display the default footer', 'hideInLists' => true, 'default' => 'default'),
+			)),
 
-		array('property'=>'ilsSection', 'type' => 'section', 'label' =>'ILS/Account Integration', 'hideInLists' => true, 'properties' => array(
-			array('property'=>'holdingBranchLabel', 'type'=>'text', 'label'=>'Holding Branch Label', 'description'=>'The label used within the holdings table in Millennium'),
-			array('property'=>'scope', 'type'=>'text', 'label'=>'Scope', 'description'=>'The scope for the system in Millennium to refine holdings to the branch.  If there is no scope defined for the branch, this can be set to 0.'),
-			array('property'=>'useScope', 'type'=>'checkbox', 'label'=>'Use Scope?', 'description'=>'Whether or not the scope should be used when displaying holdings.', 'hideInLists' => true),
-			array('property'=>'defaultPType', 'type'=>'text', 'label'=>'Default P-Type', 'description'=>'The P-Type to use when accessing a subdomain if the patron is not logged in.  Use -1 to use the library default PType.'),
-			array('property'=>'validHoldPickupBranch', 'type'=>'checkbox', 'label'=>'Valid Hold Pickup Branch?', 'description'=>'Determines if the location can be used as a pickup location if it is not the patrons home location or the location they are in.', 'hideInLists' => true),
-			array('property'=>'showHoldButton', 'type'=>'checkbox', 'label'=>'Show Hold Button', 'description'=>'Whether or not the hold button is displayed so patrons can place holds on items', 'hideInLists' => true),
-			array('property'=>'ptypesToAllowRenewals', 'type'=>'text', 'label'=>'PTypes that can renew', 'description'=>'A list of P-Types that can renew items or * to allow all P-Types to renew items.', 'hideInLists' => true),
-		)),
+			array('property'=>'ilsSection', 'type' => 'section', 'label' =>'ILS/Account Integration', 'hideInLists' => true, 'properties' => array(
+				array('property'=>'holdingBranchLabel', 'type'=>'text', 'label'=>'Holding Branch Label', 'description'=>'The label used within the holdings table in Millennium'),
+				array('property'=>'scope', 'type'=>'text', 'label'=>'Scope', 'description'=>'The scope for the system in Millennium to refine holdings to the branch.  If there is no scope defined for the branch, this can be set to 0.'),
+				array('property'=>'useScope', 'type'=>'checkbox', 'label'=>'Use Scope?', 'description'=>'Whether or not the scope should be used when displaying holdings.', 'hideInLists' => true),
+				array('property'=>'defaultPType', 'type'=>'text', 'label'=>'Default P-Type', 'description'=>'The P-Type to use when accessing a subdomain if the patron is not logged in.  Use -1 to use the library default PType.'),
+				array('property'=>'validHoldPickupBranch', 'type'=>'checkbox', 'label'=>'Valid Hold Pickup Branch?', 'description'=>'Determines if the location can be used as a pickup location if it is not the patrons home location or the location they are in.', 'hideInLists' => true),
+				array('property'=>'showHoldButton', 'type'=>'checkbox', 'label'=>'Show Hold Button', 'description'=>'Whether or not the hold button is displayed so patrons can place holds on items', 'hideInLists' => true),
+				array('property'=>'ptypesToAllowRenewals', 'type'=>'text', 'label'=>'PTypes that can renew', 'description'=>'A list of P-Types that can renew items or * to allow all P-Types to renew items.', 'hideInLists' => true),
+				array('property'=>'suppressHoldings','type'=>'checkbox', 'label'=>'Suppress Holdings', 'description'=>'Whether or not all items for the title should be suppressed', 'hideInLists' => true),
+			)),
 
-		array('property'=>'searchingSection', 'type' => 'section', 'label' =>'Searching', 'hideInLists' => true, 'properties' => array(
-			array('property'=>'facetLabel', 'type'=>'text', 'label'=>'Facet Label', 'description'=>'The label of the facet that identifies this location.', 'hideInLists' => true),
-			array('property'=>'defaultLocationFacet', 'type'=>'text', 'label'=>'Default Location Facet', 'description'=>'A facet to apply during initial searches.  If left blank, no additional refinement will be done.', 'hideInLists' => true),
-			array('property'=>'facetFile', 'type'=>'text', 'label'=>'Facet File', 'description'=>'The name of the facet file which should be used while searching', 'hideInLists' => true),
-			array('property'=>'boostByLocation', 'type'=>'checkbox', 'label'=>'Boost By Location', 'description'=>'Whether or not boosting of titles owned by this location should be applied', 'hideInLists' => true),
-			array('property'=>'recordsToBlackList', 'type'=>'textarea', 'label'=>'Records to deaccession', 'description'=>'A list of records to deaccession (hide) in search results.  Enter one record per line.', 'hideInLists' => true,),
-			array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Marmot'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all'),
-			array('property'=>'repeatInProspector', 'type'=>'checkbox', 'label'=>'Repeat In Prospector', 'description'=>'Turn on to allow repeat search in Prospector functionality.', 'hideInLists' => true),
-			array('property'=>'repeatInWorldCat', 'type'=>'checkbox', 'label'=>'Repeat In WorldCat', 'description'=>'Turn on to allow repeat search in WorldCat functionality.', 'hideInLists' => true),
-			array('property'=>'repeatInOverdrive', 'type'=>'checkbox', 'label'=>'Repeat In Overdrive', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true),
-			array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'hideInLists' => true),
-		)),
+			array('property'=>'searchingSection', 'type' => 'section', 'label' =>'Searching', 'hideInLists' => true, 'properties' => array(
+				array('property'=>'facetLabel', 'type'=>'text', 'label'=>'Facet Label', 'description'=>'The label of the facet that identifies this location.', 'hideInLists' => true, 'size'=>'40'),
+				//array('property'=>'defaultLocationFacet', 'type'=>'text', 'label'=>'Default Location Facet', 'description'=>'A facet to apply during initial searches.  If left blank, no additional refinement will be done.', 'hideInLists' => true, 'size'=>'40'),
+				array('property'=>'restrictSearchByLocation', 'type'=>'checkbox', 'label'=>'Restrict Search By Location', 'description'=>'Whether or not search results should only include titles from this location', 'hideInLists' => true),
+				array('property'=>'includeDigitalCollection', 'type'=>'checkbox', 'label'=>'Include Digital Collection', 'description'=>'Whether or not titles from the digital collection should be included in searches', 'hideInLists' => true),
 
-		array('property'=>'enrichmentSection', 'type' => 'section', 'label' =>'Catalog Enrichment', 'hideInLists' => true, 'properties' => array(
-			array('property'=>'showAmazonReviews', 'type'=>'checkbox', 'label'=>'Show Amazon Reviews', 'description'=>'Whether or not reviews from Amazon are displayed on the full record page.', 'hideInLists' => true),
-			array('property'=>'showStandardReviews', 'type'=>'checkbox', 'label'=>'Show Standard Reviews', 'description'=>'Whether or not reviews from Content Cafe/Syndetics are displayed on the full record page.', 'hideInLists' => true),
-		)),
+				array('property'=>'boostByLocation', 'type'=>'checkbox', 'label'=>'Boost By Location', 'description'=>'Whether or not boosting of titles owned by this location should be applied', 'hideInLists' => true),
+				array('property'=>'recordsToBlackList', 'type'=>'textarea', 'label'=>'Records to deaccession', 'description'=>'A list of records to deaccession (hide) in search results.  Enter one record per line.', 'hideInLists' => true,),
+				array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Marmot'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all'),
+				array('property'=>'repeatInProspector', 'type'=>'checkbox', 'label'=>'Repeat In Prospector', 'description'=>'Turn on to allow repeat search in Prospector functionality.', 'hideInLists' => true),
+				array('property'=>'repeatInWorldCat', 'type'=>'checkbox', 'label'=>'Repeat In WorldCat', 'description'=>'Turn on to allow repeat search in WorldCat functionality.', 'hideInLists' => true),
+				array('property'=>'repeatInOverdrive', 'type'=>'checkbox', 'label'=>'Repeat In Overdrive', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true),
+				array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'hideInLists' => true),
+			)),
 
+			array('property'=>'enrichmentSection', 'type' => 'section', 'label' =>'Catalog Enrichment', 'hideInLists' => true, 'properties' => array(
+				array('property'=>'showAmazonReviews', 'type'=>'checkbox', 'label'=>'Show Amazon Reviews', 'description'=>'Whether or not reviews from Amazon are displayed on the full record page.', 'hideInLists' => true),
+				array('property'=>'showStandardReviews', 'type'=>'checkbox', 'label'=>'Show Standard Reviews', 'description'=>'Whether or not reviews from Content Cafe/Syndetics are displayed on the full record page.', 'hideInLists' => true),
+			)),
 
-
-		array(
+			array(
 				'property' => 'hours',
 				'type'=> 'oneToMany',
 				'keyThis' => 'locationId',
@@ -126,9 +150,25 @@ class Location extends DB_DataObject
 				'structure' => $hoursStructure,
 				'label' => 'Hours',
 				'description' => 'Library Hours',
-				'hideInLists' => true,
+				//'hideInLists' => true,
 				'sortable' => false,
 				'storeDb' => true
+			),
+
+			'facets' => array(
+				'property'=>'facets',
+				'type'=>'oneToMany',
+				'label'=>'Facets',
+				'description'=>'A list of facets to display in search results',
+				'keyThis' => 'locationId',
+				'keyOther' => 'locationId',
+				'subObjectType' => 'LocationFacetSetting',
+				'structure' => $facetSettingStructure,
+				//'hideInLists' => true,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => true,
+				'canEdit' => true,
 			),
 		);
 		foreach ($structure as $fieldName => $field){
@@ -140,6 +180,7 @@ class Location extends DB_DataObject
 
 	function getPickupBranches($patronProfile, $selectedBranchId) {
 		//Get the library for the patron's home branch.
+		/** @var Library $librarySingleton */
 		global $librarySingleton;
 		if ($patronProfile){
 			if (is_object($patronProfile)){
@@ -153,7 +194,7 @@ class Location extends DB_DataObject
 			if (strlen($homeLibrary->validPickupSystems) > 0){
 				$pickupIds = array();
 				$pickupIds[] = $homeLibrary->libraryId;
-				$validPickupSystems = split('\|', $homeLibrary->validPickupSystems);
+				$validPickupSystems = explode('|', $homeLibrary->validPickupSystems);
 				foreach ($validPickupSystems as $pickupSystem){
 					$pickupLocation = new Library();
 					$pickupLocation->subdomain = $pickupSystem;
@@ -169,15 +210,15 @@ class Location extends DB_DataObject
 			}else{
 				$this->whereAdd("libraryId = {$homeLibrary->libraryId}", 'AND');
 				$this->whereAdd("validHoldPickupBranch = 1", 'AND');
-				$this->whereAdd("locationId = {$patronProfile['homeLocationId']}", 'OR');
+				//$this->whereAdd("locationId = {$patronProfile['homeLocationId']}", 'OR');
 			}
 		}else{
 			$this->whereAdd("validHoldPickupBranch = 1");
 		}
 
-		if (isset($selectedBranchId) && is_numeric($selectedBranchId)){
+		/*if (isset($selectedBranchId) && is_numeric($selectedBranchId)){
 			$this->whereAdd("locationId = $selectedBranchId", 'OR');
-		}
+		}*/
 		$this->orderBy('displayName');
 
 		$this->find();
@@ -216,26 +257,26 @@ class Location extends DB_DataObject
 		return $locationList;
 	}
 
+	private static $activeLocation = 'unset';
 	/**
 	 * Returns the active location to use when doing search scoping, etc.
 	 * This does not include the IP address
 	 *
 	 * @return Location
 	 */
-	private $activeLocation = 'unset';
 	function getActiveLocation(){
-		if ($this->activeLocation != 'unset') {
-			return $this->activeLocation;
+		if (Location::$activeLocation != 'unset') {
+			return Location::$activeLocation;
 		}
 
 		//default value
-		$this->activeLocation = null;
+		Location::$activeLocation = null;
 
 		//load information about the library we are in.
 		global $library;
 		if (is_null($library)){
 			//If we are not in a library, then do not allow branch scoping, etc.
-			$this->activeLocation = null;
+			Location::$activeLocation = null;
 		}else{
 
 			//Check to see if a branch location has been specified.
@@ -247,42 +288,48 @@ class Location extends DB_DataObject
 				if ($activeLocation->find(true)){
 					//Only use the location if we are in the subdomain for the parent library
 					if ($library->libraryId == $activeLocation->libraryId){
-						$this->activeLocation = clone($activeLocation);
+						Location::$activeLocation = clone($activeLocation);
 					}
 				}
 			}else{
 				$physicalLocation = $this->getPhysicalLocation();
 				if ($physicalLocation != null){
-					$this->activeLocation = $physicalLocation;
+					Location::$activeLocation = $physicalLocation;
 				}
 			}
 			global $timer;
 			$timer->logTime('Finished getActiveLocation');
 		}
 
-		return $this->activeLocation;
+		return Location::$activeLocation;
 	}
 	function setActiveLocation($location){
-		$this->activeLocation = $location;
+		Location::$activeLocation = $location;
 	}
 
-	private $userHomeLocation = 'unset';
-	function getUserHomeLocation(){
-		if (isset($this->userHomeLocation) && $this->userHomeLocation != 'unset') return $this->userHomeLocation;
+	private static $userHomeLocation = 'unset';
+
+	/**
+	 * Get the home location for the currently logged in user.
+	 *
+	 * @return Location
+	 */
+	static function getUserHomeLocation(){
+		if (isset(Location::$userHomeLocation) && Location::$userHomeLocation != 'unset') return Location::$userHomeLocation;
 
 		//default value
-		$this->userHomeLocation = null;
+		Location::$userHomeLocation = null;
 
 		global $user;
 		if (isset($user) && $user != false){
 			$homeLocation = new Location();
 			$homeLocation->locationId = $user->homeLocationId;
 			if ($homeLocation->find(true)){
-				$this->userHomeLocation = clone($homeLocation);
+				Location::$userHomeLocation = clone($homeLocation);
 			}
 		}
 
-		return $this->userHomeLocation;
+		return Location::$userHomeLocation;
 	}
 
 
@@ -326,16 +373,32 @@ class Location extends DB_DataObject
 		return $this->physicalLocation;
 	}
 
-	static function getSearchLocation(){
-		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
-		if ($searchSource == 'local' || $searchSource == 'econtent'){
+	static function getSearchLocation($searchSource = null){
+		if (is_null($searchSource)){
+			$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+			if (strpos($searchSource, 'library') === 0){
+				$trimmedSearchSource = str_replace('library', '', $searchSource);
+				require_once  ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
+				$librarySearchSource = new LibrarySearchSource();
+				$librarySearchSource->id = $trimmedSearchSource;
+				if ($librarySearchSource->find(true)){
+					$searchSource = $librarySearchSource;
+				}
+			}
+		}
+		if (is_object($searchSource)){
+			$scopingSetting = $searchSource->catalogScoping;
+		}else{
+			$scopingSetting = $searchSource;
+		}
+		if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'location'){
 			global $locationSingleton;
 			return $locationSingleton->getActiveLocation();
-		}else if ($searchSource == 'marmot'){
+		}else if ($scopingSetting == 'marmot' || $scopingSetting == 'unscoped'){
 			return null;
 		}else{
 			$location = new Location();
-			$location->code = $searchSource;
+			$location->code = $scopingSetting;
 			$location->find();
 			if ($location->N > 0){
 				$location->fetch();
@@ -347,7 +410,7 @@ class Location extends DB_DataObject
 
 	/**
 	 * The location we are in based solely on IP address.
-	 * @var unknown_type
+	 * @var string
 	 */
 	private $ipLocation = 'unset';
 	private $ipId = 'unset';
@@ -356,53 +419,53 @@ class Location extends DB_DataObject
 			return $this->ipLocation;
 		}
 		global $timer;
-		global $memcache;
+		/** @var Memcache $memCache */
+		global $memCache;
 		global $configArray;
-		$timer->logTime('Starting getIPLocation');
+		global $logger;
 		//Check the current IP address to see if we are in a branch
 		$activeIp = $this->getActiveIp();
-		$this->ipLocation = $memcache->get('location_for_ip_' . $activeIp);
-		$this->ipId = $memcache->get('ipId_for_ip_' . $activeIp);
+		//$logger->log("Active IP is $activeIp", PEAR_LOG_DEBUG);
+		$this->ipLocation = $memCache->get('location_for_ip_' . $activeIp);
+		$this->ipId = $memCache->get('ipId_for_ip_' . $activeIp);
 		if ($this->ipId == -1){
-			$this->ipLocation = null;
+			$this->ipLocation = false;
 		}
 
 		if ($this->ipLocation == false || $this->ipId == false){
+			$timer->logTime('Starting getIPLocation');
 			//echo("Active IP is $activeIp");
-			require_once './Drivers/marmot_inc/ipcalc.php';
-			require_once './Drivers/marmot_inc/subnet.php';
+			require_once ROOT_DIR . '/Drivers/marmot_inc/subnet.php';
+			$subnet = new subnet();
+			$ipVal = ip2long($activeIp);
 
-			$subnets = $memcache->get('ip_addresses');
-			if ($subnets == false){
-				$subnetSql = new subnet();
-				$subnetSql->find();
-				$subnets = array();
-				while ($subnetSql->fetch()) {
-					$subnets[] = clone $subnetSql;
+			$this->ipLocation = null;
+			$this->ipId = -1;
+			if (is_numeric($ipVal)){
+				disableErrorHandler();
+				$subnet->whereAdd('startIpVal <= ' . $ipVal);
+				$subnet->whereAdd('endIpVal >= ' . $ipVal);
+				if ($subnet->find(true)){
+					//$logger->log("Found {$subnet->N} matching IP addresses {$subnet->location}", PEAR_LOG_DEBUG);
+					$matchedLocation = new Location();
+					$matchedLocation->locationId = $subnet->locationid;
+					if ($matchedLocation->find(true)){
+						//Only use the physical location regardless of where we are
+						//$logger->log("Active location is {$matchedLocation->displayName}", PEAR_LOG_DEBUG);
+						$this->ipLocation = clone($matchedLocation);
+						$this->ipId = $subnet->id;
+					}else{
+						$logger->log("Did not find location for ip location id {$subnet->locationid}", PEAR_LOG_WARNING);
+					}
 				}
-				$memcache->set('ip_addresses', $subnets, 0, $configArray['Caching']['ip_addresses']);
+				enableErrorHandler();
 			}
-			$bestmatch=FindBestMatch($activeIp,$subnets);
-			//Get the locationId for the subnet.
-			if (isset($bestmatch) && $bestmatch != null){
-				//echo("Best match Location is {$bestmatch->locationid}");
 
-				$matchedLocation = $this->staticGet('locationId', $bestmatch->locationid);
-				//Only use the physical location regardless of where we are
-				//echo("Active location is {$matchedLocation->displayName}");
-				$this->ipLocation = clone($matchedLocation);
-				$this->ipId = $bestmatch->id;
-			} else {
-				//echo("Did not get a location for $activeIp");
-				//Clear the cookie if we don't get a match.
-				$this->activeIp = '';
-				$this->ipLocation = null;
-				$this->ipId = -1;
-			}
-			$memcache->set('ipId_for_ip_' . $activeIp, $this->ipId, 0, $configArray['Caching']['ipId_for_ip']);
-			$memcache->set('location_for_ip_' . $activeIp, $this->ipLocation, 0, $configArray['Caching']['location_for_ip']);
+			$memCache->set('ipId_for_ip_' . $activeIp, $this->ipId, 0, $configArray['Caching']['ipId_for_ip']);
+			$memCache->set('location_for_ip_' . $activeIp, $this->ipLocation, 0, $configArray['Caching']['location_for_ip']);
+			$timer->logTime('Finished getIPLocation');
 		}
-		$timer->logTime('Finished getIPLocation');
+
 		return $this->ipLocation;
 	}
 
@@ -414,9 +477,9 @@ class Location extends DB_DataObject
 		return $this->ipId;
 	}
 
-	private $activeIp = null;
-	function getActiveIp(){
-		if (!is_null($this->activeIp)) return $this->activeIp;
+	private static $activeIp = null;
+	static function getActiveIp(){
+		if (!is_null(Location::$activeIp)) return Location::$activeIp;
 		global $timer;
 		//Make sure gets and cookies are processed in the correct order.
 		if (isset($_GET['test_ip'])){
@@ -426,11 +489,27 @@ class Location extends DB_DataObject
 		}elseif (isset($_COOKIE['test_ip']) && $_COOKIE['test_ip'] != '127.0.0.1' && strlen($_COOKIE['test_ip']) > 0){
 			$ip = $_COOKIE['test_ip'];
 		}else{
-			$ip = $_SERVER['REMOTE_ADDR'];
+			if (isset($_SERVER["HTTP_CLIENT_IP"])){
+				$ip = $_SERVER["HTTP_CLIENT_IP"];
+			}elseif (isset($_SERVER["HTTP_X_FORWARDED_FOR"])){
+				$ip = $_SERVER["HTTP_X_FORWARDED_FOR"];
+			}elseif (isset($_SERVER["HTTP_X_FORWARDED"])){
+				$ip = $_SERVER["HTTP_X_FORWARDED"];
+			}elseif (isset($_SERVER["HTTP_FORWARDED_FOR"])){
+				$ip = $_SERVER["HTTP_FORWARDED_FOR"];
+			}elseif (isset($_SERVER["HTTP_FORWARDED"])){
+				$ip = $_SERVER["HTTP_FORWARDED"];
+			}elseif (isset($_SERVER['REMOTE_HOST']) && strlen($_SERVER['REMOTE_HOST']) > 0){
+				$ip = $_SERVER['REMOTE_HOST'];
+			}elseif (isset($_SERVER['REMOTE_ADDR']) && strlen($_SERVER['REMOTE_ADDR']) > 0){
+				$ip = $_SERVER['REMOTE_ADDR'];
+			}else{
+				$ip = '';
+			}
 		}
-		$this->activeIp = $ip;
+		Location::$activeIp = $ip;
 		$timer->logTime("getActiveIp");
-		return $this->activeIp;
+		return Location::$activeIp;
 	}
 
 	function getLocationsFacetsForLibrary($libraryId){
@@ -446,25 +525,49 @@ class Location extends DB_DataObject
 		return $facets;
 	}
 
+
 	public function __get($name){
 		if ($name == "hours") {
 			if (!isset($this->hours)){
 				$this->hours = array();
-				$hours = new LocationHours();
-				$hours->locationId = $this->locationId;
-				$hours->orderBy('day');
-				$hours->find();
-				while($hours->fetch()){
-					$this->hours[$hours->id] = clone($hours);
+				if ($this->locationId){
+					$hours = new LocationHours();
+					$hours->locationId = $this->locationId;
+					$hours->orderBy('day');
+					$hours->find();
+					while($hours->fetch()){
+						$this->hours[$hours->id] = clone($hours);
+					}
 				}
 			}
 			return $this->hours;
+		}elseif ($name == "facets") {
+			if (!isset($this->facets)){
+				$this->facets = array();
+				if ($this->locationId){
+					$facet = new LocationFacetSetting();
+					$facet->locationId = $this->locationId;
+					$facet->orderBy('weight');
+					$facet->find();
+					while($facet->fetch()){
+						$this->facets[$facet->id] = clone($facet);
+					}
+				}
+			}
+			return $this->facets;
+		}else{
+			return $this->data[$name];
 		}
+
 	}
 
 	public function __set($name, $value){
 		if ($name == "hours") {
 			$this->hours = $value;
+		}elseif ($name == "facets") {
+			$this->facets = $value;
+		}else{
+			$this->data[$name] = $value;
 		}
 	}
 
@@ -475,11 +578,11 @@ class Location extends DB_DataObject
 	 */
 	public function update(){
 		$ret = parent::update();
-		if ($ret === FALSE ){
-			return $ret;
-		}else{
+		if ($ret !== FALSE ){
 			$this->saveHours();
+			$this->saveFacets();
 		}
+		return $ret;
 	}
 
 	/**
@@ -489,15 +592,42 @@ class Location extends DB_DataObject
 	 */
 	public function insert(){
 		$ret = parent::insert();
-		if ($ret === FALSE ){
-			return $ret;
-		}else{
+		if ($ret !== FALSE ){
 			$this->saveHours();
+			$this->saveFacets();
 		}
+		return $ret;
+	}
+
+	public function saveFacets(){
+		if (isset ($this->facets) && is_array($this->facets)){
+			/** @var LocationFacetSetting $facet */
+			foreach ($this->facets as $facet){
+				if (isset($facet->deleteOnSave) && $facet->deleteOnSave == true){
+					$facet->delete();
+				}else{
+					if (isset($facet->id) && is_numeric($facet->id)){
+						$ret = $facet->update();
+					}else{
+						$facet->locationId = $this->locationId;
+						$facet->insert();
+					}
+				}
+			}
+			unset($this->facets);
+		}
+	}
+
+	public function clearFacets(){
+		$facets = new LocationFacetSetting();
+		$facets->locationId = $this->locationId;
+		$facets->delete();
+		$this->facets = array();
 	}
 
 	public function saveHours(){
 		if (isset ($this->hours) && is_array($this->hours)){
+			/** @var LocationHours $hours */
 			foreach ($this->hours as $hours){
 				if (isset($hours->deleteOnSave) && $hours->deleteOnSave == true){
 					$hours->delete();
@@ -517,12 +647,12 @@ class Location extends DB_DataObject
 	public static function getLibraryHours($locationId, $timeToCheck){
 		$location = new Location();
 		$location->locationId = $locationId;
-		if ($location->find(true)){
+		if ($locationId > 0 && $location->find(true)){
 			// format $timeToCheck according to MySQL default date format
 			$todayFormatted = date('Y-m-d', $timeToCheck);
 
 			// check to see if today is a holiday
-			require_once 'Drivers/marmot_inc/Holiday.php';
+			require_once ROOT_DIR . '/Drivers/marmot_inc/Holiday.php';
 			$holidays = array();
 			$holiday = new Holiday();
 			$holiday->date = $todayFormatted;
@@ -538,7 +668,7 @@ class Location extends DB_DataObject
 			$dayOfWeekToday = strftime ('%w', $timeToCheck);
 
 			// find library hours for the above day of the week
-			require_once 'Drivers/marmot_inc/LocationHours.php';
+			require_once ROOT_DIR . '/Drivers/marmot_inc/LocationHours.php';
 			$hours = new LocationHours();
 			$hours->locationId = $locationId;
 			$hours->day = $dayOfWeekToday;
@@ -613,5 +743,166 @@ class Location extends DB_DataObject
 			$libraryHoursMessage = null;
 		}
 		return $libraryHoursMessage;
+	}
+	static function getDefaultFacets($locationId = -1){
+		global $configArray;
+		$defaultFacets = array();
+
+		$facet = new LocationFacetSetting();
+		$facet->setupTopFacet('format_category', 'Format Category');
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		if ($configArray['Index']['enableDetailedAvailability']){
+			$facet = new LocationFacetSetting();
+			$facet->setupTopFacet('availability_toggle', 'Available?', false);
+			$facet->locationId = $locationId;
+			$facet->weight = count($defaultFacets) + 1;
+			$defaultFacets[] = $facet;
+		}
+
+		if ($configArray['Index']['enableDetailedAvailability']){
+			$facet = new LocationFacetSetting();
+			$facet->setupSideFacet('available_at', 'Available Now At', false);
+			$facet->locationId = $locationId;
+			$facet->weight = count($defaultFacets) + 1;
+			$defaultFacets[] = $facet;
+		}
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('format', 'Format', false);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('literary_form_full', 'Literary Form', false);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('target_audience_full', 'Reading Level', false);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$facet->numEntriesToShowByDefault = 8;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('topic_facet', 'Subject', false);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('time_since_added', 'Added in the Last', false);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('authorStr', 'Author', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('awards_facet', 'Awards', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('econtent_device', 'Compatible Device', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('econtent_source', 'eContent Source', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('econtent_protection_type', 'eContent Protection', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('era', 'Era', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('genre_facet', 'Genre', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('itype', 'Item Type', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('language', 'Language', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('lexile_code', 'Lexile Code', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('lexile_score', 'Lexile Score', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('mpaa_rating', 'Movie Rating', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('institution', 'Owning System', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('building', 'Owning Branch', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('publishDate', 'Publication Date', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupAdvancedFacet('geographic_facet', 'Region', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		$facet = new LocationFacetSetting();
+		$facet->setupSideFacet('rating_facet', 'User Rating', true);
+		$facet->locationId = $locationId;
+		$facet->weight = count($defaultFacets) + 1;
+		$defaultFacets[] = $facet;
+
+		return $defaultFacets;
 	}
 }

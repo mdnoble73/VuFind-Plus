@@ -20,7 +20,7 @@
 
 require_once 'Record.php';
 
-class Cite extends Record {
+class Record_Cite extends Record_Record {
 	function launch(){
 		global $interface;
 

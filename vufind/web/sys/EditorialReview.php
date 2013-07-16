@@ -12,9 +12,10 @@ class EditorialReview extends DB_DataObject {
 	public $title;
 
 	public $review;
+	public $teaser;
 	public $source;
 	public $pubDate;
-	
+
 	public $tabName;
 
 	/* Storage for Dynamic Properties */
@@ -38,60 +39,70 @@ class EditorialReview extends DB_DataObject {
 		global $configArray;
 		$structure = array(
 		array(
-			'property'=>'editorialReviewId', 
-			'type'=>'hidden', 
-			'label'=>'Id', 
-			'description'=>'The unique id of the editorial review in the database', 
-			'storeDb' => true, 
+			'property'=>'editorialReviewId',
+			'type'=>'hidden',
+			'label'=>'Id',
+			'description'=>'The unique id of the editorial review in the database',
+			'storeDb' => true,
 			'primaryKey' => true,
 		),
 		array(
-			'property'=>'title', 
-			'type'=>'text', 
+			'property'=>'title',
+			'type'=>'text',
 			'size' => 100,
-			'maxLength'=>100, 
-			'label'=>'Title', 
-			'description'=>'The title of the review is required.', 
-			'storeDb' => true, 
+			'maxLength'=>100,
+			'label'=>'Title',
+			'description'=>'The title of the review is required.',
+			'storeDb' => true,
 			'required' => true,
 		),
 		array(
-			'property'=>'review', 
-			'type'=>'html', 
-			'allowableTags' => '<p><a><b><em><ul><ol><em><li><strong><i><br><iframe>',
-			'rows'=>6, 
-			'cols'=>80, 
-			'label'=>'Review', 
-			'description'=>'Review.', 
-			'storeDb' => true, 
+			'property'=>'teaser',
+			'type'=>'textarea',
+			'rows'=>3,
+			'cols'=>80,
+			'size' => 512,
+			'label'=>'Teaser (can be omitted to use the first part of the review)',
+			'description'=>'Teaser for the review.',
+			'storeDb' => true,
 		),
 		array(
-			'property'=>'source', 
-			'type'=>'text', 
-			'size' => 25,
-			'maxLength'=>25, 
-			'label'=>'Source', 
-			'description'=>'Source.', 
-			'storeDb' => true, 
+			'property'=>'review',
+			'type'=>'html',
+			'allowableTags' => '<p><a><b><em><ul><ol><em><li><strong><i><br><iframe><div>',
+			'rows'=>6,
+			'cols'=>80,
+			'label'=>'Review',
+			'description'=>'Review.',
+			'storeDb' => true,
 		),
 		array(
-			'property'=>'tabName', 
-			'type'=>'text', 
+			'property'=>'source',
+			'type'=>'text',
 			'size' => 25,
-			'maxLength'=>25, 
-			'label'=>'Tab Name', 
-			'description'=>'The Tab to display the review on', 
+			'maxLength'=>25,
+			'label'=>'Source',
+			'description'=>'Source.',
+			'storeDb' => true,
+		),
+		array(
+			'property'=>'tabName',
+			'type'=>'text',
+			'size' => 25,
+			'maxLength'=>25,
+			'label'=>'Tab Name',
+			'description'=>'The Tab to display the review on',
 			'default' => 'Reviews',
-			'storeDb' => true, 
+			'storeDb' => true,
 		),
-		array(
-			'property'=>'recordId', 
-			'type'=>'text', 
+		'recordId' => array(
+			'property'=>'recordId',
+			'type'=>'text',
 			'size' => 25,
-			'maxLength'=>25, 
-			'label'=>'Record Id', 
-			'description'=>'Record Id.', 
-			'storeDb' => true, 
+			'maxLength'=>25,
+			'label'=>'Record Id',
+			'description'=>'Record Id.',
+			'storeDb' => true,
 		),
 		'pubDate' => array(
 			'property'=>'pubDate',
@@ -111,19 +122,19 @@ class EditorialReview extends DB_DataObject {
 		}
 
 		$ret = parent::insert();
-		
+
 		return $ret;
 	}
 
 	function update(){
 		$ret =  parent::update();
-		
+
 		return $ret;
 	}
-	
+
 	function delete(){
 		$ret =  parent::delete();
-		
+
 		return $ret;
 	}
 }

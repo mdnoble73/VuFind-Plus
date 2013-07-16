@@ -1,5 +1,5 @@
 <?php
-require_once 'sys/ISBN.php';
+require_once ROOT_DIR . '/sys/ISBN.php';
 
 /*
  * Smarty plugin

@@ -18,11 +18,12 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
-require_once 'sys/ListWidget.php';
-require_once 'sys/ListWidgetList.php';
-require_once 'sys/DataObjectUtil.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
+require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
+require_once ROOT_DIR . '/sys/ListWidget.php';
+require_once ROOT_DIR . '/sys/ListWidgetList.php';
+require_once ROOT_DIR . '/sys/DataObjectUtil.php';
 
 /**
  * Provides a method of running SQL updates to the database.
@@ -31,10 +32,66 @@ require_once 'sys/DataObjectUtil.php';
  * @author Mark Noble
  *
  */
-class ListWidgets extends Admin {
+class ListWidgets extends ObjectEditor {
+	function getObjectType(){
+		return 'ListWidget';
+	}
+	function getToolName(){
+		return 'ListWidgets';
+	}
+	function getPageTitle(){
+		return 'List Widgets';
+	}
+	function getAllObjects(){
+		$list = array();
+
+		global $user;
+		$widget = new ListWidget();
+		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
+			$patronLibrary = Library::getPatronHomeLibrary();
+			$widget->libraryId = $patronLibrary->libraryId();
+		}
+		$widget->orderBy('name');
+		$widget->find();
+		while ($widget->fetch()){
+			$list[$widget->id] = clone $widget;
+		}
+
+		return $list;
+	}
+	function getObjectStructure(){
+		return ListWidget::getObjectStructure();
+	}
+	function getAllowableRoles(){
+		return array('opacAdmin', 'libraryAdmin', 'contentEditor');
+	}
+	function getPrimaryKeyColumn(){
+		return 'id';
+	}
+	function getIdKeyColumn(){
+		return 'id';
+	}
+	function showExportAndCompare(){
+		global $user;
+		return $user->hasRole('opacAdmin');
+	}
+	function canAddNew(){
+		global $user;
+		return $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor');
+	}
+	function canDelete(){
+		global $user;
+		return $user->hasRole('opacAdmin');
+	}
 	function launch() 	{
 		global $configArray;
 		global $interface;
+		global $user;
+
+		$interface->assign('canAddNew', $this->canAddNew());
+		$interface->assign('canDelete', $this->canDelete());
+		$interface->assign('showReturnToList', $this->showReturnToList());
+		$interface->assign('showExportAndCompare', $this->showExportAndCompare());
 
 		//Figure out what mode we are in
 		if (isset($_REQUEST['objectAction'])){
@@ -44,19 +101,17 @@ class ListWidgets extends Admin {
 		}
 
 		if ($objectAction == 'delete' && isset($_REQUEST['id'])){
-			$widget = new ListWidget();
-			$widget->id = $_REQUEST['id'];
-			if ($widget->find(true)){
-				$widget->delete();
-			}
-
-			header("Location: $path/Admin/ListWidgets");
+			parent::launch();
 			exit();
 		}
 
 		//Get all available widgets
 		$availableWidgets = array();
 		$listWidget = new ListWidget();
+		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
+			$homeLibrary = Library::getPatronHomeLibrary();
+			$listWidget->libraryId = $homeLibrary->libraryId;
+		}
 		$listWidget->orderBy('name ASC');
 		$listWidget->find();
 		while ($listWidget->fetch()){
@@ -70,7 +125,7 @@ class ListWidgets extends Admin {
 			$interface->assign('object', $widget);
 		}
 
-	//Do actions that require preprocessing
+		//Do actions that require preprocessing
 		if ($objectAction == 'save'){
 			if (!isset($widget)){
 				$widget = new ListWidget();
@@ -94,6 +149,7 @@ class ListWidgets extends Admin {
 			if ($objectAction == 'edit' || $objectAction == 'add'){
 				if (isset($_REQUEST['id'])){
 					$interface->assign('widgetid',$_REQUEST['id']);
+					$interface->assign('id',$_REQUEST['id']);
 				}
 				$editForm = DataObjectUtil::getEditForm($listWidget->getObjectStructure());
 				$interface->assign('editForm', $editForm);
@@ -107,22 +163,4 @@ class ListWidgets extends Admin {
 		$interface->display('layout.tpl');
 
 	}
-
-	function getAllowableRoles(){
-		return array('opacAdmin', 'libraryAdmin');
-	}
-	function showExportAndCompare(){
-		global $user;
-		return $user->hasRole('opacAdmin');
-	}
-	function canAddNew(){
-		global $user;
-		return $user->hasRole('opacAdmin');
-	}
-	function canDelete(){
-		global $user;
-		return $user->hasRole('opacAdmin');
-	}
-
-
 }

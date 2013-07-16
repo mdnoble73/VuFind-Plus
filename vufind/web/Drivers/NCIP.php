@@ -20,7 +20,7 @@
 
 require_once 'XML/Unserializer.php';
 require_once 'XML/Serializer.php';
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
 /**
  * NCIP Interface
@@ -303,7 +303,7 @@ class NCIP
     	$this->client->setBody($xml);
         $result = $this->client->sendRequest();
 
-        if (!PEAR::isError($result)) {
+        if (!PEAR_Singleton::isError($result)) {
             return $this->process($this->client->getResponseBody());
         } else {
             return $result;
@@ -314,10 +314,10 @@ class NCIP
 	{
     	$unxml = new XML_Unserializer();
     	$result = $unxml->unserialize($result);
-    	if (!PEAR::isError($result)) {
+    	if (!PEAR_Singleton::isError($result)) {
             return $unxml->getUnserializedData();
         } else {
-            PEAR::raiseError($result);
+            PEAR_Singleton::raiseError($result);
         }
 
         return null;

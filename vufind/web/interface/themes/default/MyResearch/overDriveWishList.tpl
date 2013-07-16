@@ -12,6 +12,10 @@
   
 	<div id="main-content">
 	{if $user}
+		{if $profile.web_note}
+			<div id="web_note">{$profile.web_note}</div>
+		{/if}
+		
 		<div class="myAccountTitle">{translate text='Your OverDrive Wish List'}</div>
 		{if $userNoticeFile}
 			{include file=$userNoticeFile}
@@ -31,9 +35,11 @@
 				<tbody>
 				{foreach from=$overDriveWishList item=record}
 					<tr>
-						<td rowspan="{$record.numRows}" class='imageColumnOverdrive'><img src="{$record.imageUrl}"></td>
-						<td>{if $record.recordId != -1}<a href="{$path}/EcontentRecord/{$record.recordId}/Home">{/if}{$record.title}{if $record.recordId != -1}</a>{/if}{if $record.subTitle}<br/>{$record.subTitle}{/if}</td>
-						<td>{$record.author}</td>
+						<td rowspan="{$record.numRows}" class='imageColumnOverdrive'>
+							<img src="{$record.imageUrl}" alt="Cover Image" />
+						</td>
+						<td>{if $record.recordId != -1}<a href="{$path}/EcontentRecord/{$record.recordId}/Home">{/if}{$record.title|escape}{if $record.recordId != -1}</a>{/if}{if $record.subTitle}<br/>{$record.subTitle}{/if}</td>
+						<td>{$record.author|escape}</td>
 						<td>{$record.dateAdded}</td>
 						<td>
 							<a href="#" onclick="removeOverDriveRecordFromWishList('{$record.overDriveId}')" class="button">Remove</a><br/>
@@ -41,10 +47,10 @@
 					</tr>
 					{foreach from=$record.formats item=format}
 					<tr class="overDriveFormat">
-						<td colspan="3">{$format.name}</td>
+						<td colspan="3">{$format.name|escape}</td>
 						<td>
 							{if $format.available}
-							<a href="#" onclick="checkoutOverDriveItem('{$record.overDriveId}', '{$format.formatId}')" class="button">Check&nbsp;Out</a><br/>
+							<a href="#" onclick="{if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$record.overDriveId}', '{$format.formatId}')" class="button">Check&nbsp;Out</a><br/>
 							{else}
 							<a href="#" onclick="placeOverDriveHold('{$record.overDriveId}', '{$format.formatId}')" class="button">Place&nbsp;Hold</a><br/>
 							{/if}

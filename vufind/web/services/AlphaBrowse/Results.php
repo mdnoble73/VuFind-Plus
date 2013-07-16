@@ -36,7 +36,7 @@ require_once 'Home.php';
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/alphabetical_heading_browse Wiki
  */
-class Results extends Home {
+class AlphaBrowse_Results extends AlphaBrowse_Home {
 	/**
 	 * Display the page.
 	 *
@@ -46,21 +46,31 @@ class Results extends Home {
 	public function launch() {
 		global $interface;
 		global $configArray;
-
-		// Connect to Solr:
-		$db = ConnectionManager::connectToIndex();
+		global $analytics;
 
 		// Process incoming parameters:
 		$source = isset($_GET['source']) ? $_GET['source'] : false;
 		$type = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : $_REQUEST['type'];
-		
-		if ($source == false && $type){
-			$source = $type;
-			if (strpos($source, 'browse') === 0){
-				$source = substr($source, strlen('browse'));
-				$source = strtolower( substr($source,0,1) ) . substr($source,1);
+
+		if ($source == false){
+			$searchSource = $_REQUEST['searchSource'];
+			if (preg_match('/library\d+/', $searchSource)){
+				$trimmedId = str_replace('library', '', $searchSource);
+				$searchSourceObj = new LibrarySearchSource();
+				$searchSourceObj->id = $trimmedId;
+				if ($searchSourceObj->find(true)){
+					$source = $searchSourceObj->searchWhat;
+					$source = str_replace('_browse', '', $source);
+				}
+			}else if ($type){
+				$source = $type;
+				if (strpos($source, 'browse') === 0){
+					$source = substr($source, strlen('browse'));
+					$source = strtolower( substr($source,0,1) ) . substr($source,1);
+				}
 			}
 		}
+
 		$interface->assign('searchIndex', 'browse' . ucfirst($source));
 		$from = isset($_GET['from']) ? $_GET['from'] : false;
 		if ($from == false & isset($_REQUEST['lookfor'])){
@@ -72,10 +82,10 @@ class Results extends Home {
 
 		// If required parameters are present, load results:
 		if ($source && $from !== false) {
-			require_once('sys/AlphaBrowse.php');
+			require_once(ROOT_DIR . '/sys/AlphaBrowse.php');
 			$alphaBrowse = new AlphaBrowse();
 			$result = $alphaBrowse->getBrowseResults($source, $from, $page, $limit);
-			
+
 			// No results?  Try the previous page just in case we've gone past the
 			// end of the list....
 			if (!$result['success']) {
@@ -83,6 +93,10 @@ class Results extends Home {
 				$result = $alphaBrowse->getBrowseResults($source, $from, $page, $limit);
 			}
 
+			$allSearchSources = SearchSources::getSearchSources();
+			$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+			$translatedScope = $allSearchSources[$searchSource]['name'];
+			$analytics->addSearch($translatedScope, $from, false, "alpha browse - $type", false, $result['totalCount']);
 			if ($result['totalCount'] == 0){
 				$interface->assign('error', "No Results were found");
 			}else{
@@ -93,7 +107,7 @@ class Results extends Home {
 				if ($result['showPrev']) {
 					$interface->assign('prevpage', $page - 1);
 				}
-	
+
 				// Send other relevant values to the template:
 				$interface->assign('source', $source);
 				$interface->assign('from', $from);

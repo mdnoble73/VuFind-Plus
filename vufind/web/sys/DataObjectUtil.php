@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once 'XML/Unserializer.php';
 
 class DataObjectUtil
@@ -96,7 +96,7 @@ class DataObjectUtil
 			}
 			if (!$validationResults['saveOk']){
 				//TODO: Display the PEAR error (in certain circumstances only?)
-				$error = &PEAR::getStaticProperty('DB_DataObject','lastError');
+				$error = &PEAR_Singleton::getStaticProperty('DB_DataObject','lastError');
 				if (isset($error)){
 					$validationResults['errors'][] = 'Save failed ' . $error->getMessage();
 				}else{
@@ -167,7 +167,7 @@ class DataObjectUtil
 			foreach ($property['properties'] as $subProperty){
 				DataObjectUtil::processProperty($object, $subProperty);
 			}
-		}else if (in_array($property['type'], array('text', 'enum', 'hidden', 'url'))){
+		}else if (in_array($property['type'], array('text', 'enum', 'hidden', 'url', 'email'))){
 			$object->$propertyName = strip_tags(trim($_REQUEST[$propertyName]));
 
 		}else if (in_array( $property['type'], array('textarea', 'html', 'folder', 'crSeparated'))){
@@ -259,42 +259,41 @@ class DataObjectUtil
 						$destFullPath = $destFolder . '/' . $destFileName;
 						$copyResult = copy($_FILES[$propertyName]["tmp_name"], $destFullPath);
 
-						if ($copyResult && isset($property['thumbWidth'])){
-
-							//Create a thumbnail if needed
+						if ($copyResult){
 							$img = imagecreatefromstring(file_get_contents($destFullPath));
 							$width = imagesx( $img );
 							$height = imagesy( $img );
-							$thumbWidth = $property['thumbWidth'];
-							$new_width = $thumbWidth;
-							$new_height = floor( $height * ( $thumbWidth / $width ) );
 
-							// create a new temporary image
-							$tmp_img = imagecreatetruecolor( $new_width, $new_height );
+							if (isset($property['thumbWidth'])){
+								//Create a thumbnail if needed
+								$thumbWidth = $property['thumbWidth'];
+								$new_width = $thumbWidth;
+								$new_height = floor( $height * ( $thumbWidth / $width ) );
 
-							// copy and resize old image into new image
-							imagecopyresized( $tmp_img, $img, 0, 0, 0, 0, $new_width, $new_height, $width, $height );
+								// create a new temporary image
+								$tmp_img = imagecreatetruecolor( $new_width, $new_height );
 
-							// save thumbnail into a file
-							imagejpeg( $tmp_img, "{$pathToThumbs}/{$destFileName}" );
-						}
-						if ($copyResult && isset($property['mediumWidth'])){
-							//Create a thumbnail if needed
-							$img = imagecreatefromstring(file_get_contents($destFullPath));
-							$width = imagesx( $img );
-							$height = imagesy( $img );
-							$thumbWidth = $property['mediumWidth'];
-							$new_width = $thumbWidth;
-							$new_height = floor( $height * ( $thumbWidth / $width ) );
+								// copy and resize old image into new image
+								imagecopyresized( $tmp_img, $img, 0, 0, 0, 0, $new_width, $new_height, $width, $height );
 
-							// create a new temporary image
-							$tmp_img = imagecreatetruecolor( $new_width, $new_height );
+								// save thumbnail into a file
+								imagejpeg( $tmp_img, "{$pathToThumbs}/{$destFileName}" );
+							}
+							if (isset($property['mediumWidth'])){
+								//Create a thumbnail if needed
+								$thumbWidth = $property['mediumWidth'];
+								$new_width = $thumbWidth;
+								$new_height = floor( $height * ( $thumbWidth / $width ) );
 
-							// copy and resize old image into new image
-							imagecopyresized( $tmp_img, $img, 0, 0, 0, 0, $new_width, $new_height, $width, $height );
+								// create a new temporary image
+								$tmp_img = imagecreatetruecolor( $new_width, $new_height );
 
-							// save thumbnail into a file
-							imagejpeg( $tmp_img, "{$pathToMedium}/{$destFileName}" );
+								// copy and resize old image into new image
+								imagecopyresized( $tmp_img, $img, 0, 0, 0, 0, $new_width, $new_height, $width, $height );
+
+								// save thumbnail into a file
+								imagejpeg( $tmp_img, "{$pathToMedium}/{$destFileName}" );
+							}
 						}
 					}
 					//store the actual filename
@@ -324,6 +323,12 @@ class DataObjectUtil
 						$logger->log("Copied file from {$_FILES[$propertyName]["tmp_name"]} to $destFullPath", PEAR_LOG_INFO);
 					}else{
 						$logger->log("Could not copy file from {$_FILES[$propertyName]["tmp_name"]} to $destFullPath", PEAR_LOG_ERR);
+						if (!file_exists($_FILES[$propertyName]["tmp_name"])){
+							$logger->log("  Uploaded file did not exist", PEAR_LOG_ERR);
+						}
+						if (!is_writable($destFullPath)){
+							$logger->log("  Destination is not writable", PEAR_LOG_ERR);
+						}
 					}
 					//store the actual filename
 					$object->$propertyName = $destFileName;
@@ -340,6 +345,7 @@ class DataObjectUtil
 			if ($property['sortable'] == true && isset($_REQUEST[$propertyName . 'Weight'])){
 				$weights = $_REQUEST[$propertyName . 'Weight'];
 			}
+			$values = array();
 			if (isset($_REQUEST[$propertyName.'Id'])){
 				$idsToSave = $_REQUEST[$propertyName.'Id'];
 				$existingValues = $object->$propertyName;
@@ -360,7 +366,7 @@ class DataObjectUtil
 						//Update properties of each associated object
 						foreach ($subStructure as $subProperty){
 							$requestKey = $propertyName . '_' . $subProperty['property'];
-							if (in_array($subProperty['type'], array('text', 'enum', 'date') )){
+							if (in_array($subProperty['type'], array('text', 'enum', 'date', 'integer') )){
 								$subObject->$subProperty['property'] = $_REQUEST[$requestKey][$id];
 							}elseif (in_array($subProperty['type'], array('checkbox') )){
 								$subObject->$subProperty['property'] = isset($_REQUEST[$requestKey][$id]) ? 1 : 0;

@@ -1,10 +1,10 @@
 <?php
-require_once('Drivers/marmot_inc/ISBNConverter.php') ;
+require_once(ROOT_DIR . '/Drivers/marmot_inc/ISBNConverter.php') ;
 
 class GoDeeperData{
-	function getGoDeeperOptions($isbn, $upc, $getDefaultData = false){
+	static function getGoDeeperOptions($isbn, $upc, $getDefaultData = false){
 		global $configArray;
-		global $memcache;
+		global $memCache;
 		global $timer;
 		if (is_array($upc)){
 			$upc = count($upc) > 0 ? reset($upc) : '';
@@ -15,7 +15,7 @@ class GoDeeperData{
 			return $validEnrichmentTypes;
 		}
 
-		$goDeeperOptions = $memcache->get("go_deeper_options_{$isbn}_{$upc}");
+		$goDeeperOptions = $memCache->get("go_deeper_options_{$isbn}_{$upc}");
 		if (!$goDeeperOptions){
 
 			//Marmot is maybe planning on using Syndetics Go-Deeper Data right now.
@@ -28,8 +28,8 @@ class GoDeeperData{
 				try{
 					//Get the XML from the service
 					$ctx = stream_context_create(array(
-					  'http' => array(
-					    'timeout' => 5
+						'http' => array(
+						'timeout' => 5
 					)
 					));
 					$response =file_get_contents($requestUrl, 0, $ctx);
@@ -102,15 +102,15 @@ class GoDeeperData{
 			if (count($validEnrichmentTypes) > 0){
 				$goDeeperOptions['defaultOption'] = $defaultOption;
 			}
-			$memcache->set("go_deeper_options_{$isbn}_{$upc}", $goDeeperOptions, 0, $configArray['Caching']['go_deeper_options']);
+			$memCache->set("go_deeper_options_{$isbn}_{$upc}", $goDeeperOptions, 0, $configArray['Caching']['go_deeper_options']);
 		}
 
 		return $goDeeperOptions;
 	}
-	function getSummary($isbn, $upc){
+	static function getSummary($isbn, $upc){
 		global $configArray;
-		global $memcache;
-		$summaryData = $memcache->get("syndetics_summary_{$isbn}_{$upc}");
+		global $memCache;
+		$summaryData = $memCache->get("syndetics_summary_{$isbn}_{$upc}");
 
 		if (!$summaryData){
 			try{
@@ -145,15 +145,15 @@ class GoDeeperData{
 				$logger->log("Request URL was $requestUrl", PEAR_LOG_ERR);
 				$summaryData = array();
 			}
-			$memcache->set("syndetics_summary_{$isbn}_{$upc}", $summaryData, 0, $configArray['Caching']['syndetics_summary']);
+			$memCache->set("syndetics_summary_{$isbn}_{$upc}", $summaryData, 0, $configArray['Caching']['syndetics_summary']);
 		}
 		return $summaryData;
 	}
 
 	function getTableOfContents($isbn, $upc){
 		global $configArray;
-		global $memcache;
-		$tocData = $memcache->get("syndetics_toc_{$isbn}_{$upc}");
+		global $memCache;
+		$tocData = $memCache->get("syndetics_toc_{$isbn}_{$upc}");
 
 		if (!$tocData){
 			$clientKey = $configArray['Syndetics']['key'];
@@ -190,15 +190,15 @@ class GoDeeperData{
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
 				$tocData = array();
 			}
-			$memcache->set("syndetics_toc_{$isbn}_{$upc}", $tocData, 0, $configArray['Caching']['syndetics_toc']);
+			$memCache->set("syndetics_toc_{$isbn}_{$upc}", $tocData, 0, $configArray['Caching']['syndetics_toc']);
 		}
 		return $tocData;
 	}
 	function getFictionProfile($isbn, $upc){
 		//Load the index page from syndetics
 		global $configArray;
-		global $memcache;
-		$fictionData = $memcache->get("syndetics_fiction_profile_{$isbn}_{$upc}");
+		global $memCache;
+		$fictionData = $memCache->get("syndetics_fiction_profile_{$isbn}_{$upc}");
 
 		if (!$fictionData){
 			$clientKey = $configArray['Syndetics']['key'];
@@ -289,14 +289,14 @@ class GoDeeperData{
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
 				$fictionData = array();
 			}
-			$memcache->set("syndetics_fiction_profile_{$isbn}_{$upc}", $fictionData, 0, $configArray['Caching']['syndetics_fiction_profile']);
+			$memCache->set("syndetics_fiction_profile_{$isbn}_{$upc}", $fictionData, 0, $configArray['Caching']['syndetics_fiction_profile']);
 		}
 		return $fictionData;
 	}
 	function getAuthorNotes($isbn, $upc){
 		global $configArray;
-		global $memcache;
-		$summaryData = $memcache->get("syndetics_author_notes_{$isbn}_{$upc}");
+		global $memCache;
+		$summaryData = $memCache->get("syndetics_author_notes_{$isbn}_{$upc}");
 
 		if (!$summaryData){
 			$clientKey = $configArray['Syndetics']['key'];
@@ -329,14 +329,14 @@ class GoDeeperData{
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
 				$summaryData = array();
 			}
-			$memcache->set("syndetics_author_notes_{$isbn}_{$upc}", $summaryData, 0, $configArray['Caching']['syndetics_author_notes']);
+			$memCache->set("syndetics_author_notes_{$isbn}_{$upc}", $summaryData, 0, $configArray['Caching']['syndetics_author_notes']);
 		}
 		return $summaryData;
 	}
 	function getExcerpt($isbn, $upc){
 		global $configArray;
-		global $memcache;
-		$excerptData = $memcache->get("syndetics_excerpt_{$isbn}_{$upc}");
+		global $memCache;
+		$excerptData = $memCache->get("syndetics_excerpt_{$isbn}_{$upc}");
 
 		if (!$excerptData){
 			$clientKey = $configArray['Syndetics']['key'];
@@ -363,7 +363,7 @@ class GoDeeperData{
 					}
 				}
 
-				$memcache->set("syndetics_excerpt_{$isbn}_{$upc}", $excerptData, 0, $configArray['Caching']['syndetics_excerpt']);
+				$memCache->set("syndetics_excerpt_{$isbn}_{$upc}", $excerptData, 0, $configArray['Caching']['syndetics_excerpt']);
 			}catch (Exception $e) {
 				global $logger;
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
@@ -375,8 +375,8 @@ class GoDeeperData{
 
 	function getVideoClip($isbn, $upc){
 		global $configArray;
-		global $memcache;
-		$summaryData = $memcache->get("syndetics_video_clip_{$isbn}_{$upc}");
+		global $memCache;
+		$summaryData = $memCache->get("syndetics_video_clip_{$isbn}_{$upc}");
 
 		if (!$summaryData){
 			$clientKey = $configArray['Syndetics']['key'];
@@ -410,7 +410,7 @@ class GoDeeperData{
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
 				$summaryData = array();
 			}
-			$memcache->set("syndetics_video_clip_{$isbn}_{$upc}", $summaryData, 0, $configArray['Caching']['syndetics_video_clip']);
+			$memCache->set("syndetics_video_clip_{$isbn}_{$upc}", $summaryData, 0, $configArray['Caching']['syndetics_video_clip']);
 		}
 
 		return $summaryData;
@@ -418,8 +418,8 @@ class GoDeeperData{
 
 	function getAVSummary($isbn, $upc){
 		global $configArray;
-		global $memcache;
-		$avSummaryData = $memcache->get("syndetics_av_summary_{$isbn}_{$upc}");
+		global $memCache;
+		$avSummaryData = $memCache->get("syndetics_av_summary_{$isbn}_{$upc}");
 
 		if (!$avSummaryData){
 			$clientKey = $configArray['Syndetics']['key'];
@@ -454,7 +454,7 @@ class GoDeeperData{
 					}
 				}
 
-				$memcache->set("syndetics_av_summary_{$isbn}_{$upc}", $avSummaryData, 0, $configArray['Caching']['syndetics_av_summary']);
+				$memCache->set("syndetics_av_summary_{$isbn}_{$upc}", $avSummaryData, 0, $configArray['Caching']['syndetics_av_summary']);
 			}catch (Exception $e) {
 				global $logger;
 				$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
@@ -466,8 +466,8 @@ class GoDeeperData{
 
 	function getGoogleBookId($isbn){
 		global $configArray;
-		global $memcache;
-		$googleBookId = $memcache->get("google_book_id_{$isbn}");
+		global $memCache;
+		$googleBookId = $memCache->get("google_book_id_{$isbn}");
 		if (!$googleBookId){
 			$requestUrl = "http://www.google.com/search?q=isbn:$isbn&btnG=Search+Books";
 
@@ -493,7 +493,7 @@ class GoDeeperData{
 			}
 			global $timer;
 			$timer->logTime("Loaded Google Book Id");
-			$memcache->set("google_book_id_{$isbn}", $googleBookId, 0, $configArray['Caching']['google_book_id']);
+			$memCache->set("google_book_id_{$isbn}", $googleBookId, 0, $configArray['Caching']['google_book_id']);
 		}
 		return $googleBookId;
 	}
@@ -503,7 +503,7 @@ class GoDeeperData{
 		return array('link' => "http://books.google.com/books?id=$googleBookId&printsec=frontcover");
 	}
 
-	function getHtmlData($dataType, $recordType, $isbn, $upc){
+	static function getHtmlData($dataType, $recordType, $isbn, $upc){
 		global $interface;
 		$interface->assign('recordType', $recordType);
 		$interface->assign('id', $_REQUEST['id']);

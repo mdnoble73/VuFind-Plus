@@ -97,8 +97,8 @@ class I18N_Translator
 		}
 		
 		//Check for a more specific language file for the site
-		global $servername;
-		$serverLangPath = $configArray['Site']['local'] . '/../../sites/' . $servername . '/lang';
+		global $serverName;
+		$serverLangPath = $configArray['Site']['local'] . '/../../sites/' . $serverName . '/lang';
 		if ($dh = @opendir($serverLangPath)) {
 			$serverFile = $serverLangPath . '/' . $this->langCode . '.ini';
 			if (file_exists($serverFile)) {

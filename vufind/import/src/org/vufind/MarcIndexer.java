@@ -44,6 +44,10 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 			if (!response.isSuccess()){
 				results.addNote("Error clearing existing marc records " + response.getMessage());
 			}
+			response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<commit expungeDeletes=\"true\"/>", logger);
+			if (!response.isSuccess()){
+				results.addNote("Error expunging deletes " + response.getMessage());
+			}
 		}
 		
 		String reindexUnchangedRecordsVal = configIni.get("Reindex", "reindexUnchangedRecords");
@@ -61,9 +65,17 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 
 	@Override
 	public void finish() {
+		try {
+			updateServer.commit(true, true);
+			updateServer.shutdown();
+		} catch (Exception e) {
+			results.addNote("Error calling final commit " + e.toString());
+			results.incErrors();
+		}
 		//Make sure that the index is good and swap indexes
-		results.addNote("calling final commit on index");
-		URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<commit />", logger);
+		//Removing these steps because they are redundant to the steps above.
+		/*results.addNote("calling final commit on index");
+		URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<commit expungeDeletes=\"true\"/>", logger);
 		if (!response.isSuccess()){
 			results.addNote("Error committing changes " + response.getMessage());
 		}
@@ -71,27 +83,21 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 		response = Util.postToURL("http://localhost:" + solrPort + "/solr/biblio2/update/", "<optimize />", logger);
 		if (!response.isSuccess()){
 			results.addNote("Error optimizing index " + response.getMessage());
-		}
-		if (checkMarcImport()){
-			results.addNote("index passed checks, swapping cores so new index is active.");
-			response = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=biblio2&other=biblio", logger);
-			if (!response.isSuccess()){
-				results.addNote("Error swapping cores " + response.getMessage());
-			}else{
-				results.addNote("Result of swapping cores " + response.getMessage());
-			}
-		}else{
-			results.addNote("index did not pass check, not swapping");
-		}
+		}*/
+
 		results.saveResults();
 	}
 
 	@Override
 	public boolean processMarcRecord(MarcProcessor processor, MarcRecordDetails recordInfo, int recordStatus, Logger logger) {
 		try {
-			results.incRecordsProcessed();
+			if (recordInfo.isEContent()){
+				results.incEContentRecordsProcessed();
+			}else{
+				results.incRecordsProcessed();
+			}
 			if (recordStatus == MarcProcessor.RECORD_UNCHANGED && !reindexUnchangedRecords){
-				//logger.info("Skipping record because it hasn't changed");
+				//logger.info("MarcProcessor Skipping record because it hasn't changed");
 				results.incSkipped();
 				return true;
 			}
@@ -127,6 +133,8 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 					}
 				} catch (Exception e) {
 					results.addNote("Error creating xml doc for record " + recordInfo.getId() + " " + e.toString());
+					results.incErrors();
+					logger.error("Error creating xml doc for record " + recordInfo.getId(), e);
 					e.printStackTrace();
 					return false;
 				}

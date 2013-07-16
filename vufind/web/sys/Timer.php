@@ -34,7 +34,7 @@ class Timer{
 		$this->timingsEnabled = $enable;
 	}
 
-	function writeTimings(){
+	public function writeTimings(){
 		if ($this->timingsEnabled){
 			$curTime = microtime(true);
 			$elapsedTime = round($curTime - $this->lastTime, 4);
@@ -54,11 +54,13 @@ class Timer{
 	function __destruct() {
 		if ($this->timingsEnabled){
 			global $logger;
-			$totalElapsedTime =round(microtime(true) - $this->firstTime, 4);
-			$timingInfo = "\r\nTiming for: " . $_SERVER['REQUEST_URI'] . "\r\n";
-			$timingInfo .= implode("\r\n", $this->timingMessages);
-			$timingInfo .= "\r\nTotal Elapsed time was: $totalElapsedTime seconds.\r\n";
-			$logger->log($timingInfo, PEAR_LOG_NOTICE);
+			if ($logger){
+				$totalElapsedTime =round(microtime(true) - $this->firstTime, 4);
+				$timingInfo = "\r\nTiming for: " . $_SERVER['REQUEST_URI'] . "\r\n";
+				$timingInfo .= implode("\r\n", $this->timingMessages);
+				$timingInfo .= "\r\nTotal Elapsed time was: $totalElapsedTime seconds.\r\n";
+				$logger->log($timingInfo, PEAR_LOG_NOTICE);
+			}
 		}
 	}
 }

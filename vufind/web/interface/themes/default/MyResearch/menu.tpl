@@ -26,7 +26,6 @@
     	{if $hasProtectedEContent}
     	<div class="myAccountLink{if $pageTemplate=="eContentHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/EContentHolds">{translate text='Available Holds'} ({$profile.numEContentAvailableHolds})</a></div>
     	<div class="myAccountLink{if $pageTemplate=="eContentHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/EContentHolds">{translate text='Unavailable Holds'} ({$profile.numEContentUnavailableHolds})</a></div>
-    	<div class="myAccountLink{if $pageTemplate=="eContentWishList.tpl"} active{/if}"><a href="{$path}/MyResearch/MyEContentWishlist">{translate text='Wish List'} ({$profile.numEContentWishList})</a></div>
     	{/if}
     </div>
     <div class="myAccountLink">OverDrive Titles

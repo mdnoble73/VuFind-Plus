@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'services/MyResearch/MyResearch.php';
-require_once 'services/MyResearch/lib/FavoriteHandler.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
 
 /**
  * MyResearch Home Page, should only get here when going to the login page.

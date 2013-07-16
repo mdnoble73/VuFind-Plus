@@ -21,13 +21,13 @@
  *
  */
 
-require_once "Action.php";
-require_once "sys/MaterialsRequest.php";
+require_once ROOT_DIR . "/Action.php";
+require_once ROOT_DIR . "/sys/MaterialsRequest.php";
 
 /**
  * MaterialsRequest Home Page, displays an existing Materials Request.
  */
-class NewRequest extends Action
+class MaterialsRequest_NewRequest extends Action
 {
 
 	function launch()
@@ -52,6 +52,7 @@ class NewRequest extends Action
 		$interface->assign('availableFormats', $availableFormats);
 		
 		//Setup a default title based on the search term
+		$interface->assign('new', true);
 		if (isset($_REQUEST['lookfor']) && strlen ($_REQUEST['lookfor']) > 0){ 
 			$request = new MaterialsRequest();
 			$searchType = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : (isset($_REQUEST['type']) ? $_REQUEST['type'] : 'Keyword');
@@ -61,9 +62,8 @@ class NewRequest extends Action
 				$request->title = $_REQUEST['lookfor'];
 			}
 			$interface->assign('materialsRequest', $request);
-			$interface->assign('new', true);
 		}
-		
+
 		$interface->assign('showPhoneField', $configArray['MaterialsRequest']['showPhoneField']);
 		$interface->assign('showAgeField', $configArray['MaterialsRequest']['showAgeField']);
 		$interface->assign('showBookTypeField', $configArray['MaterialsRequest']['showBookTypeField']);

@@ -21,15 +21,15 @@
  *
  */
 
-require_once "Action.php";
-require_once "sys/MaterialsRequest.php";
-require_once "sys/MaterialsRequestStatus.php";
+require_once ROOT_DIR . "/Action.php";
+require_once ROOT_DIR . "/sys/MaterialsRequest.php";
+require_once ROOT_DIR . "/sys/MaterialsRequestStatus.php";
 
 /**
  * MaterialsRequest Submission processing, processes a new request for the user and
  * displays a success/fail message to the user.
  */
-class Submit extends Action
+class MaterialsRequest_Submit extends Action
 {
 
 	function launch()
@@ -41,8 +41,6 @@ class Submit extends Action
 		//Make sure that the user is valid
 		$processForm = true;
 		if (!$user){
-			$username = $_REQUEST['username'];
-			$password = $_REQUEST['password'];
 			$user = UserAccount::login();
 			if ($user == null){
 				$interface->assign('error', 'Sorry, we could not log you in.  Please enter a valid barcode and pin number submit a materials request.');
@@ -72,6 +70,8 @@ class Submit extends Action
 				$materialsRequest = new MaterialsRequest();
 				$materialsRequest->createdBy = $user->id;
 				$statusQuery = new MaterialsRequestStatus();
+				$homeLibrary = Library::getPatronHomeLibrary();
+				$statusQuery->libraryId = $homeLibrary->libraryId;
 				$statusQuery->isOpen = 1;
 				$materialsRequest->joinAdd($statusQuery);
 				$materialsRequest->selectAdd();
@@ -137,6 +137,8 @@ class Submit extends Action
 					}
 					$defaultStatus = new MaterialsRequestStatus();
 					$defaultStatus->isDefault = 1;
+					$userLibraryId = Library::getPatronHomeLibrary();
+					$defaultStatus->libraryId = $userLibraryId->libraryId;
 					if (!$defaultStatus->find(true)){
 						$interface->assign('success', false);
 						$interface->assign('error', 'There was an error submitting your materials request, could not determine the default status.');
@@ -158,7 +160,7 @@ class Submit extends Action
 			}
 		}
 
-		$interface->setTemplate('submision-result.tpl');
+		$interface->setTemplate('submission-result.tpl');
 		$interface->setPageTitle('Submission Result');
 		$interface->display('layout.tpl');
 	}

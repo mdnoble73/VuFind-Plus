@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class JSON extends Action
 {
@@ -40,7 +40,7 @@ class JSON extends Action
 		$item = $_REQUEST['item'];
 
 		//Check the database to see if there is an existing title
-		require_once('sys/eContent/EContentItem.php');
+		require_once(ROOT_DIR . '/sys/eContent/EContentItem.php');
 		$epubFile = new EContentItem();
 		$epubFile->id = $_REQUEST['item'];
 		$epubFile->find();
@@ -56,7 +56,7 @@ class JSON extends Action
 		}
 
 		if (file_exists($bookFile)){
-			require_once('sys/eReader/ebook.php');
+			require_once(ROOT_DIR . '/sys/eReader/ebook.php');
 			$ebook = new ebook($bookFile);
 			$epubExists = true;
 		}else{
@@ -89,6 +89,7 @@ class JSON extends Action
 	function getComponent($ebook, $id, $item){
 		global $configArray;
 		$component = $_REQUEST['component'];
+		$component = stripslashes($component);
 		if (strpos($component, "#") > 0){
 			$component = substr($component, 0, strpos($component, "#"));
 		}
@@ -107,7 +108,6 @@ class JSON extends Action
 			$manifestId = $ebook->getManifestItem($i, 'id');
 			$manifestHref= $ebook->getManifestItem($i, 'href');
 			$manifestType= $ebook->getManifestItem($i, 'type');
-
 			if ($manifestId == $component){
 				$componentType = $manifestType;
 			}
@@ -155,6 +155,7 @@ class JSON extends Action
 	function getComponentCustom($ebook, $id, $item){
 		global $configArray;
 		$component = $_REQUEST['component'];
+		$component = stripslashes($component);
 		if (strpos($component, "#") > 0){
 			$component = substr($component, 0, strpos($component, "#"));
 		}
@@ -197,13 +198,16 @@ class JSON extends Action
 						//Ignore css for now
 						$replacement = '';
 					}else{
-						$replacement = $configArray['Site']['path'] . "/EContent/" . preg_quote($id) ."/JSON?method=getComponent&component=" . preg_quote($manifestId) . "&item=" . $item;
+						$replacement = $configArray['Site']['path'] . "/EContent/" . preg_quote($id) ."/JSON?method=getComponent&item=" . $item . "&component=" . preg_quote($manifestId);
 					}
 					$componentText = preg_replace("~$pattern~", $replacement, $componentText);
 				}else{
 					//Link to another location within the document
 					//convert to a window.reader.moveTo(componentId, location)
-					//$componentText = preg_replace('/<a href=["\']#'. preg_quote($manifestHref) . '["\']/', "<a onclick=\"window.parent.reader.moveTo({componentId: '{$escapedManifestId}', xpath:'//a[@id={$escapedManifestId}]'})\" href=\"#\"", $componentText);
+					//$componentText = preg_replace('/<a href=["\']#'. preg_quote($manifestHref) . '["\']/', "<a onclick=\"window.parent.reader.moveTo({componentId: '{$manifestId}', xpath:'//a[@id={$manifestId}]'})\" href=\"#\"", $componentText);
+					$quotedManifest = preg_quote($manifestHref, '/');
+					$componentText = preg_replace('/<a href=["\']'. $quotedManifest . '["\']/', "<a onclick=\"return showTocEntry('{$manifestId}');\" href=\"#\"", $componentText);
+					$componentText = preg_replace('/<a href=["\']'. $quotedManifest . '#(.*?)["\']/', "<a onclick=\"return showTocEntry('{$manifestId}#\\1');\" href=\"#\"", $componentText);
 					/*$pattern = str_replace("~", "\~", '<a (.*?)href=["\']'. preg_quote($manifestHref) . '#(.*?)["\']');
 					$replacement = '<a \\1 onclick=\"window.parent.reader.moveTo({componentId: \'' . addslashes($manifestId) . '\', xpath:\'//a[@id=\\2]\'});return false;" href="#"';
 					$componentText = preg_replace("~$pattern~", $replacement, $componentText);*/

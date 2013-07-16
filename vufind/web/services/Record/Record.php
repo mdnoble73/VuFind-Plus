@@ -18,19 +18,19 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR  . '/Action.php';
 
 require_once 'File/MARC.php';
 
-require_once 'sys/Language.php';
+require_once ROOT_DIR  . '/sys/Language.php';
 
-require_once 'services/MyResearch/lib/User.php';
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/Resource_tags.php';
-require_once 'services/MyResearch/lib/Tags.php';
-require_once 'RecordDrivers/Factory.php';
+require_once ROOT_DIR  . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR  . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR  . '/services/MyResearch/lib/Resource_tags.php';
+require_once ROOT_DIR  . '/services/MyResearch/lib/Tags.php';
+require_once ROOT_DIR  . '/RecordDrivers/Factory.php';
 
-class Record extends Action
+class Record_Record extends Action
 {
 	public $id;
 
@@ -41,12 +41,15 @@ class Record extends Action
 	public $marcRecord;
 
 	public $record;
+	public $similarTitles;
 
 	public $isbn;
+	public $issn;
 	public $upc;
 
 	public $cacheId;
 
+	/** @var  Solr */
 	public $db;
 
 	public $description;
@@ -72,22 +75,21 @@ class Record extends Action
 			$this->id = $record_id;
 		}
 
-		//Check to see if the record has been converted to an eContent record
-		require_once 'sys/eContent/EContentRecord.php';
-		$econtentRecord = new EContentRecord();
-		$econtentRecord->ilsId = $this->id;
-		$econtentRecord->status = 'active';
-		if ($econtentRecord->find(true)){
-			header("Location: /EcontentRecord/{$econtentRecord->id}/Home");
-			die();
-		}
-
 		//Check to see if the record exists within the resources table
 		$resource = new Resource();
 		$resource->record_id = $this->id;
 		$resource->source = 'VuFind';
 		$resource->deleted = 0;
 		if (!$resource->find()){
+			//Check to see if the record has been converted to an eContent record
+			require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+			$econtentRecord = new EContentRecord();
+			$econtentRecord->ilsId = $this->id;
+			$econtentRecord->status = 'active';
+			if ($econtentRecord->find(true)){
+				header("Location: /EcontentRecord/{$econtentRecord->id}/Home");
+				die();
+			}
 			$logger->log("Did not find a record for id {$this->id} in resources table." , PEAR_LOG_DEBUG);
 			$interface->setTemplate('invalidRecord.tpl');
 			$interface->display('layout.tpl');
@@ -103,9 +105,7 @@ class Record extends Action
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
+		$this->db->disableScoping();
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {
@@ -114,6 +114,8 @@ class Record extends Action
 			$interface->display('layout.tpl');
 			die();
 		}
+		$this->db->enableScoping();
+
 		$this->record = $record;
 		$interface->assign('record', $record);
 		$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
@@ -122,7 +124,7 @@ class Record extends Action
 		$interface->assign('coreMetadata', $this->recordDriver->getCoreMetadata());
 
 		// Process MARC Data
-		require_once 'sys/MarcLoader.php';
+		require_once ROOT_DIR  . '/sys/MarcLoader.php';
 		$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 		if ($marcRecord) {
 			$this->marcRecord = $marcRecord;
@@ -163,14 +165,8 @@ class Record extends Action
 			$interface->assign('contributors', $contributors);
 		}
 
-		$marcFields = $marcRecord->getFields('260');
-		if ($marcFields){
-			$published = array();
-			foreach ($marcFields as $marcField){
-				$published[] = $this->concatenateSubfieldData($marcField, array('a', 'b', 'c'));
-			}
-			$interface->assign('published', $published);
-		}
+		$published = $this->recordDriver->getPublicationDetails();
+		$interface->assign('published', $published);
 
 		$marcFields = $marcRecord->getFields('250');
 		if ($marcFields){
@@ -197,10 +193,12 @@ class Record extends Action
 
 		// Get ISBN for cover and review use
 		$mainIsbnSet = false;
+		/** @var File_MARC_Data_Field[] $isbnFields */
 		if ($isbnFields = $this->marcRecord->getFields('020')) {
 			$isbns = array();
 			//Use the first good ISBN we find.
 			foreach ($isbnFields as $isbnField){
+				/** @var File_MARC_Subfield $isbnSubfieldA */
 				if ($isbnSubfieldA = $isbnField->getSubfield('a')) {
 					$tmpIsbn = trim($isbnSubfieldA->getData());
 					if (strlen($tmpIsbn) > 0){
@@ -226,7 +224,7 @@ class Record extends Action
 			}
 			if (isset($this->isbn)){
 				if (strlen($this->isbn) == 13){
-					require_once('Drivers/marmot_inc/ISBNConverter.php');
+					require_once(ROOT_DIR  . '/Drivers/marmot_inc/ISBNConverter.php');
 					$this->isbn10 = ISBNConverter::convertISBN13to10($this->isbn);
 				}else{
 					$this->isbn10 = $this->isbn;
@@ -237,16 +235,18 @@ class Record extends Action
 		}
 
 		if ($upcField = $this->marcRecord->getField('024')) {
-			if ($upcField = $upcField->getSubfield('a')) {
-				$this->upc = trim($upcField->getData());
+			/** @var File_MARC_Data_Field $upcField */
+			if ($upcSubField = $upcField->getSubfield('a')) {
+				$this->upc = trim($upcSubField->getData());
 				$interface->assign('upc', $this->upc);
 			}
 		}
 
 
 		if ($issnField = $this->marcRecord->getField('022')) {
-			if ($issnField = $issnField->getSubfield('a')) {
-				$this->issn = trim($issnField->getData());
+			/** @var File_MARC_Data_Field $issnField */
+			if ($issnSubField = $issnField->getSubfield('a')) {
+				$this->issn = trim($issnSubField->getData());
 				if ($pos = strpos($this->issn, ' ')) {
 					$this->issn = substr($this->issn, 0, $pos);
 				}
@@ -272,8 +272,11 @@ class Record extends Action
 			}
 		}
 
+		/** @var File_MARC_Data_Field[] $marcField440 */
 		$marcField440 = $marcRecord->getFields('440');
+		/** @var File_MARC_Data_Field[] $marcField490 */
 		$marcField490 = $marcRecord->getFields('490');
+		/** @var File_MARC_Data_Field[] $marcField830 */
 		$marcField830 = $marcRecord->getFields('830');
 		if ($marcField440 || $marcField490 || $marcField830){
 			$series = array();
@@ -295,7 +298,7 @@ class Record extends Action
 		$useMarcSummary = true;
 		if ($this->isbn || $this->upc){
 			if ($library && $library->preferSyndeticsSummary == 1){
-				require_once 'Drivers/marmot_inc/GoDeeperData.php';
+				require_once ROOT_DIR  . '/Drivers/marmot_inc/GoDeeperData.php';
 				$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
 				if (isset($summaryInfo['summary'])){
 					$interface->assign('summaryTeaser', $summaryInfo['summary']);
@@ -309,7 +312,7 @@ class Record extends Action
 				$interface->assign('summary', $this->getSubfieldData($summaryField, 'a'));
 				$interface->assign('summaryTeaser', $this->getSubfieldData($summaryField, 'a'));
 			}elseif ($library && $library->preferSyndeticsSummary == 0){
-				require_once 'Drivers/marmot_inc/GoDeeperData.php';
+				require_once ROOT_DIR  . '/Drivers/marmot_inc/GoDeeperData.php';
 				$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
 				if (isset($summaryInfo['summary'])){
 					$interface->assign('summaryTeaser', $summaryInfo['summary']);
@@ -329,12 +332,14 @@ class Record extends Action
 			$subjectFields = explode(',', $subjectFieldsToShow);
 			$subjects = array();
 			foreach ($subjectFields as $subjectField){
+				/** @var File_MARC_Data_Field[] $marcFields */
 				$marcFields = $marcRecord->getFields($subjectField);
 				if ($marcFields){
 					foreach ($marcFields as $marcField){
 						$searchSubject = "";
 						$subject = array();
 						foreach ($marcField->getSubFields() as $subField){
+							/** @var File_MARC_Subfield $subField */
 							if ($subField->getCode() != 2){
 								$searchSubject .= " " . $subField->getData();
 								$subject[] = array(
@@ -352,8 +357,8 @@ class Record extends Action
 
 		$format = $record['format'];
 		$interface->assign('recordFormat', $record['format']);
-		$format_category = $record['format_category'][0];
-		$interface->assign('format_category', $record['format_category'][0]);
+		$format_category = isset($record['format_category'][0]) ? $record['format_category'][0] : '';
+		$interface->assign('format_category', $format_category);
 		$interface->assign('recordLanguage', isset($record['language']) ? $record['language'] : null);
 
 		$timer->logTime('Got detailed data from Marc Record');
@@ -380,30 +385,62 @@ class Record extends Action
 		}else{
 			$interface->assign('tableOfContents', $tableOfContents);
 		}
-		if (isset($library)){
+		if (isset($library) && strlen($library->notesTabName) > 0){
 			$interface->assign('notesTabName', $library->notesTabName);
 		}else{
 			$interface->assign('notesTabName', 'Notes');
 		}
 
 		$additionalNotesFields = array(
-          '310' => 'Current Publication Frequency',
-          '321' => 'Former Publication Frequency',
-          '351' => 'Organization & arrangement of materials',
-          '362' => 'Dates of publication and/or sequential designation',
-		      '590' => 'Local note',
-
+            '310' => 'Current Publication Frequency',
+            '321' => 'Former Publication Frequency',
+            '351' => 'Organization & arrangement of materials',
+            '362' => 'Dates of publication and/or sequential designation',
+            '501' => '"With"',
+            '502' => 'Dissertation',
+            '506' => 'Restrictions on Access',
+            '507' => 'Scale for Graphic Material',
+            '508' => 'Creation/Production Credits',
+            '510' => 'Citation/References',
+            '511' => 'Participant or Performer',
+            '513' => 'Type of Report an Period Covered',
+            '515' => 'Numbering Peculiarities',
+            '518' => 'Date/Time and Place of Event',
+            '521' => 'Target Audience',
+            '522' => 'Geographic Coverage',
+            '525' => 'Supplement',
+            '526' => 'Study Program Information',
+            '530' => 'Additional Physical Form',
+            '533' => 'Reproduction',
+            '534' => 'Original Version',
+            '536' => 'Funding Information',
+            '538' => 'System Details',
+            '545' => 'Biographical or Historical Data',
+            '546' => 'Language',
+            '547' => 'Former Title Complexity',
+            '550' => 'Issuing Body',
+            '555' => 'Cumulative Index/Finding Aids',
+            '556' => 'Information About Documentation',
+            '561' => 'Ownership and Custodial History',
+            '563' => 'Binding Information',
+            '580' => 'Linking Entry Complexity',
+            '581' => 'Publications About Described Materials',
+            '586' => 'Awards',
+            '590' => 'Local note',
+            '599' => 'Differentiable Local note',
 		);
+
 		foreach ($additionalNotesFields as $tag => $label){
 			$marcFields = $marcRecord->getFields($tag);
 			foreach ($marcFields as $marcField){
 				$noteText = array();
 				foreach ($marcField->getSubFields() as $subfield){
+					/** @var File_MARC_Subfield $subfield */
 					$noteText[] = $subfield->getData();
 				}
 				$note = implode(',', $noteText);
 				if (strlen($note) > 0){
-					$notes[] = $label . ': ' . $note;
+					$notes[] = "<b>$label</b>: " . $note;
 				}
 			}
 		}
@@ -412,6 +449,7 @@ class Record extends Action
 			$interface->assign('notes', $notes);
 		}
 
+		/** @var File_MARC_Data_Field[] $linkFields */
 		$linkFields =$marcRecord->getFields('856') ;
 		if ($linkFields){
 			$internetLinks = array();
@@ -463,7 +501,7 @@ class Record extends Action
 		}
 
 		//Determine the cover to use
-		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$this->id}&amp;isn={$this->isbn}&amp;size=large&amp;upc={$this->upc}&amp;category=" . urlencode($format_category) . "&amp;format=" . urlencode(isset($format[0]) ? $format[0] : '');
+		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$this->id}&amp;isn={$this->isbn}&amp;issn={$this->issn}&amp;size=large&amp;upc={$this->upc}&amp;category=" . urlencode($format_category) . "&amp;format=" . urlencode(isset($format[0]) ? $format[0] : '');
 		$interface->assign('bookCoverUrl', $bookCoverUrl);
 
 		//Load accelerated reader data
@@ -476,7 +514,7 @@ class Record extends Action
 			$interface->assign('arData', $arData);
 		}
 
-		if (isset($record['lexile_score'])){
+		if (isset($record['lexile_score']) && $record['lexile_score'] > -1){
 			$lexileScore = $record['lexile_score'];
 			if (isset($record['lexile_code'])){
 				$lexileScore = $record['lexile_code'] . $lexileScore;
@@ -495,7 +533,7 @@ class Record extends Action
 			$interface->assign('shortId', $this->id);
 		}
 
-		$interface->assign('addHeader', '<link rel="alternate" type="application/rdf+xml" title="RDF Representation" href="' . $configArray['Site']['url']  . '/Record/' . urlencode($this->id) . '/RDF" />');
+		$interface->assign('addHeader', '<link rel="alternate" type="application/rdf+xml" title="RDF Representation" href="' . $configArray['Site']['path']  . '/Record/' . urlencode($this->id) . '/RDF" />');
 
 		// Define Default Tab
 		$tab = (isset($_GET['action'])) ? $_GET['action'] : 'Description';
@@ -526,7 +564,6 @@ class Record extends Action
 		$resource->record_id = $_GET['id'];
 		$resource->source = 'VuFind';
 		$resource->find(true);
-		$tags = array();
 		$tags = $resource->getTags($limit);
 		$interface->assign('tagList', $tags);
 		$timer->logTime('Got tag list');
@@ -534,8 +571,9 @@ class Record extends Action
 		$this->cacheId = 'Record|' . $_GET['id'] . '|' . get_class($this);
 
 		// Find Similar Records
-		global $memcache;
-		$similar = $memcache->get('similar_titles_' . $this->id);
+		/** @var Memcache $memCache */
+		global $memCache;
+		$similar = $memCache->get('similar_titles_' . $this->id);
 		if ($similar == false){
 			$similar = $this->db->getMoreLikeThis($this->id);
 			// Send the similar items to the template; if there is only one, we need
@@ -546,18 +584,19 @@ class Record extends Action
 				$similar = array();
 				$timer->logTime("Did not find any similar records");
 			}
-			$memcache->set('similar_titles_' . $this->id, $similar, 0, $configArray['Caching']['similar_titles']);
+			$memCache->set('similar_titles_' . $this->id, $similar, 0, $configArray['Caching']['similar_titles']);
 		}
+		$this->similarTitles = $similar;
 		$interface->assign('similarRecords', $similar);
 		$timer->logTime('Loaded similar titles');
 
 		// Find Other Editions
 		if ($configArray['Content']['showOtherEditionsPopup'] == false){
 			$editions = OtherEditionHandler::getEditions($this->id, $this->isbn, isset($this->record['issn']) ? $this->record['issn'] : null);
-			if (!PEAR::isError($editions)) {
+			if (!PEAR_Singleton::isError($editions)) {
 				$interface->assign('editions', $editions);
 			}else{
-				$logger->logTime("Did not find any other editions");
+				$timer->logTime("Did not find any other editions");
 			}
 			$timer->logTime('Got Other editions');
 		}
@@ -588,16 +627,26 @@ class Record extends Action
 		$interface->assign('ratingData', $ratingData);
 		$timer->logTime('Got 5 star data');
 
-		$this->getNextPrevLinks();
+		//Get Next/Previous Links
+		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$searchObject->init($searchSource);
+		$searchObject->getNextPrevLinks();
 
 		//Load Staff Details
 		$interface->assign('staffDetails', $this->recordDriver->getStaffView());
 	}
 
+	/**
+	 * @param File_MARC_Data_Field[] $allFields
+	 * @return array
+	 */
 	function processNoteFields($allFields){
 		$notes = array();
+		/** File_MARC_Data_Field $marcField */
 		foreach ($allFields as $marcField){
-			foreach ($marcField->getSubFields() as $subfield){
+			/** @var File_MARC_Subfield $subfield */
+			foreach ($marcField->getSubfields() as $subfield){
 				$note = $subfield->getData();
 				if ($subfield->getCode() == 't'){
 					$note = "&nbsp;&nbsp;&nbsp;" . $note;
@@ -611,11 +660,16 @@ class Record extends Action
 		return $notes;
 	}
 
+	/**
+	 * @param File_MARC_Data_Field[] $allFields
+	 * @return array
+	 */
 	function processTableOfContentsFields($allFields){
 		$notes = array();
 		foreach ($allFields as $marcField){
 			$curNote = '';
-			foreach ($marcField->getSubFields() as $subfield){
+			/** @var File_MARC_Subfield $subfield */
+			foreach ($marcField->getSubfields() as $subfield){
 				$note = $subfield->getData();
 				$curNote .= " " . $note;
 				$curNote = trim($curNote);
@@ -626,108 +680,6 @@ class Record extends Action
 			}
 		}
 		return $notes;
-	}
-
-	function getNextPrevLinks(){
-		global $interface;
-		global $timer;
-		//Setup next and previous links based on the search results.
-		if (isset($_REQUEST['searchId'])){
-			//rerun the search
-			$s = new SearchEntry();
-			$s->id = $_REQUEST['searchId'];
-			$interface->assign('searchId', $_REQUEST['searchId']);
-			$currentPage = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
-			$interface->assign('page', $currentPage);
-
-			$s->find();
-			if ($s->N > 0){
-				$s->fetch();
-				$minSO = unserialize($s->search_object);
-				$searchObject = SearchObjectFactory::deminify($minSO);
-				$searchObject->setPage($currentPage);
-				//Run the search
-				$result = $searchObject->processSearch(true, false, false);
-
-				//Check to see if we need to run a search for the next or previous page
-				$currentResultIndex = $_REQUEST['recordIndex'] - 1;
-				$recordsPerPage = $searchObject->getLimit();
-
-				if (($currentResultIndex) % $recordsPerPage == 0 && $currentResultIndex > 0){
-					//Need to run a search for the previous page
-					$interface->assign('previousPage', $currentPage - 1);
-					$previousSearchObject = clone $searchObject;
-					$previousSearchObject->setPage($currentPage - 1);
-					$previousSearchObject->processSearch(true, false, false);
-					$previousResults = $previousSearchObject->getResultRecordSet();
-				}else if (($currentResultIndex + 1) % $recordsPerPage == 0 && ($currentResultIndex + 1) < $searchObject->getResultTotal()){
-					//Need to run a search for the next page
-					$nextSearchObject = clone $searchObject;
-					$interface->assign('nextPage', $currentPage + 1);
-					$nextSearchObject->setPage($currentPage + 1);
-					$nextSearchObject->processSearch(true, false, false);
-					$nextResults = $nextSearchObject->getResultRecordSet();
-				}
-
-				if (PEAR::isError($result)) {
-					//If we get an error excuting the search, just eat it for now.
-				}else{
-					if ($searchObject->getResultTotal() < 1) {
-						//No results found
-					}else{
-						$recordSet = $searchObject->getResultRecordSet();
-						//Record set is 0 based, but we are passed a 1 based index
-						if ($currentResultIndex > 0){
-							if (isset($previousResults)){
-								$previousRecord = $previousResults[count($previousResults) -1];
-							}else{
-								$previousId = $currentResultIndex - 1;
-								if (isset($recordSet[$previousId])){
-									$previousRecord = $recordSet[$previousId];
-								}
-							}
-							//Convert back to 1 based index
-							if (isset($previousRecord)){
-								$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
-								$interface->assign('previousTitle', $previousRecord['title']);
-								if (strpos($previousRecord['id'], 'econtentRecord') === 0){
-									$interface->assign('previousType', 'EcontentRecord');
-									$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
-								}else{
-									$interface->assign('previousType', 'Record');
-									$interface->assign('previousId', $previousRecord['id']);
-								}
-							}
-						}
-						if ($currentResultIndex + 1 < $searchObject->getResultTotal()){
-
-							if (isset($nextResults)){
-								$nextRecord = $nextResults[0];
-							}else{
-								$nextRecordIndex = $currentResultIndex + 1;
-								if (isset($recordSet[$nextRecordIndex])){
-									$nextRecord = $recordSet[$nextRecordIndex];
-								}
-							}
-							//Convert back to 1 based index
-							if (isset($nextRecord)){
-								$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
-								$interface->assign('nextTitle', isset($nextRecord['title']) ? $nextRecord['title'] : '');
-								if (strpos($nextRecord['id'], 'econtentRecord') === 0){
-									$interface->assign('nextType', 'EcontentRecord');
-									$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
-								}else{
-									$interface->assign('nextType', 'Record');
-									$interface->assign('nextId', $nextRecord['id']);
-								}
-							}
-						}
-
-					}
-				}
-			}
-			$timer->logTime('Got next/previous links');
-		}
 	}
 
 	/**
@@ -752,6 +704,11 @@ class Record extends Action
 		}*/
 	}
 
+	/**
+	 * @param File_MARC_Data_Field $marcField
+	 * @param File_MARC_Subfield $subField
+	 * @return string
+	 */
 	public function getSubfieldData($marcField, $subField){
 		if ($marcField){
 			return $marcField->getSubfield($subField) ? $marcField->getSubfield($subField)->getData() : '';

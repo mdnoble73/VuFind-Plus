@@ -19,7 +19,7 @@
  */
 require_once 'File/MARC.php';
 
-require_once 'RecordDrivers/IndexRecord.php';
+require_once ROOT_DIR . '/RecordDrivers/IndexRecord.php';
 
 /**
  * MARC Record Driver
@@ -37,10 +37,10 @@ class MarcRecord extends IndexRecord
 		parent::__construct($record);
 
 		// Also process the MARC record:
-		require_once 'sys/MarcLoader.php';
+		require_once ROOT_DIR . '/sys/MarcLoader.php';
 		$this->marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 		if (!$this->marcRecord) {
-			PEAR::raiseError(new PEAR_Error('Cannot Process MARC Record for record ' . $record['id']));
+			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Process MARC Record for record ' . $record['id']));
 		}
 	}
 
@@ -163,18 +163,19 @@ class MarcRecord extends IndexRecord
 	 * search results.
 	 *
 	 * @param string $view The current view.
+	 * @param boolean $useUnscopedHoldingsSummary Whether or not the result should show an unscoped holdings summary.
 	 *
 	 * @return string      Name of Smarty template file to display.
 	 * @access public
 	 */
-	public function getSearchResult($view = 'list')
+	public function getSearchResult($view = 'list', $useUnscopedHoldingsSummary = false)
 	{
 		global $interface;
 
 		// MARC results work just like index results, except that we want to
 		// enable the AJAX status display since we assume that MARC records
 		// come from the ILS:
-		$template = parent::getSearchResult($view);
+		$template = parent::getSearchResult($view, $useUnscopedHoldingsSummary);
 		$interface->assign('summAjaxStatus', true);
 		return $template;
 	}
@@ -460,7 +461,9 @@ class MarcRecord extends IndexRecord
 	 */
 	protected function getPlacesOfPublication()
 	{
-		return $this->getFieldArray('260');
+		$placesOfPublication = $this->getFieldArray('260', array('a'));
+		$placesOfPublication2 = $this->getFieldArray('264', array('a'));
+		return array_merge($placesOfPublication, $placesOfPublication2);
 	}
 
 	/**
@@ -778,7 +781,7 @@ class MarcRecord extends IndexRecord
 			return new PEAR_Error('Cannot connect to ILS');
 		}
 		$holdingsSummary = $catalog->getStatusSummary($_GET['id']);
-		if (PEAR::isError($holdingsSummary)) {
+		if (PEAR_Singleton::isError($holdingsSummary)) {
 			return $holdingsSummary;
 		}
 

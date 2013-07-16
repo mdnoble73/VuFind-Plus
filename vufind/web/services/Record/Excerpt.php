@@ -20,7 +20,7 @@
 
 require_once 'Record.php';
 
-class Excerpt extends Record
+class Record_Excerpt extends Record_Record
 {
     function launch()
     {

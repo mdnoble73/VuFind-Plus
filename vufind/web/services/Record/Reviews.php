@@ -18,29 +18,27 @@
  *
  */
 
-require_once 'sys/Amazon.php';
-require_once 'sys/Proxy_Request.php';
-require_once 'Drivers/marmot_inc/ISBNConverter.php';
-require_once('sys/EditorialReview.php');
+require_once ROOT_DIR . '/sys/Amazon.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/ISBNConverter.php';
+require_once(ROOT_DIR . '/sys/EditorialReview.php');
 
 require_once 'Record.php';
 
-class Reviews extends Record
+class Record_Reviews extends Record_Record
 {
 	function launch()
 	{
 		global $interface;
 		global $configArray;
 
-		if (!$interface->is_cached($this->cacheId)) {
-			$interface->setPageTitle('Reviews: ' . $this->record['title_short']);
-			 
-			//Load the data for the reviews and populate in the user interface
-			$this->loadReviews($this->id, $this->isbn);
+		$interface->setPageTitle('Reviews: ' . $this->record['title_short']);
 
-			$interface->assign('subTemplate', 'view-reviews.tpl');
-			$interface->setTemplate('view.tpl');
-		}
+		//Load the data for the reviews and populate in the user interface
+		$this->loadReviews($this->id, $this->isbn, true);
+
+		$interface->assign('subTemplate', 'view-reviews.tpl');
+		$interface->setTemplate('view.tpl');
 
 		// Display Page
 		$interface->display('layout.tpl', $this->cacheId);
@@ -52,13 +50,14 @@ class Reviews extends Record
 	 * @return array       Returns array with review data, otherwise a
 	 *                      PEAR_Error.
 	 */
-	function loadReviews($id, $isbn) {
+	static function loadReviews($id, $isbn, $includeEditorial = false) {
 		global $interface;
 		global $configArray;
-		global $memcache;
-		
-		$reviews = $memcache->get("reviews_{$isbn}");
-		if (!$reviews){
+		/** @var Memcache $memCache */
+		global $memCache;
+
+		$reviews = $memCache->get("reviews_{$isbn}");
+		if (!$reviews || isset($_REQUEST['reload'])){
 			// Fetch from provider
 			if (isset($configArray['Content']['reviews'])) {
 				$providers = explode(',', $configArray['Content']['reviews']);
@@ -66,64 +65,83 @@ class Reviews extends Record
 					$provider = explode(':', trim($provider));
 					$func = strtolower($provider[0]);
 					$key = $provider[1];
-					$reviews[$func] = Reviews::$func($isbn, $key);
-	
+					$reviews[$func] = Record_Reviews::$func($isbn, $key);
+
 					// If the current provider had no valid reviews, store nothing:
-					if (empty($reviews[$func]) || PEAR::isError($reviews[$func])) {
+					if (empty($reviews[$func]) || PEAR_Singleton::isError($reviews[$func])) {
 						unset($reviews[$func]);
 					}else{
 						if (is_array($reviews[$func])){
 							foreach ($reviews[$func] as $key => $reviewData){
-								$reviews[$func][$key] = Reviews::cleanupReview($reviews[$func][$key]);
+								$reviews[$func][$key] = Record_Reviews::cleanupReview($reviews[$func][$key]);
 							}
 						}else{
-							$reviews[$func] = Reviews::cleanupReview($reviews[$func]);
+							$reviews[$func] = Record_Reviews::cleanupReview($reviews[$func]);
 						}
 					}
 				}
 			}
-			$memcache->set("reviews_{$isbn}", $reviews, 0, $configArray['Caching']['purchased_reviews']);
+			$memCache->set("reviews_{$isbn}", $reviews, 0, $configArray['Caching']['purchased_reviews']);
 		}
-		
-		//Load the Editorial Reviews
-		if (isset($_REQUEST['id'])){
-			$recordId = $_REQUEST['id'];
-		}
-		$editorialReview = new EditorialReview();
-		$editorialReviewResults = array();
-		$editorialReview->whereAdd("recordId = '".$recordId."'");
-		$editorialReview->find();
-		if ($editorialReview->N > 0){
-			while ($editorialReview->fetch()){
-				$editorialReviewResults[] = clone $editorialReview;
+
+		//Load Editorial Reviews
+		if ($includeEditorial){
+			if (isset($id)){
+				$recordId = $id;
+
+				$editorialReview = new EditorialReview();
+				$editorialReviewResults = array();
+				$editorialReview->whereAdd("recordId = '{$recordId}'");
+				$editorialReview->find();
+				if ($editorialReview->N > 0){
+					while ($editorialReview->fetch()){
+						$editorialReviewResults[] = clone $editorialReview;
+					}
+				}
+
+				//$reviews["editorialReviews"] = array();
+				if (count($editorialReviewResults) > 0) {
+					foreach ($editorialReviewResults AS $key=>$result ){
+						$reviews["editorialReviews"][$key]["Content"] = $result->review;
+						$reviews["editorialReviews"][$key]["Copyright"] = $result->source;
+						$reviews["editorialReviews"][$key]["Source"] = $result->source;
+						$reviews["editorialReviews"][$key]["ISBN"] = null;
+						$reviews["editorialReviews"][$key]["username"] = null;
+
+						$reviews["editorialReviews"][$key] = Record_Reviews::cleanupReview($reviews["editorialReviews"][$key]);
+						if ($result->teaser){
+							$reviews["editorialReviews"][$key]["Teaser"] = $result->teaser;
+						}
+					}
+				}
 			}
 		}
 
-		//$reviews["editorialReviews"] = array();
-		if (count($editorialReviewResults) > 0) {
-			foreach ($editorialReviewResults AS $key=>$result ){
-				$reviews["editorialReviews"][$key]["Content"] = $result->review;
-				$reviews["editorialReviews"][$key]["Copyright"] = null;
-				$reviews["editorialReviews"][$key]["Source"] = $result->source;
-				$reviews["editorialReviews"][$key]["ISBN"] = null;
-				$reviews["editorialReviews"][$key]["username"] = null;
-
-				$reviews["editorialReviews"][$key] = Reviews::cleanupReview($reviews["editorialReviews"][$key]);
+		//Load Reviews from Good Reads
+		if ($isbn){
+			require_once ROOT_DIR . '/sys/NovelistFactory.php';
+			$novelist = NovelistFactory::getNovelist();
+			$enrichment = $novelist->loadEnrichment($isbn);
+			if (isset($enrichment['goodReads'])){
+				$reviews['goodReads'] = $enrichment['goodReads'];
 			}
 		}
 
 		if ($reviews) {
-			if (!PEAR::isError($reviews)) {
+			if (!PEAR_Singleton::isError($reviews)) {
 				$interface->assign('reviews', $reviews);
+			}else{
+				echo($reviews);
 			}
+
 		}
-		
+
 		return $reviews;
 	}
 
 	function cleanupReview($reviewData){
 		//Cleanup the review data
-		$fullReview = strip_tags($reviewData['Content'], '<a><p><b><em>');
+		$fullReview = strip_tags($reviewData['Content'], '<p><a><b><em><ul><ol><em><li><strong><i><br><iframe><div>');
 		$reviewData['Content'] = $fullReview;
 		$reviewData['Copyright'] = strip_tags($reviewData['Copyright'], '<a><p><b><em>');
 		//Trim the review to the first paragraph or 240 characters whichever comes first.
@@ -160,6 +178,7 @@ class Reviews extends Record
 		global $library;
 		global $locationSingleton;
 		$location = $locationSingleton->getActiveLocation();
+		$result = null;
 		if (isset($library) && $location != null){
 			if ($library->showAmazonReviews == 0 || $location->showAmazonReviews == 0){
 				return $result;
@@ -174,10 +193,10 @@ class Reviews extends Record
 		$params = array('ResponseGroup' => 'Reviews', 'ItemId' => $isbn);
 		$request = new AWS_Request($id, 'ItemLookup', $params);
 		$response = $request->sendRequest();
-		if (!PEAR::isError($response)) {
+		if (!PEAR_Singleton::isError($response)) {
 			$unxml = new XML_Unserializer();
 			$result = $unxml->unserialize($response);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				$data = $unxml->getUnserializedData();
 				if ($data['Items']['Item']['CustomerReviews']['Review']['ASIN']) {
 					$data['Items']['Item']['CustomerReviews']['Review'] = array($data['Items']['Item']['CustomerReviews']['Review']);
@@ -187,7 +206,7 @@ class Reviews extends Record
 				if (!empty($data['Items']['Item']['CustomerReviews']['Review'])) {
 					foreach ($data['Items']['Item']['CustomerReviews']['Review'] as $review) {
 						$customer = $this->getAmazonCustomer($id, $review['CustomerId']);
-						if (!PEAR::isError($customer)) {
+						if (!PEAR_Singleton::isError($customer)) {
 							$result[$i]['Source'] = $customer;
 						}
 						$result[$i]['Rating'] = $review['Rating'];
@@ -218,6 +237,7 @@ class Reviews extends Record
 	 */
 	function amazoneditorial($isbn, $id){
 		global $library;
+		$result = array();
 		if (isset($library) && ($library->showAmazonReviews == 0)){
 			//return an empty review
 			return $result;
@@ -232,10 +252,10 @@ class Reviews extends Record
 		$params = array('ResponseGroup' => 'EditorialReview', 'ItemId' => $isbn);
 		$request = new AWS_Request($id, 'ItemLookup', $params);
 		$response = $request->sendRequest();
-		if (!PEAR::isError($response)) {
+		if (!PEAR_Singleton::isError($response)) {
 			$unxml = new XML_Unserializer();
 			$result = $unxml->unserialize($response);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				$data = $unxml->getUnserializedData();
 				if (isset($data['Items']['Item'])){
 					if (isset($data['Items']['Item']['EditorialReviews']['EditorialReview']['Source'])) {
@@ -295,11 +315,11 @@ class Reviews extends Record
 		global $configArray;
 		global $timer;
 		global $logger;
-		
+
 		$review = array();
 		$location = $locationSingleton->getActiveLocation();
 		if (isset($library) && $location != null){
-			if ($library->showAmazonReviews == 0 || $location->showStandardReviews == 0){
+			if ($library->showStandardReviews == 0 || $location->showStandardReviews == 0){
 				return $review;
 			}
 		}else if ($location != null && ($location->showStandardReviews == 0)){
@@ -309,7 +329,7 @@ class Reviews extends Record
 			//return an empty review
 			return $review;
 		}
-		
+
 		//list of syndetic reviews
 		if (isset($configArray['SyndeticsReviews']['SyndeticsReviewsSources'])){
 			$sourceList = array();
@@ -335,16 +355,16 @@ class Reviews extends Record
 			 'file' => 'CRITICASEREVIEW.XML')*/);
 		}
 		$timer->logTime("Got list of syndetic reviews to show");
-		
+
 		//first request url
 		$url = 'http://syndetics.com/index.aspx?isbn=' . $isbn . '/' .
                'index.xml&client=' . $id . '&type=rw12,hw7';
-		
+
 		//find out if there are any reviews
 		$client = new Proxy_Request();
 		$client->setMethod(HTTP_REQUEST_METHOD_GET);
 		$client->setURL($url);
-		if (PEAR::isError($http = $client->sendRequest())) {
+		if (PEAR_Singleton::isError($http = $client->sendRequest())) {
 			$logger->log("Error connecting to $url", PEAR_LOG_ERR);
 			$logger->log("$http", PEAR_LOG_ERR);
 			return $http;
@@ -363,9 +383,9 @@ class Reviews extends Record
 				// Load reviews
 				$url = 'http://syndetics.com/index.aspx?isbn=' . $isbn . '/' .
 				$sourceInfo['file'] . '&client=' . $id . '&type=rw12,hw7';
-				
+
 				$client->setURL($url);
-				if (PEAR::isError($http = $client->sendRequest())) {
+				if (PEAR_Singleton::isError($http = $client->sendRequest())) {
 					$logger->log("Error connecting to $url", PEAR_LOG_ERR);
 					$logger->log("$http", PEAR_LOG_ERR);
 					continue;
@@ -419,12 +439,13 @@ class Reviews extends Record
 	 * Load review information from Content Cafe based on the ISBN
 	 *
 	 * @param $id
-	 * @return unknown_type
+	 * @return array
 	 */
 	function contentcafe($isbn, $id){
 		global $library;
 		global $locationSingleton;
 		$location = $locationSingleton->getActiveLocation();
+		$result = null;
 		if (isset($library) && $location != null){
 			if ($library->showAmazonReviews == 0 || $location->showStandardReviews == 0){
 				return $result;
@@ -439,13 +460,13 @@ class Reviews extends Record
 
 		//Setup the soap client to load the
 		$soapClient = new SoapClient('http://contentcafe.btol.com/ContentCafe/Review.asmx?WSDL', array('features' => SOAP_SINGLE_ELEMENT_ARRAYS));
-		 
+
 		$params = array(
     	   'UserID'   => 'EBSMARMOT',
     	   'Password' => $id,
     	   'ItemKey'  => $isbn,
 		);
-		 
+
 		try{
 			$response = $soapClient->fnDetailByItemKey($params);
 
@@ -464,17 +485,17 @@ class Reviews extends Record
 		}catch (Exception $e) {
 			//TODO: Log the error someplace.
 		}
-		 
 	}
 
 	private function getAmazonCustomer($id, $customerId){
 		$params = array('ResponseGroup' => 'CustomerInfo', 'CustomerId' => $customerId);
 		$request = new AWS_Request($id, 'CustomerContentLookup', $params);
 		$response = $request->sendRequest();
-		if (!PEAR::isError($response)) {
+		$result = null;
+		if (!PEAR_Singleton::isError($response)) {
 			$unxml = new XML_Unserializer();
 			$result = $unxml->unserialize($response);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				$data = $unxml->getUnserializedData();
 				if (isset($data['Customers']['Customer']['Name'])) {
 					return $data['Customers']['Customer']['Name'];

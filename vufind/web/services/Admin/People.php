@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/ObjectEditor.php';
-require_once 'sys/Genealogy/Person.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
+require_once ROOT_DIR . '/sys/Genealogy/Person.php';
 require_once 'XML/Unserializer.php';
 
 class People extends ObjectEditor
@@ -45,7 +45,8 @@ class People extends ObjectEditor
 		return $objectList;
 	}
 	function getObjectStructure(){
-		return Person::getObjectStructure();
+		$person = new Person();
+		return $person->getObjectStructure();
 	}
 	function getPrimaryKeyColumn(){
 		return array('lastName', 'firstName', 'middleName', 'birthDate');
@@ -59,9 +60,9 @@ class People extends ObjectEditor
 	function getRedirectLocation($objectAction, $curObject){
 		global $configArray;
 		if ($objectAction == 'delete'){
-			return $configArray['Site']['url'] . '/Union/Search?searchSource=genealogy&lookfor=&genealogyType=GenealogyName&submit=Find';
+			return $configArray['Site']['path'] . '/Union/Search?searchSource=genealogy&lookfor=&genealogyType=GenealogyName&submit=Find';
 		}else{
-			return $configArray['Site']['url'] . '/Person/' . $curObject->personId;
+			return $configArray['Site']['path'] . '/Person/' . $curObject->personId;
 		}
 	}
 	function showReturnToList(){

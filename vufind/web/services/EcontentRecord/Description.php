@@ -9,46 +9,50 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  *
  */
 
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'RecordDrivers/EcontentRecordDriver.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
 
-class Description extends Action{
+class EcontentRecord_Description extends Action{
 	private $eContentRecord;
-	
-	function launch()    {
+
+	function launch() {
 		global $interface;
-		
+
 		$interface->assign('id', $_GET['id']);
 
 		$this->eContentRecord = new EContentRecord();
 		$this->eContentRecord->id = $_GET['id'];
 		$this->eContentRecord->find(true);
-		
+
 		$recordDriver = new EcontentRecordDriver();
 		$recordDriver->setDataObject($this->eContentRecord);
-	
+
 		$this->loadData();
 		$interface->setPageTitle(translate('Description') . ': ' . $recordDriver->getBreadcrumb());
 		$interface->assign('extendedMetadata', $recordDriver->getExtendedMetadata());
 		$interface->assign('subTemplate', 'view-description.tpl');
 		$interface->setTemplate('view-alt.tpl');
-	
+
 		// Display Page
 		$interface->display('layout.tpl', $this->cacheId);
 	}
 
-	function loadData()    {
-		return Description::loadDescription($this->eContentRecord);
-
+	function loadData(){
+		global $library;
+		$allowExternalDescription = true;
+		if (isset($library) && $library->preferSyndeticsSummary == 0){
+			$allowExternalDescription = false;
+		}
+		return EcontentRecord_Description::loadDescription($this->eContentRecord);
 	}
 
 	static function loadDescription($eContentRecord){
@@ -56,19 +60,33 @@ class Description extends Action{
 		global $configArray;
 		global $library;
 		global $timer;
-		 
+
+		$marc = MarcLoader::loadEContentMarcRecord($eContentRecord);
+		$descriptionArray = array();
 		//Load the description
 		if (strlen($eContentRecord->description) > 0) {
-			$descriptionArray['description'] = $eContentRecord->description;
+			$descriptionArray['description'] = EcontentRecord_Description::trimDescription($eContentRecord->description);
 		}else{
+			//TODO: Check syndetics for eContent
 			$descriptionArray['description'] = "Description Not Provided";
 		}
-		
+
 		//Load publisher
 		$descriptionArray['publisher'] = $eContentRecord->publisher;
-		 
+
 		if($descriptionArray){
 			return $descriptionArray;
 		}
+	}
+
+	private function trimDescription($description){
+		$chars = 300;
+		if (strlen($description)>$chars){
+			$description = $description." ";
+			$description = substr($description,0,$chars);
+			$description = substr($description,0,strrpos($description,' '));
+			$description = $description . "...";
+		}
+		return $description;
 	}
 }

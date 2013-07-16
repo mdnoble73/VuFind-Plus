@@ -18,18 +18,19 @@
  *
  */
 
-require_once 'services/MyResearch/MyResearch.php';
-require_once 'services/MyResearch/lib/User.php';
-require_once 'services/MyResearch/lib/Search.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
 
 class SaveSearch extends MyResearch
 {
 	function launch()
 	{
-		global $interface;
 		global $configArray;
 		global $user;
 
+		$searchId = null;
+		$todo = 'addSearch';
 		if (isset($_REQUEST['delete']) && $_REQUEST['delete']) {
 			$todo = 'deleteSearch';
 			$searchId = $_REQUEST['delete'];
@@ -53,15 +54,21 @@ class SaveSearch extends MyResearch
 
 		// If we are in "edit history" mode, stay in Search History:
 		if (isset($_REQUEST['mode']) && $_REQUEST['mode'] == 'history') {
-			header("Location: ".$configArray['Site']['url']."/Search/History");
+			header("Location: ".$configArray['Site']['path']."/Search/History");
 		} else {
 			// If the ID wasn't found, or some other error occurred, nothing will
 			//   have processed be now, let the error handling on the display
 			//   screen take care of it.
-			header("Location: ".$configArray['Site']['url']."/Search/Results?saved=$searchId");
+			header("Location: ".$configArray['Site']['path']."/Search/Results?saved=$searchId");
 		}
 	}
 
+
+	/**
+	 * Add a search to the database
+	 *
+	 * @param SearchEntry $search
+	 */
 	private function addSearch($search)
 	{
 		if ($search->saved != 1) {
@@ -72,6 +79,11 @@ class SaveSearch extends MyResearch
 		}
 	}
 
+	/**
+	 * Delete a search from the database
+	 *
+	 * @param SearchEntry $search
+	 */
 	private function deleteSearch($search)
 	{
 		if ($search->saved != 0) {
@@ -80,5 +92,3 @@ class SaveSearch extends MyResearch
 		}
 	}
 }
-
-?>

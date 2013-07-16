@@ -25,14 +25,14 @@
 				var manifest = new Array();
 				{/literal}
 				{foreach from=$manifest key=href item=manifestId}
-					manifest['{$href}'] = '{$manifestId}';
+					manifest['{$href|replace:"'":"\'"}'] = '{$manifestId|replace:"'":"\'"}';
 				{/foreach}
 				
 				var tableOfContents = new Array();
 				{foreach from=$contents item=tocEntry}
-					tableOfContents['{if strlen($tocEntry->src) > 0}{$tocEntry->src}{else}{$tocEntry->location}{/if}'] = "{$tocEntry->title}";
+					tableOfContents['{if strlen($tocEntry->src) > 0}{$tocEntry->src}{else}{$tocEntry->location}{/if}'] = '{$tocEntry->title|replace:"'":"\'"}';
 					{foreach from=$tocEntry->children item=tocEntry2}
-						tableOfContents['{if strlen($tocEntry->src) > 0}{$tocEntry->src}{else}{$tocEntry->location}{/if}'] = "{$tocEntry2->title}";
+						tableOfContents['{if strlen($tocEntry->src) > 0}{$tocEntry->src}{else}{$tocEntry->location}{/if}'] = '{$tocEntry2->title|replace:"'":"\'"}';
 					{/foreach}
 				{/foreach}
 				{literal}
@@ -175,6 +175,7 @@
 							saveCurrentPosition();
 						}
 					}
+					return false;
 				}
 
 				var ebookCookie = 'vufind_epub_{/literal}{$id}{literal}';
@@ -252,36 +253,6 @@
 				}
 				
 				$(document).ready(function(){
-					$('#reader').click(function (e){
-						//check to see where the user clicked 
-						var y = e.pageY - this.offsetTop;
-						var height = $('#reader').height();
-						if (y < height / 6){
-							prevPage();
-						}else if (y > 5 * height / 6){
-							nextPage();
-						}
-						
-						var x = e.pageX - this.offsetLeft;
-						var width = $('#reader').width();
-						if (x < width / 6){
-							prevPage();
-						}else if (x > 5 * width / 6){
-							nextPage();
-						}
-					});
-					$('#reader a').live('click', function (e){
-						//Split the link on the # symbol
-						var href = $(this).attr('href');
-						componentParts = href.split('#', 2);
-						component = componentParts[0];
-						//Strip of the current page url if it exists. 
-						anchor = componentParts[1];
-						//Translate the component based on the manifest
-						component = manifest[component];
-						showTocEntry(component + "#" + anchor);
-						return false;
-					});
 					$('#reader').mousewheel(function(event, delta){
 						if (delta > 0){
 							prevPage();
@@ -378,10 +349,10 @@
 		<div id="tableOfContents">
 			<div id='tableOfContentsHeader'>Table of Contents </div>
 			{foreach from=$contents item=tocEntry}
-				<div class='tocEntry' id='toc{if strlen($tocEntry->src) > 0}{$tocEntry->src|replace:'#':'_'}{else}{$tocEntry->location|replace:'#':'_'}{/if}'><a href="#" onclick="return showTocEntry('{if strlen($tocEntry->src) > 0}{$tocEntry->src|replace:'#':'_'}{else}{$tocEntry->location|replace:'#':'_'}{/if}');">{$tocEntry->title}</a>
+				<div class='tocEntry' id='toc{if strlen($tocEntry->src) > 0}{$tocEntry->src|replace:'#':'_'}{else}{$tocEntry->location|replace:'#':'_'}{/if}'><a href="#" onclick="return showTocEntry('{if strlen($tocEntry->src) > 0}{$tocEntry->src}{else}{$tocEntry->location}{/if}');">{$tocEntry->title}</a>
 					{foreach from=$tocEntry->children item=tocEntry2}
 						<div class='tocEntry' id='toc{if strlen($tocEntry->src) > 0}{$tocEntry->src|replace:'#':'_'}{else}{$tocEntry->location|replace:'#':'_'}{/if}'>
-							<a href="#" onclick="return showTocEntry('{if strlen($tocEntry2->src) > 0}{$tocEntry2->src|replace:'#':'_'}{else}{$tocEntry2->location|replace:'#':'_'}{/if}');">{$tocEntry2->title}</a>
+							<a href="#" onclick="return showTocEntry('{if strlen($tocEntry2->src) > 0}{$tocEntry2->src}{else}{$tocEntry2->location}{/if}');">{$tocEntry2->title}</a>
 						</div>
 					{/foreach}
 				</div>
@@ -402,8 +373,8 @@
 			<div id="textSize" onclick="toggleMagnification();" class="normal"><span class="controls_magnifier_a">A</span><span class="controls_magnifier_A">A</span></div>
 			<div id="toggleTOC" onclick="toggleToc();">Hide TOC</div>
 			<div id="epubToolbarBottomRight">
-				<div id="pagePrev" onclick="prevPage();">◄</div>
-				<div id="pageNext" onclick="nextPage();">►</div>
+				<div id="pagePrev" onclick="prevPage();">&#9668;</div>
+				<div id="pageNext" onclick="nextPage();">&#9658;</div>
 			</div>
 		</div>
 		{/if}

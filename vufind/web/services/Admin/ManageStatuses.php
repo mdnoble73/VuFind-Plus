@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/ObjectEditor.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
 require_once 'XML/Unserializer.php';
-require_once 'sys/MaterialsRequestStatus.php';
+require_once ROOT_DIR . '/sys/MaterialsRequestStatus.php';
 
 class ManageStatuses extends ObjectEditor
 {
@@ -36,8 +36,17 @@ class ManageStatuses extends ObjectEditor
 		return 'Materials Request Statuses';
 	}
 	function getAllObjects(){
+		global $user;
+
 		$status = new MaterialsRequestStatus();
-		$status->orderBy('description');
+		if ($user->hasRole('library_material_requests')){
+			$homeLibrary = Library::getPatronHomeLibrary();
+			$status->libraryId = $homeLibrary->libraryId;
+		}
+		$status->orderBy('isDefault DESC');
+		$status->orderBy('isPatronCancel DESC');
+		$status->orderBy('isOpen DESC');
+		$status->orderBy('description ASC');
 		$status->find();
 		$objectList = array();
 		while ($status->fetch()){
@@ -55,7 +64,38 @@ class ManageStatuses extends ObjectEditor
 		return 'id';
 	}
 	function getAllowableRoles(){
-		return array('cataloging');
+		return array('cataloging', 'library_material_requests');
+	}
+	function customListActions(){
+		$objectActions = array();
+		global $user;
+		if ($user->hasRole('library_material_requests')){
+			$objectActions[] = array(
+				'label' => 'Reset to Default',
+				'action' => 'resetToDefault',
+			);
+		}
+
+		return $objectActions;
 	}
 
+	function resetToDefault(){
+		global $user;
+		if ($user->hasRole('library_material_requests')){
+			$homeLibrary = Library::getPatronHomeLibrary();
+			$materialRequestStatus = new MaterialsRequestStatus();
+			$materialRequestStatus->libraryId = $homeLibrary->libraryId;
+			$materialRequestStatus->delete();
+
+			$materialRequestStatus = new MaterialsRequestStatus();
+			$materialRequestStatus->libraryId = -1;
+			$materialRequestStatus->find();
+			while ($materialRequestStatus->fetch()){
+				$materialRequestStatus->id = null;
+				$materialRequestStatus->libraryId = $homeLibrary->libraryId;
+				$materialRequestStatus->insert();
+			}
+		}
+		header("Location: /Admin/ManageStatuses");
+	}
 }

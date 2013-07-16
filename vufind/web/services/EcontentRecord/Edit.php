@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/DataObjectUtil.php';
-require_once 'sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/DataObjectUtil.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 class Edit extends Action {
 
 	function launch()
@@ -31,13 +31,13 @@ class Edit extends Action {
 
 		//If the user isn't logged in, take them to the login page
 		if (!$user){
-			header("Location: {$configArray['Site']['url']}/MyResearch/Login");
+			header("Location: {$configArray['Site']['path']}/MyResearch/Login");
 			die();
 		}
-		
+
 		//Make sure the user has permission to access the page
 		if (!$user->hasRole('epubAdmin')){
-			$interface->setTemplate('noPermission.tpl');
+			$interface->setTemplate('../Admin/noPermission.tpl');
 			$interface->display('layout.tpl');
 			exit();
 		}
@@ -45,7 +45,7 @@ class Edit extends Action {
 
 		$structure = EContentRecord::getObjectStructure();
 
-		if (isset($_REQUEST['submit'])){
+		if (isset($_REQUEST['submitStay']) || isset($_REQUEST['submit']) || isset($_REQUEST['submitReturnToList']) || isset($_REQUEST['submitAddAnother'])){
 			//Save the object
 			$results = DataObjectUtil::saveObject($structure, 'EContentRecord');
 			$eContentRecord = $results['object'];
@@ -75,13 +75,13 @@ class Edit extends Action {
 		//Manipulate the structure as needed
 		if ($isNew){
 		}else{
-			
+
 		}
 
 		$interface->assign('isNew', $isNew);
 		$interface->assign('submitUrl', $configArray['Site']['path'] . '/EcontentRecord/Edit');
 		$interface->assign('editForm', DataObjectUtil::getEditForm($structure));
-		
+
 		$interface->setTemplate('edit.tpl');
 
 		$interface->display('layout.tpl');

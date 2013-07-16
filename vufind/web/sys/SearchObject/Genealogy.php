@@ -17,10 +17,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'sys/Solr.php';
-require_once 'sys/SearchObject/Base.php';
-require_once 'RecordDrivers/Factory.php';
-require_once 'Drivers/marmot_inc/Location.php';
+require_once ROOT_DIR . '/sys/Solr.php';
+require_once ROOT_DIR . '/sys/SearchObject/Base.php';
+require_once ROOT_DIR . '/RecordDrivers/Factory.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/Location.php';
 
 /**
  * Search Object class
@@ -83,6 +83,8 @@ class SearchObject_Genealogy extends SearchObject_Base
 		// Include our solr index
 		$class = $configArray['Genealogy']['engine'];
 		require_once "sys/$class.php";
+		$this->searchType = 'genealogy';
+		$this->basicSearchType = 'genealogy';
 		// Initialise the index
 		$this->indexEngine = new $class($configArray['Genealogy']['url'], $configArray['Genealogy']['default_core']);
 		$timer->logTime('Created Index Engine for Genealogy');
@@ -126,7 +128,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 			$this->sortOptions = $searchSettings['Sorting'];
 		} else {
 			$this->sortOptions = array('relevance' => 'sort_relevance',
-                'year' => 'sort_year', 'year asc' => 'sort_year asc', 
+                'year' => 'sort_year', 'year asc' => 'sort_year asc',
                 'title' => 'sort_title');
 		}
 
@@ -172,7 +174,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 		$restored = $this->restoreSavedSearch();
 		if ($restored === true) {
 			return true;
-		} else if (PEAR::isError($restored)) {
+		} else if (PEAR_Singleton::isError($restored)) {
 			return false;
 		}
 
@@ -213,8 +215,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 
 		//********************
 		// Adjust facet options to use advanced settings
-		$this->facetConfig = isset($this->allFacetSettings['Advanced']) ?
-		$this->allFacetSettings['Advanced'] : array();
+		$this->facetConfig = isset($this->allFacetSettings['Advanced']) ? $this->allFacetSettings['Advanced'] : array();
 		$facetLimit = $this->getFacetSetting('Advanced_Settings', 'facet_limit');
 		if (is_numeric($facetLimit)) {
 			$this->facetLimit = $facetLimit;
@@ -686,7 +687,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 
 		// Build Query
 		$query = $this->indexEngine->buildQuery($search);
-		if (PEAR::isError($query)) {
+		if (PEAR_Singleton::isError($query)) {
 			return $query;
 		}
 
@@ -788,7 +789,11 @@ class SearchObject_Genealogy extends SearchObject_Base
 		$this->stopQueryTimer();
 
 		// How many results were there?
-		$this->resultsTotal = $this->indexResult['response']['numFound'];
+		if (isset($this->indexResult['response']['numFound'])){
+			$this->resultsTotal = $this->indexResult['response']['numFound'];
+		}else{
+			$this->resultsTotal = 0;
+		}
 
 		// Process spelling suggestions if no index error resulted from the query
 		if ($this->spellcheck && !isset($this->indexResult['error'])) {
@@ -1251,7 +1256,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 			$curRow++;
 			$curCol = 0;
 			//Get supplemental information from the database
-			require_once 'sys/Genealogy/Person.php';
+			require_once ROOT_DIR . '/sys/Genealogy/Person.php';
 			$person = new Person();
 			$id = str_replace('person', '', $curDoc['id']);
 			$person->personId = $id;

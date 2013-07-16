@@ -21,12 +21,12 @@
  *
  */
 
-require_once 'Action.php';
-require_once('services/Admin/Admin.php');
-require_once('sys/MaterialsRequest.php');
-require_once('sys/MaterialsRequestStatus.php');
+require_once ROOT_DIR . '/Action.php';
+require_once(ROOT_DIR . '/services/Admin/Admin.php');
+require_once(ROOT_DIR . '/sys/MaterialsRequest.php');
+require_once(ROOT_DIR . '/sys/MaterialsRequestStatus.php');
 
-class ManageRequests extends Admin {
+class MaterialsRequest_ManageRequests extends Admin_Admin {
 
 	function launch()
 	{
@@ -37,7 +37,14 @@ class ManageRequests extends Admin {
 		//Load status information 
 		$materialsRequestStatus = new MaterialsRequestStatus();
 		$materialsRequestStatus->orderBy('isDefault DESC, isOpen DESC, description ASC');
+		if ($user->hasRole('library_material_requests')){
+			$homeLibrary = Library::getPatronHomeLibrary();
+			$materialsRequestStatus->libraryId = $homeLibrary->libraryId;
+		}else{
+			$libraryList[-1] = 'Default';
+		}
 		$materialsRequestStatus->find();
+
 		$allStatuses = array();
 		$availableStatuses = array();
 		$defaultStatusesToShow = array();
@@ -65,7 +72,7 @@ class ManageRequests extends Admin {
 			//Look for which titles should be modified
 			$selectedRequests = $_REQUEST['select'];
 			$statusToSet = $_REQUEST['newStatus'];
-			require_once 'sys/Mailer.php';
+			require_once ROOT_DIR . '/sys/Mailer.php';
 			$mail = new VuFindMailer();
 			foreach ($selectedRequests as $requestId => $selected){
 				$materialRequest = new MaterialsRequest();
@@ -122,15 +129,28 @@ class ManageRequests extends Admin {
 			$materialsRequests = new MaterialsRequest();
 			$materialsRequests->joinAdd(new Location(), "LEFT");
 			$materialsRequests->joinAdd(new MaterialsRequestStatus());
-			$materialsRequests->joinAdd(new User());
+			$materialsRequests->joinAdd(new User(), 'INNER', 'user');
 			$materialsRequests->selectAdd();
 			$materialsRequests->selectAdd('materials_request.*, description as statusLabel, location.displayName as location, firstname, lastname, ' . $configArray['Catalog']['barcodeProperty'] . ' as barcode');
+			if ($user->hasRole('library_material_requests')){
+				//Need to limit to only requests submitted for the user's home location
+				$userHomeLibrary = Library::getPatronHomeLibrary();
+				$locations = new Location();
+				$locations->libraryId = $userHomeLibrary->libraryId;
+				$locations->find();
+				$locationsForLibrary = array();
+				while ($locations->fetch()){
+					$locationsForLibrary[] = $locations->locationId;
+				}
+
+				$materialsRequests->whereAdd('user.homeLocationId IN (' . implode(', ', $locationsForLibrary) . ')');
+			}
 
 			if (count($availableStatuses) > count($statusesToShow)){
 				$statusSql = "";
 				foreach ($statusesToShow as $status){
 					if (strlen($statusSql) > 0) $statusSql .= ",";
-					$statusSql .= "'" . mysql_escape_string($status) . "'";
+					$statusSql .= "'" . $materialsRequests->escape($status) . "'";
 				}
 				$materialsRequests->whereAdd("status in ($statusSql)");
 			}
@@ -140,7 +160,7 @@ class ManageRequests extends Admin {
 				$formatSql = "";
 				foreach ($formatsToShow as $format){
 					if (strlen($formatSql) > 0) $formatSql .= ",";
-					$formatSql .= "'" . mysql_escape_string($format) . "'";
+					$formatSql .= "'" . $materialsRequests->escape($format) . "'";
 				}
 				$materialsRequests->whereAdd("format in ($formatSql)");
 			}
@@ -310,7 +330,7 @@ class ManageRequests extends Admin {
 					$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, $value);
 				}
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, translate($request->status));
-				$activeSheet->setCellValueByColumnAndRow($curCol++, $curRow, date('m/d/Y', $request->dateCreated));
+				$activeSheet->setCellValueByColumnAndRow($curCol, $curRow, date('m/d/Y', $request->dateCreated));
 			}
 		}
 
@@ -321,7 +341,7 @@ class ManageRequests extends Admin {
 		// Rename sheet
 		$activeSheet->setTitle('Materials Requests');
 
-		// Redirect output to a client’s web browser (Excel5)
+		// Redirect output to a client's web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename=MaterialsRequests.xls');
 		header('Cache-Control: max-age=0');
@@ -332,6 +352,6 @@ class ManageRequests extends Admin {
 	}
 
 	function getAllowableRoles(){
-		return array('cataloging');
+		return array('cataloging', 'library_material_requests');
 	}
 }

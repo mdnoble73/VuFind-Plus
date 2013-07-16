@@ -20,13 +20,12 @@
 
 require_once 'Record.php';
 
-require_once 'services/MyResearch/lib/Comments.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
 
-class UserComments extends Record{
+class Record_UserComments extends Record_Record{
 	function launch(){
 		global $interface;
 		global $user;
-		global $configArray;
 
 		// Process Delete Comment
 		if ((isset($_GET['delete'])) && (is_object($user))) {
@@ -52,7 +51,7 @@ class UserComments extends Record{
 				$interface->display('layout.tpl', 'UserComments' . $_GET['id']);
 				exit();
 			}
-			$result = $this->saveComment();
+			$this->saveComment();
 		}
 
 		$interface->assign('user', $user);
@@ -74,6 +73,7 @@ class UserComments extends Record{
 		$resource = new Resource();
 		$resource->record_id = $_GET['id'];
 		$resource->source = 'VuFind';
+		$resource->deleted = 0;
 		if ($resource->find(true)) {
 			$commentLists = $resource->getComments();
 			$interface->assign('commentList', $commentLists['user']);
@@ -87,6 +87,7 @@ class UserComments extends Record{
 		$resource = new Resource();
 		$resource->record_id = $_GET['id'];
 		$resource->source = 'EContent';
+		$resource->deleted = 0;
 		if ($resource->find(true)) {
 			$commentLists = $resource->getComments();
 			$interface->assign('commentList', $commentLists['user']);
@@ -98,10 +99,12 @@ class UserComments extends Record{
 	 * Return comments for a particular record and return them as an array.
 	 *
 	 * @param $id
+	 * @return array|null
 	 */
-	function getComments($id){
+	static function getComments($id){
 		$resource = new Resource();
 		$resource->record_id = $id;
+		$resource->source = 'VuFind';
 		if ($resource->find(true)) {
 			$commentList = $resource->getComments();
 			return $commentList;
@@ -123,6 +126,7 @@ class UserComments extends Record{
 		// record already saved as resource?
 		$resource = new Resource();
 		$resource->record_id = $_GET['id'];
+		$resource->source = 'VuFind';
 		if (!$resource->find(true)) {
 			$resource->insert();
 		}

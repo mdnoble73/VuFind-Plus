@@ -37,15 +37,15 @@ class SolrUtils
      * @param   string  $query          The query to capitalize.
      * @return  string                  The capitalized query.
      */
-    public function capitalizeBooleans($query)
+    public static function capitalizeBooleans($query)
     {
-        // This lookahead detects whether or not we are inside quotes; it
+        // This lookAhead detects whether or not we are inside quotes; it
         // is used to prevent switching case of Boolean reserved words 
         // inside quotes, since that can cause problems in case-sensitive
         // fields when the reserved words are actually used as search terms.
-        $lookahead = '(?=(?:[^\"]*+\"[^\"]*+\")*+[^\"]*+$)';
-        $regs = array("/\s+AND\s+{$lookahead}/i", "/\s+OR\s+{$lookahead}/i", 
-                "/(\s+NOT\s+|^NOT\s+){$lookahead}/i", "/\(NOT\s+{$lookahead}/i");
+        $lookAhead = '(?=(?:[^\"]*+\"[^\"]*+\")*+[^\"]*+$)';
+        $regs = array("/\s+AND\s+{$lookAhead}/i", "/\s+OR\s+{$lookAhead}/i",
+                "/(\s+NOT\s+|^NOT\s+){$lookAhead}/i", "/\(NOT\s+{$lookAhead}/i");
         $replace = array(' AND ', ' OR ', ' NOT ', '(NOT ');
         return trim(preg_replace($regs, $replace, $query));
     }

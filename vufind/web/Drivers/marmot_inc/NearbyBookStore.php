@@ -4,13 +4,13 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
-require_once 'Drivers/marmot_inc/BookStore.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/BookStore.php';
 
 class NearbyBookStore extends DB_DataObject
 {
 	public $__table = 'nearby_book_store';   // table name
 	public $id;                              // int(11)  not_null primary_key auto_increment
-	public $locationId;                      // int(11)
+	public $libraryId;                      // int(11)
 	public $storeId;                         // int(11)
 	public $weight;                          // int(11)
 	
@@ -23,7 +23,7 @@ class NearbyBookStore extends DB_DataObject
 		return array('id');
 	}
 
-	function getObjectStructure(){		
+	static function getObjectStructure(){
 		$library = new Library();
 		$library->orderBy('displayName');
 		$library->find();
@@ -56,9 +56,7 @@ class NearbyBookStore extends DB_DataObject
 	static function getBookStores($libraryId) {		
 		$store = new BookStore();
 		if ($libraryId == -1){
-			$store->query(
-				"SELECT {$store->__table}.* FROM {$store->__table} "
-			);
+			$store->orderBy('weight');
 		}else{
 			$store->query(
 				"SELECT {$store->__table}.* FROM {$store->__table} " . 

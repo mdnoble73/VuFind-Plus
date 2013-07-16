@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html lang="{$userLang}">
+<html lang="{$userLang}" xmlns="http://www.w3.org/1999/xhtml">
 {strip}
 	<head>
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
@@ -8,13 +8,12 @@
 		<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
 		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$path}/Search/OpenSearch?method=describe" />
 		{css filename="consolidated.min.css"}
-		{if $theme_css}
-			<link rel="stylesheet" href="{$theme_css}" type="text/css" media="screen" />
-		{/if}
 		<script type="text/javascript">
 			path = '{$path}';
 			url = '{$url}';
-			loggedIn = {if $user}true{else}false{/if}
+			loggedIn = {if $user}true{else}false{/if};
+			automaticTimeoutLength = {$automaticTimeoutLength};
+			automaticTimeoutLengthLoggedOut = {$automaticTimeoutLengthLoggedOut};
 		</script>
 
 		{js filename="consolidated.min.js"}
@@ -63,7 +62,7 @@
 					{if $showBreadcrumbs}
 					<div class="breadcrumbs">
 						<div class="breadcrumbinner">
-							<a href="{$homeBreadcrumbLink}">{translate text="Home"}</a> <span>&gt;</span>
+							<a href="{$homeBreadcrumbLink}"><span class="home-icon">&nbsp;</span> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span>
 							{include file="$module/breadcrumbs.tpl"}
 						</div>
 					</div>
@@ -103,6 +102,13 @@
 						</script>
 					{/if}
 
+					{if $checkout_message}
+						<script type="text/javascript">
+						lightbox();
+						document.getElementById('popupbox').innerHTML = "{$checkout_message|escape:'javascript'}";
+						</script>
+					{/if}
+
 					<div id="ft">
 						{include file=$footerTemplate}
 					</div> {* End ft *}
@@ -110,5 +116,6 @@
 				</div>
 			</div> {* End outer_span *}
  		</div>
+		{include file=tracking.tpl}
 	</body>
 </html>{/strip}

@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class Advanced extends Action {
 
@@ -27,6 +27,7 @@ class Advanced extends Action {
 		global $interface;
 		global $configArray;
 		global $user;
+		global $library;
 
 		// Create our search object
 		$searchObject = SearchObjectFactory::initSearchObject();
@@ -48,14 +49,13 @@ class Advanced extends Action {
 		//as icons
 		if (array_key_exists('format_category', $facetList)){
 			$label = $facetList['format_category']['label'];
-			foreach ($facets[$label] as $key => $optionInfo){
+			foreach ($facets[$label]['values'] as $key => $optionInfo){
 				$optionInfo['imageName'] = str_replace(" ", "", strtolower($key)) . '.png';
-				$facets[$label][$key] = $optionInfo;
+				$facets[$label]['values'][$key] = $optionInfo;
 			}
-			$interface->assign('formatCategoryLimit', $facets[$label]);
+			$interface->assign('formatCategoryLimit', $facets[$label]['values']);
 			unset($facets[$label]);
 		}
-
 		$interface->assign('facetList', $facets);
 
 		// Integer for % width of each column (be careful to avoid divide by zero!)
@@ -69,12 +69,7 @@ class Advanced extends Action {
 			$interface->assign('illustratedLimit',
 			$this->getIllustrationSettings($savedSearch));
 		}
-		if (stristr($specialFacets, 'publishDate')) {
-			$interface->assign('showPublicationDate', true);
-		}
-		if (stristr($specialFacets, 'lexile_score')) {
-			$interface->assign('showLexileScore', true);
-		}
+
 
 		// Send search type settings to the template
 		$interface->assign('advSearchTypes', $searchObject->getAdvancedTypes());
@@ -195,19 +190,31 @@ class Advanced extends Action {
 				} else {
 					$selected = false;
 				}
-				$currentList[$value['value']] =
-				array('filter' => $fullFilter, 'selected' => $selected);
+				$currentList[$value['value']] = array('filter' => $fullFilter, 'selected' => $selected);
 			}
 
-			// Perform a natural case sort on the array of facet values:
 			$keys = array_keys($currentList);
-			natcasesort($keys);
 
 			//Add a value for not selected which will be the first item
-			$facets[$list['label']]['Any ' . $list['label']] = array('filter' => '',$selected => !$valueSelected );
+			if (strpos($facet, 'availability_toggle') === false){
+				// Perform a natural case sort on the array of facet values:
+				natcasesort($keys);
 
+				$facets[$list['label']]['values']['Any ' . $list['label']] = array('filter' => '',$selected => !$valueSelected );
+			}else{
+				//Don't sort Available Now facet and make sure the Entire Collection is selected if no value is selected
+				if (!$valueSelected){
+					foreach ($currentList as $key => $value){
+						if ($key == 'Entire Collection'){
+							$currentList[$key]['selected'] = true;
+						}
+					}
+				}
+			}
+
+			$facets[$list['label']]['facetName'] = $facet;
 			foreach($keys as $key) {
-				$facets[$list['label']][$key] = $currentList[$key];
+				$facets[$list['label']]['values'][$key] = $currentList[$key];
 			}
 		}
 		return $facets;

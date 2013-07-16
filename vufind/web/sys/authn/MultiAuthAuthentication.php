@@ -26,7 +26,7 @@
  * @link     http://vufind.org/wiki/building_an_authentication_handler Wiki
  */
 require_once 'PEAR.php';
-require_once 'services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 require_once 'Authentication.php';
 require_once 'AuthenticationFactory.php';
 
@@ -153,7 +153,7 @@ class MultiAuthAuthentication implements Authentication
             $authenticator
                 = AuthenticationFactory::initAuthentication(trim($method));
             $user = $authenticator->authenticate();
-            if (!PEAR::isError($user)) {
+            if (!PEAR_Singleton::isError($user)) {
                 break;
             }
         }

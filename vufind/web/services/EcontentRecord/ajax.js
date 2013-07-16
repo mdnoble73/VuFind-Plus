@@ -1,5 +1,5 @@
 function saveEContentRecord(id, formElem, strings) {
-	successCallback = function() {
+	var successCallback = function() {
 		// Highlight the save link to indicate that the content is saved:
 		$('#saveLink').addClass('savedFavorite');
 	};
@@ -25,24 +25,6 @@ function GetEContentEnrichmentInfo(id, isbn, upc, econtent) {
 	$.ajax( {
 		url : fullUrl,
 		success : function(data) {
-			var similarAuthorData = $(data).find("SimilarAuthors").text();
-			if (similarAuthorData) {
-				if (similarAuthorData.length > 0) {
-					$("#similarAuthorPlaceholder").html(similarAuthorData);
-					$("#similarAuthorsSidegroup").show();
-
-				}
-			}
-			var similarTitleData = $(data).find("SimilarTitles").text();
-			if (similarTitleData) {
-				if (similarTitleData.length > 0) {
-					$("#similarTitlePlaceholder").html(similarTitleData);
-					$("#relatedTitles").hide();
-					$("#similarTitles").show();
-					$("#similarTitlePlaceholder").show();
-					$("#similarTitlesSidegroup").show();
-				}
-			}
 			var seriesData = $(data).find("SeriesInfo").text();
 			if (seriesData && seriesData.length > 0) {
 				
@@ -95,13 +77,31 @@ function GetEContentHoldingsInfo(id, type, callback) {
 	$.ajax( {
 		url : fullUrl,
 		success : function(data) {
-			var holdingsData = $(data).find("Holdings").text();
+			var holdingsData = $(data).find("Formats").text();
 			if (holdingsData) {
 				if (holdingsData.length > 0) {
-					$("#holdingsPlaceholder").html(holdingsData);
-					$("#holdingsPlaceholder").trigger("create");
+					$("#formatsPlaceholder").html(holdingsData);
+					$("#formatsPlaceholder").trigger("create");
+				}else{
+					$("#formatsPlaceholder").html("No Formats Information found, please try again later.");
 				}
 			}
+			var copiesData = $(data).find("Copies").text();
+			if (copiesData) {
+				if (copiesData.length > 0) {
+					$("#copiesPlaceholder").html(copiesData);
+					$("#copiesPlaceholder").trigger("create");
+				}else{
+					$("#copiestabLink").hide();
+					$("#copiesPlaceholder").html("No Copies Information found, please try again later.");
+					$("#formatstabLink a").text("Copies");
+				}
+			}else{
+				$("#copiestabLink").hide();
+				$("#copiesPlaceholder").html("No Copies Information found, please try again later.");
+				$("#formatstabLink a").text("Copies");
+			}
+			
 			var holdingsSummary = $(data).find("HoldingsSummary").text();
 			if (holdingsSummary) {
 				if (holdingsSummary.length > 0) {
@@ -124,6 +124,12 @@ function GetEContentHoldingsInfo(id, type, callback) {
 			var showAccessOnline = $(data).find("ShowAccessOnline").text();
 			if (showAccessOnline) {
 				if (showAccessOnline.length > 0 && showAccessOnline == 1) {
+					if ($(data).find('AccessOnlineUrl').length > 0){
+						var url = $(data).find('AccessOnlineUrl').text();
+						var text = $(data).find('AccessOnlineText').text();
+						$("#accessOnline" + id + " a").attr("href", url);
+						$("#accessOnline" + id + " a").text($("<div/>").html(text).text());
+					}
 					$(".accessOnlineLink").show();
 				}
 			}
@@ -137,8 +143,7 @@ function GetEContentHoldingsInfo(id, type, callback) {
 			$("#statusValue").html(status);
 			$("#statusValue").addClass($(data).find("class").text());
 			
-			if (typeof callback === 'function')
-			{
+			if (typeof callback === 'function') {
 				callback();
 			}
 			

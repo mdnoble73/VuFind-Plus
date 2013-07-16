@@ -48,6 +48,7 @@
 	zoom: 1;
 	*display: inline;
 	width: 150px;
+	text-align: left;
 }
 
 .loginFormRow{
@@ -168,11 +169,11 @@
 }
 .sortDescHeader{
   background-image: url(/images/sort_desc_icon.gif);
-  background-color: #3399F;
+  background-color: #3399FF;
 }
 .sortAscHeader{
   background-image: url(/images/sort_asc_icon.gif);
-  background-color: #3399F;
+  background-color: #3399FF;
 }
 
 #notice{
@@ -202,7 +203,9 @@
 	font-size: 12px;
 	color: #256292;
 	margin-bottom: 6px;
-	margin-left: 10px;
+}
+.adminMenuLink .adminMenuLink{
+	margin-left: 20px;
 	text-indent: -10px;
 }
 .adminMenuHeader{
@@ -213,4 +216,29 @@
 .adminMenuLink 
 .adminMenuHeader:first{
 	padding-top: 0px;
+}
+#web_note{
+	text-align: center;
+	margin: 8px;
+	padding: 8px;
+	background-color: #EDEDED;
+	border: 1px solid #949494;
+	border-radius: 4px;
+	font-weight: bold;
+	font-family: sans-serif;
+	color: darkblue;
+}
+#selectLibraryMenu{
+	margin-left: 10px;
+	margin-top: 10px;
+}
+.selectLibraryOption{
+	margin-top: 6px;
+}
+.selectLibraryOption label{
+	margin-left: 4px;
+}
+#selectLibraryMenu #submitButton{
+	margin-top: 6px;
+	margin-left: 15px;
 }

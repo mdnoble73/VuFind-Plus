@@ -1,8 +1,8 @@
 <?php
-require_once 'Action.php';
-require_once 'sys/Genealogy/Person.php';
-require_once 'sys/Genealogy/Obituary.php';
-require_once 'sys/Genealogy/Marriage.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/Genealogy/Person.php';
+require_once ROOT_DIR . '/sys/Genealogy/Obituary.php';
+require_once ROOT_DIR . '/sys/Genealogy/Marriage.php';
 
 class JSON extends Action {
 

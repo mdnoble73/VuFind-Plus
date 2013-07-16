@@ -14,7 +14,7 @@
       <div class='suggestedTitleInfo'>
         {* Display the cover *}
         <a href='{$path}/Record/{$suggestion.titleInfo.id}'>
-        <img src="{$path}/bookcover.php?isn={$suggestion.titleInfo.isbn10|@formatISBN}&amp;size=small&amp;upc={$suggestion.titleInfo.upc}&amp;category={$suggestion.titleInfo.format_category|escape:"url"}" class="suggestionImage" alt="{translate text='Cover Image'}" />
+        <img src="{$path}/bookcover.php?isn={$suggestion.titleInfo.isbn10|@formatISBN}&amp;issn={$suggestion.titleInfo.issn}&amp;size=small&amp;upc={$suggestion.titleInfo.upc}&amp;category={$suggestion.titleInfo.format_category|escape:"url"}" class="suggestionImage" alt="{translate text='Cover Image'}" />
         </a>
         {* Let the user rate this title *}
         {if $showRatings == 1}
@@ -37,7 +37,6 @@
   </div>
   <script  type="text/javascript">
   $('#suggestionsList').jcarousel();
-  doGetRatings();
   </script>
 {else}
   <div id='suggestions'>

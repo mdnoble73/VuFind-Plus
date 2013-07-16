@@ -6,7 +6,7 @@
 	<div class="imageColumn"> 
 		 {if $user->disableCoverArt != 1}
 		 <a href="{$path}/{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}" id="descriptionTrigger{$resource->record_id|regex_replace:"/\./":""|escape:"url"}">
-			<img src="{$path}/bookcover.php?id={$resource->record_id}&amp;isn={$resource->isbn|@formatISBN}&amp;size=small&amp;upc={$resource->upc}&amp;category={$resource->format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+			<img src="{$path}/bookcover.php?id={$resource->record_id}&amp;issn={$resource->issn}&amp;isn={$resource->isbn|@formatISBN}&amp;size=small&amp;upc={$resource->upc}&amp;category={$resource->format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 			</a>
 			<div id='descriptionPlaceholder{$resource->record_id|regex_replace:"/\./":""|escape}' style='display:none'></div>
 		 {/if}
@@ -38,10 +38,10 @@
 	
 		{if is_array($resource->format)}
 			{foreach from=$resource->format item=format}
-				<span class="iconlabel {$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
+				<span class="icon {$format|lower|regex_replace:"/[^a-z0-9]/":""}"></span><span class="iconlabel">{translate text=$format}</span>
 			{/foreach}
 		{elseif strlen($resource->format) > 0}
-			<span class="iconlabel {$resource->format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$resource->format}</span>
+			<span class="icon {$resource->format|lower|regex_replace:"/[^a-z0-9]/":""}"></span><span class="iconlabel">{translate text=$resource->format}</span>
 		{/if}
 		<br/>
 		{if $resource->tags}
@@ -65,43 +65,33 @@
 		</div>
 	</div>
 
-	<div id ="searchStars{$resource->shortId|regex_replace:"/\./":""|escape}" class="resultActions">
-		<div class="rate{$resource->record_id|regex_replace:"/\./":""|escape} stat">
-			<div id="saveLink{$resource->record_id|regex_replace:"/\./":""|escape}">
-				{if $allowEdit}
-						<a href="{$path}/MyResearch/Edit?id={$resource->record_id|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}&amp;source={$resource->source}" class="edit tool">{translate text='Edit'}</a>
-						{* Use a different delete URL if we're removing from a specific list or the overall favorites: *}
-						<a
-						{if is_null($listSelected)}
-							href="{$path}/MyResearch/Home?delete={$resource->record_id|escape:"url"}&amp;src={$resource->source}"
-						{else}
-							href="{$path}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$resource->record_id|escape:"url"}&amp;src={$resource->source}"
-						{/if}
-						class="delete tool" onclick="return confirm('Are you sure you want to delete this?');">{translate text='Delete'}</a>
+	<div class="resultActions">
+		{if $allowEdit}
+				<a href="{$path}/MyResearch/Edit?id={$resource->record_id|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}&amp;source={$resource->source}"><span class="silk edit">&nbsp;</span>{translate text='Edit'}</a>
+				{* Use a different delete URL if we're removing from a specific list or the overall favorites: *}
+				<a
+				{if is_null($listSelected)}
+					href="{$path}/MyResearch/Home?delete={$resource->record_id|escape:"url"}&amp;src={$resource->source}"
+				{else}
+					href="{$path}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$resource->record_id|escape:"url"}&amp;src={$resource->source}"
 				{/if}
-			</div>
-			<div class="statVal">
-				<span class="ui-rater">
-					<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px">&nbsp;</span></span>
-					(<span class="ui-rater-rateCount-{$resource->record_id|regex_replace:"/\./":""|escape} ui-rater-rateCount">0</span>)
-				</span>
-			</div>
-			{assign var=id value=$resource->record_id}
-			{assign var=shortId value=$resource->shortId}
-			{include file="Record/title-review.tpl"}
+				onclick="return confirm('Are you sure you want to delete this?');"><span class="silk delete">&nbsp;</span>{translate text='Delete'}</a>
+		{/if}
 			
-		</div>
-		<script type="text/javascript">
-			$(
-				 function() {literal} { {/literal}
-						 $('.rate{$resource->record_id|regex_replace:"/\./":""|escape}').rater({literal}{ {/literal}module: '{if $resource->source == 'VuFind'}Record{else}EcontentRecord{/if}', recordId: '{$resource->record_id}',	rating:0.0, postHref: '{$path}/Record/{$resource->record_id|escape}/AJAX?method=RateTitle'{literal} } {/literal});
-				 {literal} } {/literal}
-			);
-		</script>
+		{* Let the user rate this title *}
+		{if $resource->source == 'VuFind'}
+			{include file="Record/title-rating.tpl" ratingClass="" recordId=$resource->record_id shortId=$resource->shortId ratingData=$resource->getRatingData() showFavorites=0}
+		{else}
+			{* Let the user rate this title *}
+			{include file="EcontentRecord/title-rating.tpl" ratingClass="" recordId=$resource->record_id shortId=$resource->record_id ratingData=$resource->getRatingData() showFavorites=0}
+		{/if}
+		
+		{assign var=id value=$resource->record_id}
+		{assign var=shortId value=$resource->shortId}
+		{include file="Record/title-review.tpl"}
 			
 	</div>
 	<script type="text/javascript">
-		addRatingId('{$resource->record_id|escape:"javascript"}');
 		$(document).ready(function(){literal} { {/literal}
 			addIdToStatusList('{$resource->record_id|escape:"javascript"}', '{$resource->source}');
 			resultDescription('{$resource->record_id}','{$resource->record_id|regex_replace:"/\./":""}', '{$resource->source}');

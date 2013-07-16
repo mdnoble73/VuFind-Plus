@@ -26,7 +26,7 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/building_a_module Wiki
  */
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 /**
  * This action only exists to allow sorting behavior to work when Javascript is

@@ -17,8 +17,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'sys/Worldcat.php';
-require_once 'sys/SearchObject/Base.php';
+require_once ROOT_DIR . '/sys/Worldcat.php';
+require_once ROOT_DIR . '/sys/SearchObject/Base.php';
 
 /* A derivative of the Search Object for use with WorldCat.
  */
@@ -85,7 +85,7 @@ class SearchObject_WorldCat extends SearchObject_Base {
 		$restored = $this->restoreSavedSearch();
 		if ($restored === true) {
 			return true;
-		} else if (PEAR::isError($restored)) {
+		} else if (PEAR_Singleton::isError($restored)) {
 			return false;
 		}
 
@@ -129,8 +129,8 @@ class SearchObject_WorldCat extends SearchObject_Base {
 		$this->indexResult = $this->worldcat->search($query,
 		$configArray['WorldCat']['OCLCCode'], $this->page, $this->limit,
 		$this->sort);
-		if (PEAR::isError($this->indexResult)) {
-			PEAR::raiseError($this->indexResult);
+		if (PEAR_Singleton::isError($this->indexResult)) {
+			PEAR_Singleton::raiseError($this->indexResult);
 		}
 
 		// Get time after the query

@@ -6,7 +6,7 @@
 <div class="imageColumn"> 
    {if $user->disableCoverArt != 1}
     <a href="{$path}/EcontentRecord/{$listId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$listId|escape:"url"}">
-    <img src="{$path}/bookcover.php?id={$listId}&amp;isn={$listISBN|@formatISBN}&amp;size=small&amp;upc={$listUPC}&amp;category={$listFormatCategory.0|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+    <img src="{$path}/bookcover.php?id={$listId}&amp;issn={$listISSN}&amp;isn={$listISBN|@formatISBN}&amp;size=small&amp;upc={$listUPC}&amp;category={$listFormatCategory.0|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
     </a>
     <div id='descriptionPlaceholder{$listId|escape}' style='display:none'></div>
    {/if}
@@ -60,7 +60,7 @@
   <div class="rateEContent{$listId|escape} stat">
     <div id="saveLink{$listId|escape}">
       {if $listEditAllowed}
-          <a href="{$path}/MyResearch/Edit?id={$listId|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}" class="edit tool">{translate text='Edit'}</a>
+          <a href="{$path}/MyResearch/Edit?id={$listId|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}">{translate text='Edit'}</a>
           {* Use a different delete URL if we're removing from a specific list or the overall favorites: *}
           <a
           {if is_null($listSelected)}
@@ -68,30 +68,16 @@
           {else}
             href="{$path}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$listId|escape:"url"}"
           {/if}
-          class="delete tool" onclick="return confirm('Are you sure you want to delete this?');">{translate text='Delete'}</a>
+          onclick="return confirm('Are you sure you want to delete this?');">{translate text='Delete'}</a>
       {/if}
     </div>
-	  <div class="statVal">
-	    <span class="ui-rater">
-	      <span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0px"></span></span>
-	      (<span class="ui-rater-rateCount-{$listId|escape} ui-rater-rateCount">0</span>)
-	    </span>
-	  </div>
-    {assign var=id value=$listId}
-    {include file="EcontentRecord/title-review.tpl"}
+	  {assign var=id value=$listId}
+   {include file="EcontentRecord/title-review.tpl"}
       
     </div>
-    <script type="text/javascript">
-      $(
-         function() {literal} { {/literal}
-             $('.rateEContent{$listId|escape}').rater({literal}{ {/literal}module: 'EcontentRecord', recordId: {$listId},  rating:0.0, postHref: '{$path}/EcontentRecord/{$listId|escape}/AJAX?method=RateTitle'{literal} } {/literal});
-         {literal} } {/literal}
-      );
-    </script>
       
   </div>
 <script type="text/javascript">
-  addRatingId('{$listId|escape:"javascript"}', 'eContent');
   $(document).ready(function(){literal} { {/literal}
       addIdToStatusList('{$listId|escape:"javascript"}', 'eContent');
       resultDescription('{$listId}','{$listId}', 'eContent');

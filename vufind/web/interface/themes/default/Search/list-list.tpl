@@ -1,7 +1,6 @@
 <script type="text/javascript">
 $(document).ready(function() {literal} { {/literal}
   doGetStatusSummaries();
-  doGetRatings();
   {if $user}
   doGetSaveStatuses();
   {/if}

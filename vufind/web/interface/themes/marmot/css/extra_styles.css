@@ -1,0 +1,16 @@
+.searchheader {
+	padding:15px 0 0 0;
+	background-color:#255A8B;
+	border-bottom: solid 1px #c5c5c5;
+	text-align:left;
+	color: #FBEADE;
+}
+.searchheader a, .searchheader a:visited{
+	color: #FBEADE;
+}
+#searchbar{
+	padding-left: 7px;
+	padding-bottom: 4px;
+	background-color: #EEEDF2;
+	color: #003399;
+}

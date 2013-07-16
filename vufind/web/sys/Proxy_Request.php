@@ -18,8 +18,11 @@ class Proxy_Request extends HTTP_Request
         $this->useProxy = true;
     }
 
-    // Time to send the request
-    function SendRequest($saveBody = true)
+	/**
+	 * @param bool $saveBody
+	 * @return PEAR_Error|mixed|void
+	 */
+	function SendRequest($saveBody = true)
     {
         // Unless the user has expressly set the proxy setting
         $defaultProxy = null;

@@ -17,10 +17,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'sys/Solr.php';
-require_once 'sys/SearchObject/Base.php';
-require_once 'RecordDrivers/Factory.php';
-require_once 'Drivers/marmot_inc/Location.php';
+require_once ROOT_DIR . '/sys/Solr.php';
+require_once ROOT_DIR . '/sys/SearchObject/Base.php';
+require_once ROOT_DIR . '/RecordDrivers/Factory.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/Location.php';
 
 /**
  * Search Object class
@@ -53,6 +53,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 	// OTHER VARIABLES
 	// Index
+	/** @var Solr $indexEngine */
 	private $indexEngine = null;
 	// Facets information
 	private $allFacetSettings = array();    // loaded from facets.ini
@@ -83,7 +84,8 @@ class SearchObject_Solr extends SearchObject_Base
 		global $library;
 		// Include our solr index
 		$class = $configArray['Index']['engine'];
-		require_once "sys/$class.php";
+		$classWithExtension = $class . '.php';
+		require_once ROOT_DIR . "/sys/" . $classWithExtension;
 		// Initialise the index
 		$this->indexEngine = new $class($configArray['Index']['url']);
 		$timer->logTime('Created Index Engine');
@@ -141,6 +143,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$this->sortOptions = $searchSettings['Sorting'];
 		} else {
 			$this->sortOptions = array('relevance' => 'sort_relevance',
+								'popularity' => 'sort_popularity',
                 'year' => 'sort_year', 'year asc' => 'sort_year asc',
                 'callnumber' => 'sort_callnumber', 'author' => 'sort_author',
                 'title' => 'sort_title');
@@ -167,6 +170,10 @@ class SearchObject_Solr extends SearchObject_Base
 		$this->indexEngine->disableScoping();
 	}
 
+	public function enableScoping(){
+		$this->indexEngine->enableScoping();
+	}
+
 	/**
 	 * Add filters to the object based on values found in the $_REQUEST superglobal.
 	 *
@@ -191,24 +198,27 @@ class SearchObject_Solr extends SearchObject_Base
 	 *  search parameters in $_REQUEST.
 	 *
 	 * @access  public
+	 * @var string|LibrarySearchSource|LocationSearchSource $searchSource
 	 * @return  boolean
 	 */
-	public function init()
+	public function init($searchSource = null)
 	{
 		global $module;
 		global $action;
 
 		// Call the standard initialization routine in the parent:
-		parent::init();
+		parent::init($searchSource);
+
+		$this->indexEngine->setSearchSource($searchSource);
 
 		//********************
 		// Check if we have a saved search to restore -- if restored successfully,
 		// our work here is done; if there is an error, we should report failure;
 		// if restoreSavedSearch returns false, we should proceed as normal.
-		$restored = $this->restoreSavedSearch();
+		$restored = $this->restoreSavedSearch(null, true, true);
 		if ($restored === true) {
 			return true;
-		} else if (PEAR::isError($restored)) {
+		} else if (PEAR_Singleton::isError($restored)) {
 			return false;
 		}
 
@@ -225,7 +235,7 @@ class SearchObject_Solr extends SearchObject_Base
 		($_REQUEST['type'] == 'ISN' || $_REQUEST['type'] == 'Keyword' || $_REQUEST['type'] == 'AllFields') &&
 		(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/', $_REQUEST['lookfor']) ||
 		preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $_REQUEST['lookfor']))) {
-			require_once('sys/ISBN.php');
+			require_once(ROOT_DIR . '/sys/ISBN.php');
 			$isbn = new ISBN($_REQUEST['lookfor']);
 			$_REQUEST['lookfor'] = $isbn->get10() . ' OR ' . $isbn->get13();
 		}
@@ -247,7 +257,6 @@ class SearchObject_Solr extends SearchObject_Base
 			$this->initAdvancedSearch();
 		}
 
-		$searchType = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : $_REQUEST['type'];
 		//********************
 		// Author screens - handled slightly differently
 		if ($module == 'Author') {
@@ -295,8 +304,7 @@ class SearchObject_Solr extends SearchObject_Base
 					$this->setFacetSortOrder('count');
 				}
 			}
-		} else if ($module == 'Search' &&
-		($action == 'NewItem' || $action == 'Reserves')) {
+		} else if ($module == 'Search' && ($action == 'NewItem' || $action == 'Reserves')) {
 			// We don't need spell checking
 			$this->spellcheck = false;
 			$this->searchType = strtolower($action);
@@ -322,13 +330,60 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	public function initAdvancedFacets()
 	{
+		global $configArray;
+		global $locationSingleton;
 		// Call the standard initialization routine in the parent:
 		parent::init();
 
+		$searchLibrary = Library::getActiveLibrary();
+
+		$searchLocation = $locationSingleton->getActiveLocation();
+		/** @var Location $userLocation */
+		$userLocation = Location::getUserHomeLocation();
+		$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
+		$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
+		if ($hasSearchLocationFacets){
+			$facets = $searchLocation->facets;
+		}elseif ($hasSearchLibraryFacets){
+			$facets = $searchLibrary->facets;
+		}else{
+			$facets = Library::getDefaultFacets();
+		}
+
+		$this->facetConfig = array();
+		foreach ($facets as $facet){
+			$facetName = $facet->facetName;
+			//Adjust facet name for local scoping
+			if (isset($searchLibrary)){
+				if ($facet->facetName == 'time_since_added'){
+					$facetName = 'local_time_since_added_' . $searchLibrary->subdomain;
+				}elseif ($facet->facetName == 'itype'){
+					$facetName = 'itype_' . $searchLibrary->subdomain;
+				}elseif ($facet->facetName == 'detailed_location'){
+					$facetName = 'detailed_location_' . $searchLibrary->subdomain;
+				}elseif ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
+				}
+			}
+			if (isset($userLocation)){
+				if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					$facetName = 'availability_toggle_' . $userLocation->code;
+				}
+			}
+			if (isset($searchLocation)){
+				if ($facet->facetName == 'time_since_added' && $searchLocation->restrictSearchByLocation){
+					$facetName = 'local_time_since_added_' . $searchLocation->code;
+				}elseif ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					$facetName = 'availability_toggle_' . $searchLocation->code;
+				}
+			}
+			if ($facet->showInAdvancedSearch){
+				$this->facetConfig[$facetName] = $facet->displayName;
+			}
+		}
+
 		//********************
-		// Adjust facet options to use advanced settings
-		$this->facetConfig = isset($this->allFacetSettings['Advanced']) ?
-		$this->allFacetSettings['Advanced'] : array();
+
 		$facetLimit = $this->getFacetSetting('Advanced_Settings', 'facet_limit');
 		if (is_numeric($facetLimit)) {
 			$this->facetLimit = $facetLimit;
@@ -342,9 +397,9 @@ class SearchObject_Solr extends SearchObject_Base
 		$this->searchTerms[] = array(
             'index'   => $this->defaultIndex,
             'lookfor' => ""
-            );
+		);
 
-            return true;
+		return true;
 	}
 
 	/**
@@ -388,8 +443,8 @@ class SearchObject_Solr extends SearchObject_Base
 	 * Return the specified setting from the facets.ini file.
 	 *
 	 * @access  public
-	 * @param   section   The section of the facets.ini file to look at.
-	 * @param   setting   The setting within the specified file to return.
+	 * @param   string $section   The section of the facets.ini file to look at.
+	 * @param   string $setting   The setting within the specified file to return.
 	 * @return  string    The value of the setting (blank if none).
 	 */
 	public function getFacetSetting($section, $setting)
@@ -423,12 +478,6 @@ class SearchObject_Solr extends SearchObject_Base
 		$this->dictionary = 'basicSpell';
 	}
 
-	/**
-	 * Basic 'getters'
-	 *
-	 * @access  public
-	 * @param   various internal variables
-	 */
 	public function getQuery()          {return $this->query;}
 	public function getIndexEngine()    {return $this->indexEngine;}
 
@@ -528,15 +577,32 @@ class SearchObject_Solr extends SearchObject_Base
 		return $html;
 	}
 
-	public function getSupplementalResultRecordHTML(){
+	public function getSupplementalResultRecordHTML($mainResults, $maxResultsToShow, $startIndex = 0){
 		global $interface;
 		$html = array();
+		$numResultsShown = 0;
 		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
 			$current = & $this->indexResult['response']['docs'][$x];
-			$interface->assign('recordIndex', $x + 1);
-			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+			//Check to make sure this id is not in the main results
+			$supplementalInMainResults = false;
+			foreach ($mainResults as $mainResult){
+				if ($mainResult['id'] == $current['id']){
+					$supplementalInMainResults = true;
+					break;
+				}
+			}
+			if ($supplementalInMainResults){
+				continue;
+			}
+			$interface->assign('recordIndex', $numResultsShown + 1 );
+			$interface->assign('resultIndex', $numResultsShown + 1 + (($this->page - 1) * $this->limit) + $startIndex);
+			/** @var IndexRecord|MarcRecord|EcontentRecordDriver $record */
 			$record = RecordDriverFactory::initRecordDriver($current);
-			$html[] = $interface->fetch($record->getSupplementalSearchResult());
+			$numResultsShown++;
+			$html[] = $interface->fetch($record->getSearchResult('list', true));
+			if ($numResultsShown >= $maxResultsToShow){
+				break;
+			}
 		}
 		return $html;
 	}
@@ -779,8 +845,7 @@ class SearchObject_Solr extends SearchObject_Base
 			// that we display the user's query back to them unmodified (i.e. without
 			// capitalized Boolean operators)!
 		} else if (!$this->indexEngine->hasCaseSensitiveBooleans()) {
-			$output = $this->publicQuery =
-			$this->indexEngine->buildQuery($this->searchTerms, true);
+			$output = $this->publicQuery = $this->indexEngine->buildQuery($this->searchTerms, true);
 			// Simple answer
 		} else {
 			$output = $this->query;
@@ -889,8 +954,8 @@ class SearchObject_Solr extends SearchObject_Base
 	private function processTagSearch($lookfor)
 	{
 		// Include the app database objects
-		require_once 'services/MyResearch/lib/Tags.php';
-		require_once 'services/MyResearch/lib/Resource.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 
 		// Find our tag in the database
 		$tag = new Tags();
@@ -898,7 +963,6 @@ class SearchObject_Solr extends SearchObject_Base
 		$newSearch = array();
 		if ($tag->find(true)) {
 			// Grab the list of records tagged with this tag
-			$resourceList = array();
 			$resourceList = $tag->getResources();
 			if (count($resourceList)) {
 				$newSearch[0] = array('join' => 'OR', 'group' => array());
@@ -980,6 +1044,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	public function processSearch($returnIndexErrors = false, $recommendations = false) {
 		global $timer;
+		global $analytics;
 
 		// Our search has already been processed in init()
 		$search = $this->searchTerms;
@@ -1010,7 +1075,7 @@ class SearchObject_Solr extends SearchObject_Base
 		// Build Query
 		$query = $this->indexEngine->buildQuery($search);
 		$timer->logTime("build query");
-		if (PEAR::isError($query)) {
+		if (PEAR_Singleton::isError($query)) {
 			return $query;
 		}
 
@@ -1030,6 +1095,7 @@ class SearchObject_Solr extends SearchObject_Base
 		}
 		foreach ($this->filterList as $field => $filter) {
 			foreach ($filter as $value) {
+				$analytics->addEvent('Apply Facet', $field, $value);
 				// Special case -- allow trailing wildcards:
 				if (substr($value, -1) == '*') {
 					$filterQuery[] = "$field:$value";
@@ -1096,18 +1162,18 @@ class SearchObject_Solr extends SearchObject_Base
 		//  (page - 1) * limit = start
 		$recordStart = ($this->page - 1) * $this->limit;
 		$this->indexResult = $this->indexEngine->search(
-		$this->query,      // Query string
-		$this->index,      // DisMax Handler
-		$filterQuery,      // Filter query
-		$recordStart,      // Starting record
-		$this->limit,      // Records per page
-		$facetSet,         // Fields to facet on
-		$spellcheck,       // Spellcheck query
-		$this->dictionary, // Spellcheck dictionary
-		$finalSort,        // Field to sort on
-		$this->fields,     // Fields to return
-		$this->method,     // HTTP Request method
-		$returnIndexErrors // Include errors in response?
+			$this->query,      // Query string
+			$this->index,      // DisMax Handler
+			$filterQuery,      // Filter query
+			$recordStart,      // Starting record
+			$this->limit,      // Records per page
+			$facetSet,         // Fields to facet on
+			$spellcheck,       // Spellcheck query
+			$this->dictionary, // Spellcheck dictionary
+			$finalSort,        // Field to sort on
+			$this->fields,     // Fields to return
+			$this->method,     // HTTP Request method
+			$returnIndexErrors // Include errors in response?
 		);
 		$timer->logTime("run solr search");
 
@@ -1260,7 +1326,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 *   we are already searching for
 	 *
 	 * @access  private
-	 * @param   array    List of suggestions
+	 * @param   array    $termList List of suggestions
 	 * @return  array    Filtered list
 	 */
 	private function filterSpellingTerms($termList) {
@@ -1362,9 +1428,9 @@ class SearchObject_Solr extends SearchObject_Base
 		// Loop through every field returned by the result set
 		$validFields = array_keys($filter);
 
-		global $librarySingleton;
 		global $locationSingleton;
-		$currentLibrary = $librarySingleton->getActiveLibrary();
+		/** @var Library $currentLibrary */
+		$currentLibrary = Library::getActiveLibrary();
 		$activeLocationFacet = null;
 		$activeLocation = $locationSingleton->getActiveLocation();
 		if (!is_null($activeLocation)){
@@ -1374,11 +1440,10 @@ class SearchObject_Solr extends SearchObject_Base
 		$relatedHomeLocationFacets = null;
 		if (!is_null($currentLibrary)){
 			$relatedLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($currentLibrary->libraryId);
-		}else{
-			$homeLibrary = $librarySingleton->getPatronHomeLibrary();
-			if (!is_null($homeLibrary)){
-				$relatedHomeLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($homeLibrary->libraryId);
-			}
+		}
+		$homeLibrary = Library::getPatronHomeLibrary();
+		if (!is_null($homeLibrary)){
+			$relatedHomeLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($homeLibrary->libraryId);
 		}
 
 
@@ -1439,6 +1504,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 				//Setup the key to allow sorting alphabetically if needed.
 				$valueKey = $facet[0];
+				$okToAdd = true;
 				if ($doInstitutionProcessing){
 					//Special processing for Marmot digital library
 					if ($facet[0] == $currentLibrary->facetLabel){
@@ -1449,10 +1515,16 @@ class SearchObject_Solr extends SearchObject_Base
 						$valueKey = '1' . $valueKey;
 						$foundInstitution = true;
 						$numValidLibraries++;
+					}elseif ($facet[0] == $currentLibrary->facetLabel . ' On Order' || $facet[0] == $currentLibrary->facetLabel . ' Under Consideration'){
+						$valueKey = '1' . $valueKey;
+						$foundInstitution = true;
+						$numValidLibraries++;
 					}elseif ($facet[0] == 'Digital Collection' || $facet[0] == 'Marmot Digital Library'){
 						$valueKey = '2' . $valueKey;
 						$foundInstitution = true;
 						$numValidLibraries++;
+					}else if (!is_null($currentLibrary) && $currentLibrary->restrictOwningBranchesAndSystems == 1){
+						$okToAdd = false;
 					}
 				}else if ($doBranchProcessing){
 					if (strlen($facet[0]) > 0){
@@ -1461,6 +1533,9 @@ class SearchObject_Solr extends SearchObject_Base
 							$foundBranch = true;
 							$numValidRelatedLocations++;
 						}elseif (isset($currentLibrary) && $facet[0] == $currentLibrary->facetLabel . ' Online'){
+							$valueKey = '1' . $valueKey;
+							$numValidRelatedLocations++;
+						}elseif (isset($currentLibrary) && ($facet[0] == $currentLibrary->facetLabel . ' On Order' || $facet[0] == $currentLibrary->facetLabel . ' Under Consideration')){
 							$valueKey = '1' . $valueKey;
 							$numValidRelatedLocations++;
 						}else if (!is_null($relatedLocationFacets) && in_array($facet[0], $relatedLocationFacets)){
@@ -1472,19 +1547,23 @@ class SearchObject_Solr extends SearchObject_Base
 						}else if (!is_null($relatedHomeLocationFacets) && in_array($facet[0], $relatedHomeLocationFacets)){
 							$valueKey = '2' . $valueKey;
 							$numValidRelatedLocations++;
-						}elseif ($facet[0] == 'Marmot Digital Library' || $facet[0] == 'Digital Collection' || $facet[0] == 'OverDrive' || $facet[0] == 'Online'){
-							$valueKey = '4' . $valueKey;
-							$numValidRelatedLocations++;
 						}elseif (!is_null($currentLibrary) && $facet[0] == $currentLibrary->facetLabel . ' Online'){
 							$valueKey = '3' . $valueKey;
 							$numValidRelatedLocations++;
+						}elseif ($facet[0] == 'Marmot Digital Library' || $facet[0] == 'Digital Collection' || $facet[0] == 'OverDrive' || $facet[0] == 'Online'){
+							$valueKey = '4' . $valueKey;
+							$numValidRelatedLocations++;
+						}else if (!is_null($currentLibrary) && $currentLibrary->restrictOwningBranchesAndSystems == 1){
+							$okToAdd = false;
 						}
 					}
 				}
 
 
 				// Store the collected values:
-				$list[$field]['list'][$valueKey] = $currentSettings;
+				if ($okToAdd){
+					$list[$field]['list'][$valueKey] = $currentSettings;
+				}
 			}
 
 			if (!$foundInstitution && $doInstitutionProcessing){
@@ -1515,8 +1594,10 @@ class SearchObject_Solr extends SearchObject_Base
 			//Only show one system unless we are in the global scope
 			if ($field == 'institution' && isset($currentLibrary)){
 				$list[$field]['valuesToShow'] = $numValidLibraries;
-			}else if (($field == 'building' || $field == 'available_at') && isset($relatedLocationFacets) && $numValidRelatedLocations > 0){
+			}else if ($field == 'building' && isset($relatedLocationFacets) && $numValidRelatedLocations > 0){
 				$list[$field]['valuesToShow'] = $numValidRelatedLocations;
+			}else if ($field == 'available_at'){
+				$list[$field]['valuesToShow'] = count($list[$field]['list']);
 			}else{
 				$list[$field]['valuesToShow'] = 5;
 			}
@@ -1660,7 +1741,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 * Turn our results into an Excel document
 	 *
 	 * @access  public
-	 * @public  array      $result      Existing result set (null to do new search)
+	 * @var  array      $result      Existing result set (null to do new search)
 	 * @return  string                  Excel document
 	 */
 	public function buildExcel($result = null)
@@ -1674,8 +1755,8 @@ class SearchObject_Solr extends SearchObject_Base
 
 		// Prepare the spreadsheet
 		ini_set('include_path', ini_get('include_path'.';/PHPExcel/Classes'));
-		include 'PHPExcel.php';
-		include 'PHPExcel/Writer/Excel2007.php';
+		include ROOT_DIR . '/PHPExcel.php';
+		include ROOT_DIR . '/PHPExcel/Writer/Excel2007.php';
 		$objPHPExcel = new PHPExcel();
 		$objPHPExcel->getProperties()->setTitle("Search Results");
 
@@ -1760,7 +1841,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 * @return  string              The requested resource
 	 */
 	function getRecordByBarcode($barcode){
-		return $this->indexEngine->getRecords($ids);
+		return $this->indexEngine->getRecordByBarcode($barcode);
 	}
 
 }

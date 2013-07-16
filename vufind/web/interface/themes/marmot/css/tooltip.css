@@ -1,4 +1,4 @@
-#tooltip.pretty {
+#tooltip.descriptionTooltip {
 	font-family: Arial;
 	border: none;
 	width: 200px;
@@ -16,7 +16,7 @@
 	-webkit-box-shadow:5px 5px 5px #888;
 	-moz-box-shadow:5px 5px 5px #888;
 }
-#tooltip.pretty h3 {
+#tooltip.descriptionTooltip h3 {
 	margin-bottom: 3px;
 	font-size: 12pt;
 	width: 180px;
@@ -31,9 +31,17 @@
 	border-top-left-radius: 5px;
 	border-top-right-radius: 5px;
 }
-#tooltip.pretty div { 
+#tooltip.descriptionTooltip div { 
 	width: 194px; 
 	text-align: left; 
 	padding:0px; 
 	font-size:10pt; 
+}
+#tooltip.descriptionTooltip .description-element{
+	padding: 3px 5px;
+	font-size:11px;
+}
+#tooltip.descriptionTooltip .description-element-label{
+	font-weight: bold; 
+	padding-right: 4px;
 }

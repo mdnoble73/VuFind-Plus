@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class Reindex extends Action{
 	function launch(){

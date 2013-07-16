@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
-<schema name="VuFind Bibliographic Index" version="1.2">
+<schema name="VuFind Bibliographic Index" version="1.3">
 	<types>
 		<fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
-		<fieldType name="integer" class="solr.IntField" omitNorms="true"/>
+		<fieldType name="integer" class="solr.SortableIntField" omitNorms="true"/>
 		<fieldType name="float" class="solr.FloatField" omitNorms="true"/>
 		<fieldType name="date" class="solr.DateField"/>
 		<fieldType name="textFacet" class="solr.TextField" sortMissingLast="true" omitNorms="true">
@@ -102,15 +102,29 @@
              
              http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/package-summary.html
           -->
-				<filter class="solr.PatternReplaceFilterFactory" pattern="([^a-z])" replacement="" replace="all" />
+				<filter class="solr.PatternReplaceFilterFactory" pattern="([^a-z1-9\s])" replacement="" replace="all" />
+			</analyzer>
+		</fieldType>
+		<fieldType name="callnumber-search" class="solr.TextField" sortMissingLast="true" omitNorms="true">
+			<analyzer>
+				<!-- KeywordTokenizer does no actual tokenizing, so the entire
+             input string is preserved as a single token
+          -->
+				<tokenizer class="solr.KeywordTokenizerFactory"/>
+				<!-- The LowerCase TokenFilter does what you expect, which can be
+             when you want your sorting to be case insensitive
+          -->
+				<filter class="solr.LowerCaseFilterFactory" />
+				<!-- The TrimFilter removes any leading or trailing whitespace -->
+				<filter class="solr.TrimFilterFactory" />
 			</analyzer>
 		</fieldType>
 		<fieldType name="random" class="solr.RandomSortField" />
 	</types>
 	<fields>
 		<!-- Core Fields  -->
-		<field name="id" type="string" indexed="true" stored="true"/>
-		<field name="id_sort" type="integer" indexed="true" stored="false"/>
+		<field name="id" type="string" indexed="true" stored="true" omitNorms="true"/>
+		<field name="id_alt" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="fullrecord" type="string" indexed="false" stored="true"/>
 		<field name="allfields" type="text" indexed="true" stored="false"/>
 		<field name="allfields_proper" type="textProper" indexed="true" stored="false"/>
@@ -120,26 +134,32 @@
 		<field name="econtentText_unstemmed" type="textProper" indexed="true" stored="false"/>
 		<field name="keywords" type="text" indexed="true" stored="false"/>
 		<field name="keywords_proper" type="textProper" indexed="true" stored="false"/>
-		<field name="spelling" type="textSpell" indexed="true" stored="true"/>
-		<field name="spellingShingle" type="textSpellShingle" indexed="true" stored="true" multiValued="true"/>
+		<field name="spelling" type="textSpell" indexed="true" stored="false"/>
+		<field name="spellingShingle" type="textSpellShingle" indexed="true" stored="false" multiValued="true"/>
 		<!-- Institutional Fields -->
-		<field name="collection" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="institution" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
-		<field name="building" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
-		<field name="collection_group" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
-		<field name="available_at" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
+		<field name="collection" type="string" indexed="true" stored="false" multiValued="true" omitNorms="true"/>
+		<field name="institution" type="string" indexed="true" stored="false" multiValued="true" omitNorms="false"/>
+		<field name="building" type="string" indexed="true" stored="false" multiValued="true" omitNorms="false"/>
+		<field name="collection_group" type="string" indexed="true" stored="false" multiValued="true" omitNorms="false"/>
+		<field name="available_at" type="string" indexed="true" stored="false" multiValued="true" omitNorms="true"/>
+		<dynamicField name="availability_toggle*" type="textFacet" indexed="true" stored="false" multiValued="true" omitNorms="true"/>
+		<!-- A list of ptypes that can use this record -->
+		<field name="usable_by" type="textFacet" indexed="true" stored="false" multiValued="true" omitNorms="true"/>
+		<field name="detailed_location" type="textFacet" indexed="true" stored="false" multiValued="true" omitNorms="true"/>
+		<dynamicField name="detailed_location_*" type="textFacet" indexed="true" stored="false" multiValued="true" omitNorms="true"/>
 		<!-- Generic Fields -->
-		<field name="language" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="language_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="false"/>
-		<field name="language_boost_es" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="false"/>
-		<field name="format" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="format_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="false"/>
-		<field name="format_category" type="string" indexed="true" stored="true" multiValued="true"/>
+		<field name="language" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+		<field name="language_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true" default="0"/>
+		<field name="language_boost_es" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true" default="0"/>
+		<field name="format" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+		<field name="format_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true" default="0"/>
+		<field name="format_category" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<field name="author" type="text" indexed="true" stored="true" termVectors="true"/>
 		<field name="author-letter" type="string" indexed="true" stored="true"/>
 		<field name="authorStr" type="textFacet" indexed="true" stored="false"/>
 		<field name="auth_author" type="textProper" indexed="true" stored="true"/>
 		<field name="auth_authorStr" type="string" indexed="true" stored="true"/>
+		<field name="grouping_term" type="string" indexed="true" stored="true" omitNorms="true"/>
 		<field name="title" type="text" indexed="true" stored="true">
 			<analyzer>
 				<tokenizer class="solr.PatternTokenizerFactory" pattern="\w" group="1"/>
@@ -176,7 +196,7 @@
 		<field name="callnumber-first-code" type="string" indexed="true" stored="true"/>
 		<field name="callnumber-subject" type="string" indexed="true" stored="true"/>
 		<field name="callnumber-subject-code" type="string" indexed="true" stored="true"/>
-		<field name="callnumber-label" type="string" indexed="true" stored="true"/>
+		<field name="callnumber-label" type="string" indexed="true" stored="true" termVectors="true"/>
 		<field name="dewey-hundreds" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="dewey-tens" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="dewey-ones" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -198,56 +218,58 @@
 		<field name="series_proper" type="textProper" indexed="true" stored="true" multiValued="true"/>
 		<field name="topic" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="topic_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
-		<field name="topic_facet" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="topic_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
 		<field name="topic_browse" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="author_browse" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="dewey_browse" type="string" indexed="true" stored="false" multiValued="true"/>
-		<field name="callnumber_browse" type="string" indexed="true" stored="false" multiValued="true"/>
+		<field name="callnumber_browse" type="callnumber-search" indexed="true" stored="false" multiValued="true"/>
 		<field name="genre" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="genre_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
-		<field name="genre_facet" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="genre_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
 		<field name="geographic" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="geographic_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
-		<field name="geographic_facet" type="textFacet" indexed="true" stored="true" multiValued="true"/>
-		<field name="era" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="geographic_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
+		<field name="era" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
 		<field name="era_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="illustrated" type="string" indexed="true" stored="true" multiValued="false"/>
 		<field name="literary_form_full" type="string" indexed="true" stored="true" multiValued="false"/>
 		<field name="literary_form" type="string" indexed="true" stored="true" multiValued="false"/>
 		<field name="target_audience_full" type="string" indexed="true" stored="true" multiValued="false"/>
 		<field name="target_audience" type="string" indexed="true" stored="true" multiValued="false"/>
-		<field name="num_holdings" type="integer" omitNorms="true" indexed="true" stored="true" multiValued="false"/>
-		<field name="mpaa_rating" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="system_list" type="textFacet" indexed="true" stored="true" multiValued="true"/> 
-		<field name="barcode" type="textFacet" indexed="true" stored="true" multiValued="true"/>
-		<field name="awards_facet" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="num_holdings" type="integer" omitNorms="true" indexed="true" stored="true" multiValued="false" default="0"/>
+		<field name="mpaa_rating" type="string" indexed="true" stored="false" multiValued="true"/>
+		<field name="system_list" type="textFacet" indexed="true" stored="false" multiValued="true"/> 
+		<field name="barcode" type="textFacet" indexed="true" stored="false" multiValued="true"/>
+		<field name="awards_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
 		<field name="word_think_heading" type="textFacet" indexed="true" stored="true" multiValued="true"/>
-		<field name="lexile_score" type="integer" indexed="true" stored="true" multiValued="false"/>
+		<field name="lexile_score" type="integer" indexed="true" stored="true" multiValued="false" default="-1"/>
 		<field name="lexile_code" type="textFacet" indexed="true" stored="true" multiValued="false"/>
 		<field name="accelerated_reader_interest_level" type="textFacet" indexed="true" stored="true" multiValued="false"/>
-		<field name="accelerated_reader_reading_level" type="float" indexed="true" stored="true" multiValued="false"/>
-		<field name="accelerated_reader_point_value" type="float" indexed="true" stored="true" multiValued="false"/>
+		<field name="accelerated_reader_reading_level" type="float" indexed="true" stored="true" multiValued="false" default="0"/>
+		<field name="accelerated_reader_point_value" type="float" indexed="true" stored="true" multiValued="false" default="0"/>
 		<field name="econtent_device" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="econtent_source" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="econtent_protection_type" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="itype" type="textFacet" indexed="true" stored="false" multiValued="true"/>
+		<dynamicField name="itype_*" type="textFacet" indexed="true" stored="false" multiValued="true"/>
 		<!-- Used for loading correct record driver -->
 		<field name="recordtype" type="string" indexed="true" stored="true" multiValued="false"/>
 		<!-- Fields for boosting branch holdings -->
-		<dynamicField name="lib_boost_*" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
-		<dynamicField name="loc_boost_*" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true"/>
+		<dynamicField name="lib_boost_*" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true" default="0"/>
+		<dynamicField name="loc_boost_*" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true" default="0"/>
 		<dynamicField name="collection_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<!-- Non MARC -->
 		<field name="tag" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="comment" type="text" indexed="true" stored="true" multiValued="true"/>
-		<field name="bib_suppression" type="text" indexed="true" stored="false" multiValued="false"/>
+		<field name="bib_suppression" type="string" indexed="true" stored="false" multiValued="false"/>
 		<field name="date_added" type="date" indexed="true" stored="true" multiValued="false"/>
 		<field name="time_since_added" type="string" indexed="true" stored="true" multiValued="true"/>
 		<dynamicField name="local_time_since_added_*" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="rating" type="float" indexed="true" stored="true" multiValued="false"/>
-		<field name="rating_facet" type="string" indexed="true" stored="true" multiValued="true"/>
+		<field name="rating_facet" type="string" indexed="true" stored="false" multiValued="true"/>
+		<field name="popularity" type="integer" indexed="true" stored="true" multiValued="false" default="0"/>
 		<!-- Special fields for Lists -->
-		<field name="num_titles" type="integer" indexed="true" stored="true" multiValued="false"/>
+		<field name="num_titles" type="integer" indexed="true" stored="false" multiValued="false" default="0"/>
 		<!-- Field to get random titles --> 
 		<dynamicField name="random*" type="random" indexed="true" stored="false"/>
 		

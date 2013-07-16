@@ -918,7 +918,8 @@ class ebookRead{
 				if (file_exists($this->ebookData->contentFolder.$location)){
 					return file_get_contents($this->ebookData->contentFolder.$location);
 				}else{
-					trigger_error("Can't open content. There is no content.", E_USER_ERROR);
+					return ("Error: Could not load data for location $location");
+					//trigger_error("Can't open content. There is no content.", E_USER_ERROR);
 				}
 			}
 		}else if(isset($this->ebookData->epub)){

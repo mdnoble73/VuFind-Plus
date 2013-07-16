@@ -26,7 +26,7 @@
  * @link     http://vufind.org/wiki/building_an_ils_driver Wiki
  */
 require_once 'Interface.php';
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
 /**
  * Amicus ILS Driver
@@ -802,7 +802,7 @@ class Amicus implements DriverInterface
                                 'zip' => $row['ZIP_POSTAL'],
                                 'phone' => $row['TFNO'],
                                 'email' => $row['EMAIL'],
-                                'GROUP' => $ROW['PATRON_GROUP_NAME']);
+                                'GROUP' => $row['PATRON_GROUP_NAME']);
                 return $patron;
             } else {
                 return null;
@@ -830,7 +830,7 @@ class Amicus implements DriverInterface
         $client = new Proxy_Request(null, array('useBrackets' => false));
         $client->setURL($this->_config['Catalog']['hold'].$recordId);
         $result = $client->sendRequest();
-        if (!PEAR::isError($result)) {
+        if (!PEAR_Singleton::isError($result)) {
             return $this->_config['Catalog']['hold'].$recordId;
         } else {
             return $result;

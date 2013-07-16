@@ -105,7 +105,7 @@ class VuFindDate
             }
         } else {
             if (!method_exists('DateTime', 'createFromFormat')) {
-                PEAR::raiseError(
+                PEAR_Singleton::raiseError(
                     new PEAR_Error(
                         "Date format {$inputFormat} requires PHP 5.3 or higher."
                     )

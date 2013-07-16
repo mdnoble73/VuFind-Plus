@@ -25,7 +25,7 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/system_classes Wiki
  */
-require_once 'services/MyResearch/lib/Search.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
 
 /**
  * Class for managing "next" and "previous" navigation within result sets.
@@ -344,8 +344,8 @@ class ResultScroller
     {
         $searchObject->setPage($page);
         $result = $searchObject->processSearch(true, false);
-        if (PEAR::isError($result)) {
-            PEAR::raiseError($result->getMessage());
+        if (PEAR_Singleton::isError($result)) {
+            PEAR_Singleton::raiseError($result->getMessage());
         }
         $retVal = array();
         foreach ($result['response']['docs'] as $record) {

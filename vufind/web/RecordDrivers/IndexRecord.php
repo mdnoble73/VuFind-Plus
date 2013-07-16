@@ -17,12 +17,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'RecordDrivers/Interface.php';
+require_once ROOT_DIR . '/RecordDrivers/Interface.php';
 
-require_once 'services/MyResearch/lib/User.php';
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/Resource_tags.php';
-require_once 'services/MyResearch/lib/Tags.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource_tags.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
 
 /**
  * Index Record Driver
@@ -57,7 +57,7 @@ class IndexRecord implements RecordInterface
 	'author', 'author-letter', 'title', 'title_short', 'title_full',
 	'title_full_unstemmed', 'title_auth', 'title_sub', 'spelling', 'id',
 	'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed', 'keywords_proper',
-	'spellingShingle', 'collection', 'building', 'institution', 'available_at', 'title_proper',
+	'spellingShingle', 'collection', 'building', 'institution', 'title_proper',
 	'contents_proper', 'genre_proper', 'geographic_proper'
 	);
 
@@ -135,7 +135,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getCitation($format)
 	{
-		require_once 'sys/CitationBuilder.php';
+		require_once ROOT_DIR . '/sys/CitationBuilder.php';
 
 		// Build author list:
 		$authors = array();
@@ -277,7 +277,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getEditions()
 	{
-		require_once 'sys/WorldCatUtils.php';
+		require_once ROOT_DIR . '/sys/WorldCatUtils.php';
 		$wc = new WorldCatUtils();
 
 		// Try to build an array of ISBN or ISSN-based sub-queries:
@@ -307,7 +307,7 @@ class IndexRecord implements RecordInterface
 			// Perform the search and return either results or an error:
 			$index = $this->getIndexEngine();
 			$result = $index->search($query, null, null, 0, 5);
-			if (PEAR::isError($result)) {
+			if (PEAR_Singleton::isError($result)) {
 				return $result;
 			}
 			if (isset($result['response']['docs']) &&
@@ -340,7 +340,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getExcerpts()
 	{
-		require_once 'sys/Excerpts.php';
+		require_once ROOT_DIR . '/sys/Excerpts.php';
 
 		$ed = new ExternalExcerpts($this->getCleanISBN());
 		return $ed->fetch();
@@ -471,6 +471,7 @@ class IndexRecord implements RecordInterface
 		$interface->assign('listTitle', $this->getTitle());
 		$interface->assign('listAuthor', $this->getPrimaryAuthor());
 		$interface->assign('listISBN', $this->getCleanISBN());
+		$interface->assign('listISSN', $this->getCleanISSN());
 		$interface->assign('listUPC', $this->getUPC());
 		$interface->assign('listFormatCategory', $this->getFormatCategory());
 		$interface->assign('listFormats', $this->getFormats());
@@ -492,6 +493,15 @@ class IndexRecord implements RecordInterface
 		// Pass some parameters along to the template to influence edit controls:
 		$interface->assign('listSelected', $listId);
 		$interface->assign('listEditAllowed', $allowEdit);
+
+		//Get Rating
+		$resource = new Resource();
+		$resource->source = 'VuFind';
+		$resource->record_id = $id;
+		$resource->find(true);
+		$ratingData = $resource->getRatingData($user);
+		//print_r($ratingData);
+		$interface->assign('ratingData', $ratingData);
 
 		return 'RecordDrivers/Index/listentry.tpl';
 	}
@@ -635,7 +645,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getReviews()
 	{
-		require_once 'sys/Reviews.php';
+		require_once ROOT_DIR . '/sys/Reviews.php';
 
 		$rev = new ExternalReviews($this->getCleanISBN());
 		return $rev->fetch();
@@ -647,12 +657,18 @@ class IndexRecord implements RecordInterface
 	 * search results.
 	 *
 	 * @access  public
+
+	 * @param string $view The current view.
+	 * @param boolean $useUnscopedHoldingsSummary Whether or not the result should show an unscoped holdings summary.
+	 *
 	 * @return  string              Name of Smarty template file to display.
 	 */
-	public function getSearchResult()
-	{
+	public function getSearchResult($view = 'list', $useUnscopedHoldingsSummary = false) {
 		global $configArray;
 		global $interface;
+		global $user;
+
+		$interface->assign('useUnscopedHoldingsSummary', $useUnscopedHoldingsSummary);
 
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
@@ -661,6 +677,13 @@ class IndexRecord implements RecordInterface
 		}else{
 			$interface->assign('summShortId', $id);
 		}
+		$linkUrl = '/Record/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+		if ($useUnscopedHoldingsSummary){
+			$linkUrl .= '&amp;searchSource=marmot';
+		}else{
+			$linkUrl .= '&amp;searchSource=' . $interface->get_template_vars('searchSource');
+		}
+		$interface->assign('summUrl', $linkUrl);
 		$formats = $this->getFormats();
 		$interface->assign('summFormats', $formats);
 		$formatCategories = $this->getFormatCategory();
@@ -679,8 +702,7 @@ class IndexRecord implements RecordInterface
 		$interface->assign('summISBN', $this->getCleanISBN());
 		$issn = $this->getCleanISSN();
 		$interface->assign('summISSN', $issn);
-		$upcs = $this->getUPCs();
-		$upc = count($upcs) > 0 ? $upcs[0] : null;
+		$upc = $this->getCleanUPC();
 		$interface->assign('summUPC', $upc);
 		if ($configArray['System']['debugSolr'] == 1){
 			$interface->assign('summScore', $this->getScore());
@@ -710,12 +732,21 @@ class IndexRecord implements RecordInterface
 			$interface->assign('summURLs', array());
 		}
 
+		//Get Rating
+		$resource = new Resource();
+		$resource->source = 'VuFind';
+		$resource->record_id = $id;
+		$resource->find(true);
+		$ratingData = $resource->getRatingData($user);
+		//print_r($ratingData);
+		$interface->assign('summRating', $ratingData);
+
 		//Determine the cover to use
 		$isbn = $this->getCleanISBN();
 		$formatCategory = isset($formatCategories[0]) ? $formatCategories[0] : '';
 		$format = isset($formats[0]) ? $formats[0] : '';
 
-		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format));
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $upc, $formatCategory, $format));
 
 		// By default, do not display AJAX status; we won't assume that all
 		// records exist in the ILS.  Child classes can override this setting
@@ -728,6 +759,7 @@ class IndexRecord implements RecordInterface
 	public function getSupplementalSearchResult(){
 		global $configArray;
 		global $interface;
+		global $user;
 
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
@@ -754,8 +786,7 @@ class IndexRecord implements RecordInterface
 		$interface->assign('summISBN', $this->getCleanISBN());
 		$issn = $this->getCleanISSN();
 		$interface->assign('summISSN', $issn);
-		$upcs = $this->getUPCs();
-		$upc = count($upcs) > 0 ? $upcs[0] : null;
+		$upc = $this->getCleanUPC();
 		$interface->assign('summUPC', $upc);
 		if ($configArray['System']['debugSolr'] == 1){
 			$interface->assign('summScore', $this->getScore());
@@ -769,12 +800,21 @@ class IndexRecord implements RecordInterface
 		$interface->assign('summSnippetCaption', $snippet ? $snippet['caption'] : false);
 		$interface->assign('summSnippet', $snippet ? $snippet['snippet'] : false);
 
+		//Get Rating
+		$resource = new Resource();
+		$resource->source = 'VuFind';
+		$resource->record_id = $id;
+		$resource->find(true);
+		$ratingData = $resource->getRatingData($user);
+		//print_r($ratingData);
+		$interface->assign('summRating', $ratingData);
+
 		//Determine the cover to use
 		$isbn = $this->getCleanISBN();
 		$formatCategory = isset($formatCategories[0]) ? $formatCategories[0] : '';
 		$format = isset($formats[0]) ? $formats[0] : '';
 
-		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format));
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $upc, $formatCategory, $format));
 
 		// By default, do not display AJAX status; we won't assume that all
 		// records exist in the ILS.  Child classes can override this setting
@@ -784,9 +824,20 @@ class IndexRecord implements RecordInterface
 		return 'RecordDrivers/Index/supplementalResult.tpl';
 	}
 
-	function getBookcoverUrl($id, $isbn, $upc, $formatCategory, $format){
+	function getBookcoverUrl($id, $upc, $formatCategory, $format){
 		global $configArray;
-		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;isn={$this->getCleanISBN()}&amp;size=small&amp;upc={$upc}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
+		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;size=small&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
+		$isbn = $this->getCleanISBN();
+		if ($isbn){
+			$bookCoverUrl .= "&amp;isn={$isbn}";
+		}
+		if ($upc){
+			$bookCoverUrl .= "&amp;upc={$upc}";
+		}
+		$issn = $this->getCleanISSN();
+		if ($issn){
+			$bookCoverUrl .= "&amp;issn={$issn}";
+		}
 		return $bookCoverUrl;
 	}
 
@@ -1036,7 +1087,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getCleanISBN()
 	{
-		require_once 'sys/ISBN.php';
+		require_once ROOT_DIR . '/sys/ISBN.php';
 
 		// Get all the ISBNs and initialize the return value:
 		$isbns = $this->getISBNs();
@@ -1076,9 +1127,21 @@ class IndexRecord implements RecordInterface
 		}
 		$issn = $issns[0];
 		if ($pos = strpos($issn, ' ')) {
-			$isbn = substr($issn, 0, $pos);
+			$issn = substr($issn, 0, $pos);
 		}
 		return $issn;
+	}
+
+	public function getCleanUPC(){
+		$upcs = $this->getUPCs();
+		if (empty($upcs)) {
+			return false;
+		}
+		$upc = $upcs[0];
+		if ($pos = strpos($upc, ' ')) {
+			$upc = substr($upc, 0, $pos);
+		}
+		return $upc;
 	}
 
 	/**
@@ -1280,8 +1343,15 @@ class IndexRecord implements RecordInterface
 	{
 		// If ISBN is in the index, it should automatically be an array... but if
 		// it's not set at all, we should normalize the value to an empty array.
-		return isset($this->fields['isbn']) && is_array($this->fields['isbn']) ?
-		$this->fields['isbn'] : array();
+		if (isset($this->fields['isbn'])){
+			if (is_array($this->fields['isbn'])){
+				return $this->fields['isbn'];
+			}else{
+				return array($this->fields['isbn']);
+			}
+		}else{
+			return array();
+		}
 	}
 
 	/**
@@ -1293,16 +1363,22 @@ class IndexRecord implements RecordInterface
 	{
 		// If UPCs is in the index, it should automatically be an array... but if
 		// it's not set at all, we should normalize the value to an empty array.
-		return isset($this->fields['upc']) && is_array($this->fields['upc']) ?
-		$this->fields['upc'] : array();
+		if (isset($this->fields['upc'])){
+			if (is_array($this->fields['upc'])){
+				return $this->fields['upc'];
+			}else{
+				return array($this->fields['upc']);
+			}
+		}else{
+			return array();
+		}
 	}
 
 	public function getUPC()
 	{
 		// If UPCs is in the index, it should automatically be an array... but if
 		// it's not set at all, we should normalize the value to an empty array.
-		return isset($this->fields['upc']) && is_array($this->fields['upc']) ?
-		$this->fields['upc'][0] : '';
+		return isset($this->fields['upc']) && is_array($this->fields['upc']) ? $this->fields['upc'][0] : '';
 	}
 
 	/**
@@ -1399,8 +1475,7 @@ class IndexRecord implements RecordInterface
 	 */
 	protected function getPrimaryAuthor()
 	{
-		return isset($this->fields['author']) ?
-		$this->fields['author'] : '';
+		return isset($this->fields['author']) ? $this->fields['author'] : '';
 	}
 
 	/**
@@ -1418,41 +1493,40 @@ class IndexRecord implements RecordInterface
 	/**
 	 * Get the publication dates of the record.  See also getDateSpan().
 	 *
-	 * @access  protected
+	 * @access  public
 	 * @return  array
 	 */
-	protected function getPublicationDates()
+	public function getPublicationDates()
 	{
-		return isset($this->fields['publishDate']) ?
-		$this->fields['publishDate'] : array();
+		return isset($this->fields['publishDate']) ? $this->fields['publishDate'] : array();
 	}
 
 	/**
 	 * Get an array of publication detail lines combining information from
 	 * getPublicationDates(), getPublishers() and getPlacesOfPublication().
 	 *
-	 * @access  protected
+	 * @access  public
 	 * @return  array
 	 */
-	protected function getPublicationDetails()
+	function getPublicationDetails()
 	{
 		$places = $this->getPlacesOfPublication();
 		$names = $this->getPublishers();
 		$dates = $this->getPublicationDates();
 
 		$i = 0;
-		$retval = array();
+		$returnVal = array();
 		while (isset($places[$i]) || isset($names[$i]) || isset($dates[$i])) {
 			// Put all the pieces together, and do a little processing to clean up
 			// unwanted whitespace.
-			$retval[] = trim(str_replace('  ', ' ',
-			((isset($places[$i]) ? $places[$i] . ' ' : '') .
-			(isset($names[$i]) ? $names[$i] . ' ' : '') .
-			(isset($dates[$i]) ? $dates[$i] : ''))));
+			$publicationInfo = (isset($places[$i]) ? $places[$i] . ' ' : '') .
+					(isset($names[$i]) ? $names[$i] . ' ' : '') .
+					(isset($dates[$i]) ? $dates[$i] : '');
+			$returnVal[] = trim(str_replace('  ', ' ', $publicationInfo));
 			$i++;
 		}
 
-		return $retval;
+		return $returnVal;
 	}
 
 	/**

@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class Rate extends Action
 {
@@ -63,7 +63,7 @@ class Rate extends Action
 
 		if (isset($_GET['submit'])) {
 			//Save the rating
-			require_once('sys/eContent/EContentRating.php');
+			require_once(ROOT_DIR . '/sys/eContent/EContentRating.php');
 			$eContentRating = new EContentRating();
 			$eContentRating->rating = $rating;
 			$eContentRating->recordId = $id;

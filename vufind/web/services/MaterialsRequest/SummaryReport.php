@@ -21,20 +21,19 @@
  *
  */
 
-require_once 'Action.php';
-require_once('services/Admin/Admin.php');
-require_once('sys/MaterialsRequest.php');
-require_once('sys/MaterialsRequestStatus.php');
-require_once("sys/pChart/class/pData.class.php");
-require_once("sys/pChart/class/pDraw.class.php");
-require_once("sys/pChart/class/pImage.class.php");
-require_once("PHPExcel.php");
+require_once ROOT_DIR . '/Action.php';
+require_once(ROOT_DIR . '/services/Admin/Admin.php');
+require_once(ROOT_DIR . '/sys/MaterialsRequest.php');
+require_once(ROOT_DIR . '/sys/MaterialsRequestStatus.php');
+require_once(ROOT_DIR . "/sys/pChart/class/pData.class.php");
+require_once(ROOT_DIR . "/sys/pChart/class/pDraw.class.php");
+require_once(ROOT_DIR . "/sys/pChart/class/pImage.class.php");
+require_once(ROOT_DIR . "/PHPExcel.php");
 
-class SummaryReport extends Admin {
+class MaterialsRequest_SummaryReport extends Admin_Admin {
 
 	function launch()
 	{
-		global $configArray;
 		global $interface;
 		global $user;
 
@@ -45,21 +44,21 @@ class SummaryReport extends Admin {
 			$periodLength = new DateInterval("P1D");
 		}elseif ($period == 'month'){
 			$periodLength = new DateInterval("P1M");
-		}elseif ($period == 'year'){
+		}else{ //year
 			$periodLength = new DateInterval("P1Y");
 		}
 		$interface->assign('period', $period);
-		
+
 		$endDate = (isset($_REQUEST['endDate']) && strlen($_REQUEST['endDate']) > 0) ? DateTime::createFromFormat('m/d/Y', $_REQUEST['endDate']) : new DateTime();
 		$interface->assign('endDate', $endDate->format('m/d/Y'));
-		
+
 		if (isset($_REQUEST['startDate']) && strlen($_REQUEST['startDate']) > 0){
 			$startDate = DateTime::createFromFormat('m/d/Y', $_REQUEST['startDate']);
 		} else{
 			if ($period == 'day'){
 				$startDate = new DateTime($endDate->format('m/d/Y') . " - 7 days");
 			}elseif ($period == 'week'){
-				//Get the sunday after this 
+				//Get the sunday after this
 				$endDate->setISODate($endDate->format('Y'), $endDate->format("W"), 0);
 				$endDate->modify("+7 days");
 				$startDate = new DateTime($endDate->format('m/d/Y') . " - 28 days");
@@ -68,7 +67,7 @@ class SummaryReport extends Admin {
 				$numDays = $endDate->format("d");
 				$endDate->modify(" -$numDays days");
 				$startDate = new DateTime($endDate->format('m/d/Y') . " - 6 months");
-			}elseif ($period == 'year'){
+			}else{ //year
 				$endDate->modify("+1 year");
 				$numDays = $endDate->format("m");
 				$endDate->modify(" -$numDays months");
@@ -77,7 +76,7 @@ class SummaryReport extends Admin {
 				$startDate = new DateTime($endDate->format('m/d/Y') . " - 2 years");
 			}
 		}
-		
+
 		$interface->assign('startDate', $startDate->format('m/d/Y'));
 
 		//Set the end date to the end of the day
@@ -101,16 +100,31 @@ class SummaryReport extends Admin {
 		//Status 3
 		$periodData = array();
 		for ($i = 0; $i < count($periods) - 1; $i++){
+			/** @var DateTime $periodStart */
 			$periodStart = clone $periods[$i];
-			//$periodStart->setTime(0,0,0);
+			/** @var DateTime $periodEnd */
 			$periodEnd = clone $periods[$i+1];
-			//$periodStart->setTime(23, 59, 59);
+
 			$periodData[$periodStart->getTimestamp()] = array();
 			//Determine how many requests were created
 			$materialsRequest = new MaterialsRequest();
+			$materialsRequest->joinAdd(new User(), 'INNER', 'user');
 			$materialsRequest->selectAdd();
 			$materialsRequest->selectAdd('COUNT(id) as numRequests');
 			$materialsRequest->whereAdd('dateCreated >= ' . $periodStart->getTimestamp() . ' AND dateCreated < ' . $periodEnd->getTimestamp());
+			if ($user->hasRole('library_material_requests')){
+				//Need to limit to only requests submitted for the user's home location
+				$userHomeLibrary = Library::getPatronHomeLibrary();
+				$locations = new Location();
+				$locations->libraryId = $userHomeLibrary->libraryId;
+				$locations->find();
+				$locationsForLibrary = array();
+				while ($locations->fetch()){
+					$locationsForLibrary[] = $locations->locationId;
+				}
+
+				$materialsRequest->whereAdd('user.homeLocationId IN (' . implode(', ', $locationsForLibrary) . ')');
+			}
 			$materialsRequest->find();
 			while ($materialsRequest->fetch()){
 				$periodData[$periodStart->getTimestamp()]['Created'] = $materialsRequest->numRequests;
@@ -119,11 +133,25 @@ class SummaryReport extends Admin {
 			//Get a list of all requests by the status of the request
 			$materialsRequest = new MaterialsRequest();
 			$materialsRequest->joinAdd(new MaterialsRequestStatus());
+			$materialsRequest->joinAdd(new User(), 'INNER', 'user');
 			$materialsRequest->selectAdd();
 			$materialsRequest->selectAdd('COUNT(materials_request.id) as numRequests,description');
 			$materialsRequest->whereAdd('dateUpdated >= ' . $periodStart->getTimestamp() . ' AND dateUpdated < ' . $periodEnd->getTimestamp());
+			if ($user->hasRole('library_material_requests')){
+				//Need to limit to only requests submitted for the user's home location
+				$userHomeLibrary = Library::getPatronHomeLibrary();
+				$locations = new Location();
+				$locations->libraryId = $userHomeLibrary->libraryId;
+				$locations->find();
+				$locationsForLibrary = array();
+				while ($locations->fetch()){
+					$locationsForLibrary[] = $locations->locationId;
+				}
+
+				$materialsRequest->whereAdd('user.homeLocationId IN (' . implode(', ', $locationsForLibrary) . ')');
+			}
 			$materialsRequest->groupBy('status');
-			$materialsRequest->addOrder('status');
+			$materialsRequest->orderBy('status');
 			$materialsRequest->find();
 			while ($materialsRequest->fetch()){
 				$periodData[$periodStart->getTimestamp()][$materialsRequest->description] = $materialsRequest->numRequests;
@@ -134,7 +162,7 @@ class SummaryReport extends Admin {
 
 		//Get a list of all of the statuses that will be shown
 		$statuses = array();
-		foreach ($periodData as $periodDate => $periodInfo){
+		foreach ($periodData as $periodInfo){
 			foreach ($periodInfo as $status => $numRequests){
 				$statuses[$status] = translate($status);
 			}
@@ -143,10 +171,10 @@ class SummaryReport extends Admin {
 
 		//Check to see if we are exporting to Excel
 		if (isset($_REQUEST['exportToExcel'])){
-			$this->exportToExcel($periodData, $periods, $statuses);
+			$this->exportToExcel($periodData, $statuses);
 		}else{
 			//Generate the graph
-			$this->generateGraph($periodData, $periods, $statuses);
+			$this->generateGraph($periodData, $statuses);
 		}
 
 		$interface->setTemplate('summaryReport.tpl');
@@ -154,20 +182,17 @@ class SummaryReport extends Admin {
 		$interface->display('layout.tpl');
 	}
 
-	function exportToExcel($periodData, $periods, $statuses){
+	function exportToExcel($periodData, $statuses){
 		global $configArray;
-		//PHPEXCEL
 		// Create new PHPExcel object
 		$objPHPExcel = new PHPExcel();
 
 		// Set properties
 		$objPHPExcel->getProperties()->setCreator($configArray['Site']['title'])
-		->setLastModifiedBy($configArray['Site']['title'])
-		->setTitle("Office 2007 XLSX Document")
-		->setSubject("Office 2007 XLSX Document")
-		->setDescription("Office 2007 XLSX, generated using PHP.")
-		->setKeywords("office 2007 openxml php")
-		->setCategory("Materials Request Summary Report");
+				->setLastModifiedBy($configArray['Site']['title'])
+				->setTitle("Materials Request Summary Report")
+				->setSubject("Materials Request")
+				->setCategory("Materials Request Summary Report");
 
 		// Add some data
 		$objPHPExcel->setActiveSheetIndex(0);
@@ -175,10 +200,10 @@ class SummaryReport extends Admin {
 		$activeSheet->setCellValue('A1', 'Materials Request Summary Report');
 		$activeSheet->setCellValue('A3', 'Date');
 		$column = 1;
-		foreach ($statuses as $status => $statusLabel){
+		foreach ($statuses as $statusLabel){
 			$activeSheet->setCellValueByColumnAndRow($column++, 3, $statusLabel);
 		}
-		
+
 		$row = 4;
 		$column = 0;
 		//Loop Through The Report Data
@@ -197,7 +222,7 @@ class SummaryReport extends Admin {
 		// Rename sheet
 		$activeSheet->setTitle('Summary Report');
 
-		// Redirect output to a client’s web browser (Excel5)
+		// Redirect output to a client's web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename="MaterialsRequestSummaryReport.xls"');
 		header('Cache-Control: max-age=0');
@@ -208,7 +233,7 @@ class SummaryReport extends Admin {
 
 	}
 
-	function generateGraph($periodData, $periods, $statuses){
+	function generateGraph($periodData, $statuses){
 		global $configArray;
 		global $interface;
 		$reportData = new pData();
@@ -225,7 +250,7 @@ class SummaryReport extends Admin {
 		}
 
 		$reportData->setAxisName(0,"Requests");
-		
+
 		$reportData->addPoints($periodsFormatted, "Dates");
 		$reportData->setAbscissa("Dates");
 
@@ -257,6 +282,6 @@ class SummaryReport extends Admin {
 	}
 
 	function getAllowableRoles(){
-		return array('cataloging');
+		return array('cataloging', 'library_material_requests');
 	}
 }

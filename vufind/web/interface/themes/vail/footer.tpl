@@ -8,7 +8,7 @@
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Month"&amp;filter[]=literary_form_full%3A"Fiction"&amp;filter[]=format_category%3A"Books"&amp;sort=title'>{translate text='New Fiction Books'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Month"&amp;filter[]=literary_form_full%3A"Non+Fiction"&amp;filter[]=format_category%3A"Books"&amp;sort=title'>{translate text='New Non-Fiction Books'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Quarter"&amp;filter[]=format%3A"DVD"&amp;sort=title'>{translate text='New DVDs'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Quarter"&amp;filter[]=format_category%3A"Audio"&amp;filter[]=format%3A"CD"&amp;sort=title'>{translate text='New Audio Books &amp; CDs'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_vail%3A"Quarter"&amp;filter[]=format_category%3A"Audio+Books"&amp;filter[]=format%3A"CD"&amp;sort=title'>{translate text='New Audio Books &amp; CDs'}</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>
@@ -29,29 +29,34 @@
 		{if isset($suggestAPurchaseLink)}
 				<li><a href="{$suggestAPurchaseLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Suggest a Purchase'}</a></li>
 		{/if}
-		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
+		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510, scrollbars=yes'); return false;">{translate text='FAQs'}</a></li>
 		<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
 	</ul>
 </div>
-<br clear="all">
+<div class="footerCol"><p><strong>{translate text='About us'}</strong></p>
+	<ul>
+		<li><a href="http://vail.colibraries.org">{translate text='Library Home'}</a></li>
+		<li>
+			292 West Meadow Drive<br/>
+			Vail, CO 81657<br/>
+			(970) 479-2184<br/>
+		</li>
+		<li><a href="mailto:libinfo@vailgov.com">{translate text='E-mail'}</a></li>
+	</ul>
+</div>
+<div class="footerCol">
+	<p><strong>{translate text='Hours of Operation'}</strong></p>
+	<ul>
+		<li>
+		<b>Monday - Thursday: </b><br/>
+		&nbsp;&nbsp;10 am to 8 pm<br/>
+		<b>Friday - Sunday: </b><br/>
+		&nbsp;&nbsp;11 am to 6 pm<br/>
+		</li>
+		<li><b>Closed:</b> New Year's Day, Memorial Day,<br/>4th of July, Labor Day, Thanksgiving Day,<br/>Christmas Day</li> 
+	</ul>
+</div>
+<div class="clearer"></div>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}
-
-{* Add Google Analytics*}
-{literal}
-<script type="text/javascript">
-	var _gaq = _gaq || [];
-	_gaq.push(['_setAccount', 'UA-10641564-2']);
-	_gaq.push(['_setDomainName', '.marmot.org']);
-	_gaq.push(['_trackPageview']);
-	_gaq.push(['_trackPageLoadTime']);
-
-	(function() {
-		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-	})();
-
-</script>
-{/literal}

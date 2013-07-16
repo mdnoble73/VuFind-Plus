@@ -17,8 +17,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'services/MyResearch/lib/Search.php';
-require_once 'sys/Recommend/RecommendationFactory.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
+require_once ROOT_DIR . '/sys/Recommend/RecommendationFactory.php';
 
 /**
  * Search Object abstract base class.
@@ -39,6 +39,7 @@ abstract class SearchObject_Base
 	protected $sort = null;
 	protected $defaultSort = 'relevance';
 	protected $defaultSortByType = array();
+	/** @var string|LibrarySearchSource|LocationSearchSource */
 	protected $searchSource = 'local';
 
 	// Filters
@@ -70,12 +71,13 @@ abstract class SearchObject_Base
 	protected $savedSearch = false;
 	protected $searchType  = 'basic';
 	// Possible values of $searchType:
+	protected $isAdvanced = false;
 	protected $basicSearchType = 'basic';
 	protected $advancedSearchType = 'advanced';
 	// Flag for logging/search history
 	protected $disableLogging = false;
 	// Debugging flag
-	protected $debug;
+	public $debug;
 	// Search options for the user
 	protected $advancedTypes = array();
 	protected $basicTypes = array();
@@ -84,6 +86,7 @@ abstract class SearchObject_Base
 	protected $spellcheck    = true;
 	protected $suggestions   = array();
 	// Recommendation modules associated with the search:
+	/** @var bool|array $recommend  */
 	protected $recommend     = false;
 	// The INI file to load recommendations settings from:
 	protected $recommendIni = 'searches';
@@ -229,6 +232,10 @@ abstract class SearchObject_Base
 		$this->facetConfig = array();
 	}
 
+	public function hasAppliedFacets(){
+		return count($this->filterList) > 0;
+	}
+
 	/**
 	 * Return an array structure containing all current filters
 	 *    and urls to remove them.
@@ -278,7 +285,7 @@ abstract class SearchObject_Base
 	 * Return a url for the current search with an additional filter
 	 *
 	 * @access  public
-	 * @param   string   $new_filter   A filter to add to the search url
+	 * @param   string   $newFilter   A filter to add to the search url
 	 * @return  string   URL of a new search
 	 */
 	public function renderLinkWithFilter($newFilter)
@@ -286,6 +293,14 @@ abstract class SearchObject_Base
 		// Stash our old data for a minute
 		$oldFilterList = $this->filterList;
 		$oldPage       = $this->page;
+		// Availability facet can have only one item selected at a time
+		if (strpos($newFilter, 'availability_toggle') === 0){
+			foreach ($this->filterList as $name => $value){
+				if (strpos($name, 'availability_toggle') === 0){
+					unset ($this->filterList[$name]);
+				}
+			}
+		}
 		// Add the new filter
 		$this->addFilter($newFilter);
 		// Remove page number
@@ -418,7 +433,7 @@ abstract class SearchObject_Base
 			if (count($_REQUEST['lookfor']) == 1) {
 				$_REQUEST['lookfor'] = strip_tags($_REQUEST['lookfor'][0]);
 			} else {
-				PEAR::RaiseError(new PEAR_Error("Unsupported search URL."));
+				PEAR_Singleton::RaiseError(new PEAR_Error("Unsupported search URL."));
 				die();
 			}
 		}
@@ -441,8 +456,11 @@ abstract class SearchObject_Base
             'index'   => $type,
             'lookfor' => $_REQUEST['lookfor']
 		);
-
 		return true;
+	}
+
+	public function isAdvanced(){
+		return $this->isAdvanced;
 	}
 
 	/**
@@ -455,6 +473,7 @@ abstract class SearchObject_Base
 	 */
 	protected function initAdvancedSearch()
 	{
+		$this->isAdvanced = true;
 		//********************
 		// Advanced Search logic
 		//  'lookfor0[]' 'type0[]'
@@ -481,7 +500,7 @@ abstract class SearchObject_Base
 					if (($type == 'ISN' || $type == 'Keyword' || $type == 'AllFields') &&
 							(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/',$lookfor) ||
 							preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $lookfor))) {
-						require_once('sys/ISBN.php');
+						require_once(ROOT_DIR . '/sys/ISBN.php');
 						$isbn = new ISBN($lookfor);
 						$lookfor = $isbn->get10() . ' OR ' . $isbn->get13();
 					}
@@ -590,11 +609,23 @@ abstract class SearchObject_Base
 	 */
 	protected function initSort()
 	{
+		$defaultSort = '';
+		if (is_object($this->searchSource)){
+			$defaultSort = $this->searchSource->defaultSort;
+			if ($defaultSort == 'newest_to_oldest'){
+				$defaultSort = 'year';
+			}else if ($defaultSort == 'oldest_to_newest'){
+				$defaultSort = 'year asc';
+			}else if ($defaultSort == 'user_rating'){
+				$defaultSort = 'rating desc';
+			}else if ($defaultSort == 'popularity'){
+				$defaultSort = 'popularity desc';
+			}
+		}
 		if (isset($_REQUEST['sort'])) {
 			$this->sort = $_REQUEST['sort'];
-			$_SESSION['lastSearchSort'] = $_REQUEST['sort'];
-		} elseif (isset($_SESSION['lastSearchSort'])) {
-			$this->sort = $_SESSION['lastSearchSort'];
+		}else if ($defaultSort != ''){
+			$this->sort = $defaultSort;
 		} else {
 			// Is there a search-specific sort type set?
 			$type = isset($_REQUEST['type']) ? $_REQUEST['type'] : false;
@@ -605,7 +636,7 @@ abstract class SearchObject_Base
 				$this->sort = $this->defaultSort;
 			}
 		}
-		//Validate the sort to make sure it is corrct.
+		//Validate the sort to make sure it is correct.
 		if (!array_key_exists($this->sort, $this->sortOptions)){
 			$this->sort = $this->defaultSort;
 		}
@@ -863,6 +894,14 @@ abstract class SearchObject_Base
 	public function getSearchId()       {return $this->searchId;}
 	public function getSearchTerms()    {return $this->searchTerms;}
 	public function getSearchType()     {return $this->searchType;}
+	public function getSort()           {return $this->sort;}
+	public function getFullSearchType() {
+		if ($this->isAdvanced){
+			return $this->searchType;
+		}else{
+			return $this->searchType . ' - ' . $this->getSearchIndex();
+		}
+	}
 	public function getStartTime()      {return $this->initTime;}
 	public function getTotalSpeed()     {return $this->totalTime;}
 	public function getView()           {return $this->view;}
@@ -1137,7 +1176,7 @@ abstract class SearchObject_Base
 	 *  Needs to be kept up-to-date with the minSO object at the end of this file.
 	 *
 	 * @access  public
-	 * @param   object     A minSO object
+	 * @param   object  $minified     A minSO object
 	 */
 	public function deminify($minified)
 	{
@@ -1151,6 +1190,7 @@ abstract class SearchObject_Base
 		$this->resultsTotal = $minified->r;
 		$this->filterList   = $minified->f;
 		$this->searchType   = $minified->ty;
+		$this->sort         = $minified->sr;
 
 		// Search terms, we need to expand keys
 		$tempTerms = $minified->t;
@@ -1192,6 +1232,7 @@ abstract class SearchObject_Base
 
 		// Get the list of all old searches for this session and/or user
 		$s = new SearchEntry();
+		/** @var SearchEntry[] $searchHistory */
 		$searchHistory = $s->getSearches(session_id(), is_object($user) ? $user->id : null);
 
 		// Duplicate elimination
@@ -1268,11 +1309,14 @@ abstract class SearchObject_Base
 	 * unable to load a requested saved search, return a PEAR_Error object.
 	 *
 	 * @access  protected
+	 * @var     string    $searchId
+	 * @var     boolean   $redirect
+	 * @var     boolean   $forceReload
 	 * @return  mixed               Does not return on successful load, returns
 	 *                              false if no search to restore, returns
 	 *                              PEAR_Error object in case of trouble.
 	 */
-	public function restoreSavedSearch($searchId = null, $redirect = true)
+	public function restoreSavedSearch($searchId = null, $redirect = true, $forceReload = false)
 	{
 		global $user;
 
@@ -1284,7 +1328,7 @@ abstract class SearchObject_Base
 			if ($search->find(true)) {
 				// Found, make sure the user has the
 				//   rights to view this search
-				if ($search->session_id == session_id() || ($user && $search->user_id == $user->id)) {
+				if ($forceReload || $search->session_id == session_id() || ($user && $search->user_id == $user->id)) {
 					// They do, deminify it to a new object.
 					$minSO = unserialize($search->search_object);
 					$savedSearch = SearchObjectFactory::deminify($minSO);
@@ -1321,13 +1365,16 @@ abstract class SearchObject_Base
 	 *  search parameters in $_REQUEST.
 	 *
 	 * @access  public
+	 * @var string|LibrarySearchSource|LocationSearchSource $searchSource
 	 * @return  boolean
 	 */
-	public function init()
+	public function init($searchSource = null)
 	{
 		// Start the timer
 		$mtime = explode(' ', microtime());
 		$this->initTime = $mtime[1] + $mtime[0];
+
+		$this->searchSource = $searchSource;
 		return true;
 	}
 
@@ -1629,14 +1676,13 @@ abstract class SearchObject_Base
 	 */
 	public function getRecommendationsTemplates($location = 'top')
 	{
-		$retval = array();
-		if (isset($this->recommend[$location]) &&
-		!empty($this->recommend[$location])) {
+		$returnValue = array();
+		if (isset($this->recommend[$location]) && !empty($this->recommend[$location])) {
 			foreach($this->recommend[$location] as $current) {
-				$retval[] = $current->getTemplate();
+				$returnValue[] = $current->getTemplate();
 			}
 		}
-		return $retval;
+		return $returnValue;
 	}
 
 	/**
@@ -1724,7 +1770,7 @@ abstract class SearchObject_Base
 				// tried to load a non-existent module, and we'll ignore it.
 				$obj = RecommendationFactory::initRecommendation($module, $this,
 				$params);
-				if ($obj && !PEAR::isError($obj)) {
+				if ($obj && !PEAR_Singleton::isError($obj)) {
 					$obj->init();
 					$this->recommend[$location][] = $obj;
 				}
@@ -1866,6 +1912,112 @@ abstract class SearchObject_Base
 	 * @return  mixed       false if no error, error string otherwise.
 	 */
 	abstract public function getIndexError();
+
+public function getNextPrevLinks(){
+		global $interface;
+		global $timer;
+		//Setup next and previous links based on the search results.
+		if (isset($_REQUEST['searchId'])){
+			//rerun the search
+			$s = new SearchEntry();
+			$s->id = $_REQUEST['searchId'];
+			$interface->assign('searchId', $_REQUEST['searchId']);
+			$currentPage = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+			$interface->assign('page', $currentPage);
+
+			$s->find();
+			if ($s->N > 0){
+				$s->fetch();
+				$minSO = unserialize($s->search_object);
+				$searchObject = SearchObjectFactory::deminify($minSO);
+				$searchObject->setPage($currentPage);
+				//Run the search
+				$result = $searchObject->processSearch(true, false, false);
+
+				//Check to see if we need to run a search for the next or previous page
+				$currentResultIndex = $_REQUEST['recordIndex'] - 1;
+				$recordsPerPage = $searchObject->getLimit();
+				$adjustedResultIndex = $currentResultIndex - ($recordsPerPage * ($currentPage -1));
+
+				if (($currentResultIndex) % $recordsPerPage == 0 && $currentResultIndex > 0){
+					//Need to run a search for the previous page
+					$interface->assign('previousPage', $currentPage - 1);
+					$previousSearchObject = clone $searchObject;
+					$previousSearchObject->setPage($currentPage - 1);
+					$previousSearchObject->processSearch(true, false, false);
+					$previousResults = $previousSearchObject->getResultRecordSet();
+				}else if (($currentResultIndex + 1) % $recordsPerPage == 0 && ($currentResultIndex + 1) < $searchObject->getResultTotal()){
+					//Need to run a search for the next page
+					$nextSearchObject = clone $searchObject;
+					$interface->assign('nextPage', $currentPage + 1);
+					$nextSearchObject->setPage($currentPage + 1);
+					$nextSearchObject->processSearch(true, false, false);
+					$nextResults = $nextSearchObject->getResultRecordSet();
+				}
+
+				if (PEAR_Singleton::isError($result)) {
+					//If we get an error excuting the search, just eat it for now.
+				}else{
+					if ($searchObject->getResultTotal() < 1) {
+						//No results found
+					}else{
+						$recordSet = $searchObject->getResultRecordSet();
+						//Record set is 0 based, but we are passed a 1 based index
+						if ($currentResultIndex > 0){
+							if (isset($previousResults)){
+								$previousRecord = $previousResults[count($previousResults) -1];
+							}else{
+								$previousId = $adjustedResultIndex - 1;
+								if (isset($recordSet[$previousId])){
+									$previousRecord = $recordSet[$previousId];
+								}
+							}
+
+							//Convert back to 1 based index
+							$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
+							$interface->assign('previousTitle', $previousRecord['title']);
+							if (strpos($previousRecord['id'], 'econtentRecord') === 0){
+								$interface->assign('previousType', 'EcontentRecord');
+								$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
+							}elseif (strpos($previousRecord['id'], 'list') === 0){
+								$interface->assign('previousType', 'MyResearch/MyList');
+								$interface->assign('previousId', str_replace('list', '', $previousRecord['id']));
+							}else{
+								$interface->assign('previousType', 'Record');
+								$interface->assign('previousId', $previousRecord['id']);
+							}
+						}
+						if ($currentResultIndex + 1 < $searchObject->getResultTotal()){
+
+							if (isset($nextResults)){
+								$nextRecord = $nextResults[0];
+							}else{
+								$nextRecordIndex = $adjustedResultIndex + 1;
+								if (isset($recordSet[$nextRecordIndex])){
+									$nextRecord = $recordSet[$nextRecordIndex];
+								}
+							}
+							//Convert back to 1 based index
+							$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
+							$interface->assign('nextTitle', $nextRecord['title']);
+							if (strpos($nextRecord['id'], 'econtentRecord') === 0){
+								$interface->assign('nextType', 'EcontentRecord');
+								$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
+							}elseif (strpos($nextRecord['id'], 'list') === 0){
+								$interface->assign('nextType', 'MyResearch/MyList');
+								$interface->assign('nextId', str_replace('list', '', $nextRecord['id']));
+							}else{
+								$interface->assign('nextType', 'Record');
+								$interface->assign('nextId', $nextRecord['id']);
+							}
+						}
+
+					}
+				}
+			}
+			$timer->logTime('Got next/previous links');
+		}
+	}
 }
 
 /**
@@ -1893,7 +2045,7 @@ class minSO
 {
 	public $t = array();
 	public $f = array();
-	public $id, $i, $s, $r, $ty;
+	public $id, $i, $s, $r, $ty, $sr;
 
 	/**
 	 * Constructor. Building minified object from the
@@ -1911,6 +2063,7 @@ class minSO
 		$this->s  = $searchObject->getQuerySpeed();
 		$this->r  = $searchObject->getResultTotal();
 		$this->ty = $searchObject->getSearchType();
+		$this->sr = $searchObject->getSort();
 
 		// Search terms, we'll shorten keys
 		$tempTerms = $searchObject->getSearchTerms();
@@ -1943,7 +2096,9 @@ class minSO
 		// It would be nice to shorten filter fields too, but
 		//      it would be a nightmare to maintain.
 		$this->f = $searchObject->getFilters();
-	}
 
+		//Minify sort
+
+	}
 }
 ?>

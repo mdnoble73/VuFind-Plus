@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class JSON extends Action {
 
@@ -29,6 +29,9 @@ class JSON extends Action {
 
 	function launch()
 	{
+		global $analytics;
+		$analytics->disableTracking();
+
 		//header('Content-type: application/json');
 		header('Content-type: text/html');
 		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -64,8 +67,8 @@ class JSON extends Action {
 	}
 
 	function saveToMyList(){
-		require_once 'services/MyResearch/lib/Resource.php';
-		require_once 'services/MyResearch/lib/User.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 		$listId = $_REQUEST['list'];
 		$tags = $_REQUEST['mytags'];
@@ -113,24 +116,24 @@ class JSON extends Action {
 		//Login the user.  Must be called via Post parameters.
 		global $user;
 		$user = UserAccount::isLoggedIn();
-		if (!$user || PEAR::isError($user)){
+		if (!$user || PEAR_Singleton::isError($user)){
 			$user = UserAccount::login();
-			if (!$user || PEAR::isError($user)){
+			if (!$user || PEAR_Singleton::isError($user)){
 				return array('success'=>false);
 			}
 		}
 
-		global $locationSingleton;
-		$patronHomeBranch = $locationSingleton->getUserHomeLocation();
+		$patronHomeBranch = Location::getUserHomeLocation();
 		//Check to see if materials request should be activated
-		require_once 'sys/MaterialsRequest.php';
+		require_once ROOT_DIR . '/sys/MaterialsRequest.php';
 		return array(
 			'success'=>true,
 			'name'=>ucwords($user->firstname . ' ' . $user->lastname),
 			'phone'=>$user->phone,
 			'email'=>$user->email,
 			'homeLocation'=> isset($patronHomeBranch) ? $patronHomeBranch->code : '',
-			'enableMaterialsRequest' => MaterialsRequest::enableMaterialsRequest(),
+			'homeLocationId'=> isset($patronHomeBranch) ? $patronHomeBranch->locationId : '',
+			'enableMaterialsRequest' => MaterialsRequest::enableMaterialsRequest(true),
 		);
 	}
 
@@ -153,20 +156,34 @@ class JSON extends Action {
 		if (!$catalog || !$catalog->status) {
 			$this->output(translate('An error has occurred'), JSON::STATUS_ERROR);
 		}
-		$results = $catalog->getStatuses($_GET['id']);
-		if (PEAR::isError($results)) {
-			$this->output($results->getMessage(), JSON::STATUS_ERROR);
-		} else if (!is_array($results)) {
-			// If getStatuses returned garbage, let's turn it into an empty array
-			// to avoid triggering a notice in the foreach loop below.
-			$results = array();
+		$printIds = array();
+		$econtentIds = array();
+		$allIds = array();
+		foreach ($_GET['id'] as $id){
+			if (preg_match('/econtentRecord(\d+)$/i', $id, $matches)){
+				$econtentIds[] = $matches[1];
+			}else{
+				$printIds[] = $id;
+			}
+		}
+		$allIds = array_merge($printIds, $econtentIds);
+		$results = array();
+		if (count($printIds) > 0){
+			$results = $catalog->getStatuses($printIds);
+			if (PEAR_Singleton::isError($results)) {
+				$this->output($results->getMessage(), JSON::STATUS_ERROR);
+			} else if (!is_array($results)) {
+				// If getStatuses returned garbage, let's turn it into an empty array
+				// to avoid triggering a notice in the foreach loop below.
+				$results = array();
+			}
 		}
 
 		// In order to detect IDs missing from the status response, create an
 		// array with a key for every requested ID.  We will clear keys as we
 		// encounter IDs in the response -- anything left will be problems that
 		// need special handling.
-		$missingIds = array_flip($_GET['id']);
+		$missingIds = array_flip($printIds);
 
 		// Load messages for response:
 		$messages = array(
@@ -176,23 +193,19 @@ class JSON extends Action {
 
 		// Load callnumber and location settings:
 		$callnumberSetting = isset($configArray['Item_Status']['multiple_call_nos'])
-		? $configArray['Item_Status']['multiple_call_nos'] : 'msg';
+			? $configArray['Item_Status']['multiple_call_nos'] : 'msg';
 		$locationSetting = isset($configArray['Item_Status']['multiple_locations'])
-		? $configArray['Item_Status']['multiple_locations'] : 'msg';
+			? $configArray['Item_Status']['multiple_locations'] : 'msg';
 
 		// Loop through all the status information that came back
 		$statuses = array();
 		foreach ($results as $record) {
 			// Skip errors and empty records:
-			if (!PEAR::isError($record) && count($record)) {
+			if (!PEAR_Singleton::isError($record) && count($record)) {
 				if ($locationSetting == "group") {
-					$current = $this->_getItemStatusGroup(
-					$record, $messages, $callnumberSetting
-					);
+					$current = $this->_getItemStatusGroup($record, $messages, $callnumberSetting);
 				} else {
-					$current = $this->_getItemStatus(
-					$record, $messages, $locationSetting, $callnumberSetting
-					);
+					$current = $this->_getItemStatus($record, $messages, $locationSetting, $callnumberSetting);
 				}
 				$statuses[] = $current;
 
@@ -213,6 +226,33 @@ class JSON extends Action {
                 'reserve_message'      => translate('Not On Reserve'),
                 'callnumber'           => ''
                 );
+		}
+
+		if (count($econtentIds) > 0){
+			require_once ROOT_DIR . '/Drivers/EContentDriver.php';
+			$econtentDriver = new EContentDriver();
+			$econtentResults = $econtentDriver->getStatuses($econtentIds);
+			foreach ($econtentResults as $result){
+				$available = $result['available'];
+				$interface->assign('status', $result['status']);
+				if ($available){
+					$message = $interface->fetch('AJAX/status-available.tpl');
+				}else{
+					$message = $interface->fetch('AJAX/status-unavailable.tpl');
+				}
+				$statuses[] = array(
+                'id'                   => $result['id'],
+                'shortId'                   => $result['id'],
+                'availability' => ($available ? 'true' : 'false'),
+                'availability_message' => $message, //$messages[$available ? 'available' : 'unavailable'],
+                'location'             => translate('Unknown'),
+                'locationList'         => false,
+                'reserve'              => 'false',
+                'reserve_message'      => translate('Not On Reserve'),
+                'callnumber'           => ''
+                );
+
+			}
 		}
 
 		// Done
@@ -294,6 +334,7 @@ class JSON extends Action {
 	 * @access private
 	 */
 	private function _getItemStatus($record, $messages, $locationSetting, $callnumberSetting) {
+		global $interface;
 		// Summarize call number, location and availability info across all items:
 		$callNumbers = $locations = array();
 		$available = false;
@@ -317,19 +358,23 @@ class JSON extends Action {
 		);
 
 		// Determine location string based on findings:
-		$location = $this->_pickValue(
-		$locations, $locationSetting, 'Multiple Locations'
-		);
+		$location = $this->_pickValue($locations, $locationSetting, 'Multiple Locations');
 
 		// Send back the collected details:
 		$firstRecord = reset($record);
 		$id = (isset($firstRecord['id']) ? $firstRecord['id'] : '');
 		$reserve = (isset($firstRecord['reserve']) ? $firstRecord['reserve'] : '');
+		$interface->assign('status', $firstRecord['status']);
+		if ($available){
+			$message = $interface->fetch('AJAX/status-available.tpl');
+		}else{
+			$message = $interface->fetch('AJAX/status-unavailable.tpl');
+		}
 		return array(
             'id' => $id,
             'shortId' => trim($id, '.'),
             'availability' => ($available ? 'true' : 'false'),
-            'availability_message' => $messages[$available ? 'available' : 'unavailable'],
+            'availability_message' => $message, //$messages[$available ? 'available' : 'unavailable'],
             'location' => $location,
             'locationList' => false,
             'reserve' => ($reserve == 'Y' ? 'true' : 'false'),
@@ -345,7 +390,7 @@ class JSON extends Action {
 	 * @access public
 	 */
 	public function emailCartItems() {
-		require_once 'sys/Mailer.php';
+		require_once ROOT_DIR . '/sys/Mailer.php';
 		// Load the appropriate module based on the "type" parameter:
 		global $configArray;
 		$ids = $_REQUEST['id'];
@@ -377,5 +422,17 @@ class JSON extends Action {
 		$result = $mail->send($to, $from, $subject, $body);
 
 		$this->output(translate('email_success'), JSON::STATUS_OK);
+	}
+
+	function trackEvent(){
+		global $analytics;
+		if (!isset($_REQUEST['category']) || !isset($_REQUEST['eventAction'])){
+			return 'Must provide a category and action to track an event';
+		}
+		$category = strip_tags($_REQUEST['category']);
+		$action = strip_tags($_REQUEST['eventAction']);
+		$data = isset($_REQUEST['data']) ? strip_tags($_REQUEST['data']) : '';
+		$analytics->addEvent($category, $action, $data);
+		return true;
 	}
 }

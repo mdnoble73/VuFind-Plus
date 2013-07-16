@@ -40,13 +40,13 @@ class SearchObjectFactory {
 	static function initSearchObject($engine = 'Solr')
 	{
 		global $configArray;
-		global $memcache;
-		
+
 		$path = "{$configArray['Site']['local']}/sys/SearchObject/{$engine}.php";
 		if (is_readable($path)) {
 			require_once $path;
 			$class = 'SearchObject_' . $engine;
 			if (class_exists($class)) {
+				/** @var SearchObject_Base $searchObject */
 				$searchObject = new $class();
 				return $searchObject;
 			}
@@ -68,6 +68,7 @@ class SearchObjectFactory {
 	{
 		// To avoid excessive constructor calls, we'll keep a static cache of
 		// objects to use for the deminification process:
+		/** @var SearchObject_Base[] $objectCache */
 		static $objectCache = array();
 
 		// Figure out the engine type for the object we're about to construct:

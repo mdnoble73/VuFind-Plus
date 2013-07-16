@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/ObjectEditor.php';
-require_once 'sys/Genealogy/Marriage.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
+require_once ROOT_DIR . '/sys/Genealogy/Marriage.php';
 require_once 'XML/Unserializer.php';
 
 class Marriages extends ObjectEditor
@@ -58,7 +58,7 @@ class Marriages extends ObjectEditor
 	}
 	function getRedirectLocation($objectAction, $curObject){
 		global $configArray;
-		return $configArray['Site']['url'] . '/Person/' . $curObject->personId;
+		return $configArray['Site']['path'] . '/Person/' . $curObject->personId;
 	}
 	function showReturnToList(){
 		return false;

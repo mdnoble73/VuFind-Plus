@@ -21,14 +21,14 @@
  *
  */
 
-require_once "Action.php";
-require_once 'sys/MaterialsRequest.php';
-require_once 'sys/MaterialsRequestStatus.php';
+require_once ROOT_DIR . "/Action.php";
+require_once ROOT_DIR . '/sys/MaterialsRequest.php';
+require_once ROOT_DIR . '/sys/MaterialsRequestStatus.php';
 
 /**
  * MaterialsRequest AJAX Page, handles returing asynchronous information about Materials Requests.
  */
-class AJAX extends Action{
+class MaterialsRequest_AJAX extends Action{
 	
 	function AJAX() {
 	}
@@ -58,15 +58,18 @@ class AJAX extends Action{
 		}elseif (!isset($_REQUEST['id'])){
 			return array('success' => false, 'error' => 'Could not cancel the request, no id provided.');
 		}else{
-			$cancelledStatus = new MaterialsRequestStatus();
-			$cancelledStatus->isPatronCancel = 1;
-			$cancelledStatus->find(true);
-			
 			$id = $_REQUEST['id'];
 			$materialsRequest = new MaterialsRequest();
 			$materialsRequest->id = $id;
 			$materialsRequest->createdBy = $user->id;
 			if ($materialsRequest->find(true)){
+				//get the correct status to set based on the user's home library
+				$homeLibrary = Library::getPatronHomeLibrary();
+				$cancelledStatus = new MaterialsRequestStatus();
+				$cancelledStatus->isPatronCancel = 1;
+				$cancelledStatus->libraryId = $homeLibrary->libraryId;
+				$cancelledStatus->find(true);
+
 				$materialsRequest->dateUpdated = time();
 				$materialsRequest->status = $cancelledStatus->id;
 				if ($materialsRequest->update()){
@@ -97,9 +100,26 @@ class AJAX extends Action{
 			$materialsRequest = new MaterialsRequest();
 			$materialsRequest->id = $id;
 			if ($materialsRequest->find(true)){
-				
+				$canUpdate = false;
+				//Load user information
+				$requestUser = new User();
+				$requestUser->id = $materialsRequest->createdBy;
+				if ($requestUser->find(true)){
+					$interface->assign('requestUser', $requestUser);
+				}
+
 				global $user;
-				if ($user && ($user->hasRole('cataloging') || ($user->id == $materialsRequest->createdBy))){
+				if ($user){
+					if ($user->hasRole('cataloging')){
+						$canUpdate = true;
+					}elseif ($user->id == $materialsRequest->createdBy){
+						$canUpdate = true;
+					}else if ($user->hasRole('library_material_requests')){
+						//User can update if the home library of the requester is their library
+						$canUpdate = Library::getLibraryForLocation($requestUser->homeLocationId)->libraryId == Library::getLibraryForLocation($user->homeLocationId)->libraryId;
+					}
+				}
+				if ($canUpdate){
 					//Get a list of formats to show 
 					$availableFormats = MaterialsRequest::getFormats();
 					$interface->assign('availableFormats', $availableFormats);
@@ -115,12 +135,7 @@ class AJAX extends Action{
 		
 					$interface->assign('materialsRequest', $materialsRequest);
 					$interface->assign('showUserInformation', true);
-					//Load user information 
-					$requestUser = new User();
-					$requestUser->id = $materialsRequest->createdBy;
-					if ($requestUser->find(true)){
-						$interface->assign('requestUser', $requestUser);
-					}
+
 				}else{
 					$interface->assign('error', 'Sorry, you don\'t have permission to update this request.');
 				}
@@ -150,7 +165,7 @@ class AJAX extends Action{
 				$interface->assign('materialsRequest', $materialsRequest);
 				
 				global $user;
-				if ($user && $user->hasRole('cataloging')){
+				if ($user && $user->hasRole('cataloging') || $user->hasRole('library_material_requests')){
 					$interface->assign('showUserInformation', true);
 					//Load user information 
 					$requestUser = new User();
@@ -231,6 +246,7 @@ class AJAX extends Action{
 			//print_r($worldCatData);
 			$worldCatResults = array();
 			foreach($worldCatData->channel->item as $item){
+				/** @var SimpleXMLElement $item */
 				$curTitle= array(
 					'title' => (string)$item->title,
 					'author' => (string)$item->author->name,
@@ -240,6 +256,7 @@ class AJAX extends Action{
 				
 				$oclcChildren = $item->children('oclcterms', TRUE);
 				foreach ($oclcChildren as $child){
+					/** @var SimpleXMLElement $child */
 					if ($child->getName() == 'recordIdentifier'){
 						$curTitle['oclcNumber'] = (string)$child;
 					}
@@ -262,7 +279,7 @@ class AJAX extends Action{
 				
 				if (strlen($curTitle['description']) == 0 && isset($curTitle["ISBN"]) && is_array($curTitle["ISBN"]) && count($curTitle["ISBN"]) > 0){
 					//Get the description from syndetics
-					require_once 'Drivers/marmot_inc/GoDeeperData.php';
+					require_once ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php';
 					$summaryInfo = GoDeeperData::getSummary($curTitle["ISBN"][0], null);
 					if (isset($summaryInfo['summary'])){
 						$curTitle['description'] = $summaryInfo['summary'];

@@ -18,7 +18,7 @@
  *
  */
 
-require_once "Action.php";
+require_once ROOT_DIR . "/Action.php";
 
 class Login extends Action
 {
@@ -110,7 +110,7 @@ class Login extends Action
 		
 		//set focus to the username field by default.
 		$interface->assign('focusElementId', 'username');
-		$interface->setTemplate('login.tpl');
+		$interface->setTemplate('../MyResearch/login.tpl');
 		$interface->setPageTitle('Login');
 		$interface->display('layout.tpl');
 	}

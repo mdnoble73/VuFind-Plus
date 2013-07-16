@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'services/MyResearch/MyResearch.php';
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
 class ReadingHistory extends MyResearch
 {
@@ -40,11 +40,11 @@ class ReadingHistory extends MyResearch
 		if ($this->catalog->status) {
 			if ($user->cat_username) {
 				$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-				if (PEAR::isError($patron))
-				PEAR::raiseError($patron);
+				if (PEAR_Singleton::isError($patron))
+				PEAR_Singleton::raiseError($patron);
 
 				$patronResult = $this->catalog->getMyProfile($patron);
-				if (!PEAR::isError($patronResult)) {
+				if (!PEAR_Singleton::isError($patronResult)) {
 					$interface->assign('profile', $patronResult);
 				}
 
@@ -53,9 +53,9 @@ class ReadingHistory extends MyResearch
 					//Perform the requested action
 					$selectedTitles = isset($_REQUEST['selected']) ? $_REQUEST['selected'] : array();
 					$readingHistoryAction = $_REQUEST['readingHistoryAction'];
-					$this->catalog->doReadingHistoryAction($patron, $readingHistoryAction, $selectedTitles);
+					$this->catalog->doReadingHistoryAction($readingHistoryAction, $selectedTitles);
 					//redirect back to ourself without the action.
-					header("Location: {$configArray['Site']['url']}/MyResearch/ReadingHistory");
+					header("Location: {$configArray['Site']['path']}/MyResearch/ReadingHistory");
 					die();
 				}
 
@@ -66,6 +66,7 @@ class ReadingHistory extends MyResearch
 					                     'checkedOut' => 'Checkout Date',
 					                     'format' => 'Format',
 					);
+					$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'checkedOut';
 				}else{
 					$sortOptions = array('title' => 'Title',
 					                     'author' => 'Author',
@@ -73,9 +74,10 @@ class ReadingHistory extends MyResearch
 					                     'returned' => 'Return Date',
 					                     'format' => 'Format',
 					);
+					$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'returned';
 				}
 				$interface->assign('sortOptions', $sortOptions);
-				$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'returned';
+
 				$interface->assign('defaultSortOption', $selectedSortOption);
 				$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 
@@ -105,7 +107,7 @@ class ReadingHistory extends MyResearch
 					$pager = new VuFindPager($options);
 					$interface->assign('pageLinks', $pager->getLinks());
 				}
-				if (!PEAR::isError($result)) {
+				if (!PEAR_Singleton::isError($result)) {
 					$interface->assign('historyActive', $result['historyActive']);
 					$interface->assign('transList', $result['titles']);
 					if (isset($_REQUEST['readingHistoryAction']) && $_REQUEST['readingHistoryAction'] == 'exportToExcel'){
@@ -165,7 +167,7 @@ class ReadingHistory extends MyResearch
 		// Rename sheet
 		$objPHPExcel->getActiveSheet()->setTitle('Reading History');
 
-		// Redirect output to a client’s web browser (Excel5)
+		// Redirect output to a client's web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename="ReadingHistory.xls"');
 		header('Cache-Control: max-age=0');

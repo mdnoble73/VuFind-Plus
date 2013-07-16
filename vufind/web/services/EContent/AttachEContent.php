@@ -18,13 +18,13 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
-require_once 'sys/Pager.php';
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'sys/eContent/EContentAttachmentLogEntry.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
+require_once ROOT_DIR . '/sys/Pager.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/eContent/EContentAttachmentLogEntry.php';
 
-class AttachEContent extends Admin
+class AttachEContent extends Admin_Admin
 {
 	function launch()
 	{
@@ -42,12 +42,12 @@ class AttachEContent extends Admin
 				$errors[] = "Sorry, we could not find a directory with that name to import files from.";
 			}else{
 				//Get import information
-				global $servername;
+				global $serverName;
 				$cronPath = $configArray['Site']['cronPath']; 
 				if ($configArray['System']['operatingSystem'] == 'windows'){
-					$commandToRun = "cd $cronPath && start /b java -jar cron.jar $servername org.epub.AttachEContent";
+					$commandToRun = "cd $cronPath && start /b java -jar cron.jar $serverName org.epub.AttachEContent";
 				}else{
-					$commandToRun = "cd {$cronPath}; java -jar cron.jar $servername org.epub.AttachEContent";
+					$commandToRun = "cd {$cronPath}; java -jar cron.jar $serverName org.epub.AttachEContent";
 				}
 				$commandToRun .= " source=\"" . $source . "\"";
 				

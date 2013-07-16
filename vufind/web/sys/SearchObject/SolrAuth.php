@@ -25,9 +25,9 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/building_a_search_object Wiki
  */
-require_once 'sys/Proxy_Request.php';   // needed for constant definitions
-require_once 'sys/SearchObject/Base.php';
-require_once 'RecordDrivers/Factory.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';   // needed for constant definitions
+require_once ROOT_DIR . '/sys/SearchObject/Base.php';
+require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 
 /**
  * Search Object Authority class
@@ -145,7 +145,7 @@ class SearchObject_SolrAuth extends SearchObject_Base
         $restored = $this->restoreSavedSearch();
         if ($restored === true) {
             return true;
-        } else if (PEAR::isError($restored)) {
+        } else if (PEAR_Singleton::isError($restored)) {
             return false;
         }
 
@@ -325,7 +325,7 @@ class SearchObject_SolrAuth extends SearchObject_Base
 
         // Build Query
         $query = $this->_indexEngine->buildQuery($search);
-        if (PEAR::isError($query)) {
+        if (PEAR_Singleton::isError($query)) {
             return $query;
         }
 

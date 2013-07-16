@@ -1,6 +1,6 @@
 .searchHome{
-	margin-top: 0px;
-	padding: 30px 0px 125px;
+	margin-top: 0;
+	padding: 30px 0 125px;
 }
 .searchHomeForm {
 	background-color: #404040;
@@ -16,7 +16,7 @@
 }
 
 .searchheader{
-	padding: 0px;
+	padding: 0;
 }
 
 #headerwrap {
@@ -79,9 +79,9 @@ body{
 	color: #666666
 }
 
-body, span.Alice {
-    font-family: Alice;
-    font-size: 100%;
+span.Alice {
+	font-family: Alice;
+	font-size: 100%;
 }
 
 h1, h2, h3, h4, h5, h6, .blockquote, .componentheading, .contentheading {
@@ -411,7 +411,7 @@ width: 82.7%
 width: 91.35%
 }
 
-.grid_twelve,grid_,.grid_1,.moduletable.noresize .grid_twelve,.moduletable.noresize .grid_1
+.grid_twelve,.grid_1,.moduletable.noresize .grid_twelve,.moduletable.noresize .grid_1
 {
 width: 100%;
 float: left
@@ -493,6 +493,9 @@ Created:  January 2012
 
 #bottomrow {
   border-top:8px solid #242424;
+	font-size: 16px;
+	line-height: 1.5;
+	font-family: Alice, serif;
 }
 
 
@@ -572,18 +575,22 @@ color: #fff;
 
 #footer
 {
-  padding-top:20px
+  padding-top:20px;
 }
 
 #footerLeft
 {
-  float:left
+  float:left;
+	text-align:center;
+	font-family: Alice, serif;
 }
 
 #footerRight
 {
   width:100%;
-  text-align:center
+  text-align:center;
+	font-family: Alice, serif;
+	font-size: 16px;
 }
 
 #footerouter 
@@ -598,7 +605,7 @@ color: #fff;
 #footerinner
 {
   border-bottom:1px solid #1f1f1f;
-  height:7px;float: ;
+  height:7px;
   text-align:center;
   margin:0
 }
@@ -614,4 +621,8 @@ color: #fff;
 
 #footer .moduletable div {
   text-align: center;margin:-8px auto;float: none;
+}
+
+#mailLink:hover{
+	text-decoration: underline;
 }

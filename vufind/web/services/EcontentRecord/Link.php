@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'sys/eContent/EContentItem.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 
 class Link extends Action {
 
@@ -38,13 +38,13 @@ class Link extends Action {
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $recordId;
 		if (!$eContentRecord->find(true)) {
-			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 		
 		$eContentItem = new EContentItem();
 		$eContentItem->id = $itemId;
 		if (!$eContentItem->find(true)) {
-			PEAR::raiseError(new PEAR_Error('Item Does Not Exist'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Item Does Not Exist'));
 		}
 		
 		$linkUrl = $eContentItem->link;
@@ -52,9 +52,9 @@ class Link extends Action {
 		$title = str_replace("/", "", $eContentRecord->title);
 
 		//Insert into the externalLinkTracking table
-		require_once('sys/BotChecker.php');
+		require_once(ROOT_DIR . '/sys/BotChecker.php');
 		if (!BotChecker::isRequestFromBot()){
-			require_once('sys/ExternalLinkTracking.php');
+			require_once(ROOT_DIR . '/sys/ExternalLinkTracking.php');
 			$externalLinkTracking = new ExternalLinkTracking();
 			$externalLinkTracking->ipAddress = $ipAddress;
 			$externalLinkTracking->recordId = "econtentRecord" . $recordId;
@@ -67,7 +67,7 @@ class Link extends Action {
 		if ($linkUrl != ""){
 			header( "Location:" .$linkUrl);
 		} else {
-			PEAR::raiseError(new PEAR_Error("Failed to load link for this title."));
+			PEAR_Singleton::raiseError(new PEAR_Error("Failed to load link for this title."));
 		}
 			
 	}

@@ -12,7 +12,7 @@ html, body{
 	color: #152E49;
 }
 #searchbar a, #searchbar a:visited, .breadcrumbs a, .breadcrumbs a:visited{
-	color: #0000FF;
+	color: white;
 }
 #searchbar a:hover, .breadcrumbs a:hover{
 	color: #C59019;

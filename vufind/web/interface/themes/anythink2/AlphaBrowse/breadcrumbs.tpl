@@ -1,1 +1,0 @@
-<em>{translate text='Browse Alphabetically'}</em>

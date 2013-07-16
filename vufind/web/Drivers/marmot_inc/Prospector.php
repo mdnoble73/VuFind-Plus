@@ -14,13 +14,12 @@ class Prospector{
 		$prospectorUrl = $this->getSearchLink($searchTerms);
 		//Load the HTML from Prospector
 		$req = new Proxy_Request($prospectorUrl);
-		if (PEAR::isError($req->sendRequest())) {
+		if (PEAR_Singleton::isError($req->sendRequest())) {
 			return null;
 		}
 		$prospectorInfo = $req->getResponseBody();
 
 		//Parse the information to get the titles from the page
-		/*preg_match_all('/<table class="browseBibTable" cellspacing="2" border="0">.*?<div class="dpBibTitle">(.*?)<div class="dpBibAuthor">(.*?)<\/div>.*?<div class="dpImageExtras">(.*?)<br\\s?\/?>.*?<\/div>.*?<\/table>/s', $prospectorInfo, $titleInfo, PREG_SET_ORDER);*/
 		preg_match_all('/<table class="browseBibTable" cellspacing="2" border="0">(.*?)<\/table>/s', $prospectorInfo, $titleInfo, PREG_SET_ORDER);
 		$prospectorTitles = array();
 		for ($matchi = 0; $matchi < count($titleInfo); $matchi++) {
@@ -28,10 +27,10 @@ class Prospector{
 			//Extract the titld and bid from the titleTitleInfo
 			$titleTitleInfo = $titleInfo[$matchi][1];
 
-			if (preg_match('/<div class="dpBibTitle">.*?<a.*?href.*?%7CR(.*?)%7C.*?>\\s*(.*?)\\s*<\/a>.*?<\/div>/s', $titleTitleInfo, $titleMatches)) {
+			if (preg_match('/<div class="dpBibTitle">.*?<a.*?href.*?__R(.*?)__.*?>\\s*(.*?)\\s*<\/a>.*?<\/div>/s', $titleTitleInfo, $titleMatches)) {
 				$curTitleInfo['id'] = $titleMatches[1];
 				//Create the link to the title in Encore
-				$curTitleInfo['link'] = "http://encore.coalliance.org/iii/encore/record/C|R" . urlencode($curTitleInfo['id']) ."?lang=eng&amp;suite=def";
+				$curTitleInfo['link'] = "http://encore.coalliance.org/iii/encore/record/C__R" . urlencode($curTitleInfo['id']) ."__Orightresult?lang=eng&amp;suite=def";
 				$curTitleInfo['title'] = strip_tags($titleMatches[2]);
 			} else {
 				//Couldn't load information, skip to the next one.
@@ -97,13 +96,52 @@ class Prospector{
 			if (strlen($search) > 0){
 				$search .= ' ';
 			}
-			if (isset($term['lookfor'])){
-				$search .= $term['lookfor'];
+			if (is_array($term) && isset($term['group'])){
+				foreach ($term['group'] as $groupTerm){
+					if (strlen($search) > 0){
+						$search .= ' ';
+					}
+					if (isset($groupTerm['lookfor'])){
+						$termValue = $groupTerm['lookfor'];
+						if (isset($groupTerm['index'])){
+							if ($term['index'] == 'Author'){
+								$search .= "a:($termValue)";
+							}elseif ($groupTerm['index'] == 'Title'){
+								$search .= "t:($termValue)";
+							}elseif ($groupTerm['index'] == 'Subject'){
+								$search .= "d:($termValue)";
+							}else{
+								$search .= $termValue;
+							}
+						}else{
+							$search .= $termValue;
+						}
+					}
+				}
+			}else{
+				if (isset($term['lookfor'])){
+					$termValue = $term['lookfor'];
+					if (isset($term['index'])){
+						if ($term['index'] == 'Author'){
+							$search .= "a:($termValue)";
+						}elseif ($term['index'] == 'Title'){
+							$search .= "t:($termValue)";
+						}elseif ($term['index'] == 'Subject'){
+							$search .= "d:($termValue)";
+						}else{
+							$search .= $termValue;
+						}
+					}else{
+						$search .= $termValue;
+					}
+				}
 			}
 		}
 		//Setup the link to Prospector (search classic)
 		//$prospectorUrl = "http://prospector.coalliance.org/search/?searchtype=X&searcharg=" . urlencode($search) . "&Da=&Db=&SORT=R";
-		$prospectorUrl = "http://encore.coalliance.org/iii/encore/search/C|S" . urlencode($search) ."|Orightresult|U1?lang=eng&amp;suite=def";
+		//Fix prospector url issue
+		$search = str_replace('+', '%20', urlencode(str_replace('/', '', $search)));
+		$prospectorUrl = "http://encore.coalliance.org/iii/encore/search/C__S" . $search ."__Orightresult__U1?lang=eng&amp;suite=def";
 		return $prospectorUrl;
 	}
 
@@ -188,7 +226,7 @@ class Prospector{
 				$results['owningLibraries'] = $libraries;
 				$prospectorUrl = "http://prospector.coalliance.org/search~S0/.{$results['recordId']}/.{$results['recordId']}/1,1,1,B/frameset~.{$results['recordId']}";
 				$results['prospectorClassicUrl'] = $prospectorUrl;
-				$prospectorUrl = "http://encore.coalliance.org/iii/encore/record/C|R" . urlencode($results['recordId']) ."?lang=eng&amp;suite=def";
+				$prospectorUrl = "http://encore.coalliance.org/iii/encore/record/C__R" . urlencode($results['recordId']) ."?lang=eng&amp;suite=def";
 				$results['prospectorEncoreUrl'] = $prospectorUrl;
 				$requestUrl = "http://encore.coalliance.org/iii/encore/InnreachRequestPage.external?lang=eng&sp=S" . urlencode($results['recordId']) ."&suite=def";
 				$results['requestUrl'] = $requestUrl;

@@ -18,11 +18,11 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'sys/Proxy_Request.php';
-require_once 'sys/Pager.php';
-require_once 'sys/Novelist.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/Pager.php';
+require_once ROOT_DIR . '/sys/Novelist.php';
 
 class Home extends Action
 {
@@ -33,7 +33,7 @@ class Home extends Action
 	{
 		global $configArray;
 		global $interface;
-		global $user;
+		global $library;
 
 		// Initialise from the current search globals
 		$searchObject = SearchObjectFactory::initSearchObject();
@@ -46,12 +46,11 @@ class Home extends Action
 			// And we're done
 			exit();
 		}
-		// TODO : Stats
 
 		$interface->caching = false;
 
 		if (!isset($_GET['author'])) {
-			PEAR::raiseError(new PEAR_Error('Unknown Author'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Unknown Author'));
 		} else {
 			$interface->assign('author', $_GET['author']);
 		}
@@ -119,15 +118,17 @@ class Home extends Action
 			// Pull External Author Content
 			if ($searchObject->getPage() == 1) {
 				// Only load Wikipedia info if turned on in config file:
-				if (isset($configArray['Content']['authors']) &&
-				stristr($configArray['Content']['authors'], 'wikipedia')) {
+				if (isset($configArray['Content']['authors'])
+						&& stristr($configArray['Content']['authors'], 'wikipedia')
+						&& (!$library || $library->showWikipediaContent == 1)
+						) {
 					// Only use first two characters of language string; Wikipedia
 					// uses language domains but doesn't break them up into regional
 					// variations like pt-br or en-gb.
 					$wiki_lang = substr($configArray['Site']['language'], 0, 2);
 					$authorInfo = $this->getWikipedia($authorName, $wiki_lang);
 					$interface->assign('wiki_lang', $wiki_lang);
-					if (!PEAR::isError($authorInfo)) {
+					if (!PEAR_Singleton::isError($authorInfo)) {
 						$interface->assign('info', $authorInfo);
 					}
 				}
@@ -144,9 +145,10 @@ class Home extends Action
 		$interface->assign('filterList', $searchObject->getFilterList());
 
 		// Process Search
+		/** @var PEAR_Error|null $result */
 		$result = $searchObject->processSearch(false, true);
-		if (PEAR::isError($result)) {
-			PEAR::raiseError($result->getMessage());
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result->getMessage());
 		}
 
 		// Some more variables
@@ -201,7 +203,7 @@ class Home extends Action
 			//Make sure to trim off any format information from the ISBN
 			$isbnParts = explode(' ', $authorIsbn);
 			$authorIsbn = $isbnParts[0];
-			$novelist = new Novelist();
+			$novelist = NovelistFactory::getNovelist();
 			$enrichment['novelist'] = $novelist->loadEnrichment($authorIsbn, false, false, true);
 			if ($enrichment) {
 				$interface->assign('enrichment', $enrichment);
@@ -255,12 +257,12 @@ class Home extends Action
 		$client->setURL($url);
 
 		$result = $client->sendRequest();
-		if (PEAR::isError($result)) {
+		if (PEAR_Singleton::isError($result)) {
 			return $result;
 		}
 
 		$info = $this->parseWikipedia(unserialize($client->getResponseBody()));
-		if (!PEAR::isError($info)) {
+		if (!PEAR_Singleton::isError($info)) {
 			return $info;
 		}
 	}
@@ -284,7 +286,7 @@ class Home extends Action
 		$client->setMethod(HTTP_REQUEST_METHOD_GET);
 		$client->setURL($url);
 		$result = $client->sendRequest();
-		if (PEAR::isError($result)) {
+		if (PEAR_Singleton::isError($result)) {
 			return false;
 		}
 
@@ -470,9 +472,9 @@ class Home extends Action
 
 		// Convert wikipedia links
 		$pattern[] = '/(\x5b\x5b)([^\x5d|]*)(\x5d\x5d)/Us';
-		$replacement[] = '<a href="' . $configArray['Site']['url'] . '/Search/Results?lookfor=%22$2%22&amp;type=Keyword">$2</a>';
+		$replacement[] = '<a href="' . $configArray['Site']['path'] . '/Search/Results?lookfor=%22$2%22&amp;type=Keyword">$2</a>';
 		$pattern[] = '/(\x5b\x5b)([^\x5d]*)\x7c([^\x5d]*)(\x5d\x5d)/Us';
-		$replacement[] = '<a href="' . $configArray['Site']['url'] . '/Search/Results?lookfor=%22$2%22&amp;type=Keyword">$3</a>';
+		$replacement[] = '<a href="' . $configArray['Site']['path'] . '/Search/Results?lookfor=%22$2%22&amp;type=Keyword">$3</a>';
 
 		// Fix pronunciation guides
 		$pattern[] = '/({{)pron-en\|([^}]*)(}})/Us';
@@ -508,6 +510,11 @@ class Home extends Action
 
 		$body = preg_replace($pattern, $replacement, $body);
 
+		//Clean up spaces within hrefs
+		$body = preg_replace_callback('/href="(.*?)"/si', array($this, 'fix_whitespace'), $body);
+
+		$body = str_replace('<br>', '<br/>', $body);
+
 		if (isset($imageUrl) && $imageUrl != false) {
 			$info['image'] = $imageUrl;
 			if (isset($image_caption)) {
@@ -518,6 +525,12 @@ class Home extends Action
 
 		return $info;
 	}
-
+	function fix_whitespace($matches)
+	{
+		// as usual: $matches[0] is the complete match
+		// $matches[1] the match for the first subpattern
+		// enclosed in '(...)' and so on
+		return str_replace(' ', '+', $matches[0]);
+	}
 }
 ?>

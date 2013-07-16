@@ -174,6 +174,7 @@ public final class Utils {
 		return (getPropertyFileInputStream(propertyPaths, propertyFileName, false, null));
 	}
 
+	@SuppressWarnings("resource")
 	public static InputStream getPropertyFileInputStream(String[] propertyPaths, String propertyFileName, boolean showName, String inputSource[]) {
 		InputStream in = null;
 		// look for properties file in paths
@@ -190,10 +191,11 @@ public final class Utils {
 						if (inputSource != null && inputSource.length >= 1) {
 							inputSource[0] = propertyFile.getAbsolutePath();
 						}
-						if (showName)
+						if (showName){
 							logger.info("Opening file: " + propertyFile.getAbsolutePath());
-						else
+						}else{
 							logger.debug("Opening file: " + propertyFile.getAbsolutePath());
+						}
 					} catch (FileNotFoundException e) {
 						// simply eat this exception since we should only try to open the
 						// file if we previously
@@ -500,7 +502,7 @@ public final class Utils {
 	 * 
 	 * @param origStr
 	 *          the string to be cleaned
-	 * @param charsB4periodRegEx
+	 * @param precedingCharsRegEx
 	 *          a regular expression that must immediately precede a trailing
 	 *          period IN ORDER FOR THE PERIOD TO BE REMOVED. Note that the
 	 *          regular expression will NOT have the period or '$' at the end.
@@ -642,7 +644,7 @@ public final class Utils {
 	 * field is only supposed to return the first matching mappable value, then
 	 * the default mapping should be done in the calling method
 	 * 
-	 * @param fieldVal
+	 * @param set
 	 *          - the raw value to be mapped
 	 * @param map
 	 *          - the map to be used

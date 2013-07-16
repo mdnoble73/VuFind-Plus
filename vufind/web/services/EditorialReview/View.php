@@ -18,11 +18,11 @@
  *
  */
 
-require_once('services/Admin/Admin.php');
-require_once 'sys/DataObjectUtil.php';
-require_once('sys/EditorialReview.php');
+require_once(ROOT_DIR . '/services/Admin/Admin.php');
+require_once ROOT_DIR . '/sys/DataObjectUtil.php';
+require_once(ROOT_DIR . '/sys/EditorialReview.php');
 
-class View extends Admin {
+class View extends Admin_Admin {
 
 	function launch()
 	{
@@ -47,6 +47,6 @@ class View extends Admin {
 	}
 
   function getAllowableRoles(){
-    return array('opacAdmin', 'libraryAdmin');
+    return array('opacAdmin', 'libraryAdmin', 'contentEditor');
   }
 }

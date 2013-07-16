@@ -18,16 +18,18 @@
  *
  */
 
-require_once 'services/Record/UserComments.php';
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'RecordDrivers/EcontentRecordDriver.php';
-require_once 'sys/SolrStats.php';
+require_once ROOT_DIR . '/services/Record/UserComments.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
+require_once ROOT_DIR . '/sys/SolrStats.php';
 
-class Home extends Action{
-	private $db;
+class EcontentRecord_Home extends Action{
+	/** @var  SearchObject_Solr $db */
+	protected $db;
 	private $id;
 	private $isbn;
 	private $issn;
+	private $recordDriver;
 
 	function launch(){
 		global $interface;
@@ -45,6 +47,13 @@ class Home extends Action{
 		$this->db = new $class($url);
 		if ($configArray['System']['debugSolr']) {
 			$this->db->debug = true;
+		}
+
+		if (isset($_REQUEST['searchId'])){
+			$_SESSION['searchId'] = $_REQUEST['searchId'];
+			$interface->assign('searchId', $_SESSION['searchId']);
+		}else if (isset($_SESSION['searchId'])){
+			$interface->assign('searchId', $_SESSION['searchId']);
 		}
 
 		$location = $locationSingleton->getActiveLocation();
@@ -101,7 +110,8 @@ class Home extends Action{
 		$interface->assign('showCopiesLineInHoldingsSummary', $showCopiesLineInHoldingsSummary);
 		$timer->logTime('Configure UI for library and location');
 
-		UserComments::loadEContentComments();
+		$interface->assign('overDriveVersion', isset($configArray['OverDrive']['interfaceVersion']) ? $configArray['OverDrive']['interfaceVersion'] : 1);
+		Record_UserComments::loadEContentComments();
 		$timer->logTime('Loaded Comments');
 
 		$eContentRecord = new EContentRecord();
@@ -110,6 +120,9 @@ class Home extends Action{
 		if (!$eContentRecord->find(true)){
 			//TODO: display record not found error
 		}else{
+			$this->recordDriver = new EcontentRecordDriver();
+			$this->recordDriver->setDataObject($eContentRecord);
+
 			if ($configArray['Catalog']['ils'] == 'Millennium'){
 				if (isset($eContentRecord->ilsId) && strlen($eContentRecord->ilsId) > 0){
 					$interface->assign('classicId', substr($eContentRecord->ilsId, 1, strlen($eContentRecord->ilsId) -2));
@@ -136,7 +149,22 @@ class Home extends Action{
 				}
 			}
 			$interface->assign('additionalAuthorsList', $eContentRecord->getPropertyArray('author2'));
-			$interface->assign('subjectList', $eContentRecord->getPropertyArray('subject'));
+			$rawSubjects = $eContentRecord->getPropertyArray('subject');
+			$subjects = array();
+			foreach ($rawSubjects as $subject){
+				$explodedSubjects = explode(' -- ', $subject);
+				$searchSubject = "";
+				$subject = array();
+				foreach ($explodedSubjects as $tmpSubject){
+					$searchSubject .= $tmpSubject . ' ';
+					$subject[] = array(
+		        'search' => trim($searchSubject),
+		        'title'  => $tmpSubject,
+					);
+				}
+				$subjects[] = $subject;
+			}
+			$interface->assign('subjects', $subjects);
 			$interface->assign('lccnList', $eContentRecord->getPropertyArray('lccn'));
 			$interface->assign('isbnList', $eContentRecord->getPropertyArray('isbn'));
 			$interface->assign('isbn', $eContentRecord->getIsbn());
@@ -150,15 +178,17 @@ class Home extends Action{
 			$interface->assign('eraList', $eContentRecord->getPropertyArray('era'));
 
 			$interface->assign('eContentRecord', $eContentRecord);
+			$interface->assign('cleanDescription', strip_tags($eContentRecord->description, '<p><br><b><i><em><strong>'));
+
 			$interface->assign('id', $eContentRecord->id);
 
-			require_once('sys/eContent/EContentRating.php');
+			require_once(ROOT_DIR . '/sys/eContent/EContentRating.php');
 			$eContentRating = new EContentRating();
 			$eContentRating->recordId = $eContentRecord->id;
 			$interface->assign('ratingData', $eContentRating->getRatingData($user, false));
 
 			//Determine the cover to use
-			$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$eContentRecord->id}&amp;econtent=true&amp;isn={$eContentRecord->getIsbn()}&amp;size=large&amp;upc={$eContentRecord->getUpc()}&amp;category=" . urlencode($eContentRecord->format_category()) . "&amp;format=" . urlencode($eContentRecord->getFirstFormat());
+			$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$eContentRecord->id}&amp;econtent=true&amp;issn={$eContentRecord->getIssn()}&amp;isn={$eContentRecord->getIsbn()}&amp;size=large&amp;upc={$eContentRecord->getUpc()}&amp;category=" . urlencode($eContentRecord->format_category()) . "&amp;format=" . urlencode($eContentRecord->getFirstFormat());
 			$interface->assign('bookCoverUrl', $bookCoverUrl);
 
 			if (isset($_REQUEST['detail'])){
@@ -173,7 +203,7 @@ class Home extends Action{
 			// Find Other Editions
 			if ($configArray['Content']['showOtherEditionsPopup'] == false){
 				$editions = OtherEditionHandler::getEditions($eContentRecord->solrId(), $eContentRecord->getIsbn(), null);
-				if (!PEAR::isError($editions)) {
+				if (!PEAR_Singleton::isError($editions)) {
 					$interface->assign('editions', $editions);
 				}
 				$timer->logTime('Got Other editions');
@@ -185,7 +215,12 @@ class Home extends Action{
 			// Retrieve User Search History
 			$interface->assign('lastsearch', isset($_SESSION['lastSearchURL']) ?
 			$_SESSION['lastSearchURL'] : false);
-			$this->getNextPrevLinks();
+
+			//Get Next/Previous Links
+			$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->init($searchSource);
+			$searchObject->getNextPrevLinks();
 
 			// Retrieve tags associated with the record
 			$limit = 5;
@@ -197,19 +232,106 @@ class Home extends Action{
 			$interface->assign('tagList', $tags);
 			$timer->logTime('Got tag list');
 
-			//Load the Editorial Reviews
-			//Populate an array of editorialReviewIds that match up with the recordId
-			$editorialReview = new EditorialReview();
-			$editorialReviewResults = array();
-			$editorialReview->recordId = $this->id;
-			$editorialReview->find();
-			if ($editorialReview->N > 0){
-				while ($editorialReview->fetch()){
-					$editorialReviewResults[] = clone $editorialReview;
+			//Load notes if any
+			$marcRecord = MarcLoader::loadEContentMarcRecord($eContentRecord);
+			if ($marcRecord){
+				$tableOfContents = array();
+				$marcFields505 = $marcRecord->getFields('505');
+				if ($marcFields505){
+					$tableOfContents = $this->processTableOfContentsFields($marcFields505);
+				}
+
+				$notes = array();
+				$marcFields500 = $marcRecord->getFields('500');
+				$marcFields504 = $marcRecord->getFields('504');
+				$marcFields511 = $marcRecord->getFields('511');
+				$marcFields518 = $marcRecord->getFields('518');
+				$marcFields520 = $marcRecord->getFields('520');
+				if ($marcFields500 || $marcFields504 || $marcFields505 || $marcFields511 || $marcFields518 || $marcFields520){
+					$allFields = array_merge($marcFields500, $marcFields504, $marcFields511, $marcFields518, $marcFields520);
+					$notes = $this->processNoteFields($allFields);
+				}
+
+				if ((isset($library) && $library->showTableOfContentsTab == 0) || count($tableOfContents) == 0) {
+					$notes = array_merge($notes, $tableOfContents);
+				}else{
+					$interface->assign('tableOfContents', $tableOfContents);
+				}
+				if (isset($library) && strlen($library->notesTabName) > 0){
+					$interface->assign('notesTabName', $library->notesTabName);
+				}else{
+					$interface->assign('notesTabName', 'Notes');
+				}
+
+                $additionalNotesFields = array(
+                    '310' => 'Current Publication Frequency',
+                    '321' => 'Former Publication Frequency',
+                    '351' => 'Organization & arrangement of materials',
+                    '362' => 'Dates of publication and/or sequential designation',
+                    '501' => '"With"',
+                    '502' => 'Dissertation',
+                    '506' => 'Restrictions on Access',
+                    '507' => 'Scale for Graphic Material',
+                    '508' => 'Creation/Production Credits',
+                    '510' => 'Citation/References',
+                    '511' => 'Participant or Performer',
+                    '513' => 'Type of Report an Period Covered',
+                    '515' => 'Numbering Peculiarities',
+                    '518' => 'Date/Time and Place of Event',
+                    '521' => 'Target Audience',
+                    '522' => 'Geographic Coverage',
+                    '525' => 'Supplement',
+                    '526' => 'Study Program Information',
+                    '530' => 'Additional Physical Form',
+                    '533' => 'Reproduction',
+                    '534' => 'Original Version',
+                    '536' => 'Funding Information',
+                    '538' => 'System Details',
+                    '545' => 'Biographical or Historical Data',
+                    '546' => 'Language',
+                    '547' => 'Former Title Complexity',
+                    '550' => 'Issuing Body',
+                    '555' => 'Cumulative Index/Finding Aids',
+                    '556' => 'Information About Documentation',
+                    '561' => 'Ownership and Custodial History',
+                    '563' => 'Binding Information',
+                    '580' => 'Linking Entry Complexity',
+                    '581' => 'Publications About Described Materials',
+                    '586' => 'Awards',
+                    '590' => 'Local note',
+                    '599' => 'Differentiable Local note',
+                );
+
+				foreach ($additionalNotesFields as $tag => $label){
+					$marcFields = $marcRecord->getFields($tag);
+					foreach ($marcFields as $marcField){
+						$noteText = array();
+						foreach ($marcField->getSubFields() as $subfield){
+							$noteText[] = $subfield->getData();
+						}
+						$note = implode(',', $noteText);
+						if (strlen($note) > 0){
+							$notes[] = "<b>$label</b>: " . $note;
+						}
+					}
+				}
+
+				if (count($notes) > 0){
+					$interface->assign('notes', $notes);
 				}
 			}
-			$interface->assign('editorialReviewResults', $editorialReviewResults);
 
+			$this->loadReviews($eContentRecord);
+
+			if (isset($_REQUEST['subsection'])){
+				$subsection = $_REQUEST['subsection'];
+				if ($subsection == 'Description'){
+					$interface->assign('extendedMetadata', $this->recordDriver->getExtendedMetadata());
+					$interface->assign('subTemplate', 'view-description.tpl');
+				}elseif ($subsection == 'Reviews'){
+					$interface->assign('subTemplate', 'view-reviews.tpl');
+				}
+			}
 			//Build the actual view
 			$interface->setTemplate('view.tpl');
 
@@ -231,21 +353,76 @@ class Home extends Action{
 
 	public function getStaffView($eContentRecord){
 		global $interface;
-		$marcRecord = $eContentRecord->marcRecord;
-		if (strlen($marcRecord) > 0){
-			$marc = trim($marcRecord);
-			$marc = preg_replace('/#31;/', "\x1F", $marc);
-			$marc = preg_replace('/#30;/', "\x1E", $marc);
-			$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-
-			if (!($marcRecord = $marc->next())) {
-				PEAR::raiseError(new PEAR_Error('Could not load marc record for record ' . $record['id']));
-			}
+		$marcRecord = MarcLoader::loadEContentMarcRecord($eContentRecord);
+		if ($marcRecord != null){
 			$interface->assign('marcRecord', $marcRecord);
 			return 'RecordDrivers/Marc/staff.tpl';
 		}else{
 			return null;
 		}
+	}
+
+	function loadReviews($eContentRecord){
+		global $interface;
+
+		//Load the Editorial Reviews
+		//Populate an array of editorialReviewIds that match up with the recordId
+		$editorialReview = new EditorialReview();
+		$editorialReviewResults = array();
+		$editorialReview->recordId = 'econtentRecord' . $eContentRecord->id;
+		$editorialReview->find();
+		$reviewTabs = array();
+		$editorialReviewResults['reviews'] = array(
+			'tabName' => 'Reviews',
+			'reviews' => array()
+		);
+		if ($editorialReview->N > 0){
+			$ctr = 0;
+			while ($editorialReview->fetch()){
+				$reviewKey = preg_replace('/\W/', '_', strtolower($editorialReview->tabName));
+				if (!array_key_exists($reviewKey, $editorialReviewResults)){
+					$editorialReviewResults[$reviewKey] = array(
+						'tabName' => $editorialReview->tabName,
+						'reviews' => array()
+					);
+				}
+				$editorialReviewResults[$reviewKey]['reviews'][$ctr++] = get_object_vars($editorialReview);
+			}
+		}
+
+		if ($interface->isMobile()){
+			//If we are in mobile interface, load standard reviews
+			$reviews = array();
+			require_once ROOT_DIR . '/sys/Reviews.php';
+			if ($eContentRecord->getIsbn()){
+				$externalReviews = new ExternalReviews($eContentRecord->getIsbn());
+				$reviews = $externalReviews->fetch();
+			}
+
+			if (count($editorialReviewResults) > 0) {
+				foreach ($editorialReviewResults as $tabName => $reviewsList){
+					foreach ($reviewsList['reviews'] as $key=>$result ){
+						$reviews["editorialReviews"][$key]["Content"] = $result['review'];
+						$reviews["editorialReviews"][$key]["Copyright"] = $result['source'];
+						$reviews["editorialReviews"][$key]["Source"] = $result['source'];
+						$reviews["editorialReviews"][$key]["ISBN"] = null;
+						$reviews["editorialReviews"][$key]["username"] = null;
+
+
+						$reviews["editorialReviews"][$key] = ExternalReviews::cleanupReview($reviews["editorialReviews"][$key]);
+						if ($result['teaser']){
+							$reviews["editorialReviews"][$key]["Teaser"] = $result['teaser'];
+						}
+					}
+				}
+			}
+			$interface->assign('reviews', $reviews);
+			$interface->assign('editorialReviews', $editorialReviewResults);
+		}else{
+			$interface->assign('reviews', $editorialReviewResults);
+		}
+
+
 	}
 
 	/**
@@ -267,7 +444,7 @@ class Home extends Action{
 				$enrichment[$func] = $this->$func();
 
 				// If the current provider had no valid reviews, store nothing:
-				if (empty($enrichment[$func]) || PEAR::isError($enrichment[$func])) {
+				if (empty($enrichment[$func]) || PEAR_Singleton::isError($enrichment[$func])) {
 					unset($enrichment[$func]);
 				}
 			}
@@ -284,109 +461,46 @@ class Home extends Action{
 	{
 		global $interface;
 
-		//instantiate the record driver
-		$recordDriver = new EcontentRecordDriver();
-		$recordDriver->setDataObject($eContentRecord);
-
 		$citationCount = 0;
-		$formats = $recordDriver->getCitationFormats();
+		$formats = $this->recordDriver->getCitationFormats();
 		foreach($formats as $current) {
-			$interface->assign(strtolower($current), $recordDriver->getCitation($current));
+			$interface->assign(strtolower($current), $this->recordDriver->getCitation($current));
 			$citationCount++;
 		}
 		$interface->assign('citationCount', $citationCount);
 	}
 
-	function getNextPrevLinks(){
-		global $interface;
-		global $timer;
-		//Setup next and previous links based on the search results.
-		if (isset($_REQUEST['searchId'])){
-			//rerun the search
-			$s = new SearchEntry();
-			$s->id = $_REQUEST['searchId'];
-			$interface->assign('searchId', $_REQUEST['searchId']);
-			$currentPage = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
-			$interface->assign('page', $currentPage);
-
-			$s->find();
-			if ($s->N > 0){
-				$s->fetch();
-				$minSO = unserialize($s->search_object);
-				$searchObject = SearchObjectFactory::deminify($minSO);
-				$searchObject->setPage($currentPage);
-				//Run the search
-				$result = $searchObject->processSearch(true, false, false);
-
-				//Check to see if we need to run a search for the next or previous page
-				$currentResultIndex = $_REQUEST['recordIndex'] - 1;
-				$recordsPerPage = $searchObject->getLimit();
-
-				if (($currentResultIndex) % $recordsPerPage == 0 && $currentResultIndex > 0){
-					//Need to run a search for the previous page
-					$interface->assign('previousPage', $currentPage - 1);
-					$previousSearchObject = clone $searchObject;
-					$previousSearchObject->setPage($currentPage - 1);
-					$previousSearchObject->processSearch(true, false, false);
-					$previousResults = $previousSearchObject->getResultRecordSet();
-				}else if (($currentResultIndex + 1) % $recordsPerPage == 0 && ($currentResultIndex + 1) < $searchObject->getResultTotal()){
-					//Need to run a search for the next page
-					$nextSearchObject = clone $searchObject;
-					$interface->assign('nextPage', $currentPage + 1);
-					$nextSearchObject->setPage($currentPage + 1);
-					$nextSearchObject->processSearch(true, false, false);
-					$nextResults = $nextSearchObject->getResultRecordSet();
+	function processNoteFields($allFields){
+		$notes = array();
+		foreach ($allFields as $marcField){
+			foreach ($marcField->getSubFields() as $subfield){
+				$note = $subfield->getData();
+				if ($subfield->getCode() == 't'){
+					$note = "&nbsp;&nbsp;&nbsp;" . $note;
 				}
-
-				if (PEAR::isError($result)) {
-					//If we get an error excuting the search, just eat it for now.
-				}else{
-					if ($searchObject->getResultTotal() < 1) {
-						//No results found
-					}else{
-						$recordSet = $searchObject->getResultRecordSet();
-						//Record set is 0 based, but we are passed a 1 based index
-						if ($currentResultIndex > 0){
-							if (isset($previousResults)){
-								$previousRecord = $previousResults[count($previousResults) -1];
-							}else{
-								$previousRecord = $recordSet[$currentResultIndex - 1 - (($currentPage -1) * $recordsPerPage)];
-							}
-
-							//Convert back to 1 based index
-							$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
-							$interface->assign('previousTitle', $previousRecord['title']);
-							if (strpos($previousRecord['id'], 'econtentRecord') === 0){
-								$interface->assign('previousType', 'EcontentRecord');
-								$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
-							}else{
-								$interface->assign('previousType', 'Record');
-								$interface->assign('previousId', $previousRecord['id']);
-							}
-						}
-						if ($currentResultIndex + 1 < $searchObject->getResultTotal()){
-
-							if (isset($nextResults)){
-								$nextRecord = $nextResults[0];
-							}else{
-								$nextRecord = $recordSet[$currentResultIndex + 1 - (($currentPage -1) * $recordsPerPage)];
-							}
-							//Convert back to 1 based index
-							$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
-							$interface->assign('nextTitle', $nextRecord['title']);
-							if (strpos($nextRecord['id'], 'econtentRecord') === 0){
-								$interface->assign('nextType', 'EcontentRecord');
-								$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
-							}else{
-								$interface->assign('nextType', 'Record');
-								$interface->assign('nextId', $nextRecord['id']);
-							}
-						}
-
-					}
+				$note = trim($note);
+				if (strlen($note) > 0){
+					$notes[] = $note;
 				}
 			}
-			$timer->logTime('Got next/previous links');
 		}
+		return $notes;
+	}
+
+	function processTableOfContentsFields($allFields){
+		$notes = array();
+		foreach ($allFields as $marcField){
+			$curNote = '';
+			foreach ($marcField->getSubFields() as $subfield){
+				$note = $subfield->getData();
+				$curNote .= " " . $note;
+				$curNote = trim($curNote);
+				if (strlen($curNote) > 0 && in_array($subfield->getCode(), array('t', 'a'))){
+					$notes[] = $curNote;
+					$curNote = '';
+				}
+			}
+		}
+		return $notes;
 	}
 }

@@ -18,15 +18,15 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
-require_once 'sys/eContent/EContentItem.php';
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'sys/eContent/EContentHistoryEntry.php';
-require_once 'sys/Pager.php';
-require_once("PHPExcel.php");
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
+require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/eContent/EContentHistoryEntry.php';
+require_once ROOT_DIR . '/sys/Pager.php';
+require_once(ROOT_DIR . "/PHPExcel.php");
 
-class EContentSummary extends Admin
+class EContentSummary extends Admin_Admin
 {
 	function launch()
 	{
@@ -46,7 +46,7 @@ class EContentSummary extends Admin
 	function loadCollectionSummary(){
 		$collectionSummary = array();
 		$epubFile = new EContentRecord();
-		$query = "SELECT COUNT(DISTINCT id) as numTitles FROM `{$epubFile->__table}`";
+		$query = "SELECT COUNT(DISTINCT id) as numTitles FROM `econtent_record` where status = 'active'";
 
 		$epubFile->query($query);
 		if ($epubFile->N > 0){
@@ -55,14 +55,14 @@ class EContentSummary extends Admin
 		}
 
 		$statsByDRM = new EContentRecord();
-		$query = "SELECT accessType, COUNT(DISTINCT id) as numTitles FROM `{$statsByDRM->__table}` GROUP BY accessType ORDER BY accessType ASC";
+		$query = "SELECT accessType, COUNT(DISTINCT id) as numTitles FROM `econtent_record` where status = 'active' GROUP BY accessType ORDER BY accessType ASC";
 		$statsByDRM->query($query);
 		while ($statsByDRM->fetch()){
 			$collectionSummary['statsByDRM'][$statsByDRM->accessType] = $statsByDRM->numTitles;
 		}
 
 		$statsBySource = new EContentRecord();
-		$query = "SELECT source, COUNT(DISTINCT id) as numTitles FROM `{$statsBySource->__table}` GROUP BY source ORDER BY source ASC";
+		$query = "SELECT source, COUNT(DISTINCT id) as numTitles FROM `econtent_record` where status = 'active' GROUP BY source ORDER BY source ASC";
 		$statsBySource->query($query);
 		while ($statsBySource->fetch()){
 			$collectionSummary['statsBySource'][$statsBySource->source] = $statsBySource->numTitles;

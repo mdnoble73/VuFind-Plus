@@ -18,11 +18,12 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/MyResearch/lib/FavoriteHandler.php';
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/User_resource.php';
-require_once 'services/MyResearch/lib/Resource_tags.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User_resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource_tags.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
 
 /**
  * This class does not use MyResearch base class (we don't need to connect to
@@ -30,10 +31,11 @@ require_once 'services/MyResearch/lib/Resource_tags.php';
  * allow public lists to work properly).
  * @version  $Revision$
  */
-class MyList extends Action {
-	private $db;
-	var $catalog;
-
+class MyList extends MyResearch {
+	function __construct(){
+		$this->requireLogin = false;
+		parent::__construct();
+	}
 	function launch() {
 		global $configArray;
 		global $interface;
@@ -54,6 +56,25 @@ class MyList extends Action {
 				$allList["-1"] = "My Favorites";
 			}
 			$interface->assign('allLists', $allLists);
+		}
+
+		//Figure out if we should show a link to classic opac to pay holds.
+		$ecommerceLink = $configArray['Site']['ecommerceLink'];
+		if ($user){
+			$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
+		}
+		if (strlen($ecommerceLink) > 0 && isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1){
+			$interface->assign('showEcommerceLink', true);
+			$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
+			if ($homeLibrary->payFinesLink == 'default' || strlen($homeLibrary->payFinesLink) == 0){
+				$interface->assign('ecommerceLink', $ecommerceLink);
+			}else{
+				$interface->assign('ecommerceLink', $homeLibrary->payFinesLink);
+			}
+			$interface->assign('payFinesLinkText', $homeLibrary->payFinesLinkText);
+		}else{
+			$interface->assign('showEcommerceLink', false);
+			$interface->assign('minimumFineAmount', 0);
 		}
 
 		// Fetch List object
@@ -81,7 +102,7 @@ class MyList extends Action {
 			exit();
 		}
 		if (!$list->public && $list->user_id != $user->id) {
-			PEAR::raiseError(new PEAR_Error(translate('list_access_denied')));
+			PEAR_Singleton::raiseError(new PEAR_Error(translate('list_access_denied')));
 		}
 
 		//Reindex can happen by anyone since it needs to be called by cron
@@ -98,7 +119,25 @@ class MyList extends Action {
 		}
 
 		//Perform an action on the list, but verify that the user has permission to do so.
-		if ($user != false && $user->id == $list->user_id && (isset($_REQUEST['myListActionHead']) || isset($_REQUEST['myListActionItem']) || isset($_GET['delete']))){
+		$userCanEdit = false;
+		if ($user != false){
+			if ($user->id == $list->user_id){
+				$userCanEdit = true;
+			}elseif ($user->hasRole('opacAdmin')){
+				$userCanEdit = true;
+			}elseif ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
+				$listUser = new User();
+				$listUser->id = $list->user_id;
+				$listUser->find(true);
+				$listLibrary = Library::getLibraryForLocation($listUser->homeLocationId);
+				$userLibrary = Library::getLibraryForLocation($user->homeLocationId);
+				if ($userLibrary->libraryId == $listLibrary->libraryId){
+					$userCanEdit = true;
+				}
+			}
+		}
+
+		if ($userCanEdit && (isset($_REQUEST['myListActionHead']) || isset($_REQUEST['myListActionItem']) || isset($_GET['delete']))){
 			if (isset($_REQUEST['myListActionHead']) && strlen($_REQUEST['myListActionHead']) > 0){
 				$actionToPerform = $_REQUEST['myListActionHead'];
 				if ($actionToPerform == 'makePublic'){
@@ -114,7 +153,7 @@ class MyList extends Action {
 					$list->update();
 				}elseif ($actionToPerform == 'deleteList'){
 					$list->delete();
-					header("Location: {$configArray['Site']['url']}/MyResearch/Home");
+					header("Location: {$configArray['Site']['path']}/MyResearch/Home");
 					die();
 				}elseif ($actionToPerform == 'bulkAddTitles'){
 					$notes = $this->bulkAddTitles($list);
@@ -142,7 +181,7 @@ class MyList extends Action {
 			}
 
 			//Redirect back to avoid having the parameters stay in the URL.
-			header("Location: {$configArray['Site']['url']}/MyResearch/MyList/{$list->id}");
+			header("Location: {$configArray['Site']['path']}/MyResearch/MyList/{$list->id}");
 			die();
 
 		}
@@ -169,9 +208,8 @@ class MyList extends Action {
 
 		// Create a handler for displaying favorites and use it to assign
 		// appropriate template variables:
-		$allowEdit = (($user != false) && ($user->id == $list->user_id));
-		$interface->assign('allowEdit', $allowEdit);
-		$favList = new FavoriteHandler($favorites, $listUser, $list->id, $allowEdit);
+		$interface->assign('allowEdit', $userCanEdit);
+		$favList = new FavoriteHandler($favorites, $listUser, $list->id, $userCanEdit);
 		$favList->assign();
 
 		//Need to add profile information from MyResearch to show profile data.
@@ -182,12 +220,12 @@ class MyList extends Action {
 			if ($this->catalog->status) {
 				if ($user->cat_username) {
 					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					if (PEAR::isError($patron)){
-						PEAR::raiseError($patron);
+					if (PEAR_Singleton::isError($patron)){
+						PEAR_Singleton::raiseError($patron);
 					}
 
 					$result = $this->catalog->getMyProfile($patron);
-					if (!PEAR::isError($result)) {
+					if (!PEAR_Singleton::isError($result)) {
 						$interface->assign('profile', $result);
 					}
 				}

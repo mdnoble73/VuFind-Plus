@@ -1,63 +1,54 @@
 {* Your footer *}
 <div class="footerCol"><p><strong>{translate text='Featured Items'}</strong></p>
 	<ul>
-		<li><a href='{$path}/Search/Results?lookfor=&type=Keyword&filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22&filter[]=literary_form_full%3A%22Fiction%22&filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22&filter[]=format_category%3A%22Books%22'>{translate text='New Fiction'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&type=Keyword&filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22&filter[]=literary_form_full%3A%22Non+Fiction%22&filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22&filter[]=format_category%3A%22Books%22 '>{translate text='New Non-Fiction'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&type=Keyword&filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22&filter[]=format%3A%22DVD%22&filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22'>{translate text='New DVDs'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&type=Keyword&filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22&filter[]=format%3A%22Blu-ray%22&filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22'>{translate text='New Bluray'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&type=Keyword&filter[]=institution%3A%22Steamboat+Springs+Community+Libraries%22&filter[]=format_category%3A%22Audio%22&filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22 '>{translate text='New Audio Books & Music'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_steamboatlibrary%3A"Week"'>{translate text='New This Week'}</a></li>
+		<li><a href='http://www.steamboatlibrary.org/books-and-media/books/staff-picks'>Staff Picks</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;type=Keyword&amp;filter[]=local_time_since_added_steamboatlibrary%3A%22Week%22&amp;filter[]=building%3A%22SSCL+Bud+Werner+Library%22&amp;filter[]=itype%3A%22Young+adult+fiction%22&amp;sort=relevance&amp;view=list&amp;searchSource=local'>{translate text='New Teen Reads'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;type=Keyword&amp;filter[]=local_time_since_added_steamboatlibrary%3A%22Week%22&amp;filter[]=building%3A%22SSCL+Bud+Werner+Library%22&amp;filter[]=itype%3A%22Easy+book%22&amp;sort=relevance&amp;view=list&amp;searchSource=local'>{translate text='New Books for Young Children'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;type=Keyword&amp;filter[]=local_time_since_added_steamboatlibrary%3A%22Week%22&amp;filter[]=building%3A%22SSCL+Bud+Werner+Library%22&amp;filter[]=itype%3A%22Juvenile+fiction%22&amp;sort=relevance&amp;view=list&amp;searchSource=local'>{translate text='New Books for Older Children'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;type=Keyword&amp;filter[]=local_time_since_added_steamboatlibrary%3A%22Month%22&amp;filter[]=building%3A%22SSCL+Bud+Werner+Library%22&amp;filter[]=itype%3A%22Music%22&amp;sort=relevance&amp;view=list&amp;searchSource=local'>{translate text='New Music'}</a></li>
+		<li><a href='http://library.booksite.com/7359/nl/?list=CNL1'>{translate text='New Television'}</a></li>
+		<li><a href='http://www.literarysojourn.org/reading-list'>{translate text='Literary Sojourn'}</a></li>
 	</ul>
 </div>
-<div class="footerCol"><p><strong>{translate text='Search Options'}</strong></p>
+<div class="footerCol"><p><strong>{translate text='About Us'}</strong></p>
 	<ul>
-		{if $user}
-		<li><a href="{$path}/Search/History">{translate text='Search History'}</a></li>
-		{/if}
-		<li><a href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/about-us/board-of-trustees-0">{translate text='Board of Trustees'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/about-us/history">{translate text='History'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/about-us/building">{translate text='Building'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/about-us/mission">{translate text='Mission'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/about-us/building-cafe/coffee-bar">{translate text='Coffee Bar'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/about-us/policies">{translate text='Policies'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/about-us/jobs">{translate text='Jobs'}</a></li>
 	</ul>
 </div>
-<div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>
+<div class="footerCol"><p><strong>{translate text='Find Us'}</strong></p>
 	<ul>
-		<li><a href="http://www.steamboatlibrary.org/services/research-databases" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Databases &amp; Websites'}</a></li>
-		<li><a href="http://www.steamboatlibrary.org/books-and-media/books" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Great Reads'}</a></li>
-		<li><a href="http://www.steamboatlibrary.org/downloads" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download Books &amp; More'}</a></li>
-		<li><a href="http://www.steamboatlibrary.org/" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Library Homepage'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/find-us/hours">{translate text='Hours'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/find-us/hours/driving-directions">{translate text='Driving Directions'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/find-us/hours/driving-directions/book-drop-locations">{translate text='Book Drop Locations'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/downloads/mobile-app">{translate text='Mobile App'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org">{translate text='Library Website'}</a></li>
 	</ul>
 </div>
-<div class="footerCol"><p><strong>{translate text='Need Help?'}</strong></p>
+<div class="footerCol"><p><strong>{translate text='Support Us'}</strong></p>
 	<ul>
-		<li><a href="{$path}/Help/Home?topic=search" onclick="window.open('{$path}/Help/Home?topic=search', 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}</a></li>
-		<li><a href="{$askALibrarianLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Ask a Librarian'}</a></li>
-		{if isset($illLink)}
-				<li><a href="{$illLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Interlibrary Loan'}</a></li>
-		{/if}
-		{if isset($suggestAPurchaseLink)}
-				<li><a href="{$suggestAPurchaseLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Suggest a Purchase'}</a></li>
-		{/if}
-		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510'); return false;">{translate text='FAQs'}</a></li>
-		<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/support-us/book-donations">{translate text='Book Donations'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/support-us/volunteer">{translate text='Volunteer'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/support-us/donate">{translate text='Donate'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/support-us/thanks-to">{translate text='Thanks To'}</a></li>
 	</ul>
 </div>
-<br clear="all">
+<div class="footerCol"><p><strong>{translate text='Contact Us'}</strong></p>
+	<ul>
+		<li><a href="http://www.steamboatlibrary.org/questions-comments-suggestions/questions-comments-suggestions">{translate text='Questions, Comments, Suggestions'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/questions-comments-suggestions/ask-a-librarian">{translate text='Ask a Librarian'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/how-do-i/manage-my-account/request-a-title">{translate text='Request a Title'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/how-do-i/manage-my-account/request-a-title/suggest-a-purchase">{translate text='Suggest a Purchase'}</a></li>
+		<li><a href="http://www.steamboatlibrary.org/questions-comments-suggestions/staff-directory">{translate text='Staff Directory'}</a></li>
+	</ul>
+</div>
+
+<br class="clearer"/>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}
-
-{* Add Google Analytics*}
-{literal}
-<script type="text/javascript">
-	var _gaq = _gaq || [];
-	_gaq.push(['_setAccount', 'UA-10641564-2']);
-	_gaq.push(['_setDomainName', '.marmot.org']);
-	_gaq.push(['_trackPageview']);
-	_gaq.push(['_trackPageLoadTime']);
-
-	(function() {
-		var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-		ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-		var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-	})();
-
-</script>
-{/literal}

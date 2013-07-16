@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class Logout extends Action {
 
@@ -27,6 +27,6 @@ class Logout extends Action {
 
 		UserAccount::logout();
 
-		header('Location: ' . $configArray['Site']['url']);
+		header('Location: ' . $configArray['Site']['path'] . '/');
 	}
 }

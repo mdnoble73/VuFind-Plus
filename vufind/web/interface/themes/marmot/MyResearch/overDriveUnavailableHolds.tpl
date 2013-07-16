@@ -12,6 +12,10 @@
   
 	<div id="main-content">
 	{if $user}
+		{if $profile.web_note}
+			<div id="web_note">{$profile.web_note}</div>
+		{/if}
+		
 		<div class="myAccountTitle">{translate text='On Hold in OverDrive'}</div>
 		{if $userNoticeFile}
 			{include file=$userNoticeFile}
@@ -40,7 +44,7 @@
 							</td>
 							<td>{$record.holdQueuePosition} out of {$record.holdQueueLength}</td>
 							<td>
-								<a href="#" onclick="cancelOverDriveHold('{$record.overDriveId}','{$record.formatId}')" class="button">Remove</a><br/>
+								<a href="#" onclick="cancelOverDriveHold('{$record.overDriveId}','{$record.formatId}')" class="button">Cancel&nbsp;Hold</a><br/>
 							</td>
 						</tr>
 					{/foreach}

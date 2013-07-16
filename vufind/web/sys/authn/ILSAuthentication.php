@@ -1,9 +1,10 @@
 <?php
 require_once 'Authentication.php';
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
 class ILSAuthentication implements Authentication {
-
+	private $username;
+	private $password;
 	public function authenticate(){
 		global $configArray;
 
@@ -18,7 +19,7 @@ class ILSAuthentication implements Authentication {
 
 			if ($catalog->status) {
 				$patron = $catalog->patronLogin($this->username, $this->password);
-				if ($patron && !PEAR::isError($patron)) {
+				if ($patron && !PEAR_Singleton::isError($patron)) {
 					$user = $this->processILSUser($patron);
 				} else {
 					$user = new PEAR_Error('authentication_error_invalid');
@@ -30,8 +31,12 @@ class ILSAuthentication implements Authentication {
 		return $user;
 	}
 
+	public function validateAccount($username, $password) {
+		return $this->authenticate();
+	}
+
 	private function processILSUser($info){
-		require_once "services/MyResearch/lib/User.php";
+		require_once ROOT_DIR . "/services/MyResearch/lib/User.php";
 
 		$user = new User();
 		//Marmot make sure we are using the username which is the
@@ -51,6 +56,8 @@ class ILSAuthentication implements Authentication {
 		$user->email        = $info['email']        == null ? " " : $info['email'];
 		$user->major        = $info['major']        == null ? " " : $info['major'];
 		$user->college      = $info['college']      == null ? " " : $info['college'];
+		$user->patronType   = $info['patronType']   == null ? " " : $info['patronType'];
+		$user->web_note     = $info['web_note']     == null ? " " : $info['web_note'];
 
 		if ($insert) {
 			$user->created = date('Y-m-d');

@@ -9,12 +9,14 @@
 class OtherEditionHandler{
 	static function getEditions($sourceSolrId, $isbn, $issn, $numResourcesToLoad = 5) {
 		global $configArray;
-		global $memcache;
-		$editions = $memcache->get('other_editions_' . $isbn);
-		if (!$editions){
+		/** @var Memcache $memCache */
+		global $memCache;
+		$editions = $memCache->get('other_editions_' . $isbn);
+		if (!$editions || isset($_REQUEST['reload'])){
 			
 			// Setup Search Engine Connection
 			$class = $configArray['Index']['engine'];
+			/** @var Solr $db */
 			$db = new $class($configArray['Index']['url']);
 			if ($configArray['System']['debugSolr']) {
 				$db->debug = true;
@@ -32,11 +34,18 @@ class OtherEditionHandler{
 				$editions = null;
 			}
 			
-			$memcache->set('other_editions_' . $isbn, $editions, 0, $configArray['Caching']['other_editions']);
+			$memCache->set('other_editions_' . $isbn, $editions, 0, $configArray['Caching']['other_editions']);
 		}
 		return $editions;
 	}
-	
+
+	/**
+	 * @param string $sourceSolrId
+	 * @param string $isbn
+	 * @param integer $numResourcesToLoad
+	 * @param Solr $db
+	 * @return null
+	 */
 	private static function getLibraryThingRelatedRecords($sourceSolrId, $isbn, $numResourcesToLoad, $db){
 		$url = "http://www.librarything.com/api/thingISBN/$isbn" ;
 
@@ -56,7 +65,7 @@ class OtherEditionHandler{
 			$query .= ' NOT id:' . $sourceSolrId;
 
 			$result = $db->search($query, null, null, 0, $numResourcesToLoad);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				if (isset($result['response']['docs']) && !empty($result['response']['docs'])) {
 					return $result['response']['docs'];
 				} else {
@@ -69,7 +78,14 @@ class OtherEditionHandler{
 			return null;
 		}
 	}
-	
+
+	/**
+	 * @param string $sourceSolrId
+	 * @param string $isbn
+	 * @param integer $numResourcesToLoad
+	 * @param Solr $db
+	 * @return null
+	 */
 	private static function getXISBN($sourceSolrId, $isbn, $numResourcesToLoad, $db) {
 		global $configArray;
 
@@ -87,8 +103,8 @@ class OtherEditionHandler{
 		}
 
 		// Fetch results
+		$query = '';
 		if ($fp = @fopen($url, "r")) {
-			$query = '';
 			while (($data = fgetcsv($fp, 1000, ",")) !== FALSE) {
 				// If we got an error message, don't treat it as an ISBN!
 				if ($data[0] == 'overlimit') {
@@ -101,13 +117,33 @@ class OtherEditionHandler{
 				}
 			}
 		}
+		if (strlen($query) == 0) {
+			//Get ISBNs from the record itself
+			$record = $db->getRecord($sourceSolrId);
+			if ($record){
+				if (isset($record['isbn'])){
+					$isbns = is_array($record['isbn']) ? $record['isbn'] : array($record['isbn']);
+					foreach ($isbns as $tmpIsbn){
+						$tmpIsbn = ISBN::normalizeISBN($tmpIsbn);
+						if ($query != '') {
+							$query .= ' OR isbn:' .$tmpIsbn;
+						} else {
+							$query = 'isbn:' . $tmpIsbn;
+						}
+					}
+				}
+				if (isset($record['grouping_term'])){
+					$query .= ' OR grouping_term:"' . $record['grouping_term'] . '"';
+				}
+			}
+		}
 
-		if (isset($query) && ($query != '')) {
+		if ($query != '') {
 			// Filter out current record
 			$query .= ' NOT id:' . $sourceSolrId;
 
 			$result = $db->search($query, null, null, 0, $numResourcesToLoad);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				if (isset($result['response']['docs']) && !empty($result['response']['docs'])) {
 					return $result['response']['docs'];
 				} else {
@@ -121,6 +157,13 @@ class OtherEditionHandler{
 		}
 	}
 
+	/**
+	 * @param string $sourceSolrId
+	 * @param string $issn
+	 * @param integer $numResourcesToLoad
+	 * @param Solr $db
+	 * @return null
+	 */
 	private static function getXISSN($sourceSolrId, $issn, $numResourcesToLoad, $db) {
 		global $configArray;
 
@@ -166,7 +209,7 @@ class OtherEditionHandler{
 			$query .= ' NOT id:' . $sourceSolrId;
 
 			$result = $db->search($query, null, null, 0, $numResourcesToLoad);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				if (isset($result['response']['docs']) && !empty($result['response']['docs'])) {
 					return $result['response']['docs'];
 				} else {

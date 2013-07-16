@@ -1,9 +1,7 @@
-@CHARSET "ISO-8859-1";
-
 .copiesSummary, .copiesSummary a{
   color:#646464;font-size:8pt;
 }
-.holdableCopiesSummary{
+.holdableCopiesSummary, .holdableCopiesSummary2{
     color:#646464;font-size:8pt;
 } 
 .holdingsSummary{
@@ -12,10 +10,11 @@
   padding: 7px;
 }
 
-#holdingsSummary a{
+#holdingsSummary a, .holdingsSummary a{
 	color: inherit;
 }
-#holdingsSummary a:hover, #holdingsSummary a:hover .availableAtList{
+#holdingsSummary a:hover, #holdingsSummary a:hover .availableAtList,
+.holdingsSummary a:hover, .holdingsSummary a:hover .availableAtList{
 	color: #003399;
 }
 .holdingsSummary .availableAtList{
@@ -27,7 +26,8 @@
 	font-weight: bold;
   font-size: 13px;
 }
-#holdingsSummary .holdingsSummaryStatusLine, #holdingsSummary .holdingsSummaryStatusLine a{
+#holdingsSummary .holdingsSummaryStatusLine, #holdingsSummary .holdingsSummaryStatusLine a,
+.holdingsSummary .holdingsSummaryStatusLine, .holdingsSummary .holdingsSummaryStatusLine a{
 	font-weight: bold;
 	font-size: 14px;
 }

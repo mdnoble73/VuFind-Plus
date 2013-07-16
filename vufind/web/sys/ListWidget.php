@@ -4,7 +4,7 @@
  */
 require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
-require_once 'sys/ListWidgetList.php';
+require_once ROOT_DIR . '/sys/ListWidgetList.php';
 
 class ListWidget extends DB_DataObject
 {
@@ -14,13 +14,15 @@ class ListWidget extends DB_DataObject
 	public $description;                    //varchar(255)
 	public $showTitleDescriptions;
 	public $onSelectCallback;
-	public $fullListLink;
 	public $customCss;
 	public $listDisplayType;
 	public $showMultipleTitles;
+	public $style; //'vertical', 'horizontal', 'single'
 	public $autoRotate;
+	public $libraryId;
 
-	private $lists; //varchar(500)
+	/** @var  ListWidgetList[] */
+	private $lists;
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('ListWidget',$k,$v); }
 
@@ -29,16 +31,33 @@ class ListWidget extends DB_DataObject
 	}
 
 	function getObjectStructure(){
-		global $configArray;
+		global $user;
+
+		//Load Libraries for lookup values
+		$libraryList = array();
+		if ($user->hasRole('opacAdmin')){
+			$library = new Library();
+			$library->orderBy('displayName');
+			$library->find();
+			$libraryList[-1] = 'All Libraries';
+			while ($library->fetch()){
+				$libraryList[$library->libraryId] = $library->displayName;
+			}
+		}elseif ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
+			$homeLibrary = Library::getPatronHomeLibrary();
+			$libraryList[$homeLibrary->libraryId] = $homeLibrary->displayName;
+		}
+
 		$structure = array(
       'id' => array(
         'property'=>'id',
-        'type'=>'label',
+        'type'=>'hidden',
         'label'=>'Id',
         'description'=>'The unique id of the list widget file.',
         'primaryKey' => true,
         'storeDb' => true,
       ),
+      'libraryId' => array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
       'name' => array(
         'property'=>'name',
         'type'=>'text',
@@ -55,8 +74,9 @@ class ListWidget extends DB_DataObject
         'rows' => 3,
         'cols'=> 80,
         'label'=>'Description',
-        'description'=>'A descrption for the widget',
+        'description'=>'A description for the widget',
         'storeDb' => true,
+        'hideInLists' => true,
       ),
       'showTitleDescriptions' => array(
         'property' => 'showTitleDescriptions',
@@ -64,6 +84,7 @@ class ListWidget extends DB_DataObject
         'label' => 'Should the description pop-up be shown when hovering over titles?',
         'storeDb' => true,
         'default' => true,
+        'hideInLists' => true,
       ),
       'showMultipleTitles' => array(
         'property' => 'showMultipleTitles',
@@ -71,12 +92,23 @@ class ListWidget extends DB_DataObject
         'label' => 'Should multiple titles by shown in in the widget or should only one title be shown at a time?',
         'storeDb' => true,
         'default' => true,
+        'hideInLists' => true,
       ),
+			'style' => array(
+				'property' => 'style',
+				'type' => 'enum',
+				'label' => 'The style to use when displaying the list widget',
+				'values' => array('horizontal' => 'Horizontal', 'vertical'=> 'Vertical', 'single'=>'Single Title'),
+				'storeDb' => true,
+				'default' => 'horizontal',
+				'hideInLists' => true,
+			),
       'autoRotate' => array(
         'property' => 'autoRotate',
         'type' => 'checkbox',
         'label' => 'Should the widget automatically rotate between titles?',
         'storeDb' => true,
+        'hideInLists' => true,
       ),
       'onSelectCallback' => array(
         'property'=>'onSelectCallback',
@@ -84,6 +116,7 @@ class ListWidget extends DB_DataObject
         'label'=>'On Select Callback',
         'description'=>'A javascript callback to invoke when a title is selected to override the default behavior.',
         'storeDb' => true,
+        'hideInLists' => true,
       ),
       'customCss' => array(
         'property'=>'customCss',
@@ -94,6 +127,7 @@ class ListWidget extends DB_DataObject
         'description'=>'The URL to an external css file to be included when rendering as an iFrame.',
         'storeDb' => true,
         'required' => false,
+        'hideInLists' => true,
       ),
       'listDisplayType' => array(
         'property'=>'listDisplayType',
@@ -105,6 +139,7 @@ class ListWidget extends DB_DataObject
         'label'=>'Display lists as',
         'description'=>'The URL to an external css file to be included wen rendering as an iFrame.',
         'storeDb' => true,
+        'hideInLists' => true,
       ),
       'lists' => array(
         'property' => 'lists',
@@ -118,7 +153,8 @@ class ListWidget extends DB_DataObject
         'sortable' => true,
         'storeDb' => true,
         'serverValidation' => 'validateLists',
-      	'editLink' => 'ListWidgetsListsLinks'
+        'editLink' => 'ListWidgetsListsLinks',
+        'hideInLists' => true,
       ),
 		);
 		foreach ($structure as $fieldName => $field){
@@ -136,9 +172,14 @@ class ListWidget extends DB_DataObject
 		);
 
 		//Check to see if the name is unique
-		$query = "SELECT * FROM list_widgets WHERE name='" . mysql_escape_string($this->name) . "' and id != '{$this->id}'";
-		$result = mysql_query($query);
-		if (mysql_numrows($result) > 0){
+		$widget = new ListWidget();
+		$widget->name = $this->name;
+		if ($this->id){
+			$widget->whereAdd("id != " . $this->id);
+		}
+		$widget->libraryId = $this->libraryId;
+		$widget->find();
+		if ($widget->N > 0){
 			//The title is not unique
 			$validationResults['errors'][] = "This widget has already been created.  Please select another name.";
 		}
@@ -164,10 +205,24 @@ class ListWidget extends DB_DataObject
 			}
 			return $this->lists;
 		}
+		return null;
 	}
+
 	public function __set($name, $value){
 		if ($name == "lists") {
 			$this->lists = $value;
+		}
+	}
+
+
+	public function getLibraryName(){
+		if ($this->libraryId == -1){
+			return 'All libraries';
+		}else{
+			$library = new Library();
+			$library->libraryId = $this->libraryId;
+			$library->find(true);
+			return $library->displayName;
 		}
 	}
 
@@ -183,6 +238,7 @@ class ListWidget extends DB_DataObject
 		}else{
 			$this->saveLists();
 		}
+		return true;
 	}
 
 	/**
@@ -197,6 +253,7 @@ class ListWidget extends DB_DataObject
 		}else{
 			$this->saveLists();
 		}
+		return true;
 	}
 
 	public function saveLists(){
@@ -226,7 +283,7 @@ class ListWidget extends DB_DataObject
 		);
 
 		$listNames = array();
-		require_once 'services/API/ListAPI.php';
+		require_once ROOT_DIR . '/services/API/ListAPI.php';
 		$listAPI = new ListAPI();
 		$allListIds = $listAPI->getAllListIds();
 

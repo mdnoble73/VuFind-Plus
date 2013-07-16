@@ -5,7 +5,7 @@
 			<input type="checkbox" name="selected[{$listShortId|escape:"url"}]" id="selected{$listShortId|escape:"url"}" {if $enableBookCart}onclick="toggleInBag('{$listId|escape:"url"}', '{$listTitle|regex_replace:"/(\/|:)$/":""|regex_replace:"/\"/":"&quot;"|escape:"javascript"}', this);"{/if} />&nbsp;
 		</div>
 	
-		<img src="{$path}/bookcover.php?isn={$listISBN|escape:"url"}&amp;size=small&amp;category={$record.format_category.0|escape:"url"}" alt='Cover Image' class="alignleft">
+		<img src="{$path}/bookcover.php?isn={$listISBN|escape:"url"}&amp;issn={$listISSN}&amp;size=small&amp;category={$record.format_category.0|escape:"url"}" alt='Cover Image' class="alignleft">
 
 		<div class="resultitem">
 			<a href="{$path}/Record/{$listId|escape:"url"}" class="title">{$listTitle|regex_replace:"/(\/|:)$/":""|escape}</a><br />
@@ -27,7 +27,7 @@
 			{/if}
 
 			{foreach from=$listFormats item=format}
-				<span class="iconlabel {$format|lower|regex_replace:"/[^a-z0-9]/":""}">{translate text=$format}</span>
+				<span class="icon {$format|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$format}</span>
 			{/foreach}
 		</div>
 	</div>
@@ -52,7 +52,7 @@
 			{else}
 				href="{$path}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$listId|escape:"url"}"
 			{/if}
-			class="delete tool" onclick="return confirm('Are you sure you want to delete this?');">{translate text='Delete'}</a>
+			onclick="return confirm('Are you sure you want to delete this?');"><span class="silk delete">&nbsp;</span>{translate text='Delete'}</a>
 	{/if}
 	</div>
 	<script type="text/javascript">

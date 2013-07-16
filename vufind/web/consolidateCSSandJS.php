@@ -1,4 +1,6 @@
 <?php
+define ('ROOT_DIR', __DIR__);
+
 /**
  * This file consolidates CSS and JS for all themes based on the consolidation.ini file within
  * each theme (if any).
@@ -6,15 +8,14 @@
  * Must have write access to the theme folder from Apache so it may be better to run from
  * development machine and then check the combined files in to git
  */
-ini_set('display_errors', true);
-error_reporting(E_ALL & ~E_DEPRECATED);
 
-require_once 'Minify/JSMin.php';
+require_once ROOT_DIR . '/Minify/JSMin.php';
 function vufind_autoloader($class) {
-	if (file_exists('sys/' . $class . '.php')){
-		require_once 'sys/' . $class . '.php';
-	}elseif (file_exists('services/MyResearch/lib/' . $class . '.php')){
-		require_once 'services/MyResearch/lib/' . $class . '.php';
+	$classWithExtension = $class . '.php';
+	if (file_exists('sys/' . $classWithExtension)){
+		require_once ROOT_DIR . '/sys/' . $classWithExtension;
+	}elseif (file_exists('services/MyResearch/lib/' . $classWithExtension)){
+		require_once ROOT_DIR . '/services/MyResearch/lib/' . $classWithExtension;
 	}else{
 		$altclass = str_replace('_', '/', $class) . '.php';
 		require_once $altclass;
@@ -28,6 +29,7 @@ if (isset($_REQUEST['minify']) && $_REQUEST['minify'] == "false"){
 	$minify = false;
 }
 
+echo("<body>\r\n");
 if (is_dir($themeDir)){
 	echo("Found themes directory<br/>");
 	$dirHnd = opendir($themeDir);
@@ -62,14 +64,10 @@ if (is_dir($themeDir)){
 			}
 		}
 
-		flush();
-		ob_start();
 		foreach ($themes as $themeName => $info){
 			if ($info['hasConsolidationFile'] && in_array($themeName, $themesToUpdate)){
 				$now = time();
 				echo("Consolidating $themeName<br/>");
-				flush();
-				ob_flush();
 				set_time_limit(120);
 
 				consolidateFiles($info, $themes, $minify);
@@ -77,7 +75,6 @@ if (is_dir($themeDir)){
 				echo (".." . ($end - $now) . " secs<br/>");
 			}
 		}
-		ob_end_flush();
 		closedir($dirHnd);
 	}else{
 		echo("Could not open themes directory<br/>");
@@ -87,6 +84,7 @@ if (is_dir($themeDir)){
 }
 
 echo("Finished<br/>");
+echo("</body>");
 
 function consolidateFiles($info, $themes, $minify){
 	$info = doInheritance($info, $themes);
@@ -96,12 +94,15 @@ function consolidateFiles($info, $themes, $minify){
 	$fileGeneratedFile = $info['path'] . 'css/consolidated.min.css';
 	$fileGeneratedFileHnd = fopen($fileGeneratedFile, 'w');
 	foreach ($info['settings']['css'] as $filename => $scope){
+		if ($filename == 'extra_styles.css'){
+			continue;
+		}
 		//Load contents from the search file
 		$fileContents = loadCss($filename, $info['searchPaths']);
 		if ($fileContents != null){
 			fwrite($fileGeneratedFileHnd, "/* $filename */\r\n");
 			//minify the css
-			if ($minify){
+			if ($minify && !preg_match('/.*\.min\.css$/i', $filename)){
 				$minifiedCss = Minify_CSS::minify($fileContents, array());
 			}else{
 				$minifiedCss = $fileContents;
@@ -110,6 +111,19 @@ function consolidateFiles($info, $themes, $minify){
 		}else{
 			echo("Could not find file $filename");
 		}
+	}
+	//Add extra_styles.css at the very end
+	$filename = 'extra_styles.css';
+	$fileContents = loadCss($filename, $info['searchPaths']);
+	if ($fileContents != null){
+		fwrite($fileGeneratedFileHnd, "/* $filename */\r\n");
+		//minify the css
+		if ($minify && !preg_match('/.*\.min\.css$/i', $filename)){
+			$minifiedCss = Minify_CSS::minify($fileContents, array());
+		}else{
+			$minifiedCss = $fileContents;
+		}
+		fwrite($fileGeneratedFileHnd, "$minifiedCss\r\n");
 	}
 	fclose($fileGeneratedFileHnd);
 
@@ -126,7 +140,7 @@ function consolidateFiles($info, $themes, $minify){
 		if ($fileContents != null){
 			fwrite($fileGeneratedFileHnd, "/* $filename */\r\n");
 			//minify the javascript
-			if ($minify){
+			if ($minify && !preg_match('/.*\.min\.js$/i', $filename)){
 				$minifiedJs = JSMin::minify($fileContents);
 			}else{
 				$minifiedJs = $fileContents;
@@ -199,8 +213,8 @@ function doInheritance($info, $themes){
 /**
  * Support function -- merge the contents of two arrays parsed from ini files.
  *
- * @param   config_ini  The base config array.
- * @param   custom_ini  Overrides to apply on top of the base array.
+ * @param   array $config_ini  The base config array.
+ * @param   array $custom_ini  Overrides to apply on top of the base array.
  * @return  array       The merged results.
  */
 function ini_merge($config_ini, $custom_ini)

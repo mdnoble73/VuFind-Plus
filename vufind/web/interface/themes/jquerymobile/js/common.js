@@ -98,9 +98,11 @@ function processAjaxLogin(){
 					$('#loginOptions').hide();
 					$('#logoutOptions').show();
 					$('#myAccountNameLink').html(response.result.name);
-					hideLightbox();
+					
 					if (ajaxCallback  && typeof(ajaxCallback) === "function"){
 						ajaxCallback();
+					}else{
+						hideLightbox();
 					}
 				}else{
 					alert("That login information was not recognized.  Please try again.");
@@ -117,10 +119,14 @@ function processAjaxLogin(){
 }
 
 function showProcessingIndicator(message){
-	if (message != undefined){
-		$.mobile.loadingMessage = message;
-	}
-	$.mobile.showPageLoadingMsg();
+	$.mobile.loading('show', {
+		text: message,
+		textVisible: true
+	});
+}
+
+function hideProcessingIndicator(){
+	$.mobile.loading('hide');
 }
 
 function getQuerystringParameters(){
@@ -134,4 +140,72 @@ function getQuerystringParameters(){
 		}
 	}
 	return vars;
+}
+
+function returnEpub(returnUrl){
+	$.getJSON(returnUrl, function (data){
+		if (data.success == false){
+			alert("Error returning EPUB file\r\n" + data.message);
+		}else{
+			alert("The file was returned successfully.");
+			window.location.reload();
+		}
+		
+	});
+}
+
+function cancelEContentHold(cancelUrl){
+	$.getJSON(cancelUrl, function (data){
+		if (data.result == false){
+			alert("Error cancelling hold.\r\n" + data.message);
+		}else{
+			alert(data.message);
+			window.location.reload();
+		}
+		
+	});
+}
+
+function reactivateEContentHold(reactivateUrl){
+	$.getJSON(reactivateUrl, function (data){
+		if (data.error){
+			alert("Error reactivating hold.\r\n" + data.error);
+		}else{
+			alert("The hold was activated successfully.");
+			window.location.reload();
+		}
+		
+	});
+}
+
+function getOverDriveSummary(){
+	$.getJSON(path + '/MyResearch/AJAX?method=getOverDriveSummary', function (data){
+		if (data.error){
+			// Unable to load overdrive summary
+		}else{
+			// Load checked out items
+			$("#checkedOutItemsOverDrivePlaceholder").html(data.numCheckedOut);
+			// Load available holds
+			$("#availableHoldsOverDrivePlaceholder").html(data.numAvailableHolds);
+			// Load unavailable holds
+			$("#unavailableHoldsOverDrivePlaceholder").html(data.numUnavailableHolds);
+			// Load wishlist
+			$("#wishlistOverDrivePlaceholder").html(data.numWishlistItems);
+		}
+	});
+}
+
+function loadEContentHelpTopic(){
+	var selectedDevice = $("#device :selected").val();
+	var selectedFormat = $("#format :selected").val();
+	
+	if (selectedDevice != "selectone" && selectedFormat != "selectone"){
+		$.getJSON(
+			path + '/Help/AJAX?method=getHelpTopic&device=' + selectedDevice + '&format=' +selectedFormat,
+			function (data){
+				$("#stepByStepInstructions").show()
+				$("#helpInstructions").html(data.helpText);
+			}
+		);
+	}
 }

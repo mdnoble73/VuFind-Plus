@@ -18,13 +18,13 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
-require_once 'sys/eContent/EContentMarcImport.php';
-require_once 'sys/Pager.php';
-require_once("PHPExcel.php");
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
+require_once ROOT_DIR . '/sys/eContent/EContentMarcImport.php';
+require_once ROOT_DIR . '/sys/Pager.php';
+require_once ROOT_DIR . '/PHPExcel.php';
 
-class MarcImportLog extends Admin
+class MarcImportLog extends Admin_Admin
 {
 	function launch()
 	{

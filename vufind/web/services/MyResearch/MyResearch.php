@@ -18,17 +18,18 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
-require_once 'services/MyResearch/lib/User.php';
-require_once 'services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 
 class MyResearch extends Action
 {
 	protected $db;
 	protected $catalog;
+	protected $requireLogin = true;
 
 	function __construct()
 	{
@@ -39,7 +40,7 @@ class MyResearch extends Action
 		$interface->assign('page_body_style', 'sidebar_left');
 		$interface->assign('ils', $configArray['Catalog']['ils']);
 
-		if (!UserAccount::isLoggedIn()) {
+		if ($this->requireLogin && !UserAccount::isLoggedIn()) {
 			require_once 'Login.php';
 			Login::launch();
 			exit();
@@ -60,7 +61,7 @@ class MyResearch extends Action
 		if (isset($_POST['submit']) && !empty($_POST['submit'])) {
 			if ($this->catalog && isset($_POST['cat_username']) && isset($_POST['cat_password'])) {
 				$result = $this->catalog->patronLogin($_POST['cat_username'], $_POST['cat_password']);
-				if ($result && !PEAR::isError($result)) {
+				if ($result && !PEAR_Singleton::isError($result)) {
 					$user->cat_username = $_POST['cat_username'];
 					$user->cat_password = $_POST['cat_password'];
 					$user->update();
@@ -71,16 +72,27 @@ class MyResearch extends Action
 				}
 			}
 		}
-		
+
 		//Determine whether or not materials request functionality should be enabled
 		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
-		
-		//Check to see if we have any acs or single use eContent in the catalog 
+
+		//Check to see if we have any acs or single use eContent in the catalog
 		//to enable the holds and wishlist appropriately
 		if (isset($configArray['EContent']['hasProtectedEContent'])){
 			$interface->assign('hasProtectedEContent', $configArray['EContent']['hasProtectedEContent']);
 		}else{
 			$interface->assign('hasProtectedEContent', false);
+		}
+
+		global $library;
+		if (isset($library)){
+			$interface->assign('showFavorites', $library->showFavorites);
+			$interface->assign('showRatings', $library->showRatings);
+			$interface->assign('showComments', $library->showComments);
+		}else{
+			$interface->assign('showFavorites', 1);
+			$interface->assign('showRatings', 1);
+			$interface->assign('showComments', 1);
 		}
 
 		//This code is also in Search/History since that page displays in the My Account menu as well.
@@ -91,14 +103,14 @@ class MyResearch extends Action
 			if ($this->catalog->status) {
 				if ($user->cat_username) {
 					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					if (PEAR::isError($patron)){
-						PEAR::raiseError($patron);
+					if (PEAR_Singleton::isError($patron)){
+						PEAR_Singleton::raiseError($patron);
 					}
 
 					$profile = $this->catalog->getMyProfile($patron);
 					//global $logger;
 					//$logger->log("Patron profile phone number in MyResearch = " . $profile['phone'], PEAR_LOG_INFO);
-					if (!PEAR::isError($profile)) {
+					if (!PEAR_Singleton::isError($profile)) {
 						$interface->assign('profile', $profile);
 					}
 				}
@@ -109,11 +121,38 @@ class MyResearch extends Action
 			if (strlen($ecommerceLink) > 0 && isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1){
 				$interface->assign('showEcommerceLink', true);
 				$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
-				$interface->assign('ecommerceLink', $ecommerceLink);
+				if ($homeLibrary->payFinesLink == 'default'){
+					$interface->assign('ecommerceLink', $ecommerceLink);
+				}else{
+					$interface->assign('ecommerceLink', $homeLibrary->payFinesLink);
+				}
+				$interface->assign('payFinesLinkText', $homeLibrary->payFinesLinkText);
 			}else{
 				$interface->assign('showEcommerceLink', false);
 				$interface->assign('minimumFineAmount', 0);
 			}
+
+			//Load a list of lists
+			$lists = array();
+			if ($user->disableRecommendations == 0){
+				$lists[] = array('name' => 'Recommended For You', 'url' => '/MyResearch/SuggestedTitles', 'id' => 'suggestions');
+			}
+			$tmpList = new User_list();
+			$tmpList->user_id = $user->id;
+			$tmpList->orderBy("title ASC");
+			$tmpList->find();
+			if ($tmpList->N > 0){
+				while ($tmpList->fetch()){
+					$lists[$tmpList->id] = array('name' => $tmpList->title, 'url' => '/MyResearch/MyList/' .$tmpList->id , 'id' => $tmpList->id);
+				}
+			}else{
+				$lists[-1] = array('name' => "My Favorites", 'url' => '/MyResearch/MyList/-1', 'id' => -1);
+			}
+			$interface->assign('lists', $lists);
+
+			// Get My Tags
+			$tagList = $user->getTags();
+			$interface->assign('tagList', $tagList);
 		}
 	}
 
@@ -133,7 +172,7 @@ class MyResearch extends Action
 			if ($user->cat_username) {
 				$patron = $this->catalog->patronLogin($user->cat_username,
 				$user->cat_password);
-				if (empty($patron) || PEAR::isError($patron)) {
+				if (empty($patron) || PEAR_Singleton::isError($patron)) {
 					// Problem logging in -- clear user credentials so they can be
 					// prompted again; perhaps their password has changed in the
 					// system!

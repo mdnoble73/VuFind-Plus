@@ -18,11 +18,11 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/ObjectEditor.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
 require_once 'XML/Unserializer.php';
 
-class Administrators extends ObjectEditor
+class Admin_Administrators extends ObjectEditor
 {
 	function getObjectType(){
 		return 'User';
@@ -89,11 +89,7 @@ class Administrators extends ObjectEditor
 			}
 
 			global $configArray;
-			if (isset($_SESSION['redirect_location']) && $objectAction != 'delete'){
-				header("Location: " . $_SESSION['redirect_location']);
-			}else{
-				header("Location: {$configArray['Site']['url']}/Admin/{$this->getToolName()}");
-			}
+			header("Location: {$configArray['Site']['path']}/Admin/{$this->getToolName()}");
 			die();
 		}else{
 			$interface->assign('error', 'Could not find a user with that barcode.');

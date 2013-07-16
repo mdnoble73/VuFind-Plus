@@ -45,7 +45,7 @@ class User_list extends SolrDataObject
 		return $this->title;
 	}
 	function format_category(){
-		return 'Lists';
+		return '';
 	}
 	function format(){
 		return 'List';
@@ -57,6 +57,56 @@ class User_list extends SolrDataObject
 			return "suppressed";
 		}
 	}
+	function institution(){
+		//Get the user home library
+		$user = new User();
+		$user->id = $this->user_id;
+		$user->find(true);
+
+		//home library
+		$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
+		$institutions = array();
+		$institutions[] = $homeLibrary->facetLabel;
+
+		return $institutions;
+	}
+	function building(){
+		//Get the user home library
+		$user = new User();
+		$user->id = $this->user_id;
+		$user->find(true);
+
+		//get the home location
+		$homeLocation = new Location();
+		$homeLocation->locationId = $user->homeLocationId;
+		$homeLocation->find(true);
+
+		//If the user is scoped to just see holdings for their location, only make the list available for that location
+		//unless the user a library admin
+		$scopeToLocation = false;
+		if ($homeLocation->useScope == 1 && $homeLocation->restrictSearchByLocation){
+			if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin')){
+				$scopeToLocation = false;
+			}else{
+				$scopeToLocation = true;
+			}
+		}
+
+		$buildings = array();
+		if ($scopeToLocation){
+			//publish to all locations
+			$buildings[] = $homeLocation->facetLabel;
+		}else{
+			//publish to all locations for the library
+			$location = new Location();
+			$location->libraryId = $homeLocation->libraryId;
+			$location->find();
+			while ($location->fetch()){
+				$buildings[] = $location->facetLabel;
+			}
+		}
+		return $buildings;
+	}
 	function format_boost(){
 		return 100;
 	}
@@ -64,7 +114,6 @@ class User_list extends SolrDataObject
 		return 500;
 	}
 	function getObjectStructure(){
-		global $configArray;
 		$structure = array(
 			'id' => array(
 				'property'=>'id',
@@ -172,7 +221,27 @@ class User_list extends SolrDataObject
 				'storeDb' => false,
 				'storeSolr' => true,
 			),
-
+			'institution' => array(
+				'property'=>'institution',
+				'type'=>'method',
+				'methodName'=>'institution',
+				'storeDb' => false,
+				'storeSolr' => true,
+			),
+			'building' => array(
+				'property'=>'building',
+				'type'=>'method',
+				'methodName'=>'building',
+				'storeDb' => false,
+				'storeSolr' => true,
+			),
+			'usable_by' => array(
+				'property'=>'usable_by',
+				'type'=>'method',
+				'methodName'=>'usable_by',
+				'storeDb' => false,
+				'storeSolr' => true,
+			)
 		);
 
 		return $structure;
@@ -205,6 +274,7 @@ class User_list extends SolrDataObject
 			parent::updateDetailed($insertInSolr);
 		}
 	}
+
 	private $resourceList = null;
 	function getResources($tags = null)
 	{
@@ -229,6 +299,7 @@ class User_list extends SolrDataObject
 			}
 		}
 
+		/** @var Resource|object $resource */
 		$resource = new Resource();
 		$resource->query($sql);
 		if ($resource->N) {
@@ -246,9 +317,13 @@ class User_list extends SolrDataObject
 	}
 
 	var $catalog;
+
+	/**
+	 * @param $resource - The resource to be cleaned
+	 * @return Resource|bool
+	 */
 	function cleanResource($resource){
 		global $configArray;
-		global $interface;
 		global $user;
 
 		// Connect to Database
@@ -258,7 +333,7 @@ class User_list extends SolrDataObject
 		if ($user == false || $this->user_id != $user->id){
 			//Load all bad words.
 			global $library;
-			require_once('Drivers/marmot_inc/BadWord.php');
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/BadWord.php');
 			$badWords = new BadWord();
 			$badWordsList = $badWords->getBadWordExpressions();
 
@@ -280,11 +355,14 @@ class User_list extends SolrDataObject
 				$this->description = $descriptionText;
 			}else{
 				//Check for bad words in the title or description
-				$titleText = $resource->title . ' ' . $resource->description;
+				$titleText = $resource->title;
+				if (isset($resource->description)){
+					$titleText .= ' ' . $resource->description;
+				}
 				foreach ($badWordsList as $badWord){
 					if (preg_match($badWord,$titleText)){
 						return false;
-						//PEAR::raiseError(new PEAR_Error('You do not have permission to view this list'));
+						//PEAR_Singleton::raiseError(new PEAR_Error('You do not have permission to view this list'));
 						//break;
 					}
 				}
@@ -302,6 +380,8 @@ class User_list extends SolrDataObject
 								"AND resource.id = resource_tags.resource_id " .
 								"AND user_resource.user_id = '$this->user_id' " .
 								"AND user_resource.list_id = '$this->id'";
+
+		/** @var Resource|object $resource */
 		$resource = new Resource();
 		$resource->query($sql);
 		if ($resource->N) {
@@ -319,8 +399,8 @@ class User_list extends SolrDataObject
 	function removeResource($resource)
 	{
 		// Remove the Saved Resource
-		require_once 'services/MyResearch/lib/User_list.php';
-		require_once 'services/MyResearch/lib/Resource.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 		$join = new User_resource();
 		$join->user_id = $this->user_id;
 		$join->resource_id = $resource->id;
@@ -344,5 +424,7 @@ class User_list extends SolrDataObject
 			$this->removeResource($tags);
 		}
 	}
-
+	function usable_by(){
+		return 'all';
+	}
 }

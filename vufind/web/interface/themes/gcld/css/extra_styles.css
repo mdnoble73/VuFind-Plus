@@ -1,4 +1,64 @@
 .searchHomeForm {
-	background-color: #73B5D3;
-	border-color: #409AC2;
+	background-color: #26638F;
+	border-color: #A7CE38;
+}
+.searchheader{
+	background-color: white;
+	position: relative;
+	padding: 5px 20px 0px;
+	height: 130px;
+	border-bottom: 0px solid black;
+}
+html, body{
+	background-color: #F5F7E7;
+}
+#toptabs{
+	position: absolute;
+	bottom: 0px;
+	right: 20px;
+	color: white;
+}
+.toptab{
+	margin-right: 8px;
+	padding: 3px 6px 1px 6px;
+	font-size: 11px;
+	font-weight: bold;
+	background-color: lightgrey;
+	border-radius: 5px 5px 0px 0px;
+	border-bottom-style: none;
+	display: inline-block;
+	zoom: 1;
+	*display: block;
+	text-align: center;
+}
+.toptab a,.toptab a:visited{
+	color: #154B70;
+}
+.toptab:hover{
+	background-color: #95CF1A;
+}
+.toptab:hover a{
+	color: white;
+}
+.toptab a:hover{
+	color: white;
+}
+#header_logo{
+	position: absolute;
+	left: 10px;
+	top: 10px;
+}
+.searchheader{
+	border-bottom: 2px solid #A7CE38;
+}
+#searchbar{
+	color: white;
+	background-color: #26638F;
+}
+#searchbar a,#searchbar a:visited{
+	color: white;
+}
+#searchbar a:hover{
+	color: lightyellow;
+	text-decoration: underline;
 }

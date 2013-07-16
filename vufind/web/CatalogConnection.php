@@ -58,7 +58,7 @@ class CatalogConnection
 	 * The object of the appropriate driver.
 	 *
 	 * @access private
-	 * @var    object
+	 * @var    MillenniumDriver|object
 	 */
 	public $driver;
 
@@ -68,6 +68,7 @@ class CatalogConnection
 	 * This is responsible for instantiating the driver that has been specified.
 	 *
 	 * @param string $driver The name of the driver to load.
+	 * @throws PDOException error if we cannot connect to the driver.
 	 *
 	 * @access public
 	 */
@@ -239,9 +240,9 @@ class CatalogConnection
 	 * failure, a PEAR_Error.
 	 * @access public
 	 */
-	public function getStatus($recordId)
+	public function getStatus($recordId, $forSearch = false)
 	{
-		return $this->driver->getStatus($recordId);
+		return $this->driver->getStatus($recordId, $forSearch);
 	}
 
 	/**
@@ -251,15 +252,28 @@ class CatalogConnection
 	 * collection of records.
 	 *
 	 * @param array $recordIds The array of record ids to retrieve the status for
+	 * @param boolean $forSearch whether or not the summary will be shown in search results
 	 *
 	 * @return mixed           An array of getStatus() return values on success,
 	 * a PEAR_Error object otherwise.
 	 * @access public
 	 * @author Chris Delis <cedelis@uillinois.edu>
 	 */
-	public function getStatuses($recordIds)
+	public function getStatuses($recordIds, $forSearch = false)
 	{
-		return $this->driver->getStatuses($recordIds);
+		return $this->driver->getStatuses($recordIds, $forSearch);
+	}
+
+	/**
+	 * Returns summary information for an array of ids.  This allows the search results
+	 * to query all holdings at one time.
+	 *
+	 * @param array $ids an array ids to load summary information for.
+	 * @param boolean $forSearch whether or not the summary will be shown in search results
+	 * @return array an associative array containing a second array with summary information.
+	 */
+	public function getStatusSummaries($ids, $forSearch = false){
+		return $this->driver->getStatusSummaries($ids, $forSearch);
 	}
 
 	/**
@@ -283,7 +297,7 @@ class CatalogConnection
 
 		// Validate return from driver's getHolding method -- should be an array or
 		// an error.  Anything else is unexpected and should become an error.
-		if (!is_array($holding) && !PEAR::isError($holding)) {
+		if (!is_array($holding) && !PEAR_Singleton::isError($holding)) {
 			return new PEAR_Error('Unexpected return from getHolding: ' . $holding);
 		}
 
@@ -330,15 +344,17 @@ class CatalogConnection
 	 * This is responsible for retrieving all transactions (i.e. checked out items)
 	 * by a specific patron.
 	 *
-	 * @param array $patron The patron array from patronLogin
+	 * @param integer $page current     page to retrieve data for
+	 * @param integer $recordsPerPage   current page to retrieve data for
+	 * @param string  $sortOption       how the dates should sort.
 	 *
 	 * @return mixed        Array of the patron's transactions on success,
 	 * PEAR_Error otherwise.
 	 * @access public
 	 */
-	public function getMyTransactions($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate')
+	public function getMyTransactions($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate')
 	{
-		return $this->driver->getMyTransactions($patron, $page, $recordsPerPage, $sortOption);
+		return $this->driver->getMyTransactions($page, $recordsPerPage, $sortOption);
 	}
 
 	/**
@@ -382,8 +398,8 @@ class CatalogConnection
 	 * @param   string  $action         The action to perform
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
-	function doReadingHistoryAction($patron, $action, $selectedTitles){
-		return $this->driver->doReadingHistoryAction($patron, $action, $selectedTitles);
+	function doReadingHistoryAction($action, $selectedTitles){
+		return $this->driver->doReadingHistoryAction($action, $selectedTitles);
 	}
 
 
@@ -472,9 +488,9 @@ class CatalogConnection
 		return $this->driver->getHoldLink($recordId);
 	}
 
-	function updatePatronInfo($patronId)
+	function updatePatronInfo($canUpdateContactInfo)
 	{
-		return $this->driver->updatePatronInfo($patronId);
+		return $this->driver->updatePatronInfo($canUpdateContactInfo);
 	}
 
 	function selfRegister(){

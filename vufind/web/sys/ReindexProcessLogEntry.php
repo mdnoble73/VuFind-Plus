@@ -13,6 +13,7 @@ class ReindexProcessLogEntry extends DB_DataObject
 	public $processName;
 	public $recordsProcessed;
 	public $eContentRecordsProcessed;
+	public $overDriveNonMarcRecordsProcessed;
 	public $resourcesProcessed;
 	public $numErrors;
 	public $numAdded;
@@ -27,5 +28,5 @@ class ReindexProcessLogEntry extends DB_DataObject
 	function keys() {
 		return array('id');
 	}
-	
+
 }

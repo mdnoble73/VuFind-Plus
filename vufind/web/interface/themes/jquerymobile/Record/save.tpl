@@ -29,10 +29,7 @@
       {/foreach}
     </select>
   {/if}
-  {* TODO:
-    <a href="{$path}/MyResearch/ListEdit?id={$id|escape:"url"}" data-role="button" data-rel="dialog">{translate text="or create a new list"}</a>
-  *}
-  {if $showLists}  
+  {if $showLists}
     <label for="add_mytags">{translate text='Add Tags'}</label>
     <input id="add_mytags" type="text" name="mytags" value=""/>
     <p>{translate text='add_tag_note'}</p>

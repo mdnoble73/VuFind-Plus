@@ -17,14 +17,17 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class RenewMultiple extends Action
 {
+	/** @var CatalogConnection */
+	private $catalog;
 	function launch()
 	{
+
 		global $configArray;
 		global $user;
 
@@ -45,9 +48,14 @@ class RenewMultiple extends Action
 			$renewMessages = array();
 			$_SESSION['renew_message']['Unrenewed'] = 0;
 			$_SESSION['renew_message']['Renewed'] = 0;
+			$i = 0;
 			foreach ($selectedItems as $itemInfo => $selectedState){
+				if ($i != 0){
+					usleep(1000);
+				}
+				$i++;
 				list($itemId, $itemIndex) = explode('|', $itemInfo);
-				$renewResult = $this->catalog->driver->renewItem($user->password, $itemId, $itemIndex);
+				$renewResult = $this->catalog->driver->renewItem($itemId, $itemIndex);
 				$_SESSION['renew_message'][$renewResult['itemId']] = $renewResult;
 				$_SESSION['renew_message']['Total']++;
 				if ($renewResult['result']){
@@ -57,11 +65,11 @@ class RenewMultiple extends Action
 				}
 			}
 		} else {
-			PEAR::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));
 		}
 
 		//Redirect back to the hold screen with status from the renewal
-		header("Location: " . $configArray['Site']['url'] . '/MyResearch/CheckedOut');
+		header("Location: " . $configArray['Site']['path'] . '/MyResearch/CheckedOut');
 	}
 
 }

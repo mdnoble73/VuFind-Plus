@@ -221,7 +221,7 @@ class AdobeContentServer
 				$jsonResponse = json_decode($packagingResponse, true);
 				if ($jsonResponse['success']){
 					//Save information to packaging log so it can be processed on the backend
-					require_once('sys/eContent/EContentImportDetailsEntry.php');
+					require_once(ROOT_DIR . '/sys/eContent/EContentImportDetailsEntry.php');
 					$importDetails = new EContentImportDetailsEntry();
 					$importDetails->filename = $newFilename;
 					$importDetails->libraryFilename = $filename;
@@ -355,7 +355,7 @@ class AdobeContentServer
 		$distributionElem->setAttribute("action", "create");
 		$distributionElem->setAttribute("auth", "builtin");
 		$distRightsElem = $distributionElem->appendChild($distributionDoc->createElement("distributionRights"));
-		$distRightsElem->appendChild($distributionDoc->createElement("distributor", $distributorId));
+		$distRightsElem->appendChild($distributionDoc->createElement("distributor", "urn:uuid:".$distributorId));
 		$distRightsElem->appendChild($distributionDoc->createElement("resource", $acsId));
 		$distRightsElem->appendChild($distributionDoc->createElement("distributionType", "loan"));
 		$distRightsElem->appendChild($distributionDoc->createElement("available", $numAvailable));
@@ -374,9 +374,10 @@ class AdobeContentServer
 		AdobeContentServer::signNode($distributionDoc, $distributionElem, $serverPassword);
 
 		$distributionURL = $configArray['EContent']['operatorURL'] . '/ManageDistributionRights';
-		//echo("Request:<br/>" . htmlentities($packageDoc->saveXML()) . "<br/>");
+		//echo("Request:<br/>" . htmlentities($distributionDoc->saveXML()) . "<br/>");
+
 		$response = AdobeContentServer::sendRequest($distributionDoc->saveXML(),$distributionURL);
-		$logger->log("'Response:\r\n $response");
+		$logger->log("'Response:\r\n $response", PEAR_LOG_INFO);
 		//echo("Response:<br/>" . htmlentities($response) . "<br/>");
 		$responseData = simplexml_load_string($response);
 
@@ -394,7 +395,7 @@ class AdobeContentServer
 		$distributionElem->setAttribute("action", "delete");
 		$distributionElem->setAttribute("auth", "builtin");
 		$distRightsElem = $distributionElem->appendChild($distributionDoc->createElement("distributionRights"));
-		$distRightsElem->appendChild($distributionDoc->createElement("distributor", $distributorId));
+		$distRightsElem->appendChild($distributionDoc->createElement("distributor", "urn:uuid:".$distributorId));
 		$distRightsElem->appendChild($distributionDoc->createElement("resource", $acsId));
 		$distRightsElem->appendChild($distributionDoc->createElement("distributionType", "loan"));
 		//Add nonce, expiration, and hmac
@@ -421,7 +422,7 @@ class AdobeContentServer
 	}
 
 	static function signNode( $xmlDoc, $xmlNodeToBeSigned, $secretKey ){
-		require_once("sys/XMLSigningSerializer.php");
+		require_once(ROOT_DIR . "/sys/XMLSigningSerializer.php");
 		$serializer = new XMLSigningSerializer( false );
 		$signingSerialization = $serializer->serialize($xmlNodeToBeSigned);
 		$hmacData = base64_encode( hash_hmac("sha1", $signingSerialization, $secretKey, true ) );
@@ -457,7 +458,7 @@ class AdobeContentServer
 	 * Creates a quasi-unique nonce based on the start time and an incremented
 	 * counter
 	 *
-	 * @return a string containing the nonce
+	 * @return string - a string containing the nonce
 	 */
 	static $counter = 1;
 	static function makeNonce(){
@@ -468,11 +469,11 @@ class AdobeContentServer
 	static function loanReturn($recordId, $userId){
 		//First check to see if we have already minted a download link for this resource
 		//And this user that hasn't been returned.
-		require_once('sys/EPubTransaction.php');
+		require_once(ROOT_DIR . '/sys/EPubTransaction.php');
 		$trans = new EPubTransaction();
 		$trans->userId = $userId;
 		$trans->recordId = $recordId;
-		$trans->itemId = $itemId;
+		//$trans->itemId = $itemId;
 		$trans->whereAdd('timeReturned = null');
 		if ($trans->find(true)){
 			if ($trans->userAcsId != null && strlen($trans->userAcsId) > 0){

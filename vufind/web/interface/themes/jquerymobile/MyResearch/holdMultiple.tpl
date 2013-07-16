@@ -3,9 +3,27 @@
 	{include file="header.tpl"}
 	<div data-role="content" >
 		<form name='placeHoldForm' id='placeHoldForm' action="{$path}/MyResearch/HoldMultiple" method="post">
+			<div class="holdsSummary">
+				<h3>Placing holds on <span id='newHoldCount'>{$ids|@count}</span> titles.</h3>
+				{foreach from=$ids item=id}
+					<input type="hidden" name="selected[{$id|escape:url}]" value="on" />
+				{/foreach}
+				<ol class="showNumbers">
+				{foreach from=$holdings item=holding}
+					<li>{$holding}</li>
+				{/foreach}
+				</ol>
+				<input type="hidden" name="holdCount" id="holdCount" value="{$ids|@count}"/>
+				<div class="pageWarning" id="overHoldCountWarning" {if !$showOverHoldLimit}style="display:none"{/if}>Warning: There is a maximum of <span class='maxHolds'>{$maxHolds}</span> holds allowed on your account.  You currently have <span class='currentHolds'>{$currentHolds}</span> on your account. Holds for more than <span class='maxHolds'>{$maxHolds}</span> will not be placed.</div>
+			</div>
 			{if $holdDisclaimer}
 				<div id="holdDisclaimer">{$holdDisclaimer}</div>
 			{/if}
+			<p class="note">
+				Holds allow you to request that a title be delivered to your home library.
+				Once the title arrives at your library you will be sent an e-mail, receive a phone call, or receive a postcard informing you that the title is ready for you.
+				You will then have 8 days to pickup the title from your home library.
+			</p>
 			{foreach from=$ids item=id}
 				 <input type="hidden" name="selected[{$id|escape:url}]" value="on">
 			{/foreach}
@@ -24,7 +42,7 @@
 						<label for="campus">{translate text="I want to pick this up at"}:</label>
 						<select name="campus" id="campus" data-role="none">
 							{foreach from=$pickupLocations item=location key=value}
-								<option value="{$value}">{$location}</option>
+								<option value="{$location->code}" {if $location->selected == "selected"}selected="selected"{/if}>{$location->displayName}</option>
 							{/foreach}
 						</select>
 					</div>
@@ -37,7 +55,7 @@
 					{/if}
 					<br />
 					<input type="hidden" name="holdType" value="hold">
-					<a href="#" data-role="button" id="requestTitleButton" {if (!isset($profile))}disabled="disabled"{/if} onclick="document.placeHoldForm.submit();" >{translate text='Request This Title'}</a> 
+					<a href="#" data-role="button" id="requestTitleButton" {if (!isset($profile))}disabled="disabled"{/if} onclick="document.placeHoldForm.submit();" >{translate text='Submit Hold Request'}</a>
 				</div>
 			</div>
 		</form>

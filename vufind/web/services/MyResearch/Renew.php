@@ -17,9 +17,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class Renew extends Action
 {
@@ -44,7 +44,7 @@ class Renew extends Action
 		//Renew the hold
 		if (method_exists($this->catalog->driver, 'renewItem')) {
 			$logger->log("Renewing item " . $_REQUEST['itemId'], PEAR_LOG_INFO);
-			$renewResult = $this->catalog->driver->renewItem($user->password, $_REQUEST['itemId'], $_REQUEST['itemIndex']);
+			$renewResult = $this->catalog->driver->renewItem($_REQUEST['itemId'], $_REQUEST['itemIndex']);
 			$logger->log("Result = " . print_r($renewResult, true), PEAR_LOG_INFO);
 			$_SESSION['renew_message']['Total'] = 1;
 			$_SESSION['renew_message']['Renewed'] = 0;
@@ -56,7 +56,7 @@ class Renew extends Action
 			}
 			$_SESSION['renew_message'][$renewResult['itemId']] = $renewResult;
 		} else {
-			PEAR::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));
 		}
 
 		//Redirect back to the hold screen with status from the renewal

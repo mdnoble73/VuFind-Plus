@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'services/MyResearch/MyResearch.php';
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
 class CheckedOut extends MyResearch{
 	function launch(){
@@ -27,7 +27,6 @@ class CheckedOut extends MyResearch{
 		global $interface;
 		global $user;
 		global $timer;
-		global $logger;
 
 		// Get My Transactions
 		$oneOrMoreRenewableItems = false;
@@ -35,11 +34,11 @@ class CheckedOut extends MyResearch{
 			if ($user->cat_username) {
 				$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
 				$timer->logTime("Logged in patron to get checked out items.");
-				if (PEAR::isError($patron))
-				PEAR::raiseError($patron);
+				if (PEAR_Singleton::isError($patron))
+				PEAR_Singleton::raiseError($patron);
 
 				$patronResult = $this->catalog->getMyProfile($patron);
-				if (!PEAR::isError($patronResult)) {
+				if (!PEAR_Singleton::isError($patronResult)) {
 					$interface->assign('profile', $patronResult);
 				}
 				$timer->logTime("Got patron profile to get checked out items.");
@@ -67,9 +66,9 @@ class CheckedOut extends MyResearch{
 					$page = 1;
 				}
 
-				$result = $this->catalog->getMyTransactions($patron, $page, $recordsPerPage, $selectedSortOption);
+				$result = $this->catalog->getMyTransactions($page, $recordsPerPage, $selectedSortOption);
 				$timer->logTime("Loaded transactions from catalog.");
-				if (!PEAR::isError($result)) {
+				if (!PEAR_Singleton::isError($result)) {
 
 					$link = $_SERVER['REQUEST_URI'];
 					if (preg_match('/[&?]page=/', $link)){
@@ -89,8 +88,16 @@ class CheckedOut extends MyResearch{
 						$interface->assign('pageLinks', $pager->getLinks());
 					}
 
-					$transList = array();
+					$interface->assign('showNotInterested', false);
 					foreach ($result['transactions'] as $i => $data) {
+						//Get Rating
+						$resource = new Resource();
+						$resource->source = 'VuFind';
+						$resource->record_id = $data['id'];
+						$resource->find(true);
+						$data['ratingData'] = $resource->getRatingData($user);
+						$result['transactions'][$i] = $data;
+
 						$itemBarcode = isset($data['barcode']) ? $data['barcode'] : null;
 						$itemId = isset($data['itemid']) ? $data['itemid'] : null;
 						if ($itemBarcode != null && isset($_SESSION['renew_message'][$itemBarcode])){
@@ -231,7 +238,7 @@ class CheckedOut extends MyResearch{
 		// Rename sheet
 		$objPHPExcel->getActiveSheet()->setTitle('Checked Out');
 
-		// Redirect output to a client’s web browser (Excel5)
+		// Redirect output to a client's web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename="CheckedOutItems.xls"');
 		header('Cache-Control: max-age=0');

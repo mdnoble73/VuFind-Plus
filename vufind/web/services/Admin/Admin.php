@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-abstract class Admin extends Action
+abstract class Admin_Admin extends Action
 {
 	protected $db;
 
@@ -32,7 +32,7 @@ abstract class Admin extends Action
 
 		//If the user isn't logged in, take them to the login page
 		if (!$user){
-			header("Location: {$configArray['Site']['url']}/MyResearch/Login");
+			header("Location: {$configArray['Site']['path']}/MyResearch/Login");
 			die();
 		}
 
@@ -45,36 +45,36 @@ abstract class Admin extends Action
 				break;
 			}
 		}
-		
+
 		$interface->assign('ils', $configArray['Catalog']['ils']);
-		
+
 		//Determine whether or not materials request functionality should be enabled
 		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
-		
-		//Check to see if we have any acs or single use eContent in the catalog 
+
+		//Check to see if we have any acs or single use eContent in the catalog
 		//to enable the holds and wishlist appropriately
 		if (isset($configArray['EContent']['hasProtectedEContent'])){
 			$interface->assign('hasProtectedEContent', $configArray['EContent']['hasProtectedEContent']);
 		}else{
 			$interface->assign('hasProtectedEContent', false);
 		}
-		
+
 		//This code is also in Search/History since that page displays in the My Account menu as well.
 		//It is also in MyList.php
 		if ($user !== false){
 			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
-			
+
 			$interface->assign('user', $user);
 			// Get My Profile
 			if ($this->catalog->status) {
 				if ($user->cat_username) {
 					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					if (PEAR::isError($patron)){
-						PEAR::raiseError($patron);
+					if (PEAR_Singleton::isError($patron)){
+						PEAR_Singleton::raiseError($patron);
 					}
 
 					$profile = $this->catalog->getMyProfile($patron);
-					if (!PEAR::isError($profile)) {
+					if (!PEAR_Singleton::isError($profile)) {
 						$interface->assign('profile', $profile);
 					}
 				}
@@ -93,7 +93,7 @@ abstract class Admin extends Action
 		}
 
 		if (!$userCanAccess){
-			$interface->setTemplate('noPermission.tpl');
+			$interface->setTemplate('../Admin/noPermission.tpl');
 			$interface->display('layout.tpl');
 			exit();
 		}

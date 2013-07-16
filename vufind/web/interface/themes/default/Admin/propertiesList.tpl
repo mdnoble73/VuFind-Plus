@@ -26,7 +26,7 @@
 						{foreach from=$dataList item=dataItem key=id}
 						<tr class='{cycle values="odd,even"} {$dataItem->class}'>
 						{if $dataItem->class != 'objectDeleted'}
-							<td class='edit'><a href='{$path}/{$module}/{$toolName}?objectAction=edit&id={$id}'>Edit</a></td>
+							<td><a href='{$path}/{$module}/{$toolName}?objectAction=edit&amp;id={$id}'><span class='silk edit'>&nbsp;</span>Edit</a></td>
 							{/if}
 							{foreach from=$structure item=property}
 								{assign var=propName value=$property.property}
@@ -35,7 +35,7 @@
 								{assign var=propOldValue value=$dataItem->$propOldName}
 								{if !isset($property.hideInLists) || $property.hideInLists == false}
 									<td {if $propOldValue}class='fieldUpdated'{/if}>
-									{if $property.type == 'text' || $property.type == 'label' || $property.type == 'hidden' || $property.type == 'file'}
+									{if $property.type == 'text' || $property.type == 'label' || $property.type == 'hidden' || $property.type == 'file' || $property.type == 'integer'}
 										{$propValue}{if $propOldValue} ({$propOldValue}){/if}
 									{elseif $property.type == 'date'}
 										{$propValue}{if $propOldValue} ({$propOldValue}){/if}
@@ -67,6 +67,12 @@
 										{else}
 											No values selected
 										{/if}
+									{elseif $property.type == 'oneToMany'}
+										{if is_array($propValue) && count($propValue) > 0}
+											{$propValue|@count values}
+										{else}
+											Not set
+										{/if}
 									{elseif $property.type == 'checkbox'}
 										{if ($propValue == 1)}Yes{else}No{/if}
 										{if $propOldValue}
@@ -79,7 +85,14 @@
 								{/if}
 							{/foreach}
 							{if $dataItem->class != 'objectDeleted'}
-							<td class='edit'><a href='{$path}/{$module}/{$toolName}?objectAction=edit&id={$id}'>Edit</a></td>
+								<td>
+									<a href='{$path}/{$module}/{$toolName}?objectAction=edit&amp;id={$id}'><span class="silk edit">&nbsp;</span>Edit</a>
+									{if $additionalActions}
+										{foreach from=$additionalActions item=action}
+											<a href='{$action.path}&amp;id={$id}'>{$action.name}</a>
+										{/foreach} 
+									{/if}
+								</td>
 							{/if}
 						</tr>
 						{/foreach}
@@ -88,34 +101,44 @@
 			</table>
 		</div>
 		{if $canAddNew}
-			<form>
-				<input type='hidden' name='objectAction' value='addNew' />
-				<button type='submit' value='addNew'>Add New {$objectType}</button>
+			<form action="" method="get" id='addNewForm'>
+				<div>
+					<input type='hidden' name='objectAction' value='addNew' />
+					<button type='submit' value='addNew'>Add New {$objectType}</button>
+				</div>
 			</form>
 		{/if}
 			
 		{foreach from=$customListActions item=customAction}
-			<form>
-				<input type='hidden' name='objectAction' value='{$customAction.action}' />
-				<button type='submit' value='{$customAction.action}'>{$customAction.label}</button>
+			<form action="" method="get">
+				<div>
+					<input type='hidden' name='objectAction' value='{$customAction.action}' />
+					<button type='submit' value='{$customAction.action}'>{$customAction.label}</button>
+				</div>
 			</form>
 		{/foreach}
 			
 		{if $showExportAndCompare}
-			<form>
-				<input type='hidden' name='objectAction' value='export' />
-				<button type='submit' value='export'>Export to file</button>
+			<form action="" method="get">
+				<div>
+					<input type='hidden' name='objectAction' value='export' />
+					<button type='submit' value='export'>Export to file</button>
+				</div>
 			</form>
-			<form enctype="multipart/form-data" method="POST">
-				<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
-				<input type="hidden" name='objectAction' value='compare' />
-				Choose a file to compare: <input name="uploadedfile" type="file" /> <input type="submit" value="Compare File" /><br />
+			<form action="" enctype="multipart/form-data" method="post">
+				<div>
+					<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
+					<input type="hidden" name='objectAction' value='compare' />
+					Choose a file to compare: <input name="uploadedfile" type="file" /> <input type="submit" value="Compare File" /><br />
+				</div>
 			</form>
-			<form enctype="multipart/form-data" method="POST">
-				<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
-				<input type="hidden" name='objectAction' value='import' />
-				Choose a file to import: <input name="uploadedfile" type="file" /> <input type="submit" value="Import File" /><br />
-				This should be a file that was exported from the VuFind Admin console. Trying to import another file could result in having a very long day of trying to put things back together.	In short, don't do it!
+			<form action="" enctype="multipart/form-data" method="post">
+				<div>
+					<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
+					<input type="hidden" name='objectAction' value='import' />
+					Choose a file to import: <input name="uploadedfile" type="file" /> <input type="submit" value="Import File" /><br />
+					This should be a file that was exported from the VuFind Admin console. Trying to import another file could result in having a very long day of trying to put things back together.	In short, don't do it!
+				</div>
 			</form>
 		{/if}
 	</div>

@@ -246,6 +246,7 @@ public class Util {
 			}
 			inputLine = reader.readLine();
 		}
+		reader.close();
 		return formatMap;
 	}
 	
@@ -269,17 +270,17 @@ public class Util {
 			}
 			conn.setConnectTimeout(3000);
 			conn.setReadTimeout(300000);
-			logger.debug("  Opened connection");
+			//logger.debug("  Opened connection");
 			StringBuffer response = new StringBuffer();
 			if (conn.getResponseCode() == 200) {
-				logger.debug("  Got successful response");
+				//logger.debug("  Got successful response");
 				// Get the response
 				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 				String line;
 				while ((line = rd.readLine()) != null) {
 					response.append(line);
 				}
-				logger.debug("  Finished reading response");
+				//logger.debug("  Finished reading response");
 				rd.close();
 				retVal = new URLPostResponse(true, 200, response.toString());
 			} else {
@@ -317,7 +318,7 @@ public class Util {
 			conn.setConnectTimeout(1000);
 			conn.setReadTimeout(300000);
 			logger.debug("Posting To URL " + url);
-			logger.debug("  Opened connection");
+			//logger.debug("  Opened connection");
 			conn.setDoInput(true);
 			if (postData != null && postData.length() > 0) {
 				conn.setRequestMethod("POST");
@@ -330,12 +331,12 @@ public class Util {
 				wr.write(postData);
 				wr.flush();
 				wr.close();
-				logger.debug("  Sent post data");
+				//logger.debug("  Sent post data");
 			}
 
 			StringBuffer response = new StringBuffer();
 			if (conn.getResponseCode() == 200) {
-				logger.debug("  Got successful response");
+				//logger.debug("  Got successful response");
 				// Get the response
 				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 				String line;
@@ -345,7 +346,7 @@ public class Util {
 
 				rd.close();
 				retVal = new URLPostResponse(true, 200, response.toString());
-				logger.debug("  Read response");
+				//logger.debug("  Read response");
 			} else {
 				logger.error("Received error " + conn.getResponseCode() + " posting to " + url);
 				logger.info(postData);

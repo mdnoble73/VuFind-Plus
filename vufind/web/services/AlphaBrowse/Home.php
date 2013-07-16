@@ -25,7 +25,7 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/alphabetical_heading_browse Wiki
  */
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 /**
  * Home action for AlphaBrowse module
@@ -36,7 +36,7 @@ require_once 'Action.php';
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/alphabetical_heading_browse Wiki
  */
-class Home extends Action{
+class AlphaBrowse_Home extends Action{
 	/**
 	 * Display the page.
 	 *

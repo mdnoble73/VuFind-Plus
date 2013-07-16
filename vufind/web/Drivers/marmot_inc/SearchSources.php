@@ -1,6 +1,25 @@
 <?php
 class SearchSources{
-	function getSearchSources(){
+	static function getSearchSources(){
+		$activeLibrary = Library::getActiveLibrary();
+		if ($activeLibrary == null || count($activeLibrary->searchSources) == 0 ){
+			$searchSources = SearchSources::getSearchSourcesDefault();
+		}else{
+			$searchSources = SearchSources::getSearchSourcesLibrary($activeLibrary);
+		}
+		return $searchSources;
+	}
+	private static function getSearchSourcesLibrary($library){
+		$searchOptions = array();
+		foreach ($library->searchSources as $searchSource){
+			$searchOptions['library' . $searchSource->id] = array(
+				'name' => $searchSource->label,
+				'description' => $searchSource->label,
+			);
+		}
+		return $searchOptions;
+	}
+	private static function getSearchSourcesDefault(){
 		$searchOptions = array();
 		//Check to see if marmot catalog is a valid option
 		global $library;
@@ -9,14 +28,15 @@ class SearchSources{
 		$repeatInWorldCat = false;
 		$repeatInProspector = true;
 		$repeatInAmazon = true;
-		$repeatInOverdrive = true;
+		$repeatInOverdrive = false;
 		$systemsToRepeatIn = array();
 		$searchGenealogy = true;
 		$repeatCourseReserves = false;
 
+		/** @var $locationSingleton Location */
 		global $locationSingleton;
 		$location = $locationSingleton->getActiveLocation();
-		if ($location != null && $location->useScope && strlen($location->defaultLocationFacet) > 0){
+		if ($location != null && $location->useScope && $location->restrictSearchByLocation){
 			$repeatSearchSetting = $location->repeatSearchOption;
 			$repeatInWorldCat = $location->repeatInWorldCat == 1;
 			$repeatInProspector = $location->repeatInProspector == 1;
@@ -42,7 +62,7 @@ class SearchSources{
 		$marmotAdded = false;
 
 		//Local search
-		if (isset($location) && $location != null && $location->useScope && strlen($location->defaultLocationFacet) > 0){
+		if (isset($location) && $location != null && $location->useScope && $location->restrictSearchByLocation){
 			$searchOptions['local'] = array(
               'name' => $location->displayName,
               'description' => "The {$location->displayName} catalog.",
@@ -62,7 +82,7 @@ class SearchSources{
 
 		if (($location != null) &&
 		($repeatSearchSetting == 'marmot' || $repeatSearchSetting == 'librarySystem') &&
-		($location->useScope && strlen($location->defaultLocationFacet) > 0)
+		($location->useScope && $location->restrictSearchByLocation)
 		){
 			$searchOptions[$library->subdomain] = array(
               'name' => $library->displayName,
@@ -102,18 +122,17 @@ class SearchSources{
 			}
 		}
 
-		//Summon Search - later
 
 		//eContent Search
 		$searchOptions['econtent'] = array(
-              'name' => 'Digital Collection',
+              'name' => 'Online Collection',
               'description' => 'Digital Media available for use online and with portable devices',
 		);
 
 		//Marmot Global search
 		if (isset($library) &&
 		($repeatSearchSetting == 'marmot') &&
-		(strlen($library->defaultLibraryFacet) > 0)
+		$library->restrictSearchByLibrary
 		&& $marmotAdded == false
 		){
 
@@ -212,7 +231,6 @@ class SearchSources{
 				return 'kw';
 				break;
 		}
-		return;
 	}
 
 	public function getGoldRushSearchType($type){
@@ -220,54 +238,82 @@ class SearchSources{
 			case 'Subject':
 				return 'Subject';
 				break;
-			case 'Author':
-				return; //Gold Rush does not support this directly
-				break;
 			case 'Title':
 				return 'Journal Title';
 				break;
 			case 'ISN':
 				return 'ISSN';
 				break;
+			case 'Author': //Gold Rush does not support author searches directly
 			case 'AllFields':
 			case 'Keyword':
 			default:
 				return 'Keyword';
 				break;
 		}
-		return;
 	}
 
-	public function getExternalLink($searchSource, $type, $lookfor){
+	public function getExternalLink($searchSource, $type, $lookFor){
+		if (is_object($searchSource)){
+			$searchSource = $searchSource->searchWhat;
+		}
 		global $library;
 		if ($searchSource =='goldrush'){
 			$goldRushType = $this->getGoldRushSearchType($type);
-			return "http://goldrush.coalliance.org/index.cfm?fuseaction=Search&inst_code={$library->goldRushCode}&search_type={$goldRushType}&search_term=".urlencode($lookfor);
+			return "http://goldrush.coalliance.org/index.cfm?fuseaction=Search&inst_code={$library->goldRushCode}&search_type={$goldRushType}&search_term=".urlencode($lookFor);
 		}else if ($searchSource == 'worldcat'){
 			$worldCatSearchType = $this->getWorldCatSearchType($type);
-			$worldCatLink = "http://www.worldcat.org/search?q={$worldCatSearchType}%3A".urlencode($lookfor);
+			$worldCatLink = "http://www.worldcat.org/search?q={$worldCatSearchType}%3A".urlencode($lookFor);
 			if (isset($library) && strlen($library->worldCatUrl) > 0){
 				$worldCatLink = $library->worldCatUrl;
 				if (strpos($worldCatLink, '?') == false){
 					$worldCatLink .= "?";
 				}
-				$worldCatLink .= "q={$worldCatSearchType}:".urlencode($lookfor);
+				$worldCatLink .= "q={$worldCatSearchType}:".urlencode($lookFor);
 				if (strlen($library->worldCatQt) > 0){
 					$worldCatLink .= "&qt=" . $library->worldCatQt;
 				}
 			}
 			return $worldCatLink;
 		}else if ($searchSource == 'overdrive'){
-			return "http://marmot.lib.overdrive.com/BangSearch.dll?Type=FullText&FullTextField=All&FullTextCriteria=" . urlencode($lookfor);
+			return "http://marmot.lib.overdrive.com/BangSearch.dll?Type=FullText&FullTextField=All&FullTextCriteria=" . urlencode($lookFor);
 		}else if ($searchSource == 'prospector'){
-			//$prospectorSearchType = $this->getProspectorSearchType($searchObject);
-			return "http://encore.coalliance.org/iii/encore/search/C|S" . urlencode($lookfor) ."|Orightresult|U1?lang=eng&amp;suite=def";
+			$prospectorSearchType = $this->getProspectorSearchType($type);
+			$lookFor = str_replace('+', '%20', rawurlencode($lookFor));
+			if ($prospectorSearchType != ' '){
+				$lookFor = "$prospectorSearchType:(" . $lookFor . ")";
+			}
+			return "http://encore.coalliance.org/iii/encore/search/C|S" . $lookFor ."|Orightresult|U1?lang=eng&amp;suite=def";
 		}else if ($searchSource == 'amazon'){
-			return "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($lookfor);
+			return "http://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=" . urlencode($lookFor);
 		}else if ($searchSource == 'course-reserves-course-name'){
-			return "http://www.millennium.marmot.org/search~S{$library->scope}/r?SEARCH=" . urlencode($lookfor);
+			return "http://www.millennium.marmot.org/search~S{$library->scope}/r?SEARCH=" . urlencode($lookFor);
 		}else if ($searchSource == 'course-reserves-instructor'){
-			return "http://www.millennium.marmot.org/search~S{$library->scope}/p?SEARCH=" . urlencode($lookfor);
+			return "http://www.millennium.marmot.org/search~S{$library->scope}/p?SEARCH=" . urlencode($lookFor);
+		}else{
+			return "";
 		}
+	}
+
+	public function getProspectorSearchType($type){
+		switch ($type){
+			case 'Subject':
+				return 'd';
+				break;
+			case 'Author':
+				return 'a';
+				break;
+			case 'Title':
+				return 't';
+				break;
+			case 'ISN':
+				return 'i';
+				break;
+			case 'AllFields':
+			case 'Keyword':
+				return ' ';
+				break;
+		}
+		return ' ';
 	}
 }

@@ -19,14 +19,14 @@
  */
 
 require_once 'Record.php';
-require_once 'sys/SolrStats.php';
+require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once 'Reviews.php';
 require_once 'UserComments.php';
 require_once 'Cite.php';
 require_once 'Holdings.php';
-require_once('sys/EditorialReview.php');
+require_once(ROOT_DIR . '/sys/EditorialReview.php');
 
-class Home extends Record{
+class Record_Home extends Record_Record{
 	function launch(){
 		global $interface;
 		global $timer;
@@ -34,20 +34,26 @@ class Home extends Record{
 		global $user;
 
 		// Load Supplemental Information
-		UserComments::loadComments();
+		Record_UserComments::loadComments();
 		$timer->logTime('Loaded Comments');
-		Cite::loadCitation();
+		Record_Cite::loadCitation();
 		$timer->logTime('Loaded Citations');
-		
+
 		if (isset($_REQUEST['id'])){
 			$recordId = $_REQUEST['id'];
 		}
-		
+
 		if (isset($_REQUEST['strandsReqId']) && isset($configArray['Strands']['APID'])){
 			$url = "http://bizsolutions.strands.com/api2/event/clickedrecommendation.sbs?apid={$configArray['Strands']['APID']}&item={$recordId}&user={$user->id}&rrq={$_REQUEST['strandsReqId']}&tpl={$_REQUEST['strandsTpl']}";
 			$response = file_get_contents($url);
 		}
 
+		if (isset($_REQUEST['searchId'])){
+			$_SESSION['searchId'] = $_REQUEST['searchId'];
+			$interface->assign('searchId', $_SESSION['searchId']);
+		}else if (isset($_SESSION['searchId'])){
+			$interface->assign('searchId', $_SESSION['searchId']);
+		}
 
 		//Load the Editorial Reviews
 		//Populate an array of editorialReviewIds that match up with the recordId
@@ -55,21 +61,21 @@ class Home extends Record{
 		$editorialReviewResults = array();
 		$editorialReview->recordId = $recordId;
 		$editorialReview->find();
-		$reviewTabs = array();
 		$editorialReviewResults['reviews'] = array(
 			'tabName' => 'Reviews',
 			'reviews' => array()
 		);
 		if ($editorialReview->N > 0){
+			$ctr = 0;
 			while ($editorialReview->fetch()){
 				$reviewKey = preg_replace('/\W/', '_', strtolower($editorialReview->tabName));
-				if (!array_key_exists($editorialReview->tabName, $reviewTabs)){
+				if (!array_key_exists($reviewKey, $editorialReviewResults)){
 					$editorialReviewResults[$reviewKey] = array(
 						'tabName' => $editorialReview->tabName,
 						'reviews' => array()
 					);
 				}
-				$editorialReviewResults[$reviewKey]['reviews'][] = get_object_vars($editorialReview);
+				$editorialReviewResults[$reviewKey]['reviews'][$ctr++] = get_object_vars($editorialReview);
 			}
 		}
 		$interface->assign('editorialReviews', $editorialReviewResults);
@@ -100,7 +106,7 @@ class Home extends Record{
 			$interface->assign('showComments', $library->showComments);
 			$interface->assign('tabbedDetails', $library->tabbedDetails);
 			$interface->assign('showSeriesAsTab', $library->showSeriesAsTab);
-			$interface->assign('showOtherEditionsPopup', $library->showOtherEditionsPopup);
+			$interface->assign('showOtherEditionsPopup', 0);
 			$interface->assign('show856LinksAsTab', $library->show856LinksAsTab);
 			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
 		}else{
@@ -124,13 +130,49 @@ class Home extends Record{
 			$interface->assign('showComments', 1);
 			$interface->assign('tabbedDetails', !isset($configArray['Content']['tabbedDetails']) || $configArray['Content']['tabbedDetails'] == false ? 0 : 1);
 			$interface->assign('showSeriesAsTab', 0);
-			$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
+			$interface->assign('showOtherEditionsPopup', 0);
 			$interface->assign('show856LinksAsTab', 1);
 			$interface->assign('showProspectorTitlesAsTab', 0);
 		}
 		if (!isset($this->isbn)){
 			$interface->assign('showOtherEditionsPopup', false);
 		}
+
+		$resource = new Resource();
+		$resource->record_id = $this->id;
+		$resource->source = 'VuFind';
+		$solrId = $this->id;
+		if ($resource->find(true)){
+			$otherEditions = OtherEditionHandler::getEditions($solrId, $resource->isbn , null, 10);
+			if (is_array($otherEditions)){
+				foreach ($otherEditions as $edition){
+					/** @var Resource $editionResource */
+					$editionResource = new Resource();
+					if (preg_match('/econtentRecord(\d+)/', $edition['id'], $matches)){
+						$editionResource->source = 'eContent';
+						$editionResource->record_id = trim($matches[1]);
+					}else{
+						$editionResource->record_id = $edition['id'];
+						$editionResource->source = 'VuFind';
+					}
+
+					if ($editionResource->find(true)){
+						$editionResources[] = $editionResource;
+					}else{
+						$logger= new Logger();
+						$logger->log("Could not find resource {$editionResource->source} {$editionResource->record_id} - {$edition['id']}", PEAR_LOG_DEBUG);
+					}
+				}
+			}else{
+				$editionResources = null;
+			}
+		}else{
+			$otherEditions = null;
+			$editionResources = null;
+		}
+		$interface->assign('otherEditions', $otherEditions);
+		$interface->assign('editionResources', $editionResources);
+
 		$interface->assign('chiliFreshAccount', $configArray['Content']['chiliFreshAccount']);
 		$timer->logTime('Configure UI for library and location');
 
@@ -172,7 +214,7 @@ class Home extends Record{
 				$enrichment[$func] = $this->$func();
 
 				// If the current provider had no valid reviews, store nothing:
-				if (empty($enrichment[$func]) || PEAR::isError($enrichment[$func])) {
+				if (empty($enrichment[$func]) || PEAR_Singleton::isError($enrichment[$func])) {
 					unset($enrichment[$func]);
 				}
 			}

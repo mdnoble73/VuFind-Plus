@@ -12,9 +12,7 @@ class SearchEntry extends DB_DataObject
 	public $__table = 'search';													// table name
 	public $id;															// int(11)	not_null primary_key auto_increment
 	public $user_id;												 // int(11)	not_null multiple_key
-	public $list_id;												 // int(11)	multiple_key
 	public $created;												 // date(10)	not_null binary
-	public $title;													 // string(20)
 	public $saved;													 // int(1) not_null default 0
 	public $search_object;									 // blob
 	public $session_id;											// varchar(128)
@@ -60,19 +58,20 @@ class SearchEntry extends DB_DataObject
 	 */
 	function getExpiredSearches($daysOld = 2)
 	{
-			// Determine the expiration date:
-			$expirationDate = date('Y-m-d', time() - $daysOld * 24 * 60 * 60);
+		// Determine the expiration date:
+		$expirationDate = date('Y-m-d', time() - $daysOld * 24 * 60 * 60);
 
-			// Find expired, unsaved searches:
-			$sql = "SELECT * FROM search WHERE saved=0 AND created<\"{$expirationDate}\";";
-			$s = new SearchEntry();
-			$s->query($sql);
-			if ($s->N) {
-					while ($s->fetch()) {
-							$searches[] = clone($s);
-					}
-			}
-			return $searches;
+		// Find expired, unsaved searches:
+		$sql = 'SELECT * FROM search WHERE saved=0 AND created<"' . $expirationDate . '"';
+		$s = new SearchEntry();
+		$s->query($sql);
+		$searches = array();
+		if ($s->N) {
+				while ($s->fetch()) {
+						$searches[] = clone($s);
+				}
+		}
+		return $searches;
 	}
 
 	/* the code above is auto generated do not remove the tag below */

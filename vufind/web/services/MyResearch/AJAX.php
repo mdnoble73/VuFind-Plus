@@ -18,22 +18,22 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/MyResearch/lib/Suggestions.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Suggestions.php';
 
-require_once 'services/MyResearch/lib/User_resource.php';
-require_once 'services/MyResearch/lib/User_list.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User_resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
 
 class AJAX extends Action {
 
-	function AJAX()
+	function MyResearch_AJAX()
 	{
 	}
 
 	function launch()
 	{
 		$method = $_GET['method'];
-		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList'))){
+		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -60,15 +60,49 @@ class AJAX extends Action {
 		}
 	}
 
+	function clearUserRating(){
+		global $user;
+		$source = $_REQUEST['source'];
+		$recordId = $_REQUEST['recordId'];
+		$result = array('result' => false);
+		if ($source == 'VuFind'){
+			require_once ROOT_DIR . '/Drivers/marmot_inc/UserRating.php';
+			$resource = new Resource();
+			$resource->record_id = $recordId;
+			$resource->source = 'VuFind';
+			if ($resource->find(true)){
+				$rating = new UserRating();
+				$rating->userid = $user->id;
+				$rating->resourceid = $resource->id;
+				if ($rating->find(true)){
+					if ($rating->delete()){
+						$result = array('result' => true, 'message' => 'deleted user rating for resource ' . $rating->resourceid);
+					}
+				}
+			}
+		}else{
+			require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
+			$econtentRating = new EContentRating();
+			$econtentRating->userId = $user->id;
+			$econtentRating->recordId = $recordId;
+			if ($econtentRating->find(true)){
+				if ($econtentRating->delete()){
+					$result = array('result' => true);
+				}
+			}
+		}
+		return json_encode($result);
+	}
+
 	// Create new list
 	function AddList()
 	{
-		require_once 'services/MyResearch/ListEdit.php';
+		require_once ROOT_DIR . '/services/MyResearch/ListEdit.php';
 		$return = array();
 		if (UserAccount::isLoggedIn()) {
 			$listService = new ListEdit();
 			$result = $listService->addList();
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				$return['result'] = 'Done';
 				$return['newId'] = $result;
 			} else {
@@ -92,7 +126,7 @@ class AJAX extends Action {
 	 */
 	function GetPreferredBranches()
 	{
-		require_once 'Drivers/marmot_inc/Location.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/Location.php';
 		global $configArray;
 		global $user;
 
@@ -113,25 +147,38 @@ class AJAX extends Action {
 		//Get the list of pickup branch locations for display in the user interface.
 		$patron = $catalog->patronLogin($username, $password);
 		if ($patron == null){
-			$output = "<result>\n" .
-											"	<PickupLocations>\n";
-			$output .= "	</PickupLocations>\n" .
-											 '</result>';
+			$result = array(
+				'PickupLocations' => array(),
+				'loginFailed' => true
+			);
 		}else{
-
-			$output = "<result>\n" .
-											"	<PickupLocations>\n";
-
 			$patronProfile = $catalog->getMyProfile($patron);
 
 			$location = new Location();
 			$locationList = $location->getPickupBranches($patronProfile, $patronProfile['homeLocationId']);
-
-			foreach ($locationList as $location){
-				$output .= "<Location id='{$location->code}' selected='{$location->selected}'>$location->displayName</Location>";
+			$pickupLocations = array();
+			foreach ($locationList as $curLocation){
+				$pickupLocations[] = array(
+					'id' => $curLocation->locationId,
+					'displayName' => $curLocation->displayName,
+					'selected' => $curLocation->selected,
+				);
+			}
+			require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
+			$maxHolds = -1;
+			//Determine if we should show a warning
+			$ptype = new PType();
+			$ptype->pType = $patronProfile['ptype'];
+			if ($ptype->find(true)){
+				$maxHolds = $ptype->maxHolds;
+			}
+			$currentHolds = $patronProfile['numHolds'];
+			$holdCount = $_REQUEST['holdCount'];
+			$showOverHoldLimit = false;
+			if ($maxHolds != -1 && ($currentHolds + $holdCount > $maxHolds)){
+				$showOverHoldLimit = true;
 			}
 
-			$output .= "	</PickupLocations>\n";
 			//Also determine if the hold can be cancelled.
 			global $librarySingleton;
 			$patronHomeBranch = $librarySingleton->getPatronHomeLibrary();
@@ -139,11 +186,16 @@ class AJAX extends Action {
 			if ($patronHomeBranch != null){
 				$showHoldCancelDate = $patronHomeBranch->showHoldCancelDate;
 			}
-			$output .= "	<AllowHoldCancellation>{$showHoldCancelDate}</AllowHoldCancellation>\n";
-			$output .= '</result>';
-
+			$result = array(
+				'PickupLocations' => $pickupLocations,
+				'loginFailed' => false,
+				'AllowHoldCancellation' => $showHoldCancelDate,
+				'showOverHoldLimit' => $showOverHoldLimit,
+				'maxHolds' => $maxHolds,
+				'currentHolds' => $currentHolds
+			);
 		}
-		return $output;
+		return json_encode($result);
 	}
 
 	function GetSuggestions(){
@@ -169,7 +221,7 @@ class AJAX extends Action {
 		foreach ($suggestions as $suggestion){
 			$titles[] = array(
 					'id' => $suggestion['titleInfo']['id'],
-					'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=". $suggestion['titleInfo']['id'] . "&isn=" . $suggestion['titleInfo']['isbn10'] . "&size=medium&upc=" . $suggestion['titleInfo']['upc'] . "&category=" . $suggestion['titleInfo']['format_category'][0],
+					'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=". $suggestion['titleInfo']['id'] . "&issn=" . $suggestion['titleInfo']['issn'] . "&isn=" . $suggestion['titleInfo']['isbn10'] . "&size=medium&upc=" . $suggestion['titleInfo']['upc'] . "&category=" . $suggestion['titleInfo']['format_category'][0],
 					'title' => $suggestion['titleInfo']['title'],
 					'author' => $suggestion['titleInfo']['author'],
 					'basedOn' => $suggestion['basedOn']
@@ -192,79 +244,81 @@ class AJAX extends Action {
 	}
 
 	function GetListTitles(){
-		require_once('RecordDrivers/MarcRecord.php');
-		global $interface;
+		global $memCache;
 		global $configArray;
-		global $library;
-
-		//Make sure to initialize solr
-		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->init();
-
-		// Setup Search Engine Connection
-		$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		$db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$db->debug = true;
-		}
+		global $timer;
 
 		$listId = $_REQUEST['listId'];
+		$_REQUEST['id'] = 'list:' . $listId;
+		$listName = strip_tags(isset($_GET['scrollerName']) ? $_GET['scrollerName'] : 'List' . $listId);
+		$scrollerName = isset($_GET['scrollerName']) ? strip_tags($_GET['scrollerName']) : $listName;
 
-		//Get the actual titles for the list
-		$list = User_list::staticGet('id', $listId);
-		$listTitles = $list->getResources();
+		//Determine the caching parameters
+		require_once(ROOT_DIR . '/services/API/ListAPI.php');
+		$listAPI = new ListAPI();
+		$cacheInfo = $listAPI->getCacheInfoForList();
 
-		$titles = array();
-		foreach ($listTitles as $title){
-			if ($title->source == 'VuFind'){
-				$upc = $title->upc;
-				$formatCategory = $title->format_category;
+		$listData = $memCache->get($cacheInfo['cacheName']);
 
-				$titles[] = array(
-						'id' => $title->record_id,
-						'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $title->record_id . "&isn=" . $title->isbn . "&size=small&upc=" . $upc . "&category=" . $formatCategory,
-						'title' => $title->title,
-						'author' => $title->author,
-						'source' => 'VuFind',
-						'link' => $configArray['Site']['path'] . "/Record/" . $title->record_id,
-				);
-			}else{
-				require_once('sys/eContent/EContentRecord.php');
-				$record = new EContentRecord();
-				$record->id = $title->record_id;
-				if ($record->find(true)){
-					$titles[] = array(
-						'id' => $record->id,
-						'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record->id . "&isn=" . $record->getIsbn() . "&size=small&upc=" . $record->upc . "&category=EMedia",
-						'title' => $record->title,
-						'author' => $record->author,
-						'source' => 'eContent',
-						'link' => $configArray['Site']['path'] . "/EcontentRecord/" . $record->id,
-					);
+		if (!$listData || isset($_REQUEST['reload']) || (isset($listData['titles']) && count($listData['titles'] == 0))){
+			global $interface;
+
+			$titles = $listAPI->getListTitles();
+			$timer->logTime("getListTitles");
+			$addStrandsTracking = false;
+			if ($titles['success'] == true){
+				if (isset($titles['strands'])){
+					$addStrandsTracking = true;
+					$strandsInfo = $titles['strands'];
 				}
+				$titles = $titles['titles'];
+				if (is_array($titles)){
+					foreach ($titles as $key => $rawData){
+
+						$interface->assign('description', $rawData['description']);
+						$interface->assign('length', $rawData['length']);
+						$interface->assign('publisher', $rawData['publisher']);
+						$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
+
+						$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
+						$shortId = $rawData['id'];
+						if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
+							$recordId = substr($rawData['id'], 14);
+							$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
+						}else{
+							$shortId = str_replace('.b', 'b', $shortId);
+							$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $shortId . '">';
+						}
+						$formattedTitle .= "<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+								"</a></div>" .
+								"<div id='descriptionPlaceholder{$shortId}' style='display:none' class='loaded'>" .
+									$descriptionInfo .
+								"</div>";
+						$rawData['formattedTitle'] = $formattedTitle;
+						$titles[$key] = $rawData;
+					}
+				}
+				$currentIndex = count($titles) > 5 ? floor(count($titles) / 2) : 0;
+
+				$return = array('titles' => $titles, 'currentIndex' => $currentIndex);
+				$listData = json_encode($return);
+			}else{
+				$return = array('titles' => array(), 'currentIndex' =>0);
+				$listData = json_encode($return);
 			}
+
+			$memCache->set($cacheInfo['cacheName'], $listData, 0, $cacheInfo['cacheLength']);
+
 		}
 
-		foreach ($titles as $key => $rawData){
-			$formattedTitle = "<div id=\"scrollerTitleList{$listId}{$key}\" class=\"scrollerTitle\">" .
-					'<a href="' . $rawData['link'] . '" id="descriptionTrigger' . $rawData['id'] . '">' .
-					"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-					"</a></div>" .
-					"<div id='descriptionPlaceholder{$rawData['id']}' style='display:none'></div>";
-			$rawData['formattedTitle'] = $formattedTitle;
-			$titles[$key] = $rawData;
-		}
-
-		$return = array('titles' => $titles, 'currentIndex' => 0);
-		return json_encode($return);
+		return $listData;
 	}
 
 	function getOverDriveSummary(){
 		global $user;
 		if ($user){
-			require_once 'Drivers/OverDriveDriver.php';
-			$overDriveDriver = new OverDriveDriver();
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$overDriveDriver = OverDriveDriverFactory::getDriver();
 			$summary = $overDriveDriver->getOverDriveSummary($user);
 			return json_encode($summary);
 		}else{

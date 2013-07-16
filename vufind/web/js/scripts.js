@@ -23,8 +23,12 @@ $(document).ready(function(){
 	$('a.mobile-view').each(function() {
 		$(this).attr('href', url);
 	});
+	collapseFieldsets();
 	
-	// Implement collapsible fieldsets.
+});
+
+function collapseFieldsets(){
+	//Implement collapsible fieldsets.
 	var collapsibles = $('fieldset.fieldset-collapsible');
 	if (collapsibles.length > 0) {
 		collapsibles.each(function() {
@@ -34,8 +38,7 @@ $(document).ready(function(){
 				var collapsible = event.data.collapsible;
 				if (collapsible.hasClass('fieldset-collapsed')) {
 					collapsible.removeClass('fieldset-collapsed');
-				}
-				else {
+				} else {
 					collapsible.addClass('fieldset-collapsed');
 				}
 			});
@@ -43,7 +46,7 @@ $(document).ready(function(){
 			collapsible.addClass('fieldset-collapsed');
 		});
 	}
-});
+}
 
 function getLightbox(module, action, id, lookfor, message, followupModule,
 		followupAction, followupId, left, width, top, height) {
@@ -91,8 +94,7 @@ function getLightbox(module, action, id, lookfor, message, followupModule,
 					}
 				}
 			} else {
-				document.getElementById('popupbox').innerHTML = document
-						.getElementById('lightboxError').innerHTML;
+				document.getElementById('popupbox').innerHTML = document.getElementById('lightboxError').innerHTML;
 			}
 
 			// Check to see if an element within the lightbox needs to be given focus.
@@ -169,8 +171,7 @@ function Login(elems, salt, module, action, id, lookfor, message) {
 }
 
 function lightbox(left, width, top, height){
-	if (!left) left = '100px';
-	if (!top) top = '100px';
+	
 	if (!width) width = 'auto';
 	if (!height) height = 'auto';
 	
@@ -190,10 +191,24 @@ function lightbox(left, width, top, height){
 	$('#lightbox').css('height', documentHeight + 'px');
 
 	$('#popupbox').show();
-	$('#popupbox').css('top', top);
-	$('#popupbox').css('left', left);
 	$('#popupbox').css('width', width);
 	$('#popupbox').css('height', height);
+	if (left != undefined && top != undefined){
+		$('#popupbox').position({
+			'my': 'top left',
+			'at': top + " " + left,
+			'collision': 'fit'
+		});
+	}else{
+		$('#popupbox').position({
+			my: 'center center',
+			at: 'center center',
+			collision: 'fit',
+			of: window
+		});
+	}
+	//$('#popupbox').css('top', top);
+	//$('#popupbox').css('left', left);
 }
 
 function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
@@ -212,9 +227,16 @@ function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
 	$('#lightbox').css('height', documentHeight + 'px');
 	
 	$('#popupbox').html('<img src="' + path + '/images/loading.gif" /><br />' + loadMsg);
+	
 	$('#popupbox').show();
-	$('#popupbox').css('top', '50%');
-	$('#popupbox').css('left', '50%');
+	$('#popupbox').width('auto');
+	$('#popupbox').height('auto');
+	$('#popupbox').position({
+		my: 'center center',
+		at: 'center center',
+		of: window,
+		collision: 'fit'
+	});
 	
 	$.get(urlToLoad, function(data) {
 		$('#popupbox').html(data);
@@ -223,10 +245,10 @@ function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
 		if (parentId){
 			//Automatically position the lightbox over the cursor
 			$("#popupbox").position({
-				my: "top right",
-				at: "top right",
+				my: 'top right',
+				at: 'top right',
 				of: parentId,
-				collision: "flip"
+				collision: "fit"
 			});
 		}else{
 			if (!left) left = '100px';
@@ -236,15 +258,19 @@ function ajaxLightbox(urlToLoad, parentId, left, width, top, height){
 			
 			$('#popupbox').css('top', top);
 			$('#popupbox').css('left', left);
-			$('#popupbox').css('width', width);
-			$('#popupbox').css('height', height);
+			$('#popupbox').width(width);
+			$('#popupbox').height(height);
 			
 			$(document).scrollTop(0);
 		}
 		if ($("#popupboxHeader").length > 0){
 			$("#popupbox").draggable({ handle: "#popupboxHeader" });
 		}
+	}).error(function(){ 
+		$('#popupbox').html("There was an error loading this information, please try again later.")
+		$('#popupbox').show();
 	});
+	return false;
 }
 
 function showElementInLightbox(title, elementSelector){
@@ -260,14 +286,47 @@ function showElementInLightbox(title, elementSelector){
 	$('#popupbox').show();
 	$('#popupbox').css('top', '100px');
 	$('#popupbox').css('left', '100px');
-	$('#popupbox').css('width', 'auto');
-	$('#popupbox').css('height', 'auto');
+	$('#popupbox').width('auto');
+	$('#popupbox').height('auto');
 	
 	var lightboxContents = "<div class='header'>" + title + "<a href='#' onclick='hideLightbox();return false;' class='closeIcon'>Close <img src='" + path + "/images/silk/cancel.png' alt='close' /></a></div>";
-	lightboxContents += "<div class='content'>" + $(elementSelector).html() + "</div>";
+	lightboxContents += "<div id='popupboxContent' class='content'>" + $(elementSelector).html() + "</div>";
 	
 	$('#popupbox').html(lightboxContents);
+	$('#popupbox').position({
+		my: 'center center',
+		at: 'center center',
+		of: window,
+		collision: 'fit'
+	});
+}
+
+function showHtmlInLightbox(title, htmlSnippet){
+	// Find out how far down the screen the user has scrolled.
+	var new_top =  document.body.scrollTop;
+
+	// Get the height of the document
+	var documentHeight = $(document).height();
+
+	$('#lightbox').show();
+	$('#lightbox').css('height', documentHeight + 'px');
+
+	$('#popupbox').show();
+	$('#popupbox').css('top', '100px');
+	$('#popupbox').css('left', '100px');
+	$('#popupbox').width('auto');
+	$('#popupbox').height('auto');
 	
+	var lightboxContents = "<div class='header'>" + title + "<a href='#' onclick='hideLightbox();return false;' class='closeIcon'>Close <img src='" + path + "/images/silk/cancel.png' alt='close' /></a></div>";
+	lightboxContents += "<div id='popupboxContent' class='content'>" + htmlSnippet + "</div>";
+	
+	$('#popupbox').html(lightboxContents);
+	$('#popupbox').position({
+		my: 'center center',
+		at: 'center center',
+		of: window,
+		collision: 'fit'
+	});
 }
 
 function hideLightbox(){
@@ -493,7 +552,7 @@ function getOverDriveSummary(){
 var ajaxCallback = null;
 function ajaxLogin(callback){
 	ajaxCallback = callback;
-	ajaxLightbox(path + '/MyResearch/AJAX?method=LoginForm');
+	return ajaxLightbox(path + '/MyResearch/AJAX?method=LoginForm');
 }
 
 function processAjaxLogin(){
@@ -549,14 +608,17 @@ function searchSubmit(){
 }
 
 function setupFieldsetToggles(){
-	$('legend.collapsible').siblings().hide();
-	$('legend.collapsible').addClass("collapsed");
-	$('legend.collapsible').click(function() {
-		$(this).toggleClass("expanded");
-		$(this).toggleClass("collapsed");
-		$(this).siblings().slideToggle();
-		return false;
+	$('legend.collapsible').each(function(index){
+		$(this).siblings().hide();
+		$(this).addClass("collapsed");
+		$(this).click(function() {
+			$(this).toggleClass("expanded");
+			$(this).toggleClass("collapsed");
+			$(this).siblings().slideToggle();
+			return false;
+		});
 	});
+
 }
 
 function pwdToText(fieldId){
@@ -643,7 +705,7 @@ try{
 						my: "left top",
 						at: "left bottom",
 						of: "#lookfor",
-						collision: "fit"
+						collision: "none"
 					},
 					minLength: 4,
 					delay: 600
@@ -663,13 +725,27 @@ try{
  * @param id
  * @param type
  */
-function resultDescription(shortid,id, type){
+function resultDescription(shortid, id, type){
   //Attach the tooltip function to the HTML element with the id pretty + short record id
-  //this will show the description when the user hovers over the element. 
-var divId = "#descriptionTrigger" + shortid;
-if (type == undefined){
-	type = 'VuFind';
+  //this will show the description when the user hovers over the element.
+if (shortid.length == 0){
+	return;
 }
+if (type == undefined){
+	if (id.indexOf("econtentRecord") == 0){
+		type = 'eContent';
+		id = id.substring(14);
+	}else{
+		type = 'VuFind';
+		if (id.substring(0, 1) != "."){
+			id = "." + id;
+		}
+		if (shortid.substring(0,1) == "."){
+			shortid = shortid.substring(1);
+		}
+	}
+}
+var divId = "#descriptionTrigger" + shortid;
 if (type == 'VuFind'){
 	var loadDescription = path + "/Record/" + id + "/AJAX/?method=getDescription";
 }else{
@@ -689,15 +765,8 @@ $(divId).tooltip({
 		  var rawData = $.ajax(loadDescription,{
 			  async: false
 		  }).responseText;
-		  var xmlDoc = $.parseXML(rawData);
-		  var data = $(xmlDoc);
-		  //parses the xml and sets variables to call later
-		  var descriptAjax = data.find('description').text();
-		  var lengthAjax = data.find('length').text();
-		  var publishAjax =data.find('publisher').text();
-		  var toolTip = "<h3>Description</h3> <div class='description-element'>" + descriptAjax + "</div><div class='description-element'><div class='description-element-label'>Length: </div>" + lengthAjax + "</div><div class='description-element'><div class='description-element-label'>Publisher: </div>" + publishAjax + "</div>";
-		  $("#descriptionPlaceholder" + shortid).html(toolTip);
-		  return toolTip;
+		  $("#descriptionPlaceholder" + shortid).html(rawData);
+		  return rawData;
 		}
 	  }
 });
@@ -852,13 +921,32 @@ function moreFacets(name)
 	document.getElementById("more" + name).style.display="none";
 	document.getElementById("narrowGroupHidden_" + name).style.display="block";
 }
-								
+
+function moreFacetPopup(title, name)
+{
+	showElementInLightbox(title, "#moreFacetPopup_" + name);
+}
+
 function lessFacets(name)
 {
 	document.getElementById("more" + name).style.display="block";
 	document.getElementById("narrowGroupHidden_" + name).style.display="none";
 }
 
+function showReviewForm(id, source){
+	if (loggedIn){
+		if (source == 'VuFind'){
+			$('.userreview').slideUp();$('#userreview' + id).slideDown();
+		}else{
+			$('.userecontentreview').slideUp();$('#userecontentreview' + id).slideDown();
+		}
+	}else{
+		ajaxLogin(function (){
+			showReviewForm(id, source);
+		});
+	}
+	return false;
+}
 function getSaveToListForm(id, source){
 	if (loggedIn){
 		var url = path + "/Resource/Save?lightbox=true&id=" + id + "&source=" + source;
@@ -1013,3 +1101,87 @@ function getQuerystringParameters(){
 	}
 	return vars;
 }
+
+function createWidgetFromList(listId){
+	//prompt for the widget to add to 
+	ajaxLightbox(path + '/Admin/AJAX?method=getAddToWidgetForm&source=list&id=' + listId);
+	return false;
+}
+function createWidgetFromSearch(searchId){
+	//prompt for the widget to add to
+	ajaxLightbox(path + '/Admin/AJAX?method=getAddToWidgetForm&source=search&id=' + searchId);
+	return false;
+}
+function trackEvent(category, action, data){
+	var url =path + '/AJAX/JSON?method=trackEvent&category=' + encodeURIComponent(category) + '&eventAction=' + encodeURIComponent(action) + '&data=' + encodeURIComponent(data);
+	$.ajax({
+		url: url,
+		async: true
+	});
+	return true;
+}
+
+function changeDropDownFacet(dropDownId, facetLabel){
+	var selectedOption = $("#" + dropDownId + " :selected");
+	var destination = selectedOption.data("destination");
+	var value = selectedOption.data("label");
+	window.location.href = destination;
+}
+
+function toggleSection(sectionName){
+	$("." + sectionName).toggle();
+	$("#holdings-section-" + sectionName).toggleClass('collapsed expanded');
+}
+function showEContentSupportForm(){
+	if (loggedIn){
+		return ajaxLightbox(path + '/Help/eContentSupport?lightbox=true');
+	}else{
+		return ajaxLogin(function (){showEContentSupportForm()});
+	}
+}
+function loadEContentHelpTopic(){
+	var selectedDevice = $("#device :selected").val();
+	var selectedFormat = $("#format :selected").val();
+	
+	if (selectedDevice != "selectone" && selectedFormat != "selectone"){
+		$.getJSON(
+			path + '/Help/AJAX?method=getHelpTopic&device=' + selectedDevice + '&format=' +selectedFormat,
+			function (data){
+				$("#stepByStepInstructions").show()
+				$("#helpInstructions").html(data.helpText);
+			}
+		);
+	}
+}
+
+function markNotInterested(source, recordId){
+	if (loggedIn){
+		var url = path + '/Resource/AJAX?method=MarkNotInterested&source=' + source + '&recordId=' + recordId;
+		$.getJSON(
+				url, function(data){
+					if (data.result == true){
+						alert("You won't be shown this title again.");
+					}else{
+						alert("There was an error updating the title.");
+					}
+				}
+		);
+		return false;
+	}else{
+		return ajaxLogin(function(){markNotInterested(source, recordId)});
+	}
+}
+
+function clearNotInterested(notInterestedId){
+	var url = path + '/Resource/AJAX?method=ClearNotInterested&id=' + notInterestedId;
+	$.getJSON(
+			url, function(data){
+				if (data.result == false){
+					alert("There was an error updating the title.");
+				}else{
+					$("#notInterested" + notInterestedId).hide();
+				}
+			}
+	);
+}
+

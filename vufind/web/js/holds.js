@@ -3,7 +3,7 @@ function updateSelectedHolds(){
 	if (selectedTitles.length == 0){
 		return false;
 	}
-	var newLocation = $('select:[name=withSelectedLocation]').val();
+	var newLocation = $('#withSelectedLocation').find(':selected').val();
 	var url = path + '/MyResearch/Holds?multiAction=updateSelected&location=' + newLocation + "&" + selectedTitles;
 	var queryParams = getQuerystringParameters();
 	if ($.inArray('section', queryParams)){
@@ -37,8 +37,8 @@ function freezeSelectedHolds(){
 			var suspendDate = $('#suspendDateTop').val();
 		}else{
 			var suspendDate = $('#suspendDateBottom').val();
-		}	
-		
+		}
+
 		if (suspendDate.length == 0){
 			alert("Please select the date when the hold should be reactivated.");
 			return false;
@@ -79,16 +79,19 @@ function getSelectedTitles(){
 	if (selectedTitles.length == 0){
 		var ret = confirm('You have not selected any items, process all items?');
 		if (ret == true){
+			$("input.titleSelect").attr('checked', 'checked');
 			selectedTitles = $("input.titleSelect").map(function() {
-				return $(this).attr('name') + "=on";
+				return $(this).attr('name') + "=" + $(this).val();
 			}).get().join("&");
-			$('.titleSelect').attr('checked', 'checked');
 		}
 	}
 	return selectedTitles;
 }
 function renewSelectedTitles(){
 	var selectedTitles = getSelectedTitles();
-	$('#renewForm').submit()
+	if (selectedTitles.length == 0){
+		return false;
+	}
+	$('#renewForm').submit();
 	return false;
 }

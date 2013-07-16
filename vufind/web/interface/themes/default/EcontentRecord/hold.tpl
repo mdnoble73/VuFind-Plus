@@ -5,6 +5,10 @@
 	</div>
 
 	<div id="loginFormWrapper">
+		<p class="note">
+			Holds put you in line for a title that is currently checked out by someone else.
+			When it is your turn to use the title you will receive an e-mail with instructions to checkout the title.
+		</p>
 		<form id='placeHoldForm' action="{$path}/EcontentRecord/{$id|escape:'url'}/Hold" method="post">
 			<div>
 				{if (!isset($user)) }
@@ -19,7 +23,7 @@
 				{/if}
 				<div class='loginFormRow'>
 					<input type="hidden" name="type" value="hold"/>
-					<input type="submit" name="submit" id="submit" value="{translate text='Request This Title'}"/>
+					<input type="submit" name="submit" id="submit" value="{translate text='Submit Hold Request'}"/>
 				</div>
 			</div>
 		</form>

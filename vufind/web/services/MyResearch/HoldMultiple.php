@@ -18,18 +18,17 @@
  *
  */
 
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-class HoldMultiple extends Action
+class MyResearch_HoldMultiple extends Action
 {
 	var $catalog;
 
 	function launch()
 	{
 		global $configArray;
-		global $user;
 
 		try {
 			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
@@ -46,7 +45,7 @@ class HoldMultiple extends Action
 		if (method_exists($this->catalog->driver, 'placeHold')) {
 			$this->placeHolds();
 		} else {
-			PEAR::raiseError(new PEAR_Error('Cannot Process Place Hold - ILS Not Supported'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Process Place Hold - ILS Not Supported'));
 		}
 	}
 
@@ -54,6 +53,7 @@ class HoldMultiple extends Action
 		global $interface;
 		global $configArray;
 		global $user;
+
 		if (!isset($_REQUEST['selected'])){
 			$hold_message_data = array(
 				'successful' => 'none',
@@ -63,6 +63,7 @@ class HoldMultiple extends Action
 			$showMessage = true;
 		}else{
 			$selectedIds = $_REQUEST['selected'];
+
 			$eContentDriver = null;
 			$showMessage = false;
 
@@ -72,11 +73,27 @@ class HoldMultiple extends Action
 			$allItemsEContent = true;
 			foreach ($selectedIds as $recordId => $onOff){
 				$ids[] = $recordId;
+				//Get the title for the item
+				$resource = new Resource();
 				if (strpos($recordId, 'econtentRecord') !== 0){
 					$allItemsEContent = false;
+					$resource->record_id = '.' . $recordId;
+					$resource->source = 'VuFind';
+					$resource->deleted = 0;
+				}else{
+					$shortId = str_replace('econtentRecord', '', $recordId);
+					$resource->record_id = $shortId;
+					$resource->source = 'eContent';
+					$resource->deleted = 0;
+				}
+				if ($resource->find(true)){
+					$holdings[] = $resource->title;
+				}else{
+					echo("Could not find resource for record id $recordId");
 				}
 			}
 			$interface->assign('ids', $ids);
+			$interface->assign('holdings', $holdings);
 
 			$hold_message_data = array(
 	          'successful' => 'all',
@@ -109,7 +126,7 @@ class HoldMultiple extends Action
 					foreach ($selectedIds as $recordId => $onOff){
 						if (strpos($recordId, 'econtentRecord', 0) === 0){
 							if ($eContentDriver == null){
-								require_once('Drivers/EContentDriver.php');
+								require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 								$eContentDriver = new EContentDriver();
 							}
 
@@ -144,6 +161,22 @@ class HoldMultiple extends Action
 				if ($user){
 					$profile = $this->catalog->getMyProfile($user);
 					$interface->assign('profile', $profile);
+
+					//Get information to show a warning if the user does not have sufficient holds
+					require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
+					$maxHolds = -1;
+					//Determine if we should show a warning
+					$ptype = new PType();
+					$ptype->pType = $user->patronType;
+					if ($ptype->find(true)){
+						$maxHolds = $ptype->maxHolds;
+					}
+					$currentHolds = $profile['numHolds'];
+					if ($maxHolds != -1 && ($currentHolds + count($selectedIds) > $maxHolds)){
+						$interface->assign('showOverHoldLimit', true);
+						$interface->assign('maxHolds', $maxHolds);
+						$interface->assign('currentHolds', $currentHolds);
+					}
 
 					global $locationSingleton;
 					//Get the list of pickup branch locations for display in the user interface.
@@ -188,7 +221,7 @@ class HoldMultiple extends Action
 					header("Location: " . $_SESSION['hold_referrer']);
 				} else{
 					//Redirect for hold cancellation or update
-					header("Location: " . $configArray['Site']['url'] . '/MyResearch/Holds');
+					header("Location: " . $configArray['Site']['path'] . '/MyResearch/Holds');
 				}
 				if (!isset($hold_message_data['showItemForm']) || $hold_message_data['showItemForm'] == false){
 					unset($_SESSION['hold_referrer']);
@@ -198,7 +231,7 @@ class HoldMultiple extends Action
 					}
 				}
 			}else{
-				header("Location: " . $configArray['Site']['url'] . '/MyResearch/Holds');
+				header("Location: " . $configArray['Site']['path'] . '/MyResearch/Holds');
 			}
 		} else {
 			$interface->assign('fromCart', isset($_REQUEST['fromCart']));

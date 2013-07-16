@@ -1338,7 +1338,7 @@ class Virtua implements DriverInterface {
     $result = $client->sendRequest();
 
     // Test the web server responded with a page
-    if (!PEAR::isError($result)) {
+    if (!PEAR_Singleton::isError($result)) {
       // Get the response
       $result = $client->getResponseBody();
 
@@ -1384,7 +1384,7 @@ class Virtua implements DriverInterface {
     $result = $client->sendRequest();
 
     // Test the web server responded with a page
-    if (!PEAR::isError($result)) {
+    if (!PEAR_Singleton::isError($result)) {
       // Get the response
       $result = $client->getResponseBody();
 
@@ -1439,7 +1439,7 @@ class Virtua implements DriverInterface {
 
     $result = $client->sendRequest();
     $client->clearPostData();
-    if (!PEAR::isError($result)) {
+    if (!PEAR_Singleton::isError($result)) {
       // Get the response
       $result = $client->getResponseBody();
       // Now find the sessionid. There should be one in the meta tags, so we can look for the first one in the document

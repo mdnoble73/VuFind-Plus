@@ -18,11 +18,11 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
-class ImportEContentMarc extends Admin
+class ImportEContentMarc extends Admin_Admin
 {
 	function launch()
 	{
@@ -78,11 +78,11 @@ class ImportEContentMarc extends Admin
 				//Get import information
 				$cronPath = $configArray['Site']['cronPath']; 
 				if (file_exists($cronPath) && is_dir($cronPath)){
-					global $servername;
+					global $serverName;
 					if ($configArray['System']['operatingSystem'] == 'windows'){
-						$commandToRun = "cd $cronPath && start /b java -jar cron.jar $servername org.epub.ImportMarcRecord";
+						$commandToRun = "cd $cronPath && start /b java -jar cron.jar $serverName org.epub.ImportMarcRecord";
 					}else{
-						$commandToRun = "cd {$cronPath}; java -jar cron.jar $servername org.epub.ImportMarcRecord";
+						$commandToRun = "cd {$cronPath}; java -jar cron.jar $serverName org.epub.ImportMarcRecord";
 					}
 					//Set the servername 
 					$commandToRun .= " marcFile=" . escapeshellarg($destFullPath);

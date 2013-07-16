@@ -55,10 +55,6 @@
 		{if $includeAutoLogoutCode == true}
 			<script type="text/javascript" src="{$path}/js/autoLogout.js"></script>
 		{/if}
-		
-		{if isset($theme_css)}
-		<link rel="stylesheet" type="text/css" href="{$theme_css}" />
-		{/if}
 	</head>
 	
 	<body class="{$module} {$action}">
@@ -103,7 +99,7 @@
 		{if $showBreadcrumbs}
 		<div class="breadcrumbs">
 			<div class="breadcrumbinner">
-				<a href="{$path}">{translate text="Home"}</a> <span>&gt;</span>
+				<a href="{$path}">{translate text="Home"}</a> <span class="divider">&raquo;</span>
 				{include file="$module/breadcrumbs.tpl"}
 			</div>
 		</div>

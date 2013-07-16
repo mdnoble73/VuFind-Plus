@@ -26,11 +26,11 @@
  * @link     http://vufind.org/wiki/building_a_module Wiki
  */
 
-require_once 'Action.php';
-require_once 'sys/Mailer.php';
-require_once 'sys/Language.php';
-require_once 'services/MyResearch/MyResearch.php';
-require_once 'RecordDrivers/Factory.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/Mailer.php';
+require_once ROOT_DIR . '/sys/Language.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 
 /**
  * Email action for MyResearch module.
@@ -107,7 +107,7 @@ class Email extends MyResearch
 			$url, $_POST['to'], $_POST['from'], $_POST['message']
 			);
 
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				$this->followupUrl .= "?infoMsg=" . urlencode("fav_email_success");
 				header("Location: " . $this->followupUrl);
 				exit();

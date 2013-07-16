@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html lang="{$userLang}">{strip}
+<html lang="{$userLang}" xmlns="http://www.w3.org/1999/xhtml">{strip}
 	<head>
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 		<title>{$pageTitle|truncate:64:"..."}</title>
@@ -11,7 +11,9 @@
 		<script type="text/javascript">
 			path = '{$path}';
 			url = '{$url}';
-			loggedIn = {if $user}true{else}false{/if}
+			loggedIn = {if $user}true{else}false{/if};
+			automaticTimeoutLength = {$automaticTimeoutLength};
+			automaticTimeoutLengthLoggedOut = {$automaticTimeoutLengthLoggedOut};
 		</script>
 
 		{js filename="consolidated.min.js"}
@@ -46,66 +48,83 @@
 		<div id="systemMessage">{$systemMessage}</div>
 		{/if}
 
-		<div class="searchheader">
-			<div class="searchcontent">
-				{include file='login-block.tpl'}
-				{include file ='mesaheader.tpl'}
-
-				<br class="clearer" />
-
-				{if $showTopSearchBox}
-					<div id='searchbar'>
-					{if $pageTemplate != 'advanced.tpl'}
-						{include file="searchbar.tpl"}
+		<div id="pageBody">
+			<div class="searchheader">
+				<div class="searchcontent">
+					{include file='login-block.tpl'}
+					{include file ='mesaheader.tpl'}
+	
+					<br class="clearer" />
+	
+					{if $showTopSearchBox}
+						<div id='searchbar'>
+						{if $pageTemplate != 'advanced.tpl'}
+							{include file="searchbar.tpl"}
+						{/if}
+						</div>
 					{/if}
-					</div>
+				</div>
+			</div>
+	
+			{if $showBreadcrumbs}
+			<div class="breadcrumbs">
+				<div class="breadcrumbinner">
+					<a href="{$homeBreadcrumbLink}">{translate text=$homeLinkText}</a> <span class="divider">&raquo;</span>
+					{include file="$module/breadcrumbs.tpl"}
+				</div>
+			</div>
+			{/if}
+	
+			<div id="content_span"> {* Change id for page width, class for menu layout. *}
+	
+				{if $useSolr || $useWorldcat || $useSummon}
+				<div id="toptab">
+					<ul>
+						{if $useSolr}
+						<li{if $module != "WorldCat" && $module != "Summon"} class="active"{/if}><a href="{$path}/Search/Results?lookfor={$lookfor|escape:"url"}">{translate text="University Library"}</a></li>
+						{/if}
+						{if $useWorldcat}
+						<li{if $module == "WorldCat"} class="active"{/if}><a href="{$path}/WorldCat/Search?lookfor={$lookfor|escape:"url"}">{translate text="Other Libraries"}</a></li>
+						{/if}
+						{if $useSummon}
+						<li{if $module == "Summon"} class="active"{/if}><a href="{$path}/Summon/Search?lookfor={$lookfor|escape:"url"}">{translate text="Journal Articles"}</a></li>
+						{/if}
+					</ul>
+				</div>
+				<div style="clear: left;"></div>
 				{/if}
-			</div>
+	
+				{include file="$module/$pageTemplate"}
+	
+				{if $hold_message}
+					<script type="text/javascript">
+					lightbox();
+					document.getElementById('popupbox').innerHTML = "{$hold_message|escape:"javascript"}";
+					</script>
+				{/if}
+				
+				{if $renew_message}
+					<script type="text/javascript">
+					lightbox();
+					document.getElementById('popupbox').innerHTML = "{$renew_message|escape:'javascript'}";
+					</script>
+				{/if}
+				
+				{if $checkout_message}
+					<script type="text/javascript">
+					lightbox();
+					document.getElementById('popupbox').innerHTML = "{$checkout_message|escape:'javascript'}";
+					</script>
+				{/if}
+	
+				<div id="ft">
+				{include file="footer.tpl"}
+				</div> {* End ft *}
+	
+			</div> {* End doc *}
+			{* include file ='mesafooter.tpl' *}
 		</div>
-
-		{if $showBreadcrumbs}
-		<div class="breadcrumbs">
-			<div class="breadcrumbinner">
-				<a href="{$homeBreadcrumbLink}">{translate text="Home"}</a> <span>&gt;</span>
-				{include file="$module/breadcrumbs.tpl"}
-			</div>
-		</div>
-		{/if}
-
-		<div id="content_span"> {* Change id for page width, class for menu layout. *}
-
-			{if $useSolr || $useWorldcat || $useSummon}
-			<div id="toptab">
-				<ul>
-					{if $useSolr}
-					<li{if $module != "WorldCat" && $module != "Summon"} class="active"{/if}><a href="{$path}/Search/Results?lookfor={$lookfor|escape:"url"}">{translate text="University Library"}</a></li>
-					{/if}
-					{if $useWorldcat}
-					<li{if $module == "WorldCat"} class="active"{/if}><a href="{$path}/WorldCat/Search?lookfor={$lookfor|escape:"url"}">{translate text="Other Libraries"}</a></li>
-					{/if}
-					{if $useSummon}
-					<li{if $module == "Summon"} class="active"{/if}><a href="{$path}/Summon/Search?lookfor={$lookfor|escape:"url"}">{translate text="Journal Articles"}</a></li>
-					{/if}
-				</ul>
-			</div>
-			<div style="clear: left;"></div>
-			{/if}
-
-			{include file="$module/$pageTemplate"}
-
-			{if $hold_message}
-				<script type="text/javascript">
-				lightbox();
-				document.getElementById('popupbox').innerHTML = "{$hold_message|escape:"javascript"}";
-				</script>
-			{/if}
-
-			<div id="ft">
-			{include file="footer.tpl"}
-			</div> {* End ft *}
-
-		</div> {* End doc *}
-		{* include file ='mesafooter.tpl' *}
+		{include file=tracking.tpl}
 	</body>
 </html>
 {/strip}

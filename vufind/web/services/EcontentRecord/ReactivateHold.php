@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class ReactivateHold extends Action
 {
@@ -40,7 +40,7 @@ class ReactivateHold extends Action
 		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 		
-		require_once('Drivers/EContentDriver.php');
+		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 		$driver = new EContentDriver();
 		$result = $driver->reactivateHold($id);
 		

@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Drivers/EContentDriver.php';
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'RecordDrivers/EcontentRecordDriver.php';
+require_once ROOT_DIR . '/Drivers/EContentDriver.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
 
 class Copies extends Action{
 	private $eContentRecord;
@@ -54,8 +54,8 @@ class Copies extends Action{
 		$interface->assign('holdings', $holdings);
 		//Load status summary
 		$result = $driver->getStatusSummary($id, $holdings);
-		if (PEAR::isError($result)) {
-			PEAR::raiseError($result);
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result);
 		}
 		$holdingData->holdingsSummary = $result;
 		

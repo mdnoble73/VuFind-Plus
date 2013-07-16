@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class History extends Action {
 	var $catalog;
@@ -31,7 +31,7 @@ class History extends Action {
 		// In some contexts, we want to require a login before showing search
 		// history:
 		if (isset($_REQUEST['require_login']) && !UserAccount::isLoggedIn()) {
-			require_once 'services/MyResearch/Login.php';
+			require_once ROOT_DIR . '/services/MyResearch/Login.php';
 			Login::launch();
 			exit();
 		}
@@ -58,6 +58,7 @@ class History extends Action {
 				$searchObject->activateAllFacets();
 
 				$newItem = array(
+					'id'          => $search->id,
 					'time'        => date("g:ia, jS M y", $searchObject->getStartTime()),
 					'url'         => $searchObject->renderSearchUrl(),
 					'searchId'    => $searchObject->getSearchId(),
@@ -112,12 +113,12 @@ class History extends Action {
 			if ($this->catalog->status) {
 				if ($user->cat_username) {
 					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					if (PEAR::isError($patron)){
-						PEAR::raiseError($patron);
+					if (PEAR_Singleton::isError($patron)){
+						PEAR_Singleton::raiseError($patron);
 					}
 
 					$result = $this->catalog->getMyProfile($patron);
-					if (!PEAR::isError($result)) {
+					if (!PEAR_Singleton::isError($result)) {
 						$interface->assign('profile', $result);
 					}
 				}

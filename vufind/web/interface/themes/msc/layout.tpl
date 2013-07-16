@@ -1,5 +1,5 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html lang="{$userLang}">
+<html lang="{$userLang}" xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 		<meta http-equiv="X-UA-Compatible" content="IE=8" />
@@ -9,9 +9,11 @@
 		{if $addHeader}{$addHeader}{/if}
 		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$path}/Search/OpenSearch?method=describe" />
 		<script type="text/javascript">
-		path = '{$path}';
-		url = '{$url}';
-		loggedIn = {if $user}true{else}false{/if}
+			path = '{$path}';
+			url = '{$url}';
+			loggedIn = {if $user}true{else}false{/if};
+			automaticTimeoutLength = {$automaticTimeoutLength};
+			automaticTimeoutLengthLoggedOut = {$automaticTimeoutLengthLoggedOut};
 		</script>
 		
 		{js filename="consolidated.min.js"}
@@ -21,9 +23,6 @@
 		<script type="text/javascript" src="{$path}/js/autoLogout.js"></script>
 		{/if}
 		
-		{if isset($theme_css)}
-		<link rel="stylesheet" type="text/css" href="{$theme_css}" />
-		{/if}
 	</head>
 
 	<body class="{$module} {$action}" >
@@ -65,7 +64,7 @@
 		{if $showBreadcrumbs}
 		<div class="breadcrumbs">
 			<div class="breadcrumbinner">
-				<a href="{$homeBreadcrumbLink}">{translate text="Home"}</a> <span>&gt;</span>
+				<a href="{$homeBreadcrumbLink}">{translate text=$homeLinkText}</a> <span class="divider">&raquo;</span>
 				{include file="$module/breadcrumbs.tpl"}
 			</div>
 		</div>
@@ -99,6 +98,19 @@
 				</script>
 			{/if}
 
+			{if $renew_message}
+				<script type="text/javascript">
+				lightbox();
+				document.getElementById('popupbox').innerHTML = "{$renew_message|escape:'javascript'}";
+				</script>
+			{/if}
+			
+			{if $checkout_message}
+				<script type="text/javascript">
+				lightbox();
+				document.getElementById('popupbox').innerHTML = "{$checkout_message|escape:'javascript'}";
+				</script>
+			{/if}
 		</div> {* End doc *}
 		</div> {* End content span *}
 		
@@ -110,7 +122,7 @@
 		</div> {* End ft *}
 		
 		</div> {* End outer_span *}
-		
+		{include file=tracking.tpl}
 
 	</body>
 </html>

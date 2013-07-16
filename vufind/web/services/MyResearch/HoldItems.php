@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class HoldItems extends Action
 {
@@ -46,7 +46,7 @@ class HoldItems extends Action
 		if (method_exists($this->catalog->driver, 'placeHold')) {
 			$this->placeHolds();
 		} else {
-			PEAR::raiseError(new PEAR_Error('Cannot Process Place Hold - ILS Not Supported'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Process Place Hold - ILS Not Supported'));
 		}
 	}
 
@@ -105,7 +105,7 @@ class HoldItems extends Action
 			}
 		}else{
 			$logger->log('No referrer set, but there is a message to show, go to the main holds page', PEAR_LOG_INFO);
-			header("Location: " . $configArray['Site']['url'] . '/MyResearch/Holds');
+			header("Location: " . $configArray['Site']['path'] . '/MyResearch/Holds');
 		}
 	}
 }

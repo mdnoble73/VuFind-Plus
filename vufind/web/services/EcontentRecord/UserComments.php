@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'sys/eContent/EContentRecord.php';
-require_once 'RecordDrivers/EcontentRecordDriver.php';
-require_once 'services/MyResearch/lib/Comments.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
 
 class UserComments extends Action{
 	function launch(){
@@ -38,7 +38,7 @@ class UserComments extends Action{
 				}
 			}
 		}
-		
+
 		$interface->assign('id', $_GET['id']);
 
 		if (isset($_REQUEST['comment'])) {
@@ -58,11 +58,11 @@ class UserComments extends Action{
 		}
 
 		$interface->assign('user', $user);
-		
+
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $_GET['id'];
 		$eContentRecord->find(true);
-		
+
 		$recordDriver = new EcontentRecordDriver();
 		$recordDriver->setDataObject($eContentRecord);
 
@@ -71,7 +71,7 @@ class UserComments extends Action{
 		$this->loadEContentComments();
 
 		$interface->assign('subTemplate', 'view-comments.tpl');
-		$interface->setTemplate('view-alt.tpl');
+		$interface->setTemplate('view.tpl');
 
 		// Display Page
 		$interface->display('layout.tpl'/*, $cacheId */);

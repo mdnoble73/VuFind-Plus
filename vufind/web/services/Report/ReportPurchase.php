@@ -18,14 +18,14 @@
  *
  */
 
-require_once 'services/Report/Report.php';
-require_once("sys/pChart/class/pData.class.php");
-require_once("sys/pChart/class/pDraw.class.php");
-require_once("sys/pChart/class/pImage.class.php");
-require_once 'sys/Pager.php';
-require_once("PHPExcel.php");
+require_once ROOT_DIR . '/services/Report/Report.php';
+require_once(ROOT_DIR . "/sys/pChart/class/pData.class.php");
+require_once(ROOT_DIR . "/sys/pChart/class/pDraw.class.php");
+require_once(ROOT_DIR . "/sys/pChart/class/pImage.class.php");
+require_once ROOT_DIR . '/sys/Pager.php';
+require_once(ROOT_DIR . "/PHPExcel.php");
 
-class ReportPurchase extends Report{
+class Report_ReportPurchase extends Report_Report{
 
 	function launch(){
 		global $configArray;
@@ -376,7 +376,7 @@ class ReportPurchase extends Report{
 			// Set active sheet index to the first sheet, so Excel opens this as the first sheet
 			$objPHPExcel->setActiveSheetIndex(0);
 
-			// Redirect output to a client’s web browser (Excel5)
+			// Redirect output to a client's web browser (Excel5)
 			header('Content-Type: application/vnd.ms-excel');
 			header('Content-Disposition: attachment;filename="PurchaseLinkReport.xls"');
 			header('Cache-Control: max-age=0');

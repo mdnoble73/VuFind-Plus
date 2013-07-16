@@ -1,8 +1,10 @@
+{strip}
 {if $recordCount > 0 || $filterList || ($sideFacetSet && $recordCount > 0)}
 <div class="sidegroup">
 	<h4>{translate text='Narrow Search'}</h4>
 	{if isset($checkboxFilters) && count($checkboxFilters) > 0}
 	<p>
+		{* Checkbox filters*}
 		<table>
 			{foreach from=$checkboxFilters item=current}
 				<tr{if $recordCount < 1 && !$current.selected} style="display: none;"{/if}>
@@ -19,22 +21,27 @@
 		</table>
 	</p>
 	{/if}
+	{* Filters that have been applied *}
 	{if $filterList}
 		<strong>{translate text='Remove Filters'}</strong>
 		<ul class="filters">
 		{foreach from=$filterList item=filters key=field }
 			{foreach from=$filters item=filter}
-				<li>{translate text=$field}: {$filter.display|escape} <a href="{$filter.removalUrl|escape}"><img src="{$path}/images/silk/delete.png" alt="Delete"/></a></li>
+				<li>{translate text=$field}: {$filter.display|translate|escape} <a href="{$filter.removalUrl|escape}" onclick="trackEvent('Remove Facet', '{$field}', '{$filter.display|escape}');"><img src="{$path}/images/silk/delete.png" alt="Delete"/></a></li>
 			{/foreach}
 		{/foreach}
 		</ul>
 	{/if}
+	
+	{* Available filters *}
 	{if $sideFacetSet && $recordCount > 0}
 		{foreach from=$sideFacetSet item=cluster key=title name=facetSet}
-			{if $title == 'publishDate' || $title == 'birthYear' || $title == 'deathYear'}
-				<dl class="narrowList navmenu narrow_begin">
-					<dt>{translate text=$cluster.label}</dt>
-					<dd>
+			{if count($cluster.list) > 0}
+			<div class="facetList">
+				<div class="facetTitle {if $cluster.collapseByDefault}collapsed{else}expanded{/if}" onclick="$(this).toggleClass('expanded');$(this).toggleClass('collapsed');$('#facetDetails_{$title}').toggle()">{translate text=$cluster.label}</div>
+				<div id="facetDetails_{$title}" class="facetDetails" {if $cluster.collapseByDefault}style="display:none"{/if}>
+				
+					{if $title == 'publishDate' || $title == 'birthYear' || $title == 'deathYear'}
 						<form id='{$title}Filter' action='{$fullPath}'>
 						<div>
 							<label for="{$title}yearfrom" class='yearboxlabel'>From:</label>
@@ -58,39 +65,31 @@
 							<br/>
 							{if $title == 'publishDate'}
 								<div id='yearDefaultLinks'>
-								<a onclick="$('#{$title}yearfrom').val('2005');$('#{$title}yearto').val('');" href='javascript:void(0);'>since&nbsp;2005</a>
+								<a onclick="$('#{$title}yearfrom').val('2010');$('#{$title}yearto').val('');" href='javascript:void(0);'>since&nbsp;2010</a>
+								&bull;<a onclick="$('#{$title}yearfrom').val('2005');$('#{$title}yearto').val('');" href='javascript:void(0);'>since&nbsp;2005</a>
 								&bull;<a onclick="$('#{$title}yearfrom').val('2000');$('#{$title}yearto').val('');" href='javascript:void(0);'>since&nbsp;2000</a>
-								&bull;<a onclick="$('#{$title}yearfrom').val('1995');$('#{$title}yearto').val('');" href='javascript:void(0);'>since&nbsp;1995</a>
 								</div>
 							{/if}
 							</div>
 						</form>
-					</dd>
-				</dl>
-			{elseif $title == 'rating_facet'}
-				<dl class="narrowList navmenu narrow_begin">
-					<dt>{translate text=$cluster.label}</dt>
-					{foreach from=$ratingLabels item=curLabel}
-						{assign var=thisFacet value=$cluster.list.$curLabel}
-						{if $thisFacet.isApplied}
-							{if $curLabel == 'Unrated'}
-								<dd>{$thisFacet.value|escape} <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink">(remove)</a></dd>
+					{elseif $title == 'rating_facet'}
+						{foreach from=$ratingLabels item=curLabel}
+							{assign var=thisFacet value=$cluster.list.$curLabel}
+							{if $thisFacet.isApplied}
+								{if $curLabel == 'Unrated'}
+									<div class="facetValue">{$thisFacet.value|escape} <img src="{$path}/images/silk/tick.png" alt="Selected" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$curLabel|translate}');"/> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink">(remove)</a></div>
+								{else}
+									<div class="facetValue"><img src="{$path}/images/{$curLabel}.png" alt="{$curLabel|translate} &amp; Up" title="{$curLabel|translate} &amp; up" onclick="trackEvent('Remove Facet', '{$curLabel|translate}', '{$curLabel|translate}');"/> <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink">(remove)</a></div>
+								{/if}
 							{else}
-								<dd><img src="{$path}/images/{$curLabel}.png" alt="{$curLabel|translate}"/> <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink">(remove)</a></dd>
+								{if $curLabel == 'Unrated'}
+									<div class="facetValue">{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if} ({$thisFacet.count})</div>
+								{else}
+									<div class="facetValue">{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}<img src="{$path}/images/{$curLabel}.png" alt="{$curLabel|translate} &amp; Up" title="{$curLabel|translate} &amp; Up"/>{if $thisFacet.url !=null}</a>{/if} ({if $thisFacet.count}{$thisFacet.count}{else}0{/if})</div>
+								{/if}
 							{/if}
-						{else}
-							{if $curLabel == 'Unrated'}
-								<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if} ({$thisFacet.count})</dd>
-							{else}
-								<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}<img src="{$path}/images/{$curLabel}.png" alt="{$curLabel|translate}"/>{if $thisFacet.url !=null}</a>{/if} ({if $thisFacet.count}{$thisFacet.count}{else}0{/if})</dd>
-							{/if}
-						{/if}
-					{/foreach}
-				</dl>
-			{elseif $title == 'lexile_score' || $title == 'accelerated_reader_reading_level' || $title == 'accelerated_reader_point_value'}
-				<dl class="narrowList navmenu narrowbegin">
-					<dt>{translate text=$cluster.label}</dt>
-					<dd>
+						{/foreach}
+					{elseif $title == 'lexile_score' || $title == 'accelerated_reader_reading_level' || $title == 'accelerated_reader_point_value'}
 						<form id='{$title}Filter' action='{$fullPath}'>
 							<div>
 								{if $title == 'lexile_score'}
@@ -115,7 +114,7 @@
 								{/foreach}
 								<input type="submit" value="Go" id="goButton" />
 								{if $title == 'lexile_score'}
-								<script>{literal}
+								<script type="text/javascript">{literal}
 									$(function() {
 										$( "#lexile-range" ).slider({
 											range: true,
@@ -139,30 +138,70 @@
 									{/if}
 							</div>
 						</form>
-					</dd>
-				</dl>
-			{else}
-				<dl class="narrowList navmenu narrowbegin">
-					<dt>{translate text=$cluster.label}</dt>
-					{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
-						{if $smarty.foreach.narrowLoop.iteration == ($cluster.valuesToShow + 1)}
-						<dd id="more{$title}"><a href="#" onclick="moreFacets('{$title}'); return false;">{translate text='more'} ...</a></dd>
-					</dl>
-					<dl class="narrowList navmenu narrowGroupHidden" id="narrowGroupHidden_{$title}">
-						{/if}
-						{if $thisFacet.isApplied}
-							<dd>{$thisFacet.display|escape} <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink">(remove)</a></dd>
+					{elseif $cluster.showAsDropDown}
+						<select class="facetDropDown" onchange="changeDropDownFacet('facetDropDown-{$title}', '{$cluster.label}')" id="facetDropDown-{$title}">
+							<option selected="selected">Choose {$cluster.label}</option>
+							{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
+								<option data-destination="{$thisFacet.url}" data-label="{$thisFacet.display|escape}">{$thisFacet.display|escape}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count}){/if}</option>
+							{/foreach}
+						</select>
+					{else}
+						{if $cluster.showMoreFacetPopup}
+							{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
+								{if $thisFacet.isApplied}
+									<div class="facetValue">{$thisFacet.display|escape} <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$thisFacet.display|escape}');">(remove)</a></div>
+								{else}
+									<div class="facetValue">{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count}){/if}</div>
+								{/if}
+							{/foreach}
+							{* Show more list *}
+							<div class="facetValue" id="more{$title}"><a href="#" onclick="moreFacetPopup('More {$cluster.label}s', '{$title}'); return false;">{translate text='more'} ...</a></div>
+							<div id="moreFacetPopup_{$title}" style="display:none">
+								<p>Please select one of the items below to narrow your search by {$cluster.label}.</p>
+								{foreach from=$cluster.sortedList item=thisFacet name="narrowLoop"}
+									{if $smarty.foreach.narrowLoop.iteration % ($smarty.foreach.narrowLoop.total / 5) == 1}
+										{if !$smarty.foreach.narrowLoop.first}
+											</ul></div>
+										{/if}
+										<div class="facetCol"><ul>
+									{/if}
+									<li class="facetValue">{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count}){/if}</li>
+									{if $smarty.foreach.narrowLoop.last}
+										</ul></div>
+									{/if}
+								{/foreach}
+								
+							</div>
 						{else}
-							<dd>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count}){/if}</dd>
+							{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
+								{if $smarty.foreach.narrowLoop.iteration == ($cluster.valuesToShow + 1)}
+									{* Show More link*}
+									<div class="facetValue" id="more{$title}"><a href="#" onclick="moreFacets('{$title}'); return false;">{translate text='more'} ...</a></div>
+									{* Start div for hidden content*}
+									<div class="narrowGroupHidden" id="narrowGroupHidden_{$title}">
+								{/if}
+								{if $thisFacet.isApplied}
+									<div class="facetValue">{$thisFacet.display|escape} <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$thisFacet.display|escape}');">(remove)</a></div>
+								{else}
+									<div class="facetValue">{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count}){/if}</div>
+								{/if}
+							{/foreach}
+							{if $smarty.foreach.narrowLoop.total > $cluster.valuesToShow}
+								<div class="facetValue"><a href="#" onclick="lessFacets('{$title}'); return false;">{translate text='less'} ...</a></div>
+								</div>
+							{/if}
 						{/if}
-					{/foreach}
-					{if $smarty.foreach.narrowLoop.total > $cluster.valuesToShow}<dd><a href="#" onclick="lessFacets('{$title}'); return false;">{translate text='less'} ...</a></dd>{/if}
-				</dl>
-			{/if}
+					{/if}
+				</div>
+			</div>
+			
+			{* Add a line between facets for clarity*}
 			{if !$smarty.foreach.facetSet.last}
 			<hr class="facetSeparator"/>
+			{/if}
 			{/if}
 		{/foreach}
 	{/if}
 </div>
 {/if}
+{/strip}

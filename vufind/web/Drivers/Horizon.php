@@ -19,7 +19,7 @@
  */
 
 require_once 'Interface.php';
-require_once 'sys/SIP2.php';
+require_once ROOT_DIR . '/sys/SIP2.php';
 
 class Horizon implements DriverInterface{
 	protected $db;
@@ -77,7 +77,7 @@ class Horizon implements DriverInterface{
 		// Retrieve Full Marc Record
 		$recordURL = null;
 
-		require_once 'sys/MarcLoader.php';
+		require_once ROOT_DIR . '/sys/MarcLoader.php';
 		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
 		if ($marcRecord) {
 			$timer->logTime('Loaded MARC record from search object');
@@ -111,9 +111,9 @@ class Horizon implements DriverInterface{
 			foreach ($items as $itemIndex => $item){
 				$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
 				//Check to see if we already have data for this barcode
-				global $memcache;
+				global $memCache;
 				if (isset($barcode) && strlen($barcode) > 0){
-					$itemData = $memcache->get("item_data_{$barcode}_{$forSummary}");
+					$itemData = $memCache->get("item_data_{$barcode}_{$forSummary}");
 				}else{
 					$itemData = false;
 				}
@@ -191,7 +191,7 @@ class Horizon implements DriverInterface{
 					$itemData['statusfull'] = $this->translateStatus($itemData['status']);
 					//Suppress items based on status
 					if (isset($barcode) && strlen($barcode) > 0){
-						$memcache->set("item_data_{$barcode}_{$forSummary}", $itemData, 0, $configArray['Caching']['item_data']);
+						$memCache->set("item_data_{$barcode}_{$forSummary}", $itemData, 0, $configArray['Caching']['item_data']);
 					}
 				}
 
@@ -263,7 +263,7 @@ class Horizon implements DriverInterface{
 	/** uses SIP2 authentication rather than database authentication **/
 	public function patronLogin($username, $password)
 	{
-		require_once('sys/authn/SIPAuthentication.php');
+		require_once(ROOT_DIR . '/sys/authn/SIPAuthentication.php');
 		$sipAuth = new SIPAuthentication();
 		$basicInfo = $sipAuth->validateAccount($username, $password);
 		if ($basicInfo){
@@ -289,7 +289,6 @@ class Horizon implements DriverInterface{
 
 	private $holds = array();
 	public function getMyHolds($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
-		global $configArray;
 		global $timer;
 
 		if (is_object($patron)){
@@ -457,7 +456,7 @@ class Horizon implements DriverInterface{
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Login by posting username and password
@@ -729,7 +728,7 @@ public function getMyHoldsViaDB($patron)
 		global $library;
 		global $locationSingleton;
 		global $configArray;
-		global $memcache;
+		global $memCache;
 		//Holdings summaries need to be cached based on the actual location since part of the information
 		//includes local call numbers and statuses.
 		$ipLocation = $locationSingleton->getPhysicalLocation();
@@ -750,7 +749,7 @@ public function getMyHoldsViaDB($patron)
 		}else{
 			$locationId = $location->locationId;
 		}
-		$summaryInformation = $memcache->get("holdings_summary_{$id}_{$locationId}" );
+		$summaryInformation = $memCache->get("holdings_summary_{$id}_{$locationId}" );
 		if ($summaryInformation == false){
 
 			$canShowHoldButton = true;
@@ -915,7 +914,7 @@ public function getMyHoldsViaDB($patron)
 				// Retrieve Full Marc Record
 				$recordURL = null;
 				// Process MARC Data
-				require_once 'sys/MarcLoader.php';
+				require_once ROOT_DIR . '/sys/MarcLoader.php';
 				$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
 				if ($marcRecord) {
 					//Check the 856 tag to see if there is a URL
@@ -1053,7 +1052,7 @@ public function getMyHoldsViaDB($patron)
 			}
 			$timer->logTime('Finished building summary');
 
-			$memcache->set("holdings_summary_{$id}_{$locationId}", $summaryInformation, 0, $configArray['Caching']['holdings_summary']);
+			$memCache->set("holdings_summary_{$id}_{$locationId}", $summaryInformation, 0, $configArray['Caching']['holdings_summary']);
 		}
 		return $summaryInformation;
 	}
@@ -1146,7 +1145,7 @@ public function getMyHoldsViaDB($patron)
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Login by posting username and password
@@ -1264,8 +1263,8 @@ public function getMyHoldsViaDB($patron)
 	}
 
 	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "dueDate"){
-		require_once('sys/ReadingHistoryEntry.php');
-		require_once('services/MyResearch/lib/Resource.php');
+		require_once(ROOT_DIR . '/sys/ReadingHistoryEntry.php');
+		require_once(ROOT_DIR . '/services/MyResearch/lib/Resource.php');
 		//Reading History is stored within VuFind for each patron.
 		global $user;
 		$historyActive = $user->trackReadingHistory == 1;
@@ -1347,7 +1346,7 @@ public function getMyHoldsViaDB($patron)
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
 	function doReadingHistoryAction($patron, $action, $selectedTitles){
-		require_once('sys/ReadingHistoryEntry.php');
+		require_once(ROOT_DIR . '/sys/ReadingHistoryEntry.php');
 		global $user;
 		//Reading History Information is stored in the VuFind database
 		if ($action == 'deleteMarked'){
@@ -1355,6 +1354,7 @@ public function getMyHoldsViaDB($patron)
 			foreach ($selectedTitles as $selectedId => $selectValue){
 				//Get the resourceid for the bib
 				$resource = new Resource();
+				$resource->source = 'VuFind';
 				if (is_numeric($selectValue)){
 					$resource->record_id = $selectValue;
 				}else{
@@ -1472,7 +1472,7 @@ private $patronProfiles = array();
 					);
 
 					//Get eContent info as well
-					require_once('Drivers/EContentDriver.php');
+					require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 					$eContentDriver = new EContentDriver();
 					$eContentAccountSummary = $eContentDriver->getAccountSummary();
 					$profile = array_merge($profile, $eContentAccountSummary);
@@ -1613,10 +1613,10 @@ private $transactions = array();
 	private $sipInitialized = false;
 	private $mysip = false;
 	private function _loadItemSIP2Data($barcode, $itemStatus){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $timer;
-		$itemSip2Data = $memcache->get("item_sip2_data_{$barcode}");
+		$itemSip2Data = $memCache->get("item_sip2_data_{$barcode}");
 		if ($itemSip2Data == false){
 			//Check to see if the SIP2 information is already cached
 			if ($this->sipInitialized == false){
@@ -1677,7 +1677,7 @@ private $transactions = array();
 					}
 				}
 			}
-			$memcache->set("item_sip2_data_{$barcode}", $itemSip2Data, 0, $configArray['Caching']['item_sip2_data']);
+			$memCache->set("item_sip2_data_{$barcode}", $itemSip2Data, 0, $configArray['Caching']['item_sip2_data']);
 			$timer->logTime("Got due date and hold queue length from SIP 2 for barcode $barcode");
 		}
 		return $itemSip2Data;
@@ -1720,7 +1720,7 @@ private $transactions = array();
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Login by posting username and password
@@ -1822,11 +1822,6 @@ public function renewItem($patronId, $itemId){
 		}else{
 			$ret =  $this->renewItemViaSIP($patronId, $itemId);
 		}
-		if ($ret['result'] == true){
-			// Log the usageTracking data
-			$usageTracking = new UsageTracking();
-			$usageTracking->logTrackingData('numRenewals', 1, $ipLocation, $ipId);
-		}
 
 		return $ret;
 	}
@@ -1872,7 +1867,7 @@ public function renewItem($patronId, $itemId){
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Login by posting username and password
@@ -1923,10 +1918,6 @@ public function renewItem($patronId, $itemId){
 		}else{
 			$success = true;
 			$message = "Item renewed successfully.";
-
-			// Log the usageTracking data
-			$usageTracking = new UsageTracking();
-			$usageTracking->logTrackingData('numRenewals', 1, $ipLocation);
 		}
 
 		unlink($cookie);
@@ -2068,11 +2059,6 @@ public function renewItem($patronId, $itemId){
 					}else{
 						$hold_result['message'] = "All items were renewed successfully.";
 					}
-					if ($numRenewed > 0){
-						// Log the usageTracking data
-						$usageTracking = new UsageTracking();
-						$usageTracking->logTrackingData('numRenewals', $numRenewed, $ipLocation, $ipId);
-					}
 				}
 			}
 		}
@@ -2082,7 +2068,7 @@ public function renewItem($patronId, $itemId){
 	function updatePatronInfo($password){
 		global $configArray;
 		global $user;
-		require_once 'Drivers/marmot_inc/BadWord.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/BadWord.php';
 
 		$updateErrors = array();
 		//Check to make sure the patron alias is valid if provided
@@ -2151,7 +2137,7 @@ public function renewItem($patronId, $itemId){
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Login by posting username and password
@@ -2284,8 +2270,6 @@ public function renewItem($patronId, $itemId){
 				$ret = file_get_contents($strandsUrl);
 			}
 
-			// Log the usageTracking data
-			UsageTracking::logTrackingData('numHolds');
 		}
 		return $result;
 	}
@@ -2332,7 +2316,7 @@ public function renewItem($patronId, $itemId){
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Go to the request copy page (login)
@@ -2391,7 +2375,7 @@ public function renewItem($patronId, $itemId){
 			if (preg_match('/<font size="3" color="white" face="Arial, Helvetica"><b>(.*?)<\/b><\/font>/', $sresult, $matches)) {
 				$failureReason = $matches[1];
 			} else {
-				PEAR::raiseError('Could not get notify by or failure information from page.');
+				PEAR_Singleton::raiseError('Could not get notify by or failure information from page.');
 			}
 
 		}
@@ -2646,7 +2630,7 @@ public function renewItem($patronId, $itemId){
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
-			PEAR::raiseError('Could not load session information from page.');
+			PEAR_Singleton::raiseError('Could not load session information from page.');
 		}
 
 		//Login by posting username and password
@@ -2976,7 +2960,7 @@ private function parseSip2Fines($finesData){
 					if (strlen($email) == 0){
 						return array('error' => 'Your account does not have an email address on record. Please visit your local library to retrieve your PIN number.');
 					}
-					require_once 'sys/Mailer.php';
+					require_once ROOT_DIR . '/sys/Mailer.php';
 
 					$mailer = new VuFindMailer();
 					$subject = "PIN number for your Library Card";

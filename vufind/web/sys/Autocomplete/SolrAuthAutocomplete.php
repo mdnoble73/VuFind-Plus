@@ -25,7 +25,7 @@
  * @license  http://opensource.org/licenses/gpl-2.0.php GNU General Public License
  * @link     http://vufind.org/wiki/autocomplete Wiki
  */
-require_once 'sys/Autocomplete/SolrAutocomplete.php';
+require_once ROOT_DIR . '/sys/Autocomplete/SolrAutocomplete.php';
 
 /**
  * Solr Authority Autocomplete Module

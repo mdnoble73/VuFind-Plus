@@ -82,7 +82,7 @@ div#ft_contents {
 }
 
 #main_content_with_sidebar, #main-content {
-	width: 720px;
+	width: 640px;
 	border: thin solid #B0B0B0;
 	background-color: white;
 	margin: 15px 0px 15px 0px;
@@ -96,7 +96,7 @@ div#ft_contents {
 }
 
 .resulthead {
-	padding: 3px 3px 5px 3px;
+	padding: 3px 3px 14px 3px;
 	border-bottom: thin solid #B0B0B0;
 }
 
@@ -104,6 +104,10 @@ div#ft_contents {
 	margin: 0px;
 	padding: .5em;
 }
+.result{
+	position: relative;
+}
+
 
 .resultLabel {
 	width: 110px;
@@ -116,6 +120,7 @@ div#ft_contents {
 .resultValue {
 	display: inline-block;
 	vertical-align: top;
+	width: 305px;
 }
 
 .boldedResultValue {
@@ -128,11 +133,16 @@ div#ft_contents {
 }
 
 .listResultImage {
-	float: right;
+	position: absolute;
+	right: 5px;
+	top: 5px;
+	width: 120px;
+	text-align: center;
 }
 
 .resultitem {
 	margin-left: 25px;
+	width: 425px;
 }
 
 .toolbar {
@@ -150,11 +160,11 @@ div#ft_contents {
 }
 
 #fullRecordTitleDetails {
-	width: 475px;
+	width: 405px;
 }
 
 #fullRecordTitleDetails .resultValue {
-	max-width: 365px;
+	max-width: 295px;
 }
 
 .recordcover {
@@ -227,6 +237,9 @@ td {
 	border: thin solid #B0B0B0;
 	width: 170px;
 }
+.sidegroup h4{
+	width: 170px;
+}
 
 .callNumber {
 	font-weight: bold;
@@ -244,17 +257,29 @@ td {
 	width: 1000px;
 	margin: 0px auto;
 }
-.resultIndex{
-	width: 20px;
-	display:inline-block;
-	zoom:1;
-	*display:inline;
-	font-weight: bold;
-	vertical-align:top;
-}
+
 .resultsList{
-	width: 665px;
+	width: 465px;
+	min-height: 175px;
 	display:inline-block;
 	zoom:1;
 	*display:inline;
+}
+
+.recordTitle{
+	font-weight: bold;
+	font-size: 18px;
+}
+
+.resultValue.available, .resultValue.here{
+	color:#009900;
+	font-weight: bold;
+}
+.resultValue.nearby, .holdingsSummaryStatusLine.availableOther{
+	color: #BB0099;
+	font-weight: bold;
+}
+.resultValue.unavailable, .resultValue.checkedOut,.resultValue.checkedout,.resultValue.reserve{
+	color:#cc0000;
+	font-weight: bold;
 }

@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/Admin.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/Admin.php';
 
 /**
  * Provides a method of running SQL updates to the database.
@@ -28,7 +28,7 @@ require_once 'services/Admin/Admin.php';
  * @author Mark Noble
  *
  */
-class DBMaintenanceEContent extends Admin {
+class DBMaintenanceEContent extends Admin_Admin {
 	function launch() 	{
 		global $configArray;
 		global $interface;
@@ -159,11 +159,8 @@ class DBMaintenanceEContent extends Admin {
 						"`trialTitle` TINYINT NOT NULL default 0 COMMENT 'Whether or not the title was purchased outright or on a trial basis.', " .
 						"`marcControlField` VARCHAR(100) NULL COMMENT 'The control field from the marc record to avoid importing duplicates.' " .
 					") ENGINE = MYISAM COMMENT = 'EContent records for titles that exist in VuFind, but not the ILS.'",
-
-
-		),
-
-		),
+				),
+			),
 
 			'eContentHolds'	=> array(
 				'title' => 'eContent Holds table creation',
@@ -181,8 +178,9 @@ class DBMaintenanceEContent extends Admin {
 						"`reactivateDate` int(11) NULL COMMENT 'When the item should be reactivated.',	" .
 						"`noticeSent` TINYINT NOT NULL DEFAULT 0 COMMENT 'Whether or not a notice has been sent.' " .
 					") ENGINE = MYISAM COMMENT = 'EContent files that can be viewed within VuFind.'",
-		),
-		),
+				),
+			),
+
 			'eContentCheckout'	=> array(
 				'title' => 'eContent Checkout table',
 				'description' => 'Sets up tables for handling eContent checked out items',
@@ -201,498 +199,663 @@ class DBMaintenanceEContent extends Admin {
 						"`acsDownloadLink` VARCHAR(512) COMMENT 'The link to use when downloading an acs protected item', " .
 						"`dateFulfilled` int(11) NULL COMMENT 'When the item was fulfilled in the ACS server.' " .
 					") ENGINE = MYISAM COMMENT = 'EContent files that can be viewed within VuFind.'",
-		),
-		),
-		'eContentCheckout_1'	=> array(
-			'title' => 'eContent Checkout Update 1',
-			'description' => 'Updates to checkout to include additional information related to ACS downloads.',
-			'dependencies' => array(),
-			'sql' => array(
-				"ALTER TABLE econtent_checkout ADD downloadedToReader TINYINT NOT NULL DEFAULT 0",
-				"ALTER TABLE econtent_checkout ADD acsTransactionId VARCHAR(50) NULL",
-				"ALTER TABLE econtent_checkout ADD userAcsId VARCHAR(50) NULL",
-		),
-		),
+				),
+			),
 
-		'eContentHistory'	=> array(
-			'title' => 'eContent History table',
-			'description' => 'Sets up tables for handling history of eContent',
-			'dependencies' => array(),
-			'sql' => array(
-					"DROP TABLE IF EXISTS econtent_history;",
-					"CREATE TABLE IF NOT EXISTS	econtent_history(".
+			'eContentCheckout_1'	=> array(
+				'title' => 'eContent Checkout Update 1',
+				'description' => 'Updates to checkout to include additional information related to ACS downloads.',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE econtent_checkout ADD downloadedToReader TINYINT NOT NULL DEFAULT 0",
+					"ALTER TABLE econtent_checkout ADD acsTransactionId VARCHAR(50) NULL",
+					"ALTER TABLE econtent_checkout ADD userAcsId VARCHAR(50) NULL",
+				),
+			),
+
+			'eContentHistory'	=> array(
+				'title' => 'eContent History table',
+				'description' => 'Sets up tables for handling history of eContent',
+				'dependencies' => array(),
+				'sql' => array(
+						"DROP TABLE IF EXISTS econtent_history;",
+						"CREATE TABLE IF NOT EXISTS	econtent_history(".
+							"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+							"`userId` INT NOT NULL COMMENT 'The id of the user who checked out the item', ".
+							"`recordId` INT NOT NULL COMMENT 'The record id of the item that was checked out', ".
+							"`openDate` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'The date the record was opened', ".
+							"`action` VARCHAR(30) NOT NULL default 'Read Online', ".
+							"`accessType` TINYINT NOT NULL default 0 ".
+						") ENGINE = MYISAM COMMENT = 'The econtent reading history for patrons' ",
+				),
+			),
+
+			'eContentRating'	=> array(
+				'title' => 'eContent Rating',
+				'description' => 'Sets up tables for handling rating of eContent',
+				'dependencies' => array(),
+				'sql' => array(
+						"DROP TABLE IF EXISTS econtent_rating;",
+						"CREATE TABLE IF NOT EXISTS	econtent_rating(".
+							"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+							"`userId` INT NOT NULL COMMENT 'The id of the user who checked out the item', ".
+							"`recordId` INT NOT NULL COMMENT 'The record id of the item that was checked out', ".
+							"`dateRated` INT NOT NULL COMMENT 'The date the record was opened', ".
+							"`rating` INT NOT NULL COMMENT 'The rating to aply to the record' ".
+						") ENGINE = MYISAM COMMENT = 'The ratings for eContent records' ",
+				),
+			),
+
+			'eContentRecord_1'	=> array(
+				'title' => 'eContent Record Update 1',
+				'description' => 'Adds fields for collection and formatted marc record',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE econtent_record ADD collection VARCHAR(30) NULL",
+					"ALTER TABLE econtent_record ADD marcRecord TEXT NULL",
+					"ALTER TABLE econtent_record ADD literary_form_full VARCHAR(30) NULL",
+				),
+			),
+
+			'eContentRecord_2'	=> array(
+				'title' => 'eContent Record Update 2',
+				'description' => 'Adds status to allow ',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE econtent_record ADD status ENUM('active', 'deleted', 'archived') DEFAULT 'active'",
+				),
+			),
+
+			'eContentRecord_3'	=> array(
+				'title' => 'eContent Record Update 3',
+				'description' => 'Increase length of isbn field ',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE econtent_record CHANGE `isbn` `isbn` VARCHAR(500) NULL",
+				),
+			),
+
+			'eContentRecord_4'	=> array(
+				'title' => 'eContent Record Update 4',
+				'description' => 'Adds external accessType ',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE econtent_record CHANGE accessType accessType ENUM('free', 'acs', 'singleUse', 'external') DEFAULT 'acs'",
+				),
+			),
+
+			'eContentRecord_5'	=> array(
+				'title' => 'eContent Record Update 5',
+				'description' => 'Adds externalId ',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE econtent_record ADD externalId VARCHAR(50) NULL",
+				),
+			),
+
+			'eContentRecord_6'	=> array(
+				'title' => 'eContent Record Update 6',
+				'description' => 'Adds publication location and physical description ',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE econtent_record ADD publishLocation VARCHAR(100) NULL",
+					"ALTER TABLE econtent_record ADD physicalDescription VARCHAR(100) NULL",
+				),
+			),
+
+			'eContentRecord_7'	=> array(
+				'title' => 'eContent Record Update 7',
+				'description' => 'Allow null series since many overdrive titles don\'t supply one.',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `econtent_record` CHANGE `series` `series` VARCHAR( 255 ) NULL DEFAULT ''",
+				),
+			),
+
+			'eContentRecord_8'	=> array(
+				'title' => 'eContent Record Update 8',
+				'description' => 'Add additional indexes to econtent record.',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE `econtent_record` ADD INDEX (`status`)",
+					"ALTER TABLE `econtent_record` ADD INDEX (`ilsId`)",
+					"ALTER TABLE `econtent_record` ADD INDEX (`externalId`)",
+				),
+			),
+
+
+			'notices_1'	=> array(
+				'title' => 'eContent Notices Update 1',
+				'description' => 'Adds notices fields so each notice is tracked explicitly',
+				'dependencies' => array(),
+				'sql' => array(
+					//"ALTER TABLE econtent_hold DROP noticeSent",
+					"ALTER TABLE econtent_hold ADD holdAvailableNoticeSent TINYINT NOT NULL DEFAULT 0",
+					"ALTER TABLE econtent_hold ADD holdReminderNoticeSent TINYINT NOT NULL DEFAULT 0",
+					"ALTER TABLE econtent_hold ADD holdAbandonedNoticeSent TINYINT NOT NULL DEFAULT 0",
+					"ALTER TABLE econtent_checkout ADD returnReminderNoticeSent TINYINT NOT NULL DEFAULT 0",
+					"ALTER TABLE econtent_checkout ADD recordExpirationNoticeSent TINYINT NOT NULL DEFAULT 0",
+				),
+			),
+
+			'eContentItem_1'	=> array(
+				'title' => 'eContent Item Update 1',
+				'description' => 'Updates to allow external links to be added to the system',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE econtent_item ADD link VARCHAR(500) NULL",
+					//"ALTER TABLE `econtent_item` CHANGE `type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook' ) NOT NULL",
+				),
+			),
+
+			'eContentItem_2'	=> array(
+				'title' => 'eContent Item Update 2',
+				'description' => 'Allow items to be restricted by library system',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE econtent_item ADD libraryId INT(11) NOT NULL DEFAULT -1",
+					"ALTER TABLE econtent_item ADD overDriveId INT(11) NOT NULL DEFAULT -1",
+					"ALTER TABLE `econtent_item` CHANGE `item_type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook', 'overdrive' ) NOT NULL",
+				),
+			),
+
+			'eContentItem_3'	=> array(
+				'title' => 'eContent Item Update 3',
+				'description' => 'Add Overdrive item capabilities',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE econtent_item CHANGE overDriveId overDriveId VARCHAR(36) NULL",
+					"ALTER TABLE `econtent_item` CHANGE `item_type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook', 'overdrive' ) NOT NULL",
+				),
+			),
+
+			/*'overdriveItem' => array(
+				'title' => 'Overdrive Item',
+				'description' => 'Setup of Overdrive item to cache information about items from OverDrive for performance',
+				'dependencies' => array(),
+				'sql' => array(
+					"DROP TABLE IF EXISTS overdrive_item",
+					"CREATE TABLE IF NOT EXISTS	overdrive_item(" .
+							"`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'The id of the eContent item', " .
+							"`recordId` int(11) NOT NULL COMMENT 'The record id that this record belongs to', " .
+							"`format` VARCHAR(100) NOT NULL default '' COMMENT 'A description of the format from overdrive', " .
+							"`formatId` int(11) NULL COMMENT 'The id of the format ', " .
+							"`size` VARCHAR(25) NOT NULL COMMENT 'A description of the size of the file(s) to be downloaded', " .
+							"`available` TINYINT COMMENT 'Whether or not the format is available for immediate usage.', " .
+							"`notes` VARCHAR(255) NOT NULL default '', " .
+							"`lastLoaded` int(11) NOT NULL " .
+						") ENGINE = MYISAM COMMENT = 'Cached information about overdrive items within VuFind'",
+					'ALTER TABLE `overdrive_item` ADD INDEX `RecordId` ( `recordId` ) ',
+				),
+			),
+
+			'overdriveItem_1' => array(
+				'title' => 'Overdrive Item Update 1',
+				'description' => 'Change Overdrive item to cache information about number of holds and waitlist',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE overdrive_item ADD COLUMN availableCopies int(11) DEFAULT 0;",
+					"ALTER TABLE overdrive_item ADD COLUMN totalCopies int(11) DEFAULT 0;",
+					"ALTER TABLE overdrive_item ADD COLUMN numHolds int(11) DEFAULT 0;",
+				),
+			),
+
+			'overdriveItem_2' => array(
+				'title' => 'Overdrive Item Update 2',
+				'description' => 'Change Overdrive item to cache information based on overdriveId rather than record id since we may have more than 1 overdrive records on a record',
+				'dependencies' => array(),
+				'sql' => array(
+					"TRUNCATE TABLE overdrive_item;",
+					"ALTER TABLE overdrive_item DROP COLUMN recordId;",
+					"ALTER TABLE overdrive_item ADD COLUMN overDriveId VARCHAR(36) NOT NULL;",
+					"ALTER TABLE overdrive_item ADD INDEX `OverDriveId` (overDriveId);",
+				),
+			),*/
+
+			'eContentWishList'	=> array(
+				'title' => 'eContent WishList',
+				'description' => 'Build table to allow econtent to be added to a user\'s wishlist if no items exits for the record.',
+				'dependencies' => array(),
+				'sql' => array(
+					"DROP TABLE IF EXISTS econtent_wishlist;",
+					"CREATE TABLE IF NOT EXISTS	econtent_wishlist(".
 						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
 						"`userId` INT NOT NULL COMMENT 'The id of the user who checked out the item', ".
 						"`recordId` INT NOT NULL COMMENT 'The record id of the item that was checked out', ".
-						"`openDate` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'The date the record was opened', ".
-						"`action` VARCHAR(30) NOT NULL default 'Read Online', ".
-						"`accessType` TINYINT NOT NULL default 0 ".
-					") ENGINE = MYISAM COMMENT = 'The econtent reading history for patrons' ",
-		),
-		),
-		'eContentRating'	=> array(
-			'title' => 'eContent Rating',
-			'description' => 'Sets up tables for handling rating of eContent',
-			'dependencies' => array(),
-			'sql' => array(
-					"DROP TABLE IF EXISTS econtent_rating;",
-					"CREATE TABLE IF NOT EXISTS	econtent_rating(".
-						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
-						"`userId` INT NOT NULL COMMENT 'The id of the user who checked out the item', ".
-						"`recordId` INT NOT NULL COMMENT 'The record id of the item that was checked out', ".
-						"`dateRated` INT NOT NULL COMMENT 'The date the record was opened', ".
-						"`rating` INT NOT NULL COMMENT 'The rating to aply to the record' ".
+						"`dateAdded` INT NOT NULL COMMENT 'The date the record was added to the wishlist', ".
+						"`status` ENUM('active', 'deleted', 'filled') NOT NULL COMMENT 'The status of the item in the wishlist' ".
 					") ENGINE = MYISAM COMMENT = 'The ratings for eContent records' ",
-		),
-		),
-
-		'eContentRecord_1'	=> array(
-			'title' => 'eContent Record Update 1',
-			'description' => 'Adds fields for collection and formatted marc record',
-			'dependencies' => array(),
-			'database' => 'dclecontent',
-			'sql' => array(
-				"ALTER TABLE econtent_record ADD collection VARCHAR(30) NULL",
-				"ALTER TABLE econtent_record ADD marcRecord TEXT NULL",
-				"ALTER TABLE econtent_record ADD literary_form_full VARCHAR(30) NULL",
-		),
-		),
-
-		'eContentRecord_2'	=> array(
-			'title' => 'eContent Record Update 2',
-			'description' => 'Adds status to allow ',
-			'dependencies' => array(),
-			'sql' => array(
-				"ALTER TABLE econtent_record ADD status ENUM('active', 'deleted', 'archived') DEFAULT 'active'",
-		),
-		),
-
-		'eContentRecord_3'	=> array(
-			'title' => 'eContent Record Update 3',
-			'description' => 'Increase length of isbn field ',
-			'dependencies' => array(),
-			'sql' => array(
-				"ALTER TABLE econtent_record CHANGE `isbn` `isbn` VARCHAR(500) NULL",
-		),
-		),
-
-		'eContentRecord_4'	=> array(
-			'title' => 'eContent Record Update 4',
-			'description' => 'Adds external accessType ',
-			'dependencies' => array(),
-			'sql' => array(
-				"ALTER TABLE econtent_record CHANGE accessType accessType ENUM('free', 'acs', 'singleUse', 'external') DEFAULT 'acs'",
+				),
 			),
-		),
 
-		'eContentRecord_5'	=> array(
-			'title' => 'eContent Record Update 5',
-			'description' => 'Adds externalId ',
-			'dependencies' => array(),
-			'sql' => array(
-				"ALTER TABLE econtent_record ADD externalId VARCHAR(50) NULL",
+			'acsLog'	=> array(
+				'title' => 'ACS Log',
+				'description' => 'Build table to store	log of ACS transactions that have been returned by the server.',
+				'dependencies' => array(),
+				'sql' => array(
+					"DROP TABLE IF EXISTS acs_log;",
+					"CREATE TABLE IF NOT EXISTS	acs_log(".
+						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+						"`acsTransactionId` VARCHAR(50) NULL, ".
+						"`userAcsId` VARCHAR(50) NULL, ".
+						"`fulfilled` TINYINT NOT NULL, ".
+						"`returned` TINYINT NOT NULL, ".
+						"`transactionDate` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ".
+					") ENGINE = MYISAM COMMENT = 'A trasaction log for transactions sent by the ACS server.' ",
+				),
 			),
-		),
 
-		'eContentRecord_6'	=> array(
-			'title' => 'eContent Record Update 6',
-			'description' => 'Adds publication location and physical description ',
-			'dependencies' => array(),
-			'sql' => array(
-				"ALTER TABLE econtent_record ADD publishLocation VARCHAR(100) NULL",
-				"ALTER TABLE econtent_record ADD physicalDescription VARCHAR(100) NULL",
+			'econtent_marc_import'	=> array(
+				'title' => 'EContent Marc Import Log',
+				'description' => 'Build table to store log of Marc File Imports.',
+				'dependencies' => array(),
+				'sql' => array(
+					"DROP TABLE IF EXISTS econtent_marc_import;",
+					"CREATE TABLE IF NOT EXISTS	econtent_marc_import(".
+						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+						"`filename` VARCHAR(255) NULL, ".
+						"`dateStarted` INT(11) NOT NULL, ".
+						"`dateFinished` INT(11) NULL, ".
+						"`status` ENUM('running', 'finished') NOT NULL, ".
+						"`recordsProcessed` INT(11) NOT NULL DEFAULT 0 ".
+					") ENGINE = MYISAM COMMENT = 'A transaction log for marc files imported into the database.' ",
+				),
 			),
-		),
 
-		'notices_1'	=> array(
-			'title' => 'eContent Notices Update 1',
-			'description' => 'Adds notices fields so each notice is tracked explicitly',
-			'dependencies' => array(),
-			'sql' => array(
-				"ALTER TABLE econtent_hold DROP noticeSent",
-				"ALTER TABLE econtent_hold ADD holdAvailableNoticeSent TINYINT NOT NULL DEFAULT 0",
-				"ALTER TABLE econtent_hold ADD holdReminderNoticeSent TINYINT NOT NULL DEFAULT 0",
-				"ALTER TABLE econtent_hold ADD holdAbandonedNoticeSent TINYINT NOT NULL DEFAULT 0",
-				"ALTER TABLE econtent_checkout ADD returnReminderNoticeSent TINYINT NOT NULL DEFAULT 0",
-				"ALTER TABLE econtent_checkout ADD recordExpirationNoticeSent TINYINT NOT NULL DEFAULT 0",
+			'econtent_marc_import_1'	=> array(
+				'title' => 'EContent Marc Import Update 1',
+				'description' => 'Updates Log to include number of records that had errors with any error messages.',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE econtent_marc_import ADD COLUMN recordsWithErrors INT(11) NOT NULL DEFAULT 0",
+					"ALTER TABLE econtent_marc_import ADD COLUMN errors LONGTEXT",
+				),
 			),
-		),
 
-		'eContentItem_1'	=> array(
-			'title' => 'eContent Item Update 1',
-			'description' => 'Updates to allow external links to be added to the system',
-			'dependencies' => array(),
-			'sql' => array(
-				"ALTER TABLE econtent_item ADD link VARCHAR(500) NULL",
-				"ALTER TABLE `econtent_item` CHANGE `type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook' ) NOT NULL",
+			'econtent_marc_import_2'	=> array(
+				'title' => 'EContent Marc Import Update 2',
+				'description' => 'Updates Log to include supplemental file and source.',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE econtent_marc_import ADD COLUMN supplementalFilename VARCHAR(255)",
+					"ALTER TABLE econtent_marc_import ADD COLUMN source VARCHAR(100)",
+					"ALTER TABLE econtent_marc_import ADD COLUMN accessType VARCHAR(100)",
+				),
 			),
-		),
 
-		'eContentItem_2'	=> array(
-			'title' => 'eContent Item Update 2',
-			'description' => 'Allow items to be restricted by library system',
-			'dependencies' => array(),
-			'continueOnError' => true,
-			'sql' => array(
-				"ALTER TABLE econtent_item ADD libraryId INT(11) NOT NULL DEFAULT -1",
-				"ALTER TABLE econtent_item ADD overDriveId INT(11) NOT NULL DEFAULT -1",
-				"ALTER TABLE `econtent_item` CHANGE `item_type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook', 'overdrive' ) NOT NULL",
+			'econtent_attach'	=> array(
+				'title' => 'EContent Attachment Log',
+				'description' => 'Build table to store log of attaching eContent to records.',
+				'dependencies' => array(),
+				'sql' => array(
+					"DROP TABLE IF EXISTS econtent_attach;",
+					"CREATE TABLE IF NOT EXISTS	econtent_attach(".
+						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+						"`sourcePath` VARCHAR(255) NULL, ".
+						"`dateStarted` INT(11) NOT NULL, ".
+						"`dateFinished` INT(11) NULL, ".
+						"`status` ENUM('running', 'finished') NOT NULL, ".
+						"`recordsProcessed` INT(11) NOT NULL DEFAULT 0 ".
+					") ENGINE = MYISAM COMMENT = 'A transaction log for eContent that has been added to records.' ",
+				),
 			),
-		),
 
-		'eContentItem_3'	=> array(
-			'title' => 'eContent Item Update 3',
-			'description' => 'Add Overdrive item capabilities',
-			'dependencies' => array(),
-			'continueOnError' => true,
-			'sql' => array(
-				"ALTER TABLE econtent_item CHANGE overDriveId overDriveId VARCHAR(36) NULL",
-				"ALTER TABLE `econtent_item` CHANGE `item_type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook', 'overdrive' ) NOT NULL",
+			'econtent_attach_update_1' => array(
+				'title' => 'EContent Attachment Log',
+				'description' => 'Build table to store log of attaching eContent to records.',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE econtent_attach ADD numErrors INT(11) DEFAULT 0;",
+					"ALTER TABLE econtent_attach ADD notes TEXT ;",
+				),
 			),
-		),
 
-		'overdriveItem' => array(
-			'title' => 'Overdrive Item',
-			'description' => 'Setup of Overdrive item to cache information about items from OverDrive for performance',
-			'dependencies' => array(),
-			'sql' => array(
-				"DROP TABLE IF EXISTS overdrive_item",
-				"CREATE TABLE IF NOT EXISTS	overdrive_item(" .
-						"`id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY COMMENT 'The id of the eContent item', " .
-						"`recordId` int(11) NOT NULL COMMENT 'The record id that this record belongs to', " .
-						"`format` VARCHAR(100) NOT NULL default '' COMMENT 'A description of the format from overdrive', " .
-						"`formatId` int(11) NULL COMMENT 'The id of the format ', " .
-						"`size` VARCHAR(25) NOT NULL COMMENT 'A description of the size of the file(s) to be downloaded', " .
-						"`available` TINYINT COMMENT 'Whether or not the format is available for immediate usage.', " .
-						"`notes` VARCHAR(255) NOT NULL default '', " .
-						"`lastLoaded` int(11) NOT NULL " .
-					") ENGINE = MYISAM COMMENT = 'Cached information about overdrive items within VuFind'",
-				'ALTER TABLE `overdrive_item` ADD INDEX `RecordId` ( `recordId` ) ',
+			/*'overdrive_record_cache'	=> array(
+				'title' => 'OverDrive Record Cache',
+				'description' => 'Build table to cache page information from OverDrive.',
+				'dependencies' => array(),
+				'sql' => array(
+					"DROP TABLE IF EXISTS overdrive_record_cache;",
+					"CREATE TABLE IF NOT EXISTS	overdrive_record_cache(".
+						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+						"`sourceUrl` VARCHAR(512) NULL, ".
+						"`pageContents` LONGTEXT, ".
+						"`lastLoaded` INT(11) NOT NULL ".
+					") ENGINE = MYISAM COMMENT = 'A cache to store information about records within OverDrive.' ",
 			),
-		),
-
-		'overdriveItem_1' => array(
-			'title' => 'Overdrive Item Update 1',
-			'description' => 'Change Overdrive item to cache information about number of holds and waitlist',
-			'dependencies' => array(),
-			'sql' => array(
-				"ALTER TABLE overdrive_item ADD COLUMN availableCopies int(11) DEFAULT 0;",
-				"ALTER TABLE overdrive_item ADD COLUMN totalCopies int(11) DEFAULT 0;",
-				"ALTER TABLE overdrive_item ADD COLUMN numHolds int(11) DEFAULT 0;",
 			),
-		),
 
-		'overdriveItem_2' => array(
-			'title' => 'Overdrive Item Update 2',
-			'description' => 'Change Overdrive item to cache information based on overdriveId rather than record id since we may have more than 1 overdrive records on a record',
-			'dependencies' => array(),
-			'sql' => array(
-				"TRUNCATE TABLE overdrive_item;",
-				"ALTER TABLE overdrive_item DROP COLUMN recordId;",
-				"ALTER TABLE overdrive_item ADD COLUMN overDriveId VARCHAR(36) NOT NULL;",
-				"ALTER TABLE overdrive_item ADD INDEX `OverDriveId` (overDriveId);",
+			'overdrive_account_cache'	=> array(
+				'title' => 'OverDrive Account Cache',
+				'description' => 'Build table to cache account pages from OverDrive.',
+				'dependencies' => array(),
+				'sql' => array(
+					"DROP TABLE IF EXISTS overdrive_account_cache;",
+					"CREATE TABLE IF NOT EXISTS	overdrive_account_cache(".
+						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+						"`userId` INT(11) NULL, ".
+						"`holdPage` LONGTEXT, ".
+						"`holdPageLastLoaded` INT(11) NOT NULL DEFAULT 0, ".
+						"`bookshelfPage` LONGTEXT, ".
+						"`bookshelfPageLastLoaded` INT(11) NOT NULL DEFAULT 0, ".
+						"`wishlistPage` LONGTEXT, ".
+						"`wishlistPageLastLoaded` INT(11) NOT NULL DEFAULT 0 ".
+					") ENGINE = MYISAM COMMENT = 'A cache to store information about a user\'s account within OverDrive.' ",
 			),
-		),
+			),*/
 
-		'eContentWishList'	=> array(
-			'title' => 'eContent Wishlist',
-			'description' => 'Create table to allow econtent to be added to a user\'s wishlist if no items exits for the record.',
-			'dependencies' => array(),
-			'sql' => array(
-				"DROP TABLE IF EXISTS econtent_wishlist;",
-				"CREATE TABLE IF NOT EXISTS	econtent_wishlist(".
-					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
-					"`userId` INT NOT NULL COMMENT 'The id of the user who checked out the item', ".
-					"`recordId` INT NOT NULL COMMENT 'The record id of the item that was checked out', ".
-					"`dateAdded` INT NOT NULL COMMENT 'The date the record was added to the wishlist', ".
-					"`status` ENUM('active', 'deleted', 'filled') NOT NULL COMMENT 'The status of the item in the wishlist' ".
-				") ENGINE = MYISAM COMMENT = 'The ratings for eContent records' ",
+			/*'econtent_record_detection_settings' => array(
+				'title' => 'EContent Record Detection Settings',
+				'description' => 'Build table to store information about how to determine if a record in the marc export is print or eContent.',
+				'dependencies' => array(),
+				'sql' => array(
+					"DROP TABLE IF EXISTS econtent_record_detection_settings;",
+					"CREATE TABLE IF NOT EXISTS	econtent_record_detection_settings(".
+						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+						"`fieldSpec` VARCHAR(100), ".
+						"`valueToMatch` VARCHAR(100), ".
+						"`source` VARCHAR(100), ".
+						"`accessType` VARCHAR(30), ".
+						"`item_type` VARCHAR(30), ".
+						"`add856FieldsAsExternalLinks` TINYINT NOT NULL DEFAULT 0, ".
+						"INDEX(source) ".
+					") ENGINE = MYISAM COMMENT = 'A cache to store information about a user\'s account within OverDrive.' ",
+				),
 			),
-		),
 
-		'acsLog'	=> array(
-			'title' => 'ACS Log',
-			'description' => 'Create table to store	log of ACS transactions that have been returned by the server.',
-			'dependencies' => array(),
-			'sql' => array(
-				"DROP TABLE IF EXISTS acs_log;",
-				"CREATE TABLE IF NOT EXISTS	acs_log(".
-					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
-					"`acsTransactionId` VARCHAR(50) NULL, ".
-					"`userAcsId` VARCHAR(50) NULL, ".
-					"`fulfilled` TINYINT NOT NULL, ".
-					"`returned` TINYINT NOT NULL, ".
-					"`transactionDate` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ".
-				") ENGINE = MYISAM COMMENT = 'A trasaction log for transactions sent by the ACS server.' ",
+			'econtent_record_detection_settings_remove' => array(
+				'title' => 'EContent Record Detection Settings Removal',
+				'description' => 'Remove record detection settings since we can now use 037 field or item based field.',
+				'dependencies' => array(),
+				'sql' => array(
+					"DROP TABLE IF EXISTS econtent_record_detection_settings;",
+				),
+			),*/
+
+			'econtent_availability' => array(
+				'title' => 'EContent Availability Update',
+				'description' => 'Update eContent titles to separate availability from items',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"CREATE TABLE econtent_availability(
+						id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						recordId INT NOT NULL,
+						copiesOwned INT NOT NULL DEFAULT 1,
+						availableCopies INT NOT NULL DEFAULT 1,
+						numberOfHolds INT NOT NULL DEFAULT 0,
+						libraryId INT NOT NULL
+					)",
+					"ALTER TABLE econtent_record ADD COLUMN itemLevelOwnership TINYINT NOT NULL default 0 COMMENT 'If Item level ownership is set on, ownership will be determined at the item level with one copy owned per item.	Library who owns the title is set based on libraryId in items table.	Otherwise ownership is determined based on content_availability table'",
+					"UPDATE econtent_record SET accessType = 'external' WHERE accessType = 'free' and source != 'Gutenberg'",
+					"UPDATE econtent_record SET itemLevelOwnership = 1 WHERE (accessType = 'external') and source != 'OverDrive' and source != 'Gutenberg' ORDER BY `econtent_record`.`externalId`	DESC",
+					"ALTER TABLE econtent_item CHANGE `item_type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook', 'overdrive', 'external_web', 'external_ebook', 'external_eaudio', 'external_emusic', 'external_evideo', 'text', 'gifs', 'itunes' ) NOT NULL",
+					"ALTER TABLE econtent_item ADD COLUMN size INT NOT NULL default 0",
+					"ALTER TABLE econtent_item ADD COLUMN externalFormat VARCHAR(50) NULL",
+					"ALTER TABLE econtent_item ADD COLUMN externalFormatId VARCHAR(25) NULL",
+					"ALTER TABLE econtent_item ADD COLUMN externalFormatNumeric INT NULL",
+					"ALTER TABLE econtent_item ADD COLUMN identifier VARCHAR(50) NULL COMMENT 'The ISBN, ASIN, or UPC for the item' ",
+					"ALTER TABLE econtent_item ADD COLUMN sampleName_1 VARCHAR(512) NULL",
+					"ALTER TABLE econtent_item ADD COLUMN sampleUrl_1 VARCHAR(512) NULL",
+					"ALTER TABLE econtent_item ADD COLUMN sampleName_2 VARCHAR(512) NULL",
+					"ALTER TABLE econtent_item ADD COLUMN sampleUrl_2 VARCHAR(512) NULL",
+					//"ALTER TABLE econtent_item DROP COLUMN overDriveId",
+					//"DROP TABLE overdrive_item",
+					"DELETE FROM `econtent_item` where item_type = 'overdrive' and externalFormat IS NULL"
+				),
 			),
-		),
 
-		'econtent_marc_import'	=> array(
-			'title' => 'EContent Marc Import Log',
-			'description' => 'Create table to store log of Marc File Imports.',
-			'dependencies' => array(),
-			'sql' => array(
-				"DROP TABLE IF EXISTS econtent_marc_import;",
-				"CREATE TABLE IF NOT EXISTS	econtent_marc_import(".
-					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
-					"`filename` VARCHAR(255) NULL, ".
-					"`dateStarted` INT(11) NOT NULL, ".
-					"`dateFinished` INT(11) NULL, ".
-					"`status` ENUM('running', 'finished') NOT NULL, ".
-					"`recordsProcessed` INT(11) NOT NULL DEFAULT 0 ".
-				") ENGINE = MYISAM COMMENT = 'A trasaction log for marc files imported into the database.' ",
+			'econtent_availability_1'	=> array(
+				'title' => 'EContent Availability Update 1',
+				'description' => 'Add index to eContent availability',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER TABLE econtent_availability ADD INDEX (recordId)",
+				),
 			),
-		),
 
-		'econtent_marc_import_1'	=> array(
-			'title' => 'EContent Marc Import Update 1',
-			'description' => 'Updates Log to include number of records that had errors with any error messages.',
-			'dependencies' => array(),
-			'sql' => array(
-				"ALTER TABLE econtent_marc_import ADD COLUMN recordsWithErrors INT(11) NOT NULL DEFAULT 0",
-				"ALTER TABLE econtent_marc_import ADD COLUMN errors LONGTEXT",
+			'remove_gale_pdfs'	=> array(
+				'title' => 'Remove Gale PDF Files',
+				'description' => 'Remove Gale PDF files from the catalog.',
+				'dependencies' => array(),
+				'sql' => array(
+					"DELETE econtent_item.* FROM `econtent_item` inner join econtent_record on econtent_record.id = econtent_item.recordId where source = 'Gale Group' and item_type = 'pdf' ",
+				),
 			),
-		),
 
-		'econtent_marc_import_2'	=> array(
-			'title' => 'EContent Marc Import Update 2',
-			'description' => 'Updates Log to include supplemental file and source.',
-			'dependencies' => array(),
-			'sql' => array(
-				"ALTER TABLE econtent_marc_import ADD COLUMN supplementalFilename VARCHAR(255)",
-				"ALTER TABLE econtent_marc_import ADD COLUMN source VARCHAR(100)",
-				"ALTER TABLE econtent_marc_import ADD COLUMN accessType VARCHAR(100)",
+			'econtent_file_packaging_log'	=> array(
+				'title' => 'Create eContent Packaging Log',
+				'description' => 'Create eContent Packaging Log',
+				'dependencies' => array(),
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS	econtent_file_packaging_log(".
+						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
+						"`filename` VARCHAR(255), ".
+						"`libraryFilename` VARCHAR(255), ".
+						"`publisher` VARCHAR(255), ".
+						"`distributorId` VARCHAR(128), ".
+						"`copies` INT, ".
+						"`dateFound` INT(11), ".
+						"`econtentRecordId` INT(11), ".
+						"`econtentItemId` INT(11), ".
+						"`dateSentToPackaging` INT(11), ".
+						"`packagingId` INT(11), ".
+						"`acsError` MEDIUMTEXT, ".
+						"`acsId` VARCHAR(128), ".
+						"`status` ENUM('detected', 'recordFound', 'copiedToLibrary', 'itemGenerated', 'sentToAcs', 'acsIdGenerated', 'acsError', 'processingComplete', 'skipped'), ".
+						"INDEX(distributorId), ".
+						"INDEX(publisher), ".
+						"INDEX(econtentItemId), ".
+						"INDEX(status) ".
+					") ENGINE = MYISAM COMMENT = 'A table to store information about diles that are being sent for packaging in the ACS server.' ",
+				),
 			),
-		),
 
-		'econtent_attach'	=> array(
-			'title' => 'EContent Attachment Log',
-			'description' => 'Create table to store log of attaching eContent to records.',
-			'dependencies' => array(),
-			'sql' => array(
-				"DROP TABLE IF EXISTS econtent_attach;",
-				"CREATE TABLE IF NOT EXISTS	econtent_attach(".
-					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
-					"`sourcePath` VARCHAR(255) NULL, ".
-					"`dateStarted` INT(11) NOT NULL, ".
-					"`dateFinished` INT(11) NULL, ".
-					"`status` ENUM('running', 'finished') NOT NULL, ".
-					"`recordsProcessed` INT(11) NOT NULL DEFAULT 0 ".
-				") ENGINE = MYISAM COMMENT = 'A trasaction log for eContent that has been added to records.' ",
+			'overdrive_api_data' => array(
+				'title' => 'OverDrive API Data',
+				'description' => 'Build tables to store data loaded fromthe OverDrive API so the reindex process can use cached data and so we can add additional logic for lastupdate time, etc.',
+				'sql' => array(
+					"CREATE TABLE overdrive_api_products (
+						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						overdriveId VARCHAR(36) NOT NULL,
+						mediaType  VARCHAR(50) NOT NULL,
+						title VARCHAR(512) NOT NULL,
+						series VARCHAR(215),
+						primaryCreatorRole VARCHAR(50),
+						primaryCreatorName VARCHAR(215),
+						cover VARCHAR(215),
+						dateAdded INT(11),
+						dateUpdated INT(11),
+						lastMetadataCheck INT(11),
+						lastMetadataChange INT(11),
+	          lastAvailabilityCheck INT(11),
+						lastAvailabilityChange INT(11),
+						deleted TINYINT(1) DEFAULT 0,
+						dateDeleted INT(11) DEFAULT NULL,
+						UNIQUE(overdriveId),
+						INDEX(dateUpdated),
+						INDEX(lastMetadataCheck),
+						INDEX(lastAvailabilityCheck),
+	                    INDEX(deleted)
+					)" ,
+					"CREATE TABLE overdrive_api_product_formats (
+						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						productId INT,
+						textId VARCHAR(25),
+						numericId INT,
+						name VARCHAR(512),
+						fileName  VARCHAR(215),
+						fileSize INT,
+						partCount TINYINT,
+	          sampleSource_1 VARCHAR(215),
+	          sampleUrl_1 VARCHAR(215),
+	          sampleSource_2 VARCHAR(215),
+	          sampleUrl_2 VARCHAR(215),
+						INDEX(productId),
+						INDEX(numericId),
+						UNIQUE(productId, textId)
+					)",
+					"CREATE TABLE overdrive_api_product_metadata (
+						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						productId INT,
+						checksum BIGINT,
+						sortTitle VARCHAR(512),
+						publisher VARCHAR(215),
+						publishDate INT(11),
+						isPublicDomain TINYINT(1),
+						isPublicPerformanceAllowed TINYINT(1),
+						shortDescription TEXT,
+						fullDescription TEXT,
+						starRating FLOAT,
+						popularity INT,
+						UNIQUE(productId)
+					)",
+					"CREATE TABLE overdrive_api_product_creators (
+						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						productId INT,
+						role VARCHAR(50),
+						name VARCHAR(215),
+						fileAs VARCHAR(215),
+						INDEX (productId)
+					)",
+					"CREATE TABLE overdrive_api_product_identifiers (
+						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						productId INT,
+						type VARCHAR(50),
+						value VARCHAR(75),
+						INDEX (productId),
+	                    INDEX (type)
+					)",
+					"CREATE TABLE overdrive_api_product_languages (
+						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						code VARCHAR(10),
+						name VARCHAR(50),
+						INDEX (code)
+					)",
+					"CREATE TABLE overdrive_api_product_languages_ref (
+						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						productId INT,
+						languageId INT,
+						UNIQUE (productId, languageId)
+					)",
+					"CREATE TABLE overdrive_api_product_subjects (
+						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						name VARCHAR(512),
+						index(name)
+					)",
+					"CREATE TABLE overdrive_api_product_subjects_ref (
+						productId INT,
+						subjectId INT,
+						UNIQUE (productId, subjectId)
+					)",
+					"CREATE TABLE overdrive_api_product_availability (
+						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						productId INT,
+						libraryId INT,
+						available TINYINT(1),
+						copiesOwned INT,
+						copiesAvailable INT,
+						numberOfHolds INT,
+						INDEX (productId),
+						INDEX (libraryId),
+						UNIQUE(productId, libraryId)
+					)",
+					"CREATE TABLE overdrive_extract_log(
+						`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						`startTime` INT(11),
+						`endTime` INT(11),
+						`lastUpdate` INT(11),
+						numProducts INT(11) DEFAULT 0,
+						numErrors INT(11) DEFAULT 0,
+						numAdded INT(11) DEFAULT 0,
+						numDeleted INT(11) DEFAULT 0,
+	                    numUpdated INT(11) DEFAULT 0,
+	                    numSkipped INT(11) DEFAULT 0,
+						numAvailabilityChanges INT(11) DEFAULT 0,
+						numMetadataChanges INT(11) DEFAULT 0,
+						`notes` TEXT
+					)",
+				)
 			),
-		),
 
-		'econtent_attach_update_1' => array(
-			'title' => 'EContent Attachment Log',
-			'description' => 'Create table to store log of attaching eContent to records.',
-			'dependencies' => array(),
-			'sql' => array(
-				"ALTER TABLE econtent_attach ADD numErrors INT(11) DEFAULT 0;",
-				"ALTER TABLE econtent_attach ADD notes TEXT ;",
-		),
-		),
-
-		'overdrive_record_cache'	=> array(
-			'title' => 'OverDrive Record Cache',
-			'description' => 'Create table to cache page information from OverDrive.',
-			'dependencies' => array(),
-			'sql' => array(
-				"DROP TABLE IF EXISTS overdrive_record_cache;",
-				"CREATE TABLE IF NOT EXISTS	overdrive_record_cache(".
-					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
-					"`sourceUrl` VARCHAR(512) NULL, ".
-					"`pageContents` LONGTEXT, ".
-					"`lastLoaded` INT(11) NOT NULL ".
-				") ENGINE = MYISAM COMMENT = 'A cache to store information about records within OverDrive.' ",
-		),
-		),
-
-		'overdrive_account_cache'	=> array(
-			'title' => 'OverDrive Account Cache',
-			'description' => 'Create table to cache account pages from OverDrive.',
-			'dependencies' => array(),
-			'sql' => array(
-				"DROP TABLE IF EXISTS overdrive_account_cache;",
-				"CREATE TABLE IF NOT EXISTS	overdrive_account_cache(".
-					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
-					"`userId` INT(11) NULL, ".
-					"`holdPage` LONGTEXT, ".
-					"`holdPageLastLoaded` INT(11) NOT NULL DEFAULT 0, ".
-					"`bookshelfPage` LONGTEXT, ".
-					"`bookshelfPageLastLoaded` INT(11) NOT NULL DEFAULT 0, ".
-					"`wishlistPage` LONGTEXT, ".
-					"`wishlistPageLastLoaded` INT(11) NOT NULL DEFAULT 0 ".
-				") ENGINE = MYISAM COMMENT = 'A cache to store information about a user\'s account within OverDrive.' ",
-		),
-		),
-
-		'econtent_record_detection_settings' => array(
-			'title' => 'EContent Record Detection Settings',
-			'description' => 'Create table to store information about how to determine if a record in the marc export is print or eContent.',
-			'dependencies' => array(),
-			'sql' => array(
-				"DROP TABLE IF EXISTS econtent_record_detection_settings;",
-				"CREATE TABLE IF NOT EXISTS	econtent_record_detection_settings(".
-					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
-					"`fieldSpec` VARCHAR(100), ".
-					"`valueToMatch` VARCHAR(100), ".
-					"`source` VARCHAR(100), ".
-					"`accessType` VARCHAR(30), ".
-					"`item_type` VARCHAR(30), ".
-					"`add856FieldsAsExternalLinks` TINYINT NOT NULL DEFAULT 0, ".
-					"INDEX(source) ".
-				") ENGINE = MYISAM COMMENT = 'A cache to store information about a user\'s account within OverDrive.' ",
+			'add_indexes' => array(
+				'title' => 'Add eContent indexes',
+				'description' => 'Add indexes to econtent tables that were not defined originally',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					'ALTER TABLE `econtent_checkout` ADD INDEX `RecordId` ( `recordId` ) ',
+					'ALTER TABLE `econtent_history` ADD INDEX `RecordId` ( `recordId` ) ',
+					'ALTER TABLE `econtent_hold` ADD INDEX `RecordId` ( `recordId` ) ',
+					'ALTER TABLE `econtent_item` ADD INDEX `RecordId` ( `recordId` ) ',
+					'ALTER TABLE `econtent_wishlist` ADD INDEX `RecordId` ( `recordId` ) ',
+				),
 			),
-		),
 
-		'econtent_availability' => array(
-			'title' => 'EContent Availability Update',
-			'description' => 'Update eContent titles to separate availability from items',
-			'dependencies' => array(),
-			'continueOnError' => true,
-			'sql' => array(
-				"CREATE TABLE econtent_availability(
-					id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-					recordId INT NOT NULL,
-					copiesOwned INT NOT NULL DEFAULT 1,
-					availableCopies INT NOT NULL DEFAULT 1,
-					numberOfHolds INT NOT NULL DEFAULT 0,
-					libraryId INT NOT NULL
-				)",
-				"ALTER TABLE econtent_record ADD COLUMN itemLevelOwnership TINYINT NOT NULL default 0 COMMENT 'If Item level ownership is set on, ownership will be determined at the item level with one copy owned per item.	Library who owns the title is set based on libraryId in items table.	Otherwise ownership is determined based on content_availability table'",
-				"UPDATE econtent_record SET accessType = 'external' WHERE accessType = 'free' and source != 'Gutenberg'",
-				"UPDATE econtent_record SET itemLevelOwnership = 1 WHERE (accessType = 'external') and source != 'OverDrive' and source != 'Gutenberg' ORDER BY `econtent_record`.`externalId`	DESC",
-				"ALTER TABLE econtent_item CHANGE `item_type` `item_type` ENUM( 'epub', 'pdf', 'jpg', 'gif', 'mp3', 'plucker', 'kindle', 'externalLink', 'externalMP3', 'interactiveBook', 'overdrive', 'external_web', 'external_ebook', 'external_eaudio', 'external_emusic', 'external_evideo', 'text', 'gifs', 'itunes' ) NOT NULL",
-				"ALTER TABLE econtent_item ADD COLUMN size INT NOT NULL default 0",
-				"ALTER TABLE econtent_item ADD COLUMN externalFormat VARCHAR(50) NULL",
-				"ALTER TABLE econtent_item ADD COLUMN externalFormatId VARCHAR(25) NULL",
-				"ALTER TABLE econtent_item ADD COLUMN externalFormatNumeric INT NULL",
-				"ALTER TABLE econtent_item ADD COLUMN identifier VARCHAR(50) NULL COMMENT 'The ISBN, ASIN, or UPC for the item' ",
-				"ALTER TABLE econtent_item ADD COLUMN sampleName_1 VARCHAR(512) NULL",
-				"ALTER TABLE econtent_item ADD COLUMN sampleUrl_1 VARCHAR(512) NULL",
-				"ALTER TABLE econtent_item ADD COLUMN sampleName_2 VARCHAR(512) NULL",
-				"ALTER TABLE econtent_item ADD COLUMN sampleUrl_2 VARCHAR(512) NULL",
-				"ALTER TABLE econtent_item DROP COLUMN overDriveId",
-				"DROP TABLE overdrive_item",
-				"DELETE FROM `econtent_item` where item_type = 'overdrive' and externalFormat IS NULL"
+			'add_indexes_2' => array(
+				'title' => 'Add eContent indexes 2',
+				'description' => 'Add additional indexes to econtent tables that were not defined originally',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					'ALTER TABLE `econtent_rating` ADD INDEX `RecordId` ( `recordId` ) ',
+					'ALTER TABLE `econtent_hold` ADD INDEX `UserStatus` ( `userId`, `status` ) ',
+					'ALTER TABLE `econtent_checkout` ADD INDEX `UserStatus` ( `userId`, `status` ) ',
+					'ALTER TABLE `econtent_wishlist` ADD INDEX `UserStatus` ( `userId`, `status` ) ',
+				),
 			),
-		),
 
-		'remove_gale_pdfs'	=> array(
-			'title' => 'Remove Gale PDF Files',
-			'description' => 'Remove Gale PDF files from the catalog.',
-			'dependencies' => array(),
-			'database' => 'dclecontent',
-			'sql' => array(
-				"DELETE econtent_item.* FROM `econtent_item` inner join econtent_record on econtent_record.id = econtent_item.recordId where source = 'Gale Group' and item_type = 'pdf' ",
-		),
-		),
-
-		'econtent_file_packaging_log'	=> array(
-			'title' => 'Create eContent Packaging Log',
-			'description' => 'Create eContent Packaging Log',
-			'dependencies' => array(),
-			'database' => 'dclecontent',
-			'sql' => array(
-				"CREATE TABLE IF NOT EXISTS	econtent_file_packaging_log(".
-					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, ".
-					"`filename` VARCHAR(255), ".
-					"`libraryFilename` VARCHAR(255), ".
-					"`publisher` VARCHAR(255), ".
-					"`distributorId` VARCHAR(128), ".
-					"`copies` INT, ".
-					"`dateFound` INT(11), ".
-					"`econtentRecordId` INT(11), ".
-					"`econtentItemId` INT(11), ".
-					"`dateSentToPackaging` INT(11), ".
-					"`packagingId` INT(11), ".
-					"`acsError` MEDIUMTEXT, ".
-					"`acsId` VARCHAR(128), ".
-					"`status` ENUM('detected', 'recordFound', 'copiedToLibrary', 'itemGenerated', 'sentToAcs', 'acsIdGenerated', 'acsError', 'processingComplete', 'skipped'), ".
-					"INDEX(distributorId), ".
-					"INDEX(publisher), ".
-					"INDEX(econtentItemId), ".
-					"INDEX(status) ".
-				") ENGINE = MYISAM COMMENT = 'A table to store information about diles that are being sent for packaging in the ACS server.' ",
-		),
-		),
-
-		'add_indexes' => array(
-			'title' => 'Add eContent indexes',
-			'description' => 'Add indexes to econtent tables that were not defined originally',
-			'dependencies' => array(),
-			'continueOnError' => true,
-			'sql' => array(
-				'ALTER TABLE `econtent_checkout` ADD INDEX `RecordId` ( `recordId` ) ',
-				'ALTER TABLE `econtent_history` ADD INDEX `RecordId` ( `recordId` ) ',
-				'ALTER TABLE `econtent_hold` ADD INDEX `RecordId` ( `recordId` ) ',
-				'ALTER TABLE `econtent_item` ADD INDEX `RecordId` ( `recordId` ) ',
-				'ALTER TABLE `econtent_wishlist` ADD INDEX `RecordId` ( `recordId` ) ',
+			'add_indexes_3' => array(
+				'title' => 'Add eContent indexes 3',
+				'description' => 'Add additional indexes to econtent tables that were not defined originally',
+				'dependencies' => array(),
+				'sql' => array(
+					'ALTER TABLE `econtent_record` ADD INDEX ( `accessType` ) ',
+					'ALTER TABLE `econtent_record` ADD INDEX ( `source` ) ',
+					'ALTER TABLE `econtent_hold` ADD INDEX ( `status` ) ',
+					'ALTER TABLE `econtent_checkout` ADD INDEX ( `status` ) ',
+					'ALTER TABLE `econtent_wishlist` ADD INDEX ( `status` ) ',
+				),
 			),
-		),
 
-		'add_indexes_2' => array(
-			'title' => 'Add eContent indexes 2',
-			'description' => 'Add additional indexes to econtent tables that were not defined originally',
-			'dependencies' => array(),
-			'continueOnError' => true,
-			'sql' => array(
-				'ALTER TABLE `econtent_rating` ADD INDEX `RecordId` ( `recordId` ) ',
-				'ALTER TABLE `econtent_hold` ADD INDEX `UserStatus` ( `userId`, `status` ) ',
-				'ALTER TABLE `econtent_checkout` ADD INDEX `UserStatus` ( `userId`, `status` ) ',
-				'ALTER TABLE `econtent_wishlist` ADD INDEX `UserStatus` ( `userId`, `status` ) ',
+			'utf8_update' => array(
+				'title' => 'Update to UTF-8',
+				'description' => 'Update database to use UTF-8 encoding',
+				'dependencies' => array(),
+				'sql' => array(
+					"ALTER DATABASE " . $configArray['Database']['database_econtent_dbname'] . " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE acs_log CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE db_update CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE econtent_checkout CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE econtent_history CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE econtent_hold CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE econtent_item CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE econtent_marc_import CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE econtent_rating CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE econtent_record CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE econtent_wishlist CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					//"ALTER TABLE overdrive_account_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					//"ALTER TABLE overdrive_record_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				),
 			),
-		),
 
-		'add_indexes_3' => array(
-			'title' => 'Add eContent indexes 3',
-			'description' => 'Add additional indexes to econtent tables that were not defined originally',
-			'dependencies' => array(),
-			'sql' => array(
-				'ALTER TABLE `econtent_record` ADD INDEX ( `accessType` ) ',
-				'ALTER TABLE `econtent_record` ADD INDEX ( `source` ) ',
-				'ALTER TABLE `econtent_hold` ADD INDEX ( `status` ) ',
-				'ALTER TABLE `econtent_checkout` ADD INDEX ( `status` ) ',
-				'ALTER TABLE `econtent_wishlist` ADD INDEX ( `status` ) ',
+			/*'cleanup_1' => array(
+				'title' => 'Cleanup 1',
+				'description' => 'Remove unused database tables',
+				'dependencies' => array(),
+				'sql' => array(
+					"DROP TABLE IF EXISTS overdrive_account_cache",
+					"DROP TABLE IF EXISTS overdrive_record_cache",
+				),
+			),*/
+			'addIndexDateAddedEcontentRecordTable' => array(
+				'title' => 'Add an Index',
+				'description' => 'Add an index to econtent_record table',
+				'dependencies' => array(),
+				'sql' => array('addDateAddIndexToEContentRecord'),
 			),
-		),
-
-		'utf8_update' => array(
-			'title' => 'Update to UTF-8',
-			'description' => 'Update database to use UTF-8 encoding',
-			'dependencies' => array(),
-			'sql' => array(
-				"ALTER DATABASE " . $configArray['Database']['database_econtent_dbname'] . " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE acs_log CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE db_update CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE econtent_checkout CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE econtent_history CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE econtent_hold CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE econtent_item CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE econtent_marc_import CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE econtent_rating CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE econtent_record CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE econtent_wishlist CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE overdrive_account_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE overdrive_record_cache CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-			),
-		),
-
-		'cleanup_1' => array(
-			'title' => 'Cleanup 1',
-			'description' => 'Remove unused database tables',
-			'dependencies' => array(),
-			'sql' => array(
-				"DROP TABLE IF EXISTS overdrive_account_cache",
-				"DROP TABLE IF EXISTS overdrive_record_cache",
-			),
-		),
-		'addIndexDateAddedEcontentRecordTable' => array(
-			'title' => 'Add an Index',
-			'description' => 'Add an index to econtent_record table',
-			'dependencies' => array(),
-			'sql' => array('addDateAddIndexToEContentRecord'),
-		),
 
 		);
 	}
@@ -757,9 +920,10 @@ class DBMaintenanceEContent extends Admin {
 		}
 	}
 
-	private function convertOldEContent(){
-		require_once 'sys/eContent/EContentItem.php';
-		require_once 'sys/eContent/EContentRecord.php';
+	/*private function convertOldEContent(){
+		global $configArray;
+		require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
+		require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 		//Load eContent from the old database
 		mysql_select_db($configArray['Database']['database_vufind_dbname']);
 		$result = mysql_query("SELECT * FROM epub_files");
@@ -806,12 +970,9 @@ class DBMaintenanceEContent extends Admin {
 				$econtentItem->date_updated = strtotime($row['createDate']);
 				$econtentItem->insert();
 				$numRecordsProcessed++;
-				/*if ($numRecordsProcessed > 10){
-					break;
-					}*/
 			}
 		}
 		return "Update succeeded, processed $numRecordsProcessed records.";
-	}
+	}*/
 
 }

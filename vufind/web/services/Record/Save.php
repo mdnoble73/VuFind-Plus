@@ -18,12 +18,12 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'services/MyResearch/lib/Resource.php';
-require_once 'services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
-class Save extends Action
+class Record_Save extends Action
 {
 	private $user;
 
@@ -64,13 +64,14 @@ class Save extends Action
 
 		if (isset($_GET['submit'])) {
 			$this->saveRecord();
-			header('Location: ' . $configArray['Site']['url'] . '/Record/' .
+			header('Location: ' . $configArray['Site']['path'] . '/Record/' .
 			urlencode($_GET['id']));
 			exit();
 		}
 
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
+		/** @var SearchObject_Solr $db */
 		$db = new $class($configArray['Index']['url']);
 		if ($configArray['System']['debugSolr']) {
 			$db->debug = true;
@@ -136,7 +137,7 @@ class Save extends Action
 				$resource->source = $_GET['source'];
 			}
 			if (!$resource->find(true)) {
-				PEAR::raiseError(new PEAR_Error('Unable find a resource for that title.'));
+				PEAR_Singleton::raiseError(new PEAR_Error('Unable find a resource for that title.'));
 			}
 
 			preg_match_all('/"[^"]*"|[^,]+/', $_GET['mytags'], $tagArray);

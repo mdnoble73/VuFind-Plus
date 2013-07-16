@@ -167,7 +167,15 @@ function toggleInBag(id, title, checkBox) {
  * @param id
  * @param title
  */
-function addToBag(id, title) {
+function addToBag(id, title, shortId) {
+	if (shortId != undefined){
+		var selectCheckbox = $("#selected" + shortId);
+		if (selectCheckbox.length > 0){
+			selectCheckbox.prop('checked', !selectCheckbox.checked);
+		}
+	}
+
+
 	book = new Object();
 	book.id = id;
 	book.title = title; 
@@ -176,7 +184,8 @@ function addToBag(id, title) {
 	
 	_saveBagAsCookie();
 	
-	updateBag();	
+	updateBag();
+	return false;
 }
 
 /** Create a list and then save all items in the book cart to it */
@@ -233,11 +242,10 @@ function _addToBag(book) {
 	}
 	
 	if (bookInBag == false){
-	// add to bag 
-	bookBag.push(book);				
+		// add to bag
+		bookBag.push(book);
+	}
 }
-}
-
 
 // Remove a Book From Bag
 function _removeFromBag(book) {	
@@ -309,8 +317,6 @@ function updateBag(){
 		
 	// update array view
 	if (bookBag.length > 0) {		
-		// show array view
-		$("#book_bag").show();
 		
 		// update book count
 		_updateBookCount();
@@ -330,12 +336,14 @@ function updateBag(){
 			// update the list of bag items
 			var bagItem = "<div class=\"bag_book_title\">" +
 					"<a href ='" + path + "/Record/" + current_book.id + "' class=\"bag_title_link\">#" + j + ". " + current_book.title + "</a>" +
-					"<div class=\"deleteIcon\">" + "<a href=\"#\" onClick=\"removeFromBagById('" + current_book.id + "');return false;\"><img src='" + path + "/images/silk/delete.png' alt='Remove' title='Remove from book cart'></a>" +
+					"<div class=\"deleteIcon\">" + "<a href=\"#\" onClick=\"removeFromBagById('" + current_book.id + "');return false;\" title='Remove from book cart'><span class='silk delete'>&nbsp;</span</a>" +
 					"</div></div>";
 			$("#bag_items").append(bagItem);
-		}				
+		}
 		
-		
+		// show array view
+		$("#book_bag").show();
+		$("#bag_open_button").effect( "highlight" );
 	} else {	
 		$("#bag_summary").text("0 items");
 		$("#bag_summary_header").text("0 items");

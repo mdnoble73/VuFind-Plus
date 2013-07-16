@@ -1,4 +1,5 @@
 <?php
+define ('ROOT_DIR', __DIR__);
 /**
  *
  * Copyright (C) Villanova University 2007.
@@ -18,20 +19,18 @@
  *
  */
 
-/*
- * @todo    Convert this to an AJAX approach to allow for client side access to
- *          images.  Also investigate local caching approach.  What about using
- *          Squid?
- */
-require_once 'sys/Timer.php';
-require_once 'sys/Logger.php';
-require_once 'sys/BookCoverProcessor.php';
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/sys/PEAR_Singleton.php';
+PEAR_Singleton::init();
+require_once ROOT_DIR . '/sys/Timer.php';
+require_once ROOT_DIR . '/sys/Logger.php';
+require_once ROOT_DIR . '/sys/BookCoverProcessor.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 //Bootstrap the process
 if (!function_exists('vufind_autoloader')){
 	// Set up autoloader (needed for YAML)
 	function vufind_autoloader($class) {
-		require str_replace('_', '/', $class) . '.php';
+		$fullClassName = str_replace('_', '/', $class) . '.php';
+		require $fullClassName;
 	}
 	spl_autoload_register('vufind_autoloader');
 }
@@ -41,7 +40,7 @@ if (empty($timer)){
 }
 
 // Retrieve values from configuration file
-require_once 'sys/ConfigArray.php';
+require_once ROOT_DIR . '/sys/ConfigArray.php';
 $configArray = readConfig();
 $timer->logTime("Read config");
 if (isset($configArray['System']['timings'])){
@@ -60,7 +59,7 @@ if ($configArray['System']['debug']) {
 date_default_timezone_set($configArray['Site']['timezone']);
 $timer->logTime("bootstrap");
 
-//Create class to handle processing of coer
+//Create class to handle processing of covers
 $processor = new BookCoverProcessor();
 $processor->loadCover($configArray, $timer, $logger);
 if ($processor->error){

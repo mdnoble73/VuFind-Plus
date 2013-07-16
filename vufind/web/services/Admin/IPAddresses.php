@@ -18,9 +18,9 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/Admin/ObjectEditor.php';
-require_once 'Drivers/marmot_inc/subnet.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/Admin/ObjectEditor.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/subnet.php';
 require_once 'XML/Unserializer.php';
 
 class IPAddresses extends ObjectEditor

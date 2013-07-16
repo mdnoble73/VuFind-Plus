@@ -18,29 +18,47 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/MyResearch/lib/User.php';
-require_once 'services/MyResearch/lib/Search.php';
-require_once 'Drivers/marmot_inc/Prospector.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
+require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
 
-require_once 'sys/SolrStats.php';
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/sys/SolrStats.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
-class Results extends Action {
-
-	private $solrStats = false;
-	private $query;
+class Search_Results extends Action {
 
 	function launch() {
 		global $interface;
 		global $configArray;
 		global $timer;
-		global $user;
+		global $analytics;
 
+		/** @var string|LibrarySearchSource|LocationSearchSource $searchSource */
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+		if (preg_match('/library\d+/', $searchSource)){
+			$trimmedId = str_replace('library', '', $searchSource);
+			$searchSourceObj = new LibrarySearchSource();
+			$searchSourceObj->id = $trimmedId;
+			if ($searchSourceObj->find(true)){
+				$searchSource = $searchSourceObj;
+			}
+		}
+
+		if (isset($_REQUEST['replacementTerm'])){
+			$replacementTerm = $_REQUEST['replacementTerm'];
+			$interface->assign('replacementTerm', $replacementTerm);
+			$oldTerm = $_REQUEST['lookfor'];
+			$interface->assign('oldTerm', $oldTerm);
+			$_REQUEST['lookfor'] = $replacementTerm;
+			$_GET['lookfor'] = $replacementTerm;
+			$oldSearchUrl = $_SERVER['REQUEST_URI'];
+			$oldSearchUrl = str_replace('replacementTerm=' . urlencode($replacementTerm), 'disallowReplacements', $oldSearchUrl);
+			$interface->assign('oldSearchUrl', $oldSearchUrl);
+		}
 
 		// Include Search Engine Class
-		require_once 'sys/' . $configArray['Index']['engine'] . '.php';
+		require_once ROOT_DIR . '/sys/Solr.php';
 		$timer->logTime('Include search engine');
 
 		//Check to see if the year has been set and if so, convert to a filter and resend.
@@ -99,8 +117,8 @@ class Results extends Action {
 		foreach ($rangeFilters as $filter){
 			if ((isset($_REQUEST[$filter . 'from']) && strlen($_REQUEST[$filter . 'from']) > 0) || (isset($_REQUEST[$filter . 'to']) && strlen($_REQUEST[$filter . 'to']) > 0)){
 				$queryParams = $_GET;
-				$from = preg_match('/^\d*(\.\d*)?$/', $_REQUEST[$filter . 'from']) ? $_REQUEST[$filter . 'from'] : '*';
-				$to = preg_match('/^\d*(\.\d*)?$/', $_REQUEST[$filter . 'to']) ? $_REQUEST[$filter . 'to'] : '*';
+				$from = (isset($_REQUEST[$filter . 'from']) && preg_match('/^\d*(\.\d*)?$/', $_REQUEST[$filter . 'from'])) ? $_REQUEST[$filter . 'from'] : '*';
+				$to = (isset($_REQUEST[$filter . 'to']) && preg_match('/^\d*(\.\d*)?$/', $_REQUEST[$filter . 'to'])) ? $_REQUEST[$filter . 'to'] : '*';
 
 				if ($to != '*' && $from != '*' && $to < $from){
 					$tmpFilter = $to;
@@ -125,7 +143,7 @@ class Results extends Action {
 						}
 					}
 				}
-				if ($yearFrom != '*' || $yearTo != '*'){
+				if ($from != '*' || $to != '*'){
 					$queryParamStrings[] = "&filter[]=$filter:[$from+TO+$to]";
 				}
 				$queryParamString = join('&', $queryParamStrings);
@@ -135,6 +153,7 @@ class Results extends Action {
 		}
 
 		// Initialise from the current search globals
+		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init($searchSource);
 		$timer->logTime("Init Search Object");
@@ -169,8 +188,8 @@ class Results extends Action {
 
 		// Process Search
 		$result = $searchObject->processSearch(true, true);
-		if (PEAR::isError($result)) {
-			PEAR::raiseError($result->getMessage());
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result->getMessage());
 		}
 		$timer->logTime('Process Search');
 
@@ -205,10 +224,12 @@ class Results extends Action {
 		//Enable and disable functionality based on library settings
 		//This must be done before we process each result
 		global $library;
+		/** @var Location $locationSingleton */
 		global $locationSingleton;
 		$location = $locationSingleton->getActiveLocation();
 		$showHoldButton = 1;
 		$showHoldButtonInSearchResults = 1;
+		$interface->assign('showNotInterested', false);
 		if (isset($library) && $location != null){
 			$interface->assign('showFavorites', $library->showFavorites);
 			$interface->assign('showComments', $library->showComments);
@@ -231,16 +252,22 @@ class Results extends Action {
 		}
 		$interface->assign('showHoldButton', $showHoldButtonInSearchResults);
 		$interface->assign('page_body_style', 'sidebar_left');
+		$interface->assign('overDriveVersion', isset($configArray['OverDrive']['interfaceVersion']) ? $configArray['OverDrive']['interfaceVersion'] : 1);
 
 		//Check to see if we should show unscoped results
 		$enableUnscopedSearch = false;
 		$searchLibrary = Library::getSearchLibrary();
-		if ($searchLibrary != null){
-			$searchSources = new SearchSources();
-			$searchOptions = $searchSources->getSearchSources();
-			if (isset($searchOptions['marmot']) && $searchLibrary->showMarmotResultsAtEndOfSearch){
+		if ($searchLibrary != null && $searchLibrary->showMarmotResultsAtEndOfSearch){
+			if (is_object($searchSource)){
+				$enableUnscopedSearch = $searchSource->catalogScoping != 'unscoped';
 				$unscopedSearch = clone($searchObject);
-				$enableUnscopedSearch = true;
+			}else{
+				$searchSources = new SearchSources();
+				$searchOptions = $searchSources->getSearchSources();
+				if (isset($searchOptions['marmot'])){
+					$unscopedSearch = clone($searchObject);
+					$enableUnscopedSearch = true;
+				}
 			}
 		}
 
@@ -263,7 +290,51 @@ class Results extends Action {
 		// Save the URL of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
+		if (is_object($searchSource)){
+			$translatedSearch = $searchSource->label;
+		}else{
+			$allSearchSources = SearchSources::getSearchSources();
+			if (!isset($allSearchSources[$searchSource]) && $searchSource == 'marmot'){
+				$searchSource = 'local';
+			}
+			$translatedSearch = $allSearchSources[$searchSource]['name'];
+		}
+		$analytics->addSearch($translatedSearch, $searchObject->displayQuery(), $searchObject->isAdvanced(), $searchObject->getFullSearchType(), $searchObject->hasAppliedFacets(), $searchObject->getResultTotal());
 		if ($searchObject->getResultTotal() < 1) {
+			//We didn't find anything.  Look for search Suggestions
+			//Don't try to find suggestions if facets were applied
+			$autoSwitchSearch = false;
+			$disallowReplacements = isset($_REQUEST['disallowReplacements']) || isset($_REQUEST['replacementTerm']);
+			if (!$disallowReplacements && (!isset($facetSet) || count($facetSet) == 0)){
+				require_once ROOT_DIR . '/services/Search/lib/SearchSuggestions.php';
+				$searchSuggestions = new SearchSuggestions();
+				$commonSearches = $searchSuggestions->getCommonSearchesMySql($searchObject->displayQuery(), $searchObject->getSearchIndex());
+				//If the first search in the list is used 10 times more than the next, just show results for that
+				$numSuggestions = count($commonSearches);
+				if ($numSuggestions == 1){
+					$autoSwitchSearch = true;
+				}elseif ($numSuggestions >= 2){
+					$firstTimesSearched = $commonSearches[0]['numSearches'];
+					$secondTimesSearched = $commonSearches[1]['numSearches'];
+					if ($firstTimesSearched / $secondTimesSearched > 10){
+						$autoSwitchSearch = true;
+					}
+				}
+
+				$interface->assign('autoSwitchSearch', $autoSwitchSearch);
+				if ($autoSwitchSearch){
+					//Get search results for the new search
+					$interface->assign('oldTerm', $searchObject->displayQuery());
+					$interface->assign('newTerm', $commonSearches[0]['phrase']);
+					$thisUrl = $_SERVER['REQUEST_URI'];
+					$thisUrl = $thisUrl . "&replacementTerm=" . urlencode($commonSearches[0]['phrase']);
+					header("Location: " . $thisUrl);
+					exit();
+				}
+
+				$interface->assign('searchSuggestions', $commonSearches);
+			}
+
 			//Var for the IDCLREADER TEMPLATE
 			$interface->assign('ButtonBack',true);
 			$interface->assign('ButtonHome',true);
@@ -284,7 +355,7 @@ class Results extends Action {
 
 					// Unexpected error -- let's treat this as a fatal condition.
 				} else {
-					PEAR::raiseError(new PEAR_Error('Unable to process query<br />' .
+					PEAR_Singleton::raiseError(new PEAR_Error('Unable to process query<br />' .
                         'Solr Returned: ' . $error));
 				}
 			}
@@ -293,28 +364,26 @@ class Results extends Action {
 			$numUnscopedTitlesToLoad = 10;
 			$timer->logTime('no hits processing');
 
-		} else if ($searchObject->getResultTotal() == 1){
+		} else if ($searchObject->getResultTotal() == 1 && (strpos($searchObject->displayQuery(), 'id') === 0 || $searchObject->getSearchType() == 'id')){
 			//Redirect to the home page for the record
 			$recordSet = $searchObject->getResultRecordSet();
 			$record = reset($recordSet);
+			$_SESSION['searchId'] = $searchObject->getSearchId();
 			if ($record['recordtype'] == 'list'){
 				$listId = substr($record['id'], 4);
-				header("Location: " . $interface->getUrl() . "/MyResearch/MyList/{$listId}");
+				header("Location: " . $configArray['Site']['path'] . "/MyResearch/MyList/{$listId}");
 				exit();
 			}elseif ($record['recordtype'] == 'econtentRecord'){
 				$shortId = str_replace('econtentRecord', '', $record['id']);
-				header("Location: " . $interface->getUrl() . "/EcontentRecord/$shortId/Home");
+				header("Location: " . $configArray['Site']['path'] . "/EcontentRecord/$shortId/Home");
 				exit();
 			}else{
-				header("Location: " . $interface->getUrl() . "/Record/{$record['id']}/Home");
+				header("Location: " . $configArray['Site']['path'] . "/Record/{$record['id']}/Home");
 				exit();
 			}
 
 		} else {
 			$timer->logTime('save search');
-
-			// If the "jumpto" parameter is set, jump to the specified result index:
-			$this->processJumpto($result);
 
 			// Assign interface variables
 			$summary = $searchObject->getResultSummary();
@@ -328,7 +397,7 @@ class Results extends Action {
 			//Check to see if a format category is already set
 			$categorySelected = false;
 			if (isset($facetSet['top'])){
-				foreach ($facetSet['top'] as $title=>$cluster){
+				foreach ($facetSet['top'] as $cluster){
 					if ($cluster['label'] == 'Category'){
 						foreach ($cluster['list'] as $thisFacet){
 							if ($thisFacet['isApplied']){
@@ -356,7 +425,6 @@ class Results extends Action {
 			$interface->assign('ButtonHome',true);
 			$interface->assign('MobileTitle','Search Results');
 
-
 			// Process Paging
 			$link = $searchObject->renderLinkPageTemplate();
 			$options = array('totalItems' => $summary['resultTotal'],
@@ -378,8 +446,8 @@ class Results extends Action {
 			$interface->assign('prospectorNumTitlesToLoad', 0);
 		}
 
-		if ($enableUnscopedSearch){
-			$unscopedSearch->setLimit($numUnscopedTitlesToLoad);
+		if ($enableUnscopedSearch && isset($unscopedSearch)){
+			$unscopedSearch->setLimit($numUnscopedTitlesToLoad * 4);
 			$unscopedSearch->disableScoping();
 			$unscopedSearch->processSearch(false, false);
 			$numUnscopedResults = $unscopedSearch->getResultTotal();
@@ -387,13 +455,14 @@ class Results extends Action {
 			$unscopedSearchUrl = $unscopedSearch->renderSearchUrl();
 			if (preg_match('/searchSource=(.*?)(?:&|$)/', $unscopedSearchUrl)){
 				$unscopedSearchUrl = preg_replace('/(.*searchSource=)(.*?)(&|$)(.*)/', '$1marmot$3$4', $unscopedSearchUrl);
+				$unscopedSearchUrl = preg_replace('/&/', '&amp;', $unscopedSearchUrl);
 			}else{
-				$unscopedSearchUrl .= "&searchSource=marmot";
+				$unscopedSearchUrl .= "&amp;searchSource=marmot";
 			}
-			$unscopedSearchUrl .= "&shard=";
+			$unscopedSearchUrl .= "&amp;shard=";
 			$interface->assign('unscopedSearchUrl', $unscopedSearchUrl);
 			if ($numUnscopedTitlesToLoad > 0){
-				$unscopedResults = $unscopedSearch->getSupplementalResultRecordHTML();
+				$unscopedResults = $unscopedSearch->getSupplementalResultRecordHTML($searchObject->getResultRecordSet(), $numUnscopedTitlesToLoad, $searchObject->getResultTotal());
 				$interface->assign('unscopedResults', $unscopedResults);
 			}
 		}
@@ -402,7 +471,7 @@ class Results extends Action {
 		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
 
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
-			require_once('Drivers/marmot_inc/SearchStat.php');
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
 			$searchStat = new SearchStat();
 			$searchStat->saveSearch( strip_tags($_GET['lookfor']),  strip_tags(isset($_GET['type']) ? $_GET['type'] : (isset($_GET['basicType']) ? $_GET['basicType'] : 'Keyword')), $searchObject->getResultTotal());
 		}
@@ -410,23 +479,4 @@ class Results extends Action {
 		// Done, display the page
 		$interface->display('layout.tpl');
 	} // End launch()
-
-	/**
-	 * Process the "jumpto" parameter.
-	 *
-	 * @access  private
-	 * @param   array       $result         Solr result returned by SearchObject
-	 */
-	private function processJumpto($result)
-	{
-		if (isset($_REQUEST['jumpto']) && is_numeric($_REQUEST['jumpto'])) {
-			$i = intval($_REQUEST['jumpto'] - 1);
-			if (isset($result['response']['docs'][$i])) {
-				$record = RecordDriverFactory::initRecordDriver($result['response']['docs'][$i]);
-				$jumpUrl = '../Record/' . urlencode($record->getUniqueID());
-				header('Location: ' . $jumpUrl);
-				die();
-			}
-		}
-	}
 }

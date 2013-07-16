@@ -18,11 +18,11 @@
  *
  */
 
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
 require_once 'Record.php';
 
-class Holdings extends Record
+class Record_Holdings extends Record_Record
 {
 	function launch()
 	{
@@ -47,7 +47,7 @@ class Holdings extends Record
 		$interface->display('layout.tpl');
 	}
 
-	function loadHoldings($id)
+	static function loadHoldings($id)
 	{
 		global $interface;
 		global $configArray;
@@ -78,8 +78,8 @@ class Holdings extends Record
 		// Get Holdings Data
 		if ($catalog->status) {
 			$result = $catalog->getHolding($id);
-			if (PEAR::isError($result)) {
-				PEAR::raiseError($result);
+			if (PEAR_Singleton::isError($result)) {
+				PEAR_Singleton::raiseError($result);
 			}
 			if (count($result)) {
 				$holdings = array();
@@ -106,16 +106,16 @@ class Holdings extends Record
 
 			// Get Acquisitions Data
 			$result = $catalog->getPurchaseHistory($id);
-			if (PEAR::isError($result)) {
-				PEAR::raiseError($result);
+			if (PEAR_Singleton::isError($result)) {
+				PEAR_Singleton::raiseError($result);
 			}
 			$interface->assign('history', $result);
 			$holdingData->history = $result;
 
 			//Holdings summary
-			$result = $catalog->getStatusSummary($id);
-			if (PEAR::isError($result)) {
-				PEAR::raiseError($result);
+			$result = $catalog->getStatusSummary($id, false);
+			if (PEAR_Singleton::isError($result)) {
+				PEAR_Singleton::raiseError($result);
 			}
 			$holdingData->holdingsSummary = $result;
 			$interface->assign('holdingsSummary', $result);

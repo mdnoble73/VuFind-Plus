@@ -11,21 +11,24 @@
 	
 	<div id="main-content">
 		{if $user->cat_username}
+			{if $profile.web_note}
+				<div id="web_note">{$profile.web_note}</div>
+			{/if}
 			<div class="resulthead">
 				<div class="myAccountTitle">{translate text='My Reading History'} {if $historyActive == true}<span id='readingListWhatsThis' onclick="$('#readingListDisclaimer').toggle();">(What's This?)</span>{/if}</div>
-					{if $userNoticeFile}
-						{include file=$userNoticeFile}
-					{/if}
-			
-					<div id='readingListDisclaimer' {if $historyActive == true}style='display: none'{/if}>
+				{if $userNoticeFile}
+					{include file=$userNoticeFile}
+				{/if}
+		
+				<div id='readingListDisclaimer' {if $historyActive == true}style='display: none'{/if}>
 					The library takes seriously the privacy of your library records. Therefore, we do not keep track of what you borrow after you return it. 
 					However, our automated system has a feature called "My Reading History" that allows you to track items you check out. 
 					Participation in the feature is entirely voluntary. You may start or stop using it, as well as delete any or all entries in "My Reading History" at any time. 
 					If you choose to start recording "My Reading History", you agree to allow our automated system to store this data. 
 					The library staff does not have access to your "My Reading History", however, it is subject to all applicable local, state, and federal laws, and under those laws, could be examined by law enforcement authorities without your permission. 
 					If this is of concern to you, you should not use the "My Reading History" feature.
-					</div>
 				</div>
+			</div>
 					
 				<div class="page">
 					<form id='readingListForm' action ="{$fullPath}">
@@ -102,7 +105,7 @@
 											{if $user->disableCoverArt != 1}
 												<td class="myAccountCell imageCell">
 													<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.recordId|escape:"url"}">
-														<img src="{$path}/bookcover.php?id={$record.recordId}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+														<img src="{$path}/bookcover.php?id={$record.recordId}&amp;issn={$record.issn}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 													</a>
 													
 													<div id='descriptionPlaceholder{$record.recordId|escape}' style='display:none'></div>
@@ -116,7 +119,11 @@
 												</div>
 												<div class="myAccountTitleDetails">
 													<div class="resultItemLine1">
-													<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+													{if $record.recordId}
+														<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""}{/if}</a>
+													{else}
+														{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""}{/if}
+													{/if}
 													{if $record.title2}
 														<div class="searchResultSectionInfo">
 															{$record.title2|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
@@ -158,7 +165,7 @@
 											{if $showRatings == 1}
 												<td class="myAccountCell">
 													{if $record.recordId != -1}
-														{include file="Record/title-rating.tpl" ratingClass="searchStars" recordId=$record.recordId shortId=$record.shortId}
+														{include file="Record/title-rating.tpl" ratingClass="searchStars" recordId=$record.recordId shortId=$record.shortId ratingData=$record.ratingData}
 													{/if}
 												</td>
 											{/if} 
@@ -177,7 +184,6 @@
 				
 							<script type="text/javascript">
 								$(document).ready(function() {literal} { {/literal}
-									doGetRatings();
 									/*$("#readingHistoryTable")
 										.tablesorter({literal}{cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: false}, 3: { sorter: 'date' }, 4: { sorter: false }, 7: { sorter: false} } }{/literal})
 										.tablesorterPager({literal}{container: $("#pager")}{/literal})

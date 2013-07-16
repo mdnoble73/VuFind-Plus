@@ -20,7 +20,7 @@
  
 require_once 'Record.php';
 
-class TOC extends Record
+class Record_TOC extends Record_Record
 {
     function launch()
     {

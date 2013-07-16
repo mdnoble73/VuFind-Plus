@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/Proxy_Request.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
 global $configArray;
 
@@ -32,12 +32,12 @@ class AJAX extends Action {
 		global $timer;
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array('SaveRecord', 'SaveTag', 'GetTags'))){
+		if (in_array($method, array('SaveRecord', 'SaveTag', 'GetTags', 'MarkNotInterested', 'ClearNotInterested'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('GetAddTagForm'))){
+		}else if (in_array($method, array('GetAddTagForm', 'GetNovelistData'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -48,14 +48,14 @@ class AJAX extends Action {
 	// Saves a Record to User's List
 	function SaveRecord()
 	{
-		require_once 'services/Resource/Save.php';
-		require_once 'services/MyResearch/lib/User_list.php';
+		require_once ROOT_DIR . '/services/Resource/Save.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
 
 		$result = array();
 		if (UserAccount::isLoggedIn()) {
 			$saveService = new Save();
 			$result = $saveService->saveRecord();
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				$result['result'] = "Done";
 			} else {
 				$result['result'] = "Error";
@@ -107,7 +107,7 @@ class AJAX extends Action {
 	}
 	
 	function GetTags() {
-		require_once 'services/MyResearch/lib/Resource.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 
 		$resource = new Resource();
 		$resource->record_id = $_GET['id'];
@@ -120,10 +120,70 @@ class AJAX extends Action {
 			}
 			$return = array('tags' => $tags);
 		}else{
-			$return .= array('error' => "Could not find record");
+			$return = array('error' => "Could not find record");
 		}
 
 		
 		return json_encode(array('result' => $return));
+	}
+
+	function MarkNotInterested(){
+		global $user;
+		$recordId = $_REQUEST['recordId'];
+		$source = $_REQUEST['source'];
+		require_once ROOT_DIR . '/sys/NotInterested.php';
+		$notInterested = new NotInterested();
+		$notInterested->userId = $user->id;
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+		$resource = new Resource();
+		$resource->source = $source;
+		$resource->record_id = $recordId;
+
+		if ($resource->find(true)){
+			$notInterested->resourceId = $resource->id;
+			if (!$notInterested->find(true)){
+				$notInterested->dateMarked = time();
+				$notInterested->insert();
+				$result = array(
+					'result' => true,
+				);
+			}else{
+				$result = array(
+					'result' => false,
+					'message' => "This record was already marked as something you aren't interested in.",
+				);
+			}
+		}else{
+			$result = array(
+				'result' => false,
+				'message' => 'Unable to find the resource specified.',
+			);
+		}
+		return json_encode($result);
+	}
+
+	function ClearNotInterested(){
+		global $user;
+		$idToClear = $_REQUEST['id'];
+		require_once ROOT_DIR . '/sys/NotInterested.php';
+		$notInterested = new NotInterested();
+		$notInterested->userId = $user->id;
+		$notInterested->id = $idToClear;
+		$result = array('result' => false);
+		if ($notInterested->find(true)){
+			$notInterested->delete();
+			$result = array('result' => true);
+		}
+		return json_encode($result);
+	}
+
+	function GetNovelistData(){
+		$url = $_REQUEST['novelistUrl'];
+		$rawNovelistData = file_get_contents($url);
+		//Trim off the wrapping data ();
+		$rawNovelistData = substr($rawNovelistData, 1, -2);
+		$jsonData = json_decode($rawNovelistData);
+		$novelistData = $jsonData->body;
+		echo($novelistData);
 	}
 }

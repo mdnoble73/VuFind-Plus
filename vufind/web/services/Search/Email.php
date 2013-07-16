@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/Mailer.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/Mailer.php';
 
-class Email extends Action
+class Search_Email extends Action
 {
 	function launch()
 	{
@@ -30,7 +30,7 @@ class Email extends Action
 
 		if (isset($_POST['submit'])) {
 			$result = $this->sendEmail($_POST['url'], $_POST['to'], $_POST['from'], $_POST['message']);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				header('Location: ' . $_POST['url']);
 				exit();
 			} else {
@@ -46,7 +46,7 @@ class Email extends Action
 			// If the user has disabled HTTP referer, we can't email their search
 			// link without Javascript.
 			if (!isset($_POST['url']) && !isset($_SERVER['HTTP_REFERER'])) {
-				PEAR::raiseError(new PEAR_Error('HTTP Referer missing.'));
+				PEAR_Singleton::raiseError(new PEAR_Error('HTTP Referer missing.'));
 				exit();
 			}
 			// If the user resubmits the form after an error, the $_POST url

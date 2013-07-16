@@ -1,18 +1,14 @@
-@CHARSET "ISO-8859-1";
-
 #loginFormWrapper{
 	border-right: 0px solid black;
+	width: 425px;
 }
 .loginField{
-	width: 175px;
-	text-align: right;
+	width: 200px;
+	text-align: left;
 }
 
 .loginLabel{
-	width: 150px;
-}
-#loginFormWrapper{
-	width: 350px;
+	width: 200px;
 }
 .ui-autocomplete{
 	font-size:10px;
@@ -20,11 +16,35 @@
 .ui-widget-content a {
 	color: #003399;
 }
-
+#pageBody{
+	width: 1000px;
+}
 #outer_span {
 	margin: auto;
-	width: 1000px;
-	background-image: url("/interface/themes/marmot/images/sub_content_bg.png");
+	width: 960px;
+	background-image: url("/interface/themes/marmot/images/background-gradient.png");
 	background-repeat: repeat-y;
 	padding: 0 20px 0px;
 }
+#ft div.footerCol{
+	padding: 0 0.75em 0.75em 0;
+	margin-right: 0.5em;
+}
+div.footerCol ul{
+	padding-left: 1.25em;
+}
+#sidebar{
+	width: 215px;
+}
+#main-content{
+	width: 681px;
+}
+#record-details-column{
+	width: 465px;
+}
+.ui-widget{
+	font-size: 1em;
+}
+.ui-tabs .ui-tabs-nav li.ui-state-active a{
+	font-weight: bold;
+} 

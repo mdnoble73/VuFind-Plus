@@ -19,15 +19,15 @@
  */
 
 require_once 'Record.php';
-require_once 'sys/SolrStats.php';
+require_once ROOT_DIR . '/sys/SolrStats.php';
 
-class Series extends Record
+class Record_Series extends Record_Record
 {
 	function launch()
 	{
 		global $configArray;
-
 		global $interface;
+		global $user;
 
 		//Enable and disable functionality based on library settings
 		global $library;
@@ -42,6 +42,7 @@ class Series extends Record
 			$interface->assign('showTagging', $library->showTagging);
 			$interface->assign('showRatings', $library->showRatings);
 			$interface->assign('showComments', $library->showComments);
+			$interface->assign('showFavorites', $library->showFavorites);
 		}else{
 			if ($location != null){
 				$interface->assign('showHoldButton', $location->showHoldButton);
@@ -51,39 +52,51 @@ class Series extends Record
 			$interface->assign('showTagging', 1);
 			$interface->assign('showRatings', 1);
 			$interface->assign('showComments', 1);
+			$interface->assign('showFavorites', 1);
 		}
 
 		//Build the actual view
 		$interface->setTemplate('view-series.tpl');
 
 		require_once 'Enrichment.php';
-		$enrichment = new Enrichment(true);
+		$enrichment = new Record_Enrichment();
 		$enrichmentData = $enrichment->loadEnrichment($this->isbn);
-		$seriesTitles = $enrichmentData['novelist']['series'];
-		$interface->assign('recordSet', $seriesTitles);
+
 		//Loading the series title is not reliable.  Do not try to load it.
-		$seriesTitle;
+		$seriesTitle = '';
 		$seriesAuthors = array();
-		if (isset($seriesTitles) && is_array($seriesTitles)){
-			foreach ($seriesTitles as $title){
-				if (isset($title['series']) && strlen($title['series']) > 0 && !(isset($seriesTitle))){
-					$seriesTitle = $title['series'];
-					$interface->assign('seriesTitle', $seriesTitle);
-				}
-				if (isset($title['author'])){
-					$seriesAuthors[$title['author']] = $title['author'];
+		$seriesTitles = array();
+		$resourceList = array();
+		if (isset($enrichmentData['novelist'])){
+			$seriesTitles = $enrichmentData['novelist']['series'];
+			if (isset($seriesTitles) && is_array($seriesTitles)){
+				foreach ($seriesTitles as $key => $title){
+					if (isset($title['series']) && strlen($title['series']) > 0 && !(isset($seriesTitle))){
+						$seriesTitle = $title['series'];
+						$interface->assign('seriesTitle', $seriesTitle);
+					}
+					if (isset($title['author'])){
+						$seriesAuthors[$title['author']] = $title['author'];
+					}
+					if ($title['libraryOwned']){
+						$record = RecordDriverFactory::initRecordDriver($title);
+						$resourceList[] = $interface->fetch($record->getSearchResult($user, null, false));
+					}else{
+						$interface->assign('record', $title);
+						$resourceList[] = $interface->fetch('RecordDrivers/Index/nonowned_result.tpl');
+					}
 				}
 			}
 		}
 		$interface->assign('seriesAuthors', $seriesAuthors);
+		$interface->assign('recordSet', $seriesTitles);
+		$interface->assign('resourceList', $resourceList);
 
 		$interface->assign('recordStart', 1);
 		$interface->assign('recordEnd', count($seriesTitles));
 		$interface->assign('recordCount', count($seriesTitles));
 
-		$titleField = $this->marcRecord->getField('245');
-		$mainTitle = $titleField->getSubfield('a')->getData();
-		$interface->setPageTitle($mainTitle);
+		$interface->setPageTitle($seriesTitle);
 
 		// Display Page
 		$interface->display('layout.tpl');

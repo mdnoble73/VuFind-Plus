@@ -13,7 +13,7 @@
 				<div>
 					<input type="hidden" name="myListActionHead" id="myListActionHead"/>
 		{/if}
-					<h3 class="list" id='listTitle'>{$favList->title|escape:"html"}</h3>
+					<h3 id='listTitle'><span class="silk list">&nbsp;</span>{$favList->title|escape:"html"}</h3>
 					{if $notes}
 						<div id="listNotes">
 						{foreach from=$notes item="note"}
@@ -35,12 +35,15 @@
 					<div id='listTopButtons'>
 						{if $allowEdit}
 							<button value="editList" id="FavEdit" class="listButton" onclick='return editListAction()'>Edit List</button>
-							<button value="batchAdd" id="FavBatchAdd" onclick='return batchAddToListAction({$favList->id})'>Batch Add Titles</button>
+							&nbsp;&nbsp;<button value="batchAdd" id="FavBatchAdd" onclick='return batchAddToListAction({$favList->id})'>Batch Add Titles</button>
 							<button value="saveList" id="FavSave" class="listButton" style="display:none" onclick='return updateListAction()'>Save Changes</button>
 							{if $favList->public == 0}
 								<button value="makePublic" id="FavPublic" class="listButton" onclick='return makeListPublicAction()'>Make Public</button>
 							{else}
 								<button value="makePrivate" id="FavPrivate" class="listButton" onclick='return makeListPrivateAction()'>Make Private</button>
+								{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
+									&nbsp;&nbsp;<a href="#" class="button listButton" id="FavCreateWidget" onclick="return createWidgetFromList('{$favList->id}')">Create Widget</a>
+								{/if}
 							{/if}
 							<button value="deleteList" id="FavDelete" class="listButton" onclick='return deleteListAction()'>Delete List</button>
 						{/if}
@@ -66,14 +69,13 @@
 			<form action="{$path}/MyResearch/MyList/{$favList->id}" id="myListFormItem">
 				<div>
 					<input type="hidden" name="myListActionItem" id="myListActionItem"/>
-					<ul>
 					{foreach from=$resourceList item=resource name="recordLoop"}
-						<li class="result{if ($smarty.foreach.recordLoop.iteration % 2) == 0} alt{/if}">
+						<div class="result{if ($smarty.foreach.recordLoop.iteration % 2) == 0} alt{/if}">
 							{* This is raw HTML -- do not escape it: *}
 							{$resource}
-						</li>
+						</div>
 					{/foreach}
-					</ul>
+					
 					<button value="placeHolds" id="FavPlaceHolds" class="listButton" onclick='return requestMarkedAction()'>Request Marked</button>
 					{if $allowEdit}
 					{*
@@ -95,33 +97,11 @@
 			{translate text='You do not have any saved resources'}
 		{/if}
 	</div>
-
-	{if $tagList}
-		<div>
-			<h3 class="tag">{translate text='Your Tags'}</h3>
-			<ul>
-			{foreach from=$tags item=tag}
-				<li>{translate text='Tag'}: {$tag|escape:"html"}
-				<a href="{$path}/MyResearch/MyList/{$favList->id}&amp;{foreach from=$tags item=mytag}{if $tag != $mytag}tag[]={$mytag|escape:"url"}&amp;{/if}{/foreach}">X</a>
-				</li>
-			{/foreach}
-			</ul>
-			
-			<ul>
-			{foreach from=$tagList item=tag}
-				<li>
-					<a href="{$path}/MyResearch/MyList/{$favList->id}&amp;tag[]={$tag->tag|escape:"url"}{foreach from=$tags item=mytag}&amp;tag[]={$mytag|escape:"url"}{/foreach}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})
-				</li>
-			{/foreach}
-			</ul>
-		</div>
-	{/if}
 </div>
 
 <script type="text/javascript">
 $(document).ready(function() {literal} { {/literal}
 	doGetStatusSummaries();
-	doGetRatings();
 {literal} }); {/literal}
 </script>
 {/strip}

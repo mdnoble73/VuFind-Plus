@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'sys/SRU.php';
+require_once ROOT_DIR . '/sys/SRU.php';
 
 class Worldcat extends SRU {
     
@@ -45,14 +45,14 @@ class Worldcat extends SRU {
         }
         
         $result = $this->client->sendRequest();
-        if (!PEAR::isError($result)) {
+        if (!PEAR_Singleton::isError($result)) {
             $xml = $this->client->getResponseBody();
             $unxml = new XML_Unserializer();
             $result = $unxml->unserialize($xml);
-            if (!PEAR::isError($result)) {
+            if (!PEAR_Singleton::isError($result)) {
                 return $unxml->getUnserializedData();
             } else {
-                PEAR::raiseError($result);
+                PEAR_Singleton::raiseError($result);
             }
         } else {
             return $result;
@@ -72,7 +72,7 @@ class Worldcat extends SRU {
             echo "</pre>\n";
         }
         
-        if (!PEAR::isError($result)) {
+        if (!PEAR_Singleton::isError($result)) {
             return $this->client->getResponseBody();
         } else {
             return $result;
@@ -155,8 +155,8 @@ class Worldcat extends SRU {
         }
 
         $result = $this->_call('GET', $options);
-        if (PEAR::isError($result)) {
-            PEAR::raiseError($result);
+        if (PEAR_Singleton::isError($result)) {
+            PEAR_Singleton::raiseError($result);
         }
 
         return $result;
@@ -185,8 +185,8 @@ class Worldcat extends SRU {
 
         $result = $this->_call(HTTP_REQUEST_METHOD_POST, $params);
         
-        if (PEAR::isError($result)) {
-            PEAR::raiseError($result);
+        if (PEAR_Singleton::isError($result)) {
+            PEAR_Singleton::raiseError($result);
         }
 
         return $result;

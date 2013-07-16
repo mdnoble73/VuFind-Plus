@@ -1,6 +1,6 @@
 <?php
 
-require_once 'sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 
 /**
  * Loads information from OverDrive and provides updates to OverDrive by screen scraping
@@ -26,6 +26,7 @@ require_once 'sys/eContent/EContentRecord.php';
  * @copyright Copyright (C) Douglas County Libraries 2011.
  */
 class OverDriveDriver {
+	public $version = 1;
 
 	private $maxAccountCacheMin = 14400; //Allow caching of overdrive account information for 4 hours
 	private $maxCheckedOutCacheMin = 3600; //Only cache the checked out page for an hour.
@@ -35,7 +36,7 @@ class OverDriveDriver {
 	 * @param EContentRecord $record
 	 */
 	public function getCoverUrl($record){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 
 		$overDriveId = $record->getOverDriveId();
@@ -50,10 +51,10 @@ class OverDriveDriver {
 
 	}
 
-	private function _connectToAPI(){
-		global $memcache;
-		$tokenData = $memcache->get('overdrive_token');
-		if ($tokenData == false){
+	private function _connectToAPI($forceNewConnection = false){
+		global $memCache;
+		$tokenData = $memCache->get('overdrive_token');
+		if ($forceNewConnection || $tokenData == false){
 			global $configArray;
 			$ch = curl_init("https://oauth.overdrive.com/token");
 			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
@@ -70,24 +71,38 @@ class OverDriveDriver {
 			$return = curl_exec($ch);
 			curl_close($ch);
 			$tokenData = json_decode($return);
-			$memcache->set('overdrive_token', $tokenData, 0, $tokenData->expires_in - 10);
+			if ($tokenData){
+				$memCache->set('overdrive_token', $tokenData, 0, $tokenData->expires_in - 10);
+			}
 		}
 		return $tokenData;
 	}
 
 	public function _callUrl($url){
-		$tokenData = $this->_connectToAPI();
-		$ch = curl_init($url);
-		curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}"));
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-		$return = curl_exec($ch);
-		curl_close($ch);
-		return json_decode($return);
+		for ($i = 1; $i < 5; $i++){
+			$tokenData = $this->_connectToAPI($i != 1);
+			if ($tokenData){
+				$ch = curl_init($url);
+				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+				curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}"));
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+				curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+				$return = curl_exec($ch);
+				curl_close($ch);
+				$returnVal = json_decode($return);
+				//print_r($returnVal);
+				if ($returnVal != null){
+					if (!isset($returnVal->message) || $returnVal->message != 'An unexpected error has occurred.'){
+						return $returnVal;
+					}
+				}
+			}
+			usleep(500);
+		}
+		return null;
 	}
 
 	public function getLibraryAccountInformation(){
@@ -206,11 +221,11 @@ class OverDriveDriver {
 	 * @return array
 	 */
 	public function getOverDriveWishList($user, $overDriveInfo = null){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $timer;
 
-		$wishlist = $memcache->get('overdrive_wishlist_' . $user->id);
+		$wishlist = $memCache->get('overdrive_wishlist_' . $user->id);
 		if ($wishlist == false){
 			$wishlist = array();
 			$wishlist['items'] = array();
@@ -279,7 +294,7 @@ class OverDriveDriver {
 
 				$wishlist['items'][] = $wishlistItem;
 			}
-			$memcache->set('overdrive_wishlist_' . $user->id, $wishlist, 0, $configArray['Caching']['overdrive_wishlist']);
+			$memCache->set('overdrive_wishlist_' . $user->id, $wishlist, 0, $configArray['Caching']['overdrive_wishlist']);
 			$timer->logTime("Finished loading titles from overdrive wishlist");
 		}
 
@@ -295,11 +310,11 @@ class OverDriveDriver {
 	 * @return array
 	 */
 	public function getOverDriveCheckedOutItems($user, $overDriveInfo = null){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $timer;
 
-		$bookshelf = $memcache->get('overdrive_checked_out_' . $user->id);
+		$bookshelf = $memCache->get('overdrive_checked_out_' . $user->id);
 		if ($bookshelf == false){
 			$bookshelf = array();
 			$bookshelf['items'] = array();
@@ -364,17 +379,17 @@ class OverDriveDriver {
 				$bookshelf['items'][] = $bookshelfItem;
 			}
 			$timer->logTime("Finished loading titles from overdrive checked out titles");
-			$memcache->set('overdrive_checked_out_' . $user->id, $bookshelf, 0, $configArray['Caching']['overdrive_checked_out']);
+			$memCache->set('overdrive_checked_out_' . $user->id, $bookshelf, 0, $configArray['Caching']['overdrive_checked_out']);
 		}
 		return $bookshelf;
 	}
 
 	public function getOverDriveHolds($user, $overDriveInfo = null){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $timer;
 
-		$holds = $memcache->get('overdrive_holds_' . $user->id);
+		$holds = $memCache->get('overdrive_holds_' . $user->id);
 		if ($holds == false){
 			$holds = array();
 			$holds['holds'] = array();
@@ -455,7 +470,7 @@ class OverDriveDriver {
 					$hold['formats'] = array();
 					for ($i = 0; $i < count($formatInfo); $i++) {
 						$format = array();
-						$format['name'] = $formatInfo[$i][1];
+						$format['name'] = strip_tags($formatInfo[$i][1]);
 						$format['overDriveId'] = $formatInfo[$i][2];
 						$format['formatId'] = $formatInfo[$i][3];
 						// $result[0][$i];
@@ -465,7 +480,7 @@ class OverDriveDriver {
 				}
 			}
 			$timer->logTime("Finished loading titles from overdrive holds");
-			$memcache->set('overdrive_holds_' . $user->id, $holds, 0, $configArray['Caching']['overdrive_holds']);
+			$memCache->set('overdrive_holds_' . $user->id, $holds, 0, $configArray['Caching']['overdrive_holds']);
 		}
 
 		return $holds;
@@ -480,11 +495,11 @@ class OverDriveDriver {
 	 * @return array
 	 */
 	public function getOverDriveSummary($user){
-		global $memcache;
+		global $memCache;
 		global $configArray;
 		global $timer;
 
-		$summary = $memcache->get('overdrive_summary_' . $user->id);
+		$summary = $memCache->get('overdrive_summary_' . $user->id);
 		if ($summary == false){
 			$summary = array();
 			$ch = curl_init();
@@ -517,7 +532,7 @@ class OverDriveDriver {
 			curl_close($ch);
 
 			$timer->logTime("Finished loading titles from overdrive summary");
-			$memcache->set('overdrive_summary_' . $user->id, $summary, 0, $configArray['Caching']['overdrive_summary']);
+			$memCache->set('overdrive_summary_' . $user->id, $summary, 0, $configArray['Caching']['overdrive_summary']);
 		}
 
 		return $summary;
@@ -531,8 +546,9 @@ class OverDriveDriver {
 	 * @param User $user
 	 */
 	public function placeOverDriveHold($overDriveId, $format, $user){
-		global $memcache;
+		global $memCache;
 		global $configArray;
+		global $logger;
 
 		$holdResult = array();
 		$holdResult['result'] = false;
@@ -595,8 +611,8 @@ class OverDriveDriver {
 						'ID' => $overDriveId,
 						'Format' => $format,
 						'URL' => 'WaitingListConfirm.htm',
-						'Email' => $user->email,
-						'Email2' => $user->email,
+						'Email' => $user->overdriveEmail,
+						'Email2' => $user->overdriveEmail,
 					);
 					foreach ($postParams as $key => $value) {
 						$post_items[] = $key . '=' . urlencode($value);
@@ -609,7 +625,7 @@ class OverDriveDriver {
 					if (preg_match('/did not complete all of the required fields/', $waitingListConfirm)){
 						$logger->log($waitingListConfirm, PEAR_LOG_INFO);
 						$holdResult['result'] = false;
-						$holdResult['message'] = 'You must provide an e-mail address to request titles from OverDrive.  Please add an e-mail address to your account.';
+						$holdResult['message'] = 'You must provide an e-mail address to request titles from OverDrive.  Please add an e-mail address to your profile.';
 					}elseif (preg_match('/reached the request \(hold\) limit of \d+ titles./', $waitingListConfirm)){
 						$holdResult['result'] = false;
 						$holdResult['message'] = 'You have reached the maximum number of holds for your account.';
@@ -617,8 +633,8 @@ class OverDriveDriver {
 						$holdResult['result'] = true;
 						$holdResult['message'] = 'Your hold was placed successfully.';
 
-						$memcache->delete('overdrive_holds_' . $user->id);
-						$memcache->delete('overdrive_summary_' . $user->id);
+						$memCache->delete('overdrive_holds_' . $user->id);
+						$memCache->delete('overdrive_summary_' . $user->id);
 
 						//Record that the entry was checked out in strands
 						global $configArray;
@@ -636,7 +652,7 @@ class OverDriveDriver {
 						}
 
 						//Delete the cache for the record
-						$memcache->delete('overdrive_record_' . $overDriveId);
+						$memCache->delete('overdrive_record_' . $overDriveId);
 					}else{
 						$holdResult['result'] = false;
 						$holdResult['message'] = 'There was an error placing your hold.';
@@ -653,7 +669,7 @@ class OverDriveDriver {
 	}
 
 	public function cancelOverDriveHold($overDriveId, $format, $user){
-		global $memcache;
+		global $memCache;
 
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
@@ -677,11 +693,11 @@ class OverDriveDriver {
 			$cancelHoldResult['message'] = 'Your hold was cancelled successfully.';
 
 			//Check to see if the user has cached hold information and if so, clear it
-			$memcache->delete('overdrive_holds_' . $user->id);
-			$memcache->delete('overdrive_summary_' . $user->id);
+			$memCache->delete('overdrive_holds_' . $user->id);
+			$memCache->delete('overdrive_summary_' . $user->id);
 
 			//Delete the cache for the record
-			$memcache->delete('overdrive_record_' . $overDriveId);
+			$memCache->delete('overdrive_record_' . $overDriveId);
 		}else{
 			$cancelHoldResult['result'] = false;
 			$cancelHoldResult['message'] = 'There was an error cancelling your hold.';
@@ -693,7 +709,7 @@ class OverDriveDriver {
 	}
 
 	public function removeOverDriveItemFromWishlist($overDriveId, $user){
-		global $memcache;
+		global $memCache;
 
 		global $logger;
 
@@ -717,8 +733,8 @@ class OverDriveDriver {
 			$cancelHoldResult['result'] = true;
 			$cancelHoldResult['message'] = 'The title was successfully removed from your wishlist.';
 			//Check to see if wishlist information has been closed and if so, clear it.
-			$memcache->delete('overdrive_wishlist_' . $user->id);
-			$memcache->delete('overdrive_summary_' . $user->id);
+			$memCache->delete('overdrive_wishlist_' . $user->id);
+			$memCache->delete('overdrive_summary_' . $user->id);
 		}else{
 			$cancelHoldResult['result'] = false;
 			$cancelHoldResult['message'] = 'There was an error removing the item from your wishlist.';
@@ -806,7 +822,7 @@ class OverDriveDriver {
 	 * @param User $user
 	 */
 	public function addItemToOverDriveWishList($overDriveId, $user){
-		global $memcache;
+		global $memCache;
 
 		$addToCartResult = array();
 		$addToCartResult['result'] = false;
@@ -837,8 +853,8 @@ class OverDriveDriver {
 				$addToCartResult['result'] = true;
 				$addToCartResult['message'] = 'The title was added to your wishlist.';
 				//Check to see if wishlist information has been closed and if so, clear it.
-				$memcache->delete('overdrive_wishlist_' . $user->id);
-				$memcache->delete('overdrive_summary_' . $user->id);
+				$memCache->delete('overdrive_wishlist_' . $user->id);
+				$memCache->delete('overdrive_summary_' . $user->id);
 
 			}else{
 				$addToCartResult['result'] = false;
@@ -939,11 +955,11 @@ class OverDriveDriver {
 				$processCartResult['result'] = true;
 				$processCartResult['message'] = "Your titles were checked out successfully. You may now download the titles from your Account.";
 				//Remove all cached account information since th user can checkout from holds or wishlist page
-				global $memcache;
-				$memcache->delete('overdrive_checked_out_' . $user->id);
-				$memcache->delete('overdrive_holds_' . $user->id);
-				$memcache->delete('overdrive_wishlist_' . $user->id);
-				$memcache->delete('overdrive_summary_' . $user->id);
+				global $memCache;
+				$memCache->delete('overdrive_checked_out_' . $user->id);
+				$memCache->delete('overdrive_holds_' . $user->id);
+				$memCache->delete('overdrive_wishlist_' . $user->id);
+				$memCache->delete('overdrive_summary_' . $user->id);
 			}else if (preg_match('/exceeded your checkout limit/si', $processCartConfirmation) ){
 				$processCartResult['result'] = false;
 				$processCartResult['message'] = "We're sorry, you have exceeded your checkout limit. Until one or more digital titles are removed from your account (i.e., a checkout expires so that you can check out another title, or you remove a title from your cart if you are not already at your checkout limit), you will be unable to check out additional titles.";
@@ -993,9 +1009,9 @@ class OverDriveDriver {
 
 			if ($processCartResult['result'] == true){
 				//Delete the cache for the record
-				global $memcache;
-				$memcache->delete('overdrive_record_' . $overDriveId);
-				$memcache->delete('overdrive_items_' . $overDriveId);
+				global $memCache;
+				$memCache->delete('overdrive_record_' . $overDriveId);
+				$memCache->delete('overdrive_items_' . $overDriveId);
 
 				//Record that the entry was checked out in strands
 				global $configArray;
@@ -1013,7 +1029,7 @@ class OverDriveDriver {
 
 					}
 					//Add the record to the reading history
-					require_once 'Drivers/EContentDriver.php';
+					require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 					$eContentDriver = new EContentDriver();
 					$eContentDriver->addRecordToReadingHistory($eContentRecord, $user);
 				}
@@ -1054,6 +1070,34 @@ class OverDriveDriver {
 
 		$urlWithSession = $pageInfo['url'];
 
+
+		if (isset($configArray['OverDrive']['uiLogin']) && isset($configArray['OverDrive']['uiPwd']) &&
+				strlen($configArray['OverDrive']['uiLogin']) > 0  && strlen($configArray['OverDrive']['uiPwd']) > 0){
+
+			global $logger;
+			//Need to login to the overdrive site.
+			//http://mydigitallibrary.lib.overdrive.com/E59371AB-BE51-40A1-800A-5FC62E634B4C/10/50/en/BANGAuthenticate.dll?Action=AuthTestMode
+			$redirectUrl = $urlWithSession;
+			$redirectUrl = str_replace($overdriveUrl, '', $redirectUrl);
+			$postParams = array(
+				'LoginID' => $configArray['OverDrive']['uiLogin'],
+				'Password' => $configArray['OverDrive']['uiPwd'],
+				'URL' => $redirectUrl
+			);
+			$testLoginUrl = str_replace('Default.htm', 'BANGAuthenticate.dll?Action=AuthTestMode',  $urlWithSession);
+			//$logger->log("Calling login to test server $testLoginUrl", PEAR_LOG_DEBUG);
+			//$logger->log(print_r($postParams, true), PEAR_LOG_DEBUG);
+			curl_setopt($ch, CURLOPT_URL, $testLoginUrl);
+			$post_items = array();
+			foreach ($postParams as $key => $value) {
+				$post_items[] = $key . '=' . urlencode($value);
+			}
+			$post_string = implode ('&', $post_items);
+			curl_setopt($ch, CURLOPT_POSTFIELDS, $post_string);
+			$loginContent = curl_exec($ch);
+			$logger->log("Logged in to test server: \r\n" . $loginContent, PEAR_LOG_DEBUG);
+		}
+
 		//Go to the login form
 		$loginUrl = str_replace('Default.htm', 'BANGAuthenticate.dll?Action=AuthCheck&URL=MyAccount.htm&ForceLoginFlag=0',  $urlWithSession);
 		curl_setopt($ch, CURLOPT_URL, $loginUrl);
@@ -1070,13 +1114,21 @@ class OverDriveDriver {
 		}else if (strlen($barcode) == 6){
 			$user->cat_password = '4100000' . $barcode;
 		}
+		if (isset($configArray['OverDrive']['maxCardLength'])){
+			$barcode = substr($barcode, -$configArray['OverDrive']['maxCardLength']);
+		}
 		$postParams = array(
 			'LibraryCardNumber' => $barcode,
 			'URL' => 'MyAccount.htm',
 		);
+		if ($configArray['OverDrive']['requirePin']){
+			//TODO: for libraries that use pins in overdrive, provide the actual pin
+			$postParams['LibraryCardPIN'] = $configArray['OverDrive']['testPin'];
+		}
 		if (isset($configArray['OverDrive']['LibraryCardILS']) && strlen($configArray['OverDrive']['LibraryCardILS']) > 0){
 			$postParams['LibraryCardILS'] = $configArray['OverDrive']['LibraryCardILS'];
 		}
+		$post_items = array();
 		foreach ($postParams as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
@@ -1112,6 +1164,21 @@ class OverDriveDriver {
 			$overDriveInfo['result'] = false;
 			$overDriveInfo['message'] = "We're sorry, your account is currently barred from borrowing OverDrive titles. Please see the circulation desk.";
 
+		}else if (preg_match('/You are barred from borrowing/si', $myAccountMenuContent)){
+			$overDriveInfo = array();
+			$overDriveInfo['result'] = false;
+			$overDriveInfo['message'] = "We're sorry, your account is currently barred from borrowing OverDrive titles. Please see the circulation desk.";
+
+		}else if (preg_match('/Library card has expired/si', $myAccountMenuContent)){
+			$overDriveInfo = array();
+			$overDriveInfo['result'] = false;
+			$overDriveInfo['message'] = "We're sorry, your library card has expired. Please contact your library to renew.";
+
+		}else if (preg_match('/more than (.*?) in library fines are outstanding/si', $myAccountMenuContent)){
+			$overDriveInfo = array();
+			$overDriveInfo['result'] = false;
+			$overDriveInfo['message'] = "We're sorry, your account cannot borrow from OverDrive because you have unpaid fines.";
+
 		}else{
 			global $logger;
 			$logger->log("Could not login to OverDrive ($matchAccount, $matchCart), page results: \r\n" . $myAccountMenuContent, PEAR_LOG_INFO);
@@ -1120,83 +1187,9 @@ class OverDriveDriver {
 			$overDriveInfo['result'] = false;
 			$overDriveInfo['message'] = "Unknown error logging in to OverDrive.";
 		}
-
+		global $logger;
+		$logger->log(print_r($overDriveInfo, true) , PEAR_LOG_INFO);
 		return $overDriveInfo;
-	}
-
-	public function getOverdriveHoldings($overDriveId, $overdriveUrl){
-		require_once('sys/eContent/OverdriveItem.php');
-		//get the url for the page in overdrive
-		global $memcache;
-		global $configArray;
-		global $timer;
-		$timer->logTime('Starting _getOverdriveHoldings');
-
-		if ($overDriveId == null || strlen($overDriveId) == 0 ){
-			$items = array();
-		}else{
-			$items = $memcache->get('overdrive_items_' . $overDriveId, MEMCACHE_COMPRESSED);
-			if ($items == false){
-				$items = array();
-				//Get base availability for the title
-				$availability = $this->getProductAvailability($overDriveId);
-				$availableCopies = $availability->copiesAvailable;
-				$holdQueueLength = $availability->numberOfHolds;
-				$totalCopies = $availability->copiesOwned;
-
-				//Get base metadata for the title
-				$metadata = $this->getProductMetadata($overDriveId);
-				//print_r($metadata);
-				foreach ($metadata->formats as $format){
-					$overdriveItem = new OverdriveItem();
-					$overdriveItem->overDriveId = $overDriveId;
-					$overdriveItem->format = $format->name;
-					if (strcasecmp($overdriveItem->format, "Adobe EPUB eBook") == 0){
-						$overdriveItem->formatId = 410;
-					}elseif (strcasecmp($overdriveItem->format, "Kindle Book") == 0){
-						$overdriveItem->formatId = 420;
-					}elseif (strcasecmp($overdriveItem->format, "Microsoft eBook") == 0){
-						$overdriveItem->formatId = 1;
-					}elseif (strcasecmp($overdriveItem->format, "OverDrive WMA Audiobook") == 0){
-						$overdriveItem->formatId = 25;
-					}elseif (strcasecmp($overdriveItem->format, "OverDrive MP3 Audiobook") == 0){
-						$overdriveItem->formatId = 425;
-					}elseif (strcasecmp($overdriveItem->format, "OverDrive Music") == 0){
-						$overdriveItem->formatId = 30;
-					}elseif (strcasecmp($overdriveItem->format, "OverDrive Video") == 0){
-						$overdriveItem->formatId = 35;
-					}elseif (strcasecmp($overdriveItem->format, "Adobe PDF eBook") == 0){
-						$overdriveItem->formatId = 50;
-					}elseif (strcasecmp($overdriveItem->format, "Palm") == 0){
-						$overdriveItem->formatId = 150;
-					}elseif (strcasecmp($overdriveItem->format, "Mobipocket eBook") == 0){
-						$overdriveItem->formatId = 90;
-					}elseif (strcasecmp($overdriveItem->format, "Disney Online Book") == 0){
-						$overdriveItem->formatId = 302;
-					}elseif (strcasecmp($overdriveItem->format, "Open PDF eBook") == 0){
-						$overdriveItem->formatId = 450;
-					}elseif (strcasecmp($overdriveItem->format, "Open EPUB eBook") == 0){
-						$overdriveItem->formatId = 810;
-					}
-					if ($format->fileSize > 0){
-						$overdriveItem->size = $format->fileSize;
-					}else{
-						$overdriveItem->size = 'unknown';
-					}
-					//For now treat all advantage titles as available until we can use the API to check better.
-					$overdriveItem->available = ($availableCopies > 0);
-					$overdriveItem->lastLoaded = time();
-
-					$overdriveItem->availableCopies = isset($availableCopies) ? $availableCopies : null;
-					$overdriveItem->totalCopies = isset($totalCopies) ? $totalCopies : null;
-					$overdriveItem->numHolds = isset($holdQueueLength) ? $holdQueueLength : null;
-					$items[] = $overdriveItem;
-				}
-
-				$memcache->set('overdrive_items_' . $overDriveId, $items, 0, $configArray['Caching']['overdrive_items']);
-			}
-			return $items;
-		}
 	}
 
 	public function getLoanPeriodsForFormat($formatId){

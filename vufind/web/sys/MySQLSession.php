@@ -1,7 +1,7 @@
 <?php
 
 require_once 'SessionInterface.php';
-require_once 'services/MyResearch/lib/Session.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Session.php';
 
 class MySQLSession extends SessionInterface {
 	static public function read($sess_id) {
@@ -62,6 +62,12 @@ class MySQLSession extends SessionInterface {
 	static public function gc($sess_maxlifetime) {
 		$s = new Session();
 		$s->whereAdd('last_used + ' . $sess_maxlifetime . ' < ' . time());
+		$s->whereAdd('remember_me = 0');
+		$s->delete(true);
+
+		$s = new Session();
+		$s->whereAdd('last_used + ' . SessionInterface::$rememberMeLifetime . ' < ' . time());
+		$s->whereAdd('remember_me = 1');
 		$s->delete(true);
 	}
 

@@ -20,8 +20,8 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/API/ListAPI.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/API/ListAPI.php';
 
 class Home extends Action {
 
@@ -35,14 +35,14 @@ class Home extends Action {
 		global $user;
 
 		// Include Search Engine Class
-		require_once 'sys/' . $configArray['Index']['engine'] . '.php';
+		require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
 		$timer->logTime('Include search engine');
 		if ($user)
 		{
 			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
 			$patron = $catalog->patronLogin($user->cat_username, $user->cat_password);
 			$profile = $catalog->getMyProfile($patron);
-			if (!PEAR::isError($profile))
+			if (!PEAR_Singleton::isError($profile))
 			{
 				$interface->assign('profile', $profile);
 			}

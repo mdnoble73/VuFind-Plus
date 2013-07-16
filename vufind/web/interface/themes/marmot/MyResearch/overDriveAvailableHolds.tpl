@@ -11,6 +11,10 @@
 
 	<div id="main-content">
 	{if $user}
+		{if $profile.web_note}
+			<div id="web_note">{$profile.web_note}</div>
+		{/if}
+			
 		<div class="myAccountTitle">{translate text='Available Holds From OverDrive'}</div>
 		{if $userNoticeFile}
 			{include file=$userNoticeFile}
@@ -29,20 +33,20 @@
 					<tbody>
 					{foreach from=$overDriveHolds.available item=record}
 						<tr>
-							<td rowspan="{$record.numRows}" class='imageColumnOverdrive'><img src="{$record.imageUrl}"></td>
+							<td rowspan="{$record.numRows}" class='imageColumnOverdrive'><img src="{$record.imageUrl}" alt="Cover Image" /></td>
 							<td>
 								{if $record.recordId != -1}<a href="{$path}/EcontentRecord/{$record.recordId}/Home">{/if}{$record.title}{if $record.recordId != -1}</a>{/if}
 								{if $record.subTitle}<br/>{$record.subTitle}{/if}
 								{if strlen($record.author) > 0}<br/>by: {$record.author}{/if}
 							</td>
-							<td>{$record.notificationDate|date_format}</td>
-							<td>{$record.expirationDate|date_format}</td>
+							<td>{$record.notificationDate|date_format:"%a $b %e, %Y %I:%M%p"}</td>
+							<td>{$record.expirationDate|date_format:"%a $b %e, %Y %I:%M%p"}</td>
 						</tr>
 						{foreach from=$record.formats item=format}
 							<tr>
 								<td colspan="2">{$format.name}</td>
 								<td>
-									<a href="#" onclick="checkoutOverDriveItem('{$format.overDriveId}','{$format.formatId}')" class="button">Check&nbsp;Out</a><br/>
+									<a href="#" onclick="{if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$format.overDriveId}','{$format.formatId}')" class="button">Check&nbsp;Out</a><br/>
 								</td>
 							</tr>
 						{/foreach}

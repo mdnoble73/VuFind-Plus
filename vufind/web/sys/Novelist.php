@@ -1,13 +1,13 @@
 <?php
-require_once('Drivers/marmot_inc/ISBNConverter.php') ;
+require_once(ROOT_DIR . '/Drivers/marmot_inc/ISBNConverter.php') ;
 
 class Novelist{
 
 	function loadEnrichment($isbn, $loadSeries = true, $loadSimilarTitles = true, $loadSimilarAuthors = true){
-		global $library;
 		global $timer;
 		global $configArray;
-		global $memcache;
+		/** @var Memcache $memCache */
+		global $memCache;
 
 		if (isset($configArray['Novelist']) && isset($configArray['Novelist']['profile']) && strlen($configArray['Novelist']['profile']) > 0){
 			$profile = $configArray['Novelist']['profile'];
@@ -15,36 +15,33 @@ class Novelist{
 		}else{
 			return null;
 		}
-		
-		$enrichment = array();
+
 		if (!isset($isbn) || strlen($isbn) == 0){
 			return null;
 		}
-		
-		$enrichment = $memcache->get("novelist_enrichment_$isbn");
-		if ($enrichment == false){
-			
-			//$requestUrl = "http://eit.ebscohost.com/Services/NovelistSelect.asmx/SeriesTitles?prof=$profile&pwd=$pwd&authType=&ipprof=&isbn={$this->isbn}";
+
+		$enrichment = $memCache->get("novelist_enrichment_$isbn");
+		if ($enrichment == false  || isset($_REQUEST['reload'])){
 			$requestUrl = "http://eit.ebscohost.com/Services/NovelistSelect.asmx/AllContent?prof=$profile&pwd=$pwd&authType=&ipprof=&isbn={$isbn}";
-	
 			try{
 				//Get the XML from the service
 				disableErrorHandler();
 				$req = new Proxy_Request($requestUrl);
 				//$result = file_get_contents($req);
-				if (PEAR::isError($req->sendRequest())) {
+				if (PEAR_Singleton::isError($req->sendRequest())) {
 					enableErrorHandler();
 					return null;
 				}
 				enableErrorHandler();
-				
+
 				$response = $req->getResponseBody();
 				$timer->logTime("Made call to Novelist for enrichment information");
-	
+
 				//Parse the XML
 				$data = new SimpleXMLElement($response);
 				//Convert the data into a structure suitable for display
 				if (isset($data->Features->FeatureGroup)){
+					/** @var SimpleXMLElement $featureGroup */
 					foreach ($data->Features->FeatureGroup as $featureGroup){
 						$groupType = (string)$featureGroup->attributes()->type;
 						foreach ($featureGroup->Feature as $feature){
@@ -59,26 +56,29 @@ class Novelist{
 								$this->loadSimilarAuthorInfo($isbn, $feature, $enrichment);
 								$timer->logTime("Loaded similar title info");
 							}
-	
+
 							//TODO: Load Related Content (Awards and Recommended Reading Lists)
 							//      For now, don't worry about this since the data is not worth using
-	
+
 						}
 					}
-	
+
 				}else{
 					$enrichment = null;
 				}
-	
+
 			}catch (Exception $e) {
 				global $logger;
 				$logger->log("Error fetching data from NoveList $e", PEAR_LOG_ERR);
+				if (isset($response)){
+					$logger->log($response, PEAR_LOG_DEBUG);
+				}
 				$enrichment = null;
 			}
-			
-			$memcache->set("novelist_enrichment_$isbn", $enrichment, 0, $configArray['Caching']['novelist_enrichement']);
+
+			$memCache->set("novelist_enrichment_$isbn", $enrichment, 0, $configArray['Caching']['novelist_enrichement']);
 		}
-		
+
 		return $enrichment;
 	}
 
@@ -96,11 +96,12 @@ class Novelist{
 	}
 
 	function loadSeriesInfo($originalIsbn, $feature, &$enrichment){
+		$seriesName = (string)$feature->MetaData->Name;
 		$seriesTitles = array();
 		$items = $feature->Item;
 		$titlesOwned = 0;
 		foreach ($items as $item){
-			$this->loadNoveListTitle($originalIsbn, $item, $seriesTitles, $titlesOwned);
+			$this->loadNoveListTitle($originalIsbn, $item, $seriesTitles, $titlesOwned, $seriesName);
 		}
 		$enrichment['series'] = $seriesTitles;
 		$enrichment['seriesCount'] = count($items);
@@ -129,9 +130,10 @@ class Novelist{
 		$enrichment['similarTitleCountOwned'] = $titlesOwned;
 	}
 
-	function loadNoveListTitle($originalIsbn, $item, &$titleList, &$titlesOwned){
-
+	function loadNoveListTitle($originalIsbn, $item, &$titleList, &$titlesOwned, $seriesName = ''){
+		global $user;
 		$isbnList = array();
+		/** @var SimpleXMLElement $titleItem */
 		foreach($item->TitleList->TitleItem as $titleItem){
 			$tmpIsbn = (string)$titleItem->attributes()->value;
 			if (strlen($tmpIsbn) == 10 || strlen($tmpIsbn) == 13){
@@ -146,10 +148,20 @@ class Novelist{
 		//TODO:  cache this info since it can take a really long time to load
 		$searchObj = SearchObjectFactory::initSearchObject();
 		$searchObj->setBasicQuery(implode(' OR ', $isbnList), 'ISN');
+		$searchObj->disableScoping();
 		//Add a filter to only include books and DVDs
 		$searchObj->processSearch(false, false);
 		$matchingRecords = $searchObj->getResultRecordSet();
 		$isCurrent = in_array($originalIsbn, $isbnList);
+		if (isset($seriesName)){
+			$series = $seriesName;
+		}else{
+			$series = null;
+		}
+		$volume = '';
+		if ($item->Volume){
+			$volume = (string)$item->Volume;
+		}
 		if (count($matchingRecords) > 0){
 			$ownedRecord = $matchingRecords[0];
 			if (strpos($ownedRecord['isbn'][0], ' ') > 0){
@@ -160,28 +172,50 @@ class Novelist{
 			}
 			$isbn13 = strlen($isbn) == 13 ? $isbn : ISBNConverter::convertISBN10to13($isbn);
 			$isbn10 = strlen($isbn) == 10 ? $isbn : ISBNConverter::convertISBN13to10($isbn);
-			//See if we can get the series title from the record
-			if (isset($ownedRecord['series'])){
-				$series = $ownedRecord['series'][0];
-			}else{
-				$series = '';
+			if (!isset($series)){
+				if (isset($ownedRecord['series'])){
+					$series = $ownedRecord['series'][0];
+				}
 			}
+			//Load rating data
+			if ($ownedRecord['recordtype'] == 'marc'){
+				$resource = new Resource();
+				$resource->source = 'VuFind';
+				$resource->record_id = $ownedRecord['id'];
+				$resource->find(true);
+				$ratingData = $resource->getRatingData($user);
+				$fullRecordLink = '/Record/' . $ownedRecord['id'] . '/Home';
+			}else{
+				require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
+				$shortId = str_replace('econtentRecord', '', $ownedRecord['id']);
+				$econtentRating = new EContentRating();
+				$econtentRating->recordId = $shortId;
+				$ratingData = $econtentRating->getRatingData($user, false);
+				$fullRecordLink = '/EcontentRecord/' . $shortId . '/Home';
+			}
+
+
+			//See if we can get the series title from the record
 			$titleList[] = array(
-                'title' => $ownedRecord['title'],
-                'title_short' => isset($ownedRecord['title_short']) ? $ownedRecord['title_short'] : $ownedRecord['title'],
-                'author' => isset($ownedRecord['author']) ? $ownedRecord['author'] : '',
-                'publicationDate' => (string)$item->PublicationDate,
-                'isbn' => $isbn13,
-                'isbn10' => $isbn10,
-                'upc' => isset($ownedRecord['upc'][0]) ? $ownedRecord['upc'][0] : '',
-                'recordId' => $ownedRecord['id'],
-                'id' => $ownedRecord['id'], //This allows the record to be displayed in various locations.
-                'libraryOwned' => true,
-                'isCurrent' => $isCurrent,
-                'shortId' => substr($ownedRecord['id'], 1),
-                'format_category' => $ownedRecord['format_category'],
-                'format' => $ownedRecord['format'],
-                'series' => $series,
+				'title' => $ownedRecord['title'],
+				'title_short' => isset($ownedRecord['title_short']) ? $ownedRecord['title_short'] : $ownedRecord['title'],
+				'author' => isset($ownedRecord['author']) ? $ownedRecord['author'] : '',
+				'publicationDate' => (string)$item->PublicationDate,
+				'isbn' => $isbn13,
+				'isbn10' => $isbn10,
+				'upc' => isset($ownedRecord['upc'][0]) ? $ownedRecord['upc'][0] : '',
+				'recordId' => $ownedRecord['id'],
+				'recordtype' => $ownedRecord['recordtype'],
+				'id' => $ownedRecord['id'], //This allows the record to be displayed in various locations.
+				'libraryOwned' => true,
+				'isCurrent' => $isCurrent,
+				'shortId' => substr($ownedRecord['id'], 1),
+				'format_category' => $ownedRecord['format_category'],
+				'format' => $ownedRecord['format'],
+				'series' => $series,
+				'volume' => $volume,
+				'ratingData' => $ratingData,
+				'fullRecordLink' => $fullRecordLink,
 			);
 			$titlesOwned++;
 		}else{
@@ -197,6 +231,8 @@ class Novelist{
                 'recordId' => -1,
                 'libraryOwned' => false,
                 'isCurrent' => $isCurrent,
+                'series' => $series,
+                'volume' => $volume,
 			);
 		}
 	}

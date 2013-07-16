@@ -19,7 +19,7 @@
 </head>
 
 <body>
-  {include file='API/listWidgetTabs.tpl'}
+	{include file='API/listWidgetTabs.tpl'}
   
 </body>
 </html>

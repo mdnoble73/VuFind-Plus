@@ -18,14 +18,13 @@
  *
  */
 
-require_once 'Action.php';
-//require_once 'sys/DataObjects/Pillar.php';
-require_once('services/Admin/Admin.php');
-require_once('sys/EditorialReview.php');
-require_once 'sys/DataObjectUtil.php';
-require_once 'sys/Pager.php';
+require_once ROOT_DIR . '/Action.php';
+require_once(ROOT_DIR . '/services/Admin/Admin.php');
+require_once(ROOT_DIR . '/sys/EditorialReview.php');
+require_once ROOT_DIR . '/sys/DataObjectUtil.php';
+require_once ROOT_DIR . '/sys/Pager.php';
 
-class Search extends Admin {
+class Search extends Admin_Admin {
 
 	function launch()
 	{
@@ -75,6 +74,6 @@ class Search extends Admin {
 	}
 
 	function getAllowableRoles(){
-		return array('opacAdmin', 'libraryAdmin');
+		return array('opacAdmin', 'libraryAdmin', 'contentEditor');
 	}
 }

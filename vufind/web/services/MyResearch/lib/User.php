@@ -32,6 +32,9 @@ class User extends DB_DataObject
 	public $bypassAutoLogout;        //tinyint
 	public $disableRecommendations;     //tinyint
 	public $disableCoverArt;     //tinyint
+	public $overdriveEmail;
+	public $promptForOverdriveEmail;
+	public $preferredLibraryInterface;
 	private $roles;
 	private $data = array();
 
@@ -43,7 +46,7 @@ class User extends DB_DataObject
 
 	function __sleep()
 	{
-		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType');
+		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType', 'overdriveEmail', 'promptForOverdriveEmail', 'preferredLibraryInterface');
 	}
 
 	function __wakeup()
@@ -62,6 +65,14 @@ class User extends DB_DataObject
 		}
 	}
 
+	/**
+	 * @param Resource $resource
+	 * @param User_list $list
+	 * @param string[] $tagArray
+	 * @param string $notes
+	 * @param bool $updateSolr
+	 * @return bool
+	 */
 	function addResource($resource, $list, $tagArray, $notes, $updateSolr = true){
 		require_once 'User_resource.php';
 		require_once 'Tags.php';
@@ -113,7 +124,7 @@ class User extends DB_DataObject
 				}else{
 					$strandsUrl = "http://bizsolutions.strands.com/api2/event/addtofavorites.sbs?apid={$configArray['Strands']['APID']}&item=econtentRecord{$resource->record_id}&user={$this->id}";
 				}
-				$ret = file_get_contents($strandsUrl);
+				file_get_contents($strandsUrl);
 			}
 
 			return true;
@@ -141,6 +152,12 @@ class User extends DB_DataObject
 		$join->delete();
 	}
 
+	/**
+	 * Return all resources that the user has saved
+	 *
+	 * @param string[] $tags Tags to filter the resources by
+	 * @return Resource[]
+	 */
 	function getResources($tags = null) {
 		require_once 'User_resource.php';
 		$resourceList = array();
@@ -158,6 +175,7 @@ class User extends DB_DataObject
 			}
 		}
 
+		/** @var Resource|object $resource */
 		$resource = new Resource();
 		$resource->query($sql);
 		if ($resource->N) {
@@ -247,23 +265,9 @@ class User extends DB_DataObject
 
 	function __get($name){
 		if ($name == 'roles'){
-			if (is_null($this->roles)){
-				//Load roles for the user from the user
-				require_once 'sys/Administration/Role.php';
-				$role = new Role();
-				if ($this->id){
-					$role->query("SELECT roles.* FROM roles INNER JOIN user_roles ON roles.roleId = user_roles.roleId WHERE userId = {$this->id} ORDER BY name");
-					$this->roles = array();
-					while ($role->fetch()){
-						$this->roles[$role->roleId] = $role->name;
-					}
-				}
-				return $this->roles;
-			}else{
-				return $this->roles;
-			}
+			return $this->getRoles();
 		}else{
-			return $data[$name];
+			return $this->data[$name];
 		}
 	}
 
@@ -273,15 +277,65 @@ class User extends DB_DataObject
 			//Update the database, first remove existing values
 			$this->saveRoles();
 		}else{
-			$data[$name] = $value;
+			$this->data[$name] = $value;
+		}
+	}
+
+	function getRoles(){
+		if (is_null($this->roles)){
+			//Load roles for the user from the user
+			require_once ROOT_DIR . '/sys/Administration/Role.php';
+			$role = new Role();
+			$canMasquerade = false;
+			if ($this->id){
+				$role->query("SELECT roles.* FROM roles INNER JOIN user_roles ON roles.roleId = user_roles.roleId WHERE userId = " . $this->id . " ORDER BY name");
+				$this->roles = array();
+				while ($role->fetch()){
+					$this->roles[$role->roleId] = $role->name;
+					if ($role->name == 'userAdmin'){
+						$canMasquerade = true;
+					}
+				}
+			}
+
+			//Setup masquerading as different users
+			$testRole = '';
+			if (isset($_REQUEST['test_role'])){
+				$testRole = $_REQUEST['test_role'];
+			}elseif (isset($_COOKIE['test_role'])){
+				$testRole = $_COOKIE['test_role'];
+			}
+			if ($canMasquerade && $testRole != ''){
+				$this->roles = array();
+				if (is_array($testRole)){
+					$testRoles = $testRole;
+				}else{
+					$testRoles = array($testRole);
+				}
+				foreach ($testRoles as $tmpRole){
+					$role = new Role();
+					if (is_numeric($tmpRole)){
+						$role->roleId = $tmpRole;
+					}else{
+						$role->name = $tmpRole;
+					}
+					$found = $role->find(true);
+					if ($found == true){
+						$this->roles[$role->roleId] = $role->name;
+					}
+				}
+			}
+			return $this->roles;
+		}else{
+			return $this->roles;
 		}
 	}
 
 	function saveRoles(){
 		if (isset($this->id) && isset($this->roles) && is_array($this->roles)){
-			require_once 'sys/Administration/Role.php';
+			require_once ROOT_DIR . '/sys/Administration/Role.php';
 			$role = new Role();
-			$role->query("DELETE FROM user_roles WHERE userId = {$this->id}");
+			$role->query("DELETE FROM user_roles WHERE userId = " . $this->id);
 			//Now add the new values.
 			if (count($this->roles) > 0){
 				$values = array();
@@ -289,7 +343,7 @@ class User extends DB_DataObject
 					$values[] = "({$this->id},{$roleId})";
 				}
 				$values = join(', ', $values);
-				$role->query("INSERT INTO user_roles ( `userId` , `roleId` ) VALUES $values");
+				$role->query("INSERT INTO user_roles ( `userId` , `roleId` ) VALUES " . $values);
 			}
 		}
 	}
@@ -317,7 +371,7 @@ class User extends DB_DataObject
 
 	function getObjectStructure(){
 		//Lookup available roles in the system
-		require_once 'sys/Administration/Role.php';
+		require_once ROOT_DIR . '/sys/Administration/Role.php';
 		$roleList = Role::getLookup();
 
 		$structure = array(
@@ -340,7 +394,7 @@ class User extends DB_DataObject
 	}
 
 	function getFilters(){
-		require_once 'sys/Administration/Role.php';
+		require_once ROOT_DIR . '/sys/Administration/Role.php';
 		$roleList = Role::getLookup();
 		$roleList[-1] = 'Any Role';
 		return array(
@@ -351,7 +405,7 @@ class User extends DB_DataObject
 	}
 
 	function hasRatings(){
-		require_once 'Drivers/marmot_inc/UserRating.php';
+		require_once ROOT_DIR . '/Drivers/marmot_inc/UserRating.php';
 
 		$rating = new UserRating();
 		$rating->userid = $this->id;

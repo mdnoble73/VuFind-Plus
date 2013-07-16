@@ -1,6 +1,6 @@
 <?php
-require_once 'Action.php';
-require_once 'CatalogConnection.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/CatalogConnection.php';
 
 /**
  * API methods related to getting User information from VuFind from external programs.
@@ -27,12 +27,7 @@ require_once 'CatalogConnection.php';
  */
 class UserAPI extends Action {
 
-	/*
-	 * Stores the connection to the ILS
-	 *
-	 * @internal
-	 * @access private
-	 */
+	/** @var CatalogConnection */
 	private $catalog;
 
 	/**
@@ -89,7 +84,7 @@ class UserAPI extends Action {
 	 */
 	function isLoggedIn(){
 		$user = UserAccount::isLoggedIn();
-		if ($user != false && !PEAR::isError($user)){
+		if ($user != false && !PEAR_Singleton::isError($user)){
 			return true;
 		}else{
 			return false;
@@ -123,11 +118,11 @@ class UserAPI extends Action {
 		//Login the user.  Must be called via Post parameters.
 		$user = UserAccount::isLoggedIn();
 		if (isset($_POST['username']) && isset($_POST['password'])){
-			if ($user && !PEAR::isError($user)){
+			if ($user && !PEAR_Singleton::isError($user)){
 				return array('success'=>true,'name'=>ucwords($user->firstname . ' ' . $user->lastname));
 			}else{
 				$user = UserAccount::login();
-				if ($user && !PEAR::isError($user)){
+				if ($user && !PEAR_Singleton::isError($user)){
 					return array('success'=>true,'name'=>ucwords($user->firstname . ' ' . $user->lastname));
 				}else{
 					return array('success'=>false);
@@ -173,15 +168,15 @@ class UserAPI extends Action {
 	 * Returns JSON encoded data as follows:
 	 * <ul>
 	 * <li>success - false if the username or password could not be found, or the folowing user information if the account is valid.</li>
-	 * <li>id – The id of the user within VuFind</li>
-	 * <li>username, cat_username – The patron's library card number</li>
-	 * <li>password, cat_password – The patron's PIN number</li>
-	 * <li>firstname – The first name of the patron in the ILS</li>
-	 * <li>lastname – The last name of the patron in the ILS</li>
-	 * <li>email – The patron's e-mail address if set within Horizon.</li>
-	 * <li>college, major – not currently used</li>
-	 * <li>homeLocationId – the id of the patron's home libarary within VuFind.</li>
-	 * <li>MyLocation1Id, myLocation2Id – not currently used</li>
+	 * <li>id ï¿½ The id of the user within VuFind</li>
+	 * <li>username, cat_username ï¿½ The patron's library card number</li>
+	 * <li>password, cat_password ï¿½ The patron's PIN number</li>
+	 * <li>firstname ï¿½ The first name of the patron in the ILS</li>
+	 * <li>lastname ï¿½ The last name of the patron in the ILS</li>
+	 * <li>email ï¿½ The patron's e-mail address if set within Horizon.</li>
+	 * <li>college, major ï¿½ not currently used</li>
+	 * <li>homeLocationId ï¿½ the id of the patron's home libarary within VuFind.</li>
+	 * <li>MyLocation1Id, myLocation2Id ï¿½ not currently used</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -262,27 +257,27 @@ class UserAPI extends Action {
 	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
-	 * <li>success – true if the account is valid, false if the username or password were incorrect</li>
-	 * <li>message – a reason why the method failed if success is false</li>
-	 * <li>profile – profile information including name, address, e-mail, number of holds, number of checked out items, fines.</li>
-	 * <li>firstname – The first name of the patron in the ILS</li>
-	 * <li>lastname – The last name of the patron in the ILS</li>
-	 * <li>fullname – The combined first and last name for the patron in the ILS</li>
-	 * <li>address1 – The street information for the patron</li>
-	 * <li>city – The city where the patron lives</li>
-	 * <li>state – The state where the patron lives</li>
-	 * <li>zip – The zip code for the patron</li>
-	 * <li>phone – The phone number for the patron</li>
-	 * <li>email – The email for the patron</li>
-	 * <li>homeLocationId – The id of the patron's home branch within VuFind</li>
-	 * <li>homeLocationName – The full name of the patron's home branch</li>
-	 * <li>expires – The expiration date of the patron's library card</li>
-	 * <li>fines – the amount of fines on the patron's account formatted for display</li>
-	 * <li>finesVal – the amount of  fines on the patron's account without formatting</li>
-	 * <li>numHolds – The number of holds the patron currently has</li>
-	 * <li>numHoldsAvailable – The number of holds the patron currently has that are available</li>
-	 * <li>numHoldsRequested – The number of holds the patron currently has that are not available</li>
-	 * <li>numCheckedOut – The number of items the patron currently has checked out.</li>
+	 * <li>success ï¿½ true if the account is valid, false if the username or password were incorrect</li>
+	 * <li>message ï¿½ a reason why the method failed if success is false</li>
+	 * <li>profile ï¿½ profile information including name, address, e-mail, number of holds, number of checked out items, fines.</li>
+	 * <li>firstname ï¿½ The first name of the patron in the ILS</li>
+	 * <li>lastname ï¿½ The last name of the patron in the ILS</li>
+	 * <li>fullname ï¿½ The combined first and last name for the patron in the ILS</li>
+	 * <li>address1 ï¿½ The street information for the patron</li>
+	 * <li>city ï¿½ The city where the patron lives</li>
+	 * <li>state ï¿½ The state where the patron lives</li>
+	 * <li>zip ï¿½ The zip code for the patron</li>
+	 * <li>phone ï¿½ The phone number for the patron</li>
+	 * <li>email ï¿½ The email for the patron</li>
+	 * <li>homeLocationId ï¿½ The id of the patron's home branch within VuFind</li>
+	 * <li>homeLocationName ï¿½ The full name of the patron's home branch</li>
+	 * <li>expires ï¿½ The expiration date of the patron's library card</li>
+	 * <li>fines ï¿½ the amount of fines on the patron's account formatted for display</li>
+	 * <li>finesVal ï¿½ the amount of  fines on the patron's account without formatting</li>
+	 * <li>numHolds ï¿½ The number of holds the patron currently has</li>
+	 * <li>numHoldsAvailable ï¿½ The number of holds the patron currently has that are available</li>
+	 * <li>numHoldsRequested ï¿½ The number of holds the patron currently has that are not available</li>
+	 * <li>numCheckedOut ï¿½ The number of items the patron currently has checked out.</li>
 	 * <li>bypassAutoLogout - 1 if the user has chosen to bypass te automatic logout script or 0 if they have not.</li>
 	 * <li>numEContentCheckedOut - The number of eContent items that the user currently has checked out. </li>
 	 * <li>numEContentAvailableHolds - The number of available eContent holds for the user that can be checked out. </li>
@@ -342,7 +337,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$profile = $this->catalog->getMyProfile($user);
 			return array('success'=>true, 'profile'=>$profile);
 		}else{
@@ -362,22 +357,22 @@ class UserAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid, false if the username or password were incorrect</li>
-	 * <li>message – a reason why the method failed if success is false</li>
-	 * <li>holds – information about each hold including when it was placed, when it expires, and whether or not it is available for pickup.  Holds are broken into two sections: available and unavailable.  Available holds are ready for pickup.</li>
-	 * <li>Id – the record/bib id of the title being held</li>
-	 * <li>location – The location where the title will be picked up</li>
-	 * <li>expire – the date the hold will expire if it is unavailable or the date that it must be picked up if the hold is available</li>
-	 * <li>expireTime – the expire information in number of days since January 1, 1970 </li>
-	 * <li>create – the date the hold was originally placed</li>
-	 * <li>createTime – the create information in number of days since January 1, 1970</li>
-	 * <li>reactivate – The date the hold will be reactivated if the hold is suspended</li>
-	 * <li>reactivateTime – the reactivate information in number of days since January 1, 1970</li>
-	 * <li>available – whether or not the hold is available for pickup</li>
-	 * <li>position – the patron's position in the hold queue</li>
-	 * <li>frozen – whether or not the hold is frozen</li>
-	 * <li>itemId – the barcode of the item that filled the hold if the hold has been filled.</li>
-	 * <li>Status – a textual status of the item (Available, Suspended, Active, In Transit)</li>
+	 * <li>success ï¿½ true if the account is valid, false if the username or password were incorrect</li>
+	 * <li>message ï¿½ a reason why the method failed if success is false</li>
+	 * <li>holds ï¿½ information about each hold including when it was placed, when it expires, and whether or not it is available for pickup.  Holds are broken into two sections: available and unavailable.  Available holds are ready for pickup.</li>
+	 * <li>Id ï¿½ the record/bib id of the title being held</li>
+	 * <li>location ï¿½ The location where the title will be picked up</li>
+	 * <li>expire ï¿½ the date the hold will expire if it is unavailable or the date that it must be picked up if the hold is available</li>
+	 * <li>expireTime ï¿½ the expire information in number of days since January 1, 1970 </li>
+	 * <li>create ï¿½ the date the hold was originally placed</li>
+	 * <li>createTime ï¿½ the create information in number of days since January 1, 1970</li>
+	 * <li>reactivate ï¿½ The date the hold will be reactivated if the hold is suspended</li>
+	 * <li>reactivateTime ï¿½ the reactivate information in number of days since January 1, 1970</li>
+	 * <li>available ï¿½ whether or not the hold is available for pickup</li>
+	 * <li>position ï¿½ the patron's position in the hold queue</li>
+	 * <li>frozen ï¿½ whether or not the hold is frozen</li>
+	 * <li>itemId ï¿½ the barcode of the item that filled the hold if the hold has been filled.</li>
+	 * <li>Status ï¿½ a textual status of the item (Available, Suspended, Active, In Transit)</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -461,10 +456,10 @@ class UserAPI extends Action {
 
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$patronHolds = $this->catalog->getMyHolds($user);
 			if ($includeEContent === true || $includeEContent === 'true'){
-				require_once('Drivers/EContentDriver.php');
+				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 				$eContentDriver = new EContentDriver();
 				$eContentHolds = $eContentDriver->getMyHolds($user);
 				$allHolds = array_merge_recursive($eContentHolds['holds'], $patronHolds['holds']);
@@ -545,8 +540,8 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/EContentDriver.php');
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$eContentDriver = new EContentDriver();
 			$eContentHolds = $eContentDriver->getMyHolds($user);
 			return array('success'=>true, 'holds'=>$eContentHolds['holds']);
@@ -623,9 +618,9 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$eContentDriver = new OverDriveDriver();
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$eContentDriver = OverDriveDriverFactory::getDriver();
 			$eContentHolds = $eContentDriver->getOverDriveHolds($user);
 			return array('success'=>true, 'holds'=>$eContentHolds['holds']);
 		}else{
@@ -661,65 +656,11 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$eContentDriver = new OverDriveDriver();
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$eContentDriver = OverDriveDriverFactory::getDriver();
 			$eContentCartItems = $eContentDriver->getOverDriveCart($user);
 			return array('success'=>true, 'items'=>$eContentCartItems['items']);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
-	 * Get a list of items in the user's OverDrive wishlist.
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=getPatronWishListOverDrive&username=23025003575917&password=7604
-	 * </code>
-	 *
-	 * Sample Response:
-	 * <code>
-	 * {"result":{
-	 *   "success":true,
-	 *   "items":[
-	 *     {"overDriveId":"47BCED53-7AEC-47A2-A5D9-75D493196095",
-	 *      "imageUrl":"http:\/\/images.contentreserve.com\/ImageType-200\/1191-1\/%7B47BCED53-7AEC-47A2-A5D9-75D493196095%7DImg200.jpg",
-	 *      "title":"The Return of Depression Economics and the Crisis of 2008",
-	 *      "subTitle":"",
-	 *      "author":"Paul Krugman",
-	 *      "dateAdded":"Apr 19, 2009\r\n",
-	 *      "formats":[
-	 *        {"name":"OverDrive WMA Audiobook",
-	 *         "available":true,
-	 *         "formatId":"25"
-	 *        }
-	 *      ],
-	 *      "recordId":"13233"
-	 *     }
-	 *   ]
-	 * }}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function getPatronWishListOverDrive(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$eContentDriver = new OverDriveDriver();
-			$eContentWishListItems = $eContentDriver->getOverDriveWishList($user);
-			return array('success'=>true, 'items'=>$eContentWishListItems['items']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -768,9 +709,9 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$eContentDriver = new OverDriveDriver();
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$eContentDriver = OverDriveDriverFactory::getDriver();
 			$eContentCheckedOutItems = $eContentDriver->getOverDriveCheckedOutItems($user);
 			return array('success'=>true, 'items'=>$eContentCheckedOutItems['items']);
 		}else{
@@ -817,9 +758,9 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$eContentDriver = new OverDriveDriver();
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$eContentDriver = OverDriveDriverFactory::getDriver();
 			$overDriveSummary = $eContentDriver->getOverDriveSummary($user);
 			return array('success'=>true, 'summary'=>$overDriveSummary);
 		}else{
@@ -869,9 +810,29 @@ class UserAPI extends Action {
 		global $user;
 		$includeMessages = isset($_REQUEST['includeMessages']) ? $_REQUEST['includeMessages'] : false;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$fines = $this->catalog->getMyFines($user, $includeMessages);
 			return array('success'=>true, 'fines'=>$fines);
+		}else{
+			return array('success'=>false, 'message'=>'Login unsuccessful');
+		}
+	}
+
+	/**
+	 * Returns lending options for a patron from OverDrive.
+	 *
+	 * @return array
+	 */
+	function getOverDriveLendingOptions(){
+		$username = $_REQUEST['username'];
+		$password = $_REQUEST['password'];
+		global $user;
+		$user = UserAccount::validateAccount($username, $password);
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
+			$accountDetails = $driver->getAccountDetails($user);
+			return array('success'=>true, 'lendingOptions'=>$accountDetails['lendingOptions']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -952,11 +913,11 @@ class UserAPI extends Action {
 		}
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$checkedOutItems = $this->catalog->getMyTransactions($user);
-				
+
 			if ($includeEContent === true || $includeEContent === 'true'){
-				require_once('Drivers/EContentDriver.php');
+				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 				$eContentDriver = new EContentDriver();
 				$eContentTransactions = $eContentDriver->getMyTransactions($user);
 
@@ -1020,8 +981,8 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/EContentDriver.php');
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$eContentDriver = new EContentDriver();
 			$eContentTransactions = $eContentDriver->getMyTransactions($user);
 			$allTransactions = $eContentTransactions['transactions'];
@@ -1078,7 +1039,7 @@ class UserAPI extends Action {
 		$itemBarcode = $_REQUEST['itemBarcode'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$renewalMessage = $this->catalog->renewItem($user->cat_username, $itemBarcode);
 			return array('success'=>true, 'renewalMessage'=>$renewalMessage);
 		}else{
@@ -1116,7 +1077,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$renewalMessage = $this->catalog->renewAll($user->cat_username);
 			return array('success'=> $renewalMessage['result'], 'renewalMessage'=>$renewalMessage['message']);
 		}else{
@@ -1133,13 +1094,13 @@ class UserAPI extends Action {
 	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
 	 * <li>bibId    - The id of the record within the ILS.</li>
-	 * <li>campus   – the location where the patron would like to pickup the title (optional). If not provided, the patron's home location will be used.</li>
+	 * <li>campus   ï¿½ the location where the patron would like to pickup the title (optional). If not provided, the patron's home location will be used.</li>
 	 * </ul>
 	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
-	 * <li>success – true if the account is valid and the hold could be placed, false if the username or password were incorrect or the hold could not be placed.</li>
-	 * <li>holdMessage – a reason why the method failed if success is false, or information about hold queue position if successful.</li>
+	 * <li>success ï¿½ true if the account is valid and the hold could be placed, false if the username or password were incorrect or the hold could not be placed.</li>
+	 * <li>holdMessage ï¿½ a reason why the method failed if success is false, or information about hold queue position if successful.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -1171,7 +1132,7 @@ class UserAPI extends Action {
 		$bibId = $_REQUEST['bibId'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->catalog->placeHold($bibId, $user->cat_username, '', 'request');
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
@@ -1191,8 +1152,8 @@ class UserAPI extends Action {
 	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
-	 * <li>success – true if the account is valid and the hold could be placed, false if the username or password were incorrect or the hold could not be placed.</li>
-	 * <li>holdMessage – a reason why the method failed if success is false, or information about hold queue position if successful.</li>
+	 * <li>success ï¿½ true if the account is valid and the hold could be placed, false if the username or password were incorrect or the hold could not be placed.</li>
+	 * <li>holdMessage ï¿½ a reason why the method failed if success is false, or information about hold queue position if successful.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -1228,8 +1189,8 @@ class UserAPI extends Action {
 		}
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/EContentDriver.php');
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$driver = new EContentDriver();
 			$holdMessage = $driver->placeHold($recordId, $user);
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
@@ -1250,8 +1211,8 @@ class UserAPI extends Action {
 	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
-	 * <li>success – true if the account is valid and the item could be checked out, false if the username or password were incorrect or the record could not be checked out.</li>
-	 * <li>message – a reason why the method failed if success is false, or information indicating success.</li>
+	 * <li>success ï¿½ true if the account is valid and the item could be checked out, false if the username or password were incorrect or the record could not be checked out.</li>
+	 * <li>message ï¿½ a reason why the method failed if success is false, or information indicating success.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -1283,8 +1244,8 @@ class UserAPI extends Action {
 		$recordId = $_REQUEST['recordId'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/EContentDriver.php');
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$driver = new EContentDriver();
 			$response = $driver->checkoutRecord($recordId, $user);
 			return array('success'=> $response['result'], 'message'=>$response['message']);
@@ -1322,8 +1283,8 @@ class UserAPI extends Action {
 		$itemId = $_REQUEST['itemId'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/EContentDriver.php');
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$driver = new EContentDriver();
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = $recordId;
@@ -1334,7 +1295,7 @@ class UserAPI extends Action {
 			if (!$driver->isRecordCheckedOutToUser($recordId)){
 				return array('success'=>false, 'message'=>'The record is not checked out to you.');
 			}
-				
+
 			$eContentItem = new EContentItem();
 			$eContentItem->recordId = $recordId;
 			$eContentItem->id = $itemId;
@@ -1349,7 +1310,7 @@ class UserAPI extends Action {
 				$bookFile = "{$libraryPath}/{$eContentItem->folder}";
 			}
 			if (strcasecmp($eContentItem->item_type, 'epub') == 0){
-				require_once('sys/eReader/ebook.php');
+				require_once(ROOT_DIR . '/sys/eReader/ebook.php');
 				$ebook = new ebook($bookFile);
 
 				//Return the contents of the epub file
@@ -1397,8 +1358,8 @@ class UserAPI extends Action {
 	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
-	 * <li>success – true if the account is valid and the hold could be placed, false if the username or password were incorrect or the hold could not be placed.</li>
-	 * <li>message – information about the process for display to the user.</li>
+	 * <li>success ï¿½ true if the account is valid and the hold could be placed, false if the username or password were incorrect or the hold could not be placed.</li>
+	 * <li>message ï¿½ information about the process for display to the user.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -1420,7 +1381,7 @@ class UserAPI extends Action {
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
 		if (isset($_REQUEST['recordId'])){
-			require_once('sys/eContent/EContentRecord.php');
+			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = $_REQUEST['recordId'];
 			if ($eContentRecord->find(true)){
@@ -1434,9 +1395,9 @@ class UserAPI extends Action {
 
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
 			$holdMessage = $driver->placeOverDriveHold($overDriveId, $format, $user);
 			return array('success'=> $holdMessage['result'], 'message'=>$holdMessage['message']);
 		}else{
@@ -1458,8 +1419,8 @@ class UserAPI extends Action {
 	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
-	 * <li>success – true if the account is valid and the hold could be cancelled, false if the username or password were incorrect or the hold could not be cancelled.</li>
-	 * <li>message – information about the process for display to the user.</li>
+	 * <li>success ï¿½ true if the account is valid and the hold could be cancelled, false if the username or password were incorrect or the hold could not be cancelled.</li>
+	 * <li>message ï¿½ information about the process for display to the user.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -1481,7 +1442,7 @@ class UserAPI extends Action {
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
 		if (isset($_REQUEST['recordId'])){
-			require_once('sys/eContent/EContentRecord.php');
+			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = $_REQUEST['recordId'];
 			if ($eContentRecord->find(true)){
@@ -1495,69 +1456,10 @@ class UserAPI extends Action {
 
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->cancelOverDriveHold($overDriveId, $format, $user);
-			return array('success'=> $result['result'], 'message'=>$result['message']);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
-	 * Remove an item from the OverDrive WishList
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * <li>recordId - The id of the record within the eContent database.</li>
-	 * <li>or overdriveId - The id of the record in OverDrive.</li>
-	 * </ul>
-	 *
-	 * Returns JSON encoded data as follows:
-	 * <ul>
-	 * <li>success – true if the account is valid and the title could be removed from the wishlist, false if the username or password were incorrect or the hold could not be removed from the wishlist.</li>
-	 * <li>message – information about the process for display to the user.</li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=removeOverDriveItemFromWishlist&username=23025003575917&password=1234&overDriveId=A3365DAC-EEC3-4261-99D3-E39B7C94A90F
-	 * </code>
-	 *
-	 * Sample Response:
-	 * <code>
-	 * {"result":{
-	 *   "success":true,
-	 *   "message":"The title was successfully removed from your wishlist."
-	 * }}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function removeOverDriveItemFromWishlist(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		if (isset($_REQUEST['recordId'])){
-			require_once('sys/eContent/EContentRecord.php');
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $_REQUEST['recordId'];
-			if ($eContentRecord->find(true)){
-				$sourceUrl = $eContentRecord->sourceUrl;
-				$overDriveId = substr($sourceUrl, -36);
-			}
-		}else{
-			$overDriveId = $_REQUEST['overDriveId'];
-		}
-
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
-			$result = $driver->removeOverDriveItemFromWishlist($overDriveId, $user);
 			return array('success'=> $result['result'], 'message'=>$result['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -1580,8 +1482,8 @@ class UserAPI extends Action {
 	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
-	 * <li>success – true if the account is valid and the title could be removed from the wishlist, false if the username or password were incorrect or the hold could not be removed from the wishlist.</li>
-	 * <li>message – information about the process for display to the user.</li>
+	 * <li>success ï¿½ true if the account is valid and the title could be removed from the wishlist, false if the username or password were incorrect or the hold could not be removed from the wishlist.</li>
+	 * <li>message ï¿½ information about the process for display to the user.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -1611,7 +1513,7 @@ class UserAPI extends Action {
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
 		if (isset($_REQUEST['recordId'])){
-			require_once('sys/eContent/EContentRecord.php');
+			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = $_REQUEST['recordId'];
 			if ($eContentRecord->find(true)){
@@ -1625,70 +1527,11 @@ class UserAPI extends Action {
 
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
 			$holdMessage = $driver->addItemToOverDriveCart($overDriveId, $format, $user);
 			return array('success'=> $holdMessage['result'], 'message'=>$holdMessage['message']);
-		}else{
-			return array('success'=>false, 'message'=>'Login unsuccessful');
-		}
-	}
-
-	/**
-	 * Add an item to the wishlist in OverDrive
-	 *
-	 * Parameters:
-	 * <ul>
-	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
-	 * <li>password - The pin number for the user. </li>
-	 * <li>recordId - The id of the record within the eContent database.</li>
-	 * <li>or overdriveId - The id of the record in OverDrive.</li>
-	 * </ul>
-	 *
-	 * Returns JSON encoded data as follows:
-	 * <ul>
-	 * <li>success – true if the account is valid and the title could be removed from the wishlist, false if the username or password were incorrect or the hold could not be removed from the wishlist.</li>
-	 * <li>message – information about the process for display to the user.</li>
-	 * </ul>
-	 *
-	 * Sample Call:
-	 * <code>
-	 * http://catalog.douglascountylibraries.org/API/UserAPI?method=addItemToOverDriveWishList&username=23025003575917&password=1234&overDriveId=A3365DAC-EEC3-4261-99D3-E39B7C94A90F
-	 * </code>
-	 *
-	 * Sample Response:
-	 * <code>
-	 * {"result":{
-	 *   "success":true,
-	 *   "message":"The title was added to your wishlist."
-	 * }}
-	 * </code>
-	 *
-	 * @author Mark Noble <mnoble@turningleaftech.com>
-	 */
-	function addItemToOverDriveWishList(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
-		if (isset($_REQUEST['recordId'])){
-			require_once('sys/eContent/EContentRecord.php');
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $_REQUEST['recordId'];
-			if ($eContentRecord->find(true)){
-				$sourceUrl = $eContentRecord->sourceUrl;
-				$overDriveId = substr($sourceUrl, -36);
-			}
-		}else{
-			$overDriveId = $_REQUEST['overDriveId'];
-		}
-
-		global $user;
-		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
-			$message = $driver->addItemToOverDriveWishList($overDriveId, $user);
-			return array('success'=> $message['result'], 'message'=>$message['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1709,8 +1552,8 @@ class UserAPI extends Action {
 	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
-	 * <li>success – true if the account is valid and the title could be checked out, false if the username or password were incorrect or the hold could not be checked out.</li>
-	 * <li>message – information about the process for display to the user.</li>
+	 * <li>success ï¿½ true if the account is valid and the title could be checked out, false if the username or password were incorrect or the hold could not be checked out.</li>
+	 * <li>message ï¿½ information about the process for display to the user.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -1732,7 +1575,7 @@ class UserAPI extends Action {
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
 		if (isset($_REQUEST['recordId'])){
-			require_once('sys/eContent/EContentRecord.php');
+			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
 			$eContentRecord = new EContentRecord();
 			$eContentRecord->id = $_REQUEST['recordId'];
 			if ($eContentRecord->find(true)){
@@ -1745,9 +1588,9 @@ class UserAPI extends Action {
 
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
 			$lendingPeriod = isset($_REQUEST['lendingPeriod']) ? $_REQUEST['lendingPeriod'] : -1;
 			$holdMessage = $driver->checkoutOverDriveItem($overDriveId, $format, $lendingPeriod, $user);
 			return array('success'=> $holdMessage['result'], 'message'=>$holdMessage['message']);
@@ -1767,8 +1610,8 @@ class UserAPI extends Action {
 	 *
 	 * Returns JSON encoded data as follows:
 	 * <ul>
-	 * <li>success – true if the cart was processed, false if the username or password were incorrect or the hold could not be removed from the wishlist.</li>
-	 * <li>message – information about the process for display to the user.</li>
+	 * <li>success ï¿½ true if the cart was processed, false if the username or password were incorrect or the hold could not be removed from the wishlist.</li>
+	 * <li>message ï¿½ information about the process for display to the user.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -1793,9 +1636,9 @@ class UserAPI extends Action {
 
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/OverDriveDriver.php');
-			$driver = new OverDriveDriver();
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
 			$lendingPeriod = isset($_REQUEST['lendingPeriod']) ? $_REQUEST['lendingPeriod'] : -1;
 			$processCartResult = $driver->processOverDriveCart($user, $lendingPeriod);
 			return array('success'=> $processCartResult['result'], 'message'=>$processCartResult['message']);
@@ -1811,14 +1654,14 @@ class UserAPI extends Action {
 	 * <ul>
 	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
-	 * <li>availableholdselected[] – an array of holds that should be canceled.  Each item should be specfied as <bibId>:<itemId>. BibId and itemId can be retrieved as part of the getPatronHolds API</li>
+	 * <li>availableholdselected[] ï¿½ an array of holds that should be canceled.  Each item should be specfied as <bibId>:<itemId>. BibId and itemId can be retrieved as part of the getPatronHolds API</li>
 	 * <li>waitingholdselected[] - an array of holds that are not ready for pickup that should be canceled.  Each item should be specified as <bibId>:0.</li>
 	 * </ul>
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid and the hold could be canceled, false if the username or password were incorrect or the hold could not be canceled.</li>
-	 * <li>holdMessage – a reason why the method failed if success is false</li>
+	 * <li>success ï¿½ true if the account is valid and the hold could be canceled, false if the username or password were incorrect or the hold could not be canceled.</li>
+	 * <li>holdMessage ï¿½ a reason why the method failed if success is false</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -1853,7 +1696,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->catalog->updateHoldDetailed('', $user->cat_username, 'cancel');
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
@@ -1868,13 +1711,13 @@ class UserAPI extends Action {
 	 * <ul>
 	 * <li>username - The barcode of the user.  Can be truncated to the last 7 or 9 digits.</li>
 	 * <li>password - The pin number for the user. </li>
-	 * <li>recordId – The id of the record that should have it's hold cancelled.</li>
+	 * <li>recordId ï¿½ The id of the record that should have it's hold cancelled.</li>
 	 * </ul>
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid and the hold could be canceled, false if the username or password were incorrect or the hold could not be canceled.</li>
-	 * <li>holdMessage – a reason why the method failed if success is false</li>
+	 * <li>success ï¿½ true if the account is valid and the hold could be canceled, false if the username or password were incorrect or the hold could not be canceled.</li>
+	 * <li>holdMessage ï¿½ a reason why the method failed if success is false</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -1898,8 +1741,8 @@ class UserAPI extends Action {
 		$recordId = $_REQUEST['recordId'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/EContentDriver.php');
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$driver = new EContentDriver();
 			$holdMessage = $driver->cancelHold($recordId);
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
@@ -1923,8 +1766,8 @@ class UserAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
-	 * <li>holdMessage – a reason why the method failed if success is false</li>
+	 * <li>success ï¿½ true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
+	 * <li>holdMessage ï¿½ a reason why the method failed if success is false</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -1947,7 +1790,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->catalog->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'on');
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
@@ -1968,8 +1811,8 @@ class UserAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
-	 * <li>freezeResults – a list of results for each id that was frozen.</li>
+	 * <li>success ï¿½ true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
+	 * <li>freezeResults ï¿½ a list of results for each id that was frozen.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -2003,8 +1846,8 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/EContentDriver.php');
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$eContentDriver = new EContentDriver();
 			$ids = $_REQUEST['ids'];
 			$suspendDate = strtotime($_REQUEST['suspendDate']);
@@ -2035,8 +1878,8 @@ class UserAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid and the hold could be activated, false if the username or password were incorrect or the hold could not be activated.</li>
-	 * <li>holdMessage – a reason why the method failed if success is false</li>
+	 * <li>success ï¿½ true if the account is valid and the hold could be activated, false if the username or password were incorrect or the hold could not be activated.</li>
+	 * <li>holdMessage ï¿½ a reason why the method failed if success is false</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -2059,7 +1902,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$holdMessage = $this->catalog->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'off');
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
@@ -2079,9 +1922,9 @@ class UserAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
-	 * <li>title – The title of the record.</li>
-	 * <li>message – More information about the reactivation process.</li>
+	 * <li>success ï¿½ true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
+	 * <li>title ï¿½ The title of the record.</li>
+	 * <li>message ï¿½ More information about the reactivation process.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -2105,8 +1948,8 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/EContentDriver.php');
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$eContentDriver = new EContentDriver();
 			$id = $_REQUEST['id'];
 			$reactivateResult = $eContentDriver->reactivateHold($id);
@@ -2128,8 +1971,8 @@ class UserAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
-	 * <li>freezeResults – a list of results for each id that was frozen.</li>
+	 * <li>success ï¿½ true if the account is valid and the hold could be frozen, false if the username or password were incorrect or the hold could not be frozen.</li>
+	 * <li>freezeResults ï¿½ a list of results for each id that was frozen.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -2152,8 +1995,8 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			require_once('Drivers/EContentDriver.php');
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 			$eContentDriver = new EContentDriver();
 			$id = $_REQUEST['id'];
 			$returnResults = $eContentDriver->returnRecord($id);
@@ -2175,8 +2018,8 @@ class UserAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid and the hold could be canceled, false if the username or password were incorrect or the hold could not be canceled.</li>
-	 * <li>holdMessage – a reason why the method failed if success is false</li>
+	 * <li>success ï¿½ true if the account is valid and the hold could be canceled, false if the username or password were incorrect or the hold could not be canceled.</li>
+	 * <li>holdMessage ï¿½ a reason why the method failed if success is false</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -2226,7 +2069,7 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
+		if ($user && !PEAR_Singleton::isError($user)){
 			$readingHistory = $this->catalog->getReadingHistory($user);
 
 			return array('success'=>true, 'readingHistory'=>$readingHistory['titles']);
@@ -2247,7 +2090,7 @@ class UserAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid and the reading history could be turned on, false if the username or password were incorrect or the reading history could not be turned on.</li>
+	 * <li>success ï¿½ true if the account is valid and the reading history could be turned on, false if the username or password were incorrect or the reading history could not be turned on.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -2267,9 +2110,8 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			$readingHistory = $this->catalog->doReadingHistoryAction($user, 'optIn', array());
-
+		if ($user && !PEAR_Singleton::isError($user)){
+			$this->catalog->doReadingHistoryAction('optIn', array());
 			return array('success'=>true);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -2287,7 +2129,7 @@ class UserAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid and the reading history could be turned off, false if the username or password were incorrect or the reading history could not be turned off.</li>
+	 * <li>success ï¿½ true if the account is valid and the reading history could be turned off, false if the username or password were incorrect or the reading history could not be turned off.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -2307,9 +2149,8 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			$readingHistory = $this->catalog->doReadingHistoryAction($user, 'optOut', array());
-
+		if ($user && !PEAR_Singleton::isError($user)){
+			$this->catalog->doReadingHistoryAction('optOut', array());
 			return array('success'=>true);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -2328,7 +2169,7 @@ class UserAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid and the reading history could cleared, false if the username or password were incorrect or the reading history could not be cleared.</li>
+	 * <li>success ï¿½ true if the account is valid and the reading history could cleared, false if the username or password were incorrect or the reading history could not be cleared.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -2347,9 +2188,8 @@ class UserAPI extends Action {
 		$password = $_REQUEST['password'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			$readingHistory = $this->catalog->doReadingHistoryAction($user, 'deleteAll', array());
-
+		if ($user && !PEAR_Singleton::isError($user)){
+			$this->catalog->doReadingHistoryAction('deleteAll', array());
 			return array('success'=>true);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -2368,7 +2208,7 @@ class UserAPI extends Action {
 	 *
 	 * Returns:
 	 * <ul>
-	 * <li>success – true if the account is valid and the items could be removed from the reading history, false if the username or password were incorrect or the items could not be removed from the reading history.</li>
+	 * <li>success ï¿½ true if the account is valid and the items could be removed from the reading history, false if the username or password were incorrect or the items could not be removed from the reading history.</li>
 	 * </ul>
 	 *
 	 * Sample Call:
@@ -2389,13 +2229,11 @@ class UserAPI extends Action {
 		$selectedTitles = $_REQUEST['selected'];
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
-		if ($user && !PEAR::isError($user)){
-			$readingHistory = $this->catalog->doReadingHistoryAction($user, 'deleteMarked', $selectedTitles);
-
+		if ($user && !PEAR_Singleton::isError($user)){
+			$this->catalog->doReadingHistoryAction('deleteMarked', $selectedTitles);
 			return array('success'=>true);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
 	}
-
 }

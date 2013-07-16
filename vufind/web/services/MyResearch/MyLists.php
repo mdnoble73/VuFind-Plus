@@ -18,8 +18,9 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'services/MyResearch/lib/FavoriteHandler.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
 
 
 /**
@@ -79,7 +80,7 @@ class MyLists extends Action
 			exit();
 		}
 		if (!$list->public && $list->user_id != $user->id) {
-			PEAR::raiseError(new PEAR_Error(translate('list_access_denied')));
+			PEAR_Singleton::raiseError(new PEAR_Error(translate('list_access_denied')));
 		}
 
 		//Perform an action on the list, but verify that the user has permission to do so.
@@ -99,7 +100,7 @@ class MyLists extends Action
 					$list->update();
 				}elseif ($actionToPerform == 'deleteList'){
 					$list->delete();
-					header("Location: {$configArray['Site']['url']}/MyResearch/Home");
+					header("Location: {$configArray['Site']['path']}/MyResearch/Home");
 					die();
 				}
 			}elseif (isset($_REQUEST['myListActionItem']) && strlen($_REQUEST['myListActionItem']) > 0){
@@ -124,7 +125,7 @@ class MyLists extends Action
 			}
 
 			//Redirect back to avoid having the parameters stay in the URL.
-			header("Location: {$configArray['Site']['url']}/MyResearch/MyList/{$list->id}");
+			header("Location: {$configArray['Site']['path']}/MyResearch/MyList/{$list->id}");
 			die();
 
 		}
@@ -159,12 +160,12 @@ class MyLists extends Action
 			if ($this->catalog->status) {
 				if ($user->cat_username) {
 					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					if (PEAR::isError($patron)){
-						PEAR::raiseError($patron);
+					if (PEAR_Singleton::isError($patron)){
+						PEAR_Singleton::raiseError($patron);
 					}
 
 					$result = $this->catalog->getMyProfile($patron);
-					if (!PEAR::isError($result)) {
+					if (!PEAR_Singleton::isError($result)) {
 						$interface->assign('profile', $result);
 					}
 				}

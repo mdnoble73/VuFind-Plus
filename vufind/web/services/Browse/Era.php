@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'services/Browse/Browse.php';
+require_once ROOT_DIR . '/services/Browse/Browse.php';
 
 class Era extends Browse {
     

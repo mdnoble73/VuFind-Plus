@@ -9,7 +9,10 @@
 	</div>
 	
 	<div id="main-content">
-			
+		{if $profile.web_note}
+			<div id="web_note">{$profile.web_note}</div>
+		{/if}
+		
 		{* Internal Grid *}
 		<div class="myAccountTitle">{translate text='Your Lists and Suggestions'}</div>
 			
@@ -53,7 +56,7 @@
 				
 		<div class="yui-u">
 		
-			{if $showRatings == 1 && $user->disableRecommendations == 0}
+			{if $showRatings == 1 && $user->disableRecommendations == 0 && $hasRatings}
 				<div id="titleScrollerSuggestion" class="titleScrollerWrapper">
 					<div id="titleScrollerSuggestionHeader" class="titleScrollerHeader">
 						<span class="listTitle resultInformationLabel">Suggested Titles</span>
@@ -122,13 +125,14 @@
 
 			{if $tagList}
 			<div>
-				<h3 class="tag">{translate text='Your Tags'}</h3>
+				<h3><span class="silk tag_blue">&nbsp;</span>{translate text='Your Tags'}</h3>
 				
 				<ul class="bulleted">
 					{foreach from=$tagList item=tag}
-					<li><a href='{$path}/Search/Results?lookfor={$tag->tag|escape:"url"}&amp;type=tag'>{$tag->tag|escape:"html"}</a> ({$tag->cnt}) 
+					<li>
+						<a href='{$path}/Search/Results?lookfor={$tag->tag|escape:"url"}&amp;type=tag'>{$tag->tag|escape:"html"}</a> ({$tag->cnt}) 
 						<a href='{$path}/MyResearch/RemoveTag?tagId={$tag->id}' onclick='return confirm("Are you sure you want to remove the tag \"{$tag->tag|escape:"javascript"}\" from all titles?");'>
-						<img alt="Delete Tag" src="{$path}/images/silk/tag_blue_delete.png" />
+							<span class="silk tag_blue_delete" title="Delete Tag">&nbsp;</span>
 						</a>
 					</li>
 					{/foreach}
@@ -139,13 +143,7 @@
 		</div>
 			
 	</div>
-		
-	{* Load Ratings *}
-	<script type="text/javascript">
-		$(document).ready(function() {literal} { {/literal}
-			doGetRatings();
-		{literal} }); {/literal}
-	</script>
+
 	{* End of first Body *}
 </div>
 {/strip}

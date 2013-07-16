@@ -18,11 +18,11 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
-require_once 'services/MyResearch/lib/User.php';
-require_once 'services/MyResearch/lib/Tags.php';
-require_once 'services/MyResearch/lib/Resource.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 
 class AddTag extends Action {
 
@@ -61,7 +61,7 @@ class AddTag extends Action {
 
 		if (isset($_POST['submit'])) {
 			$result = $this->save();
-			header("Location: " . $configArray['Site']['url'] . '/EcontentRecord/' .
+			header("Location: " . $configArray['Site']['path'] . '/EcontentRecord/' .
 			urlencode($_GET['id']) . '/Home');
 		} else {
 			return $this->display();

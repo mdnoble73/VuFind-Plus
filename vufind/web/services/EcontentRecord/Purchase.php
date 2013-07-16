@@ -18,8 +18,8 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/eContent/EContentRecord.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 
 class Purchase extends Action {
 
@@ -38,7 +38,7 @@ class Purchase extends Action {
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $recordId;
 		if (!$eContentRecord->find(true)) {
-			PEAR::raiseError(new PEAR_Error('Record Does Not Exist'));
+			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 		}
 
 		$title = str_replace("/", "", $eContentRecord->title);
@@ -62,9 +62,9 @@ class Purchase extends Action {
 		}
 
 		//Do not track purchases from Bots
-		require_once('sys/BotChecker.php');
+		require_once(ROOT_DIR . '/sys/BotChecker.php');
 		if (!BotChecker::isRequestFromBot()){
-			require_once 'sys/PurchaseLinkTracking.php';
+			require_once ROOT_DIR . '/sys/PurchaseLinkTracking.php';
 			$tracking = new PurchaseLinkTracking();
 			$tracking->ipAddress = $ipAddress;
 			$tracking->recordId = 'econtentRecord' . $recordId;
@@ -76,7 +76,7 @@ class Purchase extends Action {
 		if ($purchaseLinkUrl != ""){
 			header( "Location:" .$purchaseLinkUrl);
 		} else {
-			PEAR::raiseError(new PEAR_Error("Failed to load link for this title."));
+			PEAR_Singleton::raiseError(new PEAR_Error("Failed to load link for this title."));
 		}
 			
 	}

@@ -1,4 +1,4 @@
-<div id = "holdingsSummary" class="holdingsSummary {$holdingsSummary.class}">
+<div id = "holdingsSummary{$holdingsSummary.shortId}" class="holdingsSummary {$holdingsSummary.class}">
 	{if $holdingsSummary.status == 'Available At'}
 		<div class="holdingsSummaryStatusLine {$holdingsSummary.class}">
 			{if $holdingsSummary.numCopies == 0}
@@ -29,37 +29,41 @@
 		</div>
 	{/if}
 	{if $holdingsSummary.callnumber}
-			<div class='callNumber'>
-					<a href='{$path}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{$holdingsSummary.callnumber}</a>
-			</div>
+		<div class='callNumber'>
+				<a href='{$path}/Record/{$holdingsSummary.recordId|escape:"url"}#holdings'>{$holdingsSummary.callnumber}</a>
+		</div>
 	{/if}
 	{if false && $holdingsSummary.showPlaceHold}
-			<div class='requestThisLink'>
-				<a href="{$path}/Record/{$holdingsSummary.recordId|escape:"url"}/Hold" class="holdRequest button" style="display:inline-block;">{translate text="Request This Title"}</a><br />
-			</div>
+		<div class='requestThisLink'>
+			<a href="{$path}/Record/{$holdingsSummary.recordId|escape:"url"}/Hold" class="holdRequest button" style="display:inline-block;">{translate text="Request This Title"}</a><br />
+		</div>
 	{/if}
 	{if $holdingsSummary.isDownloadable}
-			<div><a href='{$holdingsSummary.downloadLink}'	target='_blank'>{$holdingsSummary.downloadText}</a></div>
+		<div><a href='{$holdingsSummary.downloadLink}'	target='_blank'>{$holdingsSummary.downloadText}</a></div>
 	{else}
 		{if $showCopiesLineInHoldingsSummary}
-		<div class="holdableCopiesSummary">
-			{$holdingsSummary.numCopies} total {if $holdingsSummary.numCopies == 1}copy{else}copies{/if},
-			{$holdingsSummary.availableCopies} {if $holdingsSummary.availableCopies == 1}is{else}are{/if} on shelf. 
-			{* 
-			and {$holdingsSummary.holdableCopies} {if $holdingsSummary.holdableCopies == 1}is{else}are{/if} available by request.
-			*}
-			{if $holdingsSummary.holdQueueLength > 0}
-				<br/>{$holdingsSummary.holdQueueLength} {if $holdingsSummary.holdQueueLength == 1}person is{else}people are{/if} on the wait list.
+			<div class="holdableCopiesSummary">
+				{$holdingsSummary.numCopies} total {if $holdingsSummary.numCopies == 1}copy{else}copies{/if},
+				{$holdingsSummary.availableCopies} {if $holdingsSummary.availableCopies == 1}is{else}are{/if} on shelf. 
+				{* 
+				and {$holdingsSummary.holdableCopies} {if $holdingsSummary.holdableCopies == 1}is{else}are{/if} available by request.
+				*}
+			</div>
+			{if $holdingsSummary.holdQueueLength > 0 || $holdingsSummary.numCopiesOnOrder > 0}
+				<div class="holdableCopiesSummary2">
+					{if $holdingsSummary.holdQueueLength > 0}
+						{$holdingsSummary.holdQueueLength} {if $holdingsSummary.holdQueueLength == 1}person is{else}people are{/if} on the wait list.
+					{/if}
+					{if $holdingsSummary.numCopiesOnOrder > 0}
+						{$holdingsSummary.numCopiesOnOrder} {if $holdingsSummary.numCopiesOnOrder == 1}copy is{else}copies are{/if} on order.
+					{/if}
+				</div>
 			{/if}
-				{if $holdingsSummary.numCopiesOnOrder > 0}
-					{$holdingsSummary.numCopiesOnOrder} {if $holdingsSummary.numCopiesOnOrder == 1}copy is{else}copies are{/if} on order.
-			{/if}	
-		</div>
 		{/if}
 	{/if}
-	{if $showOtherEditionsPopup}
+	{* {if $showOtherEditionsPopup}
 		<div class="otherEditions">
 			<a href="#" onclick="loadOtherEditionSummaries('{$holdingsSummary.recordId}', false)">Other Formats and Languages</a>
 		</div>
-	{/if}
+	{/if} *}
  </div>

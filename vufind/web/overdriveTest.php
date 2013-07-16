@@ -2,24 +2,10 @@
 ini_set('display_errors', true);
 error_reporting(E_ALL & ~E_DEPRECATED);
 
-require_once 'sys/ConfigArray.php';
-$configArray = readConfig();
+require_once 'bootstrap.php';
 
-global $memcache;
-// Set defaults if nothing set in config file.
-$host = isset($configArray['Caching']['memcache_host']) ? $configArray['Caching']['memcache_host'] : 'localhost';
-$port = isset($configArray['Caching']['memcache_port']) ? $configArray['Caching']['memcache_port'] : 11211;
-$timeout = isset($configArray['Caching']['memcache_connection_timeout']) ? $configArray['Caching']['memcache_connection_timeout'] : 1;
-
-// Connect to Memcache:
-$memcache = new Memcache();
-if (!$memcache->pconnect($host, $port, $timeout)) {
-	PEAR::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
-}
-
-require_once 'Drivers/OverDriveDriver.php';
-
-$driver = new OverDriveDriver();
+require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+$driver = OverDriveDriverFactory::getDriver();
 
 $libraryInfo = $driver->getLibraryAccountInformation();
 print_r($libraryInfo);
@@ -36,23 +22,23 @@ echo("{$firstProduct->title}: {$firstProduct->subtitle}<br/>");
 echo("By {$firstProduct->primaryCreator->name}<br/>");
 print_r($firstProduct);
 
-echo("<h2>Advantage Product Details</h2>");
-$productInfo = $driver->_callUrl("http://api.overdrive.com/v1/libraries/1201/advantageAccounts/50");
-print_r($productInfo);
+//echo("<h2>Advantage Product Details</h2>");
+//$productInfo = $driver->_callUrl("http://api.overdrive.com/v1/libraries/1201/advantageAccounts/50");
+//print_r($productInfo);
 
-echo("<h2>Bud Unique Products</h2>");
-$productInfo = $driver->_callUrl("http://api.overdrive.com/v1/collections/L1BUwYAAA2r/products");
-print_r($productInfo);
+//echo("<h2>Bud Unique Products</h2>");
+//$productInfo = $driver->_callUrl("http://api.overdrive.com/v1/collections/L1BUwYAAA2r/products");
+//print_r($productInfo);
 
 echo("<h3>Metadata</h3>");
 echo($firstProduct->links->metadata->href);
 //$metadata = $driver->getProductMetadata($firstProduct->links->metadata->href);
-$metadata = $driver->getProductMetadata("3D0464D8-6E3E-400D-B665-A0049D67B82E", "L1BMAEAAA2k");
+$metadata = $driver->getProductMetadata("cda4632c-0593-46e7-94a4-1e4c4451da09", "L1BMAEAAA2k");
 print_r($metadata);
 
 
 
-echo("<h3>Availability - MDL</h3>");
+/*echo("<h3>Availability - MDL</h3>");
 //echo("{$firstProduct->links->availability->href}<br/>");
 $availability = $driver->getProductAvailability("1e8326f9-d42f-4cf1-afec-c2af4f4807d9", "L1BMAEAAA2k");
 echo("Copies Owned {$availability->copiesOwned }<br/>");
@@ -109,7 +95,7 @@ foreach ($advantageInfo->advantageAccounts as $advantageAccount){
 	//print_r($selfAdvantageInfo);
 	echo("Library API Key = {$selfAdvantageInfo->links->products->href}");
 	//showProductInfo($driver, "{$advantageAccount->links->products->href}");
-}
+}*/
 
 
 function showProductInfo($driver, $productUrl){

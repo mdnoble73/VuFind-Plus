@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class Logout extends Action {
 
@@ -31,7 +31,7 @@ class Logout extends Action {
 
 		unset($_SESSION['admininfo']);
 
-		header('Location: ' . $configArray['Site']['url'] . '/Admin/Home');
+		header('Location: ' . $configArray['Site']['path'] . '/Admin/Home');
 	}
 }
 

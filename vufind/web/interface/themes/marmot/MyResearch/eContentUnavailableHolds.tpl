@@ -30,6 +30,10 @@
 				</script>
 			{/if}
 
+			{if $profile.web_note}
+				<div id="web_note">{$profile.web_note}</div>
+			{/if}
+			
 			<div class="myAccountTitle">{translate text='eContent On Hold'}</div>
 			{if $userNoticeFile}
 				{include file=$userNoticeFile}
@@ -86,9 +90,4 @@
 	{/if}
 	</div>
 </div>
-<script type="text/javascript">
-	$(document).ready(function() {literal} { {/literal}
-		doGetRatings();
-	{literal} }); {/literal}
-</script>
 {/strip}

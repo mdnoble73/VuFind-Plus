@@ -28,7 +28,7 @@
  * @link     http://vufind.org/wiki/building_a_module Wiki
  */
 
-require_once 'sys/Autocomplete/AutocompleteFactory.php';
+require_once ROOT_DIR . '/sys/Autocomplete/AutocompleteFactory.php';
 require_once 'JSON.php';
 
 /**

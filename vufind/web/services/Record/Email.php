@@ -19,9 +19,9 @@
  */
 
 require_once 'Record.php';
-require_once 'sys/Mailer.php';
+require_once ROOT_DIR . '/sys/Mailer.php';
 
-class Email extends Record
+class Record_Email extends Record_Record
 {
 	function launch()
 	{
@@ -30,9 +30,9 @@ class Email extends Record
 
 		if (isset($_POST['submit'])) {
 			$result = $this->sendEmail($_POST['to'], $_POST['from'], $_POST['message']);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				require_once 'Home.php';
-				Home::launch();
+				Record_Home::launch();
 				exit();
 			} else {
 				$interface->assign('message', $result->getMessage());

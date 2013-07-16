@@ -1,9 +1,8 @@
-var GetRatingsList = new Array();
-var GetEContentRatingsList = new Array();
-var GetSaveStatusList = new Array();
-var GetStatusList = new Array();
-var GetEContentStatusList = new Array();
-var GetOverDriveStatusList = new Array();
+var GetSaveStatusList =[];
+var GetStatusList = [];
+var GetEContentStatusList = [];
+var GetOverDriveStatusList = [];
+var GetSeriesList = [];
 
 function createRequestObject() {	
 	// find the correct xmlHTTP, works with IE, FF and Opera
@@ -33,40 +32,19 @@ function getElem(id) {
 	}
 }
 
-function getThumbnail(id, imgname) {
-		var http = createRequestObject();
-		http.open("GET", path + "/Search/AJAX?method=GetThumbnail&isn="+id+"&size=small", true);
-		http.onreadystatechange = function()
-		{
-				if ((http.readyState == 4) && (http.status == 200)) {
-						var response = http.responseXML.documentElement;
-						if (response.getElementsByTagName('image').item(0)) {
-								var url = response.getElementsByTagName('image').item(0).firstChild.data;
-								alert(url);
-								// write out response
-								if (url) {
-										document[imgname].src = url;
-								} else {
-										document[imgname].src = path + '/images/noCover2.gif';
-								}
-						} else {
-								document[imgname].src = path + '/images/noCover2.gif';
-						}
-				}
-		};
-		http.send(null);
-}
-
-function addIdToStatusList(id, type) {
+function addIdToStatusList(id, type, useUnscopedHoldingsSummary) {
 	if (type == undefined){
 		type = 'VuFind';
 	}
+	var idVal = [];
+	idVal['id'] = id;
+	idVal['useUnscopedHoldingsSummary'] = useUnscopedHoldingsSummary;
 	if (type.toUpperCase() === 'VUFIND'){
-		GetStatusList[GetStatusList.length] = id;
+		GetStatusList[GetStatusList.length] = idVal;
 	}else if (type.toUpperCase() == 'OVERDRIVE'){
-		GetOverDriveStatusList[GetOverDriveStatusList.length] = id;
+		GetOverDriveStatusList[GetOverDriveStatusList.length] = idVal;
 	}else{
-		GetEContentStatusList[GetEContentStatusList.length] = id;
+		GetEContentStatusList[GetEContentStatusList.length] = idVal;
 	}
 }
 
@@ -78,20 +56,25 @@ function doGetStatusSummaries()
 	var callGetEContentStatusSummaries = false;
 	var eContentUrl = path + "/Search/AJAX?method=GetEContentStatusSummaries";
 	for (var j=0; j<GetEContentStatusList.length; j++) {
-		eContentUrl += "&id[]=" + encodeURIComponent(GetEContentStatusList[j]);
+		eContentUrl += "&id[]=" + encodeURIComponent(GetEContentStatusList[j]['id']);
+		if (GetEContentStatusList[j]['useUnscopedHoldingsSummary']){
+			eContentUrl += "&useUnscopedHoldingsSummary=true";
+		}
 		callGetEContentStatusSummaries = true;
 	}
-	// url += "&id[]=" + encodeURIComponent($id);
-	
+
 	eContentUrl += "&time=" +ts;
 
-	//Since the ILS can be slow, make individual cals to print titles
+	//Since the ILS can be slow, make individual calls to print titles
 	// Modify this to return status summaries one at a time to improve
 	// the perceived performance
 	var callGetStatusSummaries = false;
 	for (var j=0; j<GetStatusList.length; j++) {
 		var url = path + "/Search/AJAX?method=GetStatusSummaries";
-		url += "&id[]=" + encodeURIComponent(GetStatusList[j]);
+		url += "&id[]=" + encodeURIComponent(GetStatusList[j]['id']);
+		if (GetStatusList[j]['useUnscopedHoldingsSummary']){
+			url += "&useUnscopedHoldingsSummary=true";
+		}
 		url += "&time="+ts;
 		$.getJSON(url, function(data){
 			var items = data.items;
@@ -128,7 +111,7 @@ function doGetStatusSummaries()
 					// Change outside border class.
 					var holdingSum= $('#holdingsSummary' + elemId);
 					if (holdingSum.length > 0){
-						divClass= items[i]['class'];
+						divClass = items[i]['class'];
 						holdingSum.addClass(divClass);
 						var formattedHoldingsSummary = items[i].formattedHoldingsSummary;
 						holdingSum.replaceWith(formattedHoldingsSummary);
@@ -139,8 +122,7 @@ function doGetStatusSummaries()
 						var eAudioLink = items[i].eAudioLink;
 						if (eAudioLink) {
 							if (eAudioLink.length > 0 && $("#eAudioLink" + elemId).length > 0) {
-								$("#eAudioLink" + elemId).html("<a href='" + eAudioLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_eaudio.png' alt='Access eAudio'/></a>");
-								$("#eAudioLink" + elemId).show();
+								$("#eAudioLink" + elemId).html("<a href='" + eAudioLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_eaudio.png' alt='Access eAudio'/></a>").show();
 							}
 						}
 					}
@@ -150,8 +132,7 @@ function doGetStatusSummaries()
 						var eBookLink = items[i].eBookLink;
 						if (eBookLink) {
 							if (eBookLink.length > 0 && $("#eBookLink" + elemId).length > 0) {
-								$("#eBookLink" + elemId).html("<a href='" + eBookLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_ebook.png' alt='Access eBook'/></a>");
-								$("#eBookLink" + elemId).show();
+								$("#eBookLink" + elemId).html("<a href='" + eBookLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_ebook.png' alt='Access eBook'/></a>").show();
 							}
 						}
 					}
@@ -195,6 +176,11 @@ function doGetStatusSummaries()
 						}else{
 							statusSpan.html("Unknown");
 						}
+						
+						var statusClass = items[i]['class'];
+						if (statusClass){
+							statusSpan.addClass(statusClass);
+						}
 					}
 					
 					// Load Download Link
@@ -208,6 +194,7 @@ function doGetStatusSummaries()
 							$("#downloadLink" + elemId).show();
 						}
 					}
+					$('#holdingsSummary' + elemId).addClass('loaded');
 				}catch (err){
 					//alert("Unexpected error " + err);
 				}
@@ -235,7 +222,13 @@ function doGetStatusSummaries()
 					}else if ($(item).find('showcheckout').text() == 1){
 						$("#checkout" + elemId).show();
 					}else if ($(item).find('showaccessonline').text() == 1){
+						if ($(item).find('accessonlineurl').length > 0){
+							var url = $(item).find('accessonlineurl').text();
+							var text = $(item).find('accessonlinetext').text();
+							$("#accessOnline" + elemId + " a").attr("href", url).text($("<div/>").html(text).text());
+						}
 						$("#accessOnline" + elemId).show();
+						
 					}else if ($(item).find('showaddtowishlist').text() == 1){
 						$("#addToWishList" + elemId).show();
 					}
@@ -243,7 +236,12 @@ function doGetStatusSummaries()
 					if ($("#statusValue" + elemId).length > 0){
 						var status = $(item).find('status').text();
 						$("#statusValue" + elemId).text(status);
+						var statusClass = $(item).find('class').text();
+						if (statusClass){
+							$("#statusValue" + elemId).addClass(statusClass);
+						}
 					}
+					$('#holdingsEContentSummary' + elemId).addClass('loaded');
 				});
 			}
 		});
@@ -253,7 +251,7 @@ function doGetStatusSummaries()
 	// seconds to load
 	for (var j=0; j<GetOverDriveStatusList.length; j++) {
 		var overDriveUrl = path + "/Search/AJAX?method=GetEContentStatusSummaries";
-		overDriveUrl += "&id[]=" + encodeURIComponent(GetOverDriveStatusList[j]);
+		overDriveUrl += "&id[]=" + encodeURIComponent(GetOverDriveStatusList[j]['id']);
 		$.ajax({
 			url: overDriveUrl, 
 			success: function(data){
@@ -270,6 +268,15 @@ function doGetStatusSummaries()
 					}else if ($(item).find('showaddtowishlist').text() == 1){
 						$("#addToWishList" + elemId).show();
 					}
+					if ($("#statusValue" + elemId).length > 0){
+						var status = $(item).find('status').text();
+						$("#statusValue" + elemId).text(status);
+						var statusClass = $(item).find('class').text();
+						if (statusClass){
+							$("#statusValue" + elemId).addClass(statusClass);
+						}
+					}
+					$('#holdingsEContentSummary' + elemId).addClass('loaded');
 				});
 			}
 		});
@@ -281,60 +288,27 @@ function doGetStatusSummaries()
 	GetOverDriveStatusList = new Array();
 }
 
-function addRatingId(id, type){
-	if (type == undefined){
-		type = 'VuFind';
-	}
-	if (type == 'VuFind'){
-		GetRatingsList[GetRatingsList.length] = id;
-	}else{
-		GetEContentRatingsList[GetEContentRatingsList.length] = id;
-	}
+function getSeriesInfo(isbn){
+	GetSeriesList[GetSeriesList.length] = isbn;
 }
 
-function doGetRatings(){
+function doGetSeriesInfo(){
 	var now = new Date();
 	var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
-	var http = createRequestObject();
 
-	var url = path + "/Search/AJAX";
-	var data = "method=GetRatings";
-	for (var j=0; j<GetRatingsList.length; j++) {
-		data += "&id[]=" + encodeURIComponent(GetRatingsList[j]);
+	var url = path + "/Search/AJAX?method=GetSeriesInfo";
+	for (var i=0; i<GetSeriesList.length; i++) {
+		url += "&isbn[]=" + encodeURIComponent(GetSeriesList[i]);
 	}
-	for (var j=0; j<GetEContentRatingsList.length; j++) {
-		data += "&econtentId[]=" + encodeURIComponent(GetEContentRatingsList[j]);
-	}
-	data += "&time="+ts;
-
-	$.getJSON(url, data,
-		function(data, textStatus) {
-			var recordRatings = data['standard'];
-			for (var id in recordRatings){
-				// Load the rating for the title
-				if (recordRatings[id].user != null && recordRatings[id].user > 0){
-					$('.rate' + id).each(function(index){$(this).rater({'rating':data['standard'][id].user, 'doBindings':false, module:'Record', recordId: id});});
-				}else{
-					$('.rate' + id).each(function(index){$(this).rater({'rating':data['standard'][id].average, 'doBindings':false, module:'Record', recordId: id});});
-				}
-				$('.ui-rater-rating-' + id).each(function(index){$(this).text( data['standard'][id].average );});
-				$('.ui-rater-rateCount-' + id).each(function(index){$(this).text( data['standard'][id].count );});
-			}
-			var eContentRatings = data['eContent'];
-			for (var id in eContentRatings){
-				// Load the rating for the title
-				if (eContentRatings[id].user != null && eContentRatings[id].user > 0){
-					$('.rateEContent' + id).each(function(index){
-						$(this).rater({'rating':eContentRatings[id].user, 'doBindings':false, module:'EcontentRecord', recordId: id });
-					});
-				}else{
-					$('.rateEContent' + id).each(function(index){$(this).rater({'rating':eContentRatings[id].average, 'doBindings':false, module:'EcontentRecord', recordId: id});});
-				}
-				$('.rateEContent' + id + ' .ui-rater-rating-' + id).each(function(index){$(this).text( eContentRatings[id].average );});
-				$('.rateEContent' + id + ' .ui-rater-rateCount-' + id).each(function(index){$(this).text( eContentRatings[id].count );});
-			}
+	url += "&time="+ts;
+	$.getJSON(url,function(data){
+		if (data.success){
+			$.each(data.series, function(key, val){
+				$(".series" + key).html(val);
+			});
 		}
-	);
+	});
+
 }
 
 function getSaveStatuses(id)
@@ -379,42 +353,12 @@ function doGetSaveStatuses()
 													listNames += jsEntityEncode(lists[j].title);
 												}
 										}
-										getElem('lists' + elemId).innerHTML = '<li>' + listNames + '</li>';
+										$('#lists' + elemId).innerHTML = '<li>' + listNames + '</li>';
 								}
 						}
 				}
 		};
 		http.send(null);
-}
-
-function showSuggestions(elem)
-{
-		if ((elem.value != '') && (document.searchForm.suggest.checked)) {
-				var http = createRequestObject();
-				http.open("GET", path + "/Search/AJAX?method=GetSuggestion&phrase=" + elem.value, true);
-				http.onreadystatechange = function()
-				{
-						if ((http.readyState == 4) && (http.status == 200)) {
-								document.getElementById('SuggestionList').style.visibility = 'visible';
-								document.getElementById('SuggestionList').innerHTML = '';
-
-								var result = http.responseXML.documentElement.getElementsByTagName('result').item(0).firstChild.data;
-								var resultList = result.split("|");
-
-								for (i=0; i<10; i++) {
-										if (i==0) {
-												document.getElementById('SuggestionList').innerHTML = document.getElementById('SuggestionList').innerHTML + '<li class="top"><a href="">' + resultList[i] + '</a></li>';
-										} else {
-												document.getElementById('SuggestionList').innerHTML = document.getElementById('SuggestionList').innerHTML + '<li><a href="">' + resultList[i] + '</a></li>';
-										}
-								}
-						}
-				};
-				http.send(null);
-		} else {
-				document.getElementById('SuggestionList').style.visibility = 'hidden';
-				document.getElementById('SuggestionList').innerHTML = '';
-		}
 }
 
 function getSubjects(phrase)

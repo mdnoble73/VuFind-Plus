@@ -18,10 +18,10 @@
  *
  */
 
-require_once 'Action.php';
-require_once 'sys/Mailer.php';
-require_once 'services/MyResearch/lib/User_list.php';
-require_once 'services/MyResearch/lib/FavoriteHandler.php';
+require_once ROOT_DIR . '/Action.php';
+require_once ROOT_DIR . '/sys/Mailer.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
 
 class EmailList extends Action {
 	function launch() {
@@ -30,7 +30,7 @@ class EmailList extends Action {
 
 		if (isset($_POST['submit'])) {
 			$result = $this->sendEmail($_POST['to'], $_POST['from'], $_POST['message']);
-			if (!PEAR::isError($result)) {
+			if (!PEAR_Singleton::isError($result)) {
 				require_once 'MyList.php';
 				$_GET['id'] = $_REQUEST['listId'];
 				MyList::launch();

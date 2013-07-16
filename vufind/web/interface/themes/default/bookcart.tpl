@@ -2,9 +2,10 @@
 <div id="book_bag" style="display:none;">
 	{* Top toolbar that is always displayed *}
 	<div id="bag_open_button">
-		<div class = "icon plus" id="bag_summary_holder">
-			<span id ="bag_summary"></span> 
-			<a href="#" id="bag_empty_button" class="empty_cart">empty cart</a> 
+		<div id="bag_summary_holder">
+			<span class="silk img_icon_plus" id="bag_open_button_icon">&nbsp;</span>
+			<span class="silk cart">&nbsp;</span><span id ="bag_summary"></span> 
+			<a href="#" id="bag_empty_button" class="empty_cart">empty cart&nbsp;&nbsp;<span class="silk bin_empty">&nbsp;</span></a> 
 		</div>
 	</div>
 	 
@@ -35,7 +36,7 @@
 							{translate text='Password'}:<br />
 							<input type="password" name="password" id="bag_password" size="25"/>
 							<br />
-							<input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('bag_password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
+							<input type="checkbox" id="showPwdCart" name="showPwd" onclick="return pwdToText('bag_password')"/><label for="showPwdCart">{translate text="Reveal Password"}</label>
 						</div>
 					</form>
 				 </div>
@@ -88,38 +89,38 @@
 		
 		<div id="bag_links">
 			<div id="bag_actions_bag_items" class="bag_button_group"> 
-				<div class="button icon fav_bag logged-in-button" style="display: none;"><a href="#" id="bag_add_to_my_list_button">Save To List</a></div>	
-				<div class="button icon email_bag"><a href="#" id="bag_email_button" >Email</a></div>		
-				<div class="button icon request_bag" ><a href="#" id="bag_request_button" >Place Hold</a></div>
-				<div class="button icon print_bag"><a href="#" id="bag_print_button" >Print</a></div>
-				<div class="button logged-out-button icon login_bag" id="login_bag">Login to Save to List</div>
+				<div class="button logged-in-button" style="display: none;"><span class="silk star_gold">&nbsp;</span><a href="#" id="bag_add_to_my_list_button">Save To List</a></div>	
+				<div class="button"><a href="#" id="bag_email_button" ><span class="silk email">&nbsp;</span>Email</a></div>		
+				<div class="button" ><a href="#" id="bag_request_button" ><span class="silk book_next">&nbsp;</span>Place Hold</a></div>
+				<div class="button"><a href="#" id="bag_print_button" ><span class="silk printer">&nbsp;</span>Print</a></div>
+				<div class="button logged-out-button" id="login_bag"><span class="silk user_go">&nbsp;</span>Login to Save to List</div>
 			</div>
 			<div id="bag_actions_email_to_box" class="bag_button_group" style="display:none">
-				<a href="#" class="button icon email_bag" id="bag_email_submit">Send</a>
-				<a href="#" class="button icon bag_hide_button">Return To Cart</a>
+				<a href="#" class="button" id="bag_email_submit"><span class="silk email">&nbsp;</span>Send</a>
+				<a href="#" class="button bag_hide_button"><span class="silk list">&nbsp;</span>Return To Cart</a>
 			</div>
 			<div id="bag_actions_bookcart_login" class="bag_button_group" style="display:none">
 				<a href="#" class="button" id="bag_login_submit">Login</a>
-				<a href="#" class="button icon bag_hide_button" id="bag_login_cancel">Return To Cart</a>
+				<a href="#" class="button bag_hide_button" id="bag_login_cancel"><span class="silk list">&nbsp;</span>Return To Cart</a>
 			</div>
 			<div id="bag_actions_bag_choose_list" class="bag_button_group" style="display:none">
-				<a href="#" class="button icon fav_bag" id="bag_save_to_list_submit">Save To List</a>
-				<a href="#" class="button icon bag_hide_button">Return To Cart</a>
+				<a href="#" class="button" id="bag_save_to_list_submit"><span class="silk star_gold">&nbsp;</span>Save To List</a>
+				<a href="#" class="button bag_hide_button"><span class="silk list">&nbsp;</span>Return To Cart</a>
 				<br />
-				<a href="#" class="button icon fav_bag" id="new_list">Create a new List</a>
+				<a href="#" class="button" id="new_list"><span class="silk star_gold">&nbsp;</span>Create a new List</a>
 			</div>
 			<div id="bag_actions_bag_action_in_progress" class="bag_button_group" style="display:none">
-				<a href="#" class="button icon bag_hide_button">Return To Cart</a>
-				<a href="#" class="button icon bag_clear_button">Clear Cart</a>
+				<a href="#" class="button bag_hide_button"><span class="silk list">&nbsp;</span>Return To Cart</a>
+				<a href="#" class="button bag_clear_button"><span class="silk bin_empty">&nbsp;</span>Clear Cart</a>
 			</div>
 			<div id="bag_actions_bag_errors" class="bag_button_group" style="display:none">
-				<a href="#" class="button icon bag_hide_button">Return To Cart</a>
-				<a href="#" class="button icon bag_clear_button">Clear Cart</a>
+				<a href="#" class="button bag_hide_button"><span class="silk list">&nbsp;</span>Return To Cart</a>
+				<a href="#" class="button bag_clear_button"><span class="silk bin_empty">&nbsp;</span>Clear Cart</a>
 			</div>
 			<div id="bag_actions_create_list" class="bag_button_group" style="display:none">
-				<a href="#" class="button" id="bag_create_list_button">{translate text="Create List"}</a>
-				<a href="#" class="button" id="choose_existing_list">Select Existing List</a>
-				<a href="#" class="button icon bag_hide_button">Return To Cart</a>
+				<a href="#" class="button" id="bag_create_list_button"><span class="silk star_gold">&nbsp;</span>{translate text="Create List"}</a>
+				<a href="#" class="button" id="choose_existing_list"><span class="silk star_gold">&nbsp;</span>Select Existing List</a>
+				<a href="#" class="button bag_hide_button"><span class="silk list">&nbsp;</span>Return To Cart</a>
 			</div>
 	 </div>
 			 

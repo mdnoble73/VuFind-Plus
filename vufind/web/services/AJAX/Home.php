@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class Home extends Action {
 
@@ -63,10 +63,10 @@ class Home extends Action {
 				$page = $service->launch();
 				$interface->assign('page', $page);
 			} else {
-				PEAR::raiseError(new PEAR_Error('Unknown Action'));
+				PEAR_Singleton::raiseError(new PEAR_Error('Unknown Action'));
 			}
 		} else {
-			PEAR::raiseError(new PEAR_Error("Cannot Load Action '$action' for Module '$module'"));
+			PEAR_Singleton::raiseError(new PEAR_Error("Cannot Load Action '$action' for Module '$module'"));
 		}
 
 		return $interface->fetch('AJAX/lightbox.tpl');
@@ -104,7 +104,7 @@ class Home extends Action {
 
 		// Authenticate the user:
 		$user = UserAccount::login();
-		if (PEAR::isError($user)) {
+		if (PEAR_Singleton::isError($user)) {
 			return 'Error';
 		} else {
 			return 'True';

@@ -18,7 +18,7 @@
  *
  */
 
-require_once 'Action.php';
+require_once ROOT_DIR . '/Action.php';
 
 class AddToWishList extends Action {
 
@@ -65,7 +65,7 @@ class AddToWishList extends Action {
 		//Add to the wishlist
 		
 		//Add to wishlist if not already on the wishlist
-		require_once('Drivers/EContentDriver.php');
+		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 		$eContentDriver = new EContentDriver();
 		$ret = $eContentDriver->addToWishList($id, $this->user);
 		
