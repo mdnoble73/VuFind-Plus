@@ -167,6 +167,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}else{
 			numAdvantageRecordsAddedToLoadFromAPI = Integer.parseInt(numAdvantageRecordsAddedToLoadFromAPIVal);
 		}
+		results.addNote("numAdvantageRecordsAddedToLoadFromAPIVal = " + numAdvantageRecordsAddedToLoadFromAPIVal);
 
 		try {
 			//Connect to the vufind database
@@ -1140,6 +1141,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					&& (numRecordsAdded > numOverDriveTitlesToLoadFromAPI)
 					&& (numAdvantageRecordsAddedToLoadFromAPI > 0)
 					&& (numAdvantageRecordsAdded > numAdvantageRecordsAddedToLoadFromAPI)){
+				results.addNote("Stopping processing because we loaded " + numOverDriveTitlesToLoadFromAPI + " shared titles and " + numAdvantageRecordsAddedToLoadFromAPI + " Advantage titles");
 				break;
 			}
 			results.incOverDriveNonMarcRecordsProcessed();
