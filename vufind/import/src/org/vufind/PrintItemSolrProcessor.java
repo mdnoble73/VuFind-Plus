@@ -90,7 +90,12 @@ public class PrintItemSolrProcessor {
 			LocationIndexingInfo locationIndexingInfo = marcProcessor.getLocationIndexingInfo(locationCode);
 			LibraryIndexingInfo libraryIndexingInfo = null;
 			if (locationIndexingInfo == null) {
-				logger.debug("Warning, did not find location info for location " + locationCode);
+				libraryIndexingInfo = marcProcessor.getLibraryIndexingInfoByCode(locationCode);
+				if (libraryIndexingInfo != null){
+					logger.debug("Warning, did not find location info for location " + locationCode);
+				} else{
+					logger.warn("Warning, did not find location info or library info for location " + locationCode);
+				}
 				if (locationCode.equalsIgnoreCase("zzzz")) {
 					// logger.debug("suppressing item because location code is zzzz");
 					itemSuppressed = true;

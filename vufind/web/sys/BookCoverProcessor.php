@@ -597,6 +597,8 @@ class BookCoverProcessor{
 			case 'large':
 				$size = 'LC.JPG';
 				break;
+			default:
+				$size = 'SC.GIF';
 		}
 
 		$url = isset($this->configArray['Syndetics']['url']) ? $this->configArray['Syndetics']['url'] : 'http://syndetics.com';
@@ -780,7 +782,7 @@ class BookCoverProcessor{
 	}
 
 	function log($message, $level = PEAR_LOG_DEBUG){
-		if (true){
+		if (false){
 			$this->logger->log($message, $level);
 		}
 	}

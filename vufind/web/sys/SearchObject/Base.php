@@ -1917,7 +1917,7 @@ public function getNextPrevLinks(){
 		global $interface;
 		global $timer;
 		//Setup next and previous links based on the search results.
-		if (isset($_REQUEST['searchId'])){
+		if (isset($_REQUEST['searchId']) && isset($_REQUEST['recordIndex'])){
 			//rerun the search
 			$s = new SearchEntry();
 			$s->id = $_REQUEST['searchId'];

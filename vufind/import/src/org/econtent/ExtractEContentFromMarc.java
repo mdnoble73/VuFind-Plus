@@ -220,6 +220,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 							if (recordInfo.getStatus().equals("active") && recordInfo.getExternalId() != null && recordInfo.getExternalId().length() != 0){
 								ilsIdsForExternalIds.put(recordInfo.getExternalId(), recordInfo.getIlsId());
 							}
+							logger.debug(recordInfo.getIlsId());
 							existingEcontentIlsIds.put(recordInfo.getIlsId(), recordInfo);
 						}else if (existingInfo.getStatus().equals("active")){
 							//Existing record is active and new record is not, keep the existing
@@ -231,6 +232,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					if (recordInfo.getStatus().equals("active") && recordInfo.getExternalId() != null && recordInfo.getExternalId().length() != 0){
 						ilsIdsForExternalIds.put(recordInfo.getExternalId(), recordInfo.getIlsId());
 					}
+					logger.debug(recordInfo.getIlsId());
 					existingEcontentIlsIds.put(recordInfo.getIlsId(), recordInfo);
 				}
 			}
@@ -347,11 +349,12 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			}else{
 				results.incRecordsProcessed();
 			}
+			String ilsId = recordInfo.getIlsId();
 			if (!recordInfo.isEContent()){
 				//This record is not econtent
-				if (existingEcontentIlsIds.containsKey(recordInfo.getIlsId())){
+				if (existingEcontentIlsIds.containsKey(ilsId)){
 					//Delete the existing record
-					EcontentRecordInfo econtentInfo = existingEcontentIlsIds.get(recordInfo.getIlsId());
+					EcontentRecordInfo econtentInfo = existingEcontentIlsIds.get(ilsId);
 					if (econtentInfo.getStatus().equals("active")){
 						logger.debug("Record " + econtentInfo.getIlsId() + " is no longer eContent, removing");
 						deleteEContentRecord.setLong(1, econtentInfo.getRecordId());
@@ -363,7 +366,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					}else{
 						results.incSkipped();
 					}
-					existingEcontentIlsIds.remove(recordInfo.getIlsId());
+					existingEcontentIlsIds.remove(ilsId);
 				}else{
 					//logger.debug("Skipping record, it is not eContent");
 					results.incSkipped();
@@ -376,12 +379,12 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			EcontentRecordInfo existingRecordInfo = null;
 			boolean existingRecord = false;
 			String overDriveId = recordInfo.getExternalId();
-			if (existingEcontentIlsIds.containsKey(recordInfo.getIlsId())){
-				logger.debug("Found existing econtent record for ilsId " + recordInfo.getIlsId());
-				existingRecordInfo = existingEcontentIlsIds.get(recordInfo.getIlsId());
+			if (existingEcontentIlsIds.containsKey(ilsId)){
+				logger.debug("Found existing econtent record for ilsId " + ilsId);
+				existingRecordInfo = existingEcontentIlsIds.get(ilsId);
 				logger.debug("  existing id is " + existingRecordInfo.getRecordId());
 				recordInfo.seteContentRecordId(existingRecordInfo.getRecordId());
-				existingEcontentIlsIds.remove(recordInfo.getIlsId());
+				existingEcontentIlsIds.remove(ilsId);
 				existingRecord = true;
 			}else{
 				//Check based on overdrive id if any (since we may be converting from API loaded title to marc
@@ -392,120 +395,123 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					existingRecord = true;
 					overDriveTitlesWithoutIlsId.remove(overDriveId);
 				}else{
-					logger.debug("Did not find existing econtent record for ilsId " + recordInfo.getIlsId());
+					logger.debug("Did not find existing econtent record for ilsId " + ilsId);
 				}
 			}
 			
 			//Record is eContent, get additional details about how to process it.
 			HashMap<String, DetectionSettings> detectionSettingsBySource = recordInfo.getEContentDetectionSettings();
 			if (detectionSettingsBySource == null || detectionSettingsBySource.size() == 0){
-				logger.error("Record " + recordInfo.getIlsId() + " was tagged as eContent, but we did not get detection settings for it.");
-				results.addNote("Record " + recordInfo.getIlsId() + " was tagged as eContent, but we did not get detection settings for it.");
+				logger.error("Record " + ilsId + " was tagged as eContent, but we did not get detection settings for it.");
+				results.addNote("Record " + ilsId + " was tagged as eContent, but we did not get detection settings for it.");
 				results.incErrors();
 				return false;
 			}
-			
-			for (String source : detectionSettingsBySource.keySet()){
-				logger.debug("Record " + recordInfo.getIlsId() + " is eContent, source is " + source);
-				DetectionSettings detectionSettings = detectionSettingsBySource.get(source);
-				//Generally should only have one source, but in theory there could be multiple sources for a single record
-				String accessType = detectionSettings.getAccessType();
-				//Make sure that overdrive titles are updated if we need to check availability
-				OverDriveBasicInfo overdriveBasicInfo = null;
-				
-				if (source.matches("(?i)^overdrive.*")){
-					if (overDriveId != null){
-						overdriveBasicInfo = overDriveTitleInfo.get(overDriveId.toLowerCase());
-						if (overdriveBasicInfo != null){
-							//Check to see if data changed since the last index time
-							if (overdriveBasicInfo.getLastChange() >= ReindexProcess.getLoadChangesSince() || extractEContentFromUnchangedRecords || (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY) || (recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY)){
-								//This record should be reindexed
-								logger.debug("Overdrive record has changed, reindexing (infoChanged = " + (overdriveBasicInfo.getLastChange() > ReindexProcess.getLoadChangesSince()) + ", extractEContentFromUnchangedRecords=" + extractEContentFromUnchangedRecords + ", recordStatus changed primary=" + (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY) + ", changedsecondary=" + (recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY) + ")");
-							}else if (recordInfo.geteContentRecordId() == null){
-								logger.debug("Overdrive record has not changed, but is not in the database, reindexing.");
-							}else if (existingRecordInfo.getNumItems() == 0){
-								logger.debug("Record is unchanged, but there are no items so indexing to try to get items.");
-							}else if (!existingRecordInfo.getStatus().equalsIgnoreCase("active")){
-								logger.debug("Record is unchanged, is not active indexing to correct the status.");
-							}else{	
-								logger.debug("Skipping overdrive record because the record is not changed");
-								results.incSkipped();
-								return false;
-							}
+
+			//Don't iterate through sources since then we get multiple records for a single ILS which leads to major problems.
+			//Index based on the main source for now.
+			String source = detectionSettingsBySource.keySet().iterator().next();
+			String allSources = Util.getCRSeparatedString(detectionSettingsBySource.keySet());
+			//for (String source : detectionSettingsBySource.keySet()){
+			logger.debug("Record " + ilsId + " is eContent, first source is " + source + " there are " + detectionSettingsBySource.size() + " source(s)");
+			DetectionSettings detectionSettings = detectionSettingsBySource.get(source);
+			//Generally should only have one source, but in theory there could be multiple sources for a single record
+			String accessType = detectionSettings.getAccessType();
+			//Make sure that overdrive titles are updated if we need to check availability
+			OverDriveBasicInfo overdriveBasicInfo = null;
+
+			if (source.matches("(?i)^overdrive.*")){
+				if (overDriveId != null){
+					overdriveBasicInfo = overDriveTitleInfo.get(overDriveId.toLowerCase());
+					if (overdriveBasicInfo != null){
+						//Check to see if data changed since the last index time
+						if (overdriveBasicInfo.getLastChange() >= ReindexProcess.getLoadChangesSince() || extractEContentFromUnchangedRecords || (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY) || (recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY)){
+							//This record should be reindexed
+							logger.debug("Overdrive record has changed, reindexing (infoChanged = " + (overdriveBasicInfo.getLastChange() > ReindexProcess.getLoadChangesSince()) + ", extractEContentFromUnchangedRecords=" + extractEContentFromUnchangedRecords + ", recordStatus changed primary=" + (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY) + ", changedsecondary=" + (recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY) + ")");
+						}else if (recordInfo.geteContentRecordId() == null){
+							logger.debug("Overdrive record has not changed, but is not in the database, reindexing.");
+						}else if (existingRecordInfo.getNumItems() == 0){
+							logger.debug("Record is unchanged, but there are no items so indexing to try to get items.");
+						}else if (!existingRecordInfo.getStatus().equalsIgnoreCase("active")){
+							logger.debug("Record is unchanged, is not active indexing to correct the status.");
 						}else{
-							//Overdrive record, force processing to make sure we get updated availability
-							logger.debug("Record is overdrive (" + overDriveId + "), but didn't get Basic information from API");
+							logger.debug("Skipping overdrive record because the record is not changed");
+							results.incSkipped();
+							return false;
 						}
 					}else{
-						logger.debug("Record is tagged as overdrive, but didn't find a URL in the marc record to extract the id from.");
-						results.incErrors();
-						results.addNote("Did not find overdrive id in marc record " + recordInfo.getIlsId());
-						recordsWithoutOverDriveId.add(recordInfo.getIlsId());
-						return false;
+						//Overdrive record, force processing to make sure we get updated availability
+						logger.debug("Record is overdrive (" + overDriveId + "), but didn't get Basic information from API");
 					}
-				}else if (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY){
-					//Record has changed, reindex
-					
-				}else if (recordStatus == MarcProcessor.RECORD_UNCHANGED){
-					if (extractEContentFromUnchangedRecords){
-						logger.debug("Record is unchanged, but reindex unchanged records is on");
-					}else if (!existingRecord){
-						logger.debug("Record is unchanged, but the record does not exist in the eContent database.");
-					}else if (existingRecordInfo.getNumItems() == 0){
-						logger.debug("Record is unchanged, but there are no items so indexing to try to get items.");
-					}else if (!existingRecordInfo.getStatus().equalsIgnoreCase("active")){
-						logger.debug("Record is unchanged, is not active indexing to correct the status.");
-					}else{
-						logger.debug("Skipping because the record is not changed");
-						results.incSkipped();
-						return false;
-					}
+				}else{
+					logger.debug("Record is tagged as overdrive, but didn't find a URL in the marc record to extract the id from.");
+					results.incErrors();
+					results.addNote("Did not find overdrive id in marc record " + ilsId);
+					recordsWithoutOverDriveId.add(ilsId);
+					return false;
+				}
+			}else if (recordStatus == MarcProcessor.RECORD_UNCHANGED){
+				if (extractEContentFromUnchangedRecords){
+					logger.debug("Record is unchanged, but reindex unchanged records is on");
+				}else if (!existingRecord){
+					logger.debug("Record is unchanged, but the record does not exist in the eContent database.");
+				}else if (existingRecordInfo.getNumItems() == 0){
+					logger.debug("Record is unchanged, but there are no items so indexing to try to get items.");
+				}else if (!existingRecordInfo.getStatus().equalsIgnoreCase("active")){
+					logger.debug("Record is unchanged, is not active indexing to correct the status.");
+				}else{
+					logger.debug("Skipping because the record is not changed");
+					results.incSkipped();
+					return false;
+				}
+			}else{
+				if (recordStatus == MarcProcessor.RECORD_CHANGED_PRIMARY || recordStatus == MarcProcessor.RECORD_CHANGED_SECONDARY){
+					logger.debug("Record has changed");
 				}else{
 					logger.debug("Record is new");
 				}
-				
-				
-				//Check to see if the record already exists
-				String ilsId = recordInfo.getIlsId();
-				//Make sure to map the record before we change id based on eContent record id!
-				recordInfo.mapRecord("ExtractEContent");
-				long eContentRecordId = -1;
-				if (recordInfo.geteContentRecordId() != null){
-					eContentRecordId = recordInfo.geteContentRecordId();
-				}
-				
-				if (ilsId.length() == 0){
-					logger.warn("ILS Id could not be found in the marc record, importing.  Running this file multiple times could result in duplicate records in the catalog.");
-				}
-				
-				boolean recordAdded = false;
-				
-				String cover = "";
-				if (overDriveId != null){
-					//logger.debug("OverDrive ID is " + overDriveId);
-					if (overdriveBasicInfo != null){
-						cover = overdriveBasicInfo.getCover();
-					}else{
-						logger.debug("Did not find overdrive information for id " + overDriveId);
-					}
-				}
-				if (!existingRecord){
-					//Add to database
-					eContentRecordId = addEContentRecordToDb(recordInfo, cover, logger, source, accessType, ilsId, eContentRecordId);
-					recordInfo.seteContentRecordId(eContentRecordId);
-					recordAdded = (eContentRecordId != -1);
+			}
+
+
+			//Make sure to map the record before we change id based on eContent record id!
+			recordInfo.mapRecord("ExtractEContent");
+			long eContentRecordId = -1;
+			if (recordInfo.geteContentRecordId() != null){
+				eContentRecordId = recordInfo.geteContentRecordId();
+			}
+
+			if (ilsId.length() == 0){
+				logger.warn("ILS Id could not be found in the marc record, importing.  Running this file multiple times could result in duplicate records in the catalog.");
+			}
+
+			boolean recordAdded = false;
+
+			String cover = "";
+			if (overDriveId != null){
+				//logger.debug("OverDrive ID is " + overDriveId);
+				if (overdriveBasicInfo != null){
+					cover = overdriveBasicInfo.getCover();
 				}else{
-					//Update the record
-					recordAdded = updateEContentRecordInDb(recordInfo, cover, logger, source, accessType, ilsId, eContentRecordId, recordAdded);
-				}
-				
-				if (recordAdded){
-					logger.debug("Record added/updated, adding items");
-					addItemsToEContentRecord(recordInfo, logger, source, detectionSettings, eContentRecordId);
-				}else{
-					logger.info("Record NOT processed successfully.");
+					logger.debug("Did not find overdrive information for id " + overDriveId);
 				}
 			}
+			if (!existingRecord){
+				//Add to database
+				eContentRecordId = addEContentRecordToDb(recordInfo, cover, logger, source, allSources, accessType, ilsId, eContentRecordId);
+				recordInfo.seteContentRecordId(eContentRecordId);
+				recordAdded = (eContentRecordId != -1);
+			}else{
+				//Update the record
+				recordAdded = updateEContentRecordInDb(recordInfo, cover, logger, source, allSources, accessType, ilsId, eContentRecordId, recordAdded);
+			}
+
+			if (recordAdded){
+				logger.debug("Record added/updated, adding items");
+				addItemsToEContentRecord(recordInfo, logger, source, detectionSettings, eContentRecordId);
+			}else{
+				logger.info("Record NOT processed successfully.");
+			}
+			//}
 			
 			//logger.debug("Finished processing record");
 			return true;
@@ -541,13 +547,13 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		};
 	}
 
-	private boolean updateEContentRecordInDb(MarcRecordDetails recordInfo, String cover, Logger logger, String source, String accessType, String ilsId, long eContentRecordId,
+	private boolean updateEContentRecordInDb(MarcRecordDetails recordInfo, String cover, Logger logger, String source, String allSources, String accessType, String ilsId, long eContentRecordId,
 			boolean recordAdded) throws SQLException, IOException {
 		//logger.info("Updating ilsId " + ilsId + " recordId " + eContentRecordId);
 		int curField = 1;
 		updateEContentRecord.setString(curField++, recordInfo.getId());
 		updateEContentRecord.setString(curField++, cover);
-		updateEContentRecord.setString(curField++, source);
+		updateEContentRecord.setString(curField++, allSources);
 		updateEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_short")));
 		updateEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_sub")));
 		updateEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("author")));
@@ -596,13 +602,13 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		return recordAdded;
 	}
 
-	private long addEContentRecordToDb(MarcRecordDetails recordInfo, String cover, Logger logger, String source, String accessType, String ilsId, long eContentRecordId)
+	private long addEContentRecordToDb(MarcRecordDetails recordInfo, String cover, Logger logger, String source, String allSources, String accessType, String ilsId, long eContentRecordId)
 			throws SQLException, IOException {
-		//logger.info("Adding ils id " + ilsId + " to the database.");
+		logger.info("Adding ils id " + ilsId + " to the database. recordInfo.getIlsId() = " + recordInfo.getIlsId());
 		int curField = 1;
 		createEContentRecord.setString(curField++, recordInfo.getIlsId());
 		createEContentRecord.setString(curField++, cover);
-		createEContentRecord.setString(curField++, source);
+		createEContentRecord.setString(curField++, Util.trimTo(50, allSources));
 		createEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_short")));
 		createEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("title_sub")));
 		createEContentRecord.setString(curField++, Util.trimTo(255, recordInfo.getFirstFieldValueInSet("author")));
@@ -648,7 +654,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			ResultSet generatedKeys = createEContentRecord.getGeneratedKeys();
 			if (generatedKeys.next()){
 				eContentRecordId = generatedKeys.getLong(1);
-				logger.debug("Added econtentRecord for ilsId " + recordInfo.getIlsId());
+				logger.debug("Added econtentRecord for ilsId " + recordInfo.getIlsId() + " new ID is " + eContentRecordId);
 				results.incAdded();
 			}
 		}
@@ -704,13 +710,15 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}
 		
 		//Remove any links that no longer exist
-		logger.info("There are " + allLinks.size() + " links that need to be deleted");
-		for (LinkInfo tmpLinkInfo : allLinks){
-			try {
-				deleteEContentItem.setLong(1, tmpLinkInfo.getItemId());
-				deleteEContentItem.executeUpdate();
-			} catch (SQLException e) {
-				logger.error("Error deleting eContent item", e);
+		if (allLinks.size() > 0){
+			logger.info("There are " + allLinks.size() + " links that need to be deleted");
+			for (LinkInfo tmpLinkInfo : allLinks){
+				try {
+					deleteEContentItem.setLong(1, tmpLinkInfo.getItemId());
+					deleteEContentItem.executeUpdate();
+				} catch (SQLException e) {
+					logger.error("Error deleting eContent item", e);
+				}
 			}
 		}
 	}
@@ -877,14 +885,16 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 					results.incErrors();
 				}
 			}
-			logger.debug("  Found " + numItemsFound + " items for the title, removing any items except " + econtentItemIds.toString());
+			if (numItemsFound > 0){
+				logger.debug("  Found " + numItemsFound + " items for the title, removing any items except " + econtentItemIds.toString());
 
-			//Delete any items that have been removed
-			String deleteOldItemsSql = "DELETE FROM econtent_item WHERE recordId = " + eContentRecordId + " and id NOT IN ('" + econtentItemIds.toString() + "')";
-			PreparedStatement deleteOldOverDriveItems = econtentConn.prepareStatement(deleteOldItemsSql);
-			int numDeleted = deleteOldOverDriveItems.executeUpdate();
-			logger.debug("Deleted " + numDeleted + " items");
-			
+				//Delete any items that have been removed
+				String deleteOldItemsSql = "DELETE FROM econtent_item WHERE recordId = " + eContentRecordId + " and id NOT IN ('" + econtentItemIds.toString() + "')";
+				PreparedStatement deleteOldOverDriveItems = econtentConn.prepareStatement(deleteOldItemsSql);
+				int numDeleted = deleteOldOverDriveItems.executeUpdate();
+				logger.debug("Deleted " + numDeleted + " items");
+			}
+
 			//logger.debug("loaded availability, found " + overDriveInfo.getAvailabilityInfo().size() + " items.");
 			loadOverDriveAvailabilityStmt.setLong(1, overDriveInfo.getId());
 			ResultSet overDriveAvailability = loadOverDriveAvailabilityStmt.executeQuery();

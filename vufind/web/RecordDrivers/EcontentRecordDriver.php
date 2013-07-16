@@ -93,7 +93,7 @@ class EcontentRecordDriver extends IndexRecord
 		$interface->assign('useUnscopedHoldingsSummary', $useUnscopedHoldingsSummary);
 		parent::getSearchResult();
 
-		$linkUrl = '/EcontentRecord/' . $this->getUniqueID() . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+		$linkUrl = '/EcontentRecord/' . $this->getUniqueID() . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
 		if ($useUnscopedHoldingsSummary){
 			$linkUrl .= '&amp;searchSource=marmot';
 		}else{
