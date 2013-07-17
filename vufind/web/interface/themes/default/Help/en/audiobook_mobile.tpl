@@ -4,7 +4,7 @@ Step-by-step one-time setup instructions for downloading audio books to a mobile
 </h3>
 <a target='_blank' href='{$path}/files/econtent_help/audiobook_mobile.pdf'><img src="{$path}/images/pdficon_small.png" alt="Printable Help"/> Printable Version</a>
 <ol>
-<li>Navigate to your App store on your device</li>
+<li>Navigate to the App store on your device</li>
 <li>Search for "overdrive"</li>
 <li>Select the free "Overdrive Media Console" app for libraries  </li>
 <li>Download</li>
