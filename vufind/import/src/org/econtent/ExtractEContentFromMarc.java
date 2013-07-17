@@ -1152,7 +1152,6 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			logger.debug("Adding " + (isAdvantageOnly ? "Advantage" : "Shared") + " OverDrive record " + recordInfo.getId() +  " " + recordInfo.getTitle());
 			try {
 				long econtentRecordId = -1;
-				results.incOverDriveNonMarcRecordsProcessed();
 				PreparedStatement updateStatement;
 				boolean existingRecord;
 				if (overDriveTitlesWithoutIlsId.containsKey(overDriveId)){
