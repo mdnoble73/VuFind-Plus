@@ -115,6 +115,22 @@ class ItemAPI extends Action {
 	}
 
 	/**
+	 * Load a marc record for a particular id from the server
+	 */
+	function getMarcRecord(){
+		global $configArray;
+		$id = $_REQUEST['id'];
+		$shortId = str_replace('.', '', $id);
+		$firstChars = substr($shortId, 0, 4);
+		header('Content-Type: application/octet-stream');
+		header("Content-Transfer-Encoding: Binary");
+		header("Content-disposition: attachment; filename=\"".$id.".mrc\"");
+		$individualName = $configArray['Reindex']['individualMarcPath'] . "/{$firstChars}/{$shortId}.mrc";
+		readfile($individualName);
+		die();
+	}
+
+	/**
 	 * Get information about a particular item and return it as JSON
 	 */
 	function getItem(){
