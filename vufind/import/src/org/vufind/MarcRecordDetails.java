@@ -142,6 +142,7 @@ public class MarcRecordDetails {
 		HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation = new HashMap<String, LinkedHashSet<String>>();
 		LinkedHashSet<String> usableByPTypes = new LinkedHashSet<String>();
 		LinkedHashSet<String> callNumbers = new LinkedHashSet<String>();
+		HashMap<String, HashMap<String, Long>> sortableCallNumbersByLibraryAndLocation = new HashMap<String, HashMap<String, Long>>(); //HashMap(library/location code, HashMap(call number, times used)
 		LinkedHashSet<String> altIds = new LinkedHashSet<String>();
 		boolean bibSuppressed = false;
 		boolean manuallySuppressed = false;
@@ -153,9 +154,9 @@ public class MarcRecordDetails {
 			// logger.debug("The record is manually suppressed.");
 			manuallySuppressed = true;
 		}
-		logger.debug("Found " + itemFields.size() + " items");
+		//logger.debug("Found " + itemFields.size() + " items");
 		for (DataField itemField : itemFields) {
-			PrintItemSolrProcessor printItemSolrProcessor = new PrintItemSolrProcessor(logger, marcProcessor, librarySystems, locations, barcodes, iTypes, iTypesBySystem, locationCodes, locationsCodesBySystem, timeSinceAdded, timeSinceAddedBySystem, timeSinceAddedByLocation, availableAt, availabilityToggleGlobal, availableAtBySystemOrLocation, usableByPTypes, callNumbers, manuallySuppressed, allItemsSuppressed, popularity, itemField).invoke();
+			PrintItemSolrProcessor printItemSolrProcessor = new PrintItemSolrProcessor(logger, marcProcessor, librarySystems, locations, barcodes, iTypes, iTypesBySystem, locationCodes, locationsCodesBySystem, timeSinceAdded, timeSinceAddedBySystem, timeSinceAddedByLocation, availableAt, availabilityToggleGlobal, availableAtBySystemOrLocation, usableByPTypes, callNumbers, sortableCallNumbersByLibraryAndLocation, manuallySuppressed, allItemsSuppressed, popularity, itemField).invoke();
 			allItemsSuppressed = printItemSolrProcessor.isAllItemsSuppressed();
 			timeSinceAdded = printItemSolrProcessor.getTimeSinceAdded();
 			popularity = printItemSolrProcessor.getPopularity();
@@ -180,6 +181,25 @@ public class MarcRecordDetails {
 
 		addField(mappedFields, "bib_suppression", bibSuppressed ? "suppressed" : "notsuppressed");
 		addFields(mappedFields, "callnumber_browse", null, callNumbers);
+		for (String curScope : sortableCallNumbersByLibraryAndLocation.keySet()){
+			long maxTimesUsed = -1;
+			String sortableCallNumber = null;
+			HashMap<String, Long> callNumbersForScope = sortableCallNumbersByLibraryAndLocation.get(curScope);
+			for (String callNumber : callNumbersForScope.keySet()){
+				Long timesUsed = callNumbersForScope.get(callNumber);
+				if (timesUsed > maxTimesUsed){
+					maxTimesUsed = timesUsed;
+					sortableCallNumber = callNumber;
+				}
+			}
+			//logger.debug("Found " + callNumbersForScope.size() + " call numbers for scope " + curScope);
+			addFields(mappedFields, "local_callnumber_" + curScope, null, callNumbersForScope.keySet());
+			addFields(mappedFields, "local_callnumber_exact_" + curScope, null, callNumbersForScope.keySet());
+			addFields(mappedFields, "local_callnumber_left_" + curScope, null, callNumbersForScope.keySet());
+			if (sortableCallNumber != null){
+				addField(mappedFields, "callnumber_sort_" + curScope, sortableCallNumber);
+			}
+		}
 		//logger.debug("Found " + callNumbers.size() + " callnumbers");
 		addFields(mappedFields, "institution", null, librarySystems);
 		addFields(mappedFields, "building", null, locations);
@@ -2455,8 +2475,7 @@ public class MarcRecordDetails {
 				String locationCode = location.getData();
 				long locationId = getLocationIdForLocation(locationCode);
 				long libraryId = getLibrarySystemIdForLocation(locationCode);
-				LocalCallNumber localCallNumber = new LocalCallNumber(locationId,
-						libraryId, callNumberData);
+				LocalCallNumber localCallNumber = new LocalCallNumber(locationId, libraryId, callNumberData);
 				localCallnumbers.add(localCallNumber);
 			}
 		}

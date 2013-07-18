@@ -769,7 +769,12 @@ class SearchObject_Solr extends SearchObject_Base
 		}
 
 		// Everywhere else -- use normal default behavior
-		return parent::getSortOptions();
+		$sortOptions = parent::getSortOptions();
+		$searchLibrary = Library::getSearchLibrary($this->searchSource);
+		if ($searchLibrary == null){
+			unset($sortOptions['callnumber_sort'] );
+		}
+		return $sortOptions;
 	}
 
 	/**

@@ -629,6 +629,7 @@ class Solr implements IndexEngine {
 	private function _applySearchSpecs($structure, $values, $joiner = "OR")
 	{
 		$clauses = array();
+		$searchLibrary = Library::getSearchLibrary($this->searchSource);
 		foreach ($structure as $field => $clauseArray) {
 			if (is_numeric($field)) {
 				// shift off the join string and weight
@@ -644,6 +645,11 @@ class Solr implements IndexEngine {
 				// push it onto the stack of clauses
 				$clauses[] = $searchString;
 			} else {
+				if ($searchLibrary){
+					if ($field == 'local_callnumber' || $field == 'local_callnumber_left' || $field == 'local_callnumber_exact'){
+						$field .= '_' . $searchLibrary->subdomain;
+					}
+				}
 				// Otherwise, we've got a (list of) [munge, weight] pairs to deal with
 				foreach ($clauseArray as $spec) {
 					// build a string like title:("one two")
@@ -740,16 +746,11 @@ class Solr implements IndexEngine {
 		}
 
 		//Create localized call number
-		$searchLibrary = Library::getSearchLibrary($this->searchSource);
 		$noWildCardLookFor = str_replace('*', '', $lookfor);
 		if (strpos($lookfor, '*') !== false){
 			$noWildCardLookFor = str_replace('*', '', $lookfor);
 		}
-		if ($searchLibrary != null){
-			$values['localized_callnumber'] = '"' . str_replace('"', '', $searchLibrary->subdomain . ' ' . $noWildCardLookFor) . '"';
-		}else{
-			$values['localized_callnumber'] = '"' . str_replace('"', '', $noWildCardLookFor) . '"';
-		}
+		$values['localized_callnumber'] = str_replace('"', '', $noWildCardLookFor);
 
 		// Apply custom munge operations if necessary:
 		if (is_array($custom) && $basic) {
@@ -970,6 +971,13 @@ class Solr implements IndexEngine {
 				break;
 			case 'title':
 				$sortField = 'title_sort';
+				break;
+			case 'callnumber_sort':
+				$searchLibrary = Library::getSearchLibrary($this->searchSource);
+				if ($searchLibrary != null){
+					$sortField = 'callnumber_sort_' . $searchLibrary->subdomain;
+				}
+
 				break;
 		}
 
@@ -1227,7 +1235,7 @@ class Solr implements IndexEngine {
 				$options['facet.offset'] = $facet['offset'];
 				unset($facet['offset']);
 			}
-			if ($searchLibrary && $searchLibrary->showAvailableAtAnyLocation){
+			if (isset($searchLibrary) && $searchLibrary->showAvailableAtAnyLocation){
 				$options['f.available_at.facet.missing'] = 'true';
 			}
 

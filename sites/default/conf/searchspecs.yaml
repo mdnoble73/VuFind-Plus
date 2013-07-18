@@ -479,24 +479,6 @@ LocalCallNumber:
     - local_callnumber:
       - [exact, ~]
 
-LCCallNumber:
-  QueryFields:
-    - lc_callnumber_exact:
-      - [exact, 800]
-    - lc_callnumber_left:
-      - [exact, 300]
-    - lc_callnumber:
-      - [exact, ~]
-
-DeweyCallNumber:
-  QueryFields:
-    - dewey_callnumber_exact:
-      - [exact, 800]
-    - dewey_callnumber_left:
-      - [exact, 300]
-    - dewey_callnumber:
-      - [exact, ~]
-
 callnumber_browse:
   QueryFields:
     - callnumber_browse:
