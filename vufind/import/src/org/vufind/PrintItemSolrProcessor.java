@@ -31,10 +31,11 @@ public class PrintItemSolrProcessor {
 	private LinkedHashSet<String> availabilityToggleGlobal;
 	private HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation;
 	private LinkedHashSet<String> localCallNumbers;
+	private HashMap<String, HashMap<String, Long>> sortableCallNumbersByLibraryAndLocation; //HashMap(library/location code, HashMap(call number, times used)
 	private LinkedHashSet<String> usableByPTypes;
 	private boolean manuallySuppressed;
 	private boolean allItemsSuppressed;
-	private int popularity;
+	private float popularity;
 	private DataField itemField;
 	private Logger logger;
 	private MarcProcessor marcProcessor;
@@ -43,7 +44,7 @@ public class PrintItemSolrProcessor {
 	private static Date indexDate = new Date();
 
 
-	public PrintItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, Set<String> librarySystems, Set<String> locations, Set<String> barcodes, Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, Set<String> locationCodes, HashMap<String, LinkedHashSet<String>> locationsCodesBySystem, Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, Set<String> availableAt, LinkedHashSet<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, LinkedHashSet<String> localCallNumbers, boolean manuallySuppressed, boolean allItemsSuppressed, int popularity, DataField itemField) {
+	public PrintItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, Set<String> librarySystems, Set<String> locations, Set<String> barcodes, Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, Set<String> locationCodes, HashMap<String, LinkedHashSet<String>> locationsCodesBySystem, Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, Set<String> availableAt, LinkedHashSet<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, LinkedHashSet<String> localCallNumbers, HashMap<String, HashMap<String, Long>> sortableCallNumbersByLibraryAndLocation, boolean manuallySuppressed, boolean allItemsSuppressed, float popularity, DataField itemField) {
 		this.logger = logger;
 		this.marcProcessor = marcProcessor;
 		this.librarySystems = librarySystems;
@@ -61,6 +62,7 @@ public class PrintItemSolrProcessor {
 		this.availableAtBySystemOrLocation = availableAtBySystemOrLocation;
 		this.usableByPTypes = usableByPTypes;
 		this.localCallNumbers = localCallNumbers;
+		this.sortableCallNumbersByLibraryAndLocation = sortableCallNumbersByLibraryAndLocation;
 		this.manuallySuppressed = manuallySuppressed;
 		this.allItemsSuppressed = allItemsSuppressed;
 		this.popularity = popularity;
@@ -75,7 +77,7 @@ public class PrintItemSolrProcessor {
 		return allItemsSuppressed;
 	}
 
-	public int getPopularity() {
+	public float getPopularity() {
 		return popularity;
 	}
 
@@ -85,50 +87,47 @@ public class PrintItemSolrProcessor {
 			logger.debug("Did not find location code for item ");
 		} else {
 			String locationCode = itemField.getSubfield('d').getData().trim();
+
 			//logger.debug("Processing locationCode " + locationCode);
 			// Figure out which location and library this item belongs to.
 			LocationIndexingInfo locationIndexingInfo = marcProcessor.getLocationIndexingInfo(locationCode);
-			LibraryIndexingInfo libraryIndexingInfo = null;
+			LibraryIndexingInfo libraryIndexingInfo;
 			if (locationIndexingInfo == null) {
-				logger.debug("Warning, did not find location info for location " + locationCode);
-				if (locationCode.equalsIgnoreCase("zzzz")) {
-					// logger.debug("suppressing item because location code is zzzz");
-					itemSuppressed = true;
+				libraryIndexingInfo = marcProcessor.getLibraryIndexingInfoByCode(locationCode);
+				if (libraryIndexingInfo != null){
+					logger.debug("Warning, did not find location info for location " + locationCode);
+				} else{
+					logger.warn("Warning, did not find location info or library info for location " + locationCode);
 				}
 			} else {
 				libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(locationIndexingInfo.getLibraryId());
-				if (locationIndexingInfo.isSuppressHoldings()){
-					itemSuppressed = true;
-				}
 			}
 
-			StringBuilder callNumber = new StringBuilder();
+			//Determine suppression
+			if (locationCode.equalsIgnoreCase("zzzz")) {
+				// logger.debug("suppressing item because location code is zzzz");
+				itemSuppressed = true;
+			}
+			if (locationIndexingInfo != null && locationIndexingInfo.isSuppressHoldings()){
+				itemSuppressed = true;
+			}
 
-			Subfield callNumberFieldS = itemField.getSubfield('s');
-			if (callNumberFieldS != null){
-				callNumber.append(callNumberFieldS.getData().trim());
-			}
-			Subfield callNumberFieldA = itemField.getSubfield('a');
-			if (callNumberFieldA != null){
-				callNumber.append(" " + callNumberFieldA.getData().trim());
-			}
-			Subfield callNumberFieldR = itemField.getSubfield('r');
-			if (callNumberFieldR != null){
-				callNumber.append(" " + callNumberFieldR.getData().trim());
-			}
+			String callNumber = getLocalCallNumber();
 
 			if (callNumber.length() > 0){
-				localCallNumbers.add(callNumber.toString());
+				//logger.debug("Processing call number " + callNumber + " for location code " + locationCode);
+				localCallNumbers.add(callNumber);
 				if (libraryIndexingInfo != null){
-					StringBuilder localCallNumber = new StringBuilder();
-					localCallNumber.append(libraryIndexingInfo.getSubdomain());
-					localCallNumber.append(" ");
-					localCallNumber.append(callNumber);
-					localCallNumbers.add(localCallNumber.toString());
+					//Add sortable call number to array
+					String scopeName = libraryIndexingInfo.getSubdomain();
+					addSortableCallNumber(callNumber, scopeName);
+				}
+				if (locationIndexingInfo != null){
+					//Add sortable call number to array
+					String scopeName = locationIndexingInfo.getCode();
+					addSortableCallNumber(callNumber, scopeName);
 				}
 			}
-
-			//logger.debug(callNumber.toString());
 
 			// Load availability (local, system, marmot)
 			Subfield statusSubfield = itemField.getSubfield('g');
@@ -137,16 +136,14 @@ public class PrintItemSolrProcessor {
 			boolean available = false;
 			if (statusSubfield != null) {
 				String status = statusSubfield.getData();
-				String dueDate = dueDateField == null ? "" : dueDateField.getData()
-						.trim();
+				String dueDate = dueDateField == null ? "" : dueDateField.getData().trim();
 				String availableStatus = "-dowju";
 				if (availableStatus.indexOf(status.charAt(0)) >= 0) {
 					if (dueDate.length() == 0) {
 						if (icode2Subfield != null) {
 							String icode2 = icode2Subfield.getData().toLowerCase().trim();
 							if (icode2.equals("n") || icode2.equals("x")) {
-								// logger.debug("Suppressing item because icode2 is " +
-								// icode2);
+								//logger.debug("Suppressing item because icode2 is " + icode2);
 								itemSuppressed = true;
 							} else {
 								available = true;
@@ -183,11 +180,24 @@ public class PrintItemSolrProcessor {
 				}
 
 				//Get number of times the title has been checked out
-				Subfield numCheckoutsField = itemField.getSubfield('h');
-				if (numCheckoutsField != null){
-					int numCheckouts = Integer.parseInt(numCheckoutsField.getData());
-					popularity += numCheckouts;
+				Subfield totalCheckoutsField = itemField.getSubfield('h');
+				int totalCheckouts = 0;
+				if (totalCheckoutsField != null){
+					totalCheckouts = Integer.parseInt(totalCheckoutsField.getData());
 				}
+				Subfield ytdCheckoutsField = itemField.getSubfield('t');
+				int ytdCheckouts = 0;
+				if (ytdCheckoutsField != null){
+					ytdCheckouts = Integer.parseInt(ytdCheckoutsField.getData());
+				}
+				Subfield lastYearCheckoutsField = itemField.getSubfield('x');
+				int lastYearCheckouts = 0;
+				if (lastYearCheckoutsField != null){
+					lastYearCheckouts = Integer.parseInt(lastYearCheckoutsField.getData());
+				}
+				double itemPopularity = ytdCheckouts + .5 * (lastYearCheckouts) + .1 * (totalCheckouts - lastYearCheckouts - ytdCheckouts);
+				logger.debug("Popularity for item " + itemPopularity + " ytdCheckouts=" + ytdCheckouts + " lastYearCheckouts=" + lastYearCheckouts + " totalCheckouts=" + totalCheckouts);
+				popularity += itemPopularity;
 
 				// Map iTypes
 				Subfield iTypeSubfield = itemField.getSubfield('j');
@@ -229,13 +239,45 @@ public class PrintItemSolrProcessor {
 					processItemAvailability(availableAt, availabilityToggleGlobal, availableAtBySystemOrLocation, usableByPTypes, locationCode, locationIndexingInfo, libraryIndexingInfo, available, iType);
 				}
 			} else {
-				logger.debug("Item/Bib is suppressed.");
+				logger.debug("Item is suppressed.");
 			}
 		}
 		if (!itemSuppressed) {
 			allItemsSuppressed = false;
 		}
 		return this;
+	}
+
+	private void addSortableCallNumber(String callNumber, String scopeName) {
+		HashMap<String, Long> sortableCallNumbers = sortableCallNumbersByLibraryAndLocation.get(scopeName);
+		if (sortableCallNumbers == null){
+			sortableCallNumbers = new HashMap<String, Long>();
+			sortableCallNumbersByLibraryAndLocation.put(scopeName, sortableCallNumbers);
+		}
+		Long timesFound = sortableCallNumbers.get(callNumber);
+		if (timesFound == null){
+			timesFound = 0L;
+		}
+		timesFound++;
+		sortableCallNumbers.put(callNumber, timesFound);
+	}
+
+	private String getLocalCallNumber() {
+		StringBuilder callNumber = new StringBuilder();
+
+		Subfield callNumberFieldS = itemField.getSubfield('s');
+		if (callNumberFieldS != null){
+			callNumber.append(callNumberFieldS.getData().trim());
+		}
+		Subfield callNumberFieldA = itemField.getSubfield('a');
+		if (callNumberFieldA != null){
+			callNumber.append(" ").append(callNumberFieldA.getData().trim());
+		}
+		Subfield callNumberFieldR = itemField.getSubfield('r');
+		if (callNumberFieldR != null){
+			callNumber.append(" ").append(callNumberFieldR.getData().trim());
+		}
+		return callNumber.toString().trim();
 	}
 
 	private String processItemIcode(Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, LibraryIndexingInfo libraryIndexingInfo, Subfield iTypeSubfield) {

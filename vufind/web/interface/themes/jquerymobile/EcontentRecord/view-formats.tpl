@@ -11,7 +11,7 @@
 		</div>
 		<div class="eContentFormatUsage">
 			{assign var="displayFormat" value=$eContentItem->getDisplayFormat()|substr:0:1}
-			<a href="#" rel="external" onclick="return ajaxLightbox('/Help/eContentHelp?lightbox=true&id={$id}&itemId={$eContentItem->id}');">How to use a{if preg_match("/[aeiou]/i", $displayFormat)}n{/if} {$eContentItem->getDisplayFormat()}</a>
+			<a href='/Help/eContentHelp?id={$id}&itemId={$eContentItem->id}' data-ajax="false">How to use a{if preg_match("/[aeiou]/i", $displayFormat)}n{/if} {$eContentItem->getDisplayFormat()}</a>
 		</div>
 		<div class="eContentHoldingNotes">
 				{if $eContentItem->size != 0 && strcasecmp($eContentItem->size, 'unknown') != 0}
@@ -34,7 +34,7 @@
 	{/foreach}
 
 	<div id="formatHelp">
-		Need help?  We have <a href="#" rel="external" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')">step by step instructions</a> for most devices <a href="#" rel="external" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')">here</a>.<br/>
+		Need help?  We have <a href="{$path}/Help/eContentHelp">step by step instructions</a> for most devices <a href="{$path}/Help/eContentHelp">here</a>.<br/>
 		If you still need help after following the instructions, please fill out this <a href="{$path}/Help/eContentSupport" rel="external" onclick="return showEContentSupportForm()">support form</a>.
 	</div>
 {else}

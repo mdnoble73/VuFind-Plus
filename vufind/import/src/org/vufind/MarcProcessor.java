@@ -1051,6 +1051,20 @@ public class MarcProcessor {
 		return libraryIndexingInfo.get(libraryId);
 	}
 
+	private HashMap<String, LibraryIndexingInfo> libraryIndexingInfoByCode = new HashMap<String, LibraryIndexingInfo>();
+	public LibraryIndexingInfo getLibraryIndexingInfoByCode(String locationCode) {
+		if (libraryIndexingInfoByCode.containsKey(locationCode)){
+			return libraryIndexingInfoByCode.get(locationCode);
+		}
+		for (LibraryIndexingInfo libraryInfo : libraryIndexingInfo.values()){
+			if (locationCode.startsWith(libraryInfo.getIlsCode())){
+				libraryIndexingInfoByCode.put(locationCode, libraryInfo);
+				return libraryInfo;
+			}
+		}
+		return null;
+	}
+
 	private HashMap<String, LocationIndexingInfo> locationIndexingInfoByCode = new HashMap<String, LocationIndexingInfo>();
 	public LocationIndexingInfo getLocationIndexingInfo(String locationCode) {
 		if (locationIndexingInfoByCode.containsKey(locationCode)){

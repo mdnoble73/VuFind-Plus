@@ -17,10 +17,13 @@ class MillenniumCheckouts {
 	}
 
 	public function getMyTransactions($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+		global $timer;
 		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
 
+		$timer->logTime("Ready to load checked out titles from Millennium");
 		//Load the information from millennium using CURL
 		$sResult = $this->driver->_fetchPatronInfoPage($patronDump, 'items');
+		$timer->logTime("Loaded checked out titles from Millennium");
 
 		$sResult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* ITEM.? CHECKED OUT<[^<]+?>\W<[^<]+?>/", "", $sResult);
 
@@ -52,6 +55,7 @@ class MillenniumCheckouts {
 		}else{
 			$patronCanRenew = true;
 		}
+		$timer->logTime("Determined if patron can renew");
 
 		foreach ($sRows as $srow) {
 			$scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
@@ -148,10 +152,12 @@ class MillenniumCheckouts {
 					$resource->source = 'VuFind';
 					$resource->shortId = $curTitle['shortId'];
 					if ($resource->find(true)){
+						$timer->logTime("Found resource for " . $curTitle['shortId']);
 						$curTitle = array_merge($curTitle, get_object_vars($resource));
 						$curTitle['recordId'] = $resource->record_id;
 						$curTitle['id'] = $resource->record_id;
 					}else{
+						$timer->logTime("Did not find resource for " . $curTitle['shortId']);
 						//echo("Warning did not find resource for {$historyEntry['shortId']}");
 					}
 				}
@@ -184,6 +190,7 @@ class MillenniumCheckouts {
 			$sCount++;
 		}
 		ksort($checkedOutTitles);
+		$timer->logTime("Parsed checkout information");
 
 		$numTransactions = count($checkedOutTitles);
 		//Process pagination
