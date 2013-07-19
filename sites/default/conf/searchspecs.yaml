@@ -375,6 +375,12 @@ Keyword:
       - [onephrase, ~]
     id_alt:
       - [onephrase, ~]
+    local_callnumber_exact:
+      - [localized_callnumber, 800]
+    local_callnumber_left:
+      - [localized_callnumber, 300]
+    local_callnumber:
+      - [exact, ~]
 
 KeywordProper:
   DismaxFields:
@@ -390,6 +396,9 @@ KeywordProper:
     - issn
     - upc
     - callnumber-subject
+    - local_callnumber_exact^800
+    - local_callnumber_left^300
+
   QueryFields:
     title_proper:
       - [onephrase, 850]
@@ -425,6 +434,10 @@ KeywordProper:
       - [onephrase, ~]
     id_alt:
       - [onephrase, ~]
+    local_callnumber_exact:
+      - [localized_callnumber, 800]
+    local_callnumber_left:
+      - [localized_callnumber, 300]
 
 # These are advanced searches that never use Dismax:
 id:
