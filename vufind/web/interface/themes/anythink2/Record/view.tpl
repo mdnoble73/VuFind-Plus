@@ -394,9 +394,9 @@ function redrawSaveStatus() {
       <div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord"></div>
     </div>
 
-   {if $overdriveLink}
+   {if $linkToDownload}
    <div class="link-to-download">
-     <a href="{$overdriveLink}" class="button">Download from Overdrive</a>
+     <a href="{$linkToDownload}" class="button">{$linkToDownloadText}</a>
    </div>
    {/if}
 
