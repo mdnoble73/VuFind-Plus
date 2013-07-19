@@ -147,7 +147,7 @@ public class MarcRecordDetails {
 		boolean bibSuppressed = false;
 		boolean manuallySuppressed = false;
 		boolean allItemsSuppressed = true;
-		int popularity = 0;
+		float popularity = 0;
 		// Check the 907c field for manual suppression
 		String manualSuppression = getFirstFieldVal("907c");
 		if (manualSuppression != null && manualSuppression.equalsIgnoreCase("w")) {
@@ -234,7 +234,8 @@ public class MarcRecordDetails {
 		}
 		// logger.debug("Usable by " + usableByPTypes.size() + " pTypes");
 		addFields(mappedFields, "usable_by", null, usableByPTypes);
-		addField(mappedFields, "popularity", Integer.toString(popularity));
+		logger.debug("Total popularity is " + popularity);
+		addField(mappedFields, "popularity", Integer.toString((int)popularity));
 		addFields(mappedFields, "id_alt", null, altIds);
 	}
 

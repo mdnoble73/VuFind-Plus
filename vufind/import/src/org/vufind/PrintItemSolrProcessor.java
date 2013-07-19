@@ -35,7 +35,7 @@ public class PrintItemSolrProcessor {
 	private LinkedHashSet<String> usableByPTypes;
 	private boolean manuallySuppressed;
 	private boolean allItemsSuppressed;
-	private int popularity;
+	private float popularity;
 	private DataField itemField;
 	private Logger logger;
 	private MarcProcessor marcProcessor;
@@ -44,7 +44,7 @@ public class PrintItemSolrProcessor {
 	private static Date indexDate = new Date();
 
 
-	public PrintItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, Set<String> librarySystems, Set<String> locations, Set<String> barcodes, Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, Set<String> locationCodes, HashMap<String, LinkedHashSet<String>> locationsCodesBySystem, Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, Set<String> availableAt, LinkedHashSet<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, LinkedHashSet<String> localCallNumbers, HashMap<String, HashMap<String, Long>> sortableCallNumbersByLibraryAndLocation, boolean manuallySuppressed, boolean allItemsSuppressed, int popularity, DataField itemField) {
+	public PrintItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, Set<String> librarySystems, Set<String> locations, Set<String> barcodes, Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, Set<String> locationCodes, HashMap<String, LinkedHashSet<String>> locationsCodesBySystem, Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, Set<String> availableAt, LinkedHashSet<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, LinkedHashSet<String> localCallNumbers, HashMap<String, HashMap<String, Long>> sortableCallNumbersByLibraryAndLocation, boolean manuallySuppressed, boolean allItemsSuppressed, float popularity, DataField itemField) {
 		this.logger = logger;
 		this.marcProcessor = marcProcessor;
 		this.librarySystems = librarySystems;
@@ -77,7 +77,7 @@ public class PrintItemSolrProcessor {
 		return allItemsSuppressed;
 	}
 
-	public int getPopularity() {
+	public float getPopularity() {
 		return popularity;
 	}
 
@@ -180,11 +180,24 @@ public class PrintItemSolrProcessor {
 				}
 
 				//Get number of times the title has been checked out
-				Subfield numCheckoutsField = itemField.getSubfield('h');
-				if (numCheckoutsField != null){
-					int numCheckouts = Integer.parseInt(numCheckoutsField.getData());
-					popularity += numCheckouts;
+				Subfield totalCheckoutsField = itemField.getSubfield('h');
+				int totalCheckouts = 0;
+				if (totalCheckoutsField != null){
+					totalCheckouts = Integer.parseInt(totalCheckoutsField.getData());
 				}
+				Subfield ytdCheckoutsField = itemField.getSubfield('t');
+				int ytdCheckouts = 0;
+				if (ytdCheckoutsField != null){
+					ytdCheckouts = Integer.parseInt(ytdCheckoutsField.getData());
+				}
+				Subfield lastYearCheckoutsField = itemField.getSubfield('x');
+				int lastYearCheckouts = 0;
+				if (lastYearCheckoutsField != null){
+					lastYearCheckouts = Integer.parseInt(lastYearCheckoutsField.getData());
+				}
+				double itemPopularity = ytdCheckouts + .5 * (lastYearCheckouts) + .1 * (totalCheckouts - lastYearCheckouts - ytdCheckouts);
+				logger.debug("Popularity for item " + itemPopularity + " ytdCheckouts=" + ytdCheckouts + " lastYearCheckouts=" + lastYearCheckouts + " totalCheckouts=" + totalCheckouts);
+				popularity += itemPopularity;
 
 				// Map iTypes
 				Subfield iTypeSubfield = itemField.getSubfield('j');

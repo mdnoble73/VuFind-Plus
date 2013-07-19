@@ -692,7 +692,8 @@ class Solr implements IndexEngine {
 			$applyHoldingsBoost = $searchLibrary->applyNumberOfHoldingsBoost;
 		}
 		if ($applyHoldingsBoost) {
-			$boostFactors[] = 'product(num_holdings,15,div(format_boost,50))';
+			//$boostFactors[] = 'product(num_holdings,15,div(format_boost,50))';
+			$boostFactors[] = 'product(popularity,15,div(format_boost,50))';
 		} else {
 			$boostFactors[] = 'product(15,div(format_boost,50))';
 		}
