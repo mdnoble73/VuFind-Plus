@@ -272,9 +272,9 @@ td {
 }
 
 .resultValue.available, .resultValue.here{
-	color:#009900;
-	font-weight: bold;
-}
+	 color:#009900;
+	 font-weight: bold;
+ }
 .resultValue.nearby, .holdingsSummaryStatusLine.availableOther{
 	color: #BB0099;
 	font-weight: bold;

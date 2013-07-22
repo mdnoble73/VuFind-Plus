@@ -1,1 +1,1 @@
-.result{border:1px solid #eee;padding:10px 5px 15px}.result.alt{background-color:#f9f9f9}
+.result{border:1px solid #eee;padding:10px 5px 15px}.result.alt{background-color:#f9f9f9}@media(max-width:480px){.result-value{margin-left:8px!important}}.resultDetails{font-size:85%}.resultDetails .result-label{font-weight:bold;color:graytext}.resultDetails .row-fluid [class*="span"]{min-height:16px}

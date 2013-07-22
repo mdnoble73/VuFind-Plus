@@ -205,7 +205,7 @@ VuFind.ResultsList = {
 							// Load status
 							var statusSpan= $('#statusValue' + elemId);
 							if (statusSpan.length > 0){
-								var status = items[i].status;
+								var status = items[i].statusText;
 								if (status){
 									if (status == "Available At"){
 										status = "Available";
@@ -213,6 +213,22 @@ VuFind.ResultsList = {
 									statusSpan.html(status);
 								}else{
 									statusSpan.html("Unknown");
+								}
+
+								var statusClass = items[i]['class'];
+								if (statusClass){
+									statusSpan.addClass(statusClass);
+								}
+							}
+
+							// Load status
+							var copiesSpan= $('#copiesValue' + elemId);
+							if (copiesSpan.length > 0){
+								var copies = items[i].copies;
+								if (copies){
+									copiesSpan.html(copies);
+								}else{
+									copies.html("No copies found");
 								}
 
 								var statusClass = items[i]['class'];
@@ -342,7 +358,7 @@ VuFind.ResultsList = {
 		$.getJSON(url,function(data){
 			if (data.success){
 				$.each(data.series, function(key, val){
-					$(".series" + key).html(val);
+					$(".series" + key).find(".result-value").html(val);
 				});
 			}
 		});

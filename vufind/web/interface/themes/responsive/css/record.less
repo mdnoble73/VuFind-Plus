@@ -3,11 +3,24 @@
  *
  * If a style is used both within the results list and within a record it should
  */
-.resultAction{
-  padding: 2px;
-}
-
 .holdingsSummary{
   margin-left:5px;
   padding: 7px;
+}
+
+.statVal{
+  padding: 6px 0px 2px;
+}
+
+.statusValue.available, .statusValue.here{
+  color:#009900;
+  font-weight: bold;
+}
+.statusValue.nearby, .holdingsSummaryStatusLine.availableOther{
+  color: #BB0099;
+  font-weight: bold;
+}
+.statusValue.unavailable, .statusValue.checkedOut,.statusValue.checkedout,.statusValue.reserve{
+  color:#cc0000;
+  font-weight: bold;
 }

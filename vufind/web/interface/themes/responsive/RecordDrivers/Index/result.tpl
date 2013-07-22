@@ -1,6 +1,6 @@
 {strip}
 <div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList row-fluid">
-	<div class="span1">
+	<div class="span1 hidden-phone">
 		<div class="selectTitle">
 			<label for="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" class="resultIndex checkbox">{$resultIndex}
 				<input type="checkbox" class="titleSelect" name="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" id="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" {if $enableBookCart}onclick="toggleInBag('{$summId|escape}', '{$summTitle|replace:'"':''|replace:'&':'and'|escape:'javascript'}', this);"{/if} />&nbsp;
@@ -23,64 +23,122 @@
 		{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
 	</div>
 
-	<div class="resultDetails span5">
-		<div class="resultItemLine1">
+	<div class="span9">
+		<div class="row-fluid">
 			{if $summScore}({$summScore}) {/if}
-			<a href="{$summUrl}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+			<strong><a href="{$summUrl}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 			{if $summTitleStatement}
-				<div class="searchResultSectionInfo">
-					{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
-				</div>
+				&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 			{/if}
+			</strong>
 		</div>
 
-		{if $summISBN}
-		<div class="resultSeries">
-			<div class="series{$summISBN}"></div>
-		</div>
-		{/if}
-
-		<div class="resultItemLine2">
-			{if $summAuthor}
-				{translate text='by'}&nbsp;
-				{if is_array($summAuthor)}
-					{foreach from=$summAuthor item=author}
-						<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
-					{/foreach}
-				{else}
-					<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
+		<div class="row-fluid">
+			<div class="resultDetails span9">
+				{if $summAuthor}
+					<div class="row-fluid">
+						<div class="result-label span3">Author: </div>
+						<div class="span9 result-value">
+							{if is_array($summAuthor)}
+								{foreach from=$summAuthor item=author}
+									<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+								{/foreach}
+							{else}
+								<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
+							{/if}
+						</div>
+					</div>
 				{/if}
-				&nbsp;
-			{/if}
 
-			{if $summDate}{translate text='Published'} {$summDate.0|escape}{/if}
-		</div>
+				{if $summISBN}
+					<div class="series{$summISBN} row-fluid">
+						<div class="result-label span3">Series: </div>
+						<div class="span9 result-value">Loading...</div>
+					</div>
+				{/if}
 
-		<div class="resultItemLine3">
-			{if !empty($summSnippetCaption)}<b>{translate text=$summSnippetCaption}:</b>{/if}
-			{if !empty($summSnippet)}<span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span><br />{/if}
-		</div>
+				{if $summEditions}
+					<div class="row-fluid">
+						<div class="result-label span3" id="resultInformationEdition{$summShortId|escape}">{translate text='Edition'}:</div>
+						<div class="span9 result-value">{$summEditions.0|escape}</div>
+					</div>
+				{/if}
 
-		<div class="resultItemLine4">
-			{if is_array($summFormats)}
-				{foreach from=$summFormats item=format}
-					<span class="iconlabel" >{translate text=$format}</span>&nbsp;
-				{/foreach}
-			{else}
-				<span class="iconlabel">{translate text=$summFormats}</span>
-			{/if}
-		</div>
+				{if $summPublicationDates || $summPublishers || $summPublicationPlaces}
+					<div class="row-fluid">
 
-		<div id = "holdingsSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="holdingsSummary well well-small">
-			<div class="statusSummary" id="statusSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
-				<span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
+						<div class="result-label span3">Published: </div>
+						<div class="span9 result-value">
+							{$summPublicationPlaces.0|escape}{$summPublishers.0|escape}{$summPublicationDates.0|escape}
+						</div>
+					</div>
+				{/if}
+
+				{* Highlighted term *}
+				{if !empty($summSnippetCaption) || !!empty($summSnippet)}
+					<div class="row-fluid">
+						{if !empty($summSnippetCaption)}<div class="result-label span3">{translate text=$summSnippetCaption}:</div>{/if}
+						{if !empty($summSnippet)}<div class="span9 result-value"><span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span></div>{/if}
+					</div>
+				{/if}
+
+				<div class="row-fluid">
+					<div class="result-label span3">Format: </div>
+					<div class="span9 result-value">
+						<strong>
+							{if is_array($summFormats)}
+								{foreach from=$summFormats item=format}
+									<span class="iconlabel" >{translate text=$format}</span>&nbsp;
+								{/foreach}
+							{else}
+								<span class="iconlabel">{translate text=$summFormats}</span>
+							{/if}
+						</strong>
+					</div>
+				</div>
+
+				{if $summPhysical}
+					<div class="row-fluid">
+						<div class="result-label span3">{translate text='Physical Desc'}:</div>
+						<div class="span9 result-value">{$summPhysical.0|escape}</div>
+					</div>
+				{/if}
+
+				<div class="row-fluid">
+					<div class="result-label span3">{translate text='Location'}:</div>
+					<div class="span9 bold result-value" id="locationValue{$summShortId|escape}">Loading...</div>
+				</div>
+
+				<div class="row-fluid">
+					<div class="result-label span3">{translate text='Call Number'}:</div>
+					<div class="span9 bold result-value" id="callNumberValue{$summShortId|escape}">Loading...</div>
+				</div>
+
+				<div class="row-fluid">
+					<div class="result-label span3">{translate text='Status'}:</div>
+					<div class="span9 bold statusValue result-value" id="statusValue{$summShortId|escape}">Loading...</div>
+				</div>
+
+				{*
+				<div class="row-fluid">
+					<div class="result-label span3">{translate text='Copies'}:</div>
+					<div class="span9 result-value" id="copiesValue{$summShortId|escape}">Loading...</div>
+				</div>
+				*}
+
+				{*
+				<div id = "holdingsSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="holdingsSummary well well-small">
+					<div class="statusSummary" id="statusSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
+						<span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
+					</div>
+				</div>
+				*}
+			</div>
+
+			<div class="resultActions span3">
+				{include file='Record/result-tools.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
 			</div>
 		</div>
-	</div>
-
-	<div class="resultActions span3">
-		{include file='Record/result-tools.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
-
 	</div>
 
 	<script type="text/javascript">

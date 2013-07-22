@@ -737,6 +737,10 @@ class MillenniumStatusLoader{
 		}else{
 			$summaryInformation['numCopies'] = $numCopies;
 		}
+		$summaryInformation['copies'] = "$numAvailableCopies of $numCopies are on shelf";
+		if ($numCopiesOnOrder > 0){
+			$summaryInformation['copies'] .= ", $numCopiesOnOrder on order";
+		}
 
 		$summaryInformation['holdQueueLength'] = $holdQueueLength;
 
@@ -818,6 +822,25 @@ class MillenniumStatusLoader{
 		//Reset location as needed
 		if (!is_null($firstLocation) && !isset($summaryInformation['location'])){
 			$summaryInformation['location'] = $firstLocation;
+		}
+
+		//Set Status text for the summary
+		if ($summaryInformation['status'] == 'Available At'){
+			if ($summaryInformation['numCopies'] == 0){
+				$summaryInformation['statusText'] = "No Copies Found";
+			}else{
+				if (strlen($summaryInformation['availableAt']) > 0){
+					$summaryInformation['statusText'] = "Available now" . ($summaryInformation['inLibraryUserOnly'] ? "for in library use" : "") . " at " . $summaryInformation['availableAt'] . ($summaryInformation['numAvailableOther'] > 0 ? (", and {$summaryInformation['numAvailableOther']} other location" . ($summaryInformation['numAvailableOther'] > 1 ? "s" : "")) : "");
+				}else{
+					$summaryInformation['statusText'] = "Available now" . ($summaryInformation['inLibraryUserOnly'] ? "for in library use" : "");
+				}
+			}
+		}else if ($summaryInformation['status'] == 'Marmot'){
+			$summaryInformation['class'] = "nearby";
+			$totalLocations = $summaryInformation['numAvailableOther'] + $summaryInformation['availableAt'];
+			$summaryInformation['statusText'] = "Available now at " . $totalLocations . " Marmot " . ($totalLocations == 1 ? "Library" : "Libraries");
+		}else{
+			$summaryInformation['statusText'] = translate($summaryInformation['status']);
 		}
 
 		return $summaryInformation;

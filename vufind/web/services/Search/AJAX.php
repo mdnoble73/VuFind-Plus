@@ -622,6 +622,8 @@ class AJAX extends Action {
 				if (isset($enrichment['volumeLabel']) && strlen($enrichment['volumeLabel']) > 0){
 					$seriesInfo[$isbn] .=  ', ' . $enrichment['volumeLabel'];
 				}
+			}else{
+				$seriesInfo[$isbn] = "N/A";
 			}
 		}
 		echo json_encode(array(
