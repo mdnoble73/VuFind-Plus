@@ -734,7 +734,7 @@ class Solr implements IndexEngine {
 			// Build possible inputs for searching:
 			$values = array();
 			$values['onephrase'] = '"' . str_replace('"', '', implode(' ', $tokenized)) . '"';
-			$values['exact'] = $lookfor;
+			$values['exact'] = str_replace(':', '\\:', $lookfor);
 			$values['and'] = $andQuery;
 			$values['or'] = $orQuery;
 		} else {
@@ -751,12 +751,12 @@ class Solr implements IndexEngine {
 		if (strpos($lookfor, '*') !== false){
 			$noWildCardLookFor = str_replace('*', '', $lookfor);
 		}
-		$values['localized_callnumber'] = str_replace('"', '', $noWildCardLookFor);
+		$values['localized_callnumber'] = str_replace(array('"', ':', '/'), ' ', $noWildCardLookFor);
 
 		// Apply custom munge operations if necessary:
 		if (is_array($custom) && $basic) {
 			foreach($custom as $mungeName => $mungeOps) {
-				$values[$mungeName] = $lookfor;
+				$values[$mungeName] =  $lookfor;
 
 				// Skip munging if tokenization is disabled.
 				foreach($mungeOps as $operation) {
