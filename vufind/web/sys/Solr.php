@@ -751,7 +751,7 @@ class Solr implements IndexEngine {
 		if (strpos($lookfor, '*') !== false){
 			$noWildCardLookFor = str_replace('*', '', $lookfor);
 		}
-		$values['localized_callnumber'] = str_replace(array('"', ':', '/'), '', $noWildCardLookFor);
+		$values['localized_callnumber'] = str_replace(array('"', ':', '/'), ' ', $noWildCardLookFor);
 
 		// Apply custom munge operations if necessary:
 		if (is_array($custom) && $basic) {
