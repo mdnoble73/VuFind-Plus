@@ -22,7 +22,7 @@
 		<div class="hidden-phone">
 			{if $showHoldButton}
 				<input type="hidden" name="type" value="hold" />
-				<input type="submit" class="btn" name="placeHolds" value="Request Selected Titles" class="requestSelectedItems"/>
+				<input type="submit" class="btn" name="placeHolds" value="Request Selected Titles" class="requestSelectedItems" />
 			{/if}
 		</div>
 	</div>

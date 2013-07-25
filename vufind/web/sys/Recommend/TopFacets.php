@@ -27,6 +27,7 @@ require_once ROOT_DIR . '/sys/Recommend/Interface.php';
  */
 class TopFacets implements RecommendationInterface
 {
+	/** @var SearchObject_Solr|SearchObject_Base searchObject */
 	private $searchObject;
 	private $facetSettings = array();
 	private $facets = array();
@@ -42,25 +43,23 @@ class TopFacets implements RecommendationInterface
 	 */
 	public function __construct($searchObject, $params)
 	{
-		global $library;
 		global $configArray;
 		// Save the basic parameters:
+		/** @var SearchObject_Solr|SearchObject_Base searchObject */
 		$this->searchObject = $searchObject;
 
 		// Parse the additional parameters:
 		$params = explode(':', $params);
-		$section = empty($params[0]) ? 'ResultsTop' : $params[0];
 		$iniFile = isset($params[1]) ? $params[1] : 'facets';
 
 		// Load the desired facet information:
-		$searchLibrary = Library::getActiveLibrary();
-		$searchLocation = Location::getActiveLocation();
 		$config = getExtraConfigArray($iniFile);
-		if ($searchObject->getSearchType() == 'genealogy'){
+		if ($this->searchObject->getSearchType() == 'genealogy'){
 			$this->mainFacets = array();
 		}else{
 			$searchLibrary = Library::getActiveLibrary();
-			$searchLocation = Location::getActiveLocation();
+			global $locationSingleton;
+			$searchLocation = $locationSingleton->getActiveLocation();
 			$userLocation = Location::getUserHomeLocation();
 			$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
 			$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
@@ -129,7 +128,6 @@ class TopFacets implements RecommendationInterface
 	public function process()
 	{
 		global $interface;
-		global $library;
 
 		// Grab the facet set -- note that we need to take advantage of the third
 		// parameter to getFacetList in order to pass down row and column

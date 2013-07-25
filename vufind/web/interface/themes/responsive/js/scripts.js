@@ -57,6 +57,20 @@ VuFind.toggleHiddenElementWithButton = function(button){
 };
 
 VuFind.Account = {
+	ajaxCallback: null,
+
+	ajaxLogin: function(trigger, ajaxCallback){
+		VuFind.Account.ajaxCallback = ajaxCallback;
+		var dialogTitle = trigger.attr("title") ? trigger.attr("title") : trigger.data("title");
+		var dialogDestination = Globals.path + '/MyResearch/AJAX?method=LoginForm';
+		$("#modal-title").text(dialogTitle);
+		$(".modal-body").load(dialogDestination);
+		$("#modalDialog").modal({
+			show:true
+		});
+		return false;
+	},
+
 	processAjaxLogin: function(ajaxCallback){
 		var username = $("#username").val();
 		var password = $("#password").val();
@@ -84,6 +98,9 @@ VuFind.Account = {
 					Globals.loggedIn = true;
 					if (ajaxCallback != undefined && typeof(ajaxCallback) === "function"){
 						ajaxCallback();
+					}else if (VuFind.Account.ajaxCallback != undefined && typeof(VuFind.Account.ajaxCallback) === "function"){
+						VuFind.Account.ajaxCallback();
+						VuFind.Account.ajaxCallback = null;
 					}
 				}else{
 					loginErrorElem.text(response.result.message);
@@ -442,6 +459,142 @@ VuFind.OverDrive = {
 	}
 };
 
+VuFind.Record = {
+	showReviewForm: function(trigger, id, source){
+		if (Globals.loggedIn){
+			if (source == 'VuFind'){
+				$("#modal-title").text(trigger.attr("title"));
+				$(".modal-body").html($('#userreview' + id).html());
+				$("#modalDialog").modal({
+					show:true
+				});
+			}else{
+				$('.userecontentreview').slideUp();
+				$('#userecontentreview' + id).slideDown();
+			}
+		}else{
+			var $trigger = trigger;
+			VuFind.Account.ajaxLogin($trigger, function (){
+				VuFind.Record.showReviewForm($trigger, id, source);
+			});
+		}
+		return false;
+	},
+
+	loadEnrichmentInfo: function (id, isbn, upc, econtent) {
+		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		var params = "method=GetEnrichmentInfo&isbn=" + encodeURIComponent(isbn) + "&upc=" + encodeURIComponent(upc);
+		var fullUrl = url + "?" + params;
+		$.ajax( {
+			url : fullUrl,
+			success : function(data) {
+				try{
+					var seriesData = $(data).find("SeriesInfo").text();
+					if (seriesData && seriesData.length > 0) {
+
+						seriesScroller = new TitleScroller('titleScrollerSeries', 'Series', 'seriesList');
+
+						seriesData = $.parseJSON(seriesData);
+						if (seriesData.titles.length > 0){
+							$('#list-series-tab').show();
+							$('#relatedTitleInfo').show();
+							seriesScroller.loadTitlesFromJsonData(seriesData);
+						}
+					}
+					var showGoDeeperData = $(data).find("ShowGoDeeperData").text();
+					if (showGoDeeperData) {
+						$('#goDeeperLink').show();
+					}
+					var relatedContentData = $(data).find("RelatedContent").text();
+					if (relatedContentData && relatedContentData.length > 0) {
+						$("#relatedContentPlaceholder").html(relatedContentData);
+					}
+				} catch (e) {
+					alert("error loading enrichment: " + e);
+				}
+			},
+			failure : function(jqXHR, textStatus, errorThrown) {
+				alert('Error: Could Not Load Holdings information.  Please try again in a few minutes');
+			}
+		});
+	},
+
+	loadHoldingsInfo: function (id) {
+		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		var params = "method=GetHoldingsInfo";
+		var fullUrl = url + "?" + params;
+		$.ajax( {
+			url : fullUrl,
+			success : function(data) {
+				var holdingsData = $(data).find("Holdings").text();
+				if (holdingsData) {
+					if (holdingsData.length > 0) {
+						if (holdingsData.match(/No Copies Found/i)){
+							try{
+								if ($("#prospectortab_label").is(":visible")){
+									$("#moredetails-tabs").tabs("option", "active", 1);
+								}else{
+									$("#moredetails-tabs").tabs("option", "active", 2);
+								}
+								$("#holdingstab_label").hide();
+							}catch(e){
+
+							}
+						}else{
+							$("#holdingsPlaceholder").html(holdingsData);
+						}
+					}
+				}
+				var holdingsSummary = $(data).find("HoldingsSummary").text();
+				if (holdingsSummary) {
+					if (holdingsSummary.length > 0) {
+						$("#holdingsSummaryPlaceholder").html(holdingsSummary);
+					}
+				}
+				var showPlaceHold = $(data).find("ShowPlaceHold").text();
+				if (showPlaceHold) {
+					if (showPlaceHold.length > 0 && showPlaceHold == 1) {
+						$(".requestThisLink").show();
+					}
+				}
+				var eAudioLink = $(data).find("EAudioLink").text();
+				if (eAudioLink) {
+					if (eAudioLink.length > 0) {
+						$("#eAudioLink" + id).html("<a href='" + eAudioLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_eaudio.png' alt='Access eAudio'/></a>").show();
+					}
+				}
+				var eBookLink = $(data).find("EBookLink").text();
+				if (eBookLink) {
+					if (eBookLink.length > 0) {
+						$("#eBookLink" + id).html("<a href='" + eBookLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_ebook.png' alt='Access eBook'/></a>").show();
+					}
+				}
+			}
+		});
+	},
+
+	loadReviewInfo: function (id, isbn) {
+		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		var params = "method=GetReviewInfo&isbn=" + encodeURIComponent(isbn);
+		var fullUrl = url + "?" + params;
+		$.ajax( {
+			url : fullUrl,
+			success : function(data) {
+				var reviewsData = $(data).find("Reviews").text();
+				if (reviewsData) {
+					if (reviewsData.length > 0) {
+						$("#reviewPlaceholder").html(reviewsData);
+					}else{
+						//$("#reviewPlaceholder").html("There are no reviews for this title.");
+					}
+				}else{
+					//$("#reviewPlaceholder").html("There are no reviews for this title.");
+				}
+			}
+		});
+	}
+};
+
 VuFind.Searches = {
 	searchGroups: [],
 
@@ -627,6 +780,47 @@ VuFind.Prospector = {
 					}
 				}
 			}
+		});
+	},
+
+	loadRelatedProspectorTitles: function (id) {
+		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		var params = "method=GetProspectorInfo";
+		var fullUrl = url + "?" + params;
+		$.ajax( {
+			url : fullUrl,
+			success : function(data) {
+				var inProspectorData = $(data).find("InProspector").text();
+				if (inProspectorData) {
+					if (inProspectorData.length > 0) {
+						$("#inProspectorPlaceholder").html(inProspectorData);
+					}
+					var prospectorCopies = $(data).find("OwningLibrariesFormatted").text();
+					if (prospectorCopies && prospectorCopies.length > 0) {
+						$("#prospectorHoldingsPlaceholder").html(prospectorCopies);
+					}
+					$("#inProspectorSidegroup").show();
+				}else{
+					if ($("#prospectortab_label")){
+						$("#prospectortab_label").hide();
+						if ($("#holdingstab_label").is(":visible")){
+							$("#moredetails-tabs").tabs("option", "active", 0);
+						}else{
+							$("#moredetails-tabs").tabs("option", "active", 2);
+						}
+					}
+				}
+			}
+		});
+	}
+};
+
+VuFind.Wikipedia = {
+	getWikipediaArticle: function(articleName){
+		var url = Globals.path + "/Author/AJAX?method=getWikipediaData&articleName=" + articleName;
+		$.getJSON(url, function(data){
+			if (data.success)
+				$("#wikipedia_placeholder").html(data.formatted_article);
 		});
 	}
 };

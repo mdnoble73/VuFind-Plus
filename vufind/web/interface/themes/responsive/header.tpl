@@ -26,18 +26,20 @@
 							{/if}
 						</li>
 						{if is_array($allLangs) && count($allLangs) > 1}
-							<li id="language_toggle" class="dropdown-toggle" data-toggle="dropdown">
-								{foreach from=$allLangs key=langCode item=langName}
-									{if $userLang == $langCode}
-										<a href="#">{translate text=$langName} <span class="caret"></span></a>
-									{/if}
-								{/foreach}
+							<li>
+								<a href="#" id="language_toggle" class="dropdown-toggle" data-toggle="dropdown">
+									{foreach from=$allLangs key=langCode item=langName}
+										{if $userLang == $langCode}
+											{translate text=$langName} <span class="caret"></span>
+										{/if}
+									{/foreach}
+								</a>
+								<ul class="dropdown-menu">
+									{foreach from=$allLangs key=langCode item=langName}
+										<li><a id="lang{$langCode}" class='languageLink {if $userLang == $langCode} selected{/if}' href="{$fullPath}{if $requestHasParams}&amp;{else}?{/if}mylang={$langCode}">{translate text=$langName}</a></li>
+									{/foreach}
+								</ul>
 							</li>
-							<ul class="dropdown-menu">
-								{foreach from=$allLangs key=langCode item=langName}
-									<li><a id="lang{$langCode}" class='languageLink {if $userLang == $langCode} selected{/if}' href="{$fullPath}{if $requestHasParams}&amp;{else}?{/if}mylang={$langCode}">{translate text=$langName}</a></li>
-								{/foreach}
-							</ul>
 						{/if}
 					</ul>
 				</div>

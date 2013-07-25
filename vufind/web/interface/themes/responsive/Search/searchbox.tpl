@@ -40,6 +40,7 @@
 					{if $filterList}
 						<option data-catalog_type="existing" data-original_type="{$searchSource}" value="existing" title="{translate text="Existing Search"}" selected="selected" id="existing_search_option">{translate text="in Existing Search Results"}</option>
 					{/if}
+					{/strip}
 					{foreach from=$searchSources item=searchOption key=searchKey}
 						<option data-catalog_type="{$searchOption.catalogType}"
 						        value="{$searchKey}"{if $searchKey == $searchSource && !$filterList} selected="selected"{/if}
@@ -48,6 +49,7 @@
 							{translate text="in"} {$searchOption.name}{if $searchOption.external} *{/if}
 						</option>
 					{/foreach}
+					{strip}
 				</select>
 				<div id="search_button" class="btn-group">
 					<button id='searchBarFind' class="btn btn-primary">
@@ -59,13 +61,13 @@
 					<ul id="searchType" class="dropdown-menu text-left">
 						{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
 							<li>
-								<a class="catalogType" href="#" onclick="return VuFind.Searches.updateSearchTypes('catalog', '{$searchVal}', '#searchForm')">{translate text="by"} {translate text=$searchDesc}</a>
+								<a class="catalogType" href="#" onclick="return VuFind.Searches.updateSearchTypes('catalog', '{$searchVal}', '#searchForm');">{translate text="by"} {translate text=$searchDesc}</a>
 							</li>
 						{/foreach}
 						<li class="divider catalogType"></li>
 						{foreach from=$genealogySearchTypes item=searchDesc key=searchVal}
 							<li>
-								<a class="genealogyType" href="#" onclick="return VuFind.Searches.updateSearchTypes(('genealogy', '{$searchVal}', '#searchForm')">{translate text="by"} {translate text=$searchDesc}</a>
+								<a class="genealogyType" href="#" onclick="return VuFind.Searches.updateSearchTypes('genealogy', '{$searchVal}', '#searchForm');">{translate text="by"} {translate text=$searchDesc}</a>
 							</li>
 						{/foreach}
 						<li class="divider genealogyType"></li>

@@ -2,7 +2,7 @@
 <div id="record{$summId|escape}" class="resultsList row-fluid">
 	<div class="span1 hidden-phone">
 		<div class="selectTitle">
-			<label for="selected[econtentRecord{$summId|escape:"url"}]" class="resultIndex checkbox">{$resultIndex}
+			<label for="selectedEcontentRecord{$summId|escape:"url"}" class="resultIndex checkbox">{$resultIndex}
 				<input type="checkbox" name="selected[econtentRecord{$summId|escape:"url"}]" class="titleSelect" id="selectedEcontentRecord{$summId|escape:"url"}" {if $enableBookCart}onclick="toggleInBag('econtentRecord{$summId|escape:"url"}', '{$summTitle|replace:'"':''|replace:'&':'&amp;'|escape:'javascript'}', this);"{/if} />&nbsp;
 			</label>
 		</div>
@@ -117,6 +117,4 @@
 	VuFind.ResultsList.addIdToSeriesList('{$summISBN}');
 	{/if}
 </script>
-
-</div>
 {/strip}

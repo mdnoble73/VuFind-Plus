@@ -30,21 +30,17 @@
 				<div id="availabilityControl" class='btn-group' data-toggle="buttons-radio">
 					{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 						{if $thisFacet.isApplied}
-							<button type="button" id="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}" class="btn btn-primary" checked="checked" name="availabilityControls" /><label for="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}">{$thisFacet.value|escape} ({$thisFacet.count})</label>
+							<button type="button" id="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}" class="btn btn-primary" name="availabilityControls">{$thisFacet.value|escape} ({$thisFacet.count})</button>
 						{else}
-							<button type="button" id="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}" class="btn" name="availabilityControls" data-url="{$thisFacet.url|escape}" onclick="window.location = $(this).data('url')" /><label for="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}">{$thisFacet.value|escape} ({$thisFacet.count})</label>
+							<button type="button" id="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}" class="btn" name="availabilityControls" data-url="{$thisFacet.url|escape}" onclick="window.location = $(this).data('url')" >{$thisFacet.value|escape} ({$thisFacet.count})</button>
 						{/if}
 					{/foreach}
 				</div>
 			</div>
 		{else}
 			<div class="authorbox">
+				<h5>{translate text=$cluster.label}<span>{translate text="top_facet_suffix"}</span></h5>
 				<table class="facetsTop navmenu narrow_begin">
-					<tr>
-						<th colspan="{$topFacetSettings.cols}">
-							{translate text=$cluster.label}<span>{translate text="top_facet_suffix"}</span>
-						</th>
-					</tr>
 					{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 						{if $smarty.foreach.narrowLoop.iteration == ($topFacetSettings.rows * $topFacetSettings.cols) + 1}
 							<tr id="more{$title}"><td><a href="#" onclick="moreFacets('{$title}'); return false;">{translate text='more'} ...</a></td></tr>

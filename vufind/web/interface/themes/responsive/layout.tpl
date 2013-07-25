@@ -61,7 +61,7 @@
 				<h3 id="modal-title"></h3>
 			</div>
 			<div class="modal-body">
-				<div id="modal-loading" class="text-center">Loading</br><img src="{img filename='loading_bar.gif'}" title="Loading"/></div>
+				<div id="modal-loading" class="text-center">Loading...<br/><img src="{img filename='loading_bar.gif'}" title="Loading"/></div>
 			</div>
 			<div class="modal-footer">
 				<button class="btn" data-dismiss="modal" id="modalClose">Close</button>

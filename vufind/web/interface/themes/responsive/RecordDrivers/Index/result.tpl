@@ -2,34 +2,37 @@
 <div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList row-fluid">
 	<div class="span1 hidden-phone">
 		<div class="selectTitle">
-			<label for="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" class="resultIndex checkbox">{$resultIndex}
+			<label for="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultIndex checkbox">{$resultIndex}
 				<input type="checkbox" class="titleSelect" name="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" id="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" {if $enableBookCart}onclick="toggleInBag('{$summId|escape}', '{$summTitle|replace:'"':''|replace:'&':'and'|escape:'javascript'}', this);"{/if} />&nbsp;
 			</label>
 		</div>
 	</div>
 
 	<div class="imageColumn span2 text-center">
+		{/strip}
 		{if $user->disableCoverArt != 1}
 			<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>
 			<a href="{$summUrl}">
 				<img src="{$bookCoverUrl}"
-				     class="listResultImage img-polaroid descriptionTrigger"
+				     class="listResultImage img-polaroid desriptionTrigger"
 				     alt="{translate text='Cover Image'}"
 				     data-record_id="{$summId}"
 				     data-source="VuFind"
 				     data-content_class=".descriptionContent{$summShortId|escape}"/>
 			</a>
 		{/if}
+		{strip}
 		{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
 	</div>
 
 	<div class="span9">
 		<div class="row-fluid">
 			{if $summScore}({$summScore}) {/if}
-			<strong><a href="{$summUrl}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
-			{if $summTitleStatement}
-				&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
-			{/if}
+			<strong>
+				<a href="{$summUrl}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+				{if $summTitleStatement}
+					&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
+				{/if}
 			</strong>
 		</div>
 

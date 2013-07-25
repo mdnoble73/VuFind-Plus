@@ -5,7 +5,7 @@ require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 
 global $configArray;
 
-class AJAX extends Action {
+class Help_AJAX extends Action {
 
 	function AJAX() {
 	}

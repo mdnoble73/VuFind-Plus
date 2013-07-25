@@ -113,7 +113,7 @@
 				-->
 				<tokenizer class="solr.KeywordTokenizerFactory"/>
 				<filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="0" catenateWords="0" catenateNumbers="1" catenateAll="0" splitOnCaseChange="0" splitOnNumerics="1" preserveOriginal="1"/>
-				<filter class="solr.LengthFilterFactory" min="2"/>
+				<filter class="solr.LengthFilterFactory" min="2" max="100"/>
 				<!-- The LowerCase TokenFilter does what you expect, which can be
              when you want your sorting to be case insensitive
           -->

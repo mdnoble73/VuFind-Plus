@@ -264,13 +264,14 @@ class SearchAPI extends Action {
 		global $timer;
 
 		// Include Search Engine Class
-		require_once ROOT_DIR . 'sys/' . $configArray['Index']['engine'] . '.php';
+		require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
 		$timer->logTime('Include search engine');
 
 		//setup the results array.
 		$jsonResults = array();
 
 		// Initialise from the current search globals
+		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 
