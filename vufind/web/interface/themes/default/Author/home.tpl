@@ -68,7 +68,7 @@
 
 		</div>
 
-		{include file=Search/list-list.tpl}
+		{include file='Search/list-list.tpl'}
 
 		{if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
 	
