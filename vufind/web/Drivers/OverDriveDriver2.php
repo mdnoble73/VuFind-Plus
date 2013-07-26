@@ -560,7 +560,7 @@ class OverDriveDriver2 {
 					}elseif (preg_match('/Unfortunately this title is not available to your library at this time./', $waitingListConfirm)){
 						$holdResult['result'] = false;
 						$holdResult['message'] = 'This title is not available to your library at this time.';
-					}elseif (preg_match('/You will receive an email when the title becomes available./', $waitingListConfirm)){
+					}elseif (preg_match('/You will receive an email from/', $waitingListConfirm)){
 						$holdResult['result'] = true;
 						$holdResult['message'] = 'Your hold was placed successfully.';
 
