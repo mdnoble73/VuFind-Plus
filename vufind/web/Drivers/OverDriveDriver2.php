@@ -273,13 +273,19 @@ class OverDriveDriver2 {
 						echo($notificationInformation);
 					}
 					$hold['notifyEmail'] = $holdDetailInfo[2];
-					$holds['unavailable'][] = $hold;
-				}elseif (preg_match('/<div[^>]*?id="borrowingPeriodHold"[^>]*?><div>(.*?)<\/div>.*?new Date \("(.*?)"\)/si', $holdDetails, $holdDetailInfo)){
+					$hold['available'] = false;
+				}
+				if (preg_match('/This title can be borrowed(.*?)<\/div>.*?new Date \("(.*?)"\)/si', $holdDetails, $holdDetailInfo)){
 					///print_r($holdDetails);
 					$hold['emailSent'] = $holdDetailInfo[2];
 					$hold['notificationDate'] = strtotime($hold['emailSent']);
 					$hold['expirationDate'] = $hold['notificationDate'] + 3 * 24 * 60 * 60;
+					$hold['available'] = true;
+				}
+				if ($hold['available']){
 					$holds['available'][] = $hold;
+				}else{
+					$holds['unavailable'][] = $hold;
 				}
 			}
 		}
