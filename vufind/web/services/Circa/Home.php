@@ -21,7 +21,7 @@
 require_once ROOT_DIR . '/Action.php';
 require_once(ROOT_DIR . '/services/Admin/Admin.php');
 
-class Home extends Action
+class Circa_Home extends Action
 {
 	function launch()
 	{
