@@ -18,10 +18,10 @@ PC or MAC computer to transfer to a NOOK, Sony, Kobo or other eReader:
 <li>You will be prompted to enter your name and library card number</li>
 <li>Click - Login</li>
 <li>If the book is currently available to check out, select a checkout period (7, 14, or 21 days) and click - "Check Out"</li>
-<li>If the book is not currently available to check out, you will be prompted to enter your email address. You will receive an email when the book becomes available to download.</li>
+<li>If the book is not currently available to check out, you will be prompted to enter your email address. You will receive an email when the book becomes available to download</li>
 <li>You will be taken to your account where you can click - "Download" </li>
 <li>Click "Ok" when the pop-up box asks if you want to open the file with Adobe Digital Editions</li>
-<li>Once downloaded into ADE, books can be transferred to a Sony, Nook, or Kobo eReader by plugging your reader into your computer and clicking and dragging titles from a list in ADE and dropping the title into Sony, Nook, or Kobo.</li>
+<li>Once downloaded into ADE, books can be transferred to a Sony, Nook, or Kobo eReader by plugging your reader into your computer and clicking and dragging titles from a list in ADE and dropping the title into Sony, Nook, or Kobo</li>
 </ol>
 *Note - If you plug in the reading device and do not see the device listed in the left-hand column of ADE, then close and re-open ADE and the device should appear
 
