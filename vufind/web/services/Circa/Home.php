@@ -25,7 +25,6 @@ class Circa_Home extends Action
 {
 	function launch()
 	{
-		global $configArray;
 		global $interface;
 
 		if (isset($_POST['submit'])){
