@@ -37,7 +37,13 @@ class Profile extends MyResearch
 		}
 		$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);
 
-		if (isset($_POST['update'])) {
+		if ($configArray['Catalog']['offline']){
+			$interface->assign('offline', true);
+		}else{
+			$interface->assign('offline', false);
+		}
+
+		if (isset($_POST['update']) && !$configArray['Catalog']['offline']) {
 			$result = $this->catalog->updatePatronInfo($canUpdateContactInfo);
 			$_SESSION['profileUpdateErrors'] = $result;
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
@@ -46,13 +52,13 @@ class Profile extends MyResearch
 
 			header("Location: " . $configArray['Site']['path'] . '/MyResearch/Profile');
 			exit();
-		}elseif (isset($_POST['updatePin'])) {
+		}elseif (isset($_POST['updatePin']) && !$configArray['Catalog']['offline']) {
 			$result = $this->catalog->updatePin();
 			$_SESSION['profileUpdateErrors'] = $result;
 
 			header("Location: " . $configArray['Site']['path'] . '/MyResearch/Profile');
 			exit();
-		}else if (isset($_POST['edit'])){
+		}else if (isset($_POST['edit']) && !$configArray['Catalog']['offline']){
 			$interface->assign('edit', true);
 		}else{
 			$interface->assign('edit', false);

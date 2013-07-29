@@ -524,6 +524,11 @@ class Record_AJAX extends Action {
 		require_once 'Holdings.php';
 		global $interface;
 		global $configArray;
+		if ($configArray['Catalog']['offline']){
+			$interface->assign('offline', true);
+		}else{
+			$interface->assign('offline', false);
+		}
 		$interface->assign('showOtherEditionsPopup', 0);
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);

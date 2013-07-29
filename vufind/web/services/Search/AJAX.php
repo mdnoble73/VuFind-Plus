@@ -192,6 +192,12 @@ class AJAX extends Action {
 		$result = array();
 		$result['items'] = array();
 
+		if ($configArray['Catalog']['offline']){
+			$interface->assign('offline', true);
+		}else{
+			$interface->assign('offline', false);
+		}
+
 		// Loop through all the status information that came back
 		foreach ($summaries as $id => $record) {
 			// If we encountered errors, skip those problem records.

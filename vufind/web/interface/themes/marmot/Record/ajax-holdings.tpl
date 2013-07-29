@@ -1,3 +1,4 @@
+{strip}
 <Holdings><![CDATA[{include file="$module/view-holdings.tpl"}]]></Holdings>
 <HoldingsSummary><![CDATA[{include file="$module/holdingsSummary.tpl"}]]></HoldingsSummary>
 <ShowPlaceHold>{$holdingsSummary.showPlaceHold}</ShowPlaceHold>
@@ -24,3 +25,4 @@
 	<numAvailableOther>{$holdingsSummary.numAvailableOther|escape}</numAvailableOther>
 	<location>{$holdingsSummary.location|escape}</location>
 </SummaryDetails>
+{/strip}
