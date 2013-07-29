@@ -61,7 +61,9 @@
 							</div>
 							<div class="jbmoduleBody">
 								<ul class="footer_menu">
-									<li class="item-430"><a href="{$homeLink}/documents">Library Documents</a>
+									<li class="item-430"><a href="{$homeLink}/documents">Library Documents - Browse</a>
+									</li>
+									<li class="item-430"><a href="{$homeLink}/library-documents-search">Library Documents - Search</a>
 									</li>
 									<li class="item-527"><a href="{$homeLink}/request-for-public-records">Request for Public Records</a>
 									</li>
@@ -69,7 +71,7 @@
 									</li>
 									<li class="item-172"><a href="{$homeLink}/community/fol">Friends of the Library</a>
 									</li>
-									<li class="item-151"><a href="{$homeLink}/bod">Board of Directors</a>
+									<li class="item-151"><a href="{$homeLink}/bod">Board Communiqué</a>
 									</li>
 									<li class="item-203"><a href="{$homeLink}/contact-us">Contact</a>
 									</li>

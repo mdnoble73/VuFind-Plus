@@ -14,8 +14,8 @@
 								<ul class="header_menu">
 									<li class="item-248 current active"><a href="{$homeLink}">Home</a></li>
 									<li class="item-109" id="loginOptions" {if $user} style="display: none;"{/if}><a href="/MyResearch/Home">Login</a></li>
-									<li class="item-110"><a href="{$homeLink}/contact-us">Contact Us</a></li>
-									<li class="item-204"><a href="{$homeLink}/aboutus">About Us</a></li>
+									<li class="item-110"><a href="{$homeLink}/contact-us">Contact</a></li>
+									<li class="item-204"><a href="{$homeLink}/aboutus">About</a></li>
 								</ul>
 								<div class="clearer"></div>
 								<ul class="header_menu" id="logoutOptions" {if !$user} style="display: none;"{/if}>
@@ -54,7 +54,7 @@
 												<li class="item-283" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/my-account/downloads" style="float: none; width: auto;">Downloads</a></li>
 											</ul> *}
 										</li>
-										<li class="item-242 deeper parent"><a href="{$homeLink}/library-services" class="sf-with-ul">Services</a>
+										<li class="item-242 deeper parent"><a href="{$homeLink}/adults" class="sf-with-ul">Adults</a>
 											{* <ul style="float: none; width: 14em; display: none; visibility: hidden;" class="sf-js-enabled sf-shadow">
 												<li class="item-282" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/library-services/getcard" style="float: none; width: auto;">Get a Library Card </a></li>
 												<li class="item-356" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/library-services/borrowingmaterials" style="float: none; width: auto;">Borrowing Materials</a></li>
@@ -63,14 +63,6 @@
 												<li class="item-243" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/library-services/technology" style="float: none; width: auto;">Technology</a></li>
 												<li class="item-350" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/library-services/databases" style="float: none; width: auto;">Research</a></li>
 												<li class="item-201" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/library-services/meetingrooms" style="float: none; width: auto;">Meeting Rooms</a></li>
-											</ul> *}
-										</li>
-										<li class="item-170 deeper parent"><a href="{$homeLink}/events" class="sf-with-ul">Events</a>
-											{* <ul style="float: none; width: 14em; display: none; visibility: hidden;" class="sf-js-enabled sf-shadow">
-												<li class="item-198" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/events/kids" style="float: none; width: auto;">Kids Programs</a></li>
-												<li class="item-199" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/events/teens" style="float: none; width: auto;">Teen Programs</a></li>
-												<li class="item-385" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/events/adults" style="float: none; width: auto;">Adult Programs</a></li>
-												<li class="item-200" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/events/wpltv" style="float: none; width: auto;">WPL TV</a></li>
 											</ul> *}
 										</li>
 										<li class="item-116 deeper parent"><a href="{$homeLink}/wplkids" class="sf-with-ul">Kids</a>
@@ -103,6 +95,8 @@
 												<li class="item-240" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/community/webcam" style="float: none; width: auto;">Webcam</a></li>
 												<li class="item-436" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/community/donate" style="float: none; width: auto;">Donate</a></li>
 											</ul> *}
+										</li>
+										<li class="item-170 deeper parent"><a href="{$homeLink}/about" class="sf-with-ul">About</a>
 										</li>
 									</ul>
 								</div>
