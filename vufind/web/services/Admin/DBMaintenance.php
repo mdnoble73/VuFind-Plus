@@ -2263,13 +2263,65 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
-		'session_update_1' => array(
-			'title' => 'Session Update 1',
-			'description' => 'Add a field for whether or not the session was started with remember me on.',
-			'sql' => array(
-				"ALTER TABLE session ADD COLUMN `remember_me` TINYINT NOT NULL DEFAULT 0 COMMENT 'Whether or not the session was started with remember me on.'",
+			'session_update_1' => array(
+				'title' => 'Session Update 1',
+				'description' => 'Add a field for whether or not the session was started with remember me on.',
+				'sql' => array(
+					"ALTER TABLE session ADD COLUMN `remember_me` TINYINT NOT NULL DEFAULT 0 COMMENT 'Whether or not the session was started with remember me on.'",
+				),
 			),
-		),
+
+			'offline_holds' => array(
+				'title' => 'Offline Holds',
+				'description' => 'Stores information about holds that have been placed while the circulation system is offline',
+				'sql' => array(
+					"CREATE TABLE offline_hold (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						 `timeEntered` INT(11) NOT NULL,
+						 `timeProcessed` INT(11) NULL,
+						 `bibId` VARCHAR(10) NOT NULL,
+						 `patronId` INT(11) NOT NULL,
+						 `patronBarcode` VARCHAR(20),
+						 `status` ENUM('Not Processed', 'Processing Succeeded', 'Processing Failed'),
+						 `notes` VARCHAR(512),
+						 INDEX(`timeEntered`),
+						 INDEX(`timeProcessed`),
+						 INDEX(`patronBarcode`),
+						 INDEX(`patronId`),
+						 INDEX(`bibId`),
+						 INDEX(`status`),
+						 PRIMARY KEY(`id`)
+					) ENGINE = MYISAM"
+				)
+			),
+
+
+			'offline_checkouts' => array(
+				'title' => 'Offline Checkouts',
+				'description' => 'Stores information about checkouts that were entered while the circulation system was offline',
+				'sql' => array(
+					"CREATE TABLE offline_checkouts (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						 `time_entered` INT(11) NOT NULL,
+						 `item_barcode` VARCHAR(10) NOT NULL,
+						 `patron_barcode` VARCHAR(20),
+						 `login` VARCHAR(50),
+						 `login_password` VARCHAR(50),
+						 `initials` VARCHAR(50),
+						 `initials_password` VARCHAR(50),
+						 `staff_email` VARCHAR(256),
+						 `status` ENUM('Not Processed', 'Processing Succeeded', 'Processing Failed'),
+						 `notes` VARCHAR(512),
+						 INDEX(`time_entered`),
+						 INDEX(`patron_barcode`),
+						 INDEX(`item_barcode`),
+						 INDEX(`login`),
+						 INDEX(`initials`),
+						 INDEX(`status`),
+						 PRIMARY KEY(`id`)
+					) ENGINE = MYISAM"
+				)
+			),
 		);
 	}
 

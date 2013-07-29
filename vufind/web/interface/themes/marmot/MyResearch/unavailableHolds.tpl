@@ -280,6 +280,20 @@
 					{translate text='You do not have any holds that are not available yet'}.
 				{/if}
 			{/if}
+
+			{if count($offlineHolds) > 0}
+				<div class="myAccountTitle">{translate text='Offline Holds'}</div>
+				<table class="citation">
+					<thead>
+						<tr><th>Title</th><th>Date Entered</th><th>Status</th><th>Notes</th></tr>
+					</thead>
+					<tbody>
+						{foreach from=$offlineHolds item=offlineHold}
+							<tr><td><a href="{$path}/Record/{$offlineHold.bibId}">{$offlineHold.title}</a></td><td>{$offlineHold.timeEntered|date_format}</td><td>{$offlineHold.status}</td><td>{$offlineHold.notes}</td></tr>
+						{/foreach}
+					</tbody>
+				</table>
+			{/if}
 		</div>
 		<script type="text/javascript">
 			$(document).ready(function() {literal} { {/literal}

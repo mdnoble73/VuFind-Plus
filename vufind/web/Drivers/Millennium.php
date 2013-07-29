@@ -436,7 +436,7 @@ class MillenniumDriver implements DriverInterface
 
 		global $user;
 		if ($configArray['Catalog']['offline']){
-			$fullName = $user->cat_username;
+			$fullName = $patron['cat_username'];
 
 			$Address1 = "";
 			$City = "";
@@ -852,7 +852,7 @@ class MillenniumDriver implements DriverInterface
 	public function updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		$millenniumHolds->updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue);
+		return $millenniumHolds->updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue);
 	}
 
 	public function renewAll(){

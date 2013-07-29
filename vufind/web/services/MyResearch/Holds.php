@@ -183,6 +183,35 @@ class Holds extends MyResearch
 			$interface->assign('patron',$patron);
 		}
 
+		//Load holds that have been entered offline
+		if ($user){
+			require_once ROOT_DIR . '/sys/OfflineHold.php';
+			$twoDaysAgo = time() - 48 * 60 * 60;
+			$twoWeeksAgo = time() - 14 * 24 * 60 * 60;
+			$offlineHoldsObj = new OfflineHold();
+			$offlineHoldsObj->patronId = $user->id;
+			$offlineHoldsObj->whereAdd("status = 'Not Processed' OR (status = 'Hold Placed' AND timeEntered >= $twoDaysAgo)  OR (status = 'Hold Failed' AND timeEntered >= $twoWeeksAgo)");
+			$offlineHolds = array();
+			if ($offlineHoldsObj->find()){
+				while ($offlineHoldsObj->fetch()){
+					//Load the title
+					$offlineHold = array();
+					$resource = new Resource();
+					$resource->source = 'VuFind';
+					$resource->record_id = $offlineHoldsObj->bibId;
+					if ($resource->find(true)){
+						$offlineHold['title'] = $resource->title;
+					}
+					$offlineHold['bibId'] = $offlineHoldsObj->bibId;
+					$offlineHold['timeEntered'] = $offlineHoldsObj->timeEntered;
+					$offlineHold['status'] = $offlineHoldsObj->status;
+					$offlineHold['notes'] = $offlineHoldsObj->notes;
+					$offlineHolds[] = $offlineHold;
+				}
+			}
+			$interface->assign('offlineHolds', $offlineHolds);
+		}
+
 		$hasSeparateTemplates = $interface->template_exists('MyResearch/availableHolds.tpl');
 		if ($hasSeparateTemplates){
 			$section = isset($_REQUEST['section']) ? $_REQUEST['section'] : 'available';
