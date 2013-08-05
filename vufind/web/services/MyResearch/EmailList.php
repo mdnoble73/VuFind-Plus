@@ -74,12 +74,16 @@ class EmailList extends Action {
 		}
 
 		$interface->assign('from', $from);
-		$interface->assign('message', $message);
-		$body = $interface->fetch('Emails/my-list.tpl');
+		if (strpos($message, 'http') === false && strpos($message, 'mailto') === false && $message == strip_tags($message)){
+			$interface->assign('message', $message);
+			$body = $interface->fetch('Emails/my-list.tpl');
 
-		$mail = new VuFindMailer();
-		$subject = $list->title;
-		return $mail->send($to, $from, $subject, $body);
+			$mail = new VuFindMailer();
+			$subject = $list->title;
+			return $mail->send($to, $from, $subject, $body);
+		}else{
+			return false;
+		}
 	}
 }
 ?>

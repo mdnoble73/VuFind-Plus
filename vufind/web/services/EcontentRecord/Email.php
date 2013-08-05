@@ -73,11 +73,18 @@ class EcontentRecord_Email extends Action
 		}
 		$interface->assign('emailDetails', $emailDetails );
 		$interface->assign('id', $id);
-		$interface->assign('message', $message);
-		$body = $interface->fetch('Emails/eContent-record.tpl');
+		//Check for spam
+		if (strpos($message, 'http') === false && strpos($message, 'mailto') === false && $message == strip_tags($message)){
+			$interface->assign('message', $message);
+			$body = $interface->fetch('Emails/eContent-record.tpl');
 
-		$mail = new VuFindMailer();
-		return $mail->send($to, $configArray['Site']['email'], $subject, $body, $from);
+			$mail = new VuFindMailer();
+			return $mail->send($to, $configArray['Site']['email'], $subject, $body, $from);
+		}else{
+			//This looks like spam
+			return false;
+		}
+
 	}
 }
 ?>
