@@ -60,11 +60,15 @@ class Record_Email extends Record_Record
 		$interface->assign('from', $from);
 		$interface->assign('emailDetails', $this->recordDriver->getEmail());
 		$interface->assign('recordID', $this->recordDriver->getUniqueID());
-		$interface->assign('message', $message);
-		$body = $interface->fetch('Emails/catalog-record.tpl');
+		if (strpos($message, 'http') === false && strpos($message, 'mailto') === false && $message == strip_tags($message)){
+			$interface->assign('message', $message);
+			$body = $interface->fetch('Emails/catalog-record.tpl');
 
-		$mail = new VuFindMailer();
-		return $mail->send($to, $configArray['Site']['email'], $subject, $body, $from);
+			$mail = new VuFindMailer();
+			return $mail->send($to, $configArray['Site']['email'], $subject, $body, $from);
+		}else{
+			return false;
+		}
 	}
 }
 ?>
