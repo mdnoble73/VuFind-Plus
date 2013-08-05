@@ -335,7 +335,7 @@ class MillenniumDriver implements DriverInterface
 			$password = '4100000' . $password;
 		}
 
-		if ($configArray['Catalog']['offline']){
+		if ($configArray['Catalog']['offline'] == true){
 			//The catalog is offline, check the database to see if the user is valid
 			$user = new User();
 			$user->cat_password = $password;
@@ -435,7 +435,7 @@ class MillenniumDriver implements DriverInterface
 		}
 
 		global $user;
-		if ($configArray['Catalog']['offline']){
+		if ($configArray['Catalog']['offline'] == true){
 			$fullName = $patron['cat_username'];
 
 			$Address1 = "";
