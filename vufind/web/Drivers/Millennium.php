@@ -590,7 +590,7 @@ class MillenniumDriver implements DriverInterface
 				'myLocation2Id' => ($user) ? $user->myLocation2Id : -1,
 				'myLocation2' => isset($myLocation2) ? $myLocation2->displayName : '',
 				'numCheckedOut' => isset($patronDump) ? $patronDump['CUR_CHKOUT'] : '?',
-				'numHolds' => isset($patronDump) ? count($patronDump['HOLD']) : '?',
+				'numHolds' => isset($patronDump) ? (isset($patronDump['HOLD']) ? count($patronDump['HOLD']) : 0) : '?',
 				'numHoldsAvailable' => $numHoldsAvailable,
 				'numHoldsRequested' => $numHoldsRequested,
 				'bypassAutoLogout' => ($user) ? $user->bypassAutoLogout : 0,

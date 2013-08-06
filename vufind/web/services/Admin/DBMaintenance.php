@@ -2282,7 +2282,7 @@ class DBMaintenance extends Admin_Admin {
 						 `bibId` VARCHAR(10) NOT NULL,
 						 `patronId` INT(11) NOT NULL,
 						 `patronBarcode` VARCHAR(20),
-						 `status` ENUM('Not Processed', 'Processing Succeeded', 'Processing Failed'),
+						 `status` ENUM('Not Processed', 'Hold Succeeded', 'Hold Failed'),
 						 `notes` VARCHAR(512),
 						 INDEX(`timeEntered`),
 						 INDEX(`timeProcessed`),
