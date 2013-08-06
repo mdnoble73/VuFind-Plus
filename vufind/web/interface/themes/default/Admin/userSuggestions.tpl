@@ -13,7 +13,7 @@
 			<a href='{$path}/Admin/UserSuggestions?showHidden'>Show Hidden Suggestions</a>
 		{/if}
 		<br />
-		<form id='suggestionsForm' method="post" action="/Admin/UserSugestions">
+		<form id='suggestionsForm' method="post" action="{$path}/Admin/UserSuggestions">
 			<div class='adminTableRegion' style='overflow:auto;'>
 				<table class="adminTable" id='suggestions'>
 					<thead>

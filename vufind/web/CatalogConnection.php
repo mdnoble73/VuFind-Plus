@@ -75,7 +75,7 @@ class CatalogConnection
 	public function __construct($driver)
 	{
 		global $configArray;
-		$path = "{$configArray['Site']['local']}/Drivers/{$driver}.php";
+		$path = ROOT_DIR . "/Drivers/{$driver}.php";
 		if (is_readable($path)) {
 			require_once $path;
 
@@ -262,6 +262,19 @@ class CatalogConnection
 	public function getStatuses($recordIds, $forSearch = false)
 	{
 		return $this->driver->getStatuses($recordIds, $forSearch);
+	}
+
+	/**
+	 * Returns a summary of the holdings information for a single id. Used to display
+	 * within the search results and at the top of a full record display to ensure
+	 * the holding information makes sense to all users.
+	 *
+	 * @param string $id the id of the bid to load holdings for
+	 * @param boolean $forSearch whether or not the summary will be shown in search results
+	 * @return array an associative array with a summary of the holdings.
+	 */
+	public function getStatusSummary($id, $forSearch = false){
+		return $this->driver->getStatusSummary($id, $forSearch);
 	}
 
 	/**
