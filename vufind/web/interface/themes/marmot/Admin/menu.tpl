@@ -72,6 +72,7 @@
 		<div class="sidegroupContents">	
 			<div class="adminMenuLink{if $action == "Home" && $module == "Circa"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Circa/Home">Inventory</a></div>
 			<div class="adminMenuLink{if $action == "OfflineCirculation" && $module == "Circa"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Circa/OfflineCirculation">Offline Circulation</a></div>
+			<hr/>
 			<div class="adminMenuLink{if $action == "OfflineHoldsReport" && $module == "Circa"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Circa/OfflineHoldsReport">Offline Holds Report</a></div>
 			<div class="adminMenuLink{if $action == "OfflineCirculationReport" && $module == "Circa"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Circa/OfflineCirculationReport">Offline Circulation Report</a></div>
 		</div>
