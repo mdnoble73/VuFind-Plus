@@ -613,6 +613,22 @@ class CatalogConnection
 	}
 
 	/**
+	 * Process inventory for a particular item in the catalog
+	 *
+	 * @param string $login     Login for the user doing the inventory
+	 * @param string $password1 Password for the user doing the inventory
+	 * @param string $initials
+	 * @param string $password2
+	 * @param string[] $barcodes
+	 * @param boolean $updateIncorrectStatuses
+	 *
+	 * @return array
+	 */
+	function doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses){
+		return $this->driver->doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses);
+	}
+
+	/**
 	 * Get suppressed records.
 	 *
 	 * @return array ID numbers of suppressed records in the system.

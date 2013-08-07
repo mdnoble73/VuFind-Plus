@@ -54,6 +54,8 @@ class Circa_Home extends Action
 
 		try {
 			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$results = $catalog->doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses);
+			return $results;
 		} catch (PDOException $e) {
 			// What should we do with this error?
 			if ($configArray['System']['debug']) {
@@ -63,8 +65,10 @@ class Circa_Home extends Action
 			}
 		}
 
-		$results = $catalog->doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses);
-		return $results;
+		return array(
+			'success' => false,
+			'message' => 'Could not load catalog connection',
+		);
 	}
 
 	function getAllowableRoles(){

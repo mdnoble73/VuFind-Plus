@@ -1377,6 +1377,18 @@ class MillenniumDriver implements DriverInterface
 		return $loginData;
 	}
 
+	/**
+	 * Process inventory for a particular item in the catalog
+	 *
+	 * @param string $login     Login for the user doing the inventory
+	 * @param string $password1 Password for the user doing the inventory
+	 * @param string $initials
+	 * @param string $password2
+	 * @param string[] $barcodes
+	 * @param boolean $updateIncorrectStatuses
+	 *
+	 * @return array
+	 */
 	function doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumInventory.php';
 		$millenniumInventory = new MillenniumInventory($this);

@@ -2277,48 +2277,52 @@ class DBMaintenance extends Admin_Admin {
 				'sql' => array(
 					"CREATE TABLE offline_hold (
 						`id` INT(11) NOT NULL AUTO_INCREMENT,
-						 `timeEntered` INT(11) NOT NULL,
-						 `timeProcessed` INT(11) NULL,
-						 `bibId` VARCHAR(10) NOT NULL,
-						 `patronId` INT(11) NOT NULL,
-						 `patronBarcode` VARCHAR(20),
-						 `status` ENUM('Not Processed', 'Hold Succeeded', 'Hold Failed'),
-						 `notes` VARCHAR(512),
-						 INDEX(`timeEntered`),
-						 INDEX(`timeProcessed`),
-						 INDEX(`patronBarcode`),
-						 INDEX(`patronId`),
-						 INDEX(`bibId`),
-						 INDEX(`status`),
-						 PRIMARY KEY(`id`)
+						`timeEntered` INT(11) NOT NULL,
+						`timeProcessed` INT(11) NULL,
+						`bibId` VARCHAR(10) NOT NULL,
+						`patronId` INT(11) NOT NULL,
+						`patronBarcode` VARCHAR(20),
+						`status` ENUM('Not Processed', 'Hold Succeeded', 'Hold Failed'),
+						`notes` VARCHAR(512),
+						INDEX(`timeEntered`),
+						INDEX(`timeProcessed`),
+						INDEX(`patronBarcode`),
+						INDEX(`patronId`),
+						INDEX(`bibId`),
+						INDEX(`status`),
+						PRIMARY KEY(`id`)
 					) ENGINE = MYISAM"
 				)
 			),
 
 
-			'offline_checkouts' => array(
-				'title' => 'Offline Checkouts',
-				'description' => 'Stores information about checkouts that were entered while the circulation system was offline',
+			'offline_circulation' => array(
+				'title' => 'Offline Circulation',
+				'description' => 'Stores information about circulation activities done while the circulation system was offline',
 				'sql' => array(
-					"CREATE TABLE offline_checkouts (
+					"CREATE TABLE offline_circulation (
 						`id` INT(11) NOT NULL AUTO_INCREMENT,
-						 `time_entered` INT(11) NOT NULL,
-						 `item_barcode` VARCHAR(10) NOT NULL,
-						 `patron_barcode` VARCHAR(20),
-						 `login` VARCHAR(50),
-						 `login_password` VARCHAR(50),
-						 `initials` VARCHAR(50),
-						 `initials_password` VARCHAR(50),
-						 `staff_email` VARCHAR(256),
-						 `status` ENUM('Not Processed', 'Processing Succeeded', 'Processing Failed'),
-						 `notes` VARCHAR(512),
-						 INDEX(`time_entered`),
-						 INDEX(`patron_barcode`),
-						 INDEX(`item_barcode`),
-						 INDEX(`login`),
-						 INDEX(`initials`),
-						 INDEX(`status`),
-						 PRIMARY KEY(`id`)
+						`timeEntered` INT(11) NOT NULL,
+						`timeProcessed` INT(11) NULL,
+						`itemBarcode` VARCHAR(20) NOT NULL,
+						`patronBarcode` VARCHAR(20),
+						`patronId` INT(11) NULL,
+						`login` VARCHAR(50),
+						`loginPassword` VARCHAR(50),
+						`initials` VARCHAR(50),
+						`initialsPassword` VARCHAR(50),
+						`type` ENUM('Check In', 'Check Out'),
+						`status` ENUM('Not Processed', 'Processing Succeeded', 'Processing Failed'),
+						`notes` VARCHAR(512),
+						INDEX(`timeEntered`),
+						INDEX(`patronBarcode`),
+						INDEX(`patronId`),
+						INDEX(`itemBarcode`),
+						INDEX(`login`),
+						INDEX(`initials`),
+						INDEX(`type`),
+						INDEX(`status`),
+						PRIMARY KEY(`id`)
 					) ENGINE = MYISAM"
 				)
 			),
