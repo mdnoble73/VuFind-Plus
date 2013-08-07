@@ -1,5 +1,9 @@
 <div id = "holdingsSummary{$holdingsSummary.shortId}" class="holdingsSummary {$holdingsSummary.class}">
-	{if $holdingsSummary.status == 'Available At'}
+	{if $offline}
+		<div class="holdingsSummaryStatusLine">
+			{$holdingsSummary.status}
+		</div>
+	{elseif $holdingsSummary.status == 'Available At'}
 		<div class="holdingsSummaryStatusLine {$holdingsSummary.class}">
 			{if $holdingsSummary.numCopies == 0}
 				No copies found
@@ -41,7 +45,7 @@
 	{if $holdingsSummary.isDownloadable}
 		<div><a href='{$holdingsSummary.downloadLink}'	target='_blank'>{$holdingsSummary.downloadText}</a></div>
 	{else}
-		{if $showCopiesLineInHoldingsSummary}
+		{if !$offline && $showCopiesLineInHoldingsSummary}
 			<div class="holdableCopiesSummary">
 				{$holdingsSummary.numCopies} total {if $holdingsSummary.numCopies == 1}copy{else}copies{/if},
 				{$holdingsSummary.availableCopies} {if $holdingsSummary.availableCopies == 1}is{else}are{/if} on shelf. 

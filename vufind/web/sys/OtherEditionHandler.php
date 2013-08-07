@@ -125,10 +125,12 @@ class OtherEditionHandler{
 					$isbns = is_array($record['isbn']) ? $record['isbn'] : array($record['isbn']);
 					foreach ($isbns as $tmpIsbn){
 						$tmpIsbn = ISBN::normalizeISBN($tmpIsbn);
-						if ($query != '') {
-							$query .= ' OR isbn:' .$tmpIsbn;
-						} else {
-							$query = 'isbn:' . $tmpIsbn;
+						if (strlen($tmpIsbn) > 0){
+							if ($query != '') {
+								$query .= ' OR isbn:' .$tmpIsbn;
+							} else {
+								$query = 'isbn:' . $tmpIsbn;
+							}
 						}
 					}
 				}

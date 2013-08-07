@@ -28,102 +28,107 @@ class CheckedOut extends MyResearch{
 		global $user;
 		global $timer;
 
-		// Get My Transactions
-		$oneOrMoreRenewableItems = false;
-		if ($this->catalog->status) {
-			if ($user->cat_username) {
-				$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-				$timer->logTime("Logged in patron to get checked out items.");
-				if (PEAR_Singleton::isError($patron))
-				PEAR_Singleton::raiseError($patron);
+		if ($configArray['Catalog']['offline']){
+			$interface->assign('offline', true);
+		}else{
+			$interface->assign('offline', false);
 
-				$patronResult = $this->catalog->getMyProfile($patron);
-				if (!PEAR_Singleton::isError($patronResult)) {
-					$interface->assign('profile', $patronResult);
-				}
-				$timer->logTime("Got patron profile to get checked out items.");
+			// Get My Transactions
+			if ($this->catalog->status) {
+				if ($user->cat_username) {
+					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
+					$timer->logTime("Logged in patron to get checked out items.");
+					if (PEAR_Singleton::isError($patron))
+						PEAR_Singleton::raiseError($patron);
 
-				$libraryHoursMessage = Location::getLibraryHoursMessage($patronResult['homeLocationId']);
-				$interface->assign('libraryHoursMessage', $libraryHoursMessage);
-
-				// Define sorting options
-				$sortOptions = array('title'   => 'Title',
-                             'author'  => 'Author',
-                             'dueDate' => 'Due Date',
-				                     'format'  => 'Format',
-				                     'renewed'  => 'Times Renewed',
-				                     'holdQueueLength'  => 'Wish List',
-				);
-				$interface->assign('sortOptions', $sortOptions);
-				$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'dueDate';
-				$interface->assign('defaultSortOption', $selectedSortOption);
-				$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
-
-				$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
-				$interface->assign('recordsPerPage', $recordsPerPage);
-				if (isset($_GET['exportToExcel'])) {
-					$recordsPerPage = -1;
-					$page = 1;
-				}
-
-				$result = $this->catalog->getMyTransactions($page, $recordsPerPage, $selectedSortOption);
-				$timer->logTime("Loaded transactions from catalog.");
-				if (!PEAR_Singleton::isError($result)) {
-
-					$link = $_SERVER['REQUEST_URI'];
-					if (preg_match('/[&?]page=/', $link)){
-						$link = preg_replace("/page=\\d+/", "page=%d", $link);
-					}else if (strpos($link, "?") > 0){
-						$link .= "&page=%d";
-					}else{
-						$link .= "?page=%d";
+					$patronResult = $this->catalog->getMyProfile($patron);
+					if (!PEAR_Singleton::isError($patronResult)) {
+						$interface->assign('profile', $patronResult);
 					}
-					if ($recordsPerPage != '-1'){
-						$options = array('totalItems' => $result['numTransactions'],
-					                 'fileName'   => $link,
-					                 'perPage'    => $recordsPerPage,
-					                 'append'    => false,
-						);
-						$pager = new VuFindPager($options);
-						$interface->assign('pageLinks', $pager->getLinks());
+					$timer->logTime("Got patron profile to get checked out items.");
+
+					$libraryHoursMessage = Location::getLibraryHoursMessage($patronResult['homeLocationId']);
+					$interface->assign('libraryHoursMessage', $libraryHoursMessage);
+
+					// Define sorting options
+					$sortOptions = array('title'   => 'Title',
+						'author'  => 'Author',
+						'dueDate' => 'Due Date',
+						'format'  => 'Format',
+						'renewed'  => 'Times Renewed',
+						'holdQueueLength'  => 'Wish List',
+					);
+					$interface->assign('sortOptions', $sortOptions);
+					$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'dueDate';
+					$interface->assign('defaultSortOption', $selectedSortOption);
+					$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+
+					$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
+					$interface->assign('recordsPerPage', $recordsPerPage);
+					if (isset($_GET['exportToExcel'])) {
+						$recordsPerPage = -1;
+						$page = 1;
 					}
 
-					$interface->assign('showNotInterested', false);
-					foreach ($result['transactions'] as $i => $data) {
-						//Get Rating
-						$resource = new Resource();
-						$resource->source = 'VuFind';
-						$resource->record_id = $data['id'];
-						$resource->find(true);
-						$data['ratingData'] = $resource->getRatingData($user);
-						$result['transactions'][$i] = $data;
+					$result = $this->catalog->getMyTransactions($page, $recordsPerPage, $selectedSortOption);
+					$timer->logTime("Loaded transactions from catalog.");
+					if (!PEAR_Singleton::isError($result)) {
 
-						$itemBarcode = isset($data['barcode']) ? $data['barcode'] : null;
-						$itemId = isset($data['itemid']) ? $data['itemid'] : null;
-						if ($itemBarcode != null && isset($_SESSION['renew_message'][$itemBarcode])){
-							$renewMessage = $_SESSION['renew_message'][$itemBarcode]['message'];
-							$renewResult = $_SESSION['renew_message'][$itemBarcode]['result'];
-							$data['renewMessage'] = $renewMessage;
-							$data['renewResult']  = $renewResult;
-							$result['transactions'][$i] = $data;
-							unset($_SESSION['renew_message'][$itemBarcode]);
-							//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
-						}else if ($itemId != null && isset($_SESSION['renew_message'][$itemId])){
-							$renewMessage = $_SESSION['renew_message'][$itemId]['message'];
-							$renewResult = $_SESSION['renew_message'][$itemId]['result'];
-							$data['renewMessage'] = $renewMessage;
-							$data['renewResult']  = $renewResult;
-							$result['transactions'][$i] = $data;
-							unset($_SESSION['renew_message'][$itemId]);
-							//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
+						$link = $_SERVER['REQUEST_URI'];
+						if (preg_match('/[&?]page=/', $link)){
+							$link = preg_replace("/page=\\d+/", "page=%d", $link);
+						}else if (strpos($link, "?") > 0){
+							$link .= "&page=%d";
 						}else{
-							$renewMessage = null;
-							$renewResult = null;
+							$link .= "?page=%d";
+						}
+						if ($recordsPerPage != '-1'){
+							$options = array('totalItems' => $result['numTransactions'],
+								'fileName'   => $link,
+								'perPage'    => $recordsPerPage,
+								'append'    => false,
+							);
+							$pager = new VuFindPager($options);
+							$interface->assign('pageLinks', $pager->getLinks());
 						}
 
+						$interface->assign('showNotInterested', false);
+						foreach ($result['transactions'] as $i => $data) {
+							//Get Rating
+							$resource = new Resource();
+							$resource->source = 'VuFind';
+							$resource->record_id = $data['id'];
+							$resource->find(true);
+							$data['ratingData'] = $resource->getRatingData($user);
+							$result['transactions'][$i] = $data;
+
+							$itemBarcode = isset($data['barcode']) ? $data['barcode'] : null;
+							$itemId = isset($data['itemid']) ? $data['itemid'] : null;
+							if ($itemBarcode != null && isset($_SESSION['renew_message'][$itemBarcode])){
+								$renewMessage = $_SESSION['renew_message'][$itemBarcode]['message'];
+								$renewResult = $_SESSION['renew_message'][$itemBarcode]['result'];
+								$data['renewMessage'] = $renewMessage;
+								$data['renewResult']  = $renewResult;
+								$result['transactions'][$i] = $data;
+								unset($_SESSION['renew_message'][$itemBarcode]);
+								//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
+							}else if ($itemId != null && isset($_SESSION['renew_message'][$itemId])){
+								$renewMessage = $_SESSION['renew_message'][$itemId]['message'];
+								$renewResult = $_SESSION['renew_message'][$itemId]['result'];
+								$data['renewMessage'] = $renewMessage;
+								$data['renewResult']  = $renewResult;
+								$result['transactions'][$i] = $data;
+								unset($_SESSION['renew_message'][$itemId]);
+								//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
+							}else{
+								$renewMessage = null;
+								$renewResult = null;
+							}
+
+						}
+						$interface->assign('transList', $result['transactions']);
+						unset($_SESSION['renew_message']);
 					}
-					$interface->assign('transList', $result['transactions']);
-					unset($_SESSION['renew_message']);
 				}
 			}
 		}
@@ -138,7 +143,7 @@ class CheckedOut extends MyResearch{
 		$interface->assign('showRenewed', $showRenewed);
 		$interface->assign('showWaitList', $showWaitList);
 
-		if (isset($_GET['exportToExcel'])) {
+		if (isset($_GET['exportToExcel']) && isset($result)) {
 			$this->exportToExcel($result['transactions'], $showOut, $showRenewed, $showWaitList);
 		}
 

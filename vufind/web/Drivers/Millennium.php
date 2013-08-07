@@ -325,6 +325,7 @@ class MillenniumDriver implements DriverInterface
 	public function patronLogin($username, $password)
 	{
 		global $timer;
+		global $configArray;
 
 		//Strip any non digit characters from the password
 		$password = preg_replace('/[a-or-zA-OR-Z\W]/', '', $password);
@@ -334,55 +335,74 @@ class MillenniumDriver implements DriverInterface
 			$password = '4100000' . $password;
 		}
 
-		//Load the raw information about the patron
-		$patronDump = $this->_getPatronDump($password);
-
-		//Create a variety of possible name combinations for testing purposes.
-		$userValid = false;
-		if (isset($patronDump['PATRN_NAME'])){
-			$Fullname = str_replace(","," ",$patronDump['PATRN_NAME']);
-			$Fullname = str_replace(";"," ",$Fullname);
-			$Fullname = str_replace(";","'",$Fullname);
-			$allNameComponents = preg_split('^[\s-]^', strtolower($Fullname));
-			$nameParts = explode(' ',$Fullname);
-			$lastname = strtolower($nameParts[0]);
-			$middlename = isset($nameParts[2]) ? strtolower($nameParts[2]) : '';
-			$firstname = isset($nameParts[1]) ? strtolower($nameParts[1]) : $middlename;
-
-			//Get the first name that the user supplies.
-			//This expects the user to enter one or two names and only
-			//Validates the first name that was entered.
-			$enteredNames=preg_split('^[\s-]^', strtolower($username));
-			foreach ($enteredNames as $name){
-				if (in_array($name, $allNameComponents, false)){
-					$userValid = true;
-					break;
+		if ($configArray['Catalog']['offline'] == true){
+			//The catalog is offline, check the database to see if the user is valid
+			$user = new User();
+			$user->cat_password = $password;
+			if ($user->find(true)){
+				$userValid = false;
+				if ($user->cat_username){
+					list($fullName, $lastName, $firstName, $userValid) = $this->validatePatronName($username, $user->cat_username);
 				}
+				if ($userValid){
+					$returnVal = array(
+						'id'        => $password,
+						'username'  => $user->username,
+						'firstname' => isset($firstName) ? $firstName : '',
+						'lastname'  => isset($lastName) ? $lastName : '',
+						'fullname'  => isset($fullName) ? $fullName : '',     //Added to array for possible display later.
+						'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
+						'cat_password' => $password,
+
+						'email' => $user->email,
+						'major' => null,
+						'college' => null,
+						'patronType' => $user->patronType,
+						'web_note' => translate('The catalog is currently down.  You will have limited access to circulation information.'));
+					$timer->logTime("patron logged in successfully");
+					return $returnVal;
+				} else {
+					$timer->logTime("patron login failed");
+					return null;
+				}
+			} else {
+				$timer->logTime("patron login failed");
+				return null;
+			}
+		}else{
+			//Load the raw information about the patron
+			$patronDump = $this->_getPatronDump($password);
+
+			//Create a variety of possible name combinations for testing purposes.
+			$userValid = false;
+			if (isset($patronDump['PATRN_NAME'])){
+				$patronName = $patronDump['PATRN_NAME'];
+				list($fullName, $lastName, $firstName, $userValid) = $this->validatePatronName($username, $patronName);
+			}
+
+			if ($userValid){
+				$user = array(
+					'id'        => $password,
+					'username'  => $patronDump['RECORD_#'],
+					'firstname' => isset($firstName) ? $firstName : '',
+					'lastname'  => isset($lastName) ? $lastName : '',
+					'fullname'  => isset($fullName) ? $fullName : '',     //Added to array for possible display later.
+					'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
+					'cat_password' => $password,
+
+					'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
+					'major' => null,
+					'college' => null,
+					'patronType' => $patronDump['P_TYPE'],
+					'web_note' => isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '');
+				$timer->logTime("patron logged in successfully");
+				return $user;
+
+			} else {
+				$timer->logTime("patron login failed");
+				return null;
 			}
 		}
-		if ($userValid){
-			$user = array(
-                'id'        => $password,
-                'username'  => $patronDump['RECORD_#'],
-                'firstname' => isset($firstname) ? $firstname : '',
-                'lastname'  => isset($lastname) ? $lastname : '',
-                'fullname'  => isset($Fullname) ? $Fullname : '',     //Added to array for possible display later.
-                'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
-                'cat_password' => $password,
-
-                'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
-                'major' => null,
-                'college' => null,
-								'patronType' => $patronDump['P_TYPE'],
-								'web_note' => isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '');
-			$timer->logTime("patron logged in successfully");
-			return $user;
-
-		} else {
-			$timer->logTime("patron login failed");
-			return null;
-		}
-
 	}
 
 	private $patronProfiles = array();
@@ -414,30 +434,113 @@ class MillenniumDriver implements DriverInterface
 			return $this->patronProfiles[$patron['id']];
 		}
 
-		//Load the raw information about the patron
-		$patronDump = $this->_getPatronDump($id2);
+		global $user;
+		if ($configArray['Catalog']['offline'] == true){
+			$fullName = $patron['cat_username'];
 
-		if (isset($patronDump['ADDRESS'])){
-			$Fulladdress = $patronDump['ADDRESS'];
-			$addressParts =explode('$',$Fulladdress);
-			$Address1 = $addressParts[0];
-			$City = isset($addressParts[1]) ? $addressParts[1] : '';
-			$State = isset($addressParts[2]) ? $addressParts[2] : '';
-			$Zip = isset($addressParts[3]) ? $addressParts[3] : '';
-
-			if (preg_match('/(.*?),\\s+(.*)\\s+(\\d*(?:-\\d*)?)/', $City, $matches)) {
-				$City = $matches[1];
-				$State = $matches[2];
-				$Zip = $matches[3];
-			}
-		}else{
 			$Address1 = "";
 			$City = "";
 			$State = "";
 			$Zip = "";
-		}
+			$finesVal = 0;
+			$expireClose = false;
+			$homeBranchCode = '';
+			$numHoldsAvailable = '?';
+			$numHoldsRequested = '?';
 
-		$fullName = $patronDump['PATRN_NAME'];
+			if (!$user){
+				$user = new User();
+				$user->cat_password = $id2;
+				if ($user->find(true)){
+					$location = new Location();
+					$location->locationId = $user->homeLocationId;
+					$location->find(1);
+					$homeBranchCode = $location->code;
+				}
+			}
+
+
+		}else{
+			//Load the raw information about the patron
+			$patronDump = $this->_getPatronDump($id2);
+
+			if (isset($patronDump['ADDRESS'])){
+				$fullAddress = $patronDump['ADDRESS'];
+				$addressParts =explode('$',$fullAddress);
+				$Address1 = $addressParts[0];
+				$City = isset($addressParts[1]) ? $addressParts[1] : '';
+				$State = isset($addressParts[2]) ? $addressParts[2] : '';
+				$Zip = isset($addressParts[3]) ? $addressParts[3] : '';
+
+				if (preg_match('/(.*?),\\s+(.*)\\s+(\\d*(?:-\\d*)?)/', $City, $matches)) {
+					$City = $matches[1];
+					$State = $matches[2];
+					$Zip = $matches[3];
+				}
+			}else{
+				$Address1 = "";
+				$City = "";
+				$State = "";
+				$Zip = "";
+			}
+
+			$fullName = $patronDump['PATRN_NAME'];
+
+			//Get additional information about the patron's home branch for display.
+			$homeBranchCode = $patronDump['HOME_LIBR'];
+			//Translate home branch to plain text
+			$location = new Location();
+			$location->whereAdd("code = '$homeBranchCode'");
+			$location->find(1);
+
+			if ($user) {
+				if ($user->homeLocationId == 0 && isset($location)) {
+					$user->homeLocationId = $location->locationId;
+					if ($location->nearbyLocation1 > 0){
+						$user->myLocation1Id = $location->nearbyLocation1;
+					}else{
+						$user->myLocation1Id = $location->locationId;
+					}
+					if ($location->nearbyLocation2 > 0){
+						$user->myLocation2Id = $location->nearbyLocation2;
+					}else{
+						$user->myLocation2Id = $location->locationId;
+					}
+					if ($user instanceof User) {
+						//Update the database
+						$user->update();
+						//Update the serialized instance stored in the session
+						$_SESSION['userinfo'] = serialize($user);
+					}
+				}
+			}
+
+			//see if expiration date is close
+			list ($monthExp, $dayExp, $yearExp) = explode("-",$patronDump['EXP_DATE']);
+			$timeExpire = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
+			$timeNow = time();
+			$timeToExpire = $timeExpire - $timeNow;
+			if ($timeToExpire <= 30 * 24 * 60 * 60){
+				$expireClose = 1;
+			}else{
+				$expireClose = 0;
+			}
+
+			$finesVal = floatval(preg_replace('/[^\\d.]/', '', $patronDump['MONEY_OWED']));
+
+			$numHoldsAvailable = 0;
+			$numHoldsRequested = 0;
+			$availableStatusRegex = isset($configArray['Catalog']['patronApiAvailableHoldsRegex']) ? $configArray['Catalog']['patronApiAvailableHoldsRegex'] : "/ST=(105|98),/";
+			if (isset($patronDump) && isset($patronDump['HOLD']) && count($patronDump['HOLD']) > 0){
+				foreach ($patronDump['HOLD'] as $hold){
+					if (preg_match("$availableStatusRegex", $hold)){
+						$numHoldsAvailable++;
+					}else{
+						$numHoldsRequested++;
+					}
+				}
+			}
+		}
 
 		$nameParts = explode(', ',$fullName);
 		$lastName = $nameParts[0];
@@ -449,36 +552,8 @@ class MillenniumDriver implements DriverInterface
 			$firstName = $secondName;
 		}
 
-		//Get additional information about the patron's home branch for display.
-		$homeBranchCode = $patronDump['HOME_LIBR'];
-		//Translate home branch to plain text
-		global $user;
-
-		$location = new Location();
-		$location->whereAdd("code = '$homeBranchCode'");
-		$location->find(1);
 
 		if ($user) {
-			if ($user->homeLocationId == 0) {
-				$user->homeLocationId = $location->locationId;
-				if ($location->nearbyLocation1 > 0){
-					$user->myLocation1Id = $location->nearbyLocation1;
-				}else{
-					$user->myLocation1Id = $location->locationId;
-				}
-				if ($location->nearbyLocation2 > 0){
-					$user->myLocation2Id = $location->nearbyLocation2;
-				}else{
-					$user->myLocation2Id = $location->locationId;
-				}
-				if ($user instanceof User) {
-					//Update the database
-					$user->update();
-					//Update the serialized instance stored in the session
-					$_SESSION['userinfo'] = serialize($user);
-				}
-			}
-
 			//Get display name for preferred location 1
 			$myLocation1 = new Location();
 			$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
@@ -490,31 +565,7 @@ class MillenniumDriver implements DriverInterface
 			$myLocation2->find(1);
 		}
 
-		//see if expiration date is close
-		list ($monthExp, $dayExp, $yearExp) = explode("-",$patronDump['EXP_DATE']);
-		$timeExpire = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
-		$timeNow = time();
-		$timeToExpire = $timeExpire - $timeNow;
-		if ($timeToExpire <= 30 * 24 * 60 * 60){
-			$expireClose = 1;
-		}else{
-			$expireClose = 0;
-		}
 
-		$finesVal = floatval(preg_replace('/[^\\d.]/', '', $patronDump['MONEY_OWED']));
-
-		$numHoldsAvailable = 0;
-		$numHoldsRequested = 0;
-		$availableStatusRegex = isset($configArray['Catalog']['patronApiAvailableHoldsRegex']) ? $configArray['Catalog']['patronApiAvailableHoldsRegex'] : "/ST=(105|98),/";
-		if (isset($patronDump['HOLD']) && count($patronDump['HOLD']) > 0){
-			foreach ($patronDump['HOLD'] as $hold){
-				if (preg_match("$availableStatusRegex", $hold)){
-					$numHoldsAvailable++;
-				}else{
-					$numHoldsRequested++;
-				}
-			}
-		}
 		$profile = array('lastname' => $lastName,
 				'firstname' => $firstName,
 				'fullname' => $fullName,
@@ -523,29 +574,29 @@ class MillenniumDriver implements DriverInterface
 				'city' => $City,
 				'state' => $State,
 				'zip'=> $Zip,
-				'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
-				'overdriveEmail' => ($user) ? $user->overdriveEmail : (isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : ''),
+				'email' => ($user && $user->email) ? $user->email : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '') ,
+				'overdriveEmail' => ($user) ? $user->overdriveEmail : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : ''),
 				'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
-				'phone' => isset($patronDump['TELEPHONE']) ? $patronDump['TELEPHONE'] : '',
-				'fines' => $patronDump['MONEY_OWED'],
-				'finesval' =>$finesVal,
-				'expires' =>$patronDump['EXP_DATE'],
-				'expireclose' =>$expireClose,
+				'phone' => (isset($patronDump) && isset($patronDump['TELEPHONE'])) ? $patronDump['TELEPHONE'] : '',
+				'fines' => isset($patronDump) ? $patronDump['MONEY_OWED'] : '0',
+				'finesval' => $finesVal,
+				'expires' => isset($patronDump) ? $patronDump['EXP_DATE'] : '',
+				'expireclose' => $expireClose,
 				'homeLocationCode' => trim($homeBranchCode),
-				'homeLocationId' => $location->locationId,
-				'homeLocation' => $location->displayName,
+				'homeLocationId' => isset($location) ? $location->locationId : 0,
+				'homeLocation' => isset($location) ? $location->displayName : '',
 				'myLocation1Id' => ($user) ? $user->myLocation1Id : -1,
 				'myLocation1' => isset($myLocation1) ? $myLocation1->displayName : '',
 				'myLocation2Id' => ($user) ? $user->myLocation2Id : -1,
 				'myLocation2' => isset($myLocation2) ? $myLocation2->displayName : '',
-				'numCheckedOut' => $patronDump['CUR_CHKOUT'],
-				'numHolds' => isset($patronDump['HOLD']) ? count($patronDump['HOLD']) : 0,
+				'numCheckedOut' => isset($patronDump) ? $patronDump['CUR_CHKOUT'] : '?',
+				'numHolds' => isset($patronDump) ? (isset($patronDump['HOLD']) ? count($patronDump['HOLD']) : 0) : '?',
 				'numHoldsAvailable' => $numHoldsAvailable,
 				'numHoldsRequested' => $numHoldsRequested,
 				'bypassAutoLogout' => ($user) ? $user->bypassAutoLogout : 0,
-				'ptype' => $patronDump['P_TYPE'],
-				'notices' => $patronDump['NOTICE_PREF'],
-				'web_note' => isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '',
+				'ptype' => ($user && $user->patronType) ? $user->patronType : (isset($patronDump) ? $patronDump['P_TYPE'] : 0),
+				'notices' => isset($patronDump) ? $patronDump['NOTICE_PREF'] : '',
+				'web_note' => isset($patronDump) ? (isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '') : '',
 		);
 
 		//Get eContent info as well
@@ -801,7 +852,7 @@ class MillenniumDriver implements DriverInterface
 	public function updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		$millenniumHolds->updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue);
+		return $millenniumHolds->updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue);
 	}
 
 	public function renewAll(){
@@ -1326,9 +1377,49 @@ class MillenniumDriver implements DriverInterface
 		return $loginData;
 	}
 
+	/**
+	 * Process inventory for a particular item in the catalog
+	 *
+	 * @param string $login     Login for the user doing the inventory
+	 * @param string $password1 Password for the user doing the inventory
+	 * @param string $initials
+	 * @param string $password2
+	 * @param string[] $barcodes
+	 * @param boolean $updateIncorrectStatuses
+	 *
+	 * @return array
+	 */
 	function doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumInventory.php';
 		$millenniumInventory = new MillenniumInventory($this);
 		return $millenniumInventory->doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses);
+	}
+
+	/**
+	 * @param $username
+	 * @param $patronName
+	 * @return array
+	 */
+	public function validatePatronName($username, $patronName) {
+		$fullName = str_replace(",", " ", $patronName);
+		$fullName = str_replace(";", " ", $fullName);
+		$fullName = str_replace(";", "'", $fullName);
+		$allNameComponents = preg_split('^[\s-]^', strtolower($fullName));
+		$nameParts = explode(' ', $fullName);
+		$lastName = strtolower($nameParts[0]);
+		$middleName = isset($nameParts[2]) ? strtolower($nameParts[2]) : '';
+		$firstName = isset($nameParts[1]) ? strtolower($nameParts[1]) : $middleName;
+
+		//Get the first name that the user supplies.
+		//This expects the user to enter one or two names and only
+		//Validates the first name that was entered.
+		$enteredNames = preg_split('^[\s-]^', strtolower($username));
+		foreach ($enteredNames as $name) {
+			if (in_array($name, $allNameComponents, false)) {
+				$userValid = true;
+				break;
+			}
+		}
+		return array($fullName, $lastName, $firstName, $userValid);
 	}
 }

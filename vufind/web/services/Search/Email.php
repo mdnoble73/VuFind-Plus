@@ -71,12 +71,16 @@ class Search_Email extends Action
 
 		$subject = translate('Library Catalog Search Result');
 		$interface->assign('from', $from);
-		$interface->assign('message', $message);
-		$interface->assign('msgUrl', $url);
-		$body = $interface->fetch('Emails/share-link.tpl');
+		if (strpos($message, 'http') === false && strpos($message, 'mailto') === false && $message == strip_tags($message)){
+			$interface->assign('message', $message);
+			$interface->assign('msgUrl', $url);
+			$body = $interface->fetch('Emails/share-link.tpl');
 
-		$mail = new VuFindMailer();
-		return $mail->send($to, $from, $subject, $body);
+			$mail = new VuFindMailer();
+			return $mail->send($to, $from, $subject, $body);
+		}else{
+			return false;
+		}
 	}
 }
 ?>

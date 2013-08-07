@@ -116,8 +116,14 @@ class Email extends MyResearch
 				$this->errorMsg = $result->getMessage();
 				$interface->assign('formTo', $_POST['to']);
 				$interface->assign('formFrom', $_POST['from']);
-				$interface->assign('formMessage', $_POST['message']);
-				$interface->assign('formIDS', $_POST['ids']);
+				//Check for spam
+				$message = $_POST['message'];
+				if (strpos($message, 'http') === false && strpos($message, 'mailto') === false && $message == strip_tags($message)){
+					$interface->assign('formMessage', $message);
+					$interface->assign('formIDS', $_POST['ids']);
+				}else{
+					$this->errorMsg = 'Messages may not contain links or html';
+				}
 			}
 		} else {
 			$this->errorMsg = 'fav_email_missing';

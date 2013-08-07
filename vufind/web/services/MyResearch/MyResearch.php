@@ -27,7 +27,9 @@ require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 
 abstract class MyResearch extends Action
 {
+	/** @var  SearchObject_Solr|SearchObject_Base */
 	protected $db;
+	/** @var  CatalogConnection $catalog */
 	protected $catalog;
 	protected $requireLogin = true;
 

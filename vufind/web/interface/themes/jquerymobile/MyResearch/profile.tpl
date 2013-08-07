@@ -8,6 +8,7 @@
         <dd>{$profile.firstname|escape}</dd>
         <dt>{translate text='Last Name'}:</dt>
         <dd>{$profile.lastname|escape}</dd>
+	      {if !offline}
         <dt>{translate text='Address'} 1:</dt>
         <dd>{$profile.address1|escape}</dd>
         <dt>{translate text='Address'} 2:</dt>
@@ -18,6 +19,7 @@
         <dd>{$profile.phone|escape}</dd>
         <dt>{translate text='Group'}:</dt>
         <dd>{$profile.group|escape}</dd>
+	      {/if}
       </dl>
     {else}
       You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.

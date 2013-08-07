@@ -77,6 +77,7 @@ class Holds extends MyResearch
                          'location' => 'Pickup Location',
                          'status' => 'Status',
 		);
+
 		if ($showPosition){
 			$sortOptions['position'] = 'Position';
 		}
@@ -100,84 +101,116 @@ class Holds extends MyResearch
 		$interface->assign('showNotInterested', false);
 
 		// Get My Transactions
-		$patron = null;
-		if ($this->catalog->status) {
-			if ($user->cat_username) {
-				$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-				$patronResult = $this->catalog->getMyProfile($patron);
-				if (!PEAR_Singleton::isError($patronResult)) {
-					$interface->assign('profile', $patronResult);
-				}
+		if ($configArray['Catalog']['offline']){
+			$interface->assign('offline', true);
+		}else{
+			$patron = null;
+			if ($this->catalog->status) {
+				if ($user->cat_username) {
+					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
+					$patronResult = $this->catalog->getMyProfile($patron);
+					if (!PEAR_Singleton::isError($patronResult)) {
+						$interface->assign('profile', $patronResult);
+					}
 
-				$interface->assign('sortOptions', $sortOptions);
-				$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'dueDate';
-				$interface->assign('defaultSortOption', $selectedSortOption);
-				$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+					$interface->assign('sortOptions', $sortOptions);
+					$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'dueDate';
+					$interface->assign('defaultSortOption', $selectedSortOption);
+					$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 
-				$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
-				$interface->assign('recordsPerPage', $recordsPerPage);
-				if (isset($_GET['exportToExcel'])) {
-					$recordsPerPage = -1;
-					$page = 1;
-				}
+					$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
+					$interface->assign('recordsPerPage', $recordsPerPage);
+					if (isset($_GET['exportToExcel'])) {
+						$recordsPerPage = -1;
+						$page = 1;
+					}
 
-				$result = $this->catalog->getMyHolds($patron, $page, $recordsPerPage, $selectedSortOption);
-				if (!PEAR_Singleton::isError($result)) {
-					if (count($result) > 0 ) {
-						$location = new Location();
-						$pickupBranches = $location->getPickupBranches($patronResult, null);
-						$locationList = array();
-						foreach ($pickupBranches as $curLocation) {
-							$locationList[$curLocation->locationId] = $curLocation->displayName;
-						}
-						$interface->assign('pickupLocations', $locationList);
+					$result = $this->catalog->getMyHolds($patron, $page, $recordsPerPage, $selectedSortOption);
+					if (!PEAR_Singleton::isError($result)) {
+						if (count($result) > 0 ) {
+							$location = new Location();
+							$pickupBranches = $location->getPickupBranches($patronResult, null);
+							$locationList = array();
+							foreach ($pickupBranches as $curLocation) {
+								$locationList[$curLocation->locationId] = $curLocation->displayName;
+							}
+							$interface->assign('pickupLocations', $locationList);
 
-						foreach ($result['holds'] as $sectionKey => $sectionData) {
-							if ($sectionKey == 'unavailable'){
-								$link = $_SERVER['REQUEST_URI'];
-								if (preg_match('/[&?]page=/', $link)){
-									$link = preg_replace("/page=\\d+/", "page=%d", $link);
-								}else if (strpos($link, "?") > 0){
-									$link .= "&page=%d";
-								}else{
-									$link .= "?page=%d";
+							foreach ($result['holds'] as $sectionKey => $sectionData) {
+								if ($sectionKey == 'unavailable'){
+									$link = $_SERVER['REQUEST_URI'];
+									if (preg_match('/[&?]page=/', $link)){
+										$link = preg_replace("/page=\\d+/", "page=%d", $link);
+									}else if (strpos($link, "?") > 0){
+										$link .= "&page=%d";
+									}else{
+										$link .= "?page=%d";
+									}
+									if ($recordsPerPage != '-1'){
+										$options = array('totalItems' => $result['numUnavailableHolds'],
+									                 'fileName'   => $link,
+									                 'perPage'    => $recordsPerPage,
+									                 'append'    => false,
+										);
+										$pager = new VuFindPager($options);
+										$interface->assign('pageLinks', $pager->getLinks());
+									}
 								}
-								if ($recordsPerPage != '-1'){
-									$options = array('totalItems' => $result['numUnavailableHolds'],
-								                 'fileName'   => $link,
-								                 'perPage'    => $recordsPerPage,
-								                 'append'    => false,
-									);
-									$pager = new VuFindPager($options);
-									$interface->assign('pageLinks', $pager->getLinks());
+
+								//Processing of freeze messages?
+								$timer->logTime("Got recordList of holds to display");
+							}
+							//Make sure available holds come before unavailable
+							$interface->assign('recordList', $result['holds']);
+
+							//make call to export function
+							if ((isset($_GET['exportToExcelAvailable'])) || (isset($_GET['exportToExcelUnavailable']))){
+								if (isset($_GET['exportToExcelAvailable'])) {
+									$exportType = "available";
 								}
+								else {
+									$exportType = "unavailable";
+								}
+								$this->exportToExcel($result['holds'], $exportType, $showDateWhenSuspending, $showPosition, $showExpireTime);
 							}
 
-							//Processing of freeze messages?
-							$timer->logTime("Got recordList of holds to display");
+						} else {
+							$interface->assign('recordList', 'You do not have any holds');
 						}
-						//Make sure available holds come before unavailable
-						$interface->assign('recordList', $result['holds']);
-
-						//make call to export function
-						if ((isset($_GET['exportToExcelAvailable'])) || (isset($_GET['exportToExcelUnavailable']))){
-							if (isset($_GET['exportToExcelAvailable'])) {
-								$exportType = "available";
-							}
-							else {
-								$exportType = "unavailable";
-							}
-							$this->exportToExcel($result['holds'], $exportType, $showDateWhenSuspending, $showPosition, $showExpireTime);
-						}
-
-					} else {
-						$interface->assign('recordList', 'You do not have any holds');
 					}
 				}
 			}
+			$interface->assign('patron',$patron);
 		}
 
-		$interface->assign('patron',$patron);
+		//Load holds that have been entered offline
+		if ($user){
+			require_once ROOT_DIR . '/sys/OfflineHold.php';
+			$twoDaysAgo = time() - 48 * 60 * 60;
+			$twoWeeksAgo = time() - 14 * 24 * 60 * 60;
+			$offlineHoldsObj = new OfflineHold();
+			$offlineHoldsObj->patronId = $user->id;
+			$offlineHoldsObj->whereAdd("status = 'Not Processed' OR (status = 'Hold Placed' AND timeEntered >= $twoDaysAgo)  OR (status = 'Hold Failed' AND timeEntered >= $twoWeeksAgo)");
+			$offlineHolds = array();
+			if ($offlineHoldsObj->find()){
+				while ($offlineHoldsObj->fetch()){
+					//Load the title
+					$offlineHold = array();
+					$resource = new Resource();
+					$resource->source = 'VuFind';
+					$resource->record_id = $offlineHoldsObj->bibId;
+					if ($resource->find(true)){
+						$offlineHold['title'] = $resource->title;
+					}
+					$offlineHold['bibId'] = $offlineHoldsObj->bibId;
+					$offlineHold['timeEntered'] = $offlineHoldsObj->timeEntered;
+					$offlineHold['status'] = $offlineHoldsObj->status;
+					$offlineHold['notes'] = $offlineHoldsObj->notes;
+					$offlineHolds[] = $offlineHold;
+				}
+			}
+			$interface->assign('offlineHolds', $offlineHolds);
+		}
 
 		$hasSeparateTemplates = $interface->template_exists('MyResearch/availableHolds.tpl');
 		if ($hasSeparateTemplates){

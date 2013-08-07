@@ -23,6 +23,11 @@ class MillenniumStatusLoader{
 		global $user;
 		global $timer;
 		global $logger;
+		global $configArray;
+
+		if ($configArray['Catalog']['offline']){
+			return array();
+		}
 
 		//Get information about holdings, order information, and issue information
 		$millenniumInfo = $this->driver->getMillenniumRecordInfo($id);
@@ -528,11 +533,21 @@ class MillenniumStatusLoader{
 	 * @return array an associative array with a summary of the holdings.
 	 */
 	public function getStatusSummary($id, $forSearch = false){
+		global $configArray;
 		$holdings = MillenniumStatusLoader::getStatus($id);
 		$summaryInformation = array();
 		$summaryInformation['recordId'] = $id;
 		$summaryInformation['shortId'] = substr($id, 1);
 		$summaryInformation['isDownloadable'] = false; //Default value, reset later if needed.
+
+		if ($configArray['Catalog']['offline']){
+			$summaryInformation['offline'] = true;
+			$summaryInformation['status'] = 'The circulation system is offline, status not available.';
+			$summaryInformation['holdable'] = true;
+			$summaryInformation['class'] = "unavailable";
+			$summaryInformation['showPlaceHold'] = true;
+			return $summaryInformation;
+		}
 
 		global $library;
 		/** Location $locationSingleton */

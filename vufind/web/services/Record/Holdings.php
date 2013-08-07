@@ -28,6 +28,11 @@ class Record_Holdings extends Record_Record
 	{
 		global $interface;
 		global $configArray;
+		if ($configArray['Catalog']['offline']){
+			$interface->assign('offline', true);
+		}else{
+			$interface->assign('offline', false);
+		}
 
 		// Do not cache holdings page
 		$interface->caching = 0;
@@ -72,6 +77,7 @@ class Record_Holdings extends Record_Record
 				echo 'DEBUG: ' . $e->getMessage();
 				echo '</pre>';
 			}
+			return null;
 		}
 
 		$holdingData = new stdClass();
