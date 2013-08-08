@@ -5,9 +5,9 @@
 
 #ft{
 	width: 70%;
-	border: 4px solid black;
+	/*border: 4px solid black;
 	color: white;
-	background-color: #4E3868;
+	background-color: #4E3868;*/
 	text-align: center;
 	font-size: 12px;
 	font-weight: bold;
@@ -20,7 +20,7 @@
 	text-align: left;
 }
 #ft a, #ft a:visited{
-	color: white;
+	color: black;
 	text-decoration: underline;
 }
 #ft a:hover{
