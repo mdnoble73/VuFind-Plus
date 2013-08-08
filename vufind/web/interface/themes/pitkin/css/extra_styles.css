@@ -26,3 +26,13 @@
 #ft a:hover{
 	font-weight: bold;
 }
+
+.bookletters-widget {
+	display: inline-block;
+	margin: 10px;
+	vertical-align: top;
+}
+
+.searchheader{
+	padding: 0 !important;
+}
