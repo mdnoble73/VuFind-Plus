@@ -18,7 +18,7 @@
 				{assign var="wrapperId" value="recommended"}
 				{assign var="scrollerVariable" value="recommendedScroller"}
 				{assign var="scrollerTitle" value="Recommended for you"}
-				{include file=titleScroller.tpl}
+				{include file='titleScroller.tpl'}
 
 				<script type="text/javascript">
 					var recommendedScroller;
