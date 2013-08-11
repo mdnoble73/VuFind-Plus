@@ -54,6 +54,8 @@ $location = $locationSingleton->getActiveLocation();
 $interface->assign('footerTemplate', 'footer.tpl');
 if (isset($location) && $location->footerTemplate != 'default'){
 	$interface->assign('footerTemplate', $location->footerTemplate);
+}else if (isset($location) && $interface->template_exists('footer_' . $location->code . '.tpl')){
+	$interface->assign('footerTemplate', 'footer_' . $location->code . '.tpl');
 }
 getGitBranch();
 
