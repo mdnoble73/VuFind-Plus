@@ -111,7 +111,25 @@ class Report_PatronStatus extends Action{
 
 		//Set column widths appropriately
 		foreach ($allHomeLibraries as $library => $sheetIndex){
-			//TODO: Set the column widths
+			//Set the column widths
+			$sheet = $excel->setActiveSheetIndex($sheetIndex);
+			$sheet->getColumnDimension('A')->setWidth(7.9);
+			$sheet->getColumnDimension('B')->setWidth(28);
+			$sheet->getColumnDimension('C')->setWidth(6.3);
+			$sheet->getColumnDimension('D')->setAutoSize(true);
+			$sheet->getColumnDimension('E')->setWidth(4.86);
+			$sheet->getColumnDimension('F')->setWidth(10.3);
+			$sheet->getColumnDimension('G')->setAutoSize(true);
+			$sheet->getColumnDimension('H')->setWidth(15);
+			$sheet->getColumnDimension('I')->setWidth(51);
+			$sheet->getColumnDimension('J')->setAutoSize(true);
+			$sheet->getColumnDimension('K')->setWidth(6.5);
+			$sheet->getColumnDimension('L')->setAutoSize(true);
+			$sheet->getColumnDimension('M')->setWidth(2);
+
+			//Wrap the columns
+			$maxRow = $sheet->getHighestRow();
+			$sheet->getStyle('A1:M' . $maxRow)->getAlignment()->setWrapText(true);
 		}
 		$excel->setActiveSheetIndex(0);
 
@@ -143,11 +161,28 @@ class Report_PatronStatus extends Action{
 	    ->setCellValue('J1', 'ITEM BARCODE')
 	    ->setCellValue('K1', 'ITEM LOC')
 	    ->setCellValue('L1', 'DUE DATE')
-	    ->setCellValue('M1', 'STAT');
+	    ->setCellValue('M1', 'STAT')
+			->getRowDimension(1)->setRowHeight(-1); //Set the height to auto
 
 		//Bold the headers
 		$range = "A1:M1";
-		$excel->getActiveSheet()->getStyle($range)->getFont()->setBold(true);
+		$sheet = $excel->getActiveSheet();
+		$sheet->getStyle($range)->getFont()->setBold(true);
+
+		//Center the headers
+		$sheet->getStyle($range)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+		//Set borders
+		$styleArray = array(
+			'borders' => array(
+				'allborders' => array(
+					'style' => PHPExcel_Style_Border::BORDER_THICK
+				)
+			)
+		);
+
+		$sheet->getStyle($range)->applyFromArray($styleArray);
+
 	}
 
 	/**
@@ -193,18 +228,35 @@ class Report_PatronStatus extends Action{
 			$curSheet->setCellValueByColumnAndRow(11, $curRow, $itemInfo[12]); //due date
 			$curSheet->setCellValueByColumnAndRow(12, $curRow, $itemInfo[13]); //stat
 		}
+		//Set height of the row
+		$curSheet->getRowDimension(1)->setRowHeight(-1);
+
 		//Do highlighting
 		$moneyOwned = floatval(preg_replace("/[^0-9\.]/","",$moneyOwned));
 		if ($pCode1 == 'e'){
+			//Orange
 			$color = 'DAA520';
 			$this->highlightRow($curRow, $curSheet, $color, $itemInfo == null);
 		}else if ($itemInfo != null && $moneyOwned > 0){
-			$color = 'EEE8AA';
+			//turquoise
+			$color = '39DBD3';
 			$this->highlightRow($curRow, $curSheet, $color);
 		}else if ($itemInfo != null && $moneyOwned == 0){
-			$color = '20B2AA';
+			//Goldenrod
+			$color = 'EEE8AA';
 			$this->highlightRow($curRow, $curSheet, $color);
 		}
+
+		//Set borders
+		$styleArray = array(
+			'borders' => array(
+				'allborders' => array(
+					'style' => PHPExcel_Style_Border::BORDER_THIN
+				)
+			)
+		);
+
+		$curSheet->getStyle("A{$curRow}:M{$curRow}")->applyFromArray($styleArray);
 		return ++$curRow;
 	}
 
