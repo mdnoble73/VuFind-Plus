@@ -206,6 +206,8 @@ public class MarcRecordDetails {
 		}
 		for (String code : availableAtBySystemOrLocation.keySet()) {
 			addFields(mappedFields, "availability_toggle_" + code, null, availableAtBySystemOrLocation.get(code));
+		}
+		for (String code : timeSinceAddedByLocation.keySet()){
 			LinkedHashSet<String> timesAddedByLocation = timeSinceAddedByLocation.get(code);
 			if (timesAddedByLocation != null && timesAddedByLocation.size() > 0) {
 				addFields(mappedFields, "local_time_since_added_" + code, null, timesAddedByLocation);
