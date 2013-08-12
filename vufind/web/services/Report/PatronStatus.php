@@ -88,23 +88,25 @@ class Report_PatronStatus extends Action{
 			if ($itemInfo == null){
 				//We just have patron information
 				//write to all sheet
-				$curRow['all'] = $this->writePatronInfo($excel, $patronInfo, null, $allHomeLibraries['all'], $curRow['all']);
+				$curRow['all'] = $this->writePatronInfo($excel, $patronInfo, null, true, $allHomeLibraries['all'], $curRow['all']);
 				//write to library sheet
 				$libraryName = trim($patronInfo[3]);
 				if (strlen($libraryName) > 0){
 					$sheetIndex = $allHomeLibraries[$libraryName];
 					$currentRow = $curRow[$libraryName];
-					$curRow[$libraryName] = $this->writePatronInfo($excel, $patronInfo, null, $sheetIndex, $currentRow);
+					$curRow[$libraryName] = $this->writePatronInfo($excel, $patronInfo, null, true, $sheetIndex, $currentRow);
 				}
 			}else{
+				$curItem = 0;
 				foreach($itemInfo as $itemKey => $curItemData){
 					//Write to all sheet
-					$curRow['all'] = $this->writePatronInfo($excel, $patronInfo, $curItemData, $allHomeLibraries['all'], $curRow['all']);
+					$curRow['all'] = $this->writePatronInfo($excel, $patronInfo, $curItemData, $curItem == 0, $allHomeLibraries['all'], $curRow['all']);
 					//write to library sheet
 					$libraryName = trim($curItemData[3]);
 					if (strlen($libraryName) > 0){
-						$curRow[$libraryName] = $this->writePatronInfo($excel, $patronInfo, $curItemData, $allHomeLibraries[$libraryName], $curRow[$libraryName]);
+						$curRow[$libraryName] = $this->writePatronInfo($excel, $patronInfo, $curItemData, $curItem == 0, $allHomeLibraries[$libraryName], $curRow[$libraryName]);
 					}
+					$curItem++;
 				}
 			}
 		}
@@ -194,7 +196,7 @@ class Report_PatronStatus extends Action{
 	 *
 	 * @return int
 	 */
-	private function writePatronInfo($excel, $patronInfo, $itemInfo, $sheetIndex, $curRow) {
+	private function writePatronInfo($excel, $patronInfo, $itemInfo, $firstItem, $sheetIndex, $curRow) {
 		$curSheet = $excel->setActiveSheetIndex($sheetIndex);
 		$moneyOwned = 0;
 		$pCode1 = '';
@@ -206,7 +208,8 @@ class Report_PatronStatus extends Action{
 			$curSheet->getCellByColumnAndRow(3, $curRow)->setValueExplicit("{$patronInfo[4]}"); //Patron barcode
 			$curSheet->setCellValueByColumnAndRow(4, $curRow, $patronInfo[5]); //Grade Level
 			$curSheet->setCellValueByColumnAndRow(5, $curRow, $patronInfo[6]); //Home room
-			$curSheet->setCellValueByColumnAndRow(6, $curRow, $patronInfo[7]); //$ owed
+			//Only set the money owed for the first item so staff doesn't collect extra
+			$curSheet->setCellValueByColumnAndRow(6, $curRow, $firstItem ? $patronInfo[7] : ''); //$ owed
 			$moneyOwned = $patronInfo[7];
 		}
 		if ($itemInfo != null){
@@ -218,7 +221,8 @@ class Report_PatronStatus extends Action{
 				$curSheet->getCellByColumnAndRow(3, $curRow)->setValueExplicit("{$itemInfo[4]}"); //Patron barcode
 				$curSheet->setCellValueByColumnAndRow(4, $curRow, $itemInfo[5]); //Grade Level
 				$curSheet->setCellValueByColumnAndRow(5, $curRow, $itemInfo[6]); //Home room
-				$curSheet->setCellValueByColumnAndRow(6, $curRow, $itemInfo[7]); //$ owed
+				//Only set the money owed for the first item so staff doesn't collect extra
+				$curSheet->setCellValueByColumnAndRow(6, $curRow, $firstItem ? $itemInfo[7] : ''); //$ owed
 				$moneyOwned = $itemInfo[7];
 			}
 			$curSheet->setCellValueByColumnAndRow(7, $curRow, $itemInfo[8]); //call #
@@ -233,6 +237,11 @@ class Report_PatronStatus extends Action{
 
 		//Do highlighting
 		$moneyOwned = floatval(preg_replace("/[^0-9\.]/","",$moneyOwned));
+		if ($moneyOwned > 0){
+			//Highlight the money owed in red and bold the text
+			$curSheet->getStyle("G".$curRow)->getFont()->getColor()->applyFromArray(array("rgb" => 'FF0000'));
+			$curSheet->getStyle("G".$curRow)->getFont()->setBold(true);
+		}
 		if ($pCode1 == 'e'){
 			//Orange
 			$color = 'DAA520';
