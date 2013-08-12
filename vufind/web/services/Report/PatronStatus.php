@@ -47,7 +47,7 @@ class Report_PatronStatus extends Action{
 		$this->loadItemData($itemReportFile, $allPatronBarcodes, $allHomeLibraries, $itemData);
 
 		//Sort barcodes by home library and patron name
-		asort($allPatronBarcodes);
+		uasort($allPatronBarcodes, array($this, 'sort_patrons'));
 
 		//Create the spreadsheet
 		require_once ROOT_DIR . '/PHPExcel.php';
@@ -108,6 +108,11 @@ class Report_PatronStatus extends Action{
 				}
 			}
 		}
+
+		//Set column widths appropriately
+		foreach ($allHomeLibraries as $library => $sheetIndex){
+			//TODO: Set the column widths
+		}
 		$excel->setActiveSheetIndex(0);
 
 		// Redirect output to a client's web browser (Excel5)
@@ -139,6 +144,10 @@ class Report_PatronStatus extends Action{
 	    ->setCellValue('K1', 'ITEM LOC')
 	    ->setCellValue('L1', 'DUE DATE')
 	    ->setCellValue('M1', 'STAT');
+
+		//Bold the headers
+		$range = "A1:M1";
+		$excel->getActiveSheet()->getStyle($range)->getFont()->setBold(true);
 	}
 
 	/**
@@ -152,34 +161,53 @@ class Report_PatronStatus extends Action{
 	 */
 	private function writePatronInfo($excel, $patronInfo, $itemInfo, $sheetIndex, $curRow) {
 		$curSheet = $excel->setActiveSheetIndex($sheetIndex);
+		$moneyOwned = 0;
+		$pCode1 = '';
 		if ($patronInfo != null){
-			$curSheet->setCellValueByColumnAndRow(0, $curRow, $patronInfo[1]); //P Code 1
+			$curSheet->setCellValueByColumnAndRow(0, $curRow, $patronInfo[1] == 'e' ? 'Inactive' : $patronInfo[1]); //P Code 1
+			$pCode1 = trim($patronInfo[1]);
 			$curSheet->setCellValueByColumnAndRow(1, $curRow, $patronInfo[2]); //Patron name
 			$curSheet->setCellValueByColumnAndRow(2, $curRow, $patronInfo[3]); //Home library
-			$curSheet->setCellValueByColumnAndRow(3, $curRow, $patronInfo[4]); //Patron barcode
+			$curSheet->getCellByColumnAndRow(3, $curRow)->setValueExplicit("{$patronInfo[4]}"); //Patron barcode
 			$curSheet->setCellValueByColumnAndRow(4, $curRow, $patronInfo[5]); //Grade Level
 			$curSheet->setCellValueByColumnAndRow(5, $curRow, $patronInfo[6]); //Home room
 			$curSheet->setCellValueByColumnAndRow(6, $curRow, $patronInfo[7]); //$ owed
+			$moneyOwned = $patronInfo[7];
 		}
 		if ($itemInfo != null){
 			if ($patronInfo == null){
-				$curSheet->setCellValueByColumnAndRow(0, $curRow, $itemInfo[1]); //P Code 1
+				$curSheet->setCellValueByColumnAndRow(0, $curRow, $itemInfo[1] == 'e' ? 'Inactive' : $itemInfo[1]); //P Code 1
+				$pCode1 = trim($itemInfo[1]);
 				$curSheet->setCellValueByColumnAndRow(1, $curRow, $itemInfo[2]); //Patron name
 				$curSheet->setCellValueByColumnAndRow(2, $curRow, $itemInfo[3]); //Home library
-				$curSheet->setCellValueByColumnAndRow(3, $curRow, $itemInfo[4]); //Patron barcode
+				$curSheet->getCellByColumnAndRow(3, $curRow)->setValueExplicit("{$itemInfo[4]}"); //Patron barcode
 				$curSheet->setCellValueByColumnAndRow(4, $curRow, $itemInfo[5]); //Grade Level
 				$curSheet->setCellValueByColumnAndRow(5, $curRow, $itemInfo[6]); //Home room
 				$curSheet->setCellValueByColumnAndRow(6, $curRow, $itemInfo[7]); //$ owed
+				$moneyOwned = $itemInfo[7];
 			}
 			$curSheet->setCellValueByColumnAndRow(7, $curRow, $itemInfo[8]); //call #
 			$curSheet->setCellValueByColumnAndRow(8, $curRow, $itemInfo[9]); //title
-			$curSheet->setCellValueByColumnAndRow(9, $curRow, $itemInfo[10]); //item barcode
+			$curSheet->getCellByColumnAndRow(9, $curRow)->setValueExplicit("{$itemInfo[10]}"); //Item barcode
 			$curSheet->setCellValueByColumnAndRow(10, $curRow, $itemInfo[11]); //item location
 			$curSheet->setCellValueByColumnAndRow(11, $curRow, $itemInfo[12]); //due date
 			$curSheet->setCellValueByColumnAndRow(12, $curRow, $itemInfo[13]); //stat
 		}
+		//Do highlighting
+		$moneyOwned = floatval(preg_replace("/[^0-9\.]/","",$moneyOwned));
+		if ($pCode1 == 'e'){
+			$color = 'DAA520';
+			$this->highlightRow($curRow, $curSheet, $color, $itemInfo == null);
+		}else if ($itemInfo != null && $moneyOwned > 0){
+			$color = 'EEE8AA';
+			$this->highlightRow($curRow, $curSheet, $color);
+		}else if ($itemInfo != null && $moneyOwned == 0){
+			$color = '20B2AA';
+			$this->highlightRow($curRow, $curSheet, $color);
+		}
 		return ++$curRow;
 	}
+
 
 	/**
 	 * @param $patronReportFile
@@ -203,7 +231,16 @@ class Report_PatronStatus extends Action{
 				$patronBarcode = trim($patronDataRow[4]);
 				if (strlen($patronBarcode) > 0) {
 					$homeLibrary = trim($patronDataRow[3]);
-					$allPatronBarcodes[$patronBarcode] = $homeLibrary . '-' . $patronDataRow[2];
+					$pCode1 = trim($patronDataRow[1]);
+					$gradeLevel = trim($patronDataRow[5]);
+					$patronName = trim($patronDataRow[2]);
+					$moneyOwed = trim($patronDataRow[7]);
+					$allPatronBarcodes[$patronBarcode] = array(
+						'pCode1' => $pCode1,
+						'gradeLevel' => $gradeLevel,
+						'patronName' => $patronName,
+						'moneyOwed' => $moneyOwed,
+					);
 					$patronData[$patronBarcode] = $patronDataRow;
 					$allHomeLibraries[$homeLibrary] = $homeLibrary;
 				}
@@ -276,12 +313,63 @@ class Report_PatronStatus extends Action{
 						$itemData[$patronBarcode] = array();
 					}
 					$homeLibrary = trim($itemDataRow[3]);
-					$allPatronBarcodes[$patronBarcode] = $homeLibrary . '-' . $itemDataRow[2];
+					$pCode1 = trim($itemDataRow[1]);
+					$gradeLevel = trim($itemDataRow[5]);
+					$patronName = trim($itemDataRow[2]);
+					$moneyOwed = trim($itemDataRow[7]);
+					$allPatronBarcodes[$patronBarcode] = array(
+						'pCode1' => $pCode1,
+						'gradeLevel' => $gradeLevel,
+						'patronName' => $patronName,
+						'moneyOwed' => $moneyOwed,
+					);
 					$allHomeLibraries[$homeLibrary] = $homeLibrary;
 					$itemData[$patronBarcode][] = $itemDataRow;
 				}
 			}
 		}
 		fclose($itemReportFile);
+	}
+
+	/**
+	 * @param int $curRow
+	 * @param PHPExcel_Worksheet $curSheet
+	 * @param string $color
+	 * @param boolean $partial
+	 */
+	private function highlightRow($curRow, $curSheet, $color, $partial = false) {
+		if ($partial){
+			$range = "A{$curRow}:G{$curRow}";
+		}else{
+			$range = "A{$curRow}:M{$curRow}";
+		}
+		$curSheet->getStyle($range)->applyFromArray(
+			array(
+				'fill' => array(
+					'type' => PHPExcel_Style_Fill::FILL_SOLID,
+					'color' => array('rgb' => $color)
+				)
+			)
+		);
+	}
+
+	function sort_patrons($first, $second){
+		if ($first['pCode1'] == $second['pCode1']){
+			if ($first['gradeLevel'] == $second['gradeLevel']){
+				if ($first['patronName'] == $second['patronName']){
+					if ($first['moneyOwed'] == $second['moneyOwed']){
+						return 0;
+					}else{
+						return strcasecmp($first['moneyOwed'], $second['moneyOwed']);
+					}
+				}else{
+					return strcasecmp($first['patronName'], $second['patronName']);
+				}
+			}else{
+				return strcasecmp($first['gradeLevel'], $second['gradeLevel']);
+			}
+		}else{
+			return strcasecmp($first['pCode1'], $second['pCode1']);
+		}
 	}
 }
