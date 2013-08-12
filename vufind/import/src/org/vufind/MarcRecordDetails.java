@@ -222,15 +222,19 @@ public class MarcRecordDetails {
 			if (values.size() > 0) {
 				addField(mappedFields, "lib_boost_" + subdomain, "500");
 			}
-			LinkedHashSet<String> timesAddedBySystem = timeSinceAddedBySystem
-					.get(subdomain);
+			LinkedHashSet<String> timesAddedBySystem = timeSinceAddedBySystem.get(subdomain);
 			if (timesAddedBySystem != null && timesAddedBySystem.size() > 0) {
-				addFields(mappedFields, "local_time_since_added_" + subdomain, null,
-						timesAddedBySystem);
+				addFields(mappedFields, "local_time_since_added_" + subdomain, null, timesAddedBySystem);
 			}
 		}
 		for (String code : availableAtBySystemOrLocation.keySet()) {
 			addFields(mappedFields, "availability_toggle_" + code, null, availableAtBySystemOrLocation.get(code));
+		}
+		for (String code : timeSinceAddedByLocation.keySet()){
+			LinkedHashSet<String> timesAddedByLocation = timeSinceAddedByLocation.get(code);
+			if (timesAddedByLocation != null && timesAddedByLocation.size() > 0) {
+				addFields(mappedFields, "local_time_since_added_" + code, null, timesAddedByLocation);
+			}
 		}
 		// logger.debug("Usable by " + usableByPTypes.size() + " pTypes");
 		addFields(mappedFields, "usable_by", null, usableByPTypes);

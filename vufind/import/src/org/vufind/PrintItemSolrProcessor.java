@@ -309,24 +309,16 @@ public class PrintItemSolrProcessor {
 			}
 			// Check library specific time since added
 			if (libraryIndexingInfo != null) {
-				LinkedHashSet<String> timeSinceAddedBySystemVals = timeSinceAddedBySystem
-						.get(libraryIndexingInfo.getSubdomain());
-				if (timeSinceAddedBySystemVals == null
-						|| itemTimeSinceAdded.size() > timeSinceAddedBySystemVals
-						.size()) {
-					timeSinceAddedBySystem.put(
-							libraryIndexingInfo.getSubdomain(), itemTimeSinceAdded);
+				LinkedHashSet<String> timeSinceAddedBySystemVals = timeSinceAddedBySystem.get(libraryIndexingInfo.getSubdomain());
+				if (timeSinceAddedBySystemVals == null || itemTimeSinceAdded.size() > timeSinceAddedBySystemVals.size()) {
+					timeSinceAddedBySystem.put(libraryIndexingInfo.getSubdomain(), itemTimeSinceAdded);
 				}
 			}
 			// Check location specific time since added
 			if (locationIndexingInfo != null) {
-				LinkedHashSet<String> timeSinceAddedByLocationVals = timeSinceAddedByLocation
-						.get(locationIndexingInfo.getCode());
-				if (timeSinceAddedByLocationVals == null
-						|| itemTimeSinceAdded.size() > timeSinceAddedByLocationVals
-						.size()) {
-					timeSinceAddedByLocation.put(locationIndexingInfo.getCode(),
-							itemTimeSinceAdded);
+				LinkedHashSet<String> timeSinceAddedByLocationVals = timeSinceAddedByLocation.get(locationIndexingInfo.getCode());
+				if (timeSinceAddedByLocationVals == null || itemTimeSinceAdded.size() > timeSinceAddedByLocationVals.size()) {
+					timeSinceAddedByLocation.put(locationIndexingInfo.getCode(), itemTimeSinceAdded);
 				}
 			}
 		} catch (ParseException e) {

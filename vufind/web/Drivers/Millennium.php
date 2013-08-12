@@ -329,11 +329,6 @@ class MillenniumDriver implements DriverInterface
 
 		//Strip any non digit characters from the password
 		$password = preg_replace('/[a-or-zA-OR-Z\W]/', '', $password);
-		if (strlen($password) == 5){
-			$password = '41000000' . $password;
-		}elseif (strlen($password) == 6){
-			$password = '4100000' . $password;
-		}
 
 		if ($configArray['Catalog']['offline'] == true){
 			//The catalog is offline, check the database to see if the user is valid
@@ -643,59 +638,28 @@ class MillenniumDriver implements DriverInterface
 			//Special processing to allow MCVSD Students to login
 			//with their student id.
 			if (strlen($barcode)== 5){
+				$originalCode = $barcode;
 				$barcode = "41000000" . $barcode;
 			}elseif (strlen($barcode)== 6){
+				$originalCode = $barcode;
 				$barcode = "4100000" . $barcode;
+			}else{
+				$originalCode = null;
 			}
 
-			// Load Record Page.  This page has a dump of all patron information
-			//as a simple name value pair list within the body of the webpage.
-			//Sample format of a row is as follows:
-			//P TYPE[p47]=100<BR>
-			$req =  $host . "/PATRONAPI/" . $barcode ."/dump" ;
-			$req = new Proxy_Request($req);
-			//$result = file_get_contents($req);
-			if (PEAR_Singleton::isError($req->sendRequest())) {
-				return null;
-			}
-			$result = $req->getResponseBody();
+			$patronDump = $this->_parsePatronApiPage($host, $barcode);
 
-			//Strip the actual contents out of the body of the page.
-			$r = substr($result, stripos($result, 'BODY'));
-			$r = substr($r,strpos($r,">")+1);
-			$r = substr($r,0,stripos($r,"</BODY"));
-
-			//Remove the bracketed information from each row
-			$r = preg_replace("/\[.+?]=/","=",$r);
-
-			//Split the rows on each BR tag.
-			//This could also be done with a regex similar to the following:
-			//(.*)<BR\s*>
-			//And then get all matches of group 1.
-			//Or a regex similar to
-			//(.*?)\[.*?\]=(.*?)<BR\s*>
-			//Group1 would be the keys and group 2 the values.
-			$rows = preg_replace("/<BR.*?>/","*",$r);
-			$rows = explode("*",$rows);
-			//Add the key and value from each row into an associative array.
-			$patronDump = array();
-			foreach ($rows as $row) {
-				if (strlen(trim($row)) > 0){
-					$ret = explode("=",$row, 2);
-					//$patronDump[str_replace(" ", "_", trim($ret[0]))] = str_replace("$", " ",$ret[1]);
-					$patronDumpKey = str_replace(" ", "_", trim($ret[0]));
-					//Holds can be an array, treat them differently.
-					if ($patronDumpKey == 'HOLD'){
-						$patronDump[$patronDumpKey][] = isset($ret[1]) ? $ret[1] : '';
-					}else{
-						$patronDump[$patronDumpKey] = isset($ret[1]) ? $ret[1] : '';
-					}
+			if (is_null($patronDump)){
+				return $patronDump;
+			}else if (isset($patronDump['ERRNUM']) && $originalCode != null){
+				$patronDump = $this->_parsePatronApiPage($host, $originalCode);
+				if (is_null($patronDump)){
+					return $patronDump;
+				}else{
+					$memCache->set("patron_dump_$barcode", $patronDump, 0, $configArray['Caching']['patron_dump']);
+					//Need to wait a little bit since getting the patron api locks the record in the DB
+					usleep(250);
 				}
-			}
-			$timer->logTime("Got patron information from Patron API");
-
-			if (isset($configArray['ERRNUM'])){
-				return null;
 			}else{
 
 				$memCache->set("patron_dump_$barcode", $patronDump, 0, $configArray['Caching']['patron_dump']);
@@ -703,6 +667,56 @@ class MillenniumDriver implements DriverInterface
 				usleep(250);
 			}
 		}
+		return $patronDump;
+	}
+
+	private function _parsePatronApiPage($host, $barcode){
+		global $timer;
+		// Load Record Page.  This page has a dump of all patron information
+		//as a simple name value pair list within the body of the webpage.
+		//Sample format of a row is as follows:
+		//P TYPE[p47]=100<BR>
+		$req =  $host . "/PATRONAPI/" . $barcode ."/dump" ;
+		$req = new Proxy_Request($req);
+		//$result = file_get_contents($req);
+		if (PEAR_Singleton::isError($req->sendRequest())) {
+			return null;
+		}
+		$result = $req->getResponseBody();
+
+		//Strip the actual contents out of the body of the page.
+		$r = substr($result, stripos($result, 'BODY'));
+		$r = substr($r,strpos($r,">")+1);
+		$r = substr($r,0,stripos($r,"</BODY"));
+
+		//Remove the bracketed information from each row
+		$r = preg_replace("/\[.+?]=/","=",$r);
+
+		//Split the rows on each BR tag.
+		//This could also be done with a regex similar to the following:
+		//(.*)<BR\s*>
+		//And then get all matches of group 1.
+		//Or a regex similar to
+		//(.*?)\[.*?\]=(.*?)<BR\s*>
+		//Group1 would be the keys and group 2 the values.
+		$rows = preg_replace("/<BR.*?>/","*",$r);
+		$rows = explode("*",$rows);
+		//Add the key and value from each row into an associative array.
+		$patronDump = array();
+		foreach ($rows as $row) {
+			if (strlen(trim($row)) > 0){
+				$ret = explode("=",$row, 2);
+				//$patronDump[str_replace(" ", "_", trim($ret[0]))] = str_replace("$", " ",$ret[1]);
+				$patronDumpKey = str_replace(" ", "_", trim($ret[0]));
+				//Holds can be an array, treat them differently.
+				if ($patronDumpKey == 'HOLD'){
+					$patronDump[$patronDumpKey][] = isset($ret[1]) ? $ret[1] : '';
+				}else{
+					$patronDump[$patronDumpKey] = isset($ret[1]) ? $ret[1] : '';
+				}
+			}
+		}
+		$timer->logTime("Got patron information from Patron API");
 		return $patronDump;
 	}
 
