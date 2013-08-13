@@ -1008,11 +1008,12 @@ class MillenniumDriver implements DriverInterface
 
 	public function _getBarcode(){
 		global $user;
-		if (strlen($user->cat_password) == 5){
+		//Don't rewrite patron barcodes since some use long and some use short.
+		/*if (strlen($user->cat_password) == 5){
 			$user->cat_password = '41000000' . $user->cat_password;
 		}elseif (strlen($user->cat_password) == 6){
 			$user->cat_password = '4100000' . $user->cat_password;
-		}
+		}*/
 		return $user->cat_password;
 	}
 
