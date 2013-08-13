@@ -7,6 +7,16 @@ require_once 'bootstrap.php';
 require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 $driver = OverDriveDriverFactory::getDriver();
 
+//Connect to the patron API
+$token = $driver->_connectToPatronAPI('1234567890', '1234', true);
+echo("<br/>Connecting to patron API<br/>");
+print_r($token);
+echo("<br/>Getting patron information<br/>");
+$patronData = $driver->_callPatronUrl('https://api.mock.overdrive.com/v2/patrons/me');
+print_r($patronData);
+echo("<br/>End patron API tests<br/>");
+
+
 $libraryInfo = $driver->getLibraryAccountInformation();
 print_r($libraryInfo);
 echo("<h1>{$libraryInfo->name}</h1>");
