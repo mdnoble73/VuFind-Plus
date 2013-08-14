@@ -12,7 +12,7 @@ $token = $driver->_connectToPatronAPI('1234567890', '1234', true);
 echo("<br/>Connecting to patron API<br/>");
 print_r($token);
 echo("<br/>Getting patron information<br/>");
-$patronData = $driver->_callPatronUrl('https://api.mock.overdrive.com/v2/patrons/me');
+$patronData = $driver->_callPatronUrl('http://207.54.136.233/v2/patrons/me');
 print_r($patronData);
 echo("<br/>End patron API tests<br/>");
 

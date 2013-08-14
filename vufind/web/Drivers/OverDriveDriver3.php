@@ -135,11 +135,14 @@ class OverDriveDriver3 {
 	public function _callPatronUrl($url){
 		for ($i = 1; $i < 5; $i++){
 			$tokenData = $this->_connectToPatronAPI($i != 1);
-			if ($tokenData){
+			//TODO: Remove || true when oauth works
+			if ($tokenData || true){
 				$ch = curl_init($url);
 				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 				curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}", "User-Agent: VuFind-Plus"));
+				if ($tokenData){
+					curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}", "User-Agent: VuFind-Plus"));
+				}
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 				curl_setopt($ch, CURLOPT_TIMEOUT, 30);
