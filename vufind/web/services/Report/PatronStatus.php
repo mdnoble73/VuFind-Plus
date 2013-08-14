@@ -51,6 +51,11 @@ class Report_PatronStatus extends Action{
 
 		//Create the spreadsheet
 		require_once ROOT_DIR . '/PHPExcel.php';
+
+		$cacheMethod = PHPExcel_CachedObjectStorageFactory::cache_to_phpTemp;
+		$cacheSettings = array( ' memoryCacheSize ' => '32MB');
+		PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
+
 		$excel = new PHPExcel();
 		// Set properties
 		$excel->getProperties()->setCreator($configArray['Site']['title'])
@@ -60,19 +65,48 @@ class Report_PatronStatus extends Action{
 
 		//Create a sheet for each library (as well as all libraries)
 		ksort($allHomeLibraries);
-		$excel->createSheet(0)->setTitle('All Libraries');
-		$curIndex = 0;
+		//$excel->createSheet(0)->setTitle('All Libraries');
+		$curIndex = -1;
 		$curRow = array();
-		$curRow['all'] = 2;
-		$this->addHeaders($excel, 0);
+		//$curRow['all'] = 2;
+		//$this->addHeaders($excel, 0);
+		$rowsPerSheet = array();
+		//$rowsPerSheet['all'] = 0;
 		foreach($allHomeLibraries as $library){
 			$curIndex++;
 			$excel->createSheet($curIndex)->setTitle($library);
 			$allHomeLibraries[$library] = $curIndex;
 			$curRow[$library] = 2;
+			$rowsPerSheet[$library] = 0;
 			$this->addHeaders($excel, $curIndex);
 		}
-		$allHomeLibraries['all'] = 0;
+		//$allHomeLibraries['all'] = 0;
+
+		//Pre-generate the rows in each sheet since that may improve performance
+		foreach ($allPatronBarcodes as $barcode => $patronName){
+			$patronInfo = null;
+			if (isset($patronData[$barcode])){
+				$patronInfo = $patronData[$barcode];
+			}
+			$itemInfo = null;
+			if (isset($itemData[$barcode])){
+				$itemInfo = $itemData[$barcode];
+			}
+			if ($itemInfo == null){
+				//$rowsPerSheet['all']++;
+				$rowsPerSheet[trim($patronInfo[3])]++;
+			}else{
+				//$rowsPerSheet['all'] += count($itemInfo);
+				foreach ($itemInfo as $curItemData){
+					$rowsPerSheet[trim($curItemData[3])]++;
+				}
+			}
+		}
+		foreach ($rowsPerSheet as $libraryName => $numRows){
+			$sheet = $excel->setActiveSheetIndex($allHomeLibraries[trim($libraryName)]);
+			$lastRow = $sheet->getHighestRow() + 1;
+			$sheet->insertNewRowBefore($lastRow, $numRows);
+		}
 
 		//Loop through each barcode and extract the appropriate data
 		foreach ($allPatronBarcodes as $barcode => $patronName){
@@ -88,7 +122,7 @@ class Report_PatronStatus extends Action{
 			if ($itemInfo == null){
 				//We just have patron information
 				//write to all sheet
-				$curRow['all'] = $this->writePatronInfo($excel, $patronInfo, null, true, $allHomeLibraries['all'], $curRow['all']);
+				//$curRow['all'] = $this->writePatronInfo($excel, $patronInfo, null, true, $allHomeLibraries['all'], $curRow['all']);
 				//write to library sheet
 				$libraryName = trim($patronInfo[3]);
 				if (strlen($libraryName) > 0){
@@ -100,7 +134,7 @@ class Report_PatronStatus extends Action{
 				$curItem = 0;
 				foreach($itemInfo as $itemKey => $curItemData){
 					//Write to all sheet
-					$curRow['all'] = $this->writePatronInfo($excel, $patronInfo, $curItemData, $curItem == 0, $allHomeLibraries['all'], $curRow['all']);
+					//$curRow['all'] = $this->writePatronInfo($excel, $patronInfo, $curItemData, $curItem == 0, $allHomeLibraries['all'], $curRow['all']);
 					//write to library sheet
 					$libraryName = trim($curItemData[3]);
 					if (strlen($libraryName) > 0){
@@ -180,7 +214,7 @@ class Report_PatronStatus extends Action{
 				'allborders' => array(
 					'style' => PHPExcel_Style_Border::BORDER_THICK
 				)
-			)
+			),
 		);
 
 		$sheet->getStyle($range)->applyFromArray($styleArray);
@@ -191,6 +225,7 @@ class Report_PatronStatus extends Action{
 	 * @param PHPExcel $excel
 	 * @param string[] $patronInfo
 	 * @param string[] $itemInfo
+	 * @param boolean $firstItem
 	 * @param int[] $sheetIndex
 	 * @param int[] $curRow
 	 *
