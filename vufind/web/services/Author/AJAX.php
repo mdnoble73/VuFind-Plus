@@ -26,6 +26,8 @@ class Author_AJAX {
 		global $configArray;
 		global $library;
 		global $interface;
+		/** @var Memcache $memcache */
+		global $memCache;
 		$returnVal = array();
 		if (isset($configArray['Content']['authors'])
 				&& stristr($configArray['Content']['authors'], 'wikipedia')
@@ -36,9 +38,13 @@ class Author_AJAX {
 			// variations like pt-br or en-gb.
 			$authorName = $_REQUEST['articleName'];
 			$wiki_lang = substr($configArray['Site']['language'], 0, 2);
-			require_once ROOT_DIR . '/services/Author/Wikipedia.php';
-			$wikipediaParser = new Author_Wikipedia();
-			$authorInfo = $wikipediaParser->getWikipedia($authorName, $wiki_lang);
+			$authorInfo  = $memCache->get("wikipedia_article_{$authorName}_{$wiki_lang}" );
+			if ($authorInfo == false){
+				require_once ROOT_DIR . '/services/Author/Wikipedia.php';
+				$wikipediaParser = new Author_Wikipedia();
+				$authorInfo = $wikipediaParser->getWikipedia($authorName, $wiki_lang);
+				$memCache->add("wikipedia_article_{$authorName}_{$wiki_lang}", $authorInfo, $configArray['Caching']['wikipedia_article']);
+			}
 			$returnVal['success'] = true;
 			$returnVal['article'] = $authorInfo;
 			$interface->assign('info', $authorInfo);

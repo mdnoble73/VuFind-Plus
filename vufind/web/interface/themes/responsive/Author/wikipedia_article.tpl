@@ -2,7 +2,7 @@
 {if $info}
 	<div class="wikipedia_article">
 		{if $info.image}
-			<img src="{$info.image}" alt="{$info.altimage|escape}" style="width:150px" class="pull-left img-polaroid wikipedia_image" />
+			<img src="{$info.image}" alt="{$info.altimage|escape}" style="width:150px" class="img-polaroid wikipedia_image" />
 		{/if}
 		{$info.description|truncate_html:4500:"...":false}
 		<p>
