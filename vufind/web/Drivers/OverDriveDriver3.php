@@ -401,6 +401,7 @@ class OverDriveDriver3 {
 	 * @return array
 	 */
 	public function getOverDriveSummary($user){
+		//TODO: Optimize to use new API when available
 		$apiURL = "https://temp-patron.api.overdrive.com/Marmot/Marmot/" . $user->cat_password;
 		$summaryResultRaw = file_get_contents($apiURL);
 		$summary = array(
@@ -428,57 +429,20 @@ class OverDriveDriver3 {
 		if ($summary == false || isset($_REQUEST['reload'])){
 			//Get account information from api
 
+			//TODO: Optimize so we don't need to load all checkouts and holds
 			$summary = array();
-			$ch = curl_init();
+			$checkedOutItems = $this->getOverDriveCheckedOutItems($user);
+			$summary['numCheckedOut'] = count($checkedOutItems['items']);
 
-			$overDriveInfo = $this->_loginToOverDrive($ch, $user);
-			//Navigate to the account page
-			//Load the My Holds page
-			//print_r("Account url: " . $overDriveInfo['accountUrl']);
-			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $overDriveInfo['accountUrl']);
-			$accountPage = curl_exec($overDriveInfo['ch']);
+			$holds = $this->getOverDriveHolds($user);
+			$summary['numAvailableHolds'] = count($holds['holds']['available']);
+			$summary['numUnavailableHolds'] = count($holds['holds']['unavailable']);
 
-			//Get bookshelf information
-			if (preg_match('/<li .*?id="myAccount1Tab".*?>(.*?)<li [^>\/]*?id="myAccount2Tab".*?>/s', $accountPage, $matches)) {
-				$checkedOutSection = $matches[1];
-				//print_r($checkedOutSection);
-				//Get a list of titles that are checked out
-				$checkedOut = $this->_parseOverDriveCheckedOutItems($checkedOutSection, $overDriveInfo);
-				//print_r($checkedOut);
-				$summary['numCheckedOut'] = count($checkedOut['items']);
-				$summary['checkedOut'] = $checkedOut;
-			}
-
-			//Get holds
-			if (preg_match('/<li .*?id="myAccount2Tab".*?>(.*?)<li [^>\/]*?id="myAccount3Tab".*?>/s', $accountPage, $matches)) {
-				$holdsSection = $matches[1];
-				//print_r($holdsSection);
-				//Get a list of titles that are checked out
-				$holds = $this->_parseOverDriveHolds($holdsSection);
-				//echo("<br>\r\n");
-				//print_r($holds);
-				//echo("<br>\r\n");
-				$summary['numAvailableHolds'] = count($holds['available']);
-				$summary['numUnavailableHolds'] = count($holds['unavailable']);
-				$summary['holds'] = $holds;
-			}
+			$summary['checkedOut'] = $checkedOutItems;
+			$summary['holds'] = $holds['holds'];
 
 			//Get lending options
-			if (preg_match('/<li id="myAccount4Tab">(.*?)<!-- myAccountContent -->/s', $accountPage, $matches)) {
-				$lendingOptionsSection = $matches[1];
-				$lendingOptions = $this->_parseLendingOptions($lendingOptionsSection);
-				$summary['lendingOptions'] = $lendingOptions;
-			}else{
-				$start = strpos($accountPage, '<li id="myAccount4Tab">') + strlen('<li id="myAccount4Tab">');
-				$end = strpos($accountPage, '<!-- myAccountContent -->');
-				$logger->log("Lending options from $start to $end", PEAR_LOG_DEBUG);
-
-				$lendingOptionsSection = substr($accountPage, $start, $end);
-				$lendingOptions = $this->_parseLendingOptions($lendingOptionsSection);
-				$summary['lendingOptions'] = $lendingOptions;
-			}
-
-			curl_close($ch);
+			//TODO: Figure out how to load lending options
 
 			$timer->logTime("Finished loading titles from overdrive summary");
 			$memCache->set('overdrive_summary_' . $user->id, $summary, 0, $configArray['Caching']['overdrive_summary']);
@@ -520,7 +484,7 @@ class OverDriveDriver3 {
 			if ($analytics) $analytics->addEvent('OverDrive', 'Place Hold', 'failed');
 		}
 
-		return $response;
+		return $holdResult;
 	}
 
 	/**
@@ -534,7 +498,7 @@ class OverDriveDriver3 {
 		global $analytics;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v2/patrons/me/holds/' . $overDriveId;
-		$response = $this->_callPatronUrl($user->cat_password, null, $url);
+		$response = $this->_callPatronDeleteUrl($user->cat_password, null, $url);
 
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
@@ -548,7 +512,7 @@ class OverDriveDriver3 {
 			if ($analytics) $analytics->addEvent('OverDrive', 'Cancel Hold', 'failed');
 		}
 
-		return $response;
+		return $cancelHoldResult;
 	}
 
 	/**
@@ -593,6 +557,7 @@ class OverDriveDriver3 {
 	}
 
 	public function getLoanPeriodsForFormat($formatId){
+		//TODO: API for this?
 		if ($formatId == 35){
 			return array(3, 5, 7);
 		}else{
@@ -601,104 +566,86 @@ class OverDriveDriver3 {
 	}
 
 	public function returnOverDriveItem($overDriveId, $transactionId, $user){
-		global $logger;
-		/** @var Memcache $memCache */
-		global $memCache;
+		global $configArray;
 		global $analytics;
-		$ch = curl_init();
-		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 
-		//Switch back to get method
-		curl_setopt($overDriveInfo['ch'], CURLOPT_HTTPGET, true);
+		$url = $configArray['OverDrive']['patronApiUrl'] . '/v2/patrons/me/checkouts/' . $overDriveId;
+		$response = $this->_callPatronDeleteUrl($user->cat_password, null, $url);
 
-		//Open the record page
-		$contentInfoPage = $overDriveInfo['contentInfoPage'] . "?ID=" . $overDriveId;
-		curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $contentInfoPage);
-		$recordPage = curl_exec($overDriveInfo['ch']);
-		$recordPageInfo = curl_getinfo($overDriveInfo['ch']);
-
-		//Do one click checkout
-		$returnUrl = $overDriveInfo['returnUrl'] . '&ReserveID=' . $overDriveId . '&TransactionID=' . $transactionId;
-		curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $returnUrl);
-		$returnPage = curl_exec($overDriveInfo['ch']);
-
-		$result = array();
-		//We just go back to the main account page, to see if the return succeeded, we need to make sure the
-		//transaction is no longer listed
-		if (!preg_match("/$transactionId/si", $returnPage)){
-			$result['result'] = true;
-			$result['message'] = "Your title was returned successfully.";
-			$memCache->delete('overdrive_summary_' . $user->id);
-			//Delete the cache for the record
-			$memCache->delete('overdrive_record_' . $overDriveId);
-			$analytics->addEvent('OverDrive', 'Checkout Item', 'success');
+		$cancelHoldResult = array();
+		$cancelHoldResult['result'] = false;
+		$cancelHoldResult['message'] = '';
+		if ($response){
+			$cancelHoldResult['result'] = true;
+			$cancelHoldResult['message'] = 'Your hold was cancelled successfully.';
+			if ($analytics) $analytics->addEvent('OverDrive', 'Return Item', 'succeeded');
 		}else{
-			$logger->log("OverDrive return failed", PEAR_LOG_ERR);
-			$logger->log($returnPage, PEAR_LOG_INFO);
-			$result['result'] = false;
-			$result['message'] = 'Sorry, we could not return this title for you.  Please try again later';
-			$analytics->addEvent('OverDrive', 'Checkout Item', 'failed');
+			$cancelHoldResult['message'] = 'There was an error cancelling your hold.';
+			if ($analytics) $analytics->addEvent('OverDrive', 'Return Item', 'failed');
 		}
-		curl_close($ch);
-		return $result;
+
+		return $cancelHoldResult;
 	}
 
 	public function selectOverDriveDownloadFormat($overDriveId, $formatId, $user){
+		global $configArray;
 		global $analytics;
 		/** @var Memcache $memCache */
 		global $memCache;
-		$ch = curl_init();
-		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 
-		//Switch back to get method
-		curl_setopt($overDriveInfo['ch'], CURLOPT_HTTPGET, true);
-
-		$result = array(
-			'result' => true,
-			'downloadUrl' => $overDriveInfo['baseLoginUrl'] . 'BANGPurchase.dll?Action=Download&ReserveID=' . $overDriveId . '&FormatID=' . $formatId . '&url=MyAccount.htm'
+		$url = $configArray['OverDrive']['patronApiUrl'] . '/v2/patrons/me/checkouts/' . $overDriveId . '/formats';
+		$params = array(
+			'reserveId' => $overDriveId,
+			'formatType' => $formatId
 		);
+		$response = $this->_callPatronUrl($user->cat_password, null, $url, $params);
+		print_r($response);
+
+		$result = array();
+		$result['result'] = false;
+		$result['message'] = '';
+
+		if (isset($response->links->downloadlink)){
+			$result['result'] = true;
+			$result['message'] = 'This format was locked in';
+			$result['downloadUrl'] = $response->links->downloadlink->href;
+			if ($analytics) $analytics->addEvent('OverDrive', 'Select Download Format', 'succeeded');
+		}else{
+			$result['message'] = 'Sorry, but we could not lock-in a format for you.';
+			if ($analytics) $analytics->addEvent('OverDrive', 'Select Download Format', 'failed');
+		}
 		$memCache->delete('overdrive_summary_' . $user->id);
-		curl_close($ch);
-		$analytics->addEvent('OverDrive', 'Select Download Format');
+
 		return $result;
 	}
 
 	public function updateLendingOptions(){
-		/** @var Memcache $memCache */
-		global $memCache;
-		global $user;
-		global $logger;
+		//TODO: Replace this with APIs
+		return false;
+	}
+
+	public function getDownloadLink($overDriveId, $format, $user){
+		global $configArray;
 		global $analytics;
-		$ch = curl_init();
-		$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 
-		$updateSettingsUrl = $overDriveInfo['baseLoginUrl']  . 'BANGAuthenticate.dll?Action=EditUserLendingPeriodsFormatClass';
-		$postParams = array(
-			'URL' => 'MyAccount.htm?PerPage=80#myAccount4',
-		);
+		$url = $configArray['OverDrive']['patronApiUrl'] . "/v2/patrons/me/checkouts/{$overDriveId}/formats/{$format}/downloadlink";
+		$response = $this->_callPatronUrl($user->cat_password, null, $url);
+		//print_r($response);
 
-		//Load settings
-		foreach ($_REQUEST as $key => $value){
-			if (preg_match('/class_\d+_preflendingperiod/i', $key)){
-				$postParams[$key] = $value;
-			}
+		$result = array();
+		$result['result'] = false;
+		$result['message'] = '';
+
+		if (isset($response->links->contentlink)){
+			$result['result'] = true;
+			$result['message'] = 'Created Download Link';
+			$result['downloadUrl'] = $response->links->contentlink->href;
+			if ($analytics) $analytics->addEvent('OverDrive', 'Get Download Link', 'succeeded');
+		}else{
+			$result['message'] = 'Sorry, but we could not get a download link for you.';
+			if ($analytics) $analytics->addEvent('OverDrive', 'Get Download Link', 'failed');
 		}
 
-		$post_items = array();
-		foreach ($postParams as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
-		curl_setopt($overDriveInfo['ch'], CURLOPT_POSTFIELDS, $post_string);
-		curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $updateSettingsUrl);
-
-		$logger->log("Updating user lending options $updateSettingsUrl $post_string", PEAR_LOG_DEBUG);
-		$lendingOptionsPage = curl_exec($overDriveInfo['ch']);
-		//$logger->log($lendingOptionsPage, PEAR_LOG_DEBUG);
-
-		$memCache->delete('overdrive_summary_' . $user->id);
-
-		$analytics->addEvent('OverDrive', 'Update Lending Periods');
-		return true;
+		return $result;
 	}
 }

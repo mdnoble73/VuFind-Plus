@@ -12,8 +12,9 @@ echo("<h2>Patron API tests</h2>");
 $user = new User();
 $user->cat_password = '1234567890';
 echo("<h3>Getting patron information</h3>");
-$patronData = $driver->_callPatronUrl($user->cat_password, null, 'http://api.mock.overdrive.com/v2/patrons/me');
-print_r($patronData);
+$accountDetails = $driver->getAccountDetails($user);
+//$patronData = $driver->_callPatronUrl($user->cat_password, null, 'http://api.mock.overdrive.com/v2/patrons/me');
+print_r($accountDetails);
 
 echo("<h3>Getting holds</h3>");
 $patronData = $driver->getOverDriveHolds($user, 'http://api.mock.overdrive.com/v2/patrons/me/holds');
@@ -25,11 +26,7 @@ print_r($placeHoldResult);
 
 echo("<h3>Cancelling Hold</h3>");
 $cancelResult = $driver->cancelOverDriveHold($user, '5ad4d606-35c0-47a6-88c7-d940c1288cdd', null);
-if ($cancelResult){
-	echo("Cancelling hold succeeded<br/>");
-}else{
-	echo("Cancelling hold failed<br/>");
-}
+print_r($cancelResult);
 
 echo("<h3>Getting checkouts</h3>");
 $patronData = $driver->getOverDriveCheckedOutItems($user, 'http://api.mock.overdrive.com/v2/patrons/me/checkouts');
@@ -42,6 +39,24 @@ print_r($checkoutResult);
 echo("<h3>Checking Out title (format not locked in)</h3>");
 $checkoutResult = $driver->checkoutOverDriveItem('5ad4d606-35c0-47a6-88c7-d940c1288cdd', null, null, $user);
 print_r($checkoutResult);
+
+echo("<h3>Lock in a format for a title</h3>");
+$selectFormatResult = $driver->selectOverDriveDownloadFormat('76c1b7d0-17f4-4c05-8397-c66c17411584', 'ebook-epub-adobe', $user);
+print_r($selectFormatResult);
+
+echo("<h3>Return title</h3>");
+$returnResult = $driver->returnOverDriveItem('5ad4d606-35c0-47a6-88c7-d940c1288cdd', null, $user);
+print_r($returnResult);
+
+echo("<h3>Get Download Link for a title</h3>");
+$downloadLink = $driver->getDownloadLink('5ad4d606-35c0-47a6-88c7-d940c1288cdd', 'ebook-epub-adobe', $user);
+print_r($downloadLink);
+echo("<br /><a href='" . $downloadLink['downloadUrl'] ."'>Download Here</a>");
+
+echo("<h3>Get OverDrive Read link for a title</h3>");
+$downloadLink = $driver->getDownloadLink('5ad4d606-35c0-47a6-88c7-d940c1288cdd', 'ebook-overdrive', $user);
+print_r($downloadLink);
+echo("<br /><a href='" . $downloadLink['downloadUrl'] ."'>Download Here</a>");
 
 echo("<h2>End patron API tests</h2>");
 
