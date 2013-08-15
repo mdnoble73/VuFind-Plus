@@ -366,7 +366,12 @@ class Solr implements IndexEngine {
 			PEAR_Singleton::raiseError($result);
 		}
 
-		return $result['response']['docs'][0];
+		if (isset($result['response']['docs'][0])){
+			return $result['response']['docs'][0];
+		}else{
+			return null;
+		}
+
 	}
 
 	/**
