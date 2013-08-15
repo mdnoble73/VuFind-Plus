@@ -8,13 +8,42 @@ require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 $driver = OverDriveDriverFactory::getDriver();
 
 //Connect to the patron API
-$token = $driver->_connectToPatronAPI('1234567890', '1234', true);
-echo("<br/>Connecting to patron API<br/>");
-print_r($token);
-echo("<br/>Getting patron information<br/>");
-$patronData = $driver->_callPatronUrl('http://207.54.136.233/v2/patrons/me');
+echo("<h2>Patron API tests</h2>");
+$user = new User();
+$user->cat_password = '1234567890';
+echo("<h3>Getting patron information</h3>");
+$patronData = $driver->_callPatronUrl($user->cat_password, null, 'http://api.mock.overdrive.com/v2/patrons/me');
 print_r($patronData);
-echo("<br/>End patron API tests<br/>");
+
+echo("<h3>Getting holds</h3>");
+$patronData = $driver->getOverDriveHolds($user, 'http://api.mock.overdrive.com/v2/patrons/me/holds');
+print_r($patronData);
+
+echo("<h3>Placing Hold</h3>");
+$placeHoldResult = $driver->placeOverDriveHold('5ad4d606-35c0-47a6-88c7-d940c1288cdd', null, $user);
+print_r($placeHoldResult);
+
+echo("<h3>Cancelling Hold</h3>");
+$cancelResult = $driver->cancelOverDriveHold($user, '5ad4d606-35c0-47a6-88c7-d940c1288cdd', null);
+if ($cancelResult){
+	echo("Cancelling hold succeeded<br/>");
+}else{
+	echo("Cancelling hold failed<br/>");
+}
+
+echo("<h3>Getting checkouts</h3>");
+$patronData = $driver->getOverDriveCheckedOutItems($user, 'http://api.mock.overdrive.com/v2/patrons/me/checkouts');
+print_r($patronData);
+
+echo("<h3>Checking Out title (format locked in)</h3>");
+$checkoutResult = $driver->checkoutOverDriveItem('5ad4d606-35c0-47a6-88c7-d940c1288cdd', 'ebook-epub-adobe', null, $user);
+print_r($checkoutResult);
+
+echo("<h3>Checking Out title (format not locked in)</h3>");
+$checkoutResult = $driver->checkoutOverDriveItem('5ad4d606-35c0-47a6-88c7-d940c1288cdd', null, null, $user);
+print_r($checkoutResult);
+
+echo("<h2>End patron API tests</h2>");
 
 
 $libraryInfo = $driver->getLibraryAccountInformation();
