@@ -21,8 +21,6 @@
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
-global $configArray;
-
 class AJAX extends Action {
 
 	function AJAX() {

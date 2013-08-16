@@ -114,6 +114,7 @@ class MillenniumInventory {
 		$sresult = curl_exec($this->curl_connection);
 		$logger->log("Calling {$curl_url}?{$post_string}", PEAR_LOG_DEBUG);
 		//$logger->log("result of circa login $sresult", PEAR_LOG_DEBUG);
+		sleep(1);
 
 		//Check that we logged in successfully
 		if (!preg_match('/Invalid login\/password/i', $sresult) && preg_match('/initials/i', $sresult)){
@@ -137,6 +138,7 @@ class MillenniumInventory {
 			$post_string = implode ('&', $post_items);
 			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
 			$sresult = curl_exec($this->curl_connection);
+			sleep(1);
 			$logger->log("Calling {$curl_url}?{$post_string}", PEAR_LOG_DEBUG);
 			//$logger->log("result of circa initials $sresult", PEAR_LOG_DEBUG);
 
@@ -170,23 +172,27 @@ class MillenniumInventory {
 					$sresult = curl_exec($this->curl_connection);
 					$titleInfo = $this->db->getRecordByBarcode($barcode);
 
-					$marcInfo = MarcLoader::loadMarcRecordFromRecord($titleInfo);
-					//Get the matching item from the item records
-					$itemFields = $marcInfo->getFields('989');
 					$itemInfo = null;
-					if ($itemFields){
-						/** @var File_MARC_Data_Field $fieldInfo */
-						foreach ($itemFields as $fieldInfo){
-							if ($fieldInfo->getSubfield('b')->getData() == $barcode){
-								$itemInfo = $fieldInfo;
+					if ($titleInfo != null){
+						$marcInfo = MarcLoader::loadMarcRecordFromRecord($titleInfo);
+						//Get the matching item from the item records
+						$itemFields = $marcInfo->getFields('989');
+						$itemInfo = null;
+						if ($itemFields){
+							/** @var File_MARC_Data_Field $fieldInfo */
+							foreach ($itemFields as $fieldInfo){
+								if ($fieldInfo->getSubfield('b')->getData() == $barcode){
+									$itemInfo = $fieldInfo;
+								}
 							}
+						}else{
+							$logger->log("Did not find item records $barcode", PEAR_LOG_ERR);
 						}
-					}else{
-						$logger->log("Did not find item records $barcode", PEAR_LOG_ERR);
 					}
 					if ($itemInfo == null){
 						$logger->log("Did not find an item for barcode $barcode", PEAR_LOG_ERR);
 					}
+
 
 					if (preg_match("/$barcode updated successfully/i", $sresult)){
 						$results['barcodes'][$barcode] = array(
@@ -242,6 +248,7 @@ class MillenniumInventory {
 						}else{
 							$results['barcodes'][$barcode]['needsAdditionalProcessing'] = false;
 						}
+						sleep(1);
 					}else{
 						$results['barcodes'][$barcode] = array(
 							'inventoryResult' => 'Not updated',
