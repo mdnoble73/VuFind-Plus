@@ -1,11 +1,8 @@
 {* Your footer *}
 <div class="footerCol"><p><strong>{translate text='Featured Items'}</strong></p>
 	<ul>
-		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_ccu%3A"Month"&amp;filter[]=literary_form_full%3A"Fiction"'>{translate text='New Fiction'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_ccu%3A"Month"&amp;filter[]=literary_form_full%3A"Non+Fiction"'>{translate text='New Non-Fiction'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_ccu%3A"Month"&amp;filter[]=format%3A"DVD"'>{translate text='New DVDs'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_ccu%3A"Month"&amp;filter[]=format_category%3A"Audio+Books"'>{translate text='New Audio Books &amp; CDs'}</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_ccu%3A"Week"'>{translate text='New This Week'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_ccu%3A"Month"&amp;filter[]=format_category%3A"Books"'>{translate text='New Books'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_ccu%3A"Month"&amp;filter[]=format_category%3A"eBook"'>{translate text='New eBooks'}</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='Search Options'}</strong></p>
@@ -40,6 +37,12 @@
 		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510, scrollbars=yes'); return false;">{translate text='FAQs'}</a></li>
 		<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
 	</ul>
+</div>
+<div class="footerCol">
+	<br/><br/>
+	<a href="https://docs.google.com/forms/d/1EdM9CrA3IbJ6Bw2FdPoj7vnlElQ9EolOPB1jr3Q_sbQ/viewform">
+		<img src="{$path}/interface/themes/ccu/images/BookALibrarianLogo.PNG" alt="Book a Librarian">
+	</a>
 </div>
 <br class="clearer"/>
 {if !$productionServer}
