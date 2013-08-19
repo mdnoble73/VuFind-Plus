@@ -12,11 +12,14 @@
 					<script type="text/javascript">
 						widget = "CNLWidget";
 						sid = "7550";
+						group="current";
 						list  = "NLNF";
+						group = "current";
 						rotate = "YES";
 						fade = "NO";
-						title = "YES";
+						title = "New Fiction";
 					</script>
+
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 				</div>
 			</div>
@@ -26,10 +29,12 @@
 					<script type="text/javascript">
 						widget = "CNLWidget";
 						sid = "7550";
+						group="current";
 						list  = "NLNON";
+						group="current";
 						rotate = "YES";
 						fade = "NO";
-						title = "YES";
+						title = "New Non Fiction";
 					</script>
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 				</div>
@@ -40,10 +45,12 @@
 					<script type="text/javascript">
 						widget = "CNLWidget";
 						sid = "7550";
+						group="current";
 						list  = "NLTS";
+						group="current";
 						rotate = "YES";
 						fade = "NO";
-						title = "YES";
+						title = "Teens";
 					</script>
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 				</div>
@@ -54,10 +61,12 @@
 					<script type="text/javascript">
 						widget = "CNLWidget";
 						sid = "7550";
+						group="current";
 						list  = "NLGC";
+						group="current";
 						rotate = "YES";
 						fade = "NO";
-						title = "YES";
+						title = "Picture Books";
 					</script>
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 				</div>
@@ -68,11 +77,14 @@
 					<script type="text/javascript">
 						widget = "CNLWidget";
 						sid = "7550";
+						group="current";
 						list  = "NLCC";
+						group = "current";
 						rotate = "YES";
 						fade = "NO";
-						title = "YES";
+						title = "Chapter Books";
 					</script>
+
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 				</div>
 			</div>
