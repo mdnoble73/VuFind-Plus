@@ -31,6 +31,21 @@
 	margin: 10px;
 	vertical-align: top;
 }
+.bookletters-title{
+	color: black;
+	font-family: Arial;
+	font-size: 15px;
+	font-weight: bold;
+	margin-bottom: 3px;
+}
+.bookletters-body{
+	width: 145px;
+	height: 210px;
+}
+.bookletters-body iframe{
+	width: 145px;
+	height: 210px;
+}
 
 .searchheader{
 	padding: 0 !important;
