@@ -17,7 +17,7 @@
 						group = "current";
 						rotate = "YES";
 						fade = "NO";
-						title = "New Fiction";
+						title = "NO";
 					</script>
 
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
@@ -34,7 +34,7 @@
 						group="current";
 						rotate = "YES";
 						fade = "NO";
-						title = "New Non Fiction";
+						title = "NO";
 					</script>
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 				</div>
@@ -50,7 +50,7 @@
 						group="current";
 						rotate = "YES";
 						fade = "NO";
-						title = "Teens";
+						title = "NO";
 					</script>
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 				</div>
@@ -66,7 +66,7 @@
 						group="current";
 						rotate = "YES";
 						fade = "NO";
-						title = "Picture Books";
+						title = "NO";
 					</script>
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 				</div>
@@ -82,7 +82,7 @@
 						group = "current";
 						rotate = "YES";
 						fade = "NO";
-						title = "Chapter Books";
+						title = "NO";
 					</script>
 
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
