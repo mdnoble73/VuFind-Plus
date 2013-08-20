@@ -32,7 +32,7 @@
 	<ul>
 		<li><a href="{$path}/Help/Home?topic=search" onclick="window.open(this.href, 'Help', 'width=625, height=510'); return false;">{translate text='Search Tips'}</a></li>
 		{if !($action == 'Home' && $module == 'Search')}
-			<li><a href="{$askALibrarianLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Ask a Librarian'}</a></li>
+			<li><a href="{$askALibrarianLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Chat with a Librarian'}</a></li>
 		{/if}
 		{if isset($illLink)}
 				<li><a href="{$illLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Interlibrary Loan'}</a></li>
