@@ -61,7 +61,7 @@
 				{/if}
 
 				{if $summEditions}
-					<div class="row-fluid">
+					<div class="row-fluid hidden-phone">
 						<div class="result-label span3" id="resultInformationEdition{$summShortId|escape}">{translate text='Edition'}:</div>
 						<div class="span9 result-value">{$summEditions.0|escape}</div>
 					</div>
@@ -79,7 +79,7 @@
 
 				{* Highlighted term *}
 				{if !empty($summSnippetCaption) || !!empty($summSnippet)}
-					<div class="row-fluid">
+					<div class="row-fluid hidden-phone">
 						{if !empty($summSnippetCaption)}<div class="result-label span3">{translate text=$summSnippetCaption}:</div>{/if}
 						{if !empty($summSnippet)}<div class="span9 result-value"><span class="quotestart">&#8220;</span>...{$summSnippet|highlight}...<span class="quoteend">&#8221;</span></div>{/if}
 					</div>
@@ -101,7 +101,7 @@
 				</div>
 
 				{if $summPhysical}
-					<div class="row-fluid">
+					<div class="row-fluid hidden-phone">
 						<div class="result-label span3">{translate text='Physical Desc'}:</div>
 						<div class="span9 result-value">{$summPhysical.0|escape}</div>
 					</div>

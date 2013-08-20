@@ -3,7 +3,7 @@
 	{foreach from=$topFacetSet item=cluster key=title}
 		{if $cluster.label == 'Category' || $cluster.label == 'Format Category'}
 			{if ($categorySelected == false)}
-				<div class="formatCategories well text-center" id="formatCategories">
+				<div class="formatCategories well text-center top-facet" id="formatCategories">
 					<div id='categoryValues' class="text-center">
 						{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 							{if $thisFacet.isApplied}
@@ -26,7 +26,7 @@
 				</div>
 			{/if}
 		{elseif preg_match('/available/i', $cluster.label)}
-			<div class="row-fluid text-center">
+			<div class="row-fluid text-center top-facet">
 				<div id="availabilityControl" class='btn-group' data-toggle="buttons-radio">
 					{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 						{if $thisFacet.isApplied}
@@ -38,7 +38,7 @@
 				</div>
 			</div>
 		{else}
-			<div class="authorbox">
+			<div class="authorbox top-facet">
 				<h5>{translate text=$cluster.label}<span>{translate text="top_facet_suffix"}</span></h5>
 				<table class="facetsTop navmenu narrow_begin">
 					{foreach from=$cluster.list item=thisFacet name="narrowLoop"}

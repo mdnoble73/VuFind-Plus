@@ -18,7 +18,7 @@
 			</a>
 		{/if}
 		{if $showFavorites == 1}
-			<a href="{$path}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" onclick="getSaveToListForm('{$summId|escape}', 'VuFind'); return false;" class="btn btn-small btn-block""><img src="/images/silk/star_gold.png">&nbsp;{translate text='Add to favorites'}</a>
+			<a href="{$path}/Resource/Save?id={$summId|escape:"url"}&amp;source=VuFind" onclick="getSaveToListForm('{$summId|escape}', 'VuFind'); return false;" class="btn btn-small btn-block"><img src="/images/silk/star_gold.png">&nbsp;{translate text='Add to favorites'}</a>
 		{/if}
 		{if $showTextThis == 1}
 			<a href="{$path}/Record/{$id|escape:"url"}/SMS" onclick='ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox", "#smsLink"); return false;' class="btn btn-small btn-block"><img src="/images/silk/phone.png">&nbsp;{translate text="Text this"}</a>

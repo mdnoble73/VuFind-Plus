@@ -4,11 +4,11 @@
 		<h4>{translate text='Narrow Search'}</h4>
 
 		{* .btn-navbar is used as the toggle for collapsed navbar content *}
-		<a class="btn btn-navbar visible-phone" data-toggle="collapse" data-target="#collapse-facets">
+		<a class="btn btn-navbar visible-phone" data-toggle="collapse" data-target=".collapse-facets" onclick="$('#formatCategories').toggle();">
 			Show Filters
 		</a>
 
-		<div id="collapse-facets" class="nav-collapse collapse">
+		<div id="collapse-side-facets" class="nav-collapse collapse collapse-facets">
 			{if isset($checkboxFilters) && count($checkboxFilters) > 0}
 				<p>
 					{include file='checkboxFilters.tpl'}

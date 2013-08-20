@@ -36,10 +36,12 @@
 					{translate text="Showing"}
 					<b>{$recordStart}</b> - <b>{$recordEnd}</b>
 					{translate text='of'} <b>{$recordCount}</b>
-					{if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>,{/if}
+					{if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>{/if}
 				{/if}
-				{translate text='query time'}: {$qtime}s
-				
+				<span class="hidden-phone">
+				,&nbsp;{translate text='query time'}: {$qtime}s
+				</span>
+
 				{if $numUnscopedResults && $numUnscopedResults != $recordCount}
 					<br />
 					<div class="unscopedResultCount">

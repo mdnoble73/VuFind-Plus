@@ -28,58 +28,60 @@ function redrawSaveStatus() {literal}{{/literal}
 {literal}}{/literal}
 </script>
 
+<div class="nav navbar">
+	{if isset($previousId)}
+		<div id="previousRecordLink" class="pull-left"><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}"><img src="{$path}/interface/themes/default/images/prev.png" alt="Previous Record"/></a></div>
+	{/if}
+	{if isset($nextId)}
+		<div id="nextRecordLink"><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}"><img src="{$path}/interface/themes/default/images/next.png" alt="Next Record"/></a></div>
+	{/if}
+	{if $lastsearch}
+		<div id="returnToSearch">
+			<a href="{$lastsearch|escape}#record{$id|escape:"url"}">{translate text="Return to Search Results"}</a>
+		</div>
+	{/if}
+</div>
+
+{* Display Title *}
+<h3>{$recordTitleSubtitle|removeTrailingPunctuation|escape}</h3>
+<div  class="row-fluid">
+	{* Display more information about the title*}
+	{if $mainAuthor}
+		<div class="recordAuthor">
+			<span class="resultLabel">by</span>&nbsp;
+			<span class="resultValue"><a href="{$path}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|escape}</a></span>
+		</div>
+	{/if}
+
+	{if $corporateAuthor}
+		<div class="recordAuthor">
+			<span class="resultLabel">{translate text='Corporate Author'}:</span>
+			<span class="resultValue"><a href="{$path}/Author/Home?author={$corporateAuthor|escape:"url"}">{$corporateAuthor|escape}</a></span>
+		</div>
+	{/if}
+</div>
+
+{if $error}<p class="error">{$error}</p>{/if}
+
 <div class="row-fluid">
-	{if $error}<p class="error">{$error}</p>{/if}
+
+
+	{*
 	<div class="span3">
 		{include file="Record/view-sidebar.tpl"}
 	</div>
+	*}
 	
-	<div id="main-content" class="span9">
-		<div id="record-header" class="row-fluid">
-			{if isset($previousId)}
-				<div id="previousRecordLink" class="pull-left"><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}"><img src="{$path}/interface/themes/default/images/prev.png" alt="Previous Record"/></a></div>
-			{/if}
-			<div id="recordTitleAuthorGroup">
-				{* Display Title *}
-				<h3>{$recordTitleSubtitle|removeTrailingPunctuation|escape}</h3>
-				{* Display more information about the title*}
-				{if $mainAuthor}
-					<div class="recordAuthor">
-						<span class="resultLabel">by</span>&nbsp;
-						<span class="resultValue"><a href="{$path}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|escape}</a></span>
-					</div>
-				{/if}
-					
-				{if $corporateAuthor}
-					<div class="recordAuthor">
-						<span class="resultLabel">{translate text='Corporate Author'}:</span>
-						<span class="resultValue"><a href="{$path}/Author/Home?author={$corporateAuthor|escape:"url"}">{$corporateAuthor|escape}</a></span>
-					</div>
-				{/if}
-			</div>
-			<div id ="recordTitleRight" class="pull-right">
-				{if isset($nextId)}
-					<div id="nextRecordLink"><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}"><img src="{$path}/interface/themes/default/images/next.png" alt="Next Record"/></a></div>
-				{/if}
-				{if $lastsearch}
-				<div id="returnToSearch">
-					<a href="{$lastsearch|escape}#record{$id|escape:"url"}">{translate text="Return to Search Results"}</a>
-				</div>
-				{/if}
-			</div>
-		</div>
-
+	<div id="main-content" class="span12">
 		<div class="row-fluid">
 			<div id="image-column" class="span3">
 				{* Display Book Cover *}
 				{if $user->disableCoverArt != 1}
 					<div id = "recordcover">
-						<div class="recordcoverWrapper">
-							<img alt="{translate text='Book Cover'}" class="recordcover" src="{$bookCoverUrl}" />
-							<div id="goDeeperLink" class="godeeper" style="display:none">
-								<a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
-								<img alt="{translate text='Go Deeper'}" src="{$path}/images/deeper.png" /></a>
-							</div>
+						<img alt="{translate text='Book Cover'}" class="img-polaroid" src="{$bookCoverUrl}" />
+						<div id="goDeeperLink" class="godeeper" style="display:none">
+							<a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
+							<img alt="{translate text='Go Deeper'}" src="{$path}/images/deeper.png" /></a>
 						</div>
 					</div>
 				{/if}
@@ -89,10 +91,6 @@ function redrawSaveStatus() {literal}{{/literal}
 					<a href='{$goldRushLink}' >Check for online articles</a>
 				</div>
 				{/if}
-
-				{* Let the user rate this title *}
-				{include file="Record/title-rating.tpl" ratingClass="" recordId=$id shortId=$shortId ratingData=$ratingData showFavorites=0}
-
 			</div> {* End image column *}
 		
 			<div id="record-details-column" class="span6">
@@ -146,6 +144,14 @@ function redrawSaveStatus() {literal}{{/literal}
 
 			<div id="recordTools" class="span3">
 				{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
+
+				<div id="ratings" class="well center">
+					<h4>Rating:</h4>
+					{* Let the user rate this title *}
+					{include file="Record/title-rating.tpl" ratingClass="" recordId=$id shortId=$shortId ratingData=$ratingData showFavorites=0}
+				</div>
+
+				{include file="Record/view-tags.tpl"}
 			</div>
 
 		</div>
