@@ -43,20 +43,24 @@ function redrawSaveStatus() {literal}{{/literal}
 </div>
 
 {* Display Title *}
-<h3>{$recordTitleSubtitle|removeTrailingPunctuation|escape}</h3>
+<h1>{$recordTitleSubtitle|removeTrailingPunctuation|escape}</h1>
 <div  class="row-fluid">
 	{* Display more information about the title*}
 	{if $mainAuthor}
 		<div class="recordAuthor">
-			<span class="resultLabel">by</span>&nbsp;
-			<span class="resultValue"><a href="{$path}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|escape}</a></span>
+			<h3>
+				<span class="resultLabel">by</span>&nbsp;
+				<span class="resultValue"><a href="{$path}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|escape}</a></span>
+			</h3>
 		</div>
 	{/if}
 
 	{if $corporateAuthor}
 		<div class="recordAuthor">
-			<span class="resultLabel">{translate text='Corporate Author'}:</span>
-			<span class="resultValue"><a href="{$path}/Author/Home?author={$corporateAuthor|escape:"url"}">{$corporateAuthor|escape}</a></span>
+			<h3>
+				<span class="resultLabel">{translate text='Corporate Author'}:</span>
+				<span class="resultValue"><a href="{$path}/Author/Home?author={$corporateAuthor|escape:"url"}">{$corporateAuthor|escape}</a></span>
+			</h3>
 		</div>
 	{/if}
 </div>
@@ -100,8 +104,8 @@ function redrawSaveStatus() {literal}{{/literal}
 
 				{if $summary}
 					<div class="resultInformation">
-						<div class="resultInformationLabel">{translate text='Description'}</div>
-						<div class="recordDescription">
+						<div class="result-label">{translate text='Description'}</div>
+						<div class="recordDescription result-value">
 							{if strlen($summary) > 300}
 								<span id="shortSummary">
 								{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'|truncate:300}{*Leave unescaped because some syndetics reviews have html in them *}
@@ -120,8 +124,8 @@ function redrawSaveStatus() {literal}{{/literal}
 
 				{if $subjects}
 					<div class="resultInformation">
-						<div class="resultInformationLabel">{translate text='Subjects'}</div>
-						<div class="recordSubjects">
+						<div class="result-label">{translate text='Subjects'}</div>
+						<div class="recordSubjects result-value">
 							{foreach from=$subjects item=subject name=loop}
 								{if $smarty.foreach.loop.index == 5}
 									<div id="subjectsMoreLink"><a href="#" onclick="$('#subjectsMoreSection').toggle();$('#subjectsMoreLink').toggle();">{translate text="more"}...</a></div>
