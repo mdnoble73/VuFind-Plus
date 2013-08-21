@@ -31,7 +31,7 @@
 	margin: 10px;
 	vertical-align: top;
 }
-.bookletters-title{
+/*.bookletters-title{
 	color: black;
 	font-family: Arial;
 	font-size: 15px;
@@ -45,7 +45,7 @@
 .bookletters-body iframe{
 	width: 145px;
 	height: 210px;
-}
+}*/
 
 .searchheader{
 	padding: 0 !important;
