@@ -19,6 +19,7 @@ import java.util.Set;
 public class EContentItemSolrProcessor {
 	private ResultSet itemInfo;
 	private Set<String> formats;
+	HashMap<String, Set<String>> formatsBySystem;
 	private int numItems;
 	private Set<String> availableAt;
 	private HashMap<String, HashSet<String>> availableAtBySystemOrLocation;
@@ -27,11 +28,12 @@ public class EContentItemSolrProcessor {
 	private Logger logger;
 	private MarcProcessor marcProcessor;
 
-	public EContentItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, ResultSet itemInfo, Set<String> formats, int numItems, Set<String> availableAt, HashMap<String, HashSet<String>> availableAtBySystemOrLocation, Set<String> availabilityToggleGlobal, Set<String> buildings) {
+	public EContentItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, ResultSet itemInfo, Set<String> formats, HashMap<String, Set<String>> formatsBySystem, int numItems, Set<String> availableAt, HashMap<String, HashSet<String>> availableAtBySystemOrLocation, Set<String> availabilityToggleGlobal, Set<String> buildings) {
 		this.logger = logger;
 		this.marcProcessor = marcProcessor;
 		this.itemInfo = itemInfo;
 		this.formats = formats;
+		this.formatsBySystem = formatsBySystem;
 		this.numItems = numItems;
 		this.availableAt = availableAt;
 		this.availableAtBySystemOrLocation = availableAtBySystemOrLocation;
@@ -56,10 +58,13 @@ public class EContentItemSolrProcessor {
 		String externalFormat = itemInfo.getString("externalFormat");
 		long libraryId = itemInfo.getLong("libraryId");
 		numItems++;
+		String formatToAdd;
 		if (externalFormat != null && externalFormat.length() > 0) {
-			formats.add(externalFormat.replaceAll("\\s", "_"));
+			formatToAdd = externalFormat.replaceAll("\\s", "_");
+			formats.add(formatToAdd);
 		} else {
-			formats.add(item_type);
+			formatToAdd = item_type;
+			formats.add(formatToAdd);
 		}
 		if (libraryId == -1L) {
 			//usableByPTypes.addAll(marcProcessor.getAllPTypes());
@@ -73,6 +78,11 @@ public class EContentItemSolrProcessor {
 				// TODO: determine if acs and single use titles are actually available
 				libraryAvailability.add("Available Now");
 				availableAtBySystemOrLocation.put(libraryIndexingInfo.getSubdomain(), libraryAvailability);
+				if (formatsBySystem.get(libraryIndexingInfo.getSubdomain()) == null){
+					formatsBySystem.put(libraryIndexingInfo.getSubdomain(), new LinkedHashSet<String>());
+				}
+				formatsBySystem.get(libraryIndexingInfo.getSubdomain()).add(formatToAdd);
+
 				// Since we don't have availability by location for online titles, add
 				// the same availability to all locations
 					/*for (LocationIndexingInfo curLocationInfo : libraryIndexingInfo.getLocations().values()) {
@@ -88,10 +98,15 @@ public class EContentItemSolrProcessor {
 			availabilityToggleGlobal.add("Available Now");
 		} else {
 			//usableByPTypes.addAll(marcProcessor.getCompatiblePTypes("188", marcProcessor.getLibraryIndexingInfo(libraryId).getIlsCode()));
-			availableAt.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
-			buildings.add(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
-			logger.debug(marcProcessor.getLibrarySystemFacetForId(libraryId) + " Online");
+			String librarySystemFacet = marcProcessor.getLibrarySystemFacetForId(libraryId);
+			availableAt.add(librarySystemFacet + " Online");
+			buildings.add(librarySystemFacet + " Online");
+			logger.debug(librarySystemFacet + " Online");
 			LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(libraryId);
+			if (formatsBySystem.get(libraryIndexingInfo.getSubdomain()) == null){
+				formatsBySystem.put(libraryIndexingInfo.getSubdomain(), new LinkedHashSet<String>());
+			}
+			formatsBySystem.get(libraryIndexingInfo.getSubdomain()).add(formatToAdd);
 			LinkedHashSet<String> libraryAvailability = new LinkedHashSet<String>();
 			libraryAvailability.add("Entire Collection");
 			// TODO: determine if acs and single use titles are actually available

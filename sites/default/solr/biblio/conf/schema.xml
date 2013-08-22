@@ -183,8 +183,8 @@
 		<field name="language_boost_es" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true"
 		       default="0"/>
 		<field name="format" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
-		<field name="format_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true"
-		       default="0"/>
+		<dynamicField name="format_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+		<field name="format_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true" default="0"/>
 		<field name="format_category" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<field name="author" type="text" indexed="true" stored="true" termVectors="true"/>
 		<field name="author-letter" type="string" indexed="true" stored="true"/>
@@ -290,7 +290,9 @@
 		       default="0"/>
 		<field name="econtent_device" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="econtent_source" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<dynamicField name="econtent_source_*" type="textFacet" indexed="true" stored="false" multiValued="true"/>
 		<field name="econtent_protection_type" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<dynamicField name="econtent_protection_type_*" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="itype" type="textFacet" indexed="true" stored="false" multiValued="true"/>
 		<dynamicField name="itype_*" type="textFacet" indexed="true" stored="false" multiValued="true"/>
 		<!-- Used for loading correct record driver -->
