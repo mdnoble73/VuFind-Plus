@@ -8,6 +8,7 @@
 			{/if}
 
 			<div class="bookletters-widget">
+				<div class="bookletters-title">New Fiction</div>
 				<div class="bookletters-body">
 					<script type="text/javascript">
 						widget = "CNLWidget";
@@ -17,7 +18,7 @@
 						group = "current";
 						rotate = "YES";
 						fade = "NO";
-						title = "YES";
+						title = "NO";
 					</script>
 
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
@@ -25,6 +26,7 @@
 			</div>
 
 			<div class="bookletters-widget">
+				<div class="bookletters-title">New Nonfiction</div>
 				<div class="bookletters-body">
 					<script type="text/javascript">
 						widget = "CNLWidget";
@@ -34,13 +36,14 @@
 						group="current";
 						rotate = "YES";
 						fade = "NO";
-						title = "YES";
+						title = "NO";
 					</script>
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 				</div>
 			</div>
 
 			<div class="bookletters-widget">
+				<div class="bookletters-title">Teen Scene</div>
 				<div class="bookletters-body">
 					<script type="text/javascript">
 						widget = "CNLWidget";
@@ -50,13 +53,14 @@
 						group="current";
 						rotate = "YES";
 						fade = "NO";
-						title = "YES";
+						title = "NO";
 					</script>
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 				</div>
 			</div>
 
 			<div class="bookletters-widget">
+				<div class="bookletters-title">Children's<br/>Picture Books</div>
 				<div class="bookletters-body">
 					<script type="text/javascript">
 						widget = "CNLWidget";
@@ -66,13 +70,14 @@
 						group="current";
 						rotate = "YES";
 						fade = "NO";
-						title = "YES";
+						title = "NO";
 					</script>
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
 				</div>
 			</div>
 
 			<div class="bookletters-widget">
+				<div class="bookletters-title">Children's<br/>Chapter Books</div>
 				<div class="bookletters-body">
 					<script type="text/javascript">
 						widget = "CNLWidget";
@@ -82,7 +87,7 @@
 						group = "current";
 						rotate = "YES";
 						fade = "NO";
-						title = "YES";
+						title = "NO";
 					</script>
 
 					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
