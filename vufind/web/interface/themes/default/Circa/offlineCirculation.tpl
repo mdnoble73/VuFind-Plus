@@ -15,11 +15,13 @@
 		</div>
 		<div id="main-content" class="full-result-content">
 			<h1>Offline Circulation</h1>
+			{*
 			<fieldset>
 				<legend>Check-in titles</legend>
 				<label for="barcodesToCheckIn">Enter barcodes to check in (one per line).</label>
 				<textarea rows="10" cols="20" name="barcodesToCheckIn" id="barcodesToCheckIn"></textarea>
 			</fieldset>
+			*}
 			<fieldset>
 				<legend>Checkout titles</legend>
 				<label for="patronBarcode">Patron Barcode</label>
