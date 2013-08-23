@@ -21,7 +21,7 @@
 						title = "NO";
 					</script>
 
-					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
+					<script type="text/javascript" src="https://library.booksite.com/widgetloader.js"></script>
 				</div>
 			</div>
 
@@ -38,7 +38,7 @@
 						fade = "NO";
 						title = "NO";
 					</script>
-					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
+					<script type="text/javascript" src="https://library.booksite.com/widgetloader.js"></script>
 				</div>
 			</div>
 
@@ -55,12 +55,12 @@
 						fade = "NO";
 						title = "NO";
 					</script>
-					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
+					<script type="text/javascript" src="https://library.booksite.com/widgetloader.js"></script>
 				</div>
 			</div>
 
 			<div class="bookletters-widget">
-				<div class="bookletters-title">Children's<br/>Picture Books</div>
+				<div class="bookletters-title">Picture Books</div>
 				<div class="bookletters-body">
 					<script type="text/javascript">
 						widget = "CNLWidget";
@@ -72,12 +72,12 @@
 						fade = "NO";
 						title = "NO";
 					</script>
-					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
+					<script type="text/javascript" src="https://library.booksite.com/widgetloader.js"></script>
 				</div>
 			</div>
 
 			<div class="bookletters-widget">
-				<div class="bookletters-title">Children's<br/>Chapter Books</div>
+				<div class="bookletters-title">Chapter Books</div>
 				<div class="bookletters-body">
 					<script type="text/javascript">
 						widget = "CNLWidget";
@@ -90,7 +90,7 @@
 						title = "NO";
 					</script>
 
-					<script type="text/javascript" src="http://library.booksite.com/widgetloader.js"></script>
+					<script type="text/javascript" src="https://library.booksite.com/widgetloader.js"></script>
 				</div>
 			</div>
 

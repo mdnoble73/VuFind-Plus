@@ -37,7 +37,6 @@
 	font-size: 15px;
 	font-weight: bold;
 	margin-bottom: 3px;
-	height: 2.4em;
 }
 .bookletters-body{
 	width: 145px;
@@ -172,6 +171,7 @@ ul.nice-menu, ul.nice-menu ul {
 }
 
 ul.nice-menu li {
+	background-image: none;
 	background-image: none;
 	margin: 0;
 	padding-left: 0;
