@@ -569,7 +569,7 @@ a{font-weight:bold}
 .searchHomeForm{background-color:#82A21B;border-color:#9BB06B}#ft{width:70%;text-align:center;font-size:12px;margin-bottom:10px}#ft
 div.footerCol{border:0px
 solid black;width:30%;margin:0px
-8%;text-align:left}#ft a, #ft a:visited{color:black;text-decoration:underline}#ft a:hover{font-weight:bold}.bookletters-widget{display:inline-block;margin:10px;vertical-align:top}.bookletters-title{color:black;font-family:Arial;font-size:15px;font-weight:bold;margin-bottom:3px;height:2.4em}.bookletters-body{width:145px;height:210px}.bookletters-body
+8%;text-align:left}#ft a, #ft a:visited{color:black;text-decoration:underline}#ft a:hover{font-weight:bold}.bookletters-widget{display:inline-block;margin:10px;vertical-align:top}.bookletters-title{color:black;font-family:Arial;font-size:15px;font-weight:bold;margin-bottom:3px}.bookletters-body{width:145px;height:210px}.bookletters-body
 iframe{width:145px;height:210px}.searchheader{padding:0
 !important}header{background-image:url("http://www.pitcolib.org/sites/default/files/backgrounds/bkg_aspens.jpg")}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}article,aside,figure,footer,header,hgroup,section{border:0
 none;font:inherit;margin:0;outline:0
@@ -585,7 +585,7 @@ a{display:block}ul.nice-menu:after{clear:both;content:".";display:block;height:0
 none;float:left}ul.nice-menu, ul.nice-menu
 ul{list-style:none outside none;margin:0;padding:0}ul.nice-menu, ul.nice-menu
 ul{position:relative;z-index:5}.clearfix:after{font-size:0;clear:both;content:".";display:block;height:0;visibility:hidden}ul.nice-menu
-li{background-image:none;margin:0;padding-left:0;float:left;position:relative}#zone-menu ul.nice-menu.nice-menu-down li.menuparent a:link, #zone-menu ul.nice-menu.nice-menu-down li.menuparent a:visited{background:none repeat scroll 0 0 transparent;border-bottom:0 none;color:#333;padding:0.1em 0.25em}#zone-menu ul.nice-menu.nice-menu-down li.menuparent a:hover{background-color:#5183BF;border-bottom:0 none;border-radius:0.5em 0.5em 0.5em 0.5em;color:white}#zone-menu ul.nice-menu.nice-menu-down li.menuparent
+li{background-image:none;background-image:none;margin:0;padding-left:0;float:left;position:relative}#zone-menu ul.nice-menu.nice-menu-down li.menuparent a:link, #zone-menu ul.nice-menu.nice-menu-down li.menuparent a:visited{background:none repeat scroll 0 0 transparent;border-bottom:0 none;color:#333;padding:0.1em 0.25em}#zone-menu ul.nice-menu.nice-menu-down li.menuparent a:hover{background-color:#5183BF;border-bottom:0 none;border-radius:0.5em 0.5em 0.5em 0.5em;color:white}#zone-menu ul.nice-menu.nice-menu-down li.menuparent
 ul{background:none repeat scroll 0 0 rgba(255, 255, 255, 0.85);border:1px
 solid #A4A4A7;border-radius:0.5em 0.5em 0.5em 0.5em;margin-top:2px;padding:0.5em 0}#zone-menu ul.nice-menu.nice-menu-down li.menuparent ul
 li.first{padding-top:0}ul.nice-menu-down ul
