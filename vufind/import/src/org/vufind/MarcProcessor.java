@@ -87,6 +87,8 @@ public class MarcProcessor {
 	private boolean                       forceIndividualMarcFileWrite = false;
 	private PreparedStatement							insertMarcInfoStmt;
 	private PreparedStatement							updateMarcInfoStmt;
+	private PreparedStatement             clearMergedRecordsStmt;
+	private PreparedStatement             addMergedRecordStmt;
 
 	private Set<String>								existingEContentIds			= Collections.synchronizedSet(new HashSet<String>());
 	private Map<String, Float>				printRatings						= Collections.synchronizedMap(new HashMap<String, Float>());
@@ -376,8 +378,9 @@ public class MarcProcessor {
 		// Setup additional statements
 		try {
 			insertMarcInfoStmt = vufindConn.prepareStatement("INSERT INTO marc_import (id, checksum, eContent) VALUES (?, ?, ?)");
-			updateMarcInfoStmt = vufindConn
-					.prepareStatement("UPDATE marc_import SET checksum = ?, backup_checksum = ?, eContent = ?, backup_eContent = ? WHERE id = ?");
+			updateMarcInfoStmt = vufindConn.prepareStatement("UPDATE marc_import SET checksum = ?, backup_checksum = ?, eContent = ?, backup_eContent = ? WHERE id = ?");
+			clearMergedRecordsStmt = vufindConn.prepareStatement("DELETE FROM merged_records WHERE original_record = ?");
+			addMergedRecordStmt = vufindConn.prepareStatement("INSERT INTO merged_records (original_record, new_record) values (?, ?)");
 		} catch (SQLException e) {
 			logger.error("Unable to setup statements for updating marc_import table", e);
 			return false;
@@ -1161,5 +1164,27 @@ public class MarcProcessor {
 
 	public ArrayList<OrderRecord> getOrderRecordsById(String ilsId) {
 		return orderRecords.get(ilsId);
+	}
+
+	public void clearMergedRecordsForId(String ilsId) {
+		try {
+			clearMergedRecordsStmt.setString(1, ilsId);
+			clearMergedRecordsStmt.executeUpdate();
+		} catch (SQLException e) {
+			logger.error("Error clearing merged records for id " + ilsId, e);
+
+		}
+	}
+
+
+	public void addMergedRecord(String originalId, String newId) {
+		try {
+			addMergedRecordStmt.setString(1, originalId);
+			addMergedRecordStmt.setString(2, newId);
+			addMergedRecordStmt.executeUpdate();
+		} catch (SQLException e) {
+			logger.error("Error adding merged record to database. original id " + originalId + " merged record " + newId, e);
+
+		}
 	}
 }

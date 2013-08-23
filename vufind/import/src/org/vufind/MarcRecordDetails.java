@@ -91,6 +91,15 @@ public class MarcRecordDetails {
 		if (isEContent()) {
 			mapEContentFields();
 		}
+
+		//Look for merged record indicator
+		Set<String> mergedRecords = getFieldList("933a");
+		if (mergedRecords.size() > 0){
+			marcProcessor.clearMergedRecordsForId(this.ilsId);
+			for (String originalId : mergedRecords){
+				marcProcessor.addMergedRecord(originalId, this.ilsId);
+			}
+		}
 	}
 
 	/**

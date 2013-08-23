@@ -53,6 +53,7 @@ class Record_Record extends Action
 	public $db;
 
 	public $description;
+	protected $mergedRecords = array();
 
 	function __construct($subAction = false, $record_id = null)
 	{
@@ -73,6 +74,24 @@ class Record_Record extends Action
 			$this->id = $_GET['id'];
 		}else{
 			$this->id = $record_id;
+		}
+
+		require_once(ROOT_DIR . '/sys/MergedRecord.php');
+		$mergedRecord = new MergedRecord();
+		$mergedRecord->original_record = $this->id;
+		if ($mergedRecord->find(true)){
+			//redirect to the new record
+			header('Location: ' . $configArray['Site']['url'] . '/Record/' . $mergedRecord->new_record);
+			exit();
+		}
+
+		//Look for any records that have been merged with this record
+		$mergedRecord = new MergedRecord();
+		$mergedRecord->new_record = $this->id;
+		if ($mergedRecord->find()){
+			while ($mergedRecord->fetch()){
+				$this->mergedRecords[] = $mergedRecord->original_record;
+			}
 		}
 
 		//Check to see if the record exists within the resources table

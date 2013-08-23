@@ -1255,6 +1255,20 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),*/
 
+			'merged_records' => array(
+				'title' => 'Merged Records Table',
+				'description' => 'Create Merged Records table to store ',
+				'sql' => array(
+					"CREATE TABLE `merged_records` (
+						id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						`original_record` VARCHAR( 20 ) NOT NULL,
+						`new_record` VARCHAR( 20 ) NOT NULL,
+						UNIQUE INDEX (original_record),
+						INDEX(new_record)
+					)",
+				),
+			),
+
       'variables_table' => array(
 				'title' => 'Variables Table',
 				'description' => 'Create Variables Table for storing basic variables for use in programs (system writable config)',
