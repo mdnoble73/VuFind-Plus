@@ -69,12 +69,23 @@
 {/strip}
 {literal}
 <script type="text/javascript">
+	var lastKeyPress = new Date().getTime();
 	$(document).ready(
 		function(){
 			setInterval(processInventory, 5000);
 		}
 	);
+	$('#barcodes').keyup(function (){
+		lastKeyPress = new Date().getTime();
+	});
+
 	function processInventory(){
+		//Make sure we aren't in the process of entering text.
+		// The last key up should have been at least half a second ago.
+		var curTime = new Date().getTime();
+		if (curTime - lastKeyPress < 500){
+			return;
+		}
 		var barcodesCtrl = $('#barcodes');
 		//Read barcodes to process from barcodes field
 		var barcodeData = barcodesCtrl.val();
@@ -89,41 +100,54 @@
 
 		if (barcodeData.length > 0){
 			var barcodes = barcodeData.match(/[^\r\n]+/g);
+			var barcodeStr = "";
 			for (var i = 0; i < barcodes.length; i++){
-				//Submit each barcode using AJAX
-				url = path + "/Circa/AJAX?method=UpdateInventoryForBarcode&barcode=" + barcodes[i];
-				url += "&login=" + login;
-				url += "&password=" + password;
-				url += "&initials=" + initials;
-				url += "&password2=" + password2;
-				url += "&updateIncorrectStatuses=" + updateIncorrectStatuses;
-				//Display results
-				$.getJSON(url, function(data){
-					var rowData = '<tr>';
-					rowData += '<td>' + data.barcode + '</td>';
-					if (data.title){
-						rowData += '<td>' + data.title + '</td>';
-					}else{
-						rowData += '<td></td>';
-					}
-					if (data.callNumber){
-						rowData += '<td>' + data.callNumber + '</td>';
-					}else{
-						rowData += '<td></td>';
-					}
-					rowData += '<td>' + data.inventoryResult + '</td>';
-					rowData += '</tr>';
-					var table = $('#inventoryResults');
-					var tableBody = table.children('tbody');
-					if (tableBody.children().length == 0){
-						tableBody.html(rowData);
-					}else{
-						var firstRow = tableBody.children("tr:first");
-						firstRow.before(rowData);
-					}
-				});
-
+				barcodeStr += "&barcodes[]=" + barcodes[i];
 			}
+			//Submit each barcode using AJAX
+			url = path + "/Circa/AJAX?method=UpdateInventoryForBarcode" + barcodeStr;
+			url += "&login=" + login;
+			url += "&password=" + password;
+			url += "&initials=" + initials;
+			url += "&password2=" + password2;
+			url += "&updateIncorrectStatuses=" + updateIncorrectStatuses;
+			//Display results
+			$.getJSON(url, function(data){
+				if (!data.success){
+					addInventoryRow(data.barcode, null, null, data.message);
+				}else{
+					for(var barcode in data.barcodes){
+						var barcodeData = data.barcodes[barcode];
+						addInventoryRow(barcode, barcodeData.title, barcodeData.callNumber, barcodeData.inventoryResult);
+					}
+
+				}
+			});
+		}
+	}
+
+	function addInventoryRow(barcode, title, callNumber, inventoryResult) {
+		var rowData = '<tr>';
+		rowData += '<td>' + barcode + '</td>';
+		if (title) {
+			rowData += '<td>' + title + '</td>';
+		} else {
+			rowData += '<td></td>';
+		}
+		if (callNumber) {
+			rowData += '<td>' + callNumber + '</td>';
+		} else {
+			rowData += '<td></td>';
+		}
+		rowData += '<td>' + inventoryResult + '</td>';
+		rowData += '</tr>';
+		var table = $('#inventoryResults');
+		var tableBody = table.children('tbody');
+		if (tableBody.children().length == 0) {
+			tableBody.html(rowData);
+		} else {
+			var firstRow = tableBody.children("tr:first");
+			firstRow.before(rowData);
 		}
 	}
 
