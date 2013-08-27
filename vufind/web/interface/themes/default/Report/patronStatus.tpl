@@ -13,6 +13,9 @@
 		<div id="main-content">
 			{if $user}
 				<h1>Patron Status Report</h1>
+				{foreach from=$errors item=error}
+					<div class="error">{$error}</div>
+				{/foreach}
 				<form id="patronStatusInput" method="post" enctype="multipart/form-data">
 					<fieldset>
 						<legend>Patron Report Files</legend>

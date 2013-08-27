@@ -8,21 +8,21 @@
  * Time: 10:24 AM
  */
 class Report_PatronStatus extends Action{
+	private $errors = array();
 	function launch(){
 		global $interface;
-		$errors = array();
 		if (isset($_REQUEST['submit'])){
 			//Generate the report
 			if (isset($_FILES['patronReport'])){
 				$patronReportFile = fopen($_FILES['patronReport']["tmp_name"], 'r');
 			}else{
-				$errors[] = "Please upload a patron report.";
+				$this->errors[] = "Please upload a patron report.";
 				$patronReportFile = null;
 			}
 			if (isset($_FILES['itemReport'])){
 				$itemReportFile = fopen($_FILES['itemReport']["tmp_name"], 'r');
 			}else{
-				$errors[] = "Please upload a item report.";
+				$this->errors[] = "Please upload a item report.";
 				$itemReportFile = null;
 			}
 			if ($patronReportFile && $itemReportFile){
@@ -30,7 +30,7 @@ class Report_PatronStatus extends Action{
 			}
 		}
 
-		$interface->assign('errors', $errors);
+		$interface->assign('errors', $this->errors);
 		$interface->setPageTitle('Patron Status Report');
 		$interface->setTemplate('patronStatus.tpl');
 		$interface->display('layout.tpl');
@@ -41,10 +41,14 @@ class Report_PatronStatus extends Action{
 		$allPatronBarcodes = array();
 		$allHomeLibraries = array();
 		//Load patron data into an array keyed by patron barcode
-		$this->loadPatronData($patronReportFile, $allPatronBarcodes, $allHomeLibraries, $patronData, $headerRowRead, $patronBarcode, $homeLibrary);
+		if (!$this->loadPatronData($patronReportFile, $allPatronBarcodes, $allHomeLibraries, $patronData, $headerRowRead, $patronBarcode, $homeLibrary)){
+			return;
+		}
 
 		//Load items into an array keyed by patron barcode
-		$this->loadItemData($itemReportFile, $allPatronBarcodes, $allHomeLibraries, $itemData);
+		if (!$this->loadItemData($itemReportFile, $allPatronBarcodes, $allHomeLibraries, $itemData)){
+			return;
+		}
 
 		//Sort barcodes by home library and patron name
 		uasort($allPatronBarcodes, array($this, 'sort_patrons'));
@@ -162,10 +166,11 @@ class Report_PatronStatus extends Action{
 			$sheet->getColumnDimension('K')->setWidth(6.5);
 			$sheet->getColumnDimension('L')->setAutoSize(true);
 			$sheet->getColumnDimension('M')->setWidth(2);
+			$sheet->getColumnDimension('N')->setWidth(51);
 
 			//Wrap the columns
 			$maxRow = $sheet->getHighestRow();
-			$sheet->getStyle('A1:M' . $maxRow)->getAlignment()->setWrapText(true);
+			$sheet->getStyle('A1:N' . $maxRow)->getAlignment()->setWrapText(true);
 		}
 		$excel->setActiveSheetIndex(0);
 
@@ -198,10 +203,11 @@ class Report_PatronStatus extends Action{
 	    ->setCellValue('K1', 'ITEM LOC')
 	    ->setCellValue('L1', 'DUE DATE')
 	    ->setCellValue('M1', 'STAT')
+			->setCellValue('N1', 'ADDRESS')
 			->getRowDimension(1)->setRowHeight(-1); //Set the height to auto
 
 		//Bold the headers
-		$range = "A1:M1";
+		$range = "A1:N1";
 		$sheet = $excel->getActiveSheet();
 		$sheet->getStyle($range)->getFont()->setBold(true);
 
@@ -246,6 +252,10 @@ class Report_PatronStatus extends Action{
 			//Only set the money owed for the first item so staff doesn't collect extra
 			$curSheet->setCellValueByColumnAndRow(6, $curRow, $firstItem ? $patronInfo[7] : ''); //$ owed
 			$moneyOwned = $patronInfo[7];
+			if (isset($patronInfo[9])){
+				//Output the address
+				$curSheet->setCellValueByColumnAndRow(13, $curRow, $firstItem ? $patronInfo[9] : ''); //$ owed
+			}
 		}
 		if ($itemInfo != null){
 			if ($patronInfo == null){
@@ -266,6 +276,9 @@ class Report_PatronStatus extends Action{
 			$curSheet->setCellValueByColumnAndRow(10, $curRow, $itemInfo[11]); //item location
 			$curSheet->setCellValueByColumnAndRow(11, $curRow, $itemInfo[12]); //due date
 			$curSheet->setCellValueByColumnAndRow(12, $curRow, $itemInfo[13]); //stat
+			if (isset($itemInfo[15])){
+				$curSheet->setCellValueByColumnAndRow(13, $curRow, $itemInfo[15]); //Address
+			}
 		}
 		//Set height of the row
 		$curSheet->getRowDimension(1)->setRowHeight(-1);
@@ -300,7 +313,7 @@ class Report_PatronStatus extends Action{
 			)
 		);
 
-		$curSheet->getStyle("A{$curRow}:M{$curRow}")->applyFromArray($styleArray);
+		$curSheet->getStyle("A{$curRow}:N{$curRow}")->applyFromArray($styleArray);
 		return ++$curRow;
 	}
 
@@ -313,6 +326,8 @@ class Report_PatronStatus extends Action{
 	 * @param $headerRowRead
 	 * @param $patronBarcode
 	 * @param $homeLibrary
+	 *
+	 * @return boolean;
 	 */
 	public function loadPatronData($patronReportFile, &$allPatronBarcodes, &$allHomeLibraries, &$patronData, &$headerRowRead, &$patronBarcode, &$homeLibrary) {
 		$patronData = array();
@@ -320,6 +335,11 @@ class Report_PatronStatus extends Action{
 		while (($patronDataRow = fgetcsv($patronReportFile, 1000, ",", '"', ';')) !== FALSE) {
 			//Skip the header
 			if (!$headerRowRead) {
+				if (count($patronDataRow) >= 14){
+					$this->errors[] = "Patron data file looks like an item report.  Please try again";
+					fclose($patronReportFile);
+					return false;
+				}
 				$headerRowRead = true;
 				continue;
 			}
@@ -343,6 +363,7 @@ class Report_PatronStatus extends Action{
 			}
 		}
 		fclose($patronReportFile);
+		return true;
 	}
 
 	/**
@@ -350,6 +371,8 @@ class Report_PatronStatus extends Action{
 	 * @param $allPatronBarcodes
 	 * @param $allHomeLibraries
 	 * @param $itemData
+	 *
+	 * @return boolean;
 	 */
 	public function loadItemData($itemReportFile, &$allPatronBarcodes, &$allHomeLibraries, &$itemData) {
 		$itemData = array();
@@ -360,6 +383,7 @@ class Report_PatronStatus extends Action{
 			$inField = false;
 			$curFieldIndex = -1;
 			$curFieldValue = "";
+			$lastChar = null;
 			for ($i = 0; $i < strlen($itemDataRowRaw); $i++){
 				$curChar = $itemDataRowRaw[$i];
 				if ($curChar == '"'){
@@ -367,30 +391,45 @@ class Report_PatronStatus extends Action{
 						$inField = false;
 					}else{
 						$inField = true;
-						$curFieldValue = "";
-						$curFieldIndex++;
+						if ($lastChar != ";"){
+							$curFieldValue = "";
+							$curFieldIndex++;
+						}
 					}
 				}elseif ($curChar == ';'){
 					if (!$inField){
 						$inField = true;
-						$curFieldIndex--;
-						$curFieldValue = $itemDataRow[$curFieldIndex];
+						//$curFieldIndex--;
+						//$curFieldValue = $itemDataRow[$curFieldIndex];
+						$curFieldValue .= ' ; ';
 						$i++;
 					}else{
 						$curFieldValue .= $curChar;
 					}
 				}elseif ($curChar == ','){
 					if (!$inField){
-						$itemDataRow[$curFieldIndex] = $curFieldValue;
+						if($lastChar == null || $lastChar == ','){
+							$itemDataRow[++$curFieldIndex] = $curFieldValue;
+							$curFieldValue = "";
+						}else{
+							$itemDataRow[$curFieldIndex] = $curFieldValue;
+						}
 					}else{
 						$curFieldValue .= $curChar;
 					}
 				}else{
 					$curFieldValue .= $curChar;
 				}
+				$lastChar = $curChar;
 			}
+			$itemDataRow[$curFieldIndex++] = trim($curFieldValue);
 			//Skip the header
 			if (!$headerRowRead) {
+				if (count($itemDataRow) < 14){
+					$this->errors[] = "Item data file looks like a patron report.  Please try again";
+					fclose($itemReportFile);
+					return false;
+				}
 				$headerRowRead = true;
 				continue;
 			}
@@ -425,6 +464,7 @@ class Report_PatronStatus extends Action{
 			}
 		}
 		fclose($itemReportFile);
+		return true;
 	}
 
 	/**
@@ -437,7 +477,7 @@ class Report_PatronStatus extends Action{
 		if ($partial){
 			$range = "A{$curRow}:G{$curRow}";
 		}else{
-			$range = "A{$curRow}:M{$curRow}";
+			$range = "A{$curRow}:N{$curRow}";
 		}
 		$curSheet->getStyle($range)->applyFromArray(
 			array(
