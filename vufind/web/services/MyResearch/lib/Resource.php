@@ -335,8 +335,23 @@ class Resource extends DB_DataObject {
 			'user'    => 0,
 		);
 
+		//Look for merged records
+		require_once ROOT_DIR . '/sys/MergedRecord.php';
+		$mergedRecord = new MergedRecord();
+		$mergedRecord->new_record = $this->record_id;
+		$mergedRecord->find();
+		if ($mergedRecord->N > 0){
+			$allRecords = "('" . $this->record_id . "'";
+			while ($mergedRecord->fetch()){
+				$allRecords .= ", '" . $mergedRecord->original_record . "'";
+			}
+			$allRecords .= ')';
+			$sql = "SELECT AVG(rating) average, count(rating) count from user_rating inner join resource on user_rating.resourceid = resource.id where resource.record_id IN " . $allRecords;
+		}else{
+			$sql = "SELECT AVG(rating) average, count(rating) count from user_rating inner join resource on user_rating.resourceid = resource.id where resource.record_id =  '{$this->record_id}'";
+		}
+
 		//Get rating data for the resource
-		$sql = "SELECT AVG(rating) average, count(rating) count from user_rating inner join resource on user_rating.resourceid = resource.id where resource.record_id =  '{$this->record_id}'";
 		$rating = new UserRating();
 		$rating->query($sql);
 		if ($rating->N > 0){

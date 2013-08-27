@@ -18,6 +18,7 @@ import java.util.regex.Pattern;
  */
 public class PrintItemSolrProcessor {
 	private Set<String> librarySystems;
+	private Set<String> librarySubdomains;
 	private Set<String> locations;
 	private Set<String> barcodes;
 	private Set<String> iTypes;
@@ -44,10 +45,11 @@ public class PrintItemSolrProcessor {
 	private static Date indexDate = new Date();
 
 
-	public PrintItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, Set<String> librarySystems, Set<String> locations, Set<String> barcodes, Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, Set<String> locationCodes, HashMap<String, LinkedHashSet<String>> locationsCodesBySystem, Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, Set<String> availableAt, LinkedHashSet<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, LinkedHashSet<String> localCallNumbers, HashMap<String, HashMap<String, Long>> sortableCallNumbersByLibraryAndLocation, boolean manuallySuppressed, boolean allItemsSuppressed, float popularity, DataField itemField) {
+	public PrintItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, Set<String> librarySystems, Set<String> librarySubdomains, Set<String> locations, Set<String> barcodes, Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, Set<String> locationCodes, HashMap<String, LinkedHashSet<String>> locationsCodesBySystem, Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, Set<String> availableAt, LinkedHashSet<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, LinkedHashSet<String> localCallNumbers, HashMap<String, HashMap<String, Long>> sortableCallNumbersByLibraryAndLocation, boolean manuallySuppressed, boolean allItemsSuppressed, float popularity, DataField itemField) {
 		this.logger = logger;
 		this.marcProcessor = marcProcessor;
 		this.librarySystems = librarySystems;
+		this.librarySubdomains = librarySubdomains;
 		this.locations = locations;
 		this.barcodes = barcodes;
 		this.iTypes = iTypes;
@@ -157,6 +159,7 @@ public class PrintItemSolrProcessor {
 				// Map library system (institution)
 				if (libraryIndexingInfo != null) {
 					librarySystems.add(libraryIndexingInfo.getFacetLabel());
+					librarySubdomains.add(libraryIndexingInfo.getSubdomain());
 				}
 
 				// Map location (building)

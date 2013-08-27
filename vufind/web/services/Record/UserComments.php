@@ -58,7 +58,7 @@ class Record_UserComments extends Record_Record{
 
 		$interface->setPageTitle(translate('Comments') . ': ' . $this->recordDriver->getBreadcrumb());
 
-		$this->loadComments();
+		$this->loadComments($this->mergedRecords);
 
 		$interface->assign('subTemplate', 'view-comments.tpl');
 		$interface->setTemplate('view.tpl');
@@ -67,18 +67,39 @@ class Record_UserComments extends Record_Record{
 		$interface->display('layout.tpl'/*, $cacheId */);
 	}
 
-	function loadComments(){
+	function loadComments($mergedRecords){
 		global $interface;
 
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		$resource->source = 'VuFind';
-		$resource->deleted = 0;
-		if ($resource->find(true)) {
-			$commentLists = $resource->getComments();
+		$commentLists = null;
+		$commentLists = Record_UserComments::loadCommentsForIdAndSource($_GET['id'], 'VuFind', $commentLists);
+
+		//Get comments from merged records
+		if (count($mergedRecords)){
+			foreach ($mergedRecords as $mergedId){
+				$commentLists = Record_UserComments::loadCommentsForIdAndSource($mergedId, 'VuFind', $commentLists);
+			}
+		}
+
+		if ($commentLists != null){
 			$interface->assign('commentList', $commentLists['user']);
 			$interface->assign('staffCommentList', $commentLists['staff']);
 		}
+	}
+
+	function loadCommentsForIdAndSource($id, $source, $commentLists){
+		$resource = new Resource();
+		$resource->record_id = $id;
+		$resource->source = $source;
+		$resource->deleted = 0;
+		if ($resource->find(true)) {
+			$newCommentLists = $resource->getComments();
+			if ($commentLists == null){
+				$commentLists = $newCommentLists;
+			}else{
+				$commentLists = array_merge($commentLists, $newCommentLists);
+			}
+		}
+		return $commentLists;
 	}
 	
 	function loadEContentComments(){

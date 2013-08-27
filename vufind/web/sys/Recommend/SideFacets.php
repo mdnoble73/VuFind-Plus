@@ -83,6 +83,10 @@ class SideFacets implements RecommendationInterface
 						$facetName = 'detailed_location_' . $searchLibrary->subdomain;
 					}elseif ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
 						$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
+					}elseif ($facet->facetName == 'format' && $configArray['Index']['enableDetailedFormats']){
+						$facetName = 'format_' . $searchLibrary->subdomain;
+					}elseif ($facet->facetName == 'econtent_source' && $configArray['Index']['enableDetailedEContentSources']){
+						$facetName = 'econtent_source_' . $searchLibrary->subdomain;
 					}
 				}
 				if (isset($userLocation)){

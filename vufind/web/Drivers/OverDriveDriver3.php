@@ -27,6 +27,23 @@ require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 class OverDriveDriver3 {
 	public $version = 3;
 
+	private $format_map = array(
+		'ebook-epub-adobe' => 'Adobe EPUB eBook',
+		'ebook-epub-open' => 'Open EPUB eBook',
+		'ebook-pdf-adobe' => 'Adobe PDF eBook',
+		'ebook-pdf-open' => 'Open PDF eBook',
+		'ebook-kindle' => 'Kindle Book',
+		'ebook-disney' => 'Disney Online Book',
+		'ebook-overdrive' => 'OverDrive Read',
+		'ebook-microsoft' => 'Microsoft eBook',
+		'audiobook-wma' => 'OverDrive WMA Audiobook',
+		'audiobook-mp3' => 'OverDrive MP3 Audiobook',
+		'audiobook-streaming' => 'Streaming Audiobook',
+		'music-wma' => 'OverDrive Music',
+		'video-wmv' => 'OverDrive Video',
+		'video-wmv-mobile' => 'OverDrive Video (mobile)'
+	);
+
 	/**
 	 * Retrieves the URL for the cover of the record by screen scraping OverDrive.
 	 * ..
@@ -307,7 +324,7 @@ class OverDriveDriver3 {
 					$bookshelfItem['overdriveRead'] = true;
 				}else{
 					$bookshelfItem['selectedFormat'] = array(
-						'name' => $format->formatType,
+						'name' => $this->format_map($format->formatType),
 					);
 				}
 				$curFormat['downloadUrl'] = $format->links->downloadLink->href;

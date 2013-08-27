@@ -48,13 +48,15 @@ class MillenniumInventory {
 			);
 		}
 
-		if (strlen($barcodes) == 0){
+		if (is_string($barcodes) && strlen($barcodes) == 0){
 			return array(
 				'success' => false,
 				'message' => 'Please enter at least one barcode to inventory.',
 			);
 		}else{
-			$barcodes = preg_split('/[\\s\\r\\n]+/', $barcodes);
+			if (!is_array($barcodes)){
+				$barcodes = preg_split('/[\\s\\r\\n]+/', $barcodes);
+			}
 			if (count($barcodes) == 0){
 				return array(
 					'success' => false,
@@ -72,6 +74,7 @@ class MillenniumInventory {
 			$this->db->debug = true;
 		}
 
+		$baseUrl = $configArray['Catalog']['url'];
 		$circaUrl = $configArray['Catalog']['url'] . '/iii/airwkst/airwkstcore';
 		//Setup curl
 		$curl_url = $circaUrl;
@@ -91,6 +94,7 @@ class MillenniumInventory {
 
 		//First get the login page
 		curl_exec($this->curl_connection);
+		sleep(1);
 
 		//Login to circa
 		$post_data = array(
@@ -146,7 +150,7 @@ class MillenniumInventory {
 				//Logged in and authorized, check in each barcode
 				//Go to the Inventory page
 				curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
-				curl_setopt($this->curl_connection, CURLOPT_URL, $circaUrl . '/iii/airwkst/?action=GetAirWkstUserInfoAction&purpose=updinvdt');
+				curl_setopt($this->curl_connection, CURLOPT_URL, $baseUrl . '/iii/airwkst/?action=GetAirWkstUserInfoAction&purpose=updinvdt');
 				curl_exec($this->curl_connection);
 
 				curl_setopt($this->curl_connection, CURLOPT_POST, true);
@@ -238,6 +242,7 @@ class MillenniumInventory {
 									$results['barcodes'][$barcode]['inventoryResult'] = "Could not automatically fix status, old status is $lastStatus";
 									$results['barcodes'][$barcode]['needsAdditionalProcessing'] = true;
 								}
+
 							}else{
 								$results['barcodes'][$barcode]['inventoryResult'] = "Unexpected Status, Needs Update";
 								$results['barcodes'][$barcode]['needsAdditionalProcessing'] = true;
@@ -262,7 +267,10 @@ class MillenniumInventory {
 			}else{
 				//Did not log in correctly.
 				$results['success'] = false;
-				$results['message'] = "The initals or password were incorrect or you are not authorized to use circa.";
+				$results['message'] = "The initials or password were incorrect or you are not authorized to use circa.";
+				if (preg_match('/class="error">(.*?)<\/h2>/i', $sresult, $matches)){
+					$results['message'] = $matches[1];
+				}
 			}
 
 		}else{
@@ -270,6 +278,11 @@ class MillenniumInventory {
 			$results['success'] = false;
 			$results['message'] = "The login or password were incorrect.  Please reenter.";
 		}
+
+		//Logout of the system
+		curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
+		curl_setopt($this->curl_connection, CURLOPT_URL, $circaUrl . '/iii/airwkst/airwkstcore?action=AirWkstReturnToWelcomeAction');
+		$sresult = curl_exec($this->curl_connection);
 
 		//Cleanup
 		curl_close($this->curl_connection);

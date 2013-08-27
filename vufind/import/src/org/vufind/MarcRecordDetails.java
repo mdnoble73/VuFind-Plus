@@ -45,6 +45,10 @@ public class MarcRecordDetails {
 	private Long eContentRecordId = null;
 	private String ilsId;
 
+	private Set<String> librarySystems = new LinkedHashSet<String>();
+	private Set<String> librarySubdomains = new LinkedHashSet<String>();
+	private Set<String> locations = new LinkedHashSet<String>();
+
 	private static Date indexDate = new Date();
 
 	/**
@@ -87,6 +91,15 @@ public class MarcRecordDetails {
 		if (isEContent()) {
 			mapEContentFields();
 		}
+
+		//Look for merged record indicator
+		Set<String> mergedRecords = getFieldList("933a");
+		if (mergedRecords.size() > 0){
+			marcProcessor.clearMergedRecordsForId(this.ilsId);
+			for (String originalId : mergedRecords){
+				marcProcessor.addMergedRecord(originalId, this.ilsId);
+			}
+		}
 	}
 
 	/**
@@ -97,8 +110,7 @@ public class MarcRecordDetails {
 		Set<String> accessTypes = new LinkedHashSet<String>();
 		Set<String> sources = new LinkedHashSet<String>();
 		boolean overridePTypes = false;
-		for (DetectionSettings detectionSetting : eContentDetectionSettings
-				.values()) {
+		for (DetectionSettings detectionSetting : eContentDetectionSettings.values()) {
 			accessTypes.add(detectionSetting.getAccessType());
 			sources.add(detectionSetting.getSource());
 
@@ -126,8 +138,7 @@ public class MarcRecordDetails {
 		// Load all items
 		@SuppressWarnings("unchecked")
 		List<DataField> itemFields = record.getVariableFields("989");
-		Set<String> librarySystems = new LinkedHashSet<String>();
-		Set<String> locations = new LinkedHashSet<String>();
+
 		Set<String> barcodes = new LinkedHashSet<String>();
 		Set<String> iTypes = new LinkedHashSet<String>();
 		HashMap<String, LinkedHashSet<String>> iTypesBySystem = new HashMap<String, LinkedHashSet<String>>();
@@ -156,7 +167,7 @@ public class MarcRecordDetails {
 		}
 		//logger.debug("Found " + itemFields.size() + " items");
 		for (DataField itemField : itemFields) {
-			PrintItemSolrProcessor printItemSolrProcessor = new PrintItemSolrProcessor(logger, marcProcessor, librarySystems, locations, barcodes, iTypes, iTypesBySystem, locationCodes, locationsCodesBySystem, timeSinceAdded, timeSinceAddedBySystem, timeSinceAddedByLocation, availableAt, availabilityToggleGlobal, availableAtBySystemOrLocation, usableByPTypes, callNumbers, sortableCallNumbersByLibraryAndLocation, manuallySuppressed, allItemsSuppressed, popularity, itemField).invoke();
+			PrintItemSolrProcessor printItemSolrProcessor = new PrintItemSolrProcessor(logger, marcProcessor, librarySystems, librarySubdomains, locations, barcodes, iTypes, iTypesBySystem, locationCodes, locationsCodesBySystem, timeSinceAdded, timeSinceAddedBySystem, timeSinceAddedByLocation, availableAt, availabilityToggleGlobal, availableAtBySystemOrLocation, usableByPTypes, callNumbers, sortableCallNumbersByLibraryAndLocation, manuallySuppressed, allItemsSuppressed, popularity, itemField).invoke();
 			allItemsSuppressed = printItemSolrProcessor.isAllItemsSuppressed();
 			timeSinceAdded = printItemSolrProcessor.getTimeSinceAdded();
 			popularity = printItemSolrProcessor.getPopularity();
@@ -213,8 +224,7 @@ public class MarcRecordDetails {
 		addFields(mappedFields, "detailed_location", "detailed_location_map",
 				locationCodes);
 		addFields(mappedFields, "available_at", null, availableAt);
-		addFields(mappedFields, "availability_toggle", null,
-				availabilityToggleGlobal);
+		addFields(mappedFields, "availability_toggle", null, availabilityToggleGlobal);
 		for (String subdomain : locationsCodesBySystem.keySet()) {
 			LinkedHashSet<String> values = locationsCodesBySystem.get(subdomain);
 			addFields(mappedFields, "detailed_location_" + subdomain,
@@ -2375,8 +2385,9 @@ public class MarcRecordDetails {
 		// Also add the current formats for the title
 		Set<String> existingFormats = Utils.remap(getFormat("false"), marcProcessor.findMap("format_map"), false);
 		for (String format : existingFormats) {
-			if (allFieldData.length() > 0)
+			if (allFieldData.length() > 0) {
 				allFieldData.append(" ");
+			}
 			allFieldData.append(format);
 		}
 
@@ -3634,6 +3645,8 @@ public class MarcRecordDetails {
 
 	private Boolean isEContent = null;
 	private HashMap<String, DetectionSettings> eContentDetectionSettings = new HashMap<String, DetectionSettings>();
+	private HashMap<String, String> eContentSourceBySubdomain = new HashMap<String, String>();
+	private String allLibraryEContentSource = null;
 
 	/*
 	 * Determine if the record is eContent or not.
@@ -3649,6 +3662,9 @@ public class MarcRecordDetails {
 			if (!isEContent) {
 				// Check the 037 second
 				eContentSource = checkEContentBasedOn037(eContentSource);
+				if (isEContent){
+					allLibraryEContentSource = eContentSource;
+				}
 			}
 			if (isEContent) {
 				// If the source is overdrive, make sure that we have an overdrive id
@@ -3708,8 +3724,7 @@ public class MarcRecordDetails {
 				DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(
 						subfieldBVal, subfieldCVal);
 				if (tempDetectionSettings != null) {
-					eContentDetectionSettings.put(tempDetectionSettings.getSource(),
-							tempDetectionSettings);
+					eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
 					if (eContentSource == null) {
 						eContentSource = tempDetectionSettings.getSource();
 					}
@@ -3737,6 +3752,9 @@ public class MarcRecordDetails {
 						if (eContentSource == null) {
 							eContentSource = tempDetectionSettings.getSource();
 						}
+						String itemLocation = itemField.getSubfield('d').getData();
+						LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfoByCode(itemLocation);
+						eContentSourceBySubdomain.put(libraryIndexingInfo.getSubdomain(), tempDetectionSettings.getSource());
 					}
 				}
 			}
@@ -3973,6 +3991,12 @@ public class MarcRecordDetails {
 		for (String fieldName : allFields.keySet()) {
 			Object value = allFields.get(fieldName);
 			doc.addField(fieldName, value);
+			//Add localized formats as needed
+			if (fieldName.equalsIgnoreCase("format") || fieldName.equalsIgnoreCase("format_category")){
+				for (String subdomain : librarySubdomains){
+					doc.addField(fieldName + "_" + subdomain, value);
+				}
+			}
 		}
 		//logger.debug(doc.toString());
 		return doc;
@@ -3989,6 +4013,7 @@ public class MarcRecordDetails {
 		int itemLevelOwnership = eContentInfo.getInt("itemLevelOwnership");
 
 		Set<String> formats = new HashSet<String>();
+		HashMap<String, Set<String>> formatsBySystem = new HashMap<String, Set<String>>();
 		int numItems = 0;
 		Set<String> availableAt = new HashSet<String>();
 		HashMap<String, HashSet<String>> availableAtBySystemOrLocation = new HashMap<String, HashSet<String>>();
@@ -3998,7 +4023,7 @@ public class MarcRecordDetails {
 
 		// Generate information based on items.
 		while (itemInfo.next()) {
-			EContentItemSolrProcessor EContentItemSolrProcessor = new EContentItemSolrProcessor(logger, marcProcessor, itemInfo, formats, numItems, availableAt, availableAtBySystemOrLocation, availabilityToggleGlobal, buildings).invoke();
+			EContentItemSolrProcessor EContentItemSolrProcessor = new EContentItemSolrProcessor(logger, marcProcessor, itemInfo, formats, formatsBySystem, numItems, availableAt, availableAtBySystemOrLocation, availabilityToggleGlobal, buildings).invoke();
 			buildings = EContentItemSolrProcessor.getBuildings();
 			availableAt = EContentItemSolrProcessor.getAvailableAt();
 			numItems = EContentItemSolrProcessor.getNumItems();
@@ -4055,6 +4080,9 @@ public class MarcRecordDetails {
 		}
 		// mappedFields.remove("format");
 		addFields(mappedFields, "format", "format_map", formats);
+		for(String curSystem : formatsBySystem.keySet()){
+			addFields(mappedFields, "format_" + curSystem, "format_map", formats);
+		}
 		//addFields(mappedFields, "usable_by", null, usableByPTypes);
 		if (formats.size() > 0) {
 			String firstFormat = formats.iterator().next();
@@ -4079,6 +4107,16 @@ public class MarcRecordDetails {
 		addField(mappedFields, "id_alt", ilsId);
 		if (externalIdLoaded) {
 			addField(mappedFields, "id_alt", externalId);
+		}
+
+		if (allLibraryEContentSource != null){
+			for (String curSubdomain : librarySubdomains){
+				addField(mappedFields, "econtent_source_" + curSubdomain, allLibraryEContentSource);
+			}
+		}else{
+			for(String curSubdomain : eContentSourceBySubdomain.keySet()){
+				addField(mappedFields, "econtent_source_" + curSubdomain, eContentSourceBySubdomain.get(curSubdomain));
+			}
 		}
 
 		HashMap<String, Object> allFields = getFields("getEContentSolrDocument");

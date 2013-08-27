@@ -1315,6 +1315,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						results.incUpdated();
 					}
 
+					HashSet<String> advantageSubdomains = new HashSet<String>();
 					if (econtentRecordId != -1){
 						addOverdriveItemsAndAvailability(recordInfo, econtentRecordId);
 
@@ -1347,6 +1348,9 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 										availableAt.add(libraryFacet + " Online");
 									}
 								}
+								for (String subdomain : marcProcessor.getLibrarySubdomains()){
+									addFieldToDoc(doc, "econtent_source_" + subdomain, "OverDrive");
+								}
 								if (isAvailable){
 									availabilityToggleGlobal.add("Available Now");
 									//availableAt.add("Digital Collection");
@@ -1355,6 +1359,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 							}else{
 								//usableByPTypes.addAll(marcProcessor.getCompatiblePTypes("188", marcProcessor.getLibraryIndexingInfo(curLibraryId).getIlsCode()));
 								String libraryName = marcProcessor.getLibrarySystemFacetForId(curLibraryId);
+								String subdomain = marcProcessor.getLibraryIndexingInfo(curLibraryId).getSubdomain();
+								advantageSubdomains.add(subdomain);
 								//addFieldToDoc(doc, "institution", libraryName + " Online");
 								addFieldToDoc(doc, "building", libraryName + " Online");
 								addFieldToDoc(doc, "institution", libraryName + " Online");
@@ -1426,6 +1432,18 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 							}
 						}
 						addFieldToDoc(doc, "format", formats);
+						if (!isAdvantageOnly){
+							for (String subdomain : marcProcessor.getLibrarySubdomains()){
+								addFieldToDoc(doc, "econtent_source_" + subdomain, "OverDrive");
+								addFieldToDoc(doc, "format_" + subdomain, formats);
+							}
+						}else{
+							for (String subdomain : advantageSubdomains){
+								addFieldToDoc(doc, "econtent_source_" + subdomain, "OverDrive");
+								addFieldToDoc(doc, "format_" + subdomain, formats);
+							}
+						}
+
 						if (firstFormat != null){
 							addFieldToDoc(doc, "format_boost", marcProcessor.findMap("format_boost_map").get(firstFormat));
 							addFieldToDoc(doc, "format_category", marcProcessor.findMap("format_category_map").get(firstFormat));

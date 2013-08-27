@@ -33,15 +33,13 @@ class Record_Home extends Record_Record{
 		global $configArray;
 		global $user;
 
+		$recordId = $this->id;
+
 		// Load Supplemental Information
-		Record_UserComments::loadComments();
+		Record_UserComments::loadComments($this->mergedRecords);
 		$timer->logTime('Loaded Comments');
 		Record_Cite::loadCitation();
 		$timer->logTime('Loaded Citations');
-
-		if (isset($_REQUEST['id'])){
-			$recordId = $_REQUEST['id'];
-		}
 
 		if (isset($_REQUEST['strandsReqId']) && isset($configArray['Strands']['APID'])){
 			$url = "http://bizsolutions.strands.com/api2/event/clickedrecommendation.sbs?apid={$configArray['Strands']['APID']}&item={$recordId}&user={$user->id}&rrq={$_REQUEST['strandsReqId']}&tpl={$_REQUEST['strandsTpl']}";
@@ -59,7 +57,13 @@ class Record_Home extends Record_Record{
 		//Populate an array of editorialReviewIds that match up with the recordId
 		$editorialReview = new EditorialReview();
 		$editorialReviewResults = array();
-		$editorialReview->recordId = $recordId;
+		if (count($this->mergedRecords) > 0){
+			$allIds = $this->mergedRecords;
+			$allIds[] = $recordId;
+			$editorialReview->whereAddIn('recordId', $allIds, 'string');
+		}else{
+			$editorialReview->recordId = $recordId;
+		}
 		$editorialReview->find();
 		$editorialReviewResults['reviews'] = array(
 			'tabName' => 'Reviews',

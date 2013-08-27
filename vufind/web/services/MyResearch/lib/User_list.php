@@ -319,12 +319,24 @@ class User_list extends SolrDataObject
 	var $catalog;
 
 	/**
-	 * @param $resource - The resource to be cleaned
+	 * @param Resource $resource - The resource to be cleaned
 	 * @return Resource|bool
 	 */
 	function cleanResource($resource){
 		global $configArray;
 		global $user;
+
+		require_once ROOT_DIR . '/sys/MergedRecord.php';
+		//Check to see if the record has been merged with something else?
+		$mergedRecord = new MergedRecord();
+		$mergedRecord->original_record = $resource->record_id;
+		if ($mergedRecord->find(true)){
+			$tmpResource = new Resource();
+			$tmpResource->record_id = $mergedRecord->new_record;
+			if ($tmpResource->find(true)){
+				$resource = $tmpResource;
+			}
+		}
 
 		// Connect to Database
 		$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
