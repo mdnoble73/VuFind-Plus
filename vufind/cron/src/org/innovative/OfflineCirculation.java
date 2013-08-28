@@ -28,11 +28,15 @@ import java.util.regex.Pattern;
 public class OfflineCirculation implements IProcessHandler {
 	private CronProcessLogEntry processLog;
 	private Logger logger;
+	private CookieManager manager = new CookieManager();
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Profile.Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		this.logger = logger;
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Offline Circulation");
 		processLog.saveToDatabase(vufindConn, logger);
+
+		manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+		CookieHandler.setDefault(manager);
 
 		//Check to see if the system is offline
 		String offlineStr = configIni.get("Catalog", "offline");
@@ -168,7 +172,7 @@ public class OfflineCirculation implements IProcessHandler {
 		updateCirculationEntry.executeUpdate();
 	}
 
-	private void logCookies(CookieManager manager){
+	private void logCookies(){
 		logger.debug("Cookies:");
 		for(HttpCookie cookie : manager.getCookieStore().getCookies()){
 			logger.debug(cookie.getName() + ":" + cookie.getValue());
@@ -177,14 +181,10 @@ public class OfflineCirculation implements IProcessHandler {
 	private OfflineCirculationResult processOfflineCheckout(String baseAirpacUrl, String login, String loginPassword, String initials, String initialsPassword, String itemBarcode, String patronBarcode) {
 		OfflineCirculationResult result = new OfflineCirculationResult();
 		try{
-			//Make sure to handle cookies properly
-			CookieManager manager = new CookieManager();
-			manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-			CookieHandler.setDefault(manager);
 			//Login to airpac (login)
 			URLPostResponse homePageResponse = Util.getURL(baseAirpacUrl + "/", logger);
-			logger.debug("Home page Response\r\n" + homePageResponse.getMessage());
-			logCookies(manager);
+			//logger.debug("Home page Response\r\n" + homePageResponse.getMessage());
+			logCookies();
 			StringBuilder loginParams = new StringBuilder("action=ValidateAirWkstUserAction")
 					.append("&login=").append(login)
 					.append("&loginpassword=").append(loginPassword)
@@ -195,7 +195,7 @@ public class OfflineCirculation implements IProcessHandler {
 					.append("&subpurpose=null")
 					.append("&validationstatus=needlogin");
 			URLPostResponse loginResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + loginParams.toString(), null, "text/html", baseAirpacUrl + "/", logger);
-			logCookies(manager);
+			logCookies();
 			if (loginResponse.isSuccess() && loginResponse.getMessage().contains("needinitials")){
 				//Login to airpac (initials)
 				StringBuilder initialsParams = new StringBuilder("action=ValidateAirWkstUserAction")
@@ -240,7 +240,18 @@ public class OfflineCirculation implements IProcessHandler {
 						} else {
 							logger.debug("Item Barcode response\r\n" + itemBarcodeResponse.getMessage());
 							result.setSuccess(false);
-							result.setNote("Could not process check out because the patron could not be logged in");
+							result.setNote("Could not process check out because the item response was not successfull");
+						}
+					} else if (patronBarcodeResponse.isSuccess() && patronBarcodeResponse.getMessage().contains("<h2 class=\"error\">")){
+						Pattern regex = Pattern.compile("<h2 class=\"error\">(.*?)</h2>");
+						Matcher matcher = regex.matcher(patronBarcodeResponse.getMessage());
+						if (matcher.find()) {
+							String error = matcher.group(1);
+							result.setSuccess(false);
+							result.setNote(error);
+						}else{
+							result.setSuccess(false);
+							result.setNote("Unknown error loading patron");
 						}
 					} else {
 						logger.debug("Patron Barcode response\r\n" + patronBarcodeResponse.getMessage());
@@ -252,6 +263,9 @@ public class OfflineCirculation implements IProcessHandler {
 					result.setSuccess(false);
 					result.setNote("Could not process check out because initials were incorrect");
 				}
+
+				//Logout of the system
+				Util.getURL(baseAirpacUrl + "/airwkstcore?action=AirWkstReturnToWelcomeAction", logger);
 			} else{
 				logger.debug("Login response\r\n" + loginResponse.getMessage());
 				result.setSuccess(false);
@@ -268,10 +282,6 @@ public class OfflineCirculation implements IProcessHandler {
 	private OfflineCirculationResult processOfflineCheckIn(String baseAirpacUrl, String login, String loginPassword, String initials, String initialsPassword, String itemBarcode, Long timeEntered) {
 		OfflineCirculationResult result = new OfflineCirculationResult();
 		try{
-			//Make sure to handle cookies properly
-			CookieManager manager = new CookieManager();
-			manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-			CookieHandler.setDefault(manager);
 			//Login to airpac (login)
 			URLPostResponse homePageResponse = Util.getURL(baseAirpacUrl + "/", logger);
 			StringBuilder loginParams = new StringBuilder("action=ValidateAirWkstUserAction")
