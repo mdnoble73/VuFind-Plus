@@ -9,10 +9,7 @@ import org.vufind.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
-import java.net.URL;
+import java.net.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -171,6 +168,12 @@ public class OfflineCirculation implements IProcessHandler {
 		updateCirculationEntry.executeUpdate();
 	}
 
+	private void logCookies(CookieManager manager){
+		logger.debug("Cookies:");
+		for(HttpCookie cookie : manager.getCookieStore().getCookies()){
+			logger.debug(cookie.getName() + ":" + cookie.getValue());
+		}
+	}
 	private OfflineCirculationResult processOfflineCheckout(String baseAirpacUrl, String login, String loginPassword, String initials, String initialsPassword, String itemBarcode, String patronBarcode) {
 		OfflineCirculationResult result = new OfflineCirculationResult();
 		try{
@@ -180,6 +183,8 @@ public class OfflineCirculation implements IProcessHandler {
 			CookieHandler.setDefault(manager);
 			//Login to airpac (login)
 			URLPostResponse homePageResponse = Util.getURL(baseAirpacUrl + "/", logger);
+			logger.debug("Home page Response\r\n" + homePageResponse.getMessage());
+			logCookies(manager);
 			StringBuilder loginParams = new StringBuilder("action=ValidateAirWkstUserAction")
 					.append("&login=").append(login)
 					.append("&loginpassword=").append(loginPassword)
@@ -190,6 +195,7 @@ public class OfflineCirculation implements IProcessHandler {
 					.append("&subpurpose=null")
 					.append("&validationstatus=needlogin");
 			URLPostResponse loginResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + loginParams.toString(), null, "text/html", baseAirpacUrl + "/", logger);
+			logCookies(manager);
 			if (loginResponse.isSuccess() && loginResponse.getMessage().contains("needinitials")){
 				//Login to airpac (initials)
 				StringBuilder initialsParams = new StringBuilder("action=ValidateAirWkstUserAction")
