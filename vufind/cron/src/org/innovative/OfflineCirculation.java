@@ -130,7 +130,7 @@ public class OfflineCirculation implements IProcessHandler {
 		try {
 			PreparedStatement circulationEntryToProcessStmt = vufindConn.prepareStatement("SELECT offline_circulation.* from offline_circulation where status='Not Processed' order by timeEntered ASC");
 			PreparedStatement updateCirculationEntry = vufindConn.prepareStatement("UPDATE offline_circulation set timeProcessed = ?, status = ?, notes = ? where id = ?");
-			String baseUrl = configIni.get("Catalog", "url") + "/iii/airwkst";
+			String baseUrl = configIni.get("Catalog", "linking_url") + "/iii/airwkst";
 			ResultSet circulationEntriesToProcessRS = circulationEntryToProcessStmt.executeQuery();
 			while (circulationEntriesToProcessRS.next()){
 				processOfflineCirculationEntry(updateCirculationEntry, baseUrl, circulationEntriesToProcessRS);
