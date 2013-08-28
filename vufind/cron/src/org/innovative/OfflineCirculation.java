@@ -192,7 +192,7 @@ public class OfflineCirculation implements IProcessHandler {
 					.append("&submit.y=8")
 					.append("&subpurpose=null")
 					.append("&validationstatus=needlogin");
-			URLPostResponse loginResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + loginParams.toString(), null, "text/html", baseAirpacUrl + "/", logger);
+			URLPostResponse loginResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore" , loginParams.toString(), "text/html", baseAirpacUrl + "/", logger);
 			if (loginResponse.isSuccess() && loginResponse.getMessage().contains("needinitials")){
 				//Login to airpac (initials)
 				StringBuilder initialsParams = new StringBuilder("action=ValidateAirWkstUserAction")
@@ -204,7 +204,7 @@ public class OfflineCirculation implements IProcessHandler {
 						.append("&submit.y=8")
 						.append("&subpurpose=null")
 						.append("&validationstatus=needinitials");
-				URLPostResponse initialsResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + initialsParams.toString(), null, "text/html", baseAirpacUrl + "/airwkstcore", logger);
+				URLPostResponse initialsResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore", initialsParams.toString(), "text/html", baseAirpacUrl + "/airwkstcore", logger);
 				if (initialsResponse.isSuccess() && initialsResponse.getMessage().contains("Check Out")){
 					//Go to the checkout page
 					URLPostResponse checkOutPageResponse = Util.getURL(baseAirpacUrl + "/?action=GetAirWkstUserInfoAction&purpose=checkout", logger);
@@ -214,7 +214,7 @@ public class OfflineCirculation implements IProcessHandler {
 							.append("&submit.x=42")
 							.append("&submit.y=12")
 							.append("&sourcebrowse=airwkstpage");
-					URLPostResponse patronBarcodeResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + patronBarcodeParams.toString(), null, "text/html", baseAirpacUrl + "/", logger);
+					URLPostResponse patronBarcodeResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore", patronBarcodeParams.toString(), "text/html", baseAirpacUrl + "/", logger);
 					if (patronBarcodeResponse.isSuccess() && patronBarcodeResponse.getMessage().contains("Please scan item barcode")){
 						StringBuilder itemBarcodeParams = new StringBuilder("action=GetAirWkstItemOneAction")
 								.append("&prevscreen=AirWkstItemRequestPage")
@@ -222,7 +222,7 @@ public class OfflineCirculation implements IProcessHandler {
 								.append("&searchstring=").append(itemBarcode)
 								.append("&searchtype=b")
 								.append("&sourcebrowse=airwkstpage");
-						URLPostResponse itemBarcodeResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + itemBarcodeParams.toString(), null, "text/html", baseAirpacUrl + "/", logger);
+						URLPostResponse itemBarcodeResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore", itemBarcodeParams.toString(), "text/html", baseAirpacUrl + "/", logger);
 						if (itemBarcodeResponse.isSuccess()){
 							Pattern Regex = Pattern.compile("<h3 class=\"error\">(.*?)</h3>", Pattern.CANON_EQ);
 							Matcher RegexMatcher = Regex.matcher(itemBarcodeResponse.getMessage());
