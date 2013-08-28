@@ -249,6 +249,7 @@ public class OfflineCirculation implements IProcessHandler {
 			} else{
 				result.setSuccess(false);
 				result.setNote("Could not process check out because login information was incorrect");
+				logger.error("Error logging in baseAirpacUrl=" + baseAirpacUrl);
 			}
 		}catch(Exception e){
 			result.setSuccess(false);
