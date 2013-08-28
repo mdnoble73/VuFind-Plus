@@ -250,6 +250,8 @@ public class OfflineCirculation implements IProcessHandler {
 				result.setSuccess(false);
 				result.setNote("Could not process check out because login information was incorrect");
 				System.out.println("Error logging in to baseAirpacUrl=" + baseAirpacUrl);
+				System.out.println("Success = " + loginResponse.isSuccess());
+				System.out.println(loginResponse.getMessage());
 			}
 		}catch(Exception e){
 			result.setSuccess(false);
