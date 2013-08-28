@@ -63,7 +63,7 @@ public class OfflineCirculation implements IProcessHandler {
 		try {
 			PreparedStatement holdsToProcessStmt = vufindConn.prepareStatement("SELECT offline_hold.*, cat_username, cat_password from offline_hold INNER JOIN user on user.id = offline_hold.patronId where status='Not Processed' order by timeEntered ASC");
 			PreparedStatement updateHold = vufindConn.prepareStatement("UPDATE offline_hold set timeProcessed = ?, status = ?, notes = ? where id = ?");
-			String baseUrl = configIni.get("Site", "url");
+			String baseUrl = configIni.get("Site", "linking_url");
 			ResultSet holdsToProcessRS = holdsToProcessStmt.executeQuery();
 			while (holdsToProcessRS.next()){
 				processOfflineHold(updateHold, baseUrl, holdsToProcessRS);
