@@ -23,7 +23,11 @@
 						<br/>
 						<label for="itemReport">Item Report: </label><input type="file" name="itemReport" id="itemReport">
 						<br/>
-						<input type="submit" name="submit" id="submit" value="Generate Report"/>
+						<br/>
+						<input type="submit" name="submit" id="submit" value="Generate Report" onclick="return processPatronStatusSubmit();"/>
+						<div class="warning" style="display:none" id="patronStatusProcessing">
+							Processing the patron status report.  This may take several minutes.  Please do not refresh the page.
+						</div>
 					</fieldset>
 				</form>
 			{else}
@@ -32,3 +36,13 @@
 		</div>
 	</div>
 {/strip}
+{literal}
+<script type="text/javascript">
+	function processPatronStatusSubmit(){
+		$("#submit").hide();
+		$("#patronStatusProcessing").show();
+
+		return true;
+	}
+</script>
+{/literal}

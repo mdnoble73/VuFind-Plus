@@ -40,11 +40,13 @@ class Report_PatronStatus extends Action{
 		global $configArray;
 		$allPatronBarcodes = array();
 		$allHomeLibraries = array();
+		set_time_limit(60);
 		//Load patron data into an array keyed by patron barcode
 		if (!$this->loadPatronData($patronReportFile, $allPatronBarcodes, $allHomeLibraries, $patronData, $headerRowRead, $patronBarcode, $homeLibrary)){
 			return;
 		}
 
+		set_time_limit(60);
 		//Load items into an array keyed by patron barcode
 		if (!$this->loadItemData($itemReportFile, $allPatronBarcodes, $allHomeLibraries, $itemData)){
 			return;
@@ -60,6 +62,7 @@ class Report_PatronStatus extends Action{
 		$cacheSettings = array( ' memoryCacheSize ' => '32MB');
 		PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
 
+		set_time_limit(240);
 		$excel = new PHPExcel();
 		// Set properties
 		$excel->getProperties()->setCreator($configArray['Site']['title'])
