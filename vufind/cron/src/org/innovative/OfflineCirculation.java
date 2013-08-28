@@ -232,18 +232,22 @@ public class OfflineCirculation implements IProcessHandler {
 								result.setSuccess(true);
 							}
 						} else {
+							logger.debug("Item Barcode response\r\n" + itemBarcodeResponse.getMessage());
 							result.setSuccess(false);
 							result.setNote("Could not process check out because the patron could not be logged in");
 						}
 					} else {
+						logger.debug("Patron Barcode response\r\n" + patronBarcodeResponse.getMessage());
 						result.setSuccess(false);
 						result.setNote("Could not process check out because the patron could not be logged in");
 					}
 				} else{
+					logger.debug("Initials response\r\n" + initialsResponse.getMessage());
 					result.setSuccess(false);
 					result.setNote("Could not process check out because initials were incorrect");
 				}
 			} else{
+				logger.debug("Login response\r\n" + loginResponse.getMessage());
 				result.setSuccess(false);
 				result.setNote("Could not process check out because login information was incorrect");
 			}
