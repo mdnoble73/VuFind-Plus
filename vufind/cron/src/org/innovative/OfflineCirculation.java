@@ -93,7 +93,11 @@ public class OfflineCirculation implements IProcessHandler {
 					updateHold.setString(3, result.getString("holdMessage"));
 				}else{
 					updateHold.setString(2, "Hold Failed");
-					updateHold.setString(3, result.getString("message"));
+					if (result.has("holdMessage")){
+						updateHold.setString(3, result.getString("holdMessage"));
+					}else{
+						updateHold.setString(3, result.getString("message"));
+					}
 				}
 
 			}
