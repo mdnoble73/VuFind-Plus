@@ -9,10 +9,7 @@ import org.vufind.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.CookieHandler;
-import java.net.CookieManager;
-import java.net.CookiePolicy;
-import java.net.URL;
+import java.net.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -81,9 +78,9 @@ public class OfflineCirculation implements IProcessHandler {
 		updateHold.setLong(1, new Date().getTime() / 1000);
 		updateHold.setLong(4, holdId);
 		try {
-			String patronBarcode = holdsToProcessRS.getString("patronBarcode");
-			String patronName = holdsToProcessRS.getString("cat_username");
-			String bibId = holdsToProcessRS.getString("bibId");
+			String patronBarcode = URLEncoder.encode(holdsToProcessRS.getString("patronBarcode"));
+			String patronName = URLEncoder.encode(holdsToProcessRS.getString("cat_username"));
+			String bibId = URLEncoder.encode(holdsToProcessRS.getString("bibId"));
 			URL placeHoldUrl = new URL(baseUrl + "/API/UserAPI?method=placeHold&username=" + patronName + "&password=" + patronBarcode + "&bibId=" + bibId);
 			Object placeHoldDataRaw = placeHoldUrl.getContent();
 			if (placeHoldDataRaw instanceof InputStream) {
@@ -93,10 +90,12 @@ public class OfflineCirculation implements IProcessHandler {
 				JSONObject result = placeHoldData.getJSONObject("result");
 				if (result.getBoolean("success")){
 					updateHold.setString(2, "Hold Succeeded");
+					updateHold.setString(3, result.getString("holdMessage"));
 				}else{
 					updateHold.setString(2, "Hold Failed");
+					updateHold.setString(3, result.getString("message"));
 				}
-				updateHold.setString(3, result.getString("holdMessage"));
+
 			}
 			processLog.incUpdated();
 		} catch (JSONException e) {
