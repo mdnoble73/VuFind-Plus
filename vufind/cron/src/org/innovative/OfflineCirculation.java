@@ -9,7 +9,10 @@ import org.vufind.*;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.*;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -78,9 +81,9 @@ public class OfflineCirculation implements IProcessHandler {
 		updateHold.setLong(1, new Date().getTime() / 1000);
 		updateHold.setLong(4, holdId);
 		try {
-			String patronBarcode = URLEncoder.encode(holdsToProcessRS.getString("patronBarcode"));
-			String patronName = URLEncoder.encode(holdsToProcessRS.getString("cat_username"));
-			String bibId = URLEncoder.encode(holdsToProcessRS.getString("bibId"));
+			String patronBarcode = holdsToProcessRS.getString("patronBarcode");
+			String patronName = holdsToProcessRS.getString("cat_username");
+			String bibId = holdsToProcessRS.getString("bibId");
 			URL placeHoldUrl = new URL(baseUrl + "/API/UserAPI?method=placeHold&username=" + patronName + "&password=" + patronBarcode + "&bibId=" + bibId);
 			Object placeHoldDataRaw = placeHoldUrl.getContent();
 			if (placeHoldDataRaw instanceof InputStream) {
@@ -90,16 +93,10 @@ public class OfflineCirculation implements IProcessHandler {
 				JSONObject result = placeHoldData.getJSONObject("result");
 				if (result.getBoolean("success")){
 					updateHold.setString(2, "Hold Succeeded");
-					updateHold.setString(3, result.getString("holdMessage"));
 				}else{
 					updateHold.setString(2, "Hold Failed");
-					if (result.has("holdMessage")){
-						updateHold.setString(3, result.getString("holdMessage"));
-					}else{
-						updateHold.setString(3, result.getString("message"));
-					}
 				}
-
+				updateHold.setString(3, result.getString("holdMessage"));
 			}
 			processLog.incUpdated();
 		} catch (JSONException e) {
@@ -133,7 +130,7 @@ public class OfflineCirculation implements IProcessHandler {
 		try {
 			PreparedStatement circulationEntryToProcessStmt = vufindConn.prepareStatement("SELECT offline_circulation.* from offline_circulation where status='Not Processed' order by timeEntered ASC");
 			PreparedStatement updateCirculationEntry = vufindConn.prepareStatement("UPDATE offline_circulation set timeProcessed = ?, status = ?, notes = ? where id = ?");
-			String baseUrl = configIni.get("Catalog", "linking_url") + "/iii/airwkst";
+			String baseUrl = configIni.get("Catalog", "url") + "/iii/airwkst";
 			ResultSet circulationEntriesToProcessRS = circulationEntryToProcessStmt.executeQuery();
 			while (circulationEntriesToProcessRS.next()){
 				processOfflineCirculationEntry(updateCirculationEntry, baseUrl, circulationEntriesToProcessRS);
@@ -192,7 +189,7 @@ public class OfflineCirculation implements IProcessHandler {
 					.append("&submit.y=8")
 					.append("&subpurpose=null")
 					.append("&validationstatus=needlogin");
-			URLPostResponse loginResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore" , loginParams.toString(), "text/html", baseAirpacUrl + "/", logger);
+			URLPostResponse loginResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + loginParams.toString(), null, "text/html", baseAirpacUrl + "/", logger);
 			if (loginResponse.isSuccess() && loginResponse.getMessage().contains("needinitials")){
 				//Login to airpac (initials)
 				StringBuilder initialsParams = new StringBuilder("action=ValidateAirWkstUserAction")
@@ -204,7 +201,7 @@ public class OfflineCirculation implements IProcessHandler {
 						.append("&submit.y=8")
 						.append("&subpurpose=null")
 						.append("&validationstatus=needinitials");
-				URLPostResponse initialsResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore", initialsParams.toString(), "text/html", baseAirpacUrl + "/airwkstcore", logger);
+				URLPostResponse initialsResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + initialsParams.toString(), null, "text/html", baseAirpacUrl + "/airwkstcore", logger);
 				if (initialsResponse.isSuccess() && initialsResponse.getMessage().contains("Check Out")){
 					//Go to the checkout page
 					URLPostResponse checkOutPageResponse = Util.getURL(baseAirpacUrl + "/?action=GetAirWkstUserInfoAction&purpose=checkout", logger);
@@ -214,7 +211,7 @@ public class OfflineCirculation implements IProcessHandler {
 							.append("&submit.x=42")
 							.append("&submit.y=12")
 							.append("&sourcebrowse=airwkstpage");
-					URLPostResponse patronBarcodeResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore", patronBarcodeParams.toString(), "text/html", baseAirpacUrl + "/", logger);
+					URLPostResponse patronBarcodeResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + patronBarcodeParams.toString(), null, "text/html", baseAirpacUrl + "/", logger);
 					if (patronBarcodeResponse.isSuccess() && patronBarcodeResponse.getMessage().contains("Please scan item barcode")){
 						StringBuilder itemBarcodeParams = new StringBuilder("action=GetAirWkstItemOneAction")
 								.append("&prevscreen=AirWkstItemRequestPage")
@@ -222,7 +219,7 @@ public class OfflineCirculation implements IProcessHandler {
 								.append("&searchstring=").append(itemBarcode)
 								.append("&searchtype=b")
 								.append("&sourcebrowse=airwkstpage");
-						URLPostResponse itemBarcodeResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore", itemBarcodeParams.toString(), "text/html", baseAirpacUrl + "/", logger);
+						URLPostResponse itemBarcodeResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + itemBarcodeParams.toString(), null, "text/html", baseAirpacUrl + "/", logger);
 						if (itemBarcodeResponse.isSuccess()){
 							Pattern Regex = Pattern.compile("<h3 class=\"error\">(.*?)</h3>", Pattern.CANON_EQ);
 							Matcher RegexMatcher = Regex.matcher(itemBarcodeResponse.getMessage());
@@ -249,9 +246,6 @@ public class OfflineCirculation implements IProcessHandler {
 			} else{
 				result.setSuccess(false);
 				result.setNote("Could not process check out because login information was incorrect");
-				System.out.println("Error logging in to baseAirpacUrl=" + baseAirpacUrl);
-				System.out.println("Success = " + loginResponse.isSuccess());
-				System.out.println(loginResponse.getMessage());
 			}
 		}catch(Exception e){
 			result.setSuccess(false);
