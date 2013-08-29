@@ -175,7 +175,7 @@ public class OfflineCirculation implements IProcessHandler {
 	private void logCookies(){
 		logger.debug("Cookies:");
 		for(HttpCookie cookie : manager.getCookieStore().getCookies()){
-			logger.debug(cookie.getName() + ":" + cookie.getValue());
+			logger.debug(cookie.toString());
 		}
 	}
 	private OfflineCirculationResult processOfflineCheckout(String baseAirpacUrl, String login, String loginPassword, String initials, String initialsPassword, String itemBarcode, String patronBarcode) {
@@ -184,7 +184,7 @@ public class OfflineCirculation implements IProcessHandler {
 			//Login to airpac (login)
 			URLPostResponse homePageResponse = Util.getURL(baseAirpacUrl + "/", logger);
 			//logger.debug("Home page Response\r\n" + homePageResponse.getMessage());
-			logCookies();
+			//logCookies();
 			StringBuilder loginParams = new StringBuilder("action=ValidateAirWkstUserAction")
 					.append("&login=").append(login)
 					.append("&loginpassword=").append(loginPassword)
@@ -195,7 +195,7 @@ public class OfflineCirculation implements IProcessHandler {
 					.append("&subpurpose=null")
 					.append("&validationstatus=needlogin");
 			URLPostResponse loginResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + loginParams.toString(), null, "text/html", baseAirpacUrl + "/", logger);
-			logCookies();
+			//logCookies();
 			if (loginResponse.isSuccess() && loginResponse.getMessage().contains("needinitials")){
 				//Login to airpac (initials)
 				StringBuilder initialsParams = new StringBuilder("action=ValidateAirWkstUserAction")
