@@ -156,24 +156,25 @@ class Report_PatronStatus extends Action{
 		foreach ($allHomeLibraries as $library => $sheetIndex){
 			//Set the column widths
 			$sheet = $excel->setActiveSheetIndex($sheetIndex);
-			$sheet->getColumnDimension('A')->setWidth(7.9);
-			$sheet->getColumnDimension('B')->setWidth(28);
-			$sheet->getColumnDimension('C')->setWidth(6.3);
-			$sheet->getColumnDimension('D')->setAutoSize(true);
-			$sheet->getColumnDimension('E')->setWidth(4.86);
-			$sheet->getColumnDimension('F')->setWidth(10.3);
-			$sheet->getColumnDimension('G')->setAutoSize(true);
-			$sheet->getColumnDimension('H')->setWidth(15);
-			$sheet->getColumnDimension('I')->setWidth(51);
-			$sheet->getColumnDimension('J')->setAutoSize(true);
-			$sheet->getColumnDimension('K')->setWidth(6.5);
-			$sheet->getColumnDimension('L')->setAutoSize(true);
-			$sheet->getColumnDimension('M')->setWidth(2);
-			$sheet->getColumnDimension('N')->setWidth(51);
+			$sheet->getColumnDimension('A')->setWidth(6.5);
+			$sheet->getColumnDimension('B')->setWidth(7.9);
+			$sheet->getColumnDimension('C')->setWidth(28);
+			$sheet->getColumnDimension('D')->setWidth(6.3);
+			$sheet->getColumnDimension('E')->setAutoSize(true);
+			$sheet->getColumnDimension('F')->setWidth(4.86);
+			$sheet->getColumnDimension('G')->setWidth(10.3);
+			$sheet->getColumnDimension('H')->setAutoSize(true);
+			$sheet->getColumnDimension('I')->setWidth(15);
+			$sheet->getColumnDimension('J')->setWidth(51);
+			$sheet->getColumnDimension('K')->setAutoSize(true);
+			$sheet->getColumnDimension('L')->setWidth(6.5);
+			$sheet->getColumnDimension('M')->setAutoSize(true);
+			$sheet->getColumnDimension('N')->setWidth(2);
+			$sheet->getColumnDimension('O')->setWidth(51);
 
 			//Wrap the columns
 			$maxRow = $sheet->getHighestRow();
-			$sheet->getStyle('A1:N' . $maxRow)->getAlignment()->setWrapText(true);
+			$sheet->getStyle('A1:O' . $maxRow)->getAlignment()->setWrapText(true);
 		}
 		$excel->setActiveSheetIndex(0);
 
@@ -193,24 +194,25 @@ class Report_PatronStatus extends Action{
 	 */
 	private function addHeaders($excel, $sheetIndex) {
 		$excel->setActiveSheetIndex($sheetIndex)
-	    ->setCellValue('A1', 'P CODE 1')
-	    ->setCellValue('B1', 'PATRON NAME')
-	    ->setCellValue('C1', 'HOME LIB')
-	    ->setCellValue('D1', 'P BARCODE')
-	    ->setCellValue('E1', 'GRD LVL')
-			->setCellValue('F1', 'HOME ROOM')
-	    ->setCellValue('G1', '$ OWED')
-	    ->setCellValue('H1', 'CALL #')
-	    ->setCellValue('I1', 'TITLE')
-	    ->setCellValue('J1', 'ITEM BARCODE')
-	    ->setCellValue('K1', 'ITEM LOC')
-	    ->setCellValue('L1', 'DUE DATE')
-	    ->setCellValue('M1', 'STAT')
-			->setCellValue('N1', 'ADDRESS')
+			->setCellValue('A1', 'P TYPE')
+	    ->setCellValue('B1', 'P CODE 1')
+	    ->setCellValue('C1', 'PATRON NAME')
+	    ->setCellValue('D1', 'HOME LIB')
+	    ->setCellValue('E1', 'P BARCODE')
+	    ->setCellValue('F1', 'GRD LVL')
+			->setCellValue('G1', 'HOME ROOM')
+	    ->setCellValue('H1', '$ OWED')
+	    ->setCellValue('I1', 'CALL #')
+	    ->setCellValue('J1', 'TITLE')
+	    ->setCellValue('K1', 'ITEM BARCODE')
+	    ->setCellValue('L1', 'ITEM LOC')
+	    ->setCellValue('M1', 'DUE DATE')
+	    ->setCellValue('N1', 'STAT')
+			->setCellValue('O1', 'ADDRESS')
 			->getRowDimension(1)->setRowHeight(-1); //Set the height to auto
 
 		//Bold the headers
-		$range = "A1:N1";
+		$range = "A1:O1";
 		$sheet = $excel->getActiveSheet();
 		$sheet->getStyle($range)->getFont()->setBold(true);
 
@@ -245,42 +247,44 @@ class Report_PatronStatus extends Action{
 		$moneyOwned = 0;
 		$pCode1 = '';
 		if ($patronInfo != null){
-			$curSheet->setCellValueByColumnAndRow(0, $curRow, $patronInfo[1] == 'e' ? 'Inactive' : $patronInfo[1]); //P Code 1
+			$curSheet->setCellValueByColumnAndRow(0, $curRow, $patronInfo[0]); //P Type
+			$curSheet->setCellValueByColumnAndRow(1, $curRow, $patronInfo[1] == 'e' ? 'Inactive' : $patronInfo[1]); //P Code 1
 			$pCode1 = trim($patronInfo[1]);
-			$curSheet->setCellValueByColumnAndRow(1, $curRow, $patronInfo[2]); //Patron name
-			$curSheet->setCellValueByColumnAndRow(2, $curRow, $patronInfo[3]); //Home library
-			$curSheet->getCellByColumnAndRow(3, $curRow)->setValueExplicit("{$patronInfo[4]}"); //Patron barcode
-			$curSheet->setCellValueByColumnAndRow(4, $curRow, $patronInfo[5]); //Grade Level
-			$curSheet->setCellValueByColumnAndRow(5, $curRow, $patronInfo[6]); //Home room
+			$curSheet->setCellValueByColumnAndRow(2, $curRow, $patronInfo[2]); //Patron name
+			$curSheet->setCellValueByColumnAndRow(3, $curRow, $patronInfo[3]); //Home library
+			$curSheet->getCellByColumnAndRow(4, $curRow)->setValueExplicit("{$patronInfo[4]}"); //Patron barcode
+			$curSheet->setCellValueByColumnAndRow(5, $curRow, $patronInfo[5]); //Grade Level
+			$curSheet->setCellValueByColumnAndRow(6, $curRow, $patronInfo[6]); //Home room
 			//Only set the money owed for the first item so staff doesn't collect extra
-			$curSheet->setCellValueByColumnAndRow(6, $curRow, $firstItem ? $patronInfo[7] : ''); //$ owed
+			$curSheet->setCellValueByColumnAndRow(7, $curRow, $firstItem ? $patronInfo[7] : ''); //$ owed
 			$moneyOwned = $patronInfo[7];
 			if (isset($patronInfo[9])){
 				//Output the address
-				$curSheet->setCellValueByColumnAndRow(13, $curRow, $firstItem ? $patronInfo[9] : ''); //$ owed
+				$curSheet->setCellValueByColumnAndRow(14, $curRow, $firstItem ? $patronInfo[9] : ''); //$ owed
 			}
 		}
 		if ($itemInfo != null){
 			if ($patronInfo == null){
-				$curSheet->setCellValueByColumnAndRow(0, $curRow, $itemInfo[1] == 'e' ? 'Inactive' : $itemInfo[1]); //P Code 1
+				$curSheet->setCellValueByColumnAndRow(0, $curRow, $itemInfo[0]); //P Type
+				$curSheet->setCellValueByColumnAndRow(1, $curRow, $itemInfo[1] == 'e' ? 'Inactive' : $itemInfo[1]); //P Code 1
 				$pCode1 = trim($itemInfo[1]);
-				$curSheet->setCellValueByColumnAndRow(1, $curRow, $itemInfo[2]); //Patron name
-				$curSheet->setCellValueByColumnAndRow(2, $curRow, $itemInfo[3]); //Home library
-				$curSheet->getCellByColumnAndRow(3, $curRow)->setValueExplicit("{$itemInfo[4]}"); //Patron barcode
-				$curSheet->setCellValueByColumnAndRow(4, $curRow, $itemInfo[5]); //Grade Level
-				$curSheet->setCellValueByColumnAndRow(5, $curRow, $itemInfo[6]); //Home room
+				$curSheet->setCellValueByColumnAndRow(2, $curRow, $itemInfo[2]); //Patron name
+				$curSheet->setCellValueByColumnAndRow(3, $curRow, $itemInfo[3]); //Home library
+				$curSheet->getCellByColumnAndRow(4, $curRow)->setValueExplicit("{$itemInfo[4]}"); //Patron barcode
+				$curSheet->setCellValueByColumnAndRow(5, $curRow, $itemInfo[5]); //Grade Level
+				$curSheet->setCellValueByColumnAndRow(6, $curRow, $itemInfo[6]); //Home room
 				//Only set the money owed for the first item so staff doesn't collect extra
-				$curSheet->setCellValueByColumnAndRow(6, $curRow, $firstItem ? $itemInfo[7] : ''); //$ owed
+				$curSheet->setCellValueByColumnAndRow(7, $curRow, $firstItem ? $itemInfo[7] : ''); //$ owed
 				$moneyOwned = $itemInfo[7];
 			}
-			$curSheet->setCellValueByColumnAndRow(7, $curRow, $itemInfo[8]); //call #
-			$curSheet->setCellValueByColumnAndRow(8, $curRow, $itemInfo[9]); //title
-			$curSheet->getCellByColumnAndRow(9, $curRow)->setValueExplicit("{$itemInfo[10]}"); //Item barcode
-			$curSheet->setCellValueByColumnAndRow(10, $curRow, $itemInfo[11]); //item location
-			$curSheet->setCellValueByColumnAndRow(11, $curRow, $itemInfo[12]); //due date
-			$curSheet->setCellValueByColumnAndRow(12, $curRow, $itemInfo[13]); //stat
+			$curSheet->setCellValueByColumnAndRow(8, $curRow, $itemInfo[8]); //call #
+			$curSheet->setCellValueByColumnAndRow(9, $curRow, $itemInfo[9]); //title
+			$curSheet->getCellByColumnAndRow(10, $curRow)->setValueExplicit("{$itemInfo[10]}"); //Item barcode
+			$curSheet->setCellValueByColumnAndRow(11, $curRow, $itemInfo[11]); //item location
+			$curSheet->setCellValueByColumnAndRow(12, $curRow, $itemInfo[12]); //due date
+			$curSheet->setCellValueByColumnAndRow(13, $curRow, $itemInfo[13]); //stat
 			if (isset($itemInfo[15])){
-				$curSheet->setCellValueByColumnAndRow(13, $curRow, $itemInfo[15]); //Address
+				$curSheet->setCellValueByColumnAndRow(14, $curRow, $itemInfo[15]); //Address
 			}
 		}
 		//Set height of the row
@@ -290,8 +294,8 @@ class Report_PatronStatus extends Action{
 		$moneyOwned = floatval(preg_replace("/[^0-9\.]/","",$moneyOwned));
 		if ($moneyOwned > 0){
 			//Highlight the money owed in red and bold the text
-			$curSheet->getStyle("G".$curRow)->getFont()->getColor()->applyFromArray(array("rgb" => 'FF0000'));
-			$curSheet->getStyle("G".$curRow)->getFont()->setBold(true);
+			$curSheet->getStyle("H".$curRow)->getFont()->getColor()->applyFromArray(array("rgb" => 'FF0000'));
+			$curSheet->getStyle("H".$curRow)->getFont()->setBold(true);
 		}
 		if ($pCode1 == 'e'){
 			//Orange
@@ -316,7 +320,7 @@ class Report_PatronStatus extends Action{
 			)
 		);
 
-		$curSheet->getStyle("A{$curRow}:N{$curRow}")->applyFromArray($styleArray);
+		$curSheet->getStyle("A{$curRow}:O{$curRow}")->applyFromArray($styleArray);
 		return ++$curRow;
 	}
 
@@ -478,9 +482,9 @@ class Report_PatronStatus extends Action{
 	 */
 	private function highlightRow($curRow, $curSheet, $color, $partial = false) {
 		if ($partial){
-			$range = "A{$curRow}:G{$curRow}";
+			$range = "A{$curRow}:H{$curRow}";
 		}else{
-			$range = "A{$curRow}:N{$curRow}";
+			$range = "A{$curRow}:O{$curRow}";
 		}
 		$curSheet->getStyle($range)->applyFromArray(
 			array(
