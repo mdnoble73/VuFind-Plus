@@ -41,10 +41,13 @@
 .bookletters-body{
 	width: 145px;
 	height: 210px;
+	position: relative;
 }
 .bookletters-body iframe{
 	width: 145px;
 	height: 210px;
+	position: absolute;
+	left: -7px;
 }
 
 .searchheader{
