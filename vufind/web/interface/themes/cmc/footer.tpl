@@ -17,6 +17,7 @@
 		{/if}
 		<li><a href="{$path}/Search/Results">{translate text='Standard Search'}</a></li>
 		<li><a href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a></li>
+		<li><a href="http://millennium.marmot.org/screens/course_s4.html">{translate text='Course Reserves'}</a></li>
 		{*
 		<li><a href="http://coloradomtn.edu/cms/One.aspx?portalId=2935482&pageId=3851004">LibX Toolbar</a></li>
 		*}
