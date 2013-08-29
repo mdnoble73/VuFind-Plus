@@ -15,7 +15,7 @@ class OfflineHold extends DB_DataObject{
 	public $id;
 	public $timeEntered;
 	public $bibId;
-	public $patron_barcode;
+	public $patronBarcode;
 	public $patronId;
 	public $status; //valid values - 'Not Processed', 'Hold Placed', 'Hold Failed'
 	public $notes;

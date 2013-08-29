@@ -36,87 +36,92 @@ class ReadingHistory extends MyResearch
 			$interface->assign('showRatings', 1);
 		}
 
-		// Get My Transactions
-		if ($this->catalog->status) {
-			if ($user->cat_username) {
-				$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-				if (PEAR_Singleton::isError($patron))
-				PEAR_Singleton::raiseError($patron);
+		if ($configArray['Catalog']['offline']){
+			$interface->assign('offline', true);
+		}else{
+			$interface->assign('offline', false);
 
-				$patronResult = $this->catalog->getMyProfile($patron);
-				if (!PEAR_Singleton::isError($patronResult)) {
-					$interface->assign('profile', $patronResult);
-				}
+			// Get My Transactions
+			if ($this->catalog->status) {
+				if ($user->cat_username) {
+					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
+					if (PEAR_Singleton::isError($patron))
+					PEAR_Singleton::raiseError($patron);
 
-				//Check to see if there is an action to perform.
-				if (isset($_REQUEST['readingHistoryAction']) && strlen($_REQUEST['readingHistoryAction']) > 0 && $_REQUEST['readingHistoryAction'] != 'exportToExcel'){
-					//Perform the requested action
-					$selectedTitles = isset($_REQUEST['selected']) ? $_REQUEST['selected'] : array();
-					$readingHistoryAction = $_REQUEST['readingHistoryAction'];
-					$this->catalog->doReadingHistoryAction($readingHistoryAction, $selectedTitles);
-					//redirect back to ourself without the action.
-					header("Location: {$configArray['Site']['path']}/MyResearch/ReadingHistory");
-					die();
-				}
+					$patronResult = $this->catalog->getMyProfile($patron);
+					if (!PEAR_Singleton::isError($patronResult)) {
+						$interface->assign('profile', $patronResult);
+					}
 
-				// Define sorting options
-				if (strcasecmp($configArray['Catalog']['ils'], 'Millennium') == 0){
-					$sortOptions = array('title' => 'Title',
-					                     'author' => 'Author',
-					                     'checkedOut' => 'Checkout Date',
-					                     'format' => 'Format',
-					);
-					$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'checkedOut';
-				}else{
-					$sortOptions = array('title' => 'Title',
-					                     'author' => 'Author',
-					                     'checkedOut' => 'Checkout Date',
-					                     'returned' => 'Return Date',
-					                     'format' => 'Format',
-					);
-					$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'returned';
-				}
-				$interface->assign('sortOptions', $sortOptions);
+					//Check to see if there is an action to perform.
+					if (isset($_REQUEST['readingHistoryAction']) && strlen($_REQUEST['readingHistoryAction']) > 0 && $_REQUEST['readingHistoryAction'] != 'exportToExcel'){
+						//Perform the requested action
+						$selectedTitles = isset($_REQUEST['selected']) ? $_REQUEST['selected'] : array();
+						$readingHistoryAction = $_REQUEST['readingHistoryAction'];
+						$this->catalog->doReadingHistoryAction($readingHistoryAction, $selectedTitles);
+						//redirect back to ourself without the action.
+						header("Location: {$configArray['Site']['path']}/MyResearch/ReadingHistory");
+						die();
+					}
 
-				$interface->assign('defaultSortOption', $selectedSortOption);
-				$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+					// Define sorting options
+					if (strcasecmp($configArray['Catalog']['ils'], 'Millennium') == 0){
+						$sortOptions = array('title' => 'Title',
+						                     'author' => 'Author',
+						                     'checkedOut' => 'Checkout Date',
+						                     'format' => 'Format',
+						);
+						$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'checkedOut';
+					}else{
+						$sortOptions = array('title' => 'Title',
+						                     'author' => 'Author',
+						                     'checkedOut' => 'Checkout Date',
+						                     'returned' => 'Return Date',
+						                     'format' => 'Format',
+						);
+						$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'returned';
+					}
+					$interface->assign('sortOptions', $sortOptions);
 
-				$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
-				$interface->assign('recordsPerPage', $recordsPerPage);
-				if (isset($_REQUEST['readingHistoryAction']) && $_REQUEST['readingHistoryAction'] == 'exportToExcel'){
-					$recordsPerPage = -1;
-					$page = 1;
-				}
+					$interface->assign('defaultSortOption', $selectedSortOption);
+					$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 
-				$result = $this->catalog->getReadingHistory($patron, $page, $recordsPerPage, $selectedSortOption);
-
-				$link = $_SERVER['REQUEST_URI'];
-				if (preg_match('/[&?]page=/', $link)){
-					$link = preg_replace("/page=\\d+/", "page=%d", $link);
-				}else if (strpos($link, "?") > 0){
-					$link .= "&page=%d";
-				}else{
-					$link .= "?page=%d";
-				}
-				if ($recordsPerPage != '-1'){
-					$options = array('totalItems' => $result['numTitles'],
-					                 'fileName'   => $link,
-					                 'perPage'    => $recordsPerPage,
-					                 'append'    => false,
-					                 );
-					$pager = new VuFindPager($options);
-					$interface->assign('pageLinks', $pager->getLinks());
-				}
-				if (!PEAR_Singleton::isError($result)) {
-					$interface->assign('historyActive', $result['historyActive']);
-					$interface->assign('transList', $result['titles']);
+					$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
+					$interface->assign('recordsPerPage', $recordsPerPage);
 					if (isset($_REQUEST['readingHistoryAction']) && $_REQUEST['readingHistoryAction'] == 'exportToExcel'){
-						$this->exportToExcel($result['titles']);
+						$recordsPerPage = -1;
+						$page = 1;
+					}
+
+					$result = $this->catalog->getReadingHistory($patron, $page, $recordsPerPage, $selectedSortOption);
+
+					$link = $_SERVER['REQUEST_URI'];
+					if (preg_match('/[&?]page=/', $link)){
+						$link = preg_replace("/page=\\d+/", "page=%d", $link);
+					}else if (strpos($link, "?") > 0){
+						$link .= "&page=%d";
+					}else{
+						$link .= "?page=%d";
+					}
+					if ($recordsPerPage != '-1'){
+						$options = array('totalItems' => $result['numTitles'],
+						                 'fileName'   => $link,
+						                 'perPage'    => $recordsPerPage,
+						                 'append'    => false,
+						                 );
+						$pager = new VuFindPager($options);
+						$interface->assign('pageLinks', $pager->getLinks());
+					}
+					if (!PEAR_Singleton::isError($result)) {
+						$interface->assign('historyActive', $result['historyActive']);
+						$interface->assign('transList', $result['titles']);
+						if (isset($_REQUEST['readingHistoryAction']) && $_REQUEST['readingHistoryAction'] == 'exportToExcel'){
+							$this->exportToExcel($result['titles']);
+						}
 					}
 				}
 			}
 		}
-
 
 		$interface->setTemplate('readingHistory.tpl');
 		$interface->setPageTitle('Reading History');

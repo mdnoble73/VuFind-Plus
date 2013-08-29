@@ -40,6 +40,7 @@ class Circa_OfflineHoldsReport extends Admin_Admin{
 			if ($resource->find(true)){
 				$offlineHold['title'] = $resource->title;
 			}
+			$offlineHold['patronBarcode'] = $offlineHoldsObj->patronBarcode;
 			$offlineHold['bibId'] = $offlineHoldsObj->bibId;
 			$offlineHold['timeEntered'] = $offlineHoldsObj->timeEntered;
 			$offlineHold['status'] = $offlineHoldsObj->status;
