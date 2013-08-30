@@ -35,12 +35,12 @@
 			{if count($offlineHolds) > 0}
 				<table class="citation">
 					<thead>
-					<tr><th>Title</th><th>Date Entered</th><th>Status</th><th>Notes</th></tr>
+						<tr><th>Patron Barcode</th><th>Record Id</th><th>Title</th><th>Date Entered</th><th>Status</th><th>Notes</th></tr>
 					</thead>
 					<tbody>
-					{foreach from=$offlineHolds item=offlineHold}
-						<tr><td><a href="{$path}/Record/{$offlineHold.bibId}">{$offlineHold.title}</a></td><td>{$offlineHold.timeEntered|date_format}</td><td>{$offlineHold.status}</td><td>{$offlineHold.notes}</td></tr>
-					{/foreach}
+						{foreach from=$offlineHolds item=offlineHold}
+							<tr><td>{$offlineHold.patronBarcode}</td><td>{$offlineHold.bibId}</td><td><a href="{$path}/Record/{$offlineHold.bibId}">{$offlineHold.title}</a></td><td>{$offlineHold.timeEntered|date_format}</td><td>{$offlineHold.status}</td><td>{$offlineHold.notes}</td></tr>
+						{/foreach}
 					</tbody>
 				</table>
 			{else}

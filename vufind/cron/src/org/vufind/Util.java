@@ -322,8 +322,8 @@ public class Util {
 			if (referer != null){
 				conn.setRequestProperty("Referer", referer);
 			}
+			conn.setRequestMethod("POST");
 			if (postData != null && postData.length() > 0) {
-				conn.setRequestMethod("POST");
 				conn.setRequestProperty("Content-Type", contentType + "; charset=utf-8");
 				conn.setRequestProperty("Content-Language", "en-US");
 				conn.setRequestProperty("Connection", "keep-alive");
