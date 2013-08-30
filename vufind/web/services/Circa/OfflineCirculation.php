@@ -25,12 +25,12 @@ class Circa_OfflineCirculation extends Action{
 			$password2 = $_REQUEST['password2'];
 			$interface->assign('lastPassword2', $password2);
 
-			$barcodesToCheckIn = $_REQUEST['barcodesToCheckIn'];
+			//$barcodesToCheckIn = $_REQUEST['barcodesToCheckIn'];
 			$patronBarcode = $_REQUEST['patronBarcode'];
 			$barcodesToCheckOut = $_REQUEST['barcodesToCheckOut'];
 
 			//First store any titles that are being checked in
-			if (strlen(trim($barcodesToCheckIn)) > 0){
+			/*if (strlen(trim($barcodesToCheckIn)) > 0){
 				$barcodesToCheckIn = preg_split('/[\\s\\r\\n]+/', $barcodesToCheckIn);
 				foreach ($barcodesToCheckIn as $barcode){
 					$offlineCirculationEntry = new OfflineCirculationEntry();
@@ -44,7 +44,7 @@ class Circa_OfflineCirculation extends Action{
 					$offlineCirculationEntry->status = 'Not Processed';
 					$offlineCirculationEntry->insert();
 				}
-			}
+			}*/
 			if (strlen(trim($barcodesToCheckOut)) > 0 && strlen($patronBarcode >0)){
 				$userObj = new User();
 				$patronId = null;

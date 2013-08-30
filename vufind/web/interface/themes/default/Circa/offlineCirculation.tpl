@@ -1,6 +1,6 @@
 <div id="page-content" class="content">
 	{if $error}<p class="error">{$error}</p>{/if} 
-	<form action="" method="post">
+	<form action="" method="post" id="offlineCircForm">
 		
 		<div id="sidebar">
 			<div class="sidebarLabel"><label for="login">Login</label>:</div>
@@ -11,7 +11,7 @@
 			<div class="sidebarValue"><input type="text" name="initials" id="initials" value="{$lastInitials}"/> </div>
 			<div class="sidebarLabel"><label for="password2">Password</label>:</div>
 			<div class="sidebarValue"><input type="password" name="password2" id="password2" value="{$lastPassword2}"/></div>
-			<div class="sidebarLabel"><input type="submit" name="submit" value="Submit"/></div>
+			<div class="sidebarLabel"><button name="submit" onclick="return $('$offlineCircForm').submit()">Submit</button></div>
 		</div>
 		<div id="main-content" class="full-result-content">
 			<h1>Offline Circulation</h1>
