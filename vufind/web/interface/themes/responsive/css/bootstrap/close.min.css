@@ -1,0 +1,5 @@
+NameError: .opacity is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\close.less on line 13, column 3:
+12   text-shadow: 0 1px 0 rgba(255,255,255,1);
+13   .opacity(20);
+14   &:hover,
+

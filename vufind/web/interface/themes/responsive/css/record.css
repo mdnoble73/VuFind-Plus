@@ -1,1 +1,45 @@
-.holdingsSummary{margin-left:5px;padding:7px}.statVal{padding:6px 0 2px}#list-series.titleScroller{border:1px solid #949494}#list-series{margin:8px 0}.statusValue.available,.statusValue.here{color:#090;font-weight:bold}.statusValue.nearby,.holdingsSummaryStatusLine.availableOther{color:#b09;font-weight:bold}.statusValue.unavailable,.statusValue.checkedOut,.statusValue.checkedout,.statusValue.reserve{color:#c00;font-weight:bold}#recordcover{position:relative}.godeeper{bottom:4px;float:right;position:absolute;right:-5px;z-index:2}
+/**
+ * Additional Styling specific to the display of full records.
+ *
+ * If a style is used both within the results list and within a record it should
+ */
+.holdingsSummary {
+  margin-left: 5px;
+  padding: 7px;
+}
+.statVal {
+  padding: 6px 0px 2px;
+}
+#list-series.titleScroller {
+  border: 1px solid #949494;
+}
+#list-series {
+  margin: 8px 0px;
+}
+.statusValue.available,
+.statusValue.here {
+  color: #009900;
+  font-weight: bold;
+}
+.statusValue.nearby,
+.holdingsSummaryStatusLine.availableOther {
+  color: #BB0099;
+  font-weight: bold;
+}
+.statusValue.unavailable,
+.statusValue.checkedOut,
+.statusValue.checkedout,
+.statusValue.reserve {
+  color: #cc0000;
+  font-weight: bold;
+}
+#recordcover {
+  position: relative;
+}
+.godeeper {
+  bottom: 4px;
+  float: right;
+  position: absolute;
+  right: -5px;
+  z-index: 2;
+}

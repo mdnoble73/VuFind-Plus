@@ -1,0 +1,5 @@
+NameError: variable @baseBorderRadius is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\alerts.less on line 15, column 18:
+14   border: 1px solid @warningBorder;
+15   .border-radius(@baseBorderRadius);
+16 }
+

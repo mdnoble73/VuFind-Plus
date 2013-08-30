@@ -1,0 +1,5 @@
+NameError: variable @baseLineHeight is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\pagination.less on line 7, column 11:
+6 .pagination {
+7   margin: @baseLineHeight 0;
+8 }
+

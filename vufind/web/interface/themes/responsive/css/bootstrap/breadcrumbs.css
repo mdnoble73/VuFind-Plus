@@ -1,0 +1,5 @@
+NameError: variable @baseBorderRadius is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\breadcrumbs.less on line 11, column 18:
+10   background-color: #f5f5f5;
+11   .border-radius(@baseBorderRadius);
+12   > li {
+

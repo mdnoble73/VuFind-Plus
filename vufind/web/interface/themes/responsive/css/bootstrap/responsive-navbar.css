@@ -1,0 +1,5 @@
+NameError: variable @navbarCollapseWidth is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\responsive-navbar.less on line 8, column 20:
+7 // -----------------
+8 @media (max-width: @navbarCollapseWidth) {
+9 
+

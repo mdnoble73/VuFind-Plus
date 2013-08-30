@@ -1,0 +1,5 @@
+NameError: .ie7-inline-block is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\button-groups.less on line 10, column 3:
+9   display: inline-block;
+10   .ie7-inline-block();
+11   font-size: 0; // remove as part 1 of font-size inline-block hack
+

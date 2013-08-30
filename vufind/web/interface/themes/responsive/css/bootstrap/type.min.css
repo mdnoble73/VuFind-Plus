@@ -1,0 +1,5 @@
+NameError: variable @baseLineHeight is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\type.less on line 10, column 15:
+9 p {
+10   margin: 0 0 @baseLineHeight / 2;
+11 }
+

@@ -1,0 +1,5 @@
+NameError: .border-radius is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\hero-unit.less on line 14, column 3:
+13   background-color: @heroUnitBackground;
+14   .border-radius(6px);
+15   h1 {
+

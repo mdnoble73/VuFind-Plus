@@ -1,0 +1,5 @@
+NameError: variable @gridColumnWidth768 is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\responsive-768px-979px.less on line 9, column 17:
+8   // Fixed grid
+9   #grid > .core(@gridColumnWidth768, @gridGutterWidth768);
+10 
+

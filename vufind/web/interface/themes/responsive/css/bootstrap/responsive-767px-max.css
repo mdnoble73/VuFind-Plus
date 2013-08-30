@@ -1,0 +1,5 @@
+NameError: .box-sizing is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\responsive-767px-max.less on line 67, column 5:
+66     margin-left: 0;
+67     .box-sizing(border-box);
+68   }
+

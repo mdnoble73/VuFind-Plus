@@ -1,0 +1,5 @@
+NameError: variable @gridColumnWidth is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\forms.less on line 301, column 16:
+300 // Grid sizes
+301 #grid > .input(@gridColumnWidth, @gridGutterWidth);
+302 
+

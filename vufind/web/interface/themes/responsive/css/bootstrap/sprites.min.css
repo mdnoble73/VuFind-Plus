@@ -1,0 +1,5 @@
+NameError: .ie7-restore-right-whitespace is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\sprites.less on line 22, column 3:
+21   height: 14px;
+22   .ie7-restore-right-whitespace();
+23   line-height: 14px;
+

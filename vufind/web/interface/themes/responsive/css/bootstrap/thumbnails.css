@@ -1,0 +1,5 @@
+NameError: .clearfix is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\thumbnails.less on line 12, column 3:
+11   list-style: none;
+12   .clearfix();
+13 }
+

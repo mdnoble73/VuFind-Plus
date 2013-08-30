@@ -1,1 +1,14 @@
-.wikipedia_image{margin:0 10px 10px}@media(min-width:767px){.wikipedia_image{float:left}}@media(max-width:767px){.wikipedia_image{display:block;margin:0 auto 10px}}
+.wikipedia_image {
+  margin: 0 10px 10px;
+}
+@media (min-width: 767px) {
+  .wikipedia_image {
+    float: left;
+  }
+}
+@media (max-width: 767px) {
+  .wikipedia_image {
+    display: block;
+    margin: 0px auto 10px;
+  }
+}

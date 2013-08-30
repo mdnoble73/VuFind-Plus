@@ -1,0 +1,5 @@
+NameError: .transition is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\component-animations.less on line 8, column 3:
+7   opacity: 0;
+8   .transition(opacity .15s linear);
+9   &.in {
+

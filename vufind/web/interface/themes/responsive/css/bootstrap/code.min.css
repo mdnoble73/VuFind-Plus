@@ -1,0 +1,5 @@
+NameError: #font > #family > .monospace is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\code.less on line 10, column 3:
+9   padding: 0 3px 2px;
+10   #font > #family > .monospace;
+11   font-size: @baseFontSize - 2;
+

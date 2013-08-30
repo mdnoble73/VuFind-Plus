@@ -1,0 +1,5 @@
+NameError: variable @baseBorderRadius is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\wells.less on line 13, column 18:
+12   border: 1px solid darken(@wellBackground, 7%);
+13   .border-radius(@baseBorderRadius);
+14   .box-shadow(inset 0 1px 1px rgba(0,0,0,.05));
+
