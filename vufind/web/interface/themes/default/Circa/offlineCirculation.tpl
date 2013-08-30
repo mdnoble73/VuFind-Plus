@@ -15,6 +15,12 @@
 		</div>
 		<div id="main-content" class="full-result-content">
 			<h1>Offline Circulation</h1>
+
+			{if $results}
+				<div class="error">
+					{$results}
+				</div>
+			{/if}
 			{*
 			<fieldset>
 				<legend>Check-in titles</legend>
@@ -32,3 +38,42 @@
 		</div>
 	</form>
 </div>
+
+{literal}
+<script type="text/javascript">
+	function checkCptKey(e)
+	{
+		var shouldBubble = true;
+		switch (e.keyCode)
+		{
+			// user pressed the Tab
+			case 9:
+			{
+				//$(".cptIcdProcedureSelect").toggleClass("cptIcdProcedureSelectVisible");
+				//shouldBubble = false;
+				break;
+			};
+			// user pressed the Enter
+			case 13:
+			{
+				//$(".cptIcdProcedureSelect").toggleClass("cptIcdProcedureSelectVisible");
+				shouldBubble = false;
+				break;
+			};
+			// user pressed the ESC
+			case 27:
+			{
+				//$(".cptIcdProcedureSelect").toggleClass("cptIcdProcedureSelectVisible");
+				break;
+			};
+		};
+		/* this propagates the jQuery event if true */
+		return shouldBubble;
+	};
+	/* user pressed special keys while in Selector */
+	$("#patronBarcode").keydown(function(e)
+	{
+		return checkCptKey(e, $(this));
+	});
+</script>
+{/literal}

@@ -12,6 +12,7 @@ class Circa_OfflineCirculation extends Action{
 	function launch()
 	{
 		global $interface;
+		$results = '';
 
 		if (isset($_POST['submit'])){
 			require_once ROOT_DIR . '/sys/OfflineCirculationEntry.php';
@@ -45,6 +46,7 @@ class Circa_OfflineCirculation extends Action{
 					$offlineCirculationEntry->insert();
 				}
 			}*/
+			$numItemsCheckedOut = 0;
 			if (strlen(trim($barcodesToCheckOut)) > 0 && strlen($patronBarcode >0)){
 				$userObj = new User();
 				$patronId = null;
@@ -66,11 +68,17 @@ class Circa_OfflineCirculation extends Action{
 					$offlineCirculationEntry->patronId = $patronId;
 					$offlineCirculationEntry->type = 'Check Out';
 					$offlineCirculationEntry->status = 'Not Processed';
-					$offlineCirculationEntry->insert();
+					if ($offlineCirculationEntry->insert()){
+						$numItemsCheckedOut++;
+					}else{
+						$results .= "Could not check out item $barcode to patron {$patronBarcode}.<br/>";
+					}
 				}
 			}
-
+			$results .= "Successfully checked out {$numItemsCheckedOut} items to patron {$patronBarcode}.<br/>";
 		}
+
+		$interface->assign('results', $results);
 
 		//Get view & load template
 		$interface->setTemplate('offlineCirculation.tpl');
