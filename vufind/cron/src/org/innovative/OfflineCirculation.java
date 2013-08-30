@@ -82,9 +82,9 @@ public class OfflineCirculation implements IProcessHandler {
 		updateHold.setLong(1, new Date().getTime() / 1000);
 		updateHold.setLong(4, holdId);
 		try {
-			String patronBarcode = holdsToProcessRS.getString("patronBarcode");
-			String patronName = holdsToProcessRS.getString("cat_username");
-			String bibId = holdsToProcessRS.getString("bibId");
+			String patronBarcode = URLEncoder.encode(holdsToProcessRS.getString("patronBarcode"), "UTF-8");
+			String patronName = URLEncoder.encode(holdsToProcessRS.getString("cat_username"), "UTF-8");
+			String bibId = URLEncoder.encode(holdsToProcessRS.getString("bibId"), "UTF-8");
 			URL placeHoldUrl = new URL(baseUrl + "/API/UserAPI?method=placeHold&username=" + patronName + "&password=" + patronBarcode + "&bibId=" + bibId);
 			Object placeHoldDataRaw = placeHoldUrl.getContent();
 			if (placeHoldDataRaw instanceof InputStream) {
@@ -97,7 +97,11 @@ public class OfflineCirculation implements IProcessHandler {
 				}else{
 					updateHold.setString(2, "Hold Failed");
 				}
-				updateHold.setString(3, result.getString("holdMessage"));
+				if (result.has("holdMessage")){
+					updateHold.setString(3, result.getString("holdMessage"));
+				}else{
+					updateHold.setString(3, result.getString("message"));
+				}
 			}
 			processLog.incUpdated();
 		} catch (JSONException e) {
