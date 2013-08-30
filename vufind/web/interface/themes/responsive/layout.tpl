@@ -9,7 +9,8 @@
 		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$path}/Search/OpenSearch?method=describe" />
 
 		{* Include css as appropriate *}
-		<link href="{$path}/interface/themes/responsive/css/marmot.css" rel="stylesheet" media="screen">
+		{css filename="main.css"}
+		{* <link href="{$path}/interface/themes/responsive/css/marmot.css" rel="stylesheet" media="screen"> *}
 
 		{* Include correct javascript *}
 		<script src="{$path}/js/jquery-1.9.1.min.js"></script>
@@ -34,24 +35,26 @@
 		{/if}
 	</head>
 	<body class="module_{$module} action_{$action}">
-		<div class="container-fluid">
+		<div id="header-container">
 			{include file='header.tpl'}
+		</div>
 
-			{if $showTopSearchBox}
-				<div id='searchbar'>
-					{include file="Search/searchbox.tpl" showAsBar=true}
-				</div>
-			{/if}
+		{if $showTopSearchBox}
+			<div id='searchbar'>
+				{include file="Search/searchbox.tpl" showAsBar=true}
+			</div>
+		{/if}
 
-			{if $showBreadcrumbs}
-				<ul class="breadcrumb">
-					<li><a href="{$homeBreadcrumbLink}" id="home-breadcrumb"><i class="icon-home"></i> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span></li>
-					{include file="$module/breadcrumbs.tpl"}
-				</ul>
-			{/if}
+		{if $showBreadcrumbs}
+			<ul class="breadcrumb">
+				<li><a href="{$homeBreadcrumbLink}" id="home-breadcrumb"><i class="icon-home"></i> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span></li>
+				{include file="$module/breadcrumbs.tpl"}
+			</ul>
+		{/if}
 
-			{include file="$module/$pageTemplate"}
+		{include file="$module/$pageTemplate"}
 
+		<div id="footer-container">
 			{include file="footer.tpl"}
 		</div>
 

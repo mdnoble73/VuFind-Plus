@@ -2,7 +2,8 @@
 <div class="navbar navbar-static-bottom">
 	<div class="navbar-inner">
 		<div class="row-fluid">
-				<div class="span3 offset2 footer-column" id="footer1"><h4 data-toggle="collapse" data-target="#footerContents1">{translate text='Featured Items'}</h4>
+				<div class="span3 offset2 footer-column" id="footer1">
+					<h4 data-toggle="collapse" data-target="#footerContents1">{translate text='Featured Items'}</h4>
 					<ul class="unstyled collapse footerContents" id="footerContents1">
 						<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A"Month"&amp;filter[]=literary_form_full%3A"Fiction"'>{translate text='New Fiction'}</a></li>
 						<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A"Month"&amp;filter[]=literary_form_full%3A"Non+Fiction"'>{translate text='New Non-Fiction'}</a></li>
@@ -37,11 +38,11 @@
 		</div>
 
 		{if !$productionServer}
-		<div class="row-fluid text-center">
-			<div class='location_info'><small>{$physicalLocation} ({$activeIp}) - {$deviceName}</small></div>
-			{/if}
-			<div class='version_info'><small>v. {$gitBranch}</small></div>
-		</div>
+			<div class="row-fluid text-center">
+				<div class='location_info'><small>{$physicalLocation} ({$activeIp}) - {$deviceName}</small></div>
+				<div class='version_info'><small>v. {$gitBranch}</small></div>
+			</div>
+		{/if}
 	</div>
 </div>
 {/strip}

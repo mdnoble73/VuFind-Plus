@@ -1,15 +1,13 @@
 /**
- * Variables for configuration, can be modified
- **/
-// Core variables and mixins
-@import "bootstrap/variables.less"; // Modify this for custom colors, font-sizes, etc
-
-@header-background: #255A8B;
-@header-color: #FBEADE;
-@searchbar-background: #EEEDF2;
-@footer-background: white;
+ * Main responsive theme css
+ */
+//Default values for variables
 @navbarCollapseWidth: 480px;
 @navbarCollapseDesktopWidth: 481px;
+@headerBackgroundHighlight: @navbarBackgroundHighlight;
+@headerBackground: @navbarBackground;
+@footerBackgroundHighlight: @navbarBackgroundHighlight;
+@footerBackground: @navbarBackground;
 
 @import "bootstrap/bootstrap.less";
 @import "bootstrap/responsive.less";
@@ -50,18 +48,6 @@
   margin-bottom: 0;
 }
 
-/**
- * Overall Page layout
- */
-.masthead {
-  background-color: @header-background;
-  color: @header-color;
-  padding: 5px;
-  a {
-    color: @header-color;
-  }
-}
-
 #search_box_group{
   /* Append input to search box when larger than phone */
   @media (max-width: 480px) {
@@ -81,9 +67,13 @@
   }
 }
 
-.footer{
-  border-top: 2px solid @header-background;
-  background-color: @footer-background;
+#header-container .navbar-inner{
+  background-image: linear-gradient(to bottom, @headerBackgroundHighlight, @headerBackground);
+}
+
+
+#footer-container .navbar-inner{
+  background-image: linear-gradient(to bottom, @footerBackgroundHighlight, @footerBackground);
 }
 .footer-column{
   @media (max-width: 767px) {
