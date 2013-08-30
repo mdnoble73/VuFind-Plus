@@ -26,56 +26,77 @@ class Circa_OfflineCirculation extends Action{
 			$password2 = $_REQUEST['password2'];
 			$interface->assign('lastPassword2', $password2);
 
-			//$barcodesToCheckIn = $_REQUEST['barcodesToCheckIn'];
-			$patronBarcode = $_REQUEST['patronBarcode'];
-			$barcodesToCheckOut = $_REQUEST['barcodesToCheckOut'];
+			$loginInfoValid = true;
+			if (strlen($login) == 0){
+				$results .= "Please enter your login";
+				$loginInfoValid = false;
+			}
+			if (strlen($password1) == 0){
+				$results .= "Please enter your login password";
+				$loginInfoValid = false;
+			}
+			if (strlen($initials) == 0){
+				$initials = $login;
+			}
+			if (strlen($password2) == 0){
+				$password2 = $password1;
+			}
 
-			//First store any titles that are being checked in
-			/*if (strlen(trim($barcodesToCheckIn)) > 0){
-				$barcodesToCheckIn = preg_split('/[\\s\\r\\n]+/', $barcodesToCheckIn);
-				foreach ($barcodesToCheckIn as $barcode){
-					$offlineCirculationEntry = new OfflineCirculationEntry();
-					$offlineCirculationEntry->timeEntered = time();
-					$offlineCirculationEntry->itemBarcode = $barcode;
-					$offlineCirculationEntry->login = $login;
-					$offlineCirculationEntry->loginPassword = $password1;
-					$offlineCirculationEntry->initials = $initials;
-					$offlineCirculationEntry->initialsPassword = $password2;
-					$offlineCirculationEntry->type = 'Check In';
-					$offlineCirculationEntry->status = 'Not Processed';
-					$offlineCirculationEntry->insert();
-				}
-			}*/
-			$numItemsCheckedOut = 0;
-			if (strlen(trim($barcodesToCheckOut)) > 0 && strlen($patronBarcode >0)){
-				$userObj = new User();
-				$patronId = null;
-				$userObj->cat_password = $patronBarcode;
-				if ($userObj->find()){
-					$userObj->fetch();
-					$patronId = $userObj->id;
-				}
-				$barcodesToCheckOut = preg_split('/[\\s\\r\\n]+/', $barcodesToCheckOut);
-				foreach ($barcodesToCheckOut as $barcode){
-					$offlineCirculationEntry = new OfflineCirculationEntry();
-					$offlineCirculationEntry->timeEntered = time();
-					$offlineCirculationEntry->itemBarcode = $barcode;
-					$offlineCirculationEntry->login = $login;
-					$offlineCirculationEntry->loginPassword = $password1;
-					$offlineCirculationEntry->initials = $initials;
-					$offlineCirculationEntry->initialsPassword = $password2;
-					$offlineCirculationEntry->patronBarcode = $patronBarcode;
-					$offlineCirculationEntry->patronId = $patronId;
-					$offlineCirculationEntry->type = 'Check Out';
-					$offlineCirculationEntry->status = 'Not Processed';
-					if ($offlineCirculationEntry->insert()){
-						$numItemsCheckedOut++;
-					}else{
-						$results .= "Could not check out item $barcode to patron {$patronBarcode}.<br/>";
+			if ($loginInfoValid){
+				//$barcodesToCheckIn = $_REQUEST['barcodesToCheckIn'];
+				$patronBarcode = $_REQUEST['patronBarcode'];
+				$barcodesToCheckOut = $_REQUEST['barcodesToCheckOut'];
+
+				//First store any titles that are being checked in
+				/*if (strlen(trim($barcodesToCheckIn)) > 0){
+					$barcodesToCheckIn = preg_split('/[\\s\\r\\n]+/', $barcodesToCheckIn);
+					foreach ($barcodesToCheckIn as $barcode){
+						$offlineCirculationEntry = new OfflineCirculationEntry();
+						$offlineCirculationEntry->timeEntered = time();
+						$offlineCirculationEntry->itemBarcode = $barcode;
+						$offlineCirculationEntry->login = $login;
+						$offlineCirculationEntry->loginPassword = $password1;
+						$offlineCirculationEntry->initials = $initials;
+						$offlineCirculationEntry->initialsPassword = $password2;
+						$offlineCirculationEntry->type = 'Check In';
+						$offlineCirculationEntry->status = 'Not Processed';
+						$offlineCirculationEntry->insert();
+					}
+				}*/
+				$numItemsCheckedOut = 0;
+				if (strlen(trim($barcodesToCheckOut)) > 0 && strlen($patronBarcode >0)){
+					$userObj = new User();
+					$patronId = null;
+					$userObj->cat_password = $patronBarcode;
+					if ($userObj->find()){
+						$userObj->fetch();
+						$patronId = $userObj->id;
+					}
+					$barcodesToCheckOut = preg_split('/[\\s\\r\\n]+/', $barcodesToCheckOut);
+					foreach ($barcodesToCheckOut as $barcode){
+						$barcode = trim($barcode);
+						if (strlen($barcode) > 0){
+							$offlineCirculationEntry = new OfflineCirculationEntry();
+							$offlineCirculationEntry->timeEntered = time();
+							$offlineCirculationEntry->itemBarcode = $barcode;
+							$offlineCirculationEntry->login = $login;
+							$offlineCirculationEntry->loginPassword = $password1;
+							$offlineCirculationEntry->initials = $initials;
+							$offlineCirculationEntry->initialsPassword = $password2;
+							$offlineCirculationEntry->patronBarcode = $patronBarcode;
+							$offlineCirculationEntry->patronId = $patronId;
+							$offlineCirculationEntry->type = 'Check Out';
+							$offlineCirculationEntry->status = 'Not Processed';
+							if ($offlineCirculationEntry->insert()){
+								$numItemsCheckedOut++;
+							}else{
+								$results .= "Could not check out item $barcode to patron {$patronBarcode}.<br/>";
+							}
+						}
 					}
 				}
+				$results .= "Successfully checked out {$numItemsCheckedOut} items to patron {$patronBarcode}.<br/>";
 			}
-			$results .= "Successfully checked out {$numItemsCheckedOut} items to patron {$patronBarcode}.<br/>";
 		}
 
 		$interface->assign('results', $results);
