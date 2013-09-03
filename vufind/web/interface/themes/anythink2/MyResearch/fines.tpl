@@ -8,7 +8,7 @@
     {if $userNoticeFile}
       {include file=$userNoticeFile}
     {/if}
-    
+
     {$finesData}
   {else}
     You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.

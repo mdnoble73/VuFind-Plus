@@ -31,7 +31,7 @@
         <li><a {if $pageTemplate=="eContentHolds.tpl"}class="active"{/if} href="{$path}/MyAccount/EContentHolds">{translate text='Titles to pickup online'} {if !empty($profile.numEContentAvailableHolds)}({$profile.numEContentAvailableHolds}){/if}</a></li>
       {/if}
     </ul>
-      
+
     <h4>Hold Requests - Items waiting to become available</h4>
     <ul>
       <li><a {if $pageTemplate=="holds.tpl"}class="active"{/if} href="{$path}/MyAccount/Holds">{translate text='Books, Movies, and Music'}{if !empty($profile.numHoldsRequested)} ({$profile.numHoldsRequested}){/if}</a></li>
@@ -39,7 +39,7 @@
         <li><a {if $pageTemplate=="eContentHolds.tpl"}class="active"{/if} href="{$path}/MyAccount/EContentHolds">{translate text='eBooks and eAudio'} {if !empty($profile.numEContentUnavailableHolds)}({$profile.numEContentUnavailableHolds}){/if}</a></li>
       {/if}
     </ul>
-    
+
     <h4>Lists - Things I have read and may want to read later</h4>
     <ul>
       <li><a {if $pageTemplate=="favorites.tpl"}class="active"{/if} href="{$path}/MyAccount/Favorites">{translate text='Favorites'}</a></li>
@@ -53,7 +53,7 @@
               {* Only highlight saved searches as active if user is logged in: *}
       <li><a {if $user && $pageTemplate=="history.tpl"}class="active"{/if} href="{$path}/Search/History?require_login">{translate text='Saved Searches'}</a></li>
     </ul>
-    
+
     <h4>Profile - Update PIN, email and preferences</h4>
     <ul>
       <li><a {if $pageTemplate=="profile.tpl"}class="active"{/if} href="{$path}/MyAccount/Profile">{translate text='Profile'}</a></li>
