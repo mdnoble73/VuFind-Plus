@@ -37,6 +37,7 @@ class subnet extends DB_DataObject
 		$ipAddress = $this->ip;
 		$subnet_and_mask = explode('/', $ipAddress);
 		if (count($subnet_and_mask) == 2){
+			require_once ROOT_DIR . '/Drivers/marmot_inc/ipcalc.php';
 			$ipRange = getIpRange($ipAddress);
 			$startIp = $ipRange[0];
 			$endIp = $ipRange[1];
