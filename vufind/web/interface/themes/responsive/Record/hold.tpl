@@ -1,6 +1,6 @@
 <div id="page-content" class="content">
 	<form name='placeHoldForm' id='placeHoldForm' action="{$path}/Record/{$id|escape:"url"}/Hold" method="post">
-		<div>
+		<fieldset>
 			<div class="holdsSummary">
 				<h3>Placing hold on <span id='newHoldCount'>1</span> title.</h3>
 				<input type="hidden" name="holdCount" id="holdCount" value="1"/>
@@ -10,16 +10,16 @@
 			{if $holdDisclaimer}
 				<div id="holdDisclaimer">{$holdDisclaimer}</div>
 			{/if}
-			<p class="note">
+			<p class="help-block">
 				Holds allow you to request that a title be delivered to your home library.
 				Once the title arrives at your library you will be sent an e-mail, receive a phone call, or receive a postcard informing you that the title is ready for you.
 				You will then have 8 days to pickup the title from your home library.
 			</p>
 			{* Responsive theme enforces that the user is always logged in before getting here*}
 			<div id='holdOptions'>
-				<div id='pickupLocationOptions'>
-					<div class='loginLabel'>{translate text="I want to pick this up at"}: </div>
-					<div class='loginField'>
+				<div id='pickupLocationOptions' class="control-group">
+					<label class='control-label'>{translate text="I want to pick this up at"}: </label>
+					<div class='controls'>
 						<select name="campus" id="campus">
 							{if count($pickupLocations) > 0}
 								{foreach from=$pickupLocations item=location}
@@ -32,9 +32,9 @@
 					</div>
 				</div>
 				{if $showHoldCancelDate == 1}
-					<div id='cancelHoldDate' class='loginFormRow'>
-						<div class='loginLabel'>{translate text="Automatically cancel this hold if not filled by"}:</div>
-						<div class="input-append date" id="cancelDatePicker" data-date-format="mm/dd/yyyy" {if $defaultNotNeededAfterDays}data-date="{$defaultNotNeededAfterDays}"{/if}>
+					<div id='cancelHoldDate' class='control-group"'>
+						<label class='control-label'>{translate text="Automatically cancel this hold if not filled by"}:</label>
+						<div class="input-append date controls" id="cancelDatePicker" data-date-format="mm/dd/yyyy" {if $defaultNotNeededAfterDays}data-date="{$defaultNotNeededAfterDays}"{/if}>
 							<input type="text" name="canceldate" id="canceldate" size="10" {if $defaultNotNeededAfterDays}value="{$defaultNotNeededAfterDays}"{/if}>
 							<span class="add-on"><i class="icon-calendar"></i></span>
 						</div>
@@ -44,11 +44,13 @@
 					</div>
 				{/if}
 				<br />
-				<input type="hidden" name="holdType" value="hold" />
-				<input type="submit" name="submit" id="requestTitleButton" value="{translate text='Submit Hold Request'}" class="btn btn-primary"/>
-				<label for="autologout"><input type="checkbox" name="autologout" id="autologout" {if $inLibrary == true}checked="checked"{/if}/> Log me out after requesting the item.</label>
-			</div> 
-		</div>
+				<div class="control-group">
+					<label for="autologout" class="checkbox"><input type="checkbox" name="autologout" id="autologout" {if $inLibrary == true}checked="checked"{/if}/> Log me out after requesting the item.</label>
+					<input type="hidden" name="holdType" value="hold" />
+					<input type="submit" name="submit" id="requestTitleButton" value="{translate text='Submit Hold Request'}" class="btn btn-primary"/>
+				</div>
+			</div>
+		</fieldset>
 	</form>
 </div>
 <script	type="text/javascript">
