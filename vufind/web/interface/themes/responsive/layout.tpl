@@ -52,7 +52,9 @@
 			</ul>
 		{/if}
 
-		{include file="$module/$pageTemplate"}
+		<div class="container-fluid">
+			{include file="$module/$pageTemplate"}
+		</div>
 
 		<div id="footer-container">
 			{include file="footer.tpl"}

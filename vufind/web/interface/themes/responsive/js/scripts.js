@@ -60,13 +60,33 @@ VuFind.Account = {
 	ajaxCallback: null,
 
 	ajaxLogin: function(trigger, ajaxCallback){
-		VuFind.Account.ajaxCallback = ajaxCallback;
-		var dialogTitle = trigger.attr("title") ? trigger.attr("title") : trigger.data("title");
-		var dialogDestination = Globals.path + '/MyResearch/AJAX?method=LoginForm';
-		$("#modal-title").text(dialogTitle);
-		$(".modal-body").load(dialogDestination);
-		$("#modalDialog").modal({
-			show:true
+		if (Globals.loggedIn){
+			if (ajaxCallback != undefined && typeof(ajaxCallback) === "function"){
+				ajaxCallback();
+			}else if (VuFind.Account.ajaxCallback != undefined && typeof(VuFind.Account.ajaxCallback) === "function"){
+				VuFind.Account.ajaxCallback();
+				VuFind.Account.ajaxCallback = null;
+			}
+		}else{
+			VuFind.Account.ajaxCallback = ajaxCallback;
+			var dialogTitle = trigger.attr("title") ? trigger.attr("title") : trigger.data("title");
+			var dialogDestination = Globals.path + '/MyResearch/AJAX?method=LoginForm';
+			$("#modal-title").text(dialogTitle);
+			$(".modal-body").load(dialogDestination);
+			$("#modalDialog").modal({
+				show:true
+			});
+			return false;
+		}
+	},
+
+	followLinkIfLoggedIn: function(trigger, linkDestination){
+		$trigger = $(trigger);
+		if (linkDestination == undefined){
+			var linkDestination = $trigger.attr("href");
+		}
+		VuFind.Account.ajaxLogin($trigger, function(){
+			document.location = linkDestination;
 		});
 		return false;
 	},

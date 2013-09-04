@@ -11,14 +11,14 @@
 	<div class="imageColumn span2 text-center">
 		{/strip}
 		{if $user->disableCoverArt != 1}
-			<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>
+			{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
 			<a href="{$summUrl}">
 				<img src="{$bookCoverUrl}"
-				     class="listResultImage img-polaroid desriptionTrigger"
+				     class="listResultImage img-polaroid {*descriptionTrigger*}"
 				     alt="{translate text='Cover Image'}"
-				     data-record_id="{$summId}"
+				     {*data-record_id="{$summId}"
 				     data-source="VuFind"
-				     data-content_class=".descriptionContent{$summShortId|escape}"/>
+				     data-content_class=".descriptionContent{$summShortId|escape}"*}/>
 			</a>
 		{/if}
 		{strip}
@@ -120,6 +120,10 @@
 				<div class="row-fluid">
 					<div class="result-label span3">{translate text='Status'}:</div>
 					<div class="span9 bold statusValue result-value" id="statusValue{$summShortId|escape}">Loading...</div>
+				</div>
+
+				<div class="row-fluid">
+					<div class="span12 result-value" id="descriptionValue{$summShortId|escape}">{$summDescription}</div>
 				</div>
 
 				{*

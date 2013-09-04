@@ -3,10 +3,10 @@
 	<div class="btn-group btn-group-vertical btn-block">
 		{* Place hold link *}
 		{if $showHoldButton}
-			<a href="{$path}/Record/{$summId|escape:"url"}/Hold" class="btn btn-small btn-block" id="placeHold{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" style="display:none">{translate text="Place Hold"}</a>
+			<a href="{$path}/Record/{$summId|escape:"url"}/Hold" class="btn btn-small btn-block" id="placeHold{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" style="display:none" onclick="return VuFind.Account.followLinkIfLoggedIn(this);" title="Please login to place a hold">{translate text="Place Hold"}</a>
 		{/if}
 		{if $showMoreInfo !== false}
-		<a href="{$recordUrl}" class="btn btn-small btn-block"><img src="/images/silk/information.png" alt="More Info">&nbsp;More Info</a>
+			<a href="{$recordUrl}" class="btn btn-small btn-block"><img src="/images/silk/information.png" alt="More Info">&nbsp;More Info</a>
 		{/if}
 		{*
 		<div class="resultAction"><a href="#" class="cart" onclick="return addToBag('{$summId|escape}', '{$summTitle|replace:'"':''|escape:'javascript'}', '{$summShortId}');"><span class="silk cart">&nbsp;</span>{translate text="Add to cart"}</a></div>
