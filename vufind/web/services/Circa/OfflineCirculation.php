@@ -64,7 +64,7 @@ class Circa_OfflineCirculation extends Action{
 					}
 				}*/
 				$numItemsCheckedOut = 0;
-				if (strlen(trim($barcodesToCheckOut)) > 0 && strlen($patronBarcode >0)){
+				if (strlen(trim($barcodesToCheckOut)) > 0 && strlen($patronBarcode) > 0){
 					$userObj = new User();
 					$patronId = null;
 					$userObj->cat_password = $patronBarcode;
@@ -73,6 +73,9 @@ class Circa_OfflineCirculation extends Action{
 						$patronId = $userObj->id;
 					}
 					$barcodesToCheckOut = preg_split('/[\\s\\r\\n]+/', $barcodesToCheckOut);
+					if (!is_array($barcodesToCheckOut)){
+						$barcodesToCheckOut = array($barcodesToCheckOut);
+					}
 					foreach ($barcodesToCheckOut as $barcode){
 						$barcode = trim($barcode);
 						if (strlen($barcode) > 0){
