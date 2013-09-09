@@ -444,11 +444,11 @@ class Record extends Action
             ),
             array(
               'mask' => '/anythinkco.oneclickdigital.com/',
-              'text' => 'Download from OneClickDigital',
+              'text' => 'Download from OneClickdigital',
             ),
             array(
               'mask' => '/anythink.axis360.baker-taylor.com/',
-              'text' => 'Download from axix130',
+              'text' => 'Download from Axis 360',
             ),
           );
 
