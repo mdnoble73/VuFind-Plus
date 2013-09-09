@@ -22,7 +22,7 @@
 						</li>
 						<li class="loginOptions" {if $user} style="display: none;"{/if}>
 							{if $showLoginButton == 1}
-								<a id="headerLoginLink" href="{$path}/MyResearch/AJAX?method=LoginForm" class='loginLink modalDialogTrigger' title='Login'>{translate text="Login"}</a>
+								<a id="headerLoginLink" href="{$path}/MyResearch/Home" class='loginLink' title='Login' onclick="return VuFind.Account.followLinkIfLoggedIn(this);">{translate text="Login"}</a>
 							{/if}
 						</li>
 						{if is_array($allLangs) && count($allLangs) > 1}

@@ -31,10 +31,10 @@
 <script type="text/javascript">
 	$(document).ready(function() {literal} { {/literal}
 		VuFind.ResultsList.loadStatusSummaries();
-		VuFind.ResultsList.initializeDescriptions();
+		VuFind.ResultsList.loadSeriesInfo();
+		//VuFind.ResultsList.initializeDescriptions();
 		{if $user}
 		//doGetSaveStatuses();
 		{/if}
-		VuFind.ResultsList.loadSeriesInfo();
 	{literal} }); {/literal}
 </script>

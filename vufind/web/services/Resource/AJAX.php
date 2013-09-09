@@ -21,9 +21,9 @@
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/sys/Proxy_Request.php';
 
-class AJAX extends Action {
+class Resource_AJAX extends Action {
 
-	function AJAX() {
+	function Resource_AJAX() {
 	}
 
 	function launch() {
@@ -35,7 +35,7 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('GetAddTagForm', 'GetNovelistData'))){
+		}else if (in_array($method, array('GetAddTagForm', 'GetNovelistData', 'GetReviewForm'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -183,5 +183,29 @@ class AJAX extends Action {
 		$jsonData = json_decode($rawNovelistData);
 		$novelistData = $jsonData->body;
 		echo($novelistData);
+	}
+
+	function GetReviewForm(){
+		$id = $_REQUEST['id'];
+		$source = $_REQUEST['source'];
+		global $interface;
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+		$resource = new Resource();
+		$resource->record_id = $id;
+		$resource->source = $source;
+		if ($resource->find(true)){
+			$interface->assign('shortId', $resource->shortId);
+			$interface->assign('id', $resource->record_id);
+			$interface->assign('source', $resource->source);
+			global $library;
+			if (isset($library)){
+				$interface->assign('showRatings', $library->showRatings);
+			}else{
+				$interface->assign('showRatings', 1);
+			}
+			return $interface->fetch("Record/submit-comments.tpl");
+		}else{
+			return "Invalid ID";
+		}
 	}
 }

@@ -18,13 +18,13 @@
 				<li class="active"><a href="#similarTitlesNovelist" data-toggle="tab">Titles Recommended by NoveList</a></li>
 			{/if}
 			{if $enrichment.similarAuthorCount > 0}
-			<li><a href="#similarAuthorsNoveList" data-toggle="tab">Similar Authors from NoveList</a></li>
+				<li><a href="#similarAuthorsNoveList" data-toggle="tab">Similar Authors from NoveList</a></li>
 			{/if}
 			{if $enrichment.similarSeriesCount > 0}
-			<li><a href="#similarSeriesNoveList" data-toggle="tab">Similar Series from NoveList</a></li>
+				<li><a href="#similarSeriesNoveList" data-toggle="tab">Similar Series from NoveList</a></li>
 			{/if}
 			{if $recordCount > 0}
-			<li><a href="#similarTitlesVuFind" data-toggle="tab">Similar Titles</a></li>
+				<li><a href="#similarTitlesVuFind" data-toggle="tab">Similar Titles</a></li>
 			{/if}
 		</ul>
 
@@ -34,8 +34,8 @@
 					{foreach from=$enrichment.similarTitles item=similarTitle name="recordLoop"}
 						<div class="result{if ($smarty.foreach.recordLoop.iteration % 2) == 0} alt{/if}">
 							{* This is raw HTML -- do not escape it: *}
-							{if $similarTitle.fullRecordLink}<a href='{$similarTitle.fullRecordLink}'>{/if}{$similarTitle.title}{if $similarTitle.fullRecordLink}</a>{/if}
-							by <a href="/Search/Results?lookfor={$similarTitle.author|escape:url}">{$similarTitle.author}</a>
+							<h3>{if $similarTitle.fullRecordLink}<a href='{$similarTitle.fullRecordLink}'>{/if}{$similarTitle.title}{if $similarTitle.fullRecordLink}</a>{/if}
+							by <a href="/Search/Results?lookfor={$similarTitle.author|escape:url}">{$similarTitle.author}</a></h3>
 							<div class="reason">
 							{$similarTitle.reason}
 							</div>
@@ -49,7 +49,7 @@
 					{foreach from=$enrichment.authors item=author name="recordLoop"}
 						<div class="result{if ($smarty.foreach.recordLoop.iteration % 2) == 0} alt{/if}">
 							{* This is raw HTML -- do not escape it: *}
-							<a href="{$author.link}">{$author.name}</a>
+							<h3><a href="{$author.link}">{$author.name}</a></h3>
 							<div class="reason">
 								{$author.reason}
 							</div>
@@ -63,7 +63,7 @@
 					{foreach from=$enrichment.similarSeries item=series name="recordLoop"}
 						<div class="result{if ($smarty.foreach.recordLoop.iteration % 2) == 0} alt{/if}">
 							{* This is raw HTML -- do not escape it: *}
-							<a href="/Search/Results?lookfor={$series.title|escape:url}">{$series.title}</a> by <a href="Search/Results?lookfor={$series.author|escape:url}">{$series.author}</a>
+							<h3><a href="/Search/Results?lookfor={$series.title|escape:url}">{$series.title}</a> by <a href="Search/Results?lookfor={$series.author|escape:url}">{$series.author}</a></h3>
 							<div class="reason">
 								{$series.reason}
 							</div>
@@ -91,10 +91,12 @@
 
 	<script type="text/javascript">
 	$(document).ready(function() {literal} {
-		doGetStatusSummaries();
-		doGetSaveStatuses();
-		doGetSeriesInfo();
-		$("#similarTitleAccordion").tabs();
+		VuFind.ResultsList.loadStatusSummaries();
+		VuFind.ResultsList.loadSeriesInfo();
+		//doGetStatusSummaries();
+		//doGetSaveStatuses();
+		//doGetSeriesInfo();
+		//$("#similarTitleAccordion").tabs();
 	}); {/literal}
 	</script>
 	

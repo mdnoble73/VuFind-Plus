@@ -21,9 +21,7 @@ VuFind.initializeModalDialogs = function() {
 			var dialogDestination = trigger.attr("href");
 			$("#modal-title").text(dialogTitle);
 			$(".modal-body").load(dialogDestination);
-			$("#modalDialog").modal({
-				show:true
-			});
+			$("#modalDialog").modal("show");
 			return false;
 		});
 	});
@@ -56,38 +54,56 @@ VuFind.toggleHiddenElementWithButton = function(button){
 	return false;
 };
 
+VuFind.ajaxLightbox = function(url){
+	var modalDialog = $("#modalDialog");
+	if (modalDialog.is(":visible")){
+		modalDialog.modal('hide');
+	}
+	$(".modal-body").html("Loading");
+
+	modalDialog.load(url, function(){
+		modalDialog.modal('show');
+	});
+
+	return false;
+};
+
 VuFind.Account = {
 	ajaxCallback: null,
+	closeModalOnAjaxSuccess: false,
 
-	ajaxLogin: function(trigger, ajaxCallback){
+	ajaxLogin: function(trigger, ajaxCallback, closeModalOnAjaxSuccess){
 		if (Globals.loggedIn){
 			if (ajaxCallback != undefined && typeof(ajaxCallback) === "function"){
 				ajaxCallback();
-			}else if (VuFind.Account.ajaxCallback != undefined && typeof(VuFind.Account.ajaxCallback) === "function"){
+			}else if (VuFind.Account.ajaxCallback != null && typeof(VuFind.Account.ajaxCallback) === "function"){
 				VuFind.Account.ajaxCallback();
 				VuFind.Account.ajaxCallback = null;
 			}
 		}else{
 			VuFind.Account.ajaxCallback = ajaxCallback;
+			VuFind.Account.closeModalOnAjaxSuccess = closeModalOnAjaxSuccess;
 			var dialogTitle = trigger.attr("title") ? trigger.attr("title") : trigger.data("title");
 			var dialogDestination = Globals.path + '/MyResearch/AJAX?method=LoginForm';
+			var modalDialog = $("#modalDialog");
+			modalDialog.load(dialogDestination);
 			$("#modal-title").text(dialogTitle);
-			$(".modal-body").load(dialogDestination);
-			$("#modalDialog").modal({
-				show:true
-			});
-			return false;
+			modalDialog.modal("show");
 		}
+		return false;
 	},
 
 	followLinkIfLoggedIn: function(trigger, linkDestination){
+		if (this == undefined){
+			alert("You must provide the trigger to follow a link after logging in.");
+		}
 		$trigger = $(trigger);
 		if (linkDestination == undefined){
-			var linkDestination = $trigger.attr("href");
+			linkDestination = $trigger.attr("href");
 		}
 		VuFind.Account.ajaxLogin($trigger, function(){
 			document.location = linkDestination;
-		});
+		}, true);
 		return false;
 	},
 
@@ -107,14 +123,16 @@ VuFind.Account = {
 			data: {username: username, password: password, rememberMe: rememberMe},
 			success: function(response){
 				if (response.result.success == true){
-					loggedIn = true;
 					// Hide "log in" options and show "log out" options:
 					$('.loginOptions').hide();
 					$('.logoutOptions').show();
 					$('#loginOptions').hide();
 					$('#logoutOptions').show();
 					$('#myAccountNameLink').html(response.result.name);
-					$("#modalDialog").modal('hide');
+					if (VuFind.Account.closeModalOnAjaxSuccess){
+						$("#modalDialog").modal('hide');
+					}
+
 					Globals.loggedIn = true;
 					if (ajaxCallback != undefined && typeof(ajaxCallback) === "function"){
 						ajaxCallback();
@@ -136,6 +154,59 @@ VuFind.Account = {
 		});
 
 		return false;
+	}
+};
+
+VuFind.Responsive = {
+	adjustLayout: function(){
+		// get resolution
+		var resolution = document.documentElement.clientWidth;
+
+		// Handle Mobile layout
+		if (resolution <= 980) {
+			//Convert tabs to dropdown lists for phone
+			if( $('.select-menu').length === 0 ) {
+
+				// create select menu
+				var select = $('<select></select>');
+
+				// add classes to select menu
+				select.addClass('select-menu input-block-level');
+
+				// each link to option tag
+				$('.nav-tabs li a').each(function(){
+					// create element option
+					var option = $('<option></option>');
+
+					// add href value to jump
+					$this = $(this);
+					option.val($this.attr('href'));
+
+					// add text
+					option.text($this.text());
+
+					// append to select menu
+					select.append(option);
+				});
+
+				// add change event to select
+				select.change(function(){
+					//Show the correct tab
+					$('.nav-tabs').parent().children('.tab-content').children('.tab-pane').removeClass('active');
+					var selectedTabId = $('.select-menu').val();
+					$(selectedTabId).addClass('active');
+				});
+
+				// add select element to dom, hide the .nav-tabs
+				$('.nav-tabs').before(select).hide();
+			}
+		}
+
+		// max width 979px
+		if (resolution > 979) {
+			$('.select-menu').remove();
+			$('.nav-tabs').show();
+		}
 	}
 };
 
@@ -241,6 +312,7 @@ VuFind.ResultsList = {
 
 							// Load status
 							var statusSpan= $('#statusValue' + elemId);
+							var statusClass = undefined;
 							if (statusSpan.length > 0){
 								var status = items[i].statusText;
 								if (status){
@@ -252,7 +324,7 @@ VuFind.ResultsList = {
 									statusSpan.html("Unknown");
 								}
 
-								var statusClass = items[i]['class'];
+								statusClass = items[i]['class'];
 								if (statusClass){
 									statusSpan.addClass(statusClass);
 								}
@@ -268,7 +340,7 @@ VuFind.ResultsList = {
 									copies.html("No copies found");
 								}
 
-								var statusClass = items[i]['class'];
+								statusClass = items[i]['class'];
 								if (statusClass){
 									statusSpan.addClass(statusClass);
 								}
@@ -480,22 +552,18 @@ VuFind.OverDrive = {
 };
 
 VuFind.Record = {
-	showReviewForm: function(trigger, id, source){
+	getSaveToListForm: function getSaveToListForm(trigger, id, source){
 		if (Globals.loggedIn){
-			if (source == 'VuFind'){
-				$("#modal-title").text(trigger.attr("title"));
-				$(".modal-body").html($('#userreview' + id).html());
-				$("#modalDialog").modal({
-					show:true
-				});
-			}else{
-				$('.userecontentreview').slideUp();
-				$('#userecontentreview' + id).slideDown();
-			}
+			var url = Globals.path + "/Resource/Save?lightbox=true&id=" + id + "&source=" + source;
+			var $trigger = $(trigger);
+			$("#modal-title").text($trigger.attr("title"));
+			var modalDialog = $("#modalDialog");
+			modalDialog.load(url);
+			modalDialog.modal('show');
 		}else{
-			var $trigger = trigger;
-			VuFind.Account.ajaxLogin($trigger, function (){
-				VuFind.Record.showReviewForm($trigger, id, source);
+			trigger = $(trigger);
+			VuFind.Account.ajaxLogin(trigger, function (){
+				VuFind.Record.getSaveToListForm(trigger, id, source);
 			});
 		}
 		return false;
@@ -612,7 +680,25 @@ VuFind.Record = {
 				}
 			}
 		});
+	},
+
+	showReviewForm: function(trigger, id, source){
+		if (Globals.loggedIn){
+			var $trigger = $(trigger);
+			$("#modal-title").text($trigger.attr("title"));
+			var modalDialog = $("#modalDialog");
+			//$(".modal-body").html($('#userreview' + id).html());
+			modalDialog.load(Globals.path + "/Resource/AJAX?method=GetReviewForm&id=" + id + "&source=" + source);
+			modalDialog.modal('show');
+		}else{
+			var $trigger = $(trigger);
+			VuFind.Account.ajaxLogin($trigger, function (){
+				return VuFind.Record.showReviewForm($trigger, id, source);
+			});
+		}
+		return false;
 	}
+
 };
 
 VuFind.Searches = {
@@ -849,6 +935,10 @@ $(document).ready(function(){
 	VuFind.Searches.enableSearchTypes();
 	VuFind.Ratings.initializeRaters();
 	VuFind.initializeModalDialogs();
+	$(window).resize(VuFind.Responsive.adjustLayout);
+	$(window).trigger('resize');
+
+	$("#modalDialog").modal({show:false});
 	var lookfor = $("#lookfor");
 	if (lookfor.length > 0){
 		lookfor.focus().select();

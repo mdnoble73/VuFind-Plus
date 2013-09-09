@@ -1,3 +1,4 @@
+
 {if $showRatings == 1}
 	{strip}
 	<div class="{$ratingClass}">

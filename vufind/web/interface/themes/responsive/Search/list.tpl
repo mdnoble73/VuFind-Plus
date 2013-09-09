@@ -9,9 +9,9 @@
 	<div id="sidebar" class="span3">
 		<div class="sidegroup well">
 			{if $recordCount}
-				<h4>{translate text='Sort'}</h4>
+				<h4>{translate text='Sort By'}</h4>
 
-				<select name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;">
+				<select name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;" class="input-medium">
 					{foreach from=$sortList item=sortData key=sortLabel}
 						<option value="{$sortData.sortUrl|escape}"{if $sortData.selected} selected="selected"{/if}>{translate text=$sortData.desc}</option>
 					{/foreach}
