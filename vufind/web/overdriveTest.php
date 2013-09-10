@@ -10,13 +10,13 @@ $driver = OverDriveDriverFactory::getDriver();
 //Connect to the patron API
 echo("<h2>Patron API tests</h2>");
 $user = new User();
-$user->cat_password = '1234567890';
+$user->cat_password = '4090000012345';
 echo("<h3>Getting patron information</h3>");
 $accountDetails = $driver->getAccountDetails($user);
 //$patronData = $driver->_callPatronUrl($user->cat_password, null, 'http://api.mock.overdrive.com/v2/patrons/me');
 print_r($accountDetails);
 
-echo("<h3>Getting holds</h3>");
+/*echo("<h3>Getting holds</h3>");
 $patronData = $driver->getOverDriveHolds($user, 'http://api.mock.overdrive.com/v2/patrons/me/holds');
 print_r($patronData);
 
@@ -57,10 +57,10 @@ echo("<h3>Get OverDrive Read link for a title</h3>");
 $downloadLink = $driver->getDownloadLink('5ad4d606-35c0-47a6-88c7-d940c1288cdd', 'ebook-overdrive', $user);
 print_r($downloadLink);
 echo("<br /><a href='" . $downloadLink['downloadUrl'] ."'>Download Here</a>");
-
+*/
 echo("<h2>End patron API tests</h2>");
 
-
+/*
 $libraryInfo = $driver->getLibraryAccountInformation();
 print_r($libraryInfo);
 echo("<h1>{$libraryInfo->name}</h1>");
@@ -88,7 +88,7 @@ echo("<h3>Metadata</h3>");
 echo($firstProduct->links->metadata->href);
 //$metadata = $driver->getProductMetadata($firstProduct->links->metadata->href);
 $metadata = $driver->getProductMetadata("cda4632c-0593-46e7-94a4-1e4c4451da09", "L1BMAEAAA2k");
-print_r($metadata);
+print_r($metadata);*/
 
 
 

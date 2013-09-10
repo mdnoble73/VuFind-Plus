@@ -27,7 +27,7 @@ require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 class OverDriveDriver3 {
 	public $version = 3;
 
-	private $format_map = array(
+	protected $format_map = array(
 		'ebook-epub-adobe' => 'Adobe EPUB eBook',
 		'ebook-epub-open' => 'Open EPUB eBook',
 		'ebook-pdf-adobe' => 'Adobe PDF eBook',
@@ -92,33 +92,48 @@ class OverDriveDriver3 {
 	private function _connectToPatronAPI($patronBarcode, $patronPin = 1234, $forceNewConnection = false){
 		/** @var Memcache $memCache */
 		global $memCache;
-		$tokenData = $memCache->get('overdrive_patron_token_' . $patronBarcode);
+		$patronTokenData = $memCache->get('overdrive_patron_token_' . $patronBarcode);
 		if ($forceNewConnection || $tokenData == false){
-			global $configArray;
-			$ch = curl_init("https://oauth.overdrive.com/patrontoken");
-			//$websiteId = $configArray['OverDrive']['accountId'];
-			$websiteId = 9;
-			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
-			curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded;charset=UTF-8'));
-			curl_setopt($ch, CURLOPT_USERPWD, "");
-			//curl_setopt($ch, CURLOPT_USERPWD, $configArray['OverDrive']['clientKey'] . ":" . $configArray['OverDrive']['clientSecret']);
-			curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-			curl_setopt($ch, CURLOPT_POST, 1);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials&scope=websiteId:{$websiteId}%20ilsname:default%20cardnumber:{$patronBarcode}%20pin:{$patronPin}");
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-
-			$return = curl_exec($ch);
-			curl_close($ch);
-			$tokenData = json_decode($return);
+			$tokenData = $this->_connectToAPI($forceNewConnection);
 			if ($tokenData){
-				$memCache->set('overdrive_patron_token_' . $patronBarcode, $tokenData, 0, $tokenData->expires_in - 10);
+				global $configArray;
+				$ch = curl_init("https://oauth-patron.overdrive.com/patrontoken");
+				//$websiteId = $configArray['OverDrive']['websiteId'];
+				$websiteId = 100300;
+				$ilsname = $configArray['OverDrive']['LibraryCardILS'];
+				//$ilsname = "default";
+				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
+				curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded;charset=UTF-8'));
+				//curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}", "User-Agent: VuFind-Plus"));
+				//curl_setopt($ch, CURLOPT_USERPWD, "");
+				$clientSecret = $configArray['OverDrive']['clientSecret'];
+				curl_setopt($ch, CURLOPT_USERPWD, $configArray['OverDrive']['clientKey'] . ":" . $clientSecret);
+				curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+				curl_setopt($ch, CURLOPT_POST, 1);
+
+				if ($patronPin == null){
+					//$postFields = "grant_type=password&username={$patronBarcode}&password=&scope=\"websiteId:{$websiteId}%20ilsname:{$ilsname}\"";
+				}else{
+					//$postFields = "grant_type=password&username={$patronBarcode}&password={$patronPin}&scope=\"websiteId:{$websiteId}%20ilsname:{$ilsname}\"";
+				}
+				$postFields = "grant_type=client_credentials&scope=websiteid:{$websiteId}%20ilsname:{$ilsname}%20cardnumber:{$patronBarcode}";
+				curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+
+				$return = curl_exec($ch);
+				curl_close($ch);
+				$patronTokenData = json_decode($return);
+				if ($patronTokenData){
+					$memCache->set('overdrive_patron_token_' . $patronBarcode, $patronTokenData, 0, $patronTokenData->expires_in - 10);
+				}
 			}
 		}
-		return $tokenData;
+		return $patronTokenData;
 	}
 
 	public function _callUrl($url){
@@ -149,7 +164,7 @@ class OverDriveDriver3 {
 	public function _callPatronUrl($patronBarcode, $patronPin, $url, $postParams = null){
 		$tokenData = $this->_connectToPatronAPI($patronBarcode, $patronPin, false);
 		//TODO: Remove || true when oauth works
-		if ($tokenData || true){
+		if ($tokenData){
 			$ch = curl_init($url);
 			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 			curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
@@ -324,7 +339,7 @@ class OverDriveDriver3 {
 					$bookshelfItem['overdriveRead'] = true;
 				}else{
 					$bookshelfItem['selectedFormat'] = array(
-						'name' => $this->format_map($format->formatType),
+						'name' => $this->format_map[$format->formatType],
 					);
 				}
 				$curFormat['downloadUrl'] = $format->links->downloadLink->href;

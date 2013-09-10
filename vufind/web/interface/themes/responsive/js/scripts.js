@@ -54,16 +54,25 @@ VuFind.toggleHiddenElementWithButton = function(button){
 	return false;
 };
 
-VuFind.ajaxLightbox = function(url){
-	var modalDialog = $("#modalDialog");
-	if (modalDialog.is(":visible")){
-		modalDialog.modal('hide');
+VuFind.ajaxLightbox = function(urlToDisplay, requireLogin){
+	if (requireLogin == undefined){
+		requireLogin = false;
 	}
-	$(".modal-body").html("Loading");
+	if (requireLogin && !Globals.loggedIn){
+		VuFind.Account.ajaxLogin(null, function(){
+			VuFind.ajaxLightbox(urlToDisplay, requireLogin);
+		}, false);
+	}else{
+		var modalDialog = $("#modalDialog");
+		if (modalDialog.is(":visible")){
+			modalDialog.modal('hide');
+		}
+		$(".modal-body").html("Loading");
 
-	modalDialog.load(url, function(){
-		modalDialog.modal('show');
-	});
+		modalDialog.load(urlToDisplay, function(){
+			modalDialog.modal('show');
+		});
+	}
 
 	return false;
 };
@@ -83,7 +92,9 @@ VuFind.Account = {
 		}else{
 			VuFind.Account.ajaxCallback = ajaxCallback;
 			VuFind.Account.closeModalOnAjaxSuccess = closeModalOnAjaxSuccess;
-			var dialogTitle = trigger.attr("title") ? trigger.attr("title") : trigger.data("title");
+			if (trigger != undefined && trigger != null){
+				var dialogTitle = trigger.attr("title") ? trigger.attr("title") : trigger.data("title");
+			}
 			var dialogDestination = Globals.path + '/MyResearch/AJAX?method=LoginForm';
 			var modalDialog = $("#modalDialog");
 			modalDialog.load(dialogDestination);
@@ -94,7 +105,7 @@ VuFind.Account = {
 	},
 
 	followLinkIfLoggedIn: function(trigger, linkDestination){
-		if (this == undefined){
+		if (trigger == undefined){
 			alert("You must provide the trigger to follow a link after logging in.");
 		}
 		$trigger = $(trigger);
