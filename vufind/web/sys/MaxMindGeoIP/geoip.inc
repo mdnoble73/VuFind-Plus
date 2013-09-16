@@ -614,7 +614,7 @@ function _geoip_seek_country($gi, $ipnum) {
                             2 * $gi->record_length);
 
 	    if (function_exists('mb_internal_encoding')){
-        mb_internal_encoding($enc);\
+        mb_internal_encoding($enc);
 		  }
     } elseif ($gi->flags & GEOIP_SHARED_MEMORY) {
       $buf = @shmop_read ($gi->shmid, 
