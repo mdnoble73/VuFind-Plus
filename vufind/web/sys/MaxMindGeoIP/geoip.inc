@@ -603,15 +603,19 @@ function _geoip_seek_country($gi, $ipnum) {
   for ($depth = 31; $depth >= 0; --$depth) {
     if ($gi->flags & GEOIP_MEMORY_CACHE) {
       // workaround php's broken substr, strpos, etc handling with
-      // mbstring.func_overload and mbstring.internal_encoding
-      $enc = mb_internal_encoding();
-       mb_internal_encoding('ISO-8859-1'); 
+	    //  mbstring.func_overload and mbstring.internal_encoding
+      if (function_exists('mb_internal_encoding')){
+        $enc = mb_internal_encoding();
+        mb_internal_encoding('ISO-8859-1');
+      }
 
       $buf = substr($gi->memory_buffer,
                             2 * $gi->record_length * $offset,
                             2 * $gi->record_length);
 
-      mb_internal_encoding($enc);
+	    if (function_exists('mb_internal_encoding')){
+        mb_internal_encoding($enc);\
+		  }
     } elseif ($gi->flags & GEOIP_SHARED_MEMORY) {
       $buf = @shmop_read ($gi->shmid, 
                             2 * $gi->record_length * $offset,
