@@ -555,14 +555,18 @@ function _geoip_seek_country_v6($gi, $ipnum) {
     if ($gi->flags & GEOIP_MEMORY_CACHE) {
       // workaround php's broken substr, strpos, etc handling with
       // mbstring.func_overload and mbstring.internal_encoding
-      $enc = mb_internal_encoding();
-       mb_internal_encoding('ISO-8859-1'); 
+	    if (function_exists('mb_internal_encoding')){
+        $enc = mb_internal_encoding();
+        mb_internal_encoding('ISO-8859-1');
+	    }
 
       $buf = substr($gi->memory_buffer,
                             2 * $gi->record_length * $offset,
                             2 * $gi->record_length);
 
-      mb_internal_encoding($enc);
+	    if (function_exists('mb_internal_encoding')){
+        mb_internal_encoding($enc);
+	    }
     } elseif ($gi->flags & GEOIP_SHARED_MEMORY) {
       $buf = @shmop_read ($gi->shmid, 
                             2 * $gi->record_length * $offset,
@@ -657,10 +661,14 @@ function _common_get_org($gi, $seek_org){
   }
   // workaround php's broken substr, strpos, etc handling with
   // mbstring.func_overload and mbstring.internal_encoding
-  $enc = mb_internal_encoding();
-  mb_internal_encoding('ISO-8859-1'); 
+	if (function_exists('mb_internal_encoding')){
+	  $enc = mb_internal_encoding();
+	  mb_internal_encoding('ISO-8859-1');
+	}
   $org_buf = substr($org_buf, 0, strpos($org_buf, "\0"));
-  mb_internal_encoding($enc);
+	if (function_exists('mb_internal_encoding')){
+    mb_internal_encoding($enc);
+	}
   return $org_buf;
 }
 
