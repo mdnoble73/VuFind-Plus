@@ -3532,7 +3532,7 @@ public class MarcRecordDetails {
 	 * @return Set format of record
 	 */
 	public Set<String> getAvailableLocationsMarmot() {
-		String itemField = "989";
+		String itemField = marcProcessor.getItemTag();
 		String availableStatus = "[-dowju]";
 		Set<String> result = new LinkedHashSet<String>();
 		if (isEContent()) {
@@ -3586,7 +3586,7 @@ public class MarcRecordDetails {
 	}
 
 	public Set<String> getDetailedLocations(String locationCodesToMatch) {
-		String itemField = "989";
+		String itemField = marcProcessor.getItemTag();
 		Set<String> result = new LinkedHashSet<String>();
 		@SuppressWarnings("unchecked")
 		List<VariableField> itemRecords = record.getVariableFields(itemField);
@@ -3657,7 +3657,7 @@ public class MarcRecordDetails {
 			isEContent = false;
 			// Check the items
 			@SuppressWarnings("unchecked")
-			List<DataField> itemFields = (List<DataField>) record.getVariableFields("989");
+			List<DataField> itemFields = (List<DataField>) record.getVariableFields(marcProcessor.getItemTag());
 			String eContentSource = checkEContentBasedOnItems(itemFields);
 			if (!isEContent) {
 				// Check the 037 second
