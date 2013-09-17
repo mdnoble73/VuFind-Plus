@@ -46,16 +46,16 @@ class Nashville extends MillenniumDriver{
 	{
 		global $configArray;
 		global $timer;
-		global $logger;
+		//global $logger;
 
 		if ($configArray['Catalog']['offline'] == true){
-			$logger->log("Trying to authenticate in offline mode $barcode, $pin", PEAR_LOG_DEBUG);
+			//$logger->log("Trying to authenticate in offline mode $barcode, $pin", PEAR_LOG_DEBUG);
 			//The catalog is offline, check the database to see if the user is valid
 			$user = new User();
 			$user->cat_username = $barcode;
 			$user->cat_password = $pin;
 			if ($user->find(true)){
-				$logger->log("Found the user", PEAR_LOG_DEBUG);
+				//$logger->log("Found the user", PEAR_LOG_DEBUG);
 
 				$returnVal = array(
 					'id'        => $user->id,
@@ -75,7 +75,7 @@ class Nashville extends MillenniumDriver{
 				return $returnVal;
 
 			} else {
-				$logger->log("Did not find a user for that barcode and pin", PEAR_LOG_DEBUG);
+				//$logger->log("Did not find a user for that barcode and pin", PEAR_LOG_DEBUG);
 				$timer->logTime("patron login failed");
 				return null;
 			}
@@ -160,7 +160,6 @@ class Nashville extends MillenniumDriver{
 
 			//Load the raw information about the patron
 			$patronDump = $this->_getPatronDump($barcode, true);
-			print_r($patronDump);
 
 			//Check the pin number that was entered
 			$pin = urlencode($pin);
