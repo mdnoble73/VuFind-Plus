@@ -680,8 +680,15 @@ class MillenniumDriver implements DriverInterface
 		//Sample format of a row is as follows:
 		//P TYPE[p47]=100<BR>
 		$req =  $host . "/PATRONAPI/" . $barcode ."/dump" ;
-		$result = file_get_contents($req);
-		
+		//Setup encoding to ignore SSL errors for self signed certs
+		$contextOptions=array(
+			"ssl"=>array(
+				"allow_self_signed"=>true,
+				"verify_peer"=>false,
+			),
+		);
+		$result = file_get_contents($req, false, stream_context_create($contextOptions));
+
 		//Strip the actual contents out of the body of the page.
 		$r = substr($result, stripos($result, 'BODY'));
 		$r = substr($r,strpos($r,">")+1);
