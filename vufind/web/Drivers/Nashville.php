@@ -165,7 +165,6 @@ class Nashville extends MillenniumDriver{
 			//Check the pin number that was entered
 			$pin = urlencode($pin);
 			$patronDumpBarcode = $barcode;
-			if (strlen($patronDumpBarcode) < 14) { $patronDumpBarcode = ".p" . $patronDumpBarcode; }
 			$host=$configArray['OPAC']['patron_host'];
 			$apiurl = $host . "/PATRONAPI/$patronDumpBarcode/$pin/pintest";
 
