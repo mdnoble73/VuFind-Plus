@@ -680,13 +680,8 @@ class MillenniumDriver implements DriverInterface
 		//Sample format of a row is as follows:
 		//P TYPE[p47]=100<BR>
 		$req =  $host . "/PATRONAPI/" . $barcode ."/dump" ;
-		$req = new Proxy_Request($req);
-		//$result = file_get_contents($req);
-		if (PEAR_Singleton::isError($req->sendRequest())) {
-			return null;
-		}
-		$result = $req->getResponseBody();
-
+		$result = file_get_contents($req);
+		
 		//Strip the actual contents out of the body of the page.
 		$r = substr($result, stripos($result, 'BODY'));
 		$r = substr($r,strpos($r,">")+1);
