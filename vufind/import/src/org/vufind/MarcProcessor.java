@@ -211,21 +211,21 @@ public class MarcProcessor {
 		// Load field information for local call numbers
 		itemTag = configIni.get("Reindex", "itemTag");
 		urlSubfield = configIni.get("Reindex", "itemUrlSubfield");
-		locationSubfield = configIni.get("Reindex", "locationSubfield") != null ? configIni.get("Reindex", "locationSubfield").charAt(0) : 'd';
+		locationSubfield = configIni.get("Reindex", "locationSubfield").length() > 0 ? configIni.get("Reindex", "locationSubfield").charAt(0) : 'd';
 		sharedEContentLocation = configIni.get("Reindex", "sharedEContentLocation");
-		dateCreatedSubfield = configIni.get("Reindex", "dateCreatedSubfield") != null ? configIni.get("Reindex", "dateCreatedSubfield").charAt(0) : 'k' ;
-		barcodeSubfield = configIni.get("Reindex", "barcodeSubfield") != null ? configIni.get("Reindex", "barcodeSubfield").charAt(0) : 'b';
-		statusSubfield = configIni.get("Reindex", "statusSubfield") != null ? configIni.get("Reindex", "statusSubfield").charAt(0) : 'g';
-		totalCheckoutSubfield = configIni.get("Reindex", "totalCheckoutSubfield") != null ? configIni.get("Reindex", "totalCheckoutSubfield").charAt(0) : 'h';
-		lastYearCheckoutSubfield = configIni.get("Reindex", "lastYearCheckoutSubfield") != null ? configIni.get("Reindex", "lastYearCheckoutSubfield").charAt(0) : 'x';
-		ytdCheckoutSubfield = configIni.get("Reindex", "ytdCheckoutSubfield") != null ? configIni.get("Reindex", "ytdCheckoutSubfield").charAt(0) : 't';
-		totalRenewalSubfield = configIni.get("Reindex", "totalRenewalSubfield") != null ? configIni.get("Reindex", "totalRenewalSubfield").charAt(0) : 'i';
-		iTypeSubfield = configIni.get("Reindex", "iTypeSubfield") != null ? configIni.get("Reindex", "iTypeSubfield").charAt(0) : 'j';
-		dueDateSubfield = configIni.get("Reindex", "dueDateSubfield") != null ? configIni.get("Reindex", "dueDateSubfield").charAt(0) : 'm';
-		iCode2Subfield = configIni.get("Reindex", "iCode2Subfield") != null ? configIni.get("Reindex", "iCode2Subfield").charAt(0) : 'o';
-		useICode2Suppression = configIni.get("Reindex", "useICode2Suppression") != null ? Boolean.getBoolean(configIni.get("Reindex", "useICode2Suppression")) : true;
-		eContentSubfield = configIni.get("Reindex", "eContentSubfield") != null ? configIni.get("Reindex", "eContentSubfield").charAt(0) : 'o';
-		useEContentSubfield = configIni.get("Reindex", "useEContentSubfield") != null ? Boolean.getBoolean(configIni.get("Reindex", "useEContentSubfield")) : true;
+		dateCreatedSubfield = configIni.get("Reindex", "dateCreatedSubfield").length() > 0 ? configIni.get("Reindex", "dateCreatedSubfield").charAt(0) : 'k' ;
+		barcodeSubfield = configIni.get("Reindex", "barcodeSubfield").length() > 0 ? configIni.get("Reindex", "barcodeSubfield").charAt(0) : 'b';
+		statusSubfield = configIni.get("Reindex", "statusSubfield").length() > 0 ? configIni.get("Reindex", "statusSubfield").charAt(0) : 'g';
+		totalCheckoutSubfield = configIni.get("Reindex", "totalCheckoutSubfield").length() > 0 ? configIni.get("Reindex", "totalCheckoutSubfield").charAt(0) : 'h';
+		lastYearCheckoutSubfield = configIni.get("Reindex", "lastYearCheckoutSubfield").length() > 0 ? configIni.get("Reindex", "lastYearCheckoutSubfield").charAt(0) : 'x';
+		ytdCheckoutSubfield = configIni.get("Reindex", "ytdCheckoutSubfield").length() > 0 ? configIni.get("Reindex", "ytdCheckoutSubfield").charAt(0) : 't';
+		totalRenewalSubfield = configIni.get("Reindex", "totalRenewalSubfield").length() > 0 ? configIni.get("Reindex", "totalRenewalSubfield").charAt(0) : 'i';
+		iTypeSubfield = configIni.get("Reindex", "iTypeSubfield").length() > 0 ? configIni.get("Reindex", "iTypeSubfield").charAt(0) : 'j';
+		dueDateSubfield = configIni.get("Reindex", "dueDateSubfield").length() > 0 ? configIni.get("Reindex", "dueDateSubfield").charAt(0) : 'm';
+		iCode2Subfield = configIni.get("Reindex", "iCode2Subfield").length() > 0 ? configIni.get("Reindex", "iCode2Subfield").charAt(0) : 'o';
+		useICode2Suppression = configIni.get("Reindex", "useICode2Suppression").length() > 0 ? Boolean.getBoolean(configIni.get("Reindex", "useICode2Suppression")) : true;
+		eContentSubfield = configIni.get("Reindex", "eContentSubfield").length() > 0 ? configIni.get("Reindex", "eContentSubfield").charAt(0) : 'o';
+		useEContentSubfield = configIni.get("Reindex", "useEContentSubfield").length() > 0 ? Boolean.getBoolean(configIni.get("Reindex", "useEContentSubfield")) : true;
 
 		// Load the checksum of any marc records that have been loaded already
 		// This allows us to detect whether or not the record is new, has changed,
