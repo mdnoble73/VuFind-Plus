@@ -72,6 +72,7 @@ class Nashville extends MillenniumDriver{
 				return $returnVal;
 
 			} else {
+				$logger->log("Did not find a user for that barcode and pin", PEAR_LOG_DEBUG);
 				$timer->logTime("patron login failed");
 				return null;
 			}
