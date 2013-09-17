@@ -44,10 +44,13 @@ class Nashville extends MillenniumDriver{
 		global $configArray;
 		global $memCache;
 		global $timer;
+		global $logger;
 
 		if ($configArray['Catalog']['offline'] == true){
+			$logger->log("Trying to authenticate in offline mode $barcode, $pin", PEAR_LOG_DEBUG);
 			//The catalog is offline, check the database to see if the user is valid
 			$user = new User();
+			$user->cat_username = $barcode;
 			$user->cat_password = $pin;
 			if ($user->find(true)){
 				$userValid = false;
