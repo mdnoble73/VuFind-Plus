@@ -42,7 +42,6 @@ class Nashville extends MillenniumDriver{
 	public function patronLogin($barcode, $pin)
 	{
 		global $configArray;
-		global $memCache;
 		global $timer;
 		global $logger;
 
@@ -53,29 +52,25 @@ class Nashville extends MillenniumDriver{
 			$user->cat_username = $barcode;
 			$user->cat_password = $pin;
 			if ($user->find(true)){
-				$userValid = false;
-				if ($userValid){
+				$logger->log("Found the user", PEAR_LOG_DEBUG);
 
-					$returnVal = array(
-						'id'        => $user->id,
-						'username'  => $user->username,
-						'firstname' => $user->firstname,
-						'lastname'  => $user->lastname,
-						'fullname'  => $user->firstname . ' ' . $user->lastname,     //Added to array for possible display later.
-						'cat_username' => $barcode, //Should this be $Fullname or $patronDump['PATRN_NAME']
-						'cat_password' => $pin,
+				$returnVal = array(
+					'id'        => $user->id,
+					'username'  => $user->username,
+					'firstname' => $user->firstname,
+					'lastname'  => $user->lastname,
+					'fullname'  => $user->firstname . ' ' . $user->lastname,     //Added to array for possible display later.
+					'cat_username' => $barcode, //Should this be $Fullname or $patronDump['PATRN_NAME']
+					'cat_password' => $pin,
 
-						'email' => $user->email,
-						'major' => null,
-						'college' => null,
-						'patronType' => $user->patronType,
-						'web_note' => translate('The catalog is currently down.  You will have limited access to circulation information.'));
-					$timer->logTime("patron logged in successfully");
-					return $returnVal;
-				} else {
-					$timer->logTime("patron login failed");
-					return null;
-				}
+					'email' => $user->email,
+					'major' => null,
+					'college' => null,
+					'patronType' => $user->patronType,
+					'web_note' => translate('The catalog is currently down.  You will have limited access to circulation information.'));
+				$timer->logTime("patron logged in successfully");
+				return $returnVal;
+
 			} else {
 				$timer->logTime("patron login failed");
 				return null;
