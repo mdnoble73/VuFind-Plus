@@ -109,9 +109,20 @@ public class MarcProcessor {
 	private HashMap<String, LexileData> lexileInfo = new HashMap<String, LexileData>();
 	
 	private String												itemTag;
-	private String												locationSubfield;
+	private char												locationSubfield;
 	private String												urlSubfield;
 	private String												sharedEContentLocation;
+	private char                          dateCreatedSubfield = 'k';
+	private char                          barcodeSubfield = 'b';
+	private char                          statusSubfield = 'g';
+	private char                          totalCheckoutSubfield = 'h';
+	private char                          lastYearCheckoutSubfield = 'x';
+	private char                          ytdCheckoutSubfield = 't';
+	private char                          totalRenewalSubfield = 'i';
+	private char                          iTypeSubfield = 'j';
+	private char                          dueDateSubfield = 'm';
+	private char                          iCode2Subfield = 'o';
+	private boolean                       useICode2Suppression = true;
 
 	public static final int								RECORD_CHANGED_PRIMARY		= 1;
 	public static final int								RECORD_UNCHANGED					= 2;
@@ -125,7 +136,7 @@ public class MarcProcessor {
 	
 	private Connection vufindConn;
 	private Connection econtentConn;
-	
+
 	public boolean init(String serverName, Ini configIni, Connection vufindConn, Connection econtentConn, Logger logger) {
 		this.logger = logger;
 		this.vufindConn = vufindConn;
@@ -198,8 +209,19 @@ public class MarcProcessor {
 		// Load field information for local call numbers
 		itemTag = configIni.get("Reindex", "itemTag");
 		urlSubfield = configIni.get("Reindex", "itemUrlSubfield");
-		locationSubfield = configIni.get("Reindex", "locationSubfield");
+		locationSubfield = configIni.get("Reindex", "locationSubfield") != null ? configIni.get("Reindex", "locationSubfield").charAt(0) : 'd';
 		sharedEContentLocation = configIni.get("Reindex", "sharedEContentLocation");
+		dateCreatedSubfield = configIni.get("Reindex", "dateCreatedSubfield") != null ? configIni.get("Reindex", "dateCreatedSubfield").charAt(0) : 'k' ;
+		barcodeSubfield = configIni.get("Reindex", "barcodeSubfield") != null ? configIni.get("Reindex", "barcodeSubfield").charAt(0) : 'b';
+		statusSubfield = configIni.get("Reindex", "statusSubfield") != null ? configIni.get("Reindex", "statusSubfield").charAt(0) : 'g';
+		totalCheckoutSubfield = configIni.get("Reindex", "totalCheckoutSubfield") != null ? configIni.get("Reindex", "totalCheckoutSubfield").charAt(0) : 'h';
+		lastYearCheckoutSubfield = configIni.get("Reindex", "lastYearCheckoutSubfield") != null ? configIni.get("Reindex", "lastYearCheckoutSubfield").charAt(0) : 'x';
+		ytdCheckoutSubfield = configIni.get("Reindex", "ytdCheckoutSubfield") != null ? configIni.get("Reindex", "ytdCheckoutSubfield").charAt(0) : 't';
+		totalRenewalSubfield = configIni.get("Reindex", "totalRenewalSubfield") != null ? configIni.get("Reindex", "totalRenewalSubfield").charAt(0) : 'i';
+		iTypeSubfield = configIni.get("Reindex", "iTypeSubfield") != null ? configIni.get("Reindex", "iTypeSubfield").charAt(0) : 'j';
+		dueDateSubfield = configIni.get("Reindex", "dueDateSubfield") != null ? configIni.get("Reindex", "dueDateSubfield").charAt(0) : 'm';
+		iCode2Subfield = configIni.get("Reindex", "iCode2Subfield") != null ? configIni.get("Reindex", "iCode2Subfield").charAt(0) : 'o';
+		useICode2Suppression = configIni.get("Reindex", "useICode2Suppression") != null ? Boolean.getBoolean(configIni.get("Reindex", "useICode2Suppression")) : true;
 
 		// Load the checksum of any marc records that have been loaded already
 		// This allows us to detect whether or not the record is new, has changed,
@@ -989,7 +1011,7 @@ public class MarcProcessor {
 		return itemTag;
 	}
 
-	public String getLocationSubfield() {
+	public char getLocationSubfield() {
 		return locationSubfield;
 	}
 
@@ -1186,5 +1208,49 @@ public class MarcProcessor {
 			logger.error("Error adding merged record to database. original id " + originalId + " merged record " + newId, e);
 
 		}
+	}
+
+	public char getDateCreatedSubfield() {
+		return dateCreatedSubfield;
+	}
+
+	public char getICode2Subfield() {
+		return iCode2Subfield;
+	}
+
+	public boolean isUseICode2Suppression() {
+		return useICode2Suppression;
+	}
+
+	public char getBarcodeSubfield() {
+		return barcodeSubfield;
+	}
+
+	public char getStatusSubfield() {
+		return statusSubfield;
+	}
+
+	public char getTotalCheckoutSubfield() {
+		return totalCheckoutSubfield;
+	}
+
+	public char getLastYearCheckoutSubfield() {
+		return lastYearCheckoutSubfield;
+	}
+
+	public char getYtdCheckoutSubfield() {
+		return ytdCheckoutSubfield;
+	}
+
+	public char getTotalRenewalSubfield() {
+		return totalRenewalSubfield;
+	}
+
+	public char getiTypeSubfield() {
+		return iTypeSubfield;
+	}
+
+	public char getDueDateSubfield() {
+		return dueDateSubfield;
 	}
 }

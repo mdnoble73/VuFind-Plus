@@ -407,7 +407,7 @@ public class MarcRecordDetails {
 		HashSet<Integer> allITypes = new HashSet<Integer>();
 		if ((marcProcessor.getItemTag() != null)
 				&& (marcProcessor.getUrlSubfield() != null)
-				&& (marcProcessor.getLocationSubfield() != null)) {
+				&& (marcProcessor.getLocationSubfield() != ' ')) {
 			@SuppressWarnings("unchecked")
 			List<DataField> itemFields = record.getVariableFields(marcProcessor
 					.getItemTag());
@@ -483,10 +483,9 @@ public class MarcRecordDetails {
 		// logger.info("Loading records from item records");
 		if ((marcProcessor.getItemTag() != null)
 				&& (marcProcessor.getUrlSubfield() != null)
-				&& (marcProcessor.getLocationSubfield() != null)
 				&& (marcProcessor.getItemTag().length() > 0)
 				&& (marcProcessor.getUrlSubfield().length() > 0)
-				&& (marcProcessor.getLocationSubfield().length() > 0)) {
+				&& (marcProcessor.getLocationSubfield() != ' ')) {
 			@SuppressWarnings("unchecked")
 			List<DataField> itemFields = record.getVariableFields(marcProcessor
 					.getItemTag());
@@ -496,7 +495,7 @@ public class MarcRecordDetails {
 				if (urlField != null) {
 					logger.info("Found item based url " + urlField.getData());
 					Subfield locationField = curItem.getSubfield(marcProcessor
-							.getLocationSubfield().charAt(0));
+							.getLocationSubfield());
 					if (locationField != null) {
 						logger.info("  Location is " + locationField.getData());
 						long libraryId = getLibrarySystemIdForLocation(locationField
@@ -532,11 +531,9 @@ public class MarcRecordDetails {
 		if (libraryId == -1 && marcProcessor.getItemTag() != null
 				&& marcProcessor.getSharedEContentLocation() != null) {
 			@SuppressWarnings("unchecked")
-			List<DataField> itemFields = record.getVariableFields(marcProcessor
-					.getItemTag());
+			List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
 			for (DataField curItem : itemFields) {
-				Subfield locationField = curItem.getSubfield(marcProcessor
-						.getLocationSubfield().charAt(0));
+				Subfield locationField = curItem.getSubfield(marcProcessor.getLocationSubfield());
 				if (locationField != null) {
 					String location = locationField.getData();
 					// Get the libraryId based on the location
