@@ -483,8 +483,8 @@ class MillenniumDriver implements DriverInterface
 			$fullName = $patronDump['PATRN_NAME'];
 
 			//Get additional information about the patron's home branch for display.
-			if (isset($patronDump['HOME_LIBR'])){
-				$homeBranchCode = $patronDump['HOME_LIBR'];
+			if (isset($patronDump['HOME_LIBR']) || isset($patronDump['HOLD_LIBR'])){
+				$homeBranchCode = isset($patronDump['HOME_LIBR']) ? $patronDump['HOME_LIBR'] : $patronDump['HOLD_LIBR'];
 				//Translate home branch to plain text
 				$location = new Location();
 				$location->whereAdd("code = '$homeBranchCode'");
