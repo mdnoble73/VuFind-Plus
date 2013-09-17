@@ -204,6 +204,7 @@ class Nashville extends MillenniumDriver{
 	                'fullname'  => $Fullname,     //Added to array for possible display later.
 	                'cat_username' => $barcode, //Should this be $Fullname or $patronDump['PATRN_NAME']
 	                'cat_password' => $pin,
+					        'patronType' => $patronDump['P_TYPE'],
 
 	                'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
 	                'major' => null,
