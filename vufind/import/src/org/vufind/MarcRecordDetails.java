@@ -3734,24 +3734,26 @@ public class MarcRecordDetails {
 
 	private String checkEContentBasedOnItems(List<DataField> itemFields) {
 		String eContentSource = null;
-		for (DataField itemField : itemFields) {
-			//First make sure that we have a location subField since some items just have call numbers
-			Subfield subFieldW = itemField.getSubfield('w');
-			if (subFieldW != null) {
-				String[] parts = subFieldW.getData().split(":");
-				if (parts.length > 0) {
-					String source = parts[0].trim();
-					String protectionType = parts[1].trim();
-					DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(source, protectionType);
-					if (tempDetectionSettings != null) {
-						eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
-						isEContent = true;
-						if (eContentSource == null) {
-							eContentSource = tempDetectionSettings.getSource();
+		if (marcProcessor.isUseEContentSubfield()){
+			for (DataField itemField : itemFields) {
+				//First make sure that we have a location subField since some items just have call numbers
+				Subfield subFieldW = itemField.getSubfield('w');
+				if (subFieldW != null) {
+					String[] parts = subFieldW.getData().split(":");
+					if (parts.length > 0) {
+						String source = parts[0].trim();
+						String protectionType = parts[1].trim();
+						DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(source, protectionType);
+						if (tempDetectionSettings != null) {
+							eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
+							isEContent = true;
+							if (eContentSource == null) {
+								eContentSource = tempDetectionSettings.getSource();
+							}
+							String itemLocation = itemField.getSubfield('d').getData();
+							LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfoByCode(itemLocation);
+							eContentSourceBySubdomain.put(libraryIndexingInfo.getSubdomain(), tempDetectionSettings.getSource());
 						}
-						String itemLocation = itemField.getSubfield('d').getData();
-						LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfoByCode(itemLocation);
-						eContentSourceBySubdomain.put(libraryIndexingInfo.getSubdomain(), tempDetectionSettings.getSource());
 					}
 				}
 			}

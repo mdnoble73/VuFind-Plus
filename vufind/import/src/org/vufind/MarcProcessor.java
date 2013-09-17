@@ -123,6 +123,8 @@ public class MarcProcessor {
 	private char                          dueDateSubfield = 'm';
 	private char                          iCode2Subfield = 'o';
 	private boolean                       useICode2Suppression = true;
+	private char                          eContentSubfield = 'w';
+	private boolean                       useEContentSubfield = false;
 
 	public static final int								RECORD_CHANGED_PRIMARY		= 1;
 	public static final int								RECORD_UNCHANGED					= 2;
@@ -222,6 +224,8 @@ public class MarcProcessor {
 		dueDateSubfield = configIni.get("Reindex", "dueDateSubfield") != null ? configIni.get("Reindex", "dueDateSubfield").charAt(0) : 'm';
 		iCode2Subfield = configIni.get("Reindex", "iCode2Subfield") != null ? configIni.get("Reindex", "iCode2Subfield").charAt(0) : 'o';
 		useICode2Suppression = configIni.get("Reindex", "useICode2Suppression") != null ? Boolean.getBoolean(configIni.get("Reindex", "useICode2Suppression")) : true;
+		eContentSubfield = configIni.get("Reindex", "eContentSubfield") != null ? configIni.get("Reindex", "eContentSubfield").charAt(0) : 'o';
+		useEContentSubfield = configIni.get("Reindex", "useEContentSubfield") != null ? Boolean.getBoolean(configIni.get("Reindex", "useEContentSubfield")) : true;
 
 		// Load the checksum of any marc records that have been loaded already
 		// This allows us to detect whether or not the record is new, has changed,
@@ -1252,5 +1256,13 @@ public class MarcProcessor {
 
 	public char getDueDateSubfield() {
 		return dueDateSubfield;
+	}
+
+	public char getEContentSubfield(){
+		return eContentSubfield;
+	}
+
+	public boolean isUseEContentSubfield(){
+		return useEContentSubfield;
 	}
 }
