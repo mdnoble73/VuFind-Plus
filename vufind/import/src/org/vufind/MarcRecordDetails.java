@@ -137,7 +137,7 @@ public class MarcRecordDetails {
 	private void mapItemBasedFields() {
 		// Load all items
 		@SuppressWarnings("unchecked")
-		List<DataField> itemFields = record.getVariableFields("989");
+		List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
 
 		Set<String> barcodes = new LinkedHashSet<String>();
 		Set<String> iTypes = new LinkedHashSet<String>();
