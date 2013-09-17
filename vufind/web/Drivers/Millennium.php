@@ -687,6 +687,7 @@ class MillenniumDriver implements DriverInterface
 				"verify_peer"=>false,
 			),
 		);
+		print_r($req);
 		$result = file_get_contents($req, false, stream_context_create($contextOptions));
 
 		//Strip the actual contents out of the body of the page.
