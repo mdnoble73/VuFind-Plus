@@ -34,6 +34,9 @@ require_once ROOT_DIR . '/Drivers/Millennium.php';
  * @author CJ O'Hara <cj@marmot.org>
  */
 class Nashville extends MillenniumDriver{
+	public function __construct(){
+		$this->fixShortBarcodes = true;
+	}
 	/**
 	 * Login with barcode and pin
 	 *
@@ -157,6 +160,7 @@ class Nashville extends MillenniumDriver{
 
 			//Load the raw information about the patron
 			$patronDump = $this->_getPatronDump($barcode, true);
+			print_r($patronDump);
 
 			//Check the pin number that was entered
 			$pin = urlencode($pin);

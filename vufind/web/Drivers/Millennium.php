@@ -40,6 +40,7 @@ require_once ROOT_DIR . '/Drivers/Innovative.php';
  */
 class MillenniumDriver implements DriverInterface
 {
+	public $fixShortBarcodes = true;
 
 	var $statusTranslations = null;
 	var $holdableStatiRegex = null;
@@ -637,14 +638,16 @@ class MillenniumDriver implements DriverInterface
 			$host=$configArray['OPAC']['patron_host'];
 			//Special processing to allow MCVSD Students to login
 			//with their student id.
-			if (strlen($barcode)== 5){
-				$originalCode = $barcode;
-				$barcode = "41000000" . $barcode;
-			}elseif (strlen($barcode)== 6){
-				$originalCode = $barcode;
-				$barcode = "4100000" . $barcode;
-			}else{
-				$originalCode = null;
+			if ($this->fixShortBarcodes){
+				if (strlen($barcode)== 5){
+					$originalCode = $barcode;
+					$barcode = "41000000" . $barcode;
+				}elseif (strlen($barcode)== 6){
+					$originalCode = $barcode;
+					$barcode = "4100000" . $barcode;
+				}else{
+					$originalCode = null;
+				}
 			}
 
 			$patronDump = $this->_parsePatronApiPage($host, $barcode);
