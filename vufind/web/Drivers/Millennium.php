@@ -679,16 +679,19 @@ class MillenniumDriver implements DriverInterface
 		//as a simple name value pair list within the body of the webpage.
 		//Sample format of a row is as follows:
 		//P TYPE[p47]=100<BR>
-		$req =  $host . "/PATRONAPI/" . $barcode ."/dump" ;
+		$patronApiUrl =  $host . "/PATRONAPI/" . $barcode ."/dump" ;
+		$curlConnection = curl_init($patronApiUrl);
+
+		curl_setopt($curlConnection, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($curlConnection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+		curl_setopt($curlConnection, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curlConnection, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curlConnection, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($curlConnection, CURLOPT_UNRESTRICTED_AUTH, true);
+
 		//Setup encoding to ignore SSL errors for self signed certs
-		$contextOptions=array(
-			"ssl"=>array(
-				"allow_self_signed"=>true,
-				"verify_peer"=>false,
-			),
-		);
-		print_r($req);
-		$result = file_get_contents($req, false, stream_context_create($contextOptions));
+		$result = curl_exec($curlConnection);
+		curl_close($curlConnection);
 
 		//Strip the actual contents out of the body of the page.
 		$r = substr($result, stripos($result, 'BODY'));
