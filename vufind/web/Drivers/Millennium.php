@@ -580,7 +580,7 @@ class MillenniumDriver implements DriverInterface
 				'finesval' => $finesVal,
 				'expires' => isset($patronDump) ? $patronDump['EXP_DATE'] : '',
 				'expireclose' => $expireClose,
-				'homeLocationCode' => trim($homeBranchCode),
+				'homeLocationCode' => isset($homeBranchCode) ? trim($homeBranchCode) : '',
 				'homeLocationId' => isset($location) ? $location->locationId : 0,
 				'homeLocation' => isset($location) ? $location->displayName : '',
 				'myLocation1Id' => ($user) ? $user->myLocation1Id : -1,
