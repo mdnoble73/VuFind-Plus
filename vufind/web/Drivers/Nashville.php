@@ -219,17 +219,12 @@ class Nashville extends MillenniumDriver{
 		}
 	}
 
-	public function _getLoginFormValues($patronInfo, $admin = false){
+	public function _getLoginFormValues(){
 		global $user;
 		$loginData = array();
-		if ($admin){
-			global $configArray;
-			$loginData['name'] = $configArray['Catalog']['ils_admin_user'];
-			$loginData['code'] = $configArray['Catalog']['ils_admin_pwd'];
-		}else{
-			$loginData['pin'] = $user->cat_password;
-			$loginData['code'] = $user->cat_username;
-		}
+		$loginData['pin'] = $user->cat_password;
+		$loginData['code'] = $user->cat_username;
+
 		$loginData['submit'] = 'submit';
 		return $loginData;
 	}
