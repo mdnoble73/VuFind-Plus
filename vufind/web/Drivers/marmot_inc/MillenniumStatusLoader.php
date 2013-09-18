@@ -58,15 +58,19 @@ class MillenniumStatusLoader{
 			//TODO: Don't hardcode item subfields
 			foreach ($itemFields as $itemField){
 				/** @var $itemField File_MARC_Data_Field */
+				$statusSubfield = $configArray['Reindex']['statusSubfield'];
+				$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
+				$locationSubfield = $configArray['Reindex']['locationSubfield'];
+				$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
 				$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
 				$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
 				$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
 				$itemData['callnumber'] = $fullCallNumber;
-				$itemData['location'] = $itemField->getSubfield('d') != null ? trim($itemField->getSubfield('d')->getData()) : ($itemField->getSubfield('p') != null ? trim($itemField->getSubfield('p')->getData()) : '?????');
-				$itemData['iType'] = $itemField->getSubfield('j') != null ? $itemField->getSubfield('j')->getData() : '0';
+				$itemData['location'] = $itemField->getSubfield($locationSubfield) != null ? trim($itemField->getSubfield($locationSubfield)->getData()) : '?????';
+				$itemData['iType'] = $itemField->getSubfield($iTypeSubfield) != null ? $itemField->getSubfield($iTypeSubfield)->getData() : '0';
 				$itemData['matched'] = false;
-				$itemData['status'] = $itemField->getSubfield('g') != null ? $itemField->getSubfield('g')->getData() : '-';
-				$itemData['dueDate'] = $itemField->getSubfield('m') != null ? trim($itemField->getSubfield('m')->getData()) : null;
+				$itemData['status'] = $itemField->getSubfield($statusSubfield) != null ? $itemField->getSubfield($statusSubfield)->getData() : '-';
+				$itemData['dueDate'] = $itemField->getSubfield($dueDateSubfield) != null ? trim($itemField->getSubfield($dueDateSubfield)->getData()) : null;
 				$marcItemData[] = $itemData;
 			}
 		}
