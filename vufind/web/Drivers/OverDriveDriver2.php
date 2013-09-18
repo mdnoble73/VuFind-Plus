@@ -347,7 +347,12 @@ class OverDriveDriver2 {
 	 * @return array
 	 */
 	public function getOverDriveSummary($user){
-		$apiURL = "https://temp-patron.api.overdrive.com/Marmot/Marmot/" . $user->cat_password;
+		global $configArray;
+		$libraryILS = $configArray['OverDrive']['LibraryCardILS'];
+		/** @var MillenniumDriver|DriverInterface $catalog */
+		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+		$patronBarcode = $catalog->_getBarcode();
+		$apiURL = "https://temp-patron.api.overdrive.com/{$libraryILS}/{$libraryILS}/" . $patronBarcode;
 		$summaryResultRaw = file_get_contents($apiURL);
 		$summary = array(
 			'numCheckedOut' => 0,
