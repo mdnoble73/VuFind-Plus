@@ -104,6 +104,8 @@ class LoanRuleDeterminer extends DB_DataObject
 		if ($this->location == '*' || $this->location == '?????'){
 			return true;
 		}else{
+			//TODO: Make this hacky
+			$location = preg_replace('/\*+/', '.*', $location);
 			return preg_match("/^{$this->trimmedLocation()}/i", $location);
 		}
 	}
