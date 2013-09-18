@@ -1157,27 +1157,25 @@ class MillenniumDriver implements DriverInterface
 	function isRecordHoldable($marcRecord){
 		$pType = $this->getPType();
 		/** @var File_MARC_Data_Field[] $items */
-		$items = $marcRecord->getFields('989');
+		$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
+		$iTypeSubfield = isset($configArray['Reindex']['iTypeSubfield']) ? $configArray['Reindex']['iTypeSubfield'] : 'j';
+		$locationSubfield = isset($configArray['Reindex']['locationSubfield']) ? $configArray['Reindex']['locationSubfield'] : 'j';
+		$items = $marcRecord->getFields($marcItemField);
 		$holdable = false;
 		$itemNumber = 0;
 		foreach ($items as $item){
 			$itemNumber++;
-			$subfield_j = $item->getSubfield('j');
+			$subfield_j = $item->getSubfield($iTypeSubfield);
 			if (is_object($subfield_j) && !$subfield_j->isEmpty()){
 				$iType = $subfield_j->getData();
 			}else{
 				$iType = '0';
 			}
-			$subfield_d = $item->getSubfield('d');
+			$subfield_d = $item->getSubfield($locationSubfield);
 			if (is_object($subfield_d) && !$subfield_d->isEmpty()){
 				$locationCode = $subfield_d->getData();
 			}else{
-				$subfield_p = $item->getSubfield('p');
-				if (is_object($subfield_p) && !$subfield_p->isEmpty()){
-					$locationCode = $subfield_p->getData();
-				}else{
-					$locationCode = '?????';
-				}
+				$locationCode = '?????';
 			}
 			//$logger->log("$itemNumber) iType = $iType, locationCode = $locationCode", PEAR_LOG_DEBUG);
 
@@ -1192,6 +1190,10 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	function isItemHoldableToPatron($locationCode, $iType, $pType){
+		if (count($this->loanRuleDeterminers) == 0){
+			//If we don't have any loan rules determiners, assume that the item is holdable.
+			return true;
+		}
 		$holdable = false;
 		//global $logger;
 		//$logger->log("Checking loan rule for $locationCode, $iType, $pType", PEAR_LOG_DEBUG);
