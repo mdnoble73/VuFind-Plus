@@ -99,7 +99,7 @@ class MillenniumDriver implements DriverInterface
 					$this->loanRules[$loanRule->loanRuleId] = clone($loanRule);
 				}
 			}
-			$memCache->set('loan_rules', $this->loanRules, $configArray['Caching']['loan_rules']);
+			$memCache->set('loan_rules', $this->loanRules, 0, $configArray['Caching']['loan_rules']);
 
 			$this->loanRuleDeterminers = $memCache->get('loan_rule_determiners');
 			if (!$this->loanRuleDeterminers){
@@ -112,7 +112,7 @@ class MillenniumDriver implements DriverInterface
 					$this->loanRuleDeterminers[$loanRuleDeterminer->rowNumber] = clone($loanRuleDeterminer);
 				}
 			}
-			$memCache->set('loan_rule_determiners', $this->loanRuleDeterminers, $configArray['Caching']['loan_rules']);
+			$memCache->set('loan_rule_determiners', $this->loanRuleDeterminers, 0, $configArray['Caching']['loan_rules']);
 		}
 	}
 
