@@ -93,43 +93,53 @@ class OverDriveDriver3 {
 		/** @var Memcache $memCache */
 		global $memCache;
 		$patronTokenData = $memCache->get('overdrive_patron_token_' . $patronBarcode);
-		if ($forceNewConnection || $tokenData == false){
+		if ($forceNewConnection || $patronTokenData == false){
 			$tokenData = $this->_connectToAPI($forceNewConnection);
 			if ($tokenData){
 				global $configArray;
 				$ch = curl_init("https://oauth-patron.overdrive.com/patrontoken");
-				//$websiteId = $configArray['OverDrive']['websiteId'];
-				$websiteId = 100300;
+				$websiteId = $configArray['OverDrive']['websiteId'];
+				//$websiteId = 100300;
 				$ilsname = $configArray['OverDrive']['LibraryCardILS'];
 				//$ilsname = "default";
+				$clientSecret = $configArray['OverDrive']['clientSecret'];
 				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 				curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
 				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded;charset=UTF-8'));
-				//curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}", "User-Agent: VuFind-Plus"));
+				$encodedAuthValue = base64_encode($configArray['OverDrive']['clientKey'] . ":" . $clientSecret);
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+					'Content-Type: application/x-www-form-urlencoded;charset=UTF-8',
+					"Authorization: Basic " . $encodedAuthValue,
+					"User-Agent: VuFind-Plus"
+				));
 				//curl_setopt($ch, CURLOPT_USERPWD, "");
-				$clientSecret = $configArray['OverDrive']['clientSecret'];
-				curl_setopt($ch, CURLOPT_USERPWD, $configArray['OverDrive']['clientKey'] . ":" . $clientSecret);
+				//$clientSecret = $configArray['OverDrive']['clientSecret'];
+				//curl_setopt($ch, CURLOPT_USERPWD, $configArray['OverDrive']['clientKey'] . ":" . $clientSecret);
 				curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 				curl_setopt($ch, CURLOPT_POST, 1);
 
 				if ($patronPin == null){
-					//$postFields = "grant_type=password&username={$patronBarcode}&password=&scope=\"websiteId:{$websiteId}%20ilsname:{$ilsname}\"";
+					$postFields = "grant_type=password&username={$patronBarcode}&password=ignore&password_required=false&scope=websiteId:{$websiteId}%20ilsname:{$ilsname}";
 				}else{
-					//$postFields = "grant_type=password&username={$patronBarcode}&password={$patronPin}&scope=\"websiteId:{$websiteId}%20ilsname:{$ilsname}\"";
+					$postFields = "grant_type=password&username={$patronBarcode}&password={$patronPin}&scope=websiteId:{$websiteId}%20ilsname:{$ilsname}";
 				}
-				$postFields = "grant_type=client_credentials&scope=websiteid:{$websiteId}%20ilsname:{$ilsname}%20cardnumber:{$patronBarcode}";
+				//$postFields = "grant_type=client_credentials&scope=websiteid:{$websiteId}%20ilsname:{$ilsname}%20cardnumber:{$patronBarcode}";
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
 
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 
 				$return = curl_exec($ch);
+				$curlInfo = curl_getinfo($ch);
 				curl_close($ch);
 				$patronTokenData = json_decode($return);
 				if ($patronTokenData){
-					$memCache->set('overdrive_patron_token_' . $patronBarcode, $patronTokenData, 0, $patronTokenData->expires_in - 10);
+					if (isset($patronTokenData->error)){
+						echo("Error connecting to overdrive apis ". $patronTokenData->error);
+					}else{
+						$memCache->set('overdrive_patron_token_' . $patronBarcode, $patronTokenData, 0, $patronTokenData->expires_in - 10);
+					}
 				}
 			}
 		}
