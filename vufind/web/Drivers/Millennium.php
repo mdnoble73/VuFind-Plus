@@ -1155,6 +1155,7 @@ class MillenniumDriver implements DriverInterface
 	 * @return bool
 	 */
 	function isRecordHoldable($marcRecord){
+		global $configArray;
 		$pType = $this->getPType();
 		/** @var File_MARC_Data_Field[] $items */
 		$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
