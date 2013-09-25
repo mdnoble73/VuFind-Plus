@@ -992,9 +992,9 @@ class MillenniumStatusLoader{
 				$summaryInformation['statusText'] = "No Copies Found";
 			}else{
 				if (strlen($summaryInformation['availableAt']) > 0){
-					$summaryInformation['statusText'] = "Available now" . ($summaryInformation['inLibraryUserOnly'] ? "for in library use" : "") . " at " . $summaryInformation['availableAt'] . ($summaryInformation['numAvailableOther'] > 0 ? (", and {$summaryInformation['numAvailableOther']} other location" . ($summaryInformation['numAvailableOther'] > 1 ? "s" : "")) : "");
+					$summaryInformation['statusText'] = "Available now" . (isset($summaryInformation['inLibraryUserOnly']) ? "for in library use" : "") . " at " . $summaryInformation['availableAt'] . ($summaryInformation['numAvailableOther'] > 0 ? (", and {$summaryInformation['numAvailableOther']} other location" . ($summaryInformation['numAvailableOther'] > 1 ? "s" : "")) : "");
 				}else{
-					$summaryInformation['statusText'] = "Available now" . ($summaryInformation['inLibraryUserOnly'] ? "for in library use" : "");
+					$summaryInformation['statusText'] = "Available now" . (isset($summaryInformation['inLibraryUserOnly']) ? "for in library use" : "");
 				}
 			}
 		}else if ($summaryInformation['status'] == 'Marmot'){
