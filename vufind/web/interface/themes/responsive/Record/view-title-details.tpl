@@ -1,111 +1,138 @@
-<div class="sidegroup well" id="titleDetailsSidegroup">
-	<h4>{translate text="Title Details"}</h4>
-	{if $mainAuthor}
-		<div class="sidebarLabel">{translate text='Main Author'}:</div>
-		<div class="sidebarValue"><a href="{$path}/Author/Home?author={$mainAuthor|trim|escape:"url"}">{$mainAuthor|escape}</a></div>
-	{/if}
+<div>
+	<dl class="dl-horizontal">
+		{if $mainAuthor}
+			<dt>{translate text='Main Author'}:</dt>
+			<dd><a href="{$path}/Author/Home?author={$mainAuthor|trim|escape:"url"}">{$mainAuthor|escape}</a></dd>
+		{/if}
 
-	{if $corporateAuthor}
-		<div class="sidebarLabel">{translate text='Corporate Author'}:</div>
-		<div class="sidebarValue"><a href="{$path}/Author/Home?author={$corporateAuthor|trim|escape:"url"}">{$corporateAuthor|escape}</a></div>
-	{/if}
+		{if $corporateAuthor}
+			<dt>{translate text='Corporate Author'}:</dt>
+			<dd><a href="{$path}/Author/Home?author={$corporateAuthor|trim|escape:"url"}">{$corporateAuthor|escape}</a></dd>
+		{/if}
 
-	{if $contributors}
-		<div class="sidebarLabel">{translate text='Contributors'}:</div>
-		{foreach from=$contributors item=contributor name=loop}
-			{if $smarty.foreach.loop.index == 5}
-				<div class="sidebarValue" id="contributorsMoreLink"><a href="#" onclick="$('#contributorsMoreSection').toggle();$('#contributorsMoreLink').toggle();">{translate text="more"}...</a></div>
-				<div id="contributorsMoreSection" style="display:none">
+		{if $contributors}
+			<dt>{translate text='Contributors'}:</dt>
+			{foreach from=$contributors item=contributor name=loop}
+				<dd><a href="{$path}/Author/Home?author={$contributor|trim|escape:"url"}">{$contributor|escape}</a></dd>
+			{/foreach}
+		{/if}
+
+		{if $published}
+			<dt>{translate text='Published'}:</dt>
+			{foreach from=$published item=publish name=loop}
+				<dd>{$publish|escape}</dd>
+			{/foreach}
+		{/if}
+
+		{if $streetDate}
+			<dt>{translate text='Street Date'}:</dt>
+			<dd>{$streetDate|escape}</dd>
+		{/if}
+
+		<dt>{translate text='Format'}:</dt>
+		{if is_array($recordFormat)}
+		 {foreach from=$recordFormat item=displayFormat name=loop}
+			 <dd><span class="icon {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$displayFormat}</span></dd>
+		 {/foreach}
+		{else}
+			<dd><span class="icon {$recordFormat|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$recordFormat}</span></dd>
+		{/if}
+
+		{if $mpaaRating}
+			<dt>{translate text='Rating'}:</dt>
+			<dd>{$mpaaRating|escape}</dd>
+		{/if}
+
+		{if $physicalDescriptions}
+			<dt>{translate text='Physical Desc'}:</dt>
+			{foreach from=$physicalDescriptions item=physicalDescription name=loop}
+				<dd>{$physicalDescription|escape}</dd>
+			{/foreach}
+		{/if}
+
+		<dt>{translate text='Language'}:</dt>
+		{foreach from=$recordLanguage item=lang}
+			<dd>{$lang|escape}</dd>
+		{/foreach}
+
+		{if $editionsThis}
+			<dt>{translate text='Edition'}:</dt>
+			{foreach from=$editionsThis item=edition name=loop}
+				<dd>{$edition|escape}</dd>
+			{/foreach}
+		{/if}
+
+		{if $isbns}
+			<dt>{translate text='ISBN'}:</dt>
+			{foreach from=$isbns item=tmpIsbn name=loop}
+				<dd>{$tmpIsbn|escape}</dd>
+			{/foreach}
+		{/if}
+
+		{if $issn}
+			<dt>{translate text='ISSN'}:</dt>
+			<dd>{$issn}</dd>
+			{if $goldRushLink}
+				<dd><a href='{$goldRushLink}' target='_blank'>Check for online articles</a></dd>
 			{/if}
-			<div class="sidebarValue"><a href="{$path}/Author/Home?author={$contributor|trim|escape:"url"}">{$contributor|escape}</a></div>
-		{/foreach}
-		{if $smarty.foreach.loop.index >= 5}
-			<div class="sidebarValue" id="contributorsLessLink"><a href="#" onclick="$('#contributorsMoreSection').toggle();$('#contributorsMoreLink').toggle();">{translate text="less"}</a></div>
-			</div>
 		{/if}
-	{/if}
 
-	{if $published}
-		<div class="sidebarLabel">{translate text='Published'}:</div>
-		{foreach from=$published item=publish name=loop}
-			<div class="sidebarValue">{$publish|escape}</div>
-		{/foreach}
-	{/if}
-
-	{if $streetDate}
-		<div class="sidebarLabel">{translate text='Street Date'}:</div>
-		<div class="sidebarValue">{$streetDate|escape}</div>
-	{/if}
-
-	<div class="sidebarLabel">{translate text='Format'}:</div>
-	{if is_array($recordFormat)}
-	 {foreach from=$recordFormat item=displayFormat name=loop}
-		 <div class="sidebarValue"><span class="icon {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$displayFormat}</span></div>
-	 {/foreach}
-	{else}
-		<div class="sidebarValue"><span class="icon {$recordFormat|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$recordFormat}</span></div>
-	{/if}
-
-	{if $mpaaRating}
-		<div class="sidebarLabel">{translate text='Rating'}:</div>
-		<div class="sidebarValue">{$mpaaRating|escape}</div>
-	{/if}
-
-	{if $physicalDescriptions}
-		<div class="sidebarLabel">{translate text='Physical Desc'}:</div>
-		{foreach from=$physicalDescriptions item=physicalDescription name=loop}
-			<div class="sidebarValue">{$physicalDescription|escape}</div>
-		{/foreach}
-	{/if}
-
-	<div class="sidebarLabel">{translate text='Language'}:</div>
-	{foreach from=$recordLanguage item=lang}
-		<div class="sidebarValue">{$lang|escape}</div>
-	{/foreach}
-
-	{if $editionsThis}
-		<div class="sidebarLabel">{translate text='Edition'}:</div>
-		{foreach from=$editionsThis item=edition name=loop}
-			<div class="sidebarValue">{$edition|escape}</div>
-		{/foreach}
-	{/if}
-
-	{if $isbns}
-		<div class="sidebarLabel">{translate text='ISBN'}:</div>
-		{foreach from=$isbns item=tmpIsbn name=loop}
-			<div class="sidebarValue">{$tmpIsbn|escape}</div>
-		{/foreach}
-	{/if}
-
-	{if $issn}
-		<div class="sidebarLabel">{translate text='ISSN'}:</div>
-		<div class="sidebarValue">{$issn}</div>
-		{if $goldRushLink}
-			<div class="sidebarValue"><a href='{$goldRushLink}' target='_blank'>Check for online articles</a></div>
+		{if $upc}
+			<dt>{translate text='UPC'}:</dt>
+			<dd>{$upc|escape}</dd>
 		{/if}
-	{/if}
 
-	{if $upc}
-		<div class="sidebarLabel">{translate text='UPC'}:</div>
-		<div class="sidebarValue">{$upc|escape}</div>
-	{/if}
+		{if $series}
+			<dt>{translate text='Series'}:</dt>
+			{foreach from=$series item=seriesItem name=loop}
+				<dd><a href="{$path}/Search/Results?lookfor=%22{$seriesItem|escape:"url"}%22&amp;type=Series">{$seriesItem|escape}</a></dd>
+			{/foreach}
+		{/if}
 
-	{if $series}
-		<div class="sidebarLabel">{translate text='Series'}:</div>
-		{foreach from=$series item=seriesItem name=loop}
-			<div class="sidebarValue"><a href="{$path}/Search/Results?lookfor=%22{$seriesItem|escape:"url"}%22&amp;type=Series">{$seriesItem|escape}</a></div>
-		{/foreach}
-	{/if}
+		{if $arData}
+			<dt>{translate text='Accelerated Reader'}:</dt>
+			<dd>{$arData.interestLevel|escape}</dd>
+			<dd>Level {$arData.readingLevel|escape}, {$arData.pointValue|escape} Points</dd>
+		{/if}
 
-	{if $arData}
-		<div class="sidebarLabel">{translate text='Accelerated Reader'}:</div>
-		<div class="sidebarValue">{$arData.interestLevel|escape}</div>
-		<div class="sidebarValue">Level {$arData.readingLevel|escape}, {$arData.pointValue|escape} Points</div>
-	{/if}
+		{if $lexileScore}
+			<dt>{translate text='Lexile Score'}:</dt>
+			<dd>{$lexileScore|escape}</dd>
+		{/if}
 
-	{if $lexileScore}
-		<div class="sidebarLabel">{translate text='Lexile Score'}:</div>
-		<div class="sidebarValue">{$lexileScore|escape}</div>
-	{/if}
+		{if $subjects}
+			<dt>{translate text='Subjects'}</dt>
+			{foreach from=$subjects item=subject name=loop}
+				<dd>
+					{foreach from=$subject item=subjectPart name=subloop}
+						{if !$smarty.foreach.subloop.first} -- {/if}
+						<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
+					{/foreach}
+				</dd>
+			{/foreach}
+		{/if}
 
-	</div>
+		{if $showTagging == 1}
+			<dt>{translate text='Tags'}:</dt>
+			{if $tagList}
+				{foreach from=$tagList item=tag name=tagLoop}
+					<dd>
+						<a href="{$path}/Search/Results?tag={$tag->tag|escape:"url"}">{$tag->tag|escape:"html"}</a> ({$tag->cnt})
+						{if $tag->userAddedThis}
+							<a href='{$path}/MyResearch/RemoveTag?tagId={$tag->id}&amp;resourceId={$id}' onclick='return confirm("Are you sure you want to remove the tag \"{$tag->tag|escape:"javascript"}\" from this title?");'>
+								<span class="silk tag_blue_delete">&nbsp;</span>
+							</a>
+						{/if}
+					</dd>
+				{/foreach}
+			{else}
+				<dd>{translate text='No Tags'}, {translate text='Be the first to tag this record'}!</dd>
+			{/if}
+			<dd>
+				<a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=VuFind" onclick="GetAddTagForm('{$id|escape}', 'VuFind'); return false;" class="btn btn-small">
+					<span class="silk add">&nbsp;</span>{translate text="Add Tag"}
+				</a>
+			</dd>
+		{/if}
+	</dl>
+</div>

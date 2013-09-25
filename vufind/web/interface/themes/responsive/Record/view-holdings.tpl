@@ -1,22 +1,31 @@
 {strip}
 {if $offline}
-	<div>The circulation system is currently offline.  Holdings information is based on information from before the system went offline.</div>
+	<div class="warning">The circulation system is currently offline.  Holdings information is based on information from before the system went offline.</div>
 {/if}
-<table border="0" class="holdingsTable">
 {assign var=lastSection value=''}
 {if isset($holdings) && count($holdings) > 0}
 	{foreach from=$holdings item=holding1}
 		{foreach from=$holding1 item=holding}
 			{if $lastSection != $holding.section}
+				{if $lastSection != ""}
+								</table>
+							</div>
+						</div>
+					</div>
+				{/if}
 				{if strlen($holding.section) > 0}
-				<tr class='holdings-section'>
-					<td colspan='3' id="holdings-section-{$holding.section|replace:' ':'_'}" class='holdings-section {if $holding.sectionId <=5}expanded{else}collapsed{/if}' onclick="toggleSection('{$holding.section|replace:' ':'_'}')">{$holding.section}</td>
-				</tr>
+					<div class="accordion-group">
+						<div class="accordion-heading" id="holdings-header-{$holding.section|replace:' ':'_'}">
+							<a class='accordion-toggle' data-toggle="collapse" data-target="#holdings-section-{$holding.section|replace:' ':'_'}">{$holding.section}</a>
+						</div>
+						<div id="holdings-section-{$holding.section|replace:' ':'_'}" class="accordion-body collapse {if $holding.sectionId <=5}in{/if}">
+							<div class="accordion-inner">
+								<table class="table-striped" width="100%">
 				{/if}
 				{assign var=lastSection value=$holding.section}
 			{/if}
 
-			<tr class="{$holding.section|replace:' ':'_'}" {if $holding.sectionId > 5 && strlen($holding.section) > 0}style='display:none'{/if}>
+			<tr>
 				<td style = "padding-bottom:5px;">
 					<span><strong>
 					{$holding.location|escape}
@@ -43,9 +52,10 @@
 						{/if}
 					{/if}
 				</td>
+			</tr>
 			{/foreach}
 		{/foreach}
-		</tr>
+		</div>
 	{elseif isset($issueSummaries) && count($issueSummaries) > 0}
 		{* Display Issue Summaries *}
 		{foreach from=$issueSummaries item=issueSummary name=summaryLoop}
@@ -134,5 +144,4 @@
 {else}
 	No Copies Found
 {/if}
-</table>
 {/strip}

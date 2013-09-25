@@ -1,7 +1,9 @@
 <div id="moredetails-tabs" class="tabbable">
+	<div class="result-label visible-phone">Show:</div>
 	{* Define tabs for the display *}
 	<ul class="nav nav-tabs">
-		<li id="holdingstab_label" class="active"><a href="#holdingstab" data-toggle="tab">{translate text="Copies"}</a></li>
+		<li id="detailstab_label" class="active"><a href="#detailstab" data-toggle="tab">{translate text="Details"}</a></li>
+		<li id="holdingstab_label"><a href="#holdingstab" data-toggle="tab">{translate text="Copies"}</a></li>
 		{if $enableMaterialsRequest || is_array($otherEditions) }
 			<li id="otherEditionsTab_label"><a href="#otherEditionsTab" data-toggle="tab">{translate text="Other Formats"}</a></li>
 		{/if}
@@ -29,7 +31,10 @@
 	</ul>
 
 	<div class="tab-content">
-		<div id = "holdingstab" class="tab-pane active">
+		<div id = "detailstab" class="tab-pane active">
+			{include file="Record/view-title-details.tpl"}
+		</div>
+		<div id = "holdingstab" class="tab-pane">
 			<a name="holdings"></a>
 			<div id="holdingsPlaceholder"></div>
 
@@ -79,7 +84,7 @@
 		{if $notes}
 			<div id ="notestab" class="tab-pane">
 
-				<ul class='notesList'>
+				<ul class='notesList unstyled'>
 					{foreach from=$notes item=note}
 						<li>{$note}</li>
 					{/foreach}
@@ -106,7 +111,7 @@
 			<div id="{$key}" class="tab-pane">
 				{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
 					<div>
-						<span class="button"><a href='{$path}/EditorialReview/Edit?recordId={$id}'>Add Editorial Review</a></span>
+						<span class="btn"><a href='{$path}/EditorialReview/Edit?recordId={$id}'>Add Editorial Review</a></span>
 					</div>
 				{/if}
 
