@@ -98,7 +98,7 @@ class OverDriveDriver3 {
 			if ($tokenData){
 				global $configArray;
 				$ch = curl_init("https://oauth-patron.overdrive.com/patrontoken");
-				$websiteId = $configArray['OverDrive']['websiteId'];
+				$websiteId = $configArray['OverDrive']['patronWebsiteId'];
 				//$websiteId = 100300;
 				$ilsname = $configArray['OverDrive']['LibraryCardILS'];
 				//$ilsname = "default";
@@ -179,9 +179,14 @@ class OverDriveDriver3 {
 			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 			curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 			if ($tokenData){
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}", "User-Agent: VuFind-Plus", "Host: api.mock.overdrive.com"));
+				$authorizationData = $tokenData->token_type . ' ' . $tokenData->access_token;
+				$headers = array(
+					"Authorization: $authorizationData",
+					"User-Agent: VuFind-Plus",
+					"Host: integration-patron.api.overdrive.com"
+				);
 			}else{
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array("User-Agent: VuFind-Plus", "Host: api.mock.overdrive.com"));
+				$headers = array("User-Agent: VuFind-Plus", "Host: api.overdrive.com");
 			}
 
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -189,18 +194,24 @@ class OverDriveDriver3 {
 			curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 			if ($postParams != null){
-				curl_setopt($ch, CURLOPT_POST, true);
-				$postParamString = "";
+				curl_setopt($ch, CURLOPT_POST, 1);
+				//Convert post fields to json
+				$jsonData = array('fields' => array());
 				foreach ($postParams as $key => $value){
-					if (strlen($postParamString) > 0){
-						$postParamString .= '&';
-					}
-					$postParamString .= $key . '=' . $value;
+					$jsonData['fields'][] = array(
+						'name' => $key,
+						'value' => $value
+					);
 				}
-				curl_setopt($ch, CURLOPT_POSTFIELDS, $postParamString);
+				curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($jsonData));
+				$headers[] = 'Content-Type: application/vnd.overdrive.content.api+json';
+			}else{
+				curl_setopt($ch, CURLOPT_HTTPGET, true);
 			}
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
-			$return = curl_exec($ch);
+				$return = curl_exec($ch);
+			$curlInfo = curl_getinfo($ch);
 			curl_close($ch);
 			$returnVal = json_decode($return);
 			//print_r($returnVal);
@@ -323,6 +334,8 @@ class OverDriveDriver3 {
 		return $lendingOptions;
 	}
 
+	private $checkouts = array();
+
 	/**
 	 * Loads information about items that the user has checked out in OverDrive
 	 *
@@ -332,8 +345,11 @@ class OverDriveDriver3 {
 	 * @return array
 	 */
 	public function getOverDriveCheckedOutItems($user, $overDriveInfo = null){
+		if (isset($this->checkouts[$user->id])){
+			return $this->checkouts[$user->id];
+		}
 		global $configArray;
-		$url = $configArray['OverDrive']['patronApiUrl'] . '/v2/patrons/me/checkouts';
+		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
 		$response = $this->_callPatronUrl($user->cat_password, null, $url);
 		$checkedOutTitles = array();
 		foreach ($response->checkouts as $curTitle){
@@ -381,57 +397,72 @@ class OverDriveDriver3 {
 			}
 			$checkedOutTitles[] = $bookshelfItem;
 		}
+		$this->checkouts[$user->id] = $checkedOutTitles;
 		return array(
 			'items' => $checkedOutTitles
 		);
 	}
 
+	private $holds = array();
+
+	/**
+	 * @param User $user
+	 * @param null $overDriveInfo
+	 * @return array
+	 */
 	public function getOverDriveHolds($user, $overDriveInfo = null){
+		//Cache holds for the user just for this call.
+		if (isset($this->holds[$user->id])){
+			return $this->holds[$user->id];
+		}
 		global $configArray;
-		$url = $configArray['OverDrive']['patronApiUrl'] . '/v2/patrons/me/holds';
+		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds';
 		$response = $this->_callPatronUrl($user->cat_password, null, $url);
 		$holds = array();
 		$holds['holds'] = array(
 			'available' => array(),
 			'unavailable' => array()
 		);
-		foreach ($response->holds as $curTitle){
-			$hold = array();
-			$hold['overDriveId'] = $curTitle->reserveId;
-			$hold['notifyEmail'] = $curTitle->emailAddress;
-			$hold['holdQueueLength'] = $curTitle->numberOfHolds;
-			$hold['holdQueuePosition'] = $curTitle->holdListPosition;
-			$hold['available'] = ($curTitle->holdListPosition == 0);
-			if ($hold['available']){
-				$hold['expirationDate'] = strtotime($curTitle->holdExpires);
-			}
+		if (isset($response->holds)){
+			foreach ($response->holds as $curTitle){
+				$hold = array();
+				$hold['overDriveId'] = $curTitle->reserveId;
+				$hold['notifyEmail'] = $curTitle->emailAddress;
+				$hold['holdQueueLength'] = $curTitle->numberOfHolds;
+				$hold['holdQueuePosition'] = $curTitle->holdListPosition;
+				$hold['available'] = ($curTitle->holdListPosition == 0);
+				if ($hold['available']){
+					$hold['expirationDate'] = strtotime($curTitle->holdExpires);
+				}
 
-			//Figure out which eContent record this is for.
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->externalId = $hold['overDriveId'];
-			$eContentRecord->source = 'OverDrive';
-			$eContentRecord->status = 'active';
-			if ($eContentRecord->find(true)){
-				$hold['recordId'] = $eContentRecord->id;
-				$hold['title'] = $eContentRecord->title;
-				$hold['author'] = $eContentRecord->author;
-				$hold['imageUrl'] = $eContentRecord->cover;
+				//Figure out which eContent record this is for.
+				$eContentRecord = new EContentRecord();
+				$eContentRecord->externalId = $hold['overDriveId'];
+				$eContentRecord->source = 'OverDrive';
+				$eContentRecord->status = 'active';
+				if ($eContentRecord->find(true)){
+					$hold['recordId'] = $eContentRecord->id;
+					$hold['title'] = $eContentRecord->title;
+					$hold['author'] = $eContentRecord->author;
+					$hold['imageUrl'] = $eContentRecord->cover;
 
-				//Get Rating
-				require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
-				$econtentRating = new EContentRating();
-				$econtentRating->recordId = $eContentRecord->id;
-				$hold['ratingData'] = $econtentRating->getRatingData($user, false);
-			}else{
-				$hold['recordId'] = -1;
-			}
+					//Get Rating
+					require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
+					$econtentRating = new EContentRating();
+					$econtentRating->recordId = $eContentRecord->id;
+					$hold['ratingData'] = $econtentRating->getRatingData($user, false);
+				}else{
+					$hold['recordId'] = -1;
+				}
 
-			if ($hold['available']){
-				$holds['holds']['available'][] = $hold;
-			}else{
-				$holds['holds']['unavailable'][] = $hold;
+				if ($hold['available']){
+					$holds['holds']['available'][] = $hold;
+				}else{
+					$holds['holds']['unavailable'][] = $hold;
+				}
 			}
 		}
+		$this->holds[$user->id] = $holds;
 		return $holds;
 	}
 
@@ -506,10 +537,10 @@ class OverDriveDriver3 {
 		global $configArray;
 		global $analytics;
 
-		$url = $configArray['OverDrive']['patronApiUrl'] . '/v2/patrons/me/holds';
+		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
 		$params = array(
 			'reserveId' => $overDriveId,
-			'email' => $user->overdriveEmail
+			'emailAddress' => $user->overdriveEmail
 		);
 		$response = $this->_callPatronUrl($user->cat_password, null, $url, $params);
 
@@ -517,12 +548,13 @@ class OverDriveDriver3 {
 		$holdResult['result'] = false;
 		$holdResult['message'] = '';
 
-		if ($response->holdListPosition > 0){
+		//print_r($response);
+		if (isset($response->holdListPosition)){
 			$holdResult['result'] = true;
 			$holdResult['message'] = 'Your hold was placed successfully.  You are number ' . $response->holdListPosition . ' on the wait list.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Place Hold', 'succeeded');
 		}else{
-			$holdResult['message'] = 'Sorry, but we could not place a hold for you on this title.';
+			$holdResult['message'] = 'Sorry, but we could not place a hold for you on this title.  ' . $response->message;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Place Hold', 'failed');
 		}
 
@@ -539,7 +571,7 @@ class OverDriveDriver3 {
 		global $configArray;
 		global $analytics;
 
-		$url = $configArray['OverDrive']['patronApiUrl'] . '/v2/patrons/me/holds/' . $overDriveId;
+		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
 		$response = $this->_callPatronDeleteUrl($user->cat_password, null, $url);
 
 		$cancelHoldResult = array();
@@ -573,7 +605,7 @@ class OverDriveDriver3 {
 		global $configArray;
 		global $analytics;
 
-		$url = $configArray['OverDrive']['patronApiUrl'] . '/v2/patrons/me/checkouts';
+		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
 		$params = array(
 			'reserveId' => $overDriveId,
 		);
@@ -586,12 +618,13 @@ class OverDriveDriver3 {
 		$result['result'] = false;
 		$result['message'] = '';
 
-		if ($response->expires){
+		//print_r($response);
+		if (isset($response->expires)){
 			$result['result'] = true;
 			$result['message'] = 'Your title was checked out successfully. You may now download the title from your Account.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Checkout Item', 'succeeded');
 		}else{
-			$result['message'] = 'Sorry, we could not checkout this title to you.';
+			$result['message'] = 'Sorry, we could not checkout this title to you.  ' . $response->message;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Checkout Item', 'failed');
 		}
 
@@ -611,7 +644,7 @@ class OverDriveDriver3 {
 		global $configArray;
 		global $analytics;
 
-		$url = $configArray['OverDrive']['patronApiUrl'] . '/v2/patrons/me/checkouts/' . $overDriveId;
+		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts/' . $overDriveId;
 		$response = $this->_callPatronDeleteUrl($user->cat_password, null, $url);
 
 		$cancelHoldResult = array();
@@ -635,7 +668,7 @@ class OverDriveDriver3 {
 		/** @var Memcache $memCache */
 		global $memCache;
 
-		$url = $configArray['OverDrive']['patronApiUrl'] . '/v2/patrons/me/checkouts/' . $overDriveId . '/formats';
+		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts/' . $overDriveId . '/formats';
 		$params = array(
 			'reserveId' => $overDriveId,
 			'formatType' => $formatId
@@ -670,7 +703,7 @@ class OverDriveDriver3 {
 		global $configArray;
 		global $analytics;
 
-		$url = $configArray['OverDrive']['patronApiUrl'] . "/v2/patrons/me/checkouts/{$overDriveId}/formats/{$format}/downloadlink";
+		$url = $configArray['OverDrive']['patronApiUrl'] . "/v1/patrons/me/checkouts/{$overDriveId}/formats/{$format}/downloadlink";
 		$response = $this->_callPatronUrl($user->cat_password, null, $url);
 		//print_r($response);
 
