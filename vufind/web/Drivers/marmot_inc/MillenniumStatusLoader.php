@@ -56,8 +56,8 @@ class MillenniumStatusLoader{
 		if ($matchItemsWithMarcItems){
 			// Load the full marc record so we can get the iType for each record.
 			$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
-			$itemField = $configArray['Reindex']['itemTag'];
-			$itemFields = $marcRecord->getFields($itemField);
+			$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
+			$itemFields = $marcRecord->getFields($marcItemField);
 			$marcItemData = array();
 
 			//TODO: Don't hardcode item subfields
