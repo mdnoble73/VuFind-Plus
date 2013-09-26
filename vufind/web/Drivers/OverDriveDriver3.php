@@ -203,7 +203,9 @@ class OverDriveDriver3 {
 						'value' => $value
 					);
 				}
-				curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($jsonData));
+				$postData = json_encode($jsonData);
+				//print_r($postData);
+				curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
 				$headers[] = 'Content-Type: application/vnd.overdrive.content.api+json';
 			}else{
 				curl_setopt($ch, CURLOPT_HTTPGET, true);
@@ -232,9 +234,14 @@ class OverDriveDriver3 {
 			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 			curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 			if ($tokenData){
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array("Authorization: {$tokenData->token_type} {$tokenData->access_token}", "User-Agent: VuFind-Plus", "Host: api.mock.overdrive.com"));
+				$authorizationData = $tokenData->token_type . ' ' . $tokenData->access_token;
+				$headers = array(
+					"Authorization: $authorizationData",
+					"User-Agent: VuFind-Plus",
+					"Host: integration-patron.api.overdrive.com"
+				);
 			}else{
-				curl_setopt($ch, CURLOPT_HTTPHEADER, array("User-Agent: VuFind-Plus", "Host: api.mock.overdrive.com"));
+				$headers = array("User-Agent: VuFind-Plus", "Host: api.overdrive.com");
 			}
 
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -242,13 +249,14 @@ class OverDriveDriver3 {
 			curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
 			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
 			$return = curl_exec($ch);
 			$returnInfo = curl_getinfo($ch);
-			if ($returnInfo['http_code'] == 400){
+			if ($returnInfo['http_code'] == 204){
 				$result = true;
 			}else{
-				echo("Response code was " . $returnInfo['http_code']);
+				//echo("Response code was " . $returnInfo['http_code']);
 				$result = false;
 			}
 			curl_close($ch);
@@ -577,12 +585,12 @@ class OverDriveDriver3 {
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
 		$cancelHoldResult['message'] = '';
-		if ($response){
+		if ($response === true){
 			$cancelHoldResult['result'] = true;
 			$cancelHoldResult['message'] = 'Your hold was cancelled successfully.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Cancel Hold', 'succeeded');
 		}else{
-			$cancelHoldResult['message'] = 'There was an error cancelling your hold.';
+			$cancelHoldResult['message'] = 'There was an error cancelling your hold.  ' . $response->message;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Cancel Hold', 'failed');
 		}
 
@@ -650,12 +658,12 @@ class OverDriveDriver3 {
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
 		$cancelHoldResult['message'] = '';
-		if ($response){
+		if ($response === true){
 			$cancelHoldResult['result'] = true;
-			$cancelHoldResult['message'] = 'Your hold was cancelled successfully.';
+			$cancelHoldResult['message'] = 'Your item was returned successfully.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Return Item', 'succeeded');
 		}else{
-			$cancelHoldResult['message'] = 'There was an error cancelling your hold.';
+			$cancelHoldResult['message'] = 'There was an error returning this item. ' . $response->message;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Return Item', 'failed');
 		}
 
