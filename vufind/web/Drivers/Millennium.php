@@ -778,6 +778,23 @@ class MillenniumDriver implements DriverInterface
 		$post_string = implode ('&', $post_items);
 		curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$sResult = curl_exec($this->curl_connection);
+		//When a library uses Encore, the initial login does a redirect and requires additonal parameters.
+		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $sResult, $loginMatches)) {
+			//Get the lt value
+			$lt = $loginMatches[1];
+			//Login again
+			$post_data['lt'] = $lt;
+			$post_data['_eventId'] = 'submit';
+			$post_items = array();
+			foreach ($post_data as $key => $value) {
+				$post_items[] = $key . '=' . $value;
+			}
+			$post_string = implode ('&', $post_items);
+			$accountPageInfo = curl_getinfo($this->curl_connection);
+			curl_setopt($this->curl_connection, CURLOPT_URL, $accountPageInfo['url']);
+			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
+			$sResult = curl_exec($this->curl_connection);
+		}
 
 		if (true){
 			curl_close($this->curl_connection);
