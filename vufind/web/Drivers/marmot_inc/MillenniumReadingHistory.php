@@ -65,6 +65,12 @@ class MillenniumReadingHistory {
 
 							$historyEntry['id'] = $bibId;
 							$historyEntry['shortId'] = $shortId;
+						}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $scols[$i], $matches)){
+							$shortId = $matches[1];
+							$bibId = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
+							$title = $matches[2];
+							$historyEntry['id'] = $bibId;
+							$historyEntry['shortId'] = $shortId;
 						}else{
 							$title = strip_tags($scols[$i]);
 						}
