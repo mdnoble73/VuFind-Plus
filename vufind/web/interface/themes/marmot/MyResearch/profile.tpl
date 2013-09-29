@@ -39,13 +39,39 @@
 					<div id="contacttab">
 						<table class="citation">
 							{if !$offline}
-							<tr><th>{translate text='Address'}:</th><td>{if $edit == true && $canUpdateContactInfo == true}<input name='address1' value='{$profile.address1|escape}' size='50' maxlength='75' />{else}{$profile.address1|escape}{/if}</td></tr>
-							<tr><th>{translate text='City'}:</th><td>{if $edit == true && $canUpdateContactInfo == true}<input name='city' value='{$profile.city|escape}' size='50' maxlength='75' />{else}{$profile.city|escape}{/if}</td></tr>
-							<tr><th>{translate text='State'}:</th><td>{if $edit == true && $canUpdateContactInfo == true}<input name='state' value='{$profile.state|escape}' size='50' maxlength='75' />{else}{$profile.state|escape}{/if}</td></tr>
-							<tr><th>{translate text='Zip'}:</th><td>{if $edit == true && $canUpdateContactInfo == true}<input name='zip' value='{$profile.zip|escape}' size='50' maxlength='75' />{else}{$profile.zip|escape}{/if}</td></tr>
-							<tr><th>{translate text='Phone Number'}:</th><td>{if $edit == true && $canUpdateContactInfo == true}<input name='phone' value='{$profile.phone|escape}' size='50' maxlength='75' />{else}{$profile.phone|escape}{/if}</td></tr>
+								<tr><th>{translate text='Address'}:</th><td>{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='address1' value='{$profile.address1|escape}' size='50' maxlength='75' />{else}{$profile.address1|escape}{/if}</td></tr>
+								<tr><th>{translate text='City'}:</th><td>{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='city' value='{$profile.city|escape}' size='50' maxlength='75' />{else}{$profile.city|escape}{/if}</td></tr>
+								<tr><th>{translate text='State'}:</th><td>{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='state' value='{$profile.state|escape}' size='50' maxlength='75' />{else}{$profile.state|escape}{/if}</td></tr>
+								<tr><th>{translate text='Zip'}:</th><td>{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='zip' value='{$profile.zip|escape}' size='50' maxlength='75' />{else}{$profile.zip|escape}{/if}</td></tr>
+								<tr><th>{translate text='Primary Phone Number'}:</th><td>{if $edit == true && $canUpdateContactInfo == true}<input name='phone' value='{$profile.phone|escape}' size='50' maxlength='75' />{else}{$profile.phone|escape}{/if}</td></tr>
+								{if $showWorkPhoneInProfile}
+									<tr><th>{translate text='Work Phone Number'}:</th><td>{if $edit == true && $canUpdateContactInfo == true}<input name='workPhone' value='{$profile.workPhone|escape}' size='50' maxlength='75' />{else}{$profile.workPhone|escape}{/if}</td></tr>
+								{/if}
 							{/if}
 							<tr><th>{translate text='E-mail'}:</th><td>{if $edit == true && $canUpdateContactInfo == true}<input name='email' value='{$profile.email|escape}' size='50' maxlength='75' />{else}{$profile.email|escape}{/if}</td></tr>
+							{if $showPickupLocationInProfile}
+								<tr>
+									<th>{translate text='Pickup Location'}:</th>
+									<td>
+										{if $edit == true && $canUpdateContactInfo == true}
+											<select name="pickupLocation" id="pickupLocation">
+												{if count($pickupLocations) > 0}
+													{foreach from=$pickupLocations item=location}
+														<option value="{$location->code}" {if $location->selected == "selected"}selected="selected"{/if}>{$location->displayName}</option>
+													{/foreach}
+												{else}
+													<option>placeholder</option>
+												{/if}
+											</select>
+										{else}
+											{$profile.homeLocation|escape}
+										{/if}
+									</td>
+								</tr>
+							{/if}
+							{if $showNoticeTypeInProfile}
+								<tr><th>{translate text='Receive notices by'}:</th><td>{if $edit == true && $canUpdateContactInfo == true}<input type="radio" value="p" id="notices" name="notices">Telephone<br/><input type="radio" value="z" id="notices" name="notices">Email{else}{$profile.noticePreferenceLabel|escape}{/if}</td></tr>
+							{/if}
 						</table>
 					</div>
 

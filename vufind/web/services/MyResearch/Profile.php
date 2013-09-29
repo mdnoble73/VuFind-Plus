@@ -28,14 +28,33 @@ class Profile extends MyResearch
 		global $interface;
 		global $user;
 
+		/** @var Library $librarySingleton */
 		global $librarySingleton;
 		$activeLibrary = $librarySingleton->getActiveLibrary();
-		if ($activeLibrary == null || $activeLibrary->allowProfileUpdates){
+		if ($activeLibrary == null){
 			$canUpdateContactInfo = true;
+			$canUpdateAddress = true;
+			$showWorkPhoneInProfile = false;
+			$showNoticeTypeInProfile = false;
+			$showPickupLocationInProfile = false;
 		}else{
-			$canUpdateContactInfo = false;
+			$canUpdateContactInfo = ($activeLibrary->allowProfileUpdates == 1);
+			$canUpdateAddress = ($activeLibrary->allowPatronAddressUpdates == 1);
+			$showWorkPhoneInProfile = ($activeLibrary->showWorkPhoneInProfile == 1);
+			$showNoticeTypeInProfile = ($activeLibrary->showNoticeTypeInProfile == 1);
+			$showPickupLocationInProfile = ($activeLibrary->showPickupLocationInProfile == 1);
+
+			global $locationSingleton;
+			//Get the list of pickup branch locations for display in the user interface.
+			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
+			$interface->assign('pickupLocations', $locations);
 		}
 		$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);
+		$interface->assign('canUpdateAddress', $canUpdateAddress);
+		$interface->assign('showWorkPhoneInProfile', $showWorkPhoneInProfile);
+		$interface->assign('showPickupLocationInProfile', $showPickupLocationInProfile);
+		$interface->assign('showNoticeTypeInProfile', $showNoticeTypeInProfile);
+
 
 		if ($configArray['Catalog']['offline']){
 			$interface->assign('offline', true);

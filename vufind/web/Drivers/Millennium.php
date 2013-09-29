@@ -425,7 +425,7 @@ class MillenniumDriver implements DriverInterface
 			$id2= $patron['id'];
 		}
 
-		if (array_key_exists($patron['id'], $this->patronProfiles)){
+		if (array_key_exists($patron['id'], $this->patronProfiles) && !isset($_REQUEST['reload'])){
 			$timer->logTime('Retrieved Cached Profile for Patron');
 			return $this->patronProfiles[$patron['id']];
 		}
@@ -472,6 +472,10 @@ class MillenniumDriver implements DriverInterface
 					$City = $matches[1];
 					$State = $matches[2];
 					$Zip = $matches[3];
+				}else if (preg_match('/(.*?)\\s+(\\w{2})\\s+(\\d*(?:-\\d*)?)/', $City, $matches)) {
+					$City = $matches[1];
+					$State = $matches[2];
+					$Zip = $matches[3];
 				}
 			}else{
 				$Address1 = "";
@@ -485,6 +489,7 @@ class MillenniumDriver implements DriverInterface
 			//Get additional information about the patron's home branch for display.
 			if (isset($patronDump['HOME_LIBR']) || isset($patronDump['HOLD_LIBR'])){
 				$homeBranchCode = isset($patronDump['HOME_LIBR']) ? $patronDump['HOME_LIBR'] : $patronDump['HOLD_LIBR'];
+				$homeBranchCode = str_replace('+', '', $homeBranchCode);
 				//Translate home branch to plain text
 				$location = new Location();
 				$location->whereAdd("code = '$homeBranchCode'");
@@ -563,7 +568,11 @@ class MillenniumDriver implements DriverInterface
 			$myLocation2->find(1);
 		}
 
-
+		$noticeLabels = array(
+			'-' => 'Mail',
+			'p' => 'Telephone',
+			'z' => 'E-mail',
+		);
 		$profile = array('lastname' => $lastName,
 				'firstname' => $firstName,
 				'fullname' => $fullName,
@@ -575,7 +584,8 @@ class MillenniumDriver implements DriverInterface
 				'email' => ($user && $user->email) ? $user->email : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '') ,
 				'overdriveEmail' => ($user) ? $user->overdriveEmail : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : ''),
 				'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
-				'phone' => (isset($patronDump) && isset($patronDump['TELEPHONE'])) ? $patronDump['TELEPHONE'] : '',
+				'phone' => (isset($patronDump) && isset($patronDump['TELEPHONE'])) ? $patronDump['TELEPHONE'] : (isset($patronDump['HOME_PHONE']) ? $patronDump['HOME_PHONE'] : ''),
+				'workPhone' => (isset($patronDump) && isset($patronDump['G/WK_PHONE'])) ? $patronDump['G/WK_PHONE'] : '',
 				'fines' => isset($patronDump) ? $patronDump['MONEY_OWED'] : '0',
 				'finesval' => $finesVal,
 				'expires' => isset($patronDump) ? $patronDump['EXP_DATE'] : '',
@@ -593,9 +603,10 @@ class MillenniumDriver implements DriverInterface
 				'numHoldsRequested' => $numHoldsRequested,
 				'bypassAutoLogout' => ($user) ? $user->bypassAutoLogout : 0,
 				'ptype' => ($user && $user->patronType) ? $user->patronType : (isset($patronDump) ? $patronDump['P_TYPE'] : 0),
-				'notices' => isset($patronDump) ? $patronDump['NOTICE_PREF'] : '',
+				'notices' => isset($patronDump) ? $patronDump['NOTICE_PREF'] : '-',
 				'web_note' => isset($patronDump) ? (isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '') : '',
 		);
+		$profile['noticePreferenceLabel'] = $noticeLabels[$profile['notices']];
 
 		//Get eContent info as well
 		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
@@ -930,10 +941,25 @@ class MillenniumDriver implements DriverInterface
 				$extraPostInfo['addr1d'] = '';
 			}
 			$extraPostInfo['tele1'] = $_REQUEST['phone'];
+			if (isset($_REQUEST['workPhone'])){
+				$extraPostInfo['tele2'] = $_REQUEST['workPhone'];
+			}
 			$extraPostInfo['email'] = $_REQUEST['email'];
 
 			if (isset($_REQUEST['notices'])){
 				$extraPostInfo['notices'] = $_REQUEST['notices'];
+			}
+
+			if (isset($_REQUEST['notices'])){
+				$extraPostInfo['notices'] = $_REQUEST['notices'];
+			}
+
+			if (isset($_REQUEST['pickupLocation'])){
+				$pickupLocation = $_REQUEST['pickupLocation'];
+				if (strlen($pickupLocation) < 5){
+					$pickupLocation = $pickupLocation + str_repeat('+', 5 - strlen($pickupLocation));
+				}
+				$extraPostInfo['locx00'] = $pickupLocation;
 			}
 
 			//Login to the patron's account
@@ -958,7 +984,23 @@ class MillenniumDriver implements DriverInterface
 			}
 			$post_string = implode ('&', $post_items);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			curl_exec($curl_connection);
+			$loginResult = curl_exec($curl_connection);
+			//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+			if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+				//Get the lt value
+				$lt = $loginMatches[1];
+				//Login again
+				$post_data['lt'] = $lt;
+				$post_data['_eventId'] = 'submit';
+				$post_items = array();
+				foreach ($post_data as $key => $value) {
+					$post_items[] = $key . '=' . $value;
+				}
+				$post_string = implode ('&', $post_items);
+				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+				$loginResult = curl_exec($curl_connection);
+				$curlInfo = curl_getinfo($curl_connection);
+			}
 
 			//Issue a post request to update the patron information
 			$post_items = array();

@@ -749,7 +749,7 @@ class MillenniumHolds{
 					curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 					$loginResult = curl_exec($curl_connection);
 					$curlInfo = curl_getinfo($curl_connection);
-					//When a library uses Encore, the initial login does a redirect and requires additonal parameters.
+					//When a library uses Encore, the initial login does a redirect and requires additional parameters.
 					if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
 						//Get the lt value
 						$lt = $loginMatches[1];

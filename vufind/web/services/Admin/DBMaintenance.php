@@ -363,6 +363,18 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_35' => array(
+				'title' => 'Library 35',
+				'description' => 'Additional control over profile updates',
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE library ADD allowPatronAddressUpdates TINYINT(1) DEFAULT '1'",
+					"ALTER TABLE library ADD showWorkPhoneInProfile TINYINT(1) DEFAULT '0'",
+					"ALTER TABLE library ADD showNoticeTypeInProfile TINYINT(1) DEFAULT '0'",
+					"ALTER TABLE library ADD showPickupLocationInProfile TINYINT(1) DEFAULT '0'"
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',
