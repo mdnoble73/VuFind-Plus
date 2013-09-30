@@ -349,7 +349,11 @@ abstract class Record_Record extends Action
 		if (isset($configArray['Content']['subjectFieldsToShow'])){
 			$subjectFieldsToShow = $configArray['Content']['subjectFieldsToShow'];
 			$subjectFields = explode(',', $subjectFieldsToShow);
+
 			$subjects = array();
+			$standardSubjects = array();
+			$bisacSubjects = array();
+			$oclcFastSubjects = array();
 			foreach ($subjectFields as $subjectField){
 				/** @var File_MARC_Data_Field[] $marcFields */
 				$marcFields = $marcRecord->getFields($subjectField);
@@ -357,21 +361,49 @@ abstract class Record_Record extends Action
 					foreach ($marcFields as $marcField){
 						$searchSubject = "";
 						$subject = array();
+						//Determine the type of the subject
+						$type = 'standard';
+						$subjectSource = $marcField->getSubfield('2');
+						if ($subjectSource != null){
+							if (preg_match('/bisac/i', $subjectSource->getData())){
+								$type = 'bisac';
+							}elseif (preg_match('/fast/i', $subjectSource->getData())){
+								$type = 'fast';
+							}
+						}
+
 						foreach ($marcField->getSubFields() as $subField){
 							/** @var File_MARC_Subfield $subField */
-							if ($subField->getCode() != 2){
-								$searchSubject .= " " . $subField->getData();
+							if ($subField->getCode() != '2' && $subField->getCode() != '0'){
+								$subFieldData = $subField->getData();
+								if ($type == 'bisac' && $subField->getCode() == 'a'){
+									$subFieldData = ucwords(strtolower($subFieldData));
+								}
+								$searchSubject .= " " . $subFieldData;
 								$subject[] = array(
 		                            'search' => trim($searchSubject),
-		                            'title'  => $subField->getData(),
+		                            'title'  => $subFieldData,
 								);
 							}
 						}
-						$subjects[] = $subject;
+						if ($type == 'bisac'){
+							$bisacSubjects[] = $subject;
+							$subjects[] = $subject;
+						}elseif ($type == 'fast'){
+							//Suppress fast subjects by default
+							$oclcFastSubjects[] = $subject;
+						}else{
+							$subjects[] = $subject;
+							$standardSubjects[] = $subject;
+						}
+
 					}
 				}
-				$interface->assign('subjects', $subjects);
 			}
+			$interface->assign('subjects', $subjects);
+			$interface->assign('standardSubjects', $standardSubjects);
+			$interface->assign('bisacSubjects', $bisacSubjects);
+			$interface->assign('oclcFastSubjects', $oclcFastSubjects);
 		}
 
 		$format = $record['format'];

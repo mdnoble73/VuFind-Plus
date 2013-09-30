@@ -149,22 +149,7 @@ class EcontentRecord_Home extends Action{
 				}
 			}
 			$interface->assign('additionalAuthorsList', $eContentRecord->getPropertyArray('author2'));
-			$rawSubjects = $eContentRecord->getPropertyArray('subject');
-			$subjects = array();
-			foreach ($rawSubjects as $subject){
-				$explodedSubjects = explode(' -- ', $subject);
-				$searchSubject = "";
-				$subject = array();
-				foreach ($explodedSubjects as $tmpSubject){
-					$searchSubject .= $tmpSubject . ' ';
-					$subject[] = array(
-		        'search' => trim($searchSubject),
-		        'title'  => $tmpSubject,
-					);
-				}
-				$subjects[] = $subject;
-			}
-			$interface->assign('subjects', $subjects);
+
 			$interface->assign('lccnList', $eContentRecord->getPropertyArray('lccn'));
 			$interface->assign('isbnList', $eContentRecord->getPropertyArray('isbn'));
 			$interface->assign('isbn', $eContentRecord->getIsbn());
@@ -319,6 +304,86 @@ class EcontentRecord_Home extends Action{
 				if (count($notes) > 0){
 					$interface->assign('notes', $notes);
 				}
+			}
+
+			//Load subjects
+			if ($marcRecord){
+				if (isset($configArray['Content']['subjectFieldsToShow'])){
+					$subjectFieldsToShow = $configArray['Content']['subjectFieldsToShow'];
+					$subjectFields = explode(',', $subjectFieldsToShow);
+
+					$subjects = array();
+					$standardSubjects = array();
+					$bisacSubjects = array();
+					$oclcFastSubjects = array();
+					foreach ($subjectFields as $subjectField){
+						/** @var File_MARC_Data_Field[] $marcFields */
+						$marcFields = $marcRecord->getFields($subjectField);
+						if ($marcFields){
+							foreach ($marcFields as $marcField){
+								$searchSubject = "";
+								$subject = array();
+								//Determine the type of the subject
+								$type = 'standard';
+								$subjectSource = $marcField->getSubfield('2');
+								if ($subjectSource != null){
+									if (preg_match('/bisac/i', $subjectSource->getData())){
+										$type = 'bisac';
+									}elseif (preg_match('/fast/i', $subjectSource->getData())){
+										$type = 'fast';
+									}
+								}
+
+								foreach ($marcField->getSubFields() as $subField){
+									/** @var File_MARC_Subfield $subField */
+									if ($subField->getCode() != '2' && $subField->getCode() != '0'){
+										$subFieldData = $subField->getData();
+										if ($type == 'bisac' && $subField->getCode() == 'a'){
+											$subFieldData = ucwords(strtolower($subFieldData));
+										}
+										$searchSubject .= " " . $subFieldData;
+										$subject[] = array(
+											'search' => trim($searchSubject),
+											'title'  => $subFieldData,
+										);
+									}
+								}
+								if ($type == 'bisac'){
+									$bisacSubjects[] = $subject;
+									$subjects[] = $subject;
+								}elseif ($type == 'fast'){
+									//Suppress fast subjects by default
+									$oclcFastSubjects[] = $subject;
+								}else{
+									$subjects[] = $subject;
+									$standardSubjects[] = $subject;
+								}
+
+							}
+						}
+						$interface->assign('subjects', $subjects);
+						$interface->assign('standardSubjects', $standardSubjects);
+						$interface->assign('bisacSubjects', $bisacSubjects);
+						$interface->assign('oclcFastSubjects', $oclcFastSubjects);
+					}
+				}
+			}else{
+				$rawSubjects = $eContentRecord->getPropertyArray('subject');
+				$subjects = array();
+				foreach ($rawSubjects as $subject){
+					$explodedSubjects = explode(' -- ', $subject);
+					$searchSubject = "";
+					$subject = array();
+					foreach ($explodedSubjects as $tmpSubject){
+						$searchSubject .= $tmpSubject . ' ';
+						$subject[] = array(
+							'search' => trim($searchSubject),
+							'title'  => $tmpSubject,
+						);
+					}
+					$subjects[] = $subject;
+				}
+				$interface->assign('subjects', $subjects);
 			}
 
 			$this->loadReviews($eContentRecord);
