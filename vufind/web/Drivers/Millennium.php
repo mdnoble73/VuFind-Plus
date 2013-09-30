@@ -90,7 +90,8 @@ class MillenniumDriver implements DriverInterface
 			/** @var Memcache $memCache */
 			global $memCache;
 			global $configArray;
-			$this->loanRules = $memCache->get('loan_rules');
+			global $serverName;
+			$this->loanRules = $memCache->get($serverName . '_loan_rules');
 			if (!$this->loanRules){
 				$this->loanRules = array();
 				$loanRule = new LoanRule();
@@ -101,7 +102,7 @@ class MillenniumDriver implements DriverInterface
 			}
 			$memCache->set('loan_rules', $this->loanRules, 0, $configArray['Caching']['loan_rules']);
 
-			$this->loanRuleDeterminers = $memCache->get('loan_rule_determiners');
+			$this->loanRuleDeterminers = $memCache->get($serverName . '_loan_rule_determiners');
 			if (!$this->loanRuleDeterminers){
 				$this->loanRuleDeterminers = array();
 				$loanRuleDeterminer = new LoanRuleDeterminer();
@@ -112,7 +113,7 @@ class MillenniumDriver implements DriverInterface
 					$this->loanRuleDeterminers[$loanRuleDeterminer->rowNumber] = clone($loanRuleDeterminer);
 				}
 			}
-			$memCache->set('loan_rule_determiners', $this->loanRuleDeterminers, 0, $configArray['Caching']['loan_rules']);
+			$memCache->set($serverName . '_loan_rule_determiners', $this->loanRuleDeterminers, 0, $configArray['Caching']['loan_rules']);
 		}
 	}
 
@@ -1256,8 +1257,9 @@ class MillenniumDriver implements DriverInterface
 		}
 		$holdable = false;
 		//global $logger;
-		//$logger->log("Checking loan rule for $locationCode, $iType, $pType", PEAR_LOG_DEBUG);
+		//$logger->log("Checking loan rules for $locationCode, $iType, $pType", PEAR_LOG_DEBUG);
 		foreach ($this->loanRuleDeterminers as $loanRuleDeterminer){
+			//$logger->log("Determiner {$loanRuleDeterminer->rowNumber}", PEAR_LOG_DEBUG);
 			//Check the location to be sure the determiner applies to this item
 			if ($loanRuleDeterminer->matchesLocation($locationCode) ){
 				//$logger->log("{$loanRuleDeterminer->rowNumber}) Location correct $locationCode, {$loanRuleDeterminer->location} ({$loanRuleDeterminer->trimmedLocation()})", PEAR_LOG_DEBUG);
@@ -1277,7 +1279,7 @@ class MillenniumDriver implements DriverInterface
 					//$logger->log("IType incorrect", PEAR_LOG_DEBUG);
 				}
 			}else{
-				//$logger->log("Location incorrect {$loanRuleDeterminer->location} != {$location}", PEAR_LOG_DEBUG);
+				//$logger->log("Location incorrect {$loanRuleDeterminer->location} != {$locationCode}", PEAR_LOG_DEBUG);
 			}
 		}
 		return $holdable;

@@ -78,7 +78,7 @@ class LoanRuleDeterminer extends DB_DataObject
 			foreach($this->pTypeArray as $key => $pType){
 				if (!is_numeric($pType)){
 					$pTypeRange = explode("-", $pType);
-					for ($i = $pTypeRange[0]; $i <= $pTypeRange[0]; $i++){
+					for ($i = $pTypeRange[0]; $i <= $pTypeRange[1]; $i++){
 						$this->pTypeArray[] = $i;
 					}
 					unset($this->pTypeArray[$key]);
@@ -91,10 +91,9 @@ class LoanRuleDeterminer extends DB_DataObject
 	private $trimmedLocation = null;
 	function trimmedLocation(){
 		if ($this->trimmedLocation == null){
-			if (substr($this->location, -1) == "*"){
-				$this->trimmedLocation = substr($this->location, 0, strlen($this->location) - 1);
-			}else{
-				$this->trimmedLocation = $this->location;
+			$this->trimmedLocation = $this->location;
+			while (substr($this->trimmedLocation, -1) == "*"){
+				$this->trimmedLocation = substr($this->trimmedLocation, 0, strlen($this->trimmedLocation) - 1);
 			}
 		}
 		return $this->trimmedLocation;
