@@ -1083,8 +1083,8 @@ class Solr implements IndexEngine {
 
 		// Determine which handler to use
 		if (!$this->isAdvanced($query)) {
-			//Escape : to make sure that the query isn't treated as a field spec.
-			$query = str_replace(':', '\:', $query);
+			//Remove extraneous colons to make sure that the query isn't treated as a field spec.
+			$query = str_replace(':', ' ', $query);
 			$ss = is_null($handler) ? null : $this->_getSearchSpecs($handler);
 			// Is this a Dismax search?
 			if (isset($ss['DismaxFields'])) {
@@ -2041,7 +2041,7 @@ class Solr implements IndexEngine {
 		$query = preg_replace('/"[^"]*"/', 'quoted', $query);
 
 		// Check for field specifiers:
-		if (preg_match("/([^\s\:]+)\:[^\s]/", $query, $matches)) {
+		if (preg_match("/([^\s\:]+)\s?\:[^\s]/", $query, $matches)) {
 			//Make sure the field is actually one of our fields
 			$fieldName = $matches[1];
 			$fields = $this->_loadValidFields();
@@ -2221,7 +2221,7 @@ class Solr implements IndexEngine {
 				//print_r($field);
 				$fields[] = (string)$field['name'];
 			}
-			$memCache->set('schema_fields', $fields, 24 * 60 * 60);
+			$memCache->set('schema_fields', $fields, 0, 24 * 60 * 60);
 		}
 		return $fields;
 	}
