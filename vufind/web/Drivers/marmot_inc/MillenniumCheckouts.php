@@ -75,6 +75,10 @@ class MillenniumCheckouts {
 							$shortId = $matches[1];
 							$bibid = '.' . $matches[1];
 							$title = $matches[2];
+						}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $scols[$i], $matches)){
+							$shortId = $matches[1];
+							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
+							$title = $matches[2];
 						}else{
 							$title = $scols[$i];
 							$shortId = '';

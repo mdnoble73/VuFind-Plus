@@ -21,6 +21,10 @@ class MillenniumHolds{
 		$matches = array();
 
 		$numMatches = preg_match('/<td.*?class="pageMainArea">(.*)?<\/td>/s', $holdResultPage, $matches);
+		//For Encore theme, try with some divs
+		if ($numMatches == 0){
+			$numMatches = preg_match('/<div class="pageContentInner">(.*?)<div id="footerArea">/s', $holdResultPage, $matches);
+		}
 		$itemMatches = preg_match('/Choose one item from the list below/', $holdResultPage);
 
 		if ($numMatches > 0 && $itemMatches == 0){
@@ -320,7 +324,7 @@ class MillenniumHolds{
 			$curHold['create'] = null;
 			$curHold['reqnum'] = null;
 
-			//Holds page occassionally has a header with number of items checked out.
+			//Holds page occasionally has a header with number of items checked out.
 			for ($i=0; $i < sizeof($sCols); $i++) {
 				$sCols[$i] = str_replace("&nbsp;"," ",$sCols[$i]);
 				$sCols[$i] = preg_replace ("/<br+?>/"," ", $sCols[$i]);
@@ -347,7 +351,11 @@ class MillenniumHolds{
 					if (stripos($sKeys[$i],"TITLE") > -1) {
 						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $sCols[$i], $matches)) {
 							$shortId = $matches[1];
-							$bibid = '.' . $matches[1]; //Technically, this isn't corrcect since the check digit is missing
+							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
+							$title = $matches[2];
+						}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $sCols[$i], $matches)){
+							$shortId = $matches[1];
+							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
 							$title = $matches[2];
 						}else{
 							$bibid = '';
@@ -609,7 +617,6 @@ class MillenniumHolds{
 	 */
 	public function placeItemHold($recordId, $itemId, $patronId, $comment, $type){
 		global $configArray;
-		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
 
 		$bib1= $recordId;
 		if (substr($bib1, 0, 1) != '.'){
@@ -674,10 +681,6 @@ class MillenniumHolds{
 				return $result;
 
 			} else {
-
-				//User is logged in before they get here, always use the info from patrondump
-				$username = $patronDump['PATRN_NAME'];
-
 				if (isset($_REQUEST['canceldate']) && !is_null($_REQUEST['canceldate']) && $_REQUEST['canceldate'] != ''){
 					$date = $_REQUEST['canceldate'];
 				}else{
@@ -704,20 +707,6 @@ class MillenniumHolds{
 				list($Month, $Day, $Year)=explode("/", $date);
 
 				//------------BEGIN CURL-----------------------------------------------------------------
-				$fullName = $patronDump['PATRN_NAME'];
-				$nameParts = explode(', ',$fullName);
-				$lastName = $nameParts[0];
-				if (isset($nameParts[1])){
-					$secondName = $nameParts[1];
-					$secondNameParts = explode(' ', $secondName);
-					$firstName = $secondNameParts[0];
-					if (isset($secondNameParts[1])){
-						$middleName = $secondNameParts[1];
-					}
-				}
-
-				list($first, $last)=explode(' ', $username);
-
 				$header=array();
 				$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
 				$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
@@ -725,7 +714,7 @@ class MillenniumHolds{
 				$header[] = "Connection: keep-alive";
 				$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
 				$header[] = "Accept-Language: en-us,en;q=0.5";
-				$id=$patronDump['RECORD_#'];
+
 				$cookie = tempnam ("/tmp", "CURLCOOKIE");
 
 				$curl_connection = curl_init();
@@ -742,6 +731,7 @@ class MillenniumHolds{
 				curl_setopt($curl_connection, CURLOPT_HEADER, false);
 				curl_setopt($curl_connection, CURLOPT_POST, true);
 
+				$lt = null;
 				if (isset($configArray['Catalog']['loginPriorToPlacingHolds']) && $configArray['Catalog']['loginPriorToPlacingHolds'] = true){
 					//User must be logged in as a separate step to placing holds
 					$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
@@ -757,7 +747,24 @@ class MillenniumHolds{
 					}
 					$post_string = implode ('&', $post_items);
 					curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-					curl_exec($curl_connection);
+					$loginResult = curl_exec($curl_connection);
+					$curlInfo = curl_getinfo($curl_connection);
+					//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+					if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+						//Get the lt value
+						$lt = $loginMatches[1];
+						//Login again
+						$post_data['lt'] = $lt;
+						$post_data['_eventId'] = 'submit';
+						$post_items = array();
+						foreach ($post_data as $key => $value) {
+							$post_items[] = $key . '=' . $value;
+						}
+						$post_string = implode ('&', $post_items);
+						curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+						$loginResult = curl_exec($curl_connection);
+						$curlInfo = curl_getinfo($curl_connection);
+					}
 					$post_data = array();
 				}else{
 					$post_data = $this->driver->_getLoginFormValues();
@@ -778,6 +785,10 @@ class MillenniumHolds{
 				}
 				$post_data['x']="48";
 				$post_data['y']="15";
+				if ($lt != null){
+					$post_data['lt'] = $lt;
+					$post_data['_eventId'] = 'submit';
+				}
 
 				$post_items = array();
 				foreach ($post_data as $key => $value) {

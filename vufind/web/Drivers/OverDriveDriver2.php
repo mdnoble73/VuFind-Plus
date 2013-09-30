@@ -761,6 +761,9 @@ class OverDriveDriver2 {
 			'LibraryCardNumber' => $barcode,
 			'URL' => 'Default.htm',
 		);
+		if ($configArray['OverDrive']['requirePin']){
+			$postParams['LibraryCardPIN'] = $user->cat_password;
+		}
 		if (isset($configArray['OverDrive']['LibraryCardILS']) && strlen($configArray['OverDrive']['LibraryCardILS']) > 0){
 			$postParams['LibraryCardILS'] = $configArray['OverDrive']['LibraryCardILS'];
 		}

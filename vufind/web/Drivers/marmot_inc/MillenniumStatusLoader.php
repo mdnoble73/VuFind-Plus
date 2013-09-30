@@ -25,6 +25,9 @@ class MillenniumStatusLoader{
 		global $logger;
 		global $configArray;
 
+		$pType = $this->driver->getPType();
+		$scope = $this->driver->getMillenniumScope();
+
 		if (!$configArray['Catalog']['offline']){
 			//Get information about holdings, order information, and issue information
 			$millenniumInfo = $this->driver->getMillenniumRecordInfo($id);
@@ -43,6 +46,9 @@ class MillenniumStatusLoader{
 			$r = substr($r,strpos($r,">")+1);
 			$r = substr($r,0,stripos($r,"</table"));
 			$rows = preg_split("/<tr([^>]*)>/",$r);
+		}else{
+			$rows = array();
+			$millenniumInfo = null;
 		}
 
 		//Load item information from marc record
@@ -50,10 +56,9 @@ class MillenniumStatusLoader{
 		if ($matchItemsWithMarcItems){
 			// Load the full marc record so we can get the iType for each record.
 			$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
-			$itemFields = $marcRecord->getFields("989");
+			$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
+			$itemFields = $marcRecord->getFields($marcItemField);
 			$marcItemData = array();
-			$pType = $this->driver->getPType();
-			$scope = $this->driver->getMillenniumScope();
 
 			//TODO: Don't hardcode item subfields
 			foreach ($itemFields as $itemField){
@@ -73,6 +78,9 @@ class MillenniumStatusLoader{
 				$itemData['dueDate'] = $itemField->getSubfield($dueDateSubfield) != null ? trim($itemField->getSubfield($dueDateSubfield)->getData()) : null;
 				$marcItemData[] = $itemData;
 			}
+		}else{
+			$marcItemData = array();
+			$marcRecord = null;
 		}
 
 		if (!$configArray['Catalog']['offline']){
@@ -80,6 +88,8 @@ class MillenniumStatusLoader{
 			$ret = $this->parseHoldingRows($id, $rows);
 
 			$timer->logTime('processed all holdings rows');
+		}else{
+			$ret = null;
 		}
 
 
@@ -992,14 +1002,14 @@ class MillenniumStatusLoader{
 				$summaryInformation['statusText'] = "No Copies Found";
 			}else{
 				if (strlen($summaryInformation['availableAt']) > 0){
-					$summaryInformation['statusText'] = "Available now" . ($summaryInformation['inLibraryUserOnly'] ? "for in library use" : "") . " at " . $summaryInformation['availableAt'] . ($summaryInformation['numAvailableOther'] > 0 ? (", and {$summaryInformation['numAvailableOther']} other location" . ($summaryInformation['numAvailableOther'] > 1 ? "s" : "")) : "");
+					$summaryInformation['statusText'] = "Available now" . (isset($summaryInformation['inLibraryUserOnly']) ? "for in library use" : "") . " at " . $summaryInformation['availableAt'] . ($summaryInformation['numAvailableOther'] > 0 ? (", and {$summaryInformation['numAvailableOther']} other location" . ($summaryInformation['numAvailableOther'] > 1 ? "s" : "")) : "");
 				}else{
-					$summaryInformation['statusText'] = "Available now" . ($summaryInformation['inLibraryUserOnly'] ? "for in library use" : "");
+					$summaryInformation['statusText'] = "Available now" . (isset($summaryInformation['inLibraryUserOnly']) ? "for in library use" : "");
 				}
 			}
 		}else if ($summaryInformation['status'] == 'Marmot'){
 			$summaryInformation['class'] = "nearby";
-			$totalLocations = $summaryInformation['numAvailableOther'] + $summaryInformation['availableAt'];
+			$totalLocations = intval($summaryInformation['numAvailableOther']) + intval($summaryInformation['availableAt']);
 			$summaryInformation['statusText'] = "Available now at " . $totalLocations . " Marmot " . ($totalLocations == 1 ? "Library" : "Libraries");
 		}else{
 			$summaryInformation['statusText'] = translate($summaryInformation['status']);

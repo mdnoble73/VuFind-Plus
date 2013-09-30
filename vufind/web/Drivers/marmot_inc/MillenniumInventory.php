@@ -180,7 +180,8 @@ class MillenniumInventory {
 					if ($titleInfo != null){
 						$marcInfo = MarcLoader::loadMarcRecordFromRecord($titleInfo);
 						//Get the matching item from the item records
-						$itemFields = $marcInfo->getFields('989');
+						$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
+						$itemFields = $marcInfo->getFields($marcItemField);
 						$itemInfo = null;
 						if ($itemFields){
 							/** @var File_MARC_Data_Field $fieldInfo */
