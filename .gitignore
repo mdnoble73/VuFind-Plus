@@ -71,3 +71,7 @@ ehthumbs.db
 Icon?
 Thumbs.db
 ~$*.docx
+
+# Dreamweaver files #
+#####################
+*.dwsync.xml
