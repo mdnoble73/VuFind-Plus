@@ -72,6 +72,6 @@ Icon?
 Thumbs.db
 ~$*.docx
 
-# Dreamweaver files #
+# Dreamweaver Files #
 #####################
-*.dwsync.xml
+[_]notes/
