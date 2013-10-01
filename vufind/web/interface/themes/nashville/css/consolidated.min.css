@@ -120,11 +120,11 @@ auto 0;width:1000px;min-height:100%}#page-content,#ft{padding:10px;text-align:le
 10px;zoom:1;*display:inline}#main-content{display:inline-block;position:relative;vertical-align:top;width:726px;background-color:white;padding:10px
 10px 0;border-radius:8px;zoom:1;*display:inline}.searchHome{background-color:#fff;text-align:center;margin-top:2.5em}.searchHomeContent{padding:3em
 0 2em 0;margin:0
-auto;width:100%;text-align:left}#homeSearchLabel{color:#010101;font-size:14px}#searchBarFind{vertical-align:top;position:relative;padding-bottom:2px;margin-left:15px;}.searchHomeForm{background-color:#32388E;padding:0 0 10px 8px;text-align:left;margin:-33px 0 0 0;border-top:none;color:#fff}.searchHomeForm a, .searchHomeForm a:hover{color:#fff}.searchHomeBrowse{background-color:#94c632}.searchHomeBrowseInner{padding:0
+auto;width:100%;text-align:left}#homeSearchLabel{color:#010101;font-size:14px}#searchBarFind{vertical-align:top;position:relative;padding-bottom:2px;margin-left:15px;margin-top:3px}.searchHomeForm{background-color:#32388E;padding:0 0 10px 8px;text-align:left;margin:-33px 0 0 0;border-top:none;color:#fff}.searchHomeForm a, .searchHomeForm a:hover{color:#fff}.searchHomeBrowse{background-color:#94c632}.searchHomeBrowseInner{padding:0
 25px;font-size:90%}.searchHomeBrowse a, .searchHomeBrowse a:hover{color:#fff}.searchHomeBrowseInner
 div{float:left;border-right:1px dotted #fff;margin-right:1em;padding:1em
 2em 1em 0;width:12em;min-height:16em}.searchHomeForm input,.searchHomeForm
-select{color:#392529 !important}.searchHomeBrowseHeader{background-color:#fff;padding:0
+select{color:#392529 !important; margin-top:3px;}.searchHomeBrowseHeader{background-color:#fff;padding:0
 25px;font-size:90%;min-height:3em}#lookfor{position:relative}/*\*/* html
 .searchHomeBrowseHeader{height:2em}/**/.searchHomeBrowseHeader
 h2{font-size:110%;color:#6b8f24}.searchHomeBrowseHeader
@@ -203,7 +203,7 @@ h4{border-bottom:solid 2px #d5d5d5;padding:.5em 0 .5em 0}.sidegroup{margin:0
 10px 0 20px;font-size:90%}#sidebar-wrapper{display:inline-block;padding-right:20px;vertical-align:top;width:200px}.sidegroup{border:1px
 solid #949494;margin:0
 0 20px 0;-moz-border-radius:3px;border-radius:3px;padding-bottom:10px}.sidegroup
-h4{padding: .5em 0 .5em 0;color:#292929;font-weight:bold;background-color:#e1e1e1;-moz-border-radius-topleft:2px;border-top-left-radius:2px;-moz-border-radius-topright:2px;border-top-right-radius:2px;text-align:center;margin-top:0}.navmenu
+h4{padding: .5em 0 .5em 0;color:#292929;font-weight:bold;background-color:#eee;-moz-border-radius-topleft:2px;border-top-left-radius:2px;-moz-border-radius-topright:2px;border-top-right-radius:2px;text-align:center;margin-top:0}.navmenu
 dd{border-bottom:0 solid black}ul.bulleted
 li{list-style:disc url(/interface/themes/default/images/side_bullet.png) outside;margin-left:1.5em}.sidegroup
 ul{padding-left:20px}#toptab{font-size:90%;padding:0
@@ -567,9 +567,10 @@ ul{padding-left:1.25em}#sidebar{width:215px}#main-content{width:681px}#record-de
 a{font-weight:bold}
 /* extra_styles.css */
 /* vufind home page list block */
-.searchheader{padding:0px 0 3px 0;background-color:#ffffff;border-bottom:solid 1px #c5c5c5;text-align:left;}.searchheader a, .searchheader a:visited{color:#06c}.searchheader a:hover{color:#132248;}#searchbar{padding-left:7px;padding-bottom:4px;background-color:#32388E;color:#fff}
+.searchheader{padding:0px 0 3px 0;background-color:#ffffff;border-bottom:solid 1px #c5c5c5;text-align:left;}.searchheader a, .searchheader a:visited{color:#06c}.searchheader a:hover{color:#132248;}#searchbar{padding-left:7px;padding-bottom:10px;background-color:#32388E;color:#fff}
 #loginBlock{position:relative;top:0;right:0;z-index:99;min-width:300px;-webkit-border-bottom-left-radius:10px;-khtml-border-radius-bottomleft:10px;-moz-border-radius-bottomleft:10px;border-bottom-left-radius:10px;display:inline-block;}#loginOptions{}#languageBlock{position:relative;top:0;right:0;background:#eee;margin-bottom:5px;padding:5px;}.languageLink{position:relative;padding-top:5px;font-size:80%}.languageLink{margin-left:5px;text-decoration:none}.languageLink.selected{font-weight:bold}
 #searchbar a{color:#fff}
+#searchbar .searchform select {margin-top:3px}
 #sidebarRight #sidebar {float:right;}
 #otherEditionsPopup_shortDisplay{width:455px}
 #otherEditionsPopup_shortDisplay .resultDetails_shortDisplay{display:inline-block;vertical-align:top;width:180px;zoom:1;*display:inline}
@@ -585,7 +586,5 @@ a{font-weight:bold}
 #bag_links #bag_actions_bag_items .bag_button_group {margin: 3px;padding:1px 5px 1px 0px;}
 #bag_links #bag_actions_bag_choose_list .bag_button_group {margin: 3px;padding:1px 5px 1px 0px;}
 #bag-links #bag_save_to_list_submit .button,.button:link,.button:visited,.button:active{margin: 3px;padding:1px 5px 1px 0px;}
-#headerButtons {text-align:right;position:absolute;margin-top:79px;width:100%;} .headerButtons li{display:inline-block;margin:0 8px 0 0}
-.headerButtons .BrowseLists a{background-color:#990099;color:#fff;padding:10px 15px;}
-.headerButtons .Recommendations a{background-color:#6666CC;color:#fff;padding:10px 15px;}
-.headerButtons .Online a {background-color:#FF6600;color:#fff;padding:10px 15px;}
+#headerButtons {text-align:right;position:absolute;margin-top:78px;width:100%;} .headerButtons li{display:inline-block;margin:0 8px 0 0}
+.headerButtons a {background-color:#eee;padding:10px 15px;border: 1px solid #e2e3ed;border-top-right-radius: 8px;border-top-left-radius: 8px;}

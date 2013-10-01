@@ -159,11 +159,14 @@ function redrawSaveStatus() {literal}{{/literal}
         
         
 			{* Removed subject links list - moved to Title Details box - Jenny 9/23/13 *}           
-            
+           
 		</div>       
         
 
 	 
+
+        
+	</div>
 		<div id="relatedTitleInfo" style="display:none">    
 			{assign var="scrollerName" value="Series"}
 			{assign var="scrollerTitle" value="Also in this Series"}
@@ -176,7 +179,4 @@ function redrawSaveStatus() {literal}{{/literal}
      
 		{include file="Record/view-tabs.tpl" isbn=$isbn upc=$upc}
 		{* Hiding title details b/c added to tabbed view {include file="Record/view-title-details.tpl"} *}
-        
-	</div>
-
 </div>
