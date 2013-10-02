@@ -13,6 +13,7 @@ Globals.automaticTimeoutLength = 0;
 Globals.automaticTimeoutLengthLoggedOut = 0;
 
 var VuFind = VuFind || {};
+
 VuFind.initializeModalDialogs = function() {
 	$(".modalDialogTrigger").each(function(){
 		$(this).click(function(){
@@ -63,18 +64,22 @@ VuFind.ajaxLightbox = function(urlToDisplay, requireLogin){
 			VuFind.ajaxLightbox(urlToDisplay, requireLogin);
 		}, false);
 	}else{
-		var modalDialog = $("#modalDialog");
-		if (modalDialog.is(":visible")){
-			modalDialog.modal('hide');
-		}
+		VuFind.closeLightbox();
 		$(".modal-body").html("Loading");
 
 		modalDialog.load(urlToDisplay, function(){
 			modalDialog.modal('show');
 		});
 	}
-
 	return false;
+};
+
+VuFind.closeLightbox = function(){
+	var modalDialog = $("#modalDialog");
+	if (modalDialog.is(":visible")){
+		modalDialog.modal('hide');
+		$(".modal-backdrop").remove();
+	}
 };
 
 VuFind.Account = {
@@ -141,7 +146,7 @@ VuFind.Account = {
 					$('#logoutOptions').show();
 					$('#myAccountNameLink').html(response.result.name);
 					if (VuFind.Account.closeModalOnAjaxSuccess){
-						$("#modalDialog").modal('hide');
+						VuFind.closeLightbox();
 					}
 
 					Globals.loggedIn = true;
@@ -708,8 +713,81 @@ VuFind.Record = {
 			});
 		}
 		return false;
-	}
+	},
 
+	saveReview: function(id, shortId){
+		if (Globals.loggedIn){
+			if (shortId == null || shortId == ''){
+				shortId = id;
+			}
+			var comment = $('#comment' + shortId).val();
+
+			var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+			var params = "method=SaveComment&comment=" + encodeURIComponent(comment);
+			$.ajax({
+				url: url + '?' + params,
+				dataType: 'json',
+				success : function(data) {
+					var result = false;
+					if (data) {
+						result = data.result;
+					}
+					if (result && result.length > 0) {
+						if (result == "Done") {
+							$('#comment' + shortId).val('');
+							if ($('#commentList').length > 0) {
+								LoadComments(id);
+							} else {
+								alert('Thank you for your review.');
+								VuFind.closeLightbox();
+							}
+						}else{
+							alert("Error: Your review was not saved successfully");
+						}
+					} else {
+						alert("Error: Your review was not saved successfully");
+					}
+				},
+				error : function() {
+					alert("Unable to save your comment.");
+				}
+			});
+		}
+		return false;
+	},
+
+	saveToList: function(id, source, form){
+		var notes = $("#addToList-notes").val();
+		var list = $("#addToList-list").val();
+		$("#saveToList-button").prop('disabled', true);
+
+		var url = Globals.path + "/Resource/AJAX";
+		var params = "method=SaveRecord&" +
+				"list=" + list + "&" +
+				"notes=" + encodeURIComponent(notes) + "&" +
+				"id=" + id + "&" +
+				"source=" + source;
+		$.ajax({
+			url: url+'?'+params,
+			dataType: "json",
+			success: function(data) {
+				var value = data.result;
+				if (value == "Done") {
+					$("#modal-title").html("Added to List Result");
+					$(".modal-body").html("<div class='alert alert-success'>" + data.message + "</div>")
+					setTimeout("VuFind.closeLightbox();", 3000);
+				} else {
+					$("#modal-title").html("Error adding to list");
+					$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error adding the title to the list<br/>" + data.message + "</div>")
+				}
+
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				$("#modal-title").html("Error adding to list");
+				$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error adding the title to the list<br/>" + textStatus + "</div>")
+			}
+		});
+	}
 };
 
 VuFind.Searches = {

@@ -13,12 +13,19 @@
 			</div>
 		</div>
 		<div class="control-group">
-	  {translate text="Description"}:<br />
-	  <textarea name="desc" id="listDesc" rows="3" cols="50">{$list->desc|escape:"html"}</textarea><br />
+		  <label for="listDesc" class="control-label">{translate text="Description"}:</label>
+			<div class="controls">
+		    <textarea name="desc" id="listDesc" rows="3" cols="50" class="input-xxlarge">{$list->desc|escape:"html"}</textarea><br />
+			</div>
 		</div>
-	  {translate text="Access"}:<br />
-	  {translate text="Public"} <input type="radio" name="public" value="1">
-	  {translate text="Private"} <input type="radio" name="public" value="0" checked><br />
+		<div class="control-group">
+			<label for="public" class="control-label">{translate text="Access"}:</label>
+			<div class="controls">
+				<div class="switch" id="public-switch" data-on-label="Public" data-off-label="Private">
+					<input type='checkbox' name='public' id='public'/>
+				</div>
+			</div>
+		</div>
 	  <input type="hidden" name="recordId" value="{$recordId}">
 	  <input type="hidden" name="source" value="{$source}">
 	  <input type="hidden" name="followupModule" value="{$followupModule}">
@@ -31,3 +38,6 @@
 	<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
 	<input type="submit" class="btn btn-primary" value="{translate text='Save'}"  onclick="return addList(this, &quot;{translate text='add_list_fail'}&quot;);">
 </div>
+<script type="text/javascript">
+	$('#public-switch').bootstrapSwitch();
+</script>

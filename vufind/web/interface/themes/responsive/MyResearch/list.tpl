@@ -1,13 +1,13 @@
 <script type="text/javascript" src="{$path}/js/validate/jquery.validate.min.js"></script>
 {strip}
-<div id="page-content" class="content">
-	<div id="sidebar">
+	<div class="row-fluid">
+	<div id="sidebar" class="span3">
 		{include file="MyResearch/menu.tpl"}
 			
 		{include file="Admin/menu.tpl"}
 	</div>
 	
-	<div id="main-content">
+	<div id="main-content" class="span9">
 		{if $allowEdit}
 			<form action="{$path}/MyResearch/MyList/{$favList->id}" id="myListFormHead">
 				<div>
