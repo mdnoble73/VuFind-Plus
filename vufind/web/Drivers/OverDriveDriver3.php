@@ -173,12 +173,11 @@ class OverDriveDriver3 {
 
 	public function _callPatronUrl($patronBarcode, $patronPin, $url, $postParams = null){
 		$tokenData = $this->_connectToPatronAPI($patronBarcode, $patronPin, false);
-		//TODO: Remove || true when oauth works
 		if ($tokenData){
 			$ch = curl_init($url);
 			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 			curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-			if ($tokenData){
+			if (isset($tokenData->token_type) && isset($tokenData->access_token)){
 				$authorizationData = $tokenData->token_type . ' ' . $tokenData->access_token;
 				$headers = array(
 					"Authorization: $authorizationData",
@@ -186,7 +185,7 @@ class OverDriveDriver3 {
 					"Host: integration-patron.api.overdrive.com"
 				);
 			}else{
-				$headers = array("User-Agent: VuFind-Plus", "Host: api.overdrive.com");
+				print_r($tokenData);
 			}
 
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -376,7 +375,9 @@ class OverDriveDriver3 {
 						'name' => $this->format_map[$format->formatType],
 					);
 				}
-				$curFormat['downloadUrl'] = $format->links->downloadLink->href;
+				if (isset($format->links->downloadLink)){
+					$curFormat['downloadUrl'] = $format->links->downloadLink->href;
+				}
 				$curFormat = array();
 				$curFormat['id'] = $id;
 				$curFormat['name'] = $format->formatType;

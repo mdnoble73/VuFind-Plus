@@ -21,10 +21,7 @@
 </div>
 <div class="modal-footer">
 	<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
-	<span class="tool btn btn-primary" onclick='SaveComment("{$id|escape}", "{$shortId}", {literal}{{/literal}
-					save_error: "{translate text='comment_error_save'}",
-					load_error: "{translate text='comment_error_load'}",
-					save_title: "{translate text='Save Review'}"{literal}}{/literal}); return false;'>{translate text="Submit Review"}</span>
+	<span class="tool btn btn-primary" onclick='VuFind.Record.saveReview("{$id|escape}", "{$shortId}"); return false;'>{translate text="Submit Review"}</span>
 </div>
 {literal}
 <script type="text/javascript">
