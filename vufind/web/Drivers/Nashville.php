@@ -167,7 +167,19 @@ class Nashville extends MillenniumDriver{
 			$host=$configArray['OPAC']['patron_host'];
 			$apiurl = $host . "/PATRONAPI/$patronDumpBarcode/$pin/pintest";
 
-			$api_contents = file_get_contents($apiurl);
+			$curlConnection = curl_init($apiurl);
+
+			curl_setopt($curlConnection, CURLOPT_CONNECTTIMEOUT, 30);
+			curl_setopt($curlConnection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+			curl_setopt($curlConnection, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($curlConnection, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($curlConnection, CURLOPT_FOLLOWLOCATION, 1);
+			curl_setopt($curlConnection, CURLOPT_UNRESTRICTED_AUTH, true);
+
+			//Setup encoding to ignore SSL errors for self signed certs
+			$api_contents = curl_exec($curlConnection);
+			curl_close($curlConnection);
+
 			$api_contents = trim(strip_tags($api_contents));
 
 			$api_array_lines = explode("\n", $api_contents);
