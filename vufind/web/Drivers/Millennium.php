@@ -708,12 +708,13 @@ class MillenniumDriver implements DriverInterface
 		curl_close($curlConnection);
 
 		//Strip the actual contents out of the body of the page.
-		$r = substr($result, stripos($result, 'BODY'));
-		$r = substr($r,strpos($r,">")+1);
-		$r = substr($r,0,stripos($r,"</BODY"));
+		//$r = substr($result, stripos($result, 'BODY'));
+		//$r = substr($r,strpos($r,">")+1);
+		//$r = substr($r,0,stripos($r,"</BODY"));
+		$cleanPatronData = strip_tags($result);
 
 		//Remove the bracketed information from each row
-		$r = preg_replace("/\[.+?]=/","=",$r);
+		//$r = preg_replace("/\[.+?]=/","=",$trimmedResult);
 
 		//Split the rows on each BR tag.
 		//This could also be done with a regex similar to the following:
@@ -722,11 +723,21 @@ class MillenniumDriver implements DriverInterface
 		//Or a regex similar to
 		//(.*?)\[.*?\]=(.*?)<BR\s*>
 		//Group1 would be the keys and group 2 the values.
-		$rows = preg_replace("/<BR.*?>/","*",$r);
-		$rows = explode("*",$rows);
+		/* $rows = preg_split("/<BR.*?>/i",$r); */
+		//$rows = explode("*",$rows);
 		//Add the key and value from each row into an associative array.
 		$patronDump = array();
-		foreach ($rows as $row) {
+		preg_match_all('/(.*?)\\[.*?\\]=(.*)/', $cleanPatronData, $patronData, PREG_SET_ORDER);
+		for ($curRow = 0; $curRow < count($patronData); $curRow++) {
+			$patronDumpKey = str_replace(" ", "_", trim($patronData[$curRow][1]));
+			if ($patronDumpKey == 'HOLD'){
+				$patronDump[$patronDumpKey][] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
+			}else{
+				$patronDump[$patronDumpKey] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
+			}
+		}
+
+		/*foreach ($rows as $row) {
 			if (strlen(trim($row)) > 0){
 				$ret = explode("=",$row, 2);
 				//$patronDump[str_replace(" ", "_", trim($ret[0]))] = str_replace("$", " ",$ret[1]);
@@ -738,7 +749,7 @@ class MillenniumDriver implements DriverInterface
 					$patronDump[$patronDumpKey] = isset($ret[1]) ? $ret[1] : '';
 				}
 			}
-		}
+		}*/
 		$timer->logTime("Got patron information from Patron API");
 		return $patronDump;
 	}

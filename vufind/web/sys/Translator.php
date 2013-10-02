@@ -107,6 +107,18 @@ class I18N_Translator
 			}
 			closedir($dh);
 		}
+
+		//Also check the theme specific language file
+		global $interface;
+		$themes = $interface->getThemes();
+		$themeBasePath = $configArray['Site']['local'] . '/interface/themes';
+		foreach ($themes as $theme){
+			$themeFile = $themeBasePath . '/' . $theme . '/lang/' . $this->langCode . '.ini';
+			if (file_exists($themeFile)) {
+				$siteWords = $this->parseLanguageFile($themeFile);
+				$this->words = array_merge($this->words, $siteWords);
+			}
+		}
 		
 		$timer->logTime('Initialize translator for ' . $langCode);
 	}
