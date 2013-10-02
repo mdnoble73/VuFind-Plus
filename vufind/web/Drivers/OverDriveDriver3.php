@@ -367,22 +367,40 @@ class OverDriveDriver3 {
 			$bookshelfItem['overdriveRead'] = false;
 			$bookshelfItem['formatSelected'] = ($curTitle->isFormatLockedIn == 1);
 			$bookshelfItem['formats'] = array();
-			foreach ($curTitle->formats as $id => $format){
-				if ($format->formatType == 'ebook-overdrive'){
-					$bookshelfItem['overdriveRead'] = true;
-				}else{
-					$bookshelfItem['selectedFormat'] = array(
-						'name' => $this->format_map[$format->formatType],
-					);
+			if (isset($curTitle->formats)){
+				foreach ($curTitle->formats as $id => $format){
+					if ($format->formatType == 'ebook-overdrive'){
+						$bookshelfItem['overdriveRead'] = true;
+					}else{
+						$bookshelfItem['selectedFormat'] = array(
+							'name' => $this->format_map[$format->formatType],
+						);
+					}
+					if (isset($format->links->downloadLink)){
+						$curFormat['downloadUrl'] = $format->links->downloadLink->href;
+					}
+					$curFormat = array();
+					$curFormat['id'] = $id;
+					$curFormat['name'] = $format->formatType;
+					$bookshelfItem['formats'][] = $curFormat;
 				}
-				if (isset($format->links->downloadLink)){
-					$curFormat['downloadUrl'] = $format->links->downloadLink->href;
+			}else if (isset($curTitle->actions->format)){
+				//Get the options for the format which includes the valid formats
+				$formatField = null;
+				foreach ($curTitle->actions->format->fields as $curFieldIndex => $curField){
+					if ($curField->name == 'formatType'){
+						$formatField = $curField;
+						break;
+					}
 				}
-				$curFormat = array();
-				$curFormat['id'] = $id;
-				$curFormat['name'] = $format->formatType;
-				$bookshelfItem['formats'][] = $curFormat;
+				foreach ($formatField->options as $index => $format){
+					$curFormat = array();
+					$curFormat['id'] = $format;
+					$curFormat['name'] = $this->format_map[$format];
+					$bookshelfItem['formats'][] = $curFormat;
+				}
 			}
+
 			if (isset($curTitle->actions->earlyReturn)){
 				$bookshelfItem['earlyReturn']  = true;
 			}
