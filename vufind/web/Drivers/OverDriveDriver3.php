@@ -358,6 +358,7 @@ class OverDriveDriver3 {
 		global $configArray;
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
 		$response = $this->_callPatronUrl($user->cat_password, null, $url);
+		print_r($response);
 		$checkedOutTitles = array();
 		foreach ($response->checkouts as $curTitle){
 			$bookshelfItem = array();
@@ -376,15 +377,20 @@ class OverDriveDriver3 {
 							'name' => $this->format_map[$format->formatType],
 						);
 					}
-					if (isset($format->links->downloadLink)){
-						$curFormat['downloadUrl'] = $format->links->downloadLink->href;
+					if (isset($format->links->self)){
+						$curFormat['downloadUrl'] = $format->links->self->href . '/downloadlink';
 					}
 					$curFormat = array();
 					$curFormat['id'] = $id;
 					$curFormat['name'] = $format->formatType;
-					$bookshelfItem['formats'][] = $curFormat;
+					if ($format->formatType != 'ebook-overdrive'){
+						$bookshelfItem['formats'][] = $curFormat;
+					}elseif (isset($curFormat['downloadUrl'])){
+						$bookshelfItem['overdriveReadUrl'] = $curFormat['downloadUrl'];
+					}
 				}
-			}else if (isset($curTitle->actions->format)){
+			}
+			if (isset($curTitle->actions->format) && !$bookshelfItem['formatSelected']){
 				//Get the options for the format which includes the valid formats
 				$formatField = null;
 				foreach ($curTitle->actions->format->fields as $curFieldIndex => $curField){
