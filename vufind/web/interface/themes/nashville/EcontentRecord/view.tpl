@@ -166,7 +166,10 @@ function redrawSaveStatus() {literal}{{/literal}
 
 		</div>
 
-		<div id="relatedTitleInfo" style="display:none">
+		
+ 	</div> {* moved this div up so that relatedTitleInfo and detailsTab could stretch to fill the full width of the page *}       
+        
+        <div id="relatedTitleInfo" style="display:none">
 
 			{assign var="scrollerName" value="Series"}
 			{assign var="scrollerTitle" value="Also in this Series"}
@@ -401,7 +404,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			});
 		</script>
 		{/literal}
-	</div>
+
 </div>
 
 {if $showStrands}
