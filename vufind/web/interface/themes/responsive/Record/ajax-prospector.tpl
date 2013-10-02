@@ -6,17 +6,18 @@
 <div class='clearer'>&nbsp;</div>
 </div>
 {/if}
-<ul class="similar unstyled">
+<ul class="similar unstyled list-striped">
   {foreach from=$prospectorResults item=prospectorTitle}
   {if $similar.recordId != -1}
   <li class="prospectorTitle {if $prospectorTitle.isCurrent}currentRecord{/if}">
-    <a href="{$prospectorTitle.link}" rel="external" onclick="window.open (this.href, 'child'); return false">{$prospectorTitle.title|removeTrailingPunctuation|escape}</a>
-    
-    <span style="font-size: 80%">
-    {if $prospectorTitle.author}<br />{translate text='By'}: {$prospectorTitle.author|escape}{/if}
-    {if $prospectorTitle.pubDate}<br />{translate text='Published'}: {$prospectorTitle.pubDate|escape}{/if}
-	  {if $prospectorTitle.format}<br />{translate text='Format'}: {$prospectorTitle.format|escape}{/if}
-    </span>
+    <a href="{$prospectorTitle.link}" rel="external" onclick="window.open (this.href, 'child'); return false"><h5>{$prospectorTitle.title|removeTrailingPunctuation|escape}</h5></a>
+
+	  <dl class="dl-horizontal">
+		  {if $prospectorTitle.author}<dt><small>{translate text='By'}</small></dt><dd><small>{$prospectorTitle.author|escape}</small></dd>{/if}
+		  {if $prospectorTitle.pubDate}<dt><small>{translate text='Published'}</small></dt><dd><small>{$prospectorTitle.pubDate|escape}</small></dd>{/if}
+		  {if $prospectorTitle.format}<dt><small>{translate text='Format'}</small></dt><dd><small>{$prospectorTitle.format|escape}</small></dd>{/if}
+	  </dl>
+
   </li>
   {/if}
   {/foreach}

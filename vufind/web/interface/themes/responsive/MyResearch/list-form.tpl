@@ -1,3 +1,4 @@
+{strip}
 <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal">×</button>
 	<h3 id="modal-title">{translate text='Create a new List'}</h3>
@@ -5,7 +6,7 @@
 <div class="modal-body">
 	{if $listError}<p class="error">{$listError|translate}</p>{/if}
 	<form method="post" action="{$path}/MyResearch/ListEdit" name="listForm"
-	      class="form-horizontal">
+	      class="form-horizontal" id="addListForm">
 		<div class="control-group">
 			<label for="listTitle" class="control-label">{translate text="List"}:</label>
 			<div class="controls">
@@ -28,16 +29,18 @@
 		</div>
 	  <input type="hidden" name="recordId" value="{$recordId}">
 	  <input type="hidden" name="source" value="{$source}">
-	  <input type="hidden" name="followupModule" value="{$followupModule}">
-	  <input type="hidden" name="followupAction" value="{$followupAction}">
-	  <input type="hidden" name="followupId" value="{$followupId}">
-	  <input type="hidden" name="followupText" value="{translate text='Add to Favorites'}">
 	</form>
 </div>
 <div class="modal-footer">
 	<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
-	<input type="submit" class="btn btn-primary" value="{translate text='Save'}"  onclick="return addList(this, &quot;{translate text='add_list_fail'}&quot;);">
+	<input type="submit" class="btn btn-primary" value="{translate text='Save'}"  onclick="return VuFind.Account.addList();">
 </div>
-<script type="text/javascript">
-	$('#public-switch').bootstrapSwitch();
-</script>
+{/strip}
+<script type="text/javascript">{literal}
+	$(document).ready(function(){
+		var publicSwitch = $('#public-switch');
+		if (!publicSwitch.hasClass("has-switch")){
+			publicSwitch['bootstrapSwitch']();
+		}
+	});
+{/literal}</script>

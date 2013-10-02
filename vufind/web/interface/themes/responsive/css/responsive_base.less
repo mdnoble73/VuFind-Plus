@@ -100,6 +100,13 @@
   font-weight: bold;
 }
 
+ul.list-striped, ol.list-striped {
+  > li:nth-child(odd),
+  > li:nth-child(odd) {
+    background-color: @tableBackgroundAccent;
+  }
+}
+
 /** Third party imports **/
 @import "/interface/themes/default/css/ratings.css";
 @import "datepicker.less";

@@ -66,7 +66,7 @@ VuFind.ajaxLightbox = function(urlToDisplay, requireLogin){
 	}else{
 		VuFind.closeLightbox();
 		$(".modal-body").html("Loading");
-
+		var modalDialog = $("#modalDialog");
 		modalDialog.load(urlToDisplay, function(){
 			modalDialog.modal('show');
 		});
@@ -86,6 +86,65 @@ VuFind.Account = {
 	ajaxCallback: null,
 	closeModalOnAjaxSuccess: false,
 
+	/**
+	 * Creates a new list in the system for the active user.
+	 *
+	 * Called from list-form.tpl
+	 * @returns {boolean}
+	 */
+	addList:function(){
+		var form = $("#addListForm");
+		var isPublic = form.find("#public").prop("checked");
+		var recordId = form.find("input[name=recordId]").val();
+		var source = form.find("input[name=source]").val();
+		var title = form.find("input[name=title]").val();
+		var desc = form.find("input[name=desc]").val();
+
+		var url = Globals.path + "/MyResearch/AJAX";
+		var params = "method=AddList&" +
+				"title=" + encodeURIComponent(title) + "&" +
+				"public=" + isPublic + "&" +
+				"desc=" + encodeURIComponent(desc) + "&";
+
+		$.ajax({
+			url: url+'?'+params,
+			dataType: "json",
+			success: function(data) {
+				var value = data.result;
+				if (value) {
+					if (value == "Done") {
+						var newId = data.newId;
+						//Save the record to the list
+						var url = Globals.path + "/Resource/Save?lightbox=true&selectedList=" + newId + "&id=" + recordId + "&source=" + source;
+						VuFind.ajaxLightbox(url);
+					} else {
+						$("#modal-title").html("Error creating list");
+						$(".modal-body").html("<div class='alert alert-error'>There was a error creating your list<br/>" + value + "</div>")
+					}
+				} else {
+					$("#modal-title").html("Error creating list");
+					$(".modal-body").html("<div class='alert alert-error'>There was a error creating your list</div>")
+				}
+			},
+			error: function() {
+				$("#modal-title").html("Error creating list");
+				$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error creating your list<br/>" + textStatus + "</div>")
+			}
+		});
+
+		return false;
+	},
+
+	/**
+	 * Do an ajax process, but only if the user is logged in.
+	 * If the user is not logged in, force them to login and then do the process.
+	 * Can also be called without the ajax callback to just login and not go anywhere
+	 *
+	 * @param trigger
+	 * @param ajaxCallback
+	 * @param closeModalOnAjaxSuccess
+	 * @returns {boolean}
+	 */
 	ajaxLogin: function(trigger, ajaxCallback, closeModalOnAjaxSuccess){
 		if (Globals.loggedIn){
 			if (ajaxCallback != undefined && typeof(ajaxCallback) === "function"){
