@@ -54,7 +54,7 @@
 							<img src="{$record.imageUrl}" alt="Cover Image" />
 						</td>
 						<td>
-							{if $record.recordId != -1}<a href="{$path}/EcontentRecord/{$record.recordId}/Home">{/if}{$record.title}{if $record.recordId != -1}</a>{/if}
+							{if $record.recordId != -1}<a href="{$path}/EcontentRecord/{$record.recordId}/Home">{/if}{$record.title}{if $record.recordId == -1}OverDrive Record {$record.overDriveId}{/if}{if $record.recordId != -1}</a>{/if}
 							{if $record.subTitle}<br/>{$record.subTitle}{/if}
 							{if strlen($record.record->author) > 0}<br/>by: {$record.record->author}{/if}
 						</td>

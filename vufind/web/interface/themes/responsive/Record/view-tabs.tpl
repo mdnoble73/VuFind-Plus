@@ -84,14 +84,13 @@
 		{if $notes}
 			<div id ="notestab" class="tab-pane">
 
-				<ul class='notesList unstyled'>
+				<dl class='notesList'>
 					{foreach from=$notes item=note}
-						<li>{$note}</li>
+						{$note}
 					{/foreach}
-					<li>
 					<div id="relatedContentPlaceholder"></div>
-					</li>
-				</ul>
+				</dl>
+
 			</div>
 		{/if}
 

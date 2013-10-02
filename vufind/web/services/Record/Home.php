@@ -161,6 +161,10 @@ class Record_Home extends Record_Record{
 					}
 
 					if ($editionResource->find(true)){
+						if (isset($edition['language'])){
+							$editionResource->language = $edition['language'];
+						}
+
 						$editionResources[] = $editionResource;
 					}else{
 						$logger= new Logger();

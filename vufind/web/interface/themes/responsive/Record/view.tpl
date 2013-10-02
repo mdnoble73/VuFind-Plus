@@ -45,6 +45,9 @@ function redrawSaveStatus() {literal}{{/literal}
 {* Display Title *}
 <h2>
 	{$recordTitleSubtitle|removeTrailingPunctuation|escape}
+	{if $record.format}
+		&nbsp;<small>({implode subject=$record.format glue=","})</small>
+	{/if}
 </h2>
 {* Display more information about the title*}
 {if $mainAuthor}

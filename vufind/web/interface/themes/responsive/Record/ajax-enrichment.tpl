@@ -73,12 +73,14 @@
 {if $enrichment.novelist.relatedContent}
 <RelatedContent><![CDATA[
 {foreach from=$enrichment.novelist.relatedContent item=contentSection}
-	<div clas='relatedContentSection'>
-	<h4>{$contentSection.title}</h4>
+	<dt>{$contentSection.title}</dt>
+	<dd>
+		<ul class="unstyled">
 		{foreach from=$contentSection.content item=content}
-			<a href="{$content.contentUrl}" onclick="return ajaxLightbox('{$path}/Resource/AJAX?method=GetNovelistData&novelistUrl={$content.contentUrl|escape:"url"}')">{$content.title}{if $content.author} by {$content.author}{/if}</a><br/>
+			<li><a href="{$content.contentUrl}" onclick="return ajaxLightbox('{$path}/Resource/AJAX?method=GetNovelistData&novelistUrl={$content.contentUrl|escape:"url"}')">{$content.title}{if $content.author} by {$content.author}{/if}</a></li>
 	  {/foreach}
-	</div>
+		</ul>
+	</dd>
 {/foreach}
 ]]></RelatedContent>
 {/if}

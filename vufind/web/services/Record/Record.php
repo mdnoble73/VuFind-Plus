@@ -421,7 +421,7 @@ abstract class Record_Record extends Action
 		}
 
 		$notes = array();
-		$marcFields500 = $marcRecord->getFields('500');
+		/*$marcFields500 = $marcRecord->getFields('500');
 		$marcFields504 = $marcRecord->getFields('504');
 		$marcFields511 = $marcRecord->getFields('511');
 		$marcFields518 = $marcRecord->getFields('518');
@@ -429,7 +429,7 @@ abstract class Record_Record extends Action
 		if ($marcFields500 || $marcFields504 || $marcFields505 || $marcFields511 || $marcFields518 || $marcFields520){
 			$allFields = array_merge($marcFields500, $marcFields504, $marcFields511, $marcFields518, $marcFields520);
 			$notes = $this->processNoteFields($allFields);
-		}
+		}*/
 
 		if ((isset($library) && $library->showTableOfContentsTab == 0) || count($tableOfContents) == 0) {
 			$notes = array_merge($notes, $tableOfContents);
@@ -443,7 +443,12 @@ abstract class Record_Record extends Action
 		}
 
 		$additionalNotesFields = array(
-            '310' => 'Current Publication Frequency',
+						'520' => 'Description',
+						'500' => 'General Note',
+						'504' => 'Bibliography',
+						'511' => 'Participants/Performers',
+						'518' => 'Date/Time and Place of Event',
+						'310' => 'Current Publication Frequency',
             '321' => 'Former Publication Frequency',
             '351' => 'Organization & arrangement of materials',
             '362' => 'Dates of publication and/or sequential designation',
@@ -491,7 +496,7 @@ abstract class Record_Record extends Action
 				}
 				$note = implode(',', $noteText);
 				if (strlen($note) > 0){
-					$notes[] = "<b>$label</b>: " . $note;
+					$notes[] = "<dt>$label</dt><dd>" . $note . '</dd>';
 				}
 			}
 		}
