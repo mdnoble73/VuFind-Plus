@@ -182,7 +182,7 @@ class OverDriveDriver3 {
 				$headers = array(
 					"Authorization: $authorizationData",
 					"User-Agent: VuFind-Plus",
-					"Host: integration-patron.api.overdrive.com"
+					"Host: patron.api.overdrive.com"
 				);
 			}else{
 				print_r($tokenData);
@@ -358,7 +358,7 @@ class OverDriveDriver3 {
 		global $configArray;
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
 		$response = $this->_callPatronUrl($user->cat_password, null, $url);
-		print_r($response);
+		//print_r($response);
 		$checkedOutTitles = array();
 		foreach ($response->checkouts as $curTitle){
 			$bookshelfItem = array();
@@ -375,18 +375,22 @@ class OverDriveDriver3 {
 					}else{
 						$bookshelfItem['selectedFormat'] = array(
 							'name' => $this->format_map[$format->formatType],
+							'format' => $format->formatType,
 						);
-					}
-					if (isset($format->links->self)){
-						$curFormat['downloadUrl'] = $format->links->self->href . '/downloadlink';
 					}
 					$curFormat = array();
 					$curFormat['id'] = $id;
+					$curFormat['format'] = $format;
 					$curFormat['name'] = $format->formatType;
+					if (isset($format->links->self)){
+						$curFormat['downloadUrl'] = $format->links->self->href . '/downloadlink';
+					}
 					if ($format->formatType != 'ebook-overdrive'){
 						$bookshelfItem['formats'][] = $curFormat;
-					}elseif (isset($curFormat['downloadUrl'])){
-						$bookshelfItem['overdriveReadUrl'] = $curFormat['downloadUrl'];
+					}else{
+						if (isset($curFormat['downloadUrl'])){
+							$bookshelfItem['overdriveReadUrl'] = $curFormat['downloadUrl'];
+						}
 					}
 				}
 			}
@@ -600,7 +604,7 @@ class OverDriveDriver3 {
 	 * @param string $format
 	 * @return array
 	 */
-	public function cancelOverDriveHold($user, $overDriveId, $format){
+	public function cancelOverDriveHold($overDriveId, $format, $user){
 		global $configArray;
 		global $analytics;
 
@@ -707,19 +711,20 @@ class OverDriveDriver3 {
 			'formatType' => $formatId
 		);
 		$response = $this->_callPatronUrl($user->cat_password, null, $url, $params);
-		print_r($response);
+		//print_r($response);
 
 		$result = array();
 		$result['result'] = false;
 		$result['message'] = '';
 
-		if (isset($response->links->downloadlink)){
+		if (isset($response->linkTemplates->downloadLink)){
 			$result['result'] = true;
 			$result['message'] = 'This format was locked in';
-			$result['downloadUrl'] = $response->links->downloadlink->href;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Select Download Format', 'succeeded');
+			$downloadLink = $this->getDownloadLink($overDriveId, $formatId, $user);
+			$result = $downloadLink;
 		}else{
-			$result['message'] = 'Sorry, but we could not lock-in a format for you.';
+			$result['message'] = 'Sorry, but we could not select a format for you. ' . $response;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Select Download Format', 'failed');
 		}
 		$memCache->delete('overdrive_summary_' . $user->id);
@@ -737,6 +742,11 @@ class OverDriveDriver3 {
 		global $analytics;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . "/v1/patrons/me/checkouts/{$overDriveId}/formats/{$format}/downloadlink";
+		$url .= '?errorpageurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveError');
+		if ($format == 'ebook-overdrive'){
+			$url .= '&odreadauthurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveReadError');
+		}
+
 		$response = $this->_callPatronUrl($user->cat_password, null, $url);
 		//print_r($response);
 
@@ -750,7 +760,7 @@ class OverDriveDriver3 {
 			$result['downloadUrl'] = $response->links->contentlink->href;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Get Download Link', 'succeeded');
 		}else{
-			$result['message'] = 'Sorry, but we could not get a download link for you.';
+			$result['message'] = 'Sorry, but we could not get a download link for you.  ' . $response;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Get Download Link', 'failed');
 		}
 
