@@ -469,7 +469,7 @@ class OverDriveDriver3 {
 				$hold['notifyEmail'] = $curTitle->emailAddress;
 				$hold['holdQueueLength'] = $curTitle->numberOfHolds;
 				$hold['holdQueuePosition'] = $curTitle->holdListPosition;
-				$hold['available'] = ($curTitle->holdListPosition == 0);
+				$hold['available'] = isset($curTitle->actions->checkout);
 				if ($hold['available']){
 					$hold['expirationDate'] = strtotime($curTitle->holdExpires);
 				}
