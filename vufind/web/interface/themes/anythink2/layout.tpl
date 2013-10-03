@@ -199,9 +199,6 @@
                     {include file="$module/breadcrumbs.tpl"}
                   </div>
                 {/if}
-                <div id="messages">
-                  Digital content is unavailable for download via the catalog at this time.  To access e-books and audio books, please <a href="http://anythinklibraries.lib.overdrive.com/71467B63-6F1B-4397-AB09-B478CFF9C47B/10/667/en/Default.htm">click here</a>.
-                </div>
               {include file="$module/$pageTemplate"}
             </div></div>
           </div>
