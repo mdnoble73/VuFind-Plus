@@ -4,6 +4,7 @@
 			<th>Format</th>
 			<th>Language</th>
 			<th>Availability</th>
+			<th>Copies</th>
 			<th>&nbsp;</th>
 		</tr>
 		{foreach from=$otherEditions item=resource name="recordLoop"}
@@ -41,8 +42,15 @@
 				</td>
 
 				<td>
+					<div class="copiesValue" id="copiesValue{$resource->record_id|regex_replace:"/\./":""}">
+						<small>{translate text='Loading'}...</small>
+					</div>
+				</td>
+
+
+				<td>
 					{* Place hold link *}
-					<div class='requestThisLink resultAction btn btn-small' id="placeHold{$resource->record_id|escape:"url"}" style="display:none">
+					<div class='resultAction btn btn-small' id="placeHold{$resource->shortId|escape:"url"}" style="display:none">
 						<a href="{$path}/{if strtoupper($resource->source) == 'VUFIND'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}/Hold">{translate text="Place Hold"}</a>
 					</div>
 				</td>

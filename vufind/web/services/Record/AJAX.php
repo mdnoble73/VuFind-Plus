@@ -276,7 +276,7 @@ class Record_AJAX extends Action {
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 
-		$sms = new SMS();
+		$sms = new Record_SMS();
 		$result = $sms->sendSMS();
 
 		if (PEAR_Singleton::isError($result)) {

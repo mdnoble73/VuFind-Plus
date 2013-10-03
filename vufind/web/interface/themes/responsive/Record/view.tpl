@@ -4,7 +4,7 @@
 <script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
 <script type="text/javascript">
 {literal}$(document).ready(function(){{/literal}
-	VuFind.Record.loadHoldingsInfo('{$id|escape:"url"}', 'VuFind');
+	VuFind.Record.loadHoldingsInfo('{$id|escape:"url"}', '{$shortId}', 'VuFind');
 	{if $isbn || $upc}
 		VuFind.Record.loadEnrichmentInfo('{$id|escape:"url"}', '{$isbn10|escape:"url"}', '{$upc|escape:"url"}');
 	{/if}
@@ -125,9 +125,8 @@ function redrawSaveStatus() {literal}{{/literal}
 				{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
 
 				<div id="ratings" class="well center">
-					<h4>Rating:</h4>
 					{* Let the user rate this title *}
-					{include file="Record/title-rating.tpl" ratingClass="" recordId=$id shortId=$shortId ratingData=$ratingData showFavorites=0}
+					{include file="Record/title-rating-full.tpl" ratingClass="" recordId=$id shortId=$shortId ratingData=$ratingData showFavorites=0}
 				</div>
 			</div>
 

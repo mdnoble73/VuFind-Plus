@@ -682,7 +682,7 @@ VuFind.Record = {
 		});
 	},
 
-	loadHoldingsInfo: function (id) {
+	loadHoldingsInfo: function (id, shortId, source) {
 		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 		var params = "method=GetHoldingsInfo";
 		var fullUrl = url + "?" + params;
@@ -717,7 +717,8 @@ VuFind.Record = {
 				var showPlaceHold = $(data).find("ShowPlaceHold").text();
 				if (showPlaceHold) {
 					if (showPlaceHold.length > 0 && showPlaceHold == 1) {
-						$(".requestThisLink").show();
+						//$(".requestThisLink").show();
+						$("#placeHold" + shortId).show();
 					}
 				}
 				var eAudioLink = $(data).find("EAudioLink").text();
@@ -753,6 +754,40 @@ VuFind.Record = {
 				}else{
 					//$("#reviewPlaceholder").html("There are no reviews for this title.");
 				}
+			}
+		});
+	},
+
+	/**
+	 * Used to send a text message related to a specific record.
+	 * Includes title, author, call number, etc.
+	 * @param id
+	 */
+	sendSMS: function(id){
+		var smsForm = $("#smsForm");
+		var to = smsForm.find("input[name=to]").val();
+		var provider = smsForm.find("input[name=provider]").val();
+		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		var params = "method=SendSMS&" + "to=" + encodeURIComponent(to) + "&" + "provider=" + encodeURIComponent(provider);
+
+		$.ajax({
+			url: url+'?'+params,
+
+			success: function(data) {
+				var value = $(data).find('result');
+				if (value) {
+					if (value.text() == "Done") {
+						$(".modal-body").html("<div class='alert alert-success'>Your Text Message has been sent</div>");
+						setTimeout("VuFind.closeLightbox();", 3000);
+					} else {
+						$(".modal-body").html("<div class='alert alert-error'>Could not send text message</div>");
+					}
+				} else {
+					$(".modal-body").html("<div class='alert alert-error'>Failed to send text message</div>");
+				}
+			},
+			error: function() {
+				$(".modal-body").html("<div class='alert alert-error'>Unexpected error sending text message</div>");
 			}
 		});
 	},
