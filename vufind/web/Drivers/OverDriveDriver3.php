@@ -360,79 +360,81 @@ class OverDriveDriver3 {
 		$response = $this->_callPatronUrl($user->cat_password, null, $url);
 		//print_r($response);
 		$checkedOutTitles = array();
-		foreach ($response->checkouts as $curTitle){
-			$bookshelfItem = array();
-			//Load data from api
-			$bookshelfItem['overDriveId'] = $curTitle->reserveId;
-			$bookshelfItem['expiresOn'] = $curTitle->expires;
-			$bookshelfItem['overdriveRead'] = false;
-			$bookshelfItem['formatSelected'] = ($curTitle->isFormatLockedIn == 1);
-			$bookshelfItem['formats'] = array();
-			if (isset($curTitle->formats)){
-				foreach ($curTitle->formats as $id => $format){
-					if ($format->formatType == 'ebook-overdrive'){
-						$bookshelfItem['overdriveRead'] = true;
-					}else{
-						$bookshelfItem['selectedFormat'] = array(
-							'name' => $this->format_map[$format->formatType],
-							'format' => $format->formatType,
-						);
-					}
-					$curFormat = array();
-					$curFormat['id'] = $id;
-					$curFormat['format'] = $format;
-					$curFormat['name'] = $format->formatType;
-					if (isset($format->links->self)){
-						$curFormat['downloadUrl'] = $format->links->self->href . '/downloadlink';
-					}
-					if ($format->formatType != 'ebook-overdrive'){
-						$bookshelfItem['formats'][] = $curFormat;
-					}else{
-						if (isset($curFormat['downloadUrl'])){
-							$bookshelfItem['overdriveReadUrl'] = $curFormat['downloadUrl'];
+		if (isset($response->checkouts)){
+			foreach ($response->checkouts as $curTitle){
+				$bookshelfItem = array();
+				//Load data from api
+				$bookshelfItem['overDriveId'] = $curTitle->reserveId;
+				$bookshelfItem['expiresOn'] = $curTitle->expires;
+				$bookshelfItem['overdriveRead'] = false;
+				$bookshelfItem['formatSelected'] = ($curTitle->isFormatLockedIn == 1);
+				$bookshelfItem['formats'] = array();
+				if (isset($curTitle->formats)){
+					foreach ($curTitle->formats as $id => $format){
+						if ($format->formatType == 'ebook-overdrive'){
+							$bookshelfItem['overdriveRead'] = true;
+						}else{
+							$bookshelfItem['selectedFormat'] = array(
+								'name' => $this->format_map[$format->formatType],
+								'format' => $format->formatType,
+							);
+						}
+						$curFormat = array();
+						$curFormat['id'] = $id;
+						$curFormat['format'] = $format;
+						$curFormat['name'] = $format->formatType;
+						if (isset($format->links->self)){
+							$curFormat['downloadUrl'] = $format->links->self->href . '/downloadlink';
+						}
+						if ($format->formatType != 'ebook-overdrive'){
+							$bookshelfItem['formats'][] = $curFormat;
+						}else{
+							if (isset($curFormat['downloadUrl'])){
+								$bookshelfItem['overdriveReadUrl'] = $curFormat['downloadUrl'];
+							}
 						}
 					}
 				}
-			}
-			if (isset($curTitle->actions->format) && !$bookshelfItem['formatSelected']){
-				//Get the options for the format which includes the valid formats
-				$formatField = null;
-				foreach ($curTitle->actions->format->fields as $curFieldIndex => $curField){
-					if ($curField->name == 'formatType'){
-						$formatField = $curField;
-						break;
+				if (isset($curTitle->actions->format) && !$bookshelfItem['formatSelected']){
+					//Get the options for the format which includes the valid formats
+					$formatField = null;
+					foreach ($curTitle->actions->format->fields as $curFieldIndex => $curField){
+						if ($curField->name == 'formatType'){
+							$formatField = $curField;
+							break;
+						}
+					}
+					foreach ($formatField->options as $index => $format){
+						$curFormat = array();
+						$curFormat['id'] = $format;
+						$curFormat['name'] = $this->format_map[$format];
+						$bookshelfItem['formats'][] = $curFormat;
 					}
 				}
-				foreach ($formatField->options as $index => $format){
-					$curFormat = array();
-					$curFormat['id'] = $format;
-					$curFormat['name'] = $this->format_map[$format];
-					$bookshelfItem['formats'][] = $curFormat;
+
+				if (isset($curTitle->actions->earlyReturn)){
+					$bookshelfItem['earlyReturn']  = true;
 				}
-			}
+				//Figure out which eContent record this is for.
+				$eContentRecord = new EContentRecord();
+				$eContentRecord->externalId = $bookshelfItem['overDriveId'];
+				$eContentRecord->source = 'OverDrive';
+				$eContentRecord->status = 'active';
+				if ($eContentRecord->find(true)){
+					$bookshelfItem['recordId'] = $eContentRecord->id;
+					$bookshelfItem['title'] = $eContentRecord->title;
+					$bookshelfItem['imageUrl'] = $eContentRecord->cover;
 
-			if (isset($curTitle->actions->earlyReturn)){
-				$bookshelfItem['earlyReturn']  = true;
+					//Get Rating
+					require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
+					$econtentRating = new EContentRating();
+					$econtentRating->recordId = $eContentRecord->id;
+					$bookshelfItem['ratingData'] = $econtentRating->getRatingData($user, false);
+				}else{
+					$bookshelfItem['recordId'] = -1;
+				}
+				$checkedOutTitles[] = $bookshelfItem;
 			}
-			//Figure out which eContent record this is for.
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->externalId = $bookshelfItem['overDriveId'];
-			$eContentRecord->source = 'OverDrive';
-			$eContentRecord->status = 'active';
-			if ($eContentRecord->find(true)){
-				$bookshelfItem['recordId'] = $eContentRecord->id;
-				$bookshelfItem['title'] = $eContentRecord->title;
-				$bookshelfItem['imageUrl'] = $eContentRecord->cover;
-
-				//Get Rating
-				require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
-				$econtentRating = new EContentRating();
-				$econtentRating->recordId = $eContentRecord->id;
-				$bookshelfItem['ratingData'] = $econtentRating->getRatingData($user, false);
-			}else{
-				$bookshelfItem['recordId'] = -1;
-			}
-			$checkedOutTitles[] = $bookshelfItem;
 		}
 		$this->checkouts[$user->id] = $checkedOutTitles;
 		return array(
@@ -511,24 +513,6 @@ class OverDriveDriver3 {
 	 * @return array
 	 */
 	public function getOverDriveSummary($user){
-		//TODO: Optimize to use new API when available
-		$apiURL = "https://temp-patron.api.overdrive.com/Marmot/Marmot/" . $user->cat_password;
-		$summaryResultRaw = file_get_contents($apiURL);
-		$summary = array(
-			'numCheckedOut' => 0,
-			'numAvailableHolds' => 0,
-			'numUnavailableHolds' => 0,
-		);
-		if ($summaryResultRaw != "Library patron not found."){
-			$summaryResults = json_decode($summaryResultRaw, true);
-			$summary['numCheckedOut'] = $summaryResults['CheckoutCount'];
-			$summary['numAvailableHolds'] = $summaryResults['AvailableHoldCount'];
-			$summary['numUnavailableHolds'] = $summaryResults['PendingHoldCount'];
-		}
-		return $summary;
-	}
-
-	public function getAccountDetails($user){
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
@@ -551,14 +535,18 @@ class OverDriveDriver3 {
 			$summary['checkedOut'] = $checkedOutItems;
 			$summary['holds'] = $holds['holds'];
 
-			//Get lending options
-			//TODO: Figure out how to load lending options
-
 			$timer->logTime("Finished loading titles from overdrive summary");
 			$memCache->set('overdrive_summary_' . $user->id, $summary, 0, $configArray['Caching']['overdrive_summary']);
 		}
 
 		return $summary;
+	}
+
+	public function getLendingPeriods($user){
+		//TODO: Replace this with an API when available
+		require_once ROOT_DIR . '/Drivers/OverDriveDriver2.php';
+		$overDriveDriver2 = new OverDriveDriver2();
+		return $overDriveDriver2->getLendingPeriods($user);
 	}
 
 	/**
@@ -733,8 +721,10 @@ class OverDriveDriver3 {
 	}
 
 	public function updateLendingOptions(){
-		//TODO: Replace this with APIs
-		return false;
+		//TODO: Replace this with an API when available
+		require_once ROOT_DIR . '/Drivers/OverDriveDriver2.php';
+		$overDriveDriver2 = new OverDriveDriver2();
+		return $overDriveDriver2->updateLendingOptions();
 	}
 
 	public function getDownloadLink($overDriveId, $format, $user){
