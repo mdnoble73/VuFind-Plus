@@ -37,7 +37,7 @@
         <img class='bookjacket' src="{$path}/bookcover.php" alt="{translate text='No Cover Image'}"/>
      {/if}
      {* Show the book title *}
-     <div class='seriesTitle'>{$outer.title|regex_replace:"/(\/|:)$/":""|escape}</div>
+     <div class='seriesTitle'>{$outer.title|removeTrailingPunctuation|escape}</div>
      {if $outer.recordId != -1 || $outer.isbn10}
 	     {* close the link *}
 	     </a>
@@ -58,7 +58,7 @@
   {foreach from=$enrichment.novelist.similarTitles item=similar}
   {if $similar.recordId != -1}
   <li>
-    <a href="{$path}/Record/{$similar.recordId|escape:"url"}" {if $similar.reason}title="{$similar.reason}"{/if}>{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+    <a href="{$path}/Record/{$similar.recordId|escape:"url"}" {if $similar.reason}title="{$similar.reason}"{/if}>{$similar.title|removeTrailingPunctuation|escape}</a>
     
     <span style="font-size: 80%">
     {if $similar.author}<br />{translate text='By'}: {$similar.author|escape}{/if}
@@ -76,7 +76,7 @@
 	<div clas='relatedContentSection'>
 	<h4>{$contentSection.title}</h4>
 		{foreach from=$contentSection.content item=content}
-			<a href="{$content.contentUrl}" onclick="return ajaxLightbox('{$path}/Resource/AJAX?method=GetNovelistData&novelistUrl={$content.contentUrl|escape:"url"}')">{$content.title}{if $content.author} by {$content.author}{/if}</a><br/>
+			<a href="{$content.contentUrl}" onclick="return VuFind.ajaxLightbox('{$path}/Resource/AJAX?method=GetNovelistData&novelistUrl={$content.contentUrl|escape:"url"}')">{$content.title}{if $content.author} by {$content.author}{/if}</a><br/>
 	  {/foreach}
 	</div>
 {/foreach}

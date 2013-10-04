@@ -2,10 +2,10 @@
 <a rel="external" href="{$path}/MyResearch/MyList/{$summShortId}">
 <div class="result" id="record{$summId|escape}">
 	<h3 class="recordTitle">
-		{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}
+		{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
 		{if $summTitleStatement}
 			<div class="searchResultSectionInfo">
-				{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
+				{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 			</div>
 		{/if}
 	</h3>

@@ -13,7 +13,7 @@
   {foreach from=$enrichment.novelist.similarTitles item=similar}
   {if $similar.recordId != -1}
   <div class="sidebarLabel">
-    <a href="{$path}/Record/{$similar.recordId|escape:"url"}">{$similar.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+    <a href="{$path}/Record/{$similar.recordId|escape:"url"}">{$similar.title|removeTrailingPunctuation|escape}</a>
   </div>  
   <div class="sidebarValue">
     {if $similar.author}{translate text='By'}: {$similar.author|escape}{/if}

@@ -21,10 +21,10 @@
 		
 		<div class="resultDetails">
 			<div class="resultItemLine1 title">
-				<a href="{$path}/Person/{$summShortId}" class="title">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+				<a href="{$path}/Person/{$summShortId}" class="title">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 				{if $summTitleStatement}
 					<div class="searchResultSectionInfo">
-					{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
+					{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 					</div>
 				{/if}
 				

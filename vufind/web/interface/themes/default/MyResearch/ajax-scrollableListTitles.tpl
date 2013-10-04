@@ -18,7 +18,7 @@
     </div>
     {* Display the title with a link to the actual record. *}
     <div class='suggestionTitleTitle'>
-    <a href='{$path}/Record/{$suggestion.id}'>{$suggestion.title_short|regex_replace:"/(\/|:)$/":""|escape}</a>
+    <a href='{$path}/Record/{$suggestion.id}'>{$suggestion.title_short|removeTrailingPunctuation|escape}</a>
     </div>
   </li>
 {/foreach}

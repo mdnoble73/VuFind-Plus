@@ -10,7 +10,7 @@
   {foreach from=$prospectorResults item=prospectorTitle}
   {if $similar.recordId != -1}
   <li class="prospectorTitle {if $prospectorTitle.isCurrent}currentRecord{/if}">
-    <a href="{$prospectorTitle.link}" rel="external" onclick="window.open (this.href, 'child'); return false">{$prospectorTitle.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+    <a href="{$prospectorTitle.link}" rel="external" onclick="window.open (this.href, 'child'); return false">{$prospectorTitle.title|removeTrailingPunctuation|escape}</a>
     
     <span style="font-size: 80%">
     {if $prospectorTitle.author}<br />{translate text='By'}: {$prospectorTitle.author|escape}{/if}

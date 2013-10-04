@@ -104,54 +104,40 @@
 											{else}
 													<tr id="record{$record.recordId|escape}" class="result record{$smarty.foreach.recordLoop.iteration}">
 											{/if}
-											<td class="titleSelectCheckedOut myAccountCell">
-												<input type="checkbox" name="selected[{$record.recordId|escape:"url"}]" class="titleSelect" value="rsh{$record.itemindex}" id="rsh{$record.itemindex}" />
-												</td>
-												{if $user->disableCoverArt != 1}
-													<td class="myAccountCell imageCell">
-														<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.recordId|escape:"url"}">
-															<img src="{$path}/bookcover.php?id={$record.recordId}&amp;issn={$record.issn}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
-														</a>
-
-														<div id='descriptionPlaceholder{$record.recordId|escape}' style='display:none'></div>
-													</td>
-												{/if}
-												<td class="myAccountCell">
-
-													{* Place hold link *}
-													<div class='requestThisLink' id="placeHold{$record.recordId|escape:"url"}" style="display:none">
-														<a href="{$path}/Record/{$record.recordId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
-													</div>
-													<div class="myAccountTitleDetails">
-														<div class="resultItemLine1">
-														{if $record.recordId}
-															<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""}{/if}</a>
+											<td class="myAccountCell">
+												
+												{* Place hold link *}
+												<div class='requestThisLink' id="placeHold{$record.recordId|escape:"url"}" style="display:none">
+													<a href="{$path}/Record/{$record.recordId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>
+												</div>
+												<div class="myAccountTitleDetails">
+													<div class="resultItemLine1">
+													{if $record.recordId}
+														<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}</a>
+													{else}
+														{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}
+													{/if}
+													{if $record.title2}
+														<div class="searchResultSectionInfo">
+															{$record.title2|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
+														</div>
+													{/if}
+												</div>
+												<div class="resultItemLine2">
+													{if $record.author}
+														{translate text='by'}
+														{if is_array($record.author)}
+															{foreach from=$summAuthor item=author}
+																<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+															{/foreach}
 														{else}
-															{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""}{/if}
+															<a href="{$path}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight:$lookfor}</a>
 														{/if}
-														{if $record.title2}
-															<div class="searchResultSectionInfo">
-																{$record.title2|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
-															</div>
-														{/if}
-													</div>
-													<div class="resultItemLine2">
-														{if $record.author}
-															{translate text='by'}
-															{if is_array($record.author)}
-																{foreach from=$summAuthor item=author}
-																	<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
-																{/foreach}
-															{else}
-																<a href="{$path}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight:$lookfor}</a>
-															{/if}
-														{/if}
+													{/if}
 
-														{if $record.publicationDate}{translate text='Published'} {$record.publicationDate|escape}{/if}
-													</div>
-
-													</div>
-												</td>
+													{if $record.publicationDate}{translate text='Published'} {$record.publicationDate|escape}{/if}
+												</div>
+											</td>
 
 												<td class="myAccountCell">
 													{if is_array($record.format)}
@@ -195,7 +181,7 @@
 												;*/
 									{literal} }); {/literal}
 								</script>
-							{else if $historyActive == true}
+							{elseif $historyActive == true}
 								{* No Items in the history, but the history is active *}
 								You do not have any items in your reading list.	It may take up to 3 hours for your reading history to be updated after you start recording your history.
 							{/if}

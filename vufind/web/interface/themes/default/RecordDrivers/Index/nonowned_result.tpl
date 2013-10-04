@@ -4,7 +4,7 @@
 </div>
 <div class="resultDetails">
 	<div class="resultItemLine1">
-		{if !$record.title|regex_replace:"/(\/|:)$/":""}{translate text='Title not available'}{else}{$record.title|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}{/if}
+		{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
 		{if $record.volume}
 			<br/>{$record.series} {$record.volume}&nbsp; 
 		{/if}

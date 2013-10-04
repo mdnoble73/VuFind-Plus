@@ -258,6 +258,10 @@ class EContentDriver implements DriverInterface{
 		}
 	}
 
+	/**
+	 * @param EContentRecord $eContentRecord
+	 * @return array
+	 */
 	public function getScopedAvailability($eContentRecord){
 		$availability = array();
 		$availability['mine'] = $eContentRecord->getAvailability();

@@ -2221,7 +2221,7 @@ class Solr implements IndexEngine {
 				//print_r($field);
 				$fields[] = (string)$field['name'];
 			}
-			$memCache->set('schema_fields', $fields, 24 * 60 * 60);
+			$memCache->set('schema_fields', $fields, 0, 24 * 60 * 60);
 		}
 		return $fields;
 	}

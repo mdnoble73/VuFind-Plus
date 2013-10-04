@@ -14,7 +14,7 @@ class AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_GET['method'];
-		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'DeleteItem', 'SaveComment', 'CheckoutOverDriveItem', 'PlaceOverDriveHold', 'CancelOverDriveHold', 'GetOverDriveHoldPrompts', 'ReturnOverDriveItem', 'SelectOverDriveDownloadFormat'))){
+		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'DeleteItem', 'SaveComment', 'CheckoutOverDriveItem', 'PlaceOverDriveHold', 'CancelOverDriveHold', 'GetOverDriveHoldPrompts', 'ReturnOverDriveItem', 'SelectOverDriveDownloadFormat', 'GetDownloadLink'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -599,6 +599,21 @@ class AJAX extends Action {
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
 			$result = $driver->selectOverDriveDownloadFormat($overDriveId, $formatId, $user);
+			//$logger->log("Checkout result = $result", PEAR_LOG_INFO);
+			return json_encode($result);
+		}else{
+			return json_encode(array('result'=>false, 'message'=>'You must be logged in to download a title.'));
+		}
+	}
+
+	function GetDownloadLink(){
+		global $user;
+		$overDriveId = $_REQUEST['overDriveId'];
+		$formatId = $_REQUEST['formatId'];
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
+			$result = $driver->getDownloadLink($overDriveId, $formatId, $user);
 			//$logger->log("Checkout result = $result", PEAR_LOG_INFO);
 			return json_encode($result);
 		}else{

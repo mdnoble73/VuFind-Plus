@@ -73,7 +73,7 @@
 							{if $record.formatSelected}
 								You downloaded the <strong>{$record.selectedFormat.name}</strong> format of this title.
 								<br/>
-								<a href="{$record.downloadUrl|replace:'&':'&amp;'}" class="button">Download&nbsp;Again</a>
+								<a href="#" class="button" onclick="followOverDriveDownloadLink('{$record.overDriveId}', '{$record.selectedFormat.format}')">Download&nbsp;Again</a>
 							{else}
 								<label for="downloadFormat_{$record.overDriveId}">Select one format to download.</label>
 								<select name="downloadFormat_{$record.overDriveId}" id="downloadFormat_{$record.overDriveId}">
@@ -93,7 +93,7 @@
 							{if $record.overdriveRead}
 								<br/>
 								<br/>
-								<a href="{$record.overdriveReadUrl}" class="button">Read&nbsp;Online with OverDrive&nbsp;Read</a>
+								<a href="#" onclick="followOverDriveDownloadLink('{$record.overDriveId}', 'ebook-overdrive')" class="button">Read&nbsp;Online with OverDrive&nbsp;Read</a>
 							{/if}
 						</td>
 					</tr>

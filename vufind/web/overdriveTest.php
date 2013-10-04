@@ -10,7 +10,8 @@ $driver = OverDriveDriverFactory::getDriver();
 //Connect to the patron API
 echo("<h2>Patron API tests</h2>");
 $user = new User();
-$user->cat_password = '1234567890';
+$user->cat_password = '4090000012345';
+$user->overdriveEmail = 'spam@marmot.org';
 echo("<h3>Getting patron information</h3>");
 $accountDetails = $driver->getAccountDetails($user);
 //$patronData = $driver->_callPatronUrl($user->cat_password, null, 'http://api.mock.overdrive.com/v2/patrons/me');
@@ -21,11 +22,15 @@ $patronData = $driver->getOverDriveHolds($user, 'http://api.mock.overdrive.com/v
 print_r($patronData);
 
 echo("<h3>Placing Hold</h3>");
-$placeHoldResult = $driver->placeOverDriveHold('5ad4d606-35c0-47a6-88c7-d940c1288cdd', null, $user);
+$placeHoldResult = $driver->placeOverDriveHold('0D85564B-A4B3-43D5-875D-1DF3CA06AE65', null, $user);
 print_r($placeHoldResult);
 
 echo("<h3>Cancelling Hold</h3>");
-$cancelResult = $driver->cancelOverDriveHold($user, '5ad4d606-35c0-47a6-88c7-d940c1288cdd', null);
+$cancelResult = $driver->cancelOverDriveHold($user, '0D85564B-A4B3-43D5-875D-1DF3CA06AE65', null);
+print_r($cancelResult);
+
+echo("<h3>Cancelling Non Existent Hold</h3>");
+$cancelResult = $driver->cancelOverDriveHold($user, '12F25D77-A306-42E2-92FA-0CDA71915A57', null);
 print_r($cancelResult);
 
 echo("<h3>Getting checkouts</h3>");
@@ -33,34 +38,38 @@ $patronData = $driver->getOverDriveCheckedOutItems($user, 'http://api.mock.overd
 print_r($patronData);
 
 echo("<h3>Checking Out title (format locked in)</h3>");
-$checkoutResult = $driver->checkoutOverDriveItem('5ad4d606-35c0-47a6-88c7-d940c1288cdd', 'ebook-epub-adobe', null, $user);
+$checkoutResult = $driver->checkoutOverDriveItem('12F25D77-A306-42E2-92FA-0CDA71915A57', 'ebook-epub-adobe', null, $user);
 print_r($checkoutResult);
 
 echo("<h3>Checking Out title (format not locked in)</h3>");
-$checkoutResult = $driver->checkoutOverDriveItem('5ad4d606-35c0-47a6-88c7-d940c1288cdd', null, null, $user);
+$checkoutResult = $driver->checkoutOverDriveItem('E72A25BF-2B10-49EA-8887-5B70B78537A8', null, null, $user);
 print_r($checkoutResult);
 
-echo("<h3>Lock in a format for a title</h3>");
+/*echo("<h3>Lock in a format for a title</h3>");
 $selectFormatResult = $driver->selectOverDriveDownloadFormat('76c1b7d0-17f4-4c05-8397-c66c17411584', 'ebook-epub-adobe', $user);
-print_r($selectFormatResult);
+print_r($selectFormatResult);*/
 
 echo("<h3>Return title</h3>");
-$returnResult = $driver->returnOverDriveItem('5ad4d606-35c0-47a6-88c7-d940c1288cdd', null, $user);
+$returnResult = $driver->returnOverDriveItem('E72A25BF-2B10-49EA-8887-5B70B78537A8', null, $user);
 print_r($returnResult);
 
 echo("<h3>Get Download Link for a title</h3>");
-$downloadLink = $driver->getDownloadLink('5ad4d606-35c0-47a6-88c7-d940c1288cdd', 'ebook-epub-adobe', $user);
+$downloadLink = $driver->getDownloadLink('12F25D77-A306-42E2-92FA-0CDA71915A57', 'ebook-epub-adobe', $user);
 print_r($downloadLink);
 echo("<br /><a href='" . $downloadLink['downloadUrl'] ."'>Download Here</a>");
 
 echo("<h3>Get OverDrive Read link for a title</h3>");
-$downloadLink = $driver->getDownloadLink('5ad4d606-35c0-47a6-88c7-d940c1288cdd', 'ebook-overdrive', $user);
+$downloadLink = $driver->getDownloadLink('12F25D77-A306-42E2-92FA-0CDA71915A57', 'ebook-overdrive', $user);
 print_r($downloadLink);
 echo("<br /><a href='" . $downloadLink['downloadUrl'] ."'>Download Here</a>");
 
+echo("<h3>Return title</h3>");
+$returnResult = $driver->returnOverDriveItem('12F25D77-A306-42E2-92FA-0CDA71915A57', null, $user);
+print_r($returnResult);
+
 echo("<h2>End patron API tests</h2>");
 
-
+/*
 $libraryInfo = $driver->getLibraryAccountInformation();
 print_r($libraryInfo);
 echo("<h1>{$libraryInfo->name}</h1>");
@@ -88,7 +97,7 @@ echo("<h3>Metadata</h3>");
 echo($firstProduct->links->metadata->href);
 //$metadata = $driver->getProductMetadata($firstProduct->links->metadata->href);
 $metadata = $driver->getProductMetadata("cda4632c-0593-46e7-94a4-1e4c4451da09", "L1BMAEAAA2k");
-print_r($metadata);
+print_r($metadata);*/
 
 
 

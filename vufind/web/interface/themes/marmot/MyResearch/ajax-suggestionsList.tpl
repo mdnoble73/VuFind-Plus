@@ -8,7 +8,7 @@
     <li class='suggestedTitle'>
       {* Display the title with a link to the actual record. *}
       <div class='suggestedTitleTitle'>
-      <a href='{$path}/Record/{$suggestion.titleInfo.id}'>{$suggestion.titleInfo.title|regex_replace:"/(\/|:)$/":""|escape}</a>
+      <a href='{$path}/Record/{$suggestion.titleInfo.id}'>{$suggestion.titleInfo.title|removeTrailingPunctuation|escape}</a>
       </div>
       {* Display the book cover *}
       <div class='suggestedTitleInfo'>
@@ -27,7 +27,7 @@
         <div class='suggestionBasedOnLabel'>Because you enjoyed:</div>
         <ol>
         {foreach from=$suggestion.basedOn item=basedOnTitle}
-           <li class='sugggestionBasedOnTitle'><a href='{$path}/Record/{$basedOnTitle.id}'>{$basedOnTitle.title|regex_replace:"/(\/|:)$/":""|escape}</a></li>
+           <li class='sugggestionBasedOnTitle'><a href='{$path}/Record/{$basedOnTitle.id}'>{$basedOnTitle.title|removeTrailingPunctuation|escape}</a></li>
         {/foreach}
         </ol>
       </div>

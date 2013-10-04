@@ -164,7 +164,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			{/if}
 			<div id="recordTitleAuthorGroup">
 				{* Display Title *}
-				<div id='recordTitle'>{$eContentRecord->title|regex_replace:"/(\/|:)$/":""|escape}{if $eContentRecord->subTitle}: {$eContentRecord->subTitle|regex_replace:"/(\/|:)$/":""|escape}{/if}
+				<div id='recordTitle'>{$eContentRecord->title|removeTrailingPunctuation|escape}{if $eContentRecord->subTitle}: {$eContentRecord->subTitle|removeTrailingPunctuation|escape}{/if}
 				{if $user && $user->hasRole('epubAdmin')}
 				{if $eContentRecord->status != 'active'}<span id="eContentStatus">({$eContentRecord->status})</span>{/if}
 				<span id="editEContentLink"><a href='{$path}/EcontentRecord/{$id}/Edit'>(edit)</a></span>

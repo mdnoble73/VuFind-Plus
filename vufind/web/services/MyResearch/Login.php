@@ -29,7 +29,6 @@ class Login extends Action
 	function launch($msg = null)
 	{
 		global $interface;
-		global $configArray;
 		global $module;
 		global $action;
 		global $library;

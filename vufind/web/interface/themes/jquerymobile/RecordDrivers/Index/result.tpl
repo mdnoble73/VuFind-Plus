@@ -4,7 +4,7 @@
 		<h3 class="recordTitle">
 			{if !empty($summHighlightedTitle)}{$summHighlightedTitle|trim:':/'|highlight}{else}{$summTitle|trim:':/'|escape}{/if}
 			{if $summTitleStatement}
-				{$summTitleStatement|regex_replace:"/(\/|:)$/":""|truncate:180:"..."|highlight:$lookfor}
+				{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 			{/if}
 		</h3>
 		{if !empty($summAuthor)}

@@ -38,7 +38,7 @@ function redrawSaveStatus() {literal}{{/literal}
 			{/if}
 			<div id="recordTitleAuthorGroup">
 				{* Display Title *}
-				<div id='recordTitle'>{$recordTitleSubtitle|regex_replace:"/(\/|:)$/":""|escape}</div>
+				<div id='recordTitle'>{$recordTitleSubtitle|removeTrailingPunctuation|escape}</div>
 				{* Display more information about the title*}
 				{if $mainAuthor}
 					<div class="recordAuthor">

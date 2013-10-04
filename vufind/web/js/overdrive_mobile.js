@@ -14,6 +14,28 @@ function checkoutOverDriveItem(overdriveId, formatId){
 	return false;
 }
 
+function followOverDriveDownloadLink(overDriveId, formatId){
+	var ajaxUrl = path + "/EcontentRecord/AJAX?method=GetDownloadLink&overDriveId=" + overDriveId + "&formatId=" + formatId;
+	$.ajax({
+		url: ajaxUrl,
+		cache: false,
+		success: function(data){
+			if (data.result){
+				//Reload the page
+				window.location.href = data.downloadUrl ;
+			}else{
+				alert(data.message);
+			}
+		},
+		dataType: 'json',
+		async: false,
+		error: function(){
+			alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
+			hideLightbox();
+		}
+	});
+}
+
 function selectOverDriveFormat(overdriveId, nextAction){
 	hideLightbox();
 	var ajaxUrl = path + "/EcontentRecord/AJAX?method=SelectOverDriveFormat&overDriveId=" + overdriveId + "&nextAction=" + nextAction;

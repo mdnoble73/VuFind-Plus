@@ -431,6 +431,46 @@ class OverDriveDriver2 {
 		return $summary;
 	}
 
+	public function getLendingPeriods($user){
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $configArray;
+		global $timer;
+		global $logger;
+
+		$lendingOptions = $memCache->get('overdrive_lending_periods_' . $user->id);
+		if ($lendingOptions == false || isset($_REQUEST['reload'])){
+			$ch = curl_init();
+
+			$overDriveInfo = $this->_loginToOverDrive($ch, $user);
+			//Navigate to the account page
+			//Load the My Holds page
+			//print_r("Account url: " . $overDriveInfo['accountUrl']);
+			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $overDriveInfo['accountUrl']);
+			$accountPage = curl_exec($overDriveInfo['ch']);
+
+			//Get lending options
+			if (preg_match('/<li id="myAccount4Tab">(.*?)<!-- myAccountContent -->/s', $accountPage, $matches)) {
+				$lendingOptionsSection = $matches[1];
+				$lendingOptions = $this->_parseLendingOptions($lendingOptionsSection);
+			}else{
+				$start = strpos($accountPage, '<li id="myAccount4Tab">') + strlen('<li id="myAccount4Tab">');
+				$end = strpos($accountPage, '<!-- myAccountContent -->');
+				$logger->log("Lending options from $start to $end", PEAR_LOG_DEBUG);
+
+				$lendingOptionsSection = substr($accountPage, $start, $end);
+				$lendingOptions = $this->_parseLendingOptions($lendingOptionsSection);
+			}
+
+			curl_close($ch);
+
+			$timer->logTime("Finished loading titles from overdrive summary");
+			$memCache->set('overdrive_lending_periods_' . $user->id, $lendingOptions, 0, $configArray['Caching']['overdrive_summary']);
+		}
+
+		return $lendingOptions;
+	}
+
 	/**
 	 * Places a hold on an item within OverDrive
 	 *
@@ -919,6 +959,7 @@ class OverDriveDriver2 {
 		//$logger->log($lendingOptionsPage, PEAR_LOG_DEBUG);
 
 		$memCache->delete('overdrive_summary_' . $user->id);
+		$memCache->delete('overdrive_lending_periods_' . $user->id);
 
 		$analytics->addEvent('OverDrive', 'Update Lending Periods');
 		return true;
