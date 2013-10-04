@@ -751,6 +751,7 @@ class IndexRecord implements RecordInterface
 		$format = isset($formats[0]) ? $formats[0] : '';
 
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $upc, $formatCategory, $format));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl($id, $upc, $formatCategory, $format, 'medium'));
 
 		// By default, do not display AJAX status; we won't assume that all
 		// records exist in the ILS.  Child classes can override this setting
@@ -843,6 +844,7 @@ class IndexRecord implements RecordInterface
 		$format = isset($formats[0]) ? $formats[0] : '';
 
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $upc, $formatCategory, $format));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl($id, $upc, $formatCategory, $format, 'medium'));
 
 		// By default, do not display AJAX status; we won't assume that all
 		// records exist in the ILS.  Child classes can override this setting
@@ -852,9 +854,9 @@ class IndexRecord implements RecordInterface
 		return 'RecordDrivers/Index/supplementalResult.tpl';
 	}
 
-	function getBookcoverUrl($id, $upc, $formatCategory, $format){
+	function getBookcoverUrl($id, $upc, $formatCategory, $format, $size = 'small'){
 		global $configArray;
-		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;size=small&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
+		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;size={$size}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
 		$isbn = $this->getCleanISBN();
 		if ($isbn){
 			$bookCoverUrl .= "&amp;isn={$isbn}";

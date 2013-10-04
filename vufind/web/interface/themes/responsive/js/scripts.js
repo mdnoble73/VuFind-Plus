@@ -13,6 +13,7 @@ Globals.automaticTimeoutLength = 0;
 Globals.automaticTimeoutLengthLoggedOut = 0;
 
 var VuFind = VuFind || {};
+
 VuFind.initializeModalDialogs = function() {
 	$(".modalDialogTrigger").each(function(){
 		$(this).click(function(){
@@ -63,24 +64,87 @@ VuFind.ajaxLightbox = function(urlToDisplay, requireLogin){
 			VuFind.ajaxLightbox(urlToDisplay, requireLogin);
 		}, false);
 	}else{
-		var modalDialog = $("#modalDialog");
-		if (modalDialog.is(":visible")){
-			modalDialog.modal('hide');
-		}
+		VuFind.closeLightbox();
 		$(".modal-body").html("Loading");
-
+		var modalDialog = $("#modalDialog");
 		modalDialog.load(urlToDisplay, function(){
 			modalDialog.modal('show');
 		});
 	}
-
 	return false;
+};
+
+VuFind.closeLightbox = function(){
+	var modalDialog = $("#modalDialog");
+	if (modalDialog.is(":visible")){
+		modalDialog.modal('hide');
+		$(".modal-backdrop").remove();
+	}
 };
 
 VuFind.Account = {
 	ajaxCallback: null,
 	closeModalOnAjaxSuccess: false,
 
+	/**
+	 * Creates a new list in the system for the active user.
+	 *
+	 * Called from list-form.tpl
+	 * @returns {boolean}
+	 */
+	addList:function(){
+		var form = $("#addListForm");
+		var isPublic = form.find("#public").prop("checked");
+		var recordId = form.find("input[name=recordId]").val();
+		var source = form.find("input[name=source]").val();
+		var title = form.find("input[name=title]").val();
+		var desc = form.find("input[name=desc]").val();
+
+		var url = Globals.path + "/MyResearch/AJAX";
+		var params = "method=AddList&" +
+				"title=" + encodeURIComponent(title) + "&" +
+				"public=" + isPublic + "&" +
+				"desc=" + encodeURIComponent(desc) + "&";
+
+		$.ajax({
+			url: url+'?'+params,
+			dataType: "json",
+			success: function(data) {
+				var value = data.result;
+				if (value) {
+					if (value == "Done") {
+						var newId = data.newId;
+						//Save the record to the list
+						var url = Globals.path + "/Resource/Save?lightbox=true&selectedList=" + newId + "&id=" + recordId + "&source=" + source;
+						VuFind.ajaxLightbox(url);
+					} else {
+						$("#modal-title").html("Error creating list");
+						$(".modal-body").html("<div class='alert alert-error'>There was a error creating your list<br/>" + value + "</div>")
+					}
+				} else {
+					$("#modal-title").html("Error creating list");
+					$(".modal-body").html("<div class='alert alert-error'>There was a error creating your list</div>")
+				}
+			},
+			error: function() {
+				$("#modal-title").html("Error creating list");
+				$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error creating your list<br/>" + textStatus + "</div>")
+			}
+		});
+
+		return false;
+	},
+
+	/**
+	 * Do an ajax process, but only if the user is logged in.
+	 * If the user is not logged in, force them to login and then do the process.
+	 * Can also be called without the ajax callback to just login and not go anywhere
+	 *
+	 * @param trigger
+	 * @param ajaxCallback
+	 * @param closeModalOnAjaxSuccess
+	 * @returns {boolean}
+	 */
 	ajaxLogin: function(trigger, ajaxCallback, closeModalOnAjaxSuccess){
 		if (Globals.loggedIn){
 			if (ajaxCallback != undefined && typeof(ajaxCallback) === "function"){
@@ -141,7 +205,7 @@ VuFind.Account = {
 					$('#logoutOptions').show();
 					$('#myAccountNameLink').html(response.result.name);
 					if (VuFind.Account.closeModalOnAjaxSuccess){
-						$("#modalDialog").modal('hide');
+						VuFind.closeLightbox();
 					}
 
 					Globals.loggedIn = true;
@@ -618,7 +682,7 @@ VuFind.Record = {
 		});
 	},
 
-	loadHoldingsInfo: function (id) {
+	loadHoldingsInfo: function (id, shortId, source) {
 		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 		var params = "method=GetHoldingsInfo";
 		var fullUrl = url + "?" + params;
@@ -653,7 +717,8 @@ VuFind.Record = {
 				var showPlaceHold = $(data).find("ShowPlaceHold").text();
 				if (showPlaceHold) {
 					if (showPlaceHold.length > 0 && showPlaceHold == 1) {
-						$(".requestThisLink").show();
+						//$(".requestThisLink").show();
+						$("#placeHold" + shortId).show();
 					}
 				}
 				var eAudioLink = $(data).find("EAudioLink").text();
@@ -693,6 +758,40 @@ VuFind.Record = {
 		});
 	},
 
+	/**
+	 * Used to send a text message related to a specific record.
+	 * Includes title, author, call number, etc.
+	 * @param id
+	 */
+	sendSMS: function(id){
+		var smsForm = $("#smsForm");
+		var to = smsForm.find("input[name=to]").val();
+		var provider = smsForm.find("input[name=provider]").val();
+		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		var params = "method=SendSMS&" + "to=" + encodeURIComponent(to) + "&" + "provider=" + encodeURIComponent(provider);
+
+		$.ajax({
+			url: url+'?'+params,
+
+			success: function(data) {
+				var value = $(data).find('result');
+				if (value) {
+					if (value.text() == "Done") {
+						$(".modal-body").html("<div class='alert alert-success'>Your Text Message has been sent</div>");
+						setTimeout("VuFind.closeLightbox();", 3000);
+					} else {
+						$(".modal-body").html("<div class='alert alert-error'>Could not send text message</div>");
+					}
+				} else {
+					$(".modal-body").html("<div class='alert alert-error'>Failed to send text message</div>");
+				}
+			},
+			error: function() {
+				$(".modal-body").html("<div class='alert alert-error'>Unexpected error sending text message</div>");
+			}
+		});
+	},
+
 	showReviewForm: function(trigger, id, source){
 		if (Globals.loggedIn){
 			var $trigger = $(trigger);
@@ -708,8 +807,81 @@ VuFind.Record = {
 			});
 		}
 		return false;
-	}
+	},
 
+	saveReview: function(id, shortId){
+		if (Globals.loggedIn){
+			if (shortId == null || shortId == ''){
+				shortId = id;
+			}
+			var comment = $('#comment' + shortId).val();
+
+			var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+			var params = "method=SaveComment&comment=" + encodeURIComponent(comment);
+			$.ajax({
+				url: url + '?' + params,
+				dataType: 'json',
+				success : function(data) {
+					var result = false;
+					if (data) {
+						result = data.result;
+					}
+					if (result && result.length > 0) {
+						if (result == "Done") {
+							$('#comment' + shortId).val('');
+							if ($('#commentList').length > 0) {
+								LoadComments(id);
+							} else {
+								alert('Thank you for your review.');
+								VuFind.closeLightbox();
+							}
+						}else{
+							alert("Error: Your review was not saved successfully");
+						}
+					} else {
+						alert("Error: Your review was not saved successfully");
+					}
+				},
+				error : function() {
+					alert("Unable to save your comment.");
+				}
+			});
+		}
+		return false;
+	},
+
+	saveToList: function(id, source, form){
+		var notes = $("#addToList-notes").val();
+		var list = $("#addToList-list").val();
+		$("#saveToList-button").prop('disabled', true);
+
+		var url = Globals.path + "/Resource/AJAX";
+		var params = "method=SaveRecord&" +
+				"list=" + list + "&" +
+				"notes=" + encodeURIComponent(notes) + "&" +
+				"id=" + id + "&" +
+				"source=" + source;
+		$.ajax({
+			url: url+'?'+params,
+			dataType: "json",
+			success: function(data) {
+				var value = data.result;
+				if (value == "Done") {
+					$("#modal-title").html("Added to List Result");
+					$(".modal-body").html("<div class='alert alert-success'>" + data.message + "</div>")
+					setTimeout("VuFind.closeLightbox();", 3000);
+				} else {
+					$("#modal-title").html("Error adding to list");
+					$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error adding the title to the list<br/>" + data.message + "</div>")
+				}
+
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				$("#modal-title").html("Error adding to list");
+				$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error adding the title to the list<br/>" + textStatus + "</div>")
+			}
+		});
+	}
 };
 
 VuFind.Searches = {

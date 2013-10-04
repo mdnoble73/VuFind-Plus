@@ -243,6 +243,28 @@ function returnOverDriveTitle(overDriveId, transactionId){
 	return false;
 }
 
+function followOverDriveDownloadLink(overDriveId, formatId){
+	var ajaxUrl = path + "/EcontentRecord/AJAX?method=GetDownloadLink&overDriveId=" + overDriveId + "&formatId=" + formatId;
+	$.ajax({
+		url: ajaxUrl,
+		cache: false,
+		success: function(data){
+			if (data.result){
+				//Reload the page
+				window.location.href = data.downloadUrl ;
+			}else{
+				alert(data.message);
+			}
+		},
+		dataType: 'json',
+		async: false,
+		error: function(){
+			alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
+			hideLightbox();
+		}
+	});
+}
+
 function selectOverDriveDownloadFormat(overDriveId){
 	var selectedFormatId = $("#downloadFormat_" + overDriveId + " option:selected").val();
 	var selectedFormatText = $("#downloadFormat_" + overDriveId + " option:selected").text();

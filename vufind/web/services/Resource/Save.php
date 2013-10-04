@@ -146,8 +146,17 @@ class Save extends Action
 				return false;
 			}
 
-			preg_match_all('/"[^"]*"|[^,]+/', $_GET['mytags'], $tagArray);
-			$this->user->addResource($resource, $list, $tagArray[0], $_GET['notes']);
+			if (array_key_exists('mytags', $_REQUEST) ){
+				preg_match_all('/"[^"]*"|[^,]+/', $_REQUEST['mytags'], $tagArray);
+				$tags = $tagArray[0];
+			}else{
+				$tags = null;
+			}
+			$notes = '';
+			if (array_key_exists('notes', $_REQUEST)){
+				$notes = $_REQUEST['notes'];
+			}
+			return $this->user->addResource($resource, $list, $tags, $notes);
 		} else {
 			return false;
 		}

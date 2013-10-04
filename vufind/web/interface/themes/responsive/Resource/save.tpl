@@ -3,7 +3,7 @@
 	<h3 id="modal-title">{translate text='add_favorite_prefix'} {$record->title|escape:"html"} {translate text='add_favorite_suffix'}</h3>
 </div>
 <div class="modal-body">
-	<form class="form-horizontal">
+	<form class="form-horizontal" id="save-to-list-form">
 		<input type="hidden" name="submit" value="1" />
 		<input type="hidden" name="record_id" value="{$id|escape}" />
 		<input type="hidden" name="source" value="{$source|escape}" />
@@ -24,9 +24,9 @@
 
 	  {if $showLists}
 		  <div class="control-group">
-			  <label for="selectList" class="control-label">{translate text='Choose a List'}</label>
+			  <label for="addToList-list" class="control-label">{translate text='Choose a List'}</label>
 			  <div class="controls">
-				  <select name="list" id="selectList">
+				  <select name="list" id="addToList-list">
 					  {foreach from=$nonContainingLists item="list"}
 						  <option value="{$list.id}">{$list.title|escape:"html"}</option>
 						  {foreachelse}
@@ -45,17 +45,9 @@
 
 	  {if $showLists}
 			<div class="control-group">
-		    <label for="mytags" class="control-label">{translate text='Add Tags'}</label>
+				<label for="addToList-notes" class="control-label">{translate text='Add a Note'}</label>
 				<div class="controls">
-					<input type="text" name="mytags" id="mytags" value="" size="50" maxlength="255" class="input-xxlarge">
-					<span class="help-block">{translate text='add_tag_note'}</span>
-				</div>
-			</div>
-
-			<div class="control-group">
-				<label for="mytags" class="control-label">{translate text='Add a Note'}</label>
-				<div class="controls">
-					<textarea name="notes" rows="3" cols="50" class="input-xxlarge"></textarea>
+					<textarea name="notes" rows="3" cols="50" class="input-xxlarge" id="addToList-notes"></textarea>
 				</div>
 			</div>
 
@@ -64,5 +56,5 @@
 </div>
 <div class="modal-footer">
 	<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
-	<input type="submit" class="btn btn-primary" value="{translate text='Save'}"  onclick="saveRecord('{$id|escape}', '{$source|escape}', this, {literal}{{/literal}add: '{translate text='Add to favorites'}', error: '{translate text='add_favorite_fail'}'{literal}}{/literal}); return false;">
+	<input id="saveToList-button" type="submit" class="btn btn-primary" value="{translate text='Save'}"  onclick="VuFind.Record.saveToList('{$id|escape}', '{$source|escape}', $('#save-to-list-form')); return false;">
 </div>

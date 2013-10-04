@@ -76,7 +76,7 @@
 	<div clas='relatedContentSection'>
 	<h4>{$contentSection.title}</h4>
 		{foreach from=$contentSection.content item=content}
-			<a href="{$content.contentUrl}" onclick="return ajaxLightbox('{$path}/Resource/AJAX?method=GetNovelistData&novelistUrl={$content.contentUrl|escape:"url"}')">{$content.title}{if $content.author} by {$content.author}{/if}</a><br/>
+			<a href="{$content.contentUrl}" onclick="return VuFind.ajaxLightbox('{$path}/Resource/AJAX?method=GetNovelistData&novelistUrl={$content.contentUrl|escape:"url"}')">{$content.title}{if $content.author} by {$content.author}{/if}</a><br/>
 	  {/foreach}
 	</div>
 {/foreach}

@@ -58,6 +58,16 @@ class Prospector{
 				}
 			}
 
+			//Extract format titlePubDateInfo
+			$titleFormatInfo = $titleInfo[$matchi][1];
+			if (preg_match('/<span.*?class="itemMediaDescription".*?>(.*?)<\/span>/s', $titleFormatInfo, $formatMatches)) {
+				//Make sure we are not getting scripts and copy counts
+				$formatInfo = trim(strip_tags($formatMatches[1]));
+				if (strlen($formatInfo) > 0){
+					$curTitleInfo['format'] =$formatInfo;
+				}
+			}
+
 			$prospectorTitles[] = $curTitleInfo;
 		}
 

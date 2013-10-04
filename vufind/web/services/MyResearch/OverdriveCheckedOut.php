@@ -53,8 +53,10 @@ class OverdriveCheckedOut extends MyResearch {
 		global $configArray;
 		if (!isset($configArray['OverDrive']['interfaceVersion']) || $configArray['OverDrive']['interfaceVersion'] == 1){
 			$interface->setTemplate('overDriveCheckedOut.tpl');
-		}else{
+		}elseif ($configArray['OverDrive']['interfaceVersion'] == 2){
 			$interface->setTemplate('overDriveCheckedOut2.tpl');
+		}else{
+			$interface->setTemplate('overDriveCheckedOut3.tpl');
 		}
 		$interface->setPageTitle('OverDrive Checked Out Items');
 		$interface->display('layout.tpl');
