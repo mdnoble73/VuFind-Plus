@@ -40,7 +40,7 @@
 						{if !empty($record.recordId)}</a>{/if}
 						<div data-role="controlgroup">
 							{if $record.formatSelected}
-								<a href="{$record.downloadUrl|replace:'&':'&amp;'}" data-role="button" rel="external">Download&nbsp;{$record.selectedFormat.name}&nbsp;Again</a>
+								<a href="#" onclick="followOverDriveDownloadLink('{$record.overDriveId}', '{$record.selectedFormat.format}')" data-role="button" rel="external">Download&nbsp;{$record.selectedFormat.name}&nbsp;Again</a>
 							{else}
 								<label for="downloadFormat_{$record.overDriveId}">Select one format to download.</label>
 								<select name="downloadFormat_{$record.overDriveId}" id="downloadFormat_{$record.overDriveId}">
@@ -55,7 +55,7 @@
 								<a href="#" onclick="returnOverDriveTitle('{$record.overDriveId}', '{$record.transactionId}');" data-role="button" rel="external">Return&nbsp;Now</a>
 							{/if}
 							{if $record.overdriveRead}
-								<a href="{$record.overdriveReadUrl}" data-role="button" rel="external">Read&nbsp;Online with OverDrive&nbsp;Read</a>
+								<a href="#" onclick="followOverDriveDownloadLink('{$record.overDriveId}', 'ebook-overdrive')" data-role="button" rel="external">Read&nbsp;Online with OverDrive&nbsp;Read</a>
 							{/if}
 						</div>
 					</li>

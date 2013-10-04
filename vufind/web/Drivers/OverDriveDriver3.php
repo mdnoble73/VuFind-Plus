@@ -561,6 +561,7 @@ class OverDriveDriver3 {
 	public function placeOverDriveHold($overDriveId, $format, $user){
 		global $configArray;
 		global $analytics;
+		global $memCache;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
 		$params = array(
@@ -582,6 +583,7 @@ class OverDriveDriver3 {
 			$holdResult['message'] = 'Sorry, but we could not place a hold for you on this title.  ' . $response->message;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Place Hold', 'failed');
 		}
+		$memCache->delete('overdrive_summary_' . $user->id);
 
 		return $holdResult;
 	}
@@ -595,6 +597,7 @@ class OverDriveDriver3 {
 	public function cancelOverDriveHold($overDriveId, $format, $user){
 		global $configArray;
 		global $analytics;
+		global $memCache;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
 		$response = $this->_callPatronDeleteUrl($user->cat_password, null, $url);
@@ -610,7 +613,7 @@ class OverDriveDriver3 {
 			$cancelHoldResult['message'] = 'There was an error cancelling your hold.  ' . $response->message;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Cancel Hold', 'failed');
 		}
-
+		$memCache->delete('overdrive_summary_' . $user->id);
 		return $cancelHoldResult;
 	}
 
@@ -629,6 +632,7 @@ class OverDriveDriver3 {
 
 		global $configArray;
 		global $analytics;
+		global $memCache;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
 		$params = array(
@@ -653,6 +657,7 @@ class OverDriveDriver3 {
 			if ($analytics) $analytics->addEvent('OverDrive', 'Checkout Item', 'failed');
 		}
 
+		$memCache->delete('overdrive_summary_' . $user->id);
 		return $result;
 	}
 
@@ -668,6 +673,7 @@ class OverDriveDriver3 {
 	public function returnOverDriveItem($overDriveId, $transactionId, $user){
 		global $configArray;
 		global $analytics;
+		global $memCache;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts/' . $overDriveId;
 		$response = $this->_callPatronDeleteUrl($user->cat_password, null, $url);
@@ -684,6 +690,7 @@ class OverDriveDriver3 {
 			if ($analytics) $analytics->addEvent('OverDrive', 'Return Item', 'failed');
 		}
 
+		$memCache->delete('overdrive_summary_' . $user->id);
 		return $cancelHoldResult;
 	}
 
