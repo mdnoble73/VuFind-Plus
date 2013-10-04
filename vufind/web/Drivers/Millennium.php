@@ -89,7 +89,8 @@ class MillenniumDriver implements DriverInterface
 			/** @var Memcache $memCache */
 			global $memCache;
 			global $configArray;
-			$this->loanRules = $memCache->get('loan_rules');
+			global $serverName;
+			$this->loanRules = $memCache->get($serverName . '_loan_rules');
 			if (!$this->loanRules){
 				$this->loanRules = array();
 				$loanRule = new LoanRule();
@@ -98,9 +99,9 @@ class MillenniumDriver implements DriverInterface
 					$this->loanRules[$loanRule->loanRuleId] = clone($loanRule);
 				}
 			}
-			$memCache->set('loan_rules', $this->loanRules, $configArray['Caching']['loan_rules']);
+			$memCache->set($serverName . '_loan_rules', $this->loanRules, $configArray['Caching']['loan_rules']);
 
-			$this->loanRuleDeterminers = $memCache->get('loan_rule_determiners');
+			$this->loanRuleDeterminers = $memCache->get($serverName . '_loan_rule_determiners');
 			if (!$this->loanRuleDeterminers){
 				$this->loanRuleDeterminers = array();
 				$loanRuleDeterminer = new LoanRuleDeterminer();
@@ -111,7 +112,7 @@ class MillenniumDriver implements DriverInterface
 					$this->loanRuleDeterminers[$loanRuleDeterminer->rowNumber] = clone($loanRuleDeterminer);
 				}
 			}
-			$memCache->set('loan_rule_determiners', $this->loanRuleDeterminers, $configArray['Caching']['loan_rules']);
+			$memCache->set($serverName . '_loan_rule_determiners', $this->loanRuleDeterminers, $configArray['Caching']['loan_rules']);
 		}
 	}
 

@@ -61,7 +61,7 @@ class LoanRuleDeterminer extends DB_DataObject
 			foreach($this->iTypeArray as $key => $iType){
 				if (!is_numeric($iType)){
 					$iTypeRange = explode("-", $iType);
-					for ($i = $iTypeRange[0]; $i <= $iTypeRange[0]; $i++){
+					for ($i = $iTypeRange[0]; $i <= $iTypeRange[1]; $i++){
 						$this->iTypeArray[] = $i;
 					}
 					unset($this->iTypeArray[$key]);
@@ -78,7 +78,7 @@ class LoanRuleDeterminer extends DB_DataObject
 			foreach($this->pTypeArray as $key => $pType){
 				if (!is_numeric($pType)){
 					$pTypeRange = explode("-", $pType);
-					for ($i = $pTypeRange[0]; $i <= $pTypeRange[0]; $i++){
+					for ($i = $pTypeRange[0]; $i <= $pTypeRange[1]; $i++){
 						$this->pTypeArray[] = $i;
 					}
 					unset($this->pTypeArray[$key]);
