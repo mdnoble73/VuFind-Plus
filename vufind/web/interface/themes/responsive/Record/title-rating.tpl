@@ -1,7 +1,6 @@
-
 {if $showRatings == 1}
 	{strip}
-	<div class="{$ratingClass}">
+	<div {if $ratingClass}class="{$ratingClass}"{/if}>
 		{/strip}
 		<div class="rater rate{$shortId|escape} stat"
 		     data-show_review="{if $showReviewAfterRating === false}{$showReviewAfterRating}{else}true{/if}"

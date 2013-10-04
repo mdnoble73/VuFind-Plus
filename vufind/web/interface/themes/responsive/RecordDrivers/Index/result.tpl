@@ -1,28 +1,27 @@
 {strip}
 <div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList row-fluid">
-	<div class="span1 hidden-phone">
-		<div class="selectTitle">
+	<div class="imageColumn span3 text-center">
+		<div class="selectTitle hidden-phone pull-left">
 			<label for="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultIndex checkbox">{$resultIndex}
 				<input type="checkbox" class="titleSelect" name="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" id="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" {if $enableBookCart}onclick="toggleInBag('{$summId|escape}', '{$summTitle|replace:'"':''|replace:'&':'and'|escape:'javascript'}', this);"{/if} />&nbsp;
 			</label>
 		</div>
-	</div>
-
-	<div class="imageColumn span2 text-center">
 		{/strip}
-		{if $user->disableCoverArt != 1}
-			{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
-			<a href="{$summUrl}">
-				<img src="{$bookCoverUrl}"
-				     class="listResultImage img-polaroid {*descriptionTrigger*}"
-				     alt="{translate text='Cover Image'}"
-				     {*data-record_id="{$summId}"
-				     data-source="VuFind"
-				     data-content_class=".descriptionContent{$summShortId|escape}"*}/>
-			</a>
-		{/if}
-		{strip}
-		{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
+		<div class="pull-right">
+			{if $user->disableCoverArt != 1}
+				{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
+				<a href="{$summUrl}">
+					<img src="{$bookCoverUrlMedium}"
+					     class="listResultImage img-polaroid {*descriptionTrigger*}"
+					     alt="{translate text='Cover Image'}"
+					     {*data-record_id="{$summId}"
+					     data-source="VuFind"
+					     data-content_class=".descriptionContent{$summShortId|escape}"*}/>
+				</a>
+			{/if}
+			{strip}
+			{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
+		</div>
 	</div>
 
 	<div class="span9">

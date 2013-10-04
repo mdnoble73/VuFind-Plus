@@ -1,5 +1,0 @@
-NameError: variable @header-background is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\responsive.less on line 48, column 21:
-47 .masthead {
-48   background-color: @header-background;
-49   color: @header-color;
-

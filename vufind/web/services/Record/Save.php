@@ -25,6 +25,9 @@ require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class Record_Save extends Action
 {
+	/**
+	 * @var User the user to save to.
+	 */
 	private $user;
 
 	function __construct()
@@ -82,7 +85,7 @@ class Record_Save extends Action
 		$interface->assign('record', $details);
 
 		// Find out if the item is already part of any lists; save list info/IDs
-		$saved = $this->user->getSavedData($_GET['id']);
+		$saved = $this->user->getSavedData($_GET['id'], 'VuFind');
 		$containingLists = array();
 		$containingListIds = array();
 		foreach($saved as $current) {
@@ -114,6 +117,7 @@ class Record_Save extends Action
 			$interface->setTemplate('view-alt.tpl');
 			$interface->display('layout.tpl', 'RecordSave' . $_GET['id']);
 		}
+		return true;
 	}
 
 	function saveRecord()
@@ -140,8 +144,18 @@ class Record_Save extends Action
 				PEAR_Singleton::raiseError(new PEAR_Error('Unable find a resource for that title.'));
 			}
 
-			preg_match_all('/"[^"]*"|[^,]+/', $_GET['mytags'], $tagArray);
-			$this->user->addResource($resource, $list, $tagArray[0], $_GET['notes']);
+			if (array_key_exists('mytags', $_REQUEST) ){
+				preg_match_all('/"[^"]*"|[^,]+/', $_REQUEST['mytags'], $tagArray);
+				$tags = $tagArray[0];
+			}else{
+				$tags = null;
+			}
+			$notes = '';
+			if (array_key_exists('notes', $_REQUEST)){
+				$notes = $_REQUEST['notes'];
+			}
+
+			return $this->user->addResource($resource, $list, $tags, $notes);
 		} else {
 			return false;
 		}

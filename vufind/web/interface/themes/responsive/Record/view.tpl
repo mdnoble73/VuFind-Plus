@@ -4,7 +4,7 @@
 <script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
 <script type="text/javascript">
 {literal}$(document).ready(function(){{/literal}
-	VuFind.Record.loadHoldingsInfo('{$id|escape:"url"}', 'VuFind');
+	VuFind.Record.loadHoldingsInfo('{$id|escape:"url"}', '{$shortId}', 'VuFind');
 	{if $isbn || $upc}
 		VuFind.Record.loadEnrichmentInfo('{$id|escape:"url"}', '{$isbn10|escape:"url"}', '{$upc|escape:"url"}');
 	{/if}
@@ -28,47 +28,43 @@ function redrawSaveStatus() {literal}{{/literal}
 {literal}}{/literal}
 </script>
 
-<div class="nav navbar">
+<div class="btn-group">
 	{if isset($previousId)}
-		<div id="previousRecordLink" class="pull-left"><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}"><img src="{$path}/interface/themes/default/images/prev.png" alt="Previous Record"/></a></div>
-	{/if}
-	{if isset($nextId)}
-		<div id="nextRecordLink"><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}"><img src="{$path}/interface/themes/default/images/next.png" alt="Next Record"/></a></div>
+		<div id="previousRecordLink" class="btn"><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}"><img src="{$path}/interface/themes/default/images/prev.png" alt="Previous Record"/></a></div>
 	{/if}
 	{if $lastsearch}
-		<div id="returnToSearch">
-			<a href="{$lastsearch|escape}#record{$id|escape:"url"}">{translate text="Return to Search Results"}</a>
+		<div id="returnToSearch" class="btn">
+			<a href="{$lastsearch|escape}#record{$id|escape:"url"}">{translate text="Search Results"}</a>
 		</div>
+	{/if}
+	{if isset($nextId)}
+		<div id="nextRecordLink" class="btn"><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}"><img src="{$path}/interface/themes/default/images/next.png" alt="Next Record"/></a></div>
 	{/if}
 </div>
 
 {* Display Title *}
-<h1>{$recordTitleSubtitle|removeTrailingPunctuation|escape}</h1>
-<div  class="row-fluid">
-	{* Display more information about the title*}
-	{if $mainAuthor}
-		<div class="recordAuthor">
-			<h3>
-				<span class="resultLabel">by</span>&nbsp;
-				<span class="resultValue"><a href="{$path}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|escape}</a></span>
-			</h3>
-		</div>
+<h2>
+	{$recordTitleSubtitle|removeTrailingPunctuation|escape}
+	{if $record.format}
+		&nbsp;<small>({implode subject=$record.format glue=","})</small>
 	{/if}
+</h2>
+{* Display more information about the title*}
+{if $mainAuthor}
+	<h3>
+		by <a href="{$path}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|escape}</a>
+	</h3>
+{/if}
 
-	{if $corporateAuthor}
-		<div class="recordAuthor">
-			<h3>
-				<span class="resultLabel">{translate text='Corporate Author'}:</span>
-				<span class="resultValue"><a href="{$path}/Author/Home?author={$corporateAuthor|escape:"url"}">{$corporateAuthor|escape}</a></span>
-			</h3>
-		</div>
-	{/if}
-</div>
+{if $corporateAuthor}
+	<h3>
+		by <a href="{$path}/Author/Home?author={$corporateAuthor|escape:"url"}">{$corporateAuthor|escape}</a>
+	</h3>
+{/if}
 
 {if $error}<p class="error">{$error}</p>{/if}
 
 <div class="row-fluid">
-
 
 	{*
 	<div class="span3">
@@ -99,13 +95,13 @@ function redrawSaveStatus() {literal}{{/literal}
 		
 			<div id="record-details-column" class="span6">
 				<div id="record-details-header">
-					<div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord"></div>
+					<div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord">Loading availability information...</div>
 				</div>
 
 				{if $summary}
-					<div class="resultInformation">
-						<div class="result-label">{translate text='Description'}</div>
-						<div class="recordDescription result-value">
+					<dl>
+						<dt>{translate text='Description'}</dt>
+						<dd class="recordDescription result-value">
 							{if strlen($summary) > 300}
 								<span id="shortSummary">
 								{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'|truncate:300}{*Leave unescaped because some syndetics reviews have html in them *}
@@ -118,44 +114,20 @@ function redrawSaveStatus() {literal}{{/literal}
 							{else}
 								{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
 							{/if}
-						</div>
-					</div>
+						</dd>
+					</dl>
 				{/if}
 
-				{if $subjects}
-					<div class="resultInformation">
-						<div class="result-label">{translate text='Subjects'}</div>
-						<div class="recordSubjects result-value">
-							{foreach from=$subjects item=subject name=loop}
-								{if $smarty.foreach.loop.index == 5}
-									<div id="subjectsMoreLink"><a href="#" onclick="$('#subjectsMoreSection').toggle();$('#subjectsMoreLink').toggle();">{translate text="more"}...</a></div>
-									<div id="subjectsMoreSection" style="display:none">
-								{/if}
-								{foreach from=$subject item=subjectPart name=subloop}
-									{if !$smarty.foreach.subloop.first} -- {/if}
-									<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
-								{/foreach}
-								<br />
-							{/foreach}
-							{if $smarty.foreach.loop.index >= 5}
-								<div id="subjectsLessLink"><a href="#" onclick="$('#subjectsMoreSection').toggle();$('#subjectsMoreLink').toggle();">{translate text="less"}</a></div>
-								</div>
-							{/if}
-						</div>
-					</div>
-				{/if}
+
 			</div>
 
 			<div id="recordTools" class="span3">
 				{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
 
 				<div id="ratings" class="well center">
-					<h4>Rating:</h4>
 					{* Let the user rate this title *}
-					{include file="Record/title-rating.tpl" ratingClass="" recordId=$id shortId=$shortId ratingData=$ratingData showFavorites=0}
+					{include file="Record/title-rating-full.tpl" ratingClass="" recordId=$id shortId=$shortId ratingData=$ratingData showFavorites=0}
 				</div>
-
-				{include file="Record/view-tags.tpl"}
 			</div>
 
 		</div>

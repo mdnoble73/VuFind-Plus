@@ -1,7 +1,7 @@
 {strip}
 <div id="sidebar">
 	{include file="Record/view-title-details.tpl"}
-	
+
 	{include file="Record/view-tags.tpl"}
 
 	{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 0}

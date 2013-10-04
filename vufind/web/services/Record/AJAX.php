@@ -209,11 +209,14 @@ class Record_AJAX extends Action {
 			$result = $saveService->saveRecord();
 			if (!PEAR_Singleton::isError($result)) {
 				$result['result'] = "Done";
+				$result['message'] = "Successfully added title to list";
 			} else {
 				$result['result'] = "Error";
+				$result['message'] = "Unable to add title to list: " . $result->getMessage();
 			}
 		} else {
 			$result['result'] = "Unauthorized";
+			$result['message'] = "Unable to add title to list, you must be logged in to save to a list.";
 		}
 		return json_encode($result);
 	}
@@ -273,7 +276,7 @@ class Record_AJAX extends Action {
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 
-		$sms = new SMS();
+		$sms = new Record_SMS();
 		$result = $sms->sendSMS();
 
 		if (PEAR_Singleton::isError($result)) {

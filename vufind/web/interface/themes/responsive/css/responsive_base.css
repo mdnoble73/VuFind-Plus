@@ -6492,6 +6492,12 @@ a.badge:focus {
 .bold {
   font-weight: bold;
 }
+ul.list-striped > li:nth-child(odd),
+ol.list-striped > li:nth-child(odd),
+ul.list-striped > li:nth-child(odd),
+ol.list-striped > li:nth-child(odd) {
+  background-color: #f9f9f9;
+}
 /** Third party imports **/
 /*!
  * Datepicker for Bootstrap

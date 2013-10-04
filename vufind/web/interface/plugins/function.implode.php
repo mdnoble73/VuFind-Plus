@@ -9,14 +9,13 @@
 /**
  * Smarty {implode} function plugin
  *
- * Type:     function<br>
  * Name:     implode<br>
- * Purpose:  glue an array together as a string, with spupplied string glue, and assign it to the template<br>
+ * Purpose:  glue an array together as a string, with supplied string glue, and assign it to the template
  * @link http://smarty.php.net/manual/en/language.function.implode.php {implode}
  *       (Smarty online manual)
  * @author Will Mason <will at dontblinkdesign dot com>
- * @param array
- * @param Smarty
+ * @param array $params
+ * @param $smarty
  */
 function smarty_function_implode($params, &$smarty)
 {
@@ -30,13 +29,16 @@ function smarty_function_implode($params, &$smarty)
 		return;
 	}
 
-	if (!isset($params['assign'])) {
-		$smarty->trigger_error("implode: missing 'assign' parameter");
-		return;
-	}
+	$implodedValue = null;
 	if (is_array($params['subject'])){
-		$smarty->assign($params['assign'], implode($params['glue'], $params['subject']));
+		$implodedValue = implode($params['glue'], $params['subject']);
 	}else{
-		$smarty->assign($params['assign'], $params['subject']);
+		$implodedValue = $params['subject'];
+	}
+
+	if (!isset($params['assign'])) {
+		return $implodedValue;
+	}else{
+		$smarty->assign($params['assign'], $implodedValue);
 	}
 }
