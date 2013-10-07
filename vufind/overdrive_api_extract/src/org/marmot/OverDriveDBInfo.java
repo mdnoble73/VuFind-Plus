@@ -16,7 +16,16 @@ public class OverDriveDBInfo {
 	private long lastAvailabilityCheck;
 	private long lastAvailabilityChange;
 	private boolean deleted;
-	
+	private boolean hasRawData;
+
+	public boolean hasRawData() {
+		return hasRawData;
+	}
+
+	public void setHasRawData(boolean hasRawData) {
+		this.hasRawData = hasRawData;
+	}
+
 	public boolean isDeleted() {
 		return deleted;
 	}

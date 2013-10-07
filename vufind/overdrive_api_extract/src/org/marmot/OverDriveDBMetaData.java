@@ -13,7 +13,34 @@ public class OverDriveDBMetaData {
 	private String fullDescription;
 	private float starRating;
 	private int popularity;
-	
+	private boolean hasRawData;
+	private String cover;
+	private String thumbnail;
+
+	public boolean hasRawData() {
+		return hasRawData;
+	}
+
+	public void setHasRawData(boolean hasRawData) {
+		this.hasRawData = hasRawData;
+	}
+
+	public String getCover() {
+		return cover;
+	}
+
+	public void setCover(String cover) {
+		this.cover = cover;
+	}
+
+	public String getThumbnail() {
+		return thumbnail;
+	}
+
+	public void setThumbnail(String thumbnail) {
+		this.thumbnail = thumbnail;
+	}
+
 	public long getId() {
 		return id;
 	}
