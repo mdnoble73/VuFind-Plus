@@ -80,7 +80,7 @@ function redrawSaveStatus() {literal}{{/literal}
 					<div id = "recordcover">
 						<img alt="{translate text='Book Cover'}" class="img-polaroid" src="{$bookCoverUrl}" />
 						<div id="goDeeperLink" class="godeeper" style="display:none">
-							<a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
+							<a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="VuFind.ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox'); return false;">
 							<img alt="{translate text='Go Deeper'}" src="{$path}/images/deeper.png" /></a>
 						</div>
 					</div>
@@ -140,6 +140,8 @@ function redrawSaveStatus() {literal}{{/literal}
 			{assign var="fullListLink" value="$path/Record/$id/Series"}
 			{include file='titleScroller.tpl'}
 		</div>
+
+		<hr/>
 
 		{include file="Record/view-tabs.tpl" isbn=$isbn upc=$upc}
 	</div>

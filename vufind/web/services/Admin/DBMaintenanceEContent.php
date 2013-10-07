@@ -780,6 +780,17 @@ class DBMaintenanceEContent extends Admin_Admin {
 				)
 			),
 
+			'overdrive_api_data_update_1' => array(
+				'title' => 'OverDrive API Data Update 1',
+				'description' => 'Update MetaData tables to store thumbnail, cover, and raw metadata.  Also update product to store raw metadata',
+				'sql' => array(
+					"ALTER TABLE overdrive_api_products ADD COLUMN rawData MEDIUMTEXT",
+					"ALTER TABLE overdrive_api_product_metadata ADD COLUMN rawData MEDIUMTEXT",
+					"ALTER TABLE overdrive_api_product_metadata ADD COLUMN thumbnail VARCHAR(255)",
+					"ALTER TABLE overdrive_api_product_metadata ADD COLUMN cover VARCHAR(255)",
+				),
+			),
+
 			'add_indexes' => array(
 				'title' => 'Add eContent indexes',
 				'description' => 'Add indexes to econtent tables that were not defined originally',

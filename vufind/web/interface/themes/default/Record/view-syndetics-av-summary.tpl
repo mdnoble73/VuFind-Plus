@@ -1,12 +1,15 @@
-<div class='avSummaryTitle'>Summary</div>
-<div class='summary'>{$avSummaryData.summary}</div>
-
-<div class='avSummaryTitle'>Track Listing</div>
-<div class='trackListing'>
-{foreach from=$avSummaryData.trackListing item=track}
-<div class='track'>
-<span class='trackNumber'>{$track.number}</span>
-<span class='trackName'>{$track.name}</span>
-</div>
-{/foreach}
-</div>
+<dl>
+	<dt>Summary</dt>
+	<dd>{$avSummaryData.summary}</dd>
+	{if count($avSummaryData.trackListing) > 0}
+		<dt>Track Listing</dt>
+		<dd>
+			{foreach from=$avSummaryData.trackListing item=track}
+				<div class='track'>
+				<span class='trackNumber'>{$track.number}</span>
+				<span class='trackName'>{$track.name}</span>
+				</div>
+			{/foreach}
+		</dd>
+	{/if}
+</dl>

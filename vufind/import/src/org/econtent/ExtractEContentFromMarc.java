@@ -324,7 +324,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		results.saveResults();
 
 		try {
-			PreparedStatement productsStmt = econtentConn.prepareStatement("SELECT * from overdrive_api_products");
+			PreparedStatement productsStmt = econtentConn.prepareStatement("SELECT overdrive_api_products.*, overdrive_api_product_metadata.thumbnail, overdrive_api_product_metadata.cover as metadata_cover  FROM overdrive_api_products left join `overdrive_api_product_metadata` on overdrive_api_products.id = productId");
 			ResultSet productsRS = productsStmt.executeQuery();
 			while (productsRS.next()){
 				OverDriveBasicInfo basicInfo = new OverDriveBasicInfo();
@@ -333,7 +333,11 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				basicInfo.setTitle(productsRS.getString("title"));
 				basicInfo.setSeries(productsRS.getString("series"));
 				basicInfo.setAuthor(productsRS.getString("primaryCreatorName"));
-				basicInfo.setCover(productsRS.getString("cover"));
+				if (productsRS.getString("metadata_cover") != null){
+					basicInfo.setCover(productsRS.getString("metadata_cover"));
+				}else{
+					basicInfo.setCover(productsRS.getString("cover"));
+				}
 				basicInfo.setMediaType(productsRS.getString("mediaType"));
 				basicInfo.setLastChange(Math.max(Math.max(Math.max(productsRS.getLong("dateUpdated"), productsRS.getLong("lastMetadataChange")), productsRS.getLong("lastAvailabilityChange")), productsRS.getLong("dateDeleted")));
 				basicInfo.setDeleted(productsRS.getBoolean("deleted"));

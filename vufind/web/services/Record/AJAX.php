@@ -31,7 +31,7 @@ class Record_AJAX extends Action {
 		$analytics->disableTracking();
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'SaveComment', 'SaveTag', 'SaveRecord'))){
+		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'SaveComment', 'SaveTag', 'SaveRecord', 'GetEnrichmentInfoJSON'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -394,6 +394,107 @@ class Record_AJAX extends Action {
 
 	}
 
+	function GetEnrichmentInfoJSON(){
+		require_once ROOT_DIR . '/services/Record/Enrichment.php';
+		global $configArray;
+		global $library;
+		global $interface;
+
+		$enrichmentResult = array();
+		$isbn = $_REQUEST['isbn'];
+		$upc = $_REQUEST['upc'];
+		$id = $_REQUEST['id'];
+		$enrichmentData = Record_Enrichment::loadEnrichment($isbn, $upc);
+
+		//Process series data
+		$titles = array();
+		if (!isset($enrichmentData['novelist']['series']) || count($enrichmentData['novelist']['series']) == 0){
+			$enrichmentResult['seriesInfo'] = array('titles'=>$titles, 'currentIndex'=>0);
+		}else{
+			foreach ($enrichmentData['novelist']['series'] as $record){
+				$isbn = $record['isbn'];
+				if (strpos($isbn, ' ') > 0){
+					$isbn = substr($isbn, 0, strpos($isbn, ' '));
+				}
+				$cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn;
+				if (isset($record['id'])){
+					$cover .= "&id=" . $record['id'];
+				}
+				if (isset($record['upc'])){
+					$cover .= "&upc=" . $record['upc'];
+				}
+				if (isset($record['issn'])){
+					$cover .= "&issn=" . $record['issn'];
+				}
+				if (isset($record['format_category'])){
+					$cover .= "&category=" . $record['format_category'][0];
+				}
+				$title = $record['title'];
+				if (isset($record['series'])){
+					$title .= ' (' . $record['series'] ;
+					if (isset($record['volume'])){
+						$title .= ' Volume ' . $record['volume'];
+					}
+					$title .= ')';
+				}
+				$titles[] = array(
+					'id' => isset($record['id']) ? $record['id'] : '',
+					'image' => $cover,
+					'title' => $title,
+					'author' => $record['author']
+				);
+			}
+
+			foreach ($titles as $key => $rawData){
+				if ($rawData['id']){
+					if (strpos($rawData['id'], 'econtentRecord') === 0){
+						$fullId = $rawData['id'];
+						$shortId = str_replace('econtentRecord', '', $rawData['id']);
+						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
+								'<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $shortId . '" id="descriptionTrigger' . $fullId . '">' .
+								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+								"</a></div>" .
+								"<div id='descriptionPlaceholder{$fullId}' style='display:none'></div>";
+					}else{
+						$shortId = str_replace('.', '', $rawData['id']);
+						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
+								'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $shortId . '">' .
+								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+								"</a></div>" .
+								"<div id='descriptionPlaceholder{$shortId}' style='display:none'></div>";
+					}
+				}else{
+					$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
+							"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+							"</div>";
+				}
+				$rawData['formattedTitle'] = $formattedTitle;
+				$titles[$key] = $rawData;
+			}
+			$seriesInfo = array('titles' => $titles, 'currentIndex' => $enrichmentData['novelist']['seriesDefaultIndex']);
+			$enrichmentResult['seriesInfo'] = $seriesInfo;
+		}
+
+		//Load go deeper options
+		if (isset($library) && $library->showGoDeeper == 0){
+			$enrichmentResult['showGoDeeper'] = false;
+		}else{
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
+			$goDeeperOptions = GoDeeperData::getGoDeeperOptions($isbn, $upc);
+			if (count($goDeeperOptions['options']) == 0){
+				$enrichmentResult['showGoDeeper'] = false;
+			}else{
+				$enrichmentResult['showGoDeeper'] = true;
+				$enrichmentResult['goDeeperOptions'] = $goDeeperOptions['options'];
+			}
+		}
+
+		//Related data
+		$enrichmentResult['relatedContent'] = $interface->fetch('Record\relatedContent.tpl');
+
+		return json_encode($enrichmentResult);
+	}
+
 	function GetEnrichmentInfo(){
 		require_once ROOT_DIR . '/services/Record/Enrichment.php';
 		global $configArray;
@@ -504,6 +605,7 @@ class Record_AJAX extends Action {
 				$interface->assign('showGoDeeper', false);
 			}else{
 				$interface->assign('showGoDeeper', true);
+				$interface->assign('goDeeperOptions', $goDeeperOptions['options']);
 			}
 		}
 
