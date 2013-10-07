@@ -63,8 +63,10 @@
 							{if $record.recordId != -1}
 							<div class="resultActions">
 								{include file="EcontentRecord/title-rating.tpl" ratingClass="" recordId=$record.recordId shortId=$record.recordId ratingData=$record.ratingData}
-								{assign var=id value=$record.recordId}
-								{include file="EcontentRecord/title-review.tpl"}
+								{if $showComments}
+									{assign var=id value=$record.recordId}
+									{include file="EcontentRecord/title-review.tpl"}
+								{/if}
  							</div>
 
 							{/if}

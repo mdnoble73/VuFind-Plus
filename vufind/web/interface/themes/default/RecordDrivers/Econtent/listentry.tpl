@@ -74,8 +74,10 @@
     {* Let the user rate this title *}
 		{include file="Record/title-rating.tpl" ratingClass="" recordId=$listId shortId=$listId ratingData=$ratingData showFavorites=0}
 
-    {assign var=id value=$listId scope="global"}
-    {include file="EcontentRecord/title-review.tpl"}
+	  {if $showComments}
+	    {assign var=id value=$listId scope="global"}
+	    {include file="EcontentRecord/title-review.tpl"}
+	  {/if}
       
     </div>
   </div>
