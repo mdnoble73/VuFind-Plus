@@ -619,9 +619,6 @@ public class ExtractOverDriveInfo {
 							results.incErrors();
 							System.out.println("Warning: new format for OverDrive found " + textFormat);
 							continue;
-						}else if (numericFormat == 610){
-							//Do not index OverDrive Read for now since we don't have access right now. 
-							continue;
 						}
 						addFormatStmt.setLong(3, numericFormat);
 						addFormatStmt.setString(4, format.getString("name"));
