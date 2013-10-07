@@ -883,6 +883,7 @@ class IndexRecord implements RecordInterface
 	{
 		global $interface;
 		$interface->assign('details', $this->fields);
+
 		return 'RecordDrivers/Index/staff.tpl';
 	}
 

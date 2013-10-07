@@ -214,6 +214,10 @@ class MarcRecord extends IndexRecord
 		}*/
 
 		$interface->assign('marcRecord', $this->marcRecord);
+
+		$solrRecord = $this->fields;
+		ksort($solrRecord);
+		$interface->assign('solrRecord', $solrRecord);
 		return 'RecordDrivers/Marc/staff.tpl';
 	}
 
