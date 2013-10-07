@@ -3,7 +3,7 @@
 	<div {if $ratingClass}class="{$ratingClass}"{/if}>
 		{/strip}
 		<div class="rater rate{$shortId|escape} stat"
-		     data-show_review="{if $showReviewAfterRating === false}{$showReviewAfterRating}{else}true{/if}"
+		     data-show_review="{if $showReviewAfterRating === false}false{else}{$showComments}{/if}"
 		     data-module="Record"
 		     data-short_id="{$shortId}"
 		     data-record_id="{$recordId}"
