@@ -188,10 +188,11 @@
 						<div class="resultActions">
 							{* Let the user rate this title *}
 							{include file="Record/title-rating.tpl" ratingClass="" recordId=$record.id shortId=$record.shortId ratingData=$record.ratingData}
-							{assign var=id value=$record.id scope="global"}
-							{assign var=shortId value=$record.shortId scope="global"}
-							{include file="Record/title-review.tpl"}
-									
+							{if $showComments}
+								{assign var=id value=$record.id scope="global"}
+								{assign var=shortId value=$record.shortId scope="global"}
+								{include file="Record/title-review.tpl"}
+							{/if}
 							</div>
 		
 						{if $record.id != -1}

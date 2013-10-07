@@ -200,9 +200,11 @@
 											{* Let the user rate this title *}
 											{include file="Record/title-rating.tpl" ratingClass="" recordId=$record.id shortId=$record.shortId ratingData=$record.ratingData}
 
-											{assign var=id value=$record.recordId}
-											{assign var=shortId value=$record.shortId}
-											{include file="Record/title-review.tpl"}
+											{if $showComments}
+												{assign var=id value=$record.recordId}
+												{assign var=shortId value=$record.shortId}
+												{include file="Record/title-review.tpl"}
+											{/if}
 										</div>
 
 										{if $record.recordId != -1}
