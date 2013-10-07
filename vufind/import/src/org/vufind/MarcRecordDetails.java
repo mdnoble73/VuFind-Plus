@@ -2410,8 +2410,7 @@ public class MarcRecordDetails {
 		try {
 			String leader = record.getLeader().toString();
 
-			ControlField ohOhEightField = (ControlField) record
-					.getVariableField("008");
+			ControlField ohOhEightField = (ControlField) record.getVariableField("008");
 			ControlField ohOhSixField = (ControlField) record.getVariableField("006");
 
 			// check the Leader at position 6 to determine the type of field
@@ -2429,16 +2428,13 @@ public class MarcRecordDetails {
 			) {
 				char literaryFormChar;
 				if (ohOhSixField != null && ohOhSixField.getData().length() > 16) {
-					literaryFormChar = Character.toUpperCase(ohOhSixField.getData()
-							.charAt(16));
+					literaryFormChar = Character.toUpperCase(ohOhSixField.getData().charAt(16));
 					if (literaryFormChar != ' ') {
 						result.add(Character.toString(literaryFormChar));
 					}
 				}
-				if (result.size() == 0 && ohOhEightField != null
-						&& ohOhEightField.getData().length() > 33) {
-					literaryFormChar = Character.toUpperCase(ohOhEightField.getData()
-							.charAt(33));
+				if (result.size() == 0 && ohOhEightField != null && ohOhEightField.getData().length() > 33) {
+					literaryFormChar = Character.toUpperCase(ohOhEightField.getData().charAt(33));
 					if (literaryFormChar != ' ') {
 						result.add(Character.toString(literaryFormChar));
 						// logger.debug("Literary Form is " +

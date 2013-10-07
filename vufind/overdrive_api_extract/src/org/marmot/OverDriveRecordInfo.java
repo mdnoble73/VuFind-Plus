@@ -20,8 +20,17 @@ public class OverDriveRecordInfo {
 	private boolean isPublicPerformanceAllowed;
 	private String description;
 	private HashSet<String> subjects = new HashSet<String>();
-	
+	private String rawData;
 	private boolean isShared = false;
+
+	public String getRawData() {
+		return rawData;
+	}
+
+	public void setRawData(String rawData) {
+		this.rawData = rawData;
+	}
+
 	public String getId() {
 		return id;
 	}
@@ -38,7 +47,7 @@ public class OverDriveRecordInfo {
 		return title;
 	}
 	public void setTitle(String title) {
-		this.title = title.replaceAll("&#174;", "®");
+		this.title = title.replaceAll("&#174;", "ï¿½");
 	}
 	public String getSeries() {
 		return series;

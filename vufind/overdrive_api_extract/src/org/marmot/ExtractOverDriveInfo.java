@@ -19,6 +19,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
 
+import com.sun.org.apache.xml.internal.security.utils.Constants;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.marmot.OverDriveRecordInfo;
@@ -40,6 +41,7 @@ public class ExtractOverDriveInfo {
 	private String overDriveAPITokenType;
 	private long overDriveAPIExpiration;
 	private String overDriveProductsKey;
+	private boolean forceMetaDataUpdate;
 	private HashMap<Long, String> libToOverDriveAPIKeyMap = new HashMap<Long, String>();;
 	private HashMap<String, Long> overDriveFormatMap = new HashMap<String, Long>();
 	
@@ -83,13 +85,13 @@ public class ExtractOverDriveInfo {
 		this.results = logEntry;
 		
 		try {
-			addProductStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_products set overdriveid = ?, mediaType = ?, title = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateAdded = ?, dateUpdated = ?, lastMetadataCheck = 0, lastMetadataChange = 0, lastAvailabilityCheck = 0, lastAvailabilityChange = 0", PreparedStatement.RETURN_GENERATED_KEYS);
-			updateProductStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET mediaType = ?, title = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateUpdated = ?, deleted = 0 where id = ?");
+			addProductStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_products set overdriveid = ?, mediaType = ?, title = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateAdded = ?, dateUpdated = ?, lastMetadataCheck = 0, lastMetadataChange = 0, lastAvailabilityCheck = 0, lastAvailabilityChange = 0, rawData=?", PreparedStatement.RETURN_GENERATED_KEYS);
+			updateProductStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET mediaType = ?, title = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateUpdated = ?, deleted = 0, rawData=? where id = ?");
 			deleteProductStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET deleted = 1, dateDeleted = ? where id = ?");
 			updateProductMetadataStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET lastMetadataCheck = ?, lastMetadataChange = ? where id = ?");
 			loadMetaDataStmt = econtentConn.prepareStatement("SELECT * FROM overdrive_api_product_metadata WHERE productId = ?");
-			updateMetaDataStmt = econtentConn.prepareStatement("UPDATE overdrive_api_product_metadata set productId = ?, checksum = ?, sortTitle = ?, publisher = ?, publishDate = ?, isPublicDomain = ?, isPublicPerformanceAllowed = ?, shortDescription = ?, fullDescription = ?, starRating = ?, popularity =? where id = ?");
-			addMetaDataStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_product_metadata set productId = ?, checksum = ?, sortTitle = ?, publisher = ?, publishDate = ?, isPublicDomain = ?, isPublicPerformanceAllowed = ?, shortDescription = ?, fullDescription = ?, starRating = ?, popularity =?");
+			updateMetaDataStmt = econtentConn.prepareStatement("UPDATE overdrive_api_product_metadata set productId = ?, checksum = ?, sortTitle = ?, publisher = ?, publishDate = ?, isPublicDomain = ?, isPublicPerformanceAllowed = ?, shortDescription = ?, fullDescription = ?, starRating = ?, popularity =?, thumbnail=?, cover=?, rawData=? where id = ?");
+			addMetaDataStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_product_metadata set productId = ?, checksum = ?, sortTitle = ?, publisher = ?, publishDate = ?, isPublicDomain = ?, isPublicPerformanceAllowed = ?, shortDescription = ?, fullDescription = ?, starRating = ?, popularity =?, thumbnail=?, cover=?, rawData=?");
 			clearCreatorsStmt = econtentConn.prepareStatement("DELETE FROM overdrive_api_product_creators WHERE productId = ?");
 			addCreatorStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_product_creators productId = ?, role = ?, name = ?, fileAs = ?");
 			loadLanguagesStmt = econtentConn.prepareStatement("SELECT * FROM overdrive_api_product_languages");
@@ -135,6 +137,12 @@ public class ExtractOverDriveInfo {
 			overDriveProductsKey = configIni.get("OverDrive", "productsKey");
 			if (overDriveProductsKey == null){
 				logger.warn("Warning no products key provided for OverDrive");
+			}
+			String forceMetaDataUpdateStr = configIni.get("OverDrive", "forceMetaDataUpdate");
+			if (forceMetaDataUpdateStr == null){
+				forceMetaDataUpdate = false;
+			}else{
+				forceMetaDataUpdate = Boolean.parseBoolean(forceMetaDataUpdateStr);
 			}
 			
 			overDriveFormatMap.put("ebook-epub-adobe", 410L);
@@ -230,7 +238,8 @@ public class ExtractOverDriveInfo {
 					!Util.compareStrings(overDriveInfo.getPrimaryCreatorRole(), overDriveDBInfo.getPrimaryCreatorRole()) ||
 					!Util.compareStrings(overDriveInfo.getPrimaryCreatorName(), overDriveDBInfo.getPrimaryCreatorName()) ||
 					!Util.compareStrings(overDriveInfo.getCoverImage(), overDriveDBInfo.getCover()) ||
-					overDriveDBInfo.isDeleted()
+					overDriveDBInfo.isDeleted() ||
+					!overDriveDBInfo.hasRawData()
 					){
 				//Update the product in the database
 				long curTime = new Date().getTime() / 1000;
@@ -242,9 +251,11 @@ public class ExtractOverDriveInfo {
 				updateProductStmt.setString(curCol++, overDriveInfo.getPrimaryCreatorName());
 				updateProductStmt.setString(curCol++, overDriveInfo.getCoverImage());
 				updateProductStmt.setLong(curCol++, curTime);
+				updateProductStmt.setString(curCol++, overDriveInfo.getRawData());
 				updateProductStmt.setLong(curCol++, overDriveDBInfo.getDbId());
 				
 				updateProductStmt.executeUpdate();
+				updateMade = true;
 			}
 			
 			boolean metadataChanged = updateOverDriveMetaData(overDriveInfo, overDriveDBInfo.getDbId(), overDriveDBInfo);
@@ -278,6 +289,7 @@ public class ExtractOverDriveInfo {
 			addProductStmt.setString(curCol++, overDriveInfo.getCoverImage());
 			addProductStmt.setLong(curCol++, curTime);
 			addProductStmt.setLong(curCol++, curTime);
+			addProductStmt.setString(curCol++, overDriveInfo.getRawData());
 			addProductStmt.executeUpdate();
 			
 			ResultSet newIdRS = addProductStmt.getGeneratedKeys();
@@ -303,7 +315,7 @@ public class ExtractOverDriveInfo {
 			PreparedStatement loadProductsStmt = econtentConn.prepareStatement("Select * from overdrive_api_products");
 			ResultSet loadProductsRS = loadProductsStmt.executeQuery();
 			while (loadProductsRS.next()){
-				String overdriveId = loadProductsRS.getString("overdriveId");
+				String overdriveId = loadProductsRS.getString("overdriveId").toLowerCase();
 				OverDriveDBInfo curProduct = new OverDriveDBInfo();
 				curProduct.setOverDriveId(overdriveId);
 				curProduct.setDbId(loadProductsRS.getLong("id"));
@@ -320,6 +332,8 @@ public class ExtractOverDriveInfo {
 				curProduct.setLastMetadataCheck(loadProductsRS.getLong("lastMetadataCheck"));
 				curProduct.setLastMetadataChange(loadProductsRS.getLong("lastMetadataChange"));
 				curProduct.setDeleted(loadProductsRS.getLong("deleted") == 1);
+				String rawData = loadProductsRS.getString("rawData");
+				curProduct.setHasRawData(rawData != null && rawData.length() > 0);
 				databaseProducts.put(overdriveId, curProduct);
 			}
 			return true;
@@ -388,12 +402,12 @@ public class ExtractOverDriveInfo {
 				if (libraryId == -1){
 					curRecord.setShared(true);
 				}
-				if (overDriveTitles.containsKey(curRecord.getId())){
-					OverDriveRecordInfo oldRecord = overDriveTitles.get(curRecord.getId());
+				if (overDriveTitles.containsKey(curRecord.getId().toLowerCase())){
+					OverDriveRecordInfo oldRecord = overDriveTitles.get(curRecord.getId().toLowerCase());
 					oldRecord.getCollections().add(libraryId);
 				}else{
 					//logger.debug("Loading record " + curRecord.getId());
-					overDriveTitles.put(curRecord.getId(), curRecord);
+					overDriveTitles.put(curRecord.getId().toLowerCase(), curRecord);
 				}
 			}
 		}
@@ -416,9 +430,11 @@ public class ExtractOverDriveInfo {
 			curRecord.getFormats().add(curProduct.getJSONArray("formats").getJSONObject(k).getString("id"));
 		}
 		if (curProduct.has("images") && curProduct.getJSONObject("images").has("thumbnail")){
-			curRecord.setCoverImage(curProduct.getJSONObject("images").getJSONObject("thumbnail").getString("href"));
+			String thumbnailUrl = curProduct.getJSONObject("images").getJSONObject("thumbnail").getString("href");
+			curRecord.setCoverImage(thumbnailUrl);
 		}
 		curRecord.getCollections().add(getLibraryIdForOverDriveAccount(libraryName));
+		curRecord.setRawData(curProduct.toString(2));
 		return curRecord;
 	}
 	
@@ -433,7 +449,7 @@ public class ExtractOverDriveInfo {
 		//Check to see if we need to load metadata 
 		long curTime = new Date().getTime() / 1000;
 		//Don't need to load metadata if we already have metadata and the metadata was checked within the last 24 hours
-		if (dbInfo != null && dbInfo.getLastMetadataCheck() >= curTime - 24 * 60 * 60){
+		if ((dbInfo != null && dbInfo.getLastMetadataCheck() >= curTime - 24 * 60 * 60) && !forceMetaDataUpdate){
 			return false;
 		}
 		
@@ -464,9 +480,17 @@ public class ExtractOverDriveInfo {
 			if (dbInfo == null){
 				updateMetaData = true;
 			}else{
-				if (metadataChecksum != databaseMetaData.getChecksum()){
+				if (!databaseMetaData.hasRawData()){
+					updateMetaData = true;
+				}else if (metadataChecksum != databaseMetaData.getChecksum()){
 					//The metadata has definitely changed.
 					updateMetaData = true;
+				}else if (dbInfo.getLastMetadataCheck() <= curTime - 14 * 24 * 60 * 60){
+					//If it's been two weeks since we last updated, give a 20% chance of updating
+					//Don't update everything at once to spread out the number of calls and reduce time.
+					if (Math.random() * 100 <= 20.0){
+						updateMetaData = true;
+					}
 				}
 			}
 			if (updateMetaData){
@@ -494,6 +518,21 @@ public class ExtractOverDriveInfo {
 					metaDataStatement.setString(curCol++, metaData.has("fullDescription") ? metaData.getString("fullDescription") : "");
 					metaDataStatement.setDouble(curCol++, metaData.has("starRating") ? metaData.getDouble("starRating") : 0);
 					metaDataStatement.setInt(curCol++, metaData.has("popularity") ? metaData.getInt("popularity") : 0);
+					String thumbnail = "";
+					String cover = "";
+					if (metaData.has("images")){
+						JSONObject imagesData = metaData.getJSONObject("images");
+						if (imagesData.has("thumbnail")){
+							thumbnail = imagesData.getJSONObject("thumbnail").getString("href");
+						}
+						if (imagesData.has("cover")){
+							cover = imagesData.getJSONObject("cover").getString("href");
+						}
+					}
+					metaDataStatement.setString(curCol++, thumbnail);
+					metaDataStatement.setString(curCol++, cover);
+					metaDataStatement.setString(curCol++, metaData.toString(2));
+
 					if (databaseMetaData.getId() != -1){
 						metaDataStatement.setLong(curCol++, databaseMetaData.getId());
 					}
@@ -586,7 +625,7 @@ public class ExtractOverDriveInfo {
 						}
 						addFormatStmt.setLong(3, numericFormat);
 						addFormatStmt.setString(4, format.getString("name"));
-						addFormatStmt.setString(5, format.getString("fileName"));
+						addFormatStmt.setString(5, format.has("filename") ? format.getString("fileName") : "");
 						addFormatStmt.setLong(6, format.has("fileSize") ? format.getLong("fileSize") : 0L);
 						addFormatStmt.setLong(7, format.has("partCount") ? format.getLong("partCount") : 0L);
 						
@@ -675,6 +714,10 @@ public class ExtractOverDriveInfo {
 				metaData.setFullDescription(metaDataRS.getString("fullDescription"));
 				metaData.setStarRating(metaDataRS.getFloat("starRating"));
 				metaData.setPopularity(metaDataRS.getInt("popularity"));
+				String rawData = metaDataRS.getString("rawData");
+				metaData.setHasRawData(rawData != null && rawData.length() > 0);
+				metaData.setThumbnail(metaDataRS.getString("thumbnail"));
+				metaData.setCover(metaDataRS.getString("cover"));
 			}
 		} catch (SQLException e) {
 			logger.error("Error loading product metadata ", e);

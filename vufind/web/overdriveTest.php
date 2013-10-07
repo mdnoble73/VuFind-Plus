@@ -8,7 +8,7 @@ require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 $driver = OverDriveDriverFactory::getDriver();
 
 //Connect to the patron API
-echo("<h2>Patron API tests</h2>");
+/*echo("<h2>Patron API tests</h2>");
 $user = new User();
 $user->cat_password = '4090000012345';
 $user->overdriveEmail = 'spam@marmot.org';
@@ -45,9 +45,9 @@ echo("<h3>Checking Out title (format not locked in)</h3>");
 $checkoutResult = $driver->checkoutOverDriveItem('E72A25BF-2B10-49EA-8887-5B70B78537A8', null, null, $user);
 print_r($checkoutResult);
 
-/*echo("<h3>Lock in a format for a title</h3>");
+echo("<h3>Lock in a format for a title</h3>");
 $selectFormatResult = $driver->selectOverDriveDownloadFormat('76c1b7d0-17f4-4c05-8397-c66c17411584', 'ebook-epub-adobe', $user);
-print_r($selectFormatResult);*/
+print_r($selectFormatResult);
 
 echo("<h3>Return title</h3>");
 $returnResult = $driver->returnOverDriveItem('E72A25BF-2B10-49EA-8887-5B70B78537A8', null, $user);
@@ -67,9 +67,9 @@ echo("<h3>Return title</h3>");
 $returnResult = $driver->returnOverDriveItem('12F25D77-A306-42E2-92FA-0CDA71915A57', null, $user);
 print_r($returnResult);
 
-echo("<h2>End patron API tests</h2>");
+echo("<h2>End patron API tests</h2>");*/
 
-/*
+
 $libraryInfo = $driver->getLibraryAccountInformation();
 print_r($libraryInfo);
 echo("<h1>{$libraryInfo->name}</h1>");
@@ -97,7 +97,7 @@ echo("<h3>Metadata</h3>");
 echo($firstProduct->links->metadata->href);
 //$metadata = $driver->getProductMetadata($firstProduct->links->metadata->href);
 $metadata = $driver->getProductMetadata("cda4632c-0593-46e7-94a4-1e4c4451da09", "L1BMAEAAA2k");
-print_r($metadata);*/
+print_r($metadata);
 
 
 

@@ -3,6 +3,7 @@
 	{* Define tabs for the display *}
 	<ul class="nav nav-tabs">
 		<li id="detailstab_label" class="active"><a href="#detailstab" data-toggle="tab">{translate text="Details"}</a></li>
+		<li id="excerpttab_label" style="display:none"><a href="#excerpttab" data-toggle="tab">{translate text="Excerpt"}</a></li>
 		<li id="holdingstab_label"><a href="#holdingstab" data-toggle="tab">{translate text="Copies"}</a></li>
 		{if $enableMaterialsRequest || is_array($otherEditions) }
 			<li id="otherEditionsTab_label"><a href="#otherEditionsTab" data-toggle="tab">{translate text="Other Formats"}</a></li>
@@ -10,15 +11,13 @@
 		{if $enablePospectorIntegration == 1 && $showProspectorTitlesAsTab == 1}
 			<li id="prospectortab_label"><a href="#prospectorTab" data-toggle="tab">{translate text="In Prospector"}</a></li>
 		{/if}
-		{if $tableOfContents}
-			<li><a href="#tableofcontentstab" data-toggle="tab">{translate text="Contents"}</a></li>
-		{/if}
+
+		<li id="tableofcontentstab_label" {if !$tableOfContents}style="display:none"{/if}><a href="#tableofcontentstab" data-toggle="tab">{translate text="Contents"}</a></li>
+
 		{if $notes}
 			<li><a href="#notestab" data-toggle="tab">{translate text=$notesTabName}</a></li>
 		{/if}
-		{if $internetLinks && $show856LinksAsTab == 1}
-			<li><a href="#linkstab" data-toggle="tab">{translate text="Links"}</a></li>
-		{/if}
+
 		{if $showAmazonReviews || $showStandardReviews || $showComments}
 			{foreach from=$editorialReviews key=key item=reviewTabInfo}
 				<li><a href="#{$key}" data-toggle="tab">{translate text=$reviewTabInfo.tabName}</a></li>
@@ -34,22 +33,12 @@
 		<div id = "detailstab" class="tab-pane active">
 			{include file="Record/view-title-details.tpl"}
 		</div>
+		<div id = "excerpttab" class="tab-pane">
+			<div id="excerptPlaceholder">Loading Excerpt...</div>
+		</div>
 		<div id = "holdingstab" class="tab-pane">
 			<a name="holdings"></a>
 			<div id="holdingsPlaceholder"></div>
-
-			{if $internetLinks && $show856LinksAsTab == 0}
-				<h3>{translate text="Internet"}</h3>
-				<div>
-					{foreach from=$internetLinks item=internetLink}
-						{if $proxy}
-						<a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><br/>
-						{else}
-						<a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a><br/>
-						{/if}
-					{/foreach}
-				</div>
-			{/if}
 
 			{if $enablePurchaseLinks == 1 && !$purchaseLinks}
 				<br/>
@@ -71,15 +60,17 @@
 			</div>
 		{/if}
 
-		{if $tableOfContents}
-			<div id ="tableofcontentstab" class="tab-pane">
+		<div id ="tableofcontentstab" class="tab-pane">
+			{if $tableOfContents}
 				<ul class='notesList'>
 					{foreach from=$tableOfContents item=note}
 						<li>{$note}</li>
 					{/foreach}
 				</ul>
-			</div>
-		{/if}
+			{/if}
+			<div id="avSummaryPlaceholder" style="display:none"></div>
+			<div id="tableOfContentsPlaceholder" style="display:none"></div>
+		</div>
 
 		{if $notes}
 			<div id ="notestab" class="tab-pane">
@@ -89,20 +80,18 @@
 						{$note}
 					{/foreach}
 					<div id="relatedContentPlaceholder"></div>
+
+					{if $internetLinks}
+						<dt>Links</dt>
+						{foreach from=$internetLinks item=internetLink}
+							{if $proxy}
+								<dd><a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a></dd>
+							{else}
+								<dd><a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a></dd>
+							{/if}
+						{/foreach}
+					{/if}
 				</dl>
-
-			</div>
-		{/if}
-
-		{if $internetLinks && $show856LinksAsTab ==1}
-			<div id ="linkstab" class="tab-pane">
-				{foreach from=$internetLinks item=internetLink}
-				{if $proxy}
-				<a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><br/>
-				{else}
-				<a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a><br/>
-				{/if}
-				{/foreach}
 			</div>
 		{/if}
 
@@ -151,3 +140,13 @@
 		</div>
 	</div>
 </div> {* End of tabs*}
+{literal}
+<script type="text/javascript">
+	$('#excerpttab_label a').on('shown', function (e) {
+		VuFind.Record.GetGoDeeperData({/literal}'{$id}', '{$isbn}', '{$upc}'{literal}, 'excerpt');
+	});
+	$('#tableofcontentstab_label a').on('shown', function (e) {
+		VuFind.Record.GetGoDeeperData({/literal}'{$id}', '{$isbn}', '{$upc}'{literal}, 'avSummary');
+	});
+</script>
+{/literal}
