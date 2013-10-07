@@ -4,6 +4,7 @@ require_once(ROOT_DIR . '/Drivers/marmot_inc/ISBNConverter.php') ;
 class GoDeeperData{
 	static function getGoDeeperOptions($isbn, $upc, $getDefaultData = false){
 		global $configArray;
+		/** @var Memcache $memCache */
 		global $memCache;
 		global $timer;
 		if (is_array($upc)){
@@ -109,6 +110,7 @@ class GoDeeperData{
 	}
 	static function getSummary($isbn, $upc){
 		global $configArray;
+		/** @var Memcache $memCache */
 		global $memCache;
 		$summaryData = $memCache->get("syndetics_summary_{$isbn}_{$upc}");
 
@@ -152,6 +154,7 @@ class GoDeeperData{
 
 	function getTableOfContents($isbn, $upc){
 		global $configArray;
+		/** @var Memcache $memCache */
 		global $memCache;
 		$tocData = $memCache->get("syndetics_toc_{$isbn}_{$upc}");
 
@@ -197,6 +200,7 @@ class GoDeeperData{
 	function getFictionProfile($isbn, $upc){
 		//Load the index page from syndetics
 		global $configArray;
+		/** @var Memcache $memCache */
 		global $memCache;
 		$fictionData = $memCache->get("syndetics_fiction_profile_{$isbn}_{$upc}");
 
@@ -295,6 +299,7 @@ class GoDeeperData{
 	}
 	function getAuthorNotes($isbn, $upc){
 		global $configArray;
+		/** @var Memcache $memCache */
 		global $memCache;
 		$summaryData = $memCache->get("syndetics_author_notes_{$isbn}_{$upc}");
 
@@ -335,14 +340,16 @@ class GoDeeperData{
 	}
 	function getExcerpt($isbn, $upc){
 		global $configArray;
+		/** @var Memcache $memCache */
 		global $memCache;
 		$excerptData = $memCache->get("syndetics_excerpt_{$isbn}_{$upc}");
 
-		if (!$excerptData){
+		if (!$excerptData || isset($_REQUEST['reload'])){
 			$clientKey = $configArray['Syndetics']['key'];
 
 			//Load the index page from syndetics
 			$requestUrl = "http://syndetics.com/index.aspx?isbn=$isbn/DBCHAPTER.XML&client=$clientKey&type=xw10&upc=$upc";
+			echo($requestUrl);
 
 			try{
 				//Get the XML from the service
@@ -375,6 +382,7 @@ class GoDeeperData{
 
 	function getVideoClip($isbn, $upc){
 		global $configArray;
+		/** @var Memcache $memCache */
 		global $memCache;
 		$summaryData = $memCache->get("syndetics_video_clip_{$isbn}_{$upc}");
 
@@ -418,6 +426,7 @@ class GoDeeperData{
 
 	function getAVSummary($isbn, $upc){
 		global $configArray;
+		/** @var Memcache $memCache */
 		global $memCache;
 		$avSummaryData = $memCache->get("syndetics_av_summary_{$isbn}_{$upc}");
 
@@ -466,6 +475,7 @@ class GoDeeperData{
 
 	function getGoogleBookId($isbn){
 		global $configArray;
+		/** @var Memcache $memCache */
 		global $memCache;
 		$googleBookId = $memCache->get("google_book_id_{$isbn}");
 		if (!$googleBookId){

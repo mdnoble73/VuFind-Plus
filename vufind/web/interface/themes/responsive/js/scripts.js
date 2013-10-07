@@ -627,7 +627,7 @@ VuFind.OverDrive = {
 };
 
 VuFind.Record = {
-	getSaveToListForm: function getSaveToListForm(trigger, id, source){
+	getSaveToListForm: function (trigger, id, source){
 		if (Globals.loggedIn){
 			var url = Globals.path + "/Resource/Save?lightbox=true&id=" + id + "&source=" + source;
 			var $trigger = $(trigger);
@@ -644,15 +644,41 @@ VuFind.Record = {
 		return false;
 	},
 
-	loadEnrichmentInfo: function (id, isbn, upc, econtent) {
+	GetGoDeeperData: function (id, isbn, upc, dataType){
+		if (dataType == 'excerpt'){
+			var placeholder = $("#excerptPlaceholder");
+		}else if (dataType == 'avSummary'){
+			var placeholder = $("#avSummaryPlaceholder");
+		}else if (dataType == 'tableOfContents'){
+			var placeholder = $("#tableOfContentsPlaceholder");
+		}
+		if (placeholder.hasClass("loaded")) return;
+		placeholder.show();
 		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-		var params = "method=GetEnrichmentInfo&isbn=" + encodeURIComponent(isbn) + "&upc=" + encodeURIComponent(upc);
+		var params = "method=GetGoDeeperData&dataType=" + encodeURIComponent(dataType) + "&isbn=" + encodeURIComponent(isbn) + "&upc=" + encodeURIComponent(upc);
 		var fullUrl = url + "?" + params;
 		$.ajax( {
 			url : fullUrl,
 			success : function(data) {
+				placeholder.html(data);
+				placeholder.addClass('loaded');
+			},
+			failure : function(jqXHR, textStatus, errorThrown) {
+				alert('Error: Could Not Load Syndetics information.');
+			}
+		});
+	},
+
+	loadEnrichmentInfo: function (id, isbn, upc, econtent) {
+		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		var params = "method=GetEnrichmentInfoJSON&isbn=" + encodeURIComponent(isbn) + "&upc=" + encodeURIComponent(upc);
+		var fullUrl = url + "?" + params;
+		$.ajax( {
+			url : fullUrl,
+			dataType: 'json',
+			success : function(data) {
 				try{
-					var seriesData = $(data).find("SeriesInfo").text();
+					var seriesData = data.seriesInfo;
 					if (seriesData && seriesData.length > 0) {
 
 						seriesScroller = new TitleScroller('titleScrollerSeries', 'Series', 'seriesList');
@@ -664,11 +690,24 @@ VuFind.Record = {
 							seriesScroller.loadTitlesFromJsonData(seriesData);
 						}
 					}
-					var showGoDeeperData = $(data).find("ShowGoDeeperData").text();
+					var showGoDeeperData = data.showGoDeeper;
 					if (showGoDeeperData) {
-						$('#goDeeperLink').show();
+						//$('#goDeeperLink').show();
+						var goDeeperOptions = data.goDeeperOptions;
+						//add a tab before citation for each item
+						for (option in goDeeperOptions){
+							if (option == 'excerpt'){
+								$("#excerpttab_label").show();
+							}else if (option == 'avSummary'){
+								$("#tableofcontentstab_label").show();
+								$("avSummaryPlaceholder").show();
+							}else if (option == 'avSummary' || option == 'tableOfContents'){
+								$("#tableofcontentstab_label").show();
+								$("tableOfContentsPlaceholder").show();
+							}
+						}
 					}
-					var relatedContentData = $(data).find("RelatedContent").text();
+					var relatedContentData = data.relatedContent;
 					if (relatedContentData && relatedContentData.length > 0) {
 						$("#relatedContentPlaceholder").html(relatedContentData);
 					}
@@ -677,7 +716,7 @@ VuFind.Record = {
 				}
 			},
 			failure : function(jqXHR, textStatus, errorThrown) {
-				alert('Error: Could Not Load Holdings information.  Please try again in a few minutes');
+				alert('Error: Could Not Load Enrichment information.');
 			}
 		});
 	},
