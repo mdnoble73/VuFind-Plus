@@ -408,22 +408,11 @@ class EcontentRecord_Home extends Action{
 			$interface->assign('MobileTitle','&nbsp;');
 
 			//Load Staff Details
-			$interface->assign('staffDetails', $this->getStaffView($eContentRecord));
+			$interface->assign('staffDetails', $this->recordDriver->getStaffView($eContentRecord));
 
 			// Display Page
 			$interface->display('layout.tpl');
 
-		}
-	}
-
-	public function getStaffView($eContentRecord){
-		global $interface;
-		$marcRecord = MarcLoader::loadEContentMarcRecord($eContentRecord);
-		if ($marcRecord != null){
-			$interface->assign('marcRecord', $marcRecord);
-			return 'RecordDrivers/Marc/staff.tpl';
-		}else{
-			return null;
 		}
 	}
 

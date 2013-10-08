@@ -677,7 +677,7 @@ class IndexRecord implements RecordInterface
 		}else{
 			$interface->assign('summShortId', $id);
 		}
-		$linkUrl = '/Record/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+		$linkUrl = '/Record/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
 		if ($useUnscopedHoldingsSummary){
 			$linkUrl .= '&amp;searchSource=marmot';
 		}else{

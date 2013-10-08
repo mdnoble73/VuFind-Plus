@@ -33,3 +33,12 @@
 		</dl>
 	</div>
 {/if}
+
+{if $overDriveProductRaw}
+	<div id="formattedSolrRecord">
+		<h3>OverDrive Product Record</h3>
+		{formatJSON subject=$overDriveProductRaw}
+		<h3>OverDrive MetaData</h3>
+		{formatJSON subject=$overDriveMetaDataRaw}
+	</div>
+{/if}
