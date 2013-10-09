@@ -5,10 +5,10 @@
 		{if $showHoldButton}
 			{if $eContentRecord->isOverDrive()}
 				{* Place hold link *}
-				<a href="#" class="btn btn-small btn-block" id="placeHold{$summId|escape:"url"}" style="display:none" onclick="return placeOverDriveHold('{$eContentRecord->externalId}')">{translate text="Place Hold"}</a>
+				<a href="#" class="btn btn-small btn-block" id="placeHold{$summId|escape:"url"}" style="display:none" onclick="return VuFind.OverDrive.placeOverDriveHold('{$eContentRecord->externalId}')">{translate text="Place Hold"}</a>
 
 				{* Checkout link *}
-				<a href="#" class="btn btn-small btn-block" id="checkout{$summId|escape:"url"}" style="display:none" onclick="return {if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
+				<a href="#" class="btn btn-small btn-block" id="checkout{$summId|escape:"url"}" style="display:none" onclick="return {if overDriveVersion==1}VuFind.OverDrive.checkoutOverDriveItem{else}VuFind.OverDrive.checkoutOverDriveItemOneClick{/if}('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
 			{else}
 				{* Place hold link *}
 				<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Hold" class="btn btn-small btn-block" id="placeEcontentHold{$summId|escape:"url"}" style="display:none">{translate text="Place Hold"}</a>

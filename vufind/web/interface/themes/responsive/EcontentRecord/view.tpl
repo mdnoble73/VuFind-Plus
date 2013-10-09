@@ -40,7 +40,7 @@
 	<h2>
 		{$eContentRecord->title|removeTrailingPunctuation|escape}{if $eContentRecord->subTitle}: {$eContentRecord->subTitle|removeTrailingPunctuation|escape}{/if}
 		{if $eContentRecord->format()}
-			&nbsp;<small>({implode subject=$eContentRecord->format() glue=","})</small>
+			&nbsp;<small>({implode subject=$eContentRecord->format() glue=", "})</small>
 		{/if}
 	</h2>
 {* Display more information about the title*}
@@ -64,7 +64,8 @@
 			{/if}
 		</div>
 	{/if}
-	</div>
+
+	<hr/>
 
 	<div id="main-content" class="span12">
 		<div class="row-fluid">
@@ -121,27 +122,7 @@
 		<hr/>
 
 		{include file="EcontentRecord/view-tabs.tpl" isbn=$isbn upc=$upc}
+
+		<hr/>
 	</div>
-
-	<div id="main-content" class="full-result-content">
-		<div id="record-details-column">
-				{if $enableProspectorIntegration == 1}
-					<div id="prospectorHoldingsPlaceholder"></div>
-				{/if}
-
-			{if count($subjectList) > 0}
-			<div class="resultInformation">
-				<div class="resultInformationLabel">{translate text='Subjects'}</div>
-				<div class="recordSubjects">
-					{foreach from=$subjectList item=subjectListItem name=loop}
-							<a href="{$path}/Search/Results?lookfor=%22{$subjectListItem|escape:'url'}%22&amp;basicType=Subject">{$subjectListItem|escape}</a>
-						<br />
-					{/foreach}
-				</div>
-			</div>
-			{/if}
-
-		</div>
-
-</div>
 {/strip}

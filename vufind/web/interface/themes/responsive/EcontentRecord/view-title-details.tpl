@@ -100,6 +100,42 @@
 				{/foreach}
 			{/if}
 
+			{if $standardSubjects}
+				<dt>{translate text='Subjects'}</dt>
+				{foreach from=$standardSubjects item=subject name=loop}
+					<dd>
+						{foreach from=$subject item=subjectPart name=subloop}
+							{if !$smarty.foreach.subloop.first} -- {/if}
+							<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
+						{/foreach}
+					</dd>
+				{/foreach}
+			{/if}
+
+			{if $bisacSubjects}
+				<dt>{translate text='Bisac Subjects'}</dt>
+				{foreach from=$bisacSubjects item=subject name=loop}
+					<dd>
+						{foreach from=$subject item=subjectPart name=subloop}
+							{if !$smarty.foreach.subloop.first} -- {/if}
+							<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
+						{/foreach}
+					</dd>
+				{/foreach}
+			{/if}
+
+			{if $oclcFastSubjects}
+				<dt>{translate text='OCLC Fast Subjects'}</dt>
+				{foreach from=$oclcFastSubjects item=subject name=loop}
+					<dd>
+						{foreach from=$subject item=subjectPart name=subloop}
+							{if !$smarty.foreach.subloop.first} -- {/if}
+							<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
+						{/foreach}
+					</dd>
+				{/foreach}
+			{/if}
+
 			{if $showTagging == 1}
 				<dt>{translate text='Tags'}:</dt>
 				{if $tagList}

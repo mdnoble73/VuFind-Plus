@@ -191,11 +191,14 @@ class EContentDriver implements DriverInterface{
 					if ($addCheckoutLink){
 						if ($configArray['OverDrive']['interfaceVersion'] == 1){
 							$checkoutLink = "return checkoutOverDriveItem('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
+							$checkoutLinkResponsive = "return VuFind.OverDrive.checkoutOverDriveItem('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
 						}else{
 							$checkoutLink = "return checkoutOverDriveItemOneClick('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
+							$checkoutLinkResponsive = "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
 						}
 						$item->links[] = array(
 								'onclick' => $checkoutLink,
+								'onclickResponsive' => $checkoutLinkResponsive,
 								'text' => 'Check Out',
 								'overDriveId' => $eContentRecord->externalId,
 								'formatId' => $item->externalFormatNumeric,
@@ -204,6 +207,7 @@ class EContentDriver implements DriverInterface{
 					}else if ($addPlaceHoldLink){
 						$item->links[] = array(
 								'onclick' => "return placeOverDriveHold('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');",
+								'onclickResponsive' => "return VuFind.OverDrive.placeOverDriveHold('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');",
 								'text' => 'Place Hold',
 								'overDriveId' => $eContentRecord->externalId,
 								'formatId' => $item->externalFormatNumeric,

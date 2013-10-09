@@ -40,11 +40,6 @@
 				<div id="formatsPlaceholder">Loading...</div>
 
 				<div id="additionalFormatActions">
-					{if $showOtherEditionsPopup}
-						<div class="otherEditionCopies button">
-							<div style="font-weight:bold"><a href="#" onclick="loadOtherEditionSummaries('{$id}', true)">{translate text="Other Formats and Languages"}</a></div>
-						</div>
-					{/if}
 					{if $enablePurchaseLinks == 1}
 						<div class='purchaseTitle button'><a href="#" onclick="return showEcontentPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
 					{/if}
@@ -66,11 +61,11 @@
 			{* Display the content of individual tabs *}
 			{if $notes}
 				<div id ="notestab" class="tab-pane">
-					<ul class='notesList'>
+					<dl class='notesList'>
 						{foreach from=$notes item=note}
-							<li>{$note}</li>
+							{$note}
 						{/foreach}
-					</ul>
+					</dl>
 				</div>
 			{/if}
 
