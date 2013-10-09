@@ -101,7 +101,7 @@ class Resource_AJAX extends Action {
 			$resource->addTag($tag, $user);
 		}
 
-		return json_encode(array('result' => 'Done'));
+		return json_encode(array('result' => 'Done', 'message' => 'All tags have been added to the title.  Refresh to view updated tag list.'));
 	}
 	
 	function GetTags() {

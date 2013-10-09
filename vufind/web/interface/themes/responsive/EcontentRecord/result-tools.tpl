@@ -5,7 +5,7 @@
 		{if $showHoldButton}
 			{if $eContentRecord->isOverDrive()}
 				{* Place hold link *}
-				<a href="#" class="btn btn-small btn-block" id="placeEcontentHold{$summId|escape:"url"}" style="display:none" onclick="return placeOverDriveHold('{$eContentRecord->externalId}')">{translate text="Place Hold"}</a>
+				<a href="#" class="btn btn-small btn-block" id="placeHold{$summId|escape:"url"}" style="display:none" onclick="return placeOverDriveHold('{$eContentRecord->externalId}')">{translate text="Place Hold"}</a>
 
 				{* Checkout link *}
 				<a href="#" class="btn btn-small btn-block" id="checkout{$summId|escape:"url"}" style="display:none" onclick="return {if overDriveVersion==1}checkoutOverDriveItem{else}checkoutOverDriveItemOneClick{/if}('{$eContentRecord->externalId}')">{translate text="Checkout"}</a>
@@ -15,6 +15,8 @@
 
 				{* Checkout link *}
 				<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/Checkout" class="btn btn-small btn-block" id="checkout{$summId|escape:"url"}" style="display:none">{translate text="Checkout"}</a>
+
+				<a href="{$path}/EcontentRecord/{$id|escape:"url"}/AddToWishList" class="btn btn-small btn-block" id="addToWishList{$summId|escape:"url"}" style="display:none">{translate text="Add To Wish List"}</a>
 			{/if}
 
 			{* Access online link *}
