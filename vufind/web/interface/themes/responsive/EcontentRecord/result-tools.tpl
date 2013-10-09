@@ -39,10 +39,10 @@
 			<a id="saveLink{$id|escape}" class="btn btn-small btn-block" href="{$path}/Resource/Save?id={$summId|escape:"url"}&amp;source=eContent" onclick="getSaveToListForm('{$summId|escape}', 'eContent');return false;"><img src="/images/silk/star_gold.png">&nbsp;{translate text='Add to favorites'}</a>
 		{/if}
 		{if $showTextThis == 1}
-			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/SMS" id="smsLink" class="btn btn-small btn-block" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/SMS?lightbox', '#citeLink'); return false;"><span class="silk phone">&nbsp;</span>{translate text="Text this"}</a>
+			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/SMS" id="smsLink" class="btn btn-small btn-block" onclick="VuFind.ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/SMS?lightbox', true); return false;"><img src="/images/silk/phone.png">&nbsp;{translate text="Text this"}</a>
 		{/if}
 		{if $showEmailThis == 1}
-			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Email" id="mailLink" class="btn btn-small btn-block" onclick="ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/Email?lightbox', '#citeLink'); return false;"><span class="silk email">&nbsp;</span>{translate text="Email this"}</a>
+			<a href="{$path}/EcontentRecord/{$id|escape:"url"}/Email" id="mailLink" class="btn btn-small btn-block" onclick="VuFind.ajaxLightbox('{$path}/EcontentRecord/{$id|escape}/Email?lightbox', true); return false;"><img src="/images/silk/email.png" />&nbsp;{translate text="Email this"}</a>
 		{/if}
 	</div>
 </div>

@@ -5,7 +5,7 @@
 <div class="modal-body">
 	{if $message}<div class="error">{$message|translate}</div>{/if}
 
-	<form action="{$path}/Record/{$id|escape:"url"}/Email" method="post" id="emailForm" name="emailForm" class="form-horizontal">
+	<form action="{$path}/EContentRecord/{$id|escape:"url"}/Email" method="post" id="emailForm" name="emailForm" class="form-horizontal">
 		<div class="control-group">
 			<label for="to" class="control-label">{translate text='To'}:</label>
 			<div class="controls">
@@ -28,5 +28,5 @@
 </div>
 <div class="modal-footer">
 	<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
-	<input type="submit" class="btn btn-primary" value="{translate text='Save'}"  onclick="VuFind.Record.sendEmail('{$id|escape}', 'VuFind'); return false;">
+	<input type="submit" class="btn btn-primary" value="{translate text='Save'}"  onclick="VuFind.Record.sendEmail('{$id|escape}', 'eContent'); return false;">
 </div>

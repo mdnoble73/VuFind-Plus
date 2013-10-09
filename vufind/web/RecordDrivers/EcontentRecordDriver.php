@@ -494,7 +494,7 @@ class EcontentRecordDriver extends IndexRecord
 		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');
 		$interface->assign('publisher', isset($descriptionArray['publisher']) ? $descriptionArray['publisher'] : '');
 
-		return $interface->fetch('EcontentRecord/ajax-description-popup.tpl');
+		return $interface->fetch('Record/ajax-description-popup.tpl');
 	}
 
 	/**

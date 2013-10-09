@@ -1,22 +1,21 @@
 {strip}
 <div id="record{$summId|escape}" class="resultsList row-fluid">
-	<div class="span1 hidden-phone">
-		<div class="selectTitle">
-			<label for="selectedEcontentRecord{$summId|escape:"url"}" class="resultIndex checkbox">{$resultIndex}
-				<input type="checkbox" name="selected[econtentRecord{$summId|escape:"url"}]" class="titleSelect" id="selectedEcontentRecord{$summId|escape:"url"}" {if $enableBookCart}onclick="toggleInBag('econtentRecord{$summId|escape:"url"}', '{$summTitle|replace:'"':''|replace:'&':'&amp;'|escape:'javascript'}', this);"{/if} />&nbsp;
-			</label>
+	<div class="imageColumn span3">
+		<div class="row-fluid">
+			<div class="selectTitle hidden-phone span4">
+				<label for="selectedEcontentRecord{$summId|escape:"url"}" class="resultIndex checkbox"><strong>{$resultIndex}</strong>
+					<input type="checkbox" name="selected[econtentRecord{$summId|escape:"url"}]" class="titleSelect" id="selectedEcontentRecord{$summId|escape:"url"}" {if $enableBookCart}onclick="toggleInBag('econtentRecord{$summId|escape:"url"}', '{$summTitle|replace:'"':''|replace:'&':'&amp;'|escape:'javascript'}', this);"{/if} />&nbsp;
+				</label>
+			</div>
+			<div class="span7 text-center">
+				{if !isset($user->disableCoverArt) ||$user->disableCoverArt != 1}
+					<a href="{$summUrl}">
+						<img src="{$bookCoverUrl}" class="listResultImage img-polaroid" alt="{translate text='Cover Image'}"/>
+					</a>
+				{/if}
+				{include file="EcontentRecord/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
+			</div>
 		</div>
-	</div>
-	
-	<div class="imageColumn span2 text-center">
-		<div id='descriptionPlaceholder{$summId|escape}' style='display:none' class='descriptionTooltip'></div>
-		{if !isset($user->disableCoverArt) ||$user->disableCoverArt != 1}	
-			<a href="{$summUrl}" id="descriptionTrigger{$summId|escape:"url"}">
-				<img src="{$bookCoverUrl}" class="listResultImage img-polaroid" alt="{translate text='Cover Image'}"/>
-			</a>
-		{/if}
-		{include file="EcontentRecord/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
-
 	</div>
 
 	<div class="span9">
@@ -81,13 +80,7 @@
 					<div class="result-label span3">Format: </div>
 					<div class="span9 result-value">
 						<strong>
-							{if is_array($summFormats)}
-								{foreach from=$summFormats item=format}
-									<span class="iconlabel" >{translate text=$format}</span>&nbsp;
-								{/foreach}
-							{else}
-								<span class="iconlabel">{translate text=$summFormats}</span>
-							{/if}
+							{implode subject=$summFormats glue=", "}
 						</strong>
 					</div>
 				</div>
@@ -95,6 +88,10 @@
 				<div class="row-fluid">
 					<div class="result-label span3">{translate text='Status'}:</div>
 					<div class="span9 bold statusValue result-value" id="statusValue{$summShortId|escape}">Loading...</div>
+				</div>
+
+				<div class="row-fluid">
+					<div class="span12 result-value" id="descriptionValue{$summShortId|escape}">{$summDescription}</div>
 				</div>
 				{*
 				<div class="row-fluid">

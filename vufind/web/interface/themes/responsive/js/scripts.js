@@ -1077,11 +1077,54 @@ VuFind.Record = {
 	 * Includes title, author, call number, etc.
 	 * @param id
 	 */
-	sendSMS: function(id){
+	sendEmail: function(id, source){
+		var emailForm = $("#emailForm");
+		var to = emailForm.find("input[name=to]").val();
+		var from = emailForm.find("input[name=from]").val();
+		var message = emailForm.find("input[name=message]").val();
+		if (source == 'VuFind'){
+			var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		}else{
+			var url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+		}
+		var params = "method=SendEmail&" + "to=" + encodeURIComponent(to) + "&" + "from=" + encodeURIComponent(from) + "&" + "message=" + encodeURIComponent(message);
+
+		$.ajax({
+			url: url+'?'+params,
+
+			success: function(data) {
+				var value = $(data).find('result');
+				if (value) {
+					if (value.text() == "Done") {
+						$(".modal-body").html("<div class='alert alert-success'>Your e-mail has been sent</div>");
+						setTimeout("VuFind.closeLightbox();", 3000);
+					} else {
+						$(".modal-body").html("<div class='alert alert-error'>Could not send e-mail</div>");
+					}
+				} else {
+					$(".modal-body").html("<div class='alert alert-error'>Failed to send e-mail</div>");
+				}
+			},
+			error: function() {
+				$(".modal-body").html("<div class='alert alert-error'>Unexpected error sending e-mail</div>");
+			}
+		});
+	},
+
+	/**
+	 * Used to send a text message related to a specific record.
+	 * Includes title, author, call number, etc.
+	 * @param id
+	 */
+	sendSMS: function(id, source){
 		var smsForm = $("#smsForm");
 		var to = smsForm.find("input[name=to]").val();
 		var provider = smsForm.find("input[name=provider]").val();
-		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		if (source == 'VuFind'){
+			var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		}else{
+			var url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+		}
 		var params = "method=SendSMS&" + "to=" + encodeURIComponent(to) + "&" + "provider=" + encodeURIComponent(provider);
 
 		$.ajax({

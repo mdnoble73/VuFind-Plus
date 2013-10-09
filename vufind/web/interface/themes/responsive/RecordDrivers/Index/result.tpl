@@ -1,26 +1,28 @@
 {strip}
 <div id="record{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultsList row-fluid">
-	<div class="imageColumn span3 text-center">
-		<div class="selectTitle hidden-phone pull-left">
-			<label for="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultIndex checkbox">{$resultIndex}
-				<input type="checkbox" class="titleSelect" name="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" id="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" {if $enableBookCart}onclick="toggleInBag('{$summId|escape}', '{$summTitle|replace:'"':''|replace:'&':'and'|escape:'javascript'}', this);"{/if} />&nbsp;
-			</label>
-		</div>
-		{/strip}
-		<div class="pull-right">
-			{if $user->disableCoverArt != 1}
-				{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
-				<a href="{$summUrl}">
-					<img src="{$bookCoverUrlMedium}"
-					     class="listResultImage img-polaroid {*descriptionTrigger*}"
-					     alt="{translate text='Cover Image'}"
-					     {*data-record_id="{$summId}"
-					     data-source="VuFind"
-					     data-content_class=".descriptionContent{$summShortId|escape}"*}/>
-				</a>
-			{/if}
-			{strip}
-			{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
+	<div class="imageColumn span3">
+		<div class="row-fluid">
+			<div class="selectTitle hidden-phone span4">
+				<label for="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultIndex checkbox"><strong>{$resultIndex}</strong>
+					<input type="checkbox" class="titleSelect" name="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" id="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" {if $enableBookCart}onclick="toggleInBag('{$summId|escape}', '{$summTitle|replace:'"':''|replace:'&':'and'|escape:'javascript'}', this);"{/if} />&nbsp;
+				</label>
+			</div>
+			{/strip}
+			<div class="span7 text-center">
+				{if $user->disableCoverArt != 1}
+					{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
+					<a href="{$summUrl}">
+						<img src="{$bookCoverUrlMedium}"
+						     class="listResultImage img-polaroid {*descriptionTrigger*}"
+						     alt="{translate text='Cover Image'}"
+						     {*data-record_id="{$summId}"
+						     data-source="VuFind"
+						     data-content_class=".descriptionContent{$summShortId|escape}"*}/>
+					</a>
+				{/if}
+				{strip}
+				{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
+			</div>
 		</div>
 	</div>
 
