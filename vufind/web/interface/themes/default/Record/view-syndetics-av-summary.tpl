@@ -1,6 +1,4 @@
 <dl>
-	<dt>Summary</dt>
-	<dd>{$avSummaryData.summary}</dd>
 	{if count($avSummaryData.trackListing) > 0}
 		<dt>Track Listing</dt>
 		<dd>

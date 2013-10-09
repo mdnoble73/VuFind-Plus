@@ -51,8 +51,18 @@ class GoDeeperData{
 								if (!isset($defaultOption)) $defaultOption = 'summary';
 							}
 							if ($configArray['Syndetics']['showAvSummary'] && isset($data->AVSUMMARY)){
-								$validEnrichmentTypes['avSummary'] = 'Summary';
-								if (!isset($defaultOption)) $defaultOption = 'avSummary';
+								//AV Summary is weird since it combines both summary and table of contents for movies and music
+								$avSummary = GoDeeperData::getAVSummary($isbn, $upc);
+								if (isset($avSummary['summary'])){
+									$validEnrichmentTypes['summary'] = 'Summary';
+									if (!isset($defaultOption)) $defaultOption = 'summary';
+								}
+								if (isset($avSummary['trackListing'])){
+									$validEnrichmentTypes['tableOfContents'] = 'Table of Contents';
+									if (!isset($defaultOption)) $defaultOption = 'tableOfContents';
+								}
+								//$validEnrichmentTypes['avSummary'] = 'Summary';
+								//if (!isset($defaultOption)) $defaultOption = 'avSummary';
 							}
 							if ($configArray['Syndetics']['showAvProfile'] && isset($data->AVPROFILE)){
 								//Profile has similar bands and tags for music.  Not sure how to best use this
@@ -128,17 +138,23 @@ class GoDeeperData{
 				));
 
 				$response = @file_get_contents($requestUrl, 0, $ctx);
-				if (preg_match('/Error in Query Selection/', $response)){
-					return array();
+				if (!preg_match('/Error in Query Selection/', $response)){
+					//Parse the XML
+					$data = new SimpleXMLElement($response);
+
+					$summaryData = array();
+					if (isset($data)){
+						if (isset($data->VarFlds->VarDFlds->Notes->Fld520->a)){
+							$summaryData['summary'] = (string)$data->VarFlds->VarDFlds->Notes->Fld520->a;
+						}
+					}
 				}
 
-				//Parse the XML
-				$data = new SimpleXMLElement($response);
-
-				$summaryData = array();
-				if (isset($data)){
-					if (isset($data->VarFlds->VarDFlds->Notes->Fld520->a)){
-						$summaryData['summary'] = (string)$data->VarFlds->VarDFlds->Notes->Fld520->a;
+				//The summary can also be in the avsummary
+				if (!isset($summaryData['summary'])){
+					$avSummary = GoDeeperData::getAVSummary($isbn, $upc);
+					if (isset($avSummary['summary'])){
+						$summaryData['summary'] = $avSummary['summary'];
 					}
 				}
 			}catch (Exception $e) {
@@ -158,7 +174,7 @@ class GoDeeperData{
 		global $memCache;
 		$tocData = $memCache->get("syndetics_toc_{$isbn}_{$upc}");
 
-		if (!$tocData){
+		if (!$tocData || isset($_REQUEST['reload'])){
 			$clientKey = $configArray['Syndetics']['key'];
 			//Load the index page from syndetics
 			$requestUrl = "http://syndetics.com/index.aspx?isbn=$isbn/TOC.XML&client=$clientKey&type=xw10&upc=$upc";
@@ -171,20 +187,29 @@ class GoDeeperData{
 				)
 				));
 				$response =file_get_contents($requestUrl, 0, $ctx);
-
-				//Parse the XML
-				$data = new SimpleXMLElement($response);
-
 				$tocData = array();
-				if (isset($data)){
-					if (isset($data->VarFlds->VarDFlds->SSIFlds->Fld970)){
-						foreach ($data->VarFlds->VarDFlds->SSIFlds->Fld970 as $field){
-							$tocData[] = array(
-	                            'label' => (string)$field->l,
-	                            'title' => (string)$field->t,
-	                            'page' => (string)$field->p,
-							);
+
+				if (!preg_match('/Error in Query Selection/', $response)){
+					//Parse the XML
+					$data = new SimpleXMLElement($response);
+
+
+					if (isset($data)){
+						if (isset($data->VarFlds->VarDFlds->SSIFlds->Fld970)){
+							foreach ($data->VarFlds->VarDFlds->SSIFlds->Fld970 as $field){
+								$tocData[] = array(
+		                            'label' => (string)$field->l,
+		                            'title' => (string)$field->t,
+		                            'page' => (string)$field->p,
+								);
+							}
 						}
+					}
+				}
+				if (count($tocData) == 0){
+					$avSummary = GoDeeperData::getAVSummary($isbn, $upc);
+					if (isset($avSummary['trackListing'])){
+						$tocData = $avSummary['trackListing'];
 					}
 				}
 
@@ -349,7 +374,6 @@ class GoDeeperData{
 
 			//Load the index page from syndetics
 			$requestUrl = "http://syndetics.com/index.aspx?isbn=$isbn/DBCHAPTER.XML&client=$clientKey&type=xw10&upc=$upc";
-			echo($requestUrl);
 
 			try{
 				//Get the XML from the service
@@ -430,7 +454,7 @@ class GoDeeperData{
 		global $memCache;
 		$avSummaryData = $memCache->get("syndetics_av_summary_{$isbn}_{$upc}");
 
-		if (!$avSummaryData){
+		if (!$avSummaryData || isset($_REQUEST['reload'])){
 			$clientKey = $configArray['Syndetics']['key'];
 
 			//Load the index page from syndetics
@@ -443,22 +467,23 @@ class GoDeeperData{
 					  'timeout' => 2
 				)
 				));
-				$response =file_get_contents($requestUrl, 0, $ctx);
-
-				//Parse the XML
-				$data = new SimpleXMLElement($response);
-
+				$response = file_get_contents($requestUrl, 0, $ctx);
 				$avSummaryData = array();
-				if (isset($data)){
-					if (isset($data->VarFlds->VarDFlds->Notes->Fld520->a)){
-						$avSummaryData['summary'] = (string)$data->VarFlds->VarDFlds->Notes->Fld520->a;
-					}
-					if (isset($data->VarFlds->VarDFlds->SSIFlds->Fld970)){
-						foreach ($data->VarFlds->VarDFlds->SSIFlds->Fld970 as $field){
-							$avSummaryData['trackListing'][] = array(
-	                            'number' => (string)$field->l,
-	                            'name' => (string)$field->t,
-							);
+				if (!preg_match('/Error in Query Selection/', $response)){
+					//Parse the XML
+					$data = new SimpleXMLElement($response);
+
+					if (isset($data)){
+						if (isset($data->VarFlds->VarDFlds->Notes->Fld520->a)){
+							$avSummaryData['summary'] = (string)$data->VarFlds->VarDFlds->Notes->Fld520->a;
+						}
+						if (isset($data->VarFlds->VarDFlds->SSIFlds->Fld970)){
+							foreach ($data->VarFlds->VarDFlds->SSIFlds->Fld970 as $field){
+								$avSummaryData['trackListing'][] = array(
+		                            'number' => (string)$field->l,
+		                            'name' => (string)$field->t,
+								);
+							}
 						}
 					}
 				}

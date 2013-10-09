@@ -316,7 +316,7 @@ abstract class Record_Record extends Action
 		//Load description from Syndetics
 		$useMarcSummary = true;
 		if ($this->isbn || $this->upc){
-			if ($library && $library->preferSyndeticsSummary == 1){
+			if (!$library || ($library && $library->preferSyndeticsSummary == 1)){
 				require_once ROOT_DIR  . '/Drivers/marmot_inc/GoDeeperData.php';
 				$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
 				if (isset($summaryInfo['summary'])){

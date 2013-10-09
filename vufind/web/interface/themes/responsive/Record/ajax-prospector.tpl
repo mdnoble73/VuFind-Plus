@@ -6,22 +6,30 @@
 <div class='clearer'>&nbsp;</div>
 </div>
 {/if}
-<ul class="similar unstyled list-striped">
+<div class="striped">
   {foreach from=$prospectorResults item=prospectorTitle}
-  {if $similar.recordId != -1}
-  <li class="prospectorTitle {if $prospectorTitle.isCurrent}currentRecord{/if}">
-    <a href="{$prospectorTitle.link}" rel="external" onclick="window.open (this.href, 'child'); return false"><h5>{$prospectorTitle.title|removeTrailingPunctuation|escape}</h5></a>
+	  {if $similar.recordId != -1}
+		  <div class="row-fluid">
+			  <div class="span4">
+		      <a href="{$prospectorTitle.link}" rel="external" onclick="window.open (this.href, 'child'); return false"><h5>{$prospectorTitle.title|removeTrailingPunctuation|escape}</h5></a>
+			  </div>
 
-	  <dl class="dl-horizontal">
-		  {if $prospectorTitle.author}<dt><small>{translate text='By'}</small></dt><dd><small>{$prospectorTitle.author|escape}</small></dd>{/if}
-		  {if $prospectorTitle.pubDate}<dt><small>{translate text='Published'}</small></dt><dd><small>{$prospectorTitle.pubDate|escape}</small></dd>{/if}
-		  {if $prospectorTitle.format}<dt><small>{translate text='Format'}</small></dt><dd><small>{$prospectorTitle.format|escape}</small></dd>{/if}
-	  </dl>
-
-  </li>
-  {/if}
+		    <div class="span2">
+				  {if $prospectorTitle.author}<small>{$prospectorTitle.author|escape}</small>{/if}
+		    </div>
+			  <div class="span2">
+				  {if $prospectorTitle.pubDate}<small>{$prospectorTitle.pubDate|escape}</small>{/if}
+			  </div>
+			  <div class="span2">
+				  {if $prospectorTitle.format}<small>{$prospectorTitle.format|escape}</small>{/if}
+			  </div>
+			  <div class="span2">
+				  <a href="{$prospectorTitle.link}" rel="external" onclick="window.open (this.href, 'child'); return false" class="btn btn-small">View&nbsp;In&nbsp;Prospector</a>
+				</div>
+		  </div>
+	  {/if}
   {/foreach}
-</ul>
+</div>
 {/if}]]></InProspector>
 <ProspectorRecordId>
 {*The id of the record within Prospector or blank if it is not available in prospector.*}

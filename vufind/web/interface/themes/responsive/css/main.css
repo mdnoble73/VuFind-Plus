@@ -6499,6 +6499,10 @@ ul.list-striped > li:nth-child(odd),
 ol.list-striped > li:nth-child(odd) {
   background-color: #f9f9f9;
 }
+div.striped > div:nth-child(odd),
+div.striped > div:nth-child(odd) {
+  background-color: #f9f9f9;
+}
 /** Third party imports **/
 /*!
  * Datepicker for Bootstrap

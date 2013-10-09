@@ -61,6 +61,8 @@
 		{/if}
 
 		<div id ="tableofcontentstab" class="tab-pane">
+			<div id="tableOfContentsPlaceholder" style="display:none"></div>
+
 			{if $tableOfContents}
 				<ul class='notesList'>
 					{foreach from=$tableOfContents item=note}
@@ -68,8 +70,6 @@
 					{/foreach}
 				</ul>
 			{/if}
-			<div id="avSummaryPlaceholder" style="display:none"></div>
-			<div id="tableOfContentsPlaceholder" style="display:none"></div>
 		</div>
 
 		{if $notes}
@@ -146,7 +146,7 @@
 		VuFind.Record.GetGoDeeperData({/literal}'{$id}', '{$isbn}', '{$upc}'{literal}, 'excerpt');
 	});
 	$('#tableofcontentstab_label a').on('shown', function (e) {
-		VuFind.Record.GetGoDeeperData({/literal}'{$id}', '{$isbn}', '{$upc}'{literal}, 'avSummary');
+		VuFind.Record.GetGoDeeperData({/literal}'{$id}', '{$isbn}', '{$upc}'{literal}, 'tableOfContents');
 	});
 </script>
 {/literal}
