@@ -7031,6 +7031,48 @@ div.striped > div:nth-child(odd) {
   margin-left: -5px;
   margin-right: -5px;
 }
+.form-horizontal-narrow .control-group {
+  margin-bottom: 0px;
+  *zoom: 1;
+}
+.form-horizontal-narrow .control-group:before,
+.form-horizontal-narrow .control-group:after {
+  display: table;
+  content: "";
+  line-height: 0;
+}
+.form-horizontal-narrow .control-group:after {
+  clear: both;
+}
+.form-horizontal-narrow .control-label {
+  float: left;
+  width: 60px;
+  padding-top: 5px;
+  text-align: right;
+}
+.form-horizontal-narrow .controls {
+  *display: inline-block;
+  *padding-left: 20px;
+  margin-left: 80px;
+  *margin-left: 0;
+}
+.form-horizontal-narrow .controls:first-child {
+  *padding-left: 80px;
+}
+.form-horizontal-narrow .help-block {
+  margin-bottom: 0;
+}
+.form-horizontal-narrow input + .help-block,
+.form-horizontal-narrow select + .help-block,
+.form-horizontal-narrow textarea + .help-block,
+.form-horizontal-narrow .uneditable-input + .help-block,
+.form-horizontal-narrow .input-prepend + .help-block,
+.form-horizontal-narrow .input-append + .help-block {
+  margin-top: 10px;
+}
+.form-horizontal-narrow .form-actions {
+  padding-left: 80px;
+}
 /** Imports of functionality related to VuFind **/
 /**
  * Additional Styling related to the help system
@@ -7340,4 +7382,21 @@ div.striped > div:nth-child(odd) {
 }
 .top-facet {
   margin-bottom: 10px;
+}
+.facetCol {
+  display: inline-block;
+  padding: 15px;
+  width: 120px;
+  vertical-align: top;
+}
+li.facetValue {
+  list-style: disc outside !important;
+  border-bottom: 0 solid black !important;
+  padding: 0 !important;
+}
+li.facetValue a {
+  text-decoration: none !important;
+}
+li.facetValue a :hover {
+  text-decoration: none !important;
 }

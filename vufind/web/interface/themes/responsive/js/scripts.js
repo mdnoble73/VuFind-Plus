@@ -302,6 +302,10 @@ VuFind.ResultsList = {
 	statusList: [],
 	seriesList: [],
 
+	addIdToSeriesList: function(isbn){
+		this.seriesList[this.seriesList.length] = isbn;
+	},
+
 	addIdToStatusList: function(id, type, useUnscopedHoldingsSummary) {
 		if (type == undefined){
 			type = 'VuFind';
@@ -311,6 +315,48 @@ VuFind.ResultsList = {
 		idVal['useUnscopedHoldingsSummary'] = useUnscopedHoldingsSummary;
 		idVal['type'] = type;
 		this.statusList[this.statusList.length] = idVal;
+	},
+
+	initializeDescriptions: function(){
+		$(".descriptionTrigger").each(function(){
+			var descElement = $(this);
+			var descriptionContentClass = descElement.data("content_class");
+			options = {
+				html: true,
+				trigger: 'hover',
+				title: 'Description',
+				content: VuFind.ResultsList.loadDescription(descriptionContentClass)
+			};
+			descElement.popover(options);
+		});
+	},
+
+	lessFacets: function(name){
+		document.getElementById("more" + name).style.display="block";
+		document.getElementById("narrowGroupHidden_" + name).style.display="none";
+	},
+
+	loadDescription: function(descriptionContentClass){
+		var contentHolder = $(descriptionContentClass);
+		return contentHolder[0].innerHTML;
+	},
+
+	loadSeriesInfo: function(){
+		var now = new Date();
+		var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
+
+		var url = Globals.path + "/Search/AJAX?method=GetSeriesInfo";
+		for (var i=0; i < this.seriesList.length; i++) {
+			url += "&isbn[]=" + encodeURIComponent(this.seriesList[i]);
+		}
+		url += "&time="+ts;
+		$.getJSON(url,function(data){
+			if (data.success){
+				$.each(data.series, function(key, val){
+					$(".series" + key).find(".result-value").html(val);
+				});
+			}
+		});
 	},
 
 	loadStatusSummaries: function (){
@@ -539,46 +585,16 @@ VuFind.ResultsList = {
 		this.statusList = [];
 	},
 
-	addIdToSeriesList: function(isbn){
-		this.seriesList[this.seriesList.length] = isbn;
+	moreFacets: function(name){
+		document.getElementById("more" + name).style.display="none";
+		document.getElementById("narrowGroupHidden_" + name).style.display="block";
 	},
 
-	loadSeriesInfo: function(){
-		var now = new Date();
-		var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
-
-		var url = Globals.path + "/Search/AJAX?method=GetSeriesInfo";
-		for (var i=0; i < this.seriesList.length; i++) {
-			url += "&isbn[]=" + encodeURIComponent(this.seriesList[i]);
-		}
-		url += "&time="+ts;
-		$.getJSON(url,function(data){
-			if (data.success){
-				$.each(data.series, function(key, val){
-					$(".series" + key).find(".result-value").html(val);
-				});
-			}
-		});
-	},
-
-	initializeDescriptions: function(){
-		$(".descriptionTrigger").each(function(){
-			var descElement = $(this);
-			var descriptionContentClass = descElement.data("content_class");
-			options = {
-				html: true,
-				trigger: 'hover',
-				title: 'Description',
-				content: VuFind.ResultsList.loadDescription(descriptionContentClass)
-			};
-			descElement.popover(options);
-		});
-	},
-
-	loadDescription: function(descriptionContentClass){
-		var contentHolder = $(descriptionContentClass);
-		return contentHolder[0].innerHTML;
+	moreFacetPopup: function(title, name){
+		VuFind.showMessage(title, $("#moreFacetPopup_" + name).html());
 	}
+
+
 };
 
 VuFind.Ratings = {

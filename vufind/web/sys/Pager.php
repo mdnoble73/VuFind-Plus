@@ -80,7 +80,12 @@ class VuFindPager {
 		$allLinks = $links['all'];
 		$allLinks = str_replace('<a', '<li><a', $allLinks);
 		$allLinks = str_replace('</a>', '</li></a>', $allLinks);
-		$links['all'] = '<ul>' . $allLinks . '</ul>';
+		if (strlen($allLinks) > 0){
+			$links['all'] = '<ul>' . $allLinks . '</ul>';
+		}else{
+			$links['all'] = null;
+		}
+
 		return $links;
 	}
 

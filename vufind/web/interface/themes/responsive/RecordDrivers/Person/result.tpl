@@ -1,15 +1,13 @@
 {strip}
-<div id="record{$summId|escape}">
-	<div class="selectTitle">
-		<input type="checkbox" name="selected[{$summShortId|escape:"url"}]" id="selected{$summShortId|escape:"url"}" style="display:none" />&nbsp;
-	</div>
-	
-	<div class="resultsList">
-		<div class="selectTitle">
-			<input type="checkbox" name="selected[{$summId|escape:"url"}]" id="selected{$summId|escape:"url"}" style="display:none" />&nbsp;
+<div id="record{$summId|escape}" class="resultsList row-fluid">
+	<div class="imageColumn span3">
+		<div class="selectTitle hidden-phone span4">
+			<label for="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultIndex checkbox"><strong>{$resultIndex}</strong>
+				<input type="checkbox" name="selected[{$summShortId|escape:"url"}]" id="selected{$summShortId|escape:"url"}" style="display:none" />&nbsp;
+			</label>
 		</div>
-		
-		<div class="imageColumn">
+
+		<div class="span7 text-center">
 			<a href="{$path}/Person/{$summShortId}">
 			{if $summPicture}
 			<img src="{$path}/files/thumbnail/{$summPicture}" class="alignleft listResultImage" alt="{translate text='Picture'}"/><br />
@@ -18,39 +16,56 @@
 			{/if}
 			</a>
 		</div>
-		
-		<div class="resultDetails">
-			<div class="resultItemLine1 title">
+	</div>
+
+	<div class="span9">
+		<div class="row-fluid">
+			{if $summScore}({$summScore}) {/if}
+			<strong>
 				<a href="{$path}/Person/{$summShortId}" class="title">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 				{if $summTitleStatement}
 					<div class="searchResultSectionInfo">
 					{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 					</div>
 				{/if}
-				
-			</div>
-	
-			<div class="resultItemLine2">
+			</strong>
+		</div>
+
+		<div class="row-fluid">
+			<div class="resultDetails span9">
 				{if $birthDate}
-					<div class='birthDate'>Born: {$birthDate}</div>
+					<div class="row-fluid">
+						<div class='result-label span3'>Born: </div>
+						<div class="span9 result-value">{$birthDate}</div>
+					</div>
 				{/if}
 				{if $deathDate}
-					<div class='deathDate'>Died: {$deathDate}</div>
+					<div class="row-fluid">
+						<div class='result-label span3'>Died: </div>
+						<div class="span9 result-value">{$deathDate}</div>
+					</div>
 				{/if}
 				{if $numObits}
-					<div class='numObits'>Number of Obituaries: {$numObits}</div>
+					<div class="row-fluid">
+						<div class='result-label span3'>Num. Obits: </div>
+						<div class="span9 result-value">{$numObits}</div>
+					</div>
 				{/if}
 				{if $dateAdded}
-					<div class='dateAdded'>Added: {$dateAdded|date_format}</div>
+					<div class="row-fluid">
+						<div class='result-label span3'>Added: </div>
+						<div class="span9 result-value">{$dateAdded|date_format}</div>
+					</div>
 				{/if}
 				{if $lastUpdate}
-					<div class='lastUpdate'>Last Update: {$lastUpdate|date_format}</div>
+					<div class="row-fluid">
+						<div class='result-label span3'>Last Update: </div>
+						<div class="span9 result-value">{$lastUpdate|date_format}</div>
+					</div>
 				{/if}
 				
 			</div>
 		</div>
 	</div>
-	{* Clear floats so the record displays as a block*}
-	<div class='clearer'></div>
 </div>
 {/strip}
