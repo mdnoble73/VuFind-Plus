@@ -617,6 +617,10 @@ VuFind.ResultsList = {
 
 	moreFacetPopup: function(title, name){
 		VuFind.showMessage(title, $("#moreFacetPopup_" + name).html());
+	},
+
+	toggleFacetVisibility: function(){
+		$facetsSection = $("#collapse-side-facets");
 	}
 
 

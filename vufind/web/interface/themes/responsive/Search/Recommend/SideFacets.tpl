@@ -4,7 +4,7 @@
 		<h4>{translate text='Narrow Search'}</h4>
 
 		{* .btn-navbar is used as the toggle for collapsed navbar content *}
-		<a class="btn btn-navbar visible-phone" data-toggle="collapse" data-target=".collapse-facets" onclick="$('#formatCategories').toggle();">
+		<a class="btn btn-navbar visible-phone" data-toggle="collapse" data-target=".collapse-facets" onclick="VuFind.ResultsList.toggleFacetVisibility();">
 			Show Filters
 		</a>
 
