@@ -24,12 +24,24 @@
 			<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
 				{$suggestion}
 			</div>
-		{foreachelse}
-			<div class="error">
-            Find your next favorite - rate titles to get personalized recommendations. 
-            Compelling ad and graphic goes here - with design so the text isn't all red.
-            
+		{foreachelse} 
+     		<h3>Find your next favorite. Rate titles to get personalized recommendations.</h3> 
+            	<ul class="showbullets">
+                    <li>Login with your library card.</li>
+                    <li>Find titles you like - Search the catalog, Browse your Checked Out items, or Browse your Reading History</li>
+                    <li>Rate titles with 4 or 5 stars to get recommendations</li>
+                    <li>Go to "Recommended for You" to see a personalized list</li>
+                </ul>
+            <img class="recommendationsStarsDemo" src="http://catalog.library.nashville.org/interface/themes/nashville/images/starRatingsDemo.png" />
+            <div id="recommendationsLoginSignupBox">
+                <div class="sectionContainer">
+                	<h3 class="recommendationsLogin"><a href="http://catalog.library.nashville.org/MyResearch/Home">Login to get started</a></h3>
+                </div>
+                <div class="sectionContainer">
+	                <h3 class="recommendationsSignup"><a href="http://www.surveymonkey.com/s/OnlineCardReg_DemographicInfo">Sign up for a library card</a></h3>
+                </div>
             </div>
+            
 		{/foreach}
 	</div>
 	{* Load Ratings *}

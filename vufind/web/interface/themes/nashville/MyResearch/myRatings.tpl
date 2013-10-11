@@ -19,6 +19,7 @@
 			{/if}
 
 			<div class="page">
+            <p>Ratings determine the type of materials that appear under Recommended for You. If you do not want a title to be used when generating recommendations, use the Clear button to remove it from your ratings list. Titles you have marked Not Interested will no longer appear under Recommended for You.</p>
 				{if $ratings}
 					<table class="myAccountTable" id="myRatingsTable">
 						<thead>
