@@ -41,9 +41,7 @@ public class PrintItemSolrProcessor {
 	private Logger logger;
 	private MarcProcessor marcProcessor;
 	Pattern digitPattern = Pattern.compile("^\\d+$");
-	private static SimpleDateFormat dateAddedFormatter = new SimpleDateFormat("yyMMdd");
 	private static Date indexDate = new Date();
-
 
 	public PrintItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, Set<String> librarySystems, Set<String> librarySubdomains, Set<String> locations, Set<String> barcodes, Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, Set<String> locationCodes, HashMap<String, LinkedHashSet<String>> locationsCodesBySystem, Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, Set<String> availableAt, LinkedHashSet<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, LinkedHashSet<String> localCallNumbers, HashMap<String, HashMap<String, Long>> sortableCallNumbersByLibraryAndLocation, boolean manuallySuppressed, boolean allItemsSuppressed, float popularity, DataField itemField) {
 		this.logger = logger;
@@ -237,7 +235,7 @@ public class PrintItemSolrProcessor {
 
 				// Map time since added (library & location)
 				char dateCreatedSubfield = marcProcessor.getDateCreatedSubfield();
-				Subfield dateAddedField = itemField.getSubfield(marcProcessor.getDateCreatedSubfield());
+				Subfield dateAddedField = itemField.getSubfield(dateCreatedSubfield);
 				if (dateAddedField != null) {
 					timeSinceAdded = processItemDateAdded(timeSinceAdded, timeSinceAddedBySystem, timeSinceAddedByLocation, locationIndexingInfo, libraryIndexingInfo, dateAddedField);
 				}
@@ -310,6 +308,7 @@ public class PrintItemSolrProcessor {
 	private Set<String> processItemDateAdded(Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, LocationIndexingInfo locationIndexingInfo, LibraryIndexingInfo libraryIndexingInfo, Subfield dateAddedField) {
 		String dateAddedStr = dateAddedField.getData();
 		try {
+			SimpleDateFormat dateAddedFormatter = marcProcessor.getDateAddedFormatter();
 			Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
 			LinkedHashSet<String> itemTimeSinceAdded = getTimeSinceAddedForDate(dateAdded);
 			if (itemTimeSinceAdded.size() > timeSinceAdded.size()) {
