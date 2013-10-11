@@ -7,7 +7,7 @@ require_once ROOT_DIR . '/sys/analytics/Analytics_Theme.php';
 require_once ROOT_DIR . '/sys/analytics/Analytics_Device.php';
 require_once ROOT_DIR . '/sys/analytics/Analytics_PhysicalLocation.php';
 require_once ROOT_DIR . '/sys/analytics/Analytics_PatronType.php';
-class Report_AnalyticsReport extends Report_Report{
+abstract class Report_AnalyticsReport extends Report_Report{
 	function setupFilters(){
 		global $interface;
 		global $analytics;
