@@ -270,6 +270,47 @@ class UInterface extends Smarty
 			return $this->themes;
 		}
 	}
+
+	function loadDisplayOptions(){
+		global $library;
+		global $locationSingleton;
+		$location = $locationSingleton->getActiveLocation();
+		$showHoldButton = 1;
+		$showHoldButtonInSearchResults = 1;
+		$showRatings = 1;
+		if (isset($library)){
+			$showRatings = $library->showRatings;
+		}
+		$this->assign('showRatings', $showRatings);
+		if (isset($library) && $location != null){
+			$this->assign('showFavorites', $library->showFavorites);
+			$this->assign('showComments', $library->showComments);
+			$showHoldButton = (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0;
+			$showHoldButtonInSearchResults = (($location->showHoldButton == 1) && ($library->showHoldButtonInSearchResults == 1)) ? 1 : 0;
+		}else if ($location != null){
+			$this->assign('showFavorites', 1);
+			$showHoldButton = $location->showHoldButton;
+		}else if (isset($library)){
+			$this->assign('showFavorites', $library->showFavorites);
+			$showHoldButton = $library->showHoldButton;
+			$showHoldButtonInSearchResults = $library->showHoldButtonInSearchResults;
+			$this->assign('showComments', $library->showComments);
+		}else{
+			$this->assign('showFavorites', 1);
+			$this->assign('showComments', 1);
+		}
+		if ($showHoldButton == 0){
+			$showHoldButtonInSearchResults = 0;
+		}
+		$this->assign('showHoldButton', $showHoldButton);
+		$this->assign('showHoldButtonInSearchResults', $showHoldButtonInSearchResults);
+		$this->assign('showNotInterested', true);
+		if (isset($library)){
+			$this->assign('showRatings', $library->showRatings);
+		}else{
+			$this->assign('showRatings', 1);
+		}
+	}
 }
 
 function translate($params) {

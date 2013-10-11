@@ -601,6 +601,16 @@ class MillenniumDriver implements DriverInterface
 		$eContentAccountSummary = $eContentDriver->getAccountSummary();
 		$profile = array_merge($profile, $eContentAccountSummary);
 
+		require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
+		$overDriveDriver = OverDriveDriverFactory::getDriver();
+		$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
+		$profile = array_merge($profile, $overDriveSummary);
+
+		$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $overDriveSummary['numCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
+		$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $overDriveSummary['numAvailableHolds'] + $eContentAccountSummary['numEContentAvailableHolds'];
+		$profile['numHoldsRequestedTotal'] = $profile['numHoldsRequested'] + $overDriveSummary['numUnavailableHolds'] + $eContentAccountSummary['numEContentUnavailableHolds'];
+		$profile['numHoldsTotal'] = $profile['numHoldsAvailableTotal'] + $profile['numHoldsRequestedTotal'];
+
 		//Get a count of the materials requests for the user
 		if ($user){
 			$materialsRequest = new MaterialsRequest();

@@ -59,6 +59,8 @@ if (isset($location) && $location->footerTemplate != 'default'){
 }
 getGitBranch();
 
+$interface->loadDisplayOptions();
+
 require_once ROOT_DIR . '/sys/Analytics.php';
 //Define tracking to be done
 global $analytics;
@@ -806,7 +808,8 @@ function loadModuleActionId(){
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
 	}
-	if (isset($_GET['module']) && $_GET['module'] == 'MyAccount'){
+	//Disable redirection of MyResearch to MyAccount for mobile theme
+	if (false && isset($_GET['module']) && $_GET['module'] == 'MyAccount'){
 		$_GET['module'] = 'MyResearch';
 		$_REQUEST['module'] = 'MyResearch';
 	}

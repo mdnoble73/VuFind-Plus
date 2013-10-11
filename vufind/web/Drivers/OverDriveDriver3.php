@@ -364,6 +364,7 @@ class OverDriveDriver3 {
 			foreach ($response->checkouts as $curTitle){
 				$bookshelfItem = array();
 				//Load data from api
+				$bookshelfItem['checkoutSource'] = 'OverDrive';
 				$bookshelfItem['overDriveId'] = $curTitle->reserveId;
 				$bookshelfItem['expiresOn'] = $curTitle->expires;
 				$bookshelfItem['overdriveRead'] = false;
@@ -422,8 +423,10 @@ class OverDriveDriver3 {
 				$eContentRecord->status = 'active';
 				if ($eContentRecord->find(true)){
 					$bookshelfItem['recordId'] = $eContentRecord->id;
+					$bookshelfItem['recordUrl'] = $configArray['Site']['path'] . '/EcontentRecord/' . $eContentRecord->id . '/Home';
 					$bookshelfItem['title'] = $eContentRecord->title;
 					$bookshelfItem['imageUrl'] = $eContentRecord->cover;
+					$bookshelfItem['author'] = $eContentRecord->author;
 
 					//Get Rating
 					require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
@@ -433,7 +436,8 @@ class OverDriveDriver3 {
 				}else{
 					$bookshelfItem['recordId'] = -1;
 				}
-				$checkedOutTitles[] = $bookshelfItem;
+				$key = $bookshelfItem['checkoutSource'] . $bookshelfItem['overDriveId'];
+				$checkedOutTitles[$key] = $bookshelfItem;
 			}
 		}
 		$this->checkouts[$user->id] = $checkedOutTitles;
@@ -473,6 +477,7 @@ class OverDriveDriver3 {
 				if ($hold['available']){
 					$hold['expirationDate'] = strtotime($curTitle->holdExpires);
 				}
+				$hold['holdSource'] = 'OverDrive';
 
 				//Figure out which eContent record this is for.
 				$eContentRecord = new EContentRecord();
@@ -481,6 +486,7 @@ class OverDriveDriver3 {
 				$eContentRecord->status = 'active';
 				if ($eContentRecord->find(true)){
 					$hold['recordId'] = $eContentRecord->id;
+					$hold['recordUrl'] = $configArray['Site']['path'] . '/EcontentRecord/' . $eContentRecord->id . '/Home';
 					$hold['title'] = $eContentRecord->title;
 					$hold['author'] = $eContentRecord->author;
 					$hold['imageUrl'] = $eContentRecord->cover;
@@ -494,10 +500,11 @@ class OverDriveDriver3 {
 					$hold['recordId'] = -1;
 				}
 
+				$key = $hold['holdSource'] . $hold['overDriveId'];
 				if ($hold['available']){
-					$holds['holds']['available'][] = $hold;
+					$holds['holds']['available'][$key] = $hold;
 				}else{
-					$holds['holds']['unavailable'][] = $hold;
+					$holds['holds']['unavailable'][$key] = $hold;
 				}
 			}
 		}

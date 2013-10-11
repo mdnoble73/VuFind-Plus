@@ -28,11 +28,8 @@ require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
  *
  * @version  $Revision: 1.27 $
  */
-class Home extends MyResearch
-{
-
-	function launch()
-	{
+class Home extends MyResearch {
+	function launch(){
 		global $configArray;
 		global $interface;
 		global $user;

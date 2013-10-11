@@ -74,12 +74,13 @@ class MillenniumCheckouts {
 						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
 							$shortId = $matches[1];
 							$bibid = '.' . $matches[1];
-							$title = $matches[2];
+							$title = strip_tags($matches[2]);
 						}else{
-							$title = $scols[$i];
+							$title = strip_tags($scols[$i]);
 							$shortId = '';
 							$bibid = '';
 						}
+						$curTitle['checkoutSource'] = 'ILS';
 						$curTitle['shortId'] = $shortId;
 						$curTitle['id'] = $bibid;
 						$curTitle['title'] = $title;

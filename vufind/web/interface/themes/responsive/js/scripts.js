@@ -28,6 +28,22 @@ VuFind.initializeModalDialogs = function() {
 	});
 };
 
+VuFind.getSelectedTitles = function(){
+	var selectedTitles = $("input.titleSelect:checked ").map(function() {
+		return $(this).attr('name') + "=" + $(this).val();
+	}).get().join("&");
+	if (selectedTitles.length == 0){
+		var ret = confirm('You have not selected any items, process all items?');
+		if (ret == true){
+			$("input.titleSelect").attr('checked', 'checked');
+			selectedTitles = $("input.titleSelect").map(function() {
+				return $(this).attr('name') + "=" + $(this).val();
+			}).get().join("&");
+		}
+	}
+	return selectedTitles;
+};
+
 VuFind.pwdToText = function(fieldId){
 	var elem = document.getElementById(fieldId);
 	var input = document.createElement('input');
@@ -241,6 +257,15 @@ VuFind.Account = {
 			type: 'post'
 		});
 
+		return false;
+	},
+
+	renewSelectedTitles: function(){
+		var selectedTitles = VuFind.getSelectedTitles();
+		if (selectedTitles.length == 0){
+			return false;
+		}
+		$('#renewForm').submit();
 		return false;
 	}
 };
@@ -637,6 +662,29 @@ VuFind.Ratings = {
 };
 
 VuFind.OverDrive = {
+	cancelOverDriveHold: function(overdriveId){
+		var ajaxUrl = Globals.path + "/EcontentRecord/AJAX?method=CancelOverDriveHold&overDriveId=" + overDriveId + "&formatId=" + formatId;
+		$.ajax({
+			url: ajaxUrl,
+			cache: false,
+			success: function(data){
+				if (data.result){
+					VuFind.showMessage("Hold Cancelled", data.message, true);
+					//remove the row from the holds list
+					$("#overDriveHold_" + overDriveId).hide();
+				}else{
+					VuFind.showMessage("Error Cancelling Hold", data.message, false);
+				}
+			},
+			dataType: 'json',
+			async: false,
+			error: function(){
+				VuFind.showMessage("Error Cancelling Hold", "An error occurred processing your request in OverDrive.  Please try again in a few minutes.", false);
+			}
+		});
+		return false;
+	},
+
 	checkoutOverDriveItemOneClick: function(overdriveId){
 		if (Globals.loggedIn){
 			var ajaxUrl = Globals.path + "/EcontentRecord/AJAX?method=CheckoutOverDriveItem&overDriveId=" + overdriveId;

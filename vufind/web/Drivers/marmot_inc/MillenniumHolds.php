@@ -319,6 +319,7 @@ class MillenniumHolds{
 			$curHold= array();
 			$curHold['create'] = null;
 			$curHold['reqnum'] = null;
+			$curHold['holdSource'] = 'ILS';
 
 			//Holds page occassionally has a header with number of items checked out.
 			for ($i=0; $i < sizeof($sCols); $i++) {
