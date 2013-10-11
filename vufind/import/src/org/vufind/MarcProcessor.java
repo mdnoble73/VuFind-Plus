@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -125,6 +126,7 @@ public class MarcProcessor {
 	private boolean                       useICode2Suppression = true;
 	private char                          eContentSubfield = 'w';
 	private boolean                       useEContentSubfield = false;
+	private SimpleDateFormat              dateAddedFormatter;
 
 	public static final int								RECORD_CHANGED_PRIMARY		= 1;
 	public static final int								RECORD_UNCHANGED					= 2;
@@ -226,6 +228,8 @@ public class MarcProcessor {
 		useICode2Suppression = configIni.get("Reindex", "useICode2Suppression").length() > 0 ? Boolean.getBoolean(configIni.get("Reindex", "useICode2Suppression")) : true;
 		eContentSubfield = configIni.get("Reindex", "eContentSubfield").length() > 0 ? configIni.get("Reindex", "eContentSubfield").charAt(0) : 'o';
 		useEContentSubfield = configIni.get("Reindex", "useEContentSubfield").length() > 0 ? Boolean.getBoolean(configIni.get("Reindex", "useEContentSubfield")) : true;
+		String dateAddedFormat = configIni.get("Reindex", "dateAddedFormat").length() > 0 ? configIni.get("Reindex", "dateAddedFormat") : "yyMMdd";
+		dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
 
 		// Load the checksum of any marc records that have been loaded already
 		// This allows us to detect whether or not the record is new, has changed,
@@ -1264,5 +1268,9 @@ public class MarcProcessor {
 
 	public boolean isUseEContentSubfield(){
 		return useEContentSubfield;
+	}
+
+	public SimpleDateFormat getDateAddedFormatter() {
+		return dateAddedFormatter;
 	}
 }
