@@ -375,6 +375,15 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_36' => array(
+				'title' => 'Library 36',
+				'description' => 'Allow multiple widgets on the home page',
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` CHANGE `homePageWidgetId` `homePageWidgetId` VARCHAR( 50 ) NULL DEFAULT ''",
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',
@@ -526,6 +535,15 @@ class DBMaintenance extends Admin_Admin {
 				'description' => 'Allow suppressing all items from a location',
 				'sql' => array(
 					"ALTER TABLE location ADD suppressHoldings TINYINT(1) DEFAULT '0'",
+				),
+			),
+
+			'location_10' => array(
+				'title' => 'Location 10',
+				'description' => 'Allow multiple widgets on the home page',
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `location` CHANGE `homePageWidgetId` `homePageWidgetId` VARCHAR( 50 ) NULL DEFAULT ''",
 				),
 			),
 

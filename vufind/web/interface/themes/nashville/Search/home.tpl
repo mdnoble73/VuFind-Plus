@@ -6,9 +6,11 @@
     </div>
         
 	<div class="searchHomeContent">
-		{if $widget}
+		{if $widgets}
 			<div id="homePageLists">
-				{include file='API/listWidgetTabs.tpl'}
+				{foreach from=$widgets item=widget}
+					{include file='API/listWidgetTabs.tpl'}
+				{/foreach}
 			</div>
 		{else}
 			<img src = "{if $largeLogo}{$largeLogo}{else}{img filename="logo_large.png"}{/if}" alt='{$librarySystemName} Logo'/>
