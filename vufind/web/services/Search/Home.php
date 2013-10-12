@@ -48,33 +48,33 @@ class Home extends Action {
 
 		//Get the lists to show on the home page
 		require_once ROOT_DIR . '/sys/ListWidget.php';
-		$widgetId = 1;
+		$showWidgets = false;
 		$activeLocation = $locationSingleton->getActiveLocation();
-		if ($activeLocation != null && $activeLocation->homePageWidgetId > 0){
-			$widgetId = $activeLocation->homePageWidgetId;
-			$widget = new ListWidget();
-			$widget->id = $widgetId;
-			if ($widget->find(true)){
-				$interface->assign('widget', $widget);
+		if ($activeLocation != null && strlen($activeLocation->homePageWidgetId) > 0 && $activeLocation->homePageWidgetId != 0){
+			$widgetsToShow = $activeLocation->homePageWidgetId;
+			$showWidgets = true;
+		}else if (isset($library) && strlen($library->homePageWidgetId) > 0 && $library->homePageWidgetId != 0){
+			$widgetsToShow = $library->homePageWidgetId;
+			$showWidgets = true;
+		}
+		if ($showWidgets){
+			$widgetIds = explode(",", $widgetsToShow);
+			$widgets = array();
+			foreach ($widgetIds as $widgetId){
+				$widget = new ListWidget();
+				$widget->id = $widgetId;
+				if ($widget->find(true)){
+					$widgets[] = $widget;
+				}
 			}
-		}else if (isset($library) && $library->homePageWidgetId > 0){
-			$widgetId = $library->homePageWidgetId;
-			$widget = new ListWidget();
-			$widget->id = $widgetId;
-			if ($widget->find(true)){
-				$interface->assign('widget', $widget);
+			if (count($widgets) > 0){
+				$interface->assign('widgets', $widgets);
 			}
 		}
 
-		// Cache homepage
-		$interface->caching = 0;
-		$cacheId = 'homepage|' . $interface->lang;
-		//Disable Home page caching for now.
-		if (!$interface->is_cached('layout.tpl', $cacheId)) {
-			$interface->setPageTitle('Catalog Home');
-			$interface->setTemplate('home.tpl');
-		}
-		$interface->display('layout.tpl', $cacheId);
+		$interface->setPageTitle('Catalog Home');
+		$interface->setTemplate('home.tpl');
+		$interface->display('layout.tpl');
 	}
 
 }

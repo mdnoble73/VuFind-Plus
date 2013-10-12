@@ -106,7 +106,7 @@ class Location extends DB_DataObject
 
 			array('property'=>'displaySection', 'type' => 'section', 'label' =>'Basic Display', 'hideInLists' => true, 'properties' => array(
 				array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'hideInLists' => true, 'size'=>'40'),
-				array('property'=>'homePageWidgetId', 'type'=>'integer', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page', 'hideInLists' => true),
+				array('property'=>'homePageWidgetId', 'type'=>'text', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page.  To show more than one widget, separate the ids with commas.', 'hideInLists' => true),
 				array('property'=>'footerTemplate', 'type'=>'text', 'label'=>'Footer Template', 'description'=>'The name of the footer file to display in the regular interface when scoped to a single school.  Use default to display the default footer', 'hideInLists' => true, 'default' => 'default'),
 			)),
 
