@@ -1,9 +1,12 @@
-<div id="languageBlock" style="text-align: right;">
-	{if is_array($allLangs) && count($allLangs) > 1}
-		{foreach from=$allLangs key=langCode item=langName}
-			<a id="lang{$langCode}" class='languageLink {if $userLang == $langCode} selected{/if}' href="{$fullPath}{if $requestHasParams}&amp;{else}?{/if}mylang={$langCode}">{translate text=$langName}</a>
-		{/foreach}
-	{/if}
+<div id="headerLinksTopBar">
+
+    <div id="languageBlock" style="text-align: right;">
+        {if is_array($allLangs) && count($allLangs) > 1}
+            {foreach from=$allLangs key=langCode item=langName}
+                <a id="lang{$langCode}" class='languageLink {if $userLang == $langCode} selected{/if}' href="{$fullPath}{if $requestHasParams}&amp;{else}?{/if}mylang={$langCode}">{translate text=$langName}</a>
+            {/foreach}
+        {/if}
+    </div>
 </div>
 
 <div id="loginBlock" class="alignright" style="text-align: right;">

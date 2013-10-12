@@ -32,15 +32,10 @@
                     <li>Rate titles with 4 or 5 stars to get recommendations</li>
                     <li>Go to "Recommended for You" to see a personalized list</li>
                 </ul>
-            <img class="recommendationsStarsDemo" src="http://catalog.library.nashville.org/interface/themes/nashville/images/starRatingsDemo.png" />
-            <div id="recommendationsLoginSignupBox">
-                <div class="sectionContainer">
-                	<h3 class="recommendationsLogin"><a href="http://catalog.library.nashville.org/MyResearch/Home">Login to get started</a></h3>
-                </div>
-                <div class="sectionContainer">
-	                <h3 class="recommendationsSignup"><a href="http://www.surveymonkey.com/s/OnlineCardReg_DemographicInfo">Sign up for a library card</a></h3>
-                </div>
-            </div>
+                <h2>Get Started Rating Titles</h2> 
+
+            <iframe src="http://catalog.library.nashville.org/API/SearchAPI?method=getListWidget&id=8" width="100%" height="250"></iframe>
+            
             
 		{/foreach}
 	</div>
