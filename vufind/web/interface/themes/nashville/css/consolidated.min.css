@@ -573,7 +573,7 @@ ul.correctionSuggestionIndent li {list-style:disc;}
 /* vufind home page list block */
 .searchheader{padding:0px 0 3px 0;background-color:#ffffff;border-bottom:solid 1px #c5c5c5;text-align:left;}.searchheader a, .searchheader a:visited{color:#06c}.searchheader a:hover{color:#132248;}#searchbar{padding-left:7px;padding-bottom:10px;background-color:#32388E;color:#fff}
 #loginBlock{position:relative;top:0;right:0;z-index:99;min-width:300px;-webkit-border-bottom-left-radius:10px;-khtml-border-radius-bottomleft:10px;-moz-border-radius-bottomleft:10px;border-bottom-left-radius:10px;display:inline-block;}#loginOptions{}
-#headerLinksTopBar{background:#eee;margin-bottom:5px;padding:5px;}#feedbackBlock{width:300px;float:left;} #languageBlock{position:relative;top:0;right:0;}.languageLink{position:relative;padding-top:5px;font-size:80%}.languageLink{margin-left:5px;text-decoration:none}.languageLink.selected{font-weight:bold}
+#headerLinksTopBar{background:#eee;margin-bottom:5px;padding:5px;}.feedbackBlock{width:300px;float:left;} #languageBlock{position:relative;top:0;right:0;}.languageLink{position:relative;padding-top:5px;font-size:80%}.languageLink{margin-left:5px;text-decoration:none}.languageLink.selected{font-weight:bold}
 #searchbar a{color:#fff}
 #searchbar .searchform select {margin-top:3px}
 #sidebarRight #sidebar {float:right;}
