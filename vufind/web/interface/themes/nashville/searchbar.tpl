@@ -1,4 +1,6 @@
 {strip}
+
+
 <div class="searchform">
 	{if $searchType == 'advanced'}
 		{translate text="Your search"} : "<b>{$lookfor|escape:"html"}</b>"

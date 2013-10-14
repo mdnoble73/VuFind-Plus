@@ -1,8 +1,9 @@
 {strip}
+
 <div class="searchHome">
 
     <div class="searchHomeForm">
-        {include file="Search/searchbox.tpl"}
+        {include file="searchbar.tpl"}
     </div>
         
 	<div class="searchHomeContent">
@@ -12,8 +13,6 @@
                     {include file='API/listWidgetTabs.tpl'}
                 {/foreach}
 			</div>
-		{else}
-			<img src = "{if $largeLogo}{$largeLogo}{else}{img filename="logo_large.png"}{/if}" alt='{$librarySystemName} Logo'/>
 		{/if}
 	</div>
 

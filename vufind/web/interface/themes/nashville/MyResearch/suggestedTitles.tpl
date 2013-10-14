@@ -34,8 +34,7 @@
                 </ul>
                 <h2>Get Started Rating Titles</h2> 
 
-            <iframe src="http://catalog.library.nashville.org/API/SearchAPI?method=getListWidget&id=8" width="100%" height="250"></iframe>
-            
+				<iframe src="http://catalog.library.nashville.org/API/SearchAPI?method=getListWidget&id=8" width="100%" height="250"></iframe>      
             
 		{/foreach}
 	</div>

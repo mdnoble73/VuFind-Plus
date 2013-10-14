@@ -93,10 +93,10 @@
 		</div>
         
         <div id="noResultsWorldcat">
-            <h3>Didn't find what you were looking for?</h3>
+            <h2>Didn't find what you were looking for?</h2>
 				<ul class="correctionSuggestionIndent">
                 	<li><a href="http://www.library.nashville.org/bmm/bmm_books_suggestionform.asp">Suggest a title for the library to purchase.</a></li>
-                    <li><a href="#">Repeat your search on npl.worldcat.org - we'll try to borrow the item for you.</a></li>
+                    <li><a href="http://www.npl.worldcat.org">Repeat your search on npl.worldcat.org - we'll try to borrow the item for you.</a></li>
                 </ul>
             </div>
             
