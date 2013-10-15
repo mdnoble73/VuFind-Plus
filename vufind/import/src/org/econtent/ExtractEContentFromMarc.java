@@ -1524,24 +1524,27 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			logger.debug("Did not find any OverDrive titles in the API that did not have MARC records");
 		}
 
-		//Remove any eContent that is no longer active
-		if (existingEcontentIlsIds.size() > 0){
-			results.addNote("Found " + existingEcontentIlsIds.size() + " eContent titles with ILS Ids that need to be deleted");
-			for (String curIlsId : existingEcontentIlsIds.keySet()){
-				EcontentRecordInfo econtentInfo = existingEcontentIlsIds.get(curIlsId);
-				if (econtentInfo.getStatus().equals("active")){
-					deleteEContentRecord(econtentInfo);
+		//Only delete eContent if we are doing a full reindex
+		if (clearEContentRecordsAtStartOfIndex){
+			//Remove any eContent that is no longer active
+			if (existingEcontentIlsIds.size() > 0){
+				results.addNote("Found " + existingEcontentIlsIds.size() + " eContent titles with ILS Ids that need to be deleted");
+				for (String curIlsId : existingEcontentIlsIds.keySet()){
+					EcontentRecordInfo econtentInfo = existingEcontentIlsIds.get(curIlsId);
+					if (econtentInfo.getStatus().equals("active")){
+						deleteEContentRecord(econtentInfo);
+					}
 				}
 			}
-		}
 
-		//Remove any records that are eContent without ILS ids that are no longer active. 
-		if (overDriveTitlesWithoutIlsId.size() > 0){
-			results.addNote("Found " + overDriveTitlesWithoutIlsId.size() + " eContent titles without ILS Ids that need to be deleted");
-			for (String curExternalId : overDriveTitlesWithoutIlsId.keySet()){
-				EcontentRecordInfo econtentInfo = overDriveTitlesWithoutIlsId.get(curExternalId);
-				if (econtentInfo.getStatus().equals("active")){
-					deleteEContentRecord(econtentInfo);
+			//Remove any records that are eContent without ILS ids that are no longer active.
+			if (overDriveTitlesWithoutIlsId.size() > 0){
+				results.addNote("Found " + overDriveTitlesWithoutIlsId.size() + " OverDrive titles without ILS Ids that need to be deleted");
+				for (String curExternalId : overDriveTitlesWithoutIlsId.keySet()){
+					EcontentRecordInfo econtentInfo = overDriveTitlesWithoutIlsId.get(curExternalId);
+					if (econtentInfo.getStatus().equals("active")){
+						deleteEContentRecord(econtentInfo);
+					}
 				}
 			}
 		}
