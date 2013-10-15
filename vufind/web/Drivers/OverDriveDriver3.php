@@ -423,7 +423,7 @@ class OverDriveDriver3 {
 				if ($eContentRecord->find(true)){
 					$bookshelfItem['recordId'] = $eContentRecord->id;
 					$bookshelfItem['title'] = $eContentRecord->title;
-					$bookshelfItem['imageUrl'] = $eContentRecord->cover;
+					$bookshelfItem['imageUrl'] = $configArray['Site']['coverUrl'] . '/bookcover.php?size=medium&econtent=true&id=' . $eContentRecord->id;
 
 					//Get Rating
 					require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
