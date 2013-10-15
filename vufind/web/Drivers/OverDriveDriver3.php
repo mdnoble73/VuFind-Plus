@@ -489,7 +489,7 @@ class OverDriveDriver3 {
 					$hold['recordUrl'] = $configArray['Site']['path'] . '/EcontentRecord/' . $eContentRecord->id . '/Home';
 					$hold['title'] = $eContentRecord->title;
 					$hold['author'] = $eContentRecord->author;
-					$hold['imageUrl'] = $eContentRecord->cover;
+					$hold['imageUrl'] = $configArray['Site']['coverUrl'] . '/bookcover.php?size=medium&econtent=true&id=' . $eContentRecord->id;
 
 					//Get Rating
 					require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
