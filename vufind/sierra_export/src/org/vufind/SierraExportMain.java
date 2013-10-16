@@ -15,10 +15,7 @@ import org.ini4j.Profile.Section;
 import org.marc4j.MarcStreamWriter;
 import org.marc4j.MarcWriter;
 import org.marc4j.marc.*;
-import org.marc4j.marc.impl.ControlFieldImpl;
-import org.marc4j.marc.impl.LeaderImpl;
-import org.marc4j.marc.impl.MarcFactoryImpl;
-import org.marc4j.marc.impl.RecordImpl;
+import org.marc4j.marc.impl.*;
 
 /**
  * Export data to
@@ -48,18 +45,20 @@ public class SierraExportMain{
 
 		//Connect to the database
 		String url = ini.get("Catalog", "sierra_db");
+		Connection conn = null;
 		try{
 			//Open the connection to the database
-			Connection conn = DriverManager.getConnection(url);
+			conn = DriverManager.getConnection(url);
 
 			//Create a file to hold the results
 			File outputFile = new File("./export/exported_marcs.mrc");
 			MarcWriter marcWriter = new MarcStreamWriter(new FileOutputStream(outputFile));
 
-			PreparedStatement loadAllRecordsStmt = conn.prepareStatement("SELECT sierra_view.bib_record.id, record_num from sierra_view.record_metadata inner join sierra_view.bib_record on sierra_view.record_metadata.id = record_id where record_type_code = 'b' and deletion_date_gmt is null and is_suppressed = false limit 100;");
+			PreparedStatement loadAllRecordsStmt = conn.prepareStatement("SELECT id from sierra_view.record_metadata where record_type_code = 'b' and deletion_date_gmt is null limit 25;");
 			PreparedStatement loadLeaderStmt = conn.prepareStatement("SELECT * from sierra_view.leader_field where record_id=?;");
-			PreparedStatement loadFixedFieldsStmt = conn.prepareStatement("SELECT * from sierra_view.control_field where record_id=?;");
+			PreparedStatement varFieldsStmt = conn.prepareStatement("SELECT * from sierra_view.var_field_view where record_id=? order by marc_tag, occ_num;");
 			PreparedStatement loadSubfieldsStmt = conn.prepareStatement("SELECT * from sierra_view.subfield where record_id=? order by marc_tag, occ_num;");
+			PreparedStatement loadItemsStmt = conn.prepareStatement("SELECT * from sierra_view.item_view where sierra_view.item_view.id in (SELECT item_record_id from sierra_view.bib_record_item_record_link where bib_record_id =?)");
 			ResultSet allRecords = loadAllRecordsStmt.executeQuery();
 			MarcFactory marcFactory = MarcFactoryImpl.newInstance();
 			while (allRecords.next()){
@@ -70,19 +69,73 @@ public class SierraExportMain{
 				//Setup the leader
 				loadLeaderStmt.setLong(1, curId);
 				ResultSet leaderData = loadLeaderStmt.executeQuery();
+				Leader leader = marcRecord.getLeader();
+				marcRecord.setLeader(leader);
 				if (leaderData.next()){
-					Leader leader = marcRecord.getLeader();
 					char recordStatusCode = leaderData.getString("record_status_code").length() == 1  ? leaderData.getString("record_status_code").charAt(0) : ' ';
 					leader.setRecordStatus(recordStatusCode);
 					leader.setTypeOfRecord(leaderData.getString("record_type_code").charAt(0));
 					leader.setImplDefined1(new char[]{leaderData.getString("bib_level_code").charAt(0), leaderData.getString("control_type_code").charAt(0)});
 					leader.setCharCodingScheme(leaderData.getString("char_encoding_scheme_code").charAt(0));
 					leader.setImplDefined2(new char[]{leaderData.getString("encoding_level_code").charAt(0), leaderData.getString("descriptive_cat_form_code").charAt(0), leaderData.getString("multipart_level_code").charAt(0)});
-					marcRecord.setLeader(leader);
-					//System.out.println("  Leader:" + leader.toString());
 				}else{
 					System.out.println("  Warning, no leader data found for record " + curId);
 					continue;
+				}
+
+				//Setup fixed fields
+				loadFixedFieldsStmt.setLong(1, curId);
+				ResultSet fixedFieldsRS = loadFixedFieldsStmt.executeQuery();
+				while (fixedFieldsRS.next()) {
+					String controlNumber = "00" + fixedFieldsRS.getString("control_num");
+					//System.out.println(" loading fixed field " + controlNumber);
+					ControlField controlField = new ControlFieldImpl(controlNumber);
+					String fieldData = fixedFieldsRS.getString("p01") +
+							fixedFieldsRS.getString("p02") +
+							fixedFieldsRS.getString("p03") +
+							fixedFieldsRS.getString("p04") +
+							fixedFieldsRS.getString("p05") +
+							fixedFieldsRS.getString("p06") +
+							fixedFieldsRS.getString("p07") +
+							fixedFieldsRS.getString("p08") +
+							fixedFieldsRS.getString("p09") +
+							fixedFieldsRS.getString("p10") +
+							fixedFieldsRS.getString("p11") +
+							fixedFieldsRS.getString("p12") +
+							fixedFieldsRS.getString("p13") +
+							fixedFieldsRS.getString("p14") +
+							fixedFieldsRS.getString("p15") +
+							fixedFieldsRS.getString("p16") +
+							fixedFieldsRS.getString("p17") +
+							fixedFieldsRS.getString("p18") +
+							fixedFieldsRS.getString("p19") +
+							fixedFieldsRS.getString("p20") +
+							fixedFieldsRS.getString("p21") +
+							fixedFieldsRS.getString("p22") +
+							fixedFieldsRS.getString("p23") +
+							fixedFieldsRS.getString("p24") +
+							fixedFieldsRS.getString("p25") +
+							fixedFieldsRS.getString("p26") +
+							fixedFieldsRS.getString("p27") +
+							fixedFieldsRS.getString("p28") +
+							fixedFieldsRS.getString("p29") +
+							fixedFieldsRS.getString("p30") +
+							fixedFieldsRS.getString("p31") +
+							fixedFieldsRS.getString("p32") +
+							fixedFieldsRS.getString("p33") +
+							fixedFieldsRS.getString("p34") +
+							fixedFieldsRS.getString("p35") +
+							fixedFieldsRS.getString("p36") +
+							fixedFieldsRS.getString("p37") +
+							fixedFieldsRS.getString("p38") +
+							fixedFieldsRS.getString("p39") +
+							fixedFieldsRS.getString("p40") +
+							fixedFieldsRS.getString("p41") +
+							fixedFieldsRS.getString("p42") +
+							fixedFieldsRS.getString("p43") +
+							fixedFieldsRS.getString("remainder");
+					controlField.setData(fieldData.trim());
+					marcRecord.addVariableField(controlField);
 				}
 
 				//Load variable fields
@@ -122,6 +175,39 @@ public class SierraExportMain{
 					lastOccurrence = occurrence;
 				}
 
+				//Export items
+				loadItemsStmt.setLong(1, curId);
+				ResultSet items = loadItemsStmt.executeQuery();
+				int numItems = 0;
+				while (items.next()){
+					System.out.println("    Processing item " + items.getLong("id"));
+					//Create 989 subfields for each item
+					DataField itemField = marcFactory.newDataField("989", ' ', ' ');
+					marcRecord.addVariableField(itemField);
+					String barcode = items.getString("barcode");
+					if (barcode != null && barcode.length() > 0){
+						itemField.addSubfield(new SubfieldImpl('b', items.getString("barcode")));
+					}
+					itemField.addSubfield(new SubfieldImpl('d', items.getString("location_code")));
+					itemField.addSubfield(new SubfieldImpl('j', items.getString("itype_code_num")));
+					itemField.addSubfield(new SubfieldImpl('g', items.getString("item_status_code")));
+					itemField.addSubfield(new SubfieldImpl('h', items.getString("checkout_total")));
+					itemField.addSubfield(new SubfieldImpl('i', items.getString("renewal_total")));
+					//Get additional data
+					Long itemId = items.getLong("id");
+					loadSubfieldsStmt.setLong(1, itemId);
+					subfields = loadSubfieldsStmt.executeQuery();
+					while (subfields.next()){
+						String marcTag = subfields.getString("marc_tag");
+						String tag = subfields.getString("tag");
+						String content = subfields.getString("content");
+						System.out.println("      " + marcTag + "|" + tag + " " + content);
+					}
+
+					numItems++;
+				}
+				System.out.println("  Found " + numItems + " items");
+
 				//Write the record
 				//try{
 					marcWriter.write(marcRecord);
@@ -130,11 +216,19 @@ public class SierraExportMain{
 				//}
 			}
 
-			//Close the connection
-			conn.close();
+
 		}catch(Exception e){
 			System.out.println("Error: " + e.toString());
 			e.printStackTrace();
+		}
+		if (conn != null){
+			try{
+				//Close the connection
+				conn.close();
+			}catch(Exception e){
+				System.out.println("Error closing connection: " + e.toString());
+				e.printStackTrace();
+			}
 		}
 	}
 
