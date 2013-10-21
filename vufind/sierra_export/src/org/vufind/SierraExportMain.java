@@ -31,14 +31,14 @@ public class SierraExportMain{
 	public static void main(String[] args){
 		serverName = args[0];
 
-		Date currentTime = new Date();
+		Date startTime = new Date();
 		File log4jFile = new File("../../sites/" + serverName + "/conf/log4j.sierra_extract.properties");
 		if (log4jFile.exists()){
 			PropertyConfigurator.configure(log4jFile.getAbsolutePath());
 		}else{
 			System.out.println("Could not find log4j configuration " + log4jFile.toString());
 		}
-		logger.info(currentTime.toString() + ": Starting Sierra Extract");
+		logger.info(startTime.toString() + ": Starting Sierra Extract");
 
 		// Read the base INI file to get information about the server (current directory/cron/config.ini)
 		Ini ini = loadConfigFile("config.ini");
@@ -46,6 +46,7 @@ public class SierraExportMain{
 		//Connect to the database
 		String url = ini.get("Catalog", "sierra_db");
 		Connection conn = null;
+		int numRecordsRead = 0;
 		try{
 			//Open the connection to the database
 			conn = DriverManager.getConnection(url);
@@ -54,17 +55,18 @@ public class SierraExportMain{
 			File outputFile = new File("./export/exported_marcs.mrc");
 			MarcWriter marcWriter = new MarcStreamWriter(new FileOutputStream(outputFile));
 
-			PreparedStatement loadAllRecordsStmt = conn.prepareStatement("SELECT id from sierra_view.record_metadata where record_type_code = 'b' and deletion_date_gmt is null limit 25;");
-			PreparedStatement loadLeaderStmt = conn.prepareStatement("SELECT * from sierra_view.leader_field where record_id=?;");
-			PreparedStatement varFieldsStmt = conn.prepareStatement("SELECT * from sierra_view.var_field_view where record_id=? order by marc_tag, occ_num;");
-			PreparedStatement loadSubfieldsStmt = conn.prepareStatement("SELECT * from sierra_view.subfield where record_id=? order by marc_tag, occ_num;");
+			PreparedStatement loadAllRecordsStmt = conn.prepareStatement("SELECT id from sierra_view.bib_record where is_suppressed = 'f' limit 10000;",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement loadLeaderStmt = conn.prepareStatement("SELECT * from sierra_view.leader_field where record_id=?;",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
+			PreparedStatement loadVarFieldsStmt = conn.prepareStatement("SELECT * from sierra_view.varfield_view where record_id=? order by marc_tag, occ_num;");
 			PreparedStatement loadItemsStmt = conn.prepareStatement("SELECT * from sierra_view.item_view where sierra_view.item_view.id in (SELECT item_record_id from sierra_view.bib_record_item_record_link where bib_record_id =?)");
 			ResultSet allRecords = loadAllRecordsStmt.executeQuery();
 			MarcFactory marcFactory = MarcFactoryImpl.newInstance();
+			int totalRecords = 1616273;
 			while (allRecords.next()){
 				Record marcRecord = marcFactory.newRecord();
 				Long curId = allRecords.getLong("id");
-				System.out.println("Processing record " + curId);
+				//String recordNumber = allRecords.getString("record_num");
+				//System.out.println("Processing record " + curId);
 
 				//Setup the leader
 				loadLeaderStmt.setLong(1, curId);
@@ -83,96 +85,41 @@ public class SierraExportMain{
 					continue;
 				}
 
-				//Setup fixed fields
-				loadFixedFieldsStmt.setLong(1, curId);
-				ResultSet fixedFieldsRS = loadFixedFieldsStmt.executeQuery();
-				while (fixedFieldsRS.next()) {
-					String controlNumber = "00" + fixedFieldsRS.getString("control_num");
-					//System.out.println(" loading fixed field " + controlNumber);
-					ControlField controlField = new ControlFieldImpl(controlNumber);
-					String fieldData = fixedFieldsRS.getString("p01") +
-							fixedFieldsRS.getString("p02") +
-							fixedFieldsRS.getString("p03") +
-							fixedFieldsRS.getString("p04") +
-							fixedFieldsRS.getString("p05") +
-							fixedFieldsRS.getString("p06") +
-							fixedFieldsRS.getString("p07") +
-							fixedFieldsRS.getString("p08") +
-							fixedFieldsRS.getString("p09") +
-							fixedFieldsRS.getString("p10") +
-							fixedFieldsRS.getString("p11") +
-							fixedFieldsRS.getString("p12") +
-							fixedFieldsRS.getString("p13") +
-							fixedFieldsRS.getString("p14") +
-							fixedFieldsRS.getString("p15") +
-							fixedFieldsRS.getString("p16") +
-							fixedFieldsRS.getString("p17") +
-							fixedFieldsRS.getString("p18") +
-							fixedFieldsRS.getString("p19") +
-							fixedFieldsRS.getString("p20") +
-							fixedFieldsRS.getString("p21") +
-							fixedFieldsRS.getString("p22") +
-							fixedFieldsRS.getString("p23") +
-							fixedFieldsRS.getString("p24") +
-							fixedFieldsRS.getString("p25") +
-							fixedFieldsRS.getString("p26") +
-							fixedFieldsRS.getString("p27") +
-							fixedFieldsRS.getString("p28") +
-							fixedFieldsRS.getString("p29") +
-							fixedFieldsRS.getString("p30") +
-							fixedFieldsRS.getString("p31") +
-							fixedFieldsRS.getString("p32") +
-							fixedFieldsRS.getString("p33") +
-							fixedFieldsRS.getString("p34") +
-							fixedFieldsRS.getString("p35") +
-							fixedFieldsRS.getString("p36") +
-							fixedFieldsRS.getString("p37") +
-							fixedFieldsRS.getString("p38") +
-							fixedFieldsRS.getString("p39") +
-							fixedFieldsRS.getString("p40") +
-							fixedFieldsRS.getString("p41") +
-							fixedFieldsRS.getString("p42") +
-							fixedFieldsRS.getString("p43") +
-							fixedFieldsRS.getString("remainder");
-					controlField.setData(fieldData.trim());
-					marcRecord.addVariableField(controlField);
-				}
-
-				//Load variable fields
-				loadSubfieldsStmt.setLong(1, curId);
-				ResultSet subfields = loadSubfieldsStmt.executeQuery();
-				String lastMarcTag = null;
-				int lastOccurrence = 0;
+				//Setup fields
+				loadVarFieldsStmt.setLong(1, curId);
+				ResultSet subfields = loadVarFieldsStmt.executeQuery();
 				DataField curField = null;
 				while (subfields.next()){
 					String marcTag = subfields.getString("marc_tag");
+					if (marcTag == null || marcTag.length() == 0){
+						continue;
+					}
 					int occurrence = subfields.getInt("occ_num");
-					String tag = subfields.getString("tag");
-					if (lastMarcTag == null || !lastMarcTag.equalsIgnoreCase(marcTag) || lastOccurrence != occurrence){
-						if (tag == null || tag.length() == 0){
-							ControlField controlField = marcFactory.newControlField(marcTag, subfields.getString("content"));
-							curField = null;
-						}else{
-							//Changed field, create a new one.
-							char indicator1 = subfields.getString("marc_ind1").charAt(0);
-							if (indicator1 == '\\'){
-								indicator1 = ' ';
+					int tagNum = Integer.parseInt(marcTag);
+					if (tagNum < 10){
+						ControlField controlField = marcFactory.newControlField(marcTag, subfields.getString("field_content"));
+						marcRecord.addVariableField(controlField);
+					}else{
+						//Changed field, create a new one.
+						char indicator1 = subfields.getString("marc_ind1").charAt(0);
+						if (indicator1 == '\\'){
+							indicator1 = ' ';
+						}
+						char indicator2 = subfields.getString("marc_ind2").charAt(0);
+						if (indicator2 == '\\'){
+							indicator2 = ' ';
+						}
+						DataField dataField = marcFactory.newDataField(marcTag, indicator1, indicator2);
+						marcRecord.addVariableField(dataField);
+						String content = subfields.getString("field_content");
+						String[] fields = content.split("\\|");
+						for (String field : fields){
+							if (field.length() >= 1){
+								char tag = field.charAt(0);
+								dataField.addSubfield(new SubfieldImpl(tag, field.substring(1)));
 							}
-							char indicator2 = subfields.getString("marc_ind2").charAt(0);
-							if (indicator2 == '\\'){
-								indicator2 = ' ';
-							}
-							DataField dataField = marcFactory.newDataField(marcTag, indicator1, indicator2);
-							marcRecord.addVariableField(dataField);
-							curField = dataField;
 						}
 					}
-					if (tag != null && tag.length() > 0){
-						Subfield subfield = marcFactory.newSubfield(tag.charAt(0), subfields.getString("content"));
-						curField.addSubfield(subfield);
-					}
-					lastMarcTag = marcTag;
-					lastOccurrence = occurrence;
 				}
 
 				//Export items
@@ -180,7 +127,7 @@ public class SierraExportMain{
 				ResultSet items = loadItemsStmt.executeQuery();
 				int numItems = 0;
 				while (items.next()){
-					System.out.println("    Processing item " + items.getLong("id"));
+					//System.out.println("    Processing item " + items.getLong("id"));
 					//Create 989 subfields for each item
 					DataField itemField = marcFactory.newDataField("989", ' ', ' ');
 					marcRecord.addVariableField(itemField);
@@ -195,25 +142,32 @@ public class SierraExportMain{
 					itemField.addSubfield(new SubfieldImpl('i', items.getString("renewal_total")));
 					//Get additional data
 					Long itemId = items.getLong("id");
-					loadSubfieldsStmt.setLong(1, itemId);
-					subfields = loadSubfieldsStmt.executeQuery();
-					while (subfields.next()){
-						String marcTag = subfields.getString("marc_tag");
-						String tag = subfields.getString("tag");
-						String content = subfields.getString("content");
-						System.out.println("      " + marcTag + "|" + tag + " " + content);
-					}
+
+					//loadSubfieldsStmt.setLong(1, itemId);
+					//subfields = loadSubfieldsStmt.executeQuery();
+					//while (subfields.next()){
+					//	String marcTag = subfields.getString("marc_tag");
+					//	String tag = subfields.getString("tag");
+					//	String content = subfields.getString("content");
+					//	System.out.println("      " + marcTag + "|" + tag + " " + content);
+					//}
 
 					numItems++;
 				}
-				System.out.println("  Found " + numItems + " items");
+				//System.out.println("  Found " + numItems + " items");
 
+				numRecordsRead++;
 				//Write the record
-				//try{
-					marcWriter.write(marcRecord);
-				//}catch (Exception e){
-				//	System.out.println("  error writing marc " + e.toString());
-				//}
+				marcWriter.write(marcRecord);
+				if (numRecordsRead % 1000 == 0){
+					Date curDate = new Date();
+					long elapsedTime = curDate.getTime() - startTime.getTime();
+					long predictedFinish = elapsedTime * totalRecords / numRecordsRead ;
+					double predictedFinishHours = (double)predictedFinish / (double)(1000 * 60 * 60);
+					Date finishTime = new Date();
+					finishTime.setTime(predictedFinish + startTime.getTime());
+					System.out.println("Read " + numRecordsRead + " in " + (elapsedTime / 1000) + " seconds predicted total run time for " + totalRecords + " is " + String.format("%.2f", predictedFinishHours) + " hours");
+				}
 			}
 
 
@@ -230,6 +184,8 @@ public class SierraExportMain{
 				e.printStackTrace();
 			}
 		}
+		Date currentTime = new Date();
+		logger.info(currentTime.toString() + ": Finished Sierra Extract");
 	}
 
 	private static Ini loadConfigFile(String filename){
