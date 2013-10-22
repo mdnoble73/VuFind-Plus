@@ -1277,7 +1277,7 @@ class MillenniumDriver implements DriverInterface
 				//Check that the iType is correct
 				if ($loanRuleDeterminer->itemType == '999' || in_array($iType, $loanRuleDeterminer->iTypeArray())){
 					//$logger->log("{$loanRuleDeterminer->rowNumber}) iType correct $iType, {$loanRuleDeterminer->itemType}", PEAR_LOG_DEBUG);
-					if ($pType = -1 || $loanRuleDeterminer->patronType == '999' || in_array($pType, $loanRuleDeterminer->pTypeArray())){
+					if ($pType == -1 || $loanRuleDeterminer->patronType == '999' || in_array($pType, $loanRuleDeterminer->pTypeArray())){
 						//$logger->log("{$loanRuleDeterminer->rowNumber}) pType correct $pType, {$loanRuleDeterminer->patronType}", PEAR_LOG_DEBUG);
 						$loanRule = $this->loanRules[$loanRuleDeterminer->loanRuleId];
 						//$logger->log("Determiner {$loanRuleDeterminer->rowNumber} indicates Loan Rule {$loanRule->loanRuleId} applies, holdable {$loanRule->holdable}", PEAR_LOG_DEBUG);
