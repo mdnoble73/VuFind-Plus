@@ -8,6 +8,7 @@
 @headerBackground: @navbarBackground;
 @footerBackgroundHighlight: @navbarBackgroundHighlight;
 @footerBackground: @navbarBackground;
+@horizontalComponentOffsetNarrow:       80px;
 
 @import "bootstrap/bootstrap.less";
 @import "bootstrap/responsive.less";
@@ -107,10 +108,22 @@ ul.list-striped, ol.list-striped {
   }
 }
 
+div.striped {
+  > div:nth-child(odd),
+  > div:nth-child(odd) {
+    background-color: @tableBackgroundAccent;
+  }
+}
+
+.control-label-narrow{
+
+}
+
 /** Third party imports **/
 @import "/interface/themes/default/css/ratings.css";
 @import "datepicker.less";
 @import "/interface/themes/responsive/css/bootstrapSwitch.css";
+@import "narrowform.less";
 
 /** Imports of functionality related to VuFind **/
 @import "help.less";

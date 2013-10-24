@@ -494,7 +494,52 @@ class EcontentRecordDriver extends IndexRecord
 		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');
 		$interface->assign('publisher', isset($descriptionArray['publisher']) ? $descriptionArray['publisher'] : '');
 
-		return $interface->fetch('EcontentRecord/ajax-description-popup.tpl');
+		return $interface->fetch('Record/ajax-description-popup.tpl');
+	}
+
+	/**
+	 * Assign necessary Smarty variables and return a template name to
+	 * load in order to display the full record information on the Staff
+	 * View tab of the record view page.
+	 *
+	 * @access  public
+	 * @return  string              Name of Smarty template file to display.
+	 */
+	public function getStaffView()
+	{
+		global $interface;
+
+		if ($this->marcRecord){
+			$interface->assign('marcRecord', $this->marcRecord);
+		}
+
+		if ($this->eContentRecord->source == 'OverDrive'){
+			//Load MetaData
+			require_once ROOT_DIR . '/sys/OverDriveAPIProduct.php';
+			require_once ROOT_DIR . '/sys/OverDriveAPIProductMetaData.php';
+			$overDriveAPIProduct = new OverDriveAPIProduct();
+			$overDriveAPIProduct->overdriveId = strtolower($this->eContentRecord->externalId);
+			$overDriveAPIProductMetaData = new OverDriveAPIProductMetaData();
+			$overDriveAPIProduct->joinAdd($overDriveAPIProductMetaData, 'INNER');
+			$overDriveAPIProduct->selectAdd(null);
+			$overDriveAPIProduct->selectAdd("overdrive_api_products.rawData as productRaw");
+			$overDriveAPIProduct->selectAdd("overdrive_api_product_metadata.rawData as metaDataRaw");
+			if ($overDriveAPIProduct->find(true)){
+				$productRaw = json_decode($overDriveAPIProduct->productRaw);
+				//Remove links to overdrive that could be used to get semi-sensitive data
+				unset($productRaw->links);
+				unset($productRaw->contentDetails->account);
+				$interface->assign('overDriveProductRaw', $productRaw);
+				$interface->assign('overDriveMetaDataRaw', json_decode($overDriveAPIProduct->metaDataRaw));
+			}
+		}
+
+		if (isset($this->fields)){
+			$solrRecord = $this->fields;
+			ksort($solrRecord);
+			$interface->assign('solrRecord', $solrRecord);
+		}
+		return 'RecordDrivers/Marc/staff.tpl';
 	}
 
 }

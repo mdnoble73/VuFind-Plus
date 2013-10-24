@@ -106,9 +106,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 
 		// Load search preferences:
 		$searchSettings = getExtraConfigArray('genealogySearches');
-		if (isset($searchSettings['General']['default_handler'])) {
-			$this->defaultIndex = $searchSettings['General']['default_handler'];
-		}
+		$this->defaultIndex = 'GenealogyKeyword';
 		if (isset($searchSettings['General']['default_sort'])) {
 			$this->defaultSort = $searchSettings['General']['default_sort'];
 		}

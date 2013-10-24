@@ -28,6 +28,22 @@ VuFind.initializeModalDialogs = function() {
 	});
 };
 
+VuFind.getSelectedTitles = function(){
+	var selectedTitles = $("input.titleSelect:checked ").map(function() {
+		return $(this).attr('name') + "=" + $(this).val();
+	}).get().join("&");
+	if (selectedTitles.length == 0){
+		var ret = confirm('You have not selected any items, process all items?');
+		if (ret == true){
+			$("input.titleSelect").attr('checked', 'checked');
+			selectedTitles = $("input.titleSelect").map(function() {
+				return $(this).attr('name') + "=" + $(this).val();
+			}).get().join("&");
+		}
+	}
+	return selectedTitles;
+};
+
 VuFind.pwdToText = function(fieldId){
 	var elem = document.getElementById(fieldId);
 	var input = document.createElement('input');
@@ -47,6 +63,19 @@ VuFind.pwdToText = function(fieldId){
 	elem.parentNode.replaceChild(input, elem);
 	return input;
 };
+
+VuFind.showMessage = function(title, body, autoClose){
+	if (autoClose == undefined){
+		autoClose = false;
+	}
+	$("#modal-title").html(title);
+	$(".modal-body").html(body)
+	var modalDialog = $("#modalDialog");
+	modalDialog.modal('show');
+	if (autoClose){
+		setTimeout("VuFind.closeLightbox();", 3000);
+	}
+}
 
 VuFind.toggleHiddenElementWithButton = function(button){
 	var hiddenElementName = $(button).data('hidden_element');
@@ -229,6 +258,15 @@ VuFind.Account = {
 		});
 
 		return false;
+	},
+
+	renewSelectedTitles: function(){
+		var selectedTitles = VuFind.getSelectedTitles();
+		if (selectedTitles.length == 0){
+			return false;
+		}
+		$('#renewForm').submit();
+		return false;
 	}
 };
 
@@ -289,6 +327,10 @@ VuFind.ResultsList = {
 	statusList: [],
 	seriesList: [],
 
+	addIdToSeriesList: function(isbn){
+		this.seriesList[this.seriesList.length] = isbn;
+	},
+
 	addIdToStatusList: function(id, type, useUnscopedHoldingsSummary) {
 		if (type == undefined){
 			type = 'VuFind';
@@ -298,6 +340,48 @@ VuFind.ResultsList = {
 		idVal['useUnscopedHoldingsSummary'] = useUnscopedHoldingsSummary;
 		idVal['type'] = type;
 		this.statusList[this.statusList.length] = idVal;
+	},
+
+	initializeDescriptions: function(){
+		$(".descriptionTrigger").each(function(){
+			var descElement = $(this);
+			var descriptionContentClass = descElement.data("content_class");
+			options = {
+				html: true,
+				trigger: 'hover',
+				title: 'Description',
+				content: VuFind.ResultsList.loadDescription(descriptionContentClass)
+			};
+			descElement.popover(options);
+		});
+	},
+
+	lessFacets: function(name){
+		document.getElementById("more" + name).style.display="block";
+		document.getElementById("narrowGroupHidden_" + name).style.display="none";
+	},
+
+	loadDescription: function(descriptionContentClass){
+		var contentHolder = $(descriptionContentClass);
+		return contentHolder[0].innerHTML;
+	},
+
+	loadSeriesInfo: function(){
+		var now = new Date();
+		var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
+
+		var url = Globals.path + "/Search/AJAX?method=GetSeriesInfo";
+		for (var i=0; i < this.seriesList.length; i++) {
+			url += "&isbn[]=" + encodeURIComponent(this.seriesList[i]);
+		}
+		url += "&time="+ts;
+		$.getJSON(url,function(data){
+			if (data.success){
+				$.each(data.series, function(key, val){
+					$(".series" + key).find(".result-value").html(val);
+				});
+			}
+		});
 	},
 
 	loadStatusSummaries: function (){
@@ -526,46 +610,20 @@ VuFind.ResultsList = {
 		this.statusList = [];
 	},
 
-	addIdToSeriesList: function(isbn){
-		this.seriesList[this.seriesList.length] = isbn;
+	moreFacets: function(name){
+		document.getElementById("more" + name).style.display="none";
+		document.getElementById("narrowGroupHidden_" + name).style.display="block";
 	},
 
-	loadSeriesInfo: function(){
-		var now = new Date();
-		var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
-
-		var url = Globals.path + "/Search/AJAX?method=GetSeriesInfo";
-		for (var i=0; i < this.seriesList.length; i++) {
-			url += "&isbn[]=" + encodeURIComponent(this.seriesList[i]);
-		}
-		url += "&time="+ts;
-		$.getJSON(url,function(data){
-			if (data.success){
-				$.each(data.series, function(key, val){
-					$(".series" + key).find(".result-value").html(val);
-				});
-			}
-		});
+	moreFacetPopup: function(title, name){
+		VuFind.showMessage(title, $("#moreFacetPopup_" + name).html());
 	},
 
-	initializeDescriptions: function(){
-		$(".descriptionTrigger").each(function(){
-			var descElement = $(this);
-			var descriptionContentClass = descElement.data("content_class");
-			options = {
-				html: true,
-				trigger: 'hover',
-				title: 'Description',
-				content: VuFind.ResultsList.loadDescription(descriptionContentClass)
-			};
-			descElement.popover(options);
-		});
-	},
-
-	loadDescription: function(descriptionContentClass){
-		var contentHolder = $(descriptionContentClass);
-		return contentHolder[0].innerHTML;
+	toggleFacetVisibility: function(){
+		$facetsSection = $("#collapse-side-facets");
 	}
+
+
 };
 
 VuFind.Ratings = {
@@ -608,6 +666,111 @@ VuFind.Ratings = {
 };
 
 VuFind.OverDrive = {
+	cancelOverDriveHold: function(overdriveId){
+		var ajaxUrl = Globals.path + "/EcontentRecord/AJAX?method=CancelOverDriveHold&overDriveId=" + overDriveId + "&formatId=" + formatId;
+		$.ajax({
+			url: ajaxUrl,
+			cache: false,
+			success: function(data){
+				if (data.result){
+					VuFind.showMessage("Hold Cancelled", data.message, true);
+					//remove the row from the holds list
+					$("#overDriveHold_" + overDriveId).hide();
+				}else{
+					VuFind.showMessage("Error Cancelling Hold", data.message, false);
+				}
+			},
+			dataType: 'json',
+			async: false,
+			error: function(){
+				VuFind.showMessage("Error Cancelling Hold", "An error occurred processing your request in OverDrive.  Please try again in a few minutes.", false);
+			}
+		});
+		return false;
+	},
+
+	checkoutOverDriveItemOneClick: function(overdriveId){
+		if (Globals.loggedIn){
+			var ajaxUrl = Globals.path + "/EcontentRecord/AJAX?method=CheckoutOverDriveItem&overDriveId=" + overdriveId;
+			$.ajax({
+				url: ajaxUrl,
+				cache: false,
+				success: function(data){
+					if (data.result == true){
+						VuFind.showMessage("Title Checked Out Successfully", data.message, true);
+						window.location.href = Globals.path + "/MyResearch/OverdriveCheckedOut";
+					}else{
+						if (data.noCopies == true){
+							VuFind.closeLightbox();
+							ret = confirm(data.message)
+							if (ret == true){
+								VuFind.OverDrive.placeOverDriveHold(overdriveId, formatId);
+							}
+						}else{
+							VuFind.showMessage("Error Checking Out Title", data.message, false);
+						}
+					}
+				},
+				dataType: 'json',
+				async: false,
+				error: function(jqXHR, textStatus, errorThrown){
+					alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
+					alert("ajaxUrl = " + ajaxUrl);
+					hideLightbox();
+				}
+			});
+		}else{
+			VuFind.Account.ajaxLogin(null, function(){
+				checkoutOverDriveItemOneClick(overdriveId);
+			}, false);
+		}
+	},
+
+	doOverDriveHold: function(overDriveId, formatId, overdriveEmail, promptForOverdriveEmail){
+		var url = Globals.path + "/EcontentRecord/AJAX?method=PlaceOverDriveHold&overDriveId=" + overDriveId + "&formatId=" + formatId + "&overdriveEmail=" + overdriveEmail + "&promptForOverdriveEmail=" + promptForOverdriveEmail;
+		$.ajax({
+			url: url,
+			cache: false,
+			success: function(data){
+				if (data.availableForCheckout){
+					VuFind.OverDrive.checkoutOverDriveItem(overdriveId, formatId);
+				}else{
+					VuFind.showMessage("Placed Hold", data.message, true);
+				}
+			},
+			dataType: 'json',
+			async: false,
+			error: function(){
+				VuFind.showMessage("Error Placing Hold", "An error occurred processing your request in OverDrive.  Please try again in a few minutes.", false);
+			}
+		});
+	},
+
+	getOverDriveHoldPrompts: function(overDriveId, formatId, nextAction){
+		var url = Globals.path + "/EcontentRecord/AJAX?method=GetOverDriveHoldPrompts&overDriveId=" + overDriveId;
+		if (formatId != undefined){
+			url += "&formatId=" + formatId;
+		}
+		var result = true;
+		$.ajax({
+			url: url,
+			cache: false,
+			success: function(data){
+				result = data;
+				if (data.promptNeeded){
+					VuFind.showMessage(data.promptTitle, data.prompts, false);
+				}
+			},
+			dataType: 'json',
+			async: false,
+			error: function(){
+				alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
+				hideLightbox();
+			}
+		});
+		return result;
+	},
+
 	getOverDriveSummary: function(){
 		$.getJSON(Globals.path + '/MyResearch/AJAX?method=getOverDriveSummary', function (data){
 			if (data.error){
@@ -623,10 +786,41 @@ VuFind.OverDrive = {
 				$(".wishlistOverDrivePlaceholder").html(data.numWishlistItems);
 			}
 		});
+	},
+
+	placeOverDriveHold: function(overDriveId, formatId){
+		if (Globals.loggedIn){
+			//Get any prompts needed for placing holds (e-mail and format depending on the interface.
+			var promptInfo = VuFind.OverDrive.getOverDriveHoldPrompts(overDriveId, formatId, 'hold');
+			if (!promptInfo.promptNeeded){
+				VuFind.OverDrive.doOverDriveHold(overDriveId, formatId, promptInfo.overdriveEmail, promptInfo.promptForOverdriveEmail);
+			}
+		}else{
+			VuFind.Account.ajaxLogin(null, function(){
+				VuFind.OverDrive.placeOverDriveHold(overDriveId, formatId);
+			});
+		}
 	}
 };
 
 VuFind.Record = {
+	getAddTagForm: function(trigger, id, source){
+		if (Globals.loggedIn){
+			var url = Globals.path + "/Resource/AJAX?method=GetAddTagForm&id=" + id + "&source=" + source;
+			var $trigger = $(trigger);
+			$("#modal-title").text($trigger.attr("title"));
+			var modalDialog = $("#modalDialog");
+			modalDialog.load(url);
+			modalDialog.modal('show');
+		}else{
+			trigger = $(trigger);
+			VuFind.Account.ajaxLogin(trigger, function (){
+				VuFind.Record.getAddTagForm(trigger, id, source);
+			});
+		}
+		return false;
+	},
+
 	getSaveToListForm: function (trigger, id, source){
 		if (Globals.loggedIn){
 			var url = Globals.path + "/Resource/Save?lightbox=true&id=" + id + "&source=" + source;
@@ -669,8 +863,12 @@ VuFind.Record = {
 		});
 	},
 
-	loadEnrichmentInfo: function (id, isbn, upc, econtent) {
-		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+	loadEnrichmentInfo: function (id, isbn, upc, source) {
+		if (source = 'VuFind'){
+			var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		}else{
+			var url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+		}
 		var params = "method=GetEnrichmentInfoJSON&isbn=" + encodeURIComponent(isbn) + "&upc=" + encodeURIComponent(upc);
 		var fullUrl = url + "?" + params;
 		$.ajax( {
@@ -722,29 +920,58 @@ VuFind.Record = {
 	},
 
 	loadHoldingsInfo: function (id, shortId, source) {
-		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		if (source == 'VuFind'){
+			var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		}else{
+			var url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+		}
 		var params = "method=GetHoldingsInfo";
 		var fullUrl = url + "?" + params;
 		$.ajax( {
 			url : fullUrl,
 			success : function(data) {
-				var holdingsData = $(data).find("Holdings").text();
-				if (holdingsData) {
-					if (holdingsData.length > 0) {
-						if (holdingsData.match(/No Copies Found/i)){
-							try{
-								if ($("#prospectortab_label").is(":visible")){
-									$("#moredetails-tabs").tabs("option", "active", 1);
-								}else{
-									$("#moredetails-tabs").tabs("option", "active", 2);
-								}
-								$("#holdingstab_label").hide();
-							}catch(e){
+				if (source == 'VuFind'){
+					var holdingsData = $(data).find("Holdings").text();
+					if (holdingsData) {
+						if (holdingsData.length > 0) {
+							if (holdingsData.match(/No Copies Found/i)){
+								try{
+									if ($("#prospectortab_label").is(":visible")){
+										$("#moredetails-tabs").tabs("option", "active", 1);
+									}else{
+										$("#moredetails-tabs").tabs("option", "active", 2);
+									}
+									$("#holdingstab_label").hide();
+								}catch(e){
 
+								}
+							}else{
+								$("#holdingsPlaceholder").html(holdingsData);
 							}
-						}else{
-							$("#holdingsPlaceholder").html(holdingsData);
 						}
+					}
+				}else{
+					var formatsData = $(data).find("Formats").text();
+					if (formatsData) {
+						if (formatsData.length > 0) {
+							$("#formatsPlaceholder").html(formatsData).trigger("create");
+						}else{
+							$("#formatsPlaceholder").html("No Formats Information found, please try again later.");
+						}
+					}
+					var copiesData = $(data).find("Copies").text();
+					if (copiesData) {
+						if (copiesData.length > 0) {
+							$("#copiesPlaceholder").html(copiesData).trigger("create");
+						}else{
+							$("#copiestabLink").hide();
+							$("#copiesPlaceholder").html("No Copies Information found, please try again later.");
+							$("#formatstabLink a").text("Copies");
+						}
+					}else{
+						$("#copiestabLink").hide();
+						$("#copiesPlaceholder").html("No Copies Information found, please try again later.");
+						$("#formatstabLink a").text("Copies");
 					}
 				}
 				var holdingsSummary = $(data).find("HoldingsSummary").text();
@@ -760,92 +987,52 @@ VuFind.Record = {
 						$("#placeHold" + shortId).show();
 					}
 				}
-				var eAudioLink = $(data).find("EAudioLink").text();
-				if (eAudioLink) {
-					if (eAudioLink.length > 0) {
-						$("#eAudioLink" + id).html("<a href='" + eAudioLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_eaudio.png' alt='Access eAudio'/></a>").show();
+				var showCheckout = $(data).find("ShowCheckout").text();
+				if (showCheckout) {
+					if (showCheckout.length > 0 && showCheckout == 1) {
+						$("#checkout" + shortId).show();
 					}
 				}
-				var eBookLink = $(data).find("EBookLink").text();
-				if (eBookLink) {
-					if (eBookLink.length > 0) {
-						$("#eBookLink" + id).html("<a href='" + eBookLink + "'><img src='" + path + "/interface/themes/wcpl/images/access_ebook.png' alt='Access eBook'/></a>").show();
+				var showAccessOnline = $(data).find("ShowAccessOnline").text();
+				if (showAccessOnline) {
+					if (showAccessOnline.length > 0 && showAccessOnline == 1) {
+						if ($(data).find('AccessOnlineUrl').length > 0){
+							var url = $(data).find('AccessOnlineUrl').text();
+							var text = $(data).find('AccessOnlineText').text();
+							$("#accessOnline" + id).attr("href", url);
+							$("#accessOnline" + id).text($("<div/>").html(text).text());
+						}
+						$(".accessOnlineLink").show();
+					}
+				}
+				var showAddToWishList = $(data).find("ShowAddToWishlist").text();
+				if (showAddToWishList) {
+					if (showAddToWishList.length > 0 && showAddToWishList == 1) {
+						$("#addToWishList" + id).show();
 					}
 				}
 			}
 		});
 	},
 
-	loadReviewInfo: function (id, isbn) {
-		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+	loadReviewInfo: function (id, isbn, source) {
+		var url;
+		if (source == 'VuFind'){
+			url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		}else{
+			url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+		}
 		var params = "method=GetReviewInfo&isbn=" + encodeURIComponent(isbn);
 		var fullUrl = url + "?" + params;
 		$.ajax( {
 			url : fullUrl,
 			success : function(data) {
 				var reviewsData = $(data).find("Reviews").text();
-				if (reviewsData) {
-					if (reviewsData.length > 0) {
-						$("#reviewPlaceholder").html(reviewsData);
-					}else{
-						//$("#reviewPlaceholder").html("There are no reviews for this title.");
-					}
-				}else{
-					//$("#reviewPlaceholder").html("There are no reviews for this title.");
+				if (reviewsData && reviewsData.length > 0) {
+					$("#reviewPlaceholder").html(reviewsData);
 				}
 			}
 		});
-	},
-
-	/**
-	 * Used to send a text message related to a specific record.
-	 * Includes title, author, call number, etc.
-	 * @param id
-	 */
-	sendSMS: function(id){
-		var smsForm = $("#smsForm");
-		var to = smsForm.find("input[name=to]").val();
-		var provider = smsForm.find("input[name=provider]").val();
-		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-		var params = "method=SendSMS&" + "to=" + encodeURIComponent(to) + "&" + "provider=" + encodeURIComponent(provider);
-
-		$.ajax({
-			url: url+'?'+params,
-
-			success: function(data) {
-				var value = $(data).find('result');
-				if (value) {
-					if (value.text() == "Done") {
-						$(".modal-body").html("<div class='alert alert-success'>Your Text Message has been sent</div>");
-						setTimeout("VuFind.closeLightbox();", 3000);
-					} else {
-						$(".modal-body").html("<div class='alert alert-error'>Could not send text message</div>");
-					}
-				} else {
-					$(".modal-body").html("<div class='alert alert-error'>Failed to send text message</div>");
-				}
-			},
-			error: function() {
-				$(".modal-body").html("<div class='alert alert-error'>Unexpected error sending text message</div>");
-			}
-		});
-	},
-
-	showReviewForm: function(trigger, id, source){
-		if (Globals.loggedIn){
-			var $trigger = $(trigger);
-			$("#modal-title").text($trigger.attr("title"));
-			var modalDialog = $("#modalDialog");
-			//$(".modal-body").html($('#userreview' + id).html());
-			modalDialog.load(Globals.path + "/Resource/AJAX?method=GetReviewForm&id=" + id + "&source=" + source);
-			modalDialog.modal('show');
-		}else{
-			var $trigger = $(trigger);
-			VuFind.Account.ajaxLogin($trigger, function (){
-				return VuFind.Record.showReviewForm($trigger, id, source);
-			});
-		}
-		return false;
 	},
 
 	saveReview: function(id, shortId){
@@ -889,6 +1076,37 @@ VuFind.Record = {
 		return false;
 	},
 
+	saveTag: function(id, source, form){
+		var tag = $("#tags_to_apply").val();
+		$("#saveToList-button").prop('disabled', true);
+
+		var url = Globals.path + "/Resource/AJAX";
+		var params = "method=SaveTag&" +
+				"tag=" + encodeURIComponent(tag) + "&" +
+				"id=" + id + "&" +
+				"source=" + source;
+		$.ajax({
+			url: url+'?'+params,
+			dataType: "json",
+			success: function(data) {
+				var value = data.result;
+				if (value == "Done") {
+					$("#modal-title").html("Add to Tag Result");
+					$(".modal-body").html("<div class='alert alert-success'>" + data.message + "</div>")
+					setTimeout("VuFind.closeLightbox();", 3000);
+				} else {
+					$("#modal-title").html("Error adding tags");
+					$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error adding tags to this title.<br/>" + data.message + "</div>")
+				}
+
+			},
+			error: function(jqXHR, textStatus, errorThrown) {
+				$("#modal-title").html("Error adding tags");
+				$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error adding tags to this title.<br/>" + textStatus + "</div>")
+			}
+		});
+	},
+
 	saveToList: function(id, source, form){
 		var notes = $("#addToList-notes").val();
 		var list = $("#addToList-list").val();
@@ -906,20 +1124,114 @@ VuFind.Record = {
 			success: function(data) {
 				var value = data.result;
 				if (value == "Done") {
-					$("#modal-title").html("Added to List Result");
+					$("#modal-title").html("Add to List Result");
 					$(".modal-body").html("<div class='alert alert-success'>" + data.message + "</div>")
 					setTimeout("VuFind.closeLightbox();", 3000);
 				} else {
 					$("#modal-title").html("Error adding to list");
-					$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error adding the title to the list<br/>" + data.message + "</div>")
+					$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error adding the title to the list.<br/>" + data.message + "</div>")
 				}
 
 			},
 			error: function(jqXHR, textStatus, errorThrown) {
 				$("#modal-title").html("Error adding to list");
-				$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error adding the title to the list<br/>" + textStatus + "</div>")
+				$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error adding the title to the list.<br/>" + textStatus + "</div>")
 			}
 		});
+	},
+
+	/**
+	 * Used to send a text message related to a specific record.
+	 * Includes title, author, call number, etc.
+	 * @param id
+	 */
+	sendEmail: function(id, source){
+		var emailForm = $("#emailForm");
+		var to = emailForm.find("input[name=to]").val();
+		var from = emailForm.find("input[name=from]").val();
+		var message = emailForm.find("input[name=message]").val();
+		if (source == 'VuFind'){
+			var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		}else{
+			var url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+		}
+		var params = "method=SendEmail&" + "to=" + encodeURIComponent(to) + "&" + "from=" + encodeURIComponent(from) + "&" + "message=" + encodeURIComponent(message);
+
+		$.ajax({
+			url: url+'?'+params,
+
+			success: function(data) {
+				var value = $(data).find('result');
+				if (value) {
+					if (value.text() == "Done") {
+						$(".modal-body").html("<div class='alert alert-success'>Your e-mail has been sent</div>");
+						setTimeout("VuFind.closeLightbox();", 3000);
+					} else {
+						$(".modal-body").html("<div class='alert alert-error'>Could not send e-mail</div>");
+					}
+				} else {
+					$(".modal-body").html("<div class='alert alert-error'>Failed to send e-mail</div>");
+				}
+			},
+			error: function() {
+				$(".modal-body").html("<div class='alert alert-error'>Unexpected error sending e-mail</div>");
+			}
+		});
+	},
+
+	/**
+	 * Used to send a text message related to a specific record.
+	 * Includes title, author, call number, etc.
+	 * @param id
+	 */
+	sendSMS: function(id, source){
+		var smsForm = $("#smsForm");
+		var to = smsForm.find("input[name=to]").val();
+		var provider = smsForm.find("input[name=provider]").val();
+		if (source == 'VuFind'){
+			var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		}else{
+			var url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+		}
+		var params = "method=SendSMS&" + "to=" + encodeURIComponent(to) + "&" + "provider=" + encodeURIComponent(provider);
+
+		$.ajax({
+			url: url+'?'+params,
+
+			success: function(data) {
+				var value = $(data).find('result');
+				if (value) {
+					if (value.text() == "Done") {
+						$(".modal-body").html("<div class='alert alert-success'>Your Text Message has been sent</div>");
+						setTimeout("VuFind.closeLightbox();", 3000);
+					} else {
+						$(".modal-body").html("<div class='alert alert-error'>Could not send text message</div>");
+					}
+				} else {
+					$(".modal-body").html("<div class='alert alert-error'>Failed to send text message</div>");
+				}
+			},
+			error: function() {
+				$(".modal-body").html("<div class='alert alert-error'>Unexpected error sending text message</div>");
+			}
+		});
+	},
+
+	showReviewForm: function(trigger, id, source){
+		if (Globals.loggedIn){
+			var $trigger = $(trigger);
+			$("#modal-title").text($trigger.attr("title"));
+			var modalDialog = $("#modalDialog");
+			//$(".modal-body").html($('#userreview' + id).html());
+			modalDialog.load(Globals.path + "/Resource/AJAX?method=GetReviewForm&id=" + id + "&source=" + source);
+			modalDialog.modal('show');
+		}else{
+			var $trigger = $(trigger);
+			VuFind.Account.ajaxLogin($trigger, function (){
+				return VuFind.Record.showReviewForm($trigger, id, source);
+			});
+		}
+		return false;
 	}
 };
 
@@ -1111,8 +1423,12 @@ VuFind.Prospector = {
 		});
 	},
 
-	loadRelatedProspectorTitles: function (id) {
-		var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+	loadRelatedProspectorTitles: function (id, source) {
+		if (source == 'VuFind'){
+			var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		}else{
+			var url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+		}
 		var params = "method=GetProspectorInfo";
 		var fullUrl = url + "?" + params;
 		$.ajax( {

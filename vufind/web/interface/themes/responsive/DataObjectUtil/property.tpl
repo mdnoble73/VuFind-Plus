@@ -62,21 +62,21 @@
 			{include file="DataObjectUtil/multiSelect.tpl"}
 
 		{elseif $property.type == 'image' || $property.type == 'file'}
-			<br />
-			{if $propValue}
-				{if $property.type == 'image'}
-					<img src='{$path}/files/thumbnail/{$propValue}'/>{$propValue}
-					<input type='checkbox' name='remove{$propName}' id='remove{$propName}' /> Remove image.
-					<br/>
-				{else}
-					Existing file: {$propValue}
-					<input type='hidden' name='{$propName}_existing' id='{$propName}_existing' value='{$propValue|escape}' />
+			<div class="controls">
+				{if $propValue}
+					{if $property.type == 'image'}
+						<img src='{$path}/files/thumbnail/{$propValue}'/>{$propValue}
+						<input type='checkbox' name='remove{$propName}' id='remove{$propName}' /> Remove image.
+						<br/>
+					{else}
+						Existing file: {$propValue}
+						<input type='hidden' name='{$propName}_existing' id='{$propName}_existing' value='{$propValue|escape}' />
 
+					{/if}
 				{/if}
-			{/if}
-			{* Display a table of the association with the ability to add and edit new values *}
-			<input type="file" name='{$propName}' id='{$propName}' size="80"/>
-
+				{* Display a table of the association with the ability to add and edit new values *}
+				<input type="file" name='{$propName}' id='{$propName}' size="80"/>
+			</div>
 		{elseif $property.type == 'checkbox'}
 			<div class="controls">
 				<div class="switch">

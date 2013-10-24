@@ -100,6 +100,7 @@ class EcontentRecord_Home extends Action{
 			$interface->assign('showComments', 1);
 			$interface->assign('tabbedDetails', 1);
 			$interface->assign('showProspectorTitlesAsTab', 0);
+			$interface->assign('showOtherEditionsPopup', 0);
 		}
 		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 		$interface->assign('chiliFreshAccount', $configArray['Content']['chiliFreshAccount']);
@@ -227,7 +228,7 @@ class EcontentRecord_Home extends Action{
 				}
 
 				$notes = array();
-				$marcFields500 = $marcRecord->getFields('500');
+				/*$marcFields500 = $marcRecord->getFields('500');
 				$marcFields504 = $marcRecord->getFields('504');
 				$marcFields511 = $marcRecord->getFields('511');
 				$marcFields518 = $marcRecord->getFields('518');
@@ -235,7 +236,7 @@ class EcontentRecord_Home extends Action{
 				if ($marcFields500 || $marcFields504 || $marcFields505 || $marcFields511 || $marcFields518 || $marcFields520){
 					$allFields = array_merge($marcFields500, $marcFields504, $marcFields511, $marcFields518, $marcFields520);
 					$notes = $this->processNoteFields($allFields);
-				}
+				}*/
 
 				if ((isset($library) && $library->showTableOfContentsTab == 0) || count($tableOfContents) == 0) {
 					$notes = array_merge($notes, $tableOfContents);
@@ -248,44 +249,47 @@ class EcontentRecord_Home extends Action{
 					$interface->assign('notesTabName', 'Notes');
 				}
 
-                $additionalNotesFields = array(
-                    '310' => 'Current Publication Frequency',
-                    '321' => 'Former Publication Frequency',
-                    '351' => 'Organization & arrangement of materials',
-                    '362' => 'Dates of publication and/or sequential designation',
-                    '501' => '"With"',
-                    '502' => 'Dissertation',
-                    '506' => 'Restrictions on Access',
-                    '507' => 'Scale for Graphic Material',
-                    '508' => 'Creation/Production Credits',
-                    '510' => 'Citation/References',
-                    '511' => 'Participant or Performer',
-                    '513' => 'Type of Report an Period Covered',
-                    '515' => 'Numbering Peculiarities',
-                    '518' => 'Date/Time and Place of Event',
-                    '521' => 'Target Audience',
-                    '522' => 'Geographic Coverage',
-                    '525' => 'Supplement',
-                    '526' => 'Study Program Information',
-                    '530' => 'Additional Physical Form',
-                    '533' => 'Reproduction',
-                    '534' => 'Original Version',
-                    '536' => 'Funding Information',
-                    '538' => 'System Details',
-                    '545' => 'Biographical or Historical Data',
-                    '546' => 'Language',
-                    '547' => 'Former Title Complexity',
-                    '550' => 'Issuing Body',
-                    '555' => 'Cumulative Index/Finding Aids',
-                    '556' => 'Information About Documentation',
-                    '561' => 'Ownership and Custodial History',
-                    '563' => 'Binding Information',
-                    '580' => 'Linking Entry Complexity',
-                    '581' => 'Publications About Described Materials',
-                    '586' => 'Awards',
-                    '590' => 'Local note',
-                    '599' => 'Differentiable Local note',
-                );
+        $additionalNotesFields = array(
+	                '520' => 'Description',
+	                '500' => 'General Note',
+	                '504' => 'Bibliography',
+	                '511' => 'Participants/Performers',
+	                '518' => 'Date/Time and Place of Event',
+                  '310' => 'Current Publication Frequency',
+                  '321' => 'Former Publication Frequency',
+                  '351' => 'Organization & arrangement of materials',
+                  '362' => 'Dates of publication and/or sequential designation',
+                  '501' => '"With"',
+                  '502' => 'Dissertation',
+                  '506' => 'Restrictions on Access',
+                  '507' => 'Scale for Graphic Material',
+                  '508' => 'Creation/Production Credits',
+                  '510' => 'Citation/References',
+                  '513' => 'Type of Report an Period Covered',
+                  '515' => 'Numbering Peculiarities',
+                  '521' => 'Target Audience',
+                  '522' => 'Geographic Coverage',
+                  '525' => 'Supplement',
+                  '526' => 'Study Program Information',
+                  '530' => 'Additional Physical Form',
+                  '533' => 'Reproduction',
+                  '534' => 'Original Version',
+                  '536' => 'Funding Information',
+                  '538' => 'System Details',
+                  '545' => 'Biographical or Historical Data',
+                  '546' => 'Language',
+                  '547' => 'Former Title Complexity',
+                  '550' => 'Issuing Body',
+                  '555' => 'Cumulative Index/Finding Aids',
+                  '556' => 'Information About Documentation',
+                  '561' => 'Ownership and Custodial History',
+                  '563' => 'Binding Information',
+                  '580' => 'Linking Entry Complexity',
+                  '581' => 'Publications About Described Materials',
+                  '586' => 'Awards',
+                  '590' => 'Local note',
+                  '599' => 'Differentiable Local note',
+        );
 
 				foreach ($additionalNotesFields as $tag => $label){
 					$marcFields = $marcRecord->getFields($tag);
@@ -296,7 +300,7 @@ class EcontentRecord_Home extends Action{
 						}
 						$note = implode(',', $noteText);
 						if (strlen($note) > 0){
-							$notes[] = "<b>$label</b>: " . $note;
+							$notes[] = "<dt>$label</dt><dd>" . $note . '</dd>';
 						}
 					}
 				}
@@ -408,22 +412,11 @@ class EcontentRecord_Home extends Action{
 			$interface->assign('MobileTitle','&nbsp;');
 
 			//Load Staff Details
-			$interface->assign('staffDetails', $this->getStaffView($eContentRecord));
+			$interface->assign('staffDetails', $this->recordDriver->getStaffView($eContentRecord));
 
 			// Display Page
 			$interface->display('layout.tpl');
 
-		}
-	}
-
-	public function getStaffView($eContentRecord){
-		global $interface;
-		$marcRecord = MarcLoader::loadEContentMarcRecord($eContentRecord);
-		if ($marcRecord != null){
-			$interface->assign('marcRecord', $marcRecord);
-			return 'RecordDrivers/Marc/staff.tpl';
-		}else{
-			return null;
 		}
 	}
 

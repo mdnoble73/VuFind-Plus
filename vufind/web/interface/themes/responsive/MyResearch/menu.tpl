@@ -2,49 +2,37 @@
 {if $user != false}
 	<div class="sidegroup well">
 		<h4>{translate text='Your Account'}</h4>
-		<div id="myAccountFines">
-			{if $profile.finesval > 0}
-				{if $showEcommerceLink && $profile.finesval > $minimumFineAmount}
-					<div class="myAccountLink" style="color:red; font-weight:bold;">Your account has {$profile.fines} in fines.</div>
-					<div class="myAccountLink"><a href='{$ecommerceLink}' >{if $payFinesLinkText}{$payFinesLinkText}{else}Click to Pay Fines Online{/if}</a></div>
-				{else}
-					<div class="myAccountLink" title="Please Contact your local library to pay fines or Charges." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to pay fines or Charges.')">Your account has {$profile.fines} in fines.</div>
+		{if $profile.finesval > 0 || $profile.expireclose}
+			<div id="myAccountFines">
+				{if $profile.finesval > 0}
+					{if $showEcommerceLink && $profile.finesval > $minimumFineAmount}
+						<div class="myAccountLink" style="color:red; font-weight:bold;">Your account has {$profile.fines} in fines.</div>
+						<div class="myAccountLink"><a href='{$ecommerceLink}' >{if $payFinesLinkText}{$payFinesLinkText}{else}Click to Pay Fines Online{/if}</a></div>
+					{else}
+						<div class="myAccountLink" title="Please Contact your local library to pay fines or Charges." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to pay fines or Charges.')">Your account has {$profile.fines} in fines.</div>
+					{/if}
 				{/if}
-			{/if}
 
-			{if $profile.expireclose}<div class="myAccountLink"><a class ="alignright" title="Please contact your local library to have your library card renewed." style="color:green; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">Your library card will expire on {$profile.expires}.</a></div>{/if}
-		</div>
+				{if $profile.expireclose}<div class="myAccountLink"><a class ="alignright" title="Please contact your local library to have your library card renewed." style="color:green; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">Your library card will expire on {$profile.expires}.</a></div>{/if}
+			</div>
+			<br/>
+		{/if}
 
 		<div id="myAccountLinks">
-			<div class="myAccountLink">{translate text="Checked Out"}
-				<div class="myAccountLink{if $pageTemplate=="checkedout.tpl"} active{/if}"><a href="{$path}/MyResearch/CheckedOut" id="checkedOutPrint">{translate text='Books, Movies &amp; Music'} ({$profile.numCheckedOut})</a></div>
-				<div class="myAccountLink{if $pageTemplate=="eContentCheckedOut.tpl"} active{/if}"><a href="{$path}/MyResearch/EContentCheckedOut" id="checkedOutEContent">{translate text='eBooks and eAudio'} ({$profile.numEContentCheckedOut})</a></div>
-				<div class="myAccountLink{if $pageTemplate=="overDriveCheckedOut.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveCheckedOut" id="checkedOutOverDrive">{translate text='OverDrive'} (<span class="checkedOutItemsOverDrivePlaceholder">?</span>)</a></div>
-			</div>
-			<div class="myAccountLink">{translate text="Ready For Pickup"}
-				<div class="myAccountLink{if $pageTemplate=="availableHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/Holds?section=available" id="availablePrint">{translate text='Books, Movies &amp; Music'} ({$profile.numHoldsAvailable})</a></div>
-				{if $hasProtectedEContent}
-				<div class="myAccountLink{if $pageTemplate=="eContentAvailableHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/EContentHolds?section=available" id="availableEContent">{translate text='eBooks and eAudio'} ({$profile.numEContentAvailableHolds})</a></div>
-				{/if}
-				<div class="myAccountLink{if $pageTemplate=="overDriveAvailableHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveHolds?section=available" id="availableOverDrive">{translate text='OverDrive'} (<span class="availableHoldsOverDrivePlaceholder">?</span>)</a></div>
-			</div>
-			<div class="myAccountLink">{translate text="On Hold"}
-				<div class="myAccountLink{if $pageTemplate=="unavailableHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/Holds?section=unavailable" id="unavailablePrint">{translate text='Books, Movies &amp; Music'} ({$profile.numHoldsRequested})</a></div>
-				{if $hasProtectedEContent}
-				<div class="myAccountLink{if $pageTemplate=="eContentUnavailableHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/EContentHolds?section=unavailable" id="unavailableEContent">{translate text='eBooks and eAudio'} ({$profile.numEContentUnavailableHolds})</a></div>
-				{/if}
-				<div class="myAccountLink{if $pageTemplate=="overDriveUnavailableHolds.tpl"} active{/if}"><a href="{$path}/MyResearch/OverdriveHolds?section=unavailable" id="unavailableOverDrive">{translate text='OverDrive'} (<span class="unavailableHoldsOverDrivePlaceholder">?</span>)</a></div>
-			</div>
+			<ul>
+			<li class="myAccountLink{if $pageTemplate=="checkedout.tpl"} active{/if}"><a href="{$path}/MyAccount/CheckedOut" id="checkedOut">{translate text='Checked Out'} ({$profile.numCheckedOutTotal})</a></li>
+			<li class="myAccountLink{if $pageTemplate=="holds.tpl"} active{/if}"><a href="{$path}/MyAccount/Holds" id="holds">{translate text='On Hold'} ({$profile.numHoldsTotal})</a></li>
+
 			{if $showFines}
-			<div class="myAccountLink{if $pageTemplate=="fines.tpl"} active{/if}" title="Fines and account messages"><a href="{$path}/MyResearch/Fines">{translate text='Fines and Messages'}</a></div>
+			<li class="myAccountLink{if $pageTemplate=="fines.tpl"} active{/if}" title="Fines and account messages"><a href="{$path}/MyResearch/Fines">{translate text='Fines and Messages'}</a></li>
 			{/if}
 			{if $enableMaterialsRequest}
-			<div class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="Materials Requests"><a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials Requests'} ({$profile.numMaterialsRequests})</a></div>
+			<li class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="Materials Requests"><a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials Requests'} ({$profile.numMaterialsRequests})</a></li>
 			{/if}
-			<div class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyResearch/ReadingHistory">{translate text='Reading History'}</a></div>
-			<div class="myAccountLink{if $pageTemplate=="profile.tpl"} active{/if}"><a href="{$path}/MyResearch/Profile">{translate text='Profile'}</a></div>
+			<li class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyResearch/ReadingHistory">{translate text='Reading History'}</a></li>
+			<li class="myAccountLink{if $pageTemplate=="profile.tpl"} active{/if}"><a href="{$path}/MyResearch/Profile">{translate text='Profile'}</a></li>
 			{* Only highlight saved searches as active if user is logged in: *}
-			<div class="myAccountLink{if $user && $pageTemplate=="history.tpl"} active{/if}"><a href="{$path}/Search/History?require_login">{translate text='history_saved_searches'}</a></div>
+			<li class="myAccountLink{if $user && $pageTemplate=="history.tpl"} active{/if}"><a href="{$path}/Search/History?require_login">{translate text='history_saved_searches'}</a></li>
 		</div>
 	</div>
 
@@ -75,7 +63,3 @@
 	{/if}
 {/if}
 {/strip}
-
-<script type="text/javascript">
-	VuFind.OverDrive.getOverDriveSummary();
-</script>

@@ -16,6 +16,7 @@
  * @author Will Mason <will at dontblinkdesign dot com>
  * @param array $params
  * @param $smarty
+ * @return null|string
  */
 function smarty_function_implode($params, &$smarty)
 {

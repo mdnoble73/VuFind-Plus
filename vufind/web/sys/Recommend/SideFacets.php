@@ -253,6 +253,21 @@ class SideFacets implements RecommendationInterface
 				}
 				$sideFacets[$facetKey]['collapseByDefault'] = $facetSetting->collapseByDefault;
 			}
+		}else{
+			//Process genealogy to add more facet popup
+			foreach ($sideFacets as $facetKey => $facet){
+				if (count($sideFacets[$facetKey]['list']) > 12){
+					$sideFacets[$facetKey]['showMoreFacetPopup'] = true;
+					$facetsList = $sideFacets[$facetKey]['list'];
+					$sideFacets[$facetKey]['list'] = array_slice($facetsList, 0, 5);
+					$sortedList = array();
+					foreach ($facetsList as $key => $value){
+						$sortedList[strtolower($key)] = $value;
+					}
+					ksort($sortedList);
+					$sideFacets[$facetKey]['sortedList'] = $sortedList;
+				}
+			}
 		}
 
 		$interface->assign('sideFacetSet', $sideFacets);

@@ -1,5 +1,5 @@
 <table class="citation">
-  {foreach from=$details key='field' item='values'}
+  {foreach from=$solrRecord key='field' item='values'}
     <tr>
       <th>{$field|escape}</th>
       <td>

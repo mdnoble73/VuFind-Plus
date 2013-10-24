@@ -95,7 +95,9 @@ class Record_Holdings extends Record_Record
 						$issueSummaries = $result;
 						break;
 					}else{
-						$holdings[$copy['location']][] = $copy;
+						$key = $copy['location'];
+						$key = preg_replace('~\W~', '_', $key);
+						$holdings[$key][] = $copy;
 					}
 				}
 				if (isset($issueSummaries) && count($issueSummaries) > 0){

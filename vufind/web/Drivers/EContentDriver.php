@@ -191,11 +191,14 @@ class EContentDriver implements DriverInterface{
 					if ($addCheckoutLink){
 						if ($configArray['OverDrive']['interfaceVersion'] == 1){
 							$checkoutLink = "return checkoutOverDriveItem('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
+							$checkoutLinkResponsive = "return VuFind.OverDrive.checkoutOverDriveItem('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
 						}else{
 							$checkoutLink = "return checkoutOverDriveItemOneClick('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
+							$checkoutLinkResponsive = "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
 						}
 						$item->links[] = array(
 								'onclick' => $checkoutLink,
+								'onclickResponsive' => $checkoutLinkResponsive,
 								'text' => 'Check Out',
 								'overDriveId' => $eContentRecord->externalId,
 								'formatId' => $item->externalFormatNumeric,
@@ -204,6 +207,7 @@ class EContentDriver implements DriverInterface{
 					}else if ($addPlaceHoldLink){
 						$item->links[] = array(
 								'onclick' => "return placeOverDriveHold('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');",
+								'onclickResponsive' => "return VuFind.OverDrive.placeOverDriveHold('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');",
 								'text' => 'Place Hold',
 								'overDriveId' => $eContentRecord->externalId,
 								'formatId' => $item->externalFormatNumeric,
@@ -518,7 +522,8 @@ class EContentDriver implements DriverInterface{
 					'create' => $availableHolds->datePlaced,
 					'expire' => $expirationDate,
 					'status' => $availableHolds->status,
-					'links' => $this->getOnHoldEContentLinks($availableHolds)
+					'links' => $this->getOnHoldEContentLinks($availableHolds),
+					'holdSource' => 'eContent'
 				);
 			}
 		}
@@ -543,6 +548,7 @@ class EContentDriver implements DriverInterface{
 					'links' => $this->getOnHoldEContentLinks($unavailableHolds),
 					'frozen' => $unavailableHolds->status == 'suspended',
 					'reactivateDate' => $unavailableHolds->reactivateDate,
+					'holdSource' => 'eContent'
 				);
 			}
 		}
@@ -561,6 +567,7 @@ class EContentDriver implements DriverInterface{
 	}
 
 	public function getMyTransactions($user){
+		global $configArray;
 		$return = array();
 		$eContentCheckout = new EContentCheckout();
 		$eContentCheckout->userId = $user->id;
@@ -585,6 +592,7 @@ class EContentDriver implements DriverInterface{
 					'id' => $eContentRecord->id,
 					'recordId' => 'econtentRecord' . $eContentRecord->id,
 					'source' => $eContentRecord->source,
+					'checkoutSource' => 'eContent',
 					'title' => $eContentRecord->title,
 					'author' => $eContentRecord->author,
 					'duedate' => $eContentCheckout->dateDue,
@@ -593,6 +601,7 @@ class EContentDriver implements DriverInterface{
 					'holdQueueLength' => $waitList,
 					'links' => $links,
 					'ratingData' => $ratingData,
+					'recordUrl' => $configArray['Site']['path'] . '/EcontentRecord/' . $eContentRecord->id . '/Home',
 				);
 			}
 		}

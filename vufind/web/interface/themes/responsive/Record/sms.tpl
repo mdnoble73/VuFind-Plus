@@ -27,5 +27,5 @@
 </div>
 <div class="modal-footer">
 	<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
-	<input type="submit" class="btn btn-primary" value="{translate text='Send'}"  onclick="return VuFind.Record.sendSMS('{$id|escape}');">
+	<input type="submit" class="btn btn-primary" value="{translate text='Send'}"  onclick="return VuFind.Record.sendSMS('{$id|escape}', 'VuFind');">
 </div>

@@ -24,194 +24,170 @@
 			{/if}
 			
 			{if $libraryHoursMessage}
-				<div class='libraryHours'>{$libraryHoursMessage}</div>
+				<div class='libraryHours alert alert-success'>{$libraryHoursMessage}</div>
 			{/if}
 			{if $transList}
 				
 				<form id="renewForm" action="{$path}/MyResearch/RenewMultiple">
-					<div>
-						<a href="#" onclick="return renewSelectedTitles();" class="button">Renew Selected Items</a>
-						<a href="{$path}/MyResearch/RenewAll" class="button">Renew All</a>
-						<a href="{$path}/MyResearch/CheckedOut?exportToExcel" class="button" id="exportToExcelTop" >Export to Excel</a>
-					</div>
-					
-					<div id="pager" class="pager">
-						{if $pageLinks.all}<div class="myAccountPagination pagination">Page: {$pageLinks.all}</div>{/if}
+					<div id="pager" class="navbar form-inline text-center">
+						{if $pageLinks.all}<div class="myAccountPagination pagination pull-left">Page: {$pageLinks.all}</div>{/if}
 						
-						<span id="recordsPerPage">
-						Records Per Page:
-						<select id="pagesize" class="pagesize" onchange="changePageSize()">
-							<option value="10" {if $recordsPerPage == 10}selected="selected"{/if}>10</option>
-							<option value="25" {if $recordsPerPage == 25}selected="selected"{/if}>25</option>
-							<option value="50" {if $recordsPerPage == 50}selected="selected"{/if}>50</option>
-							<option value="75" {if $recordsPerPage == 75}selected="selected"{/if}>75</option>
-							<option value="100" {if $recordsPerPage == 100}selected="selected"{/if}>100</option>
-						</select>
-						</span>
-						<div class='sortOptions'>
-							{translate text='Sort by'}
-							<select name="accountSort" id="sort" onchange="changeAccountSort($(this).val());">
+						<label for="pagesize" class="control-label pull-left">Records Per Page:&nbsp;
+							<select id="pagesize" class="pagesize input-mini" onchange="changePageSize()">
+								<option value="10" {if $recordsPerPage == 10}selected="selected"{/if}>10</option>
+								<option value="25" {if $recordsPerPage == 25}selected="selected"{/if}>25</option>
+								<option value="50" {if $recordsPerPage == 50}selected="selected"{/if}>50</option>
+								<option value="75" {if $recordsPerPage == 75}selected="selected"{/if}>75</option>
+								<option value="100" {if $recordsPerPage == 100}selected="selected"{/if}>100</option>
+							</select>
+						</label>
+
+						<label for="accountSort" class="control-label">{translate text='Sort by'}:&nbsp;
+							<select name="accountSort" id="sort" class="input-medium" onchange="changeAccountSort($(this).val());">
 							{foreach from=$sortOptions item=sortDesc key=sortVal}
 								<option value="{$sortVal}"{if $defaultSortOption == $sortVal} selected="selected"{/if}>{translate text=$sortDesc}</option>
 							{/foreach}
 							</select>
-							Hide Covers <input type="checkbox" onclick="$('.imageColumn').toggle();"/>
-						</div>
+						</label>
+
+						<label for="hideCovers" class="control-label checkbox  pull-right"> Hide Covers <input id="hideCovers" type="checkbox" onclick="$('.imageColumn').toggle();"/></label>
 					</div>
-						
-					<div class='clearer'></div>
-					<table class="myAccountTable" id="checkedOutTable">
-						<thead>
-							<tr>
-								<th><input id='selectAll' type='checkbox' onclick="toggleCheckboxes('.titleSelect', $(this).attr('checked'));" title="Select All/Deselect All"/></th>
-								<th>{translate text='Title'}</th>
-								<th>{translate text='Format'}</th>
-								{if $showOut}
-								<th>{translate text='Out'}</th>
-								{/if}
-								<th>{translate text='Due'}</th>
-								{if $showRenewed}
-								<th>{translate text='Renewed'}</th>
-								{/if}
-								{if $showWaitList}
-								<th>{translate text='Wait List'}</th>
-								{/if}
-								<th>{translate text='Rating'}</th>
-							</tr>
-						</thead>
-						<tbody>
-					{foreach from=$transList item=record name="recordLoop"}
-						<tr id="record{$record.id|escape}" class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} {if ($smarty.foreach.recordLoop.iteration % 16) == 0}newpage{/if} record{$smarty.foreach.recordLoop.iteration}">
-						<td class="titleSelectCheckedOut myAccountCell">
-							<input type="checkbox" name="selected[{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}" />
-						</td>
-						
-						<td class="myAccountCell">
-							{if $user->disableCoverArt != 1}
-							<div class="imageColumn"> 
-								{if $record.id}
-								<a href="{$path}/Record/{$record.id|escape:"url"}" id="descriptionTrigger{$record.id|escape:"url"}">
-								<img src="{$coverUrl}/bookcover.php?id={$record.id}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;issn={$record.issn}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
-								</a>
-								{/if}
-								<div id='descriptionPlaceholder{$record.id|escape}' style='display:none'></div>
-							</div>
-							{/if}
-					
-							<div class="myAccountTitleDetails">
-							<div class="resultItemLine1">
-							{if $record.id}
-							<a href="{$path}/Record/{$record.id|escape:"url"}" class="title">
-							{/if}
-							{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
-							{if $record.id}
-							</a>
-							{/if}
-							{if $record.title2}
-								<div class="searchResultSectionInfo">
-									{$record.title2|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
+
+					<div class="btn-group">
+						<a href="#" onclick="return VuFind.Account.renewSelectedTitles();" class="btn">Renew Selected Items</a>
+						<a href="{$path}/MyResearch/RenewAll" class="btn">Renew All</a>
+						<a href="{$path}/MyResearch/CheckedOut?exportToExcel" class="btn" id="exportToExcelTop" >Export to Excel</a>
+					</div>
+
+
+					<div class="striped">
+						{foreach from=$transList item=record name="recordLoop"}
+							<div id="record{$record.id|escape}" class="result row-fluid">
+							<div class="span3">
+								<div class="row-fluid">
+									<div class="selectTitle span2">
+										<input type="checkbox" name="selected[{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}" />
+									</div>
+									<div class="span9 text-center">
+										{if $user->disableCoverArt != 1}
+											{if $record.id}
+												<a href="{$path}/Record/{$record.id|escape:"url"}" id="descriptionTrigger{$record.id|escape:"url"}">
+													<img src="{$coverUrl}/bookcover.php?id={$record.id}&amp;isn={$record.isbn|@formatISBN}&amp;size=medium&amp;upc={$record.upc}&amp;issn={$record.issn}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage img-polaroid" alt="{translate text='Cover Image'}"/>
+												</a>
+											{/if}
+										{/if}
+									</div>
 								</div>
-								{/if}
 							</div>
-						
-							<div class="resultItemLine2">
-								{if $record.author}
-									{translate text='by'}
-									{if is_array($record.author)}
-										{foreach from=$summAuthor item=author}
-											<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
-										{/foreach}
-									{else}
-										<a href="{$path}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight:$lookfor}</a>
-									{/if}
-								{/if}
-						 
-								{if $record.publicationDate}{translate text='Published'} {$record.publicationDate|escape}{/if}
-							</div>
-									
-							{if $record.hasEpub} 
-								<div id='epubPickupOptions'>
-									{foreach from=$record.links item=link}
-									<div class='button'><a href="{$link.url}">{$link.text}</a></div>
-									{/foreach}
+
+
+
+							<div class="span9">
+								<div class="row-fluid">
+									<strong>
+										{if $record.id}
+										<a href="{$path}/Record/{$record.id|escape:"url"}" class="title">
+											{/if}
+											{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
+											{if $record.id}
+										</a>
+										{/if}
+										{if $record.title2}
+											<div class="searchResultSectionInfo">
+												{$record.title2|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
+											</div>
+										{/if}
+									</strong>
 								</div>
-							{/if}
-							</div>
-						</td>
-						<td class="myAccountCell">
-							{if is_array($record.format)}
-								{foreach from=$record.format item=format}
-									{translate text=$format}
-								{/foreach}
-							{else}
-								{translate text=$record.format}
-							{/if}
-						</td>
-						{if $showOut}
-						<td class="myAccountCell">			
-							 {$record.checkoutdate|date_format}
-						</td>
-						{/if}
-						<td class="myAccountCell">
-							{$record.duedate|date_format}
-							{if $record.overdue}
-								<span class='overdueLabel'>OVERDUE</span>
-							{elseif $record.daysUntilDue == 0}
-								<span class='dueSoonLabel'>(Due today)</span>
-							{elseif $record.daysUntilDue == 1}
-								<span class='dueSoonLabel'>(Due tomorrow)</span>
-							{elseif $record.daysUntilDue <= 7}
-								<span class='dueSoonLabel'>(Due in {$record.daysUntilDue} days)</span>
-							{/if}
-							{if $record.fine}
-								<span class='overdueLabel'>FINE {$record.fine}</span>
-							{/if}
-						</td>	
-						{if $showRenewed}
-						<td class="myAccountCell">
-							{$record.renewCount}
-							{if $record.renewMessage}
-								<div class='{if $record.renewResult == true}renewPassed{else}renewFailed{/if}'>
-									{$record.renewMessage|escape}
+								<div class="row-fluid">
+									<div class="resultDetails span9">
+										<div class="row-fluid">
+											{if $record.author}
+												<div class="result-label span3">{translate text='Author'}</div>
+												<div class="span9 result-value">
+													{if is_array($record.author)}
+														{foreach from=$summAuthor item=author}
+															<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+														{/foreach}
+													{else}
+														<a href="{$path}/Author/Home?author={$record.author|escape:"url"}">{$record.author|highlight:$lookfor}</a>
+													{/if}
+												</div>
+											{/if}
+										</div>
+
+										{if $record.publicationDate}
+											<div class="row-fluid">
+												<div class="result-label span3">{translate text='Published'}<div class="result-label span3">
+												<div class="span9 result-value">{$record.publicationDate|escape}<div class="span9 result-value"></div>
+											</div>
+										{/if}
+
+										{if $showOut}
+											<div class="row-fluid">
+												<div class="result-label span3">{translate text='Checked Out'}</div>
+												<div class="span9 result-value">{$record.checkoutdate|date_format}</div>
+											</div>
+										{/if}
+
+										<div class="row-fluid">
+											<div class="result-label span3">{translate text='Due'}</div>
+											<div class="span9 result-value">
+												{$record.duedate|date_format}
+												{if $record.overdue}
+													<span class='text-error'><strong> OVERDUE</strong></span>
+												{elseif $record.daysUntilDue == 0}
+													<span class='text-warning'> (Due today)</span>
+												{elseif $record.daysUntilDue == 1}
+													<span class='text-warning'> (Due tomorrow)</span>
+												{elseif $record.daysUntilDue <= 7}
+													<span class='text-warning'> (Due in {$record.daysUntilDue} days)</span>
+												{/if}
+												{if $record.fine}
+													<span class='text-error'><strong> FINE {$record.fine}</strong></span>
+												{/if}
+											</div>
+										</div>
+
+										{if $showRenewed}
+											<div class="row-fluid">
+												<div class="result-label span3">{translate text='Renewed'}</div>
+												<div class="span9 result-value">
+													{$record.renewCount} times
+													{if $record.renewMessage}
+														<div class='alert {if $record.renewResult == true}alert-success{else}alert-error{/if}'>
+															{$record.renewMessage|escape}
+														</div>
+													{/if}
+												</div>
+											</div>
+										{/if}
+
+											{if $showWaitList}
+												<div class="row-fluid">
+													<div class="result-label span3">{translate text='Wait LIst'}</div>
+													<div class="span9 result-value">
+														{* Wait List goes here *}
+														{$record.holdQueueLength}
+													</div>
+												</div>
+											{/if}
+									</div>
+
+									<div class="span3">
+										{* Let the user rate this title *}
+										{include file='Record/result-tools.tpl' id=$record.id shortId=$record.shortId summTitle=$summTitle ratingData=$record.ratingData recordUrl=$summUrl}
+									</div>
 								</div>
-							{/if}
-						</td>
-						{/if}
-						{if $showWaitList}
-						<td class="myAccountCell">
-							{* Wait List goes here *}
-							{$record.holdQueueLength}
-						</td>
-						{/if}
-											
-						<td class="myAccountCell">
-						<div class="resultActions">
-							{* Let the user rate this title *}
-							{include file="Record/title-rating.tpl" ratingClass="" recordId=$record.id shortId=$record.shortId ratingData=$record.ratingData}
-							{if $showComments}
-								{assign var=id value=$record.id scope="global"}
-								{assign var=shortId value=$record.shortId scope="global"}
-								{include file="Record/title-review.tpl"}
-							{/if}
 							</div>
-		
-						{if $record.id != -1}
-						<script type="text/javascript">
-							$(document).ready(function(){literal} { {/literal}
-									resultDescription('{$record.id}','{$record.id}');
-							{literal} }); {/literal}
-						</script>
-						{/if}
-						</td>
-					</tr>
-				{/foreach}
-				</tbody>
-			</table>
-			
-				<div>
-					<a href="#" onclick="return renewSelectedTitles();" class="button">Renew Selected Items</a>
-					<a href="{$path}/MyResearch/RenewAll" class="button">Renew All</a>
-					<a href="{$path}/MyResearch/CheckedOut?exportToExcel" class="button" id="exportToExcelBottom" >Export to Excel</a>
+						</div>
+					{/foreach}
+				</div>
+
+				<div class="btn-group">
+					<a href="#" onclick="return VuFind.Account.renewSelectedTitles();" class="btn">Renew Selected Items</a>
+					<a href="{$path}/MyResearch/RenewAll" class="btn">Renew All</a>
+					<a href="{$path}/MyResearch/CheckedOut?exportToExcel" class="btn" id="exportToExcelBottom" >Export to Excel</a>
 				</div>
 			</form>
 			

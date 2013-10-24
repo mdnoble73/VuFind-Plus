@@ -9,9 +9,9 @@
 	<div id="sidebar" class="span3">
 		<div class="sidegroup well">
 			{if $recordCount}
-				<h4>{translate text='Sort By'}</h4>
+				<label for="sort"><strong>{translate text='Sort By'}</strong></label>
 
-				<select name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;" class="input-medium">
+				<select id="sort" name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;" class="input-medium">
 					{foreach from=$sortList item=sortData key=sortLabel}
 						<option value="{$sortData.sortUrl|escape}"{if $sortData.selected} selected="selected"{/if}>{translate text=$sortData.desc}</option>
 					{/foreach}
@@ -51,7 +51,7 @@
 					{if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>{/if}
 				{/if}
 				<span class="hidden-phone">
-				,&nbsp;{translate text='query time'}: {$qtime}s
+					,&nbsp;{translate text='query time'}: {$qtime}s
 				</span>
 
 				{if $numUnscopedResults && $numUnscopedResults != $recordCount}
@@ -62,11 +62,11 @@
 				{/if}
 				
 				{if $spellingSuggestions}
-				<br /><br /><div class="correction"><strong>{translate text='spell_suggest'}</strong>:<br/>
-				{foreach from=$spellingSuggestions item=details key=term name=termLoop}
-					{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="{$path}/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}{if !$smarty.foreach.termLoop.last}<br/>{/if}
-				{/foreach}
-				</div>
+					<br /><br /><div class="correction"><strong>{translate text='spell_suggest'}</strong>:<br/>
+					{foreach from=$spellingSuggestions item=details key=term name=termLoop}
+						{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="{$path}/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}{if !$smarty.foreach.termLoop.last}<br/>{/if}
+					{/foreach}
+					</div>
 				{/if}
 
 				<div class="clearer"></div>
