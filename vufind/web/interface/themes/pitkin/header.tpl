@@ -73,6 +73,11 @@
 												<li class="menu-618 menu-path-node-23  even last"><a href="http://pitcolib.org/find-us">Find us</a></li>
 											</ul>
 										</li>
+										<li class="menu-613 menuparent  menu-path-node-115  odd last"><a href="/Search/Results">Browse Catalog</a>
+											<ul style="display: none; visibility: hidden;">
+												<li class="menu-816 menu-path-node-115 first odd "><a href="/Search/Results">Browse Catalog</a></li>
+											</ul>
+										</li>
 									</ul>
 								</div>
 							</div>
