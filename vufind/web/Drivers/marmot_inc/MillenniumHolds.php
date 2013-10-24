@@ -233,7 +233,24 @@ class MillenniumHolds{
 		$post_string = implode ('&', $post_items);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		//Load the page, but we don't need to do anything with the results.
-		curl_exec($curl_connection);
+		$loginResult = curl_exec($curl_connection);
+
+		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+			//Get the lt value
+			$lt = $loginMatches[1];
+			//Login again
+			$post_data['lt'] = $lt;
+			$post_data['_eventId'] = 'submit';
+			$post_items = array();
+			foreach ($post_data as $key => $value) {
+				$post_items[] = $key . '=' . $value;
+			}
+			$post_string = implode ('&', $post_items);
+			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+			$loginResult = curl_exec($curl_connection);
+			$curlInfo = curl_getinfo($curl_connection);
+		}
 
 		//Issue a post request with the information about what to do with the holds
 		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/holds";

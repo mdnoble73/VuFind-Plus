@@ -112,20 +112,23 @@ public class PrintItemSolrProcessor {
 				itemSuppressed = true;
 			}
 
-			String callNumber = getLocalCallNumber();
 
-			if (callNumber.length() > 0){
-				//logger.debug("Processing call number " + callNumber + " for location code " + locationCode);
-				localCallNumbers.add(callNumber);
-				if (libraryIndexingInfo != null){
-					//Add sortable call number to array
-					String scopeName = libraryIndexingInfo.getSubdomain();
-					addSortableCallNumber(callNumber, scopeName);
-				}
-				if (locationIndexingInfo != null){
-					//Add sortable call number to array
-					String scopeName = locationIndexingInfo.getCode();
-					addSortableCallNumber(callNumber, scopeName);
+			if (marcProcessor.isUseItemBasedCallNumbers()){
+				String callNumber = getLocalCallNumber();
+
+				if (callNumber.length() > 0){
+					//logger.debug("Processing call number " + callNumber + " for location code " + locationCode);
+					localCallNumbers.add(callNumber);
+					if (libraryIndexingInfo != null){
+						//Add sortable call number to array
+						String scopeName = libraryIndexingInfo.getSubdomain();
+						addSortableCallNumber(callNumber, scopeName);
+					}
+					if (locationIndexingInfo != null){
+						//Add sortable call number to array
+						String scopeName = locationIndexingInfo.getCode();
+						addSortableCallNumber(callNumber, scopeName);
+					}
 				}
 			}
 
@@ -136,7 +139,7 @@ public class PrintItemSolrProcessor {
 			boolean available = false;
 			if (statusSubfield != null) {
 				String status = statusSubfield.getData();
-				String dueDate = dueDateField == null ? "" : dueDateField.getData().trim();
+				String dueDate = dueDateField == null ? "" : dueDateField.getData().replaceAll("\\D", "").trim();
 				String availableStatus = "-dowju";
 				if (availableStatus.indexOf(status.charAt(0)) >= 0) {
 					if (dueDate.length() == 0) {
