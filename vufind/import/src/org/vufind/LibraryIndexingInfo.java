@@ -5,11 +5,14 @@ import java.util.LinkedHashSet;
 
 public class LibraryIndexingInfo {
 	private Long libraryId;
+	private int accountingUnit;
 	private String subdomain;
 	private String facetLabel = "";
 	private String ilsCode;
+	private boolean makeOrderRecordsAvailableToOtherLibraries;
 	private HashMap<Long, LocationIndexingInfo> locations = new HashMap<Long, LocationIndexingInfo>();
 	private LocationIndexingInfo defaultLocation;
+
 	public String getSubdomain() {
 		return subdomain;
 	}
@@ -63,5 +66,21 @@ public class LibraryIndexingInfo {
 
 	public void setLibraryId(Long libraryId) {
 		this.libraryId = libraryId;
+	}
+
+	public int getAccountingUnit() {
+		return accountingUnit;
+	}
+
+	public void setAccountingUnit(int accountingUnit) {
+		this.accountingUnit = accountingUnit;
+	}
+
+	public boolean isMakeOrderRecordsAvailableToOtherLibraries() {
+		return makeOrderRecordsAvailableToOtherLibraries;
+	}
+
+	public void setMakeOrderRecordsAvailableToOtherLibraries(boolean makeOrderRecordsAvailableToOtherLibraries) {
+		this.makeOrderRecordsAvailableToOtherLibraries = makeOrderRecordsAvailableToOtherLibraries;
 	}
 }

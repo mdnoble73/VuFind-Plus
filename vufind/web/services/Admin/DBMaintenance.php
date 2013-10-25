@@ -363,6 +363,15 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_35' => array(
+				'title' => 'Library 35',
+				'description' => 'Add Accounting Unit',
+				'sql' => array(
+					"ALTER TABLE library ADD accountingUnit INT(11) DEFAULT 10",
+					"ALTER TABLE library ADD makeOrderRecordsAvailableToOtherLibraries TINYINT(1) DEFAULT 0",
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',
