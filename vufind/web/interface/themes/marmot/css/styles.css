@@ -2033,3 +2033,6 @@ ol.showNumbers li{
 .form-item{
 	padding: 2px 0px;
 }
+.pagination ul li{
+	display: inline-block;
+}
