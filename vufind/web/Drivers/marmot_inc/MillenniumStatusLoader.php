@@ -367,8 +367,11 @@ class MillenniumStatusLoader{
 		//Check to see if the title is holdable
 		$holdable = $this->driver->isRecordHoldable($marcRecord);
 		foreach ($sorted_array as $key => $holding){
-			$holding['holdable'] = $holdable ? 1 : 0;
-			$sorted_array[$key] = $holding;
+			//Do not override holdability based on status
+			if ($holding['holdable'] == 1){
+				$holding['holdable'] = $holdable ? 1 : 0;
+				$sorted_array[$key] = $holding;
+			}
 		}
 
 		if (!$configArray['Catalog']['offline']){
@@ -982,9 +985,9 @@ class MillenniumStatusLoader{
 				$summaryInformation['statusText'] = "No Copies Found";
 			}else{
 				if (strlen($summaryInformation['availableAt']) > 0){
-					$summaryInformation['statusText'] = "Available now" . ($summaryInformation['inLibraryUserOnly'] ? "for in library use" : "") . " at " . $summaryInformation['availableAt'] . ($summaryInformation['numAvailableOther'] > 0 ? (", and {$summaryInformation['numAvailableOther']} other location" . ($summaryInformation['numAvailableOther'] > 1 ? "s" : "")) : "");
+					$summaryInformation['statusText'] = "Available now" . ($summaryInformation['inLibraryUseOnly'] ? "for in library use" : "") . " at " . $summaryInformation['availableAt'] . ($summaryInformation['numAvailableOther'] > 0 ? (", and {$summaryInformation['numAvailableOther']} other location" . ($summaryInformation['numAvailableOther'] > 1 ? "s" : "")) : "");
 				}else{
-					$summaryInformation['statusText'] = "Available now" . ($summaryInformation['inLibraryUserOnly'] ? "for in library use" : "");
+					$summaryInformation['statusText'] = "Available now" . ($summaryInformation['inLibraryUseOnly'] ? "for in library use" : "");
 				}
 			}
 		}else if ($summaryInformation['status'] == 'Marmot'){
