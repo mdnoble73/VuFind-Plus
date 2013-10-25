@@ -297,7 +297,8 @@ solid black;border-collapse:collapse;padding:2px}.logEntryProcessDetails
 table{width:97%;border-collapse:collapse;margin-left:16px}#otherEditionsPopup{min-width:530px}.suggestedIdentifier
 .worldCatTitle{font-weight:bold;font-size:120%}#eContentImportDetails
 dt{font-weight:bold}#eContentImportDetails
-dd{margin-left:10px}.advancedSearchFacetDetails{display:inline-block;margin:5px}.advancedSearchFacetHeader{font-weight:bold}.advancedSearchFacetFormatCategory{display:inline-block;margin:5px}
+dd{margin-left:10px}.advancedSearchFacetDetails{display:inline-block;margin:5px}.advancedSearchFacetHeader{font-weight:bold}.advancedSearchFacetFormatCategory{display:inline-block;margin:5px}.pagination ul
+li{display:inline-block}
 /* book-bag.css */
 .hide{display:none}.save_export_checkboxes{display:block;margin-left:-60px;margin-top:5px;position:absolute}#book_bag{display:none}#existing_list_controls{padding:5px}.bag_box{padding:5px}#book_bag
 #bag_open_button{background-color:#4A769A;color:#fff;border-bottom-left-radius:20px;border-top-left-radius:20px;border:none;font-family:verdana,helvetica,arial,sans-serif;font-size:12px;letter-spacing:-1px;padding:2px

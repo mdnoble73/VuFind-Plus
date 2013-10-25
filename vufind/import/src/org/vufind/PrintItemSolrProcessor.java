@@ -137,26 +137,39 @@ public class PrintItemSolrProcessor {
 			Subfield dueDateField = itemField.getSubfield(marcProcessor.getDueDateSubfield());
 			Subfield icode2Subfield = itemField.getSubfield(marcProcessor.getICode2Subfield());
 			boolean available = false;
-			if (statusSubfield != null) {
-				String status = statusSubfield.getData();
-				String dueDate = dueDateField == null ? "" : dueDateField.getData().replaceAll("\\D", "").trim();
-				String availableStatus = "-dowju";
-				if (availableStatus.indexOf(status.charAt(0)) >= 0) {
-					if (dueDate.length() == 0) {
-						if (marcProcessor.isUseICode2Suppression()){
-							if (icode2Subfield != null) {
-								String icode2 = icode2Subfield.getData().toLowerCase().trim();
-								if (icode2.equals("n") || icode2.equals("x")) {
-									//logger.debug("Suppressing item because icode2 is " + icode2);
-									itemSuppressed = true;
-								} else {
-									available = true;
+			if (marcProcessor.isGetAvailabilityFromMarc()){
+				if (statusSubfield != null) {
+					String status = statusSubfield.getData();
+					String dueDate = dueDateField == null ? "" : dueDateField.getData().replaceAll("\\D", "").trim();
+					String availableStatus = "-dowju";
+					if (availableStatus.indexOf(status.charAt(0)) >= 0) {
+						if (dueDate.length() == 0) {
+							if (marcProcessor.isUseICode2Suppression()){
+								if (icode2Subfield != null) {
+									String icode2 = icode2Subfield.getData().toLowerCase().trim();
+									if (icode2.equals("n") || icode2.equals("x")) {
+										//logger.debug("Suppressing item because icode2 is " + icode2);
+										itemSuppressed = true;
+									} else {
+										available = true;
+									}
 								}
+							}else{
+								available = true;
 							}
-						}else{
-							available = true;
 						}
 					}
+				}
+			}else{
+				//Check icode2 to see if the item is suppressed
+				String icode2 = icode2Subfield.getData().toLowerCase().trim();
+				if (icode2.equals("n") || icode2.equals("x")) {
+					//logger.debug("Suppressing item because icode2 is " + icode2);
+					itemSuppressed = true;
+				}
+				if (itemField.getSubfield('b') != null){
+					String barcode = itemField.getSubfield('b').getData();
+					available = marcProcessor.isBarcodeAvailable(barcode);
 				}
 			}
 

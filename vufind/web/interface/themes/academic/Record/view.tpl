@@ -333,16 +333,6 @@ function redrawSaveStatus() {literal}{{/literal}
 				{/if}
 			</div>	
 			{* End Title *}
-			<div id = "titleblock">
-			
-				{* Display series information *}
-				{if $marcField|getvalue:'n' || $marcField|getvalue:'p'}
-					<div class='titleSeriesInformation'>
-					{if $marcField|getvalue:'n'}{$marcField|getvalue:'n'|removeTrailingPunctuation|escape}{/if}
-					{if $marcField|getvalue:'p'}{$marcField|getvalue:'p'|removeTrailingPunctuation|escape}{/if}
-					</div>
-				{/if}
-			</div>
 			<div>
 				<div class="clearer">&nbsp;</div>
 				<div id="seriesPlaceholder"></div>

@@ -102,6 +102,7 @@ public class MarcProcessor {
 	private ArrayList<String>					librarySubdomains				= new ArrayList<String>();
 	private ArrayList<Long>						libraryIds				= new ArrayList<Long>();
 	private HashMap<Long, LibraryIndexingInfo> libraryIndexingInfo = new HashMap<Long, LibraryIndexingInfo>();
+	private HashMap<Integer, LibraryIndexingInfo> libraryIndexingInfoByAccountingUnit = new HashMap<Integer, LibraryIndexingInfo>();
 	
 	private HashMap<Long, LoanRule> loanRules = new HashMap<Long, LoanRule>();
 	private ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<LoanRuleDeterminer>();
@@ -138,6 +139,9 @@ public class MarcProcessor {
 	private HashMap<Integer, String> eContentITypes = new HashMap<Integer, String>();
 	
 	private HashMap<String, ArrayList<OrderRecord>> orderRecords = new HashMap<String, ArrayList<OrderRecord>>();
+
+	private boolean getAvailabilityFromMarc = true;
+	private HashSet<String> availableItemBarcodes = new HashSet<String>();
 	
 	private Connection vufindConn;
 	private Connection econtentConn;
@@ -300,7 +304,7 @@ public class MarcProcessor {
 
 		// Load information from library table
 		try {
-			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, subdomain, facetLabel, eContentLinkRules, overdriveAdvantageProductsKey, ilsCode from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement librarySystemFacetStmt = vufindConn.prepareStatement("SELECT libraryId, subdomain, facetLabel, eContentLinkRules, overdriveAdvantageProductsKey, ilsCode, accountingUnit, makeOrderRecordsAvailableToOtherLibraries from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet librarySystemFacetRS = librarySystemFacetStmt.executeQuery();
 			while (librarySystemFacetRS.next()) {
 				Long libraryId = librarySystemFacetRS.getLong("libraryId");
@@ -313,7 +317,10 @@ public class MarcProcessor {
 				libraryInfo.setSubdomain(librarySubdomain);
 				libraryInfo.setFacetLabel(facetLabel);
 				libraryInfo.setIlsCode(ilsCode);
+				libraryInfo.setAccountingUnit(librarySystemFacetRS.getInt("accountingUnit"));
+				libraryInfo.setMakeOrderRecordsAvailableToOtherLibraries(librarySystemFacetRS.getBoolean("makeOrderRecordsAvailableToOtherLibraries"));
 				libraryIndexingInfo.put(libraryId, libraryInfo);
+				libraryIndexingInfoByAccountingUnit.put(libraryInfo.getAccountingUnit(), libraryInfo);
 				libraryIds.add(libraryId);
 				
 				librarySystemFacets.put(facetLabel, libraryId);
@@ -422,11 +429,45 @@ public class MarcProcessor {
 		loadEContentITypes();
 		
 		loadOrderRecords();
+
+		loadAvailableItemBarcodes();
 		
 		ReindexProcess.addNoteToCronLog("Finished setting up MarcProcessor");
 		return true;
 	}
-	
+
+	private void loadAvailableItemBarcodes() {
+		File availableItemsFile = new File(marcRecordPath + "/available_items.csv");
+		if (!availableItemsFile.exists()){
+			return;
+		}
+		File checkoutsFile = new File(marcRecordPath + "/checkouts.csv");
+		try{
+			logger.debug("Loading availability for barcodes");
+			getAvailabilityFromMarc = false;
+			BufferedReader availableItemsReader = new BufferedReader(new FileReader(availableItemsFile));
+			String availableBarcode;
+			while ((availableBarcode = availableItemsReader.readLine()) != null){
+				if (availableBarcode.length() > 0){
+					availableItemBarcodes.add(Util.cleanIniValue(availableBarcode));
+				}
+			}
+			availableItemsReader.close();
+
+			//Remove any items that were checked out
+			logger.debug("removing availability for checked out barcodes");
+			BufferedReader checkoutsReader = new BufferedReader(new FileReader(checkoutsFile));
+			String checkedOutBarcode;
+			while ((checkedOutBarcode = checkoutsReader.readLine()) != null){
+				availableItemBarcodes.remove(Util.cleanIniValue(checkedOutBarcode));
+			}
+			checkoutsReader.close();
+
+		}catch(Exception e){
+			logger.error("Error loading available items", e);
+		}
+	}
+
 	private void loadOrderRecords() {
 		logger.debug("Loading order records");
 		//Order records have the filename format {library}.marc.orders and are in the regular marc directory
@@ -437,56 +478,90 @@ public class MarcProcessor {
 				return name.endsWith(".marc.orders");
 			}
 		});
-		for (File curFile : orderFiles){
-			ReindexProcess.addNoteToCronLog("Loading order record file " + curFile);
-			String orderingLibrary = curFile.getName().substring(0, curFile.getName().indexOf('.'));
-			InputStream input;
-			try {
-				input = new FileInputStream(curFile);
-			} catch (FileNotFoundException e) {
-				logger.error("Unable to load file " + curFile + " to get order information", e);
-				continue;
+		if (orderFiles.length == 0){
+			//No .marc.orders files, look for records in active_orders.csv
+			File activeOrders = new File(marcRecordPath + "/active_orders.csv");
+			if (activeOrders.exists()){
+				try{
+					CSVReader reader = new CSVReader(new FileReader(activeOrders));
+					//First line is headers
+					reader.readNext();
+					String[] orderData;
+					while ((orderData = reader.readNext()) != null){
+						OrderRecord orderRecord = new OrderRecord();
+						String recordId = ".b" + orderData[0] + Util.getCheckDigit(orderData[0]);
+						orderRecord.setRecordId(recordId);
+						String orderRecordId = ".o" + orderData[1] + Util.getCheckDigit(orderData[1]);
+						orderRecord.setOrderRecordId(orderRecordId);
+						orderRecord.setStatus(orderData[3]);
+						//Get the order record based on the accounting unit
+						LibraryIndexingInfo libraryInfo = libraryIndexingInfoByAccountingUnit.get(Integer.parseInt(orderData[2]));
+						orderRecord.setOrderingLibrary(libraryInfo.getSubdomain());
+						orderRecord.setLocationCode(libraryInfo.getIlsCode());
+						if (orderRecords.containsKey(recordId)){
+							orderRecords.get(recordId).add(orderRecord);
+						}else{
+							ArrayList<OrderRecord> orderRecordColl = new ArrayList<OrderRecord>();
+							orderRecordColl.add(orderRecord);
+							orderRecords.put(recordId, orderRecordColl);
+						}
+					}
+				}catch(Exception e){
+					logger.error("Error loading order records from active orders", e);
+				}
 			}
-			MarcReader reader = new MarcPermissiveStreamReader(input, true, true, marcEncoding);
-			int curRecordIdx = 0;
-			while (reader.hasNext()){
-				curRecordIdx++;
-				Record curRecord = reader.next();
-				//Get the main record number
-				DataField recordField = (DataField)curRecord.getVariableField("907");
-				if (recordField == null || recordField.getSubfield('a') == null){
-					logger.warn("Did not find a record field for record " + curRecordIdx + " in library file " + orderingLibrary);
+		} else {
+			for (File curFile : orderFiles){
+				ReindexProcess.addNoteToCronLog("Loading order record file " + curFile);
+				String orderingLibrary = curFile.getName().substring(0, curFile.getName().indexOf('.'));
+				InputStream input;
+				try {
+					input = new FileInputStream(curFile);
+				} catch (FileNotFoundException e) {
+					logger.error("Unable to load file " + curFile + " to get order information", e);
 					continue;
 				}
-				String recordId = recordField.getSubfield('a').getData();
-				DataField orderField = (DataField)curRecord.getVariableField("908");
-				String orderRecordId = orderField.getSubfield('a').getData();
-				@SuppressWarnings("unchecked")
-				List<DataField> orderItems = (List<DataField>)curRecord.getVariableFields("988");
-				if (orderItems != null){
-					for (DataField curItem: orderItems){
-						if (curItem.getSubfield('j') == null){
-							logger.debug("Did not find a location code subfield for item in order record " + recordId + " for " + orderingLibrary);
-							continue;
-						}
-						String locationCode = curItem.getSubfield('j').getData();
-						String status = curItem.getSubfield('k').getData();
-						if (!status.equals("a") && !status.equals("z") && !status.equals("q") && !status.equals("f") && !status.equals("d")){
-							if (!(status.equals("o") || status.equals("1"))){
-								logger.debug("Found new order status " + status + " " + orderingLibrary + " " + recordId);
+				MarcReader reader = new MarcPermissiveStreamReader(input, true, true, marcEncoding);
+				int curRecordIdx = 0;
+				while (reader.hasNext()){
+					curRecordIdx++;
+					Record curRecord = reader.next();
+					//Get the main record number
+					DataField recordField = (DataField)curRecord.getVariableField("907");
+					if (recordField == null || recordField.getSubfield('a') == null){
+						logger.warn("Did not find a record field for record " + curRecordIdx + " in library file " + orderingLibrary);
+						continue;
+					}
+					String recordId = recordField.getSubfield('a').getData();
+					DataField orderField = (DataField)curRecord.getVariableField("908");
+					String orderRecordId = orderField.getSubfield('a').getData();
+					@SuppressWarnings("unchecked")
+					List<DataField> orderItems = (List<DataField>)curRecord.getVariableFields("988");
+					if (orderItems != null){
+						for (DataField curItem: orderItems){
+							if (curItem.getSubfield('j') == null){
+								logger.debug("Did not find a location code subfield for item in order record " + recordId + " for " + orderingLibrary);
+								continue;
 							}
-							OrderRecord orderRecord = new OrderRecord();
-							orderRecord.setRecordId(recordId);
-							orderRecord.setOrderRecordId(orderRecordId);
-							orderRecord.setStatus(status);
-							orderRecord.setOrderingLibrary(orderingLibrary);
-							orderRecord.setLocationCode(locationCode);
-							if (orderRecords.containsKey(recordId)){
-								orderRecords.get(recordId).add(orderRecord);
-							}else{
-								ArrayList<OrderRecord> orderRecordColl = new ArrayList<OrderRecord>();
-								orderRecordColl.add(orderRecord);
-								orderRecords.put(recordId, orderRecordColl);
+							String locationCode = curItem.getSubfield('j').getData();
+							String status = curItem.getSubfield('k').getData();
+							if (!status.equals("a") && !status.equals("z") && !status.equals("q") && !status.equals("f") && !status.equals("d")){
+								if (!(status.equals("o") || status.equals("1"))){
+									logger.debug("Found new order status " + status + " " + orderingLibrary + " " + recordId);
+								}
+								OrderRecord orderRecord = new OrderRecord();
+								orderRecord.setRecordId(recordId);
+								orderRecord.setOrderRecordId(orderRecordId);
+								orderRecord.setStatus(status);
+								orderRecord.setOrderingLibrary(orderingLibrary);
+								orderRecord.setLocationCode(locationCode);
+								if (orderRecords.containsKey(recordId)){
+									orderRecords.get(recordId).add(orderRecord);
+								}else{
+									ArrayList<OrderRecord> orderRecordColl = new ArrayList<OrderRecord>();
+									orderRecordColl.add(orderRecord);
+									orderRecords.put(recordId, orderRecordColl);
+								}
 							}
 						}
 					}
@@ -1277,5 +1352,13 @@ public class MarcProcessor {
 
 	public SimpleDateFormat getDateAddedFormatter() {
 		return dateAddedFormatter;
+	}
+
+	public boolean isGetAvailabilityFromMarc() {
+		return getAvailabilityFromMarc;
+	}
+
+	public boolean isBarcodeAvailable(String barcode) {
+		return availableItemBarcodes.contains(barcode);
 	}
 }

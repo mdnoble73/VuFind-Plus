@@ -100,12 +100,23 @@
 
 										{foreach from=$transList item=record name="recordLoop" key=recordKey}
 											{if ($smarty.foreach.recordLoop.iteration % 2) == 0}
-													<tr id="record{$record.recordId|escape}" class="result alt record{$smarty.foreach.recordLoop.iteration}">
+												<tr id="record{$record.recordId|escape}" class="result alt record{$smarty.foreach.recordLoop.iteration}">
 											{else}
-													<tr id="record{$record.recordId|escape}" class="result record{$smarty.foreach.recordLoop.iteration}">
+												<tr id="record{$record.recordId|escape}" class="result record{$smarty.foreach.recordLoop.iteration}">
+											{/if}
+											<td class="titleSelectCheckedOut myAccountCell">
+												<input type="checkbox" name="selected[{$record.recordId|escape:"url"}]" class="titleSelect" value="rsh{$record.itemindex}" id="rsh{$record.itemindex}" />
+											</td>
+											{if $user->disableCoverArt != 1}
+												<td class="myAccountCell imageCell">
+													<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.recordId|escape:"url"}">
+														<img src="{$path}/bookcover.php?id={$record.recordId}&amp;issn={$record.issn}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+													</a>
+
+													<div id='descriptionPlaceholder{$record.recordId|escape}' style='display:none'></div>
+												</td>
 											{/if}
 											<td class="myAccountCell">
-												
 												{* Place hold link *}
 												<div class='requestThisLink' id="placeHold{$record.recordId|escape:"url"}" style="display:none">
 													<a href="{$path}/Record/{$record.recordId|escape:"url"}/Hold"><img src="{$path}/interface/themes/default/images/place_hold.png" alt="Place Hold"/></a>

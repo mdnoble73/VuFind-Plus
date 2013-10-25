@@ -363,8 +363,19 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
-			'library_35' => array(
-				'title' => 'Library 35',
+			'library_35_marmot' => array(
+				'title' => 'Library 35 (Marmot)',
+				'description' => 'Add Accounting Unit',
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE library ADD accountingUnit INT(11) DEFAULT 10",
+					"ALTER TABLE library ADD makeOrderRecordsAvailableToOtherLibraries TINYINT(1) DEFAULT 0",
+				),
+			),
+
+
+			'library_35_nashville' => array(
+				'title' => 'Library 35 (Nashville Branch)',
 				'description' => 'Additional control over profile updates',
 				'continueOnError' => true,
 				'sql' => array(
@@ -375,8 +386,8 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
-			'library_36' => array(
-				'title' => 'Library 36',
+			'library_36_nashville' => array(
+				'title' => 'Library 36 (Nashville branch)',
 				'description' => 'Allow multiple widgets on the home page',
 				'continueOnError' => true,
 				'sql' => array(

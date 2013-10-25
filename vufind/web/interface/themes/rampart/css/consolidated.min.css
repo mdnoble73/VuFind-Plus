@@ -567,4 +567,6 @@ div.footerCol{padding:0
 ul{padding-left:1.25em}#sidebar{width:215px}#main-content{width:681px}#record-details-column{width:465px}.ui-widget{font-size:1em}.ui-tabs .ui-tabs-nav li.ui-state-active
 a{font-weight:bold}
 /* extra_styles.css */
-.searchHomeForm{background-color:#23410D;border-color:#183600}#ft{text-align:center}.searchheader{text-align:center;background-color:white}#searchbar{background-color:#D7CF7B;color:black}
+a,a:visited{color:green}a:hover{color:darkgreen;text-decoration:underline}.searchheader{background-color:white;position:relative;border-bottom:2px solid darkgreen}#header_logo{padding-right:20px}.searchHomeForm{color:white;background-color:#45820D;border-top:2px solid darkgreen}.searchHomeForm a,.searchHomeForm a:visited{color:white}.searchHomeContent{padding:0}#searchbar{color:white;background-color:#45820D}#searchbar a,#searchbar a:visited{color:white}#searchbar a:hover{color:lightyellow}td.holdings-section{background-color:#45820D}.titleScrollerBody{border:1px
+solid #949494;border-radius:3px 3px 3px 3px;margin:6px
+0px}
