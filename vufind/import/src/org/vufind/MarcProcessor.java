@@ -1242,6 +1242,9 @@ public class MarcProcessor {
 	}
 
 	public void clearMergedRecordsForId(String ilsId) {
+		if (ilsId == null){
+			return;
+		}
 		try {
 			clearMergedRecordsStmt.setString(1, ilsId);
 			clearMergedRecordsStmt.executeUpdate();
