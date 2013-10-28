@@ -100,7 +100,7 @@ class MillenniumDriver implements DriverInterface
 					$this->loanRules[$loanRule->loanRuleId] = clone($loanRule);
 				}
 			}
-			$memCache->set($serverName . '_loan_rules', $this->loanRules, $configArray['Caching']['loan_rules']);
+			$memCache->set($serverName . '_loan_rules', $this->loanRules, 0, $configArray['Caching']['loan_rules']);
 
 			$this->loanRuleDeterminers = $memCache->get($serverName . '_loan_rule_determiners');
 			if (!$this->loanRuleDeterminers){
