@@ -711,7 +711,7 @@ class Solr implements IndexEngine {
 		}
 
 		if (isset($searchLocation) && !is_null($searchLocation) && $searchLocation->boostByLocation == 1) {
-			$boostFactors[] = "div(loc_boost_{$searchLocation->code},10)";
+			$boostFactors[] = "sum(div(loc_boost_{$searchLocation->code},10),1)";
 		}
 		return $boostFactors;
 	}
@@ -1163,14 +1163,14 @@ class Solr implements IndexEngine {
 			if (isset($options['qt']) && $options['qt'] == 'dismax'){
 				//Boost by number of holdings
 				if (count($boostFactors) > 0){
-					$options['bf'] = "sum(" . implode(',', $boostFactors) . ")";
+					$options['bf'] = "product(" . implode(',', $boostFactors) . ")";
 				}
 				//print ($options['bq']);
 			}else{
 				$baseQuery = $options['q'];
 				//Boost items in our system
 				if (count($boostFactors) > 0){
-					$boost = "sum(" . implode(',', $boostFactors) . ")";
+					$boost = "product(" . implode(',', $boostFactors) . ")";
 				}else{
 					$boost = '';
 				}
