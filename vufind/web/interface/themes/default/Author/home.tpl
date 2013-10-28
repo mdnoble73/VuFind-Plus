@@ -30,19 +30,7 @@
 	</div>
 	
 	<div id="main-content">
-		{if $info}
-			<div class="authorbio yui-ge">
-				<h2>{$info.name|escape}</h2>
-	 
-				{if $info.image}
-				<img src="{$info.image}" alt="{$info.altimage|escape}" style="width:150px" class="alignleft recordcover" />
-				{/if}
-				{$info.description|truncate_html:4500:"...":false}
-				<p>
-						<a href="http://{$wiki_lang}.wikipedia.org/wiki/{$info.name|escape:"url"}" rel="external" onclick="window.open (this.href, 'child'); return false"><span class="note">{translate text='wiki_link'}</span></a></p>
-				<div class="clearer" ></div>
-			</div>
-		{/if}
+		<div id="wikipedia_placeholder"></div>
  
 		{* Listing Options *}
 		<div class="yui-ge resulthead">
@@ -80,3 +68,12 @@
 	</div>
 </div>
 {/strip}
+{if $showWikipedia}
+{literal}
+	<script type="text/javascript">
+		$(document).ready(function (){
+			getWikipediaArticle('{/literal}{$wikipediaAuthorName}{literal}');
+		});
+	</script>
+{/literal}
+{/if}

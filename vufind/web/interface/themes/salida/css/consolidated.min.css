@@ -353,7 +353,8 @@ th{padding:4px
 2px;vertical-align:top}.suggestedIdentifierTable
 tr{border-bottom:1px solid darkgray}.form-item{padding:2px
 0px}.pagination ul
-li{display:inline-block}
+li{display:inline-block}.wikipedia_image{float:left;margin:0
+10px 10px}
 /* book-bag.css */
 .hide{display:none}.save_export_checkboxes{display:block;margin-left:-60px;margin-top:5px;position:absolute}#book_bag{display:none}#existing_list_controls{padding:5px}.bag_box{padding:5px}#book_bag
 #bag_open_button{background-color:#DDE;opacity:0.93;border-bottom-left-radius:20px 20px;border-bottom-right-radius:20px 20px;-moz-border-radius-bottomleft:20px 20px;-moz-border-radius-bottomright:20px 20px;border:1px
