@@ -65,7 +65,7 @@ public class OfflineCirculation implements IProcessHandler {
 	private void processOfflineHolds(Ini configIni, Connection vufindConn) {
 		processLog.addNote("Processing offline holds");
 		try {
-			PreparedStatement holdsToProcessStmt = vufindConn.prepareStatement("SELECT offline_hold.*, cat_username, cat_password from offline_hold INNER JOIN user on user.id = offline_hold.patronId where status='Not Processed' order by timeEntered ASC");
+			PreparedStatement holdsToProcessStmt = vufindConn.prepareStatement("SELECT offline_hold.*, cat_username, cat_password from offline_hold LEFT JOIN user on user.id = offline_hold.patronId where status='Not Processed' order by timeEntered ASC");
 			PreparedStatement updateHold = vufindConn.prepareStatement("UPDATE offline_hold set timeProcessed = ?, status = ?, notes = ? where id = ?");
 			String baseUrl = configIni.get("Site", "url");
 			ResultSet holdsToProcessRS = holdsToProcessStmt.executeQuery();
@@ -86,7 +86,11 @@ public class OfflineCirculation implements IProcessHandler {
 		updateHold.setLong(4, holdId);
 		try {
 			String patronBarcode = URLEncoder.encode(holdsToProcessRS.getString("patronBarcode"), "UTF-8");
-			String patronName = URLEncoder.encode(holdsToProcessRS.getString("cat_username"), "UTF-8");
+			String patronName = holdsToProcessRS.getString("cat_username");
+			if (patronName == null || patronName.length() == 0){
+				patronName = holdsToProcessRS.getString("patronName");
+			}
+			patronName = URLEncoder.encode(patronName, "UTF-8");
 			String bibId = URLEncoder.encode(holdsToProcessRS.getString("bibId"), "UTF-8");
 			URL placeHoldUrl = new URL(baseUrl + "/API/UserAPI?method=placeHold&username=" + patronName + "&password=" + patronBarcode + "&bibId=" + bibId);
 			Object placeHoldDataRaw = placeHoldUrl.getContent();

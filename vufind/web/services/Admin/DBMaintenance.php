@@ -2327,6 +2327,15 @@ class DBMaintenance extends Admin_Admin {
 				)
 			),
 
+			'offline_holds_update_1' => array(
+				'title' => 'Offline Holds Update 1',
+				'description' => 'Add the ability to store a name for patrons that have not logged in before.  Also used for conversions',
+				'sql' => array(
+					"ALTER TABLE `offline_hold` CHANGE `patronId` `patronId` INT( 11 ) NULL",
+					"ALTER TABLE `offline_hold` ADD COLUMN `patronName` VARCHAR( 200 ) NULL",
+				)
+			),
+
 
 			'offline_circulation' => array(
 				'title' => 'Offline Circulation',
