@@ -1186,3 +1186,10 @@ function clearNotInterested(notInterestedId){
 	);
 }
 
+function getWikipediaArticle(articleName){
+	var url = path + "/Author/AJAX?method=getWikipediaData&articleName=" + articleName;
+	$.getJSON(url, function(data){
+		if (data.success)
+			$("#wikipedia_placeholder").html(data.formatted_article);
+	});
+}

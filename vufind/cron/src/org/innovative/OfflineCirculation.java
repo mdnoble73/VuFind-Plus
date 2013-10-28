@@ -29,11 +29,14 @@ public class OfflineCirculation implements IProcessHandler {
 	private CronProcessLogEntry processLog;
 	private Logger logger;
 	private CookieManager manager = new CookieManager();
+	private String ils = "Millennium";
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Profile.Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		this.logger = logger;
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Offline Circulation");
 		processLog.saveToDatabase(vufindConn, logger);
+
+		ils = configIni.get("Catalog", "ils");
 
 		manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
 		CookieHandler.setDefault(manager);
@@ -62,7 +65,7 @@ public class OfflineCirculation implements IProcessHandler {
 	private void processOfflineHolds(Ini configIni, Connection vufindConn) {
 		processLog.addNote("Processing offline holds");
 		try {
-			PreparedStatement holdsToProcessStmt = vufindConn.prepareStatement("SELECT offline_hold.*, cat_username, cat_password from offline_hold INNER JOIN user on user.id = offline_hold.patronId where status='Not Processed' order by timeEntered ASC");
+			PreparedStatement holdsToProcessStmt = vufindConn.prepareStatement("SELECT offline_hold.*, cat_username, cat_password from offline_hold LEFT JOIN user on user.id = offline_hold.patronId where status='Not Processed' order by timeEntered ASC");
 			PreparedStatement updateHold = vufindConn.prepareStatement("UPDATE offline_hold set timeProcessed = ?, status = ?, notes = ? where id = ?");
 			String baseUrl = configIni.get("Site", "url");
 			ResultSet holdsToProcessRS = holdsToProcessStmt.executeQuery();
@@ -83,7 +86,11 @@ public class OfflineCirculation implements IProcessHandler {
 		updateHold.setLong(4, holdId);
 		try {
 			String patronBarcode = URLEncoder.encode(holdsToProcessRS.getString("patronBarcode"), "UTF-8");
-			String patronName = URLEncoder.encode(holdsToProcessRS.getString("cat_username"), "UTF-8");
+			String patronName = holdsToProcessRS.getString("cat_username");
+			if (patronName == null || patronName.length() == 0){
+				patronName = holdsToProcessRS.getString("patronName");
+			}
+			patronName = URLEncoder.encode(patronName, "UTF-8");
 			String bibId = URLEncoder.encode(holdsToProcessRS.getString("bibId"), "UTF-8");
 			URL placeHoldUrl = new URL(baseUrl + "/API/UserAPI?method=placeHold&username=" + patronName + "&password=" + patronBarcode + "&bibId=" + bibId);
 			Object placeHoldDataRaw = placeHoldUrl.getContent();
@@ -200,18 +207,23 @@ public class OfflineCirculation implements IProcessHandler {
 					.append("&validationstatus=needlogin");
 			URLPostResponse loginResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + loginParams.toString(), null, "text/html", baseAirpacUrl + "/", logger);
 			//logCookies();
-			if (loginResponse.isSuccess() && loginResponse.getMessage().contains("needinitials")){
-				//Login to airpac (initials)
-				StringBuilder initialsParams = new StringBuilder("action=ValidateAirWkstUserAction")
-						.append("&initials=").append(initials)
-						.append("&initialspassword=").append(initialsPassword)
-						.append("&nextaction=null")
-						.append("&purpose=null")
-						.append("&submit.x=47")
-						.append("&submit.y=8")
-						.append("&subpurpose=null")
-						.append("&validationstatus=needinitials");
-				URLPostResponse initialsResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + initialsParams.toString(), null, "text/html", baseAirpacUrl + "/airwkstcore", logger);
+			if (loginResponse.isSuccess() && (loginResponse.getMessage().contains("needinitials") || ils.equalsIgnoreCase("sierra"))){
+				URLPostResponse initialsResponse;
+				if (ils.equalsIgnoreCase("millennium")){
+					//Login to airpac (initials)
+					StringBuilder initialsParams = new StringBuilder("action=ValidateAirWkstUserAction")
+							.append("&initials=").append(initials)
+							.append("&initialspassword=").append(initialsPassword)
+							.append("&nextaction=null")
+							.append("&purpose=null")
+							.append("&submit.x=47")
+							.append("&submit.y=8")
+							.append("&subpurpose=null")
+							.append("&validationstatus=needinitials");
+					initialsResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + initialsParams.toString(), null, "text/html", baseAirpacUrl + "/airwkstcore", logger);
+				}else{
+					initialsResponse = loginResponse;
+				}
 				if (initialsResponse.isSuccess() && initialsResponse.getMessage().contains("Check Out")){
 					//Go to the checkout page
 					URLPostResponse checkOutPageResponse = Util.getURL(baseAirpacUrl + "/?action=GetAirWkstUserInfoAction&purpose=checkout", logger);

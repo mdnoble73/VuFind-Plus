@@ -154,19 +154,19 @@ public class MarcProcessor {
 		marcRecordPath = configIni.get("Reindex", "marcPath");
 		// Get the directory where the marc records are stored.vufindConn
 		if (marcRecordPath == null || marcRecordPath.length() == 0) {
-			logger.error("Marc Record Path not found in Reindex Settings.  Please specify the path as the marcPath key.");
+			ReindexProcess.addNoteToCronLog("Marc Record Path not found in Reindex Settings.  Please specify the path as the marcPath key.");
 			return false;
 		}
 		
 		individualMarcPath = configIni.get("Reindex", "individualMarcPath");
 		if (individualMarcPath == null || individualMarcPath.length() == 0) {
-			logger.error("Individual Marc Record Path not found in Reindex Settings.  Please specify the path as the marcPath key.");
+			ReindexProcess.addNoteToCronLog("Individual Marc Record Path not found in Reindex Settings.  Please specify the path as the marcPath key.");
 			return false;
 		}
 
 		marcEncoding = configIni.get("Reindex", "marcEncoding");
 		if (marcEncoding == null || marcEncoding.length() == 0) {
-			logger.error("Marc Encoding not found in Reindex Settings.  Please specify the path as the defaultEncoding key.");
+			ReindexProcess.addNoteToCronLog("Marc Encoding not found in Reindex Settings.  Please specify the path as the defaultEncoding key.");
 			return false;
 		}
 		
@@ -202,8 +202,7 @@ public class MarcProcessor {
 				}
 			}
 		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			ReindexProcess.addNoteToCronLog("Unable to load indexing properties " + e1.toString());
 		}
 
 		// Do additional processing of map properties to determine how each should
@@ -271,7 +270,8 @@ public class MarcProcessor {
 				existingEContentIds.add(existingEContentRecordRS.getString(1));
 			}
 		} catch (SQLException e) {
-			logger.error("Unable to load checksums for existing records", e);
+			logger.error("Unable to load ils ids for econtent records", e);
+			ReindexProcess.addNoteToCronLog("Unable to load ils ids for econtent records");
 			return false;
 		}
 		
@@ -298,7 +298,7 @@ public class MarcProcessor {
 			}
 			econtentRatingsRS.close();
 		} catch (SQLException e) {
-			logger.error("Unable to load ratings for resource", e);
+			ReindexProcess.addNoteToCronLog("Unable to load ratings for resource " + e.toString());
 			return false;
 		}
 
@@ -322,8 +322,10 @@ public class MarcProcessor {
 				libraryIndexingInfo.put(libraryId, libraryInfo);
 				libraryIndexingInfoByAccountingUnit.put(libraryInfo.getAccountingUnit(), libraryInfo);
 				libraryIds.add(libraryId);
-				
-				librarySystemFacets.put(facetLabel, libraryId);
+
+				if (facetLabel != null){
+					librarySystemFacets.put(facetLabel, libraryId);
+				}
 				String eContentLinkRulesStr = librarySystemFacetRS.getString("eContentLinkRules");
 				if (eContentLinkRulesStr != null && eContentLinkRulesStr.length() > 0) {
 					eContentLinkRulesStr = ".*(" + eContentLinkRulesStr.toLowerCase() + ").*";
@@ -333,7 +335,7 @@ public class MarcProcessor {
 			}
 			logger.debug("Loaded " + librarySubdomains.size() + " librarySubdomains");
 		} catch (SQLException e) {
-			logger.error("Unable to load library System Facet information", e);
+			ReindexProcess.addNoteToCronLog("Unable to load library System Facet information " + e.toString());
 			return false;
 		}
 		
@@ -348,7 +350,9 @@ public class MarcProcessor {
 				locationCodes.add(code);
 				//boolean restrictSearchByLocation = locationFacetRS.getBoolean("restrictSearchByLocation");
 				//logger.debug(locationFacetRS.getString("facetLabel") + " = " + locationFacetRS.getLong("locationId"));
-				locationFacets.put(facetLabel, locationId);
+				if (facetLabel != null){
+					locationFacets.put(facetLabel, locationId);
+				}
 				//Load information for indexing items
 				LibraryIndexingInfo libraryInfo = libraryIndexingInfo.get(libraryId);
 				
@@ -366,6 +370,7 @@ public class MarcProcessor {
 			logger.debug("Loaded " + locationCodes.size() + " locations");
 		} catch (SQLException e) {
 			logger.error("Unable to load location Facet information", e);
+			ReindexProcess.addNoteToCronLog("Unable to load location facets information " + e.toString());
 			return false;
 		}
 		
@@ -411,6 +416,7 @@ public class MarcProcessor {
 			logger.debug("Loaded " + loanRuleDeterminers.size() + " loan rule determiner");
 		} catch (SQLException e) {
 			logger.error("Unable to load loan rules", e);
+			ReindexProcess.addNoteToCronLog("Unable to load loan rules " + e.toString());
 			return false;
 		}
 
@@ -422,6 +428,7 @@ public class MarcProcessor {
 			addMergedRecordStmt = vufindConn.prepareStatement("INSERT INTO merged_records (original_record, new_record) values (?, ?)");
 		} catch (SQLException e) {
 			logger.error("Unable to setup statements for updating marc_import table", e);
+			ReindexProcess.addNoteToCronLog("Unable to setup statements for updating marc import table " + e.toString());
 			return false;
 		}
 		
@@ -1274,10 +1281,13 @@ public class MarcProcessor {
 	}
 
 	public void clearMergedRecordsForId(String ilsId) {
+		if (ilsId == null){
+			return;
+		}
 		try {
 			clearMergedRecordsStmt.setString(1, ilsId);
 			clearMergedRecordsStmt.executeUpdate();
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			logger.error("Error clearing merged records for id " + ilsId, e);
 
 		}
@@ -1289,7 +1299,7 @@ public class MarcProcessor {
 			addMergedRecordStmt.setString(1, originalId);
 			addMergedRecordStmt.setString(2, newId);
 			addMergedRecordStmt.executeUpdate();
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			logger.error("Error adding merged record to database. original id " + originalId + " merged record " + newId, e);
 
 		}

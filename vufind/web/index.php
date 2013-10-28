@@ -494,7 +494,8 @@ $ipId = $locationSingleton->getIPid();
 
 $interface->assign('automaticTimeoutLength', 0);
 $interface->assign('automaticTimeoutLengthLoggedOut', 0);
-if (!is_null($ipLocation) && $ipLocation != false){
+//Make sure we don't have timeouts if we are offline (because it's super annoying when doing offline checkouts and holds)
+if (!is_null($ipLocation) && $ipLocation != false && !$configArray['Catalog']['offline']){
 	$interface->assign('onInternalIP', true);
 	if ((isset($user->bypassAutoLogout) && $user->bypassAutoLogout == 1)){
 		$interface->assign('includeAutoLogoutCode', false);

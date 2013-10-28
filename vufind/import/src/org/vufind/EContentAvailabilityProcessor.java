@@ -89,7 +89,9 @@ public class EContentAvailabilityProcessor {
 					availableAt = addOnlineAvailability(availableAt);
 				} else{
 					LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfo(libraryId);
-					availableAt.add(libraryIndexingInfo.getFacetLabel() + " Online");
+					if (libraryIndexingInfo.getFacetLabel() != null){
+						availableAt.add(libraryIndexingInfo.getFacetLabel() + " Online");
+					}
 				}
 			}
 			if (libraryId == -1L) {
