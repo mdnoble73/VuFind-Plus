@@ -707,11 +707,11 @@ class Solr implements IndexEngine {
 		$boostFactors[] = 'product(sum(abs(rating),-2.5),10)';
 
 		if (isset($searchLibrary) && !is_null($searchLibrary) && $searchLibrary->boostByLibrary == 1) {
-			$boostFactors[] = "lib_boost_{$searchLibrary->subdomain}";
+			$boostFactors[] = "product(lib_boost_{$searchLibrary->subdomain}, 10)";
 		}
 
 		if (isset($searchLocation) && !is_null($searchLocation) && $searchLocation->boostByLocation == 1) {
-			$boostFactors[] = "loc_boost_{$searchLocation->code}";
+			$boostFactors[] = "product(loc_boost_{$searchLocation->code}, 10)";
 		}
 		return $boostFactors;
 	}
