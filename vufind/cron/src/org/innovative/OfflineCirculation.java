@@ -147,6 +147,8 @@ public class OfflineCirculation implements IProcessHandler {
 			while (circulationEntriesToProcessRS.next()){
 				processOfflineCirculationEntry(updateCirculationEntry, baseUrl, circulationEntriesToProcessRS);
 			}
+			//Logout of the system
+			Util.getURL(baseUrl + "/airwkstcore?action=AirWkstReturnToWelcomeAction", logger);
 		} catch (SQLException e) {
 			processLog.incErrors();
 			processLog.addNote("Error processing offline holds " + e.toString());
@@ -189,6 +191,11 @@ public class OfflineCirculation implements IProcessHandler {
 			logger.debug(cookie.toString());
 		}
 	}
+
+	private String lastLogin;
+	private String lastInitials;
+	private String lastPatronBarcode;
+	private boolean lastPatronHadError;
 	private OfflineCirculationResult processOfflineCheckout(String baseAirpacUrl, String login, String loginPassword, String initials, String initialsPassword, String itemBarcode, String patronBarcode) {
 		OfflineCirculationResult result = new OfflineCirculationResult();
 		try{
@@ -196,20 +203,37 @@ public class OfflineCirculation implements IProcessHandler {
 			URLPostResponse homePageResponse = Util.getURL(baseAirpacUrl + "/", logger);
 			//logger.debug("Home page Response\r\n" + homePageResponse.getMessage());
 			//logCookies();
-			StringBuilder loginParams = new StringBuilder("action=ValidateAirWkstUserAction")
-					.append("&login=").append(login)
-					.append("&loginpassword=").append(loginPassword)
-					.append("&nextaction=null")
-					.append("&purpose=null")
-					.append("&submit.x=47")
-					.append("&submit.y=8")
-					.append("&subpurpose=null")
-					.append("&validationstatus=needlogin");
-			URLPostResponse loginResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + loginParams.toString(), null, "text/html", baseAirpacUrl + "/", logger);
+			boolean bypassLogin = true;
+			URLPostResponse loginResponse = null;
+			if (lastLogin == null || !lastLogin.equals(login)){
+				bypassLogin = false;
+				if (lastLogin != null){
+					//Logout of the system
+					Util.getURL(baseAirpacUrl + "/airwkstcore?action=AirWkstReturnToWelcomeAction", logger);
+				}
+				lastLogin = login;
+			}
+			if (bypassLogin == false){
+				StringBuilder loginParams = new StringBuilder("action=ValidateAirWkstUserAction")
+						.append("&login=").append(login)
+						.append("&loginpassword=").append(loginPassword)
+						.append("&nextaction=null")
+						.append("&purpose=null")
+						.append("&submit.x=47")
+						.append("&submit.y=8")
+						.append("&subpurpose=null")
+						.append("&validationstatus=needlogin");
+				loginResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + loginParams.toString(), null, "text/html", baseAirpacUrl + "/", logger);
+			}
 			//logCookies();
-			if (loginResponse.isSuccess() && (loginResponse.getMessage().contains("needinitials") || ils.equalsIgnoreCase("sierra"))){
+			if (bypassLogin || (loginResponse.isSuccess() && (loginResponse.getMessage().contains("needinitials")) || ils.equalsIgnoreCase("sierra"))){
 				URLPostResponse initialsResponse;
-				if (ils.equalsIgnoreCase("millennium")){
+				boolean bypassInitials = true;
+				if (ils.equalsIgnoreCase("millennium") && (lastInitials == null || lastInitials.equals(initials))){
+					bypassInitials = false;
+					lastInitials = initials;
+				}
+				if (bypassInitials == false){
 					//Login to airpac (initials)
 					StringBuilder initialsParams = new StringBuilder("action=ValidateAirWkstUserAction")
 							.append("&initials=").append(initials)
@@ -224,17 +248,27 @@ public class OfflineCirculation implements IProcessHandler {
 				}else{
 					initialsResponse = loginResponse;
 				}
-				if (initialsResponse.isSuccess() && initialsResponse.getMessage().contains("Check Out")){
+				if (bypassInitials || initialsResponse.isSuccess() && initialsResponse.getMessage().contains("Check Out")){
 					//Go to the checkout page
-					URLPostResponse checkOutPageResponse = Util.getURL(baseAirpacUrl + "/?action=GetAirWkstUserInfoAction&purpose=checkout", logger);
-					StringBuilder patronBarcodeParams = new StringBuilder("action=LogInAirWkstPatronAction")
-							.append("&patronbarcode=").append(patronBarcode)
-							.append("&purpose=checkout")
-							.append("&submit.x=42")
-							.append("&submit.y=12")
-							.append("&sourcebrowse=airwkstpage");
-					URLPostResponse patronBarcodeResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + patronBarcodeParams.toString(), null, "text/html", baseAirpacUrl + "/", logger);
-					if (patronBarcodeResponse.isSuccess() && patronBarcodeResponse.getMessage().contains("Please scan item barcode")){
+					boolean bypassPatronPage = true;
+					if (lastPatronBarcode == null || !lastPatronBarcode.equals(patronBarcode) || lastPatronHadError){
+						bypassPatronPage = false;
+						lastPatronBarcode = patronBarcode;
+						lastPatronHadError = false;
+					}
+					URLPostResponse patronBarcodeResponse = null;
+					if (bypassPatronPage == false){
+						URLPostResponse checkOutPageResponse = Util.getURL(baseAirpacUrl + "/?action=GetAirWkstUserInfoAction&purpose=checkout", logger);
+						StringBuilder patronBarcodeParams = new StringBuilder("action=LogInAirWkstPatronAction")
+								.append("&patronbarcode=").append(patronBarcode)
+								.append("&purpose=checkout")
+								.append("&submit.x=42")
+								.append("&submit.y=12")
+								.append("&sourcebrowse=airwkstpage");
+						patronBarcodeResponse = Util.postToURL(baseAirpacUrl + "/airwkstcore?" + patronBarcodeParams.toString(), null, "text/html", baseAirpacUrl + "/", logger);
+					}
+					if (bypassPatronPage || (patronBarcodeResponse.isSuccess() && patronBarcodeResponse.getMessage().contains("Please scan item barcode"))){
+						lastPatronHadError = false;
 						StringBuilder itemBarcodeParams = new StringBuilder("action=GetAirWkstItemOneAction")
 								.append("&prevscreen=AirWkstItemRequestPage")
 								.append("&purpose=checkout")
@@ -259,6 +293,7 @@ public class OfflineCirculation implements IProcessHandler {
 							result.setNote("Could not process check out because the item response was not successfull");
 						}
 					} else if (patronBarcodeResponse.isSuccess() && patronBarcodeResponse.getMessage().contains("<h2 class=\"error\">")){
+						lastPatronHadError = true;
 						Pattern regex = Pattern.compile("<h2 class=\"error\">(.*?)</h2>");
 						Matcher matcher = regex.matcher(patronBarcodeResponse.getMessage());
 						if (matcher.find()) {
@@ -270,6 +305,7 @@ public class OfflineCirculation implements IProcessHandler {
 							result.setNote("Unknown error loading patron");
 						}
 					} else {
+						lastPatronHadError = true;
 						logger.debug("Patron Barcode response\r\n" + patronBarcodeResponse.getMessage());
 						result.setSuccess(false);
 						result.setNote("Could not process check out because the patron could not be logged in");
@@ -280,8 +316,7 @@ public class OfflineCirculation implements IProcessHandler {
 					result.setNote("Could not process check out because initials were incorrect");
 				}
 
-				//Logout of the system
-				Util.getURL(baseAirpacUrl + "/airwkstcore?action=AirWkstReturnToWelcomeAction", logger);
+
 			} else{
 				logger.debug("Login response\r\n" + loginResponse.getMessage());
 				result.setSuccess(false);
