@@ -10,6 +10,11 @@
 </div>
 <div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>
 	<ul>
+		{if $user}
+			<li><a href="{$path}/Search/History">{translate text='Search History'}</a></li>
+		{/if}
+		<li><a href="{$path}/Search/Results">{translate text='Standard Search'}</a></li>
+		<li><a href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a></li>
 		<li><a href="http://rampart.colibraries.org/eresources.html" rel="external">{translate text='eResources'}</a></li>
 		<li><a href="http://rampart.colibraries.org/research" rel="external"">{translate text='Research Databases'}</a></li>
 	</ul>
