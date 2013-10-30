@@ -389,7 +389,8 @@ solid #949494}.titleScrollerHeader{background:url(/interface/themes/default/imag
 .linkTab{padding-right:10px;float:left}.titleScrollerHeader .linkTab
 .first{padding-right:0}#listSelection{border:none;background:none;color:#00125E}.titleScrollerBody{background-color:white;clear:both;position:relative}.leftScrollerButton{display:inline-block;height:50px;width:25px;float:left;cursor:pointer;margin-left:5px;margin-top:50px;zoom:1;*display:inline}.rightScrollerButton{display:inline-block;height:50px;width:25px;float:right;cursor:pointer;margin-right:5px;margin-top:50px;z-index:100;zoom:1;*display:inline}.titleScrollerSelectedTitle{width:100%;text-align:center;font-weight:bold;color:#00125E}.titleScrollerSelectedAuthor{width:100%;text-align:center;font-weight:bold;color:#A9A9A9}.scrollerBodyContainer{position:relative;overflow:hidden;margin:5px
 40px}.scrollerBody{padding:7px;margin:0
-7px;height:140px;position:relative}.scrollerLoadingContainer{width:100%;padding-top:40px;text-align:center}.scrollerTitle{display:inline-block;margin:2px;vertical-align:middle;padding:3px;max-width:129px;zoom:1;*display:inline}.scrollerTitleCover{max-width:125px;max-height:125px;padding:3px}.scrollerTitle
+7px;height:140px;position:relative}.scrollerWithRatings
+.scrollerBody{height:155px}.scrollerLoadingContainer{width:100%;padding-top:40px;text-align:center}.scrollerTitle{display:inline-block;margin:2px;vertical-align:middle;padding:3px;max-width:129px;zoom:1;*display:inline}.scrollerTitleCover{max-width:125px;max-height:125px;padding:3px}.scrollerTitle
 img{opacity: .6}.scrollerTitle:hover
 img{opacity: .8}.scrollerTitle.selected{border:3px
 solid #00125E;border-radius:3px;padding:0}.scrollerTitle.selected
@@ -412,7 +413,8 @@ solid black;border-radius:3px;padding:0}.singleTitleWithNextWidget
 .rightScrollerButton{float:none;position:absolute;right:5px}.mediumScroller.singleTitleWithNextWidget,.mediumScroller.singleTitleWidget{width:275px}.mediumScroller.verticalTitleScroller{width:225px}.mediumScroller
 .scrollerTitleCover{max-height:200px;max-width:200px}.mediumScroller
 .scrollerTitle{max-width:204px}.mediumScroller
-.scrollerBody{height:215px}.mediumScroller .leftScrollerButton, .mediumScroller
+.scrollerBody{height:215px}.mediumScroller.scrollerWithRatings
+.scrollerBody{height:230px}.mediumScroller .leftScrollerButton, .mediumScroller
 .rightScrollerButton{margin-top:85px}.mediumScroller .scrollerButtonUp, .mediumScroller
 .scrollerButtonDown{width:223px}
 /* my-account.css */

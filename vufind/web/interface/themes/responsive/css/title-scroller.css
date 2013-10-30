@@ -77,6 +77,9 @@
   height: 140px;
   position: relative;
 }
+.scrollerWithRatings .scrollerBody{
+	height: 155px;
+}
 .scrollerLoadingContainer {
   width: 100%;
   padding-top: 40px;
@@ -209,6 +212,9 @@
 }
 .mediumScroller .scrollerBody{
 	height: 215px;
+}
+.mediumScroller.scrollerWithRatings .scrollerBody{
+	height: 230px;
 }
 .mediumScroller .leftScrollerButton, .mediumScroller .rightScrollerButton{
 	margin-top: 85px;

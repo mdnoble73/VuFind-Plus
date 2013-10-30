@@ -530,11 +530,19 @@ class AJAX extends Action {
 						if ($_REQUEST['coverSize'] == 'medium'){
 							$imageUrl = $rawData['image'];
 						}
-						$formattedTitle .= "<img src=\"{$imageUrl}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-								"</a></div>" .
+						$formattedTitle .= "<img src=\"{$imageUrl}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/></a>";
+						if (isset($_REQUEST['showRatings']) && $_REQUEST['showRatings']){
+							$interface->assign('shortId', $rawData['shortId']);
+							$interface->assign('id', $rawData['id']);
+							$interface->assign('ratingData', $rawData['ratingData']);
+							$interface->assign('showNotInterested', false);
+							$formattedTitle .= $interface->fetch('Record/title-rating.tpl');
+						}
+						$formattedTitle .= "</div>" .
 								"<div id='descriptionPlaceholder{$shortId}' style='display:none' class='loaded'>" .
 									$descriptionInfo .
 								"</div>";
+
 						$rawData['formattedTitle'] = $formattedTitle;
 						$titles[$key] = $rawData;
 					}
