@@ -49,6 +49,8 @@
 				{include file='titleScroller.tpl'}
 			{elseif $widget->style == 'vertical'}
 				{include file='verticalTitleScroller.tpl'}
+			{elseif $widget->style == 'single-with-next'}
+				{include file='singleWithNextTitleWidget.tpl'}
 			{else}
 				{include file='singleTitleWidget.tpl'}
 			{/if}
@@ -81,7 +83,7 @@
 				{if $list->displayFor == 'all' || ($list->displayFor == 'loggedIn' && $user) || ($list->displayFor == 'notLoggedIn' && !$user)}
 					{if $index == 0}
 						listScroller{$listName} = new TitleScroller('titleScroller{$listName}', '{$listName}', 'list{$listName}', {if $widget->showTitleDescriptions==1}true{else}false{/if}, '{$widget->onSelectCallback}', {if $widget->autoRotate==1}true{else}false{/if}, '{$widget->style}');
-						listScroller{$listName}.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles%26id={$list->source|escape:url}%26scrollerName={$listName}', false);
+						listScroller{$listName}.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles%26id={$list->source|escape:url}%26scrollerName={$listName}%26coverSize={$widget->coverSize}%26showRatings={$widget->showRatings}', false);
 					{/if}
 					{assign var=index value=$index+1}
 				{/if}

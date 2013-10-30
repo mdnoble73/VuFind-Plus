@@ -22,7 +22,11 @@
 		{if $includeAutoLogoutCode == true}
 		<script type="text/javascript" src="{$path}/js/autoLogout.js"></script>
 		{/if}
-		
+		{if $additionalCss}
+			<style type="text/css">
+				{$additionalCss}
+			</style>
+		{/if}
 	</head>
 
 	<body class="{$module} {$action}" >

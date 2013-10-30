@@ -698,20 +698,20 @@ class Solr implements IndexEngine {
 		}
 		if ($applyHoldingsBoost) {
 			//$boostFactors[] = 'product(num_holdings,15,div(format_boost,50))';
-			$boostFactors[] = 'product(popularity,15,div(format_boost,50))';
+			$boostFactors[] = 'product(sum(popularity,1),15,sum(div(format_boost,50),1))';
 		} else {
-			$boostFactors[] = 'product(15,div(format_boost,50))';
+			$boostFactors[] = 'product(15,sum(div(format_boost,50),1))';
 		}
 		//$boostFactors[] = 'product(num_holdings,7)';
 		//Add rating as part of the ranking, normalize so ratings of less that 2.5 are below unrated entries.
-		$boostFactors[] = 'product(sum(abs(rating),-2.5),10)';
+		$boostFactors[] = 'sum(product(sum(abs(rating),-2.5),10),1)';
 
 		if (isset($searchLibrary) && !is_null($searchLibrary) && $searchLibrary->boostByLibrary == 1) {
-			$boostFactors[] = "lib_boost_{$searchLibrary->subdomain}";
+			$boostFactors[] = "sum(div(lib_boost_{$searchLibrary->subdomain},10),1)";
 		}
 
 		if (isset($searchLocation) && !is_null($searchLocation) && $searchLocation->boostByLocation == 1) {
-			$boostFactors[] = "loc_boost_{$searchLocation->code}";
+			$boostFactors[] = "sum(div(loc_boost_{$searchLocation->code},10),1)";
 		}
 		return $boostFactors;
 	}
@@ -1163,14 +1163,14 @@ class Solr implements IndexEngine {
 			if (isset($options['qt']) && $options['qt'] == 'dismax'){
 				//Boost by number of holdings
 				if (count($boostFactors) > 0){
-					$options['bf'] = "sum(" . implode(',', $boostFactors) . ")";
+					$options['bf'] = "product(" . implode(',', $boostFactors) . ")";
 				}
 				//print ($options['bq']);
 			}else{
 				$baseQuery = $options['q'];
 				//Boost items in our system
 				if (count($boostFactors) > 0){
-					$boost = "sum(" . implode(',', $boostFactors) . ")";
+					$boost = "product(" . implode(',', $boostFactors) . ")";
 				}else{
 					$boost = '';
 				}

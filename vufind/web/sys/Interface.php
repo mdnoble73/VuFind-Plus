@@ -302,6 +302,12 @@ class UInterface extends Smarty
 		if ($showHoldButton == 0){
 			$showHoldButtonInSearchResults = 0;
 		}
+		if ($library && $library->additionalCss){
+			$this->assign('additionalCss', $library->additionalCss);
+		}
+		if ($location != null && $location->additionalCss){
+			$this->assign('additionalCss', $location->additionalCss);
+		}
 		$this->assign('showHoldButton', $showHoldButton);
 		$this->assign('showHoldButtonInSearchResults', $showHoldButtonInSearchResults);
 		$this->assign('showNotInterested', true);

@@ -835,6 +835,7 @@ class ListAPI extends Action {
 		require_once(ROOT_DIR . '/services/Record/Description.php');
 
 		global $configArray;
+		global $user;
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 		$titles = array();
@@ -887,9 +888,25 @@ class ListAPI extends Action {
 					$description = '';
 					$teaser = '';
 				}
+				$record['shortId'] = str_replace('.', '', $record['id']);
+
+				$resource = new Resource();
+				if ($record['recordtype'] == 'marc'){
+					$resource->source = 'VuFind';
+					$resource->record_id = $record['id'];
+				}else{
+					$resource->source = 'eContent';
+					$resource->record_id = $record['id'];
+				}
+				if ($resource->find(true)){
+					$ratingData = $resource->getRatingData($user);
+				}else{
+					$ratingData = null;
+				}
 
 				$titles[] = array(
 				    'id' => $record['id'],
+						'shortId' => $record['shortId'],
 				    'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . (isset($record['format_category'][0]) ? "&category=" . $record['format_category'][0] : ''),
 				    'large_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=large&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . (isset($record['format_category'][0]) ? "&category=" . $record['format_category'][0] : ''),
 				    'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . (isset($record['format_category'][0]) ? "&category=" . $record['format_category'][0] : ''),
@@ -900,8 +917,10 @@ class ListAPI extends Action {
 				    'length' => (isset($descriptiveInfo) && isset($descriptiveInfo['length'])) ? $descriptiveInfo['length'] : '',
 				    'publisher' => (isset($descriptiveInfo) && isset($descriptiveInfo['publisher'])) ? $descriptiveInfo['publisher'] : '',
 				    'dateSaved' => isset($datesSaved[$record['id']]) ? $datesSaved[$record['id']] : '',
-
+						'ratingData' => $ratingData,
 				);
+
+
 			}
 		}
 		return $titles;

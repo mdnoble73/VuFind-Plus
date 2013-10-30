@@ -36,6 +36,11 @@
 				});
 			});
 		{/literal}</script>
+		{if $additionalCss}
+			<style type="text/css">
+				{$additionalCss}
+			</style>
+		{/if}
 	</head>
 
 	<body class="{$module} {$action}">

@@ -108,6 +108,7 @@ class Library extends DB_DataObject
 	public $showWorkPhoneInProfile;
 	public $showNoticeTypeInProfile;
 	public $showPickupLocationInProfile;
+	public $additionalCss;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
@@ -139,6 +140,21 @@ class Library extends DB_DataObject
 		unset($searchSourceStructure['weight']);
 		unset($searchSourceStructure['libraryId']);
 
+		global $user;
+		require_once ROOT_DIR . '/sys/ListWidget.php';
+		$widget = new ListWidget();
+		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
+			$patronLibrary = Library::getPatronHomeLibrary();
+			$widget->libraryId = $patronLibrary->libraryId;
+		}
+		$availableWidgets = array();
+		$widget->orderBy('name');
+		$widget->find();
+		$availableWidgets[0] = 'No Widget';
+		while ($widget->fetch()){
+			$availableWidgets[$widget->id] = $widget->name;
+		}
+
 		$structure = array(
 			'libraryId' => array('property'=>'libraryId', 'type'=>'label', 'label'=>'Library Id', 'description'=>'The unique id of the libary within the database'),
 			'subdomain' => array('property'=>'subdomain', 'type'=>'text', 'label'=>'Subdomain', 'description'=>'A unique id to identify the library within the system'),
@@ -149,9 +165,10 @@ class Library extends DB_DataObject
 			array('property'=>'displaySection', 'type' => 'section', 'label' =>'Basic Display', 'hideInLists' => true, 'properties' => array(
 				'themeName' => array('property'=>'themeName', 'type'=>'text', 'label'=>'Theme Name', 'description'=>'The name of the theme which should be used for the library', 'hideInLists' => true, 'default' => 'default'),
 				'homeLink' => array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'size'=>'40', 'hideInLists' => true,),
+				'additionalCss' => array('property'=>'additionalCss', 'type'=>'textarea', 'label'=>'Additional CSS', 'description'=>'Extra CSS to apply to the site.  Will apply to all pages.', 'hideInLists' => true),
 				'useHomeLinkInBreadcrumbs' => array('property'=>'useHomeLinkInBreadcrumbs', 'type'=>'checkbox', 'label'=>'Use Home Link in Breadcrumbs', 'description'=>'Whether or not the home link should be used in the breadcumbs.', 'hideInLists' => true,),
 				'homeLinkText' => array('property'=>'homeLinkText', 'type'=>'text', 'label'=>'Home Link Text', 'description'=>'The text to show for the Home breadcrumb link', 'size'=>'40', 'hideInLists' => true, 'default' => 'Home'),
-				'homePageWidgetId' => array('property'=>'homePageWidgetId', 'type'=>'text', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page.  To show more than one widget, separate the ids with commas.', 'hideInLists' => true, 'default' => 0),
+				'homePageWidgetId' => array('property'=>'homePageWidgetId', 'type'=>'enum', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page', 'hideInLists' => true, 'default' => 0, 'values'=>$availableWidgets),
 				'illLink'  => array('property'=>'illLink', 'type'=>'url', 'label'=>'ILL Link', 'description'=>'A link to a library system specific ILL page', 'size'=>'80', 'hideInLists' => true,),
 				'askALibrarianLink'  => array('property'=>'askALibrarianLink', 'type'=>'url', 'label'=>'Ask a Librarian Link', 'description'=>'A link to a library system specific Ask a Librarian page', 'size'=>'80', 'hideInLists' => true,),
 				'suggestAPurchase'  => array('property'=>'suggestAPurchase', 'type'=>'url', 'label'=>'Suggest a Purchase Link', 'description'=>'A link to a library system specific Suggest a Purchase page', 'size'=>'80', 'hideInLists' => true,),

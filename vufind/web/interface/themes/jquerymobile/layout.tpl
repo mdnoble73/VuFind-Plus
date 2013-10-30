@@ -24,6 +24,11 @@
 		{js filename="cart.js"}		
 		{css filename="styles.css"}
 		{css filename="formats.css"}
+		{if $additionalCss}
+			<style type="text/css">
+				{$additionalCss}
+			</style>
+		{/if}
 	</head> 
 	<body>
 		{if $hold_message}

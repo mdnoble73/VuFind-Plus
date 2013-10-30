@@ -526,11 +526,23 @@ class AJAX extends Action {
 							$shortId = str_replace('.b', 'b', $shortId);
 							$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $shortId . '">';
 						}
-						$formattedTitle .= "<img src=\"{$rawData['small_image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-								"</a></div>" .
+						$imageUrl = $rawData['small_image'];
+						if ($_REQUEST['coverSize'] == 'medium'){
+							$imageUrl = $rawData['image'];
+						}
+						$formattedTitle .= "<img src=\"{$imageUrl}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/></a>";
+						if (isset($_REQUEST['showRatings']) && $_REQUEST['showRatings']){
+							$interface->assign('shortId', $rawData['shortId']);
+							$interface->assign('id', $rawData['id']);
+							$interface->assign('ratingData', $rawData['ratingData']);
+							$interface->assign('showNotInterested', false);
+							$formattedTitle .= $interface->fetch('Record/title-rating.tpl');
+						}
+						$formattedTitle .= "</div>" .
 								"<div id='descriptionPlaceholder{$shortId}' style='display:none' class='loaded'>" .
 									$descriptionInfo .
 								"</div>";
+
 						$rawData['formattedTitle'] = $formattedTitle;
 						$titles[$key] = $rawData;
 					}

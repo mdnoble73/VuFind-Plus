@@ -49,7 +49,7 @@ class ListWidgets extends ObjectEditor {
 		$widget = new ListWidget();
 		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
 			$patronLibrary = Library::getPatronHomeLibrary();
-			$widget->libraryId = $patronLibrary->libraryId();
+			$widget->libraryId = $patronLibrary->libraryId;
 		}
 		$widget->orderBy('name');
 		$widget->find();
