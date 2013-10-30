@@ -402,7 +402,19 @@ solid black;border-radius:3px;padding:0}.singleTitleWidget
 0;text-align:center;width:100%}.verticalTitleScroller{width:150px;height:100%}.verticalTitleScroller
 .titleScrollerBody{position:relative;overflow:hidden}.verticalTitleScroller
 .scrollerTitle{display:block}.verticalTitleScroller
-.scrollerBodyContainer{margin:5px;text-align:center}.scrollerButtonUp{z-index:100;position:absolute;top:0;left:0;height:25px;width:148px;cursor:pointer;text-align:center}.scrollerButtonDown{position:absolute;bottom:0;left:0;height:25px;width:148px;cursor:pointer;z-index:100;text-align:center}
+.scrollerBodyContainer{margin:5px;text-align:center}.scrollerButtonUp{z-index:100;position:absolute;top:0;left:0;height:25px;width:148px;cursor:pointer;text-align:center}.scrollerButtonDown{position:absolute;bottom:0;left:0;height:25px;width:148px;cursor:pointer;z-index:100;text-align:center}.singleTitleWithNextWidget{width:200px}.singleTitleWithNextWidget .scrollerTitle
+img{display:inline-block;opacity:1}.singleTitleWithNextWidget .scrollerTitle.selected
+img{display:inline-block}.singleTitleWithNextWidget
+.scrollerTitle.selected{border:0
+solid black;border-radius:3px;padding:0}.singleTitleWithNextWidget
+.scrollerBodyContainer{margin:5px
+0;text-align:center;width:100%}.singleTitleWithNextWidget
+.rightScrollerButton{float:none;position:absolute;right:5px}.mediumScroller.singleTitleWithNextWidget,.mediumScroller.singleTitleWidget{width:275px}.mediumScroller.verticalTitleScroller{width:225px}.mediumScroller
+.scrollerTitleCover{max-height:200px;max-width:200px}.mediumScroller
+.scrollerTitle{max-width:204px}.mediumScroller
+.scrollerBody{height:215px}.mediumScroller .leftScrollerButton, .mediumScroller
+.rightScrollerButton{margin-top:85px}.mediumScroller .scrollerButtonUp, .mediumScroller
+.scrollerButtonDown{width:223px}
 /* my-account.css */
 .myAccountLink{margin:0
 7px 0px 14px;padding:0.1em 0 0.1em 7px;text-align:left;text-indent:-7px}.myAccountLink
