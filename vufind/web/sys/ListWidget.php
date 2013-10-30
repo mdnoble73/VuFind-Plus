@@ -13,13 +13,18 @@ class ListWidget extends DB_DataObject
 	public $name;                    //varchar(255)
 	public $description;                    //varchar(255)
 	public $showTitleDescriptions;
+	public $showTitle;
+	public $showAuthor;
 	public $onSelectCallback;
 	public $customCss;
 	public $listDisplayType;
 	public $showMultipleTitles;
-	public $style; //'vertical', 'horizontal', 'single'
+	public $style; //'vertical', 'horizontal', 'single', 'single-with-next'
 	public $autoRotate;
 	public $libraryId;
+	public $showRatings;
+	public $coverSize; //'small', 'medium'
+
 
 	/** @var  ListWidgetList[] */
 	private $lists;
@@ -86,19 +91,43 @@ class ListWidget extends DB_DataObject
         'default' => true,
         'hideInLists' => true,
       ),
-      'showMultipleTitles' => array(
+			'showTitle' => array(
+				'property' => 'showTitle',
+				'type' => 'checkbox',
+				'label' => 'Should the title for the currently selected title be shown?',
+				'storeDb' => true,
+				'default' => true,
+				'hideInLists' => true,
+			),
+			'showAuthor' => array(
+				'property' => 'showAuthor',
+				'type' => 'checkbox',
+				'label' => 'Should the author for the currently selected title be shown?',
+				'storeDb' => true,
+				'default' => true,
+				'hideInLists' => true,
+			),
+			'showRatings' => array(
+				'property' => 'showRatings',
+				'type' => 'checkbox',
+				'label' => 'Should ratings widgets be shown under each cover?',
+				'storeDb' => true,
+				'default' => false,
+				'hideInLists' => true,
+			),
+      /*'showMultipleTitles' => array(
         'property' => 'showMultipleTitles',
         'type' => 'checkbox',
         'label' => 'Should multiple titles by shown in in the widget or should only one title be shown at a time?',
         'storeDb' => true,
         'default' => true,
         'hideInLists' => true,
-      ),
+      ),*/
 			'style' => array(
 				'property' => 'style',
 				'type' => 'enum',
 				'label' => 'The style to use when displaying the list widget',
-				'values' => array('horizontal' => 'Horizontal', 'vertical'=> 'Vertical', 'single'=>'Single Title'),
+				'values' => array('horizontal' => 'Horizontal', 'vertical'=> 'Vertical', 'single'=>'Single Title', 'single-with-next' => 'Single Title with a Next Button'),
 				'storeDb' => true,
 				'default' => 'horizontal',
 				'hideInLists' => true,
@@ -110,6 +139,15 @@ class ListWidget extends DB_DataObject
         'storeDb' => true,
         'hideInLists' => true,
       ),
+			'coverSize' => array(
+				'property' => 'coverSize',
+				'type' => 'enum',
+				'label' => 'The Cover Size to use when showing a Widget',
+				'values' => array('small' => 'Small', 'medium'=> 'Medium'),
+				'storeDb' => true,
+				'default' => 'small',
+				'hideInLists' => true,
+			),
       'onSelectCallback' => array(
         'property'=>'onSelectCallback',
         'type'=>'text',

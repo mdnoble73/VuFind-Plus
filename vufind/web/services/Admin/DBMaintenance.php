@@ -372,6 +372,15 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_css' => array(
+				'title' => 'Library and Location CSS',
+				'description' => 'Make changing the theme of common elements easier for libraries and locations',
+				'sql' => array(
+					"ALTER TABLE library ADD additionalCss MEDIUMTEXT",
+					"ALTER TABLE location ADD additionalCss MEDIUMTEXT",
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',
@@ -689,6 +698,19 @@ class DBMaintenance extends Admin_Admin {
 					"UPDATE `list_widgets` SET `style` = 'single' WHERE showMultipleTitles = 0",
 				),
 			),
+
+			'list_widget_update_3' => array(
+				'title' => 'List Widget Update 3',
+				'description' => 'New functionality for widgets - ratings, cover size, new display option',
+				'sql' => array(
+					"ALTER TABLE `list_widgets` ADD COLUMN `coverSize` ENUM('small', 'medium') NOT NULL DEFAULT 'small'",
+					"ALTER TABLE `list_widgets` ADD COLUMN `showRatings` TINYINT NOT NULL DEFAULT '0'",
+					"ALTER TABLE `list_widgets` CHANGE `style` `style` ENUM('vertical', 'horizontal', 'single', 'single-with-next') NOT NULL DEFAULT 'horizontal'",
+					"ALTER TABLE `list_widgets` ADD COLUMN `showTitle` TINYINT NOT NULL DEFAULT '1'",
+					"ALTER TABLE `list_widgets` ADD COLUMN `showAuthor` TINYINT NOT NULL DEFAULT '1'",
+				),
+			),
+
 			'library_4' => array(
 				'title' => 'Library 4',
 				'description' => 'Update Library table to include enableAlphaBrowse column',

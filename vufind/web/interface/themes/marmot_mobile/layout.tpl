@@ -17,6 +17,11 @@
 
 		{css filename="consolidated.min.css"}
 		{js filename="consolidated.min.js"}
+		{if $additionalCss}
+			<style type="text/css">
+				{$additionalCss}
+			</style>
+		{/if}
 	</head> 
 	<body>
 		{if $hold_message}

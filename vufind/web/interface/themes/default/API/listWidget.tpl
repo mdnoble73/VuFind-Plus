@@ -14,7 +14,11 @@
   {if $widget->customCss}
   	<link rel="stylesheet" type="text/css" href="{$widget->customCss}" />
   {/if}
-  
+	{if $additionalCss}
+		<style type="text/css">
+			{$additionalCss}
+		</style>
+	{/if}
   <base href="{$path}" target="_parent" />
 </head>
 

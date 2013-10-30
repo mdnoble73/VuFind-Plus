@@ -11,7 +11,7 @@
  * @return
  */
 function TitleScroller(scrollerId, scrollerShortName, container,
-		enableDescription, onSelectCallback, autoScroll, style) {
+		enableDescription, onSelectCallback, autoScroll, style, coverSize) {
 	this.scrollerTitles = [];
 	this.currentScrollerIndex = 0;
 	this.numScrollerTitles = 0;

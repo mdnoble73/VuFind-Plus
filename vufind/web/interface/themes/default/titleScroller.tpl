@@ -1,5 +1,5 @@
 {strip}
-<div id="list-{$wrapperId}" {if $display == 'false'}style="display:none"{/if} class="titleScroller">
+<div id="list-{$wrapperId}" {if $display == 'false'}style="display:none"{/if} class="titleScroller {if $widget->coverSize == 'medium'}mediumScroller{/if}">
 	<div id="{$wrapperId}" class="titleScrollerWrapper">
 		{if $scrollerTitle || $Links}
 		<div id="list-{$wrapperId}Header" class="titleScrollerHeader">
@@ -30,8 +30,12 @@
 				</div>
 			</div>
 			<div class="clearer"></div>
-			<div id="titleScrollerSelectedTitle{$scrollerName}" class="titleScrollerSelectedTitle"></div>
-			<div id="titleScrollerSelectedAuthor{$scrollerName}" class="titleScrollerSelectedAuthor"></div>
+			{if $widget->showTitle}
+				<div id="titleScrollerSelectedTitle{$scrollerName}" class="titleScrollerSelectedTitle"></div>
+			{/if}
+			{if $widget->showAuthor}
+				<div id="titleScrollerSelectedAuthor{$scrollerName}" class="titleScrollerSelectedAuthor"></div>
+			{/if}
 		</div>    
 	</div>
 </div>

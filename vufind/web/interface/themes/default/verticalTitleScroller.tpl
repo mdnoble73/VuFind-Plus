@@ -1,5 +1,5 @@
 {strip}
-<div id="list-{$wrapperId}" {if $display == 'false'}style="display:none"{/if} class="verticalTitleScroller">
+<div id="list-{$wrapperId}" {if $display == 'false'}style="display:none"{/if} class="verticalTitleScroller {if $widget->coverSize == 'medium'}mediumScroller{/if}">
 	<div id="{$wrapperId}" class="titleScrollerWrapper">
 		{if $scrollerTitle}
 		<div id="list-{$wrapperId}Header" class="titleScrollerHeader">
