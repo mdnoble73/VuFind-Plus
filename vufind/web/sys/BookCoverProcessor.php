@@ -403,71 +403,79 @@ class BookCoverProcessor{
 	function getDefaultCover(){
 		$useDefaultNoCover = true;
 
-		$this->log("Looking for default cover, format is {$this->format} category is {$this->category}", PEAR_LOG_DEBUG);
-		require_once ROOT_DIR . '/sys/DefaultCoverImageBuilder.php';
-		$coverBuilder = new DefaultCoverImageBuilder();
-		$defaultCover = $coverBuilder->getCover('ZZ Top live  from Texas', 'ZZ Top  (Musical group)', $this->category);
-		imagepng($defaultCover['resource'], $this->cacheFile);
-		return $this->processImageURL($this->cacheFile);
-
-		$themeName = $this->configArray['Site']['theme'];
-		$noCoverUrl = "interface/themes/default/images/noCover2.png";
-		if (isset($this->format) && strlen($this->format) > 0){
-
-			if (is_readable("interface/themes/{$themeName}/images/{$this->format}_{$this->size}.png")){
-				$this->log("Found format image {$this->format}_{$this->size} .", PEAR_LOG_INFO);
-				$noCoverUrl = "interface/themes/{$themeName}/images/{$this->format}_{$this->size}.png";
-				$useDefaultNoCover = false;
-			}elseif (is_readable("interface/themes/{$themeName}/images/{$this->format}.png")){
-				$noCoverUrl = "interface/themes/{$themeName}/images/{$this->format}.png";
-				header('Content-type: image/png');
-				$useDefaultNoCover = false;
-			}elseif (is_readable("interface/themes/default/images/{$this->format}_{$this->size}.png")){
-				$this->log("Found format image {$this->format}_{$this->size} .", PEAR_LOG_INFO);
-				$noCoverUrl = "interface/themes/default/images/{$this->format}_{$this->size}.png";
-				header('Content-type: image/png');
-				$useDefaultNoCover = false;
-			}elseif (is_readable("interface/themes/default/images/$this->format.png")){
-				$noCoverUrl = "interface/themes/default/images/$this->format.png";
-				header('Content-type: image/png');
-				$useDefaultNoCover = false;
-			}
-		}
-		if ($useDefaultNoCover && isset($this->category) && strlen($this->category) > 0){
-			if (is_readable("interface/themes/{$themeName}/images/{$this->category}_{$this->size}.png")){
-				$this->log("Found category image {$this->category}_{$this->size} .", PEAR_LOG_INFO);
-				$noCoverUrl = "interface/themes/{$themeName}/images/{$this->category}_{$this->size}.png";
-				$useDefaultNoCover = false;
-			}elseif (is_readable("interface/themes/{$themeName}/images/{$this->category}.png")){
-				$noCoverUrl = "interface/themes/{$themeName}/images/{$this->category}.png";
-				header('Content-type: image/png');
-				$useDefaultNoCover = false;
-			}elseif (is_readable("interface/themes/default/images/{$this->category}_{$this->size}.png")){
-				$this->log("Found category image {$this->category}_{$this->size} .", PEAR_LOG_INFO);
-				$noCoverUrl = "interface/themes/default/images/{$this->category}_{$this->size}.png";
-				header('Content-type: image/png');
-				$useDefaultNoCover = false;
-			}elseif (is_readable("interface/themes/default/images/$this->category.png")){
-				$noCoverUrl = "interface/themes/default/images/$this->category.png";
-				header('Content-type: image/png');
-				$useDefaultNoCover = false;
-			}
-		}
-
-		if ($useDefaultNoCover){
-			header('Content-type: image/png');
-		}
-
-		$ret = $this->processImageURL($noCoverUrl, true);
-		//$ret = copy($nocoverurl, $this->cacheFile);
-		if (!$ret){
-			$this->error = "Unable to copy file $noCoverUrl to $this->cacheFile";
-			return false;
+		//Get the resource for the cover so we can load the title and author
+		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+		$resource = new Resource();
+		if ($this->isEContent){
+			$resource->source = 'eContent';
 		}else{
-			return true;
+			$resource->source = 'VuFind';
 		}
+		$resource->record_id = $this->id;
+		if ($resource->find(true)){
+			$this->log("Looking for default cover, format is {$this->format} category is {$this->category}", PEAR_LOG_DEBUG);
+			require_once ROOT_DIR . '/sys/DefaultCoverImageBuilder.php';
+			$coverBuilder = new DefaultCoverImageBuilder();
+			$coverBuilder->getCover($resource->title, $resource->author, $this->format, $this->category, $this->cacheFile);
+			return $this->processImageURL($this->cacheFile);
+		}else{
+			$themeName = $this->configArray['Site']['theme'];
+			$noCoverUrl = "interface/themes/default/images/noCover2.png";
+			if (isset($this->format) && strlen($this->format) > 0){
 
+				if (is_readable("interface/themes/{$themeName}/images/{$this->format}_{$this->size}.png")){
+					$this->log("Found format image {$this->format}_{$this->size} .", PEAR_LOG_INFO);
+					$noCoverUrl = "interface/themes/{$themeName}/images/{$this->format}_{$this->size}.png";
+					$useDefaultNoCover = false;
+				}elseif (is_readable("interface/themes/{$themeName}/images/{$this->format}.png")){
+					$noCoverUrl = "interface/themes/{$themeName}/images/{$this->format}.png";
+					header('Content-type: image/png');
+					$useDefaultNoCover = false;
+				}elseif (is_readable("interface/themes/default/images/{$this->format}_{$this->size}.png")){
+					$this->log("Found format image {$this->format}_{$this->size} .", PEAR_LOG_INFO);
+					$noCoverUrl = "interface/themes/default/images/{$this->format}_{$this->size}.png";
+					header('Content-type: image/png');
+					$useDefaultNoCover = false;
+				}elseif (is_readable("interface/themes/default/images/$this->format.png")){
+					$noCoverUrl = "interface/themes/default/images/$this->format.png";
+					header('Content-type: image/png');
+					$useDefaultNoCover = false;
+				}
+			}
+			if ($useDefaultNoCover && isset($this->category) && strlen($this->category) > 0){
+				if (is_readable("interface/themes/{$themeName}/images/{$this->category}_{$this->size}.png")){
+					$this->log("Found category image {$this->category}_{$this->size} .", PEAR_LOG_INFO);
+					$noCoverUrl = "interface/themes/{$themeName}/images/{$this->category}_{$this->size}.png";
+					$useDefaultNoCover = false;
+				}elseif (is_readable("interface/themes/{$themeName}/images/{$this->category}.png")){
+					$noCoverUrl = "interface/themes/{$themeName}/images/{$this->category}.png";
+					header('Content-type: image/png');
+					$useDefaultNoCover = false;
+				}elseif (is_readable("interface/themes/default/images/{$this->category}_{$this->size}.png")){
+					$this->log("Found category image {$this->category}_{$this->size} .", PEAR_LOG_INFO);
+					$noCoverUrl = "interface/themes/default/images/{$this->category}_{$this->size}.png";
+					header('Content-type: image/png');
+					$useDefaultNoCover = false;
+				}elseif (is_readable("interface/themes/default/images/$this->category.png")){
+					$noCoverUrl = "interface/themes/default/images/$this->category.png";
+					header('Content-type: image/png');
+					$useDefaultNoCover = false;
+				}
+			}
 
+			if ($useDefaultNoCover){
+				header('Content-type: image/png');
+			}
+
+			$ret = $this->processImageURL($noCoverUrl, true);
+			//$ret = copy($nocoverurl, $this->cacheFile);
+			if (!$ret){
+				$this->error = "Unable to copy file $noCoverUrl to $this->cacheFile";
+				return false;
+			}else{
+				return true;
+			}
+		}
 	}
 
 	function processImageURL($url, $cache = true) {
