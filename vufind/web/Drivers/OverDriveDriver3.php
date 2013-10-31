@@ -531,7 +531,7 @@ class OverDriveDriver3 {
 		global $memCache;
 		global $configArray;
 		global $timer;
-		
+
 		if ($user == false){
 			return array(
 				'numCheckedOut' => 0,
