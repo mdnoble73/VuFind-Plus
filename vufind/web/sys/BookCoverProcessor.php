@@ -404,6 +404,12 @@ class BookCoverProcessor{
 		$useDefaultNoCover = true;
 
 		$this->log("Looking for default cover, format is {$this->format} category is {$this->category}", PEAR_LOG_DEBUG);
+		require_once ROOT_DIR . '/sys/DefaultCoverImageBuilder.php';
+		$coverBuilder = new DefaultCoverImageBuilder();
+		$defaultCover = $coverBuilder->getCover('ZZ Top live  from Texas', 'ZZ Top  (Musical group)', $this->category);
+		imagepng($defaultCover['resource'], $this->cacheFile);
+		return $this->processImageURL($this->cacheFile);
+
 		$themeName = $this->configArray['Site']['theme'];
 		$noCoverUrl = "interface/themes/default/images/noCover2.png";
 		if (isset($this->format) && strlen($this->format) > 0){
