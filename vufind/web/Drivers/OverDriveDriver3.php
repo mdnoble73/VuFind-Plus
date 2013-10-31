@@ -524,7 +524,16 @@ class OverDriveDriver3 {
 		global $memCache;
 		global $configArray;
 		global $timer;
-		global $logger;
+
+		if ($user == false){
+			return array(
+				'numCheckedOut' => 0,
+				'numAvailableHolds' => 0,
+				'numUnavailableHolds' => 0,
+				'checkedOut' => array(),
+				'holds' => array()
+			);
+		}
 
 		$summary = $memCache->get('overdrive_summary_' . $user->id);
 		if ($summary == false || isset($_REQUEST['reload'])){

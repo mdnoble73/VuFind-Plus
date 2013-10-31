@@ -1391,6 +1391,13 @@ class EContentDriver implements DriverInterface{
 			$eContentWishList->userId = $user->id;
 			$eContentWishList->find();
 			$accountSummary['numEContentWishList'] = $eContentWishList->N;
+		}else{
+			return array(
+				'numEContentCheckedOut' => 0,
+				'numEContentAvailableHolds' => 0,
+				'numEContentUnavailableHolds' => 0,
+				'numEContentWishList' => 0,
+			);
 		}
 
 		return $accountSummary;
