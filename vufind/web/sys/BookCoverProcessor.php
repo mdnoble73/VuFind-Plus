@@ -404,19 +404,30 @@ class BookCoverProcessor{
 		$useDefaultNoCover = true;
 
 		//Get the resource for the cover so we can load the title and author
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-		$resource = new Resource();
 		if ($this->isEContent){
-			$resource->source = 'eContent';
+			require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+			$econtentRecord = new EContentRecord();
+			$econtentRecord->id = $this->id;
+			if ($econtentRecord->find(true)){
+				$title = $econtentRecord->title;
+				$author = $econtentRecord->author;
+			}
 		}else{
+			require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+			$resource = new Resource();
 			$resource->source = 'VuFind';
+			$resource->record_id = $this->id;
+			if ($resource->find(true)){
+				$title = $resource->title;
+				$author = $resource->author;
+			}
 		}
-		$resource->record_id = $this->id;
-		if ($resource->find(true)){
+
+		if (strlen($title) > 0){
 			$this->log("Looking for default cover, format is {$this->format} category is {$this->category}", PEAR_LOG_DEBUG);
 			require_once ROOT_DIR . '/sys/DefaultCoverImageBuilder.php';
 			$coverBuilder = new DefaultCoverImageBuilder();
-			$coverBuilder->getCover($resource->title, $resource->author, $this->format, $this->category, $this->cacheFile);
+			$coverBuilder->getCover($title, $author, $this->format, $this->category, $this->cacheFile);
 			return $this->processImageURL($this->cacheFile);
 		}else{
 			$themeName = $this->configArray['Site']['theme'];
