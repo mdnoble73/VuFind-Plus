@@ -81,6 +81,7 @@ class DBMaintenance extends Admin_Admin {
 		global $configArray;
 
 		return array(
+
 			'roles_1' => array(
 				'title' => 'Roles 1',
 				'description' => 'Add new role for epubAdmin',
@@ -88,6 +89,7 @@ class DBMaintenance extends Admin_Admin {
 					"INSERT INTO roles (name, description) VALUES ('epubAdmin', 'Allows administration of eContent.')",
 				),
 			),
+
 			'library_1' => array(
 				'title' => 'Library 1',
 				'description' => 'Update Library table to include showSeriesAsTab column',
@@ -96,6 +98,7 @@ class DBMaintenance extends Admin_Admin {
 					"UPDATE library SET showSeriesAsTab = '1' where subdomain in ('adams') ",
 				),
 			),
+
 			'library_2' => array(
 				'title' => 'Library 2',
 				'description' => 'Update Library table to include showItsHere column',
@@ -104,6 +107,7 @@ class DBMaintenance extends Admin_Admin {
 					"UPDATE library SET showItsHere = '0' where subdomain in ('adams', 'msc') ",
 				),
 			),
+
 			'library_3' => array(
 				'title' => 'Library 3',
 				'description' => 'Update Library table to include holdDisclaimer column',
@@ -112,6 +116,7 @@ class DBMaintenance extends Admin_Admin {
 					"UPDATE library SET holdDisclaimer = 'I understand that by requesting this item, information from my library patron record, including my contact information may be made available to the lending library.' where subdomain in ('msc') ",
 				),
 			),
+
 			'library_5' => array(
 				'title' => 'Library 5',
 				'description' => 'Set up a link to boopsie in mobile',
@@ -119,12 +124,12 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `boopsieLink` VARCHAR(150) CHARACTER SET latin1 COLLATE latin1_swedish_ci NOT NULL;",
 				),
 			),
+
 			'library_6' => array(
 				'title' => 'Library 6',
 				'description' => 'Add fields orginally defined for Marmot',
 				'continueOnError' => true,
 				'sql' => array(
-
 					"ALTER TABLE `library` ADD `showHoldCancelDate` TINYINT(4) NOT NULL DEFAULT '0';",
 					"ALTER TABLE `library` ADD `enablePospectorIntegration` TINYINT(4) NOT NULL DEFAULT '0';",
 					"ALTER TABLE `library` ADD `prospectorCode` VARCHAR(10) NOT NULL DEFAULT '';",
@@ -139,6 +144,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `useHomeLinkInBreadcrumbs` TINYINT(4) NOT NULL DEFAULT '0';",
 				),
 			),
+
 			'library_7' => array(
 				'title' => 'Library 7',
 				'description' => 'Allow materials request to be enabled or disabled by library',
@@ -146,6 +152,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `enableMaterialsRequest` TINYINT DEFAULT '1';",
 				),
 			),
+
 			'library_8' => array(
 				'title' => 'Library 8',
 				'description' => 'Add eContenLinkRules to determine how to load library specific link urls',
@@ -153,6 +160,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `eContentLinkRules` VARCHAR(512) DEFAULT '';",
 				),
 			),
+
 			'library_9' => array(
 				'title' => 'Library 9',
 				'description' => 'Add showOtherEditionsPopup to determine whether or not the Other Editions and Languages Popup is shown',
@@ -162,6 +170,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `notesTabName` VARCHAR(50) DEFAULT 'Notes';",
 				),
 			),
+
 			'library_10' => array(
 				'title' => 'Library 10',
 				'description' => 'Add fields for showing copies in holdings summary, and hold button in results list',
@@ -170,6 +179,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `showCopiesLineInHoldingsSummary` TINYINT DEFAULT '1';",
 				),
 			),
+
 			'library_11' => array(
 				'title' => 'Library 11',
 				'description' => 'Add fields for disabling some Novelist functionality and disabling boosting by number of holdings',
@@ -184,6 +194,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `preferSyndeticsSummary` TINYINT DEFAULT '1';",
 				),
 			),
+
 			'library_12' => array(
 				'title' => 'Library 12',
 				'description' => 'Add abbreviation for library name for use in some cases where the full name is not desired.',
@@ -192,6 +203,7 @@ class DBMaintenance extends Admin_Admin {
 					"UPDATE `library` SET `abbreviatedDisplayName` = LEFT(`displayName`, 20);",
 				),
 			),
+
 			'library_13' => array(
 				'title' => 'Library 13',
 				'description' => 'Updates to World Cat integration for local libraries',
@@ -199,6 +211,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` CHANGE `worldCatQt` `worldCatQt` VARCHAR(40) DEFAULT '';",
 				),
 			),
+
 			'library_14' => array(
 				'title' => 'Library 14',
 				'description' => 'Allow Go Deeper to be disabled by Library',
@@ -206,6 +219,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `showGoDeeper` TINYINT DEFAULT '1';",
 				),
 			),
+
 			'library_15' => array(
 				'title' => 'Library 15',
 				'description' => 'Add showProspectorResultsAtEndOfSearch to library so prospector titles can be removed from search results without completely diasabling prospector',
@@ -213,6 +227,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `showProspectorResultsAtEndOfSearch` TINYINT DEFAULT '1';",
 				),
 			),
+
 			'library_16' => array(
 				'title' => 'Library 16',
 				'description' => 'Add overdriveAdvantage Information to library so we can determine who advantage title should belong to. ',
@@ -222,6 +237,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `overdriveAdvantageProductsKey` VARCHAR(20) DEFAULT '';",
 				),
 			),
+
 			'library_17' => array(
 				'title' => 'Library 17',
 				'description' => 'Add defaultNotNeededAfterDays and homePageWidgetId. ',
@@ -231,6 +247,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `homePageWidgetId` INT(11) DEFAULT '0';",
 				),
 			),
+
 			'library_18' => array(
 				'title' => 'Library 18',
 				'description' => 'Add showCheckInGrid to determine how periodicals display. ',
@@ -239,6 +256,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `showCheckInGrid` INT DEFAULT '1';",
 				),
 			),
+
 			'library_19' => array(
 				'title' => 'Library 19',
 				'description' => 'Add the ability to specify a list of records to blacklist. ',
@@ -247,6 +265,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `recordsToBlackList` MEDIUMTEXT;",
 				),
 			),
+
 			'library_20' => array(
 				'title' => 'Library 20',
 				'description' => 'Add the show or hide marmot search results in scoped searches. ',
@@ -255,6 +274,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `showMarmotResultsAtEndOfSearch` INT(11) DEFAULT 1;",
 				),
 			),
+
 			'library_21' => array(
 				'title' => 'Library 21',
 				'description' => 'Add the home link text so the breadcrumbs can be customized. ',
@@ -263,6 +283,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `homeLinkText` VARCHAR(50) DEFAULT 'Home';",
 				),
 			),
+
 			'library_23' => array(
 				'title' => 'Library 23',
 				'description' => 'Add the ability to disable wikipedia and the Other format icon by library. ',
@@ -272,6 +293,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `showWikipediaContent` TINYINT(1) DEFAULT '1';",
 				),
 			),
+
 			'library_24' => array(
 				'title' => 'Library 24',
 				'description' => 'Add the ability to customize the link to pay fines. ',
@@ -280,6 +302,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `payFinesLink` VARCHAR(512) DEFAULT 'default';",
 				),
 			),
+
 			'library_25' => array(
 				'title' => 'Library 25',
 				'description' => 'Add the ability to customize the link text to pay fines. ',
@@ -288,6 +311,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `payFinesLinkText` VARCHAR(512) DEFAULT 'Click to Pay Fines Online';",
 				),
 			),
+
 			'library_26' => array(
 				'title' => 'Library 26',
 				'description' => 'Add a support e-mail address for eContent problems.',
@@ -296,6 +320,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `eContentSupportAddress` VARCHAR(256) DEFAULT 'askmarmot@marmot.org';",
 				),
 			),
+
 			/*'library_27' => array(
 				'title' => 'Library 27',
 				'description' => 'Remove showOtherFormatCategory.',
@@ -304,6 +329,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` DROP `showOtherFormatCategory`;",
 				),
 			),*/
+
 			'library_28' => array(
 				'title' => 'Library 28',
 				'description' => 'Add ilsCode.',
@@ -312,6 +338,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `ilsCode` VARCHAR(5) DEFAULT '';",
 				),
 			),
+
 			'library_29' => array(
 				'title' => 'Library 29',
 				'description' => 'Add systemMessage.',
@@ -320,6 +347,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `library` ADD `systemMessage` VARCHAR(512) DEFAULT '';",
 				),
 			),
+
 			'library_30' => array(
 				'title' => 'Library 30',
 				'description' => 'Add bettter controls for restricting what is searched',
@@ -391,7 +419,9 @@ class DBMaintenance extends Admin_Admin {
 				'continueOnError' => true,
 				'sql' => array(
 					"ALTER TABLE `library` CHANGE `homePageWidgetId` `homePageWidgetId` VARCHAR( 50 ) NULL DEFAULT ''",
-
+				),
+			),
+			
 			'library_css' => array(
 				'title' => 'Library and Location CSS',
 				'description' => 'Make changing the theme of common elements easier for libraries and locations',
@@ -608,117 +638,119 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
-		'user_phone' => array(
-			'title' => 'User phone',
-			'description' => 'Add phone field to User table to allow phone numbers to be displayed for Materials Requests',
-			'continueOnError' => true,
-			'sql' => array(
-				"ALTER TABLE user ADD phone VARCHAR( 30 ) NOT NULL DEFAULT ''",
+			'user_phone' => array(
+				'title' => 'User phone',
+				'description' => 'Add phone field to User table to allow phone numbers to be displayed for Materials Requests',
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE user ADD phone VARCHAR( 30 ) NOT NULL DEFAULT ''",
+				),
 			),
-		),
 
-		'user_ilsType' => array(
-			'title' => 'User Type',
-			'description' => 'Add patronType field to User table to allow for functionality to be controlled based on the type of patron within the ils',
-			'continueOnError' => true,
-			'sql' => array(
-				"ALTER TABLE user ADD patronType VARCHAR( 30 ) NOT NULL DEFAULT ''",
+			'user_ilsType' => array(
+				'title' => 'User Type',
+				'description' => 'Add patronType field to User table to allow for functionality to be controlled based on the type of patron within the ils',
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE user ADD patronType VARCHAR( 30 ) NOT NULL DEFAULT ''",
+				),
 			),
-		),
 
-		'user_overdrive_email' => array(
-			'title' => 'User OverDrive Email',
-			'description' => 'Add overdriveEmail field to User table to allow for patrons to use a different email fo notifications when their books are ready',
-			'continueOnError' => true,
-			'sql' => array(
-				"ALTER TABLE user ADD overdriveEmail VARCHAR( 250 ) NOT NULL DEFAULT ''",
-				"ALTER TABLE user ADD promptForOverdriveEmail TINYINT DEFAULT 1",
-				"UPDATE user set overdriveEmail = email"
+			'user_overdrive_email' => array(
+				'title' => 'User OverDrive Email',
+				'description' => 'Add overdriveEmail field to User table to allow for patrons to use a different email fo notifications when their books are ready',
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE user ADD overdriveEmail VARCHAR( 250 ) NOT NULL DEFAULT ''",
+					"ALTER TABLE user ADD promptForOverdriveEmail TINYINT DEFAULT 1",
+					"UPDATE user set overdriveEmail = email"
+				),
 			),
-		),
 
-		'user_preferred_library_interface' => array(
-			'title' => 'User Preferred Library Interface',
-			'description' => 'Add preferred library interface to ',
-			'continueOnError' => true,
-			'sql' => array(
-				"ALTER TABLE user ADD preferredLibraryInterface INT(11) DEFAULT NULL",
+			'user_preferred_library_interface' => array(
+				'title' => 'User Preferred Library Interface',
+				'description' => 'Add preferred library interface to ',
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE user ADD preferredLibraryInterface INT(11) DEFAULT NULL",
+				),
 			),
-		),
 
-		'list_widgets' => array(
-			'title' => 'Setup Configurable List Widgets',
-			'description' => 'Create list widgets tables',
-			'sql' => array(
-				"CREATE TABLE IF NOT EXISTS list_widgets (".
-					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
-					"`name` VARCHAR(50) NOT NULL, " .
-					"`description` TEXT, " .
-					"`showTitleDescriptions` TINYINT DEFAULT 1, " .
-					"`onSelectCallback` VARCHAR(255) DEFAULT '' " .
-				") ENGINE = MYISAM COMMENT = 'A widget that can be displayed within VuFind or within other sites' ",
-				"CREATE TABLE IF NOT EXISTS list_widget_lists (".
-					"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
-					"`listWidgetId` INT NOT NULL, " .
-					"`weight` INT NOT NULL DEFAULT 0, " .
-					"`displayFor` ENUM('all', 'loggedIn', 'notLoggedIn') NOT NULL DEFAULT 'all', " .
-					"`name` VARCHAR(50) NOT NULL, " .
-					"`source` VARCHAR(500) NOT NULL, " .
-					"`fullListLink` VARCHAR(500) DEFAULT '' " .
-				") ENGINE = MYISAM COMMENT = 'The lists that should appear within the widget' ",
+			'list_widgets' => array(
+				'title' => 'Setup Configurable List Widgets',
+				'description' => 'Create list widgets tables',
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS list_widgets (".
+						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
+						"`name` VARCHAR(50) NOT NULL, " .
+						"`description` TEXT, " .
+						"`showTitleDescriptions` TINYINT DEFAULT 1, " .
+						"`onSelectCallback` VARCHAR(255) DEFAULT '' " .
+					") ENGINE = MYISAM COMMENT = 'A widget that can be displayed within VuFind or within other sites' ",
+					"CREATE TABLE IF NOT EXISTS list_widget_lists (".
+						"`id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
+						"`listWidgetId` INT NOT NULL, " .
+						"`weight` INT NOT NULL DEFAULT 0, " .
+						"`displayFor` ENUM('all', 'loggedIn', 'notLoggedIn') NOT NULL DEFAULT 'all', " .
+						"`name` VARCHAR(50) NOT NULL, " .
+						"`source` VARCHAR(500) NOT NULL, " .
+						"`fullListLink` VARCHAR(500) DEFAULT '' " .
+					") ENGINE = MYISAM COMMENT = 'The lists that should appear within the widget' ",
+				),
 			),
-		),
 
-		'list_widgets_update_1' => array(
-			'title' => 'List Widget List Update 1',
-			'description' => 'Add additional functionality to list widgets (auto rotate and single title view)',
-			'sql' => array(
-				"ALTER TABLE `list_widgets` ADD COLUMN `autoRotate` TINYINT NOT NULL DEFAULT '0'",
-				"ALTER TABLE `list_widgets` ADD COLUMN `showMultipleTitles` TINYINT NOT NULL DEFAULT '1'",
+			'list_widgets_update_1' => array(
+				'title' => 'List Widget List Update 1',
+				'description' => 'Add additional functionality to list widgets (auto rotate and single title view)',
+				'sql' => array(
+					"ALTER TABLE `list_widgets` ADD COLUMN `autoRotate` TINYINT NOT NULL DEFAULT '0'",
+					"ALTER TABLE `list_widgets` ADD COLUMN `showMultipleTitles` TINYINT NOT NULL DEFAULT '1'",
+				),
 			),
-		),
 
-		'list_widgets_update_2' => array(
-			'title' => 'List Widget Update 2',
-			'description' => 'Add library id to list widget',
-			'sql' => array(
-				"ALTER TABLE `list_widgets` ADD COLUMN `libraryId` INT(11) NOT NULL DEFAULT '-1'",
+			'list_widgets_update_2' => array(
+				'title' => 'List Widget Update 2',
+				'description' => 'Add library id to list widget',
+				'sql' => array(
+					"ALTER TABLE `list_widgets` ADD COLUMN `libraryId` INT(11) NOT NULL DEFAULT '-1'",
+				),
 			),
-		),
 
-		'list_widgets_home' => array(
-			'title' => 'List Widget Home',
-			'description' => 'Create the default homepage widget',
-			'sql' => array(
-				"INSERT INTO list_widgets (name, description, showTitleDescriptions, onSelectCallback) VALUES ('home', 'Default example widget.', '1','')",
-				"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor) VALUES ('1', '1', 'highestRated', 'Highest Rated', 'all')",
-				"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor) VALUES ('1', '2', 'recentlyReviewed', 'Recently Reviewed', 'all')",
+			'list_widgets_home' => array(
+				'title' => 'List Widget Home',
+				'description' => 'Create the default homepage widget',
+				'sql' => array(
+					"INSERT INTO list_widgets (name, description, showTitleDescriptions, onSelectCallback) VALUES ('home', 'Default example widget.', '1','')",
+					"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor) VALUES ('1', '1', 'highestRated', 'Highest Rated', 'all')",
+					"INSERT INTO list_widget_lists (listWidgetId, weight, source, name, displayFor) VALUES ('1', '2', 'recentlyReviewed', 'Recently Reviewed', 'all')",
+				),
 			),
-		),
 
-		'list_wdiget_list_update_1' => array(
-			'title' => 'List Widget List Source Length Update',
-			'description' => 'Update length of source field to accommodate search source type',
-			'sql' => array(
-				"ALTER TABLE `list_widget_lists` CHANGE `source` `source` VARCHAR( 500 ) NOT NULL "
+			'list_wdiget_list_update_1' => array(
+				'title' => 'List Widget List Source Length Update',
+				'description' => 'Update length of source field to accommodate search source type',
+				'sql' => array(
+					"ALTER TABLE `list_widget_lists` CHANGE `source` `source` VARCHAR( 500 ) NOT NULL "
+				),
 			),
-		),
 
-		'index_search_stats' => array(
-			'title' => 'Index search stats table',
-			'description' => 'Add index to search stats table to improve autocomplete speed',
-			'sql' => array(
-				"ALTER TABLE `search_stats` ADD INDEX `search_index` ( `type` , `libraryId` , `locationId` , `phrase`, `numResults` )",
+			'index_search_stats' => array(
+				'title' => 'Index search stats table',
+				'description' => 'Add index to search stats table to improve autocomplete speed',
+				'sql' => array(
+					"ALTER TABLE `search_stats` ADD INDEX `search_index` ( `type` , `libraryId` , `locationId` , `phrase`, `numResults` )",
+				),
 			),
-		),
-		'list_wdiget_update_1' => array(
-			'title' => 'Update List Widget 1',
-			'description' => 'Update List Widget to allow custom css files to be included and allow lists do be displayed in dropdown rather than tabs',
-			'sql' => array(
-				"ALTER TABLE `list_widgets` ADD COLUMN `customCss` VARCHAR( 500 ) NOT NULL ",
-				"ALTER TABLE `list_widgets` ADD COLUMN `listDisplayType` ENUM('tabs', 'dropdown') NOT NULL DEFAULT 'tabs'"
+
+			'list_wdiget_update_1' => array(
+				'title' => 'Update List Widget 1',
+				'description' => 'Update List Widget to allow custom css files to be included and allow lists do be displayed in dropdown rather than tabs',
+				'sql' => array(
+					"ALTER TABLE `list_widgets` ADD COLUMN `customCss` VARCHAR( 500 ) NOT NULL ",
+					"ALTER TABLE `list_widgets` ADD COLUMN `listDisplayType` ENUM('tabs', 'dropdown') NOT NULL DEFAULT 'tabs'"
+				),
 			),
-		),
+
 			'list_widget_update_2' => array(
 				'title' => 'Update List Widget 2',
 				'description' => 'Update List Widget to add vertical widgets',
@@ -833,8 +865,8 @@ class DBMaintenance extends Admin_Admin {
 				'description' => 'Add tracking for whether the user wants to opt out of recommendations',
 				'sql' => array(
 					"ALTER TABLE `user` ADD `disableRecommendations` TINYINT NOT NULL DEFAULT '0'",
-						),
-						),
+				),
+			),
 
 			'editorial_review' => array(
 				'title' => 'Create Editorial Review table',
@@ -880,9 +912,10 @@ class DBMaintenance extends Admin_Admin {
 					'PRIMARY KEY (purchaseLinkId) '.
 					') ENGINE=InnoDB',
 
-						'ALTER TABLE purchase_link_tracking ADD INDEX ( `purchaseLinkId` )',
-						),
+					'ALTER TABLE purchase_link_tracking ADD INDEX ( `purchaseLinkId` )',
+				),
 			),
+
 			/*'usage_tracking' => array(
 				'title' => 'Create Usage Tracking Table',
 				'description' => 'Create aggregate page view tracking table',
@@ -1246,8 +1279,8 @@ class DBMaintenance extends Admin_Admin {
 
 					"UPDATE materials_request SET status = (SELECT id FROM materials_request_status WHERE isDefault =1)",
 
-					"ALTER TABLE materials_request CHANGE `status` `status` INT(11)"
-			),
+					"ALTER TABLE materials_request CHANGE `status` `status` INT(11)",
+				),
 			),
 
 			'materialsRequestStatus_update1' => array(
@@ -1338,7 +1371,7 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
-      'variables_table' => array(
+			'variables_table' => array(
 				'title' => 'Variables Table',
 				'description' => 'Create Variables Table for storing basic variables for use in programs (system writable config)',
 				'sql' => array(
@@ -1352,990 +1385,990 @@ class DBMaintenance extends Admin_Admin {
 			),
 
 			'utf8_update' => array(
-			'title' => 'Update to UTF-8',
-			'description' => 'Update database to use UTF-8 encoding',
-			'continueOnError' => true,
-			'sql' => array(
-				"ALTER DATABASE " . $configArray['Database']['database_vufind_dbname'] . " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				//"ALTER TABLE administrators CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE bad_words CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE circulation_status CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE comments CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE db_update CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE editorial_reviews CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE external_link_tracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE ip_lookup CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE library CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE list_widgets CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE list_widget_lists CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE location CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				//"ALTER TABLE nonHoldableLocations CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				//"ALTER TABLE ptype_restricted_locations CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE purchase_link_tracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE resource CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE resource_tags CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE roles CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE search CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE search_stats CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE session CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE spelling_words CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE tags CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				//"ALTER TABLE usage_tracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE user CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE user_list CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE user_rating CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE user_reading_history CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE user_resource CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE user_roles CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-				"ALTER TABLE user_suggestions CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
-		),
-		),
-
-		'index_resources' => array(
-			'title' => 'Index resources',
-			'description' => 'Add a new index to resources table to make record id and source unique',
-			'continueOnError' => true,
-			'sql' => array(
-				//Update resource table indexes
-				"ALTER TABLE `resource` ADD UNIQUE `records_by_source` (`record_id`, `source`)"
-			),
-		),
-
-		/* This routine completely changed, removing alpha_browse_setup since alpha_browse_setup_1 complete redoes the tables */
-		'alpha_browse_setup_2' => array(
-			'title' => 'Setup Alphabetic Browse',
-			'description' => 'Build tables to handle alphabetic browse functionality.',
-			'sql' => array(
-				"DROP TABLE IF EXISTS `title_browse`",
-				"CREATE TABLE `title_browse` (
-					`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
-					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
-					`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
-				PRIMARY KEY ( `id` ) ,
-				INDEX ( `sortValue` ),
-				UNIQUE (`value`)
-				) ENGINE = MYISAM;",
-				/*"DROP TABLE IF EXISTS `title_browse_scoped_results`",
-				"CREATE TABLE `title_browse_scoped_results`(
-					`browseValueId` INT(11) NOT NULL,
-					`scope` TINYINT NOT NULL,
-					`scopeId` INT(11) NOT NULL,
-					`record` VARCHAR( 50 ) NOT NULL,
-				PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
-				INDEX (`scopeId`)
-				) ENGINE = MYISAM",*/
-
-				"DROP TABLE IF EXISTS `author_browse`",
-				"CREATE TABLE `author_browse` (
-					`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
-					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
-					`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
-				PRIMARY KEY ( `id` ) ,
-				INDEX ( `sortValue` ),
-				UNIQUE (`value`)
-				) ENGINE = MYISAM;",
-				/*"DROP TABLE IF EXISTS `author_browse_scoped_results`",
-				"CREATE TABLE `author_browse_scoped_results`(
-					`browseValueId` INT(11) NOT NULL,
-					`scope` TINYINT NOT NULL,
-					`scopeId` INT(11) NOT NULL,
-					`record` VARCHAR( 50 ) NOT NULL,
-				PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
-				INDEX (`scopeId`)
-				) ENGINE = MYISAM",*/
-
-				"DROP TABLE IF EXISTS `callnumber_browse`",
-				"CREATE TABLE `callnumber_browse` (
-					`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
-					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
-					`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
-				PRIMARY KEY ( `id` ) ,
-				INDEX ( `sortValue` ),
-				UNIQUE (`value`)
-				) ENGINE = MYISAM;",
-				/*"DROP TABLE IF EXISTS `callnumber_browse_scoped_results`",
-				"CREATE TABLE `callnumber_browse_scoped_results`(
-					`browseValueId` INT(11) NOT NULL,
-					`scope` TINYINT NOT NULL,
-					`scopeId` INT(11) NOT NULL,
-					`record` VARCHAR( 50 ) NOT NULL,
-				PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
-				INDEX (`scopeId`)
-				) ENGINE = MYISAM",*/
-
-				"DROP TABLE IF EXISTS `subject_browse`",
-				"CREATE TABLE `subject_browse` (
-					`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
-					`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
-					`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
-				PRIMARY KEY ( `id` ) ,
-				INDEX ( `sortValue` ),
-				UNIQUE (`value`)
-				) ENGINE = MYISAM;",
-				/*"DROP TABLE IF EXISTS `subject_browse_scoped_results`",
-				"CREATE TABLE `subject_browse_scoped_results`(
-					`browseValueId` INT(11) NOT NULL,
-					`scope` TINYINT NOT NULL,
-					`scopeId` INT(11) NOT NULL,
-					`record` VARCHAR( 50 ) NOT NULL,
-				PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
-				INDEX (`scopeId`)
-				) ENGINE = MYISAM",*/
-			),
-		),
-
-		'alpha_browse_setup_3' => array(
-			'title' => 'Alphabetic Browse Performance',
-			'description' => 'Create additional indexes and columns to improve performance of Alphabetic Browse.',
-			'sql' => array(
-				//Author browse
-				//"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `browseValueId` )",
-				//"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `scope` )",
-				//"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `record` )",
-				"ALTER TABLE `author_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
-				"ALTER TABLE `author_browse` ADD INDEX ( `alphaRank` )",
-				"set @r=0;",
-				"UPDATE author_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
-
-				//Call number browse
-				//"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `browseValueId` )",
-				//"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `scope` )",
-				//"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `record` )",
-				"ALTER TABLE `callnumber_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
-				"ALTER TABLE `callnumber_browse` ADD INDEX ( `alphaRank` )",
-				"set @r=0;",
-				"UPDATE callnumber_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
-
-				//Subject Browse
-				//"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `browseValueId` )",
-				//"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `scope` )",
-				//"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `record` )",
-				"ALTER TABLE `subject_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
-				"ALTER TABLE `subject_browse` ADD INDEX ( `alphaRank` )",
-				"set @r=0;",
-				"UPDATE subject_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
-
-				//Tile Browse
-				//"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `browseValueId` )",
-				//"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `scope` )",
-				//"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `record` )",
-				"ALTER TABLE `title_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
-				"ALTER TABLE `title_browse` ADD INDEX ( `alphaRank` )",
-				"set @r=0;",
-				"UPDATE title_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
-			),
-		),
-
-		'alpha_browse_setup_4' => array(
-			'title' => 'Alphabetic Browse Metadata',
-			'description' => 'Create metadata about alphabetic browsing improve performance of Alphabetic Browse.',
-			'sql' => array(
-				"CREATE TABLE author_browse_metadata (
-					`scope` TINYINT( 4 ) NOT NULL ,
-					`scopeId` INT( 11 ) NOT NULL ,
-					`minAlphaRank` INT NOT NULL ,
-					`maxAlphaRank` INT NOT NULL ,
-					`numResults` INT NOT NULL
-				) ENGINE = InnoDB;",
-				//"INSERT INTO author_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM author_browse inner join author_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
-
-				"CREATE TABLE callnumber_browse_metadata (
-					`scope` TINYINT( 4 ) NOT NULL ,
-					`scopeId` INT( 11 ) NOT NULL ,
-					`minAlphaRank` INT NOT NULL ,
-					`maxAlphaRank` INT NOT NULL ,
-					`numResults` INT NOT NULL
-				) ENGINE = InnoDB;",
-				//"INSERT INTO callnumber_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM callnumber_browse inner join callnumber_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
-
-				"CREATE TABLE title_browse_metadata (
-					`scope` TINYINT( 4 ) NOT NULL ,
-					`scopeId` INT( 11 ) NOT NULL ,
-					`minAlphaRank` INT NOT NULL ,
-					`maxAlphaRank` INT NOT NULL ,
-					`numResults` INT NOT NULL
-				) ENGINE = InnoDB;",
-				//"INSERT INTO title_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM title_browse inner join title_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
-
-				"CREATE TABLE subject_browse_metadata (
-					`scope` TINYINT( 4 ) NOT NULL ,
-					`scopeId` INT( 11 ) NOT NULL ,
-					`minAlphaRank` INT NOT NULL ,
-					`maxAlphaRank` INT NOT NULL ,
-					`numResults` INT NOT NULL
-				) ENGINE = InnoDB;",
-				//"INSERT INTO subject_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM subject_browse inner join subject_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
-			),
-		),
-
-		'alpha_browse_setup_5' => array(
-			'title' => 'Alphabetic Browse scoped tables',
-			'description' => 'Create Scoping tables for global and all libraries.',
-			'continueOnError' => true,
-			'sql' => array(
-				//Add firstChar fields
-				"ALTER TABLE `title_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
-				"ALTER TABLE title_browse ADD INDEX ( `firstChar` )",
-				'UPDATE title_browse set firstChar = SUBSTR(sortValue, 1, 1);',
-				"ALTER TABLE `author_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
-				"ALTER TABLE author_browse ADD INDEX ( `firstChar` )",
-				'UPDATE author_browse set firstChar = SUBSTR(sortValue, 1, 1);',
-				"ALTER TABLE `subject_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
-				"ALTER TABLE subject_browse ADD INDEX ( `firstChar` )",
-				'UPDATE subject_browse set firstChar = SUBSTR(sortValue, 1, 1);',
-				"ALTER TABLE `callnumber_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
-				"ALTER TABLE callnumber_browse ADD INDEX ( `firstChar` )",
-				'UPDATE callnumber_browse set firstChar = SUBSTR(sortValue, 1, 1);',
-				//Create global tables
-				'CREATE TABLE `title_browse_scoped_results_global` (
-					`browseValueId` INT( 11 ) NOT NULL ,
-					`record` VARCHAR( 50 ) NOT NULL ,
-					PRIMARY KEY ( `browseValueId` , `record` ) ,
-					INDEX ( `browseValueId` )
-				) ENGINE = MYISAM',
-				'CREATE TABLE `author_browse_scoped_results_global` (
-					`browseValueId` INT( 11 ) NOT NULL ,
-					`record` VARCHAR( 50 ) NOT NULL ,
-					PRIMARY KEY ( `browseValueId` , `record` ) ,
-					INDEX ( `browseValueId` )
-				) ENGINE = MYISAM',
-				'CREATE TABLE `subject_browse_scoped_results_global` (
-					`browseValueId` INT( 11 ) NOT NULL ,
-					`record` VARCHAR( 50 ) NOT NULL ,
-					PRIMARY KEY ( `browseValueId` , `record` ) ,
-					INDEX ( `browseValueId` )
-				) ENGINE = MYISAM',
-				'CREATE TABLE `callnumber_browse_scoped_results_global` (
-					`browseValueId` INT( 11 ) NOT NULL ,
-					`record` VARCHAR( 50 ) NOT NULL ,
-					PRIMARY KEY ( `browseValueId` , `record` ) ,
-					INDEX ( `browseValueId` )
-				) ENGINE = MYISAM',
-				//Truncate old data
-				"TRUNCATE TABLE `title_browse_scoped_results_global`",
-				"TRUNCATE TABLE `author_browse_scoped_results_global`",
-				"TRUNCATE TABLE `subject_browse_scoped_results_global`",
-				"TRUNCATE TABLE `callnumber_browse_scoped_results_global`",
-				//Load data from old method into tables
-				/*'INSERT INTO title_browse_scoped_results_global (`browseValueId`, record)
-					SELECT title_browse_scoped_results.browseValueId, title_browse_scoped_results.record
-					FROM title_browse_scoped_results
-					WHERE scope = 0;',
-				'INSERT INTO author_browse_scoped_results_global (`browseValueId`, record)
-					SELECT author_browse_scoped_results.browseValueId, author_browse_scoped_results.record
-					FROM author_browse_scoped_results
-					WHERE scope = 0;',
-				'INSERT INTO subject_browse_scoped_results_global (`browseValueId`, record)
-					SELECT subject_browse_scoped_results.browseValueId, subject_browse_scoped_results.record
-					FROM subject_browse_scoped_results
-					WHERE scope = 0;',
-				'INSERT INTO callnumber_browse_scoped_results_global (`browseValueId`, record)
-					SELECT callnumber_browse_scoped_results.browseValueId, callnumber_browse_scoped_results.record
-					FROM callnumber_browse_scoped_results
-					WHERE scope = 0;',*/
-				'createScopingTables',
-				/*'DROP TABLE title_browse_scoped_results',
-				'DROP TABLE author_browse_scoped_results',
-				'DROP TABLE subject_browse_scoped_results',
-				'DROP TABLE callnumber_browse_scoped_results',*/
-
-			),
-		),
-
-		'alpha_browse_setup_6' => array(
-			'title' => 'Alphabetic Browse second letter',
-			'description' => 'Add second char to the tables.',
-			'continueOnError' => true,
-			'sql' => array(
-				"ALTER TABLE `title_browse` ADD `secondChar` CHAR( 1 ) NOT NULL",
-				"ALTER TABLE title_browse ADD INDEX ( `secondChar` )",
-				'UPDATE title_browse set secondChar = substr(sortValue, 2, 1);',
-				"ALTER TABLE `author_browse` ADD `secondChar` CHAR( 1 ) NOT NULL",
-				"ALTER TABLE author_browse ADD INDEX ( `secondChar` )",
-				'UPDATE author_browse set secondChar = substr(sortValue, 2, 1);',
-				"ALTER TABLE `subject_browse` ADD `secondChar` CHAR( 1 ) NOT NULL",
-				"ALTER TABLE subject_browse ADD INDEX ( `secondChar` )",
-				'UPDATE subject_browse set secondChar = substr(sortValue, 2, 1);',
-				"ALTER TABLE `callnumber_browse` ADD `secondChar` CHAR( 1 ) NOT NULL",
-				"ALTER TABLE callnumber_browse ADD INDEX ( `secondChar` )",
-				'UPDATE callnumber_browse set secondChar = substr(sortValue, 2, 1);',
-			),
-		),
-
-		'alpha_browse_setup_7' => array(
-			'title' => 'Alphabetic Browse change scoping engine',
-			'description' => 'Change DB Engine to INNODB for all scoping tables.',
-			'continueOnError' => true,
-			'sql' => array(
-				"setScopingTableEngine",
-			),
-		),
-
-		'alpha_browse_setup_8' => array(
-			'title' => 'Alphabetic Browse change scoping engine',
-			'description' => 'Change DB Engine to INNODB for all scoping tables.',
-			'continueOnError' => true,
-			'sql' => array(
-				"setScopingTableEngine2",
-			),
-		),
-
-		'alpha_browse_setup_9' => array(
-			'title' => 'Alphabetic Browse remove record indices',
-			'description' => 'Remove record indices since they are no longer needed and make the import slower, also use MyISAM engine since that is faster for import.',
-			'continueOnError' => true,
-			'sql' => array(
-				"removeScopingTableIndex",
-			),
-		),
-
-		'reindexLog' => array(
-			'title' => 'Reindex Log table',
-			'description' => 'Create Reindex Log table to track reindexing.',
-			'sql' => array(
-				"CREATE TABLE IF NOT EXISTS reindex_log(" .
-					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of reindex log', " .
-					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the reindex started', " .
-					"`endTime` INT(11) NULL COMMENT 'The timestamp when the reindex process ended', " .
-					"PRIMARY KEY ( `id` )" .
-				") ENGINE = MYISAM;",
-				"CREATE TABLE IF NOT EXISTS reindex_process_log(" .
-					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of reindex process', " .
-					"`reindex_id` INT(11) NOT NULL COMMENT 'The id of the reindex log this process ran during', " .
-					"`processName` VARCHAR(50) NOT NULL COMMENT 'The name of the process being run', " .
-					"`recordsProcessed` INT(11) NOT NULL COMMENT 'The number of records processed from marc files', "	.
-					"`eContentRecordsProcessed` INT(11) NOT NULL COMMENT 'The number of econtent records processed from the database', "	.
-					"`resourcesProcessed` INT(11) NOT NULL COMMENT 'The number of resources processed from the database', "	.
-					"`numErrors` INT(11) NOT NULL COMMENT 'The number of errors that occurred during the process', "	.
-					"`numAdded` INT(11) NOT NULL COMMENT 'The number of additions that occurred during the process', " .
-					"`numUpdated` INT(11) NOT NULL COMMENT 'The number of items updated during the process', " .
-					"`numDeleted` INT(11) NOT NULL COMMENT 'The number of items deleted during the process', " .
-					"`numSkipped` INT(11) NOT NULL COMMENT 'The number of items skipped during the process', " .
-					"`notes` TEXT COMMENT 'Additional information about the process', " .
-					"PRIMARY KEY ( `id` ), INDEX ( `reindex_id` ), INDEX ( `processName` )" .
-				") ENGINE = MYISAM;",
-
-			),
-		),
-
-		'reindexLog_1' => array(
-			'title' => 'Reindex Log table update 1',
-			'description' => 'Update Reindex Log table to include notes and last update.',
-			'sql' => array(
-				"ALTER TABLE reindex_log ADD COLUMN `notes` TEXT COMMENT 'Notes related to the overall process'",
-				"ALTER TABLE reindex_log ADD `lastUpdate` INT(11) COMMENT 'The last time the log was updated'",
-			),
-		),
-
-		'reindexLog_2' => array(
-			'title' => 'Reindex Log table update 2',
-			'description' => 'Update Reindex Log table to include a count of non-marc records that have been processed.',
-			'sql' => array(
-				"ALTER TABLE reindex_process_log ADD COLUMN `overDriveNonMarcRecordsProcessed` INT(11) COMMENT 'The number of overdrive records processed that do not have a marc record associated with them.'",
-			),
-		),
-
-
-		'cronLog' => array(
-			'title' => 'Cron Log table',
-			'description' => 'Create Cron Log table to track reindexing.',
-			'sql' => array(
-				"CREATE TABLE IF NOT EXISTS cron_log(" .
-					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the cron log', " .
-					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the cron run started', " .
-					"`endTime` INT(11) NULL COMMENT 'The timestamp when the cron run ended', " .
-					"`lastUpdate` INT(11) NULL COMMENT 'The timestamp when the cron run last updated (to check for stuck processes)', " .
-					"`notes` TEXT COMMENT 'Additional information about the cron run', " .
-					"PRIMARY KEY ( `id` )" .
-				") ENGINE = MYISAM;",
-				"CREATE TABLE IF NOT EXISTS cron_process_log(" .
-					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of cron process', " .
-					"`cronId` INT(11) NOT NULL COMMENT 'The id of the cron run this process ran during', " .
-					"`processName` VARCHAR(50) NOT NULL COMMENT 'The name of the process being run', " .
-					"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the process started', "	.
-					"`lastUpdate` INT(11) NULL COMMENT 'The timestamp when the process last updated (to check for stuck processes)', " .
-					"`endTime` INT(11) NULL COMMENT 'The timestamp when the process ended', "	.
-					"`numErrors` INT(11) NOT NULL DEFAULT 0 COMMENT 'The number of errors that occurred during the process', "	.
-					"`numUpdates` INT(11) NOT NULL DEFAULT 0 COMMENT 'The number of updates, additions, etc. that occurred', " .
-					"`notes` TEXT COMMENT 'Additional information about the process', " .
-					"PRIMARY KEY ( `id` ), INDEX ( `cronId` ), INDEX ( `processName` )" .
-				") ENGINE = MYISAM;",
-
-			),
-		),
-
-		'marcImport' => array(
-			'title' => 'Marc Import table',
-			'description' => 'Create a table to store information about marc records that are being imported.',
-			'sql' => array(
-				"CREATE TABLE IF NOT EXISTS marc_import(" .
-					"`id` VARCHAR(50) COMMENT 'The id of the marc record in the ils', " .
-					"`checksum` INT(11) NOT NULL COMMENT 'The timestamp when the reindex started', " .
-					"PRIMARY KEY ( `id` )" .
-				") ENGINE = MYISAM;",
-			),
-		),
-		'marcImport_1' => array(
-			'title' => 'Marc Import table Update 1',
-			'description' => 'Increase the length of the checksum field for the marc import.',
-			'sql' => array(
-				"ALTER TABLE marc_import CHANGE `checksum` `checksum` BIGINT NOT NULL COMMENT 'The checksum of the id as it currently exists in the active index.'",
-			),
-		),
-		'marcImport_2' => array(
-			'title' => 'Marc Import table Update 2',
-			'description' => 'Increase the length of the checksum field for the marc import.',
-			'sql' => array(
-				"ALTER TABLE marc_import ADD COLUMN `backup_checksum` BIGINT COMMENT 'The checksum of the id in the backup index.'",
-				"ALTER TABLE marc_import ADD COLUMN `eContent` TINYINT NOT NULL COMMENT 'Whether or not the record was detected as eContent in the active index.'",
-				"ALTER TABLE marc_import ADD COLUMN `backup_eContent` TINYINT COMMENT 'Whether or not the record was detected as eContent in the backup index.'",
-			),
-		),
-		'marcImport_3' => array(
-			'title' => 'Marc Import table Update 3',
-			'description' => 'Make backup fields optional.',
-			'sql' => array(
-				"ALTER TABLE marc_import CHANGE `backup_checksum` `backup_checksum` BIGINT COMMENT 'The checksum of the id in the backup index.'",
-				"ALTER TABLE marc_import CHANGE `backup_eContent` `backup_eContent` TINYINT COMMENT 'Whether or not the record was detected as eContent in the backup index.'",
-			),
-		),
-		'add_indexes' => array(
-			'title' => 'Add indexes',
-			'description' => 'Add indexes to tables that were not defined originally',
-			'continueOnError' => true,
-			'sql' => array(
-				'ALTER TABLE `editorial_reviews` ADD INDEX `RecordId` ( `recordId` ) ',
-				'ALTER TABLE `list_widget_lists` ADD INDEX `ListWidgetId` ( `listWidgetId` ) ',
-				'ALTER TABLE `location` ADD INDEX `ValidHoldPickupBranch` ( `validHoldPickupBranch` ) ',
-			),
-		),
-
-		'add_indexes2' => array(
-			'title' => 'Add indexes 2',
-			'description' => 'Add additional indexes to tables that were not defined originally',
-			'continueOnError' => true,
-			'sql' => array(
-				'ALTER TABLE `user_rating` ADD INDEX `Resourceid` ( `resourceid` ) ',
-				'ALTER TABLE `user_rating` ADD INDEX `UserId` ( `userid` ) ',
-				'ALTER TABLE `materials_request_status` ADD INDEX ( `isDefault` )',
-				'ALTER TABLE `materials_request_status` ADD INDEX ( `isOpen` )',
-				'ALTER TABLE `materials_request_status` ADD INDEX ( `isPatronCancel` )',
-				'ALTER TABLE `materials_request` ADD INDEX ( `status` )'
-			),
-		),
-
-		'spelling_optimization' => array(
-			'title' => 'Spelling Optimization',
-			'description' => 'Optimizations to spelling to ensure indexes are used',
-			'sql' => array(
-				'ALTER TABLE `spelling_words` ADD `soundex` VARCHAR(20) ',
-				'ALTER TABLE `spelling_words` ADD INDEX `Soundex` (`soundex`)',
-				'UPDATE `spelling_words` SET soundex = SOUNDEX(word) '
-			),
-		),
-
-		'boost_disabling' => array(
-			'title' => 'Disabling Lib and Loc Boosting',
-			'description' => 'Allow boosting of library and location boosting to be disabled',
-			'sql' => array(
-				"ALTER TABLE `library` ADD `boostByLibrary` TINYINT DEFAULT '1'",
-				"ALTER TABLE `location` ADD `boostByLocation` TINYINT DEFAULT '1'",
-			),
-		),
-
-		/*'cleanup_search' => array(
-			'title' => 'Cleanup Search table',
-			'description' => 'Cleanup Search table to remove unused tables and add needed indexes',
-			'sql' => array(
-				'ALTER TABLE search DROP folder_id',
-				'ALTER TABLE search DROP title',
-				'ALTER TABLE search ADD INDEX (`saved`)',
-			),
-		),*/
-
-
-		/*'remove_old_tables' => array(
-			'title' => 'Remove old tables',
-			'description' => 'Remove tables that are no longer needed due to usage of memcache',
-			'sql' => array(
-				//Update resource table indexes
-				'DROP TABLE IF EXISTS list_cache',
-				'DROP TABLE IF EXISTS list_cache2',
-				'DROP TABLE IF EXISTS novelist_cache',
-				'DROP TABLE IF EXISTS reviews_cache',
-				'DROP TABLE IF EXISTS sip2_item_cache',
-			),
-		),
-
-		'remove_old_tables_2' => array(
-			'title' => 'Remove old tables 2',
-			'description' => 'Remove tables that are no longer needed due to changes in functionality',
-			'sql' => array(
-				'DROP TABLE IF EXISTS administrators',
-				'DROP TABLE IF EXISTS administrators_to_roles',
-				'DROP TABLE IF EXISTS resource_callnumber',
-				'DROP TABLE IF EXISTS resource_subject',
-			),
-		),
-
-		'remove_old_tables_3' => array(
-			'title' => 'Remove usage tracking tables',
-			'description' => 'Remove usage tracking tables (replaced with better analytics)',
-			'sql' => array(
-				'DROP TABLE IF EXISTS usagetracking',
-				'DROP TABLE IF EXISTS usage_tracking',
-			),
-		),
-
-		'remove_old_tables_4' => array(
-			'title' => 'Remove subject tables',
-			'description' => 'Remove subject table (replaced with browse tables)',
-			'sql' => array(
-				'DROP TABLE IF EXISTS subject',
-			),
-		),*/
-
-		'rename_tables' => array(
-			'title' => 'Rename tables',
-			'description' => 'Rename tables for consistency and cross platform usage',
-			'sql' => array(
-				//Update resource table indexes
-				'RENAME TABLE usageTracking TO usage_tracking',
-				'RENAME TABLE nonHoldableLocations TO non_holdable_locations',
-				'RENAME TABLE pTypeRestrictedLocations TO ptype_restricted_locations',
-				'RENAME TABLE externalLinkTracking TO external_link_tracking',
-				'RENAME TABLE circulationStatus TO circulation_status',
-				'RENAME TABLE purchaseLinkTracking TO purchase_link_tracking'
-			),
-		),
-
-		'addTablelistWidgetListsLinks' => array(
-				'title' => 'Widget Lists',
-				'description' => 'Add a new table: list_widget_lists_links',
-				'sql' => array('addTableListWidgetListsLinks'),
-		),
-
-
-		'millenniumTables' => array(
-				'title' => 'Millennium table setup',
-				'description' => 'Add new tables for millennium installations',
+				'title' => 'Update to UTF-8',
+				'description' => 'Update database to use UTF-8 encoding',
 				'continueOnError' => true,
 				'sql' => array(
-				"CREATE TABLE `millennium_cache` (
-						`recordId` VARCHAR( 20 ) NOT NULL COMMENT 'The recordId being checked',
-						`scope` int(16) NOT NULL COMMENT 'The scope that was loaded',
-						`holdingsInfo` MEDIUMTEXT NOT NULL COMMENT 'Raw HTML returned from Millennium for holdings',
-						`framesetInfo` MEDIUMTEXT NOT NULL COMMENT 'Raw HTML returned from Millennium on the frameset page',
-						`cacheDate` int(16) NOT NULL COMMENT 'When the entry was recorded in the cache'
-				) ENGINE = MYISAM COMMENT = 'Caches information from Millennium so we do not have to continually load it.';",
-				"ALTER TABLE `millennium_cache` ADD PRIMARY KEY ( `recordId` , `scope` ) ;",
+					"ALTER DATABASE " . $configArray['Database']['database_vufind_dbname'] . " DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					//"ALTER TABLE administrators CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE bad_words CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE circulation_status CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE comments CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE db_update CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE editorial_reviews CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE external_link_tracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE ip_lookup CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE library CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE list_widgets CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE list_widget_lists CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE location CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					//"ALTER TABLE nonHoldableLocations CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					//"ALTER TABLE ptype_restricted_locations CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE purchase_link_tracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE resource CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE resource_tags CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE roles CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE search CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE search_stats CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE session CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE spelling_words CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE tags CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					//"ALTER TABLE usage_tracking CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE user CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE user_list CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE user_rating CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE user_reading_history CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE user_resource CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE user_roles CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+					"ALTER TABLE user_suggestions CONVERT TO CHARACTER SET utf8 COLLATE utf8_general_ci;",
+				),
+			),
 
-				"CREATE TABLE IF NOT EXISTS `ptype_restricted_locations` (
-					`locationId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique id for the non holdable location',
-					`millenniumCode` varchar(5) NOT NULL COMMENT 'The internal 5 letter code within Millennium',
-					`holdingDisplay` varchar(30) NOT NULL COMMENT 'The text displayed in the holdings list within Millennium can use regular expression syntax to match multiple locations',
-					`allowablePtypes` varchar(50) NOT NULL COMMENT 'A list of PTypes that are allowed to place holds on items with this location separated with pipes (|).',
-					PRIMARY KEY (`locationId`)
-				) ENGINE=MYISAM",
+			'index_resources' => array(
+				'title' => 'Index resources',
+				'description' => 'Add a new index to resources table to make record id and source unique',
+				'continueOnError' => true,
+				'sql' => array(
+					//Update resource table indexes
+					"ALTER TABLE `resource` ADD UNIQUE `records_by_source` (`record_id`, `source`)"
+				),
+			),
 
-				"CREATE TABLE IF NOT EXISTS `non_holdable_locations` (
-					`locationId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique id for the non holdable location',
-					`millenniumCode` varchar(5) NOT NULL COMMENT 'The internal 5 letter code within Millennium',
-					`holdingDisplay` varchar(30) NOT NULL COMMENT 'The text displayed in the holdings list within Millennium',
-					`availableAtCircDesk` tinyint(4) NOT NULL COMMENT 'The item is available if the patron visits the circulation desk.',
-					PRIMARY KEY (`locationId`)
-				) ENGINE=MYISAM"
-			),
-		),
+		/* This routine completely changed, removing alpha_browse_setup since alpha_browse_setup_1 complete redoes the tables */
+			'alpha_browse_setup_2' => array(
+				'title' => 'Setup Alphabetic Browse',
+				'description' => 'Build tables to handle alphabetic browse functionality.',
+				'sql' => array(
+					"DROP TABLE IF EXISTS `title_browse`",
+					"CREATE TABLE `title_browse` (
+						`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+						`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
+						`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
+					PRIMARY KEY ( `id` ) ,
+					INDEX ( `sortValue` ),
+					UNIQUE (`value`)
+					) ENGINE = MYISAM;",
+					/*"DROP TABLE IF EXISTS `title_browse_scoped_results`",
+					"CREATE TABLE `title_browse_scoped_results`(
+						`browseValueId` INT(11) NOT NULL,
+						`scope` TINYINT NOT NULL,
+						`scopeId` INT(11) NOT NULL,
+						`record` VARCHAR( 50 ) NOT NULL,
+					PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
+					INDEX (`scopeId`)
+					) ENGINE = MYISAM",*/
+	
+					"DROP TABLE IF EXISTS `author_browse`",
+					"CREATE TABLE `author_browse` (
+						`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+						`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
+						`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
+					PRIMARY KEY ( `id` ) ,
+					INDEX ( `sortValue` ),
+					UNIQUE (`value`)
+					) ENGINE = MYISAM;",
+					/*"DROP TABLE IF EXISTS `author_browse_scoped_results`",
+					"CREATE TABLE `author_browse_scoped_results`(
+						`browseValueId` INT(11) NOT NULL,
+						`scope` TINYINT NOT NULL,
+						`scopeId` INT(11) NOT NULL,
+						`record` VARCHAR( 50 ) NOT NULL,
+					PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
+					INDEX (`scopeId`)
+					) ENGINE = MYISAM",*/
 
-		'loan_rule_determiners_1' => array(
-			'title' => 'Loan Rule Determiners',
-			'description' => 'Build tables to store loan rule determiners',
-			'sql' => array(
-				"CREATE TABLE IF NOT EXISTS loan_rules (" .
-					"`id` INT NOT NULL AUTO_INCREMENT, " .
-					"`loanRuleId` INT NOT NULL COMMENT 'The location id', " .
-					"`name` varchar(50) NOT NULL COMMENT 'The location code the rule applies to', " .
-					"`code` char(1) NOT NULL COMMENT '', ".
-					"`normalLoanPeriod` INT(4) NOT NULL COMMENT 'Number of days the item checks out for', " .
-					"`holdable` TINYINT NOT NULL DEFAULT '0', ".
-					"`bookable` TINYINT NOT NULL DEFAULT '0', ".
-					"`homePickup` TINYINT NOT NULL DEFAULT '0', ".
-					"`shippable` TINYINT NOT NULL DEFAULT '0', ".
-					"PRIMARY KEY ( `id` ), " .
-					"INDEX ( `loanRuleId` ), " .
-					"INDEX (`holdable`) " .
-				") ENGINE=InnoDB",
-				"CREATE TABLE IF NOT EXISTS loan_rule_determiners (" .
-					"`id` INT NOT NULL AUTO_INCREMENT, " .
-					"`rowNumber` INT NOT NULL COMMENT 'The row of the determiner.  Rules are processed in reverse order', " .
-					"`location` varchar(10) NOT NULL COMMENT '', " .
-					"`patronType` VARCHAR(50) NOT NULL COMMENT 'The patron types that this rule applies to', " .
-					"`itemType` VARCHAR(255) NOT NULL DEFAULT '0' COMMENT 'The item types that this rule applies to', ".
-					"`ageRange` varchar(10) NOT NULL COMMENT '', " .
-					"`loanRuleId` varchar(10) NOT NULL COMMENT 'Close hour (24hr format) HH:MM', ".
-					"`active` TINYINT NOT NULL DEFAULT '0', ".
-					"PRIMARY KEY ( `id` ), " .
-					"INDEX ( `rowNumber` ), " .
-					"INDEX (`active`) " .
-				") ENGINE=InnoDB",
+					"DROP TABLE IF EXISTS `callnumber_browse`",
+					"CREATE TABLE `callnumber_browse` (
+						`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+						`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
+						`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
+					PRIMARY KEY ( `id` ) ,
+					INDEX ( `sortValue` ),
+					UNIQUE (`value`)
+					) ENGINE = MYISAM;",
+					/*"DROP TABLE IF EXISTS `callnumber_browse_scoped_results`",
+					"CREATE TABLE `callnumber_browse_scoped_results`(
+						`browseValueId` INT(11) NOT NULL,
+						`scope` TINYINT NOT NULL,
+						`scopeId` INT(11) NOT NULL,
+						`record` VARCHAR( 50 ) NOT NULL,
+					PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
+					INDEX (`scopeId`)
+					) ENGINE = MYISAM",*/
+	
+					"DROP TABLE IF EXISTS `subject_browse`",
+					"CREATE TABLE `subject_browse` (
+						`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the browse record in numerical order based on the sort order of the rows',
+						`value` VARCHAR( 255 ) NOT NULL COMMENT 'The original value',
+						`sortValue` VARCHAR( 255 ) NOT NULL COMMENT 'The value to sort by',
+					PRIMARY KEY ( `id` ) ,
+					INDEX ( `sortValue` ),
+					UNIQUE (`value`)
+					) ENGINE = MYISAM;",
+					/*"DROP TABLE IF EXISTS `subject_browse_scoped_results`",
+					"CREATE TABLE `subject_browse_scoped_results`(
+						`browseValueId` INT(11) NOT NULL,
+						`scope` TINYINT NOT NULL,
+						`scopeId` INT(11) NOT NULL,
+						`record` VARCHAR( 50 ) NOT NULL,
+					PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
+					INDEX (`scopeId`)
+					) ENGINE = MYISAM",*/
+				),
 			),
-		),
 
-		/*'remove_old_millennium_hold_logic' => array(
-			'title' => 'Remove Old Millennium Hold Logic',
-			'description' => 'Build tables to store loan rule determiners',
-			'sql' => array(
-				"DROP TABLE ptype_restricted_locations",
-				"DROP TABLE non_holdable_locations",
+			'alpha_browse_setup_3' => array(
+				'title' => 'Alphabetic Browse Performance',
+				'description' => 'Create additional indexes and columns to improve performance of Alphabetic Browse.',
+				'sql' => array(
+					//Author browse
+					//"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `browseValueId` )",
+					//"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `scope` )",
+					//"ALTER TABLE `author_browse_scoped_results` ADD INDEX ( `record` )",
+					"ALTER TABLE `author_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
+					"ALTER TABLE `author_browse` ADD INDEX ( `alphaRank` )",
+					"set @r=0;",
+					"UPDATE author_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
+	
+					//Call number browse
+					//"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `browseValueId` )",
+					//"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `scope` )",
+					//"ALTER TABLE `callnumber_browse_scoped_results` ADD INDEX ( `record` )",
+					"ALTER TABLE `callnumber_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
+					"ALTER TABLE `callnumber_browse` ADD INDEX ( `alphaRank` )",
+					"set @r=0;",
+					"UPDATE callnumber_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
+	
+					//Subject Browse
+					//"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `browseValueId` )",
+					//"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `scope` )",
+					//"ALTER TABLE `subject_browse_scoped_results` ADD INDEX ( `record` )",
+					"ALTER TABLE `subject_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
+					"ALTER TABLE `subject_browse` ADD INDEX ( `alphaRank` )",
+					"set @r=0;",
+					"UPDATE subject_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
+	
+					//Tile Browse
+					//"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `browseValueId` )",
+					//"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `scope` )",
+					//"ALTER TABLE `title_browse_scoped_results` ADD INDEX ( `record` )",
+					"ALTER TABLE `title_browse` ADD COLUMN `alphaRank` INT( 11 ) NOT NULL COMMENT 'A numerical ranking of the sort values from a-z'",
+					"ALTER TABLE `title_browse` ADD INDEX ( `alphaRank` )",
+					"set @r=0;",
+					"UPDATE title_browse SET alphaRank = @r:=(@r + 1) ORDER BY `sortValue`;",
+				),
 			),
-		),*/
+	
+			'alpha_browse_setup_4' => array(
+				'title' => 'Alphabetic Browse Metadata',
+				'description' => 'Create metadata about alphabetic browsing improve performance of Alphabetic Browse.',
+				'sql' => array(
+					"CREATE TABLE author_browse_metadata (
+						`scope` TINYINT( 4 ) NOT NULL ,
+						`scopeId` INT( 11 ) NOT NULL ,
+						`minAlphaRank` INT NOT NULL ,
+						`maxAlphaRank` INT NOT NULL ,
+						`numResults` INT NOT NULL
+					) ENGINE = InnoDB;",
+					//"INSERT INTO author_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM author_browse inner join author_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
+	
+					"CREATE TABLE callnumber_browse_metadata (
+						`scope` TINYINT( 4 ) NOT NULL ,
+						`scopeId` INT( 11 ) NOT NULL ,
+						`minAlphaRank` INT NOT NULL ,
+						`maxAlphaRank` INT NOT NULL ,
+						`numResults` INT NOT NULL
+					) ENGINE = InnoDB;",
+					//"INSERT INTO callnumber_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM callnumber_browse inner join callnumber_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
+	
+					"CREATE TABLE title_browse_metadata (
+						`scope` TINYINT( 4 ) NOT NULL ,
+						`scopeId` INT( 11 ) NOT NULL ,
+						`minAlphaRank` INT NOT NULL ,
+						`maxAlphaRank` INT NOT NULL ,
+						`numResults` INT NOT NULL
+					) ENGINE = InnoDB;",
+					//"INSERT INTO title_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM title_browse inner join title_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
 
-		'location_hours' => array(
-			'title' => 'Location Hours',
-			'description' => 'Build table to store hours for a location',
-			'sql' => array(
-				"CREATE TABLE IF NOT EXISTS location_hours (" .
-					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of hours entry', " .
-					"`locationId` INT NOT NULL COMMENT 'The location id', " .
-					"`day` INT NOT NULL COMMENT 'Day of the week 0 to 7 (Sun to Monday)', " .
-					"`closed` TINYINT NOT NULL DEFAULT '0' COMMENT 'Whether or not the library is closed on this day', ".
-					"`open` varchar(10) NOT NULL COMMENT 'Open hour (24hr format) HH:MM', " .
-					"`close` varchar(10) NOT NULL COMMENT 'Close hour (24hr format) HH:MM', ".
-					"PRIMARY KEY ( `id` ), " .
-					"UNIQUE KEY (`locationId`, `day`) " .
-				") ENGINE=InnoDB",
+					"CREATE TABLE subject_browse_metadata (
+						`scope` TINYINT( 4 ) NOT NULL ,
+						`scopeId` INT( 11 ) NOT NULL ,
+						`minAlphaRank` INT NOT NULL ,
+						`maxAlphaRank` INT NOT NULL ,
+						`numResults` INT NOT NULL
+					) ENGINE = InnoDB;",
+					//"INSERT INTO subject_browse_metadata (SELECT scope, scopeId, MIN(alphaRank) as minAlphaRank, MAX(alphaRank) as maxAlphaRank, count(id) as numResults FROM subject_browse inner join subject_browse_scoped_results ON id = browseValueId GROUP BY scope, scopeId)",
+				),
 			),
-		),
-		'holiday' => array(
-			'title' => 'Holidays',
-			'description' => 'Build table to store holidays',
-			'sql' => array(
-				"CREATE TABLE IF NOT EXISTS holiday (" .
-					"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of holiday', " .
-					"`libraryId` INT NOT NULL COMMENT 'The library system id', " .
-					"`date` date NOT NULL COMMENT 'Date of holiday', " .
-					"`name` varchar(100) NOT NULL COMMENT 'Name of holiday', " .
-					"PRIMARY KEY ( `id` ), " .
-					"UNIQUE KEY (`date`) " .
-				") ENGINE=InnoDB",
-			),
-		),
 
-		'holiday_1' => array(
-			'title' => 'Holidays 1',
-			'description' => 'Update indexes for holidays',
-			'sql' => array(
-				"ALTER TABLE holiday DROP INDEX `date`",
-				"ALTER TABLE holiday ADD INDEX Date (`date`) ",
-				"ALTER TABLE holiday ADD INDEX Library (`libraryId`) ",
-				"ALTER TABLE holiday ADD UNIQUE KEY LibraryDate(`date`, `libraryId`) ",
-			),
-		),
-		'book_store' => array(
-			'title' => 'Book store table',
-			'description' => 'Create a table to store information about book stores.',
-			'sql' => array(
-				"CREATE TABLE IF NOT EXISTS book_store(" .
-					"`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the book store', " .
-					"`storeName` VARCHAR(100) NOT NULL COMMENT 'The name of the book store', " .
-					"`link` VARCHAR(256) NOT NULL COMMENT 'The URL prefix for searching', " .
-					"`linkText` VARCHAR(100) NOT NULL COMMENT 'The link text', " .
-					"`image` VARCHAR(256) NOT NULL COMMENT 'The URL to the icon/image to display', " .
-					"`resultRegEx` VARCHAR(100) NOT NULL COMMENT 'The regex used to check the search results', " .
-					"PRIMARY KEY ( `id` )" .
-				") ENGINE = InnoDB"
-			),
-		),
-		'book_store_1' => array(
-			'title' => 'Book store table update 1',
-			'description' => 'Add a default column to determine if a book store should be used if a library does not override.',
-			'sql' => array(
-				"ALTER TABLE book_store ADD COLUMN `showByDefault` TINYINT NOT NULL DEFAULT 1 COMMENT 'Whether or not the book store should be used by default for al library systems.'",
-				"ALTER TABLE book_store CHANGE `image` `image` VARCHAR(256) NULL COMMENT 'The URL to the icon/image to display'",
-			),
-		),
-		'nearby_book_store' => array(
-			'title' => 'Nearby book stores',
-			'description' => 'Create a table to store book stores near a location.',
-			'sql' => array(
-				"CREATE TABLE IF NOT EXISTS nearby_book_store(" .
-					"`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of this association', " .
-					"`libraryId` INT(11) NOT NULL COMMENT 'The id of the library', " .
-					"`storeId` INT(11) NOT NULL COMMENT 'The id of the book store', " .
-					"`weight` INT(11) NOT NULL DEFAULT 0 COMMENT 'The listing order of the book store', " .
-					"KEY ( `libraryId`, `storeId` ), " .
-					"PRIMARY KEY ( `id` )" .
-				") ENGINE = InnoDB"
-			),
-		),
+			'alpha_browse_setup_5' => array(
+				'title' => 'Alphabetic Browse scoped tables',
+				'description' => 'Create Scoping tables for global and all libraries.',
+				'continueOnError' => true,
+				'sql' => array(
+					//Add firstChar fields
+					"ALTER TABLE `title_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
+					"ALTER TABLE title_browse ADD INDEX ( `firstChar` )",
+					'UPDATE title_browse set firstChar = SUBSTR(sortValue, 1, 1);',
+					"ALTER TABLE `author_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
+					"ALTER TABLE author_browse ADD INDEX ( `firstChar` )",
+					'UPDATE author_browse set firstChar = SUBSTR(sortValue, 1, 1);',
+					"ALTER TABLE `subject_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
+					"ALTER TABLE subject_browse ADD INDEX ( `firstChar` )",
+					'UPDATE subject_browse set firstChar = SUBSTR(sortValue, 1, 1);',
+					"ALTER TABLE `callnumber_browse` ADD `firstChar` CHAR( 1 ) NOT NULL",
+					"ALTER TABLE callnumber_browse ADD INDEX ( `firstChar` )",
+					'UPDATE callnumber_browse set firstChar = SUBSTR(sortValue, 1, 1);',
+					//Create global tables
+					'CREATE TABLE `title_browse_scoped_results_global` (
+						`browseValueId` INT( 11 ) NOT NULL ,
+						`record` VARCHAR( 50 ) NOT NULL ,
+						PRIMARY KEY ( `browseValueId` , `record` ) ,
+						INDEX ( `browseValueId` )
+					) ENGINE = MYISAM',
+					'CREATE TABLE `author_browse_scoped_results_global` (
+						`browseValueId` INT( 11 ) NOT NULL ,
+						`record` VARCHAR( 50 ) NOT NULL ,
+						PRIMARY KEY ( `browseValueId` , `record` ) ,
+						INDEX ( `browseValueId` )
+					) ENGINE = MYISAM',
+					'CREATE TABLE `subject_browse_scoped_results_global` (
+						`browseValueId` INT( 11 ) NOT NULL ,
+						`record` VARCHAR( 50 ) NOT NULL ,
+						PRIMARY KEY ( `browseValueId` , `record` ) ,
+						INDEX ( `browseValueId` )
+					) ENGINE = MYISAM',
+					'CREATE TABLE `callnumber_browse_scoped_results_global` (
+						`browseValueId` INT( 11 ) NOT NULL ,
+						`record` VARCHAR( 50 ) NOT NULL ,
+						PRIMARY KEY ( `browseValueId` , `record` ) ,
+						INDEX ( `browseValueId` )
+					) ENGINE = MYISAM',
+					//Truncate old data
+					"TRUNCATE TABLE `title_browse_scoped_results_global`",
+					"TRUNCATE TABLE `author_browse_scoped_results_global`",
+					"TRUNCATE TABLE `subject_browse_scoped_results_global`",
+					"TRUNCATE TABLE `callnumber_browse_scoped_results_global`",
+					//Load data from old method into tables
+					/*'INSERT INTO title_browse_scoped_results_global (`browseValueId`, record)
+						SELECT title_browse_scoped_results.browseValueId, title_browse_scoped_results.record
+						FROM title_browse_scoped_results
+						WHERE scope = 0;',
+					'INSERT INTO author_browse_scoped_results_global (`browseValueId`, record)
+						SELECT author_browse_scoped_results.browseValueId, author_browse_scoped_results.record
+						FROM author_browse_scoped_results
+						WHERE scope = 0;',
+					'INSERT INTO subject_browse_scoped_results_global (`browseValueId`, record)
+						SELECT subject_browse_scoped_results.browseValueId, subject_browse_scoped_results.record
+						FROM subject_browse_scoped_results
+						WHERE scope = 0;',
+					'INSERT INTO callnumber_browse_scoped_results_global (`browseValueId`, record)
+						SELECT callnumber_browse_scoped_results.browseValueId, callnumber_browse_scoped_results.record
+						FROM callnumber_browse_scoped_results
+						WHERE scope = 0;',*/
+					'createScopingTables',
+					/*'DROP TABLE title_browse_scoped_results',
+					'DROP TABLE author_browse_scoped_results',
+					'DROP TABLE subject_browse_scoped_results',
+					'DROP TABLE callnumber_browse_scoped_results',*/
 
-		'ptype' => array(
-			'title' => 'P-Type',
-			'description' => 'Build tables to store information related to P-Types.',
-			'sql' => array(
-				'CREATE TABLE IF NOT EXISTS ptype(
-					id INT(11) NOT NULL AUTO_INCREMENT,
-					pType INT(11) NOT NULL,
-					maxHolds INT(11) NOT NULL DEFAULT 300,
-					UNIQUE KEY (pType),
-					PRIMARY KEY (id)
-				)',
+				),
 			),
-		),
 
-		'analytics' => array(
-			'title' => 'Analytics',
-			'description' => 'Build tables to store analytics information.',
-			'continueOnError' => true,
-			'sql' => array(
-				"CREATE TABLE IF NOT EXISTS analytics_session(" .
-					"`id` INT(11) NOT NULL AUTO_INCREMENT, " .
-					"`session_id` VARCHAR(128), " .
-					"`sessionStartTime` INT(11) NOT NULL, " .
-					"`lastRequestTime` INT(11) NOT NULL, " .
-					"`country` VARCHAR(128) , " .
-					"`city` VARCHAR(128), " .
-					"`state` VARCHAR(128), " .
-					"`latitude` FLOAT, " .
-					"`longitude` FLOAT, " .
-					"`ip` CHAR(16), " .
-					"`theme` VARCHAR(128), " .
-					"`mobile` TINYINT, " .
-					"`device` VARCHAR(128), " .
-					"`physicalLocation` VARCHAR(128), " .
-					"`patronType` VARCHAR(50) NOT NULL DEFAULT 'logged out', " .
-					"`homeLocationId` INT(11), " .
-					"UNIQUE KEY ( `session_id` ), " .
-					"PRIMARY KEY ( `id` )" .
-				") ENGINE = InnoDB",
-				"CREATE TABLE IF NOT EXISTS analytics_page_view(" .
-					"`id` INT(11) NOT NULL AUTO_INCREMENT, " .
-					"`sessionId` INT(11), " .
-					"`pageStartTime` INT(11), " .
-					"`pageEndTime` INT(11), "  .
-					"`module` VARCHAR(128), " .
-					"`action` VARCHAR(128), " .
-					"`method` VARCHAR(128), " .
-					"`objectId` VARCHAR(128), " .
-					"`fullUrl` VARCHAR(1024), " .
-					"`language` VARCHAR(128), " .
-					"INDEX ( `sessionId` ), " .
-					"PRIMARY KEY ( `id` )" .
-				") ENGINE = InnoDB",
-				"CREATE TABLE IF NOT EXISTS analytics_search(" .
-					"`id` INT(11) NOT NULL AUTO_INCREMENT, " .
-					"`sessionId` INT(11), " .
-					"`searchType` VARCHAR(30), " .
-					"`scope` VARCHAR(50), "  .
-					"`lookfor` VARCHAR(256), " .
-					"`isAdvanced` TINYINT, " .
-					"`facetsApplied` TINYINT, " .
-					"`numResults` INT(11), " .
-					"INDEX ( `sessionId` ), " .
-					"PRIMARY KEY ( `id` )" .
-				") ENGINE = InnoDB",
-				"CREATE TABLE IF NOT EXISTS analytics_event(" .
-					"`id` INT(11) NOT NULL AUTO_INCREMENT, " .
-					"`sessionId` INT(11), " .
-					"`category` VARCHAR(100), " .
-					"`action` VARCHAR(100), "  .
-					"`data` VARCHAR(256), " .
-					"INDEX ( `sessionId` ), " .
-					"INDEX ( `category` ), " .
-					"INDEX ( `action` ), " .
-					"PRIMARY KEY ( `id` )" .
-				") ENGINE = InnoDB",
+			'alpha_browse_setup_6' => array(
+				'title' => 'Alphabetic Browse second letter',
+				'description' => 'Add second char to the tables.',
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `title_browse` ADD `secondChar` CHAR( 1 ) NOT NULL",
+					"ALTER TABLE title_browse ADD INDEX ( `secondChar` )",
+					'UPDATE title_browse set secondChar = substr(sortValue, 2, 1);',
+					"ALTER TABLE `author_browse` ADD `secondChar` CHAR( 1 ) NOT NULL",
+					"ALTER TABLE author_browse ADD INDEX ( `secondChar` )",
+					'UPDATE author_browse set secondChar = substr(sortValue, 2, 1);',
+					"ALTER TABLE `subject_browse` ADD `secondChar` CHAR( 1 ) NOT NULL",
+					"ALTER TABLE subject_browse ADD INDEX ( `secondChar` )",
+					'UPDATE subject_browse set secondChar = substr(sortValue, 2, 1);',
+					"ALTER TABLE `callnumber_browse` ADD `secondChar` CHAR( 1 ) NOT NULL",
+					"ALTER TABLE callnumber_browse ADD INDEX ( `secondChar` )",
+					'UPDATE callnumber_browse set secondChar = substr(sortValue, 2, 1);',
+				),
 			),
-		),
-
-		'analytics_1' => array(
-			'title' => 'Analytics Update 1',
-			'description' => 'Add times to searches and events.',
-			'continueOnError' => true,
-			'sql' => array(
-				'ALTER TABLE analytics_event ADD COLUMN eventTime INT(11)',
-				'ALTER TABLE analytics_search ADD COLUMN searchTime INT(11)'
+	
+			'alpha_browse_setup_7' => array(
+				'title' => 'Alphabetic Browse change scoping engine',
+				'description' => 'Change DB Engine to INNODB for all scoping tables.',
+				'continueOnError' => true,
+				'sql' => array(
+					"setScopingTableEngine",
+				),
 			),
-		),
-
-		'analytics_2' => array(
-			'title' => 'Analytics Update 2',
-			'description' => 'Adjust length of searchType Field.',
-			'sql' => array(
-				'ALTER TABLE analytics_search CHANGE COLUMN searchType searchType VARCHAR(50)'
+	
+			'alpha_browse_setup_8' => array(
+				'title' => 'Alphabetic Browse change scoping engine',
+				'description' => 'Change DB Engine to INNODB for all scoping tables.',
+				'continueOnError' => true,
+				'sql' => array(
+					"setScopingTableEngine2",
+				),
 			),
-		),
-
-		'analytics_3' => array(
-			'title' => 'Analytics Update 3',
-			'description' => 'Index filter information to improve loading seed for reports.',
-			'sql' => array(
-				'ALTER TABLE `analytics_session` ADD INDEX ( `country`)',
-				'ALTER TABLE `analytics_session` ADD INDEX ( `city`)',
-				'ALTER TABLE `analytics_session` ADD INDEX ( `state`)',
-				'ALTER TABLE `analytics_session` ADD INDEX ( `theme`)',
-				'ALTER TABLE `analytics_session` ADD INDEX ( `mobile`)',
-				'ALTER TABLE `analytics_session` ADD INDEX ( `device`)',
-				'ALTER TABLE `analytics_session` ADD INDEX ( `physicalLocation`)',
-				'ALTER TABLE `analytics_session` ADD INDEX ( `patronType`)',
-				'ALTER TABLE `analytics_session` ADD INDEX ( `homeLocationId`)',
+	
+			'alpha_browse_setup_9' => array(
+				'title' => 'Alphabetic Browse remove record indices',
+				'description' => 'Remove record indices since they are no longer needed and make the import slower, also use MyISAM engine since that is faster for import.',
+				'continueOnError' => true,
+				'sql' => array(
+					"removeScopingTableIndex",
+				),
 			),
-		),
 
-		'analytics_4' => array(
-			'title' => 'Analytics Update 4',
-			'description' => 'Add additional data fields for events.',
-			'sql' => array(
-				'ALTER TABLE `analytics_event` ADD COLUMN data2 VARCHAR(256)',
-				'ALTER TABLE `analytics_event` ADD COLUMN data3 VARCHAR(256)',
-				'ALTER TABLE `analytics_event` ADD INDEX ( `data`)',
-				'ALTER TABLE `analytics_event` ADD INDEX ( `data2`)',
-				'ALTER TABLE `analytics_event` ADD INDEX ( `data3`)',
+			'reindexLog' => array(
+				'title' => 'Reindex Log table',
+				'description' => 'Create Reindex Log table to track reindexing.',
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS reindex_log(" .
+						"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of reindex log', " .
+						"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the reindex started', " .
+						"`endTime` INT(11) NULL COMMENT 'The timestamp when the reindex process ended', " .
+						"PRIMARY KEY ( `id` )" .
+					") ENGINE = MYISAM;",
+					"CREATE TABLE IF NOT EXISTS reindex_process_log(" .
+						"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of reindex process', " .
+						"`reindex_id` INT(11) NOT NULL COMMENT 'The id of the reindex log this process ran during', " .
+						"`processName` VARCHAR(50) NOT NULL COMMENT 'The name of the process being run', " .
+						"`recordsProcessed` INT(11) NOT NULL COMMENT 'The number of records processed from marc files', "	.
+						"`eContentRecordsProcessed` INT(11) NOT NULL COMMENT 'The number of econtent records processed from the database', "	.
+						"`resourcesProcessed` INT(11) NOT NULL COMMENT 'The number of resources processed from the database', "	.
+						"`numErrors` INT(11) NOT NULL COMMENT 'The number of errors that occurred during the process', "	.
+						"`numAdded` INT(11) NOT NULL COMMENT 'The number of additions that occurred during the process', " .
+						"`numUpdated` INT(11) NOT NULL COMMENT 'The number of items updated during the process', " .
+						"`numDeleted` INT(11) NOT NULL COMMENT 'The number of items deleted during the process', " .
+						"`numSkipped` INT(11) NOT NULL COMMENT 'The number of items skipped during the process', " .
+						"`notes` TEXT COMMENT 'Additional information about the process', " .
+						"PRIMARY KEY ( `id` ), INDEX ( `reindex_id` ), INDEX ( `processName` )" .
+					") ENGINE = MYISAM;",
+	
+				),
 			),
-		),
-
-		'analytics_5' => array(
-			'title' => 'Analytics Update 5',
-			'description' => 'Update analytics search to make display of reports faster.',
-			'sql' => array(
-				'ALTER TABLE analytics_search ADD INDEX(lookfor)',
-				'ALTER TABLE analytics_search ADD INDEX(numResults)',
-				'ALTER TABLE analytics_search ADD INDEX(searchType)',
-				'ALTER TABLE analytics_search ADD INDEX(scope)',
-				'ALTER TABLE analytics_search ADD INDEX(facetsApplied)',
-				'ALTER TABLE analytics_search ADD INDEX(isAdvanced)',
+	
+			'reindexLog_1' => array(
+				'title' => 'Reindex Log table update 1',
+				'description' => 'Update Reindex Log table to include notes and last update.',
+				'sql' => array(
+					"ALTER TABLE reindex_log ADD COLUMN `notes` TEXT COMMENT 'Notes related to the overall process'",
+					"ALTER TABLE reindex_log ADD `lastUpdate` INT(11) COMMENT 'The last time the log was updated'",
+				),
 			),
-		),
-
-		'analytics_6' => array(
-			'title' => 'Analytics Update 6',
-			'description' => 'Update analytics make display of dashboard and other reports faster.',
-			'sql' => array(
-				'ALTER TABLE analytics_event ADD INDEX(eventTime)',
-				'ALTER TABLE analytics_page_view ADD INDEX(pageStartTime)',
-				'ALTER TABLE analytics_page_view ADD INDEX(pageEndTime)',
-				'ALTER TABLE analytics_page_view ADD INDEX(module)',
-				'ALTER TABLE analytics_page_view ADD INDEX(action)',
-				'ALTER TABLE analytics_page_view ADD INDEX(method)',
-				'ALTER TABLE analytics_page_view ADD INDEX(objectId)',
-				'ALTER TABLE analytics_page_view ADD INDEX(language)',
-				'ALTER TABLE analytics_search ADD INDEX(searchTime)',
+	
+			'reindexLog_2' => array(
+				'title' => 'Reindex Log table update 2',
+				'description' => 'Update Reindex Log table to include a count of non-marc records that have been processed.',
+				'sql' => array(
+					"ALTER TABLE reindex_process_log ADD COLUMN `overDriveNonMarcRecordsProcessed` INT(11) COMMENT 'The number of overdrive records processed that do not have a marc record associated with them.'",
+				),
 			),
-		),
-
-		'analytics_7' => array(
-			'title' => 'Analytics Update 7',
-			'description' => 'Normalize Analytics Session for better performance.',
-			'sql' => array(
-				"CREATE TABLE IF NOT EXISTS analytics_country (
-					`id` INT(11) NOT NULL AUTO_INCREMENT,
-					`value` VARCHAR(128),
-					UNIQUE KEY (`value`),
-					PRIMARY KEY ( `id` )
-				) ENGINE = MYISAM",
-				"CREATE TABLE IF NOT EXISTS analytics_city (
-					`id` INT(11) NOT NULL AUTO_INCREMENT,
-					`value` VARCHAR(128),
-					UNIQUE KEY (`value`),
-					PRIMARY KEY ( `id` )
-				) ENGINE = MYISAM",
-				"CREATE TABLE IF NOT EXISTS analytics_state (
-					`id` INT(11) NOT NULL AUTO_INCREMENT,
-					`value` VARCHAR(128),
-					UNIQUE KEY (`value`),
-					PRIMARY KEY ( `id` )
-				) ENGINE = MYISAM",
-				"CREATE TABLE IF NOT EXISTS analytics_theme (
-					`id` INT(11) NOT NULL AUTO_INCREMENT,
-					`value` VARCHAR(128),
-					UNIQUE KEY (`value`),
-					PRIMARY KEY ( `id` )
-				) ENGINE = MYISAM",
-				"CREATE TABLE IF NOT EXISTS analytics_device (
-					`id` INT(11) NOT NULL AUTO_INCREMENT,
-					`value` VARCHAR(128),
-					UNIQUE KEY (`value`),
-					PRIMARY KEY ( `id` )
-				) ENGINE = MYISAM",
-				"CREATE TABLE IF NOT EXISTS analytics_physical_location (
-					`id` INT(11) NOT NULL AUTO_INCREMENT,
-					`value` VARCHAR(128),
-					UNIQUE KEY (`value`),
-					PRIMARY KEY ( `id` )
-				) ENGINE = MYISAM",
-				"CREATE TABLE IF NOT EXISTS analytics_patron_type (
-					`id` INT(11) NOT NULL AUTO_INCREMENT,
-					`value` VARCHAR(128),
-					UNIQUE KEY (`value`),
-					PRIMARY KEY ( `id` )
-				) ENGINE = MYISAM",
-				"CREATE TABLE IF NOT EXISTS analytics_session_2(
+	
+	
+			'cronLog' => array(
+				'title' => 'Cron Log table',
+				'description' => 'Create Cron Log table to track reindexing.',
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS cron_log(" .
+						"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of the cron log', " .
+						"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the cron run started', " .
+						"`endTime` INT(11) NULL COMMENT 'The timestamp when the cron run ended', " .
+						"`lastUpdate` INT(11) NULL COMMENT 'The timestamp when the cron run last updated (to check for stuck processes)', " .
+						"`notes` TEXT COMMENT 'Additional information about the cron run', " .
+						"PRIMARY KEY ( `id` )" .
+					") ENGINE = MYISAM;",
+					"CREATE TABLE IF NOT EXISTS cron_process_log(" .
+						"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of cron process', " .
+						"`cronId` INT(11) NOT NULL COMMENT 'The id of the cron run this process ran during', " .
+						"`processName` VARCHAR(50) NOT NULL COMMENT 'The name of the process being run', " .
+						"`startTime` INT(11) NOT NULL COMMENT 'The timestamp when the process started', "	.
+						"`lastUpdate` INT(11) NULL COMMENT 'The timestamp when the process last updated (to check for stuck processes)', " .
+						"`endTime` INT(11) NULL COMMENT 'The timestamp when the process ended', "	.
+						"`numErrors` INT(11) NOT NULL DEFAULT 0 COMMENT 'The number of errors that occurred during the process', "	.
+						"`numUpdates` INT(11) NOT NULL DEFAULT 0 COMMENT 'The number of updates, additions, etc. that occurred', " .
+						"`notes` TEXT COMMENT 'Additional information about the process', " .
+						"PRIMARY KEY ( `id` ), INDEX ( `cronId` ), INDEX ( `processName` )" .
+					") ENGINE = MYISAM;",
+	
+				),
+			),
+	
+			'marcImport' => array(
+				'title' => 'Marc Import table',
+				'description' => 'Create a table to store information about marc records that are being imported.',
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS marc_import(" .
+						"`id` VARCHAR(50) COMMENT 'The id of the marc record in the ils', " .
+						"`checksum` INT(11) NOT NULL COMMENT 'The timestamp when the reindex started', " .
+						"PRIMARY KEY ( `id` )" .
+					") ENGINE = MYISAM;",
+				),
+			),
+			'marcImport_1' => array(
+				'title' => 'Marc Import table Update 1',
+				'description' => 'Increase the length of the checksum field for the marc import.',
+				'sql' => array(
+					"ALTER TABLE marc_import CHANGE `checksum` `checksum` BIGINT NOT NULL COMMENT 'The checksum of the id as it currently exists in the active index.'",
+				),
+			),
+			'marcImport_2' => array(
+				'title' => 'Marc Import table Update 2',
+				'description' => 'Increase the length of the checksum field for the marc import.',
+				'sql' => array(
+					"ALTER TABLE marc_import ADD COLUMN `backup_checksum` BIGINT COMMENT 'The checksum of the id in the backup index.'",
+					"ALTER TABLE marc_import ADD COLUMN `eContent` TINYINT NOT NULL COMMENT 'Whether or not the record was detected as eContent in the active index.'",
+					"ALTER TABLE marc_import ADD COLUMN `backup_eContent` TINYINT COMMENT 'Whether or not the record was detected as eContent in the backup index.'",
+				),
+			),
+			'marcImport_3' => array(
+				'title' => 'Marc Import table Update 3',
+				'description' => 'Make backup fields optional.',
+				'sql' => array(
+					"ALTER TABLE marc_import CHANGE `backup_checksum` `backup_checksum` BIGINT COMMENT 'The checksum of the id in the backup index.'",
+					"ALTER TABLE marc_import CHANGE `backup_eContent` `backup_eContent` TINYINT COMMENT 'Whether or not the record was detected as eContent in the backup index.'",
+				),
+			),
+			'add_indexes' => array(
+				'title' => 'Add indexes',
+				'description' => 'Add indexes to tables that were not defined originally',
+				'continueOnError' => true,
+				'sql' => array(
+					'ALTER TABLE `editorial_reviews` ADD INDEX `RecordId` ( `recordId` ) ',
+					'ALTER TABLE `list_widget_lists` ADD INDEX `ListWidgetId` ( `listWidgetId` ) ',
+					'ALTER TABLE `location` ADD INDEX `ValidHoldPickupBranch` ( `validHoldPickupBranch` ) ',
+				),
+			),
+	
+			'add_indexes2' => array(
+				'title' => 'Add indexes 2',
+				'description' => 'Add additional indexes to tables that were not defined originally',
+				'continueOnError' => true,
+				'sql' => array(
+					'ALTER TABLE `user_rating` ADD INDEX `Resourceid` ( `resourceid` ) ',
+					'ALTER TABLE `user_rating` ADD INDEX `UserId` ( `userid` ) ',
+					'ALTER TABLE `materials_request_status` ADD INDEX ( `isDefault` )',
+					'ALTER TABLE `materials_request_status` ADD INDEX ( `isOpen` )',
+					'ALTER TABLE `materials_request_status` ADD INDEX ( `isPatronCancel` )',
+					'ALTER TABLE `materials_request` ADD INDEX ( `status` )'
+				),
+			),
+	
+			'spelling_optimization' => array(
+				'title' => 'Spelling Optimization',
+				'description' => 'Optimizations to spelling to ensure indexes are used',
+				'sql' => array(
+					'ALTER TABLE `spelling_words` ADD `soundex` VARCHAR(20) ',
+					'ALTER TABLE `spelling_words` ADD INDEX `Soundex` (`soundex`)',
+					'UPDATE `spelling_words` SET soundex = SOUNDEX(word) '
+				),
+			),
+	
+			'boost_disabling' => array(
+				'title' => 'Disabling Lib and Loc Boosting',
+				'description' => 'Allow boosting of library and location boosting to be disabled',
+				'sql' => array(
+					"ALTER TABLE `library` ADD `boostByLibrary` TINYINT DEFAULT '1'",
+					"ALTER TABLE `location` ADD `boostByLocation` TINYINT DEFAULT '1'",
+				),
+			),
+	
+			/*'cleanup_search' => array(
+				'title' => 'Cleanup Search table',
+				'description' => 'Cleanup Search table to remove unused tables and add needed indexes',
+				'sql' => array(
+					'ALTER TABLE search DROP folder_id',
+					'ALTER TABLE search DROP title',
+					'ALTER TABLE search ADD INDEX (`saved`)',
+				),
+			),*/
+	
+	
+			/*'remove_old_tables' => array(
+				'title' => 'Remove old tables',
+				'description' => 'Remove tables that are no longer needed due to usage of memcache',
+				'sql' => array(
+					//Update resource table indexes
+					'DROP TABLE IF EXISTS list_cache',
+					'DROP TABLE IF EXISTS list_cache2',
+					'DROP TABLE IF EXISTS novelist_cache',
+					'DROP TABLE IF EXISTS reviews_cache',
+					'DROP TABLE IF EXISTS sip2_item_cache',
+				),
+			),
+	
+			'remove_old_tables_2' => array(
+				'title' => 'Remove old tables 2',
+				'description' => 'Remove tables that are no longer needed due to changes in functionality',
+				'sql' => array(
+					'DROP TABLE IF EXISTS administrators',
+					'DROP TABLE IF EXISTS administrators_to_roles',
+					'DROP TABLE IF EXISTS resource_callnumber',
+					'DROP TABLE IF EXISTS resource_subject',
+				),
+			),
+	
+			'remove_old_tables_3' => array(
+				'title' => 'Remove usage tracking tables',
+				'description' => 'Remove usage tracking tables (replaced with better analytics)',
+				'sql' => array(
+					'DROP TABLE IF EXISTS usagetracking',
+					'DROP TABLE IF EXISTS usage_tracking',
+				),
+			),
+	
+			'remove_old_tables_4' => array(
+				'title' => 'Remove subject tables',
+				'description' => 'Remove subject table (replaced with browse tables)',
+				'sql' => array(
+					'DROP TABLE IF EXISTS subject',
+				),
+			),*/
+	
+			'rename_tables' => array(
+				'title' => 'Rename tables',
+				'description' => 'Rename tables for consistency and cross platform usage',
+				'sql' => array(
+					//Update resource table indexes
+					'RENAME TABLE usageTracking TO usage_tracking',
+					'RENAME TABLE nonHoldableLocations TO non_holdable_locations',
+					'RENAME TABLE pTypeRestrictedLocations TO ptype_restricted_locations',
+					'RENAME TABLE externalLinkTracking TO external_link_tracking',
+					'RENAME TABLE circulationStatus TO circulation_status',
+					'RENAME TABLE purchaseLinkTracking TO purchase_link_tracking'
+				),
+			),
+	
+			'addTablelistWidgetListsLinks' => array(
+					'title' => 'Widget Lists',
+					'description' => 'Add a new table: list_widget_lists_links',
+					'sql' => array('addTableListWidgetListsLinks'),
+			),
+	
+	
+			'millenniumTables' => array(
+					'title' => 'Millennium table setup',
+					'description' => 'Add new tables for millennium installations',
+					'continueOnError' => true,
+					'sql' => array(
+					"CREATE TABLE `millennium_cache` (
+							`recordId` VARCHAR( 20 ) NOT NULL COMMENT 'The recordId being checked',
+							`scope` int(16) NOT NULL COMMENT 'The scope that was loaded',
+							`holdingsInfo` MEDIUMTEXT NOT NULL COMMENT 'Raw HTML returned from Millennium for holdings',
+							`framesetInfo` MEDIUMTEXT NOT NULL COMMENT 'Raw HTML returned from Millennium on the frameset page',
+							`cacheDate` int(16) NOT NULL COMMENT 'When the entry was recorded in the cache'
+					) ENGINE = MYISAM COMMENT = 'Caches information from Millennium so we do not have to continually load it.';",
+					"ALTER TABLE `millennium_cache` ADD PRIMARY KEY ( `recordId` , `scope` ) ;",
+	
+					"CREATE TABLE IF NOT EXISTS `ptype_restricted_locations` (
+						`locationId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique id for the non holdable location',
+						`millenniumCode` varchar(5) NOT NULL COMMENT 'The internal 5 letter code within Millennium',
+						`holdingDisplay` varchar(30) NOT NULL COMMENT 'The text displayed in the holdings list within Millennium can use regular expression syntax to match multiple locations',
+						`allowablePtypes` varchar(50) NOT NULL COMMENT 'A list of PTypes that are allowed to place holds on items with this location separated with pipes (|).',
+						PRIMARY KEY (`locationId`)
+					) ENGINE=MYISAM",
+	
+					"CREATE TABLE IF NOT EXISTS `non_holdable_locations` (
+						`locationId` int(11) NOT NULL AUTO_INCREMENT COMMENT 'A unique id for the non holdable location',
+						`millenniumCode` varchar(5) NOT NULL COMMENT 'The internal 5 letter code within Millennium',
+						`holdingDisplay` varchar(30) NOT NULL COMMENT 'The text displayed in the holdings list within Millennium',
+						`availableAtCircDesk` tinyint(4) NOT NULL COMMENT 'The item is available if the patron visits the circulation desk.',
+						PRIMARY KEY (`locationId`)
+					) ENGINE=MYISAM"
+				),
+			),
+	
+			'loan_rule_determiners_1' => array(
+				'title' => 'Loan Rule Determiners',
+				'description' => 'Build tables to store loan rule determiners',
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS loan_rules (" .
+						"`id` INT NOT NULL AUTO_INCREMENT, " .
+						"`loanRuleId` INT NOT NULL COMMENT 'The location id', " .
+						"`name` varchar(50) NOT NULL COMMENT 'The location code the rule applies to', " .
+						"`code` char(1) NOT NULL COMMENT '', ".
+						"`normalLoanPeriod` INT(4) NOT NULL COMMENT 'Number of days the item checks out for', " .
+						"`holdable` TINYINT NOT NULL DEFAULT '0', ".
+						"`bookable` TINYINT NOT NULL DEFAULT '0', ".
+						"`homePickup` TINYINT NOT NULL DEFAULT '0', ".
+						"`shippable` TINYINT NOT NULL DEFAULT '0', ".
+						"PRIMARY KEY ( `id` ), " .
+						"INDEX ( `loanRuleId` ), " .
+						"INDEX (`holdable`) " .
+					") ENGINE=InnoDB",
+					"CREATE TABLE IF NOT EXISTS loan_rule_determiners (" .
+						"`id` INT NOT NULL AUTO_INCREMENT, " .
+						"`rowNumber` INT NOT NULL COMMENT 'The row of the determiner.  Rules are processed in reverse order', " .
+						"`location` varchar(10) NOT NULL COMMENT '', " .
+						"`patronType` VARCHAR(50) NOT NULL COMMENT 'The patron types that this rule applies to', " .
+						"`itemType` VARCHAR(255) NOT NULL DEFAULT '0' COMMENT 'The item types that this rule applies to', ".
+						"`ageRange` varchar(10) NOT NULL COMMENT '', " .
+						"`loanRuleId` varchar(10) NOT NULL COMMENT 'Close hour (24hr format) HH:MM', ".
+						"`active` TINYINT NOT NULL DEFAULT '0', ".
+						"PRIMARY KEY ( `id` ), " .
+						"INDEX ( `rowNumber` ), " .
+						"INDEX (`active`) " .
+					") ENGINE=InnoDB",
+				),
+			),
+	
+			/*'remove_old_millennium_hold_logic' => array(
+				'title' => 'Remove Old Millennium Hold Logic',
+				'description' => 'Build tables to store loan rule determiners',
+				'sql' => array(
+					"DROP TABLE ptype_restricted_locations",
+					"DROP TABLE non_holdable_locations",
+				),
+			),*/
+	
+			'location_hours' => array(
+				'title' => 'Location Hours',
+				'description' => 'Build table to store hours for a location',
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS location_hours (" .
+						"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of hours entry', " .
+						"`locationId` INT NOT NULL COMMENT 'The location id', " .
+						"`day` INT NOT NULL COMMENT 'Day of the week 0 to 7 (Sun to Monday)', " .
+						"`closed` TINYINT NOT NULL DEFAULT '0' COMMENT 'Whether or not the library is closed on this day', ".
+						"`open` varchar(10) NOT NULL COMMENT 'Open hour (24hr format) HH:MM', " .
+						"`close` varchar(10) NOT NULL COMMENT 'Close hour (24hr format) HH:MM', ".
+						"PRIMARY KEY ( `id` ), " .
+						"UNIQUE KEY (`locationId`, `day`) " .
+					") ENGINE=InnoDB",
+				),
+			),
+			'holiday' => array(
+				'title' => 'Holidays',
+				'description' => 'Build table to store holidays',
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS holiday (" .
+						"`id` INT NOT NULL AUTO_INCREMENT COMMENT 'The id of holiday', " .
+						"`libraryId` INT NOT NULL COMMENT 'The library system id', " .
+						"`date` date NOT NULL COMMENT 'Date of holiday', " .
+						"`name` varchar(100) NOT NULL COMMENT 'Name of holiday', " .
+						"PRIMARY KEY ( `id` ), " .
+						"UNIQUE KEY (`date`) " .
+					") ENGINE=InnoDB",
+				),
+			),
+	
+			'holiday_1' => array(
+				'title' => 'Holidays 1',
+				'description' => 'Update indexes for holidays',
+				'sql' => array(
+					"ALTER TABLE holiday DROP INDEX `date`",
+					"ALTER TABLE holiday ADD INDEX Date (`date`) ",
+					"ALTER TABLE holiday ADD INDEX Library (`libraryId`) ",
+					"ALTER TABLE holiday ADD UNIQUE KEY LibraryDate(`date`, `libraryId`) ",
+				),
+			),
+			'book_store' => array(
+				'title' => 'Book store table',
+				'description' => 'Create a table to store information about book stores.',
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS book_store(" .
+						"`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of the book store', " .
+						"`storeName` VARCHAR(100) NOT NULL COMMENT 'The name of the book store', " .
+						"`link` VARCHAR(256) NOT NULL COMMENT 'The URL prefix for searching', " .
+						"`linkText` VARCHAR(100) NOT NULL COMMENT 'The link text', " .
+						"`image` VARCHAR(256) NOT NULL COMMENT 'The URL to the icon/image to display', " .
+						"`resultRegEx` VARCHAR(100) NOT NULL COMMENT 'The regex used to check the search results', " .
+						"PRIMARY KEY ( `id` )" .
+					") ENGINE = InnoDB"
+				),
+			),
+			'book_store_1' => array(
+				'title' => 'Book store table update 1',
+				'description' => 'Add a default column to determine if a book store should be used if a library does not override.',
+				'sql' => array(
+					"ALTER TABLE book_store ADD COLUMN `showByDefault` TINYINT NOT NULL DEFAULT 1 COMMENT 'Whether or not the book store should be used by default for al library systems.'",
+					"ALTER TABLE book_store CHANGE `image` `image` VARCHAR(256) NULL COMMENT 'The URL to the icon/image to display'",
+				),
+			),
+			'nearby_book_store' => array(
+				'title' => 'Nearby book stores',
+				'description' => 'Create a table to store book stores near a location.',
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS nearby_book_store(" .
+						"`id` INT(11) NOT NULL AUTO_INCREMENT COMMENT 'The id of this association', " .
+						"`libraryId` INT(11) NOT NULL COMMENT 'The id of the library', " .
+						"`storeId` INT(11) NOT NULL COMMENT 'The id of the book store', " .
+						"`weight` INT(11) NOT NULL DEFAULT 0 COMMENT 'The listing order of the book store', " .
+						"KEY ( `libraryId`, `storeId` ), " .
+						"PRIMARY KEY ( `id` )" .
+					") ENGINE = InnoDB"
+				),
+			),
+	
+			'ptype' => array(
+				'title' => 'P-Type',
+				'description' => 'Build tables to store information related to P-Types.',
+				'sql' => array(
+					'CREATE TABLE IF NOT EXISTS ptype(
+						id INT(11) NOT NULL AUTO_INCREMENT,
+						pType INT(11) NOT NULL,
+						maxHolds INT(11) NOT NULL DEFAULT 300,
+						UNIQUE KEY (pType),
+						PRIMARY KEY (id)
+					)',
+				),
+			),
+	
+			'analytics' => array(
+				'title' => 'Analytics',
+				'description' => 'Build tables to store analytics information.',
+				'continueOnError' => true,
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS analytics_session(" .
+						"`id` INT(11) NOT NULL AUTO_INCREMENT, " .
+						"`session_id` VARCHAR(128), " .
+						"`sessionStartTime` INT(11) NOT NULL, " .
+						"`lastRequestTime` INT(11) NOT NULL, " .
+						"`country` VARCHAR(128) , " .
+						"`city` VARCHAR(128), " .
+						"`state` VARCHAR(128), " .
+						"`latitude` FLOAT, " .
+						"`longitude` FLOAT, " .
+						"`ip` CHAR(16), " .
+						"`theme` VARCHAR(128), " .
+						"`mobile` TINYINT, " .
+						"`device` VARCHAR(128), " .
+						"`physicalLocation` VARCHAR(128), " .
+						"`patronType` VARCHAR(50) NOT NULL DEFAULT 'logged out', " .
+						"`homeLocationId` INT(11), " .
+						"UNIQUE KEY ( `session_id` ), " .
+						"PRIMARY KEY ( `id` )" .
+					") ENGINE = InnoDB",
+					"CREATE TABLE IF NOT EXISTS analytics_page_view(" .
+						"`id` INT(11) NOT NULL AUTO_INCREMENT, " .
+						"`sessionId` INT(11), " .
+						"`pageStartTime` INT(11), " .
+						"`pageEndTime` INT(11), "  .
+						"`module` VARCHAR(128), " .
+						"`action` VARCHAR(128), " .
+						"`method` VARCHAR(128), " .
+						"`objectId` VARCHAR(128), " .
+						"`fullUrl` VARCHAR(1024), " .
+						"`language` VARCHAR(128), " .
+						"INDEX ( `sessionId` ), " .
+						"PRIMARY KEY ( `id` )" .
+					") ENGINE = InnoDB",
+					"CREATE TABLE IF NOT EXISTS analytics_search(" .
+						"`id` INT(11) NOT NULL AUTO_INCREMENT, " .
+						"`sessionId` INT(11), " .
+						"`searchType` VARCHAR(30), " .
+						"`scope` VARCHAR(50), "  .
+						"`lookfor` VARCHAR(256), " .
+						"`isAdvanced` TINYINT, " .
+						"`facetsApplied` TINYINT, " .
+						"`numResults` INT(11), " .
+						"INDEX ( `sessionId` ), " .
+						"PRIMARY KEY ( `id` )" .
+					") ENGINE = InnoDB",
+					"CREATE TABLE IF NOT EXISTS analytics_event(" .
+						"`id` INT(11) NOT NULL AUTO_INCREMENT, " .
+						"`sessionId` INT(11), " .
+						"`category` VARCHAR(100), " .
+						"`action` VARCHAR(100), "  .
+						"`data` VARCHAR(256), " .
+						"INDEX ( `sessionId` ), " .
+						"INDEX ( `category` ), " .
+						"INDEX ( `action` ), " .
+						"PRIMARY KEY ( `id` )" .
+					") ENGINE = InnoDB",
+				),
+			),
+	
+			'analytics_1' => array(
+				'title' => 'Analytics Update 1',
+				'description' => 'Add times to searches and events.',
+				'continueOnError' => true,
+				'sql' => array(
+					'ALTER TABLE analytics_event ADD COLUMN eventTime INT(11)',
+					'ALTER TABLE analytics_search ADD COLUMN searchTime INT(11)'
+				),
+			),
+	
+			'analytics_2' => array(
+				'title' => 'Analytics Update 2',
+				'description' => 'Adjust length of searchType Field.',
+				'sql' => array(
+					'ALTER TABLE analytics_search CHANGE COLUMN searchType searchType VARCHAR(50)'
+				),
+			),
+	
+			'analytics_3' => array(
+				'title' => 'Analytics Update 3',
+				'description' => 'Index filter information to improve loading seed for reports.',
+				'sql' => array(
+					'ALTER TABLE `analytics_session` ADD INDEX ( `country`)',
+					'ALTER TABLE `analytics_session` ADD INDEX ( `city`)',
+					'ALTER TABLE `analytics_session` ADD INDEX ( `state`)',
+					'ALTER TABLE `analytics_session` ADD INDEX ( `theme`)',
+					'ALTER TABLE `analytics_session` ADD INDEX ( `mobile`)',
+					'ALTER TABLE `analytics_session` ADD INDEX ( `device`)',
+					'ALTER TABLE `analytics_session` ADD INDEX ( `physicalLocation`)',
+					'ALTER TABLE `analytics_session` ADD INDEX ( `patronType`)',
+					'ALTER TABLE `analytics_session` ADD INDEX ( `homeLocationId`)',
+				),
+			),
+	
+			'analytics_4' => array(
+				'title' => 'Analytics Update 4',
+				'description' => 'Add additional data fields for events.',
+				'sql' => array(
+					'ALTER TABLE `analytics_event` ADD COLUMN data2 VARCHAR(256)',
+					'ALTER TABLE `analytics_event` ADD COLUMN data3 VARCHAR(256)',
+					'ALTER TABLE `analytics_event` ADD INDEX ( `data`)',
+					'ALTER TABLE `analytics_event` ADD INDEX ( `data2`)',
+					'ALTER TABLE `analytics_event` ADD INDEX ( `data3`)',
+				),
+			),
+	
+			'analytics_5' => array(
+				'title' => 'Analytics Update 5',
+				'description' => 'Update analytics search to make display of reports faster.',
+				'sql' => array(
+					'ALTER TABLE analytics_search ADD INDEX(lookfor)',
+					'ALTER TABLE analytics_search ADD INDEX(numResults)',
+					'ALTER TABLE analytics_search ADD INDEX(searchType)',
+					'ALTER TABLE analytics_search ADD INDEX(scope)',
+					'ALTER TABLE analytics_search ADD INDEX(facetsApplied)',
+					'ALTER TABLE analytics_search ADD INDEX(isAdvanced)',
+				),
+			),
+	
+			'analytics_6' => array(
+				'title' => 'Analytics Update 6',
+				'description' => 'Update analytics make display of dashboard and other reports faster.',
+				'sql' => array(
+					'ALTER TABLE analytics_event ADD INDEX(eventTime)',
+					'ALTER TABLE analytics_page_view ADD INDEX(pageStartTime)',
+					'ALTER TABLE analytics_page_view ADD INDEX(pageEndTime)',
+					'ALTER TABLE analytics_page_view ADD INDEX(module)',
+					'ALTER TABLE analytics_page_view ADD INDEX(action)',
+					'ALTER TABLE analytics_page_view ADD INDEX(method)',
+					'ALTER TABLE analytics_page_view ADD INDEX(objectId)',
+					'ALTER TABLE analytics_page_view ADD INDEX(language)',
+					'ALTER TABLE analytics_search ADD INDEX(searchTime)',
+				),
+			),
+	
+			'analytics_7' => array(
+				'title' => 'Analytics Update 7',
+				'description' => 'Normalize Analytics Session for better performance.',
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS analytics_country (
 						`id` INT(11) NOT NULL AUTO_INCREMENT,
-						`session_id` VARCHAR(128),
-						`sessionStartTime` INT(11) NOT NULL,
-						`lastRequestTime` INT(11) NOT NULL,
-						`countryId` INT(11) ,
-						`cityId` INT(11),
-						`stateId` INT(11),
-						`latitude` FLOAT,
-						`longitude` FLOAT,
-						`ip` CHAR(16),
-						`themeId` INT(11),
-						`mobile` TINYINT,
-						`deviceId` INT(11),
-						`physicalLocationId` INT(11),
-						`patronTypeId` INT(11),
-						`homeLocationId` INT(11),
-						UNIQUE KEY ( `session_id` ),
-						INDEX (sessionStartTime),
-						INDEX (lastRequestTime),
-						INDEX (countryId),
-						INDEX (cityId),
-						INDEX (stateId),
-						INDEX (latitude),
-						INDEX (longitude),
-						INDEX (ip),
-						INDEX (themeId),
-						INDEX (mobile),
-						INDEX (deviceId),
-						INDEX (physicalLocationId),
-						INDEX (patronTypeId),
-						INDEX (homeLocationId),
+						`value` VARCHAR(128),
+						UNIQUE KEY (`value`),
 						PRIMARY KEY ( `id` )
-				) ENGINE = InnoDB",
-				'TRUNCATE TABLE analytics_country',
-				'INSERT INTO analytics_country (value) SELECT DISTINCT country from analytics_session',
-				'TRUNCATE TABLE analytics_city',
-				'INSERT INTO analytics_city (value) SELECT DISTINCT city from analytics_session',
-				'TRUNCATE TABLE analytics_state',
-				'INSERT INTO analytics_state (value) SELECT DISTINCT state from analytics_session',
-				'TRUNCATE TABLE analytics_theme',
-				'INSERT INTO analytics_theme (value) SELECT DISTINCT theme from analytics_session',
-				'TRUNCATE TABLE analytics_device',
-				'INSERT INTO analytics_device (value) SELECT DISTINCT device from analytics_session',
-				'TRUNCATE TABLE analytics_physical_location',
-				'INSERT INTO analytics_physical_location (value) SELECT DISTINCT physicalLocation from analytics_session',
-				'TRUNCATE TABLE analytics_patron_type',
-				'INSERT INTO analytics_patron_type (value) SELECT DISTINCT patronType from analytics_session',
-				'TRUNCATE TABLE analytics_session_2',
-				"INSERT INTO analytics_session_2 (
-						session_id, sessionStartTime, lastRequestTime, countryId, cityId, stateId, latitude, longitude, ip, themeId, mobile, deviceId, physicalLocationId, patronTypeId, homeLocationId
-					)
-					SELECT session_id, sessionStartTime, lastRequestTime, analytics_country.id, analytics_city.id, analytics_state.id, latitude, longitude, ip, analytics_theme.id, mobile, analytics_device.id, analytics_physical_location.id, analytics_patron_type.id, homeLocationId
-					FROM analytics_session
-					left join analytics_country on analytics_session.country = analytics_country.value
-					left join analytics_city on analytics_session.city = analytics_city.value
-					left join analytics_state on analytics_session.state = analytics_state.value
-					left join analytics_theme on analytics_session.theme = analytics_theme.value
-					left join analytics_device on analytics_session.device = analytics_device.value
-					left join analytics_physical_location on analytics_session.physicalLocation= analytics_physical_location.value
-					left join analytics_patron_type on analytics_session.patronType= analytics_patron_type.value",
-				'RENAME TABLE analytics_session TO analytics_session_old',
-				'RENAME TABLE analytics_session_2 TO analytics_session',
+					) ENGINE = MYISAM",
+					"CREATE TABLE IF NOT EXISTS analytics_city (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						`value` VARCHAR(128),
+						UNIQUE KEY (`value`),
+						PRIMARY KEY ( `id` )
+					) ENGINE = MYISAM",
+					"CREATE TABLE IF NOT EXISTS analytics_state (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						`value` VARCHAR(128),
+						UNIQUE KEY (`value`),
+						PRIMARY KEY ( `id` )
+					) ENGINE = MYISAM",
+					"CREATE TABLE IF NOT EXISTS analytics_theme (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						`value` VARCHAR(128),
+						UNIQUE KEY (`value`),
+						PRIMARY KEY ( `id` )
+					) ENGINE = MYISAM",
+					"CREATE TABLE IF NOT EXISTS analytics_device (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						`value` VARCHAR(128),
+						UNIQUE KEY (`value`),
+						PRIMARY KEY ( `id` )
+					) ENGINE = MYISAM",
+					"CREATE TABLE IF NOT EXISTS analytics_physical_location (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						`value` VARCHAR(128),
+						UNIQUE KEY (`value`),
+						PRIMARY KEY ( `id` )
+					) ENGINE = MYISAM",
+					"CREATE TABLE IF NOT EXISTS analytics_patron_type (
+						`id` INT(11) NOT NULL AUTO_INCREMENT,
+						`value` VARCHAR(128),
+						UNIQUE KEY (`value`),
+						PRIMARY KEY ( `id` )
+					) ENGINE = MYISAM",
+					"CREATE TABLE IF NOT EXISTS analytics_session_2(
+							`id` INT(11) NOT NULL AUTO_INCREMENT,
+							`session_id` VARCHAR(128),
+							`sessionStartTime` INT(11) NOT NULL,
+							`lastRequestTime` INT(11) NOT NULL,
+							`countryId` INT(11) ,
+							`cityId` INT(11),
+							`stateId` INT(11),
+							`latitude` FLOAT,
+							`longitude` FLOAT,
+							`ip` CHAR(16),
+							`themeId` INT(11),
+							`mobile` TINYINT,
+							`deviceId` INT(11),
+							`physicalLocationId` INT(11),
+							`patronTypeId` INT(11),
+							`homeLocationId` INT(11),
+							UNIQUE KEY ( `session_id` ),
+							INDEX (sessionStartTime),
+							INDEX (lastRequestTime),
+							INDEX (countryId),
+							INDEX (cityId),
+							INDEX (stateId),
+							INDEX (latitude),
+							INDEX (longitude),
+							INDEX (ip),
+							INDEX (themeId),
+							INDEX (mobile),
+							INDEX (deviceId),
+							INDEX (physicalLocationId),
+							INDEX (patronTypeId),
+							INDEX (homeLocationId),
+							PRIMARY KEY ( `id` )
+					) ENGINE = InnoDB",
+						'TRUNCATE TABLE analytics_country',
+					'INSERT INTO analytics_country (value) SELECT DISTINCT country from analytics_session',
+					'TRUNCATE TABLE analytics_city',
+					'INSERT INTO analytics_city (value) SELECT DISTINCT city from analytics_session',
+					'TRUNCATE TABLE analytics_state',
+					'INSERT INTO analytics_state (value) SELECT DISTINCT state from analytics_session',
+					'TRUNCATE TABLE analytics_theme',
+					'INSERT INTO analytics_theme (value) SELECT DISTINCT theme from analytics_session',
+					'TRUNCATE TABLE analytics_device',
+					'INSERT INTO analytics_device (value) SELECT DISTINCT device from analytics_session',
+					'TRUNCATE TABLE analytics_physical_location',
+					'INSERT INTO analytics_physical_location (value) SELECT DISTINCT physicalLocation from analytics_session',
+					'TRUNCATE TABLE analytics_patron_type',
+					'INSERT INTO analytics_patron_type (value) SELECT DISTINCT patronType from analytics_session',
+					'TRUNCATE TABLE analytics_session_2',
+					"INSERT INTO analytics_session_2 (
+							session_id, sessionStartTime, lastRequestTime, countryId, cityId, stateId, latitude, longitude, ip, themeId, mobile, deviceId, physicalLocationId, patronTypeId, homeLocationId
+						)
+						SELECT session_id, sessionStartTime, lastRequestTime, analytics_country.id, analytics_city.id, analytics_state.id, latitude, longitude, ip, analytics_theme.id, mobile, analytics_device.id, analytics_physical_location.id, analytics_patron_type.id, homeLocationId
+						FROM analytics_session
+						left join analytics_country on analytics_session.country = analytics_country.value
+						left join analytics_city on analytics_session.city = analytics_city.value
+						left join analytics_state on analytics_session.state = analytics_state.value
+						left join analytics_theme on analytics_session.theme = analytics_theme.value
+						left join analytics_device on analytics_session.device = analytics_device.value
+						left join analytics_physical_location on analytics_session.physicalLocation= analytics_physical_location.value
+						left join analytics_patron_type on analytics_session.patronType= analytics_patron_type.value",
+					'RENAME TABLE analytics_session TO analytics_session_old',
+					'RENAME TABLE analytics_session_2 TO analytics_session',
+				),
 			),
-		),
-
+	
 			'analytics_8' => array(
 				'title' => 'Analytics Update 8',
 				'description' => "Update analytics to store page load time so it doesn't have to be calculated.",
@@ -2345,7 +2378,7 @@ class DBMaintenance extends Admin_Admin {
 					'UPDATE analytics_page_view set loadTime = pageEndTime - pageStartTime'
 				),
 			),
-
+	
 			'session_update_1' => array(
 				'title' => 'Session Update 1',
 				'description' => 'Add a field for whether or not the session was started with remember me on.',
@@ -2353,7 +2386,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE session ADD COLUMN `remember_me` TINYINT NOT NULL DEFAULT 0 COMMENT 'Whether or not the session was started with remember me on.'",
 				),
 			),
-
+	
 			'offline_holds' => array(
 				'title' => 'Offline Holds',
 				'description' => 'Stores information about holds that have been placed while the circulation system is offline',
@@ -2377,7 +2410,7 @@ class DBMaintenance extends Admin_Admin {
 					) ENGINE = MYISAM"
 				)
 			),
-
+	
 			'offline_holds_update_1' => array(
 				'title' => 'Offline Holds Update 1',
 				'description' => 'Add the ability to store a name for patrons that have not logged in before.  Also used for conversions',
@@ -2386,8 +2419,7 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `offline_hold` ADD COLUMN `patronName` VARCHAR( 200 ) NULL",
 				)
 			),
-
-
+	
 			'offline_circulation' => array(
 				'title' => 'Offline Circulation',
 				'description' => 'Stores information about circulation activities done while the circulation system was offline',
@@ -2417,7 +2449,7 @@ class DBMaintenance extends Admin_Admin {
 						PRIMARY KEY(`id`)
 					) ENGINE = MYISAM"
 				)
-			),
+			)
 		);
 	}
 

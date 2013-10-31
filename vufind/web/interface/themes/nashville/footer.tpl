@@ -2,11 +2,11 @@
 {* Your footer *}
 <div class="footerCol"><p><strong>{translate text='Featured Items'}</strong></p>
 	<ul>
-		<li>New Fiction</li>
-        <li>New Non-Fiction</li>
-        <li>New DVDs</li>
-        <li>New Audio Books & CDs</li>
-        <li>New This Week</li>
+		<li><a href="/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A&quot;Month&quot;&amp;filter[]=literary_form_full%3A&quot;Fiction&quot;&amp;sort=year">New Fiction</a></li>
+		<li><a href="/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A&quot;Month&quot;&amp;filter[]=literary_form_full%3A&quot;Non+Fiction&quot;&amp;sort=year">New Non-Fiction</a></li>		
+		<li><a href="/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A&quot;Month&quot;&amp;filter[]=format%3A&quot;DVD&quot;&amp;sort=year">New DVDs</a></li>
+		<li><a href="/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A&quot;Month&quot;&amp;filter[]=format_category%3A&quot;Audio+Books&quot;&amp;sort=year">New Audio Books &amp; CDs</a></li>
+		<li><a href="/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A&quot;Week&quot;&amp;sort=year">New This Week</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='Search Options'}</strong></p>
