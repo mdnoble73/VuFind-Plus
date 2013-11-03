@@ -54,7 +54,7 @@ class MillenniumDriver implements DriverInterface
 	 *
 	 * @return void
 	 */
-	private function loadCircStatusInfo(){
+	protected function loadCircStatusInfo(){
 		if (is_null($this->holdableStatiRegex)){
 			$circStatus = new CirculationStatus();
 			$circStatus->find();
@@ -84,7 +84,7 @@ class MillenniumDriver implements DriverInterface
 	var $loanRules = null;
 	/** @var LoanRuleDeterminer[] $loanRuleDeterminers */
 	var $loanRuleDeterminers = null;
-	private function loadLoanRules(){
+	protected function loadLoanRules(){
 		if (is_null($this->loanRules)){
 			/** @var Memcache $memCache */
 			global $memCache;
