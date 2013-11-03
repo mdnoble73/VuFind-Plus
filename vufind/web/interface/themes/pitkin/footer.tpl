@@ -11,8 +11,8 @@
 <div class="footerCol">
 	<p>
 	Hours<br/>
-	Monday - Thursday 10 am to 9 pm<br/>
-	Friday - Saturday 10 am to 6 pm<br/>
+	Monday - Thursday 9 am to 8 pm<br/>
+	Friday - Saturday 9 am to 6 pm<br/>
 	Sunday 12 pm to 6 pm<br/>
 	<a href="http://www.pitcolib.org/find-us">Closed on certain holidays</a>
 </div>
