@@ -604,7 +604,9 @@ class MillenniumDriver implements DriverInterface
 		require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
-		$profile = array_merge($profile, $overDriveSummary);
+		$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
+		$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
+		$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
 
 		$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $overDriveSummary['numCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
 		$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $overDriveSummary['numAvailableHolds'] + $eContentAccountSummary['numEContentAvailableHolds'];
