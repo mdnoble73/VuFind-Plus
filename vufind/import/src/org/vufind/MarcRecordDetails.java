@@ -221,16 +221,28 @@ public class MarcRecordDetails {
 			LinkedHashSet<String> values = iTypesBySystem.get(subdomain);
 			addFields(mappedFields, "itype_" + subdomain, "itype_map", values);
 		}
-		addFields(mappedFields, "detailed_location", "detailed_location_map",
-				locationCodes);
+		addFields(mappedFields, "detailed_location", "detailed_location_map", locationCodes);
 		addFields(mappedFields, "available_at", null, availableAt);
 		addFields(mappedFields, "availability_toggle", null, availabilityToggleGlobal);
 		for (String subdomain : locationsCodesBySystem.keySet()) {
 			LinkedHashSet<String> values = locationsCodesBySystem.get(subdomain);
-			addFields(mappedFields, "detailed_location_" + subdomain,
-					"detailed_location_map", values);
+			addFields(mappedFields, "detailed_location_" + subdomain, "detailed_location_map", values);
 			if (values.size() > 0) {
-				addField(mappedFields, "lib_boost_" + subdomain, "500");
+				//If the title is available at one of the locations, we will boost by 500.  Otherwise we boost by 250.
+				//This will make the available titles show first.
+				HashSet availability = availableAtBySystemOrLocation.get(subdomain);
+				boolean availableAtLocation = false;
+				if (availability != null){
+					if (availability.size() == 2){
+						availableAtLocation = true;
+					}
+				}
+
+				if (availableAtLocation){
+					addField(mappedFields, "lib_boost_" + subdomain, "500");
+				}else{
+					addField(mappedFields, "lib_boost_" + subdomain, "250");
+				}
 			}
 			LinkedHashSet<String> timesAddedBySystem = timeSinceAddedBySystem.get(subdomain);
 			if (timesAddedBySystem != null && timesAddedBySystem.size() > 0) {
