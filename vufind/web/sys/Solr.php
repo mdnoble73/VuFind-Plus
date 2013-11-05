@@ -712,7 +712,7 @@ class Solr implements IndexEngine {
 			//Handle boosting even if we are in a global scope
 			global $library;
 			if ($library && $library->boostByLibrary == 1){
-				$boostFactors[] = "sum(div(lib_boost_{$searchLibrary->subdomain},10),1)";
+				$boostFactors[] = "sum(div(lib_boost_{$library->subdomain},10),1)";
 			}
 		}
 
