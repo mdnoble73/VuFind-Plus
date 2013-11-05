@@ -136,7 +136,7 @@ class CheckedOut extends MyResearch{
 		//Determine which columns to show
 		$ils = $configArray['Catalog']['ils'];
 		$showOut = ($ils == 'Horizon');
-		$showRenewed = ($ils == 'Horizon' || $ils == 'Millennium');
+		$showRenewed = ($ils == 'Horizon' || $ils == 'Millennium' || $ils == 'Sierra');
 		$showWaitList = ($ils == 'Horizon');
 
 		$interface->assign('showOut', $showOut);

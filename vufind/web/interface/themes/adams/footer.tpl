@@ -17,7 +17,7 @@
 		{/if}
 		<li><a href="{$path}/Search/Results">{translate text='Standard Search'}</a></li>
 		<li><a href="{$path}/Search/Advanced">{translate text='Advanced Search'}</a></li>
-		<li><a href="https://www.millennium.marmot.org/search~S1/">{translate text='Classic Catalog'}</a></li>
+		<li><a href="https://sierra.marmot.org/search~S1/">{translate text='Classic Catalog'}</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>

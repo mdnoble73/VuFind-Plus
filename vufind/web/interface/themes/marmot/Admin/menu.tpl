@@ -17,7 +17,7 @@
 			<div class="adminMenuLink {if $action == "UserSuggestions"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/UserSuggestions">User Suggestions</a></div>
 			<div class="adminMenuLink {if $action == "BookStores"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/BookStores">Book Stores</a></div>
 		{/if}
-		{if $ils == 'Millennium' && $user->hasRole('opacAdmin')}
+		{if ($ils == 'Millennium' || $ils == 'Sierra') && $user->hasRole('opacAdmin')}
 			<div class="adminMenuLink {if $action == "PTypes"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/PTypes">P-Types</a></div>
 			<div class="adminMenuLink {if $action == "CirculationStatuses"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/CirculationStatuses">Circulation Statuses</a></div>
 			<div class="adminMenuLink {if $action == "LoanRules"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/LoanRules">Loan Rules</a></div>

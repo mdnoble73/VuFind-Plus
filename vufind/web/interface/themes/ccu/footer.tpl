@@ -16,7 +16,7 @@
 </div>
 <div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>
 	<ul>
-		<li><a href="http://www.millennium.marmot.org/screens/course_s25.html">{translate text='Course Reserves'}</a></li>
+		<li><a href="http://sierra.marmot.org/screens/course_s25.html">{translate text='Course Reserves'}</a></li>
 		{if !($action == 'Home' && $module == 'Search')}
 			<li><a href="http://www.ccu.edu/library">{translate text='CCU Library Home Page'}</a></li>
 		{/if}

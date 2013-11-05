@@ -176,7 +176,7 @@ window.onload = start
 			
 			<h1>Marmot Catalog is Down</h1>
 			<h2>for scheduled maintenance</h2>
-			<h4> Please search our <a href="http://www.millennium.marmot.org/">Classic Catalog</a></h4>
+			<h4> Please search our <a href="http://sierra.marmot.org/">Classic Catalog</a></h4>
 			<h3> ___ </h3>
 			<h3 id="message"></h3>
 		</div>

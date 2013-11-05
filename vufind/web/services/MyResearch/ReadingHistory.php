@@ -65,7 +65,7 @@ class ReadingHistory extends MyResearch
 					}
 
 					// Define sorting options
-					if (strcasecmp($configArray['Catalog']['ils'], 'Millennium') == 0){
+					if (strcasecmp($configArray['Catalog']['ils'], 'Millennium') == 0 ||  $configArray['Catalog']['ils'] == 'Sierra'){
 						$sortOptions = array('title' => 'Title',
 						                     'author' => 'Author',
 						                     'checkedOut' => 'Checkout Date',
