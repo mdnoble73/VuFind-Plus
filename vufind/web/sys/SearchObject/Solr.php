@@ -238,7 +238,9 @@ class SearchObject_Solr extends SearchObject_Base
 			preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $_REQUEST['lookfor']))) {
 				require_once(ROOT_DIR . '/sys/ISBN.php');
 				$isbn = new ISBN($_REQUEST['lookfor']);
-				$_REQUEST['lookfor'] = $isbn->get10() . ' OR ' . $isbn->get13();
+				if ($isbn->isValid()){
+					$_REQUEST['lookfor'] = $isbn->get10() . ' OR ' . $isbn->get13();
+				}
 			}
 		}
 
