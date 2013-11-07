@@ -821,12 +821,8 @@ class MarcRecord extends IndexRecord
 		if (!$descriptionArray){
 			require_once ROOT_DIR . '/services/Record/Description.php';
 
-			global $library;
-			$allowExternalDescription = true;
-			if (isset($library) && $library->preferSyndeticsSummary == 0){
-				$allowExternalDescription = false;
-			}
-			$descriptionArray = Record_Description::loadDescriptionFromMarc($this->marcRecord, $allowExternalDescription);
+			$timer->logTime("Starting to load description for marc record");
+			$descriptionArray = Record_Description::loadDescriptionFromMarc($this->marcRecord, false);
 			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
 			$timer->logTime("Retrieved description for marc record");
 		}

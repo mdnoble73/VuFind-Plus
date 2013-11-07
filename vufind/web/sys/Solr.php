@@ -1879,7 +1879,7 @@ class Solr implements IndexEngine {
 			}
 		}
 		$result = json_decode($result, true);
-		$timer->logTime("receive resut from solr and load from json data");
+		$timer->logTime("receive result from solr and load from json data");
 
 		// Inject highlighting details into results if necessary:
 		if (isset($result['highlighting'])) {
