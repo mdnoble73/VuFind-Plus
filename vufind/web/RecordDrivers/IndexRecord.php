@@ -766,6 +766,7 @@ class IndexRecord implements RecordInterface
 		global $memCache;
 		global $configArray;
 		global $interface;
+		global $timer;
 		$id = $this->getUniqueID();
 		//Bypass loading solr, etc if we already have loaded the descriptive info before
 		$descriptionArray = $memCache->get("record_description_{$id}");
@@ -777,6 +778,7 @@ class IndexRecord implements RecordInterface
 			$description = new Record_Description(true, $id);
 			$descriptionArray = $description->loadData();
 			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
+			$timer->logTime("Retrieved description for index record");
 		}
 		$interface->assign('description', $descriptionArray['description']);
 		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');

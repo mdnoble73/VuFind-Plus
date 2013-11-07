@@ -47,15 +47,10 @@ class EcontentRecord_Description extends Action{
 	}
 
 	function loadData(){
-		global $library;
-		$allowExternalDescription = true;
-		if (isset($library) && $library->preferSyndeticsSummary == 0){
-			$allowExternalDescription = false;
-		}
 		return EcontentRecord_Description::loadDescription($this->eContentRecord);
 	}
 
-	static function loadDescription($eContentRecord){
+	static function loadDescription($eContentRecord, $forSummary = false){
 		$descriptionArray = array();
 		//Load the description
 		if (strlen($eContentRecord->description) > 0) {
@@ -67,6 +62,9 @@ class EcontentRecord_Description extends Action{
 			global $library;
 			$allowExternalDescription = true;
 			if (isset($library) && $library->preferSyndeticsSummary == 0){
+				$allowExternalDescription = false;
+			}
+			if ($forSummary){
 				$allowExternalDescription = false;
 			}
 			$descriptionArray = Record_Description::loadDescriptionFromMarc($marc, $allowExternalDescription);
