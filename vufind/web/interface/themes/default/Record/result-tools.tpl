@@ -12,7 +12,7 @@
 *}
 <div class="resultAction"><a href="{$path}/Record/{$summId|escape:"url"}/SimilarTitles"><img src="/images/silk/arrow_switch.png">&nbsp;More Like This</a></div>
 {if $showComments == 1}
-	{include file="Record/title-review.tpl"}
+	{include file="Record/title-review.tpl" id=$summId shortId=$summShortId}
 {/if}
 {if $showFavorites == 1}
 <div id="saveLink{$recordId|escape}" class="resultAction">
