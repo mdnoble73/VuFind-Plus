@@ -21,10 +21,12 @@ class Circa_OfflineCirculation extends Action{
 			$interface->assign('lastLogin', $login);
 			$password1 = $_REQUEST['password1'];
 			$interface->assign('lastPassword1', $password1);
+			/*
 			$initials = $_REQUEST['initials'];
 			$interface->assign('lastInitials', $initials);
 			$password2 = $_REQUEST['password2'];
 			$interface->assign('lastPassword2', $password2);
+			*/
 
 			$loginInfoValid = true;
 			if (strlen($login) == 0){
@@ -35,12 +37,12 @@ class Circa_OfflineCirculation extends Action{
 				$results .= "Please enter your login password";
 				$loginInfoValid = false;
 			}
-			if (strlen($initials) == 0){
+			/*if (strlen($initials) == 0){
 				$initials = $login;
 			}
 			if (strlen($password2) == 0){
 				$password2 = $password1;
-			}
+			}*/
 
 			if ($loginInfoValid){
 				//$barcodesToCheckIn = $_REQUEST['barcodesToCheckIn'];
@@ -84,8 +86,8 @@ class Circa_OfflineCirculation extends Action{
 							$offlineCirculationEntry->itemBarcode = $barcode;
 							$offlineCirculationEntry->login = $login;
 							$offlineCirculationEntry->loginPassword = $password1;
-							$offlineCirculationEntry->initials = $initials;
-							$offlineCirculationEntry->initialsPassword = $password2;
+							//$offlineCirculationEntry->initials = $initials;
+							//$offlineCirculationEntry->initialsPassword = $password2;
 							$offlineCirculationEntry->patronBarcode = $patronBarcode;
 							$offlineCirculationEntry->patronId = $patronId;
 							$offlineCirculationEntry->type = 'Check Out';
