@@ -253,6 +253,10 @@ public class OfflineCirculation implements IProcessHandler {
 					boolean bypassPatronPage = true;
 					if (lastPatronBarcode == null || !lastPatronBarcode.equals(patronBarcode) || lastPatronHadError){
 						bypassPatronPage = false;
+						if (lastPatronBarcode != null){
+							//Go back to the home page
+							URLPostResponse circaMenuPageResponse = Util.getURL(baseAirpacUrl, logger);
+						}
 						lastPatronBarcode = patronBarcode;
 						lastPatronHadError = false;
 					}
