@@ -60,6 +60,13 @@ class Record_Description extends Record_Record{
 		/** @var Memcache $memCache */
 		global $memCache;
 
+		if (!$marcRecord){
+			$descriptionArray = array();
+			$description = "Description Not Provided";
+			$descriptionArray['description'] = $description;
+			return $descriptionArray;
+		}
+
 		// Get ISBN for cover and review use
 		$isbn = null;
 		/** @var File_MARC_Data_Field[] $isbnFields */
