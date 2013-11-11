@@ -261,7 +261,7 @@ class User_list extends SolrDataObject
 		$location->find();
 		while ($location->fetch() == true){
 			$structure['format_' . $location->code] = array(
-				'property' => 'format',
+				'property' => 'format_' . $location->code,
 				'type' => 'method',
 				'methodName' => 'format',
 				'storeDb' => false,
