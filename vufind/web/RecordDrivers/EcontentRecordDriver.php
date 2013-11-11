@@ -481,14 +481,16 @@ class EcontentRecordDriver extends IndexRecord
 		global $memCache;
 		global $configArray;
 		global $interface;
+		global $timer;
 		$id = $this->getUniqueID();
 		//Bypass loading solr, etc if we already have loaded the descriptive info before
 		$descriptionArray = $memCache->get("record_description_{$id}");
 		if (!$descriptionArray){
 			require_once ROOT_DIR . '/services/EcontentRecord/Description.php';
 			$description = new EcontentRecord_Description(true, $id);
-			$descriptionArray = $description->loadDescription($this->eContentRecord);
+			$descriptionArray = $description->loadDescription($this->eContentRecord, true);
 			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
+			$timer->logTime("Retrieved description for econtent record");
 		}
 		$interface->assign('description', $descriptionArray['description']);
 		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');

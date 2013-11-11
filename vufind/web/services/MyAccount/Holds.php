@@ -75,7 +75,7 @@ class MyAccount_Holds extends MyResearch{
 		$libraryHoursMessage = Location::getLibraryHoursMessage($profile['homeLocationId']);
 		$interface->assign('libraryHoursMessage', $libraryHoursMessage);
 
-		$allowChangeLocation = ($ils == 'Millennium');
+		$allowChangeLocation = ($ils == 'Millennium' || $ils == 'Sierra');
 		$interface->assign('allowChangeLocation', $allowChangeLocation);
 		$showPlacedColumn = ($ils == 'Horizon');
 		$interface->assign('showPlacedColumn', $showPlacedColumn);

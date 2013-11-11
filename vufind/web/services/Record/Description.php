@@ -36,25 +36,40 @@ class Record_Description extends Record_Record{
 		$interface->display('layout.tpl', $this->cacheId);
 	}
 
-	function loadData(){
+	function loadData($forSummary = false){
 		global $library;
 		$allowExternalDescription = true;
 		if (isset($library) && $library->preferSyndeticsSummary == 0){
+			$allowExternalDescription = false;
+		}
+		if ($forSummary){
 			$allowExternalDescription = false;
 		}
 		return Record_Description::loadDescriptionFromMarc($this->marcRecord, $allowExternalDescription);
 
 	}
 
+	/**
+	 * @param File_MARC_Record $marcRecord
+	 * @param bool $allowExternalDescription
+	 * @return mixed
+	 */
 	static function loadDescriptionFromMarc($marcRecord, $allowExternalDescription = true){
 		global $interface;
 		global $configArray;
-		global $library;
-		global $timer;
+		/** @var Memcache $memCache */
 		global $memCache;
+
+		if (!$marcRecord){
+			$descriptionArray = array();
+			$description = "Description Not Provided";
+			$descriptionArray['description'] = $description;
+			return $descriptionArray;
+		}
 
 		// Get ISBN for cover and review use
 		$isbn = null;
+		/** @var File_MARC_Data_Field[] $isbnFields */
 		if ($isbnFields = $marcRecord->getFields('020')) {
 			//Use the first good ISBN we find.
 			foreach ($isbnFields as $isbnField){
@@ -80,9 +95,10 @@ class Record_Description extends Record_Record{
 		}
 
 		$upc = null;
+		/** @var File_MARC_Data_Field $upcField */
 		if ($upcField = $marcRecord->getField('024')) {
-			if ($upcField = $upcField->getSubfield('a')) {
-				$upc = trim($upcField->getData());
+			if ($upcSubfield = $upcField->getSubfield('a')) {
+				$upc = trim($upcSubfield->getData());
 			}
 		}
 
@@ -90,6 +106,7 @@ class Record_Description extends Record_Record{
 		if (!$descriptionArray){
 			$marcDescription = null;
 			$description = '';
+			/** @var File_MARC_Data_Field $descriptionField */
 			if ($descriptionField = $marcRecord->getField('520')) {
 				if ($descriptionSubfield = $descriptionField->getSubfield('a')) {
 					$description = trim($descriptionSubfield->getData());
@@ -124,10 +141,11 @@ class Record_Description extends Record_Record{
 
 
 			//Load page count
+			/** @var File_MARC_Data_Field $length */
 			if ($length = $marcRecord->getField('300')){
-				if ($length = $length->getSubfield('a')){
+				if ($lengthSubfield = $length->getSubfield('a')){
 
-					$length = trim($length->getData());
+					$length = trim($lengthSubfield->getData());
 					$length = preg_replace("/[\\/|;:]/","",$length);
 					$length = preg_replace("/p\./","pages",$length);
 					$descriptionArray['length'] = $length;
@@ -136,9 +154,10 @@ class Record_Description extends Record_Record{
 			}
 
 			//Load publisher
+			/** @var File_MARC_Data_Field $publisher */
 			if ($publisher = $marcRecord->getField('260')){
-				if ($publisher = $publisher->getSubfield('b')){
-					$publisher = trim($publisher->getData());
+				if ($publisherSubfield = $publisher->getSubfield('b')){
+					$publisher = trim($publisherSubfield->getData());
 
 					$descriptionArray['publisher'] = $publisher;
 				}

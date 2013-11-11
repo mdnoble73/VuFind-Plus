@@ -52,8 +52,8 @@ class Resource_AJAX extends Action {
 		$result = array();
 		if (UserAccount::isLoggedIn()) {
 			$saveService = new Save();
-			$result = $saveService->saveRecord();
-			if (!PEAR_Singleton::isError($result)) {
+			$saveResult = $saveService->saveRecord();
+			if (!PEAR_Singleton::isError($result) && $saveResult == true) {
 				$result['result'] = "Done";
 			} else {
 				$result['result'] = "Error";

@@ -30,10 +30,10 @@
 				</div>
 			</div>
 			<div class="clearer"></div>
-			{if $widget->showTitle}
+			{if !isset($widget) || $widget->showTitle}
 				<div id="titleScrollerSelectedTitle{$scrollerName}" class="titleScrollerSelectedTitle"></div>
 			{/if}
-			{if $widget->showAuthor}
+			{if !isset($widget) || $widget->showAuthor}
 				<div id="titleScrollerSelectedAuthor{$scrollerName}" class="titleScrollerSelectedAuthor"></div>
 			{/if}
 		</div>    

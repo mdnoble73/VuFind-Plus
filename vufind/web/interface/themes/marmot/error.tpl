@@ -145,7 +145,7 @@ window.onload = start
 			<h1>Oops, an error occurred</h1>
 			<h2>This error has been logged and we are working on a fix.</h2>
 			<h4>{$error->getMessage()}</h4>
-			<h4>If this problem persists, please try our <a href="http://www.millennium.marmot.org">classic catalog</a><br /></h4>
+			<h4>If this problem persists, please try our <a href="http://sierra.marmot.org">classic catalog</a><br /></h4>
 		</div>
 		<div id ="debug">
 			{if $debug}

@@ -41,7 +41,7 @@
 <div class="resultAction"><a href="{$path}/EcontentRecord/{$summId|escape:"url"}/SimilarTitles"><img src="/images/silk/arrow_switch.png">&nbsp;</span>More Like This</a></div>
 {if $showComments == 1}
 	{assign var=id value=$summId scope="global"}
-	{include file="EcontentRecord/title-review.tpl" id=$summId}
+	{include file="EcontentRecord/title-review.tpl"  id=$summId shortId=$summShortId}
 {/if}
 {if $showFavorites == 1}
 	<div id="saveLink{$recordId|escape}" class="resultAction">

@@ -353,7 +353,7 @@ class DataObjectUtil
 				$subStructure = $property['structure'];
 				foreach ($idsToSave as $id){
 					//Create the subObject
-					if ($id < 0){
+					if ($id < 0 || $id == ""){
 						$subObject = new $subObjectType();
 					}else{
 						$subObject = $existingValues[$id];

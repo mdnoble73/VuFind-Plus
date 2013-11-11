@@ -124,7 +124,7 @@ class EcontentRecord_Home extends Action{
 			$this->recordDriver = new EcontentRecordDriver();
 			$this->recordDriver->setDataObject($eContentRecord);
 
-			if ($configArray['Catalog']['ils'] == 'Millennium'){
+			if ($configArray['Catalog']['ils'] == 'Millennium' || $configArray['Catalog']['ils'] == 'Sierra'){
 				if (isset($eContentRecord->ilsId) && strlen($eContentRecord->ilsId) > 0){
 					$interface->assign('classicId', substr($eContentRecord->ilsId, 1, strlen($eContentRecord->ilsId) -2));
 					$interface->assign('classicUrl', $configArray['Catalog']['linking_url']);

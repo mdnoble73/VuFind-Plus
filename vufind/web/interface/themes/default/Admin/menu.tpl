@@ -34,7 +34,7 @@
 		<div class="adminMenuLink {if $action == "ListWidgets"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/ListWidgets">List Widgets</a></div>
 		<div class="adminMenuLink {if $action == "UserSuggestions"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/UserSuggestions">User Suggestions</a></div>
 		<div class="adminMenuLink {if $action == "BookStores"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/BookStores">Book Stores</a></div>
-		{if $ils == 'Millennium'}
+		{if $ils == 'Millennium' || $ils == 'Sierra'}
 			<div class="adminMenuLink {if $action == "CirculationStatuses"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/CirculationStatuses">Circulation Statuses</a></div>
 			<div class="adminMenuLink {if $action == "NonHoldableLocations"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/NonHoldableLocations">Non-Holdable Locations</a></div>
 			<div class="adminMenuLink {if $action == "PTypeRestrictedLocations"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/PTypeRestrictedLocations">PType Restricted Locations</a></div>

@@ -808,6 +808,30 @@ class MarcRecord extends IndexRecord
 
 		return $email;
 	}
+
+	function getDescription(){
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $configArray;
+		global $interface;
+		global $timer;
+		$id = $this->getUniqueID();
+		//Bypass loading solr, etc if we already have loaded the descriptive info before
+		$descriptionArray = $memCache->get("record_description_{$id}");
+		if (!$descriptionArray){
+			require_once ROOT_DIR . '/services/Record/Description.php';
+
+			$timer->logTime("Starting to load description for marc record");
+			$descriptionArray = Record_Description::loadDescriptionFromMarc($this->marcRecord, false);
+			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
+			$timer->logTime("Retrieved description for marc record");
+		}
+		$interface->assign('description', $descriptionArray['description']);
+		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');
+		$interface->assign('publisher', isset($descriptionArray['publisher']) ? $descriptionArray['publisher'] : '');
+
+		return $interface->fetch('Record/ajax-description-popup.tpl');
+	}
 }
 
 ?>

@@ -115,7 +115,7 @@ abstract class Record_Record extends Action
 			die();
 		}
 
-		if ($configArray['Catalog']['ils'] == 'Millennium'){
+		if ($configArray['Catalog']['ils'] == 'Millennium' || $configArray['Catalog']['ils'] == 'Sierra'){
 			$interface->assign('classicId', substr($this->id, 1, strlen($this->id) -2));
 			$interface->assign('classicUrl', $configArray['Catalog']['linking_url']);
 		}

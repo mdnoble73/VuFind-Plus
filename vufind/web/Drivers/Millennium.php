@@ -55,7 +55,7 @@ class MillenniumDriver implements DriverInterface
 	 *
 	 * @return void
 	 */
-	private function loadCircStatusInfo(){
+	protected function loadCircStatusInfo(){
 		if (is_null($this->holdableStatiRegex)){
 			$circStatus = new CirculationStatus();
 			$circStatus->find();
@@ -85,7 +85,7 @@ class MillenniumDriver implements DriverInterface
 	var $loanRules = null;
 	/** @var LoanRuleDeterminer[] $loanRuleDeterminers */
 	var $loanRuleDeterminers = null;
-	private function loadLoanRules(){
+	protected function loadLoanRules(){
 		if (is_null($this->loanRules)){
 			/** @var Memcache $memCache */
 			global $memCache;
@@ -618,7 +618,9 @@ class MillenniumDriver implements DriverInterface
 		require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
-		$profile = array_merge($profile, $overDriveSummary);
+		$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
+		$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
+		$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
 
 		$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $overDriveSummary['numCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
 		$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $overDriveSummary['numAvailableHolds'] + $eContentAccountSummary['numEContentAvailableHolds'];
@@ -1292,7 +1294,9 @@ class MillenniumDriver implements DriverInterface
 						$loanRule = $this->loanRules[$loanRuleDeterminer->loanRuleId];
 						//$logger->log("Determiner {$loanRuleDeterminer->rowNumber} indicates Loan Rule {$loanRule->loanRuleId} applies, holdable {$loanRule->holdable}", PEAR_LOG_DEBUG);
 						$holdable = ($loanRule->holdable == 1);
-						break;
+						if ($holdable || $pType != -1){
+							break;
+						}
 					}else{
 						//$logger->log("PType incorrect", PEAR_LOG_DEBUG);
 					}
@@ -1382,7 +1386,7 @@ class MillenniumDriver implements DriverInterface
 
 		foreach ($holdings as $itemNumber => $holding){
 			//Get the staff page for the record
-			//$curl_url = "https://www.millennium.marmot.org/search~S93?/Ypig&searchscope=93&SORT=D/Ypig&searchscope=93&SORT=D&SUBKEY=pig/1,383,383,B/staffi1~$shortId&FF=Ypig&2,2,";
+			//$curl_url = "https://sierra.marmot.org/search~S93?/Ypig&searchscope=93&SORT=D/Ypig&searchscope=93&SORT=D&SUBKEY=pig/1,383,383,B/staffi1~$shortId&FF=Ypig&2,2,";
 			$curl_url = $configArray['Catalog']['url'] . "/search~S{$scope}?/Ypig&searchscope={$scope}&SORT=D/Ypig&searchscope={$scope}&SORT=D&SUBKEY=pig/1,383,383,B/staffi$itemNumber~$shortId&FF=Ypig&2,2,";
 			$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
 			//echo "$curl_url";

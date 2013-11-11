@@ -326,22 +326,30 @@ class ListWidget extends DB_DataObject
 		$allListIds = $listAPI->getAllListIds();
 
 		foreach ($this->lists as $list){
-			//Check to make sure that all list names are unique
-			if (in_array($list->name, $listNames)){
-				$validationResults['errors'][] = "This name {$list->name} was used mulitple times.  Please make sure that each name is unique.";
-			}
-			$listNames[] = $list->name;
-
-			//Check to make sure that each list source is valid
-			$source = $list->source;
-			//The source is valid if it is in the all lists array or if it starts with strands: or review:
-			if (preg_match('/^(strands:|review:|search:).*/', $source)){
-				//source is valid
-			}elseif (in_array($source, $allListIds)){
-				//source is valid
+			if (isset($list->deleteOnSave) && $list->deleteOnSave == true){
+				//Don't validate
 			}else{
-				//source is not valid
-				$validationResults['errors'][] = "This source {$list->source} is not valid.  Please enter a valid list source.";
+				//Check to make sure that all list names are unique
+				if (in_array($list->name, $listNames)){
+					$validationResults['errors'][] = "This name {$list->name} was used multiple times.  Please make sure that each name is unique.";
+				}
+				$listNames[] = $list->name;
+
+				//Check to make sure that each list source is valid
+				$source = $list->source;
+				//The source is valid if it is in the all lists array or if it starts with strands: or review:
+				if (preg_match('/^(strands:|review:|search:).*/', $source)){
+					//source is valid
+				}elseif (in_array($source, $allListIds)){
+					//source is valid
+				}else{
+					//source is not valid
+					if (preg_match('/^(list:).*/', $source)){
+						$validationResults['errors'][] = "This source {$list->source} is not valid.  Please make sure that the list id exists and is public.";
+					}else{
+						$validationResults['errors'][] = "This source {$list->source} is not valid.  Please enter a valid list source.";
+					}
+				}
 			}
 		}
 

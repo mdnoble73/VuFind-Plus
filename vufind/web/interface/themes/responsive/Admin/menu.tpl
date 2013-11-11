@@ -25,7 +25,7 @@
 						<div class="adminMenuLink {if $action == "UserSuggestions"}active{/if}"><a href="{$path}/Admin/UserSuggestions">User Suggestions</a></div>
 						<div class="adminMenuLink {if $action == "BookStores"}active{/if}"><a href="{$path}/Admin/BookStores">Book Stores</a></div>
 					{/if}
-					{if $ils == 'Millennium' && $user->hasRole('opacAdmin')}
+					{if ($ils == 'Millennium' || $ils == 'Sierra') && $user->hasRole('opacAdmin')}
 						<div class="adminMenuLink {if $action == "PTypes"}active{/if}"><a href="{$path}/Admin/PTypes">P-Types</a></div>
 						<div class="adminMenuLink {if $action == "CirculationStatuses"}active{/if}"><a href="{$path}/Admin/CirculationStatuses">Circulation Statuses</a></div>
 						<div class="adminMenuLink {if $action == "LoanRules"}active{/if}"><a href="{$path}/Admin/LoanRules">Loan Rules</a></div>

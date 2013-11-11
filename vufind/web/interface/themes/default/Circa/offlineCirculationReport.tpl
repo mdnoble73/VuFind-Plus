@@ -17,6 +17,7 @@
 							<div>
 								<label for="endDate">End Date</label> <input type="text" name="endDate" id="endDate" size="10" value="{$endDate|date_format:'%m/%d/%Y'}"/>
 							</div>
+							{*
 							<div>
 								<label for="typesToInclude">Include</label>
 								<select name="typesToInclude" id="statiToInclude">
@@ -25,6 +26,20 @@
 									<option value="checkins" {if $typesToInclude=='checkins'}selected="selected"{/if}>Check Ins</option>
 								</select>
 							</div>
+							*}
+							<div>
+								<label for="loginsToInclude">Logins To Show</label> <input type="text" name="loginsToInclude" id="startDate" size="10" value="{$loginsToInclude}" title="Separate multiple logins with commas, leave blank to include all"/>
+							</div>
+							<div>
+								<label for="hideNotProcessed"><input type="checkbox" name="hideNotProcessed" id="hideNotProcessed" {if $hideNotProcessed}checked="checked"{/if}/> Hide Not Processed</label>
+							</div>
+							<div>
+								<label for="hideFailed"><input type="checkbox" name="hideFailed" id="hideFailed" {if $hideFailed}checked="checked"{/if}/> Hide Failed</label>
+							</div>
+							<div>
+								<label for="hideSuccess"><input type="checkbox" name="hideSuccess" id="hideSuccess" {if $hideSuccess}checked="checked"{/if}/> Hide Successful</label>
+							</div>
+							<br/>
 							<div>
 								<input type="submit" name="updateFilters" value="Update Filters"/>
 							</div>
@@ -42,11 +57,11 @@
 			{if count($offlineCirculation) > 0}
 				<table class="citation">
 					<thead>
-					<tr><th>Login</th><th>Initials</th><th>Type</th><th>Item Barcode</th><th>Patron Barcode</th><th>Date Entered</th><th>Status</th><th>Notes</th></tr>
+					<tr><th>Login</th>{*<th>Initials</th><th>Type</th>*}<th>Item Barcode</th><th>Patron Barcode</th><th>Date Entered</th><th>Status</th><th>Notes</th></tr>
 					</thead>
 					<tbody>
 					{foreach from=$offlineCirculation item=offlineCircEntry}
-						<tr><td>{$offlineCircEntry->login}</td><td>{$offlineCircEntry->initials}</td><td>{$offlineCircEntry->type}</td><td>{$offlineCircEntry->itemBarcode}</td><td>{$offlineCircEntry->patronBarcode}</td><td>{$offlineCircEntry->timeEntered|date_format}</td><td>{$offlineCircEntry->status}</td><td>{$offlineCircEntry->notes}</td></tr>
+						<tr><td>{$offlineCircEntry->login}</td>{*<td>{$offlineCircEntry->initials}</td><td>{$offlineCircEntry->type}</td>*}<td>{$offlineCircEntry->itemBarcode}</td><td>{$offlineCircEntry->patronBarcode}</td><td>{$offlineCircEntry->timeEntered|date_format}</td><td>{$offlineCircEntry->status}</td><td>{$offlineCircEntry->notes}</td></tr>
 					{/foreach}
 					</tbody>
 				</table>

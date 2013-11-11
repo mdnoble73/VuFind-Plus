@@ -25,10 +25,18 @@ class Circa_OfflineCirculationReport extends Admin_Admin{
 			$endDate = new DateTime();
 		}
 		$typesToInclude = isset($_REQUEST['typesToInclude']) ? $_REQUEST['typesToInclude'] : 'everything';
+		$loginsToInclude = isset($_REQUEST['loginsToInclude']) ? $_REQUEST['loginsToInclude'] : '';
+		$hideNotProcessed = isset($_REQUEST['hideNotProcessed']);
+		$hideFailed = isset($_REQUEST['hideFailed']);
+		$hideSuccess = isset($_REQUEST['hideSuccess']);
 
 		$interface->assign('startDate', $startDate->getTimestamp());
 		$interface->assign('endDate', $endDate->getTimestamp());
 		$interface->assign('typesToInclude', $typesToInclude);
+		$interface->assign('loginsToInclude', $loginsToInclude);
+		$interface->assign('hideNotProcessed', $hideNotProcessed);
+		$interface->assign('hideFailed', $hideFailed);
+		$interface->assign('hideSuccess', $hideSuccess);
 
 
 		$offlineCirculationEntries = array();
@@ -38,6 +46,29 @@ class Circa_OfflineCirculationReport extends Admin_Admin{
 			$offlineCirculationEntryObj->type = 'Check Out';
 		}else if ($typesToInclude == 'checkins'){
 			$offlineCirculationEntryObj->type = 'Check In';
+		}
+		if ($hideFailed){
+			$offlineCirculationEntryObj->whereAdd("status != 'Processing Failed'", 'AND');
+		}
+		if ($hideSuccess){
+			$offlineCirculationEntryObj->whereAdd("status != 'Processing Succeeded'", 'AND');
+		}
+		if ($hideNotProcessed){
+			$offlineCirculationEntryObj->whereAdd("status != 'Not Processed'", 'AND');
+		}
+		if (strlen($loginsToInclude) > 0){
+			$logins = explode(',', $loginsToInclude);
+			$loginsToFind = '';
+			foreach ($logins as $login){
+				$login = trim($login);
+				if (strlen($loginsToFind) > 0){
+					$loginsToFind .= ", ";
+				}
+				$loginsToFind .= "'{$login}'";
+			}
+			if (strlen($loginsToFind) > 0){
+				$offlineCirculationEntryObj->whereAdd("login IN ($loginsToFind)", 'AND');
+			}
 		}
 		$offlineCirculationEntryObj->find();
 		while ($offlineCirculationEntryObj->fetch()){

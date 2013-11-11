@@ -47,36 +47,33 @@ class EcontentRecord_Description extends Action{
 	}
 
 	function loadData(){
-		global $library;
-		$allowExternalDescription = true;
-		if (isset($library) && $library->preferSyndeticsSummary == 0){
-			$allowExternalDescription = false;
-		}
 		return EcontentRecord_Description::loadDescription($this->eContentRecord);
 	}
 
-	static function loadDescription($eContentRecord){
-		global $interface;
-		global $configArray;
-		global $library;
-		global $timer;
-
-		$marc = MarcLoader::loadEContentMarcRecord($eContentRecord);
+	static function loadDescription($eContentRecord, $forSummary = false){
 		$descriptionArray = array();
 		//Load the description
 		if (strlen($eContentRecord->description) > 0) {
 			$descriptionArray['description'] = EcontentRecord_Description::trimDescription($eContentRecord->description);
 		}else{
-			//TODO: Check syndetics for eContent
-			$descriptionArray['description'] = "Description Not Provided";
+			$marc = MarcLoader::loadEContentMarcRecord($eContentRecord);
+			require_once ROOT_DIR . '/services/Record/Description.php';
+
+			global $library;
+			$allowExternalDescription = true;
+			if (isset($library) && $library->preferSyndeticsSummary == 0){
+				$allowExternalDescription = false;
+			}
+			if ($forSummary){
+				$allowExternalDescription = false;
+			}
+			$descriptionArray = Record_Description::loadDescriptionFromMarc($marc, $allowExternalDescription);
 		}
 
 		//Load publisher
 		$descriptionArray['publisher'] = $eContentRecord->publisher;
 
-		if($descriptionArray){
-			return $descriptionArray;
-		}
+		return $descriptionArray;
 	}
 
 	private function trimDescription($description){

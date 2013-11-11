@@ -381,6 +381,12 @@ Keyword:
       - [localized_callnumber, 300]
     local_callnumber:
       - [exact, ~]
+    barcode:
+      - [exact, ~]
+    target_audience:
+      - [onephrase, 75]
+    literary_form_full:
+      - [onephrase, 75]
 
 KeywordProper:
   DismaxFields:
@@ -398,6 +404,7 @@ KeywordProper:
     - callnumber-subject
     - local_callnumber_exact^800
     - local_callnumber_left^300
+    - barcode
 
   QueryFields:
     title_proper:
@@ -438,6 +445,8 @@ KeywordProper:
       - [localized_callnumber, 800]
     local_callnumber_left:
       - [localized_callnumber, 300]
+    barcode:
+      - [onephrase, ~]
 
 # These are advanced searches that never use Dismax:
 id:

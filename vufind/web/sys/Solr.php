@@ -708,10 +708,23 @@ class Solr implements IndexEngine {
 
 		if (isset($searchLibrary) && !is_null($searchLibrary) && $searchLibrary->boostByLibrary == 1) {
 			$boostFactors[] = "sum(div(lib_boost_{$searchLibrary->subdomain},10),1)";
+		}else{
+			//Handle boosting even if we are in a global scope
+			global $library;
+			if ($library && $library->boostByLibrary == 1){
+				$boostFactors[] = "sum(div(lib_boost_{$library->subdomain},10),1)";
+			}
 		}
 
 		if (isset($searchLocation) && !is_null($searchLocation) && $searchLocation->boostByLocation == 1) {
-			$boostFactors[] = "sum(div(loc_boost_{$searchLocation->code},10),1)";
+			$boostFactors[] = "sum(div(lib_boost_{$searchLocation->code},10),1)";
+		}else{
+			//Handle boosting even if we are in a global scope
+			global $locationSingleton;
+			$physicalLocation = $locationSingleton->getActiveLocation();
+			if ($physicalLocation != null && $physicalLocation->boostByLocation ==1){
+				$boostFactors[] = "sum(div(lib_boost_{$physicalLocation->code},10),1)";
+			}
 		}
 		return $boostFactors;
 	}
@@ -1866,7 +1879,7 @@ class Solr implements IndexEngine {
 			}
 		}
 		$result = json_decode($result, true);
-		$timer->logTime("receive resut from solr and load from json data");
+		$timer->logTime("receive result from solr and load from json data");
 
 		// Inject highlighting details into results if necessary:
 		if (isset($result['highlighting'])) {
