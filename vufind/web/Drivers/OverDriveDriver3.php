@@ -89,7 +89,8 @@ class OverDriveDriver3 {
 	return $tokenData;
 }
 
-	private function _connectToPatronAPI($patronBarcode, $patronPin = 1234, $forceNewConnection = false){
+	//private function _connectToPatronAPI($patronBarcode, $patronPin = 1234, $forceNewConnection = false){
+	private function _connectToPatronAPI($patronBarcode, $patronPin, $forceNewConnection = false){
 		/** @var Memcache $memCache */
 		global $memCache;
 		$patronTokenData = $memCache->get('overdrive_patron_token_' . $patronBarcode);
@@ -126,6 +127,7 @@ class OverDriveDriver3 {
 					$postFields = "grant_type=password&username={$patronBarcode}&password={$patronPin}&password_required=true&scope=websiteId:{$websiteId}%20ilsname:{$ilsname}";
 				}
 				//$postFields = "grant_type=client_credentials&scope=websiteid:{$websiteId}%20ilsname:{$ilsname}%20cardnumber:{$patronBarcode}";
+
 				curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
 
 				curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
@@ -188,7 +190,8 @@ class OverDriveDriver3 {
 				$headers = array(
 					"Authorization: $authorizationData",
 					"User-Agent: VuFind-Plus",
-					"Host: patron.api.overdrive.com"
+					// "Host: patron.api.overdrive.com" // production
+					"Host: integration-patron.api.overdrive.com" // testing
 				);
 			}else{
 				print_r($tokenData);
@@ -624,8 +627,13 @@ class OverDriveDriver3 {
 		global $memCache;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
-		$response = $this->_callPatronDeleteUrl($user->cat_password, null, $url);
-
+                $requirePin = $configArray['OverDrive']['requirePin'];
+                if ($requirePin){
+			$response = $this->_callPatronDeleteUrl($user->cat_username, $user->cat_password, $url);
+                }else{
+			$response = $this->_callPatronDeleteUrl($user->cat_password, null, $url);
+                }
+ 
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
 		$cancelHoldResult['message'] = '';
@@ -700,7 +708,13 @@ class OverDriveDriver3 {
 		global $memCache;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts/' . $overDriveId;
-		$response = $this->_callPatronDeleteUrl($user->cat_password, null, $url);
+
+                $requirePin = $configArray['OverDrive']['requirePin'];
+                if ($requirePin){
+                        $response = $this->_callPatronDeleteUrl($user->cat_username, $user->cat_password, $url);
+                }else{
+                        $response = $this->_callPatronDeleteUrl($user->cat_password, null, $url);
+                }
 
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
@@ -743,7 +757,7 @@ class OverDriveDriver3 {
 			$downloadLink = $this->getDownloadLink($overDriveId, $formatId, $user);
 			$result = $downloadLink;
 		}else{
-			$result['message'] = 'Sorry, but we could not select a format for you. ' . $response;
+			$result['message'] = 'Sorry, but we could not select a format for you. '  .$response->message;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Select Download Format', 'failed');
 		}
 		$memCache->delete('overdrive_summary_' . $user->id);
@@ -781,7 +795,7 @@ class OverDriveDriver3 {
 			$result['downloadUrl'] = $response->links->contentlink->href;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Get Download Link', 'succeeded');
 		}else{
-			$result['message'] = 'Sorry, but we could not get a download link for you.  ' . $response;
+			$result['message'] = 'Sorry, but we could not get a download link for you. ' . $response->message;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Get Download Link', 'failed');
 		}
 
