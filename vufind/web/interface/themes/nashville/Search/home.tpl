@@ -10,8 +10,8 @@
 		{if $widgets}
 			<div id="homePageLists">
 				{foreach from=$widgets item=widget}
-                    {include file='API/listWidgetTabs.tpl'}
-                {/foreach}
+                		    {include file='API/listWidgetTabs.tpl'}
+                		{/foreach}
 			</div>
 		{/if}
 	</div>
