@@ -190,8 +190,8 @@ class OverDriveDriver3 {
 				$headers = array(
 					"Authorization: $authorizationData",
 					"User-Agent: VuFind-Plus",
-					// "Host: patron.api.overdrive.com" // production
-					"Host: integration-patron.api.overdrive.com" // testing
+					"Host: patron.api.overdrive.com" // production
+					//"Host: integration-patron.api.overdrive.com" // testing
 				);
 			}else{
 				print_r($tokenData);
@@ -246,7 +246,8 @@ class OverDriveDriver3 {
 				$headers = array(
 					"Authorization: $authorizationData",
 					"User-Agent: VuFind-Plus",
-					"Host: integration-patron.api.overdrive.com"
+					"Host: patron.api.overdrive.com",
+					//"Host: integration-patron.api.overdrive.com"
 				);
 			}else{
 				$headers = array("User-Agent: VuFind-Plus", "Host: api.overdrive.com");
