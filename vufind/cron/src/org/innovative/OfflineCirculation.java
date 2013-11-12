@@ -43,15 +43,15 @@ public class OfflineCirculation implements IProcessHandler {
 
 		//Check to see if the system is offline
 		String offlineStr = configIni.get("Catalog", "offline");
-		if (offlineStr.toLowerCase().equals("true")){
-			processLog.addNote("Not processing offline circulation because the system is currently offline.");
-		}else{
+//		if (offlineStr.toLowerCase().equals("true")){
+//			processLog.addNote("Not processing offline circulation because the system is currently offline.");
+//		}else{
 			//process holds
 			processOfflineHolds(configIni, vufindConn);
 
 			//process checkouts and check ins
 			processOfflineCirculationEntries(configIni, vufindConn);
-		}
+//		}
 		processLog.setFinished();
 		processLog.saveToDatabase(vufindConn, logger);
 	}

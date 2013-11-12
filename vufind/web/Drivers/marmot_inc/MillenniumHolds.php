@@ -336,6 +336,9 @@ class MillenniumHolds{
 		$sCount = 0;
 		$sKeys = array_pad(array(),10,"");
 		foreach ($sRows as $sRow) {
+			if (strlen(trim($sRow)) == 0){
+				continue;
+			}
 			$sCols = preg_split("/<t(h|d)([^>]*)>/",$sRow);
 			$curHold= array();
 			$curHold['create'] = null;
@@ -370,11 +373,11 @@ class MillenniumHolds{
 						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $sCols[$i], $matches)) {
 							$shortId = $matches[1];
 							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
-							$title = $matches[2];
+							$title = strip_tags($matches[2]);
 						}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $sCols[$i], $matches)){
 							$shortId = $matches[1];
 							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
-							$title = $matches[2];
+							$title = strip_tags($matches[2]);
 						}else{
 							$bibid = '';
 							$shortId = '';
