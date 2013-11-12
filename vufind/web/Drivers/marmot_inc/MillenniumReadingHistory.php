@@ -39,6 +39,10 @@ class MillenniumReadingHistory {
 		$readingHistoryTitles = array();
 		$itemindex = 0;
 		foreach ($srows as $srow) {
+			$tmpRow = preg_replace('/\r\n|\n|\r/', "", strip_tags($srow));
+			if (strlen(trim($tmpRow)) == 0){
+				continue;
+			}
 			$scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
 			$historyEntry = array();
 			for ($i=0; $i < sizeof($scols); $i++) {
