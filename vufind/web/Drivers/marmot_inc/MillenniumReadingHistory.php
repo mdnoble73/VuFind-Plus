@@ -42,6 +42,8 @@ class MillenniumReadingHistory {
 			$tmpRow = preg_replace('/\r\n|\n|\r/', "", strip_tags($srow));
 			if (strlen(trim($tmpRow)) == 0){
 				continue;
+			}elseif(preg_match('/Result Page/', $tmpRow)){
+				continue;
 			}
 			$scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
 			$historyEntry = array();
