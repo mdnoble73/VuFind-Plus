@@ -501,6 +501,9 @@ abstract class SearchObject_Base
 						'lookfor' => $lookfor,
 						'bool'    => $_REQUEST['join'][$index]
 					);
+
+//var_dump($_REQUEST);
+
 					if ($_REQUEST['groupEnd'][$index] == 1){
 						// Add the completed group to the list
 						$this->searchTerms[] = array(
