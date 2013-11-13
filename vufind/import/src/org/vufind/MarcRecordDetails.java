@@ -185,6 +185,9 @@ public class MarcRecordDetails {
 		if (manuallySuppressed) {
 			logger.debug("Suppressing bib due to manual suppression");
 			bibSuppressed = true;
+		} else if (itemFields.size() == 0){
+			//Itemless bib
+			bibSuppressed = marcProcessor.isSuppressItemlessBibs();
 		} else if (allItemsSuppressed) {
 			logger.debug("Suppressing bib because all items are suppressed.");
 			bibSuppressed = true;
