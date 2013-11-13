@@ -5,6 +5,7 @@
 	<title>{$widget->name}</title>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
   {css filename="consolidated.min.css"}
+	{css filename="extra_styles.css"}
   
   <script type="text/javascript">
     path = '{$path}';

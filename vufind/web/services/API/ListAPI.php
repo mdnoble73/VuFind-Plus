@@ -713,6 +713,15 @@ class ListAPI extends Action {
 	 * or for a single product.
 	 */
 	function getCacheInfoForList() {
+		if (!isset($_REQUEST['id'])){
+			return array('success'=>false, 'message'=>'The id of the list to load must be provided as the id parameter.');
+		}
+
+		$listId = $_REQUEST['id'];
+		return $this->getCacheInfoForListId($listId);
+	}
+
+	function getCacheInfoForListId($listId) {
 		global $configArray;
 
 		if (isset($_REQUEST['username']) && isset($_REQUEST['password'])){
@@ -726,13 +735,11 @@ class ListAPI extends Action {
 
 		if ($user){
 			$userId = $user->id;
+		}else{
+			$userId = '';
 		}
 
-		if (!isset($_REQUEST['id'])){
-			return array('success'=>false, 'message'=>'The id of the list to load must be provided as the id parameter.');
-		}
 
-		$listId = $_REQUEST['id'];
 		if (is_numeric($listId) || preg_match('/list[-:](.*)/', $listId, $listInfo)){
 			if (isset($listInfo)){
 				$listId = $listInfo[1];
@@ -740,14 +747,14 @@ class ListAPI extends Action {
 			return array(
 				'cacheType' => 'general',
 				'cacheName' => 'list_general_list:' . $listId,
-				'cacheLength' => $configArray['Caching']['list_general']
+				'cacheLength' => $configArray['Caching']['list_general'],
+				'fullListLink' => $configArray['Site']['path'] . '/MyResearch/MyList/' . $listId,
 			);
 
 		}elseif (preg_match('/strands:(.*)/', $listId, $strandsInfo)){
 			//Load the data from strands
 			$strandsTemplate = $strandsInfo[1];
 			$recordId = isset($_REQUEST['recordId']) ? $_REQUEST['recordId'] : '';
-			$userId = $user ? $user->id : '';
 
 			//Determine how long the titles should be cached
 			if (isset($configArray['StrandsCaching'][$strandsTemplate])){
@@ -765,37 +772,43 @@ class ListAPI extends Action {
 			return array(
 				'cacheType' => $cacheType,
 				'cacheName' => $cacheName,
-				'cacheLength' => $cacheLength
+				'cacheLength' => $cacheLength,
+				'fullListLink' => ''
 			);
 		}elseif (preg_match('/review:(.*)/', $listId, $reviewInfo)){
 			return array(
 				'cacheType' => 'general',
 				'cacheName' => 'list_general_' . $listId,
-				'cacheLength' => $configArray['Caching']['list_general']
+				'cacheLength' => $configArray['Caching']['list_general'],
+				'fullListLink' => ''
 			);
 		}elseif ($listId == 'highestRated'){
 			return array(
 				'cacheType' => 'general',
 				'cacheName' => 'list_highest_rated_' . $listId,
-				'cacheLength' => $configArray['Caching']['list_highest_rated']
+				'cacheLength' => $configArray['Caching']['list_highest_rated'],
+				'fullListLink' => ''
 			);
 		}elseif ($listId == 'recentlyReviewed'){
 			return array(
 				'cacheType' => 'general',
 				'cacheName' => 'list_recently_reviewed_' . $listId,
-				'cacheLength' => $configArray['Caching']['list_recently_reviewed']
+				'cacheLength' => $configArray['Caching']['list_recently_reviewed'],
+				'fullListLink' => ''
 			);
 		}elseif ($listId == 'mostPopular'){
 			return array(
 				'cacheType' => 'general',
 				'cacheName' => 'list_most_popular_' . $listId,
-				'cacheLength' => $configArray['Caching']['list_most_popular']
+				'cacheLength' => $configArray['Caching']['list_most_popular'],
+				'fullListLink' => ''
 			);
 		}elseif ($listId == 'recommendations'){
 			return array(
 				'cacheType' => 'user',
 				'cacheName' => 'list_recommendations_' . $listId . '_' . $user->id,
-				'cacheLength' => $configArray['Caching']['list_recommendations']
+				'cacheLength' => $configArray['Caching']['list_recommendations'],
+				'fullListLink' => ''
 			);
 		}elseif (preg_match('/^search:(.*)/', $listId, $searchInfo)){
 			if (is_numeric($searchInfo[1])){
@@ -803,7 +816,8 @@ class ListAPI extends Action {
 				return array(
 					'cacheType' => 'general',
 					'cacheName' => 'list_general_search_' . $searchId,
-					'cacheLength' => $configArray['Caching']['list_general']
+					'cacheLength' => $configArray['Caching']['list_general'],
+					'fullListLink' => $configArray['Site']['path'] . '/Search/Results?saved=' . $searchId,
 				);
 			}else{
 				$requestUri = $_SERVER['REQUEST_URI'];
@@ -811,14 +825,16 @@ class ListAPI extends Action {
 				return array(
 					'cacheType' => 'general',
 					'cacheName' => 'list_general_search_' . md5($requestUri),
-					'cacheLength' => $configArray['Caching']['list_general']
+					'cacheLength' => $configArray['Caching']['list_general'],
+					'fullListLink' => ''
 				);
 			}
 		}else{
 			return array(
 				'cacheType' => 'general',
 				'cacheName' => 'list_general_' . $listId,
-				'cacheLength' => $configArray['Caching']['list_general']
+				'cacheLength' => $configArray['Caching']['list_general'],
+				'fullListLink' => ''
 			);
 		}
 	}
@@ -930,6 +946,7 @@ class ListAPI extends Action {
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
+		global $user;
 		$cacheId = 'saved_search_titles_' . $searchId;
 		$listTitles = $memCache->get($cacheId);
 		if ($listTitles == false || isset($_REQUEST['reload'])){
@@ -975,8 +992,25 @@ class ListAPI extends Action {
 					$descriptiveInfo = array();
 				}
 
+				$record['shortId'] = str_replace('.', '', $record['id']);
+
+				$resource = new Resource();
+				if ($record['recordtype'] == 'marc'){
+					$resource->source = 'VuFind';
+					$resource->record_id = $record['id'];
+				}else{
+					$resource->source = 'eContent';
+					$resource->record_id = $record['id'];
+				}
+				if ($resource->find(true)){
+					$ratingData = $resource->getRatingData($user);
+				}else{
+					$ratingData = null;
+				}
+
 				$listTitles[] = array(
 					'id' => $record['id'],
+					'shortId' => $record['shortId'],
 					'recordtype' => $record['recordtype'],
 					'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=medium&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . (isset( $record['format_category']) ? $record['format_category'][0] : ''),
 					'small_image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $record['id'] . "&issn=" . $issn . "&isn=" . $isbn . "&size=small&upc=" . (isset($record['upc']) ? $record['upc'][0] : '') . "&category=" . (isset( $record['format_category']) ? $record['format_category'][0] : ''),
@@ -985,6 +1019,7 @@ class ListAPI extends Action {
 					'description' => isset($descriptiveInfo['description']) ? $descriptiveInfo['description'] : null,
 					'length' => isset($descriptiveInfo['length']) ? $descriptiveInfo['length'] : null,
 					'publisher' => isset($descriptiveInfo['publisher']) ? $descriptiveInfo['publisher'] : null,
+					'ratingData' => $ratingData,
 				);
 			}
 

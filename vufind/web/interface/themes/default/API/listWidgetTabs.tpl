@@ -31,7 +31,11 @@
 			{assign var="scrollerName" value="$listName"}
 			{assign var="wrapperId" value="$listName"}
 			{assign var="scrollerVariable" value="listScroller$listName"}
-			{assign var="Links" value=$list->links}
+			{if $list->links}
+				{assign var="Links" value=$list->links}
+			{else}
+				{assign var="fullListLink" value=$list->fullListLink()}
+			{/if}
 			
 			{if count($widget->lists) == 1}
 				{assign var="scrollerTitle" value=$list->name}
