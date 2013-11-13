@@ -6,8 +6,8 @@
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_cmc%3A"Month"&amp;filter[]=format%3A"DVD"'>{translate text='New DVDs'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_cmc%3A"Month"&amp;filter[]=format_category%3A"Audio+Books"'>{translate text='New Audio Books &amp; CDs'}</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=local_time_since_added_cmc%3A"Week"'>{translate text='New This Week'}</a></li>
-		<li><a href='{$path}/MyResearch/MyList/6190'>{translate text='Business Titles: Steamboat Campus'}</a></li>
-		<li><a href='{$path}/MyResearch/MyList/5889'>{translate text='Sustainability Titles: Steamboat Campus'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=business&amp;type=Keyword&amp;basicType=Keyword&amp;filter[]=building%3A%22CMC+Steamboat+Campus%22&amp;filter[]=target_audience%3A%22Adult%22&amp;filter[]=literary_form_full%3A%22Non+Fiction%22&amp;sort=relevance&amp;view=list&amp;searchSource=library1'>{translate text='Business Titles: Steamboat Campus'}</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=sustainability&amp;type=Keyword&amp;basicType=Keyword&amp;filter[]=building%3A%22CMC+Steamboat+Campus%22&amp;filter[]=target_audience%3A%22Adult%22&amp;filter[]=literary_form_full%3A%22Non+Fiction%22&amp;sort=relevance&amp;view=list&amp;searchSource=library4'>{translate text='Sustainability Titles: Steamboat Campus'}</a></li>
 	</ul>
 </div>
 <div class="footerCol"><div><strong>{translate text='Search Options'}</strong></div>
