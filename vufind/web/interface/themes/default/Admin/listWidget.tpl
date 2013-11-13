@@ -49,6 +49,28 @@
 			<p>
 			Width and height can be adjusted as needed to fit within your site. 
 			</p>
+
+			<h2>On Select Callback</h2>
+			<p>To use the on select callback, you will need to provide additional javascript on the site where you are embedding the widget.  The javascript will be of the form:</p>
+			<code>
+				&lt;script type="text/javascript"&gt;<br/>{literal}
+					function handleTitleChange(newTitle){<br/>
+						//Do something with the title array here.<br/>
+						//title array contains the following elements:<br/>
+						//  author<br/>
+						//  description<br/>
+						//  formatted title - the title formatted for display in the widget<br/>
+						//  id<br/>
+						//  image - a medium size image for the title<br/>
+						//  length - a physical description for the title<br/>
+						//  publisher<br/>
+						//  recordtype<br/>
+						//  small_image - a small size image for the title<br/>
+						//  title<br/>
+					}<br/>
+				{/literal}&lt;/script&gt;
+			</code>
+			<p>You would then enter handleTitleChange as the onSelect callback.</p>
 		</div>
 		
 	</div>

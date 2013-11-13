@@ -32,7 +32,7 @@ class SearchAPI extends Action {
 		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
 		if (is_callable(array($this, $_GET['method']))) {
-			if (in_array($_GET['method'] , array('getSearchBar', 'getHomePageWidget', 'getListWidget'))){
+			if (in_array($_GET['method'] , array('getSearchBar', 'getListWidget'))){
 				$output = $this->$_GET['method']();
 			}else{
 				$output = json_encode(array('result'=>$this->$_GET['method']()));
@@ -206,12 +206,6 @@ class SearchAPI extends Action {
 	function getSearchBar(){
 		global $interface;
 		return $interface->fetch('API/searchbar.tpl');
-	}
-
-	function getHomePageWidget(){
-		global $interface;
-		$interface->caching = 1;
-		return $interface->fetch('API/homePageWidget.tpl');
 	}
 
 	function getListWidget(){
