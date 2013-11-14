@@ -24,115 +24,23 @@ class MillenniumReadingHistory {
 		//Load the information from millennium using CURL
 		$pageContents = $this->driver->_fetchPatronInfoPage($patronDump, 'readinghistory');
 
-		$sResult = preg_replace("/<[^<]+?><[^<]+?>Reading History.\(.\d*.\)<[^<]+?>\W<[^<]+?>/", "", $pageContents);
-
-		$s = substr($sResult, stripos($sResult, 'patFunc'));
-		$s = substr($s,strpos($s,">")+1);
-		$s = substr($s,0,stripos($s,"</table"));
-
-		$s = preg_replace ("/<br \/>/","", $s);
-
-		$srows = preg_split("/<tr([^>]*)>/",$s);
-
-		$scount = 0;
-		$skeys = array_pad(array(),10,"");
-		$readingHistoryTitles = array();
-		$itemindex = 0;
-		foreach ($srows as $srow) {
-			$tmpRow = preg_replace('/\r\n|\n|\r/', "", strip_tags($srow));
-			if (strlen(trim($tmpRow)) == 0){
-				continue;
-			}elseif(preg_match('/Result Page/', $tmpRow)){
-				continue;
+		//Check to see if there are multiple pages of reading history
+		$hasPagination = preg_match('/<td[^>]*class="browsePager"/', $pageContents);
+		$extraPagesToLoad = array();
+		if ($hasPagination){
+			//Load a list of extra pages to load.  The pagination links display multiple times, so load into an associative array to make them unique
+			preg_match_all('/<a href="readinghistory&page=(\\d+)">/', $pageContents, $additionalPageMatches);
+			foreach ($additionalPageMatches as $additionalPageMatch){
+				$extraPagesToLoad[$additionalPageMatch[1]] = $additionalPageMatch[1];
 			}
-			$scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
-			$historyEntry = array();
-			for ($i=0; $i < sizeof($scols); $i++) {
-				$scols[$i] = str_replace("&nbsp;"," ",$scols[$i]);
-				$scols[$i] = preg_replace ("/<br+?>/"," ", $scols[$i]);
-				$scols[$i] = html_entity_decode(trim(substr($scols[$i],0,stripos($scols[$i],"</t"))));
-				//print_r($scols[$i]);
-				if ($scount == 1) {
-					$skeys[$i] = $scols[$i];
-				} else if ($scount > 1) {
-					if (stripos($skeys[$i],"Mark") > -1) {
-						if (preg_match('/id="rsh(\\d+)"/', $scols[$i], $matches)){
-							$itemIndex = $matches[1];
-							$historyEntry['itemindex'] = $itemIndex;
-						}
-						$historyEntry['deletable'] = "BOX";
-					}
+		}
 
-					if (stripos($skeys[$i],"Title") > -1) {
-						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
-							$shortId = $matches[1];
-							$bibId = '.' . $matches[2];
-							$title = $matches[2];
-
-							$historyEntry['id'] = $bibId;
-							$historyEntry['shortId'] = $shortId;
-						}else{
-							$title = strip_tags($scols[$i]);
-						}
-
-						$historyEntry['title'] = $title;
-					}
-
-					if (stripos($skeys[$i],"Author") > -1) {
-						$historyEntry['author'] = strip_tags($scols[$i]);
-					}
-
-					if (stripos($skeys[$i],"Checked Out") > -1) {
-						$historyEntry['checkout'] = strip_tags($scols[$i]);
-					}
-					if (stripos($skeys[$i],"Details") > -1) {
-						$historyEntry['details'] = strip_tags($scols[$i]);
-					}
-
-					$historyEntry['borrower_num'] = $patron['id'];
-				} //Done processing column
-			} //Done processing row
-
-			if ($scount > 1){
-				$historyEntry['title_sort'] = strtolower($historyEntry['title']);
-
-				//$historyEntry['itemindex'] = $itemindex++;
-				//Get additional information from resources table
-				if (isset($historyEntry['shortId']) && strlen($historyEntry['shortId']) > 0){
-					/** @var Resource|Object $resource */
-					$resource = new Resource();
-					$resource->shortId = $historyEntry['shortId'];
-					if ($resource->find(true)){
-						$historyEntry = array_merge($historyEntry, get_object_vars($resource));
-						$historyEntry['recordId'] = $resource->record_id;
-						$historyEntry['shortId'] = str_replace('.b', 'b', $resource->record_id);
-						$historyEntry['ratingData'] = $resource->getRatingData();
-					}else{
-						//echo("Warning did not find resource for {$historyEntry['shortId']}");
-					}
-				}
-				if ($sortOption == "title"){
-					$titleKey = $historyEntry['title_sort'];
-				}elseif ($sortOption == "author"){
-					$titleKey = $historyEntry['author'] . "_" . $historyEntry['title_sort'];
-				}elseif ($sortOption == "checkedOut" || $sortOption == "returned"){
-					$checkoutTime = DateTime::createFromFormat('m-d-Y', $historyEntry['checkout']) ;
-					if ($checkoutTime){
-						$titleKey = $checkoutTime->getTimestamp() . "_" . $historyEntry['title_sort'];
-					}else{
-						//print_r($historyEntry);
-						$titleKey = $historyEntry['title_sort'];
-					}
-				}elseif ($sortOption == "format"){
-					$titleKey = $historyEntry['format'] . "_" . $historyEntry['title_sort'];
-				}else{
-					$titleKey = $historyEntry['title_sort'];
-				}
-				$titleKey .= '_' . $scount;
-				$readingHistoryTitles[$titleKey] = $historyEntry;
-			}
-			$scount++;
-		}//processed all rows in the table
+		$readingHistoryTitles = $this->parseReadingHitoryPage($pageContents, $patron, $sortOption);
+		foreach ($extraPagesToLoad as $pageNum){
+			$pageContents = $this->driver->_fetchPatronInfoPage($patronDump, 'readinghistory&page=' . $pageNum);
+			$additionalTitles = $this->parseReadingHitoryPage($pageContents, $patron, $sortOption);
+			$readingHistoryTitles = array_merge($readingHistoryTitles, $additionalTitles);
+		}
 
 		if ($sortOption == "checkedOut" || $sortOption == "returned"){
 			krsort($readingHistoryTitles);
@@ -242,5 +150,118 @@ class MillenniumReadingHistory {
 		}
 		curl_close($curl_connection);
 		unlink($cookie);
+	}
+
+	private function parseReadingHitoryPage($pageContents, $patron, $sortOption) {
+		$sResult = preg_replace("/<[^<]+?><[^<]+?>Reading History.\(.\d*.\)<[^<]+?>\W<[^<]+?>/", "", $pageContents);
+
+		$s = substr($sResult, stripos($sResult, 'patFunc'));
+		$s = substr($s,strpos($s,">")+1);
+		$s = substr($s,0,stripos($s,"</table"));
+
+		$s = preg_replace ("/<br \/>/","", $s);
+
+		$srows = preg_split("/<tr([^>]*)>/",$s);
+
+		$scount = 0;
+		$skeys = array_pad(array(),10,"");
+		$readingHistoryTitles = array();
+		$itemindex = 0;
+		foreach ($srows as $srow) {
+			$tmpRow = preg_replace('/\r\n|\n|\r/', "", strip_tags($srow));
+			if (strlen(trim($tmpRow)) == 0){
+				continue;
+			}elseif(preg_match('/Result Page/', $tmpRow)){
+				continue;
+			}
+			$scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
+			$historyEntry = array();
+			for ($i=0; $i < sizeof($scols); $i++) {
+				$scols[$i] = str_replace("&nbsp;"," ",$scols[$i]);
+				$scols[$i] = preg_replace ("/<br+?>/"," ", $scols[$i]);
+				$scols[$i] = html_entity_decode(trim(substr($scols[$i],0,stripos($scols[$i],"</t"))));
+				//print_r($scols[$i]);
+				if ($scount == 1) {
+					$skeys[$i] = $scols[$i];
+				} else if ($scount > 1) {
+					if (stripos($skeys[$i],"Mark") > -1) {
+						if (preg_match('/id="rsh(\\d+)"/', $scols[$i], $matches)){
+							$itemIndex = $matches[1];
+							$historyEntry['itemindex'] = $itemIndex;
+						}
+						$historyEntry['deletable'] = "BOX";
+					}
+
+					if (stripos($skeys[$i],"Title") > -1) {
+						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
+							$shortId = $matches[1];
+							$bibId = '.' . $matches[2];
+							$title = $matches[2];
+
+							$historyEntry['id'] = $bibId;
+							$historyEntry['shortId'] = $shortId;
+						}else{
+							$title = strip_tags($scols[$i]);
+						}
+
+						$historyEntry['title'] = $title;
+					}
+
+					if (stripos($skeys[$i],"Author") > -1) {
+						$historyEntry['author'] = strip_tags($scols[$i]);
+					}
+
+					if (stripos($skeys[$i],"Checked Out") > -1) {
+						$historyEntry['checkout'] = strip_tags($scols[$i]);
+					}
+					if (stripos($skeys[$i],"Details") > -1) {
+						$historyEntry['details'] = strip_tags($scols[$i]);
+					}
+
+					$historyEntry['borrower_num'] = $patron['id'];
+				} //Done processing column
+			} //Done processing row
+
+			if ($scount > 1){
+				$historyEntry['title_sort'] = strtolower($historyEntry['title']);
+
+				//$historyEntry['itemindex'] = $itemindex++;
+				//Get additional information from resources table
+				if (isset($historyEntry['shortId']) && strlen($historyEntry['shortId']) > 0){
+					/** @var Resource|Object $resource */
+					$resource = new Resource();
+					$resource->shortId = $historyEntry['shortId'];
+					if ($resource->find(true)){
+						$historyEntry = array_merge($historyEntry, get_object_vars($resource));
+						$historyEntry['recordId'] = $resource->record_id;
+						$historyEntry['shortId'] = str_replace('.b', 'b', $resource->record_id);
+						$historyEntry['ratingData'] = $resource->getRatingData();
+					}else{
+						//echo("Warning did not find resource for {$historyEntry['shortId']}");
+					}
+				}
+				if ($sortOption == "title"){
+					$titleKey = $historyEntry['title_sort'];
+				}elseif ($sortOption == "author"){
+					$titleKey = $historyEntry['author'] . "_" . $historyEntry['title_sort'];
+				}elseif ($sortOption == "checkedOut" || $sortOption == "returned"){
+					$checkoutTime = DateTime::createFromFormat('m-d-Y', $historyEntry['checkout']) ;
+					if ($checkoutTime){
+						$titleKey = $checkoutTime->getTimestamp() . "_" . $historyEntry['title_sort'];
+					}else{
+						//print_r($historyEntry);
+						$titleKey = $historyEntry['title_sort'];
+					}
+				}elseif ($sortOption == "format"){
+					$titleKey = $historyEntry['format'] . "_" . $historyEntry['title_sort'];
+				}else{
+					$titleKey = $historyEntry['title_sort'];
+				}
+				$titleKey .= '_' . $scount;
+				$readingHistoryTitles[$titleKey] = $historyEntry;
+			}
+			$scount++;
+		}//processed all rows in the table
+		return $readingHistoryTitles;
 	}
 }
