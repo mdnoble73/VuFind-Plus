@@ -129,6 +129,7 @@ public class MarcProcessor {
 	private boolean                       useEContentSubfield = false;
 	private boolean                       useItemBasedCallNumbers = true;
 	private SimpleDateFormat              dateAddedFormatter;
+	private boolean                       suppressItemlessBibs = false;
 
 	public static final int								RECORD_CHANGED_PRIMARY		= 1;
 	public static final int								RECORD_UNCHANGED					= 2;
@@ -142,7 +143,7 @@ public class MarcProcessor {
 
 	private boolean getAvailabilityFromMarc = true;
 	private HashSet<String> availableItemBarcodes = new HashSet<String>();
-	
+
 	private Connection vufindConn;
 	private Connection econtentConn;
 
@@ -235,6 +236,7 @@ public class MarcProcessor {
 		String dateAddedFormat = configIni.get("Reindex", "dateAddedFormat").length() > 0 ? configIni.get("Reindex", "dateAddedFormat") : "yyMMdd";
 		dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
 		useItemBasedCallNumbers = configIni.get("Reindex", "useItemBasedCallNumbers").length() > 0 ? Boolean.getBoolean(configIni.get("Reindex", "useItemBasedCallNumbers")) : true;
+		suppressItemlessBibs = configIni.get("Reindex", "suppressItemlessBibs").length() > 0 ? Boolean.getBoolean(configIni.get("Reindex", "suppressItemlessBibs")) : false;
 
 		// Load the checksum of any marc records that have been loaded already
 		// This allows us to detect whether or not the record is new, has changed,
@@ -1370,5 +1372,9 @@ public class MarcProcessor {
 
 	public boolean isBarcodeAvailable(String barcode) {
 		return availableItemBarcodes.contains(barcode);
+	}
+
+	public boolean isSuppressItemlessBibs(){
+		return suppressItemlessBibs;
 	}
 }

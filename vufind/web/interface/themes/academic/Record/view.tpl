@@ -143,8 +143,8 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div class="clearer"></div>
 				{* Display Book Cover *}
 				<div class="recordcoverWrapper">
-					<a href="{$path}/bookcover.php?issn={$issn}&amp;isn={$isbn|@formatISBN}&amp;size=large&amp;upc={$upc}&amp;category={$format_category|escape:"url"}&amp;format={$recordFormat.0|escape:"url"}">
-						<img alt="{translate text='Book Cover'}" class="recordcover" src="{$path}/bookcover.php?issn={$issn}&amp;isn={$isbn|@formatISBN}&amp;size=medium&amp;upc={$upc}&amp;category={$format_category|escape:"url"}&amp;format={$recordFormat.0|escape:"url"}" />
+					<a href="{$path}/bookcover.php?id={$id}&amp;issn={$issn}&amp;isn={$isbn|@formatISBN}&amp;size=large&amp;upc={$upc}&amp;category={$format_category|escape:"url"}&amp;format={$recordFormat.0|escape:"url"}">
+						<img alt="{translate text='Book Cover'}" class="recordcover" src="{$path}/bookcover.php?id={$id}&amp;issn={$issn}&amp;isn={$isbn|@formatISBN}&amp;size=medium&amp;upc={$upc}&amp;category={$format_category|escape:"url"}&amp;format={$recordFormat.0|escape:"url"}" />
 					</a>
 					<div id="goDeeperLink" class="godeeper" style="display:none">
 						<a href="{$path}/Record/{$id|escape:"url"}/GoDeeper" onclick="ajaxLightbox('{$path}/Record/{$id|escape}/GoDeeper?lightbox', null,'5%', '90%', 50, '85%'); return false;">
