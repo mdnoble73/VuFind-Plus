@@ -30,14 +30,24 @@ class MillenniumReadingHistory {
 		if ($hasPagination){
 			//Load a list of extra pages to load.  The pagination links display multiple times, so load into an associative array to make them unique
 			preg_match_all('/<a href="readinghistory&page=(\\d+)">/', $pageContents, $additionalPageMatches);
-			foreach ($additionalPageMatches as $additionalPageMatch){
-				$extraPagesToLoad[$additionalPageMatch[1]] = $additionalPageMatch[1];
+			foreach ($additionalPageMatches[1] as $additionalPageMatch){
+				$extraPagesToLoad[$additionalPageMatch] = $additionalPageMatch;
 			}
 		}
 
 		$readingHistoryTitles = $this->parseReadingHitoryPage($pageContents, $patron, $sortOption);
 		foreach ($extraPagesToLoad as $pageNum){
 			$pageContents = $this->driver->_fetchPatronInfoPage($patronDump, 'readinghistory&page=' . $pageNum);
+			$hasPagination = preg_match('/<td[^>]*class="browsePager"/', $pageContents);
+			if ($hasPagination){
+				//Load a list of extra pages to load.  The pagination links display multiple times, so load into an associative array to make them unique
+				preg_match_all('/<a href="readinghistory&page=(\\d+)">/', $pageContents, $additionalPageMatches);
+				foreach ($additionalPageMatches[1] as $additionalPageMatch){
+					if ($additionalPageMatch != 1 && !array_key_exists($additionalPageMatch, $extraPagesToLoad)){
+						$extraPagesToLoad[$additionalPageMatch] = $additionalPageMatch;
+					}
+				}
+			}
 			$additionalTitles = $this->parseReadingHitoryPage($pageContents, $patron, $sortOption);
 			$readingHistoryTitles = array_merge($readingHistoryTitles, $additionalTitles);
 		}

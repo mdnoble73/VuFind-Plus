@@ -239,7 +239,11 @@ class SearchObject_Solr extends SearchObject_Base
 				require_once(ROOT_DIR . '/sys/ISBN.php');
 				$isbn = new ISBN($_REQUEST['lookfor']);
 				if ($isbn->isValid()){
-					$_REQUEST['lookfor'] = $isbn->get10() . ' OR ' . $isbn->get13();
+					$isbn10 = $isbn->get10();
+					$isbn13 = $isbn->get13();
+					if ($isbn10 && $isbn13){
+						$_REQUEST['lookfor'] = $isbn->get10() . ' OR ' . $isbn->get13();
+					}
 				}
 			}
 		}
