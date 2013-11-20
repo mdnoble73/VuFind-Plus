@@ -49,6 +49,8 @@ public class RecordGrouperMain {
 		}
 
 		File[] catalogBibFiles = new File("C:\\web\\VuFind-Plus\\RecordGrouping\\source_marcs\\").listFiles();
+		int numRecordsProcessed = 0;
+		long startTime = new Date().getTime();
 		if (catalogBibFiles != null){
 			for (File curBibFile : catalogBibFiles){
 				if (curBibFile.getName().endsWith(".mrc") || curBibFile.getName().endsWith(".marc")){
@@ -58,13 +60,17 @@ public class RecordGrouperMain {
 						while (catalogReader.hasNext()){
 							Record curBib = catalogReader.next();
 							recordGroupingProcessor.processMarcRecord(curBib);
+							numRecordsProcessed++;
+							if (numRecordsProcessed % 1000 == 0){
+								long elapsedTime = new Date().getTime() - startTime;
+								System.out.println("Processed " + numRecordsProcessed + " records in " + (elapsedTime / 1000) + " seconds");
+							}
 						}
 					}catch(Exception e){
 						System.out.println("Error loading catalog bibs: " + e.toString());
 						e.printStackTrace();
 					}
 				}
-				//System.out.println("Read " + numCatalogBibs + " from the catalog.  There are " + frbrIzer.getNumWorks() + " works in the catalog.");
 				System.out.println("Finished grouping records from catalog.");
 			}
 		}
