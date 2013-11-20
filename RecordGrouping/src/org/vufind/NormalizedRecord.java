@@ -28,8 +28,10 @@ public class NormalizedRecord {
 	public String bibNumber;
 	public int numItems;
 	public boolean isOclcBib;
-	public HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
+
 	public long id;
+
+	public HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
 
 	public String getPermanentId() {
 		String permanentId = null;

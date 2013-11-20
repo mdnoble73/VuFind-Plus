@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * Description goes here
@@ -18,6 +19,8 @@ public class GroupedWork {
 	public String subtitle = "";           //Up to 175 chars
 	public String groupingCategory = "";   //Up to 25  chars
 
+	public HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
+
 	private static HashMap<String, String> categoryMap = new HashMap<String, String>();
 	static {
 		categoryMap.put("other", "book");
@@ -26,6 +29,10 @@ public class GroupedWork {
 		categoryMap.put("audio", "book");
 		categoryMap.put("music", "music");
 		categoryMap.put("movie", "movie");
+	}
+
+	public GroupedWork(){
+
 	}
 
 	public GroupedWork(GroupedRecord groupedRecord){
@@ -64,7 +71,7 @@ public class GroupedWork {
 				permanentId = "0" + permanentId;
 			}
 			//Insert -'s for formatting
-			StringBuffer formattedId = new StringBuffer();
+			StringBuilder formattedId = new StringBuilder();
 			formattedId.append(permanentId.substring(0, 8))
 					.append("-")
 					.append(permanentId.substring(8,12))

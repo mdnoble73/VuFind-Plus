@@ -3,6 +3,7 @@ package org.vufind;
 import org.marc4j.marc.*;
 
 import java.sql.*;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -16,20 +17,22 @@ import java.util.regex.Pattern;
  * Time: 9:26 AM
  */
 public class RecordGroupingProcessor {
-	private PreparedStatement getNormalizedRecordStmt;
+	/*private PreparedStatement getNormalizedRecordStmt;
 	private PreparedStatement insertNormalizedRecordStmt;
 	private PreparedStatement addBibToNormalizedRecordStmt;
 	private PreparedStatement getNormalizedRecordIdentifiersStmt;
 	private PreparedStatement addIdentifierToNormalizedRecordStmt;
-	private PreparedStatement getNormalizedRecordsForIdentifierStmt;
+	private PreparedStatement getNormalizedRecordsForIdentifierStmt;*/
 
-	private PreparedStatement getGroupedRecordStmt;
+	/*private PreparedStatement getGroupedRecordStmt;
 	private PreparedStatement insertGroupedRecordStmt;
-	private PreparedStatement addNormalizedRecordToGroupedRecordStmt;
+	private PreparedStatement addNormalizedRecordToGroupedRecordStmt;*/
 
 	private PreparedStatement getGroupedWorkStmt;
 	private PreparedStatement insertGroupedWorkStmt;
-	private PreparedStatement addGroupedRecordToGroupedWorkStmt;
+	//private PreparedStatement addGroupedRecordToGroupedWorkStmt;
+	private PreparedStatement addIdentifierToGroupedWorkStmt;
+	private PreparedStatement getGroupedWorksForIdentifierStmt;
 
 	private Pattern oclcPattern = Pattern.compile("^(ocm|oc|om).*");
 
@@ -42,31 +45,33 @@ public class RecordGroupingProcessor {
 					"AND coalesce(publisher,'') = ? " +
 					"AND coalesce(format,'') = ? " +
 					"AND coalesce(edition,'') = ?"); */
-			getNormalizedRecordStmt = dbConnection.prepareStatement("SELECT id FROM normalized_record where permanent_id = ?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			insertNormalizedRecordStmt = dbConnection.prepareStatement("INSERT INTO normalized_record (title, subtitle, author, publisher, format, edition, permanent_id) VALUES (?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
-			addBibToNormalizedRecordStmt = dbConnection.prepareStatement("INSERT INTO normalized_record_related_bibs (normalized_record_id, bib_source, bib_number, num_items, is_oclc_bib) VALUES (?, ?, ?, ?, ?)");
-			getNormalizedRecordIdentifiersStmt = dbConnection.prepareStatement("SELECT * FROM normalized_record_identifiers WHERE normalized_record_id=?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			addIdentifierToNormalizedRecordStmt = dbConnection.prepareStatement("INSERT INTO normalized_record_identifiers (normalized_record_id, type, identifier) VALUES (?, ?, ?)");
-			getNormalizedRecordsForIdentifierStmt = dbConnection.prepareStatement("SELECT * FROM normalized_record INNER JOIN normalized_record_identifiers ON normalized_record.id = normalized_record_id WHERE type = ? and identifier = ? and format = ?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			//getNormalizedRecordStmt = dbConnection.prepareStatement("SELECT id FROM normalized_record where permanent_id = ?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			//insertNormalizedRecordStmt = dbConnection.prepareStatement("INSERT INTO normalized_record (title, subtitle, author, publisher, format, edition, permanent_id) VALUES (?, ?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+			//addBibToNormalizedRecordStmt = dbConnection.prepareStatement("INSERT INTO normalized_record_related_bibs (normalized_record_id, bib_source, bib_number, num_items, is_oclc_bib) VALUES (?, ?, ?, ?, ?)");
+			//getNormalizedRecordIdentifiersStmt = dbConnection.prepareStatement("SELECT * FROM normalized_record_identifiers WHERE normalized_record_id=?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			//addIdentifierToNormalizedRecordStmt = dbConnection.prepareStatement("INSERT INTO normalized_record_identifiers (normalized_record_id, type, identifier) VALUES (?, ?, ?)");
+			//getNormalizedRecordsForIdentifierStmt = dbConnection.prepareStatement("SELECT * FROM normalized_record INNER JOIN normalized_record_identifiers ON normalized_record.id = normalized_record_id WHERE type = ? and identifier = ? and format = ?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 
 			//getGroupedRecordStmt = dbConnection.prepareStatement("SELECT id from grouped_record where permanent_id = ?");
-			getGroupedRecordStmt = dbConnection.prepareStatement("SELECT id from grouped_record where " +
+			/*getGroupedRecordStmt = dbConnection.prepareStatement("SELECT id from grouped_record where " +
 					"(title like ? OR title = '') " +
 					"AND (author like ? OR author = '') " +
 					"AND (subtitle like ? OR subtitle = '') " +
 					"AND grouping_category = ?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			insertGroupedRecordStmt = dbConnection.prepareStatement("INSERT INTO grouped_record (title, subtitle, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
-			addNormalizedRecordToGroupedRecordStmt = dbConnection.prepareStatement("INSERT INTO grouped_record_to_normalized_record (grouped_record_id, normalized_record_id) VALUES (?, ?)");
+			addNormalizedRecordToGroupedRecordStmt = dbConnection.prepareStatement("INSERT INTO grouped_record_to_normalized_record (grouped_record_id, normalized_record_id) VALUES (?, ?)");*/
 
 			getGroupedWorkStmt = dbConnection.prepareStatement("SELECT id FROM grouped_work where permanent_id = ?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work (title, subtitle, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
-			addGroupedRecordToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_to_grouped_record (grouped_work_id, grouped_record_id) VALUES (?, ?)");
+			//addGroupedRecordToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_to_grouped_record (grouped_work_id, grouped_record_id) VALUES (?, ?)");
+			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_identifiers (normalized_record_id, type, identifier) VALUES (?, ?, ?)");
+			getGroupedWorksForIdentifierStmt = dbConnection.prepareStatement("SELECT * FROM grouped_work INNER JOIN grouped_work_identifiers ON grouped_work.id = grouped_work_id WHERE type = ? and identifier = ? and grouping_category = ?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 		}catch (Exception e){
 			System.out.println("Error setting up prepared statements");
 		}
 	}
 
-	public NormalizedRecord getNormalizedRecordForMarc(Record marcRecord, boolean recordFromMainCatalog){
+	/*public NormalizedRecord getNormalizedRecordForMarc(Record marcRecord, boolean recordFromMainCatalog){
 		//Get data for the grouped record
 
 		//Title
@@ -225,6 +230,136 @@ public class RecordGroupingProcessor {
 		workForTitle.identifiers = identifiers;
 
 		return workForTitle;
+	}*/
+
+	public GroupedWork getGroupedWorkForMarc(Record marcRecord, boolean recordFromMainCatalog){
+		//Get data for the grouped record
+
+		//Title
+		DataField field245 = (DataField)marcRecord.getVariableField("245");
+		String groupingTitle = null;
+		String groupingSubtitle = null;
+		String fullTitle = null;
+		if (field245 != null && field245.getSubfield('a') != null){
+			fullTitle = field245.getSubfield('a').getData();
+			char nonFilingCharacters = field245.getIndicator2();
+			if (nonFilingCharacters == ' ') nonFilingCharacters = '0';
+			int titleStart = Integer.parseInt(Character.toString(nonFilingCharacters));
+			if (titleStart > 0 && titleStart < fullTitle.length()){
+				groupingTitle = fullTitle.substring(titleStart);
+			}else{
+				groupingTitle = fullTitle;
+			}
+
+			//System.out.println(fullTitle);
+			//Replace & with and for better matching
+			groupingTitle = groupingTitle.replace("&", "and");
+			groupingTitle = groupingTitle.replaceAll("[^\\w\\d\\s]", "").toLowerCase();
+			groupingTitle = groupingTitle.trim();
+
+			//System.out.println(title);
+			int titleEnd = 100;
+			if (titleEnd < groupingTitle.length()) {
+				groupingTitle = groupingTitle.substring(0, titleEnd);
+			}
+
+			//Add in subtitle (subfield b as well to avoid problems with gov docs, etc)
+			if (field245.getSubfield('b') != null){
+				groupingSubtitle = field245.getSubfield('b').getData();
+				groupingSubtitle = groupingSubtitle.replaceAll("&", "and");
+				groupingSubtitle = groupingSubtitle.replaceAll("[^\\w\\d\\s]", "").toLowerCase();
+				if (groupingSubtitle.length() > 175){
+					groupingSubtitle = groupingSubtitle.substring(0, 175);
+				}
+				groupingSubtitle = groupingSubtitle.trim();
+			}
+
+		}
+		//System.out.println(title);
+
+		//Author
+		String author = null;
+		DataField field100 = (DataField)marcRecord.getVariableField("100");
+		if (field100 != null && field100.getSubfield('a') != null){
+			author = field100.getSubfield('a').getData();
+		}else{
+			DataField field110 = (DataField)marcRecord.getVariableField("110");
+			if (field110 != null && field110.getSubfield('a') != null){
+				author = field110.getSubfield('a').getData();
+			}
+		}
+		String groupingAuthor = null;
+		if (author != null){
+			groupingAuthor = author.replaceAll("[^\\w\\d\\s]", "").trim().toLowerCase();
+			if (groupingAuthor.length() > 50){
+				groupingAuthor = groupingAuthor.substring(0, 50);
+			}
+		}
+
+		//Format
+		String format = getFormat(marcRecord);
+		String groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
+
+		//Record Number
+		HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
+		String recordNumber = null;
+		List<DataField> field907 = marcRecord.getVariableFields("907");
+		for (DataField cur907 : field907){
+			if (cur907.getSubfield('a').getData().substring(0,2).equals(".b")){
+				recordNumber = cur907.getSubfield('a').getData();
+				RecordIdentifier identifier = new RecordIdentifier();
+				identifier.type = "ils";
+				identifier.identifier = recordNumber;
+				identifiers.add(identifier);
+				break;
+			}
+		}
+
+		//Load identifiers
+		List<DataField> identifierFields = marcRecord.getVariableFields(new String[]{"020", "024", "022", "035"});
+		for (DataField identifierField : identifierFields){
+			if (identifierField.getSubfield('a') != null){
+				String identifierValue = identifierField.getSubfield('a').getData().trim();
+				//Get rid of any extra data at the end of the identifier
+				if (identifierValue.indexOf(' ') > 0){
+					identifierValue = identifierValue.substring(0, identifierValue.indexOf(' '));
+				}
+				String identifierType = null;
+				if (identifierField.getTag().equals("020")){
+					identifierType = "isbn";
+					identifierValue = identifierValue.replaceAll("\\D", "");
+					if (identifierValue.length() == 10){
+						identifierValue = convertISBN10to13(identifierValue);
+					}
+				}else if (identifierField.getTag().equals("024")){
+					identifierType = "upc";
+				}else if (identifierField.getTag().equals("022")){
+					identifierType = "issn";
+				}else {
+					identifierType = "oclc";
+					identifierValue = identifierValue.replaceAll("\\(.*\\)", "");
+				}
+				RecordIdentifier identifier = new RecordIdentifier();
+				if (identifierValue.length() > 20){
+					//System.out.println("Found long identifier " + identifierType + " " + identifierValue + " skipping");
+					continue;
+				}else if (identifierValue.length() == 0){
+					continue;
+				}
+				identifier.identifier = identifierValue;
+				identifier.type = identifierType;
+				identifiers.add(identifier);
+			}
+		}
+
+		GroupedWork workForTitle = new GroupedWork();
+		workForTitle.title = (groupingTitle == null ? "" : groupingTitle);
+		workForTitle.subtitle = (groupingSubtitle == null ? "" : groupingSubtitle);
+		workForTitle.author = (groupingAuthor == null ? "" : groupingAuthor);
+		workForTitle.groupingCategory = groupingFormat;
+		workForTitle.identifiers = identifiers;
+
+		return workForTitle;
 	}
 
 	private void updatePotentialMatches(List<NormalizedRecord> potentialMatches, List<NormalizedRecord> matchingRecordsByFactor) {
@@ -237,24 +372,24 @@ public class RecordGroupingProcessor {
 		}
 	}
 
-	public ResultSet getGroupedRecordFromCatalog(NormalizedRecord originalRecord){
+	/*public ResultSet getGroupedRecordFromCatalog(NormalizedRecord originalRecord){
 		try{
 			getNormalizedRecordStmt.setString(1, originalRecord.getPermanentId());
-			/*getNormalizedRecordStmt.setString(1, originalRecord.title == null ? "" : originalRecord.title);
-			getNormalizedRecordStmt.setString(2, originalRecord.subtitle == null ? "" : originalRecord.subtitle);
-			getNormalizedRecordStmt.setString(3, originalRecord.author == null ? "" : originalRecord.author);
-			getNormalizedRecordStmt.setString(4, originalRecord.publisher == null ? "" : originalRecord.publisher);
-			getNormalizedRecordStmt.setString(5, originalRecord.format == null ? "" : originalRecord.format);
-			getNormalizedRecordStmt.setString(6, originalRecord.edition == null ? "" : originalRecord.edition);*/
+			//getNormalizedRecordStmt.setString(1, originalRecord.title == null ? "" : originalRecord.title);
+			//getNormalizedRecordStmt.setString(2, originalRecord.subtitle == null ? "" : originalRecord.subtitle);
+			//getNormalizedRecordStmt.setString(3, originalRecord.author == null ? "" : originalRecord.author);
+			//getNormalizedRecordStmt.setString(4, originalRecord.publisher == null ? "" : originalRecord.publisher);
+			//getNormalizedRecordStmt.setString(5, originalRecord.format == null ? "" : originalRecord.format);
+			//getNormalizedRecordStmt.setString(6, originalRecord.edition == null ? "" : originalRecord.edition);
 			ResultSet potentialMatches = getNormalizedRecordStmt.executeQuery();
 			return potentialMatches;
 		}catch (Exception e){
 			System.out.println("Error getting normalized record " + e.toString());
 		}
 		return null;
-	}
+	} */
 
-	public String getFuzzyMatchFromCatalog(NormalizedRecord originalRecord){
+	/*public String getFuzzyMatchFromCatalog(NormalizedRecord originalRecord){
 		//Get a fuzzy match from the catalog.
 		//Check identifiers
 		for (RecordIdentifier recordIdentifier : originalRecord.identifiers){
@@ -295,13 +430,42 @@ public class RecordGroupingProcessor {
 			}
 		}
 		return null;
-	}
+	}*/
 
 	public void processMarcRecord(Record marcRecord){
-		NormalizedRecord normalizedRecord = getNormalizedRecordForMarc(marcRecord, true);
+		GroupedWork groupedWork = getGroupedWorkForMarc(marcRecord, true);
+
+		String groupedWorkPermanentId = groupedWork.getPermanentId();
+		long groupedWorkId = -1;
+		try{
+			getGroupedWorkStmt.setString(1, groupedWorkPermanentId);
+			ResultSet groupedWorkRS = getGroupedWorkStmt.executeQuery();
+			if (groupedWorkRS.next()){
+				//There is an existing grouped record
+				groupedWorkId = groupedWorkRS.getLong(1);
+			}else{
+				//Need to insert a new grouped record
+				insertGroupedWorkStmt.setString(1, groupedWork.title);
+				insertGroupedWorkStmt.setString(2, groupedWork.subtitle);
+				insertGroupedWorkStmt.setString(3, groupedWork.author);
+				insertGroupedWorkStmt.setString(4, groupedWork.groupingCategory);
+				insertGroupedWorkStmt.setString(5, groupedWorkPermanentId);
+
+				insertGroupedWorkStmt.executeUpdate();
+				ResultSet generatedKeysRS = insertGroupedWorkStmt.getGeneratedKeys();
+				if (generatedKeysRS.next()){
+					groupedWorkId = generatedKeysRS.getLong(1);
+				}
+			}
+
+			groupedWorkRS.close();
+		}catch (Exception e){
+			System.out.println("Error adding grouped record to grouped work " + e.toString());
+			e.printStackTrace();
+		}
 
 		//Check to see if there is already a grouped record in the database
-		try{
+		/*try{
 			ResultSet potentialMatches = getGroupedRecordFromCatalog(normalizedRecord);
 			long normalizedRecordId = -1;
 			if (potentialMatches.next()){
@@ -363,10 +527,10 @@ public class RecordGroupingProcessor {
 		}catch (Exception e){
 			System.out.println("Error adding record to works " + e.toString());
 			e.printStackTrace();
-		}
+		}*/
 	}
 
-	private void addNormalizedRecordToGroupedRecord(NormalizedRecord normalizedRecord) {
+	/*private void addNormalizedRecordToGroupedRecord(NormalizedRecord normalizedRecord) {
 		GroupedRecord groupedRecord = new GroupedRecord(normalizedRecord);
 		String groupedRecordPermanentId = groupedRecord.getPermanentId();
 		long groupedRecordId = -1;
@@ -408,9 +572,9 @@ public class RecordGroupingProcessor {
 			System.out.println("Error adding normalized record to grouped record " + e.toString());
 			e.printStackTrace();
 		}
-	}
+	}*/
 
-	private void addGroupedRecordToGroupedWork(GroupedRecord groupedRecord) {
+	/*private void addGroupedRecordToGroupedWork(GroupedRecord groupedRecord) {
 		GroupedWork groupedWork = new GroupedWork(groupedRecord);
 		String groupedWorkPermanentId = groupedRecord.getPermanentId();
 		long groupedWorkId = -1;
@@ -443,7 +607,7 @@ public class RecordGroupingProcessor {
 			System.out.println("Error adding grouped record to grouped work " + e.toString());
 			e.printStackTrace();
 		}
-	}
+	}*/
 
 	private String getFormat(Record record) {
 		String leader = record.getLeader().toString();
@@ -843,5 +1007,108 @@ public class RecordGroupingProcessor {
 				return false;
 			}
 		}
+	}
+
+	private static HashMap<String, String> formatsToGroupingCategory = new HashMap<String, String>();
+	static {
+		formatsToGroupingCategory.put("Atlas", "other");
+		formatsToGroupingCategory.put("Map", "other");
+		formatsToGroupingCategory.put("TapeCartridge", "other");
+		formatsToGroupingCategory.put("ChipCartridge", "other");
+		formatsToGroupingCategory.put("DiscCartridge", "other");
+		formatsToGroupingCategory.put("TapeCassette", "other");
+		formatsToGroupingCategory.put("TapeReel", "other");
+		formatsToGroupingCategory.put("FloppyDisk", "other");
+		formatsToGroupingCategory.put("CDROM", "other");
+		formatsToGroupingCategory.put("Software", "other");
+		formatsToGroupingCategory.put("Globe", "other");
+		formatsToGroupingCategory.put("Braille", "book");
+		formatsToGroupingCategory.put("Filmstrip", "movie");
+		formatsToGroupingCategory.put("Transparency", "other");
+		formatsToGroupingCategory.put("Slide", "other");
+		formatsToGroupingCategory.put("Microfilm", "other");
+		formatsToGroupingCategory.put("Collage", "other");
+		formatsToGroupingCategory.put("Drawing", "other");
+		formatsToGroupingCategory.put("Painting", "other");
+		formatsToGroupingCategory.put("Print", "other");
+		formatsToGroupingCategory.put("Photonegative", "other");
+		formatsToGroupingCategory.put("FlashCard", "other");
+		formatsToGroupingCategory.put("Chart", "other");
+		formatsToGroupingCategory.put("Photo", "other");
+		formatsToGroupingCategory.put("MotionPicture", "movie");
+		formatsToGroupingCategory.put("Kit", "other");
+		formatsToGroupingCategory.put("MusicalScore", "book");
+		formatsToGroupingCategory.put("SensorImage", "other");
+		formatsToGroupingCategory.put("SoundDisc", "audio");
+		formatsToGroupingCategory.put("SoundCassette", "audio");
+		formatsToGroupingCategory.put("SoundRecording", "audio");
+		formatsToGroupingCategory.put("VideoCartridge", "movie");
+		formatsToGroupingCategory.put("VideoDisc", "movie");
+		formatsToGroupingCategory.put("VideoCassette", "movie");
+		formatsToGroupingCategory.put("VideoReel", "movie");
+		formatsToGroupingCategory.put("Video", "movie");
+		formatsToGroupingCategory.put("MusicalScore", "book");
+		formatsToGroupingCategory.put("MusicRecording", "music");
+		formatsToGroupingCategory.put("Electronic", "other");
+		formatsToGroupingCategory.put("PhysicalObject", "other");
+		formatsToGroupingCategory.put("Manuscript", "book");
+		formatsToGroupingCategory.put("eBook", "ebook");
+		formatsToGroupingCategory.put("Book", "book");
+		formatsToGroupingCategory.put("Newspaper", "book");
+		formatsToGroupingCategory.put("Journal", "book");
+		formatsToGroupingCategory.put("Serial", "book");
+		formatsToGroupingCategory.put("Unknown", "other");
+		formatsToGroupingCategory.put("Playaway", "audio");
+		formatsToGroupingCategory.put("LargePrint", "book");
+		formatsToGroupingCategory.put("Blu-ray", "movie");
+		formatsToGroupingCategory.put("DVD", "movie");
+		formatsToGroupingCategory.put("VerticalFile", "other");
+		formatsToGroupingCategory.put("CompactDisc", "audio");
+		formatsToGroupingCategory.put("TapeRecording", "audio");
+		formatsToGroupingCategory.put("Phonograph", "audio");
+		formatsToGroupingCategory.put("pdf", "ebook");
+		formatsToGroupingCategory.put("epub", "ebook");
+		formatsToGroupingCategory.put("jpg", "other");
+		formatsToGroupingCategory.put("gif", "other");
+		formatsToGroupingCategory.put("mp3", "audio");
+		formatsToGroupingCategory.put("plucker", "ebook");
+		formatsToGroupingCategory.put("kindle", "ebook");
+		formatsToGroupingCategory.put("externalLink", "ebook");
+		formatsToGroupingCategory.put("externalMP3", "audio");
+		formatsToGroupingCategory.put("interactiveBook", "ebook");
+		formatsToGroupingCategory.put("overdrive", "ebook");
+		formatsToGroupingCategory.put("external_web", "ebook");
+		formatsToGroupingCategory.put("external_ebook", "ebook");
+		formatsToGroupingCategory.put("external_eaudio", "audio");
+		formatsToGroupingCategory.put("external_emusic", "music");
+		formatsToGroupingCategory.put("external_evideo", "movie");
+		formatsToGroupingCategory.put("text", "ebook");
+		formatsToGroupingCategory.put("gifs", "other");
+		formatsToGroupingCategory.put("itunes", "audio");
+		formatsToGroupingCategory.put("Adobe_EPUB_eBook", "ebook");
+		formatsToGroupingCategory.put("Kindle_Book", "ebook");
+		formatsToGroupingCategory.put("Microsoft_eBook", "ebook");
+		formatsToGroupingCategory.put("OverDrive_WMA_Audiobook", "audio");
+		formatsToGroupingCategory.put("OverDrive_MP3_Audiobook", "audio");
+		formatsToGroupingCategory.put("OverDrive_Music", "music");
+		formatsToGroupingCategory.put("OverDrive_Video", "movie");
+		formatsToGroupingCategory.put("OverDrive_Read", "ebook");
+		formatsToGroupingCategory.put("Adobe_PDF_eBook", "ebook");
+		formatsToGroupingCategory.put("Palm", "ebook");
+		formatsToGroupingCategory.put("Mobipocket_eBook", "ebook");
+		formatsToGroupingCategory.put("Disney_Online_Book", "ebook");
+		formatsToGroupingCategory.put("Open_PDF_eBook", "ebook");
+		formatsToGroupingCategory.put("Open_EPUB_eBook", "ebook");
+		formatsToGroupingCategory.put("SeedPacket", "other");
+	}
+
+	private static HashMap<String, String> categoryMap = new HashMap<String, String>();
+	static {
+		categoryMap.put("other", "book");
+		categoryMap.put("book", "book");
+		categoryMap.put("ebook", "book");
+		categoryMap.put("audio", "book");
+		categoryMap.put("music", "music");
+		categoryMap.put("movie", "movie");
 	}
 }
