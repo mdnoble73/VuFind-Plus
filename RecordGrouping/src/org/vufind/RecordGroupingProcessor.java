@@ -3,11 +3,8 @@ package org.vufind;
 import org.marc4j.marc.*;
 
 import java.sql.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.regex.Pattern;
+import java.util.*;
+//import java.util.regex.Pattern;
 
 /**
  * Description goes here
@@ -32,9 +29,10 @@ public class RecordGroupingProcessor {
 	private PreparedStatement insertGroupedWorkStmt;
 	//private PreparedStatement addGroupedRecordToGroupedWorkStmt;
 	private PreparedStatement addIdentifierToGroupedWorkStmt;
+	private PreparedStatement getGroupedWorkIdentifiersStmt;
 	private PreparedStatement getGroupedWorksForIdentifierStmt;
 
-	private Pattern oclcPattern = Pattern.compile("^(ocm|oc|om).*");
+	//private Pattern oclcPattern = Pattern.compile("^(ocm|oc|om).*");
 
 	public RecordGroupingProcessor(Connection dbConnection) {
 		try{
@@ -64,7 +62,8 @@ public class RecordGroupingProcessor {
 			getGroupedWorkStmt = dbConnection.prepareStatement("SELECT id FROM grouped_work where permanent_id = ?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work (title, subtitle, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
 			//addGroupedRecordToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_to_grouped_record (grouped_work_id, grouped_record_id) VALUES (?, ?)");
-			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_identifiers (normalized_record_id, type, identifier) VALUES (?, ?, ?)");
+			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_identifiers (grouped_work_id, type, identifier) VALUES (?, ?, ?)");
+			getGroupedWorkIdentifiersStmt = dbConnection.prepareStatement("SELECT * FROM grouped_work_identifiers WHERE grouped_work_id=?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			getGroupedWorksForIdentifierStmt = dbConnection.prepareStatement("SELECT * FROM grouped_work INNER JOIN grouped_work_identifiers ON grouped_work.id = grouped_work_id WHERE type = ? and identifier = ? and grouping_category = ?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 		}catch (Exception e){
 			System.out.println("Error setting up prepared statements");
@@ -435,6 +434,10 @@ public class RecordGroupingProcessor {
 	public void processMarcRecord(Record marcRecord){
 		GroupedWork groupedWork = getGroupedWorkForMarc(marcRecord, true);
 
+		addGroupedWorkToDatabase(groupedWork);
+	}
+
+	private void addGroupedWorkToDatabase(GroupedWork groupedWork) {
 		String groupedWorkPermanentId = groupedWork.getPermanentId();
 		long groupedWorkId = -1;
 		try{
@@ -444,6 +447,7 @@ public class RecordGroupingProcessor {
 				//There is an existing grouped record
 				groupedWorkId = groupedWorkRS.getLong(1);
 			}else{
+				//Do some fuzzy matching to see if we can get a record
 				//Need to insert a new grouped record
 				insertGroupedWorkStmt.setString(1, groupedWork.title);
 				insertGroupedWorkStmt.setString(2, groupedWork.subtitle);
@@ -458,55 +462,9 @@ public class RecordGroupingProcessor {
 				}
 			}
 
-			groupedWorkRS.close();
-		}catch (Exception e){
-			System.out.println("Error adding grouped record to grouped work " + e.toString());
-			e.printStackTrace();
-		}
-
-		//Check to see if there is already a grouped record in the database
-		/*try{
-			ResultSet potentialMatches = getGroupedRecordFromCatalog(normalizedRecord);
-			long normalizedRecordId = -1;
-			if (potentialMatches.next()){
-				normalizedRecordId = potentialMatches.getLong("id");
-				normalizedRecord.id = normalizedRecordId;
-			} else {
-				//No match, add a record
-				insertNormalizedRecordStmt.setString(1, normalizedRecord.title);
-				insertNormalizedRecordStmt.setString(2, normalizedRecord.subtitle);
-				insertNormalizedRecordStmt.setString(3, normalizedRecord.author);
-				insertNormalizedRecordStmt.setString(4, normalizedRecord.publisher);
-				insertNormalizedRecordStmt.setString(5, normalizedRecord.format);
-				insertNormalizedRecordStmt.setString(6, normalizedRecord.edition);
-				String permanentId = normalizedRecord.getPermanentId();
-				insertNormalizedRecordStmt.setString(7, permanentId);
-
-				try{
-					insertNormalizedRecordStmt.executeUpdate();
-					ResultSet generatedKeysRS = insertNormalizedRecordStmt.getGeneratedKeys();
-					if (generatedKeysRS.next()){
-						normalizedRecordId = generatedKeysRS.getLong(1);
-					}
-				}catch (SQLIntegrityConstraintViolationException e){
-					System.out.println("Unable to insert new record, the permanent id is not unique " + permanentId) ;
-				}
-				normalizedRecord.id = normalizedRecordId;
-
-				//Since we have a new normalized record, we need to make a grouped record
-				addNormalizedRecordToGroupedRecord(normalizedRecord);
-			}
-			//Add the related bib
-			addBibToNormalizedRecordStmt.setLong(1, normalizedRecordId);
-			addBibToNormalizedRecordStmt.setString(2, "ils");
-			addBibToNormalizedRecordStmt.setString(3, normalizedRecord.bibNumber);
-			addBibToNormalizedRecordStmt.setLong(4, normalizedRecord.numItems);
-			addBibToNormalizedRecordStmt.setBoolean(5, normalizedRecord.isOclcBib);
-			addBibToNormalizedRecordStmt.executeUpdate();
-
 			//Update identifiers
-			getNormalizedRecordIdentifiersStmt.setLong(1, normalizedRecordId);
-			ResultSet existingIdentifiersRS = getNormalizedRecordIdentifiersStmt.executeQuery();
+			getGroupedWorkIdentifiersStmt.setLong(1, groupedWorkId);
+			ResultSet existingIdentifiersRS = getGroupedWorkIdentifiersStmt.executeQuery();
 			HashSet<RecordIdentifier> existingIdentifiers = new HashSet<RecordIdentifier>();
 			while (existingIdentifiersRS.next()){
 				RecordIdentifier existingIdentifier = new RecordIdentifier();
@@ -515,101 +473,81 @@ public class RecordGroupingProcessor {
 				existingIdentifiers.add(existingIdentifier);
 			}
 
-			for (RecordIdentifier curIdentifier :  normalizedRecord.identifiers){
+			for (RecordIdentifier curIdentifier :  groupedWork.identifiers){
 				if (!existingIdentifiers.contains(curIdentifier)){
-					addIdentifierToNormalizedRecordStmt.setLong(1, normalizedRecordId);
-					addIdentifierToNormalizedRecordStmt.setString(2, curIdentifier.type);
-					addIdentifierToNormalizedRecordStmt.setString(3, curIdentifier.identifier);
-					addIdentifierToNormalizedRecordStmt.executeUpdate();
-				}
-			}
-
-		}catch (Exception e){
-			System.out.println("Error adding record to works " + e.toString());
-			e.printStackTrace();
-		}*/
-	}
-
-	/*private void addNormalizedRecordToGroupedRecord(NormalizedRecord normalizedRecord) {
-		GroupedRecord groupedRecord = new GroupedRecord(normalizedRecord);
-		String groupedRecordPermanentId = groupedRecord.getPermanentId();
-		long groupedRecordId = -1;
-		try{
-			//getGroupedRecordStmt.setString(1, groupedRecordPermanentId);
-			getGroupedRecordStmt.setString(1, "%" + groupedRecord.title + "%");
-			getGroupedRecordStmt.setString(2, "%" + groupedRecord.author + "%");
-			getGroupedRecordStmt.setString(3, "%" + groupedRecord.subtitle + "%");
-			getGroupedRecordStmt.setString(4, groupedRecord.groupingCategory);
-			ResultSet groupedRecordsRS = getGroupedRecordStmt.executeQuery();
-			if (groupedRecordsRS.next()){
-				//There is an existing grouped record
-				groupedRecordId = groupedRecordsRS.getLong(1);
-				groupedRecord.id = groupedRecordId;
-				//TODO: Since we are doing fuzzy matching of some records, may need to update
-				//  title, author, subtitle, and category if we get more specific
-			}else{
-				//Need to insert a new grouped record
-				insertGroupedRecordStmt.setString(1, groupedRecord.title);
-				insertGroupedRecordStmt.setString(2, groupedRecord.subtitle);
-				insertGroupedRecordStmt.setString(3, groupedRecord.author);
-				insertGroupedRecordStmt.setString(4, groupedRecord.groupingCategory);
-				insertGroupedRecordStmt.setString(5, groupedRecordPermanentId);
-
-				insertGroupedRecordStmt.executeUpdate();
-				ResultSet generatedKeysRS = insertGroupedRecordStmt.getGeneratedKeys();
-				if (generatedKeysRS.next()){
-					groupedRecordId = generatedKeysRS.getLong(1);
-					groupedRecord.id = groupedRecordId;
-				}
-
-				addGroupedRecordToGroupedWork(groupedRecord);
-			}
-			groupedRecordsRS.close();
-			addNormalizedRecordToGroupedRecordStmt.setLong(1, groupedRecordId);
-			addNormalizedRecordToGroupedRecordStmt.setLong(2, normalizedRecord.id);
-			addNormalizedRecordToGroupedRecordStmt.executeUpdate();
-		}catch (Exception e){
-			System.out.println("Error adding normalized record to grouped record " + e.toString());
-			e.printStackTrace();
-		}
-	}*/
-
-	/*private void addGroupedRecordToGroupedWork(GroupedRecord groupedRecord) {
-		GroupedWork groupedWork = new GroupedWork(groupedRecord);
-		String groupedWorkPermanentId = groupedRecord.getPermanentId();
-		long groupedWorkId = -1;
-		try{
-			getGroupedWorkStmt.setString(1, groupedWorkPermanentId);
-			ResultSet groupedWorkRS = getGroupedWorkStmt.executeQuery();
-			if (groupedWorkRS.next()){
-				//There is an existing grouped record
-				groupedWorkId = groupedWorkRS.getLong(1);
-			}else{
-				//Need to insert a new grouped record
-				insertGroupedWorkStmt.setString(1, groupedWork.title);
-				insertGroupedWorkStmt.setString(2, groupedWork.subtitle);
-				insertGroupedWorkStmt.setString(3, groupedWork.author);
-				insertGroupedWorkStmt.setString(4, groupedWork.groupingCategory);
-				insertGroupedWorkStmt.setString(5, groupedWorkPermanentId);
-
-				insertGroupedWorkStmt.executeUpdate();
-				ResultSet generatedKeysRS = insertGroupedWorkStmt.getGeneratedKeys();
-				if (generatedKeysRS.next()){
-					groupedWorkId = generatedKeysRS.getLong(1);
+					addIdentifierToGroupedWorkStmt.setLong(1, groupedWorkId);
+					addIdentifierToGroupedWorkStmt.setString(2, curIdentifier.type);
+					addIdentifierToGroupedWorkStmt.setString(3, curIdentifier.identifier);
+					addIdentifierToGroupedWorkStmt.executeUpdate();
 				}
 			}
 
 			groupedWorkRS.close();
-			addGroupedRecordToGroupedWorkStmt.setLong(1, groupedWorkId);
-			addGroupedRecordToGroupedWorkStmt.setLong(2, groupedRecord.id);
-			addGroupedRecordToGroupedWorkStmt.executeUpdate();
 		}catch (Exception e){
 			System.out.println("Error adding grouped record to grouped work " + e.toString());
 			e.printStackTrace();
 		}
-	}*/
+	}
+
+	public void processRecord(String title, String subtitle, String author, String format, HashSet<RecordIdentifier>identifiers){
+		GroupedWork groupedWork = new GroupedWork();
+
+		//Replace & with and for better matching
+		if (title != null){
+			title = title.replace("&", "and");
+			title = title.replaceAll("[^\\w\\d\\s]", "").toLowerCase();
+			title = title.trim();
+
+			int titleEnd = 100;
+			if (titleEnd < title.length()) {
+				title = title.substring(0, titleEnd);
+			}
+			groupedWork.title = title;
+		}
+
+		if (subtitle != null){
+			subtitle = subtitle.replaceAll("&", "and");
+			subtitle = subtitle.replaceAll("[^\\w\\d\\s]", "").toLowerCase();
+			if (subtitle.length() > 175){
+				subtitle = subtitle.substring(0, 175);
+			}
+			subtitle = subtitle.trim();
+			groupedWork.subtitle = subtitle;
+		}
+
+		if (author != null){
+			author = author.replaceAll("[^\\w\\d\\s]", "").trim().toLowerCase();
+			if (author.length() > 50){
+				author = author.substring(0, 50);
+			}
+			groupedWork.author = author;
+		}
+
+		if (format.equalsIgnoreCase("audiobook")){
+			groupedWork.groupingCategory = "book";
+		}else if (format.equalsIgnoreCase("ebook")){
+			groupedWork.groupingCategory = "book";
+		}else if (format.equalsIgnoreCase("music")){
+			groupedWork.groupingCategory = "music";
+		}else if (format.equalsIgnoreCase("video")){
+			groupedWork.groupingCategory = "video";
+		}
+
+		groupedWork.identifiers = identifiers;
+
+		addGroupedWorkToDatabase(groupedWork);
+	}
 
 	private String getFormat(Record record) {
+		//Check to see if the title is eContent based on the 989 field
+		List<DataField> itemFields = record.getVariableFields("989");
+		for (DataField itemField : itemFields){
+			if (itemField.getSubfield('w') != null){
+				//The record is some type of eContent.  For this purpose, we don't care what type
+				return "eContent";
+			}
+		}
+
 		String leader = record.getLeader().toString();
 		char leaderBit;
 		ControlField fixedField = (ControlField) record.getVariableField("008");
@@ -1099,6 +1037,7 @@ public class RecordGroupingProcessor {
 		formatsToGroupingCategory.put("Disney_Online_Book", "ebook");
 		formatsToGroupingCategory.put("Open_PDF_eBook", "ebook");
 		formatsToGroupingCategory.put("Open_EPUB_eBook", "ebook");
+		formatsToGroupingCategory.put("eContent", "ebook");
 		formatsToGroupingCategory.put("SeedPacket", "other");
 	}
 
@@ -1111,4 +1050,7 @@ public class RecordGroupingProcessor {
 		categoryMap.put("music", "music");
 		categoryMap.put("movie", "movie");
 	}
+
+
+
 }
