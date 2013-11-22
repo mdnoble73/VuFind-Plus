@@ -388,15 +388,15 @@ public class RecordGroupingProcessor {
 		return null;
 	} */
 
-	/*public String getFuzzyMatchFromCatalog(NormalizedRecord originalRecord){
+	public Long getFuzzyMatchFromCatalog(GroupedWork originalRecord){
 		//Get a fuzzy match from the catalog.
 		//Check identifiers
 		for (RecordIdentifier recordIdentifier : originalRecord.identifiers){
 			try{
-				getNormalizedRecordsForIdentifierStmt.setString(1, recordIdentifier.type);
-				getNormalizedRecordsForIdentifierStmt.setString(2, recordIdentifier.identifier);
-				getNormalizedRecordsForIdentifierStmt.setString(3, originalRecord.format);
-				ResultSet recordsForIdentifier = getNormalizedRecordsForIdentifierStmt.executeQuery();
+				getGroupedWorksForIdentifierStmt.setString(1, recordIdentifier.type);
+				getGroupedWorksForIdentifierStmt.setString(2, recordIdentifier.identifier);
+				getGroupedWorksForIdentifierStmt.setString(3, originalRecord.groupingCategory);
+				ResultSet recordsForIdentifier = getGroupedWorksForIdentifierStmt.executeQuery();
 				//Check to see how many matches we got.
 				if (!recordsForIdentifier.next()){
 					//No matches, keep going to the next identifier
@@ -405,18 +405,19 @@ public class RecordGroupingProcessor {
 					int numMatches = recordsForIdentifier.getRow();
 					if (numMatches == 1){
 						//We got a good match!
-						String matchingBib = recordsForIdentifier.getString("primary_bib_number");
-						String title = recordsForIdentifier.getString("grouping_title");
-						String author = recordsForIdentifier.getString("grouping_author");
+						Long groupedRecordId = recordsForIdentifier.getLong("id");
+						String permanentId = recordsForIdentifier.getString("permanent_id");
+						String title = recordsForIdentifier.getString("title");
+						String author = recordsForIdentifier.getString("author");
 						if (!compareStrings(title, originalRecord.title)){
-							System.out.println("Found match by identifier, but title did not match.  Sierra bib " + matchingBib);
+							System.out.println("Found match by identifier, but title did not match.  Sierra bib " + permanentId);
 							System.out.println("  '" + title + "' != '" + originalRecord.title + "'");
 						} else if (!compareStrings(author, originalRecord.author)){
-							System.out.println("Found match by identifier, but author did not match.  Sierra bib " + matchingBib);
+							System.out.println("Found match by identifier, but author did not match.  Sierra bib " + permanentId);
 							System.out.println("  '" + author + "' != '" + originalRecord.author + "'");
 						}else{
 							//This seems to be a good match
-							return matchingBib;
+							return groupedRecordId;
 						}
 					}else{
 						//Hmm, there are multiple records based on ISBN.  Check more stuff
@@ -429,7 +430,7 @@ public class RecordGroupingProcessor {
 			}
 		}
 		return null;
-	}*/
+	}
 
 	public void processMarcRecord(Record marcRecord){
 		GroupedWork groupedWork = getGroupedWorkForMarc(marcRecord, true);
@@ -447,18 +448,45 @@ public class RecordGroupingProcessor {
 				//There is an existing grouped record
 				groupedWorkId = groupedWorkRS.getLong(1);
 			}else{
-				//Do some fuzzy matching to see if we can get a record
-				//Need to insert a new grouped record
-				insertGroupedWorkStmt.setString(1, groupedWork.title);
-				insertGroupedWorkStmt.setString(2, groupedWork.subtitle);
-				insertGroupedWorkStmt.setString(3, groupedWork.author);
-				insertGroupedWorkStmt.setString(4, groupedWork.groupingCategory);
-				insertGroupedWorkStmt.setString(5, groupedWorkPermanentId);
+				//Check to see if we can get a match by rotating author names since some sources
+				//  put authors first name first and some do last name first
+				boolean foundFuzzyMatch = false;
+				if (groupedWork.author.indexOf(' ') > 0){
+					String[] authorParts = groupedWork.author.split("\\s");
+					if (authorParts.length == 2){
+						String newAuthor = authorParts[1] + " " + authorParts[0];
+						GroupedWork tempGroupWork = groupedWork.clone();
+						getGroupedWorkStmt.setString(1, tempGroupWork.getPermanentId());
+						ResultSet groupedWorkRS2 = getGroupedWorkStmt.executeQuery();
+						if (groupedWorkRS.next()){
+							//There is an existing grouped record
+							groupedWorkId = groupedWorkRS.getLong(1);
+							System.out.println("Grouped Record by rotating author names");
+							foundFuzzyMatch = true;
+						}else{
+							//Look for matches based on identifiers
+							Long fuzzyMatchId = getFuzzyMatchFromCatalog(groupedWork);
+							if (fuzzyMatchId != null){
+								groupedWorkId = fuzzyMatchId;
+								foundFuzzyMatch = true;
+							}
+						}
+					}
+				}
 
-				insertGroupedWorkStmt.executeUpdate();
-				ResultSet generatedKeysRS = insertGroupedWorkStmt.getGeneratedKeys();
-				if (generatedKeysRS.next()){
-					groupedWorkId = generatedKeysRS.getLong(1);
+				if (!foundFuzzyMatch){
+					//Need to insert a new grouped record
+					insertGroupedWorkStmt.setString(1, groupedWork.title);
+					insertGroupedWorkStmt.setString(2, groupedWork.subtitle);
+					insertGroupedWorkStmt.setString(3, groupedWork.author);
+					insertGroupedWorkStmt.setString(4, groupedWork.groupingCategory);
+					insertGroupedWorkStmt.setString(5, groupedWorkPermanentId);
+
+					insertGroupedWorkStmt.executeUpdate();
+					ResultSet generatedKeysRS = insertGroupedWorkStmt.getGeneratedKeys();
+					if (generatedKeysRS.next()){
+						groupedWorkId = generatedKeysRS.getLong(1);
+					}
 				}
 			}
 

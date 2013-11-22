@@ -13,7 +13,7 @@ import java.util.HashSet;
  * Date: 11/15/13
  * Time: 9:02 AM
  */
-public class GroupedWork {
+public class GroupedWork implements Cloneable{
 	public String title = "";              //Up to 100 chars
 	public String author = "";             //Up to 50  chars
 	public String subtitle = "";           //Up to 175 chars
@@ -87,5 +87,16 @@ public class GroupedWork {
 		}
 		//System.out.println("Permanent Id is " + permanentId);
 		return permanentId;
+	}
+
+	public GroupedWork clone(){
+
+		try {
+			GroupedWork tempWork = (GroupedWork)super.clone();
+			return tempWork;
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+			return null;
+		}
 	}
 }
