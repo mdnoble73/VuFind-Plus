@@ -31,6 +31,7 @@ public class RecordGroupingProcessor {
 	private PreparedStatement addIdentifierToGroupedWorkStmt;
 	private PreparedStatement getGroupedWorkIdentifiersStmt;
 	private PreparedStatement getGroupedWorksForIdentifierStmt;
+	private PreparedStatement updateLinksToDifferentTitlesForIdentifier;
 
 	//private Pattern oclcPattern = Pattern.compile("^(ocm|oc|om).*");
 
@@ -64,7 +65,8 @@ public class RecordGroupingProcessor {
 			//addGroupedRecordToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_to_grouped_record (grouped_work_id, grouped_record_id) VALUES (?, ?)");
 			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_identifiers (grouped_work_id, type, identifier) VALUES (?, ?, ?)");
 			getGroupedWorkIdentifiersStmt = dbConnection.prepareStatement("SELECT * FROM grouped_work_identifiers WHERE grouped_work_id=?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			getGroupedWorksForIdentifierStmt = dbConnection.prepareStatement("SELECT * FROM grouped_work INNER JOIN grouped_work_identifiers ON grouped_work.id = grouped_work_id WHERE type = ? and identifier = ? and grouping_category = ?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			getGroupedWorksForIdentifierStmt = dbConnection.prepareStatement("SELECT * FROM grouped_work INNER JOIN grouped_work_identifiers ON grouped_work.id = grouped_work_id WHERE type = ? and identifier = ? and grouping_category = ? and linksToDifferentTitles = 0",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			updateLinksToDifferentTitlesForIdentifier = dbConnection.prepareStatement("UPDATE grouped_work_identifiers SET linksToDifferentTitles = 1 where type=? and identifier = ?");
 		}catch (Exception e){
 			System.out.println("Error setting up prepared statements");
 		}
@@ -410,11 +412,17 @@ public class RecordGroupingProcessor {
 						String title = recordsForIdentifier.getString("title");
 						String author = recordsForIdentifier.getString("author");
 						if (!compareStrings(title, originalRecord.title)){
-							System.out.println("Found match by identifier, but title did not match.  Sierra bib " + permanentId);
+							System.out.println("Found match by identifier, but title did not match, marking as linking to different titles.  " + recordIdentifier.type + ": " + recordIdentifier.identifier);
 							System.out.println("  '" + title + "' != '" + originalRecord.title + "'");
+							updateLinksToDifferentTitlesForIdentifier.setString(1, recordIdentifier.type);
+							updateLinksToDifferentTitlesForIdentifier.setString(2, recordIdentifier.identifier);
+							updateLinksToDifferentTitlesForIdentifier.executeUpdate();
 						} else if (!compareStrings(author, originalRecord.author)){
-							System.out.println("Found match by identifier, but author did not match.  Sierra bib " + permanentId);
+							System.out.println("Found match by identifier, but author did not match, marking as linking to different titles.  " + recordIdentifier.type + ": " + recordIdentifier.identifier);
 							System.out.println("  '" + author + "' != '" + originalRecord.author + "'");
+							updateLinksToDifferentTitlesForIdentifier.setString(1, recordIdentifier.type);
+							updateLinksToDifferentTitlesForIdentifier.setString(2, recordIdentifier.identifier);
+							updateLinksToDifferentTitlesForIdentifier.executeUpdate();
 						}else{
 							//This seems to be a good match
 							return groupedRecordId;
@@ -458,7 +466,7 @@ public class RecordGroupingProcessor {
 						GroupedWork tempGroupWork = groupedWork.clone();
 						getGroupedWorkStmt.setString(1, tempGroupWork.getPermanentId());
 						ResultSet groupedWorkRS2 = getGroupedWorkStmt.executeQuery();
-						if (groupedWorkRS.next()){
+						if (groupedWorkRS2.next()){
 							//There is an existing grouped record
 							groupedWorkId = groupedWorkRS.getLong(1);
 							System.out.println("Grouped Record by rotating author names");
@@ -506,7 +514,14 @@ public class RecordGroupingProcessor {
 					addIdentifierToGroupedWorkStmt.setLong(1, groupedWorkId);
 					addIdentifierToGroupedWorkStmt.setString(2, curIdentifier.type);
 					addIdentifierToGroupedWorkStmt.setString(3, curIdentifier.identifier);
-					addIdentifierToGroupedWorkStmt.executeUpdate();
+					try{
+						addIdentifierToGroupedWorkStmt.executeUpdate();
+					}catch (SQLException e){
+						System.out.println("Duplicate identifiers found");
+						for (RecordIdentifier curIdentifier2 :  groupedWork.identifiers){
+							System.out.println("   '" + curIdentifier2.toString() + "'");
+						}
+					}
 				}
 			}
 

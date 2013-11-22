@@ -38,19 +38,14 @@ public class RecordGrouperMain {
 		//Load MARC Existing MARC Records from Sierra?
 		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(dbConnection);
 		//Clear the database first
-		boolean clearDatabasePriorToGrouping = false;
-		boolean groupIlsRecords = false;
+		boolean clearDatabasePriorToGrouping = true;
+		boolean groupIlsRecords = true;
 		boolean groupOverDriveRecords = true;
 
 		if (clearDatabasePriorToGrouping){
 			try{
-				dbConnection.prepareStatement("TRUNCATE grouped_record").executeUpdate();
-				dbConnection.prepareStatement("TRUNCATE grouped_record_to_normalized_record").executeUpdate();
 				dbConnection.prepareStatement("TRUNCATE grouped_work").executeUpdate();
-				dbConnection.prepareStatement("TRUNCATE grouped_work_to_grouped_record").executeUpdate();
-				dbConnection.prepareStatement("TRUNCATE normalized_record").executeUpdate();
-				dbConnection.prepareStatement("TRUNCATE normalized_record_related_bibs").executeUpdate();
-				dbConnection.prepareStatement("TRUNCATE normalized_record_identifiers").executeUpdate();
+				dbConnection.prepareStatement("TRUNCATE grouped_work_identifiers").executeUpdate();
 			}catch (Exception e){
 				System.out.println("Error clearing database " + e.toString());
 				System.exit(1);
