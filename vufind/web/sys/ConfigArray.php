@@ -230,6 +230,7 @@ function updateConfigForScoping($configArray) {
 				$Library = new Library();
 				$Library->find();
 				if ($Library->N == 1){
+					$Library->fetch();
 					$library = $Library;
 				}
 			}
