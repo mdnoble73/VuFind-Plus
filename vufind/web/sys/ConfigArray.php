@@ -225,6 +225,13 @@ function updateConfigForScoping($configArray) {
 				global $librarySingleton;
 				$library = $librarySingleton->getLibraryForLocation($Location->locationId);
 				$locationSingleton->setActiveLocation(clone $Location);
+			}else{
+				//Check to see if there is only one library in the system
+				$Library = new Library();
+				$Library->find();
+				if ($Library->N == 1){
+					$library = $Library;
+				}
 			}
 		}
 	}
