@@ -464,6 +464,7 @@ public class RecordGroupingProcessor {
 					if (authorParts.length == 2){
 						String newAuthor = authorParts[1] + " " + authorParts[0];
 						GroupedWork tempGroupWork = groupedWork.clone();
+						tempGroupWork.author = newAuthor;
 						getGroupedWorkStmt.setString(1, tempGroupWork.getPermanentId());
 						ResultSet groupedWorkRS2 = getGroupedWorkStmt.executeQuery();
 						if (groupedWorkRS2.next()){
