@@ -469,7 +469,7 @@ public class RecordGroupingProcessor {
 						ResultSet groupedWorkRS2 = getGroupedWorkStmt.executeQuery();
 						if (groupedWorkRS2.next()){
 							//There is an existing grouped record
-							groupedWorkId = groupedWorkRS.getLong(1);
+							groupedWorkId = groupedWorkRS2.getLong(1);
 							System.out.println("Grouped Record by rotating author names");
 							foundFuzzyMatch = true;
 						}else{
