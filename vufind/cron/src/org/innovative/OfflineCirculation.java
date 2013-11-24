@@ -46,11 +46,11 @@ public class OfflineCirculation implements IProcessHandler {
 //		if (offlineStr.toLowerCase().equals("true")){
 //			processLog.addNote("Not processing offline circulation because the system is currently offline.");
 //		}else{
+			//process checkouts and check ins (do this before holds)
+			processOfflineCirculationEntries(configIni, vufindConn);
+
 			//process holds
 			processOfflineHolds(configIni, vufindConn);
-
-			//process checkouts and check ins
-			processOfflineCirculationEntries(configIni, vufindConn);
 //		}
 		processLog.setFinished();
 		processLog.saveToDatabase(vufindConn, logger);
