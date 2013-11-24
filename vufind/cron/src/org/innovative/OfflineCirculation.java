@@ -250,7 +250,7 @@ public class OfflineCirculation implements IProcessHandler {
 				}
 				if (bypassInitials || initialsResponse.isSuccess() && initialsResponse.getMessage().contains("Check Out")){
 					//Go to the checkout page
-					boolean bypassPatronPage = true;
+					boolean bypassPatronPage = false;
 					if (lastPatronBarcode == null || !lastPatronBarcode.equals(patronBarcode) || lastPatronHadError){
 						bypassPatronPage = false;
 						if (lastPatronBarcode != null){
