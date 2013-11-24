@@ -53,15 +53,23 @@
 		</div>
 
 		<div id="main-content">
+			<h2>Offline Circulation Summary</h2>
+			<table class="citation">
+				<tr><th>Total Records</th><td>{$totalRecords}</td></tr>
+				<tr><th>Not Processed</th><td>{$totalNotProcessed}</td></tr>
+				<tr><th>Passed</th><td>{$totalPassed}</td></tr>
+				<tr><th>Failed</th><td>{$totalFailed}</td></tr>
+			</table>
+
 			<h2>Offline Circulation</h2>
 			{if count($offlineCirculation) > 0}
 				<table class="citation">
 					<thead>
-					<tr><th>Login</th>{*<th>Initials</th><th>Type</th>*}<th>Item Barcode</th><th>Patron Barcode</th><th>Date Entered</th><th>Status</th><th>Notes</th></tr>
+					<tr><th>#</th><th>Login</th>{*<th>Initials</th><th>Type</th>*}<th>Item Barcode</th><th>Patron Barcode</th><th>Date Entered</th><th>Status</th><th>Notes</th></tr>
 					</thead>
 					<tbody>
-					{foreach from=$offlineCirculation item=offlineCircEntry}
-						<tr><td>{$offlineCircEntry->login}</td>{*<td>{$offlineCircEntry->initials}</td><td>{$offlineCircEntry->type}</td>*}<td>{$offlineCircEntry->itemBarcode}</td><td>{$offlineCircEntry->patronBarcode}</td><td>{$offlineCircEntry->timeEntered|date_format}</td><td>{$offlineCircEntry->status}</td><td>{$offlineCircEntry->notes}</td></tr>
+					{foreach from=$offlineCirculation item=offlineCircEntry name='offlinecircs'}
+						<tr><td>{$smarty.foreach.offlinecircs.iteration}</td><td>{$offlineCircEntry->login}</td>{*<td>{$offlineCircEntry->initials}</td><td>{$offlineCircEntry->type}</td>*}<td>{$offlineCircEntry->itemBarcode}</td><td>{$offlineCircEntry->patronBarcode}</td><td>{$offlineCircEntry->timeEntered|date_format}</td><td>{$offlineCircEntry->status}</td><td>{$offlineCircEntry->notes}</td></tr>
 					{/foreach}
 					</tbody>
 				</table>
