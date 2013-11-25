@@ -1,7 +1,8 @@
 <?xml version='1.0' encoding='UTF-8'?><solr sharedLib="lib" persistent="true">
 <cores adminPath="/admin/cores">
-  <core name="biblio2" instanceDir="biblio"/>
-  <core name="biblio" instanceDir="biblio2"/>
+	<core name="grouped" instanceDir="grouped"/>
+  <core name="biblio2" instanceDir="biblio2"/>
+  <core name="biblio" instanceDir="biblio"/>
   <core name="authority" instanceDir="authority"/>
   <core name="genealogy" instanceDir="genealogy"/>
 </cores>
