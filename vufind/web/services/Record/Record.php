@@ -450,6 +450,10 @@ class Record extends Action
               'mask' => '/anythink.axis360.baker-taylor.com/',
               'text' => 'Download from Axis 360',
             ),
+            array(
+              'mask' => '/www.hoopladigital.com/',
+              'text' => 'Download from Hoopla',
+            ),
           );
 
           foreach ($downloadServices as $downloadService) {
