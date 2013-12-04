@@ -145,7 +145,7 @@ public class MarcIndexer implements IMarcRecordProcessor, IRecordProcessor {
 			}
 		} catch (Exception ex) {
 			// handle any errors
-			logger.error("Error indexing marc record " + recordInfo.getId() + " " + ex.toString());
+			logger.error("Error indexing marc record " + recordInfo.getId(), ex);
 			results.addNote("Error indexing marc record " + recordInfo.getId() + " " + ex.toString());
 			results.incErrors();
 			return false;
