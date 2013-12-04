@@ -2,10 +2,14 @@ package org.vufind;
 
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
+import org.marc4j.MarcStreamWriter;
+import org.marc4j.MarcWriter;
+import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
+import org.marc4j.marc.Subfield;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -13,6 +17,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 
 /**
  * Groups records so that we can show single multiple titles as one rather than as multiple lines.
@@ -53,6 +58,7 @@ public class RecordGrouperMain {
 		}
 
 		if (groupIlsRecords){
+			String individualMarcPath = "C:\\web\\VuFind-Plus\\sites\\marmot.localhost\\individual_marcs";
 			File[] catalogBibFiles = new File("C:\\web\\VuFind-Plus\\RecordGrouping\\source_marcs\\").listFiles();
 			int numRecordsProcessed = 0;
 			long startTime = new Date().getTime();
@@ -65,6 +71,9 @@ public class RecordGrouperMain {
 							while (catalogReader.hasNext()){
 								Record curBib = catalogReader.next();
 								recordGroupingProcessor.processMarcRecord(curBib);
+
+								writeIndividualMarc(individualMarcPath, curBib);
+
 								numRecordsProcessed++;
 								if (numRecordsProcessed % 1000 == 0){
 									long elapsedTime = new Date().getTime() - startTime;
@@ -135,5 +144,54 @@ public class RecordGrouperMain {
 			System.exit(1);
 		}
 		System.out.println("Finished grouping records " + new Date().toString());
+	}
+
+	private static void writeIndividualMarc(String individualMarcPath, Record marcRecord) {
+		//Copy the record to the individual marcs path
+
+		DataField field907 = (DataField)marcRecord.getVariableField("907");
+		String recordNumber = null;
+		if (field907 != null) {
+			Subfield subfieldA = field907.getSubfield('a');
+			if (subfieldA != null && subfieldA.getData().length() > 2){
+				if (field907.getSubfield('a').getData().substring(0,2).equals(".b")){
+					recordNumber = field907.getSubfield('a').getData();
+				}
+			}
+		}
+		if (recordNumber != null){
+			String shortId = recordNumber.replace(".", "");
+			String firstChars = shortId.substring(0, 4);
+			String basePath = individualMarcPath + "/" + firstChars;
+			String individualFilename = basePath + "/" + shortId + ".mrc";
+			File individualFile = new File(individualFilename);
+			File baseFile = new File(basePath);
+			if (!baseFile.exists()){
+				if (!baseFile.mkdirs()){
+					System.out.println("Could not create directory to store individual marc");
+				}
+			}
+
+			try {
+				OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(individualFile,false), Charset.forName("UTF-8").newEncoder());
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				MarcWriter writer2 = new MarcStreamWriter(out, "UTF-8");
+				writer2.write(marcRecord);
+				writer2.close();
+
+				String result = null;
+				try {
+					result = out.toString("UTF-8");
+				} catch (UnsupportedEncodingException e) {
+					// e.printStackTrace();
+					System.out.println(e.getCause());
+				}
+				writer.write(result);
+				writer.close();
+			} catch (IOException e) {
+				e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+			}
+		}
+
 	}
 }

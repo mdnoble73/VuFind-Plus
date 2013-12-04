@@ -21,9 +21,9 @@ import java.util.Date;
  * @author Mark Noble <mark@marmot.org>
  * 
  */
-public class ReindexProcess {
+public class GroupedReindexProcess {
 
-	private static Logger logger	= Logger.getLogger(ReindexProcess.class);
+	private static Logger logger	= Logger.getLogger(GroupedReindexProcess.class);
 
 	//General configuration
 	private static String serverName;
@@ -46,10 +46,11 @@ public class ReindexProcess {
 
 	//Database connections and prepared statements
 	private static Connection vufindConn = null;
+	private static Connection groupedRecordConn = null;
 	private static Connection econtentConn = null;
 	
-	private static PreparedStatement updateCronLogLastUpdatedStmt;
-	private static PreparedStatement addNoteToCronLogStmt;
+	private static PreparedStatement updateReindexLogLastUpdatedStmt;
+	private static PreparedStatement addNoteToReindexLogStmt;
 
 	private static PreparedStatement getOverDriveProductStmt;
 
@@ -74,24 +75,19 @@ public class ReindexProcess {
 		
 		initializeReindex();
 		
-		addNoteToCronLog("Initialized Reindex " + indexSettings);
+		addNoteToReindexLog("Initialized Reindex " + indexSettings);
 		
 		//Reload schemas
 		if (reloadDefaultSchema){
 			reloadDefaultSchemas();
 		}
 		
-		//Process records from all sources
+		//Process grouped works
 		try {
-			//Process ILS records
-			ILSIndexer ilsIndexer = new ILSIndexer();
-
-			//Process OverDrive records
-
-			//Other sources
+			GroupedWorkIndexer groupedWorkIndexer = new GroupedWorkIndexer(serverName, vufindConn, groupedRecordConn, configIni, logger);
 		} catch (Error e) {
 			logger.error("Error processing reindex ", e);
-			addNoteToCronLog("Error processing reindex " + e.toString());
+			addNoteToReindexLog("Error processing reindex " + e.toString());
 		}
 		
 		// Send completion information
@@ -110,10 +106,10 @@ public class ReindexProcess {
 				vufindConn.prepareStatement("INSERT INTO variables set value = '" + (startTime / 1000) + "', name = 'reindex_time_1'").executeUpdate();
 			}
 		} catch (SQLException e) {
-			addNoteToCronLog("Error updating reindex times in database " + e.toString());
+			addNoteToReindexLog("Error updating reindex times in database " + e.toString());
 		}
 
-		addNoteToCronLog("Finished Reindex for " + serverName);
+		addNoteToReindexLog("Finished Reindex for " + serverName);
 		logger.info("Finished Reindex for " + serverName);
 	}
 	
@@ -123,12 +119,12 @@ public class ReindexProcess {
 			//Synonyms
 			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/synonyms.txt" + " to " + "../../sites/default/solr/grouped/conf/synonyms.txt");
 			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/synonyms.txt"), new File("../../sites/default/solr/grouped/conf/synonyms.txt"))){
-				logger.info("Unable to copy synonyms.txt to biblio2");
-				addNoteToCronLog("Unable to copy synonyms.txt to biblio2");
+				logger.warn("Unable to copy synonyms.txt to biblio2");
+				addNoteToReindexLog("Unable to copy synonyms.txt to biblio2");
 			}
 		} catch (IOException e) {
 			logger.error("error reloading copying default scehmas", e);
-			addNoteToCronLog("error reloading copying default scehmas " + e.toString());
+			addNoteToReindexLog("error reloading copying default scehmas " + e.toString());
 		}
 		//grouped
 		reloadSchema("grouped");
@@ -138,58 +134,58 @@ public class ReindexProcess {
 
 	private static void reloadSchema(String schemaName) {
 		boolean reloadIndex = true;
-		addNoteToCronLog("Reloading Schema " + schemaName);
+		addNoteToReindexLog("Reloading Schema " + schemaName);
 		try {
 			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/schema.xml" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/schema.xml");
 			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/schema.xml"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/schema.xml"))){
 				logger.info("Unable to copy schema for " + schemaName);
-				addNoteToCronLog("Unable to copy schema for " + schemaName);
+				addNoteToReindexLog("Unable to copy schema for " + schemaName);
 				reloadIndex = false;
 			}
 			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt");
 			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt"))){
 				logger.info("Unable to copy mapping-FoldToASCII.txt for " + schemaName);
-				addNoteToCronLog("Unable to copy mapping-FoldToASCII.txt for " + schemaName);
+				addNoteToReindexLog("Unable to copy mapping-FoldToASCII.txt for " + schemaName);
 			}
 			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt");
 			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt"))){
 				logger.info("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
-				addNoteToCronLog("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
+				addNoteToReindexLog("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 			}
 			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/synonyms.txt" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/synonyms.txt");
 			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/synonyms.txt"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/synonyms.txt"))){
 				logger.info("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
-				addNoteToCronLog("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
+				addNoteToReindexLog("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 			}
 			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/solrconfig.xml" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/solrconfig.xml");
 			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/solrconfig.xml"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/solrconfig.xml"))){
 				logger.info("Unable to copy solrconfig.xml for " + schemaName);
-				addNoteToCronLog("Unable to copy solrconfig.xml for " + schemaName);
+				addNoteToReindexLog("Unable to copy solrconfig.xml for " + schemaName);
 			}
 		} catch (IOException e) {
 			logger.error("error reloading default schema for " + schemaName, e);
-			addNoteToCronLog("error reloading default schema for " + schemaName + " " + e.toString());
+			addNoteToReindexLog("error reloading default schema for " + schemaName + " " + e.toString());
 			reloadIndex = false;
 		}
 		if (reloadIndex){
 			URLPostResponse response = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=RELOAD&core=" + schemaName, logger);
 			if (!response.isSuccess()){
 				logger.error("Error reloading default schema for " + schemaName + " " + response.getMessage());
-				addNoteToCronLog("Error reloading default schema for " + schemaName + " " + response.getMessage());
+				addNoteToReindexLog("Error reloading default schema for " + schemaName + " " + response.getMessage());
 			}
 		}
 	}
 
 	private static StringBuffer reindexNotes = new StringBuffer();
 	private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	public static void addNoteToCronLog(String note) {
+	public static void addNoteToReindexLog(String note) {
 		try {
 			Date date = new Date();
 			reindexNotes.append("<br>").append(dateFormat.format(date)).append(note);
-			addNoteToCronLogStmt.setString(1, Util.trimTo(65535, reindexNotes.toString()));
-			addNoteToCronLogStmt.setLong(2, new Date().getTime() / 1000);
-			addNoteToCronLogStmt.setLong(3, reindexLogId);
-			addNoteToCronLogStmt.executeUpdate();
+			addNoteToReindexLogStmt.setString(1, Util.trimTo(65535, reindexNotes.toString()));
+			addNoteToReindexLogStmt.setLong(2, new Date().getTime() / 1000);
+			addNoteToReindexLogStmt.setLong(3, reindexLogId);
+			addNoteToReindexLogStmt.executeUpdate();
 		} catch (SQLException e) {
 			logger.error("Error adding note to Reindex Log", e);
 		}
@@ -197,9 +193,9 @@ public class ReindexProcess {
 	
 	public static void updateLastUpdateTime(){
 		try {
-			updateCronLogLastUpdatedStmt.setLong(1, new Date().getTime() / 1000);
-			updateCronLogLastUpdatedStmt.setLong(2, reindexLogId);
-			updateCronLogLastUpdatedStmt.executeUpdate();
+			updateReindexLogLastUpdatedStmt.setLong(1, new Date().getTime() / 1000);
+			updateReindexLogLastUpdatedStmt.setLong(2, reindexLogId);
+			updateReindexLogLastUpdatedStmt.executeUpdate();
 			//Sleep for a little bit to make sure we don't block connectivity for other programs 
 			Thread.sleep(5);
 			//Thread.yield();
@@ -312,8 +308,15 @@ public class ReindexProcess {
 			logger.error("Could not connect to vufind database", e);
 			System.exit(1);
 		}
-		
-		
+
+		try {
+			groupedRecordConn = DriverManager.getConnection("jdbc:mysql://localhost/marmot_record_grouping_2?user=root&password=Ms$qlR00t&useUnicode=yes&characterEncoding=UTF-8");
+
+		} catch (SQLException e) {
+			logger.error("Could not connect to vufind database", e);
+			System.exit(1);
+		}
+
 		String econtentDBConnectionInfo = Util.cleanIniValue(configIni.get("Database", "database_econtent_jdbc"));
 		if (econtentDBConnectionInfo == null || econtentDBConnectionInfo.length() == 0) {
 			logger.error("Database connection information for eContent database not found in Database Section.  Please specify connection information as database_econtent_jdbc key.");
@@ -340,8 +343,8 @@ public class ReindexProcess {
 				reindexLogId = generatedKeys.getLong(1);
 			}
 			
-			updateCronLogLastUpdatedStmt = vufindConn.prepareStatement("UPDATE reindex_log SET lastUpdate = ? WHERE id = ?");
-			addNoteToCronLogStmt = vufindConn.prepareStatement("UPDATE reindex_log SET notes = ?, lastUpdate = ? WHERE id = ?");
+			updateReindexLogLastUpdatedStmt = vufindConn.prepareStatement("UPDATE reindex_log SET lastUpdate = ? WHERE id = ?");
+			addNoteToReindexLogStmt = vufindConn.prepareStatement("UPDATE reindex_log SET notes = ?, lastUpdate = ? WHERE id = ?");
 		} catch (SQLException e) {
 			logger.error("Unable to create log entry for reindex process", e);
 			System.exit(0);

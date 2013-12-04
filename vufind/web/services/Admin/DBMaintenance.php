@@ -2389,6 +2389,46 @@ class DBMaintenance extends Admin_Admin {
 					) ENGINE = MYISAM"
 				)
 			),
+
+			'novelist_data' => array(
+				'title' => 'Novelist Data',
+				'description' => 'Stores basic information from Novelist for efficiency purposes.  We can\'t cache everything due to contract.',
+				'sql' => array(
+					"CREATE table novelist_data (
+						id INT(11) NOT NULL AUTO_INCREMENT,
+						groupedRecordPermanentId VARCHAR(36),
+						lastUpdate INT(11),
+						hasNovelistData TINYINT(1),
+						groupedRecordHasISBN TINYINT(1),
+						primaryISBN VARCHAR(13),
+						seriesTitle VARCHAR(255),
+						seriesNote VARCHAR(255),
+						volume VARCHAR(32),
+						INDEX(`groupedRecordPermanentId`),
+						PRIMARY KEY(`id`)
+					) ENGINE = MYISAM",
+				),
+			),
+
+			'syndetics_data' => array(
+				'title' => 'Syndetics Data',
+				'description' => 'Stores basic information from Syndetics for efficiency purposes.',
+				'sql' => array(
+					"CREATE table syndetics_data (
+						id INT(11) NOT NULL AUTO_INCREMENT,
+						groupedRecordPermanentId VARCHAR(36),
+						lastUpdate INT(11),
+						hasSyndeticsData TINYINT(1),
+						primaryIsbn VARCHAR(13),
+						primaryUpc VARCHAR(25),
+						description MEDIUMTEXT,
+						tableOfContents MEDIUMTEXT,
+						excerpt MEDIUMTEXT,
+						INDEX(`groupedRecordPermanentId`),
+						PRIMARY KEY(`id`)
+					) ENGINE = MYISAM",
+				),
+			),
 		);
 	}
 

@@ -46,11 +46,19 @@ class RecordDriverFactory {
 		// If we can't load the driver, fall back to the default, index-based one:
 		if (!is_readable($path)) {
 			//Try without appending Record
-			$driver = ucwords($record['recordtype']) . 'Driver' ;
+			$recordType = $record['recordtype'];
+			$driverNameParts = explode('_', $recordType);
+			$recordType = '';
+			foreach ($driverNameParts as $driverPart){
+				$recordType .= (ucfirst($driverPart));
+			}
+
+			$driver = $recordType . 'Driver' ;
 			$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
 
 			// If we can't load the driver, fall back to the default, index-based one:
 			if (!is_readable($path)) {
+
 				$driver = 'IndexRecord';
 				$path = "{$configArray['Site']['local']}/RecordDrivers/{$driver}.php";
 			}
@@ -71,6 +79,36 @@ class RecordDriverFactory {
 
 		// If we got here, something went very wrong:
 		return new PEAR_Error("Problem loading record driver: {$driver}");
+	}
+
+	static function initRecordDriverById($id){
+		$recordInfo = explode(':', $id);
+		$recordType = $recordInfo[0];
+		$recordId = $recordInfo[1];
+
+		disableErrorHandler();
+		if ($recordType == 'overdrive'){
+			require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
+			$recordDriver = new OverDriveRecordDriver($recordId);
+		}else/*if ($recordType == 'ils')*/{
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			if (strpos($recordId, ".o") !== FALSE){
+				//Ignore order records
+				return null;
+			}else{
+				$recordDriver = new MarcRecord($recordId);
+				if (!$recordDriver->isValid()){
+					echo("Unable to load record driver for $recordId");
+					$recordDriver = null;
+				}
+			}
+
+		//}else{
+		//	require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
+		//	$recordDriver = new EcontentRecordDriver($id);
+		}
+		enableErrorHandler();
+		return $recordDriver;
 	}
 }
 ?>

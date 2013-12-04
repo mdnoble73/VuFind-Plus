@@ -544,4 +544,18 @@ class EcontentRecordDriver extends IndexRecord
 		return 'RecordDrivers/Marc/staff.tpl';
 	}
 
+	function getRelatedRecord(){
+		global $configArray;
+		$recordId = $this->getUniqueID();
+		$url = $configArray['Site']['path'] . '/EcontentRecord/' . $recordId;
+		$relatedRecord = array(
+			'id' => $recordId,
+			'url' => $url,
+			'format' => $this->getFormat(),
+			'edition' => $this->getEdition(),
+			'language' => $this->getLanguage(),
+			'title' => $this->getTitle(),
+		);
+		return $relatedRecord;
+	}
 }

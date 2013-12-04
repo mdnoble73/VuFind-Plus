@@ -1226,7 +1226,7 @@ class SearchObject_Solr extends SearchObject_Base
 		}
 
 		//Add debug information to the results if available
-		if ($this->debug){
+		if ($this->debug && isset($this->indexResult['debug'])){
 			$explainInfo = $this->indexResult['debug']['explain'];
 			foreach ($this->indexResult['response']['docs'] as $key => $result){
 				if (array_key_exists($result['id'], $explainInfo)){

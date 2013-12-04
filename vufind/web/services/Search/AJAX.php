@@ -631,7 +631,12 @@ class AJAX extends Action {
 	function GetSeriesInfo(){
 		require_once ROOT_DIR . '/sys/NovelistFactory.php';
 		$novelist = NovelistFactory::getNovelist();
-		$isbns = $_REQUEST['isbn'];
+		if (isset($_REQUEST['isbn'])){
+			$isbns = $_REQUEST['isbn'];
+		}else{
+			$isbns = array();
+		}
+
 		$seriesInfo = array();
 		foreach ($isbns as $isbn){
 			$enrichment = $novelist->loadEnrichment($isbn);

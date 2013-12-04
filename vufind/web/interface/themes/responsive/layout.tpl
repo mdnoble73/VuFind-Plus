@@ -80,7 +80,7 @@
 
 		{include file="tracking.tpl"}
 
-		{* Extra javascript at end so the pages loose faster. *}
+		{* Extra javascript at end so the pages load faster. *}
 		<script src="{$path}/interface/themes/responsive/js/rater.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/bootstrap.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/bootstrap-switch.js"></script>

@@ -12,11 +12,14 @@ class NovelistFactory {
 	static function getNovelist(){
 		global $configArray;
 		if (!isset($configArray['Novelist']['apiVersion']) || $configArray['Novelist']['apiVersion'] == 1){
-			require_once ROOT_DIR . '/sys/Novelist.php';
+			require_once ROOT_DIR . '/sys/Novelist/Novelist.php';
 			$novelist = new Novelist();
-		}else{
-			require_once ROOT_DIR . '/sys/Novelist2.php';
+		}elseif ($configArray['Novelist']['apiVersion'] == 2){
+			require_once ROOT_DIR . '/sys/Novelist/Novelist2.php';
 			$novelist = new Novelist2();
+		}else{
+			require_once ROOT_DIR . '/sys/Novelist/Novelist3.php';
+			$novelist = new Novelist3();
 		}
 		return $novelist;
 	}

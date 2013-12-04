@@ -26,7 +26,7 @@ public class RecordGroupingProcessor {
 
 	public RecordGroupingProcessor(Connection dbConnection) {
 		try{
-			getGroupedWorkStmt = dbConnection.prepareStatement("SELECT id FROM grouped_work where permanent_id = ?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			getGroupedWorkStmt = dbConnection.prepareStatement("SELECT id FROM grouped_work where permanent_id = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work (title, subtitle, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
 			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_identifiers (grouped_work_id, type, identifier) VALUES (?, ?, ?)");
 			getGroupedWorkIdentifiersStmt = dbConnection.prepareStatement("SELECT * FROM grouped_work_identifiers WHERE grouped_work_id=?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
@@ -231,14 +231,14 @@ public class RecordGroupingProcessor {
 					String title = recordsForIdentifier.getString("title");
 					String author = recordsForIdentifier.getString("author");
 					if (!compareStrings(title, originalRecord.title)){
-						System.out.println("Found match by identifier, but title did not match, marking as linking to different titles.  " + recordIdentifier.type + ": " + recordIdentifier.identifier);
-						System.out.println("  '" + title + "' != '" + originalRecord.title + "'");
+						//System.out.println("Found match by identifier, but title did not match, marking as linking to different titles.  " + recordIdentifier.type + ": " + recordIdentifier.identifier);
+						//System.out.println("  '" + title + "' != '" + originalRecord.title + "'");
 						updateLinksToDifferentTitlesForIdentifier.setString(1, recordIdentifier.type);
 						updateLinksToDifferentTitlesForIdentifier.setString(2, recordIdentifier.identifier);
 						updateLinksToDifferentTitlesForIdentifier.executeUpdate();
 					} else if (!compareStrings(author, originalRecord.author)){
-						System.out.println("Found match by identifier, but author did not match, marking as linking to different titles.  " + recordIdentifier.type + ": " + recordIdentifier.identifier);
-						System.out.println("  '" + author + "' != '" + originalRecord.author + "'");
+						//System.out.println("Found match by identifier, but author did not match, marking as linking to different titles.  " + recordIdentifier.type + ": " + recordIdentifier.identifier);
+						//System.out.println("  '" + author + "' != '" + originalRecord.author + "'");
 						updateLinksToDifferentTitlesForIdentifier.setString(1, recordIdentifier.type);
 						updateLinksToDifferentTitlesForIdentifier.setString(2, recordIdentifier.identifier);
 						updateLinksToDifferentTitlesForIdentifier.executeUpdate();
@@ -324,7 +324,7 @@ public class RecordGroupingProcessor {
 			ResultSet recordIgnoringSubfieldRS = getRecordIgnoringSubfieldStmt.executeQuery();
 			if (recordIgnoringSubfieldRS.next()){
 				groupedWorkId = recordIgnoringSubfieldRS.getLong("id");
-				System.out.println("Found a record to match that did have a subfield even though this record didn't.  " + groupedWork.title + " : " + groupedWork.author);
+				//System.out.println("Found a record to match that did have a subtitle even though this record didn't.  " + groupedWork.title + " : " + groupedWork.author);
 			}
 			recordIgnoringSubfieldRS.close();
 		}else{
@@ -335,7 +335,7 @@ public class RecordGroupingProcessor {
 			ResultSet recordWithoutSubfieldRS = getRecordWithoutSubfieldStmt.executeQuery();
 			if (recordWithoutSubfieldRS.next()){
 				groupedWorkId = recordWithoutSubfieldRS.getLong("id");
-				System.out.println("Found a record to match that did not have a subfield even though this record does.  " + groupedWork.title + " : " + groupedWork.author);
+				//System.out.println("Found a record to match that did not have a subfield even though this record does.  " + groupedWork.title + " : " + groupedWork.author);
 				//update the record to include the subtitle
 				updateRecordSubtitleStmt.setString(1, groupedWork.getPermanentId());
 				updateRecordSubtitleStmt.setString(2, groupedWork.subtitle);

@@ -15,7 +15,7 @@
  *       (Smarty online manual)
  * @author Will Mason <will at dontblinkdesign dot com>
  * @param array $params
- * @param $smarty
+ * @param UInterface $smarty
  * @return null|string
  */
 function smarty_function_implode($params, &$smarty)
@@ -30,11 +30,16 @@ function smarty_function_implode($params, &$smarty)
 		return;
 	}
 
+	$subject = $params['subject'];
+
 	$implodedValue = null;
-	if (is_array($params['subject'])){
-		$implodedValue = implode($params['glue'], $params['subject']);
+	if (is_array($subject)){
+		if (isset($params['sort'])){
+			sort($subject);
+		}
+		$implodedValue = implode($params['glue'], $subject);
 	}else{
-		$implodedValue = $params['subject'];
+		$implodedValue = $subject;
 	}
 
 	if (!isset($params['assign'])) {

@@ -547,8 +547,10 @@ class IndexRecord implements RecordInterface
 			$format = 'Book';
 		} else if (in_array('Journal', $formats)) {
 			$format = 'Journal';
-		} else {
+		} else if (count($formats) > 0){
 			$format = $formats[0];
+		}else{
+			$format = 'Unknown';
 		}
 		switch($format) {
 			case 'Book':
@@ -595,6 +597,7 @@ class IndexRecord implements RecordInterface
 				strtolower($configArray['OpenURL']['resolver']) == 'sfx') {
 					$params['sfx.ignore_date_threshold'] = 1;
 				}
+				break;
 			default:
 				$params['rft_val_fmt'] = 'info:ofi/fmt:kev:mtx:dc';
 				$params['rft.creator'] = $this->getPrimaryAuthor();
@@ -1245,7 +1248,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getFormatCategory()
 	{
-		return isset($this->fields['format_category']) ? $this->fields['format_category'] : array();
+		return isset($this->fields['format_category']) ? $this->fields['format_category'] : '';
 	}
 	/**
 	 * Get general notes on the record.
@@ -1695,8 +1698,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getTitle()
 	{
-		return isset($this->fields['title']) ?
-		$this->fields['title'] : '';
+		return isset($this->fields['title']) ? $this->fields['title'] : '';
 	}
 
 	/**
@@ -1785,6 +1787,22 @@ class IndexRecord implements RecordInterface
 	public function getId(){
 		if (isset($this->fields['id'])){
 			return $this->fields['id'];
+		}
+	}
+
+	public function getFormat(){
+		if (isset($this->fields['format'])){
+			return $this->fields['format'];
+		}else{
+			return "Implement this when not backed by Solr data";
+		}
+	}
+
+	public function getLanguage(){
+		if (isset($this->fields['language'])){
+			return $this->fields['language'];
+		}else{
+			return "Implement this when not backed by Solr data";
 		}
 	}
 }

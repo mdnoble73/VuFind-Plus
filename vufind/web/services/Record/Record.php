@@ -75,6 +75,7 @@ abstract class Record_Record extends Action
 		}else{
 			$this->id = $record_id;
 		}
+		$interface->assign('id', $this->id);
 
 		require_once(ROOT_DIR . '/sys/MergedRecord.php');
 		$mergedRecord = new MergedRecord();
@@ -109,10 +110,11 @@ abstract class Record_Record extends Action
 				header("Location: /EcontentRecord/{$econtentRecord->id}/Home");
 				die();
 			}
-			$logger->log("Did not find a record for id {$this->id} in resources table." , PEAR_LOG_DEBUG);
-			$interface->setTemplate('invalidRecord.tpl');
+			$logger->log("Did not find a resource for id {$this->id} in resources table." , PEAR_LOG_DEBUG);
+			//TODO: Determine if this is needed again
+			/*$interface->setTemplate('invalidRecord.tpl');
 			$interface->display('layout.tpl');
-			die();
+			die();*/
 		}
 
 		if ($configArray['Catalog']['ils'] == 'Millennium' || $configArray['Catalog']['ils'] == 'Sierra'){
@@ -121,7 +123,7 @@ abstract class Record_Record extends Action
 		}
 
 		// Setup Search Engine Connection
-		$class = $configArray['Index']['engine'];
+		/*$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
 		$this->db->disableScoping();
@@ -140,14 +142,17 @@ abstract class Record_Record extends Action
 		$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
 		$timer->logTime('Initialized the Record Driver');
 
-		$interface->assign('coreMetadata', $this->recordDriver->getCoreMetadata());
+		$interface->assign('coreMetadata', $this->recordDriver->getCoreMetadata());*/
 
 		// Process MARC Data
 		require_once ROOT_DIR  . '/sys/MarcLoader.php';
-		$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+		$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
 		if ($marcRecord) {
 			$this->marcRecord = $marcRecord;
 			$interface->assign('marc', $marcRecord);
+
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			$this->recordDriver = new MarcRecord($marcRecord);
 		} else {
 			$interface->assign('error', 'Cannot Process MARC Record');
 		}
@@ -406,11 +411,11 @@ abstract class Record_Record extends Action
 			$interface->assign('oclcFastSubjects', $oclcFastSubjects);
 		}
 
-		$format = $record['format'];
-		$interface->assign('recordFormat', $record['format']);
-		$format_category = isset($record['format_category'][0]) ? $record['format_category'][0] : '';
+		$format = $this->recordDriver->getFormat();
+		$interface->assign('recordFormat', $format);
+		$format_category = $format = $this->recordDriver->getFormatCategory();
 		$interface->assign('format_category', $format_category);
-		$interface->assign('recordLanguage', isset($record['language']) ? $record['language'] : null);
+		$interface->assign('recordLanguage', $this->recordDriver->getLanguage());
 
 		$timer->logTime('Got detailed data from Marc Record');
 
@@ -504,7 +509,7 @@ abstract class Record_Record extends Action
 		}
 
 		/** @var File_MARC_Data_Field[] $linkFields */
-		$linkFields =$marcRecord->getFields('856') ;
+		$linkFields = $marcRecord->getFields('856') ;
 		if ($linkFields){
 			$internetLinks = array();
 			$purchaseLinks = array();
@@ -626,7 +631,8 @@ abstract class Record_Record extends Action
 
 		// Find Similar Records
 		/** @var Memcache $memCache */
-		global $memCache;
+		//TODO: Restore this functionality
+		/*global $memCache;
 		$similar = $memCache->get('similar_titles_' . $this->id);
 		if ($similar == false){
 			$similar = $this->db->getMoreLikeThis($this->id);
@@ -642,7 +648,7 @@ abstract class Record_Record extends Action
 		}
 		$this->similarTitles = $similar;
 		$interface->assign('similarRecords', $similar);
-		$timer->logTime('Loaded similar titles');
+		$timer->logTime('Loaded similar titles');*/
 
 		// Find Other Editions
 		if ($configArray['Content']['showOtherEditionsPopup'] == false){

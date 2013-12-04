@@ -58,6 +58,8 @@ class Solr implements IndexEngine {
 	 */
 	public $host;
 
+	private $index;
+
 	/**
 	 * The status of the connection to Solr
 	 * @var string
@@ -135,8 +137,8 @@ class Solr implements IndexEngine {
 
 		// Set a default Solr index if none is provided to the constructor:
 		if (empty($index)) {
-			$index = isset($configArray['Index']['default_core']) ?
-			$configArray['Index']['default_core'] : "biblio";
+			$index = isset($configArray['Index']['default_core']) ? $configArray['Index']['default_core'] : "biblio";
+			$this->index = $index;
 		}
 
 		//Check for a more specific searchspecs file
@@ -698,9 +700,9 @@ class Solr implements IndexEngine {
 		}
 		if ($applyHoldingsBoost) {
 			//$boostFactors[] = 'product(num_holdings,15,div(format_boost,50))';
-			$boostFactors[] = 'product(sum(popularity,1),15,sum(div(format_boost,50),1))';
+			$boostFactors[] = 'product(popularity,format_boost)';
 		} else {
-			$boostFactors[] = 'product(15,sum(div(format_boost,50),1))';
+			$boostFactors[] = 'format_boost)';
 		}
 		//$boostFactors[] = 'product(num_holdings,7)';
 		//Add rating as part of the ranking, normalize so ratings of less that 2.5 are below unrated entries.
@@ -1165,7 +1167,7 @@ class Solr implements IndexEngine {
 		}
 
 		//Apply automatic boosting (only to biblio and econtent queries)
-		if (preg_match('/.*(biblio|econtent).*/i', $this->host)){
+		if (preg_match('/.*(biblio|econtent|grouped).*/i', $this->host)){
 			//unset($options['qt']); //Force the query to never use dismax handling
 			$searchLibrary = Library::getSearchLibrary($this->searchSource);
 			//Boost items owned at our location
@@ -1238,6 +1240,15 @@ class Solr implements IndexEngine {
 					foreach($options['facet.field'] as $key => $facetName){
 						if (strpos($facetName, 'availability_toggle') === 0){
 							$options['facet.field'][$key] = '{!ex=avail}' . $facetName;
+						}
+						//Update facets for grouped core
+						//TODO: change these in the database later.
+						if ($this->index == 'grouped'){
+							if ($facetName == 'institution'){
+								$options['facet.field'][$key] = 'owning_library';
+							}elseif ($facetName == 'building'){
+								$options['facet.field'][$key] = 'owning_location';
+							}
 						}
 					}
 				}
@@ -1339,8 +1350,10 @@ class Solr implements IndexEngine {
 		//*************************
 		//Marmot overrides for filtering based on library system and location
 		//Only show visible records
-		if (!isset($configArray['Index']['ignoreBibSuppression']) || $configArray['Index']['ignoreBibSuppression'] == false){
-			$filter[] = '-bib_suppression:suppressed';
+		if ($this->index != 'grouped'){
+			if (!isset($configArray['Index']['ignoreBibSuppression']) || $configArray['Index']['ignoreBibSuppression'] == false){
+				$filter[] = '-bib_suppression:suppressed';
+			}
 		}
 		//Only include titles that the user has access to based on pType
 		$pType = 0;
@@ -1361,18 +1374,26 @@ class Solr implements IndexEngine {
 		if (isset($searchLibrary)){
 			$owningSystem = $searchLibrary->facetLabel;
 		}
+		$buildingFacetName = 'building';
+		if ($this->index == 'grouped') {
+			$buildingFacetName = 'owning_location';
+		}
+		$institutionFacetName = 'institution';
+		if ($this->index == 'grouped') {
+			$institutionFacetName = 'owning_library';
+		}
 		if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
 			$usableFilter = 'usable_by:('.$pType . ' OR all)';
 			if (strlen($owningLibrary) > 0){
-				$usableFilter .= " OR building:\"$owningLibrary\" OR building:\"$owningLibrary Online\"";
+				$usableFilter .= " OR $buildingFacetName:\"$owningLibrary\" OR $buildingFacetName:\"$owningLibrary Online\"";
 			}
 			if (strlen($owningSystem) > 0){
-				$usableFilter .= " OR institution:\"$owningSystem\" OR building:\"$owningSystem Online\"";
+				$usableFilter .= " OR $institutionFacetName:\"$owningSystem\" OR $buildingFacetName:\"$owningSystem Online\"";
 			}
 			$homeLibrary = Library::getPatronHomeLibrary();
 			if ($homeLibrary && $homeLibrary != $searchLibrary){
 				$homeLibraryFacet = $homeLibrary->facetLabel;
-				$usableFilter .= " OR building:\"$homeLibraryFacet\" OR building:\"$homeLibraryFacet Online\"";
+				$usableFilter .= " OR $buildingFacetName:\"$homeLibraryFacet\" OR $buildingFacetName:\"$homeLibraryFacet Online\"";
 			}
 			$filter[] = '(' . $usableFilter . ')';
 		}

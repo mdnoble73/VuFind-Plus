@@ -352,7 +352,7 @@ Keyword:
       - [and, 50]
     author_additional:
       - [and, 50]
-    contents:
+    table_of_contents:
       - [and, 10]
     topic:
       - [onephrase, 125]
@@ -371,10 +371,13 @@ Keyword:
     upc:
       - [and, 100]
       - [or, ~]
+    upc:
+      - [and, 100]
+      - [or, ~]
     id:
       - [onephrase, ~]
-    id_alt:
-      - [onephrase, ~]
+    alternate_ids:
+      - [exact, ~]
     local_callnumber_exact:
       - [localized_callnumber, 800]
     local_callnumber_left:
@@ -401,6 +404,7 @@ KeywordProper:
     - isbn
     - issn
     - upc
+    - oclc
     - callnumber-subject
     - local_callnumber_exact^800
     - local_callnumber_left^300
@@ -433,6 +437,9 @@ KeywordProper:
     upc:
       - [and, 100]
       - [or, ~]      
+    oclc:
+      - [and, 100]
+      - [or, ~]
     callnumber-subject:
       - [onephrase, ~]
     callnumber_browse:

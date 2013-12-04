@@ -75,7 +75,7 @@ VuFind.showMessage = function(title, body, autoClose){
 	if (autoClose){
 		setTimeout("VuFind.closeLightbox();", 3000);
 	}
-}
+};
 
 VuFind.toggleHiddenElementWithButton = function(button){
 	var hiddenElementName = $(button).data('hidden_element');
@@ -267,6 +267,12 @@ VuFind.Account = {
 		}
 		$('#renewForm').submit();
 		return false;
+	}
+};
+
+VuFind.GroupedRecord = {
+	getRelatedRecords: function(groupedId){
+		VuFind.ajaxLightbox(Globals.path + "/GroupedRecord/" + groupedId + "/AJAX?method=getRelatedRecords");
 	}
 };
 

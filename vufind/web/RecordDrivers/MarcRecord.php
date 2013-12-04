@@ -29,23 +29,64 @@ require_once ROOT_DIR . '/RecordDrivers/IndexRecord.php';
  */
 class MarcRecord extends IndexRecord
 {
+	/** @var File_MARC_Record $marcRecord */
 	protected $marcRecord;
+	private $id;
+	private $valid = true;
 
+	/**
+	 * @param array|File_MARC_Record|string $record
+	 */
 	public function __construct($record)
 	{
-		// Call the parent's constructor...
-		parent::__construct($record);
-
-		// Also process the MARC record:
-		require_once ROOT_DIR . '/sys/MarcLoader.php';
-		$this->marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
-		if (!$this->marcRecord) {
-			global $errorHandlingEnabled;
-			if ($errorHandlingEnabled){
-				PEAR_Singleton::raiseError(new PEAR_Error('Cannot Process MARC Record for record ' . $record['id']));
-			}else{
-				return new PEAR_Error('Cannot Process MARC Record for record ' . $record['id']);
+		if ($record instanceof File_MARC_Record){
+			$this->marcRecord = $record;
+		}elseif (is_string($record)){
+			require_once ROOT_DIR . '/sys/MarcLoader.php';
+			$this->id = $record;
+			$this->marcRecord = MarcLoader::loadMarcRecordByILSId($record);
+			if (!$this->marcRecord) {
+				$this->valid = false;
+				global $errorHandlingEnabled;
+				if ($errorHandlingEnabled){
+					PEAR_Singleton::raiseError(new PEAR_Error('Cannot Process MARC Record for record ' . $record));
+				}
 			}
+		}else{
+			// Call the parent's constructor...
+			parent::__construct($record);
+
+			// Also process the MARC record:
+			require_once ROOT_DIR . '/sys/MarcLoader.php';
+			$this->marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+			if (!$this->marcRecord) {
+				$this->valid = false;
+				global $errorHandlingEnabled;
+				if ($errorHandlingEnabled){
+					PEAR_Singleton::raiseError(new PEAR_Error('Cannot Process MARC Record for record ' . $record['id']));
+				}
+			}
+		}
+	}
+
+	public function isValid(){
+		return $this->valid;
+	}
+
+	/**
+	 * Return the unique identifier of this record within the Solr index;
+	 * useful for retrieving additional information (like tags and user
+	 * comments) from the external MySQL database.
+	 *
+	 * @access  public
+	 * @return  string              Unique identifier.
+	 */
+	public function getUniqueID()
+	{
+		if (isset($this->id)){
+			return $this->id;
+		}else{
+			return $this->fields['id'];
 		}
 	}
 
@@ -168,7 +209,7 @@ class MarcRecord extends IndexRecord
 	 * search results.
 	 *
 	 * @param string $view The current view.
-	 * @param boolean $useUnscopedHoldingsSummary Whether or not the result should show an unscoped holdings summary.
+	 * @param boolean $useUnscopedHoldingsSummary Whether or not the $result should show an unscoped holdings summary.
 	 *
 	 * @return string      Name of Smarty template file to display.
 	 * @access public
@@ -216,7 +257,9 @@ class MarcRecord extends IndexRecord
 		$interface->assign('marcRecord', $this->marcRecord);
 
 		$solrRecord = $this->fields;
-		ksort($solrRecord);
+		if ($solrRecord){
+			ksort($solrRecord);
+		}
 		$interface->assign('solrRecord', $solrRecord);
 		return 'RecordDrivers/Marc/staff.tpl';
 	}
@@ -330,7 +373,7 @@ class MarcRecord extends IndexRecord
 							$current[] = $subfield->getData();
 						}
 					}
-					// If we found at least one chunk, add a heading to our result:
+					// If we found at least one chunk, add a heading to our $result:
 					if (!empty($current)) {
 						$retval[] = $current;
 					}
@@ -417,11 +460,17 @@ class MarcRecord extends IndexRecord
 	 * Get the edition of the current record.
 	 *
 	 * @access  protected
+	 * @param   boolean $returnFirst whether or not only the first value is desired
 	 * @return  string
 	 */
-	protected function getEdition()
+	protected function getEdition($returnFirst = false)
 	{
-		return $this->getFieldArray('250');
+		if ($returnFirst){
+			return $this->getFirstFieldValue('250');
+		}else{
+			return $this->getFieldArray('250');
+		}
+
 	}
 
 	/**
@@ -612,7 +661,7 @@ class MarcRecord extends IndexRecord
 	 * will contain a separate entry for each subfield value found.
 	 *
 	 * @access  private
-	 * @param   object      $currentField   Result from File_MARC::getFields.
+	 * @param   object      $currentField   $result from File_MARC::getFields.
 	 * @param   array       $subfields      The MARC subfield codes to read
 	 * @param   bool        $concat         Should we concatenate subfields?
 	 * @return  array
@@ -650,7 +699,7 @@ class MarcRecord extends IndexRecord
 			$matches[] = trim($currentLine);
 		}
 
-		// Send back our result array:
+		// Send back our $result array:
 		return $matches;
 	}
 
@@ -685,6 +734,16 @@ class MarcRecord extends IndexRecord
 	protected function getTargetAudienceNotes()
 	{
 		return $this->getFieldArray('521');
+	}
+
+	/**
+	 * Get the full title of the record.
+	 *
+	 * @return  string
+	 */
+	public function getTitle()
+	{
+		return $this->getFirstFieldValue('245', array('a', 'b'));
 	}
 
 	/**
@@ -832,6 +891,409 @@ class MarcRecord extends IndexRecord
 
 		return $interface->fetch('Record/ajax-description-popup.tpl');
 	}
-}
 
-?>
+	function getLanguage(){
+		/** @var File_MARC_Control_Field $field008 */
+		$field008 = $this->marcRecord->getField('008');
+		if ($field008 != null && strlen($field008->getData() >= 37)){
+			$languageCode = substr($field008->getData(), 35, 3);
+			return $languageCode;
+		}else{
+			return 'English';
+		}
+	}
+
+	function getFormat(){
+		$result = array();
+		$leader = $this->marcRecord->getLeader();
+		/** @var File_MARC_Control_Field $fixedField */
+		$fixedField = $this->marcRecord->getField("008");
+
+		// check for music recordings quickly so we can figure out if it is music
+		// for category (need to do here since checking what is on the Compact
+		// Disc/Phonograph, etc is difficult).
+		if (strlen($leader) >= 6) {
+			$leaderBit = strtoupper($leader[6]);
+			switch ($leaderBit) {
+				case 'J':
+					$result[] = "MusicRecording";
+					break;
+			}
+		}
+
+		// check for playaway in 260|b
+		/** @var File_MARC_Data_Field $sysDetailsNote */
+		$sysDetailsNote = $this->marcRecord->getField("260");
+		if ($sysDetailsNote != null) {
+			if ($sysDetailsNote->getSubfield('b') != null) {
+				$sysDetailsValue = strtolower($sysDetailsNote->getSubfield('b')->getData());
+				if (strpos($sysDetailsValue, "playaway") !== FALSE) {
+					$result[] = "Playaway";
+				}
+			}
+		}
+
+		// Check for formats in the 538 field
+		$sysDetailsValue = strtolower($this->getFirstFieldValue("538"));
+		if ($sysDetailsValue != null) {
+			if (strpos($sysDetailsValue, "playaway") !== FALSE) {
+				$result[] =  "Playaway";
+			} else if (strpos($sysDetailsValue, "bluray") !== FALSE
+					|| strpos($sysDetailsValue, "blu-ray") !== FALSE) {
+				$result[] =  "Blu-ray";
+			} else if (strpos($sysDetailsValue, "dvd") !== FALSE) {
+				$result[] =  "DVD";
+			} else if (strpos($sysDetailsValue, "vertical file") !== FALSE) {
+				$result[] =  "VerticalFile";
+			}
+		}
+
+		// Check for formats in the 500 tag
+		/** @var File_MARC_Data_Field $sysDetailsNote2 */
+		$noteValue = strtolower($this->getFirstFieldValue("500"));
+		if ($noteValue) {
+			if (strpos($noteValue, "vertical file") != FALSE) {
+				$result[] =  "VerticalFile";
+			}
+		}
+
+		// Check for large print book (large format in 650, 300, or 250 fields)
+		// Check for blu-ray in 300 fields
+		$edition = strtolower($this->getFirstFieldValue("250"));
+		if ($edition != null) {
+			if (strpos($edition, "large type") !== FALSE) {
+				$result[] =  "LargePrint";
+			}
+		}
+
+		$physicalDescriptions = $this->getFieldArray("300");
+		foreach($physicalDescriptions as $physicalDescription){
+			$physicalDescription = strtolower($physicalDescription);
+			if (strpos($physicalDescription, "large type") !== FALSE) {
+				$result[] =  "LargePrint";
+			} else if (strpos($physicalDescription, "bluray") !== FALSE
+					|| strpos($physicalDescription, "blu-ray") !== FALSE) {
+				$result[] =  "Blu-ray";
+			}
+		}
+
+		$topicalTerms = $this->getFieldArray("650");
+		foreach ($topicalTerms as $topicalTerm){
+			$topicalTerm = strtolower($topicalTerm);
+			if (strpos($topicalTerm, "large type") !== FALSE){
+				$result[] =  "LargePrint";
+			}
+		}
+
+		$localTopicalTerms = $this->getFieldArray("690");
+		foreach ($localTopicalTerms as $topicalTerm){
+			$topicalTerm = strtolower($topicalTerm);
+			if (strpos($topicalTerm, "seed library") !== FALSE){
+				$result[] =  "SeedPacket";
+			}
+		}
+
+		// check the 007 - this is a repeating field
+		$fields = $this->marcRecord->getFields("007");
+		if ($fields != null) {
+			/** @var File_MARC_Control_Field $formatField */
+			foreach ($fields as $formatField) {
+				if ($formatField->getData() == null || strlen($formatField->getData()) < 2) {
+					continue;
+				}
+				// Check for blu-ray (s in position 4)
+				// This logic does not appear correct.
+				/*
+				 * if (formatField.getData() != null && formatField.getData().length()
+				 * >= 4){ if (formatField.getData().toUpperCase().charAt(4) == 'S'){
+				 * $result[] =  "Blu-ray"; break; } }
+				 */
+				$formatCode = strtoupper($formatField->getData());
+				$firstCharacter = substr($formatCode, 0, 1);
+				$secondCharacter = substr($formatCode, 1, 1);
+				switch ($firstCharacter) {
+					case 'A':
+						switch ($secondCharacter) {
+							case 'D':
+								$result[] =  "Atlas";
+								break;
+							default:
+								$result[] =  "Map";
+								break;
+						}
+						break;
+					case 'C':
+						switch ($secondCharacter) {
+							case 'A':
+								$result[] =  "TapeCartridge";
+								break;
+							case 'B':
+								$result[] =  "ChipCartridge";
+								break;
+							case 'C':
+								$result[] =  "DiscCartridge";
+								break;
+							case 'F':
+								$result[] =  "TapeCassette";
+								break;
+							case 'H':
+								$result[] =  "TapeReel";
+								break;
+							case 'J':
+								$result[] =  "FloppyDisk";
+								break;
+							case 'M':
+							case 'O':
+								$result[] =  "CDROM";
+								break;
+							case 'R':
+								// Do not return - this will cause anything with an
+								// 856 field to be labeled as "Electronic"
+								break;
+							default:
+								$result[] =  "Software";
+								break;
+						}
+						break;
+					case 'D':
+						$result[] =  "Globe";
+						break;
+					case 'F':
+						$result[] =  "Braille";
+						break;
+					case 'G':
+						switch ($secondCharacter) {
+							case 'C':
+							case 'D':
+								$result[] =  "Filmstrip";
+								break;
+							case 'T':
+								$result[] =  "Transparency";
+								break;
+							default:
+								$result[] =  "Slide";
+								break;
+						}
+						break;
+					case 'H':
+						$result[] =  "Microfilm";
+						break;
+					case 'K':
+						switch ($secondCharacter) {
+							case 'C':
+								$result[] =  "Collage";
+								break;
+							case 'D':
+								$result[] =  "Drawing";
+								break;
+							case 'E':
+								$result[] =  "Painting";
+								break;
+							case 'F':
+								$result[] =  "Print";
+								break;
+							case 'G':
+								$result[] =  "Photonegative";
+								break;
+							case 'J':
+								$result[] =  "Print";
+								break;
+							case 'L':
+								$result[] =  "Drawing";
+								break;
+							case 'O':
+								$result[] =  "FlashCard";
+								break;
+							case 'N':
+								$result[] =  "Chart";
+								break;
+							default:
+								$result[] =  "Photo";
+								break;
+						}
+						break;
+					case 'M':
+						switch ($secondCharacter) {
+							case 'F':
+								$result[] =  "VideoCassette";
+								break;
+							case 'R':
+								$result[] =  "Filmstrip";
+								break;
+							default:
+								$result[] =  "MotionPicture";
+								break;
+						}
+						break;
+					case 'O':
+						$result[] =  "Kit";
+						break;
+					case 'Q':
+						$result[] =  "MusicalScore";
+						break;
+					case 'R':
+						$result[] =  "SensorImage";
+						break;
+					case 'S':
+						switch ($secondCharacter) {
+							case 'D':
+								if (strlen($formatCode) >= 4) {
+									$speed = substr($formatCode, 3, 1);
+							if ($speed >= 'A' && $speed <= 'E') {
+								$result[] =  "Phonograph";
+							} else if ($speed == 'F') {
+								$result[] =  "CompactDisc";
+							} else if ($speed >= 'K' && $speed <= 'R') {
+								$result[] =  "TapeRecording";
+							} else {
+								$result[] =  "SoundDisc";
+							}
+						} else {
+									$result[] =  "SoundDisc";
+								}
+								break;
+							case 'S':
+								$result[] =  "SoundCassette";
+								break;
+							default:
+								$result[] =  "SoundRecording";
+								break;
+						}
+						break;
+					case 'T':
+						switch ($secondCharacter) {
+							case 'A':
+								$result[] =  "Book";
+								break;
+							case 'B':
+								$result[] =  "LargePrint";
+								break;
+						}
+						break;
+					case 'V':
+						switch ($secondCharacter) {
+							case 'C':
+								$result[] =  "VideoCartridge";
+								break;
+							case 'D':
+								$result[] =  "VideoDisc";
+								break;
+							case 'F':
+								$result[] =  "VideoCassette";
+								break;
+							case 'R':
+								$result[] =  "VideoReel";
+								break;
+							default:
+								$result[] =  "Video";
+								break;
+						}
+						break;
+				}
+			}
+		}
+
+		// check the Leader at position 6
+		if (strlen($leader) >= 6) {
+			$leaderBit = strtoupper(substr($leader, 6, 1));
+			switch ($leaderBit) {
+				case 'C':
+				case 'D':
+					$result[] =  "MusicalScore";
+					break;
+				case 'E':
+				case 'F':
+					$result[] =  "Map";
+					break;
+				case 'G':
+					// We appear to have a number of items without 007 tags marked as G's.
+					// These seem to be Videos rather than Slides.
+					// $result[] =  "Slide";
+					$result[] =  "Video";
+					break;
+				case 'I':
+					$result[] =  "SoundRecording";
+					break;
+				case 'J':
+					$result[] =  "MusicRecording";
+					break;
+				case 'K':
+					$result[] =  "Photo";
+					break;
+				case 'M':
+					$result[] =  "Electronic";
+					break;
+				case 'O':
+				case 'P':
+					$result[] =  "Kit";
+					break;
+				case 'R':
+					$result[] =  "PhysicalObject";
+					break;
+				case 'T':
+					$result[] =  "Manuscript";
+					break;
+			}
+		}
+
+		if (strlen($leader) >= 7) {
+			// check the Leader at position 7
+			$leaderBit = strtoupper(substr($leader, 7, 1));
+			switch ($leaderBit) {
+				// Monograph
+				case 'M':
+					if (count($result) == 0) {
+						$result[] =  "Book";
+					}
+					break;
+				// Serial
+				case 'S':
+					// Look in 008 to determine what type of Continuing Resource
+					$formatCode = substr(strtoupper($fixedField->getData()), 21, 1);
+					switch ($formatCode) {
+						case 'N':
+							$result[] =  "Newspaper";
+							break;
+						case 'P':
+							$result[] =  "Journal";
+							break;
+						default:
+							$result[] =  "Serial";
+							break;
+					}
+			}
+		}
+
+		// Nothing worked!
+		if (count($result) == 0) {
+			$result[] =  "Unknown";
+		}
+
+		return $result;
+	}
+
+
+	function getRelatedRecord(){
+		global $configArray;
+		$recordId = $this->getUniqueID();
+		$url = $configArray['Site']['path'] . '/Record/' . $recordId;
+		$holdUrl = $configArray['Site']['path'] . '/Record/' . $recordId . '/Hold';
+		$relatedRecord = array(
+			'id' => $recordId,
+			'url' => $url,
+			'holdUrl' => $holdUrl,
+			'format' => reset($this->getFormat()),
+			'edition' => $this->getEdition(true),
+			'language' => $this->getLanguage(),
+			'title' => $this->getTitle(),
+			'copies' => $this->getNumCopies(),
+		);
+		return $relatedRecord;
+	}
+
+	private function getNumCopies() {
+		//TODO: This needs to be filtered according to whether or not the patron can use the item, and to make sure the item is not suppressed.
+		$itemFields = $this->marcRecord->getFields("989");
+		return count($itemFields);
+	}
+}

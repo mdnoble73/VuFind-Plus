@@ -31,7 +31,7 @@
 <script type="text/javascript">
 	$(document).ready(function() {literal} { {/literal}
 		VuFind.ResultsList.loadStatusSummaries();
-		VuFind.ResultsList.loadSeriesInfo();
+		//VuFind.ResultsList.loadSeriesInfo();
 		//VuFind.ResultsList.initializeDescriptions();
 		{if $user}
 		//doGetSaveStatuses();
