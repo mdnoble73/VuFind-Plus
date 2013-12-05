@@ -275,7 +275,8 @@ class AJAX extends Action {
 				if (is_array($titles)){
 					foreach ($titles as $key => $rawData){
 
-						$interface->assign('description', $rawData['description']);
+						$interface->assign('title', $rawData['title']);
+						$interface->assign('description', $rawData['description'].'w00t!');
 						$interface->assign('length', $rawData['length']);
 						$interface->assign('publisher', $rawData['publisher']);
 						$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
