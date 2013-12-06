@@ -287,7 +287,7 @@ class MillenniumCheckouts {
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
 		$sresult = curl_exec($curl_connection);
-		$logger->log("Result of Renew All\r\n" . $sresult, PEAR_LOG_INFO);
+		//$logger->log("Result of Renew All\r\n" . $sresult, PEAR_LOG_INFO);
 
 		curl_close($curl_connection);
 		unlink($cookieJar);
