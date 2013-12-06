@@ -720,6 +720,7 @@ class Record_AJAX extends Action {
 			$descriptionArray = $description->loadData();
 			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
 		}
+		$interface->assign('title', isset($descriptionArray['title']) ? $descriptionArray['title'] : 'Description');
 		$interface->assign('description', $descriptionArray['description']);
 		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');
 		$interface->assign('publisher', isset($descriptionArray['publisher']) ? $descriptionArray['publisher'] : '');
