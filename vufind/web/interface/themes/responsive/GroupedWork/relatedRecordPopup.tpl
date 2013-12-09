@@ -4,7 +4,7 @@
 		<h3 id="modal-title">Related Records</h3>
 	</div>
 	<div class="modal-body">
-		{include file="GroupedRecord/relatedRecords.tpl"}
+		{include file="GroupedWork/relatedRecords.tpl"}
 	</div>
 	<div class="modal-footer">
 		<button class="btn" data-dismiss="modal" id="modalClose">Close</button>

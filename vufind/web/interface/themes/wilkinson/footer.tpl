@@ -40,13 +40,13 @@
 							<div class="jbmoduleBody">
 								<div class="custom">
 									<p>
-										<span style="color: #acacac;">Monday: 9:00am &ndash; 8:00pm</span><br/>
-										<span style="color: #acacac;">Tuesday:&nbsp;9:00am &ndash; 8:00pm</span><br/>
-										<span style="color: #acacac;">Wednesday:&nbsp;9:00am &ndash; 8:00pm</span><br/>
-										<span style="color: #acacac;">Thursday:&nbsp;9:00am &ndash; 8:00pm</span><br/>
-										<span style="color: #acacac;">Friday:&nbsp;9:00am &ndash; 6:00pm</span><br/>
+										<span style="color: #acacac;">Monday: 10:00am &ndash; 8:00pm</span><br/>
+										<span style="color: #acacac;">Tuesday:&nbsp;10:00am &ndash; 8:00pm</span><br/>
+										<span style="color: #acacac;">Wednesday:&nbsp;10:00am &ndash; 8:00pm</span><br/>
+										<span style="color: #acacac;">Thursday:&nbsp;10:00am &ndash; 8:00pm</span><br/>
+										<span style="color: #acacac;">Friday:&nbsp;10:00am &ndash; 6:00pm</span><br/>
 										<span style="color: #acacac;">Saturday:&nbsp;10:00am &ndash; 6:00pm</span><br/>
-										<span style="color: #acacac;">Sunday: Closed</span>
+										<span style="color: #acacac;">Sunday:&nbsp;12:00pm &ndash; 5:00pm</span>
 									</p>
 								</div>
 							</div>
@@ -67,13 +67,13 @@
 									</li>
 									<li class="item-527"><a href="{$homeLink}/request-for-public-records">Request for Public Records</a>
 									</li>
-									<li class="item-145"><a href="{$homeLink}/library-services/meetingrooms">Meeting Rooms</a>
+									<li class="item-145"><a href="{$homeLink}/my-account/meetingrooms">Meeting Rooms</a>
 									</li>
 									<li class="item-172"><a href="{$homeLink}/community/fol">Friends of the Library</a>
 									</li>
-									<li class="item-151"><a href="{$homeLink}/bod">Board Communiqué</a>
-									</li>
 									<li class="item-203"><a href="{$homeLink}/contact-us">Contact</a>
+									</li>
+									<li class="item-151"><a href="{$homeLink}/board-of-trustees">Board of Trustees</a>
 									</li>
 								</ul>
 							</div>

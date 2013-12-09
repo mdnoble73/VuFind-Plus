@@ -2429,7 +2429,105 @@ class DBMaintenance extends Admin_Admin {
 					) ENGINE = MYISAM",
 				),
 			),
+
+
+			'grouped_works' => array(
+				'title' => 'Setup Grouped Works',
+				'description' =>'Sets up tables for grouped works so we can index and display them.',
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS grouped_work (
+					  id bigint(20) NOT NULL AUTO_INCREMENT,
+					  permanent_id char(36) NOT NULL,
+					  title varchar(100) NOT NULL,
+					  author varchar(50) NOT NULL,
+					  subtitle varchar(175) NOT NULL,
+					  grouping_category varchar(25) NOT NULL,
+					  PRIMARY KEY (id),
+					  UNIQUE KEY permanent_id (permanent_id),
+					  KEY title (title,author,grouping_category)
+					) ENGINE=MyISAM  DEFAULT CHARSET=utf8",
+					"CREATE TABLE IF NOT EXISTS grouped_work_identifiers (
+					  id bigint(20) NOT NULL AUTO_INCREMENT,
+					  grouped_work_id bigint(20) NOT NULL,
+					  `type` varchar(15) NOT NULL,
+					  identifier varchar(36) NOT NULL,
+					  linksToDifferentTitles tinyint(4) NOT NULL DEFAULT '0',
+					  PRIMARY KEY (id),
+					  UNIQUE KEY grouped_work_id (grouped_work_id,`type`,identifier),
+					  KEY grouped_record_id (grouped_work_id),
+					  KEY `type` (`type`,identifier),
+					  KEY type_2 (`type`),
+					  KEY linksToDifferentTitles (linksToDifferentTitles)
+					) ENGINE=MyISAM  DEFAULT CHARSET=utf8",
+				),
+
+			),
+
+			'work_level_ratings' => array(
+				'title' => 'Work Level Ratings',
+				'description' => 'Stores user ratings at the work level rather than the individual record.',
+				'sql' => array(
+					"CREATE table user_work_rating (
+						id INT(11) NOT NULL AUTO_INCREMENT,
+						groupedRecordPermanentId VARCHAR(36),
+						userId INT(11),
+						rating TINYINT(1),
+						dateRated INT(11),
+						INDEX(`groupedRecordPermanentId`),
+						INDEX(`userId`),
+						PRIMARY KEY(`id`)
+					) ENGINE = MYISAM",
+				),
+			),
+
+			'populate_work_level_ratings' => array(
+				'title' => 'Populate Work Level Ratings',
+				'description' => 'Converts from old record level ratings to the new ratings based on work level',
+				'sql' => array(
+					"populateWorkLevelRatings"
+				),
+			),
 		);
+	}
+
+	public function populateWorkLevelRatings(){
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifier.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkRating.php';
+
+		$sql = "TRUNCATE table user_work_rating";
+		mysql_query($sql);
+		$sql = "SELECT userid, rating, dateRated, record_id, source from user_rating inner join resource on resource.id = resourceid";
+		$result = mysql_query($sql);
+		while ($row = mysql_fetch_assoc($result)) {
+			//We got a rating from the user, find the appropriate work based on the resource
+			if ($row['source'] == 'VuFind'){
+				//Should be an ils identifier for this
+				$workIdentifier = new GroupedWorkIdentifier();
+				$workIdentifier->identifier = $row['record_id'];
+				$workIdentifier->type = 'ils';
+				$workIdentifier->joinAdd(new GroupedWork());
+				$workIdentifier->selectAdd('permanent_id');
+				if ($workIdentifier->find(true)){
+					$userWorkRating = new UserWorkRating();
+					$userWorkRating->groupedRecordPermanentId = $workIdentifier->permanent_id;
+					$userWorkRating->userid = $row['userid'];
+					$userWorkRating->rating = $row['rating'];
+					$userWorkRating->dateRated = $row['dateRated'];
+					$userWorkRating->insert();
+				}else{
+					echo("Warning, did not find grouped work for {$row['record_id']}<br/>");
+				}
+			}else{
+				//eContent
+				echo("Warning, resource was marked as eContent, but should not have been {$row['record_id']}<br/>");
+			}
+		}
+
+		//TODO: Load all econtent from econtent ratings
+
+
+		mysql_free_result($result);
 	}
 
 	public function addTableListWidgetListsLinks()

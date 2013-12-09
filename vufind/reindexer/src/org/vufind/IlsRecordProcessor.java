@@ -14,9 +14,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Processes data that was exported from the ILS.
@@ -166,9 +169,8 @@ public class IlsRecordProcessor {
 			} catch (Exception e) {
 				logger.error("Error loading data from ils", e);
 			}
-		}else{
-			groupedWork.addRelatedRecord("ils:" + identifier);
 		}
+		//We didn't get a marc record, skip this record.
 	}
 
 	private void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
@@ -180,7 +182,7 @@ public class IlsRecordProcessor {
 			}
 		}
 
-		loadRelatedRecordsAndSources(groupedWork, record, unsuppressedItemRecords, identifier);
+		loadRelatedRecordsAndSources(groupedWork, unsuppressedItemRecords, identifier);
 
 		//Do updates based on the overall bib
 		loadTitles(groupedWork, record);
@@ -201,13 +203,270 @@ public class IlsRecordProcessor {
 		groupedWork.addGeographicFacet(getFieldList(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z"));
 		groupedWork.addEra(getFieldList(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y"));
 
+		loadLanguageDetails(groupedWork, record);
+		loadPublicationDetails(groupedWork, record);
+		loadLiteraryForms(groupedWork, record);
+		loadTargetAudiences(groupedWork, record);
+		groupedWork.addMpaaRating(groupedWork, getMpaaRating(record));
+
 		//Do updates based on items
 		loadOwnershipInformation(groupedWork, unsuppressedItemRecords);
 		loadAvailability(groupedWork, unsuppressedItemRecords);
 		loadUsability(groupedWork, unsuppressedItemRecords);
 		loadPopularity(groupedWork, unsuppressedItemRecords);
+		loadDateAdded(groupedWork, unsuppressedItemRecords);
+		loadITypes(groupedWork, unsuppressedItemRecords);
+		groupedWork.addBarcodes(getFieldList(record, "989b"));
 
 		groupedWork.addHoldings(unsuppressedItemRecords.size());
+	}
+
+	Pattern mpaaRatingRegex1 = null;
+	Pattern mpaaRatingRegex2 = null;
+	public String getMpaaRating(Record record) {
+		if (mpaaRatingRegex1 == null) {
+			mpaaRatingRegex1 = Pattern.compile(
+					"(?:.*?)Rated\\s(G|PG-13|PG|R|NC-17|NR|X)(?:.*)", Pattern.CANON_EQ);
+		}
+		if (mpaaRatingRegex2 == null) {
+			mpaaRatingRegex2 = Pattern.compile(
+					"(?:.*?)(G|PG-13|PG|R|NC-17|NR|X)\\sRated(?:.*)", Pattern.CANON_EQ);
+		}
+		String val = getFirstFieldVal(record, "521a");
+
+		if (val != null) {
+			if (val.matches("Rated\\sNR\\.?|Not Rated\\.?|NR")) {
+				return "Not Rated";
+			}
+			try {
+				Matcher mpaaMatcher1 = mpaaRatingRegex1.matcher(val);
+				if (mpaaMatcher1.find()) {
+					// System.out.println("Matched matcher 1, " + mpaaMatcher1.group(1) +
+					// " Rated " + getId());
+					return mpaaMatcher1.group(1) + " Rated";
+				} else {
+					Matcher mpaaMatcher2 = mpaaRatingRegex2.matcher(val);
+					if (mpaaMatcher2.find()) {
+						// System.out.println("Matched matcher 2, " + mpaaMatcher2.group(1)
+						// + " Rated " + getId());
+						return mpaaMatcher2.group(1) + " Rated";
+					} else {
+						return null;
+					}
+				}
+			} catch (PatternSyntaxException ex) {
+				// Syntax error in the regular expression
+				return null;
+			}
+		} else {
+			return null;
+		}
+	}
+
+	private void loadITypes(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItemRecords) {
+		for (DataField curItem : unsuppressedItemRecords){
+			Subfield locationSubfield = curItem.getSubfield('d');
+			Subfield iTypeField = curItem.getSubfield('j');
+			if (iTypeField != null && locationSubfield != null){
+				String iType = indexer.translateValue("itype", iTypeField.getData());
+				String location = locationSubfield.getData();
+				ArrayList<String> relatedSubdomains = getLibrarySubdomainsForLocationCode(location);
+				groupedWork.setIType(iType, relatedSubdomains);
+			}
+		}
+	}
+
+	private static SimpleDateFormat dateAddedFormatter = new SimpleDateFormat("yyMMdd");
+	private void loadDateAdded(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItemRecords) {
+		for (DataField curItem : unsuppressedItemRecords){
+			Subfield locationSubfield = curItem.getSubfield('d');
+			Subfield dateAddedField = curItem.getSubfield('k');
+			if (locationSubfield != null && dateAddedField != null){
+				String locationCode = locationSubfield.getData();
+				String dateAddedStr = dateAddedField.getData();
+				try{
+					Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
+					ArrayList<String> relatedLocations = getLibrarySubdomainsForLocationCode(locationCode);
+					relatedLocations.addAll(getIlsCodesForDetailedLocationCode(locationCode));
+					groupedWork.setDateAdded(dateAdded, relatedLocations);
+				} catch (ParseException e) {
+					logger.error("Error processing date added", e);
+				}
+			}
+		}
+	}
+
+	private void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record) {
+		Set<String> targetAudiences = new LinkedHashSet<String>();
+		try {
+			String leader = record.getLeader().toString();
+
+			ControlField ohOhEightField = (ControlField) record.getVariableField("008");
+			ControlField ohOhSixField = (ControlField) record.getVariableField("006");
+
+			// check the Leader at position 6 to determine the type of field
+			char recordType = Character.toUpperCase(leader.charAt(6));
+			char bibLevel = Character.toUpperCase(leader.charAt(7));
+			// Figure out what material type the record is
+			if ((recordType == 'A' || recordType == 'T')
+					&& (bibLevel == 'A' || bibLevel == 'C' || bibLevel == 'D' || bibLevel == 'M') /* Books */
+					|| (recordType == 'M') /* Computer Files */
+					|| (recordType == 'C' || recordType == 'D' || recordType == 'I' || recordType == 'J') /* Music */
+					|| (recordType == 'G' || recordType == 'K' || recordType == 'O' || recordType == 'R') /*
+																																																 * Visual
+																																																 * Materials
+																																																 */
+					) {
+				char targetAudienceChar;
+				if (ohOhSixField != null && ohOhSixField.getData().length() > 5) {
+					targetAudienceChar = Character.toUpperCase(ohOhSixField.getData()
+							.charAt(5));
+					if (targetAudienceChar != ' ') {
+						targetAudiences.add(Character.toString(targetAudienceChar));
+					}
+				}
+				if (targetAudiences.size() == 0 && ohOhEightField != null
+						&& ohOhEightField.getData().length() > 22) {
+					targetAudienceChar = Character.toUpperCase(ohOhEightField.getData()
+							.charAt(22));
+					if (targetAudienceChar != ' ') {
+						targetAudiences.add(Character.toString(targetAudienceChar));
+					}
+				} else if (targetAudiences.size() == 0) {
+					targetAudiences.add("Unknown");
+				}
+			} else {
+				targetAudiences.add("Unknown");
+			}
+		} catch (Exception e) {
+			// leader not long enough to get target audience
+			logger.debug("ERROR in getTargetAudience ", e);
+			targetAudiences.add("Unknown");
+		}
+
+		if (targetAudiences.size() == 0) {
+			targetAudiences.add("Unknown");
+		}
+
+		groupedWork.addTargetAudiences(indexer.translateCollection("target_audience", targetAudiences));
+		groupedWork.addTargetAudiencesFull(indexer.translateCollection("target_audience_full", targetAudiences));
+	}
+
+	private void loadLiteraryForms(GroupedWorkSolr groupedWork, Record record) {
+		Set<String> literaryForms = new LinkedHashSet<String>();
+		try {
+			String leader = record.getLeader().toString();
+
+			ControlField ohOhEightField = (ControlField) record.getVariableField("008");
+			ControlField ohOhSixField = (ControlField) record.getVariableField("006");
+
+			// check the Leader at position 6 to determine the type of field
+			char recordType = Character.toUpperCase(leader.charAt(6));
+			char bibLevel = Character.toUpperCase(leader.charAt(7));
+			// Figure out what material type the record is
+			if ((recordType == 'A' || recordType == 'T')
+					&& (bibLevel == 'A' || bibLevel == 'C' || bibLevel == 'D' || bibLevel == 'M') /* Books */
+					|| (recordType == 'M') /* Computer Files */
+					|| (recordType == 'C' || recordType == 'D' || recordType == 'I' || recordType == 'J') /* Music */
+					|| (recordType == 'G' || recordType == 'K' || recordType == 'O' || recordType == 'R') /*
+																																																 * Visual
+																																																 * Materials
+																																																 */
+					) {
+				char literaryFormChar;
+				if (ohOhSixField != null && ohOhSixField.getData().length() > 16) {
+					literaryFormChar = Character.toUpperCase(ohOhSixField.getData().charAt(16));
+					if (literaryFormChar != ' ') {
+						literaryForms.add(Character.toString(literaryFormChar));
+					}
+				}
+				if (literaryForms.size() == 0 && ohOhEightField != null && ohOhEightField.getData().length() > 33) {
+					literaryFormChar = Character.toUpperCase(ohOhEightField.getData().charAt(33));
+					if (literaryFormChar != ' ') {
+						literaryForms.add(Character.toString(literaryFormChar));
+					}
+				}
+				if (literaryForms.size() == 0) {
+					literaryForms.add(" ");
+				}
+			} else {
+				literaryForms.add("Unknown");
+			}
+		} catch (Exception e) {
+			logger.error("Unexpected error", e);
+		}
+		groupedWork.addLiteraryForms(indexer.translateCollection("literary_form", literaryForms));
+		groupedWork.addLiteraryFormsFull(indexer.translateCollection("literary_form_full", literaryForms));
+	}
+
+	private void loadPublicationDetails(GroupedWorkSolr groupedWork, Record record) {
+		Set<String> publishers = this.getPublishers(record);
+		groupedWork.addPublishers(publishers);
+		Set<String> publicationDate = this.getPublicationDates(record);
+		groupedWork.addPublicationDates(publicationDate);
+	}
+
+	public Set<String> getPublicationDates(Record record) {
+		@SuppressWarnings("unchecked")
+		List<DataField> rdaFields = (List<DataField>)record.getVariableFields("264");
+		HashSet<String> publicationDates = new HashSet<String>();
+		String date;
+		//Try to get from RDA data
+		if (rdaFields.size() > 0){
+			for (DataField curField : rdaFields){
+				if (curField.getIndicator2() == '1'){
+					Subfield subFieldC = curField.getSubfield('c');
+					if (subFieldC != null){
+						date = subFieldC.getData();
+						publicationDates.add(date);
+					}
+				}
+			}
+		}
+		//Try to get from 260
+		publicationDates.addAll(getFieldList(record, "260c"));
+		//Try to get from 008
+		publicationDates.add(getFirstFieldVal(record, "008[7-10]"));
+
+		return publicationDates;
+	}
+
+	public Set<String> getPublishers(Record record){
+		Set<String> publisher = new LinkedHashSet<String>();
+		//First check for 264 fields
+		@SuppressWarnings("unchecked")
+		List<DataField> rdaFields = (List<DataField>)record.getVariableFields("264");
+		if (rdaFields.size() > 0){
+			for (DataField curField : rdaFields){
+				if (curField.getIndicator2() == '1'){
+					Subfield subFieldB = curField.getSubfield('b');
+					if (subFieldB != null){
+						publisher.add(subFieldB.getData());
+					}
+				}
+			}
+		}
+		publisher.addAll(getFieldList(record, "260b"));
+		return publisher;
+	}
+
+	private void loadLanguageDetails(GroupedWorkSolr groupedWork, Record record) {
+		Set <String> languages = getFieldList(record, "008[35-37]:041a:041d:041j");
+		HashSet<String> translatedLanguages = new HashSet<String>();
+		for (String language : languages){
+			translatedLanguages.add(indexer.translateValue("language", language));
+			String languageBoost = indexer.translateValue("language_boost", language);
+			if (languageBoost != null){
+				Long languageBoostVal = Long.parseLong(languageBoost);
+				groupedWork.setLanguageBoost(languageBoostVal);
+			}
+			String languageBoostEs = indexer.translateValue("language_boost_es", language);
+			if (languageBoostEs != null){
+				Long languageBoostVal = Long.parseLong(languageBoost);
+				groupedWork.setLanguageBoostSpanish(languageBoostVal);
+			}
+		}
+		groupedWork.setLanguages(translatedLanguages);
 	}
 
 	private void loadPopularity(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItemRecords) {
@@ -324,7 +583,11 @@ public class IlsRecordProcessor {
 			return false;
 		}
 		String icode2 = icode2Subfield.getData().toLowerCase().trim();
-		String locationCode = curItem.getSubfield('d').getData().trim();
+		Subfield locationCodeSubfield = curItem.getSubfield('d');
+		if (locationCodeSubfield == null)                                                 {
+			return false;
+		}
+		String locationCode = locationCodeSubfield.getData().trim();
 
 		return icode2.equals("n") || icode2.equals("x") || locationCode.equals("zzzz");
 	}
@@ -332,8 +595,6 @@ public class IlsRecordProcessor {
 	private void loadAvailability(GroupedWorkSolr groupedWork, List<DataField> itemRecords) {
 		//Calculate availability based on the record
 		HashSet<String> availableAt = new HashSet<String>();
-		HashSet<String> availabilityToggleGlobal = new HashSet<String>();
-		HashMap<String, HashSet<String>> availableAtBySystemOrLocation = new HashMap<String, HashSet<String>>();
 
 		for (DataField curItem : itemRecords){
 			Subfield statusSubfield = curItem.getSubfield('g');
@@ -424,6 +685,9 @@ public class IlsRecordProcessor {
 	private HashSet<String> locationCodesWithoutFacets = new HashSet<String>();
 	private ArrayList<String> getLocationFacetsForLocationCode(String locationCode) {
 		ArrayList<String> locationFacets = new ArrayList<String>();
+		if (locationCode == null || locationCode.length() == 0){
+			return locationFacets;
+		}
 		for(String ilsCode : locationMap.keySet()){
 			if (locationCode.startsWith(ilsCode)){
 				locationFacets.add(locationMap.get(ilsCode));
@@ -431,14 +695,24 @@ public class IlsRecordProcessor {
 		}
 		if (locationFacets.size() == 0){
 			if (!locationCodesWithoutFacets.contains(locationCode)){
-				logger.warn("Did not find any location facets for " + locationCode);
+				logger.warn("Did not find any location facets for '" + locationCode + "'");
 				locationCodesWithoutFacets.add(locationCode);
 			}
 		}
 		return locationFacets;
 	}
 
-	private void loadRelatedRecordsAndSources(GroupedWorkSolr groupedWork, Record record, List<DataField> itemRecords, String identifier) {
+	private ArrayList<String> getIlsCodesForDetailedLocationCode(String locationCode) {
+		ArrayList<String> locationCodes = new ArrayList<String>();
+		for(String ilsCode : locationMap.keySet()){
+			if (locationCode.startsWith(ilsCode)){
+				locationCodes.add(ilsCode);
+			}
+		}
+		return locationCodes;
+	}
+
+	private void loadRelatedRecordsAndSources(GroupedWorkSolr groupedWork, List<DataField> itemRecords, String identifier) {
 		HashSet<String> relatedRecords = new HashSet<String>();
 		HashSet<String> sources = new HashSet<String>();
 		HashSet<String> alternateIds = new HashSet<String>();
@@ -520,17 +794,6 @@ public class IlsRecordProcessor {
 
 	private List<DataField> getDataFields(Record marcRecord, String tag) {
 		List variableFields = marcRecord.getVariableFields(tag);
-		List<DataField> variableFieldsReturn = new ArrayList<DataField>();
-		for (Object variableField : variableFields){
-			if (variableField instanceof DataField){
-				variableFieldsReturn.add((DataField)variableField);
-			}
-		}
-		return variableFieldsReturn;
-	}
-
-	private List<DataField> getDataFields(Record marcRecord, String[] tags) {
-		List variableFields = marcRecord.getVariableFields(tags);
 		List<DataField> variableFieldsReturn = new ArrayList<DataField>();
 		for (Object variableField : variableFields){
 			if (variableField instanceof DataField){

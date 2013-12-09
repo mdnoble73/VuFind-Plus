@@ -62,7 +62,7 @@ class Report_PatronStatus extends Action{
 		$cacheSettings = array( ' memoryCacheSize ' => '32MB');
 		PHPExcel_Settings::setCacheStorageMethod($cacheMethod, $cacheSettings);
 
-		set_time_limit(240);
+		set_time_limit(360);
 		$excel = new PHPExcel();
 		// Set properties
 		$excel->getProperties()->setCreator($configArray['Site']['title'])

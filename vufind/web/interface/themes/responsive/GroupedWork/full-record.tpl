@@ -62,16 +62,16 @@
 						</dl>
 					{/if}
 
-					{assign value=$recordDriver->getRelatedRecords() var="relatedRecords"}
-					{include file="GroupedRecord/relatedRecords.tpl"}
+					{assign value=$recordDriver->getRelatedManifestations() var="relatedManifestations"}
+					{include file="GroupedWork/relatedManifestations.tpl"}
 				</div>
 
 				<div id="recordTools" class="span3">
-					{include file="GroupedRecord/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
+					{include file="GroupedWork/result-tools.tpl" showMoreInfo=false}
 
 					<div id="ratings" class="well center">
 						{* Let the user rate this title *}
-						{include file="Record/title-rating-full.tpl" ratingClass="" recordId=$id shortId=$shortId ratingData=$ratingData showFavorites=0}
+						{include file="GroupedWork/title-rating-full.tpl" ratingClass="" showFavorites=0}
 					</div>
 				</div>
 			</div>
@@ -81,13 +81,19 @@
 				{assign var="scrollerTitle" value="Also in this Series"}
 				{assign var="wrapperId" value="series"}
 				{assign var="scrollerVariable" value="seriesScroller"}
-				{assign var="fullListLink" value="$path/Record/$id/Series"}
+				{assign var="permanentId" value=$recordDriver->getPermanentId()}
+				{assign var="fullListLink" value= "$path/GroupedWork/$permanentId/Series"}
 				{include file='titleScroller.tpl'}
 			</div>
 
 			<hr/>
 
-			{include file="GroupedRecord/view-tabs.tpl"}
+			{include file="GroupedWork/view-tabs.tpl"}
 		</div>
 	</div>
 {/strip}
+<script type="text/javascript">
+	{literal}$(document).ready(function(){{/literal}
+		VuFind.GroupedWork.loadEnrichmentInfo('{$recordDriver->getPermanentId()|escape:"url"}');
+	{literal}});{/literal}
+</script>

@@ -98,15 +98,15 @@
 				<div class="row-fluid">
 					<div class="span12">
 						{*
-						{include file="GroupedRecord/relatedRecords.tpl"}
+						{include file="GroupedWork/relatedRecords.tpl"}
 						*}
-						<a href="#" onclick="VuFind.GroupedRecord.getRelatedRecords('{$summId}')" class="btn">Show Related Records ({$numRelatedRecords})</a>
+						<a href="#" onclick="VuFind.GroupedWork.getRelatedRecords('{$summId}')" class="btn">Show Related Records ({$numRelatedRecords})</a>
 					</div>
 				</div>
 			</div>
 
 			<div class="resultActions span3">
-				{include file='GroupedRecord/result-tools.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
+				{include file='GroupedWork/result-tools.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
 			</div>
 		</div>
 	</div>

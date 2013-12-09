@@ -17,7 +17,7 @@ class GoDeeperData{
 		}
 
 		$goDeeperOptions = $memCache->get("go_deeper_options_{$isbn}_{$upc}");
-		if (!$goDeeperOptions){
+		if (!$goDeeperOptions || isset($_REQUEST['reload'])){
 
 			//Marmot is maybe planning on using Syndetics Go-Deeper Data right now.
 			$useSyndetics = true;

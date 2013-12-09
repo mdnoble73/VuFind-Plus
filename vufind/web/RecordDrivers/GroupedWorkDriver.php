@@ -1,8 +1,8 @@
 <?php
 /**
- * GroupedRecordDriver Class
+ * GroupedWorkDriver Class
  *
- * This class handles the display of Grouped Records within VuFinf.
+ * This class handles the display of Grouped Works within VuFind.
  *
  * @category VuFind-Plus 
  * @author Mark Noble <mark@marmot.org>
@@ -11,12 +11,35 @@
  */
 
 require_once ROOT_DIR . '/RecordDrivers/Interface.php';
-class GroupedRecordDriver implements RecordInterface{
+class GroupedWorkDriver implements RecordInterface{
 
 	protected $fields;
+	public $isValid = true;
 	public function __construct($indexFields)
 	{
-		$this->fields = $indexFields;
+		if (is_string($indexFields)){
+			global $configArray;
+
+			$id = $indexFields;
+			//Just got a record id, let's load the full record from Solr
+			// Setup Search Engine Connection
+			$class = $configArray['Index']['engine'];
+			$url = $configArray['Index']['url'];
+			/** @var Solr $db */
+			$db = new $class($url);
+			$db->disableScoping();
+
+			// Retrieve Full Marc Record
+			if (!($record = $db->getRecord($id))) {
+				$this->isValid = false;
+			}else{
+				$this->fields = $record;
+			}
+			$db->enableScoping();
+		}else{
+			$this->fields = $indexFields;
+		}
+
 	}
 
 	public function getPermanentId(){
@@ -233,7 +256,7 @@ class GroupedRecordDriver implements RecordInterface{
 		}else{
 			$interface->assign('summShortId', $id);
 		}
-		$linkUrl = '/GroupedRecord/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+		$linkUrl = '/GroupedWork/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
 		if ($useUnscopedHoldingsSummary){
 			$linkUrl .= '&amp;searchSource=marmot';
 		}else{
@@ -281,7 +304,7 @@ class GroupedRecordDriver implements RecordInterface{
 
 		$interface->assign('relatedRecords', $this->getRelatedRecords());
 
-		return 'RecordDrivers/GroupedRecord/result.tpl';
+		return 'RecordDrivers/GroupedWork/result.tpl';
 	}
 
 	/**
@@ -299,7 +322,7 @@ class GroupedRecordDriver implements RecordInterface{
 		ksort($fields);
 		$interface->assign('details', $fields);
 
-		return 'RecordDrivers/GroupedRecord/solr-details.tpl';
+		return 'RecordDrivers/GroupedWork/solr-details.tpl';
 	}
 
 	/**
@@ -516,23 +539,33 @@ class GroupedRecordDriver implements RecordInterface{
 	{
 		require_once ROOT_DIR . '/sys/ISBN.php';
 
-		// Get all the ISBNs and initialize the return value:
-		$isbns = $this->getISBNs();
-		$isbn10 = false;
+		//Check to see if we already have NovelistData loaded with a primary ISBN
+		require_once ROOT_DIR . '/sys/Novelist/NovelistData.php';
+		$novelistData = new NovelistData();
+		$novelistData->groupedRecordPermanentId = $this->getPermanentId();
+		if ($novelistData->find(true) && $novelistData->primaryISBN != null){
+			return $novelistData->primaryISBN;
+		}else{
+			// Get all the ISBNs and initialize the return value:
+			$isbns = $this->getISBNs();
+			$isbn10 = false;
 
-		// Loop through the ISBNs:
-		foreach($isbns as $isbn) {
-			// If we find an ISBN-10, return it immediately; otherwise, if we find
-			// an ISBN-13, save it if it is the first one encountered.
-			$isbnObj = new ISBN($isbn);
-			if ($isbn13 = $isbnObj->get13()) {
-				return $isbn13;
+			// Loop through the ISBNs:
+			foreach($isbns as $isbn) {
+				// If we find an ISBN-10, return it immediately; otherwise, if we find
+				// an ISBN-13, save it if it is the first one encountered.
+				$isbnObj = new ISBN($isbn);
+				if ($isbnObj->isValid()){
+					if ($isbn13  = $isbnObj->get13()) {
+						return $isbn13;
+					}
+					if (!$isbn10) {
+						$isbn10 = $isbnObj->get10();
+					}
+				}
 			}
-			if (!$isbn10) {
-				$isbn10 = $isbnObj->get10();
-			}
+			return $isbn10;
 		}
-		return $isbn10;
 	}
 
 	/**
@@ -589,9 +622,28 @@ class GroupedRecordDriver implements RecordInterface{
 				}
 			}
 			//Sort the records based on format and then edition
-			usort($relatedRecords, array("GroupedRecordDriver", "compareRelatedRecords"));
+			usort($relatedRecords, array("GroupedWorkDriver", "compareRelatedRecords"));
 		}
 		return $relatedRecords;
+	}
+
+	public function getRelatedManifestations() {
+		$relatedRecords = $this->getRelatedRecords();
+		//Group the records based on format
+		$relatedManifestations = array();
+		foreach ($relatedRecords as $curRecord){
+			if (!array_key_exists($curRecord['format'], $relatedManifestations)){
+				$relatedManifestations[$curRecord['format']] = array(
+					'format' => $curRecord['format'],
+					'copies' => 0,
+					'availability' => '',
+					'relatedRecords' => array(),
+				);
+			}
+			$relatedManifestations[$curRecord['format']]['relatedRecords'] = $curRecord;
+			$relatedManifestations[$curRecord['format']]['copies'] += $curRecord['copies'];
+		}
+		return $relatedManifestations;
 	}
 
 	static function compareRelatedRecords($a, $b){
@@ -614,7 +666,7 @@ class GroupedRecordDriver implements RecordInterface{
 		//Get a list of isbns from the record
 		$relatedIsbns = $this->getISBNs();
 		$novelist = NovelistFactory::getNovelist();
-		$novelistData = $novelist->loadEnrichment($this->getPermanentId(), $relatedIsbns);
+		$novelistData = $novelist->loadBasicEnrichment($this->getPermanentId(), $relatedIsbns);
 		if ($novelistData != null && isset($novelistData->seriesTitle)){
 			return array(
 				'seriesTitle' => $novelistData->seriesTitle,
@@ -632,5 +684,16 @@ class GroupedRecordDriver implements RecordInterface{
 		}else{
 			return $formats;
 		}
+	}
+
+	public function loadEnrichment() {
+		$isbn = $this->getCleanISBN();
+		$enrichment = array();
+		if ($isbn == null || strlen($isbn) == 0){
+			return $enrichment;
+		}
+		$novelist = NovelistFactory::getNovelist();;
+		$enrichment['novelist'] = $novelist->loadEnrichment($this->getPermanentId(), $this->getISBNs());
+		return $enrichment;
 	}
 }

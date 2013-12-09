@@ -14,9 +14,9 @@ import java.util.HashSet;
  * Time: 9:02 AM
  */
 public class GroupedWork implements Cloneable{
-	public String title = "";              //Up to 100 chars
-	public String author = "";             //Up to 50  chars
-	public String subtitle = "";           //Up to 175 chars
+	private String title = "";              //Up to 100 chars
+	private String author = "";             //Up to 50  chars
+	private String subtitle = "";           //Up to 175 chars
 	public String groupingCategory = "";   //Up to 25  chars
 
 	public HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
@@ -89,6 +89,48 @@ public class GroupedWork implements Cloneable{
 		return permanentId;
 	}
 
+	private String normalizeAuthor(String author) {
+		String groupingAuthor = author.replaceAll("[^\\w\\d\\s]", "").trim().toLowerCase();
+		if (groupingAuthor.length() > 50){
+			groupingAuthor = groupingAuthor.substring(0, 50);
+		}
+		return groupingAuthor;
+	}
+
+
+	private String normalizeSubtitle(String originalTitle) {
+		String groupingSubtitle = originalTitle.replaceAll("&", "and");
+		//Remove some common subtitles that are meaningless
+		groupingSubtitle = groupingSubtitle.replaceAll("[^\\w\\d\\s]", "").toLowerCase();
+		groupingSubtitle = groupingSubtitle.replaceAll("^((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of suspense|stories|an autobiography|a novel of obsession|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|a bedtime story|a beginningtoread book|poems)$", "");
+		if (groupingSubtitle.length() > 175){
+			groupingSubtitle = groupingSubtitle.substring(0, 175);
+		}
+		groupingSubtitle = groupingSubtitle.trim();
+		return groupingSubtitle;
+	}
+
+
+	private String normalizeTitle(String fullTitle, int numNonFilingCharacters) {
+		String groupingTitle;
+		if (numNonFilingCharacters > 0 && numNonFilingCharacters < fullTitle.length()){
+			groupingTitle = fullTitle.substring(numNonFilingCharacters);
+		}else{
+			groupingTitle = fullTitle;
+		}
+
+		//Replace & with and for better matching
+		groupingTitle = groupingTitle.replace("&", "and");
+		groupingTitle = groupingTitle.replaceAll("[^\\w\\d\\s]", "").toLowerCase();
+		groupingTitle = groupingTitle.trim();
+
+		int titleEnd = 100;
+		if (titleEnd < groupingTitle.length()) {
+			groupingTitle = groupingTitle.substring(0, titleEnd);
+		}
+		return groupingTitle;
+	}
+
 	public GroupedWork clone(){
 
 		try {
@@ -98,5 +140,29 @@ public class GroupedWork implements Cloneable{
 			e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
 			return null;
 		}
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title, int numNonFilingCharacters) {
+		this.title = normalizeTitle(title, numNonFilingCharacters);
+	}
+
+	public String getAuthor() {
+		return author;
+	}
+
+	public void setAuthor(String author) {
+		this.author = normalizeAuthor(author);
+	}
+
+	public String getSubtitle() {
+		return subtitle;
+	}
+
+	public void setSubtitle(String subtitle) {
+		this.subtitle = normalizeSubtitle(subtitle);
 	}
 }

@@ -84,7 +84,9 @@ public class GroupedReindexProcess {
 		
 		//Process grouped works
 		try {
-			GroupedWorkIndexer groupedWorkIndexer = new GroupedWorkIndexer(serverName, vufindConn, groupedRecordConn, configIni, logger);
+			GroupedWorkIndexer groupedWorkIndexer = new GroupedWorkIndexer(serverName, vufindConn, econtentConn, configIni, logger);
+			groupedWorkIndexer.processGroupedWorks();
+			groupedWorkIndexer.finishIndexing();
 		} catch (Error e) {
 			logger.error("Error processing reindex ", e);
 			addNoteToReindexLog("Error processing reindex " + e.toString());
@@ -94,21 +96,6 @@ public class GroupedReindexProcess {
 		endTime = new Date().getTime();
 		sendCompletionMessage();
 		
-		try {
-			//Update the reindex times to indicate that a new reindex is starting
-			if (reindexTime2 != null){
-				vufindConn.prepareStatement("UPDATE variables set value = '" + reindexTime1 + "' WHERE name = 'reindex_time_2'").executeUpdate();
-				vufindConn.prepareStatement("UPDATE variables set value = '" + (startTime / 1000) + "' WHERE name = 'reindex_time_1'").executeUpdate();
-			}else if (reindexTime1 != null){
-				vufindConn.prepareStatement("INSERT INTO variables set value = '" + reindexTime1 + "', name = 'reindex_time_2'").executeUpdate();
-				vufindConn.prepareStatement("UPDATE variables set value = '" + (startTime / 1000) + "' WHERE name = 'reindex_time_1'").executeUpdate();
-			}else{
-				vufindConn.prepareStatement("INSERT INTO variables set value = '" + (startTime / 1000) + "', name = 'reindex_time_1'").executeUpdate();
-			}
-		} catch (SQLException e) {
-			addNoteToReindexLog("Error updating reindex times in database " + e.toString());
-		}
-
 		addNoteToReindexLog("Finished Reindex for " + serverName);
 		logger.info("Finished Reindex for " + serverName);
 	}
@@ -304,14 +291,6 @@ public class GroupedReindexProcess {
 			if (reindexTime2 != null){
 				loadChangesSince = reindexTime2;
 			}
-		} catch (SQLException e) {
-			logger.error("Could not connect to vufind database", e);
-			System.exit(1);
-		}
-
-		try {
-			groupedRecordConn = DriverManager.getConnection("jdbc:mysql://localhost/marmot_record_grouping_2?user=root&password=Ms$qlR00t&useUnicode=yes&characterEncoding=UTF-8");
-
 		} catch (SQLException e) {
 			logger.error("Could not connect to vufind database", e);
 			System.exit(1);

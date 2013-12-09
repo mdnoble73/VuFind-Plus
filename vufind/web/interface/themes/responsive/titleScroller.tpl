@@ -12,12 +12,12 @@
 						<a href='{$link->link}'><span class='seriesLink'>{$link->name}</span></a>
 					</div>
 				{/foreach}
-			{else if $fullListLink}
+			{elseif strlen($fullListLink) > 0}
 				<div class='linkTab' style="float:right">
 					<a href='{$fullListLink}'><span class='seriesLink'>View All</span></a>
 				</div>
 			{/if}
-			
+
 		</div>
 		{/if}
 		<div id="titleScroller{$scrollerName}" class="titleScrollerBody">

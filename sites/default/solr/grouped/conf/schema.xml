@@ -128,7 +128,7 @@
 		<!-- Related Record Ids (type:id) -->
 		<field name="related_record_ids" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<field name="record_source" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
-		<!-- Fields to determine ownership and location -->
+		<!-- Fields to determine ownership and location based on location codes -->
 		<field name="owning_library" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<field name="owning_location" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<field name="collection_group" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
@@ -170,17 +170,17 @@
 		<dynamicField name="format_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<field name="format_boost" type="integer" indexed="true" stored="true" multiValued="false" omitNorms="true" default="1"/>
 		<field name="format_category" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
-		<!-- Generic Fields -->
+		<!-- Language Related Fields -->
 		<field name="language" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<field name="language_boost" type="integer" indexed="true" stored="true" multiValued="false" omitNorms="true" default="1"/>
 		<field name="language_boost_es" type="integer" indexed="true" stored="true" multiValued="false" omitNorms="true" default="1"/>
-		<!-- Things for faceting and refined searching -->
-		<field name="subject_facet" type="textFacet" indexed="true" stored="true" multiValued="true"/>
-		<field name="physical" type="string" indexed="true" stored="true" multiValued="true"/>
+		<!-- Publication information -->
 		<field name="publisher" type="textProper" indexed="true" stored="true" multiValued="true"/>
 		<field name="publisherStr" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="publishDate" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="publishDateSort" type="string" indexed="true" stored="true"/>
+		<!-- Things for faceting and refined searching -->
+		<field name="physical" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="edition" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="dateSpan" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="series" type="text" indexed="true" stored="true" multiValued="true"/>
@@ -197,32 +197,30 @@
 		<field name="geographic_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
 		<field name="era" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
 		<field name="era_proper" type="textProper" indexed="true" stored="true" multiValued="true"/>
-		<field name="illustrated" type="string" indexed="true" stored="true" multiValued="false"/>
-		<field name="literary_form_full" type="string" indexed="true" stored="true" multiValued="false"/>
-		<field name="literary_form" type="string" indexed="true" stored="true" multiValued="false"/>
-		<field name="target_audience_full" type="string" indexed="true" stored="true" multiValued="false"/>
-		<field name="target_audience" type="string" indexed="true" stored="true" multiValued="false"/>
+		<field name="literary_form_full" type="string" indexed="true" stored="true" multiValued="true"/>
+		<field name="literary_form" type="string" indexed="true" stored="true" multiValued="true"/>
+		<field name="target_audience_full" type="string" indexed="true" stored="true" multiValued="true"/>
+		<field name="target_audience" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="date_added" type="date" indexed="true" stored="true" multiValued="false"/>
 		<field name="time_since_added" type="string" indexed="true" stored="true" multiValued="true"/>
 		<dynamicField name="local_time_since_added_*" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="rating" type="float" indexed="true" stored="true" multiValued="false" default="2.5"/>
-		<field name="rating_facet" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="econtent_device" type="textFacet" indexed="true" stored="true" multiValued="true"/>
-		<field name="econtent_source" type="textFacet" indexed="true" stored="true" multiValued="true"/>
-		<dynamicField name="econtent_source_*" type="textFacet" indexed="true" stored="true" multiValued="true"/>
-		<field name="econtent_protection_type" type="textFacet" indexed="true" stored="true" multiValued="true"/>
-		<dynamicField name="econtent_protection_type_*" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="itype" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<dynamicField name="itype_*" type="textFacet" indexed="true" stored="true" multiValued="true"/>
-		<field name="mpaa_rating" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="system_list" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="barcode" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<!-- awards and ratings -->
+		<field name="mpaa_rating" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="awards_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
 		<field name="lexile_score" type="integer" indexed="true" stored="true" multiValued="false" default="-1"/>
 		<field name="lexile_code" type="textFacet" indexed="true" stored="true" multiValued="false"/>
 		<field name="accelerated_reader_interest_level" type="textFacet" indexed="true" stored="true" multiValued="false"/>
 		<field name="accelerated_reader_reading_level" type="float" indexed="true" stored="true" multiValued="false" default="0"/>
 		<field name="accelerated_reader_point_value" type="float" indexed="true" stored="true" multiValued="false" default="0"/>
+		<!-- eContent related fields -->
+		<field name="econtent_device" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="econtent_source" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<dynamicField name="econtent_source_*" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="econtent_protection_type" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<dynamicField name="econtent_protection_type_*" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<!-- Broad Search Terms -->
 		<field name="all_fields" type="text" indexed="true" stored="true"/>
 		<field name="table_of_contents" type="text" indexed="true" stored="true" multiValued="true"/>
@@ -263,6 +261,9 @@
 		<!-- Fields from VuFind Enrichment -->
 		<field name="tag" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="comment" type="text" indexed="true" stored="true" multiValued="true"/>
+		<field name="rating" type="float" indexed="true" stored="true" multiValued="false" default="2.5"/>
+		<field name="rating_facet" type="string" indexed="true" stored="true" multiValued="true"/>
+		<field name="system_list" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<!-- Special fields for Lists -->
 		<field name="num_titles" type="integer" indexed="true" stored="true" multiValued="false" default="0"/>
 		<!-- Field to get random titles -->

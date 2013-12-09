@@ -1036,7 +1036,7 @@ public class MarcRecordDetails {
 	 * extract all the subfields requested in requested marc fields. Each instance
 	 * of each marc field will be put in a separate result (but the subfields will
 	 * be concatenated into a single value for each marc field)
-	 * 
+	 *
 	 * @param fieldSpec
 	 *          - the desired marc fields and subfields as given in the
 	 *          xxx_index.properties file
@@ -3127,7 +3127,7 @@ public class MarcRecordDetails {
 																																																 * Visual
 																																																 * Materials
 																																																 */
-			) {
+					) {
 				char targetAudienceChar;
 				if (ohOhSixField != null && ohOhSixField.getData().length() > 5) {
 					targetAudienceChar = Character.toUpperCase(ohOhSixField.getData()
@@ -3749,20 +3749,22 @@ public class MarcRecordDetails {
 			//First make sure that we have a location subField since some items just have call numbers
 			Subfield subFieldW = itemField.getSubfield('w');
 			if (subFieldW != null) {
-				String[] parts = subFieldW.getData().split(":");
-				if (parts.length > 0) {
-					String source = parts[0].trim();
-					String protectionType = parts[1].trim();
-					DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(source, protectionType);
-					if (tempDetectionSettings != null) {
-						eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
-						isEContent = true;
-						if (eContentSource == null) {
-							eContentSource = tempDetectionSettings.getSource();
+				if (subFieldW.getData().contains(":")){
+					String[] parts = subFieldW.getData().split(":");
+					if (parts.length > 0) {
+						String source = parts[0].trim();
+						String protectionType = parts[1].trim();
+						DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(source, protectionType);
+						if (tempDetectionSettings != null) {
+							eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
+							isEContent = true;
+							if (eContentSource == null) {
+								eContentSource = tempDetectionSettings.getSource();
+							}
+							String itemLocation = itemField.getSubfield('d').getData();
+							LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfoByCode(itemLocation);
+							eContentSourceBySubdomain.put(libraryIndexingInfo.getSubdomain(), tempDetectionSettings.getSource());
 						}
-						String itemLocation = itemField.getSubfield('d').getData();
-						LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfoByCode(itemLocation);
-						eContentSourceBySubdomain.put(libraryIndexingInfo.getSubdomain(), tempDetectionSettings.getSource());
 					}
 				}
 			}

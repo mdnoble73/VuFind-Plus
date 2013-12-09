@@ -42,6 +42,7 @@ public class RecordGroupingProcessor {
 
 	public GroupedWork getGroupedWorkForMarc(Record marcRecord){
 		//Get data for the grouped record
+		GroupedWork workForTitle = new GroupedWork();
 
 		//Title
 		DataField field245 = (DataField)marcRecord.getVariableField("245");
@@ -54,12 +55,12 @@ public class RecordGroupingProcessor {
 			if (nonFilingCharacters == ' ') nonFilingCharacters = '0';
 			int numNonFilingCharacters = Integer.parseInt(Character.toString(nonFilingCharacters));
 
-			groupingTitle = normalizeTitle(fullTitle, numNonFilingCharacters);
+			workForTitle.setTitle(fullTitle, numNonFilingCharacters);
 
 			//Add in subtitle (subfield b as well to avoid problems with gov docs, etc)
 			if (field245.getSubfield('b') != null){
 				groupingSubtitle = field245.getSubfield('b').getData();
-				groupingSubtitle = normalizeSubtitle(groupingSubtitle);
+				workForTitle.setSubtitle(groupingSubtitle);
 			}
 		}
 
@@ -76,7 +77,7 @@ public class RecordGroupingProcessor {
 		}
 		String groupingAuthor = null;
 		if (author != null){
-			groupingAuthor = normalizeAuthor(author);
+			workForTitle.setAuthor(author);
 		}
 
 		//Format
@@ -86,10 +87,6 @@ public class RecordGroupingProcessor {
 		//Identifiers
 		HashSet<RecordIdentifier> identifiers = getIdentifiersFromMarcRecord(marcRecord);
 
-		GroupedWork workForTitle = new GroupedWork();
-		workForTitle.title = (groupingTitle == null ? "" : groupingTitle);
-		workForTitle.subtitle = (groupingSubtitle == null ? "" : groupingSubtitle);
-		workForTitle.author = (groupingAuthor == null ? "" : groupingAuthor);
 		workForTitle.groupingCategory = groupingFormat;
 		workForTitle.identifiers = identifiers;
 
@@ -105,8 +102,7 @@ public class RecordGroupingProcessor {
 				if (cur907.getSubfield('a').getData().substring(0,2).equals(".b") || cur907.getSubfield('a').getData().substring(0,2).equals(".o")){
 					String recordNumber = cur907.getSubfield('a').getData();
 					RecordIdentifier identifier = new RecordIdentifier();
-					identifier.type = "ils";
-					identifier.identifier = recordNumber;
+					identifier.setValue("ils", recordNumber);
 					identifiers.add(identifier);
 				}
 			}
@@ -135,6 +131,10 @@ public class RecordGroupingProcessor {
 				}else {
 					identifierType = "oclc";
 					identifierValue = identifierValue.replaceAll("\\(.*\\)", "");
+					if (identifierValue.length() <= 4){
+						//Looks like a garbage OCLC number
+						continue;
+					}
 				}
 				RecordIdentifier identifier = new RecordIdentifier();
 				if (identifierValue.length() > 20){
@@ -142,8 +142,7 @@ public class RecordGroupingProcessor {
 				}else if (identifierValue.length() == 0){
 					continue;
 				}
-				identifier.identifier = identifierValue;
-				identifier.type = identifierType;
+				identifier.setValue(identifierType, identifierValue);
 				identifiers.add(identifier);
 			}
 		}
@@ -172,53 +171,13 @@ public class RecordGroupingProcessor {
 		return variableFieldsReturn;
 	}
 
-	private String normalizeAuthor(String author) {
-		String groupingAuthor = author.replaceAll("[^\\w\\d\\s]", "").trim().toLowerCase();
-		if (groupingAuthor.length() > 50){
-			groupingAuthor = groupingAuthor.substring(0, 50);
-		}
-		return groupingAuthor;
-	}
-
-
-	private String normalizeSubtitle(String originalTitle) {
-		String groupingSubtitle = originalTitle.replaceAll("&", "and");
-		groupingSubtitle = groupingSubtitle.replaceAll("[^\\w\\d\\s]", "").toLowerCase();
-		if (groupingSubtitle.length() > 175){
-			groupingSubtitle = groupingSubtitle.substring(0, 175);
-		}
-		groupingSubtitle = groupingSubtitle.trim();
-		return groupingSubtitle;
-	}
-
-
-	private String normalizeTitle(String fullTitle, int numNonFilingCharacters) {
-		String groupingTitle;
-		if (numNonFilingCharacters > 0 && numNonFilingCharacters < fullTitle.length()){
-			groupingTitle = fullTitle.substring(numNonFilingCharacters);
-		}else{
-			groupingTitle = fullTitle;
-		}
-
-		//Replace & with and for better matching
-		groupingTitle = groupingTitle.replace("&", "and");
-		groupingTitle = groupingTitle.replaceAll("[^\\w\\d\\s]", "").toLowerCase();
-		groupingTitle = groupingTitle.trim();
-
-		int titleEnd = 100;
-		if (titleEnd < groupingTitle.length()) {
-			groupingTitle = groupingTitle.substring(0, titleEnd);
-		}
-		return groupingTitle;
-	}
-
 	public long getFuzzyMatchFromCatalog(GroupedWork originalRecord) throws SQLException {
 		//Get a fuzzy match from the catalog.
 		//Check identifiers
 		long returnRecordId = -1;
 		for (RecordIdentifier recordIdentifier : originalRecord.identifiers){
-			getGroupedWorksForIdentifierStmt.setString(1, recordIdentifier.type);
-			getGroupedWorksForIdentifierStmt.setString(2, recordIdentifier.identifier);
+			getGroupedWorksForIdentifierStmt.setString(1, recordIdentifier.getType());
+			getGroupedWorksForIdentifierStmt.setString(2, recordIdentifier.getIdentifier());
 			getGroupedWorksForIdentifierStmt.setString(3, originalRecord.groupingCategory);
 			ResultSet recordsForIdentifier = getGroupedWorksForIdentifierStmt.executeQuery();
 			//Check to see how many matches we got.
@@ -230,17 +189,17 @@ public class RecordGroupingProcessor {
 					Long groupedRecordId = recordsForIdentifier.getLong("id");
 					String title = recordsForIdentifier.getString("title");
 					String author = recordsForIdentifier.getString("author");
-					if (!compareStrings(title, originalRecord.title)){
+					if (!compareStrings(title, originalRecord.getTitle())){
 						//System.out.println("Found match by identifier, but title did not match, marking as linking to different titles.  " + recordIdentifier.type + ": " + recordIdentifier.identifier);
 						//System.out.println("  '" + title + "' != '" + originalRecord.title + "'");
-						updateLinksToDifferentTitlesForIdentifier.setString(1, recordIdentifier.type);
-						updateLinksToDifferentTitlesForIdentifier.setString(2, recordIdentifier.identifier);
+						updateLinksToDifferentTitlesForIdentifier.setString(1, recordIdentifier.getType());
+						updateLinksToDifferentTitlesForIdentifier.setString(2, recordIdentifier.getIdentifier());
 						updateLinksToDifferentTitlesForIdentifier.executeUpdate();
-					} else if (!compareStrings(author, originalRecord.author)){
+					} else if (!compareStrings(author, originalRecord.getAuthor())){
 						//System.out.println("Found match by identifier, but author did not match, marking as linking to different titles.  " + recordIdentifier.type + ": " + recordIdentifier.identifier);
 						//System.out.println("  '" + author + "' != '" + originalRecord.author + "'");
-						updateLinksToDifferentTitlesForIdentifier.setString(1, recordIdentifier.type);
-						updateLinksToDifferentTitlesForIdentifier.setString(2, recordIdentifier.identifier);
+						updateLinksToDifferentTitlesForIdentifier.setString(1, recordIdentifier.getType());
+						updateLinksToDifferentTitlesForIdentifier.setString(2, recordIdentifier.getIdentifier());
 						updateLinksToDifferentTitlesForIdentifier.executeUpdate();
 					}else{
 						//This seems to be a good match
@@ -248,7 +207,7 @@ public class RecordGroupingProcessor {
 					}
 				}else{
 					//Hmm, there are multiple records based on ISBN.  Check more stuff
-					System.out.println("Multiple grouped records found for identifier " + recordIdentifier.type + " " + recordIdentifier.identifier + " found " + numMatches);
+					System.out.println("Multiple grouped records found for identifier " + recordIdentifier.getType() + " " + recordIdentifier.getIdentifier() + " found " + numMatches);
 				}
 			}
 			recordsForIdentifier.close();
@@ -278,23 +237,24 @@ public class RecordGroupingProcessor {
 				groupedWorkRS.close();
 				//Check to see if we can get a match by rotating author names since some sources
 				//  put authors first name first and some do last name first
-				groupedWorkId = findWorkWithRotatedAuthorName(groupedWork);
+				//groupedWorkId = findWorkWithRotatedAuthorName(groupedWork);
 
 				//Look for matches based on identifiers
-				if (groupedWorkId == -1){
+				//if (groupedWorkId == -1){
 					groupedWorkId = getFuzzyMatchFromCatalog(groupedWork);
-				}
+				//}
 
 				//Look for the work based on subtitles
+				//Don't eliminate subtitles because we get some weird matches that change the meaning
 				if (groupedWorkId == -1){
 					groupedWorkId = findWorkWithSubtitleVariations(groupedWork);
 				}
 
 				if (groupedWorkId == -1){
 					//Need to insert a new grouped record
-					insertGroupedWorkStmt.setString(1, groupedWork.title);
-					insertGroupedWorkStmt.setString(2, groupedWork.subtitle);
-					insertGroupedWorkStmt.setString(3, groupedWork.author);
+					insertGroupedWorkStmt.setString(1, groupedWork.getTitle());
+					insertGroupedWorkStmt.setString(2, groupedWork.getSubtitle());
+					insertGroupedWorkStmt.setString(3, groupedWork.getAuthor());
 					insertGroupedWorkStmt.setString(4, groupedWork.groupingCategory);
 					insertGroupedWorkStmt.setString(5, groupedWorkPermanentId);
 
@@ -314,31 +274,44 @@ public class RecordGroupingProcessor {
 		}
 	}
 
+	private HashMap<String, Long> subtitleVariances = new HashMap<String, Long>();
 	private long findWorkWithSubtitleVariations(GroupedWork groupedWork) throws SQLException {
 		long groupedWorkId = -1;
-		if (groupedWork.subtitle.length() == 0){
+		if (groupedWork.getSubtitle().length() == 0){
 			//Check to see if there is a record in the database that matches the title, author, and grouping category even if it has a subtitle
-			getRecordIgnoringSubfieldStmt.setString(1, groupedWork.title);
-			getRecordIgnoringSubfieldStmt.setString(2, groupedWork.author);
+			getRecordIgnoringSubfieldStmt.setString(1, groupedWork.getTitle());
+			getRecordIgnoringSubfieldStmt.setString(2, groupedWork.getAuthor());
 			getRecordIgnoringSubfieldStmt.setString(3, groupedWork.groupingCategory);
 			ResultSet recordIgnoringSubfieldRS = getRecordIgnoringSubfieldStmt.executeQuery();
 			if (recordIgnoringSubfieldRS.next()){
 				groupedWorkId = recordIgnoringSubfieldRS.getLong("id");
-				//System.out.println("Found a record to match that did have a subtitle even though this record didn't.  " + groupedWork.title + " : " + groupedWork.author);
+				String subTitle = recordIgnoringSubfieldRS.getString("subtitle");
+				//System.out.println("Found a record to match that did have a subtitle even though this record didn't.  " + subTitle);
+				if (subtitleVariances.containsKey(subTitle)){
+					subtitleVariances.put(subTitle, subtitleVariances.get(subTitle) + 1);
+				}else{
+					subtitleVariances.put(subTitle, 1L);
+				}
 			}
 			recordIgnoringSubfieldRS.close();
 		}else{
 			//Check to see if there is a record in the database that doesn't have a subtitle yet
-			getRecordWithoutSubfieldStmt.setString(1, groupedWork.title);
-			getRecordWithoutSubfieldStmt.setString(2, groupedWork.author);
+			getRecordWithoutSubfieldStmt.setString(1, groupedWork.getTitle());
+			getRecordWithoutSubfieldStmt.setString(2, groupedWork.getAuthor());
 			getRecordWithoutSubfieldStmt.setString(3, groupedWork.groupingCategory);
 			ResultSet recordWithoutSubfieldRS = getRecordWithoutSubfieldStmt.executeQuery();
 			if (recordWithoutSubfieldRS.next()){
 				groupedWorkId = recordWithoutSubfieldRS.getLong("id");
-				//System.out.println("Found a record to match that did not have a subfield even though this record does.  " + groupedWork.title + " : " + groupedWork.author);
+				//System.out.println("Found a record to match that did not have a subfield even though this record does.  " + groupedWork.subtitle);
+				String subTitle = groupedWork.getSubtitle();
+				if (subtitleVariances.containsKey(subTitle)){
+					subtitleVariances.put(subTitle, subtitleVariances.get(subTitle) + 1);
+				}else{
+					subtitleVariances.put(subTitle, 1L);
+				}
 				//update the record to include the subtitle
 				updateRecordSubtitleStmt.setString(1, groupedWork.getPermanentId());
-				updateRecordSubtitleStmt.setString(2, groupedWork.subtitle);
+				updateRecordSubtitleStmt.setString(2, groupedWork.getSubtitle());
 				updateRecordSubtitleStmt.setLong(3, groupedWorkId);
 				updateRecordSubtitleStmt.executeUpdate();
 			}
@@ -348,7 +321,7 @@ public class RecordGroupingProcessor {
 	}
 
 
-	private long findWorkWithRotatedAuthorName(GroupedWork groupedWork) throws SQLException {
+	/*private long findWorkWithRotatedAuthorName(GroupedWork groupedWork) throws SQLException {
 		long groupedWorkId = -1;
 		if (groupedWork.author.indexOf(' ') > 0){
 			String[] authorParts = groupedWork.author.split("\\s");
@@ -366,7 +339,7 @@ public class RecordGroupingProcessor {
 			}
 		}
 		return groupedWorkId;
-	}
+	}*/
 
 	private void addIdentifiersForRecordToDB(long groupedWorkId, HashSet<RecordIdentifier> identifiers) throws SQLException {
 		getGroupedWorkIdentifiersStmt.setLong(1, groupedWorkId);
@@ -374,16 +347,15 @@ public class RecordGroupingProcessor {
 		HashSet<RecordIdentifier> existingIdentifiers = new HashSet<RecordIdentifier>();
 		while (existingIdentifiersRS.next()){
 			RecordIdentifier existingIdentifier = new RecordIdentifier();
-			existingIdentifier.type = existingIdentifiersRS.getString("type");
-			existingIdentifier.identifier = existingIdentifiersRS.getString("identifier");
+			existingIdentifier.setValue(existingIdentifiersRS.getString("type"), existingIdentifiersRS.getString("identifier"));
 			existingIdentifiers.add(existingIdentifier);
 		}
 
 		for (RecordIdentifier curIdentifier :  identifiers){
 			if (!existingIdentifiers.contains(curIdentifier)){
 				addIdentifierToGroupedWorkStmt.setLong(1, groupedWorkId);
-				addIdentifierToGroupedWorkStmt.setString(2, curIdentifier.type);
-				addIdentifierToGroupedWorkStmt.setString(3, curIdentifier.identifier);
+				addIdentifierToGroupedWorkStmt.setString(2, curIdentifier.getType());
+				addIdentifierToGroupedWorkStmt.setString(3, curIdentifier.getIdentifier());
 				try{
 					addIdentifierToGroupedWorkStmt.executeUpdate();
 				}catch (SQLException e){
@@ -401,15 +373,15 @@ public class RecordGroupingProcessor {
 
 		//Replace & with and for better matching
 		if (title != null){
-			groupedWork.title = normalizeTitle(title, 0);
+			groupedWork.setTitle(title, 0);
 		}
 
 		if (subtitle != null){
-			groupedWork.subtitle = normalizeSubtitle(subtitle);
+			groupedWork.setSubtitle(subtitle);
 		}
 
 		if (author != null){
-			groupedWork.author = normalizeAuthor(author);
+			groupedWork.setAuthor(author);
 		}
 
 		if (format.equalsIgnoreCase("audiobook")){
@@ -805,7 +777,7 @@ public class RecordGroupingProcessor {
 				String catalogValueNoSpaces = catalogValue.replace(" ", "");
 				String importValueNoSpaces = importValue.replace(" ", "");
 				if (catalogValueNoSpaces.equals(importValueNoSpaces) || catalogValueNoSpaces.startsWith(importValueNoSpaces) || importValue.startsWith(catalogValue) || catalogValueNoSpaces.endsWith(importValueNoSpaces) || importValue.endsWith(catalogValue)){
-					System.out.println("Matched string when spaces were removed.");
+					//System.out.println("Matched string when spaces were removed.");
 					//Got a good match
 					return true;
 				}
@@ -919,5 +891,9 @@ public class RecordGroupingProcessor {
 	}
 
 
-
+	public void dumpSubtitleVariances() {
+		for (String curSubTitle : subtitleVariances.keySet()){
+			System.out.println(subtitleVariances.get(curSubTitle) + ", " + curSubTitle);
+		}
+	}
 }

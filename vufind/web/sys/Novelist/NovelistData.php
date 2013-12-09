@@ -14,7 +14,7 @@ class NovelistData extends DB_DataObject{
 	public $lastUpdate;
 	public $groupedRecordHasISBN;
 	public $hasNovelistData;
-	public $primaryIsbn;
+	public $primaryISBN;
 
 	//Series Data
 	public $seriesTitle;

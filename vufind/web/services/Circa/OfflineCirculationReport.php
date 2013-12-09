@@ -24,6 +24,7 @@ class Circa_OfflineCirculationReport extends Admin_Admin{
 		}else{
 			$endDate = new DateTime();
 		}
+		$endDate->setTime(23,59,59);
 		$typesToInclude = isset($_REQUEST['typesToInclude']) ? $_REQUEST['typesToInclude'] : 'everything';
 		$loginsToInclude = isset($_REQUEST['loginsToInclude']) ? $_REQUEST['loginsToInclude'] : '';
 		$hideNotProcessed = isset($_REQUEST['hideNotProcessed']);
@@ -71,9 +72,25 @@ class Circa_OfflineCirculationReport extends Admin_Admin{
 			}
 		}
 		$offlineCirculationEntryObj->find();
+		$totalRecords = 0;
+		$totalPassed = 0;
+		$totalFailed = 0;
+		$totalNotProcessed = 0;
 		while ($offlineCirculationEntryObj->fetch()){
 			$offlineCirculationEntries[] = clone $offlineCirculationEntryObj;
+			$totalRecords++;
+			if ($offlineCirculationEntryObj->status == 'Not Processed'){
+				$totalNotProcessed++;
+			}elseif ($offlineCirculationEntryObj->status == 'Processing Succeeded'){
+				$totalPassed++;
+			}else{
+				$totalFailed++;
+			}
 		}
+		$interface->assign('totalRecords', $totalRecords);
+		$interface->assign('totalPassed', $totalPassed);
+		$interface->assign('totalFailed', $totalFailed);
+		$interface->assign('totalNotProcessed', $totalNotProcessed);
 
 		$interface->setPageTitle('Offline Circulation Report');
 		$interface->assign('offlineCirculation', $offlineCirculationEntries);

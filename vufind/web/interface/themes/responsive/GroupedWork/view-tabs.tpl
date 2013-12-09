@@ -70,10 +70,10 @@
 {literal}
 <script type="text/javascript">
 	$('#excerpttab_label a').on('shown', function (e) {
-		VuFind.Record.GetGoDeeperData({/literal}'{$id}', '{$isbn}', '{$upc}'{literal}, 'excerpt');
+		VuFind.GroupedWork.getGoDeeperData({/literal}'{$recordDriver->getPermanentId()}'{literal}, 'excerpt');
 	});
 	$('#tableofcontentstab_label a').on('shown', function (e) {
-		VuFind.Record.GetGoDeeperData({/literal}'{$id}', '{$isbn}', '{$upc}'{literal}, 'tableOfContents');
+		VuFind.GroupedWork.getGoDeeperData({/literal}'{$recordDriver->getPermanentId()}'{literal}, 'tableOfContents');
 	});
 </script>
 {/literal}

@@ -8,8 +8,8 @@ package org.vufind;
  * Time: 10:27 AM
  */
 public class RecordIdentifier {
-	public String type;
-	public String identifier;
+	private String type;
+	private String identifier;
 
 
 	@Override
@@ -20,14 +20,42 @@ public class RecordIdentifier {
 	private String myString = null;
 	public String toString(){
 		if (myString == null){
-			myString = new StringBuilder(type + ":" + identifier).toString();
+			myString = type + ":" + identifier;
 		}
 		return myString;
 	}
 
 	@Override
 	public boolean equals(Object obj) {
-		RecordIdentifier tmpObj = (RecordIdentifier)obj;
-		return (tmpObj.type.equals(type) && tmpObj.identifier.equals(identifier));
+		if (obj instanceof  RecordIdentifier){
+			RecordIdentifier tmpObj = (RecordIdentifier)obj;
+			return (tmpObj.type.equals(type) && tmpObj.identifier.equals(identifier));
+		}else{
+			return false;
+		}
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public boolean isValid() {
+		if (type.equals("isbn") || type.equals("upc")){
+			return type.matches("^\\d+$");
+		}else{
+			return identifier.length() > 0;
+		}
+	}
+
+	public String getIdentifier() {
+		return identifier;
+	}
+
+	public void setValue(String type, String identifier) {
+		this.type = type.toLowerCase();
+		if (this.type.equals("isbn") || this.type.equals("upc")){
+			identifier = identifier.replaceAll("\\D", "");
+		}
+		this.identifier = identifier;
 	}
 }
