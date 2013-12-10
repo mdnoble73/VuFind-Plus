@@ -1,24 +1,33 @@
 {strip}
-	<table class="table table-striped table-condensed">
-		<thead>
-		<tr>
-			<th>Format</th>
-			<th>Availability</th>
-			<th>Copies</th>
-			<th></th>
-		</tr>
-		</thead>
+	<div class="row-fluid bold">
+		<div class="span3">
+			Format
+		</div>
+		<div class="span3">
+			Call Number
+		</div>
+		<div class="span3">
+			Availability
+		</div>
+		<div class="span1">
+			Copies
+		</div>
+		<div class="span2">
+			&nbsp; {* Actions *}
+		</div>
+	</div>
+	<div class="div-striped striped">
 		{foreach from=$relatedManifestations item=relatedManifestation}
-			<tr>
-				<td>{$relatedManifestation.format}</td>
-				<td>{* TODO: Availability *}</td>
-				<td>{$relatedManifestation.copies}</td>
-				<td>
-					{* TODO: Place Hold/Checkout *}
-					<a href="{$relatedManifestation.holdUrl}" class="btn">Place Hold</a>
-					<a href="{$relatedManifestation.url}" class="btn">More Info</a>
-				</td>
-			</tr>
+			<div class="row-fluid">
+				<div class="span3">{$relatedManifestation.format}</div>
+				<div class="span3">{$relatedManifestation.callNumber}</div>
+				<div class="span3">{if $relatedManifestation.availabile}Available{else}Not Available{/if}</div>
+				<div class="span1">{$relatedManifestation.copies}</div>
+				<div class="span2">
+					<a href="#" class="btn btn-small" onclick="VuFind.GroupedWork.showRelatedManifestations('{$id}', '{$relatedManifestation.format}');">more</a>
+				</div>
+			</div>
+
 		{/foreach}
-	</table>
+	</div>
 {/strip}

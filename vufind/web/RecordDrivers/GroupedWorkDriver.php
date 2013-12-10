@@ -302,7 +302,7 @@ class GroupedWorkDriver implements RecordInterface{
 		// to turn on AJAX as needed:
 		$interface->assign('summAjaxStatus', false);
 
-		$interface->assign('relatedRecords', $this->getRelatedRecords());
+		$interface->assign('relatedManifestations', $this->getRelatedManifestations());
 
 		return 'RecordDrivers/GroupedWork/result.tpl';
 	}
@@ -636,9 +636,13 @@ class GroupedWorkDriver implements RecordInterface{
 				$relatedManifestations[$curRecord['format']] = array(
 					'format' => $curRecord['format'],
 					'copies' => 0,
-					'availability' => '',
+					'callNumber' => $curRecord['callNumber'] ? $curRecord['callNumber'] : '',
+					'available' => false,
 					'relatedRecords' => array(),
 				);
+			}
+			if (!$relatedManifestations[$curRecord['format']]['available']){
+				$relatedManifestations[$curRecord['format']]['available'] = $curRecord['available'];
 			}
 			$relatedManifestations[$curRecord['format']]['relatedRecords'] = $curRecord;
 			$relatedManifestations[$curRecord['format']]['copies'] += $curRecord['copies'];

@@ -37,10 +37,6 @@
 				</div> {* End image column *}
 
 				<div id="record-details-column" class="span6">
-					<div id="record-details-header">
-						<div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord">Loading availability information...</div>
-					</div>
-
 					{if $recordDriver->getDescription()}
 						{assign value=$recordDriver->getDescription() var="summary"}
 						<dl>

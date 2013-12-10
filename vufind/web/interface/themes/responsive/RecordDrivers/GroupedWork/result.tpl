@@ -62,18 +62,9 @@
 				{/if}
 
 				<div class="row-fluid">
-					<div class="result-label span3">{translate text='Format(s)'}:</div>
-					<div class="span9 bold result-value">{$summFormats}</div>
-				</div>
-
-				<div class="row-fluid">
-					<div class="result-label span3">{translate text='Availability'}:</div>
-					<div class="span9 bold result-value" id="locationValue{$summShortId|escape}">Loading...</div>
-				</div>
-
-				<div class="row-fluid">
-					<div class="result-label span3">{translate text='Call Number'}:</div>
-					<div class="span9 bold result-value" id="callNumberValue{$summShortId|escape}">Loading...</div>
+					<div class="span12">
+						{include file="GroupedWork/relatedManifestations.tpl"}
+					</div>
 				</div>
 
 				<div class="row-fluid">
@@ -94,15 +85,6 @@
 					</div>
 				</div>
 				*}
-
-				<div class="row-fluid">
-					<div class="span12">
-						{*
-						{include file="GroupedWork/relatedRecords.tpl"}
-						*}
-						<a href="#" onclick="VuFind.GroupedWork.getRelatedRecords('{$summId}')" class="btn">Show Related Records ({$numRelatedRecords})</a>
-					</div>
-				</div>
 			</div>
 
 			<div class="resultActions span3">

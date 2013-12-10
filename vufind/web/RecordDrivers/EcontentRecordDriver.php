@@ -517,8 +517,8 @@ class EcontentRecordDriver extends IndexRecord
 
 		if ($this->eContentRecord->source == 'OverDrive'){
 			//Load MetaData
-			require_once ROOT_DIR . '/sys/OverDriveAPIProduct.php';
-			require_once ROOT_DIR . '/sys/OverDriveAPIProductMetaData.php';
+			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
+			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductMetaData.php';
 			$overDriveAPIProduct = new OverDriveAPIProduct();
 			$overDriveAPIProduct->overdriveId = strtolower($this->eContentRecord->externalId);
 			$overDriveAPIProductMetaData = new OverDriveAPIProductMetaData();

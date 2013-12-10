@@ -12,6 +12,9 @@ require_once ROOT_DIR . '/RecordDrivers/Interface.php';
 class OverDriveRecordDriver implements RecordInterface {
 
 	private $id;
+	private $overDriveProduct;
+	public $isValid;
+
 	/**
 	 * Constructor.  We build the object using all the data retrieved
 	 * from the (Solr) index.  Since we have to
@@ -19,13 +22,21 @@ class OverDriveRecordDriver implements RecordInterface {
 	 * we will already have this data available, so we might as well
 	 * just pass it into the constructor.
 	 *
-	 * @param   array|string $record All fields retrieved from the index.
+	 * @param   string $recordId The id of the record within OverDrive.
 	 * @access  public
 	 */
-	public function __construct($record) {
-		if (is_string($record)){
+	public function __construct($recordId) {
+		if (is_string($recordId)){
 			//The record is the identifier for the overdrive title
-			$this->id = $record;
+			$this->id = $recordId;
+			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
+			$this->overDriveProduct = new OverDriveAPIProduct();
+			$this->overDriveProduct->overdriveId = $recordId;
+			if ($this->overDriveProduct->find(true)){
+				$this->isValid = true;
+			}else{
+				$this->isValid = false;
+			}
 		}
 	}
 
@@ -344,19 +355,82 @@ class OverDriveRecordDriver implements RecordInterface {
 		// TODO: Implement hasVideo() method.
 	}
 
+	function getLanguage(){
+		return 'English';
+	}
+
+	private $availability = null;
+
+	/**
+	 * @return OverDriveAPIProductAvailability[]
+	 */
+	function getAvailability(){
+		if ($this->availability == null){
+			$this->availability = array();
+			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductAvailability.php';
+			$availability = new OverDriveAPIProductAvailability();
+			$availability->productId = $this->overDriveProduct->id;
+			$availability->whereAdd('libraryId = -1 OR libraryId = ' . $this->getLibraryScopingId());
+			$availability->find();
+			while ($availability->fetch()){
+				$this->availability[] = clone $availability;
+			}
+		}
+		return $this->availability;
+	}
+
 	function getRelatedRecord(){
 		global $configArray;
 		$recordId = $this->getUniqueID();
-		$url = $configArray['Site']['path'] . '/Record/' . $recordId;
+		$availability = $this->getAvailability();
+		$available = false;
+		$totalCopies = 0;
+		foreach ($availability as $curAvailability){
+			if ($curAvailability->available){
+				$available = true;
+			}
+			$totalCopies += $curAvailability->copiesOwned;
+		}
+
+		$url = $configArray['Site']['path'] . '/OverDrive/' . $recordId;
 		$relatedRecord = array(
 			'id' => $recordId,
 			'url' => $url,
-			'format' => 'TODO',
-			'edition' => 'TODO',
-			'language' => 'TODO',
-			'title' => 'TODO',
-			'copies' => 0,
+			'format' => $this->overDriveProduct->mediaType,
+			'edition' => '',
+			'language' => $this->getLanguage(),
+			'title' => $this->overDriveProduct->title,
+			'callNumber' => 'Online',
+			'available' => $available,
+			'copies' => $totalCopies,
 		);
 		return $relatedRecord;
+	}
+
+	public function getLibraryScopingId(){
+		//For econtent, we need to be more specific when restricting copies
+		//since patrons can't use copies that are only available to other libraries.
+		$searchLibrary = Library::getSearchLibrary();
+		$searchLocation = Location::getSearchLocation();
+		$activeLibrary = Library::getActiveLibrary();
+		$activeLocation = Location::getActiveLocation();
+		$homeLibrary = Library::getPatronHomeLibrary();
+
+		//Load the holding label for the branch where the user is physically.
+		if (!is_null($homeLibrary)){
+			return $homeLibrary->includeOutOfSystemExternalLinks ? -1 : $homeLibrary->libraryId;
+		}else if (!is_null($activeLocation)){
+			$activeLibrary = Library::getLibraryForLocation($activeLocation->locationId);
+			return $activeLibrary->includeOutOfSystemExternalLinks ? -1 : $activeLibrary->libraryId;
+		}else if (isset($activeLibrary)) {
+			return $activeLibrary->includeOutOfSystemExternalLinks ? -1 : $activeLibrary->libraryId;
+		}else if (!is_null($searchLocation)){
+			$searchLibrary = Library::getLibraryForLocation($searchLibrary->locationId);
+			return $searchLibrary->includeOutOfSystemExternalLinks ? -1 : $searchLocation->libraryId;
+		}else if (isset($searchLibrary)) {
+			return $searchLibrary->includeOutOfSystemExternalLinks ? -1 : $searchLibrary->libraryId;
+		}else{
+			return -1;
+		}
 	}
 }

@@ -308,11 +308,15 @@ class Novelist3{
 		$enrichment->similarAuthorCount = count($authors);
 	}
 
+	/**
+	 * @param SimpleXMLElement $seriesData
+	 * @param NovelistData $novelistData
+	 */
 	function loadSeriesInfoFast($seriesData, &$novelistData){
 		$seriesName = $seriesData->full_title;
 		$items = $seriesData->series_titles;
 		foreach ($items as $item){
-			if ($item->primary_isbn == $novelistData->primaryIsbn){
+			if ($item->primary_isbn == $novelistData->primaryISBN){
 				$novelistData->volume = $item->volume;
 			}
 		}

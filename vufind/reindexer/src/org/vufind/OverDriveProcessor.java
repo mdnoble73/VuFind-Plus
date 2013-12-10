@@ -29,7 +29,7 @@ public class OverDriveProcessor {
 	private PreparedStatement getProductSubjectsStmt;
 
 	private HashMap<Long, String> libraryMap = new HashMap<Long, String>();
-	private HashMap<Long, String> subdomainMap = new HashMap<Long, String>();
+	//private HashMap<Long, String> subdomainMap = new HashMap<Long, String>();
 
 	public OverDriveProcessor(GroupedWorkIndexer groupedWorkIndexer, Connection vufindConn, Connection econtentConn, Ini configIni, Logger logger) {
 		this.indexer = groupedWorkIndexer;
@@ -53,10 +53,13 @@ public class OverDriveProcessor {
 			ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
 			while (libraryInformationRS.next()){
 				Long libraryId = libraryInformationRS.getLong("libraryId");
-				String facetLabel = libraryInformationRS.getString("facetLabel") + " Online";
+				String facetLabel = libraryInformationRS.getString("facetLabel");
+				if (facetLabel.length() > 0){
+				facetLabel += " Online";
+				}
 				String subdomain = libraryInformationRS.getString("subdomain");
 				libraryMap.put(libraryId, facetLabel);
-				subdomainMap.put(libraryId, subdomain);
+				//subdomainMap.put(libraryId, subdomain);
 			}
 		} catch (SQLException e) {
 			logger.error("Error setting up system maps", e);

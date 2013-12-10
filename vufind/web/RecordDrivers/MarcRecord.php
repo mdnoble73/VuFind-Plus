@@ -1272,12 +1272,13 @@ class MarcRecord extends IndexRecord
 		return $result;
 	}
 
-
 	function getRelatedRecord(){
 		global $configArray;
 		$recordId = $this->getUniqueID();
 		$url = $configArray['Site']['path'] . '/Record/' . $recordId;
 		$holdUrl = $configArray['Site']['path'] . '/Record/' . $recordId . '/Hold';
+
+		$driver =
 		$relatedRecord = array(
 			'id' => $recordId,
 			'url' => $url,
@@ -1286,6 +1287,8 @@ class MarcRecord extends IndexRecord
 			'edition' => $this->getEdition(true),
 			'language' => $this->getLanguage(),
 			'title' => $this->getTitle(),
+			'callNumber' => $this->getCallNumber(),
+			'available' => $this->isAvailable(),
 			'copies' => $this->getNumCopies(),
 		);
 		return $relatedRecord;
@@ -1295,5 +1298,24 @@ class MarcRecord extends IndexRecord
 		//TODO: This needs to be filtered according to whether or not the patron can use the item, and to make sure the item is not suppressed.
 		$itemFields = $this->marcRecord->getFields("989");
 		return count($itemFields);
+	}
+
+	static $catalogDriver = null;
+	private static function getCatalogDriver(){
+		if (MarcRecord::$catalogDriver == null){
+			global $configArray;
+			try {
+				MarcRecord::$catalogDriver = new CatalogConnection($configArray['Catalog']['driver']);
+			} catch (PDOException $e) {
+				// What should we do with this error?
+				if ($configArray['System']['debug']) {
+					echo '<pre>';
+					echo 'DEBUG: ' . $e->getMessage();
+					echo '</pre>';
+				}
+				return null;
+			}
+		}
+		return MarcRecord::$catalogDriver;
 	}
 }
