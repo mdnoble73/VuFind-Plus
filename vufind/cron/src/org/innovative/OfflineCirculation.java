@@ -46,11 +46,11 @@ public class OfflineCirculation implements IProcessHandler {
 //		if (offlineStr.toLowerCase().equals("true")){
 //			processLog.addNote("Not processing offline circulation because the system is currently offline.");
 //		}else{
+			//process checkouts and check ins (do this before holds)
+			processOfflineCirculationEntries(configIni, vufindConn);
+
 			//process holds
 			processOfflineHolds(configIni, vufindConn);
-
-			//process checkouts and check ins
-			processOfflineCirculationEntries(configIni, vufindConn);
 //		}
 		processLog.setFinished();
 		processLog.saveToDatabase(vufindConn, logger);
@@ -250,7 +250,7 @@ public class OfflineCirculation implements IProcessHandler {
 				}
 				if (bypassInitials || initialsResponse.isSuccess() && initialsResponse.getMessage().contains("Check Out")){
 					//Go to the checkout page
-					boolean bypassPatronPage = true;
+					boolean bypassPatronPage = false;
 					if (lastPatronBarcode == null || !lastPatronBarcode.equals(patronBarcode) || lastPatronHadError){
 						bypassPatronPage = false;
 						if (lastPatronBarcode != null){
