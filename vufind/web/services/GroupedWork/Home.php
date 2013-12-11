@@ -30,7 +30,6 @@ class GroupedWork_Home extends Action{
 		$interface->assign('recordDriver', $recordDriver);
 		$timer->logTime('Initialized the Record Driver');
 
-
 		$interface->setTemplate('full-record.tpl');
 
 		// Display Page

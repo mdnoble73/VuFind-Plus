@@ -35,8 +35,9 @@ VuFind.getSelectedTitles = function(){
 	if (selectedTitles.length == 0){
 		var ret = confirm('You have not selected any items, process all items?');
 		if (ret == true){
-			$("input.titleSelect").attr('checked', 'checked');
-			selectedTitles = $("input.titleSelect").map(function() {
+			var titleSelect = $("input.titleSelect");
+			titleSelect.attr('checked', 'checked');
+			selectedTitles = titleSelect.map(function() {
 				return $(this).attr('name') + "=" + $(this).val();
 			}).get().join("&");
 		}
@@ -101,6 +102,15 @@ VuFind.ajaxLightbox = function(urlToDisplay, requireLogin){
 		});
 	}
 	return false;
+};
+
+VuFind.showElementInPopup = function(title, elementId){
+	VuFind.closeLightbox();
+	$("#modal-title").html(title);
+	var elementText = $(elementId).html();
+	$(".modal-body").html(elementText);
+	var modalDialog = $("#modalDialog");
+	modalDialog.modal('show');
 };
 
 VuFind.closeLightbox = function(){
@@ -281,7 +291,7 @@ VuFind.GroupedWork = {
 		}
 		if (placeholder.hasClass("loaded")) return;
 		placeholder.show();
-		var url = Globals.path + "/GroupedRecord/" + encodeURIComponent(id) + "/AJAX";
+		var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
 		var params = "method=GetGoDeeperData&dataType=" + encodeURIComponent(dataType);
 		var fullUrl = url + "?" + params;
 		$.ajax( {
@@ -297,11 +307,11 @@ VuFind.GroupedWork = {
 	},
 
 	getRelatedRecords: function(groupedId){
-		VuFind.ajaxLightbox(Globals.path + "/GroupedRecord/" + groupedId + "/AJAX?method=getRelatedRecords");
+		VuFind.ajaxLightbox(Globals.path + "/GroupedWork/" + groupedId + "/AJAX?method=getRelatedRecords");
 	},
 
 	loadEnrichmentInfo: function (id) {
-		var url = Globals.path + "/GroupedRecord/" + encodeURIComponent(id) + "/AJAX";
+		var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
 		var params = "method=GetEnrichmentInfoJSON";
 		var fullUrl = url + "?" + params;
 		$.ajax( {
@@ -347,7 +357,7 @@ VuFind.GroupedWork = {
 				alert('Error: Could Not Load Enrichment information.');
 			}
 		});
-	},
+	}
 };
 
 VuFind.Responsive = {

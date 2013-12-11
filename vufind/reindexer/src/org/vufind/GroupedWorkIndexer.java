@@ -64,7 +64,7 @@ public class GroupedWorkIndexer {
 
 		//Setup prepared statements to load local enrichment
 		try {
-			getRatingStmt = vufindConn.prepareStatement("SELECT AVG(rating) as averageRating from user_work_rating where groupedRecordPermanentId = ?");
+			getRatingStmt = vufindConn.prepareStatement("SELECT AVG(rating) as averageRating from user_work_review where groupedRecordPermanentId = ? and rating > 0");
 		} catch (SQLException e) {
 			logger.error("Could not prepare statements to load local enrichment", e);
 		}

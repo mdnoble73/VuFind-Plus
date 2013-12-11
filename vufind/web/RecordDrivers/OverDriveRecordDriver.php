@@ -13,7 +13,7 @@ class OverDriveRecordDriver implements RecordInterface {
 
 	private $id;
 	private $overDriveProduct;
-	public $isValid;
+	private $valid;
 
 	/**
 	 * Constructor.  We build the object using all the data retrieved
@@ -33,11 +33,15 @@ class OverDriveRecordDriver implements RecordInterface {
 			$this->overDriveProduct = new OverDriveAPIProduct();
 			$this->overDriveProduct->overdriveId = $recordId;
 			if ($this->overDriveProduct->find(true)){
-				$this->isValid = true;
+				$this->valid = true;
 			}else{
-				$this->isValid = false;
+				$this->valid = false;
 			}
 		}
+	}
+
+	public function isValid(){
+		return $this->valid;
 	}
 
 	/**
@@ -403,7 +407,23 @@ class OverDriveRecordDriver implements RecordInterface {
 			'callNumber' => 'Online',
 			'available' => $available,
 			'copies' => $totalCopies,
+			'actions' => array()
 		);
+		$relatedRecord['actions'][] = array(
+			'title' => 'More Info',
+			'url' => $url
+		);
+		if ($available){
+			$relatedRecord['actions'][] = array(
+				'title' => 'Check Out',
+				'url' => $url . '/CheckOut'
+			);
+		}else{
+			$relatedRecord['actions'][] = array(
+				'title' => 'Place Hold',
+				'url' => $url . '/PlaceHold'
+			);
+		}
 		return $relatedRecord;
 	}
 

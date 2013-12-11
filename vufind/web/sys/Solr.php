@@ -700,26 +700,25 @@ class Solr implements IndexEngine {
 		}
 		if ($applyHoldingsBoost) {
 			//$boostFactors[] = 'product(num_holdings,15,div(format_boost,50))';
-			$boostFactors[] = 'product(popularity,format_boost)';
+			$boostFactors[] = 'product(sum(popularity,1),format_boost)';
 		} else {
-			$boostFactors[] = 'format_boost)';
+			$boostFactors[] = 'format_boost';
 		}
-		//$boostFactors[] = 'product(num_holdings,7)';
 		//Add rating as part of the ranking, normalize so ratings of less that 2.5 are below unrated entries.
-		$boostFactors[] = 'sum(product(sum(abs(rating),-2.5),10),1)';
+		$boostFactors[] = 'sum(rating,1)';
 
 		if (isset($searchLibrary) && !is_null($searchLibrary) && $searchLibrary->boostByLibrary == 1) {
-			$boostFactors[] = "sum(div(lib_boost_{$searchLibrary->subdomain},10),1)";
+			$boostFactors[] = "lib_boost_{$searchLibrary->subdomain}";
 		}else{
 			//Handle boosting even if we are in a global scope
 			global $library;
 			if ($library && $library->boostByLibrary == 1){
-				$boostFactors[] = "sum(div(lib_boost_{$library->subdomain},10),1)";
+				$boostFactors[] = "lib_boost_{$library->subdomain}";
 			}
 		}
 
 		if (isset($searchLocation) && !is_null($searchLocation) && $searchLocation->boostByLocation == 1) {
-			$boostFactors[] = "sum(div(lib_boost_{$searchLocation->code},10),1)";
+			$boostFactors[] = "lib_boost_{$searchLocation->code}";
 		}else{
 			//Handle boosting even if we are in a global scope
 			global $locationSingleton;
@@ -1178,14 +1177,14 @@ class Solr implements IndexEngine {
 			if (isset($options['qt']) && $options['qt'] == 'dismax'){
 				//Boost by number of holdings
 				if (count($boostFactors) > 0){
-					$options['bf'] = "product(" . implode(',', $boostFactors) . ")";
+					$options['bf'] = "abs(product(" . implode(',', $boostFactors) . "))";
 				}
 				//print ($options['bq']);
 			}else{
 				$baseQuery = $options['q'];
 				//Boost items in our system
 				if (count($boostFactors) > 0){
-					$boost = "product(" . implode(',', $boostFactors) . ")";
+					$boost = "abs(product(" . implode(',', $boostFactors) . "))";
 				}else{
 					$boost = '';
 				}

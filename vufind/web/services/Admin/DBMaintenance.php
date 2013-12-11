@@ -2467,11 +2467,12 @@ class DBMaintenance extends Admin_Admin {
 				'title' => 'Work Level Ratings',
 				'description' => 'Stores user ratings at the work level rather than the individual record.',
 				'sql' => array(
-					"CREATE table user_work_rating (
+					"CREATE table user_work_review (
 						id INT(11) NOT NULL AUTO_INCREMENT,
 						groupedRecordPermanentId VARCHAR(36),
 						userId INT(11),
 						rating TINYINT(1),
+						review MEDIUMTEXT,
 						dateRated INT(11),
 						INDEX(`groupedRecordPermanentId`),
 						INDEX(`userId`),
@@ -2493,7 +2494,7 @@ class DBMaintenance extends Admin_Admin {
 	public function populateWorkLevelRatings(){
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifier.php';
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkRating.php';
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
 
 		$sql = "TRUNCATE table user_work_rating";
 		mysql_query($sql);
@@ -2509,7 +2510,7 @@ class DBMaintenance extends Admin_Admin {
 				$workIdentifier->joinAdd(new GroupedWork());
 				$workIdentifier->selectAdd('permanent_id');
 				if ($workIdentifier->find(true)){
-					$userWorkRating = new UserWorkRating();
+					$userWorkRating = new UserWorkReview();
 					$userWorkRating->groupedRecordPermanentId = $workIdentifier->permanent_id;
 					$userWorkRating->userid = $row['userid'];
 					$userWorkRating->rating = $row['rating'];
@@ -2525,6 +2526,46 @@ class DBMaintenance extends Admin_Admin {
 		}
 
 		//TODO: Load all econtent from econtent ratings
+
+
+		//Merge ratings with comments to get reviews
+		$sql = "SELECT user_id, comment, created, record_id, source from comments inner join resource on resource.id = resource_id";
+		$result = mysql_query($sql);
+		while ($row = mysql_fetch_assoc($result)) {
+//We got a rating from the user, find the appropriate work based on the resource
+			if ($row['source'] == 'VuFind'){
+				//Should be an ils identifier for this
+				$workIdentifier = new GroupedWorkIdentifier();
+				$workIdentifier->identifier = $row['record_id'];
+				$workIdentifier->type = 'ils';
+				$workIdentifier->joinAdd(new GroupedWork());
+				$workIdentifier->selectAdd('permanent_id');
+				if ($workIdentifier->find(true)){
+					$userWorkRating = new UserWorkReview();
+					$userWorkRating->groupedRecordPermanentId = $workIdentifier->permanent_id;
+					$userWorkRating->userid = $row['user_id'];
+					//First check to see if we already have a rating
+					$existingRating = false;
+					if ($userWorkRating->find(true)){
+						$existingRating = true;
+					}else{
+						$userWorkRating->rating = -1;
+						$userWorkRating->dateRated = $row['created'];
+					}
+					$userWorkRating->review = $row['comment'];
+					if ($existingRating){
+						$userWorkRating->update();
+					}else{
+						$userWorkRating->insert();
+					}
+				}else{
+					echo("Warning, did not find grouped work for {$row['record_id']}<br/>");
+				}
+			}else{
+				//eContent
+				//TODO: process econtent comments
+			}
+		}
 
 
 		mysql_free_result($result);

@@ -2,7 +2,6 @@
 <div class="btn-toolbar">
 	<div class="btn-group btn-group-vertical btn-block">
 		{* Place hold link *}
-		<a href="{$path}/GroupedWork/{$summId|escape:"url"}/GetIt" class="btn btn-small btn-block" id="getIt{$summId|escape}" onclick="return VuFind.Account.followLinkIfLoggedIn(this);" title="Please login to get this">{translate text="Get It"}</a>
 		{if $showMoreInfo !== false}
 			<a href="{$recordUrl}" class="btn btn-small btn-block"><img src="/images/silk/information.png" alt="More Info">&nbsp;More Info</a>
 		{/if}

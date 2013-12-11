@@ -28,7 +28,7 @@
 
 	<div class="span9">
 		<div class="row-fluid">
-			{if $summScore}({$summScore}) {/if}
+			{if isset($summScore)}({$summScore}) {/if}
 			<strong>
 				<a href="{$summUrl}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 				{if $summTitleStatement}
@@ -61,30 +61,15 @@
 					</div>
 				{/if}
 
-				<div class="row-fluid">
+				<div class="row-fluid well-small">
 					<div class="span12">
-						{include file="GroupedWork/relatedManifestations.tpl"}
+						{include file="GroupedWork/relatedManifestations.tpl" id=$summId}
 					</div>
 				</div>
 
-				<div class="row-fluid">
-					<div class="span12 result-value" id="descriptionValue{$summShortId|escape}">{$summDescription}</div>
+				<div class="row-fluid well-small">
+					<div class="span12 result-value" id="descriptionValue{$summId|escape}">{$summDescription}</div>
 				</div>
-
-				{*
-				<div class="row-fluid">
-					<div class="result-label span3">{translate text='Copies'}:</div>
-					<div class="span9 result-value" id="copiesValue{$summShortId|escape}">Loading...</div>
-				</div>
-				*}
-
-				{*
-				<div id = "holdingsSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="holdingsSummary well well-small">
-					<div class="statusSummary" id="statusSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}">
-						<span class="unknown" style="font-size: 8pt;">{translate text='Loading'}...</span>
-					</div>
-				</div>
-				*}
 			</div>
 
 			<div class="resultActions span3">

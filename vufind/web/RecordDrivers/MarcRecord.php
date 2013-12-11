@@ -916,7 +916,7 @@ class MarcRecord extends IndexRecord
 			$leaderBit = strtoupper($leader[6]);
 			switch ($leaderBit) {
 				case 'J':
-					$result[] = "MusicRecording";
+					$result[] = "Music Recording";
 					break;
 			}
 		}
@@ -944,7 +944,7 @@ class MarcRecord extends IndexRecord
 			} else if (strpos($sysDetailsValue, "dvd") !== FALSE) {
 				$result[] =  "DVD";
 			} else if (strpos($sysDetailsValue, "vertical file") !== FALSE) {
-				$result[] =  "VerticalFile";
+				$result[] =  "Vertical File";
 			}
 		}
 
@@ -953,7 +953,7 @@ class MarcRecord extends IndexRecord
 		$noteValue = strtolower($this->getFirstFieldValue("500"));
 		if ($noteValue) {
 			if (strpos($noteValue, "vertical file") != FALSE) {
-				$result[] =  "VerticalFile";
+				$result[] =  "Vertical File";
 			}
 		}
 
@@ -962,7 +962,7 @@ class MarcRecord extends IndexRecord
 		$edition = strtolower($this->getFirstFieldValue("250"));
 		if ($edition != null) {
 			if (strpos($edition, "large type") !== FALSE) {
-				$result[] =  "LargePrint";
+				$result[] =  "Large Print";
 			}
 		}
 
@@ -970,7 +970,7 @@ class MarcRecord extends IndexRecord
 		foreach($physicalDescriptions as $physicalDescription){
 			$physicalDescription = strtolower($physicalDescription);
 			if (strpos($physicalDescription, "large type") !== FALSE) {
-				$result[] =  "LargePrint";
+				$result[] =  "Large Print";
 			} else if (strpos($physicalDescription, "bluray") !== FALSE
 					|| strpos($physicalDescription, "blu-ray") !== FALSE) {
 				$result[] =  "Blu-ray";
@@ -981,7 +981,7 @@ class MarcRecord extends IndexRecord
 		foreach ($topicalTerms as $topicalTerm){
 			$topicalTerm = strtolower($topicalTerm);
 			if (strpos($topicalTerm, "large type") !== FALSE){
-				$result[] =  "LargePrint";
+				$result[] =  "Large Print";
 			}
 		}
 
@@ -989,7 +989,7 @@ class MarcRecord extends IndexRecord
 		foreach ($localTopicalTerms as $topicalTerm){
 			$topicalTerm = strtolower($topicalTerm);
 			if (strpos($topicalTerm, "seed library") !== FALSE){
-				$result[] =  "SeedPacket";
+				$result[] =  "Seed Packet";
 			}
 		}
 
@@ -1025,26 +1025,26 @@ class MarcRecord extends IndexRecord
 					case 'C':
 						switch ($secondCharacter) {
 							case 'A':
-								$result[] =  "TapeCartridge";
+								$result[] =  "Software";
 								break;
 							case 'B':
-								$result[] =  "ChipCartridge";
+								$result[] =  "Software";
 								break;
 							case 'C':
-								$result[] =  "DiscCartridge";
+								$result[] =  "Software";
 								break;
 							case 'F':
-								$result[] =  "TapeCassette";
+								$result[] =  "Tape Cassette";
 								break;
 							case 'H':
-								$result[] =  "TapeReel";
+								$result[] =  "Tape Reel";
 								break;
 							case 'J':
-								$result[] =  "FloppyDisk";
+								$result[] =  "Floppy Disk";
 								break;
 							case 'M':
 							case 'O':
-								$result[] =  "CDROM";
+								$result[] =  "CD-ROM";
 								break;
 							case 'R':
 								// Do not return - this will cause anything with an
@@ -1093,7 +1093,7 @@ class MarcRecord extends IndexRecord
 								$result[] =  "Print";
 								break;
 							case 'G':
-								$result[] =  "Photonegative";
+								$result[] =  "Photo";
 								break;
 							case 'J':
 								$result[] =  "Print";
@@ -1102,7 +1102,7 @@ class MarcRecord extends IndexRecord
 								$result[] =  "Drawing";
 								break;
 							case 'O':
-								$result[] =  "FlashCard";
+								$result[] =  "Flash Card";
 								break;
 							case 'N':
 								$result[] =  "Chart";
@@ -1115,13 +1115,13 @@ class MarcRecord extends IndexRecord
 					case 'M':
 						switch ($secondCharacter) {
 							case 'F':
-								$result[] =  "VideoCassette";
+								$result[] =  "VHS";
 								break;
 							case 'R':
-								$result[] =  "Filmstrip";
+								$result[] =  "Video";
 								break;
 							default:
-								$result[] =  "MotionPicture";
+								$result[] =  "Video";
 								break;
 						}
 						break;
@@ -1129,10 +1129,10 @@ class MarcRecord extends IndexRecord
 						$result[] =  "Kit";
 						break;
 					case 'Q':
-						$result[] =  "MusicalScore";
+						$result[] =  "Musical Score";
 						break;
 					case 'R':
-						$result[] =  "SensorImage";
+						$result[] =  "Sensor Image";
 						break;
 					case 'S':
 						switch ($secondCharacter) {
@@ -1142,21 +1142,21 @@ class MarcRecord extends IndexRecord
 							if ($speed >= 'A' && $speed <= 'E') {
 								$result[] =  "Phonograph";
 							} else if ($speed == 'F') {
-								$result[] =  "CompactDisc";
+								$result[] =  "Tape Recording";
 							} else if ($speed >= 'K' && $speed <= 'R') {
-								$result[] =  "TapeRecording";
+								$result[] =  "Tape Recording";
 							} else {
-								$result[] =  "SoundDisc";
+								$result[] =  "CD";
 							}
 						} else {
-									$result[] =  "SoundDisc";
+									$result[] =  "CD";
 								}
 								break;
 							case 'S':
-								$result[] =  "SoundCassette";
+								$result[] =  "Cassette";
 								break;
 							default:
-								$result[] =  "SoundRecording";
+								$result[] =  "Audio";
 								break;
 						}
 						break;
@@ -1166,23 +1166,23 @@ class MarcRecord extends IndexRecord
 								$result[] =  "Book";
 								break;
 							case 'B':
-								$result[] =  "LargePrint";
+								$result[] =  "Large Print";
 								break;
 						}
 						break;
 					case 'V':
 						switch ($secondCharacter) {
 							case 'C':
-								$result[] =  "VideoCartridge";
+								$result[] =  "Video";
 								break;
 							case 'D':
-								$result[] =  "VideoDisc";
+								$result[] =  "DVD";
 								break;
 							case 'F':
-								$result[] =  "VideoCassette";
+								$result[] =  "VHS";
 								break;
 							case 'R':
-								$result[] =  "VideoReel";
+								$result[] =  "Video";
 								break;
 							default:
 								$result[] =  "Video";
@@ -1199,7 +1199,7 @@ class MarcRecord extends IndexRecord
 			switch ($leaderBit) {
 				case 'C':
 				case 'D':
-					$result[] =  "MusicalScore";
+					$result[] =  "Musical Score";
 					break;
 				case 'E':
 				case 'F':
@@ -1212,10 +1212,10 @@ class MarcRecord extends IndexRecord
 					$result[] =  "Video";
 					break;
 				case 'I':
-					$result[] =  "SoundRecording";
+					$result[] =  "Sound Recording";
 					break;
 				case 'J':
-					$result[] =  "MusicRecording";
+					$result[] =  "Music Recording";
 					break;
 				case 'K':
 					$result[] =  "Photo";
@@ -1228,7 +1228,7 @@ class MarcRecord extends IndexRecord
 					$result[] =  "Kit";
 					break;
 				case 'R':
-					$result[] =  "PhysicalObject";
+					$result[] =  "Physical Object";
 					break;
 				case 'T':
 					$result[] =  "Manuscript";
@@ -1278,7 +1278,6 @@ class MarcRecord extends IndexRecord
 		$url = $configArray['Site']['path'] . '/Record/' . $recordId;
 		$holdUrl = $configArray['Site']['path'] . '/Record/' . $recordId . '/Hold';
 
-		$driver =
 		$relatedRecord = array(
 			'id' => $recordId,
 			'url' => $url,
@@ -1290,17 +1289,90 @@ class MarcRecord extends IndexRecord
 			'callNumber' => $this->getCallNumber(),
 			'available' => $this->isAvailable(),
 			'copies' => $this->getNumCopies(),
+			'actions' => array()
 		);
+		$relatedRecord['actions'][] = array(
+			'title' => 'More Info',
+			'url' =>  $url
+		);
+		if ($this->isHoldable()){
+			$relatedRecord['actions'][] = array(
+				'title' => 'Place Hold',
+				'url' => $holdUrl
+			);
+		}
 		return $relatedRecord;
 	}
 
+	private function isHoldable(){
+		$items = $this->getItems();
+		$firstCallNumber = null;
+		foreach ($items as $itemKey => $item){
+			//Try to get an available non reserve call number
+			if ($item['holdable'] == 1){
+				return true;
+			}
+		}
+		return $firstCallNumber;
+	}
+
+	private function isAvailable(){
+		$items = $this->getItems();
+		$firstCallNumber = null;
+		foreach ($items as $itemKey => $item){
+			//Try to get an available non reserve call number
+			if ($item['availability'] == 1){
+				return true;
+			}
+		}
+		return $firstCallNumber;
+	}
+
+	private function getCallNumber(){
+		$items = $this->getItems();
+		$firstCallNumber = null;
+		$nonLibraryCallNumber = null;
+		foreach ($items as $itemKey => $item){
+			if (substr($itemKey, 0, 1) < 5){
+				//Try to get an available non reserve call number
+				if ($item['availability'] == 1 && $item['holdable'] == 1){
+					return $item['callnumber'];
+				}else if (is_null($firstCallNumber)){
+					$firstCallNumber = $item['callnumber'];
+				}
+			}elseif ($item['holdable'] == 1 && is_null($nonLibraryCallNumber)){
+				//Not at this library (system)
+				$nonLibraryCallNumber = $item['callnumber'] . '(' . $item['location'] . ')';
+			}
+		}
+		if ($firstCallNumber != null){
+			return $firstCallNumber;
+		}elseif ($nonLibraryCallNumber != null){
+			return $nonLibraryCallNumber;
+		}else{
+			return 'N/A';
+		}
+
+	}
+
 	private function getNumCopies() {
-		//TODO: This needs to be filtered according to whether or not the patron can use the item, and to make sure the item is not suppressed.
-		$itemFields = $this->marcRecord->getFields("989");
-		return count($itemFields);
+		return count($this->getItems());
+	}
+
+	private $items = null;
+	private function getItems(){
+		if ($this->items == null){
+			$driver = MarcRecord::getCatalogDriver();
+			$this->items = $driver->getStatus($this->getUniqueID(), true);
+		}
+		return $this->items;
 	}
 
 	static $catalogDriver = null;
+
+	/**
+	 * @return MillenniumDriver|Sierra|Marmot|DriverInterface
+	 */
 	private static function getCatalogDriver(){
 		if (MarcRecord::$catalogDriver == null){
 			global $configArray;

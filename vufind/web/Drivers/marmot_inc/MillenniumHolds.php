@@ -636,14 +636,11 @@ class MillenniumHolds{
 		}
 
 		// Retrieve Full Marc Record
-		if (!($record = $this->driver->db->getRecord($bib1))) {
+		$record = RecordDriverFactory::initRecordDriverById('ils:' . $bib1);
+		if (!$record) {
 			$title = null;
 		}else{
-			if (isset($record['title_full'][0])){
-				$title = $record['title_full'][0];
-			}else{
-				$title = $record['title'];
-			}
+			$title = $record->getTitle();
 		}
 
 		if ($configArray['Catalog']['offline']){

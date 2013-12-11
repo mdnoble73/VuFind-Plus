@@ -22,17 +22,12 @@
 					</div>
 				{/if}
 
-				{if $key == 'reviews'}
-					{if $showComments}
-						{include file="$module/view-comments.tpl"}
+				{if $showComments}
+					{include file="GroupedWork/view-user-review.tpl"}
+				{/if}
 
-						<div id = "staffReviewtab" >
-							{include file="$module/view-staff-reviews.tpl"}
-						</div>
-					{/if}
-					{if $showStandardReviews}
-						<div id='reviewPlaceholder'></div>
-					{/if}
+				{if $showStandardReviews}
+					<div id='reviewPlaceholder'></div>
 				{/if}
 
 				{foreach from=$reviewTabInfo.reviews item=review}
@@ -42,7 +37,7 @@
 			</div>
 
 			<div id = "detailstab" class="tab-pane">
-				{include file="Record/view-title-details.tpl"}
+				{include file="GroupedWork/view-title-details.tpl"}
 			</div>
 
 			<div id = "excerpttab" class="tab-pane">

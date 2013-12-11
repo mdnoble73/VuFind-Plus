@@ -39,11 +39,18 @@ class GroupedWorkDriver implements RecordInterface{
 		}else{
 			$this->fields = $indexFields;
 		}
+	}
 
+	public function getContributors(){
+		return $this->fields['auth_author2'];
 	}
 
 	public function getPermanentId(){
 		return $this->fields['id'];
+	}
+
+	public function getMpaaRating(){
+		return $this->fields['mpaaRating'];
 	}
 
 	/**
@@ -271,11 +278,8 @@ class GroupedWorkDriver implements RecordInterface{
 		$interface->assign('summFormats', $this->getFormats());
 
 		$interface->assign('numRelatedRecords', $this->getNumRelatedRecords());
-		//Get related records
-		$relatedRecords = $this->getRelatedRecords();
-		//$interface->assign('summRelatedRecords', $relatedRecords);
 
-		if ($configArray['System']['debugSolr'] == 1){
+		if ($configArray['System']['debugSolr']){
 			$interface->assign('summScore', $this->getScore());
 			$interface->assign('summExplain', $this->getExplain());
 		}
@@ -470,7 +474,7 @@ class GroupedWorkDriver implements RecordInterface{
 		if (isset($this->fields['score'])){
 			return $this->fields['score'];
 		}
-		return '';
+		return 0;
 	}
 
 	public function getExplain(){
@@ -514,7 +518,7 @@ class GroupedWorkDriver implements RecordInterface{
 	 * @access  protected
 	 * @return  array
 	 */
-	protected function getISBNs()
+	public function getISBNs()
 	{
 		// If ISBN is in the index, it should automatically be an array... but if
 		// it's not set at all, we should normalize the value to an empty array.
@@ -569,6 +573,27 @@ class GroupedWorkDriver implements RecordInterface{
 	}
 
 	/**
+	 * Get an array of all ISBNs associated with the record (may be empty).
+	 *
+	 * @access  protected
+	 * @return  array
+	 */
+	public function getISSNs()
+	{
+		// If ISBN is in the index, it should automatically be an array... but if
+		// it's not set at all, we should normalize the value to an empty array.
+		if (isset($this->fields['issn'])){
+			if (is_array($this->fields['issn'])){
+				return $this->fields['issn'];
+			}else{
+				return array($this->fields['issn']);
+			}
+		}else{
+			return array();
+		}
+	}
+
+	/**
 	 * Get the UPC associated with the record (may be empty).
 	 *
 	 * @return  array
@@ -608,23 +633,30 @@ class GroupedWorkDriver implements RecordInterface{
 		}
 	}
 
+	private $relatedRecords = null;
 	public function getRelatedRecords() {
-		$relatedRecords = array();
-		if (isset($this->fields['related_record_ids'])){
-			$relatedRecordIds = $this->fields['related_record_ids'];
-			if (!is_array($relatedRecordIds)){
-				$relatedRecordIds = array($relatedRecordIds);
-			}
-			foreach ($relatedRecordIds as $relatedRecordId){
-				$recordDriver = RecordDriverFactory::initRecordDriverById($relatedRecordId);
-				if ($recordDriver != null){
-					$relatedRecords[] = $recordDriver->getRelatedRecord();
+		if ($this->relatedRecords == null){
+			$relatedRecords = array();
+			if (isset($this->fields['related_record_ids'])){
+				$relatedRecordIds = $this->fields['related_record_ids'];
+				if (!is_array($relatedRecordIds)){
+					$relatedRecordIds = array($relatedRecordIds);
 				}
+				foreach ($relatedRecordIds as $relatedRecordId){
+					$recordDriver = RecordDriverFactory::initRecordDriverById($relatedRecordId);
+					if ($recordDriver != null && $recordDriver->isValid()){
+						$relatedRecord = $recordDriver->getRelatedRecord();
+						if ($relatedRecord['copies'] > 0){
+							$relatedRecords[] = $relatedRecord;
+						}
+					}
+				}
+				//Sort the records based on format and then edition
+				usort($relatedRecords, array("GroupedWorkDriver", "compareRelatedRecords"));
 			}
-			//Sort the records based on format and then edition
-			usort($relatedRecords, array("GroupedWorkDriver", "compareRelatedRecords"));
+			$this->relatedRecords = $relatedRecords;
 		}
-		return $relatedRecords;
+		return $this->relatedRecords;
 	}
 
 	public function getRelatedManifestations() {
@@ -641,11 +673,25 @@ class GroupedWorkDriver implements RecordInterface{
 					'relatedRecords' => array(),
 				);
 			}
-			if (!$relatedManifestations[$curRecord['format']]['available']){
+			if (!$relatedManifestations[$curRecord['format']]['available'] && $curRecord['available']){
 				$relatedManifestations[$curRecord['format']]['available'] = $curRecord['available'];
 			}
-			$relatedManifestations[$curRecord['format']]['relatedRecords'] = $curRecord;
+			$relatedManifestations[$curRecord['format']]['relatedRecords'][] = $curRecord;
 			$relatedManifestations[$curRecord['format']]['copies'] += $curRecord['copies'];
+		}
+
+		//Check to see what we need to do for actions
+		foreach ($relatedManifestations as $key => $manifestation){
+			if (count($manifestation['relatedRecords']) == 1){
+				$manifestation['actions'] = $manifestation['relatedRecords'][0]['actions'];
+			}else{
+				$manifestation['actions'] = array();
+				$manifestation['actions'][] = array(
+					'title' => 'Show Versions',
+					'id' => 'ShowRelatedRecords'
+				);
+			}
+			$relatedManifestations[$key] = $manifestation;
 		}
 		return $relatedManifestations;
 	}
@@ -664,6 +710,10 @@ class GroupedWorkDriver implements RecordInterface{
 		}else{
 			return $formatComparison;
 		}
+	}
+
+	public function getIndexedSeries(){
+		return $this->fields['series'];
 	}
 
 	private function getSeries(){
@@ -699,5 +749,23 @@ class GroupedWorkDriver implements RecordInterface{
 		$novelist = NovelistFactory::getNovelist();;
 		$enrichment['novelist'] = $novelist->loadEnrichment($this->getPermanentId(), $this->getISBNs());
 		return $enrichment;
+	}
+
+	public function getUserReviews(){
+		$reviews = array();
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
+		$userReview = new UserWorkReview();
+		$userReview->groupedRecordPermanentId = $this->getUniqueID();
+		$joinUser = new User();
+		$userReview->joinAdd($joinUser);
+		$userReview->find();
+		while ($userReview->fetch()){
+			if (!$userReview->displayName){
+				$userReview->displayName = substr($userReview->firstname, 0, 1) . '. ' . $userReview->lastname;
+			}
+			//TODO: Clean the review text
+			$reviews[] = clone $userReview;
+		}
+		return $reviews;
 	}
 }
