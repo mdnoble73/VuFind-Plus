@@ -7,17 +7,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
@@ -52,6 +42,7 @@ public class MarcProcessor {
 	private String													marcEncoding		= "UTF8";
 
 	protected String												marcRecordPath;
+	private int                             filesToProcess = -1;
 	private String 													individualMarcPath;
 	private HashMap<String, MarcIndexInfo>	marcIndexInfo		= new HashMap<String, MarcIndexInfo>();
 
@@ -140,6 +131,11 @@ public class MarcProcessor {
 		if (marcRecordPath == null || marcRecordPath.length() == 0) {
 			ReindexProcess.addNoteToCronLog("Marc Record Path not found in Reindex Settings.  Please specify the path as the marcPath key.");
 			return false;
+		}
+
+		String filesToProcessStr = configIni.get("Reindex", "filesToProcess");
+		if (filesToProcessStr != null && filesToProcessStr.length() > 0){
+			filesToProcess = Integer.parseInt(filesToProcessStr);
 		}
 		
 		individualMarcPath = configIni.get("Reindex", "individualMarcPath");
@@ -880,6 +876,18 @@ public class MarcProcessor {
 				});
 			} else {
 				marcFiles = new File[] { marcRecordDirectory };
+			}
+
+			//Sort the list by date modified so the newest are first
+			Arrays.sort(marcFiles, new Comparator<File>() {
+				public int compare(File f1, File f2) {
+					return -Long.valueOf(f1.lastModified()).compareTo(f2.lastModified());
+				}
+			});
+
+			//Filter by the number of files to use
+			if (filesToProcess > 0){
+				marcFiles = Arrays.copyOf(marcFiles, filesToProcess);
 			}
 
 			// Loop through each marc record
