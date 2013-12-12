@@ -121,6 +121,7 @@ public class MarcProcessor {
 	private boolean                       useItemBasedCallNumbers = true;
 	private SimpleDateFormat              dateAddedFormatter;
 	private boolean                       suppressItemlessBibs = false;
+	private boolean                       useNumberOfItemsForPopularity = false;
 
 	public static final int								RECORD_CHANGED_PRIMARY		= 1;
 	public static final int								RECORD_UNCHANGED					= 2;
@@ -226,13 +227,14 @@ public class MarcProcessor {
 		iTypeSubfield = configIni.get("Reindex", "iTypeSubfield").length() > 0 ? configIni.get("Reindex", "iTypeSubfield").charAt(0) : 'j';
 		dueDateSubfield = configIni.get("Reindex", "dueDateSubfield").length() > 0 ? configIni.get("Reindex", "dueDateSubfield").charAt(0) : 'm';
 		iCode2Subfield = configIni.get("Reindex", "iCode2Subfield").length() > 0 ? configIni.get("Reindex", "iCode2Subfield").charAt(0) : 'o';
-		useICode2Suppression = configIni.get("Reindex", "useICode2Suppression").length() > 0 ? Boolean.getBoolean(configIni.get("Reindex", "useICode2Suppression")) : true;
+		useICode2Suppression = configIni.get("Reindex", "useICode2Suppression").length() > 0 ? Boolean.parseBoolean(configIni.get("Reindex", "useICode2Suppression")) : true;
 		eContentSubfield = configIni.get("Reindex", "eContentSubfield").length() > 0 ? configIni.get("Reindex", "eContentSubfield").charAt(0) : 'o';
-		useEContentSubfield = configIni.get("Reindex", "useEContentSubfield").length() > 0 ? Boolean.getBoolean(configIni.get("Reindex", "useEContentSubfield")) : true;
+		useEContentSubfield = configIni.get("Reindex", "useEContentSubfield").length() > 0 ? Boolean.parseBoolean(configIni.get("Reindex", "useEContentSubfield")) : true;
 		String dateAddedFormat = configIni.get("Reindex", "dateAddedFormat").length() > 0 ? configIni.get("Reindex", "dateAddedFormat") : "yyMMdd";
 		dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
-		useItemBasedCallNumbers = configIni.get("Reindex", "useItemBasedCallNumbers").length() > 0 ? Boolean.getBoolean(configIni.get("Reindex", "useItemBasedCallNumbers")) : true;
-		suppressItemlessBibs = configIni.get("Reindex", "suppressItemlessBibs").length() > 0 ? Boolean.getBoolean(configIni.get("Reindex", "suppressItemlessBibs")) : false;
+		useItemBasedCallNumbers = configIni.get("Reindex", "useItemBasedCallNumbers").length() > 0 ? Boolean.parseBoolean(configIni.get("Reindex", "useItemBasedCallNumbers")) : true;
+		suppressItemlessBibs = configIni.get("Reindex", "suppressItemlessBibs").length() > 0 ? Boolean.parseBoolean(configIni.get("Reindex", "suppressItemlessBibs")) : false;
+		useNumberOfItemsForPopularity = configIni.get("Reindex", "useNumberOfItemsForPopularity").length() > 0 ? Boolean.parseBoolean(configIni.get("Reindex", "useNumberOfItemsForPopularity")) : false;
 
 		// Load the checksum of any marc records that have been loaded already
 		// This allows us to detect whether or not the record is new, has changed,
@@ -861,6 +863,13 @@ public class MarcProcessor {
 	 *          transMapMap)
 	 */
 	private void loadTranslationMapValues(Properties transProps, String mapName, String mapKeyPrefix) {
+		Map<String, String> valueMap;
+		if (translationMaps.containsKey(mapName)){
+			valueMap = translationMaps.get(mapName);
+		} else {
+			valueMap = new LinkedHashMap<String, String>();
+			translationMaps.put(mapName, valueMap);
+		}
 		Enumeration<?> en = transProps.propertyNames();
 		while (en.hasMoreElements()) {
 			String property = (String) en.nextElement();
@@ -870,15 +879,6 @@ public class MarcProcessor {
 				String value = transProps.getProperty(property);
 				value = value.trim();
 				if (value.equals("null")) value = null;
-
-				Map<String, String> valueMap;
-				if (translationMaps.containsKey(mapName)){
-					valueMap = translationMaps.get(mapName);
-				} else {
-					valueMap = new LinkedHashMap<String, String>();
-					translationMaps.put(mapName, valueMap);
-				}
-
 				valueMap.put(mapKey, value);
 			}
 		}
@@ -1003,6 +1003,10 @@ public class MarcProcessor {
 						}
 						//Write the individual file 
 						String shortId = marcInfo.getIlsId().replace(".", "");
+						while (shortId.length() < 8){
+							shortId = "0" + shortId;
+						}
+
 						String firstChars = shortId.substring(0, 4);
 						String basePath = individualMarcPath + "/" + firstChars;
 						String individualFilename = basePath + "/" + shortId + ".mrc";
@@ -1388,5 +1392,9 @@ public class MarcProcessor {
 
 	public boolean isSuppressItemlessBibs(){
 		return suppressItemlessBibs;
+	}
+
+	public boolean isUseNumberOfItemsForPopularity(){
+		return useNumberOfItemsForPopularity;
 	}
 }

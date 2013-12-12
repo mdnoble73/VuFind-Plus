@@ -50,6 +50,9 @@ class MarcLoader{
 		global $memCache;
 		global $configArray;
 		$shortId = str_replace('.', '', $ilsId);
+		if (strlen($shortId) < 8){
+			$shortId = str_pad($shortId, 8, "0", STR_PAD_LEFT);
+		}
 		$firstChars = substr($shortId, 0, 4);
 		if ($memCache && !isset($_REQUEST['reload'])){
 			$marcRecord = $memCache->get('marc_record_' . $shortId);

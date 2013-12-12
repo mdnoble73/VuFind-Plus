@@ -86,7 +86,7 @@ public class PrintItemSolrProcessor {
 		if (itemField.getSubfield(marcProcessor.getLocationSubfield()) == null) {
 			logger.debug("Did not find location code for item ");
 		} else {
-			String locationCode = itemField.getSubfield(marcProcessor.getLocationSubfield()).getData().trim();
+			String locationCode = itemField.getSubfield(marcProcessor.getLocationSubfield()).getData().trim().toLowerCase();
 
 			//logger.debug("Processing locationCode " + locationCode);
 			// Figure out which location and library this item belongs to.

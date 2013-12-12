@@ -78,7 +78,9 @@
 			</div>
 		</div>
 
-		{include file="tracking.tpl"}
+		{if file_exists("tracking.tpl")}
+			{include file="tracking.tpl"}
+		{/if}
 
 		{* Extra javascript at end so the pages loose faster. *}
 		<script src="{$path}/interface/themes/responsive/js/rater.js"></script>
