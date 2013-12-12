@@ -270,6 +270,41 @@ VuFind.Account = {
 	}
 };
 
+VuFind.Admin = {
+	showReindexNotes: function (id){
+		VuFind.ajaxLightbox("/Admin/AJAX?method=getReindexNotes&id=" + id);
+		return false;
+	},
+	showReindexProcessNotes: function (id){
+		VuFind.ajaxLightbox("/Admin/AJAX?method=getReindexProcessNotes&id=" + id);
+		return false;
+	},
+	toggleReindexProcessInfo: function (id){
+		$("#reindexEntry" + id).toggleClass("expanded collapsed");
+		$("#processInfo" + id).toggle();
+	},
+	showReindexProcessNotes: function (id){
+		VuFind.ajaxLightbox("/Admin/AJAX?method=getReindexProcessNotes&id=" + id);
+		return false;
+	},
+	showCronNotes: function (id){
+		VuFind.ajaxLightbox("/Admin/AJAX?method=getCronNotes&id=" + id);
+		return false;
+	},
+	showCronProcessNotes: function (id){
+		VuFind.ajaxLightbox("/Admin/AJAX?method=getCronProcessNotes&id=" + id);
+		return false;
+	},
+	toggleCronProcessInfo: function (id){
+		$("#cronEntry" + id).toggleClass("expanded collapsed");
+		$("#processInfo" + id).toggle();
+	},
+	showOverDriveExtractNotes: function (id){
+		VuFind.ajaxLightbox("/Admin/AJAX?method=getOverDriveExtractNotes&id=" + id);
+		return false;
+	}
+};
+
 VuFind.Responsive = {
 	adjustLayout: function(){
 		// get resolution
