@@ -34,6 +34,9 @@ require_once ROOT_DIR . '/Drivers/Millennium.php';
  * @author CJ O'Hara <cj@marmot.org>
  */
 class Nashville extends MillenniumDriver{
+	public function __construct(){
+		$this->fixShortBarcodes = true;
+	}
 	/**
 	 * Login with barcode and pin
 	 *
@@ -42,38 +45,37 @@ class Nashville extends MillenniumDriver{
 	public function patronLogin($barcode, $pin)
 	{
 		global $configArray;
-		global $memCache;
 		global $timer;
+		//global $logger;
 
 		if ($configArray['Catalog']['offline'] == true){
+			//$logger->log("Trying to authenticate in offline mode $barcode, $pin", PEAR_LOG_DEBUG);
 			//The catalog is offline, check the database to see if the user is valid
 			$user = new User();
+			$user->cat_username = $barcode;
 			$user->cat_password = $pin;
 			if ($user->find(true)){
-				$userValid = false;
-				if ($userValid){
+				//$logger->log("Found the user", PEAR_LOG_DEBUG);
 
-					$returnVal = array(
-						'id'        => $user->id,
-						'username'  => $user->username,
-						'firstname' => $user->firstname,
-						'lastname'  => $user->lastname,
-						'fullname'  => $user->firstname . ' ' . $user->lastname,     //Added to array for possible display later.
-						'cat_username' => $barcode, //Should this be $Fullname or $patronDump['PATRN_NAME']
-						'cat_password' => $pin,
+				$returnVal = array(
+					'id'        => $user->id,
+					'username'  => $user->username,
+					'firstname' => $user->firstname,
+					'lastname'  => $user->lastname,
+					'fullname'  => $user->firstname . ' ' . $user->lastname,     //Added to array for possible display later.
+					'cat_username' => $barcode, //Should this be $Fullname or $patronDump['PATRN_NAME']
+					'cat_password' => $pin,
 
-						'email' => $user->email,
-						'major' => null,
-						'college' => null,
-						'patronType' => $user->patronType,
-						'web_note' => translate('The catalog is currently down.  You will have limited access to circulation information.'));
-					$timer->logTime("patron logged in successfully");
-					return $returnVal;
-				} else {
-					$timer->logTime("patron login failed");
-					return null;
-				}
+					'email' => $user->email,
+					'major' => null,
+					'college' => null,
+					'patronType' => $user->patronType,
+					'web_note' => translate('The catalog is currently down.  You will have limited access to circulation information.'));
+				$timer->logTime("patron logged in successfully");
+				return $returnVal;
+
 			} else {
+				//$logger->log("Did not find a user for that barcode and pin", PEAR_LOG_DEBUG);
 				$timer->logTime("patron login failed");
 				return null;
 			}
@@ -162,11 +164,22 @@ class Nashville extends MillenniumDriver{
 			//Check the pin number that was entered
 			$pin = urlencode($pin);
 			$patronDumpBarcode = $barcode;
-			if (strlen($patronDumpBarcode) < 14) { $patronDumpBarcode = ".p" . $patronDumpBarcode; }
 			$host=$configArray['OPAC']['patron_host'];
 			$apiurl = $host . "/PATRONAPI/$patronDumpBarcode/$pin/pintest";
 
-			$api_contents = file_get_contents($apiurl);
+			$curlConnection = curl_init($apiurl);
+
+			curl_setopt($curlConnection, CURLOPT_CONNECTTIMEOUT, 30);
+			curl_setopt($curlConnection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+			curl_setopt($curlConnection, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($curlConnection, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($curlConnection, CURLOPT_FOLLOWLOCATION, 1);
+			curl_setopt($curlConnection, CURLOPT_UNRESTRICTED_AUTH, true);
+
+			//Setup encoding to ignore SSL errors for self signed certs
+			$api_contents = curl_exec($curlConnection);
+			curl_close($curlConnection);
+
 			$api_contents = trim(strip_tags($api_contents));
 
 			$api_array_lines = explode("\n", $api_contents);
@@ -205,7 +218,9 @@ class Nashville extends MillenniumDriver{
 
 	                'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
 	                'major' => null,
-	                'college' => null);
+	                'college' => null,
+					        'patronType' => $patronDump['P_TYPE'],
+					        'web_note' => isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '');
 				$timer->logTime("patron logged in successfully");
 				return $user;
 
@@ -216,17 +231,12 @@ class Nashville extends MillenniumDriver{
 		}
 	}
 
-	public function _getLoginFormValues($patronInfo, $admin = false){
+	public function _getLoginFormValues(){
 		global $user;
 		$loginData = array();
-		if ($admin){
-			global $configArray;
-			$loginData['name'] = $configArray['Catalog']['ils_admin_user'];
-			$loginData['code'] = $configArray['Catalog']['ils_admin_pwd'];
-		}else{
-			$loginData['pin'] = $user->cat_password;
-			$loginData['code'] = $user->cat_username;
-		}
+		$loginData['pin'] = $user->cat_password;
+		$loginData['code'] = $user->cat_username;
+
 		$loginData['submit'] = 'submit';
 		return $loginData;
 	}
@@ -260,82 +270,6 @@ class Nashville extends MillenniumDriver{
 		}
 
 		return $hold_result;
-	}
-
-	public function updatePatronInfo($patronId){
-		global $user;
-		global $configArray;
-		global $logger;
-
-		//Setup the call to Millennium
-		$id2= $patronId;
-		$patronDump = $this->_getPatronDump($this->_getBarcode());
-		//$logger->log("Before updating patron info phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
-
-		$this->_updateVuFindPatronInfo();
-
-		//Update profile information
-		$extraPostInfo = array();
-		$extraPostInfo['tele1'] = $_REQUEST['phone'];
-		$extraPostInfo['email'] = $_REQUEST['email'];
-		if (isset($_REQUEST['notices'])){
-			$extraPostInfo['notices'] = $_REQUEST['notices'];
-		}
-
-		//Login to the patron's account
-		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
-		$success = false;
-
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-
-		$curl_connection = curl_init($curl_url);
-		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
-		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = $this->_getLoginFormValues($patronDump);
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$sresult = curl_exec($curl_connection);
-
-		//Issue a post request to update the patron information
-		$post_items = array();
-		foreach ($extraPostInfo as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$patronUpdateParams = implode ('&', $post_items);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
-		$scope = $this->getDefaultScope();
-		$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/modpinfo";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		$sresult = curl_exec($curl_connection);
-
-		curl_close($curl_connection);
-		unlink($cookieJar);
-
-		//$logger->log("After updating phone number = " . $patronDump['TELEPHONE']);
-
-		//Should get Patron Information Updated on success
-		if (preg_match('/Patron information updated/', $sresult)){
-			$patronDump = $this->_getPatronDump($this->_getBarcode(), true);
-			$user->phone = $_REQUEST['phone'];
-			$user->email = $_REQUEST['email'];
-			$user->update();
-			//Update the serialized instance stored in the session
-			$_SESSION['userinfo'] = serialize($user);
-			return "Your information was updated successfully.  It may take a minute for changes to be reflected in the catalog.";
-		}else{
-			return "Your patron information could not be updated.";
-		}
-
 	}
 
 	function updatePin(){

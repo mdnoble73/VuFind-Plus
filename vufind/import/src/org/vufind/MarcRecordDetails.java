@@ -137,7 +137,7 @@ public class MarcRecordDetails {
 	private void mapItemBasedFields() {
 		// Load all items
 		@SuppressWarnings("unchecked")
-		List<DataField> itemFields = record.getVariableFields("989");
+		List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
 
 		Set<String> barcodes = new LinkedHashSet<String>();
 		Set<String> iTypes = new LinkedHashSet<String>();
@@ -185,6 +185,9 @@ public class MarcRecordDetails {
 		if (manuallySuppressed) {
 			logger.debug("Suppressing bib due to manual suppression");
 			bibSuppressed = true;
+		} else if (itemFields.size() == 0){
+			//Itemless bib
+			bibSuppressed = marcProcessor.isSuppressItemlessBibs();
 		} else if (allItemsSuppressed) {
 			logger.debug("Suppressing bib because all items are suppressed.");
 			bibSuppressed = true;
@@ -419,7 +422,7 @@ public class MarcRecordDetails {
 		HashSet<Integer> allITypes = new HashSet<Integer>();
 		if ((marcProcessor.getItemTag() != null)
 				&& (marcProcessor.getUrlSubfield() != null)
-				&& (marcProcessor.getLocationSubfield() != null)) {
+				&& (marcProcessor.getLocationSubfield() != ' ')) {
 			@SuppressWarnings("unchecked")
 			List<DataField> itemFields = record.getVariableFields(marcProcessor
 					.getItemTag());
@@ -495,10 +498,9 @@ public class MarcRecordDetails {
 		// logger.info("Loading records from item records");
 		if ((marcProcessor.getItemTag() != null)
 				&& (marcProcessor.getUrlSubfield() != null)
-				&& (marcProcessor.getLocationSubfield() != null)
 				&& (marcProcessor.getItemTag().length() > 0)
 				&& (marcProcessor.getUrlSubfield().length() > 0)
-				&& (marcProcessor.getLocationSubfield().length() > 0)) {
+				&& (marcProcessor.getLocationSubfield() != ' ')) {
 			@SuppressWarnings("unchecked")
 			List<DataField> itemFields = record.getVariableFields(marcProcessor
 					.getItemTag());
@@ -508,7 +510,7 @@ public class MarcRecordDetails {
 				if (urlField != null) {
 					logger.info("Found item based url " + urlField.getData());
 					Subfield locationField = curItem.getSubfield(marcProcessor
-							.getLocationSubfield().charAt(0));
+							.getLocationSubfield());
 					if (locationField != null) {
 						logger.info("  Location is " + locationField.getData());
 						long libraryId = getLibrarySystemIdForLocation(locationField
@@ -544,11 +546,9 @@ public class MarcRecordDetails {
 		if (libraryId == -1 && marcProcessor.getItemTag() != null
 				&& marcProcessor.getSharedEContentLocation() != null) {
 			@SuppressWarnings("unchecked")
-			List<DataField> itemFields = record.getVariableFields(marcProcessor
-					.getItemTag());
+			List<DataField> itemFields = record.getVariableFields(marcProcessor.getItemTag());
 			for (DataField curItem : itemFields) {
-				Subfield locationField = curItem.getSubfield(marcProcessor
-						.getLocationSubfield().charAt(0));
+				Subfield locationField = curItem.getSubfield(marcProcessor.getLocationSubfield());
 				if (locationField != null) {
 					String location = locationField.getData();
 					// Get the libraryId based on the location
@@ -3540,7 +3540,7 @@ public class MarcRecordDetails {
 	 * @return Set format of record
 	 */
 	public Set<String> getAvailableLocationsMarmot() {
-		String itemField = "989";
+		String itemField = marcProcessor.getItemTag();
 		String availableStatus = "[-dowju]";
 		Set<String> result = new LinkedHashSet<String>();
 		if (isEContent()) {
@@ -3594,7 +3594,7 @@ public class MarcRecordDetails {
 	}
 
 	public Set<String> getDetailedLocations(String locationCodesToMatch) {
-		String itemField = "989";
+		String itemField = marcProcessor.getItemTag();
 		Set<String> result = new LinkedHashSet<String>();
 		@SuppressWarnings("unchecked")
 		List<VariableField> itemRecords = record.getVariableFields(itemField);
@@ -3665,7 +3665,7 @@ public class MarcRecordDetails {
 			isEContent = false;
 			// Check the items
 			@SuppressWarnings("unchecked")
-			List<DataField> itemFields = (List<DataField>) record.getVariableFields("989");
+			List<DataField> itemFields = (List<DataField>) record.getVariableFields(marcProcessor.getItemTag());
 			String eContentSource = checkEContentBasedOnItems(itemFields);
 			if (!isEContent) {
 				// Check the 037 second
@@ -3745,25 +3745,27 @@ public class MarcRecordDetails {
 
 	private String checkEContentBasedOnItems(List<DataField> itemFields) {
 		String eContentSource = null;
-		for (DataField itemField : itemFields) {
-			//First make sure that we have a location subField since some items just have call numbers
-			Subfield subFieldW = itemField.getSubfield('w');
-			if (subFieldW != null) {
-				if (subFieldW.getData().contains(":")){
-					String[] parts = subFieldW.getData().split(":");
-					if (parts.length > 0) {
-						String source = parts[0].trim();
-						String protectionType = parts[1].trim();
-						DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(source, protectionType);
-						if (tempDetectionSettings != null) {
-							eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
-							isEContent = true;
-							if (eContentSource == null) {
-								eContentSource = tempDetectionSettings.getSource();
+		if (marcProcessor.isUseEContentSubfield()){
+			for (DataField itemField : itemFields) {
+				//First make sure that we have a location subField since some items just have call numbers
+				Subfield subFieldW = itemField.getSubfield('w');
+				if (subFieldW != null) {
+					if (subFieldW.getData().contains(":")){
+						String[] parts = subFieldW.getData().split(":");
+						if (parts.length > 0) {
+							String source = parts[0].trim();
+							String protectionType = parts[1].trim();
+							DetectionSettings tempDetectionSettings = getDetectionSettingsForSourceAndProtectionType(source, protectionType);
+							if (tempDetectionSettings != null) {
+								eContentDetectionSettings.put(tempDetectionSettings.getSource(), tempDetectionSettings);
+								isEContent = true;
+								if (eContentSource == null) {
+									eContentSource = tempDetectionSettings.getSource();
+								}
+								String itemLocation = itemField.getSubfield('d').getData();
+								LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfoByCode(itemLocation);
+								eContentSourceBySubdomain.put(libraryIndexingInfo.getSubdomain(), tempDetectionSettings.getSource());
 							}
-							String itemLocation = itemField.getSubfield('d').getData();
-							LibraryIndexingInfo libraryIndexingInfo = marcProcessor.getLibraryIndexingInfoByCode(itemLocation);
-							eContentSourceBySubdomain.put(libraryIndexingInfo.getSubdomain(), tempDetectionSettings.getSource());
 						}
 					}
 				}

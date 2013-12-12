@@ -65,9 +65,11 @@
 	{* Let the user rate this title *}
 	{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
 
-	{assign var=id value=$summId scope="global"}
-	{assign var=shortId value=$summShortId scope="global"}
-	{include file="Record/title-review.tpl"}
+	{if $showComments}
+		{assign var=id value=$summId scope="global"}
+		{assign var=shortId value=$summShortId scope="global"}
+		{include file="Record/title-review.tpl"}
+	{/if}
 </div>
 
 

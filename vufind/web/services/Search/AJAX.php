@@ -495,7 +495,12 @@ class AJAX extends Action {
 		$listAPI = new ListAPI();
 		$cacheInfo = $listAPI->getCacheInfoForList();
 
-		$listData = $memCache->get($cacheInfo['cacheName']);
+		$cacheName = $cacheInfo['cacheName'];
+		if (isset($_REQUEST['coverSize']) && $_REQUEST['coverSize'] == 'medium'){
+			$cacheName .= '_medium';
+		}
+
+		$listData = $memCache->get($cacheName);
 		if (!$listData || isset($_REQUEST['reload']) || (isset($listData['titles']) && count($listData['titles']) == 0)){
 			global $interface;
 
@@ -527,7 +532,7 @@ class AJAX extends Action {
 							$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $shortId . '">';
 						}
 						$imageUrl = $rawData['small_image'];
-						if ($_REQUEST['coverSize'] == 'medium'){
+						if (isset($_REQUEST['coverSize']) && $_REQUEST['coverSize'] == 'medium'){
 							$imageUrl = $rawData['image'];
 						}
 						$formattedTitle .= "<img src=\"{$imageUrl}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/></a>";

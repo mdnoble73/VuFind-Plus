@@ -1,7 +1,7 @@
 {strip}
 {if $showRatings == 1}
 	<div class="{$ratingClass}">
-		<div class="rateEContent{$shortId|escape} stat" data-show_review="{if $showReviewAfterRating === false}{$showReviewAfterRating}{else}true{/if}">
+		<div class="rateEContent{$shortId|escape} stat" data-show_review="{if $showReviewAfterRating === false}false{else}{$showComments}{/if}">
 			<div class="statVal">
 				<span class="ui-rater">
 					<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn{if $ratingData.user >0} userRated{/if}" style="width:0px">&nbsp;</span></span><br/>

@@ -104,8 +104,11 @@ class Library extends DB_DataObject
 	public $showWikipediaContent;
 	public $eContentSupportAddress;
 	public $restrictOwningBranchesAndSystems;
+	public $allowPatronAddressUpdates;
+	public $showWorkPhoneInProfile;
+	public $showNoticeTypeInProfile;
+	public $showPickupLocationInProfile;
 	public $additionalCss;
-
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
@@ -165,7 +168,7 @@ class Library extends DB_DataObject
 				'additionalCss' => array('property'=>'additionalCss', 'type'=>'textarea', 'label'=>'Additional CSS', 'description'=>'Extra CSS to apply to the site.  Will apply to all pages.', 'hideInLists' => true),
 				'useHomeLinkInBreadcrumbs' => array('property'=>'useHomeLinkInBreadcrumbs', 'type'=>'checkbox', 'label'=>'Use Home Link in Breadcrumbs', 'description'=>'Whether or not the home link should be used in the breadcumbs.', 'hideInLists' => true,),
 				'homeLinkText' => array('property'=>'homeLinkText', 'type'=>'text', 'label'=>'Home Link Text', 'description'=>'The text to show for the Home breadcrumb link', 'size'=>'40', 'hideInLists' => true, 'default' => 'Home'),
-				'homePageWidgetId' => array('property'=>'homePageWidgetId', 'type'=>'enum', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page', 'hideInLists' => true, 'default' => 0, 'values'=>$availableWidgets),
+				'homePageWidgetId' => array('property'=>'homePageWidgetId', 'type'=>'text', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page.  To show more than one widget, separate the ids with commas.', 'hideInLists' => true, 'default' => 0),
 				'illLink'  => array('property'=>'illLink', 'type'=>'url', 'label'=>'ILL Link', 'description'=>'A link to a library system specific ILL page', 'size'=>'80', 'hideInLists' => true,),
 				'askALibrarianLink'  => array('property'=>'askALibrarianLink', 'type'=>'url', 'label'=>'Ask a Librarian Link', 'description'=>'A link to a library system specific Ask a Librarian page', 'size'=>'80', 'hideInLists' => true,),
 				'suggestAPurchase'  => array('property'=>'suggestAPurchase', 'type'=>'url', 'label'=>'Suggest a Purchase Link', 'description'=>'A link to a library system specific Suggest a Purchase page', 'size'=>'80', 'hideInLists' => true,),
@@ -195,6 +198,11 @@ class Library extends DB_DataObject
 				'inSystemPickupsOnly'  => array('property'=>'inSystemPickupsOnly', 'type'=>'checkbox', 'label'=>'In System Pickups Only', 'description'=>'Restrict pickup locations to only locations within the library system which is active.', 'hideInLists' => true,),
 				'validPickupSystems'  => array('property'=>'validPickupSystems', 'type'=>'text', 'label'=>'Valid Pickup Systems', 'description'=>'A list of library codes that can be used as pickup locations separated by pipes |', 'size'=>'20', 'hideInLists' => true,),
 				'allowFreezeHolds'  => array('property'=>'allowFreezeHolds', 'type'=>'checkbox', 'label'=>'Allow Freezing Holds', 'description'=>'Whether or not the user can freeze their holds.', 'hideInLists' => true, 'default' => 1),
+				'allowPatronAddressUpdates' => array('property' => 'allowPatronAddressUpdates', 'type'=>'checkbox', 'label'=>'Allow Patrons to Update Their Address', 'description'=>'Whether or not patrons should be able to update their own address in their profile.', 'hideInLists' => true, 'default' => 1),
+				'showWorkPhoneInProfile' => array('property' => 'showWorkPhoneInProfile', 'type'=>'checkbox', 'label'=>'Show Work Phone in Profile', 'description'=>'Whether or not patrons should be able to change a secondary/work phone number in their profile.', 'hideInLists' => true, 'default' => 0),
+				'showNoticeTypeInProfile' => array('property' => 'showNoticeTypeInProfile', 'type'=>'checkbox', 'label'=>'Show Notice Type in Profile', 'description'=>'Whether or not patrons should be able to change how they receive notices in their profile.', 'hideInLists' => true, 'default' => 0),
+				'showPickupLocationInProfile' => array('property' => 'showPickupLocationInProfile', 'type'=>'checkbox', 'label'=>'Allow Patrons to Update Their Pickup Location', 'description'=>'Whether or not patrons should be able to update their preferred pickup location in their profile.', 'hideInLists' => true, 'default' => 0),
+
 			)),
 			array('property'=>'ecommerceSection', 'type' => 'section', 'label' =>'Fines/e-commerce', 'hideInLists' => true, 'properties' => array(
 				'showEcommerceLink' => array('property'=>'showEcommerceLink', 'type'=>'checkbox', 'label'=>'Show E-Commerce Link', 'description'=>'Whether or not users should be given a link to classic opac to pay fines', 'hideInLists' => true,),

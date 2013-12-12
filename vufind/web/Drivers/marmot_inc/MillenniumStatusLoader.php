@@ -25,6 +25,9 @@ class MillenniumStatusLoader{
 		global $logger;
 		global $configArray;
 
+		$pType = $this->driver->getPType();
+		$scope = $this->driver->getMillenniumScope();
+
 		if (!$configArray['Catalog']['offline']){
 			//Get information about holdings, order information, and issue information
 			$millenniumInfo = $this->driver->getMillenniumRecordInfo($id);
@@ -43,28 +46,41 @@ class MillenniumStatusLoader{
 			$r = substr($r,strpos($r,">")+1);
 			$r = substr($r,0,stripos($r,"</table"));
 			$rows = preg_split("/<tr([^>]*)>/",$r);
+		}else{
+			$rows = array();
+			$millenniumInfo = null;
 		}
 
-		// Load the full marc record so we can get the iType for each record.
-		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
-		$itemFields = $marcRecord->getFields("989");
-		$marcItemData = array();
-		$pType = $this->driver->getPType();
-		$scope = $this->driver->getMillenniumScope();
-
 		//Load item information from marc record
-		foreach ($itemFields as $itemField){
-			/** @var $itemField File_MARC_Data_Field */
-			$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
-			$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
-			$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
-			$itemData['callnumber'] = $fullCallNumber;
-			$itemData['location'] = $itemField->getSubfield('d') != null ? trim($itemField->getSubfield('d')->getData()) : ($itemField->getSubfield('p') != null ? trim($itemField->getSubfield('p')->getData()) : '?????');
-			$itemData['iType'] = $itemField->getSubfield('j') != null ? $itemField->getSubfield('j')->getData() : '0';
-			$itemData['matched'] = false;
-			$itemData['status'] = $itemField->getSubfield('g') != null ? $itemField->getSubfield('g')->getData() : '-';
-			$itemData['dueDate'] = $itemField->getSubfield('m') != null ? trim($itemField->getSubfield('m')->getData()) : null;
-			$marcItemData[] = $itemData;
+		$matchItemsWithMarcItems = $configArray['Catalog']['matchItemsWithMarcItems'];
+		if ($matchItemsWithMarcItems){
+			// Load the full marc record so we can get the iType for each record.
+			$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
+			$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
+			$itemFields = $marcRecord->getFields($marcItemField);
+			$marcItemData = array();
+
+			//TODO: Don't hardcode item subfields
+			foreach ($itemFields as $itemField){
+				/** @var $itemField File_MARC_Data_Field */
+				$statusSubfield = $configArray['Reindex']['statusSubfield'];
+				$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
+				$locationSubfield = $configArray['Reindex']['locationSubfield'];
+				$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
+				$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
+				$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
+				$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
+				$itemData['callnumber'] = $fullCallNumber;
+				$itemData['location'] = $itemField->getSubfield($locationSubfield) != null ? trim($itemField->getSubfield($locationSubfield)->getData()) : '?????';
+				$itemData['iType'] = $itemField->getSubfield($iTypeSubfield) != null ? $itemField->getSubfield($iTypeSubfield)->getData() : '0';
+				$itemData['matched'] = false;
+				$itemData['status'] = $itemField->getSubfield($statusSubfield) != null ? $itemField->getSubfield($statusSubfield)->getData() : '-';
+				$itemData['dueDate'] = $itemField->getSubfield($dueDateSubfield) != null ? trim($itemField->getSubfield($dueDateSubfield)->getData()) : null;
+				$marcItemData[] = $itemData;
+			}
+		}else{
+			$marcItemData = array();
+			$marcRecord = null;
 		}
 
 		if (!$configArray['Catalog']['offline']){
@@ -72,6 +88,8 @@ class MillenniumStatusLoader{
 			$ret = $this->parseHoldingRows($id, $rows);
 
 			$timer->logTime('processed all holdings rows');
+		}else{
+			$ret = null;
 		}
 
 
@@ -214,33 +232,35 @@ class MillenniumStatusLoader{
 
 				//Now that we have the location code, try to match with the marc record
 				$holding['iType'] = 0;
-				foreach ($marcItemData as $itemData){
-					if (!$itemData['matched']){
-						$locationMatched = (strpos($itemData['location'], $holding['locationCode']) === 0);
-						if (strlen($itemData['callnumber']) == 0 || strlen($holding['callnumber']) == 0){
-							$callNumberMatched = (strlen($holding['callnumber']) == strlen($holding['callnumber']));
-						}else{
-							$callNumberMatched = (strpos($itemData['callnumber'], $holding['callnumber']) >= 0);
-						}
-						if ($locationMatched && $callNumberMatched){
-							$holding['iType'] = $itemData['iType'];
-							$itemData['matched'] = true;
+				if ($matchItemsWithMarcItems){
+					foreach ($marcItemData as $itemData){
+						if (!$itemData['matched']){
+							$locationMatched = (strpos($itemData['location'], $holding['locationCode']) === 0);
+							if (strlen($itemData['callnumber']) == 0 || strlen($holding['callnumber']) == 0){
+								$callNumberMatched = (strlen($holding['callnumber']) == strlen($holding['callnumber']));
+							}else{
+								$callNumberMatched = (strpos($itemData['callnumber'], $holding['callnumber']) >= 0);
+							}
+							if ($locationMatched && $callNumberMatched){
+								$holding['iType'] = $itemData['iType'];
+								$itemData['matched'] = true;
+							}
 						}
 					}
-				}
 
-				//Check to see if this item can be held by the current patron.  Only important when
-				//we know what pType is in use and we are showing all items.
-				if ($scope == 93 && $pType > 0){
-					//Never remove the title if it is owned by the current library (could be in library use only)
-					if (isset($library) && strlen($library->ilsCode) > 0 && strpos($holding['locationCode'], $library->ilsCode) === 0){
-						$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
-					}else{
-						if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
-							$logger->log("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
-							//echo("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}");
-							unset($ret[$holdingKey]);
-							continue;
+					//Check to see if this item can be held by the current patron.  Only important when
+					//we know what pType is in use and we are showing all items.
+					if ($scope == $this->driver->getDefaultScope() && $pType > 0){
+						//Never remove the title if it is owned by the current library (could be in library use only)
+						if (isset($library) && strlen($library->ilsCode) > 0 && strpos($holding['locationCode'], $library->ilsCode) === 0){
+							$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
+						}else{
+							if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
+								$logger->log("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
+								//echo("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}");
+								unset($ret[$holdingKey]);
+								continue;
+							}
 						}
 					}
 				}
@@ -316,7 +336,7 @@ class MillenniumStatusLoader{
 				}
 				//Check to see if this item can be held by the current patron.  Only important when
 				//we know what pType is in use and we are showing all items.
-				if ($scope == 93 && $pType > 0){
+				if ($scope == $this->driver->getDefaultScope() && $pType > 0){
 					//Never remove the title if it is owned by the current library (could be in library use only)
 					if (isset($library) && strlen($library->ilsCode) > 0 && strpos($holding['locationCode'], $library->ilsCode) === 0){
 						$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
@@ -992,7 +1012,7 @@ class MillenniumStatusLoader{
 			}
 		}else if ($summaryInformation['status'] == 'Marmot'){
 			$summaryInformation['class'] = "nearby";
-			$totalLocations = $summaryInformation['numAvailableOther'] + $summaryInformation['availableAt'];
+			$totalLocations = intval($summaryInformation['numAvailableOther']) + intval($summaryInformation['availableAt']);
 			$summaryInformation['statusText'] = "Available now at " . $totalLocations . " Marmot " . ($totalLocations == 1 ? "Library" : "Libraries");
 		}else{
 			$summaryInformation['statusText'] = translate($summaryInformation['status']);
