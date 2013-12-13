@@ -1773,6 +1773,10 @@ class Solr implements IndexEngine {
 			echo "</pre>\n";
 		}
 
+		if (strlen($queryString > 1900)){
+			$method = POST;
+		}
+
 		if ($method == 'GET') {
 			$this->client->addRawQueryString($queryString);
 		} elseif ($method == 'POST') {
