@@ -1774,7 +1774,8 @@ class Solr implements IndexEngine {
 		}
 
 		if (strlen($queryString > 1900)){
-			$method = POST;
+			$method = 'POST';
+			$this->client->setMethod(HTTP_REQUEST_METHOD_POST);
 		}
 
 		if ($method == 'GET') {
