@@ -794,9 +794,14 @@ class MillenniumHolds{
 				//echo "$curl_url";
 				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 
-				$post_data['needby_Month']= $Month;
-				$post_data['needby_Day']= $Day;
-				$post_data['needby_Year']=$Year;
+	                        global $librarySingleton;
+	                        $patronHomeBranch = $librarySingleton->getPatronHomeLibrary();
+                                if ($patronHomeBranch->defaultNotNeededAfterDays != -1){
+					$post_data['needby_Month']= $Month;
+					$post_data['needby_Day']= $Day;
+					$post_data['needby_Year']=$Year;
+				}
+
 				$post_data['submit.x']="35";
 				$post_data['submit.y']="21";
 				$post_data['submit']="submit";
