@@ -5,6 +5,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Description goes here
@@ -119,6 +121,8 @@ public class GroupedWork implements Cloneable{
 			groupingTitle = fullTitle;
 		}
 
+		groupingTitle = makeValueSortable(groupingTitle);
+
 		//Replace & with and for better matching
 		groupingTitle = groupingTitle.replace("&", "and");
 		groupingTitle = groupingTitle.replaceAll("[^\\w\\d\\s]", "").toLowerCase();
@@ -164,5 +168,19 @@ public class GroupedWork implements Cloneable{
 
 	public void setSubtitle(String subtitle) {
 		this.subtitle = normalizeSubtitle(subtitle);
+	}
+
+	private static Pattern sortTrimmingPattern = Pattern.compile("(?i)^(?:(?:a|an|the|el|la|\"|')\\s)(.*)$");
+	private static String makeValueSortable(String curTitle) {
+		if (curTitle == null) return "";
+		String sortTitle = curTitle.toLowerCase();
+		Matcher sortMatcher = sortTrimmingPattern.matcher(sortTitle);
+		if (sortMatcher.matches()) {
+			sortTitle = sortMatcher.group(1);
+		}
+		sortTitle = sortTitle.replaceAll("\\W", " "); //get rid of non alpha numeric characters
+		sortTitle = sortTitle.replaceAll("\\s{2,}", " "); //get rid of duplicate spaces
+		sortTitle = sortTitle.trim();
+		return sortTitle;
 	}
 }

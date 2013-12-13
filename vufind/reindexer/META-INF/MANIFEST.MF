@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Class-Path: lib/httpcore-4.2.1.jar lib/httpmime-4.2.1.jar lib/ini4j-0.
+ 5.2.jar lib/httpclient-4.2.1.jar lib/log4j-1.2.15.jar lib/logging-1.1
+ .1.jar lib/marc4j.jar lib/mysql-5.1.15.jar lib/apache-solr-solrj-3.6.
+ 0.jar lib/slf4j-api-1.6.1.jar lib/slf4j-log4j12-1.7.5.jar lib/apache-
+ solr-core-3.6.0.jar
+Main-Class: org.vufind.GroupedReindexProcess
+

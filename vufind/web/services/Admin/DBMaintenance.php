@@ -381,6 +381,14 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_grouping' => array(
+				'title' => 'Library Grouping Options',
+				'description' => 'Whether or not records should shown as grouped in the user interface',
+				'sql' => array(
+					"ALTER TABLE library ADD searchGroupedRecords TINYINT DEFAULT 0",
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',

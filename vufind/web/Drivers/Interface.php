@@ -32,6 +32,19 @@
  */
 interface DriverInterface
 {
+	/**
+	 * Loads items information as quickly as possible (no direct calls to the ILS)
+	 *
+	 * return is an array of items with the following information:
+	 *  callnumber
+	 *  available
+	 *  holdable
+	 *  lastStatusCheck (time)
+	 *
+	 * @param $id
+	 * @return mixed
+	 */
+	public function getItemsFast($id);
 	public function getStatus($id);
 	public function getStatuses($ids);
 	public function getHolding($id);

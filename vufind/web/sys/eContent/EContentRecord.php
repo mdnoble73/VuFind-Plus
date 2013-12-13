@@ -912,6 +912,10 @@ class EContentRecord extends DB_DataObject{
 		return $eContentText;*/
 	}
 
+	function getItemsFast(){
+		return $this->getItems();
+	}
+
 	private $items = null;
 	function getItems($reload = false, $allowReindex = true){
 		if ($this->items == null || $reload){

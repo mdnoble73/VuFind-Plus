@@ -1287,7 +1287,7 @@ class MarcRecord extends IndexRecord
 			'language' => $this->getLanguage(),
 			'title' => $this->getTitle(),
 			'callNumber' => $this->getCallNumber(),
-			'available' => $this->isAvailable(),
+			'available' => $this->isAvailable(false),
 			'copies' => $this->getNumCopies(),
 			'actions' => array()
 		);
@@ -1305,7 +1305,7 @@ class MarcRecord extends IndexRecord
 	}
 
 	private function isHoldable(){
-		$items = $this->getItems();
+		$items = $this->getItemsFast();
 		$firstCallNumber = null;
 		foreach ($items as $itemKey => $item){
 			//Try to get an available non reserve call number
@@ -1316,8 +1316,12 @@ class MarcRecord extends IndexRecord
 		return $firstCallNumber;
 	}
 
-	private function isAvailable(){
-		$items = $this->getItems();
+	private function isAvailable($realTime){
+		if ($realTime){
+			$items = $this->getItems();
+		}else{
+			$items = $this->getItemsFast();
+		}
 		$firstCallNumber = null;
 		foreach ($items as $itemKey => $item){
 			//Try to get an available non reserve call number
@@ -1329,7 +1333,7 @@ class MarcRecord extends IndexRecord
 	}
 
 	private function getCallNumber(){
-		$items = $this->getItems();
+		$items = $this->getItemsFast();
 		$firstCallNumber = null;
 		$nonLibraryCallNumber = null;
 		foreach ($items as $itemKey => $item){
@@ -1356,7 +1360,16 @@ class MarcRecord extends IndexRecord
 	}
 
 	private function getNumCopies() {
-		return count($this->getItems());
+		return count($this->getItemsFast());
+	}
+
+	private $fastItems = null;
+	public function getItemsFast(){
+		if ($this->fastItems == null){
+			$driver = MarcRecord::getCatalogDriver();
+			$this->fastItems = $driver->getItemsFast($this->getUniqueID());
+		}
+		return $this->fastItems;
 	}
 
 	private $items = null;

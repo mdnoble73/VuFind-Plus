@@ -352,7 +352,7 @@ Keyword:
       - [and, 50]
     author_additional:
       - [and, 50]
-    table_of_contents:
+    contents:
       - [and, 10]
     topic:
       - [onephrase, 125]
@@ -376,7 +376,7 @@ Keyword:
       - [or, ~]
     id:
       - [onephrase, ~]
-    alternate_ids:
+    id_alt:
       - [exact, ~]
     local_callnumber_exact:
       - [localized_callnumber, 800]
@@ -437,6 +437,138 @@ KeywordProper:
     upc:
       - [and, 100]
       - [or, ~]      
+    oclc:
+      - [and, 100]
+      - [or, ~]
+    callnumber-subject:
+      - [onephrase, ~]
+    callnumber_browse:
+      - [exact, ~]
+    id:
+      - [onephrase, ~]
+    id_alt:
+      - [onephrase, ~]
+    local_callnumber_exact:
+      - [localized_callnumber, 800]
+    local_callnumber_left:
+      - [localized_callnumber, 300]
+    barcode:
+      - [onephrase, ~]
+
+KeywordGrouped:
+  QueryFields:
+    -
+      - [OR, 50]
+      - title_proper:
+        - [exact, 800]
+        - [onephrase, 500]
+        - [and, 200]
+      - title:
+        - [onephrase, 200]
+        - [and, 125]
+      - title_alt:
+        - [and, 100]
+      - title_new:
+        - [and, 50]
+    series:
+      - [exact, 800]
+      - [onephrase, 300]
+      - [and, 50]
+    series2:
+      - [and, 30]
+    author:
+      - [exact, 800]
+      - [onephrase, 250]
+      - [and, 200]
+    author2:
+      - [and, 50]
+    author_additional:
+      - [and, 50]
+    table_of_contents:
+      - [and, 10]
+    topic:
+      - [onephrase, 125]
+    geographic:
+      - [onephrase, 75]
+    genre:
+      - [onephrase, 75]
+    keywords:
+      - [and, 100]
+    issn:
+      - [and, 100]
+      - [or, ~]
+    isbn:
+      - [and, 100]
+      - [or, ~]
+    upc:
+      - [and, 100]
+      - [or, ~]
+    upc:
+      - [and, 100]
+      - [or, ~]
+    id:
+      - [onephrase, ~]
+    alternate_ids:
+      - [exact, ~]
+    local_callnumber_exact:
+      - [localized_callnumber, 800]
+    local_callnumber_left:
+      - [localized_callnumber, 300]
+    local_callnumber:
+      - [exact, ~]
+    barcode:
+      - [exact, ~]
+    target_audience:
+      - [onephrase, 75]
+    literary_form_full:
+      - [onephrase, 75]
+
+KeywordGroupedProper:
+  DismaxFields:
+    - title_proper^850
+    - series_proper^100
+    - author^300
+    - contents_proper^10
+    - topic_proper^500
+    - geographic_proper^300
+    - genre_proper^300
+    - keywords_proper
+    - isbn
+    - issn
+    - upc
+    - oclc
+    - callnumber-subject
+    - local_callnumber_exact^800
+    - local_callnumber_left^300
+    - barcode
+
+  QueryFields:
+    title_proper:
+      - [onephrase, 850]
+    series_proper:
+      - [and, 50]
+    author:
+      - [onephrase, 300]
+      - [and, 250]
+    contents_proper:
+      - [and, 10]
+    topic_proper:
+      - [onephrase, 500]
+    geographic_proper:
+      - [onephrase, 300]
+    genre_proper:
+      - [onephrase, 300]
+    keywords_proper:
+      - [and, ~]
+    issn:
+      - [and, 100]
+      - [or, ~]
+    isbn:
+      - [and, 100]
+      - [or, ~]
+    upc:
+      - [and, 100]
+      - [or, ~]
     oclc:
       - [and, 100]
       - [or, ~]

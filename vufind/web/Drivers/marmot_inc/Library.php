@@ -105,7 +105,7 @@ class Library extends DB_DataObject
 	public $eContentSupportAddress;
 	public $restrictOwningBranchesAndSystems;
 	public $additionalCss;
-
+	public $searchGroupedRecords;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
@@ -203,6 +203,7 @@ class Library extends DB_DataObject
 				'minimumFineAmount' => array('property'=>'minimumFineAmount', 'type'=>'currency', 'displayFormat'=>'%0.2f', 'label'=>'Minimum Fine Amount', 'description'=>'The minimum fine amount to display the e-commerce link', 'hideInLists' => true,),
 			)),
 			array('property'=>'searchingSection', 'type' => 'section', 'label' =>'Searching', 'hideInLists' => true, 'properties' => array(
+				'searchGroupedRecords' => array('property'=>'searchGroupedRecords', 'type'=>'checkbox', 'label'=>'Search Grouped Records', 'description'=>'Whether or grouped records should be searched', 'hideInLists' => false, 'default'=>true),
 				'facetLabel' => array('property'=>'facetLabel', 'type'=>'text', 'label'=>'Facet Label', 'description'=>'The label for the library system in the Library System Facet.', 'size'=>'40', 'hideInLists' => true,),
 				'restrictSearchByLibrary' => array('property'=>'restrictSearchByLibrary', 'type'=>'checkbox', 'label'=>'Restrict Search By Library', 'description'=>'Whether or not search results should only include titles from this library', 'hideInLists' => true),
 				'includeDigitalCollection' => array('property'=>'includeDigitalCollection', 'type'=>'checkbox', 'label'=>'Include Digital Collection', 'description'=>'Whether or not titles from the digital collection should be included in searches', 'hideInLists' => true),

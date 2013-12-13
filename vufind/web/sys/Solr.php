@@ -137,7 +137,17 @@ class Solr implements IndexEngine {
 
 		// Set a default Solr index if none is provided to the constructor:
 		if (empty($index)) {
-			$index = isset($configArray['Index']['default_core']) ? $configArray['Index']['default_core'] : "biblio";
+			global $library;
+			if ($library){
+				if ($library->searchGroupedRecords){
+					$index = 'grouped';
+				}else{
+					$index = 'biblio';
+				}
+			}else{
+				$index = isset($configArray['Index']['default_core']) ? $configArray['Index']['default_core'] : "biblio";
+			}
+
 			$this->index = $index;
 		}
 

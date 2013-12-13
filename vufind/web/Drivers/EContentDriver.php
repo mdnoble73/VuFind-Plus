@@ -1418,4 +1418,20 @@ class EContentDriver implements DriverInterface{
 		}
 		return true;
 	}
+
+	/**
+	 * Loads items information as quickly as possible (no direct calls to the ILS)
+	 *
+	 * return is an array of items with the following information:
+	 *  callnumber
+	 *  available
+	 *  holdable
+	 *  lastStatusCheck (time)
+	 *
+	 * @param $id
+	 * @return mixed
+	 */
+	public function getItemsFast($id) {
+		return $this->getStatus($id);
+	}
 }

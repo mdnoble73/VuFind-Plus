@@ -233,6 +233,48 @@ class MillenniumDriver implements DriverInterface
 
 	}
 
+	/**
+	 * Loads items information as quickly as possible (no direct calls to the ILS).  Does do filtering by loan rules
+	 *
+	 * return is an array of items with the following information:
+	 *  location
+	 *  callnumber
+	 *  available
+	 *  holdable
+	 *  lastStatusCheck (time)
+	 *
+	 * @param $id
+	 * @return mixed
+	 */
+	public function getItemsFast($id){
+		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
+		//Get the items Fields from the record
+		/** @var File_MARC_Data_Field[] $itemFields */
+		$itemFields = $marcRecord->getFields('989');
+		$items = array();
+		$pType = $this->getPType();
+		foreach ($itemFields as $itemField){
+			$locationCode = $itemField->getSubfield('d')->getData();
+			$iType = $itemField->getSubfield('j')->getData();
+			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pType);
+			$status = $itemField->getSubfield('o')->getData();
+			$dueDate = $itemField->getSubfield('m') != null ? trim($itemField->getSubfield('m')->getData()) : null;
+			$available = $status == '-' && ($dueDate == null || strlen($dueDate) == 0);
+			$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
+			$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
+			$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
+
+			$item = array(
+				'location' => $locationCode,
+				'callnumber' => $fullCallNumber,
+				'availability' => $available,
+				'holdable' => $holdable,
+			);
+			$items[] = $item;
+		}
+		return $items;
+	}
+
 	var $statuses = array();
 	public function getStatus($id){
 		global $timer;
@@ -1194,6 +1236,7 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	function isItemHoldableToPatron($locationCode, $iType, $pType){
+		$this->loadLoanRules();
 		$holdable = false;
 		global $logger;
 		//$logger->log("Checking loan rule for $locationCode, $iType, $pType", PEAR_LOG_DEBUG);
