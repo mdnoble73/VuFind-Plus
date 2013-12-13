@@ -752,9 +752,6 @@ abstract class Record_Record extends Action
 		if ($configArray['Statistics']['enabled']) {
 		// Setup Statistics Index Connection
 		$solrStats = new SolrStats($configArray['Statistics']['solr']);
-		if ($configArray['System']['debugSolr']) {
-		$solrStats->debug = true;
-		}
 
 		// Save Record View
 		$solrStats->saveRecordView($this->recordDriver->getUniqueID());

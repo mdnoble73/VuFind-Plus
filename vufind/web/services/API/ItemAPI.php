@@ -146,9 +146,6 @@ class ItemAPI extends Action {
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {
@@ -328,9 +325,6 @@ class ItemAPI extends Action {
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {
@@ -467,9 +461,6 @@ class ItemAPI extends Action {
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {
@@ -605,9 +596,6 @@ class ItemAPI extends Action {
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {

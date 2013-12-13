@@ -156,12 +156,7 @@ class SearchObject_Solr extends SearchObject_Base
 		$this->spellSkipNumeric = isset($configArray['Spelling']['skip_numeric']) ?
 		$configArray['Spelling']['skip_numeric'] : true;
 
-		// Debugging
-		if ($configArray['System']['debugSolr']) {
-			$this->indexEngine->debug = true;
-		} else {
-			$this->indexEngine->debug = false;
-		}
+		$this->indexEngine->debug = $this->debug;
 
 		$timer->logTime('Setup Solr Search Object');
 	}
