@@ -1361,9 +1361,6 @@ class IndexRecord implements RecordInterface
 			$class = $configArray['Index']['engine'];
 			$url = $configArray['Index']['url'];
 			$this->index = new $class($url);
-			if ($configArray['System']['debugSolr']) {
-				$this->index->debug = true;
-			}
 		}
 
 		return $this->index;

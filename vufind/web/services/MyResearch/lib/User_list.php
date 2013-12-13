@@ -249,7 +249,7 @@ class User_list extends SolrDataObject
 		$library->find();
 		while ($library->fetch() == true){
 			$structure['format_' . $library->subdomain] = array(
-				'property' => 'format',
+				'property' => 'format_' . $library->subdomain,
 				'type' => 'method',
 				'methodName' => 'format',
 				'storeDb' => false,

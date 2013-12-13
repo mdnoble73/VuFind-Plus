@@ -62,9 +62,6 @@ class Suggestions{
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$db->debug = true;
-		}
 
 		//Get a list of all titles the user has rated (3 star and above)
 		$ratings = new UserRating();

@@ -73,9 +73,6 @@ class SaveToList extends Action
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
 		$db = new $class($configArray['Index']['url']);
-		if ($configArray['System']['debugSolr']) {
-			$db->debug = true;
-		}
 
 		// Get Record Information
 		$id = strip_tags($_REQUEST['id']);

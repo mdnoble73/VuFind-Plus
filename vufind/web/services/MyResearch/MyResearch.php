@@ -52,9 +52,6 @@ abstract class MyResearch extends Action
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
 		$this->db = new $class($configArray['Index']['url']);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 
 		// Connect to Database
 		$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);

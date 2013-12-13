@@ -62,9 +62,6 @@ class Demo implements DriverInterface
 		// Create or solr connection
 		$class = $configArray['Index']['engine'];
 		$this->db = new $class($configArray['Index']['url']);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 
 		// Get the total # of records in the system
 		$result = $this->db->search('*:*');

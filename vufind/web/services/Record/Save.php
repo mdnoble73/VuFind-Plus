@@ -76,9 +76,6 @@ class Record_Save extends Action
 		$class = $configArray['Index']['engine'];
 		/** @var SearchObject_Solr $db */
 		$db = new $class($configArray['Index']['url']);
-		if ($configArray['System']['debugSolr']) {
-			$db->debug = true;
-		}
 
 		// Get Record Information
 		$details = $db->getRecord($_GET['id']);

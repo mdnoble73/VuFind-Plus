@@ -37,9 +37,6 @@ class EcontentRecord_SimilarTitles extends Action
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 
 		//Enable and disable functionality based on library settings
 		global $library;

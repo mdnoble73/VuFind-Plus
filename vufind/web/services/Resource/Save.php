@@ -75,9 +75,6 @@ class Save extends Action
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
 		$db = new $class($configArray['Index']['url']);
-		if ($configArray['System']['debugSolr']) {
-			$db->debug = true;
-		}
 
 		// Get Record Information
 		$resource = new Resource();

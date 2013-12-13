@@ -453,9 +453,6 @@ class AJAX extends Action {
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$db->debug = true;
-		}
 		$searchObject = $searchObject->restoreSavedSearch($prospectorSavedSearchId, false);
 
 		//Load results from Prospector

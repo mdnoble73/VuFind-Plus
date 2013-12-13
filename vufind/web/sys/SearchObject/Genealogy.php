@@ -138,11 +138,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 		$configArray['Spelling']['skip_numeric'] : true;
 
 		// Debugging
-		if ($configArray['System']['debugSolr']) {
-			$this->indexEngine->debug = true;
-		} else {
-			$this->indexEngine->debug = false;
-		}
+		$this->indexEngine->debug = $this->debug;
 
 		$this->recommendIni = 'genealogySearches';
 
