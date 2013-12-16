@@ -35,24 +35,15 @@ public class GroupedReindexProcess {
 	private static long reindexLogId;
 	private static long startTime;
 	private static long endTime;
-	private static Long reindexTime1 = null;
-	private static Long reindexTime2 = null;
-	
-	private static long loadChangesSince = 0;
 
 	//Variables to determine what sub processes to run.
 	private static boolean reloadDefaultSchema = false;
-	private static String idsToProcess = null;
 
 	//Database connections and prepared statements
 	private static Connection vufindConn = null;
-	private static Connection groupedRecordConn = null;
 	private static Connection econtentConn = null;
 	
-	private static PreparedStatement updateReindexLogLastUpdatedStmt;
 	private static PreparedStatement addNoteToReindexLogStmt;
-
-	private static PreparedStatement getOverDriveProductStmt;
 
 	/**
 	 * Starts the re-indexing process
@@ -178,21 +169,6 @@ public class GroupedReindexProcess {
 		}
 	}
 	
-	public static void updateLastUpdateTime(){
-		try {
-			updateReindexLogLastUpdatedStmt.setLong(1, new Date().getTime() / 1000);
-			updateReindexLogLastUpdatedStmt.setLong(2, reindexLogId);
-			updateReindexLogLastUpdatedStmt.executeUpdate();
-			//Sleep for a little bit to make sure we don't block connectivity for other programs 
-			Thread.sleep(5);
-			//Thread.yield();
-		} catch (SQLException e) {
-			logger.error("Error setting last updated time in Cron Log", e);
-		} catch (InterruptedException e) {
-			logger.error("Sleep interrupted", e);
-		}
-	}
-
 	private static void initializeReindex() {
 		// Delete the existing reindex.log file
 		File solrmarcLog = new File("../../sites/" + serverName + "/logs/reindex.log");
@@ -279,18 +255,6 @@ public class GroupedReindexProcess {
 		}
 		try {
 			vufindConn = DriverManager.getConnection(databaseConnectionInfo);
-			//Load the last index times
-			ResultSet reindexTime1RS = vufindConn.prepareStatement("SELECT * from variables where name = 'reindex_time_1'").executeQuery();
-			if (reindexTime1RS.next()){
-				reindexTime1 = reindexTime1RS.getLong("value");
-			}
-			ResultSet reindexTime2RS = vufindConn.prepareStatement("SELECT * from variables where name = 'reindex_time_2'").executeQuery();
-			if (reindexTime2RS.next()){
-				reindexTime2 = reindexTime2RS.getLong("value");
-			}
-			if (reindexTime2 != null){
-				loadChangesSince = reindexTime2;
-			}
 		} catch (SQLException e) {
 			logger.error("Could not connect to vufind database", e);
 			System.exit(1);
@@ -303,7 +267,6 @@ public class GroupedReindexProcess {
 		}
 		try {
 			econtentConn = DriverManager.getConnection(econtentDBConnectionInfo);
-			getOverDriveProductStmt = econtentConn.prepareStatement("SELECT id, dateAdded, GREATEST(dateUpdated, lastMetadataChange, lastAvailabilityChange, dateDeleted) as dateUpdated, deleted from overdrive_api_products where overdriveId = ?");
 		} catch (SQLException e) {
 			logger.error("Could not connect to econtent database", e);
 			System.exit(1);
@@ -322,19 +285,10 @@ public class GroupedReindexProcess {
 				reindexLogId = generatedKeys.getLong(1);
 			}
 			
-			updateReindexLogLastUpdatedStmt = vufindConn.prepareStatement("UPDATE reindex_log SET lastUpdate = ? WHERE id = ?");
 			addNoteToReindexLogStmt = vufindConn.prepareStatement("UPDATE reindex_log SET notes = ?, lastUpdate = ? WHERE id = ?");
 		} catch (SQLException e) {
 			logger.error("Unable to create log entry for reindex process", e);
 			System.exit(0);
-		}
-		
-		idsToProcess = Util.cleanIniValue(configIni.get("Reindex", "idsToProcess"));
-		if (idsToProcess == null || idsToProcess.length() == 0){
-			idsToProcess = null;
-			logger.debug("Did not load a set of idsToProcess");
-		}else{
-			logger.debug("idsToProcess = " + idsToProcess);
 		}
 		
 	}
@@ -401,8 +355,5 @@ public class GroupedReindexProcess {
 		}
 		return ini;
 	}
-	
-	public static long getLoadChangesSince() {
-		return loadChangesSince;
-	}
+
 }

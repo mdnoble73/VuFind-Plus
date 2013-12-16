@@ -123,9 +123,13 @@ public class GroupedWork implements Cloneable{
 
 		groupingTitle = makeValueSortable(groupingTitle);
 
+		//Fix abbreviations
+		groupingTitle = groupingTitle.replaceAll("(?<=[A-Z])\\\\.(?=(\\\\s|[A-Z]|$))", " ");
 		//Replace & with and for better matching
 		groupingTitle = groupingTitle.replace("&", "and");
 		groupingTitle = groupingTitle.replaceAll("[^\\w\\d\\s]", "").toLowerCase();
+		//Replace consecutive spaces
+		groupingTitle = groupingTitle.replaceAll("\\s+", " ");
 		groupingTitle = groupingTitle.trim();
 
 		int titleEnd = 100;

@@ -1104,6 +1104,13 @@ class Solr implements IndexEngine {
 				$handler = 'TitleProper';
 			}
 		}
+		if ($this->index == 'grouped'){
+			if ($handler == 'Keyword'){
+				$handler = 'KeywordGrouped';
+			}elseif ($handler == 'KeywordProper'){
+				$handler = 'KeywordGroupedProper';
+			}
+		}
 
 		// Determine which handler to use
 		if (!$this->isAdvanced($query)) {

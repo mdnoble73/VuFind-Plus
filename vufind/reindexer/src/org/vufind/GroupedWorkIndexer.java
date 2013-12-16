@@ -298,6 +298,9 @@ public class GroupedWorkIndexer {
 	 * @return Numeric part of date String (or null)
 	 */
 	public static String cleanDate(final String date) {
+		if (date == null || date.length() == 0){
+			return null;
+		}
 		Matcher matcher_braces = FOUR_DIGIT_PATTERN_BRACES.matcher(date);
 
 		String cleanDate = null; // raises DD-anomaly
