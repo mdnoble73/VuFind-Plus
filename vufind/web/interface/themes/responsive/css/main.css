@@ -6469,7 +6469,7 @@ a.badge:focus {
   }
 }
 #header-container .navbar-inner {
-  /*background-image: linear-gradient(to bottom, ##4c7db8, #31496b);*/
+  background-image: linear-gradient(to bottom, ##4c7db8, #31496b);
   background-image: url("./images/toplogo_wide.fw.png");
 }
 #footer-container .navbar-inner {
