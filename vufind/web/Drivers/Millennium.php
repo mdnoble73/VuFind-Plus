@@ -254,8 +254,8 @@ class MillenniumDriver implements DriverInterface
 		$items = array();
 		$pType = $this->getPType();
 		foreach ($itemFields as $itemField){
-			$locationCode = $itemField->getSubfield('d')->getData();
-			$iType = $itemField->getSubfield('j')->getData();
+			$locationCode = $itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '';
+			$iType = $itemField->getSubfield('j') != null ? $itemField->getSubfield('j')->getData() : '';
 			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pType);
 			$status = $itemField->getSubfield('o') != null ? $itemField->getSubfield('o')->getData() : '';
 			$dueDate = $itemField->getSubfield('m') != null ? trim($itemField->getSubfield('m')->getData()) : null;
