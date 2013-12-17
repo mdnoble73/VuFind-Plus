@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
 import org.apache.solr.common.SolrInputDocument;
 import org.ini4j.Ini;
+import org.marc4j.marc.DataField;
 import org.solrmarc.tools.Utils;
 import org.vufind.IMarcRecordProcessor;
 import org.vufind.IRecordProcessor;
@@ -72,6 +73,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 	private PreparedStatement doesGutenbergItemExist;
 	private PreparedStatement addGutenbergItem;
 	private PreparedStatement updateGutenbergItem;
+
+	private PreparedStatement addAcsItem;
 
 	private PreparedStatement existingEContentRecordLinks;
 	private PreparedStatement addSourceUrl;
@@ -184,6 +187,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			doesGutenbergItemExist = econtentConn.prepareStatement("SELECT id from econtent_item WHERE recordId = ? AND item_type = ? and notes = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			addGutenbergItem = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, filename, folder, link, notes, date_added, addedBy, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
 			updateGutenbergItem = econtentConn.prepareStatement("UPDATE econtent_item SET filename = ?, folder = ?, link = ?, date_updated =? WHERE recordId = ? AND item_type = ? AND notes = ?");
+
+			addAcsItem = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, filename, folder, acsId, date_added, addedBy, date_updated) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 
 			existingEContentRecordLinks = econtentConn.prepareStatement("SELECT id, link, libraryId, item_type from econtent_item WHERE recordId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			addSourceUrl = econtentConn.prepareStatement("INSERT INTO econtent_item (recordId, item_type, notes, link, date_added, addedBy, date_updated, libraryId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
@@ -523,7 +528,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 
 			if (recordAdded){
 				logger.debug("Record added/updated, adding items");
-				addItemsToEContentRecord(recordInfo, logger, source, detectionSettings, eContentRecordId);
+				addItemsToEContentRecord(existingRecordInfo, recordInfo, logger, source, detectionSettings, eContentRecordId);
 			}else{
 				logger.info("Record NOT processed successfully.");
 			}
@@ -543,7 +548,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}
 	}
 
-	private void addItemsToEContentRecord(MarcRecordDetails recordInfo, Logger logger, String source, DetectionSettings detectionSettings, long eContentRecordId) {
+	private void addItemsToEContentRecord(EcontentRecordInfo existingRecordInfo, MarcRecordDetails recordInfo, Logger logger, String source, DetectionSettings detectionSettings, long eContentRecordId) {
 		//Non threaded implementation for adding items
 		boolean itemsAdded = true;
 		if (source.toLowerCase().startsWith("gutenberg")){
@@ -556,10 +561,54 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			//Automatically setup 856 links as external links
 			logger.debug("  Adding external items");
 			setupExternalLinks(recordInfo, eContentRecordId, detectionSettings, logger);
+		}else if (detectionSettings.getAccessType().equals("acs")){
+			logger.debug("  Setting up acs items");
+			if (existingRecordInfo.getNumItems() == 0){
+				setupLocalEContentItems(existingRecordInfo, recordInfo, logger);
+			}
 		}
 		if (itemsAdded){
 			logger.debug("  Items added successfully, reindexing. " + recordInfo.geteContentRecordId() + " " + recordInfo.getId());
 			reindexRecord(recordInfo, eContentRecordId, logger);
+		}
+	}
+
+	private void setupLocalEContentItems(EcontentRecordInfo existingRecordInfo, MarcRecordDetails recordInfo, Logger logger) {
+		//Get the items from the record
+		Set<String> items = recordInfo.getFieldList("989w");
+		for (String item : items){
+			if (item.contains(":")){
+				String[] eContentInfo = item.split(":");
+				String filename = null;
+				if (eContentInfo.length >= 4){
+					filename = eContentInfo[3].trim();
+				}
+				String acsId = null;
+				if (eContentInfo.length >= 5){
+					acsId = eContentInfo[4].trim();
+				}
+				if (filename != null){
+					//TODO: Check to see if the file exists in the econtent directory
+					String fileExtension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+					String itemType = fileExtension;
+					if (fileExtension.equals("mobi")){
+						itemType = "kindle";
+					}
+					try {
+						addAcsItem.setLong(1, existingRecordInfo.getRecordId());
+						addAcsItem.setString(2, itemType);
+						addAcsItem.setString(3, filename);
+						addAcsItem.setString(4, "");
+						addAcsItem.setString(5, acsId);
+						addAcsItem.setLong(6, new Date().getTime());
+						addAcsItem.setInt(7, -1);
+						addAcsItem.setLong(8, new Date().getTime());
+						addAcsItem.executeUpdate();
+					} catch (SQLException e) {
+						logger.error("Error adding acs item to database", e);
+					}
+				}
+			}
 		}
 	}
 
