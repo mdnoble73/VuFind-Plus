@@ -1472,21 +1472,21 @@ class Solr implements IndexEngine {
 		if ($this->scopingDisabled == false){
 			if (isset($searchLibrary)){
 				if ($searchLibrary->restrictSearchByLibrary && $searchLibrary->includeDigitalCollection){
-					$filter[] = "(institution:\"{$searchLibrary->facetLabel}\" OR institution:\"Shared Digital Collection\" OR institution:\"Digital Collection\" OR institution:\"{$searchLibrary->facetLabel} Online\")";
+					$filter[] = "($institutionFacetName:\"{$searchLibrary->facetLabel}\" OR $institutionFacetName:\"Shared Digital Collection\" OR $institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
 				}else if ($searchLibrary->restrictSearchByLibrary){
-					$filter[] = "institution:\"{$searchLibrary->facetLabel}\"";
+					$filter[] = "$institutionFacetName:\"{$searchLibrary->facetLabel}\"";
 				}else if (!$searchLibrary->includeDigitalCollection){
-					$filter[] = "!(institution:\"Digital Collection\" OR institution:\"{$searchLibrary->facetLabel} Online\")";
+					$filter[] = "!($institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
 				}
 			}
 
 			if ($searchLocation != null){
 				if ($searchLocation->restrictSearchByLocation && $searchLocation->includeDigitalCollection){
-					$filter[] = "(building:\"{$searchLocation->facetLabel}\" OR building:\"Shared Digital Collection\" OR building:\"Digital Collection\" OR building:\"{$searchLocation->facetLabel} Online\")";
+					$filter[] = "($buildingFacetName:\"{$searchLocation->facetLabel}\" OR $buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLocation->facetLabel} Online\")";
 				}else if ($searchLocation->restrictSearchByLocation){
-					$filter[] = "(building:\"{$searchLocation->facetLabel}\")";
+					$filter[] = "($buildingFacetName:\"{$searchLocation->facetLabel}\")";
 				}else if (!$searchLocation->includeDigitalCollection){
-					$filter[] = "!(building:\"Shared Digital Collection\" OR building:\"Digital Collection\" OR building:\"{$searchLibrary->facetLabel} Online\")";
+					$filter[] = "!($buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLibrary->facetLabel} Online\")";
 				}
 			}
 
