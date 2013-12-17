@@ -4,7 +4,7 @@
 		<div class="container">
 			<div>
 				<a class="brand" href="{if $homeLink}{$homeLink}{else}{$path}/{/if}">
-					<img class="brand" src="{if $tinyLogo}{$tinyLogo}{else}{img filename="toplogo_wide.fw.png"}{/if}" alt="{$librarySystemName}" title="Return to Catalog Home" id="header_logo"/>
+					<img class="brand" src="{if $tinyLogo}{$tinyLogo}{else}{img filename="logo_tiny.png"}{/if}" alt="{$librarySystemName}" title="Return to Catalog Home" id="header_logo"/>
 				</a>
 				<div class="pull-right">
 					<ul class="nav">
