@@ -2861,12 +2861,12 @@ input[type="button"].btn-block {
 .btn-primary.disabled,
 .btn-primary[disabled] {
   color: #ffffff;
-  background-color: #333;
-  *background-color: #333;
+  background-color: #445f87;
+  *background-color: #364b6b;
 }
 .btn-primary:active,
 .btn-primary.active {
-  background-color: #003399 \9;
+  background-color: #445f87 \9;
 }
 .btn-warning {
   color: #ffffff;
