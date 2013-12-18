@@ -1,33 +1,28 @@
-<div id="sidebar-wrapper"><div id="sidebar">
-  {if $enrichment.novelist.similarAuthorCount != 0}
-  <div class="sidegroup">
-    <h4>{translate text="Similar Authors"}</h4>
-    <ul class="similar">
-      {foreach from=$enrichment.novelist.authors item=similar}
-      <li>
-        <a href={$url}/Author/Home?author={$similar|escape:"url"}>{$similar}</a>
-        </span>
-      </li>
-      {/foreach}
-    </ul>
-  </div>
+<div id="sidebar-wrapper">
+	<div id="sidebar">
+		  {if $enrichment.novelist.similarAuthorCount != 0}
+			  <div class="sidegroup">
+				<h4>{translate text="Similar Authors"}</h4>
+				<ul class="similar">
+				  {foreach from=$enrichment.novelist.authors item=similar}
+				  <li>
+					<a href={$url}/Author/Home?author={$similar|escape:"url"}>{$similar}</a>
+					</span>
+				  </li>
+				  {/foreach}
+				</ul>
+			  </div>
+		  {/if}
+		  
+		{* Recommendations *}
+		{if $sideRecommendations}
+		  {foreach from=$sideRecommendations item="recommendations"}
+			{include file=$recommendations}
+		  {/foreach}
+		{/if}
+		{* End Recommendations *}
+	</div>
 </div>
-<div id="results-list">
-  {include file=Search/list-list.tpl}
-</div>
-<div id="results-bottom">
-  {if $pageLinks.all}<div class="pagination" id="pagination-bottom">Page: {$pageLinks.all}</div>{/if}
-  {if $enableMaterialsRequest}
-  <div class="request-search"><h3>{translate text="Can't find what you are looking for?"} <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$smarty.request.lookfor|escape:url}&basicType={$smarty.request.basicType|escape:url}">{translate text="Request it!"}</a></h3></div>
-  {/if}
-    {* Recommendations *}
-    {if $sideRecommendations}
-      {foreach from=$sideRecommendations item="recommendations"}
-        {include file=$recommendations}
-      {/foreach}
-    {/if}
-    {* End Recommendations *}
-</div></div>
 <div id="main-content">
  {if $info}
    <div class="authorbio yui-ge">
@@ -74,8 +69,10 @@
  {if $pageLinks.all}<div class="pagination" id="pagination-bottom">Page: {$pageLinks.all}</div>{/if}
 
  {if $enableMaterialsRequest}
- <div id="materialsRequestInfo">
- {translate text="Can't find what you are looking for?"} <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$smarty.request.lookfor|escape:url}&basicType={$smarty.request.basicType|escape:url}">{translate text="Request it!"}</a>.</div>
+	 <div id="materialsRequestInfo">
+		 {translate text="Can't find what you are looking for?"} 
+		 <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$smarty.request.lookfor|escape:url}&basicType={$smarty.request.basicType|escape:url}">{translate text="Request it!"}</a>.
+	 </div>
  </div>
  {/if}
  </div>
