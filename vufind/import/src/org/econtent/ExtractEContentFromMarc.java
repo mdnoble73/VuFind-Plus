@@ -563,8 +563,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 			setupExternalLinks(recordInfo, eContentRecordId, detectionSettings, logger);
 		}else if (detectionSettings.getAccessType().equals("acs")){
 			logger.debug("  Setting up acs items");
-			if (existingRecordInfo.getNumItems() == 0){
-				setupLocalEContentItems(existingRecordInfo, recordInfo, logger);
+			if (existingRecordInfo == null || existingRecordInfo.getNumItems() == 0){
+				setupLocalEContentItems(existingRecordInfo, eContentRecordId, recordInfo, logger);
 			}
 		}
 		if (itemsAdded){
@@ -573,7 +573,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 		}
 	}
 
-	private void setupLocalEContentItems(EcontentRecordInfo existingRecordInfo, MarcRecordDetails recordInfo, Logger logger) {
+	private void setupLocalEContentItems(EcontentRecordInfo existingRecordInfo, long eContentRecordId, MarcRecordDetails recordInfo, Logger logger) {
 		//Get the items from the record
 		Set<String> items = recordInfo.getFieldList("989w");
 		for (String item : items){
@@ -595,7 +595,7 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 						itemType = "kindle";
 					}
 					try {
-						addAcsItem.setLong(1, existingRecordInfo.getRecordId());
+						addAcsItem.setLong(1, eContentRecordId);
 						addAcsItem.setString(2, itemType);
 						addAcsItem.setString(3, filename);
 						addAcsItem.setString(4, "");
