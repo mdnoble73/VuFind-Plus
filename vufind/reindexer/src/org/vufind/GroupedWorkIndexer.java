@@ -266,6 +266,7 @@ public class GroupedWorkIndexer {
 				}
 			}
 		}
+		translatedValue.trim();
 		if (translatedValue.length() == 0){
 			translatedValue = null;
 		}

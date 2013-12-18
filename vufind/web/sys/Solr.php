@@ -489,31 +489,55 @@ class Solr implements IndexEngine {
 		if ($originalResult){
 			$options['fq'] = array();
 			if (isset($originalResult['target_audience_full'])){
-				$options['fq'][] = 'target_audience_full:"' . $originalResult['target_audience_full'] . '"';
+				if (is_array($originalResult['target_audience_full'])){
+					$filter = '';
+					foreach ($originalResult['target_audience_full'] as $targetAudience){
+						if (strlen($filter) > 0){
+							$filter .= ' OR ';
+						}
+						$filter .= 'target_audience_full:"' . $targetAudience . '"';
+					}
+					$options['fq'][] = "($filter)";
+				}else{
+					$options['fq'][] = 'target_audience_full:"' . $originalResult['target_audience_full'] . '"';
+				}
 			}
 			if (isset($originalResult['literary_form'])){
-				$options['fq'][] = 'literary_form:"' . $originalResult['literary_form'] . '"';
+				if (is_array($originalResult['literary_form'])){
+					$filter = '';
+					foreach ($originalResult['literary_form'] as $literaryForm){
+						if (strlen($filter) > 0){
+							$filter .= ' OR ';
+						}
+						$filter .= 'literary_form:"' . $literaryForm . '"';
+					}
+					$options['fq'][] = "($filter)";
+				}else{
+					$options['fq'][] = 'literary_form:"' . $originalResult['literary_form'] . '"';
+				}
 			}
 			if (isset($originalResult['language'])){
 				$options['fq'][] = 'language:"' . $originalResult['language'][0] . '"';
 			}
 			//Don't want to get other editions of the same work (that's a different query)
-			if (isset($originalResult['isbn'])){
-				if (is_array($originalResult['isbn'])){
-					foreach($originalResult['isbn'] as $isbn){
-						$options['fq'][] = '-isbn:' . ISBN::normalizeISBN($isbn);
+			if ($this->index != 'grouped'){
+				if (isset($originalResult['isbn'])){
+					if (is_array($originalResult['isbn'])){
+						foreach($originalResult['isbn'] as $isbn){
+							$options['fq'][] = '-isbn:' . ISBN::normalizeISBN($isbn);
+						}
+					}else{
+						$options['fq'][] = '-isbn:' . ISBN::normalizeISBN($originalResult['isbn']);
 					}
-				}else{
-					$options['fq'][] = '-isbn:' . ISBN::normalizeISBN($originalResult['isbn']);
 				}
-			}
-			if (isset($originalResult['upc'])){
-				if (is_array($originalResult['upc'])){
-					foreach($originalResult['upc'] as $upc){
-						$options['fq'][] = '-upc:' . ISBN::normalizeISBN($upc);
+				if (isset($originalResult['upc'])){
+					if (is_array($originalResult['upc'])){
+						foreach($originalResult['upc'] as $upc){
+							$options['fq'][] = '-upc:' . ISBN::normalizeISBN($upc);
+						}
+					}else{
+						$options['fq'][] = '-upc:' . ISBN::normalizeISBN($originalResult['upc']);
 					}
-				}else{
-					$options['fq'][] = '-upc:' . ISBN::normalizeISBN($originalResult['upc']);
 				}
 			}
 		}

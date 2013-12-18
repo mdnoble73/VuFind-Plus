@@ -285,14 +285,7 @@ class GroupedWorkDriver implements RecordInterface{
 		}
 
 		//Get Rating
-		$resource = new Resource();
-		$resource->source = 'VuFind';
-		$resource->record_id = $id;
-		if ($resource->find(true)){
-			$ratingData = $resource->getRatingData($user);
-			//print_r($ratingData);
-			$interface->assign('summRating', $ratingData);
-		}
+		$interface->assign('summRating', $this->getRatingData());
 
 		//Description
 		$interface->assign('summDescription', $this->getDescription());
@@ -686,7 +679,7 @@ class GroupedWorkDriver implements RecordInterface{
 				$manifestation['actions'] = $manifestation['relatedRecords'][0]['actions'];
 			}else{
 				$manifestation['actions'] = array();
-				$manifestation['actions'][] = array(
+				$manifestation['actions']['ShowRelatedRecords'] = array(
 					'title' => 'Show Versions',
 					'id' => 'ShowRelatedRecords'
 				);
@@ -767,5 +760,34 @@ class GroupedWorkDriver implements RecordInterface{
 			$reviews[] = clone $userReview;
 		}
 		return $reviews;
+	}
+
+	public function getRatingData() {
+		global $user;
+		//Set default rating data
+		$ratingData = array(
+			'average' => 0,
+			'count'   => 0,
+			'user'    => 0,
+		);
+
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
+		$reviewData = new UserWorkReview();
+		$reviewData->groupedRecordPermanentId = $this->getPermanentId();
+		$reviewData->find();
+		$totalRating = 0;
+		while ($reviewData->fetch()){
+			if ($reviewData->rating > 0){
+				$totalRating += $reviewData->rating;
+				$ratingData['count']++;
+				if ($user && $reviewData->userId == $user->id){
+					$ratingData['user'] = $reviewData->rating;
+				}
+			}
+		}
+		if ($ratingData['count'] > 0){
+			$ratingData['average'] = $totalRating / $ratingData['count'];
+		}
+		return $ratingData;
 	}
 }

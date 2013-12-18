@@ -19,7 +19,9 @@
 	<div class="div-striped striped">
 		{foreach from=$relatedManifestations item=relatedManifestation}
 			<div class="row-fluid">
-				<div class="span2">{$relatedManifestation.format}</div>
+				<div class="span2">
+					{$relatedManifestation.format}
+				</div>
 				<div class="span3">{$relatedManifestation.callNumber}</div>
 				<div class="span2">{if $relatedManifestation.available}Available{else}Checked Out{/if}</div>
 				<div class="span1">{if $relatedManifestation.copies > 1000}Unlimited{else}{$relatedManifestation.copies}{/if}</div>

@@ -559,7 +559,7 @@ public class GroupedWorkSolr {
 	}
 
 	public void addLiteraryForm(String literaryForm) {
-		this.literaryForm.add(literaryForm);
+		this.literaryForm.add(literaryForm.trim());
 	}
 
 	public void addLiteraryFormsFull(HashSet<String> literaryFormsFull) {
@@ -567,7 +567,7 @@ public class GroupedWorkSolr {
 	}
 
 	public void addLiteraryFormFull(String literaryForm) {
-		this.literaryFormFull.add(literaryForm);
+		this.literaryFormFull.add(literaryForm.trim());
 	}
 
 	public void addTargetAudiences(HashSet<String> target_audience) {

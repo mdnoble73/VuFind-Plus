@@ -463,6 +463,10 @@ class Novelist3{
 					$resource->find(true);
 					$ratingData = $resource->getRatingData($user);
 					$fullRecordLink = '/Record/' . $ownedRecord['id'] . '/Home';
+				}elseif ($ownedRecord['recordtype'] == 'grouped_work'){
+					$recordDriver = RecordDriverFactory::initRecordDriver($ownedRecord);
+					$ratingData = $recordDriver->getRatingData($user);
+					$fullRecordLink = '/GroupedWork/' . $ownedRecord['id'] . '/Home';
 				}else{
 					require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 					$shortId = str_replace('econtentRecord', '', $ownedRecord['id']);
