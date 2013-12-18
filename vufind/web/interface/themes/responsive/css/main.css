@@ -6440,9 +6440,9 @@ a.badge:focus {
   #search_box_group input + .btn-group .btn:last-child,
   #search_box_group select + .btn-group .btn:last-child,
   #search_box_group .uneditable-input + .btn-group .btn:last-child {
-    -webkit-border-radius: 0 4px 4px 0;
-    -moz-border-radius: 0 4px 4px 0;
-    border-radius: 0 4px 4px 0;
+    -webkit-border-radius: 0 0px 0px 0;
+    -moz-border-radius: 0 0px 0px 0;
+    border-radius: 0 0px 0px 0;
   }
   #search_box_group .add-on,
   #search_box_group .btn,
