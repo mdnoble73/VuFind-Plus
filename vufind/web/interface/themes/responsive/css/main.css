@@ -3999,7 +3999,7 @@ input[type="submit"].btn.btn-mini {
   border-bottom-color: rgba(0, 0, 0, 0.2);
   position: absolute;
   top: -7px;
-  left: 9px;
+  right: 9px;
 }
 .navbar .nav > li > .dropdown-menu:after {
   content: '';
