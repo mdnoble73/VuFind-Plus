@@ -2456,7 +2456,11 @@ table th[class*="span"],
   -moz-background-clip: padding;
   background-clip: padding-box;
 }
-.pull-right.dropdown-menu {
+#dropdown-lang {
+    right: 0;
+    left: auto;
+}
+.dropdown-menu.pull-right {
   right: 0;
   left: auto;
 }
