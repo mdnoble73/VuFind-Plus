@@ -4009,7 +4009,7 @@ input[type="submit"].btn.btn-mini {
   border-bottom: 6px solid #ffffff;
   position: absolute;
   top: -6px;
-  left: 10px;
+  right: 10px;
 }
 .navbar-fixed-bottom .nav > li > .dropdown-menu:before {
   border-top: 7px solid #ccc;
