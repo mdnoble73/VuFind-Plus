@@ -3214,10 +3214,10 @@ input[type="submit"].btn.btn-mini {
   background-color: #bd362f;
 }
 .btn-group.open .btn-success.dropdown-toggle {
-  background-color: #445f87;
+  background-color: #cccccc;
 }
 .btn-group.open .btn-info.dropdown-toggle {
-  background-color: #2f96b4;
+  background-color: #4e80bd;
 }
 .btn-group.open .btn-inverse.dropdown-toggle {
   background-color: #222222;
@@ -3538,8 +3538,8 @@ input[type="submit"].btn.btn-mini {
   border-radius: 6px;
 }
 .nav .dropdown-toggle .caret {
-  border-top-color: #0088cc;
-  border-bottom-color: #0088cc;
+  border-top-color: #ffffff;
+  border-bottom-color: #ffffff;
   margin-top: 6px;
 }
 .nav .dropdown-toggle:hover .caret,
