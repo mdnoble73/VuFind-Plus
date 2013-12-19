@@ -34,7 +34,7 @@
 										{/if}
 									{/foreach}
 								</a>
-								<ul class="dropdown-menu">
+								<ul class="dropdown-menu" id="dropdown-lang">
 									{foreach from=$allLangs key=langCode item=langName}
 										<li><a id="lang{$langCode}" class='languageLink {if $userLang == $langCode} selected{/if}' href="{$fullPath}{if $requestHasParams}&amp;{else}?{/if}mylang={$langCode}">{translate text=$langName}</a></li>
 									{/foreach}
