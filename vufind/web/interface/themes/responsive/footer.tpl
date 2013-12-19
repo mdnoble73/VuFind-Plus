@@ -5,7 +5,7 @@
 				<div class="span3 offset2 footer-column" id="footer1">
 					<h4 data-toggle="collapse" data-target="#footerContents1">{translate text='Featured Items'}</h4>
 					<ul class="unstyled collapse footerContents" id="footerContents1">
-						<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A"Month"&amp;filter[]=literary_form_full%3A"Fiction"'>{translate text='New Fiction'}</a></li>
+						<li><a href='{$path}/Search/Results?lookfor=&amp;type=AllFields&amp;filter[]=system_list%3A%22New+Adult+General+Fiction%22&amp;sort=id_sort+desc"'>{translate text='Adult General Fiction'}</a></li>
 						<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A"Month"&amp;filter[]=literary_form_full%3A"Non+Fiction"'>{translate text='New Non-Fiction'}</a></li>
 						<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A"Month"&amp;filter[]=format%3A"DVD"'>{translate text='New DVDs'}</a></li>
 						<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A"Month"&amp;filter[]=format_category%3A"Audio+Books"'>{translate text='New Audio Books &amp; CDs'}</a></li>
