@@ -2,7 +2,7 @@
 
     <div class="span3 offset2 footer-column" id="footer1">
         <h4 data-toggle="collapse" data-target="#footerContents1">{translate text='Featured Items'}</h4>
-        <ul class="inline" id="footerContents1">
+        <ul class="inline" id="footerContents1pop">
             <li><a href='{$path}/Search/Results?lookfor=&amp;type=AllFields&amp;filter[]=system_list%3A%22New+Adult+General+Fiction%22&amp;sort=id_sort+desc"'>{translate text='Adult General Fiction'}</a></li>
             <li><a href='{$path}/Search/Results?lookfor=&amp;type=AllFields&amp;filter[]=system_list%3A%22New+Adult+Romance%22&amp;sort=id_sort+desc"'>{translate text='Adult Romance'}</a></li>
             <li><a href='{$path}/Search/Results?lookfor=&amp;type=AllFields&amp;filter[]=system_list%3A%22New+Adult+Mystery%22&amp;sort=id_sort+desc"'>{translate text='Adult Mystery'}</a></li>
