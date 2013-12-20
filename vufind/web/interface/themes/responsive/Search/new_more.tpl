@@ -1,7 +1,7 @@
 {strip}
 
     <div class="" id="footer1pop">
-        <h4 data-toggle="collapse" data-target="#footerContents1">{translate text='Featured Items'}</h4>
+        <h4 data-toggle="collapse" data-target="#footerContents1">{translate text='New Titles of Interest'}</h4>
         <ul id="footerContents1pop">
             <li><a href='{$path}/Search/Results?lookfor=&amp;type=AllFields&amp;filter[]=system_list%3A%22New+Adult+General+Fiction%22&amp;sort=id_sort+desc"'>{translate text='Adult General Fiction'}</a></li>
             <li><a href='{$path}/Search/Results?lookfor=&amp;type=AllFields&amp;filter[]=system_list%3A%22New+Adult+Romance%22&amp;sort=id_sort+desc"'>{translate text='Adult Romance'}</a></li>
