@@ -6471,9 +6471,9 @@ a.badge:focus {
   background-image: linear-gradient(to top, #4c7db8, #31496b);
 }
 
-#footer-container .navbar > li > a:link,
-#footer-container .navbar > li > a:focus,
-#footer-container .navbar > li > a:hover {
+/*#footer-container .navbar > li > a:link,*/
+#footer-container li > a:focus,
+#footer-container li > a:hover {
     color:#ffffff;
 }
 
