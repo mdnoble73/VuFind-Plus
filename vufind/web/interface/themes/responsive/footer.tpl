@@ -40,12 +40,12 @@
 				</div>
 
                 <div class="span3 footer-column" id="footer4"><h4 data-toggle="collapse" data-target="#footerContents4">{translate text='Stay Connected'}</h4>
-                <ul class="unstyled collapse footerContents" id="footerContents4">
-                    <li><a href="http://www.facebook.com/wcplonline" target="_blank" title="WCPL Facebook Page">{translate text='Facebook'}</a></li>
-                    <li><a href="http://www.youtube.com/wcplonline" target="_blank" title="WCPL YouTube Channel">{translate text='YouTube'}</a></li>
-                    <li><a href='http://www.twitter.com/wcplonline' target="_blank" title="WCPL Twitter Page">{translate text='Twitter'}</a></li>
-                    <li><a href='http://askwcpl.wakegov.com/' target="_blank" title="AskWCPL Answers Database">{translate text='AskWCPL Answers Database'}</a></li>
-                </ul>
+                    <ul class="unstyled collapse footerContents" id="footerContents4">
+                         <li><a href="http://www.facebook.com/wcplonline" target="_blank" title="WCPL Facebook Page">{translate text='Facebook'}</a></li>
+                         <li><a href="http://www.youtube.com/wcplonline" target="_blank" title="WCPL YouTube Channel">{translate text='YouTube'}</a></li>
+                         <li><a href='http://www.twitter.com/wcplonline' target="_blank" title="WCPL Twitter Page">{translate text='Twitter'}</a></li>
+                         <li><a href='http://askwcpl.wakegov.com/' target="_blank" title="AskWCPL Answers Database">{translate text='AskWCPL Answers Database'}</a></li>
+                    </ul>
                  </div>
 		</div>
 
