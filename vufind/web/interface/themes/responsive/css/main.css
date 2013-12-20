@@ -6470,6 +6470,13 @@ a.badge:focus {
 #footer-container .navbar-inner {
   background-image: linear-gradient(to top, #4c7db8, #31496b);
 }
+
+#footer-container .nav > li > a:link,
+#footer-container .nav > li > a:focus,
+#footer-container .nav > li > a:hover {
+    color:#ffffff;
+}
+
 @media (max-width: 767px) {
   .footer-column h4:before {
     content: "▼ ";
