@@ -10,7 +10,7 @@
 						<li><a href='{$path}/Search/Results?lookfor=&amp;type=AllFields&amp;filter[]=system_list%3A%22New+Children&#039;s+Fiction%22&amp;sort=id_sort+desc"'>{translate text='Children\'s Fiction'}</a></li>
 						<li><a href='{$path}/Search/Results?lookfor=&amp;type=AllFields&amp;filter[]=system_list%3A%22New+Books+for+Young+Adults%22&amp;sort=id_sort+desc"'>{translate text='Young Adult'}</a></li>
 						<li><a href='{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=format_category%3AeBooks&amp;sort=id_sort+desc"'>{translate text='eBooks'}</a></li>
-                        <li><a href="{$path}/Search/New_more" title="{translate text='New Books'}" class="modalDialogTrigger">{translate text='more...'}</a></li>
+                        <li><a href="{$path}/Search/New_more" title="{translate text='New Books'}" class="modalDialogTrigger hidden-phone">{translate text='more...'}</a></li>
 					</ul>
 				</div>
 				<div class="span2 footer-column" id="footer2"><h4 data-toggle="collapse" data-target="#footerContents2">{translate text='Further Research'}</h4>
