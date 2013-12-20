@@ -2,7 +2,7 @@
 <div class="navbar navbar-static-bottom">
 	<div class="navbar-inner">
 		<div class="row-fluid">
-				<div class="span3 offset2 footer-column" id="footer1">
+				<div class="span2 offset2 footer-column" id="footer1">
 					<h4 data-toggle="collapse" data-target="#footerContents1">{translate text='New Titles of Interest'}</h4>
 					<ul class="unstyled collapse footerContents" id="footerContents1">
 						<li><a href='{$path}/Search/Results?lookfor=&amp;type=AllFields&amp;filter[]=system_list%3A%22New+Adult+General+Fiction%22&amp;sort=id_sort+desc"'>{translate text='Adult General Fiction'}</a></li>
@@ -13,7 +13,7 @@
                         <li><a href="{$path}/Search/New_more" title="{translate text='New Books'}" class="modalDialogTrigger">{translate text='more...'}</a></li>
 					</ul>
 				</div>
-				<div class="span3 footer-column" id="footer2"><h4 data-toggle="collapse" data-target="#footerContents2">{translate text='Further Research'}</h4>
+				<div class="span2 footer-column" id="footer2"><h4 data-toggle="collapse" data-target="#footerContents2">{translate text='Further Research'}</h4>
 					<ul class="unstyled collapse footerContents" id="footerContents2">
 						<li><a href="#searchForm" onclick="$('#lookfor').scrollTop();$('#lookfor').trigger('focus');return false;">{translate text='Standard Search'}</a></li>
 						{*
@@ -27,7 +27,7 @@
                         <li><a href='http://ke2nk8za8p.search.serialssolutions.com.ezproxy.co.wake.nc.us/' target="_blank">{translate text='Magazine &amp Journal Database'}</a></li>
 					</ul>
 				</div>
-				<div class="span3 footer-column" id="footer3"><h4 data-toggle="collapse" data-target="#footerContents3">{translate text='Need Help?'}</h4>
+				<div class="span2 footer-column" id="footer3"><h4 data-toggle="collapse" data-target="#footerContents3">{translate text='Need Help?'}</h4>
 					<ul class="unstyled collapse footerContents" id="footerContents3">
 						<li><a href="{$path}/Help/Home?topic=search" class="modalDialogTrigger" data-title="{translate text='Search Tips'}">{translate text='Search Tips'}</a></li>
 						<li><a href="{$path}/Help/Home?topic=faq" class="modalDialogTrigger" data-title="{translate text='FAQs'}">{translate text='FAQs'}</a></li>
@@ -39,7 +39,7 @@
 					</ul>
 				</div>
 
-                <div class="span3 footer-column" id="footer4"><h4 data-toggle="collapse" data-target="#footerContents4">{translate text='Stay Connected'}</h4>
+                <div class="span2 footer-column" id="footer4"><h4 data-toggle="collapse" data-target="#footerContents4">{translate text='Stay Connected'}</h4>
                     <ul class="unstyled collapse footerContents" id="footerContents4">
                          <li><a href="http://www.facebook.com/wcplonline" target="_blank" title="WCPL Facebook Page">{translate text='Facebook'}</a></li>
                          <li><a href="http://www.youtube.com/wcplonline" target="_blank" title="WCPL YouTube Channel">{translate text='YouTube'}</a></li>
