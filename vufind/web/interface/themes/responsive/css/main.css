@@ -6472,11 +6472,12 @@ a.badge:focus {
 }
 
 /*#footer-container .navbar > li > a:link,*/
-#footer-container a,
-#footer-container a:hover {
+#footer-container a {
     color:#ffffff;
 }
-
+#footer-container a:hover {
+    color:#eaeaea;
+}
 @media (max-width: 767px) {
   .footer-column h4:before {
     content: "▼ ";
