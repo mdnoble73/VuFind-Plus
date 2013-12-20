@@ -6472,8 +6472,8 @@ a.badge:focus {
 }
 
 /*#footer-container .navbar > li > a:link,*/
-#footer-container li > a:focus,
-#footer-container li > a:hover {
+#footer-container > li > a:focus,
+#footer-container > li > a:hover {
     color:#ffffff;
 }
 
