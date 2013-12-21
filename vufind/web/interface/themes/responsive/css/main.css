@@ -6471,13 +6471,21 @@ a.badge:focus {
   background-image: linear-gradient(to top, #4c7db8, #31496b);
 }
 
-/*#footer-container .navbar > li > a:link,*/
 #footer-container a, #footer-container h4 {
     color:#ffffff;
 }
 #footer-container a:hover {
     color:#eaeaea;
 }
+#footer-container li{
+    position:relative;
+}
+#footer-container li img{
+    position:absolute;
+    top:0px;
+    left:2px;
+}
+
 @media (max-width: 767px) {
   .footer-column h4:before {
     content: "▼ ";
