@@ -6483,7 +6483,7 @@ a.badge:focus {
 }
 #footer-container li img{
     position:absolute;
-    bottom:0px;
+    top:-5;
     left:0px;
     height:15px;
 }
