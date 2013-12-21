@@ -4,7 +4,8 @@
 		<div class="container">
 			<div>
 				<a class="brand" href="{if $homeLink}{$homeLink}{else}{$path}/{/if}">
-					<img src="{if $tinyLogo}{$tinyLogo}{else}{img filename="supp_site_brian2.fw.png"}{/if}" alt="{$librarySystemName}" title="Return to Catalog Home" id="header_logo"/>
+					<img class="hidden-phone" src="{if $tinyLogo}{$tinyLogo}{else}{img filename="supp_site_brian2.fw.png"}{/if}" alt="{$librarySystemName}" title="Return to Catalog Home" id="header_logo"/>
+                    <img class="visible-phone" src="{if $tinyLogo}{$tinyLogo}{else}{img filename="logo_tiny.png"}{/if}" alt="{$librarySystemName}" title="Return to Catalog Home" id="header_logo"/>
 				</a>
 				<div class="pull-right">
 					<ul class="nav">
