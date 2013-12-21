@@ -6485,7 +6485,7 @@ a.badge:focus {
     position:absolute;
     top:0;
     left:0px;
-    height:15px;
+    height:20px;
 }
 
 @media (max-width: 767px) {
