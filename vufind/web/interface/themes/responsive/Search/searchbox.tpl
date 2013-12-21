@@ -114,4 +114,5 @@
 		</div>
 	{/if}
 </div>
+<img class="brand" src="{img filename="ask_icon_sm.fw.png"}" alt="{$librarySystemName}" title="Help" id="help_undersearch"/>
 {/strip}
