@@ -791,6 +791,14 @@ class DBMaintenanceEContent extends Admin_Admin {
 				),
 			),
 
+			'overdrive_api_data_update_2' => array(
+				'title' => 'OverDrive API Data Update 2',
+				'description' => 'Update Product table to add subtitle',
+				'sql' => array(
+					"ALTER TABLE overdrive_api_products ADD COLUMN subtitle VARCHAR(255)",
+				),
+			),
+
 			'add_indexes' => array(
 				'title' => 'Add eContent indexes',
 				'description' => 'Add indexes to econtent tables that were not defined originally',

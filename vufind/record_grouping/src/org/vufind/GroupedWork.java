@@ -25,7 +25,7 @@ public class GroupedWork implements Cloneable{
 
 	private static HashMap<String, String> categoryMap = new HashMap<String, String>();
 	static {
-		categoryMap.put("other", "book");
+		categoryMap.put("other", "other");
 		categoryMap.put("book", "book");
 		categoryMap.put("ebook", "book");
 		categoryMap.put("audio", "book");
@@ -92,24 +92,32 @@ public class GroupedWork implements Cloneable{
 	}
 
 	private String normalizeAuthor(String author) {
-		String groupingAuthor = author.replaceAll("[^\\w\\d\\s]", "").trim().toLowerCase();
+		String groupingAuthor = author.replaceAll("(?<=[A-Z])\\\\.(?=(\\\\s|[A-Z]|$))", " ");
+		groupingAuthor = groupingAuthor.replaceAll("[^\\w\\s]", "").trim().toLowerCase();
+		groupingAuthor = groupingAuthor.replaceAll("\\s{2,}", " ");
 		if (groupingAuthor.length() > 50){
 			groupingAuthor = groupingAuthor.substring(0, 50);
 		}
+		groupingAuthor = groupingAuthor.trim();
 		return groupingAuthor;
 	}
 
 
 	private String normalizeSubtitle(String originalTitle) {
-		String groupingSubtitle = originalTitle.replaceAll("&", "and");
-		//Remove some common subtitles that are meaningless
-		groupingSubtitle = groupingSubtitle.replaceAll("[^\\w\\d\\s]", "").toLowerCase();
-		groupingSubtitle = groupingSubtitle.replaceAll("^((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of suspense|stories|an autobiography|a novel of obsession|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|a bedtime story|a beginningtoread book|poems)$", "");
-		if (groupingSubtitle.length() > 175){
-			groupingSubtitle = groupingSubtitle.substring(0, 175);
+		if (originalTitle.length() > 0){
+			String groupingSubtitle = originalTitle.replaceAll("&", "and");
+			//Remove some common subtitles that are meaningless
+			groupingSubtitle = groupingSubtitle.replaceAll("[^\\w\\s]", "").toLowerCase().trim();
+			groupingSubtitle = groupingSubtitle.replaceAll("\\s{2,}", " ");
+			groupingSubtitle = groupingSubtitle.replaceAll("^((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|a .* story|a .*\\s?book|poems|the movie)$", "");
+			if (groupingSubtitle.length() > 175){
+				groupingSubtitle = groupingSubtitle.substring(0, 175);
+			}
+			groupingSubtitle = groupingSubtitle.trim();
+			return groupingSubtitle;
+		}else{
+			return originalTitle;
 		}
-		groupingSubtitle = groupingSubtitle.trim();
-		return groupingSubtitle;
 	}
 
 
@@ -127,23 +135,22 @@ public class GroupedWork implements Cloneable{
 		groupingTitle = groupingTitle.replaceAll("(?<=[A-Z])\\\\.(?=(\\\\s|[A-Z]|$))", " ");
 		//Replace & with and for better matching
 		groupingTitle = groupingTitle.replace("&", "and");
-		groupingTitle = groupingTitle.replaceAll("[^\\w\\d\\s]", "").toLowerCase();
+		groupingTitle = groupingTitle.replaceAll("[^\\w\\s]", "").toLowerCase();
 		//Replace consecutive spaces
-		groupingTitle = groupingTitle.replaceAll("\\s+", " ");
-		groupingTitle = groupingTitle.trim();
+		groupingTitle = groupingTitle.replaceAll("\\s{2,}", " ");
 
 		int titleEnd = 100;
 		if (titleEnd < groupingTitle.length()) {
 			groupingTitle = groupingTitle.substring(0, titleEnd);
 		}
+		groupingTitle = groupingTitle.trim();
 		return groupingTitle;
 	}
 
-	public GroupedWork clone(){
+	public GroupedWork clone() throws CloneNotSupportedException {
 
 		try {
-			GroupedWork tempWork = (GroupedWork)super.clone();
-			return tempWork;
+			return (GroupedWork)super.clone();
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
 			return null;
@@ -182,8 +189,6 @@ public class GroupedWork implements Cloneable{
 		if (sortMatcher.matches()) {
 			sortTitle = sortMatcher.group(1);
 		}
-		sortTitle = sortTitle.replaceAll("\\W", " "); //get rid of non alpha numeric characters
-		sortTitle = sortTitle.replaceAll("\\s{2,}", " "); //get rid of duplicate spaces
 		sortTitle = sortTitle.trim();
 		return sortTitle;
 	}

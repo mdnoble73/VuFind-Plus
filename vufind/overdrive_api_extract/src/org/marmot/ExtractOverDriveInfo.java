@@ -85,8 +85,8 @@ public class ExtractOverDriveInfo {
 		this.results = logEntry;
 		
 		try {
-			addProductStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_products set overdriveid = ?, mediaType = ?, title = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateAdded = ?, dateUpdated = ?, lastMetadataCheck = 0, lastMetadataChange = 0, lastAvailabilityCheck = 0, lastAvailabilityChange = 0, rawData=?", PreparedStatement.RETURN_GENERATED_KEYS);
-			updateProductStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET mediaType = ?, title = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateUpdated = ?, deleted = 0, rawData=? where id = ?");
+			addProductStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_products set overdriveid = ?, mediaType = ?, title = ?, subtitle = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateAdded = ?, dateUpdated = ?, lastMetadataCheck = 0, lastMetadataChange = 0, lastAvailabilityCheck = 0, lastAvailabilityChange = 0, rawData=?", PreparedStatement.RETURN_GENERATED_KEYS);
+			updateProductStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET mediaType = ?, title = ?, subtitle = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateUpdated = ?, deleted = 0, rawData=? where id = ?");
 			deleteProductStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET deleted = 1, dateDeleted = ? where id = ?");
 			updateProductMetadataStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET lastMetadataCheck = ?, lastMetadataChange = ? where id = ?");
 			loadMetaDataStmt = econtentConn.prepareStatement("SELECT * FROM overdrive_api_product_metadata WHERE productId = ?");
@@ -233,7 +233,8 @@ public class ExtractOverDriveInfo {
 			boolean updateMade = false;
 			//Check to see if anything has changed.  If so, perform necessary updates. 
 			if (!Util.compareStrings(overDriveInfo.getMediaType(), overDriveDBInfo.getMediaType()) || 
-					!Util.compareStrings(overDriveInfo.getTitle(), overDriveDBInfo.getTitle()) || 
+					!Util.compareStrings(overDriveInfo.getTitle(), overDriveDBInfo.getTitle()) ||
+					!Util.compareStrings(overDriveInfo.getSubtitle(), overDriveDBInfo.getSubtitle()) ||
 					!Util.compareStrings(overDriveInfo.getSeries(), overDriveDBInfo.getSeries()) ||
 					!Util.compareStrings(overDriveInfo.getPrimaryCreatorRole(), overDriveDBInfo.getPrimaryCreatorRole()) ||
 					!Util.compareStrings(overDriveInfo.getPrimaryCreatorName(), overDriveDBInfo.getPrimaryCreatorName()) ||
@@ -246,6 +247,7 @@ public class ExtractOverDriveInfo {
 				int curCol = 1;
 				updateProductStmt.setString(curCol++, overDriveInfo.getMediaType());
 				updateProductStmt.setString(curCol++, overDriveInfo.getTitle());
+				updateProductStmt.setString(curCol++, overDriveInfo.getSubtitle());
 				updateProductStmt.setString(curCol++, overDriveInfo.getSeries());
 				updateProductStmt.setString(curCol++, overDriveInfo.getPrimaryCreatorRole());
 				updateProductStmt.setString(curCol++, overDriveInfo.getPrimaryCreatorName());
@@ -283,6 +285,7 @@ public class ExtractOverDriveInfo {
 			addProductStmt.setString(curCol++, overDriveInfo.getId());
 			addProductStmt.setString(curCol++, overDriveInfo.getMediaType());
 			addProductStmt.setString(curCol++, overDriveInfo.getTitle());
+			addProductStmt.setString(curCol++, overDriveInfo.getSubtitle());
 			addProductStmt.setString(curCol++, overDriveInfo.getSeries());
 			addProductStmt.setString(curCol++, overDriveInfo.getPrimaryCreatorRole());
 			addProductStmt.setString(curCol++, overDriveInfo.getPrimaryCreatorName());
@@ -418,6 +421,9 @@ public class ExtractOverDriveInfo {
 		curRecord.setId(curProduct.getString("id"));
 		//logger.debug("Processing overdrive title " + curRecord.getId());
 		curRecord.setTitle(curProduct.getString("title"));
+		if (curProduct.has("subtitle")){
+			curRecord.setSubtitle(curProduct.getString("subtitle"));
+		}
 		curRecord.setMediaType(curProduct.getString("mediaType"));
 		if (curProduct.has("series")){
 			curRecord.setSeries(curProduct.getString("series"));
@@ -504,14 +510,18 @@ public class ExtractOverDriveInfo {
 					metaDataStatement.setLong(curCol++, metadataChecksum);
 					metaDataStatement.setString(curCol++, metaData.has("sortTitle") ? metaData.getString("sortTitle") : "");
 					metaDataStatement.setString(curCol++, metaData.has("publisher") ? metaData.getString("publisher") : "");
-					String publishDate = metaData.getString("publishDate");
-					if (publishDate.matches("\\d{2}/\\d{2}/\\d{4}")){
-						publishDate = publishDate.substring(6, 10);
-						metaDataStatement.setLong(curCol++, Long.parseLong(publishDate));
+					if (metaData.has("publishDate")){
+						String publishDate = metaData.getString("publishDate");
+						if (publishDate.matches("\\d{2}/\\d{2}/\\d{4}")){
+							publishDate = publishDate.substring(6, 10);
+							metaDataStatement.setLong(curCol++, Long.parseLong(publishDate));
+						}else{
+							metaDataStatement.setNull(curCol++, Types.INTEGER);
+						}
 					}else{
-						publishDate = null;
 						metaDataStatement.setNull(curCol++, Types.INTEGER);
 					}
+
 					metaDataStatement.setBoolean(curCol++, metaData.has("isPublicDomain") ? metaData.getBoolean("isPublicDomain") : false);
 					metaDataStatement.setBoolean(curCol++, metaData.has("isPublicPerformanceAllowed") ? metaData.getBoolean("isPublicPerformanceAllowed") : false);
 					metaDataStatement.setString(curCol++, metaData.has("shortDescription") ? metaData.getString("shortDescription") : "");

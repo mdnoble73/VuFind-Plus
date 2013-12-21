@@ -7,6 +7,7 @@ public class OverDriveRecordInfo {
 	private String id;
 	private String mediaType;
 	private String title;
+	private String subtitle;
 	private String series;
 	private String primaryCreatorRole;
 	private String primaryCreatorName;
@@ -123,5 +124,12 @@ public class OverDriveRecordInfo {
 	public void setFormats(HashSet<String> formats) {
 		this.formats = formats;
 	}
-	
+
+	public String getSubtitle() {
+		return subtitle;
+	}
+
+	public void setSubtitle(String subtitle) {
+		this.subtitle = subtitle;
+	}
 }

@@ -5,6 +5,7 @@ public class OverDriveDBInfo {
 	private long dbId;
 	private String mediaType;
 	private String title;
+	private String subtitle;
 	private String series;
 	private String primaryCreatorRole;
 	private String primaryCreatorName;
@@ -117,5 +118,13 @@ public class OverDriveDBInfo {
 	}
 	public void setCover(String cover) {
 		this.cover = cover;
+	}
+
+	public String getSubtitle() {
+		return subtitle;
+	}
+
+	public void setSubtitle(String subtitle) {
+		this.subtitle = subtitle;
 	}
 }

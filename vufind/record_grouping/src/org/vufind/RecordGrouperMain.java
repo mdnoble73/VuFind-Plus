@@ -33,6 +33,9 @@ public class RecordGrouperMain {
 	private static Logger logger	= Logger.getLogger(RecordGrouperMain.class);
 	private static String serverName;
 
+	public static String groupedWorkTableName = "grouped_work";
+	public static String groupedWorkIdentifiersTableName = "grouped_work_identifiers";
+
 	public static void main(String[] args) {
 		// Get the configuration filename
 		if (args.length == 0) {
@@ -40,6 +43,7 @@ public class RecordGrouperMain {
 			System.exit(1);
 		}
 		serverName = args[0];
+		long processStartTime = new Date().getTime();
 
 		// Initialize the logger
 		File log4jFile = new File("../../sites/" + serverName + "/conf/log4j.grouping.properties");
@@ -77,8 +81,8 @@ public class RecordGrouperMain {
 
 		if (clearDatabasePriorToGrouping){
 			try{
-				vufindConn.prepareStatement("TRUNCATE grouped_work").executeUpdate();
-				vufindConn.prepareStatement("TRUNCATE grouped_work_identifiers").executeUpdate();
+				vufindConn.prepareStatement("TRUNCATE " + groupedWorkTableName).executeUpdate();
+				vufindConn.prepareStatement("TRUNCATE " + groupedWorkIdentifiersTableName).executeUpdate();
 			}catch (Exception e){
 				System.out.println("Error clearing database " + e.toString());
 				System.exit(1);
@@ -90,7 +94,7 @@ public class RecordGrouperMain {
 			try{
 				int numRecordsProcessed = 0;
 				long startTime = new Date().getTime();
-				PreparedStatement overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				PreparedStatement overDriveIdentifiersStmt = econtentConnection.prepareStatement("SELECT * FROM overdrive_api_product_identifiers WHERE id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				ResultSet overDriveRecordRS = overDriveRecordsStmt.executeQuery();
 				while (overDriveRecordRS.next()){
@@ -99,6 +103,7 @@ public class RecordGrouperMain {
 					String overdriveId = overDriveRecordRS.getString("overdriveId");
 					String mediaType = overDriveRecordRS.getString("mediaType");
 					String title = overDriveRecordRS.getString("title");
+					String subtitle = overDriveRecordRS.getString("subtitle");
 					//String primaryCreatorRole = overDriveRecordRS.getString("primaryCreatorRole");
 					String author = overDriveRecordRS.getString("primaryCreatorName");
 					//primary creator in overdrive is always first name, last name.  Standardize to be firstname, last name.
@@ -126,7 +131,7 @@ public class RecordGrouperMain {
 						}
 					}
 
-					recordGroupingProcessor.processRecord(title, "", author, mediaType, overDriveIdentifiers);
+					recordGroupingProcessor.processRecord(title, subtitle, author, mediaType, overDriveIdentifiers);
 
 					numRecordsProcessed++;
 					if (numRecordsProcessed % 1000 == 0){
@@ -179,6 +184,8 @@ public class RecordGrouperMain {
 		//Dump all of the subtitle variances
 		recordGroupingProcessor.dumpSubtitleVariances();
 
+		recordGroupingProcessor.dumpStats();
+
 		try{
 			vufindConn.close();
 		}catch (Exception e){
@@ -186,6 +193,9 @@ public class RecordGrouperMain {
 			System.exit(1);
 		}
 		System.out.println("Finished grouping records " + new Date().toString());
+		long endTime = new Date().getTime();
+		long elapsedTime = endTime - processStartTime;
+		System.out.println("Elapsed Minutes " + (elapsedTime / 60000));
 	}
 
 	private static void writeIndividualMarc(String individualMarcPath, Record marcRecord) {

@@ -24,17 +24,24 @@ public class RecordGroupingProcessor {
 	private PreparedStatement getRecordIgnoringSubfieldStmt;
 	private PreparedStatement updateRecordSubtitleStmt;
 
+	private int numRecordsProcessed = 0;
+	private int numGroupedWorksFoundByExactMatch = 0;
+	private int numGroupedWorksFoundByFuzzyMatch = 0;
+	private int numGroupedWorksFoundBySubtitleVariations = 0;
+	private int numGroupedWorksFoundBySubtitleVariationsButNotFuzzy = 0;
+	private int numGroupedWorksFoundByFuzzyButNotSubtitleVariations = 0;
+
 	public RecordGroupingProcessor(Connection dbConnection) {
 		try{
-			getGroupedWorkStmt = dbConnection.prepareStatement("SELECT id FROM grouped_work where permanent_id = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work (title, subtitle, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
-			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_identifiers (grouped_work_id, type, identifier) VALUES (?, ?, ?)");
-			getGroupedWorkIdentifiersStmt = dbConnection.prepareStatement("SELECT * FROM grouped_work_identifiers WHERE grouped_work_id=?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			getGroupedWorksForIdentifierStmt = dbConnection.prepareStatement("SELECT * FROM grouped_work INNER JOIN grouped_work_identifiers ON grouped_work.id = grouped_work_id WHERE type = ? and identifier = ? and grouping_category = ? and linksToDifferentTitles = 0",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			updateLinksToDifferentTitlesForIdentifier = dbConnection.prepareStatement("UPDATE grouped_work_identifiers SET linksToDifferentTitles = 1 where type=? and identifier = ?");
-			getRecordWithoutSubfieldStmt = dbConnection.prepareStatement("SELECT * FROM grouped_work where title = ? AND author = ? AND grouping_category=? AND subtitle = ''");
-			getRecordIgnoringSubfieldStmt = dbConnection.prepareStatement("SELECT * FROM grouped_work where title = ? AND author = ? AND grouping_category=?");
-			updateRecordSubtitleStmt = dbConnection.prepareStatement("UPDATE grouped_work set permanent_id = ?, subtitle = ? where id = ?");
+			getGroupedWorkStmt = dbConnection.prepareStatement("SELECT id FROM " + RecordGrouperMain.groupedWorkTableName + " where permanent_id = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkTableName + " (title, subtitle, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
+			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkIdentifiersTableName + " (grouped_work_id, type, identifier) VALUES (?, ?, ?)");
+			getGroupedWorkIdentifiersStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkIdentifiersTableName + " WHERE grouped_work_id=?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			getGroupedWorksForIdentifierStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkTableName + " INNER JOIN grouped_work_identifiers ON " + RecordGrouperMain.groupedWorkTableName + ".id = grouped_work_id WHERE type = ? and identifier = ? and grouping_category = ? and linksToDifferentTitles = 0",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			updateLinksToDifferentTitlesForIdentifier = dbConnection.prepareStatement("UPDATE " + RecordGrouperMain.groupedWorkIdentifiersTableName + " SET linksToDifferentTitles = 1 where type=? and identifier = ?");
+			getRecordWithoutSubfieldStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkTableName + " where title = ? AND author = ? AND grouping_category=? AND subtitle = ''");
+			getRecordIgnoringSubfieldStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkTableName + " where title = ? AND author = ? AND grouping_category=?");
+			updateRecordSubtitleStmt = dbConnection.prepareStatement("UPDATE " + RecordGrouperMain.groupedWorkTableName + " set permanent_id = ?, subtitle = ? where id = ?");
 		}catch (Exception e){
 			System.out.println("Error setting up prepared statements");
 		}
@@ -46,8 +53,6 @@ public class RecordGroupingProcessor {
 
 		//Title
 		DataField field245 = (DataField)marcRecord.getVariableField("245");
-		String groupingTitle = null;
-		String groupingSubtitle = null;
 		if (field245 != null && field245.getSubfield('a') != null){
 			String fullTitle = field245.getSubfield('a').getData();
 
@@ -58,24 +63,42 @@ public class RecordGroupingProcessor {
 			workForTitle.setTitle(fullTitle, numNonFilingCharacters);
 
 			//Add in subtitle (subfield b as well to avoid problems with gov docs, etc)
+			StringBuilder groupingSubtitle = new StringBuilder();
 			if (field245.getSubfield('b') != null){
-				groupingSubtitle = field245.getSubfield('b').getData();
-				workForTitle.setSubtitle(groupingSubtitle);
+				groupingSubtitle.append(field245.getSubfield('b').getData());
 			}
+			if (field245.getSubfield('n') != null){
+				if (groupingSubtitle.length() > 0) groupingSubtitle.append(" ");
+				groupingSubtitle.append(field245.getSubfield('n').getData());
+			}
+			if (field245.getSubfield('p') != null){
+				if (groupingSubtitle.length() > 0) groupingSubtitle.append(" ");
+				groupingSubtitle.append(field245.getSubfield('p').getData());
+			}
+			workForTitle.setSubtitle(groupingSubtitle.toString());
 		}
 
 		//Author
 		String author = null;
 		DataField field100 = (DataField)marcRecord.getVariableField("100");
+		DataField field110 = (DataField)marcRecord.getVariableField("110");
+		DataField field260 = (DataField)marcRecord.getVariableField("260");
+		DataField field710 = (DataField)marcRecord.getVariableField("710");
+
 		if (field100 != null && field100.getSubfield('a') != null){
 			author = field100.getSubfield('a').getData();
-		}else{
-			DataField field110 = (DataField)marcRecord.getVariableField("110");
-			if (field110 != null && field110.getSubfield('a') != null){
-				author = field110.getSubfield('a').getData();
+		}else if (field110 != null && field110.getSubfield('a') != null){
+			author = field110.getSubfield('a').getData();
+		}else if (field245 != null && field245.getSubfield('c') != null){
+			author = field245.getSubfield('c').getData();
+			if (author.indexOf(';') > 0){
+				author = author.substring(0, author.indexOf(';') -1);
 			}
+		}else if (field260 != null && field260.getSubfield('b') != null){
+			author = field260.getSubfield('b').getData();
+		}else if (field710 != null && field710.getSubfield('a') != null){
+			author = field710.getSubfield('a').getData();
 		}
-		String groupingAuthor = null;
 		if (author != null){
 			workForTitle.setAuthor(author);
 		}
@@ -225,7 +248,8 @@ public class RecordGroupingProcessor {
 
 	private void addGroupedWorkToDatabase(GroupedWork groupedWork) {
 		String groupedWorkPermanentId = groupedWork.getPermanentId();
-		long groupedWorkId;
+		numRecordsProcessed++;
+		long groupedWorkId = -1;
 		try{
 			getGroupedWorkStmt.setString(1, groupedWorkPermanentId);
 			ResultSet groupedWorkRS = getGroupedWorkStmt.executeQuery();
@@ -233,21 +257,30 @@ public class RecordGroupingProcessor {
 				//There is an existing grouped record
 				groupedWorkId = groupedWorkRS.getLong(1);
 				groupedWorkRS.close();
+				numGroupedWorksFoundByExactMatch++;
 			}else{
 				groupedWorkRS.close();
-				//Check to see if we can get a match by rotating author names since some sources
-				//  put authors first name first and some do last name first
-				//groupedWorkId = findWorkWithRotatedAuthorName(groupedWork);
-
 				//Look for matches based on identifiers
-				//if (groupedWorkId == -1){
-					groupedWorkId = getFuzzyMatchFromCatalog(groupedWork);
-				//}
+				long groupedWorkIdFuzzy = getFuzzyMatchFromCatalog(groupedWork);
+				if (groupedWorkIdFuzzy != -1){
+					numGroupedWorksFoundByFuzzyMatch++;
+				}
 
 				//Look for the work based on subtitles
 				//Don't eliminate subtitles because we get some weird matches that change the meaning
-				if (groupedWorkId == -1){
-					groupedWorkId = findWorkWithSubtitleVariations(groupedWork);
+				long groupedWorkIdSubtitle = findWorkWithSubtitleVariations(groupedWork);
+				if (groupedWorkIdSubtitle != -1){
+					numGroupedWorksFoundBySubtitleVariations++;
+				}
+
+				if (groupedWorkIdFuzzy != -1){
+					groupedWorkId = groupedWorkIdFuzzy;
+					if (groupedWorkIdSubtitle == -1){
+						numGroupedWorksFoundByFuzzyButNotSubtitleVariations++;
+					}
+				}else if (groupedWorkIdSubtitle != -1){
+					groupedWorkId = groupedWorkIdSubtitle;
+					numGroupedWorksFoundBySubtitleVariationsButNotFuzzy++;
 				}
 
 				if (groupedWorkId == -1){
@@ -319,27 +352,6 @@ public class RecordGroupingProcessor {
 		}
 		return groupedWorkId;
 	}
-
-
-	/*private long findWorkWithRotatedAuthorName(GroupedWork groupedWork) throws SQLException {
-		long groupedWorkId = -1;
-		if (groupedWork.author.indexOf(' ') > 0){
-			String[] authorParts = groupedWork.author.split("\\s");
-			if (authorParts.length == 2){
-				String newAuthor = authorParts[1] + " " + authorParts[0];
-				GroupedWork tempGroupWork = groupedWork.clone();
-				tempGroupWork.author = newAuthor;
-				getGroupedWorkStmt.setString(1, tempGroupWork.getPermanentId());
-				ResultSet groupedWorkRS2 = getGroupedWorkStmt.executeQuery();
-				if (groupedWorkRS2.next()){
-					//There is an existing grouped record
-					groupedWorkId = groupedWorkRS2.getLong(1);
-					System.out.println("Grouped Record by rotating author names");
-				}
-			}
-		}
-		return groupedWorkId;
-	}*/
 
 	private void addIdentifiersForRecordToDB(long groupedWorkId, HashSet<RecordIdentifier> identifiers) throws SQLException {
 		getGroupedWorkIdentifiersStmt.setLong(1, groupedWorkId);
@@ -895,5 +907,14 @@ public class RecordGroupingProcessor {
 		for (String curSubTitle : subtitleVariances.keySet()){
 			System.out.println(subtitleVariances.get(curSubTitle) + ", " + curSubTitle);
 		}
+	}
+
+	public void dumpStats() {
+		System.out.println("Processed " + numRecordsProcessed + " records");
+		System.out.println("Found " + numGroupedWorksFoundByExactMatch + " works by exact match");
+		System.out.println("Found " + numGroupedWorksFoundByFuzzyMatch + " works by fuzzy match");
+		System.out.println("Found " + numGroupedWorksFoundBySubtitleVariations + " works by checking subtitle variations");
+		System.out.println("Found " + numGroupedWorksFoundBySubtitleVariationsButNotFuzzy + " works by checking subtitle variations that were not found in fuzzy match");
+		System.out.println("Found " + numGroupedWorksFoundByFuzzyButNotSubtitleVariations + " works by in fuzzy match that were not found by subtitle variations");
 	}
 }
