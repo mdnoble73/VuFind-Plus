@@ -106,8 +106,8 @@
 				</div>
 			{/if}
 		</fieldset>
+        <img class="brand" src="{img filename="ask_icon_sm.fw.png"}" alt="{$librarySystemName}" title="Help" id="help_undersearch"/>
 	</form>
-            <img class="brand" src="{img filename="ask_icon_sm.fw.png"}" alt="{$librarySystemName}" title="Help" id="help_undersearch"/>
 	{if $showAsBar}
 				</div>{*nav-collapse*}
 			</div>
