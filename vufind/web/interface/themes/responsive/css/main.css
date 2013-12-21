@@ -6479,11 +6479,12 @@ a.badge:focus {
 }
 #footer-container li{
     position:relative;
+    padding-left:18px;
 }
 #footer-container li img{
     position:absolute;
-    top:0px;
-    left:2px;
+    bottom:0px;
+    left:0px;
     height:15px;
 }
 
