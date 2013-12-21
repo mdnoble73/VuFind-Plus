@@ -10,8 +10,8 @@
 
 require_once ROOT_DIR . '/services/Search/AdvancedBase.php';
 class AdvancedPopup extends Search_AdvancedBase {
-	function launch() {
-		global $interface;
+            function launch() {
+                global $interface;
 
 		// Create our search object
 		/** @var SearchObject_Solr|SearchObject_Base $searchObject */
