@@ -51,7 +51,7 @@
                 <div class="span3 footer-column" id="footer3"><h4 data-toggle="collapse" data-target="#footerContents3">{translate text='Stay Connected'}</h4>
                     <ul class="unstyled collapse footerContents" id="footerContents3">
                          <li><a href="http://www.facebook.com/wcplonline" target="_blank" title="WCPL Facebook Page">
-                                 <img class="brand" src="{img filename="fb_white.fw.png"}" alt="WCPL Facebook" title="WCPL Facebook" id="wcpl_fb"/>
+                                 <img src="{img filename="fb_white.fw.png"}" alt="WCPL Facebook" title="WCPL Facebook" id="wcpl_fb"/>
                                  {translate text='Facebook'}</a></li>
                          <li><a href="http://www.youtube.com/wcplonline" target="_blank" title="WCPL YouTube Channel">{translate text='YouTube'}</a></li>
                          <li><a href='http://www.twitter.com/wcplonline' target="_blank" title="WCPL Twitter Page">{translate text='Twitter'}</a></li>
