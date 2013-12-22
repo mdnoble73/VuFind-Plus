@@ -3811,6 +3811,9 @@ input[type="submit"].btn.btn-mini {
   display: inline-block;
   margin-bottom: 0;
 }
+.navbar-form .btn .caret{
+    margin-bottom:8px;
+}
 .navbar-form input[type="image"],
 .navbar-form input[type="checkbox"],
 .navbar-form input[type="radio"] {
