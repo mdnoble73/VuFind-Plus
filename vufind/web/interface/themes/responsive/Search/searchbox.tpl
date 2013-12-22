@@ -105,9 +105,10 @@
 					</div>
 				</div>
 			{/if}
-            <img class="brand" src="{img filename="ask_icon_sm.fw.png"}" alt="{$librarySystemName}" title="Help" id="help_undersearch" style="height:20px;" />
 		</fieldset>
-
+        <div id="undersearch_div">
+            <img class="brand" src="{img filename="ask_icon_sm.fw.png"}" alt="{$librarySystemName}" title="Help" id="help_undersearch" />
+        </div>
 	</form>
 	{if $showAsBar}
 				</div>{*nav-collapse*}

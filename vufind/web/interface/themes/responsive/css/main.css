@@ -6364,6 +6364,9 @@ a.badge:focus {
   /* Append input to search box when larger than phone */
 
 }
+#undersearch_div img{
+    height:20px;
+}
 @media (max-width: 480px) {
   #search_box_group {
     padding-top: 5px;
