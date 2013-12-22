@@ -3717,12 +3717,12 @@ input[type="submit"].btn.btn-mini {
   background-image: -o-linear-gradient(top, #4d80bc, #242d40);
   background-image: linear-gradient(to bottom, #4d80bc, #242d40);
   background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff4c7db8', endColorstr='#ff31496b', GradientType=0);*/
-  border: 1px solid #f5f5f5;
-  -webkit-border-radius: 0px;
-  -moz-border-radius: 0px;
-  border-radius: 0px;
-  /*-webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.065);
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ff4c7db8', endColorstr='#ff31496b', GradientType=0);
+  border: 1px solid #d4d4d4;
+  -webkit-border-radius: 4px;
+  -moz-border-radius: 4px;
+  border-radius: 4px;
+  -webkit-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.065);
   -moz-box-shadow: 0 1px 4px rgba(0, 0, 0, 0.065);
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.065);*/
   *zoom: 1;
@@ -6449,9 +6449,9 @@ a.badge:focus {
   #search_box_group .add-on:last-child,
   #search_box_group .btn:last-child,
   #search_box_group .btn-group:last-child > .dropdown-toggle {
-    -webkit-border-radius: 0 4px 4px 0;
-    -moz-border-radius: 0 4px 4px 0;
-    border-radius: 0 4px 4px 0;
+    -webkit-border-radius: 0 0px 0px 0;
+    -moz-border-radius: 0 0px 0px 0;
+    border-radius: 0 0px 0px 0;
   }
   #search_box_group.date .add-on i {
     display: block;
