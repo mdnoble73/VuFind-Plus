@@ -11,7 +11,6 @@ class SearchSources{
 	}
 	private static function getSearchSourcesLibrary($library){
 		$searchOptions = array();
-        $repeatInOverdrive = false;
 		foreach ($library->searchSources as $searchSource){
 			$searchOptions['library' . $searchSource->id] = array(
 				'name' => $searchSource->label,
