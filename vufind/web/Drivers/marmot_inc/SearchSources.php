@@ -160,7 +160,7 @@ class SearchSources{
 		}
 
 		//Overdrive
-		if ($repeatInOverdrive == true && !$interface->isMobile()){
+		if ($repeatInOverdrive && !$interface->isMobile()){
 			$searchOptions['overdrive'] = array(
         'name' => 'OverDrive Digital Catalog',
         'description' => 'Downloadable eBooks and eAudio books with free use for library card holders.',
