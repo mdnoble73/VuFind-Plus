@@ -162,7 +162,7 @@ class SearchSources{
 		//Overdrive
 		if ($repeatInOverdrive && !$interface->isMobile()){
 			$searchOptions['overdrive'] = array(
-        'name' => 'OverDrive Online Catalog',
+        'name' => 'OverDrive Digital Catalog',
         'description' => 'Downloadable Books, Videos, Music, and eBooks with free use for library card holders.',
         'external' => true,
 				'catalogType' => 'catalog'
@@ -292,7 +292,7 @@ class SearchSources{
 			}
 			return $worldCatLink;
 		}else if ($searchSource == 'overdrive'){
-			return "http://marmot.lib.overdrive.com/BangSearch.dll?Type=FullText&FullTextField=All&FullTextCriteria=" . urlencode($lookFor);
+			return "http://wakegov.lib.overdrive.com/BangSearch.dll?Type=FullText&FullTextField=All&FullTextCriteria=" . urlencode($lookFor);
 		}else if ($searchSource == 'prospector'){
 			$prospectorSearchType = $this->getProspectorSearchType($type);
 			$lookFor = str_replace('+', '%20', rawurlencode($lookFor));
