@@ -506,14 +506,18 @@ public class ExtractOverDriveInfo {
 					metaDataStatement.setLong(curCol++, metadataChecksum);
 					metaDataStatement.setString(curCol++, metaData.has("sortTitle") ? metaData.getString("sortTitle") : "");
 					metaDataStatement.setString(curCol++, metaData.has("publisher") ? metaData.getString("publisher") : "");
-					String publishDate = metaData.getString("publishDate");
-					if (publishDate.matches("\\d{2}/\\d{2}/\\d{4}")){
-						publishDate = publishDate.substring(6, 10);
-						metaDataStatement.setLong(curCol++, Long.parseLong(publishDate));
+					if (metaData.has("publishDate")){
+						String publishDate = metaData.getString("publishDate");
+						if (publishDate.matches("\\d{2}/\\d{2}/\\d{4}")){
+							publishDate = publishDate.substring(6, 10);
+							metaDataStatement.setLong(curCol++, Long.parseLong(publishDate));
+						}else{
+							metaDataStatement.setNull(curCol++, Types.INTEGER);
+						}
 					}else{
-						publishDate = null;
 						metaDataStatement.setNull(curCol++, Types.INTEGER);
 					}
+
 					metaDataStatement.setBoolean(curCol++, metaData.has("isPublicDomain") ? metaData.getBoolean("isPublicDomain") : false);
 					metaDataStatement.setBoolean(curCol++, metaData.has("isPublicPerformanceAllowed") ? metaData.getBoolean("isPublicPerformanceAllowed") : false);
 					metaDataStatement.setString(curCol++, metaData.has("shortDescription") ? metaData.getString("shortDescription") : "");
@@ -548,9 +552,9 @@ public class ExtractOverDriveInfo {
 							JSONObject contributor = contributors.getJSONObject(i);
 							addCreatorStmt.setLong(1, databaseId);
 							addCreatorStmt.setString(2, contributor.getString("role"));
-							addCreatorStmt.setString(2, contributor.getString("name"));
-							addCreatorStmt.setString(2, contributor.getString("fileAs"));
-							addCreatorStmt.executeUpdate();
+							addCreatorStmt.setString(3, contributor.getString("name"));
+							addCreatorStmt.setString(4, contributor.getString("fileAs"));
+							int numUpdates = addCreatorStmt.executeUpdate();
 						}
 					}
 					
