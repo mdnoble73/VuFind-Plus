@@ -79,14 +79,21 @@ public class GroupedWorkIndexer {
 		//TODO: Make this optional again.
 		if (true || clearMarcRecordsAtStartOfIndex){
 			logger.info("Clearing existing marc records from index");
-			URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/grouped/update/?commit=true", "<delete><query>recordtype:grouped_record</query></delete>", logger);
+			/*URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/grouped/update/?commit=true", "<delete><query>recordtype:grouped_record</query></delete>", logger);
 			if (!response.isSuccess()){
 				logger.error("Error clearing existing marc records " + response.getMessage());
 			}
 			response = Util.postToURL("http://localhost:" + solrPort + "/solr/grouped/update/", "<commit expungeDeletes=\"true\"/>", logger);
 			if (!response.isSuccess()){
 				logger.error("Error expunging deletes " + response.getMessage());
+			}*/
+			try {
+				updateServer.deleteByQuery("*:*", 10);
+				updateServer.commit(true, true);
+			} catch (Exception e) {
+				logger.error("Error deleting from index", e);
 			}
+
 		}
 	}
 
