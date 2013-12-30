@@ -432,8 +432,10 @@ public class ExtractOverDriveInfo {
 			curRecord.setPrimaryCreatorName(curProduct.getJSONObject("primaryCreator").getString("name"));
 			curRecord.setPrimaryCreatorRole(curProduct.getJSONObject("primaryCreator").getString("role"));
 		}
-		for (int k = 0; k < curProduct.getJSONArray("formats").length(); k++){
-			curRecord.getFormats().add(curProduct.getJSONArray("formats").getJSONObject(k).getString("id"));
+		if (curProduct.has("formats")){
+			for (int k = 0; k < curProduct.getJSONArray("formats").length(); k++){
+				curRecord.getFormats().add(curProduct.getJSONArray("formats").getJSONObject(k).getString("id"));
+			}
 		}
 		if (curProduct.has("images") && curProduct.getJSONObject("images").has("thumbnail")){
 			String thumbnailUrl = curProduct.getJSONObject("images").getJSONObject("thumbnail").getString("href");
