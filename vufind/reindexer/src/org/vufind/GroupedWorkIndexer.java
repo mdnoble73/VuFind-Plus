@@ -88,7 +88,7 @@ public class GroupedWorkIndexer {
 				logger.error("Error expunging deletes " + response.getMessage());
 			}*/
 			try {
-				updateServer.deleteByQuery("*:*", 10);
+				updateServer.deleteByQuery("recordtype:grouped_work", 10);
 				updateServer.commit(true, true);
 			} catch (Exception e) {
 				logger.error("Error deleting from index", e);
