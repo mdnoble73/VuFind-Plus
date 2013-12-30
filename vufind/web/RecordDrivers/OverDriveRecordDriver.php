@@ -12,6 +12,7 @@ require_once ROOT_DIR . '/RecordDrivers/Interface.php';
 class OverDriveRecordDriver implements RecordInterface {
 
 	private $id;
+	/** @var OverDriveAPIProduct  */
 	private $overDriveProduct;
 	private $valid;
 
@@ -404,6 +405,9 @@ class OverDriveRecordDriver implements RecordInterface {
 			'edition' => '',
 			'language' => $this->getLanguage(),
 			'title' => $this->overDriveProduct->title,
+			'subtitle' => $this->overDriveProduct->subtitle,
+			'section' => '',
+			'physical' => '',
 			'callNumber' => 'Online',
 			'available' => $available,
 			'copies' => $totalCopies,
@@ -452,5 +456,9 @@ class OverDriveRecordDriver implements RecordInterface {
 		}else{
 			return -1;
 		}
+	}
+
+	public function getDescriptionFast(){
+		return null;
 	}
 }

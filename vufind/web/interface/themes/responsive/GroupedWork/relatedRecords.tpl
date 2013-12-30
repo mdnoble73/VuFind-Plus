@@ -3,7 +3,8 @@
 		<thead>
 		<tr>
 			{* <th>Id</th> *}
-			<th>Format</th>
+			{* <th>Format</th> *}
+			<th>Subtitle</th>
 			<th>Edition</th>
 			<th>Language</th>
 			<th>Availability</th>
@@ -14,7 +15,8 @@
 		{foreach from=$relatedRecords item=relatedRecord}
 			<tr>
 				{* <td>{$relatedRecord.id}</td> *}
-				<td>{$relatedRecord.format}</td>
+				{* <td>{$relatedRecord.format}</td> *}
+				<td>{$relatedRecord.subtitle}</td>
 				<td>{$relatedRecord.edition}</td>
 				<td>{$relatedRecord.language}</td>
 				<td>{if $relatedManifestation.available}Available{else}Checked Out{/if}</td>

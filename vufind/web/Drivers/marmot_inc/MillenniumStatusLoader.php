@@ -202,6 +202,7 @@ class MillenniumStatusLoader{
 				foreach ($locationCodes as $locationCode => $holdingLabel){
 					if (strlen($locationCode) > 0 && preg_match("~$holdingLabel~i", $holding['location'])){
 						$holding['locationCode'] = $locationCode;
+						break;
 					}
 				}
 				if ($holding['locationCode'] == '?????'){

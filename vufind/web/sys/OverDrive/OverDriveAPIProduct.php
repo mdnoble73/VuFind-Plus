@@ -15,6 +15,7 @@ class OverDriveAPIProduct extends DB_DataObject{
 	public $overdriveId;
 	public $mediaType;
 	public $title;
+	public $subtitle;
 	public $series;
 	public $primaryCreatorRole;
 	public $primaryCreatorName;

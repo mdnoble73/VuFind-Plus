@@ -747,6 +747,16 @@ class MarcRecord extends IndexRecord
 	}
 
 	/**
+	 * Get the title of the record.
+	 *
+	 * @return  string
+	 */
+	public function getSubtitle()
+	{
+		return $this->getFirstFieldValue('245', array('b'));
+	}
+
+	/**
 	 * Get the text of the part/section portion of the title.
 	 *
 	 * @access  protected
@@ -866,6 +876,15 @@ class MarcRecord extends IndexRecord
 
 
 		return $email;
+	}
+
+	function getDescriptionFast(){
+		/** @var File_MARC_Data_Field $descriptionField */
+		$descriptionField = $this->marcRecord->getField('500');
+		if ($descriptionField != null){
+			return $descriptionField->getSubfield('a')->getData();
+		}
+		return null;
 	}
 
 	function getDescription(){
@@ -1286,6 +1305,9 @@ class MarcRecord extends IndexRecord
 			'edition' => $this->getEdition(true),
 			'language' => $this->getLanguage(),
 			'title' => $this->getTitle(),
+			'subtitle' => $this->getSubtitle(),
+			'section' => $this->getTitleSection(),
+			'physical' => $this->getPhysicalDescriptions(),
 			'callNumber' => $this->getCallNumber(),
 			'available' => $this->isAvailable(false),
 			'copies' => $this->getNumCopies(),

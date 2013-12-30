@@ -288,7 +288,7 @@ class GroupedWorkDriver implements RecordInterface{
 		$interface->assign('summRating', $this->getRatingData());
 
 		//Description
-		$interface->assign('summDescription', $this->getDescription());
+		$interface->assign('summDescription', $this->getDescriptionFast());
 		$interface->assign('summSeries', $this->getSeries());
 
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
@@ -477,6 +477,17 @@ class GroupedWorkDriver implements RecordInterface{
 		return '';
 	}
 
+	function getDescriptionFast(){
+		$relatedRecords = $this->getRelatedRecords();
+		foreach ($relatedRecords as $relatedRecord){
+			$fastDescription = $relatedRecord['driver']->getDescriptionFast();
+			if ($fastDescription != null && strlen($fastDescription) > 0){
+				return $fastDescription;
+			}
+		}
+		return '';
+	}
+
 	function getDescription(){
 		$description = "Description Not Provided";
 		$cleanIsbn = $this->getCleanISBN();
@@ -639,6 +650,7 @@ class GroupedWorkDriver implements RecordInterface{
 					$recordDriver = RecordDriverFactory::initRecordDriverById($relatedRecordId);
 					if ($recordDriver != null && $recordDriver->isValid()){
 						$relatedRecord = $recordDriver->getRelatedRecord();
+						$relatedRecord['driver'] = $recordDriver;
 						if ($relatedRecord['copies'] > 0){
 							$relatedRecords[] = $relatedRecord;
 						}
