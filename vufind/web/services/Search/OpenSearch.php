@@ -56,9 +56,6 @@ class OpenSearch extends Action {
 	 // Setup Search Engine Connection
 	 $class = $configArray['Index']['engine'];
 	 $db = new $class($configArray['Index']['url']);
-	 if ($configArray['System']['debugSolr']) {
-	 $db->debug = true;
-	 }
 
 	 $search = array();
 	 $search[] = array('lookfor' => $_GET['lookfor'],

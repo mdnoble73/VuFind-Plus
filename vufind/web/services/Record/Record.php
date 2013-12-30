@@ -327,9 +327,13 @@ abstract class Record_Record extends Action
 			}
 		}
 		if ($useMarcSummary){
-			if ($summaryField = $this->marcRecord->getField('520')) {
-				$interface->assign('summary', $this->getSubfieldData($summaryField, 'a'));
-				$interface->assign('summaryTeaser', $this->getSubfieldData($summaryField, 'a'));
+			if ($summaryFields = $this->marcRecord->getFields('520')) {
+				$summary = '';
+				foreach($summaryFields as $summaryField){
+					$summary .= '<p>' . $this->getSubfieldData($summaryField, 'a') . '</p>';
+				}
+				$interface->assign('summary', $summary);
+				$interface->assign('summaryTeaser', strip_tags($summary));
 			}elseif ($library && $library->preferSyndeticsSummary == 0){
 				require_once ROOT_DIR  . '/Drivers/marmot_inc/GoDeeperData.php';
 				$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
@@ -755,9 +759,6 @@ abstract class Record_Record extends Action
 		if ($configArray['Statistics']['enabled']) {
 		// Setup Statistics Index Connection
 		$solrStats = new SolrStats($configArray['Statistics']['solr']);
-		if ($configArray['System']['debugSolr']) {
-		$solrStats->debug = true;
-		}
 
 		// Save Record View
 		$solrStats->saveRecordView($this->recordDriver->getUniqueID());

@@ -105,15 +105,15 @@ function redrawSaveStatus() {literal}{{/literal}
 				<div class="resultInformation">
 					<div class="resultInformationLabel">{translate text='Description'}</div>
 					<div class="recordDescription">
-						{if strlen($summary) > 300}
-							<span id="shortSummary">
-							{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'|truncate:300}{*Leave unescaped because some syndetics reviews have html in them *}
+						{if strlen($summary) > 600}
+							<div id="shortSummary">
+							{$summary|truncate_html:600}{*Leave unescaped because some syndetics reviews have html in them *}
 							<a href='#' onclick='$("#shortSummary").slideUp();$("#fullSummary").slideDown()'>More</a>
-							</span>
-							<span id="fullSummary" style="display:none">
-							{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
+							</div>
+							<div id="fullSummary" style="display:none">
+							{$summary}{*Leave unescaped because some syndetics reviews have html in them *}
 							<a href='#' onclick='$("#shortSummary").slideDown();$("#fullSummary").slideUp()'>Less</a>
-							</span>
+							</div>
 						{else}
 							{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
 						{/if}

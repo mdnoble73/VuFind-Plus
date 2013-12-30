@@ -509,12 +509,10 @@ public class MarcRecordDetails {
 						.charAt(0));
 				if (urlField != null) {
 					logger.info("Found item based url " + urlField.getData());
-					Subfield locationField = curItem.getSubfield(marcProcessor
-							.getLocationSubfield());
+					Subfield locationField = curItem.getSubfield(marcProcessor.getLocationSubfield());
 					if (locationField != null) {
 						logger.info("  Location is " + locationField.getData());
-						long libraryId = getLibrarySystemIdForLocation(locationField
-								.getData());
+						long libraryId = getLibrarySystemIdForLocation(locationField.getData());
 						logger.info("Adding local url " + urlField.getData()
 								+ " library system: " + libraryId);
 						Subfield notesField = curItem.getSubfield('3');
@@ -1036,7 +1034,7 @@ public class MarcRecordDetails {
 	 * extract all the subfields requested in requested marc fields. Each instance
 	 * of each marc field will be put in a separate result (but the subfields will
 	 * be concatenated into a single value for each marc field)
-	 * 
+	 *
 	 * @param fieldSpec
 	 *          - the desired marc fields and subfields as given in the
 	 *          xxx_index.properties file
@@ -3745,11 +3743,11 @@ public class MarcRecordDetails {
 
 	private String checkEContentBasedOnItems(List<DataField> itemFields) {
 		String eContentSource = null;
-		if (marcProcessor.isUseEContentSubfield()){
-			for (DataField itemField : itemFields) {
-				//First make sure that we have a location subField since some items just have call numbers
-				Subfield subFieldW = itemField.getSubfield('w');
-				if (subFieldW != null) {
+		for (DataField itemField : itemFields) {
+			//First make sure that we have a location subField since some items just have call numbers
+			Subfield subFieldW = itemField.getSubfield('w');
+			if (subFieldW != null) {
+				if (subFieldW.getData().contains(":")){
 					String[] parts = subFieldW.getData().split(":");
 					if (parts.length > 0) {
 						String source = parts[0].trim();

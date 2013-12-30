@@ -655,9 +655,6 @@ class MillenniumHolds{
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->driver->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->driver->db->debug = true;
-		}
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->driver->db->getRecord($bib1))) {

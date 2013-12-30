@@ -18,10 +18,7 @@ class OtherEditionHandler{
 			$class = $configArray['Index']['engine'];
 			/** @var Solr $db */
 			$db = new $class($configArray['Index']['url']);
-			if ($configArray['System']['debugSolr']) {
-				$db->debug = true;
-			}
-		
+
 			if ($isbn) {
 				if ($configArray['Content']['otherEditions'] == 'LibraryThing'){
 					$editions = self::getLibraryThingRelatedRecords($sourceSolrId, $isbn, $numResourcesToLoad, $db);

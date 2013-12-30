@@ -217,7 +217,7 @@ public class PrintItemSolrProcessor {
 					lastYearCheckouts = Integer.parseInt(lastYearCheckoutsField.getData());
 				}
 				double itemPopularity = ytdCheckouts + .5 * (lastYearCheckouts) + .1 * (totalCheckouts - lastYearCheckouts - ytdCheckouts);
-				logger.debug("Popularity for item " + itemPopularity + " ytdCheckouts=" + ytdCheckouts + " lastYearCheckouts=" + lastYearCheckouts + " totalCheckouts=" + totalCheckouts);
+				//logger.debug("Popularity for item " + itemPopularity + " ytdCheckouts=" + ytdCheckouts + " lastYearCheckouts=" + lastYearCheckouts + " totalCheckouts=" + totalCheckouts);
 				popularity += itemPopularity;
 
 				// Map iTypes

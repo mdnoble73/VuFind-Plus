@@ -279,9 +279,6 @@ class AJAX extends Action {
 		$url = $configArray['Index']['url'];
 		/** @var SearchObject_Solr $db */
 		$db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$db->debug = true;
-		}
 
 		// Retrieve Full record from Solr
 		if (!($record = $db->getRecord($id))) {

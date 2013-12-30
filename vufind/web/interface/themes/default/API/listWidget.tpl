@@ -23,7 +23,7 @@
   <base href="{$path}" target="_parent" />
 </head>
 
-<body>
+<body class="embeddedListWidget">
 	{include file='API/listWidgetTabs.tpl'}
   
 </body>

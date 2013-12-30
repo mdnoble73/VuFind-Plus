@@ -31,9 +31,6 @@ class Statistics extends Admin_Admin
 
         // Load SOLR Statistics
         $solr = new SolrStats($configArray['Statistics']['solr']);
-        if ($configArray['System']['debugSolr']) {
-            $solr->debug = true;
-        }
 
         // All Statistics
         $result = $solr->search('*:*', null, null, 0, null,

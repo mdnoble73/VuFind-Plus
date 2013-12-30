@@ -70,9 +70,6 @@ class MillenniumInventory {
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 
 		$baseUrl = $configArray['Catalog']['url'];
 		$circaUrl = $configArray['Catalog']['url'] . '/iii/airwkst/airwkstcore';

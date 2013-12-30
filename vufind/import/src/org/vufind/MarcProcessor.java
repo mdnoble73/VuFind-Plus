@@ -505,14 +505,18 @@ public class MarcProcessor {
 						orderRecord.setStatus(orderData[3]);
 						//Get the order record based on the accounting unit
 						LibraryIndexingInfo libraryInfo = libraryIndexingInfoByAccountingUnit.get(Integer.parseInt(orderData[2]));
-						orderRecord.setOrderingLibrary(libraryInfo.getSubdomain());
-						orderRecord.setLocationCode(libraryInfo.getIlsCode());
-						if (orderRecords.containsKey(recordId)){
-							orderRecords.get(recordId).add(orderRecord);
+						if (libraryInfo == null){
+							logger.error("Unable to get library info for accounting unit " + orderData[2]);
 						}else{
-							ArrayList<OrderRecord> orderRecordColl = new ArrayList<OrderRecord>();
-							orderRecordColl.add(orderRecord);
-							orderRecords.put(recordId, orderRecordColl);
+							orderRecord.setOrderingLibrary(libraryInfo.getSubdomain());
+							orderRecord.setLocationCode(libraryInfo.getIlsCode());
+							if (orderRecords.containsKey(recordId)){
+								orderRecords.get(recordId).add(orderRecord);
+							}else{
+								ArrayList<OrderRecord> orderRecordColl = new ArrayList<OrderRecord>();
+								orderRecordColl.add(orderRecord);
+								orderRecords.put(recordId, orderRecordColl);
+							}
 						}
 					}
 				}catch(Exception e){

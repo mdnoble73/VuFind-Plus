@@ -1,10 +1,7 @@
 package org.vufind;
 
 import java.io.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.Date;
 
 import au.com.bytecode.opencsv.CSVWriter;
@@ -191,13 +188,21 @@ public class SierraExportMain{
 						"inner join sierra_view.bib_record_order_record_link on bib_record_order_record_link.order_record_id = order_view.record_id " +
 						"inner join sierra_view.bib_view on sierra_view.bib_view.id = bib_record_order_record_link.bib_record_id " +
 						"where order_status_code = 'o' or order_status_code = '1' and order_view.is_suppressed = 'f' ");
-
-				File orderRecordFile = new File(exportPath + "/active_orders.csv");
-				CSVWriter orderRecordWriter = new CSVWriter(new FileWriter(orderRecordFile));
-				ResultSet activeOrdersRS = getActiveOrdersStmt.executeQuery();
-				orderRecordWriter.writeAll(activeOrdersRS, true);
-				orderRecordWriter.close();
-				activeOrdersRS.close();
+				ResultSet activeOrdersRS = null;
+				boolean loadError = false;
+				try{
+					activeOrdersRS = getActiveOrdersStmt.executeQuery();
+				} catch (SQLException e1){
+					logger.error("Error loading active orders", e1);
+					loadError = true;
+				}
+				if (!loadError){
+					File orderRecordFile = new File(exportPath + "/active_orders.csv");
+					CSVWriter orderRecordWriter = new CSVWriter(new FileWriter(orderRecordFile));
+					orderRecordWriter.writeAll(activeOrdersRS, true);
+					orderRecordWriter.close();
+					activeOrdersRS.close();
+				}
 			}
 
 			boolean exportAvailableItems = true;
@@ -212,12 +217,21 @@ public class SierraExportMain{
 						"AND is_suppressed = 'f' "
 						//"AND patron_record_id = null"
 				);
-				File availableItemsFile = new File(exportPath + "/available_items.csv");
-				CSVWriter availableItemWriter = new CSVWriter(new FileWriter(availableItemsFile));
-				ResultSet activeOrdersRS = getAvailableItemsStmt.executeQuery();
-				availableItemWriter.writeAll(activeOrdersRS, false);
-				availableItemWriter.close();
-				activeOrdersRS.close();
+				ResultSet activeOrdersRS = null;
+				boolean loadError = false;
+				try{
+					activeOrdersRS = getAvailableItemsStmt.executeQuery();
+				}catch (SQLException e1){
+					logger.error("Error loading available items", e1);
+					loadError = true;
+				}
+				if (!loadError){
+					File availableItemsFile = new File(exportPath + "/available_items.csv");
+					CSVWriter availableItemWriter = new CSVWriter(new FileWriter(availableItemsFile));
+					availableItemWriter.writeAll(activeOrdersRS, false);
+					availableItemWriter.close();
+					activeOrdersRS.close();
+				}
 
 				//Also export items with checkouts
 				logger.info("Starting export of checkouts");
@@ -225,13 +239,21 @@ public class SierraExportMain{
 						"FROM sierra_view.checkout " +
 						"INNER JOIN sierra_view.item_view on item_view.id = checkout.item_record_id"
 				);
-				File checkoutsFile = new File(exportPath + "/checkouts.csv");
-				CSVWriter checkoutsWriter = new CSVWriter(new FileWriter(checkoutsFile));
-				ResultSet checkoutsRS = allCheckoutsStmt.executeQuery();
-				checkoutsWriter.writeAll(checkoutsRS, false);
-				checkoutsWriter.close();
-				checkoutsRS.close();
-
+				ResultSet checkoutsRS = null;
+				loadError = false;
+				try{
+					checkoutsRS = allCheckoutsStmt.executeQuery();
+				}catch (SQLException e1){
+					logger.error("Error loading checkouts", e1);
+					loadError = true;
+				}
+				if (!loadError){
+					File checkoutsFile = new File(exportPath + "/checkouts.csv");
+					CSVWriter checkoutsWriter = new CSVWriter(new FileWriter(checkoutsFile));
+					checkoutsWriter.writeAll(checkoutsRS, false);
+					checkoutsWriter.close();
+					checkoutsRS.close();
+				}
 			}
 		}catch(Exception e){
 			System.out.println("Error: " + e.toString());

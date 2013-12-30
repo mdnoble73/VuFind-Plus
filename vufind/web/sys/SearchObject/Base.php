@@ -77,7 +77,7 @@ abstract class SearchObject_Base
 	// Flag for logging/search history
 	protected $disableLogging = false;
 	// Debugging flag
-	public $debug;
+	protected $debug = false;
 	// Search options for the user
 	protected $advancedTypes = array();
 	protected $basicTypes = array();
@@ -114,7 +114,24 @@ abstract class SearchObject_Base
 		$this->serverUrl = $configArray['Site']['path'];
 
 		// Set appropriate debug mode:
-		$this->debug = $configArray['System']['debugSolr'];
+		// Debugging
+		if ($configArray['System']['debugSolr']) {
+			//Verify that the ip is ok
+			global $locationSingleton;
+			$activeIp = $locationSingleton->getActiveIp();
+			$maintenanceIps = $configArray['System']['maintainenceIps'];
+			$debug = true;
+			if (strlen($maintenanceIps) > 0){
+				$debug = false;
+				$allowableIps = explode(',', $maintenanceIps);
+				if (in_array($activeIp, $allowableIps)){
+					$debug = true;
+				}
+			}
+			$this->debug = $debug;
+		} else {
+			$this->debug = false;
+		}
 		$timer->logTime('Setup Base Search Object');
 	}
 

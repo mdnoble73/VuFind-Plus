@@ -153,11 +153,6 @@ class ConnectionManager
             $index = new $type($url, $core);
         }
 
-        // Turn on debug mode if necessary:
-        if ($configArray['System']['debug']) {
-            $index->debug = true;
-        }
-
         return $index;
     }
 }

@@ -93,7 +93,7 @@ public class ExtractOverDriveInfo {
 			updateMetaDataStmt = econtentConn.prepareStatement("UPDATE overdrive_api_product_metadata set productId = ?, checksum = ?, sortTitle = ?, publisher = ?, publishDate = ?, isPublicDomain = ?, isPublicPerformanceAllowed = ?, shortDescription = ?, fullDescription = ?, starRating = ?, popularity =?, thumbnail=?, cover=?, rawData=? where id = ?");
 			addMetaDataStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_product_metadata set productId = ?, checksum = ?, sortTitle = ?, publisher = ?, publishDate = ?, isPublicDomain = ?, isPublicPerformanceAllowed = ?, shortDescription = ?, fullDescription = ?, starRating = ?, popularity =?, thumbnail=?, cover=?, rawData=?");
 			clearCreatorsStmt = econtentConn.prepareStatement("DELETE FROM overdrive_api_product_creators WHERE productId = ?");
-			addCreatorStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_product_creators productId = ?, role = ?, name = ?, fileAs = ?");
+			addCreatorStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_product_creators SET productId = ?, role = ?, name = ?, fileAs = ?");
 			loadLanguagesStmt = econtentConn.prepareStatement("SELECT * FROM overdrive_api_product_languages");
 			addLanguageStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_product_languages set code =?, name = ?", PreparedStatement.RETURN_GENERATED_KEYS);
 			clearLanguageRefStmt = econtentConn.prepareStatement("DELETE FROM overdrive_api_product_languages_ref where productId = ?");
@@ -426,8 +426,10 @@ public class ExtractOverDriveInfo {
 			curRecord.setPrimaryCreatorName(curProduct.getJSONObject("primaryCreator").getString("name"));
 			curRecord.setPrimaryCreatorRole(curProduct.getJSONObject("primaryCreator").getString("role"));
 		}
-		for (int k = 0; k < curProduct.getJSONArray("formats").length(); k++){
-			curRecord.getFormats().add(curProduct.getJSONArray("formats").getJSONObject(k).getString("id"));
+		if (curProduct.has("formats")){
+			for (int k = 0; k < curProduct.getJSONArray("formats").length(); k++){
+				curRecord.getFormats().add(curProduct.getJSONArray("formats").getJSONObject(k).getString("id"));
+			}
 		}
 		if (curProduct.has("images") && curProduct.getJSONObject("images").has("thumbnail")){
 			String thumbnailUrl = curProduct.getJSONObject("images").getJSONObject("thumbnail").getString("href");
@@ -477,7 +479,7 @@ public class ExtractOverDriveInfo {
 			checksumCalculator.update(metaData.toString().getBytes());
 			long metadataChecksum = checksumCalculator.getValue();
 			boolean updateMetaData = false;
-			if (dbInfo == null){
+			if (dbInfo == null || forceMetaDataUpdate){
 				updateMetaData = true;
 			}else{
 				if (!databaseMetaData.hasRawData()){
@@ -488,7 +490,8 @@ public class ExtractOverDriveInfo {
 				}else if (dbInfo.getLastMetadataCheck() <= curTime - 14 * 24 * 60 * 60){
 					//If it's been two weeks since we last updated, give a 20% chance of updating
 					//Don't update everything at once to spread out the number of calls and reduce time.
-					if (Math.random() * 100 <= 20.0){
+					double randomNumber = Math.random() * 100;
+					if (randomNumber <= 20.0){
 						updateMetaData = true;
 					}
 				}
@@ -504,14 +507,18 @@ public class ExtractOverDriveInfo {
 					metaDataStatement.setLong(curCol++, metadataChecksum);
 					metaDataStatement.setString(curCol++, metaData.has("sortTitle") ? metaData.getString("sortTitle") : "");
 					metaDataStatement.setString(curCol++, metaData.has("publisher") ? metaData.getString("publisher") : "");
-					String publishDate = metaData.getString("publishDate");
-					if (publishDate.matches("\\d{2}/\\d{2}/\\d{4}")){
-						publishDate = publishDate.substring(6, 10);
-						metaDataStatement.setLong(curCol++, Long.parseLong(publishDate));
+					if (metaData.has("publishDate")){
+						String publishDate = metaData.getString("publishDate");
+						if (publishDate.matches("\\d{2}/\\d{2}/\\d{4}")){
+							publishDate = publishDate.substring(6, 10);
+							metaDataStatement.setLong(curCol++, Long.parseLong(publishDate));
+						}else{
+							metaDataStatement.setNull(curCol++, Types.INTEGER);
+						}
 					}else{
-						publishDate = null;
 						metaDataStatement.setNull(curCol++, Types.INTEGER);
 					}
+
 					metaDataStatement.setBoolean(curCol++, metaData.has("isPublicDomain") ? metaData.getBoolean("isPublicDomain") : false);
 					metaDataStatement.setBoolean(curCol++, metaData.has("isPublicPerformanceAllowed") ? metaData.getBoolean("isPublicPerformanceAllowed") : false);
 					metaDataStatement.setString(curCol++, metaData.has("shortDescription") ? metaData.getString("shortDescription") : "");
@@ -540,14 +547,14 @@ public class ExtractOverDriveInfo {
 					
 					clearCreatorsStmt.setLong(1, databaseId);
 					clearCreatorsStmt.executeUpdate();
-					if (metaData.has("contributors")){
-						JSONArray contributors = metaData.getJSONArray("contributors");
+					if (metaData.has("creators")){
+						JSONArray contributors = metaData.getJSONArray("creators");
 						for (int i = 0; i < contributors.length(); i++){
 							JSONObject contributor = contributors.getJSONObject(i);
 							addCreatorStmt.setLong(1, databaseId);
 							addCreatorStmt.setString(2, contributor.getString("role"));
-							addCreatorStmt.setString(2, contributor.getString("name"));
-							addCreatorStmt.setString(2, contributor.getString("fileAs"));
+							addCreatorStmt.setString(3, contributor.getString("name"));
+							addCreatorStmt.setString(4, contributor.getString("fileAs"));
 							addCreatorStmt.executeUpdate();
 						}
 					}
@@ -634,6 +641,13 @@ public class ExtractOverDriveInfo {
 							}
 						}
 						int numSamples = 0;
+
+						//Default samples to null
+						addFormatStmt.setString(8, null);
+						addFormatStmt.setString(9, null);
+						addFormatStmt.setString(10, null);
+						addFormatStmt.setString(11, null);
+
 						if (format.has("samples")){
 							JSONArray samples = format.getJSONArray("samples");
 							for (int j = 0; j < samples.length(); j++){
@@ -650,13 +664,6 @@ public class ExtractOverDriveInfo {
 									logger.warn("Record " + overDriveInfo.getId() + " had more than 2 samples for format " + format.getString("name"));
 								}
 							}
-						}
-						if (numSamples == 0){
-							addFormatStmt.setString(8, null);
-							addFormatStmt.setString(9, null);
-						}else if (numSamples == 1){
-							addFormatStmt.setString(10, null);
-							addFormatStmt.setString(11, null);
 						}
 						addFormatStmt.executeUpdate();
 					}
