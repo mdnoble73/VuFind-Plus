@@ -479,7 +479,7 @@ public class ExtractOverDriveInfo {
 			checksumCalculator.update(metaData.toString().getBytes());
 			long metadataChecksum = checksumCalculator.getValue();
 			boolean updateMetaData = false;
-			if (dbInfo == null){
+			if (dbInfo == null || forceMetaDataUpdate){
 				updateMetaData = true;
 			}else{
 				if (!databaseMetaData.hasRawData()){
@@ -490,7 +490,8 @@ public class ExtractOverDriveInfo {
 				}else if (dbInfo.getLastMetadataCheck() <= curTime - 14 * 24 * 60 * 60){
 					//If it's been two weeks since we last updated, give a 20% chance of updating
 					//Don't update everything at once to spread out the number of calls and reduce time.
-					if (Math.random() * 100 <= 20.0){
+					double randomNumber = Math.random() * 100;
+					if (randomNumber <= 20.0){
 						updateMetaData = true;
 					}
 				}
@@ -640,6 +641,13 @@ public class ExtractOverDriveInfo {
 							}
 						}
 						int numSamples = 0;
+
+						//Default samples to null
+						addFormatStmt.setString(8, null);
+						addFormatStmt.setString(9, null);
+						addFormatStmt.setString(10, null);
+						addFormatStmt.setString(11, null);
+
 						if (format.has("samples")){
 							JSONArray samples = format.getJSONArray("samples");
 							for (int j = 0; j < samples.length(); j++){
@@ -656,13 +664,6 @@ public class ExtractOverDriveInfo {
 									logger.warn("Record " + overDriveInfo.getId() + " had more than 2 samples for format " + format.getString("name"));
 								}
 							}
-						}
-						if (numSamples == 0){
-							addFormatStmt.setString(8, null);
-							addFormatStmt.setString(9, null);
-						}else if (numSamples == 1){
-							addFormatStmt.setString(10, null);
-							addFormatStmt.setString(11, null);
 						}
 						addFormatStmt.executeUpdate();
 					}
