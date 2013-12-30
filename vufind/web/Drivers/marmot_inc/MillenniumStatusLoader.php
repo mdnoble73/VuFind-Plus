@@ -249,7 +249,8 @@ class MillenniumStatusLoader{
 				$holding['holdQueueLength'] = isset($holdQueueLength) ? $holdQueueLength : null;
 
 				//Add the holding to the sorted array to determine
-				$sortString = $holding['location'] . '-'. $i;
+				$paddedNumber = str_pad($i, 3, '0', STR_PAD_LEFT);
+				$sortString = $holding['location'] . '-'. $paddedNumber;
 				//$sortString = $holding['location'] . $holding['callnumber']. $i;
 				if (strlen($physicalBranch) > 0 && stripos($holding['location'], $physicalBranch) !== false){
 					//If the user is in a branch, those holdings come first.
@@ -328,7 +329,8 @@ class MillenniumStatusLoader{
 						}
 					}
 				}
-				$sortString = $holding['location'] . '-'. $i;
+				$paddedNumber = str_pad($i, 3, '0', STR_PAD_LEFT);
+				$sortString = $holding['location'] . '-'. $paddedNumber;
 				if (strlen($physicalBranch) > 0 && stripos($holding['location'], $physicalBranch) !== false){
 					//If the user is in a branch, those holdings come first.
 					$holding['section'] = 'In this library';
