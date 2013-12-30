@@ -196,14 +196,10 @@ class Nashville extends MillenniumDriver{
 				$userValid = false;
 			}
 
-			//Create a variety of possible name combinations for testing purposes.
-			$Fullname = str_replace(","," ",$patronDump['PATRN_NAME']);
-			$Fullname = str_replace(";"," ",$Fullname);
-			$Fullname = str_replace(";","'",$Fullname);
-			$allNameComponents = preg_split('^[\s-]^', strtolower($Fullname));
-			$nameParts = explode(' ',$Fullname);
+			$Fullname = $patronDump['PATRN_NAME']; // James Staub chose this simpler route over some $Fullname replace acrobatics in Millennium.php 20131205
+			$nameParts = explode(',',$Fullname);
 			$lastname = strtolower($nameParts[0]);
-			$middlename = isset($nameParts[2]) ? strtolower($nameParts[2]) : '';
+			$middlename = isset($nameParts[2]) ? strtolower($nameParts[2]) : ''; 
 			$firstname = isset($nameParts[1]) ? strtolower($nameParts[1]) : $middlename;
 
 			if ($userValid){

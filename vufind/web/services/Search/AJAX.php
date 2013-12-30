@@ -516,7 +516,10 @@ class AJAX extends Action {
 				$titles = $titles['titles'];
 				if (is_array($titles)){
 					foreach ($titles as $key => $rawData){
-
+						// 20131206 James Staub: bookTitle is in the list API and it removes the final frontslash, but I didn't get $rawData['bookTitle'] to load
+						$titleShort = preg_replace('/\:.*?$/','', $rawData['title']);
+						$titleShort = preg_replace('/\s*\/$\s*/','', $titleShort);
+						$interface->assign('title', $titleShort);
 						$interface->assign('description', $rawData['description']);
 						$interface->assign('length', $rawData['length']);
 						$interface->assign('publisher', $rawData['publisher']);

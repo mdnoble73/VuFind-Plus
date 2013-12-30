@@ -727,11 +727,18 @@ abstract class Record_Record extends Action
 				$note = $subfield->getData();
 				$curNote .= " " . $note;
 				$curNote = trim($curNote);
-				if (strlen($curNote) > 0 && in_array($subfield->getCode(), array('t', 'a'))){
+//				if (strlen($curNote) > 0 && in_array($subfield->getCode(), array('t', 'a'))){
+//					$notes[] = $curNote;
+//					$curNote = '';
+//				}
+// 20131112 split 505 contents notes on double-hyphens instead of title subfields (which created bad breaks misassociating titles and authors)
+				if (preg_match("/--$/",$curNote)) {
 					$notes[] = $curNote;
 					$curNote = '';
-				}
+				} 
 			}
+			$notes[] = $curNote;
+			$curNote = '';
 		}
 		return $notes;
 	}

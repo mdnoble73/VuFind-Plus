@@ -227,7 +227,7 @@ td{vertical-align:top}.pagination{font-size:100%;padding:1em
 a{padding: .2em .5em;margin-right:.5em;border:1px
 solid #fff}.pagination a:hover{border:1px
 solid #ccc}.pagination
-span{padding: .2em .3em;margin-right:.5em;font-weight:bold}.pagination ul li{display:inline-block}table.datagrid{width:100%;border-collapse:collapse}table.datagrid
+span{padding: .2em .3em;margin-right:.5em;font-weight:bold}.pagination ul li{display:inline}table.datagrid{width:100%;border-collapse:collapse}table.datagrid
 th{color:#036;background-color:#DEF;border:solid 1px #9CF;text-align:left;border-left:1px solid #FFF;border-right:1px solid #FFF;padding:5px
 15px 5px 15px}table.datagrid th
 a{color:#369}table.datagrid
@@ -586,7 +586,7 @@ ul.correctionSuggestionIndent li {list-style:disc;}
 .resultAction{padding:2px;border:1px solid #eee;margin-bottom: 3px;background-color:#F9F9F9;}
 #placeHoldButton .resultAction{border:0px solid #eee;margin-bottom: 3px;background-color:#fff;}
 #placeHoldButton .button a {color:#fff;font-size:14px;}
-#placeHoldButton .button,.button:link,.button:visited,.button:active{text-decoration:none;-webkit-appearance:none;-webkit-border-radius:4px;-moz-border-radius:4px;-ms-border-radius:4px;-o-border-radius:4px;border-radius:4px;-webkit-background-clip:padding;-moz-background-clip:padding;-ms-background-clip:padding-box;-o-background-clip:padding-box;background-clip:padding-box;background:#32388E;border:1px solid #234d56;cursor:pointer;display:inline-block;font-weight:bold;font-size:1em;line-height:1.5em;font-family:inherit;height:auto;outline:0;overflow:visible;margin:0 0 5px 0;padding:5px 30px;text-shadow:none;vertical-align:baseline;width:auto;*padding-top:2px;*padding-bottom:0;color:#fff;}
+#placeHoldButton .button,.button:link,.button:visited,.button:active{text-decoration:none;-webkit-appearance:none;-webkit-border-radius:4px;-moz-border-radius:4px;-ms-border-radius:4px;-o-border-radius:4px;border-radius:4px;-webkit-background-clip:padding;-moz-background-clip:padding;-ms-background-clip:padding-box;-o-background-clip:padding-box;background-clip:padding-box;background:#32388E;border:1px solid #234d56;cursor:pointer;display:inline-block;font-weight:bold;font-size:1em;line-height:1.5em;font-family:inherit;height:auto;outline:0;overflow:visible;margin:0 0 5px 0;padding:5px 25px;text-shadow:none;vertical-align:baseline;width:auto;*padding-top:2px;*padding-bottom:0;color:#fff;}
 #placeHoldButton .button:hover{background:#131535;color:#fff;}
 /*place hold button - similar titles */
 #similarTitlesVuFind 

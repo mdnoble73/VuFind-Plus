@@ -11,6 +11,7 @@
 	{else}
 		<form method="get" action="{$path}/Union/Search" id="searchForm" class="search">
 			<div>
+<!--
 			Search&nbsp;
 			<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='enableSearchTypes();'>
 				{foreach from=$searchSources item=searchOption key=searchKey}
@@ -18,6 +19,7 @@
 				{/foreach}
 			</select>
 			&nbsp;for&nbsp;
+-->
 			<input id="lookfor" placeholder="Search Keyword / Title / Author" type="search" name="lookfor" size="30" value="{$lookfor|escape:"html"}" title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term."/>
 			&nbsp;by&nbsp;
 			<select name="basicType" id="basicSearchTypes" title="Search by Keyword to find subjects, titles, authors, etc. Search by Title or Author for more precise results." {if $searchSource == 'genealogy'}style='display:none'{/if}>
