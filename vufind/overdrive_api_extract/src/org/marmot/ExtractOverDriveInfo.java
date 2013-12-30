@@ -547,7 +547,7 @@ public class ExtractOverDriveInfo {
 					
 					clearCreatorsStmt.setLong(1, databaseId);
 					clearCreatorsStmt.executeUpdate();
-					if (metaData.has("contributors")){
+					if (metaData.has("creators")){
 						JSONArray contributors = metaData.getJSONArray("creators");
 						for (int i = 0; i < contributors.length(); i++){
 							JSONObject contributor = contributors.getJSONObject(i);
