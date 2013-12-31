@@ -779,4 +779,183 @@ class OverDriveDriver3 {
 
 		return $result;
 	}
+
+	/**
+	 * Get Holding
+	 *
+	 * This is responsible for retrieving the holding information of a certain
+	 * record.
+	 *
+	 * @param   OverDriveRecordDriver  $overDriveRecordDriver   The record id to retrieve the holdings for
+	 * @return  mixed               An associative array with the following keys:
+	 *                              availability (boolean), status, location,
+	 *                              reserve, callnumber, duedate, number,
+	 *                              holding summary, holding notes
+	 *                              If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	public function getHoldings($overDriveRecordDriver){
+		global $user;
+		global $configArray;
+
+		/** @var OverDriveAPIProductFormats[] $items */
+		$items = $overDriveRecordDriver->getItems();
+		//Add links as needed
+		$availability = $overDriveRecordDriver->getAvailability();
+		$addCheckoutLink = false;
+		$addPlaceHoldLink = false;
+		foreach($availability as $availableFrom){
+			if ($availableFrom->copiesAvailable > 0){
+				$addCheckoutLink = true;
+			}else{
+				$addPlaceHoldLink = true;
+			}
+		}
+		foreach ($items as $key => $item){
+			$item->links = array();
+			if ($addCheckoutLink){
+				if ($configArray['OverDrive']['interfaceVersion'] == 1){
+					$checkoutLink = "return checkoutOverDriveItem('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');";
+					$checkoutLinkResponsive = "return VuFind.OverDrive.checkoutOverDriveItem('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');";
+				}else{
+					$checkoutLink = "return checkoutOverDriveItemOneClick('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');";
+					$checkoutLinkResponsive = "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');";
+				}
+				$item->links[] = array(
+					'onclick' => $checkoutLink,
+					'onclickResponsive' => $checkoutLinkResponsive,
+					'text' => 'Check Out',
+					'overDriveId' => $overDriveRecordDriver->getUniqueID(),
+					'formatId' => $item->numericId,
+					'action' => 'CheckOut'
+				);
+			}else if ($addPlaceHoldLink){
+				$item->links[] = array(
+					'onclick' => "return placeOverDriveHold('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');",
+					'onclickResponsive' => "return VuFind.OverDrive.placeOverDriveHold('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');",
+					'text' => 'Place Hold',
+					'overDriveId' => $overDriveRecordDriver->getUniqueID(),
+					'formatId' => $item->numericId,
+					'action' => 'Hold'
+				);
+			}
+			$items[$key] = $item;
+		}
+
+		return $items;
+	}
+
+	public function getLibraryScopingId(){
+		//For econtent, we need to be more specific when restricting copies
+		//since patrons can't use copies that are only available to other libraries.
+		$searchLibrary = Library::getSearchLibrary();
+		$searchLocation = Location::getSearchLocation();
+		$activeLibrary = Library::getActiveLibrary();
+		$activeLocation = Location::getActiveLocation();
+		$homeLibrary = Library::getPatronHomeLibrary();
+
+		//Load the holding label for the branch where the user is physically.
+		if (!is_null($homeLibrary)){
+			return $homeLibrary->includeOutOfSystemExternalLinks ? -1 : $homeLibrary->libraryId;
+		}else if (!is_null($activeLocation)){
+			$activeLibrary = Library::getLibraryForLocation($activeLocation->locationId);
+			return $activeLibrary->includeOutOfSystemExternalLinks ? -1 : $activeLibrary->libraryId;
+		}else if (isset($activeLibrary)) {
+			return $activeLibrary->includeOutOfSystemExternalLinks ? -1 : $activeLibrary->libraryId;
+		}else if (!is_null($searchLocation)){
+			$searchLibrary = Library::getLibraryForLocation($searchLibrary->locationId);
+			return $searchLibrary->includeOutOfSystemExternalLinks ? -1 : $searchLocation->libraryId;
+		}else if (isset($searchLibrary)) {
+			return $searchLibrary->includeOutOfSystemExternalLinks ? -1 : $searchLibrary->libraryId;
+		}else{
+			return -1;
+		}
+	}
+
+	/**
+	 * @param OverDriveRecordDriver $overDriveRecordDriver
+	 * @return array
+	 */
+	public function getScopedAvailability($overDriveRecordDriver){
+		$availability = array();
+		$availability['mine'] = $overDriveRecordDriver->getAvailability();
+		$availability['other'] = array();
+		$scopingId = $this->getLibraryScopingId();
+		if ($scopingId != -1){
+			foreach ($availability['mine'] as $key => $availabilityItem){
+				if ($availabilityItem->libraryId != -1 && $availabilityItem->libraryId != $scopingId){
+					$availability['other'][$key] = $availability['mine'][$key];
+					unset($availability['mine'][$key]);
+				}
+			}
+		}
+		return $availability;
+	}
+
+	public function getStatusSummary($id, $scopedAvailability, $holdings){
+		global $user;
+		$addedToWishList = false;
+		$holdPosition = 0;
+
+		$availableCopies = 0;
+		$totalCopies = 0;
+		$onOrderCopies = 0;
+		$checkedOut = 0;
+		$onHold = 0;
+		$wishListSize = 0;
+		$numHolds = 0;
+		if (count($scopedAvailability['mine']) > 0){
+			foreach ($scopedAvailability['mine'] as $curAvailability){
+				$availableCopies += $curAvailability->copiesAvailable;
+				$totalCopies += $curAvailability->copiesOwned;
+				if ($curAvailability->numberOfHolds > $numHolds){
+					$numHolds = $curAvailability->numberOfHolds;
+				}
+			}
+		}
+
+		//Load status summary
+		$statusSummary = array();
+		$statusSummary['recordId'] = $id;
+		$statusSummary['totalCopies'] = $totalCopies;
+		$statusSummary['onOrderCopies'] = $onOrderCopies;
+		$statusSummary['accessType'] = 'overdrive';
+		$statusSummary['isOverDrive'] = false;
+		$statusSummary['alwaysAvailable'] = false;
+		$statusSummary['class'] = 'checkedOut';
+		$statusSummary['available'] = false;
+		$statusSummary['status'] = 'Not Available';
+
+		$statusSummary['availableCopies'] = $availableCopies;
+		$statusSummary['isOverDrive'] = true;
+		if ($totalCopies >= 999999){
+			$statusSummary['alwaysAvailable'] = true;
+		}
+		if ($availableCopies > 0){
+			$statusSummary['status'] = "Available from OverDrive";
+			$statusSummary['available'] = true;
+			$statusSummary['class'] = 'available';
+		}else{
+			$statusSummary['status'] = 'Checked Out';
+			$statusSummary['available'] = false;
+			$statusSummary['class'] = 'checkedOut';
+			$statusSummary['isOverDrive'] = true;
+		}
+
+
+		//Determine which buttons to show
+		$statusSummary['holdQueueLength'] = $numHolds;
+		$statusSummary['showPlaceHold'] = $availableCopies == 0 && count($scopedAvailability['mine']) > 0;
+		$statusSummary['showCheckout'] = $availableCopies > 0 && count($scopedAvailability['mine']) > 0;
+		$statusSummary['showAddToWishlist'] = false;
+		$statusSummary['showAccessOnline'] = false;
+
+		$statusSummary['onHold'] = $onHold;
+		$statusSummary['checkedOut'] = $checkedOut;
+		$statusSummary['holdPosition'] = $holdPosition;
+		$statusSummary['numHoldings'] = count($holdings);
+		$statusSummary['wishListSize'] = $wishListSize;
+
+		return $statusSummary;
+	}
 }

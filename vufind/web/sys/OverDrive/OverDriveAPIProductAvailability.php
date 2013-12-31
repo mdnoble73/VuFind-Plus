@@ -18,4 +18,15 @@ class OverDriveAPIProductAvailability extends DB_DataObject{
 	public $copiesOwned;
 	public $copiesAvailable;
 	public $numberOfHolds;
+
+	function getLibraryName(){
+		if ($this->libraryId == -1){
+			return 'Shared Digital Collection';
+		}else{
+			$library = new Library();
+			$library->libraryId = $this->libraryId;
+			$library->find(true);
+			return $library->displayName;
+		}
+	}
 } 

@@ -315,11 +315,25 @@ class GroupedWorkDriver implements RecordInterface{
 	public function getStaffView()
 	{
 		global $interface;
+
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+		$groupedWork = new GroupedWork();
+		$groupedWork->permanent_id = $this->getPermanentId();
+		if ($groupedWork->find(true)){
+			$groupedWorkDetails = array();
+			$groupedWorkDetails['title'] = $groupedWork->title;
+			$groupedWorkDetails['subtitle'] = $groupedWork->subtitle;
+			$groupedWorkDetails['author'] = $groupedWork->author;
+			$groupedWorkDetails['grouping_category'] = $groupedWork->grouping_category;
+			$interface->assign('groupedWorkDetails', $groupedWorkDetails);
+		}
+
+
 		$fields = $this->fields;
 		ksort($fields);
 		$interface->assign('details', $fields);
 
-		return 'RecordDrivers/GroupedWork/solr-details.tpl';
+		return 'RecordDrivers/GroupedWork/staff-view.tpl';
 	}
 
 	/**
@@ -687,14 +701,14 @@ class GroupedWorkDriver implements RecordInterface{
 
 		//Check to see what we need to do for actions
 		foreach ($relatedManifestations as $key => $manifestation){
+			$manifestation['numRelatedRecords'] = count($manifestation['relatedRecords']);
 			if (count($manifestation['relatedRecords']) == 1){
+				$manifestation['url'] = $manifestation['relatedRecords'][0]['url'];
 				$manifestation['actions'] = $manifestation['relatedRecords'][0]['actions'];
 			}else{
+				//Figure out what the preferred record is to place a hold on
+				//TODO: Improve the logic based on user information
 				$manifestation['actions'] = array();
-				$manifestation['actions']['ShowRelatedRecords'] = array(
-					'title' => 'Show Versions',
-					'id' => 'ShowRelatedRecords'
-				);
 			}
 			$relatedManifestations[$key] = $manifestation;
 		}

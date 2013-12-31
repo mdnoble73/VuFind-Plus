@@ -1012,6 +1012,8 @@ VuFind.Record = {
 	loadHoldingsInfo: function (id, shortId, source) {
 		if (source == 'VuFind'){
 			var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+		}else if (source == 'OverDrive'){
+			var url = Globals.path + "/OverDrive/" + encodeURIComponent(id) + "/AJAX";
 		}else{
 			var url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 		}

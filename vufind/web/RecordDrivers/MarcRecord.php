@@ -1305,6 +1305,12 @@ class MarcRecord extends IndexRecord
 		$url = $configArray['Site']['path'] . '/Record/' . $recordId;
 		$holdUrl = $configArray['Site']['path'] . '/Record/' . $recordId . '/Hold';
 
+		$publishers = $this->getPublishers();
+		$publisher = count($publishers) >= 1 ? $publishers[0] : '';
+		$publicationDates = $this->getPublicationDates();
+		$publicationDate = count($publicationDates) >= 1 ? $publicationDates[0] : '';
+		$physicalDescriptions = $this->getPhysicalDescriptions();
+		$physicalDescription = count($physicalDescriptions) >= 1 ? $physicalDescriptions[0] : '';
 		$relatedRecord = array(
 			'id' => $recordId,
 			'url' => $url,
@@ -1314,16 +1320,14 @@ class MarcRecord extends IndexRecord
 			'language' => $this->getLanguage(),
 			'title' => $this->getTitle(),
 			'subtitle' => $this->getSubtitle(),
+			'publisher' => $publisher,
+			'publicationDate' => $publicationDate,
 			'section' => $this->getTitleSection(),
-			'physical' => $this->getPhysicalDescriptions(),
+			'physical' => $physicalDescription,
 			'callNumber' => $this->getCallNumber(),
 			'available' => $this->isAvailable(false),
 			'copies' => $this->getNumCopies(),
 			'actions' => array()
-		);
-		$relatedRecord['actions'][] = array(
-			'title' => 'More Info',
-			'url' =>  $url
 		);
 		if ($this->isHoldable()){
 			$relatedRecord['actions'][] = array(
@@ -1432,5 +1436,55 @@ class MarcRecord extends IndexRecord
 			}
 		}
 		return MarcRecord::$catalogDriver;
+	}
+
+	/**
+	 * Get an array of physical descriptions of the item.
+	 *
+	 * @access  protected
+	 * @return  array
+	 */
+	protected function getPhysicalDescriptions()
+	{
+		$physicalDescription1 = $this->getFieldArray("300", array('a', 'b', 'c', 'e', 'f', 'g'));
+		$physicalDescription2 = $this->getFieldArray("530", array('a', 'b', 'c', 'd'));
+		return array_merge($physicalDescription1, $physicalDescription2);
+	}
+
+	/**
+	 * Get the publication dates of the record.  See also getDateSpan().
+	 *
+	 * @access  public
+	 * @return  array
+	 */
+	public function getPublicationDates()
+	{
+		$publicationDates = $this->getFieldArray('260', array('c'));
+		/** @var File_MARC_Data_Field[] $rdaPublisherFields */
+		$rdaPublisherFields = $this->marcRecord->getFields('264');
+		foreach ($rdaPublisherFields as $rdaPublisherField){
+			if ($rdaPublisherField->getIndicator(2) == 1 && $rdaPublisherField->getSubfield('c') != null){
+				$publicationDates[] = $rdaPublisherField->getSubfield('c')->getData();
+			}
+		}
+	}
+
+	/**
+	 * Get the publishers of the record.
+	 *
+	 * @access  protected
+	 * @return  array
+	 */
+	protected function getPublishers()
+	{
+		$publishers = $this->getFieldArray('260', array('b'));
+		/** @var File_MARC_Data_Field[] $rdaPublisherFields */
+		$rdaPublisherFields = $this->marcRecord->getFields('264');
+		foreach ($rdaPublisherFields as $rdaPublisherField){
+			if ($rdaPublisherField->getIndicator(2) == 1 && $rdaPublisherField->getSubfield('b') != null){
+				$publishers[] = $rdaPublisherField->getSubfield('b')->getData();
+			}
+		}
+		return $publishers;
 	}
 }

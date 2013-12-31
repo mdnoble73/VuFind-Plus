@@ -420,6 +420,7 @@ class OverDriveRecordDriver implements RecordInterface {
 		}
 
 		$url = $configArray['Site']['path'] . '/OverDrive/' . $recordId;
+		$this->getOverDriveMetaData();
 		$relatedRecord = array(
 			'id' => $recordId,
 			'url' => $url,
@@ -428,16 +429,14 @@ class OverDriveRecordDriver implements RecordInterface {
 			'language' => $this->getLanguage(),
 			'title' => $this->overDriveProduct->title,
 			'subtitle' => $this->overDriveProduct->subtitle,
+			'publisher' => $this->overDriveMetaData->publisher,
+			'publicationDate' => $this->overDriveMetaData->publishDate,
 			'section' => '',
 			'physical' => '',
 			'callNumber' => 'Online',
 			'available' => $available,
 			'copies' => $totalCopies,
 			'actions' => array()
-		);
-		$relatedRecord['actions'][] = array(
-			'title' => 'More Info',
-			'url' => $url
 		);
 		if ($available){
 			$relatedRecord['actions'][] = array(
@@ -575,15 +574,14 @@ class OverDriveRecordDriver implements RecordInterface {
 	 */
 	public function getFormats()
 	{
-		$this->loadItems();
 		$formats = array();
-		foreach ($this->items as $item){
+		foreach ($this->getItems() as $item){
 			$formats[] = $item->name;
 		}
 		return $formats;
 	}
 
-	private function loadItems(){
+	public function getItems(){
 		if ($this->items == null){
 			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductFormats.php';
 			$overDriveFormats = new OverDriveAPIProductFormats();

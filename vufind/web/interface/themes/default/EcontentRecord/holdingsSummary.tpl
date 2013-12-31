@@ -17,7 +17,7 @@
 			{if $holdingsSummary.source == 'Freegal'}
 				Downloadable from Freegal.
 			{elseif $holdingsSummary.accessType == 'free'}
-				Available for multiple simultaneous usage. 
+				Available for multiple simultaneous usage.
 			{elseif $holdingsSummary.onHold}
 				You are number {$holdingsSummary.holdPosition} on the wait list.
 			{elseif $holdingsSummary.checkedOut}
@@ -40,7 +40,7 @@
 			</div>
 		{/if}
 	{/if} 
-	
+
 	{* {if $showOtherEditionsPopup}
 		<div class="otherEditions">
 			<a href="#" onclick="loadOtherEditionSummaries('{$holdingsSummary.recordId}', true)">Other Formats and Languages</a>

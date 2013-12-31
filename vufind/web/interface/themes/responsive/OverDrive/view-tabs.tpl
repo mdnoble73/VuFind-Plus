@@ -3,9 +3,9 @@
 		<div class="result-label visible-phone">Show:</div>
 		{* Define tabs for the display *}
 		<ul class="nav nav-tabs">
-			<li id="detailstab_label" class="active"><a href="#detailstab" data-toggle="tab">{translate text="Details"}</a></li>
+			<li id="detailstab_label"><a href="#detailstab" data-toggle="tab">{translate text="Details"}</a></li>
 			<li id="excerpttab_label" style="display:none"><a href="#excerpttab" data-toggle="tab">{translate text="Excerpt"}</a></li>
-			<li id="formatstabLink"><a href="#formatstab" data-toggle="tab">{translate text="Formats"}</a></li>
+			<li id="formatstabLink" class="active"><a href="#formatstab" data-toggle="tab">{translate text="Formats"}</a></li>
 			{if $enableMaterialsRequest || is_array($otherEditions) }
 				<li id="otherEditionsTab_label"><a href="#otherEditionsTab" data-toggle="tab">{translate text="Other Formats"}</a></li>
 			{/if}
@@ -28,7 +28,7 @@
 		</ul>
 
 		<div class="tab-content">
-			<div id = "detailstab" class="tab-pane active">
+			<div id = "detailstab" class="tab-pane">
 				{include file="OverDrive/view-title-details.tpl"}
 			</div>
 
@@ -36,7 +36,7 @@
 				<div id="excerptPlaceholder">Loading Excerpt...</div>
 			</div>
 
-			<div id="formatstab" class="tab-pane">
+			<div id="formatstab" class="tab-pane active">
 				<div id="formatsPlaceholder">Loading...</div>
 
 				<div id="additionalFormatActions">
