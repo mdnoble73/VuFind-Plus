@@ -19,13 +19,12 @@
  */
 
 require_once ROOT_DIR . '/services/Record/UserComments.php';
-require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
-require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
+require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
+require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
 require_once ROOT_DIR . '/sys/SolrStats.php';
 
 class OverDrive_Home extends Action{
 	/** @var  SearchObject_Solr $db */
-	protected $db;
 	private $id;
 	private $isbn;
 	private $issn;
@@ -35,15 +34,6 @@ class OverDrive_Home extends Action{
 		global $interface;
 		global $timer;
 		global $configArray;
-		global $user;
-
-		//Enable and disable functionality based on library settings
-		global $library;
-
-		// Setup Search Engine Connection
-		$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		$this->db = new $class($url);
 
 		if (isset($_REQUEST['searchId'])){
 			$_SESSION['searchId'] = $_REQUEST['searchId'];
@@ -53,91 +43,34 @@ class OverDrive_Home extends Action{
 		}
 
 		$interface->assign('overDriveVersion', isset($configArray['OverDrive']['interfaceVersion']) ? $configArray['OverDrive']['interfaceVersion'] : 1);
-		Record_UserComments::loadEContentComments();
-		$timer->logTime('Loaded Comments');
 
-		$eContentRecord = new EContentRecord();
 		$this->id = strip_tags($_REQUEST['id']);
-		$eContentRecord->id = $this->id;
-		if (!$eContentRecord->find(true)){
-			//TODO: display record not found error
+		$interface->assign('id', $this->id);
+		$overDriveDriver = new OverDriveRecordDriver($this->id);
+
+		if (!$overDriveDriver->isValid()){
+			$interface->setTemplate('../Record/invalidRecord.tpl');
+			$interface->display('layout.tpl');
+			die();
 		}else{
-			$this->recordDriver = new EcontentRecordDriver();
-			$this->recordDriver->setDataObject($eContentRecord);
+			$this->isbn = $overDriveDriver->getCleanISBN();
+			$interface->assign('recordDriver', $overDriveDriver);
 
-			if ($configArray['Catalog']['ils'] == 'Millennium' || $configArray['Catalog']['ils'] == 'Sierra'){
-				if (isset($eContentRecord->ilsId) && strlen($eContentRecord->ilsId) > 0){
-					$interface->assign('classicId', substr($eContentRecord->ilsId, 1, strlen($eContentRecord->ilsId) -2));
-					$interface->assign('classicUrl', $configArray['Catalog']['linking_url']);
-				}
-			}
+			$interface->assign('cleanDescription', strip_tags($overDriveDriver->getDescriptionFast(), '<p><br><b><i><em><strong>'));
 
-			$this->isbn = $eContentRecord->getIsbn();
-			if (is_array($this->isbn)){
-				if (count($this->isbn) > 0){
-					$this->isbn = $this->isbn[0];
-				}else{
-					$this->isbn = "";
-				}
-			}elseif ($this->isbn == null || strlen($this->isbn) == 0){
-				$interface->assign('showOtherEditionsPopup', false);
-			}
-			$this->issn = $eContentRecord->getPropertyArray('issn');
-			if (is_array($this->issn)){
-				if (count($this->issn) > 0){
-					$this->issn = $this->issn[0];
-				}else{
-					$this->issn = "";
-				}
-			}
-			$interface->assign('additionalAuthorsList', $eContentRecord->getPropertyArray('author2'));
-
-			$interface->assign('lccnList', $eContentRecord->getPropertyArray('lccn'));
-			$interface->assign('isbnList', $eContentRecord->getPropertyArray('isbn'));
-			$interface->assign('isbn', $eContentRecord->getIsbn());
-			$interface->assign('isbn10', $eContentRecord->getIsbn10());
-			$interface->assign('issnList', $eContentRecord->getPropertyArray('issn'));
-			$interface->assign('upcList', $eContentRecord->getPropertyArray('upc'));
-			$interface->assign('seriesList', $eContentRecord->getPropertyArray('series'));
-			$interface->assign('topicList', $eContentRecord->getPropertyArray('topic'));
-			$interface->assign('genreList', $eContentRecord->getPropertyArray('genre'));
-			$interface->assign('regionList', $eContentRecord->getPropertyArray('region'));
-			$interface->assign('eraList', $eContentRecord->getPropertyArray('era'));
-
-			$interface->assign('eContentRecord', $eContentRecord);
-			$interface->assign('cleanDescription', strip_tags($eContentRecord->description, '<p><br><b><i><em><strong>'));
-
-			$interface->assign('id', $eContentRecord->id);
-
-			require_once(ROOT_DIR . '/sys/eContent/EContentRating.php');
-			$eContentRating = new EContentRating();
-			$eContentRating->recordId = $eContentRecord->id;
-			$interface->assign('ratingData', $eContentRating->getRatingData($user, false));
+			//$interface->assign('ratingData', $overDriveDriver->getRatingData($user, false));
 
 			//Determine the cover to use
-			$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$eContentRecord->id}&amp;econtent=true&amp;issn={$eContentRecord->getIssn()}&amp;isn={$eContentRecord->getIsbn()}&amp;size=large&amp;upc={$eContentRecord->getUpc()}&amp;category=" . urlencode($eContentRecord->format_category()) . "&amp;format=" . urlencode($eContentRecord->getFirstFormat());
-			$interface->assign('bookCoverUrl', $bookCoverUrl);
+			//$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$eContentRecord->id}&amp;econtent=true&amp;issn={$eContentRecord->getIssn()}&amp;isn={$eContentRecord->getIsbn()}&amp;size=large&amp;upc={$eContentRecord->getUpc()}&amp;category=" . urlencode($eContentRecord->format_category()) . "&amp;format=" . urlencode($eContentRecord->getFirstFormat());
+			//$interface->assign('bookCoverUrl', $bookCoverUrl);
 
 			if (isset($_REQUEST['detail'])){
 				$detail = strip_tags($_REQUEST['detail']);
 				$interface->assign('defaultDetailsTab', $detail);
 			}
 
-			// Find Similar Records
-			$similar = $this->db->getMoreLikeThis('econtentRecord' . $eContentRecord->id);
-			$timer->logTime('Got More Like This');
-
-			// Find Other Editions
-			if ($configArray['Content']['showOtherEditionsPopup'] == false){
-				$editions = OtherEditionHandler::getEditions($eContentRecord->solrId(), $eContentRecord->getIsbn(), null);
-				if (!PEAR_Singleton::isError($editions)) {
-					$interface->assign('editions', $editions);
-				}
-				$timer->logTime('Got Other editions');
-			}
-
 			//Load the citations
-			$this->loadCitation($eContentRecord);
+			//$this->loadCitation($eContentRecord);
 
 			// Retrieve User Search History
 			$interface->assign('lastsearch', isset($_SESSION['lastSearchURL']) ?
@@ -160,192 +93,183 @@ class OverDrive_Home extends Action{
 			$timer->logTime('Got tag list');
 
 			//Load notes if any
-			$marcRecord = MarcLoader::loadEContentMarcRecord($eContentRecord);
-			if ($marcRecord){
-				$tableOfContents = array();
-				$marcFields505 = $marcRecord->getFields('505');
-				if ($marcFields505){
-					$tableOfContents = $this->processTableOfContentsFields($marcFields505);
-				}
+			//$marcRecord = MarcLoader::loadEContentMarcRecord($eContentRecord);
+//			if ($marcRecord){
+//				$tableOfContents = array();
+//				$marcFields505 = $marcRecord->getFields('505');
+//				if ($marcFields505){
+//					$tableOfContents = $this->processTableOfContentsFields($marcFields505);
+//				}
+//
+//				$notes = array();
+//				/*$marcFields500 = $marcRecord->getFields('500');
+//				$marcFields504 = $marcRecord->getFields('504');
+//				$marcFields511 = $marcRecord->getFields('511');
+//				$marcFields518 = $marcRecord->getFields('518');
+//				$marcFields520 = $marcRecord->getFields('520');
+//				if ($marcFields500 || $marcFields504 || $marcFields505 || $marcFields511 || $marcFields518 || $marcFields520){
+//					$allFields = array_merge($marcFields500, $marcFields504, $marcFields511, $marcFields518, $marcFields520);
+//					$notes = $this->processNoteFields($allFields);
+//				}*/
+//
+//				if ((isset($library) && $library->showTableOfContentsTab == 0) || count($tableOfContents) == 0) {
+//					$notes = array_merge($notes, $tableOfContents);
+//				}else{
+//					$interface->assign('tableOfContents', $tableOfContents);
+//				}
+//				if (isset($library) && strlen($library->notesTabName) > 0){
+//					$interface->assign('notesTabName', $library->notesTabName);
+//				}else{
+//					$interface->assign('notesTabName', 'Notes');
+//				}
+//
+//        $additionalNotesFields = array(
+//	                '520' => 'Description',
+//	                '500' => 'General Note',
+//	                '504' => 'Bibliography',
+//	                '511' => 'Participants/Performers',
+//	                '518' => 'Date/Time and Place of Event',
+//                  '310' => 'Current Publication Frequency',
+//                  '321' => 'Former Publication Frequency',
+//                  '351' => 'Organization & arrangement of materials',
+//                  '362' => 'Dates of publication and/or sequential designation',
+//                  '501' => '"With"',
+//                  '502' => 'Dissertation',
+//                  '506' => 'Restrictions on Access',
+//                  '507' => 'Scale for Graphic Material',
+//                  '508' => 'Creation/Production Credits',
+//                  '510' => 'Citation/References',
+//                  '513' => 'Type of Report an Period Covered',
+//                  '515' => 'Numbering Peculiarities',
+//                  '521' => 'Target Audience',
+//                  '522' => 'Geographic Coverage',
+//                  '525' => 'Supplement',
+//                  '526' => 'Study Program Information',
+//                  '530' => 'Additional Physical Form',
+//                  '533' => 'Reproduction',
+//                  '534' => 'Original Version',
+//                  '536' => 'Funding Information',
+//                  '538' => 'System Details',
+//                  '545' => 'Biographical or Historical Data',
+//                  '546' => 'Language',
+//                  '547' => 'Former Title Complexity',
+//                  '550' => 'Issuing Body',
+//                  '555' => 'Cumulative Index/Finding Aids',
+//                  '556' => 'Information About Documentation',
+//                  '561' => 'Ownership and Custodial History',
+//                  '563' => 'Binding Information',
+//                  '580' => 'Linking Entry Complexity',
+//                  '581' => 'Publications About Described Materials',
+//                  '586' => 'Awards',
+//                  '590' => 'Local note',
+//                  '599' => 'Differentiable Local note',
+//        );
+//
+//				foreach ($additionalNotesFields as $tag => $label){
+//					$marcFields = $marcRecord->getFields($tag);
+//					foreach ($marcFields as $marcField){
+//						$noteText = array();
+//						foreach ($marcField->getSubFields() as $subfield){
+//							$noteText[] = $subfield->getData();
+//						}
+//						$note = implode(',', $noteText);
+//						if (strlen($note) > 0){
+//							$notes[] = "<dt>$label</dt><dd>" . $note . '</dd>';
+//						}
+//					}
+//				}
+//
+//				if (count($notes) > 0){
+//					$interface->assign('notes', $notes);
+//				}
+//			}
+//
+//			//Load subjects
+//			if ($marcRecord){
+//				if (isset($configArray['Content']['subjectFieldsToShow'])){
+//					$subjectFieldsToShow = $configArray['Content']['subjectFieldsToShow'];
+//					$subjectFields = explode(',', $subjectFieldsToShow);
+//
+//					$subjects = array();
+//					$standardSubjects = array();
+//					$bisacSubjects = array();
+//					$oclcFastSubjects = array();
+//					foreach ($subjectFields as $subjectField){
+//						/** @var File_MARC_Data_Field[] $marcFields */
+//						$marcFields = $marcRecord->getFields($subjectField);
+//						if ($marcFields){
+//							foreach ($marcFields as $marcField){
+//								$searchSubject = "";
+//								$subject = array();
+//								//Determine the type of the subject
+//								$type = 'standard';
+//								$subjectSource = $marcField->getSubfield('2');
+//								if ($subjectSource != null){
+//									if (preg_match('/bisac/i', $subjectSource->getData())){
+//										$type = 'bisac';
+//									}elseif (preg_match('/fast/i', $subjectSource->getData())){
+//										$type = 'fast';
+//									}
+//								}
+//
+//								foreach ($marcField->getSubFields() as $subField){
+//									/** @var File_MARC_Subfield $subField */
+//									if ($subField->getCode() != '2' && $subField->getCode() != '0'){
+//										$subFieldData = $subField->getData();
+//										if ($type == 'bisac' && $subField->getCode() == 'a'){
+//											$subFieldData = ucwords(strtolower($subFieldData));
+//										}
+//										$searchSubject .= " " . $subFieldData;
+//										$subject[] = array(
+//											'search' => trim($searchSubject),
+//											'title'  => $subFieldData,
+//										);
+//									}
+//								}
+//								if ($type == 'bisac'){
+//									$bisacSubjects[] = $subject;
+//									$subjects[] = $subject;
+//								}elseif ($type == 'fast'){
+//									//Suppress fast subjects by default
+//									$oclcFastSubjects[] = $subject;
+//								}else{
+//									$subjects[] = $subject;
+//									$standardSubjects[] = $subject;
+//								}
+//
+//							}
+//						}
+//						$interface->assign('subjects', $subjects);
+//						$interface->assign('standardSubjects', $standardSubjects);
+//						$interface->assign('bisacSubjects', $bisacSubjects);
+//						$interface->assign('oclcFastSubjects', $oclcFastSubjects);
+//					}
+//				}
+//			}else{
+//				$rawSubjects = $eContentRecord->getPropertyArray('subject');
+//				$subjects = array();
+//				foreach ($rawSubjects as $subject){
+//					$explodedSubjects = explode(' -- ', $subject);
+//					$searchSubject = "";
+//					$subject = array();
+//					foreach ($explodedSubjects as $tmpSubject){
+//						$searchSubject .= $tmpSubject . ' ';
+//						$subject[] = array(
+//							'search' => trim($searchSubject),
+//							'title'  => $tmpSubject,
+//						);
+//					}
+//					$subjects[] = $subject;
+//				}
+//				$interface->assign('subjects', $subjects);
+//			}
+//
+//			$this->loadReviews($eContentRecord);
 
-				$notes = array();
-				/*$marcFields500 = $marcRecord->getFields('500');
-				$marcFields504 = $marcRecord->getFields('504');
-				$marcFields511 = $marcRecord->getFields('511');
-				$marcFields518 = $marcRecord->getFields('518');
-				$marcFields520 = $marcRecord->getFields('520');
-				if ($marcFields500 || $marcFields504 || $marcFields505 || $marcFields511 || $marcFields518 || $marcFields520){
-					$allFields = array_merge($marcFields500, $marcFields504, $marcFields511, $marcFields518, $marcFields520);
-					$notes = $this->processNoteFields($allFields);
-				}*/
-
-				if ((isset($library) && $library->showTableOfContentsTab == 0) || count($tableOfContents) == 0) {
-					$notes = array_merge($notes, $tableOfContents);
-				}else{
-					$interface->assign('tableOfContents', $tableOfContents);
-				}
-				if (isset($library) && strlen($library->notesTabName) > 0){
-					$interface->assign('notesTabName', $library->notesTabName);
-				}else{
-					$interface->assign('notesTabName', 'Notes');
-				}
-
-        $additionalNotesFields = array(
-	                '520' => 'Description',
-	                '500' => 'General Note',
-	                '504' => 'Bibliography',
-	                '511' => 'Participants/Performers',
-	                '518' => 'Date/Time and Place of Event',
-                  '310' => 'Current Publication Frequency',
-                  '321' => 'Former Publication Frequency',
-                  '351' => 'Organization & arrangement of materials',
-                  '362' => 'Dates of publication and/or sequential designation',
-                  '501' => '"With"',
-                  '502' => 'Dissertation',
-                  '506' => 'Restrictions on Access',
-                  '507' => 'Scale for Graphic Material',
-                  '508' => 'Creation/Production Credits',
-                  '510' => 'Citation/References',
-                  '513' => 'Type of Report an Period Covered',
-                  '515' => 'Numbering Peculiarities',
-                  '521' => 'Target Audience',
-                  '522' => 'Geographic Coverage',
-                  '525' => 'Supplement',
-                  '526' => 'Study Program Information',
-                  '530' => 'Additional Physical Form',
-                  '533' => 'Reproduction',
-                  '534' => 'Original Version',
-                  '536' => 'Funding Information',
-                  '538' => 'System Details',
-                  '545' => 'Biographical or Historical Data',
-                  '546' => 'Language',
-                  '547' => 'Former Title Complexity',
-                  '550' => 'Issuing Body',
-                  '555' => 'Cumulative Index/Finding Aids',
-                  '556' => 'Information About Documentation',
-                  '561' => 'Ownership and Custodial History',
-                  '563' => 'Binding Information',
-                  '580' => 'Linking Entry Complexity',
-                  '581' => 'Publications About Described Materials',
-                  '586' => 'Awards',
-                  '590' => 'Local note',
-                  '599' => 'Differentiable Local note',
-        );
-
-				foreach ($additionalNotesFields as $tag => $label){
-					$marcFields = $marcRecord->getFields($tag);
-					foreach ($marcFields as $marcField){
-						$noteText = array();
-						foreach ($marcField->getSubFields() as $subfield){
-							$noteText[] = $subfield->getData();
-						}
-						$note = implode(',', $noteText);
-						if (strlen($note) > 0){
-							$notes[] = "<dt>$label</dt><dd>" . $note . '</dd>';
-						}
-					}
-				}
-
-				if (count($notes) > 0){
-					$interface->assign('notes', $notes);
-				}
-			}
-
-			//Load subjects
-			if ($marcRecord){
-				if (isset($configArray['Content']['subjectFieldsToShow'])){
-					$subjectFieldsToShow = $configArray['Content']['subjectFieldsToShow'];
-					$subjectFields = explode(',', $subjectFieldsToShow);
-
-					$subjects = array();
-					$standardSubjects = array();
-					$bisacSubjects = array();
-					$oclcFastSubjects = array();
-					foreach ($subjectFields as $subjectField){
-						/** @var File_MARC_Data_Field[] $marcFields */
-						$marcFields = $marcRecord->getFields($subjectField);
-						if ($marcFields){
-							foreach ($marcFields as $marcField){
-								$searchSubject = "";
-								$subject = array();
-								//Determine the type of the subject
-								$type = 'standard';
-								$subjectSource = $marcField->getSubfield('2');
-								if ($subjectSource != null){
-									if (preg_match('/bisac/i', $subjectSource->getData())){
-										$type = 'bisac';
-									}elseif (preg_match('/fast/i', $subjectSource->getData())){
-										$type = 'fast';
-									}
-								}
-
-								foreach ($marcField->getSubFields() as $subField){
-									/** @var File_MARC_Subfield $subField */
-									if ($subField->getCode() != '2' && $subField->getCode() != '0'){
-										$subFieldData = $subField->getData();
-										if ($type == 'bisac' && $subField->getCode() == 'a'){
-											$subFieldData = ucwords(strtolower($subFieldData));
-										}
-										$searchSubject .= " " . $subFieldData;
-										$subject[] = array(
-											'search' => trim($searchSubject),
-											'title'  => $subFieldData,
-										);
-									}
-								}
-								if ($type == 'bisac'){
-									$bisacSubjects[] = $subject;
-									$subjects[] = $subject;
-								}elseif ($type == 'fast'){
-									//Suppress fast subjects by default
-									$oclcFastSubjects[] = $subject;
-								}else{
-									$subjects[] = $subject;
-									$standardSubjects[] = $subject;
-								}
-
-							}
-						}
-						$interface->assign('subjects', $subjects);
-						$interface->assign('standardSubjects', $standardSubjects);
-						$interface->assign('bisacSubjects', $bisacSubjects);
-						$interface->assign('oclcFastSubjects', $oclcFastSubjects);
-					}
-				}
-			}else{
-				$rawSubjects = $eContentRecord->getPropertyArray('subject');
-				$subjects = array();
-				foreach ($rawSubjects as $subject){
-					$explodedSubjects = explode(' -- ', $subject);
-					$searchSubject = "";
-					$subject = array();
-					foreach ($explodedSubjects as $tmpSubject){
-						$searchSubject .= $tmpSubject . ' ';
-						$subject[] = array(
-							'search' => trim($searchSubject),
-							'title'  => $tmpSubject,
-						);
-					}
-					$subjects[] = $subject;
-				}
-				$interface->assign('subjects', $subjects);
-			}
-
-			$this->loadReviews($eContentRecord);
-
-			if (isset($_REQUEST['subsection'])){
-				$subsection = $_REQUEST['subsection'];
-				if ($subsection == 'Description'){
-					$interface->assign('extendedMetadata', $this->recordDriver->getExtendedMetadata());
-					$interface->assign('subTemplate', 'view-description.tpl');
-				}elseif ($subsection == 'Reviews'){
-					$interface->assign('subTemplate', 'view-reviews.tpl');
-				}
-			}
 			//Build the actual view
 			$interface->setTemplate('view.tpl');
 
-			$interface->setPageTitle($eContentRecord->title);
+			$interface->setPageTitle($overDriveDriver->getTitle());
 
 			//Var for the IDCLREADER TEMPLATE
 			$interface->assign('ButtonBack',true);
@@ -353,7 +277,7 @@ class OverDrive_Home extends Action{
 			$interface->assign('MobileTitle','&nbsp;');
 
 			//Load Staff Details
-			$interface->assign('staffDetails', $this->recordDriver->getStaffView($eContentRecord));
+			$interface->assign('staffDetails', $overDriveDriver->getStaffView());
 
 			// Display Page
 			$interface->display('layout.tpl');

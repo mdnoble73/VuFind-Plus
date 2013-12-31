@@ -12,6 +12,7 @@ class BookCoverProcessor{
 	private $isbn13;
 	private $upc;
 	private $isEContent;
+	private $type;
 	private $cacheName;
 	private $cacheFile;
 	public $error;
@@ -37,6 +38,13 @@ class BookCoverProcessor{
 			}
 		}
 
+		if ($this->type == 'overdrive'){
+			$this->initDatabaseConnection();
+			//Will exit if we find a cover
+			if ($this->getOverDriveCover()){
+				return;
+			}
+		}
 		if ($this->isEContent){
 			$this->initDatabaseConnection();
 			//Will exit if we find a cover
@@ -55,6 +63,24 @@ class BookCoverProcessor{
 		$this->log("No image found, using die image", PEAR_LOG_INFO);
 		$this->getDefaultCover();
 
+	}
+
+	private function getOverDriveCover(){
+		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
+		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductMetaData.php';
+		$overDriveProduct = new OverDriveAPIProduct();
+		$overDriveProduct->overdriveId = $this->id;
+		if ($overDriveProduct->find(true)){
+			$overDriveMetadata = new OverDriveAPIProductMetaData();
+			$overDriveMetadata->productId = $overDriveProduct->id;
+			$overDriveMetadata->find(true);
+			$filename = $overDriveMetadata->cover;
+			if ($filename != null){
+				return $this->processImageURL($filename);
+			}
+		}else{
+			return false;
+		}
 	}
 
 	private function getCoverFromEContent(){
@@ -176,6 +202,8 @@ class BookCoverProcessor{
 		}
 		$this->id = isset($_GET['id']) ? $_GET['id'] : null;
 		$this->isEContent = isset($_GET['econtent']);
+		$this->type = isset($_GET['type']) ? $_GET['type'] : 'ils';
+
 		$this->category = isset($_GET['category']) ? strtolower($_GET['category']) : null;
 		$this->format = isset($_GET['format']) ? strtolower($_GET['format']) : null;
 		//First check to see if this has a custom cover due to being an e-book

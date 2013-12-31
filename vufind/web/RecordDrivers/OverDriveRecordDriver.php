@@ -14,7 +14,11 @@ class OverDriveRecordDriver implements RecordInterface {
 	private $id;
 	/** @var OverDriveAPIProduct  */
 	private $overDriveProduct;
+	/** @var  OverDriveAPIProductMetaData */
+	private $overDriveMetaData;
 	private $valid;
+	private $isbns;
+	private $items;
 
 	/**
 	 * Constructor.  We build the object using all the data retrieved
@@ -250,7 +254,25 @@ class OverDriveRecordDriver implements RecordInterface {
 	 * @return  string              Name of Smarty template file to display.
 	 */
 	public function getStaffView() {
-		// TODO: Implement getStaffView() method.
+		global $interface;
+
+		$overDriveAPIProduct = new OverDriveAPIProduct();
+		$overDriveAPIProduct->overdriveId = strtolower($this->id);
+		$overDriveAPIProductMetaData = new OverDriveAPIProductMetaData();
+		$overDriveAPIProduct->joinAdd($overDriveAPIProductMetaData, 'INNER');
+		$overDriveAPIProduct->selectAdd(null);
+		$overDriveAPIProduct->selectAdd("overdrive_api_products.rawData as productRaw");
+		$overDriveAPIProduct->selectAdd("overdrive_api_product_metadata.rawData as metaDataRaw");
+		if ($overDriveAPIProduct->find(true)){
+			$productRaw = json_decode($overDriveAPIProduct->productRaw);
+			//Remove links to overdrive that could be used to get semi-sensitive data
+			unset($productRaw->links);
+			unset($productRaw->contentDetails->account);
+			$interface->assign('overDriveProductRaw', $productRaw);
+			$interface->assign('overDriveMetaDataRaw', json_decode($overDriveAPIProduct->metaDataRaw));
+		}
+
+		return 'RecordDrivers/Marc/staff.tpl';
 	}
 
 	/**
@@ -459,6 +481,141 @@ class OverDriveRecordDriver implements RecordInterface {
 	}
 
 	public function getDescriptionFast(){
-		return null;
+		$metaData =  $this->getOverDriveMetaData();
+		return $metaData->fullDescription;
+	}
+
+	public function getDescription(){
+		$metaData =  $this->getOverDriveMetaData();
+		return $metaData->fullDescription;
+	}
+
+	/**
+	 * Return the first valid ISBN found in the record (favoring ISBN-10 over
+	 * ISBN-13 when possible).
+	 *
+	 * @return  mixed
+	 */
+	public function getCleanISBN()
+	{
+		require_once ROOT_DIR . '/sys/ISBN.php';
+
+		// Get all the ISBNs and initialize the return value:
+		$isbns = $this->getISBNs();
+		$isbn13 = false;
+
+		// Loop through the ISBNs:
+		foreach($isbns as $isbn) {
+			// Strip off any unwanted notes:
+			if ($pos = strpos($isbn, ' ')) {
+				$isbn = substr($isbn, 0, $pos);
+			}
+
+			// If we find an ISBN-10, return it immediately; otherwise, if we find
+			// an ISBN-13, save it if it is the first one encountered.
+			$isbnObj = new ISBN($isbn);
+			if ($isbn10 = $isbnObj->get10()) {
+				return $isbn10;
+			}
+			if (!$isbn13) {
+				$isbn13 = $isbnObj->get13();
+			}
+		}
+		return $isbn13;
+	}
+
+	/**
+	 * Get an array of all ISBNs associated with the record (may be empty).
+	 *
+	 * @access  protected
+	 * @return  array
+	 */
+	protected function getISBNs()
+	{
+		//Load ISBNs for the product
+		if ($this->isbns == null){
+			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductIdentifiers.php';
+			$overDriveIdentifiers = new OverDriveAPIProductIdentifiers();
+			$overDriveIdentifiers->type = 'ISBN';
+			$overDriveIdentifiers->productId = $this->overDriveProduct->id;
+			$this->isbns = array();
+			$overDriveIdentifiers->find();
+			while ($overDriveIdentifiers->fetch()){
+				$this->isbns[] = $overDriveIdentifiers->value;
+			}
+		}
+		return $this->isbns;
+	}
+
+	/**
+	 * Get the full title of the record.
+	 *
+	 * @return  string
+	 */
+	public function getTitle()
+	{
+		return $this->overDriveProduct->title;
+	}
+
+	/**
+	 * Get the full title of the record.
+	 *
+	 * @return  string
+	 */
+	public function getSubTitle()
+	{
+		return $this->overDriveProduct->subtitle;
+	}
+
+	/**
+	 * Get an array of all the formats associated with the record.
+	 *
+	 * @access  protected
+	 * @return  array
+	 */
+	public function getFormats()
+	{
+		$this->loadItems();
+		$formats = array();
+		foreach ($this->items as $item){
+			$formats[] = $item->name;
+		}
+		return $formats;
+	}
+
+	private function loadItems(){
+		if ($this->items == null){
+			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductFormats.php';
+			$overDriveFormats = new OverDriveAPIProductFormats();
+			$overDriveFormats->productId = $this->overDriveProduct->id;
+			$overDriveFormats->find();
+			$this->items = array();
+			while ($overDriveFormats->fetch()){
+				$this->items[] = clone $overDriveFormats;
+			}
+		}
+		return $this->items;
+	}
+
+	public function getAuthor(){
+		return $this->overDriveProduct->primaryCreatorName;
+	}
+
+	public function getCoverUrl($size = 'small'){
+		global $configArray;
+		$coverUrl = $configArray['Site']['url'] . '/bookcover.php?size=' . $size;
+		$coverUrl .= '&id=' . $this->id;
+		$coverUrl .= '&type=overdrive';
+		return $coverUrl;
+	}
+
+	private function getOverDriveMetaData() {
+		if ($this->overDriveMetaData == null){
+			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductMetaData.php';
+			$this->overDriveMetaData = new OverDriveAPIProductMetaData();
+			$this->overDriveMetaData->productId = $this->overDriveProduct->id;
+			$this->overDriveMetaData->find(true);
+		}
+		return $this->overDriveMetaData;
 	}
 }

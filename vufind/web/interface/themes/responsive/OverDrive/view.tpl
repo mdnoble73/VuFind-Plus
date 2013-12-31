@@ -1,20 +1,14 @@
 <script type="text/javascript">
 {literal}$(document).ready(function(){{/literal}
-	VuFind.Record.loadHoldingsInfo('{$id|escape:"url"}', '{$id|escape:"url"}', 'eContent');
+	//VuFind.Record.loadHoldingsInfo('{$id|escape:"url"}', '{$id|escape:"url"}', 'eContent');
 	{if $isbn || $upc}
-		VuFind.Record.loadEnrichmentInfo('{$id|escape:"url"}', '{$isbn10|escape:"url"}', '{$upc|escape:"url"}', 'eContent');
+		//VuFind.Record.loadEnrichmentInfo('{$id|escape:"url"}', '{$isbn10|escape:"url"}', '{$upc|escape:"url"}', 'eContent');
 	{/if}
 	{if $isbn && ($showComments || $showAmazonReviews || $showStandardReviews)}
-		VuFind.Record.loadReviewInfo('{$id|escape:"url"}', '{$isbn|escape:"url"}', 'eContent');
+		//VuFind.Record.loadReviewInfo('{$id|escape:"url"}', '{$isbn|escape:"url"}', 'eContent');
 	{/if}
 	{if $enablePospectorIntegration == 1}
-		VuFind.Prospector.loadRelatedProspectorTitles('{$id|escape:"url"}', 'eContent');
-	{/if}
-	{if $user}
-		//getSaveStatus('{$id|escape:"javascript"}', 'saveLink');
-	{/if}
-	{if (isset($title)) }
-		//alert("{$title}");
+		//VuFind.Prospector.loadRelatedProspectorTitles('{$id|escape:"url"}', 'eContent');
 	{/if}
 {literal}});{/literal}
 </script>
@@ -35,32 +29,19 @@
 
 {* Display Title *}
 	<h2>
-		{$eContentRecord->title|removeTrailingPunctuation|escape}{if $eContentRecord->subTitle}: {$eContentRecord->subTitle|removeTrailingPunctuation|escape}{/if}
-		{if $eContentRecord->format()}
-			&nbsp;<small>({implode subject=$eContentRecord->format() glue=", "})</small>
+		{$recordDriver->getTitle()|removeTrailingPunctuation|escape}{if $recordDriver->getSubTitle()}: {$recordDriver->getSubTitle()|removeTrailingPunctuation|escape}{/if}
+		{if $recordDriver->getFormats()}
+			&nbsp;<small>({implode subject=$recordDriver->getFormats() glue=", "})</small>
 		{/if}
 	</h2>
 {* Display more information about the title*}
-	{if $eContentRecord->author}
+	{if $recordDriver->getAuthor()}
 		<h3>
-			by <a href="{$path}/Author/Home?author={$eContentRecord->author|escape:"url"}">{$eContentRecord->author|escape}</a>
+			by <a href="{$path}/Author/Home?author={$recordDriver->getAuthor()|escape:"url"}">{$recordDriver->getAuthor()|escape}</a>
 		</h3>
 	{/if}
 
 	{if $error}<p class="error">{$error}</p>{/if}
-
-	{if $user && $user->hasRole('epubAdmin')}
-		<span id="eContentStatus">{$eContentRecord->status} </span>
-		<div class="btn-group">
-			<a href='{$path}/EcontentRecord/{$id}/Edit' class="btn btn-small">edit</a>
-			{if $eContentRecord->status != 'archived' && $eContentRecord->status != 'deleted'}
-				<a href='{$path}/EcontentRecord/{$id}/Archive' onclick="return confirm('Are you sure you want to archive this record?	The record should not have any holds or checkouts when it is archived.')" class="btn btn-small">archive</a>
-			{/if}
-			{if $eContentRecord->status != 'deleted'}
-				<a href='{$path}/EcontentRecord/{$id}/Delete' onclick="return confirm('Are you sure you want to delete this record?	The record should not have any holds or checkouts when it is deleted.')" class="btn btn-small">delete</a>
-			{/if}
-		</div>
-	{/if}
 
 	<hr/>
 
@@ -70,13 +51,7 @@
 				{* Display Book Cover *}
 				{if $user->disableCoverArt != 1}
 					<div id = "recordcover">
-						<img alt="{translate text='Book Cover'}" class="img-polaroid" src="{$bookCoverUrl}" />
-					</div>
-				{/if}
-
-				{if $goldRushLink}
-					<div class ="titledetails">
-						<a href='{$goldRushLink}' >Check for online articles</a>
+						<img alt="{translate text='Book Cover'}" class="img-polaroid" src="{$recordDriver->getCoverUrl('large')}" />
 					</div>
 				{/if}
 			</div> {* End image column *}
@@ -86,18 +61,18 @@
 					<div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord">Loading...</div>
 				</div>
 
-				{if $cleanDescription}
+				{if $recordDriver->getDescription()}
 					<dl>
 						<dt>{translate text='Description'}</dt>
 						<dd class="recordDescription">
-							{$cleanDescription}
+							{$recordDriver->getDescription()}
 						</dd>
 					</dl>
 				{/if}
 			</div>
 
 			<div id="recordTools" class="span3">
-				{include file="EcontentRecord/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
+				{include file="OverDrive/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
 
 				<div id="ratings" class="well center">
 					{* Let the user rate this title *}
@@ -118,7 +93,7 @@
 
 		<hr/>
 
-		{include file="EcontentRecord/view-tabs.tpl" isbn=$isbn upc=$upc}
+		{include file="OverDrive/view-tabs.tpl" isbn=$isbn upc=$upc}
 
 		<hr/>
 	</div>

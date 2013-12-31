@@ -1012,6 +1012,14 @@ class MarcRecord extends IndexRecord
 			}
 		}
 
+		$addedAuthors = $this->getFieldArray("710");
+		foreach ($addedAuthors as $addedAuthor){
+			$addedAuthor = strtolower($addedAuthor);
+			if (strpos($addedAuthor, "playaway digital audio") !== FALSE || strpos($addedAuthor, "findaway world") !== FALSE){
+				$result[] =  "Playaway";
+			}
+		}
+
 		// check the 007 - this is a repeating field
 		$fields = $this->marcRecord->getFields("007");
 		if ($fields != null) {

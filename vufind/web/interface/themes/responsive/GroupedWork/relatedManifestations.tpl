@@ -28,14 +28,14 @@
 				<div class="span4 btn-group">
 					{foreach from=$relatedManifestation.actions item=curAction}
 						{if $curAction.id == 'ShowRelatedRecords'}
-							<a href="#" class="btn btn-small" onclick="VuFind.showElementInPopup('Related Records', '#relatedRecordPopup_{$id}_{$relatedManifestation.format}');">{$curAction.title}</a>
+							<a href="#" class="btn btn-small" onclick="VuFind.showElementInPopup('Related Records', '#relatedRecordPopup_{$id}_{$relatedManifestation.format|escapeCSS}');">{$curAction.title}</a>
 						{else}
 							<a href="{$curAction.url}" class="btn btn-small">{$curAction.title}</a>
 						{/if}
 					{/foreach}
 				</div>
 			</div>
-			<div class="hidden" id="relatedRecordPopup_{$id}_{$relatedManifestation.format}">
+			<div class="hidden" id="relatedRecordPopup_{$id}_{$relatedManifestation.format|escapeCSS}">
 				{include file="GroupedWork/relatedRecords.tpl" relatedRecords=$relatedManifestation.relatedRecords}
 			</div>
 		{/foreach}
