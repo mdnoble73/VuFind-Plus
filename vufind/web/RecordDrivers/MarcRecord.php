@@ -880,7 +880,7 @@ class MarcRecord extends IndexRecord
 
 	function getDescriptionFast(){
 		/** @var File_MARC_Data_Field $descriptionField */
-		$descriptionField = $this->marcRecord->getField('500');
+		$descriptionField = $this->marcRecord->getField('520');
 		if ($descriptionField != null){
 			return $descriptionField->getSubfield('a')->getData();
 		}
@@ -1028,6 +1028,8 @@ class MarcRecord extends IndexRecord
 				$result[] =  "Computer Software";
 			} else if (strpos($physicalDescription, "sound cassettes") !== FALSE) {
 				$result[] =  "Audio Cassette";
+			} else if (strpos($physicalDescription, "sound discs") !== FALSE) {
+				$result[] =  "Audio CD";
 			}
 		}
 

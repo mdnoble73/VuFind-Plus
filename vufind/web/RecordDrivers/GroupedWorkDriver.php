@@ -493,13 +493,16 @@ class GroupedWorkDriver implements RecordInterface{
 
 	function getDescriptionFast(){
 		$relatedRecords = $this->getRelatedRecords();
+		$bestDescription = '';
 		foreach ($relatedRecords as $relatedRecord){
 			$fastDescription = $relatedRecord['driver']->getDescriptionFast();
 			if ($fastDescription != null && strlen($fastDescription) > 0){
-				return $fastDescription;
+				if (strlen($fastDescription) > $bestDescription){
+					$bestDescription = $fastDescription;
+				}
 			}
 		}
-		return '';
+		return $bestDescription;
 	}
 
 	function getDescription(){
