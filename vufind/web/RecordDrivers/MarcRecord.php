@@ -986,6 +986,8 @@ class MarcRecord extends IndexRecord
 				$result[] =  "PlayStation";
 			} else if (strpos($sysDetailsValue, "nintendo wii") !== FALSE) {
 				$result[] =  "Nintendo Wii";
+			} else if (strpos($sysDetailsValue, "directx") !== FALSE) {
+				$result[] =  "Windows Game";
 			} else if (strpos($sysDetailsValue, "bluray") !== FALSE
 					|| strpos($sysDetailsValue, "blu-ray") !== FALSE) {
 				$result[] =  "Blu-ray";
@@ -993,8 +995,6 @@ class MarcRecord extends IndexRecord
 				$result[] =  "DVD";
 			} else if (strpos($sysDetailsValue, "vertical file") !== FALSE) {
 				$result[] =  "Vertical File";
-			} else if (strpos($sysDetailsValue, "directx") !== FALSE) {
-				$result[] =  "Windows Game";
 			}
 		}
 
@@ -1339,6 +1339,28 @@ class MarcRecord extends IndexRecord
 		$recordId = $this->getUniqueID();
 		$url = $configArray['Site']['path'] . '/Record/' . $recordId;
 		$holdUrl = $configArray['Site']['path'] . '/Record/' . $recordId . '/Hold';
+
+		//Remove OverDrive records that are not formatted properly
+		/** @var File_MARC_Data_Field $field856 */
+		$field856 = $this->marcRecord->getField('856');
+		if ($field856 != null){
+			$subfieldU = $field856->getSubfield('u');
+			if ($subfieldU != null && strpos($subfieldU->getData(), 'overdrive.com') !== FALSE){
+				//Check items to make sure that we got something with |g
+				$hasEContentSubfield = false;
+				/** @var File_MARC_Data_Field[] $itemFields */
+				$itemFields = $this->marcRecord->getField('989');
+				foreach ($itemFields as $item){
+					if ($item->getSubfield('w') != null){
+						$hasEContentSubfield = true;
+						break;
+					}
+				}
+				if (!$hasEContentSubfield){
+					return null;
+				}
+			}
+		}
 
 		$publishers = $this->getPublishers();
 		$publisher = count($publishers) >= 1 ? $publishers[0] : '';

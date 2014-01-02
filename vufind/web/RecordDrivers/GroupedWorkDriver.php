@@ -664,9 +664,11 @@ class GroupedWorkDriver implements RecordInterface{
 					$recordDriver = RecordDriverFactory::initRecordDriverById($relatedRecordId);
 					if ($recordDriver != null && $recordDriver->isValid()){
 						$relatedRecord = $recordDriver->getRelatedRecord();
-						$relatedRecord['driver'] = $recordDriver;
-						if ($relatedRecord['copies'] > 0){
-							$relatedRecords[] = $relatedRecord;
+						if ($relatedRecord != null){
+							$relatedRecord['driver'] = $recordDriver;
+							if ($relatedRecord['copies'] > 0){
+								$relatedRecords[] = $relatedRecord;
+							}
 						}
 					}
 				}

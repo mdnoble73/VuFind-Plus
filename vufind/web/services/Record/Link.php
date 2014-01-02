@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 
-class Link extends Action {
+class Record_Link extends Action {
 
 	function launch() {
 
@@ -39,22 +39,16 @@ class Link extends Action {
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
 
-		// Retrieve Full Marc Record
-		if (!($record = $this->db->getRecord($recordId))) {
-			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
-		}
-		$this->record = $record;
-		$interface->assign('record', $record);
-		
 		// Process MARC Data
 		require_once ROOT_DIR . '/sys/MarcLoader.php';
-		$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+		$marcRecord = MarcLoader::loadMarcRecordByILSId($recordId);
 		if ($marcRecord) {
 			$this->marcRecord = $marcRecord;
 		} else {
 			PEAR_Singleton::raiseError(new PEAR_Error("Failed to load the MAC record for this title."));
 		}
-		
+
+		/** @var File_MARC_Data_Field[] $linkFields */
 		$linkFields = $marcRecord->getFields('856') ;
 		if ($linkFields){
 			$cur856Index = 0;
