@@ -68,7 +68,14 @@
 				</div>
 
 				<div class="row-fluid well-small">
-					<div class="span12 result-value" id="descriptionValue{$summId|escape}">{$summDescription}</div>
+					{if strlen($summDescription) > 300}
+						<div class="span12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|truncate_html:300}
+						<a href='#' onclick='$("#descriptionValue{$summId|escape}").html($("#fullSummary{$summId|escape}").html())'>More</a>
+						</div>
+						<div class="hidden" id="fullSummary{$summId|escape}">{$summDescription}</div>
+					{else}
+						<div class="span12 result-value" id="descriptionValue{$summId|escape}">{$summDescription}</div>
+					{/if}
 				</div>
 			</div>
 

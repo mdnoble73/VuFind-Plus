@@ -91,10 +91,26 @@ public class GroupedWork implements Cloneable{
 		return permanentId;
 	}
 
+	static Pattern authorExtract1 = Pattern.compile("^(.*)\\spresents.*$");
+	static Pattern authorExtract2 = Pattern.compile("^(?:(?:a|an)\\s)?(.*)\\spresentation.*$");
 	private String normalizeAuthor(String author) {
-		String groupingAuthor = author.replaceAll("(?<=[A-Z])\\\\.(?=(\\\\s|[A-Z]|$))", " ");
+		String groupingAuthor = author.replaceAll("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))", " ");
 		groupingAuthor = groupingAuthor.replaceAll("[^\\w\\s]", "").trim().toLowerCase();
 		groupingAuthor = groupingAuthor.replaceAll("\\s{2,}", " ");
+		//extract common additional info (especially for movie studios)
+		Matcher authorExtract1Matcher = authorExtract1.matcher(groupingAuthor);
+		if (authorExtract1Matcher.find()){
+			groupingAuthor = authorExtract1Matcher.group(1);
+		}
+		Matcher authorExtract2Matcher = authorExtract2.matcher(groupingAuthor);
+		if (authorExtract2Matcher.find()){
+			groupingAuthor = authorExtract2Matcher.group(1);
+		}
+		//Normalize warner bros since we get a couple of different variations
+		if (groupingAuthor.equals("warner bros")){
+			groupingAuthor = "warner bros pictures";
+		}
+
 		if (groupingAuthor.length() > 50){
 			groupingAuthor = groupingAuthor.substring(0, 50);
 		}
@@ -132,7 +148,7 @@ public class GroupedWork implements Cloneable{
 		groupingTitle = makeValueSortable(groupingTitle);
 
 		//Fix abbreviations
-		groupingTitle = groupingTitle.replaceAll("(?<=[A-Z])\\\\.(?=(\\\\s|[A-Z]|$))", " ");
+		groupingTitle = groupingTitle.replaceAll("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))", " ");
 		//Replace & with and for better matching
 		groupingTitle = groupingTitle.replace("&", "and");
 		groupingTitle = groupingTitle.replaceAll("[^\\w\\s]", "").toLowerCase();

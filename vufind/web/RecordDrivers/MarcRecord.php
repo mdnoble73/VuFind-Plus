@@ -916,6 +916,11 @@ class MarcRecord extends IndexRecord
 		$field008 = $this->marcRecord->getField('008');
 		if ($field008 != null && strlen($field008->getData() >= 37)){
 			$languageCode = substr($field008->getData(), 35, 3);
+			if ($languageCode == 'eng'){
+				$languageCode = "English";
+			}elseif ($languageCode == 'spa'){
+				$languageCode = "Spanish";
+			}
 			return $languageCode;
 		}else{
 			return 'English';
@@ -924,9 +929,23 @@ class MarcRecord extends IndexRecord
 
 	function getFormat(){
 		$result = array();
+
 		$leader = $this->marcRecord->getLeader();
 		/** @var File_MARC_Control_Field $fixedField */
 		$fixedField = $this->marcRecord->getField("008");
+
+		//Check for eContent information in the 989 field
+		/** @var File_MARC_Data_Field[] $itemFields */
+		$itemFields = $this->marcRecord->getFields('989');
+		foreach ($itemFields as $item){
+			$subfieldW = $item->getSubfield('w');
+			if ($subfieldW != null){
+				if (strpos($subfieldW->getData(), ':') !== FALSE){
+					$subfieldWFields = explode(':', $subfieldW->getData());
+					$result[] = $subfieldWFields[0];
+				}
+			}
+		}
 
 		// check for music recordings quickly so we can figure out if it is music
 		// for category (need to do here since checking what is on the Compact
@@ -964,6 +983,12 @@ class MarcRecord extends IndexRecord
 				$result[] =  "DVD";
 			} else if (strpos($sysDetailsValue, "vertical file") !== FALSE) {
 				$result[] =  "Vertical File";
+			} else if (strpos($sysDetailsValue, "directx") !== FALSE) {
+				$result[] =  "Windows Game";
+			} else if (strpos($sysDetailsValue, "kinect sensor") !== FALSE) {
+				$result[] =  "Xbox 360 Kinect Game";
+			} else if (strpos($sysDetailsValue, "xbox") !== FALSE) {
+				$result[] =  "Xbox 360 Game";
 			}
 		}
 
@@ -993,6 +1018,8 @@ class MarcRecord extends IndexRecord
 			} else if (strpos($physicalDescription, "bluray") !== FALSE
 					|| strpos($physicalDescription, "blu-ray") !== FALSE) {
 				$result[] =  "Blu-ray";
+			} else if (strpos($physicalDescription, "computer optical disc") !== FALSE) {
+				$result[] =  "Computer Software";
 			}
 		}
 
@@ -1166,21 +1193,21 @@ class MarcRecord extends IndexRecord
 							case 'D':
 								if (strlen($formatCode) >= 4) {
 									$speed = substr($formatCode, 3, 1);
-							if ($speed >= 'A' && $speed <= 'E') {
-								$result[] =  "Phonograph";
-							} else if ($speed == 'F') {
-								$result[] =  "Tape Recording";
-							} else if ($speed >= 'K' && $speed <= 'R') {
-								$result[] =  "Tape Recording";
-							} else {
-								$result[] =  "CD";
-							}
-						} else {
+									if ($speed >= 'A' && $speed <= 'E') {
+										$result[] =  "Phonograph";
+									} else if ($speed == 'F') {
+										$result[] =  "Audio CD";
+									} else if ($speed >= 'K' && $speed <= 'R') {
+										$result[] =  "Tape Recording";
+									} else {
+										$result[] =  "CD";
+									}
+								} else {
 									$result[] =  "CD";
 								}
 								break;
 							case 'S':
-								$result[] =  "Cassette";
+								$result[] =  "Audio Cassette";
 								break;
 							default:
 								$result[] =  "Audio";
@@ -1467,6 +1494,10 @@ class MarcRecord extends IndexRecord
 				$publicationDates[] = $rdaPublisherField->getSubfield('c')->getData();
 			}
 		}
+		foreach ($publicationDates as $key => $publicationDate){
+			$publicationDates[$key] = preg_replace('/[.,]$/', '', $publicationDate);
+		}
+		return $publicationDates;
 	}
 
 	/**
@@ -1484,6 +1515,9 @@ class MarcRecord extends IndexRecord
 			if ($rdaPublisherField->getIndicator(2) == 1 && $rdaPublisherField->getSubfield('b') != null){
 				$publishers[] = $rdaPublisherField->getSubfield('b')->getData();
 			}
+		}
+		foreach ($publishers as $key => $publisher){
+			$publishers[$key] = preg_replace('/[.,]$/', '', $publisher);
 		}
 		return $publishers;
 	}
