@@ -148,6 +148,7 @@ public class GroupedWork implements Cloneable{
 		groupingTitle = makeValueSortable(groupingTitle);
 
 		//If the title includes a : in it, take the first part as the title and the second as the subtitle
+		//TODO: test this
 		if (groupingTitle.contains(":")){
 			String[] groupingTitleParts = groupingTitle.split(":", 2);
 			groupingTitle = groupingTitleParts[0];
