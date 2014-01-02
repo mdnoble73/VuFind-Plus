@@ -976,6 +976,16 @@ class MarcRecord extends IndexRecord
 		if ($sysDetailsValue != null) {
 			if (strpos($sysDetailsValue, "playaway") !== FALSE) {
 				$result[] =  "Playaway";
+			} else if (strpos($sysDetailsValue, "kinect sensor") !== FALSE) {
+				$result[] =  "Xbox 360 Kinect";
+			} else if (strpos($sysDetailsValue, "xbox") !== FALSE) {
+				$result[] =  "Xbox 360";
+			} else if (strpos($sysDetailsValue, "playstation 3") !== FALSE) {
+				$result[] =  "PlayStation 3";
+			} else if (strpos($sysDetailsValue, "playstation") !== FALSE) {
+				$result[] =  "PlayStation";
+			} else if (strpos($sysDetailsValue, "nintendo wii") !== FALSE) {
+				$result[] =  "Nintendo Wii";
 			} else if (strpos($sysDetailsValue, "bluray") !== FALSE
 					|| strpos($sysDetailsValue, "blu-ray") !== FALSE) {
 				$result[] =  "Blu-ray";
@@ -985,10 +995,6 @@ class MarcRecord extends IndexRecord
 				$result[] =  "Vertical File";
 			} else if (strpos($sysDetailsValue, "directx") !== FALSE) {
 				$result[] =  "Windows Game";
-			} else if (strpos($sysDetailsValue, "kinect sensor") !== FALSE) {
-				$result[] =  "Xbox 360 Kinect Game";
-			} else if (strpos($sysDetailsValue, "xbox") !== FALSE) {
-				$result[] =  "Xbox 360 Game";
 			}
 		}
 
@@ -1020,6 +1026,8 @@ class MarcRecord extends IndexRecord
 				$result[] =  "Blu-ray";
 			} else if (strpos($physicalDescription, "computer optical disc") !== FALSE) {
 				$result[] =  "Computer Software";
+			} else if (strpos($physicalDescription, "sound cassettes") !== FALSE) {
+				$result[] =  "Audio Cassette";
 			}
 		}
 
