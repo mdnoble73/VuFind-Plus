@@ -530,7 +530,10 @@ class EcontentRecordDriver extends IndexRecord
 				$productRaw = json_decode($overDriveAPIProduct->productRaw);
 				//Remove links to overdrive that could be used to get semi-sensitive data
 				unset($productRaw->links);
-				unset($productRaw->contentDetails->account);
+				if (isset($productRaw->contentDetails) && isset($productRaw->contentDetails->account)){
+					unset($productRaw->contentDetails->account);
+				}
+				
 				$interface->assign('overDriveProductRaw', $productRaw);
 				$interface->assign('overDriveMetaDataRaw', json_decode($overDriveAPIProduct->metaDataRaw));
 			}
