@@ -36,7 +36,7 @@
 							 autocomplete="off"
 								{strip}/>
 
-				{*<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='VuFind.Searches.enableSearchTypes();'>
+				<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='VuFind.Searches.enableSearchTypes();'>
 					{if $filterList}
 						<option data-catalog_type="existing" data-original_type="{$searchSource}" value="existing" title="{translate text="Existing Search"}" selected="selected" id="existing_search_option">{translate text="in Existing Search Results"}</option>
 					{/if}
@@ -50,7 +50,7 @@
 						</option>
 					{/foreach}
 					{strip}
-				</select>*}
+				</select>
 				<div id="search_button" class="btn-group">
 					<button id='searchBarFind' class="btn btn-primary">
 						{translate text="Find"}
