@@ -81,7 +81,7 @@
 
                         {* Ben custom filters *}
                         <li>
-                            All:&nbsp;<input name="searchSource" type="radio" value="allstuff" checked="checked" title="{translate text="show all results"}" /> &nbsp;Only Downloadable:&nbsp;
+                            All:&nbsp;<input name="searchSource1" type="radio" value="allstuff" checked="checked" title="{translate text="show all results"}" /> &nbsp;Only Downloadable:&nbsp;
                             <input name="searchSource" type="radio" value="estuff" title="{translate text="show only eBooks and eAudio results"}" />
                         </li>
 						{* Link to Search Tips Help *}
