@@ -293,7 +293,6 @@ class SearchSources{
 			return $worldCatLink;
 		}else if ($searchSource == 'overdrive'){
 			return "http://wakegov.lib.overdrive.com/BangSearch.dll?Type=FullText&FullTextField=All&FullTextCriteria=" . urlencode($lookFor);
-		}
         }else if ($searchSource == 'estuff'){
         return "{$path}/Search/Results?lookfor=" . urlencode($lookFor) . "&type=Keyword&basicType=&filter[]=format_category%3A'eBook&sort=relevance&view=list";
         }
