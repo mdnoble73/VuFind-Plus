@@ -108,9 +108,9 @@
 			{/if}
 		</fieldset>
         <div id="undersearch_div">
-            {* Ben custom filters *}
+            {* Ben custom filters
                 All:&nbsp;<input name="searchSource" type="radio" value="allstuff" checked="checked" title="{translate text="show all results"}" /> &nbsp;Only Downloadable:&nbsp;
-                <input name="searchSource" type="radio" value="estuff" title="{translate text="show only eBooks and eAudio results"}" />
+                <input name="searchSource" type="radio" value="estuff" title="{translate text="show only eBooks and eAudio results"}" />*}
             {* Ben Link to Search Tips Help *}
             <a href="{$path}/Help/Home?topic=search" class="modalDialogTrigger" data-title="{translate text='Search Tips'}">
             <img class="brand" src="{img filename="ask_icon_sm.fw.png"}" alt="{$librarySystemName}" title="{translate text='Search Tips'}" id="help_undersearch" />
