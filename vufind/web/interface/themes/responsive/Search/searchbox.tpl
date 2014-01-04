@@ -79,12 +79,18 @@
 							</li>
 						{/if}
 
+                        {* Ben custom filters *}
+                        <li>
+                            All:&nbsp;<input name="searchSource" type="radio" value="allstuff" checked="checked" title="{translate text="show all results"}" /> &nbsp;Only Downloadable:&nbsp;
+                            <input name="searchSource" type="radio" value="estuff" title="{translate text="show only eBooks and eAudio results"}" />
+                        </li>
 						{* Link to Search Tips Help *}
 						<li>
 							<a href="{$path}/Help/Home?topic=search" title="{translate text='Search Tips'}" id="searchTips" class="modalDialogTrigger">
 								<i class="icon-question-sign"></i> {translate text='Search Tips'}
 							</a>
 						</li>
+
 					</ul>
 				</div>
 			</div>
