@@ -293,12 +293,13 @@ class SearchSources{
 			return $worldCatLink;
 		}else if ($searchSource == 'overdrive'){
 			return "http://wakegov.lib.overdrive.com/BangSearch.dll?Type=FullText&FullTextField=All&FullTextCriteria=" . urlencode($lookFor);
-        }else if ($searchSource == 'estuff'){
+        }
+        /*else if ($searchSource == 'estuff'){
         return "{$path}/Search/Results?lookfor=" . urlencode($lookFor) . "&type=Keyword&basicType=&filter[]=format_category%3A'eBook&sort=relevance&view=list";
         }
         else if ($searchSource == 'allstuff'){
         return "{$path}/Search/Results?lookfor=" . urlencode($lookFor) . "&type=Keyword&basicType=&sort=relevance&view=list";
-        }
+        }*/
         else if ($searchSource == 'prospector'){
 			$prospectorSearchType = $this->getProspectorSearchType($type);
 			$lookFor = str_replace('+', '%20', rawurlencode($lookFor));
