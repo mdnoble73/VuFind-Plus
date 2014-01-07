@@ -190,8 +190,7 @@ function format_category_comparator($a, $b){
 		'eBook' => 2,
 		'Audio Books' => 3,
 		'eAudio' => 4,
-		'Music' => 5,
-		'Movies' => 6,
+		'Lists' => 5
 	);
 
 	$a = $formatCategorySortOrder[$a];
