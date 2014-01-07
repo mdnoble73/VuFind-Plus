@@ -188,7 +188,7 @@ function format_category_comparator($a, $b){
 	$formatCategorySortOrder = array(
 		'Books' => 1,
 		'eBook' => 2,
-		'Audio Books' => 3,
+		'Audio Book' => 3,
 		'eAudio' => 4,
 		'Lists' => 5
 	);
