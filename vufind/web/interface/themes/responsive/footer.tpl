@@ -53,7 +53,9 @@
                          <li><a href="http://www.facebook.com/wcplonline" target="_blank" title="WCPL Facebook Page">
                                  <img src="{img filename="fb_white.fw.png"}" alt="WCPL Facebook" title="WCPL Facebook" id="wcpl_fb"/>
                                  {translate text='Facebook'}</a></li>
-                         <li><a href="http://www.youtube.com/wcplonline" target="_blank" title="WCPL YouTube Channel">{translate text='YouTube'}</a></li>
+                         <li><a href="http://www.youtube.com/wcplonline" target="_blank" title="WCPL YouTube Channel">
+                                 <img src="{img filename="youtube-icon_sm.fw.png"}" alt="WCPL Facebook" title="WCPL Facebook" id="wcpl_fb"/>
+                                 {translate text='YouTube'}</a></li>
                          <li><a href='http://www.twitter.com/wcplonline' target="_blank" title="WCPL Twitter Page">{translate text='Twitter'}</a></li>
                          <li><a href='http://askwcpl.wakegov.com/' target="_blank" title="AskWCPL Answers Database">{translate text='AskWCPL'}</a></li>
                     </ul>
