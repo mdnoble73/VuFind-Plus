@@ -424,7 +424,7 @@ class OverDriveRecordDriver implements RecordInterface {
 		$relatedRecord = array(
 			'id' => $recordId,
 			'url' => $url,
-			'format' => $this->overDriveProduct->mediaType == 'Audiobook' ? 'eAudiobook' : $this->overDriveProduct->mediaType,
+			'format' => 'OverDrive ' . ($this->overDriveProduct->mediaType == 'Audiobook' ? 'eAudiobook' : $this->overDriveProduct->mediaType),
 			'edition' => '',
 			'language' => $this->getLanguage(),
 			'title' => $this->overDriveProduct->title,

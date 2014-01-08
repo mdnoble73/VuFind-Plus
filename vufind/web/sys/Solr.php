@@ -742,23 +742,23 @@ class Solr implements IndexEngine {
 		$boostFactors[] = 'sum(rating,1)';
 
 		if (isset($searchLibrary) && !is_null($searchLibrary) && $searchLibrary->boostByLibrary == 1) {
-			$boostFactors[] = "lib_boost_{$searchLibrary->subdomain}";
+			$boostFactors[] = "sum(lib_boost_{$searchLibrary->subdomain},1)";
 		}else{
 			//Handle boosting even if we are in a global scope
 			global $library;
 			if ($library && $library->boostByLibrary == 1){
-				$boostFactors[] = "lib_boost_{$library->subdomain}";
+				$boostFactors[] = "sum(lib_boost_{$library->subdomain},1)";
 			}
 		}
 
 		if (isset($searchLocation) && !is_null($searchLocation) && $searchLocation->boostByLocation == 1) {
-			$boostFactors[] = "lib_boost_{$searchLocation->code}";
+			$boostFactors[] = "sum(lib_boost_{$searchLocation->code},1)";
 		}else{
 			//Handle boosting even if we are in a global scope
 			global $locationSingleton;
 			$physicalLocation = $locationSingleton->getActiveLocation();
 			if ($physicalLocation != null && $physicalLocation->boostByLocation ==1){
-				$boostFactors[] = "sum(div(lib_boost_{$physicalLocation->code},10),1)";
+				$boostFactors[] = "sum(lib_boost_{$physicalLocation->code}),1)";
 			}
 		}
 		return $boostFactors;
