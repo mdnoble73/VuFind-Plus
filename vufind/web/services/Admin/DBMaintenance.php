@@ -2471,6 +2471,37 @@ class DBMaintenance extends Admin_Admin {
 
 			),
 
+			'grouped_works_1' => array(
+				'title' => 'Grouped Work update 1',
+				'description' =>'Updates grouped works to normalize identifiers and add a reference table to link to .',
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS grouped_work_identifiers_ref (
+					  grouped_work_id bigint(20) NOT NULL,
+					  identifier_id bigint(20) NOT NULL,
+					  PRIMARY KEY (grouped_work_id, identifier_id)
+					) ENGINE=MyISAM  DEFAULT CHARSET=utf8",
+					"TRUNCATE TABLE grouped_work_identifiers",
+					"ALTER TABLE `grouped_work_identifiers` CHANGE `type` `type` ENUM( 'asin', 'ils', 'isbn', 'issn', 'oclc', 'upc', 'order', 'external_econtent', 'acs', 'free', 'overdrive' )",
+					"ALTER TABLE grouped_work_identifiers DROP COLUMN grouped_work_id",
+					"ALTER TABLE grouped_work_identifiers DROP COLUMN linksToDifferentTitles",
+					"ALTER TABLE grouped_work_identifiers ADD UNIQUE (`type`, `identifier`)",
+				),
+			),
+
+			'ils_marc_checksums' => array(
+				'title' => 'ILS MARC Checksums',
+				'description' =>'Add a table to store checksums of MARC records stored in the ILS so we can determine if the record needs to be updated during grouping.',
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS ils_marc_checksums (
+						id INT(11) NOT NULL AUTO_INCREMENT,
+					  ilsId varchar(20) NOT NULL,
+					  checksum bigint(20) UNSIGNED NOT NULL,
+					  PRIMARY KEY (id),
+					  UNIQUE (ilsId)
+					) ENGINE=MyISAM  DEFAULT CHARSET=utf8",
+				),
+			),
+
 			'work_level_ratings' => array(
 				'title' => 'Work Level Ratings',
 				'description' => 'Stores user ratings at the work level rather than the individual record.',

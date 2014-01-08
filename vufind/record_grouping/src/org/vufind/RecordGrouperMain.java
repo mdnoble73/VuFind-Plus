@@ -15,12 +15,11 @@ import org.marc4j.marc.Subfield;
 
 import java.io.*;
 import java.nio.charset.Charset;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.zip.CRC32;
 
 /**
  * Groups records so that we can show single multiple titles as one rather than as multiple lines.
@@ -35,6 +34,13 @@ public class RecordGrouperMain {
 
 	public static String groupedWorkTableName = "grouped_work";
 	public static String groupedWorkIdentifiersTableName = "grouped_work_identifiers";
+	public static String groupedWorkIdentifiersRefTableName = "grouped_work_identifiers_ref";
+
+	private static long timeSpentWritingMarcRecords;
+
+	private static HashMap<String, Long> marcRecordChecksums = new HashMap<String, Long>();
+	private static PreparedStatement insertMarcRecordChecksum;
+	private static PreparedStatement updateMarcRecordChecksum;
 
 	public static void main(String[] args) {
 		// Get the configuration filename
@@ -72,8 +78,24 @@ public class RecordGrouperMain {
 			System.exit(1);
 		}
 
-		//Load MARC Existing MARC Records from Sierra?
-		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn);
+		//Load MARC Existing MARC Record checksums from VuFind
+		try{
+			PreparedStatement loadIlsMarcChecksums = vufindConn.prepareStatement("SELECT * from ils_marc_checksums",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			insertMarcRecordChecksum = vufindConn.prepareStatement("INSERT INTO ils_marc_checksums (ilsId, checksum) VALUES (?, ?)");
+			updateMarcRecordChecksum = vufindConn.prepareStatement("UPDATE ils_marc_checksums SET checksum = ? WHERE ilsId = ?");
+			ResultSet ilsMarcChecksumRS = loadIlsMarcChecksums.executeQuery();
+			while (ilsMarcChecksumRS.next()){
+				marcRecordChecksums.put(ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("checksum"));
+			}
+			ilsMarcChecksumRS.close();
+
+		}catch (Exception e){
+			logger.error("Error loading marc checksums for ILS records", e);
+			System.exit(1);
+		}
+
+
+		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, logger);
 		//Clear the database first
 		boolean clearDatabasePriorToGrouping = true;
 		boolean groupIlsRecords = true;
@@ -83,16 +105,18 @@ public class RecordGrouperMain {
 			try{
 				vufindConn.prepareStatement("TRUNCATE " + groupedWorkTableName).executeUpdate();
 				vufindConn.prepareStatement("TRUNCATE " + groupedWorkIdentifiersTableName).executeUpdate();
+				vufindConn.prepareStatement("TRUNCATE " + groupedWorkIdentifiersRefTableName).executeUpdate();
 			}catch (Exception e){
 				System.out.println("Error clearing database " + e.toString());
 				System.exit(1);
 			}
 		}
 
+		int numRecordsProcessed = 0;
+
 		//Group records from OverDrive
 		if (groupOverDriveRecords){
 			try{
-				int numRecordsProcessed = 0;
 				long startTime = new Date().getTime();
 				PreparedStatement overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				PreparedStatement overDriveIdentifiersStmt = econtentConnection.prepareStatement("SELECT * FROM overdrive_api_product_identifiers WHERE id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -132,31 +156,30 @@ public class RecordGrouperMain {
 					}
 
 					recordGroupingProcessor.processRecord(title, subtitle, author, mediaType, overDriveIdentifiers);
-
 					numRecordsProcessed++;
-					if (numRecordsProcessed % 1000 == 0){
-						long elapsedTime = new Date().getTime() - startTime;
-						System.out.println("Processed " + numRecordsProcessed + " records in " + (elapsedTime / 1000) + " seconds");
-					}
 				}
+				overDriveRecordRS.close();
 			}catch (Exception e){
 				System.out.println("Error loading OverDrive records: " + e.toString());
 				e.printStackTrace();
 			}
 		}
+		logger.debug("-----------------------------------------------------------");
+		logger.debug("Finished processing OverDrive records");
+		recordGroupingProcessor.dumpStats();
 
 		if (groupIlsRecords){
 			String individualMarcPath = configIni.get("Reindex", "individualMarcPath");
 			String marcPath = configIni.get("Reindex", "marcPath");
 			File[] catalogBibFiles = new File(marcPath).listFiles();
-			int numRecordsProcessed = 0;
 			long startTime = new Date().getTime();
 			if (catalogBibFiles != null){
 				for (File curBibFile : catalogBibFiles){
 					if (curBibFile.getName().endsWith(".mrc") || curBibFile.getName().endsWith(".marc")){
 						System.out.println("Processing " + curBibFile);
 						try{
-							MarcReader catalogReader = new MarcPermissiveStreamReader(new FileInputStream(curBibFile), true, true, "UTF8");
+							FileInputStream marcFileStream = new FileInputStream(curBibFile);
+							MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, "UTF8");
 							while (catalogReader.hasNext()){
 								Record curBib = catalogReader.next();
 								recordGroupingProcessor.processMarcRecord(curBib);
@@ -164,43 +187,44 @@ public class RecordGrouperMain {
 								writeIndividualMarc(individualMarcPath, curBib);
 
 								numRecordsProcessed++;
-								if (numRecordsProcessed % 1000 == 0){
+								if (numRecordsProcessed % 25000 == 0){
 									long elapsedTime = new Date().getTime() - startTime;
-									System.out.println("Processed " + numRecordsProcessed + " records in " + (elapsedTime / 1000) + " seconds");
+									recordGroupingProcessor.dumpStats();
+									long minutesWritingMarcs = timeSpentWritingMarcRecords / (60 * 1000);
+									logger.debug("Spent " + minutesWritingMarcs + " minutes writing marc records");
 								}
 							}
+							marcFileStream.close();
 						}catch(Exception e){
-							System.out.println("Error loading catalog bibs: " + e.toString());
-							e.printStackTrace();
+							logger.error("Error loading catalog bibs: ", e);
 						}
 					}
-					System.out.println("Finished grouping " + numRecordsProcessed + " records from the ils.");
+					logger.info("Finished grouping " + numRecordsProcessed + " records from the ils.");
 				}
 			}
 		}
 
 		//TODO: Group records from other sources
 
-		//Dump all of the subtitle variances
-		recordGroupingProcessor.dumpSubtitleVariances();
+		//TODO: Do fuzzy matching for any identifiers that link to more than one grouped work.
 
 		recordGroupingProcessor.dumpStats();
 
 		try{
 			vufindConn.close();
 		}catch (Exception e){
-			System.out.println("Error closing database " + e.toString());
+			logger.error("Error closing database ", e);
 			System.exit(1);
 		}
-		System.out.println("Finished grouping records " + new Date().toString());
+		logger.info("Finished grouping records " + new Date().toString());
 		long endTime = new Date().getTime();
 		long elapsedTime = endTime - processStartTime;
-		System.out.println("Elapsed Minutes " + (elapsedTime / 60000));
+		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
 	}
 
 	private static void writeIndividualMarc(String individualMarcPath, Record marcRecord) {
-		//Copy the record to the individual marcs path
-
+		long start = new Date().getTime();
+		//Copy the record to the individual marc path
 		DataField field907 = (DataField)marcRecord.getVariableField("907");
 		String recordNumber = null;
 		if (field907 != null) {
@@ -212,38 +236,64 @@ public class RecordGrouperMain {
 			}
 		}
 		if (recordNumber != null){
-			String shortId = recordNumber.replace(".", "");
-			String firstChars = shortId.substring(0, 4);
-			String basePath = individualMarcPath + "/" + firstChars;
-			String individualFilename = basePath + "/" + shortId + ".mrc";
-			File individualFile = new File(individualFilename);
-			File baseFile = new File(basePath);
-			if (!baseFile.exists()){
-				if (!baseFile.mkdirs()){
-					System.out.println("Could not create directory to store individual marc");
+			boolean marcRecordUpToDate = false;
+			boolean marcRecordExists = false;
+			long checksum = getChecksum(marcRecord);
+			if (marcRecordChecksums.containsKey(recordNumber)){
+				marcRecordExists = true;
+				if (checksum == marcRecordChecksums.get(recordNumber)){
+					marcRecordUpToDate = true;
 				}
 			}
-
-			try {
-				OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(individualFile,false), Charset.forName("UTF-8").newEncoder());
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				MarcWriter writer2 = new MarcStreamWriter(out, "UTF-8");
-				writer2.write(marcRecord);
-				writer2.close();
-
-				String result = null;
-				try {
-					result = out.toString("UTF-8");
-				} catch (UnsupportedEncodingException e) {
-					// e.printStackTrace();
-					System.out.println(e.getCause());
+			if (!marcRecordUpToDate){
+				String shortId = recordNumber.replace(".", "");
+				String firstChars = shortId.substring(0, 4);
+				String basePath = individualMarcPath + "/" + firstChars;
+				String individualFilename = basePath + "/" + shortId + ".mrc";
+				File individualFile = new File(individualFilename);
+				File baseFile = new File(basePath);
+				if (!baseFile.exists()){
+					if (!baseFile.mkdirs()){
+						System.out.println("Could not create directory to store individual marc");
+					}
 				}
-				writer.write(result);
-				writer.close();
-			} catch (IOException e) {
-				logger.error("Error writing marc", e);
+
+				try {
+					OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(individualFile,false), Charset.forName("UTF-8").newEncoder());
+					ByteArrayOutputStream out = new ByteArrayOutputStream();
+					MarcWriter writer2 = new MarcStreamWriter(out, "UTF-8");
+					writer2.write(marcRecord);
+					writer2.close();
+
+					String result = null;
+					try {
+						result = out.toString("UTF-8");
+					} catch (UnsupportedEncodingException e) {
+						// e.printStackTrace();
+						System.out.println(e.getCause());
+					}
+					writer.write(result);
+					writer.close();
+
+					try{
+						if (!marcRecordExists){
+							insertMarcRecordChecksum.setString(1, recordNumber);
+							insertMarcRecordChecksum.setLong(2, checksum);
+							insertMarcRecordChecksum.executeUpdate();
+						}else{
+							updateMarcRecordChecksum.setLong(1, checksum);
+							updateMarcRecordChecksum.setString(2, recordNumber);
+							updateMarcRecordChecksum.executeUpdate();
+						}
+					}catch (SQLException e){
+						logger.error("Unable to update checksum for ils marc record", e);
+					}
+				} catch (IOException e) {
+					logger.error("Error writing marc", e);
+				}
 			}
 		}
+		timeSpentWritingMarcRecords += new Date().getTime() - start;
 	}
 
 	private static Ini loadConfigFile(String filename){
@@ -306,5 +356,11 @@ public class RecordGrouperMain {
 			value = value.substring(0, value.length() - 1);
 		}
 		return value;
+	}
+
+	public static long getChecksum(Record marcRecord) {
+		CRC32 crc32 = new CRC32();
+		crc32.update(marcRecord.toString().getBytes());
+		return crc32.getValue();
 	}
 }

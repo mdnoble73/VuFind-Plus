@@ -1,5 +1,7 @@
 package org.vufind;
 
+import java.util.HashSet;
+
 /**
  * Description goes here
  * Rampart Marc Conversion
@@ -10,7 +12,8 @@ package org.vufind;
 public class RecordIdentifier {
 	private String type;
 	private String identifier;
-
+	private long identifierId;
+	private HashSet<Long> relatedWorkIds = new HashSet<Long>();
 
 	@Override
 	public int hashCode() {
@@ -20,7 +23,7 @@ public class RecordIdentifier {
 	private String myString = null;
 	public String toString(){
 		if (myString == null){
-			myString = type + ":" + identifier;
+			myString = new StringBuilder(type).append(":").append(identifier.toUpperCase()).toString();
 		}
 		return myString;
 	}
@@ -40,8 +43,10 @@ public class RecordIdentifier {
 	}
 
 	public boolean isValid() {
-		if (type.equals("isbn") || type.equals("upc")){
-			return type.matches("^\\d+$");
+		if (type.equals("upc")){
+			return identifier.matches("^\\d{7,14}?$");
+		}else if (type.equals("isbn") || type.equals("upc")){
+			return identifier.matches("^\\d{9}X|\\d{10}|\\d{12}X|\\d{13}$");
 		}else{
 			return identifier.length() > 0;
 		}
@@ -53,9 +58,62 @@ public class RecordIdentifier {
 
 	public void setValue(String type, String identifier) {
 		this.type = type.toLowerCase();
-		if (this.type.equals("isbn") || this.type.equals("upc")){
-			identifier = identifier.replaceAll("\\D", "");
+		if (this.type.equals("isbn")){
+			identifier = identifier.replaceAll("[\\DXx]", "").toUpperCase().trim();
+			//Convert any ISBN-10 to ISBN-13 for consistency and to minimize the total number of stored ISBNs
+			if (identifier.length() == 10){
+				identifier = convertISBN10to13(identifier);
+			}
+		}else if (this.type.equals("upc")){
+			identifier = identifier.replaceAll("[\\D]", "");
+		}else if (this.type.equals("oclc")){
+			identifier = identifier.toUpperCase();
 		}
+		identifier = identifier.trim();
 		this.identifier = identifier;
+	}
+
+	public static String convertISBN10to13(String isbn10){
+		if (isbn10.length() != 10){
+			return null;
+		}
+		String isbn = "978" + isbn10.substring(0, 9);
+		//Calculate the 13 digit checksum
+		int sumOfDigits = 0;
+		for (int i = 0; i < 12; i++){
+			int multiplier = 1;
+			if (i % 2 == 1){
+				multiplier = 3;
+			}
+			sumOfDigits += multiplier * (int)(isbn.charAt(i));
+		}
+		int modValue = sumOfDigits % 10;
+		int checksumDigit;
+		if (modValue == 0){
+			checksumDigit = 0;
+		}else{
+			checksumDigit = 10 - modValue;
+		}
+		return  isbn + Integer.toString(checksumDigit);
+	}
+
+	public long getIdentifierId() {
+		return identifierId;
+	}
+
+	public void setIdentifierId(long identifierId) {
+		this.identifierId = identifierId;
+	}
+
+	public boolean isLinkedToGroupedWork(Long groupedWorkId){
+		return relatedWorkIds.contains(groupedWorkId);
+	}
+
+	public void addRelatedGroupedWork(Long groupedWorkId){
+		relatedWorkIds.add(groupedWorkId);
+	}
+
+	public boolean isSharedIdentifier() {
+		return type.equals("isbn") || type.equals("issn") || type.equals("upc") || type.equals("asin") || type.equals("oclc");
 	}
 }

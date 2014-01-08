@@ -37,13 +37,6 @@ public class GroupedWork implements Cloneable{
 
 	}
 
-	public GroupedWork(GroupedRecord groupedRecord){
-		this.title = groupedRecord.title;
-		this.author = groupedRecord.author;
-		this.subtitle = groupedRecord.subtitle;
-		groupingCategory = categoryMap.get(groupedRecord.groupingCategory);
-	}
-
 	public String getPermanentId() {
 		String permanentId = null;
 		try {
@@ -93,10 +86,14 @@ public class GroupedWork implements Cloneable{
 
 	static Pattern authorExtract1 = Pattern.compile("^(.*)\\spresents.*$");
 	static Pattern authorExtract2 = Pattern.compile("^(?:(?:a|an)\\s)?(.*)\\spresentation.*$");
+	static Pattern initialsFix = Pattern.compile("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))");
+	static Pattern specialCharacterStrip = Pattern.compile("[^\\w\\s]");
+	static Pattern consecutiveCharacterStrip = Pattern.compile("\\s{2,}");
+
 	private String normalizeAuthor(String author) {
-		String groupingAuthor = author.replaceAll("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))", " ");
-		groupingAuthor = groupingAuthor.replaceAll("[^\\w\\s]", "").trim().toLowerCase();
-		groupingAuthor = groupingAuthor.replaceAll("\\s{2,}", " ");
+		String groupingAuthor = initialsFix.matcher(author).replaceAll(" ");
+		groupingAuthor = specialCharacterStrip.matcher(groupingAuthor).replaceAll("").trim().toLowerCase();
+		groupingAuthor = consecutiveCharacterStrip.matcher(groupingAuthor).replaceAll(" ");
 		//extract common additional info (especially for movie studios)
 		Matcher authorExtract1Matcher = authorExtract1.matcher(groupingAuthor);
 		if (authorExtract1Matcher.find()){
@@ -118,14 +115,22 @@ public class GroupedWork implements Cloneable{
 		return groupingAuthor;
 	}
 
-
+	static Pattern commonSubtitlesPattern = Pattern.compile("^((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|a .* story|a .*\\s?book|poems|the movie|.*series book \\d+)$");
 	private String normalizeSubtitle(String originalTitle) {
 		if (originalTitle.length() > 0){
 			String groupingSubtitle = originalTitle.replaceAll("&", "and");
+
+			groupingSubtitle = specialCharacterStrip.matcher(groupingSubtitle).replaceAll("").toLowerCase().trim();
+			groupingSubtitle = consecutiveCharacterStrip.matcher(groupingSubtitle).replaceAll(" ");
+
 			//Remove some common subtitles that are meaningless
-			groupingSubtitle = groupingSubtitle.replaceAll("[^\\w\\s]", "").toLowerCase().trim();
-			groupingSubtitle = groupingSubtitle.replaceAll("\\s{2,}", " ");
-			groupingSubtitle = groupingSubtitle.replaceAll("^((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|a .* story|a .*\\s?book|poems|the movie)$", "");
+			//TODO: Make sure that this really doesn't give us an improvement.
+			//If we stop grouping actual subtitles with the empty version, this could have benefits.
+			Matcher commonSubtitleMatcher = commonSubtitlesPattern.matcher(groupingSubtitle);
+			if (commonSubtitleMatcher.matches()){
+				groupingSubtitle = "";
+			}
+
 			if (groupingSubtitle.length() > 175){
 				groupingSubtitle = groupingSubtitle.substring(0, 175);
 			}
@@ -136,7 +141,7 @@ public class GroupedWork implements Cloneable{
 		}
 	}
 
-
+	static Pattern subtitleIndicator = Pattern.compile("[:;/=]") ;
 	private String normalizeTitle(String fullTitle, int numNonFilingCharacters) {
 		String groupingTitle;
 		if (numNonFilingCharacters > 0 && numNonFilingCharacters < fullTitle.length()){
@@ -149,19 +154,20 @@ public class GroupedWork implements Cloneable{
 
 		//If the title includes a : in it, take the first part as the title and the second as the subtitle
 		//TODO: test this
-		if (groupingTitle.contains(":")){
-			String[] groupingTitleParts = groupingTitle.split(":", 2);
-			groupingTitle = groupingTitleParts[0];
-			setSubtitle(groupingTitleParts[1]);
+		Matcher subtitleMatcher = subtitleIndicator.matcher(groupingTitle);
+		if (subtitleMatcher.find()){
+			int startPos = subtitleMatcher.start();
+			setSubtitle(groupingTitle.substring(startPos + 1));
+			groupingTitle = groupingTitle.substring(0, startPos);
 		}
 
 		//Fix abbreviations
-		groupingTitle = groupingTitle.replaceAll("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))", " ");
+		groupingTitle = initialsFix.matcher(groupingTitle).replaceAll(" ");
 		//Replace & with and for better matching
 		groupingTitle = groupingTitle.replace("&", "and");
-		groupingTitle = groupingTitle.replaceAll("[^\\w\\s]", "").toLowerCase();
+		groupingTitle = specialCharacterStrip.matcher(groupingTitle).replaceAll("").toLowerCase();
 		//Replace consecutive spaces
-		groupingTitle = groupingTitle.replaceAll("\\s{2,}", " ");
+		groupingTitle = consecutiveCharacterStrip.matcher(groupingTitle).replaceAll(" ");
 
 		int titleEnd = 100;
 		if (titleEnd < groupingTitle.length()) {
@@ -202,6 +208,16 @@ public class GroupedWork implements Cloneable{
 	}
 
 	public void setSubtitle(String subtitle) {
+		if (this.subtitle.length() != 0){
+			//We got multiple subtitles by splitting the original title.
+			//move the current subtitle back to the title and then add this subtitle
+			String tmpTitle = this.title + " " + this.subtitle;
+			int titleEnd = 100;
+			if (titleEnd < tmpTitle.length()) {
+				tmpTitle = tmpTitle.substring(0, titleEnd);
+			}
+			this.title = tmpTitle.trim();
+		}
 		this.subtitle = normalizeSubtitle(subtitle);
 	}
 

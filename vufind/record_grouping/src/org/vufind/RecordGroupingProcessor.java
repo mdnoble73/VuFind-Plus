@@ -1,9 +1,11 @@
 package org.vufind;
 
+import org.apache.log4j.Logger;
 import org.marc4j.marc.*;
 
 import java.sql.*;
 import java.util.*;
+import java.util.Date;
 //import java.util.regex.Pattern;
 
 /**
@@ -14,40 +16,55 @@ import java.util.*;
  * Time: 9:26 AM
  */
 public class RecordGroupingProcessor {
+	private Logger logger;
 	private PreparedStatement getGroupedWorkStmt;
 	private PreparedStatement insertGroupedWorkStmt;
+	private PreparedStatement getExistingIdentifierStmt;
+	private PreparedStatement insertIdentifierStmt;
 	private PreparedStatement addIdentifierToGroupedWorkStmt;
 	private PreparedStatement getGroupedWorkIdentifiersStmt;
 	private PreparedStatement getGroupedWorksForIdentifierStmt;
-	private PreparedStatement updateLinksToDifferentTitlesForIdentifier;
 	private PreparedStatement getRecordWithoutSubfieldStmt;
 	private PreparedStatement getRecordIgnoringSubfieldStmt;
-	private PreparedStatement updateRecordSubtitleStmt;
 
 	private int numRecordsProcessed = 0;
+	private int numGroupedWorksAdded = 0;
 	private int numGroupedWorksFoundByExactMatch = 0;
 	private int numGroupedWorksFoundByFuzzyMatch = 0;
 	private int numGroupedWorksFoundBySubtitleVariations = 0;
 	private int numGroupedWorksFoundBySubtitleVariationsButNotFuzzy = 0;
 	private int numGroupedWorksFoundByFuzzyButNotSubtitleVariations = 0;
+	private int numDifferentWorksFoundBySubtitleAndFuzzyMatching = 0;
 
-	public RecordGroupingProcessor(Connection dbConnection) {
+	private long startTime = new Date().getTime();
+	private int timeSettingUpWork = 0;
+	private int timeInExactMatch = 0;
+	private int timeInFuzzyMatch = 0;
+	private int timeInSubtitleVariations = 0;
+	private int timeAddingRecordsToDatabase = 0;
+	private int timeAddingIdentifiersToDatabase = 0;
+
+	private HashMap<String, RecordIdentifier> recordIdentifiers = new HashMap<String, RecordIdentifier>();
+
+	public RecordGroupingProcessor(Connection dbConnection, Logger logger) {
+		this.logger = logger;
 		try{
 			getGroupedWorkStmt = dbConnection.prepareStatement("SELECT id FROM " + RecordGrouperMain.groupedWorkTableName + " where permanent_id = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkTableName + " (title, subtitle, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
-			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkIdentifiersTableName + " (grouped_work_id, type, identifier) VALUES (?, ?, ?)");
-			getGroupedWorkIdentifiersStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkIdentifiersTableName + " WHERE grouped_work_id=?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			getGroupedWorksForIdentifierStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkTableName + " INNER JOIN grouped_work_identifiers ON " + RecordGrouperMain.groupedWorkTableName + ".id = grouped_work_id WHERE type = ? and identifier = ? and grouping_category = ? and linksToDifferentTitles = 0",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			updateLinksToDifferentTitlesForIdentifier = dbConnection.prepareStatement("UPDATE " + RecordGrouperMain.groupedWorkIdentifiersTableName + " SET linksToDifferentTitles = 1 where type=? and identifier = ?");
+			getExistingIdentifierStmt = dbConnection.prepareStatement("SELECT id FROM " + RecordGrouperMain.groupedWorkIdentifiersTableName + " where type = ? and identifier = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			insertIdentifierStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkIdentifiersTableName + " (type, identifier) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
+			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkIdentifiersRefTableName + " (grouped_work_id, identifier_id) VALUES (?, ?)");
+			getGroupedWorkIdentifiersStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkIdentifiersTableName + " INNER JOIN " + RecordGrouperMain.groupedWorkIdentifiersRefTableName + " ON identifier_id = " + RecordGrouperMain.groupedWorkIdentifiersTableName + ".id WHERE grouped_work_id=?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			getGroupedWorksForIdentifierStmt = dbConnection.prepareStatement("SELECT * FROM grouped_work INNER JOIN grouped_work_identifiers_ref ON grouped_work.id = grouped_work_id INNER JOIN grouped_work_identifiers ON grouped_work_identifiers.id = identifier_id WHERE type = ? and identifier = ?",  ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			getRecordWithoutSubfieldStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkTableName + " where title = ? AND author = ? AND grouping_category=? AND subtitle = ''");
 			getRecordIgnoringSubfieldStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkTableName + " where title = ? AND author = ? AND grouping_category=?");
-			updateRecordSubtitleStmt = dbConnection.prepareStatement("UPDATE " + RecordGrouperMain.groupedWorkTableName + " set permanent_id = ?, subtitle = ? where id = ?");
 		}catch (Exception e){
-			System.out.println("Error setting up prepared statements");
+			logger.error("Error setting up prepared statements", e);
 		}
 	}
 
 	public GroupedWork getGroupedWorkForMarc(Record marcRecord){
+		long start = new Date().getTime();
 		//Get data for the grouped record
 		GroupedWork workForTitle = new GroupedWork();
 
@@ -113,6 +130,8 @@ public class RecordGroupingProcessor {
 		workForTitle.groupingCategory = groupingFormat;
 		workForTitle.identifiers = identifiers;
 
+		timeSettingUpWork += (new Date().getTime() - start);
+
 		return workForTitle;
 	}
 
@@ -122,11 +141,20 @@ public class RecordGroupingProcessor {
 		for (DataField cur907 : field907){
 			Subfield subfieldA = cur907.getSubfield('a');
 			if (subfieldA != null && subfieldA.getData().length() > 2){
-				if (cur907.getSubfield('a').getData().substring(0,2).equals(".b") || cur907.getSubfield('a').getData().substring(0,2).equals(".o")){
+				if (cur907.getSubfield('a').getData().substring(0,2).equals(".b")){
 					String recordNumber = cur907.getSubfield('a').getData();
 					RecordIdentifier identifier = new RecordIdentifier();
 					identifier.setValue("ils", recordNumber);
-					identifiers.add(identifier);
+					if (identifier.isValid()){
+						identifiers.add(identifier);
+					}
+				}else if (cur907.getSubfield('a').getData().substring(0,2).equals(".o")){
+					String recordNumber = cur907.getSubfield('a').getData();
+					RecordIdentifier identifier = new RecordIdentifier();
+					identifier.setValue("order", recordNumber);
+					if (identifier.isValid()){
+						identifiers.add(identifier);
+					}
 				}
 			}
 		}
@@ -166,7 +194,9 @@ public class RecordGroupingProcessor {
 					continue;
 				}
 				identifier.setValue(identifierType, identifierValue);
-				identifiers.add(identifier);
+				if (identifier.isValid()){
+					identifiers.add(identifier);
+				}
 			}
 		}
 		return identifiers;
@@ -195,49 +225,53 @@ public class RecordGroupingProcessor {
 	}
 
 	public long getFuzzyMatchFromCatalog(GroupedWork originalRecord) throws SQLException {
+		long start = new Date().getTime();
 		//Get a fuzzy match from the catalog.
 		//Check identifiers
 		long returnRecordId = -1;
 		for (RecordIdentifier recordIdentifier : originalRecord.identifiers){
-			getGroupedWorksForIdentifierStmt.setString(1, recordIdentifier.getType());
-			getGroupedWorksForIdentifierStmt.setString(2, recordIdentifier.getIdentifier());
-			getGroupedWorksForIdentifierStmt.setString(3, originalRecord.groupingCategory);
-			ResultSet recordsForIdentifier = getGroupedWorksForIdentifierStmt.executeQuery();
-			//Check to see how many matches we got.
-			if (recordsForIdentifier.next()){
-				recordsForIdentifier.last();
-				int numMatches = recordsForIdentifier.getRow();
-				if (numMatches == 1){
-					//We got a good match!
-					Long groupedRecordId = recordsForIdentifier.getLong("id");
-					String title = recordsForIdentifier.getString("title");
-					String author = recordsForIdentifier.getString("author");
-					if (!compareStrings(title, originalRecord.getTitle())){
-						//System.out.println("Found match by identifier, but title did not match, marking as linking to different titles.  " + recordIdentifier.type + ": " + recordIdentifier.identifier);
-						//System.out.println("  '" + title + "' != '" + originalRecord.title + "'");
-						updateLinksToDifferentTitlesForIdentifier.setString(1, recordIdentifier.getType());
-						updateLinksToDifferentTitlesForIdentifier.setString(2, recordIdentifier.getIdentifier());
-						updateLinksToDifferentTitlesForIdentifier.executeUpdate();
-					} else if (!compareStrings(author, originalRecord.getAuthor())){
-						//System.out.println("Found match by identifier, but author did not match, marking as linking to different titles.  " + recordIdentifier.type + ": " + recordIdentifier.identifier);
-						//System.out.println("  '" + author + "' != '" + originalRecord.author + "'");
-						updateLinksToDifferentTitlesForIdentifier.setString(1, recordIdentifier.getType());
-						updateLinksToDifferentTitlesForIdentifier.setString(2, recordIdentifier.getIdentifier());
-						updateLinksToDifferentTitlesForIdentifier.executeUpdate();
+			//Only do record grouping for shared identifiers (won't get matches on ILS, Order, or OverDrive identifiers)
+			if (recordIdentifier.isSharedIdentifier()){
+				getGroupedWorksForIdentifierStmt.setString(1, recordIdentifier.getType());
+				getGroupedWorksForIdentifierStmt.setString(2, recordIdentifier.getIdentifier());
+				//getGroupedWorksForIdentifierStmt.setString(3, originalRecord.groupingCategory);
+				ResultSet recordsForIdentifier = getGroupedWorksForIdentifierStmt.executeQuery();
+				//Check to see how many matches we got.
+				if (recordsForIdentifier.next()){
+					recordsForIdentifier.last();
+					int numMatches = recordsForIdentifier.getRow();
+					if (numMatches == 1){
+						//We got a good match!
+						Long groupedRecordId = recordsForIdentifier.getLong("id");
+						String title = recordsForIdentifier.getString("title");
+						String author = recordsForIdentifier.getString("author");
+						if (!compareStrings(title, originalRecord.getTitle())){
+							//logger.debug("Found match by identifier, but title did not match, marking as linking to different titles.  " + recordIdentifier.getType() + ": " + recordIdentifier.getIdentifier());
+							//logger.debug("  '" + title + "' != '" + originalRecord.getTitle() + "'");
+						} else if (!compareStrings(author, originalRecord.getAuthor())){
+							//logger.debug("Found match by identifier, but author did not match, marking as linking to different titles.  " + recordIdentifier.getType() + ": " + recordIdentifier.getIdentifier());
+							//logger.debug("  '" + author + "' != '" + originalRecord.getAuthor() + "'");
+						}else{
+							//This seems to be a good match
+							returnRecordId = groupedRecordId;
+							if (recordIdentifier.getType().equals("oclc")){
+								logger.debug("Found fuzzy match by oclc number " + recordIdentifier.getIdentifier());
+							}
+						}
 					}else{
-						//This seems to be a good match
-						returnRecordId = groupedRecordId;
+						//Hmm, there are multiple records based on Identifier, mark the identifier as linking to different titles so it won't be used for enrichment
+						//logger.warn("Multiple grouped records found for identifier " + recordIdentifier.getType() + " " + recordIdentifier.getIdentifier() + " found " + numMatches + " not using this identifier for fuzzy matching");
 					}
-				}else{
-					//Hmm, there are multiple records based on ISBN.  Check more stuff
-					System.out.println("Multiple grouped records found for identifier " + recordIdentifier.getType() + " " + recordIdentifier.getIdentifier() + " found " + numMatches);
+				}
+
+				recordsForIdentifier.close();
+				if (returnRecordId != -1){
+					break;
 				}
 			}
-			recordsForIdentifier.close();
-			if (returnRecordId != -1){
-				break;
-			}
 		}
+		long end = new Date().getTime();
+		timeInFuzzyMatch += (end - start);
 		return returnRecordId;
 	}
 
@@ -251,8 +285,11 @@ public class RecordGroupingProcessor {
 		numRecordsProcessed++;
 		long groupedWorkId = -1;
 		try{
+			long start = new Date().getTime();
 			getGroupedWorkStmt.setString(1, groupedWorkPermanentId);
 			ResultSet groupedWorkRS = getGroupedWorkStmt.executeQuery();
+			long end = new Date().getTime();
+			timeInExactMatch += (end - start);
 			if (groupedWorkRS.next()){
 				//There is an existing grouped record
 				groupedWorkId = groupedWorkRS.getLong(1);
@@ -261,10 +298,11 @@ public class RecordGroupingProcessor {
 			}else{
 				groupedWorkRS.close();
 				//Look for matches based on identifiers
-				long groupedWorkIdFuzzy = getFuzzyMatchFromCatalog(groupedWork);
+				//Don't do this now since it takes a very long time and only finds a few records that we don't find with subtitle matching.
+				/*long groupedWorkIdFuzzy = getFuzzyMatchFromCatalog(groupedWork);
 				if (groupedWorkIdFuzzy != -1){
 					numGroupedWorksFoundByFuzzyMatch++;
-				}
+				} */
 
 				//Look for the work based on subtitles
 				//Don't eliminate subtitles because we get some weird matches that change the meaning
@@ -273,7 +311,7 @@ public class RecordGroupingProcessor {
 					numGroupedWorksFoundBySubtitleVariations++;
 				}
 
-				if (groupedWorkIdFuzzy != -1){
+				/*if (groupedWorkIdFuzzy != -1){
 					groupedWorkId = groupedWorkIdFuzzy;
 					if (groupedWorkIdSubtitle == -1){
 						numGroupedWorksFoundByFuzzyButNotSubtitleVariations++;
@@ -283,8 +321,18 @@ public class RecordGroupingProcessor {
 					numGroupedWorksFoundBySubtitleVariationsButNotFuzzy++;
 				}
 
+				if (groupedWorkIdFuzzy != -1 && groupedWorkIdSubtitle != -1 && groupedWorkIdFuzzy != groupedWorkIdSubtitle){
+					logger.error("-----------------------------------------------------------");
+					logger.error("Oh no, we found different grouped works looking by subtitle and fuzzy match!");
+					logger.error("   " + groupedWork.getTitle() + " - " + groupedWork.getAuthor() + " - " + groupedWork.getSubtitle() + " - " + groupedWork.groupingCategory);
+					logger.error("   Subtitle match was id " + groupedWorkIdSubtitle);
+					logger.error("   Fuzzy match was id " + groupedWorkIdFuzzy);
+					numDifferentWorksFoundBySubtitleAndFuzzyMatching++;
+				}*/
+
 				if (groupedWorkId == -1){
 					//Need to insert a new grouped record
+					long startAdd = new Date().getTime();
 					insertGroupedWorkStmt.setString(1, groupedWork.getTitle());
 					insertGroupedWorkStmt.setString(2, groupedWork.getSubtitle());
 					insertGroupedWorkStmt.setString(3, groupedWork.getAuthor());
@@ -296,19 +344,24 @@ public class RecordGroupingProcessor {
 					if (generatedKeysRS.next()){
 						groupedWorkId = generatedKeysRS.getLong(1);
 					}
+					generatedKeysRS.close();
+					long endAdd = new Date().getTime();
+					timeAddingRecordsToDatabase += endAdd - startAdd;
+					numGroupedWorksAdded++;
 				}
 			}
 
 			//Update identifiers
 			addIdentifiersForRecordToDB(groupedWorkId, groupedWork.identifiers);
 		}catch (Exception e){
-			System.out.println("Error adding grouped record to grouped work " + e.toString());
-			e.printStackTrace();
+			logger.error("Error adding grouped record to grouped work ", e);
 		}
+
 	}
 
-	private HashMap<String, Long> subtitleVariances = new HashMap<String, Long>();
+	//private HashMap<String, Long> subtitleVariances = new HashMap<String, Long>();
 	private long findWorkWithSubtitleVariations(GroupedWork groupedWork) throws SQLException {
+		long start = new Date().getTime();
 		long groupedWorkId = -1;
 		if (groupedWork.getSubtitle().length() == 0){
 			//Check to see if there is a record in the database that matches the title, author, and grouping category even if it has a subtitle
@@ -318,13 +371,13 @@ public class RecordGroupingProcessor {
 			ResultSet recordIgnoringSubfieldRS = getRecordIgnoringSubfieldStmt.executeQuery();
 			if (recordIgnoringSubfieldRS.next()){
 				groupedWorkId = recordIgnoringSubfieldRS.getLong("id");
-				String subTitle = recordIgnoringSubfieldRS.getString("subtitle");
+				//String subTitle = recordIgnoringSubfieldRS.getString("subtitle");
 				//System.out.println("Found a record to match that did have a subtitle even though this record didn't.  " + subTitle);
-				if (subtitleVariances.containsKey(subTitle)){
+				/*if (subtitleVariances.containsKey(subTitle)){
 					subtitleVariances.put(subTitle, subtitleVariances.get(subTitle) + 1);
 				}else{
 					subtitleVariances.put(subTitle, 1L);
-				}
+				}*/
 			}
 			recordIgnoringSubfieldRS.close();
 		}else{
@@ -336,48 +389,64 @@ public class RecordGroupingProcessor {
 			if (recordWithoutSubfieldRS.next()){
 				groupedWorkId = recordWithoutSubfieldRS.getLong("id");
 				//System.out.println("Found a record to match that did not have a subfield even though this record does.  " + groupedWork.subtitle);
-				String subTitle = groupedWork.getSubtitle();
+				/*String subTitle = groupedWork.getSubtitle();
 				if (subtitleVariances.containsKey(subTitle)){
 					subtitleVariances.put(subTitle, subtitleVariances.get(subTitle) + 1);
 				}else{
 					subtitleVariances.put(subTitle, 1L);
-				}
+				}*/
+				//Do not change the subtitle since that can cause other records without a subtitle to not match
 				//update the record to include the subtitle
-				updateRecordSubtitleStmt.setString(1, groupedWork.getPermanentId());
-				updateRecordSubtitleStmt.setString(2, groupedWork.getSubtitle());
-				updateRecordSubtitleStmt.setLong(3, groupedWorkId);
-				updateRecordSubtitleStmt.executeUpdate();
+				//updateRecordSubtitleStmt.setString(1, groupedWork.getPermanentId());
+				//updateRecordSubtitleStmt.setString(2, groupedWork.getSubtitle());
+				//updateRecordSubtitleStmt.setLong(3, groupedWorkId);
+				//updateRecordSubtitleStmt.executeUpdate();
 			}
 			recordWithoutSubfieldRS.close();
 		}
+		long end = new Date().getTime();
+		timeInSubtitleVariations += (end - start);
 		return groupedWorkId;
 	}
 
 	private void addIdentifiersForRecordToDB(long groupedWorkId, HashSet<RecordIdentifier> identifiers) throws SQLException {
-		getGroupedWorkIdentifiersStmt.setLong(1, groupedWorkId);
-		ResultSet existingIdentifiersRS = getGroupedWorkIdentifiersStmt.executeQuery();
-		HashSet<RecordIdentifier> existingIdentifiers = new HashSet<RecordIdentifier>();
-		while (existingIdentifiersRS.next()){
-			RecordIdentifier existingIdentifier = new RecordIdentifier();
-			existingIdentifier.setValue(existingIdentifiersRS.getString("type"), existingIdentifiersRS.getString("identifier"));
-			existingIdentifiers.add(existingIdentifier);
-		}
+		long start = new Date().getTime();
 
 		for (RecordIdentifier curIdentifier :  identifiers){
-			if (!existingIdentifiers.contains(curIdentifier)){
-				addIdentifierToGroupedWorkStmt.setLong(1, groupedWorkId);
-				addIdentifierToGroupedWorkStmt.setString(2, curIdentifier.getType());
-				addIdentifierToGroupedWorkStmt.setString(3, curIdentifier.getIdentifier());
+			if (recordIdentifiers.containsKey(curIdentifier.toString())){
+				curIdentifier = recordIdentifiers.get(curIdentifier.toString());
+			} else {
+			  //This is a brand new identifier
+				insertIdentifierStmt.setString(1, curIdentifier.getType());
+				insertIdentifierStmt.setString(2, curIdentifier.getIdentifier());
 				try{
-					addIdentifierToGroupedWorkStmt.executeUpdate();
-				}catch (SQLException e){
-					System.out.println("Duplicate identifiers found");
-					for (RecordIdentifier curIdentifier2 :  identifiers){
-						System.out.println("   '" + curIdentifier2.toString() + "'");
+					insertIdentifierStmt.executeUpdate();
+					ResultSet generatedKeys = insertIdentifierStmt.getGeneratedKeys();
+					generatedKeys.next();
+					long identifierId = generatedKeys.getLong(1);
+					generatedKeys.close();
+					curIdentifier.setIdentifierId(identifierId);
+					if (curIdentifier.isSharedIdentifier()){
+						recordIdentifiers.put(curIdentifier.toString(), curIdentifier);
 					}
+				}catch (SQLException e){
+					logger.error("Tried to insert a duplicate identifier " + curIdentifier.toString(), e);
+				}
+			}
+			if (!curIdentifier.isLinkedToGroupedWork(new Long(groupedWorkId))){
+				//Add the identifier reference
+				try{
+					addIdentifierToGroupedWorkStmt.setLong(1, groupedWorkId);
+					addIdentifierToGroupedWorkStmt.setLong(2, curIdentifier.getIdentifierId());
+					addIdentifierToGroupedWorkStmt.executeUpdate();
+					curIdentifier.addRelatedGroupedWork(groupedWorkId);
+				}catch (SQLException e){
+					logger.error("Error adding identifier " + curIdentifier.getType() + " - " + curIdentifier.getIdentifier() + " identifierId " + curIdentifier.getIdentifierId() + " to grouped work " + groupedWorkId, e);
 				}
 			}
 		}
+		long end = new Date().getTime();
+		timeAddingIdentifiersToDatabase += end - start;
 	}
 
 	public void processRecord(String title, String subtitle, String author, String format, HashSet<RecordIdentifier>identifiers){
@@ -903,18 +972,32 @@ public class RecordGroupingProcessor {
 	}
 
 
-	public void dumpSubtitleVariances() {
+	/*public void dumpSubtitleVariances() {
 		for (String curSubTitle : subtitleVariances.keySet()){
 			System.out.println(subtitleVariances.get(curSubTitle) + ", " + curSubTitle);
 		}
-	}
+	}*/
 
 	public void dumpStats() {
-		System.out.println("Processed " + numRecordsProcessed + " records");
-		System.out.println("Found " + numGroupedWorksFoundByExactMatch + " works by exact match");
-		System.out.println("Found " + numGroupedWorksFoundByFuzzyMatch + " works by fuzzy match");
-		System.out.println("Found " + numGroupedWorksFoundBySubtitleVariations + " works by checking subtitle variations");
-		System.out.println("Found " + numGroupedWorksFoundBySubtitleVariationsButNotFuzzy + " works by checking subtitle variations that were not found in fuzzy match");
-		System.out.println("Found " + numGroupedWorksFoundByFuzzyButNotSubtitleVariations + " works by in fuzzy match that were not found by subtitle variations");
+		long totalElapsedTime = new Date().getTime() - startTime;
+		long totalElapsedMinutes = totalElapsedTime / (60 * 1000);
+		logger.debug("-----------------------------------------------------------");
+		logger.debug("Processed " + numRecordsProcessed + " records in " + totalElapsedMinutes + " minutes");
+		logger.debug("Created a total of " + numGroupedWorksAdded + " grouped works");
+		long timeSettingUpWorkMinutes = timeSettingUpWork / (60 * 1000);
+		logger.debug("Took " + timeSettingUpWorkMinutes + " minutes to load the works from MARC file");
+		long minutesInExactMatch = timeInExactMatch / (60 * 1000);
+		logger.debug("Found " + numGroupedWorksFoundByExactMatch + " works by exact match in " + minutesInExactMatch + " minutes");
+		long minutesInFuzzyMatch = timeInFuzzyMatch / (60 * 1000);
+		logger.debug("Found " + numGroupedWorksFoundByFuzzyMatch + " works by fuzzy match in " + minutesInFuzzyMatch + " minutes");
+		long minutesInSubtitleVariations = timeInSubtitleVariations / (60 * 1000);
+		logger.debug("Found " + numGroupedWorksFoundBySubtitleVariations + " works by checking subtitle variations in " + minutesInSubtitleVariations + " minutes");
+		logger.debug("Found " + numGroupedWorksFoundBySubtitleVariationsButNotFuzzy + " works by checking subtitle variations that were not found in fuzzy match");
+		logger.debug("Found " + numGroupedWorksFoundByFuzzyButNotSubtitleVariations + " works by fuzzy match that were not found by subtitle variations");
+		logger.debug("Subtitle and Fuzzy Matching found " + numDifferentWorksFoundBySubtitleAndFuzzyMatching + " different works");
+		long minutesAddingRecords = timeAddingRecordsToDatabase / (60 * 1000);
+		logger.debug("It took " + minutesAddingRecords + " minutes to add the records to the database");
+		long minutesAddingIdentifiers = timeAddingIdentifiersToDatabase / (60 * 1000);
+		logger.debug("It took " + minutesAddingIdentifiers + " minutes to add the identifiers to the database");
 	}
 }
