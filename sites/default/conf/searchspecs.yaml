@@ -461,12 +461,12 @@ KeywordProper:
 
 KeywordGrouped:
   QueryFields:
+    - title_exact:
+      - [localized_callnumber, 2400]
+    - title_left:
+      - [localized_callnumber, 1600]
     -
       - [OR, 50]
-      - title_exact:
-        - [localized_callnumber, 2400]
-      - title_left:
-        - [localized_callnumber, 1600]
       - title_proper:
         - [exact, 800]
         - [onephrase, 500]

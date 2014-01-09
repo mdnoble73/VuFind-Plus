@@ -127,6 +127,9 @@ abstract class SearchObject_Base
 				$allowableIps = explode(',', $maintenanceIps);
 				if (in_array($activeIp, $allowableIps)){
 					$debug = true;
+					if ($configArray['System']['debugSolrQuery'] == true) {
+						$this->debugSolrQuery = true;
+					}
 				}
 			}
 			$this->debug = $debug;

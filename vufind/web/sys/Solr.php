@@ -1367,6 +1367,8 @@ class Solr implements IndexEngine {
 			}
 
 			echo "</pre>\n";
+		}
+		if ($this->debugSolrQuery || $this->debug){
 			$options['debugQuery'] = 'on';
 		}
 
@@ -1830,14 +1832,19 @@ class Solr implements IndexEngine {
 		}
 		$queryString = implode('&', $query);
 
-		if ($this->debugSolrQuery) {
-			echo "<pre>$method: ";
+		if ($this->debug || $this->debugSolrQuery) {
+			if ($this->debugSolrQuery) {
+				echo "<pre>$method: ";
+			}
 			$fullSearchUrl = print_r($this->host . "/select/?" . $queryString, true);
 			//Add debug parameter so we can see the explain section at the bottom.
 			$debugSearchUrl = print_r($this->host . "/select/?debugQuery=on&" . $queryString, true);
 
-			echo "<a href='" . $debugSearchUrl . "' target='_blank'>$fullSearchUrl</a>";
-			echo "</pre>\n";
+			if ($this->debugSolrQuery) {
+				echo "<a href='" . $debugSearchUrl . "' target='_blank'>$fullSearchUrl</a>";
+				echo "</pre>\n";
+			}
+
 		}
 
 		if ($method == 'GET') {
