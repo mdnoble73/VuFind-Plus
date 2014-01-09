@@ -78,6 +78,7 @@ abstract class SearchObject_Base
 	protected $disableLogging = false;
 	// Debugging flag
 	protected $debug = false;
+	protected $debugSolrQuery = false;
 	// Search options for the user
 	protected $advancedTypes = array();
 	protected $basicTypes = array();

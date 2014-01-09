@@ -157,6 +157,7 @@ class SearchObject_Solr extends SearchObject_Base
 		$configArray['Spelling']['skip_numeric'] : true;
 
 		$this->indexEngine->debug = $this->debug;
+		$this->indexEngine->debugSolrQuery = $this->debugSolrQuery;
 
 		$timer->logTime('Setup Solr Search Object');
 	}

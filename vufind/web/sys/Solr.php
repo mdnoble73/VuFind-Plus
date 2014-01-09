@@ -35,10 +35,16 @@ require_once 'XML/Serializer.php';
  */
 class Solr implements IndexEngine {
 	/**
-	 * A boolean value determining whether to print debug information
+	 * A boolean value determining whether to include debug information in the query
 	 * @var bool
 	 */
 	public $debug = false;
+
+	/**
+	 * A boolean value determining whether to print debug information for the query
+	 * @var bool
+	 */
+	public $debugSolrQuery = false;
 
 	/**
 	 * Whether to Serialize to a PHP Array or not.
@@ -635,7 +641,7 @@ class Solr implements IndexEngine {
 	 */
 	function checkSpelling($phrase)
 	{
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>Spell Check: $phrase</pre>\n";
 		}
 
@@ -1218,14 +1224,14 @@ class Solr implements IndexEngine {
 			if (isset($options['qt']) && $options['qt'] == 'dismax'){
 				//Boost by number of holdings
 				if (count($boostFactors) > 0){
-					$options['bf'] = "abs(product(" . implode(',', $boostFactors) . "))";
+					$options['bf'] = "sum(" . implode(',', $boostFactors) . ")";
 				}
 				//print ($options['bq']);
 			}else{
 				$baseQuery = $options['q'];
 				//Boost items in our system
 				if (count($boostFactors) > 0){
-					$boost = "abs(product(" . implode(',', $boostFactors) . "))";
+					$boost = "sum(" . implode(',', $boostFactors) . ")";
 				}else{
 					$boost = '';
 				}
@@ -1346,7 +1352,7 @@ class Solr implements IndexEngine {
 			$options['hl.simple.post'] = '{{{{END_HILITE}}}}';
 		}
 
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo '<pre>Search options: ' . print_r($options, true) . "\n";
 
 			if ($filters) {
@@ -1590,7 +1596,7 @@ class Solr implements IndexEngine {
 	 */
 	function saveRecord($xml)
 	{
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>Add Record</pre>\n";
 		}
 
@@ -1611,7 +1617,7 @@ class Solr implements IndexEngine {
 	 */
 	function deleteRecord($id)
 	{
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>Delete Record: $id</pre>\n";
 		}
 
@@ -1634,7 +1640,7 @@ class Solr implements IndexEngine {
 	 */
 	function deleteRecords($idList)
 	{
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>Delete Record List</pre>\n";
 		}
 
@@ -1661,7 +1667,7 @@ class Solr implements IndexEngine {
 	 */
 	function commit()
 	{
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>Commit</pre>\n";
 		}
 
@@ -1683,7 +1689,7 @@ class Solr implements IndexEngine {
 	 */
 	function optimize()
 	{
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>Optimize</pre>\n";
 		}
 
@@ -1824,7 +1830,7 @@ class Solr implements IndexEngine {
 		}
 		$queryString = implode('&', $query);
 
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>$method: ";
 			$fullSearchUrl = print_r($this->host . "/select/?" . $queryString, true);
 			//Add debug parameter so we can see the explain section at the bottom.
@@ -1867,7 +1873,7 @@ class Solr implements IndexEngine {
 		$this->client->setMethod('POST');
 		$this->client->setURL($this->host . "/update/");
 
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>POST: ";
 			print_r($this->host . "/update/");
 			echo "XML:\n";

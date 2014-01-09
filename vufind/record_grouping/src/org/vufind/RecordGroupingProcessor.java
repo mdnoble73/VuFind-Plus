@@ -106,15 +106,15 @@ public class RecordGroupingProcessor {
 			author = field100.getSubfield('a').getData();
 		}else if (field110 != null && field110.getSubfield('a') != null){
 			author = field110.getSubfield('a').getData();
+		}else if (field260 != null && field260.getSubfield('b') != null){
+			author = field260.getSubfield('b').getData();
+		}else if (field710 != null && field710.getSubfield('a') != null){
+			author = field710.getSubfield('a').getData();
 		}else if (field245 != null && field245.getSubfield('c') != null){
 			author = field245.getSubfield('c').getData();
 			if (author.indexOf(';') > 0){
 				author = author.substring(0, author.indexOf(';') -1);
 			}
-		}else if (field260 != null && field260.getSubfield('b') != null){
-			author = field260.getSubfield('b').getData();
-		}else if (field710 != null && field710.getSubfield('a') != null){
-			author = field710.getSubfield('a').getData();
 		}
 		if (author != null){
 			workForTitle.setAuthor(author);

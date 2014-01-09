@@ -26,9 +26,15 @@
 		</div>
 	</div>
 
+	{if isset($summExplain)}
+		<div class="hidden" id="scoreExplanationValue{$summId|escape}">{$summExplain}</div>
+	{/if}
+
 	<div class="span9">
 		<div class="row-fluid">
-			{if isset($summScore)}({$summScore}) {/if}
+			{if isset($summScore)}
+				(<a href="#" onclick="return VuFind.showElementInPopup('Score Explanation', '#scoreExplanationValue{$summId|escape}');">{$summScore}</a>)
+			{/if}
 			<strong>
 				<a href="{$summUrl}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 				{if $summTitleStatement}
@@ -77,6 +83,7 @@
 						<div class="span12 result-value" id="descriptionValue{$summId|escape}">{$summDescription}</div>
 					{/if}
 				</div>
+
 			</div>
 
 			<div class="resultActions span3">

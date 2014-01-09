@@ -275,7 +275,7 @@ public class GroupedWorkSolr {
 	public void setTitle(String title) {
 		if (title != null){
 			//TODO: determine if the title should be changed?
-			this.title = title;
+			this.title = title.replace("&", "and");
 			keywords.add(title);
 		}
 	}

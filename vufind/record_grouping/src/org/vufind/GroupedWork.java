@@ -115,7 +115,7 @@ public class GroupedWork implements Cloneable{
 		return groupingAuthor;
 	}
 
-	static Pattern commonSubtitlesPattern = Pattern.compile("^((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|a .* story|a .*\\s?book|poems|the movie|.*series book \\d+)$");
+	static Pattern commonSubtitlesPattern = Pattern.compile("^((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|an? .* story|a .*\\s?book|poems|the movie|.*series book \\d+)$");
 	private String normalizeSubtitle(String originalTitle) {
 		if (originalTitle.length() > 0){
 			String groupingSubtitle = originalTitle.replaceAll("&", "and");

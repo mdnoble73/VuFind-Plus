@@ -120,6 +120,7 @@ public class RecordGrouperMain {
 				long startTime = new Date().getTime();
 				PreparedStatement overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				PreparedStatement overDriveIdentifiersStmt = econtentConnection.prepareStatement("SELECT * FROM overdrive_api_product_identifiers WHERE id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement overDriveCreatorStmt = econtentConnection.prepareStatement("SELECT fileAs FROM overdrive_api_product_creators WHERE productId = ? AND role like ? ORDER BY id", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				ResultSet overDriveRecordRS = overDriveRecordsStmt.executeQuery();
 				while (overDriveRecordRS.next()){
 					Long id = overDriveRecordRS.getLong("id");
@@ -128,17 +129,28 @@ public class RecordGrouperMain {
 					String mediaType = overDriveRecordRS.getString("mediaType");
 					String title = overDriveRecordRS.getString("title");
 					String subtitle = overDriveRecordRS.getString("subtitle");
-					//String primaryCreatorRole = overDriveRecordRS.getString("primaryCreatorRole");
+					String primaryCreatorRole = overDriveRecordRS.getString("primaryCreatorRole");
 					String author = overDriveRecordRS.getString("primaryCreatorName");
-					//primary creator in overdrive is always first name, last name.  Standardize to be firstname, last name.
-					if (author != null && author.contains(" ")){
-						String[] authorParts = author.split("\\s+");
-						StringBuilder tmpAuthor = new StringBuilder();
-						for (int i = 1; i < authorParts.length; i++){
-							tmpAuthor.append(authorParts[i]).append(" ");
+					//primary creator in overdrive is always first name, last name.  Therefore, we need to look in the creators table
+					if (author != null){
+						overDriveCreatorStmt.setLong(1, id);
+						overDriveCreatorStmt.setString(2, primaryCreatorRole);
+						ResultSet creatorInfoRS = overDriveCreatorStmt.executeQuery();
+						if (creatorInfoRS.next()){
+							author = creatorInfoRS.getString("fileAs");
+						} else {
+							//logger.warn("Did not find the file as name for author " + author + " of overdrive record " + overdriveId);
+							if (author.contains(" ")){
+								String[] authorParts = author.split("\\s+");
+								StringBuilder tmpAuthor = new StringBuilder();
+								for (int i = 1; i < authorParts.length; i++){
+									tmpAuthor.append(authorParts[i]).append(" ");
+								}
+								tmpAuthor.append(authorParts[0]);
+								author = tmpAuthor.toString();
+							}
 						}
-						tmpAuthor.append(authorParts[0]);
-						author = tmpAuthor.toString();
+						creatorInfoRS.close();
 					}
 
 					overDriveIdentifiersStmt.setLong(1, id);
