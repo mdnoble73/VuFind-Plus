@@ -236,8 +236,8 @@ public class OverDriveProcessor {
 			groupedWork.setSortableTitle(metadataRS.getString("sortTitle"));
 			groupedWork.addPublisher(metadataRS.getString("publisher"));
 			groupedWork.addPublicationDate(metadataRS.getString("publishDate"));
-			//TODO: Try to normalize this based on current year stats
 			//Need to divide this because it seems to be all time checkouts for all libraries, not just our libraries
+			//Hopefully OverDrive will give us better stats in the near future that we can use.
 			groupedWork.addPopularity(metadataRS.getFloat("popularity") / 500f);
 		}
 		metadataRS.close();
