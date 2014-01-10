@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . '/Action.php';
 
-class Browse extends Action {
+abstract class Browse_Browse extends Action {
 
 	/**
 	 * Build an array containing options describing a top-level Browse option.

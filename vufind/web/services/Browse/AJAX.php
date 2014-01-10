@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . '/Action.php';
 
-class AJAX extends Action {
+class Browse_AJAX extends Action {
 
 	private $db;
 	private $searchObject;
