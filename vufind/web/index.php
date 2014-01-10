@@ -904,7 +904,7 @@ function updateConfigForScoping($configArray) {
 
 		if ($Library->N == 1) {
 			$Library->fetch();
-			//Make the library infroamtion global so we can work with it later.
+			//Make the library information global so we can work with it later.
 			$library = $Library;
 		}else{
 			//The subdomain can also indicate a location.
@@ -917,6 +917,17 @@ function updateConfigForScoping($configArray) {
 				global $librarySingleton;
 				$library = $librarySingleton->getLibraryForLocation($Location->locationId);
 				$locationSingleton->setActiveLocation(clone $Location);
+			}
+		}
+
+		//if the library is still null, check to see if we only have one and use that
+		if ($library == null){
+			$Library = new Library();
+			$Library->find();
+			if ($Library->N == 1){
+				$Library->fetch();
+				//Make the library information global so we can work with it later.
+				$library = $Library;
 			}
 		}
 	}

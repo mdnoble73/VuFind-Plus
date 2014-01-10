@@ -11,10 +11,11 @@
 		{if $error}
 			<div class="error">{$error}</div>
 		{else}
+		<form action="{$path}/MaterialsRequest/UserReport" method="get">
+
 			<div id="materialsRequestFilters">
 				<fieldset>
 				<legend>Filters:</legend>
-				<form action="{$path}/MaterialsRequest/UserReport" method="get">
 					<div>
 					<div>
 						Statuses to Show: <input type="checkbox" name="selectAllStatusFilter" id="selectAllStatusFilter" onclick="$('.statusFilter').attr('checked', $('#selectAllStatusFilter').attr('checked'));"/> <label for="selectAllStatusFilter">Select All</label> <br/>
@@ -24,7 +25,6 @@
 					</div>
 					<div><input type="submit" name="submit" value="Update Filters"/></div>
 					</div>
-				</form>
 				</fieldset>
 			</div>
 			
@@ -38,6 +38,7 @@
 						{foreach from=$statuses item=status}
 							<th>{$status|translate}</th>
 						{/foreach}
+						<th>Total Requests</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -49,14 +50,14 @@
 							{foreach from=$statuses key=status item=statusLabel}
 								<th>{if $userInfo.requestsByStatus.$status}{$userInfo.requestsByStatus.$status}{else}0{/if}</th>
 							{/foreach}
+							<td>{$userInfo.totalRequests}</td>
 						</tr>
 					{/foreach}
 				</tbody>
 			</table>
 		{/if}
 		
-		<form action="{$fullPath}" method="get">
-			<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel">
+			<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel"">
 		</form>
 		
 		{* Export to Excel option *}

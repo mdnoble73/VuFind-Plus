@@ -34,9 +34,7 @@ class UserReport extends Admin {
 
 	function launch()
 	{
-		global $configArray;
 		global $interface;
-		global $user;
 
 		$period = isset($_REQUEST['period']) ? $_REQUEST['period'] : 'week';
 		$startDate = (isset($_REQUEST['startDate']) && strlen($_REQUEST['startDate']) > 0) ? strtotime($_REQUEST['startDate']) : '';
@@ -87,9 +85,11 @@ class UserReport extends Admin {
 				$userData[$materialsRequest->userId]['firstName'] = $materialsRequest->firstName;
 				$userData[$materialsRequest->userId]['lastName'] = $materialsRequest->lastName;
 				$userData[$materialsRequest->userId]['barcode'] = $materialsRequest->cat_username;
+				$userData[$materialsRequest->userId]['totalRequests'] = 0;
 				$userData[$materialsRequest->userId]['requestsByStatus'] = array();
 			}
 			$userData[$materialsRequest->userId]['requestsByStatus'][$materialsRequest->description] = $materialsRequest->numRequests;
+			$userData[$materialsRequest->userId]['totalRequests'] += $materialsRequest->numRequests;
 		}
 		$interface->assign('userData', $userData);
 
@@ -138,6 +138,7 @@ class UserReport extends Admin {
 		foreach ($statuses as $status => $statusLabel){
 			$activeSheet->setCellValueByColumnAndRow($column++, 3, $statusLabel);
 		}
+		$activeSheet->setCellValueByColumnAndRow($column, 3, 'Total');
 
 		$row = 4;
 		$column = 0;
@@ -149,6 +150,7 @@ class UserReport extends Admin {
 			foreach ($statuses as $status => $statusLabel){
 				$activeSheet->setCellValueByColumnAndRow($column++, $row, isset($userInfo['requestsByStatus'][$status]) ? $userInfo['requestsByStatus'][$status] : 0);
 			}
+			$activeSheet->setCellValueByColumnAndRow($column, $row, $userInfo['totalRequests']);
 			$row++;
 			$column = 0;
 		}
@@ -159,7 +161,7 @@ class UserReport extends Admin {
 		// Rename sheet
 		$activeSheet->setTitle('User Report');
 
-		// Redirect output to a client’s web browser (Excel5)
+		// Redirect output to the client's web browser (Excel5)
 		header('Content-Type: application/vnd.ms-excel');
 		header('Content-Disposition: attachment;filename="MaterialsRequestUserReport.xls"');
 		header('Cache-Control: max-age=0');

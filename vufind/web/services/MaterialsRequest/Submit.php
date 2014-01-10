@@ -37,6 +37,10 @@ class Submit extends Action
 		global $configArray;
 		global $interface;
 		global $user;
+		global $library;
+		$maxActiveRequests = isset($library) ? $library->maxOpenRequests : 5;
+		$maxRequestsPerYear = isset($library) ? $library->maxRequestsPerYear : 60;
+		$accountPageLink = $configArray['Site']['path'] . '/MaterialsRequest/MyRequests';
 
 		//Make sure that the user is valid
 		$processForm = true;
@@ -77,125 +81,141 @@ class Submit extends Action
 				$materialsRequest->selectAdd();
 				$materialsRequest->selectAdd('materials_request.*, description as statusLabel');
 				$materialsRequest->find();
-				if ($materialsRequest->N >= 5){
+				if ($materialsRequest->N >= $maxActiveRequests){
 					$interface->assign('success', false);
-					$interface->assign('error', "You\'ve already reached your maximum limit of five requests open at one time. Once we've processed your existing requests, you'll be able to submit again. To check the status of your current requests, visit your account page [link to account page].");
+					$interface->assign('error', "You\'ve already reached your maximum limit of $maxActiveRequests requests open at one time. Once we've processed your existing requests, you'll be able to submit again. To check the status of your current requests, visit your <a href='{$accountPageLink}'>account page</a>.");
 				}else{
-					//Materials request can be submitted.
+					//Check the total number of requests created this year
+					$lastYear = new DateTime();
+					$lastYear->modify('-365 days');
 					$materialsRequest = new MaterialsRequest();
-					$materialsRequest->phone = isset($_REQUEST['phone']) ? strip_tags($_REQUEST['phone']) : '';
-					$materialsRequest->email = strip_tags($_REQUEST['email']);
-					$materialsRequest->title = strip_tags($_REQUEST['title']);
-					$materialsRequest->season = isset($_REQUEST['season']) ? strip_tags($_REQUEST['season']) : '';
-					$materialsRequest->magazineTitle = isset($_REQUEST['magazineTitle']) ? strip_tags($_REQUEST['magazineTitle']) : '';
-					$materialsRequest->magazineDate = isset($_REQUEST['magazineDate']) ? strip_tags($_REQUEST['magazineDate']) : '';
-					$materialsRequest->magazineVolume = isset($_REQUEST['magazineVolume']) ? strip_tags($_REQUEST['magazineVolume']) : '';
-					$materialsRequest->magazineNumber = isset($_REQUEST['magazineNumber']) ? strip_tags($_REQUEST['magazineNumber']) : '';
-					$materialsRequest->magazinePageNumbers = isset($_REQUEST['magazinePageNumbers']) ? strip_tags($_REQUEST['magazinePageNumbers']) : '';
-					$materialsRequest->author = strip_tags($_REQUEST['author']);
-					$materialsRequest->format = strip_tags($_REQUEST['format']);
-					if ($materialsRequest->format == 'ebook' && isset($_REQUEST['ebookFormat'])){
-						$materialsRequest->subFormat = strip_tags($_REQUEST['ebookFormat']);
-					}elseif ($materialsRequest->format == 'eaudio' && isset($_REQUEST['eaudioFormat'])){
-						$materialsRequest->subFormat = strip_tags($_REQUEST['eaudioFormat']);
-					}
-					$materialsRequest->subFormat = isset($_REQUEST['subFormat']) ? strip_tags($_REQUEST['subFormat']) : '';
-					$materialsRequest->ageLevel = isset($_REQUEST['ageLevel']) ? strip_tags($_REQUEST['ageLevel']) : '';
-					$materialsRequest->bookType = isset($_REQUEST['bookType']) ? strip_tags($_REQUEST['bookType']) : '';
-					$materialsRequest->isbn = isset($_REQUEST['isbn']) ? strip_tags($_REQUEST['isbn']) : '';
-					$materialsRequest->upc = isset($_REQUEST['upc']) ? strip_tags($_REQUEST['upc']) : '';
-					$materialsRequest->issn = isset($_REQUEST['issn']) ? strip_tags($_REQUEST['issn']) : '';
-					$materialsRequest->oclcNumber = isset($_REQUEST['oclcNumber']) ? strip_tags($_REQUEST['oclcNumber']) : '';
-					$materialsRequest->publisher = strip_tags($_REQUEST['publisher']);
-					$materialsRequest->publicationYear = strip_tags($_REQUEST['publicationYear']);
-					if (isset($_REQUEST['abridged'])){
-						if ($_REQUEST['abridged'] == 'abridged'){
-							$materialsRequest->abridged = 1;
-						}elseif($_REQUEST['abridged'] == 'unabridged'){
-							$materialsRequest->abridged = 0;
-						}else{
-							$materialsRequest->abridged = 2; //Not applicable
-						}
-					}
-					$materialsRequest->about = strip_tags($_REQUEST['about']);
-					$materialsRequest->comments = strip_tags($_REQUEST['comments']);
-					if (isset($_REQUEST['placeHoldWhenAvailable'])){
-						$materialsRequest->placeHoldWhenAvailable = $_REQUEST['placeHoldWhenAvailable'];
-					}else{
-						$materialsRequest->placeHoldWhenAvailable = 0;
-					}
-					if (isset($_REQUEST['holdPickupLocation'])){
-						$materialsRequest->holdPickupLocation = $_REQUEST['holdPickupLocation'];
-					}
-					if (isset($_REQUEST['bookmobileStop'])){
-						$materialsRequest->bookmobileStop = $_REQUEST['bookmobileStop'];
-					}
-					if (isset($_REQUEST['illItem'])){
-						$materialsRequest->illItem = $_REQUEST['illItem'];
-					}else{
-						$materialsRequest->illItem = 0;
-					}
-					$defaultStatus = new MaterialsRequestStatus();
-					$defaultStatus->isDefault = 1;
-					if (!$defaultStatus->find(true)){
+					$materialsRequest->createdBy = $user->id;
+					$materialsRequest->whereAdd('dateCreated >= ' . $lastYear->getTimestamp());
+					//To be fair, don't include any requests that were cancelled by the patron
+					$statusQuery = new MaterialsRequestStatus();
+					$statusQuery->isPatronCancel = 0;
+					$materialsRequest->joinAdd($statusQuery);
+					$materialsRequest->find();
+					if ($materialsRequest->N >= $maxRequestsPerYear){
 						$interface->assign('success', false);
-						$interface->assign('error', 'There was an error submitting your materials request, could not determine the default status.');
+						$interface->assign('error', "You\'ve already reached your maximum limit of $maxRequestsPerYear requests per year. To check the status of your current requests, visit your <a href='{$accountPageLink}'>account page</a>.");
 					}else{
-						$materialsRequest->status = $defaultStatus->id;
-						$materialsRequest->dateCreated = time();
-						$materialsRequest->createdBy = $user->id;
-						$materialsRequest->dateUpdated = time();
-
-            // We'd like to search the catalog for this particular material. If
-            // it is available, we'll put it on hold for the user.
-            if (!empty($materialsRequest->isbn)) {
-              // Potentially save _REQUEST array during this period.
-              $original_request = $_REQUEST;
-              // Build dummy $_REQUEST. These classes are very poorly
-              // designed and require superglobals.
-              $_REQUEST = array(
-                'module' => 'Search',
-                'action' => 'Results',
-                'bool0' => array(
-                  0 => 'AND'
-                ),
-                'lookfor0' => array(
-                  0 => $materialsRequest->isbn,
-                ),
-                'type0' => array(
-                  0 => 'ISN'
-                ),
-                'join' => 'AND',
-                'submit' => 'Find',
-                'searchSource' => 'local',
-                'type' => 'Keyword',
-              );
-              $searchObject = SearchObjectFactory::initSearchObject();
-              $searchObject->init('local');
-              $result = $searchObject->processSearch();
-              // If record exists, redirect to hold screen.
-              if ($searchObject->getResultTotal() == 1) {
-                $recordSet = $searchObject->getResultRecordSet();
-                $record = reset($recordSet);
-                if ($record['recordtype'] == 'econtentRecord'){
-                  header('Location: ' . $interface->getUrl() . '/EcontentRecord/' . str_replace('econtentRecord', '', $record['id']) . '/Hold?mr=1');
-                }
-                else {
-                  header('Location: ' . $interface->getUrl() . '/Record/' . $record['id'] . '/Hold?mr=1');
-                }
-              }
-              // Results were not constrained to single result, thus restore
-              // _REQUEST array and continue.
-              $_REQUEST = $original_request;
-            }
-
-
-						if ($materialsRequest->insert()){
-							$interface->assign('success', true);
-							$interface->assign('materialsRequest', $materialsRequest);
+						//Materials request can be submitted.
+						$materialsRequest = new MaterialsRequest();
+						$materialsRequest->phone = isset($_REQUEST['phone']) ? strip_tags($_REQUEST['phone']) : '';
+						$materialsRequest->email = strip_tags($_REQUEST['email']);
+						$materialsRequest->title = strip_tags($_REQUEST['title']);
+						$materialsRequest->season = isset($_REQUEST['season']) ? strip_tags($_REQUEST['season']) : '';
+						$materialsRequest->magazineTitle = isset($_REQUEST['magazineTitle']) ? strip_tags($_REQUEST['magazineTitle']) : '';
+						$materialsRequest->magazineDate = isset($_REQUEST['magazineDate']) ? strip_tags($_REQUEST['magazineDate']) : '';
+						$materialsRequest->magazineVolume = isset($_REQUEST['magazineVolume']) ? strip_tags($_REQUEST['magazineVolume']) : '';
+						$materialsRequest->magazineNumber = isset($_REQUEST['magazineNumber']) ? strip_tags($_REQUEST['magazineNumber']) : '';
+						$materialsRequest->magazinePageNumbers = isset($_REQUEST['magazinePageNumbers']) ? strip_tags($_REQUEST['magazinePageNumbers']) : '';
+						$materialsRequest->author = strip_tags($_REQUEST['author']);
+						$materialsRequest->format = strip_tags($_REQUEST['format']);
+						if ($materialsRequest->format == 'ebook' && isset($_REQUEST['ebookFormat'])){
+							$materialsRequest->subFormat = strip_tags($_REQUEST['ebookFormat']);
+						}elseif ($materialsRequest->format == 'eaudio' && isset($_REQUEST['eaudioFormat'])){
+							$materialsRequest->subFormat = strip_tags($_REQUEST['eaudioFormat']);
+						}
+						$materialsRequest->subFormat = isset($_REQUEST['subFormat']) ? strip_tags($_REQUEST['subFormat']) : '';
+						$materialsRequest->ageLevel = isset($_REQUEST['ageLevel']) ? strip_tags($_REQUEST['ageLevel']) : '';
+						$materialsRequest->bookType = isset($_REQUEST['bookType']) ? strip_tags($_REQUEST['bookType']) : '';
+						$materialsRequest->isbn = isset($_REQUEST['isbn']) ? strip_tags($_REQUEST['isbn']) : '';
+						$materialsRequest->upc = isset($_REQUEST['upc']) ? strip_tags($_REQUEST['upc']) : '';
+						$materialsRequest->issn = isset($_REQUEST['issn']) ? strip_tags($_REQUEST['issn']) : '';
+						$materialsRequest->oclcNumber = isset($_REQUEST['oclcNumber']) ? strip_tags($_REQUEST['oclcNumber']) : '';
+						$materialsRequest->publisher = strip_tags($_REQUEST['publisher']);
+						$materialsRequest->publicationYear = strip_tags($_REQUEST['publicationYear']);
+						if (isset($_REQUEST['abridged'])){
+							if ($_REQUEST['abridged'] == 'abridged'){
+								$materialsRequest->abridged = 1;
+							}elseif($_REQUEST['abridged'] == 'unabridged'){
+								$materialsRequest->abridged = 0;
+							}else{
+								$materialsRequest->abridged = 2; //Not applicable
+							}
+						}
+						$materialsRequest->about = strip_tags($_REQUEST['about']);
+						$materialsRequest->comments = strip_tags($_REQUEST['comments']);
+						if (isset($_REQUEST['placeHoldWhenAvailable'])){
+							$materialsRequest->placeHoldWhenAvailable = $_REQUEST['placeHoldWhenAvailable'];
 						}else{
+							$materialsRequest->placeHoldWhenAvailable = 0;
+						}
+						if (isset($_REQUEST['holdPickupLocation'])){
+							$materialsRequest->holdPickupLocation = $_REQUEST['holdPickupLocation'];
+						}
+						if (isset($_REQUEST['bookmobileStop'])){
+							$materialsRequest->bookmobileStop = $_REQUEST['bookmobileStop'];
+						}
+						if (isset($_REQUEST['illItem'])){
+							$materialsRequest->illItem = $_REQUEST['illItem'];
+						}else{
+							$materialsRequest->illItem = 0;
+						}
+						$defaultStatus = new MaterialsRequestStatus();
+						$defaultStatus->isDefault = 1;
+						if (!$defaultStatus->find(true)){
 							$interface->assign('success', false);
-							$interface->assign('error', 'There was an error submitting your materials request.');
+							$interface->assign('error', 'There was an error submitting your materials request, could not determine the default status.');
+						}else{
+							$materialsRequest->status = $defaultStatus->id;
+							$materialsRequest->dateCreated = time();
+							$materialsRequest->createdBy = $user->id;
+							$materialsRequest->dateUpdated = time();
+
+							// We'd like to search the catalog for this particular material. If
+							// it is available, we'll put it on hold for the user.
+							if (!empty($materialsRequest->isbn)) {
+								// Potentially save _REQUEST array during this period.
+								$original_request = $_REQUEST;
+								// Build dummy $_REQUEST. These classes are very poorly
+								// designed and require superglobals.
+								$_REQUEST = array(
+									'module' => 'Search',
+									'action' => 'Results',
+									'bool0' => array(
+										0 => 'AND'
+									),
+									'lookfor0' => array(
+										0 => $materialsRequest->isbn,
+									),
+									'type0' => array(
+										0 => 'ISN'
+									),
+									'join' => 'AND',
+									'submit' => 'Find',
+									'searchSource' => 'local',
+									'type' => 'Keyword',
+								);
+								$searchObject = SearchObjectFactory::initSearchObject();
+								$searchObject->init('local');
+								$result = $searchObject->processSearch();
+								// If record exists, redirect to hold screen.
+								if ($searchObject->getResultTotal() == 1) {
+									$recordSet = $searchObject->getResultRecordSet();
+									$record = reset($recordSet);
+									if ($record['recordtype'] == 'econtentRecord'){
+										header('Location: ' . $interface->getUrl() . '/EcontentRecord/' . str_replace('econtentRecord', '', $record['id']) . '/Hold?mr=1');
+									}
+									else {
+										header('Location: ' . $interface->getUrl() . '/Record/' . $record['id'] . '/Hold?mr=1');
+									}
+								}
+								// Results were not constrained to single result, thus restore
+								// _REQUEST array and continue.
+								$_REQUEST = $original_request;
+							}
+
+
+							if ($materialsRequest->insert()){
+								$interface->assign('success', true);
+								$interface->assign('materialsRequest', $materialsRequest);
+							}else{
+								$interface->assign('success', false);
+								$interface->assign('error', 'There was an error submitting your materials request.');
+							}
 						}
 					}
 				}

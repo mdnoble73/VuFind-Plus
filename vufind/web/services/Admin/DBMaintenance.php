@@ -288,6 +288,16 @@ class DBMaintenance extends Admin {
 					"ALTER TABLE `library` ADD `showMarmotResultsAtEndOfSearch` INT(11) DEFAULT 1;",
 				),
 			),
+			'library_materials_request_limits' => array(
+				'title' => 'Library Materials Request Limits',
+				'description' => 'Add configurable limits to the number of open requests and total requests per year that patrons can make. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `maxRequestsPerYear` INT(11) DEFAULT 60;",
+					"ALTER TABLE `library` ADD `maxOpenRequests` INT(11) DEFAULT 5;",
+				),
+			),
 
 			'location_1' => array(
 				'title' => 'Location 1',

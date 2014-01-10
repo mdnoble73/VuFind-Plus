@@ -56,6 +56,10 @@ vufind/web/*.csv
 .classpath
 org.eclipse.*.prefs
 
+# PhpStorm Files #
+.idea/*
+vufind/web/.idea/*
+
 # OS generated files #
 ######################
 .DS_Store*
