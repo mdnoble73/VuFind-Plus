@@ -432,13 +432,38 @@ class Record extends Action
 						$linkText = $link;
 					}
 					$showLink = true;
-					//Process some links differently so we can either hide them
-					//or show them in different areas of the catalog.
-					// Pull out overdrive link separately.
-					if (preg_match('/lib.overdrive.com/', $link)) {
-						$overdrive = $link;
-						$showLink = FALSE;
-					}
+
+          //Process some links differently so we can either hide them
+          //or show them in different areas of the catalog.
+          // Pull out links separately.
+          // @todo This should really be abstracted as service.
+          $downloadServices = array(
+            array(
+              'mask' => '/lib.overdrive.com/',
+              'text' => 'Download from OverDrive',
+            ),
+            array(
+              'mask' => '/anythinkco.oneclickdigital.com/',
+              'text' => 'Download from OneClickdigital',
+            ),
+            array(
+              'mask' => '/anythink.axis360.baker-taylor.com/',
+              'text' => 'Download from Axis 360',
+            ),
+            array(
+              'mask' => '/www.hoopladigital.com/',
+              'text' => 'Download from Hoopla',
+            ),
+          );
+
+          foreach ($downloadServices as $downloadService) {
+            if (preg_match($downloadService['mask'], $link) != 0) {
+              $linkToDownload = $link;
+              $linkToDownloadText = $downloadService['text'];
+              $showLink = FALSE;
+              break;
+            }
+          }
 
 					if (preg_match('/purchase|buy/i', $linkText) ||
 						preg_match('/barnesandnoble|tatteredcover|amazon|smashwords\.com/i', $link)){
@@ -468,10 +493,12 @@ class Record extends Action
 			$interface->assign('purchaseLinks', $purchaseLinks);
 		}
 
-                if (!empty($overdrive)) {
-			$interface->assign('hideHold', TRUE);
-			$interface->assign('overdriveLink', $overdrive);
-                }
+    // Add a link to download the title.
+    if (!empty($linkToDownload)) {
+      $interface->assign('hideHold', TRUE);
+      $interface->assign('linkToDownload', $linkToDownload);
+      $interface->assign('linkToDownloadText', $linkToDownloadText);
+    }
 
 		//Determine the cover to use
 		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$this->id}&amp;isn={$this->isbn}&amp;size=large&amp;upc={$this->upc}&amp;category=" . urlencode($format_category) . "&amp;format=" . urlencode(isset($format[0]) ? $format[0] : '');

@@ -34,9 +34,13 @@ class ListRecord extends IndexRecord
 		$interface->assign('summTitle', $this->getTitle());
 		if (isset($this->fields['description'])){
 			$interface->assign('summDescription', $this->fields['description']);
+		}else{
+			$interface->assign('summDescription', '');
 		}
 		if (isset($this->fields['num_titles'])){
 			$interface->assign('summNumTitles', $this->fields['num_titles']);
+		}else{
+			$interface->assign('summNumTitles', 0);
 		}
 
 		return 'RecordDrivers/List/result.tpl';
