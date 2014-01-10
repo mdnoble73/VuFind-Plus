@@ -1,14 +1,14 @@
 {strip}
-<div id="groupedRecord{$summId|escape}" class="resultsList row-fluid">
-	<div class="imageColumn span3">
-		<div class="row-fluid">
-			<div class="selectTitle hidden-phone span4">
+<div id="groupedRecord{$summId|escape}" class="resultsList row">
+	<div class="imageColumn col-md-3">
+		<div class="row">
+			<div class="selectTitle hidden-phone col-md-4">
 				<label for="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultIndex checkbox"><strong>{$resultIndex}</strong>
 					<input type="checkbox" class="titleSelect" name="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" id="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" {if $enableBookCart}onclick="toggleInBag('{$summId|escape}', '{$summTitle|replace:'"':''|replace:'&':'and'|escape:'javascript'}', this);"{/if} />&nbsp;
 				</label>
 			</div>
 			{/strip}
-			<div class="span7 text-center">
+			<div class="col-md-7 text-center">
 				{if $user->disableCoverArt != 1}
 					{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
 					<a href="{$summUrl}">
@@ -30,8 +30,8 @@
 		<div class="hidden" id="scoreExplanationValue{$summId|escape}">{$summExplain}</div>
 	{/if}
 
-	<div class="span9">
-		<div class="row-fluid">
+	<div class="col-md-9">
+		<div class="row">
 			{if isset($summScore)}
 				(<a href="#" onclick="return VuFind.showElementInPopup('Score Explanation', '#scoreExplanationValue{$summId|escape}');">{$summScore}</a>)
 			{/if}
@@ -43,12 +43,12 @@
 			</strong>
 		</div>
 
-		<div class="row-fluid">
-			<div class="resultDetails span9">
+		<div class="row">
+			<div class="resultDetails col-md-9">
 				{if $summAuthor}
-					<div class="row-fluid">
-						<div class="result-label span3">Author: </div>
-						<div class="span9 result-value">
+					<div class="row">
+						<div class="result-label col-md-3">Author: </div>
+						<div class="col-md-9 result-value">
 							{if is_array($summAuthor)}
 								{foreach from=$summAuthor item=author}
 									<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
@@ -61,32 +61,32 @@
 				{/if}
 
 				{if $summSeries}
-					<div class="series{$summISBN} row-fluid">
-						<div class="result-label span3">Series: </div>
-						<div class="span9 result-value">{$summSeries.seriesTitle}{if $summSeries.volume} volume {$summSeries.volume}{/if}</div>
+					<div class="series{$summISBN} row">
+						<div class="result-label col-md-3">Series: </div>
+						<div class="col-md-9 result-value">{$summSeries.seriesTitle}{if $summSeries.volume} volume {$summSeries.volume}{/if}</div>
 					</div>
 				{/if}
 
-				<div class="row-fluid well-small">
-					<div class="span12">
+				<div class="row well-small">
+					<div class="col-md-12">
 						{include file="GroupedWork/relatedManifestations.tpl" id=$summId}
 					</div>
 				</div>
 
-				<div class="row-fluid well-small">
+				<div class="row well-small">
 					{if strlen($summDescription) > 300}
-						<div class="span12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|truncate_html:300}
+						<div class="col-md-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|truncate_html:300}
 						<a href='#' onclick='$("#descriptionValue{$summId|escape}").html($("#fullSummary{$summId|escape}").html())'>More</a>
 						</div>
 						<div class="hidden" id="fullSummary{$summId|escape}">{$summDescription}</div>
 					{else}
-						<div class="span12 result-value" id="descriptionValue{$summId|escape}">{$summDescription}</div>
+						<div class="col-md-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription}</div>
 					{/if}
 				</div>
 
 			</div>
 
-			<div class="resultActions span3">
+			<div class="resultActions col-md-3">
 				{include file='GroupedWork/result-tools.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
 			</div>
 		</div>

@@ -1,5 +1,5 @@
 {strip}
-<div id="list-{$wrapperId}" {if $display == 'false'}style="display:none"{/if} class="titleScroller row-fluid">
+<div id="list-{$wrapperId}" {if $display == 'false'}style="display:none"{/if} class="titleScroller row">
 	<div id="{$wrapperId}" class="titleScrollerWrapper">
 		{if $scrollerTitle || $Links}
 		<div id="list-{$wrapperId}Header" class="titleScrollerHeader">

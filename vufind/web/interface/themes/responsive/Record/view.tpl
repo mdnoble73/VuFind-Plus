@@ -60,17 +60,17 @@
 
 	{if $error}<p class="error">{$error}</p>{/if}
 
-	<div class="row-fluid">
+	<div class="row">
 
 		{*
-		<div class="span3">
+		<div class="col-md-3">
 			{include file="Record/view-sidebar.tpl"}
 		</div>
 		*}
 
-		<div id="main-content" class="span12">
-			<div class="row-fluid">
-				<div id="image-column" class="span3">
+		<div id="main-content" class="col-md-12">
+			<div class="row">
+				<div id="image-column" class="col-md-3">
 					{* Display Book Cover *}
 					{if $user->disableCoverArt != 1}
 						<div id = "recordcover">
@@ -85,7 +85,7 @@
 					{/if}
 				</div> {* End image column *}
 
-				<div id="record-details-column" class="span6">
+				<div id="record-details-column" class="col-md-6">
 					<div id="record-details-header">
 						<div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord">Loading availability information...</div>
 					</div>
@@ -111,7 +111,7 @@
 					{/if}
 				</div>
 
-				<div id="recordTools" class="span3">
+				<div id="recordTools" class="col-md-3">
 					{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
 
 					<div id="ratings" class="well center">
@@ -121,7 +121,7 @@
 				</div>
 			</div>
 
-			<div id="relatedTitleInfo" style="display:none" class="row-fluid">
+			<div id="relatedTitleInfo" style="display:none" class="row">
 				{assign var="scrollerName" value="Series"}
 				{assign var="scrollerTitle" value="Also in this Series"}
 				{assign var="wrapperId" value="series"}

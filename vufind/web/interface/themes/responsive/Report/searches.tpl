@@ -1,13 +1,13 @@
 {strip}
 <script type="text/javascript" src="/js/highcharts/highcharts.js"></script>
 <script type="text/javascript" src="/js/analyticReports.js"></script>
-<div class="row-fluid">
+<div class="row">
 	{include file="Report/reportSwitcher.tpl"}
 	{include file="Report/analyticsFilters.tpl"}
 </div>
 
-<div class="row-fluid">
-	<div id="topSearchesContainer" class="span4">
+<div class="row">
+	<div id="topSearchesContainer" class="col-md-4">
 		<h2>Top Searches</h2>
 		<ol class='reportOrderedList'>
 		{foreach from=$topSearches item=searchTerm}
@@ -16,7 +16,7 @@
 		</ol>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=topSearches{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
-	<div id="topNoHitSearchesContainer" class="span4">
+	<div id="topNoHitSearchesContainer" class="col-md-4">
 		<h2>Top No Hit Searches</h2>
 		<ol class='reportOrderedList'>
 		{foreach from=$topNoHitSearches item=searchTerm}
@@ -25,7 +25,7 @@
 		</ol>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=noHitSearches{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
-	<div id="latestSearchesContainer" class="span4">
+	<div id="latestSearchesContainer" class="col-md-4">
 		<h2>Latest Searches</h2>
 		<ol class='reportOrderedList'>
 		{foreach from=$latestSearches item=searchTerm}
@@ -36,8 +36,8 @@
 	</div>
 </div>
 
-<div class="row-fluid">
-	<div id="latestNoHitSearchesContainer" class="span4">
+<div class="row">
+	<div id="latestNoHitSearchesContainer" class="col-md-4">
 		<h2>Latest No Hit Searches</h2>
 		<ol class='reportOrderedList'>
 		{foreach from=$latestNoHitSearches item=searchTerm}
@@ -46,24 +46,24 @@
 		</ol>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=latestNoHitSearches{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
-	<div id="searchesByTypeContainer" class="span4">
+	<div id="searchesByTypeContainer" class="col-md-4">
 		<div id="searchesByTypeChart" class="dashboardChart">
 		</div>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=searchesByType{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
-	<div id="searchesByScopeContainer" class="span4">
+	<div id="searchesByScopeContainer" class="col-md-4">
 		<div id="searchesByScopeChart" class="dashboardChart">
 		</div>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=searchesByScope{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 </div>
 
-<div class="row-fluid">
-	<div id="searchesWithFacetsContainer" class="span4">
+<div class="row">
+	<div id="searchesWithFacetsContainer" class="col-md-4">
 		<div id="searchesWithFacetsChart" class="dashboardChart">
 		</div>
 	</div>
-	<div id="facetUsageByTypeContainer" class="span4">
+	<div id="facetUsageByTypeContainer" class="col-md-4">
 		<div id="facetUsageByTypeChart" class="dashboardChart">
 		</div>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=facetUsageByType{if $filterString}&amp;{$filterStringg|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>

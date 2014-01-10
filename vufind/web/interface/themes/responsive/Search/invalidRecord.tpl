@@ -1,4 +1,4 @@
-<div id="page-content" class="row-fluid">
+<div id="page-content" class="row">
 	<div id="main-content">
 		<h2>{translate text='Invalid Record'}</h2>
 			

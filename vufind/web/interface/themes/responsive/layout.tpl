@@ -41,7 +41,7 @@
 	</head>
 	<body class="module_{$module} action_{$action}">
 		<div id="header-container">
-			{include file='header.tpl'}
+			{include file='header_responsive.tpl'}
 		</div>
 
 		{if $showTopSearchBox}
@@ -57,12 +57,12 @@
 			</ul>
 		{/if}
 
-		<div class="container-fluid">
+		<div class="container" id="content-container">
 			{include file="$module/$pageTemplate"}
 		</div>
 
 		<div id="footer-container">
-			{include file="footer.tpl"}
+			{include file="footer_responsive.tpl"}
 		</div>
 
 		<div id="modalDialog" class="modal hide fade" tabindex="-1" role="dialog">

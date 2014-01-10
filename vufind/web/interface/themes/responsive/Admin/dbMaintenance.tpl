@@ -1,12 +1,12 @@
 {strip}
-<div id="page-content" class="row-fluid">
+<div id="page-content" class="row">
 	{if $error}<p class="error">{$error}</p>{/if} 
-	<div id="sidebar" class="span3">
+	<div id="sidebar" class="col-md-3">
 		{include file="MyResearch/menu.tpl"}
 
 		{include file="Admin/menu.tpl"}
 	</div>
-	<div id="main-content" class="span9">
+	<div id="main-content" class="col-md-9">
 		<h3>Database Maintenance</h3>
 		<div id="maintenanceOptions"></div>
 		<form id="dbMaintenance" action="{$path}/Admin/{$action}">

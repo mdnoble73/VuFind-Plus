@@ -1,0 +1,36 @@
+/**
+Variables for VuFind customization.  These can be overridden at the local theme level
+*/
+/**
+Header Variables
+**/
+/**
+Functionality related to the overall layout
+Headers, Footer, columns, etc.
+ */
+#header-container {
+  padding-top: 0px;
+  height: 90px;
+  background: linear-gradient(to bottom, #f2f2f2, #dddddd 85%, #e0e0e0);
+  border-bottom: 8px solid #b7b7b7;
+}
+#header-container .navbar {
+  margin-bottom: 0px;
+}
+.navbar-nav {
+  height: 90px;
+}
+.header-button > a {
+  height: 83px;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 4px solid #e0e0e0;
+  padding: 0px;
+}
+.header-button > a:hover {
+  border-bottom: 4px solid #088ec6;
+}
+.header-primary {
+  border-left: 2px solid #d9d8d8;
+  border-right: 2px solid #d9d8d8;
+}

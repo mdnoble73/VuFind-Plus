@@ -1,6 +1,6 @@
 {strip}
-<div id="page-content" class="content row-fluid">
-	<div id="sidebar" class="span3">
+<div id="page-content" class="content row">
+	<div id="sidebar" class="col-md-3">
 		{if $enrichment.novelist.similarAuthorCount != 0}
 		<div class="sidegroup">
 				 
@@ -28,12 +28,12 @@
 		 
 	</div>
 	
-	<div id="main-content" class="span9">
+	<div id="main-content" class="col-md-9">
 		<h2>{$authorName}</h2>
 		<div id="wikipedia_placeholder"></div>
 		{* Listing Options *}
-		<div class="row-fluid">
-			<div class="span7">
+		<div class="row">
+			<div class="col-md-7">
 				{if $recordCount}
 					{translate text="Showing"}&nbsp;
 					<b>{$recordStart}</b> - <b>{$recordEnd}</b>
@@ -44,7 +44,7 @@
 				
 			</div>
 
-			<div class="span5">
+			<div class="col-md-5">
 				<div class="control-group">
 					<label for="sortOptions" class="checkbox inline">
 						{translate text='Sort'} <select id="sortOptions" name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;">

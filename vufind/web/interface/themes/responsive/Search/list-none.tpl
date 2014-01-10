@@ -1,7 +1,7 @@
 {strip}
-<div class="row-fluid">
+<div class="row">
 	{* Narrow Search Options *}
-	<div id="sidebar" class="span3">
+	<div id="sidebar" class="col-md-3">
 		{* Display spelling suggestions if any *}
 		{if $spellingSuggestions}
 			<div class="sidegroup" id="spellingSuggestions">
@@ -23,7 +23,7 @@
 		{/if}
 	</div>
 	
-	<div id="main-content" class="span9">
+	<div id="main-content" class="col-md-9">
 		{* Recommendations *}
 		{if $topRecommendations}
 			{foreach from=$topRecommendations item="recommendations"}

@@ -1,11 +1,11 @@
 {strip}
-	<div id="record{$record.source}_{$record.id|escape}" class="result row-fluid">
-		<div class="span3">
-			<div class="row-fluid">
-				<div class="selectTitle span2">
+	<div id="record{$record.source}_{$record.id|escape}" class="result row">
+		<div class="col-md-3">
+			<div class="row">
+				<div class="selectTitle col-md-2">
 					<input type="checkbox" name="selected[{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}"/>
 				</div>
-				<div class="span9 text-center">
+				<div class="col-md-9 text-center">
 					{if $user->disableCoverArt != 1}
 						{if $record.id}
 							<a href="{$path}/Record/{$record.id|escape:"url"}">
@@ -16,8 +16,8 @@
 				</div>
 			</div>
 		</div>
-		<div class="span9">
-			<div class="row-fluid">
+		<div class="col-md-9">
+			<div class="row">
 				<strong>
 					{if $record.id}
 						<a href="{$path}/Record/{$record.id|escape:"url"}" class="title">
@@ -33,12 +33,12 @@
 					{/if}
 				</strong>
 			</div>
-			<div class="row-fluid">
-				<div class="resultDetails span9">
+			<div class="row">
+				<div class="resultDetails col-md-9">
 					{if $record.author}
-						<div class="row-fluid">
-							<div class="result-label span3">{translate text='Author'}</div>
-							<div class="span9 result-value">
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Author'}</div>
+							<div class="col-md-9 result-value">
 								{if is_array($record.author)}
 									{foreach from=$record.author item=author}
 										<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
@@ -51,22 +51,22 @@
 					{/if}
 
 					{if $record.publicationDate}
-						<div class="row-fluid">
-							<div class="result-label span3">{translate text='Published'}</div>
-							<div class="span9 result-value">{$record.publicationDate|escape}</div>
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Published'}</div>
+							<div class="col-md-9 result-value">{$record.publicationDate|escape}</div>
 						</div>
 					{/if}
 
 					{if $showOut}
-						<div class="row-fluid">
-							<div class="result-label span3">{translate text='Checked Out'}</div>
-							<div class="span9 result-value">{$record.checkoutdate|date_format}</div>
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Checked Out'}</div>
+							<div class="col-md-9 result-value">{$record.checkoutdate|date_format}</div>
 						</div>
 					{/if}
 
-					<div class="row-fluid">
-						<div class="result-label span3">{translate text='Due'}</div>
-						<div class="span9 result-value">
+					<div class="row">
+						<div class="result-label col-md-3">{translate text='Due'}</div>
+						<div class="col-md-9 result-value">
 							{$record.duedate|date_format}
 							{if $record.overdue}
 								<span class='text-error'><strong> OVERDUE</strong></span>
@@ -84,9 +84,9 @@
 					</div>
 
 					{if $showRenewed}
-						<div class="row-fluid">
-							<div class="result-label span3">{translate text='Renewed'}</div>
-							<div class="span9 result-value">
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Renewed'}</div>
+							<div class="col-md-9 result-value">
 								{$record.renewCount} times
 								{if $record.renewMessage}
 									<div class='alert {if $record.renewResult == true}alert-success{else}alert-error{/if}'>
@@ -98,9 +98,9 @@
 					{/if}
 
 					{if $showWaitList}
-						<div class="row-fluid">
-							<div class="result-label span3">{translate text='Wait List'}</div>
-							<div class="span9 result-value">
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Wait List'}</div>
+							<div class="col-md-9 result-value">
 								{* Wait List goes here *}
 								{$record.holdQueueLength}
 							</div>
@@ -108,7 +108,7 @@
 					{/if}
 				</div>
 
-				<div class="span3">
+				<div class="col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
 						<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.renewSelectedTitles();" class="btn btn-small">Renew</a>
 					</div>

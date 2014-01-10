@@ -2,9 +2,9 @@
 	{if $error}<p class="error">{$error}</p>{/if} 
 	<form action="" method="post">
 		<fieldset>
-			<div class="row-fluid">
+			<div class="row">
 
-				<div id="sidebar" class="span3">
+				<div id="sidebar" class="col-md-3">
 					<div class="sidebarLabel"><label for="login">Login</label></div>
 					<div class="sidebarValue"><input type="text" name="login" id="login" value="{$lastLogin}"/> </div>
 					<div class="sidebarLabel"><label for="password1">Password</label></div>
@@ -16,7 +16,7 @@
 					<div class="sidebarLabel"><input type="checkbox" name="updateIncorrectStatuses" {if $lastUpdateIncorrectStatuses}checked="checked"{/if}/> <label for="updateIncorrectStatuses">Auto correct status</label></div>
 					<div class="sidebarLabel"><input type="submit" name="submit" value="Submit Inventory" class="btn btn-primary"/></div>
 				</div>
-				<div id="main-content" class="span9">
+				<div id="main-content" class="col-md-9">
 					<legend>Circa Inventory</legend>
 					{if $results}
 						<div id="circaResults" {if $results.success == false}class="error"{/if}>

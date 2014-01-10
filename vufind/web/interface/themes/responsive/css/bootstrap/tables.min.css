@@ -1,5 +1,0 @@
-NameError: variable @tableBackground is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\tables.less on line 11, column 21:
-10   max-width: 100%;
-11   background-color: @tableBackground;
-12   border-collapse: collapse;
-

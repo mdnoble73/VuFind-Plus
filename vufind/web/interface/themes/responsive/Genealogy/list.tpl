@@ -4,9 +4,9 @@
 	alert("{$title}");
 </script>
 {/if}
-<div class="row-fluid">
+<div class="row">
 	{* Narrow Search Options *}
-	<div id="sidebar" class="span3">
+	<div id="sidebar" class="col-md-3">
 		<div class="sidegroup well">
 			{if $recordCount}
 				<label for="sort"><strong>{translate text='Sort By'}</strong></label>
@@ -27,7 +27,7 @@
 	</div>
 	{* End Narrow Search Options *}
 	
-	<div id="main-content" class="span9">
+	<div id="main-content" class="col-md-9">
 		<div id="searchInfo">
 			{* Recommendations *}
 			{if $topRecommendations}

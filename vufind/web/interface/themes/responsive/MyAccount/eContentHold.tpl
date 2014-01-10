@@ -1,11 +1,11 @@
 {strip}
-	<div class="row-fluid">
-		<div class="span3">
-			<div class="row-fluid">
-				<div class="selectTitle span2">
+	<div class="row">
+		<div class="col-md-3">
+			<div class="row">
+				<div class="selectTitle col-md-2">
 					<input type="checkbox" name="econtentHoldSelected[{$record.id}]" value="{$record.recordId}" id="selected{$record.id|escape:"url"}" class="titleSelect{$sectionKey} titleSelect"/>&nbsp;
 				</div>
-				<div class="span9 text-center">
+				<div class="col-md-9 text-center">
 					{if $record.recordId}
 					<a href="{$path}/EcontentRecord/{$record.recordId|escape:"url"}">
 						{/if}
@@ -17,8 +17,8 @@
 			</div>
 		</div>
 
-		<div class="span9">
-			<div class="row-fluid">
+		<div class="col-md-9">
+			<div class="row">
 				<strong>
 					{if $record.recordId}
 					<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">
@@ -35,12 +35,12 @@
 				</strong>
 			</div>
 
-			<div class="row-fluid">
-				<div class="resultDetails span9">
+			<div class="row">
+				<div class="resultDetails col-md-9">
 					{if $record.author}
-						<div class="row-fluid">
-							<div class="result-label span3">{translate text='Author'}</div>
-							<div class="span9 result-value">
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Author'}</div>
+							<div class="col-md-9 result-value">
 								{if is_array($record.author)}
 									{foreach from=$record.author item=author}
 										<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
@@ -52,24 +52,24 @@
 						</div>
 					{/if}
 
-					<div class="row-fluid">
-						<div class="result-label span3">{translate text='Format'}</div>
-						<div class="span9 result-value">
+					<div class="row">
+						<div class="result-label col-md-3">{translate text='Format'}</div>
+						<div class="col-md-9 result-value">
 							{implode subject=$record.format glue=", "}
 						</div>
 					</div>
 
-					<div class="row-fluid">
-						<div class="result-label span3">{translate text='Pickup'}</div>
-						<div class="span9 result-value">
+					<div class="row">
+						<div class="result-label col-md-3">{translate text='Pickup'}</div>
+						<div class="col-md-9 result-value">
 							{$record.location}
 						</div>
 					</div>
 
 					{if $showPlacedColumn}
-						<div class="row-fluid">
-							<div class="result-label span3">{translate text='Date Placed'}</div>
-							<div class="span9 result-value">
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Date Placed'}</div>
+							<div class="col-md-9 result-value">
 								{$record.create|date_format}
 							</div>
 						</div>
@@ -77,9 +77,9 @@
 
 					{if $section == 'available'}
 					{* Available Hold *}
-						<div class="row-fluid">
-							<div class="result-label span3">{translate text='Available'}</div>
-							<div class="span9 result-value">
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Available'}</div>
+							<div class="col-md-9 result-value">
 								{if $record.availableTime}
 									{$record.availableTime|date_format:"%b %d, %Y at %l:%M %p"}
 								{else}
@@ -88,18 +88,18 @@
 							</div>
 						</div>
 
-						<div class="row-fluid">
-							<div class="result-label span3">{translate text='Expires'}</div>
-							<div class="span9 result-value">
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Expires'}</div>
+							<div class="col-md-9 result-value">
 								{$record.expire|date_format:"%b %d, %Y"}
 							</div>
 						</div>
 
 					{else}
 					{* Unavailable hold *}
-						<div class="row-fluid">
-							<div class="result-label span3">{translate text='Status'}</div>
-							<div class="span9 result-value">
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Status'}</div>
+							<div class="col-md-9 result-value">
 								{if $record.frozen}
 								<span class='frozenHold'>
 									{/if}{$record.status}
@@ -113,9 +113,9 @@
 						</div>
 
 						{if $showPosition}
-							<div class="row-fluid">
-								<div class="result-label span3">{translate text='Position'}</div>
-								<div class="span9 result-value">
+							<div class="row">
+								<div class="result-label col-md-3">{translate text='Position'}</div>
+								<div class="col-md-9 result-value">
 									{$record.position}
 								</div>
 							</div>
@@ -123,7 +123,7 @@
 					{/if}
 				</div>
 
-				<div class="span3">
+				<div class="col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
 						<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.cancelSelectedHolds();" class="btn btn-small">Cancel Hold</a>
 					</div>

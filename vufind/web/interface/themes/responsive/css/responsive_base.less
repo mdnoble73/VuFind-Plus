@@ -1,17 +1,14 @@
 /**
  * Main responsive theme css
  */
+@import "bootstrap/less/variables.less";
 //Default values for variables
 @navbarCollapseWidth: 480px;
 @navbarCollapseDesktopWidth: 481px;
-@headerBackgroundHighlight: @navbarBackgroundHighlight;
-@headerBackground: @navbarBackground;
-@footerBackgroundHighlight: @navbarBackgroundHighlight;
-@footerBackground: @navbarBackground;
 @horizontalComponentOffsetNarrow:       80px;
+@icon-font-path: '/fonts/';
 
-@import "bootstrap/bootstrap.less";
-@import "bootstrap/responsive.less";
+@import "bootstrap/less/bootstrap.less";
 
 /**
  * Basic Style overrides
@@ -58,24 +55,8 @@
     }
     padding-top: 5px;
   }
-  @media (min-width: 480px) {
-    .input-append;
-  }
-  #lookfor{
-    @media (min-width: 480px) {
-      .input-xlarge;
-    }
-  }
 }
 
-#header-container .navbar-inner{
-  background-image: linear-gradient(to bottom, @headerBackgroundHighlight, @headerBackground);
-}
-
-
-#footer-container .navbar-inner{
-  background-image: linear-gradient(to bottom, @footerBackgroundHighlight, @footerBackground);
-}
 .footer-column{
   @media (max-width: 767px) {
     h4:before{
@@ -104,14 +85,14 @@
 ul.list-striped, ol.list-striped {
   > li:nth-child(odd),
   > li:nth-child(odd) {
-    background-color: @tableBackgroundAccent;
+    background-color: @table-bg-accent;
   }
 }
 
 div.striped {
   > div:nth-child(odd),
   > div:nth-child(odd) {
-    background-color: @tableBackgroundAccent;
+    background-color: @table-bg-accent;
   }
 }
 
@@ -123,9 +104,11 @@ div.striped {
 @import "/interface/themes/default/css/ratings.css";
 @import "datepicker.less";
 @import "/interface/themes/responsive/css/bootstrapSwitch.css";
-@import "narrowform.less";
+//@import "narrowform.less";
 
 /** Imports of functionality related to VuFind **/
+@import "layout.less";
+@import "home.less";
 @import "help.less";
 @import "author.less";
 @import "title-scroller.less";

@@ -1,4 +1,4 @@
-<div id='suggestions' class="row-fluid">
+<div id='suggestions' class="row">
 	{if $message}
 		<div class='error'>{$message}</div>
 	{/if}

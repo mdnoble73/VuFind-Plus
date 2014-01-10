@@ -2,42 +2,42 @@
 <script type="text/javascript" src="/js/highcharts/highcharts.js"></script>
 <script type="text/javascript" src="/js/analyticReports.js"></script>
 
-<div class="row-fluid">
+<div class="row">
 	{include file="Report/reportSwitcher.tpl"}
 	{include file="Report/analyticsFilters.tpl"}
 </div>
 
 <h2 class="clearer">Holds</h2>
-<div class="row-fluid">
+<div class="row">
 	{* Holds by Result*}
-	<div id="holdsByResultContainer" class="span4">
+	<div id="holdsByResultContainer" class="col-md-4">
 		<div id="holdsByResultChart" class="dashboardChart">
 		</div>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=holdsByResult{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	{* Sessions by number of holds placed (1, 2, 3, 4, etc) *}
-	<div id="holdsPerSessionContainer" class="span4">
+	<div id="holdsPerSessionContainer" class="col-md-4">
 		<div id="holdsBySessionChart" class="dashboardChart">
 		</div>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=holdsPerSession{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	{* Sessions by number of holds canceled (1, 2, 3, 4, etc) *}
-	<div id="holdsCancelledPerSessionContainer" class="span4">
+	<div id="holdsCancelledPerSessionContainer" class="col-md-4">
 		<div id="holdsCancelledBySessionChart" class="dashboardChart">
 		</div>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=holdsCancelledPerSession{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 </div>
 
-<div class="row-fluid">
+<div class="row">
 	{* Sessions by number of holds updated (1, 2, 3, 4, etc) *}
-	<div id="holdsUpdatedPerSessionContainer" class="span4">
+	<div id="holdsUpdatedPerSessionContainer" class="col-md-4">
 		<div id="holdsUpdatedBySessionChart" class="dashboardChart">
 		</div>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=holdsUpdatedPerSession{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	{* Sessions by number of holds failed holds (1, 2, 3, 4, etc) *}
-	<div id="holdsFailedPerSessionContainer" class="span4">
+	<div id="holdsFailedPerSessionContainer" class="col-md-4">
 		<div id="holdsFailedBySessionChart" class="dashboardChart">
 		</div>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=holdsFailedPerSession{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>

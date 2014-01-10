@@ -1,13 +1,13 @@
 {strip}
-<div id="record{$summId|escape}" class="resultsList row-fluid">
-	<div class="span1 hidden-phone">
+<div id="record{$summId|escape}" class="resultsList row">
+	<div class="col-md-1 hidden-phone">
 		<div class="resultIndex">{$resultIndex}</div>
 		<div class="selectTitle">
 			<input type="checkbox" name="selected[{$summId|escape:"url"}]" id="selected{$summId|escape:"url"}" style="display:none" />&nbsp;
 		</div>
 	</div>
 
-	<div class="imageColumn span2 text-center">
+	<div class="imageColumn col-md-2 text-center">
 		{if $user->disableCoverArt != 1}
 			<a href="{$path}/MyResearch/MyList/{$summShortId}" class="alignleft listResultImage">
 				<img src="{img filename="lists.png"}" alt="{translate text='No Cover Image'}"/><br />
@@ -15,8 +15,8 @@
 		{/if}
 	</div>
 
-	<div class="span9">
-		<div class="row-fluid">
+	<div class="col-md-9">
+		<div class="row">
 			{if $summScore}({$summScore}) {/if}
 			<strong>
 				<a href="{$path}/MyResearch/MyList/{$summShortId}" class="title">{if !$summTitle}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
@@ -28,28 +28,28 @@
 			</strong>
 		</div>
 
-		<div class="row-fluid">
-			<div class="resultDetails span9">
+		<div class="row">
+			<div class="resultDetails col-md-9">
 				{if $summDescription}
-					<div class="row-fluid">
-						<div class="result-label span3">{translate text='Description'}:</div>
-						<div class="span9 result-value">
+					<div class="row">
+						<div class="result-label col-md-3">{translate text='Description'}:</div>
+						<div class="col-md-9 result-value">
 							{$summDescription|truncate:500:"..."|highlight:$lookfor}
 						</div>
 					</div>
 				{/if}
 
 				{if $summNumTitles}
-					<div class="row-fluid">
-						<div class="result-label span3">{translate text='Size'}:</div>
-						<div class="span9 result-value">
+					<div class="row">
+						<div class="result-label col-md-3">{translate text='Size'}:</div>
+						<div class="col-md-9 result-value">
 							{$summNumTitles} titles are in this list.
 						</div>
 					</div>
 				{/if}
 			</div>
 
-			<div class="resultActions span3">
+			<div class="resultActions col-md-3">
 				{include file='List/result-tools.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
 			</div>
 		</div>

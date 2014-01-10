@@ -1,5 +1,0 @@
-NameError: variable @zindexModalBackdrop is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\bootstrap\modals.less on line 12, column 12:
-11   left: 0;
-12   z-index: @zindexModalBackdrop;
-13   background-color: @black;
-

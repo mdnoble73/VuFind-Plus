@@ -1,11 +1,11 @@
 {strip}
-	<div class="row-fluid" id="overDriveHold_{$record.overDriveId}">
-		<div class="span3">
-			<div class="row-fluid">
-				<div class="selectTitle span2">
+	<div class="row" id="overDriveHold_{$record.overDriveId}">
+		<div class="col-md-3">
+			<div class="row">
+				<div class="selectTitle col-md-2">
 					&nbsp;
 				</div>
-				<div class="span9 text-center">
+				<div class="col-md-9 text-center">
 					{if $record.recordId}
 					<a href="{$path}/EcontentRecord/{$record.recordId|escape:"url"}">
 						{/if}
@@ -17,8 +17,8 @@
 			</div>
 		</div>
 
-		<div class="span9">
-			<div class="row-fluid">
+		<div class="col-md-9">
+			<div class="row">
 				<strong>
 					{if $record.recordId != -1}
 					<a href="{$path}/EcontentRecord/{$record.recordId|escape:"url"}" class="title">
@@ -35,12 +35,12 @@
 				</strong>
 			</div>
 
-			<div class="row-fluid">
-				<div class="resultDetails span9">
+			<div class="row">
+				<div class="resultDetails col-md-9">
 					{if $record.author}
-						<div class="row-fluid">
-							<div class="result-label span3">{translate text='Author'}</div>
-							<div class="span9 result-value">
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Author'}</div>
+							<div class="col-md-9 result-value">
 								{if is_array($record.author)}
 									{foreach from=$record.author item=author}
 										<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
@@ -54,9 +54,9 @@
 
 					{if $section == 'available'}
 					{* Available Hold *}
-						<div class="row-fluid">
-							<div class="result-label span3">{translate text='Notification Sent'}</div>
-							<div class="span9 result-value">
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Notification Sent'}</div>
+							<div class="col-md-9 result-value">
 								{if $record.notificationDate}
 									{$record.notificationDate|date_format:"%b %d, %Y at %l:%M %p"}
 								{else}
@@ -65,25 +65,25 @@
 							</div>
 						</div>
 
-						<div class="row-fluid">
-							<div class="result-label span3">{translate text='Expires'}</div>
-							<div class="span9 result-value">
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Expires'}</div>
+							<div class="col-md-9 result-value">
 								{$record.expirationDate|date_format:"%b %d, %Y"}
 							</div>
 						</div>
 
 					{else}
 						{* Unavailable hold *}
-						<div class="row-fluid">
-							<div class="result-label span3">{translate text='Position'}</div>
-							<div class="span9 result-value">
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Position'}</div>
+							<div class="col-md-9 result-value">
 								{$record.holdQueuePosition} out of {$record.holdQueueLength}
 							</div>
 						</div>
 					{/if}
 				</div>
 
-				<div class="span3">
+				<div class="col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
 						{if $section == 'available'}
 							<a href="#" onclick="return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$record.overDriveId}');" class="btn btn-small">Cancel Hold</a>

@@ -1,11 +1,11 @@
-<div id="page-content" class="row-fluid">
-  <div id="sidebar" class="span3">
+<div id="page-content" class="row">
+  <div id="sidebar" class="col-md-3">
     {include file="MyResearch/menu.tpl"}
     
     {include file="Admin/menu.tpl"}
   </div>
   
-  <div id="main-content" class="span9">
+  <div id="main-content" class="col-md-9">
 		<h3>eContent Collection Summary</h3>
 		<div class="statLine"><span class="statLabel">Number of eContent Files: </span><span class="statValue">{$collectionSummary.numTitles}</span></div>
 		

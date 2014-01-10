@@ -4,13 +4,13 @@
 	alert("{$title}");
 </script>
 {/if}
-<div id="page-content" class="row-fluid">
-	<div id="sidebar" class="span3">
+<div id="page-content" class="row">
+	<div id="sidebar" class="col-md-3">
 		{include file="MyResearch/menu.tpl"}
 		{include file="Admin/menu.tpl"}
 	</div>
 
-	<div id="main-content" class="span9">
+	<div id="main-content" class="col-md-9">
 		{if $user->cat_username}
 			{if $profile.web_note}
 				<div id="web_note" class="text-info text-center well well-small">{$profile.web_note}</div>
@@ -61,7 +61,7 @@
 								{elseif $record.holdSource == 'eContent'}
 									{include file="MyAccount/eContentHold.tpl" record=$record section=$sectionKey}
 								{else}
-									<div class="row-fluid">
+									<div class="row">
 										Unknown record source {$record.checkoutSource}
 									</div>
 								{/if}

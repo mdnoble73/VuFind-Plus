@@ -1,10 +1,10 @@
-<div id="page-content" class="row-fluid">
-	<div id="sidebar" class="span3">
+<div id="page-content" class="row">
+	<div id="sidebar" class="col-md-3">
 		{include file="MyResearch/menu.tpl"}
 		{include file="Admin/menu.tpl"}
 	</div>
   
-	<div id="main-content" class="span9">
+	<div id="main-content" class="col-md-9">
 		<h1>eContent Trial Records To Purchase</h1>
 		
 		<p>A total of {$trialRecordsToPurchase|@count} records loaded on a trial basis should be purchased.</p> 

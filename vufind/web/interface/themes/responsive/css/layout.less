@@ -1,0 +1,66 @@
+@import "variables.less";
+/**
+Functionality related to the overall layout
+Headers, Footer, columns, etc.
+ */
+//Body
+body{
+  color: @body-text-color;
+}
+#content-container{
+  width: 100%;
+  padding: 0px;
+}
+
+//Define the header elements
+#header-container{
+  padding-top: 0px;
+  height: @header-height;
+  background: linear-gradient(to bottom, @header-top-color, @header-middle-color 85%, @header-bottom-color);
+  border-bottom: 8px solid @header-bottom-border-color;
+}
+#header-container .navbar{
+  margin-bottom: 0px;
+}
+.navbar-nav{
+  height: 90px;
+}
+
+.header-button > a{
+  height: @header-height - 8px !important;
+  line-height: @header-height - 30px !important;
+  text-align: center;
+  vertical-align: middle;
+  border-bottom: 4px solid @header-bottom-color;
+  padding:0px;
+  color: @header-link-color !important;
+  text-shadow: 1px 1px white;
+}
+.header-button > a:visited{
+  color: @header-link-color !important;
+}
+.header-button > a:hover{
+  border-bottom: 4px solid @link-hover-color;
+}
+.header-primary{
+  border-left: 2px solid @header-button-border-vertical;
+  border-right: 2px solid @header-button-border-vertical;
+}
+
+//Footer
+#footer-container{
+  border-top: 8px solid @footer-top-border-color;
+  padding-top: 3px;
+}
+#install-info{
+  padding-left: 20px;
+}
+#connect-with-us-info{
+  padding-right: 20px;
+}
+#connect-with-us-label{
+  margin-right: 15px;
+}
+.connect-icon{
+  padding: 0px 3px 0px 3px;
+}

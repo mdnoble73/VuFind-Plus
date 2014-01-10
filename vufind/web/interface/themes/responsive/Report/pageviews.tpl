@@ -2,19 +2,19 @@
 <script type="text/javascript" src="/js/highcharts/highcharts.js"></script>
 <script type="text/javascript" src="/js/analyticReports.js"></script>
 
-<div class="row-fluid">
+<div class="row">
 	{include file="Report/reportSwitcher.tpl"}
 	{include file="Report/analyticsFilters.tpl"}
 </div>
 
-<div class="row-fluid">
-	<div id="pageViewsByModuleContainer" class="span4">
+<div class="row">
+	<div id="pageViewsByModuleContainer" class="col-md-4">
 		<div id="pageViewsByModuleChart" class="dashboardChart">
 		</div>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=pageViewsByModule{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 
-	<div id="slowestPageViewsContainer" class="span8">
+	<div id="slowestPageViewsContainer" class="col-md-8">
 		<h2>Slowest Average Pageviews</h2>
 		<table id="reportTable">
 			<thead>
@@ -29,34 +29,34 @@
 	</div>
 </div>
 
-<div class="row-fluid">
-	<div id="pageViewsByModuleActionContainer" class="span4">
+<div class="row">
+	<div id="pageViewsByModuleActionContainer" class="col-md-4">
 		<div id="pageViewsByModuleActionChart" class="dashboardChart">
 		</div>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=pageViewsByModuleAction{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 
-	<div id="pageViewsByThemeContainer" class="span4">
+	<div id="pageViewsByThemeContainer" class="col-md-4">
 		<div id="pageViewsByThemeChart" class="dashboardChart">
 		</div>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=pageViewsByTheme{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	
-	<div id="pageViewsByDeviceContainer" class="span4">
+	<div id="pageViewsByDeviceContainer" class="col-md-4">
 		<div id="pageViewsByDeviceChart" class="dashboardChart">
 		</div>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=pageViewsByDevice{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 </div>
 
-<div class="row-fluid">
-	<div id="pageViewsByHomeLocationContainer" class="span4">
+<div class="row">
+	<div id="pageViewsByHomeLocationContainer" class="col-md-4">
 		<div id="pageViewsByHomeLocationChart" class="dashboardChart">
 		</div>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=pageViewsByHomeLocation{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>
 	</div>
 	
-	<div id="pageViewsByPhysicalLocationContainer" class="span4">
+	<div id="pageViewsByPhysicalLocationContainer" class="col-md-4">
 		<div id="pageViewsByPhysicalLocationChart" class="dashboardChart">
 		</div>
 		<div class="detailedReportLink"><a href="/Report/DetailedReport?source=pageViewsByPhysicalLocation{if $filterString}&amp;{$filterString|replace:"&":"&amp;"}{/if}">Detailed Report</a></div>

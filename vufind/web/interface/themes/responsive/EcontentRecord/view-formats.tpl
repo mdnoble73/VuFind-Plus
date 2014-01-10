@@ -3,14 +3,14 @@
 	{foreach from=$holdings item=eContentItem key=index}
 	<div class="eContentHolding">
 		<div class="eContentHoldingHeader">
-			<div class="row-fluid">
-				<div class="span9">
+			<div class="row">
+				<div class="col-md-9">
 					<strong>{$eContentItem->getDisplayFormat()}</strong>
 					<div>
 						{if $showEContentNotes} <div class="note">{$eContentItem->notes}</div>{/if}
 					</div>
 				</div>
-				<div class="eContentFormatUsage span3">
+				<div class="eContentFormatUsage col-md-3">
 					{assign var="displayFormat" value=$eContentItem->getDisplayFormat()|substr:0:1}
 					<a href="#" onclick="return ajaxLightbox('/Help/eContentHelp?lightbox=true&id={$id}&itemId={$eContentItem->id}');">
 						{$eContentItem->getHelpText()}

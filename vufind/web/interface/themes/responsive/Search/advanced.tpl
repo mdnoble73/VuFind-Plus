@@ -1,5 +1,5 @@
-<div class="row-fluid">
-	<div id="sidebar" class="span3">
+<div class="row">
+	<div id="sidebar" class="col-md-3">
 	  {if $searchFilters}
 	    <div class="sidegroup" id="exploreMore">
 	      <h4>{translate text="adv_search_filters"}<span>({translate text="adv_search_select_all"} <input type="checkbox" checked="checked" onclick="filterAll(this);" />)</span></h4>
@@ -27,7 +27,7 @@
 	  </div>
 	  </div>
 	</div>
-	<div id="main-content" class="advSearchContent span9">
+	<div id="main-content" class="advSearchContent col-md-9">
 	  <form method="get" action="{$path}/Search/Results" id="advSearchForm" class="search">
 	    <h1>{translate text='Advanced Search'}</h1>
 	    <p>{translate text="Can't find what you're looking for? Use the fields below to narrow your search."}</p>
