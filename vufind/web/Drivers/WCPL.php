@@ -120,7 +120,7 @@ class WCPL extends Horizon
 	public function translateLocation($locationCode){
 		$locationCode = strtoupper($locationCode);
 		$locationMap = array(
-        "ADR" =>	"Athens Drive Community Library",
+        "ADR" =>	"Athens High School Library",
         "BKM"	=>	"Bookmobile",
         "CAM"	=>	"Cameron Village Regional Library",
         "CRY"	=>	"Cary Community Library",
@@ -131,6 +131,7 @@ class WCPL extends Horizon
         "FUQ"	=>	"Fuquay-Varina Community Library",
         "GRE"	=>	"Green Road Community Library",
         "HSP"	=>	"Holly Springs Community Library",
+        "LAB"	=>	"Remote Storage",
         "LEE"	=>	"Leesville Community Library",
         "NOR"	=>	"North Regional Library",
         "ORL"	=>	"Olivia Raney Local History Library",
@@ -138,7 +139,7 @@ class WCPL extends Horizon
         "SER"	=>	"Southeast Regional Library",
         "SGA"	=>	"Southgate Community Library",
         "WAK"	=>	"Wake Forest Community Library",
-		    "WCPL"=>  "Wake County Public Libraries",
+		"WCPL"=>  "Wake County Public Libraries",
         "WEN"	=>	"Wendell Community Library",
         "WRL"	=>	"West Regional Library",
         "ZEB"	=>	"Zebulon Community Library",
@@ -336,6 +337,9 @@ class WCPL extends Horizon
         "rb" =>	"Reserve Bookroom",
         "recall" =>	"Recall",
         "ref" =>	"Does Not Circulate",
+        "remid" => "Items for Deletion",
+        "remir" => "Items for Deletion",
+        "remrm" => "Items for Deletion",
         "rs" =>	"On Reserve Shelf",
         "rw" =>	"Reserve withdrawal",
         "s" =>	"Shelving Cart",
