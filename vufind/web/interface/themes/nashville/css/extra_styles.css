@@ -2,6 +2,42 @@
 	padding: 50px;
 }
 
+/* tabs in header */
+
+.tabs-container {
+margin: 0 auto;
+padding: 0 10px;
+max-width: 960px;
+}
+.headerTabs {position:absolute;margin-top:86px;text-align:right;width:99%;}
+
+.headerTabs ul {
+	margin:0;
+	padding:0;
+	display: block;}
+.headerTabs ul li a {
+	display: block;
+	float: right;
+	-moz-border-radius-topleft: 2px;
+	-moz-border-radius-topright: 2px;
+	-webkit-border-top-left-radius: 2px;
+	-webkit-border-top-right-radius: 2px;
+	border-radius: 2px 2px 0 0;
+	padding: 8px 15px;
+	margin-right: 10px;
+	color: #0066cc;
+	text-decoration: none;
+	background-color: #eee;
+	border: 1px solid #e2e3ed}
+.headerTabs li{display:inline;}
+.headerTabs ul li a:hover {
+	background-color: #fff;
+	color: #0066cc;}
+
+
+
+/* styles */
+
 #homePageLists{
 	width: 100%;
 	display: inline-block;
@@ -17,6 +53,7 @@
 	zoom: 1;
 	*display: inline;
 }
+
 #loginTitleHome{
 	font-weight: bold;
 	font-size: 14px;

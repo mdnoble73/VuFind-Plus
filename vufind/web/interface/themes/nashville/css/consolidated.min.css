@@ -631,8 +631,7 @@ ul.correctionSuggestionIndent li {list-style:disc;}
 #bag_links #bag_actions_bag_items .bag_button_group {margin: 3px;padding:1px 5px 1px 0px;}
 #bag_links #bag_actions_bag_choose_list .bag_button_group {margin: 3px;padding:1px 5px 1px 0px;}
 #bag-links #bag_save_to_list_submit .button,.button:link,.button:visited,.button:active{margin: 3px;padding:1px 5px 1px 0px;}
-#headerButtons {text-align:right;position:absolute;margin-top:78px;width:100%;} .headerButtons li{display:inline-block;margin:0 8px 0 0}
-.headerButtons a {background-color:#eee;padding:10px 15px;border: 1px solid #e2e3ed;border-top-right-radius: 8px;border-top-left-radius: 8px;}
+
 /* Recommended for you - before rating */
 #recommendationsLoginSignupBox {width:100%;height:60px;border-top:1px solid #F8F8F8;border-bottom:1px solid #f8f8f8;background-color:#eee;}
 #recommendationsLoginSignupBox .sectionContainer {width:50%;text-align:center;float:left;}
