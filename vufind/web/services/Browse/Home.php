@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . '/services/Browse/Browse.php';
 
-class Home extends Browse {
+class Browse_Home extends Browse_Browse {
     
     function launch()
     {

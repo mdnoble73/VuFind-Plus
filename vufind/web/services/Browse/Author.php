@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . '/services/Browse/Browse.php';
 
-class Author extends Browse {
+class Browse_Author extends Browse_Browse {
 
 	function launch(){
 		global $interface;
