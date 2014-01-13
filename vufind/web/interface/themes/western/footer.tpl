@@ -18,7 +18,7 @@
 <div class="footerCol"><p><strong>{translate text='Find More'}</strong></p>
 	<ul>
 		<li><a href="http://marmot.lib.overdrive.com" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Download Books &amp; More'}</a></li>
-		<li><a href="http://western.edu/academics/library/savage-library-hours.html">{translate text='Library Hours'}</a></li>
+		<li><a href="http://libguides.western.edu/hours">{translate text='Library Hours'}</a></li>
 	</ul>
 </div>
 <div class="footerCol"><p><strong>{translate text='Need Help?'}</strong></p>
@@ -36,7 +36,7 @@
 	</ul>
 </div>
 
-<div class="footer_end"><a href="http://western.edu/academics/library">{translate text='Leslie J. Savage Library, Western State College University'}</a></div>
+<div class="footer_end"><a href="http://western.edu/academics/library">{translate text='Leslie J. Savage Library, Western State Colorado University'}</a></div>
 {if !$productionServer}
 <div class='location_info'>{$physicalLocation}</div>
 {/if}
