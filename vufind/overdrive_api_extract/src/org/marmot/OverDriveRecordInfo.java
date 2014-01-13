@@ -3,7 +3,7 @@ package org.marmot;
 import java.util.HashSet;
 
 public class OverDriveRecordInfo {
-	//Data from base title calll
+	//Data from base title call
 	private String id;
 	private String mediaType;
 	private String title;
@@ -14,14 +14,7 @@ public class OverDriveRecordInfo {
 	private String coverImage;
 	private HashSet<Long> collections = new HashSet<Long>();
 	//Data from metadata call
-	private String publisher;
-	private String publishDate;
-	private boolean isPublicDomain;
-	private boolean isPublicPerformanceAllowed;
-	private String description;
-	private HashSet<String> subjects = new HashSet<String>();
 	private String rawData;
-	private boolean isShared = false;
 
 	public String getRawData() {
 		return rawData;
@@ -80,48 +73,5 @@ public class OverDriveRecordInfo {
 	public HashSet<Long> getCollections() {
 		return collections;
 	}
-	public boolean isShared() {
-		return isShared;
-	}
-	public void setShared(boolean isShared) {
-		this.isShared = isShared;
-	}
-	public String getPublisher() {
-		return publisher;
-	}
-	public void setPublisher(String publisher) {
-		this.publisher = publisher;
-	}
-	public String getPublishDate() {
-		return publishDate;
-	}
-	public void setPublishDate(String publishDate) {
-		this.publishDate = publishDate;
-	}
-	
-	public boolean isPublicDomain() {
-		return isPublicDomain;
-	}
-	public void setPublicDomain(boolean isPublicDomain) {
-		this.isPublicDomain = isPublicDomain;
-	}
-	public boolean isPublicPerformanceAllowed() {
-		return isPublicPerformanceAllowed;
-	}
-	public void setPublicPerformanceAllowed(boolean isPublicPerformanceAllowed) {
-		this.isPublicPerformanceAllowed = isPublicPerformanceAllowed;
-	}
-	public String getDescription() {
-		return description;
-	}
-	public void setDescription(String description) {
-		this.description = description;
-	}
-	public HashSet<String> getSubjects() {
-		return subjects;
-	}
-	public void setFormats(HashSet<String> formats) {
-		this.formats = formats;
-	}
-	
+
 }
