@@ -2,6 +2,10 @@
 	padding: 50px;
 }
 
+/* heading on Lists pages */
+#listTitle {color: #292929; font-weight: normal; font-size: 20px;margin:0;}
+.silk.list {background-position: -989px 0;width: 16px;height: 16px;display: none;}
+
 /* tabs in header */
 
 .tabs-container {
@@ -70,6 +74,8 @@ max-width: 960px;
 .loginFormInput{
 	width: 180px;
 }
+
+
 #catalogHome .sidegroup{
 	width: 200px;
 	display: inline-block;
@@ -315,3 +321,11 @@ max-width: 960px;
 .mediumScroller .scrollerButtonUp, .mediumScroller .scrollerButtonDown{
 	width: 223px;
 }
+
+/* Recommended for you - before rating */
+#recommendationsLoginSignupBox {width:100%;height:60px;border-top:1px solid #F8F8F8;border-bottom:1px solid #f8f8f8;background-color:#eee;}
+#recommendationsLoginSignupBox .sectionContainer {width:50%;text-align:center;float:left;}
+#recommendationsLoginSignupBox .sectionContainer a {font-size:20px;}
+img.recommendationsStarsDemo {display:block;margin:0 auto; padding: 20px 0 35px 0; width:226px;}
+#recommendationsBulletPoints {}
+ul.showbullets li {list-style:disc;font-size:15px;line-height:25px;}

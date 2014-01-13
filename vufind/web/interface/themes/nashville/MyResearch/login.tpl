@@ -8,12 +8,12 @@
 			<div id='loginFormFields'>
 				<div id ='loginUsernameRow' class='loginFormRow'>
 					<div class='loginLabel'>{translate text='Username'}: </div>
-					<div class='loginField'><input type="text" name="username" id="username" value="{$username|escape}" size="28"/></div>
+					<div class='loginField'><input type="text" pattern="[0-9]*" name="username" id="username" value="{$username|escape}" size="28"/></div>
 				</div>
 				<div id ='loginPasswordRow' class='loginFormRow'>
 					<div class='loginLabel'>{translate text='Password'}: </div>
 					<div class='loginField'>
-						<input type="password" name="password" id="password" size="28"/>
+						<input type="password" pattern="[0-9]*" name="password" id="password" size="28"/>
 					</div>
 				</div>
 				<div id ='loginPasswordRow2' class='loginFormRow'>
@@ -26,7 +26,7 @@
 				<div id ='loginPasswordRow3' class='loginFormRow'>
 					<div class='loginLabel'>&nbsp;</div>
 					<div class='loginField'>
-						<input type="checkbox" id="rememberMe" name="rememberMe"/><label for="rememberMe">{translate text="Remember Me"}</label>
+						<input type="checkbox" id="rememberMe" name="rememberMe" checked="checked" /><label for="rememberMe">{translate text="Remember Me"}</label>
 					</div>
 				</div>
 				{/if}
@@ -51,7 +51,7 @@
 	</div>
     
     <div id="loginFormSidebar">
-    	<h3 class="myAccountTitle">Sign up for immediate access</h3>
+    	<h3 class="myAccountTitle">Get a card for immediate access</h3>
         <ul class="loginSidebar">
             <li>Download free eBooks and Audiobooks.</li>
             <li>Stream and download new music</li>
@@ -60,7 +60,7 @@
         </ul>
         <div id="loginSidebarGetCardButton">
         	<div class="getCardLink resultAction button">
-        	<a href="http://www.surveymonkey.com/s/OnlineCardReg_DemographicInfo">Get a Library Card</a>
+        	<a href="http://www.surveymonkey.com/s/OnlineCardReg_DemographicInfo">Sign Up</a>
             </div>
         </div>
     </div>

@@ -31,12 +31,14 @@
 					<form method="post" action="{$path}/MyResearch/Home" id="loginForm_bookbag">
 						<div>
 							{translate text='Username'}: <br />
-							<input type="text" name="username" id="bag_username" value="{$username|escape}" size="25"/>
+							<input type="text" name="username" pattern="[0-9]*" id="bag_username" value="{$username|escape}" size="25"/>
 							<br />
 							{translate text='Password'}:<br />
-							<input type="password" name="password" id="bag_password" size="25"/>
+							<input type="password" pattern="[0-9]*" name="password" id="bag_password" size="25"/>
 							<br />
 							<input type="checkbox" id="showPwdCart" name="showPwd" onclick="return pwdToText('bag_password')"/><label for="showPwdCart">{translate text="Reveal Password"}</label>
+                            <br />
+                            {if !$inLibrary}<input type="checkbox" id="rememberMe" name="rememberMe" checked="checked" /><label for="rememberMe">{translate text="Remember Me"}</label>{/if}
 						</div>
 					</form>
 				 </div>
