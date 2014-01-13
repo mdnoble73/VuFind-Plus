@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . '/services/Browse/Browse.php';
 
-class Dewey extends Browse {
+class Browse_Dewey extends Browse_Browse {
     
     function launch()
     {

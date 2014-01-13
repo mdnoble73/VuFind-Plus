@@ -12,7 +12,6 @@ import org.apache.log4j.Logger;
 public class OverDriveExtractLogEntry {
 	private Long logEntryId = null;
 	private Date startTime;
-	private Date lastUpdate; //The last time the log entry was updated so we can tell if a process is stuck 
 	private Date endTime;
 	private ArrayList<String> notes = new ArrayList<String>();
 	private int numProducts = 0;
@@ -35,26 +34,12 @@ public class OverDriveExtractLogEntry {
 			logger.error("Error creating prepared statements to update log", e);
 		}
 	}
-	public Date getLastUpdate() {
-		lastUpdate = new Date();
-		return lastUpdate;
-	}
-	public Long getLogEntryId() {
-		return logEntryId;
-	}
-	public void setLogEntryId(Long logEntryId) {
-		this.logEntryId = logEntryId;
-	}
-	
-	public ArrayList<String> getNotes() {
-		return notes;
-	}
 	public void addNote(String note) {
 		this.notes.add(note);
 	}
 	
 	public String getNotesHtml() {
-		StringBuffer notesText = new StringBuffer("<ol class='cronNotes'>");
+		StringBuilder notesText = new StringBuilder("<ol class='cronNotes'>");
 		for (String curNote : notes){
 			String cleanedNote = curNote;
 			cleanedNote = cleanedNote.replaceAll("<pre>", "<code>");
@@ -66,10 +51,11 @@ public class OverDriveExtractLogEntry {
 			notesText.append("<li>").append(cleanedNote).append("</li>");
 		}
 		notesText.append("</ol>");
-		if (notesText.length() > 64000){
-			notesText.substring(0, 64000);
+		String returnText = notesText.toString();
+		if (returnText.length() > 25000){
+			returnText = returnText.substring(0, 25000) + " more data was truncated";
 		}
-		return notesText.toString();
+		return returnText;
 	}
 	
 	private static PreparedStatement insertLogEntry;
@@ -84,36 +70,33 @@ public class OverDriveExtractLogEntry {
 					logEntryId = generatedKeys.getLong(1);
 				}
 			}else{
-				int curCol = 1;
-				updateLogEntry.setLong(curCol++, getLastUpdate().getTime() / 1000);
+				int curCol = 0;
+				updateLogEntry.setLong(++curCol, new Date().getTime() / 1000);
 				if (endTime == null){
-					updateLogEntry.setNull(curCol++, java.sql.Types.INTEGER);
+					updateLogEntry.setNull(++curCol, java.sql.Types.INTEGER);
 				}else{
-					updateLogEntry.setLong(curCol++, endTime.getTime() / 1000);
+					updateLogEntry.setLong(++curCol, endTime.getTime() / 1000);
 				}
-				updateLogEntry.setString(curCol++, getNotesHtml());
-				updateLogEntry.setInt(curCol++, numProducts);
-				updateLogEntry.setInt(curCol++, numErrors);
-				updateLogEntry.setInt(curCol++, numAdded);
-				updateLogEntry.setInt(curCol++, numUpdated);
-				updateLogEntry.setInt(curCol++, numSkipped);
-				updateLogEntry.setInt(curCol++, numDeleted);
-				updateLogEntry.setInt(curCol++, numAvailabilityChanges);
-				updateLogEntry.setInt(curCol++, numMetadataChanges);
-				updateLogEntry.setLong(curCol++, logEntryId);
+				updateLogEntry.setString(++curCol, getNotesHtml());
+				updateLogEntry.setInt(++curCol, numProducts);
+				updateLogEntry.setInt(++curCol, numErrors);
+				updateLogEntry.setInt(++curCol, numAdded);
+				updateLogEntry.setInt(++curCol, numUpdated);
+				updateLogEntry.setInt(++curCol, numSkipped);
+				updateLogEntry.setInt(++curCol, numDeleted);
+				updateLogEntry.setInt(++curCol, numAvailabilityChanges);
+				updateLogEntry.setInt(++curCol, numMetadataChanges);
+				updateLogEntry.setLong(++curCol, logEntryId);
 				updateLogEntry.executeUpdate();
 			}
 			return true;
 		} catch (SQLException e) {
-			logger.error("Error creating prepared statements to update log", e);
+			logger.error("Error creating updating log", e);
 			return false;
 		}
 	}
 	public void setFinished() {
 		this.endTime = new Date();
-	}
-	public void incProducts(){
-		numProducts++;
 	}
 	public void incErrors(){
 		numErrors++;

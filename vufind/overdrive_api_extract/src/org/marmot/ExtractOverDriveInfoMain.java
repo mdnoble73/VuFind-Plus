@@ -15,23 +15,30 @@ import org.apache.log4j.PropertyConfigurator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
-import org.marmot.Util;
 
 public class ExtractOverDriveInfoMain {
 	private static Logger logger;
 	private static String serverName;
 	private static Connection vufindConn;
-	private static Connection econtentConn;
-	
+
 	public static void main(String[] args) {
 		if (args.length == 0){
 			System.out.println("The name of the server to extract OverDrive data for must be provided as the first parameter.");
 			System.exit(1);
 		}
 		//System.out.println("Starting overdrive extract");
-		
+
 		serverName = args[0];
 		args = Arrays.copyOfRange(args, 1, args.length);
+		boolean doFullReload = false;
+		if (args.length == 1){
+			//Check to see if we got a full reload parameter
+			String firstArg = args[0].replaceAll("\\s", "");
+			if (firstArg.matches("^fullReload(=true|1)?$")){
+				doFullReload = true;
+			}
+		}
+
 		
 		Date currentTime = new Date();
 		File log4jFile = new File("../../sites/" + serverName + "/conf/log4j.overdrive_extract.properties");
@@ -76,7 +83,8 @@ public class ExtractOverDriveInfoMain {
 			logger.error("eContent Database connection information not found in General Settings.  Please specify connection information in a database key.");
 			return;
 		}
-		
+
+		Connection econtentConn;
 		try {
 			econtentConn = DriverManager.getConnection(econtentConnectionInfo);
 		} catch (SQLException ex) {
@@ -92,7 +100,7 @@ public class ExtractOverDriveInfoMain {
 		}
 		
 		ExtractOverDriveInfo extractor = new ExtractOverDriveInfo();
-		extractor.extractOverDriveInfo(configIni, vufindConn, econtentConn, logEntry);
+		extractor.extractOverDriveInfo(configIni, vufindConn, econtentConn, logEntry, doFullReload);
 		
 		logEntry.setFinished();
 		logEntry.addNote("Finished OverDrive extraction");

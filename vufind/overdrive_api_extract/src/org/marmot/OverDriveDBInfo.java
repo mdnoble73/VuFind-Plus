@@ -1,7 +1,6 @@
 package org.marmot;
 
 public class OverDriveDBInfo {
-	private String overDriveId;
 	private long dbId;
 	private String mediaType;
 	private String title;
@@ -10,8 +9,6 @@ public class OverDriveDBInfo {
 	private String primaryCreatorRole;
 	private String primaryCreatorName;
 	private String cover;
-	private long dateAdded;
-	private long dateUpdated;
 	private long lastMetadataCheck;
 	private long lastMetadataChange;
 	private long lastAvailabilityCheck;
@@ -65,29 +62,11 @@ public class OverDriveDBInfo {
 	}
 	
 	
-	public String getOverDriveId() {
-		return overDriveId;
-	}
-	public void setOverDriveId(String overDriveId) {
-		this.overDriveId = overDriveId;
-	}
 	public long getDbId() {
 		return dbId;
 	}
 	public void setDbId(long dbId) {
 		this.dbId = dbId;
-	}
-	public long getDateAdded() {
-		return dateAdded;
-	}
-	public void setDateAdded(long dateAdded) {
-		this.dateAdded = dateAdded;
-	}
-	public long getDateUpdated() {
-		return dateUpdated;
-	}
-	public void setDateUpdated(long dateUpdated) {
-		this.dateUpdated = dateUpdated;
 	}
 	public long getLastMetadataCheck() {
 		return lastMetadataCheck;

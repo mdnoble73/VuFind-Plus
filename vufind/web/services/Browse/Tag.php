@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/services/Browse/Browse.php';
 
 require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
 
-class Tag extends Browse {
+class Browse_Tag extends Browse_Browse {
     
     function launch()
     {

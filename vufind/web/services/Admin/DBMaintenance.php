@@ -389,6 +389,17 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_materials_request_limits' => array(
+				'title' => 'Library Materials Request Limits',
+				'description' => 'Add configurable limits to the number of open requests and total requests per year that patrons can make. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `maxRequestsPerYear` INT(11) DEFAULT 60;",
+					"ALTER TABLE `library` ADD `maxOpenRequests` INT(11) DEFAULT 5;",
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',
