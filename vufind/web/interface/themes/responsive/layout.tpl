@@ -13,11 +13,15 @@
 		{* <link href="{$path}/interface/themes/responsive/css/marmot.css" rel="stylesheet" media="screen"> *}
 
 		{* Include correct javascript *}
+		{* Do require js later
+		<script data-main="/interface/themes/responsive/js/main.js" src="{$path}/interface/themes/responsive/js/require.min.js"></script>
+		*}
 		<script src="{$path}/js/jquery-1.9.1.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/scripts.js"></script>
 		<script type="text/javascript">
+			{* Override variables as needed *}
 			{literal}
-			var Globals = VuFind.Globals || {};
+			var Globals = Globals || {};
 			{/literal}
 			Globals.path = '{$path}';
 			Globals.url = '{$url}';
@@ -83,8 +87,10 @@
 		{* Extra javascript at end so the pages load faster. *}
 		<script src="{$path}/interface/themes/responsive/js/rater.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/bootstrap.min.js"></script>
+		{*
 		<script src="{$path}/interface/themes/responsive/js/bootstrap-switch.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/bootstrap-datepicker.js"></script>
+		*}
 		<script src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
 		<script src="{$path}/ckeditor/ckeditor.js"></script>
 		<script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>

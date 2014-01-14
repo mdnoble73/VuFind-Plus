@@ -1569,7 +1569,7 @@ $(document).ready(function(){
 	$(window).trigger('resize');
 
 	$("#modalDialog").modal({show:false});
-	var lookfor = $("#lookfor");
+	/*var lookfor = $("#lookfor");
 	if (lookfor.length > 0){
 		lookfor.focus().select();
 		var typeaheadOptions = {
@@ -1597,6 +1597,14 @@ $(document).ready(function(){
 			}
 		};
 		lookfor.typeahead(typeaheadOptions);
-	}
+	}*/
+
+	$('.panel').on('show.bs.collapse', function () {
+		$(this).addClass('active');
+	});
+
+	$('.panel').on('hide.bs.collapse', function () {
+		$(this).removeClass('active');
+	});
 });
 
