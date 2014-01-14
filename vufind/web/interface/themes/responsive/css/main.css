@@ -884,8 +884,9 @@ legend {
 }
 .legend_main{
     border:none;
-    border-bottom: 1px solid #242d40;
-    color:#242d40;
+    background:#242d40;
+    font-weight:bold;
+    color:#fff;
 }
 legend small {
   font-size: 15px;
