@@ -106,7 +106,24 @@ class MillenniumReadingHistory {
 		}
 		$post_string = implode ('&', $post_items);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$sResult = curl_exec($curl_connection);
+		$loginResult = curl_exec($curl_connection);
+
+		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+			//Get the lt value
+			$lt = $loginMatches[1];
+			//Login again
+			$post_data['lt'] = $lt;
+			$post_data['_eventId'] = 'submit';
+			$post_items = array();
+			foreach ($post_data as $key => $value) {
+				$post_items[] = $key . '=' . $value;
+			}
+			$post_string = implode ('&', $post_items);
+			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+			$loginResult = curl_exec($curl_connection);
+			$curlInfo = curl_getinfo($curl_connection);
+		}
 
 		if ($action == 'deleteMarked'){
 			//Load patron page readinghistory/rsh with selected titles marked
