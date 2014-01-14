@@ -18,11 +18,11 @@
 		<input type="hidden" name="basicType" id="basicType" value=""/>
 		<input type="hidden" name="genealogyType" id="genealogyType" value=""/>
 		<fieldset>
-			{if $showAsBar == false}
-			<legend class="legend_main">SEARCH THE CATALOG</legend>
-			{/if}
+			{* {if $showAsBar == false} *}
+			<!--<legend class="legend_main">Search the Catalog</legend>-->
+			{* {/if} *}
 
-			<div id="search_box_group" class="">
+			<div id="search_box_group" class="">mag glass image?
 				<input class="input search-query"{/strip}
 				       id="lookfor"
 				       placeholder="Search for"
