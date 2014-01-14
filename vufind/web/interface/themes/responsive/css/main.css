@@ -882,6 +882,11 @@ legend {
   border: 0;
   border-bottom: 1px solid #e5e5e5;
 }
+.legend_main{
+    border:none;
+    background:#242d40;
+    color:#fff;
+}
 legend small {
   font-size: 15px;
   color: #999999;

@@ -19,7 +19,7 @@
 		<input type="hidden" name="genealogyType" id="genealogyType" value=""/>
 		<fieldset>
 			{if $showAsBar == false}
-			<legend>Search the {$librarySystemName} Catalog</legend>
+			<legend class="legend_main">Search the {$librarySystemName} Catalog</legend>
 			{/if}
 
 			<div id="search_box_group" class="">
