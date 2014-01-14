@@ -106,49 +106,28 @@
 				<a href="">LIBRARY HOURS & LOCATIONS</a>
 			</div>
 			<div id="home-library-links">
-				<div class="panel-group" id="accordion">
-					<div class="panel panel-default active">
-						<div class="panel-heading">
-							<div class="panel-title">
-								<a data-toggle="collapse" data-parent="#accordion" href="#aboutUsPanel">
-									About Us
-								</a>
+				<div class="panel-group" id="link-accordion">
+					{foreach from=$libraryLinks item=linkCategory key=categoryName name=linkLoop}
+						<div class="panel {if $smarty.foreach.linkLoop.first}active{/if}">
+							<div class="panel-heading">
+								<div class="panel-title">
+									<a data-toggle="collapse" data-parent="#link-accordion" href="#{$categoryName|escapeCss}Panel">
+										{$categoryName}
+									</a>
+								</div>
+							</div>
+							<div id="{$categoryName|escapeCss}Panel" class="panel-collapse collapse {if $smarty.foreach.linkLoop.first}in{/if}">
+								<div class="panel-body">
+									{foreach from=$linkCategory item=linkUrl key=linkName}
+										<div class="col-sm-5 col-md-5 col-lg-5">
+											<a href="{$linkUrl}">{$linkName}</a>
+										</div>
+									{/foreach}
+								</div>
 							</div>
 						</div>
-						<div id="aboutUsPanel" class="panel-collapse collapse in">
-							<div class="panel-body">
-								About Us Links go here
-							</div>
-						</div>
-					</div>
-					<div class="panel">
-						<div class="panel-heading">
-							<h4 class="panel-title">
-								<a data-toggle="collapse" data-parent="#accordion" href="#eventsPanel">
-									Upcoming Events
-								</a>
-							</h4>
-						</div>
-						<div id="eventsPanel" class="panel-collapse collapse">
-							<div class="panel-body">
-								Event Links go here
-							</div>
-						</div>
-					</div>
-					<div class="panel">
-						<div class="panel-heading">
-							<h4 class="panel-title">
-								<a data-toggle="collapse" data-parent="#accordion" href="#servicesPanel">
-									Services
-								</a>
-							</h4>
-						</div>
-						<div id="servicesPanel" class="panel-collapse collapse">
-							<div class="panel-body">
-								Services Links go here
-							</div>
-						</div>
-					</div>
+					{/foreach}
+
 				</div>
 			</div>
 		</div>
@@ -156,6 +135,17 @@
 	</div>
 	{* Setup the browse area *}
 	<div class="col-sm-8 col-md-8 col-lg-9" id="homePageBrowseContent">
+		<div class="homePageBrowseHeader">
+			<div class="row text-center" id="browse-label">
+				Browse the Catalog
+			</div>
+			<div class="row text-center" id="browse-label">
+				{* Left Arrow *}
+				{* Browse Categories *}
+				{* Right Arrow *}
+			</div>
+		</div>
+
 
 	</div>
 </div>

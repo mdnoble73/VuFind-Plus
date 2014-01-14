@@ -66,15 +66,57 @@ class Home extends Action {
 			}
 		}
 
-		// Cache homepage
-		$interface->caching = 0;
-		$cacheId = 'homepage|' . $interface->lang;
-		//Disable Home page caching for now.
-		if (!$interface->is_cached('layout.tpl', $cacheId)) {
-			$interface->setPageTitle('Catalog Home');
-			$interface->setTemplate('home.tpl');
-		}
-		$interface->display('layout.tpl', $cacheId);
+		//Load library links
+		//TODO: Load these for real
+		$libraryLinks = array(
+			'About Us' => array(
+				'Board of Trustees' => 'http://www.steamboatlibrary.org/about-us/board-of-trustees-0',
+				'History' => 'http://www.steamboatlibrary.org/about-us/history',
+				'Building' => 'http://www.steamboatlibrary.org/about-us/building',
+				'Mission' => 'http://www.steamboatlibrary.org/about-us/mission',
+				'Coffee Bar' => 'http://www.steamboatlibrary.org/about-us/building-cafe/coffee-bar',
+				'Policies' => 'http://www.steamboatlibrary.org/about-us/policies',
+				'Jobs' => 'http://www.steamboatlibrary.org/about-us/jobs'
+			),
+			'Support Us' => array(
+				'Book Donations' => 'http://www.steamboatlibrary.org/support-us/book-donations',
+				'Volunteer' => 'http://www.steamboatlibrary.org/support-us/volunteer',
+				'Donate' => 'http://www.steamboatlibrary.org/support-us/donate',
+				'Thanks To' => 'http://www.steamboatlibrary.org/support-us/thanks-to',
+			),
+			'Contact Us' => array(
+				'Questions, Comments, Suggestions' => 'http://www.steamboatlibrary.org/questions-comments-suggestions/questions-comments-suggestions',
+				'Ask a Librarian' => 'http://www.steamboatlibrary.org/questions-comments-suggestions/ask-a-librarian',
+				'Request a Title' => 'http://www.steamboatlibrary.org/how-do-i/manage-my-account/request-a-title',
+				'Suggest a Purchase' => 'http://www.steamboatlibrary.org/how-do-i/manage-my-account/request-a-title/suggest-a-purchase',
+				'Staff Directory' => 'http://www.steamboatlibrary.org/questions-comments-suggestions/staff-directory'
+			)
+
+		);
+		$interface->assign('libraryLinks', $libraryLinks);
+
+		//Load browse categories
+		//TODO: Load these for real
+		$browseCategories = array(
+			'New Fiction',
+			'New Non-fiction',
+			'New Movies',
+			'New eBooks',
+			'New Audio Books',
+			'New Young Adult',
+			'New Kids',
+			'Popular Romance',
+			'Popular Mysteries',
+			'Popular Science Fiction',
+			'Popular Young Adults',
+			'Recommended for You'
+		);
+		$interface->assign('browseCategories', $browseCategories);
+
+
+		$interface->setPageTitle('Catalog Home');
+		$interface->setTemplate('home.tpl');
+		$interface->display('layout.tpl');
 	}
 
 }
