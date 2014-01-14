@@ -22,7 +22,7 @@
 			<!--<legend class="legend_main">Search the Catalog</legend>-->
 			{* {/if} *}
 
-			<div id="search_box_group" class="">mag glass image?
+			<div id="search_box_group" class="">
 				<input class="input search-query"{/strip}
 				       id="lookfor"
 				       placeholder="Search for"
