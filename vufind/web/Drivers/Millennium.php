@@ -1537,4 +1537,32 @@ class MillenniumDriver implements DriverInterface
 		}
 		return array($fullName, $lastName, $firstName, $userValid);
 	}
+
+	public function getMyFines($patron = null, $includeMessages = false){
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
+
+		//Load the information from millennium using CURL
+		$pageContents = $this->_fetchPatronInfoPage($patronDump, 'overdues');
+
+		//Get the fines table data
+		$messages = array();
+		if (preg_match('/<table border="0" class="patFunc">(.*?)<\/table>/si', $pageContents, $regs)) {
+			$finesTable = $regs[1];
+			//Get the title and, type, and fine detail from the page
+			preg_match_all('/<tr class="patFuncFinesEntryTitle">(.*?)<\/tr>.*?<tr class="patFuncFinesEntryDetail">.*?<td class="patFuncFinesDetailType">(.*?)<\/td>.*?<td align="right" class="patFuncFinesDetailAmt">(.*?)<\/td>.*?<\/tr>/si', $finesTable, $fineDetails, PREG_SET_ORDER);
+			for ($matchi = 0; $matchi < count($fineDetails); $matchi++) {
+				$reason = $fineDetails[$matchi][2];
+				if ($reason == '&nbsp'){
+					$reason = 'Fee';
+				}
+				$messages[] = array(
+					'reason' => $reason,
+					'message' => strip_tags($fineDetails[$matchi][1]),
+					'amount' => $fineDetails[$matchi][3],
+				);
+			}
+		}
+
+		return $messages;
+	}
 }
