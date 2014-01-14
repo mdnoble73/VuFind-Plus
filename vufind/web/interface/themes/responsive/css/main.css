@@ -884,7 +884,7 @@ legend {
 }
 .legend_main{
     border:none;
-    background:#242d40;
+    background:#4d80bc;
     color:#fff;
 }
 legend small {
@@ -2626,7 +2626,8 @@ table th[class*="span"],
   padding: 5px;
   margin-bottom: 10px;
   background-color: #fff;
-  border: 1px solid #e3e3e3;
+  /*border: 1px solid #e3e3e3;*/
+  border: none;
   -webkit-border-radius: 2px;
   -moz-border-radius: 2px;
   border-radius: 2px;
