@@ -732,6 +732,7 @@ function getGitBranch(){
 	global $configArray;
 
 	$gitName = $configArray['System']['gitVersionFile'];
+	$branchName = 'Unknown';
 	if ($gitName == 'HEAD'){
 		$stringFromFile = file('../../.git/HEAD', FILE_USE_INCLUDE_PATH);
 		$stringFromFile = $stringFromFile[0]; //get the string from the array
