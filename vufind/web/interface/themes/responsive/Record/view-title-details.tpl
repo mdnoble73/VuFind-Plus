@@ -144,7 +144,7 @@
 					<dd>{translate text='No Tags'}, {translate text='Be the first to tag this record'}!</dd>
 				{/if}
 				<dd>
-					<a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=VuFind" onclick="VuFind.Record.getAddTagForm(this, '{$id|escape}', 'VuFind'); return false;" class="btn btn-small">
+					<a href="{$path}/Resource/AddTag?id={$id|escape:"url"}&amp;source=VuFind" onclick="VuFind.Record.getAddTagForm(this, '{$id|escape}', 'VuFind'); return false;" class="btn btn-sm">
 						<span class="silk add">&nbsp;</span>{translate text="Add Tag"}
 					</a>
 				</dd>

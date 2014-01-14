@@ -125,7 +125,7 @@
 
 				<div class="col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
-						<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.cancelSelectedHolds();" class="btn btn-small">Cancel Hold</a>
+						<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.cancelSelectedHolds();" class="btn btn-sm">Cancel Hold</a>
 					</div>
 
 					{* Include standard tools *}

@@ -6,7 +6,7 @@
 {/if}
 <div class="row">
 	{* Narrow Search Options *}
-	<div id="sidebar" class="col-md-3">
+	<div id="sidebar" class="col-sm-3 col-md-3 col-lg-2">
 		<div class="sidegroup well">
 			{if $recordCount}
 				<label for="sort"><strong>{translate text='Sort By'}</strong></label>
@@ -27,7 +27,7 @@
 	</div>
 	{* End Narrow Search Options *}
 
-	<div id="main-content" class="col-md-9">
+	<div id="main-content" class="col-sm-9 col-md-9 col-lg-10">
 		<div id="searchInfo">
 			{* Recommendations *}
 			{if $topRecommendations}

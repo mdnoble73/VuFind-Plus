@@ -55,7 +55,7 @@
 										<option value="{$format.id}">{$format.name}</option>
 									{/foreach}
 								</select>
-								<a href="#" onclick="selectOverDriveDownloadFormat('{$record.overDriveId}')" class="btn btn-small">Download</a>
+								<a href="#" onclick="selectOverDriveDownloadFormat('{$record.overDriveId}')" class="btn btn-sm">Download</a>
 							</div>
 						{/if}
 					</div>
@@ -65,11 +65,11 @@
 			<div class="col-md-3">
 				<div class="btn-group btn-group-vertical btn-block">
 					{if $record.overdriveRead}
-						<a href="#" onclick="followOverDriveDownloadLink('{$record.overDriveId}', 'ebook-overdrive')" class="btn btn-small">Read&nbsp;Online</a>
+						<a href="#" onclick="followOverDriveDownloadLink('{$record.overDriveId}', 'ebook-overdrive')" class="btn btn-sm">Read&nbsp;Online</a>
 					{/if}
 
 					{if $record.earlyReturn}
-						<a href="#" onclick="returnOverDriveTitle('{$record.overDriveId}', '{$record.transactionId}');" class="btn btn-small">Return&nbsp;Now</a>
+						<a href="#" onclick="returnOverDriveTitle('{$record.overDriveId}', '{$record.transactionId}');" class="btn btn-sm">Return&nbsp;Now</a>
 					{/if}
 				</div>
 

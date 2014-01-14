@@ -13,7 +13,7 @@
 		{/if}
 		<br/>
 		{foreach from=$additionalObjectActions item=action}
-			<a class="btn btn-small" href='{$action.url}'>{$action.text}</a>
+			<a class="btn btn-sm" href='{$action.url}'>{$action.text}</a>
 		{/foreach}
 		<br />
 		{include file="DataObjectUtil/objectEditForm.tpl"}

@@ -14,5 +14,5 @@
 {/if}
 
 {if $userIsAdmin}
-<a href='{$path}/Admin/People?objectAction=addNew' class='btn btn-small'>Add someone new</a>
+<a href='{$path}/Admin/People?objectAction=addNew' class='btn btn-sm'>Add someone new</a>
 {/if}

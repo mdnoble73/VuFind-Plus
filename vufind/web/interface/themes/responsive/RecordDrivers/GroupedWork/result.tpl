@@ -1,19 +1,19 @@
 {strip}
 <div id="groupedRecord{$summId|escape}" class="resultsList row">
-	<div class="imageColumn col-md-3">
+	<div class="imageColumn col-sm-3 col-md-3 col-lg-2">
 		<div class="row">
-			<div class="selectTitle hidden-phone col-md-4">
+			<div class="selectTitle hidden-phone col-sm-4 col-md-4 col-lg-3">
 				<label for="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultIndex checkbox"><strong>{$resultIndex}</strong>
 					<input type="checkbox" class="titleSelect" name="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" id="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" {if $enableBookCart}onclick="toggleInBag('{$summId|escape}', '{$summTitle|replace:'"':''|replace:'&':'and'|escape:'javascript'}', this);"{/if} />&nbsp;
 				</label>
 			</div>
 			{/strip}
-			<div class="col-md-7 text-center">
+			<div class="col-sm-7 col-md-7 col-lg-8 text-center">
 				{if $user->disableCoverArt != 1}
 					{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
 					<a href="{$summUrl}">
 						<img src="{$bookCoverUrlMedium}"
-						     class="listResultImage img-polaroid {*descriptionTrigger*}"
+						     class="listResultImage img-thumbnail img-responsive{*descriptionTrigger*}"
 						     alt="{translate text='Cover Image'}"
 						     {*data-record_id="{$summId}"
 						     data-source="VuFind"
@@ -30,7 +30,7 @@
 		<div class="hidden" id="scoreExplanationValue{$summId|escape}">{$summExplain}</div>
 	{/if}
 
-	<div class="col-md-9">
+	<div class="col-sm-9 col-md-9 col-lg-10">
 		<div class="row">
 			{if isset($summScore)}
 				(<a href="#" onclick="return VuFind.showElementInPopup('Score Explanation', '#scoreExplanationValue{$summId|escape}');">{$summScore}</a>)

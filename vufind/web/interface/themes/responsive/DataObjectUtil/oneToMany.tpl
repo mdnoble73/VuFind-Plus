@@ -64,7 +64,7 @@
 		</tbody>
 	</table>
 	<div class="{$propName}Actions">
-		<a href="#" onclick="addNew{$propName}();return false;"  class="btn btn-primary btn-small">Add New</a>
+		<a href="#" onclick="addNew{$propName}();return false;"  class="btn btn-primary btn-sm">Add New</a>
 	</div>
 	{/strip}
 	<script type="text/javascript">

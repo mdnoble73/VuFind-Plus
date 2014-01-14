@@ -31,7 +31,7 @@
 				<div class="col-md-1">{if $relatedManifestation.copies > 1000}Unlimited{else}{$relatedManifestation.copies}{/if}</div>
 				<div class="col-md-2 btn-group">
 					{foreach from=$relatedManifestation.actions item=curAction}
-						<a href="{$curAction.url}" class="btn btn-small">{$curAction.title}</a>
+						<a href="{$curAction.url}" class="btn btn-sm">{$curAction.title}</a>
 					{/foreach}
 				</div>
 			</div>

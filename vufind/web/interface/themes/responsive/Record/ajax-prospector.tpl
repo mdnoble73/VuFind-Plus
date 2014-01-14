@@ -24,7 +24,7 @@
 				  {if $prospectorTitle.format}<small>{$prospectorTitle.format|escape}</small>{/if}
 			  </div>
 			  <div class="col-md-2">
-				  <a href="{$prospectorTitle.link}" rel="external" onclick="window.open (this.href, 'child'); return false" class="btn btn-small">View&nbsp;In&nbsp;Prospector</a>
+				  <a href="{$prospectorTitle.link}" rel="external" onclick="window.open (this.href, 'child'); return false" class="btn btn-sm">View&nbsp;In&nbsp;Prospector</a>
 				</div>
 		  </div>
 	  {/if}

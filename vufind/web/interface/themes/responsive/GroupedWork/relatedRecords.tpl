@@ -54,7 +54,7 @@
 				<td>
 					<div class="btn-group">
 					{foreach from=$relatedRecord.actions item=curAction}
-						<a href="{$curAction.url}" class="btn btn-small">{$curAction.title}</a>
+						<a href="{$curAction.url}" class="btn btn-sm">{$curAction.title}</a>
 					{/foreach}
 					</div>
 				</td>

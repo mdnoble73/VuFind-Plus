@@ -50,7 +50,7 @@
 
 				<td>
 					{* Place hold link *}
-					<div class='resultAction btn btn-small' id="placeHold{$resource->shortId|escape:"url"}" style="display:none">
+					<div class='resultAction btn btn-sm' id="placeHold{$resource->shortId|escape:"url"}" style="display:none">
 						<a href="{$path}/{if strtoupper($resource->source) == 'VUFIND'}Record{else}EcontentRecord{/if}/{$resource->record_id|escape:"url"}/Hold">{translate text="Place Hold"}</a>
 					</div>
 				</td>

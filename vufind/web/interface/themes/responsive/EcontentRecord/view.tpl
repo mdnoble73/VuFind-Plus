@@ -55,12 +55,12 @@
 	{if $user && $user->hasRole('epubAdmin')}
 		<span id="eContentStatus">{$eContentRecord->status} </span>
 		<div class="btn-group">
-			<a href='{$path}/EcontentRecord/{$id}/Edit' class="btn btn-small">edit</a>
+			<a href='{$path}/EcontentRecord/{$id}/Edit' class="btn btn-sm">edit</a>
 			{if $eContentRecord->status != 'archived' && $eContentRecord->status != 'deleted'}
-				<a href='{$path}/EcontentRecord/{$id}/Archive' onclick="return confirm('Are you sure you want to archive this record?	The record should not have any holds or checkouts when it is archived.')" class="btn btn-small">archive</a>
+				<a href='{$path}/EcontentRecord/{$id}/Archive' onclick="return confirm('Are you sure you want to archive this record?	The record should not have any holds or checkouts when it is archived.')" class="btn btn-sm">archive</a>
 			{/if}
 			{if $eContentRecord->status != 'deleted'}
-				<a href='{$path}/EcontentRecord/{$id}/Delete' onclick="return confirm('Are you sure you want to delete this record?	The record should not have any holds or checkouts when it is deleted.')" class="btn btn-small">delete</a>
+				<a href='{$path}/EcontentRecord/{$id}/Delete' onclick="return confirm('Are you sure you want to delete this record?	The record should not have any holds or checkouts when it is deleted.')" class="btn btn-sm">delete</a>
 			{/if}
 		</div>
 	{/if}
