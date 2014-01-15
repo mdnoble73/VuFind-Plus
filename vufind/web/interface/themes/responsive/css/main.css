@@ -6130,6 +6130,11 @@ a.badge:focus {
     top: 20px;
   }
 }
+@media (max-width: 640px) {
+    .container {
+        width;640px
+    }
+}
 @media (max-width: 480px) {
   .nav-collapse {
     -webkit-transform: translate3d(0, 0, 0);
