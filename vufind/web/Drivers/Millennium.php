@@ -981,7 +981,7 @@ class MillenniumDriver implements DriverInterface
 			if (isset($_REQUEST['pickupLocation'])){
 				$pickupLocation = $_REQUEST['pickupLocation'];
 				if (strlen($pickupLocation) < 5){
-					$pickupLocation = $pickupLocation + str_repeat('+', 5 - strlen($pickupLocation));
+					$pickupLocation = $pickupLocation . str_repeat('+', 5 - strlen($pickupLocation));
 				}
 				$extraPostInfo['locx00'] = $pickupLocation;
 			}
@@ -989,7 +989,8 @@ class MillenniumDriver implements DriverInterface
 			//Login to the patron's account
 			$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
 
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+			$scope = $this->getMillenniumScope();
+			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~" . $scope;
 
 			$curl_connection = curl_init($curl_url);
 			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
