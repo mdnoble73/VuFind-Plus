@@ -14,8 +14,8 @@
 						</li>
 						<li class="logoutOptions hidden-phone" {if !$user} style="display: none;"{/if}>
 							<a id="myAccountNameLink" href="{$path}/MyResearch/Home">{$user->firstname|capitalize} {$user->lastname|capitalize}</a>
-						</li>-->
-						<li class="logoutOptions" {if !$user} style="display: none;"{/if}>
+						</li>
+						<li class="logoutOptions visible-phone" {if !$user} style="display: none;"{/if}>
 							<a href="{$path}/MyResearch/Home">{translate text="Account"}</a>
 						</li>
 						<li class="logoutOptions" {if !$user} style="display: none;"{/if}>
