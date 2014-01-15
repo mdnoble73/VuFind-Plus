@@ -981,7 +981,7 @@ class MillenniumDriver implements DriverInterface
 			if (isset($_REQUEST['pickupLocation'])){
 				$pickupLocation = $_REQUEST['pickupLocation'];
 				if (strlen($pickupLocation) < 5){
-					$pickupLocation = $pickupLocation . str_repeat('+', 5 - strlen($pickupLocation));
+					$pickupLocation = $pickupLocation . str_repeat(' ', 5 - strlen($pickupLocation));
 				}
 				$extraPostInfo['locx00'] = $pickupLocation;
 			}
