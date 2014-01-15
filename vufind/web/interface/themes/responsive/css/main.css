@@ -6130,9 +6130,9 @@ a.badge:focus {
     top: 20px;
   }
 }
-@media (max-width: 640px) {
+@media (max-width: 639px) {
     .container {
-        width;640px
+        width;630px
     }
 }
 @media (max-width: 480px) {
