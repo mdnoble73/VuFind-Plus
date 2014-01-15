@@ -12,7 +12,7 @@
 			<span class="icon-bar"></span>
 			<span class="icon-bar"></span>
 		</a>
-		<div class="nav-collapse collapse">
+		<div class="nav-collapse collapse in">
 	{/if}
 	<form method="get" action="{$path}/Union/Search" id="searchForm" class="form-inline {if $showAsBar}navbar-form{else}form-search{/if}" onsubmit="VuFind.Searches.processSearchForm();">
 		<input type="hidden" name="basicType" id="basicType" value=""/>
