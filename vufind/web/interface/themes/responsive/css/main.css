@@ -6057,7 +6057,7 @@ a.badge:focus {
     margin-left: 0;
   }
   .container {
-    width: 640px;
+    width: auto;
   }
   .row-fluid {
     width: 100%;
@@ -6130,11 +6130,11 @@ a.badge:focus {
     top: 20px;
   }
 }
-/*@media (max-width: 639px) {
+@media (max-width: 766px) {
     .container {
-        width;630px
+        width:630px;
     }
-}*/
+}
 @media (max-width: 480px) {
   .nav-collapse {
     -webkit-transform: translate3d(0, 0, 0);
