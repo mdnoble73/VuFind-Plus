@@ -43,7 +43,7 @@
 				{/if}
 		
 				{if $links}
-					<div class="resulthead"><h3>{translate text="history_recent_searches"}</h3></div>
+					<div class="myAccountTitle">{translate text="history_recent_searches"}</div>
 					<table class="datagrid" width="100%">
 						<tr>
 							<th width="25%">{translate text="history_time"}</th>
