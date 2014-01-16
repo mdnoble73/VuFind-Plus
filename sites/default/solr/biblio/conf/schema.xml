@@ -122,19 +122,23 @@
 				<filter class="solr.TrimFilterFactory"/>
 			</analyzer>
 		</fieldType>
-		<fieldType name="callnumber-exact" class="solr.TextField" sortMissingLast="true" omitNorms="true">
+		<fieldType name="text-exact" class="solr.TextField" sortMissingLast="true" omitNorms="true">
 			<analyzer>
 				<!-- KeywordTokenizer does no actual tokenizing, so the entire input string is preserved as a single token -->
 				<tokenizer class="solr.KeywordTokenizerFactory"/>
+				<!-- Replace special characters  -->
+				<charFilter class="solr.PatternReplaceCharFilterFactory" pattern="([^a-zA-Z1-9\s])" replacement="" replace="all"/>
 				<charFilter class="solr.PatternReplaceCharFilterFactory" pattern="^\s*(.*)\s*$" replacement="aaaa $1 zzzz"/>
 				<filter class="solr.LowerCaseFilterFactory"/>
 				<!-- The TrimFilter removes any leading or trailing whitespace -->
 				<filter class="solr.RemoveDuplicatesTokenFilterFactory"/>
 			</analyzer>
 		</fieldType>
-		<fieldType name="callnumber-left" class="solr.TextField" sortMissingLast="true" omitNorms="true">
+		<fieldType name="text-left" class="solr.TextField" sortMissingLast="true" omitNorms="true">
 			<analyzer type="index">
 				<tokenizer class="solr.KeywordTokenizerFactory"/>
+				<!-- Replace special characters  -->
+				<charFilter class="solr.PatternReplaceCharFilterFactory" pattern="([^a-z1-9\s])" replacement="" replace="all"/>
 				<charFilter class="solr.PatternReplaceCharFilterFactory" pattern="^\s*(.*)\s*$" replacement="aaaa $1"/>
 				<filter class="solr.LowerCaseFilterFactory"/>
 				<!-- The TrimFilter removes any leading or trailing whitespace -->
@@ -187,6 +191,8 @@
 		<field name="format_boost" type="integer" indexed="true" stored="false" multiValued="false" omitNorms="true" default="0"/>
 		<field name="format_category" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<field name="author" type="text" indexed="true" stored="true" termVectors="true"/>
+		<field name="author_exact" type="text-exact" indexed="true" stored="true" termVectors="true"/>
+		<field name="author_left" type="text-left" indexed="true" stored="true" termVectors="true"/>
 		<field name="author-letter" type="string" indexed="true" stored="true"/>
 		<field name="authorStr" type="textFacet" indexed="true" stored="false"/>
 		<field name="auth_author" type="textProper" indexed="true" stored="true"/>
@@ -197,6 +203,8 @@
 				<tokenizer class="solr.PatternTokenizerFactory" pattern="\w" group="1"/>
 			</analyzer>
 		</field>
+		<field name="title_exact" type="text-exact" indexed="true" stored="true"/>
+		<field name="title_left" type="text-left" indexed="true" stored="true"/>
 		<field name="title_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="title_sort" type="alphaOnlySort" indexed="true" stored="true"/>
 		<field name="title_sub" type="text" indexed="true" stored="true"/>
@@ -256,12 +264,12 @@
 		<field name="dewey_browse" type="string" indexed="true" stored="false" multiValued="true"/>
 		<field name="callnumber_browse" type="callnumber-search" indexed="true" stored="false" multiValued="true"/>
 		<field name="local_callnumber" type="callnumber-search" indexed="true" stored="false" multiValued="true"/>
-		<field name="local_callnumber_exact" type="callnumber-exact" indexed="true" stored="false" multiValued="true"/>
-		<field name="local_callnumber_left" type="callnumber-left" indexed="true" stored="false" multiValued="true"/>
+		<field name="local_callnumber_exact" type="text-exact" indexed="true" stored="false" multiValued="true"/>
+		<field name="local_callnumber_left" type="text-left" indexed="true" stored="false" multiValued="true"/>
 		<dynamicField name="local_callnumber_*" type="callnumber-search" indexed="true" stored="false" multiValued="true"/>
-		<dynamicField name="local_callnumber_exact_*" type="callnumber-exact" indexed="true" stored="false" multiValued="true"/>
-		<dynamicField name="local_callnumber_left_*" type="callnumber-left" indexed="true" stored="false" multiValued="true"/>
-		<dynamicField name="callnumber_sort_*" type="callnumber-exact" indexed="true" stored="false" multiValued="false"/>
+		<dynamicField name="local_callnumber_exact_*" type="text-exact" indexed="true" stored="false" multiValued="true"/>
+		<dynamicField name="local_callnumber_left_*" type="text-left" indexed="true" stored="false" multiValued="true"/>
+		<dynamicField name="callnumber_sort_*" type="text-exact" indexed="true" stored="false" multiValued="false"/>
 		<field name="genre" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="genre_proper" type="textProper" indexed="true" stored="false" multiValued="true"/>
 		<field name="genre_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
@@ -331,6 +339,8 @@
 	<!-- CopyFields for Faceting on Text -->
 	<copyField source="title_full" dest="title_fullStr"/>
 	<copyField source="author" dest="authorStr"/>
+	<copyField source="author" dest="author_exact"/>
+	<copyField source="author" dest="author_left"/>
 	<copyField source="auth_author" dest="auth_authorStr"/>
 	<copyField source="author2" dest="author2Str"/>
 	<copyField source="auth_author2" dest="auth_author2Str"/>
@@ -338,6 +348,8 @@
 	<copyField source="publisher" dest="publisherStr"/>
 	<!-- CopyFields for Proper (Unstemmed) searching -->
 	<copyField source="title" dest="title_proper"/>
+	<copyField source="title" dest="title_exact"/>
+	<copyField source="title" dest="title_left"/>
 	<copyField source="series" dest="series_proper"/>
 	<copyField source="topic" dest="topic_proper"/>
 	<copyField source="geographic" dest="geographic_proper"/>
