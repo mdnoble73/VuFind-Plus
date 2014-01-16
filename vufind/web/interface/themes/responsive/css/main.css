@@ -6130,7 +6130,7 @@ a.badge:focus {
     top: 20px;
   }
 }
-@media (max-width: 766px) {
+@media (max-width: 639px) {
     .container {
         width:630px;
     }
