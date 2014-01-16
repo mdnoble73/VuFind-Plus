@@ -670,64 +670,66 @@ public class ExtractOverDriveInfo {
 					clearFormatsStmt.executeUpdate();
 					clearIdentifiersStmt.setLong(1, databaseId);
 					clearIdentifiersStmt.executeUpdate();
-					JSONArray formats = metaData.getJSONArray("formats");
-					HashSet<String> uniqueIdentifiers = new HashSet<String>();
-					for (int i = 0; i < formats.length(); i++){
-						JSONObject format = formats.getJSONObject(i);
-						addFormatStmt.setLong(1, databaseId);
-						String textFormat = format.getString("id");
-						addFormatStmt.setString(2, textFormat);
-						Long numericFormat = overDriveFormatMap.get(textFormat);
-						if (numericFormat == null){
-							logger.error("Could not find numeric format for format " + textFormat);
-							results.addNote("Could not find numeric format for format " + textFormat);
-							results.incErrors();
-							System.out.println("Warning: new format for OverDrive found " + textFormat);
-							continue;
-						}
-						addFormatStmt.setLong(3, numericFormat);
-						addFormatStmt.setString(4, format.getString("name"));
-						addFormatStmt.setString(5, format.has("filename") ? format.getString("fileName") : "");
-						addFormatStmt.setLong(6, format.has("fileSize") ? format.getLong("fileSize") : 0L);
-						addFormatStmt.setLong(7, format.has("partCount") ? format.getLong("partCount") : 0L);
-						
-						if (format.has("identifiers")){
-							JSONArray identifiers = format.getJSONArray("identifiers");
-							for (int j = 0; j < identifiers.length(); j++){
-								JSONObject identifier = identifiers.getJSONObject(j);
-								uniqueIdentifiers.add(identifier.getString("type") + ":" + identifier.getString("value"));
+					if (metaData.has("formats")){
+						JSONArray formats = metaData.getJSONArray("formats");
+						HashSet<String> uniqueIdentifiers = new HashSet<String>();
+						for (int i = 0; i < formats.length(); i++){
+							JSONObject format = formats.getJSONObject(i);
+							addFormatStmt.setLong(1, databaseId);
+							String textFormat = format.getString("id");
+							addFormatStmt.setString(2, textFormat);
+							Long numericFormat = overDriveFormatMap.get(textFormat);
+							if (numericFormat == null){
+								logger.error("Could not find numeric format for format " + textFormat);
+								results.addNote("Could not find numeric format for format " + textFormat);
+								results.incErrors();
+								System.out.println("Warning: new format for OverDrive found " + textFormat);
+								continue;
 							}
-						}
-						//Default samples to null
-						addFormatStmt.setString(8, null);
-						addFormatStmt.setString(9, null);
-						addFormatStmt.setString(10, null);
-						addFormatStmt.setString(11, null);
+							addFormatStmt.setLong(3, numericFormat);
+							addFormatStmt.setString(4, format.getString("name"));
+							addFormatStmt.setString(5, format.has("filename") ? format.getString("fileName") : "");
+							addFormatStmt.setLong(6, format.has("fileSize") ? format.getLong("fileSize") : 0L);
+							addFormatStmt.setLong(7, format.has("partCount") ? format.getLong("partCount") : 0L);
 
-						if (format.has("samples")){
-							JSONArray samples = format.getJSONArray("samples");
-							for (int j = 0; j < samples.length(); j++){
-								JSONObject sample = samples.getJSONObject(j);
-								if (j == 0){
-									addFormatStmt.setString(8, sample.getString("source"));
-									addFormatStmt.setString(9, sample.getString("url"));
-								}else if (j == 1){
-									addFormatStmt.setString(10, sample.getString("source"));
-									addFormatStmt.setString(11, sample.getString("url"));
-								}else{
-									logger.warn("Record " + overDriveInfo.getId() + " had more than 2 samples for format " + format.getString("name"));
+							if (format.has("identifiers")){
+								JSONArray identifiers = format.getJSONArray("identifiers");
+								for (int j = 0; j < identifiers.length(); j++){
+									JSONObject identifier = identifiers.getJSONObject(j);
+									uniqueIdentifiers.add(identifier.getString("type") + ":" + identifier.getString("value"));
 								}
 							}
+							//Default samples to null
+							addFormatStmt.setString(8, null);
+							addFormatStmt.setString(9, null);
+							addFormatStmt.setString(10, null);
+							addFormatStmt.setString(11, null);
+
+							if (format.has("samples")){
+								JSONArray samples = format.getJSONArray("samples");
+								for (int j = 0; j < samples.length(); j++){
+									JSONObject sample = samples.getJSONObject(j);
+									if (j == 0){
+										addFormatStmt.setString(8, sample.getString("source"));
+										addFormatStmt.setString(9, sample.getString("url"));
+									}else if (j == 1){
+										addFormatStmt.setString(10, sample.getString("source"));
+										addFormatStmt.setString(11, sample.getString("url"));
+									}else{
+										logger.warn("Record " + overDriveInfo.getId() + " had more than 2 samples for format " + format.getString("name"));
+									}
+								}
+							}
+							addFormatStmt.executeUpdate();
 						}
-						addFormatStmt.executeUpdate();
-					}
-					
-					for (String curIdentifier : uniqueIdentifiers){
-						addIdentifierStmt.setLong(1, databaseId);
-						String[] identifierInfo = curIdentifier.split(":");
-						addIdentifierStmt.setString(2, identifierInfo[0]);
-						addIdentifierStmt.setString(3, identifierInfo[1]);
-						addIdentifierStmt.executeUpdate();
+
+						for (String curIdentifier : uniqueIdentifiers){
+							addIdentifierStmt.setLong(1, databaseId);
+							String[] identifierInfo = curIdentifier.split(":");
+							addIdentifierStmt.setString(2, identifierInfo[0]);
+							addIdentifierStmt.setString(3, identifierInfo[1]);
+							addIdentifierStmt.executeUpdate();
+						}
 					}
 					results.incMetadataChanges();
 				} catch (Exception e) {
