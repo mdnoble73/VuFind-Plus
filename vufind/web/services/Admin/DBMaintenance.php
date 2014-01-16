@@ -431,6 +431,14 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_pin_reset' => array(
+				'title' => 'Library PIN Reset',
+				'description' => 'Allow libraries to offer a link to reset a PIN (for libraries that use PINs.)',
+				'sql' => array(
+					"ALTER TABLE library ADD allowPinReset TINYINT(1)",
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',

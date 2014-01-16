@@ -313,9 +313,12 @@ class UInterface extends Smarty
 		$this->assign('showNotInterested', true);
 		if (isset($library)){
 			$this->assign('showRatings', $library->showRatings);
+			$this->assign('allowPinReset', $library->allowPinReset);
 		}else{
 			$this->assign('showRatings', 1);
+			$this->assign('allowPinReset', 0);
 		}
+
 	}
 }
 

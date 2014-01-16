@@ -11,7 +11,10 @@
 					<div class='loginField'><input type="text" pattern="[0-9]*" name="username" id="username" value="{$username|escape}" size="28"/></div>
 				</div>
 				<div id ='loginPasswordRow' class='loginFormRow'>
-					<div class='loginLabel'>{translate text='Password'}: </div>
+					<div class='loginLabel'>{translate text='Password'}{if $allowPinReset}
+						&nbsp;<a href="#" onclick="ajaxLightbox('{$path}/MyResearch/AJAX?method=getPinResetForm')"> Forgot PIN?</a>
+						{/if}
+						: </div>
 					<div class='loginField'>
 						<input type="password" pattern="[0-9]*" name="password" id="password" size="28"/>
 					</div>
@@ -20,6 +23,7 @@
 					<div class='loginLabel'>&nbsp;</div>
 					<div class='loginField'>
 						<input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
+
 					</div>
 				</div>
 				{if !$inLibrary}

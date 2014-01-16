@@ -1566,4 +1566,53 @@ class MillenniumDriver implements DriverInterface
 
 		return $messages;
 	}
+
+	public function requestPinReset($barcode){
+		//Go to the pinreset page
+		global $configArray;
+		$pinResetUrl = $configArray['Catalog']['url'] . '/pinreset';
+		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+		$curl_connection = curl_init();
+		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, is_null($cookieJar) ? true : false);
+		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+
+		curl_setopt($curl_connection, CURLOPT_URL, $pinResetUrl);
+		$pinResetPageHtml = curl_exec($curl_connection);
+
+		//Now submit the request
+		$post_data['code'] = $barcode;
+		$post_data['pat_submit'] = 'xxx';
+		$post_items = array();
+		foreach ($post_data as $key => $value) {
+			$post_items[] = $key . '=' . $value;
+		}
+		$post_string = implode ('&', $post_items);
+		curl_setopt($curl_connection, CURLOPT_POST, true);
+		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+		$pinResetResultPageHtml = curl_exec($curl_connection);
+
+		//Parse the response
+		$result = array(
+			'result' => false,
+			'error' => true,
+			'message' => 'Unknown error resetting pin'
+		);
+
+		if (preg_match('/<div class="errormessage">(.*?)<\/div>/is', $pinResetResultPageHtml, $matches)){
+			$result['error'] = false;
+			$result['message'] = trim($matches[1]);
+		}elseif (preg_match('/<div class="pageContent">.*?<strong>(.*?)<\/strong>/si', $pinResetResultPageHtml, $matches)){
+			$result['error'] = false;
+			$result['result'] = true;
+			$result['message'] = trim($matches[1]);
+		}
+		return $result;
+	}
 }
