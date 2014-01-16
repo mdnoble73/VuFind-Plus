@@ -12,7 +12,7 @@
 				<div id="web_note">{$profile.web_note}</div>
 			{/if}
 		
-			<h3>{translate text='Your Profile'}</h3></div>
+			<div class="myAccountTitle">Account Settings</div></div>
 			
 			<div class="page">
 				<form action='' method='post'>

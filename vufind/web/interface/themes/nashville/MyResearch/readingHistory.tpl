@@ -54,7 +54,7 @@
 
 							{if $transList}
 								<div id="pager" class="pager">
-									{if $pageLinks.all}<div class="myAccountPagination pagination">Page: {$pageLinks.all}</div>{/if}
+									{if $pageLinks.all}<div class="myAccountPagination pagination">{$pageLinks.all}</div>{/if}
 
 									<span id="recordsPerPage">
 										Records Per Page:
@@ -79,6 +79,8 @@
 									<div class='sortOptions'>
 										Hide Covers <input type="checkbox" onclick="$('.imageCell').toggle();"/>
 									</div>
+                                    
+                                    
 								</div>
 
 								<table class="myAccountTable" id="readingHistoryTable">

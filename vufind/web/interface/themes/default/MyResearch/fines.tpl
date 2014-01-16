@@ -7,7 +7,7 @@
   
   <div id="main-content">
     {if $user->cat_username}
-      <div class="myAccountTitle">{translate text='Your Messages'}</div>
+      <div class="myAccountTitle">{translate text='Fines'}</div>
       {if $userNoticeFile}
         {include file=$userNoticeFile}
       {/if}
