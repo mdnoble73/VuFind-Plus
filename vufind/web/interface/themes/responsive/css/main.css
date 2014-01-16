@@ -6057,7 +6057,7 @@ a.badge:focus {
     margin-left: 0;
   }
   .container {
-    width: auto;
+    width: 640px;
   }
   .row-fluid {
     width: 100%;
