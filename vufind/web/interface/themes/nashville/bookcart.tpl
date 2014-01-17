@@ -36,7 +36,7 @@
 							{translate text='Password'}:<br />
 							<input type="password" pattern="[0-9]*" name="password" id="bag_password" size="25"/>
 							<br />
-							<input type="checkbox" id="showPwdCart" name="showPwd" onclick="return pwdToText('bag_password')"/><label for="showPwdCart">{translate text="Reveal Password"}</label>
+	                                                <a href="#" onclick="ajaxLightbox('/MyResearch/AJAX?method=getPinResetForm')">Forgot PIN?</a>
                             <br />
                             {if !$inLibrary}<input type="checkbox" id="rememberMe" name="rememberMe" checked="checked" /><label for="rememberMe">{translate text="Remember Me"}</label>{/if}
 						</div>

@@ -88,7 +88,7 @@
 										<tr>
 											<th><input id='selectAll' type='checkbox' onclick="toggleCheckboxes('.titleSelect', $(this).attr('checked'));" title="Select All/Deselect All"/></th>
 											{if $user->disableCoverArt != 1}
-												<th class="imageCell">{translate text='Cover'}</th>
+												<th class="imageCell"></th>
 											{/if}
 											<th>{translate text='Title'}</th>
 											<th>{translate text='Format'}</th>

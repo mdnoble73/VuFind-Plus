@@ -1,3 +1,17 @@
+/* Styles to change the default fonts */
+body {font-family: /*"Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Verdana, Arial, sans-serif*/"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;color:#010101;font-size:14px;line-height:18px;}
+#recordTitle {color: #292929;font-size: 25px;font-weight: normal;line-height: 35px;}
+#loginFormSidebar ul.loginSidebar li {font-size: 14px;line-height: 22px;}
+div.breadcrumbinner {width: 73.076em;margin:0;}
+.loginFormRow {padding-top: 10px;text-align:left;}
+
+/* Fixes search bar display in Internet Explorer */
+.silk.help {background-position: -936px 0;width: 16px;height: 16px;display: none;} 
+/* hid the question mark next to advanced search */
+#searchBarFind {vertical-align: top;position: relative;padding-bottom: 2px;*padding-bottom:0;margin-left: 15px;margin-top: 3px;*margin-top:0;}
+input[type="search"]{padding: 2px 3px;text-align: left;font-size: 1em;font-family: inherit;height: 1.8em;vertical-align: top;}
+
+/* --------------- */
 #catalogHome{
 	padding: 50px;
 }
@@ -89,7 +103,7 @@ width: auto;
 
 /* Place Hold - pick up page */
 .note {font-size: inheret;font-style: normal;color: #191919;}
-.loginLabel {font-size:14px;font-weight:bold;}
+.loginLabel {font-size:14px;font-weight:normal;}
 
 /* My Account Grids */
 .myAccountTable {border: 0px solid #ccc;border-radius: 6px;border-collapse: collapse;margin-top: 4px;margin-bottom: 4px;width: 100%;}
@@ -116,6 +130,8 @@ table.datagrid th a {color: #010101;text-align: left;font-size: 16px;font-weight
 .myAccountPagination ul {margin: 0;}
 .myAccountPagination.pagination {font-size: 120%;padding: 1em 0 1em 0;margin: 1em 0;text-align: center;}
 .resulthead {padding: 0 10px 0 0;margin-bottom: .5em;border-bottom: 1px #eee solid;}
+#placeHoldForm {width: 500px;padding: 10px 55px 10px 10px;}
+#placeHoldForm ul.loginSidebar li {padding-bottom: 3px;list-style: disc;font-size: 14px;line-height: 22px;;}
 
 /* List Buttons */
 .listButton{background-color:#88ABC2;color:#132248;border-color:lightgrey DarkSlateGray DarkSlateGray lightgrey;border-style:solid;border-width:1px;font-size:12px;font-family:Verdana,Helvetica,arial,sans-serif;display:inline-block;height:inherit;line-height:18px;margin-left:10px;margin-top:4px;padding:3px 12px}.listButton:hover{background-color:#B2CBDC;border-color:DarkSlateGray lightgrey lightgrey DarkSlateGray}.listButton

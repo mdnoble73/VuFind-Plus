@@ -23,12 +23,14 @@
 					<div class='loginLabel'>{translate text='Password'}: </div>
 					<div class='loginField'><input type="password" pattern="[0-9]*" name="password" id="password" size="15"/></div>
 				</div>
+				{if $allowPinReset}
 				<div id ='loginPasswordRow2' class='loginFormRow'>
 					<div class='loginLabel'>&nbsp;</div>
 					<div class='loginField'>
-						<input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
+						<a href="#" onclick="ajaxLightbox('/MyResearch/AJAX?method=getPinResetForm')">Forgot PIN?</a>
 					</div>
 				</div>
+				{/if}
 				{if !$inLibrary}
 				<div id ='loginPasswordRow3' class='loginFormRow'>
 					<div class='loginLabel'>&nbsp;</div>

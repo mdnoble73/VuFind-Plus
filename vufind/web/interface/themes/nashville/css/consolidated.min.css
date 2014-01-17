@@ -580,56 +580,32 @@ ul.correctionSuggestionIndent li {list-style:disc;}
 #otherEditionsPopup_shortDisplay{width:455px}
 #otherEditionsPopup_shortDisplay .resultDetails_shortDisplay{display:inline-block;vertical-align:top;width:180px;zoom:1;*display:inline}
 #otherEditionsPopup_shortDisplay .resultActions_shortDisplay{display:inline-block;vertical-align:top;zoom:1;*display:inline;position:relative;width:60px;text-align:left}
-.button a {color:#fff;font-size:14px;}
-.button,.button:link,.button:visited,.button:active,.checkoutLink{text-decoration:none;-webkit-appearance:none;-webkit-border-radius:4px;-moz-border-radius:4px;-ms-border-radius:4px;-o-border-radius:4px;border-radius:4px;-webkit-background-clip:padding;-moz-background-clip:padding;-ms-background-clip:padding-box;-o-background-clip:padding-box;background-clip:padding-box;background:#32388E;border:1px solid #234d56;cursor:pointer;display:inline-block;font-weight:bold;font-size:1em;line-height:1.5em;font-family:inherit;height:auto;outline:0;overflow:visible;margin:0 2px;padding:0 10px;text-shadow:none;vertical-align:baseline;width:auto;*padding-top:2px;*padding-bottom:0;color:#fff;}
-.button:hover{background:#131535;color:#fff;text-shadow:none;}
-.resultAction{padding:2px;border:1px solid #eee;margin-bottom: 3px;background-color:#F9F9F9;}
-#placeHoldButton .resultAction{border:0px solid #eee;margin-bottom: 3px;background-color:#fff;}
-#placeHoldButton .button a {color:#fff;font-size:14px;}
-#placeHoldButton .button,.button:link,.button:visited,.button:active{text-decoration:none;-webkit-appearance:none;-webkit-border-radius:4px;-moz-border-radius:4px;-ms-border-radius:4px;-o-border-radius:4px;border-radius:4px;-webkit-background-clip:padding;-moz-background-clip:padding;-ms-background-clip:padding-box;-o-background-clip:padding-box;background-clip:padding-box;background:#32388E;border:1px solid #234d56;cursor:pointer;display:inline-block;font-weight:bold;font-size:1em;line-height:1.5em;font-family:inherit;height:auto;outline:0;overflow:visible;margin:0 0 5px 0;padding:5px 25px;text-shadow:none;vertical-align:baseline;width:auto;*padding-top:2px;*padding-bottom:0;color:#fff;}
-#placeHoldButton .button:hover{background:#131535;color:#fff;}
-/*place hold button - similar titles */
-#similarTitlesVuFind 
-/* login buttons */
-#loginSidebarGetCardButton .resultAction{border:0px solid #eee;margin-bottom: 3px;background-color:#fff;}
-#loginSidebarGetCardButton .button a {color:#fff;font-size:14px;}
-#loginSidebarGetCardButton .button,.button:link,.button:visited,.button:active{text-decoration:none;-webkit-appearance:none;-webkit-border-radius:4px;-moz-border-radius:4px;-ms-border-radius:4px;-o-border-radius:4px;border-radius:4px;-webkit-background-clip:padding;-moz-background-clip:padding;-ms-background-clip:padding-box;-o-background-clip:padding-box;background-clip:padding-box;background:#32388E;border:1px solid #234d56;cursor:pointer;display:inline-block;font-weight:bold;font-size:1em;line-height:1.5em;font-family:inherit;height:auto;outline:0;overflow:visible;margin:0 0 5px 2px;padding:5px 30px;text-shadow:none;vertical-align:baseline;width:auto;*padding-top:5px;*padding-bottom:30;color:#fff;}
-#loginSidebarGetCardButton .button:hover{background:#131535;color:#fff;}
+
 /* MyAccount - eBooks and eAudio link uner Checked out */
 .myAccountLink a#checkedOutEContent {display:none}
-/* hold butotns */
-#holdOptions .resultAction{border:0px solid #eee;margin-bottom: 3px;background-color:#fff;}
-#holdOptions .button a {color:#fff;font-size:14px;}
-#holdOptions .button,.button:link,.button:visited,.button:active{text-decoration:none;-webkit-appearance:none;-webkit-border-radius:4px;-moz-border-radius:4px;-ms-border-radius:4px;-o-border-radius:4px;border-radius:4px;-webkit-background-clip:padding;-moz-background-clip:padding;-ms-background-clip:padding-box;-o-background-clip:padding-box;background-clip:padding-box;background:#32388E;border:1px solid #234d56;cursor:pointer;display:inline-block;font-weight:bold;font-size:1em;line-height:1.5em;font-family:inherit;height:auto;outline:0;overflow:visible;margin:0 0 5px 2px;padding:5px 30px;text-shadow:none;vertical-align:baseline;width:auto;*padding-top:2px;*padding-bottom:0;color:#fff;}
-#holdOptions .button:hover{background:#131535;color:#fff;}
+
 /* login form buttons */
-#loginSubmitButtonRow .resultAction{border:0px solid #eee;margin-bottom: 3px;background-color:#fff;}
-#loginSubmitButtonRow .button a {color:#fff;font-size:14px;}
-#loginSubmitButtonRow .button,.button:link,.button:visited,.button:active {text-decoration:none;-webkit-appearance:none;-webkit-border-radius:4px;-moz-border-radius:4px;-ms-border-radius:4px;-o-border-radius:4px;border-radius:4px;-webkit-background-clip:padding;-moz-background-clip:padding;-ms-background-clip:padding-box;-o-background-clip:padding-box;background-clip:padding-box;background:#32388E;border:1px solid #234d56;cursor:pointer;display:inline-block;font-weight:bold;font-size:1em;line-height:1.5em;font-family:inherit;height:auto;outline:0;overflow:visible;margin:0 0 5px 2px;padding:5px 30px;text-shadow:none;vertical-align:baseline;width:auto;*padding-top:2px;*padding-bottom:0;color:#fff;}
-#loginSubmitButtonRow .button:hover{background:#131535;color:#fff;}
-#loginFormSubmit, #loginFormSubmit input[type="submit"]{text-decoration:none;-webkit-appearance:none;-webkit-border-radius:4px;-moz-border-radius:4px;-ms-border-radius:4px;-o-border-radius:4px;border-radius:4px;-webkit-background-clip:padding;-moz-background-clip:padding;-ms-background-clip:padding-box;-o-background-clip:padding-box;background-clip:padding-box;background:#32388E;border:1px solid #234d56;cursor:pointer;display:inline-block;font-weight:bold;font-size:1em;line-height:1.5em;font-family:inherit;height:auto;outline:0;overflow:visible;margin:0 0 5px 2px;padding:5px 30px;text-shadow:none;vertical-align:baseline;width:auto;*padding-top:2px;*padding-bottom:0;color:#fff;}
-#loginFormSubmit:hover, #loginFormSubmit input[type="submit"]{background:#131535;color:#fff;}
 #loginFormSidebar {padding:10px 0 0 30px;display:inline-block;*display:inline;vertical-align:top;zoom:1;border-left:1px solid #ccc;width:400px}
 #loginFormSidebar ul.loginSidebar li{padding-bottom: 3px;list-style:disc;}
 #loginSidebarGetCardButton {float: right;}
-/* Holds page buttons - My Account */
-#holdsUpdateSelectedavailable .button,.button:link,.button:visited,.button:active input[type="submit"]{text-decoration:none;-webkit-appearance:none;-webkit-border-radius:4px;-moz-border-radius:4px;-ms-border-radius:4px;-o-border-radius:4px;border-radius:4px;-webkit-background-clip:padding;-moz-background-clip:padding;-ms-background-clip:padding-box;-o-background-clip:padding-box;background-clip:padding-box;background:#32388E;border:1px solid #234d56;cursor:pointer;display:inline-block;font-weight:bold;font-size:1em;line-height:1.5em;font-family:inherit;height:auto;outline:0;overflow:visible;margin:0 0 5px 2px;padding:5px 30px;text-shadow:none;vertical-align:baseline;width:auto;*padding-top:2px;*padding-bottom:0;color:#fff;}
-#holdsUpdateSelectedavailable .button:hover {background:#131535;color:#fff;}
-#holdsUpdateSelectedavailableBottom .button,.button:link,.button:visited,.button:active input[type="submit"]{text-decoration:none;-webkit-appearance:none;-webkit-border-radius:4px;-moz-border-radius:4px;-ms-border-radius:4px;-o-border-radius:4px;border-radius:4px;-webkit-background-clip:padding;-moz-background-clip:padding;-ms-background-clip:padding-box;-o-background-clip:padding-box;background-clip:padding-box;background:#32388E;border:1px solid #234d56;cursor:pointer;display:inline-block;font-weight:bold;font-size:1em;line-height:1.5em;font-family:inherit;height:auto;outline:0;overflow:visible;margin:0 0 5px 2px;padding:5px 30px;text-shadow:none;vertical-align:baseline;width:auto;*padding-top:2px;*padding-bottom:0;color:#fff;}
-#holdsUpdateSelectedavailableBottom .button:hover {background:#131535;color:#fff;}
-/* Holds page buttons - My Account */
-#holdsWithSelectedunavailableTop .button,.button:link,.button:visited,.button:active input[type="submit"]{text-decoration:none;-webkit-appearance:none;-webkit-border-radius:4px;-moz-border-radius:4px;-ms-border-radius:4px;-o-border-radius:4px;border-radius:4px;-webkit-background-clip:padding;-moz-background-clip:padding;-ms-background-clip:padding-box;-o-background-clip:padding-box;background-clip:padding-box;background:#32388E;border:1px solid #234d56;cursor:pointer;display:inline-block;font-weight:bold;font-size:1em;line-height:1.5em;font-family:inherit;height:auto;outline:0;overflow:visible;margin:0 0 5px 2px;padding:5px 30px;text-shadow:none;vertical-align:baseline;width:auto;*padding-top:2px;*padding-bottom:0;color:#fff;}
-#holdsWithSelectedunavailableTop .button:hover {background:#131535;color:#fff;}
-#holdsUpdateSelectedunavailableBottom .button,.button:link,.button:visited,.button:active input[type="submit"]{text-decoration:none;-webkit-appearance:none;-webkit-border-radius:4px;-moz-border-radius:4px;-ms-border-radius:4px;-o-border-radius:4px;border-radius:4px;-webkit-background-clip:padding;-moz-background-clip:padding;-ms-background-clip:padding-box;-o-background-clip:padding-box;background-clip:padding-box;background:#32388E;border:1px solid #234d56;cursor:pointer;display:inline-block;font-weight:bold;font-size:1em;line-height:1.5em;font-family:inherit;height:auto;outline:0;overflow:visible;margin:0 0 5px 2px;padding:5px 30px;text-shadow:none;vertical-align:baseline;width:auto;*padding-top:2px;*padding-bottom:0;color:#fff;}
-#holdsUpdateSelectedunavailableBottom .button:hover {background:#131535;color:#fff;}
-/* econtent Other Formats hold buttons */
-#otherEditionsPopup .resultAction{border:0px solid #eee;margin-bottom: 3px;background-color:#fff;}
-#otherEditionsPopup .button a {color:#fff;font-size:14px;}
-#otherEditionsPopup .button,.button:link,.button:visited,.button:active{text-decoration:none;-webkit-appearance:none;-webkit-border-radius:4px;-moz-border-radius:4px;-ms-border-radius:4px;-o-border-radius:4px;border-radius:4px;-webkit-background-clip:padding;-moz-background-clip:padding;-ms-background-clip:padding-box;-o-background-clip:padding-box;background-clip:padding-box;background:#32388E;border:1px solid #234d56;cursor:pointer;display:inline-block;font-weight:bold;font-size:1em;line-height:1.5em;font-family:inherit;height:auto;outline:0;overflow:visible;margin:0 0 5px 2px;padding:5px 10px;text-shadow:none;vertical-align:baseline;width:auto;*padding-top:2px;*padding-bottom:0;color:#fff;}
-#otherEditionsPopup .button:hover{background:#131535;color:#fff;}
+
 /* Book cart links 
 #bag_links #bag_actions_bag_items .bag_button_group {margin: 3px;padding:1px 5px 1px 0px;}
 #bag_links #bag_actions_bag_choose_list .bag_button_group {margin: 3px;padding:1px 5px 1px 0px;}
 #bag-links #bag_save_to_list_submit .button,.button:link,.button:visited,.button:active{margin: 3px;padding:1px 5px 1px 0px;}
 */
 
+/* Popup Box - these styles center the pop-up boxes - don't remove them! */
+div.popupBox{background-color:#fff;display:none;border-right:solid 2px #444;border-bottom:solid 2px #444;position:absolute;z-index:1000;left:50% !important;font-size:95%;transition-property:height;transition-duration:0.25s;transition-delay:0.25s;width:400px !important; margin-left:-200px !important;margin: 0 0 20px 0;-moz-border-radius: 4px;border-radius: 4px;}
+div.popupBox .header {cursor: text;background-color: #eee;padding: 8px 10px 8px 10px;font-weight: normal;}
+#lightbox {cursor: pointer;background-color: #000;display: none;height: 100%;width: 100%;top: 0;left: 0;position: absolute;z-index: 400;opacity: .65; /* changed opacity from .8 */-moz-opacity: .65;}
+/* Popup Box - Hold Request Message */
+.hold_result_title {margin-bottom: 6px;font-size: 110%;color: #191919;}
+.hold_result_item_title {font-weight: normal;}
+.hold_result {font-size: 130%;font-weight: bold;margin-bottom: 4px;padding: 0 10px 0 10px;}
+div.popupBox .header a {float: right;text-decoration: none;font-weight: normal;}
+ol.hold_result_details {margin-left:0;margin-right:0;}
+.hold_result_notes {margin: 10px 0 10px 0;font-style: italic;padding: 0 10px 0 10px;}
+ol.hold_result_details li {list-style: decimal outside;padding-bottom: 7px;margin: 0 0 0 20px;}
+/* Holds Confirmation Page */
+.holdsSummary{font-size: 20px;}

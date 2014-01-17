@@ -1,8 +1,8 @@
 <div id="page-content" class="content">
-	<form name='placeHoldForm' id='placeHoldForm' action="{$path}/MyResearch/HoldMultiple" method="post">
-		<div>
-			<div class="holdsSummary">
-				<h3>Placing holds on <span id='newHoldCount'>{$ids|@count}</span> titles.</h3>
+	
+		<div id='placeHoldForm'>
+			<h3 class="myAccountTitle">Placing holds on <span id='newHoldCount'>{$ids|@count}</span> titles.</h3>
+            <form name='placeHoldForm' action="{$path}/MyResearch/HoldMultiple" method="post">
 				{foreach from=$ids item=id}
 					<input type="hidden" name="selected[{$id|escape:url}]" value="on" />
 				{/foreach}
@@ -13,13 +13,14 @@
 				</ol>
 				<input type="hidden" name="holdCount" id="holdCount" value="{$ids|@count}"/>
 				<div class="pageWarning" id="overHoldCountWarning" {if !$showOverHoldLimit}style="display:none"{/if}>Warning: There is a maximum of <span class='maxHolds'>{$maxHolds}</span> holds allowed on your account.  You currently have <span class='currentHolds'>{$currentHolds}</span> on your account. Holds for more than <span class='maxHolds'>{$maxHolds}</span> will not be placed.</div>
-			</div>
+			
 
-			<p class="note">
-				Holds allow you to request that a title be delivered to your home library.
-				Once the title arrives at your library you will be sent an e-mail, receive a phone call, or receive a postcard informing you that the title is ready for you.
-				You will then have 8 days to pickup the title from your home library.
-			</p>
+				<ul class="loginSidebar">
+                <li>Holds let you have any item delivered to you at your branch library. All holds deliveries are free.</li>
+				<li>We will notify you when your items are ready for pick up. Upon notification, you will have at least seven days to pick up the item.</li>
+                <li>In Account Settings, you may choose to be notified by email, phone, or postcard.</li>
+                </ul>
+
 			
 			{if $fromCart}
 				<input type="hidden" name="fromCart" value="true" />
@@ -29,35 +30,33 @@
 			{/if}
 			
 			{if (!isset($profile)) }
-				<div id ='loginUsernameRow' class='loginFormRow'>
-					<div class='loginLabel'>{translate text='Username'}: </div>
-					<div class='loginField'><input type="text" pattern="[0-9]*" name="username" id="username" value="{$username|escape}" size="15"/></div>
-				</div>
-				<div id ='loginPasswordRow' class='loginFormRow'>
-					<div class='loginLabel'>{translate text='Password'}: </div>
-					<div class='loginField'><input type="password" pattern="[0-9]*" name="password" id="password" size="15"/></div>
-				</div>
-				<div id ='loginPasswordRow2' class='loginFormRow'>
-					<div class='loginLabel'>&nbsp;</div>
-					<div class='loginField'>
-						<input type="checkbox" id="showPwd" name="showPwd" onclick="return pwdToText('password')"/><label for="showPwd">{translate text="Reveal Password"}</label>
-					</div>
-				</div>
-				{if !$inLibrary}
-				<div id ='loginPasswordRow3' class='loginFormRow'>
-					<div class='loginLabel'>&nbsp;</div>
-					<div class='loginField'>
-						<input type="checkbox" id="rememberMe" name="rememberMe" checked="checked" /><label for="rememberMe">{translate text="Remember Me"}</label>
-					</div>
-				</div>
-				{/if}                
-				<div id='loginSubmitButtonRow' class='loginFormRow'>
-					<div class='loginLabel'>&nbsp;</div>
-					<div class='loginField center'>
-						<input id="loginButton" type="button" onclick="GetPreferredBranches('{$id|escape}');" value="Login"/>
-					</div>
-				</div>
+		<div id='loginFormFields'>
+			<div id ='loginUsernameRow' class='loginFormRow'>
+				<div class='loginLabel'>{translate text='Username'}: </div>
+                <div class='loginField'><input type="text" pattern="[0-9]*" name="username" id="username" value="{$username|escape}" size="28"/></div>
+            </div>
+            <div id ='loginPasswordRow' class='loginFormRow'>
+                <div class='loginLabel'>{translate text='Password'}: </div>
+                <div class='loginField'><input type="password" pattern="[0-9]*" name="password" id="password" size="28"/></div>
+            </div>
+			{if $allowPinReset}
+			<div id ='loginPasswordRow2' class='loginFormRow'>
+				<div class='loginLabel'>&nbsp;</div>
+                <div class='loginField'><a href="#" onclick="ajaxLightbox('/MyResearch/AJAX?method=getPinResetForm')">Forgot PIN?</a></div>
+            </div>
 			{/if}
+			{if !$inLibrary}
+			<div id ='loginPasswordRow3' class='loginFormRow'>
+				<div class='loginLabel'>&nbsp;</div>
+				<div class='loginField'><input type="checkbox" id="rememberMe" name="rememberMe" checked="checked" /><label for="rememberMe">{translate text="Remember Me"}</label></div>
+			</div>
+			{/if}                
+			<div id='loginSubmitButtonRow' class='loginFormRow'>
+				<div class='loginLabel'>&nbsp;</div>
+				<div class='loginField center'><input id="loginButton" type="button" onclick="GetPreferredBranches('{$id|escape}');" value="Login"/></div>
+			</div>
+			{/if}
+            </div>
 			<div id='holdOptions' {if (!isset($profile)) }style='display:none'{/if}>
 				<div class='pickupLocationOptions loginFormRow'>
 					<div class='loginLabel'>{translate text="I want to pick this up at"}: </div>
@@ -90,8 +89,9 @@
 				<input type="submit" name="submit" id="requestTitleButton" value="{translate text='Submit Hold Request'}" {if (!isset($profile))}disabled="disabled"{/if}/>
 				<input type="checkbox" name="autologout" {if $inLibrary == true}checked="checked"{/if}/> Log me out after requesting the item. 
 			</div>
+            	</form>
 		</div>
-	</form>
+
 </div>
 <script	type="text/javascript">
 	{literal}
