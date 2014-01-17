@@ -6,6 +6,7 @@
 </div></div>
 <div id="main-content">
   <h1>My Requests <img src="http://www.oclc.org/developer/sites/default/files/badges/wc_badge1.png" width="88" height="31" alt="Some library data on this site is provided by WorldCat, the world's largest library catalog [WorldCat.org]" /></h1>
+  <div id="messages">Boy, do Anythinkers know what they want! Requests are now limited to 60 per customer, per year.</div>
   <p>View all of your requests and their statuses below. </p>
   <p>Questions about your requests? Contact our Collection Development team at <a href="mailto:requests@anythinklibraries.org">requests@anythinklibraries.org</a> or call 303-405-3293.</p>
   {if $error}

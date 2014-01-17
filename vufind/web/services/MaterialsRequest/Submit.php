@@ -83,7 +83,7 @@ class Submit extends Action
 				$materialsRequest->find();
 				if ($materialsRequest->N >= $maxActiveRequests){
 					$interface->assign('success', false);
-					$interface->assign('error', "You\'ve already reached your maximum limit of $maxActiveRequests requests open at one time. Once we've processed your existing requests, you'll be able to submit again. To check the status of your current requests, visit your <a href='{$accountPageLink}'>account page</a>.");
+					$interface->assign('error', "You've already reached your maximum limit of $maxActiveRequests requests open at one time. Once we've processed your existing requests, you'll be able to submit again. To check the status of your current requests, visit your <a href='{$accountPageLink}'>account page</a>.");
 				}else{
 					//Check the total number of requests created this year
 					$lastYear = new DateTime();
@@ -98,7 +98,7 @@ class Submit extends Action
 					$materialsRequest->find();
 					if ($materialsRequest->N >= $maxRequestsPerYear){
 						$interface->assign('success', false);
-						$interface->assign('error', "You\'ve already reached your maximum limit of $maxRequestsPerYear requests per year. To check the status of your current requests, visit your <a href='{$accountPageLink}'>account page</a>.");
+						$interface->assign('error', "We were unable to process your request because you have reached your $maxRequestsPerYear-item limit. Please search the catalog or visit your local Anythink to find a different item that might meet your needs. To check the status of your current requests, visit your <a href='{$accountPageLink}'>account page</a>.");
 					}else{
 						//Materials request can be submitted.
 						$materialsRequest = new MaterialsRequest();

@@ -4,11 +4,12 @@
     <h1>{translate text='Request it!'}<img src="http://www.oclc.org/developer/sites/default/files/badges/wc_badge1.png" width="88" height="31" alt="Some library data on this site is provided by WorldCat, the world's largest library catalog [WorldCat.org]" /></h1>
     <div id="materialsRequest">
       <div class="materialsRequestExplanation">
+        <div id="messages">Boy, do Anythinkers know what they want! Requests are now limited to 60 per customer, per year.</div>
         {if !$user}
-        <p>If you can't find what you're looking for in our catalog, let us do the work for you. We'll try requesting it from another library or consider purchasing it for Anythink's collection. <strong>You can request up to 60 items per year.</strong></p>
-        <p>Please login below to get started.</p>
+          <p>If you can't find what you're looking for in our catalog, let us do the work for you. We'll try requesting it from another library or consider purchasing it for Anythink's collection.</p>
+          <p>Please login below to get started.</p>
         {else}
-          <p>Can't find what you're looking for in our catalog? Fill out the form below to submit a request, and our team will help get the material in your hands. <strong>You can request up to 60 items per year.</strong></p>
+          <p>Can't find what you're looking for in our catalog? Fill out the form below to submit a request, and our team will help get the material in your hands.</p>
           <h3><span class="step">1</span> Choose your format</h3>
           <p class="step-desc">Choose your desired format to ensure we get you the right item. Select book, DVD, music CD, etc.</p>
           <h3><span class="step">2</span> Tell us what you're looking for</h3>
