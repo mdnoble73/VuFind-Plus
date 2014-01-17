@@ -157,6 +157,7 @@ class SearchObject_Solr extends SearchObject_Base
 		$configArray['Spelling']['skip_numeric'] : true;
 
 		$this->indexEngine->debug = $this->debug;
+		$this->indexEngine->debugSolrQuery = $this->debugSolrQuery;
 
 		$timer->logTime('Setup Solr Search Object');
 	}
@@ -519,6 +520,10 @@ class SearchObject_Solr extends SearchObject_Base
 		$html = array();
 		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
 			$current = & $this->indexResult['response']['docs'][$x];
+			if (!$this->debug){
+				unset($current['explain']);
+				unset($current['score']);
+			}
 			$record = RecordDriverFactory::initRecordDriver($current);
 			$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
 		}
@@ -538,6 +543,10 @@ class SearchObject_Solr extends SearchObject_Base
 		foreach ($recordSet as $key => $record){
 			//Trim off the dot from the start
 			$record['shortId'] = substr($record['id'], 1);
+			if (!$this->debug){
+				unset($record['explain']);
+				unset($record['score']);
+			}
 			$recordSet[$key] = $record;
 		}
 		return $recordSet;
@@ -572,6 +581,10 @@ class SearchObject_Solr extends SearchObject_Base
 		$html = array();
 		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
 			$current = & $this->indexResult['response']['docs'][$x];
+			if (!$this->debug){
+				unset($current['explain']);
+				unset($current['score']);
+			}
 			$interface->assign('recordIndex', $x + 1);
 			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
 			$record = RecordDriverFactory::initRecordDriver($current);

@@ -78,6 +78,7 @@ abstract class SearchObject_Base
 	protected $disableLogging = false;
 	// Debugging flag
 	protected $debug = false;
+	protected $debugSolrQuery = false;
 	// Search options for the user
 	protected $advancedTypes = array();
 	protected $basicTypes = array();
@@ -127,6 +128,9 @@ abstract class SearchObject_Base
 				if (in_array($activeIp, $allowableIps)){
 					$debug = true;
 				}
+			}
+			if ($debug && $configArray['System']['debugSolrQuery'] == true) {
+				$this->debugSolrQuery = true;
 			}
 			$this->debug = $debug;
 		} else {

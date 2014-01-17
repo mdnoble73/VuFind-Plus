@@ -17,7 +17,12 @@
 
 	<div class="resultDetails">
 		<div class="resultItemLine1">
-			{if $summScore}({$summScore}) {/if}
+			{if isset($summScore)}
+				(<a href="#" onclick="return showElementInLightbox('Score Explanation', '#scoreExplanationValue{$summShortId|escape}');">{$summScore}</a>)
+			{/if}
+			{if isset($summExplain)}
+				<div style="display:none" id="scoreExplanationValue{$summShortId|escape}">{$summExplain}</div>
+			{/if}
 			<a href="{$summUrl}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 			{if $summTitleStatement}
 				<div class="searchResultSectionInfo">

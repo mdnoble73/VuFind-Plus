@@ -41,6 +41,12 @@ class Solr implements IndexEngine {
 	public $debug = false;
 
 	/**
+	 * A boolean value determining whether to print debug information for the query
+	 * @var bool
+	 */
+	public $debugSolrQuery = false;
+
+	/**
 	 * Whether to Serialize to a PHP Array or not.
 	 * @var bool
 	 */
@@ -599,7 +605,7 @@ class Solr implements IndexEngine {
 	 */
 	function checkSpelling($phrase)
 	{
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>Spell Check: $phrase</pre>\n";
 		}
 
@@ -1295,7 +1301,7 @@ class Solr implements IndexEngine {
 			$options['hl.simple.post'] = '{{{{END_HILITE}}}}';
 		}
 
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo '<pre>Search options: ' . print_r($options, true) . "\n";
 
 			if ($filters) {
@@ -1310,6 +1316,8 @@ class Solr implements IndexEngine {
 			}
 
 			echo "</pre>\n";
+		}
+		if ($this->debugSolrQuery || $this->debug){
 			$options['debugQuery'] = 'on';
 		}
 
@@ -1529,7 +1537,7 @@ class Solr implements IndexEngine {
 	 */
 	function saveRecord($xml)
 	{
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>Add Record</pre>\n";
 		}
 
@@ -1550,7 +1558,7 @@ class Solr implements IndexEngine {
 	 */
 	function deleteRecord($id)
 	{
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>Delete Record: $id</pre>\n";
 		}
 
@@ -1573,7 +1581,7 @@ class Solr implements IndexEngine {
 	 */
 	function deleteRecords($idList)
 	{
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>Delete Record List</pre>\n";
 		}
 
@@ -1600,7 +1608,7 @@ class Solr implements IndexEngine {
 	 */
 	function commit()
 	{
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>Commit</pre>\n";
 		}
 
@@ -1622,7 +1630,7 @@ class Solr implements IndexEngine {
 	 */
 	function optimize()
 	{
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>Optimize</pre>\n";
 		}
 
@@ -1763,14 +1771,18 @@ class Solr implements IndexEngine {
 		}
 		$queryString = implode('&', $query);
 
-		if ($this->debug) {
-			echo "<pre>$method: ";
+		if ($this->debug || $this->debugSolrQuery) {
+			if ($this->debugSolrQuery) {
+				echo "<pre>$method: ";
+			}
 			$fullSearchUrl = print_r($this->host . "/select/?" . $queryString, true);
 			//Add debug parameter so we can see the explain section at the bottom.
 			$debugSearchUrl = print_r($this->host . "/select/?debugQuery=on&" . $queryString, true);
 
-			echo "<a href='" . $debugSearchUrl . "' target='_blank'>$fullSearchUrl</a>";
-			echo "</pre>\n";
+			if ($this->debugSolrQuery) {
+				echo "<a href='" . $debugSearchUrl . "' target='_blank'>$fullSearchUrl</a>";
+				echo "</pre>\n";
+			}
 		}
 
 		if ($method == 'GET') {
@@ -1806,7 +1818,7 @@ class Solr implements IndexEngine {
 		$this->client->setMethod('POST');
 		$this->client->setURL($this->host . "/update/");
 
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>POST: ";
 			print_r($this->host . "/update/");
 			echo "XML:\n";
