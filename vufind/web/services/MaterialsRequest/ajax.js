@@ -49,7 +49,7 @@ function updateMaterialsRequest(id){
 }
 
 function exportSelectedRequests(){
-	var selectedRequests = getSelectedRequests();
+	var selectedRequests = getSelectedRequests(true);
 	if (selectedRequests.length == 0){
 		return false;
 	}
@@ -63,21 +63,25 @@ function updateSelectedRequests(){
 		alert("Please select a status to update the requests to.");
 		return false;
 	}
-	var selectedRequests = getSelectedRequests();
+	var selectedRequests = getSelectedRequests(false);
 	return selectedRequests.length != 0;
 }
 
-function getSelectedRequests(){
+function getSelectedRequests(promptToSelectAll){
 	var selectedRequests = $("input.select:checked").map(function() {
 		return $(this).attr('name') + "=" + $(this).val();
 	}).get().join("&");
 	if (selectedRequests.length == 0){
-		var ret = confirm('You have not selected any requests, process all requests?');
-		if (ret == true){
-			selectedRequests = $("input.select").map(function() {
-				return $(this).attr('name') + "=on";
-			}).get().join("&");
-			$('.select').attr('checked', 'checked');
+		if (promptToSelectAll){
+			var ret = confirm('You have not selected any requests, process all requests?');
+			if (ret == true){
+				selectedRequests = $("input.select").map(function() {
+					return $(this).attr('name') + "=on";
+				}).get().join("&");
+				$('.select').attr('checked', 'checked');
+			}
+		}else{
+			alert("Please select one or more requests to update");
 		}
 	}
 	return selectedRequests;
