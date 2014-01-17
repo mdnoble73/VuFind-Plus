@@ -81,7 +81,7 @@
 								<tr>
 									<th><input id='selectAll' type='checkbox' onclick="toggleCheckboxes('.titleSelect', $(this).attr('checked'));" title="Select All/Deselect All"/></th>
 									<th>{translate text='Title'}</th>
-									<th>{translate text='Format'}</th>
+									{* <th>{translate text='Format'}</th> *}
 									{if $showOut}
 									<th>{translate text='Out'}</th>
 									{/if}
@@ -163,7 +163,7 @@
 											</div>
 										</td>
 
-										<td class="myAccountCell">
+										{* <td class="myAccountCell">
 											{if is_array($record.format)}
 												{foreach from=$record.format item=format}
 													{translate text=$format}
@@ -172,7 +172,7 @@
 												{translate text=$record.format}
 											{/if}
 										</td>
-
+									   *}
 										{if $showOut}
 											<td class="myAccountCell">
 												 {$record.checkoutdate|date_format}

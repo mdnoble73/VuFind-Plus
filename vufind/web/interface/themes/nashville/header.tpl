@@ -8,7 +8,7 @@
             <ul class="tabsGroup">
                 <li><a href="http://www.library.nashville.org/develop/vufind/booklists.asp">Book Lists</a></li>
                 <li><a href="http://catalog.library.nashville.org/MyResearch/SuggestedTitles">Recommendations</a></li>
-                <li><a href="http://www.surveymonkey.com/s/vufindplus_feedback" target="_blank">Feedback</a></li>
+                <li><a href="http://www.surveymonkey.com/s/vufindplus_feedback">Feedback</a></li>
             </ul>
         </div>   
         </div>    
