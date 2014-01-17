@@ -127,7 +127,6 @@
 				<!-- KeywordTokenizer does no actual tokenizing, so the entire input string is preserved as a single token -->
 				<tokenizer class="solr.KeywordTokenizerFactory"/>
 				<!-- Replace special characters  -->
-				<charFilter class="solr.PatternReplaceCharFilterFactory" pattern="([^a-zA-Z1-9\s])" replacement=" " replace="all"/>
 				<charFilter class="solr.PatternReplaceCharFilterFactory" pattern="^\s*(.*)\s*$" replacement="aaaa $1 zzzz"/>
 				<filter class="solr.LowerCaseFilterFactory"/>
 				<!-- The TrimFilter removes any leading or trailing whitespace -->
@@ -138,7 +137,6 @@
 			<analyzer type="index">
 				<tokenizer class="solr.KeywordTokenizerFactory"/>
 				<!-- Replace special characters  -->
-				<charFilter class="solr.PatternReplaceCharFilterFactory" pattern="([^a-zA-Z1-9\s])" replacement=" " replace="all"/>
 				<charFilter class="solr.PatternReplaceCharFilterFactory" pattern="^\s*(.*)\s*$" replacement="aaaa $1"/>
 				<filter class="solr.LowerCaseFilterFactory"/>
 				<!-- The TrimFilter removes any leading or trailing whitespace -->

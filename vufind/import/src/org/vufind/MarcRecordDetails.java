@@ -182,6 +182,9 @@ public class MarcRecordDetails {
 			}
 		}
 
+		//Add holds to popularity data
+		popularity += marcProcessor.getHoldCount(ilsId);
+
 		if (manuallySuppressed) {
 			logger.debug("Suppressing bib due to manual suppression");
 			bibSuppressed = true;

@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
@@ -143,6 +145,8 @@ public class MarcProcessor {
 
 	private boolean getAvailabilityFromMarc = true;
 	private HashSet<String> availableItemBarcodes = new HashSet<String>();
+
+	private HashMap<String, Long> holdData = new HashMap<String, Long>();
 
 	private Connection vufindConn;
 	private Connection econtentConn;
@@ -439,10 +443,42 @@ public class MarcProcessor {
 		
 		loadOrderRecords();
 
+		loadHoldsData();
+
 		loadAvailableItemBarcodes();
 		
 		ReindexProcess.addNoteToCronLog("Finished setting up MarcProcessor");
 		return true;
+	}
+
+	private Pattern holdsPattern = Pattern.compile("P#");
+	private void loadHoldsData() {
+		logger.debug("Loading holds data");
+		//Holds have the format
+		File marcRecordDir = new File(marcRecordPath);
+		//No .marc.orders files, look for records in active_orders.csv
+		File holdsFile = new File(marcRecordPath + "/BIB_HOLDS_EXTRACT_VUFIND.TXT");
+		if (holdsFile.exists()){
+			try{
+				BufferedReader reader = new BufferedReader(new FileReader(holdsFile));
+				//First line is headers
+				reader.readLine();
+				String holdLine;
+				while ((holdLine = reader.readLine()) != null){
+					String recordNumber = holdLine.substring(0, holdLine.indexOf('\t'));
+					String recordId = "." + recordNumber;
+					Matcher holdsMatcher = holdsPattern.matcher(holdLine);
+					int numHolds = 0;
+					while (holdsMatcher.find()){
+						numHolds++;
+					}
+
+					holdData.put(recordId, new Long(numHolds));
+				}
+			}catch(Exception e){
+				logger.error("Error loading order records from active orders", e);
+			}
+		}
 	}
 
 	private void loadAvailableItemBarcodes() {
@@ -1380,5 +1416,12 @@ public class MarcProcessor {
 
 	public boolean isSuppressItemlessBibs(){
 		return suppressItemlessBibs;
+	}
+
+	public float getHoldCount(String ilsId) {
+		if (holdData.containsKey(ilsId)){
+			return (float)holdData.get(ilsId);
+		}
+		return 0;
 	}
 }
