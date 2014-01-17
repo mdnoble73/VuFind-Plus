@@ -366,7 +366,7 @@ public final class Utils {
 			currResult = currResult.trim();
 
 			//Trim trailing punctuation
-			currResult = currResult.replaceAll(".*([,/;:])$", "").trim();
+			currResult = currResult.replaceAll("\\s+([,\\/;:])\\s*$", "").trim();
 
 			// trailing period removed in certain circumstances
 			if (currResult.endsWith(".")) {
