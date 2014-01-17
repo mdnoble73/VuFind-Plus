@@ -14,8 +14,8 @@
 								<ul class="header_menu">
 									<li class="item-248 current active"><a href="{$homeLink}">Home</a></li>
 									<li class="item-109" id="loginOptions" {if $user} style="display: none;"{/if}><a href="/MyResearch/Home">Login</a></li>
-									<li class="item-110"><a href="{$homeLink}/contact-us">Contact</a></li>
-									<li class="item-204"><a href="{$homeLink}/aboutus">About</a></li>
+									<li class="item-110"><a href="{$homeLink}/contact-us">Contact Us</a></li>
+									<li class="item-204"><a href="{$homeLink}/about-us">About Us</a></li>
 								</ul>
 								<div class="clearer"></div>
 								<ul class="header_menu" id="logoutOptions" {if !$user} style="display: none;"{/if}>
@@ -47,7 +47,7 @@
 							<div class="moduletable_menu">
 								<div class="jbmoduleBody">
 									<ul class="nav_menu sf-js-enabled sf-shadow">
-										<li class="item-138 deeper parent"><a href="/MyResearch/Home" class="sf-with-ul">My Account</a>
+										<li class="item-138 deeper parent"><a href="{$homeLink}/mywpl" class="sf-with-ul">MyWPL</a>
 											{* <ul style="float: none; width: 14em; display: none; visibility: hidden;" class="sf-js-enabled sf-shadow">
 												<li class="item-163" style="white-space: normal; float: left; width: 100%;"><a href="/MyResearch/Home" style="float: none; width: auto;">Login to Account</a></li>
 												<li class="item-140" style="white-space: normal; float: left; width: 100%;"><a href="/Search/Home" style="float: none; width: auto;">Browse Catalog</a></li>
@@ -65,7 +65,7 @@
 												<li class="item-201" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/library-services/meetingrooms" style="float: none; width: auto;">Meeting Rooms</a></li>
 											</ul> *}
 										</li>
-										<li class="item-116 deeper parent"><a href="{$homeLink}/wplkids" class="sf-with-ul">Kids</a>
+										<li class="item-116 deeper parent"><a href="{$homeLink}/kids" class="sf-with-ul">Kids</a>
 											{* <ul style="float: none; width: 14em; display: none; visibility: hidden;" class="sf-js-enabled sf-shadow">
 												<li class="item-117" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/wplkids/find" style="float: none; width: auto;">Find Books &amp; Movies</a></li>
 												<li class="item-120" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/events/kids" style="float: none; width: auto;">Upcoming Programs</a></li>
@@ -75,7 +75,7 @@
 												<li class="item-357" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/wplkids/staff-thoughts" style="float: none; width: auto;">Staff Thoughts</a></li>
 											</ul> *}
 										</li>
-										<li class="item-106 deeper parent"><a href="{$homeLink}/wplteens" class="sf-with-ul">Teens</a>
+										<li class="item-106 deeper parent"><a href="{$homeLink}/teens" class="sf-with-ul">Teens</a>
 											{* <ul style="float: none; width: 14em; display: none; visibility: hidden;" class="sf-js-enabled sf-shadow">
 												<li class="item-231" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/wplteens/2012-06-21-21-42-32" style="float: none; width: auto;">Find Books &amp; Movies</a></li>
 												<li class="item-241" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/wplteens/homework-help" style="float: none; width: auto;">Homework Help</a></li>
@@ -96,7 +96,7 @@
 												<li class="item-436" style="white-space: normal; float: left; width: 100%;"><a href="{$homeLink}/community/donate" style="float: none; width: auto;">Donate</a></li>
 											</ul> *}
 										</li>
-										<li class="item-170 deeper parent"><a href="{$homeLink}/about" class="sf-with-ul">About</a>
+										<li class="item-170 deeper parent"><a href="{$homeLink}/about-us" class="sf-with-ul">About Us</a>
 										</li>
 									</ul>
 								</div>
