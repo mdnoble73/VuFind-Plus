@@ -641,6 +641,7 @@ class AJAX extends Action {
 		foreach ($isbns as $isbn){
 			$enrichment = $novelist->loadEnrichment($isbn);
 			if (isset($enrichment['seriesTitle'])){
+				$enrichment['seriesTitle'] = preg_replace('/\s*series$/i','',$enrichment['seriesTitle']);
 				$seriesInfo[$isbn] = "<a href='/Search/Results?sort=year&lookfor=series:" . urlencode($enrichment['seriesTitle']) . "'>{$enrichment['seriesTitle']}</a>" ;
 				if (isset($enrichment['volumeLabel']) && strlen($enrichment['volumeLabel']) > 0){
 					$seriesInfo[$isbn] .=  ', ' . $enrichment['volumeLabel'];
