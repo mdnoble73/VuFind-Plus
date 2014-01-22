@@ -38,6 +38,9 @@ if (isset($_REQUEST['test_role'])){
 $interface = new UInterface();
 global $timer;
 $timer->logTime('Create interface');
+if (isset($configArray['Site']['tinyLogo'])){
+	$interface->assign('tinyLogo', $configArray['Site']['tinyLogo']);
+}
 if (isset($configArray['Site']['smallLogo'])){
 	$interface->assign('smallLogo', $configArray['Site']['smallLogo']);
 }
