@@ -28,7 +28,7 @@
 					<div class="panel {if $smarty.foreach.linkLoop.first}active{/if}">
 						<div class="panel-heading">
 							<div class="panel-title">
-								<a data-toggle="collapse" data-parent="#link-accordion" href="#{$categoryName|escapeCss}Panel">
+								<a data-toggle="collapse" data-parent="#link-accordion" href="#{$categoryName|escapeCSS}Panel">
 									{$categoryName}
 								</a>
 							</div>
