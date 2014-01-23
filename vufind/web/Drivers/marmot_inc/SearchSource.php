@@ -19,6 +19,15 @@ class SearchSource extends DB_DataObject{
 
 	public $catalogScoping;
 
+	function __construct(){
+
+	}
+	function init($label, $defaultFilter, $defaultSort, $catalogScoping){
+		$this->label = $label;
+		$this->defaultFilter = $defaultFilter;
+		$this->defaultSort = $defaultSort;
+		$this->catalogScoping = $catalogScoping;
+	}
 	static function getObjectStructure(){
 
 		$structure = array(
