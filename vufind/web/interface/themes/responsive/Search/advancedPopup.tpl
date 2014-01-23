@@ -6,7 +6,7 @@
 	<form id="advancedPopup" class="modal-form" method="get" action="{$path}/Union/Search">
 		<fieldset>
 			<div id="advancedSearchRows">
-				<div class="control-group advancedRow" id="group1" data-row_number="1">
+				<div class="form-group advancedRow" id="group1" data-row_number="1">
 					<div class="input-prepend">
 						<input type="hidden" name="groupStart[1]" id="groupStart1Input" class="groupStartInput" title="Start Group"/>
 						<button id="groupStart1" data-toggle="button" data-hidden_element="#groupStart1Input" onclick="return VuFind.toggleHiddenElementWithButton(this);" class="btn groupStartButton">(</button>

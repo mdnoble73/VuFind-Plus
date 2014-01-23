@@ -15,6 +15,12 @@ Globals.automaticTimeoutLengthLoggedOut = 0;
 var VuFind = VuFind || {};
 
 VuFind.initializeModalDialogs = function() {
+	$("#modalDialog").modal(
+			{backdrop: true,
+			keyboard: true,
+			show: false,
+			remote: false}
+	);
 	$(".modalDialogTrigger").each(function(){
 		$(this).click(function(){
 			var trigger = $(this);

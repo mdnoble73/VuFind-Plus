@@ -17,7 +17,7 @@
 			</p>
 			{* Responsive theme enforces that the user is always logged in before getting here*}
 			<div id='holdOptions'>
-				<div id='pickupLocationOptions' class="control-group">
+				<div id='pickupLocationOptions' class="form-group">
 					<label class='control-label'>{translate text="I want to pick this up at"}: </label>
 					<div class='controls'>
 						<select name="campus" id="campus">
@@ -32,7 +32,7 @@
 					</div>
 				</div>
 				{if $showHoldCancelDate == 1}
-					<div id='cancelHoldDate' class='control-group"'>
+					<div id='cancelHoldDate' class='form-group"'>
 						<label class='control-label'>{translate text="Automatically cancel this hold if not filled by"}:</label>
 						<div class="input-append date controls" id="cancelDatePicker" data-date-format="mm/dd/yyyy" {if $defaultNotNeededAfterDays}data-date="{$defaultNotNeededAfterDays}"{/if}>
 							<input type="text" name="canceldate" id="canceldate" size="10" {if $defaultNotNeededAfterDays}value="{$defaultNotNeededAfterDays}"{/if}>
@@ -44,7 +44,7 @@
 					</div>
 				{/if}
 				<br />
-				<div class="control-group">
+				<div class="form-group">
 					<label for="autologout" class="checkbox"><input type="checkbox" name="autologout" id="autologout" {if $inLibrary == true}checked="checked"{/if}/> Log me out after requesting the item.</label>
 					<input type="hidden" name="holdType" value="hold" />
 					<input type="submit" name="submit" id="requestTitleButton" value="{translate text='Submit Hold Request'}" class="btn btn-primary"/>

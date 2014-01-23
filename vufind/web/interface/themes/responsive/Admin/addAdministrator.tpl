@@ -13,16 +13,16 @@
 	    <fieldset>
 		    <legend>Setup a new administrator</legend>
 	      <input type='hidden' name='objectAction' value='processNewAdministrator' />
-		    <div class="control-group">
-	        <label for='login' class='control-label'>Barcode</label>
-			    <div class="controls">
+		    <div class="form-group">
+	        <label for='login' class='col-sm-2 control-label'>Barcode</label>
+			    <div class="col-sm-10">
 				    <input type='text' name='login' id='login'/>
 				    <div class='help-block'>Enter the barcode for the user who should be given administration privileges</div>
 			    </div>
 		    </div>
 
 
-		    <div class="control-group">
+		    <div class="form-group">
 			    {assign var=property value=$structure.roles}
 			    {assign var=propName value=$property.property}
 			    <label for='{$propName}' class='control-label'>Roles</label>
@@ -43,7 +43,7 @@
 			      {/if}
 				  </div>
 				</div>
-		    <div class="control-group">
+		    <div class="form-group">
 					<div class="controls">
 	          <input type="submit" name="submit" value="Update User" class="btn btn-primary"/>  <a href='{$path}/Admin/{$toolName}?objectAction=list' class="btn">Return to List</a>
 					</div>

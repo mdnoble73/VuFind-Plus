@@ -45,7 +45,7 @@
 			</div>
 
 			<div class="col-md-5">
-				<div class="control-group">
+				<div class="form-group">
 					<label for="sortOptions" class="checkbox inline">
 						{translate text='Sort'} <select id="sortOptions" name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;">
 						{foreach from=$sortList item=sortData key=sortLabel}

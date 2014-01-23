@@ -4,7 +4,7 @@
 	{assign var=propValue value=$property.default}
 {/if}
 {if ((!isset($property.storeDb) || $property.storeDb == true) && !($property.type == 'label' || $property.type == 'oneToManyAssociation' || $property.type == 'hidden' || $property.type == 'method'))}
-	<div class='control-group' id="propertyRow{$propName}">
+	<div class='form-group' id="propertyRow{$propName}">
 		{* Output the label *}
 		{if $property.type == 'enum'}
 			<label for='{$propName}Select' class='control-label'>{$property.label}</label>

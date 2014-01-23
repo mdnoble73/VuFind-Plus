@@ -6,19 +6,19 @@
 	{if $message}<div class="error">{$message|translate}</div>{/if}
 
 	<form action="{$path}/Record/{$id|escape:"url"}/Email" method="post" id="emailForm" name="emailForm" class="form-horizontal">
-		<div class="control-group">
+		<div class="form-group">
 			<label for="to" class="control-label">{translate text='To'}:</label>
 			<div class="controls">
 				<input type="text" name="to" id="to" size="40" class="input-xxlarge"><br />
 			</div>
 		</div>
-		<div class="control-group">
+		<div class="form-group">
 			<label for="from" class="control-label">{translate text='From'}:</label>
 			<div class="controls">
 				<input type="text" name="from" size="40" class="input-xxlarge"><br />
 			</div>
 		</div>
-		<div class="control-group">
+		<div class="form-group">
 			<label for="message" class="control-label">{translate text='Message'}:</label>
 			<div class="controls">
 				<textarea name="message" rows="3" cols="40" class="input-xxlarge"></textarea><br />

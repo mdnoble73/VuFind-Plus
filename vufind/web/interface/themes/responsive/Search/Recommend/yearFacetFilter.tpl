@@ -1,19 +1,19 @@
 <form id='{$title}Filter' action='{$fullPath}' class="form-horizontal-narrow">
 	<div>
-		<div class="control-group">
+		<div class="form-group">
 			<label for="{$title}yearfrom" class='control-label control-label-narrow'>From:</label>
 			<div class="controls">
 				<input type="text" size="4" maxlength="4" class="yearbox input-mini" name="{$title}yearfrom" id="{$title}yearfrom" value="" />
 			</div>
 		</div>
-		<div class="control-group">
+		<div class="form-group">
 			<label for="{$title}yearto" class='control-label'>To:</label>
 			<div class="controls">
 				<input type="text" size="4" maxlength="4" class="yearbox input-mini" name="{$title}yearto" id="{$title}yearto" value="" />
 			</div>
 		</div>
 		{* To make sure that applying this filter does not remove existing filters we need to copy the get variables as hidden variables *}
-		<div class="control-group">
+		<div class="form-group">
 			{foreach from=$smarty.get item=parmValue key=paramName}
 				{if is_array($smarty.get.$paramName)}
 					{foreach from=$smarty.get.$paramName item=parmValue2}

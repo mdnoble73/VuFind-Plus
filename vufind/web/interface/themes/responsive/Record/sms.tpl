@@ -4,7 +4,7 @@
 </div>
 <div class="modal-body">
 	<form method="post" action="{$path}{$formTargetPath|escape}" name="popupForm" class="form-horizontal" id="smsForm">
-		<div class="control-group">
+		<div class="form-group">
 			<label for="sms_phone_number" class="control-label">{translate text="Number"}: </label>
 			<div class="controls">
 	      <input type="text" name="to" id="sms_phone_number" value="{translate text="sms_phone_number"}"
@@ -12,7 +12,7 @@
 	        onblur="if (this.value=='') this.value='{translate text="sms_phone_number"}'">
 	    </div>
 	  </div>
-		<div class="control-group">
+		<div class="form-group">
 			<label for="provider" class="control-label">{translate text="Provider"}: </label>
 			<div class="controls">
 	      <select name="provider">

@@ -8,7 +8,7 @@
 			{literal}{{/literal}success: &quot;{translate text='add_tag_success'}&quot;, load_error: &quot;{translate text='load_tag_error'}&quot;, save_error: &quot;{translate text='add_tag_error'}&quot;{literal}}{/literal}
 			); return false;' method="POST">
 	<input type="hidden" name="submit" value="1" />
-		<div class="control-group">
+		<div class="form-group">
 			<label for="tags_to_apply" class="control-label">{translate text="Tags"}: </label>
 			<div class="controls">
 				<input type="text" name="tag" value="" size="50" id="tags_to_apply">

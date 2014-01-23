@@ -5,13 +5,13 @@
 </div>
 <div id="commentForm{$shortId}" class="modal-body">
 	<form class="form-horizontal">
-		<div class="rateTitle control-group">
+		<div class="rateTitle form-group">
 			<label for="" class="control-label">Rate the Title</label>
 			<div class="controls">
 				{include file='Record/title-rating.tpl' showNotInterested=false showReviewAfterRating=false}
 			</div>
 		</div>
-		<div class="control-group">
+		<div class="form-group">
 			<label for="comment{$shortId}" class="control-label">Write a Review</label>
 			<div class="controls">
 		    <textarea name="comment" id="comment{$shortId}" rows="4" class="input-xxlarge"></textarea>

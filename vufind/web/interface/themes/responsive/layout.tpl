@@ -81,18 +81,8 @@
 			</div>
 		</div>
 
-		<div id="modalDialog" class="modal hide fade" tabindex="-1" role="dialog">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal">×</button>
-				<h3 id="modal-title"></h3>
-			</div>
-			<div class="modal-body">
-				<div id="modal-loading" class="text-center">Loading...<br/><img src="{img filename='loading_bar.gif'}" title="Loading"/></div>
-			</div>
-			<div class="modal-footer">
-				<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
-			</div>
-		</div>
+		{include file="modal_dialog.tpl"}
+
 
 		{include file="tracking.tpl"}
 

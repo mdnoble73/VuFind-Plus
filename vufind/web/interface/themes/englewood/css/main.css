@@ -6339,6 +6339,13 @@ body {
 #main-content-with-sidebar > .row {
   margin-right: -30px;
 }
+.modal {
+  background-color: white;
+  margin-top: 5%;
+}
+.modal-header {
+  padding: 0px 15px;
+}
 /**
  Styling for home page elements
 */
