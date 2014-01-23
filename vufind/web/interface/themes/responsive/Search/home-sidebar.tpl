@@ -33,7 +33,7 @@
 								</a>
 							</div>
 						</div>
-						<div id="{$categoryName|escapeCss}Panel" class="panel-collapse collapse {if $smarty.foreach.linkLoop.first}in{/if}">
+						<div id="{$categoryName|escapeCSS}Panel" class="panel-collapse collapse {if $smarty.foreach.linkLoop.first}in{/if}">
 							<div class="panel-body">
 								{foreach from=$linkCategory item=linkUrl key=linkName}
 									<div class="col-sm-5 col-md-5 col-lg-5">
