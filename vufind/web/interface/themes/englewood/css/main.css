@@ -6285,19 +6285,20 @@ body {
   height: 105px;
   background: linear-gradient(to bottom, #f5f5f5, #e0e0e0 85%, #f0f0f0);
   border-bottom: 8px solid #45820d;
-}
-#header-container .navbar {
   margin-bottom: 0px;
 }
-.navbar-nav {
+#header-container .container {
   height: 90px;
 }
-.header-button > a {
+.header-button {
+  text-align: center;
   height: 97px !important;
-  line-height: 75px !important;
+  border-bottom: 4px solid #f0f0f0;
+}
+.header-button > a {
+  line-height: 97px !important;
   text-align: center;
   vertical-align: middle;
-  border-bottom: 4px solid #f0f0f0;
   padding: 0px;
   color: #8b8b8b !important;
   text-shadow: 1px 1px white;
@@ -6305,7 +6306,7 @@ body {
 .header-button > a:visited {
   color: #8b8b8b !important;
 }
-.header-button > a:hover {
+.header-button:hover {
   border-bottom: 4px solid #2a6496;
 }
 .header-primary {
@@ -6328,6 +6329,16 @@ body {
 .connect-icon {
   padding: 0px 3px 0px 3px;
 }
+#side-bar {
+  padding-left: 0px;
+}
+#main-content-with-sidebar {
+  padding-right: 0px;
+  padding-bottom: 15px;
+}
+#main-content-with-sidebar > .row {
+  margin-right: -30px;
+}
 /**
  Styling for home page elements
 */
@@ -6338,7 +6349,7 @@ body {
   margin-bottom: 5px;
 }
 #home-page-search-label {
-  font-size: 45px;
+  font-size: 35px;
   color: white;
   text-shadow: 1px 1px #999999;
 }
@@ -6377,6 +6388,7 @@ body {
 #home-page-hours-locations a {
   color: white;
 }
+/** Library Link Formatting */
 #home-library-links .panel-group .panel + .panel {
   margin-top: 0px;
 }
@@ -6401,6 +6413,76 @@ body {
   font-size: 10px;
   color: #333333;
   background-color: #eeeeee;
+}
+/** Browse Formatting */
+#home-page-browse-header {
+  background-color: #d7dce3;
+  padding-bottom: 15px;
+}
+#home-page-browse-content {
+  background-color: #d7dce3;
+}
+#browse-label {
+  height: 5px;
+  background-color: #bbd4e3;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  margin-right: -15px;
+}
+.browse-label-text {
+  background-color: #d7dce3;
+  font-size: 22px;
+  color: #3497d1;
+  line-height: 5px;
+  vertical-align: top;
+  margin: auto;
+  padding: 0 8px;
+}
+.browse-arrow {
+  background-color: #9ea0a4;
+  color: #d4d4d4;
+  height: 100px;
+  font-weight: bold;
+  vertical-align: center;
+  line-height: 90px;
+  font-size: 22px;
+}
+.browse-category {
+  color: white;
+  font-size: 20px;
+  text-shadow: 1px 1px #555555;
+  background-color: #5fb7db;
+  margin: 0px 1%;
+  height: 100px;
+  width: 31%;
+}
+#Search-Home #main-content-with-sidebar {
+  background-color: #d7dce3;
+}
+#home-page-browse-results {
+  padding: 15px;
+  background-color: white;
+}
+#selected-browse-label {
+  height: 5px;
+  background-color: #bbd4e3;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  margin-right: -15px;
+  margin-left: 0px;
+}
+.selected-browse-label-text {
+  background-color: white;
+  font-size: 20px;
+  color: #0072bc;
+  line-height: 5px;
+  vertical-align: top;
+  margin: auto;
+  padding: 0 8px;
+}
+.browse-category:hover {
+  background-color: lightskyblue;
+  color: darkblue;
 }
 /**
  * Additional Styling related to the help system

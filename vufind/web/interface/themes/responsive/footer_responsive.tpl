@@ -3,12 +3,12 @@
 	<div class="navbar-inner">
 		<div class="row">
 			{if !$productionServer}
-				<div class="pull-left" id="install-info">
+				<div class="col-sm-6 text-left" id="install-info">
 					<small class='location_info'>{$physicalLocation} ({$activeIp}) - {$deviceName}</small>
 					<small class='version_info'> / v. {$gitBranch}</small>
 				</div>
 			{/if}
-			<div class="pull-right" id="connect-with-us-info">
+			<div class="col-sm-6 text-right" id="connect-with-us-info">
 				<span id="connect-with-us-label" class="large">CONNECT WITH US</span>
 				<a href="{$twitterUrl}" class="connect-icon"><img src="{img filename='twitter.png'}" class="img-rounded"></a>
 				<a href="{$facebookUrl}" class="connect-icon"><img src="{img filename='facebook.png'}" class="img-rounded"></a>

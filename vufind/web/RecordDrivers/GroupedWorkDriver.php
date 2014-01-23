@@ -29,7 +29,7 @@ class GroupedWorkDriver implements RecordInterface{
 			$db = new $class($url);
 			$db->disableScoping();
 
-			// Retrieve Full Marc Record
+			// Retrieve the record from Solr
 			if (!($record = $db->getRecord($id))) {
 				$this->isValid = false;
 			}else{

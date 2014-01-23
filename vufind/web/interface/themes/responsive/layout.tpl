@@ -43,30 +43,42 @@
 			</style>
 		{/if}
 	</head>
-	<body class="module_{$module} action_{$action}">
-		<div id="header-container">
-			{include file='header_responsive.tpl'}
-		</div>
-
-		{if $showTopSearchBox}
-			<div id='searchbar'>
-				{include file="Search/searchbox.tpl" showAsBar=true}
+	<body class="module_{$module} action_{$action}" id="{$module}-{$action}">
+		<div class="container">
+			<div id="header-container" class="row">
+				{include file='header_responsive.tpl'}
 			</div>
-		{/if}
 
-		{if $showBreadcrumbs}
-			<ul class="breadcrumb">
-				<li><a href="{$homeBreadcrumbLink}" id="home-breadcrumb"><i class="icon-home"></i> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span></li>
-				{include file="$module/breadcrumbs.tpl"}
-			</ul>
-		{/if}
+			{if $showTopSearchBox}
+				<div id='searchbar' class="row">
+					{include file="Search/searchbox.tpl" showAsBar=true}
+				</div>
+			{/if}
 
-		<div class="container" id="content-container">
-			{include file="$module/$pageTemplate"}
-		</div>
+			{if $showBreadcrumbs}
+				<ul class="breadcrumb row">
+					<li><a href="{$homeBreadcrumbLink}" id="home-breadcrumb"><i class="icon-home"></i> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span></li>
+					{include file="$module/breadcrumbs.tpl"}
+				</ul>
+			{/if}
 
-		<div id="footer-container">
-			{include file="footer_responsive.tpl"}
+			<div id="content-container" class="row">
+				{if isset($sidebar)}
+					{* Setup the left bar *}
+					<div class="col-sm-4 col-md-4 col-lg-3" id="side-bar">
+						{include file="$sidebar"}
+					</div>
+					<div class="col-sm-8 col-md-8 col-lg-9" id="main-content-with-sidebar">
+						{include file="$module/$pageTemplate"}
+					</div>
+				{else}
+					{include file="$module/$pageTemplate"}
+				{/if}
+			</div>
+
+			<div id="footer-container" class="row">
+				{include file="footer_responsive.tpl"}
+			</div>
 		</div>
 
 		<div id="modalDialog" class="modal hide fade" tabindex="-1" role="dialog">

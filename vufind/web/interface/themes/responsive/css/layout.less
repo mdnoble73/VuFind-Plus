@@ -18,20 +18,21 @@ body{
   height: @header-height;
   background: linear-gradient(to bottom, @header-top-color, @header-middle-color 85%, @header-bottom-color);
   border-bottom: 8px solid @header-bottom-border-color;
-}
-#header-container .navbar{
   margin-bottom: 0px;
 }
-.navbar-nav{
+#header-container .container{
   height: 90px;
 }
 
-.header-button > a{
+.header-button{
+  text-align: center;
   height: @header-height - 8px !important;
-  line-height: @header-height - 30px !important;
+  border-bottom: 4px solid @header-bottom-color;
+}
+.header-button > a{
+  line-height: @header-height - 8px !important;
   text-align: center;
   vertical-align: middle;
-  border-bottom: 4px solid @header-bottom-color;
   padding:0px;
   color: @header-link-color !important;
   text-shadow: 1px 1px white;
@@ -39,7 +40,7 @@ body{
 .header-button > a:visited{
   color: @header-link-color !important;
 }
-.header-button > a:hover{
+.header-button:hover{
   border-bottom: 4px solid @link-hover-color;
 }
 .header-primary{
@@ -63,4 +64,16 @@ body{
 }
 .connect-icon{
   padding: 0px 3px 0px 3px;
+}
+
+//Sidebar
+#side-bar{
+  padding-left: 0px;
+}
+#main-content-with-sidebar{
+  padding-right: 0px;
+  padding-bottom: 15px;
+}
+#main-content-with-sidebar > .row{
+  margin-right: -30px;
 }

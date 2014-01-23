@@ -96,8 +96,15 @@ class Home extends Action {
 		$interface->assign('libraryLinks', $libraryLinks);
 
 		//Load browse categories
+		$browseCategories = array();
 		//TODO: Load these for real
-		$browseCategories = array(
+		$newFiction = new SearchSource();
+		$newFiction->init('New Fiction', 'time_since_added:Month&literary_form_full=Fiction', 'relevance', 'catalog');
+		$browseCategories[] = $newFiction;
+		$newNonFiction = new SearchSource();
+		$newNonFiction->init('New Fiction', 'time_since_added:Month&literary_form_full="Non Fiction"', 'relevance', 'catalog');
+		$browseCategories[] = $newNonFiction;
+		/*$browseCategories = array(
 			'New Fiction',
 			'New Non-fiction',
 			'New Movies',
@@ -110,11 +117,29 @@ class Home extends Action {
 			'Popular Science Fiction',
 			'Popular Young Adults',
 			'Recommended for You'
-		);
+		);*/
 		$interface->assign('browseCategories', $browseCategories);
+
+		$browseResults = array();
+		$browseResults[] = array('id'=>'04d7a306-1cb3-c3a0-e84f-b92e2a3c29a5','isbn'=>'9780982857151');
+		$browseResults[] = array('id'=>'39fd54fa-7981-de5e-edb4-a5b82699657a','isbn'=>'9780985114640');
+		$browseResults[] = array('id'=>'29aa806f-b091-99f6-ecc5-2fd71aa27ef0','isbn'=>'9781101631065');
+		$browseResults[] = array('id'=>'0fcf60ad-ffc6-e27e-8b45-8131852e4d93','isbn'=>'9780985114657');
+		$browseResults[] = array('id'=>'e56932f2-ca56-dcc9-8032-f52c04fd0882','isbn'=>'9780786030484');
+		$browseResults[] = array('id'=>'9f7620af-b169-3fb3-09bf-9ead57d7b5f1','isbn'=>'9780143121558');
+		$browseResults[] = array('id'=>'dc269029-bcc8-8efd-9385-ba3993e925b8','isbn'=>'9780062236739');
+		$browseResults[] = array('id'=>'9b00c5b6-14d3-ea60-a399-f64bfd5121a3','isbn'=>'9780307958846');
+		$browseResults[] = array('id'=>'002962ce-451d-6b1a-650f-05a0816a02bc','isbn'=>'9781414379340');
+		$browseResults[] = array('id'=>'d4b99360-8d97-c042-b67b-be429df1ffd8','isbn'=>'9781564745309');
+		$browseResults[] = array('id'=>'4a64a5e8-a306-7147-2524-6832b38e5f74','isbn'=>'9780316244121');
+		$browseResults[] = array('id'=>'c99215c3-da4d-f658-8f17-c1b35072a4aa','isbn'=>'9780307980496');
+		$browseResults[] = array('id'=>'b5577aec-e8f8-9180-6cf4-03f60cbedb97','isbn'=>'9780345541024');
+
+		$interface->assign('browseResults', $browseResults);
 
 
 		$interface->setPageTitle('Catalog Home');
+		$interface->assign('sidebar', 'Search/home-sidebar.tpl');
 		$interface->setTemplate('home.tpl');
 		$interface->display('layout.tpl');
 	}

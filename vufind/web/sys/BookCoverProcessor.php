@@ -432,7 +432,15 @@ class BookCoverProcessor{
 		$useDefaultNoCover = true;
 
 		//Get the resource for the cover so we can load the title and author
-		if ($this->isEContent){
+		if($this->type == 'grouped_work'){
+			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+			$groupedWork = new GroupedWork();
+			$groupedWork->id = $this->id;
+			if ($groupedWork->find(true)){
+				$title = ucwords($groupedWork->title);
+				$author = ucwords($groupedWork->author);
+			}
+		}elseif ($this->isEContent){
 			require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 			$econtentRecord = new EContentRecord();
 			$econtentRecord->id = $this->id;
