@@ -102,8 +102,22 @@ class Home extends Action {
 		$newFiction->init('New Fiction', 'time_since_added:Month&literary_form_full=Fiction', 'relevance', 'catalog');
 		$browseCategories[] = $newFiction;
 		$newNonFiction = new SearchSource();
-		$newNonFiction->init('New Fiction', 'time_since_added:Month&literary_form_full="Non Fiction"', 'relevance', 'catalog');
+		$newNonFiction->init('New Non-Fiction', 'time_since_added:Month&literary_form_full="Non Fiction"', 'relevance', 'catalog');
 		$browseCategories[] = $newNonFiction;
+		$newMovies = new SearchSource();
+		$newMovies->init('New Movies', 'time_since_added:Month&format_category="Movies"', 'relevance', 'catalog');
+		$browseCategories[] = $newMovies;
+		$newEBooks = new SearchSource();
+		$newEBooks->init('New eBooks', 'time_since_added:Month&format_category="eBooks"', 'relevance', 'catalog');
+		$browseCategories[] = $newEBooks;
+		$newMusic = new SearchSource();
+		$newMusic->init('New Music', 'time_since_added:Month&format_category="Music"', 'relevance', 'catalog');
+		$browseCategories[] = $newMusic;
+		$newAudioBooks = new SearchSource();
+		$newAudioBooks->init('New Audio Books', 'time_since_added:Month&format_category="Audio Books"', 'relevance', 'catalog');
+		$browseCategories[] = $newAudioBooks;
+
+
 		/*$browseCategories = array(
 			'New Fiction',
 			'New Non-fiction',

@@ -19,20 +19,22 @@
 		</div>
 	</div>
 	<div id="home-page-library-section">
-		<div id="home-page-hours-locations">
-			<a href="">LIBRARY HOURS & LOCATIONS</a>
-		</div>
+		<a href="alert('TODO: Show a list of locations and hours when clicking here')">
+			<div id="home-page-hours-locations">
+				LIBRARY HOURS & LOCATIONS
+			</div>
+		</a>
 		<div id="home-library-links">
 			<div class="panel-group" id="link-accordion">
 				{foreach from=$libraryLinks item=linkCategory key=categoryName name=linkLoop}
 					<div class="panel {if $smarty.foreach.linkLoop.first}active{/if}">
-						<div class="panel-heading">
-							<div class="panel-title">
-								<a data-toggle="collapse" data-parent="#link-accordion" href="#{$categoryName|escapeCSS}Panel">
+						<a data-toggle="collapse" data-parent="#link-accordion" href="#{$categoryName|escapeCSS}Panel">
+							<div class="panel-heading">
+								<div class="panel-title">
 									{$categoryName}
-								</a>
+								</div>
 							</div>
-						</div>
+						</a>
 						<div id="{$categoryName|escapeCSS}Panel" class="panel-collapse collapse {if $smarty.foreach.linkLoop.first}in{/if}">
 							<div class="panel-body">
 								{foreach from=$linkCategory item=linkUrl key=linkName}

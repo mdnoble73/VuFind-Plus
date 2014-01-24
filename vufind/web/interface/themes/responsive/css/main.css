@@ -1,5 +1,7 @@
 @import "/interface/themes/default/css/ratings.css";
 
+@import "jcarousel.responsive.css";
+
 @import "/interface/themes/responsive/css/bootstrapSwitch.css";
 /**
 Variables for VuFind customization.  These can be overridden at the local theme level
@@ -6046,6 +6048,17 @@ div.striped > div:nth-child(odd),
 div.striped > div:nth-child(odd) {
   background-color: #f9f9f9;
 }
+/** jcarousel */
+/*
+This is the visible area of you carousel.
+Set a width here to define how much items are visible.
+The width can be either fixed in px or flexible in %.
+Position must be relative!
+*/
+.jcarousel {
+  position: relative;
+  overflow: hidden;
+}
 /** Third party imports **/
 /*!
  * Datepicker for Bootstrap
@@ -6290,6 +6303,10 @@ body {
 #header-container .container {
   height: 90px;
 }
+#header-logo {
+  line-height: 20px;
+  padding: 15px;
+}
 .header-button {
   text-align: center;
   height: 82px !important;
@@ -6459,9 +6476,7 @@ body {
   font-size: 20px;
   text-shadow: 1px 1px #555555;
   background-color: #5fb7db;
-  margin: 0px 1%;
   height: 100px;
-  width: 31%;
 }
 #Search-Home #main-content-with-sidebar {
   background-color: #d7dce3;

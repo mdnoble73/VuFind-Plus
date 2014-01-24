@@ -93,6 +93,8 @@
 		<script src="{$path}/interface/themes/responsive/js/bootstrap-switch.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/bootstrap-datepicker.js"></script>
 		*}
+		<script src="{$path}/js/jcarousel/jcarousel.min.js"></script>
+		<script src="{$path}/js/jcarousel/jcarousel.responsive.js"></script>
 		<script src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
 		<script src="{$path}/ckeditor/ckeditor.js"></script>
 		<script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>

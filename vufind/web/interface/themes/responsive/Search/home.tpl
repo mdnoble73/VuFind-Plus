@@ -5,27 +5,25 @@
 				<span class="browse-label-text">BROWSE THE CATALOG</span>
 			</div>
 			<div class="row text-center" id="browse-category-picker">
-				{* Left Arrow *}
-				<div class="col-sm-1 col-md-1 col-lg-1">
-					<div class="browse-arrow">&lt;</div>
-				</div>
-				{* Browse Categories *}
-				<div class="col-sm-10 col-md-10 col-lg-10">
-					<div class="row">
-						<div class="browse-category col-sm-4 col-md-4 col-lg-4">
-							New Fiction
-						</div>
-						<div class="browse-category col-sm-4 col-md-4 col-lg-4">
-							New Non-Fiction
-						</div>
-						<div class="browse-category col-sm-4 col-md-4 col-lg-4">
-							New Movies
-						</div>
+				<div class="jcarousel-wrapper">
+					<div class="jcarousel">
+						<ul>
+							{foreach from=$browseCategories item=browseCategory}
+								<li >
+									<a href="#" onclick="alert('Changing category to {$browseCategory->label}');">
+										<div class="browse-category">
+											{$browseCategory->label}
+										</div>
+									</a>
+								</li>
+							{/foreach}
+						</ul>
 					</div>
-				</div>
-				{* Right Arrow *}
-				<div class="col-sm-1 col-md-1 col-lg-1">
-					<div class="browse-arrow">&gt;</div>
+
+					<a href="#" class="jcarousel-control-prev">&lsaquo;</a>
+					<a href="#" class="jcarousel-control-next">&rsaquo;</a>
+
+					<p class="jcarousel-pagination"></p>
 				</div>
 			</div>
 		</div>
@@ -40,11 +38,11 @@
 				{foreach from=$browseResults item="browseResult" name="browseResultsLoop"}
 					<div class="col-xs-6 col-sm-4 col-md-3 col-lg-2 text-center">
 						<div class="thumbnail">
-							<a href="http://responsive2.marmot.org/GroupedWork/{$browseResult.id}/Home">
+							<a href="{$path}/GroupedWork/{$browseResult.id}/Home">
 								<img class="hidden-xs hidden-sm visible-md" src="{$path}/bookcover.php?id={$browseResult.id}&size=medium&type=grouped_work&isn={$browseResult.isbn}">
 								<img class="visible-xs visible-sm hidden-md hidden-lg" src="{$path}/bookcover.php?id={$browseResult.id}&size=small&type=grouped_work&isn={$browseResult.isbn}">
 							</a>
-							{include file="GroupedWork/title-rating.tpl" id=$browseResult.id}
+							{include file="GroupedWork/title-rating.tpl" id=$browseResult.id showNotInterested=false}
 						</div>
 					</div>
 					{* Insert separators at the appropriate locations *}
