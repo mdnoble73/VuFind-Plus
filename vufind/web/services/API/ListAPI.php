@@ -368,6 +368,12 @@ class ListAPI extends Action {
       'description' => 'Most Popular titles based on checkout history.',
       'numTitles' => 30,
 		);
+		$systemLists[] = array(
+			'id' => 'recommendations',
+			'title' => 'Recommended For You',
+			'description' => 'Titles Recommended for you based off your ratings.',
+			'numTitles' => 30,
+		);
 		return array('success'=>true, 'lists'=>$systemLists);
 	}
 
@@ -632,9 +638,25 @@ class ListAPI extends Action {
 					$suggestions = Suggestions::getSuggestions($userId);
 					$titles = array();
 					foreach ($suggestions as $id=>$suggestion){
+						$imageUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $id;
+						if (isset($suggestion['titleInfo']['issn'])){
+							$imageUrl .= "&issn=" . $suggestion['titleInfo']['issn'];
+						}
+						if (isset($suggestion['titleInfo']['isbn10'])){
+							$imageUrl .= "&isn=" . $suggestion['titleInfo']['isbn10'];
+						}
+						if (isset($suggestion['titleInfo']['upc'])){
+							$imageUrl .= "&upc=" . $suggestion['titleInfo']['upc'];
+						}
+						if (isset($suggestion['titleInfo']['format_category'])){
+							$imageUrl .= "&category=" . $suggestion['titleInfo']['format_category'];
+						}
+						$smallImageUrl = $imageUrl . "&size=small";
+						$imageUrl .= "&size=medium";
 						$titles[] = array(
 	            'id' => $id,
-	            'image' => $configArray['Site']['coverUrl'] . "/bookcover.php?id=" . $id . "&issn=" . $suggestion['titleInfo']['issn'] . "&isn=" . $suggestion['titleInfo']['isbn10'] . "&size=medium&upc=" . $suggestion['titleInfo']['upc'] . "&category=" . $suggestion['titleInfo']['format_category'][0],
+	            'image' => $imageUrl,
+							'small_image' => $smallImageUrl,
 	            'title' => $suggestion['titleInfo']['title'],
 	            'author' => $suggestion['titleInfo']['author']
 						);

@@ -351,10 +351,11 @@ class DataObjectUtil
 				$existingValues = $object->$propertyName;
 				$subObjectType = $property['subObjectType'];
 				$subStructure = $property['structure'];
-				foreach ($idsToSave as $id){
+				foreach ($idsToSave as $key => $id){
 					//Create the subObject
 					if ($id < 0 || $id == ""){
 						$subObject = new $subObjectType();
+						$id = $key;
 					}else{
 						$subObject = $existingValues[$id];
 					}
@@ -366,14 +367,17 @@ class DataObjectUtil
 						//Update properties of each associated object
 						foreach ($subStructure as $subProperty){
 							$requestKey = $propertyName . '_' . $subProperty['property'];
-							if (in_array($subProperty['type'], array('text', 'enum', 'date', 'integer') )){
-								$subObject->$subProperty['property'] = $_REQUEST[$requestKey][$id];
+							$subPropertyName = $subProperty['property'];
+							if (in_array($subProperty['type'], array('text', 'enum', 'date', 'integer', 'numeric') )){
+								$subObject->$subPropertyName = $_REQUEST[$requestKey][$id];
 							}elseif (in_array($subProperty['type'], array('checkbox') )){
-								$subObject->$subProperty['property'] = isset($_REQUEST[$requestKey][$id]) ? 1 : 0;
+								$subObject->$subPropertyName = isset($_REQUEST[$requestKey][$id]) ? 1 : 0;
+							}elseif (!in_array($subProperty['type'], array('label', 'foreignKey', 'oneToMany') )){
+								//echo("Invalid Property Type " . $subProperty['type']);
 							}
 						}
 					}
-					if ($property['sortable'] == true){
+					if ($property['sortable'] == true && isset($weights)){
 						$subObject->weight = $weights[$id];
 					}
 

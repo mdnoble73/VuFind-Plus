@@ -517,9 +517,9 @@ class AJAX extends Action {
 						$titleShort = preg_replace('/\:.*?$/','', $rawData['title']);
 						$titleShort = preg_replace('/\s*\/$\s*/','', $titleShort);
 						$interface->assign('title', $titleShort);
-						$interface->assign('description', $rawData['description']);
-						$interface->assign('length', $rawData['length']);
-						$interface->assign('publisher', $rawData['publisher']);
+						$interface->assign('description', isset($rawData['description']) ? $rawData['description'] : null);
+						$interface->assign('length', isset($rawData['length']) ? $rawData['length'] : null);
+						$interface->assign('publisher', isset($rawData['publisher']) ? $rawData['publisher'] : null);
 						$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
 
 						$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
