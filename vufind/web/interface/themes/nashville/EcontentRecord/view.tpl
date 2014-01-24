@@ -169,8 +169,7 @@ function redrawSaveStatus() {literal}{{/literal}
 		
  	</div> {* moved this div up so that relatedTitleInfo and detailsTab could stretch to fill the full width of the page *}       
         
-        <div id="relatedTitleInfo" style="display:none">
-
+    <div id="relatedTitleInfo" style="display:none">
 			{assign var="scrollerName" value="Series"}
 			{assign var="scrollerTitle" value="Also in this Series"}
 			{assign var="wrapperId" value="series"}
@@ -178,6 +177,15 @@ function redrawSaveStatus() {literal}{{/literal}
 			{assign var="fullListLink" value="$path/EcontentRecord/$id/Series"}
 			{include file="titleScroller.tpl"}
 		</div>
+
+	<div id="similarTitleInfo" style="display:none">
+		{assign var="scrollerName" value="Similar"}
+		{assign var="scrollerTitle" value="More Like This"}
+		{assign var="wrapperId" value="similar"}
+		{assign var="scrollerVariable" value="similarScroller"}
+		{assign var="fullListLink" value="$path/Record/$id/SimilarTitles"}
+		{include file='titleScroller.tpl'}
+	</div>
 
 		<a id="detailsTab" href="#detailsTab"></a>
 		<div id="moredetails-tabs">

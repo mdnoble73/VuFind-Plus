@@ -595,6 +595,75 @@ class Record_AJAX extends Action {
 			$interface->assign('seriesInfo', json_encode($seriesInfo));
 		}
 
+		//Process similar titles for widget
+		$titles = array();
+		if (!isset($enrichmentData['novelist']['similarTitles']) || count($enrichmentData['novelist']['similarTitles']) == 0){
+			$interface->assign('similarTitleInfo', json_encode(array('titles'=>$titles, 'currentIndex'=>0)));
+		}else{
+			foreach ($enrichmentData['novelist']['similarTitles'] as $record){
+				$isbn = $record['isbn'];
+				if (strpos($isbn, ' ') > 0){
+					$isbn = substr($isbn, 0, strpos($isbn, ' '));
+				}
+				$cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn;
+				if (isset($record['id'])){
+					$cover .= "&id=" . $record['id'];
+				}
+				if (isset($record['upc'])){
+					$cover .= "&upc=" . $record['upc'];
+				}
+				if (isset($record['issn'])){
+					$cover .= "&issn=" . $record['issn'];
+				}
+				if (isset($record['format_category'])){
+					$cover .= "&category=" . $record['format_category'][0];
+				}
+				$title = $record['title'];
+				if (isset($record['series'])){
+					$title .= ' (' . $record['series'] ;
+					if (isset($record['volume'])){
+						$title .= ' Volume ' . $record['volume'];
+					}
+					$title .= ')';
+				}
+				$titles[] = array(
+					'id' => isset($record['id']) ? $record['id'] : '',
+					'image' => $cover,
+					'title' => $title,
+					'author' => $record['author']
+				);
+			}
+
+			foreach ($titles as $key => $rawData){
+				if ($rawData['id']){
+					if (strpos($rawData['id'], 'econtentRecord') === 0){
+						$fullId = $rawData['id'];
+						$shortId = str_replace('econtentRecord', '', $rawData['id']);
+						$formattedTitle = "<div id=\"scrollerTitleSimilar{$key}\" class=\"scrollerTitle\">" .
+								'<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $shortId . '" id="descriptionTrigger' . $fullId . '">' .
+								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+								"</a></div>" .
+								"<div id='descriptionPlaceholder{$fullId}' style='display:none'></div>";
+					}else{
+						$shortId = str_replace('.', '', $rawData['id']);
+						$formattedTitle = "<div id=\"scrollerTitleSimilar{$key}\" class=\"scrollerTitle\">" .
+								'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $shortId . '">' .
+								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+								"</a></div>" .
+								"<div id='descriptionPlaceholder{$shortId}' style='display:none'></div>";
+					}
+				}else{
+					$formattedTitle = "<div id=\"scrollerTitleSimilar{$key}\" class=\"scrollerTitle\">" .
+							"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+							"</div>";
+				}
+				$rawData['formattedTitle'] = $formattedTitle;
+				$titles[$key] = $rawData;
+			}
+			$seriesInfo = array('titles' => $titles, 'currentIndex' => 0);
+			$interface->assign('similarTitleInfo', json_encode($seriesInfo));
+		}
+
 		//Load go deeper options
 		if (isset($library) && $library->showGoDeeper == 0){
 			$interface->assign('showGoDeeper', false);
