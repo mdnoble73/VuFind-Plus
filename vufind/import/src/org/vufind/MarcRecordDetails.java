@@ -76,9 +76,10 @@ public class MarcRecordDetails {
 	 * Maps fields based on properties files for use in processors
 	 */
 	public void mapRecord(String source) {
-		if (allFieldsMapped)
+		if (allFieldsMapped){
 			return;
-		logger.debug("Mapping record " + source + " " + marcProcessor.getMarcFieldProps().size() + " fields");
+		}
+		//logger.debug("Mapping record " + source + " " + marcProcessor.getMarcFieldProps().size() + " fields");
 		allFieldsMapped = true;
 
 		// Map all fields for the record
@@ -266,7 +267,7 @@ public class MarcRecordDetails {
 		}
 		// logger.debug("Usable by " + usableByPTypes.size() + " pTypes");
 		addFields(mappedFields, "usable_by", null, usableByPTypes);
-		logger.debug("Total popularity is " + popularity);
+		//logger.debug("Total popularity is " + popularity);
 		addField(mappedFields, "popularity", Integer.toString((int)popularity));
 		addFields(mappedFields, "id_alt", null, altIds);
 	}
