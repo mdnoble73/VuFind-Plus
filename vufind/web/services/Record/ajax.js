@@ -176,6 +176,7 @@ function getGoDeeperData(dataType, recordType, id, isbn, upc) {
 }
 
 var seriesScroller;
+var similarScroller;
 
 function GetEnrichmentInfo(id, isbn, upc, econtent) {
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
@@ -197,6 +198,19 @@ function GetEnrichmentInfo(id, isbn, upc, econtent) {
 						seriesScroller.loadTitlesFromJsonData(seriesData);
 					}
 				}
+
+				var similarTitlesData = $(data).find("SimilarTitleInfo").text();
+				if (similarTitlesData && similarTitlesData.length > 0) {
+
+					similarScroller = new TitleScroller('titleScrollerSimilar', 'Similar', 'similarList');
+
+					similarTitlesData = $.parseJSON(similarTitlesData);
+					if (similarTitlesData.titles.length > 0){
+						$('#similarTitleInfo').show();
+						similarScroller.loadTitlesFromJsonData(similarTitlesData);
+					}
+				}
+
 				var showGoDeeperData = $(data).find("ShowGoDeeperData").text();
 				if (showGoDeeperData) {
 					$('#goDeeperLink').show();

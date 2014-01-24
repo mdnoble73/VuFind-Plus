@@ -69,6 +69,7 @@
   {/foreach}
 </ul>
 {/if}]]></SimilarTitles>
+<SimilarTitleInfo><![CDATA[{$similarTitleInfo}]]></SimilarTitleInfo>
 <ShowGoDeeperData>{$showGoDeeper}</ShowGoDeeperData>
 {if $enrichment.novelist.relatedContent}
 <RelatedContent><![CDATA[

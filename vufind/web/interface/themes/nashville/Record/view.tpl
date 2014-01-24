@@ -175,7 +175,15 @@ function redrawSaveStatus() {literal}{{/literal}
 			{assign var="fullListLink" value="$path/Record/$id/Series"}
 			{include file='titleScroller.tpl'}
 		</div>
-		
+
+		<div id="similarTitleInfo" style="display:none">
+			{assign var="scrollerName" value="Similar"}
+			{assign var="scrollerTitle" value="More Like This"}
+			{assign var="wrapperId" value="similar"}
+			{assign var="scrollerVariable" value="similarScroller"}
+			{assign var="fullListLink" value="$path/Record/$id/SimilarTitles"}
+			{include file='titleScroller.tpl'}
+		</div>
      
 		{include file="Record/view-tabs.tpl" isbn=$isbn upc=$upc}
 		{* Hiding title details b/c added to tabbed view {include file="Record/view-title-details.tpl"} *}
