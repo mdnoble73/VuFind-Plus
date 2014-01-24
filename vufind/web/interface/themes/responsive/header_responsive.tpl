@@ -27,7 +27,7 @@
 		</div>
 	</div>
 
-	<div class="loginOptions col-xs-3 col-xs-offset-3 col-sm-2 col-sm-offset-4 col-md-2 col-md-offset-6 col-lg-2 col-lg-offset-7"{if $user} style="display: none;"{/if}>
+	<div class="loginOptions col-xs-3 col-xs-offset-5 col-sm-2 col-sm-offset-6 col-md-2 col-md-offset-7 col-lg-2 col-lg-offset-8"{if $user} style="display: none;"{/if}>
 		<div class="header-button header-primary">
 			{if $showLoginButton == 1}
 				<a id="headerLoginLink" href="{$path}/MyResearch/Home" class='loginLink' title='Login' onclick="return VuFind.Account.followLinkIfLoggedIn(this);">{translate text="LOGIN"}</a>
@@ -35,22 +35,4 @@
 		</div>
 	</div>
 
-	<div class="col-xs-2 col-sm-2 col-md-1 col-lg-1" id="language-selector">
-		{if is_array($allLangs) && count($allLangs) > 1}
-			<div class="header-button">
-				<a href="#" id="language_toggle" class="dropdown-toggle" data-toggle="dropdown">
-					{foreach from=$allLangs key=langCode item=langName}
-						{if $userLang == $langCode}
-							{translate text=$langName} <span class="caret"></span>
-						{/if}
-					{/foreach}
-				</a>
-				<ul class="dropdown-menu">
-					{foreach from=$allLangs key=langCode item=langName}
-						<li><a id="lang{$langCode}" class='languageLink {if $userLang == $langCode} selected{/if}' href="{$fullPath}{if $requestHasParams}&amp;{else}?{/if}mylang={$langCode}">{translate text=$langName}</a></li>
-					{/foreach}
-				</ul>
-			</div>
-		{/if}
-	</div>
 {/strip}

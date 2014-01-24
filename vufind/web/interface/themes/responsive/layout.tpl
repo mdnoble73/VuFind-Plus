@@ -4,6 +4,9 @@
 		<title>{$pageTitle|truncate:64:"..."}</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		{if $google_translate_key}
+			<meta name="google-translate-customization" content="{$google_translate_key}" />
+		{/if}
 		{if $addHeader}{$addHeader}{/if}
 		<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
 		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$path}/Search/OpenSearch?method=describe" />

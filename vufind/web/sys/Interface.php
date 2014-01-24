@@ -64,6 +64,12 @@ class UInterface extends Smarty
 		$this->assign('isMobile', $this->isMobile ? 'true' : 'false');
 		$this->assign('device', get_device_name());
 
+		//Figure out google translate id
+		if (isset($configArray['Translation']['google_translate_key']) && strlen($configArray['Translation']['google_translate_key']) > 0){
+			$this->assign('google_translate_key', $configArray['Translation']['google_translate_key']);
+			$this->assign('google_included_languages', $configArray['Translation']['includedLanguages']);
+		}
+
 		// Check to see if multiple themes were requested; if so, build an array,
 		// otherwise, store a single string.
 		$themeArray = explode(',', $this->vufindTheme);
@@ -337,11 +343,6 @@ function translate($params) {
 	} else {
 		return $translator->translate($params);
 	}
-}
-
-function char($params) {
-	extract($params);
-	return chr($int);
 }
 
 function display_if_inconsistent($params, $content, &$smarty, &$repeat){
