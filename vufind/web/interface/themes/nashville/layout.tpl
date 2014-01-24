@@ -3,6 +3,7 @@
 {strip}
 	<head>
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+		<meta name="google-translate-customization" content="6863e650596b174c-5e9e53ad3960c16b-g907303c5b3b410fe-1d" />
 		<title>{$pageTitle|truncate:64:"..."}</title>
 		{if $addHeader}{$addHeader}{/if}
 		<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
