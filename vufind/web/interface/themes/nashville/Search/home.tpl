@@ -5,6 +5,7 @@
     <div class="searchHomeForm">
         {include file="searchbar.tpl"}
     </div>
+    
         
 	<div class="searchHomeContent">
 		{if $widgets}

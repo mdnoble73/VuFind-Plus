@@ -14,7 +14,7 @@
 		{/if}
 		
 		{* Internal Grid *}
-		<div class="myAccountTitle">{translate text='Lists and Recommendations'}</div>
+		<div class="myAccountTitle">{translate text='My Lists'}</div>
 			
 		{if $userNoticeFile}
 			{include file=$userNoticeFile}

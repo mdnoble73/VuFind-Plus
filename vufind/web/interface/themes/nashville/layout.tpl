@@ -23,6 +23,10 @@
 		{if $includeAutoLogoutCode == true}
 		<script type="text/javascript" src="{$path}/js/autoLogout.js"></script>
 		{/if}
+        
+        <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:400,700,400italic,700italic' rel='stylesheet' type='text/css'>
+        <meta name="google-translate-customization" content="fb1e3a166f7d61fe-b6257bfbde40c81e-ga23b7ec961bb5fea-1d"></meta>
+        
 	</head>
 
 	<body class="{$module} {$action}">

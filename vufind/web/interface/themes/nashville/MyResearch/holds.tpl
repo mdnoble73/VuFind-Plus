@@ -316,7 +316,7 @@
 							{if $sectionKey=='available'}
 								{translate text='You do not have any holds that are ready to be picked up'}.
 							{else}
-								{translate text='You do not have any holds that are not available yet'}.
+								{translate text='You do not have any titles on hold'}.
 							{/if}
 						{/if}
 					</div>

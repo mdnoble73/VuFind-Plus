@@ -1,6 +1,10 @@
 /* Styles to change the default fonts */
-body {font-family: /*"Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Verdana, Arial, sans-serif*/"Helvetica Neue","Helvetica",Helvetica,Arial,sans-serif;color:#010101;font-size:14px;line-height:18px;}
-#recordTitle {color: #292929;font-size: 25px;font-weight: normal;line-height: 35px;}
+h1{margin:1em
+0;}h2{font-size:140%;font-weight:normal;}h3{font-size:120%;font-weight:normal;margin-bottom: .5em;color:#292929;}h4{font-size:110%;font-weight:normal;margin-bottom: .5em;color:#292929}
+body{font-family:'Source Sans Pro', sans-serif,"Arial Unicode MS",Arial,Sans-Serif;color:#010101;font-size:14px}
+p{margin-bottom:1em;line-height:1.3em}
+
+#recordTitle {color: #292929;font-size: 28px;font-weight: normal;line-height: 35px;}
 #loginFormSidebar ul.loginSidebar li {font-size: 14px;line-height: 22px;}
 div.breadcrumbinner {width: 73.076em;margin:0;}
 .loginFormRow {padding-top: 10px;text-align:left;}
@@ -11,10 +15,22 @@ div.breadcrumbinner {width: 73.076em;margin:0;}
 #searchBarFind {vertical-align: top;position: relative;padding-bottom: 2px;*padding-bottom:0;margin-left: 15px;margin-top: 3px;*margin-top:0;}
 input[type="search"]{padding: 2px 3px;text-align: left;font-size: 1em;font-family: inherit;height: 1.8em;vertical-align: top;}
 
+/* Bibliographic Record */
+.recordcoverWrapper {padding: 0px;background-color: #fff;border: 0px solid #cfcfcf;position: relative;margin: auto;text-align: center;display: inline-block;position: relative;zoom: 1;max-width: 188px;}
+.recordcover {padding: 0px;background-color: white;border: 1px solid #cfcfcf;max-width: 180px;}
+.holdingsSummaryRecord {display: inline-block;zoom: 1;width: 450px;vertical-align: top;}
+#record-details-header .holdingsSummaryRecord .holdingsSummary .holdingsSummaryStatusLine a {font-weight: normal;font-size: 18px;}
+.available span {padding-left: 0px;}
+.holdingsSummary {margin-left: 0;}
+
 /* --------------- */
 #catalogHome{
 	padding: 50px;
 }
+
+/* bib record pages */
+.resultInformationLabel {color: #010101;font-size: 18px;font-weight: normal;padding:5px 0 5px 0;}
+
 
 /* Popup Box - see the end of consolidated.min.css - had to put styles there so that Firefox would see them on Mac */
 
@@ -25,81 +41,25 @@ input[type="search"]{padding: 2px 3px;text-align: left;font-size: 1em;font-famil
 /* --- Button Styles --- */
 
 .button, .button:link, .button:visited, .button:hover, .button:active, .button:focus, button, input[type="reset"], input[type="submit"], input[type="button"] {
-text-decoration: none;
--webkit-appearance: none;
--webkit-border-radius: 4px;
--moz-border-radius: 4px;
--ms-border-radius: 4px;
--o-border-radius: 4px;
-border-radius: 4px;
--webkit-background-clip: padding;
--moz-background-clip: padding;
--ms-background-clip: padding-box;
--o-background-clip: padding-box;
-background-clip: padding-box;
-background: #ddd url('../images/button.png?1298351022') repeat-x;
-background-image: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ffffff), color-stop(100%, #dddddd));
-background-image: -webkit-linear-gradient(#ffffff, #dddddd);
-background-image: -moz-linear-gradient(#ffffff, #dddddd);
-background-image: -o-linear-gradient(#ffffff, #dddddd);
-background-image: -ms-linear-gradient(#ffffff, #dddddd);
-background-image: linear-gradient(#ffffff, #dddddd);
-border: 1px solid;
-border-color: #ddd #bbbbbb #999;
-cursor: pointer;
-display: inline-block;
-font-weight: bold;
-font-size: 1em;
-line-height: 1.5em;
-font-family: inherit;
-height: auto;
-outline: 0;
-overflow: visible;
 margin: 0 0 0 2px;
 padding: 3px 12px;
-/* text-shadow: white 0 1px 1px; */ 
-vertical-align: baseline;
-width: auto;
 }
 
 #placeHoldButton .button, .button:link, .button:visited, .button:hover, .button:active, .button:focus, button {
-text-decoration: none;
--webkit-appearance: none;
--webkit-border-radius: 4px;
--moz-border-radius: 4px;
--ms-border-radius: 4px;
--o-border-radius: 4px;
-border-radius: 4px;
--webkit-background-clip: padding;
--moz-background-clip: padding;
--ms-background-clip: padding-box;
--o-background-clip: padding-box;
-background-clip: padding-box;
-background-image: linear-gradient(#ffffff, #dddddd);
-border: 1px solid;
-border-color: #ddd #bbbbbb #999;
-cursor: pointer;
-display: inline-block;
-font-weight: bold;
-font-size: 1em;
-line-height: 1.5em;
-font-family: inherit;
-height: auto;
-outline: 0;
-overflow: visible;
 margin: 0 0 0 2px;
 padding: 3px 12px;
-/* text-shadow: white 0 1px 1px; */
-vertical-align: baseline;
-width: auto;
-} 
+}
+
+
+
 
 /* Results List Buttons */
-.resultAction, .resultAction:hover{padding:2px 2px 2px 4px;margin: 3px 0 3px 0;}
+.resultAction, .resultAction:hover {/*padding:2px 2px 2px 4px;*/margin: 3px 0 3px 0;}
 .silk {margin-left: 0px;}
+.button.ui-widget-content a {color: #132248;}
 
 /* Similar Titles Buttons */
-.ui-widget-content a {color: #132248;}
+.ui-widget-content a {color: #0066cc;}
 
 /* Place Hold - pick up page */
 .note {font-size: inheret;font-style: normal;color: #191919;}
@@ -131,11 +91,54 @@ table.datagrid th a {color: #010101;text-align: left;font-size: 16px;font-weight
 .myAccountPagination.pagination {font-size: 120%;padding: 1em 0 1em 0;margin: 1em 0;text-align: center;}
 .resulthead {padding: 0 10px 0 0;margin-bottom: .5em;border-bottom: 1px #eee solid;}
 #placeHoldForm {width: 500px;padding: 10px 55px 10px 10px;}
-#placeHoldForm ul.loginSidebar li {padding-bottom: 3px;list-style: disc;font-size: 14px;line-height: 22px;;}
+#placeHoldForm ul.loginSidebar li {padding-bottom: 3px;list-style: disc;font-size: 14px;line-height: 22px;}
 
 /* List Buttons */
 .listButton{background-color:#88ABC2;color:#132248;border-color:lightgrey DarkSlateGray DarkSlateGray lightgrey;border-style:solid;border-width:1px;font-size:12px;font-family:Verdana,Helvetica,arial,sans-serif;display:inline-block;height:inherit;line-height:18px;margin-left:10px;margin-top:4px;padding:3px 12px}.listButton:hover{background-color:#B2CBDC;border-color:DarkSlateGray lightgrey lightgrey DarkSlateGray}.listButton
 a{color:#132248}#listTopButtons{margin-bottom:5px}
+
+/* MyAccount - eBooks and eAudio link uner Checked out */
+.myAccountLink a#checkedOutEContent {display:none}
+
+/* login form buttons */
+#loginFormSidebar {padding:10px 0 0 30px;display:inline-block;*display:inline;vertical-align:top;zoom:1;border-left:1px solid #ccc;width:400px}
+#loginFormSidebar ul.loginSidebar li{padding-bottom: 3px;list-style:disc;}
+#loginSidebarGetCardButton {float: right;}
+
+/* Popup Box - these styles center the pop-up boxes - don't remove them! */
+div.popupBox{background-color:#fff;display:none;border-right:solid 2px #444;border-bottom:solid 2px #444;position:absolute;z-index:1000;left:50% !important;font-size:95%;transition-property:height;transition-duration:0.25s;transition-delay:0.25s;width:50% !important; margin-left:-25% !important;margin: 0 0 20px 0;-moz-border-radius: 4px;border-radius: 4px;}
+div.popupBox .header {cursor: text;background-color: #eee;padding: 8px 10px 8px 10px;font-weight: normal;}
+#lightbox {cursor: pointer;background-color: #000;display: none;height: 100%;width: 100%;top: 0;left: 0;position: absolute;z-index: 400;opacity: .65; /* changed opacity from .8 */-moz-opacity: .65;}
+/* Popup Box - Hold Request Message */
+.hold_result_title {margin-bottom: 6px;font-size: 110%;color: #191919;}
+.hold_result_item_title {font-weight: normal;}
+.hold_result {font-size: 130%;font-weight: bold;margin-bottom: 4px;padding: 0 10px 0 10px;}
+div.popupBox .header a {float: right;text-decoration: none;font-weight: normal;}
+ol.hold_result_details {margin-left:0;margin-right:0;}
+.hold_result_notes {margin: 10px 0 10px 0;font-style: italic;padding: 0 10px 0 10px;}
+ol.hold_result_details li {list-style: decimal outside;padding-bottom: 7px;margin: 0 0 0 20px;}
+/* Holds Confirmation Page */
+.holdsSummary{font-size: 20px;}
+/* econtent help windows - hid .helpText in colsolidated.min.css */
+div.helpText ol li, div.helpText li ol li, div.helpTextUnsized ol li, div.helpTextUnsized li ol
+ li {
+list-style: decimal inside none;
+border: 0
+ solid black;
+padding-bottom: 5px;
+}
+
+/* Sidebar in bibliographic record - float right */
+#sidebarRight #sidebar {float:right;}
+
+.searchheader{padding:0;background-color:#ffffff;border-bottom:solid 0px #c5c5c5;text-align:left;}.searchheader a, .searchheader a:visited{color:#06c}.searchheader a:hover{color:#132248;}#searchbar{padding-left:7px;padding-bottom:10px;background-color:#32388E;color:#fff}
+#loginBlock{position:relative;top:0;right:0;z-index:99;min-width:300px;-webkit-border-bottom-left-radius:10px;-khtml-border-radius-bottomleft:10px;-moz-border-radius-bottomleft:10px;border-bottom-left-radius:10px;display:inline-block;}#loginOptions{}
+#headerLinksTopBar{background:#eee;width:950px;margin-bottom:5px;padding:5px;}.feedbackBlock{width:300px;float:left;} #languageBlock{position:relative;top:0;right:0;}.languageLink{position:relative;padding-top:5px;font-size:80%}.languageLink{margin-left:5px;text-decoration:none}.languageLink.selected{font-weight:bold}
+#searchbar a{color:#fff}
+#searchbar .searchform select {margin-top:3px}
+
+
+
 
 /* --- Book Bag Canvas --- */
 #book_bag
@@ -169,7 +172,7 @@ margin: 0 auto;
 padding: 0 10px;
 max-width: 960px;
 }
-.headerTabs {position:absolute;margin-top:86px;text-align:right;width:99%;}
+.headerTabs {position:absolute;margin-top:84px;text-align:right;width:99%;}
 
 .headerTabs ul {
 	margin:0;
@@ -245,17 +248,15 @@ max-width: 960px;
 }
 
 #list-series.titleScroller{
-	border: 1px solid #949494;
+	border: 1px solid #ccc;
 }
 
 .titleScrollerHeader{
-	background:url(/interface/themes/default/images/breadcrumb-gradient.png) repeat-x top left;
-	padding: 2px;
-	color: #00125E;
-	font-size: 12px;
-	font-weight: bold;
-	height: 15px;
-}
+	/* background:url(/interface/themes/default/images/breadcrumb-gradient.png) repeat-x top left; */
+	padding: 5px;color: #010101;font-size: 16px;font-weight:bold;height:25px;}
+#list-seriesHeader .resultInformationLabel {font-size:23px;}
+#list-seriesHeader .linkTab {*margin-top:-25px;}
+	
 .titleScrollerHeader .linkTab
 {
 	padding-right: 10px;
@@ -286,7 +287,7 @@ max-width: 960px;
 	cursor: pointer;
 	margin-left: 5px;
 	margin-top: 50px;
-	/*background:url(/interface/themes/default/images/scroll-left.png) no-repeat left center;*/
+	background:#eee /*url(/interface/themes/marmot/css/images/ui-bg_glass_85_dfeffc_1x400.png) 50% 50% repeat-x */;
 	zoom: 1;
 	*display: inline;
 }
@@ -299,22 +300,17 @@ max-width: 960px;
 	cursor: pointer;
 	margin-right: 5px;
 	margin-top: 50px;
-	/*background:url(/interface/themes/default/images/scroll-right.png) no-repeat left center;*/
+	background:#eee /*url(/interface/themes/default/images/scroll-right.png) no-repeat left center*/;
 	z-index: 100;
 	zoom: 1;
 	*display: inline;
 }
-.titleScrollerSelectedTitle{
-	width: 100%;
-	text-align: center;
-	font-weight: bold;
-	color: #00125E;
-}
-.titleScrollerSelectedAuthor{
-	width: 100%;
-	text-align: center;
-	font-weight: bold;
-	color: #A9A9A9;
+.titleScrollerSelectedTitle {width: 100%;text-align: center;font-weight: normal;color: #292929;font-size:120%;}
+.titleScrollerSelectedAuthor {
+width: 100%;
+text-align: center;
+font-weight: normal;
+color: #292929;
 }
 .scrollerBodyContainer{
 	position: relative;
@@ -478,6 +474,17 @@ max-width: 960px;
 	width: 223px;
 }
 
+/* Tabs */
+.ui-tabs .ui-tabs-nav li.ui-state-active a {font-weight: normal;font-size: 23px;color:#010101;padding: .25em 1em;}
+.ui-tabs .ui-tabs-nav li.ui-tabs-active {margin-bottom: -1px;padding-bottom: 1px;background-color: #fff;}
+.ui-tabs .ui-tabs-nav li.ui-tabs-active a:hover {background-color: #fff;}
+.ui-tabs .ui-tabs-nav li.ui-state-hover {font-weight: normal;font-size: 19px;background-color:#FAFAFA;}
+.ui-tabs .ui-tabs-nav li {list-style: none;float: left;position: relative;top: 0;margin: 1px .4em 0 0;border-bottom: 0;padding: 0;white-space: nowrap;font-size: 19px;background-color: #F7F7F7;}
+.ui-widget-header {border-bottom: 1px solid #ccc;background: #eee /*#32388E url(/interface/themes/nashville/images/ui-bg_gloss-wave_75_2191c0_500x100.png) 50% 50% repeat-x*/;
+color: #eaf5f7;font-weight: bold;}
+.ui-widget {font-family:'Source Sans Pro', sans-serif,"Arial Unicode MS",Arial,Sans-Serif;color:#010101;font-size:14px}
+.ui-tabs .ui-tabs-nav li a {float: left;padding: .45em 1em;text-decoration: none;}
+
 /* Recommended for you - before rating */
 #recommendationsLoginSignupBox {width:100%;height:60px;border-top:1px solid #F8F8F8;border-bottom:1px solid #f8f8f8;background-color:#eee;}
 #recommendationsLoginSignupBox .sectionContainer {width:50%;text-align:center;float:left;}
@@ -485,3 +492,61 @@ max-width: 960px;
 img.recommendationsStarsDemo {display:block;margin:0 auto; padding: 20px 0 35px 0; width:226px;}
 #recommendationsBulletPoints {}
 ul.showbullets li {list-style:disc;font-size:15px;line-height:25px;}
+
+
+html, button, input, select, textarea {font-family: inherit;}
+
+/* Wikipedia Article in search results */
+.wikipedia_article {margin-bottom: 10px;border-bottom: 1px solid #eee;}
+.wikipedia_article img {float: left;margin-right: 8px;}
+
+#categoryValues {
+text-align: center;
+padding-bottom: 8px;
+border-bottom: 1px solid #F5F5F5;
+margin-bottom: 5px;
+}
+
+.selectAllControls {
+line-height: 22px;
+margin-top: -25px;
+margin-bottom: 20px;
+}
+
+.categoryValue {
+font-size: 13px;
+}
+
+.resultIndex {
+width: 20px;
+display: inline-block;*display:block;
+zoom: 1;
+font-weight: bold;
+vertical-align: top;
+}
+
+/* New Header Styles 
+
+.searchHome{background-color:#fff;text-align:center;}
+.searchHomeForm {
+background-color: #32388E;
+padding: 0 0 10px 10px;
+text-align: left;
+margin: 0 0 0 0;
+border-top: none;
+color: #fff;
+position: absolute;
+top: 60px;
+}
+#header_logo {
+width: 110px;
+height: 79px;
+}
+.searchform {
+padding: 7px 0 0 15px;
+position: relative;
+}
+
+.languageBlockLink {margin: 0 3px 0 3px}
+
+*/

@@ -2,7 +2,10 @@
 <div id="headerLinksTopBar">
 
     <div id="languageBlock">
-<a href="http://nplencore.library.nashville.org">Show me the old catalog</a>
+<a href="http://nplencore.library.nashville.org" class="languageBlockLink">Show me the old catalog</a> | <a href="http://www.surveymonkey.com/s/vufindplus_feedback" class="languageBlockLink">Give Us Feedback</a>
+
+
+
 {*
         {if is_array($allLangs) && count($allLangs) > 1}
             {foreach from=$allLangs key=langCode item=langName}
