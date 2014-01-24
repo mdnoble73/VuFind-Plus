@@ -87,6 +87,28 @@ class MillenniumStatusLoader{
 			//Process each row in the callnumber table.
 			$ret = $this->parseHoldingRows($id, $rows);
 
+			if (count($ret) == 0){
+				//Also check the frameset for links
+				if (preg_match('/<div class="bibDisplayUrls">.*?<table.*?>(.*?)<\/table>.*?<\/div>/si', $millenniumInfo->framesetInfo, $displayUrlInfo)){
+					$linksTable = $displayUrlInfo[1];
+					preg_match_all('/<td.*?>.*?<a href="(.*?)".*?>(.*?)<\/a>.*?<\/td>/si', $linksTable, $linkData, PREG_SET_ORDER);
+					for ($i = 0; $i < count($linkData); $i++) {
+						$newHolding = array(
+							'type' => 'holding',
+							'link' => array(),
+							'status' => 'Online',
+							'location' => 'Online'
+						);
+						$newHolding['link'][] = array(
+							'link' => $linkData[$i][1],
+							'linkText' => $linkData[$i][2],
+							'isDownload' => true
+						);
+						$ret[] = $newHolding;
+					}
+				}
+			}
+
 			$timer->logTime('processed all holdings rows');
 		}else{
 			$ret = null;
@@ -841,6 +863,19 @@ class MillenniumStatusLoader{
 				$numHoldableCopies++;
 			}
 			$numCopies++;
+
+			//Check to see if the holding has a download link and if so, set that info.
+			if (isset($holding['link'])){
+				foreach ($holding['link'] as $link){
+					if ($link['isDownload']){
+						$summaryInformation['status'] = "Available for Download";
+						$summaryInformation['class'] = 'here';
+						$summaryInformation['isDownloadable'] = true;
+						$summaryInformation['downloadLink'] = $link['link'];
+						$summaryInformation['downloadText'] = $link['linkText'];
+					}
+				}
+			}
 
 			//Only show a call number if the book is at the user's home library, one of their preferred libraries, or in the library they are in.
 			$showItsHere = ($library == null) ? true : ($library->showItsHere == 1);
