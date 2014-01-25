@@ -15,26 +15,48 @@
 		{css filename="main.css"}
 		{* <link href="{$path}/interface/themes/responsive/css/marmot.css" rel="stylesheet" media="screen"> *}
 
-		{* Include correct javascript *}
-		{* Do require js later
-		<script data-main="/interface/themes/responsive/js/main.js" src="{$path}/interface/themes/responsive/js/require.min.js"></script>
-		*}
+		{* Include correct all javascript *}
+		{* TODO: Somehow minify all of this into one little file *}
 		<script src="{$path}/js/jquery-1.9.1.min.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/scripts.js"></script>
+		{* Load Libraries*}
+		<script src="{$path}/interface/themes/responsive/js/lib/rater.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/lib/bootstrap.min.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/lib/jcarousel.min.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/lib/jcarousel.responsive.js"></script>
+		<script src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
+		<script src="{$path}/ckeditor/ckeditor.js"></script>
+		<script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
+		{* Load application specific Javascript *}
+		<script src="{$path}/interface/themes/responsive/js/vufind/globals.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/base.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/account.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/grouped-work.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/responsive.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/results-list.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/ratings.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/overdrive.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/prospector.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/record.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/searches.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/wikipedia.js"></script>
+
 		<script type="text/javascript">
 			{* Override variables as needed *}
 			{literal}
-			var Globals = Globals || {};
+			$(document).ready(function(){
+				{/literal}
+				Globals.path = '{$path}';
+				Globals.url = '{$url}';
+				Globals.loggedIn = {$loggedIn};
+				{if $automaticTimeoutLength}
+				Globals.automaticTimeoutLength = {$automaticTimeoutLength};
+				{/if}
+				{if $automaticTimeoutLengthLoggedOut}
+				Globals.automaticTimeoutLengthLoggedOut = {$automaticTimeoutLengthLoggedOut};
+				{/if}
+				{literal}
+			});
 			{/literal}
-			Globals.path = '{$path}';
-			Globals.url = '{$url}';
-			Globals.loggedIn = {$loggedIn};
-			{if $automaticTimeoutLength}
-			Globals.automaticTimeoutLength = {$automaticTimeoutLength};
-			{/if}
-			{if $automaticTimeoutLengthLoggedOut}
-			Globals.automaticTimeoutLengthLoggedOut = {$automaticTimeoutLengthLoggedOut};
-			{/if}
 		</script>
 
 		{if $includeAutoLogoutCode == true}
@@ -89,17 +111,5 @@
 
 		{include file="tracking.tpl"}
 
-		{* Extra javascript at end so the pages load faster. *}
-		<script src="{$path}/interface/themes/responsive/js/rater.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/bootstrap.min.js"></script>
-		{*
-		<script src="{$path}/interface/themes/responsive/js/bootstrap-switch.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/bootstrap-datepicker.js"></script>
-		*}
-		<script src="{$path}/js/jcarousel/jcarousel.min.js"></script>
-		<script src="{$path}/js/jcarousel/jcarousel.responsive.js"></script>
-		<script src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
-		<script src="{$path}/ckeditor/ckeditor.js"></script>
-		<script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
 	</body>
 </html>

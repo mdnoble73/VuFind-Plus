@@ -103,7 +103,7 @@
 
 {* Extra javascript at end so the pages loose faster. *}
 <script src="{$path}/interface/themes/responsive/js/rater.js"></script>
-<script src="{$path}/interface/themes/responsive/js/bootstrap.min.js"></script>
+<script src="{$path}/interface/themes/responsive/js/lib/bootstrap.min.js"></script>
 <script src="{$path}/interface/themes/responsive/js/bootstrap-switch.js"></script>
 <script src="{$path}/interface/themes/responsive/js/bootstrap-datepicker.js"></script>
 <script src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>

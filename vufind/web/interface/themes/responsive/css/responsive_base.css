@@ -6354,11 +6354,7 @@ body {
   margin-right: -30px;
 }
 .modal {
-  background-color: white;
-  margin-top: 5%;
-}
-.modal-header {
-  padding: 0px 15px;
+  overflow-y: auto;
 }
 /**
  Styling for home page elements
