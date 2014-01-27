@@ -8,21 +8,17 @@
 	{/foreach}
 {* Show more list *}
 	<div class="facetValue" id="more{$title}"><a href="#" onclick="VuFind.ResultsList.moreFacetPopup('More {$cluster.label}s', '{$title}'); return false;">{translate text='more'} ...</a></div>
-<div id="moreFacetPopup_{$title}" style="display:none">
-	<p>Please select one of the items below to narrow your search by {$cluster.label}.</p>
-	{foreach from=$cluster.sortedList item=thisFacet name="narrowLoop"}
-		{if $smarty.foreach.narrowLoop.iteration % ($smarty.foreach.narrowLoop.total / 5) == 1}
-			{if !$smarty.foreach.narrowLoop.first}
-				</ul></div>
-			{/if}
-			<div class="facetCol"><ul>
-		{/if}
-		<li class="facetValue">{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count}){/if}</li>
-		{if $smarty.foreach.narrowLoop.last}
-			</ul></div>
-		{/if}
-	{/foreach}
-
+	<div id="moreFacetPopup_{$title}" style="display:none">
+		<p>Please select one of the items below to narrow your search by {$cluster.label}.</p>
+		<div class="container-12">
+			<div class="row">
+				{foreach from=$cluster.sortedList item=thisFacet name="narrowLoop"}
+					<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 thumbnail">
+						{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count}){/if}
+					</div>
+				{/foreach}
+			</div>
+		</div>
 	</div>
 {else}
 	{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
@@ -39,7 +35,8 @@
 		{/if}
 	{/foreach}
 	{if $smarty.foreach.narrowLoop.total > $cluster.valuesToShow}
-		<div class="facetValue"><a href="#" onclick="VuFind.ResultsList.lessFacets('{$title}'); return false;">{translate text='less'} ...</a></div>
+		<div class="facetValue">
+			<a href="#" onclick="VuFind.ResultsList.lessFacets('{$title}'); return false;">{translate text='less'} ...</a></div>
 		</div>
 	{/if}
 {/if}

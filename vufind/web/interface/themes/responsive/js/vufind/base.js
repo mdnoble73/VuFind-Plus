@@ -79,7 +79,7 @@ var VuFind = (function(){
 			if (autoClose == undefined){
 				autoClose = false;
 			}
-			$("#modal-title").html(title);
+			$("#myModalLabel").html(title);
 			$(".modal-body").html(body);
 			var modalDialog = $("#modalDialog");
 			modalDialog.modal('show');
