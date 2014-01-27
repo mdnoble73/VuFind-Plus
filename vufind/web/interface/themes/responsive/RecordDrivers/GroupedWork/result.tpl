@@ -1,29 +1,13 @@
 {strip}
 <div id="groupedRecord{$summId|escape}" class="resultsList row">
-	<div class="imageColumn col-sm-3 col-md-3 col-lg-2">
-		<div class="row">
-			<div class="selectTitle hidden-phone col-sm-4 col-md-4 col-lg-3">
-				<label for="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="resultIndex checkbox"><strong>{$resultIndex}</strong>
-					<input type="checkbox" class="titleSelect" name="selected[{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}]" id="selected{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" {if $enableBookCart}onclick="toggleInBag('{$summId|escape}', '{$summTitle|replace:'"':''|replace:'&':'and'|escape:'javascript'}', this);"{/if} />&nbsp;
-				</label>
-			</div>
-			{/strip}
-			<div class="col-sm-7 col-md-7 col-lg-8 text-center">
-				{if $user->disableCoverArt != 1}
-					{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
-					<a href="{$summUrl}">
-						<img src="{$bookCoverUrlMedium}"
-						     class="listResultImage img-thumbnail img-responsive{*descriptionTrigger*}"
-						     alt="{translate text='Cover Image'}"
-						     {*data-record_id="{$summId}"
-						     data-source="VuFind"
-						     data-content_class=".descriptionContent{$summShortId|escape}"*}/>
-					</a>
-				{/if}
-				{strip}
-				{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
-			</div>
-		</div>
+	<div class="imageColumn col-sm-3 col-md-3 col-lg-2 text-center">
+		{if $user->disableCoverArt != 1}
+			{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
+			<a href="{$summUrl}">
+				<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}" />
+			</a>
+		{/if}
+		{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
 	</div>
 
 	{if isset($summExplain)}

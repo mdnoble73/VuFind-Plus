@@ -4,11 +4,8 @@
  * If a rule is used as part of both a record and the results list it should be defined in record.less
  */
 .result {
-  border: 1px solid #EEEEEE;
+  border-bottom: 2px solid #d5d6da;
   padding: 10px 5px 15px;
-}
-.result.alt {
-  background-color: #F9F9F9;
 }
 @media (max-width: 480px) {
   .result-value {
@@ -24,6 +21,11 @@
 }
 .resultDetails .row-fluid [class*="span"] {
   min-height: 16px;
+}
+#formatCategories {
+  border-bottom: 3px solid #d5d6da;
+  padding-top: 3px;
+  padding-bottom: 8px;
 }
 @media (max-width: 480px) {
   #formatCategories {
@@ -42,6 +44,7 @@
 .facetValue {
   padding: 0 0 0 30px;
   color: #888888;
+  font-size: small;
 }
 .facetValue a {
   color: #888888;
@@ -73,4 +76,33 @@
   padding: 8px 30px 6px 30px;
   border-top: 1px solid #f4f4f4;
   border-bottom: 1px solid #adadad;
+}
+.categoryValue {
+  font-size: smaller;
+}
+.formatCategoryLabel {
+  vertical-align: center;
+  color: #8d929a;
+  margin-top: 3px;
+}
+.formatCategoryLabel a {
+  color: #8d929a;
+}
+#results-sort-label {
+  text-align: center;
+  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
+  color: white;
+  padding: 3px 0px;
+  margin-top: 20px;
+}
+#results-sort {
+  width: 80%;
+  margin: 5px 10%;
+}
+.result-head {
+  font-size: smaller;
+  color: #0d8ec6;
+}
+.replacement-search-info-text {
+  color: #888888;
 }

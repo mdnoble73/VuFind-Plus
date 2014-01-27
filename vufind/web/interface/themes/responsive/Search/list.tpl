@@ -6,36 +6,24 @@
 		{/foreach}
 	{/if}
 
-	{if $recordCount}
-		<label for="sort"><strong>{translate text='Sort By'}</strong></label>
+	{* Information about the search *}
+	<div class="result-head">
 
-		<select id="sort" name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;" class="input-medium">
-			{foreach from=$sortList item=sortData key=sortLabel}
-				<option value="{$sortData.sortUrl|escape}"{if $sortData.selected} selected="selected"{/if}>{translate text=$sortData.desc}</option>
-			{/foreach}
-		</select>
-	{/if}
-
-	{* Listing Options *}
-	<div class="resulthead">
-		{if $replacementTerm}
-			<div id="replacementSearchInfo">
-				<div style="font-size:120%">Showing Results for: <strong><em>{$replacementTerm}</em></strong></div>
-				<div style="font-size:95%">Search instead for: <a href="{$oldSearchUrl}">{$oldTerm}</a></div>
-			</div>
-		{/if}
 		{if $recordCount}
 			{translate text="Showing"}
-			<b>{$recordStart}</b> - <b>{$recordEnd}</b>
-			{translate text='of'} <b>{$recordCount}</b>
-			{if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>{/if}
+			{$recordStart} - {$recordEnd}
+			{translate text='of'} {$recordCount|number_format}
 		{/if}
 		<span class="hidden-phone">
-			,&nbsp;{translate text='query time'}: {$qtime}s
+			 {translate text='query time'}: {$qtime}s
 		</span>
+		{if $replacementTerm}
+			<div id="replacement-search-info">
+				<span class="replacement-search-info-text">Showing Results for </span>{$replacementTerm}<span class="replacement-search-info-text">.  Search instead for <span class="replacement-search-info-text"><a href="{$oldSearchUrl}">{$oldTerm}</a>
+			</div>
+		{/if}
 
 		{if $numUnscopedResults && $numUnscopedResults != $recordCount}
-			<br />
 			<div class="unscopedResultCount">
 				There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
 			</div>
