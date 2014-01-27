@@ -304,6 +304,25 @@ class GroupedWorkDriver implements RecordInterface{
 		return 'RecordDrivers/GroupedWork/result.tpl';
 	}
 
+	public function getBrowseResult(){
+		global $interface;
+		$id = $this->getUniqueID();
+		$interface->assign('summId', $id);
+		$linkUrl = '/GroupedWork/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+		$interface->assign('summUrl', $linkUrl);
+		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('summSubTitle', $this->getSubtitle());
+		$interface->assign('summAuthor', $this->getPrimaryAuthor());
+
+		//Get Rating
+		$interface->assign('summRating', $this->getRatingData());
+
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+
+		return 'RecordDrivers/GroupedWork/browse_result.tpl';
+	}
+
 	/**
 	 * Assign necessary Smarty variables and return a template name to
 	 * load in order to display the full record information on the Staff

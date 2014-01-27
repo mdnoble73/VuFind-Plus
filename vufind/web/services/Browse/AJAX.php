@@ -22,29 +22,29 @@ require_once ROOT_DIR . '/Action.php';
 
 class Browse_AJAX extends Action {
 
-	private $db;
+	/** @var SearchObject_Solr */
 	private $searchObject;
-
-	function __construct()
-	{
-		$this->searchObject = SearchObjectFactory::initSearchObject();
-	}
 
 	function launch()
 	{
 		header ('Content-type: application/json');
 		$response = array();
-		if (is_callable(array($this, $_GET['method']))) {
+		$method = $_REQUEST['method'];
+		if (in_array($method, array('getBrowseCategoryInfo'))){
+			$response = $this->$method();
+		}else if (is_callable(array($this, $_GET['method']))) {
+			$this->searchObject = SearchObjectFactory::initSearchObject();
 			$this->searchObject->initBrowseScreen();
 			$this->searchObject->disableLogging();
-			$this->$_GET['method']();
+			$this->$method();
 			$result = $this->searchObject->processSearch();
 			$response['AJAXResponse'] = $result['facet_counts']['facet_fields'];
+			// Shutdown the search object
+			$this->searchObject->close();
 		} else {
 			$response['AJAXResponse'] = array('Error' => 'Invalid Method');
 		}
-		// Shutdown the search object
-		$this->searchObject->close();
+
 
 		echo json_encode($response);
 	}
@@ -67,6 +67,42 @@ class Browse_AJAX extends Action {
 	{
 		if (isset($_GET['field'])) $this->searchObject->addFacet($_GET['field']);
 		if (isset($_GET['query'])) $this->searchObject->setQueryString($_GET['query']);
+	}
+
+	function getBrowseCategoryInfo($textId = null){
+		global $interface;
+		$this->searchObject = SearchObjectFactory::initSearchObject();
+		$result = array('result' => false);
+		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
+		$browseCategory = new BrowseCategory();
+		if ($textId == null){
+			$textId = $_REQUEST['textId'];
+		}
+		$browseCategory->textId = $textId;
+		if ($browseCategory->find(true)){
+			$result['result'] = true;
+			$result['label'] = $browseCategory->label;
+			$result['description'] = $browseCategory->description;
+			$defaultFilterInfo = $browseCategory->defaultFilter;
+			$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
+			foreach ($defaultFilters as $filter){
+				$this->searchObject->addFilter($filter);
+			}
+			//Get titles for the list
+			$this->searchObject->setSort($browseCategory->defaultSort);
+			$this->searchObject->clearFacets();
+			$this->searchObject->disableLogging();
+			$searchResult = $this->searchObject->processSearch();
+			$records = $this->searchObject->getBrowseRecordHTML();
+			if (count($records) == 0){
+				$records[] = $interface->fetch('Browse/noResults.tpl');
+			}
+
+			$result['records'] = implode('',$records);
+		}
+		// Shutdown the search object
+		$this->searchObject->close();
+		return $result;
 	}
 }
 ?>

@@ -21,6 +21,7 @@
 						<div class="adminMenuLink {if $action == "IPAddresses"}active{/if}"><a href="{$path}/Admin/IPAddresses">IP Addresses</a></div>
 					{/if}
 					<div class="adminMenuLink {if $action == "ListWidgets"}active{/if}"><a href="{$path}/Admin/ListWidgets">List Widgets</a></div>
+					<div class="adminMenuLink {if $action == "BrowseCategories"}active{/if}"><a href="{$path}/Admin/BrowseCategories">Browse Categories</a></div>
 					{if $user->hasRole('opacAdmin')}
 						<div class="adminMenuLink {if $action == "UserSuggestions"}active{/if}"><a href="{$path}/Admin/UserSuggestions">User Suggestions</a></div>
 						<div class="adminMenuLink {if $action == "BookStores"}active{/if}"><a href="{$path}/Admin/BookStores">Book Stores</a></div>

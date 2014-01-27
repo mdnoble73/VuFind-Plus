@@ -527,6 +527,31 @@ class SearchObject_Solr extends SearchObject_Base
 	}
 
 	/**
+	 * Use the record driver to build an array of HTML displays from the search
+	 * results suitable for use on a user's "favorites" page.
+	 *
+	 * @access  public
+	 * @return  array   Array of HTML chunks for individual records.
+	 */
+	public function getBrowseRecordHTML()
+	{
+		global $interface;
+		$html = array();
+		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+			$current = & $this->indexResult['response']['docs'][$x];
+			$interface->assign('recordIndex', $x + 1);
+			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
+			$record = RecordDriverFactory::initRecordDriver($current);
+			if (!PEAR_Singleton::isError($record)){
+				$html[] = $interface->fetch($record->getBrowseResult());
+			}else{
+				$html[] = "Unable to find record";
+			}
+		}
+		return $html;
+	}
+
+	/**
 	 * Return the record set from the search results.
 	 *
 	 * @access  public

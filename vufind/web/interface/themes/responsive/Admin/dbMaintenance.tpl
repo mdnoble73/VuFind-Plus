@@ -29,7 +29,7 @@
 				</thead>
 				<tbody>
 					{foreach from=$sqlUpdates item=update key=updateKey}
-					<tr class="{if $update.alreadyRun}updateRun{else}updateNotRun{/if}" {if $update.alreadyRun}style="display:none"{/if}>
+					<tr class="{if $update.alreadyRun}updateRun{else}updateNotRun{/if}" {if $update.alreadyRun && !$update.status}style="display:none"{/if}>
 						<td>
 							<label for="{$updateKey}" class="checkbox">
 								<input type="checkbox" name="selected[{$updateKey}]" id="{$updateKey}" {if !$update.alreadyRun}checked="checked"{/if} class="selectedUpdate"/>

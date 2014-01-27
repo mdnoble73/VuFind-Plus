@@ -2538,6 +2538,25 @@ class DBMaintenance extends Admin_Admin {
 					"populateWorkLevelRatings"
 				),
 			),
+
+			'browse_categories' => array(
+				'title' => 'Browse Categories',
+				'description' => 'Setup Browse Category Table',
+				'sql' => array(
+					"CREATE TABLE browse_category (
+						id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						textId VARCHAR(60) NOT NULL DEFAULT -1,
+						userId INT(11),
+						sharing ENUM('private', 'location', 'library', 'everyone') DEFAULT 'everyone',
+						label VARCHAR(50) NOT NULL,
+						description MEDIUMTEXT,
+						catalogScoping ENUM('unscoped', 'library', 'location'),
+						defaultFilter TEXT,
+						defaultSort ENUM('relevance', 'popularity', 'newest_to_oldest', 'oldest_to_newest', 'author', 'title', 'user_rating'),
+						UNIQUE (textId)
+					) ENGINE = MYISAM",
+				),
+			),
 		);
 	}
 

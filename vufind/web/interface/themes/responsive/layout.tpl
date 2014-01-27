@@ -30,13 +30,14 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind/globals.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/base.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/account.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/browse.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/grouped-work.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/vufind/responsive.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/vufind/results-list.js"></script>
-		<script src="{$path}/interface/themes/responsive/js/vufind/ratings.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/overdrive.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/prospector.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/ratings.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/record.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/responsive.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/results-list.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/searches.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/wikipedia.js"></script>
 
