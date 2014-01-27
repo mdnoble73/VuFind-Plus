@@ -339,7 +339,7 @@ abstract class SearchObject_Base
 	 * Return a url for the current search without one of the current filters
 	 *
 	 * @access  public
-	 * @param   string   $old_filter   A filter to remove from the search url
+	 * @param   string   $oldFilter   A filter to remove from the search url
 	 * @return  string   URL of a new search
 	 */
 	public function renderLinkWithoutFilter($oldFilter)
@@ -389,6 +389,7 @@ abstract class SearchObject_Base
 	 * Get the URL to load a saved search from the current module.
 	 *
 	 * @access  public
+	 * @param string $id The Id of the saved search
 	 * @return  string   Saved search URL.
 	 */
 	public function getSavedUrl($id)
@@ -514,7 +515,6 @@ abstract class SearchObject_Base
 			if (is_array($_REQUEST['lookfor'])){
 				//Advanced search from popup form
 				$this->searchType = $this->advancedSearchType;
-				$openGroup = false;
 				$group = array();
 				foreach ($_REQUEST['lookfor'] as $index => $lookfor){
 					$group[] = array(
@@ -812,7 +812,7 @@ abstract class SearchObject_Base
 	 * Return a url for the current search with a new sort
 	 *
 	 * @access  public
-	 * @param   string   $new_sort   A field to sort by
+	 * @param   string   $newSort   A field to sort by
 	 * @return  string   URL of a new search
 	 */
 	public function renderLinkWithSort($newSort)
@@ -1578,7 +1578,7 @@ abstract class SearchObject_Base
 	 * Find a word amongst the current search terms
 	 *
 	 * @access  protected
-	 * @param   string   Search term to find
+	 * @param   string   $needle  Search term to find
 	 * @return  bool     True/False if the word was found
 	 */
 	protected function findSearchTerm($needle) {
@@ -1673,6 +1673,7 @@ abstract class SearchObject_Base
 	 * such as joins and groups, simply because they don't need to be
 	 * spellchecked.
 	 *
+	 * @param string $input
 	 * @return  array               Tokenized array
 	 * @access  public
 	 */

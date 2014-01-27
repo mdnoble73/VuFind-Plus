@@ -165,3 +165,10 @@ Home Page Variables
   background-color: lightskyblue;
   color: darkblue;
 }
+#more-browse-results {
+  background-color: #e6e6e6;
+  color: #c7c9ca;
+  text-align: center;
+  font-weight: bold;
+  font-size: 16px;
+}

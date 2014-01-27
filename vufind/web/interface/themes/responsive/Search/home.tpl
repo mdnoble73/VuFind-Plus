@@ -37,9 +37,14 @@
 			<div class="row" id="home-page-browse-thumbnails">
 				{$browseResults.records}
 			</div>
-			<div class="row" id="more-browse-results">
-				&dor;
-			</div>
+			<a href="#" onclick = "return VuFind.Browse.getMoreResults();">
+				<div class="row" id="more-browse-results">
+					&or;
+				</div>
+			</a>
 		</div>
 	</div>
 {/strip}
+<script type="text/javascript">
+	VuFind.Browse.curCategory = '{$browseResults.textId}';
+</script>
