@@ -75,13 +75,13 @@
 				{include file='header_responsive.tpl'}
 			</div>
 
-			{if $showTopSearchBox}
+			{if false && $showTopSearchBox}
 				<div id='searchbar' class="row">
 					{include file="Search/searchbox.tpl" showAsBar=true}
 				</div>
 			{/if}
 
-			{if $showBreadcrumbs}
+			{if false && $showBreadcrumbs}
 				<ul class="breadcrumb row">
 					<li><a href="{$homeBreadcrumbLink}" id="home-breadcrumb"><i class="icon-home"></i> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span></li>
 					{include file="$module/breadcrumbs.tpl"}

@@ -3,7 +3,7 @@
 	{foreach from=$topFacetSet item=cluster key=title}
 		{if $cluster.label == 'Category' || $cluster.label == 'Format Category'}
 			{if ($categorySelected == false)}
-				<div class="formatCategories well text-center top-facet" id="formatCategories">
+				<div class="formatCategories text-center top-facet" id="formatCategories">
 					<div id='categoryValues' class="text-center">
 						{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 							{if $thisFacet.isApplied}

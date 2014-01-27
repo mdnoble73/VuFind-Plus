@@ -477,6 +477,7 @@ class Search_Results extends Action {
 		}
 
 		// Done, display the page
+		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
 		$interface->display('layout.tpl');
 	} // End launch()
 }

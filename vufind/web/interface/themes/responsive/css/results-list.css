@@ -39,14 +39,38 @@
   width: 120px;
   vertical-align: top;
 }
-li.facetValue {
-  list-style: disc outside !important;
-  border-bottom: 0 solid black !important;
-  padding: 0 !important;
+.facetValue {
+  padding: 0 0 0 30px;
+  color: #888888;
 }
-li.facetValue a {
-  text-decoration: none !important;
+.facetValue a {
+  color: #888888;
 }
-li.facetValue a :hover {
-  text-decoration: none !important;
+.facetValue:first-of-type {
+  margin-top: 3px;
+}
+.facetValue:last-of-type {
+  margin-bottom: 3px;
+}
+#remove-search-label {
+  text-align: center;
+  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
+  color: white;
+  padding: 3px 0px;
+  margin-top: 20px;
+}
+#narrow-search-label {
+  text-align: center;
+  background: linear-gradient(to bottom, #7c7c7d, #3d4244);
+  color: white;
+  padding: 3px 0px;
+  margin-top: 20px;
+}
+.facetTitle {
+  background: linear-gradient(to bottom, #e8e8e8, #d7d7d7);
+  color: #888888;
+  text-shadow: 1px 1px #fcfcfc;
+  padding: 8px 30px 6px 30px;
+  border-top: 1px solid #f4f4f4;
+  border-bottom: 1px solid #adadad;
 }
