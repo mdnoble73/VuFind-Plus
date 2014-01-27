@@ -125,6 +125,18 @@ Home Page Variables
   background-color: #5fb7db;
   height: 100px;
 }
+.browse-category a {
+  color: white;
+}
+.browse-category:nth-child(3n+1) {
+  background-color: #5fb7db;
+}
+.browse-category:nth-child(3n+2) {
+  background-color: #0d8ec7;
+}
+.browse-category:nth-child(3n+3) {
+  background-color: #186180;
+}
 #Search-Home #main-content-with-sidebar {
   background-color: #d7dce3;
 }

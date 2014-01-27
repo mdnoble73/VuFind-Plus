@@ -9,9 +9,9 @@
 					<div class="jcarousel">
 						<ul>
 							{foreach from=$browseCategories item=browseCategory}
-								<li >
+								<li class="browse-category">
 									<a href="#" onclick="VuFind.Browse.changeBrowseCategory('{$browseCategory->textId}');">
-										<div class="browse-category">
+										<div >
 											{$browseCategory->label}
 										</div>
 									</a>
