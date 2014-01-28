@@ -711,9 +711,12 @@ class GroupedWorkDriver implements RecordInterface{
 				$relatedManifestations[$curRecord['format']] = array(
 					'format' => $curRecord['format'],
 					'copies' => 0,
+					'availableCopies' => 0,
 					'callNumber' => $curRecord['callNumber'] ? $curRecord['callNumber'] : '',
 					'available' => false,
 					'relatedRecords' => array(),
+					'preferredEdition' => null,
+					
 				);
 			}
 			if (!$relatedManifestations[$curRecord['format']]['available'] && $curRecord['available']){
@@ -721,6 +724,7 @@ class GroupedWorkDriver implements RecordInterface{
 			}
 			$relatedManifestations[$curRecord['format']]['relatedRecords'][] = $curRecord;
 			$relatedManifestations[$curRecord['format']]['copies'] += $curRecord['copies'];
+			$relatedManifestations[$curRecord['format']]['availableCopies'] += $curRecord['availableCopies'];
 		}
 
 		//Check to see what we need to do for actions

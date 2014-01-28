@@ -411,10 +411,12 @@ class OverDriveRecordDriver implements RecordInterface {
 		$recordId = $this->getUniqueID();
 		$availability = $this->getAvailability();
 		$available = false;
+		$availableCopies = 0;
 		$totalCopies = 0;
 		foreach ($availability as $curAvailability){
 			if ($curAvailability->available){
 				$available = true;
+				$availableCopies++;
 			}
 			$totalCopies += $curAvailability->copiesOwned;
 		}
@@ -436,6 +438,7 @@ class OverDriveRecordDriver implements RecordInterface {
 			'callNumber' => 'Online',
 			'available' => $available,
 			'copies' => $totalCopies,
+			'availableCopies' => $availableCopies,
 			'actions' => array()
 		);
 		if ($available){

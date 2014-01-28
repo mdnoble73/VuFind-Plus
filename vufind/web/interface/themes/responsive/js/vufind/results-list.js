@@ -297,8 +297,20 @@ VuFind.ResultsList = (function(){
 
 		toggleFacetVisibility: function(){
 			$facetsSection = $("#collapse-side-facets");
-		}
+		},
 
+		toggleRelatedManifestations: function(manifestationId){
+			$('#relatedRecordPopup_' + manifestationId).toggleClass('hidden');
+			var manifestationToggle = $('#manifestation-toggle-' + manifestationId);
+			manifestationToggle.toggleClass('collapsed');
+			if (manifestationToggle.hasClass('collapsed')){
+				manifestationToggle.html('+');
+			}else{
+				manifestationToggle.html('-');
+			}
+			return false;
+
+		}
 
 	};
 }(VuFind.ResultsList || {}));

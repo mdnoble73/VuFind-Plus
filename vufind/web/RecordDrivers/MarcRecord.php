@@ -1385,6 +1385,7 @@ class MarcRecord extends IndexRecord
 			'physical' => $physicalDescription,
 			'callNumber' => $this->getCallNumber(),
 			'available' => $this->isAvailable(false),
+			'availableCopies' => $this->getAvailableCopies(false),
 			'copies' => $this->getNumCopies(),
 			'actions' => array()
 		);
@@ -1409,20 +1410,35 @@ class MarcRecord extends IndexRecord
 		return $firstCallNumber;
 	}
 
+	private function getAvailableCopies($realTime){
+		if ($realTime){
+			$items = $this->getItems();
+		}else{
+			$items = $this->getItemsFast();
+		}
+		$numAvailableCopies = 0;
+		foreach ($items as $item){
+			//Try to get an available non reserve call number
+			if ($item['availability'] == 1){
+				$numAvailableCopies++;
+			}
+		}
+		return $numAvailableCopies;
+	}
+
 	private function isAvailable($realTime){
 		if ($realTime){
 			$items = $this->getItems();
 		}else{
 			$items = $this->getItemsFast();
 		}
-		$firstCallNumber = null;
-		foreach ($items as $itemKey => $item){
+		foreach ($items as $item){
 			//Try to get an available non reserve call number
 			if ($item['availability'] == 1){
 				return true;
 			}
 		}
-		return $firstCallNumber;
+		return false;
 	}
 
 	private function getCallNumber(){
