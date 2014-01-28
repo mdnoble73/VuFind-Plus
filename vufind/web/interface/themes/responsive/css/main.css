@@ -3269,7 +3269,7 @@ input[type="submit"].btn.btn-mini {
   *zoom: 1;
 }
 .btn-group-vertical > .btn {
-    background:#000;
+    background:none;
   display: block;
   float: none;
   max-width: 100%;
