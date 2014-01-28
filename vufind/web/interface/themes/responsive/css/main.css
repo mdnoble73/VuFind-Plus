@@ -3270,12 +3270,13 @@ input[type="submit"].btn.btn-mini {
 }
 .btn-group-vertical > .btn {
     background:none;
+    border:none;
   display: block;
   float: none;
   max-width: 100%;
-  -webkit-border-radius: 0;
+  /*-webkit-border-radius: 0;
   -moz-border-radius: 0;
-  border-radius: 0;
+  border-radius: 0;*/
 }
 .btn-group-vertical > .btn + .btn {
   margin-left: 0;
