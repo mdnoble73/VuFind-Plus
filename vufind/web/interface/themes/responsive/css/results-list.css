@@ -149,3 +149,7 @@
   padding-top: 2px;
   padding-bottom: 3px;
 }
+.manifestation-actions .btn {
+  background-color: #088ec6;
+  color: white;
+}

@@ -413,6 +413,8 @@ class OverDriveRecordDriver implements RecordInterface {
 		$available = false;
 		$availableCopies = 0;
 		$totalCopies = 0;
+		$numHolds = 0;
+		$hasLocalItem = true;
 		foreach ($availability as $curAvailability){
 			if ($curAvailability->available){
 				$available = true;
@@ -435,10 +437,15 @@ class OverDriveRecordDriver implements RecordInterface {
 			'publicationDate' => $this->overDriveMetaData->publishDate,
 			'section' => '',
 			'physical' => '',
-			'callNumber' => 'Online',
+			'callNumber' => '',
+			'shelfLocation' => '',
 			'available' => $available,
+			'hasLocalItem' => $hasLocalItem,
 			'copies' => $totalCopies,
+			'numHolds' => $numHolds,
 			'availableCopies' => $availableCopies,
+			'holdRatio' => $totalCopies > 0 ? ($availableCopies + ($totalCopies - $numHolds) / $totalCopies) : 0,
+			'locationLabel' => 'Online',
 			'actions' => array()
 		);
 		if ($available){

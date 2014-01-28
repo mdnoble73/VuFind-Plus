@@ -2,8 +2,6 @@
 	<table class="table table-striped table-condensed">
 		<thead>
 		<tr>
-			<th>Id</th>
-			{* <th>Format</th> *}
 			{display_if_inconsistent array=$relatedRecords key="subtitle"}
 				<th>Subtitle</th>
 			{/display_if_inconsistent}
@@ -23,34 +21,39 @@
 				<th>Language</th>
 			{/display_if_inconsistent}
 			<th>Availability</th>
-			<th>Copies</th>
 			<th></th>
 		</tr>
 		</thead>
 		{foreach from=$relatedRecords item=relatedRecord}
 			<tr>
-				<td><a href="{$relatedRecord.url}">{$relatedRecord.id}</a></td>
-				{* <td>{$relatedRecord.format}</td> *}
+				{* <td>
+				{$relatedRecord.holdRatio}
+				</td> *}
 				{display_if_inconsistent array=$relatedRecords key="subtitle"}
-					<td>{$relatedRecord.subtitle}</td>
+					<td><a href="{$relatedRecord.url}">{$relatedRecord.subtitle}</a></td>
 				{/display_if_inconsistent}
 				{display_if_inconsistent array=$relatedRecords key="edition"}
-					<td>{$relatedRecord.edition}</td>
+					<td><a href="{$relatedRecord.url}">{$relatedRecord.edition}</a></td>
 				{/display_if_inconsistent}
 				{display_if_inconsistent array=$relatedRecords key="publisher"}
-					<td>{$relatedRecord.publisher}</td>
+					<td><a href="{$relatedRecord.url}">{$relatedRecord.publisher}</a></td>
 				{/display_if_inconsistent}
 				{display_if_inconsistent array=$relatedRecords key="publicationDate"}
-					<td>{$relatedRecord.publicationDate}</td>
+					<td><a href="{$relatedRecord.url}">{$relatedRecord.publicationDate}</a></td>
 				{/display_if_inconsistent}
 				{display_if_inconsistent array=$relatedRecords key="physical"}
-					<td>{$relatedRecord.physical}</td>
+					<td><a href="{$relatedRecord.url}">{$relatedRecord.physical}</a></td>
 				{/display_if_inconsistent}
 				{display_if_inconsistent array=$relatedRecords key="language"}
-					<td>{$relatedRecord.language}</td>
+					<td><a href="{$relatedRecord.url}">{$relatedRecord.language}</a></td>
 				{/display_if_inconsistent}
-				<td>{if $relatedManifestation.available}Available{else}Checked Out{/if}</td>
-				<td>{$relatedRecord.copies}</td>
+				<td>
+					{if $relatedManifestation.available}
+						{$relatedRecord.availableCopies} of {$relatedRecord.copies} copies available
+					{else}
+						{$relatedRecord.copies} {if $relatedRecord.copies > 1}copies{else}copy{/if} checked out
+					{/if}
+				</td>
 				<td>
 					<div class="btn-group">
 					{foreach from=$relatedRecord.actions item=curAction}

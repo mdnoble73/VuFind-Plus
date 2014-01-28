@@ -22,7 +22,7 @@
  * Support function -- get the file path to one of the ini files specified in the
  * [Extra_Config] section of config.ini.
  *
- * @param   name        The ini's name from the [Extra_Config] section of config.ini
+ * @param   string $name        The ini's name from the [Extra_Config] section of config.ini
  * @return  string      The file path
  */
 function getExtraConfigArrayFile($name)
@@ -49,6 +49,54 @@ function getExtraConfigArrayFile($name)
 }
 
 /**
+ * Load a translation map from the translation_maps directory
+ *
+ * @param   string $name        The name of the translation map should not include _map.properties
+ * @return  string      The file path
+ */
+function getTranslationMap($name)
+{
+	//Check to see if there is a domain name based subfolder for he configuration
+	global $serverName;
+	$mapFilename = '';
+	$mapNameFull = $name . '_map.properties';
+	if (file_exists("../../sites/$serverName/translation_maps/$mapNameFull")){
+		// Return the file path (note that all ini files are in the conf/ directory)
+		$mapFilename = "../../sites/$serverName/translation_maps/$mapNameFull";
+	}elseif (file_exists("../../sites/default/translation_maps/$mapNameFull")){
+		// Return the file path (note that all ini files are in the conf/ directory)
+		$mapFilename = "../../sites/default/translation_maps/$mapNameFull";
+	} else{
+		// Return the file path (note that all ini files are in the conf/ directory)
+		$mapFilename = '../../sites/' . $mapNameFull;
+	}
+
+	static $translationMaps = array();
+
+	// If the requested settings aren't loaded yet, pull them in:
+	if (!isset($translationMaps[$name])) {
+		// Try to load the .ini file; if loading fails, the file probably doesn't
+		// exist, so we can treat it as an empty array.
+		$translationMaps[$name] = array();
+		$fHnd = fopen($mapFilename, 'r');
+		while (($line = fgets($fHnd)) !== false){
+			if (substr($line, 0, 1) == '#'){
+				//skip the line, it's a comment
+			}else{
+				$lineData = explode('=', $line, 2);
+				if (count($lineData) == 2){
+					$translationMaps[$name][trim($lineData[0])] = trim($lineData[1]);
+				}
+			}
+		}
+		fclose($fHnd);
+	}
+
+	return $translationMaps[$name];
+
+}
+
+/**
  * Support function -- get the contents of one of the ini files specified in the
  * [Extra_Config] section of config.ini.
  *
@@ -71,6 +119,7 @@ function getExtraConfigArray($name)
 		if ($name == 'facets'){
 			//*************************
 			//Marmot overrides for controlling facets based on library system.
+			/** @var $librarySingleton Library */
 			global $librarySingleton;
 			$library = $librarySingleton->getActiveLibrary();
 			if (isset($library)){
@@ -98,8 +147,8 @@ function getExtraConfigArray($name)
 /**
  * Support function -- merge the contents of two arrays parsed from ini files.
  *
- * @param   config_ini  The base config array.
- * @param   custom_ini  Overrides to apply on top of the base array.
+ * @param   array $config_ini  The base config array.
+ * @param   array $custom_ini  Overrides to apply on top of the base array.
  * @return  array       The merged results.
  */
 function ini_merge($config_ini, $custom_ini)
@@ -222,6 +271,7 @@ function updateConfigForScoping($configArray) {
 			if ($Location->N == 1){
 				$Location->fetch();
 				//We found a location for the subdomain, get the library.
+				/** @var Library $librarySingleton */
 				global $librarySingleton;
 				$library = $librarySingleton->getLibraryForLocation($Location->locationId);
 				$locationSingleton->setActiveLocation(clone $Location);

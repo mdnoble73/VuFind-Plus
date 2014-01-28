@@ -1370,6 +1370,10 @@ class MarcRecord extends IndexRecord
 		$publicationDate = count($publicationDates) >= 1 ? $publicationDates[0] : '';
 		$physicalDescriptions = $this->getPhysicalDescriptions();
 		$physicalDescription = count($physicalDescriptions) >= 1 ? $physicalDescriptions[0] : '';
+		$totalCopies = $this->getNumCopies();
+		$availableCopies = $this->getAvailableCopies(false);
+		$hasLocalItem = $this->hasLocalItem();
+		$numHolds = 0;
 		$relatedRecord = array(
 			'id' => $recordId,
 			'url' => $url,
@@ -1385,8 +1389,13 @@ class MarcRecord extends IndexRecord
 			'physical' => $physicalDescription,
 			'callNumber' => $this->getCallNumber(),
 			'available' => $this->isAvailable(false),
-			'availableCopies' => $this->getAvailableCopies(false),
-			'copies' => $this->getNumCopies(),
+			'availableCopies' => $availableCopies,
+			'copies' => $totalCopies,
+			'numHolds' => $numHolds,
+			'hasLocalItem' => $hasLocalItem,
+			'holdRatio' => $totalCopies > 0 ? ($availableCopies + ($totalCopies - $numHolds) / $totalCopies) : 0,
+			'locationLabel' => $this->getLocationLabel(),
+			'shelfLocation' => $this->getShelfLocation(),
 			'actions' => array()
 		);
 		if ($this->isHoldable()){
@@ -1419,13 +1428,44 @@ class MarcRecord extends IndexRecord
 		$numAvailableCopies = 0;
 		foreach ($items as $item){
 			//Try to get an available non reserve call number
-			if ($item['availability'] == 1){
+			if ($item['availability'] == true){
 				$numAvailableCopies++;
 			}
 		}
 		return $numAvailableCopies;
 	}
 
+	private function getLocationLabel(){
+		$items = $this->getItemsFast();
+		$locationLabel = null;
+		foreach ($items as $item){
+			//Try to get an available non reserve call number
+			if ($item['isLocalItem']){
+				return $item['locationLabel'];
+			}else if ($item['isLibraryItem']){
+				if ($locationLabel == null){
+					$locationLabel = $item['locationLabel'];
+				}
+			}
+		}
+		return $locationLabel;
+	}
+
+	private function getShelfLocation(){
+		$items = $this->getItemsFast();
+		$locationLabel = null;
+		foreach ($items as $item){
+			//Try to get an available non reserve call number
+			if ($item['isLocalItem']){
+				return $item['shelfLocation'];
+			}else if ($item['isLibraryItem']){
+				if ($locationLabel == null){
+					$locationLabel = $item['shelfLocation'];
+				}
+			}
+		}
+		return $locationLabel;
+	}
 	private function isAvailable($realTime){
 		if ($realTime){
 			$items = $this->getItems();
@@ -1434,7 +1474,17 @@ class MarcRecord extends IndexRecord
 		}
 		foreach ($items as $item){
 			//Try to get an available non reserve call number
-			if ($item['availability'] == 1){
+			if ($item['availability'] == true){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private function hasLocalItem() {
+		$items = $this->getItemsFast();
+		foreach ($items as $item){
+			if ($item['isLocalItem']){
 				return true;
 			}
 		}
@@ -1445,17 +1495,19 @@ class MarcRecord extends IndexRecord
 		$items = $this->getItemsFast();
 		$firstCallNumber = null;
 		$nonLibraryCallNumber = null;
-		foreach ($items as $itemKey => $item){
-			if (substr($itemKey, 0, 1) < 5){
+		foreach ($items as $item){
+			if ($item['isLocalItem'] == true){
+				return $item['callnumber'];
+			}else if ($item['isLibraryItem'] == true){
 				//Try to get an available non reserve call number
-				if ($item['availability'] == 1 && $item['holdable'] == 1){
+				if ($item['availability'] && $item['holdable']){
 					return $item['callnumber'];
 				}else if (is_null($firstCallNumber)){
 					$firstCallNumber = $item['callnumber'];
 				}
-			}elseif ($item['holdable'] == 1 && is_null($nonLibraryCallNumber)){
+			}elseif ($item['holdable'] == true && is_null($nonLibraryCallNumber)){
 				//Not at this library (system)
-				$nonLibraryCallNumber = $item['callnumber'] . '(' . $item['location'] . ')';
+				//$nonLibraryCallNumber = $item['callnumber'] . '(' . $item['location'] . ')';
 			}
 		}
 		if ($firstCallNumber != null){
@@ -1463,7 +1515,7 @@ class MarcRecord extends IndexRecord
 		}elseif ($nonLibraryCallNumber != null){
 			return $nonLibraryCallNumber;
 		}else{
-			return 'N/A';
+			return '';
 		}
 
 	}
@@ -1569,4 +1621,6 @@ class MarcRecord extends IndexRecord
 		}
 		return $publishers;
 	}
+
+
 }

@@ -61,7 +61,7 @@
 		<div class="row well-small">
 			{if strlen($summDescription) > 300}
 				<div class="col-md-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|truncate_html:300}
-				<a href='#' onclick='$("#descriptionValue{$summId|escape}").html($("#fullSummary{$summId|escape}").html())'>More</a>
+				<a href='#' onclick='$("#descriptionValue{$summId|escape}").html($("#fullSummary{$summId|escape}").html());return false;'>More</a>
 				</div>
 				<div class="hidden" id="fullSummary{$summId|escape}">{$summDescription}</div>
 			{else}

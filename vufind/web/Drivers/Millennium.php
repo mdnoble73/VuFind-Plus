@@ -248,32 +248,81 @@ class MillenniumDriver implements DriverInterface
 	 */
 	public function getItemsFast($id){
 		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
+
+		//Get a list of all locations for the active library
+		global $library;
+		$userLibrary = Library::getPatronHomeLibrary();
+		$libraryLocations = array();
+		$libraryLocationLabels = array();
+		$libraryLocation = new Location();
+		if ($userLibrary){
+			$libraryLocation->libraryId = $userLibrary->libraryId;
+			$libraryLocation->find();
+			while ($libraryLocation->fetch()){
+				$libraryLocations[] = $libraryLocation->code;
+				$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
+			}
+		}else{
+			$libraryLocation->libraryId = $library->libraryId;
+			$libraryLocation->find();
+			while ($libraryLocation->fetch()){
+				$libraryLocations[] = $libraryLocation->code;
+				$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
+			}
+		}
+		$homeLocation = Location::getUserHomeLocation();
+		$homeLocationCode = null;
+		$homeLocationLabel = null;
+		if ($homeLocation){
+			$homeLocationCode = $homeLocation->code;
+			$homeLocationLabel = $homeLocation->facetLabel;
+		}
+
 		//Get the items Fields from the record
 		/** @var File_MARC_Data_Field[] $itemFields */
 		$itemFields = $marcRecord->getFields('989');
 		$items = array();
 		$pType = $this->getPType();
 		foreach ($itemFields as $itemField){
-			$locationCode = $itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '';
-			$iType = $itemField->getSubfield('j') != null ? $itemField->getSubfield('j')->getData() : '';
+			$locationCode = trim($itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '');
+			$iType = trim($itemField->getSubfield('j') != null ? $itemField->getSubfield('j')->getData() : '');
 			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pType);
-			$status = $itemField->getSubfield('o') != null ? $itemField->getSubfield('o')->getData() : '';
+			$status = trim($itemField->getSubfield('o') != null ? $itemField->getSubfield('o')->getData() : '');
 			$dueDate = $itemField->getSubfield('m') != null ? trim($itemField->getSubfield('m')->getData()) : null;
-			$available = $status == '-' && ($dueDate == null || strlen($dueDate) == 0);
+			$available = ($status == '-' && ($dueDate == null || strlen($dueDate) == 0));
 			$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
 			$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
 			$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
 
+			$isLibraryItem = false;
+			$locationLabel = '';
+			foreach ($libraryLocations as $tmpLocation){
+				if (strpos($locationCode, $tmpLocation) === 0){
+					$isLibraryItem = true;
+					$locationLabel = $libraryLocationLabels[$tmpLocation];
+				}
+			}
+			$isLocalItem = false;
+			if ($homeLocationCode != null && strpos($locationCode, $homeLocationCode) === 0){
+				$isLocalItem = true;
+				$locationLabel = $homeLocationLabel;
+			}
+			$shelfLocationMap = getTranslationMap('shelf_location');
 			$item = array(
 				'location' => $locationCode,
 				'callnumber' => $fullCallNumber,
 				'availability' => $available,
 				'holdable' => $holdable,
+				'isLocalItem' => $isLocalItem,
+				'isLibraryItem' => $isLibraryItem,
+				'locationLabel' => $locationLabel,
+				'shelfLocation' => $shelfLocationMap[$locationCode],
 			);
 			$items[] = $item;
 		}
 		return $items;
 	}
+
 
 	var $statuses = array();
 	public function getStatus($id){

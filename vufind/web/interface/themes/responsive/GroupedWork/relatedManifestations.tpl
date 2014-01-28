@@ -18,9 +18,22 @@
 					{/if}
 				</div>
 				<div class="col-sm-7">
-					{$relatedManifestation.availableCopies} of {$relatedManifestation.copies} copies available.
-					{if $relatedManifestation.numRelatedRecords > 1}
-					 &nbsp; {$relatedManifestation.numRelatedRecords} editions.
+					{if $relatedManifestation.available && $relatedManifestation.locationLabel}
+						<div class="related-manifestation-shelf-status">On Shelf At {$relatedManifestation.locationLabel}</div>
+					{/if}
+					<div class="related-manifestation-copies">{$relatedManifestation.availableCopies} of {$relatedManifestation.copies} copies available.</div>
+					{if false && $relatedManifestation.numRelatedRecords > 1}
+						<div class="related-manifestation-editions">
+					    {$relatedManifestation.numRelatedRecords} editions.
+						</div>
+					{/if}
+					{if $relatedManifestation.shelfLocation}
+						<div class="related-manifestation-shelf-location">
+							Shelf Location: {$relatedManifestation.shelfLocation}
+						</div>
+					{/if}
+					{if $relatedManifestation.callNumber}
+						<div class="related-manifestation-call-number">Call Number: {$relatedManifestation.callNumber}</div>
 					{/if}
 				</div>
 				{*
@@ -28,7 +41,7 @@
 				<div class="col-sm-2">{if $relatedManifestation.available}Available{else}Checked Out{/if}</div>
 				<div class="col-sm-1">{if $relatedManifestation.copies > 1000}Unlimited{else}{$relatedManifestation.copies}{/if}</div>
 				*}
-				<div class="col-sm-2 btn-group">
+				<div class="col-sm-2 btn-group manifestation-actions">
 					{foreach from=$relatedManifestation.actions item=curAction}
 						<a href="{$curAction.url}" class="btn btn-sm">{$curAction.title}</a>
 					{/foreach}

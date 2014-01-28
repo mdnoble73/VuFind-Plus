@@ -714,30 +714,62 @@ class GroupedWorkDriver implements RecordInterface{
 					'availableCopies' => 0,
 					'callNumber' => $curRecord['callNumber'] ? $curRecord['callNumber'] : '',
 					'available' => false,
+					'hasLocalItem' => false,
 					'relatedRecords' => array(),
 					'preferredEdition' => null,
-					
+					'statusMessage' => '',
+					'shelfLocation' => '',
 				);
 			}
 			if (!$relatedManifestations[$curRecord['format']]['available'] && $curRecord['available']){
 				$relatedManifestations[$curRecord['format']]['available'] = $curRecord['available'];
 			}
-			$relatedManifestations[$curRecord['format']]['relatedRecords'][] = $curRecord;
+			if (!$relatedManifestations[$curRecord['format']]['hasLocalItem'] && $curRecord['hasLocalItem']){
+				$relatedManifestations[$curRecord['format']]['hasLocalItem'] = $curRecord['hasLocalItem'];
+			}
+			if (!$relatedManifestations[$curRecord['format']]['shelfLocation'] && $curRecord['shelfLocation']){
+				$relatedManifestations[$curRecord['format']]['shelfLocation'] = $curRecord['shelfLocation'];
+			}
+			$relatedManifestations[$curRecord['format']]['relatedRecords'][$curRecord['holdRatio'] . '_' .  $curRecord['id']] = $curRecord;
 			$relatedManifestations[$curRecord['format']]['copies'] += $curRecord['copies'];
 			$relatedManifestations[$curRecord['format']]['availableCopies'] += $curRecord['availableCopies'];
+
 		}
 
 		//Check to see what we need to do for actions
 		foreach ($relatedManifestations as $key => $manifestation){
 			$manifestation['numRelatedRecords'] = count($manifestation['relatedRecords']);
 			if (count($manifestation['relatedRecords']) == 1){
-				$manifestation['url'] = $manifestation['relatedRecords'][0]['url'];
-				$manifestation['actions'] = $manifestation['relatedRecords'][0]['actions'];
+				$firstRecord = reset($manifestation['relatedRecords']);
+				$manifestation['url'] = $firstRecord['url'];
+				$manifestation['actions'] = $firstRecord['actions'];
 			}else{
 				//Figure out what the preferred record is to place a hold on
-				//TODO: Improve the logic based on user information
-				$manifestation['actions'] = array();
+				$bestRecord = null;
+				foreach ($manifestation['relatedRecords'] as $index => $record){
+					if ($bestRecord == null){
+						$bestRecord = $record;
+					}else{
+						//Check to see if this record is better than the current record.
+						if ($bestRecord['available'] == true && $record['available'] == false){
+							//The current record is not available, but the best record is so it is better.
+						}else if ($bestRecord['available'] == false && $record['available'] == true){
+							//The current record is available which makes it better automatically
+							$bestRecord = $record;
+						}else{
+							//Check number of (copies - holds + available copies) / total copies
+							//TODO: Do we need to account for the record being owned by the home library?  Possibly with an extra boost
+							if ($record['holdRatio'] > $bestRecord['holdRatio']){
+								$bestRecord = $record;
+							}
+						}
+					}
+
+				}
+
+				$manifestation['actions'] = $bestRecord['actions'];
 			}
+
 			$relatedManifestations[$key] = $manifestation;
 		}
 		return $relatedManifestations;
