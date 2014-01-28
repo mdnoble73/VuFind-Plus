@@ -6,6 +6,7 @@
 .result {
   border-bottom: 2px solid #d5d6da;
   padding: 10px 5px 15px;
+  font-size: 12px;
 }
 @media (max-width: 480px) {
   .result-value {
@@ -15,12 +16,9 @@
 .resultDetails {
   font-size: 85%;
 }
-.resultDetails .result-label {
+.result-label {
   font-weight: bold;
-  color: graytext;
-}
-.resultDetails .row-fluid [class*="span"] {
-  min-height: 16px;
+  color: #44484a;
 }
 #formatCategories {
   border-bottom: 3px solid #d5d6da;
@@ -105,4 +103,15 @@
 }
 .replacement-search-info-text {
   color: #888888;
+}
+.result-title {
+  font-weight: bold;
+  font-size: 18px;
+}
+.result-index {
+  font-size: 18px;
+}
+.result-tools-horizontal .btn {
+  background: linear-gradient(to bottom, #909090, #686b6c);
+  color: white;
 }

@@ -96,7 +96,7 @@ var VuFind = (function(){
 		},
 
 		showElementInPopup: function(title, elementId){
-			closeLightbox();
+			VuFind.closeLightbox();
 			$("#modal-title").html(title);
 			var elementText = $(elementId).html();
 			$(".modal-body").html(elementText);

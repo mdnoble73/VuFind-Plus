@@ -7,18 +7,6 @@
 				{$record}
 			</div>
 		{/foreach}
-
-		<div class='selectAllControls hidden-phone'>
-			<a href="#" onclick="$('.titleSelect').not(':checked').trigger('click').attr('checked', true);return false;">Select All</a> /
-			<a href="#" onclick="$('.titleSelect:checked').trigger('click').attr('checked', false);return false;">Deselect All</a>
-		</div>
-
-		<div class="hidden-phone">
-			{if $showHoldButton}
-				<input type="hidden" name="type" value="hold" />
-				<input type="submit" class="btn" name="placeHolds" value="Request Selected Titles" class="requestSelectedItems" />
-			{/if}
-		</div>
 	</div>
 </form>
 {/strip}

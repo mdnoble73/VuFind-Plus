@@ -1,8 +1,8 @@
 {strip}
 <div id="groupedRecord{$summId|escape}" class="resultsList row">
-	<div class="imageColumn col-sm-3 col-md-3 col-lg-2 text-center">
+	<div class="col-sm-3 col-md-3 col-lg-2 text-center">
 		{if $user->disableCoverArt != 1}
-			{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
+		{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
 			<a href="{$summUrl}">
 				<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}" />
 			</a>
@@ -16,63 +16,61 @@
 
 	<div class="col-sm-9 col-md-9 col-lg-10">
 		<div class="row">
-			{if isset($summScore)}
-				(<a href="#" onclick="return VuFind.showElementInPopup('Score Explanation', '#scoreExplanationValue{$summId|escape}');">{$summScore}</a>)
-			{/if}
-			<strong>
-				<a href="{$summUrl}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+			<div class="col-xs-12">
+				<span class="result-index">{$resultIndex})</span>&nbsp;
+				<a href="{$summUrl}" class="result-title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 				{if $summTitleStatement}
 					&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 				{/if}
-			</strong>
+				{if isset($summScore)}
+					(<a href="#" onclick="return VuFind.showElementInPopup('Score Explanation', '#scoreExplanationValue{$summId|escape}');">{$summScore}</a>)
+				{/if}
+			</div>
 		</div>
 
-		<div class="row">
-			<div class="resultDetails col-md-9">
-				{if $summAuthor}
-					<div class="row">
-						<div class="result-label col-md-3">Author: </div>
-						<div class="col-md-9 result-value">
-							{if is_array($summAuthor)}
-								{foreach from=$summAuthor item=author}
-									<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
-								{/foreach}
-							{else}
-								<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
-							{/if}
-						</div>
-					</div>
-				{/if}
-
-				{if $summSeries}
-					<div class="series{$summISBN} row">
-						<div class="result-label col-md-3">Series: </div>
-						<div class="col-md-9 result-value">{$summSeries.seriesTitle}{if $summSeries.volume} volume {$summSeries.volume}{/if}</div>
-					</div>
-				{/if}
-
-				<div class="row well-small">
-					<div class="col-md-12">
-						{include file="GroupedWork/relatedManifestations.tpl" id=$summId}
-					</div>
-				</div>
-
-				<div class="row well-small">
-					{if strlen($summDescription) > 300}
-						<div class="col-md-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|truncate_html:300}
-						<a href='#' onclick='$("#descriptionValue{$summId|escape}").html($("#fullSummary{$summId|escape}").html())'>More</a>
-						</div>
-						<div class="hidden" id="fullSummary{$summId|escape}">{$summDescription}</div>
+		{if $summAuthor}
+			<div class="row">
+				<div class="result-label col-md-3">Author: </div>
+				<div class="col-md-9 result-value">
+					{if is_array($summAuthor)}
+						{foreach from=$summAuthor item=author}
+							<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+						{/foreach}
 					{else}
-						<div class="col-md-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription}</div>
+						<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
 					{/if}
 				</div>
-
 			</div>
+		{/if}
 
-			<div class="resultActions col-md-3">
-				{include file='GroupedWork/result-tools.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
+		{if $summSeries}
+			<div class="series{$summISBN} row">
+				<div class="result-label col-md-3">Series: </div>
+				<div class="col-md-9 result-value">
+					<a href="{$path}/Search/Results?lookfor={$summSeries.seriesTitle|urlencode}">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}
+				</div>
 			</div>
+		{/if}
+
+		<div class="row well-small">
+			<div class="col-md-12">
+				{include file="GroupedWork/relatedManifestations.tpl" id=$summId}
+			</div>
+		</div>
+
+		<div class="row well-small">
+			{if strlen($summDescription) > 300}
+				<div class="col-md-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription|truncate_html:300}
+				<a href='#' onclick='$("#descriptionValue{$summId|escape}").html($("#fullSummary{$summId|escape}").html())'>More</a>
+				</div>
+				<div class="hidden" id="fullSummary{$summId|escape}">{$summDescription}</div>
+			{else}
+				<div class="col-md-12 result-value" id="descriptionValue{$summId|escape}">{$summDescription}</div>
+			{/if}
+		</div>
+
+		<div class="resultActions row">
+			{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
 		</div>
 	</div>
 
