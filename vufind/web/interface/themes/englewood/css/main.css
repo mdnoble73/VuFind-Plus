@@ -6940,10 +6940,17 @@ body {
   content: "+";
 }
 .related-manifestation {
-  padding-top: 2px;
-  padding-bottom: 3px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-bottom: 1px dotted #d3d3d3;
+}
+.related-manifestations-header {
+  border-bottom: 1px solid #d3d3d3;
 }
 .manifestation-actions .btn {
   background-color: #088ec6;
   color: white;
+}
+.related-manifestations {
+  margin-bottom: 5px;
 }

@@ -47,7 +47,7 @@
 		{$pageContent}
 	{/if}
 
-	{if $pageLinks.all}<div class="pagination pagination-centered">{$pageLinks.all}</div>{/if}
+	{if $pageLinks.all}<div class="text-center">{$pageLinks.all}</div>{/if}
 
 	{if $unscopedResults > 0}
 		<h2>More results from the Marmot Catalog</h2>

@@ -25,10 +25,10 @@
 				{foreach from=$sideFacetSet item=cluster key=title name=facetSet}
 					{if count($cluster.list) > 0}
 						<div class="facetList">
-							<div class="facetTitle {if $cluster.collapseByDefault}collapsed{else}expanded{/if}" onclick="$(this).toggleClass('expanded');$(this).toggleClass('collapsed');$('#facetDetails_{$title}').toggle()">
+							<div class="facetTitle {if true || $cluster.collapseByDefault}collapsed{else}expanded{/if}" onclick="$(this).toggleClass('expanded');$(this).toggleClass('collapsed');$('#facetDetails_{$title}').toggle()">
 								{translate text=$cluster.label}
 							</div>
-							<div id="facetDetails_{$title}" class="facetDetails" {if $cluster.collapseByDefault}style="display:none"{/if}>
+							<div id="facetDetails_{$title}" class="facetDetails" {if true || $cluster.collapseByDefault}style="display:none"{/if}>
 
 								{if $title == 'publishDate' || $title == 'birthYear' || $title == 'deathYear'}
 									{include file="Search/Recommend/yearFacetFilter.tpl" cluster=$cluster title=$title name=$name}

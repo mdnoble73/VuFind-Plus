@@ -25,7 +25,7 @@
 						       autocomplete="off"
 										{strip}/>
 						<div class="input-group-btn">
-							<button class="btn btn-default" type="submit"><i class="glyphicon glyphicon-search"></i></button>
+							<button class="btn btn-default" type="submit">GO</button>
 							<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
 								<span class="caret"></span>
 							</button>

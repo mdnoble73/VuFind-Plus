@@ -1,6 +1,6 @@
 {strip}
 	<div class="related-manifestations">
-		<div class="row bold">
+		<div class="row related-manifestations-header">
 			<div class="col-xs-12 result-label related-manifestations-label">
 				Formats
 			</div>
@@ -46,9 +46,10 @@
 						<a href="{$curAction.url}" class="btn btn-sm">{$curAction.title}</a>
 					{/foreach}
 				</div>
-			</div>
-			<div class="hidden" id="relatedRecordPopup_{$id}_{$relatedManifestation.format|escapeCSS}">
-				{include file="GroupedWork/relatedRecords.tpl" relatedRecords=$relatedManifestation.relatedRecords}
+
+				<div class="hidden" id="relatedRecordPopup_{$id}_{$relatedManifestation.format|escapeCSS}">
+					{include file="GroupedWork/relatedRecords.tpl" relatedRecords=$relatedManifestation.relatedRecords}
+				</div>
 			</div>
 		{/foreach}
 	</div>
