@@ -1,75 +1,55 @@
 <script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
 {strip}
-	<div class="btn-group">
-		{if isset($previousId)}
-			<div id="previousRecordLink" class="btn"><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}"><img src="{$path}/interface/themes/default/images/prev.png" alt="Previous Record"/></a></div>
-		{/if}
-		{if $lastsearch}
-			<div id="returnToSearch" class="btn">
-				<a href="{$lastsearch|escape}#record{$id|escape:"url"}">{translate text="Search Results"}</a>
-			</div>
-		{/if}
-		{if isset($nextId)}
-			<div id="nextRecordLink" class="btn"><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}"><img src="{$path}/interface/themes/default/images/next.png" alt="Next Record"/></a></div>
-		{/if}
-	</div>
-
 {* Display Title *}
 	<h2>
 		{$recordDriver->getTitle()|removeTrailingPunctuation|escape}
 	</h2>
-	{if $recordDriver->getPrimaryAuthor()}
-		<h3>by <a href="{$path}/Author/Home?author={$recordDriver->getPrimaryAuthor()|escape:"url"}">{$recordDriver->getPrimaryAuthor()|escape}</a></h3>
+
+	{if $recordDriver->getAuthors()}
+		<div class="row">
+			<div class="result-label col-md-3">Author: </div>
+			<div class="col-md-9 result-value">
+				{foreach from=$recordDriver->getAuthors() item=author}
+					<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
+				{/foreach}
+			</div>
+		</div>
+	{/if}
+
+	{if $recordDriver->getSeries()}
+		<div class="series{$summISBN} row">
+			<div class="result-label col-md-3">Series: </div>
+			<div class="col-md-9 result-value">
+				{assign var=summSeries value=$recordDriver->getSeries()}
+				<a href="{$path}/Search/Results?lookfor={$summSeries.seriesTitle|urlencode}">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}
+			</div>
+		</div>
 	{/if}
 
 	{if $error}<p class="error">{$error}</p>{/if}
 
 	<div class="row">
-		<div id="main-content" class="col-md-12">
+		<div id="main-content" class="col-sm-12">
 			<div class="row">
-				<div id="image-column" class="col-md-3">
-					{* Display Book Cover *}
-					{if $user->disableCoverArt != 1}
-						<div id = "recordcover">
-							<img alt="{translate text='Book Cover'}" class="img-polaroid" src="{$recordDriver->getBookcoverUrl('large')}" />
-						</div>
+				{if $recordDriver->getDescription()}
+					<span class="result-label">Description: </span>
+					{assign value=$recordDriver->getDescription() var="summary"}
+					{if strlen($summary) > 600}
+						<span id="shortSummary">
+						{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'|truncate:600}{*Leave unescaped because some syndetics reviews have html in them *}
+							<a href='#' onclick='$("#shortSummary").slideUp();$("#fullSummary").slideDown()'>More</a>
+						</span>
+						<span id="fullSummary" style="display:none">
+						{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
+							<a href='#' onclick='$("#shortSummary").slideDown();$("#fullSummary").slideUp()'>Less</a>
+						</span>
+					{else}
+						{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
 					{/if}
-				</div> {* End image column *}
+				{/if}
 
-				<div id="record-details-column" class="col-md-6">
-					{if $recordDriver->getDescription()}
-						{assign value=$recordDriver->getDescription() var="summary"}
-						<dl>
-							<dt>{translate text='Description'}</dt>
-							<dd>
-								{if strlen($summary) > 600}
-									<span id="shortSummary">
-									{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'|truncate:600}{*Leave unescaped because some syndetics reviews have html in them *}
-										<a href='#' onclick='$("#shortSummary").slideUp();$("#fullSummary").slideDown()'>More</a>
-									</span>
-									<span id="fullSummary" style="display:none">
-									{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
-										<a href='#' onclick='$("#shortSummary").slideDown();$("#fullSummary").slideUp()'>Less</a>
-									</span>
-								{else}
-									{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
-								{/if}
-							</dd>
-						</dl>
-					{/if}
-
-					{assign value=$recordDriver->getRelatedManifestations() var="relatedManifestations"}
-					{include file="GroupedWork/relatedManifestations.tpl"}
-				</div>
-
-				<div id="recordTools" class="col-md-3">
-					{include file="GroupedWork/result-tools.tpl" showMoreInfo=false}
-
-					<div id="ratings" class="well center">
-						{* Let the user rate this title *}
-						{include file="GroupedWork/title-rating-full.tpl" ratingClass="" showFavorites=0}
-					</div>
-				</div>
+				{assign value=$recordDriver->getRelatedManifestations() var="relatedManifestations"}
+				{include file="GroupedWork/relatedManifestations.tpl"}
 			</div>
 
 			<div id="relatedTitleInfo" style="display:none" class="row">

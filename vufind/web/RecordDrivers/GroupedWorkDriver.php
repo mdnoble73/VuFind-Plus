@@ -486,6 +486,18 @@ class GroupedWorkDriver implements RecordInterface{
 	}
 
 	/**
+	 * Get the authors of the work.
+	 *
+	 * @access  protected
+	 * @return  string
+	 */
+	public function getAuthors()
+	{
+		return isset($this->fields['author']) ? $this->fields['author'] : null;
+	}
+
+
+	/**
 	 * Get the main author of the record.
 	 *
 	 * @access  protected
@@ -795,7 +807,7 @@ class GroupedWorkDriver implements RecordInterface{
 		return $this->fields['series'];
 	}
 
-	private function getSeries(){
+	public function getSeries(){
 		//Get a list of isbns from the record
 		$relatedIsbns = $this->getISBNs();
 		$novelist = NovelistFactory::getNovelist();

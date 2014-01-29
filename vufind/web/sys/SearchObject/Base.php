@@ -2053,6 +2053,9 @@ public function getNextPrevLinks(){
 							}elseif (strpos($previousRecord['id'], 'list') === 0){
 								$interface->assign('previousType', 'MyResearch/MyList');
 								$interface->assign('previousId', str_replace('list', '', $previousRecord['id']));
+							}else if ($previousRecord['recordtype'] == 'grouped_work'){
+								$interface->assign('previousType', 'GroupedWork');
+								$interface->assign('previousId', $previousRecord['id']);
 							}else{
 								$interface->assign('previousType', 'Record');
 								$interface->assign('previousId', $previousRecord['id']);
@@ -2077,6 +2080,9 @@ public function getNextPrevLinks(){
 							}elseif (strpos($nextRecord['id'], 'list') === 0){
 								$interface->assign('nextType', 'MyResearch/MyList');
 								$interface->assign('nextId', str_replace('list', '', $nextRecord['id']));
+							}else if ($nextRecord['recordtype'] == 'grouped_work'){
+								$interface->assign('nextType', 'GroupedWork');
+								$interface->assign('nextId', $nextRecord['id']);
 							}else{
 								$interface->assign('nextType', 'Record');
 								$interface->assign('nextId', $nextRecord['id']);
