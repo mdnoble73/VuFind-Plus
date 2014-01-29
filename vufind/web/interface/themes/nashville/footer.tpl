@@ -40,7 +40,7 @@
                 <li><a href="http://www.library.nashville.org/bmm/bmm_books_suggestionform.asp" rel="external" >{translate text='Suggest a Purchase'}</a></li>
 		{/if}
 		<li><a href="{$path}/Help/Home?topic=faq" onclick="window.open('{$path}/Help/Home?topic=faq', 'Help', 'width=625, height=510, scrollbars=yes'); return false;">{translate text='FAQs'}</a></li>
-		<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li>
+<!--		<li><a href="{$path}/Help/Suggestion">{translate text='Make a Suggestion'}</a></li> -->
 		{if $inLibrary}<li><a href="https://www.volgistics.com/ex/portal.dll/?FROM=15495">Volunteers</a></li>{/if}
 	</ul>
 </div>
