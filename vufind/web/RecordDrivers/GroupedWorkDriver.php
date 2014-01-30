@@ -906,6 +906,12 @@ class GroupedWorkDriver implements RecordInterface{
 			$ratingData['barWidth3Star'] = 100 * $ratingData['num3star'] / $ratingData['count'];
 			$ratingData['barWidth2Star'] = 100 * $ratingData['num2star'] / $ratingData['count'];
 			$ratingData['barWidth1Star'] = 100 * $ratingData['num1star'] / $ratingData['count'];
+		}else{
+			$ratingData['barWidth5Star'] = 0;
+			$ratingData['barWidth4Star'] = 0;
+			$ratingData['barWidth3Star'] = 0;
+			$ratingData['barWidth2Star'] = 0;
+			$ratingData['barWidth1Star'] = 0;
 		}
 		return $ratingData;
 	}
