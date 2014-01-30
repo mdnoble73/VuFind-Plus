@@ -422,6 +422,7 @@ class EcontentRecord_Home extends Action{
 
 		//Load the Editorial Reviews
 		//Populate an array of editorialReviewIds that match up with the recordId
+		require_once ROOT_DIR . '/sys/LocalEnrichment/EditorialReview.php';
 		$editorialReview = new EditorialReview();
 		$editorialReviewResults = array();
 		$editorialReview->recordId = 'econtentRecord' . $eContentRecord->id;
