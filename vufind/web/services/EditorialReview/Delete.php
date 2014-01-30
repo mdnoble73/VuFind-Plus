@@ -19,10 +19,10 @@
  */
 
 require_once(ROOT_DIR . '/services/Admin/Admin.php');
-require_once(ROOT_DIR . '/sys/EditorialReview.php');
+require_once(ROOT_DIR . '/sys/LocalEnrichment/EditorialReview.php');
 require_once ROOT_DIR . '/sys/DataObjectUtil.php';
 
-class Delete extends Admin_Admin {
+class EditorialReview_Delete extends Admin_Admin {
 
 	function launch()
 	{

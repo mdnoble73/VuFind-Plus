@@ -24,7 +24,7 @@ require_once 'Reviews.php';
 require_once 'UserComments.php';
 require_once 'Cite.php';
 require_once 'Holdings.php';
-require_once(ROOT_DIR . '/sys/EditorialReview.php');
+require_once(ROOT_DIR . '/sys/LocalEnrichment/EditorialReview.php');
 
 class Record_Home extends Record_Record{
 	function launch(){

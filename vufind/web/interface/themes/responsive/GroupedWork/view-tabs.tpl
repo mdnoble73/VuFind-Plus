@@ -1,11 +1,10 @@
 {strip}
 	<div id="moredetails-tabs" class="tabbable">
-		<div class="result-label visible-phone">Show:</div>
 		{* Define tabs for the display *}
 		<ul class="nav nav-tabs">
 			{assign var='firstTab' value=true}
 			{if $showAmazonReviews || $showStandardReviews || $showComments}
-				<li><a href="#reviewtab" data-toggle="tab">{translate text="Reviews"}</a></li>
+				<li class="active"><a href="#reviewtab" data-toggle="tab">{translate text="Reviews"}</a></li>
 			{/if}
 			<li id="tableofcontentstab_label" {if !$tableOfContents}style="display:none"{/if}><a href="#tableofcontentstab" data-toggle="tab">{translate text="Contents"}</a></li>
 			<li id="excerpttab_label" style="display:none"><a href="#excerpttab" data-toggle="tab">{translate text="Excerpt"}</a></li>
@@ -16,24 +15,19 @@
 
 		<div class="tab-content">
 			<div id="reviewtab" class="tab-pane active">
-				{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
-					<div>
-						<span class="btn"><a href='{$path}/EditorialReview/Edit?recordId={$id}'>Add Editorial Review</a></span>
+				<div id='editorialReviewPlaceholder'></div>
+
+				<div id='syndicatedReviewPlaceholder'></div>
+
+				<div id='customerReviewPlaceholder'></div>
+
+				{* Good Reads *}
+				{if $recordDriver->getCleanISBN()}
+					<div class="goodReads">
+						<h3>Reviews from <img src="/images/goodreads_logo.png" alt="Reviews from GoodReads" /></h3>
+						<iframe id="goodreads_iframe" class="goodReadsIFrame" src="https://www.goodreads.com/api/reviews_widget_iframe?did=DEVELOPER_ID&format=html&isbn={$recordDriver->getCleanISBN()}&links=660&review_back=fff&stars=000&text=000" width="100%" height="400px" frameborder="0"></iframe>
 					</div>
 				{/if}
-
-				{if $showComments}
-					{include file="GroupedWork/view-user-review.tpl"}
-				{/if}
-
-				{if $showStandardReviews}
-					<div id='reviewPlaceholder'></div>
-				{/if}
-
-				{foreach from=$reviewTabInfo.reviews item=review}
-					{assign var=review value=$review}
-					{include file="Resource/view-review.tpl"}
-				{/foreach}
 			</div>
 
 			<div id = "detailstab" class="tab-pane">

@@ -20,14 +20,13 @@
 
 require_once(ROOT_DIR . '/services/Admin/Admin.php');
 require_once ROOT_DIR . '/sys/DataObjectUtil.php';
-require_once(ROOT_DIR . '/sys/EditorialReview.php');
+require_once(ROOT_DIR . '/sys/LocalEnrichment/EditorialReview.php');
 
-class View extends Admin_Admin {
+class EditorialReview_View extends Admin_Admin {
 
 	function launch()
 	{
 		global $interface;
-		global $configArray;
 
 		$interface->assign('id', $_REQUEST['id']);
 		$editorialReview = new EditorialReview();
@@ -37,9 +36,6 @@ class View extends Admin_Admin {
 			$editorialReview->fetch();
 			$interface->assign('editorialReview', $editorialReview);
 		}
-
-		//Load the pillar to display
-		$structure = EditorialReview::getObjectStructure();
 
 		$interface->setTemplate('view.tpl');
 

@@ -21,7 +21,7 @@
 require_once ROOT_DIR . '/sys/Amazon.php';
 require_once ROOT_DIR . '/sys/Proxy_Request.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/ISBNConverter.php';
-require_once(ROOT_DIR . '/sys/EditorialReview.php');
+require_once(ROOT_DIR . '/sys/LocalEnrichment/EditorialReview.php');
 
 require_once 'Record.php';
 

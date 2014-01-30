@@ -28,10 +28,6 @@ VuFind.GroupedWork = (function(){
 			});
 		},
 
-		getRelatedRecords: function(groupedId){
-			VuFind.ajaxLightbox(Globals.path + "/GroupedWork/" + groupedId + "/AJAX?method=getRelatedRecords");
-		},
-
 		loadEnrichmentInfo: function (id) {
 			var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
 			var params = "method=GetEnrichmentInfoJSON";
@@ -79,6 +75,72 @@ VuFind.GroupedWork = (function(){
 					alert('Error: Could Not Load Enrichment information.');
 				}
 			});
+		},
+
+		loadReviewInfo: function (id, isbn, source) {
+			var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX?method=GetReviewInfo";
+			$.getJSON(url, function(data) {
+				var syndicatedReviewsData = data.syndicatedReviewsHtml;
+				if (syndicatedReviewsData && syndicatedReviewsData.length > 0) {
+					$("#syndicatedReviewPlaceholder").html(syndicatedReviewsData);
+				}
+				var editorialReviewsData = data.editorialReviewsHtml;
+				if (editorialReviewsData && editorialReviewsData.length > 0) {
+					$("#editorialReviewPlaceholder").html(editorialReviewsData);
+				}
+
+				var customerReviewsData = data.customerReviewsHtml;
+				if (customerReviewsData && customerReviewsData.length > 0) {
+					$("#customerReviewPlaceholder").html(customerReviewsData);
+				}
+			});
+		},
+
+		saveReview: function(id){
+			if (Globals.loggedIn){
+				var comment = $('#comment' + id).val();
+				var rating = $('#rating' + id).val();
+
+				var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
+				var params = "method=saveReview&comment=" + encodeURIComponent(comment) + "&rating=" + encodeURIComponent(rating);
+				$.getJSON(url + '?' + params,
+					function(data) {
+						if (data.result) {
+							if (data.newReview){
+								$("#customerReviewPlaceholder").append(data.reviewHtml);
+							}else{
+								$("#review_" + data.reviewId).replaceWith(data.reviewHtml);
+							}
+							VuFind.closeLightbox();
+						} else {
+							VuFind.showMessage("Error", data.message);
+						}
+					}
+				);
+			}
+			return false;
+		},
+
+		showReviewForm: function(trigger, id){
+			if (Globals.loggedIn){
+				var $trigger = $(trigger);
+				$("#modal-title").text($trigger.attr("title"));
+				var modalDialog = $("#modalDialog");
+				//$(".modal-body").html($('#userreview' + id).html());
+				$.getJSON(Globals.path + "/GroupedWork/AJAX?method=getReviewForm&id=" + id, function(data){
+					$('#myModalLabel').html(data.title);
+					$('.modal-body').html(data.modalBody);
+					$('.modal-buttons').html(data.modalButtons);
+				});
+				modalDialog.load( );
+				modalDialog.modal('show');
+			}else{
+				var $trigger = $(trigger);
+				VuFind.Account.ajaxLogin($trigger, function (){
+					return VuFind.GroupedWork.showReviewForm($trigger, id);
+				}, false);
+			}
+			return false;
 		}
 	};
 }(VuFind.GroupedWork || {}));

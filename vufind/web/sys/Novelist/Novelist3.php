@@ -18,7 +18,7 @@ class Novelist3{
 		//Check to see if we have cached data, first check MemCache.
 		/** @var Memcache $memCache */
 		global $memCache;
-		$novelistData = $memCache->get("novelist_enrichment_$groupedRecordId");
+		$novelistData = $memCache->get("novelist_enrichment_basic_$groupedRecordId");
 		if ($novelistData != false && !isset($_REQUEST['reload'])){
 			return $novelistData;
 		}
@@ -128,7 +128,7 @@ class Novelist3{
 			$ret = $novelistData->insert();
 		}
 
-		$memCache->set("novelist_enrichment_$groupedRecordId", $novelistData, 0, $configArray['Caching']['novelist_enrichment']);
+		$memCache->set("novelist_enrichment_basic_$groupedRecordId", $novelistData, 0, $configArray['Caching']['novelist_enrichment']);
 		return $novelistData;
 	}
 

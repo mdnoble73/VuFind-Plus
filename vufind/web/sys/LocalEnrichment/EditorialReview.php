@@ -18,9 +18,6 @@ class EditorialReview extends DB_DataObject {
 
 	public $tabName;
 
-	/* Storage for Dynamic Properties */
-	private $data;
-
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('EditorialReview',$k,$v); }
 
@@ -35,8 +32,7 @@ class EditorialReview extends DB_DataObject {
 		return $pDate;
 	}
 
-	function getObjectStructure(){
-		global $configArray;
+	static function getObjectStructure(){
 		$structure = array(
 		array(
 			'property'=>'editorialReviewId',
@@ -98,8 +94,8 @@ class EditorialReview extends DB_DataObject {
 		'recordId' => array(
 			'property'=>'recordId',
 			'type'=>'text',
-			'size' => 25,
-			'maxLength'=>25,
+			'size' => 36,
+			'maxLength'=>36,
 			'label'=>'Record Id',
 			'description'=>'Record Id.',
 			'storeDb' => true,

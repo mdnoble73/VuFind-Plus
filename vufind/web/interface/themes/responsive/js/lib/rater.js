@@ -47,7 +47,7 @@ $.fn.rater.defaults = {
 $.fn.rater.rate = function($this, opts, rating) {
 	var $on = $this.find('.ui-rater-starsOn');
 	var $off = $this.find('.ui-rater-starsOff');
-	if (loggedIn){
+	if (Globals.loggedIn){
 		$off.fadeTo(600, 0.4, function() {
 			$.ajax( {
 				url : opts.postHref,
@@ -64,7 +64,7 @@ $.fn.rater.rate = function($this, opts, rating) {
 							$on.addClass('userRated');
 							$this.attr('title', 'Your rating: ' + rating.toFixed(1));
 							if ($this.data('show_review') == true){
-								doRatingReview(rating, opts.module, opts.recordId);
+								VuFind.Ratings.doRatingReview(rating, opts.module, opts.recordId);
 							}
 						});
 					} else { // failure

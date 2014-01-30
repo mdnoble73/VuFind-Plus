@@ -6356,6 +6356,10 @@ body {
 .modal {
   overflow-y: auto;
 }
+.modal-buttons {
+  margin-left: 3px;
+  margin-right: 3px;
+}
 /**
  Styling for home page elements
 */
@@ -6953,4 +6957,7 @@ body {
 }
 .related-manifestations {
   margin-bottom: 5px;
+}
+.graph-bar {
+  background-color: #088ec6;
 }

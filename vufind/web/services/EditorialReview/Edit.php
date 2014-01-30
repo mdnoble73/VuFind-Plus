@@ -20,10 +20,10 @@
 
 require_once ROOT_DIR . '/Action.php';
 require_once(ROOT_DIR . '/services/Admin/Admin.php');
-require_once(ROOT_DIR . '/sys/EditorialReview.php');
+require_once(ROOT_DIR . '/sys/LocalEnrichment/EditorialReview.php');
 require_once ROOT_DIR . '/sys/DataObjectUtil.php';
 
-class Edit extends Admin_Admin {
+class EditorialReview_Edit extends Admin_Admin {
 
 	function launch()
 	{
@@ -61,14 +61,9 @@ class Edit extends Admin_Admin {
 
 				$_REQUEST['id'] = $editorialReview->editorialReviewId;
 			}else{
-				//Show the new tip that was created
+				//Show the new review
 				if (isset($_REQUEST['submitReturnToList'])){
-					if (strpos($editorialReview->recordId, 'econtentRecord') === 0){
-						$shortId = str_replace('econtentRecord', '', $editorialReview->recordId);
-						header('Location:' . $configArray['Site']['path'] . "/EcontentRecord/{$shortId}/Home");
-					}else{
-						header('Location:' . $configArray['Site']['path'] . "/Record/{$editorialReview->recordId}/Home");
-					}
+					header('Location:' . $configArray['Site']['path'] . "/GroupedWork/{$editorialReview->recordId}/Home");
 				}elseif (isset($_REQUEST['submitAddAnother'])){
 					header('Location:' . $configArray['Site']['path'] . "/EditorialReview/Edit?recordId={$editorialReview->recordId}");
 				}else{

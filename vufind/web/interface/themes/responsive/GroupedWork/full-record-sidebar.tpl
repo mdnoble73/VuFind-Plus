@@ -28,10 +28,10 @@
 
 	<div id="full-record-ratings">
 		{* Let the user rate this title *}
-		{include file="GroupedWork/title-rating-full.tpl" ratingClass="" showFavorites=0}
+		{include file="GroupedWork/title-rating-full.tpl" ratingClass="" showFavorites=0 ratingData=$recordDriver->getRatingData() showNotInterested=false}
 	</div>
 
 	<div id="recordTools">
-		{include file="GroupedWork/result-tools.tpl" showMoreInfo=false}
+		{include file="GroupedWork/result-tools.tpl" showMoreInfo=false summId=$recordDriver->getPermanentId()}
 	</div>
 {/strip}

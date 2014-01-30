@@ -30,22 +30,13 @@ class GroupedWork_AJAX {
 
 	function getRelatedRecords(){
 		global $interface;
-		global $configArray;
 		if (isset($_REQUEST['id'])){
 			$id = $_REQUEST['id'];
 			$searchObject = SearchObjectFactory::initSearchObject();
 			$searchObject->init();
-			// Setup Search Engine Connection
-			$class = $configArray['Index']['engine'];
-			$url = $configArray['Index']['url'];
-			/** @var SearchObject_Solr $db */
-			$db = new $class($url);
-			if ($configArray['System']['debugSolr']) {
-				$db->debug = true;
-			}
 
 			// Retrieve Full record from Solr
-			if (!($record = $db->getRecord($id))) {
+			if (!($record = $searchObject->getRecord($id))) {
 				PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
 			}
 
@@ -161,5 +152,126 @@ class GroupedWork_AJAX {
 		$formattedData = GoDeeperData::getHtmlData($dataType, 'GroupedWork', $isbn, $upc);
 		return $formattedData;
 
+	}
+
+	function RateTitle(){
+		require_once(ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php');
+		global $user;
+		global $analytics;
+		if (!isset($user) || $user == false){
+			header('HTTP/1.0 500 Internal server error');
+			return 'Please login to rate this title.';
+		}
+		$rating = $_REQUEST['rating'];
+		//Save the rating
+		$workReview = new UserWorkReview();
+		$workReview->groupedRecordPermanentId = $_GET['id'];
+		$workReview->userId = $user->id;
+		$newReview = false;
+		if (!$workReview->find(true)) {
+			$newReview = true;
+		}
+		$workReview->rating = $rating;
+		$workReview->dateRated = time();
+		$workReview->review = '';
+		if ($newReview){
+			$workReview->insert();
+		}else{
+			$workReview->update();
+		}
+
+		$analytics->addEvent('User Enrichment', 'Rate Title', $_GET['id']);
+
+		/** @var Memcache $memCache */
+		global $memCache;
+		$memCache->delete('rating_' . $_GET['id']);
+
+		return $rating;
+	}
+
+	function GetReviewInfo(){
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		$id = $_REQUEST['id'];
+		$recordDriver = new GroupedWorkDriver($id);
+		$isbn = $recordDriver->getCleanISBN();
+
+		//Load external (syndicated reviews)
+		require_once ROOT_DIR . '/sys/Reviews.php';
+		$externalReviews = new ExternalReviews($isbn);
+		$reviews = $externalReviews->fetch();
+		global $interface;
+		$interface->assign('id', $id);
+		$interface->assign('syndicatedReviews', $reviews);
+
+		//Load editorial reviews
+		require_once ROOT_DIR . '/sys/LocalEnrichment/EditorialReview.php';
+		$editorialReviews = new EditorialReview();
+		$editorialReviews->recordId = $id;
+		$editorialReviews->find();
+		$allEditorialReviews = array();
+		while($editorialReviews->fetch()){
+			$allEditorialReviews[] = clone($editorialReviews);
+		}
+		$interface->assign('editorialReviews', $allEditorialReviews);
+
+		$interface->assign('userReviews', $recordDriver->getUserReviews());
+
+		$results = array(
+			'syndicatedReviewsHtml' => $interface->fetch('GroupedWork/view-syndicated-reviews.tpl'),
+			'editorialReviewsHtml' => $interface->fetch('GroupedWork/view-editorial-reviews.tpl'),
+			'customerReviewsHtml' => $interface->fetch('GroupedWork/view-user-reviews.tpl'),
+		);
+		return json_encode($results);
+	}
+
+	function getReviewForm(){
+		global $interface;
+		$id = $_REQUEST['id'];
+		$interface->assign('id', $id);
+		$results = array(
+			'title' => 'Review',
+			'modalBody' => $interface->fetch("GroupedWork/review-form-body.tpl"),
+			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveReview(\"{$id}\"); return false;'>Submit Review</span>"
+		);
+		return json_encode($results);
+	}
+
+	function saveReview()
+	{
+		$result = array();
+
+		global $user;
+		if ($user === false) {
+			$result['result'] = false;
+			$result['message'] = 'Please login before adding a review.';
+		}else{
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
+			$result['result'] = true;
+			$id = $_REQUEST['id'];
+			$rating = $_REQUEST['rating'];
+			$comment = $_REQUEST['comment'];
+
+			$groupedWorkReview = new UserWorkReview();
+			$groupedWorkReview->userId = $user->id;
+			$groupedWorkReview->groupedRecordPermanentId = $id;
+			$newReview = true;
+			if ($groupedWorkReview->find(true)){
+				$newReview = false;
+			}
+			$result['newReview'] = $newReview;
+			$groupedWorkReview->rating = $rating;
+			$groupedWorkReview->review = $comment;
+			if ($newReview){
+				$groupedWorkReview->insert();
+			}else{
+				$groupedWorkReview->update();
+			}
+			$result['reviewId'] = $groupedWorkReview->id;
+			global $interface;
+			$interface->assign('review', $groupedWorkReview);
+			$result['reviewHtml'] = $interface->fetch('GroupedWork/view-user-review.tpl');
+		}
+
+		return json_encode($result);
 	}
 } 

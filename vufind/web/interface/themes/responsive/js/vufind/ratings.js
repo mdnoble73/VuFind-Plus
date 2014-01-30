@@ -10,12 +10,21 @@ VuFind.Ratings = (function(){
 
 				var module = ratingElement.data("module");
 				var userRating = ratingElement.data("user_rating");
+				var recordId = ratingElement.data("record_id");
+				var shortId = ratingElement.data("short_id");
+				var id = ratingElement.data("id");
+				if (shortId == null){
+					shortId = id;
+				}
+				if (recordId == null){
+					recordId = id;
+				}
 				//Setup the rater
 				var options = {
 					module: module,
-					recordId: ratingElement.data("short_id"),
+					recordId: shortId,
 					rating: parseFloat(userRating > 0 ? userRating : ratingElement.data("average_rating")) ,
-					postHref: Globals.path + "/" + module + "/" + ratingElement.data("record_id") + "/AJAX?method=RateTitle"
+					postHref: Globals.path + module + "/" + recordId + "/AJAX?method=RateTitle"
 				};
 				ratingElement.rater(options);
 			});
