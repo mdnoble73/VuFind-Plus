@@ -80,7 +80,7 @@
 	</div>
 
 
-	{include file="GroupedWork/view-tabs.tpl"}
+	{include file=$moreDetailsTemplate}
 {/strip}
 <script type="text/javascript">
 	{literal}$(document).ready(function(){{/literal}

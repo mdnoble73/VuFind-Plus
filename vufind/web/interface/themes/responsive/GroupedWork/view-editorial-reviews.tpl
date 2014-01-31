@@ -1,7 +1,4 @@
 {strip}
-	{if count($editorialReviews)}
-		<h3>Editorial Reviews</h3>
-	{/if}
 	{foreach from=$editorialReviews item=editorialReview}
 		<div class='review'>
 		{if $editorialReview->title}
@@ -11,5 +8,7 @@
 			<p class="reviewContent">{$editorialReview->review}</p>
 			<div class='reviewCopyright'><small>{$editorialReview->source}</small></div>
 		</div>
+	{foreachelse}
+		<p>No reviews currently exist.</p>
 	{/foreach}
 {/strip}

@@ -22,5 +22,7 @@
 			{/if}
 			</div>
 		{/foreach}
+	{foreachelse}
+		<p>No syndicated reviews currently exist.</p>
 	{/foreach}
 {/strip}

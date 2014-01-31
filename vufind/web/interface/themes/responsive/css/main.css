@@ -6996,3 +6996,29 @@ body {
 .rating-graph .row {
   margin-top: 2px;
 }
+/** More Like this formatting */
+#more-details-accordion .panel-group .panel + .panel {
+  margin-top: 0px;
+}
+#more-details-accordion .panel-heading {
+  padding: 5px 15px;
+  background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
+  border-bottom: 1px solid #a1a1a1;
+}
+#more-details-accordion .active .panel-heading {
+  background: linear-gradient(to bottom, #4dacde, #0f8fd2);
+}
+#more-details-accordion .panel-title {
+  font-size: 12px;
+  color: #333333;
+  text-shadow: 1px 1px white;
+}
+#more-details-accordion .active .panel-title {
+  color: white;
+  text-shadow: 1px 1px #555555;
+}
+#more-details-accordion .panel-body {
+  font-size: 10px;
+  color: #333333;
+  background-color: #eeeeee;
+}

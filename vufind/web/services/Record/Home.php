@@ -84,55 +84,7 @@ class Record_Home extends Record_Record{
 		global $library;
 		global $locationSingleton;
 		$location = $locationSingleton->getActiveLocation();
-		if (isset($library)){
-			$interface->assign('showTextThis', $library->showTextThis);
-			$interface->assign('showEmailThis', $library->showEmailThis);
-			$interface->assign('showFavorites', $library->showFavorites);
-			$interface->assign('linkToAmazon', $library->linkToAmazon);
-			$interface->assign('enablePurchaseLinks', $library->linkToAmazon);
-			$interface->assign('enablePospectorIntegration', $library->enablePospectorIntegration);
-			if ($location != null){
-				$interface->assign('showAmazonReviews', (($location->showAmazonReviews == 1) && ($library->showAmazonReviews == 1)) ? 1 : 0);
-				$interface->assign('showStandardReviews', (($location->showStandardReviews == 1) && ($library->showStandardReviews == 1)) ? 1 : 0);
-				$interface->assign('showHoldButton', (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0);
-			}else{
-				$interface->assign('showAmazonReviews', $library->showAmazonReviews);
-				$interface->assign('showStandardReviews', $library->showStandardReviews);
-				$interface->assign('showHoldButton', $library->showHoldButton);
-			}
-			$interface->assign('showTagging', $library->showTagging);
-			$interface->assign('showRatings', $library->showRatings);
-			$interface->assign('showComments', $library->showComments);
-			$interface->assign('tabbedDetails', $library->tabbedDetails);
-			$interface->assign('showSeriesAsTab', $library->showSeriesAsTab);
-			$interface->assign('showOtherEditionsPopup', 0);
-			$interface->assign('show856LinksAsTab', $library->show856LinksAsTab);
-			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
-		}else{
-			$interface->assign('showTextThis', 1);
-			$interface->assign('showEmailThis', 1);
-			$interface->assign('showFavorites', 1);
-			$interface->assign('linkToAmazon', 1);
-			$interface->assign('enablePospectorIntegration', isset($configArray['Content']['Prospector']) && $configArray['Content']['Prospector'] == true ? 1 : 0);
-			$interface->assign('enablePurchaseLinks', 1);
-			if ($location != null){
-				$interface->assign('showAmazonReviews', $location->showAmazonReviews);
-				$interface->assign('showStandardReviews', $location->showStandardReviews);
-				$interface->assign('showHoldButton', $location->showHoldButton);
-			}else{
-				$interface->assign('showAmazonReviews', 1);
-				$interface->assign('showStandardReviews', 1);
-				$interface->assign('showHoldButton', 1);
-			}
-			$interface->assign('showTagging', 1);
-			$interface->assign('showRatings', 1);
-			$interface->assign('showComments', 1);
-			$interface->assign('tabbedDetails', !isset($configArray['Content']['tabbedDetails']) || $configArray['Content']['tabbedDetails'] == false ? 0 : 1);
-			$interface->assign('showSeriesAsTab', 0);
-			$interface->assign('showOtherEditionsPopup', 0);
-			$interface->assign('show856LinksAsTab', 1);
-			$interface->assign('showProspectorTitlesAsTab', 0);
-		}
+
 		if (!isset($this->isbn)){
 			$interface->assign('showOtherEditionsPopup', false);
 		}
