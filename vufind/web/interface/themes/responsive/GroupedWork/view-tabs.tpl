@@ -65,10 +65,10 @@
 {/strip}
 {literal}
 <script type="text/javascript">
-	$('#excerpttab_label a').on('shown', function (e) {
+	$('#excerpttab_label a').on('click', function (e) {
 		VuFind.GroupedWork.getGoDeeperData({/literal}'{$recordDriver->getPermanentId()}'{literal}, 'excerpt');
 	});
-	$('#tableofcontentstab_label a').on('shown', function (e) {
+	$('#tableofcontentstab_label a').on('click', function (e) {
 		VuFind.GroupedWork.getGoDeeperData({/literal}'{$recordDriver->getPermanentId()}'{literal}, 'tableOfContents');
 	});
 </script>

@@ -154,7 +154,7 @@ class GroupedWork_AJAX {
 		);
 	}
 
-	function GetGoDeeperData(){
+	function getGoDeeperData(){
 		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
 		$dataType = $_REQUEST['dataType'];
 
@@ -165,7 +165,10 @@ class GroupedWork_AJAX {
 		$isbn = $recordDriver->getCleanISBN();
 
 		$formattedData = GoDeeperData::getHtmlData($dataType, 'GroupedWork', $isbn, $upc);
-		return $formattedData;
+		$return = array(
+			'formattedData' => $formattedData
+		);
+		return json_encode($return);
 
 	}
 

@@ -17,15 +17,9 @@ VuFind.GroupedWork = (function(){
 			var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
 			var params = "method=GetGoDeeperData&dataType=" + encodeURIComponent(dataType);
 			var fullUrl = url + "?" + params;
-			$.ajax( {
-				url : fullUrl,
-				success : function(data) {
-					placeholder.html(data)
-					placeholder.addClass('loaded');
-				},
-				failure : function() {
-					alert('Error: Could Not Load Syndetics information.');
-				}
+			$.getJSON( fullUrl,function(data) {
+				placeholder.html(data.formattedData)
+				placeholder.addClass('loaded');
 			});
 		},
 
