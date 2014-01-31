@@ -21,12 +21,12 @@
 
 	{* Display Book Cover *}
 	{if $user->disableCoverArt != 1}
-		<div id = "recordcover">
+		<div id = "recordcover" class="text-center">
 			<img alt="{translate text='Book Cover'}" class="img-thumbnail" src="{$recordDriver->getBookcoverUrl('large')}" />
 		</div>
 	{/if}
 
-	<div id="full-record-ratings">
+	<div id="full-record-ratings" class="text-center">
 		{* Let the user rate this title *}
 		{include file="GroupedWork/title-rating-full.tpl" ratingClass="" showFavorites=0 ratingData=$recordDriver->getRatingData() showNotInterested=false}
 	</div>

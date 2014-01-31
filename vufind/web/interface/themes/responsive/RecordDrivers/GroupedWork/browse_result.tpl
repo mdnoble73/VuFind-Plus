@@ -1,11 +1,19 @@
 {strip}
 	<div class="col-xs-6 col-sm-4 col-md-3 col-lg-2 text-center browse-title">
-		<div class="thumbnail">
+		<div class="thumbnail browse-thumbnail">
 			<a href="{$path}/GroupedWork/{$summId}/Home">
 				<img class="hidden-xs hidden-sm visible-md" src="{$bookCoverUrlMedium}" alt="{$summTitle} by {$summAuthor}" title="{$summTitle} by {$summAuthor}">
 				<img class="visible-xs visible-sm hidden-md hidden-lg" src="{$bookCoverUrl}" alt="{$summTitle} by {$summAuthor}" title="{$summTitle} by {$summAuthor}">
 			</a>
-			{include file="GroupedWork/title-rating.tpl" id=$summId showNotInterested=false showReviewAfterRating=false}
+			<div class="browse-rating" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}');">
+				<span class="ui-rater-starsOff" style="width:90px">
+					{if $ratingData.user}
+						<span class="ui-rater-starsOn userRated" style="width:{math equation="90*rating/5" rating=$ratingData.user}px"></span>
+					{else}
+						<span class="ui-rater-starsOn" style="width:{math equation="90*rating/5" rating=$ratingData.average}px"></span>
+					{/if}
+				</span>
+			</div>
 		</div>
 	</div>
 {* Insert separators at the appropriate locations *}

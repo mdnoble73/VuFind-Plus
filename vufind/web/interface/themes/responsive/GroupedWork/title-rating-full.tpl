@@ -1,38 +1,21 @@
 <div class="full-rating">
-	<div class="your-rating">
-		<div class="rating-label">Your Rating</div>
-		<div class="rater rate{$recordDriver->getPermanentId()|escape} stat"
-		     data-show_review="{if $showReviewAfterRating === false}{$showReviewAfterRating}{else}true{/if}"
-		     data-module="GroupedWork"
-		     data-short_id="{$recordDriver->getPermanentId()}"
-		     data-record_id="{$recordDriver->getPermanentId()}"
-		     data-user_rating = "{$ratingData.user}"
-				 >
-			<div class="statVal">
-				<span class="ui-rater">
-					<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn{if $ratingData.user >0} userRated{/if}" style="width:0">&nbsp;</span></span>
+	{if $ratingData.user}
+		<div class="your-rating row">
+			<div class="rating-label col-sm-6">Your Rating</div>
+			<div class="col-sm-6">
+				<span class="ui-rater-starsOff" style="width:90px">
+					<span class="ui-rater-starsOn userRated" style="width:{math equation="90*rating/5" rating=$ratingData.user}px"></span>
 				</span>
 			</div>
 		</div>
-	</div>
+	{/if}
 
-	<div class="average-rating">
-		<div class="rating-label">Average Rating</div>
-		<div class="rater rate{$recordDriver->getPermanentId()|escape} stat"
-	       data-show_review="{if $showReviewAfterRating === false}{$showReviewAfterRating}{else}true{/if}"
-	       data-module="GroupedWork"
-	       data-short_id="{$recordDriver->getPermanentId()}"
-	       data-record_id="{$recordDriver->getPermanentId()}"
-	       data-average_rating = "{$ratingData.average}"
-	       >
-			<div class="statVal">
-				<span class="ui-rater">
-					<span class="ui-rater-starsOff" style="width:90px;"><span class="ui-rater-starsOn" style="width:0">&nbsp;</span></span>
+	<div class="average-rating row">
+		<div class="rating-label col-sm-6">Average Rating</div>
+		<div class="col-sm-6">
+			<span class="ui-rater-starsOff" style="width:90px">
+					<span class="ui-rater-starsOn" style="width:{math equation="90*rating/5" rating=$ratingData.average}px"></span>
 				</span>
-
-				{* Show the number of reviews *}
-				<span class="numberOfReviews">({$ratingData.count})</span>
-			</div>
 		</div>
 	</div>
 
@@ -62,5 +45,11 @@
 			<div class="col-xs-7"><div class="graph-bar" style="width:{$ratingData.barWidth1Star}%">&nbsp;</div></div>
 			<div class="col-xs-2">({$ratingData.num1star})</div>
 		</div>
+	</div>
+
+	<div class="row text-center">
+		<span id="userreviewlink{$recordDriver->getPermanentId()}" class="userreviewlink btn btn-small" title="Add a Review" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$recordDriver->getPermanentId()}')">
+			Add a Review
+		</span>
 	</div>
 </div>

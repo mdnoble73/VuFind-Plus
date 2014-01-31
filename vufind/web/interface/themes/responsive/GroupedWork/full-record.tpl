@@ -55,7 +55,7 @@
 	{assign value=$recordDriver->getRelatedManifestations() var="relatedManifestations"}
 	{include file="GroupedWork/relatedManifestations.tpl"}
 
-	<div id="relatedTitleInfo" style="display:none" class="row">
+	<div id="seriesInfo" style="display:none" class="row">
 		<div class="col-sm-12">
 			{assign var="scrollerName" value="Series"}
 			{assign var="scrollerTitle" value="Also in this Series"}
@@ -63,6 +63,18 @@
 			{assign var="scrollerVariable" value="seriesScroller"}
 			{assign var="permanentId" value=$recordDriver->getPermanentId()}
 			{assign var="fullListLink" value= "$path/GroupedWork/$permanentId/Series"}
+			{include file='titleScroller.tpl'}
+		</div>
+	</div>
+
+	<div id="moreLikeThisInfo" style="display:none" class="row">
+		<div class="col-sm-12">
+			{assign var="scrollerName" value="MoreLikeThis"}
+			{assign var="scrollerTitle" value="More Like This"}
+			{assign var="wrapperId" value="morelikethis"}
+			{assign var="scrollerVariable" value="morelikethisScroller"}
+			{assign var="permanentId" value=$recordDriver->getPermanentId()}
+			{assign var="fullListLink" value= "$path/GroupedWork/$permanentId/SimilarTitles"}
 			{include file='titleScroller.tpl'}
 		</div>
 	</div>

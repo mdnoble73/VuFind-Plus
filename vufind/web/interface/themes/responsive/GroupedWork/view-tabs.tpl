@@ -8,6 +8,7 @@
 			{/if}
 			<li id="tableofcontentstab_label" {if !$tableOfContents}style="display:none"{/if}><a href="#tableofcontentstab" data-toggle="tab">{translate text="Contents"}</a></li>
 			<li id="excerpttab_label" style="display:none"><a href="#excerpttab" data-toggle="tab">{translate text="Excerpt"}</a></li>
+			<li id="novelisttab_label" style="display:none"><a href="#novelisttab" data-toggle="tab">{translate text="Novelist"}</a></li>
 			<li id="detailstab_label"><a href="#detailstab" data-toggle="tab">{translate text="Details"}</a></li>
 
 			<li><a href="#stafftab" data-toggle="tab">{translate text="Staff View"}</a></li>
@@ -48,6 +49,12 @@
 						{/foreach}
 					</ul>
 				{/if}
+			</div>
+
+			<div id = "novelisttab" class="tab-pane">
+				<div id="novelisttitlesPlaceholder"></div>
+				<div id="novelistauthorsPlaceholder"></div>
+				<div id="novelistseriesPlaceholder"></div>
 			</div>
 
 			<div id = "stafftab" class="tab-pane">

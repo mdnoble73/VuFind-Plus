@@ -15,40 +15,14 @@ class GroupedWork_AJAX {
 		$analytics->disableTracking();
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array('getRelatedRecords'))){
-			header('Content-type: text/html');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo $this->$method();
-		}else{
-			header('Content-type: text/plain');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo $this->$method();
-		}
+
+		header('Content-type: application/json');
+		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+		echo $this->$method();
 	}
 
-	function getRelatedRecords(){
-		global $interface;
-		if (isset($_REQUEST['id'])){
-			$id = $_REQUEST['id'];
-			$searchObject = SearchObjectFactory::initSearchObject();
-			$searchObject->init();
-
-			// Retrieve Full record from Solr
-			if (!($record = $searchObject->getRecord($id))) {
-				PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
-			}
-
-			$recordDriver = RecordDriverFactory::initRecordDriver($record);
-			$interface->assign('relatedRecords', $recordDriver->getRelatedRecords());
-			return $interface->fetch('GroupedWork/relatedRecordPopup.tpl');
-		}else{
-			return "Unable to load related records";
-		}
-	}
-
-	function GetEnrichmentInfoJSON(){
+	function getEnrichmentInfo(){
 		global $configArray;
 		global $interface;
 
@@ -64,58 +38,47 @@ class GroupedWork_AJAX {
 		if (!isset($enrichmentData['novelist']->seriesTitles) || count($enrichmentData['novelist']->seriesTitles) == 0){
 			$enrichmentResult['seriesInfo'] = array('titles'=>$titles, 'currentIndex'=>0);
 		}else{
-			foreach ($enrichmentData['novelist']->seriesTitles as $record){
-				$isbn = $record['isbn'];
-				if (strpos($isbn, ' ') > 0){
-					$isbn = substr($isbn, 0, strpos($isbn, ' '));
-				}
-				$cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn;
-				if (isset($record['id'])){
-					$cover .= "&id=" . $record['id'];
-				}
-				if (isset($record['upc'])){
-					$cover .= "&upc=" . $record['upc'];
-				}
-				if (isset($record['issn'])){
-					$cover .= "&issn=" . $record['issn'];
-				}
-				if (isset($record['format_category'])){
-					$cover .= "&category=" . $record['format_category'][0];
-				}
-				$title = $record['title'];
-				if (isset($record['series'])){
-					$title .= ' (' . $record['series'] ;
-					if (isset($record['volume'])){
-						$title .= ' Volume ' . $record['volume'];
-					}
-					$title .= ')';
-				}
-				$titles[] = array(
-					'id' => isset($record['id']) ? $record['id'] : '',
-					'image' => $cover,
-					'title' => $title,
-					'author' => $record['author']
-				);
+			foreach ($enrichmentData['novelist']->seriesTitles as $key => $record){
+				$titles[] = $this->getScrollerTitle($record, $key, 'Series');
 			}
 
-			foreach ($titles as $key => $rawData){
-				if ($rawData['id']){
-					$shortId = str_replace('.', '', $rawData['id']);
-					$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-							'<a href="' . $configArray['Site']['path'] . "/GroupedWork/" . $rawData['id'] . '" id="descriptionTrigger' . $shortId . '">' .
-							"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-							"</a></div>" .
-							"<div id='descriptionPlaceholder{$shortId}' style='display:none'></div>";
-				}else{
-					$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-							"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-							"</div>";
-				}
-				$rawData['formattedTitle'] = $formattedTitle;
-				$titles[$key] = $rawData;
-			}
 			$seriesInfo = array('titles' => $titles, 'currentIndex' => $enrichmentData['novelist']->seriesDefaultIndex);
 			$enrichmentResult['seriesInfo'] = $seriesInfo;
+		}
+
+		//Process other data from novelist
+		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']->similarTitles)){
+			$interface->assign('similarTitles', $enrichmentData['novelist']->similarTitles);
+			$enrichmentResult['similarTitlesNovelist'] = $interface->fetch('GroupedWork/similarTitlesNovelist.tpl');
+		}
+
+		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']->authors)){
+			$interface->assign('similarAuthors', $enrichmentData['novelist']->authors);
+			$enrichmentResult['similarAuthorsNovelist'] = $interface->fetch('GroupedWork/similarAuthorsNovelist.tpl');
+		}
+
+		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']->similarSeries)){
+			$interface->assign('similarSeries', $enrichmentData['novelist']->similarSeries);
+			$enrichmentResult['similarSeriesNovelist'] = $interface->fetch('GroupedWork/similarSeriesNovelist.tpl');
+		}
+
+		//Load Similar titles (from Solr)
+		$class = $configArray['Index']['engine'];
+		$url = $configArray['Index']['url'];
+		/** @var Solr $db */
+		$db = new $class($url);
+		$db->disableScoping();
+		$similar = $db->getMoreLikeThis2($id);
+		// Send the similar items to the template; if there is only one, we need
+		// to force it to be an array or things will not display correctly.
+		$similarTitlesInfo = array();
+		if (isset($similar) && count($similar['response']['docs']) > 0) {
+			$similarTitles = array();
+			foreach ($similar['response']['docs'] as $key => $similarTitle){
+				$similarTitles[] = $this->getScrollerTitle($similarTitle, $key, 'MoreLikeThis');
+			}
+			$similarTitlesInfo = array('titles' => $similarTitles, 'currentIndex' => 0);
+			$enrichmentResult['similarTitles'] = $similarTitlesInfo;
 		}
 
 		//Load go deeper options
@@ -137,6 +100,58 @@ class GroupedWork_AJAX {
 		$enrichmentResult['relatedContent'] = $interface->fetch('Record\relatedContent.tpl');
 
 		return json_encode($enrichmentResult);
+	}
+
+	function getScrollerTitle($record, $index, $scrollerName){
+		global $configArray;
+		$isbn = $record['isbn'];
+		if (is_array($isbn)){
+			$isbn = reset($isbn);
+		}
+		if (strpos($isbn, ' ') > 0){
+			$isbn = substr($isbn, 0, strpos($isbn, ' '));
+		}
+		$cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn;
+		if (isset($record['id'])){
+			$cover .= "&id=" . $record['id'];
+		}
+		if (isset($record['upc'])){
+			$cover .= "&upc=" . $record['upc'];
+		}
+		if (isset($record['issn'])){
+			$cover .= "&issn=" . $record['issn'];
+		}
+		if (isset($record['format_category'])){
+			$cover .= "&category=" . $record['format_category'][0];
+		}
+		$title = $record['title'];
+		if (isset($record['series'])){
+			$title .= ' (' . $record['series'] ;
+			if (isset($record['volume'])){
+				$title .= ' Volume ' . $record['volume'];
+			}
+			$title .= ')';
+		}
+
+		if (isset($record['id'])){
+			$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$index}\" class=\"scrollerTitle\">" .
+					'<a href="' . $configArray['Site']['path'] . "/GroupedWork/" . $record['id'] . '" id="descriptionTrigger' . $record['id'] . '">' .
+					"<img src=\"{$cover}\" class=\"scrollerTitleCover\" alt=\"{$title} Cover\"/>" .
+					"</a></div>" .
+					"<div id='descriptionPlaceholder{$record['id']}' style='display:none'></div>";
+		}else{
+			$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$index}\" class=\"scrollerTitle\">" .
+					"<img src=\"{$cover}\" class=\"scrollerTitleCover\" alt=\"{$title} Cover\"/>" .
+					"</div>";
+		}
+
+		return array(
+			'id' => isset($record['id']) ? $record['id'] : '',
+			'image' => $cover,
+			'title' => $title,
+			'author' => $record['author'],
+			'formattedTitle' => $formattedTitle
+		);
 	}
 
 	function GetGoDeeperData(){

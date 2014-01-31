@@ -16,6 +16,12 @@
 #list-series {
   margin: 8px 0px;
 }
+#list-morelikethis.titleScroller {
+  border: 1px solid #949494;
+}
+#list-morelikethis {
+  margin: 8px 0px;
+}
 .statusValue.available,
 .statusValue.here {
   color: #009900;

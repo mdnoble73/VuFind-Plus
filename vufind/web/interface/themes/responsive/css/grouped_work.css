@@ -1,3 +1,10 @@
 .graph-bar {
   background-color: #088ec6;
 }
+.userreviewlink {
+  background-color: #088ec6;
+  color: #ffffff;
+}
+.userreviewlink:hover {
+  color: #ffffff;
+}

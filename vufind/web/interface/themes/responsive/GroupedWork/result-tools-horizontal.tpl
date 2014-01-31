@@ -14,14 +14,14 @@
 		</div>
 		{if $showComments == 1}
 			<div class="btn-group btn-group-sm">
-				<button id="userreviewlink{$summShortId}" class="userreviewlink resultAction btn btn-sm" title="Add a Review" onclick="return VuFind.Record.showReviewForm(this, '{$summId}', 'VuFind')">
+				<button id="userreviewlink{$summShortId}" class="userreviewlink resultAction btn btn-sm" title="Add a Review" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}')">
 					Add a Review
 				</button>
 			</div>
 		{/if}
 		{if $showFavorites == 1}
 			<div class="btn-group btn-group-sm">
-				<button onclick="return VuFind.Record.getSaveToListForm(this, '{$summId|escape}', 'VuFind');" class="btn btn-sm ">{translate text='Add to favorites'}</button>
+				<button onclick="return VuFind.GroupedWork.getSaveToListForm(this, '{$summId|escape}');" class="btn btn-sm ">{translate text='Add to favorites'}</button>
 			</div>
 		{/if}
 		{if $showTextThis == 1}

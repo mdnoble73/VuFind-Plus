@@ -6515,6 +6515,15 @@ body {
   background-color: lightskyblue;
   color: darkblue;
 }
+.browse-rating {
+  position: absolute;
+  bottom: 4px;
+  left: 10px;
+}
+.browse-thumbnail {
+  height: 205px;
+  position: relative;
+}
 #more-browse-results {
   background-color: #e6e6e6;
   color: #c7c9ca;
@@ -6739,6 +6748,12 @@ body {
 #list-series {
   margin: 8px 0px;
 }
+#list-morelikethis.titleScroller {
+  border: 1px solid #949494;
+}
+#list-morelikethis {
+  margin: 8px 0px;
+}
 .statusValue.available,
 .statusValue.here {
   color: #009900;
@@ -6960,4 +6975,24 @@ body {
 }
 .graph-bar {
   background-color: #088ec6;
+}
+.userreviewlink {
+  background-color: #088ec6;
+  color: #ffffff;
+}
+.userreviewlink:hover {
+  color: #ffffff;
+}
+.full-rating {
+  margin-top: 10px;
+  margin-bottom: 4px;
+  border: 1px solid #555555;
+  border-radius: 4px;
+  padding: 8px;
+}
+.rating-graph {
+  margin: 4px 0px;
+}
+.rating-graph .row {
+  margin-top: 2px;
 }

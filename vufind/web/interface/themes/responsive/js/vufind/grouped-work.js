@@ -4,12 +4,13 @@
 VuFind.GroupedWork = (function(){
 	return {
 		getGoDeeperData: function (id, dataType){
+			var placeholder;
 			if (dataType == 'excerpt'){
-				var placeholder = $("#excerptPlaceholder");
+				placeholder = $("#excerptPlaceholder");
 			}else if (dataType == 'avSummary'){
-				var placeholder = $("#avSummaryPlaceholder");
+				placeholder = $("#avSummaryPlaceholder");
 			}else if (dataType == 'tableOfContents'){
-				var placeholder = $("#tableOfContentsPlaceholder");
+				placeholder = $("#tableOfContentsPlaceholder");
 			}
 			if (placeholder.hasClass("loaded")) return;
 			placeholder.show();
@@ -19,10 +20,10 @@ VuFind.GroupedWork = (function(){
 			$.ajax( {
 				url : fullUrl,
 				success : function(data) {
-					placeholder.html(data);
+					placeholder.html(data)
 					placeholder.addClass('loaded');
 				},
-				failure : function(jqXHR, textStatus, errorThrown) {
+				failure : function() {
 					alert('Error: Could Not Load Syndetics information.');
 				}
 			});
@@ -30,21 +31,21 @@ VuFind.GroupedWork = (function(){
 
 		loadEnrichmentInfo: function (id) {
 			var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
-			var params = "method=GetEnrichmentInfoJSON";
+			var params = "method=getEnrichmentInfo";
 			var fullUrl = url + "?" + params;
-			$.ajax( {
-				url : fullUrl,
-				dataType: 'json',
-				success : function(data) {
+			$.getJSON( fullUrl, function(data) {
 					try{
 						var seriesData = data.seriesInfo;
 						if (seriesData && seriesData.titles.length > 0) {
-
 							seriesScroller = new TitleScroller('titleScrollerSeries', 'Series', 'seriesList');
-
-							$('#list-series-tab').show();
-							$('#relatedTitleInfo').show();
+							$('#seriesInfo').show();
 							seriesScroller.loadTitlesFromJsonData(seriesData);
+						}
+						var similarTitleData = data.similarTitles;
+						if (similarTitleData && similarTitleData.titles.length > 0) {
+							morelikethisScroller = new TitleScroller('titleScrollerMoreLikeThis', 'MoreLikeThis', 'morelikethisList');
+							$('#moreLikeThisInfo').show();
+							morelikethisScroller.loadTitlesFromJsonData(similarTitleData);
 						}
 						var showGoDeeperData = data.showGoDeeper;
 						if (showGoDeeperData) {
@@ -67,17 +68,31 @@ VuFind.GroupedWork = (function(){
 						if (relatedContentData && relatedContentData.length > 0) {
 							$("#relatedContentPlaceholder").html(relatedContentData);
 						}
+						var similarTitlesNovelist = data.similarTitlesNovelist;
+						if (similarTitlesNovelist && similarTitlesNovelist.length > 0){
+							$("#novelisttitlesPlaceholder").html(similarTitlesNovelist);
+							$("#novelisttab_label").show();
+						}
+
+						var similarAuthorsNovelist = data.similarAuthorsNovelist;
+						if (similarAuthorsNovelist && similarAuthorsNovelist.length > 0){
+							$("#novelistauthorsPlaceholder").html(similarAuthorsNovelist);
+							$("#novelisttab_label").show();
+						}
+
+						var similarSeriesNovelist = data.similarSeriesNovelist;
+						if (similarSeriesNovelist && similarSeriesNovelist.length > 0){
+							$("#novelistseriesPlaceholder").html(similarSeriesNovelist);
+							$("#novelisttab_label").show();
+						}
 					} catch (e) {
 						alert("error loading enrichment: " + e);
 					}
-				},
-				failure : function(jqXHR, textStatus, errorThrown) {
-					alert('Error: Could Not Load Enrichment information.');
 				}
-			});
+			);
 		},
 
-		loadReviewInfo: function (id, isbn, source) {
+		loadReviewInfo: function (id) {
 			var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX?method=GetReviewInfo";
 			$.getJSON(url, function(data) {
 				var syndicatedReviewsData = data.syndicatedReviewsHtml;
@@ -122,8 +137,8 @@ VuFind.GroupedWork = (function(){
 		},
 
 		showReviewForm: function(trigger, id){
+			var $trigger = $(trigger);
 			if (Globals.loggedIn){
-				var $trigger = $(trigger);
 				$("#modal-title").text($trigger.attr("title"));
 				var modalDialog = $("#modalDialog");
 				//$(".modal-body").html($('#userreview' + id).html());
@@ -135,10 +150,26 @@ VuFind.GroupedWork = (function(){
 				modalDialog.load( );
 				modalDialog.modal('show');
 			}else{
-				var $trigger = $(trigger);
 				VuFind.Account.ajaxLogin($trigger, function (){
 					return VuFind.GroupedWork.showReviewForm($trigger, id);
 				}, false);
+			}
+			return false;
+		},
+
+		showSaveToListForm: function (trigger, id, source){
+			if (Globals.loggedIn){
+				var url = Globals.path + "/Resource/Save?lightbox=true&id=" + id + "&source=" + source;
+				var $trigger = $(trigger);
+				$("#modal-title").text($trigger.attr("title"));
+				var modalDialog = $("#modalDialog");
+				modalDialog.load(url);
+				modalDialog.modal('show');
+			}else{
+				trigger = $(trigger);
+				VuFind.Account.ajaxLogin(trigger, function (){
+					VuFind.Record.getSaveToListForm(trigger, id, source);
+				});
 			}
 			return false;
 		}
