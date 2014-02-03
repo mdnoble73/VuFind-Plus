@@ -138,6 +138,8 @@ public class RecordGroupingProcessor {
 	private HashSet<RecordIdentifier> getIdentifiersFromMarcRecord(Record marcRecord) {
 		HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
 		List<DataField> field907 = getDataFields(marcRecord, "907");
+		//Make sure we only get one ils identifier
+		RecordIdentifier ilsIdentifier = null;
 		for (DataField cur907 : field907){
 			Subfield subfieldA = cur907.getSubfield('a');
 			if (subfieldA != null && subfieldA.getData().length() > 2){
@@ -146,7 +148,14 @@ public class RecordGroupingProcessor {
 					RecordIdentifier identifier = new RecordIdentifier();
 					identifier.setValue("ils", recordNumber);
 					if (identifier.isValid()){
-						identifiers.add(identifier);
+						if (ilsIdentifier != null){
+							if (!ilsIdentifier.equals(identifier)){
+								logger.warn("Warning record has two ils identifiers " + ilsIdentifier.toString() + " and " + identifier.toString());
+							}
+						}else{
+							ilsIdentifier = identifier;
+							identifiers.add(identifier);
+						}
 					}
 				}else if (cur907.getSubfield('a').getData().substring(0,2).equals(".o")){
 					String recordNumber = cur907.getSubfield('a').getData();
@@ -430,7 +439,18 @@ public class RecordGroupingProcessor {
 						recordIdentifiers.put(curIdentifier.toString(), curIdentifier);
 					}
 				}catch (SQLException e){
-					logger.error("Tried to insert a duplicate identifier " + curIdentifier.toString(), e);
+					if (curIdentifier.getType().equals("ils")){
+						logger.error("Tried to insert a duplicate ils identifier " + curIdentifier.toString());
+					}else{
+						logger.warn("Tried to insert a duplicate identifier " + curIdentifier.toString());
+					}
+					//Get the id of the identifier
+					getExistingIdentifierStmt.setString(1, curIdentifier.getType());
+					getExistingIdentifierStmt.setString(2, curIdentifier.getIdentifier());
+					ResultSet identifierIdRs = getExistingIdentifierStmt.executeQuery();
+					if (identifierIdRs.next()){
+						curIdentifier.setIdentifierId(identifierIdRs.getLong(1));
+					}
 				}
 			}
 			if (!curIdentifier.isLinkedToGroupedWork(new Long(groupedWorkId))){

@@ -176,9 +176,9 @@ public class RecordGrouperMain {
 				e.printStackTrace();
 			}
 		}
-		logger.debug("-----------------------------------------------------------");
-		logger.debug("Finished processing OverDrive records");
-		recordGroupingProcessor.dumpStats();
+		//logger.debug("-----------------------------------------------------------");
+		//logger.debug("Finished processing OverDrive records");
+		//recordGroupingProcessor.dumpStats();
 
 		if (groupIlsRecords){
 			String individualMarcPath = configIni.get("Reindex", "individualMarcPath");
@@ -199,12 +199,12 @@ public class RecordGrouperMain {
 								writeIndividualMarc(individualMarcPath, curBib);
 
 								numRecordsProcessed++;
-								if (numRecordsProcessed % 25000 == 0){
+								/*if (numRecordsProcessed % 25000 == 0){
 									long elapsedTime = new Date().getTime() - startTime;
 									recordGroupingProcessor.dumpStats();
 									long minutesWritingMarcs = timeSpentWritingMarcRecords / (60 * 1000);
 									logger.debug("Spent " + minutesWritingMarcs + " minutes writing marc records");
-								}
+								} */
 							}
 							marcFileStream.close();
 						}catch(Exception e){
