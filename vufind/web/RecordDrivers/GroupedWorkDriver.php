@@ -545,6 +545,8 @@ class GroupedWorkDriver implements RecordInterface{
 			if (isset($summaryInfo['summary'])){
 				$description = $summaryInfo['summary'];
 			}
+		}else{
+			$description = $this->getDescriptionFast();
 		}
 		return $description;
 	}

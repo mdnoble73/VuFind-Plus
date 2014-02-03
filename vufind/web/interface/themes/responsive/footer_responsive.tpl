@@ -15,27 +15,6 @@
 				<a href="{$contactUrl}" class="connect-icon"><img src="{img filename='email-contact.png'}" class="img-rounded"></a>
 			</div>
 		</div>
-		{if $google_translate_key}
-			<div class="row">
-				<div class="col-xs-12">
-					{literal}
-					<div id="google_translate_element">Translate this page &nbsp;</div><script type="text/javascript">
-						function googleTranslateElementInit() {
-							new google.translate.TranslateElement({
-								pageLanguage: 'en',
-								layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL
-								{/literal}
-								{if $google_included_languages}
-								, includedLanguages: '{$google_included_languages}'
-								{/if}
-								{literal}
-							}, 'google_translate_element');
-						}
-					</script><script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-					{/literal}
-				</div>
-			</div>
-		{/if}
 	</div>
 
 </div>

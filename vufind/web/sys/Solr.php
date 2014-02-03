@@ -1027,10 +1027,10 @@ class Solr implements IndexEngine {
 				$defaultSortDirection = 'desc';
 				break;
 			case 'author':
-				$sortField = 'authorStr';
+				$sortField = 'authorStr asc, title_sort';
 				break;
 			case 'title':
-				$sortField = 'title_sort';
+				$sortField = 'title_sort asc, authorStr';
 				break;
 			case 'callnumber_sort':
 				$searchLibrary = Library::getSearchLibrary($this->searchSource);

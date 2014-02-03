@@ -11,4 +11,10 @@
 	{foreachelse}
 		<p>No reviews currently exist.</p>
 	{/foreach}
+
+	{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
+		<div>
+			<a class="btn btn-sm" href='{$path}/EditorialReview/Edit?recordId={$id}'>Add Editorial Review</a>
+		</div>
+	{/if}
 {/strip}

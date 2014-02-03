@@ -9,9 +9,6 @@
 		{*
 		<div class="resultAction"><a href="#" class="cart" onclick="return addToBag('{$summId|escape}', '{$summTitle|replace:'"':''|escape:'javascript'}', '{$summShortId}');"><span class="silk cart">&nbsp;</span>{translate text="Add to cart"}</a></div>
 		*}
-		<div class="btn-group btn-group-sm">
-			<a href="{$path}/GroupedWork/{$summId|escape:"url"}/SimilarTitles" class="btn btn-sm ">More Like This</a>
-		</div>
 		{if $showComments == 1}
 			<div class="btn-group btn-group-sm">
 				<button id="userreviewlink{$summShortId}" class="userreviewlink resultAction btn btn-sm" title="Add a Review" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}')">

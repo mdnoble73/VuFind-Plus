@@ -12,6 +12,23 @@ body{
   padding: 0px;
 }
 
+//Breadcrumbs (abover header)
+.breadcrumbs{
+  background-color: @breadcrumb-bg;
+  padding: 3px;
+}
+.breadcrumb{
+  padding: 0px;
+  margin-bottom: 0px;
+  > li {
+    display: inline-block;
+    + li:before {
+      content: ""; // Override default separator since we add wone in code
+      padding: 0 5px;
+      color: @breadcrumb-color;
+    }
+  }
+}
 //Define the header elements
 #header-container{
   padding-top: 0px;

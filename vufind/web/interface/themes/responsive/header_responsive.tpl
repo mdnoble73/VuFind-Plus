@@ -1,4 +1,5 @@
 {strip}
+
 	<div class="col-xs-3 col-sm-3 col-md-3 col-lg-2">
 		<a href="{if $homeLink}{$homeLink}{else}{$path}/{/if}">
 			<img src="{if $tinyLogo}{$tinyLogo}{else}{img filename="logo_tiny.png"}{/if}" alt="{$librarySystemName}" title="Return to Catalog Home" id="header-logo"/>

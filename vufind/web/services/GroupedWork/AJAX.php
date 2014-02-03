@@ -104,12 +104,16 @@ class GroupedWork_AJAX {
 
 	function getScrollerTitle($record, $index, $scrollerName){
 		global $configArray;
-		$isbn = $record['isbn'];
-		if (is_array($isbn)){
-			$isbn = reset($isbn);
-		}
-		if (strpos($isbn, ' ') > 0){
-			$isbn = substr($isbn, 0, strpos($isbn, ' '));
+		if (isset($record['isbn'])){
+			$isbn = $record['isbn'];
+			if (is_array($isbn)){
+				$isbn = reset($isbn);
+			}
+			if (strpos($isbn, ' ') > 0){
+				$isbn = substr($isbn, 0, strpos($isbn, ' '));
+			}
+		}else{
+			$isbn = '';
 		}
 		$cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn;
 		if (isset($record['id'])){

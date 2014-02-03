@@ -48,7 +48,7 @@
 	</div>
 
 	<div class="row text-center">
-		<span id="userreviewlink{$recordDriver->getPermanentId()}" class="userreviewlink btn btn-small" title="Add a Review" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$recordDriver->getPermanentId()}')">
+		<span id="userreviewlink{$recordDriver->getPermanentId()}" class="userreviewlink btn btn-sm" title="Add a Review" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$recordDriver->getPermanentId()}')">
 			Add a Review
 		</span>
 	</div>

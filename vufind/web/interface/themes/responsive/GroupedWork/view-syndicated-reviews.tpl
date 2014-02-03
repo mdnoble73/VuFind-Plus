@@ -1,7 +1,4 @@
 {strip}
-	{if count($syndicatedReviews)}
-		<h3>Syndicated Reviews</h3>
-	{/if}
 	{foreach from=$syndicatedReviews item=providerList key=provider}
 		{foreach from=$providerList item=review}
 			{if $review.Content}
