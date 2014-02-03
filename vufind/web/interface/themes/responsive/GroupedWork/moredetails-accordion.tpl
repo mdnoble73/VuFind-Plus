@@ -1,15 +1,15 @@
 {strip}
 	<div id="more-details-accordion" class="panel-group">
 		{foreach from=$moreDetailsOptions key="moreDetailsKey" item="moreDetailsOption"}
-			<div class="panel">
-				<a data-toggle="collapse" data-parent="#more-details-accordion" href="#{$moreDetailsKey}Panel">
+			<div class="panel" id="{$moreDetailsKey}Panel" {if $moreDetailsOption.hideByDefault}style="display:none"{/if}>
+				<a data-toggle="collapse" href="#{$moreDetailsKey}PanelBody">
 					<div class="panel-heading">
 						<div class="panel-title">
 							{$moreDetailsOption.label}
 						</div>
 					</div>
 				</a>
-				<div id="{$moreDetailsKey}Panel" class="panel-collapse collapse">
+				<div id="{$moreDetailsKey}PanelBody" class="panel-collapse collapse">
 					<div class="panel-body">
 						{$moreDetailsOption.body}
 					</div>

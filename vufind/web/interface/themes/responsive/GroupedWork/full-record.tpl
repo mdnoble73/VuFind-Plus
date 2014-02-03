@@ -74,7 +74,6 @@
 			{assign var="wrapperId" value="morelikethis"}
 			{assign var="scrollerVariable" value="morelikethisScroller"}
 			{assign var="permanentId" value=$recordDriver->getPermanentId()}
-			{assign var="fullListLink" value= "$path/GroupedWork/$permanentId/SimilarTitles"}
 			{include file='titleScroller.tpl'}
 		</div>
 	</div>

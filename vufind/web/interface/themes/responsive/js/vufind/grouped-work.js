@@ -49,12 +49,15 @@ VuFind.GroupedWork = (function(){
 							for (option in goDeeperOptions){
 								if (option == 'excerpt'){
 									$("#excerpttab_label").show();
+									$("excerptPanel").show();
 								}else if (option == 'avSummary'){
 									$("#tableofcontentstab_label").show();
 									$("avSummaryPlaceholder").show();
+									$("tableOfContentsPanel").show();
 								}else if (option == 'avSummary' || option == 'tableOfContents'){
 									$("#tableofcontentstab_label").show();
 									$("tableOfContentsPlaceholder").show();
+									$("tableOfContentsPanel").show();
 								}
 							}
 						}
@@ -66,18 +69,21 @@ VuFind.GroupedWork = (function(){
 						if (similarTitlesNovelist && similarTitlesNovelist.length > 0){
 							$("#novelisttitlesPlaceholder").html(similarTitlesNovelist);
 							$("#novelisttab_label").show();
+							$("#similarTitlesPanel").show();
 						}
 
 						var similarAuthorsNovelist = data.similarAuthorsNovelist;
 						if (similarAuthorsNovelist && similarAuthorsNovelist.length > 0){
 							$("#novelistauthorsPlaceholder").html(similarAuthorsNovelist);
 							$("#novelisttab_label").show();
+							$("#similarAuthorsPanel").show();
 						}
 
 						var similarSeriesNovelist = data.similarSeriesNovelist;
 						if (similarSeriesNovelist && similarSeriesNovelist.length > 0){
 							$("#novelistseriesPlaceholder").html(similarSeriesNovelist);
 							$("#novelisttab_label").show();
+							$("#similarSeriesPanel").show();
 						}
 					} catch (e) {
 						alert("error loading enrichment: " + e);

@@ -1,6 +1,5 @@
 {strip}
 	<div class="btn-group-vertical">
-		<a href="{$path}/GroupedWork/{$summId|escape:"url"}/SimilarTitles" class="btn btn-sm ">More Like This</a>
 		{if $showFavorites == 1}
 			<button onclick="return VuFind.GroupedWork.showSaveToListForm(this, '{$summId|escape}');" class="btn btn-sm ">{translate text='Add to favorites'}</button>
 		{/if}
