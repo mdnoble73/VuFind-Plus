@@ -2503,7 +2503,8 @@ class DBMaintenance extends Admin_Admin {
 				'title' => 'Grouped Work update 2',
 				'description' =>'Updates grouped works to add a full title field.',
 				'sql' => array(
-					"ALTER TABLE `grouped_work` ADD `full_title` VARCHAR( 276 ) NOT NULL, ADD INDEX('full_title')",
+					"ALTER TABLE `grouped_work` ADD `full_title` VARCHAR( 276 ) NOT NULL",
+					"ALTER TABLE `grouped_work` ADD INDEX(`full_title`)",
 				),
 			),
 
