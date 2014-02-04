@@ -200,6 +200,9 @@ public class GroupedWorkIndexer {
 			groupedWork.addOclc(identifier);
 		}else if (type.equals("asin")){
 			//TODO: Determine what we should do with Amazon identifiers
+		}else if (type.equals("order")){
+			//Add as an alternate id
+			groupedWork.addAlternateId(identifier);
 		}else{
 			logger.warn("Unknown identifier type " + type);
 		}

@@ -36,6 +36,7 @@ public class GroupedWorkSolr {
 	private HashSet<String> usableBy = new HashSet<String>();
 
 	private String title;
+	private String displayTitle;
 	private String subTitle;
 	private HashSet<String> fullTitles = new HashSet<String>();
 	private String titleSort;
@@ -44,6 +45,7 @@ public class GroupedWorkSolr {
 	private HashSet<String> titleNew = new HashSet<String>();
 
 	private String author;
+	private String authorDisplay;
 	private String authAuthor;
 	private String authorLetter;
 	private HashSet<String> author2 = new HashSet<String>();
@@ -149,6 +151,7 @@ public class GroupedWorkSolr {
 
 		//Title and variations
 		doc.addField("title", title + " " + subTitle);
+		doc.addField("title_display", displayTitle);
 		doc.addField("title_sub", subTitle);
 		doc.addField("title_short", title);
 		doc.addField("title_full", fullTitles);
@@ -165,6 +168,7 @@ public class GroupedWorkSolr {
 		doc.addField("author2", author2);
 		doc.addField("author2-role", author2Role);
 		doc.addField("author_additional", authorAdditional);
+		doc.addField("author_display", authorDisplay);
 		//format
 		doc.addField("grouping_category", groupingCategory);
 		doc.addField("format", formats);
@@ -280,6 +284,16 @@ public class GroupedWorkSolr {
 		}
 	}
 
+	public void setDisplayTitle(String newTitle){
+		if (newTitle == null){
+			return;
+		}
+		newTitle = Util.trimTrailingPunctuation(newTitle.replace("&", "and"));
+		if (this.displayTitle == null || newTitle.length() > this.displayTitle.length()){
+			this.displayTitle = newTitle;
+		}
+	}
+
 	public void setSubTitle(String subTitle) {
 		if (subTitle != null){
 			//TODO: determine if the subtitle should be changed?
@@ -318,6 +332,10 @@ public class GroupedWorkSolr {
 		keywords.add(author);
 	}
 
+	public void setAuthorDisplay(String newAuthor){
+		this.authorDisplay = Util.trimTrailingPunctuation(newAuthor);
+	}
+
 	public void setAuthAuthor(String author) {
 		this.authAuthor = author;
 		keywords.add(author);
@@ -349,6 +367,9 @@ public class GroupedWorkSolr {
 
 	public void addAlternateIds(HashSet<String> alternateIds) {
 		this.alternateIds.addAll(alternateIds);
+	}
+	public void addAlternateId(String alternateId) {
+		this.alternateIds.add(alternateId);
 	}
 
 	public void addOwningLibraries(HashSet<String> owningLibraries) {

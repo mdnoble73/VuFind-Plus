@@ -162,63 +162,71 @@ public class IlsRecordProcessor {
 				FileInputStream inputStream = new FileInputStream(individualFile);
 				MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
 				if (marcReader.hasNext()){
-					Record record = marcReader.next();
-					updateGroupedWorkSolrDataBasedOnMarc(groupedWork, record, identifier);
+					try{
+						Record record = marcReader.next();
+						updateGroupedWorkSolrDataBasedOnMarc(groupedWork, record, identifier);
+					}catch (Exception e) {
+						logger.error("Error updating solr based on marc record", e);
+					}
 				}
 				inputStream.close();
 			} catch (Exception e) {
-				logger.error("Error loading data from ils", e);
+				logger.error("Error reading data from ils file " + individualFile.toString(), e);
 			}
 		}
 		//We didn't get a marc record, skip this record.
 	}
 
 	private void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
-		List<DataField> itemRecords = getDataFields(record, "989");
-		List<DataField> unsuppressedItemRecords = new ArrayList<DataField>();
-		for (DataField curItem : itemRecords){
-			if (!isItemSuppressed(curItem)){
-				unsuppressedItemRecords.add(curItem);
+		try{
+			List<DataField> itemRecords = getDataFields(record, "989");
+			List<DataField> unsuppressedItemRecords = new ArrayList<DataField>();
+			for (DataField curItem : itemRecords){
+				if (!isItemSuppressed(curItem)){
+					unsuppressedItemRecords.add(curItem);
+				}
 			}
+
+			loadRelatedRecordsAndSources(groupedWork, unsuppressedItemRecords, identifier);
+
+			//Do updates based on the overall bib
+			loadTitles(groupedWork, record);
+			loadAuthors(groupedWork, record);
+
+			loadFormatDetails(groupedWork, record);
+			groupedWork.addTopic(getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690a"));
+			groupedWork.addTopicFacet(getFieldList(record, "600a:600x:600a:610x:611x:611x:630a:630x:648x:650a:650x:651x:655x"));
+			groupedWork.addSeries(getFieldList(record, "440ap:800pqt:830ap"));
+			groupedWork.addSeries2(getFieldList(record, "490a"));
+			groupedWork.addPhysical(getFieldList(record, "300abcefg:530abcd"));
+			groupedWork.addDateSpan(getFieldList(record, "362a"));
+			groupedWork.addEditions(getFieldList(record, "250a"));
+			groupedWork.addContents(getFieldList(record, "505a:505t"));
+			groupedWork.addGenre(getFieldList(record, "655abcvxyz"));
+			groupedWork.addGenreFacet(getFieldList(record, "600v:610v:611v:630v:648v:650v:651v:655a:655v"));
+			groupedWork.addGeographic(getFieldList(record, "651avxyz"));
+			groupedWork.addGeographicFacet(getFieldList(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z"));
+			groupedWork.addEra(getFieldList(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y"));
+
+			loadLanguageDetails(groupedWork, record);
+			loadPublicationDetails(groupedWork, record);
+			loadLiteraryForms(groupedWork, record);
+			loadTargetAudiences(groupedWork, record);
+			groupedWork.addMpaaRating(groupedWork, getMpaaRating(record));
+
+			//Do updates based on items
+			loadOwnershipInformation(groupedWork, unsuppressedItemRecords);
+			loadAvailability(groupedWork, unsuppressedItemRecords);
+			loadUsability(groupedWork, unsuppressedItemRecords);
+			loadPopularity(groupedWork, unsuppressedItemRecords);
+			loadDateAdded(groupedWork, unsuppressedItemRecords);
+			loadITypes(groupedWork, unsuppressedItemRecords);
+			groupedWork.addBarcodes(getFieldList(record, "989b"));
+
+			groupedWork.addHoldings(unsuppressedItemRecords.size());
+		}catch (Exception e){
+			logger.error("Error updating grouped work for MARC record with identifier " + identifier, e);
 		}
-
-		loadRelatedRecordsAndSources(groupedWork, unsuppressedItemRecords, identifier);
-
-		//Do updates based on the overall bib
-		loadTitles(groupedWork, record);
-		loadAuthors(groupedWork, record);
-
-		loadFormatDetails(groupedWork, record);
-		groupedWork.addTopic(getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690a"));
-		groupedWork.addTopicFacet(getFieldList(record, "600a:600x:600a:610x:611x:611x:630a:630x:648x:650a:650x:651x:655x"));
-		groupedWork.addSeries(getFieldList(record, "440ap:800pqt:830ap"));
-		groupedWork.addSeries2(getFieldList(record, "490a"));
-		groupedWork.addPhysical(getFieldList(record, "300abcefg:530abcd"));
-		groupedWork.addDateSpan(getFieldList(record, "362a"));
-		groupedWork.addEditions(getFieldList(record, "250a"));
-		groupedWork.addContents(getFieldList(record, "505a:505t"));
-		groupedWork.addGenre(getFieldList(record, "655abcvxyz"));
-		groupedWork.addGenreFacet(getFieldList(record, "600v:610v:611v:630v:648v:650v:651v:655a:655v"));
-		groupedWork.addGeographic(getFieldList(record, "651avxyz"));
-		groupedWork.addGeographicFacet(getFieldList(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z"));
-		groupedWork.addEra(getFieldList(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y"));
-
-		loadLanguageDetails(groupedWork, record);
-		loadPublicationDetails(groupedWork, record);
-		loadLiteraryForms(groupedWork, record);
-		loadTargetAudiences(groupedWork, record);
-		groupedWork.addMpaaRating(groupedWork, getMpaaRating(record));
-
-		//Do updates based on items
-		loadOwnershipInformation(groupedWork, unsuppressedItemRecords);
-		loadAvailability(groupedWork, unsuppressedItemRecords);
-		loadUsability(groupedWork, unsuppressedItemRecords);
-		loadPopularity(groupedWork, unsuppressedItemRecords);
-		loadDateAdded(groupedWork, unsuppressedItemRecords);
-		loadITypes(groupedWork, unsuppressedItemRecords);
-		groupedWork.addBarcodes(getFieldList(record, "989b"));
-
-		groupedWork.addHoldings(unsuppressedItemRecords.size());
 	}
 
 	Pattern mpaaRatingRegex1 = null;
@@ -534,6 +542,12 @@ public class IlsRecordProcessor {
 		groupedWork.addAuthor2Role(this.getFieldList(record, "700e:710e"));
 		//author_additional = 505r:245c
 		groupedWork.addAuthorAdditional(this.getFieldList(record, "505r:245c"));
+		//author_display = 100a:110a:260b:710a:245c, first
+		String displayAuthor = this.getFirstFieldVal(record, "100a:110a:260b:710a:245c");
+		if (displayAuthor != null && displayAuthor.indexOf(';') > 0){
+			displayAuthor = displayAuthor.substring(0, displayAuthor.indexOf(';') -1);
+		}
+		groupedWork.setAuthorDisplay(displayAuthor);
 	}
 
 	private void loadTitles(GroupedWorkSolr groupedWork, Record record) {
@@ -543,6 +557,8 @@ public class IlsRecordProcessor {
 		groupedWork.setTitle(this.getFirstFieldVal(record, "245a"));
 		//title sub
 		groupedWork.setSubTitle(this.getFirstFieldVal(record, "245b"));
+		//display title
+		groupedWork.setDisplayTitle(this.getFirstFieldVal(record, "245abnp"));
 		//title full
 		groupedWork.addFullTitles(this.getAllSubfields(record, "245", " "));
 		//title sort
@@ -1191,7 +1207,7 @@ public class IlsRecordProcessor {
 	 */
 	public String getSortableTitle(Record record) {
 		DataField titleField = (DataField) record.getVariableField("245");
-		if (titleField == null)
+		if (titleField == null || titleField.getSubfield('a') == null)
 			return "";
 
 		int nonFilingInt = getInd2AsInt(titleField);

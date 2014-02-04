@@ -437,7 +437,7 @@ class BookCoverProcessor{
 			$groupedWork = new GroupedWork();
 			$groupedWork->id = $this->id;
 			if ($groupedWork->find(true)){
-				$title = ucwords($groupedWork->title);
+				$title = ucwords($groupedWork->full_title);
 				$author = ucwords($groupedWork->author);
 			}
 		}elseif ($this->isEContent){

@@ -145,6 +145,7 @@
 		<field name="title_exact" type="text-exact" indexed="true" stored="true"/>  <!-- basic title -->
 		<field name="title_left" type="text-left" indexed="true" stored="true"/>  <!-- basic title -->
 		<field name="title_proper" type="textProper" indexed="true" stored="true"/>  <!-- basic title -->
+		<field name="title_display" type="text" indexed="true" stored="true" multiValued="false"/> <!-- The title to display to the user -->
 		<field name="title_sort" type="alphaOnlySort" indexed="true" stored="true"/> <!-- title for sorting -->
 		<field name="title_sub" type="text" indexed="true" stored="true"/>
 		<field name="title_short" type="text" indexed="true" stored="true"/>
@@ -155,6 +156,7 @@
 		<field name="title_new" type="text" indexed="true" stored="true" multiValued="true"/>
 		<!-- Author variations -->
 		<field name="author" type="text" indexed="true" stored="true" termVectors="true"/>
+		<field name="author_display" type="text" indexed="true" stored="true" multiValued="false"/> <!-- The title to display to the user -->
 		<field name="author-letter" type="string" indexed="true" stored="true"/>
 		<field name="authorStr" type="textFacet" indexed="true" stored="true"/>
 		<field name="auth_author" type="textProper" indexed="true" stored="true"/>

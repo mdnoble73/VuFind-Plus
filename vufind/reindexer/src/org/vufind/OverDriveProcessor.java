@@ -74,8 +74,17 @@ public class OverDriveProcessor {
 			if (productRS.next()){
 				Long productId = productRS.getLong("id");
 				String title = productRS.getString("title");
+				String subtitle = productRS.getString(z"subtitle");
+				if (subtitle == null){
+					subtitle = "";
+				}
 				groupedWork.setTitle(title);
-				groupedWork.addFullTitle(title);
+				groupedWork.setDisplayTitle(title);
+				groupedWork.setSubTitle(subtitle);
+				String fullTitle = title + " " + subtitle;
+				fullTitle = fullTitle.trim();
+				groupedWork.addFullTitle(fullTitle);
+				groupedWork.setDisplayTitle(fullTitle);
 				String mediaType = productRS.getString("mediaType");
 				if (mediaType.equals("Audiobook")){
 					groupedWork.addFormatCategory("Audio Books");
@@ -86,6 +95,7 @@ public class OverDriveProcessor {
 				}
 				groupedWork.addSeries(productRS.getString("series"));
 				groupedWork.setAuthor(productRS.getString("primaryCreatorName"));
+				groupedWork.setAuthorDisplay(productRS.getString("primaryCreatorName"));
 				productRS.close();
 
 				loadOverDriveMetadata(groupedWork, productId);
