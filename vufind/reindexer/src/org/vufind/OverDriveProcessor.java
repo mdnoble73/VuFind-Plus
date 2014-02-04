@@ -74,7 +74,7 @@ public class OverDriveProcessor {
 			if (productRS.next()){
 				Long productId = productRS.getLong("id");
 				String title = productRS.getString("title");
-				String subtitle = productRS.getString(z"subtitle");
+				String subtitle = productRS.getString("subtitle");
 				if (subtitle == null){
 					subtitle = "";
 				}
