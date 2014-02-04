@@ -316,7 +316,7 @@ class MillenniumDriver implements DriverInterface
 				'isLocalItem' => $isLocalItem,
 				'isLibraryItem' => $isLibraryItem,
 				'locationLabel' => $locationLabel,
-				'shelfLocation' => $shelfLocationMap[$locationCode],
+				'shelfLocation' => isset($shelfLocationMap[$locationCode]) ? $shelfLocationMap[$locationCode] : '',
 			);
 			$items[] = $item;
 		}

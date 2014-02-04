@@ -5,13 +5,11 @@
 		{$recordDriver->getTitle()|removeTrailingPunctuation|escape}
 	</h2>
 
-	{if $recordDriver->getAuthors()}
+	{if $recordDriver->getPrimaryAuthor()}
 		<div class="row">
 			<div class="result-label col-md-3">Author: </div>
 			<div class="col-md-9 result-value">
-				{foreach from=$recordDriver->getAuthors() item=author}
-					<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
-				{/foreach}
+				<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$recordDriver->getPrimaryAuthor()|highlight:$lookfor}</a>
 			</div>
 		</div>
 	{/if}

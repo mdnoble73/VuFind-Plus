@@ -469,8 +469,19 @@ class GroupedWorkDriver implements RecordInterface{
 	 */
 	public function getTitle()
 	{
-		return isset($this->fields['title']) ?
-				$this->fields['title'] : '';
+		if (isset($this->fields['title_display'])){
+			return $this->fields['title_display'];
+		}else{
+			if (isset($this->fields['title_full'])){
+				if (is_array($this->fields['title_full'])){
+					return reset($this->fields['title_full']);
+				}else{
+					return $this->fields['title_full'];
+				}
+			}else{
+				return '';
+			}
+		}
 	}
 
 	/**
@@ -505,7 +516,11 @@ class GroupedWorkDriver implements RecordInterface{
 	 */
 	public function getPrimaryAuthor()
 	{
-		return isset($this->fields['author']) ? $this->fields['author'] : '';
+		if (isset($this->fields['author_display'])){
+			return $this->fields['author_display'];
+		}else{
+			return isset($this->fields['author']) ? $this->fields['author'] : '';
+		}
 	}
 
 	public function getScore(){
@@ -553,7 +568,7 @@ class GroupedWorkDriver implements RecordInterface{
 
 	function getBookcoverUrl($size){
 		global $configArray;
-		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$this->getUniqueID()}&amp;size={$size}";
+		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$this->getUniqueID()}&amp;size={$size}&amp;type=grouped_work";
 		$isbn = $this->getCleanISBN();
 		if ($isbn){
 			$bookCoverUrl .= "&amp;isn={$isbn}";
@@ -563,6 +578,14 @@ class GroupedWorkDriver implements RecordInterface{
 				$bookCoverUrl .= "&amp;upc={$upc}";
 			}
 		}
+		if (isset($this->fields['format_category'])){
+			if (is_array($this->fields['format_category'])){
+				$bookCoverUrl .= "&category=" . reset($this->fields['format_category']);
+			}else{
+				$bookCoverUrl .= "&category=" . $this->fields['format_category'];
+			}
+		}
+
 		return $bookCoverUrl;
 	}
 

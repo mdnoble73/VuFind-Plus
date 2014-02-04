@@ -498,12 +498,16 @@ class Solr implements IndexEngine {
 				if (is_array($originalResult['target_audience_full'])){
 					$filter = '';
 					foreach ($originalResult['target_audience_full'] as $targetAudience){
-						if (strlen($filter) > 0){
-							$filter .= ' OR ';
+						if ($targetAudience != 'Unknown'){
+							if (strlen($filter) > 0){
+								$filter .= ' OR ';
+							}
+							$filter .= 'target_audience_full:"' . $targetAudience . '"';
 						}
-						$filter .= 'target_audience_full:"' . $targetAudience . '"';
 					}
-					$options['fq'][] = "($filter)";
+					if (strlen($filter) > 0){
+						$options['fq'][] = "($filter)";
+					}
 				}else{
 					$options['fq'][] = 'target_audience_full:"' . $originalResult['target_audience_full'] . '"';
 				}
@@ -512,12 +516,16 @@ class Solr implements IndexEngine {
 				if (is_array($originalResult['literary_form'])){
 					$filter = '';
 					foreach ($originalResult['literary_form'] as $literaryForm){
-						if (strlen($filter) > 0){
-							$filter .= ' OR ';
+						if ($literaryForm != 'Not Coded'){
+							if (strlen($filter) > 0){
+								$filter .= ' OR ';
+							}
+							$filter .= 'literary_form:"' . $literaryForm . '"';
 						}
-						$filter .= 'literary_form:"' . $literaryForm . '"';
 					}
-					$options['fq'][] = "($filter)";
+					if (strlen($filter) > 0){
+						$options['fq'][] = "($filter)";
+					}
 				}else{
 					$options['fq'][] = 'literary_form:"' . $originalResult['literary_form'] . '"';
 				}
