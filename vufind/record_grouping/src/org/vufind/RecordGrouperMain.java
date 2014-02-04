@@ -136,10 +136,18 @@ public class RecordGrouperMain {
 						overDriveCreatorStmt.setLong(1, id);
 						overDriveCreatorStmt.setString(2, primaryCreatorRole);
 						ResultSet creatorInfoRS = overDriveCreatorStmt.executeQuery();
+						boolean swapFirstNameLastName = false;
 						if (creatorInfoRS.next()){
-							author = creatorInfoRS.getString("fileAs");
+							String tmpAuthor = creatorInfoRS.getString("fileAs");
+							if (tmpAuthor.equals(author)){
+								swapFirstNameLastName = true;
+							}else{
+								author = tmpAuthor;
+							}
 						} else {
-							//logger.warn("Did not find the file as name for author " + author + " of overdrive record " + overdriveId);
+							swapFirstNameLastName = true;
+						}
+						if (swapFirstNameLastName){
 							if (author.contains(" ")){
 								String[] authorParts = author.split("\\s+");
 								StringBuilder tmpAuthor = new StringBuilder();

@@ -17,8 +17,9 @@ import java.util.regex.Pattern;
  */
 public class GroupedWork implements Cloneable{
 	private String title = "";              //Up to 100 chars
-	private String author = "";             //Up to 50  chars
 	private String subtitle = "";           //Up to 175 chars
+	private String full_title = "";           //Up to 275 chars
+	private String author = "";             //Up to 50  chars
 	public String groupingCategory = "";   //Up to 25  chars
 
 	public HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
@@ -41,15 +42,11 @@ public class GroupedWork implements Cloneable{
 		String permanentId = null;
 		try {
 			MessageDigest idGenerator = MessageDigest.getInstance("MD5");
-			if (title.equals("")){
+			String fullTitle = getFullTitle();
+			if (fullTitle.equals("")){
 				idGenerator.update("--null--".getBytes());
 			}else{
-				idGenerator.update(title.getBytes());
-			}
-			if (subtitle.equals("")){
-				idGenerator.update("--null--".getBytes());
-			}else{
-				idGenerator.update(subtitle.getBytes());
+				idGenerator.update(fullTitle.getBytes());
 			}
 			if (author.equals("")){
 				idGenerator.update("--null--".getBytes());
@@ -86,6 +83,7 @@ public class GroupedWork implements Cloneable{
 
 	static Pattern authorExtract1 = Pattern.compile("^(.*)\\spresents.*$");
 	static Pattern authorExtract2 = Pattern.compile("^(?:(?:a|an)\\s)?(.*)\\spresentation.*$");
+	static Pattern homeEntertainmentRemoval = Pattern.compile("^(.*)\\shome entertainment$");
 	static Pattern initialsFix = Pattern.compile("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))");
 	static Pattern specialCharacterStrip = Pattern.compile("[^\\w\\s]");
 	static Pattern consecutiveCharacterStrip = Pattern.compile("\\s{2,}");
@@ -103,10 +101,20 @@ public class GroupedWork implements Cloneable{
 		if (authorExtract2Matcher.find()){
 			groupingAuthor = authorExtract2Matcher.group(1);
 		}
+		//Remove home entertainment
+		Matcher homeEntertainmentMatcher = homeEntertainmentRemoval.matcher(groupingAuthor);
+		if (homeEntertainmentMatcher.find()){
+			groupingAuthor = homeEntertainmentMatcher.group(1);
+		}
+
 		//Normalize warner bros since we get a couple of different variations
 		if (groupingAuthor.equals("warner bros")){
 			groupingAuthor = "warner bros pictures";
 		}
+		if (groupingAuthor.equals("paramount")){
+			groupingAuthor = "paramount pictures";
+		}
+
 
 		if (groupingAuthor.length() > 50){
 			groupingAuthor = groupingAuthor.substring(0, 50);
@@ -187,6 +195,10 @@ public class GroupedWork implements Cloneable{
 		}
 	}
 
+	public String getFullTitle(){
+		String fullTitle = this.title + " " + this.subtitle;
+		return fullTitle.trim();
+	}
 	public String getTitle() {
 		return title;
 	}

@@ -2499,6 +2499,14 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'grouped_works_2' => array(
+				'title' => 'Grouped Work update 2',
+				'description' =>'Updates grouped works to add a full title field.',
+				'sql' => array(
+					"ALTER TABLE `grouped_work` ADD `full_title` VARCHAR( 276 ) NOT NULL, ADD INDEX('full_title')",
+				),
+			),
+
 			'ils_marc_checksums' => array(
 				'title' => 'ILS MARC Checksums',
 				'description' =>'Add a table to store checksums of MARC records stored in the ILS so we can determine if the record needs to be updated during grouping.',

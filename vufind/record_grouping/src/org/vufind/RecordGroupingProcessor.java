@@ -50,7 +50,7 @@ public class RecordGroupingProcessor {
 		this.logger = logger;
 		try{
 			getGroupedWorkStmt = dbConnection.prepareStatement("SELECT id FROM " + RecordGrouperMain.groupedWorkTableName + " where permanent_id = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkTableName + " (title, subtitle, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
+			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkTableName + " (title, subtitle, full_title, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
 			getExistingIdentifierStmt = dbConnection.prepareStatement("SELECT id FROM " + RecordGrouperMain.groupedWorkIdentifiersTableName + " where type = ? and identifier = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			insertIdentifierStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkIdentifiersTableName + " (type, identifier) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
 			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkIdentifiersRefTableName + " (grouped_work_id, identifier_id) VALUES (?, ?)");
@@ -84,6 +84,8 @@ public class RecordGroupingProcessor {
 			if (field245.getSubfield('b') != null){
 				groupingSubtitle.append(field245.getSubfield('b').getData());
 			}
+
+			//Group volumes, seasons, etc. independently
 			if (field245.getSubfield('n') != null){
 				if (groupingSubtitle.length() > 0) groupingSubtitle.append(" ");
 				groupingSubtitle.append(field245.getSubfield('n').getData());
@@ -344,9 +346,10 @@ public class RecordGroupingProcessor {
 					long startAdd = new Date().getTime();
 					insertGroupedWorkStmt.setString(1, groupedWork.getTitle());
 					insertGroupedWorkStmt.setString(2, groupedWork.getSubtitle());
-					insertGroupedWorkStmt.setString(3, groupedWork.getAuthor());
-					insertGroupedWorkStmt.setString(4, groupedWork.groupingCategory);
-					insertGroupedWorkStmt.setString(5, groupedWorkPermanentId);
+					insertGroupedWorkStmt.setString(3, groupedWork.getFullTitle());
+					insertGroupedWorkStmt.setString(4, groupedWork.getAuthor());
+					insertGroupedWorkStmt.setString(5, groupedWork.groupingCategory);
+					insertGroupedWorkStmt.setString(6, groupedWorkPermanentId);
 
 					insertGroupedWorkStmt.executeUpdate();
 					ResultSet generatedKeysRS = insertGroupedWorkStmt.getGeneratedKeys();
