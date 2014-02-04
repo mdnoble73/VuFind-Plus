@@ -35,6 +35,7 @@ public class RecordGrouperMain {
 	public static String groupedWorkTableName = "grouped_work";
 	public static String groupedWorkIdentifiersTableName = "grouped_work_identifiers";
 	public static String groupedWorkIdentifiersRefTableName = "grouped_work_identifiers_ref";
+	public static String groupedWorkPrimaryIdentifiersTableName = "grouped_work_primary_identifiers";
 
 	private static long timeSpentWritingMarcRecords;
 
@@ -106,6 +107,7 @@ public class RecordGrouperMain {
 				vufindConn.prepareStatement("TRUNCATE " + groupedWorkTableName).executeUpdate();
 				vufindConn.prepareStatement("TRUNCATE " + groupedWorkIdentifiersTableName).executeUpdate();
 				vufindConn.prepareStatement("TRUNCATE " + groupedWorkIdentifiersRefTableName).executeUpdate();
+				vufindConn.prepareStatement("TRUNCATE " + groupedWorkPrimaryIdentifiersTableName).executeUpdate();
 			}catch (Exception e){
 				System.out.println("Error clearing database " + e.toString());
 				System.exit(1);
@@ -164,21 +166,21 @@ public class RecordGrouperMain {
 					overDriveIdentifiersStmt.setLong(1, id);
 					ResultSet overDriveIdentifierRS = overDriveIdentifiersStmt.executeQuery();
 					HashSet<RecordIdentifier> overDriveIdentifiers = new HashSet<RecordIdentifier>();
-					RecordIdentifier identifier = new RecordIdentifier();
-					identifier.setValue("overdrive", overdriveId);
-					overDriveIdentifiers.add(identifier);
+					RecordIdentifier primaryIdentifier = new RecordIdentifier();
+					primaryIdentifier.setValue("overdrive", overdriveId);
 					while (overDriveIdentifierRS.next()){
-						identifier = new RecordIdentifier();
+						RecordIdentifier identifier = new RecordIdentifier();
 						identifier.setValue(overDriveIdentifierRS.getString("type"), overDriveIdentifierRS.getString("value"));
 						if (identifier.isValid()){
 							overDriveIdentifiers.add(identifier);
 						}
 					}
 
-					recordGroupingProcessor.processRecord(title, subtitle, author, mediaType, overDriveIdentifiers);
+					recordGroupingProcessor.processRecord(primaryIdentifier, title, subtitle, author, mediaType, overDriveIdentifiers);
 					numRecordsProcessed++;
 				}
 				overDriveRecordRS.close();
+				logger.info("Finished grouping " + numRecordsProcessed + " records from overdrive ");
 			}catch (Exception e){
 				System.out.println("Error loading OverDrive records: " + e.toString());
 				e.printStackTrace();
@@ -212,14 +214,14 @@ public class RecordGrouperMain {
 									recordGroupingProcessor.dumpStats();
 									long minutesWritingMarcs = timeSpentWritingMarcRecords / (60 * 1000);
 									logger.debug("Spent " + minutesWritingMarcs + " minutes writing marc records");
-								} */
+								}*/
 							}
 							marcFileStream.close();
 						}catch(Exception e){
 							logger.error("Error loading catalog bibs: ", e);
 						}
+						logger.info("Finished grouping " + numRecordsProcessed + " records from the ils file " + curBibFile.getName());
 					}
-					logger.info("Finished grouping " + numRecordsProcessed + " records from the ils.");
 				}
 			}
 		}
@@ -292,7 +294,9 @@ public class RecordGrouperMain {
 						// e.printStackTrace();
 						System.out.println(e.getCause());
 					}
-					writer.write(result);
+					if (result != null){
+						writer.write(result);
+					}
 					writer.close();
 
 					try{

@@ -2472,11 +2472,7 @@ class DBMaintenance extends Admin_Admin {
 					  identifier varchar(36) NOT NULL,
 					  linksToDifferentTitles tinyint(4) NOT NULL DEFAULT '0',
 					  PRIMARY KEY (id),
-					  UNIQUE KEY grouped_work_id (grouped_work_id,`type`,identifier),
-					  KEY grouped_record_id (grouped_work_id),
 					  KEY `type` (`type`,identifier),
-					  KEY type_2 (`type`),
-					  KEY linksToDifferentTitles (linksToDifferentTitles)
 					) ENGINE=MyISAM  DEFAULT CHARSET=utf8",
 				),
 
@@ -2505,6 +2501,22 @@ class DBMaintenance extends Admin_Admin {
 				'sql' => array(
 					"ALTER TABLE `grouped_work` ADD `full_title` VARCHAR( 276 ) NOT NULL",
 					"ALTER TABLE `grouped_work` ADD INDEX(`full_title`)",
+				),
+			),
+
+			'grouped_works_primary_identifiers' => array(
+				'title' => 'Grouped Work Primary Identifiers',
+				'description' =>'Add primary identifiers table for works.',
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS grouped_work_primary_identifiers (
+					  id bigint(20) NOT NULL AUTO_INCREMENT,
+					  grouped_work_id bigint(20) NOT NULL,
+					  `type` ENUM('ils', 'external_econtent', 'acs', 'free', 'overdrive' ) NOT NULL,
+					  identifier varchar(36) NOT NULL,
+					  PRIMARY KEY (id),
+					  UNIQUE KEY (`type`,identifier),
+					  KEY grouped_record_id (grouped_work_id)
+					) ENGINE=MyISAM  DEFAULT CHARSET=utf8",
 				),
 			),
 

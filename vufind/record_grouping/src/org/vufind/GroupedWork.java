@@ -3,7 +3,6 @@ package org.vufind;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,25 +17,10 @@ import java.util.regex.Pattern;
 public class GroupedWork implements Cloneable{
 	private String title = "";              //Up to 100 chars
 	private String subtitle = "";           //Up to 175 chars
-	private String full_title = "";           //Up to 275 chars
 	private String author = "";             //Up to 50  chars
 	public String groupingCategory = "";   //Up to 25  chars
 
 	public HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
-
-	private static HashMap<String, String> categoryMap = new HashMap<String, String>();
-	static {
-		categoryMap.put("other", "other");
-		categoryMap.put("book", "book");
-		categoryMap.put("ebook", "book");
-		categoryMap.put("audio", "book");
-		categoryMap.put("music", "music");
-		categoryMap.put("movie", "movie");
-	}
-
-	public GroupedWork(){
-
-	}
 
 	public String getPermanentId() {
 		String permanentId = null;
@@ -63,17 +47,7 @@ public class GroupedWork implements Cloneable{
 				permanentId = "0" + permanentId;
 			}
 			//Insert -'s for formatting
-			StringBuilder formattedId = new StringBuilder();
-			formattedId.append(permanentId.substring(0, 8))
-					.append("-")
-					.append(permanentId.substring(8,12))
-					.append("-")
-					.append(permanentId.substring(12,16))
-					.append("-")
-					.append(permanentId.substring(16,20))
-					.append("-")
-					.append(permanentId.substring(20));
-			permanentId = formattedId.toString();
+			permanentId = permanentId.substring(0, 8) + "-" + permanentId.substring(8, 12) + "-" + permanentId.substring(12, 16) + "-" + permanentId.substring(16, 20) + "-" + permanentId.substring(20);
 		} catch (NoSuchAlgorithmException e) {
 			System.out.println("Error generating permanent id" + e.toString());
 		}
