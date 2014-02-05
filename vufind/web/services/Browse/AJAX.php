@@ -135,8 +135,8 @@ class Browse_AJAX extends Action {
 			$this->searchObject->setSort($browseCategory->defaultSort);
 			$this->searchObject->clearFacets();
 			$this->searchObject->disableLogging();
-			$this->searchObject->setPage($pageToLoad);
 			$this->searchObject->setLimit(24);
+			$this->searchObject->setPage($pageToLoad);
 			$this->searchObject->processSearch();
 			$records = $this->searchObject->getBrowseRecordHTML();
 			if (count($records) == 0){
