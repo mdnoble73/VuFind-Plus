@@ -13,6 +13,7 @@
 					{if $record.recordId}
 						<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}">
 					{/if}
+
 					<img src="{$coverUrl}/bookcover.php?id={$record.recordId}&amp;issn={$record.issn}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 					{if $record.recordId}
 						</a>
@@ -56,12 +57,14 @@
 						</div>
 					{/if}
 
-					<div class="row">
-						<div class="result-label col-md-3">{translate text='Format'}</div>
-						<div class="col-md-9 result-value">
-							{implode subject=$record.format glue=", "}
+					{if $record.format}
+						<div class="row">
+							<div class="result-label col-md-3">{translate text='Format'}</div>
+							<div class="col-md-9 result-value">
+								{implode subject=$record.format glue=", "}
+							</div>
 						</div>
-					</div>
+					{/if}
 
 					<div class="row">
 						<div class="result-label col-md-3">{translate text='Pickup'}</div>

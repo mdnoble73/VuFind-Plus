@@ -134,8 +134,10 @@ class Record_Home extends Record_Record{
 		$timer->logTime('Configure UI for library and location');
 
 		//Build the actual view
+		$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');
 		$interface->setTemplate('view.tpl');
 
+		/** @var File_MARC_Data_Field $titleField */
 		$titleField = $this->marcRecord->getField('245');
 		if ($titleField){
 			if ($titleField->getSubfield('a')){

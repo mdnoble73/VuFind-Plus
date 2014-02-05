@@ -67,6 +67,14 @@ class MarcRecord extends IndexRecord
 				}
 			}
 		}
+		if (!isset($this->id)){
+			/** @var File_MARC_Data_Field $idField */
+			$idField = $this->marcRecord->getField('907');
+			if ($idField){
+				$this->id = $idField->getSubfield('a')->getData();
+			}
+		}
+		parent::loadGroupedWork();
 	}
 
 	public function isValid(){
@@ -1622,5 +1630,60 @@ class MarcRecord extends IndexRecord
 		return $publishers;
 	}
 
+	/**
+	 * Get an array of all ISBNs associated with the record (may be empty).
+	 *
+	 * @access  protected
+	 * @return  array
+	 */
+	protected function getISBNs()
+	{
+		// If ISBN is in the index, it should automatically be an array... but if
+		// it's not set at all, we should normalize the value to an empty array.
+		if (isset($this->fields['isbn'])){
+			if (is_array($this->fields['isbn'])){
+				return $this->fields['isbn'];
+			}else{
+				return array($this->fields['isbn']);
+			}
+		}else{
+			$isbns = array();
+			/** @var File_MARC_Data_Field[] $isbnFields */
+			$isbnFields = $this->marcRecord->getFields('020');
+			foreach($isbnFields as $isbnField){
+				if ($isbnField->getSubfield('a') != null){
+					$isbns[] = $isbnField->getSubfield('a')->getData();
+				}
+			}
+			return $isbns;
+		}
+	}
 
+	/**
+	 * Get the UPC associated with the record (may be empty).
+	 *
+	 * @return  array
+	 */
+	public function getUPCs()
+	{
+		// If UPCs is in the index, it should automatically be an array... but if
+		// it's not set at all, we should normalize the value to an empty array.
+		if (isset($this->fields['upc'])){
+			if (is_array($this->fields['upc'])){
+				return $this->fields['upc'];
+			}else{
+				return array($this->fields['upc']);
+			}
+		}else{
+			$upcs = array();
+			/** @var File_MARC_Data_Field[] $upcFields */
+			$upcFields = $this->marcRecord->getFields('024');
+			foreach($upcFields as $upcField){
+				if ($upcField->getSubfield('a') != null){
+					$upcs[] = $upcField->getSubfield('a')->getData();
+				}
+			}
+			return $upcs;
+		}
+	}
 }

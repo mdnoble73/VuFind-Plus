@@ -24,19 +24,6 @@
 {literal}});{/literal}
 </script>
 {strip}
-	<div class="btn-group">
-		{if isset($previousId)}
-			<div id="previousRecordLink" class="btn"><a href="{$path}/{$previousType}/{$previousId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$previousIndex}&amp;page={if isset($previousPage)}{$previousPage}{else}{$page}{/if}" title="{if !$previousTitle}{translate text='Previous'}{else}{$previousTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}"><img src="{$path}/interface/themes/default/images/prev.png" alt="Previous Record"/></a></div>
-		{/if}
-		{if $lastsearch}
-			<div id="returnToSearch" class="btn">
-				<a href="{$lastsearch|escape}#record{$id|escape:"url"}">{translate text="Search Results"}</a>
-			</div>
-		{/if}
-		{if isset($nextId)}
-			<div id="nextRecordLink" class="btn"><a href="{$path}/{$nextType}/{$nextId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$nextIndex}&amp;page={if isset($nextPage)}{$nextPage}{else}{$page}{/if}" title="{if !$nextTitle}{translate text='Next'}{else}{$nextTitle|truncate:180:"..."|replace:"&":"&amp;"}{/if}"><img src="{$path}/interface/themes/default/images/next.png" alt="Next Record"/></a></div>
-		{/if}
-	</div>
 
 	{* Display Title *}
 	<h2>
@@ -47,9 +34,12 @@
 	</h2>
 	{* Display more information about the title*}
 	{if $mainAuthor}
-		<h3>
-			by <a href="{$path}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|escape}</a>
-		</h3>
+		<div class="row">
+			<div class="result-label col-md-3">Author: </div>
+			<div class="col-md-9 result-value">
+				<a href="{$path}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|highlight:$lookfor}</a>
+			</div>
+		</div>
 	{/if}
 
 	{if $corporateAuthor}
@@ -68,24 +58,10 @@
 		</div>
 		*}
 
-		<div id="main-content" class="col-md-12">
+		<div id="main-content" class="col-sm-12">
 			<div class="row">
-				<div id="image-column" class="col-md-3">
-					{* Display Book Cover *}
-					{if $user->disableCoverArt != 1}
-						<div id = "recordcover">
-							<img alt="{translate text='Book Cover'}" class="img-polaroid" src="{$bookCoverUrl}" />
-						</div>
-					{/if}
 
-					{if $goldRushLink}
-						<div class ="titledetails">
-							<a href='{$goldRushLink}' >Check for online articles</a>
-						</div>
-					{/if}
-				</div> {* End image column *}
-
-				<div id="record-details-column" class="col-md-6">
+				<div id="record-details-column" class="col-sm-9">
 					<div id="record-details-header">
 						<div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord">Loading availability information...</div>
 					</div>

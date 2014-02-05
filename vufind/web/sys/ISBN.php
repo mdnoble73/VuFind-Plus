@@ -102,9 +102,7 @@ class ISBN {
 	public function isValid() {
 		// If we haven't already checked validity, do so now and store the result:
 		if (is_null($this->valid)) {
-			if (self::isValidISBN10($this->raw) ||
-					self::isValidISBN13($this->raw)
-			) {
+			if (self::isValidISBN10($this->raw) || self::isValidISBN13($this->raw)) {
 				$this->valid = true;
 			} else {
 				$this->valid = false;

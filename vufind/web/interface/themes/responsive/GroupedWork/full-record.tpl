@@ -9,7 +9,7 @@
 		<div class="row">
 			<div class="result-label col-md-3">Author: </div>
 			<div class="col-md-9 result-value">
-				<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$recordDriver->getPrimaryAuthor()|highlight:$lookfor}</a>
+				<a href="{$path}/Author/Home?author={$recordDriver->getPrimaryAuthor()|escape:"url"}">{$recordDriver->getPrimaryAuthor()|highlight:$lookfor}</a>
 			</div>
 		</div>
 	{/if}

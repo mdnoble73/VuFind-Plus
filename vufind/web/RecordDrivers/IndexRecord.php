@@ -87,6 +87,11 @@ class IndexRecord implements RecordInterface
 	protected $snippet = false;
 
 	/**
+	 * The Grouped Work that this record is connected to
+	 * @var  GroupedWork */
+	protected $groupedWork;
+
+	/**
 	 * Constructor.  We build the object using all the data retrieved
 	 * from the (Solr) index.  Since we have to
 	 * make a search call to find out which record driver to construct,
@@ -174,6 +179,7 @@ class IndexRecord implements RecordInterface
 			case 'MLA':
 				return $citation->getMLA();
 		}
+		return '';
 	}
 
 	/**
@@ -749,12 +755,8 @@ class IndexRecord implements RecordInterface
 		$interface->assign('summDescription', $this->getDescription());
 
 		//Determine the cover to use
-		$isbn = $this->getCleanISBN();
-		$formatCategory = isset($formatCategories[0]) ? $formatCategories[0] : '';
-		$format = isset($formats[0]) ? $formats[0] : '';
-
-		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $upc, $formatCategory, $format));
-		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl($id, $upc, $formatCategory, $format, 'medium'));
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
 
 		// By default, do not display AJAX status; we won't assume that all
 		// records exist in the ILS.  Child classes can override this setting
@@ -844,12 +846,8 @@ class IndexRecord implements RecordInterface
 		$interface->assign('summRating', $ratingData);
 
 		//Determine the cover to use
-		$isbn = $this->getCleanISBN();
-		$formatCategory = isset($formatCategories[0]) ? $formatCategories[0] : '';
-		$format = isset($formats[0]) ? $formats[0] : '';
-
-		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $upc, $formatCategory, $format));
-		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl($id, $upc, $formatCategory, $format, 'medium'));
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
 
 		// By default, do not display AJAX status; we won't assume that all
 		// records exist in the ILS.  Child classes can override this setting
@@ -859,13 +857,21 @@ class IndexRecord implements RecordInterface
 		return 'RecordDrivers/Index/supplementalResult.tpl';
 	}
 
-	function getBookcoverUrl($id, $upc, $formatCategory, $format, $size = 'small'){
+	function getBookcoverUrl($size = 'small'){
+		$id = $this->getUniqueID();
+		$formatCategory = $this->getFormatCategory();
+		if (is_array($formatCategory)){
+			$formatCategory = reset($formatCategory);
+		}
+		$formats = $this->getFormat();
+		$format = reset($formats);
 		global $configArray;
 		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;size={$size}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
 		$isbn = $this->getCleanISBN();
 		if ($isbn){
 			$bookCoverUrl .= "&amp;isn={$isbn}";
 		}
+		$upc = $this->getCleanUPC();
 		if ($upc){
 			$bookCoverUrl .= "&amp;upc={$upc}";
 		}
@@ -1260,6 +1266,29 @@ class IndexRecord implements RecordInterface
 	{
 		// Not currently stored in the Solr index
 		return array();
+	}
+
+	/**
+	 * Load the grouped work that this record is connected to.
+	 */
+	public function loadGroupedWork() {
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+		$groupedWork = new GroupedWork();
+		$query = "SELECT grouped_work.* FROM grouped_work INNER JOIN grouped_work_primary_identifiers ON grouped_work.id = grouped_work_id WHERE type='ils' AND identifier = '" . $this->getUniqueID() . "'";
+		$groupedWork->query($query);
+
+		if ($groupedWork->N == 1){
+			$groupedWork->fetch();
+			$this->groupedWork = clone $groupedWork;
+		}
+	}
+
+	public function getPermanentId(){
+		return $this->getGroupedWorkId();
+	}
+	public function getGroupedWorkId(){
+		return $this->groupedWork->permanent_id;
 	}
 
 	/**
@@ -1773,23 +1802,30 @@ class IndexRecord implements RecordInterface
 		if (isset($this->fields['score'])){
 			return $this->fields['score'];
 		}
+		return null;
 	}
 
 	public function getExplain(){
 		if (isset($this->fields['explain'])){
 			return nl2br(str_replace(' ', '&nbsp;', $this->fields['explain']));
 		}
+		return null;
 	}
 
 	public function getId(){
 		if (isset($this->fields['id'])){
 			return $this->fields['id'];
 		}
+		return null;
 	}
 
 	public function getFormat(){
 		if (isset($this->fields['format'])){
-			return $this->fields['format'];
+			if (is_array($this->fields['format'])){
+				return reset($this->fields['format']);
+			}else{
+				return $this->fields['format'];
+			}
 		}else{
 			return "Implement this when not backed by Solr data";
 		}
@@ -1801,6 +1837,12 @@ class IndexRecord implements RecordInterface
 		}else{
 			return "Implement this when not backed by Solr data";
 		}
+	}
+
+	public function getRatingData() {
+		require_once ROOT_DIR . '/services/API/WorkAPI.php';
+		$workAPI = new WorkAPI();
+		return $workAPI->getRatingData($this->groupedWork->permanent_id);
 	}
 }
 

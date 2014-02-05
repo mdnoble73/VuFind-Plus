@@ -153,6 +153,7 @@ abstract class Record_Record extends Action
 
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			$this->recordDriver = new MarcRecord($marcRecord);
+			$interface->assign('recordDriver', $this->recordDriver);
 		} else {
 			$interface->assign('error', 'Cannot Process MARC Record');
 		}
