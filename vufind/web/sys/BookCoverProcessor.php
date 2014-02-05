@@ -435,7 +435,7 @@ class BookCoverProcessor{
 		if($this->type == 'grouped_work'){
 			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 			$groupedWork = new GroupedWork();
-			$groupedWork->id = $this->id;
+			$groupedWork->permanent_id = $this->id;
 			if ($groupedWork->find(true)){
 				$title = ucwords($groupedWork->full_title);
 				$author = ucwords($groupedWork->author);
