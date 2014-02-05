@@ -40,7 +40,7 @@
 						</div>
 						<div class="col-sm-2 btn-group manifestation-actions">
 							{foreach from=$relatedManifestation.actions item=curAction}
-								<a href="{$curAction.url}" class="btn btn-sm">{$curAction.title}</a>
+								<a href="{$curAction.url}" class="btn btn-sm" onclick="return VuFind.Account.followLinkIfLoggedIn(this, '{$curAction.url}')">{$curAction.title}</a>
 							{/foreach}
 						</div>
 				  </div>

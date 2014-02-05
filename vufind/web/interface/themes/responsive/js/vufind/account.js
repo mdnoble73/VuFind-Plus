@@ -70,9 +70,9 @@ VuFind.Account = (function(){
 			if (Globals.loggedIn) {
 				if (ajaxCallback != undefined && typeof(ajaxCallback) === "function") {
 					ajaxCallback();
-				} else if (this.ajaxCallback != null && typeof(this.ajaxCallback) === "function") {
-					this.ajaxCallback();
-					this.ajaxCallback = null;
+				} else if (VuFind.Account.ajaxCallback != null && typeof(VuFind.Account.ajaxCallback) === "function") {
+					VuFind.Account.ajaxCallback();
+					VuFind.Account.ajaxCallback = null;
 				}
 			} else {
 				VuFind.Account.ajaxCallback = ajaxCallback;
@@ -133,9 +133,9 @@ VuFind.Account = (function(){
 						Globals.loggedIn = true;
 						if (ajaxCallback != undefined && typeof(ajaxCallback) === "function") {
 							ajaxCallback();
-						} else if (ajaxCallback != undefined && typeof(ajaxCallback) === "function") {
-							ajaxCallback();
-							ajaxCallback = null;
+						} else if (VuFind.Account.ajaxCallback != undefined && typeof(VuFind.Account.ajaxCallback) === "function") {
+							VuFind.Account.ajaxCallback();
+							VuFind.Account.ajaxCallback = null;
 						}
 					} else {
 						loginErrorElem.text(response.result.message);
