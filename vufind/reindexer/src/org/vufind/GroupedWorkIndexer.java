@@ -79,14 +79,6 @@ public class GroupedWorkIndexer {
 		//TODO: Make this optional again.
 		if (true || clearMarcRecordsAtStartOfIndex){
 			logger.info("Clearing existing marc records from index");
-			/*URLPostResponse response = Util.postToURL("http://localhost:" + solrPort + "/solr/grouped/update/?commit=true", "<delete><query>recordtype:grouped_record</query></delete>", logger);
-			if (!response.isSuccess()){
-				logger.error("Error clearing existing marc records " + response.getMessage());
-			}
-			response = Util.postToURL("http://localhost:" + solrPort + "/solr/grouped/update/", "<commit expungeDeletes=\"true\"/>", logger);
-			if (!response.isSuccess()){
-				logger.error("Error expunging deletes " + response.getMessage());
-			}*/
 			try {
 				updateServer.deleteByQuery("recordtype:grouped_work", 10);
 				updateServer.commit(true, true);
@@ -109,6 +101,7 @@ public class GroupedWorkIndexer {
 	public void processGroupedWorks() {
 		try {
 			PreparedStatement getAllGroupedWorks = vufindConn.prepareStatement("SELECT * FROM grouped_work", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement getGroupedWorkPrimaryIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_primary_identifiers where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			PreparedStatement getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			ResultSet groupedWorks = getAllGroupedWorks.executeQuery();
 			int numWorksProcessed = 0;
@@ -128,13 +121,21 @@ public class GroupedWorkIndexer {
 				groupedWork.setAuthor(author);
 				groupedWork.setGroupingCategory(grouping_category);
 
+				getGroupedWorkPrimaryIdentifiers.setLong(1, id);
+				ResultSet groupedWorkPrimaryIdentifiers = getGroupedWorkPrimaryIdentifiers.executeQuery();
+				while (groupedWorkPrimaryIdentifiers.next()){
+					String type = groupedWorkPrimaryIdentifiers.getString("type");
+					String identifier = groupedWorkPrimaryIdentifiers.getString("identifier");
+					updateGroupedWorkForPrimaryIdentifier(groupedWork, type, identifier);
+				}
+
 				//Update the grouped record based on data for each work
 				getGroupedWorkIdentifiers.setLong(1, id);
 				ResultSet groupedWorkIdentifiers = getGroupedWorkIdentifiers.executeQuery();
 				while (groupedWorkIdentifiers.next()){
 					String type = groupedWorkIdentifiers.getString("type");
 					String identifier = groupedWorkIdentifiers.getString("identifier");
-					updateGroupedWorkForIdentifier(groupedWork, type, identifier);
+					updateGroupedWorkForSecondaryIdentifier(groupedWork, type, identifier);
 				}
 
 				//Load local (VuFind) enrichment for the work
@@ -183,14 +184,21 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	private void updateGroupedWorkForIdentifier(GroupedWorkSolr groupedWork, String type, String identifier) {
+	private void updateGroupedWorkForPrimaryIdentifier(GroupedWorkSolr groupedWork, String type, String identifier) {
 		type = type.toLowerCase();
 		if (type.equals("ils")){
 			//Get the ils record from the individual marc records
 			ilsRecordProcessor.processRecord(groupedWork, identifier);
 		}else if (type.equals("overdrive")){
 			overDriveProcessor.processRecord(groupedWork, identifier);
-		}else if (type.equals("isbn")){
+		}else{
+			logger.warn("Unknown identifier type " + type);
+		}
+	}
+
+	private void updateGroupedWorkForSecondaryIdentifier(GroupedWorkSolr groupedWork, String type, String identifier) {
+		type = type.toLowerCase();
+		if (type.equals("isbn")){
 			groupedWork.addIsbn(identifier);
 		}else if (type.equals("upc")){
 			groupedWork.addUpc(identifier);
@@ -199,7 +207,7 @@ public class GroupedWorkIndexer {
 		}else if (type.equals("oclc")){
 			groupedWork.addOclc(identifier);
 		}else if (type.equals("asin")){
-			//TODO: Determine what we should do with Amazon identifiers
+			//Ignore for now
 		}else if (type.equals("order")){
 			//Add as an alternate id
 			groupedWork.addAlternateId(identifier);
