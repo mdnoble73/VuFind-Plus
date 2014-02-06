@@ -4,10 +4,17 @@
 <div class="searchform">
 	{if $searchType == 'advanced'}
 		{translate text="Your search"} : "<b>{$lookfor|escape:"html"}</b>"
-		<br />
+		{*
+        <br />
 		<a href="{$path}/Search/Advanced?edit={$searchId}" class="small">{translate text="Edit this Advanced Search"}</a> |
 		<a href="{$path}/Search/Advanced" class="small">{translate text="Start a new Advanced Search"}</a> |
 		<a href="{$path}/Search/Home" class="small">{translate text="Start a new Basic Search"}</a>
+        *}
+        
+        &nbsp;|&nbsp;
+		<a href="{$path}/Search/Advanced?edit={$searchId}" class="small">{translate text="Edit this Advanced Search"}</a> |&nbsp;
+		<a href="{$path}/Search/Home" class="small">{translate text="Start a New Search"}</a>
+        
 	{else}
 		<form method="get" action="{$path}/Union/Search" id="searchForm" class="search">
 			<div>
