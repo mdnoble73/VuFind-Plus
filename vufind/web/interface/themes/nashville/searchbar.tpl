@@ -33,7 +33,8 @@
 			{/foreach}
 			</select>
 
-			{if $filterList || $hasCheckboxFilters}
+			{*
+            {if $filterList || $hasCheckboxFilters}
 				<div id="keepFilters">
 					<input id="keepFiltersSwitch" type="checkbox" onclick="filterAll(this);" /> <label for="keepFiltersSwitch">{translate text="basic_search_keep_filters"}</label>
 					<div style="display:none;">
@@ -50,6 +51,7 @@
 					</div>
 				</div>
 			{/if}
+            *}
 
 			{*
 			<input type="image" name="submit" id='searchBarFind' value="{translate text="Find"}" src="{$path}/interface/themes/marmot/images/find.png" />
