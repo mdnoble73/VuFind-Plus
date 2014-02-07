@@ -942,19 +942,6 @@ class MarcRecord extends IndexRecord
 		/** @var File_MARC_Control_Field $fixedField */
 		$fixedField = $this->marcRecord->getField("008");
 
-		//Check for eContent information in the 989 field
-		/** @var File_MARC_Data_Field[] $itemFields */
-		$itemFields = $this->marcRecord->getFields('989');
-		foreach ($itemFields as $item){
-			$subfieldW = $item->getSubfield('w');
-			if ($subfieldW != null){
-				if (strpos($subfieldW->getData(), ':') !== FALSE){
-					$subfieldWFields = explode(':', $subfieldW->getData());
-					$result[] = $subfieldWFields[0];
-				}
-			}
-		}
-
 		// check for music recordings quickly so we can figure out if it is music
 		// for category (need to do here since checking what is on the Compact
 		// Disc/Phonograph, etc is difficult).
@@ -1344,10 +1331,17 @@ class MarcRecord extends IndexRecord
 		return $result;
 	}
 
+	function getRecordUrl(){
+		global $configArray;
+		$recordId = $this->getUniqueID();
+
+		return $configArray['Site']['path'] . '/Record/' . $recordId;
+	}
 	function getRelatedRecord(){
 		global $configArray;
 		$recordId = $this->getUniqueID();
-		$url = $configArray['Site']['path'] . '/Record/' . $recordId;
+
+		$url = $this->getRecordUrl();
 		$holdUrl = $configArray['Site']['path'] . '/Record/' . $recordId . '/Hold';
 
 		//Remove OverDrive records that are not formatted properly

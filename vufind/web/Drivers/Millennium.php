@@ -294,6 +294,12 @@ class MillenniumDriver implements DriverInterface
 			$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
 			$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
 
+			//Ignore eContent items
+			$eContentData = trim($itemField->getSubfield('w') != null ? $itemField->getSubfield('w')->getData() : '');
+			if ($eContentData && strpos($eContentData, ':') > 0){
+				continue;
+			}
+
 			$isLibraryItem = false;
 			$locationLabel = '';
 			foreach ($libraryLocations as $tmpLocation){

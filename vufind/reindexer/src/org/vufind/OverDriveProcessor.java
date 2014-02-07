@@ -126,6 +126,8 @@ public class OverDriveProcessor {
 				}
 				groupedWork.addOwningLibraries(owningLibraries);
 				groupedWork.addAvailableLocations(availableLibraries);
+				groupedWork.addEContentSource("OverDrive");
+				groupedWork.addEContentProtectionType("Limited Access");
 				groupedWork.addCompatiblePType("all");
 			}
 		} catch (SQLException e) {

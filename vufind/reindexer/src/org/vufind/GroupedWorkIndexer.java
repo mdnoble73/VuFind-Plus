@@ -32,10 +32,12 @@ import org.apache.log4j.Logger;
 public class GroupedWorkIndexer {
 	private String serverName;
 	private Logger logger;
-	private String solrPort;
 	private ConcurrentUpdateSolrServer updateServer;
 	private IlsRecordProcessor ilsRecordProcessor;
 	private OverDriveProcessor overDriveProcessor;
+	private ExternalEContentProcessor externalEContentProcessor;
+	private RestrictedEContentProcessor restrictedEContentProcessor;
+	private PublicDomainEContentProcessor publicDomainEContentProcessor;
 	private HashMap<String, HashMap<String, String>> translationMaps = new HashMap<String, HashMap<String, String>>();
 
 	private PreparedStatement getRatingStmt;
@@ -47,10 +49,13 @@ public class GroupedWorkIndexer {
 		this.logger = logger;
 		this.vufindConn = vufindConn;
 		this.configIni = configIni;
-		solrPort = configIni.get("Reindex", "solrPort");
+		String solrPort = configIni.get("Reindex", "solrPort");
 
 		ilsRecordProcessor = new IlsRecordProcessor(this, vufindConn, configIni, logger);
 		overDriveProcessor = new OverDriveProcessor(this, vufindConn, econtentConn, configIni, logger);
+		externalEContentProcessor = new ExternalEContentProcessor(this, vufindConn, econtentConn, configIni, logger);
+		restrictedEContentProcessor = new RestrictedEContentProcessor(this, vufindConn, econtentConn, configIni, logger);
+		publicDomainEContentProcessor = new PublicDomainEContentProcessor(this, vufindConn, econtentConn, configIni, logger);
 
 		//Initialize the updateServer
 		try {
@@ -150,7 +155,7 @@ public class GroupedWorkIndexer {
 				numWorksProcessed++;
 				if (numWorksProcessed % 1000 == 0){
 					commitChanges();
-					logger.info("Processed " + numWorksProcessed + " grouped works processed.");
+					//logger.info("Processed " + numWorksProcessed + " grouped works processed.");
 				}
 			}
 		} catch (SQLException e) {
@@ -191,6 +196,12 @@ public class GroupedWorkIndexer {
 			ilsRecordProcessor.processRecord(groupedWork, identifier);
 		}else if (type.equals("overdrive")){
 			overDriveProcessor.processRecord(groupedWork, identifier);
+		}else if (type.equals("external")){
+			externalEContentProcessor.processRecord(groupedWork, identifier);
+		}else if (type.equals("drm")){
+			restrictedEContentProcessor.processRecord(groupedWork, identifier);
+		}else if (type.equals("free")){
+			publicDomainEContentProcessor.processRecord(groupedWork, identifier);
 		}else{
 			logger.warn("Unknown identifier type " + type);
 		}
@@ -277,7 +288,7 @@ public class GroupedWorkIndexer {
 				}else{
 					String concatenatedValue = mapName + ":" + value;
 					if (!unableToTranslateWarnings.contains(concatenatedValue)){
-						logger.warn("Could not translate " + concatenatedValue);
+						logger.warn("Could not translate '" + concatenatedValue + "'");
 						unableToTranslateWarnings.add(concatenatedValue);
 					}
 					translatedValue = value;

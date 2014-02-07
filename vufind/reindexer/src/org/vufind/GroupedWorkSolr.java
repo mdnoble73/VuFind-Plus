@@ -116,7 +116,7 @@ public class GroupedWorkSolr {
 	private HashSet<String> econtentDevices = new HashSet<String>();
 	private HashSet<String> econtentSources = new HashSet<String>();
 	private HashMap<String, HashSet<String>> localEContentSources = new HashMap<String, HashSet<String>>();
-	private HashSet<String> econtentProtectionType = new HashSet<String>();
+	private HashSet<String> econtentProtectionTypes = new HashSet<String>();
 	private HashMap<String, HashSet<String>> localEContentProtectionTypes = new HashMap<String, HashSet<String>>();
 
 	public SolrInputDocument getSolrDocument() {
@@ -230,7 +230,7 @@ public class GroupedWorkSolr {
 		for (String subdomain: localEContentSources.keySet()){
 			doc.addField("econtent_source_" + subdomain, localEContentSources.get(subdomain));
 		}
-		doc.addField("econtent_protection_type", econtentProtectionType);
+		doc.addField("econtent_protection_type", econtentProtectionTypes);
 		for (String subdomain: localEContentProtectionTypes.keySet()){
 			doc.addField("econtent_protection_type_" + subdomain, localEContentProtectionTypes.get(subdomain));
 		}
@@ -698,6 +698,16 @@ public class GroupedWorkSolr {
 		this.rating = rating;
 	}
 
-
-
+	public void addEContentSources(HashSet<String> eContentSources){
+		econtentSources.addAll(eContentSources);
+	}
+	public void addEContentSource(String eContentSource){
+		econtentSources.add(eContentSource);
+	}
+	public void addEContentProtectionTypes(HashSet<String> eContentProtectionTypes){
+		econtentProtectionTypes.addAll(eContentProtectionTypes);
+	}
+	public void addEContentProtectionType(String eContentProtectionType){
+		econtentProtectionTypes.add(eContentProtectionType);
+	}
 }

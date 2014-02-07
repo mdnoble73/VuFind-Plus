@@ -90,22 +90,25 @@ class RecordDriverFactory {
 		if ($recordType == 'overdrive'){
 			require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
 			$recordDriver = new OverDriveRecordDriver($recordId);
-		}else/*if ($recordType == 'ils')*/{
+		}elseif ($recordType == 'public_domain_econtent'){
+			require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
+			$recordDriver = new PublicEContentDriver($recordId);
+		}elseif ($recordType == 'external_econtent'){
+			require_once ROOT_DIR . '/RecordDrivers/ExternalEContentDriver.php';
+			$recordDriver = new ExternalEContentDriver($recordId);
+		}elseif ($recordType == 'restricted_econtent'){
+			require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
+			$recordDriver = new RestrictedEContentDriver($recordId);
+		}elseif ($recordType == 'ils'){
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-			if (strpos($recordId, ".o") !== FALSE){
-				//Ignore order records
-				return null;
-			}else{
-				$recordDriver = new MarcRecord($recordId);
-				if (!$recordDriver->isValid()){
-					echo("Unable to load record driver for $recordId");
-					$recordDriver = null;
-				}
+			$recordDriver = new MarcRecord($recordId);
+			if (!$recordDriver->isValid()){
+				echo("Unable to load record driver for $recordId");
+				$recordDriver = null;
 			}
-
-		//}else{
-		//	require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
-		//	$recordDriver = new EcontentRecordDriver($id);
+		}else{
+			echo("Unknown record type " . $recordType);
+			$recordDriver = null;
 		}
 		enableErrorHandler();
 		return $recordDriver;

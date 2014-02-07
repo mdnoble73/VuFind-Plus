@@ -35,16 +35,19 @@ public class IlsRecordProcessor {
 	private Logger logger;
 	private GroupedWorkIndexer indexer;
 
-	private HashMap<String, String> libraryMap = new HashMap<String, String>();
-	private HashMap<String, String> locationMap = new HashMap<String, String>();
-	private HashMap<String, String> subdomainMap = new HashMap<String, String>();
+	private static boolean libraryAndLocationDataLoaded = false;
+	private static HashMap<String, String> libraryMap = new HashMap<String, String>();
+	private static HashMap<String, String> locationMap = new HashMap<String, String>();
+	private static HashMap<String, String> subdomainMap = new HashMap<String, String>();
 
-	private ArrayList<Long> pTypes = new ArrayList<Long>();
-	private HashMap<Long, LoanRule> loanRules = new HashMap<Long, LoanRule>();
-	private ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<LoanRuleDeterminer>();
+	private static boolean loanRuleDataLoaded = false;
+	private static ArrayList<Long> pTypes = new ArrayList<Long>();
+	private static HashMap<Long, LoanRule> loanRules = new HashMap<Long, LoanRule>();
+	private static ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<LoanRuleDeterminer>();
 
-	private boolean getAvailabilityFromMarc = true;
-	private HashSet<String> availableItemBarcodes = new HashSet<String>();
+	private static boolean availabilityDataLoaded = false;
+	private static boolean getAvailabilityFromMarc = true;
+	private static HashSet<String> availableItemBarcodes = new HashSet<String>();
 
 	public IlsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
 		marcRecordPath = configIni.get("Reindex", "marcPath");
@@ -52,102 +55,115 @@ public class IlsRecordProcessor {
 		this.logger = logger;
 		this.indexer = indexer;
 
-		//Setup translation maps for system and location
-		try {
-			PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT ilsCode, subdomain, facetLabel FROM library", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
-			while (libraryInformationRS.next()){
-				String code = libraryInformationRS.getString("ilsCode");
-				String facetLabel = libraryInformationRS.getString("facetLabel");
-				String subdomain = libraryInformationRS.getString("subdomain");
-				libraryMap.put(code, facetLabel);
-				subdomainMap.put(code, subdomain);
-			}
+		loadSystemAndLocationData(vufindConn, logger);
 
-			PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT code, facetLabel FROM location", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			ResultSet locationInformationRS = locationInformationStmt.executeQuery();
-			while (locationInformationRS.next()){
-				String code = locationInformationRS.getString("code");
-				String facetLabel = locationInformationRS.getString("facetLabel");
-				locationMap.put(code, facetLabel);
-			}
-		} catch (SQLException e) {
-			logger.error("Error setting up system maps", e);
-		}
-
-		loadAvailableItemBarcodes();
-		loadLoanRuleInformation(vufindConn);
+		loadAvailableItemBarcodes(marcRecordPath, logger);
+		loadLoanRuleInformation(vufindConn, logger);
 	}
 
-	private void loadLoanRuleInformation(Connection vufindConn) {
-		//Load loan rules
-		try {
-			PreparedStatement pTypesStmt = vufindConn.prepareStatement("SELECT pType from ptype", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet pTypesRS = pTypesStmt.executeQuery();
-			while (pTypesRS.next()) {
-				pTypes.add(pTypesRS.getLong("pType"));
-			}
-
-			PreparedStatement loanRuleStmt = vufindConn.prepareStatement("SELECT * from loan_rules", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet loanRulesRS = loanRuleStmt.executeQuery();
-			while (loanRulesRS.next()) {
-				LoanRule loanRule = new LoanRule();
-				loanRule.setLoanRuleId(loanRulesRS.getLong("loanRuleId"));
-				loanRule.setName(loanRulesRS.getString("name"));
-				loanRule.setHoldable(loanRulesRS.getBoolean("holdable"));
-
-				loanRules.put(loanRule.getLoanRuleId(), loanRule);
-			}
-			logger.debug("Loaded " + loanRules.size() + " loan rules");
-
-			PreparedStatement loanRuleDeterminersStmt = vufindConn.prepareStatement("SELECT * from loan_rule_determiners where active = 1 order by rowNumber DESC", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet loanRuleDeterminersRS = loanRuleDeterminersStmt.executeQuery();
-			while (loanRuleDeterminersRS.next()) {
-				LoanRuleDeterminer loanRuleDeterminer = new LoanRuleDeterminer();
-				loanRuleDeterminer.setLocation(loanRuleDeterminersRS.getString("location"));
-				loanRuleDeterminer.setPatronType(loanRuleDeterminersRS.getString("patronType"));
-				loanRuleDeterminer.setItemType(loanRuleDeterminersRS.getString("itemType"));
-				loanRuleDeterminer.setLoanRuleId(loanRuleDeterminersRS.getLong("loanRuleId"));
-				loanRuleDeterminer.setRowNumber(loanRuleDeterminersRS.getLong("rowNumber"));
-
-				loanRuleDeterminers.add(loanRuleDeterminer);
-			}
-
-			logger.debug("Loaded " + loanRuleDeterminers.size() + " loan rule determiner");
-		} catch (SQLException e) {
-			logger.error("Unable to load loan rules", e);
-		}
-	}
-
-	private void loadAvailableItemBarcodes() {
-		File availableItemsFile = new File(marcRecordPath + "/available_items.csv");
-		if (!availableItemsFile.exists()){
-			return;
-		}
-		File checkoutsFile = new File(marcRecordPath + "/checkouts.csv");
-		try{
-			logger.debug("Loading availability for barcodes");
-			getAvailabilityFromMarc = false;
-			BufferedReader availableItemsReader = new BufferedReader(new FileReader(availableItemsFile));
-			String availableBarcode;
-			while ((availableBarcode = availableItemsReader.readLine()) != null){
-				if (availableBarcode.length() > 0){
-					availableItemBarcodes.add(Util.cleanIniValue(availableBarcode));
+	private static void loadSystemAndLocationData(Connection vufindConn, Logger logger) {
+		if (!libraryAndLocationDataLoaded){
+			//Setup translation maps for system and location
+			try {
+				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT ilsCode, subdomain, facetLabel FROM library", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
+				while (libraryInformationRS.next()){
+					String code = libraryInformationRS.getString("ilsCode");
+					String facetLabel = libraryInformationRS.getString("facetLabel");
+					String subdomain = libraryInformationRS.getString("subdomain");
+					libraryMap.put(code, facetLabel);
+					subdomainMap.put(code, subdomain);
 				}
-			}
-			availableItemsReader.close();
 
-			//Remove any items that were checked out
-			logger.debug("removing availability for checked out barcodes");
-			BufferedReader checkoutsReader = new BufferedReader(new FileReader(checkoutsFile));
-			String checkedOutBarcode;
-			while ((checkedOutBarcode = checkoutsReader.readLine()) != null){
-				availableItemBarcodes.remove(Util.cleanIniValue(checkedOutBarcode));
+				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT code, facetLabel FROM location", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				ResultSet locationInformationRS = locationInformationStmt.executeQuery();
+				while (locationInformationRS.next()){
+					String code = locationInformationRS.getString("code");
+					String facetLabel = locationInformationRS.getString("facetLabel");
+					locationMap.put(code, facetLabel);
+				}
+			} catch (SQLException e) {
+				logger.error("Error setting up system maps", e);
 			}
-			checkoutsReader.close();
+			libraryAndLocationDataLoaded = true;
+		}
+	}
 
-		}catch(Exception e){
-			logger.error("Error loading available items", e);
+	private static void loadLoanRuleInformation(Connection vufindConn, Logger logger) {
+		if (!loanRuleDataLoaded){
+			//Load loan rules
+			try {
+				PreparedStatement pTypesStmt = vufindConn.prepareStatement("SELECT pType from ptype", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				ResultSet pTypesRS = pTypesStmt.executeQuery();
+				while (pTypesRS.next()) {
+					pTypes.add(pTypesRS.getLong("pType"));
+				}
+
+				PreparedStatement loanRuleStmt = vufindConn.prepareStatement("SELECT * from loan_rules", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				ResultSet loanRulesRS = loanRuleStmt.executeQuery();
+				while (loanRulesRS.next()) {
+					LoanRule loanRule = new LoanRule();
+					loanRule.setLoanRuleId(loanRulesRS.getLong("loanRuleId"));
+					loanRule.setName(loanRulesRS.getString("name"));
+					loanRule.setHoldable(loanRulesRS.getBoolean("holdable"));
+
+					loanRules.put(loanRule.getLoanRuleId(), loanRule);
+				}
+				logger.debug("Loaded " + loanRules.size() + " loan rules");
+
+				PreparedStatement loanRuleDeterminersStmt = vufindConn.prepareStatement("SELECT * from loan_rule_determiners where active = 1 order by rowNumber DESC", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				ResultSet loanRuleDeterminersRS = loanRuleDeterminersStmt.executeQuery();
+				while (loanRuleDeterminersRS.next()) {
+					LoanRuleDeterminer loanRuleDeterminer = new LoanRuleDeterminer();
+					loanRuleDeterminer.setLocation(loanRuleDeterminersRS.getString("location"));
+					loanRuleDeterminer.setPatronType(loanRuleDeterminersRS.getString("patronType"));
+					loanRuleDeterminer.setItemType(loanRuleDeterminersRS.getString("itemType"));
+					loanRuleDeterminer.setLoanRuleId(loanRuleDeterminersRS.getLong("loanRuleId"));
+					loanRuleDeterminer.setRowNumber(loanRuleDeterminersRS.getLong("rowNumber"));
+
+					loanRuleDeterminers.add(loanRuleDeterminer);
+				}
+
+				logger.debug("Loaded " + loanRuleDeterminers.size() + " loan rule determiner");
+			} catch (SQLException e) {
+				logger.error("Unable to load loan rules", e);
+			}
+			loanRuleDataLoaded = true;
+		}
+	}
+
+	private static void loadAvailableItemBarcodes(String marcRecordPath, Logger logger) {
+		if (!availabilityDataLoaded){
+			File availableItemsFile = new File(marcRecordPath + "/available_items.csv");
+			if (!availableItemsFile.exists()){
+				return;
+			}
+			File checkoutsFile = new File(marcRecordPath + "/checkouts.csv");
+			try{
+				logger.debug("Loading availability for barcodes");
+				getAvailabilityFromMarc = false;
+				BufferedReader availableItemsReader = new BufferedReader(new FileReader(availableItemsFile));
+				String availableBarcode;
+				while ((availableBarcode = availableItemsReader.readLine()) != null){
+					if (availableBarcode.length() > 0){
+						availableItemBarcodes.add(Util.cleanIniValue(availableBarcode));
+					}
+				}
+				availableItemsReader.close();
+
+				//Remove any items that were checked out
+				logger.debug("removing availability for checked out barcodes");
+				BufferedReader checkoutsReader = new BufferedReader(new FileReader(checkoutsFile));
+				String checkedOutBarcode;
+				while ((checkedOutBarcode = checkoutsReader.readLine()) != null){
+					availableItemBarcodes.remove(Util.cleanIniValue(checkedOutBarcode));
+				}
+				checkoutsReader.close();
+
+			}catch(Exception e){
+				logger.error("Error loading available items", e);
+			}
+			availabilityDataLoaded = true;
 		}
 	}
 
@@ -177,17 +193,11 @@ public class IlsRecordProcessor {
 		//We didn't get a marc record, skip this record.
 	}
 
-	private void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
+	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		try{
-			List<DataField> itemRecords = getDataFields(record, "989");
-			List<DataField> unsuppressedItemRecords = new ArrayList<DataField>();
-			for (DataField curItem : itemRecords){
-				if (!isItemSuppressed(curItem)){
-					unsuppressedItemRecords.add(curItem);
-				}
-			}
+			List<DataField> unsuppressedItemRecords = getUnsuppressedPrintItems(record);
 
-			loadRelatedRecordsAndSources(groupedWork, unsuppressedItemRecords, identifier);
+			loadRecordType(groupedWork, record);
 
 			//Do updates based on the overall bib
 			loadTitles(groupedWork, record);
@@ -227,6 +237,65 @@ public class IlsRecordProcessor {
 		}catch (Exception e){
 			logger.error("Error updating grouped work for MARC record with identifier " + identifier, e);
 		}
+	}
+
+	protected void loadRecordType(GroupedWorkSolr groupedWork, Record record) {
+		String recordId = getFirstFieldVal(record, "907a");
+		groupedWork.addRelatedRecord("ils:" + recordId);
+	}
+
+	protected List<DataField> getUnsuppressedPrintItems(Record record){
+		List<DataField> itemRecords = getDataFields(record, "989");
+		List<DataField> unsuppressedItemRecords = new ArrayList<DataField>();
+		for (DataField itemField : itemRecords){
+			if (!isItemSuppressed(itemField)){
+				//Check to see if the item has an eContent indicator
+				boolean isEContent = false;
+				boolean isOverDrive = false;
+				if (itemField.getSubfield('w') != null){
+					String eContentData = itemField.getSubfield('w').getData();
+					if (eContentData.indexOf(':') >= 0){
+						String[] eContentFields = eContentData.split(":");
+						String sourceType = eContentFields[0].toLowerCase().trim();
+						String protectionType = eContentFields[1].toLowerCase().trim();
+						if (sourceType.equals("overdrive")){
+							isOverDrive = true;
+						}
+					}
+				}
+				if (!isOverDrive && !isEContent){
+					unsuppressedItemRecords.add(itemField);
+				}
+			}
+		}
+		return unsuppressedItemRecords;
+	}
+
+	protected List<DataField> getUnsuppressedEContentItems(Record record){
+		List<DataField> itemRecords = getDataFields(record, "989");
+		List<DataField> unsuppressedEcontentRecords = new ArrayList<DataField>();
+		for (DataField itemField : itemRecords){
+			if (!isItemSuppressed(itemField)){
+				//Check to see if the item has an eContent indicator
+				boolean isEContent = false;
+				boolean isOverDrive = false;
+				if (itemField.getSubfield('w') != null){
+					String eContentData = itemField.getSubfield('w').getData();
+					if (eContentData.indexOf(':') >= 0){
+						isEContent = true;
+						String[] eContentFields = eContentData.split(":");
+						String sourceType = eContentFields[0].toLowerCase().trim();
+						if (sourceType.equals("overdrive")){
+							isOverDrive = true;
+						}
+					}
+				}
+				if (!isOverDrive && isEContent){
+					unsuppressedEcontentRecords.add(itemField);
+				}
+			}
+		}
+		return unsuppressedEcontentRecords;
 	}
 
 	Pattern mpaaRatingRegex1 = null;
@@ -571,7 +640,7 @@ public class IlsRecordProcessor {
 		groupedWork.addNewTitles(this.getFieldList(record, "785ast"));
 	}
 
-	private String getFirstFieldVal(Record record, String fieldSpec) {
+	protected String getFirstFieldVal(Record record, String fieldSpec) {
 		Set<String> result = getFieldList(record, fieldSpec);
 		if (result.size() == 0){
 			return null;
@@ -653,7 +722,7 @@ public class IlsRecordProcessor {
 		for (DataField curItem : itemRecords){
 			Subfield locationSubfield = curItem.getSubfield('d');
 			if (locationSubfield != null){
-				String locationCode = locationSubfield.getData();
+				String locationCode = locationSubfield.getData().trim();
 				owningLibraries.addAll(getLibraryFacetsForLocationCode(locationCode));
 
 				owningLocations.addAll(getLocationFacetsForLocationCode(locationCode));
@@ -726,86 +795,6 @@ public class IlsRecordProcessor {
 			}
 		}
 		return locationCodes;
-	}
-
-	private void loadRelatedRecordsAndSources(GroupedWorkSolr groupedWork, List<DataField> itemRecords, String identifier) {
-		HashSet<String> relatedRecords = new HashSet<String>();
-		HashSet<String> sources = new HashSet<String>();
-		HashSet<String> alternateIds = new HashSet<String>();
-		boolean allItemsAreEContent = true;
-		for (DataField curItem : itemRecords){
-			//Check subfield w to get the source
-			if (curItem.getSubfield('w') != null){
-				String subfieldW = curItem.getSubfield('w').getData();
-				String[] econtentData = subfieldW.split("\\s?:\\s?");
-				String eContentSource = econtentData[0].toLowerCase();
-				if (eContentSource.equals("gutenberg")){
-					//TODO: Check for the id from gutenberg.  Will be in the url (either in the item or 856)
-					relatedRecords.add("gutenberg:" + identifier);
-					sources.add("gutenberg");
-					alternateIds.add(identifier);
-				}else if (eContentSource.equals("co state gov docs")){
-					//TODO: See if we can get the id for the original file
-					relatedRecords.add("co_state_gov_doc:" + identifier);
-					sources.add("co_state_gov_doc");
-					alternateIds.add(identifier);
-				}else if (eContentSource.equals("us gov docs")){
-					//TODO: See if we can get the id for the original file
-					relatedRecords.add("us_gov_doc:" + identifier);
-					sources.add("co_state_gov_doc");
-					alternateIds.add(identifier);
-				}else if (eContentSource.equals("free")){
-					//TODO: See if we can get the id for the original file
-					relatedRecords.add("public_econtent:" + identifier);
-					sources.add("public_econtent");
-					alternateIds.add(identifier);
-				}else if (eContentSource.equals("acs")){
-					//TODO: See if we can get the id for the original file
-					relatedRecords.add("drm_econtent:" + identifier);
-					sources.add("drm_econtent");
-					alternateIds.add(identifier);
-				}else if (eContentSource.equals("overdrive")){
-					//TODO: Get the id for the original file. Will be in the url (either in the item or 856
-					relatedRecords.add("overdrive:" + identifier);
-					sources.add("overdrive");
-					alternateIds.add(identifier);
-				}else if (eContentSource.equals("oneclick digital")){
-					//TODO: Get the id for the original file. Will be in the url (either in the item or 856
-					relatedRecords.add("overdrive:" + identifier);
-					sources.add("overdrive");
-					alternateIds.add(identifier);
-				}else if (eContentSource.equals("database")){
-					//TODO: Get the id for the original file. Will be in the url (either in the item or 856
-					relatedRecords.add("external_econtent:" + identifier);
-					sources.add("external_econtent");
-					alternateIds.add(identifier);
-				}else if (eContentSource.equals("freading")){
-					//TODO: Get the id for the original file. Will be in the url (either in the item or 856
-					relatedRecords.add("external_econtent:" + identifier);
-					sources.add("external_econtent");
-					alternateIds.add(identifier);
-				}else if (eContentSource.equals("ebsco") || eContentSource.equals("lion") || eContentSource.equals("ebsco academic") || eContentSource.equals("biblioboard") || eContentSource.equals("ebrary") || eContentSource.equals("oxford") || eContentSource.equals("oxford reference") || eContentSource.equals("prospector") || eContentSource.equals("ebl") || eContentSource.equals("springerlink")){
-					relatedRecords.add("external_econtent:" + identifier);
-					sources.add("external_econtent");
-					alternateIds.add(identifier);
-				}else{
-					logger.warn("Unknown source " + eContentSource);
-					relatedRecords.add("external_econtent:" + identifier);
-					sources.add("external_econtent");
-					alternateIds.add(identifier);
-				}
-			}else{
-				allItemsAreEContent = false;
-			}
-		}
-		if (!allItemsAreEContent){
-			relatedRecords.add("ils:" + identifier);
-			sources.add("ils");
-			alternateIds.add(identifier);
-		}
-		groupedWork.addRelatedRecords(relatedRecords);
-		groupedWork.addRecordSources(sources);
-		groupedWork.addAlternateIds(alternateIds);
 	}
 
 	private List<DataField> getDataFields(Record marcRecord, String tag) {

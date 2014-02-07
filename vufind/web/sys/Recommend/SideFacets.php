@@ -85,7 +85,7 @@ class SideFacets implements RecommendationInterface
 						$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
 					}elseif ($facet->facetName == 'format' && $configArray['Index']['enableDetailedFormats']){
 						$facetName = 'format_' . $searchLibrary->subdomain;
-					}elseif ($facet->facetName == 'econtent_source' && $configArray['Index']['enableDetailedEContentSources']){
+					}elseif (false && $facet->facetName == 'econtent_source' && $configArray['Index']['enableDetailedEContentSources']){
 						$facetName = 'econtent_source_' . $searchLibrary->subdomain;
 					}
 				}
