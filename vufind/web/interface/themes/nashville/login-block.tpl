@@ -12,7 +12,12 @@
             {/foreach}
         {/if}
 
-<a href="http://nplencore.library.nashville.org" class="languageBlockLink">Old Catalog</a> | <a href="http://www.surveymonkey.com/s/vufindplus_feedback" class="languageBlockLink" target="_blank">Give Us Feedback</a>
+<a href="http://nplencore.library.nashville.org" class="languageBlockLink">Old Catalog</a> | 
+{if $inLibrary}
+<a href="http://www.surveymonkey.com/s/VuFindFeedbackOPAC" class="languageBlockLink">Give Us Feedback</a>
+{else}
+<a href="http://www.surveymonkey.com/s/vufindplus_feedback" class="languageBlockLink" target="_blank">Give Us Feedback</a>
+{/if}
 
     </div>
 
