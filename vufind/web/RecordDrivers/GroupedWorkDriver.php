@@ -340,6 +340,7 @@ class GroupedWorkDriver implements RecordInterface{
 		$groupedWork->permanent_id = $this->getPermanentId();
 		if ($groupedWork->find(true)){
 			$groupedWorkDetails = array();
+			$groupedWorkDetails['full_title'] = $groupedWork->full_title;
 			$groupedWorkDetails['title'] = $groupedWork->title;
 			$groupedWorkDetails['subtitle'] = $groupedWork->subtitle;
 			$groupedWorkDetails['author'] = $groupedWork->author;

@@ -12,6 +12,7 @@ class GroupedWork extends DB_DataObject {
 	public $__table = 'grouped_work';    // table name
 	public $id;
 	public $permanent_id;
+	public $full_title;
 	public $title;
 	public $author;
 	public $subtitle;

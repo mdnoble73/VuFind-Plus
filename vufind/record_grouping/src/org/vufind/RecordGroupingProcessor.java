@@ -1,8 +1,12 @@
 package org.vufind;
 
+import au.com.bytecode.opencsv.CSVReader;
 import org.apache.log4j.Logger;
 import org.marc4j.marc.*;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
@@ -37,24 +41,50 @@ public class RecordGroupingProcessor {
 	private int timeAddingIdentifiersToDatabase = 0;
 
 	private HashMap<String, RecordIdentifier> recordIdentifiers = new HashMap<String, RecordIdentifier>();
+	private static HashMap<String, String> authorAuthorities = new HashMap<String, String>();
+	private static HashMap<String, String> titleAuthorities = new HashMap<String, String>();
 
 	public RecordGroupingProcessor(Connection dbConnection, Logger logger) {
 		this.logger = logger;
 		try{
 			getGroupedWorkStmt = dbConnection.prepareStatement("SELECT id FROM " + RecordGrouperMain.groupedWorkTableName + " where permanent_id = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkTableName + " (title, subtitle, full_title, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
+			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkTableName + " (full_title, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
 			getExistingIdentifierStmt = dbConnection.prepareStatement("SELECT id FROM " + RecordGrouperMain.groupedWorkIdentifiersTableName + " where type = ? and identifier = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			insertIdentifierStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkIdentifiersTableName + " (type, identifier) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
 			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkIdentifiersRefTableName + " (grouped_work_id, identifier_id) VALUES (?, ?)");
 			addPrimaryIdentifierForWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_primary_identifiers (grouped_work_id, type, identifier) VALUES (?, ?, ?)");
 //			getRecordWithoutSubfieldStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkTableName + " where title = ? AND author = ? AND grouping_category=? AND subtitle = ''");
 //			getRecordIgnoringSubfieldStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkTableName + " where title = ? AND author = ? AND grouping_category=?");
+			loadAuthorities();
 		}catch (Exception e){
 			logger.error("Error setting up prepared statements", e);
 		}
 	}
 
-	private RecordIdentifier getPrimaryIdentifierFromMarcRecord(Record marcRecord){
+	public static String mapAuthorAuthority(String originalAuthor){
+		if (authorAuthorities.containsKey(originalAuthor)){
+			return authorAuthorities.get(originalAuthor);
+		}else{
+			return originalAuthor;
+		}
+	}
+
+	private void loadAuthorities() {
+		try {
+			CSVReader csvReader = new CSVReader(new FileReader(new File("./author_authorities.properties")));
+			String[] curLine = csvReader.readNext();
+			while (curLine != null){
+				authorAuthorities.put(curLine[0], curLine[1]);
+				curLine = csvReader.readNext();
+			}
+		} catch (IOException e) {
+			logger.error("Unable to load authorities", e);
+		}
+	}
+
+	private HashSet<RecordIdentifier> getPrimaryIdentifierFromMarcRecord(Record marcRecord){
+		HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
+		String primaryIdentifier = null;
 		List<DataField> field907 = getDataFields(marcRecord, "907");
 		//Make sure we only get one ils identifier
 		for (DataField cur907 : field907){
@@ -62,51 +92,63 @@ public class RecordGroupingProcessor {
 			if (subfieldA != null && subfieldA.getData().length() > 2){
 				if (cur907.getSubfield('a').getData().substring(0,2).equals(".b")){
 					String recordNumber = cur907.getSubfield('a').getData();
-					RecordIdentifier identifier = new RecordIdentifier();
-					identifier.setValue("ils", recordNumber);
-					if (identifier.isValid()){
-						return identifier;
-					}
+					primaryIdentifier = recordNumber;
+					break;
 				}
 			}
 		}
-		logger.error("Marc record has no identifier");
-		return null;
-	}
-	private HashSet<RecordIdentifier> getIdentifiersFromMarcRecord(Record marcRecord) {
-		HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
-		List<DataField> field907 = getDataFields(marcRecord, "907");
-		//Make sure we only get one ils identifier
-		RecordIdentifier ilsIdentifier = null;
-		for (DataField cur907 : field907){
-			Subfield subfieldA = cur907.getSubfield('a');
-			if (subfieldA != null && subfieldA.getData().length() > 2){
-				if (cur907.getSubfield('a').getData().substring(0,2).equals(".b")){
-					String recordNumber = cur907.getSubfield('a').getData();
-					RecordIdentifier identifier = new RecordIdentifier();
-					identifier.setValue("ils", recordNumber);
-					if (identifier.isValid()){
-						if (ilsIdentifier != null){
-							if (!ilsIdentifier.equals(identifier)){
-								logger.warn("Warning record has two ils identifiers " + ilsIdentifier.toString() + " and " + identifier.toString());
-							}
-						}else{
-							ilsIdentifier = identifier;
-							//Don't add the primary identifier to the list of identifiers
-							//identifiers.add(identifier);
+		//Check to see if the record has eContent and if so create primary identifiers based on the protection type
+		boolean hasEContentFields = false;
+		boolean allItemsOverDrive = true;
+		TreeSet<String> protectionTypes = new TreeSet<String>();
+
+		List<DataField> itemFields = getDataFields(marcRecord, "989");
+		for (DataField itemField : itemFields){
+			if (itemField.getSubfield('w') != null){
+				//Check the protection types and sources
+				String eContentData = itemField.getSubfield('w').getData();
+				if (eContentData.indexOf(':') >= 0){
+					hasEContentFields = true;
+					String[] eContentFields = eContentData.split(":");
+					String sourceType = eContentFields[0].toLowerCase().trim();
+					String protectionType = eContentFields[1].toLowerCase().trim();
+					if (!sourceType.equals("overdrive")){
+						if (protectionType.equals("public domain")){
+							protectionType = "free";
 						}
+						protectionTypes.add(protectionType);
+						allItemsOverDrive = false;
 					}
-				}else if (cur907.getSubfield('a').getData().substring(0,2).equals(".o")){
-					String recordNumber = cur907.getSubfield('a').getData();
-					RecordIdentifier identifier = new RecordIdentifier();
-					identifier.setValue("order", recordNumber);
-					if (identifier.isValid()){
-						identifiers.add(identifier);
-					}
+				}else{
+					allItemsOverDrive = false;
+				}
+			}else{
+				allItemsOverDrive = false;
+			}
+		}
+		if (allItemsOverDrive){
+			//Don't return a primary identifier for this record (we will suppress the bib and just use OverDrive APIs)
+			return identifiers;
+		}else if (!hasEContentFields){
+			RecordIdentifier identifier = new RecordIdentifier();
+			identifier.setValue("ils", primaryIdentifier);
+			if (identifier.isValid()){
+				identifiers.add(identifier);
+			}
+		}else{
+			for(String protectionType : protectionTypes ){
+				RecordIdentifier identifier = new RecordIdentifier();
+				identifier.setValue(protectionType, primaryIdentifier);
+				if (identifier.isValid()){
+					identifiers.add(identifier);
 				}
 			}
 		}
 
+		return identifiers;
+	}
+	private HashSet<RecordIdentifier> getIdentifiersFromMarcRecord(Record marcRecord) {
+		HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
 		//Load identifiers
 		List<DataField> identifierFields = getDataFields(marcRecord, new String[]{"020", "024", "022", "035"});
 		for (DataField identifierField : identifierFields){
@@ -206,6 +248,10 @@ public class RecordGroupingProcessor {
 			workForTitle.setSubtitle(groupingSubtitle.toString());
 		}
 
+		//Format
+		String format = getFormat(marcRecord);
+		String groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
+
 		//Author
 		String author = null;
 		DataField field100 = (DataField)marcRecord.getVariableField("100");
@@ -213,15 +259,21 @@ public class RecordGroupingProcessor {
 		DataField field260 = (DataField)marcRecord.getVariableField("260");
 		DataField field710 = (DataField)marcRecord.getVariableField("710");
 
+		//Depending on the format we will promote the use of the 245c
 		if (field100 != null && field100.getSubfield('a') != null){
 			author = field100.getSubfield('a').getData();
 		}else if (field110 != null && field110.getSubfield('a') != null){
 			author = field110.getSubfield('a').getData();
+		}else if (groupingFormat.equals("book") && field245 != null && field245.getSubfield('c') != null){
+			author = field245.getSubfield('c').getData();
+			if (author.indexOf(';') > 0){
+				author = author.substring(0, author.indexOf(';') -1);
+			}
 		}else if (field260 != null && field260.getSubfield('b') != null){
 			author = field260.getSubfield('b').getData();
 		}else if (field710 != null && field710.getSubfield('a') != null){
 			author = field710.getSubfield('a').getData();
-		}else if (field245 != null && field245.getSubfield('c') != null){
+		}else if (!groupingFormat.equals("book") && field245 != null && field245.getSubfield('c') != null){
 			author = field245.getSubfield('c').getData();
 			if (author.indexOf(';') > 0){
 				author = author.substring(0, author.indexOf(';') -1);
@@ -231,12 +283,8 @@ public class RecordGroupingProcessor {
 			workForTitle.setAuthor(author);
 		}
 
-		//Format
-		String format = getFormat(marcRecord);
-		String groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
-
 		//Identifiers
-		RecordIdentifier primaryIdentifier = getPrimaryIdentifierFromMarcRecord(marcRecord);
+		HashSet<RecordIdentifier> primaryIdentifiers = getPrimaryIdentifierFromMarcRecord(marcRecord);
 		HashSet<RecordIdentifier> identifiers = getIdentifiersFromMarcRecord(marcRecord);
 
 		workForTitle.groupingCategory = groupingFormat;
@@ -244,10 +292,12 @@ public class RecordGroupingProcessor {
 
 		timeSettingUpWork += (new Date().getTime() - start);
 
-		addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
+		if (primaryIdentifiers.size() > 0){
+			addGroupedWorkToDatabase(primaryIdentifiers, workForTitle);
+		}
 	}
 
-	private void addGroupedWorkToDatabase(RecordIdentifier primaryIdentifier, GroupedWork groupedWork) {
+	private void addGroupedWorkToDatabase(HashSet<RecordIdentifier> primaryIdentifiers, GroupedWork groupedWork) {
 		String groupedWorkPermanentId = groupedWork.getPermanentId();
 		numRecordsProcessed++;
 		long groupedWorkId = -1;
@@ -282,12 +332,10 @@ public class RecordGroupingProcessor {
 
 				//Need to insert a new grouped record
 				long startAdd = new Date().getTime();
-				insertGroupedWorkStmt.setString(1, groupedWork.getTitle());
-				insertGroupedWorkStmt.setString(2, groupedWork.getSubtitle());
-				insertGroupedWorkStmt.setString(3, groupedWork.getFullTitle());
-				insertGroupedWorkStmt.setString(4, groupedWork.getAuthor());
-				insertGroupedWorkStmt.setString(5, groupedWork.groupingCategory);
-				insertGroupedWorkStmt.setString(6, groupedWorkPermanentId);
+				insertGroupedWorkStmt.setString(1, groupedWork.getFullTitle());
+				insertGroupedWorkStmt.setString(2, groupedWork.getAuthor());
+				insertGroupedWorkStmt.setString(3, groupedWork.groupingCategory);
+				insertGroupedWorkStmt.setString(4, groupedWorkPermanentId);
 
 				insertGroupedWorkStmt.executeUpdate();
 				ResultSet generatedKeysRS = insertGroupedWorkStmt.getGeneratedKeys();
@@ -303,7 +351,9 @@ public class RecordGroupingProcessor {
 			//Update identifiers
 			addIdentifiersForRecordToDB(groupedWorkId, groupedWork.identifiers);
 
-			addPrimaryIdentifierForWorkToDB(groupedWorkId, primaryIdentifier);
+			for (RecordIdentifier curIdentifier : primaryIdentifiers){
+				addPrimaryIdentifierForWorkToDB(groupedWorkId, curIdentifier);
+			}
 		}catch (Exception e){
 			logger.error("Error adding grouped record to grouped work ", e);
 		}
@@ -317,59 +367,9 @@ public class RecordGroupingProcessor {
 			addPrimaryIdentifierForWorkStmt.setString(3, primaryIdentifier.getIdentifier());
 			addPrimaryIdentifierForWorkStmt.executeUpdate();
 		} catch (SQLException e) {
-			logger.error("Error adding primary identifier to grouped work " + groupedWorkId, e);
+			logger.error("Error adding primary identifier to grouped work " + groupedWorkId + " " + primaryIdentifier.toString(), e);
 		}
 	}
-
-	//private HashMap<String, Long> subtitleVariances = new HashMap<String, Long>();
-//	private long findWorkWithSubtitleVariations(GroupedWork groupedWork) throws SQLException {
-//		long start = new Date().getTime();
-//		long groupedWorkId = -1;
-//		if (groupedWork.getSubtitle().length() == 0){
-//			//Check to see if there is a record in the database that matches the title, author, and grouping category even if it has a subtitle
-//			getRecordIgnoringSubfieldStmt.setString(1, groupedWork.getTitle());
-//			getRecordIgnoringSubfieldStmt.setString(2, groupedWork.getAuthor());
-//			getRecordIgnoringSubfieldStmt.setString(3, groupedWork.groupingCategory);
-//			ResultSet recordIgnoringSubfieldRS = getRecordIgnoringSubfieldStmt.executeQuery();
-//			if (recordIgnoringSubfieldRS.next()){
-//				groupedWorkId = recordIgnoringSubfieldRS.getLong("id");
-//				//String subTitle = recordIgnoringSubfieldRS.getString("subtitle");
-//				//System.out.println("Found a record to match that did have a subtitle even though this record didn't.  " + subTitle);
-//				/*if (subtitleVariances.containsKey(subTitle)){
-//					subtitleVariances.put(subTitle, subtitleVariances.get(subTitle) + 1);
-//				}else{
-//					subtitleVariances.put(subTitle, 1L);
-//				}*/
-//			}
-//			recordIgnoringSubfieldRS.close();
-//		}else{
-//			//Check to see if there is a record in the database that doesn't have a subtitle yet
-//			getRecordWithoutSubfieldStmt.setString(1, groupedWork.getTitle());
-//			getRecordWithoutSubfieldStmt.setString(2, groupedWork.getAuthor());
-//			getRecordWithoutSubfieldStmt.setString(3, groupedWork.groupingCategory);
-//			ResultSet recordWithoutSubfieldRS = getRecordWithoutSubfieldStmt.executeQuery();
-//			if (recordWithoutSubfieldRS.next()){
-//				groupedWorkId = recordWithoutSubfieldRS.getLong("id");
-//				//System.out.println("Found a record to match that did not have a subfield even though this record does.  " + groupedWork.subtitle);
-//				/*String subTitle = groupedWork.getSubtitle();
-//				if (subtitleVariances.containsKey(subTitle)){
-//					subtitleVariances.put(subTitle, subtitleVariances.get(subTitle) + 1);
-//				}else{
-//					subtitleVariances.put(subTitle, 1L);
-//				}*/
-//				//Do not change the subtitle since that can cause other records without a subtitle to not match
-//				//update the record to include the subtitle
-//				//updateRecordSubtitleStmt.setString(1, groupedWork.getPermanentId());
-//				//updateRecordSubtitleStmt.setString(2, groupedWork.getSubtitle());
-//				//updateRecordSubtitleStmt.setLong(3, groupedWorkId);
-//				//updateRecordSubtitleStmt.executeUpdate();
-//			}
-//			recordWithoutSubfieldRS.close();
-//		}
-//		long end = new Date().getTime();
-//		timeInSubtitleVariations += (end - start);
-//		return groupedWorkId;
-//	}
 
 	private void addIdentifiersForRecordToDB(long groupedWorkId, HashSet<RecordIdentifier> identifiers) throws SQLException {
 		long start = new Date().getTime();
@@ -450,7 +450,9 @@ public class RecordGroupingProcessor {
 
 		groupedWork.identifiers = identifiers;
 
-		addGroupedWorkToDatabase(primaryIdentifier, groupedWork);
+		HashSet<RecordIdentifier> primaryIdentifiers = new HashSet<RecordIdentifier>();
+		primaryIdentifiers.add(primaryIdentifier);
+		addGroupedWorkToDatabase(primaryIdentifiers, groupedWork);
 	}
 
 	private String getFormat(Record record) {
@@ -458,7 +460,7 @@ public class RecordGroupingProcessor {
 		List<DataField> itemFields = getDataFields(record, "989");
 		for (DataField itemField : itemFields){
 			if (itemField.getSubfield('w') != null){
-				//The record is some type of eContent.  For this purpose, we don't care what type
+				//The record is some type of eContent.  For this purpose, we don't care what type.
 				return "eContent";
 			}
 		}

@@ -2520,6 +2520,14 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'grouped_works_primary_identifiers_1' => array(
+				'title' => 'Grouped Work Primary Identifiers Update 1',
+				'description' =>'Add additional types of identifiers.',
+				'sql' => array(
+					"ALTER TABLE grouped_work_primary_identifiers CHANGE `type` `type` ENUM('ils', 'external_econtent', 'drm', 'free', 'overdrive' ) NOT NULL",
+				),
+			),
+
 			'ils_marc_checksums' => array(
 				'title' => 'ILS MARC Checksums',
 				'description' =>'Add a table to store checksums of MARC records stored in the ILS so we can determine if the record needs to be updated during grouping.',

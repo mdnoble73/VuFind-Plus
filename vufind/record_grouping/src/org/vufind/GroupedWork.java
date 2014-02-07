@@ -58,12 +58,15 @@ public class GroupedWork implements Cloneable{
 	static Pattern authorExtract1 = Pattern.compile("^(.*)\\spresents.*$");
 	static Pattern authorExtract2 = Pattern.compile("^(?:(?:a|an)\\s)?(.*)\\spresentation.*$");
 	static Pattern homeEntertainmentRemoval = Pattern.compile("^(.*)\\shome entertainment$");
+	static Pattern distributedByRemoval = Pattern.compile("^distributed (?:in.*\\s)?by\\s(.*)$");
 	static Pattern initialsFix = Pattern.compile("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))");
 	static Pattern specialCharacterStrip = Pattern.compile("[^\\w\\s]");
 	static Pattern consecutiveCharacterStrip = Pattern.compile("\\s{2,}");
+	static Pattern bracketedCharacterStrip = Pattern.compile("\\[(.*?)\\]");
 
 	private String normalizeAuthor(String author) {
 		String groupingAuthor = initialsFix.matcher(author).replaceAll(" ");
+		groupingAuthor = bracketedCharacterStrip.matcher(groupingAuthor).replaceAll("");
 		groupingAuthor = specialCharacterStrip.matcher(groupingAuthor).replaceAll("").trim().toLowerCase();
 		groupingAuthor = consecutiveCharacterStrip.matcher(groupingAuthor).replaceAll(" ");
 		//extract common additional info (especially for movie studios)
@@ -80,38 +83,49 @@ public class GroupedWork implements Cloneable{
 		if (homeEntertainmentMatcher.find()){
 			groupingAuthor = homeEntertainmentMatcher.group(1);
 		}
-
-		//Normalize warner bros since we get a couple of different variations
-		if (groupingAuthor.equals("warner bros")){
-			groupingAuthor = "warner bros pictures";
+		//Remove home entertainment
+		Matcher distributedByRemovalMatcher = distributedByRemoval.matcher(groupingAuthor);
+		if (distributedByRemovalMatcher.find()){
+			groupingAuthor = distributedByRemovalMatcher.group(1);
 		}
-		if (groupingAuthor.equals("paramount")){
-			groupingAuthor = "paramount pictures";
-		}
-
 
 		if (groupingAuthor.length() > 50){
 			groupingAuthor = groupingAuthor.substring(0, 50);
 		}
 		groupingAuthor = groupingAuthor.trim();
+		groupingAuthor = RecordGroupingProcessor.mapAuthorAuthority(groupingAuthor);
+
 		return groupingAuthor;
 	}
 
-	static Pattern commonSubtitlesPattern = Pattern.compile("^((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|an? .* story|a .*\\s?book|poems|the movie|.*series book \\d+)$");
+	static Pattern commonSubtitlesPattern = Pattern.compile("^(.*)((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|an? .* story|a .*\\s?book|poems|the movie|.*series book \\d+)$");
 	private String normalizeSubtitle(String originalTitle) {
 		if (originalTitle.length() > 0){
 			String groupingSubtitle = originalTitle.replaceAll("&", "and");
+
+			//Remove any bracketed parts of the title
+			groupingSubtitle = bracketedCharacterStrip.matcher(groupingSubtitle).replaceAll("");
 
 			groupingSubtitle = specialCharacterStrip.matcher(groupingSubtitle).replaceAll("").toLowerCase().trim();
 			groupingSubtitle = consecutiveCharacterStrip.matcher(groupingSubtitle).replaceAll(" ");
 
 			//Remove some common subtitles that are meaningless
-			//TODO: Make sure that this really doesn't give us an improvement.
-			//If we stop grouping actual subtitles with the empty version, this could have benefits.
 			Matcher commonSubtitleMatcher = commonSubtitlesPattern.matcher(groupingSubtitle);
 			if (commonSubtitleMatcher.matches()){
-				groupingSubtitle = "";
+				groupingSubtitle = commonSubtitleMatcher.group(1);
 			}
+
+			//Normalize numeric titles
+			groupingSubtitle = groupingSubtitle.replace("1st", "first");
+			groupingSubtitle = groupingSubtitle.replace("2nd", "second");
+			groupingSubtitle = groupingSubtitle.replace("3rd", "third");
+			groupingSubtitle = groupingSubtitle.replace("4th", "fourth");
+			groupingSubtitle = groupingSubtitle.replace("5th", "fifth");
+			groupingSubtitle = groupingSubtitle.replace("6th", "sixth");
+			groupingSubtitle = groupingSubtitle.replace("7th", "seventh");
+			groupingSubtitle = groupingSubtitle.replace("8th", "eighth");
+			groupingSubtitle = groupingSubtitle.replace("9th", "ninth");
+			groupingSubtitle = groupingSubtitle.replace("10th", "tenth");
 
 			if (groupingSubtitle.length() > 175){
 				groupingSubtitle = groupingSubtitle.substring(0, 175);
@@ -133,6 +147,13 @@ public class GroupedWork implements Cloneable{
 		}
 
 		groupingTitle = makeValueSortable(groupingTitle);
+
+		//Remove any bracketed parts of the title
+		String tmpTitle = bracketedCharacterStrip.matcher(groupingTitle).replaceAll("");
+		//Make sure we don't strip the entire title
+		if (tmpTitle.length() > 0){
+			groupingTitle = tmpTitle;
+		}
 
 		//If the title includes a : in it, take the first part as the title and the second as the subtitle
 		//TODO: test this

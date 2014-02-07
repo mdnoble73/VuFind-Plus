@@ -37,8 +37,6 @@ public class RecordGrouperMain {
 	public static String groupedWorkIdentifiersRefTableName = "grouped_work_identifiers_ref";
 	public static String groupedWorkPrimaryIdentifiersTableName = "grouped_work_primary_identifiers";
 
-	private static long timeSpentWritingMarcRecords;
-
 	private static HashMap<String, Long> marcRecordChecksums = new HashMap<String, Long>();
 	private static PreparedStatement insertMarcRecordChecksum;
 	private static PreparedStatement updateMarcRecordChecksum;
@@ -119,7 +117,6 @@ public class RecordGrouperMain {
 		//Group records from OverDrive
 		if (groupOverDriveRecords){
 			try{
-				long startTime = new Date().getTime();
 				PreparedStatement overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				PreparedStatement overDriveIdentifiersStmt = econtentConnection.prepareStatement("SELECT * FROM overdrive_api_product_identifiers WHERE id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				PreparedStatement overDriveCreatorStmt = econtentConnection.prepareStatement("SELECT fileAs FROM overdrive_api_product_creators WHERE productId = ? AND role like ? ORDER BY id", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -141,7 +138,7 @@ public class RecordGrouperMain {
 						boolean swapFirstNameLastName = false;
 						if (creatorInfoRS.next()){
 							String tmpAuthor = creatorInfoRS.getString("fileAs");
-							if (tmpAuthor.equals(author)){
+							if (tmpAuthor.equals(author) && (mediaType.equals("ebook") || mediaType.equals("audiobook"))){
 								swapFirstNameLastName = true;
 							}else{
 								author = tmpAuthor;
@@ -194,7 +191,6 @@ public class RecordGrouperMain {
 			String individualMarcPath = configIni.get("Reindex", "individualMarcPath");
 			String marcPath = configIni.get("Reindex", "marcPath");
 			File[] catalogBibFiles = new File(marcPath).listFiles();
-			long startTime = new Date().getTime();
 			if (catalogBibFiles != null){
 				for (File curBibFile : catalogBibFiles){
 					if (curBibFile.getName().endsWith(".mrc") || curBibFile.getName().endsWith(".marc")){
@@ -245,7 +241,6 @@ public class RecordGrouperMain {
 	}
 
 	private static void writeIndividualMarc(String individualMarcPath, Record marcRecord) {
-		long start = new Date().getTime();
 		//Copy the record to the individual marc path
 		DataField field907 = (DataField)marcRecord.getVariableField("907");
 		String recordNumber = null;
@@ -317,7 +312,6 @@ public class RecordGrouperMain {
 				}
 			}
 		}
-		timeSpentWritingMarcRecords += new Date().getTime() - start;
 	}
 
 	private static Ini loadConfigFile(String filename){
