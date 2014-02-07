@@ -329,26 +329,35 @@ class BookCoverProcessor{
 		if (!$marcRecord) {
 			return false;
 		}
-		if ($this->configArray['Content']['loadCoversFrom856'] && $this->category && strtolower($this->category) == 'other'){
-			//Get the 856 tags
-			$marcFields = $marcRecord->getFields('856');
-			if ($marcFields){
-				/** @var File_MARC_Data_Field $marcField */
-				foreach ($marcFields as $marcField){
-					if ($marcField->getSubfield('y')){
-						$subfield_y = $marcField->getSubfield('y')->getData();
-						if (preg_match('/.*<img.*src=[\'"](.*?)[\'"].*>.*/i', $subfield_y, $matches)){
-							if ($this->processImageURL($matches[1], true)){
+
+		//Get the 856 tags
+		$marcFields = $marcRecord->getFields('856');
+		if ($marcFields){
+			/** @var File_MARC_Data_Field $marcField */
+			foreach ($marcFields as $marcField){
+				//Check to see if this is a cover to use for VuFind
+				if ($marcField->getSubfield('2') && strcasecmp(trim($marcField->getSubfield('2')->getData()), 'Vufind_Image') == 0){
+					if ($marcField->getSubfield('3') && strcasecmp(trim($marcField->getSubfield('3')->getData()), 'Cover Image') == 0){
+						//Can use either subfield f or subfield u
+						if ($marcField->getSubfield('f')){
+							//Just references the file, add the original directory
+							$filename = $this->bookCoverPath . '/original/' . $marcField->getSubfield('f')->getData();
+							if ($this->processImageURL($filename, true)){
+								//We got a successful match
+								return true;
+							}
+						}elseif ($marcField->getSubfield('u')){
+							//Full url to the image
+							if ($this->processImageURL($marcField->getSubfield('u')->getData(), true)){
 								//We got a successful match
 								return true;
 							}
 						}
-					}else{
-						//no image link available on this link
 					}
 				}
 			}
 		}
+
 		//Check the 690 field to see if this is a seed catalog entry
 		$marcFields = $marcRecord->getFields('690');
 		if ($marcFields){
@@ -423,10 +432,10 @@ class BookCoverProcessor{
 			}
 		}
 
-		if (strlen($title) > 0){
+		require_once ROOT_DIR . '/sys/DefaultCoverImageBuilder.php';
+		$coverBuilder = new DefaultCoverImageBuilder();
+		if (strlen($title) > 0 && $coverBuilder->blankCoverExists($this->format, $this->category)){
 			$this->log("Looking for default cover, format is {$this->format} category is {$this->category}", PEAR_LOG_DEBUG);
-			require_once ROOT_DIR . '/sys/DefaultCoverImageBuilder.php';
-			$coverBuilder = new DefaultCoverImageBuilder();
 			$coverBuilder->getCover($title, $author, $this->format, $this->category, $this->cacheFile);
 			return $this->processImageURL($this->cacheFile);
 		}else{
