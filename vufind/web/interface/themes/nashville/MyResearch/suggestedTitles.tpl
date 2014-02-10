@@ -27,14 +27,15 @@
 		{foreachelse} 
      		<h3>Find your next favorite. Rate titles to get personalized recommendations.</h3> 
             	<ul class="showbullets">
-                    <li>Login with your library card.</li>
-                    <li>Find titles you like - Search the catalog, Browse your Checked Out items, or Browse your Reading History</li>
-                    <li>Rate titles with 4 or 5 stars to get recommendations</li>
+                    <li>Login with your library card</li>
+                    <li>Find titles you like</li>
+                    <li>Rate favorite title with 4 or 5 stars</li>
                     <li>Go to "Recommended for You" to see a personalized list</li>
                 </ul>
-                <h2>Get Started Rating Titles</h2> 
+             
+            <h3>Start Rating Titles</h3> 
 
-				<iframe src="http://catalog.library.nashville.org/API/SearchAPI?method=getListWidget&id=8" width="100%" height="250"></iframe>      
+				<p><a href="http://catalog.library.nashville.org/MyResearch/CheckedOut">Your Checked Out Items</a> | <a href="http://catalog.library.nashville.org/MyResearch/ReadingHistory">Your Reading History</a> | <a href="http://catalog.library.nashville.org/">New and Popular Titles</a></p>
             
 		{/foreach}
 	</div>
