@@ -65,11 +65,23 @@ html,body{height:100%;background-color:#CCC;background-image:url("/interface/the
 #page-content {padding:10px 10px 50px 10px;text-align:left}
 
 /*****************Homepage*******************/
-/* .searchHomeContent{padding:3em 0 2em 0;margin:0 auto;width:100%;text-align:left} Hid b/c it didn't seem to be doing anything */
+.searchHomeContent{text-align:left;margin: 0 auto;width:95%;padding: 0 0 2em 0;} 
 #homeSearchLabel{color:#010101;font-size:14px}
 #searchBarFind {vertical-align: top;position: relative;padding-bottom: 3px;*padding-bottom:1px;margin-left: 15px;margin-top: 2px;*margin-top:0;}
 .searchHomeForm {width: 775px;height: 50px;position:absolute;text-align:left;top:54px;left:190px;margin: 1px 0 0 0;padding: 15px 0 8px 0;background-color: transparent;background-image: url('/interface/themes/nashville/images/header_catalogsearchribbon_shadow.png');background-repeat: no-repeat;color:#fff;border-top:#304c7e 0px solid;}
 .searchHomeForm input {*padding:5px 0 5px 3px;} .searchHomeForm select {margin-top:3px;}
+#homePageLists .linkTab {top:5;}
+#homePageLists .titleScrollerWrapper {}
+#homePageLists .titleScrollerHeader {
+background-color: #FFF;
+padding: 5px 0 0px 5px;
+color: #010101;
+font-size: 22px;
+font-weight: normal;
+height: 25px;
+border-bottom: dotted 1px #ccc;
+}
+#homePageLists .seriesLink {margin-top:-30px;}
 
 /*****************Breadcrumbs*******************/
 div.breadcrumbs {overflow: hidden;margin: 8px 0 0 0;*margin-top:12px;padding: 0;height: 30px;line-height: 30px;border-bottom: 1px solid #ccc;border-top: 1px solid #ccc;}
@@ -117,6 +129,9 @@ background-repeat: no-repeat;color:#fff}
 #record-details-header .holdingsSummaryRecord .holdingsSummary .holdingsSummaryStatusLine a {font-weight: normal;font-size: 18px;}
 .available span {padding-left: 0px;}
 .holdingsSummary {margin-left: 0;}
+#record-details-header {border-bottom: 0px solid #E4E4E4;}
+.sidebarValue {padding: 0 10px 0 0;font-size: 90%;}
+.icon {display: none;zoom: 1;margin-right: 5px;width: 0px;height: 0px;}
 
 /* --------------- */
 #catalogHome{
@@ -124,7 +139,7 @@ background-repeat: no-repeat;color:#fff}
 }
 
 /* bib record pages */
-.resultInformationLabel {color: #010101;font-size: 18px;font-weight: normal;padding:5px 0 5px 0;}
+.resultInformationLabel {color: #292929;font-size: 25px;font-weight: normal;padding:5px 0 8px 0;}
 
 
 /* Popup Box - see the end of consolidated.min.css - had to put styles there so that Firefox would see them on Mac */
@@ -306,7 +321,7 @@ box-shadow: 2px 2px 4px #888;
 	padding: 5px;color: #010101;font-size: 16px;font-weight:normal;height:25px;}
 #list-seriesHeader .resultInformationLabel {font-size:20px;}
 #list-similarHeader .resultInformationLabel {font-size:20px;}
-.titleScrollerHeader .linkTab{padding-right: 10px;float: left;}
+.titleScrollerHeader .linkTab{padding-right: 10px;}
 .titleScrollerHeader .linkTab .first {padding-right: 0;}
 
 #listSelection{
@@ -579,7 +594,3 @@ left: 804px;
 
 
 
-/* -------------------------- Home page styles ----------------------- */
-
-.ui-tabs.listWidget.horizontal {border-bottom: 1px solid #ccc;margin-bottom:10px;}
-#homePageLists .titleScrollerHeader {background-color:none;padding: 5px;color: #010101;font-size: 16px;font-weight: normal;height: 25px;}
