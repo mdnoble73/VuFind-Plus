@@ -14,14 +14,27 @@
 		{/if}
 
 		{* Internal Grid *}
-		<div class="myAccountTitle">{translate text='Recommended for you'}</div>
+        <div class="resulthead">
+            <div class="myAccountTitle">{translate text='Recommended for you'} {if ($smarty.foreach.recordLoop.iteration % 2) == 0}<span id='readingListWhatsThis' onclick="$('#readingListDisclaimer').toggle();">(What's This?)</span>{/if}
+            </div>
+            
+            {if $userNoticeFile}
+                {include file=$userNoticeFile}
+            {/if}
+    
+    
+            {if !$offline}
+            <div id='readingListDisclaimer' {if ($smarty.foreach.recordLoop.iteration % 2) == 0}style='display: none'{/if}>
+            Recommendations are based on your 5 most recent checked out items and on the last 10 items you rated with 3 or more stars. Titles you have marked Not Interested will no longer appear under Recommended for You. Titles marked Not Interested will also be excluded from the search results list when you are logged in.
+            </div>
+            {/if}
+		</div>
 
-		{if $userNoticeFile}
-			{include file=$userNoticeFile}
-		{/if}
+
+
 
 		{foreach from=$resourceList item=suggestion name=recordLoop}
-			<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
+            <div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
 				{$suggestion}
 			</div>
 		{foreachelse} 
