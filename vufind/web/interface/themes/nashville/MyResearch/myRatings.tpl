@@ -13,13 +13,21 @@
 <div id="main-content">
 	{if $user->cat_username}
 		<div class="resulthead">
-			<div class="myAccountTitle">{translate text='My Ratings'}</div>
+			<div class="myAccountTitle">{translate text='My Ratings'} {if ($smarty.foreach.recordLoop.iteration % 2) == 0}<span id='readingListWhatsThis' onclick="$('#ratingNote').toggle();">(What's This?)</span>{/if}</div>
 			{if $userNoticeFile}
 				{include file=$userNoticeFile}
 			{/if}
 
+{if !$offline}
+            <div id='ratingNote' {if ($smarty.foreach.recordLoop.iteration % 2) == 0}style='display: none'{/if}>
+           Ratings determine the type of materials that appear under Recommended for You. If you do not want a title to be used when generating recommendations, use the Clear button to remove it from your ratings list. Titles you have marked Not Interested will no longer appear under Recommended for You.
+            </div>
+            {/if}
+		</div>
+
+
 			<div class="page">
-            <p>Ratings determine the type of materials that appear under Recommended for You. If you do not want a title to be used when generating recommendations, use the Clear button to remove it from your ratings list. Titles you have marked Not Interested will no longer appear under Recommended for You.</p>
+            
 				{if $ratings}
 					<table class="myAccountTable" id="myRatingsTable">
 						<thead>
