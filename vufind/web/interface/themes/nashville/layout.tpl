@@ -66,7 +66,10 @@
 
 					{if $showBreadcrumbs}
 					<div class="breadcrumbs">
-						<div class="breadcrumbinner">
+						<div class="catalogBrowse">
+                        <a href="http://galacto.library.nashville.org/">Browse Catalog</a>
+                        </div>
+                        <div class="breadcrumbinner">
 							<a href="{$homeBreadcrumbLink}"><span class="home-icon">&nbsp;</span> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span>
 							{include file="$module/breadcrumbs.tpl"}
 						</div>
@@ -77,13 +80,13 @@
 						<div id="toptab">
 							<ul>
 								{if $useSolr}
-								<li{if $module != "WorldCat" && $module != "Summon"} class="active"{/if}><a href="{$path}/Search/Results?lookfor={$lookfor|escape:"url"}">{translate text="University Library"}</a></li>
+								<a href="{$path}/Search/Results?lookfor={$lookfor|escape:"url"}">{translate text="University Library"}</a></li>
 								{/if}
 								{if $useWorldcat}
-								<li{if $module == "WorldCat"} class="active"{/if}><a href="{$path}/WorldCat/Search?lookfor={$lookfor|escape:"url"}">{translate text="Other Libraries"}</a></li>
+								<a href="{$path}/WorldCat/Search?lookfor={$lookfor|escape:"url"}">{translate text="Other Libraries"}</a></li>
 								{/if}
 								{if $useSummon}
-								<li{if $module == "Summon"} class="active"{/if}><a href="{$path}/Summon/Search?lookfor={$lookfor|escape:"url"}">{translate text="Journal Articles"}</a></li>
+								<a href="{$path}/Summon/Search?lookfor={$lookfor|escape:"url"}">{translate text="Journal Articles"}</a></li>
 								{/if}
 							</ul>
 						</div>

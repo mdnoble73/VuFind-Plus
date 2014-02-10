@@ -23,6 +23,7 @@ body{font-family:'Source Sans Pro', "Arial Unicode MS",Arial,Sans-Serif;color:#0
 .ui-widget-content a {color: #0066cc;}
 .ui-widget-header {border: 1px solid #ccc;background: #eee /*#32388E url(/interface/themes/nashville/images/ui-bg_gloss-wave_75_2191c0_500x100.png) 50% 50% repeat-x*/; color: #eaf5f7;font-weight: bold;}
 .ui-tabs .ui-tabs-nav li a {float: left;padding: .45em 1em;text-decoration: none;}
+
 /* Similar Titles Buttons */
 
 
@@ -61,7 +62,7 @@ solid #ccc;background:#fff /*url(/interface/themes/nashville/images/ui-bg_gloss-
 
 /* styles.css */
 html,body{height:100%;background-color:#CCC;background-image:url("/interface/themes/nashville/images/background_white_carbon.png");}
-#page-content,#ft{padding:10px 10px 50px 10px;text-align:left}
+#page-content {padding:10px 10px 50px 10px;text-align:left}
 
 /*****************Homepage*******************/
 /* .searchHomeContent{padding:3em 0 2em 0;margin:0 auto;width:100%;text-align:left} Hid b/c it didn't seem to be doing anything */
@@ -73,8 +74,10 @@ html,body{height:100%;background-color:#CCC;background-image:url("/interface/the
 /*****************Breadcrumbs*******************/
 div.breadcrumbs {overflow: hidden;margin: 8px 0 0 0;*margin-top:12px;padding: 0;height: 30px;line-height: 30px;border-bottom: 1px solid #ccc;border-top: 1px solid #ccc;}
 div.breadcrumbs span.home-icon{width:24px;height:24px;opacity:0.75;background:url('/images/home_icon.png') no-repeat top left;margin-right:5px;display:none;}
-div.breadcrumbinner {width: 73.076em;*width:71.25em;margin:0;}
+div.breadcrumbinner {width: 55em;*width:55em;margin:0;}
 #content_span {*padding-top: 1px;}
+.catalogBrowse {float:right;position:relative;background-color:#32388e;padding:0px 4px 0px 4px;}
+.breadcrumbs .catalogBrowse a{font-size:14px;color:#fff;opacity:1;}
 
 /******** Main Header *********/
 .searchheader{padding:0;background-color:#ffffff;border-bottom:solid 0px #c5c5c5;text-align:left;}.searchheader a, .searchheader a:visited{color:#06c}.searchheader a:hover{color:#132248;}
@@ -142,7 +145,7 @@ margin: 0 0 0 2px;
 padding: 3px 12px;
 }
 
-
+html,button,input,select,textarea{font-family: inherit;}
 
 
 /* Results List Buttons */
@@ -186,7 +189,7 @@ table.datagrid th a {color: #010101;text-align: left;font-size: 16px;font-weight
 .myAccountTable .result {border-bottom: 1px solid #CACACA;padding: 10px 5px	15px 5px;}
 
 /* List Buttons */
-.listButton{background-color:#88ABC2;color:#132248;border-color:lightgrey DarkSlateGray DarkSlateGray lightgrey;border-style:solid;border-width:1px;font-size:12px;font-family:Verdana,Helvetica,arial,sans-serif;display:inline-block;height:inherit;line-height:18px;margin-left:10px;margin-top:4px;padding:3px 12px}.listButton:hover{background-color:#B2CBDC;border-color:DarkSlateGray lightgrey lightgrey DarkSlateGray}.listButton
+.listButton{background-color:#ddd;color:#132248;border-color:lightgrey DarkSlateGray DarkSlateGray lightgrey;border-style:solid;border-width:1px;font-size:13px;font-family:inherit;display:inline-block;height:auto;line-height:normal;margin-left:2px;margin-top:3px;margin-right:2px;margin-bottom:3px;padding:3px 12px;}.listButton:hover{background-color:#ccc;border-color:DarkSlateGray lightgrey lightgrey DarkSlateGray}.listButton
 a{color:#132248}#listTopButtons{margin-bottom:5px}
 
 /* MyAccount - eBooks and eAudio link uner Checked out */
