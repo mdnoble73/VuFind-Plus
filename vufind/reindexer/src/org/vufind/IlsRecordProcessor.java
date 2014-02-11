@@ -195,7 +195,7 @@ public class IlsRecordProcessor {
 
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		try{
-			List<DataField> unsuppressedItemRecords = getUnsuppressedPrintItems(record);
+			List<DataField> unsuppressedItems = getUnsuppressedItems(record);
 
 			loadRecordType(groupedWork, record);
 
@@ -225,18 +225,22 @@ public class IlsRecordProcessor {
 			groupedWork.addMpaaRating(groupedWork, getMpaaRating(record));
 
 			//Do updates based on items
-			loadOwnershipInformation(groupedWork, unsuppressedItemRecords);
-			loadAvailability(groupedWork, unsuppressedItemRecords);
-			loadUsability(groupedWork, unsuppressedItemRecords);
-			loadPopularity(groupedWork, unsuppressedItemRecords);
-			loadDateAdded(groupedWork, unsuppressedItemRecords);
-			loadITypes(groupedWork, unsuppressedItemRecords);
+			loadOwnershipInformation(groupedWork, unsuppressedItems);
+			loadAvailability(groupedWork, unsuppressedItems);
+			loadUsability(groupedWork, unsuppressedItems);
+			loadPopularity(groupedWork, unsuppressedItems);
+			loadDateAdded(groupedWork, unsuppressedItems);
+			loadITypes(groupedWork, unsuppressedItems);
 			groupedWork.addBarcodes(getFieldList(record, "989b"));
 
-			groupedWork.addHoldings(unsuppressedItemRecords.size());
+			groupedWork.addHoldings(unsuppressedItems.size());
 		}catch (Exception e){
 			logger.error("Error updating grouped work for MARC record with identifier " + identifier, e);
 		}
+	}
+
+	protected List<DataField> getUnsuppressedItems(Record record) {
+		return getUnsuppressedPrintItems(record);
 	}
 
 	protected void loadRecordType(GroupedWorkSolr groupedWork, Record record) {
@@ -649,7 +653,7 @@ public class IlsRecordProcessor {
 		}
 	}
 
-	private void loadUsability(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItemRecords) {
+	protected void loadUsability(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItemRecords) {
 		//Load a list of ptypes that can use this record based on loan rules
 		for (DataField curItem : unsuppressedItemRecords){
 			Subfield iTypeSubfield = curItem.getSubfield('j');

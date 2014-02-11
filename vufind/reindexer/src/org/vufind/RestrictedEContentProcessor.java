@@ -52,4 +52,8 @@ public class RestrictedEContentProcessor extends IlsRecordProcessor {
 		groupedWork.addEContentSources(sources);
 		groupedWork.addEContentProtectionTypes(protectionTypes);
 	}
+
+	protected List<DataField> getUnsuppressedItems(Record record) {
+		return getUnsuppressedEContentItems(record);
+	}
 }

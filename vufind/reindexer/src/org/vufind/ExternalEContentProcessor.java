@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
+import org.marc4j.marc.Subfield;
 
 import java.sql.Connection;
 import java.util.HashSet;
@@ -52,5 +53,39 @@ public class ExternalEContentProcessor extends IlsRecordProcessor {
 		}
 		groupedWork.addEContentSources(sources);
 		groupedWork.addEContentProtectionTypes(protectionTypes);
+	}
+
+	protected void loadUsability(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItemRecords) {
+		//Load a list of ptypes that can use this record based on sharing in the eContent subfield
+		for (DataField curItem : unsuppressedItemRecords){
+			//Check subfield w to get the source
+			if (curItem.getSubfield('w') != null){
+				String subfieldW = curItem.getSubfield('w').getData();
+				String[] econtentData = subfieldW.split("\\s?:\\s?");
+				String protectionType = econtentData[1].toLowerCase().trim();
+
+				if (protectionType.equals("external")){
+					Subfield locationSubfield = curItem.getSubfield('d');
+					String sharing;
+					if (locationSubfield.getData().equals("mdl")){
+						sharing = "shared";
+					}else{
+						sharing = "library";
+					}
+					if (econtentData.length >= 3){
+						sharing = econtentData[2].trim().toLowerCase();
+					}
+					if (sharing.equals("shared")){
+						groupedWork.addCompatiblePType("all");
+					}else{
+						//Add all ptypes for this library system (further restriction is done by location)
+					}
+				}
+			}
+		}
+	}
+
+	protected List<DataField> getUnsuppressedItems(Record record) {
+		return getUnsuppressedEContentItems(record);
 	}
 }
