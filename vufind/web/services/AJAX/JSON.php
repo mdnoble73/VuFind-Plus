@@ -37,8 +37,13 @@ class JSON extends Action {
 		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
-		if (is_callable(array($this, $_GET['method']))) {
-			$output = json_encode(array('result'=>$this->$_GET['method']()));
+		$method = $_GET['method'];
+		if (is_callable(array($this, $method))) {
+			if ($method == 'getHoursAndLocations'){
+				$output = $this->$method();
+			}else{
+				$output = json_encode(array('result'=>$this->$method()));
+			}
 		} else {
 			$output = json_encode(array('error'=>'invalid_method'));
 		}
@@ -437,5 +442,36 @@ class JSON extends Action {
 		$data = isset($_REQUEST['data']) ? strip_tags($_REQUEST['data']) : '';
 		$analytics->addEvent($category, $action, $data);
 		return true;
+	}
+
+	function getHoursAndLocations(){
+		//Get a list of locations for the current library
+		global $library;
+		$tmpLocation = new Location();
+		$tmpLocation->libraryId = $library->libraryId;
+		$tmpLocation->orderBy('displayName');
+		$libraryLocations = array();
+		$tmpLocation->find();
+		if ($tmpLocation->N == 0){
+			//Get all locations
+			$tmpLocation = new Location();
+			$tmpLocation->orderBy('libraryId, displayName');
+			$tmpLocation->find();
+		}
+		while ($tmpLocation->fetch()){
+			$mapAddress = urlencode(preg_replace('/\r\n|\r|\n/', '+', $tmpLocation->address));
+			$libraryLocations[] = array(
+				'name' => $tmpLocation->displayName,
+				'address' => preg_replace('/\r\n|\r|\n/', '<br/>', $tmpLocation->address),
+				'phone' => $tmpLocation->phone,
+				'map_image' => "http://maps.googleapis.com/maps/api/staticmap?center=$mapAddress&zoom=15&size=200x200&sensor=false&markers=color:red%7C$mapAddress",
+				'map_link' => "http://maps.google.com/maps?f=q&hl=en&geocode=&q=$mapAddress&ie=UTF8&z=15&iwloc=addr&om=1&t=m",
+				'hours' => $tmpLocation->hours
+			);
+		}
+
+		global $interface;
+		$interface->assign('libraryLocations', $libraryLocations);
+		return $interface->fetch('AJAX/libraryHoursAndLocations.tpl');
 	}
 }

@@ -14,6 +14,8 @@ class Location extends DB_DataObject
 	public $code;					//varchar(5)
 	public $displayName;			//varchar(40)
 	public $libraryId;				//int(11)
+	public $address;
+	public $phone;
 	public $extraLocationCodesToInclude;
 	public $validHoldPickupBranch;	//tinyint(4)
 	public $nearbyLocation1;		//int(11)
@@ -99,6 +101,8 @@ class Location extends DB_DataObject
 			array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),
 			array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user', 'size'=>'40'),
 			array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
+			array('property'=>'address', 'type'=>'textarea', 'label'=>'Address', 'description'=>'The address of the branch.', 'hideInLists' => true),
+			array('property'=>'phone', 'type'=>'text', 'label'=> 'Phone Number', 'description'=>'The main phone number for the site .', 'size' => '40', 'hideInLists' => true),
 			array('property'=>'extraLocationCodesToInclude', 'type'=>'text', 'label'=> 'Extra Locations To Include', 'description'=>'A list of other location codes to include in this location for indexing special collections, juvenile collections, etc.', 'size' => '40', 'hideInLists' => true),
 			array('property'=>'nearbyLocation1', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 1', 'description'=>'A secondary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),
 			array('property'=>'nearbyLocation2', 'type'=>'enum', 'values'=>$locationLookupList, 'label'=>'Nearby Location 2', 'description'=>'A tertiary location which is nearby and could be used for pickup of materials.', 'hideInLists' => true),

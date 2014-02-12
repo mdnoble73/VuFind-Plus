@@ -19,7 +19,7 @@
 		</div>
 	</div>
 	<div id="home-page-library-section">
-		<a href="alert('TODO: Show a list of locations and hours when clicking here')">
+		<a href="{$path}/AJAX/JSON?method=getHoursAndLocations" data-title="Library Hours and Locations" class="modalDialogTrigger">
 			<div id="home-page-hours-locations">
 				LIBRARY HOURS & LOCATIONS
 			</div>

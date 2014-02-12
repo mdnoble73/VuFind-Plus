@@ -30,7 +30,7 @@ var VuFind = (function(){
 					var trigger = $(this);
 					var dialogTitle = trigger.attr("title") ? trigger.attr("title") : trigger.data("title");
 					var dialogDestination = trigger.attr("href");
-					$("#modal-title").text(dialogTitle);
+					$("#myModalLabel").text(dialogTitle);
 					$(".modal-body").load(dialogDestination);
 					$("#modalDialog").modal("show");
 					return false;

@@ -554,6 +554,15 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'location_address' => array(
+				'title' => 'Location Address updates',
+				'description' => 'Add fields related to address updates',
+				'sql' => array(
+					"ALTER TABLE location ADD address MEDIUMTEXT",
+					"ALTER TABLE location ADD phone VARCHAR(15)  DEFAULT ''",
+				),
+			),
+
 			'search_sources' => array(
 				'title' => 'Search Sources',
 				'description' => 'Setup Library and Location Search Source Table',

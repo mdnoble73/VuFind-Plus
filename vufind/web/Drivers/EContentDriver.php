@@ -1429,9 +1429,10 @@ class EContentDriver implements DriverInterface{
 	 *  lastStatusCheck (time)
 	 *
 	 * @param $id
+	 * @param $scopingEnabled
 	 * @return mixed
 	 */
-	public function getItemsFast($id) {
+	public function getItemsFast($id, $scopingEnabled) {
 		return $this->getStatus($id);
 	}
 }
