@@ -5,9 +5,9 @@
 			SEARCH <span class="glyphicon glyphicon-search"></span>
 		</div>
 	</div>
-	<div class="row">
-		<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">
-			<form method="get" action="{$path}/Union/Search" id="searchForm" class="form-inline" onsubmit="VuFind.Searches.processSearchForm();">
+	<form method="get" action="{$path}/Union/Search" id="searchForm" class="form-inline" onsubmit="VuFind.Searches.processSearchForm();">
+		<div class="row">
+			<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">
 				<input type="hidden" name="basicType" id="basicType" value=""/>
 				<input type="hidden" name="genealogyType" id="genealogyType" value=""/>
 				<fieldset>
@@ -60,25 +60,25 @@
 						</div>
 					</div>
 				</fieldset>
-			</form>
+			</div>
+	</div>
+		<div class="row text-center">
+			<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='VuFind.Searches.enableSearchTypes();'>
+				{if $filterList}
+					<option data-catalog_type="existing" data-original_type="{$searchSource}" value="existing" title="{translate text="Existing Search"}" selected="selected" id="existing_search_option">{translate text="in Existing Search Results"}</option>
+				{/if}
+				{/strip}
+				{foreach from=$searchSources item=searchOption key=searchKey}
+					<option data-catalog_type="{$searchOption.catalogType}"
+					        value="{$searchKey}"{if $searchKey == $searchSource && !$filterList} selected="selected"{/if}
+									{if $searchKey == $searchSource} id="default_search_type"{/if}
+					        title="{$searchOption.description}">
+						{translate text="in"} {$searchOption.name}{if $searchOption.external} *{/if}
+					</option>
+				{/foreach}
+				{strip}
+			</select>
 		</div>
-	</div>
-	<div class="row text-center">
-		<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='VuFind.Searches.enableSearchTypes();'>
-			{if $filterList}
-				<option data-catalog_type="existing" data-original_type="{$searchSource}" value="existing" title="{translate text="Existing Search"}" selected="selected" id="existing_search_option">{translate text="in Existing Search Results"}</option>
-			{/if}
-			{/strip}
-			{foreach from=$searchSources item=searchOption key=searchKey}
-				<option data-catalog_type="{$searchOption.catalogType}"
-				        value="{$searchKey}"{if $searchKey == $searchSource && !$filterList} selected="selected"{/if}
-								{if $searchKey == $searchSource} id="default_search_type"{/if}
-				        title="{$searchOption.description}">
-					{translate text="in"} {$searchOption.name}{if $searchOption.external} *{/if}
-				</option>
-			{/foreach}
-			{strip}
-		</select>
-	</div>
+	</form>
 </div>
 {/strip}
