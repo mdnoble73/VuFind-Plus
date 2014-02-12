@@ -39,7 +39,7 @@
 			</div>
 			<a href="#" onclick = "return VuFind.Browse.getMoreResults();">
 				<div class="row" id="more-browse-results">
-					&or;
+					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Browse Results" title="Load More Browse Results">
 				</div>
 			</a>
 		</div>
