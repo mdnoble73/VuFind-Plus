@@ -400,6 +400,24 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_links' => array(
+				'title' => 'LibraryLinks',
+				'description' => 'Add configurable links to display within the home page. ',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"CREATE TABLE IF NOT EXISTS library_links (".
+					"id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
+					"libraryId INT NOT NULL, " .
+					"category VARCHAR(100) NOT NULL, " .
+					"linkText VARCHAR(100) NOT NULL, " .
+					"url VARCHAR(255) NOT NULL, " .
+					"weight INT NOT NULL DEFAULT '0' " .
+					") ENGINE = MYISAM",
+					"ALTER TABLE `library_links` ADD INDEX `libraryId` (`libraryId`)",
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',

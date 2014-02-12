@@ -67,32 +67,14 @@ class Home extends Action {
 		}
 
 		//Load library links
-		//TODO: Load these for real
-		$libraryLinks = array(
-			'About Us' => array(
-				'Board of Trustees' => 'http://www.steamboatlibrary.org/about-us/board-of-trustees-0',
-				'History' => 'http://www.steamboatlibrary.org/about-us/history',
-				'Building' => 'http://www.steamboatlibrary.org/about-us/building',
-				'Mission' => 'http://www.steamboatlibrary.org/about-us/mission',
-				'Coffee Bar' => 'http://www.steamboatlibrary.org/about-us/building-cafe/coffee-bar',
-				'Policies' => 'http://www.steamboatlibrary.org/about-us/policies',
-				'Jobs' => 'http://www.steamboatlibrary.org/about-us/jobs'
-			),
-			'Support Us' => array(
-				'Book Donations' => 'http://www.steamboatlibrary.org/support-us/book-donations',
-				'Volunteer' => 'http://www.steamboatlibrary.org/support-us/volunteer',
-				'Donate' => 'http://www.steamboatlibrary.org/support-us/donate',
-				'Thanks To' => 'http://www.steamboatlibrary.org/support-us/thanks-to',
-			),
-			'Contact Us' => array(
-				'Questions, Comments, Suggestions' => 'http://www.steamboatlibrary.org/questions-comments-suggestions/questions-comments-suggestions',
-				'Ask a Librarian' => 'http://www.steamboatlibrary.org/questions-comments-suggestions/ask-a-librarian',
-				'Request a Title' => 'http://www.steamboatlibrary.org/how-do-i/manage-my-account/request-a-title',
-				'Suggest a Purchase' => 'http://www.steamboatlibrary.org/how-do-i/manage-my-account/request-a-title/suggest-a-purchase',
-				'Staff Directory' => 'http://www.steamboatlibrary.org/questions-comments-suggestions/staff-directory'
-			)
-
-		);
+		$links = $library->libraryLinks;
+		$libraryLinks = array();
+		foreach ($links as $libraryLink){
+			if (!array_key_exists($libraryLink->category, $libraryLinks)){
+				$libraryLinks[$libraryLink->category] = array();
+			}
+			$libraryLinks[$libraryLink->category][$libraryLink->linkText] = $libraryLink->url;
+		}
 		$interface->assign('libraryLinks', $libraryLinks);
 
 		//Load browse categories
@@ -107,7 +89,6 @@ class Home extends Action {
 
 
 		$interface->assign('browseCategories', $browseCategories);
-
 
 		//Get the Browse Results for the first list
 		require_once ROOT_DIR . '/services/Browse/AJAX.php';

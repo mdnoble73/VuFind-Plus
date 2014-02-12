@@ -139,6 +139,10 @@ class Library extends DB_DataObject
 		unset($searchSourceStructure['weight']);
 		unset($searchSourceStructure['libraryId']);
 
+		$libraryLinksStructure = LibraryLinks::getObjectStructure();
+		unset($libraryLinksStructure['weight']);
+		unset($libraryLinksStructure['libraryId']);
+
 		global $user;
 		require_once ROOT_DIR . '/sys/ListWidget.php';
 		$widget = new ListWidget();
@@ -339,6 +343,22 @@ class Library extends DB_DataObject
 				'allowEdit' => true,
 				'canEdit' => true,
 			),
+
+			'libraryLinks' => array(
+				'property'=>'libraryLinks',
+				'type'=>'oneToMany',
+				'label'=>'Home Page Links',
+				'description'=>'Links To Show on the Home Screen',
+				'keyThis' => 'libraryId',
+				'keyOther' => 'libraryId',
+				'subObjectType' => 'LibraryLinks',
+				'structure' => $libraryLinksStructure,
+				//'hideInLists' => true,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => false,
+				'canEdit' => false,
+			),
 		);
 		foreach ($structure as $fieldName => $field){
 			if (isset($field['property'])){
@@ -489,6 +509,18 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->searchSources;
+		}elseif ($name == 'libraryLinks'){
+			if (!isset($this->libraryLinks) && $this->libraryId){
+				$this->libraryLinks = array();
+				$libraryLink = new LibraryLinks();
+				$libraryLink->libraryId = $this->libraryId;
+				$libraryLink->orderBy('weight');
+				$libraryLink->find();
+				while($libraryLink->fetch()){
+					$this->libraryLinks[$libraryLink->id] = clone($libraryLink);
+				}
+			}
+			return $this->libraryLinks;
 		}else{
 			return $this->data[$name];
 		}
@@ -503,6 +535,8 @@ class Library extends DB_DataObject
 			$this->facets = $value;
 		}elseif ($name == 'searchSources'){
 			$this->searchSources = $value;
+		}elseif ($name == 'libraryLinks'){
+			$this->libraryLinks = $value;
 		}else{
 			$this->data[$name] = $value;
 		}
@@ -522,6 +556,7 @@ class Library extends DB_DataObject
 			$this->saveNearbyBookStores();
 			$this->saveFacets();
 			$this->saveSearchSources();
+			$this->saveLibraryLinks();
 			return $ret;
 		}
 	}
@@ -540,9 +575,37 @@ class Library extends DB_DataObject
 			$this->saveNearbyBookStores();
 			$this->saveFacets();
 			$this->saveSearchSources();
+			$this->saveLibraryLinks();
 			return $ret;
 		}
 	}
+
+	public function saveLibraryLinks(){
+		if (isset ($this->libraryLinks) && is_array($this->libraryLinks)){
+			/** @var LibraryLinks[] $libraryLinks */
+			foreach ($this->libraryLinks as $libraryLink){
+				if (isset($libraryLink->deleteOnSave) && $libraryLink->deleteOnSave == true){
+					$libraryLink->delete();
+				}else{
+					if (isset($libraryLink->id) && is_numeric($libraryLink->id)){
+						$ret = $libraryLink->update();
+					}else{
+						$libraryLink->libraryId = $this->libraryId;
+						$libraryLink->insert();
+					}
+				}
+			}
+			unset($this->libraryLinks);
+		}
+	}
+
+	public function clearLibraryLinks(){
+		$libraryLinks = new LibraryLinks();
+		$libraryLinks->libraryId = $this->libraryId;
+		$libraryLinks->delete();
+		$this->libraryLinks = array();
+	}
+
 
 	public function saveSearchSources(){
 		if (isset ($this->searchSources) && is_array($this->searchSources)){
@@ -559,7 +622,7 @@ class Library extends DB_DataObject
 					}
 				}
 			}
-			unset($this->facets);
+			unset($this->searchSources);
 		}
 	}
 
