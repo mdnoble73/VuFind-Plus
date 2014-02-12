@@ -700,9 +700,11 @@ public class GroupedWorkSolr {
 
 	public void addEContentSources(HashSet<String> eContentSources){
 		econtentSources.addAll(eContentSources);
+		keywords.addAll(eContentSources);
 	}
 	public void addEContentSource(String eContentSource){
 		econtentSources.add(eContentSource);
+		keywords.add(eContentSource);
 	}
 	public void addEContentProtectionTypes(HashSet<String> eContentProtectionTypes){
 		econtentProtectionTypes.addAll(eContentProtectionTypes);
