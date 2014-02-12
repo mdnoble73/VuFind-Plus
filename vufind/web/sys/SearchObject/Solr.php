@@ -543,7 +543,12 @@ class SearchObject_Solr extends SearchObject_Base
 			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
 			$record = RecordDriverFactory::initRecordDriver($current);
 			if (!PEAR_Singleton::isError($record)){
-				$html[] = $interface->fetch($record->getBrowseResult());
+				if (method_exists($record, 'getBrowseResult')){
+					$html[] = $interface->fetch($record->getBrowseResult());
+				}else{
+					$html[] = 'Browse Result not available';
+				}
+
 			}else{
 				$html[] = "Unable to find record";
 			}
