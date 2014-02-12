@@ -288,6 +288,9 @@ class UInterface extends Smarty
 		$showRatings = 1;
 		if (isset($library)){
 			$showRatings = $library->showRatings;
+			$this->assign('facebookLink', $library->facebookLink);
+			$this->assign('twitterLink', $library->twitterLink);
+			$this->assign('generalContactLink', $library->generalContactLink);
 		}
 		$this->assign('showRatings', $showRatings);
 		if (isset($library) && $location != null){

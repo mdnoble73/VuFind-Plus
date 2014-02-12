@@ -9,10 +9,18 @@
 				</div>
 			{/if}
 			<div class="col-sm-6 text-right" id="connect-with-us-info">
-				<span id="connect-with-us-label" class="large">CONNECT WITH US</span>
-				<a href="{$twitterUrl}" class="connect-icon"><img src="{img filename='twitter.png'}" class="img-rounded"></a>
-				<a href="{$facebookUrl}" class="connect-icon"><img src="{img filename='facebook.png'}" class="img-rounded"></a>
-				<a href="{$contactUrl}" class="connect-icon"><img src="{img filename='email-contact.png'}" class="img-rounded"></a>
+				{if $twitterLink || $facebookLink || $generalContactLink}
+					<span id="connect-with-us-label" class="large">CONNECT WITH US</span>
+					{if $twitterLink}
+						<a href="{$twitterLink}" class="connect-icon"><img src="{img filename='twitter.png'}" class="img-rounded"></a>
+					{/if}
+					{if $facebookLink}
+						<a href="{$facebookLink}" class="connect-icon"><img src="{img filename='facebook.png'}" class="img-rounded"></a>
+					{/if}
+					{if $generalContactLink}
+						<a href="{$generalContactLink}" class="connect-icon"><img src="{img filename='email-contact.png'}" class="img-rounded"></a>
+					{/if}
+				{/if}
 			</div>
 		</div>
 	</div>

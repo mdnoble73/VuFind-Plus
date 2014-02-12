@@ -108,6 +108,9 @@ class Library extends DB_DataObject
 	public $searchGroupedRecords;
 	public $maxRequestsPerYear;
 	public $maxOpenRequests;
+	public $twitterLink;
+	public $facebookLink;
+	public $generalContactLink;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
@@ -173,8 +176,6 @@ class Library extends DB_DataObject
 				'homeLinkText' => array('property'=>'homeLinkText', 'type'=>'text', 'label'=>'Home Link Text', 'description'=>'The text to show for the Home breadcrumb link', 'size'=>'40', 'hideInLists' => true, 'default' => 'Home'),
 				'homePageWidgetId' => array('property'=>'homePageWidgetId', 'type'=>'enum', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page', 'hideInLists' => true, 'default' => 0, 'values'=>$availableWidgets),
 				'illLink'  => array('property'=>'illLink', 'type'=>'url', 'label'=>'ILL Link', 'description'=>'A link to a library system specific ILL page', 'size'=>'80', 'hideInLists' => true,),
-				'askALibrarianLink'  => array('property'=>'askALibrarianLink', 'type'=>'url', 'label'=>'Ask a Librarian Link', 'description'=>'A link to a library system specific Ask a Librarian page', 'size'=>'80', 'hideInLists' => true,),
-				'suggestAPurchase'  => array('property'=>'suggestAPurchase', 'type'=>'url', 'label'=>'Suggest a Purchase Link', 'description'=>'A link to a library system specific Suggest a Purchase page', 'size'=>'80', 'hideInLists' => true,),
 				'eContentSupportAddress'  => array('property'=>'eContentSupportAddress', 'type'=>'email', 'label'=>'E-Content Support Address', 'description'=>'An e-mail address to receive support requests for patrons with eContent problems.', 'size'=>'80', 'hideInLists' => true, 'default'=>'askmarmot@marmot.org'),
 				'enableBookCart'  => array('property'=>'enableBookCart', 'type'=>'checkbox', 'label'=>'Enable Book Cart', 'description'=>'Whether or not the Book Cart should be used for this library.', 'hideInLists' => true, 'default' => 1),
 				'enableGenealogy' => array('property'=>'enableGenealogy', 'type'=>'checkbox', 'label'=>'Enable Genealogy Functionality', 'description'=>'Whether or not patrons can search genealogy.', 'hideInLists' => true, 'default' => 1),
@@ -182,6 +183,14 @@ class Library extends DB_DataObject
 				'enableAlphaBrowse' => array('property'=>'enableAlphaBrowse', 'type'=>'checkbox', 'label'=>'Enable Alphabetic Browse', 'description'=>'Enable Alphabetic Browsing of titles, authors, etc.', 'hideInLists' => true, 'default' => 1),
 				'boopsieLink'  => array('property'=>'boopsieLink', 'type'=>'url', 'label'=>'Boopsie Link', 'description'=>'A link to the Boopsie Mobile App', 'size'=>'80', 'hideInLists' => true,),
 				'eContentLinkRules' => array('property'=>'eContentLinkRules', 'type'=>'text', 'label'=>'EContent Link Rules', 'description'=>'A regular expression defining a set of criteria to determine whether or not a link belongs to this library.', 'size'=>'40'),
+			)),
+
+			array('property'=>'contact', 'type' => 'section', 'label' =>'Contact Links', 'hideInLists' => true, 'properties' => array(
+				'facebookLink' => array('property'=>'facebookLink', 'type'=>'text', 'label'=>'Facebook Link Url', 'description'=>'The url to Facebook (leave blank if the library does not have a Facebook account', 'size'=>'40', 'maxLength' => 255, 'hideInLists' => true, 'default' => 'Home'),
+				'twitterLink' => array('property'=>'twitterLink', 'type'=>'text', 'label'=>'Twitter Link Url', 'description'=>'The url to Twitter (leave blank if the library does not have a Twitter account', 'size'=>'40', 'maxLength' => 255, 'hideInLists' => true, 'default' => 'Home'),
+				'generalContactLink' => array('property'=>'generalContactLink', 'type'=>'text', 'label'=>'General Contact Link Url', 'description'=>'The url to a General Contact Page, i.e webform or mailto link', 'size'=>'40', 'maxLength' => 255, 'hideInLists' => true, 'default' => 'Home'),
+				'askALibrarianLink'  => array('property'=>'askALibrarianLink', 'type'=>'url', 'label'=>'Ask a Librarian Link', 'description'=>'A link to a library system specific Ask a Librarian page', 'size'=>'80', 'hideInLists' => true,),
+				'suggestAPurchase'  => array('property'=>'suggestAPurchase', 'type'=>'url', 'label'=>'Suggest a Purchase Link', 'description'=>'A link to a library system specific Suggest a Purchase page', 'size'=>'80', 'hideInLists' => true,),
 			)),
 
 			array('property'=>'ilsSection', 'type' => 'section', 'label' =>'ILS/Account Integration', 'hideInLists' => true, 'properties' => array(

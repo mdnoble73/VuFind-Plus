@@ -400,6 +400,18 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_contact_links' => array(
+				'title' => 'Library Contact Links',
+				'description' => 'Add contact links for Facebook, Twitter and general contact to library config.',
+				'dependencies' => array(),
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE `library` ADD `twitterLink` VARCHAR(255) DEFAULT '';",
+					"ALTER TABLE `library` ADD `facebookLink` VARCHAR(255) DEFAULT '';",
+					"ALTER TABLE `library` ADD `generalContactLink` VARCHAR(255) DEFAULT '';",
+				),
+			),
+
 			'library_links' => array(
 				'title' => 'LibraryLinks',
 				'description' => 'Add configurable links to display within the home page. ',
