@@ -153,6 +153,20 @@ abstract class BaseEContentDriver  extends MarcRecord {
 	abstract function isEContentHoldable($locationCode, $eContentFieldData);
 	abstract function isLocalItem($locationCode, $eContentFieldData);
 	abstract function isLibraryItem($locationCode, $eContentFieldData);
-	abstract function getUsageRestrictions();
+	function getUsageRestrictions(){
+		$fastItems = $this->getItemsFast();
+		$shareWith = array();
+		foreach ($fastItems as $fastItem){
+			$sharing = $fastItem['sharing'];
+			if ($sharing == 'shared'){
+				return "Available to Everyone";
+			}else if ($sharing == 'library'){
+				$shareWith[] = $fastItem['libraryLabel'];
+			}else if ($sharing == 'location'){
+				$shareWith[] = $fastItem['locationLabel'];
+			}
+		}
+		return 'Available to patrons of ' . implode(', ', $shareWith);
+	}
 	abstract function isValidForUser($locationCode, $eContentFieldData);
 }

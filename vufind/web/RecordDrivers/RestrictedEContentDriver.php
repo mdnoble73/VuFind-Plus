@@ -46,14 +46,6 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 			return false;
 		}
 	}
-	function getUsageRestrictions($locationCode, $eContentFieldData){
-		$sharing = $this->getSharing($locationCode, $eContentFieldData);
-		if ($sharing == 'shared'){
-			return true;
-		}else{
-			return false;
-		}
-	}
 	function isValidForUser($locationCode, $eContentFieldData){
 		global $user;
 		if (!$user){

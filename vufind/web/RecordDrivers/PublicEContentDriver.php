@@ -28,7 +28,7 @@ class PublicEContentDriver extends BaseEContentDriver{
 	}
 
 	function getUsageRestrictions(){
-		return 'Always Available';
+		return 'Available to Everyone';
 	}
 	function isValidForUser($locationCode, $eContentFieldData){
 		return true;
