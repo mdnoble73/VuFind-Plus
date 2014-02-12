@@ -19,6 +19,12 @@ class OverDriveRecordDriver implements RecordInterface {
 	private $valid;
 	private $isbns;
 	private $items;
+	protected $scopingEnabled = false;
+
+	/**
+	 * The Grouped Work that this record is connected to
+	 * @var  GroupedWork */
+	protected $groupedWork;
 
 	/**
 	 * Constructor.  We build the object using all the data retrieved
@@ -42,7 +48,34 @@ class OverDriveRecordDriver implements RecordInterface {
 			}else{
 				$this->valid = false;
 			}
+			$this->loadGroupedWork();
 		}
+	}
+
+	public function setScopingEnabled($enabled){
+		$this->scopingEnabled = $enabled;
+	}
+	/**
+	 * Load the grouped work that this record is connected to.
+	 */
+	public function loadGroupedWork() {
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+		$groupedWork = new GroupedWork();
+		$query = "SELECT grouped_work.* FROM grouped_work INNER JOIN grouped_work_primary_identifiers ON grouped_work.id = grouped_work_id WHERE type='overdrive' AND identifier = '" . $this->getUniqueID() . "'";
+		$groupedWork->query($query);
+
+		if ($groupedWork->N == 1){
+			$groupedWork->fetch();
+			$this->groupedWork = clone $groupedWork;
+		}
+	}
+
+	public function getPermanentId(){
+		return $this->getGroupedWorkId();
+	}
+	public function getGroupedWorkId(){
+		return $this->groupedWork->permanent_id;
 	}
 
 	public function isValid(){
@@ -406,7 +439,7 @@ class OverDriveRecordDriver implements RecordInterface {
 		return $this->availability;
 	}
 
-	function getRelatedRecord(){
+	function getRelatedRecords(){
 		global $configArray;
 		$recordId = $this->getUniqueID();
 		$availability = $this->getAvailability();
@@ -428,7 +461,7 @@ class OverDriveRecordDriver implements RecordInterface {
 		$relatedRecord = array(
 			'id' => $recordId,
 			'url' => $url,
-			'format' => 'OverDrive ' . ($this->overDriveProduct->mediaType == 'Audiobook' ? 'eAudiobook' : $this->overDriveProduct->mediaType),
+			'format' => ($this->overDriveProduct->mediaType == 'Audiobook' ? 'eAudiobook' : $this->overDriveProduct->mediaType),
 			'edition' => '',
 			'language' => $this->getLanguage(),
 			'title' => $this->overDriveProduct->title,
@@ -446,6 +479,7 @@ class OverDriveRecordDriver implements RecordInterface {
 			'availableCopies' => $availableCopies,
 			'holdRatio' => $totalCopies > 0 ? ($availableCopies + ($totalCopies - $numHolds) / $totalCopies) : 0,
 			'locationLabel' => 'Online',
+			'source' => 'OverDrive',
 			'actions' => array()
 		);
 		if ($available){
@@ -459,7 +493,7 @@ class OverDriveRecordDriver implements RecordInterface {
 				'url' => $url . '/PlaceHold'
 			);
 		}
-		return $relatedRecord;
+		return array($relatedRecord);
 	}
 
 	public function getLibraryScopingId(){
@@ -609,12 +643,20 @@ class OverDriveRecordDriver implements RecordInterface {
 		return $this->overDriveProduct->primaryCreatorName;
 	}
 
-	public function getCoverUrl($size = 'small'){
+	public function getContributors(){
+		return null;
+	}
+
+	public function getBookcoverUrl($size = 'small'){
 		global $configArray;
 		$coverUrl = $configArray['Site']['url'] . '/bookcover.php?size=' . $size;
 		$coverUrl .= '&id=' . $this->id;
 		$coverUrl .= '&type=overdrive';
 		return $coverUrl;
+	}
+
+	public function getCoverUrl($size = 'small'){
+		return $this->getBookcoverUrl($size);
 	}
 
 	private function getOverDriveMetaData() {
@@ -625,5 +667,89 @@ class OverDriveRecordDriver implements RecordInterface {
 			$this->overDriveMetaData->find(true);
 		}
 		return $this->overDriveMetaData;
+	}
+
+	public function getRatingData() {
+		require_once ROOT_DIR . '/services/API/WorkAPI.php';
+		$workAPI = new WorkAPI();
+		return $workAPI->getRatingData($this->groupedWork->permanent_id);
+	}
+
+	public function getMoreDetailsOptions(){
+		global $interface;
+
+		$isbn = $this->getCleanISBN();
+
+		//Load more details options
+		$moreDetailsOptions = array();
+		$moreDetailsOptions['formats'] = array(
+			'label' => 'Formats',
+			'body' => '<div id="formatsPlaceholder">Loading...</div>',
+			'openByDefault' => true
+		);
+		$moreDetailsOptions['tableOfContents'] = array(
+			'label' => 'Table of Contents',
+			'body' => $interface->fetch('GroupedWork/tableOfContents.tpl'),
+			'hideByDefault' => true
+		);
+		$moreDetailsOptions['excerpt'] = array(
+			'label' => 'Excerpt',
+			'body' => '<div id="excerptPlaceholder">Loading Excerpt...</div>',
+			'hideByDefault' => true
+		);
+		$moreDetailsOptions['borrowerReviews'] = array(
+			'label' => 'Borrower Reviews',
+			'body' => "<div id='customerReviewPlaceholder'></div>",
+		);
+		$moreDetailsOptions['editorialReviews'] = array(
+			'label' => 'Editorial Reviews',
+			'body' => "<div id='editorialReviewPlaceholder'></div>",
+		);
+		if ($isbn){
+			$moreDetailsOptions['syndicatedReviews'] = array(
+				'label' => 'Syndicated Reviews',
+				'body' => "<div id='syndicatedReviewPlaceholder'></div>",
+			);
+		}
+		//A few tabs require an ISBN
+		if ($isbn){
+			$moreDetailsOptions['goodreadsReviews'] = array(
+				'label' => 'Reviews from GoodReads',
+				'body' => '<iframe id="goodreads_iframe" class="goodReadsIFrame" src="https://www.goodreads.com/api/reviews_widget_iframe?did=DEVELOPER_ID&format=html&isbn=' . $isbn . '&links=660&review_back=fff&stars=000&text=000" width="100%" height="400px" frameborder="0"></iframe>',
+			);
+			$moreDetailsOptions['similarTitles'] = array(
+				'label' => 'Similar Titles From Novelist',
+				'body' => '<div id="novelisttitlesPlaceholder"></div>',
+				'hideByDefault' => true
+			);
+			$moreDetailsOptions['similarAuthors'] = array(
+				'label' => 'Similar Authors From Novelist',
+				'body' => '<div id="novelistauthorsPlaceholder"></div>',
+				'hideByDefault' => true
+			);
+			$moreDetailsOptions['similarSeries'] = array(
+				'label' => 'Similar Series From Novelist',
+				'body' => '<div id="novelistseriesPlaceholder"></div>',
+				'hideByDefault' => true
+			);
+		}
+		$moreDetailsOptions['details'] = array(
+			'label' => 'Details',
+			'body' => $interface->fetch('OverDrive/view-title-details.tpl'),
+		);
+		$moreDetailsOptions['citations'] = array(
+			'label' => 'Citations',
+			'body' => $interface->fetch('Record/cite.tpl'),
+		);
+		$moreDetailsOptions['copies'] = array(
+			'label' => 'Copy Details',
+			'body' => '<div id="copiesPlaceholder">Loading...</div>',
+		);
+		$moreDetailsOptions['staff'] = array(
+			'label' => 'Staff View',
+			'body' => $interface->fetch($this->getStaffView()),
+		);
+
+		return $moreDetailsOptions;
 	}
 }

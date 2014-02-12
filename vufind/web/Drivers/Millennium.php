@@ -244,9 +244,10 @@ class MillenniumDriver implements DriverInterface
 	 *  lastStatusCheck (time)
 	 *
 	 * @param $id
+	 * @param $scopingEnabled
 	 * @return mixed
 	 */
-	public function getItemsFast($id){
+	public function getItemsFast($id, $scopingEnabled){
 		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
 
 		//Get a list of all locations for the active library
@@ -276,6 +277,18 @@ class MillenniumDriver implements DriverInterface
 		if ($homeLocation){
 			$homeLocationCode = $homeLocation->code;
 			$homeLocationLabel = $homeLocation->facetLabel;
+		}
+
+		$scopingLocationCode = '';
+		if ($scopingEnabled){
+			$searchLibrary = Library::getSearchLibrary();
+			$searchLocation = Location::getSearchLocation();
+			if (isset($searchLibrary)){
+				$scopingLocationCode = $searchLibrary->ilsCode;
+			}
+			if (isset($searchLocation)){
+				$scopingLocationCode = $searchLocation->code;
+			}
 		}
 
 		//Get the items Fields from the record
@@ -314,17 +327,27 @@ class MillenniumDriver implements DriverInterface
 				$locationLabel = $homeLocationLabel;
 			}
 			$shelfLocationMap = getTranslationMap('shelf_location');
-			$item = array(
-				'location' => $locationCode,
-				'callnumber' => $fullCallNumber,
-				'availability' => $available,
-				'holdable' => $holdable,
-				'isLocalItem' => $isLocalItem,
-				'isLibraryItem' => $isLibraryItem,
-				'locationLabel' => $locationLabel,
-				'shelfLocation' => isset($shelfLocationMap[$locationCode]) ? $shelfLocationMap[$locationCode] : '',
-			);
-			$items[] = $item;
+
+			//Check to make sure the location is correct
+
+			if ($this->isItemHoldableToPatron($locationCode, $iType, $pType)){
+				$item = array(
+					'location' => $locationCode,
+					'callnumber' => $fullCallNumber,
+					'availability' => $available,
+					'holdable' => $holdable,
+					'isLocalItem' => $isLocalItem,
+					'isLibraryItem' => $isLibraryItem,
+					'locationLabel' => $locationLabel,
+					'shelfLocation' => isset($shelfLocationMap[$locationCode]) ? $shelfLocationMap[$locationCode] : '',
+				);
+				//TODO: Can we split these based on what is local and what is available if you are unscoped
+				if (strlen($scopingLocationCode) == 0 || strpos($locationCode, $scopingLocationCode) === 0){
+					$items[] = $item;
+				}else{
+					//$items['other'] = $item;
+				}
+			}
 		}
 		return $items;
 	}

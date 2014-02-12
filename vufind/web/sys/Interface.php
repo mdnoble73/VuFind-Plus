@@ -115,6 +115,7 @@ class UInterface extends Smarty
 		unset($local);
 
 		$this->register_block('display_if_inconsistent', 'display_if_inconsistent');
+		$this->register_block('display_if_set', 'display_if_set');
 		$this->register_function('translate', 'translate');
 		$this->register_function('char', 'char');
 
@@ -366,6 +367,28 @@ function display_if_inconsistent($params, $content, &$smarty, &$repeat){
 			$iterationNumber++;
 		}
 		if ($consistent == false){
+			return $content;
+		}else{
+			return "";
+		}
+	}
+	return null;
+}
+
+function display_if_set($params, $content, &$smarty, &$repeat){
+	//This function is called twice, once for the opening tag and once for the
+	//closing tag.  Content is only set if
+	if (isset($content)) {
+		$hasData = false;
+		$firstValue = null;
+		$array = $params['array'];
+		$key = $params['key'];
+		foreach ($array as $arrayValue){
+			if (isset($arrayValue[$key]) && !empty($arrayValue[$key])){
+				$hasData = true;
+			}
+		}
+		if ($hasData){
 			return $content;
 		}else{
 			return "";

@@ -1,7 +1,7 @@
 {strip}
 	<div id="more-details-accordion" class="panel-group">
 		{foreach from=$moreDetailsOptions key="moreDetailsKey" item="moreDetailsOption"}
-			<div class="panel" id="{$moreDetailsKey}Panel" {if $moreDetailsOption.hideByDefault}style="display:none"{/if}>
+			<div class="panel {if $moreDetailsOption.openByDefault}active{/if}" id="{$moreDetailsKey}Panel" {if $moreDetailsOption.hideByDefault}style="display:none"{/if}>
 				<a data-toggle="collapse" href="#{$moreDetailsKey}PanelBody">
 					<div class="panel-heading">
 						<div class="panel-title">
@@ -9,7 +9,7 @@
 						</div>
 					</div>
 				</a>
-				<div id="{$moreDetailsKey}PanelBody" class="panel-collapse collapse">
+				<div id="{$moreDetailsKey}PanelBody" class="panel-collapse collapse {if $moreDetailsOption.openByDefault}in{/if}">
 					<div class="panel-body">
 						{$moreDetailsOption.body}
 					</div>

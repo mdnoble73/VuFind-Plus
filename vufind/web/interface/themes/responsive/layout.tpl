@@ -31,6 +31,7 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind/base.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/account.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/browse.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/econtent-record.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/grouped-work.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/overdrive.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/prospector.js"></script>

@@ -133,8 +133,11 @@ class Record_Home extends Record_Record{
 		$interface->assign('chiliFreshAccount', $configArray['Content']['chiliFreshAccount']);
 		$timer->logTime('Configure UI for library and location');
 
+		$interface->assign('moreDetailsOptions', $this->recordDriver->getMoreDetailsOptions());
+
 		//Build the actual view
 		$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');
+		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
 		$interface->setTemplate('view.tpl');
 
 		/** @var File_MARC_Data_Field $titleField */

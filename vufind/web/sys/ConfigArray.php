@@ -93,7 +93,17 @@ function getTranslationMap($name)
 	}
 
 	return $translationMaps[$name];
+}
 
+function mapValue($mapName, $value){
+	$map = getTranslationMap($mapName);
+	if (isset($map[$value])){
+		return $map[$value];
+	}elseif(isset($map['*'])){
+		return $map['*'];
+	}else{
+		return '';
+	}
 }
 
 /**

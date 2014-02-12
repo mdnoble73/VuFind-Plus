@@ -1084,6 +1084,10 @@ class Solr implements IndexEngine {
 		$this->_loadShards($shards);
 	}
 
+	function isScopingEnabled(){
+		return !$this->scopingDisabled;
+	}
+
 	/**
 	 * Execute a search.
 	 *
@@ -1438,6 +1442,8 @@ class Solr implements IndexEngine {
 		if ($this->index == 'grouped') {
 			$institutionFacetName = 'owning_library';
 		}
+
+		//TODO: This block and the next block are reedundant and should be cleaned up
 		if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
 			$usableFilter = 'usable_by:('.$pType . ' OR all)';
 			if (strlen($owningLibrary) > 0){
@@ -1451,7 +1457,42 @@ class Solr implements IndexEngine {
 				$homeLibraryFacet = $homeLibrary->facetLabel;
 				$usableFilter .= " OR $buildingFacetName:\"$homeLibraryFacet\" OR $buildingFacetName:\"$homeLibraryFacet Online\"";
 			}
+			if (isset($searchLibrary) && $searchLibrary->includeDigitalCollection){
+				$usableFilter .= " OR $institutionFacetName:\"Shared Digital Collection\"";
+			}
 			$filter[] = '(' . $usableFilter . ')';
+		}
+
+		//TODO: clean up this blokc in favor of the previous
+		if ($this->scopingDisabled == false){
+			if (isset($searchLibrary)){
+				if ($searchLibrary->restrictSearchByLibrary && $searchLibrary->includeDigitalCollection){
+					$filter[] = "($institutionFacetName:\"{$searchLibrary->facetLabel}\" OR $institutionFacetName:\"Shared Digital Collection\" OR $institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
+				}else if ($searchLibrary->restrictSearchByLibrary){
+					$filter[] = "$institutionFacetName:\"{$searchLibrary->facetLabel}\"";
+				}else if (!$searchLibrary->includeDigitalCollection){
+					$filter[] = "!($institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
+				}
+			}
+
+			if ($searchLocation != null){
+				if ($searchLocation->restrictSearchByLocation && $searchLocation->includeDigitalCollection){
+					$filter[] = "($buildingFacetName:\"{$searchLocation->facetLabel}\" OR $buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLocation->facetLabel} Online\")";
+				}else if ($searchLocation->restrictSearchByLocation){
+					$filter[] = "($buildingFacetName:\"{$searchLocation->facetLabel}\")";
+				}else if (!$searchLocation->includeDigitalCollection){
+					$filter[] = "!($buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLibrary->facetLabel} Online\")";
+				}
+			}
+
+			global $defaultCollection;
+			if (isset($defaultCollection) && strlen($defaultCollection) > 0){
+				$filter[] = 'collection_group:"' . $defaultCollection . '"';
+			}
+
+			if ($this->searchSource == 'econtent'){
+				$filter[] = 'recordtype:"econtentRecord"';
+			}
 		}
 
 		$blacklistRecords = null;
@@ -1509,36 +1550,6 @@ class Solr implements IndexEngine {
 			}
 		}
 
-		if ($this->scopingDisabled == false){
-			if (isset($searchLibrary)){
-				if ($searchLibrary->restrictSearchByLibrary && $searchLibrary->includeDigitalCollection){
-					$filter[] = "($institutionFacetName:\"{$searchLibrary->facetLabel}\" OR $institutionFacetName:\"Shared Digital Collection\" OR $institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
-				}else if ($searchLibrary->restrictSearchByLibrary){
-					$filter[] = "$institutionFacetName:\"{$searchLibrary->facetLabel}\"";
-				}else if (!$searchLibrary->includeDigitalCollection){
-					$filter[] = "!($institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
-				}
-			}
-
-			if ($searchLocation != null){
-				if ($searchLocation->restrictSearchByLocation && $searchLocation->includeDigitalCollection){
-					$filter[] = "($buildingFacetName:\"{$searchLocation->facetLabel}\" OR $buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLocation->facetLabel} Online\")";
-				}else if ($searchLocation->restrictSearchByLocation){
-					$filter[] = "($buildingFacetName:\"{$searchLocation->facetLabel}\")";
-				}else if (!$searchLocation->includeDigitalCollection){
-					$filter[] = "!($buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLibrary->facetLabel} Online\")";
-				}
-			}
-
-			global $defaultCollection;
-			if (isset($defaultCollection) && strlen($defaultCollection) > 0){
-				$filter[] = 'collection_group:"' . $defaultCollection . '"';
-			}
-
-			if ($this->searchSource == 'econtent'){
-				$filter[] = 'recordtype:"econtentRecord"';
-			}
-		}
 		return $filter;
 	}
 

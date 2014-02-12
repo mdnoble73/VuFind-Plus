@@ -14,8 +14,8 @@
 			{/if}
 
 			<dt>{translate text='Format'}:</dt>
-			{if is_array($eContentRecord->format())}
-				{foreach from=$eContentRecord->format() item=displayFormat name=loop}
+			{if is_array($recordDriver->getFormat())}
+				{foreach from=$recordDriver->getFormat() item=displayFormat name=loop}
 					<dd><span class="icon {$displayFormat|lower|regex_replace:"/[^a-z0-9]/":""}">&nbsp;</span><span class="iconlabel">{translate text=$displayFormat}</span></dd>
 				{/foreach}
 			{else}

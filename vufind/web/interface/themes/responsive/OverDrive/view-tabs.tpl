@@ -1,6 +1,5 @@
 {strip}
 	<div id="moredetails-tabs" class="tabbable">
-		<div class="result-label visible-phone">Show:</div>
 		{* Define tabs for the display *}
 		<ul class="nav nav-tabs">
 			<li id="detailstab_label"><a href="#detailstab" data-toggle="tab">{translate text="Details"}</a></li>

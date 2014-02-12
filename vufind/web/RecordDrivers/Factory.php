@@ -81,6 +81,10 @@ class RecordDriverFactory {
 		return new PEAR_Error("Problem loading record driver: {$driver}");
 	}
 
+	/**
+	 * @param $id
+	 * @return ExternalEContentDriver|MarcRecord|null|OverDriveRecordDriver|PublicEContentDriver|RestrictedEContentDriver
+	 */
 	static function initRecordDriverById($id){
 		$recordInfo = explode(':', $id);
 		$recordType = $recordInfo[0];

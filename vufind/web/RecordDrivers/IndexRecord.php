@@ -35,6 +35,7 @@ class IndexRecord implements RecordInterface
 {
 	protected $fields;
 	protected $index = false;
+	protected $scopingEnabled = false;
 	/**
 	 * These Solr fields should be used for snippets if available (listed in order
 	 * of preference).
@@ -1239,10 +1240,10 @@ class IndexRecord implements RecordInterface
 	/**
 	 * Get an array of all the formats associated with the record.
 	 *
-	 * @access  protected
+	 * @access  public
 	 * @return  array
 	 */
-	protected function getFormats()
+	public function getFormats()
 	{
 		return isset($this->fields['format']) ? $this->fields['format'] : array();
 	}
@@ -1275,7 +1276,7 @@ class IndexRecord implements RecordInterface
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 		$groupedWork = new GroupedWork();
-		$query = "SELECT grouped_work.* FROM grouped_work INNER JOIN grouped_work_primary_identifiers ON grouped_work.id = grouped_work_id WHERE type='ils' AND identifier = '" . $this->getUniqueID() . "'";
+		$query = "SELECT grouped_work.* FROM grouped_work INNER JOIN grouped_work_primary_identifiers ON grouped_work.id = grouped_work_id WHERE type='{$this->getRecordType()}' AND identifier = '" . $this->getUniqueID() . "'";
 		$groupedWork->query($query);
 
 		if ($groupedWork->N == 1){
@@ -1843,6 +1844,14 @@ class IndexRecord implements RecordInterface
 		require_once ROOT_DIR . '/services/API/WorkAPI.php';
 		$workAPI = new WorkAPI();
 		return $workAPI->getRatingData($this->groupedWork->permanent_id);
+	}
+
+	protected function getRecordType(){
+		return 'unknown';
+	}
+
+	public function setScopingEnabled($enabled){
+		$this->scopingEnabled = $enabled;
 	}
 }
 

@@ -36,27 +36,17 @@
 	</h2>
 {* Display more information about the title*}
 	{if $recordDriver->getAuthor()}
-		<h3>
-			by <a href="{$path}/Author/Home?author={$recordDriver->getAuthor()|escape:"url"}">{$recordDriver->getAuthor()|escape}</a>
-		</h3>
+		<div class="row">
+			<div class="result-label col-md-3">Author: </div>
+			<div class="col-md-9 result-value">
+				<a href="{$path}/Author/Home?author={$recordDriver->getAuthor()|escape:"url"}">{$recordDriver->getAuthor()|highlight:$lookfor}</a>
+			</div>
+		</div>
 	{/if}
-
-	{if $error}<p class="error">{$error}</p>{/if}
-
-	<hr/>
 
 	<div id="main-content" class="col-md-12">
 		<div class="row">
-			<div id="image-column" class="col-md-3">
-				{* Display Book Cover *}
-				{if $user->disableCoverArt != 1}
-					<div id = "recordcover">
-						<img alt="{translate text='Book Cover'}" class="img-polaroid" src="{$recordDriver->getCoverUrl('large')}" />
-					</div>
-				{/if}
-			</div> {* End image column *}
-
-			<div id="record-details-column" class="col-md-6">
+			<div id="record-details-column" class="col-md-9">
 				<div id="record-details-header">
 					<div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord">Loading...</div>
 				</div>
@@ -74,26 +64,35 @@
 			<div id="recordTools" class="col-md-3">
 				{include file="OverDrive/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
 
-				<div id="ratings" class="well center">
-					{* Let the user rate this title *}
-					{include file="Record/title-rating-full.tpl" ratingClass="" recordId=$id shortId=$shortId ratingData=$ratingData showFavorites=0}
-				</div>
 			</div>
 		</div>
 
-		<div id="relatedTitleInfo" style="display:none">
-
-			{assign var="scrollerName" value="Series"}
-			{assign var="scrollerTitle" value="Also in this Series"}
-			{assign var="wrapperId" value="series"}
-			{assign var="scrollerVariable" value="seriesScroller"}
-			{assign var="fullListLink" value="$path/EcontentRecord/$id/Series"}
-			{include file="titleScroller.tpl"}
+		<div id="seriesInfo" style="display:none" class="row">
+			<div class="col-sm-12">
+				{assign var="scrollerName" value="Series"}
+				{assign var="scrollerTitle" value="Also in this Series"}
+				{assign var="wrapperId" value="series"}
+				{assign var="scrollerVariable" value="seriesScroller"}
+				{assign var="permanentId" value=$recordDriver->getPermanentId()}
+				{assign var="fullListLink" value= "$path/GroupedWork/$permanentId/Series"}
+				{include file='titleScroller.tpl'}
+			</div>
 		</div>
 
-		<hr/>
+		<div id="moreLikeThisInfo" style="display:none" class="row">
+			<div class="col-sm-12">
+				{assign var="scrollerName" value="MoreLikeThis"}
+				{assign var="scrollerTitle" value="More Like This"}
+				{assign var="wrapperId" value="morelikethis"}
+				{assign var="scrollerVariable" value="morelikethisScroller"}
+				{assign var="permanentId" value=$recordDriver->getPermanentId()}
+				{include file='titleScroller.tpl'}
+			</div>
+		</div>
 
-		{include file="OverDrive/view-tabs.tpl" isbn=$isbn upc=$upc}
+		{include file=$moreDetailsTemplate}
+
+		{* include file="OverDrive/view-tabs.tpl" isbn=$isbn upc=$upc *}
 
 		<hr/>
 	</div>

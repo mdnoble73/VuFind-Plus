@@ -7,7 +7,41 @@
  * Date: 2/7/14
  * Time: 9:45 AM
  */
-require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-class PublicEContentDriver extends MarcRecord{
+require_once ROOT_DIR . '/RecordDrivers/BaseEContentDriver.php';
+class PublicEContentDriver extends BaseEContentDriver{
+	function getValidProtectionTypes(){
+		return array('free', 'public domain');
+	}
 
+	function isAvailable($realTime){
+		return true;
+	}
+	function isEContentHoldable($locationCode, $eContentFieldData){
+		//Not holdable because you can always get it
+		return false;
+	}
+	function isLocalItem($locationCode, $eContentFieldData){
+		return true;
+	}
+	function isLibraryItem($locationCode, $eContentFieldData){
+		return true;
+	}
+
+	function getUsageRestrictions(){
+		return 'Always Available';
+	}
+	function isValidForUser($locationCode, $eContentFieldData){
+		return true;
+	}
+
+	function getRecordUrl(){
+		global $configArray;
+		$recordId = $this->getUniqueID();
+
+		return $configArray['Site']['path'] . '/PublicEContent/' . $recordId;
+	}
+
+	protected function getRecordType(){
+		return 'free';
+	}
 } 

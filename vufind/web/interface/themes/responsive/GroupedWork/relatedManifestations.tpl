@@ -9,7 +9,7 @@
 			<div class="row related-manifestation">
 				<div class="col-sm-12">
 				  <div class="row">
-						<div class="col-sm-3">
+						<div class="col-sm-3 manifestation-format">
 							{if $relatedManifestation.numRelatedRecords == 1}
 								<span class='manifestation-toggle-placeholder'>&nbsp;</span>
 								<a href="{$relatedManifestation.url}">{$relatedManifestation.format}</a>
@@ -21,7 +21,11 @@
 						</div>
 						<div class="col-sm-7">
 							{if $relatedManifestation.available && $relatedManifestation.locationLabel}
-								<div class="related-manifestation-shelf-status">On Shelf At {$relatedManifestation.locationLabel}</div>
+								<div class="related-manifestation-shelf-status available">On Shelf At {$relatedManifestation.locationLabel}</div>
+							{elseif $relatedManifestation.available}
+								<div class="related-manifestation-shelf-status available">Available</div>
+							{else}
+								<div class="related-manifestation-shelf-status checked_out">Checked Out</div>
 							{/if}
 							<div class="related-manifestation-copies">{$relatedManifestation.availableCopies} of {$relatedManifestation.copies} copies available.</div>
 							{if false && $relatedManifestation.numRelatedRecords > 1}

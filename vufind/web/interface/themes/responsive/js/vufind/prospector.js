@@ -1,7 +1,7 @@
 VuFind.Prospector = (function(){
 	return {
 		getProspectorResults: function(prospectorNumTitlesToLoad, prospectorSavedSearchId){
-			var url = Globals.path + "/Search/AJAX";
+			var url = Globals.path + "Search/AJAX";
 			var params = "method=getProspectorResults&prospectorNumTitlesToLoad=" + encodeURIComponent(prospectorNumTitlesToLoad) + "&prospectorSavedSearchId=" + encodeURIComponent(prospectorSavedSearchId);
 			var fullUrl = url + "?" + params;
 			$.ajax({
@@ -20,9 +20,9 @@ VuFind.Prospector = (function(){
 		loadRelatedProspectorTitles: function (id, source) {
 			var url;
 			if (source == 'VuFind'){
-				url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+				url = Globals.path + "Record/" + encodeURIComponent(id) + "/AJAX";
 			}else{
-				url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+				url = Globals.path + "EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 			}
 			var params = "method=GetProspectorInfo";
 			var fullUrl = url + "?" + params;

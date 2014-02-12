@@ -6989,6 +6989,30 @@ body {
 .related-manifestations {
   margin-bottom: 5px;
 }
+.manifestation-format {
+  font--size: 13px;
+  font-weight: bold;
+}
+.related-manifestation-shelf-status {
+  font-size: 13px;
+  font-weight: bold;
+}
+.related-manifestation-shelf-status.available {
+  color: green;
+}
+.related-manifestation-shelf-status.checked_out {
+  color: red;
+}
+.related_record_status {
+  font-size: 13px;
+  font-weight: bold;
+}
+.related_record_status.available {
+  color: green;
+}
+.related_record_status.checked_out {
+  color: red;
+}
 .graph-bar {
   background-color: #088ec6;
 }

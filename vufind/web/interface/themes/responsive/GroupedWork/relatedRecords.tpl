@@ -2,9 +2,9 @@
 	<table class="table table-striped table-condensed">
 		<thead>
 		<tr>
-			{display_if_inconsistent array=$relatedRecords key="subtitle"}
-				<th>Subtitle</th>
-			{/display_if_inconsistent}
+			{if $relatedManifestation.format == 'eBook' || $relatedManifestation.format == 'eAudio'}
+				<th>Source</th>
+			{/if}
 			{display_if_inconsistent array=$relatedRecords key="edition"}
 				<th>Edition</th>
 			{/display_if_inconsistent}
@@ -29,9 +29,9 @@
 				{* <td>
 				{$relatedRecord.holdRatio}
 				</td> *}
-				{display_if_inconsistent array=$relatedRecords key="subtitle"}
-					<td><a href="{$relatedRecord.url}">{$relatedRecord.subtitle}</a></td>
-				{/display_if_inconsistent}
+				{if $relatedManifestation.format == 'eBook' || $relatedManifestation.format == 'eAudio'}
+					<td><a href="{$relatedRecord.url}">{$relatedRecord.source}</a></td>
+				{/if}
 				{display_if_inconsistent array=$relatedRecords key="edition"}
 					<td><a href="{$relatedRecord.url}">{$relatedRecord.edition}</a></td>
 				{/display_if_inconsistent}
@@ -48,10 +48,25 @@
 					<td><a href="{$relatedRecord.url}">{$relatedRecord.language}</a></td>
 				{/display_if_inconsistent}
 				<td>
-					{if $relatedManifestation.available}
-						{$relatedRecord.availableCopies} of {$relatedRecord.copies} copies available
+					{if $relatedRecord.available}
+						<div class="related_record_status available">Available</div>
+						{$relatedRecord.availableCopies} of {$relatedRecord.copies} copies available.
 					{else}
-						{$relatedRecord.copies} {if $relatedRecord.copies > 1}copies{else}copy{/if} checked out
+						<div class="related_record_status checked_out">Checked Out</div>
+						{$relatedRecord.copies} {if $relatedRecord.copies > 1}copies{else}copy{/if} checked out.
+					{/if}
+					{if $relatedRecord.shelfLocation}
+						<br/>{$relatedRecord.shelfLocation}
+					{/if}
+					{if $relatedRecord.shelfLocation}
+						<br/>Shelf Location: {$relatedRecord.shelfLocation}
+					{/if}
+					{if $relatedRecord.callNumber}
+						<br/>Call Number: {$relatedRecord.callNumber}
+					{/if}
+
+					{if $relatedRecord.usageRestrictions}
+						<br/>{$relatedRecord.usageRestrictions}
 					{/if}
 				</td>
 				<td>

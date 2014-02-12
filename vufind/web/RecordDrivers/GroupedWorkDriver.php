@@ -14,6 +14,7 @@ require_once ROOT_DIR . '/RecordDrivers/Interface.php';
 class GroupedWorkDriver implements RecordInterface{
 
 	protected $fields;
+	protected $scopingEnabled = false;
 	public $isValid = true;
 	public function __construct($indexFields)
 	{
@@ -39,6 +40,10 @@ class GroupedWorkDriver implements RecordInterface{
 		}else{
 			$this->fields = $indexFields;
 		}
+	}
+
+	public function setScopingEnabled($enabled){
+		$this->scopingEnabled = $enabled;
 	}
 
 	public function getContributors(){
@@ -722,13 +727,12 @@ class GroupedWorkDriver implements RecordInterface{
 				}
 				foreach ($relatedRecordIds as $relatedRecordId){
 					$recordDriver = RecordDriverFactory::initRecordDriverById($relatedRecordId);
+					$recordDriver->setScopingEnabled($this->scopingEnabled);
 					if ($recordDriver != null && $recordDriver->isValid()){
-						$relatedRecord = $recordDriver->getRelatedRecord();
-						if ($relatedRecord != null){
+						$relatedRecordsForBib = $recordDriver->getRelatedRecords();
+						foreach ($relatedRecordsForBib as $relatedRecord){
 							$relatedRecord['driver'] = $recordDriver;
-							if ($relatedRecord['copies'] > 0){
-								$relatedRecords[] = $relatedRecord;
-							}
+							$relatedRecords[] = $relatedRecord;
 						}
 					}
 				}
@@ -890,5 +894,70 @@ class GroupedWorkDriver implements RecordInterface{
 		require_once ROOT_DIR . '/services/API/WorkAPI.php';
 		$workAPI = new WorkAPI();
 		return $workAPI->getRatingData($this->getPermanentId());
+	}
+
+	public function getMoreDetailsOptions(){
+		global $interface;
+
+		$isbn = $this->getCleanISBN();
+
+		//Load more details options
+		$moreDetailsOptions = array();
+		$moreDetailsOptions['tableOfContents'] = array(
+			'label' => 'Table of Contents',
+			'body' => $interface->fetch('GroupedWork/tableOfContents.tpl'),
+			'hideByDefault' => true
+		);
+		$moreDetailsOptions['excerpt'] = array(
+			'label' => 'Excerpt',
+			'body' => '<div id="excerptPlaceholder">Loading Excerpt...</div>',
+			'hideByDefault' => true
+		);
+		$moreDetailsOptions['borrowerReviews'] = array(
+			'label' => 'Borrower Reviews',
+			'body' => "<div id='customerReviewPlaceholder'></div>",
+		);
+		$moreDetailsOptions['editorialReviews'] = array(
+			'label' => 'Editorial Reviews',
+			'body' => "<div id='editorialReviewPlaceholder'></div>",
+		);
+		if ($isbn){
+			$moreDetailsOptions['syndicatedReviews'] = array(
+				'label' => 'Syndicated Reviews',
+				'body' => "<div id='syndicatedReviewPlaceholder'></div>",
+			);
+		}
+		//A few tabs require an ISBN
+		if ($isbn){
+			$moreDetailsOptions['goodreadsReviews'] = array(
+				'label' => 'Reviews from GoodReads',
+				'body' => '<iframe id="goodreads_iframe" class="goodReadsIFrame" src="https://www.goodreads.com/api/reviews_widget_iframe?did=DEVELOPER_ID&format=html&isbn=' . $isbn . '&links=660&review_back=fff&stars=000&text=000" width="100%" height="400px" frameborder="0"></iframe>',
+			);
+			$moreDetailsOptions['similarTitles'] = array(
+				'label' => 'Similar Titles From Novelist',
+				'body' => '<div id="novelisttitlesPlaceholder"></div>',
+				'hideByDefault' => true
+			);
+			$moreDetailsOptions['similarAuthors'] = array(
+				'label' => 'Similar Authors From Novelist',
+				'body' => '<div id="novelistauthorsPlaceholder"></div>',
+				'hideByDefault' => true
+			);
+			$moreDetailsOptions['similarSeries'] = array(
+				'label' => 'Similar Series From Novelist',
+				'body' => '<div id="novelistseriesPlaceholder"></div>',
+				'hideByDefault' => true
+			);
+		}
+		$moreDetailsOptions['details'] = array(
+			'label' => 'Details',
+			'body' => $interface->fetch('GroupedWork/view-title-details.tpl'),
+		);
+		$moreDetailsOptions['staff'] = array(
+			'label' => 'Staff View',
+			'body' => $interface->fetch($this->getStaffView()),
+		);
+
+		return $moreDetailsOptions;
 	}
 }

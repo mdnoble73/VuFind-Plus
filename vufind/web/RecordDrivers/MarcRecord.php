@@ -846,6 +846,12 @@ class MarcRecord extends IndexRecord
 	public function getAuthor(){
 		if (isset($this->fields['auth_author'])){
 			return $this->fields['auth_author'];
+		}else{
+			$author = $this->getFirstFieldValue('100', array('a'));
+			if (empty($author )){
+				$author = $this->getFirstFieldValue('110', array('a'));
+			}
+			return $author;
 		}
 	}
 
@@ -1337,8 +1343,9 @@ class MarcRecord extends IndexRecord
 
 		return $configArray['Site']['path'] . '/Record/' . $recordId;
 	}
-	function getRelatedRecord(){
+	function getRelatedRecords(){
 		global $configArray;
+		$relatedRecords = array();
 		$recordId = $this->getUniqueID();
 
 		$url = $this->getRecordUrl();
@@ -1361,7 +1368,7 @@ class MarcRecord extends IndexRecord
 					}
 				}
 				if (!$hasEContentSubfield){
-					return null;
+					return $relatedRecords;
 				}
 			}
 		}
@@ -1373,6 +1380,10 @@ class MarcRecord extends IndexRecord
 		$physicalDescriptions = $this->getPhysicalDescriptions();
 		$physicalDescription = count($physicalDescriptions) >= 1 ? $physicalDescriptions[0] : '';
 		$totalCopies = $this->getNumCopies();
+		//Don't add records the user can't get.
+		if ($totalCopies == 0){
+			return $relatedRecords;
+		}
 		$availableCopies = $this->getAvailableCopies(false);
 		$hasLocalItem = $this->hasLocalItem();
 		$numHolds = 0;
@@ -1398,6 +1409,7 @@ class MarcRecord extends IndexRecord
 			'holdRatio' => $totalCopies > 0 ? ($availableCopies + ($totalCopies - $numHolds) / $totalCopies) : 0,
 			'locationLabel' => $this->getLocationLabel(),
 			'shelfLocation' => $this->getShelfLocation(),
+			'source' => 'ils',
 			'actions' => array()
 		);
 		if ($this->isHoldable()){
@@ -1406,13 +1418,14 @@ class MarcRecord extends IndexRecord
 				'url' => $holdUrl
 			);
 		}
-		return $relatedRecord;
+		$relatedRecords[] = $relatedRecord;
+		return $relatedRecords;
 	}
 
 	private function isHoldable(){
 		$items = $this->getItemsFast();
 		$firstCallNumber = null;
-		foreach ($items as $itemKey => $item){
+		foreach ($items as $item){
 			//Try to get an available non reserve call number
 			if ($item['holdable'] == 1){
 				return true;
@@ -1468,7 +1481,7 @@ class MarcRecord extends IndexRecord
 		}
 		return $locationLabel;
 	}
-	private function isAvailable($realTime){
+	public function isAvailable($realTime){
 		if ($realTime){
 			$items = $this->getItems();
 		}else{
@@ -1476,7 +1489,7 @@ class MarcRecord extends IndexRecord
 		}
 		foreach ($items as $item){
 			//Try to get an available non reserve call number
-			if ($item['availability'] == true){
+			if ($item['availability'] === true){
 				return true;
 			}
 		}
@@ -1530,7 +1543,7 @@ class MarcRecord extends IndexRecord
 	public function getItemsFast(){
 		if ($this->fastItems == null){
 			$driver = MarcRecord::getCatalogDriver();
-			$this->fastItems = $driver->getItemsFast($this->getUniqueID());
+			$this->fastItems = $driver->getItemsFast($this->getUniqueID(), $this->scopingEnabled);
 		}
 		return $this->fastItems;
 	}
@@ -1679,5 +1692,83 @@ class MarcRecord extends IndexRecord
 			}
 			return $upcs;
 		}
+	}
+
+	public function getMoreDetailsOptions(){
+		global $interface;
+
+		$isbn = $this->getCleanISBN();
+
+		//Load more details options
+		$moreDetailsOptions = array();
+		$moreDetailsOptions['copies'] = array(
+			'label' => 'Copies',
+			'body' => '<div id="holdingsPlaceholder"></div>',
+			'openByDefault' => true
+		);
+		$moreDetailsOptions['tableOfContents'] = array(
+			'label' => 'Table of Contents',
+			'body' => $interface->fetch('GroupedWork/tableOfContents.tpl'),
+			'hideByDefault' => true
+		);
+		$moreDetailsOptions['excerpt'] = array(
+			'label' => 'Excerpt',
+			'body' => '<div id="excerptPlaceholder">Loading Excerpt...</div>',
+			'hideByDefault' => true
+		);
+		$moreDetailsOptions['borrowerReviews'] = array(
+			'label' => 'Borrower Reviews',
+			'body' => "<div id='customerReviewPlaceholder'></div>",
+		);
+		$moreDetailsOptions['editorialReviews'] = array(
+			'label' => 'Editorial Reviews',
+			'body' => "<div id='editorialReviewPlaceholder'></div>",
+		);
+		if ($isbn){
+			$moreDetailsOptions['syndicatedReviews'] = array(
+				'label' => 'Syndicated Reviews',
+				'body' => "<div id='syndicatedReviewPlaceholder'></div>",
+			);
+		}
+		//A few tabs require an ISBN
+		if ($isbn){
+			$moreDetailsOptions['goodreadsReviews'] = array(
+				'label' => 'Reviews from GoodReads',
+				'body' => '<iframe id="goodreads_iframe" class="goodReadsIFrame" src="https://www.goodreads.com/api/reviews_widget_iframe?did=DEVELOPER_ID&format=html&isbn=' . $isbn . '&links=660&review_back=fff&stars=000&text=000" width="100%" height="400px" frameborder="0"></iframe>',
+			);
+			$moreDetailsOptions['similarTitles'] = array(
+				'label' => 'Similar Titles From Novelist',
+				'body' => '<div id="novelisttitlesPlaceholder"></div>',
+				'hideByDefault' => true
+			);
+			$moreDetailsOptions['similarAuthors'] = array(
+				'label' => 'Similar Authors From Novelist',
+				'body' => '<div id="novelistauthorsPlaceholder"></div>',
+				'hideByDefault' => true
+			);
+			$moreDetailsOptions['similarSeries'] = array(
+				'label' => 'Similar Series From Novelist',
+				'body' => '<div id="novelistseriesPlaceholder"></div>',
+				'hideByDefault' => true
+			);
+		}
+		$moreDetailsOptions['details'] = array(
+			'label' => 'Details',
+			'body' => $interface->fetch('EcontentRecord/view-title-details.tpl'),
+		);
+		$moreDetailsOptions['citations'] = array(
+			'label' => 'Citations',
+			'body' => $interface->fetch('Record/cite.tpl'),
+		);
+		$moreDetailsOptions['staff'] = array(
+			'label' => 'Staff View',
+			'body' => $interface->fetch($this->getStaffView()),
+		);
+
+		return $moreDetailsOptions;
+	}
+
+	protected function getRecordType(){
+		return 'ils';
 	}
 }

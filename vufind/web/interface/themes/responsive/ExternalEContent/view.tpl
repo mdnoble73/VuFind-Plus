@@ -4,18 +4,11 @@
 <script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
 <script type="text/javascript">
 {literal}$(document).ready(function(){{/literal}
-	VuFind.Record.loadHoldingsInfo('{$id|escape:"url"}', '{$shortId}', 'VuFind');
-	VuFind.GroupedWork.loadEnrichmentInfo('{$id|escape:"url"}', '{$isbn10|escape:"url"}', '{$upc|escape:"url"}', 'VuFind');
-	VuFind.GroupedWork.loadReviewInfo('{$id|escape:"url"}', '{$isbn|escape:"url"}', 'VuFind');
+	VuFind.ExternalEContentRecord.loadHoldingsInfo('{$id|escape:"url"}', '{$shortId}', 'VuFind');
+	VuFind.GroupedWork.loadEnrichmentInfo('{$recordDriver->getPermanentId()|escape:"url"}');
+	VuFind.GroupedWork.loadReviewInfo('{$recordDriver->getPermanentId()|escape:"url"}');
 	{if $enablePospectorIntegration == 1}
 		VuFind.Prospector.loadRelatedProspectorTitles('{$id|escape:"url"}', 'VuFind');
-	{/if}
-	{if $user}
-		//redrawSaveStatus('{$id|escape:"javascript"}', 'saveLink');
-	{/if}
-
-	{if (isset($title)) }
-		alert("{$title}");
 	{/if}
 {literal}});{/literal}
 </script>
@@ -29,11 +22,11 @@
 		{/if}
 	</h2>
 	{* Display more information about the title*}
-	{if $recordDriver->getAuthor()}
+	{if $mainAuthor}
 		<div class="row">
 			<div class="result-label col-md-3">Author: </div>
 			<div class="col-md-9 result-value">
-				<a href="{$path}/Author/Home?author={$recordDriver->getAuthor()|escape:"url"}">{$recordDriver->getAuthor()|highlight:$lookfor}</a>
+				<a href="{$path}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|highlight:$lookfor}</a>
 			</div>
 		</div>
 	{/if}
@@ -85,6 +78,11 @@
 
 				<div id="recordTools" class="col-md-3">
 					{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
+
+					<div id="ratings" class="well center">
+						{* Let the user rate this title *}
+						{include file="Record/title-rating-full.tpl" ratingClass="" recordId=$id shortId=$shortId ratingData=$ratingData showFavorites=0}
+					</div>
 				</div>
 			</div>
 
@@ -112,7 +110,6 @@
 			</div>
 
 			{include file=$moreDetailsTemplate}
-			{* include file="Record/view-tabs.tpl" isbn=$isbn upc=$upc *}
 		</div>
 	</div>
 	{literal}
