@@ -344,8 +344,6 @@ class MillenniumDriver implements DriverInterface
 				//TODO: Can we split these based on what is local and what is available if you are unscoped
 				if (strlen($scopingLocationCode) == 0 || strpos($locationCode, $scopingLocationCode) === 0){
 					$items[] = $item;
-				}else{
-					//$items['other'] = $item;
 				}
 			}
 		}

@@ -1402,6 +1402,7 @@ class MarcRecord extends IndexRecord
 			'physical' => $physicalDescription,
 			'callNumber' => $this->getCallNumber(),
 			'available' => $this->isAvailable(false),
+			'availableLocally' => $this->isAvailableLocally(false),
 			'availableCopies' => $availableCopies,
 			'copies' => $totalCopies,
 			'numHolds' => $numHolds,
@@ -1418,6 +1419,7 @@ class MarcRecord extends IndexRecord
 				'url' => $holdUrl
 			);
 		}
+
 		$relatedRecords[] = $relatedRecord;
 		return $relatedRecords;
 	}
@@ -1490,6 +1492,21 @@ class MarcRecord extends IndexRecord
 		foreach ($items as $item){
 			//Try to get an available non reserve call number
 			if ($item['availability'] === true){
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public function isAvailableLocally($realTime){
+		if ($realTime){
+			$items = $this->getItems();
+		}else{
+			$items = $this->getItemsFast();
+		}
+		foreach ($items as $item){
+			//Try to get an available non reserve call number
+			if ($item['availability'] === true && ($item['isLocalItem'] || $item['isLibraryItem'])){
 				return true;
 			}
 		}

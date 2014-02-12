@@ -451,7 +451,7 @@ class OverDriveRecordDriver implements RecordInterface {
 		foreach ($availability as $curAvailability){
 			if ($curAvailability->available){
 				$available = true;
-				$availableCopies++;
+				$availableCopies += $curAvailability->copiesAvailable;
 			}
 			$totalCopies += $curAvailability->copiesOwned;
 		}

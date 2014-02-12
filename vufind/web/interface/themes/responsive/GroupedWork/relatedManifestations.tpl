@@ -20,10 +20,12 @@
 							{/if}
 						</div>
 						<div class="col-sm-7">
-							{if $relatedManifestation.available && $relatedManifestation.locationLabel}
-								<div class="related-manifestation-shelf-status available">On Shelf At {$relatedManifestation.locationLabel}</div>
+							{if $relatedManifestation.availableLocally}
+								<div class="related-manifestation-shelf-status available">On Shelf</div>
+							{elseif $relatedManifestation.availableOnline}
+								<div class="related-manifestation-shelf-status available">Available Online</div>
 							{elseif $relatedManifestation.available}
-								<div class="related-manifestation-shelf-status available">Available</div>
+								<div class="related-manifestation-shelf-status available">Available from another library</div>
 							{else}
 								<div class="related-manifestation-shelf-status checked_out">Checked Out</div>
 							{/if}

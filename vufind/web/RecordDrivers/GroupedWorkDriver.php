@@ -761,7 +761,15 @@ class GroupedWorkDriver implements RecordInterface{
 					'preferredEdition' => null,
 					'statusMessage' => '',
 					'shelfLocation' => '',
+					'availableLocally' => false,
+					'availableOnline' => false,
 				);
+			}
+			if (!$relatedManifestations[$curRecord['format']]['availableLocally'] && isset($curRecord['availableLocally']) && $curRecord['availableLocally'] == true){
+				$relatedManifestations[$curRecord['format']]['availableLocally'] = $curRecord['availableLocally'];
+			}
+			if (!$relatedManifestations[$curRecord['format']]['availableOnline'] && $curRecord['available'] && $curRecord['locationLabel'] == 'Online'){
+				$relatedManifestations[$curRecord['format']]['availableOnline'] = true;
 			}
 			if (!$relatedManifestations[$curRecord['format']]['available'] && $curRecord['available']){
 				$relatedManifestations[$curRecord['format']]['available'] = $curRecord['available'];
@@ -772,7 +780,13 @@ class GroupedWorkDriver implements RecordInterface{
 			if (!$relatedManifestations[$curRecord['format']]['shelfLocation'] && $curRecord['shelfLocation']){
 				$relatedManifestations[$curRecord['format']]['shelfLocation'] = $curRecord['shelfLocation'];
 			}
-			$relatedManifestations[$curRecord['format']]['relatedRecords'][$curRecord['holdRatio'] . '_' .  $curRecord['id']] = $curRecord;
+			if ($curRecord['hasLocalItem']){
+				$key = 1;
+			}else{
+				$key = 2;
+			}
+			$key .= '-' . $curRecord['holdRatio']. '_' .  $curRecord['id'];
+			$relatedManifestations[$curRecord['format']]['relatedRecords'][$key] = $curRecord;
 			$relatedManifestations[$curRecord['format']]['copies'] += $curRecord['copies'];
 			$relatedManifestations[$curRecord['format']]['availableCopies'] += $curRecord['availableCopies'];
 
@@ -781,6 +795,7 @@ class GroupedWorkDriver implements RecordInterface{
 		//Check to see what we need to do for actions
 		foreach ($relatedManifestations as $key => $manifestation){
 			$manifestation['numRelatedRecords'] = count($manifestation['relatedRecords']);
+			ksort($manifestation['relatedRecords']);
 			if (count($manifestation['relatedRecords']) == 1){
 				$firstRecord = reset($manifestation['relatedRecords']);
 				$manifestation['url'] = $firstRecord['url'];
