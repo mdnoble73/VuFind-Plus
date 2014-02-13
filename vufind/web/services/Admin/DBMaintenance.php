@@ -2563,7 +2563,7 @@ class DBMaintenance extends Admin_Admin {
 				'title' => 'Grouped Work Primary Identifiers Update 1',
 				'description' =>'Add additional types of identifiers.',
 				'sql' => array(
-					"ALTER TABLE grouped_work_primary_identifiers CHANGE `type` `type` ENUM('ils', 'external_econtent', 'drm', 'free', 'overdrive' ) NOT NULL",
+					"ALTER TABLE grouped_work_primary_identifiers CHANGE `type` `type` ENUM('ils', 'external', 'drm', 'free', 'overdrive' ) NOT NULL",
 				),
 			),
 
