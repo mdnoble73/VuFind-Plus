@@ -92,7 +92,7 @@
 					</div>
 
 					{* Include standard tools *}
-					{include file='EcontentRecord/result-tools.tpl' summId=$record.recordId summShortId=$record.shortId ratingData=$record.ratingData recordUrl=$record.recordUrl showMoreInfo=true showHoldButton=false}
+					{* include file='EcontentRecord/result-tools.tpl' summId=$record.recordId summShortId=$record.shortId ratingData=$record.ratingData recordUrl=$record.recordUrl showMoreInfo=true showHoldButton=false *}
 				</div>
 			</div>
 		</div>

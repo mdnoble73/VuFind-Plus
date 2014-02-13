@@ -114,7 +114,7 @@
 					</div>
 
 					{* Include standard tools *}
-					{include file='Record/result-tools.tpl' id=$record.id shortId=$record.shortId ratingData=$record.ratingData}
+					{* include file='Record/result-tools.tpl' id=$record.id shortId=$record.shortId ratingData=$record.ratingData *}
 				</div>
 			</div>
 		</div>
