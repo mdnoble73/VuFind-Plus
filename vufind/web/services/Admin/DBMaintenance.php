@@ -2643,7 +2643,6 @@ class DBMaintenance extends Admin_Admin {
 				//Should be an ils identifier for this
 				$workIdentifier = new GroupedWorkPrimaryIdentifier();
 				$workIdentifier->identifier = $row['record_id'];
-				$workIdentifier->type = 'ils';
 				$workIdentifier->joinAdd(new GroupedWork());
 				$workIdentifier->selectAdd('permanent_id');
 				if ($workIdentifier->find(true)){
@@ -2674,7 +2673,6 @@ class DBMaintenance extends Admin_Admin {
 				//Should be an ils identifier for this
 				$workIdentifier = new GroupedWorkPrimaryIdentifier();
 				$workIdentifier->identifier = $row['record_id'];
-				$workIdentifier->type = 'ils';
 				$workIdentifier->joinAdd(new GroupedWork());
 				$workIdentifier->selectAdd('permanent_id');
 				if ($workIdentifier->find(true)){
