@@ -171,12 +171,12 @@ public class GroupedReindexProcess {
 	
 	private static void initializeReindex() {
 		// Delete the existing reindex.log file
-		File solrmarcLog = new File("../../sites/" + serverName + "/logs/reindex.log");
+		File solrmarcLog = new File("../../sites/" + serverName + "/logs/grouped_reindex.log");
 		if (solrmarcLog.exists()){
 			solrmarcLog.delete();
 		}
 		for (int i = 1; i <= 10; i++){
-			solrmarcLog = new File("../../sites/" + serverName + "/logs/reindex.log." + i);
+			solrmarcLog = new File("../../sites/" + serverName + "/logs/grouped_reindex.log." + i);
 			if (solrmarcLog.exists()){
 				solrmarcLog.delete();
 			}
@@ -193,7 +193,7 @@ public class GroupedReindexProcess {
 		}
 		
 		// Initialize the logger
-		File log4jFile = new File("../../sites/" + serverName + "/conf/log4j.reindex.properties");
+		File log4jFile = new File("../../sites/" + serverName + "/conf/log4j.grouped_reindex.properties");
 		if (log4jFile.exists()) {
 			PropertyConfigurator.configure(log4jFile.getAbsolutePath());
 		} else {
