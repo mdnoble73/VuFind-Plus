@@ -1516,7 +1516,7 @@ class MarcRecord extends IndexRecord
 	private function hasLocalItem() {
 		$items = $this->getItemsFast();
 		foreach ($items as $item){
-			if ($item['isLocalItem']){
+			if ($item['isLocalItem'] || $item['isLibraryItem']){
 				return true;
 			}
 		}
