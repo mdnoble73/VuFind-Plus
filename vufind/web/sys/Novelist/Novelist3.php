@@ -378,19 +378,29 @@ class Novelist3{
 		//Find the correct grouped work based on the isbns;
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifier.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifierRef.php';
 
 		/** @var SimpleXMLElement $titleItem */
 		$permanentId = null;
 		foreach($item->isbns as $isbn){
 			if (strlen($isbn) == 10 || strlen($isbn) == 13){
 				$groupedWorkIdentifier = new GroupedWorkIdentifier();
-				$groupedWork = new GroupedWork();
 				$groupedWorkIdentifier->type = "isbn";
 				$groupedWorkIdentifier->identifier = $isbn;
-				$groupedWorkIdentifier->joinAdd($groupedWork);
 				if ($groupedWorkIdentifier->find(true)){
-					$permanentId = $groupedWorkIdentifier->permanent_id;
-					break;
+					$groupedWorkIdentifierRef = new GroupedWorkIdentifierRef();
+					$groupedWorkIdentifierRef->identifier_id = $groupedWorkIdentifier->id;
+					$groupedWorkIdentifierRef->find();
+					if ($groupedWorkIdentifierRef->N == 1){
+						$groupedWorkIdentifierRef->fetch();
+						$groupedWork = new GroupedWork();
+						$groupedWork->id = $groupedWorkIdentifierRef->grouped_work_id;
+						if ($groupedWork->find(true)){
+							$permanentId = $groupedWorkIdentifierRef->grouped_work_id;
+							break;
+						}
+					}
+
 				}
 			}
 		}

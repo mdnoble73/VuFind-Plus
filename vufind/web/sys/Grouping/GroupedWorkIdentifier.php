@@ -11,6 +11,7 @@
 class GroupedWorkIdentifier extends DB_DataObject{
 	public $__table = 'grouped_work_identifiers';    // table name
 
+	public $id;
 	public $type;
 	public $identifier;
 }
