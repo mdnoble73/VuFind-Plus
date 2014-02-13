@@ -300,7 +300,7 @@ class MillenniumDriver implements DriverInterface
 			$locationCode = trim($itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '');
 			$iType = trim($itemField->getSubfield('j') != null ? $itemField->getSubfield('j')->getData() : '');
 			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pType);
-			$status = trim($itemField->getSubfield('o') != null ? $itemField->getSubfield('o')->getData() : '');
+			$status = trim($itemField->getSubfield('o') != null ? trim($itemField->getSubfield('o')->getData()) : '');
 			$dueDate = $itemField->getSubfield('m') != null ? trim($itemField->getSubfield('m')->getData()) : null;
 			$available = ($status == '-' && ($dueDate == null || strlen($dueDate) == 0));
 			$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
