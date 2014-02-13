@@ -1085,7 +1085,18 @@ class Solr implements IndexEngine {
 	}
 
 	function isScopingEnabled(){
-		return !$this->scopingDisabled;
+		$scopingEnabled = false;
+		if (!$this->scopingDisabled){
+			$searchLibrary = Library::getSearchLibrary();
+			$searchLocation = Location::getSearchLocation();
+			if (isset($searchLocation) && $searchLocation->useScope){
+				$scopingEnabled = true;
+			}else if (isset($searchLibrary) && $searchLibrary->useScope){
+				$scopingEnabled = true;
+			}
+		}
+
+		return $scopingEnabled;
 	}
 
 	/**
