@@ -5,8 +5,8 @@
 <script type="text/javascript">
 {literal}$(document).ready(function(){{/literal}
 	VuFind.Record.loadHoldingsInfo('{$id|escape:"url"}', '{$shortId}', 'VuFind');
-	VuFind.GroupedWork.loadEnrichmentInfo('{$id|escape:"url"}', '{$isbn10|escape:"url"}', '{$upc|escape:"url"}', 'VuFind');
-	VuFind.GroupedWork.loadReviewInfo('{$id|escape:"url"}', '{$isbn|escape:"url"}', 'VuFind');
+	VuFind.GroupedWork.loadEnrichmentInfo('{$recordDriver->getPermanentId()|escape:"url"}');
+	VuFind.GroupedWork.loadReviewInfo('{$recordDriver->getPermanentId()|escape:"url"}');
 	{if $enablePospectorIntegration == 1}
 		VuFind.Prospector.loadRelatedProspectorTitles('{$id|escape:"url"}', 'VuFind');
 	{/if}
