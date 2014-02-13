@@ -2629,7 +2629,7 @@ class DBMaintenance extends Admin_Admin {
 	}
 
 	public function populateWorkLevelRatings(){
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifier.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
 
@@ -2641,7 +2641,7 @@ class DBMaintenance extends Admin_Admin {
 			//We got a rating from the user, find the appropriate work based on the resource
 			if ($row['source'] == 'VuFind'){
 				//Should be an ils identifier for this
-				$workIdentifier = new GroupedWorkIdentifier();
+				$workIdentifier = new GroupedWorkPrimaryIdentifier();
 				$workIdentifier->identifier = $row['record_id'];
 				$workIdentifier->type = 'ils';
 				$workIdentifier->joinAdd(new GroupedWork());
@@ -2672,7 +2672,7 @@ class DBMaintenance extends Admin_Admin {
 //We got a rating from the user, find the appropriate work based on the resource
 			if ($row['source'] == 'VuFind'){
 				//Should be an ils identifier for this
-				$workIdentifier = new GroupedWorkIdentifier();
+				$workIdentifier = new GroupedWorkPrimaryIdentifier();
 				$workIdentifier->identifier = $row['record_id'];
 				$workIdentifier->type = 'ils';
 				$workIdentifier->joinAdd(new GroupedWork());
