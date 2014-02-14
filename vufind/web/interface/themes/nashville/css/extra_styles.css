@@ -12,6 +12,7 @@ body{font-family:'Source Sans Pro', "Arial Unicode MS",Arial,Sans-Serif;color:#0
 .ui-tabs .ui-tabs-nav li.ui-tabs-active {background-color: #fff;}
 .ui-tabs .ui-tabs-nav li.ui-state-hover {font-weight: normal;background-color:#F0f0f0;}
 
+#moredetails-tabs {margin-top: 10px;margin-bottom:25px;}
 
 /* Component containers
 ----------------------------------*/
@@ -637,7 +638,7 @@ margin: 0 auto;
 font-size: 90%;
 }
 
-#footerBookLists {background-color:#f3f3f3;}
+#footerBookLists {background-color:#f5f5f5;}
 #footerBookLists .titleScrollerHeader {
 background-color: #32388e;
 padding: 5px 5px 10px 10px;
@@ -653,9 +654,15 @@ font-size: 25px;
 font-weight: normal;
 padding: 5px 0 8px 0;
 }
-div.footerListCol{padding:0 0.7em 0 0.7em;width:auto;vertical-align:top;display:inline-block;zoom:1;*display:inline;width:23%;}
-.footerListCol h2 {border-bottom:1px solid #ccc; padding:5px;text-align:left;color:#010101;font-weight:normal;}
+div.footerListCol{padding:0 0.7em 0 0.7em;width:auto;vertical-align:top;display:inline-block;zoom:1;*display:inline;width:209px;}
+.footerListCol h2 {border-bottom:1px dotted #ACACAC; padding:5px;text-align:left;color:#010101;font-weight:normal;}
 .footerListCol a {font-size:14px;}
 .footerListCol ul {padding: 0 0 0 10px;}
 
 #footerHelpInformation {margin-top:40px;}
+#ft #footerCol1 {padding:0 0.7em 0 0.7em;width:310px;vertical-align:top;display:inline-block;zoom:1;*display:inline;}
+#ft div.footerCol {border-right: 0px dotted #ccc;padding:0 0.7em 0 0.7em;width:264px;vertical-align:top;display:inline-block;zoom:1;*display:inline;}
+div.footerCol h2 {border-bottom:1px dotted #ACACAC; padding:5px;text-align:left;color:#010101;font-weight:normal;}
+div.footerCol ul {padding: 0 0 0 10px;}
+div.footerCol a {font-size:14px;}
+#ft #copyright {text-align: right;margin-top:5px;}
