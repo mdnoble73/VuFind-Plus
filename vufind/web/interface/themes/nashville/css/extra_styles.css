@@ -147,7 +147,8 @@ margin-left: 5px;
 .available span {padding-left: 0px;}
 .holdingsSummary {margin-left: 0;}
 #record-details-header {border-bottom: 0px solid #E4E4E4;}
-.sidebarValue {padding: 0 10px 0 0;font-size: 90%;}
+.sidebarLabel {padding: 8px 10px 3px 0;font-weight: bold;}
+.sidebarValue {padding: 0 0 0 10px;font-size: 90%;}
 .icon {display: none;zoom: 1;margin-right: 5px;width: 0px;height: 0px;}
 
 /* --------------- */
@@ -173,7 +174,7 @@ padding: 3px 12px;
 }
 
 #placeHoldButton .button, .button:link, .button:visited, .button:hover, .button:active, .button:focus, button {
-margin: 0 0 0 2px;
+margin: 0 0 0 0;
 padding: 3px 12px;
 }
 
@@ -593,8 +594,9 @@ margin-bottom: 5px;
 
 .selectAllControls {
 line-height: 22px;
-margin-top: -25px;
-margin-bottom: 20px;
+margin-top: 5px;
+margin-bottom: 5px;
+margin-left: 5px;
 }
 
 .categoryValue {
@@ -638,7 +640,7 @@ margin: 0 auto;
 font-size: 90%;
 }
 
-#footerBookLists {background-color:#f5f5f5;}
+#footerBookLists {background-color:#f5f5f5;padding-bottom: 20px;}
 #footerBookLists .titleScrollerHeader {
 background-color: #32388e;
 padding: 5px 5px 10px 10px;

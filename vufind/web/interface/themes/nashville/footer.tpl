@@ -41,9 +41,6 @@
 	<ul>
 		<li><a href="http://bit.ly/newpicturebooks">New Picture Books</a></li>
 		<li><a href="http://catalog.library.nashville.org/Search/Results?lookfor=children%27s+--+animation+--+feature.&type=Subject&basicType=Subject&filter[]=format_category%3A%22Movies%22&filter[]=local_time_since_added_catalog%3A%22Quarter%22&sort=year&view=list&searchSource=local">New Animated Movies</a></li>		
-		<li><a href=""></a></li>
-		<li><a href=""></a></li>
-		<li><a href=""></a></li>
 	</ul>
 </div>
 
@@ -58,6 +55,8 @@
         <li><a href="https://www.rbdigital.com/nashvilletn/service/zinio/landing?">Zinio Online Magazines</a></li>
         <li><a href="http://www.freegalmusic.com">Freegal Music</a></li>
         <li><a href="http://www.hoopladigital.com">Hoopla Digital Music, Video, Audiobooks</a></li>
+        <li><a href="http://www.tumblebooks.com/library/auto_login.asp?U=nashpublic&P=libra">Tumblebooks for Kids</a></li>
+        <li><a href-"http://0-bkflix.grolier.com.waldo.library.nashville.org"/>BookFLIX for Kids</a></li>
 	</ul>
 </div>
 
