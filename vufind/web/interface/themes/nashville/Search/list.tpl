@@ -72,7 +72,6 @@
       {* Prospector Results *}
       <div id='prospectorSearchResultsPlaceholder'></div>
         
-      {if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
       
       <div class="searchtools">
         <strong>{translate text='Search Tools'}:</strong>
@@ -82,6 +81,10 @@
         <a href="{$excelLink|escape}"><span class="silk table_go">&nbsp;</span>{translate text='Export To Excel'}</a>
       </div>
       
+      
+            {if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
+
+
       <b class="bbot"><b></b></b>
     </div>
     {* End Main Listing *}

@@ -62,7 +62,6 @@ solid #ccc;background:#fff /*url(/interface/themes/nashville/images/ui-bg_gloss-
 
 /* styles.css */
 html,body{height:100%;background-color:#CCC;background-image:url("/interface/themes/nashville/images/background_white_carbon.png");}
-#page-content {padding:10px 10px 50px 10px;text-align:left}
 
 /*****************Homepage*******************/
 .searchHomeContent{text-align:left;margin: 0 auto;width:95%;padding: 0 0 2em 0;border-top:1px solid #f8f8f8;} 
@@ -93,11 +92,11 @@ html,body{height:100%;background-color:#CCC;background-image:url("/interface/the
 
 /*****************Breadcrumbs*******************/
 div.breadcrumbs {overflow: hidden;margin: 8px 0 0 0;*margin-top:12px;padding: 0;height: 30px;line-height: 30px;border-bottom: 1px solid #ccc;border-top: 1px solid #ccc;}
-div.breadcrumbs span.home-icon{width:24px;height:24px;opacity:0.75;background:url('/images/home_icon.png') no-repeat top left;margin-right:5px;display:none;}
+div.breadcrumbs span.home-icon{width:24px;height:24px;opacity:0.75;background:url('/interface/themes/nashville/images/home_icon.png') no-repeat top left;margin-right:5px;display:none;}
 div.breadcrumbinner {width: 55em;*width:55em;margin:0;}
 #content_span {*padding-top: 1px;}
-.catalogBrowse {float:right;position:relative;background-color:#32388e;padding:0px 4px 0px 4px;}
-.breadcrumbs .catalogBrowse a{font-size:14px;color:#fff;opacity:1;}
+.breadcrumbs .catalogBrowse {float:right;position:relative;background-color:#32388e;padding:0px 0px 0px 8px;background:url('/interface/themes/nashville/images/header_browseCatalogRibbon.png') no-repeat top left;}
+.breadcrumbs .catalogBrowse a {font-size:14px;color:#fff;opacity:1;background-color:#32388e;}
 
 /******** Main Header *********/
 .searchheader{padding:0;background-color:#ffffff;border-bottom:solid 0px #c5c5c5;text-align:left;}.searchheader a, .searchheader a:visited{color:#06c}.searchheader a:hover{color:#132248;}
@@ -177,15 +176,24 @@ margin: 0 0 0 2px;
 padding: 3px 12px;
 }
 
-html,button,input,select,textarea{font-family: inherit;}
 
 
 /* Results List Buttons */
 .resultAction, .resultAction:hover {/*padding:2px 2px 2px 4px;*/margin: 3px 0 3px 0;}
 .silk {margin-left: 0px;}
 
+html,button,input,select,textarea{font-family: inherit;}
+input[type="submit"].requestSelectedItems {
+font-size: 12px;
+}
 
-
+.searchtools {
+border-top: #eee solid 0px;
+padding: 0 1em 0 0;
+font-size: 80%;
+float: right;
+margin-top:-25px;
+}
 
 /* Place Hold - pick up page */
 .note {font-size: inheret;font-style: normal;color: #191919;}
@@ -333,6 +341,10 @@ box-shadow: 2px 2px 4px #888;
 #similarTitleInfo, #relatedTitleInfo {
 border: 1px solid #ccc;
 }
+#similarTitleInfo {
+margin-top: 10px;
+margin-bottom: 20px;
+}
 #list-series.titleScroller {
 border: 0px
  solid #ccc;
@@ -398,7 +410,7 @@ color: #292929;
 .scrollerBody{
 	padding: 7px;
 	margin: 0 7px;
-	height: 120px;
+	height: 142px;
 	position: relative;
 }
 .scrollerWithRatings .scrollerBody{
@@ -615,7 +627,35 @@ top: 2px;
 left: 804px;
 }
 
-div.footerListCol{padding:0 0.5em 0 0.5em;width:auto;vertical-align:top;display:inline-block;zoom:1;*display:inline;width:23%;}
-.footerListCol h2 {background-color:#32388e;padding:5px 5px 5px 14px;text-align:left;color:#fff;font-weight:normal;}
+
+/* New Footer Styles */
+
+
+#ft {
+padding: 0px 25px 10px 25px;
+margin: 0 auto;
+font-size: 90%;
+}
+
+#footerBookLists {background-color:#f3f3f3;}
+#footerBookLists .titleScrollerHeader {
+background-color: #32388e;
+padding: 5px 5px 10px 10px;
+color: #292929;
+font-size: 22px;
+font-weight: normal;
+height: 25px;
+border-bottom: dotted 1px #ccc;
+}
+#footerBookLists .resultInformationLabel {
+color: #fff;
+font-size: 25px;
+font-weight: normal;
+padding: 5px 0 8px 0;
+}
+div.footerListCol{padding:0 0.7em 0 0.7em;width:auto;vertical-align:top;display:inline-block;zoom:1;*display:inline;width:23%;}
+.footerListCol h2 {border-bottom:1px solid #ccc; padding:5px;text-align:left;color:#010101;font-weight:normal;}
 .footerListCol a {font-size:14px;}
-.footerListCol ul {padding: 0 0 0 1em;}
+.footerListCol ul {padding: 0 0 0 10px;}
+
+#footerHelpInformation {margin-top:40px;}
