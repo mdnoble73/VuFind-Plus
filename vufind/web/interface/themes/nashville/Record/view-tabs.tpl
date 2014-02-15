@@ -153,12 +153,14 @@
 		{include file=$staffDetails}
 
 		<br/>
-		{if $user && $user->hasRole('opacAdmin')}
+		<!-- 
+        {if $user && $user->hasRole('opacAdmin')}
 			<a href="{$path}/Record/{$id|escape:"url"}/AJAX?method=downloadMarc" class="button">{translate text="Download Marc"}</a>
 		{/if}
 		{if $classicId}
 			<a href ="{$classicUrl}/record={$classicId|escape:"url"}&amp;searchscope={$millenniumScope}" rel="external" class="button" onclick="trackEvent('Outgoing Link', 'Classic', '{$classicId}');window.open (this.href, 'child'); return false">View In Classic</a></div>
 		{/if}
+        -->
 	</div>
 </div> {* End of tabs*}
 
