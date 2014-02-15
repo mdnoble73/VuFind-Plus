@@ -46,20 +46,21 @@
 
 <div class="clearer"></div>
 
+{if !$inLibrary}
 <div class="footerCol"><h2>{*{translate text='Find More'}*}Browse Our Online Collections</h2>
 	<ul>
 		<!-- <li><a href="{$path}/Browse/Home">{translate text='Browse the Catalog'}</a></li> -->
 		<!-- <li><a href="{$path}/Search/Reserves">{translate text='Course Reserves'}</a></li> -->
 		<!-- <li><a href="{$path}/Search/NewItem">{translate text='New Items'}</a></li> -->
 		<li><a href="http://emedia.library.nashville.org/" rel="external" >{translate text='Download Books &amp; More'} from OverDrive</a></li>
-        <li><a href="https://www.rbdigital.com/nashvilletn/service/zinio/landing?">Zinio Online Magazines</a></li>
-        <li><a href="http://www.freegalmusic.com">Freegal Music</a></li>
-        <li><a href="http://www.hoopladigital.com">Hoopla Digital Music, Video, Audiobooks</a></li>
-        <li><a href="http://www.tumblebooks.com/library/auto_login.asp?U=nashpublic&P=libra">Tumblebooks for Kids</a></li>
-        <li><a href-"http://0-bkflix.grolier.com.waldo.library.nashville.org"/>BookFLIX for Kids</a></li>
+	        <li><a href="https://www.rbdigital.com/nashvilletn/service/zinio/landing?">Zinio Online Magazines</a></li>
+	        <li><a href="http://www.freegalmusic.com">Freegal Music</a></li>
+	        <li><a href="http://www.hoopladigital.com">Hoopla Digital Music, Video, Audiobooks</a></li>
+	        <li><a href="http://www.tumblebooks.com/library/auto_login.asp?U=nashpublic&P=libra">Tumblebooks for Kids</a></li>
+	        <li><a href-"http://0-bkflix.grolier.com.waldo.library.nashville.org"/>BookFLIX for Kids</a></li>
 	</ul>
 </div>
-
+{/if}
 
 
 <div class="footerCol" id="footerCol1"><h2>Can't Find What You're Looking For?</h2>
