@@ -81,4 +81,16 @@ class DefaultCoverImageBuilder {
 		return $startY;
 	}
 
+	public function blankCoverExists($format, $format_category) {
+		$coverName = strtolower(preg_replace('/\W/', '', $format));
+		if (!file_exists(ROOT_DIR . '/images/blankCovers/' . $coverName . '.jpg')) {
+			$coverName = strtolower(preg_replace('/\W/', '', $format_category));
+
+			if (!file_exists(ROOT_DIR . '/images/blankCovers/' . $coverName . '.jpg')) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 }
