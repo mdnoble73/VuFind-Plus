@@ -32,6 +32,7 @@ var VuFind = (function(){
 					var dialogDestination = trigger.attr("href");
 					$("#myModalLabel").text(dialogTitle);
 					$(".modal-body").load(dialogDestination);
+					$(".extraModalButton").hide();
 					$("#modalDialog").modal("show");
 					return false;
 				});
@@ -102,6 +103,13 @@ var VuFind = (function(){
 			$(".modal-body").html(elementText);
 			var modalDialog = $("#modalDialog");
 			modalDialog.modal('show');
+		},
+
+		showLocationHoursAndMap: function(){
+			var selectedId = $("#selectLibrary").find(":selected").val();
+			$(".locationInfo").hide();
+			$("#locationAddress" + selectedId).show();
+			return false;
 		}
 
 	}

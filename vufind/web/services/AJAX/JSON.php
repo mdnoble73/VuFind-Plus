@@ -455,7 +455,7 @@ class JSON extends Action {
 		if ($tmpLocation->N == 0){
 			//Get all locations
 			$tmpLocation = new Location();
-			$tmpLocation->orderBy('libraryId, displayName');
+			$tmpLocation->orderBy('displayName');
 			$tmpLocation->find();
 		}
 		while ($tmpLocation->fetch()){
@@ -463,6 +463,7 @@ class JSON extends Action {
 			$clonedLocation = clone $tmpLocation;
 			$hours = $clonedLocation->getHours();
 			$libraryLocations[] = array(
+				'id' => $tmpLocation->locationId,
 				'name' => $tmpLocation->displayName,
 				'address' => preg_replace('/\r\n|\r|\n/', '<br/>', $tmpLocation->address),
 				'phone' => $tmpLocation->phone,

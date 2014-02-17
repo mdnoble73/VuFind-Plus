@@ -8,8 +8,8 @@
 				<div class="jcarousel-wrapper">
 					<div class="jcarousel">
 						<ul>
-							{foreach from=$browseCategories item=browseCategory}
-								<li class="browse-category">
+							{foreach from=$browseCategories item=browseCategory name="browseCategoryLoop"}
+								<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9}">
 									<a href="#" onclick="VuFind.Browse.changeBrowseCategory('{$browseCategory->textId}');">
 										<div >
 											{$browseCategory->label}
@@ -31,8 +31,10 @@
 	<div id="home-page-browse-results" class="row">
 		<div class="col-sm-12">
 			<div class="row text-center" id="selected-browse-label">
-				<span class="selected-browse-label-text">{$browseResults.label}</span>
+				<div class="selected-browse-label-text">{$browseResults.label}</div>
+				<div class="selected-browse-label-search"><a id="selected-browse-search-link" href="{$browseResults.searchUrl}"><span class="glyphicon glyphicon-search"></span> <span class="selected-browse-label-search-text">{$browseResults.label}</span></a></div>
 			</div>
+
 
 			<div class="row" id="home-page-browse-thumbnails">
 				{$browseResults.records}

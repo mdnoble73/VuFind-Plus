@@ -102,6 +102,7 @@ class Browse_AJAX extends Action {
 
 			$result['records'] = implode('',$records);
 			$result['numRecords'] = count($records);
+			$result['searchUrl'] = $this->searchObject->renderSearchUrl();
 		}
 		// Shutdown the search object
 		$this->searchObject->close();

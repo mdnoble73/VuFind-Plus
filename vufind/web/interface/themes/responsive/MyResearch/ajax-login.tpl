@@ -1,6 +1,6 @@
 <div class="modal-header">
 	<button type="button" class="close" data-dismiss="modal">×</button>
-	<h3 id="modal-title">Login</h3>
+	<h4 class="modal-title" id="myModalLabel">Login</h4>
 </div>
 <div class="modal-body">
 	<p class="text-error text-center" id="loginError" style="display: none"></p>
@@ -37,5 +37,5 @@
 </div>
 <div class="modal-footer">
 	<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
-	<input type="submit" name="submit" value="Login" id="loginFormSubmit" class="btn btn-primary" onclick="return VuFind.Account.processAjaxLogin()"/>
+	<input type="submit" name="submit" value="Login" id="loginFormSubmit" class="btn btn-primary extraModalButton" onclick="return VuFind.Account.processAjaxLogin()"/>
 </div>

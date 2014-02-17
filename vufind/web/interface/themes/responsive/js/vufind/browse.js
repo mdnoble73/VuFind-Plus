@@ -10,7 +10,9 @@ VuFind.Browse = (function(){
 				}else{
 					var label = data.label;
 					$('.selected-browse-label-text').html(label);
+					$('.selected-browse-label-search-text').html(label);
 					$('#home-page-browse-thumbnails').html(data.records);
+					$('#selected-browse-search-link').attr('href', data.searchUrl);
 					VuFind.Browse.curPage = 1;
 					VuFind.Browse.curCategory = data.textId;
 				}

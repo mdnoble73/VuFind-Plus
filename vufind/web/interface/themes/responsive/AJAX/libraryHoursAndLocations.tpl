@@ -1,6 +1,16 @@
 {strip}
-	{foreach from=$libraryLocations item=curLocation}
-		<div class="locationInfo container">
+	<form role="from">
+		<div class="form-group">
+			<label for="selectLibrary">Select a Location</label>
+			<select name="selectLibrary" id="selectLibrary" onchange="return VuFind.showLocationHoursAndMap();">
+				{foreach from=$libraryLocations item=curLocation}
+					<option value="{$curLocation.id}">{$curLocation.name}</option>
+				{/foreach}
+			</select>
+		</div>
+	</form>
+	{foreach from=$libraryLocations item=curLocation name=locationLoop}
+		<div class="locationInfo container" id="locationAddress{$curLocation.id}" {if !$smarty.foreach.locationLoop.first}style="display:none"{/if}>
 			<div class="row">
 				<h3>{$curLocation.name}</h3>
 			</div>
