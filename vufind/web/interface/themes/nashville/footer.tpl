@@ -66,7 +66,8 @@
 <div class="footerCol" id="footerCol1"><h2>Can't Find What You're Looking For?</h2>
 	<ul>
 		{if isset($illLink)}
-				<li><a href="{$illLink}" rel="external" onclick="window.open (this.href, 'child'); return false">Request from {translate text='Interlibrary Loan'}</a></li>
+<!--				<li><a href="{$illLink}" rel="external" onclick="window.open (this.href, 'child'); return false">Request from {translate text='Interlibrary Loan'}</a></li>
+-->				<li><a href="{$illLink}">Request from {translate text='Interlibrary Loan'}</a></li>
 		{/if}
 		{if isset($suggestAPurchaseLink)}
 				<!-- <li><a href="{$suggestAPurchaseLink}" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Suggest a Purchase'}</a></li> -->
