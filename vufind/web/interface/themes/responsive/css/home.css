@@ -224,11 +224,20 @@ Home Page Variables
 .browse-rating {
   position: absolute;
   bottom: 4px;
-  left: 10px;
+  left: 20%;
 }
 .browse-thumbnail {
-  height: 220px;
   position: relative;
+}
+@media (max-width: 992px) {
+  .browse-thumbnail {
+    height: 140px;
+  }
+}
+@media (min-width: 992px) {
+  .browse-thumbnail {
+    height: 225px;
+  }
 }
 #more-browse-results {
   background-color: #e6e6e6;

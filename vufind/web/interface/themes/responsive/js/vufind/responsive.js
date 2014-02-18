@@ -12,7 +12,7 @@ VuFind.Responsive = (function(){
 			var mainContentElement = $("#main-content-with-sidebar");
 			var xsContentInsertionPointElement = $("#xs-main-content-insertion-point");
 			var mainContent;
-			if (resolution < 768) {
+			if (resolution < 750) {
 				// XS screen resolution
 				//move content from main-content-with-sidebar to xs-main-content-insertion-point
 				mainContent = mainContentElement.html();

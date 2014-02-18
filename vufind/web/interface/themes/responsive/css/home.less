@@ -232,10 +232,15 @@
 .browse-rating{
   position: absolute;
   bottom: 4px;
-  left: 10px;
+  left: 20%;
 }
 .browse-thumbnail{
-  height: 220px;
+  @media(max-width: @screen-md-min){
+    height: 140px;
+  }
+  @media(min-width: @screen-md-min){
+    height: 225px;
+  }
   position: relative;
 }
 #more-browse-results{

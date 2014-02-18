@@ -2,7 +2,7 @@
 {* Search box *}
 	{include file="Search/searchbox-home.tpl"}
 
-	<div id="home-page-login" class="text-center">
+	<div id="home-page-login" class="text-center row">
 		<div class="logoutOptions hidden-phone" {if !$user} style="display: none;"{/if}>
 			<a id="myAccountNameLink" href="{$path}/MyResearch/Home">Logged In As {$user->firstname|capitalize} {$user->lastname|capitalize}</a>
 		</div>
@@ -16,7 +16,7 @@
 		</div>
 	</div>
 
-	<div id="xs-main-content-insertion-point"></div>
+	<div id="xs-main-content-insertion-point" class="row"></div>
 
 	{if $user}
 		{* Account Menu *}
@@ -24,7 +24,7 @@
 	{/if}
 
 
-	<div id="home-page-library-section">
+	<div id="home-page-library-section" class="row">
 		<a href="{$path}/AJAX/JSON?method=getHoursAndLocations" data-title="Library Hours and Locations" class="modalDialogTrigger">
 			<div id="home-page-hours-locations">
 				LIBRARY HOURS & LOCATIONS

@@ -72,38 +72,39 @@
 	</head>
 	<body class="module_{$module} action_{$action}" id="{$module}-{$action}">
 		<div class="container">
-			{if $showBreadcrumbs}
-				<div class="row breadcrumbs">
-					<div class="col-sm-9">
-						<ul class="breadcrumb">
-							<li><a href="{$homeBreadcrumbLink}" id="home-breadcrumb"><i class="icon-home"></i> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span></li>
-							{include file="$module/breadcrumbs.tpl"}
-						</ul>
-					</div>
-					<div class="col-sm-3 text-right">
-						{if $google_translate_key}
-							{literal}
-							<div id="google_translate_element">
-								<script type="text/javascript">
-									function googleTranslateElementInit() {
-										new google.translate.TranslateElement({
-											pageLanguage: 'en',
-											layout: google.translate.TranslateElement.InlineLayout.SIMPLE
-											{/literal}
-											{if $google_included_languages}
-											, includedLanguages: '{$google_included_languages}'
-											{/if}
-											{literal}
-										}, 'google_translate_element');
-									}
-								</script>
-								<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
-							</div>
-							{/literal}
-						{/if}
-					</div>
+
+			<div class="row breadcrumbs">
+				<div class="col-xs-12 col-sm-9">
+					{if $showBreadcrumbs}
+					<ul class="breadcrumb">
+						<li><a href="{$homeBreadcrumbLink}" id="home-breadcrumb"><i class="icon-home"></i> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span></li>
+						{include file="$module/breadcrumbs.tpl"}
+					</ul>
+					{/if}
 				</div>
-			{/if}
+				<div class="col-xs-12 col-sm-3 text-right">
+					{if $google_translate_key}
+						{literal}
+						<div id="google_translate_element">
+							<script type="text/javascript">
+								function googleTranslateElementInit() {
+									new google.translate.TranslateElement({
+										pageLanguage: 'en',
+										layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+										{/literal}
+										{if $google_included_languages}
+										, includedLanguages: '{$google_included_languages}'
+										{/if}
+										{literal}
+									}, 'google_translate_element');
+								}
+							</script>
+							<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+						</div>
+						{/literal}
+					{/if}
+				</div>
+			</div>
 
 			<div id="header-container" class="row">
 				{include file='header_responsive.tpl'}
@@ -118,10 +119,10 @@
 			<div id="content-container" class="row">
 				{if isset($sidebar)}
 					{* Setup the left bar *}
-					<div class="col-sm-4 col-md-4 col-lg-3" id="side-bar">
+					<div class="col-xs-12 col-sm-4 col-md-4 col-lg-3" id="side-bar">
 						{include file="$sidebar"}
 					</div>
-					<div class="col-sm-8 col-md-8 col-lg-9" id="main-content-with-sidebar">
+					<div class="hidden-xs col-sm-8 col-md-8 col-lg-9" id="main-content-with-sidebar">
 						{include file="$module/$pageTemplate"}
 					</div>
 				{else}
