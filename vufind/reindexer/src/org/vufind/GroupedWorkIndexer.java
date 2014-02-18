@@ -113,16 +113,14 @@ public class GroupedWorkIndexer {
 			while (groupedWorks.next()){
 				Long id = groupedWorks.getLong("id");
 				String permanentId = groupedWorks.getString("permanent_id");
-				String title = groupedWorks.getString("title");
-				String subtitle = groupedWorks.getString("subtitle");
+				String fullTitle = groupedWorks.getString("full_title");
 				String author = groupedWorks.getString("author");
 				String grouping_category = groupedWorks.getString("grouping_category");
 
 				//Create a solr record for the grouped work
 				GroupedWorkSolr groupedWork = new GroupedWorkSolr();
 				groupedWork.setId(permanentId);
-				groupedWork.setTitle(title);
-				groupedWork.setSubTitle(subtitle);
+				groupedWork.setDisplayTitle(fullTitle);
 				groupedWork.setAuthor(author);
 				groupedWork.setGroupingCategory(grouping_category);
 
