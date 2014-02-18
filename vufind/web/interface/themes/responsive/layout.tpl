@@ -72,7 +72,9 @@
 	</head>
 	<body class="module_{$module} action_{$action}" id="{$module}-{$action}">
 		<div class="container">
-
+			{if $systemMessage}
+				<div id="systemMessage" class="row">{$systemMessage}</div>
+			{/if}
 			<div class="row breadcrumbs">
 				<div class="col-xs-12 col-sm-9">
 					{if $showBreadcrumbs}
@@ -122,7 +124,7 @@
 					<div class="col-xs-12 col-sm-4 col-md-4 col-lg-3" id="side-bar">
 						{include file="$sidebar"}
 					</div>
-					<div class="hidden-xs col-sm-8 col-md-8 col-lg-9" id="main-content-with-sidebar">
+					<div class="hidden-xs visible-sm col-sm-8 col-md-8 col-lg-9" id="main-content-with-sidebar">
 						{include file="$module/$pageTemplate"}
 					</div>
 				{else}

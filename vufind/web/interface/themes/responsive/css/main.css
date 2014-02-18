@@ -6315,6 +6315,12 @@ body {
   padding: 0 5px;
   color: #cccccc;
 }
+div#systemMessage {
+  background-color: #FF6;
+  color: black;
+  text-align: center;
+  padding: 3px;
+}
 #header-container {
   padding-top: 0px;
   height: 90px;
