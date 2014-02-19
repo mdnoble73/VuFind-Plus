@@ -1,7 +1,7 @@
 {strip}
 {if $user != false}
 	{* Setup the accoridon *}
-	<div id="home-account-links" class="sidebar-links">
+	<div id="home-account-links" class="sidebar-links row">
 		<div class="panel-group" id="account-link-accordion">
 			{* My Account *}
 			<div class="panel {if $module == 'MyAccount' || $module == 'MyResearch' || ($module == 'Search' && $action == 'Home')}active{/if}">
