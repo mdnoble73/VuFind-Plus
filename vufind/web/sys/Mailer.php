@@ -201,7 +201,6 @@ class SMSMailer extends VuFindMailer {
 		//Remove any invalid characters from the to address.  We expect only numbers
 		$to = preg_replace('/\D/', '', $to);
 		$to = $to . '@' . $this->carriers[$provider]['domain'];
-		$mail = new VuFindMailer();
 		$subject = '';
 		return $this->send($to, $from, $subject, $message);
 	}

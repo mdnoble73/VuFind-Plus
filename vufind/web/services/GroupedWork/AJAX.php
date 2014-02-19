@@ -343,7 +343,7 @@ class GroupedWork_AJAX {
 						$interface->assign('callnumber', $curRecord['callNumber']);
 					}
 					if (isset($curRecord['shelfLocation'])){
-						$interface->assign('availableAt', strip_tags($curRecord['shelfLocation']));
+						$interface->assign('shelfLocation', strip_tags($curRecord['shelfLocation']));
 					}
 				}
 			}
@@ -355,7 +355,7 @@ class GroupedWork_AJAX {
 
 		$smsResult = $sms->text($_REQUEST['provider'], $_REQUEST['sms_phone_number'], $configArray['Site']['email'], $message);
 
-		if ($smsResult == true){
+		if ($smsResult === true){
 			$result = array(
 					'result' => true,
 					'message' => 'Your text message was sent successfully.'
