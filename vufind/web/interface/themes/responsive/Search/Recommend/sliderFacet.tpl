@@ -21,28 +21,5 @@
 			{/if}
 		{/foreach}
 		<input type="submit" value="Go" id="goButton" />
-		{if $title == 'lexile_score'}
-			<script type="text/javascript">{literal}
-				$(function() {
-					$( "#lexile-range" ).slider({
-						range: true,
-						min: 0,
-						max: 2500,
-						step: 10,
-						values: [ 0, 2500 ],
-						slide: function( event, ui ) {
-							$( "#lexile_scorefrom" ).val( ui.values[ 0 ] );
-							$( "#lexile_scoreto" ).val( ui.values[ 1 ] );
-						}
-					});
-					$( "#lexile_scorefrom" ).change(function (){
-						$( "#lexile-range" ).slider( "values", 0, $( "#lexile_scorefrom" ).val());
-					});
-					$( "#lexile_scoreto" ).change(function (){
-						$( "#lexile-range" ).slider( "values", 1, $( "#lexile_scoreto" ).val());
-					});
-				});{/literal}
-			</script>
-		{/if}
 	</div>
 </form>
