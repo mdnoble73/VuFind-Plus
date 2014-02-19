@@ -211,7 +211,7 @@ class GroupedWork_AJAX {
 		return $rating;
 	}
 
-	function GetReviewInfo(){
+	function getReviewInfo(){
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		$id = $_REQUEST['id'];
 		$recordDriver = new GroupedWorkDriver($id);
@@ -223,6 +223,10 @@ class GroupedWork_AJAX {
 		$reviews = $externalReviews->fetch();
 		global $interface;
 		$interface->assign('id', $id);
+		$numSyndicatedReviews = 0;
+		foreach ($reviews as $providerReviews){
+			$numSyndicatedReviews += count($providerReviews);
+		}
 		$interface->assign('syndicatedReviews', $reviews);
 
 		//Load editorial reviews
@@ -236,11 +240,15 @@ class GroupedWork_AJAX {
 		}
 		$interface->assign('editorialReviews', $allEditorialReviews);
 
-		$interface->assign('userReviews', $recordDriver->getUserReviews());
+		$userReviews = $recordDriver->getUserReviews();
+		$interface->assign('userReviews', $userReviews);
 
 		$results = array(
+			'numSyndicatedReviews' => $numSyndicatedReviews,
 			'syndicatedReviewsHtml' => $interface->fetch('GroupedWork/view-syndicated-reviews.tpl'),
+			'numEditorialReviews' => count($allEditorialReviews),
 			'editorialReviewsHtml' => $interface->fetch('GroupedWork/view-editorial-reviews.tpl'),
+			'numCustomerReviews' => count($userReviews),
 			'customerReviewsHtml' => $interface->fetch('GroupedWork/view-user-reviews.tpl'),
 		);
 		return json_encode($results);

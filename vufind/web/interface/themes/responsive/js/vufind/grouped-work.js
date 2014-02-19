@@ -93,20 +93,32 @@ VuFind.GroupedWork = (function(){
 		},
 
 		loadReviewInfo: function (id) {
-			var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX?method=GetReviewInfo";
+			var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX?method=getReviewInfo";
 			$.getJSON(url, function(data) {
-				var syndicatedReviewsData = data.syndicatedReviewsHtml;
-				if (syndicatedReviewsData && syndicatedReviewsData.length > 0) {
-					$("#syndicatedReviewPlaceholder").html(syndicatedReviewsData);
+				if (data.numSyndicatedReviews == 0){
+					$("#syndicatedReviewsPanel").hide();
+				}else{
+					var syndicatedReviewsData = data.syndicatedReviewsHtml;
+					if (syndicatedReviewsData && syndicatedReviewsData.length > 0) {
+						$("#syndicatedReviewPlaceholder").html(syndicatedReviewsData);
+					}
 				}
-				var editorialReviewsData = data.editorialReviewsHtml;
-				if (editorialReviewsData && editorialReviewsData.length > 0) {
-					$("#editorialReviewPlaceholder").html(editorialReviewsData);
+				if (data.numEditorialReviews == 0){
+					$("#editorialReviewsPanel").hide();
+				}else{
+					var editorialReviewsData = data.editorialReviewsHtml;
+					if (editorialReviewsData && editorialReviewsData.length > 0) {
+						$("#editorialReviewPlaceholder").html(editorialReviewsData);
+					}
 				}
 
-				var customerReviewsData = data.customerReviewsHtml;
-				if (customerReviewsData && customerReviewsData.length > 0) {
-					$("#customerReviewPlaceholder").html(customerReviewsData);
+				if (data.numCustomerReviews == 0){
+					$("#borrowerReviewsPanel").hide();
+				}else{
+					var customerReviewsData = data.customerReviewsHtml;
+					if (customerReviewsData && customerReviewsData.length > 0) {
+						$("#borrowerReviewPlaceholder").html(customerReviewsData);
+					}
 				}
 			});
 		},
