@@ -6268,6 +6268,18 @@ fieldset[disabled] .datepicker td span.active.active {
 }
 /** Imports of functionality related to VuFind **/
 /**
+Variables for VuFind customization.  These can be overridden at the local theme level
+*/
+/**
+Header Variables
+**/
+/**
+Footer Variables
+*/
+/**
+Home Page Variables
+*/
+/**
 Functionality related to the overall layout
 Headers, Footer, columns, etc.
  */
@@ -6380,18 +6392,6 @@ div#systemMessage {
   margin-left: 3px;
   margin-right: 3px;
 }
-/**
-Variables for VuFind customization.  These can be overridden at the local theme level
-*/
-/**
-Header Variables
-**/
-/**
-Footer Variables
-*/
-/**
-Home Page Variables
-*/
 /**
  Styling for home page elements
 */
@@ -7170,4 +7170,24 @@ Home Page Variables
   font-size: 10px;
   color: #333333;
   background-color: #eeeeee;
+}
+#prospectorSearchResultsHeader {
+  padding-top: 15px;
+}
+#prospectorSearchResultsTitle {
+  padding-top: 15px;
+  font-size: 140%;
+  font-weight: normal;
+}
+#prospectorSearchResultsNote {
+  font-style: italic;
+  margin-bottom: 0.5em;
+}
+#prospectorMan {
+  float: left;
+  margin-right: 7px;
+}
+#moreResultsFromProspector {
+  margin: 5px;
+  text-align: right;
 }

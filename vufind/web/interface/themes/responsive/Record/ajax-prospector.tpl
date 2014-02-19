@@ -3,7 +3,7 @@
 <div id='prospectorSidebarResults'>
 <img id='prospectorMan' src='{$path}/interface/themes/marmot/images/prospector_man_sidebar.png'/>
 <div id='prospectorSearchResultsTitle'>{translate text="In Prospector"}</div>
-<div class='clearer'>&nbsp;</div>
+<div class='clearfix'>&nbsp;</div>
 </div>
 {/if}
 <div class="striped">
