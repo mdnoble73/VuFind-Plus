@@ -318,6 +318,8 @@ class GroupedWorkDriver implements RecordInterface{
 		// to turn on AJAX as needed:
 		$interface->assign('summAjaxStatus', false);
 
+		$interface->assign('recordDriver', $this);
+
 		return 'RecordDrivers/GroupedWork/result.tpl';
 	}
 

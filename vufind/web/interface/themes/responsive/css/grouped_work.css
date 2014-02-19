@@ -16,6 +16,8 @@ Home Page Variables
 .userreviewlink {
   background-color: #088ec6;
   color: #ffffff;
+}
+#side-bar .userreviewlink {
   width: 165px;
 }
 .userreviewlink:hover {
@@ -44,7 +46,6 @@ Home Page Variables
   margin-top: 2px;
 }
 .share-tools {
-  margin-top: 8px;
   background-color: #e6e6e6;
   background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
   color: #6e6f6f;
@@ -52,11 +53,14 @@ Home Page Variables
   font-weight: bold;
   text-align: left;
   padding: 5px 10px;
-  width: 165px;
   display: inline-block;
 }
 .share-tools-label {
   padding-right: 10px;
+}
+#side-bar .share-tools {
+  margin-top: 8px;
+  width: 165px;
 }
 /** More Like this formatting */
 #more-details-accordion .panel-group .panel + .panel {

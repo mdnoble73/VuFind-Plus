@@ -21,17 +21,8 @@
 				<button onclick="return VuFind.GroupedWork.getSaveToListForm(this, '{$summId|escape}');" class="btn btn-sm ">{translate text='Add to favorites'}</button>
 			</div>
 		{/if}
-		{if $showTextThis == 1}
-			<div class="btn-group btn-group-sm">
-				<button onclick='return VuFind.ajaxLightbox("{$path}/Record/{$id|escape}/SMS?lightbox")' class="btn btn-sm ">{translate text="Text this"}</button>
-			</div>
-		{/if}
-		{if $showEmailThis == 1}
-			<div class="btn-group btn-group-sm">
-				<button onclick="return VuFind.ajaxLightbox('{$path}/Record/{$id|escape}/Email?lightbox', true)" class="btn btn-sm ">
-					{translate text="Email this"}
-				</button>
-			</div>
-		{/if}
+		<div class="btn-group btn-group-sm">
+			{include file="GroupedWork/share-tools.tpl"}
+		</div>
 	</div>
 {/strip}

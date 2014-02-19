@@ -6323,8 +6323,8 @@ div#systemMessage {
 }
 #header-container {
   padding-top: 0px;
-  height: 105px;
-  background: linear-gradient(to bottom, #013565, #015092 85%, #015294);
+  height: 90px;
+  background: linear-gradient(to bottom, #004580, #015092 85%, #015294);
   border-bottom: 8px solid #013565;
   margin-bottom: 0px;
 }
@@ -6337,11 +6337,11 @@ div#systemMessage {
 }
 .header-button {
   text-align: center;
-  height: 97px !important;
+  height: 82px !important;
   border-bottom: 4px solid #015294;
 }
 .header-button > a {
-  line-height: 97px !important;
+  line-height: 82px !important;
   text-align: center;
   vertical-align: middle;
   padding: 0px;
@@ -7099,6 +7099,8 @@ div#systemMessage {
 .userreviewlink {
   background-color: #088ec6;
   color: #ffffff;
+}
+#side-bar .userreviewlink {
   width: 165px;
 }
 .userreviewlink:hover {
@@ -7127,7 +7129,6 @@ div#systemMessage {
   margin-top: 2px;
 }
 .share-tools {
-  margin-top: 8px;
   background-color: #e6e6e6;
   background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
   color: #6e6f6f;
@@ -7135,11 +7136,14 @@ div#systemMessage {
   font-weight: bold;
   text-align: left;
   padding: 5px 10px;
-  width: 165px;
   display: inline-block;
 }
 .share-tools-label {
   padding-right: 10px;
+}
+#side-bar .share-tools {
+  margin-top: 8px;
+  width: 165px;
 }
 /** More Like this formatting */
 #more-details-accordion .panel-group .panel + .panel {
