@@ -268,12 +268,26 @@ class GroupedWorkDriver implements RecordInterface{
 		}else{
 			$interface->assign('summShortId', $id);
 		}
-		$linkUrl = '/GroupedWork/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
-		if ($useUnscopedHoldingsSummary){
-			$linkUrl .= '&amp;searchSource=marmot';
+		$relatedManifestations = $this->getRelatedManifestations();
+		$interface->assign('relatedManifestations', $relatedManifestations);
+
+		//Build the link URL.
+		//If there is only one record for the work we will link straight to that.
+		$relatedRecords = $this->getRelatedRecords();
+		if (count($relatedRecords) == 1){
+			$firstRecord = reset($relatedRecords);
+			/** @var IndexRecord|OverDriveRecordDriver|BaseEContentDriver $driver */
+			$driver = $firstRecord['driver'];
+			$linkUrl = $driver->getLinkUrl();
 		}else{
-			$linkUrl .= '&amp;searchSource=' . $interface->get_template_vars('searchSource');
+			$linkUrl = '/GroupedWork/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+			if ($useUnscopedHoldingsSummary){
+				$linkUrl .= '&amp;searchSource=marmot';
+			}else{
+				$linkUrl .= '&amp;searchSource=' . $interface->get_template_vars('searchSource');
+			}
 		}
+
 		$interface->assign('summUrl', $linkUrl);
 		$interface->assign('summTitle', $this->getTitle());
 		$interface->assign('summSubTitle', $this->getSubtitle());
@@ -303,8 +317,6 @@ class GroupedWorkDriver implements RecordInterface{
 		// records exist in the ILS.  Child classes can override this setting
 		// to turn on AJAX as needed:
 		$interface->assign('summAjaxStatus', false);
-
-		$interface->assign('relatedManifestations', $this->getRelatedManifestations());
 
 		return 'RecordDrivers/GroupedWork/result.tpl';
 	}

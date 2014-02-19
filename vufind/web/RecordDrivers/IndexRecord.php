@@ -687,13 +687,8 @@ class IndexRecord implements RecordInterface
 		}else{
 			$interface->assign('summShortId', $id);
 		}
-		$linkUrl = '/Record/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
-		if ($useUnscopedHoldingsSummary){
-			$linkUrl .= '&amp;searchSource=marmot';
-		}else{
-			$linkUrl .= '&amp;searchSource=' . $interface->get_template_vars('searchSource');
-		}
-		$interface->assign('summUrl', $linkUrl);
+
+		$interface->assign('summUrl', $this->getLinkUrl($useUnscopedHoldingsSummary));
 		$formats = $this->getFormats();
 		$interface->assign('summFormats', $formats);
 		$formatCategories = $this->getFormatCategory();
@@ -1852,6 +1847,18 @@ class IndexRecord implements RecordInterface
 
 	public function setScopingEnabled($enabled){
 		$this->scopingEnabled = $enabled;
+	}
+
+	public function getLinkUrl($useUnscopedHoldingsSummary = false) {
+		global $interface;
+		$id = $this->getUniqueID();
+		$linkUrl = '/Record/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+		if ($useUnscopedHoldingsSummary){
+			$linkUrl .= '&amp;searchSource=marmot';
+		}else{
+			$linkUrl .= '&amp;searchSource=' . $interface->get_template_vars('searchSource');
+		}
+		return $linkUrl;
 	}
 }
 

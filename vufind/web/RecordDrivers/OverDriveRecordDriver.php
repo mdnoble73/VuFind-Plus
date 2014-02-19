@@ -752,4 +752,16 @@ class OverDriveRecordDriver implements RecordInterface {
 
 		return $moreDetailsOptions;
 	}
+
+	public function getLinkUrl($useUnscopedHoldingsSummary = false) {
+		global $interface;
+		$id = $this->getUniqueID();
+		$linkUrl = '/OverDrive/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+		if ($useUnscopedHoldingsSummary){
+			$linkUrl .= '&amp;searchSource=marmot';
+		}else{
+			$linkUrl .= '&amp;searchSource=' . $interface->get_template_vars('searchSource');
+		}
+		return $linkUrl;
+	}
 }

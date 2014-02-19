@@ -169,4 +169,16 @@ abstract class BaseEContentDriver  extends MarcRecord {
 		return 'Available to patrons of ' . implode(', ', $shareWith);
 	}
 	abstract function isValidForUser($locationCode, $eContentFieldData);
+
+	public function getLinkUrl($useUnscopedHoldingsSummary = false) {
+		global $interface;
+		$baseUrl = $this->getRecordUrl();
+		$linkUrl = $baseUrl . '?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+		if ($useUnscopedHoldingsSummary){
+			$linkUrl .= '&amp;searchSource=marmot';
+		}else{
+			$linkUrl .= '&amp;searchSource=' . $interface->get_template_vars('searchSource');
+		}
+		return $linkUrl;
+	}
 }
