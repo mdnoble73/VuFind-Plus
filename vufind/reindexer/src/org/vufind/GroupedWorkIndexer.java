@@ -120,8 +120,9 @@ public class GroupedWorkIndexer {
 				//Create a solr record for the grouped work
 				GroupedWorkSolr groupedWork = new GroupedWorkSolr();
 				groupedWork.setId(permanentId);
-				groupedWork.setDisplayTitle(fullTitle);
-				groupedWork.setAuthor(author);
+				//Don't set title and author so they are overridden by the correct values from individual records
+				//groupedWork.setDisplayTitle(fullTitle);
+				//groupedWork.setAuthor(author);
 				groupedWork.setGroupingCategory(grouping_category);
 
 				getGroupedWorkPrimaryIdentifiers.setLong(1, id);
