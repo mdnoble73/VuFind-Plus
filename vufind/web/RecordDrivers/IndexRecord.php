@@ -1860,6 +1860,11 @@ class IndexRecord implements RecordInterface
 		}
 		return $linkUrl;
 	}
+
+	function getQRCodeUrl(){
+		global $configArray;
+		return $configArray['Site']['url'] . '/qrcode.php?type=Record&id=' . $this->getPermanentId();
+	}
 }
 
 ?>

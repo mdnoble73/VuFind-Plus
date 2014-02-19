@@ -44,4 +44,8 @@ class PublicEContentDriver extends BaseEContentDriver{
 	protected function getRecordType(){
 		return 'free';
 	}
+
+	function getModuleName(){
+		return 'PublicEContent';
+	}
 } 

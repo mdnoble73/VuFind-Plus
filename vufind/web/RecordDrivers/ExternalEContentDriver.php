@@ -146,4 +146,8 @@ class ExternalEContentDriver extends BaseEContentDriver{
 	protected function getRecordType(){
 		return 'external';
 	}
+
+	function getModuleName(){
+		return 'ExternalEContent';
+	}
 } 

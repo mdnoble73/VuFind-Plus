@@ -74,4 +74,8 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 	protected function getRecordType(){
 		return 'drm';
 	}
+
+	function getModuleName(){
+		return 'RestrictedEContent';
+	}
 } 

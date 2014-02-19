@@ -764,4 +764,9 @@ class OverDriveRecordDriver implements RecordInterface {
 		}
 		return $linkUrl;
 	}
+
+	function getQRCodeUrl(){
+		global $configArray;
+		return $configArray['Site']['url'] . '/qrcode.php?type=OverDrive&id=' . $this->getPermanentId();
+	}
 }

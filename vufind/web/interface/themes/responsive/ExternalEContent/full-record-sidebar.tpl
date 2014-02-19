@@ -31,7 +31,12 @@
 		{include file="GroupedWork/title-rating-full.tpl" ratingClass="" showFavorites=0 ratingData=$recordDriver->getRatingData() showNotInterested=false}
 	</div>
 
-	<div id="recordTools">
+	<div id="recordTools" class="full-record-tools">
 		{include file="GroupedWork/result-tools.tpl" showMoreInfo=false summId=$recordDriver->getPermanentId()}
 	</div>
+
+	<div id="xs-main-content-insertion-point" class="row"></div>
+
+	{* QR Code *}
+	<div id="record-qr-code" class="text-center row"><img src="{$recordDriver->getQRCodeUrl()}" alt="QR Code for Record"/></div>
 {/strip}

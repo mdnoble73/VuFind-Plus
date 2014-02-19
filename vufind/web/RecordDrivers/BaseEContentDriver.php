@@ -11,6 +11,7 @@
 require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 
 abstract class BaseEContentDriver  extends MarcRecord {
+	abstract function getModuleName();
 	abstract function getValidProtectionTypes();
 
 	public function getItems(){
@@ -180,5 +181,10 @@ abstract class BaseEContentDriver  extends MarcRecord {
 			$linkUrl .= '&amp;searchSource=' . $interface->get_template_vars('searchSource');
 		}
 		return $linkUrl;
+	}
+
+	function getQRCodeUrl(){
+		global $configArray;
+		return $configArray['Site']['url'] . '/qrcode.php?type=' . $this->getModuleName() . '&id=' . $this->getPermanentId();
 	}
 }
