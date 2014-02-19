@@ -36,4 +36,7 @@
 	</div>
 
 	<div id="xs-main-content-insertion-point" class="row"></div>
+
+	{* QR Code *}
+	<div id="record-qr-code" class="text-center row"><img src="{$recordDriver->getQRCodeUrl()}" alt="QR Code for Record"/></div>
 {/strip}

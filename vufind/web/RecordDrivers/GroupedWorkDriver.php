@@ -595,6 +595,11 @@ class GroupedWorkDriver implements RecordInterface{
 		return $bookCoverUrl;
 	}
 
+	function getQRCodeUrl(){
+		global $configArray;
+		return $configArray['Site']['url'] . '/qrcode.php?type=GroupedWork&id=' . $this->getPermanentId();
+	}
+
 	/**
 	 * Get an array of all ISBNs associated with the record (may be empty).
 	 *
