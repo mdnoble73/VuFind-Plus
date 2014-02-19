@@ -67,7 +67,7 @@
 					{if $showBreadcrumbs}
 					<div class="breadcrumbs">
 						<div class="catalogBrowse">
-                        <a href="http://galacto.library.nashville.org/">Browse Catalog</a>
+                        <a href="/">Browse Catalog</a>
                         </div>
                         <div class="breadcrumbinner">
 							<a href="{$homeBreadcrumbLink}"><span class="home-icon">&nbsp;</span> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span>
