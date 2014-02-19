@@ -296,4 +296,82 @@ class GroupedWork_AJAX {
 
 		return json_encode($result);
 	}
+
+	function getSMSForm(){
+		global $interface;
+		require_once ROOT_DIR . '/sys/Mailer.php';
+
+		$sms = new SMSMailer();
+		$interface->assign('carriers', $sms->getCarriers());
+		$id = $_REQUEST['id'];
+		$interface->assign('id', $id);
+
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		$recordDriver = new GroupedWorkDriver($id);
+
+		$relatedRecords = $recordDriver->getRelatedRecords();
+		$interface->assign('relatedRecords', $relatedRecords);
+		$results = array(
+				'title' => 'Share via SMS Message',
+				'modalBody' => $interface->fetch("GroupedWork/sms-form-body.tpl"),
+				'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.GroupedWork.sendSMS(\"{$id}\"); return false;'>Send Text</span>"
+		);
+		return json_encode($results);
+	}
+
+	function sendSMS(){
+		global $configArray;
+		global $interface;
+		require_once ROOT_DIR . '/sys/Mailer.php';
+		$sms = new SMSMailer();
+
+		// Get Holdings
+		$id = $_REQUEST['id'];
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		$recordDriver = new GroupedWorkDriver($id);
+
+		if (isset($_REQUEST['related_record'])){
+			$relatedRecord = $_REQUEST['related_record'];
+			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+			$recordDriver = new GroupedWorkDriver($id);
+
+			$relatedRecords = $recordDriver->getRelatedRecords();
+
+			foreach ($relatedRecords as $curRecord){
+				if ($curRecord['id'] = $relatedRecord){
+					if (isset($curRecord['callNumber'])){
+						$interface->assign('callnumber', $curRecord['callNumber']);
+					}
+					if (isset($curRecord['shelfLocation'])){
+						$interface->assign('availableAt', strip_tags($curRecord['shelfLocation']));
+					}
+				}
+			}
+		}
+
+		$interface->assign('title', $recordDriver->getTitle());
+		$interface->assign('recordId', $_GET['id']);
+		$message = $interface->fetch('Emails/grouped-work-sms.tpl');
+
+		$smsResult = $sms->text($_REQUEST['provider'], $_REQUEST['sms_phone_number'], $configArray['Site']['email'], $message);
+
+		if ($smsResult == true){
+			$result = array(
+					'result' => true,
+					'message' => 'Your text message was sent successfully.'
+			);
+		}elseif (PEAR_Singleton::isError($smsResult)){
+			$result = array(
+					'result' => false,
+					'message' => 'Your text message was sent successfully.'
+			);
+		}else{
+			$result = array(
+					'result' => false,
+					'message' => 'Your text message could not be sent due to an unknown error.'
+			);
+		}
+
+		return json_encode($result);
+	}
 } 

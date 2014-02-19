@@ -2496,8 +2496,8 @@ class DBMaintenance extends Admin_Admin {
 					"CREATE TABLE IF NOT EXISTS grouped_work (
 					  id bigint(20) NOT NULL AUTO_INCREMENT,
 					  permanent_id char(36) NOT NULL,
-					  title varchar(100) NOT NULL,
-					  author varchar(50) NOT NULL,
+					  title varchar(100) NULL,
+					  author varchar(50) NULL,
 					  subtitle varchar(175) NOT NULL,
 					  grouping_category varchar(25) NOT NULL,
 					  PRIMARY KEY (id),

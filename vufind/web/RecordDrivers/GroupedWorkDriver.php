@@ -726,6 +726,7 @@ class GroupedWorkDriver implements RecordInterface{
 					$relatedRecordIds = array($relatedRecordIds);
 				}
 				foreach ($relatedRecordIds as $relatedRecordId){
+					require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 					$recordDriver = RecordDriverFactory::initRecordDriverById($relatedRecordId);
 					$recordDriver->setScopingEnabled($this->scopingEnabled);
 					if ($recordDriver != null && $recordDriver->isValid()){

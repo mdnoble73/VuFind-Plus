@@ -37,5 +37,7 @@
 </div>
 <div class="modal-footer">
 	<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
-	<input type="submit" name="submit" value="Login" id="loginFormSubmit" class="btn btn-primary extraModalButton" onclick="return VuFind.Account.processAjaxLogin()"/>
+	<span class="modal-buttons">
+		<input type="submit" name="submit" value="Login" id="loginFormSubmit" class="btn btn-primary extraModalButton" onclick="return VuFind.Account.processAjaxLogin()"/>
+	</span>
 </div>

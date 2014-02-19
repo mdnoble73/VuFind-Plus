@@ -136,10 +136,29 @@ VuFind.GroupedWork = (function(){
 			return false;
 		},
 
+		sendSMS: function(id){
+			if (Globals.loggedIn){
+				var phoneNumber = $('#sms_phone_number').val();
+				var provider = $('#provider').val();
+
+				var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
+				var params = "method=sendSMS&sms_phone_number=" + encodeURIComponent(phoneNumber) + "&provider=" + encodeURIComponent(provider);
+				$.getJSON(url + '?' + params,
+						function(data) {
+							if (data.result) {
+								VuFind.showMessage("Success", data.message);
+							} else {
+								VuFind.showMessage("Error", data.message);
+							}
+						}
+				);
+			}
+			return false;
+		},
+
 		showReviewForm: function(trigger, id){
 			var $trigger = $(trigger);
 			if (Globals.loggedIn){
-				$("#modal-title").text($trigger.attr("title"));
 				var modalDialog = $("#modalDialog");
 				//$(".modal-body").html($('#userreview' + id).html());
 				$.getJSON(Globals.path + "/GroupedWork/AJAX?method=getReviewForm&id=" + id, function(data){
@@ -157,7 +176,7 @@ VuFind.GroupedWork = (function(){
 			return false;
 		},
 
-		showSaveToListForm: function (trigger, id, source){
+		showSaveToListForm: function (trigger, id){
 			if (Globals.loggedIn){
 				var url = Globals.path + "/Resource/Save?lightbox=true&id=" + id + "&source=" + source;
 				var $trigger = $(trigger);
@@ -170,6 +189,26 @@ VuFind.GroupedWork = (function(){
 				VuFind.Account.ajaxLogin(trigger, function (){
 					VuFind.Record.getSaveToListForm(trigger, id, source);
 				});
+			}
+			return false;
+		},
+
+		showSmsForm: function(trigger, id){
+			var $trigger = $(trigger);
+			if (Globals.loggedIn){
+				var modalDialog = $("#modalDialog");
+				//$(".modal-body").html($('#userreview' + id).html());
+				$.getJSON(Globals.path + "/GroupedWork/" + id + "/AJAX?method=getSMSForm", function(data){
+					$('#myModalLabel').html(data.title);
+					$('.modal-body').html(data.modalBody);
+					$('.modal-buttons').html(data.modalButtons);
+				});
+				modalDialog.load( );
+				modalDialog.modal('show');
+			}else{
+				VuFind.Account.ajaxLogin($trigger, function (){
+					return VuFind.GroupedWork.showSmsForm(trigger, id);
+				}, false);
 			}
 			return false;
 		}
