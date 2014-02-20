@@ -86,11 +86,11 @@ class Prospector{
 			//If we didn't get the titl in the search results, add it in.
 			if (!$foundCurrentTitle){
 				$title = array(
-                  'id' => $prospectorRecordDetails['recordId'],
-                  'title' => $prospectorRecordDetails['title'],
-                  'author' => $prospectorRecordDetails['author'],
-                  'link' => $prospectorRecordDetails['prospectorEncoreUrl'],
-                  'isCurrent' => true,
+						'id' => $prospectorRecordDetails['recordId'],
+						'title' => $prospectorRecordDetails['title'],
+						'author' => $prospectorRecordDetails['author'],
+						'link' => $prospectorRecordDetails['prospectorEncoreUrl'],
+						'isCurrent' => true,
 				);
 				array_unshift($prospectorTitles, $title);
 			}
@@ -181,13 +181,13 @@ class Prospector{
 		$library->whereAdd("prospectorCode != ''");
 		$library->find();
 		$results = array(
-          'recordId' => '',
-          'title' => $record['title'],
-          'author' => isset($record['author']) ? $record['author'] : null,
-          'numLibraries' => 0,
-          'owningLibraries' => array(),
-          'prospectorClassicUrl' => '',
-          'prospectorEncoreUrl' => '',
+				'recordId' => '',
+				'title' => $record['title'],
+				'author' => isset($record['author']) ? $record['author'] : null,
+				'numLibraries' => 0,
+				'owningLibraries' => array(),
+				'prospectorClassicUrl' => '',
+				'prospectorEncoreUrl' => '',
 		);
 
 		if ($library->N > 0){
