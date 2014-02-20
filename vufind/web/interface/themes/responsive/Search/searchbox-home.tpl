@@ -43,13 +43,12 @@
 										</li>
 									{/foreach}
 									<li class="divider genealogyType"></li>
-									{if $showAdvancedSearchbox == 1}
-										<li class="catalogType">
-											<a href="{$path}/Search/AdvancedPopup" id="advancedSearch" title="{translate text='Advanced Search'}" class="modalDialogTrigger">
-												<i class="icon-plus-sign"></i> {translate text="Advanced"}
-											</a>
-										</li>
-									{/if}
+
+									<li class="catalogType">
+										<a href="{$path}/Search/AdvancedPopup" id="advancedSearch" title="{translate text='Advanced Search'}" class="modalDialogTrigger">
+											<i class="icon-plus-sign"></i> {translate text="Advanced"}
+										</a>
+									</li>
 
 									{* Link to Search Tips Help *}
 									<li>
@@ -80,6 +79,17 @@
 					{strip}
 				</select>
 			</div>
+
+			{if $filterList || $hasCheckboxFilters}
+				{* Data for searching within existing results *}
+				<div id="keepFilters" style="display:none;">
+					{foreach from=$filterList item=data key=field}
+						{foreach from=$data item=value}
+							<input class="existingFilter" type="checkbox" name="filter[]" value='{$value.field}:"{$value.value|escape}"' />
+						{/foreach}
+					{/foreach}
+				</div>
+			{/if}
 		</form>
 	</div>
 </div>

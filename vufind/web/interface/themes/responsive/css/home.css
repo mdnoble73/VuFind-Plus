@@ -192,6 +192,7 @@ Home Page Variables
 }
 #selected-browse-label {
   background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #bbd4e3 45%, #bbd4e3 55%, #ffffff 56%);
+  margin-bottom: 5px;
 }
 .selected-browse-label-text {
   background-color: white;

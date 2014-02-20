@@ -31,7 +31,6 @@
 	<div id="home-page-browse-results" class="row">
 		<div class="col-sm-12">
 			<div class="row text-center" id="selected-browse-label">
-				<div class="selected-browse-label-text">{$browseResults.label}</div>
 				<div class="selected-browse-label-search"><a id="selected-browse-search-link" href="{$browseResults.searchUrl}"><span class="glyphicon glyphicon-search"></span> <span class="selected-browse-label-search-text">{$browseResults.label}</span></a></div>
 			</div>
 
