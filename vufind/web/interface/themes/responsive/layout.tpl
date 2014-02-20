@@ -112,12 +112,6 @@
 				{include file='header_responsive.tpl'}
 			</div>
 
-			{if false && $showTopSearchBox}
-				<div id='searchbar' class="row">
-					{include file="Search/searchbox.tpl" showAsBar=true}
-				</div>
-			{/if}
-
 			<div id="content-container" class="row">
 				{if isset($sidebar)}
 					{* Setup the left bar *}

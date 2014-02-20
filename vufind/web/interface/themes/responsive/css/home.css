@@ -186,9 +186,6 @@ Home Page Variables
   background-color: #99c8db;
   background: linear-gradient(to bottom, #99c8db, #99c8db 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #99c8db 90%, #99c8db);
 }
-#Search-Home #main-content-with-sidebar {
-  background-color: #d7dce3;
-}
 #home-page-browse-results {
   padding: 15px;
   background-color: white;
