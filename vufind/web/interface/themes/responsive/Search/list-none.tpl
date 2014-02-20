@@ -55,7 +55,7 @@
 	{/if}
 
 	{if $prospectorNumTitlesToLoad > 0}
-		<script type="text/javascript">getProspectorResults({$prospectorNumTitlesToLoad}, {$prospectorSavedSearchId});</script>
+		<script type="text/javascript">VuFind.Prospector.getProspectorResults({$prospectorNumTitlesToLoad}, {$prospectorSavedSearchId});</script>
 		{* Prospector Results *}
 		<div id='prospectorSearchResultsPlaceholder'></div>
 	{/if}

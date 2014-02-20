@@ -17,6 +17,10 @@
 								<a href="#" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id}_{$relatedManifestation.format|escapeCSS}');">
 									<span class='manifestation-toggle collapsed' id='manifestation-toggle-{$id}_{$relatedManifestation.format|escapeCSS}'>+</span> {$relatedManifestation.format}
 								</a>
+								<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+								<a href="#" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id}_{$relatedManifestation.format|escapeCSS}');">
+									<span class='' id='manifestation-toggle-text-{$id}_{$relatedManifestation.format|escapeCSS}'>(View all Editions)</span>
+								</a>
 							{/if}
 						</div>
 						<div class="col-sm-7">
@@ -43,6 +47,7 @@
 							{if $relatedManifestation.callNumber}
 								<div class="related-manifestation-call-number">Call Number: {$relatedManifestation.callNumber}</div>
 							{/if}
+
 						</div>
 						<div class="col-sm-2 btn-group manifestation-actions">
 							{foreach from=$relatedManifestation.actions item=curAction}
