@@ -1,7 +1,7 @@
 <script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
 {strip}
 {* Display Title *}
-	<h2>
+	<h2 class="notranslate">
 		{$recordDriver->getTitle()|removeTrailingPunctuation|escape}
 	</h2>
 
