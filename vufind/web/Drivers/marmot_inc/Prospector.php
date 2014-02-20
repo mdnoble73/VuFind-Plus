@@ -20,14 +20,14 @@ class Prospector{
 		$prospectorInfo = $req->getResponseBody();
 
 		//Parse the information to get the titles from the page
-		preg_match_all('/<table class="browseBibTable" cellspacing="2" border="0">(.*?)<\/table>/s', $prospectorInfo, $titleInfo, PREG_SET_ORDER);
+		preg_match_all('/dpBibTitle(.*?)bibLocations/si', $prospectorInfo, $titleInfo, PREG_SET_ORDER);
 		$prospectorTitles = array();
 		for ($matchi = 0; $matchi < count($titleInfo); $matchi++) {
 			$curTitleInfo = array();
 			//Extract the titld and bid from the titleTitleInfo
 			$titleTitleInfo = $titleInfo[$matchi][1];
 
-			if (preg_match('/<div class="dpBibTitle">.*?<a.*?href.*?__R(.*?)__.*?>\\s*(.*?)\\s*<\/a>.*?<\/div>/s', $titleTitleInfo, $titleMatches)) {
+			if (preg_match('/<span class="title">.*?<a.*?href.*?__R(.*?)__.*?>\\s*(.*?)\\s*<\/a>.*?<\/span>/s', $prospectorInfo, $titleMatches)) {
 				$curTitleInfo['id'] = $titleMatches[1];
 				//Create the link to the title in Encore
 				$curTitleInfo['link'] = "http://encore.coalliance.org/iii/encore/record/C__R" . urlencode($curTitleInfo['id']) ."__Orightresult?lang=eng&amp;suite=def";
