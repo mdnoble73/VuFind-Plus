@@ -2,6 +2,7 @@ package org.vufind;
 
 import au.com.bytecode.opencsv.CSVReader;
 import org.apache.log4j.Logger;
+import org.ini4j.Ini;
 import org.marc4j.marc.*;
 
 import java.io.File;
@@ -21,6 +22,10 @@ import java.util.Date;
  */
 public class RecordGroupingProcessor {
 	private Logger logger;
+	private String recordNumberTag = "";
+	private String recordNumberPrefix = "";
+	private boolean useEContentSubfield = false;
+	private char eContentSubfield = ' ';
 	private PreparedStatement getGroupedWorkStmt;
 	private PreparedStatement insertGroupedWorkStmt;
 	private PreparedStatement getExistingIdentifierStmt;
@@ -44,8 +49,15 @@ public class RecordGroupingProcessor {
 	private static HashMap<String, String> authorAuthorities = new HashMap<String, String>();
 	private static HashMap<String, String> titleAuthorities = new HashMap<String, String>();
 
-	public RecordGroupingProcessor(Connection dbConnection, Logger logger) {
+	public RecordGroupingProcessor(Connection dbConnection, Ini configIni, Logger logger) {
 		this.logger = logger;
+		recordNumberTag = configIni.get("Reindex", "recordNumberTag");
+		recordNumberPrefix = configIni.get("Reindex", "recordNumberPrefix");
+		useEContentSubfield = Boolean.parseBoolean(configIni.get("Reindex", "useEContentSubfield"));
+		String eContentSubfieldString = configIni.get("Reindex", "eContentSubfield");
+		if (eContentSubfieldString.length() > 0)  {
+			eContentSubfield = eContentSubfieldString.charAt(0);
+		}
 		try{
 			getGroupedWorkStmt = dbConnection.prepareStatement("SELECT id FROM " + RecordGrouperMain.groupedWorkTableName + " where permanent_id = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkTableName + " (full_title, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
@@ -85,63 +97,72 @@ public class RecordGroupingProcessor {
 	private HashSet<RecordIdentifier> getPrimaryIdentifierFromMarcRecord(Record marcRecord){
 		HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
 		String primaryIdentifier = null;
-		List<DataField> field907 = getDataFields(marcRecord, "907");
+		List<DataField> field907 = getDataFields(marcRecord, recordNumberTag);
 		//Make sure we only get one ils identifier
 		for (DataField cur907 : field907){
 			Subfield subfieldA = cur907.getSubfield('a');
 			if (subfieldA != null && subfieldA.getData().length() > 2){
-				if (cur907.getSubfield('a').getData().substring(0,2).equals(".b")){
+				if (cur907.getSubfield('a').getData().substring(0,recordNumberPrefix.length()).equals(recordNumberPrefix)){
 					String recordNumber = cur907.getSubfield('a').getData();
 					primaryIdentifier = recordNumber;
 					break;
 				}
 			}
 		}
-		//Check to see if the record has eContent and if so create primary identifiers based on the protection type
-		boolean hasEContentFields = false;
-		boolean allItemsOverDrive = true;
-		TreeSet<String> protectionTypes = new TreeSet<String>();
 
-		List<DataField> itemFields = getDataFields(marcRecord, "989");
-		for (DataField itemField : itemFields){
-			if (itemField.getSubfield('w') != null){
-				//Check the protection types and sources
-				String eContentData = itemField.getSubfield('w').getData();
-				if (eContentData.indexOf(':') >= 0){
-					hasEContentFields = true;
-					String[] eContentFields = eContentData.split(":");
-					String sourceType = eContentFields[0].toLowerCase().trim();
-					String protectionType = eContentFields[1].toLowerCase().trim();
-					if (!sourceType.equals("overdrive")){
-						if (protectionType.equals("public domain")){
-							protectionType = "free";
+		if (useEContentSubfield){
+			//Check to see if the record has eContent and if so create primary identifiers based on the protection type
+			boolean hasEContentFields = false;
+			boolean allItemsOverDrive = true;
+			TreeSet<String> protectionTypes = new TreeSet<String>();
+
+			List<DataField> itemFields = getDataFields(marcRecord, "989");
+			for (DataField itemField : itemFields){
+				if (itemField.getSubfield('w') != null){
+					//Check the protection types and sources
+					String eContentData = itemField.getSubfield('w').getData();
+					if (eContentData.indexOf(':') >= 0){
+						hasEContentFields = true;
+						String[] eContentFields = eContentData.split(":");
+						String sourceType = eContentFields[0].toLowerCase().trim();
+						String protectionType = eContentFields[1].toLowerCase().trim();
+						if (!sourceType.equals("overdrive")){
+							if (protectionType.equals("public domain")){
+								protectionType = "free";
+							}
+							protectionTypes.add(protectionType);
+							allItemsOverDrive = false;
 						}
-						protectionTypes.add(protectionType);
+					}else{
 						allItemsOverDrive = false;
 					}
 				}else{
 					allItemsOverDrive = false;
 				}
-			}else{
-				allItemsOverDrive = false;
 			}
-		}
-		if (allItemsOverDrive){
-			//Don't return a primary identifier for this record (we will suppress the bib and just use OverDrive APIs)
-			return identifiers;
-		}else if (!hasEContentFields){
+			if (allItemsOverDrive){
+				//Don't return a primary identifier for this record (we will suppress the bib and just use OverDrive APIs)
+				return identifiers;
+			}else if (!hasEContentFields){
+				RecordIdentifier identifier = new RecordIdentifier();
+				identifier.setValue("ils", primaryIdentifier);
+				if (identifier.isValid()){
+					identifiers.add(identifier);
+				}
+			}else{
+				for(String protectionType : protectionTypes ){
+					RecordIdentifier identifier = new RecordIdentifier();
+					identifier.setValue(protectionType, primaryIdentifier);
+					if (identifier.isValid()){
+						identifiers.add(identifier);
+					}
+				}
+			}
+		}else{
 			RecordIdentifier identifier = new RecordIdentifier();
 			identifier.setValue("ils", primaryIdentifier);
 			if (identifier.isValid()){
 				identifiers.add(identifier);
-			}
-		}else{
-			for(String protectionType : protectionTypes ){
-				RecordIdentifier identifier = new RecordIdentifier();
-				identifier.setValue(protectionType, primaryIdentifier);
-				if (identifier.isValid()){
-					identifiers.add(identifier);
-				}
 			}
 		}
 

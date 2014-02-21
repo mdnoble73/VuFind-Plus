@@ -94,7 +94,7 @@ public class RecordGrouperMain {
 		}
 
 
-		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, logger);
+		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, configIni, logger);
 		//Clear the database first
 		boolean clearDatabasePriorToGrouping = true;
 		boolean groupIlsRecords = true;
