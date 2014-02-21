@@ -2567,7 +2567,7 @@ class DBMaintenance extends Admin_Admin {
 					  permanent_id char(36) NOT NULL,
 					  title varchar(100) NULL,
 					  author varchar(50) NULL,
-					  subtitle varchar(175) NOT NULL,
+					  subtitle varchar(175) NULL,
 					  grouping_category varchar(25) NOT NULL,
 					  PRIMARY KEY (id),
 					  UNIQUE KEY permanent_id (permanent_id),
@@ -2611,6 +2611,15 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE `grouped_work` ADD INDEX(`full_title`)",
 				),
 			),
+
+				'grouped_works_remove_split_titles' => array(
+					'title' => 'Grouped Work Remove Split Titles',
+					'description' =>'Updates grouped works to add a full title field.',
+					'sql' => array(
+						"ALTER TABLE `grouped_work` DROP COLUMN `title`",
+						"ALTER TABLE `grouped_work` DROP COLUMN `subtitle`",
+					),
+				),
 
 			'grouped_works_primary_identifiers' => array(
 				'title' => 'Grouped Work Primary Identifiers',
