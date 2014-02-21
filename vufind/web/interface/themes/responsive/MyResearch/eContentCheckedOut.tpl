@@ -63,8 +63,10 @@
 							<td>
 								<div class="resultActions">
 									{include file="EcontentRecord/title-rating.tpl" ratingClass="" recordId=$record.id shortId=$record.id ratingData=$record.ratingData}
-									{assign var=id value=$record.recordId}
-									{include file="EcontentRecord/title-review.tpl"}
+									{if $showComments}
+										{assign var=id value=$record.recordId}
+										{include file="EcontentRecord/title-review.tpl"}
+									{/if}
 								</div>
 							</td>
 							<td>

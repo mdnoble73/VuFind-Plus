@@ -1874,7 +1874,6 @@ class Solr implements IndexEngine {
 				echo "<a href='" . $debugSearchUrl . "' target='_blank'>$fullSearchUrl</a>";
 				echo "</pre>\n";
 			}
-
 		}
 
 		if ($method == 'GET') {

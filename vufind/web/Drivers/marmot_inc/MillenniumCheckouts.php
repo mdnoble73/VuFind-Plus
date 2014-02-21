@@ -25,7 +25,7 @@ class MillenniumCheckouts {
 		$sResult = $this->driver->_fetchPatronInfoPage($patronDump, 'items');
 		$timer->logTime("Loaded checked out titles from Millennium");
 
-		$sResult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* ITEM.? CHECKED OUT<[^<]+?>\W<[^<]+?>/", "", $sResult);
+		$sResult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* ITEM.? CHECKED OUT<[^<]+?>\W<[^<]+?>/i", "", $sResult);
 
 		$s = substr($sResult, stripos($sResult, 'patFunc'));
 
@@ -70,10 +70,15 @@ class MillenniumCheckouts {
 				} else if ($sCount > 1) {
 
 					if (stripos($sKeys[$i],"TITLE") > -1) {
-
 						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
+							//Standard Millennium WebPAC
 							$shortId = $matches[1];
-							$bibid = '.' . $matches[1];
+							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
+							$title = strip_tags($matches[2]);
+						}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $scols[$i], $matches)){
+							//Encore
+							$shortId = $matches[1];
+							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
 							$title = strip_tags($matches[2]);
 						}else{
 							$title = strip_tags($scols[$i]);
@@ -241,7 +246,23 @@ class MillenniumCheckouts {
 		}
 		$post_string = implode ('&', $post_items);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		curl_exec($curl_connection);
+		$loginResult = curl_exec($curl_connection);
+		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+			//Get the lt value
+			$lt = $loginMatches[1];
+			//Login again
+			$post_data['lt'] = $lt;
+			$post_data['_eventId'] = 'submit';
+			$post_items = array();
+			foreach ($post_data as $key => $value) {
+				$post_items[] = $key . '=' . $value;
+			}
+			$post_string = implode ('&', $post_items);
+			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+			$loginResult = curl_exec($curl_connection);
+			$curlInfo = curl_getinfo($curl_connection);
+		}
 
 		//Go to the items page
 		$scope = $this->driver->getDefaultScope();
@@ -266,7 +287,7 @@ class MillenniumCheckouts {
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $renewItemParams);
 		$sresult = curl_exec($curl_connection);
-		$logger->log("Result of Renew All\r\n" . $sresult, PEAR_LOG_INFO);
+		//$logger->log("Result of Renew All\r\n" . $sresult, PEAR_LOG_INFO);
 
 		curl_close($curl_connection);
 		unlink($cookieJar);
@@ -331,7 +352,23 @@ class MillenniumCheckouts {
 		}
 		$post_string = implode ('&', $post_items);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		curl_exec($curl_connection);
+		$loginResult = curl_exec($curl_connection);
+		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+			//Get the lt value
+			$lt = $loginMatches[1];
+			//Login again
+			$post_data['lt'] = $lt;
+			$post_data['_eventId'] = 'submit';
+			$post_items = array();
+			foreach ($post_data as $key => $value) {
+				$post_items[] = $key . '=' . $value;
+			}
+			$post_string = implode ('&', $post_items);
+			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+			$loginResult = curl_exec($curl_connection);
+			$curlInfo = curl_getinfo($curl_connection);
+		}
 
 		//Go to the items page
 		$scope = $this->driver->getDefaultScope();

@@ -492,7 +492,12 @@ class AJAX extends Action {
 		$listAPI = new ListAPI();
 		$cacheInfo = $listAPI->getCacheInfoForList();
 
-		$listData = $memCache->get($cacheInfo['cacheName']);
+		$cacheName = $cacheInfo['cacheName'];
+		if (isset($_REQUEST['coverSize']) && $_REQUEST['coverSize'] == 'medium'){
+			$cacheName .= '_medium';
+		}
+
+		$listData = $memCache->get($cacheName);
 		if (!$listData || isset($_REQUEST['reload']) || (isset($listData['titles']) && count($listData['titles']) == 0)){
 			global $interface;
 
@@ -508,10 +513,13 @@ class AJAX extends Action {
 				$titles = $titles['titles'];
 				if (is_array($titles)){
 					foreach ($titles as $key => $rawData){
-
-						$interface->assign('description', $rawData['description']);
-						$interface->assign('length', $rawData['length']);
-						$interface->assign('publisher', $rawData['publisher']);
+						// 20131206 James Staub: bookTitle is in the list API and it removes the final frontslash, but I didn't get $rawData['bookTitle'] to load
+						$titleShort = preg_replace('/\:.*?$/','', $rawData['title']);
+						$titleShort = preg_replace('/\s*\/$\s*/','', $titleShort);
+						$interface->assign('title', $titleShort);
+						$interface->assign('description', isset($rawData['description']) ? $rawData['description'] : null);
+						$interface->assign('length', isset($rawData['length']) ? $rawData['length'] : null);
+						$interface->assign('publisher', isset($rawData['publisher']) ? $rawData['publisher'] : null);
 						$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
 
 						$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
@@ -524,7 +532,7 @@ class AJAX extends Action {
 							$formattedTitle .= '<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $shortId . '">';
 						}
 						$imageUrl = $rawData['small_image'];
-						if ($_REQUEST['coverSize'] == 'medium'){
+						if (isset($_REQUEST['coverSize']) && $_REQUEST['coverSize'] == 'medium'){
 							$imageUrl = $rawData['image'];
 						}
 						$formattedTitle .= "<img src=\"{$imageUrl}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/></a>";
@@ -638,6 +646,7 @@ class AJAX extends Action {
 		foreach ($isbns as $isbn){
 			$enrichment = $novelist->loadEnrichment($isbn);
 			if (isset($enrichment['seriesTitle'])){
+				$enrichment['seriesTitle'] = preg_replace('/\s*series$/i','',$enrichment['seriesTitle']);
 				$seriesInfo[$isbn] = "<a href='/Search/Results?sort=year&lookfor=series:" . urlencode($enrichment['seriesTitle']) . "'>{$enrichment['seriesTitle']}</a>" ;
 				if (isset($enrichment['volumeLabel']) && strlen($enrichment['volumeLabel']) > 0){
 					$seriesInfo[$isbn] .=  ', ' . $enrichment['volumeLabel'];

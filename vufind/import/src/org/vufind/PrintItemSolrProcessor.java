@@ -41,9 +41,7 @@ public class PrintItemSolrProcessor {
 	private Logger logger;
 	private MarcProcessor marcProcessor;
 	Pattern digitPattern = Pattern.compile("^\\d+$");
-	private static SimpleDateFormat dateAddedFormatter = new SimpleDateFormat("yyMMdd");
 	private static Date indexDate = new Date();
-
 
 	public PrintItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, Set<String> librarySystems, Set<String> librarySubdomains, Set<String> locations, Set<String> barcodes, Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, Set<String> locationCodes, HashMap<String, LinkedHashSet<String>> locationsCodesBySystem, Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, Set<String> availableAt, LinkedHashSet<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, LinkedHashSet<String> localCallNumbers, HashMap<String, HashMap<String, Long>> sortableCallNumbersByLibraryAndLocation, boolean manuallySuppressed, boolean allItemsSuppressed, float popularity, DataField itemField) {
 		this.logger = logger;
@@ -85,10 +83,10 @@ public class PrintItemSolrProcessor {
 
 	public PrintItemSolrProcessor invoke() {
 		boolean itemSuppressed = false;
-		if (itemField.getSubfield('d') == null) {
+		if (itemField.getSubfield(marcProcessor.getLocationSubfield()) == null) {
 			logger.debug("Did not find location code for item ");
 		} else {
-			String locationCode = itemField.getSubfield('d').getData().trim();
+			String locationCode = itemField.getSubfield(marcProcessor.getLocationSubfield()).getData().trim();
 
 			//logger.debug("Processing locationCode " + locationCode);
 			// Figure out which location and library this item belongs to.
@@ -114,43 +112,50 @@ public class PrintItemSolrProcessor {
 				itemSuppressed = true;
 			}
 
-			String callNumber = getLocalCallNumber();
 
-			if (callNumber.length() > 0){
-				//logger.debug("Processing call number " + callNumber + " for location code " + locationCode);
-				localCallNumbers.add(callNumber);
-				if (libraryIndexingInfo != null){
-					//Add sortable call number to array
-					String scopeName = libraryIndexingInfo.getSubdomain();
-					addSortableCallNumber(callNumber, scopeName);
-				}
-				if (locationIndexingInfo != null){
-					//Add sortable call number to array
-					String scopeName = locationIndexingInfo.getCode();
-					addSortableCallNumber(callNumber, scopeName);
+			if (marcProcessor.isUseItemBasedCallNumbers()){
+				String callNumber = getLocalCallNumber();
+
+				if (callNumber.length() > 0){
+					//logger.debug("Processing call number " + callNumber + " for location code " + locationCode);
+					localCallNumbers.add(callNumber);
+					if (libraryIndexingInfo != null){
+						//Add sortable call number to array
+						String scopeName = libraryIndexingInfo.getSubdomain();
+						addSortableCallNumber(callNumber, scopeName);
+					}
+					if (locationIndexingInfo != null){
+						//Add sortable call number to array
+						String scopeName = locationIndexingInfo.getCode();
+						addSortableCallNumber(callNumber, scopeName);
+					}
 				}
 			}
 
 			// Load availability (local, system, marmot)
-			Subfield statusSubfield = itemField.getSubfield('g');
-			Subfield dueDateField = itemField.getSubfield('m');
-			Subfield icode2Subfield = itemField.getSubfield('o');
+			Subfield statusSubfield = itemField.getSubfield(marcProcessor.getStatusSubfield());
+			Subfield dueDateField = itemField.getSubfield(marcProcessor.getDueDateSubfield());
+			Subfield icode2Subfield = itemField.getSubfield(marcProcessor.getICode2Subfield());
 			boolean available = false;
 			if (marcProcessor.isGetAvailabilityFromMarc()){
 				if (statusSubfield != null) {
 					String status = statusSubfield.getData();
-					String dueDate = dueDateField == null ? "" : dueDateField.getData().trim();
+					String dueDate = dueDateField == null ? "" : dueDateField.getData().replaceAll("\\D", "").trim();
 					String availableStatus = "-dowju";
 					if (availableStatus.indexOf(status.charAt(0)) >= 0) {
 						if (dueDate.length() == 0) {
-							if (icode2Subfield != null) {
-								String icode2 = icode2Subfield.getData().toLowerCase().trim();
-								if (icode2.equals("n") || icode2.equals("x")) {
-									//logger.debug("Suppressing item because icode2 is " + icode2);
-									itemSuppressed = true;
-								} else {
-									available = true;
+							if (marcProcessor.isUseICode2Suppression()){
+								if (icode2Subfield != null) {
+									String icode2 = icode2Subfield.getData().toLowerCase().trim();
+									if (icode2.equals("n") || icode2.equals("x")) {
+										//logger.debug("Suppressing item because icode2 is " + icode2);
+										itemSuppressed = true;
+									} else {
+										available = true;
+									}
 								}
+							}else{
+								available = true;
 							}
 						}
 					}
@@ -187,7 +192,7 @@ public class PrintItemSolrProcessor {
 
 				// Barcodes
 				@SuppressWarnings("unchecked")
-				List<Subfield> barcodeFields = itemField.getSubfields('b');
+				List<Subfield> barcodeFields = itemField.getSubfields(marcProcessor.getBarcodeSubfield());
 				for (Subfield curSubfield : barcodeFields) {
 					String barcode = curSubfield.getData();
 					if (digitPattern.matcher(barcode).matches()) {
@@ -196,17 +201,17 @@ public class PrintItemSolrProcessor {
 				}
 
 				//Get number of times the title has been checked out
-				Subfield totalCheckoutsField = itemField.getSubfield('h');
+				Subfield totalCheckoutsField = itemField.getSubfield(marcProcessor.getTotalCheckoutSubfield());
 				int totalCheckouts = 0;
 				if (totalCheckoutsField != null){
 					totalCheckouts = Integer.parseInt(totalCheckoutsField.getData());
 				}
-				Subfield ytdCheckoutsField = itemField.getSubfield('t');
+				Subfield ytdCheckoutsField = itemField.getSubfield(marcProcessor.getYtdCheckoutSubfield());
 				int ytdCheckouts = 0;
 				if (ytdCheckoutsField != null){
 					ytdCheckouts = Integer.parseInt(ytdCheckoutsField.getData());
 				}
-				Subfield lastYearCheckoutsField = itemField.getSubfield('x');
+				Subfield lastYearCheckoutsField = itemField.getSubfield(marcProcessor.getLastYearCheckoutSubfield());
 				int lastYearCheckouts = 0;
 				if (lastYearCheckoutsField != null){
 					lastYearCheckouts = Integer.parseInt(lastYearCheckoutsField.getData());
@@ -216,7 +221,7 @@ public class PrintItemSolrProcessor {
 				popularity += itemPopularity;
 
 				// Map iTypes
-				Subfield iTypeSubfield = itemField.getSubfield('j');
+				Subfield iTypeSubfield = itemField.getSubfield(marcProcessor.getiTypeSubfield());
 				String iType = "0";
 				if (iTypeSubfield != null) {
 					iType = processItemIcode(iTypes, iTypesBySystem, libraryIndexingInfo, iTypeSubfield);
@@ -245,7 +250,8 @@ public class PrintItemSolrProcessor {
 				}
 
 				// Map time since added (library & location)
-				Subfield dateAddedField = itemField.getSubfield('k');
+				char dateCreatedSubfield = marcProcessor.getDateCreatedSubfield();
+				Subfield dateAddedField = itemField.getSubfield(dateCreatedSubfield);
 				if (dateAddedField != null) {
 					timeSinceAdded = processItemDateAdded(timeSinceAdded, timeSinceAddedBySystem, timeSinceAddedByLocation, locationIndexingInfo, libraryIndexingInfo, dateAddedField);
 				}
@@ -318,6 +324,7 @@ public class PrintItemSolrProcessor {
 	private Set<String> processItemDateAdded(Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, LocationIndexingInfo locationIndexingInfo, LibraryIndexingInfo libraryIndexingInfo, Subfield dateAddedField) {
 		String dateAddedStr = dateAddedField.getData();
 		try {
+			SimpleDateFormat dateAddedFormatter = marcProcessor.getDateAddedFormatter();
 			Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
 			LinkedHashSet<String> itemTimeSinceAdded = getTimeSinceAddedForDate(dateAdded);
 			if (itemTimeSinceAdded.size() > timeSinceAdded.size()) {

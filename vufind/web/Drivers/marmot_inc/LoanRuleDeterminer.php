@@ -91,10 +91,9 @@ class LoanRuleDeterminer extends DB_DataObject
 	private $trimmedLocation = null;
 	function trimmedLocation(){
 		if ($this->trimmedLocation == null){
-			if (substr($this->location, -1) == "*"){
-				$this->trimmedLocation = substr($this->location, 0, strlen($this->location) - 1);
-			}else{
-				$this->trimmedLocation = $this->location;
+			$this->trimmedLocation = $this->location;
+			while (substr($this->trimmedLocation, -1) == "*"){
+				$this->trimmedLocation = substr($this->trimmedLocation, 0, strlen($this->trimmedLocation) - 1);
 			}
 		}
 		return $this->trimmedLocation;
@@ -104,7 +103,12 @@ class LoanRuleDeterminer extends DB_DataObject
 		if ($this->location == '*' || $this->location == '?????'){
 			return true;
 		}else{
-			return preg_match("/^{$this->trimmedLocation()}/i", $location);
+			try{
+				return preg_match("/^{$this->trimmedLocation()}/i", $location);
+			}catch(Exception $e){
+				echo("Could not handle regular expression " . $this->trimmedLocation());
+			}
+
 		}
 	}
 }

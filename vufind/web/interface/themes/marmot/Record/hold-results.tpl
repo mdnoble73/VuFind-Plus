@@ -22,7 +22,7 @@
 			{elseif $hold_message_data.successful == 'partial'}
 				<div class='hold_result partial'>Some hold requests need additional information.</div>
 			{else}
-				<div class='hold_result none'>Your hold request{if count($hold_message_data.titles) > 1}s{/if} need{if count($hold_message_data.titles) == 0}s{/if} additional information.</div>
+				<div class='hold_result none'>Your hold request{if count($hold_message_data.titles) > 1}s{/if} need{if count($hold_message_data.titles) <=1 }s{/if} additional information.</div>
 			{/if} 
 		{/if}
 			<ol class='hold_result_details'>

@@ -85,10 +85,12 @@
 			{* Let the user rate this title *}
 			{include file="EcontentRecord/title-rating.tpl" ratingClass="" recordId=$resource->record_id shortId=$resource->record_id ratingData=$resource->getRatingData() showFavorites=0}
 		{/if}
-		
-		{assign var=id value=$resource->record_id}
-		{assign var=shortId value=$resource->shortId}
-		{include file="Record/title-review.tpl"}
+
+		{if $showComments}
+			{assign var=id value=$resource->record_id}
+			{assign var=shortId value=$resource->shortId}
+			{include file="Record/title-review.tpl"}
+		{/if}
 			
 	</div>
 	<script type="text/javascript">

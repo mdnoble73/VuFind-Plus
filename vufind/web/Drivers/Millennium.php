@@ -40,6 +40,7 @@ require_once ROOT_DIR . '/Drivers/Innovative.php';
  */
 class MillenniumDriver implements DriverInterface
 {
+	public $fixShortBarcodes = true;
 
 	var $statusTranslations = null;
 	var $holdableStatiRegex = null;
@@ -99,7 +100,7 @@ class MillenniumDriver implements DriverInterface
 					$this->loanRules[$loanRule->loanRuleId] = clone($loanRule);
 				}
 			}
-			$memCache->set($serverName . '_loan_rules', $this->loanRules, $configArray['Caching']['loan_rules']);
+			$memCache->set($serverName . '_loan_rules', $this->loanRules, 0, $configArray['Caching']['loan_rules']);
 
 			$this->loanRuleDeterminers = $memCache->get($serverName . '_loan_rule_determiners');
 			if (!$this->loanRuleDeterminers){
@@ -112,7 +113,7 @@ class MillenniumDriver implements DriverInterface
 					$this->loanRuleDeterminers[$loanRuleDeterminer->rowNumber] = clone($loanRuleDeterminer);
 				}
 			}
-			$memCache->set($serverName . '_loan_rule_determiners', $this->loanRuleDeterminers, $configArray['Caching']['loan_rules']);
+			$memCache->set($serverName . '_loan_rule_determiners', $this->loanRuleDeterminers, 0, $configArray['Caching']['loan_rules']);
 		}
 	}
 
@@ -543,7 +544,7 @@ class MillenniumDriver implements DriverInterface
 			$id2= $patron['id'];
 		}
 
-		if (array_key_exists($patron['id'], $this->patronProfiles)){
+		if (array_key_exists($patron['id'], $this->patronProfiles) && !isset($_REQUEST['reload'])){
 			$timer->logTime('Retrieved Cached Profile for Patron');
 			return $this->patronProfiles[$patron['id']];
 		}
@@ -590,6 +591,10 @@ class MillenniumDriver implements DriverInterface
 					$City = $matches[1];
 					$State = $matches[2];
 					$Zip = $matches[3];
+				}else if (preg_match('/(.*?)\\s+(\\w{2})\\s+(\\d*(?:-\\d*)?)/', $City, $matches)) {
+					$City = $matches[1];
+					$State = $matches[2];
+					$Zip = $matches[3];
 				}
 			}else{
 				$Address1 = "";
@@ -601,11 +606,14 @@ class MillenniumDriver implements DriverInterface
 			$fullName = $patronDump['PATRN_NAME'];
 
 			//Get additional information about the patron's home branch for display.
-			$homeBranchCode = $patronDump['HOME_LIBR'];
-			//Translate home branch to plain text
-			$location = new Location();
-			$location->whereAdd("code = '$homeBranchCode'");
-			$location->find(1);
+			if (isset($patronDump['HOME_LIBR']) || isset($patronDump['HOLD_LIBR'])){
+				$homeBranchCode = isset($patronDump['HOME_LIBR']) ? $patronDump['HOME_LIBR'] : $patronDump['HOLD_LIBR'];
+				$homeBranchCode = str_replace('+', '', $homeBranchCode);
+				//Translate home branch to plain text
+				$location = new Location();
+				$location->whereAdd("code = '$homeBranchCode'");
+				$location->find(1);
+			}
 
 			if ($user) {
 				if ($user->homeLocationId == 0 && isset($location)) {
@@ -679,7 +687,11 @@ class MillenniumDriver implements DriverInterface
 			$myLocation2->find(1);
 		}
 
-
+		$noticeLabels = array(
+			'-' => 'Mail',
+			'p' => 'Telephone',
+			'z' => 'E-mail',
+		);
 		$profile = array('lastname' => $lastName,
 				'firstname' => $firstName,
 				'fullname' => $fullName,
@@ -691,12 +703,13 @@ class MillenniumDriver implements DriverInterface
 				'email' => ($user && $user->email) ? $user->email : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '') ,
 				'overdriveEmail' => ($user) ? $user->overdriveEmail : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : ''),
 				'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
-				'phone' => (isset($patronDump) && isset($patronDump['TELEPHONE'])) ? $patronDump['TELEPHONE'] : '',
+				'phone' => (isset($patronDump) && isset($patronDump['TELEPHONE'])) ? $patronDump['TELEPHONE'] : (isset($patronDump['HOME_PHONE']) ? $patronDump['HOME_PHONE'] : ''),
+				'workPhone' => (isset($patronDump) && isset($patronDump['G/WK_PHONE'])) ? $patronDump['G/WK_PHONE'] : '',
 				'fines' => isset($patronDump) ? $patronDump['MONEY_OWED'] : '0',
 				'finesval' => $finesVal,
 				'expires' => isset($patronDump) ? $patronDump['EXP_DATE'] : '',
 				'expireclose' => $expireClose,
-				'homeLocationCode' => trim($homeBranchCode),
+				'homeLocationCode' => isset($homeBranchCode) ? trim($homeBranchCode) : '',
 				'homeLocationId' => isset($location) ? $location->locationId : 0,
 				'homeLocation' => isset($location) ? $location->displayName : '',
 				'myLocation1Id' => ($user) ? $user->myLocation1Id : -1,
@@ -709,9 +722,10 @@ class MillenniumDriver implements DriverInterface
 				'numHoldsRequested' => $numHoldsRequested,
 				'bypassAutoLogout' => ($user) ? $user->bypassAutoLogout : 0,
 				'ptype' => ($user && $user->patronType) ? $user->patronType : (isset($patronDump) ? $patronDump['P_TYPE'] : 0),
-				'notices' => isset($patronDump) ? $patronDump['NOTICE_PREF'] : '',
+				'notices' => isset($patronDump) ? $patronDump['NOTICE_PREF'] : '-',
 				'web_note' => isset($patronDump) ? (isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '') : '',
 		);
+		$profile['noticePreferenceLabel'] = $noticeLabels[$profile['notices']];
 
 		//Get eContent info as well
 		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
@@ -768,14 +782,16 @@ class MillenniumDriver implements DriverInterface
 			$host=$configArray['OPAC']['patron_host'];
 			//Special processing to allow MCVSD Students to login
 			//with their student id.
-			if (strlen($barcode)== 5){
-				$originalCode = $barcode;
-				$barcode = "41000000" . $barcode;
-			}elseif (strlen($barcode)== 6){
-				$originalCode = $barcode;
-				$barcode = "4100000" . $barcode;
-			}else{
-				$originalCode = null;
+			if ($this->fixShortBarcodes){
+				if (strlen($barcode)== 5){
+					$originalCode = $barcode;
+					$barcode = "41000000" . $barcode;
+				}elseif (strlen($barcode)== 6){
+					$originalCode = $barcode;
+					$barcode = "4100000" . $barcode;
+				}else{
+					$originalCode = null;
+				}
 			}
 
 			$patronDump = $this->_parsePatronApiPage($host, $barcode);
@@ -807,21 +823,28 @@ class MillenniumDriver implements DriverInterface
 		//as a simple name value pair list within the body of the webpage.
 		//Sample format of a row is as follows:
 		//P TYPE[p47]=100<BR>
-		$req =  $host . "/PATRONAPI/" . $barcode ."/dump" ;
-		$req = new Proxy_Request($req);
-		//$result = file_get_contents($req);
-		if (PEAR_Singleton::isError($req->sendRequest())) {
-			return null;
-		}
-		$result = $req->getResponseBody();
+		$patronApiUrl =  $host . "/PATRONAPI/" . $barcode ."/dump" ;
+		$curlConnection = curl_init($patronApiUrl);
+
+		curl_setopt($curlConnection, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($curlConnection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+		curl_setopt($curlConnection, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curlConnection, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curlConnection, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($curlConnection, CURLOPT_UNRESTRICTED_AUTH, true);
+
+		//Setup encoding to ignore SSL errors for self signed certs
+		$result = curl_exec($curlConnection);
+		curl_close($curlConnection);
 
 		//Strip the actual contents out of the body of the page.
-		$r = substr($result, stripos($result, 'BODY'));
-		$r = substr($r,strpos($r,">")+1);
-		$r = substr($r,0,stripos($r,"</BODY"));
+		//$r = substr($result, stripos($result, 'BODY'));
+		//$r = substr($r,strpos($r,">")+1);
+		//$r = substr($r,0,stripos($r,"</BODY"));
+		$cleanPatronData = strip_tags($result);
 
 		//Remove the bracketed information from each row
-		$r = preg_replace("/\[.+?]=/","=",$r);
+		//$r = preg_replace("/\[.+?]=/","=",$trimmedResult);
 
 		//Split the rows on each BR tag.
 		//This could also be done with a regex similar to the following:
@@ -830,11 +853,21 @@ class MillenniumDriver implements DriverInterface
 		//Or a regex similar to
 		//(.*?)\[.*?\]=(.*?)<BR\s*>
 		//Group1 would be the keys and group 2 the values.
-		$rows = preg_replace("/<BR.*?>/","*",$r);
-		$rows = explode("*",$rows);
+		/* $rows = preg_split("/<BR.*?>/i",$r); */
+		//$rows = explode("*",$rows);
 		//Add the key and value from each row into an associative array.
 		$patronDump = array();
-		foreach ($rows as $row) {
+		preg_match_all('/(.*?)\\[.*?\\]=(.*)/', $cleanPatronData, $patronData, PREG_SET_ORDER);
+		for ($curRow = 0; $curRow < count($patronData); $curRow++) {
+			$patronDumpKey = str_replace(" ", "_", trim($patronData[$curRow][1]));
+			if ($patronDumpKey == 'HOLD'){
+				$patronDump[$patronDumpKey][] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
+			}else{
+				$patronDump[$patronDumpKey] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
+			}
+		}
+
+		/*foreach ($rows as $row) {
 			if (strlen(trim($row)) > 0){
 				$ret = explode("=",$row, 2);
 				//$patronDump[str_replace(" ", "_", trim($ret[0]))] = str_replace("$", " ",$ret[1]);
@@ -846,7 +879,7 @@ class MillenniumDriver implements DriverInterface
 					$patronDump[$patronDumpKey] = isset($ret[1]) ? $ret[1] : '';
 				}
 			}
-		}
+		}*/
 		$timer->logTime("Got patron information from Patron API");
 		return $patronDump;
 	}
@@ -898,6 +931,23 @@ class MillenniumDriver implements DriverInterface
 		$post_string = implode ('&', $post_items);
 		curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$sResult = curl_exec($this->curl_connection);
+		//When a library uses Encore, the initial login does a redirect and requires additonal parameters.
+		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $sResult, $loginMatches)) {
+			//Get the lt value
+			$lt = $loginMatches[1];
+			//Login again
+			$post_data['lt'] = $lt;
+			$post_data['_eventId'] = 'submit';
+			$post_items = array();
+			foreach ($post_data as $key => $value) {
+				$post_items[] = $key . '=' . $value;
+			}
+			$post_string = implode ('&', $post_items);
+			$accountPageInfo = curl_getinfo($this->curl_connection);
+			curl_setopt($this->curl_connection, CURLOPT_URL, $accountPageInfo['url']);
+			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
+			$sResult = curl_exec($this->curl_connection);
+		}
 
 		if (true){
 			curl_close($this->curl_connection);
@@ -1033,16 +1083,32 @@ class MillenniumDriver implements DriverInterface
 				$extraPostInfo['addr1d'] = '';
 			}
 			$extraPostInfo['tele1'] = $_REQUEST['phone'];
+			if (isset($_REQUEST['workPhone'])){
+				$extraPostInfo['tele2'] = $_REQUEST['workPhone'];
+			}
 			$extraPostInfo['email'] = $_REQUEST['email'];
 
 			if (isset($_REQUEST['notices'])){
 				$extraPostInfo['notices'] = $_REQUEST['notices'];
 			}
 
+			if (isset($_REQUEST['notices'])){
+				$extraPostInfo['notices'] = $_REQUEST['notices'];
+			}
+
+			if (isset($_REQUEST['pickupLocation'])){
+				$pickupLocation = $_REQUEST['pickupLocation'];
+				if (strlen($pickupLocation) < 5){
+					$pickupLocation = $pickupLocation . str_repeat(' ', 5 - strlen($pickupLocation));
+				}
+				$extraPostInfo['locx00'] = $pickupLocation;
+			}
+
 			//Login to the patron's account
 			$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
 
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+			$scope = $this->getMillenniumScope();
+			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~" . $scope;
 
 			$curl_connection = curl_init($curl_url);
 			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
@@ -1061,7 +1127,23 @@ class MillenniumDriver implements DriverInterface
 			}
 			$post_string = implode ('&', $post_items);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			curl_exec($curl_connection);
+			$loginResult = curl_exec($curl_connection);
+			//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+			if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+				//Get the lt value
+				$lt = $loginMatches[1];
+				//Login again
+				$post_data['lt'] = $lt;
+				$post_data['_eventId'] = 'submit';
+				$post_items = array();
+				foreach ($post_data as $key => $value) {
+					$post_items[] = $key . '=' . $value;
+				}
+				$post_string = implode ('&', $post_items);
+				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+				$loginResult = curl_exec($curl_connection);
+				$curlInfo = curl_getinfo($curl_connection);
+			}
 
 			//Issue a post request to update the patron information
 			$post_items = array();
@@ -1275,29 +1357,28 @@ class MillenniumDriver implements DriverInterface
 	 * @return bool
 	 */
 	function isRecordHoldable($marcRecord){
+		global $configArray;
 		$pType = $this->getPType();
 		/** @var File_MARC_Data_Field[] $items */
-		$items = $marcRecord->getFields('989');
+		$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
+		$iTypeSubfield = isset($configArray['Reindex']['iTypeSubfield']) ? $configArray['Reindex']['iTypeSubfield'] : 'j';
+		$locationSubfield = isset($configArray['Reindex']['locationSubfield']) ? $configArray['Reindex']['locationSubfield'] : 'j';
+		$items = $marcRecord->getFields($marcItemField);
 		$holdable = false;
 		$itemNumber = 0;
 		foreach ($items as $item){
 			$itemNumber++;
-			$subfield_j = $item->getSubfield('j');
+			$subfield_j = $item->getSubfield($iTypeSubfield);
 			if (is_object($subfield_j) && !$subfield_j->isEmpty()){
 				$iType = $subfield_j->getData();
 			}else{
 				$iType = '0';
 			}
-			$subfield_d = $item->getSubfield('d');
+			$subfield_d = $item->getSubfield($locationSubfield);
 			if (is_object($subfield_d) && !$subfield_d->isEmpty()){
 				$locationCode = $subfield_d->getData();
 			}else{
-				$subfield_p = $item->getSubfield('p');
-				if (is_object($subfield_p) && !$subfield_p->isEmpty()){
-					$locationCode = $subfield_p->getData();
-				}else{
-					$locationCode = '?????';
-				}
+				$locationCode = '?????';
 			}
 			//$logger->log("$itemNumber) iType = $iType, locationCode = $locationCode", PEAR_LOG_DEBUG);
 
@@ -1313,10 +1394,15 @@ class MillenniumDriver implements DriverInterface
 
 	function isItemHoldableToPatron($locationCode, $iType, $pType){
 		$this->loadLoanRules();
+		if (count($this->loanRuleDeterminers) == 0){
+			//If we don't have any loan rules determiners, assume that the item is holdable.
+			return true;
+		}
 		$holdable = false;
-		global $logger;
-		//$logger->log("Checking loan rule for $locationCode, $iType, $pType", PEAR_LOG_DEBUG);
+		//global $logger;
+		//$logger->log("Checking loan rules for $locationCode, $iType, $pType", PEAR_LOG_DEBUG);
 		foreach ($this->loanRuleDeterminers as $loanRuleDeterminer){
+			//$logger->log("Determiner {$loanRuleDeterminer->rowNumber}", PEAR_LOG_DEBUG);
 			//Check the location to be sure the determiner applies to this item
 			if ($loanRuleDeterminer->matchesLocation($locationCode) ){
 				//$logger->log("{$loanRuleDeterminer->rowNumber}) Location correct $locationCode, {$loanRuleDeterminer->location} ({$loanRuleDeterminer->trimmedLocation()})", PEAR_LOG_DEBUG);
@@ -1332,13 +1418,13 @@ class MillenniumDriver implements DriverInterface
 							break;
 						}
 					}else{
-						$logger->log("PType incorrect", PEAR_LOG_DEBUG);
+						//$logger->log("PType incorrect", PEAR_LOG_DEBUG);
 					}
 				}else{
 					//$logger->log("IType incorrect", PEAR_LOG_DEBUG);
 				}
 			}else{
-				//$logger->log("Location incorrect {$loanRuleDeterminer->location} != {$location}", PEAR_LOG_DEBUG);
+				//$logger->log("Location incorrect {$loanRuleDeterminer->location} != {$locationCode}", PEAR_LOG_DEBUG);
 			}
 		}
 		return $holdable;
@@ -1570,5 +1656,82 @@ class MillenniumDriver implements DriverInterface
 			}
 		}
 		return array($fullName, $lastName, $firstName, $userValid);
+	}
+
+	public function getMyFines($patron = null, $includeMessages = false){
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
+
+		//Load the information from millennium using CURL
+		$pageContents = $this->_fetchPatronInfoPage($patronDump, 'overdues');
+
+		//Get the fines table data
+		$messages = array();
+		if (preg_match('/<table border="0" class="patFunc">(.*?)<\/table>/si', $pageContents, $regs)) {
+			$finesTable = $regs[1];
+			//Get the title and, type, and fine detail from the page
+			preg_match_all('/<tr class="patFuncFinesEntryTitle">(.*?)<\/tr>.*?<tr class="patFuncFinesEntryDetail">.*?<td class="patFuncFinesDetailType">(.*?)<\/td>.*?<td align="right" class="patFuncFinesDetailAmt">(.*?)<\/td>.*?<\/tr>/si', $finesTable, $fineDetails, PREG_SET_ORDER);
+			for ($matchi = 0; $matchi < count($fineDetails); $matchi++) {
+				$reason = $fineDetails[$matchi][2];
+				if ($reason == '&nbsp'){
+					$reason = 'Fee';
+				}
+				$messages[] = array(
+					'reason' => $reason,
+					'message' => strip_tags($fineDetails[$matchi][1]),
+					'amount' => $fineDetails[$matchi][3],
+				);
+			}
+		}
+
+		return $messages;
+	}
+
+	public function requestPinReset($barcode){
+		//Go to the pinreset page
+		global $configArray;
+		$pinResetUrl = $configArray['Catalog']['url'] . '/pinreset';
+		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+		$curl_connection = curl_init();
+		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, is_null($cookieJar) ? true : false);
+		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+
+		curl_setopt($curl_connection, CURLOPT_URL, $pinResetUrl);
+		$pinResetPageHtml = curl_exec($curl_connection);
+
+		//Now submit the request
+		$post_data['code'] = $barcode;
+		$post_data['pat_submit'] = 'xxx';
+		$post_items = array();
+		foreach ($post_data as $key => $value) {
+			$post_items[] = $key . '=' . $value;
+		}
+		$post_string = implode ('&', $post_items);
+		curl_setopt($curl_connection, CURLOPT_POST, true);
+		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+		$pinResetResultPageHtml = curl_exec($curl_connection);
+
+		//Parse the response
+		$result = array(
+			'result' => false,
+			'error' => true,
+			'message' => 'Unknown error resetting pin'
+		);
+
+		if (preg_match('/<div class="errormessage">(.*?)<\/div>/is', $pinResetResultPageHtml, $matches)){
+			$result['error'] = false;
+			$result['message'] = trim($matches[1]);
+		}elseif (preg_match('/<div class="pageContent">.*?<strong>(.*?)<\/strong>/si', $pinResetResultPageHtml, $matches)){
+			$result['error'] = false;
+			$result['result'] = true;
+			$result['message'] = trim($matches[1]);
+		}
+		return $result;
 	}
 }

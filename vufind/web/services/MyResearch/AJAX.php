@@ -33,12 +33,12 @@ class AJAX extends Action {
 	function launch()
 	{
 		$method = $_GET['method'];
-		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating'))){
+		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm', 'getCitationFormatsForm'))){
+		}else if (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm', 'getCitationFormatsForm', 'getPinResetForm'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -275,7 +275,8 @@ class AJAX extends Action {
 				if (is_array($titles)){
 					foreach ($titles as $key => $rawData){
 
-						$interface->assign('description', $rawData['description']);
+						$interface->assign('title', $rawData['title']);
+						$interface->assign('description', $rawData['description'].'w00t!');
 						$interface->assign('length', $rawData['length']);
 						$interface->assign('publisher', $rawData['publisher']);
 						$descriptionInfo = $interface->fetch('Record/ajax-description-popup.tpl') ;
@@ -342,12 +343,42 @@ class AJAX extends Action {
 	}
 
 	function getPinUpdateForm(){
-		global $user;
 		global $interface;
 		$interface->assign('popupTitle', 'Modify PIN number');
 		$pageContent = $interface->fetch('MyResearch/modifyPinPopup.tpl');
 		$interface->assign('popupContent', $pageContent);
 		return $interface->fetch('popup-wrapper.tpl');
+	}
+
+	function getPinResetForm(){
+		global $interface;
+		$interface->assign('popupTitle', 'Reset PIN Request');
+		$pageContent = $interface->fetch('MyResearch/resetPinPopup.tpl');
+		$interface->assign('popupContent', $pageContent);
+		return $interface->fetch('popup-wrapper.tpl');
+	}
+
+	function requestPinReset(){
+		global $configArray;
+
+		try {
+			/** @var DriverInterface|MillenniumDriver|Nashville|Marmot|Sierra|Horizon $catalog */
+			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+
+			$barcode = $_REQUEST['barcode'];
+
+			//Get the list of pickup branch locations for display in the user interface.
+			$result = $catalog->requestPinReset($barcode);
+			return json_encode($result);
+
+		} catch (PDOException $e) {
+			// What should we do with this error?
+			if ($configArray['System']['debug']) {
+				echo '<pre>';
+				echo 'DEBUG: ' . $e->getMessage();
+				echo '</pre>';
+			}
+		}
 	}
 
 	function getCitationFormatsForm(){

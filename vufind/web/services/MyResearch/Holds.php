@@ -28,6 +28,7 @@ class Holds extends MyResearch
 	{
 		global $configArray;
 		global $interface;
+		global $library;
 		global $user;
 		global $timer;
 
@@ -64,7 +65,11 @@ class Holds extends MyResearch
 			die();
 		}
 
-		$interface->assign('allowFreezeHolds', true);
+		if (isset($library)){
+			$interface->assign('allowFreezeHolds', $library->allowFreezeHolds);
+		}else{
+			$interface->assign('allowFreezeHolds', 0);
+		}
 
 		$ils = $configArray['Catalog']['ils'];
 		$showPosition = ($ils == 'Horizon');

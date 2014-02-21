@@ -271,7 +271,7 @@ if (isset($_REQUEST['mylang'])) {
 }
 /** @var Memcache $memCache */
 $translator = $memCache->get("translator_{$serverName}_{$language}");
-if ($translator == false){
+if ($translator == false || isset($_REQUEST['reloadTranslator'])){
 	// Make sure language code is valid, reset to default if bad:
 	$validLanguages = array_keys($configArray['Languages']);
 	if (!in_array($language, $validLanguages)) {
@@ -779,6 +779,7 @@ function getGitBranch(){
 	global $configArray;
 
 	$gitName = $configArray['System']['gitVersionFile'];
+	$branchName = 'Unknown';
 	if ($gitName == 'HEAD'){
 		$stringFromFile = file('../../.git/HEAD', FILE_USE_INCLUDE_PATH);
 		$stringFromFile = $stringFromFile[0]; //get the string from the array

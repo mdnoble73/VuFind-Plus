@@ -53,5 +53,6 @@ WA,Washington
 WV,West Virginia
 WI,Wisconsin
 WY,Wyoming
-
+Kesha,Ke ha
+Pink,Pnk,P!nk
 

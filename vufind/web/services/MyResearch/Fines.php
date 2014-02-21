@@ -28,6 +28,9 @@ class Fines extends MyResearch
 	{
 		global $interface;
 		global $finesIndexEngine;
+		global $configArray;
+
+		$ils = $configArray['Catalog']['ils'];
 
 		// Get My Fines
 		if ($patron = $this->catalogLogin()) {
@@ -48,10 +51,12 @@ class Fines extends MyResearch
 						$dg->renderer->setTableAttribute('cellpadding', '4');
 						$dg->renderer->setTableAttribute('class', 'datagrid');
 	
-						$dg->addColumn(new Structures_DataGrid_Column(translate('Reason'), 'reason', 'reason'));
+						$dg->addColumn(new Structures_DataGrid_Column(translate('Message'), 'reason', 'reason'));
 						$dg->addColumn(new Structures_DataGrid_Column(translate('Title'), 'message', 'message'));
 						//$dg->addColumn(new Structures_DataGrid_Column(translate('Checked Out'), 'checkout', 'checkout'));
-						$dg->addColumn(new Structures_DataGrid_Column(translate('Date'), 'date', 'date', array('width' => '80')));
+						if ($ils == 'Horizon'){
+							$dg->addColumn(new Structures_DataGrid_Column(translate('Date'), 'date', 'date', array('width' => '80')));
+						}
 						$dg->addColumn(new Structures_DataGrid_Column(translate('Fee'), 'amount', 'amount'));
 						//$dg->addColumn(new Structures_DataGrid_Column(translate('Balance'), 'balance', 'balance', null, null, 'formatNumber'));
 						//$dg->addColumn(new Structures_DataGrid_Column(translate('Comment'), 'comment', 'comment'));

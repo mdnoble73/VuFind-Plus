@@ -31,7 +31,11 @@
 			{assign var="scrollerName" value="$listName"}
 			{assign var="wrapperId" value="$listName"}
 			{assign var="scrollerVariable" value="listScroller$listName"}
-			{assign var="Links" value=$list->links}
+			{if $list->links}
+				{assign var="Links" value=$list->links}
+			{else}
+				{assign var="fullListLink" value=$list->fullListLink()}
+			{/if}
 			
 			{if count($widget->lists) == 1}
 				{assign var="scrollerTitle" value=$list->name}
@@ -132,7 +136,7 @@
 						else if (listIndex == {$index}){literal}{{/literal}
 							if (listScroller{$listName} == null){literal}{{/literal}
 								listScroller{$listName} = new TitleScroller('titleScroller{$listName}', '{$listName}', 'list{$listName}', {if $widget->showTitleDescriptions==1}true{else}false{/if}, '{$widget->onSelectCallback}', {if $widget->autoRotate==1}true{else}false{/if}, '{$widget->style}');
-								listScroller{$listName}.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles%26id={$list->source|escape:url}%26scrollerName={$listName}', false);
+								listScroller{$listName}.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles%26id={$list->source|escape:url}%26scrollerName={$listName}%26coverSize={$widget->coverSize}%26showRatings={$widget->showRatings}', false);
 							{literal}}else{{/literal}
 								listScroller{$listName}.activateCurrentTitle();
 							{literal}}{/literal}

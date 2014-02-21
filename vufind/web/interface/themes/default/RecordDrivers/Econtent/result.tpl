@@ -80,9 +80,11 @@
 <div id ="searchStars{$summId|escape}" class="resultActions">
 	{* Let the user rate this title *}
 	{include file="EcontentRecord/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
-	
-	{assign var=id value=$summId scope="global"}
-	{include file="EcontentRecord/title-review.tpl" id=$summId}
+
+	{if $showComments}
+		{assign var=id value=$summId scope="global"}
+		{include file="EcontentRecord/title-review.tpl" id=$summId}
+	{/if}
 </div>
 
 

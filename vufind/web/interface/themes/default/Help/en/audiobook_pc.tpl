@@ -18,7 +18,7 @@
 	<li>Click "Ok" when the pop-up box asks if you want to open the file with OverDrive Media Console</li>
 	<li>Click "Ok" again and do not change the file name or destination where the file will be saved on your computer</li>
 	<li>All parts of the book will automatically be selected for downloading in the next pop-up screen and click "Ok" a third time</li>
-	<li>Transfer from OverDrive to an MP3 player, iPod, burn to CD and/or listen to the audio book directly from OverDrive on your computer</li>
+	<li>Transfer from OverDrive to an MP3 player, iPod, Kindle (Black and White), burn to CD and/or listen to the audio book directly from OverDrive on your computer</li>
 	</ol>
 	<p><em>
 		Note - Books return automatically on the due date. At this time there are no overdue fines, no way to return audio books early, and no renewals on items

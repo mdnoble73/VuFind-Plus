@@ -18,8 +18,14 @@
 
 <div class="resultDetails">
   <div class="resultItemLine1">
-  {if $summScore}({$summScore}) {/if}
-	<a href="{$path}/Record/{$summId|escape:"url"}/Home?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
+	  {if isset($summScore)}
+		  (<a href="#" onclick="return showElementInLightbox('Score Explanation', '#scoreExplanationValue{$summId|escape}');">{$summScore}</a>)
+	  {/if}
+	  {if isset($summExplain)}
+		  <div class="hidden" id="scoreExplanationValue{$summId|escape}">{$summExplain}</div>
+	  {/if}
+
+  <a href="{$path}/Record/{$summId|escape:"url"}/Home?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">{if !$summTitle|removeTrailingPunctuation}{translate text='Title not available'}{else}{$summTitle|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}</a>
 	{if $summTitleStatement}
     <div class="searchResultSectionInfo">
       {$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
@@ -65,9 +71,11 @@
 	{* Let the user rate this title *}
 	{include file="Record/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating}
 
-	{assign var=id value=$summId scope="global"}
-	{assign var=shortId value=$summShortId scope="global"}
-	{include file="Record/title-review.tpl"}
+	{if $showComments}
+		{assign var=id value=$summId scope="global"}
+		{assign var=shortId value=$summShortId scope="global"}
+		{include file="Record/title-review.tpl"}
+	{/if}
 </div>
 
 

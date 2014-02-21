@@ -1,0 +1,582 @@
+/* Styles to change the default fonts */
+a{text-decoration:none;color:#06c}a:hover{color:#132248}h1{font-size:150%;font-weight:normal;color:#292929}
+h1{margin:1em
+0;}h2{font-size:140%;font-weight:normal;}h3{font-size:120%;font-weight:normal;margin-bottom: .5em;color:#292929;}h4{font-size:110%;font-weight:normal;margin-bottom: .5em;color:#292929}
+body{font-family:'Source Sans Pro', "Arial Unicode MS",Arial,Sans-Serif;color:#010101;font-size:14px}
+
+/* UI Tabs - Misc Visuals
+----------------------------------*/
+.ui-tabs{position:relative;padding: 0.2em}
+.ui-tabs .ui-tabs-nav{margin:0;padding: .3em .4em 0 .4em}
+.ui-tabs .ui-tabs-nav li{list-style:none;float:left;position:relative;top:0;margin:1px .4em 0 0;border-bottom:0;padding:0;white-space:nowrap}
+.ui-tabs .ui-tabs-nav li.ui-state-active a {font-weight: normal;font-size: 20px;color:#010101;padding: .25em 1em;}
+.ui-tabs .ui-tabs-nav li.ui-tabs-active {margin-bottom: -1px;padding-bottom: 1px;background-color: #fff;}
+.ui-tabs .ui-tabs-nav li.ui-tabs-active a:hover {background-color: #fff;}
+.ui-tabs .ui-tabs-nav li.ui-state-hover {font-weight: normal;font-size: 19px;background-color:#FAFAFA;}
+.ui-tabs .ui-tabs-nav li {list-style: none;float: left;position: relative;top: 0;margin: 1px .4em 0 0;border-bottom: 0;padding: 0;white-space: nowrap;font-size: 19px;background-color: #F7F7F7;}
+
+/* Component containers
+----------------------------------*/
+.ui-widget {font-family:'Source Sans Pro', "Arial Unicode MS",Arial,Sans-Serif;color:#010101;font-size:14px}
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button{font-family:'Source Sans Pro', "Arial Unicode MS",Arial,Sans-Serif;color:#010101;font-size:1em}
+.ui-widget-content{border:1px solid #ccc;background:#fcfdfd url(/interface/themes/marmot/css/images/ui-bg_inset-hard_100_fcfdfd_1x100.png) 50% bottom repeat-x;color:#222}
+.ui-widget-content a {color: #0066cc;}
+.ui-widget-header {border: 1px solid #ccc;background: #eee /*#32388E url(/interface/themes/nashville/images/ui-bg_gloss-wave_75_2191c0_500x100.png) 50% 50% repeat-x*/; color: #eaf5f7;font-weight: bold;}
+.ui-tabs .ui-tabs-nav li a {float: left;padding: .45em 1em;text-decoration: none;}
+/* Similar Titles Buttons */
+
+
+/* Interaction states
+----------------------------------*/
+.ui-state-default,
+.ui-widget-content .ui-state-default,
+.ui-widget-header .ui-state-default{border:1px
+solid #e2e3ed;background:#eee /*url(/interface/themes/marmot/css/images/ui-bg_glass_85_dfeffc_1x400.png) 50% 50% repeat-x*/;font-weight:normal;color:#1182ab}
+.ui-state-default a,
+.ui-state-default a:link,
+.ui-state-default a:visited{color:#06c;text-decoration:none}
+.ui-state-hover,
+.ui-widget-content .ui-state-hover,
+.ui-widget-header .ui-state-hover,
+.ui-state-focus,
+.ui-widget-content .ui-state-focus,
+.ui-widget-header .ui-state-focus{border:1px solid #448dae;background:#fff /*url(/interface/themes/marmot/css/images/ui-bg_glass_75_79c9ec_1x400.png) 50% 50% repeat-x*/;font-weight:normal;color:#026890}
+.ui-state-active,
+.ui-widget-content .ui-state-active,
+.ui-widget-header .ui-state-active{border:1px
+solid #ccc;background:#fff /*url(/interface/themes/nashville/images/ui-bg_gloss-wave_75_2191c0_500x100.png) 50% 50% repeat-x*/;font-weight:normal;color:#000}
+.ui-state-active a,
+.ui-state-active a:link,
+.ui-state-active a:visited{color:#000;text-decoration:none}
+
+/* Interaction Cues
+----------------------------------*/
+/* no changes */
+
+
+/* Misc visuals
+----------------------------------*/
+/* Corner radius */
+.ui-corner-all,.ui-corner-top,.ui-corner-left,.ui-corner-tl{border-top-left-radius:0px}.ui-corner-all,.ui-corner-top,.ui-corner-right,.ui-corner-tr{border-top-right-radius:0px}.ui-corner-all,.ui-corner-bottom,.ui-corner-left,.ui-corner-bl{border-bottom-left-radius:0px}.ui-corner-all,.ui-corner-bottom,.ui-corner-right,.ui-corner-br{border-bottom-right-radius:0px}
+
+/* styles.css */
+html,body{height:100%;background-color:#CCC;background-image:url("/interface/themes/nashville/images/background_white_carbon.png");}
+#page-content,#ft{padding:10px 10px 50px 10px;text-align:left}
+
+/*****************Homepage*******************/
+/* .searchHomeContent{padding:3em 0 2em 0;margin:0 auto;width:100%;text-align:left} Hid b/c it didn't seem to be doing anything */
+#homeSearchLabel{color:#010101;font-size:14px}
+#searchBarFind {vertical-align: top;position: relative;padding-bottom: 3px;*padding-bottom:1px;margin-left: 15px;margin-top: 2px;*margin-top:0;}
+.searchHomeForm {width: 775px;height: 50px;position:absolute;text-align:left;top:54px;left:190px;margin: 1px 0 0 0;padding: 15px 0 8px 0;background-color: transparent;background-image: url('/interface/themes/nashville/images/header_catalogsearchribbon_shadow.png');background-repeat: no-repeat;color:#fff;border-top:#304c7e 0px solid;}
+.searchHomeForm input {*padding:5px 0 5px 3px;} .searchHomeForm select {margin-top:3px;}
+
+/*****************Breadcrumbs*******************/
+div.breadcrumbs {overflow: hidden;margin: 8px 0 0 0;*margin-top:12px;padding: 0;height: 30px;line-height: 30px;border-bottom: 1px solid #ccc;border-top: 1px solid #ccc;}
+div.breadcrumbs span.home-icon{width:24px;height:24px;opacity:0.75;background:url('/images/home_icon.png') no-repeat top left;margin-right:5px;display:none;}
+div.breadcrumbinner {width: 73.076em;*width:71.25em;margin:0;}
+#content_span {*padding-top: 1px;}
+
+/******** Main Header *********/
+.searchheader{padding:0;background-color:#ffffff;border-bottom:solid 0px #c5c5c5;text-align:left;}.searchheader a, .searchheader a:visited{color:#06c}.searchheader a:hover{color:#132248;}
+#searchbar {width: 775px;height: 50px;position:absolute;top:54px;left:190px;margin: 1px 0 0 0;padding: 15px 0 8px 0;background-color: transparent;background-image: url('/interface/themes/nashville/images/header_catalogsearchribbon_shadow.png');
+background-repeat: no-repeat;color:#fff}
+.searchform input {*padding:5px 0 5px 3px;} .searchform select {margin-top:3px;}
+#searchbar a{color:#fff}
+
+
+
+#loginBlock{position:relative;top:0;right:0;z-index:99;min-width:300px;-webkit-border-bottom-left-radius:10px;-khtml-border-radius-bottomleft:10px;-moz-border-radius-bottomleft:10px;border-bottom-left-radius:10px;display:inline-block;}#loginOptions{}
+#headerLinksTopBar{background:#eee;width:950px;margin-bottom:5px;padding:5px;}.feedbackBlock{width:300px;float:left;} #languageBlock{position:relative;top:0;right:0;}.languageLink{position:relative;padding-top:0px;font-size:100%}.languageLink{margin-left:5px;text-decoration:none;float:right;}.languageLink.selected{font-weight:bold}
+
+
+
+
+
+
+
+
+
+
+#recordTitle {color: #292929;font-size: 28px;font-weight: normal;line-height: 35px;}
+#loginFormSidebar ul.loginSidebar li {font-size: 14px;line-height: 22px;}
+.loginFormRow {padding-top: 10px;text-align:left;}
+
+/* Fixes search bar display in Internet Explorer */
+.silk.help {background-position: -936px 0;width: 16px;height: 16px;display: none;} 
+/* hid the question mark next to advanced search */
+
+
+
+/* Bibliographic Record */
+.recordcoverWrapper {padding: 0px;background-color: #fff;border: 0px solid #cfcfcf;position: relative;margin: auto;text-align: center;display: inline-block;position: relative;zoom: 1;max-width: 188px;}
+.recordcover {padding: 0px;background-color: white;border: 1px solid #cfcfcf;max-width: 180px;}
+.holdingsSummaryRecord {display: inline-block;zoom: 1;width: 450px;vertical-align: top;}
+#record-details-header .holdingsSummaryRecord .holdingsSummary .holdingsSummaryStatusLine a {font-weight: normal;font-size: 18px;}
+.available span {padding-left: 0px;}
+.holdingsSummary {margin-left: 0;}
+
+/* --------------- */
+#catalogHome{
+	padding: 50px;
+}
+
+/* bib record pages */
+.resultInformationLabel {color: #010101;font-size: 18px;font-weight: normal;padding:5px 0 5px 0;}
+
+
+/* Popup Box - see the end of consolidated.min.css - had to put styles there so that Firefox would see them on Mac */
+
+/* heading on Lists pages */
+#listTitle {color: #292929; font-weight: normal; font-size: 20px;margin:0;}
+.silk.list {background-position: -989px 0;width: 16px;height: 16px;display: none;}
+
+/* --- Button Styles --- */
+
+.button, .button:link, .button:visited, .button:hover, .button:active, .button:focus, button, input[type="reset"], input[type="submit"], input[type="button"] {
+margin: 0 0 0 2px;
+padding: 3px 12px;
+}
+
+#placeHoldButton .button, .button:link, .button:visited, .button:hover, .button:active, .button:focus, button {
+margin: 0 0 0 2px;
+padding: 3px 12px;
+}
+
+
+
+
+/* Results List Buttons */
+.resultAction, .resultAction:hover {/*padding:2px 2px 2px 4px;*/margin: 3px 0 3px 0;}
+.silk {margin-left: 0px;}
+
+
+
+
+/* Place Hold - pick up page */
+.note {font-size: inheret;font-style: normal;color: #191919;}
+.loginLabel {font-size:14px;font-weight:normal;}
+
+/* My Account Grids */
+.myAccountTable {border: 0px solid #ccc;border-radius: 6px;border-collapse: collapse;margin-top: 4px;margin-bottom: 4px;width: 100%;}
+.myAccountTitle {margin-bottom: 8px;}
+.myAccountTable thead {border-bottom: 2px solid #fff;border-top: 0px solid #ccc;text-align: center;vertical-align: bottom;background-color: #eee;}
+.myAccountTable td, .myAccountTable th {border: 0px solid #949494;}
+.myAccountTable th {text-align: left;font-size: 14px;font-weight: 500;}
+.myAccountTitleDetails {vertical-align: top;display: inline;zoom: 1;}
+.dueSoonLabel {display:block;}
+.myAccountCell .imageColumn {display: inline;vertical-align: top;width: 100px;text-align:left;zoom: 1;float: left;}
+.myAccountCell .imageColumn .listResultImage {max-width: 100px;padding-bottom: 6px;padding-top: 5px;}
+.myAccountCell .imageColumnOverdrive {display: inline;vertical-align: top;width: 90px;text-align: center;zoom: 1;float: left;}
+.myAccountCell .imageColumnOverdrive .listResultImage{max-width: 80px;padding-bottom: 4px;text-align:center;float:left;}
+.titleDetailsOverdrive {vertical-align: top;}
+.myAccountOverDriveTitleDetails {vertical-align: top;display:inline;zoom:1}
+table.datagrid th {color: #010101;background-color: #eee;text-align: left;border-bottom: 1px solid #949494;border-top: 1px solid #ccc;border-right: 0px;border-left: 0px;vertical-align: bottom;}
+table.datagrid tbody {border: 1px solid #949494;border-radius: 6px;border-collapse: collapse;margin-top: 4px;margin-bottom: 4px;width: 100%;}
+table.datagrid th a {color: #010101;text-align: left;font-size: 16px;font-weight: 500;}
+.holdSectionBody {padding: 0px;}
+.myAccountPagination {display: block;zoom: 1;}
+#readingListWhatsThis {color: #0066cc;display: inline-block;cursor: pointer;font-size: 12px;}
+.page {padding: 0;min-height: 20em;}
+.myAccountPagination ul {margin: 0;}
+.myAccountPagination.pagination {font-size: 120%;padding: 1em 0 1em 0;margin: 1em 0;text-align: center;}
+.resulthead {padding: 0 10px 0 0;margin-bottom: .5em;border-bottom: 1px #eee solid;}
+#placeHoldForm {width: 500px;padding: 10px 55px 10px 10px;}
+#placeHoldForm ul.loginSidebar li {padding-bottom: 3px;list-style: disc;font-size: 14px;line-height: 22px;}
+.overdueLabel {font-weight: normal;color: red;display: block;}
+.myAccountTable .result {border-bottom: 1px solid #CACACA;padding: 10px 5px	15px 5px;}
+
+/* List Buttons */
+.listButton{background-color:#88ABC2;color:#132248;border-color:lightgrey DarkSlateGray DarkSlateGray lightgrey;border-style:solid;border-width:1px;font-size:12px;font-family:Verdana,Helvetica,arial,sans-serif;display:inline-block;height:inherit;line-height:18px;margin-left:10px;margin-top:4px;padding:3px 12px}.listButton:hover{background-color:#B2CBDC;border-color:DarkSlateGray lightgrey lightgrey DarkSlateGray}.listButton
+a{color:#132248}#listTopButtons{margin-bottom:5px}
+
+/* MyAccount - eBooks and eAudio link uner Checked out */
+.myAccountLink a#checkedOutEContent {display:none}
+
+/* login form buttons */
+#loginFormSidebar {padding:10px 0 0 30px;display:inline-block;*display:inline;vertical-align:top;zoom:1;border-left:1px solid #ccc;width:400px}
+#loginFormSidebar ul.loginSidebar li{padding-bottom: 3px;list-style:disc;}
+#loginSidebarGetCardButton {float: right;}
+
+/* Popup Box - these styles center the pop-up boxes - don't remove them! */
+div.popupBox{background-color:#fff;display:none;border-right:solid 2px #444;border-bottom:solid 2px #444;position:absolute;z-index:1000;left:50% !important;font-size:95%;transition-property:height;transition-duration:0.25s;transition-delay:0.25s;width:50% !important; margin-left:-25% !important;margin: 0 0 20px 0;-moz-border-radius: 4px;border-radius: 4px;}
+div.popupBox .header {cursor: text;background-color: #eee;padding: 8px 10px 8px 10px;font-weight: normal;}
+#lightbox {cursor: pointer;background-color: #000;display: none;height: 100%;width: 100%;top: 0;left: 0;position: absolute;z-index: 400;opacity: .65; /* changed opacity from .8 */-moz-opacity: .65;}
+/* Popup Box - Hold Request Message */
+.hold_result_title {margin-bottom: 6px;font-size: 110%;color: #191919;}
+.hold_result_item_title {font-weight: normal;}
+.hold_result {font-size: 130%;font-weight: bold;margin-bottom: 4px;padding: 0 10px 0 10px;}
+div.popupBox .header a {float: right;text-decoration: none;font-weight: normal;}
+ol.hold_result_details {margin-left:0;margin-right:0;}
+.hold_result_notes {margin: 10px 0 10px 0;font-style: italic;padding: 0 10px 0 10px;}
+ol.hold_result_details li {list-style: decimal outside;padding-bottom: 7px;margin: 0 0 0 20px;}
+/* Holds Confirmation Page */
+.holdsSummary{font-size: 20px;}
+/* econtent help windows - hid .helpText in colsolidated.min.css */
+div.helpText ol li, div.helpText li ol li, div.helpTextUnsized ol li, div.helpTextUnsized li ol
+ li {
+list-style: decimal inside none;
+border: 0
+ solid black;
+padding-bottom: 5px;
+}
+
+/* Sidebar in bibliographic record - float right */
+#sidebarRight #sidebar {float:right;}
+
+
+
+
+
+
+/* --- Book Bag Canvas --- */
+#book_bag
+ #book_bag_canvas {
+display: none;
+opacity: 0.97;
+position: fixed;
+top: 34px;
+left: 515px;
+background-color: #DDE;
+border: none;
+width: 348px;
+z-index: 20000;
+padding: 10px;
+height: 290px;
+border: 1px
+ solid #BBC;
+border-top: 0px solid #BBC;
+border-bottom-left-radius: 8px;
+border-bottom-right-radius: 8px;
+-moz-border-radius-bottomleft: 8px;
+-moz-border-radius-bottomright: 8px;
+filter: alpha(opacity = 97);
+box-shadow: 2px 2px 4px #888;
+}
+
+/* styles */
+
+#homeLoginForm{
+	display: inline-block;
+	margin-left: 20px;
+	vertical-align: top;
+	width: 200px;
+	zoom: 1;
+	*display: inline;
+}
+
+#loginTitleHome{
+	font-weight: bold;
+	font-size: 14px;
+	color: #256292;
+	padding-bottom: 5px;
+}
+#loginButtonHome{
+	display: block;
+	margin: 8px 5px;
+}
+.loginLabelHome{
+	padding-top: 5px;
+}
+.loginFormInput{
+	width: 180px;
+}
+
+
+#catalogHome .sidegroup{
+	width: 200px;
+	display: inline-block;
+	margin-left: 20px;
+	vertical-align: top;
+	zoom: 1;
+	*display: inline;
+}
+#catalogHome .sidegroup h4{
+	background-color: #011753;
+}
+
+
+
+#list-series.titleScroller{border: 1px solid #ccc;}
+#list-similar.titleScroller{border: 1px solid #ccc;}
+.titleScrollerHeader{
+	/* background:url(/interface/themes/default/images/breadcrumb-gradient.png) repeat-x top left; */
+	padding: 5px;color: #010101;font-size: 16px;font-weight:normal;height:25px;}
+#list-seriesHeader .resultInformationLabel {font-size:20px;}
+#list-similarHeader .resultInformationLabel {font-size:20px;}
+.titleScrollerHeader .linkTab{padding-right: 10px;float: left;}
+.titleScrollerHeader .linkTab .first {padding-right: 0;}
+
+#listSelection{
+	border: none;
+	background: none;
+	color: #00125E;
+}
+
+.titleScrollerBody{
+	background-color: white;
+	clear: both;
+	position: relative;
+}
+
+.leftScrollerButton{
+	display: inline-block;
+	height: 50px;
+	width: 25px;
+	float: left;
+	cursor: pointer;
+	margin-left: 5px;
+	margin-top: 50px;
+	background:#eee /*url(/interface/themes/marmot/css/images/ui-bg_glass_85_dfeffc_1x400.png) 50% 50% repeat-x */;
+	zoom: 1;
+	*display: inline;
+}
+
+.rightScrollerButton{
+	display: inline-block;
+	height: 50px;
+	width: 25px;
+	float: right;
+	cursor: pointer;
+	margin-right: 5px;
+	margin-top: 50px;
+	background:#eee /*url(/interface/themes/default/images/scroll-right.png) no-repeat left center*/;
+	z-index: 100;
+	zoom: 1;
+	*display: inline;
+}
+.titleScrollerSelectedTitle {width: 100%;text-align: center;font-weight: normal;color: #292929;font-size:120%;}
+.titleScrollerSelectedAuthor {
+width: 100%;
+text-align: center;
+font-weight: normal;
+color: #292929;
+}
+.scrollerBodyContainer{
+	position: relative;
+	overflow: hidden;
+	margin: 5px 40px;
+}
+.scrollerBody{
+	padding: 7px;
+	margin: 0 7px;
+	height: 140px;
+	position: relative;
+}
+.scrollerWithRatings .scrollerBody{
+	height: 155px;
+}
+.scrollerLoadingContainer{
+	width: 100%;
+	padding-top: 40px;
+	text-align: center;
+}
+.scrollerTitle{
+	display: inline-block;
+	margin: 2px;
+	vertical-align:middle;
+	padding: 3px;
+	max-width: 129px;
+	zoom: 1;
+	*display: inline;
+}
+.scrollerTitleCover{
+	max-width: 125px;
+	max-height: 125px;
+	padding: 3px;
+}
+.scrollerTitle img{
+	opacity: .6;
+}
+.scrollerTitle:hover img{
+	opacity: .8;
+}
+.scrollerTitle.selected{
+	border: 3px solid #00125E;
+	border-radius: 3px;
+	padding: 0;
+}
+.scrollerTitle.selected img{
+	opacity: 1;
+}
+.listWidgetSelector{
+	width: 100%;
+	text-align: right;
+}
+
+.singleTitleWidget {
+	width: 200px;
+}
+.singleTitleWidget .scrollerTitle img{
+	display: inline-block;
+	opacity: 1;
+}
+.singleTitleWidget .scrollerTitle.selected img{
+	display: inline-block;
+}
+.singleTitleWidget .scrollerTitle.selected{
+	border: 0 solid black;
+	border-radius: 3px;
+	padding: 0;
+}
+.singleTitleWidget .scrollerBodyContainer{
+	margin: 5px 0;
+	text-align: center;
+	width: 100%;
+}
+
+.verticalTitleScroller {
+	width: 150px;
+	height: 100%;
+}
+.verticalTitleScroller .titleScrollerBody{
+	position: relative;
+	overflow: hidden;
+}
+.verticalTitleScroller .scrollerTitle{
+	display: block;
+}
+.verticalTitleScroller .scrollerBodyContainer{
+	margin: 5px;
+	text-align: center;
+}
+.scrollerButtonUp{
+	z-index: 100;
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 25px;
+	width: 148px;
+	cursor: pointer;
+	text-align: center;
+}
+
+.scrollerButtonDown{
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	height: 25px;
+	width: 148px;
+	cursor: pointer;
+	z-index: 100;
+	text-align: center;
+}
+
+.singleTitleWithNextWidget{
+	width: 200px;
+}
+
+.singleTitleWithNextWidget .scrollerTitle img{
+	display: inline-block;
+	opacity: 1;
+}
+.singleTitleWithNextWidget .scrollerTitle.selected img{
+	display: inline-block;
+}
+.singleTitleWithNextWidget .scrollerTitle.selected{
+	border: 0 solid black;
+	border-radius: 3px;
+	padding: 0;
+}
+.singleTitleWithNextWidget .scrollerBodyContainer{
+	margin: 5px 0;
+	text-align: center;
+	width: 100%;
+}
+.singleTitleWithNextWidget .rightScrollerButton{
+	float: none;
+	position: absolute;
+	right: 5px;
+}
+.mediumScroller.singleTitleWithNextWidget, .mediumScroller.singleTitleWidget{
+	width: 275px;
+}
+.mediumScroller.verticalTitleScroller{
+	width: 225px;
+}
+.mediumScroller .scrollerTitleCover{
+	max-height: 200px;
+	max-width: 200px;
+}
+.mediumScroller .scrollerTitle{
+	max-width: 204px;
+}
+.mediumScroller .scrollerBody{
+	height: 215px;
+}
+.mediumScroller.scrollerWithRatings .scrollerBody{
+	height: 230px;
+}
+.mediumScroller .leftScrollerButton, .mediumScroller .rightScrollerButton{
+	margin-top: 85px;
+}
+.mediumScroller .scrollerButtonUp, .mediumScroller .scrollerButtonDown{
+	width: 223px;
+}
+
+
+
+/* Recommended for you - before rating */
+#recommendationsLoginSignupBox {width:100%;height:60px;border-top:1px solid #F8F8F8;border-bottom:1px solid #f8f8f8;background-color:#eee;}
+#recommendationsLoginSignupBox .sectionContainer {width:50%;text-align:center;float:left;}
+#recommendationsLoginSignupBox .sectionContainer a {font-size:20px;}
+img.recommendationsStarsDemo {display:block;margin:0 auto; padding: 20px 0 35px 0; width:226px;}
+#recommendationsBulletPoints {}
+ul.showbullets li {list-style:disc;font-size:15px;line-height:25px;}
+
+
+
+
+/* Wikipedia Article in search results */
+.wikipedia_article {margin-bottom: 10px;border-bottom: 1px solid #eee;}
+.wikipedia_article img {float: left;margin-right: 8px;}
+
+#categoryValues {
+text-align: center;
+padding-bottom: 8px;
+border-bottom: 1px solid #F5F5F5;
+margin-bottom: 5px;
+}
+
+.selectAllControls {
+line-height: 22px;
+margin-top: -25px;
+margin-bottom: 20px;
+}
+
+.categoryValue {
+font-size: 13px;
+}
+
+.resultIndex {
+width: 20px;
+display: inline-block;*display:block;
+zoom: 1;
+font-weight: bold;
+vertical-align: top;
+}
+
+/* New Header Styles */
+
+
+
+#header_logo {
+width: 110px;
+height: 79px;
+}
+.searchform {padding: 0 0 0 65px;}
+
+.languageBlockLink {margin: 0 3px 0 3px}
+.loginLink {font-size: inherit;font-weight:normal;}
+
+#google_translate_element {
+position: absolute;
+top: 2px;
+left: 804px;
+}
+
+
+
+/* -------------------------- Home page styles ----------------------- */
+
+.ui-tabs.listWidget.horizontal {border-bottom: 1px solid #ccc;margin-bottom:10px;}
+#homePageLists .titleScrollerHeader {background-color:none;padding: 5px;color: #010101;font-size: 16px;font-weight: normal;height: 25px;}
