@@ -1,7 +1,7 @@
 <div id="page-content" class="row">
 	{if $error}<p class="error">{$error}</p>{/if} 
 	<div id="sidebar" class="col-md-3">
-		{include file="Admin/menu.tpl"}
+		{include file="MyResearch/menu.tpl"}
 	</div>
 	<div id="main-content" class="col-md-9">
 		<h3>Ooops</h3>

@@ -3,8 +3,6 @@
 	{if $error}<p class="error">{$error}</p>{/if} 
 	<div id="sidebar">
 		{include file="MyResearch/menu.tpl"}
-
-		{include file="Admin/menu.tpl"}
 	</div>
 	<div id="main-content">
 		<h1>Edit List Widget</h1>

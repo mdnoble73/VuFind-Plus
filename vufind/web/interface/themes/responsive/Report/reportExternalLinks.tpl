@@ -16,7 +16,6 @@ $(function() {
 <div id="page-content" class="row">
 	<div id="sidebar" class="col-md-3">
 		{include file="MyResearch/menu.tpl"}
-		{include file="Admin/menu.tpl"}
 	</div>
 
 	<div id="main-content" class="col-md-9">
