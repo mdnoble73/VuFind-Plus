@@ -24,6 +24,7 @@ public class RecordGroupingProcessor {
 	private Logger logger;
 	private String recordNumberTag = "";
 	private String recordNumberPrefix = "";
+	private String itemTag;
 	private boolean useEContentSubfield = false;
 	private char eContentSubfield = ' ';
 	private PreparedStatement getGroupedWorkStmt;
@@ -53,11 +54,10 @@ public class RecordGroupingProcessor {
 		this.logger = logger;
 		recordNumberTag = configIni.get("Reindex", "recordNumberTag");
 		recordNumberPrefix = configIni.get("Reindex", "recordNumberPrefix");
+		itemTag = configIni.get("Reindex", "itemTag");
 		useEContentSubfield = Boolean.parseBoolean(configIni.get("Reindex", "useEContentSubfield"));
-		String eContentSubfieldString = configIni.get("Reindex", "eContentSubfield");
-		if (eContentSubfieldString.length() > 0)  {
-			eContentSubfield = eContentSubfieldString.charAt(0);
-		}
+		eContentSubfield = getSubfieldIndicatorFromConfig(configIni, "eContentSubfield");
+
 		try{
 			getGroupedWorkStmt = dbConnection.prepareStatement("SELECT id FROM " + RecordGrouperMain.groupedWorkTableName + " where permanent_id = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkTableName + " (full_title, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
@@ -71,6 +71,15 @@ public class RecordGroupingProcessor {
 		}catch (Exception e){
 			logger.error("Error setting up prepared statements", e);
 		}
+	}
+
+	private char getSubfieldIndicatorFromConfig(Ini configIni, String subfieldName) {
+		String subfieldString = configIni.get("Reindex", subfieldName);
+		char subfield = ' ';
+		if (subfieldString.length() > 0)  {
+			subfield = subfieldString.charAt(0);
+		}
+		return subfield;
 	}
 
 	public static String mapAuthorAuthority(String originalAuthor){
@@ -116,11 +125,11 @@ public class RecordGroupingProcessor {
 			boolean allItemsOverDrive = true;
 			TreeSet<String> protectionTypes = new TreeSet<String>();
 
-			List<DataField> itemFields = getDataFields(marcRecord, "989");
+			List<DataField> itemFields = getDataFields(marcRecord, itemTag);
 			for (DataField itemField : itemFields){
-				if (itemField.getSubfield('w') != null){
+				if (itemField.getSubfield(eContentSubfield) != null){
 					//Check the protection types and sources
-					String eContentData = itemField.getSubfield('w').getData();
+					String eContentData = itemField.getSubfield(eContentSubfield).getData();
 					if (eContentData.indexOf(':') >= 0){
 						hasEContentFields = true;
 						String[] eContentFields = eContentData.split(":");
