@@ -29,11 +29,27 @@ import java.util.regex.PatternSyntaxException;
  * Date: 11/26/13
  * Time: 9:30 AM
  */
-public class IlsRecordProcessor {
-	private String marcRecordPath;
+public abstract class IlsRecordProcessor {
 	private String individualMarcPath;
-	private Logger logger;
-	private GroupedWorkIndexer indexer;
+	protected Logger logger;
+	protected GroupedWorkIndexer indexer;
+
+	protected String recordNumberTag;
+	protected String itemTag;
+	protected char barcodeSubfield;
+	protected char statusSubfieldIndicator;
+	protected char dueDateSubfield;
+	protected char dateCreatedSubfield;
+	protected char locationSubfieldIndicator;
+	protected char iTypeSubfield;
+	protected boolean useEContentSubfield = false;
+	protected char eContentSubfield;
+	protected char lastYearCheckoutSubfield;
+	protected char ytdCheckoutSubfield;
+	protected char totalCheckoutSubfield;
+	protected boolean useICode2Suppression;
+	protected char iCode2Subfield;
+	protected String[] additionalCollections;
 
 	private static boolean libraryAndLocationDataLoaded = false;
 	private static HashMap<String, String> libraryMap = new HashMap<String, String>();
@@ -50,10 +66,30 @@ public class IlsRecordProcessor {
 	private static HashSet<String> availableItemBarcodes = new HashSet<String>();
 
 	public IlsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
-		marcRecordPath = configIni.get("Reindex", "marcPath");
+		String marcRecordPath = configIni.get("Reindex", "marcPath");
 		individualMarcPath = configIni.get("Reindex", "individualMarcPath");
 		this.logger = logger;
 		this.indexer = indexer;
+
+		itemTag = configIni.get("Reindex", "itemTag");
+		recordNumberTag = configIni.get("Reindex", "recordNumberTag");
+		useEContentSubfield = Boolean.parseBoolean(configIni.get("Reindex", "useEContentSubfield"));
+		eContentSubfield = getSubfieldIndicatorFromConfig(configIni, "eContentSubfield");
+		barcodeSubfield = getSubfieldIndicatorFromConfig(configIni, "barcodeSubfield");
+		statusSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "statusSubfield");
+		dueDateSubfield = getSubfieldIndicatorFromConfig(configIni, "dueDateSubfield");
+		locationSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "locationSubfield");
+		iTypeSubfield = getSubfieldIndicatorFromConfig(configIni, "iTypeSubfield");
+		dateCreatedSubfield = getSubfieldIndicatorFromConfig(configIni, "dateCreatedSubfield");
+		lastYearCheckoutSubfield = getSubfieldIndicatorFromConfig(configIni, "lastYearCheckoutSubfield");
+		ytdCheckoutSubfield = getSubfieldIndicatorFromConfig(configIni, "ytdCheckoutSubfield");
+		totalCheckoutSubfield = getSubfieldIndicatorFromConfig(configIni, "totalCheckoutSubfield");
+		useICode2Suppression = Boolean.parseBoolean(configIni.get("Reindex", "useICode2Suppression"));
+		iCode2Subfield = getSubfieldIndicatorFromConfig(configIni, "iCode2Subfield");
+		String additionalCollectionsString = configIni.get("Reindex", "additionalCollections");
+		if (additionalCollections != null){
+			additionalCollections = additionalCollectionsString.split(",");
+		}
 
 		loadSystemAndLocationData(vufindConn, logger);
 
@@ -231,7 +267,7 @@ public class IlsRecordProcessor {
 			loadPopularity(groupedWork, unsuppressedItems);
 			loadDateAdded(groupedWork, unsuppressedItems);
 			loadITypes(groupedWork, unsuppressedItems);
-			groupedWork.addBarcodes(getFieldList(record, "989b"));
+			groupedWork.addBarcodes(getFieldList(record, itemTag + barcodeSubfield));
 
 			groupedWork.addHoldings(unsuppressedItems.size());
 		}catch (Exception e){
@@ -244,26 +280,28 @@ public class IlsRecordProcessor {
 	}
 
 	protected void loadRecordType(GroupedWorkSolr groupedWork, Record record) {
-		String recordId = getFirstFieldVal(record, "907a");
+		String recordId = getFirstFieldVal(record, recordNumberTag + "a");
 		groupedWork.addRelatedRecord("ils:" + recordId);
 	}
 
 	protected List<DataField> getUnsuppressedPrintItems(Record record){
-		List<DataField> itemRecords = getDataFields(record, "989");
+		List<DataField> itemRecords = getDataFields(record, itemTag);
 		List<DataField> unsuppressedItemRecords = new ArrayList<DataField>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
 				//Check to see if the item has an eContent indicator
 				boolean isEContent = false;
 				boolean isOverDrive = false;
-				if (itemField.getSubfield('w') != null){
-					String eContentData = itemField.getSubfield('w').getData();
-					if (eContentData.indexOf(':') >= 0){
-						String[] eContentFields = eContentData.split(":");
-						String sourceType = eContentFields[0].toLowerCase().trim();
-						String protectionType = eContentFields[1].toLowerCase().trim();
-						if (sourceType.equals("overdrive")){
-							isOverDrive = true;
+				if (useEContentSubfield){
+					if (itemField.getSubfield(eContentSubfield) != null){
+						String eContentData = itemField.getSubfield(eContentSubfield).getData();
+						if (eContentData.indexOf(':') >= 0){
+							isEContent = true;
+							String[] eContentFields = eContentData.split(":");
+							String sourceType = eContentFields[0].toLowerCase().trim();
+							if (sourceType.equals("overdrive")){
+								isOverDrive = true;
+							}
 						}
 					}
 				}
@@ -276,21 +314,23 @@ public class IlsRecordProcessor {
 	}
 
 	protected List<DataField> getUnsuppressedEContentItems(Record record){
-		List<DataField> itemRecords = getDataFields(record, "989");
+		List<DataField> itemRecords = getDataFields(record, itemTag);
 		List<DataField> unsuppressedEcontentRecords = new ArrayList<DataField>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
 				//Check to see if the item has an eContent indicator
 				boolean isEContent = false;
 				boolean isOverDrive = false;
-				if (itemField.getSubfield('w') != null){
-					String eContentData = itemField.getSubfield('w').getData();
-					if (eContentData.indexOf(':') >= 0){
-						isEContent = true;
-						String[] eContentFields = eContentData.split(":");
-						String sourceType = eContentFields[0].toLowerCase().trim();
-						if (sourceType.equals("overdrive")){
-							isOverDrive = true;
+				if (useEContentSubfield){
+					if (itemField.getSubfield(eContentSubfield) != null){
+						String eContentData = itemField.getSubfield(eContentSubfield).getData();
+						if (eContentData.indexOf(':') >= 0){
+							isEContent = true;
+							String[] eContentFields = eContentData.split(":");
+							String sourceType = eContentFields[0].toLowerCase().trim();
+							if (sourceType.equals("overdrive")){
+								isOverDrive = true;
+							}
 						}
 					}
 				}
@@ -346,8 +386,8 @@ public class IlsRecordProcessor {
 
 	private void loadITypes(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItemRecords) {
 		for (DataField curItem : unsuppressedItemRecords){
-			Subfield locationSubfield = curItem.getSubfield('d');
-			Subfield iTypeField = curItem.getSubfield('j');
+			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
+			Subfield iTypeField = curItem.getSubfield(iTypeSubfield);
 			if (iTypeField != null && locationSubfield != null){
 				String iType = indexer.translateValue("itype", iTypeField.getData());
 				String location = locationSubfield.getData();
@@ -360,8 +400,8 @@ public class IlsRecordProcessor {
 	private static SimpleDateFormat dateAddedFormatter = new SimpleDateFormat("yyMMdd");
 	private void loadDateAdded(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItemRecords) {
 		for (DataField curItem : unsuppressedItemRecords){
-			Subfield locationSubfield = curItem.getSubfield('d');
-			Subfield dateAddedField = curItem.getSubfield('k');
+			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
+			Subfield dateAddedField = curItem.getSubfield(dateCreatedSubfield);
 			if (locationSubfield != null && dateAddedField != null){
 				String locationCode = locationSubfield.getData();
 				String dateAddedStr = dateAddedField.getData();
@@ -554,17 +594,17 @@ public class IlsRecordProcessor {
 		float popularity = 0;
 		for (DataField itemField : unsuppressedItemRecords){
 			//Get number of times the title has been checked out
-			Subfield totalCheckoutsField = itemField.getSubfield('h');
+			Subfield totalCheckoutsField = itemField.getSubfield(totalCheckoutSubfield);
 			int totalCheckouts = 0;
 			if (totalCheckoutsField != null){
 				totalCheckouts = Integer.parseInt(totalCheckoutsField.getData());
 			}
-			Subfield ytdCheckoutsField = itemField.getSubfield('t');
+			Subfield ytdCheckoutsField = itemField.getSubfield(ytdCheckoutSubfield);
 			int ytdCheckouts = 0;
 			if (ytdCheckoutsField != null){
 				ytdCheckouts = Integer.parseInt(ytdCheckoutsField.getData());
 			}
-			Subfield lastYearCheckoutsField = itemField.getSubfield('x');
+			Subfield lastYearCheckoutsField = itemField.getSubfield(lastYearCheckoutSubfield);
 			int lastYearCheckouts = 0;
 			if (lastYearCheckoutsField != null){
 				lastYearCheckouts = Integer.parseInt(lastYearCheckoutsField.getData());
@@ -576,22 +616,24 @@ public class IlsRecordProcessor {
 		groupedWork.addPopularity(popularity);
 	}
 
-	private void loadFormatDetails(GroupedWorkSolr groupedWork, Record record) {
+	protected void loadFormatDetails(GroupedWorkSolr groupedWork, Record record) {
 		Set<String> formats = loadFormats(record, false);
 		HashSet<String> translatedFormats = new HashSet<String>();
 		HashSet<String> formatCategories = new HashSet<String>();
 		Long formatBoost = 1L;
-		for (String format : formats){
-			translatedFormats.add(indexer.translateValue("format", format));
-			formatCategories.add(indexer.translateValue("format_category", format));
-			String formatBoostStr = indexer.translateValue("format_boost", format);
-			try{
-				Long curFormatBoost = Long.parseLong(formatBoostStr);
-				if (curFormatBoost > formatBoost){
-					formatBoost = curFormatBoost;
+		if (formats != null){
+			for (String format : formats){
+				translatedFormats.add(indexer.translateValue("format", format));
+				formatCategories.add(indexer.translateValue("format_category", format));
+				String formatBoostStr = indexer.translateValue("format_boost", format);
+				try{
+					Long curFormatBoost = Long.parseLong(formatBoostStr);
+					if (curFormatBoost > formatBoost){
+						formatBoost = curFormatBoost;
+					}
+				}catch (NumberFormatException e){
+					logger.warn("Could not parse format_boost " + formatBoostStr);
 				}
-			}catch (NumberFormatException e){
-				logger.warn("Could not parse format_boost " + formatBoostStr);
 			}
 		}
 		groupedWork.addFormats(translatedFormats);
@@ -656,10 +698,10 @@ public class IlsRecordProcessor {
 	protected void loadUsability(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItemRecords) {
 		//Load a list of ptypes that can use this record based on loan rules
 		for (DataField curItem : unsuppressedItemRecords){
-			Subfield iTypeSubfield = curItem.getSubfield('j');
-			Subfield locationCodeSubfield = curItem.getSubfield('d');
-			if (iTypeSubfield != null && locationCodeSubfield != null){
-				String iType = iTypeSubfield.getData().trim();
+			Subfield iTypeSubfieldVal = curItem.getSubfield(iTypeSubfield);
+			Subfield locationCodeSubfield = curItem.getSubfield(locationSubfieldIndicator);
+			if (iTypeSubfieldVal != null && locationCodeSubfield != null){
+				String iType = iTypeSubfieldVal.getData().trim();
 				String locationCode = locationCodeSubfield.getData().trim();
 				groupedWork.addCompatiblePTypes(getCompatiblePTypes(iType, locationCode));
 			}
@@ -667,12 +709,12 @@ public class IlsRecordProcessor {
 	}
 
 	private boolean isItemSuppressed(DataField curItem) {
-		Subfield icode2Subfield = curItem.getSubfield('o');
+		Subfield icode2Subfield = curItem.getSubfield(iCode2Subfield);
 		if (icode2Subfield == null){
 			return false;
 		}
 		String icode2 = icode2Subfield.getData().toLowerCase().trim();
-		Subfield locationCodeSubfield = curItem.getSubfield('d');
+		Subfield locationCodeSubfield = curItem.getSubfield(locationSubfieldIndicator);
 		if (locationCodeSubfield == null)                                                 {
 			return false;
 		}
@@ -686,9 +728,9 @@ public class IlsRecordProcessor {
 		HashSet<String> availableAt = new HashSet<String>();
 
 		for (DataField curItem : itemRecords){
-			Subfield statusSubfield = curItem.getSubfield('g');
-			Subfield dueDateField = curItem.getSubfield('m');
-			Subfield locationCodeField = curItem.getSubfield('d');
+			Subfield statusSubfield = curItem.getSubfield(statusSubfieldIndicator);
+			Subfield dueDateField = curItem.getSubfield(dueDateSubfield);
+			Subfield locationCodeField = curItem.getSubfield(locationSubfieldIndicator);
 			if (locationCodeField != null){
 				String locationCode = locationCodeField.getData().trim();
 				boolean available = false;
@@ -704,10 +746,12 @@ public class IlsRecordProcessor {
 						}
 					}
 				}else{
-					//Check icode2 to see if the item is suppressed
-					if (curItem.getSubfield('b') != null){
-						String barcode = curItem.getSubfield('b').getData();
-						available = availableItemBarcodes.contains(barcode);
+					if (useICode2Suppression){
+						//Check icode2 to see if the item is suppressed
+						if (curItem.getSubfield(iCode2Subfield) != null){
+							String barcode = curItem.getSubfield(iCode2Subfield).getData();
+							available = availableItemBarcodes.contains(barcode);
+						}
 					}
 				}
 
@@ -724,25 +768,22 @@ public class IlsRecordProcessor {
 		HashSet<String> owningLibraries = new HashSet<String>();
 		HashSet<String> owningLocations = new HashSet<String>();
 		for (DataField curItem : itemRecords){
-			Subfield locationSubfield = curItem.getSubfield('d');
+			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
 			if (locationSubfield != null){
 				String locationCode = locationSubfield.getData().trim();
 				owningLibraries.addAll(getLibraryFacetsForLocationCode(locationCode));
 
 				owningLocations.addAll(getLocationFacetsForLocationCode(locationCode));
-				ArrayList<String> subdomainsForLocation = getLibrarySubdomainsForLocationCode(locationCode);
 
-				groupedWork.addCollectionGroup(indexer.translateValue("collection_group", locationCode));
-				//TODO: Make collections by library easier to define (in VuFind interface
-				groupedWork.addCollectionAdams(indexer.translateValue("collection_adams", locationCode));
-				groupedWork.addCollectionMsc(indexer.translateValue("collection_msc", locationCode));
-				groupedWork.addCollectionWestern(indexer.translateValue("collection_western", locationCode));
-				groupedWork.addDetailedLocation(indexer.translateValue("detailed_location", locationCode), subdomainsForLocation);
-
+				loadAdditionalOwnershipInformation(groupedWork, locationCode);
 			}
 		}
 		groupedWork.addOwningLibraries(owningLibraries);
 		groupedWork.addOwningLocations(owningLocations);
+	}
+
+	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, String locationCode){
+
 	}
 
 	private ArrayList<String> getLibraryFacetsForLocationCode(String locationCode) {
@@ -758,7 +799,7 @@ public class IlsRecordProcessor {
 		return libraryFacets;
 	}
 
-	private ArrayList<String> getLibrarySubdomainsForLocationCode(String locationCode) {
+	protected ArrayList<String> getLibrarySubdomainsForLocationCode(String locationCode) {
 		ArrayList<String> librarySubdomains = new ArrayList<String>();
 		for(String libraryCode : subdomainMap.keySet()){
 			if (locationCode.startsWith(libraryCode)){
@@ -872,7 +913,7 @@ public class IlsRecordProcessor {
 	 * @return the contents of the indicated marc field(s)/subfield(s), as a set
 	 *         of Strings.
 	 */
-	public Set<String> getFieldList(Record record, String tagStr) {
+	protected Set<String> getFieldList(Record record, String tagStr) {
 		String[] tags = tagStr.split(":");
 		Set<String> result = new LinkedHashSet<String>();
 		for (String tag1 : tags) {
@@ -1065,10 +1106,7 @@ public class IlsRecordProcessor {
 	}
 
 	protected boolean isControlField(String fieldTag) {
-		if (fieldTag.matches("00[0-9]")) {
-			return (true);
-		}
-		return (false);
+		return fieldTag.matches("00[0-9]");
 	}
 
 	/**
@@ -1238,454 +1276,14 @@ public class IlsRecordProcessor {
 	 *
 	 * @return Set format of record
 	 */
-	public Set<String> loadFormats(Record record, boolean returnFirst) {
-		Set<String> result = new LinkedHashSet<String>();
-		String leader = record.getLeader().toString();
-		char leaderBit;
-		ControlField fixedField = (ControlField) record.getVariableField("008");
-		//DataField title = (DataField) record.getVariableField("245");
-		char formatCode;
+	public abstract Set<String> loadFormats(Record record, boolean returnFirst);
 
-		// check for music recordings quickly so we can figure out if it is music
-		// for category (needto do here since checking what is on the Compact
-		// Disc/Phonograph, etc is difficult).
-		if (leader.length() >= 6) {
-			leaderBit = leader.charAt(6);
-			switch (Character.toUpperCase(leaderBit)) {
-				case 'J':
-					result.add("MusicRecording");
-					break;
-			}
+	private char getSubfieldIndicatorFromConfig(Ini configIni, String subfieldName) {
+		String subfieldString = configIni.get("Reindex", subfieldName);
+		char subfield = ' ';
+		if (subfieldString.length() > 0)  {
+			subfield = subfieldString.charAt(0);
 		}
-		if (result.size() >= 1 && returnFirst)
-			return result;
-
-		// check for playaway in 260|b
-		DataField sysDetailsNote = (DataField) record.getVariableField("260");
-		if (sysDetailsNote != null) {
-			if (sysDetailsNote.getSubfield('b') != null) {
-				String sysDetailsValue = sysDetailsNote.getSubfield('b').getData()
-						.toLowerCase();
-				if (sysDetailsValue.contains("playaway")) {
-					result.add("Playaway");
-					if (returnFirst)
-						return result;
-				}
-			}
-		}
-
-		// Check for formats in the 538 field
-		DataField sysDetailsNote2 = (DataField) record.getVariableField("538");
-		if (sysDetailsNote2 != null) {
-			if (sysDetailsNote2.getSubfield('a') != null) {
-				String sysDetailsValue = sysDetailsNote2.getSubfield('a').getData()
-						.toLowerCase();
-				if (sysDetailsValue.contains("playaway")) {
-					result.add("Playaway");
-					if (returnFirst)
-						return result;
-				} else if (sysDetailsValue.contains("bluray")
-						|| sysDetailsValue.contains("blu-ray")) {
-					result.add("Blu-ray");
-					if (returnFirst)
-						return result;
-				} else if (sysDetailsValue.contains("dvd")) {
-					result.add("DVD");
-					if (returnFirst)
-						return result;
-				} else if (sysDetailsValue.contains("vertical file")) {
-					result.add("VerticalFile");
-					if (returnFirst)
-						return result;
-				}
-			}
-		}
-
-		// Check for formats in the 500 tag
-		DataField noteField = (DataField) record.getVariableField("500");
-		if (noteField != null) {
-			if (noteField.getSubfield('a') != null) {
-				String noteValue = noteField.getSubfield('a').getData().toLowerCase();
-				if (noteValue.contains("vertical file")) {
-					result.add("VerticalFile");
-					if (returnFirst)
-						return result;
-				}
-			}
-		}
-
-		// check if there's an h in the 245
-		/*if (title != null) {
-			if (title.getSubfield('h') != null) {
-				if (title.getSubfield('h').getData().toLowerCase()
-						.contains("[electronic resource]")) {
-					result.add("Electronic");
-					if (returnFirstValue)
-						return result;
-				}
-			}
-		}*/
-
-		// Check for large print book (large format in 650, 300, or 250 fields)
-		// Check for blu-ray in 300 fields
-		DataField edition = (DataField) record.getVariableField("250");
-		if (edition != null) {
-			if (edition.getSubfield('a') != null) {
-				if (edition.getSubfield('a').getData().toLowerCase()
-						.contains("large type")) {
-					result.add("LargePrint");
-					if (returnFirst)
-						return result;
-				}
-			}
-		}
-
-		@SuppressWarnings("unchecked")
-		List<DataField> physicalDescription = record.getVariableFields("300");
-		if (physicalDescription != null) {
-			Iterator<DataField> fieldsIter = physicalDescription.iterator();
-			DataField field;
-			while (fieldsIter.hasNext()) {
-				field = fieldsIter.next();
-				@SuppressWarnings("unchecked")
-				List<Subfield> subFields = field.getSubfields();
-				for (Subfield subfield : subFields) {
-					if (subfield.getData().toLowerCase().contains("large type")) {
-						result.add("LargePrint");
-						if (returnFirst)
-							return result;
-					} else if (subfield.getData().toLowerCase().contains("bluray")
-							|| subfield.getData().toLowerCase().contains("blu-ray")) {
-						result.add("Blu-ray");
-						if (returnFirst)
-							return result;
-					}
-				}
-			}
-		}
-		@SuppressWarnings("unchecked")
-		List<DataField> topicalTerm = record.getVariableFields("650");
-		if (topicalTerm != null) {
-			Iterator<DataField> fieldsIter = topicalTerm.iterator();
-			DataField field;
-			while (fieldsIter.hasNext()) {
-				field = fieldsIter.next();
-				@SuppressWarnings("unchecked")
-				List<Subfield> subfields = field.getSubfields();
-				for (Subfield subfield : subfields) {
-					if (subfield.getData().toLowerCase().contains("large type")) {
-						result.add("LargePrint");
-						if (returnFirst)
-							return result;
-					}
-				}
-			}
-		}
-
-		@SuppressWarnings("unchecked")
-		List<DataField> localTopicalTerm = record.getVariableFields("690");
-		if (localTopicalTerm != null) {
-			Iterator<DataField> fieldsIterator = localTopicalTerm.iterator();
-			DataField field;
-			while (fieldsIterator.hasNext()) {
-				field = fieldsIterator.next();
-				Subfield subfieldA = field.getSubfield('a');
-				if (subfieldA != null) {
-					if (subfieldA.getData().toLowerCase().contains("seed library")) {
-						result.add("SeedPacket");
-						if (returnFirst)
-							return result;
-					}
-				}
-			}
-		}
-
-		// check the 007 - this is a repeating field
-		@SuppressWarnings("unchecked")
-		List<DataField> fields = record.getVariableFields("007");
-		if (fields != null) {
-			Iterator<DataField> fieldsIter = fields.iterator();
-			ControlField formatField;
-			while (fieldsIter.hasNext()) {
-				formatField = (ControlField) fieldsIter.next();
-				if (formatField.getData() == null || formatField.getData().length() < 2) {
-					continue;
-				}
-				// Check for blu-ray (s in position 4)
-				// This logic does not appear correct.
-				/*
-				 * if (formatField.getData() != null && formatField.getData().length()
-				 * >= 4){ if (formatField.getData().toUpperCase().charAt(4) == 'S'){
-				 * result.add("Blu-ray"); break; } }
-				 */
-				formatCode = formatField.getData().toUpperCase().charAt(0);
-				switch (formatCode) {
-					case 'A':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'D':
-								result.add("Atlas");
-								break;
-							default:
-								result.add("Map");
-								break;
-						}
-						break;
-					case 'C':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'A':
-								result.add("TapeCartridge");
-								break;
-							case 'B':
-								result.add("ChipCartridge");
-								break;
-							case 'C':
-								result.add("DiscCartridge");
-								break;
-							case 'F':
-								result.add("TapeCassette");
-								break;
-							case 'H':
-								result.add("TapeReel");
-								break;
-							case 'J':
-								result.add("FloppyDisk");
-								break;
-							case 'M':
-							case 'O':
-								result.add("CDROM");
-								break;
-							case 'R':
-								// Do not return - this will cause anything with an
-								// 856 field to be labeled as "Electronic"
-								break;
-							default:
-								result.add("Software");
-								break;
-						}
-						break;
-					case 'D':
-						result.add("Globe");
-						break;
-					case 'F':
-						result.add("Braille");
-						break;
-					case 'G':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'C':
-							case 'D':
-								result.add("Filmstrip");
-								break;
-							case 'T':
-								result.add("Transparency");
-								break;
-							default:
-								result.add("Slide");
-								break;
-						}
-						break;
-					case 'H':
-						result.add("Microfilm");
-						break;
-					case 'K':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'C':
-								result.add("Collage");
-								break;
-							case 'D':
-								result.add("Drawing");
-								break;
-							case 'E':
-								result.add("Painting");
-								break;
-							case 'F':
-								result.add("Print");
-								break;
-							case 'G':
-								result.add("Photonegative");
-								break;
-							case 'J':
-								result.add("Print");
-								break;
-							case 'L':
-								result.add("Drawing");
-								break;
-							case 'O':
-								result.add("FlashCard");
-								break;
-							case 'N':
-								result.add("Chart");
-								break;
-							default:
-								result.add("Photo");
-								break;
-						}
-						break;
-					case 'M':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'F':
-								result.add("VideoCassette");
-								break;
-							case 'R':
-								result.add("Filmstrip");
-								break;
-							default:
-								result.add("MotionPicture");
-								break;
-						}
-						break;
-					case 'O':
-						result.add("Kit");
-						break;
-					case 'Q':
-						result.add("MusicalScore");
-						break;
-					case 'R':
-						result.add("SensorImage");
-						break;
-					case 'S':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'D':
-								if (formatField.getData().length() >= 4) {
-									char speed = formatField.getData().toUpperCase().charAt(3);
-									if (speed >= 'A' && speed <= 'E') {
-										result.add("Phonograph");
-									} else if (speed == 'F') {
-										result.add("CompactDisc");
-									} else if (speed >= 'K' && speed <= 'R') {
-										result.add("TapeRecording");
-									} else {
-										result.add("SoundDisc");
-									}
-								} else {
-									result.add("SoundDisc");
-								}
-								break;
-							case 'S':
-								result.add("SoundCassette");
-								break;
-							default:
-								result.add("SoundRecording");
-								break;
-						}
-						break;
-					case 'T':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'A':
-								result.add("Book");
-								break;
-							case 'B':
-								result.add("LargePrint");
-								break;
-						}
-						break;
-					case 'V':
-						switch (formatField.getData().toUpperCase().charAt(1)) {
-							case 'C':
-								result.add("VideoCartridge");
-								break;
-							case 'D':
-								result.add("VideoDisc");
-								break;
-							case 'F':
-								result.add("VideoCassette");
-								break;
-							case 'R':
-								result.add("VideoReel");
-								break;
-							default:
-								result.add("Video");
-								break;
-						}
-						break;
-				}
-				if (returnFirst && !result.isEmpty()) {
-					return result;
-				}
-			}
-			if (!result.isEmpty() && returnFirst) {
-				return result;
-			}
-		}
-
-		// check the Leader at position 6
-		if (leader.length() >= 6) {
-			leaderBit = leader.charAt(6);
-			switch (Character.toUpperCase(leaderBit)) {
-				case 'C':
-				case 'D':
-					result.add("MusicalScore");
-					break;
-				case 'E':
-				case 'F':
-					result.add("Map");
-					break;
-				case 'G':
-					// We appear to have a number of items without 007 tags marked as G's.
-					// These seem to be Videos rather than Slides.
-					// result.add("Slide");
-					result.add("Video");
-					break;
-				case 'I':
-					result.add("SoundRecording");
-					break;
-				case 'J':
-					result.add("MusicRecording");
-					break;
-				case 'K':
-					result.add("Photo");
-					break;
-				case 'M':
-					result.add("Electronic");
-					break;
-				case 'O':
-				case 'P':
-					result.add("Kit");
-					break;
-				case 'R':
-					result.add("PhysicalObject");
-					break;
-				case 'T':
-					result.add("Manuscript");
-					break;
-			}
-		}
-		if (!result.isEmpty() && returnFirst) {
-			return result;
-		}
-
-		if (leader.length() >= 7) {
-			// check the Leader at position 7
-			leaderBit = leader.charAt(7);
-			switch (Character.toUpperCase(leaderBit)) {
-				// Monograph
-				case 'M':
-					if (result.isEmpty()) {
-						result.add("Book");
-					}
-					break;
-				// Serial
-				case 'S':
-					// Look in 008 to determine what type of Continuing Resource
-					formatCode = fixedField.getData().toUpperCase().charAt(21);
-					switch (formatCode) {
-						case 'N':
-							result.add("Newspaper");
-							break;
-						case 'P':
-							result.add("Journal");
-							break;
-						default:
-							result.add("Serial");
-							break;
-					}
-			}
-		}
-
-		// Nothing worked!
-		if (result.isEmpty()) {
-			result.add("Unknown");
-		}
-
-		return result;
+		return subfield;
 	}
 }

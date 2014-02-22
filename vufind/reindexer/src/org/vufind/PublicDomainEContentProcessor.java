@@ -8,6 +8,7 @@ import org.marc4j.marc.Record;
 import java.sql.Connection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Description goes here
@@ -55,5 +56,35 @@ public class PublicDomainEContentProcessor extends IlsRecordProcessor {
 
 	protected List<DataField> getUnsuppressedItems(Record record) {
 		return getUnsuppressedEContentItems(record);
+	}
+
+	@Override
+	public Set<String> loadFormats(Record record, boolean returnFirst) {
+		//Don't use this for now since will we just override all of loadFormatDetails
+		return null;
+	}
+
+	@Override
+	protected void loadFormatDetails(GroupedWorkSolr groupedWork, Record record) {
+		Set<String> iTypes = getFieldList(record, itemTag + iTypeSubfield);
+		HashSet<String> translatedFormats = new HashSet<String>();
+		HashSet<String> formatCategories = new HashSet<String>();
+		Long formatBoost = 1L;
+		for (String iType : iTypes){
+			translatedFormats.add(indexer.translateValue("econtent_itype_format", iType));
+			formatCategories.add(indexer.translateValue("econtent_itype_format_category", iType));
+			String formatBoostStr = indexer.translateValue("econtent_itype_format_boost", iType);
+			try{
+				Long curFormatBoost = Long.parseLong(formatBoostStr);
+				if (curFormatBoost > formatBoost){
+					formatBoost = curFormatBoost;
+				}
+			}catch (NumberFormatException e){
+				logger.warn("Could not parse format_boost " + formatBoostStr);
+			}
+		}
+		groupedWork.addFormats(translatedFormats);
+		groupedWork.addFormatCategories(formatCategories);
+		groupedWork.setFormatBoost(formatBoost);
 	}
 }

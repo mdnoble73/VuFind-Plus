@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -51,7 +52,15 @@ public class GroupedWorkIndexer {
 		this.configIni = configIni;
 		String solrPort = configIni.get("Reindex", "solrPort");
 
-		ilsRecordProcessor = new IlsRecordProcessor(this, vufindConn, configIni, logger);
+		String ilsIndexingClassString = configIni.get("Reindex", "ilsIndexingClass");
+		try{
+			Class ilsIndexingClass = Class.forName(ilsIndexingClassString);
+			Constructor ilsIndexingConstructor = ilsIndexingClass.getConstructor(GroupedWorkIndexer.class, Connection.class, Ini.class, Logger.class);
+			Object indexingObject = ilsIndexingConstructor.newInstance(this, vufindConn, configIni, logger);
+			ilsRecordProcessor = (IlsRecordProcessor)indexingObject;
+		}catch (Exception e){
+			logger.error("Unable to create ilsRecordProcessor", e);
+		}
 		overDriveProcessor = new OverDriveProcessor(this, vufindConn, econtentConn, configIni, logger);
 		externalEContentProcessor = new ExternalEContentProcessor(this, vufindConn, econtentConn, configIni, logger);
 		restrictedEContentProcessor = new RestrictedEContentProcessor(this, vufindConn, econtentConn, configIni, logger);
