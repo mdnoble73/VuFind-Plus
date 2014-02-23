@@ -26,29 +26,24 @@ class MillenniumReadingHistory {
 
 		//Check to see if there are multiple pages of reading history
 		$hasPagination = preg_match('/<td[^>]*class="browsePager"/', $pageContents);
-		$extraPagesToLoad = array();
 		if ($hasPagination){
 			//Load a list of extra pages to load.  The pagination links display multiple times, so load into an associative array to make them unique
 			preg_match_all('/<a href="readinghistory&page=(\\d+)">/', $pageContents, $additionalPageMatches);
+			$maxPageNum = 0;
 			foreach ($additionalPageMatches[1] as $additionalPageMatch){
-				$extraPagesToLoad[$additionalPageMatch] = $additionalPageMatch;
+				if ($additionalPageMatch > $maxPageNum){
+					$maxPageNum = $additionalPageMatch;
+				}
 			}
 		}
 
-		$readingHistoryTitles = $this->parseReadingHitoryPage($pageContents, $patron, $sortOption);
-		foreach ($extraPagesToLoad as $pageNum){
+		$recordsRead = 0;
+		$readingHistoryTitles = $this->parseReadingHistoryPage($pageContents, $patron, $sortOption, $recordsRead);
+		$recordsRead += count($readingHistoryTitles);
+		for ($pageNum = 2; $pageNum <= $maxPageNum; $pageNum++){
 			$pageContents = $this->driver->_fetchPatronInfoPage($patronDump, 'readinghistory&page=' . $pageNum);
-			$hasPagination = preg_match('/<td[^>]*class="browsePager"/', $pageContents);
-			if ($hasPagination){
-				//Load a list of extra pages to load.  The pagination links display multiple times, so load into an associative array to make them unique
-				preg_match_all('/<a href="readinghistory&page=(\\d+)">/', $pageContents, $additionalPageMatches);
-				foreach ($additionalPageMatches[1] as $additionalPageMatch){
-					if ($additionalPageMatch != 1 && !array_key_exists($additionalPageMatch, $extraPagesToLoad)){
-						$extraPagesToLoad[$additionalPageMatch] = $additionalPageMatch;
-					}
-				}
-			}
-			$additionalTitles = $this->parseReadingHitoryPage($pageContents, $patron, $sortOption);
+			$additionalTitles = $this->parseReadingHistoryPage($pageContents, $patron, $sortOption, $recordsRead);
+			$recordsRead += count($additionalTitles);
 			$readingHistoryTitles = array_merge($readingHistoryTitles, $additionalTitles);
 		}
 
@@ -162,7 +157,7 @@ class MillenniumReadingHistory {
 		unlink($cookie);
 	}
 
-	private function parseReadingHitoryPage($pageContents, $patron, $sortOption) {
+	private function parseReadingHistoryPage($pageContents, $patron, $sortOption, $recordsRead) {
 		$sResult = preg_replace("/<[^<]+?><[^<]+?>Reading History.\(.\d*.\)<[^<]+?>\W<[^<]+?>/", "", $pageContents);
 
 		$s = substr($sResult, stripos($sResult, 'patFunc'));
@@ -192,7 +187,7 @@ class MillenniumReadingHistory {
 				$scols[$i] = html_entity_decode(trim(substr($scols[$i],0,stripos($scols[$i],"</t"))));
 				//print_r($scols[$i]);
 				if ($scount == 1) {
-					$skeys[$i] = $scols[$i];
+					$skeys[$i] = strip_tags($scols[$i]);
 				} else if ($scount > 1) {
 					if (stripos($skeys[$i],"Mark") > -1) {
 						if (preg_match('/id="rsh(\\d+)"/', $scols[$i], $matches)){
@@ -206,7 +201,7 @@ class MillenniumReadingHistory {
 						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
 							$shortId = $matches[1];
 							$bibId = '.' . $matches[2];
-							$title = $matches[2];
+							$title = strip_tags($matches[2]);
 
 							$historyEntry['id'] = $bibId;
 							$historyEntry['shortId'] = $shortId;
@@ -267,7 +262,7 @@ class MillenniumReadingHistory {
 				}else{
 					$titleKey = $historyEntry['title_sort'];
 				}
-				$titleKey .= '_' . $scount;
+				$titleKey .= '_' . ($scount + $recordsRead);
 				$readingHistoryTitles[$titleKey] = $historyEntry;
 			}
 			$scount++;
