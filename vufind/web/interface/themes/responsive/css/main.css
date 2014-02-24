@@ -3304,7 +3304,7 @@ input[type="submit"].btn.btn-mini {
 }
 /* hold button on results and records */
 
-.phold{
+.btn-group-vertical > .btn > .phold{
  font-size:15pt;
  background-color:#4e80bd;
  color:#ffffff;
