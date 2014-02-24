@@ -39,17 +39,17 @@
 	</div>
 
 	{* Display Title *}
-	<h2>
+	<h3>
 		{$recordTitleSubtitle|removeTrailingPunctuation|escape}
 		{if $record.format}
 			&nbsp;<small>({implode subject=$record.format glue=","})</small>
 		{/if}
-	</h2>
+	</h3>
 	{* Display more information about the title*}
 	{if $mainAuthor}
-		<h3>
+		<h4>
 			by <a href="{$path}/Author/Home?author={$mainAuthor|escape:"url"}">{$mainAuthor|escape}</a>
-		</h3>
+		</h4>
 	{/if}
 
 	{if $corporateAuthor}
