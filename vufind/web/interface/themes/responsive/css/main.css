@@ -3283,6 +3283,9 @@ input[type="submit"].btn.btn-mini {
   margin-top: -1px;
 }
 .btn-group-vertical > .btn:first-child {
+    font-size:15pt;
+    background-color:#4e80bd;
+    color:#ffffff;
   -webkit-border-radius: 0px 0px 0 0;
   -moz-border-radius: 0px 0px 0 0;
   border-radius: 0px 0px 0 0;
@@ -3304,10 +3307,8 @@ input[type="submit"].btn.btn-mini {
 }
 /* hold button on results and records */
 
-.btn-group-vertical > .btn > .phold{
- font-size:15pt;
- background-color:#4e80bd;
- color:#ffffff;
+.phold{
+
 }
 
 .alert {
