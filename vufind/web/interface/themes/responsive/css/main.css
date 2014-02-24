@@ -3302,6 +3302,14 @@ input[type="submit"].btn.btn-mini {
   -moz-border-radius: 0 0 0px 0px;
   border-radius: 0 0 0px 0px;
 }
+/* hold button on results and records */
+
+.phold{
+ font-size:15pt;
+ background:#4e80bd;
+ color:#ffffff;
+}
+
 .alert {
   padding: 8px 35px 8px 14px;
   margin-bottom: 20px;
