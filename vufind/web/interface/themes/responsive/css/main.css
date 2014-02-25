@@ -3628,7 +3628,7 @@ border:1px solid #eaeaea;
 }
 .tab-content {
   overflow: auto;
-    height:500px;
+    max-height:500px;
 }
 .tabs-below > .nav-tabs,
 .tabs-right > .nav-tabs,
