@@ -6147,7 +6147,7 @@ a.badge:focus {
         width:630px;
     }
     #recordTools,#record-details-column{
-        border:1px solid #eaeaea;
+        height:auto;
     }
 }
 @media (max-width: 480px) {
