@@ -3307,8 +3307,12 @@ input[type="submit"].btn.btn-mini {
 }
 /* hold button on results and records */
 
-#recordTools,#record-details-column{
+#recordTools{
 border:1px solid #eaeaea;
+}
+
+#record-details-column{
+    background-color: #F9F9F9;
 }
 
 .alert {
@@ -5317,9 +5321,6 @@ a.badge:focus {
   display: inherit !important;
 }
 @media (min-width: 768px) and (max-width: 979px) {
-    #recordTools,#record-details-column{
-        min-height:400px;
-    }
   .hidden-desktop {
     display: inherit !important;
   }
@@ -5334,9 +5335,6 @@ a.badge:focus {
   }
 }
 @media (max-width: 767px) {
-    #recordTools,#record-details-column{
-        min-height:400px;
-    }
   .hidden-desktop {
     display: inherit !important;
   }
@@ -5362,9 +5360,6 @@ a.badge:focus {
   }
 }
 @media (min-width: 1200px) {
-    #recordTools,#record-details-column{
-        min-height:400px;
-    }
   .row {
     margin-left: -30px;
     *zoom: 1;
@@ -5714,9 +5709,6 @@ a.badge:focus {
   }
 }
 @media (min-width: 768px) and (max-width: 979px) {
-    #recordTools,#record-details-column{
-        min-height:400px;
-    }
   .row {
     margin-left: -20px;
     *zoom: 1;
@@ -6057,9 +6049,6 @@ a.badge:focus {
   }
 }
 @media (max-width: 767px) {
-    #recordTools,#record-details-column{
-        min-height:400px;
-    }
   body {
     padding-left: 20px;
     padding-right: 20px;
@@ -6157,20 +6146,11 @@ a.badge:focus {
   }
 }
 @media (max-width: 639px) {
-    #recordTools,#record-details-column{
-        height:auto;
-    }
     .container {
         width:630px;
     }
-    #recordTools,#record-details-column{
-        height:auto;
-    }
 }
 @media (max-width: 480px) {
-    #recordTools,#record-details-column{
-        height:auto;
-    }
   .nav-collapse {
     -webkit-transform: translate3d(0, 0, 0);
   }
