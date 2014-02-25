@@ -636,24 +636,32 @@ class AJAX extends Action {
 	function GetSeriesInfo(){
 		require_once ROOT_DIR . '/sys/NovelistFactory.php';
 		$novelist = NovelistFactory::getNovelist();
-		$isbns = $_REQUEST['isbn'];
-		$seriesInfo = array();
-		foreach ($isbns as $isbn){
-			$enrichment = $novelist->loadEnrichment($isbn);
-			if (isset($enrichment['seriesTitle'])){
-				$enrichment['seriesTitle'] = preg_replace('/\s*series$/i','',$enrichment['seriesTitle']);
-				$seriesInfo[$isbn] = "<a href='/Search/Results?sort=year&lookfor=series:" . urlencode($enrichment['seriesTitle']) . "'>{$enrichment['seriesTitle']}</a>" ;
-				if (isset($enrichment['volumeLabel']) && strlen($enrichment['volumeLabel']) > 0){
-					$seriesInfo[$isbn] .=  ', ' . $enrichment['volumeLabel'];
+		if (isset($_REQUEST['isbn'])){
+			$isbns = $_REQUEST['isbn'];
+			$seriesInfo = array();
+			foreach ($isbns as $isbn){
+				$enrichment = $novelist->loadEnrichment($isbn);
+				if (isset($enrichment['seriesTitle'])){
+					$enrichment['seriesTitle'] = preg_replace('/\s*series$/i','',$enrichment['seriesTitle']);
+					$seriesInfo[$isbn] = "<a href='/Search/Results?sort=year&lookfor=series:" . urlencode($enrichment['seriesTitle']) . "'>{$enrichment['seriesTitle']}</a>" ;
+					if (isset($enrichment['volumeLabel']) && strlen($enrichment['volumeLabel']) > 0){
+						$seriesInfo[$isbn] .=  ', ' . $enrichment['volumeLabel'];
+					}
+				}else{
+					$seriesInfo[$isbn] = "N/A";
 				}
-			}else{
-				$seriesInfo[$isbn] = "N/A";
 			}
+			echo json_encode(array(
+					'success' => true,
+					'series' => $seriesInfo
+			));
+		}else{
+			echo json_encode(array(
+					'success' => true,
+					'series' => array()
+			));
 		}
-		echo json_encode(array(
-			'success' => true,
-			'series' => $seriesInfo
-		));
+
 	}
 }
 
