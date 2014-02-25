@@ -14,27 +14,41 @@
 		{/if}
 
 		{* Internal Grid *}
-		<div class="myAccountTitle">{translate text='Recommended for you'}</div>
+        <div class="resulthead">
+            <div class="myAccountTitle">{translate text='Recommended for you'} {if ($smarty.foreach.recordLoop.iteration % 2) == 0}<span id='readingListWhatsThis' onclick="$('#recommendationsNote').toggle();">(What's This?)</span>{/if}
+            </div>
+            
+            {if $userNoticeFile}
+                {include file=$userNoticeFile}
+            {/if}
+    
+    
+            {if !$offline}
+            <div id='recommendationsNote' {if ($smarty.foreach.recordLoop.iteration % 2) == 0}style='display: none'{/if}>
+            Recommendations are based on your 5 most recent checked out items and on the last 10 items you rated with 3 or more stars. Titles you have marked Not Interested will no longer appear under Recommended for You. Titles marked Not Interested will also be excluded from the search results list when you are logged in.
+            </div>
+            {/if}
+		</div>
 
-		{if $userNoticeFile}
-			{include file=$userNoticeFile}
-		{/if}
+
+
 
 		{foreach from=$resourceList item=suggestion name=recordLoop}
-			<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
+            <div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
 				{$suggestion}
 			</div>
 		{foreachelse} 
      		<h3>Find your next favorite. Rate titles to get personalized recommendations.</h3> 
             	<ul class="showbullets">
-                    <li>Login with your library card.</li>
-                    <li>Find titles you like - Search the catalog, Browse your Checked Out items, or Browse your Reading History</li>
-                    <li>Rate titles with 4 or 5 stars to get recommendations</li>
+                    <li>Login with your library card</li>
+                    <li>Find titles you like</li>
+                    <li>Rate favorite title with 4 or 5 stars</li>
                     <li>Go to "Recommended for You" to see a personalized list</li>
                 </ul>
-                <h2>Get Started Rating Titles</h2> 
+             
+            <h3>Start Rating Titles</h3> 
 
-				<iframe src="http://catalog.library.nashville.org/API/SearchAPI?method=getListWidget&id=8" width="100%" height="250"></iframe>      
+				<p><a href="http://catalog.library.nashville.org/MyResearch/CheckedOut">Your Checked Out Items</a> | <a href="http://catalog.library.nashville.org/MyResearch/ReadingHistory">Your Reading History</a> | <a href="http://catalog.library.nashville.org/">New and Popular Titles</a></p>
             
 		{/foreach}
 	</div>

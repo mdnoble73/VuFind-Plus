@@ -4,25 +4,28 @@ h1{margin:1em
 0;}h2{font-size:140%;font-weight:normal;}h3{font-size:120%;font-weight:normal;margin-bottom: .5em;color:#292929;}h4{font-size:110%;font-weight:normal;margin-bottom: .5em;color:#292929}
 body{font-family:'Source Sans Pro', "Arial Unicode MS",Arial,Sans-Serif;color:#010101;font-size:14px}
 
-/* UI Tabs - Misc Visuals
-----------------------------------*/
+/* UI Tabs - Misc Visuals */
+----------------------------------
 .ui-tabs{position:relative;padding: 0.2em}
-.ui-tabs .ui-tabs-nav{margin:0;padding: .3em .4em 0 .4em}
-.ui-tabs .ui-tabs-nav li{list-style:none;float:left;position:relative;top:0;margin:1px .4em 0 0;border-bottom:0;padding:0;white-space:nowrap}
-.ui-tabs .ui-tabs-nav li.ui-state-active a {font-weight: normal;font-size: 20px;color:#010101;padding: .25em 1em;}
-.ui-tabs .ui-tabs-nav li.ui-tabs-active {margin-bottom: -1px;padding-bottom: 1px;background-color: #fff;}
-.ui-tabs .ui-tabs-nav li.ui-tabs-active a:hover {background-color: #fff;}
-.ui-tabs .ui-tabs-nav li.ui-state-hover {font-weight: normal;font-size: 19px;background-color:#FAFAFA;}
-.ui-tabs .ui-tabs-nav li {list-style: none;float: left;position: relative;top: 0;margin: 1px .4em 0 0;border-bottom: 0;padding: 0;white-space: nowrap;font-size: 19px;background-color: #F7F7F7;}
+.ui-tabs .ui-tabs-nav li{list-style:none;float:left;position:relative;top:0;margin:1px .4em 0 0;border-bottom:0;padding:0px;white-space:nowrap;font-size: 16px;background-color: #F7F7F7;}
+.ui-tabs .ui-tabs-nav li.ui-state-active a {font-weight: normal;color:#010101;}
+.ui-tabs .ui-tabs-nav li.ui-tabs-active {background-color: #fff;}
+.ui-tabs .ui-tabs-nav li.ui-state-hover {font-weight: normal;background-color:#F0f0f0;}
+
+#moredetails-tabs {margin-top: 10px;margin-bottom:25px;}
 
 /* Component containers
 ----------------------------------*/
 .ui-widget {font-family:'Source Sans Pro', "Arial Unicode MS",Arial,Sans-Serif;color:#010101;font-size:14px}
 .ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button{font-family:'Source Sans Pro', "Arial Unicode MS",Arial,Sans-Serif;color:#010101;font-size:1em}
-.ui-widget-content{border:1px solid #ccc;background:#fcfdfd url(/interface/themes/marmot/css/images/ui-bg_inset-hard_100_fcfdfd_1x100.png) 50% bottom repeat-x;color:#222}
+.ui-widget-content{border:0px solid #ccc;background:#fcfdfd url(/interface/themes/marmot/css/images/ui-bg_inset-hard_100_fcfdfd_1x100.png) 50% bottom repeat-x;color:#222}
 .ui-widget-content a {color: #0066cc;}
-.ui-widget-header {border: 1px solid #ccc;background: #eee /*#32388E url(/interface/themes/nashville/images/ui-bg_gloss-wave_75_2191c0_500x100.png) 50% 50% repeat-x*/; color: #eaf5f7;font-weight: bold;}
+.ui-widget-header {border: 0px solid #ccc;background: #fff /*#32388E url(/interface/themes/nashville/images/ui-bg_gloss-wave_75_2191c0_500x100.png) 50% 50% repeat-x*/; color: #eaf5f7;font-weight: bold;}
 .ui-tabs .ui-tabs-nav li a {float: left;padding: .45em 1em;text-decoration: none;}
+#moredetails-tabs #detailstab, #holdingstab, #otherEditionsTab, #notestab, #reviews, #citetab, #stafftab, #formatstab, #copiestab {border: 1px solid #ccc;}
+#similarTitleLnfo #detailsTab {border:0px;}
+
+
 /* Similar Titles Buttons */
 
 
@@ -30,8 +33,7 @@ body{font-family:'Source Sans Pro', "Arial Unicode MS",Arial,Sans-Serif;color:#0
 ----------------------------------*/
 .ui-state-default,
 .ui-widget-content .ui-state-default,
-.ui-widget-header .ui-state-default{border:1px
-solid #e2e3ed;background:#eee /*url(/interface/themes/marmot/css/images/ui-bg_glass_85_dfeffc_1x400.png) 50% 50% repeat-x*/;font-weight:normal;color:#1182ab}
+.ui-widget-header .ui-state-default{border:1px solid #e2e3ed;background:#eee /*url(/interface/themes/marmot/css/images/ui-bg_glass_85_dfeffc_1x400.png) 50% 50% repeat-x*/;font-weight:normal;color:#1182ab}
 .ui-state-default a,
 .ui-state-default a:link,
 .ui-state-default a:visited{color:#06c;text-decoration:none}
@@ -57,24 +59,45 @@ solid #ccc;background:#fff /*url(/interface/themes/nashville/images/ui-bg_gloss-
 /* Misc visuals
 ----------------------------------*/
 /* Corner radius */
-.ui-corner-all,.ui-corner-top,.ui-corner-left,.ui-corner-tl{border-top-left-radius:0px}.ui-corner-all,.ui-corner-top,.ui-corner-right,.ui-corner-tr{border-top-right-radius:0px}.ui-corner-all,.ui-corner-bottom,.ui-corner-left,.ui-corner-bl{border-bottom-left-radius:0px}.ui-corner-all,.ui-corner-bottom,.ui-corner-right,.ui-corner-br{border-bottom-right-radius:0px}
+.ui-corner-all,.ui-corner-top,.ui-corner-left,.ui-corner-tl{border-top-left-radius:5px}.ui-corner-all,.ui-corner-top,.ui-corner-right,.ui-corner-tr{border-top-right-radius:5px}.ui-corner-all,.ui-corner-bottom,.ui-corner-left,.ui-corner-bl{border-bottom-left-radius:5px}.ui-corner-all,.ui-corner-bottom,.ui-corner-right,.ui-corner-br{border-bottom-right-radius:5px}
 
 /* styles.css */
 html,body{height:100%;background-color:#CCC;background-image:url("/interface/themes/nashville/images/background_white_carbon.png");}
-#page-content,#ft{padding:10px 10px 50px 10px;text-align:left}
 
 /*****************Homepage*******************/
-/* .searchHomeContent{padding:3em 0 2em 0;margin:0 auto;width:100%;text-align:left} Hid b/c it didn't seem to be doing anything */
+.searchHomeContent{text-align:left;margin: 0 auto;width:95%;padding: 0 0 2em 0;border-top:1px solid #f8f8f8;} 
 #homeSearchLabel{color:#010101;font-size:14px}
 #searchBarFind {vertical-align: top;position: relative;padding-bottom: 3px;*padding-bottom:1px;margin-left: 15px;margin-top: 2px;*margin-top:0;}
 .searchHomeForm {width: 775px;height: 50px;position:absolute;text-align:left;top:54px;left:190px;margin: 1px 0 0 0;padding: 15px 0 8px 0;background-color: transparent;background-image: url('/interface/themes/nashville/images/header_catalogsearchribbon_shadow.png');background-repeat: no-repeat;color:#fff;border-top:#304c7e 0px solid;}
 .searchHomeForm input {*padding:5px 0 5px 3px;} .searchHomeForm select {margin-top:3px;}
+#homePageLists .linkTab {top:5;}
+#homePageLists .titleScrollerWrapper {}
+#homePageLists .titleScrollerHeader {background-color: #FFF;padding: 5px;color: #292929;font-size: 22px;font-weight: normal;height: 25px;border-bottom: dotted 1px #ccc;}
+#homePageLists .seriesLink {margin-top:0;*margin-top:-30px;}
+#homePageLists .titleScrollerBody {background-color: #f3f3f3;clear: both;position: relative;padding-bottom: 5px;}
+#homePageLists .scrollerBodyContainer {position: relative;overflow: hidden;margin: 0px 40px;padding-top:5px;}
+
+#homePageLists .scrollerBody {padding: 7px 7px 0 7px;margin: 0 7px;height: 120px;position: relative;}
+#homePageLists .mediumScroller .scrollerBody{height: 215px;padding: 7px 7px 0 7px;margin: 0 7px;position: relative;}
+
+#homePageLists .ui-tabs {position: relative;padding: 0.2em;margin-top: 15px;}
+#homePageLists .leftScrollerButton {display: inline-block;height: 50px;width: 25px;float: left;cursor: pointer;margin-left: 5px;margin-top: 50px;background: #FFF /*url(/interface/themes/marmot/css/images/ui-bg_glass_85_dfeffc_1x400.png) 50% 50% repeat-x */;zoom: 1;border: 1px solid #ACACAC;}
+#homePageLists .rightScrollerButton {display: inline-block;height: 50px;width: 25px;float: right;cursor: pointer;margin-left: 5px;margin-top: 50px;background: #FFF /*url(/interface/themes/marmot/css/images/ui-bg_glass_85_dfeffc_1x400.png) 50% 50% repeat-x */;zoom: 1;border: 1px solid #ACACAC;}
+#homePageLists .mediumScroller .leftScrollerButton, #homePageLists .mediumScroller .rightScrollerButton{margin-top: 85px;}
+
+#homePageLists .scrollerTitleCover {max-width: 125px;max-height: 125px;padding: 0px;}
+#homePageLists .mediumScroller .scrollerTitleCover{max-height: 180px;max-width: 180px;padding:0;}
+#homePageLists .mediumScroller.scrollerWithRatings .scrollerBody{height: 230px;}
+
+
 
 /*****************Breadcrumbs*******************/
 div.breadcrumbs {overflow: hidden;margin: 8px 0 0 0;*margin-top:12px;padding: 0;height: 30px;line-height: 30px;border-bottom: 1px solid #ccc;border-top: 1px solid #ccc;}
-div.breadcrumbs span.home-icon{width:24px;height:24px;opacity:0.75;background:url('/images/home_icon.png') no-repeat top left;margin-right:5px;display:none;}
-div.breadcrumbinner {width: 73.076em;*width:71.25em;margin:0;}
+div.breadcrumbs span.home-icon{width:24px;height:24px;opacity:0.75;background:url('/interface/themes/nashville/images/home_icon.png') no-repeat top left;margin-right:5px;display:none;}
+div.breadcrumbinner {width: 55em;*width:55em;margin:0;}
 #content_span {*padding-top: 1px;}
+.breadcrumbs .catalogBrowse {float:right;position:relative;background-color:#32388e;padding:0px 0px 0px 8px;background:url('/interface/themes/nashville/images/header_browseCatalogRibbon.png') no-repeat top left;}
+.breadcrumbs .catalogBrowse a {font-size:14px;color:#fff;opacity:1;background-color:#32388e;}
 
 /******** Main Header *********/
 .searchheader{padding:0;background-color:#ffffff;border-bottom:solid 0px #c5c5c5;text-align:left;}.searchheader a, .searchheader a:visited{color:#06c}.searchheader a:hover{color:#132248;}
@@ -82,7 +105,16 @@ div.breadcrumbinner {width: 73.076em;*width:71.25em;margin:0;}
 background-repeat: no-repeat;color:#fff}
 .searchform input {*padding:5px 0 5px 3px;} .searchform select {margin-top:3px;}
 #searchbar a{color:#fff}
-
+#searchbar a {
+color: #fff;
+margin-right: 5px;
+margin-left: 5px;
+}
+.searchHomeForm a, .searchHomeForm a:hover {
+color: #fff;
+margin-right: 5px;
+margin-left: 5px;
+}
 
 
 #loginBlock{position:relative;top:0;right:0;z-index:99;min-width:300px;-webkit-border-bottom-left-radius:10px;-khtml-border-radius-bottomleft:10px;-moz-border-radius-bottomleft:10px;border-bottom-left-radius:10px;display:inline-block;}#loginOptions{}
@@ -114,6 +146,10 @@ background-repeat: no-repeat;color:#fff}
 #record-details-header .holdingsSummaryRecord .holdingsSummary .holdingsSummaryStatusLine a {font-weight: normal;font-size: 18px;}
 .available span {padding-left: 0px;}
 .holdingsSummary {margin-left: 0;}
+#record-details-header {border-bottom: 0px solid #E4E4E4;}
+.sidebarLabel {padding: 8px 10px 3px 0;font-weight: bold;}
+.sidebarValue {padding: 0 0 0 10px;font-size: 90%;}
+.icon {display: none;zoom: 1;margin-right: 5px;width: 0px;height: 0px;}
 
 /* --------------- */
 #catalogHome{
@@ -121,7 +157,7 @@ background-repeat: no-repeat;color:#fff}
 }
 
 /* bib record pages */
-.resultInformationLabel {color: #010101;font-size: 18px;font-weight: normal;padding:5px 0 5px 0;}
+.resultInformationLabel {color: #292929;font-size: 25px;font-weight: normal;padding:5px 0 8px 0;}
 
 
 /* Popup Box - see the end of consolidated.min.css - had to put styles there so that Firefox would see them on Mac */
@@ -138,10 +174,9 @@ padding: 3px 12px;
 }
 
 #placeHoldButton .button, .button:link, .button:visited, .button:hover, .button:active, .button:focus, button {
-margin: 0 0 0 2px;
+margin: 0 0 0 0;
 padding: 3px 12px;
 }
-
 
 
 
@@ -149,8 +184,18 @@ padding: 3px 12px;
 .resultAction, .resultAction:hover {/*padding:2px 2px 2px 4px;*/margin: 3px 0 3px 0;}
 .silk {margin-left: 0px;}
 
+html,button,input,select,textarea{font-family: inherit;}
+input[type="submit"].requestSelectedItems {
+font-size: 12px;
+}
 
-
+.searchtools {
+border-top: #eee solid 0px;
+padding: 0 1em 0 0;
+font-size: 80%;
+float: right;
+margin-top:-25px;
+}
 
 /* Place Hold - pick up page */
 .note {font-size: inheret;font-style: normal;color: #191919;}
@@ -186,7 +231,7 @@ table.datagrid th a {color: #010101;text-align: left;font-size: 16px;font-weight
 .myAccountTable .result {border-bottom: 1px solid #CACACA;padding: 10px 5px	15px 5px;}
 
 /* List Buttons */
-.listButton{background-color:#88ABC2;color:#132248;border-color:lightgrey DarkSlateGray DarkSlateGray lightgrey;border-style:solid;border-width:1px;font-size:12px;font-family:Verdana,Helvetica,arial,sans-serif;display:inline-block;height:inherit;line-height:18px;margin-left:10px;margin-top:4px;padding:3px 12px}.listButton:hover{background-color:#B2CBDC;border-color:DarkSlateGray lightgrey lightgrey DarkSlateGray}.listButton
+.listButton{background-color:#ddd;color:#132248;border-color:lightgrey DarkSlateGray DarkSlateGray lightgrey;border-style:solid;border-width:1px;font-size:13px;font-family:inherit;display:inline-block;height:auto;line-height:normal;margin-left:2px;margin-top:3px;margin-right:2px;margin-bottom:3px;padding:3px 12px;}.listButton:hover{background-color:#ccc;border-color:DarkSlateGray lightgrey lightgrey DarkSlateGray}.listButton
 a{color:#132248}#listTopButtons{margin-bottom:5px}
 
 /* MyAccount - eBooks and eAudio link uner Checked out */
@@ -295,15 +340,23 @@ box-shadow: 2px 2px 4px #888;
 }
 
 
-
-#list-series.titleScroller{border: 1px solid #ccc;}
-#list-similar.titleScroller{border: 1px solid #ccc;}
+#similarTitleInfo, #relatedTitleInfo {
+border: 1px solid #ccc;
+}
+#similarTitleInfo {
+margin-top: 10px;
+margin-bottom: 20px;
+}
+#list-series.titleScroller {
+border: 0px
+ solid #ccc;
+}
 .titleScrollerHeader{
 	/* background:url(/interface/themes/default/images/breadcrumb-gradient.png) repeat-x top left; */
 	padding: 5px;color: #010101;font-size: 16px;font-weight:normal;height:25px;}
 #list-seriesHeader .resultInformationLabel {font-size:20px;}
 #list-similarHeader .resultInformationLabel {font-size:20px;}
-.titleScrollerHeader .linkTab{padding-right: 10px;float: left;}
+.titleScrollerHeader .linkTab{padding-right: 10px;}
 .titleScrollerHeader .linkTab .first {padding-right: 0;}
 
 #listSelection{
@@ -359,7 +412,7 @@ color: #292929;
 .scrollerBody{
 	padding: 7px;
 	margin: 0 7px;
-	height: 140px;
+	height: 142px;
 	position: relative;
 }
 .scrollerWithRatings .scrollerBody{
@@ -385,10 +438,12 @@ color: #292929;
 	padding: 3px;
 }
 .scrollerTitle img{
-	opacity: .6;
+	opacity: .8;
+	border: 3px solid #fff;
 }
 .scrollerTitle:hover img{
-	opacity: .8;
+	opacity: .85;
+	border: 3px solid #ccc;
 }
 .scrollerTitle.selected{
 	border: 3px solid #00125E;
@@ -539,8 +594,9 @@ margin-bottom: 5px;
 
 .selectAllControls {
 line-height: 22px;
-margin-top: -25px;
-margin-bottom: 20px;
+margin-top: 5px;
+margin-bottom: 5px;
+margin-left: 5px;
 }
 
 .categoryValue {
@@ -575,8 +631,40 @@ left: 804px;
 }
 
 
+/* New Footer Styles */
 
-/* -------------------------- Home page styles ----------------------- */
 
-.ui-tabs.listWidget.horizontal {border-bottom: 1px solid #ccc;margin-bottom:10px;}
-#homePageLists .titleScrollerHeader {background-color:none;padding: 5px;color: #010101;font-size: 16px;font-weight: normal;height: 25px;}
+#ft {
+padding: 0px 25px 10px 25px;
+margin: 0 auto;
+font-size: 90%;
+}
+
+#footerBookLists {background-color:#f5f5f5;padding-bottom: 20px;}
+#footerBookLists .titleScrollerHeader {
+background-color: #32388e;
+padding: 5px 5px 10px 10px;
+color: #292929;
+font-size: 22px;
+font-weight: normal;
+height: 25px;
+border-bottom: dotted 1px #ccc;
+}
+#footerBookLists .resultInformationLabel {
+color: #fff;
+font-size: 25px;
+font-weight: normal;
+padding: 5px 0 8px 0;
+}
+div.footerListCol{padding:0 0.7em 0 0.7em;width:auto;vertical-align:top;display:inline-block;zoom:1;*display:inline;width:209px;}
+.footerListCol h2 {border-bottom:1px dotted #ACACAC; padding:5px;text-align:left;color:#010101;font-weight:normal;}
+.footerListCol a {font-size:14px;}
+.footerListCol ul {padding: 0 0 0 10px;}
+
+#footerHelpInformation {margin-top:40px;}
+#ft #footerCol1 {padding:0 0.7em 0 0.7em;width:310px;vertical-align:top;display:inline-block;zoom:1;*display:inline;}
+#ft div.footerCol {border-right: 0px dotted #ccc;padding:0 0.7em 0 0.7em;width:264px;vertical-align:top;display:inline-block;zoom:1;*display:inline;}
+div.footerCol h2 {border-bottom:1px dotted #ACACAC; padding:5px;text-align:left;color:#010101;font-weight:normal;}
+div.footerCol ul {padding: 0 0 0 10px;}
+div.footerCol a {font-size:14px;}
+#ft #copyright {text-align: right;margin-top:5px;}
