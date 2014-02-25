@@ -3305,14 +3305,16 @@ input[type="submit"].btn.btn-mini {
   -moz-border-radius: 0 0 0px 0px;
   border-radius: 0 0 0px 0px;
 }
-/* hold button on results and records */
+/* hold button on results and records
 
 #recordTools{
 border:1px solid #eaeaea;
-}
+}*/
 
 #record-details-column{
-    background-color: #F9F9F9;
+    /*background-color: #F9F9F9;*/
+    border-right:1px solid #F9F9F9;
+    border-left:1px solid #F9F9F9;
 }
 
 .alert {
