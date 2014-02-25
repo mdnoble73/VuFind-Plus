@@ -3309,7 +3309,6 @@ input[type="submit"].btn.btn-mini {
 
 #recordTools,#record-details-column{
 border:1px solid #eaeaea;
-    min-height:400px;
 }
 
 .alert {
@@ -5706,6 +5705,9 @@ a.badge:focus {
   }
 }
 @media (min-width: 768px) and (max-width: 979px) {
+    #recordTools,#record-details-column{
+        min-height:400px;
+    }
   .row {
     margin-left: -20px;
     *zoom: 1;
@@ -6046,6 +6048,9 @@ a.badge:focus {
   }
 }
 @media (max-width: 767px) {
+    #recordTools,#record-details-column{
+        min-height:400px;
+    }
   body {
     padding-left: 20px;
     padding-right: 20px;
@@ -6151,6 +6156,9 @@ a.badge:focus {
     }
 }
 @media (max-width: 480px) {
+    #recordTools,#record-details-column{
+        height:auto;
+    }
   .nav-collapse {
     -webkit-transform: translate3d(0, 0, 0);
   }
