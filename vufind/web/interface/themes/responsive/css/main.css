@@ -6079,7 +6079,7 @@ a.badge:focus {
   .dl-horizontal dd {
     margin-left: 0;
   }
-  .container {
+   .navbar-fixed-bottom .container {
     width: auto;
   }
   .row-fluid {
