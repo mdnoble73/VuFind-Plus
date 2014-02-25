@@ -245,7 +245,7 @@ class Novelist2{
 				'ratingData' => $ratingData,
 				'fullRecordLink' => $fullRecordLink,
 				'reason' => isset($item->reason) ? $item->reason : '',
-				'grouping_term' => $ownedRecord['grouping_term'],
+				'grouping_term' => isset($ownedRecord['grouping_term']) ? $ownedRecord['grouping_term'] : null,
 			);
 			$titlesOwned++;
 		}else{

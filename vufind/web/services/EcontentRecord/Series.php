@@ -72,12 +72,12 @@ class Series extends Action
 		$seriesAuthors = array();
 		$seriesTitles = array();
 		$resourceList = array();
-		if (isset($enrichmentData['novelist'])){
+		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']['series'])){
 			$seriesTitles = $enrichmentData['novelist']['series'];
 			//Loading the series title is not reliable.  Do not try to load it.
 
 			if (isset($seriesTitles) && is_array($seriesTitles)){
-				foreach ($seriesTitles as $key => $title){
+				foreach ($seriesTitles as $title){
 					if (isset($title['series']) && strlen($title['series']) > 0 && !(isset($seriesTitle))){
 						$seriesTitle = $title['series'];
 						$interface->assign('seriesTitle', $seriesTitle);
