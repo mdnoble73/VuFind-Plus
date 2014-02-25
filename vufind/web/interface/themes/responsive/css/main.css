@@ -3309,7 +3309,6 @@ input[type="submit"].btn.btn-mini {
 
 #recordTools,#record-details-column{
 border:1px solid #eaeaea;
-    min-height:400px;
 }
 
 .alert {
@@ -6145,6 +6144,9 @@ a.badge:focus {
 @media (max-width: 639px) {
     .container {
         width:630px;
+    }
+    #recordTools,#record-details-column{
+        min-height:400px;
     }
 }
 @media (max-width: 480px) {
