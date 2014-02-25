@@ -6158,7 +6158,7 @@ a.badge:focus {
 }
 @media (max-width: 639px) {
     #recordTools,#record-details-column{
-        min-height:400px;
+        height:auto;
     }
     .container {
         width:630px;
