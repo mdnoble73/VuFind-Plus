@@ -6151,11 +6151,15 @@ a.badge:focus {
   }
 }
 @media (max-width: 639px) {
+    #formatCategories {
+        display: none;
+    }
     .container {
         width:630px;
     }
 }
 @media (max-width: 480px) {
+
   .nav-collapse {
     -webkit-transform: translate3d(0, 0, 0);
   }
