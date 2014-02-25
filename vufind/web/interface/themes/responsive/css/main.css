@@ -5340,6 +5340,9 @@ a.badge:focus {
   }
 }
 @media (max-width: 767px) {
+    #formatCategories {
+        display: none;
+    }
   .hidden-desktop {
     display: inherit !important;
   }
