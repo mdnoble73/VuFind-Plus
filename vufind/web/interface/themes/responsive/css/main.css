@@ -3309,6 +3309,7 @@ input[type="submit"].btn.btn-mini {
 
 #recordTools,#record-details-column{
 border:1px solid #eaeaea;
+    min-height:400px;
 }
 
 .alert {
