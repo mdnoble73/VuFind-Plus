@@ -137,6 +137,9 @@
    <field name="cemeteryName" type="textFacet" indexed="true" stored="true"/>
    <field name="cemeteryLocation" type="textFacet" indexed="true" stored="true"/>
    <field name="mortuaryName" type="textFacet" indexed="true" stored="true"/>
+   <field name="sex" type="textFacet" indexed="true" stored="true"/>
+   <field name="race" type="textFacet" indexed="true" stored="true"/>
+   <field name="causeOfDeath" type="textFacet" indexed="true" stored="true"/>
    <!-- Fields Specific to Obituaries -->
    <field name="obituaryDate" type="date" indexed="true" stored="true" multiValued="true"/>
    <field name="obituarySource" type="textFacet" indexed="true" stored="true" multiValued="true"/>
