@@ -3307,7 +3307,7 @@ input[type="submit"].btn.btn-mini {
 }
 /* hold button on results and records */
 
-#recordTools{
+#recordTools,#record-details-column{
 border:1px solid #eaeaea;
 }
 
