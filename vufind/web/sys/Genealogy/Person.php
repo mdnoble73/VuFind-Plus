@@ -17,6 +17,10 @@ class Person extends SolrDataObject
 	public $otherName;
 	public $nickName;
 	public $veteranOf;
+    public $sex;
+    public $race;
+    public $residence;
+    public $causeOfDeath;
 
 	//Age information
 	public $birthDate;
@@ -37,11 +41,18 @@ class Person extends SolrDataObject
 	public $lot;
 	public $grave;
 	public $tombstoneInscription;
-
 	public $mortuaryName;
+	public $cemeteryAvenue;
+
+	//General descriptive info
 	public $picture;
 	public $comments;
-	
+
+	//Ledger information
+	public $ledgerVolume;
+	public $ledgerYear;
+	public $ledgerEntry;
+
 	//Revision history information 
 	public $addedBy;
 	public $dateAdded;
@@ -95,6 +106,9 @@ class Person extends SolrDataObject
 		$keywords .= $this->veteranOf . ' ';
 		$keywords .= join(' ', $this->marriageComments()) . ' ';
 		$keywords .= join(' ', $this->obituaryText()) . ' ';
+		$keywords .= $this->causeOfDeath . ' ';
+		$keywords .= $this->cemeteryAvenue . ' ';
+		$keywords .= $this->lot . ' ';
 		return $keywords;
 	}
 	function birthYear(){
@@ -168,50 +182,60 @@ class Person extends SolrDataObject
 
 	function getObjectStructure(){
 		$structure = array(
-		array('property'=>'id', 'type'=>'method', 'methodName'=>'solrId', 'storeDb' => false, 'storeSolr' => true, 'hideInLists'=>true),
-		array('property'=>'recordtype', 'type'=>'method', 'methodName'=>'recordtype', 'storeDb' => false, 'storeSolr' => true, 'hideInLists'=>true),
-		array('property'=>'personId', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of the person in the database', 'storeDb' => true, 'storeSolr' => false),
-		array('property'=>'firstName', 'type'=>'text', 'maxLength'=>100, 'label'=>'First Name', 'description'=>'The person&apos;s First Name', 'storeDb' => true, 'storeSolr' => true),
-		array('property'=>'lastName', 'type'=>'text', 'maxLength'=>100, 'label'=>'Last Name', 'description'=>'The person&apos;s Last Name', 'storeDb' => true, 'storeSolr' => true),
-		array('property'=>'middleName', 'type'=>'text', 'maxLength'=>100, 'label'=>'Middle Name', 'description'=>'The person&apos;s Middle Name', 'storeDb' => true, 'storeSolr' => true),
-		array('property'=>'maidenName', 'type'=>'text', 'maxLength'=>100, 'label'=>'Maiden Name', 'description'=>'The person&apos;s Maiden Name', 'storeDb' => true, 'storeSolr' => true),
-		array('property'=>'otherName', 'type'=>'text', 'maxLength'=>100, 'label'=>'Other Name', 'description'=>'Another name the person went by', 'storeDb' => true, 'storeSolr' => true),
-		array('property'=>'nickName', 'type'=>'text', 'maxLength'=>100, 'label'=>'Nick Name', 'description'=>'The person&apos;s Nick Name', 'storeDb' => true, 'storeSolr' => true),
-		array('property'=>'veteranOf', 'type'=>'crSeparated', 'rows'=>2, 'cols'=>80, 'label'=>'Veteran Of', 'description'=>'A list of war(s) that the person served in.', 'storeDb' => true, 'storeSolr' => true),
-		array('property'=>'birthDate', 'type'=>'partialDate', 'label'=>'Birth Date', 'description'=>'The date the person was born.', 'storeDb' => true, 'storeSolr' => true, 'propNameMonth'=>'birthDateMonth', 'propNameDay'=>'birthDateDay', 'propNameYear'=>'birthDateYear'),
-		array('property'=>'deathDate', 'type'=>'partialDate', 'label'=>'Death Date', 'description'=>'The date the person died.', 'storeDb' => true, 'storeSolr' => true, 'propNameMonth'=>'deathDateMonth', 'propNameDay'=>'deathDateDay', 'propNameYear'=>'deathDateYear'),
-		array('property'=>'ageAtDeath', 'type'=>'text', 'maxLength'=>100, 'label'=>'Age At Death', 'description'=>'The age (can be approximate) the person was when they died if exact birth or death dates are not known.', 'storeDb' => true, 'storeSolr' => true),
-		array('property'=>'cemeteryName', 'type'=>'text', 'maxLength'=>255, 'label'=>'Cemetery', 'description'=>'The cemetery where the person is buried.', 'storeDb' => true, 'storeSolr' => true),
-		array('property'=>'cemeteryLocation', 'type'=>'text', 'maxLength'=>255, 'label'=>'Cemetery Location', 'description'=>'The location of the cemetery.', 'storeDb' => true, 'storeSolr' => true),
-		array('property'=>'addition', 'type'=>'text', 'maxLength'=>100, 'label'=>'Cemetery Addition', 'description'=>'The addition within the cemetery where the person is buried.', 'storeDb' => true, 'storeSolr' => false),
-		array('property'=>'block', 'type'=>'text', 'maxLength'=>255, 'label'=>'Cemetery Block', 'description'=>'The block within the cemetery where the person is buried.', 'storeDb' => true, 'storeSolr' => false),
-		array('property'=>'lot', 'type'=>'integer', 'maxLength'=>6, 'size'=>6, 'label'=>'Cemetery Lot', 'description'=>'The lot of the cemetery where the person is buried.', 'storeDb' => true, 'storeSolr' => false),
-		array('property'=>'grave', 'type'=>'integer', 'maxLength'=>6, 'size'=>6, 'label'=>'Cemetery Grave Number', 'description'=>'The grave number within the cemetery where the person is buried.', 'storeDb' => true, 'storeSolr' => false),
-		array('property'=>'tombstoneInscription', 'type'=>'textarea', 'rows'=>2, 'cols'=>80, 'label'=>'Tombstone Inscription', 'description'=>'The inscription on the tombstone.', 'storeDb' => true, 'storeSolr' => false),
-		
-		array('property'=>'mortuaryName', 'type'=>'text', 'maxLength'=>255, 'label'=>'Mortuary', 'description'=>'The mortuary who performed the burial.', 'storeDb' => true, 'storeSolr' => true),
-		array('property'=>'comments', 'type'=>'textarea', 'rows'=>2, 'cols'=>80, 'label'=>'Comments', 'description'=>'Comments for the user.  Will be displayed on the record and can be searched.', 'storeDb' => true, 'storeSolr' => true, 'hideInLists'=>true),
-		array('property'=>'picture', 'type'=>'image', 'thumbWidth' => 65, 'mediumWidth'=>190, 'label'=>'Picture', 'description'=>'A picture of the person.', 'storeDb' => true, 'storeSolr' => false, 'hideInLists'=>true),
-		array('property'=>'privateComments', 'type'=>'textarea', 'rows'=>2, 'cols'=>80, 'label'=>'Private Comments', 'description'=>'Internal Comments for a person that is not displayed in the record and is not searchable.', 'storeDb' => true, 'storeSolr' => false, 'hideInLists'=>true),
-		
-		/* Properties related to data entry of the person */
-		array('property'=>'addedBy', 'type'=>'hidden', 'label'=>'Added By', 'description'=>'The id of the user who added the person', 'storeDb' => true, 'storeSolr' => false),
-		array('property'=>'modifiedBy', 'type'=>'hidden', 'label'=>'Modified By', 'description'=>'The id of the user who modified the person', 'storeDb' => true, 'storeSolr' => false),
-		array('property' => 'dateAdded', 'type' => 'hidden', 'label' => 'Date Added', 'description' => 'The Date the person was added.', 'required'=> false, 'storeDb' => true, 'storeSolr' => false),
-		array('property' => 'dateAdded', 'type' => 'hidden', 'label' => 'Date Modified', 'description' => 'The Date the person was last modified.', 'required'=> false, 'storeDb' => true, 'storeSolr' => false),
-		
-		/* proprties to store in solr */
-		array('property'=>'title', 'type'=>'method', 'description'=>'The full name for the person for Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
-		array('property'=>'keywords', 'type'=>'method', 'description'=>'Keywords for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
-		array('property'=>'birthYear', 'type'=>'method', 'description'=>'The year the person was born for faceting within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
-		array('property'=>'deathYear', 'type'=>'method', 'description'=>'The year the person was died for faceting within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
-		array('property'=>'spouseName', 'type'=>'method', 'description'=>'Spouse Name for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
-		array('property'=>'marriageDate', 'type'=>'method', 'description'=>'Marriage Date for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
-		array('property'=>'marriageComments', 'type'=>'method', 'description'=>'Marriage Comments for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
-		array('property'=>'obituaryDate', 'type'=>'method', 'description'=>'Spouse Name for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
-		array('property'=>'obituarySource', 'type'=>'method', 'description'=>'Marriage Date for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
-		array('property'=>'obituaryText', 'type'=>'method', 'description'=>'Marriage Comments for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
+			array('property'=>'id', 'type'=>'method', 'methodName'=>'solrId', 'storeDb' => false, 'storeSolr' => true, 'hideInLists'=>true),
+			array('property'=>'recordtype', 'type'=>'method', 'methodName'=>'recordtype', 'storeDb' => false, 'storeSolr' => true, 'hideInLists'=>true),
+			array('property'=>'personId', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of the person in the database', 'storeDb' => true, 'storeSolr' => false),
+			array('property'=>'firstName', 'type'=>'text', 'maxLength'=>100, 'label'=>'First Name', 'description'=>'The person&apos;s First Name', 'storeDb' => true, 'storeSolr' => true),
+			array('property'=>'lastName', 'type'=>'text', 'maxLength'=>100, 'label'=>'Last Name', 'description'=>'The person&apos;s Last Name', 'storeDb' => true, 'storeSolr' => true),
+			array('property'=>'middleName', 'type'=>'text', 'maxLength'=>100, 'label'=>'Middle Name', 'description'=>'The person&apos;s Middle Name', 'storeDb' => true, 'storeSolr' => true),
+			array('property'=>'maidenName', 'type'=>'text', 'maxLength'=>100, 'label'=>'Maiden Name', 'description'=>'The person&apos;s Maiden Name', 'storeDb' => true, 'storeSolr' => true),
+			array('property'=>'otherName', 'type'=>'text', 'maxLength'=>100, 'label'=>'Other Name', 'description'=>'Another name the person went by', 'storeDb' => true, 'storeSolr' => true),
+			array('property'=>'nickName', 'type'=>'text', 'maxLength'=>100, 'label'=>'Nick Name', 'description'=>'The person&apos;s Nick Name', 'storeDb' => true, 'storeSolr' => true),
+			array('property'=>'veteranOf', 'type'=>'crSeparated', 'rows'=>2, 'cols'=>80, 'label'=>'Veteran Of', 'description'=>'A list of war(s) that the person served in.', 'storeDb' => true, 'storeSolr' => true),
+			array('property'=>'birthDate', 'type'=>'partialDate', 'label'=>'Birth Date', 'description'=>'The date the person was born.', 'storeDb' => true, 'storeSolr' => true, 'propNameMonth'=>'birthDateMonth', 'propNameDay'=>'birthDateDay', 'propNameYear'=>'birthDateYear'),
+			array('property'=>'deathDate', 'type'=>'partialDate', 'label'=>'Death Date', 'description'=>'The date the person died.', 'storeDb' => true, 'storeSolr' => true, 'propNameMonth'=>'deathDateMonth', 'propNameDay'=>'deathDateDay', 'propNameYear'=>'deathDateYear'),
+			array('property'=>'ageAtDeath', 'type'=>'text', 'maxLength'=>100, 'label'=>'Age At Death', 'description'=>'The age (can be approximate) the person was when they died if exact birth or death dates are not known.', 'storeDb' => true, 'storeSolr' => true),
+			array('property'=>'sex', 'type'=>'text', 'maxLength'=>20, 'size'=>20, 'label'=>'Sex', 'description'=>'The sex of the person.', 'storeDb' => true, 'storeSolr' => true),
+			array('property'=>'race', 'type'=>'text', 'maxLength'=>20, 'size'=>20, 'label'=>'Race', 'description'=>'The race of the person.', 'storeDb' => true, 'storeSolr' => true),
+			array('property'=>'residence', 'type'=>'text', 'maxLength'=>255, 'size'=>40, 'label'=>'Residence', 'description'=>'The race of the person.', 'storeDb' => true, 'storeSolr' => false),
+			array('property'=>'causeOfDeath', 'type'=>'text', 'maxLength'=>255, 'size'=>40, 'label'=>'Cause of Death', 'description'=>'The cause of death.', 'storeDb' => true, 'storeSolr' => true),
+			array('property'=>'burialSection', 'type' => 'section', 'label' =>'Burial Information', 'hideInLists' => true, 'properties' => array(
+				array('property'=>'cemeteryName', 'type'=>'text', 'maxLength'=>255, 'label'=>'Cemetery', 'description'=>'The cemetery where the person is buried.', 'storeDb' => true, 'storeSolr' => true),
+				array('property'=>'cemeteryLocation', 'type'=>'text', 'maxLength'=>255, 'label'=>'Cemetery Location', 'description'=>'The location of the cemetery.', 'storeDb' => true, 'storeSolr' => true),
+				array('property'=>'addition', 'type'=>'text', 'maxLength'=>100, 'label'=>'Cemetery Addition', 'description'=>'The addition within the cemetery where the person is buried.', 'storeDb' => true, 'storeSolr' => false),
+				array('property'=>'block', 'type'=>'text', 'maxLength'=>255, 'label'=>'Cemetery Block', 'description'=>'The block within the cemetery where the person is buried.', 'storeDb' => true, 'storeSolr' => false),
+				array('property'=>'cemeteryAvenue', 'type'=>'text', 'maxLength'=>255, 'label'=>'Cemetery Avenue', 'description'=>'The avenue within the cemetery where the person is buried.', 'storeDb' => true, 'storeSolr' => false),
+				array('property'=>'lot', 'type'=>'text', 'maxLength'=>20, 'size'=>20, 'label'=>'Cemetery Lot', 'description'=>'The lot of the cemetery where the person is buried.', 'storeDb' => true, 'storeSolr' => false),
+				array('property'=>'grave', 'type'=>'integer', 'maxLength'=>6, 'size'=>6, 'label'=>'Cemetery Grave Number', 'description'=>'The grave number within the cemetery where the person is buried.', 'storeDb' => true, 'storeSolr' => false),
+				array('property'=>'tombstoneInscription', 'type'=>'textarea', 'rows'=>2, 'cols'=>80, 'label'=>'Tombstone Inscription', 'description'=>'The inscription on the tombstone.', 'storeDb' => true, 'storeSolr' => false),
+				array('property'=>'mortuaryName', 'type'=>'text', 'maxLength'=>255, 'label'=>'Mortuary', 'description'=>'The mortuary who performed the burial.', 'storeDb' => true, 'storeSolr' => true),
+			)),
+			array('property'=>'ledgerSection', 'type' => 'section', 'label' =>'Ledger Information', 'hideInLists' => true, 'properties' => array(
+				array('property'=>'ledgerVolume', 'type'=>'text', 'maxLength'=>20, 'size'=>20, 'label'=>'Ledger Description', 'description'=>'The name of the ledger the entry is stored.', 'storeDb' => true, 'storeSolr' => false),
+				array('property'=>'ledgerYear', 'type'=>'text', 'maxLength'=>20, 'size'=>20, 'label'=>'Ledger Year', 'description'=>'The year of the ledger the entry is stored.', 'storeDb' => true, 'storeSolr' => false),
+				array('property'=>'ledgerEntry', 'type'=>'text', 'maxLength'=>20, 'size'=>20, 'label'=>'Ledger Entry', 'description'=>'The line within the ledger year where the entry is stored.', 'storeDb' => true, 'storeSolr' => false),
+			)),
+			array('property'=>'comments', 'type'=>'textarea', 'rows'=>2, 'cols'=>80, 'label'=>'Comments', 'description'=>'Comments for the user.  Will be displayed on the record and can be searched.', 'storeDb' => true, 'storeSolr' => true, 'hideInLists'=>true),
+			array('property'=>'picture', 'type'=>'image', 'thumbWidth' => 65, 'mediumWidth'=>190, 'label'=>'Picture', 'description'=>'A picture of the person.', 'storeDb' => true, 'storeSolr' => false, 'hideInLists'=>true),
+			array('property'=>'privateComments', 'type'=>'textarea', 'rows'=>2, 'cols'=>80, 'label'=>'Private Comments', 'description'=>'Internal Comments for a person that is not displayed in the record and is not searchable.', 'storeDb' => true, 'storeSolr' => false, 'hideInLists'=>true),
 
+			/* Properties related to data entry of the person */
+			array('property'=>'addedBy', 'type'=>'hidden', 'label'=>'Added By', 'description'=>'The id of the user who added the person', 'storeDb' => true, 'storeSolr' => false),
+			array('property'=>'modifiedBy', 'type'=>'hidden', 'label'=>'Modified By', 'description'=>'The id of the user who modified the person', 'storeDb' => true, 'storeSolr' => false),
+			array('property' => 'dateAdded', 'type' => 'hidden', 'label' => 'Date Added', 'description' => 'The Date the person was added.', 'required'=> false, 'storeDb' => true, 'storeSolr' => false),
+			array('property' => 'dateAdded', 'type' => 'hidden', 'label' => 'Date Modified', 'description' => 'The Date the person was last modified.', 'required'=> false, 'storeDb' => true, 'storeSolr' => false),
+
+			/* properties to store in solr */
+			array('property'=>'title', 'type'=>'method', 'description'=>'The full name for the person for Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
+			array('property'=>'keywords', 'type'=>'method', 'description'=>'Keywords for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
+			array('property'=>'birthYear', 'type'=>'method', 'description'=>'The year the person was born for faceting within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
+			array('property'=>'deathYear', 'type'=>'method', 'description'=>'The year the person was died for faceting within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
+			array('property'=>'spouseName', 'type'=>'method', 'description'=>'Spouse Name for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
+			array('property'=>'marriageDate', 'type'=>'method', 'description'=>'Marriage Date for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
+			array('property'=>'marriageComments', 'type'=>'method', 'description'=>'Marriage Comments for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
+			array('property'=>'obituaryDate', 'type'=>'method', 'description'=>'Spouse Name for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
+			array('property'=>'obituarySource', 'type'=>'method', 'description'=>'Marriage Date for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
+			array('property'=>'obituaryText', 'type'=>'method', 'description'=>'Marriage Comments for searching within Solr', 'storeDb' => false, 'storeSolr' => true, 'hideInLists' => true),
 		);
 		foreach ($structure as $fieldName => $field){
 			$field['propertyOld'] = $field['property'] . 'Old';
@@ -341,6 +365,7 @@ class Person extends SolrDataObject
 	}
 
 	function update(){
+        global $user;
 		$this->modifiedBy = $user->id;
 		$this->lastModified = time();
 		$ret = parent::update();

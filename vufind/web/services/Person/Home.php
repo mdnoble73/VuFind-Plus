@@ -65,6 +65,7 @@ class Home extends Action
 		$this->record = $record;
 
 		//Load person from the database to get additional information
+		/* @var Person $person */
 		$person = Person::staticGet('personId', $this->id);
 		$record['picture'] = $person->picture;
 

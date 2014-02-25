@@ -868,6 +868,23 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+            'genealogy_nashville_1' => array(
+                'title' => 'Genealogy Update : Nashville 1',
+                'description' => 'Update Genealogy : for Nashville to add Nashville City Cemetery information.',
+                'continueOnError' => true,
+                'sql' => array(
+                    "ALTER TABLE person ADD COLUMN ledgerVolume VARCHAR(20) NULL DEFAULT ''",
+                    "ALTER TABLE person ADD COLUMN ledgerYear VARCHAR(20) NULL DEFAULT ''",
+                    "ALTER TABLE person ADD COLUMN ledgerEntry VARCHAR(20) NULL DEFAULT ''",
+                    "ALTER TABLE person ADD COLUMN sex VARCHAR(20) NULL DEFAULT ''",
+                    "ALTER TABLE person ADD COLUMN race VARCHAR(20) NULL DEFAULT ''",
+                    "ALTER TABLE person ADD COLUMN residence VARCHAR(255) NULL DEFAULT ''",
+                    "ALTER TABLE person ADD COLUMN causeOfDeath VARCHAR(255) NULL DEFAULT ''",
+                    "ALTER TABLE person ADD COLUMN cemeteryAvenue VARCHAR(255) NULL DEFAULT ''",
+                    "ALTER TABLE person CHANGE lot lot VARCHAR(20) NULL DEFAULT ''",
+                ),
+            ),
+
 			'recommendations_optOut' => array(
 				'title' => 'Recommendations Opt Out',
 				'description' => 'Add tracking for whether the user wants to opt out of recommendations',
