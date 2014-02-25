@@ -245,7 +245,7 @@ class MillenniumStatusLoader{
 					}
 				}
 				if ($holding['locationCode'] == '?????'){
-					$logger->log("Did not find location code for " . $holding['location'] , PEAR_LOG_DEBUG);
+					$logger->log("Did not find location code for " . $holding['location'] . " record $id", PEAR_LOG_DEBUG);
 				}
 				if (array_key_exists($holding['locationCode'], $suppressedLocationCodes)){
 					$logger->log("Location " . $holding['locationCode'] . " is suppressed", PEAR_LOG_DEBUG);

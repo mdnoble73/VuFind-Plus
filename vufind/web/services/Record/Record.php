@@ -127,12 +127,16 @@ abstract class Record_Record extends Action
 		$this->db->disableScoping();
 
 		// Retrieve Full Marc Record
+		disableErrorHandler();
 		if (!($record = $this->db->getRecord($this->id))) {
+			$interface->assign('id', $this->id);
 			$logger->log("Did not find a record for id {$this->id} in solr." , PEAR_LOG_DEBUG);
 			$interface->setTemplate('invalidRecord.tpl');
 			$interface->display('layout.tpl');
+			enableErrorHandler();
 			die();
 		}
+		enableErrorHandler();
 		$this->db->enableScoping();
 
 		$this->record = $record;
