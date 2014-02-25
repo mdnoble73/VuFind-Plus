@@ -258,10 +258,12 @@ class MillenniumStatusLoader{
 					foreach ($marcItemData as $itemData){
 						if (!$itemData['matched']){
 							$locationMatched = (strpos($itemData['location'], $holding['locationCode']) === 0);
-							if (strlen($itemData['callnumber']) == 0 || strlen($holding['callnumber']) == 0){
-								$callNumberMatched = (strlen($holding['callnumber']) == strlen($holding['callnumber']));
+							$itemCallNumber = isset($itemData['callnumber']) ? $itemData['callnumber'] : '';
+							$holdingCallNumber = isset($holding['callnumber']) ? $holding['callnumber'] : '';
+							if (strlen($itemCallNumber) == 0 || strlen($holding['callnumber']) == 0){
+								$callNumberMatched = (strlen($itemCallNumber) == strlen($holdingCallNumber));
 							}else{
-								$callNumberMatched = (strpos($itemData['callnumber'], $holding['callnumber']) >= 0);
+								$callNumberMatched = (strpos($itemCallNumber, $holdingCallNumber) >= 0);
 							}
 							if ($locationMatched && $callNumberMatched){
 								$holding['iType'] = $itemData['iType'];
