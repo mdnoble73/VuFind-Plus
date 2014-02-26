@@ -325,7 +325,16 @@ class BookCoverProcessor{
 		$this->initDatabaseConnection();
 		//Process the marc record
 		require_once ROOT_DIR . '/sys/MarcLoader.php';
-		$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
+		if ($this->isEContent){
+			$epubFile = new EContentRecord();
+			$epubFile->id = $this->id;
+			if ($epubFile->find(true)){
+				$marcRecord = MarcLoader::loadEContentMarcRecord($epubFile);
+			}
+		}else{
+			$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
+		}
+
 		if (!$marcRecord) {
 			return false;
 		}
