@@ -93,18 +93,21 @@ class MillenniumStatusLoader{
 					$linksTable = $displayUrlInfo[1];
 					preg_match_all('/<td.*?>.*?<a href="(.*?)".*?>(.*?)<\/a>.*?<\/td>/si', $linksTable, $linkData, PREG_SET_ORDER);
 					for ($i = 0; $i < count($linkData); $i++) {
-						$newHolding = array(
-							'type' => 'holding',
-							'link' => array(),
-							'status' => 'Online',
-							'location' => 'Online'
-						);
-						$newHolding['link'][] = array(
-							'link' => $linkData[$i][1],
-							'linkText' => $linkData[$i][2],
-							'isDownload' => true
-						);
-						$ret[] = $newHolding;
+						$linkText = $linkData[$i][2];
+						if ($linkText != 'Latest Received'){
+							$newHolding = array(
+									'type' => 'holding',
+									'link' => array(),
+									'status' => 'Online',
+									'location' => 'Online'
+							);
+							$newHolding['link'][] = array(
+									'link' => $linkData[$i][1],
+									'linkText' => $linkText,
+									'isDownload' => true
+							);
+							$ret[] = $newHolding;
+						}
 					}
 				}
 			}
