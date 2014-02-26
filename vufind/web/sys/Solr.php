@@ -639,6 +639,7 @@ class Solr implements IndexEngine {
 	 */
 	private function _applySearchSpecs($structure, $values, $joiner = "OR")
 	{
+		global $configArray;
 		$clauses = array();
 		$searchLibrary = Library::getSearchLibrary($this->searchSource);
 		foreach ($structure as $field => $clauseArray) {
@@ -656,7 +657,7 @@ class Solr implements IndexEngine {
 				// push it onto the stack of clauses
 				$clauses[] = $searchString;
 			} else {
-				if ($searchLibrary){
+				if ($searchLibrary && $configArray['Index']{'enableLocalCallNumberSearch'}){
 					if ($field == 'local_callnumber' || $field == 'local_callnumber_left' || $field == 'local_callnumber_exact'){
 						$field .= '_' . $searchLibrary->subdomain;
 					}
@@ -713,23 +714,23 @@ class Solr implements IndexEngine {
 		$boostFactors[] = 'sum(product(sum(abs(rating),-2.5),10),1)';
 
 		if (isset($searchLibrary) && !is_null($searchLibrary) && $searchLibrary->boostByLibrary == 1) {
-			$boostFactors[] = "sum(div(lib_boost_{$searchLibrary->subdomain},10),1)";
+			$boostFactors[] = "sum(product(lib_boost_{$searchLibrary->subdomain},{$searchLibrary->additionalLocalBoostFactor}),1)";
 		}else{
 			//Handle boosting even if we are in a global scope
 			global $library;
 			if ($library && $library->boostByLibrary == 1){
-				$boostFactors[] = "sum(div(lib_boost_{$library->subdomain},10),1)";
+				$boostFactors[] = "sum(product(lib_boost_{$library->subdomain},{$library->additionalLocalBoostFactor}),1)";
 			}
 		}
 
 		if (isset($searchLocation) && !is_null($searchLocation) && $searchLocation->boostByLocation == 1) {
-			$boostFactors[] = "sum(div(lib_boost_{$searchLocation->code},10),1)";
+			$boostFactors[] = "sum(product(lib_boost_{$searchLocation->code},{$searchLocation->additionalLocalBoostFactor}),1)";
 		}else{
 			//Handle boosting even if we are in a global scope
 			global $locationSingleton;
 			$physicalLocation = $locationSingleton->getActiveLocation();
 			if ($physicalLocation != null && $physicalLocation->boostByLocation ==1){
-				$boostFactors[] = "sum(div(lib_boost_{$physicalLocation->code},10),1)";
+				$boostFactors[] = "sum(product(lib_boost_{$physicalLocation->code},{$physicalLocation->additionalLocalBoostFactor}),1)";
 			}
 		}
 		return $boostFactors;

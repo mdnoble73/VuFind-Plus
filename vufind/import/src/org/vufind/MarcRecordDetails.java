@@ -167,11 +167,13 @@ public class MarcRecordDetails {
 			manuallySuppressed = true;
 		}
 		//logger.debug("Found " + itemFields.size() + " items");
+		Long bibDaysSinceAdded = null;
 		for (DataField itemField : itemFields) {
-			PrintItemSolrProcessor printItemSolrProcessor = new PrintItemSolrProcessor(logger, marcProcessor, librarySystems, librarySubdomains, locations, barcodes, iTypes, iTypesBySystem, locationCodes, locationsCodesBySystem, timeSinceAdded, timeSinceAddedBySystem, timeSinceAddedByLocation, availableAt, availabilityToggleGlobal, availableAtBySystemOrLocation, usableByPTypes, callNumbers, sortableCallNumbersByLibraryAndLocation, manuallySuppressed, allItemsSuppressed, popularity, itemField).invoke();
+			PrintItemSolrProcessor printItemSolrProcessor = new PrintItemSolrProcessor(logger, marcProcessor, librarySystems, librarySubdomains, locations, barcodes, iTypes, iTypesBySystem, locationCodes, locationsCodesBySystem, bibDaysSinceAdded, timeSinceAdded, timeSinceAddedBySystem, timeSinceAddedByLocation, availableAt, availabilityToggleGlobal, availableAtBySystemOrLocation, usableByPTypes, callNumbers, sortableCallNumbersByLibraryAndLocation, manuallySuppressed, allItemsSuppressed, popularity, itemField).invoke();
 			allItemsSuppressed = printItemSolrProcessor.isAllItemsSuppressed();
 			timeSinceAdded = printItemSolrProcessor.getTimeSinceAdded();
 			popularity = printItemSolrProcessor.getPopularity();
+			bibDaysSinceAdded = printItemSolrProcessor.getBibDaysSinceAdded();
 		}
 		
 		//Get order records for this title. 
@@ -222,6 +224,25 @@ public class MarcRecordDetails {
 		addFields(mappedFields, "institution", null, librarySystems);
 		addFields(mappedFields, "building", null, locations);
 		addFields(mappedFields, "barcode", null, barcodes);
+		if (bibDaysSinceAdded != null){
+			addField(mappedFields, "days_since_added", null, Long.toString(bibDaysSinceAdded));
+		}else{
+			//Use publication date to figure out the real date since added
+			String publicationYearString = this.getDate();
+			if (publicationYearString.length() == 4){
+				Integer publicationYear = Integer.parseInt(publicationYearString);
+				//Return number of days since the given year
+				Calendar publicationDate = GregorianCalendar.getInstance();
+				publicationDate.set(publicationYear, Calendar.DECEMBER, 31);
+
+				long indexTime = indexDate.getTime();
+				long publicationTime = publicationDate.getTime().getTime();
+				bibDaysSinceAdded = (long)(indexTime - publicationTime) / (long)(1000 * 60 * 60 * 24);
+				addField(mappedFields, "days_since_added", null, Long.toString(bibDaysSinceAdded));
+			}else{
+				addField(mappedFields, "days_since_added", null, Long.toString(Integer.MAX_VALUE));
+			}
+		}
 		addFields(mappedFields, "time_since_added", null, timeSinceAdded);
 		addFields(mappedFields, "itype", "itype_map", iTypes);
 		for (String subdomain : iTypesBySystem.keySet()) {
@@ -246,9 +267,9 @@ public class MarcRecordDetails {
 				}
 
 				if (availableAtLocation){
-					addField(mappedFields, "lib_boost_" + subdomain, "500");
+					addField(mappedFields, "lib_boost_" + subdomain, marcProcessor.getAvailableAtLocationBoostValue());
 				}else{
-					addField(mappedFields, "lib_boost_" + subdomain, "250");
+					addField(mappedFields, "lib_boost_" + subdomain, marcProcessor.getOwnedByLocationBoostValue());
 				}
 			}
 			LinkedHashSet<String> timesAddedBySystem = timeSinceAddedBySystem.get(subdomain);
@@ -1266,7 +1287,7 @@ public class MarcRecordDetails {
 					Subfield subFieldC = curField.getSubfield('c');
 					if (subFieldC != null){
 						date = subFieldC.getData();
-						logger.debug("Found RDA publication date ");
+						//logger.debug("Found RDA publication date ");
 					}
 				}
 			}
@@ -1278,7 +1299,7 @@ public class MarcRecordDetails {
 		//Try to get from 008
 		if (date == null || date.length() == 0){
 			date = getFirstFieldVal("008[7-10]");
-			logger.debug("Got date from 008 " + date);
+			//logger.debug("Got date from 008 " + date);
 		}
 		if (date == null || date.length() == 0){
 			return (null);

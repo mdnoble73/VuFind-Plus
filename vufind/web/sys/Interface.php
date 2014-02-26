@@ -64,6 +64,9 @@ class UInterface extends Smarty
 		$this->assign('isMobile', $this->isMobile ? 'true' : 'false');
 		$this->assign('device', get_device_name());
 
+		$thisYear = new Date();
+		$this->assign('lastYear', $thisYear->getYear() -1);
+
 		// Check to see if multiple themes were requested; if so, build an array,
 		// otherwise, store a single string.
 		$themeArray = explode(',', $this->vufindTheme);

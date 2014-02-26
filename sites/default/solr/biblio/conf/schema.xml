@@ -313,6 +313,7 @@
 		<field name="comment" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="bib_suppression" type="string" indexed="true" stored="false" multiValued="false"/>
 		<field name="date_added" type="date" indexed="true" stored="true" multiValued="false"/>
+		<field name="days_since_added" type="integer" indexed="true" stored="true" multiValued="false"/>
 		<field name="time_since_added" type="string" indexed="true" stored="true" multiValued="true"/>
 		<dynamicField name="local_time_since_added_*" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="rating" type="float" indexed="true" stored="true" multiValued="false"/>

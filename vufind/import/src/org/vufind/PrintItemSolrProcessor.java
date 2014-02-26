@@ -42,8 +42,9 @@ public class PrintItemSolrProcessor {
 	private MarcProcessor marcProcessor;
 	Pattern digitPattern = Pattern.compile("^\\d+$");
 	private static Date indexDate = new Date();
+	private Long bibDaysSinceAdded;
 
-	public PrintItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, Set<String> librarySystems, Set<String> librarySubdomains, Set<String> locations, Set<String> barcodes, Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, Set<String> locationCodes, HashMap<String, LinkedHashSet<String>> locationsCodesBySystem, Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, Set<String> availableAt, LinkedHashSet<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, LinkedHashSet<String> localCallNumbers, HashMap<String, HashMap<String, Long>> sortableCallNumbersByLibraryAndLocation, boolean manuallySuppressed, boolean allItemsSuppressed, float popularity, DataField itemField) {
+	public PrintItemSolrProcessor(Logger logger, MarcProcessor marcProcessor, Set<String> librarySystems, Set<String> librarySubdomains, Set<String> locations, Set<String> barcodes, Set<String> iTypes, HashMap<String, LinkedHashSet<String>> iTypesBySystem, Set<String> locationCodes, HashMap<String, LinkedHashSet<String>> locationsCodesBySystem, Long bibDaysSinceAdded, Set<String> timeSinceAdded, HashMap<String, LinkedHashSet<String>> timeSinceAddedBySystem, HashMap<String, LinkedHashSet<String>> timeSinceAddedByLocation, Set<String> availableAt, LinkedHashSet<String> availabilityToggleGlobal, HashMap<String, LinkedHashSet<String>> availableAtBySystemOrLocation, LinkedHashSet<String> usableByPTypes, LinkedHashSet<String> localCallNumbers, HashMap<String, HashMap<String, Long>> sortableCallNumbersByLibraryAndLocation, boolean manuallySuppressed, boolean allItemsSuppressed, float popularity, DataField itemField) {
 		this.logger = logger;
 		this.marcProcessor = marcProcessor;
 		this.librarySystems = librarySystems;
@@ -54,6 +55,7 @@ public class PrintItemSolrProcessor {
 		this.iTypesBySystem = iTypesBySystem;
 		this.locationCodes = locationCodes;
 		this.locationsCodesBySystem = locationsCodesBySystem;
+		this.bibDaysSinceAdded = bibDaysSinceAdded;
 		this.timeSinceAdded = timeSinceAdded;
 		this.timeSinceAddedBySystem = timeSinceAddedBySystem;
 		this.timeSinceAddedByLocation = timeSinceAddedByLocation;
@@ -325,8 +327,13 @@ public class PrintItemSolrProcessor {
 		String dateAddedStr = dateAddedField.getData();
 		try {
 			SimpleDateFormat dateAddedFormatter = marcProcessor.getDateAddedFormatter();
-			Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
-			LinkedHashSet<String> itemTimeSinceAdded = getTimeSinceAddedForDate(dateAdded);
+			Date itemDateAdded = dateAddedFormatter.parse(dateAddedStr);
+			Long itemDaysSinceAdded = getDaysSinceAdded(itemDateAdded);
+			LinkedHashSet<String> itemTimeSinceAdded = getTimeSinceAddedForDate(itemDateAdded);
+
+			if (this.bibDaysSinceAdded == null || bibDaysSinceAdded > itemDaysSinceAdded){
+				bibDaysSinceAdded = itemDaysSinceAdded;
+			}
 			if (itemTimeSinceAdded.size() > timeSinceAdded.size()) {
 				timeSinceAdded = itemTimeSinceAdded;
 			}
@@ -403,9 +410,11 @@ public class PrintItemSolrProcessor {
 		usableByPTypes.addAll(itemUsableByPTypes);
 	}
 
+	public Long getDaysSinceAdded(Date curDate){
+		return (indexDate.getTime() - curDate.getTime()) / (1000 * 60 * 60 * 24);
+	}
 	public LinkedHashSet<String> getTimeSinceAddedForDate(Date curDate) {
-		long timeDifferenceDays = (indexDate.getTime() - curDate.getTime())
-				/ (1000 * 60 * 60 * 24);
+		Long timeDifferenceDays = getDaysSinceAdded(curDate);
 		// System.out.println("Time Difference Days: " + timeDifferenceDays);
 		LinkedHashSet<String> result = new LinkedHashSet<String>();
 		if (timeDifferenceDays <= 1) {
@@ -430,5 +439,9 @@ public class PrintItemSolrProcessor {
 			result.add("Year");
 		}
 		return result;
+	}
+
+	public Long getBibDaysSinceAdded() {
+		return bibDaysSinceAdded;
 	}
 }

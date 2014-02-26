@@ -439,6 +439,15 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_location_boosting' => array(
+				'title' => 'Library Location Boosting',
+				'description' => 'Allow additional boosting for library and location holdings in addition to the default in the index.',
+				'sql' => array(
+					"ALTER TABLE library ADD additionalLocalBoostFactor INT(11) DEFAULT 1",
+					"ALTER TABLE location ADD additionalLocalBoostFactor INT(11) DEFAULT 1",
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',
