@@ -84,7 +84,7 @@
 {/if}
 {/strip}
 
-<script type="text/javascript" src="{$path}/js/lists.js" />
 <script type="text/javascript">
 	getOverDriveSummary();
 </script>
+<script type="text/javascript" src="{$path}/js/lists.js" ></script>
