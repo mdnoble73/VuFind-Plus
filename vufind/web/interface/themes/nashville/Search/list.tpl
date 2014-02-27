@@ -91,6 +91,13 @@
       
             {if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
 
+        <div id="noResultsWorldcat">
+            <h2>Didn't find what you were looking for?</h2>
+                <ul class="correctionSuggestionIndent">
+                    <li><a href="http://www.library.nashville.org/bmm/bmm_books_suggestionform.asp">Suggest a title for the library to purchase.</a></li>
+                    <li><a href="http://npl.worldcat.org/search?q={$lookfor|escape:"html"}">Repeat your search on npl.worldcat.org - we'll try to borrow the item for you.</a></li>
+                </ul>
+        </div>
 
       <b class="bbot"><b></b></b>
     </div>
