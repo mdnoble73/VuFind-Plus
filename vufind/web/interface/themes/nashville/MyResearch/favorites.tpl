@@ -19,14 +19,32 @@
 		{if $userNoticeFile}
 			{include file=$userNoticeFile}
 		{/if}
-			
+
+		{if $importResults}
+			<p>
+				Congratulations, we imported {$importResults.totalTitles} title{if $importResults.totalTitles !=1}s{/if} from {$importResults.totalLists} list{if $importResults.totalLists != 1}s{/if}.
+			</p>
+			{if $importResults.errors}
+				<div class="errors">Import Errors
+					<ul>
+					{foreach from=$importResults.errors item=error}
+						<li>{$error}</li>
+					{/foreach}
+					</ul>
+				</div>
+			{/if}
+			<p>
+				Please use the new catalog to manage your lists in the future.
+			</p>
+		{/if}
+
 		{if $showStrands && $user->disableRecommendations == 0}
 			{assign var="scrollerName" value="Recommended"}
 			{assign var="wrapperId" value="recommended"}
 			{assign var="scrollerVariable" value="recommendedScroller"}
 			{assign var="scrollerTitle" value="Recommended for you"}
-			{include file=titleScroller.tpl}
-		
+			{include file="titleScroller.tpl"}
+
 			<script type="text/javascript">
 				{literal}
 				var recommendedScroller;
@@ -41,7 +59,7 @@
 			{assign var="wrapperId" value="recentlyViewed"}
 			{assign var="scrollerVariable" value="recentlyViewedScroller"}
 			{assign var="scrollerTitle" value="Recently Browsed"}
-			{include file=titleScroller.tpl}
+			{include file="titleScroller.tpl"}
 		
 			<script type="text/javascript">
 			{literal}

@@ -232,8 +232,8 @@ class SearchObject_Genealogy extends SearchObject_Base
 	 * Return the specified setting from the facets.ini file.
 	 *
 	 * @access  public
-	 * @param   section   The section of the facets.ini file to look at.
-	 * @param   setting   The setting within the specified file to return.
+	 * @param   string $section   The section of the facets.ini file to look at.
+	 * @param   string $setting   The setting within the specified file to return.
 	 * @return  string    The value of the setting (blank if none).
 	 */
 	public function getFacetSetting($section, $setting)
@@ -267,12 +267,6 @@ class SearchObject_Genealogy extends SearchObject_Base
 		$this->dictionary = 'basicSpell';
 	}
 
-	/**
-	 * Basic 'getters'
-	 *
-	 * @access  public
-	 * @param   various internal variables
-	 */
 	public function getQuery()          {return $this->query;}
 	public function getIndexEngine()    {return $this->indexEngine;}
 
@@ -916,7 +910,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 	 *   we are already searching for
 	 *
 	 * @access  private
-	 * @param   array    List of suggestions
+	 * @param   array    $termList List of suggestions
 	 * @return  array    Filtered list
 	 */
 	private function filterSpellingTerms($termList) {

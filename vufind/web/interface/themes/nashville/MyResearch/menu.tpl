@@ -60,6 +60,9 @@
 				<div class="myAccountLink"><a href="{$list.url}">{$list.name}</a></div>
 			{/if}
 		{/foreach}
+		<div class="myAccountLink">
+			<button class="btn" onclick="return importListsFromClassic();">Import From Old Catalog</button>
+		</div>
 	</div>
 
 	{if $tagList}
@@ -81,6 +84,7 @@
 {/if}
 {/strip}
 
+<script type="text/javascript" src="{$path}/js/lists.js" />
 <script type="text/javascript">
-getOverDriveSummary();
+	getOverDriveSummary();
 </script>

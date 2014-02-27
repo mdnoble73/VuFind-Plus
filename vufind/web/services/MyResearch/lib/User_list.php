@@ -301,6 +301,11 @@ class User_list extends SolrDataObject
 	}
 
 	private $resourceList = null;
+
+	/**
+	 * @param String[]|null $tags
+	 * @return Resource[]|null
+	 */
 	function getResources($tags = null)
 	{
 		if ($this->resourceList != null){

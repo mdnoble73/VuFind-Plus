@@ -332,7 +332,7 @@ class MillenniumDriver implements DriverInterface
 		//Strip any non digit characters from the password
 		$password = preg_replace('/[a-or-zA-OR-Z\W]/', '', $password);
 
-		if ($configArray['Catalog']['offline'] == true){
+		if ($configArray['Catalog']['offline'] == false){
 			//The catalog is offline, check the database to see if the user is valid
 			$user = new User();
 			$user->cat_password = $password;
@@ -1614,5 +1614,88 @@ class MillenniumDriver implements DriverInterface
 			$result['message'] = trim($matches[1]);
 		}
 		return $result;
+	}
+
+	/**
+	 * Import Lists from the ILS
+	 *
+	 * @return array - an array of results including the names of the lists that were imported as well as number of titles.
+	 */
+	function importListsFromIls(){
+		require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
+		global $user;
+		$results = array(
+			'totalTitles' => 0,
+			'totalLists' => 0
+		);
+
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
+
+		//Get the page which contains a table with all lists in them.
+		$listsPage = $this->_fetchPatronInfoPage($patronDump, 'mylists');
+		//Get the actual table
+		if (preg_match('/<table[^>]*?class="patFunc"[^>]*?>(.*?)<\/table>/si', $listsPage, $listsPageMatches)) {
+			$allListTable = $listsPageMatches[1];
+			//Now that we have the table, get the actual list names and ids
+			preg_match_all('/<tr[^>]*?class="patFuncEntry"[^>]*?>.*?<input type="checkbox" id ="(\\d+)".*?<a.*?>(.*?)<\/a>.*?<td[^>]*class="patFuncDetails">(.*?)<\/td>.*?<\/tr>/si', $allListTable, $listDetails, PREG_SET_ORDER);
+			for ($listIndex = 0; $listIndex < count($listDetails); $listIndex++ ){
+				$listId = $listDetails[$listIndex][1];
+				$title = $listDetails[$listIndex][2];
+				$description = $listDetails[$listIndex][3];
+
+				//Create the list (or find one that already exists)
+				$newList = new User_list();
+				$newList->user_id = $user->id;
+				$newList->title = $title;
+				if (!$newList->find(true)){
+					$newList->description = $description;
+					$newList->insert();
+				}
+
+				$currentListResources = $newList->getResources();
+
+				//Get a list of all titles within the list to be imported
+				$listDetailsPage = $this->_fetchPatronInfoPage($patronDump, 'mylists?listNum='. $listId);
+				//Get the table for the details
+				if (preg_match('/<table[^>]*?class="patFunc"[^>]*?>(.*?)<\/table>/si', $listDetailsPage, $listsDetailsMatches)) {
+					$listTitlesTable = $listsDetailsMatches[1];
+					//Get the bib numbers for the title
+					preg_match_all('/<input type="checkbox" name="(b\\d{1,7})"/si', $listTitlesTable, $bibNumberMatches, PREG_SET_ORDER);
+					for ($bibCtr = 0; $bibCtr < count($bibNumberMatches); $bibCtr++){
+						$bibNumber = $bibNumberMatches[$bibCtr][1];
+
+						//Check to see if this title is already on the list.
+						$resourceOnList = false;
+						foreach ($currentListResources as $currentResource){
+							if ($currentResource->shortId == $bibNumber){
+								$resourceOnList = true;
+								break;
+							}
+						}
+
+						if (!$resourceOnList){
+							$titleResource = new Resource();
+							$titleResource->shortId = $bibNumber;
+							if ($titleResource->find(true)){
+								//We have the correct resource
+								$user->addResource($titleResource, $newList, null,'');
+							}else{
+								//The title is not in the resources, add an error to the results
+								if (!isset($results['errors'])){
+									$results['errors'] = array();
+								}
+								$results['errors'][] = "A title on list $title identified by id $bibNumber could not be found in the catalog and was not imported.";
+							}
+						}
+
+						$results['totalTitles']++;
+					}
+				}
+
+				$results['totalLists'] += 1;
+			}
+		}
+
+		return $results;
 	}
 }
