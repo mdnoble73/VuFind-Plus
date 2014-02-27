@@ -26,8 +26,15 @@
       {/if}
 
       {* Listing Options *}
-<!--
+
       <div class="resulthead">
+        {if $replacementTerm}
+					<div id="replacementSearchInfo">
+						<div style="font-size:120%">Showing Results for: <strong><em>{$replacementTerm}</em></strong></div>
+						<div style="font-size:95%">Search instead for: <a href="{$oldSearchUrl}">{$oldTerm}</a></div>
+					</div>
+				{/if}
+	      <!--
         <div class="yui-u first">
         {if $recordCount}
           {translate text="Showing"}
@@ -43,8 +50,8 @@
           {/foreach}
           </div>
           {/if}
+	      -->
         </div>
--->
         <div class="yui-u toggle">
 	        {if $recordCount}
 	          {translate text='Sort'}
