@@ -1660,9 +1660,10 @@ class MillenniumDriver implements DriverInterface
 				if (preg_match('/<table[^>]*?class="patFunc"[^>]*?>(.*?)<\/table>/si', $listDetailsPage, $listsDetailsMatches)) {
 					$listTitlesTable = $listsDetailsMatches[1];
 					//Get the bib numbers for the title
-					preg_match_all('/<input type="checkbox" name="(b\\d{1,7})"/si', $listTitlesTable, $bibNumberMatches, PREG_SET_ORDER);
+					preg_match_all('/<input type="checkbox" name="(b\\d{1,7})".*?<td[^>]*class="patFuncTitle">(.*?)<\/td>/si', $listTitlesTable, $bibNumberMatches, PREG_SET_ORDER);
 					for ($bibCtr = 0; $bibCtr < count($bibNumberMatches); $bibCtr++){
 						$bibNumber = $bibNumberMatches[$bibCtr][1];
+						$bibTitle = strip_tags($bibNumberMatches[$bibCtr][1]);
 
 						//Check to see if this title is already on the list.
 						$resourceOnList = false;
@@ -1684,7 +1685,7 @@ class MillenniumDriver implements DriverInterface
 								if (!isset($results['errors'])){
 									$results['errors'] = array();
 								}
-								$results['errors'][] = "A title on list $title identified by id $bibNumber could not be found in the catalog and was not imported.";
+								$results['errors'][] = "\"$bibTitle\" on list $title could not be found in the catalog and was not imported.";
 							}
 						}
 
