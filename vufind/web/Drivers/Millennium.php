@@ -1663,7 +1663,7 @@ class MillenniumDriver implements DriverInterface
 					preg_match_all('/<input type="checkbox" name="(b\\d{1,7})".*?<td[^>]*class="patFuncTitle">(.*?)<\/td>/si', $listTitlesTable, $bibNumberMatches, PREG_SET_ORDER);
 					for ($bibCtr = 0; $bibCtr < count($bibNumberMatches); $bibCtr++){
 						$bibNumber = $bibNumberMatches[$bibCtr][1];
-						$bibTitle = strip_tags($bibNumberMatches[$bibCtr][1]);
+						$bibTitle = strip_tags($bibNumberMatches[$bibCtr][2]);
 
 						//Check to see if this title is already on the list.
 						$resourceOnList = false;
