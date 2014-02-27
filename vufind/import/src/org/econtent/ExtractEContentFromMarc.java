@@ -1297,6 +1297,8 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				updateStatement.setString(curCol++, metadataRS.getString("publisher"));
 				addFieldToDoc(doc, "publisher", metadataRS.getString("publisher"));
 				updateStatement.setString(curCol++, ""); //Does not look like edition is available in api
+				//Add Popularity
+				addFieldToDoc(doc, "popularity", Integer.toString((int)Math.ceil(metadataRS.getFloat("popularity") / (float)100)));
 
 				//Load ISBNs
 				LexileData lexileData = null;
@@ -1339,9 +1341,10 @@ public class ExtractEContentFromMarc implements IMarcRecordProcessor, IRecordPro
 				}
 				updateStatement.setString(curCol++, upcs.toString());
 				addFieldToDoc(doc, "upc", upcSet);
-				updateStatement.setString(curCol++, metadataRS.getString("publishDate"));
-				addFieldToDoc(doc, "publishDate", metadataRS.getString("publishDate"));
-				addFieldToDoc(doc, "publishDateSort", metadataRS.getString("publishDate"));
+				String publishDateStr = metadataRS.getString("publishDate");
+				updateStatement.setString(curCol++, publishDateStr);
+				addFieldToDoc(doc, "publishDate", publishDateStr);
+				addFieldToDoc(doc, "publishDateSort", publishDateStr);
 				updateStatement.setString(curCol++, "external");
 				updateStatement.setLong(curCol++, new Date().getTime() / 1000);
 				updateStatement.setString(curCol++, recordInfo.getOverdriveId());
