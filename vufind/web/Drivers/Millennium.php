@@ -1641,7 +1641,7 @@ class MillenniumDriver implements DriverInterface
 			for ($listIndex = 0; $listIndex < count($listDetails); $listIndex++ ){
 				$listId = $listDetails[$listIndex][1];
 				$title = $listDetails[$listIndex][2];
-				$description = $listDetails[$listIndex][3];
+				$description = str_replace('&nbsp;', '', $listDetails[$listIndex][3]);
 
 				//Create the list (or find one that already exists)
 				$newList = new User_list();
