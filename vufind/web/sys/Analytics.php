@@ -82,6 +82,10 @@ class Analytics
 		$this->trackingDisabled = true;
 	}
 
+	function enableTracking(){
+		$this->trackingDisabled = false;
+	}
+
 	function isTrackingDisabled(){
 		return $this->trackingDisabled;
 	}
