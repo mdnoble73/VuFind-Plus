@@ -229,7 +229,7 @@ public class MarcRecordDetails {
 		}else{
 			//Use publication date to figure out the real date since added
 			String publicationYearString = this.getDate();
-			if (publicationYearString.length() == 4){
+			if (publicationYearString != null && publicationYearString.length() == 4){
 				Integer publicationYear = Integer.parseInt(publicationYearString);
 				//Return number of days since the given year
 				Calendar publicationDate = GregorianCalendar.getInstance();
