@@ -67,6 +67,10 @@ class UInterface extends Smarty
 		$thisYear = new Date();
 		$this->assign('lastYear', $thisYear->getYear() -1);
 
+		if (isset($_REQUEST['print'])) {
+			$this->assign('print', true);
+		}
+
 		// Check to see if multiple themes were requested; if so, build an array,
 		// otherwise, store a single string.
 		$themeArray = explode(',', $this->vufindTheme);
