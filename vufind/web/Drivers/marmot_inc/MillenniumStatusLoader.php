@@ -93,18 +93,21 @@ class MillenniumStatusLoader{
 					$linksTable = $displayUrlInfo[1];
 					preg_match_all('/<td.*?>.*?<a href="(.*?)".*?>(.*?)<\/a>.*?<\/td>/si', $linksTable, $linkData, PREG_SET_ORDER);
 					for ($i = 0; $i < count($linkData); $i++) {
-						$newHolding = array(
-							'type' => 'holding',
-							'link' => array(),
-							'status' => 'Online',
-							'location' => 'Online'
-						);
-						$newHolding['link'][] = array(
-							'link' => $linkData[$i][1],
-							'linkText' => $linkData[$i][2],
-							'isDownload' => true
-						);
-						$ret[] = $newHolding;
+						$linkText = $linkData[$i][2];
+						if ($linkText != 'Latest Received'){
+							$newHolding = array(
+									'type' => 'holding',
+									'link' => array(),
+									'status' => 'Online',
+									'location' => 'Online'
+							);
+							$newHolding['link'][] = array(
+									'link' => $linkData[$i][1],
+									'linkText' => $linkText,
+									'isDownload' => true
+							);
+							$ret[] = $newHolding;
+						}
 					}
 				}
 			}
@@ -246,7 +249,7 @@ class MillenniumStatusLoader{
 					}
 				}
 				if ($holding['locationCode'] == '?????'){
-					$logger->log("Did not find location code for " . $holding['location'] , PEAR_LOG_DEBUG);
+					$logger->log("Did not find location code for " . $holding['location'] . " record $id", PEAR_LOG_DEBUG);
 				}
 				if (array_key_exists($holding['locationCode'], $suppressedLocationCodes)){
 					$logger->log("Location " . $holding['locationCode'] . " is suppressed", PEAR_LOG_DEBUG);
@@ -259,10 +262,12 @@ class MillenniumStatusLoader{
 					foreach ($marcItemData as $itemData){
 						if (!$itemData['matched']){
 							$locationMatched = (strpos($itemData['location'], $holding['locationCode']) === 0);
-							if (strlen($itemData['callnumber']) == 0 || strlen($holding['callnumber']) == 0){
-								$callNumberMatched = (strlen($holding['callnumber']) == strlen($holding['callnumber']));
+							$itemCallNumber = isset($itemData['callnumber']) ? $itemData['callnumber'] : '';
+							$holdingCallNumber = isset($holding['callnumber']) ? $holding['callnumber'] : '';
+							if (strlen($itemCallNumber) == 0 || strlen($holding['callnumber']) == 0){
+								$callNumberMatched = (strlen($itemCallNumber) == strlen($holdingCallNumber));
 							}else{
-								$callNumberMatched = (strpos($itemData['callnumber'], $holding['callnumber']) >= 0);
+								$callNumberMatched = (strpos($itemCallNumber, $holdingCallNumber) >= 0);
 							}
 							if ($locationMatched && $callNumberMatched){
 								$holding['iType'] = $itemData['iType'];

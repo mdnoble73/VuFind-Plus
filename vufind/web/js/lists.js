@@ -79,3 +79,10 @@ function printListAction(){
 	window.print();
 	return false;
 }
+
+function importListsFromClassic(){
+	if (confirm("This will import any lists you had defined in the old catalog.  This may take several minutes depending on the size of your lists. Are you sure you want to continue?")){
+		window.location = path + "/MyResearch/ImportListsFromClassic";
+	}
+	return false;
+}

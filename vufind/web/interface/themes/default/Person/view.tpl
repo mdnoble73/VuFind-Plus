@@ -42,9 +42,18 @@
 		{if $ageAtDeath}
 			<div class='personDetail'><span class='personDetailLabel'>Age at Death:</span><span class='personDetailValue'>{$person->ageAtDeath|escape}</span></div>
 		{/if}
+		{if $person->sex}
+			<div class='personDetail'><span class='personDetailLabel'>Sex:</span><span class='personDetailValue'>{$person->sex|escape}</span></div>
+		{/if}
+		{if $person->race}
+			<div class='personDetail'><span class='personDetailLabel'>Race:</span><span class='personDetailValue'>{$person->race|escape}</span></div>
+		{/if}
 		{if $person->veteranOf}
 			{implode subject=$person->veteranOf glue=", " assign='veteranOf'}
 			<div class='personDetail'><span class='personDetailLabel'>Veteran Of:</span><span class='personDetailValue'>{$veteranOf}</span></div>
+		{/if}
+		{if $person->causeOfDeath}
+			<div class='personDetail'><span class='personDetailLabel'>Cause of Death:</span><span class='personDetailValue'>{$person->causeOfDeath|escape}</span></div>
 		{/if}
 
 		{if count($marriages) > 0 || $userIsAdmin}
@@ -67,7 +76,7 @@
 			{/foreach}
 
 		{/if}
-		{if $person->cemeteryName || $person->cemeteryLocation || $person->mortuaryName}
+		{if $person->cemeteryName || $person->cemeteryLocation || $person->mortuaryName || $person->cemeteryAvenue || $person->lot || $person->block || $person->grave || $person->addition}
 			<div class="blockhead">Burial Details</div>
 			{if $person->cemeteryName}
 			<div class='personDetail'><span class='personDetailLabel'>Cemetery Name:</span><span class='personDetailValue'>{$person->cemeteryName}</span></div>
@@ -75,10 +84,16 @@
 			{if $person->cemeteryLocation}
 			<div class='personDetail'><span class='personDetailLabel'>Cemetery Location:</span><span class='personDetailValue'>{$person->cemeteryLocation}</span></div>
 			{/if}
+			{if $person->cemeteryAvenue}
+				<div class='personDetail'><span class='personDetailLabel'>Cemetery Avenue:</span><span class='personDetailValue'>{$person->cemeteryAvenue}</span></div>
+			{/if}
 			{if $person->addition || $person->lot || $person->block || $person->grave}
 			<div class='personDetail'><span class='personDetailLabel'>Burial Location:</span>
 			<span class='personDetailValue'>
-				Addition {$person->addition}, Block {$person->block}, Lot {$person->lot}, Grave {$person->grave}
+				{if $person->addition}Addition {$person->addition}{if $person->block || $person->lot || $person->grave}, {/if}{/if}
+				{if $person->block}Block {$person->block}{if $person->lot || $person->grave}, {/if}{/if}
+				{if $person->lot}Lot {$person->lot}{if $person->grave}, {/if}{/if}
+				{if $person->grave}Grave {$person->grave}{/if}
 			</span></div>
 			{if $person->tombstoneInscription}
 			<div class='personDetail'><span class='personDetailLabel'>Tombstone Inscription:</span><div class='personDetailValue'>{$person->tombstoneInscription}</div></div>
@@ -115,6 +130,18 @@
 
 			{/foreach}
 
+		{/if}
+		{if $person->ledgerVolume || $person->ledgerYear || $person->ledgerEntry}
+			<div class="blockhead">Ledger Information</div>
+			{if $person->ledgerVolume}
+				<div class='personDetail'><span class='personDetailLabel'>Volume:</span><span class='personDetailValue'>{$person->ledgerVolume}</span></div>
+			{/if}
+			{if $person->ledgerYear}
+				<div class='personDetail'><span class='personDetailLabel'>Year:</span><span class='personDetailValue'>{$person->ledgerYear}</span></div>
+			{/if}
+			{if $person->ledgerYear}
+				<div class='personDetail'><span class='personDetailLabel'>Entry:</span><span class='personDetailValue'>{$person->ledgerEntry}</span></div>
+			{/if}
 		{/if}
 		<div class="blockhead">Comments</div>
 		{if $person->comments}

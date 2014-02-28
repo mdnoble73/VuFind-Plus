@@ -26,7 +26,7 @@ class Author_AJAX {
 		global $configArray;
 		global $library;
 		global $interface;
-		/** @var Memcache $memcache */
+		/** @var Memcache $memCache */
 		global $memCache;
 		$returnVal = array();
 		if (isset($configArray['Content']['authors'])
@@ -43,7 +43,7 @@ class Author_AJAX {
 				require_once ROOT_DIR . '/services/Author/Wikipedia.php';
 				$wikipediaParser = new Author_Wikipedia();
 				$authorInfo = $wikipediaParser->getWikipedia($authorName, $wiki_lang);
-				$memCache->add("wikipedia_article_{$authorName}_{$wiki_lang}", $authorInfo, $configArray['Caching']['wikipedia_article']);
+				$memCache->add("wikipedia_article_{$authorName}_{$wiki_lang}", $authorInfo, false, $configArray['Caching']['wikipedia_article']);
 			}
 			$returnVal['success'] = true;
 			$returnVal['article'] = $authorInfo;

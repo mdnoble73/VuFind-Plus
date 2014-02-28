@@ -437,6 +437,7 @@ class JSON extends Action {
 		if (!isset($_REQUEST['category']) || !isset($_REQUEST['eventAction'])){
 			return 'Must provide a category and action to track an event';
 		}
+		$analytics->enableTracking();
 		$category = strip_tags($_REQUEST['category']);
 		$action = strip_tags($_REQUEST['eventAction']);
 		$data = isset($_REQUEST['data']) ? strip_tags($_REQUEST['data']) : '';

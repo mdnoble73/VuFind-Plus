@@ -571,11 +571,12 @@ public class ExtractOverDriveInfo {
 					metaDataStatement.setLong(++curCol, metadataChecksum);
 					metaDataStatement.setString(++curCol, metaData.has("sortTitle") ? metaData.getString("sortTitle") : "");
 					metaDataStatement.setString(++curCol, metaData.has("publisher") ? metaData.getString("publisher") : "");
-					if (metaData.has("publishDate")){
-						String publishDate = metaData.getString("publishDate");
-						if (publishDate.matches("\\d{2}/\\d{2}/\\d{4}")){
-							publishDate = publishDate.substring(6, 10);
-							metaDataStatement.setLong(++curCol, Long.parseLong(publishDate));
+					//Grab the textual version of publish date rather than the actual date
+					if (metaData.has("publishDateText")){
+						String publishDateText = metaData.getString("publishDateText");
+						if (publishDateText.matches("\\d{2}/\\d{2}/\\d{4}")){
+							publishDateText = publishDateText.substring(6, 10);
+							metaDataStatement.setLong(++curCol, Long.parseLong(publishDateText));
 						}else{
 							metaDataStatement.setNull(++curCol, Types.INTEGER);
 						}

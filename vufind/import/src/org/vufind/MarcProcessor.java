@@ -62,7 +62,9 @@ public class MarcProcessor {
 	HashMap<String, String[]>								marcFieldProps	= new HashMap<String, String[]>();
 	
 	private String idsToProcess = null;
-	
+	private Integer availableAtLocationBoostValue;
+	private Integer ownedByLocationBoostValue;
+
 	public HashMap<String, String[]> getMarcFieldProps() {
 		return marcFieldProps;
 	}
@@ -241,6 +243,8 @@ public class MarcProcessor {
 		dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
 		useItemBasedCallNumbers = configIni.get("Reindex", "useItemBasedCallNumbers").length() > 0 ? Boolean.getBoolean(configIni.get("Reindex", "useItemBasedCallNumbers")) : true;
 		suppressItemlessBibs = configIni.get("Reindex", "suppressItemlessBibs").length() > 0 ? Boolean.getBoolean(configIni.get("Reindex", "suppressItemlessBibs")) : false;
+		availableAtLocationBoostValue = configIni.get("Reindex", "availableAtLocationBoostValue").length() > 0 ? Integer.parseInt(configIni.get("Reindex", "availableAtLocationBoostValue")) : 50;
+		ownedByLocationBoostValue = configIni.get("Reindex", "ownedByLocationBoostValue").length() > 0 ? Integer.parseInt(configIni.get("Reindex", "ownedByLocationBoostValue")) : 50;
 
 		// Load the checksum of any marc records that have been loaded already
 		// This allows us to detect whether or not the record is new, has changed,
@@ -1423,5 +1427,13 @@ public class MarcProcessor {
 			return (float)holdData.get(ilsId);
 		}
 		return 0;
+	}
+
+	public Integer getAvailableAtLocationBoostValue() {
+		return availableAtLocationBoostValue;
+	}
+
+	public Integer getOwnedByLocationBoostValue() {
+		return ownedByLocationBoostValue;
 	}
 }

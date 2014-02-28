@@ -488,6 +488,15 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_location_boosting' => array(
+				'title' => 'Library Location Boosting',
+				'description' => 'Allow additional boosting for library and location holdings in addition to the default in the index.',
+				'sql' => array(
+					"ALTER TABLE library ADD additionalLocalBoostFactor INT(11) DEFAULT 1",
+					"ALTER TABLE location ADD additionalLocalBoostFactor INT(11) DEFAULT 1",
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',
@@ -925,6 +934,23 @@ class DBMaintenance extends Admin_Admin {
 					"ALTER TABLE person ADD COLUMN importedFrom VARCHAR(50) NULL",
 				),
 			),
+
+            'genealogy_nashville_1' => array(
+                'title' => 'Genealogy Update : Nashville 1',
+                'description' => 'Update Genealogy : for Nashville to add Nashville City Cemetery information.',
+                'continueOnError' => true,
+                'sql' => array(
+                    "ALTER TABLE person ADD COLUMN ledgerVolume VARCHAR(20) NULL DEFAULT ''",
+                    "ALTER TABLE person ADD COLUMN ledgerYear VARCHAR(20) NULL DEFAULT ''",
+                    "ALTER TABLE person ADD COLUMN ledgerEntry VARCHAR(20) NULL DEFAULT ''",
+                    "ALTER TABLE person ADD COLUMN sex VARCHAR(20) NULL DEFAULT ''",
+                    "ALTER TABLE person ADD COLUMN race VARCHAR(20) NULL DEFAULT ''",
+                    "ALTER TABLE person ADD COLUMN residence VARCHAR(255) NULL DEFAULT ''",
+                    "ALTER TABLE person ADD COLUMN causeOfDeath VARCHAR(255) NULL DEFAULT ''",
+                    "ALTER TABLE person ADD COLUMN cemeteryAvenue VARCHAR(255) NULL DEFAULT ''",
+                    "ALTER TABLE person CHANGE lot lot VARCHAR(20) NULL DEFAULT ''",
+                ),
+            ),
 
 			'recommendations_optOut' => array(
 				'title' => 'Recommendations Opt Out',

@@ -100,6 +100,7 @@ class Library extends DB_DataObject
 	public $homePageWidgetId;
 	public $showCheckInGrid;
 	public $boostByLibrary;
+	public $additionalLocalBoostFactor;
 	public $recordsToBlackList;
 	public $showWikipediaContent;
 	public $eContentSupportAddress;
@@ -234,6 +235,7 @@ class Library extends DB_DataObject
 				'includeDigitalCollection' => array('property'=>'includeDigitalCollection', 'type'=>'checkbox', 'label'=>'Include Digital Collection', 'description'=>'Whether or not titles from the digital collection should be included in searches', 'hideInLists' => true),
 				'includeOutOfSystemExternalLinks' => array('property' => 'includeOutOfSystemExternalLinks', 'type'=>'checkbox', 'label'=>'Include Out Of System External Links', 'description'=>'Whether or not to include external links from other library systems.  Should only be enabled for Marmot global scope.', 'hideInLists' => true, 'default'=>0),
 				'boostByLibrary' => array('property'=>'boostByLibrary', 'type'=>'checkbox', 'label'=>'Boost By Library', 'description'=>'Whether or not boosting of titles owned by this library should be applied', 'hideInLists' => true),
+				'additionalLocalBoostFactor' => array('property'=>'additionalLocalBoostFactor', 'type'=>'integer', 'label'=>'Additional Local Boost Factor', 'description'=>'An additional numeric boost to apply to any locally owned and locally available titles', 'hideInLists' => true),
 				'restrictOwningBranchesAndSystems' => array('property'=>'restrictOwningBranchesAndSystems', 'type'=>'checkbox', 'label'=>'Restrict Owning Branch and System Facets to this library', 'description'=>'Whether or not the Owning Branch and Owning System Facets will only display values relevant to this library.', 'hideInLists' => true),
 				'showAvailableAtAnyLocation' => array('property'=>'showAvailableAtAnyLocation', 'type'=>'checkbox', 'label'=>'Show Available At Any Location?', 'description'=>'Whether or not to show any Marmot Location within the Available At facet', 'hideInLists' => true),
 				'searchesFile' => array('property'=>'searchesFile', 'type'=>'text', 'label'=>'Searches File', 'description'=>'The name of the searches file which should be used while searching', 'hideInLists' => true,),
