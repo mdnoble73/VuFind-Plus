@@ -163,7 +163,7 @@ public class PrintItemSolrProcessor {
 					itemSuppressed = true;
 				}
 				if (itemField.getSubfield('b') != null){
-					String barcode = itemField.getSubfield('b').getData();
+					String barcode = itemField.getSubfield('b').getData().trim();
 					available = marcProcessor.isBarcodeAvailable(barcode);
 				}
 			}

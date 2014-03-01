@@ -7,17 +7,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
@@ -125,7 +115,7 @@ public class MarcProcessor {
 	private HashMap<String, ArrayList<OrderRecord>> orderRecords = new HashMap<String, ArrayList<OrderRecord>>();
 
 	private boolean getAvailabilityFromMarc = true;
-	private HashSet<String> availableItemBarcodes = new HashSet<String>();
+	private TreeSet<String> availableItemBarcodes = new TreeSet<String>();
 	
 	private Connection vufindConn;
 	private Connection econtentConn;
@@ -424,7 +414,7 @@ public class MarcProcessor {
 			String availableBarcode;
 			while ((availableBarcode = availableItemsReader.readLine()) != null){
 				if (availableBarcode.length() > 0){
-					availableItemBarcodes.add(Util.cleanIniValue(availableBarcode));
+					availableItemBarcodes.add(Util.cleanIniValue(availableBarcode).trim());
 				}
 			}
 			availableItemsReader.close();
