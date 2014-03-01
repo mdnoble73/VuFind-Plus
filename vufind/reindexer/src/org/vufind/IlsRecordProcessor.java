@@ -63,7 +63,7 @@ public abstract class IlsRecordProcessor {
 
 	private static boolean availabilityDataLoaded = false;
 	private static boolean getAvailabilityFromMarc = true;
-	private static HashSet<String> availableItemBarcodes = new HashSet<String>();
+	private static TreeSet<String> availableItemBarcodes = new TreeSet<String>();
 
 	public IlsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
 		String marcRecordPath = configIni.get("Reindex", "marcPath");
@@ -182,7 +182,7 @@ public abstract class IlsRecordProcessor {
 				String availableBarcode;
 				while ((availableBarcode = availableItemsReader.readLine()) != null){
 					if (availableBarcode.length() > 0){
-						availableItemBarcodes.add(Util.cleanIniValue(availableBarcode));
+						availableItemBarcodes.add(Util.cleanIniValue(availableBarcode).trim());
 					}
 				}
 				availableItemsReader.close();
