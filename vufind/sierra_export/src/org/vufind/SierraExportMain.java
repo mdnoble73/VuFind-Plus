@@ -214,7 +214,8 @@ public class SierraExportMain{
 						"WHERE " +
 						"item_status_code IN ('-', 'o', 'd', 'w', 'j', 'u') " +
 						"AND icode2 != 'n' AND icode2 != 'x' " +
-						"AND is_suppressed = 'f' "
+						"AND is_suppressed = 'f' " +
+						"AND BARCODE != ''"
 						//"AND patron_record_id = null"
 				);
 				ResultSet activeOrdersRS = null;
