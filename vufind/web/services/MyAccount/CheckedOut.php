@@ -138,6 +138,7 @@ class MyAccount_CheckedOut extends MyResearch{
 			$this->exportToExcel($allCheckedOut, $showOut, $showRenewed, $showWaitList);
 		}
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('checkedout.tpl');
 		$interface->setPageTitle('Checked Out Items');
 		$interface->display('layout.tpl');

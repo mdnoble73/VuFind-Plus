@@ -31,30 +31,19 @@ class Suggestions{
 			$notInterestedTitles[$fullId] = $fullId;
 		}
 
-		//Load all titles the user has rated (print)
+		//Load all titles the user has rated
 		$allRatedTitles = array();
 		$allLikedRatedTitles = array();
-		$ratings = new UserRating();
-		$ratings->userid = $userId;
-		$resource = new Resource();
-		$notInterested->joinAdd($resource);
-		$ratings->joinAdd($resource);
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
+		$ratings = new UserWorkReview();
+		$ratings->userId = $userId;
+		//TODO: Update to use Not Interested with Grouped Works
+		//$notInterested->joinAdd($resource);
 		$ratings->find();
 		while ($ratings->fetch()){
-			$allRatedTitles[$ratings->record_id] = $ratings->record_id;
+			$allRatedTitles[$ratings->groupedRecordPermanentId] = $ratings->groupedRecordPermanentId;
 			if ($ratings->rating >= 4){
-				$allLikedRatedTitles[] = $ratings->record_id;
-			}
-		}
-
-		//Load all titles the user has rated (eContent)
-		$econtentRatings = new EContentRating();
-		$econtentRatings->userId = $userId;
-		$econtentRatings->find();
-		while ($econtentRatings->fetch()){
-			$allRatedTitles['econtentRecord' . $econtentRatings->recordId] = 'econtentRecord' . $econtentRatings->recordId;
-			if ($econtentRatings->rating >= 4){
-				$allLikedRatedTitles[] = 'econtentRecord' . $econtentRatings->recordId;
+				$allLikedRatedTitles[] = $ratings->groupedRecordPermanentId;
 			}
 		}
 
@@ -64,7 +53,7 @@ class Suggestions{
 		$db = new $class($url);
 
 		//Get a list of all titles the user has rated (3 star and above)
-		$ratings = new UserRating();
+		$ratings = new UserWorkReview();
 		$ratings->whereAdd("userId = $userId", 'AND');
 		$ratings->whereAdd('rating >= 3', 'AND');
 		$ratings->orderBy('rating DESC, dateRated DESC, id DESC');
@@ -74,76 +63,20 @@ class Suggestions{
 		$ratings->find();
 		$suggestions = array();
 		//echo("User has rated {$ratings->N} titles<br/>");
+		require_once ROOT_DIR . '/services/API/WorkAPI.php';
+		$workApi = new WorkAPI();
 		if ($ratings->N > 0){
 			while($ratings->fetch()){
-				$resourceId = $ratings->resourceid;
-				//Load the resource
-				$resource = new Resource();
-				$resource->id = $resourceId;
-				$resource->find();
-				if ($resource->N != 1){
-					//echo("Did not find resource for $resourceId<br/>");
-				}else{
-					$resource->fetch();
-					//echo("Found resource for $resourceId - {$resource->title}<br/>");
-					$ratedTitles[$resource->record_id] = clone $ratings;
-					$numRecommendations = 0;
-					if ($resource->isbn){
-						//If there is an isbn for the title, we can load similar titles based on Novelist.
-						$isbn = $resource->isbn;
-						$numRecommendations = Suggestions::getNovelistRecommendations($ratings, $isbn, $resource, $allRatedTitles, $suggestions, $notInterestedTitles);
-						//echo("&nbsp;- Found $numRecommendations for $isbn from Novelist<br/>");
-
-					}
-					if ($numRecommendations == 0){
-						Suggestions::getSimilarlyRatedTitles($db, $ratings, $userId, $allRatedTitles, $suggestions, $notInterestedTitles);
-						//echo("&nbsp;- Found $numRecommendations based on ratings from other users<br/>");
-					}
+				$groupedWorkId = $ratings->groupedRecordPermanentId;
+				//echo("Found resource for $resourceId - {$resource->title}<br/>");
+				$ratedTitles[$resource->record_id] = clone $ratings;
+				$isbns = $workApi->getIsbnsForWork($groupedWorkId);
+				$numRecommendations = Suggestions::getNovelistRecommendations($ratings, $groupedWorkId, $isbns, $allRatedTitles, $suggestions, $notInterestedTitles);
+				if ($numRecommendations == 0){
+					Suggestions::getSimilarlyRatedTitles($workApi, $db, $ratings, $userId, $allRatedTitles, $suggestions, $notInterestedTitles);
+					//echo("&nbsp;- Found $numRecommendations based on ratings from other users<br/>");
 				}
 			}
-		}
-
-		//Also get eContent the user has rated highly
-		$econtentRatings = new EContentRating();
-		$econtentRatings->userId = $userId;
-		$econtentRatings->whereAdd('rating >= 3');
-		$econtentRatings->orderBy('rating DESC, dateRated DESC');
-		$econtentRatings->limit(0, 5);
-		$econtentRatings->find();
-		//echo("User has rated {$econtentRatings->N} econtent titles<br/>");
-		if ($econtentRatings->N > 0){
-			while($econtentRatings->fetch()){
-				//echo("Processing eContent Rating {$econtentRatings->recordId}<br/>");
-				//Load the resource
-				$resource = new Resource();
-				$resource->record_id = $econtentRatings->recordId;
-				$resource->source = 'eContent';
-				$resource->find();
-				if ($resource->N != 1){
-					//echo("Did not find resource for $resourceId<br/>");
-				}else{
-					$resource->fetch();
-					//echo("Found resource for $resourceId - {$resource->title}<br/>");
-					$ratedTitles[$resource->record_id] = clone $econtentRatings;
-					$numRecommendations = 0;
-					if ($resource->isbn){
-						//If there is an isbn for the title, we can load similar titles based on Novelist.
-						$isbn = $resource->isbn;
-						$numRecommendations = Suggestions::getNovelistRecommendations($ratings, $isbn, $resource, $allRatedTitles, $suggestions, $notInterestedTitles);
-						//echo("&nbsp;- Found $numRecommendations for $isbn from Novelist<br/>");
-					}
-					if ($numRecommendations == 0){
-						Suggestions::getSimilarlyRatedTitles($db, $ratings, $userId, $allRatedTitles, $suggestions, $notInterestedTitles);
-						//echo("&nbsp;- Found $numRecommendations based on ratings from other users<br/>");
-					}
-				}
-			}
-		}
-
-		$groupedTitles = array();
-		foreach ($suggestions as $suggestion){
-			$groupingTerm = $suggestion['titleInfo']['grouping_term'];
-			$groupedTitles[] = $groupingTerm;
 		}
 
 		//If the user has not rated anything, return nothing.
@@ -160,12 +93,6 @@ class Suggestions{
 		//print_r($moreLikeTheseSuggestions);
 		if (count($suggestions) < 30){
 			foreach ($moreLikeTheseSuggestions['response']['docs'] as $suggestion){
-				$groupingTerm = $suggestion['grouping_term'];
-				if (array_key_exists($groupingTerm, $groupedTitles)){
-					//echo ($suggestion['grouping_term'] . " is already in the suggestions");
-					continue;
-				}
-				$groupedTitles[$groupingTerm] = $groupingTerm;
 				//print_r($suggestion);
 				if (!array_key_exists($suggestion['id'], $allRatedTitles) && !array_key_exists($suggestion['id'], $notInterestedTitles)){
 					$suggestions[$suggestion['id']] = array(
@@ -193,29 +120,30 @@ class Suggestions{
 	/**
 	 * Load titles that have been rated by other users which are similar to this.
 	 *
+	 * @param WorkAPI $workApi
 	 * @param SearchObject_Solr|SearchObject_Base $db
-	 * @param UserRating $ratedTitle
+	 * @param UserWorkReview $ratedTitle
 	 * @param integer $userId
 	 * @param array $ratedTitles
 	 * @param array $suggestions
 	 * @param integer[] $notInterestedTitles
 	 * @return int The number of suggestions for this title
 	 */
-	static function getSimilarlyRatedTitles($db, $ratedTitle, $userId, $ratedTitles, &$suggestions, $notInterestedTitles){
+	static function getSimilarlyRatedTitles($workApi, $db, $ratedTitle, $userId, $ratedTitles, &$suggestions, $notInterestedTitles){
 		$numRecommendations = 0;
 		//If there is no ISBN, can we come up with an alternative algorithm?
 		//Possibly using common ratings with other patrons?
 		//Get a list of other patrons that have rated this title and that like it as much or more than the active user..
-		$otherRaters = new UserRating();
+		$otherRaters = new UserWorkReview();
 		//Query the database to get items that other users who rated this liked.
-		$sqlStatement = ("SELECT resourceid, record_id, " .
+		$sqlStatement = ("SELECT groupedRecordPermanentId, " .
                     " sum(case rating when 5 then 10 when 4 then 6 end) as rating " . //Scale the ratings similar to the above.
-                    " FROM `user_rating` inner join resource on resource.id = user_rating.resourceid WHERE userId in " .
-                    " (select userId from user_rating where resourceId = " . $ratedTitle->resourceid . //Get other users that have rated this title.
+                    " FROM `user_work_review` WHERE userId in " .
+                    " (select userId from user_work_review where groupedRecordPermanentId = " . $ratedTitle->groupedRecordPermanentId . //Get other users that have rated this title.
                     " and rating >= 4 " . //Make sure that other users liked the book.
                     " and userid != " . $userId . ") " . //Make sure that we don't include this user in the results.
                     " and rating >= 4 " . //Only include ratings that are 4 or 5 star so we don't get books the other user didn't like.
-                    " and resourceId != " . $ratedTitle->resourceid . //Make sure we don't get back this title as a recommendation.
+                    " and groupedRecordPermanentId != " . $ratedTitle->groupedRecordPermanentId . //Make sure we don't get back this title as a recommendation.
                     " and deleted = 0 " . //Ignore deleted resources
                     " group by resourceid order by rating desc limit 10"); //Sort so the highest titles are on top and limit to 10 suggestions.
 		$otherRaters->query($sqlStatement);
@@ -225,7 +153,7 @@ class Suggestions{
 				//Process the title
 				disableErrorHandler();
 
-				if (!($ownedRecord = $db->getRecord($otherRaters->record_id))) {
+				if (!($ownedRecord = $db->getRecord($otherRaters->groupedRecordPermanentId))) {
 					//Old record which has been removed? Ignore for purposes of suggestions.
 					continue;
 				}
@@ -267,7 +195,6 @@ class Suggestions{
 						'format' => $ownedRecord['format'],
 						'recordtype' => $ownedRecord['recordtype'],
 						'series' => $series,
-						'grouping_term' => $ownedRecord['grouping_term'],
 				);
 				$numRecommendations++;
 				Suggestions::addTitleToSuggestions($ratedTitle, $similarTitle['title'], $similarTitle['recordId'], $similarTitle, $ratedTitles, $suggestions, $notInterestedTitles);
@@ -276,18 +203,18 @@ class Suggestions{
 		return $numRecommendations;
 	}
 
-	static function getNovelistRecommendations($userRating, $isbn, $resource, $allRatedTitles, &$suggestions, $notInterestedTitles){
+	static function getNovelistRecommendations($userRating, $groupedWorkId, $isbn, $allRatedTitles, &$suggestions, $notInterestedTitles){
 		//We now have the title, we can get the related titles from Novelist
 		$novelist = NovelistFactory::getNovelist();;
 		//Use loadEnrichmentInfo even though there is more data than we need since it uses caching.
-		$enrichmentInfo = $novelist->loadEnrichment($isbn);
+		$enrichmentInfo = $novelist->getSimilarTitles($groupedWorkId, $isbn);
 		$numRecommendations = 0;
 
-		if (isset($enrichmentInfo['similarTitleCountOwned']) && $enrichmentInfo['similarTitleCountOwned'] > 0){
+		if (isset($enrichmentInfo->similarTitleCountOwned) && $enrichmentInfo->similarTitleCountOwned > 0){
 			//For each related title
-			foreach ($enrichmentInfo['similarTitles'] as $similarTitle){
+			foreach ($enrichmentInfo->similarTitles as $similarTitle){
 				if ($similarTitle['libraryOwned']){
-					Suggestions::addTitleToSuggestions($userRating, $resource->title, $resource->record_id, $similarTitle, $allRatedTitles, $suggestions, $notInterestedTitles);
+					Suggestions::addTitleToSuggestions($userRating, $groupedWorkId, $groupedWorkId, $similarTitle, $allRatedTitles, $suggestions, $notInterestedTitles);
 					$numRecommendations++;
 				}
 			}

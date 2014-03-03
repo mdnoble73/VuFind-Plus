@@ -19,7 +19,7 @@
 								</a>
 								<br />&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 								<a href="#" onclick="return VuFind.ResultsList.toggleRelatedManifestations('{$id}_{$relatedManifestation.format|escapeCSS}');">
-									<span class='' id='manifestation-toggle-text-{$id}_{$relatedManifestation.format|escapeCSS}'>(View all Editions)</span>
+									<span class='manifestation-toggle-text label label-info' id='manifestation-toggle-text-{$id}_{$relatedManifestation.format|escapeCSS}'>Show&nbsp;Editions</span>
 								</a>
 							{/if}
 						</div>
@@ -41,11 +41,11 @@
 							{/if}
 							{if $relatedManifestation.shelfLocation}
 								<div class="related-manifestation-shelf-location">
-									Shelf Location: {$relatedManifestation.shelfLocation}
+									Shelf Location: <span class="notranslate">{$relatedManifestation.shelfLocation}</span>
 								</div>
 							{/if}
 							{if $relatedManifestation.callNumber}
-								<div class="related-manifestation-call-number">Call Number: {$relatedManifestation.callNumber}</div>
+								<div class="related-manifestation-call-number">Call Number: <span class="notranslate">{$relatedManifestation.callNumber}</span></div>
 							{/if}
 
 						</div>

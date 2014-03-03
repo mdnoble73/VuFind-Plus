@@ -21,8 +21,8 @@
 		</div>
 		{/if}
 		<div id="titleScroller{$scrollerName}" class="titleScrollerBody">
-			<div class="leftScrollerButton enabled btn" onclick="{$scrollerVariable}.scrollToLeft();"><i class="icon-arrow-left"></i></div>
-			<div class="rightScrollerButton btn" onclick="{$scrollerVariable}.scrollToRight();"><i class="icon-arrow-right"></i></div>
+			<div class="leftScrollerButton enabled btn" onclick="{$scrollerVariable}.scrollToLeft();"><i class="glyphicon glyphicon-chevron-left"></i></div>
+			<div class="rightScrollerButton btn" onclick="{$scrollerVariable}.scrollToRight();"><i class="glyphicon glyphicon-chevron-right"></i></div>
 			<div class="scrollerBodyContainer">
 				<div class="scrollerBody" style="display:none"></div>
 				<div class="scrollerLoadingContainer">
@@ -30,8 +30,8 @@
 				</div>
 			</div>
 			<div class="clearer"></div>
-			<div id="titleScrollerSelectedTitle{$scrollerName}" class="titleScrollerSelectedTitle"></div>
-			<div id="titleScrollerSelectedAuthor{$scrollerName}" class="titleScrollerSelectedAuthor"></div>
+			<div id="titleScrollerSelectedTitle{$scrollerName}" class="titleScrollerSelectedTitle notranslate"></div>
+			<div id="titleScrollerSelectedAuthor{$scrollerName}" class="titleScrollerSelectedAuthor notranslate"></div>
 		</div>    
 	</div>
 </div>

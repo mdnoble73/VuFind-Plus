@@ -428,25 +428,16 @@ class OverDriveDriver3 {
 					$bookshelfItem['earlyReturn']  = true;
 				}
 				//Figure out which eContent record this is for.
-				$eContentRecord = new EContentRecord();
-				$eContentRecord->externalId = $bookshelfItem['overDriveId'];
-				$eContentRecord->source = 'OverDrive';
-				$eContentRecord->status = 'active';
-				if ($eContentRecord->find(true)){
-					$bookshelfItem['recordId'] = $eContentRecord->id;
-					$bookshelfItem['recordUrl'] = $configArray['Site']['path'] . '/EcontentRecord/' . $eContentRecord->id . '/Home';
-					$bookshelfItem['title'] = $eContentRecord->title;
-					$bookshelfItem['author'] = $eContentRecord->author;
-					$bookshelfItem['imageUrl'] = $configArray['Site']['coverUrl'] . '/bookcover.php?size=medium&econtent=true&id=' . $eContentRecord->id;
+				require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
+				$overDriveRecord = new OverDriveRecordDriver($bookshelfItem['overDriveId']);
+				$bookshelfItem['recordId'] = $overDriveRecord->getUniqueID();
+				$bookshelfItem['coverUrl'] = $overDriveRecord->getCoverUrl('medium');
+				$bookshelfItem['recordUrl'] = $configArray['Site']['path'] . '/OverDrive/' . $overDriveRecord->getUniqueID() . '/Home';
+				$bookshelfItem['title'] = $overDriveRecord->getTitle();
+				$bookshelfItem['author'] = $overDriveRecord->getAuthor();
+				$bookshelfItem['imageUrl'] = $overDriveRecord->getLinkUrl(false);
+				$bookshelfItem['ratingData'] = $overDriveRecord->getRatingData();
 
-					//Get Rating
-					require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
-					$econtentRating = new EContentRating();
-					$econtentRating->recordId = $eContentRecord->id;
-					$bookshelfItem['ratingData'] = $econtentRating->getRatingData($user, false);
-				}else{
-					$bookshelfItem['recordId'] = -1;
-				}
 				$key = $bookshelfItem['checkoutSource'] . $bookshelfItem['overDriveId'];
 				$checkedOutTitles[$key] = $bookshelfItem;
 			}

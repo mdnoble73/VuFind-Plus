@@ -14,60 +14,24 @@ class MyRatings extends MyResearch{
 		global $user;
 
 		//Load user ratings
-		require_once ROOT_DIR . '/Drivers/marmot_inc/UserRating.php';
-		$rating = new UserRating();
-		$resource = new Resource();
-		$rating->joinAdd($resource);
-		$rating->userid = $user->id;
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+		$rating = new UserWorkReview();
+		$groupedWork = new GroupedWork();
+		$rating->joinAdd($groupedWork);
+		$rating->userId = $user->id;
 		$rating->find();
 		$ratings = array();
 		while($rating->fetch()){
-			if ($rating->deleted == 0){
-				$ratings[] = array(
-					'id' =>$rating->id,
-					'title' => $rating->title,
-					'author' => $rating->author,
-					'format' => $rating->format,
-					'rating' => $rating->rating,
-					'resourceId' => $rating->resourceid,
-					'fullId' => $rating->record_id,
-					'shortId' => $rating->shortId,
-					'link' => '/Record/' . $rating->record_id . '/Home',
-					'dateRated' => $rating->dateRated,
-					'ratingData' => array('user'=>$rating->rating),
-					'source' => 'VuFind'
-				);
-			}
-		}
-
-		//Load econtent ratings
-		require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
-		$eContentRating = new EContentRating();
-		$econtentRecord = new EContentRecord();
-		$eContentRating->joinAdd($econtentRecord);
-		$eContentRating->userId = $user->id;
-		$eContentRating->find();
-		while ($eContentRating->fetch()){
-			if ($eContentRating->status == 'active'){
-				$resource = new Resource();
-				$resource->record_id = $eContentRating->id;
-				$resource->source = 'eContent';
-				$resource->find(true);
-				$ratings[] = array(
-					'id' =>$eContentRating->id,
-					'title' => $eContentRating->title,
-					'author' => $eContentRating->author,
-					'format' => $resource->format_category,
-					'rating' => $eContentRating->rating,
-					//'resourceId' => $eContentRating->resourceid,
-					'fullId' => $eContentRating->id,
-					'shortId' => $eContentRating->id,
-					'link' => '/EcontentRecord/' . $eContentRating->id . '/Home',
-					'dateRated' => $eContentRating->dateRated,
-					'ratingData' => array('user'=>$eContentRating->rating),
-					'source' => 'eContent'
-				);
-			}
+			$ratings[] = array(
+				'id' =>$rating->id,
+				'title' => ucwords($rating->full_title),
+				'author' => ucwords($rating->author),
+				'rating' => $rating->rating,
+				'link' => '/GroupedWork/' . $rating->groupedRecordPermanentId . '/Home',
+				'dateRated' => $rating->dateRated,
+				'ratingData' => array('user'=>$rating->rating),
+			);
 		}
 
 		asort($ratings);
@@ -104,6 +68,7 @@ class MyRatings extends MyResearch{
 		$interface->assign('notInterested', $notInterested);
 
 		$interface->setPageTitle('My Ratings');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('myRatings.tpl');
 		$interface->display('layout.tpl');
 	}

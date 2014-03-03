@@ -1,12 +1,10 @@
 {strip}
-	<h4>Similar Titles</h4>
 	<div id="similarTitlesNovelist" class="striped div-striped">
 		{foreach from=$similarTitles item=similarTitle name="recordLoop"}
-			<div class="">
-				{* This is raw HTML -- do not escape it: *}
-				<h3>{if $similarTitle.fullRecordLink}<a href='{$similarTitle.fullRecordLink}'>{/if}{$similarTitle.title}{if $similarTitle.fullRecordLink}</a>{/if}
-					by <a href="/Search/Results?lookfor={$similarTitle.author|escape:url}">{$similarTitle.author}</a></h3>
-				<div class="reason">
+			<div class="novelist-similar-item">
+				<div class="novelist-similar-item-header notranslate">{if $similarTitle.fullRecordLink}<a href='{$similarTitle.fullRecordLink}'>{/if}{$similarTitle.title|removeTrailingPunctuation}{if $similarTitle.fullRecordLink}</a>{/if}
+					&nbsp;by <a href="/Search/Results?lookfor={$similarTitle.author|escape:url}" class="notranslate">{$similarTitle.author}</a></div>
+				<div class="novelist-similar-item-reason">
 					{$similarTitle.reason}
 				</div>
 			</div>

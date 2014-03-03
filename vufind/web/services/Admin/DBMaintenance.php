@@ -71,6 +71,7 @@ class DBMaintenance extends Admin_Admin {
 
 		$interface->assign('sqlUpdates', $availableUpdates);
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('dbMaintenance.tpl');
 		$interface->setPageTitle('Database Maintenance');
 		$interface->display('layout.tpl');
@@ -2752,12 +2753,13 @@ class DBMaintenance extends Admin_Admin {
 				if ($workIdentifier->find(true)){
 					$userWorkRating = new UserWorkReview();
 					$userWorkRating->groupedRecordPermanentId = $workIdentifier->permanent_id;
-					$userWorkRating->userid = $row['userid'];
+					$userWorkRating->userId = $row['userid'];
 					$userWorkRating->rating = $row['rating'];
 					$userWorkRating->dateRated = $row['dateRated'];
-					$userWorkRating->insert();
+					$userWorkRating->review = '';
+					$ret = $userWorkRating->insert();
 				}else{
-					echo("Warning, did not find grouped work for {$row['record_id']}<br/>");
+					echo("Warning, did not find grouped work for eContent record {$row['record_id']}<br/>");
 				}
 			}else{
 				//eContent

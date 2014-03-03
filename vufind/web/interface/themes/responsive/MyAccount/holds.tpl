@@ -1,21 +1,10 @@
 {strip}
-{if (isset($title)) }
-<script type="text/javascript">
-	alert("{$title}");
-</script>
-{/if}
-<div id="page-content" class="row">
-	<div id="sidebar" class="col-md-3">
-		{include file="MyResearch/menu.tpl"}
-	</div>
-
-	<div id="main-content" class="col-md-9">
 		{if $user->cat_username}
 			{if $profile.web_note}
 				<div id="web_note" class="text-info text-center well well-small">{$profile.web_note}</div>
 			{/if}
 
-			<h3>{translate text='Holds Ready For Pickup'}</h3>
+			<h3>{translate text='Titles On Hold'}</h3>
 			{if $userNoticeFile}
 				{include file=$userNoticeFile}
 			{/if}
@@ -28,6 +17,7 @@
 				{/if}
 
 				{foreach from=$recordList item=sectionData key=sectionKey}
+					<h4>{if $sectionKey == 'available'}Holds Ready For Pickup{else}Pending Holds{/if}</h4>
 					{if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
 						{* Form to update holds at one time *}
 						<div id='holdsWithSelected{$sectionKey}Top' class='holdsWithSelected{$sectionKey}'>
@@ -81,7 +71,12 @@
 						</form>
 					</div>
 				{else} {* Check to see if records are available *}
-					{translate text='You do not have any holds that are ready to be picked up'}.
+					{if $sectionKey == 'available'}
+						{translate text='You do not have any holds that are ready to be picked up.'}.
+					{else}
+						{translate text='You do not have any pending holds.'}.
+					{/if}
+
 				{/if}
 			{/foreach}
 		</div>
@@ -93,6 +88,4 @@
 		{else} {* Check to see if user is logged in *}
 			You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
 		{/if}
-	</div>
-</div>
 {/strip}

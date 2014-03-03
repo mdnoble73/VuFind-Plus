@@ -36,16 +36,24 @@ class SuggestedTitles extends MyResearch
 	{
 		global $interface;
 		global $user;
+		global $configArray;
 
 		$suggestions = Suggestions::getSuggestions();
+
+		// Setup Search Engine Connection
+		$class = $configArray['Index']['engine'];
+		$url = $configArray['Index']['url'];
+		/** @var SearchObject_Solr $solrDb */
+		$solrDb = new $class($url);
 
 		$resourceList = array();
 		$curIndex = 0;
 		if (is_array($suggestions)) {
 			foreach($suggestions as $suggestion) {
 				$interface->assign('resultIndex', ++$curIndex);
+				$record = $solrDb->getRecord($suggestion['titleInfo']['id']);
 				/** @var IndexRecord $recordDriver */
-				$recordDriver = RecordDriverFactory::initRecordDriver($suggestion['titleInfo']);
+				$recordDriver = RecordDriverFactory::initRecordDriver($record);
 				$resourceEntry = $interface->fetch($recordDriver->getSearchResult());
 				$resourceList[] = $resourceEntry;
 			}
@@ -56,6 +64,7 @@ class SuggestedTitles extends MyResearch
 		$interface->assign('hasRatings', $user->hasRatings());
 
 		$interface->setPageTitle('Recommended for you');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('suggestedTitles.tpl');
 		$interface->display('layout.tpl');
 	}

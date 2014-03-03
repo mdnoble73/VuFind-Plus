@@ -34,6 +34,8 @@ VuFind.GroupedWork = (function(){
 							seriesScroller = new TitleScroller('titleScrollerSeries', 'Series', 'seriesList');
 							$('#seriesInfo').show();
 							seriesScroller.loadTitlesFromJsonData(seriesData);
+						}else{
+							$('#seriesPanel').hide();
 						}
 						var similarTitleData = data.similarTitles;
 						if (similarTitleData && similarTitleData.titles.length > 0) {

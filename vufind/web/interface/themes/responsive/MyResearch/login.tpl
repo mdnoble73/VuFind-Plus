@@ -5,7 +5,7 @@
 		<h3>{translate text='Login to your account'}</h3>
 	</div>
 	<div id="loginFormWrapper">
-		<form method="post" action="{$path}/MyResearch/Home" id="loginForm" class="form-horizontal">
+		<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form-horizontal">
 			<div id='loginFormFields'>
 				<div id ='loginUsernameRow' class='form-group'>
 					<label for="username" class='control-label'>{translate text='Username'}: </label>

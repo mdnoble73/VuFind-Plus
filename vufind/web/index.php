@@ -379,6 +379,8 @@ if ($user) {
 $timer->logTime('User authentication');
 
 if ($user){
+	loadUserData();
+
 	$interface->assign('pType', $user->patronType);
 	$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
 	if (isset($homeLibrary)){
@@ -837,14 +839,14 @@ function loadModuleActionId(){
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
 		$_REQUEST['id'] = '';
-	}elseif (preg_match("/([^\/?]+)\/((?:\.b)?[\da-f-]+x?)\/([^\/?]+)/", $requestURI, $matches)){
+	}elseif (preg_match("/([^\/?]+)\/((?:\.b)?[\da-fA-F-]+x?)\/([^\/?]+)/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[2];
 		$_GET['action'] = $matches[3];
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['id'] = $matches[2];
 		$_REQUEST['action'] = $matches[3];
-	}elseif (preg_match("/([^\/?]+)\/((?:\.b)?[\da-f-]+x?)/", $requestURI, $matches)){
+	}elseif (preg_match("/([^\/?]+)\/((?:\.b)?[\da-fA-F-]+x?)/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[2];
 		$_GET['action'] = 'Home';
@@ -883,4 +885,41 @@ function initializeSession(){
 		$session->init($session_lifetime, $session_rememberMeLifetime);
 	}
 	$timer->logTime('Session initialization ' . $session_type);
+}
+
+function loadUserData(){
+	global $user;
+	global $interface;
+	global $configArray;
+
+	//Load profile information
+	$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+	$profile = $catalog->getMyProfile($user);
+	//global $logger;
+	//$logger->log("Patron profile phone number in MyResearch = " . $profile['phone'], PEAR_LOG_INFO);
+	if (!PEAR_Singleton::isError($profile)) {
+		$interface->assign('profile', $profile);
+	}
+
+	//Load a list of lists
+	$lists = array();
+	if ($user->disableRecommendations == 0){
+		$lists[] = array('name' => 'Recommended For You', 'url' => '/MyResearch/SuggestedTitles', 'id' => 'suggestions');
+	}
+	$tmpList = new User_list();
+	$tmpList->user_id = $user->id;
+	$tmpList->orderBy("title ASC");
+	$tmpList->find();
+	if ($tmpList->N > 0){
+		while ($tmpList->fetch()){
+			$lists[$tmpList->id] = array('name' => $tmpList->title, 'url' => '/MyResearch/MyList/' .$tmpList->id , 'id' => $tmpList->id);
+		}
+	}else{
+		$lists[-1] = array('name' => "My Favorites", 'url' => '/MyResearch/MyList/-1', 'id' => -1);
+	}
+	$interface->assign('lists', $lists);
+
+	// Get My Tags
+	$tagList = $user->getTags();
+	$interface->assign('tagList', $tagList);
 }

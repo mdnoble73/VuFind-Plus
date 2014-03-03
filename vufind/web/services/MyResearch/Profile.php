@@ -114,8 +114,9 @@ class Profile extends MyResearch
 			$interface->assign('userIsStaff', false);
 		}
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('profile.tpl');
-		$interface->setPageTitle(translate('My Profile'));
+		$interface->setPageTitle(translate('Account Settings'));
 		$interface->display('layout.tpl');
 	}
 

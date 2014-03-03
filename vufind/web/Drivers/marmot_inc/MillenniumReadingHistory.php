@@ -40,11 +40,13 @@ class MillenniumReadingHistory {
 		$recordsRead = 0;
 		$readingHistoryTitles = $this->parseReadingHistoryPage($pageContents, $patron, $sortOption, $recordsRead);
 		$recordsRead += count($readingHistoryTitles);
-		for ($pageNum = 2; $pageNum <= $maxPageNum; $pageNum++){
-			$pageContents = $this->driver->_fetchPatronInfoPage($patronDump, 'readinghistory&page=' . $pageNum);
-			$additionalTitles = $this->parseReadingHistoryPage($pageContents, $patron, $sortOption, $recordsRead);
-			$recordsRead += count($additionalTitles);
-			$readingHistoryTitles = array_merge($readingHistoryTitles, $additionalTitles);
+		if (isset($maxPageNum)){
+			for ($pageNum = 2; $pageNum <= $maxPageNum; $pageNum++){
+				$pageContents = $this->driver->_fetchPatronInfoPage($patronDump, 'readinghistory&page=' . $pageNum);
+				$additionalTitles = $this->parseReadingHistoryPage($pageContents, $patron, $sortOption, $recordsRead);
+				$recordsRead += count($additionalTitles);
+				$readingHistoryTitles = array_merge($readingHistoryTitles, $additionalTitles);
+			}
 		}
 
 		if ($sortOption == "checkedOut" || $sortOption == "returned"){

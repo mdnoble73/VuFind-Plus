@@ -1,4 +1,4 @@
-<li><a href="{$path}/MyResearch/Home">{translate text='Your Account'}</a> <span class="divider">&raquo;</span></li>
+<li><a href="{$path}/MyAccount/Home">{translate text='Your Account'}</a> <span class="divider">&raquo;</span></li>
 {if $reportData}
 	<li><a href="{$reportData.parentLink}{if $filterString}?{$filterString}{/if}">{$reportData.parentName}</a> <span class="divider">&raquo;</span></li>
 	<li><em>{$reportData.name}</em></li>

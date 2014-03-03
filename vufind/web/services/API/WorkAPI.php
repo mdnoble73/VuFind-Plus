@@ -80,4 +80,31 @@ class WorkAPI {
 		}
 		return $ratingData;
 	}
+
+	public function getIsbnsForWork($permanentId = null){
+		if ($permanentId == null){
+			$permanentId = $_REQUEST['id'];
+		}
+
+		$isbns = array();
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifier.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifierRef.php';
+		$groupedWork = new GroupedWork();
+		$groupedWork->permanent_id = $permanentId;
+		if ($groupedWork->find(true)){
+			$groupedWorkIdentifier = new GroupedWorkIdentifier();
+			$groupedWorkIdentifierRef = new GroupedWorkIdentifierRef();
+			$groupedWorkIdentifierRef->grouped_work_id = $groupedWork->id;
+			$groupedWorkIdentifier->type = 'isbn';
+			$groupedWorkIdentifierRef->joinAdd($groupedWorkIdentifier);
+			$groupedWorkIdentifierRef->find();
+			if ($groupedWorkIdentifierRef->N > 0){
+				while ($groupedWorkIdentifierRef->fetch()){
+					$isbns[] = $groupedWorkIdentifierRef->identifier;
+				}
+			}
+		}
+		return $isbns;
+	}
 } 

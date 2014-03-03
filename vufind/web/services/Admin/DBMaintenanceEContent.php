@@ -85,6 +85,7 @@ class DBMaintenanceEContent extends Admin_Admin {
 
 		$interface->assign('sqlUpdates', $availableUpdates);
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('dbMaintenance.tpl');
 		$interface->setPageTitle('Database Maintenance - EContent');
 		$interface->display('layout.tpl');

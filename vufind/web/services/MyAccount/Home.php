@@ -25,11 +25,19 @@ class MyAccount_Home  extends MyResearch{
 			$suggestions = Suggestions::getSuggestions();
 			$resourceList = array();
 			$curIndex = 0;
+
+			// Setup Search Engine Connection
+			$class = $configArray['Index']['engine'];
+			$url = $configArray['Index']['url'];
+			/** @var SearchObject_Solr $solrDb */
+			$solrDb = new $class($url);
+
 			if (is_array($suggestions)) {
 				foreach($suggestions as $suggestion) {
 					$interface->assign('resultIndex', ++$curIndex);
+					$record = $solrDb->getRecord($suggestion['titleInfo']['id']);
 					/** @var IndexRecord $recordDriver */
-					$recordDriver = RecordDriverFactory::initRecordDriver($suggestion['titleInfo']);
+					$recordDriver = RecordDriverFactory::initRecordDriver($record);
 					$resourceEntry = $interface->fetch($recordDriver->getSearchResult());
 					$resourceList[] = $resourceEntry;
 				}
@@ -39,6 +47,8 @@ class MyAccount_Home  extends MyResearch{
 			//Check to see if the user has rated any titles
 			$interface->assign('hasRatings', $user->hasRatings());
 		}
+		$interface->setPageTitle('My Account');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->display('layout.tpl');
 	}
 }

@@ -21,5 +21,9 @@ class NovelistData extends DB_DataObject{
 	public $seriesNote;
 	public $volume;
 
+	//Data calculated at runtime with calls to loadEnrichment
+	public $similarTitleCountOwned;
+	public $similarTitles;
+
 	public $__table = 'novelist_data';
 } 

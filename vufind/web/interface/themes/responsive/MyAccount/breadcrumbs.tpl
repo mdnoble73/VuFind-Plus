@@ -1,4 +1,4 @@
-<a href="{$path}/MyResearch/Home">{translate text='Your Account'}</a> <span class="divider">&raquo;</span>
+<a href="{$path}/MyAccount/Home">{translate text='Your Account'}</a> <span class="divider">&raquo;</span>
 {if $pageTemplate == 'view-alt.tpl' || isset($shortPageTitle)}
 <em>{$shortPageTitle}</em>
 {else}

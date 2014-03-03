@@ -8,7 +8,7 @@
 	{if $recordDriver->getPrimaryAuthor()}
 		<div class="row">
 			<div class="result-label col-md-3">Author: </div>
-			<div class="col-md-9 result-value">
+			<div class="col-md-9 result-value notranslate">
 				<a href="{$path}/Author/Home?author={$recordDriver->getPrimaryAuthor()|escape:"url"}">{$recordDriver->getPrimaryAuthor()|highlight:$lookfor}</a>
 			</div>
 		</div>
@@ -52,30 +52,6 @@
 
 	{assign value=$recordDriver->getRelatedManifestations() var="relatedManifestations"}
 	{include file="GroupedWork/relatedManifestations.tpl"}
-
-	<div id="seriesInfo" style="display:none" class="row">
-		<div class="col-sm-12">
-			{assign var="scrollerName" value="Series"}
-			{assign var="scrollerTitle" value="Also in this Series"}
-			{assign var="wrapperId" value="series"}
-			{assign var="scrollerVariable" value="seriesScroller"}
-			{assign var="permanentId" value=$recordDriver->getPermanentId()}
-			{assign var="fullListLink" value= "$path/GroupedWork/$permanentId/Series"}
-			{include file='titleScroller.tpl'}
-		</div>
-	</div>
-
-	<div id="moreLikeThisInfo" style="display:none" class="row">
-		<div class="col-sm-12">
-			{assign var="scrollerName" value="MoreLikeThis"}
-			{assign var="scrollerTitle" value="More Like This"}
-			{assign var="wrapperId" value="morelikethis"}
-			{assign var="scrollerVariable" value="morelikethisScroller"}
-			{assign var="permanentId" value=$recordDriver->getPermanentId()}
-			{include file='titleScroller.tpl'}
-		</div>
-	</div>
-
 
 	{include file=$moreDetailsTemplate}
 {/strip}

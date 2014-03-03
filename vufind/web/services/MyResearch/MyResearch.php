@@ -130,28 +130,6 @@ abstract class MyResearch extends Action
 				$interface->assign('showEcommerceLink', false);
 				$interface->assign('minimumFineAmount', 0);
 			}
-
-			//Load a list of lists
-			$lists = array();
-			if ($user->disableRecommendations == 0){
-				$lists[] = array('name' => 'Recommended For You', 'url' => '/MyResearch/SuggestedTitles', 'id' => 'suggestions');
-			}
-			$tmpList = new User_list();
-			$tmpList->user_id = $user->id;
-			$tmpList->orderBy("title ASC");
-			$tmpList->find();
-			if ($tmpList->N > 0){
-				while ($tmpList->fetch()){
-					$lists[$tmpList->id] = array('name' => $tmpList->title, 'url' => '/MyResearch/MyList/' .$tmpList->id , 'id' => $tmpList->id);
-				}
-			}else{
-				$lists[-1] = array('name' => "My Favorites", 'url' => '/MyResearch/MyList/-1', 'id' => -1);
-			}
-			$interface->assign('lists', $lists);
-
-			// Get My Tags
-			$tagList = $user->getTags();
-			$interface->assign('tagList', $tagList);
 		}
 	}
 

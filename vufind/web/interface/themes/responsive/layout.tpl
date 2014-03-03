@@ -133,6 +133,23 @@
 
 		{include file="modal_dialog.tpl"}
 
+		{if $hold_message}
+			<script type="text/javascript">
+				VuFind.showMessage('Hold Results', "{$hold_message|escape:'javascript'}");
+			</script>
+		{/if}
+
+		{if $renew_message}
+			<script type="text/javascript">
+				VuFind.showMessage('Renewal Results', "{$renew_message|escape:'javascript'}");
+			</script>
+		{/if}
+
+		{if $checkout_message}
+			<script type="text/javascript">
+				VuFind.showMessage('Checkout Results', "{$checkout_message|escape:'javascript'}");
+			</script>
+		{/if}
 
 		{include file="tracking.tpl"}
 

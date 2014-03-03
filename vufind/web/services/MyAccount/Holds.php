@@ -184,6 +184,7 @@ class MyAccount_Holds extends MyResearch{
 		}
 
 		$interface->setPageTitle('My Holds');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('holds.tpl');
 
 		//print_r($patron);

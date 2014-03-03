@@ -8,8 +8,8 @@
 			<div class="col-md-9 text-center">
 				{if $user->disableCoverArt != 1}
 					{if $record.recordId}
-						<a href="{$path}/EcontentRecord/{$record.recordId|escape:"url"}">
-							<img src="{$coverUrl}/bookcover.php?id={$record.recordId}&amp;econtent=true&amp;size=medium" class="listResultImage img-polaroid" alt="{translate text='Cover Image'}"/>
+						<a href="{$record.recordUrl|escape:"url"}">
+							<img src="{$record.coverUrl}" class="listResultImage img-polaroid" alt="{translate text='Cover Image'}"/>
 						</a>
 					{/if}
 				{/if}
@@ -19,7 +19,7 @@
 	<div class="col-md-9">
 		<div class="row">
 			<strong>
-				{if $record.recordId != -1}<a href="{$path}/EcontentRecord/{$record.recordId}/Home">{/if}{$record.title}{if $record.recordId == -1}OverDrive Record {$record.overDriveId}{/if}{if $record.recordId != -1}</a>{/if}
+				{if $record.recordId != -1}<a href="{$record.recordUrl}">{/if}{$record.title}{if $record.recordId == -1}OverDrive Record {$record.overDriveId}{/if}{if $record.recordId != -1}</a>{/if}
 				{if $record.subTitle}<br/>{$record.subTitle}{/if}
 
 			</strong>

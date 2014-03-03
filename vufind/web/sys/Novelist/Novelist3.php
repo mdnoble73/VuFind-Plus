@@ -287,7 +287,134 @@ class Novelist3{
 		return $novelistData;
 	}
 
-	function loadSimilarAuthorInfo($feature, &$enrichment){
+	/**
+	 * Loads Novelist data from Novelist for a grouped record
+	 *
+	 * @param String    $groupedRecordId  The permanent id of the grouped record
+	 * @param String[]  $isbns            a list of ISBNs for the record
+	 * @return NovelistData
+	 */
+	function getSimilarTitles($groupedRecordId, $isbns){
+		global $timer;
+		global $configArray;
+
+		//First make sure that Novelist is enabled
+		if (isset($configArray['Novelist']) && isset($configArray['Novelist']['profile']) && strlen($configArray['Novelist']['profile']) > 0){
+			$profile = $configArray['Novelist']['profile'];
+			$pwd = $configArray['Novelist']['pwd'];
+		}else{
+			return null;
+		}
+
+		//Check to see if we have cached data, first check MemCache.
+		/** @var Memcache $memCache */
+		global $memCache;
+		$novelistData = $memCache->get("novelist_similar_titles_$groupedRecordId");
+		if ($novelistData != false && !isset($_REQUEST['reload'])){
+			return $novelistData;
+		}
+
+		//Now check the database
+		$novelistData = new NovelistData();
+		$novelistData->groupedRecordPermanentId = $groupedRecordId;
+		$recordExists = false;
+		if ($novelistData->find(true)){
+			$recordExists = true;
+			//We already have data loaded, make sure the data is still "fresh"
+
+			//First check to see if the record had isbns before we update
+			if ($novelistData->groupedRecordHasISBN || count($isbns) > 0){
+				//We do have at least one ISBN
+				//If it's been more than 30 days since we updated, update 20% of the time
+				//We do it randomly to spread out the updates.
+				$now = time();
+				if ($novelistData->lastUpdate < $now - (30 * 24 * 60 * 60)){
+					$random = rand(1, 100);
+					if ($random <= 20){
+						$doUpdate = true;
+					}
+				}
+			}//else, no ISBNs, don't update
+
+		}
+
+		$novelistData->groupedRecordHasISBN = count($isbns) > 0;
+
+		//When loading full data, we aways need to load the data since we can't cache due to terms of sevice
+		if ($recordExists && $novelistData->primaryISBN != null && strlen($novelistData->primaryISBN) > 0){
+			//Just check the primary ISBN since we know that was good.
+			$isbns = array($novelistData->primaryISBN);
+		}
+
+		//Update the last update time to optimize caching
+		$novelistData->lastUpdate = time();
+
+		if (count($isbns) == 0){
+			//Whoops, no ISBNs, can't get enrichment for this
+			$novelistData->hasNovelistData = false;
+		}else{
+			$novelistData->hasNovelistData = false;
+
+			//Check each ISBN for enrichment data
+			foreach ($isbns as $isbn){
+				$requestUrl = "http://novselect.ebscohost.com/Data/ContentByQuery?profile=$profile&password=$pwd&ClientIdentifier={$isbn}&isbn={$isbn}&version=2.1&tmpstmp=" . time();
+				//echo($requestUrl);
+				try{
+					//Get the JSON from the service
+					disableErrorHandler();
+					$req = new Proxy_Request($requestUrl);
+					//$result = file_get_contents($req);
+					if (PEAR_Singleton::isError($req->sendRequest())) {
+						enableErrorHandler();
+						//No enrichment for this isbn, go to the next one
+						continue;
+					}
+					enableErrorHandler();
+
+					$response = $req->getResponseBody();
+					$timer->logTime("Made call to Novelist for enrichment information");
+
+					//Parse the JSON
+					$data = json_decode($response);
+					//print_r($data);
+
+					//Related ISBNs
+
+					if (isset($data->FeatureContent) && $data->FeatureCount > 0){
+						$novelistData->hasNovelistData = true;
+						//We got data!
+						$novelistData->primaryISBN = $data->TitleInfo->primary_isbn;
+
+						//Similar Titles
+						if (isset($data->FeatureContent->SimilarTitles)){
+							$this->loadSimilarTitleInfo($groupedRecordId, $data->FeatureContent->SimilarTitles, $novelistData);
+						}
+
+						//We got good data, quit looking at ISBNs
+						break;
+					}
+				}catch (Exception $e) {
+					global $logger;
+					$logger->log("Error fetching data from NoveList $e", PEAR_LOG_ERR);
+					if (isset($response)){
+						$logger->log($response, PEAR_LOG_DEBUG);
+					}
+					$enrichment = null;
+				}
+			}//Loop on each ISBN
+		}//Check for number of ISBNs
+
+		if ($recordExists){
+			$ret = $novelistData->update();
+		}else{
+			$ret = $novelistData->insert();
+		}
+
+		$memCache->set("novelist_similar_titles_$groupedRecordId", $novelistData, 0, $configArray['Caching']['novelist_enrichment']);
+		return $novelistData;
+	}
+
+	private function loadSimilarAuthorInfo($feature, &$enrichment){
 		$authors = array();
 		$items = $feature->authors;
 		foreach ($items as $item){
@@ -305,7 +432,7 @@ class Novelist3{
 	 * @param SimpleXMLElement $seriesData
 	 * @param NovelistData $novelistData
 	 */
-	function loadSeriesInfoFast($seriesData, &$novelistData){
+	private function loadSeriesInfoFast($seriesData, &$novelistData){
 		$seriesName = $seriesData->full_title;
 		$items = $seriesData->series_titles;
 		foreach ($items as $item){
@@ -317,7 +444,7 @@ class Novelist3{
 		$novelistData->seriesNote = $seriesData->series_note;
 	}
 
-	function loadSeriesInfo($currentId, $seriesData, &$novelistData){
+	private function loadSeriesInfo($currentId, $seriesData, &$novelistData){
 		$seriesName = $seriesData->full_title;
 		$seriesTitles = array();
 		$items = $seriesData->series_titles;
@@ -346,7 +473,7 @@ class Novelist3{
 		}
 	}
 
-	function loadSimilarSeries($similarSeriesData, &$enrichment){
+	private function loadSimilarSeries($similarSeriesData, &$enrichment){
 		$similarSeries = array();
 		foreach ($similarSeriesData->series as $similarSeriesInfo){
 			$similarSeries[] = array(
@@ -360,7 +487,7 @@ class Novelist3{
 		$enrichment->similarSeriesCount = count($similarSeries);
 	}
 
-	function loadSimilarTitleInfo($currentId, $similarTitles, &$enrichment){
+	private function loadSimilarTitleInfo($currentId, $similarTitles, &$enrichment){
 		$items = $similarTitles->titles;
 		$titlesOwned = 0;
 		$similarTitlesReturn = array();
@@ -372,7 +499,7 @@ class Novelist3{
 		$enrichment->similarTitleCountOwned = $titlesOwned;
 	}
 
-	function loadNoveListTitle($currentId, $item, &$titleList, &$titlesOwned, $seriesName = ''){
+	private function loadNoveListTitle($currentId, $item, &$titleList, &$titlesOwned, $seriesName = ''){
 		global $user;
 
 		//Find the correct grouped work based on the isbns;
@@ -396,7 +523,7 @@ class Novelist3{
 						$groupedWork = new GroupedWork();
 						$groupedWork->id = $groupedWorkIdentifierRef->grouped_work_id;
 						if ($groupedWork->find(true)){
-							$permanentId = $groupedWorkIdentifierRef->grouped_work_id;
+							$permanentId = $groupedWork->permanent_id;
 							break;
 						}
 					}
@@ -436,15 +563,11 @@ class Novelist3{
 		}else{
 			//Get more information from Solr
 			//TODO:  cache this info since it can take a really long time to load
+			/** @var SearchObject_Solr $searchObj */
 			$searchObj = SearchObjectFactory::initSearchObject();
-			$searchObj->setBasicQuery("id:$permanentId");
-			$searchObj->disableScoping();
-			//Add a filter to only include books and DVDs
-			$searchObj->processSearch(false, false);
-			$matchingRecords = $searchObj->getResultRecordSet();
+			$ownedRecord = $searchObj->getRecord($permanentId);
 
-			if (count($matchingRecords) > 0){
-				$ownedRecord = $matchingRecords[0];
+			if ($ownedRecord != null){
 				if (strpos($ownedRecord['isbn'][0], ' ') > 0){
 					$isbnInfo = explode(' ', $ownedRecord['isbn'][0]);
 					$isbn = $isbnInfo[0];

@@ -31,7 +31,7 @@
 		{if $summAuthor}
 			<div class="row">
 				<div class="result-label col-md-3">Author: </div>
-				<div class="col-md-9 result-value">
+				<div class="col-md-9 result-value  notranslate">
 					{if is_array($summAuthor)}
 						{foreach from=$summAuthor item=author}
 							<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>

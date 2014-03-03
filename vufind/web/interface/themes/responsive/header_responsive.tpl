@@ -9,7 +9,7 @@
 	<div class="logoutOptions" {if !$user} style="display: none;"{/if}>
 		<div class="col-xs-4 col-sm-2 col-sm-offset-4 col-md-2 col-md-offset-4 col-lg-2 col-lg-offset-4">
 			<div class="header-button header-primary">
-				<a id="myAccountNameLink" href="{$path}/MyResearch/Home">
+				<a id="myAccountNameLink" href="{$path}/MyAccount/Home">
 					{translate text="Your Account"}
 				</a>
 			</div>

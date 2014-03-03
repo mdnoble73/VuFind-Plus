@@ -125,8 +125,8 @@ class History extends Action {
 			}
 
 			//Figure out if we should show a link to classic opac to pay holds.
-			global $librarySingleton;
-			$homeLibrary = $librarySingleton->getLibraryForLocation($user->homeLocationId);
+			global $library;
+			$homeLibrary = $library->getLibraryForLocation($user->homeLocationId);
 			if ($homeLibrary->showEcommerceLink == 1){
 				$interface->assign('showEcommerceLink', true);
 				$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
@@ -136,6 +136,7 @@ class History extends Action {
 			}
 		}
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('history.tpl');
 		$interface->display('layout.tpl');
 	}
