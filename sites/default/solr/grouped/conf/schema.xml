@@ -82,7 +82,7 @@
 					 input string is preserved as a single token
 				-->
 				<tokenizer class="solr.KeywordTokenizerFactory"/>
-				<filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="0" catenateWords="0" catenateNumbers="1" catenateAll="0" splitOnCaseChange="0" splitOnNumerics="1" preserveOriginal="1"/>
+				<filter class="solr.WordDelimiterFilterFactory" generateWordParts="1" generateNumberParts="0" catenateWords="0" catenateNumbers="1" catenateAll="0" splitOnCaseChange="0"plitOnNumerics="1" preserveOriginal="1"/>
 				<filter class="solr.LengthFilterFactory" min="2" max="100"/>
 				<!-- The LowerCase TokenFilter does what you expect, which can be
              when you want your sorting to be case insensitive
@@ -156,6 +156,8 @@
 		<field name="title_new" type="text" indexed="true" stored="true" multiValued="true"/>
 		<!-- Author variations -->
 		<field name="author" type="text" indexed="true" stored="true" termVectors="true"/>
+		<field name="author_exact" type="text-exact" indexed="true" stored="true" termVectors="true"/>
+		<field name="author_left" type="text-left" indexed="true" stored="true" termVectors="true"/>
 		<field name="author_display" type="text" indexed="true" stored="true" multiValued="false"/> <!-- The title to display to the user -->
 		<field name="author-letter" type="string" indexed="true" stored="true"/>
 		<field name="authorStr" type="textFacet" indexed="true" stored="true"/>
@@ -279,6 +281,8 @@
 	<!-- CopyFields for Faceting on Text -->
 	<copyField source="title_full" dest="title_fullStr"/>
 	<copyField source="author" dest="authorStr"/>
+	<copyField source="author" dest="author_exact"/>
+	<copyField source="author" dest="author_left"/>
 	<copyField source="auth_author" dest="auth_authorStr"/>
 	<copyField source="author2" dest="author2Str"/>
 	<copyField source="auth_author2" dest="auth_author2Str"/>
