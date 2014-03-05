@@ -307,8 +307,8 @@ function updateConfigForScoping($configArray) {
 		//Add an extra css file for the location if it exists.
 		$themes = explode(',', $library->themeName);
 		foreach ($themes as $themeName){
-			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_tiny.png')) {
-				$configArray['Site']['tinyLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_tiny.png';
+			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_responsive.png')) {
+				$configArray['Site']['responsiveLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_responsive.png';
 			}
 			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png')) {
 				$configArray['Site']['smallLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png';

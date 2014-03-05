@@ -6323,25 +6323,25 @@ div#systemMessage {
 }
 #header-container {
   padding-top: 0px;
-  height: 105px;
+  height: 115px;
   background: linear-gradient(to bottom, #222222, #111111 85%, #000000);
   border-bottom: 8px solid #004487;
   margin-bottom: 0px;
 }
-#header-container .container {
-  height: 90px;
-}
-#header-logo {
+/*#header-container .container{
+  height: 110px;
+}*/
+/*#header-logo{
   line-height: 20px;
   padding: 15px;
-}
+}*/
 .header-button {
   text-align: center;
-  height: 97px !important;
+  height: 107px !important;
   border-bottom: 4px solid #000000;
 }
 .header-button > a {
-  line-height: 97px !important;
+  line-height: 107px !important;
   text-align: center;
   vertical-align: middle;
   padding: 0px;

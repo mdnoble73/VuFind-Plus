@@ -2,7 +2,7 @@
 
 	<div class="col-xs-5 col-sm-4 col-md-4 col-lg-4">
 		<a href="{if $homeLink}{$homeLink}{else}{$path}/{/if}">
-			<img src="{if $tinyLogo}{$tinyLogo}{else}{img filename="logo_tiny.png"}{/if}" alt="{$librarySystemName}" title="Return to Catalog Home" id="header-logo"/>
+			<img src="{if $responsiveLogo}{$responsiveLogo}{else}{img filename="logo_responsive.png"}{/if}" alt="{$librarySystemName}" title="Return to Catalog Home" id="header-logo"/>
 		</a>
 	</div>
 

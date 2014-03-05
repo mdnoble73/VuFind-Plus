@@ -59,13 +59,13 @@ div#systemMessage {
   border-bottom: 8px solid #b7b7b7;
   margin-bottom: 0px;
 }
-#header-container .container {
-  height: 90px;
-}
-#header-logo {
+/*#header-container .container{
+  height: 110px;
+}*/
+/*#header-logo{
   line-height: 20px;
   padding: 15px;
-}
+}*/
 .header-button {
   text-align: center;
   height: 82px !important;
