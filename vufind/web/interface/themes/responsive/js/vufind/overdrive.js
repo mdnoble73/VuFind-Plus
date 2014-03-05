@@ -47,7 +47,7 @@ VuFind.OverDrive = (function(){
 					},
 					dataType: 'json',
 					async: false,
-					error: function(jqXHR, textStatus, errorThrown){
+					error: function(){
 						alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
 						alert("ajaxUrl = " + ajaxUrl);
 						hideLightbox();
@@ -67,7 +67,7 @@ VuFind.OverDrive = (function(){
 				cache: false,
 				success: function(data){
 					if (data.availableForCheckout){
-						VuFind.OverDrive.checkoutOverDriveItem(overdriveId, formatId);
+						VuFind.OverDrive.checkoutOverDriveItemOneClick(overdriveId);
 					}else{
 						VuFind.showMessage("Placed Hold", data.message, true);
 					}
@@ -80,7 +80,7 @@ VuFind.OverDrive = (function(){
 			});
 		},
 
-		getOverDriveHoldPrompts: function(overDriveId, formatId, nextAction){
+		getOverDriveHoldPrompts: function(overDriveId, formatId){
 			var url = Globals.path + "/EcontentRecord/AJAX?method=GetOverDriveHoldPrompts&overDriveId=" + overDriveId;
 			if (formatId != undefined){
 				url += "&formatId=" + formatId;
