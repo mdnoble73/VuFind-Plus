@@ -8,6 +8,7 @@ require_once ROOT_DIR . '/Drivers/marmot_inc/Holiday.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/NearbyBookStore.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LibraryFacetSetting.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
+require_once ROOT_DIR . '/sys/Browse/LibraryBrowseCategory.php';
 
 class Library extends DB_DataObject
 {
@@ -151,6 +152,10 @@ class Library extends DB_DataObject
 		$libraryLinksStructure = LibraryLinks::getObjectStructure();
 		unset($libraryLinksStructure['weight']);
 		unset($libraryLinksStructure['libraryId']);
+
+		$libraryBrowseCategoryStructure = LibraryBrowseCategory::getObjectStructure();
+		unset($libraryBrowseCategoryStructure['weight']);
+		unset($libraryBrowseCategoryStructure['libraryId']);
 
 		global $user;
 		require_once ROOT_DIR . '/sys/ListWidget.php';
@@ -359,11 +364,25 @@ class Library extends DB_DataObject
 				'keyOther' => 'libraryId',
 				'subObjectType' => 'LibrarySearchSource',
 				'structure' => $searchSourceStructure,
-				//'hideInLists' => true,
 				'sortable' => true,
 				'storeDb' => true,
 				'allowEdit' => true,
 				'canEdit' => true,
+			),
+
+			'browseCategories' => array(
+					'property'=>'browseCategories',
+					'type'=>'oneToMany',
+					'label'=>'Browse Categories',
+					'description'=>'Browse Categories To Show on the Home Screen',
+					'keyThis' => 'libraryId',
+					'keyOther' => 'libraryId',
+					'subObjectType' => 'LibraryBrowseCategory',
+					'structure' => $libraryBrowseCategoryStructure,
+					'sortable' => true,
+					'storeDb' => true,
+					'allowEdit' => false,
+					'canEdit' => false,
 			),
 
 			'libraryLinks' => array(
@@ -375,7 +394,6 @@ class Library extends DB_DataObject
 				'keyOther' => 'libraryId',
 				'subObjectType' => 'LibraryLinks',
 				'structure' => $libraryLinksStructure,
-				//'hideInLists' => true,
 				'sortable' => true,
 				'storeDb' => true,
 				'allowEdit' => false,
@@ -543,6 +561,18 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->libraryLinks;
+		}elseif  ($name == 'browseCategories'){
+			if (!isset($this->browseCategories) && $this->libraryId){
+				$this->browseCategories = array();
+				$browseCategory = new LibraryBrowseCategory();
+				$browseCategory->libraryId = $this->libraryId;
+				$browseCategory->orderBy('weight');
+				$browseCategory->find();
+				while($browseCategory->fetch()){
+					$this->browseCategories[$browseCategory->id] = clone($browseCategory);
+				}
+			}
+			return $this->browseCategories;
 		}else{
 			return $this->data[$name];
 		}
@@ -559,6 +589,8 @@ class Library extends DB_DataObject
 			$this->searchSources = $value;
 		}elseif ($name == 'libraryLinks'){
 			$this->libraryLinks = $value;
+		}elseif ($name == 'browseCategories'){
+			$this->browseCategories = $value;
 		}else{
 			$this->data[$name] = $value;
 		}
@@ -579,6 +611,7 @@ class Library extends DB_DataObject
 			$this->saveFacets();
 			$this->saveSearchSources();
 			$this->saveLibraryLinks();
+			$this->saveBrowseCategories();
 			return $ret;
 		}
 	}
@@ -598,8 +631,35 @@ class Library extends DB_DataObject
 			$this->saveFacets();
 			$this->saveSearchSources();
 			$this->saveLibraryLinks();
+			$this->saveBrowseCategories();
 			return $ret;
 		}
+	}
+
+	public function saveBrowseCategories(){
+		if (isset ($this->browseCategories) && is_array($this->browseCategories)){
+			/** @var LibraryBrowseCategory[] $browseCategories */
+			foreach ($this->browseCategories as $libraryBrowseCategory){
+				if (isset($libraryBrowseCategory->deleteOnSave) && $libraryBrowseCategory->deleteOnSave == true){
+					$libraryBrowseCategory->delete();
+				}else{
+					if (isset($libraryBrowseCategory->id) && is_numeric($libraryBrowseCategory->id)){
+						$ret = $libraryBrowseCategory->update();
+					}else{
+						$libraryBrowseCategory->libraryId = $this->libraryId;
+						$libraryBrowseCategory->insert();
+					}
+				}
+			}
+			unset($this->browseCategories);
+		}
+	}
+
+	public function clearBrowseCategories(){
+		$browseCategories = new LibraryBrowseCategory();
+		$browseCategories->libraryId = $this->libraryId;
+		$browseCategories->delete();
+		$this->browseCategories = array();
 	}
 
 	public function saveLibraryLinks(){
@@ -627,7 +687,6 @@ class Library extends DB_DataObject
 		$libraryLinks->delete();
 		$this->libraryLinks = array();
 	}
-
 
 	public function saveSearchSources(){
 		if (isset ($this->searchSources) && is_array($this->searchSources)){

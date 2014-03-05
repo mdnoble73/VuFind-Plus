@@ -176,6 +176,22 @@ class GroupedWork_AJAX {
 
 	}
 
+	function getWorkInfo(){
+		global $interface;
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		$id = $_REQUEST['id'];
+		$recordDriver = new GroupedWorkDriver($id);
+
+		$interface->assign('recordDriver', $recordDriver);
+		$results = array(
+				'title' => $recordDriver->getTitle(),
+				'modalBody' => $interface->fetch("GroupedWork/work-details.tpl"),
+				'modalButtons' => "<a href='/GroupedWork/{$id}/Home'><span class='tool btn btn-primary'>More Info</span></a>"
+		);
+		return json_encode($results);
+
+	}
+
 	function RateTitle(){
 		require_once(ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php');
 		global $user;

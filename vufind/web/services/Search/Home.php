@@ -84,15 +84,35 @@ class Home extends Action {
 		$interface->assign('libraryLinks', $libraryLinks);
 
 		//Load browse categories
+		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
 		/** @var BrowseCategory[] $browseCategories */
 		$browseCategories = array();
-		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
-		$browseCategory = new BrowseCategory();
-		$browseCategory->find();
-		while($browseCategory->fetch()){
-			$browseCategories[] = clone($browseCategory);
+		if ($activeLocation != null){
+			$localBrowseCategories = $activeLocation->browseCategories;
+			foreach ($localBrowseCategories as $localBrowseCategory){
+				$browseCategory = new BrowseCategory();
+				$browseCategory->textId = $localBrowseCategory->browseCategoryTextId;
+				if($browseCategory->find(true)){
+					$browseCategories[] = clone($browseCategory);
+				}
+			}
+		}elseif (isset($library)){
+			$localBrowseCategories = $library->browseCategories;
+			foreach ($localBrowseCategories as $localBrowseCategory){
+				$browseCategory = new BrowseCategory();
+				$browseCategory->textId = $localBrowseCategory->browseCategoryTextId;
+				if($browseCategory->find(true)){
+					$browseCategories[] = clone($browseCategory);
+				}
+			}
 		}
-
+		if (count($browseCategories) == 0){
+			$browseCategory = new BrowseCategory();
+			$browseCategory->find();
+			while($browseCategory->fetch()){
+				$browseCategories[] = clone($browseCategory);
+			}
+		}
 
 		$interface->assign('browseCategories', $browseCategories);
 

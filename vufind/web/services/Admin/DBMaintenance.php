@@ -2730,6 +2730,27 @@ class DBMaintenance extends Admin_Admin {
 					) ENGINE = MYISAM",
 				),
 			),
+
+			'localized_browse_categories' => array(
+				'title' => 'Localized Browse Categories',
+				'description' => 'Setup Localized Browse Category Tables',
+				'sql' => array(
+					"CREATE TABLE browse_category_library (
+						id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						libraryId INT(11) NOT NULL,
+						browseCategoryTextId VARCHAR(60) NOT NULL DEFAULT -1,
+						weight INT NOT NULL DEFAULT '0',
+						UNIQUE (libraryId, browseCategoryTextId)
+					) ENGINE = MYISAM",
+					"CREATE TABLE browse_category_location (
+						id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						locationId INT(11) NOT NULL,
+						browseCategoryTextId VARCHAR(60) NOT NULL DEFAULT -1,
+						weight INT NOT NULL DEFAULT '0',
+						UNIQUE (locationId, browseCategoryTextId)
+					) ENGINE = MYISAM",
+				),
+			),
 		);
 	}
 

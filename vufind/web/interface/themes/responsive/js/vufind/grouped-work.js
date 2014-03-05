@@ -170,6 +170,18 @@ VuFind.GroupedWork = (function(){
 			return false;
 		},
 
+		showGroupedWorkInfo:function(id){
+			var modalDialog = $("#modalDialog");
+			//$(".modal-body").html($('#userreview' + id).html());
+			$.getJSON(Globals.path + "/GroupedWork/AJAX?method=getWorkInfo&id=" + id, function(data){
+				$('#myModalLabel').html(data.title);
+				$('.modal-body').html(data.modalBody);
+				$('.modal-buttons').html(data.modalButtons);
+			});
+			modalDialog.load( );
+			modalDialog.modal('show');
+		},
+
 		showReviewForm: function(trigger, id){
 			var $trigger = $(trigger);
 			if (Globals.loggedIn){

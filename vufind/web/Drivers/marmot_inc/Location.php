@@ -6,6 +6,8 @@ require_once 'DB/DataObject.php';
 require_once 'DB/DataObject/Cast.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LocationHours.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LocationFacetSetting.php';
+require_once ROOT_DIR . '/sys/Browse/LocationBrowseCategory.php';
+require_once ROOT_DIR . '/sys/Browse/LocationBrowseCategory.php';
 
 class Location extends DB_DataObject
 {
@@ -98,6 +100,10 @@ class Location extends DB_DataObject
 		unset($facetSettingStructure['showAsDropDown']);
 		//unset($facetSettingStructure['sortMode']);
 
+		$locationBrowseCategoryStructure = LocationBrowseCategory::getObjectStructure();
+		unset($locationBrowseCategoryStructure['weight']);
+		unset($locationBrowseCategoryStructure['locationId']);
+
 		$structure = array(
 			array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),
 			array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user', 'size'=>'40'),
@@ -177,6 +183,21 @@ class Location extends DB_DataObject
 				'storeDb' => true,
 				'allowEdit' => true,
 				'canEdit' => true,
+			),
+
+			'browseCategories' => array(
+				'property'=>'browseCategories',
+				'type'=>'oneToMany',
+				'label'=>'Browse Categories',
+				'description'=>'Browse Categories To Show on the Home Screen',
+				'keyThis' => 'locationId',
+				'keyOther' => 'locationId',
+				'subObjectType' => 'LocationBrowseCategory',
+				'structure' => $locationBrowseCategoryStructure,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => false,
+				'canEdit' => false,
 			),
 		);
 		foreach ($structure as $fieldName => $field){
@@ -574,6 +595,18 @@ class Location extends DB_DataObject
 				}
 			}
 			return $this->facets;
+		}elseif  ($name == 'browseCategories'){
+			if (!isset($this->browseCategories) && $this->libraryId){
+				$this->browseCategories = array();
+				$browseCategory = new LocationBrowseCategory();
+				$browseCategory->locationId = $this->locationId;
+				$browseCategory->orderBy('weight');
+				$browseCategory->find();
+				while($browseCategory->fetch()){
+					$this->browseCategories[$browseCategory->id] = clone($browseCategory);
+				}
+			}
+			return $this->browseCategories;
 		}else{
 			return $this->data[$name];
 		}
@@ -585,6 +618,8 @@ class Location extends DB_DataObject
 			$this->hours = $value;
 		}elseif ($name == "facets") {
 			$this->facets = $value;
+		}elseif ($name == 'browseCategories'){
+			$this->browseCategories = $value;
 		}else{
 			$this->data[$name] = $value;
 		}
@@ -600,6 +635,7 @@ class Location extends DB_DataObject
 		if ($ret !== FALSE ){
 			$this->saveHours();
 			$this->saveFacets();
+			$this->saveBrowseCategories();
 		}
 		return $ret;
 	}
@@ -614,8 +650,35 @@ class Location extends DB_DataObject
 		if ($ret !== FALSE ){
 			$this->saveHours();
 			$this->saveFacets();
+			$this->saveBrowseCategories();
 		}
 		return $ret;
+	}
+
+	public function saveBrowseCategories(){
+		if (isset ($this->browseCategories) && is_array($this->browseCategories)){
+			/** @var LocationBrowseCategory[] $browseCategories */
+			foreach ($this->browseCategories as $locationBrowseCategory){
+				if (isset($locationBrowseCategory->deleteOnSave) && $locationBrowseCategory->deleteOnSave == true){
+					$locationBrowseCategory->delete();
+				}else{
+					if (isset($locationBrowseCategory->id) && is_numeric($locationBrowseCategory->id)){
+						$ret = $locationBrowseCategory->update();
+					}else{
+						$locationBrowseCategory->locationId = $this->locationId;
+						$locationBrowseCategory->insert();
+					}
+				}
+			}
+			unset($this->browseCategories);
+		}
+	}
+
+	public function clearBrowseCategories(){
+		$browseCategories = new LocationBrowseCategory();
+		$browseCategories->locationId = $this->locationId;
+		$browseCategories->delete();
+		$this->browseCategories = array();
 	}
 
 	public function saveFacets(){
@@ -626,7 +689,7 @@ class Location extends DB_DataObject
 					$facet->delete();
 				}else{
 					if (isset($facet->id) && is_numeric($facet->id)){
-						$ret = $facet->update();
+						$facet->update();
 					}else{
 						$facet->locationId = $this->locationId;
 						$facet->insert();
@@ -672,7 +735,6 @@ class Location extends DB_DataObject
 
 			// check to see if today is a holiday
 			require_once ROOT_DIR . '/Drivers/marmot_inc/Holiday.php';
-			$holidays = array();
 			$holiday = new Holiday();
 			$holiday->date = $todayFormatted;
 			$holiday->libraryId = $location->libraryId;

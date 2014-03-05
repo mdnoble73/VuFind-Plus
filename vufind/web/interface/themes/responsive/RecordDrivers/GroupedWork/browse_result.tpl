@@ -1,10 +1,10 @@
 {strip}
 	<div class="col-xs-6 col-sm-4 col-md-3 col-lg-2 text-center browse-title">
 		<div class="thumbnail browse-thumbnail">
-			<a href="{$path}/GroupedWork/{$summId}/Home">
+			<div href="{$path}/GroupedWork/{$summId}/Home" onclick="VuFind.GroupedWork.showGroupedWorkInfo('{$summId}')">
 				<img class="hidden-xs hidden-sm visible-md" src="{$bookCoverUrlMedium}" alt="{$summTitle} by {$summAuthor}" title="{$summTitle} by {$summAuthor}">
 				<img class="visible-xs visible-sm hidden-md hidden-lg" src="{$bookCoverUrl}" alt="{$summTitle} by {$summAuthor}" title="{$summTitle} by {$summAuthor}">
-			</a>
+			</div>
 			<div class="browse-rating" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}');">
 				<span class="ui-rater-starsOff" style="width:90px">
 					{if $ratingData.user}
