@@ -170,8 +170,9 @@ class MillenniumDriver implements DriverInterface
 		global $memCache;
 		$scope = $this->getMillenniumScope();
 		//Clear millennium cache once per minute
-		$lastCacheClear = $memCache->get('millennium_cache_interval');
+		/*$lastCacheClear = $memCache->get('millennium_cache_interval');
 		//echo ("lastCacheClear = $lastCacheClear, cache_interval = {$configArray['Caching']['millennium_cache_interval']}");
+		// Do not clear cache since it is blocking in MySQL
 		if ($lastCacheClear == false || isset($_REQUEST['reload'])){
 			//Get rid of anything in the cache older than 5 minutes
 			$millenniumCache = new MillenniumCache();
@@ -198,7 +199,7 @@ class MillenniumDriver implements DriverInterface
 			//We already deleted old cache entries so we don't need to check to see if the entry is stale.
 			//Just return the entry
 			return $millenniumCache;
-		}
+		}*/
 		//Load the pages for holdings, order information, and items
 		$millenniumCache = new MillenniumCache();
 		$millenniumCache->recordId = $id;
@@ -225,9 +226,9 @@ class MillenniumDriver implements DriverInterface
 
 		$millenniumCache->cacheDate = time();
 		//Temporarily ignore errors
-		disableErrorHandler();
+		/*disableErrorHandler();
 		$millenniumCache->insert();
-		enableErrorHandler();
+		enableErrorHandler();*/
 
 		return $millenniumCache;
 
