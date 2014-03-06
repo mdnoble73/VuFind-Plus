@@ -1564,7 +1564,7 @@ class MarcRecord extends IndexRecord
 	public function getItemsFast(){
 		if ($this->fastItems == null){
 			$driver = MarcRecord::getCatalogDriver();
-			$this->fastItems = $driver->getItemsFast($this->getUniqueID(), $this->scopingEnabled);
+			$this->fastItems = $driver->getItemsFast($this->getUniqueID(), $this->scopingEnabled, $this->marcRecord);
 		}
 		return $this->fastItems;
 	}

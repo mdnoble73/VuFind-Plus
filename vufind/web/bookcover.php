@@ -43,8 +43,8 @@ if (empty($timer)){
 require_once ROOT_DIR . '/sys/ConfigArray.php';
 $configArray = readConfig();
 $timer->logTime("Read config");
-if (isset($configArray['System']['timings'])){
-	$timer->enableTimings($configArray['System']['timings']);
+if (isset($configArray['System']['coverTimings'])){
+	$timer->enableTimings($configArray['System']['coverTimings']);
 }
 
 //Start a logger

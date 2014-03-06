@@ -309,7 +309,9 @@ class GroupedWorkDriver implements RecordInterface{
 
 		//Description
 		$interface->assign('summDescription', $this->getDescriptionFast());
+		$timer->logTime('Finished Loading Description');
 		$interface->assign('summSeries', $this->getSeries());
+		$timer->logTime('Finished Loading Series');
 
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
 		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));

@@ -300,22 +300,25 @@ class MillenniumDriver implements DriverInterface
 	 *
 	 * @param $id
 	 * @param $scopingEnabled
+	 * @param $marcRecord
 	 * @return mixed
 	 */
-	public function getItemsFast($id, $scopingEnabled){
-		global $timer;
-		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
-		$timer->logTime("Finished loading MARC Record");
+	public function getItemsFast($id, $scopingEnabled, $marcRecord = null){
+		//global $timer;
+		if ($marcRecord == null){
+			$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
+			//$timer->logTime("Finished loading MARC Record");
+		}
 
 		MillenniumDriver::loadLibraryLocationInformation();
 
 		//Get the items Fields from the record
 		/** @var File_MARC_Data_Field[] $itemFields */
 		$itemFields = $marcRecord->getFields('989');
-		$timer->logTime("Finished loading item fields");
+		//$timer->logTime("Finished loading item fields");
 		$items = array();
 		$pType = $this->getPType();
-		$timer->logTime("Finished loading pType");
+		//$timer->logTime("Finished loading pType");
 
 		$shelfLocationMap = getTranslationMap('shelf_location');
 
@@ -329,7 +332,7 @@ class MillenniumDriver implements DriverInterface
 			$locationCode = trim($itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '');
 			$iType = trim($itemField->getSubfield('j') != null ? $itemField->getSubfield('j')->getData() : '');
 			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pType);
-			$timer->logTime("Finished checking if item is holdable");
+			//$timer->logTime("Finished checking if item is holdable");
 			$status = trim($itemField->getSubfield('o') != null ? trim($itemField->getSubfield('o')->getData()) : '');
 			$dueDate = $itemField->getSubfield('m') != null ? trim($itemField->getSubfield('m')->getData()) : null;
 			$available = ($status == '-' && ($dueDate == null || strlen($dueDate) == 0));
@@ -369,9 +372,9 @@ class MillenniumDriver implements DriverInterface
 					$items[] = $item;
 				}
 			}
-			$timer->logTime("Finished processing item");
+			//$timer->logTime("Finished processing item");
 		}
-		$timer->logTime("Finished load items fast for Millennium record");
+		//$timer->logTime("Finished load items fast for Millennium record");
 		return $items;
 	}
 

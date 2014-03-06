@@ -535,7 +535,7 @@ class Novelist3{
 		if (isset($seriesName)){
 			$series = $seriesName;
 		}else{
-			$series = null;
+			$series = '';
 		}
 		$volume = '';
 		if (isset($item->volume)){

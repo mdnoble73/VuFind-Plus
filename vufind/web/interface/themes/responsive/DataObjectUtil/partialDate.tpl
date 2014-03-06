@@ -2,7 +2,7 @@
 {assign var=propNameDay value=$property.propNameDay}
 {assign var=propNameYear value=$property.propNameYear}
 <div class="controls">
-	<select name='{$propNameMonth}' id='{$propNameMonth}' >
+	<select name='{$propNameMonth}' id='{$propNameMonth}' class="form-control">
 		<option value=""></option>
 		<option value="1" {if $object->$propNameMonth == '1'}selected='selected'{/if}>January</option>
 		<option value="2" {if $object->$propNameMonth == '2'}selected='selected'{/if}>February</option>

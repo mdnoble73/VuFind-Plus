@@ -7,36 +7,39 @@
 	<div class='form-group' id="propertyRow{$propName}">
 		{* Output the label *}
 		{if $property.type == 'enum'}
-			<label for='{$propName}Select' class='control-label'>{$property.label}</label>
-		{elseif $property.type != 'section'}
-			<label for='{$propName}' class='control-label'>{$property.label}</label>
+			<label for='{$propName}Select'>{$property.label}</label>
+		{elseif $property.type != 'section' && $property.type != 'checkbox'}
+			<label for='{$propName}'>{$property.label}</label>
 		{/if}
 		{* Output the editing control*}
 		{if $property.type == 'section'}
-			<fieldset class='fieldset-collapsible'>
-				<legend>{$property.label}</legend>
-				<div>
-					{foreach from=$property.properties item=property}
-						{include file="DataObjectUtil/property.tpl"}
-					{/foreach}
+			<div class='panel-group' id="accordion_{$property.label|escapeCSS}">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h4 class="panel-title">
+							<a data-toggle="collapse" data-parent="#accordion_{$property.label|escapeCSS}" href="#accordion_body_{$property.label|escapeCSS}">
+								{$property.label}
+							</a>
+						</h4>
+					</div>
+
+					<div id="accordion_body_{$property.label|escapeCSS}" class="panel-collapse collapse">
+						<div class="panel-body">
+							{foreach from=$property.properties item=property}
+								{include file="DataObjectUtil/property.tpl"}
+							{/foreach}
+						</div>
+					</div>
 				</div>
-			</fieldset>
+			</div>
 		{elseif $property.type == 'text' || $property.type == 'folder' || $property.type == 'integer'}
-			<div class="controls">
-				<input type='text' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} title='{$property.description}' class='{if $property.required}required{/if}'/>
-			</div>
+			<input type='text' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} title='{$property.description}' class='form-control {if $property.required}required{/if}'/>
 		{elseif $property.type == 'url'}
-			<div class="controls">
-				<input type='text' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} title='{$property.description}' class='url {if $property.required}required{/if}' />
-			</div>
+			<input type='text' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} title='{$property.description}' class='form-control url {if $property.required}required{/if}' />
 		{elseif $property.type == 'email'}
-			<div class="controls">
-				<input type='text' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} title='{$property.description}' class='email {if $property.required}required{/if}' />
-			</div>
+			<input type='text' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} title='{$property.description}' class='form-control email {if $property.required}required{/if}' />
 		{elseif $property.type == 'date'}
-			<div class="controls">
-				<input type='{$property.type}' name='{$propName}' id='{$propName}' value='{$propValue}' {if $property.maxLength}maxLength='10'{/if}	class='{if $property.required}required{/if} date'/>
-			</div>
+			<input type='{$property.type}' name='{$propName}' id='{$propName}' value='{$propValue}' {if $property.maxLength}maxLength='10'{/if}	class='form-control {if $property.required}required{/if} date'/>
 		{elseif $property.type == 'partialDate'}
 			{include file="DataObjectUtil/partialDate.tpl"}
 
@@ -62,26 +65,24 @@
 			{include file="DataObjectUtil/multiSelect.tpl"}
 
 		{elseif $property.type == 'image' || $property.type == 'file'}
-			<div class="controls">
-				{if $propValue}
-					{if $property.type == 'image'}
-						<img src='{$path}/files/thumbnail/{$propValue}'/>{$propValue}
-						<input type='checkbox' name='remove{$propName}' id='remove{$propName}' /> Remove image.
-						<br/>
-					{else}
-						Existing file: {$propValue}
-						<input type='hidden' name='{$propName}_existing' id='{$propName}_existing' value='{$propValue|escape}' />
+			{if $propValue}
+				{if $property.type == 'image'}
+					<img src='{$path}/files/thumbnail/{$propValue}'/>{$propValue}
+					<input type='checkbox' name='remove{$propName}' id='remove{$propName}' /> Remove image.
+					<br/>
+				{else}
+					Existing file: {$propValue}
+					<input type='hidden' name='{$propName}_existing' id='{$propName}_existing' value='{$propValue|escape}' />
 
-					{/if}
 				{/if}
-				{* Display a table of the association with the ability to add and edit new values *}
-				<input type="file" name='{$propName}' id='{$propName}' size="80"/>
-			</div>
+			{/if}
+			{* Display a table of the association with the ability to add and edit new values *}
+			<input type="file" name='{$propName}' id='{$propName}' size="80"/>
 		{elseif $property.type == 'checkbox'}
-			<div class="controls">
-				<div class="switch">
-					<input type='checkbox' name='{$propName}' id='{$propName}' {if ($propValue == 1)}checked='checked'{/if}/>
-				</div>
+			<div class="checkbox">
+				<label for='{$propName}'>
+					<input type='checkbox' name='{$propName}' id='{$propName}' {if ($propValue == 1)}checked='checked'{/if}/> {$property.label}
+				</label>
 			</div>
 
 		{elseif $property.type == 'oneToMany'}

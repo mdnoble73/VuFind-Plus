@@ -23,6 +23,8 @@
 		<script src="{$path}/interface/themes/responsive/js/lib/bootstrap.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/jcarousel.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/jcarousel.responsive.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/lib/bootstrap-datepicker.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/lib/jquery-ui-1.10.4.custom.min.js"></script>
 		<script src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
 		<script src="{$path}/ckeditor/ckeditor.js"></script>
 		<script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
@@ -41,6 +43,7 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind/results-list.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/searches.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/wikipedia.js"></script>
+
 
 		<script type="text/javascript">
 			{* Override variables as needed *}

@@ -1,6 +1,6 @@
 {strip}
 <div class="controls">
-	<table id="{$propName}" class="{if $property.sortable}sortableProperty{/if}" class="table table-striped table-compact">
+	<table id="{$propName}" class="{if $property.sortable}sortableProperty{/if} table table-striped table-compact">
 		<thead>
 			<tr>
 				{if $property.sortable}
@@ -20,7 +20,7 @@
 				<input type="hidden" id="{$propName}Id_{$subObject->id}" name="{$propName}Id[{$subObject->id}]" value="{$subObject->id}"/>
 				{if $property.sortable}
 					<td>
-					<span class="ui-icon ui-icon-arrowthick-2-n-s"></span>
+					<span class="glyphicon glyphicon-resize-vertical"></span>
 					<input type="hidden" id="{$propName}Weight_{$subObject->id}" name="{$propName}Weight[{$subObject->id}]" value="{$subObject->weight}"/>
 					</td>
 				{/if}
@@ -69,7 +69,6 @@
 	{/strip}
 	<script type="text/javascript">
 		{literal}$(document).ready(function(){{/literal}
-		{*
 		{if $property.sortable}
 			{literal}$('#{/literal}{$propName}{literal} tbody').sortable({
 				update: function(event, ui){
@@ -81,7 +80,6 @@
 			});
 			{/literal}
 		{/if}
-		*}
 		{literal}$('.datepicker').datepicker({dateFormat:"yy-mm-dd"});{/literal}
 		{literal}});{/literal}
 		var numAdditional{$propName} = 0;
@@ -91,7 +89,7 @@
 			{/literal}
 			newRow +=	"<input type='hidden' id='{$propName}Id_" + numAdditional{$propName} + "' name='{$propName}Id[" + numAdditional{$propName} + "]' value='" + numAdditional{$propName} + "'/>"
 			{if $property.sortable}
-				newRow += "<td><span class='ui-icon ui-icon-arrowthick-2-n-s'></span>";
+				newRow += "<td><span class='glyphicon glyphicon-resize-vertical'></span>";
 				newRow += "<input type='hidden' id='{$propName}Weight_" + numAdditional{$propName} +"' name='{$propName}Weight[" + numAdditional{$propName} +"]' value='" + (100 - numAdditional{$propName})  +"'/>";
 				newRow += "</td>";
 			{/if}
@@ -118,6 +116,7 @@
 			{literal}
 			$('#{/literal}{$propName}{literal} tr:last').after(newRow);
 			$('.datepicker').datepicker({dateFormat:"yy-mm-dd"});
+			return false;
 		}
 		{/literal}
 	</script>
