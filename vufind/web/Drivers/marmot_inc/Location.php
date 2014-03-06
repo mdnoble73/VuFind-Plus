@@ -987,6 +987,7 @@ class Location extends DB_DataObject
 		return $defaultFacets;
 	}
 
+	/** @return LocationHours[] */
 	function getHours(){
 		return $this->hours;
 	}

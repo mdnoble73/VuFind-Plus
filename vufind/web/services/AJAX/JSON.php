@@ -463,6 +463,27 @@ class JSON extends Action {
 			$mapAddress = urlencode(preg_replace('/\r\n|\r|\n/', '+', $tmpLocation->address));
 			$clonedLocation = clone $tmpLocation;
 			$hours = $clonedLocation->getHours();
+			foreach ($hours as $key => $hourObj){
+				if (!$hourObj->closed){
+					$hourString = $hourObj->open;
+					list($hour, $minutes) = explode(':', $hourString);
+					if ($hour < 12){
+						$hourObj->open .= ' AM';
+					}else{
+						$hour -= 12;
+						$hourObj->open = "$hour:$minutes PM";
+					}
+					$hourString = $hourObj->close;
+					list($hour, $minutes) = explode(':', $hourString);
+					if ($hour < 12){
+						$hourObj->close .= ' AM';
+					}else{
+						$hour -= 12;
+						$hourObj->close = "$hour:$minutes PM";
+					}
+				}
+				$hours[$key] = $hourObj;
+			}
 			$libraryLocations[] = array(
 				'id' => $tmpLocation->locationId,
 				'name' => $tmpLocation->displayName,
