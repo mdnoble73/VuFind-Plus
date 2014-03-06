@@ -257,11 +257,12 @@ class GroupedWorkDriver implements RecordInterface{
 	public function getSearchResult($view = 'list', $useUnscopedHoldingsSummary = false) {
 		global $configArray;
 		global $interface;
-		global $user;
+		global $timer;
 
 		$interface->assign('useUnscopedHoldingsSummary', $useUnscopedHoldingsSummary);
 
 		$id = $this->getUniqueID();
+		$timer->logTime("Starting to load search result for grouped work $id");
 		$interface->assign('summId', $id);
 		if (substr($id, 0, 1) == '.'){
 			$interface->assign('summShortId', substr($id, 1));
@@ -737,6 +738,8 @@ class GroupedWorkDriver implements RecordInterface{
 
 	private $relatedRecords = null;
 	public function getRelatedRecords() {
+		global $timer;
+		$timer->logTime("Starting to load related records");
 		if ($this->relatedRecords == null){
 			$relatedRecords = array();
 			if (isset($this->fields['related_record_ids'])){
@@ -755,17 +758,22 @@ class GroupedWorkDriver implements RecordInterface{
 							$relatedRecords[] = $relatedRecord;
 						}
 					}
+					$timer->logTime("Finished loading related records for $relatedRecordId");
 				}
 				//Sort the records based on format and then edition
 				usort($relatedRecords, array("GroupedWorkDriver", "compareRelatedRecords"));
 			}
 			$this->relatedRecords = $relatedRecords;
 		}
+		$timer->logTime("Finished loading related records");
 		return $this->relatedRecords;
 	}
 
 	public function getRelatedManifestations() {
+		global $timer;
+		$timer->logTime("Starting to load related records");
 		$relatedRecords = $this->getRelatedRecords();
+		$timer->logTime("Finished loading related records");
 		//Group the records based on format
 		$relatedManifestations = array();
 		foreach ($relatedRecords as $curRecord){
@@ -811,6 +819,7 @@ class GroupedWorkDriver implements RecordInterface{
 			$relatedManifestations[$curRecord['format']]['availableCopies'] += $curRecord['availableCopies'];
 
 		}
+		$timer->logTime("Finished initial processing of related records");
 
 		//Check to see what we need to do for actions
 		foreach ($relatedManifestations as $key => $manifestation){
@@ -846,9 +855,10 @@ class GroupedWorkDriver implements RecordInterface{
 
 				$manifestation['actions'] = $bestRecord['actions'];
 			}
-
 			$relatedManifestations[$key] = $manifestation;
 		}
+		$timer->logTime("Finished loading related manifestations");
+
 		return $relatedManifestations;
 	}
 

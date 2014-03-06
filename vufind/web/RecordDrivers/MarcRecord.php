@@ -1345,6 +1345,7 @@ class MarcRecord extends IndexRecord
 	}
 	function getRelatedRecords(){
 		global $configArray;
+		global $timer;
 		$relatedRecords = array();
 		$recordId = $this->getUniqueID();
 
@@ -1372,6 +1373,7 @@ class MarcRecord extends IndexRecord
 				}
 			}
 		}
+		$timer->logTime("Finished making sure the record is not eContent");
 
 		$publishers = $this->getPublishers();
 		$publisher = count($publishers) >= 1 ? $publishers[0] : '';
@@ -1379,6 +1381,8 @@ class MarcRecord extends IndexRecord
 		$publicationDate = count($publicationDates) >= 1 ? $publicationDates[0] : '';
 		$physicalDescriptions = $this->getPhysicalDescriptions();
 		$physicalDescription = count($physicalDescriptions) >= 1 ? $physicalDescriptions[0] : '';
+		$timer->logTime("Finished loading publication info");
+
 		$totalCopies = $this->getNumCopies();
 		//Don't add records the user can't get.
 		if ($totalCopies == 0){

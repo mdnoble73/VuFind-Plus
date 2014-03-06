@@ -24,7 +24,7 @@ class Timer{
 			$curTime = microtime(true);
 			$elapsedTime = round($curTime - $this->lastTime, 4);
 			if ($elapsedTime > 0){
-				$this->timingMessages[] = "$message: $curTime ($elapsedTime sec)";
+				$this->timingMessages[] = "\"$message\",\"$curTime\",\"$elapsedTime\"";
 			}
 			$this->lastTime = $curTime;
 		}

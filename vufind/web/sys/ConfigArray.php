@@ -58,7 +58,14 @@ function getTranslationMap($name)
 {
 	//Check to see if there is a domain name based subfolder for he configuration
 	global $serverName;
-	$mapFilename = '';
+	/** @var Memcache $memCache */
+	global $memCache;
+	$mapValues = $memCache->get('translation_map_' . $name);
+	if ($mapValues != false){
+		return $mapValues;
+	}
+
+	// If the requested settings aren't loaded yet, pull them in:
 	$mapNameFull = $name . '_map.properties';
 	if (file_exists("../../sites/$serverName/translation_maps/$mapNameFull")){
 		// Return the file path (note that all ini files are in the conf/ directory)
@@ -71,28 +78,26 @@ function getTranslationMap($name)
 		$mapFilename = '../../sites/' . $mapNameFull;
 	}
 
-	static $translationMaps = array();
 
-	// If the requested settings aren't loaded yet, pull them in:
-	if (!isset($translationMaps[$name])) {
-		// Try to load the .ini file; if loading fails, the file probably doesn't
-		// exist, so we can treat it as an empty array.
-		$translationMaps[$name] = array();
-		$fHnd = fopen($mapFilename, 'r');
-		while (($line = fgets($fHnd)) !== false){
-			if (substr($line, 0, 1) == '#'){
-				//skip the line, it's a comment
-			}else{
-				$lineData = explode('=', $line, 2);
-				if (count($lineData) == 2){
-					$translationMaps[$name][trim($lineData[0])] = trim($lineData[1]);
-				}
+	// Try to load the .ini file; if loading fails, the file probably doesn't
+	// exist, so we can treat it as an empty array.
+	$mapValues = array();
+	$fHnd = fopen($mapFilename, 'r');
+	while (($line = fgets($fHnd)) !== false){
+		if (substr($line, 0, 1) == '#'){
+			//skip the line, it's a comment
+		}else{
+			$lineData = explode('=', $line, 2);
+			if (count($lineData) == 2){
+				$mapValues[trim($lineData[0])] = trim($lineData[1]);
 			}
 		}
-		fclose($fHnd);
 	}
+	fclose($fHnd);
 
-	return $translationMaps[$name];
+	global $configArray;
+	$memCache->set('translation_map_' . $name, $mapValues, 0, $configArray['Caching']['translation_map']);
+	return $mapValues;
 }
 
 function mapValue($mapName, $value){

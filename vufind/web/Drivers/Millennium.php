@@ -48,6 +48,53 @@ class MillenniumDriver implements DriverInterface
 	/** @var  Solr */
 	public $db;
 
+	private static function loadLibraryLocationInformation() {
+		if (MillenniumDriver::$libraryLocationInformationLoaded == false){
+			//Get a list of all locations for the active library
+			global $library;
+			global $timer;
+			$userLibrary = Library::getPatronHomeLibrary();
+			MillenniumDriver::$libraryLocations = array();
+			MillenniumDriver::$libraryLocationLabels = array();
+			$libraryLocation = new Location();
+			if ($userLibrary){
+				$libraryLocation->libraryId = $userLibrary->libraryId;
+				$libraryLocation->find();
+				while ($libraryLocation->fetch()){
+					$libraryLocations[] = $libraryLocation->code;
+					$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
+				}
+			}else{
+				$libraryLocation->libraryId = $library->libraryId;
+				$libraryLocation->find();
+				while ($libraryLocation->fetch()){
+					$libraryLocations[] = $libraryLocation->code;
+					$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
+				}
+			}
+			$homeLocation = Location::getUserHomeLocation();
+			MillenniumDriver::$homeLocationCode = null;
+			MillenniumDriver::$homeLocationLabel = null;
+			if ($homeLocation){
+				$homeLocationCode = $homeLocation->code;
+				$homeLocationLabel = $homeLocation->facetLabel;
+			}
+			$timer->logTime("Finished loading location data");
+
+			MillenniumDriver::$scopingLocationCode = '';
+
+			$searchLibrary = Library::getSearchLibrary();
+			$searchLocation = Location::getSearchLocation();
+			if (isset($searchLibrary)){
+				MillenniumDriver::$scopingLocationCode = $searchLibrary->ilsCode;
+			}
+			if (isset($searchLocation)){
+				MillenniumDriver::$scopingLocationCode = $searchLocation->code;
+			}
+			MillenniumDriver::$libraryLocationInformationLoaded = true;
+		}
+	}
+
 	/**
 	 * Load information about circulation statuses from the database
 	 * so we can perform translations easily and so we can determine
@@ -234,6 +281,13 @@ class MillenniumDriver implements DriverInterface
 
 	}
 
+	static $libraryLocationInformationLoaded = false;
+	static $libraryLocations = null;
+	static $libraryLocationLabels = null;
+	static $homeLocationCode = null;
+	static $homeLocationLabel = null;
+	static $scopingLocationCode = null;
+
 	/**
 	 * Loads items information as quickly as possible (no direct calls to the ILS).  Does do filtering by loan rules
 	 *
@@ -249,58 +303,33 @@ class MillenniumDriver implements DriverInterface
 	 * @return mixed
 	 */
 	public function getItemsFast($id, $scopingEnabled){
+		global $timer;
 		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
+		$timer->logTime("Finished loading MARC Record");
 
-		//Get a list of all locations for the active library
-		global $library;
-		$userLibrary = Library::getPatronHomeLibrary();
-		$libraryLocations = array();
-		$libraryLocationLabels = array();
-		$libraryLocation = new Location();
-		if ($userLibrary){
-			$libraryLocation->libraryId = $userLibrary->libraryId;
-			$libraryLocation->find();
-			while ($libraryLocation->fetch()){
-				$libraryLocations[] = $libraryLocation->code;
-				$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
-			}
-		}else{
-			$libraryLocation->libraryId = $library->libraryId;
-			$libraryLocation->find();
-			while ($libraryLocation->fetch()){
-				$libraryLocations[] = $libraryLocation->code;
-				$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
-			}
-		}
-		$homeLocation = Location::getUserHomeLocation();
-		$homeLocationCode = null;
-		$homeLocationLabel = null;
-		if ($homeLocation){
-			$homeLocationCode = $homeLocation->code;
-			$homeLocationLabel = $homeLocation->facetLabel;
-		}
-
-		$scopingLocationCode = '';
-		if ($scopingEnabled){
-			$searchLibrary = Library::getSearchLibrary();
-			$searchLocation = Location::getSearchLocation();
-			if (isset($searchLibrary)){
-				$scopingLocationCode = $searchLibrary->ilsCode;
-			}
-			if (isset($searchLocation)){
-				$scopingLocationCode = $searchLocation->code;
-			}
-		}
+		MillenniumDriver::loadLibraryLocationInformation();
 
 		//Get the items Fields from the record
 		/** @var File_MARC_Data_Field[] $itemFields */
 		$itemFields = $marcRecord->getFields('989');
+		$timer->logTime("Finished loading item fields");
 		$items = array();
 		$pType = $this->getPType();
+		$timer->logTime("Finished loading pType");
+
+		$shelfLocationMap = getTranslationMap('shelf_location');
+
 		foreach ($itemFields as $itemField){
+			//Ignore eContent items
+			$eContentData = trim($itemField->getSubfield('w') != null ? $itemField->getSubfield('w')->getData() : '');
+			if ($eContentData && strpos($eContentData, ':') > 0){
+				continue;
+			}
+
 			$locationCode = trim($itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '');
 			$iType = trim($itemField->getSubfield('j') != null ? $itemField->getSubfield('j')->getData() : '');
 			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pType);
+			$timer->logTime("Finished checking if item is holdable");
 			$status = trim($itemField->getSubfield('o') != null ? trim($itemField->getSubfield('o')->getData()) : '');
 			$dueDate = $itemField->getSubfield('m') != null ? trim($itemField->getSubfield('m')->getData()) : null;
 			$available = ($status == '-' && ($dueDate == null || strlen($dueDate) == 0));
@@ -308,30 +337,23 @@ class MillenniumDriver implements DriverInterface
 			$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
 			$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
 
-			//Ignore eContent items
-			$eContentData = trim($itemField->getSubfield('w') != null ? $itemField->getSubfield('w')->getData() : '');
-			if ($eContentData && strpos($eContentData, ':') > 0){
-				continue;
-			}
-
 			$isLibraryItem = false;
 			$locationLabel = '';
-			foreach ($libraryLocations as $tmpLocation){
+			foreach (MillenniumDriver::$libraryLocations as $tmpLocation){
 				if (strpos($locationCode, $tmpLocation) === 0){
 					$isLibraryItem = true;
-					$locationLabel = $libraryLocationLabels[$tmpLocation];
+					$locationLabel = MillenniumDriver::$libraryLocationLabels[$tmpLocation];
 				}
 			}
 			$isLocalItem = false;
-			if ($homeLocationCode != null && strpos($locationCode, $homeLocationCode) === 0){
+			if (MillenniumDriver::$homeLocationCode != null && strpos($locationCode, MillenniumDriver::$homeLocationCode) === 0){
 				$isLocalItem = true;
-				$locationLabel = $homeLocationLabel;
+				$locationLabel = MillenniumDriver::$homeLocationLabel;
 			}
-			$shelfLocationMap = getTranslationMap('shelf_location');
 
 			//Check to make sure the location is correct
 
-			if ($this->isItemHoldableToPatron($locationCode, $iType, $pType)){
+			if ($holdable || $isLibraryItem){
 				$item = array(
 					'location' => $locationCode,
 					'callnumber' => $fullCallNumber,
@@ -343,11 +365,13 @@ class MillenniumDriver implements DriverInterface
 					'shelfLocation' => isset($shelfLocationMap[$locationCode]) ? $shelfLocationMap[$locationCode] : '',
 				);
 				//TODO: Can we split these based on what is local and what is available if you are unscoped
-				if (strlen($scopingLocationCode) == 0 || strpos($locationCode, $scopingLocationCode) === 0){
+				if (!$scopingEnabled || strpos($locationCode, MillenniumDriver::$scopingLocationCode) === 0){
 					$items[] = $item;
 				}
 			}
+			$timer->logTime("Finished processing item");
 		}
+		$timer->logTime("Finished load items fast for Millennium record");
 		return $items;
 	}
 
@@ -1393,40 +1417,53 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	function isItemHoldableToPatron($locationCode, $iType, $pType){
-		$this->loadLoanRules();
-		if (count($this->loanRuleDeterminers) == 0){
-			//If we don't have any loan rules determiners, assume that the item is holdable.
-			return true;
-		}
-		$holdable = false;
-		//global $logger;
-		//$logger->log("Checking loan rules for $locationCode, $iType, $pType", PEAR_LOG_DEBUG);
-		foreach ($this->loanRuleDeterminers as $loanRuleDeterminer){
-			//$logger->log("Determiner {$loanRuleDeterminer->rowNumber}", PEAR_LOG_DEBUG);
-			//Check the location to be sure the determiner applies to this item
-			if ($loanRuleDeterminer->matchesLocation($locationCode) ){
-				//$logger->log("{$loanRuleDeterminer->rowNumber}) Location correct $locationCode, {$loanRuleDeterminer->location} ({$loanRuleDeterminer->trimmedLocation()})", PEAR_LOG_DEBUG);
-				//Check that the iType is correct
-				if ($loanRuleDeterminer->itemType == '999' || in_array($iType, $loanRuleDeterminer->iTypeArray())){
-					//$logger->log("{$loanRuleDeterminer->rowNumber}) iType correct $iType, {$loanRuleDeterminer->itemType}", PEAR_LOG_DEBUG);
-					if ($pType == -1 || $loanRuleDeterminer->patronType == '999' || in_array($pType, $loanRuleDeterminer->pTypeArray())){
-						//$logger->log("{$loanRuleDeterminer->rowNumber}) pType correct $pType, {$loanRuleDeterminer->patronType}", PEAR_LOG_DEBUG);
-						$loanRule = $this->loanRules[$loanRuleDeterminer->loanRuleId];
-						//$logger->log("Determiner {$loanRuleDeterminer->rowNumber} indicates Loan Rule {$loanRule->loanRuleId} applies, holdable {$loanRule->holdable}", PEAR_LOG_DEBUG);
-						$holdable = ($loanRule->holdable == 1);
-						if ($holdable || $pType != -1){
-							break;
+		/** @var Memcache $memCache*/
+		global $memCache;
+		global $configArray;
+		global $timer;
+		$memcacheKey = "loan_rule_result_{$locationCode}_{$iType}_{$pType}";
+		$cachedValue = $memCache->get($memcacheKey);
+		if ($cachedValue !== false){
+			return $cachedValue == 1;
+		}else{
+			$this->loadLoanRules();
+			if (count($this->loanRuleDeterminers) == 0){
+				//If we don't have any loan rules determiners, assume that the item is holdable.
+				return true;
+			}
+			$holdable = false;
+			//global $logger;
+			//$logger->log("Checking loan rules for $locationCode, $iType, $pType", PEAR_LOG_DEBUG);
+			foreach ($this->loanRuleDeterminers as $loanRuleDeterminer){
+				//$logger->log("Determiner {$loanRuleDeterminer->rowNumber}", PEAR_LOG_DEBUG);
+				//Check the location to be sure the determiner applies to this item
+				if ($loanRuleDeterminer->matchesLocation($locationCode) ){
+					//$logger->log("{$loanRuleDeterminer->rowNumber}) Location correct $locationCode, {$loanRuleDeterminer->location} ({$loanRuleDeterminer->trimmedLocation()})", PEAR_LOG_DEBUG);
+					//Check that the iType is correct
+					if ($loanRuleDeterminer->itemType == '999' || in_array($iType, $loanRuleDeterminer->iTypeArray())){
+						//$logger->log("{$loanRuleDeterminer->rowNumber}) iType correct $iType, {$loanRuleDeterminer->itemType}", PEAR_LOG_DEBUG);
+						if ($pType == -1 || $loanRuleDeterminer->patronType == '999' || in_array($pType, $loanRuleDeterminer->pTypeArray())){
+							//$logger->log("{$loanRuleDeterminer->rowNumber}) pType correct $pType, {$loanRuleDeterminer->patronType}", PEAR_LOG_DEBUG);
+							$loanRule = $this->loanRules[$loanRuleDeterminer->loanRuleId];
+							//$logger->log("Determiner {$loanRuleDeterminer->rowNumber} indicates Loan Rule {$loanRule->loanRuleId} applies, holdable {$loanRule->holdable}", PEAR_LOG_DEBUG);
+							$holdable = ($loanRule->holdable == 1);
+							if ($holdable || $pType != -1){
+								break;
+							}
+						}else{
+							//$logger->log("PType incorrect", PEAR_LOG_DEBUG);
 						}
 					}else{
-						//$logger->log("PType incorrect", PEAR_LOG_DEBUG);
+						//$logger->log("IType incorrect", PEAR_LOG_DEBUG);
 					}
 				}else{
-					//$logger->log("IType incorrect", PEAR_LOG_DEBUG);
+					//$logger->log("Location incorrect {$loanRuleDeterminer->location} != {$locationCode}", PEAR_LOG_DEBUG);
 				}
-			}else{
-				//$logger->log("Location incorrect {$loanRuleDeterminer->location} != {$locationCode}", PEAR_LOG_DEBUG);
 			}
 		}
+
+		$memCache->set($memcacheKey, ($holdable ? 1 : 0), 0 , $configArray['Caching']['loan_rule_result']);
+		$timer->logTime("Finished checking if item is holdable $locationCode, $iType, $pType");
 		return $holdable;
 	}
 
