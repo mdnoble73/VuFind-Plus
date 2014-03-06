@@ -119,7 +119,7 @@ VuFind.GroupedWork = (function(){
 				}else{
 					var customerReviewsData = data.customerReviewsHtml;
 					if (customerReviewsData && customerReviewsData.length > 0) {
-						$("#borrowerReviewPlaceholder").html(customerReviewsData);
+						$("#customerReviewPlaceholder").html(customerReviewsData);
 					}
 				}
 			});
