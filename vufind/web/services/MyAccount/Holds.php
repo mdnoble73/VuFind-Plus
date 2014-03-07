@@ -41,7 +41,7 @@ class MyAccount_Holds extends MyResearch{
 			$interface->assign('holdResult', $result);
 
 			//Redirect back here without the extra parameters.
-			$redirectUrl = $configArray['Site']['path'] . '/MyResearch/Holds?accountSort=' . ($selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'title');
+			$redirectUrl = $configArray['Site']['path'] . '/MyAccount/Holds?accountSort=' . ($selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'title');
 			if (isset($_REQUEST['section'])){
 				$redirectUrl .= "&section=" . $_REQUEST['section'];
 			}

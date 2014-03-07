@@ -39,6 +39,19 @@ var VuFind = (function(){
 			});
 		},
 
+		getQuerystringParameters: function(){
+			var vars = [];
+			var q = document.URL.split('?')[1];
+			if(q != undefined){
+				q = q.split('&');
+				for(var i = 0; i < q.length; i++){
+					var hash = q[i].split('=');
+					vars[hash[0]] = hash[1];
+				}
+			}
+			return vars;
+		},
+
 		getSelectedTitles: function(){
 			var selectedTitles = $("input.titleSelect:checked ").map(function() {
 				return $(this).attr('name') + "=" + $(this).val();

@@ -179,6 +179,75 @@ VuFind.Account = (function(){
 				});
 			}
 			return false;
+		},
+
+		cancelSelectedHolds: function(){
+			var selectedTitles = this.getSelectedTitles(false);
+			if (selectedTitles.length == 0){
+				alert('Please select one or more titles to cancel.');
+				return false;
+			}
+			var url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&' + selectedTitles;
+			var queryParams = VuFind.getQuerystringParameters();
+			if ($.inArray('section', queryParams)){
+				url += '&section=' + queryParams['section'];
+			}
+			window.location = url;
+			return false;
+		},
+
+		freezeSelectedHolds: function (){
+			var selectedTitles = this.getSelectedTitles();
+			if (selectedTitles.length == 0){
+				return false;
+			}
+			var suspendDate = '';
+			//Check to see whether or not we are using a suspend date.
+			if ($('#suspendDateTop').length){
+				if ($('#suspendDateTop').val().length > 0){
+					var suspendDate = $('#suspendDateTop').val();
+				}else{
+					var suspendDate = $('#suspendDateBottom').val();
+				}
+
+				if (suspendDate.length == 0){
+					alert("Please select the date when the hold should be reactivated.");
+					return false;
+				}
+				var url = Globals.path + '/MyAccount/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
+				var queryParams = VuFind.getQuerystringParameters();
+				if ($.inArray('section', queryParams)){
+					url += '&section=' + queryParams['section'];
+				}
+				window.location = url;
+			}else{
+				var url = Globals.path + '/MyAccount/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
+				var queryParams = VuFind.getQuerystringParameters();
+				if ($.inArray('section', queryParams)){
+					url += '&section=' + queryParams['section'];
+				}
+				window.location = url;
+			}
+			return false;
+		},
+
+		getSelectedTitles: function(promptForSelectAll){
+			if (promptForSelectAll == undefined){
+				promptForSelectAll = true;
+			}
+			var selectedTitles = $("input.titleSelect:checked ").map(function() {
+				return $(this).attr('name') + "=" + $(this).val();
+			}).get().join("&");
+			if (selectedTitles.length == 0 && promptForSelectAll){
+				var ret = confirm('You have not selected any items, process all items?');
+				if (ret == true){
+					$("input.titleSelect").attr('checked', 'checked');
+					selectedTitles = $("input.titleSelect").map(function() {
+						return $(this).attr('name') + "=" + $(this).val();
+					}).get().join("&");
+				}
+			}
+			return selectedTitles;
 		}
 
 	};

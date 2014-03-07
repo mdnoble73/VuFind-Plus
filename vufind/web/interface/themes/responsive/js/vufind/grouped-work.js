@@ -204,7 +204,7 @@ VuFind.GroupedWork = (function(){
 
 		showSaveToListForm: function (trigger, id){
 			if (Globals.loggedIn){
-				var url = Globals.path + "/Resource/Save?lightbox=true&id=" + id + "&source=" + source;
+				var url = Globals.path + "/GroupedWork/Save?lightbox=true&id=" + id + "&source=" + source;
 				var $trigger = $(trigger);
 				$("#modal-title").text($trigger.attr("title"));
 				var modalDialog = $("#modalDialog");
