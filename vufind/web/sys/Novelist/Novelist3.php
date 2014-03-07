@@ -414,6 +414,111 @@ class Novelist3{
 		return $novelistData;
 	}
 
+	/**
+	 * Loads Novelist data from Novelist for a grouped record
+	 *
+	 * @param String    $groupedRecordId  The permanent id of the grouped record
+	 * @param String[]  $isbns            a list of ISBNs for the record
+	 * @return NovelistData
+	 */
+	function getSimilarAuthors($groupedRecordId, $isbns){
+		global $timer;
+		global $configArray;
+
+		//First make sure that Novelist is enabled
+		if (isset($configArray['Novelist']) && isset($configArray['Novelist']['profile']) && strlen($configArray['Novelist']['profile']) > 0){
+			$profile = $configArray['Novelist']['profile'];
+			$pwd = $configArray['Novelist']['pwd'];
+		}else{
+			return null;
+		}
+
+		//Check to see if we have cached data, first check MemCache.
+		/** @var Memcache $memCache */
+		global $memCache;
+		$novelistData = $memCache->get("novelist_similar_authors_$groupedRecordId");
+		if ($novelistData != false && !isset($_REQUEST['reload'])){
+			return $novelistData;
+		}
+
+		//Now check the database
+		$novelistData = new NovelistData();
+		$novelistData->groupedRecordPermanentId = $groupedRecordId;
+		$recordExists = false;
+		if ($novelistData->find(true)){
+			$recordExists = true;
+		}
+
+		$novelistData->groupedRecordHasISBN = count($isbns) > 0;
+
+		//When loading full data, we aways need to load the data since we can't cache due to terms of sevice
+		if ($recordExists && $novelistData->primaryISBN != null && strlen($novelistData->primaryISBN) > 0){
+			//Just check the primary ISBN since we know that was good.
+			$isbns = array($novelistData->primaryISBN);
+		}
+
+		//Update the last update time to optimize caching
+		$novelistData->lastUpdate = time();
+
+		if (count($isbns) == 0){
+			//Whoops, no ISBNs, can't get enrichment for this
+			$novelistData->hasNovelistData = false;
+		}else{
+			$novelistData->hasNovelistData = false;
+
+			//Check each ISBN for enrichment data
+			foreach ($isbns as $isbn){
+				$requestUrl = "http://novselect.ebscohost.com/Data/ContentByQuery?profile=$profile&password=$pwd&ClientIdentifier={$isbn}&isbn={$isbn}&version=2.1&tmpstmp=" . time();
+				//echo($requestUrl);
+				try{
+					//Get the JSON from the service
+					disableErrorHandler();
+					$req = new Proxy_Request($requestUrl);
+					//$result = file_get_contents($req);
+					if (PEAR_Singleton::isError($req->sendRequest())) {
+						enableErrorHandler();
+						//No enrichment for this isbn, go to the next one
+						continue;
+					}
+					enableErrorHandler();
+
+					$response = $req->getResponseBody();
+					$timer->logTime("Made call to Novelist for enrichment information");
+
+					//Parse the JSON
+					$data = json_decode($response);
+					//print_r($data);
+
+					//Related ISBNs
+
+					if (isset($data->FeatureContent) && $data->FeatureCount > 0){
+						$novelistData->hasNovelistData = true;
+						//We got data!
+						$novelistData->primaryISBN = $data->TitleInfo->primary_isbn;
+
+						//Similar Authors
+						if (isset($data->FeatureContent->SimilarAuthors)){
+							$this->loadSimilarAuthorInfo($data->FeatureContent->SimilarAuthors, $novelistData);
+						}
+
+						//We got good data, quit looking at ISBNs
+						break;
+					}
+				}catch (Exception $e) {
+					global $logger;
+					$logger->log("Error fetching data from NoveList $e", PEAR_LOG_ERR);
+					if (isset($response)){
+						$logger->log($response, PEAR_LOG_DEBUG);
+					}
+					$enrichment = null;
+				}
+			}//Loop on each ISBN
+		}//Check for number of ISBNs
+
+		$memCache->set("novelist_similar_authors_$groupedRecordId", $novelistData, 0, $configArray['Caching']['novelist_enrichment']);
+		return $novelistData;
+	}
+
 	private function loadSimilarAuthorInfo($feature, &$enrichment){
 		$authors = array();
 		$items = $feature->authors;
@@ -421,7 +526,7 @@ class Novelist3{
 			$authors[] = array(
 				'name' => $item->full_name,
 				'reason' => $item->reason,
-				'link' => '/Union/Search/?basicType=Author&lookfor='. urlencode($item->full_name),
+				'link' => '/Author/Home/?author='. urlencode($item->full_name),
 			);
 		}
 		$enrichment->authors = $authors;
@@ -565,7 +670,9 @@ class Novelist3{
 			//TODO:  cache this info since it can take a really long time to load
 			/** @var SearchObject_Solr $searchObj */
 			$searchObj = SearchObjectFactory::initSearchObject();
+			disableErrorHandler();
 			$ownedRecord = $searchObj->getRecord($permanentId);
+			enableErrorHandler();
 
 			if ($ownedRecord != null){
 				if (strpos($ownedRecord['isbn'][0], ' ') > 0){

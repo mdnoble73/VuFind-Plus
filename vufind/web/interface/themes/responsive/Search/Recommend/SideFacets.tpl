@@ -8,7 +8,7 @@
 		{/if}
 		{* Filters that have been applied *}
 		{if $filterList}
-			<div id="remove-search-label">{translate text='Applied Filters'}</div>
+			<div id="remove-search-label" class="sidebar-label">{translate text='Applied Filters'}</div>
 			<div class="applied-filters">
 			{foreach from=$filterList item=filters key=field }
 				{foreach from=$filters item=filter}
@@ -20,7 +20,7 @@
 
 		{* Available filters *}
 		{if $sideFacetSet && $recordCount > 0}
-			<div id="narrow-search-label">{translate text='Narrow Search'}</div>
+			<div id="narrow-search-label" class="sidebar-label">{translate text='Narrow Search'}</div>
 			<div id="facet-accordion">
 				{foreach from=$sideFacetSet item=cluster key=title name=facetSet}
 					{if count($cluster.list) > 0}

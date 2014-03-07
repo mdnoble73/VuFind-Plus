@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/Action.php';
 
 require_once ROOT_DIR . '/sys/Proxy_Request.php';
 require_once ROOT_DIR . '/sys/Pager.php';
-require_once ROOT_DIR . '/sys/Novelist.php';
+require_once ROOT_DIR . '/sys/NovelistFactory.php';
 
 class Author_Home extends Action
 {
@@ -35,6 +35,7 @@ class Author_Home extends Action
 		global $library;
 
 		// Initialise from the current search globals
+		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 
@@ -186,24 +187,20 @@ class Author_Home extends Action
 		$interface->assign('recordSet',  $authorTitles);
 
 		//Load similar author information.
-		$authorIsbn = null;
-		foreach ($authorTitles as $title){
-			if (isset($title['isbn'])){
-				if (is_array($title['isbn'])){
-					$authorIsbn = $title['isbn'][0];
-				}else{
-					$authorIsbn = $title['isbn'];
-				}
+		$groupedWorkId = null;
+		$workIsbns = array();
+		foreach ($searchObject->getResultRecordSet() as $title){
+			$groupedWorkId = $title['id'];
+			$workIsbns = $title['isbn'];
+			if (count($workIsbns) > 0){
 				break;
 			}
 		}
 
-		if (!is_null($authorIsbn)){
+		if (!is_null($workIsbns) && count($workIsbns) > 0){
 			//Make sure to trim off any format information from the ISBN
-			$isbnParts = explode(' ', $authorIsbn);
-			$authorIsbn = $isbnParts[0];
 			$novelist = NovelistFactory::getNovelist();
-			$enrichment['novelist'] = $novelist->loadEnrichment($authorIsbn, false, false, true);
+			$enrichment['novelist'] = $novelist->getSimilarAuthors($groupedWorkId, $workIsbns);
 			if ($enrichment) {
 				$interface->assign('enrichment', $enrichment);
 			}
@@ -227,6 +224,7 @@ class Author_Home extends Action
 		//Get view & load template
 		$currentView  = $searchObject->getView();
 		$interface->assign('subpage', 'Search/list-' . $currentView .'.tpl');
+		$interface->assign('sidebar', 'Author/sidebar.tpl');
 		$interface->setTemplate('home.tpl');
 		$interface->display('layout.tpl', 'Author' . $_GET['author']);
 	}
