@@ -76,8 +76,8 @@ class MillenniumDriver implements DriverInterface
 			MillenniumDriver::$homeLocationCode = null;
 			MillenniumDriver::$homeLocationLabel = null;
 			if ($homeLocation){
-				$homeLocationCode = $homeLocation->code;
-				$homeLocationLabel = $homeLocation->facetLabel;
+				MillenniumDriver::$homeLocationCode = $homeLocation->code;
+				MillenniumDriver::$homeLocationLabel = $homeLocation->facetLabel;
 			}
 			$timer->logTime("Finished loading location data");
 
@@ -371,6 +371,9 @@ class MillenniumDriver implements DriverInterface
 				if (!$scopingEnabled || strpos($locationCode, MillenniumDriver::$scopingLocationCode) === 0){
 					$items[] = $item;
 				}
+			}else{
+				global $logger;
+				$logger->log("Removing item for location $locationCode because it is not holdable or it is not owned by the local library", PEAR_LOG_DEBUG);
 			}
 			//$timer->logTime("Finished processing item");
 		}
@@ -1426,7 +1429,7 @@ class MillenniumDriver implements DriverInterface
 		global $timer;
 		$memcacheKey = "loan_rule_result_{$locationCode}_{$iType}_{$pType}";
 		$cachedValue = $memCache->get($memcacheKey);
-		if ($cachedValue !== false){
+		if ($cachedValue !== false && !isset($_REQUEST['reload'])){
 			return $cachedValue == 1;
 		}else{
 			$this->loadLoanRules();
