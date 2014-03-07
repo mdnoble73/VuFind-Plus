@@ -61,15 +61,15 @@ class MillenniumDriver implements DriverInterface
 				$libraryLocation->libraryId = $userLibrary->libraryId;
 				$libraryLocation->find();
 				while ($libraryLocation->fetch()){
-					$libraryLocations[] = $libraryLocation->code;
-					$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
+					MillenniumDriver::$libraryLocations[] = $libraryLocation->code;
+					MillenniumDriver::$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
 				}
 			}else{
 				$libraryLocation->libraryId = $library->libraryId;
 				$libraryLocation->find();
 				while ($libraryLocation->fetch()){
-					$libraryLocations[] = $libraryLocation->code;
-					$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
+					MillenniumDriver::$libraryLocations[] = $libraryLocation->code;
+					MillenniumDriver::$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
 				}
 			}
 			$homeLocation = Location::getUserHomeLocation();
@@ -1429,8 +1429,9 @@ class MillenniumDriver implements DriverInterface
 		global $timer;
 		$memcacheKey = "loan_rule_result_{$locationCode}_{$iType}_{$pType}";
 		$cachedValue = $memCache->get($memcacheKey);
+		$cachedValue = false;
 		if ($cachedValue !== false && !isset($_REQUEST['reload'])){
-			return $cachedValue == 1;
+			return $cachedValue == 'true';
 		}else{
 			$this->loadLoanRules();
 			if (count($this->loanRuleDeterminers) == 0){
@@ -1468,7 +1469,7 @@ class MillenniumDriver implements DriverInterface
 			}
 		}
 
-		$memCache->set($memcacheKey, ($holdable ? 1 : 0), 0 , $configArray['Caching']['loan_rule_result']);
+		$memCache->set($memcacheKey, ($holdable ? 'true' : 'false'), 0 , $configArray['Caching']['loan_rule_result']);
 		$timer->logTime("Finished checking if item is holdable $locationCode, $iType, $pType");
 		return $holdable;
 	}
