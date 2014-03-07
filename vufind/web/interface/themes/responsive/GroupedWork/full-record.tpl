@@ -19,7 +19,7 @@
 			<div class="result-label col-md-3">Series: </div>
 			<div class="col-md-9 result-value">
 				{assign var=summSeries value=$recordDriver->getSeries()}
-				<a href="{$path}/GroupedWork/{$recordDriver->getId()}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}
+				<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}
 			</div>
 		</div>
 	{/if}
