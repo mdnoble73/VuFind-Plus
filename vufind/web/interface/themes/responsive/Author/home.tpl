@@ -1,8 +1,6 @@
 {strip}
-
-	<div class="row">
-		<h2>{$authorName}</h2>
-	</div>
+<div>
+	<h2>{$authorName}</h2>
 	<div id="wikipedia_placeholder" class="row"></div>
 
 	{if $topRecommendations}
@@ -53,6 +51,7 @@
 		<a href="{$rssLink|escape}"><span class="silk feed">&nbsp;</span>{translate text='Get RSS Feed'}</a>
 		<a href="{$path}/Search/Email" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;"><span class="silk email">&nbsp;</span>{translate text='Email this Search'}</a>
 	</div>
+</div>
 {/strip}
 {if $showWikipedia}
 	{literal}
