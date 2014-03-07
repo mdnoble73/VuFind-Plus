@@ -1,6 +1,6 @@
 {strip}
 {if $info}
-	<div class="wikipedia_article row">
+	<div class="wikipedia_article">
 		{if $info.image}
 			<img src="{$info.image}" alt="{$info.altimage|escape}" style="width:150px" class="img-polaroid wikipedia_image" />
 		{/if}

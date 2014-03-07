@@ -1,33 +1,48 @@
 {strip}
 
-<h2>{$authorName}</h2>
-	<div id="wikipedia_placeholder"></div>
-	{* Listing Options *}
 	<div class="row">
-		<div class="col-md-7">
-			{if $recordCount}
-				{translate text="Showing"}&nbsp;
-				<b>{$recordStart}</b> - <b>{$recordEnd}</b>
-				&nbsp;{translate text='of'}&nbsp;<b>{$recordCount}</b>
-				{if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>,{/if}
-			{/if}
-			{translate text='query time'}: {$qtime}s
-
-		</div>
-
-		<div class="col-md-5">
-			<div class="form-group">
-				<label for="sortOptions" class="checkbox inline">
-					{translate text='Sort'} <select id="sortOptions" name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;">
-					{foreach from=$sortList item=sortData key=sortLabel}
-						<option value="{$sortData.sortUrl|escape}"{if $sortData.selected} selected="selected"{/if}>{translate text=$sortData.desc}</option>
-					{/foreach}
-					</select>
-				</label>
-			</div>
-		</div>
-
+		<h2>{$authorName}</h2>
 	</div>
+	<div id="wikipedia_placeholder" class="row"></div>
+
+	{if $topRecommendations}
+		{foreach from=$topRecommendations item="recommendations"}
+			{include file=$recommendations}
+		{/foreach}
+	{/if}
+
+	{* Information about the search *}
+	<div class="result-head">
+
+		{if $recordCount}
+			{translate text="Showing"} {$recordStart} - {$recordEnd} {translate text='of'} {$recordCount|number_format}
+		{/if}
+		<span class="hidden-phone">
+			 &nbsp;{translate text='query time'}: {$qtime}s
+		</span>
+		{if $replacementTerm}
+			<div id="replacement-search-info">
+				<span class="replacement-search-info-text">Showing Results for </span>{$replacementTerm}<span class="replacement-search-info-text">.  Search instead for <span class="replacement-search-info-text"><a href="{$oldSearchUrl}">{$oldTerm}</a>
+			</div>
+		{/if}
+
+		{if $numUnscopedResults && $numUnscopedResults != $recordCount}
+			<div class="unscopedResultCount">
+				There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
+			</div>
+		{/if}
+
+		{if $spellingSuggestions}
+			<br /><br /><div class="correction"><strong>{translate text='spell_suggest'}</strong>:<br/>
+			{foreach from=$spellingSuggestions item=details key=term name=termLoop}
+				{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="{$path}/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}{if !$smarty.foreach.termLoop.last}<br/>{/if}
+			{/foreach}
+		</div>
+		{/if}
+
+		<div class="clearer"></div>
+	</div>
+	{* End Listing Options *}
 
 	{include file='Search/list-list.tpl'}
 
@@ -40,11 +55,11 @@
 	</div>
 {/strip}
 {if $showWikipedia}
-{literal}
-<script type="text/javascript">
-	$(document).ready(function (){
-		VuFind.Wikipedia.getWikipediaArticle('{/literal}{$wikipediaAuthorName}{literal}');
-	});
-</script>
-{/literal}
+	{literal}
+	<script type="text/javascript">
+		$(document).ready(function (){
+			VuFind.Wikipedia.getWikipediaArticle('{/literal}{$wikipediaAuthorName}{literal}');
+		});
+	</script>
+	{/literal}
 {/if}
