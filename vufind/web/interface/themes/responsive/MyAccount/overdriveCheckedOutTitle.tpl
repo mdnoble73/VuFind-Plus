@@ -9,7 +9,7 @@
 				{if $user->disableCoverArt != 1}
 					{if $record.recordId}
 						<a href="{$record.recordUrl|escape:"url"}">
-							<img src="{$record.coverUrl}" class="listResultImage img-polaroid" alt="{translate text='Cover Image'}"/>
+							<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
 						</a>
 					{/if}
 				{/if}

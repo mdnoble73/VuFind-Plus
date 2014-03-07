@@ -9,7 +9,7 @@
 					{if $record.recordId}
 					<a href="{$path}/EcontentRecord/{$record.recordId|escape:"url"}">
 						{/if}
-						<img src="{$coverUrl}/bookcover.php?id={$record.recordId}&amp&econtent&size=medium" class="listResultImage" alt="{translate text='Cover Image'}"/>
+						<img src="{$coverUrl}/bookcover.php?id={$record.recordId}&amp&econtent&size=medium" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
 						{if $record.recordId}
 					</a>
 					{/if}

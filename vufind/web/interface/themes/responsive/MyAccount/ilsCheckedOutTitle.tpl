@@ -1,6 +1,6 @@
 {strip}
 	<div id="record{$record.source}_{$record.id|escape}" class="result row">
-		<div class="col-md-3">
+		<div class="col-sm-3 col-md-3">
 			<div class="row">
 				<div class="selectTitle col-md-2">
 					<input type="checkbox" name="selected[{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}"/>
@@ -9,7 +9,7 @@
 					{if $user->disableCoverArt != 1}
 						{if $record.id}
 							<a href="{$path}/Record/{$record.id|escape:"url"}">
-								<img src="{$coverUrl}/bookcover.php?id={$record.id}&amp;isn={$record.isbn|@formatISBN}&amp;size=medium&amp;upc={$record.upc}&amp;issn={$record.issn}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage img-polaroid" alt="{translate text='Cover Image'}"/>
+								<img src="{$coverUrl}/bookcover.php?id={$record.id}&amp;isn={$record.isbn|@formatISBN}&amp;size=medium&amp;upc={$record.upc}&amp;issn={$record.issn}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
 							</a>
 						{/if}
 					{/if}

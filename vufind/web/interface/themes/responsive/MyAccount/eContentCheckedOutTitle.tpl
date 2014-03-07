@@ -9,7 +9,7 @@
 					{if $user->disableCoverArt != 1}
 						{if $record.recordId}
 							<a href="{$path}/EcontentRecord/{$record.id|escape:"url"}">
-								<img src="{$coverUrl}/bookcover.php?id={$record.id}&amp;econtent=true&amp;size=medium" class="listResultImage img-polaroid" alt="{translate text='Cover Image'}"/>
+								<img src="{$coverUrl}/bookcover.php?id={$record.id}&amp;econtent=true&amp;size=medium" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
 							</a>
 						{/if}
 					{/if}
