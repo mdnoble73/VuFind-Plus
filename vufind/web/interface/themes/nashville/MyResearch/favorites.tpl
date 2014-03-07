@@ -21,11 +21,13 @@
 		{/if}
 
 		{if $importResults}
-			<p>
+			<h2>
 				Congratulations, we imported {$importResults.totalTitles} title{if $importResults.totalTitles !=1}s{/if} from {$importResults.totalLists} list{if $importResults.totalLists != 1}s{/if}.
-			</p>
+			</h2>
 			{if $importResults.errors}
-				<div class="errors">Import Errors
+				<div class="errors">We’re sorry, the system was not able to import the following titles.<br />
+				You can search the catalog for these titles to re-add them to your lists.<br />
+				<a href="http://www.surveymonkey.com/s/vufindplus_feedback">Please get in touch with us if you need assistance.</a>
 					<ul>
 					{foreach from=$importResults.errors item=error}
 						<li>{$error}</li>
