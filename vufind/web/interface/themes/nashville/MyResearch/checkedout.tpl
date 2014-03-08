@@ -86,11 +86,9 @@
 									<th>{translate text='Out'}</th>
 									{/if}
 									<th>{translate text='Due'}</th>
-								{*
                                 	{if $showRenewed}
 									<th>{translate text='Renewed'}</th>
 									{/if}
-                                 *}
 									{if $showWaitList}
 									<th>{translate text='Wait List'}</th>
 									{/if}
@@ -195,7 +193,6 @@
 											{/if}
 										</td>
 
-										{*
                                         {if $showRenewed}
 											<td class="myAccountCell">
 												{$record.renewCount}
@@ -206,7 +203,6 @@
 												{/if}
 											</td>
 										{/if}
-                                        *}
 
 										{if $showWaitList}
 											<td class="myAccountCell">

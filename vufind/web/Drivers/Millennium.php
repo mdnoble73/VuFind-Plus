@@ -1685,7 +1685,7 @@ class MillenniumDriver implements DriverInterface
 								if (!isset($results['errors'])){
 									$results['errors'] = array();
 								}
-								$results['errors'][] = "\"$bibTitle\" on list $title could not be found in the catalog and was not imported.";
+								$results['errors'][] = "\"$bibTitle\" on list $title.";
 							}
 						}
 

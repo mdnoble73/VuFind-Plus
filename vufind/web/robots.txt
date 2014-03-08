@@ -8,4 +8,7 @@ Disallow: /MyResearch/
 Disallow: /images/fiveStar/
 Disallow: /bookcover.php
 Disallow: /vufind/
-Disallow: /Record/*/Search/
+Disallow: /Record/*/Hold
+Disallow: /Record/*/Home
+Disallow: /Record/*/Search
+

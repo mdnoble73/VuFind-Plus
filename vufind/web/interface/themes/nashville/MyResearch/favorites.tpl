@@ -21,11 +21,11 @@
 		{/if}
 
 		{if $importResults}
-			<p>
+			<h2>
 				Congratulations, we imported {$importResults.totalTitles} title{if $importResults.totalTitles !=1}s{/if} from {$importResults.totalLists} list{if $importResults.totalLists != 1}s{/if}.
-			</p>
+			</h2>
 			{if $importResults.errors}
-				<div class="errors">Import Errors
+				<div class="errors">We were not able to import the following titles. You can search the catalog for these titles to re-add them to your lists.<br />
 					<ul>
 					{foreach from=$importResults.errors item=error}
 						<li>{$error}</li>
@@ -34,7 +34,7 @@
 				</div>
 			{/if}
 			<p>
-				Please use the new catalog to manage your lists in the future.
+				<a href="http://www.surveymonkey.com/s/vufindplus_feedback">Please get in touch with us if you need assistance.</a>
 			</p>
 		{/if}
 

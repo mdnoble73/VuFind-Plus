@@ -53,7 +53,7 @@
 	</div>
 	
 	<div class="sidegroup">
-		<h4>{translate text='My Lists'}</h4>
+		<h4><a href="{$path}/MyResearch/Favorites">{translate text='My Lists'}</a></h4>
 		<div class="myAccountLink{if $pageTemplate=="myRatings.tpl"} active{/if}"><a href="{$path}/MyResearch/MyRatings">{translate text='My Ratings'}</a></div>
 		{foreach from=$lists item=list}
 			{if $list.id != -1}
