@@ -450,12 +450,14 @@ class JSON extends Action {
 		global $library;
 		$tmpLocation = new Location();
 		$tmpLocation->libraryId = $library->libraryId;
+		$tmpLocation->showInLocationsAndHoursList = 1;
 		$tmpLocation->orderBy('displayName');
 		$libraryLocations = array();
 		$tmpLocation->find();
 		if ($tmpLocation->N == 0){
 			//Get all locations
 			$tmpLocation = new Location();
+			$tmpLocation->showInLocationsAndHoursList = 1;
 			$tmpLocation->orderBy('displayName');
 			$tmpLocation->find();
 		}

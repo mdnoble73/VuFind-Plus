@@ -334,7 +334,9 @@ class UInterface extends Smarty
 			$this->assign('showRatings', $library->showRatings);
 			$this->assign('allowPinReset', $library->allowPinReset);
 			$this->assign('librarySystemName', $library->displayName);
+			$this->assign('showLibraryHoursAndLocationsLink', $library->showLibraryHoursAndLocationsLink);
 		}else{
+			$this->assign('showLibraryHoursAndLocationsLink', 1);
 			$this->assign('showRatings', 1);
 			$this->assign('allowPinReset', 0);
 		}

@@ -498,6 +498,15 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'hours_and_locations_control' => array(
+				'title' => 'Hours and Locations Control',
+				'description' => 'Allow additional control over library hours and locations display.',
+				'sql' => array(
+						"ALTER TABLE library ADD showLibraryHoursAndLocationsLink INT(11) DEFAULT 1",
+						"ALTER TABLE location ADD showInLocationsAndHoursList INT(11) DEFAULT 1",
+				),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',
@@ -653,12 +662,12 @@ class DBMaintenance extends Admin_Admin {
 			),
 
 			'location_10' => array(
-					'title' => 'Location 10',
-					'description' => 'Allow multiple widgets on the home page',
-					'continueOnError' => true,
-					'sql' => array(
-							"ALTER TABLE `location` CHANGE `homePageWidgetId` `homePageWidgetId` VARCHAR( 50 ) NULL DEFAULT ''",
-					),
+				'title' => 'Location 10',
+				'description' => 'Allow multiple widgets on the home page',
+				'continueOnError' => true,
+				'sql' => array(
+						"ALTER TABLE `location` CHANGE `homePageWidgetId` `homePageWidgetId` VARCHAR( 50 ) NULL DEFAULT ''",
+				),
 			),
 
 			'location_address' => array(

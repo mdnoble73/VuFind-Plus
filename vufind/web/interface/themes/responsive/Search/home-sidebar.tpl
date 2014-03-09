@@ -25,11 +25,13 @@
 
 
 	<div id="home-page-library-section" class="row">
-		<a href="{$path}/AJAX/JSON?method=getHoursAndLocations" data-title="Library Hours and Locations" class="modalDialogTrigger">
-			<div id="home-page-hours-locations">
-				LIBRARY HOURS & LOCATIONS
-			</div>
-		</a>
+		{if $showLibraryHoursAndLocationsLink}
+			<a href="{$path}/AJAX/JSON?method=getHoursAndLocations" data-title="Library Hours and Locations" class="modalDialogTrigger">
+				<div id="home-page-hours-locations">
+					LIBRARY HOURS & LOCATIONS
+				</div>
+			</a>
+		{/if}
 
 		{if $libraryLinks}
 			<div id="home-library-links" class="sidebar-links">

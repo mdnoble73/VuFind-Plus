@@ -620,6 +620,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$record = RecordDriverFactory::initRecordDriver($current);
 			$record->setScopingEnabled($this->indexEngine->isScopingEnabled());
 			if (!PEAR_Singleton::isError($record)){
+				$interface->assign('recordDriver', $record);
 				$html[] = $interface->fetch($record->getSearchResult());
 			}else{
 				$html[] = "Unable to find record";

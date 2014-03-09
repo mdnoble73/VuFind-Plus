@@ -19,6 +19,7 @@ class Location extends DB_DataObject
 	public $libraryId;				//int(11)
 	public $address;
 	public $phone;
+	public $showInLocationsAndHoursList;
 	public $extraLocationCodesToInclude;
 	public $validHoldPickupBranch;	//tinyint(4)
 	public $nearbyLocation1;		//int(11)
@@ -110,6 +111,7 @@ class Location extends DB_DataObject
 			array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user', 'size'=>'40'),
 			array('property'=>'showDisplayNameInHeader', 'type'=>'checkbox', 'label'=>'Show Display Name in Header', 'description'=>'Whether or not the display name should be shown in the header next to the logo', 'hideInLists' => true, 'default'=>false),
 			array('property'=>'libraryId', 'type'=>'enum', 'values'=>$libraryList, 'label'=>'Library', 'description'=>'A link to the library which the location belongs to'),
+			array('property'=>'showInLocationsAndHoursList', 'type'=>'checkbox', 'label'=>'Show In Locations And Hours List', 'description'=>'Whether or not this location should be shown in the list of library hours and locations', 'hideInLists' => true, 'default'=>true),
 			array('property'=>'address', 'type'=>'textarea', 'label'=>'Address', 'description'=>'The address of the branch.', 'hideInLists' => true),
 			array('property'=>'phone', 'type'=>'text', 'label'=> 'Phone Number', 'description'=>'The main phone number for the site .', 'size' => '40', 'hideInLists' => true),
 			array('property'=>'extraLocationCodesToInclude', 'type'=>'text', 'label'=> 'Extra Locations To Include', 'description'=>'A list of other location codes to include in this location for indexing special collections, juvenile collections, etc.', 'size' => '40', 'hideInLists' => true),

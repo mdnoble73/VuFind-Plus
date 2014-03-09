@@ -118,6 +118,7 @@ class Library extends DB_DataObject
 	public $facebookLink;
 	public $generalContactLink;
 	public $allowPinReset;
+	public $showLibraryHoursAndLocationsLink;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
@@ -186,6 +187,7 @@ class Library extends DB_DataObject
 				'useHomeLinkInBreadcrumbs' => array('property'=>'useHomeLinkInBreadcrumbs', 'type'=>'checkbox', 'label'=>'Use Home Link in Breadcrumbs', 'description'=>'Whether or not the home link should be used in the breadcumbs.', 'hideInLists' => true,),
 				'homeLinkText' => array('property'=>'homeLinkText', 'type'=>'text', 'label'=>'Home Link Text', 'description'=>'The text to show for the Home breadcrumb link', 'size'=>'40', 'hideInLists' => true, 'default' => 'Home'),
 				'homePageWidgetId' => array('property'=>'homePageWidgetId', 'type'=>'text', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page.  To show more than one widget, separate the ids with commas.', 'hideInLists' => true, 'default' => 0),
+				'showLibraryHoursAndLocationsLink' => array('property'=>'showLibraryHoursAndLocationsLink', 'type'=>'checkbox', 'label'=>'Show Library Hours and Locations Link', 'description'=>'Whether or not the library hours and locations link is shown on the home page.', 'hideInLists' => true, 'default' => true),
 				'illLink'  => array('property'=>'illLink', 'type'=>'url', 'label'=>'ILL Link', 'description'=>'A link to a library system specific ILL page', 'size'=>'80', 'hideInLists' => true,),
 				'eContentSupportAddress'  => array('property'=>'eContentSupportAddress', 'type'=>'email', 'label'=>'E-Content Support Address', 'description'=>'An e-mail address to receive support requests for patrons with eContent problems.', 'size'=>'80', 'hideInLists' => true, 'default'=>'askmarmot@marmot.org'),
 				'enableBookCart'  => array('property'=>'enableBookCart', 'type'=>'checkbox', 'label'=>'Enable Book Cart', 'description'=>'Whether or not the Book Cart should be used for this library.', 'hideInLists' => true, 'default' => 1),

@@ -11,7 +11,7 @@
 			<img src="{img filename='facebook-icon.png'}" alt="Share on Facebook"/>
 		</a>
 		{if $showEmailThis == 1}
-			<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()|escape:'url'}/Email?lightbox" onclick="return VuFind.ajaxLightbox('{$path}/Record/{$id|escape}/Email?lightbox', true)">
+			<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()|escape:'url'}/Email?lightbox" onclick="return VuFind.ajaxLightbox('{$path}/GroupedWork/{$id|escape}/Email?lightbox', true)">
 				<img src="{img filename='email-icon.png'}" alt="E-mail this"/>
 			</a>
 		{/if}
