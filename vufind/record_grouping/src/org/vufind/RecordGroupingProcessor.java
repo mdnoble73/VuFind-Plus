@@ -475,7 +475,7 @@ public class RecordGroupingProcessor {
 		}else if (format.equalsIgnoreCase("music")){
 			groupedWork.groupingCategory = "music";
 		}else if (format.equalsIgnoreCase("video")){
-			groupedWork.groupingCategory = "video";
+			groupedWork.groupingCategory = "movie";
 		}
 
 		groupedWork.identifiers = identifiers;
