@@ -28,32 +28,50 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		return false;
 	}
 	function isLocalItem($locationCode, $eContentFieldData){
-		$sharing = $this->getSharing($locationCode, $eContentFieldData);
-		if ($sharing == 'shared'){
-			return true;
-		}else{
-			return false;
-		}
+		return $this->isLibraryItem($locationCode, $eContentFieldData);
 	}
 	function isLibraryItem($locationCode, $eContentFieldData){
 		$sharing = $this->getSharing($locationCode, $eContentFieldData);
 		if ($sharing == 'shared'){
 			return true;
+		}else if ($sharing == 'library'){
+			$searchLibrary = Library::getSearchLibrary();
+			if ($searchLibrary->includeOutOfSystemExternalLinks || strpos($locationCode, $searchLibrary->ilsCode) === 0){
+				return true;
+			}else{
+				return false;
+			}
 		}else{
-			return false;
+			$searchLibrary = Library::getSearchLibrary();
+			$searchLocation = Location::getSearchLocation();
+			if ($searchLibrary->includeOutOfSystemExternalLinks || strpos($locationCode, $searchLocation->code) === 0){
+				return true;
+			}else{
+				return false;
+			}
 		}
 	}
 
 	function isValidForUser($locationCode, $eContentFieldData){
 		global $user;
-		if (!$user){
-			return true;
-		}
 		$sharing = $this->getSharing($locationCode, $eContentFieldData);
 		if ($sharing == 'shared'){
 			return true;
+		}else if ($sharing == 'library'){
+			$searchLibrary = Library::getSearchLibrary();
+			if ($searchLibrary->includeOutOfSystemExternalLinks || strpos($locationCode, $searchLibrary->ilsCode) === 0){
+				return true;
+			}else{
+				return false;
+			}
 		}else{
-			return false;
+			$searchLibrary = Library::getSearchLibrary();
+			$searchLocation = Location::getSearchLocation();
+			if ($searchLibrary->includeOutOfSystemExternalLinks || strpos($locationCode, $searchLocation->code) === 0){
+				return true;
+			}else{
+				return false;
+			}
 		}
 	}
 

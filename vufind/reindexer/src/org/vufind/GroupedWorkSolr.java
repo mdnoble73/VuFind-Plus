@@ -283,7 +283,7 @@ public class GroupedWorkSolr {
 		//broad search terms
 		// TODO: determine if we still need allfields?
 		doc.addField("all_fields", allFields);
-		//TODO: change keywords to be more
+		//TODO: change keywords to be more like old version?
 		doc.addField("keywords", Util.getCRSeparatedStringFromSet(keywords));
 		//identifiers
 		doc.addField("lccn", lccns);
