@@ -6331,10 +6331,9 @@ div#systemMessage {
 /*#header-container .container{
   height: 110px;
 }*/
-/*#header-logo{
-  line-height: 20px;
-  padding: 15px;
-}*/
+#header-logo {
+  padding: 10px 10px 0 0;
+}
 .header-button {
   text-align: center;
   height: 107px !important;
@@ -6357,6 +6356,14 @@ div#systemMessage {
 .header-primary {
   border-left: 2px solid #d9d8d8;
   border-right: 2px solid #d9d8d8;
+}
+#library-name-header {
+  font-size: 30px;
+  color: #ffffff;
+  font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+  font-weight: bold;
+  white-space: normal;
+  padding-top: 5px;
 }
 #footer-container {
   border-top: 8px solid #004487;

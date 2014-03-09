@@ -329,14 +329,21 @@ class UInterface extends Smarty
 		$this->assign('showHoldButton', $showHoldButton);
 		$this->assign('showHoldButtonInSearchResults', $showHoldButtonInSearchResults);
 		$this->assign('showNotInterested', true);
+		$this->assign('librarySystemName', 'Marmot');
 		if (isset($library)){
 			$this->assign('showRatings', $library->showRatings);
 			$this->assign('allowPinReset', $library->allowPinReset);
+			$this->assign('librarySystemName', $library->displayName);
 		}else{
 			$this->assign('showRatings', 1);
 			$this->assign('allowPinReset', 0);
 		}
-
+		if ($location != null){
+			$this->assign('showDisplayNameInHeader', $location->showDisplayNameInHeader);
+			$this->assign('librarySystemName', $location->displayName);
+		}else{
+			$this->assign('showDisplayNameInHeader', false);
+		}
 	}
 }
 

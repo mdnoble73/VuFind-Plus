@@ -480,7 +480,7 @@ class MillenniumDriver implements DriverInterface
 		//Strip any non digit characters from the password
 		$password = preg_replace('/[a-or-zA-OR-Z\W]/', '', $password);
 
-		if ($configArray['Catalog']['offline'] == false){
+		if ($configArray['Catalog']['offline'] == true){
 			//The catalog is offline, check the database to see if the user is valid
 			$user = new User();
 			$user->cat_password = $password;

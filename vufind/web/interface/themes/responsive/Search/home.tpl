@@ -6,10 +6,10 @@
 			</div>
 			<div class="row text-center" id="browse-category-picker">
 				<div class="jcarousel-wrapper">
-					<div class="jcarousel">
+					<div class="jcarousel" id="browse-category-carousel">
 						<ul>
 							{foreach from=$browseCategories item=browseCategory name="browseCategoryLoop"}
-								<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9}">
+								<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9}" data-category-id="{$browseCategory->textId}">
 									<a href="#" onclick="VuFind.Browse.changeBrowseCategory('{$browseCategory->textId}');">
 										<div >
 											{$browseCategory->label}

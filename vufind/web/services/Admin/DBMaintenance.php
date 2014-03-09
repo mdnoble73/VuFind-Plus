@@ -670,6 +670,14 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'location_show_display_name' => array(
+					'title' => 'Location Show Display Name In Header',
+					'description' => 'Add option to allow display name to be shown in the header',
+					'sql' => array(
+							"ALTER TABLE location ADD showDisplayNameInHeader TINYINT DEFAULT 0",
+					),
+			),
+
 			'search_sources' => array(
 				'title' => 'Search Sources',
 				'description' => 'Setup Library and Location Search Source Table',

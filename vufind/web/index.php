@@ -87,13 +87,6 @@ if ($configArray['System']['systemMessage']){
 }
 
 //Get the name of the active instance
-if ($locationSingleton->getActiveLocation() != null && $locationSingleton->getActiveLocation()->restrictSearchByLocation){
-	$interface->assign('librarySystemName', $locationSingleton->getActiveLocation()->displayName);
-}elseif (isset($library)){
-	$interface->assign('librarySystemName', $library->displayName);
-}else{
-	$interface->assign('librarySystemName', 'Marmot');
-}
 if ($locationSingleton->getIPLocation() != null){
 	$interface->assign('inLibrary', true);
 	$physicalLocation = $locationSingleton->getIPLocation()->displayName;

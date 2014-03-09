@@ -33,3 +33,10 @@ VuFind.Browse = (function(){
 		}
 	}
 }(VuFind.Browse || {}));
+
+$(document).ready(function(){
+	$('#browse-category-carousel').on('jcarousel:targetin', 'li', function(event, carousel){
+		var categoryId = $(this).data('category-id');
+		VuFind.Browse.changeBrowseCategory(categoryId);
+	});
+});
