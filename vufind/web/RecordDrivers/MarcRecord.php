@@ -895,7 +895,7 @@ class MarcRecord extends IndexRecord
 	function getDescriptionFast(){
 		/** @var File_MARC_Data_Field $descriptionField */
 		$descriptionField = $this->marcRecord->getField('520');
-		if ($descriptionField != null){
+		if ($descriptionField != null && $descriptionField->getSubfield('a') != null){
 			return $descriptionField->getSubfield('a')->getData();
 		}
 		return null;

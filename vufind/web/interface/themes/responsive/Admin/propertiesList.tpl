@@ -1,7 +1,7 @@
 
 <h2 id="pageTitle">{$shortPageTitle}</h2>
 <div class='adminTableRegion'>
-	<table class="adminTable table table-bordered table-striped table-condensed">
+	<table class="adminTable table table-bordered table-striped table-condensed smallText">
 		<thead>
 			<tr>
 				<th>Actions</th>
@@ -96,7 +96,7 @@
 	<form action="" method="get" id='addNewForm'>
 		<div>
 			<input type='hidden' name='objectAction' value='addNew' />
-			<button type='submit' value='addNew' class="btn">Add New {$objectType}</button>
+			<button type='submit' value='addNew' class="btn btn-primary">Add New {$objectType}</button>
 		</div>
 	</form>
 {/if}
@@ -105,31 +105,34 @@
 	<form action="" method="get">
 		<div>
 			<input type='hidden' name='objectAction' value='{$customAction.action}' />
-			<button type='submit' value='{$customAction.action}' class="btn">{$customAction.label}</button>
+			<button type='submit' value='{$customAction.action}' class="btn btn-small btn-default">{$customAction.label}</button>
 		</div>
 	</form>
 {/foreach}
 
 {if $showExportAndCompare}
+	<br/>
 	<form action="" method="get" class="form-horizontal">
 		<div>
 			<input type='hidden' name='objectAction' value='export' />
-			<button type='submit' value='export' class="btn">Export to file</button>
+			<button type='submit' value='export' class="btn btn-small btn-default">Export to file</button>
 		</div>
 	</form>
+	<br/>
 	<form action="" enctype="multipart/form-data" method="post" class="form-horizontal">
 		<div>
 			<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
 			<input type="hidden" name='objectAction' value='compare' />
-			Choose a file to compare: <input name="uploadedfile" type="file" /> <input type="submit" value="Compare File" class="btn"/>
+			<label for="uploadedFileCompare">Choose a file to compare: </label><input name="uploadedfile" id="uploadedFileCompare" type="file" /> <input type="submit" value="Compare File" class="btn btn-small btn-default"/>
 		</div>
 	</form>
+	<br/>
 	<form action="" enctype="multipart/form-data" method="post" class="form-horizontal">
 		<div>
 			<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
 			<input type="hidden" name='objectAction' value='import' />
-			Choose a file to import: <input name="uploadedfile" type="file" /> <input type="submit" value="Import File" class="btn"/>
-			This should be a file that was exported from the VuFind Admin console. Trying to import another file could result in having a very long day of trying to put things back together.	In short, don't do it!
+			<label for="uploadedFileImport">Choose a file to import: </label><input name="uploadedfile" id="uploadedFileImport" type="file" /> <input type="submit" value="Import File" class="btn btn-small btn-default"/>
+			<p>This should be a file that was exported from the VuFind Admin console. Trying to import another file could result in having a very long day of trying to put things back together.	In short, don't do it!</p>
 		</div>
 	</form>
 {/if}

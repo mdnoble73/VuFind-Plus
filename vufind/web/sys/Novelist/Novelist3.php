@@ -309,6 +309,7 @@ class Novelist3{
 		//Check to see if we have cached data, first check MemCache.
 		/** @var Memcache $memCache */
 		global $memCache;
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		$novelistData = $memCache->get("novelist_similar_titles_$groupedRecordId");
 		if ($novelistData != false && !isset($_REQUEST['reload'])){
 			return $novelistData;
