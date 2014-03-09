@@ -50,11 +50,14 @@ public abstract class IlsRecordProcessor {
 	protected boolean useICode2Suppression;
 	protected char iCode2Subfield;
 	protected String[] additionalCollections;
+	protected char callNumberPrestampSubfield;
+	protected char callNumberSubfield;
+	protected char callNumberCutterSubfield;
 
 	private static boolean libraryAndLocationDataLoaded = false;
-	private static HashMap<String, String> libraryMap = new HashMap<String, String>();
-	private static HashMap<String, String> locationMap = new HashMap<String, String>();
-	private static HashMap<String, String> subdomainMap = new HashMap<String, String>();
+	protected static HashMap<String, String> libraryMap = new HashMap<String, String>();
+	protected static HashMap<String, String> locationMap = new HashMap<String, String>();
+	protected static HashMap<String, String> subdomainMap = new HashMap<String, String>();
 
 	private static boolean loanRuleDataLoaded = false;
 	private static ArrayList<Long> pTypes = new ArrayList<Long>();
@@ -86,6 +89,10 @@ public abstract class IlsRecordProcessor {
 		totalCheckoutSubfield = getSubfieldIndicatorFromConfig(configIni, "totalCheckoutSubfield");
 		useICode2Suppression = Boolean.parseBoolean(configIni.get("Reindex", "useICode2Suppression"));
 		iCode2Subfield = getSubfieldIndicatorFromConfig(configIni, "iCode2Subfield");
+		callNumberPrestampSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberPrestampSubfield");
+		callNumberSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberSubfield");
+		callNumberCutterSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberCutterSubfield");
+
 		String additionalCollectionsString = configIni.get("Reindex", "additionalCollections");
 		if (additionalCollections != null){
 			additionalCollections = additionalCollectionsString.split(",");
@@ -240,6 +247,7 @@ public abstract class IlsRecordProcessor {
 			loadAuthors(groupedWork, record);
 
 			loadFormatDetails(groupedWork, record);
+
 			groupedWork.addTopic(getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690a"));
 			groupedWork.addTopicFacet(getFieldList(record, "600a:600x:600a:610x:611x:611x:630a:630x:648x:650a:650x:651x:655x"));
 			groupedWork.addSeries(getFieldList(record, "440ap:800pqt:830ap"));
@@ -253,7 +261,9 @@ public abstract class IlsRecordProcessor {
 			groupedWork.addGeographic(getFieldList(record, "651avxyz"));
 			groupedWork.addGeographicFacet(getFieldList(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z"));
 			groupedWork.addEra(getFieldList(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y"));
+			groupedWork.addContents(getFieldList(record, "505a:505t"));
 
+			loadCallNumbers(groupedWork, record);
 			loadLanguageDetails(groupedWork, record);
 			loadPublicationDetails(groupedWork, record);
 			loadLiteraryForms(groupedWork, record);
@@ -267,11 +277,57 @@ public abstract class IlsRecordProcessor {
 			loadPopularity(groupedWork, unsuppressedItems);
 			loadDateAdded(groupedWork, unsuppressedItems);
 			loadITypes(groupedWork, unsuppressedItems);
+			loadLocalCallNumbers(groupedWork, unsuppressedItems);
 			groupedWork.addBarcodes(getFieldList(record, itemTag + barcodeSubfield));
+			groupedWork.setAcceleratedReaderInterestLevel(getAcceleratedReaderInterestLevel(record));
+			groupedWork.setAcceleratedReaderReadingLevel(getAcceleratedReaderReadingLevel(record));
+			groupedWork.setAcceleratedReaderPointValue(getAcceleratedReaderPointLevel(record));
+
+			loadOrderIds(groupedWork, record);
+
+			groupedWork.addAllFields(getAllFields(record));
 
 			groupedWork.addHoldings(unsuppressedItems.size());
 		}catch (Exception e){
 			logger.error("Error updating grouped work for MARC record with identifier " + identifier, e);
+		}
+	}
+
+	protected void loadLocalCallNumbers(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItems) {
+		//By default, do nothing.
+	}
+
+	protected void loadCallNumbers(GroupedWorkSolr groupedWork, Record record) {
+		groupedWork.setCallNumberA(getFirstFieldVal(record, "099a:090a:050a"));
+		String firstCallNumber = getFirstFieldVal(record, "099a[0]:090a[0]:050a[0]");
+		if (firstCallNumber != null){
+			groupedWork.setCallNumberFirst(indexer.translateValue("callnumber", firstCallNumber));
+		}
+		String callNumberSubject = getCallNumberSubject(record, "090a:050a");
+		if (callNumberSubject != null){
+			groupedWork.setCallNumberSubject(indexer.translateValue("callnumber_subject", callNumberSubject));
+		}
+	}
+
+	private String getCallNumberSubject(Record record, String fieldSpec) {
+		String val = getFirstFieldVal(record, fieldSpec);
+
+		if (val != null) {
+			String[] callNumberSubject = val.toUpperCase().split("[^A-Z]+");
+			if (callNumberSubject.length > 0) {
+				return callNumberSubject[0];
+			}
+		}
+		return null;
+	}
+
+	private void loadOrderIds(GroupedWorkSolr groupedWork, Record record) {
+		//Load order ids from recordNumberTag
+		Set<String> recordIds = getFieldList(record, recordNumberTag + "a");
+		for(String recordId : recordIds){
+			if (recordId.startsWith(".o")){
+				groupedWork.addAlternateId(recordId);
+			}
 		}
 	}
 
@@ -636,7 +692,8 @@ public abstract class IlsRecordProcessor {
 				}
 			}
 		}
-		groupedWork.addFormats(translatedFormats);
+		//By default, formats are valid for all locations.
+		groupedWork.addFormats(translatedFormats, subdomainMap.values(), locationMap.keySet());
 		groupedWork.addFormatCategories(formatCategories);
 		groupedWork.setFormatBoost(formatBoost);
 	}
@@ -726,6 +783,7 @@ public abstract class IlsRecordProcessor {
 	private void loadAvailability(GroupedWorkSolr groupedWork, List<DataField> itemRecords) {
 		//Calculate availability based on the record
 		HashSet<String> availableAt = new HashSet<String>();
+		HashSet<String> availableLocationCodes = new HashSet<String>();
 
 		for (DataField curItem : itemRecords){
 			Subfield statusSubfield = curItem.getSubfield(statusSubfieldIndicator);
@@ -757,16 +815,19 @@ public abstract class IlsRecordProcessor {
 
 				if (available) {
 					availableAt.addAll(getLocationFacetsForLocationCode(locationCode));
+					availableLocationCodes.addAll(getRelatedLocationCodesForLocationCode(locationCode));
+					availableLocationCodes.addAll(getRelatedSubdomainsForLocationCode(locationCode));
 				}
 			}
 		}
-		groupedWork.addAvailableLocations(availableAt);
+		groupedWork.addAvailableLocations(availableAt, availableLocationCodes);
 
 	}
 
 	private void loadOwnershipInformation(GroupedWorkSolr groupedWork, List<DataField> itemRecords) {
 		HashSet<String> owningLibraries = new HashSet<String>();
 		HashSet<String> owningLocations = new HashSet<String>();
+		HashSet<String> owningLocationCodes = new HashSet<String>();
 		for (DataField curItem : itemRecords){
 			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
 			if (locationSubfield != null){
@@ -774,12 +835,15 @@ public abstract class IlsRecordProcessor {
 				owningLibraries.addAll(getLibraryFacetsForLocationCode(locationCode));
 
 				owningLocations.addAll(getLocationFacetsForLocationCode(locationCode));
+				owningLocationCodes.addAll(getRelatedLocationCodesForLocationCode(locationCode));
+				owningLocationCodes.addAll(getRelatedSubdomainsForLocationCode(locationCode));
 
 				loadAdditionalOwnershipInformation(groupedWork, locationCode);
 			}
 		}
 		groupedWork.addOwningLibraries(owningLibraries);
 		groupedWork.addOwningLocations(owningLocations);
+		groupedWork.addOwningLocationCodesAndSubdomains(owningLocationCodes);
 	}
 
 	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, String locationCode){
@@ -797,6 +861,19 @@ public abstract class IlsRecordProcessor {
 			logger.warn("Did not find any library facets for " + locationCode);
 		}
 		return libraryFacets;
+	}
+
+	private ArrayList<String> getRelatedSubdomainsForLocationCode(String locationCode) {
+		ArrayList<String> subdomains = new ArrayList<String>();
+		for(String libraryCode : subdomainMap.keySet()){
+			if (locationCode.startsWith(libraryCode)){
+				subdomains.add(subdomainMap.get(libraryCode));
+			}
+		}
+		if (subdomains.size() == 0){
+			logger.warn("Did not find any subdomains for " + locationCode);
+		}
+		return subdomains;
 	}
 
 	protected ArrayList<String> getLibrarySubdomainsForLocationCode(String locationCode) {
@@ -827,6 +904,19 @@ public abstract class IlsRecordProcessor {
 			if (!locationCodesWithoutFacets.contains(locationCode)){
 				logger.warn("Did not find any location facets for '" + locationCode + "'");
 				locationCodesWithoutFacets.add(locationCode);
+			}
+		}
+		return locationFacets;
+	}
+
+	protected ArrayList<String> getRelatedLocationCodesForLocationCode(String locationCode){
+		ArrayList<String> locationFacets = new ArrayList<String>();
+		if (locationCode == null || locationCode.length() == 0){
+			return locationFacets;
+		}
+		for(String ilsCode : locationMap.keySet()){
+			if (locationCode.startsWith(ilsCode)){
+				locationFacets.add(ilsCode);
 			}
 		}
 		return locationFacets;
@@ -890,6 +980,129 @@ public abstract class IlsRecordProcessor {
 		//logger.debug("  " + result.size() + " ptypes can use this");
 		ptypesByItypeAndLocation.put(cacheKey, result);
 		return result;
+	}
+
+	public String getAcceleratedReaderReadingLevel(Record marcRecord) {
+		String result = null;
+		// Get a list of all tags that may contain the lexile score.
+		@SuppressWarnings("unchecked")
+		List<VariableField> input = marcRecord.getVariableFields("526");
+		Iterator<VariableField> iter = input.iterator();
+
+		DataField field;
+		while (iter.hasNext()) {
+			field = (DataField) iter.next();
+
+			if (field.getSubfield('a') != null) {
+				String type = field.getSubfield('a').getData();
+				if (type.matches("(?i)accelerated reader")) {
+					String rawData = field.getSubfield('c').getData();
+					try {
+						Pattern Regex = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ
+								| Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+						Matcher RegexMatcher = Regex.matcher(rawData);
+						if (RegexMatcher.find()) {
+							result = RegexMatcher.group(1);
+							// System.out.println("AR Reading Level " + result);
+							return result;
+						}
+					} catch (PatternSyntaxException ex) {
+						// Syntax error in the regular expression
+					}
+				}
+			}
+		}
+
+		return null;
+	}
+
+	public String getAllFields(Record marcRecord) {
+		StringBuilder allFieldData = new StringBuilder();
+		List<ControlField> controlFields = marcRecord.getControlFields();
+		for (Object field : controlFields) {
+			ControlField dataField = (ControlField) field;
+			String data = dataField.getData();
+			data = data.replace((char) 31, ' ');
+			allFieldData.append(data).append(" ");
+		}
+
+		List<DataField> fields = marcRecord.getDataFields();
+		for (Object field : fields) {
+			DataField dataField = (DataField) field;
+			List<Subfield> subfields = dataField.getSubfields();
+			for (Object subfieldObj : subfields) {
+				Subfield subfield = (Subfield) subfieldObj;
+				allFieldData.append(subfield.getData()).append(" ");
+			}
+		}
+
+		return allFieldData.toString();
+	}
+
+	public String getAcceleratedReaderPointLevel(Record marcRecord) {
+		try {
+			String result = null;
+			// Get a list of all tags that may contain the lexile score.
+			@SuppressWarnings("unchecked")
+			List<VariableField> input = marcRecord.getVariableFields("526");
+			Iterator<VariableField> iter = input.iterator();
+
+			DataField field;
+			while (iter.hasNext()) {
+				field = (DataField) iter.next();
+
+				if (field.getSubfield('a') != null) {
+					String type = field.getSubfield('a').getData();
+					if (type.matches("(?i)accelerated reader")) {
+						String rawData = field.getSubfield('d').getData();
+						try {
+							Pattern Regex = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ
+									| Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+							Matcher RegexMatcher = Regex.matcher(rawData);
+							if (RegexMatcher.find()) {
+								result = RegexMatcher.group(1);
+								// System.out.println("AR Point Level " + result);
+								return result;
+							}
+						} catch (PatternSyntaxException ex) {
+							// Syntax error in the regular expression
+						}
+					}
+				}
+			}
+
+			return null;
+		} catch (Exception e) {
+			logger.error("Error mapping AR points");
+			return null;
+		}
+	}
+
+	public String getAcceleratedReaderInterestLevel(Record marcRecord) {
+		try {
+			String result = null;
+			// Get a list of all tags that may contain the lexile score.
+			@SuppressWarnings("unchecked")
+			List<VariableField> input = marcRecord.getVariableFields("526");
+			Iterator<VariableField> iter = input.iterator();
+
+			DataField field;
+			while (iter.hasNext()) {
+				field = (DataField) iter.next();
+
+				if (field.getSubfield('a') != null &&  field.getSubfield('b') != null) {
+					String type = field.getSubfield('a').getData();
+					if (type.matches("(?i)accelerated reader")) {
+						return field.getSubfield('b').getData();
+					}
+				}
+			}
+
+			return null;
+		} catch (Exception e) {
+			logger.error("Error mapping AR interest level", e);
+			return null;
+		}
 	}
 
 	/**

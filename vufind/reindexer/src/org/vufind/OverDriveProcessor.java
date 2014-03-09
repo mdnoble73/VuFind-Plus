@@ -7,6 +7,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -29,7 +30,10 @@ public class OverDriveProcessor {
 	private PreparedStatement getProductSubjectsStmt;
 
 	private HashMap<Long, String> libraryMap = new HashMap<Long, String>();
-	//private HashMap<Long, String> subdomainMap = new HashMap<Long, String>();
+	private HashMap<Long, String> subdomainMap = new HashMap<Long, String>();
+	private static HashMap<Long, HashSet<String>> locationsForLibrary = new HashMap<Long, HashSet<String>>();
+	private static HashSet<String> allLocationCodes = new HashSet<String>();
+
 
 	public OverDriveProcessor(GroupedWorkIndexer groupedWorkIndexer, Connection vufindConn, Connection econtentConn, Ini configIni, Logger logger) {
 		this.indexer = groupedWorkIndexer;
@@ -50,6 +54,7 @@ public class OverDriveProcessor {
 		//Setup translation maps for system and location
 		try {
 			PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, facetLabel FROM library", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement locationsForLibraryStmt = vufindConn.prepareStatement("SELECT locationId, code, facetLabel FROM location WHERE libraryId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
 			while (libraryInformationRS.next()){
 				Long libraryId = libraryInformationRS.getLong("libraryId");
@@ -59,8 +64,18 @@ public class OverDriveProcessor {
 				}
 				String subdomain = libraryInformationRS.getString("subdomain");
 				libraryMap.put(libraryId, facetLabel);
-				//subdomainMap.put(libraryId, subdomain);
+				subdomainMap.put(libraryId, subdomain);
+				locationsForLibraryStmt.setLong(1, libraryId);
+				ResultSet locationsForLibraryRS = locationsForLibraryStmt.executeQuery();
+				HashSet<String> relatedLocations = new HashSet<String>();
+				while (locationsForLibraryRS.next()){
+					relatedLocations.add(locationsForLibraryRS.getString("code"));
+					allLocationCodes.add(locationsForLibraryRS.getString("code"));
+				}
+				locationsForLibrary.put(libraryId, relatedLocations);
+				locationsForLibraryRS.close();
 			}
+			libraryInformationRS.close();
 		} catch (SQLException e) {
 			logger.error("Error setting up system maps", e);
 		}
@@ -107,6 +122,8 @@ public class OverDriveProcessor {
 				ResultSet availabilityRS = getProductAvailabilityStmt.executeQuery();
 				HashSet<String> owningLibraries = new HashSet<String>();
 				HashSet<String> availableLibraries = new HashSet<String>();
+				HashSet<String> owningSubdomainsAndLocations = new HashSet<String>();
+				HashSet<String> availableSubdomainsAndLocations = new HashSet<String>();
 				while (availabilityRS.next()){
 					long libraryId = availabilityRS.getLong("libraryId");
 					boolean available = availabilityRS.getBoolean("available");
@@ -114,20 +131,33 @@ public class OverDriveProcessor {
 					if (libraryId == -1){
 						//Everyone has access to this
 						owningLibraries.addAll(libraryMap.values());
+						owningSubdomainsAndLocations.addAll(subdomainMap.values());
+						for (Long curLibraryId : libraryMap.keySet()){
+							owningSubdomainsAndLocations.addAll(locationsForLibrary.get(curLibraryId));
+						}
 						if (available){
 							availableLibraries.addAll(libraryMap.values());
+							availableSubdomainsAndLocations.addAll(subdomainMap.values());
+							for (Long curLibraryId : libraryMap.keySet()){
+								availableSubdomainsAndLocations.addAll(locationsForLibrary.get(curLibraryId));
+							}
 						}
 					}else{
 						owningLibraries.add(libraryMap.get(libraryId));
+						owningSubdomainsAndLocations.add(subdomainMap.get(libraryId));
+						owningSubdomainsAndLocations.addAll(locationsForLibrary.get(libraryId));
 						if (available){
 							availableLibraries.add(libraryMap.get(libraryId));
+							availableSubdomainsAndLocations.add(subdomainMap.get(libraryId));
+							availableSubdomainsAndLocations.addAll(locationsForLibrary.get(libraryId));
 						}
 					}
 				}
 				groupedWork.addOwningLibraries(owningLibraries);
-				groupedWork.addAvailableLocations(availableLibraries);
-				groupedWork.addEContentSource("OverDrive");
-				groupedWork.addEContentProtectionType("Limited Access");
+				groupedWork.addOwningLocationCodesAndSubdomains(owningSubdomainsAndLocations);
+				groupedWork.addAvailableLocations(availableLibraries, availableSubdomainsAndLocations);
+				groupedWork.addEContentSource("OverDrive", owningSubdomainsAndLocations, new ArrayList<String>());
+				groupedWork.addEContentProtectionType("Limited Access", owningSubdomainsAndLocations, new ArrayList<String>());
 				groupedWork.addCompatiblePType("all");
 			}
 		} catch (SQLException e) {
@@ -222,10 +252,16 @@ public class OverDriveProcessor {
 		getProductFormatsStmt.setLong(1, productId);
 		ResultSet formatsRS = getProductFormatsStmt.executeQuery();
 		HashSet<String> formats = new HashSet<String>();
+		HashSet<String> eContentDevices = new HashSet<String>();
 		Long formatBoost = 1L;
 		while (formatsRS.next()){
 			String format = formatsRS.getString("name");
 			formats.add(format);
+			String deviceString = indexer.translateValue("device_compatibility", format.replace(' ', '_'));
+			String[] devices = deviceString.split("\\|");
+			for (String device : devices){
+				eContentDevices.add(device.trim());
+			}
 			String formatBoostStr = indexer.translateValue("format_boost", format.replace(' ', '_'));
 			try{
 				Long curFormatBoost = Long.parseLong(formatBoostStr);
@@ -236,7 +272,10 @@ public class OverDriveProcessor {
 				logger.warn("Could not parse format_boost " + formatBoostStr);
 			}
 		}
-		groupedWork.addFormats(formats);
+		//By default, formats are good for all locations
+		groupedWork.addFormats(formats, subdomainMap.values(), allLocationCodes);
+		groupedWork.setFormatBoost(formatBoost);
+		groupedWork.addEContentDevices(eContentDevices);
 		formatsRS.close();
 	}
 

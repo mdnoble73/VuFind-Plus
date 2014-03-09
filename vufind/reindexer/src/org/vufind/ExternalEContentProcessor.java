@@ -37,23 +37,53 @@ public class ExternalEContentProcessor extends IlsRecordProcessor {
 	}
 
 	private void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<DataField> itemRecords) {
-		HashSet<String> sources = new HashSet<String>();
-		HashSet<String> protectionTypes = new HashSet<String>();
 		for (DataField curItem : itemRecords){
 			//Check subfield w to get the source
 			if (curItem.getSubfield('w') != null){
+				String locationCode = curItem.getSubfield(locationSubfieldIndicator) == null ? null : curItem.getSubfield(locationSubfieldIndicator).getData();
+				HashSet<String> sources = new HashSet<String>();
+				HashSet<String> protectionTypes = new HashSet<String>();
+
 				String subfieldW = curItem.getSubfield('w').getData();
 				String[] econtentData = subfieldW.split("\\s?:\\s?");
 				String eContentSource = econtentData[0].trim();
 				String protectionType = econtentData[1].toLowerCase().trim();
+
 				if (protectionType.equals("external")){
 					sources.add(eContentSource);
 					protectionTypes.add("Externally Validated");
+
+					boolean shareWithAll = false;
+					boolean shareWithLibrary = false;
+					if (econtentData.length >= 3){
+						String sharing = econtentData[2].trim();
+						if (sharing.equalsIgnoreCase("shared")){
+							shareWithAll = true;
+						}else if (sharing.equalsIgnoreCase("library")){
+							shareWithLibrary = true;
+						}
+					}else{
+						shareWithLibrary = true;
+					}
+
+					if (locationCode != null && locationCode.equalsIgnoreCase("mdl")){
+						//Share with everyone
+						shareWithAll = true;
+					}
+					if (shareWithAll){
+						groupedWork.addEContentSources(sources, subdomainMap.values() , locationMap.values());
+						groupedWork.addEContentProtectionTypes(protectionTypes, subdomainMap.values() , locationMap.values());
+					}else if (shareWithLibrary){
+						groupedWork.addEContentSources(sources, getLibrarySubdomainsForLocationCode(locationCode), getRelatedLocationCodesForLocationCode(locationCode));
+						groupedWork.addEContentProtectionTypes(protectionTypes, getLibrarySubdomainsForLocationCode(locationCode), getRelatedLocationCodesForLocationCode(locationCode));
+					}else{
+						groupedWork.addEContentSources(sources, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
+						groupedWork.addEContentProtectionTypes(protectionTypes, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
+					}
 				}
+
 			}
 		}
-		groupedWork.addEContentSources(sources);
-		groupedWork.addEContentProtectionTypes(protectionTypes);
 	}
 
 	protected void loadUsability(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItemRecords) {
@@ -76,10 +106,12 @@ public class ExternalEContentProcessor extends IlsRecordProcessor {
 					if (econtentData.length >= 3){
 						sharing = econtentData[2].trim().toLowerCase();
 					}
-					if (sharing.equals("shared")){
+					if (sharing.equalsIgnoreCase("shared")){
 						groupedWork.addCompatiblePType("all");
+					}else if (sharing.equalsIgnoreCase("library")){
+						//TODO: Add all ptypes for this library system
 					}else{
-						//Add all ptypes for this library system (further restriction is done by location)
+						//TODO: Add all ptypes for this location
 					}
 				}
 			}
@@ -93,26 +125,76 @@ public class ExternalEContentProcessor extends IlsRecordProcessor {
 	}
 
 	protected void loadFormatDetails(GroupedWorkSolr groupedWork, Record record) {
-		Set<String> iTypes = getFieldList(record, itemTag + iTypeSubfield);
-		HashSet<String> translatedFormats = new HashSet<String>();
+		List<DataField> itemFields = getUnsuppressedEContentItems(record);
+
 		HashSet<String> formatCategories = new HashSet<String>();
+		HashSet<String> eContentDevices = new HashSet<String>();
 		Long formatBoost = 1L;
-		for (String iType : iTypes){
-			translatedFormats.add(indexer.translateValue("econtent_itype_format", iType));
-			formatCategories.add(indexer.translateValue("econtent_itype_format_category", iType));
-			String formatBoostStr = indexer.translateValue("econtent_itype_format_boost", iType);
-			try{
-				Long curFormatBoost = Long.parseLong(formatBoostStr);
-				if (curFormatBoost > formatBoost){
-					formatBoost = curFormatBoost;
+		for (DataField itemField : itemFields){
+			String iType = itemField.getSubfield(iTypeSubfield) == null ? null : itemField.getSubfield(iTypeSubfield).getData();
+
+			if (iType != null){
+				String locationCode = itemField.getSubfield(locationSubfieldIndicator) == null ? null : itemField.getSubfield(locationSubfieldIndicator).getData();
+
+				HashSet<String> translatedFormats = new HashSet<String>();
+				String translatedFormat = indexer.translateValue("econtent_itype_format", iType);
+				translatedFormats.add(translatedFormat);
+
+				//Get sharing for the record
+				boolean shareWithAll = false;
+				boolean shareWithLibrary = false;
+				if (itemField.getSubfield('w') != null){
+					String subfieldW = itemField.getSubfield('w').getData();
+					String[] econtentData = subfieldW.split("\\s?:\\s?");
+					if (econtentData.length >= 3){
+						String sharing = econtentData[2].trim();
+						if (sharing.equalsIgnoreCase("shared")){
+							shareWithAll = true;
+						}else if (sharing.equalsIgnoreCase("library")){
+							shareWithLibrary = true;
+						}
+					}else{
+						shareWithLibrary = true;
+					}
 				}
-			}catch (NumberFormatException e){
-				logger.warn("Could not parse format_boost " + formatBoostStr);
+
+				if (locationCode != null){
+					if (locationCode.equalsIgnoreCase("mdl")){
+						//Share with everyone
+						shareWithAll = true;
+					}
+					if (shareWithAll){
+						groupedWork.addFormats(translatedFormats, subdomainMap.values() , locationMap.values());
+					}else if (shareWithLibrary){
+						groupedWork.addFormats(translatedFormats, getLibrarySubdomainsForLocationCode(locationCode), getRelatedLocationCodesForLocationCode(locationCode));
+					}else{
+						groupedWork.addFormats(translatedFormats, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
+					}
+
+				}
+
+				formatCategories.add(indexer.translateValue("econtent_itype_format_category", iType));
+				String formatBoostStr = indexer.translateValue("econtent_itype_format_boost", iType);
+				try{
+					Long curFormatBoost = Long.parseLong(formatBoostStr);
+					if (curFormatBoost > formatBoost){
+						formatBoost = curFormatBoost;
+					}
+				}catch (NumberFormatException e){
+					logger.warn("Could not parse format_boost " + formatBoostStr);
+				}
+				String deviceString = indexer.translateValue("device_compatibility", translatedFormat.replace(' ', '_'));
+				String[] devices = deviceString.split("\\|");
+				for (String device : devices){
+					eContentDevices.add(device.trim());
+				}
+
 			}
 		}
-		groupedWork.addFormats(translatedFormats);
+		//Format for external eContent is only valid for the specific location the record belongs to
 		groupedWork.addFormatCategories(formatCategories);
 		groupedWork.setFormatBoost(formatBoost);
+		groupedWork.addEContentDevices(eContentDevices);
 	}
 
 	protected List<DataField> getUnsuppressedItems(Record record) {

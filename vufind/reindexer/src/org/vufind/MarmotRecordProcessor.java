@@ -24,14 +24,44 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 
 	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, String locationCode){
 		groupedWork.addCollectionGroup(indexer.translateValue("collection_group", locationCode));
-		//TODO: Make collections by library easier to define (in VuFind interface
+		//TODO: Make collections by library easier to define (in VuFind interface)
 		if (additionalCollections != null){
 			for (String additionalCollection : additionalCollections){
 				groupedWork.addCollectionAdams(indexer.translateValue(additionalCollection, locationCode));
 			}
 		}
 		ArrayList<String> subdomainsForLocation = getLibrarySubdomainsForLocationCode(locationCode);
-		groupedWork.addDetailedLocation(indexer.translateValue("detailed_location", locationCode), subdomainsForLocation);
+		ArrayList<String> relatedLocationCodesForLocation = getRelatedLocationCodesForLocationCode(locationCode);
+		groupedWork.addDetailedLocation(indexer.translateValue("detailed_location", locationCode), subdomainsForLocation, relatedLocationCodesForLocation);
+	}
+
+	protected void loadLocalCallNumbers(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItems) {
+		for (DataField curItem : unsuppressedItems){
+			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
+			if (locationSubfield != null){
+				String locationCode = locationSubfield.getData();
+				String callNumberPrestamp = "";
+				if (callNumberPrestampSubfield != ' '){
+					callNumberPrestamp = curItem.getSubfield(callNumberPrestampSubfield) == null ? "" : curItem.getSubfield(callNumberPrestampSubfield).getData();
+				}
+				String callNumber = "";
+				if (callNumberSubfield != ' '){
+					callNumber = curItem.getSubfield(callNumberSubfield) == null ? "" : curItem.getSubfield(callNumberSubfield).getData();
+				}
+				String callNumberCutter = "";
+				if (callNumberCutterSubfield != ' '){
+					callNumberCutter = curItem.getSubfield(callNumberCutterSubfield) == null ? "" : curItem.getSubfield(callNumberCutterSubfield).getData();
+				}
+				String fullCallNumber = callNumberPrestamp + callNumber + callNumberCutter;
+				String sortableCallNumber = callNumber + callNumberCutter;
+				if (fullCallNumber.length() > 0){
+					ArrayList<String> subdomainsForLocation = getLibrarySubdomainsForLocationCode(locationCode);
+					ArrayList<String> relatedLocationCodesForLocation = getRelatedLocationCodesForLocationCode(locationCode);
+					groupedWork.addLocalCallNumber(fullCallNumber, subdomainsForLocation, relatedLocationCodesForLocation);
+					groupedWork.addCallNumberSort(sortableCallNumber, subdomainsForLocation, relatedLocationCodesForLocation);
+				}
+			}
+		}
 	}
 
 	/**

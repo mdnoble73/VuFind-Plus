@@ -4,10 +4,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
 import org.ini4j.Ini;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FilenameFilter;
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.sql.Connection;
@@ -40,10 +37,14 @@ public class GroupedWorkIndexer {
 	private RestrictedEContentProcessor restrictedEContentProcessor;
 	private PublicDomainEContentProcessor publicDomainEContentProcessor;
 	private HashMap<String, HashMap<String, String>> translationMaps = new HashMap<String, HashMap<String, String>>();
+	private HashMap<String, LexileTitle> lexileInformation = new HashMap<String, LexileTitle>();
 
 	private PreparedStatement getRatingStmt;
 	private Connection vufindConn;
 	private Ini configIni;
+
+	protected int availableAtLocationBoostValue = 50;
+	protected int ownedByLocationBoostValue = 10;
 
 	public GroupedWorkIndexer(String serverName, Connection vufindConn, Connection econtentConn, Ini configIni, Logger logger) {
 		this.serverName = serverName;
@@ -51,6 +52,9 @@ public class GroupedWorkIndexer {
 		this.vufindConn = vufindConn;
 		this.configIni = configIni;
 		String solrPort = configIni.get("Reindex", "solrPort");
+
+		availableAtLocationBoostValue = Integer.parseInt(configIni.get("Reindex", "availableAtLocationBoostValue"));
+		ownedByLocationBoostValue = Integer.parseInt(configIni.get("Reindex", "ownedByLocationBoostValue"));
 
 		String ilsIndexingClassString = configIni.get("Reindex", "ilsIndexingClass");
 		try{
@@ -83,7 +87,39 @@ public class GroupedWorkIndexer {
 			logger.error("Could not prepare statements to load local enrichment", e);
 		}
 
+		String lexileExportPath = configIni.get("Reindex", "lexileExportPath");
+		loadLexileData(lexileExportPath);
+
 		clearIndex();
+	}
+
+	private void loadLexileData(String lexileExportPath) {
+		try{
+			File lexileData = new File(lexileExportPath);
+			BufferedReader lexileReader = new BufferedReader(new FileReader(lexileData));
+			//Skip over the header
+			lexileReader.readLine();
+			String lexileLine = lexileReader.readLine();
+			while (lexileLine != null){
+				String[] lexileFields = lexileLine.split("\\t");
+				LexileTitle titleInfo = new LexileTitle();
+				if (lexileFields.length >= 11){
+					titleInfo.setTitle(lexileFields[0]);
+					titleInfo.setAuthor(lexileFields[1]);
+					String isbn = lexileFields[3];
+					titleInfo.setLexileCode(lexileFields[4]);
+					titleInfo.setLexileScore(lexileFields[5]);
+					titleInfo.setSeries(lexileFields[9]);
+					titleInfo.setAwards(lexileFields[10]);
+					titleInfo.setDescription(lexileFields[11]);
+					lexileInformation.put(isbn, titleInfo);
+				}
+				lexileLine = lexileReader.readLine();
+			}
+			logger.info("Read " + lexileInformation.size() + " lines of lexile data");
+		}catch (Exception e){
+			logger.error("Error loading lexile data", e);
+		}
 	}
 
 	private void clearIndex() {
@@ -153,10 +189,12 @@ public class GroupedWorkIndexer {
 
 				//Load local (VuFind) enrichment for the work
 				loadLocalEnrichment(vufindConn, groupedWork);
+				//Load lexile data for the work
+				loadLexileDataForWork(groupedWork);
 
 				//Write the record to Solr.
 				try{
-					updateServer.add(groupedWork.getSolrDocument());
+					updateServer.add(groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
 				}catch (Exception e){
 					logger.error("Error adding record to solr", e);
 				}
@@ -168,6 +206,21 @@ public class GroupedWorkIndexer {
 			}
 		} catch (SQLException e) {
 			logger.error("Unexpected SQL error", e);
+		}
+	}
+
+	private void loadLexileDataForWork(GroupedWorkSolr groupedWork) {
+		for(String isbn : groupedWork.getIsbns()){
+			if (lexileInformation.containsKey(isbn)){
+				LexileTitle lexileTitle = lexileInformation.get(isbn);
+				groupedWork.setLexileCode(lexileTitle.getLexileCode());
+				groupedWork.setLexileScore(lexileTitle.getLexileScore());
+				groupedWork.addAwards(lexileTitle.getAwards());
+				if (lexileTitle.getSeries().length() > 0){
+					groupedWork.addSeries(lexileTitle.getSeries());
+				}
+				break;
+			}
 		}
 	}
 
@@ -213,6 +266,7 @@ public class GroupedWorkIndexer {
 		}else{
 			logger.warn("Unknown identifier type " + type);
 		}
+		groupedWork.addAlternateId(identifier);
 	}
 
 	private void updateGroupedWorkForSecondaryIdentifier(GroupedWorkSolr groupedWork, String type, String identifier) {
@@ -303,9 +357,11 @@ public class GroupedWorkIndexer {
 				}
 			}
 		}
-		translatedValue.trim();
-		if (translatedValue.length() == 0){
-			translatedValue = null;
+		if (translatedValue != null){
+			translatedValue.trim();
+			if (translatedValue.length() == 0){
+				translatedValue = null;
+			}
 		}
 		return translatedValue;
 	}

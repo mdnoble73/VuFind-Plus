@@ -40,6 +40,7 @@ public class PublicDomainEContentProcessor extends IlsRecordProcessor {
 		for (DataField curItem : itemRecords){
 			//Check subfield w to get the source
 			if (curItem.getSubfield('w') != null){
+				String locationCode = curItem.getSubfield(locationSubfieldIndicator) == null ? null : curItem.getSubfield(locationSubfieldIndicator).getData();
 				String subfieldW = curItem.getSubfield('w').getData();
 				String[] econtentData = subfieldW.split("\\s?:\\s?");
 				String eContentSource = econtentData[0].trim();
@@ -47,11 +48,37 @@ public class PublicDomainEContentProcessor extends IlsRecordProcessor {
 				if (protectionType.equals("public domain") || protectionType.equals("free")){
 					sources.add(eContentSource);
 					protectionTypes.add("Public Domain");
+
+					boolean shareWithAll = false;
+					boolean shareWithLibrary = false;
+					if (econtentData.length >= 3){
+						String sharing = econtentData[2].trim();
+						if (sharing.equalsIgnoreCase("shared")){
+							shareWithAll = true;
+						}else if (sharing.equalsIgnoreCase("library")){
+							shareWithLibrary = true;
+						}
+					}else{
+						shareWithLibrary = true;
+					}
+
+					if (locationCode != null && locationCode.equalsIgnoreCase("mdl")){
+						//Share with everyone
+						shareWithAll = true;
+					}
+					if (shareWithAll){
+						groupedWork.addEContentSources(sources, subdomainMap.values() , locationMap.values());
+						groupedWork.addEContentProtectionTypes(protectionTypes, subdomainMap.values() , locationMap.values());
+					}else if (shareWithLibrary){
+						groupedWork.addEContentSources(sources, getLibrarySubdomainsForLocationCode(locationCode), getRelatedLocationCodesForLocationCode(locationCode));
+						groupedWork.addEContentProtectionTypes(protectionTypes, getLibrarySubdomainsForLocationCode(locationCode), getRelatedLocationCodesForLocationCode(locationCode));
+					}else{
+						groupedWork.addEContentSources(sources, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
+						groupedWork.addEContentProtectionTypes(protectionTypes, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
+					}
 				}
 			}
 		}
-		groupedWork.addEContentSources(sources);
-		groupedWork.addEContentProtectionTypes(protectionTypes);
 	}
 
 	protected List<DataField> getUnsuppressedItems(Record record) {
@@ -69,9 +96,11 @@ public class PublicDomainEContentProcessor extends IlsRecordProcessor {
 		Set<String> iTypes = getFieldList(record, itemTag + iTypeSubfield);
 		HashSet<String> translatedFormats = new HashSet<String>();
 		HashSet<String> formatCategories = new HashSet<String>();
+		HashSet<String> eContentDevices = new HashSet<String>();
 		Long formatBoost = 1L;
 		for (String iType : iTypes){
-			translatedFormats.add(indexer.translateValue("econtent_itype_format", iType));
+			String translatedFormat = indexer.translateValue("econtent_itype_format", iType);
+			translatedFormats.add(translatedFormat);
 			formatCategories.add(indexer.translateValue("econtent_itype_format_category", iType));
 			String formatBoostStr = indexer.translateValue("econtent_itype_format_boost", iType);
 			try{
@@ -82,9 +111,15 @@ public class PublicDomainEContentProcessor extends IlsRecordProcessor {
 			}catch (NumberFormatException e){
 				logger.warn("Could not parse format_boost " + formatBoostStr);
 			}
+			String deviceString = indexer.translateValue("device_compatibility", translatedFormat.replace(' ', '_'));
+			String[] devices = deviceString.split("\\|");
+			for (String device : devices){
+				eContentDevices.add(device.trim());
+			}
 		}
-		groupedWork.addFormats(translatedFormats);
+		groupedWork.addFormats(translatedFormats, subdomainMap.values(), locationMap.keySet());
 		groupedWork.addFormatCategories(formatCategories);
 		groupedWork.setFormatBoost(formatBoost);
+		groupedWork.addEContentDevices(eContentDevices);
 	}
 }

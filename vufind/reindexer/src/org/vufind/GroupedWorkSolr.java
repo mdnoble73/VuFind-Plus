@@ -57,6 +57,7 @@ public class GroupedWorkSolr {
 	private HashSet<String> formats = new HashSet<String>();
 	private HashSet<String> formatCategories = new HashSet<String>();
 	private Long formatBoost = 1L;
+	private HashMap<String, HashSet<String>> localizedFormats = new HashMap<String, HashSet<String>>();
 
 	private HashSet<String> languages = new HashSet<String>();
 	private Long languageBoost = 1L;
@@ -95,14 +96,15 @@ public class GroupedWorkSolr {
 
 	//Awards and ratings
 	private HashSet<String> awards = new HashSet<String>();
-	private HashSet<String> lexileScore = new HashSet<String>();
-	private HashSet<String> lexileCode = new HashSet<String>();
+	private String lexileScore = "-1";
+	private String lexileCode = "";
 	private String acceleratedReaderInterestLevel;
 	private String acceleratedReaderReadingLevel;
-	private Float acceleratedReaderPointValue;
+	private String acceleratedReaderPointValue;
 
 	private float rating = 2.5f;
 
+	private String allFields = "";
 	private HashSet<String> keywords = new HashSet<String>();
 
 	private HashSet<String> lccns = new HashSet<String>();
@@ -110,6 +112,17 @@ public class GroupedWorkSolr {
 	private HashSet<String> isbns = new HashSet<String>();
 	private HashSet<String> issns = new HashSet<String>();
 	private HashSet<String> upcs = new HashSet<String>();
+
+	private String callNumberA;
+	private String callNumberFirst;
+	private String callNumberSubject;
+
+	private String localCallNumber;
+	private HashMap<String, HashSet<String>> localCallNumbers = new HashMap<String, HashSet<String>>();
+	private HashMap<String, String> sortableCallNumbers = new HashMap<String, String>();
+
+	//local boosting
+	private HashMap<String, Long> localBoost = new HashMap<String, Long>();
 
 	private Long numHoldings = 0L;
 	private float popularity;
@@ -119,7 +132,7 @@ public class GroupedWorkSolr {
 	private HashSet<String> econtentProtectionTypes = new HashSet<String>();
 	private HashMap<String, HashSet<String>> localEContentProtectionTypes = new HashMap<String, HashSet<String>>();
 
-	public SolrInputDocument getSolrDocument() {
+	public SolrInputDocument getSolrDocument(int availableAtBoostValue, int ownedByBoostValue) {
 		SolrInputDocument doc = new SolrInputDocument();
 		//Main identification
 		doc.addField("id", id);
@@ -143,7 +156,13 @@ public class GroupedWorkSolr {
 		//availability
 		doc.addField("available_at", availableAt);
 		for (String subdomain: availabilityToggleByLibrarySystem.keySet()){
-			doc.addField("availability_toggle_" + subdomain, detailedLocationByLibrarySystem.get(subdomain));
+			HashSet<String> availabilityToggle = availabilityToggleByLibrarySystem.get(subdomain);
+			doc.addField("availability_toggle_" + subdomain, availabilityToggle);
+			if (availabilityToggle.size() == 2){
+				doc.addField("lib_boost_" + subdomain, availableAtBoostValue);
+			}else{
+				doc.addField("lib_boost_" + subdomain, ownedByBoostValue);
+			}
 		}
 
 		//Determine who can use the record
@@ -174,6 +193,9 @@ public class GroupedWorkSolr {
 		doc.addField("format", formats);
 		doc.addField("format_category", formatCategories);
 		doc.addField("format_boost", formatBoost);
+		for (String identifier: localizedFormats.keySet()){
+			doc.addField("format_" + identifier, localizedFormats.get(identifier));
+		}
 		//language related fields
 		doc.addField("language", languages);
 		doc.addField("language_boost", languageBoost);
@@ -207,7 +229,25 @@ public class GroupedWorkSolr {
 		doc.addField("target_audience", targetAudience);
 		//Date added to catalog
 		doc.addField("date_added", dateAdded);
-		doc.addField("time_since_added", getTimeSinceAddedForDate(dateAdded));
+		if (dateAdded == null){
+			//Determine date added based on publication date
+			if (earliestPublicationDate != null){
+				//Return number of days since the given year
+				Calendar publicationDate = GregorianCalendar.getInstance();
+				publicationDate.set(earliestPublicationDate.intValue(), Calendar.DECEMBER, 31);
+
+				long indexTime = indexDate.getTime();
+				long publicationTime = publicationDate.getTime().getTime();
+				long bibDaysSinceAdded = (long)(indexTime - publicationTime) / (long)(1000 * 60 * 60 * 24);
+				doc.addField("days_since_added", Long.toString(bibDaysSinceAdded));
+				doc.addField("time_since_added", getTimeSinceAddedForDate(publicationDate.getTime()));
+			}else{
+				doc.addField("days_since_added", Long.toString(Integer.MAX_VALUE));
+			}
+		}else{
+			doc.addField("days_since_added", getDaysSinceAddedForDate(dateAdded));
+			doc.addField("time_since_added", getTimeSinceAddedForDate(dateAdded));
+		}
 		for (String subdomain: localTimeSinceAdded.keySet()){
 			doc.addField("local_time_since_added_" + subdomain, getTimeSinceAddedForDate(localTimeSinceAdded.get(subdomain)));
 		}
@@ -219,7 +259,11 @@ public class GroupedWorkSolr {
 		//Awards and ratings
 		doc.addField("mpaa_rating", mpaaRatings);
 		doc.addField("awards_facet", awards);
-		doc.addField("lexile_score", lexileScore);
+		if (lexileScore.length() == 0){
+			doc.addField("lexile_score", -1);
+		}else{
+			doc.addField("lexile_score", lexileScore);
+		}
 		doc.addField("lexile_code", lexileCode);
 		doc.addField("accelerated_reader_interest_level", acceleratedReaderInterestLevel);
 		doc.addField("accelerated_reader_reading_level", acceleratedReaderReadingLevel);
@@ -227,18 +271,19 @@ public class GroupedWorkSolr {
 		//EContent fields
 		doc.addField("econtent_device", econtentDevices);
 		doc.addField("econtent_source", econtentSources);
-		for (String subdomain: localEContentSources.keySet()){
+		for (String subdomain : localEContentSources.keySet()){
 			doc.addField("econtent_source_" + subdomain, localEContentSources.get(subdomain));
 		}
 		doc.addField("econtent_protection_type", econtentProtectionTypes);
-		for (String subdomain: localEContentProtectionTypes.keySet()){
+		for (String subdomain : localEContentProtectionTypes.keySet()){
 			doc.addField("econtent_protection_type_" + subdomain, localEContentProtectionTypes.get(subdomain));
 		}
 
 		doc.addField("table_of_contents", contents);
 		//broad search terms
-		//TODO: allfields
-		//TODO: keywords
+		// TODO: determine if we still need allfields?
+		doc.addField("all_fields", allFields);
+		//TODO: change keywords to be more
 		doc.addField("keywords", Util.getCRSeparatedStringFromSet(keywords));
 		//identifiers
 		doc.addField("lccn", lccns);
@@ -247,12 +292,24 @@ public class GroupedWorkSolr {
 		doc.addField("issn", issns);
 		doc.addField("upc", upcs);
 		//call numbers
+		doc.addField("callnumber-a", callNumberA);
+		doc.addField("callnumber-first", callNumberFirst);
+		doc.addField("callnumber-subject", callNumberSubject);
+		doc.addField("local_callnumber", localCallNumber);
+		for (String identifier: localCallNumbers.keySet()){
+			doc.addField("local_callnumber_" + identifier, localCallNumbers.get(identifier));
+		}
+		for (String identifier: sortableCallNumbers.keySet()){
+			doc.addField("callnumber_sort_" + identifier, sortableCallNumbers.get(identifier));
+		}
 		//in library boosts
+		for (String identifier: localBoost.keySet()){
+			doc.addField("lib_boost_" + identifier, localBoost.get(identifier));
+		}
 		//relevance determiners
 		doc.addField("popularity", Long.toString((long)popularity));
 		doc.addField("num_holdings", numHoldings);
 		//vufind enrichment
-		//TODO: load rating for the grouped record from the database
 		doc.addField("rating", rating);
 		doc.addField("rating_facet", getRatingFacet(rating));
 
@@ -354,6 +411,9 @@ public class GroupedWorkSolr {
 	public void addIsbn(String isbn) {
 		isbns.add(isbn);
 	}
+	public HashSet<String> getIsbns() {
+		return isbns;
+	}
 	public void addIssn(String issn) {
 		issns.add(issn);
 	}
@@ -404,7 +464,7 @@ public class GroupedWorkSolr {
 		collectionWestern.add(collection);
 	}
 
-	public void addDetailedLocation(String location, ArrayList<String> relatedSubdomains){
+	public void addDetailedLocation(String location, ArrayList<String> relatedSubdomains, ArrayList<String> relatedLocations){
 		detailedLocation.add(location);
 		for (String subdomain: relatedSubdomains){
 			HashSet<String> tmpDetailedLocations = detailedLocationByLibrarySystem.get(subdomain);
@@ -414,13 +474,36 @@ public class GroupedWorkSolr {
 			}
 			tmpDetailedLocations.add(location);
 		}
+		for (String locationCode: relatedLocations){
+			HashSet<String> tmpDetailedLocations = detailedLocationByLibrarySystem.get(locationCode);
+			if (tmpDetailedLocations == null){
+				tmpDetailedLocations = new HashSet<String>();
+				detailedLocationByLibrarySystem.put(locationCode, tmpDetailedLocations);
+			}
+			tmpDetailedLocations.add(location);
+		}
 	}
 
 
-	public void addAvailableLocations(HashSet<String> availableLocations){
+	public void addAvailableLocations(HashSet<String> availableLocations, HashSet<String> availableLocationCodes){
 		availableAt.addAll(availableLocations);
-		//TODO: Setup availability toggles by location and system here
 		//By doing it when we add locations, we can simplify the code that determines base availability
+		HashSet<String> availableToggle = new HashSet<String>();
+		availableToggle.add("Entire Collection");
+		availableToggle.add("Available Now");
+		for (String curLocationCode : availableLocationCodes){
+			availabilityToggleByLibrarySystem.put(curLocationCode, availableToggle);
+		}
+	}
+
+	public void addOwningLocationCodesAndSubdomains(HashSet<String> owningLocationCodes){
+		HashSet<String> availabilityToggle = new HashSet<String>();
+		availabilityToggle.add("Entire Collection");
+		for (String curLocationCode : owningLocationCodes){
+			if (!availabilityToggleByLibrarySystem.containsKey(curLocationCode)){
+				availabilityToggleByLibrarySystem.put(curLocationCode, availabilityToggle);
+			}
+		}
 	}
 
 	public void addCompatiblePTypes(HashSet<String> compatiblePTypes){
@@ -440,7 +523,7 @@ public class GroupedWorkSolr {
 	}
 
 	public void addAuthor2(Set<String> fieldList) {
-		this.authAuthor2.addAll(fieldList);
+		this.author2.addAll(fieldList);
 	}
 
 	public void addAuthor2Role(Set<String> fieldList) {
@@ -451,8 +534,24 @@ public class GroupedWorkSolr {
 		this.authorAdditional.addAll(fieldList);
 	}
 
-	public void addFormats(Set<String> formats) {
+	public void addFormats(Set<String> formats, Collection<String> relatedSubdomains, Collection<String> relatedLocations) {
 		this.formats.addAll(formats);
+		for (String subdomain : relatedSubdomains){
+			HashSet<String> formatsForIdentifier = localizedFormats.get(subdomain);
+			if (formatsForIdentifier == null){
+				formatsForIdentifier = new HashSet<String>();
+				localizedFormats.put(subdomain, formatsForIdentifier);
+			}
+			formatsForIdentifier.addAll(formats);
+		}
+		for (String locationCode : relatedLocations){
+			HashSet<String> formatsForIdentifier = localizedFormats.get(locationCode);
+			if (formatsForIdentifier == null){
+				formatsForIdentifier = new HashSet<String>();
+				localizedFormats.put(locationCode, formatsForIdentifier);
+			}
+			formatsForIdentifier.addAll(formats);
+		}
 	}
 
 	public void addFormatCategories(HashSet<String> formatCategories) {
@@ -620,6 +719,12 @@ public class GroupedWorkSolr {
 		}
 	}
 
+	private Long getDaysSinceAddedForDate(Date curDate){
+		if (curDate == null){
+			return null;
+		}
+		return (indexDate.getTime() - curDate.getTime()) / (1000 * 60 * 60 * 24);
+	}
 	private static Date indexDate = new Date();
 	private LinkedHashSet<String> getTimeSinceAddedForDate(Date curDate) {
 		if (curDate == null){
@@ -698,18 +803,175 @@ public class GroupedWorkSolr {
 		this.rating = rating;
 	}
 
-	public void addEContentSources(HashSet<String> eContentSources){
+	public void addEContentSources(HashSet<String> eContentSources, Collection<String> relatedSubdomains, Collection<String> relatedLocations){
 		econtentSources.addAll(eContentSources);
 		keywords.addAll(eContentSources);
+		for (String subdomain : relatedSubdomains){
+			HashSet<String> valuesForIdentifier = localEContentSources.get(subdomain);
+			if (valuesForIdentifier == null){
+				valuesForIdentifier = new HashSet<String>();
+				localEContentSources.put(subdomain, valuesForIdentifier);
+			}
+			valuesForIdentifier.addAll(eContentSources);
+		}
+		for (String locationCode : relatedLocations){
+			HashSet<String> valuesForIdentifier = localEContentSources.get(locationCode);
+			if (valuesForIdentifier == null){
+				valuesForIdentifier = new HashSet<String>();
+				localEContentSources.put(locationCode, valuesForIdentifier);
+			}
+			valuesForIdentifier.addAll(eContentSources);
+		}
 	}
-	public void addEContentSource(String eContentSource){
+	public void addEContentSource(String eContentSource, Collection<String> relatedSubdomains, Collection<String> relatedLocations){
 		econtentSources.add(eContentSource);
 		keywords.add(eContentSource);
+		for (String subdomain : relatedSubdomains){
+			HashSet<String> valuesForIdentifier = localEContentSources.get(subdomain);
+			if (valuesForIdentifier == null){
+				valuesForIdentifier = new HashSet<String>();
+				localEContentSources.put(subdomain, valuesForIdentifier);
+			}
+			valuesForIdentifier.add(eContentSource);
+		}
+		for (String locationCode : relatedLocations){
+			HashSet<String> valuesForIdentifier = localEContentSources.get(locationCode);
+			if (valuesForIdentifier == null){
+				valuesForIdentifier = new HashSet<String>();
+				localEContentSources.put(locationCode, valuesForIdentifier);
+			}
+			valuesForIdentifier.add(eContentSource);
+		}
 	}
-	public void addEContentProtectionTypes(HashSet<String> eContentProtectionTypes){
+	public void addEContentProtectionTypes(HashSet<String> eContentProtectionTypes, Collection<String> relatedSubdomains, Collection<String> relatedLocations){
 		econtentProtectionTypes.addAll(eContentProtectionTypes);
+		for (String subdomain : relatedSubdomains){
+			HashSet<String> valuesForIdentifier = localEContentProtectionTypes.get(subdomain);
+			if (valuesForIdentifier == null){
+				valuesForIdentifier = new HashSet<String>();
+				localEContentProtectionTypes.put(subdomain, valuesForIdentifier);
+			}
+			valuesForIdentifier.addAll(eContentProtectionTypes);
+		}
+		for (String locationCode : relatedLocations){
+			HashSet<String> valuesForIdentifier = localEContentProtectionTypes.get(locationCode);
+			if (valuesForIdentifier == null){
+				valuesForIdentifier = new HashSet<String>();
+				localEContentProtectionTypes.put(locationCode, valuesForIdentifier);
+			}
+			valuesForIdentifier.addAll(eContentProtectionTypes);
+		}
 	}
-	public void addEContentProtectionType(String eContentProtectionType){
+	public void addEContentProtectionType(String eContentProtectionType, Collection<String> relatedSubdomains, Collection<String> relatedLocations){
 		econtentProtectionTypes.add(eContentProtectionType);
+		for (String subdomain : relatedSubdomains){
+			HashSet<String> valuesForIdentifier = localEContentProtectionTypes.get(subdomain);
+			if (valuesForIdentifier == null){
+				valuesForIdentifier = new HashSet<String>();
+				localEContentProtectionTypes.put(subdomain, valuesForIdentifier);
+			}
+			valuesForIdentifier.add(eContentProtectionType);
+		}
+		for (String locationCode : relatedLocations){
+			HashSet<String> valuesForIdentifier = localEContentProtectionTypes.get(locationCode);
+			if (valuesForIdentifier == null){
+				valuesForIdentifier = new HashSet<String>();
+				localEContentProtectionTypes.put(locationCode, valuesForIdentifier);
+			}
+			valuesForIdentifier.add(eContentProtectionType);
+		}
+	}
+
+	public void setLexileScore(String lexileScore) {
+		this.lexileScore = lexileScore;
+	}
+
+	public void setLexileCode(String lexileCode) {
+		this.lexileCode = lexileCode;
+	}
+
+	public void addAwards(HashSet<String> awards) {
+		this.awards.addAll(awards);
+	}
+
+	public void setAcceleratedReaderInterestLevel(String acceleratedReaderInterestLevel) {
+		if (acceleratedReaderInterestLevel != null){
+			this.acceleratedReaderInterestLevel = acceleratedReaderInterestLevel;
+		}
+	}
+
+	public void setAcceleratedReaderReadingLevel(String acceleratedReaderReadingLevel) {
+		if (acceleratedReaderReadingLevel != null){
+			this.acceleratedReaderReadingLevel = acceleratedReaderReadingLevel;
+		}
+	}
+
+	public void setAcceleratedReaderPointValue(String acceleratedReaderPointValue) {
+		if (acceleratedReaderPointValue != null){
+			this.acceleratedReaderPointValue = acceleratedReaderPointValue;
+		}
+	}
+
+	public void addAllFields(String fields){
+		allFields += " " + fields;
+	}
+
+	public void setCallNumberA(String callNumber) {
+		if (callNumber != null && callNumberA != null){
+			this.callNumberA = callNumber;
+		}
+	}
+	public void setCallNumberFirst(String callNumber) {
+		if (callNumber != null && callNumberFirst != null){
+			this.callNumberFirst = callNumber;
+		}
+	}
+	public void setCallNumberSubject(String callNumber) {
+		if (callNumber != null && callNumberSubject != null){
+			this.callNumberSubject = callNumber;
+		}
+	}
+
+	public void addContents(HashSet<String> contents){
+		this.contents.addAll(contents);
+	}
+
+	public void addEContentDevices(HashSet<String> devices){
+		this.econtentDevices.addAll(devices);
+	}
+
+	public void addLocalCallNumber(String fullCallNumber, ArrayList<String> subdomainsForLocation, ArrayList<String> relatedLocationCodesForLocation) {
+		if (localCallNumber == null){
+			localCallNumber = fullCallNumber;
+		}
+		for (String subdomain : subdomainsForLocation){
+			HashSet<String> curCallNumbers = localCallNumbers.get(subdomain);
+			if (curCallNumbers == null){
+				curCallNumbers = new HashSet<String>();
+				localCallNumbers.put(subdomain, curCallNumbers);
+			}
+			curCallNumbers.add(fullCallNumber);
+		}
+		for (String curCode : relatedLocationCodesForLocation){
+			HashSet<String> curCallNumbers = localCallNumbers.get(curCode);
+			if (curCallNumbers == null){
+				curCallNumbers = new HashSet<String>();
+				localCallNumbers.put(curCode, curCallNumbers);
+			}
+			curCallNumbers.add(fullCallNumber);
+		}
+	}
+
+	public void addCallNumberSort(String sortableCallNumber, ArrayList<String> subdomainsForLocation, ArrayList<String> relatedLocationCodesForLocation) {
+		for (String subdomain : subdomainsForLocation){
+			if (!sortableCallNumbers.containsKey(subdomain)){
+				sortableCallNumbers.put(subdomain, sortableCallNumber);
+			}
+		}
+		for (String curCode : relatedLocationCodesForLocation){
+			if (!sortableCallNumbers.containsKey(curCode)){
+				sortableCallNumbers.put(curCode, sortableCallNumber);
+			}
+		}
 	}
 }

@@ -45,6 +45,11 @@ public class RestrictedEContentProcessor extends IlsRecordProcessor {
 
 		//Do special stuff based on the eContentRecord
 		EContentRecord eContentRecord = getEContentRecord(identifier);
+		updateGroupedWorkSolrDataBasedOnEContentRecord(groupedWork, eContentRecord);
+	}
+
+	private void updateGroupedWorkSolrDataBasedOnEContentRecord(GroupedWorkSolr groupedWork, EContentRecord eContentRecord) {
+		//TODO: Load eContent devices
 	}
 
 	protected void loadRecordType(GroupedWorkSolr groupedWork, Record record) {
@@ -93,11 +98,13 @@ public class RestrictedEContentProcessor extends IlsRecordProcessor {
 	}
 
 	private void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<DataField> itemRecords) {
-		HashSet<String> sources = new HashSet<String>();
-		HashSet<String> protectionTypes = new HashSet<String>();
 		for (DataField curItem : itemRecords){
 			//Check subfield w to get the source
 			if (curItem.getSubfield('w') != null){
+				String locationCode = curItem.getSubfield(locationSubfieldIndicator) == null ? null : curItem.getSubfield(locationSubfieldIndicator).getData();
+				HashSet<String> sources = new HashSet<String>();
+				HashSet<String> protectionTypes = new HashSet<String>();
+
 				String subfieldW = curItem.getSubfield('w').getData();
 				String[] econtentData = subfieldW.split("\\s?:\\s?");
 				String eContentSource = econtentData[0].trim();
@@ -105,11 +112,38 @@ public class RestrictedEContentProcessor extends IlsRecordProcessor {
 				if (protectionType.equals("acs") || protectionType.equals("drm")){
 					sources.add(eContentSource);
 					protectionTypes.add("Limited Access");
+
+					boolean shareWithAll = false;
+					boolean shareWithLibrary = false;
+					if (econtentData.length >= 3){
+						String sharing = econtentData[2].trim();
+						if (sharing.equalsIgnoreCase("shared")){
+							shareWithAll = true;
+						}else if (sharing.equalsIgnoreCase("library")){
+							shareWithLibrary = true;
+						}
+					}else{
+						shareWithLibrary = true;
+					}
+
+					if (locationCode != null && locationCode.equalsIgnoreCase("mdl")){
+						//Share with everyone
+						shareWithAll = true;
+					}
+					if (shareWithAll){
+						groupedWork.addEContentSources(sources, subdomainMap.values() , locationMap.values());
+						groupedWork.addEContentProtectionTypes(protectionTypes, subdomainMap.values() , locationMap.values());
+					}else if (shareWithLibrary){
+						groupedWork.addEContentSources(sources, getLibrarySubdomainsForLocationCode(locationCode), getRelatedLocationCodesForLocationCode(locationCode));
+						groupedWork.addEContentProtectionTypes(protectionTypes, getLibrarySubdomainsForLocationCode(locationCode), getRelatedLocationCodesForLocationCode(locationCode));
+					}else{
+						groupedWork.addEContentSources(sources, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
+						groupedWork.addEContentProtectionTypes(protectionTypes, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
+					}
 				}
 			}
 		}
-		groupedWork.addEContentSources(sources);
-		groupedWork.addEContentProtectionTypes(protectionTypes);
+
 	}
 
 	protected List<DataField> getUnsuppressedItems(Record record) {

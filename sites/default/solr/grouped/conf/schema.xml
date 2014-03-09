@@ -251,7 +251,6 @@
 		<dynamicField name="callnumber_sort_*" type="text-exact" indexed="true" stored="true" multiValued="false"/>
 		<!-- Fields for boosting branch holdings -->
 		<dynamicField name="lib_boost_*" type="integer" indexed="true" stored="true" multiValued="false" omitNorms="true" default="0"/>
-		<dynamicField name="loc_boost_*" type="integer" indexed="true" stored="true" multiValued="false" omitNorms="true" default="0"/>
 		<!-- relevance determiners -->
 		<field name="popularity" type="integer" indexed="true" stored="true" multiValued="false" default="0"/>
 		<field name="num_holdings" type="integer" omitNorms="true" indexed="true" stored="true" multiValued="false" default="0"/>
@@ -287,6 +286,8 @@
 	<copyField source="geographic" dest="geographic_proper"/>
 	<copyField source="era" dest="era_proper"/>
 	<copyField source="genre" dest="genre_proper"/>
+	<copyField source="local_callnumber_*" dest="local_callnumber_exact_*"/>
+	<copyField source="local_callnumber_*" dest="local_callnumber_left_*"/>
 
 	<!-- Default Boolean Operator -->
 	<solrQueryParser defaultOperator="AND"/>
