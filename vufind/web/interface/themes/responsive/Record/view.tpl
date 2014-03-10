@@ -88,29 +88,6 @@
 				</div>
 			</div>
 
-			<div id="seriesInfo" style="display:none" class="row">
-				<div class="col-sm-12">
-					{assign var="scrollerName" value="Series"}
-					{assign var="scrollerTitle" value="Also in this Series"}
-					{assign var="wrapperId" value="series"}
-					{assign var="scrollerVariable" value="seriesScroller"}
-					{assign var="permanentId" value=$recordDriver->getPermanentId()}
-					{assign var="fullListLink" value= "$path/GroupedWork/$permanentId/Series"}
-					{include file='titleScroller.tpl'}
-				</div>
-			</div>
-
-			<div id="moreLikeThisInfo" style="display:none" class="row">
-				<div class="col-sm-12">
-					{assign var="scrollerName" value="MoreLikeThis"}
-					{assign var="scrollerTitle" value="More Like This"}
-					{assign var="wrapperId" value="morelikethis"}
-					{assign var="scrollerVariable" value="morelikethisScroller"}
-					{assign var="permanentId" value=$recordDriver->getPermanentId()}
-					{include file='titleScroller.tpl'}
-				</div>
-			</div>
-
 			{include file=$moreDetailsTemplate}
 			{* include file="Record/view-tabs.tpl" isbn=$isbn upc=$upc *}
 		</div>

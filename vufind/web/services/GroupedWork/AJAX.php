@@ -71,7 +71,6 @@ class GroupedWork_AJAX {
 		$similar = $db->getMoreLikeThis2($id);
 		// Send the similar items to the template; if there is only one, we need
 		// to force it to be an array or things will not display correctly.
-		$similarTitlesInfo = array();
 		if (isset($similar) && count($similar['response']['docs']) > 0) {
 			$similarTitles = array();
 			foreach ($similar['response']['docs'] as $key => $similarTitle){
@@ -129,7 +128,7 @@ class GroupedWork_AJAX {
 			$cover .= "&category=" . $record['format_category'][0];
 		}
 		$title = $record['title'];
-		if (isset($record['series'])){
+		if (isset($record['series']) && $record['series'] != null){
 			$title .= ' (' . $record['series'] ;
 			if (isset($record['volume'])){
 				$title .= ' Volume ' . $record['volume'];

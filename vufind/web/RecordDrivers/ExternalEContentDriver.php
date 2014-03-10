@@ -53,7 +53,6 @@ class ExternalEContentDriver extends BaseEContentDriver{
 	}
 
 	function isValidForUser($locationCode, $eContentFieldData){
-		global $user;
 		$sharing = $this->getSharing($locationCode, $eContentFieldData);
 		if ($sharing == 'shared'){
 			return true;

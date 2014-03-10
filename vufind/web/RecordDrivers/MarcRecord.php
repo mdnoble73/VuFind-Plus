@@ -1722,6 +1722,18 @@ class MarcRecord extends IndexRecord
 
 		//Load more details options
 		$moreDetailsOptions = array();
+		$moreDetailsOptions['series'] = array(
+				'label' => 'Also in this Series',
+				'body' => $interface->fetch('GroupedWork/series.tpl'),
+				'hideByDefault' => false,
+				'openByDefault' => true
+		);
+		$moreDetailsOptions['moreLikeThis'] = array(
+				'label' => 'More Like This',
+				'body' => $interface->fetch('GroupedWork/moreLikeThis.tpl'),
+				'hideByDefault' => false,
+				'openByDefault' => true
+		);
 		$moreDetailsOptions['copies'] = array(
 			'label' => 'Copies',
 			'body' => '<div id="holdingsPlaceholder"></div>',
