@@ -89,7 +89,7 @@ class MillenniumStatusLoader{
 
 			if (count($ret) == 0){
 				//Also check the frameset for links
-				if (preg_match('/<div class="bibDisplayUrls">.*?<table.*?>(.*?)<\/table>.*?<\/div>/si', $millenniumInfo->framesetInfo, $displayUrlInfo)){
+				if (preg_match('/<div class="bibDisplayUrls">\s+<table.*?>(.*?)<\/table>.*?<\/div>/si', $millenniumInfo->framesetInfo, $displayUrlInfo)){
 					$linksTable = $displayUrlInfo[1];
 					preg_match_all('/<td.*?>.*?<a href="(.*?)".*?>(.*?)<\/a>.*?<\/td>/si', $linksTable, $linkData, PREG_SET_ORDER);
 					for ($i = 0; $i < count($linkData); $i++) {
