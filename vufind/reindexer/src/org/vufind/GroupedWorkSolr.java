@@ -169,7 +169,11 @@ public class GroupedWorkSolr {
 		doc.addField("usable_by", usableBy);
 
 		//Title and variations
-		doc.addField("title", title + " " + subTitle);
+		String fullTitle = title;
+		if (subTitle != null){
+			fullTitle += " " + subTitle;
+		}
+		doc.addField("title", fullTitle);
 		doc.addField("title_display", displayTitle);
 		doc.addField("title_sub", subTitle);
 		doc.addField("title_short", title);
