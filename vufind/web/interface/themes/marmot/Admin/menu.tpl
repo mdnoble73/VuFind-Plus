@@ -13,6 +13,7 @@
 			<div class="adminMenuLink {if $action == "IPAddresses"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/IPAddresses">IP Addresses</a></div>
 		{/if}
 		<div class="adminMenuLink {if $action == "ListWidgets"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/ListWidgets">List Widgets</a></div>
+		<div class="adminMenuLink {if $action == "BrowseCategories"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/BrowseCategories">Browse Categories</a></div>
 		{if $user->hasRole('opacAdmin')}
 			<div class="adminMenuLink {if $action == "UserSuggestions"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/UserSuggestions">User Suggestions</a></div>
 			<div class="adminMenuLink {if $action == "BookStores"}{assign var="defaultSection" value=$curSection} active{/if}"><a href="{$path}/Admin/BookStores">Book Stores</a></div>
