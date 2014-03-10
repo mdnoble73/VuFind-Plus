@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/Action.php';
 
 class Browse_AJAX extends Action {
 
-	/** @var SearchObject_Solr */
+	/** @var SearchObject_Solr|SearchObject_Base $searchObject*/
 	private $searchObject;
 
 	function launch()

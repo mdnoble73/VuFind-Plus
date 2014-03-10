@@ -194,8 +194,14 @@ abstract class SearchObject_Base
 	 */
 	public function addFilter($newFilter)
 	{
+		global $configArray;
 		// Extract field and value from URL string:
 		list($field, $value) = $this->parseFilter($newFilter);
+
+		$searchLibrary = Library::getActiveLibrary();
+		global $locationSingleton;
+		$searchLocation = $locationSingleton->getActiveLocation();
+		$userLocation = Location::getUserHomeLocation();
 
 		// Check for duplicates -- if it's not in the array, we can add it
 		if (!$this->hasFilter($newFilter)) {
@@ -208,6 +214,38 @@ abstract class SearchObject_Base
 			}else if ($field == 'target-audience-full'){
 				$field = 'target_audience_full';
 			}
+
+			//See if the filter should be localized
+			if (isset($searchLibrary)){
+				if ($field == 'time_since_added'){
+					$field = 'local_time_since_added_' . $searchLibrary->subdomain;
+				}elseif ($field == 'itype'){
+					$field = 'itype_' . $searchLibrary->subdomain;
+				}elseif ($field == 'detailed_location'){
+					$field = 'detailed_location_' . $searchLibrary->subdomain;
+				}elseif ($field == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					$field = 'availability_toggle_' . $searchLibrary->subdomain;
+				}elseif ($field == 'format' && $configArray['Index']['enableDetailedFormats']){
+					$field = 'format_' . $searchLibrary->subdomain;
+				}elseif ($field == 'econtent_source' && $configArray['Index']['enableDetailedEContentSources']){
+					$field = 'econtent_source_' . $searchLibrary->subdomain;
+				}elseif ($field == 'econtent_protection_type' && $configArray['Index']['enableDetailedEContentSources']){
+					$field = 'econtent_protection_type_' . $searchLibrary->subdomain;
+				}
+			}
+			if (isset($userLocation)){
+				if ($field == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					$field = 'availability_toggle_' . $userLocation->code;
+				}
+			}
+			if (isset($searchLocation)){
+				if ($field == 'time_since_added' && $searchLocation->restrictSearchByLocation){
+					$field = 'local_time_since_added_' . $searchLocation->code;
+				}elseif ($field == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					$field = 'availability_toggle_' . $searchLocation->code;
+				}
+			}
+
 			$this->filterList[$field][] = $value;
 		}
 	}

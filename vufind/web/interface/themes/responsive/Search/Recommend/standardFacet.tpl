@@ -26,7 +26,7 @@
 		{* Show More link*}
 			<div class="facetValue" id="more{$title}"><a href="#" onclick="VuFind.ResultsList.moreFacets('{$title}'); return false;">{translate text='more'} ...</a></div>
 		{* Start div for hidden content*}
-			<div class="narrowGroupHidden" id="narrowGroupHidden_{$title}">
+			<div class="narrowGroupHidden" id="narrowGroupHidden_{$title}" style="display:none">
 		{/if}
 		{if $thisFacet.isApplied}
 			<div class="facetValue"><img src="{$path}/images/silk/tick.png" alt="Selected" /> {$thisFacet.display|escape} <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$thisFacet.display|escape}');">(remove)</a></div>
