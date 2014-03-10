@@ -36,7 +36,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 			return true;
 		}else if ($sharing == 'library'){
 			$searchLibrary = Library::getSearchLibrary();
-			if ($searchLibrary->includeOutOfSystemExternalLinks || strpos($locationCode, $searchLibrary->ilsCode) === 0){
+			if ($searchLibrary == null || $searchLibrary->includeOutOfSystemExternalLinks || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
 				return true;
 			}else{
 				return false;
@@ -44,7 +44,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		}else{
 			$searchLibrary = Library::getSearchLibrary();
 			$searchLocation = Location::getSearchLocation();
-			if ($searchLibrary->includeOutOfSystemExternalLinks || strpos($locationCode, $searchLocation->code) === 0){
+			if ($searchLibrary == null || $searchLibrary->includeOutOfSystemExternalLinks || strpos($locationCode, $searchLocation->code) === 0){
 				return true;
 			}else{
 				return false;
@@ -58,7 +58,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 			return true;
 		}else if ($sharing == 'library'){
 			$searchLibrary = Library::getSearchLibrary();
-			if ($searchLibrary->includeOutOfSystemExternalLinks || strpos($locationCode, $searchLibrary->ilsCode) === 0){
+			if ($searchLibrary == null || $searchLibrary->includeOutOfSystemExternalLinks || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
 				return true;
 			}else{
 				return false;

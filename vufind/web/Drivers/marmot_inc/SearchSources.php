@@ -128,13 +128,21 @@ class SearchSources{
 			}
 		}
 
+		$includeOnlineOption = true;
+		if ($location != null && $location->repeatInOnlineCollection == 0) {
+			$includeOnlineOption = false;
+		}elseif ($library != null && $library->repeatInOnlineCollection == 0) {
+			$includeOnlineOption = false;
+		}
 
-		//eContent Search
-		$searchOptions['econtent'] = array(
-      'name' => 'Online Collection',
-      'description' => 'Digital Media available for use online and with portable devices',
-			'catalogType' => 'catalog'
-		);
+		if ($includeOnlineOption){
+			//eContent Search
+			$searchOptions['econtent'] = array(
+					'name' => 'Online Collection',
+					'description' => 'Digital Media available for use online and with portable devices',
+					'catalogType' => 'catalog'
+			);
+		}
 
 		//Marmot Global search
 		if (isset($library) &&

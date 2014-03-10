@@ -498,6 +498,15 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_location_repeat_online' => array(
+					'title' => 'Library Location Repeat Online',
+					'description' => 'Allow additional boosting for library and location holdings in addition to the default in the index.',
+					'sql' => array(
+							"ALTER TABLE library ADD repeatInOnlineCollection INT(11) DEFAULT 1",
+							"ALTER TABLE location ADD repeatInOnlineCollection INT(11) DEFAULT 1",
+					),
+			),
+
 			'hours_and_locations_control' => array(
 				'title' => 'Hours and Locations Control',
 				'description' => 'Allow additional control over library hours and locations display.',
