@@ -996,18 +996,20 @@ public abstract class IlsRecordProcessor {
 			if (field.getSubfield('a') != null) {
 				String type = field.getSubfield('a').getData();
 				if (type.matches("(?i)accelerated reader")) {
-					String rawData = field.getSubfield('c').getData();
-					try {
-						Pattern Regex = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ
-								| Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-						Matcher RegexMatcher = Regex.matcher(rawData);
-						if (RegexMatcher.find()) {
-							result = RegexMatcher.group(1);
-							// System.out.println("AR Reading Level " + result);
-							return result;
+					if (field.getSubfield('c') != null){
+						String rawData = field.getSubfield('c').getData();
+						try {
+							Pattern Regex = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ
+									| Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
+							Matcher RegexMatcher = Regex.matcher(rawData);
+							if (RegexMatcher.find()) {
+								result = RegexMatcher.group(1);
+								// System.out.println("AR Reading Level " + result);
+								return result;
+							}
+						} catch (PatternSyntaxException ex) {
+							// Syntax error in the regular expression
 						}
-					} catch (PatternSyntaxException ex) {
-						// Syntax error in the regular expression
 					}
 				}
 			}
