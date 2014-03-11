@@ -667,14 +667,14 @@ class GroupedWorkDriver implements RecordInterface{
 
 	function getBookcoverUrl($size){
 		global $configArray;
-		$bookCoverUrl = $configArray['Site']['url'] . "/bookcover.php?id={$this->getUniqueID()}&amp;size={$size}&amp;type=grouped_work";
+		$bookCoverUrl = $configArray['Site']['url'] . "/bookcover.php?id={$this->getUniqueID()}&size={$size}&type=grouped_work";
 		$isbn = $this->getCleanISBN();
 		if ($isbn){
-			$bookCoverUrl .= "&amp;isn={$isbn}";
+			$bookCoverUrl .= "&isn={$isbn}";
 		}else{
 			$upc = $this->getCleanUPC();
 			if ($upc){
-				$bookCoverUrl .= "&amp;upc={$upc}";
+				$bookCoverUrl .= "&upc={$upc}";
 			}
 		}
 		if (isset($this->fields['format_category'])){
