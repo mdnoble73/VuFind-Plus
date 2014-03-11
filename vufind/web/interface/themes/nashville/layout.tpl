@@ -6,7 +6,7 @@
 		<title>{$pageTitle|truncate:64:"..."}</title>
 		{if $addHeader}{$addHeader}{/if}
 		<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
-		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="../marmot/{$path}/Search/OpenSearch?method=describe" />
+		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="/Search/OpenSearch?method=describe" />
 		{css filename="consolidated.min.css"}
 	    {css filename="extra_styles.css"}
 		<script type="text/javascript">
