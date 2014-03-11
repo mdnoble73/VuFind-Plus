@@ -6,10 +6,10 @@
 <div class="titleScrollerHeader"><span class="listTitle resultInformationLabel">Browse Popular Lists</span></div>
 <div class="footerListCol"><h2>{translate text='New Books Movies Music'}</h2>
 	<ul>
-				<li><a href="{$path}/Search/Results?lookfor=&type=Subject&basicType=Subject&filter[]=publishDate:[{$lastYear} TO *]&filter[]=format_category%3A%22Books%22&filter[]=literary_form_full%3A%22Fiction%22&filter[]=genre_facet%3A%22Fiction%22sort=days_since_added+asc%2Cyear+descview=list&searchSource=local&amp;filter[]=time_since_added%3A&quot;Week&quot;">New Fiction</a></li>
+				<li><a href="{$path}/Search/Results?lookfor=&type=Subject&basicType=Subject&filter[]=publishDate:[{$lastYear} TO *]&filter[]=format_category%3A%22Books%22&filter[]=literary_form_full%3A%22Fiction%22&filter[]=genre_facet%3A%22Fiction%22&sort=days_since_added+asc%2Cyear+descview=list&searchSource=local&amp;filter[]=time_since_added%3A&quot;Week&quot;">New Fiction</a></li>
                 <li><a href="{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A&quot;Week&quot;&amp;filter[]=format_category%3A&quot;Audio+Books&quot;sort=days_since_added+asc%2Cyear+descfilter[]=publishDate:[{$lastYear} TO *]">New Audio Books</a></li>
                 <li><a href="{$path}/Search/Results?lookfor=%2A&type=Keyword&type=Keyword&filter[]=format_category%3A%22Movies%22&filter[]=topic_facet%3A%22Feature+films%22&filter[]=publishDate:[{$lastYear} TO *]sort=days_since_added+asc%2Cyear+descsearchSource=local&amp;filter[]=time_since_added%3A&quot;Week&quot;">New Movies</a></li>	                   
-		<li><a href='{$path}/Search/Results?lookfor=%22Television+Series%22+OR+%22Television+Programs%22+OR+%22Television+Adaptations%22+OR+%22Television+mini+-+series%22+NOT+%22Children&#39;s%22&type=Subject&basicType=Subject&filter[]=publishDate:[{$lastYear} TO *]&filter[]=format_category%3A%22Movies%22sort=days_since_added+asc%2Cyear+descview=list&searchSource=local&amp;filter[]=time_since_added%3A&quot;Week&quot;'>New TV Series &amp; Shows</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=%22Television+Series%22+OR+%22Television+Programs%22+OR+%22Television+Adaptations%22+OR+%22Television+mini+-+series%22+NOT+%22Children&#39;s%22&type=Subject&basicType=Subject&filter[]=publishDate:[{$lastYear} TO *]&filter[]=format_category%3A%22Movies%22&sort=days_since_added+asc%2Cyear+descview=list&searchSource=local&amp;filter[]=time_since_added%3A&quot;Week&quot;'>New TV Series &amp; Shows</a></li>
 				<li><a href="{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A&quot;Week&quot;&amp;filter[]=literary_form_full%3A&quot;Non+Fiction&quot;&amp;sort=year+desc%2Ctitle+asc&filter[]=publishDate:[{$lastYear} TO *]&quot">New NonFiction</a></li>	
 		<li><a href="{$path}/Search/Results?lookfor=&amp;type=Keyword&amp;filter[]=time_since_added%3A&quot;Week&quot;&amp;sort=year&filter[]=publishDate:[{$lastYear} TO *]">New This Week</a></li>
 	</ul>
@@ -37,8 +37,8 @@
 <div class="footerListCol"><h2>{translate text='For Kids'}</h2>
 	<ul>
 		<li><a href='{$path}/Search/Results?lookfor=&basicType=Keyword&filter[]=target_audience_full%3A"Preschool+%280-5%29"&filter[]=illustrated%3A"Illustrated"&filter[]=format_category%3A"Books"&filter[]=genre_facet%3A"Juvenile+fiction"&filter[]=publishDate:[{$lastYear} TO *]sort=days_since_added+asc%2Cyear+descview=list&searchSource=local'>New Picture Books</a></li>
-		<li><a href='{$path}/Search/Results?lookfor=%22Children%27s+Films%22&type=Subject&basicType=Subject&filter[]=publishDate:[{$lastYear} TO *]&filter[]=format_category%3A%22Movies%22sort=days_since_added+asc%2Cyear+descview=list&searchSource=local'>New Children&#39;s Movies</a></li>	
-        <li><a href='{$path}/Search/Results?lookfor=%22Children%27s+Television+Series%22+OR+%22Children%27s+Television+Programs%22&type=Subject&basicType=Subject&filter[]=publishDate:[{$lastYear} TO *]&filter[]=format_category%3A%22Movies%22sort=days_since_added+asc%2Cyear+descview=list&searchSource=local'>New Children&#39;s TV Shows</a></li>
+		<li><a href='{$path}/Search/Results?lookfor=%22Children%27s+Films%22&type=Subject&basicType=Subject&filter[]=publishDate:[{$lastYear} TO *]&filter[]=format_category%3A%22Movies%22&sort=days_since_added+asc%2Cyear+descview=list&searchSource=local'>New Children&#39;s Movies</a></li>	
+        <li><a href='{$path}/Search/Results?lookfor=%22Children%27s+Television+Series%22+OR+%22Children%27s+Television+Programs%22&type=Subject&basicType=Subject&filter[]=publishDate:[{$lastYear} TO *]&filter[]=format_category%3A%22Movies%22&sort=days_since_added+asc%2Cyear+descview=list&searchSource=local'>New Children&#39;s TV Shows</a></li>
 	
 	</ul>
 </div>
