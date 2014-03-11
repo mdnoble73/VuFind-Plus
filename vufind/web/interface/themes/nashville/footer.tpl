@@ -8,10 +8,10 @@
 	<ul>
 				<li><a href="{$path}/Search/Results?lookfor=&type=Subject&basicType=Subject&filter[]=publishDate:[{$lastYear} TO *]&filter[]=format_category%3A%22Books%22&filter[]=literary_form_full%3A%22Fiction%22&filter[]=genre_facet%3A%22Fiction%22&sort=days_since_added+asc%2Cyear+desc&view=list&searchSource=local&filter[]=time_since_added%3A&quot;Week&quot;">New Fiction</a></li>
                 <li><a href="{$path}/Search/Results?lookfor=&type=Keyword&filter[]=time_since_added%3A%22Week%22&filter[]=format_category%3A%22Audio+Books%22&sort=days_since_added+asc%2Cyear+desc&filter[]=publishDate:[{$lastYear} TO *]">New Audio Books</a></li>
-                <li><a href="{$path}/Search/Results?lookfor=%2A&type=Keyword&type=Keyword&filter[]=format_category%3A%22Movies%22&filter[]=topic_facet%3A%22Feature+films%22&filter[]=publishDate:[{$lastYear} TO *]sort=days_since_added+asc%2Cyear+descsearchSource=local&filter[]=time_since_added%3A%22Week%22">New Movies</a></li>
+                <li><a href="{$path}/Search/Results?lookfor=%2A&type=Keyword&type=Keyword&filter[]=format_category%3A%22Movies%22&filter[]=topic_facet%3A%22Feature+films%22&filter[]=publishDate:[{$lastYear} TO *]sort=days_since_added+asc%2Cyear+desc&searchSource=local&filter[]=time_since_added%3A%22Week%22">New Movies</a></li>
 		<li><a href='{$path}/Search/Results?lookfor=%22Television+Series%22+OR+%22Television+Programs%22+OR+%22Television+Adaptations%22+OR+%22Television+mini+-+series%22+NOT+%22Children%26%2339;s%22&type=Subject&basicType=Subject&filter[]=publishDate:[{$lastYear} TO *]&filter[]=format_category%3A%22Movies%22&sort=days_since_added+asc%2Cyear+desc&view=list&searchSource=local&filter[]=time_since_added%3A%22Week%22'>New TV Series &amp; Shows</a></li>
-				<li><a href="{$path}/Search/Results?lookfor=&type=Keyword&filter[]=time_since_added%3A%22Week%22&filter[]=literary_form_full%3A%22Non+Fiction%22&sort=year+desc%2Ctitle+asc&filter[]=publishDate:[{$lastYear} TO *]&quot">New NonFiction</a></li>
-		<li><a href="{$path}/Search/Results?lookfor=&type=Keyword&filter[]=time_since_added%3A%22Week%22&sort=year&filter[]=publishDate:[{$lastYear} TO *]">New This Week</a></li>
+				<li><a href="{$path}/Search/Results?lookfor=&type=Keyword&filter[]=time_since_added%3A%22Week%22&filter[]=literary_form_full%3A%22Non+Fiction%22&sort=days_since_added+asc%2Cyear+desc&filter[]=publishDate:[{$lastYear} TO *]&quot">New NonFiction</a></li>
+		<li><a href="{$path}/Search/Results?lookfor=&type=Keyword&filter[]=time_since_added%3A%22Week%22&sort=days_since_added+asc%2Cyear+desc&filter[]=publishDate:[{$lastYear} TO *]">New This Week</a></li>
 	</ul>
 </div>
 
