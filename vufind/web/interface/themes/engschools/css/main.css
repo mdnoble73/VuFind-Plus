@@ -6327,10 +6327,8 @@ div#systemMessage {
   background: linear-gradient(to bottom, #222222, #111111 85%, #000000);
   border-bottom: 8px solid #004487;
   margin-bottom: 0px;
+  min-height: 110px;
 }
-/*#header-container .container{
-  height: 110px;
-}*/
 #header-logo {
   padding: 10px 10px 0 0;
 }

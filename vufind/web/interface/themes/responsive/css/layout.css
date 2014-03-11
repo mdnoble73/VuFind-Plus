@@ -58,10 +58,8 @@ div#systemMessage {
   background: linear-gradient(to bottom, #f2f2f2, #dddddd 85%, #e0e0e0);
   border-bottom: 8px solid #b7b7b7;
   margin-bottom: 0px;
+  min-height: 110px;
 }
-/*#header-container .container{
-  height: 110px;
-}*/
 #header-logo {
   padding: 10px 10px 0 0;
 }
