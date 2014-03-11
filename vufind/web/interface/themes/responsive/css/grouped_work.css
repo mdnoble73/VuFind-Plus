@@ -18,7 +18,7 @@ Home Page Variables
   color: #ffffff;
 }
 #side-bar .userreviewlink {
-  width: 165px;
+  width: 196px;
 }
 .userreviewlink:hover {
   background-color: #2897c6;
@@ -27,7 +27,7 @@ Home Page Variables
 .addtolistlink {
   background-color: #088ec6;
   color: #ffffff;
-  width: 168px;
+  width: 196px;
 }
 .addtolistlink:hover {
   background-color: #2897c6;
@@ -44,6 +44,9 @@ Home Page Variables
 }
 .rating-graph .row {
   margin-top: 2px;
+}
+.title-rating {
+  margin-top: 4px;
 }
 .share-tools {
   background-color: #e6e6e6;
@@ -64,7 +67,7 @@ Home Page Variables
 }
 #side-bar .share-tools {
   margin-top: 8px;
-  width: 165px;
+  width: 200px;
 }
 /** More Like this formatting */
 #more-details-accordion .panel-group .panel + .panel {

@@ -229,15 +229,10 @@ class UInterface extends Smarty
 	{
 		//Marmot override, add the name of the site to the title unless we are using the mobile interface.
 		global $configArray;
-		global $owa;
-		$this->assign('shortPageTitle', translate($title));
-		if ($owa){
-			$owa->setPageTitle($title);
-		}
 		if ($this->isMobile){
 			$this->assign('pageTitle', translate($title));
 		}else{
-			$this->assign('pageTitle', $configArray['Site']['title'] . ' | ' . translate($title));
+			$this->assign('pageTitle', translate($title) . ' | ' . $configArray['Site']['title']);
 		}
 	}
 

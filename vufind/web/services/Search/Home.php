@@ -32,7 +32,7 @@ class Home extends Action {
 		global $user;
 
 		// Include Search Engine Class
-		require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
+		require_once ROOT_DIR . "/sys/{$configArray['Index']['engine']}.php";
 		$timer->logTime('Include search engine');
 
 		$interface->assign('showBreadcrumbs', 0);
@@ -57,7 +57,7 @@ class Home extends Action {
 			$widgetsToShow = $library->homePageWidgetId;
 			$showWidgets = true;
 		}
-		if ($showWidgets){
+		if ($showWidgets && isset($widgetsToShow)){
 			$widgetIds = explode(",", $widgetsToShow);
 			$widgets = array();
 			foreach ($widgetIds as $widgetId){
@@ -96,7 +96,8 @@ class Home extends Action {
 					$browseCategories[] = clone($browseCategory);
 				}
 			}
-		}elseif (isset($library)){
+		}
+		if (isset($library) && count($browseCategories) == 0){
 			$localBrowseCategories = $library->browseCategories;
 			foreach ($localBrowseCategories as $localBrowseCategory){
 				$browseCategory = new BrowseCategory();

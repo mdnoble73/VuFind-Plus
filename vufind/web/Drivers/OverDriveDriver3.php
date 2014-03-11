@@ -194,7 +194,11 @@ class OverDriveDriver3 {
 					//"Host: integration-patron.api.overdrive.com" // testing
 				);
 			}else{
-				print_r($tokenData);
+				//The user is not valid
+				if ($configArray['Site']['debug']){
+					print_r($tokenData);
+				}
+				return false;
 			}
 
 			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);

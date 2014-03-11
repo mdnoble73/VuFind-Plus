@@ -1332,6 +1332,8 @@ class MarcRecord extends IndexRecord
 		// Nothing worked!
 		if (count($result) == 0) {
 			$result[] =  "Unknown";
+		}else{
+			$result = array_unique($result);
 		}
 
 		return $result;
@@ -1739,6 +1741,12 @@ class MarcRecord extends IndexRecord
 			'body' => '<div id="holdingsPlaceholder"></div>',
 			'openByDefault' => true
 		);
+		//Other editions if applicable
+		/*$moreDetailsOptions['Other Editions'] = array(
+				'label' => 'Other Editions',
+				'body' => $interface->fetch('GroupedWork/relatedManifestations.tpl'),
+				'hideByDefault' => false
+		);*/
 		$moreDetailsOptions['tableOfContents'] = array(
 			'label' => 'Table of Contents',
 			'body' => $interface->fetch('GroupedWork/tableOfContents.tpl'),

@@ -18,8 +18,9 @@
 			 {translate text='query time'}: {$qtime}s
 		</span>
 		{if $replacementTerm}
-			<div id="replacement-search-info">
-				<span class="replacement-search-info-text">Showing Results for </span>{$replacementTerm}<span class="replacement-search-info-text">.  Search instead for <span class="replacement-search-info-text"><a href="{$oldSearchUrl}">{$oldTerm}</a>
+			<div id="replacement-search-info-block">
+				<div id="replacement-search-info"><span class="replacement-search-info-text">Showing Results for</span> {$replacementTerm}</div>
+				<div id="original-search-info"><span class="replacement-search-info-text">Search instead for </span><a href="{$oldSearchUrl}">{$oldTerm}</a></div>
 			</div>
 		{/if}
 

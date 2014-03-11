@@ -127,13 +127,26 @@ class GroupedWork_AJAX {
 		if (isset($record['format_category'])){
 			$cover .= "&category=" . $record['format_category'][0];
 		}
-		$title = $record['title'];
+		$title = preg_replace("/\s*(\/|:)\s*$/","", $record['title']);
 		if (isset($record['series']) && $record['series'] != null){
-			$title .= ' (' . $record['series'] ;
-			if (isset($record['volume'])){
-				$title .= ' Volume ' . $record['volume'];
+			if (is_array($record['series'])){
+				foreach($record['series'] as $series){
+					if (strcasecmp($series, 'none') !== 0){
+						break;
+					}else{
+						$series = '';
+					}
+				}
+			}else{
+				$series = $record['series'];
 			}
-			$title .= ')';
+			if ($series){
+				$title .= ' (' . $series ;
+				if (isset($record['volume'])){
+					$title .= ' Volume ' . $record['volume'];
+				}
+				$title .= ')';
+			}
 		}
 
 		if (isset($record['id'])){

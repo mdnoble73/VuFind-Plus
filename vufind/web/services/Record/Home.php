@@ -35,10 +35,7 @@ class Record_Home extends Record_Record{
 
 		$recordId = $this->id;
 
-		// Load Supplemental Information
-		Record_UserComments::loadComments($this->mergedRecords);
-		$timer->logTime('Loaded Comments');
-		Record_Cite::loadCitation();
+		$this->loadCitations();
 		$timer->logTime('Loaded Citations');
 
 		if (isset($_REQUEST['searchId'])){
@@ -48,90 +45,11 @@ class Record_Home extends Record_Record{
 			$interface->assign('searchId', $_SESSION['searchId']);
 		}
 
-		//Load the Editorial Reviews
-		//Populate an array of editorialReviewIds that match up with the recordId
-		$editorialReview = new EditorialReview();
-		$editorialReviewResults = array();
-		if (count($this->mergedRecords) > 0){
-			$allIds = $this->mergedRecords;
-			$allIds[] = $recordId;
-			$editorialReview->whereAddIn('recordId', $allIds, 'string');
-		}else{
-			$editorialReview->recordId = $recordId;
-		}
-		$editorialReview->find();
-		$editorialReviewResults['reviews'] = array(
-			'tabName' => 'Reviews',
-			'reviews' => array()
-		);
-		if ($editorialReview->N > 0){
-			$ctr = 0;
-			while ($editorialReview->fetch()){
-				$reviewKey = preg_replace('/\W/', '_', strtolower($editorialReview->tabName));
-				if (!array_key_exists($reviewKey, $editorialReviewResults)){
-					$editorialReviewResults[$reviewKey] = array(
-						'tabName' => $editorialReview->tabName,
-						'reviews' => array()
-					);
-				}
-				$editorialReviewResults[$reviewKey]['reviews'][$ctr++] = get_object_vars($editorialReview);
-			}
-		}
-		$interface->assign('editorialReviews', $editorialReviewResults);
 		$interface->assign('recordId', $recordId);
-
-		//Enable and disable functionality based on library settings
-		global $library;
-		global $locationSingleton;
-		$location = $locationSingleton->getActiveLocation();
 
 		if (!isset($this->isbn)){
 			$interface->assign('showOtherEditionsPopup', false);
 		}
-
-		$resource = new Resource();
-		$resource->record_id = $this->id;
-		$resource->source = 'VuFind';
-		$solrId = $this->id;
-		//TODO: Restore other edition functionality
-		if ($resource->find(true) && false){
-			$otherEditions = OtherEditionHandler::getEditions($solrId, $resource->isbn , null, 10);
-			if (is_array($otherEditions)){
-				foreach ($otherEditions as $edition){
-					/** @var Resource $editionResource */
-					$editionResource = new Resource();
-					if (preg_match('/econtentRecord(\d+)/', $edition['id'], $matches)){
-						$editionResource->source = 'eContent';
-						$editionResource->record_id = trim($matches[1]);
-					}else{
-						$editionResource->record_id = $edition['id'];
-						$editionResource->source = 'VuFind';
-					}
-
-					if ($editionResource->find(true)){
-						if (isset($edition['language'])){
-							$editionResource->language = $edition['language'];
-						}
-						$editionResource->shortId = str_replace('.', '', $editionResource->record_id);
-
-						$editionResources[] = $editionResource;
-					}else{
-						$logger= new Logger();
-						$logger->log("Could not find resource {$editionResource->source} {$editionResource->record_id} - {$edition['id']}", PEAR_LOG_DEBUG);
-					}
-				}
-			}else{
-				$editionResources = null;
-			}
-		}else{
-			$otherEditions = null;
-			$editionResources = null;
-		}
-		$interface->assign('otherEditions', $otherEditions);
-		$interface->assign('editionResources', $editionResources);
-
-		$interface->assign('chiliFreshAccount', $configArray['Content']['chiliFreshAccount']);
-		$timer->logTime('Configure UI for library and location');
 
 		$interface->assign('moreDetailsOptions', $this->recordDriver->getMoreDetailsOptions());
 
@@ -140,16 +58,7 @@ class Record_Home extends Record_Record{
 		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
 		$interface->setTemplate('view.tpl');
 
-		/** @var File_MARC_Data_Field $titleField */
-		$titleField = $this->marcRecord->getField('245');
-		if ($titleField){
-			if ($titleField->getSubfield('a')){
-				$mainTitle = $titleField->getSubfield('a')->getData();
-			}else{
-				$mainTitle = 'Title not available';
-			}
-			$interface->setPageTitle($mainTitle);
-		}
+		$interface->setPageTitle($this->recordDriver->getTitle());
 
 		// Display Page
 		$interface->display('layout.tpl');
@@ -189,4 +98,16 @@ class Record_Home extends Record_Record{
 		return $enrichment;
 	}
 
+	function loadCitations(){
+		global $interface;
+
+		$citationCount = 0;
+		$formats = $this->recordDriver->getCitationFormats();
+		foreach($formats as $current) {
+			$interface->assign(strtolower($current),
+					$this->recordDriver->getCitation($current));
+			$citationCount++;
+		}
+		$interface->assign('citationCount', $citationCount);
+	}
 }

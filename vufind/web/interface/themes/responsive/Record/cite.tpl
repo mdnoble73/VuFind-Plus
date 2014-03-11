@@ -46,10 +46,9 @@
 		{/if}
 
 	</div>
-	<div class="alert">
-		<h5>Warning</h5>
-		<p>{translate text="Citation formats are based on standards as of July 2010.  Citations contain only title, author, edition, publisher, and year published."}</p>
-		<p>{translate text="Citations should be used as a guideline and should be double checked for accuracy."}</p>
+	<div class="alert alert-warning">
+		<strong>Warning! </strong>
+		Citation formats are based on standards as of July 2010.  Citations contain only title, author, edition, publisher, and year published. Citations should be used as a guideline and should be double checked for accuracy.
 	</div>
 {/if}
 {if $lightbox}

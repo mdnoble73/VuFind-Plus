@@ -7028,8 +7028,16 @@ div#systemMessage {
   font-size: smaller;
   color: #0d8ec6;
 }
+#replacement-search-info {
+  font-size: 16px;
+  font-style: italic;
+}
+#original-search-info {
+  font-size: 12px;
+}
 .replacement-search-info-text {
   color: #888888;
+  font-style: normal;
 }
 .result-title {
   font-weight: bold;
@@ -7119,7 +7127,7 @@ div#systemMessage {
   color: #ffffff;
 }
 #side-bar .userreviewlink {
-  width: 165px;
+  width: 196px;
 }
 .userreviewlink:hover {
   background-color: #2897c6;
@@ -7128,7 +7136,7 @@ div#systemMessage {
 .addtolistlink {
   background-color: #088ec6;
   color: #ffffff;
-  width: 168px;
+  width: 196px;
 }
 .addtolistlink:hover {
   background-color: #2897c6;
@@ -7145,6 +7153,9 @@ div#systemMessage {
 }
 .rating-graph .row {
   margin-top: 2px;
+}
+.title-rating {
+  margin-top: 4px;
 }
 .share-tools {
   background-color: #e6e6e6;
@@ -7165,7 +7176,7 @@ div#systemMessage {
 }
 #side-bar .share-tools {
   margin-top: 8px;
-  width: 165px;
+  width: 200px;
 }
 /** More Like this formatting */
 #more-details-accordion .panel-group .panel + .panel {

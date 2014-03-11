@@ -72,7 +72,7 @@ public class GroupedWorkIndexer {
 
 		//Initialize the updateServer
 		try {
-			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped", 5000, 10);
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 5000, 10);
 		} catch (MalformedURLException e) {
 			logger.error("Could not create update server for solr", e);
 		}
@@ -142,6 +142,8 @@ public class GroupedWorkIndexer {
 	public void finishIndexing(){
 		try {
 			updateServer.commit(true, true);
+			//Optimize to trigger replication
+			updateServer.optimize();
 			updateServer.shutdown();
 		} catch (Exception e) {
 			logger.error("Error calling final commit", e);
