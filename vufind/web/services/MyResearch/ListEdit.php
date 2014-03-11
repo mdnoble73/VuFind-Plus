@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . '/Action.php';
 
-require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
+require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class ListEdit extends Action
@@ -91,7 +91,7 @@ class ListEdit extends Action
 			if (strlen(trim($_REQUEST['title'])) == 0) {
 				return new PEAR_Error('list_edit_name_required');
 			}
-			$list = new User_list();
+			$list = new UserList();
 			$list->title = $_REQUEST['title'];
 			$list->description = $_REQUEST['desc'];
 			$list->public = $_REQUEST['public'];

@@ -1786,7 +1786,7 @@ class MillenniumDriver implements DriverInterface
 	 * @return array - an array of results including the names of the lists that were imported as well as number of titles.
 	 */
 	function importListsFromIls(){
-		require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 		global $user;
 		$results = array(
 			'totalTitles' => 0,
@@ -1808,7 +1808,7 @@ class MillenniumDriver implements DriverInterface
 				$description = str_replace('&nbsp;', '', $listDetails[$listIndex][3]);
 
 				//Create the list (or find one that already exists)
-				$newList = new User_list();
+				$newList = new UserList();
 				$newList->user_id = $user->id;
 				$newList->title = $title;
 				if (!$newList->find(true)){

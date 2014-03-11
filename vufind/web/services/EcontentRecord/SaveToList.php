@@ -119,7 +119,7 @@ class SaveToList extends Action
 	function saveRecord()
 	{
 		if ($this->user) {
-			$list = new User_list();
+			$list = new UserList();
 			if ($_GET['list'] != '') {
 				$list->id = $_GET['list'];
 			} else {

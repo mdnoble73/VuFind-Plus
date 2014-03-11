@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Suggestions.php';
 
 require_once ROOT_DIR . '/services/MyResearch/lib/User_resource.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
+require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 
 class AJAX extends Action {
 

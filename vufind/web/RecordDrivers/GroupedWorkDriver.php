@@ -126,7 +126,7 @@ class GroupedWorkDriver implements RecordInterface{
 	 * @return  string              Text for inclusion in email.
 	 */
 	public function getEmail() {
-		// TODO: Implement getEmail() method.
+		// TODO: Remove getEmail() method.
 	}
 
 	/**
@@ -207,7 +207,83 @@ class GroupedWorkDriver implements RecordInterface{
 	 * @return  string              Name of Smarty template file to display.
 	 */
 	public function getListEntry($user, $listId = null, $allowEdit = true) {
-		// TODO: Implement getListEntry() method.
+		global $configArray;
+		global $interface;
+		global $timer;
+
+		$id = $this->getUniqueID();
+		$timer->logTime("Starting to load search result for grouped work $id");
+		$interface->assign('summId', $id);
+		if (substr($id, 0, 1) == '.'){
+			$interface->assign('summShortId', substr($id, 1));
+		}else{
+			$interface->assign('summShortId', $id);
+		}
+
+		//Build the link URL.
+		//If there is only one record for the work we will link straight to that.
+		$relatedRecords = $this->getRelatedRecords();
+		if (count($relatedRecords) == 1){
+			$firstRecord = reset($relatedRecords);
+			/** @var IndexRecord|OverDriveRecordDriver|BaseEContentDriver $driver */
+			$driver = $firstRecord['driver'];
+			$linkUrl = $driver->getLinkUrl();
+		}else{
+			$linkUrl = $this->getLinkUrl() . '?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+
+		}
+
+		$interface->assign('summUrl', $linkUrl);
+		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('summSubTitle', $this->getSubtitle());
+		$interface->assign('summAuthor', $this->getPrimaryAuthor());
+		$isbn = $this->getCleanISBN();
+		$interface->assign('summISBN', $isbn);
+		$interface->assign('summFormats', $this->getFormats());
+
+		$interface->assign('numRelatedRecords', $this->getNumRelatedRecords());
+
+		if ($configArray['System']['debugSolr']){
+			$interface->assign('summScore', $this->getScore());
+			$interface->assign('summExplain', $this->getExplain());
+		}
+
+		//Get Rating
+		$interface->assign('summRating', $this->getRatingData());
+
+		//Description
+		$interface->assign('summDescription', $this->getDescriptionFast());
+		$timer->logTime('Finished Loading Description');
+		$interface->assign('summSeries', $this->getSeries());
+		$timer->logTime('Finished Loading Series');
+
+		//Get information from list entry
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+		$listEntry = new UserListEntry();
+		$listEntry->groupedWorkPermanentId = $this->getUniqueID();
+		$listEntry->listId = $listId;
+		if ($listEntry->find(true)){
+			$interface->assign('listEntryNotes', $listEntry->notes);
+		}
+
+		$interface->assign('listEditAllowed', $allowEdit);
+
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+
+		// By default, do not display AJAX status; we won't assume that all
+		// records exist in the ILS.  Child classes can override this setting
+		// to turn on AJAX as needed:
+		$interface->assign('summAjaxStatus', false);
+
+		$interface->assign('recordDriver', $this);
+
+		return 'RecordDrivers/GroupedWork/listentry.tpl';
+	}
+
+	public function getLinkUrl(){
+		global $configArray;
+		return $configArray['Site']['url'] . '/GroupedWork/' . $this->getPermanentId() . '/Home';
 	}
 
 	/**

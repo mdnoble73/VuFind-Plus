@@ -42,7 +42,7 @@ class MyLists extends Action
 		global $logger;
 
 		//Get all lists for the user
-		$tmpList = new User_list();
+		$tmpList = new UserList();
 		$tmpList->user_id = $user->id;
 		$tmpList->orderBy("title ASC");
 		$tmpList->find();
@@ -58,18 +58,18 @@ class MyLists extends Action
 
 		// Fetch List object
 		if (isset($_GET['id'])){
-			$list = User_list::staticGet($_GET['id']);
+			$list = UserList::staticGet($_GET['id']);
 		}else{
 			//Use the first list.
 			$firstListId = reset(array_keys($allLists));
 			$logger->log("No list set, first list is $firstListId", PEAR_LOG_INFO);
 			if (!isset($firstListId) || $firstListId == -1){
-				$list = new User_list();
+				$list = new UserList();
 				$list->user_id = $user->id;
 				$list->public = false;
 				$list->title = "My Favorites";
 			}else{
-				$list = User_list::staticGet($firstListId);
+				$list = UserList::staticGet($firstListId);
 			}
 		}
 

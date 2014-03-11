@@ -152,7 +152,7 @@ class Delete extends MyResearch
 			$listID = isset($_GET['id'])?$_GET['id']:false;
 			if ($listID) {
 				// Fetch List object
-				$list = User_list::staticGet($listID);
+				$list = UserList::staticGet($listID);
 				// Send list to template so title/description can be displayed:
 				$interface->assign('list', $list);
 			}
@@ -192,7 +192,7 @@ class Delete extends MyResearch
 			$listID = isset($_POST['listID'])?$_POST['listID']:false;
 			if ($listID) {
 				// Fetch List object
-				$list = User_list::staticGet($listID);
+				$list = UserList::staticGet($listID);
 				// Send list to template so title/description can be displayed:
 				$interface->assign('list', $list);
 			}
@@ -231,7 +231,7 @@ class Delete extends MyResearch
 		global $user;
 
 		if ($listID && $listID != "") {
-			$list = User_list::staticGet($listID);
+			$list = UserList::staticGet($listID);
 			if ($user->id == $list->user_id) {
 				$result = $list->removeResourcesById($ids);
 			}

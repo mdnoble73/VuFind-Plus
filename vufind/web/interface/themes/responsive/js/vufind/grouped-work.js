@@ -150,13 +150,35 @@ VuFind.GroupedWork = (function(){
 			return false;
 		},
 
-		sendSMS: function(id){
+		saveToList: function(id){
 			if (Globals.loggedIn){
-				var phoneNumber = $('#sms_phone_number').val();
-				var provider = $('#provider').val();
+				var listId = $('#addToList-list').val();
+				var notes = $('#addToList-notes').val();
 
 				var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
-				var params = "method=sendSMS&sms_phone_number=" + encodeURIComponent(phoneNumber) + "&provider=" + encodeURIComponent(provider);
+				var params = "method=saveToList&notes=" + encodeURIComponent(notes) + "&listId=" + encodeURIComponent(listId);
+				$.getJSON(url + '?' + params,
+						function(data) {
+							if (data.result) {
+								VuFind.showMessage("Added Successfully", data.message);
+							} else {
+								VuFind.showMessage("Error", data.message);
+							}
+						}
+				);
+			}
+			return false;
+		},
+
+		sendEmail: function(id){
+			if (Globals.loggedIn){
+				var from = $('#from').val();
+				var to = $('#to').val();
+				var message = $('#message').val();
+				var related_record = $('#related_record').val();
+
+				var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
+				var params = "method=sendEmail&from=" + encodeURIComponent(from) + "&to=" + encodeURIComponent(to) + "&message=" + encodeURIComponent(message) + "&related_record=" + encodeURIComponent(related_record);
 				$.getJSON(url + '?' + params,
 						function(data) {
 							if (data.result) {
@@ -166,6 +188,47 @@ VuFind.GroupedWork = (function(){
 							}
 						}
 				);
+			}
+			return false;
+		},
+
+		sendSMS: function(id){
+			if (Globals.loggedIn){
+				var phoneNumber = $('#sms_phone_number').val();
+				var provider = $('#provider').val();
+				var related_record = $('#related_record').val();
+
+				var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
+				var params = "method=sendSMS&sms_phone_number=" + encodeURIComponent(phoneNumber) + "&provider=" + encodeURIComponent(provider) + "&related_record=" + encodeURIComponent(related_record);
+				$.getJSON(url + '?' + params,
+						function(data) {
+							if (data.result) {
+								VuFind.showMessage("Success", data.message);
+							} else {
+								VuFind.showMessage("Error", data.message);
+							}
+						}
+				);
+			}
+			return false;
+		},
+
+		showEmailForm: function(trigger, id){
+			var $trigger = $(trigger);
+			if (Globals.loggedIn){
+				var modalDialog = $("#modalDialog");
+				//$(".modal-body").html($('#userreview' + id).html());
+				$.getJSON(Globals.path + "/GroupedWork/" + id + "/AJAX?method=getEmailForm", function(data){
+					$('#myModalLabel').html(data.title);
+					$('.modal-body').html(data.modalBody);
+					$('.modal-buttons').html(data.modalButtons);
+				});
+				modalDialog.load( );
+				modalDialog.modal('show');
+			}else{
+				VuFind.Account.ajaxLogin($trigger, function (){
+					return VuFind.GroupedWork.showEmailForm(trigger, id);
+				}, false);
 			}
 			return false;
 		},
@@ -204,16 +267,18 @@ VuFind.GroupedWork = (function(){
 
 		showSaveToListForm: function (trigger, id){
 			if (Globals.loggedIn){
-				var url = Globals.path + "/GroupedWork/Save?lightbox=true&id=" + id + "&source=" + source;
-				var $trigger = $(trigger);
-				$("#modal-title").text($trigger.attr("title"));
 				var modalDialog = $("#modalDialog");
-				modalDialog.load(url);
+				$.getJSON(Globals.path + "/GroupedWork/" + id + "/AJAX?method=getSaveToListForm", function(data){
+					$('#myModalLabel').html(data.title);
+					$('.modal-body').html(data.modalBody);
+					$('.modal-buttons').html(data.modalButtons);
+				});
+				modalDialog.load( );
 				modalDialog.modal('show');
 			}else{
 				trigger = $(trigger);
 				VuFind.Account.ajaxLogin(trigger, function (){
-					VuFind.Record.getSaveToListForm(trigger, id, source);
+					VuFind.GroupeWork.showSaveToListForm(trigger, id, source);
 				});
 			}
 			return false;

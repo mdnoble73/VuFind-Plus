@@ -56,18 +56,7 @@ class FavoriteHandler
 		$this->allowEdit = $allowEdit;
 
 		// Process the IDs found in the favorites (sort by source):
-		if (is_array($favorites)) {
-			foreach($favorites as $current) {
-				$id = $current->record_id;
-				if (!empty($id)) {
-					$source = strtolower($current->source);
-					if (!isset($this->ids[$source])) {
-						$this->ids[$source] = array();
-					}
-					$this->ids[$source][] = $id;
-				}
-			}
-		}
+		$this->ids = $favorites;
 	}
 
 	/**
@@ -96,45 +85,21 @@ class FavoriteHandler
 			'perPage' => $recordsPerPage
 		);
 		$this->favorites = array_slice($this->favorites, $startRecord -1, $recordsPerPage);
+		// Initialize from the current search globals
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$searchObject->init();
+		$interface->assign('sortList', $searchObject->getSortList());
+
 		// Initialise from the current search globals
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 		$interface->assign('sortList', $searchObject->getSortList());
 
-		$resourceList = array();
-		if (is_array($this->favorites)) {
-			foreach($this->favorites as $currentResource) {
-				$interface->assign('resource', $currentResource);
-				$resourceEntry = $interface->fetch('RecordDrivers/Resource/listentry.tpl');
-				$resourceList[] = $resourceEntry;
-			}
-		}
-		$interface->assign('resourceList', $resourceList);
-
-		// Initialise from the current search globals
-		$searchObject = SearchObjectFactory::initSearchObject();
-		/*$searchObject->init();
-		$interface->assign('sortList', $searchObject->getSortList());
-
 		// Retrieve records from index (currently, only Solr IDs supported):
-		$vuFindList = array();
-		if (array_key_exists('vufind', $this->ids) && count($this->ids['vufind']) > 0) {
-			$searchObject->setQueryIDs($this->ids['vufind']);
-			$result = $searchObject->processSearch();
-			$vuFindList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
-		}
-		$eContentList = array();
-		if (array_key_exists('econtent', $this->ids) && count($this->ids['econtent']) > 0) {
-			$eContentIds = array();
-			foreach ($this->ids['econtent'] as $eContentId){
-				$eContentIds[] = 'econtentRecord' . $eContentId;
-			}
-			$searchObject->setQueryIDs($eContentIds);
-			$result = $searchObject->processSearch();
-			$eContentList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
-		}
-		$resourceList = array_merge($vuFindList, $eContentList);
-		$interface->assign('resourceList', $resourceList);*/
+		$searchObject->setQueryIDs($this->favorites);
+		$result = $searchObject->processSearch();
+		$resourceList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
+		$interface->assign('resourceList', $resourceList);
 
 		// Set up paging of list contents:
 		$interface->assign('recordCount', $pageInfo['resultTotal']);

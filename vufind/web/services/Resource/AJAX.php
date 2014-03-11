@@ -47,7 +47,7 @@ class Resource_AJAX extends Action {
 	function SaveRecord()
 	{
 		require_once ROOT_DIR . '/services/Resource/Save.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 
 		$result = array();
 		if (UserAccount::isLoggedIn()) {

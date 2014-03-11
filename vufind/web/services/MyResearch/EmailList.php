@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/sys/Mailer.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
+require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
 
 class EmailList extends Action {
@@ -53,7 +53,7 @@ class EmailList extends Action {
 		global $user;
 
 		//Load the list
-		$list = new User_list();
+		$list = new UserList();
 		$list->id = $_REQUEST['listId'];
 		if ($list->find(true)){
 			// Build Favorites List

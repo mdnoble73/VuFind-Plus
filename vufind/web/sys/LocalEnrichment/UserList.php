@@ -4,7 +4,7 @@
  */
 require_once 'DB/DataObject.php';
 
-class User_list extends SolrDataObject
+class UserList extends SolrDataObject
 {
 	###START_AUTOCODE
 	/* the code below is auto generated do not remove the above tag */
@@ -18,7 +18,7 @@ class User_list extends SolrDataObject
 	public $public;													// int(11)	not_null
 
 	/* Static get */
-	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('User_list',$k,$v); }
+	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('UserList',$k,$v); }
 
 	/* the code above is auto generated do not remove the tag below */
 	###END_AUTOCODE
@@ -285,6 +285,13 @@ class User_list extends SolrDataObject
 	function num_holdings(){
 		return count($this->getResources());
 	}
+	function insert(){
+		if ($this->public == 0){
+			parent::insertDetailed(false);
+		}else{
+			parent::insertDetailed(true);
+		}
+	}
 	function update(){
 		if ($this->public == 0){
 			parent::updateDetailed(false);
@@ -301,6 +308,18 @@ class User_list extends SolrDataObject
 	}
 
 	private $resourceList = null;
+
+	function getListEntries(){
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+		$listEntry = new UserListEntry();
+		$listEntry->listId = $this->id;
+		$listEntries = array();
+		$listEntry->find();
+		while ($listEntry->fetch()){
+			$listEntries[] = $listEntry->groupedWorkPermanentId;
+		}
+		return $listEntries;
+	}
 
 	/**
 	 * @param String[]|null $tags
@@ -441,7 +460,6 @@ class User_list extends SolrDataObject
 	function removeResource($resource)
 	{
 		// Remove the Saved Resource
-		require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
 		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 		$join = new User_resource();
 		$join->user_id = $this->user_id;

@@ -78,7 +78,7 @@ class EditList extends Action
 		}
 
 		// Fetch List object
-		$list = User_list::staticGet($_GET['id']);
+		$list = UserList::staticGet($_GET['id']);
 
 		// Ensure user have privs to view the list
 		if ($list->user_id != $user->id) {

@@ -19,7 +19,7 @@
  */
 
 require_once ROOT_DIR . '/Action.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
+require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
 
 class CiteList extends Action {
@@ -32,7 +32,7 @@ class CiteList extends Action {
 
 		// Fetch List object
 		if (isset($_REQUEST['id'])){
-			$list = User_list::staticGet($_GET['listId']);
+			$list = UserList::staticGet($_GET['listId']);
 		}
 		$interface->assign('favList', $list);
 

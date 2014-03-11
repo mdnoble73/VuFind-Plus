@@ -82,7 +82,7 @@ class JSON extends Action {
 
 		global $user;
 
-		$list = new User_list();
+		$list = new UserList();
 		if ($_GET['list'] != '') {
 			$list->id = $listId;
 			$list->find(true);

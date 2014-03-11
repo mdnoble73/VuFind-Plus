@@ -67,7 +67,7 @@ class User extends DB_DataObject
 
 	/**
 	 * @param Resource $resource
-	 * @param User_list $list
+	 * @param UserList $list
 	 * @param string[] $tagArray
 	 * @param string $notes
 	 * @param bool $updateSolr
@@ -212,6 +212,9 @@ class User extends DB_DataObject
 		return $savedList;
 	}
 
+	function getUserListsForWork($groupedWorkId){
+
+	}
 
 	function getTags($resourceId = null, $listId = null){
 		require_once 'Resource_tags.php';
@@ -242,7 +245,7 @@ class User extends DB_DataObject
 
 
 	function getLists() {
-		require_once 'User_list.php';
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 
 		$lists = array();
 
@@ -252,7 +255,7 @@ class User extends DB_DataObject
                "GROUP BY user_list.id, user_list.user_id, user_list.title, " .
                "user_list.description, user_list.created, user_list.public " .
                "ORDER BY user_list.title";
-		$list = new User_list();
+		$list = new UserList();
 		$list->query($sql);
 		if ($list->N) {
 			while ($list->fetch()) {

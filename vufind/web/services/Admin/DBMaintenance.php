@@ -2730,6 +2730,32 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'user_list_entry' => array(
+				'title' => 'User List Entry (Grouped Work)',
+				'description' => 'Add grouped works to lists rather than resources.',
+				'sql' => array(
+						"CREATE table user_list_entry (
+							id INT(11) NOT NULL AUTO_INCREMENT,
+							groupedWorkPermanentId VARCHAR(36),
+							listId INT(11),
+							notes mediumtext,
+							dateAdded INT(11),
+							weight INT(11),
+							INDEX(`groupedWorkPermanentId`),
+							INDEX(`listId`),
+							PRIMARY KEY(`id`)
+						) ENGINE = MYISAM",
+				),
+			),
+
+				'populate_lists_with_grouped_works' => array(
+						'title' => 'Populate Lists with Grouped Works',
+						'description' => 'Add grouped works to lists rather than resources.',
+						'sql' => array(
+								"populateListsWithGroupedWorks",
+						),
+				),
+
 			'populate_work_level_ratings' => array(
 				'title' => 'Populate Work Level Ratings',
 				'description' => 'Converts from old record level ratings to the new ratings based on work level',
@@ -2778,6 +2804,60 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 		);
+	}
+
+	public function populateListsWithGroupedWorks(){
+		set_time_limit(120);
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+		require_once ROOT_DIR . '/services/MyResearch/lib/User_resource.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+		require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+		$userResource = new User_resource();
+		$userResource->find();
+		while ($userResource->fetch()){
+			$userListEntry = new UserListEntry();
+			$userListEntry->listId = $userResource->list_id;
+			//Get the grouped work for resource
+			$resource = new Resource();
+			$resource->id = $userResource->resource_id;
+			if ($resource->find(true)){
+				//Get the identifier for the resource
+				if ($resource->source == 'VuFind'){
+					$primaryIdentifier = $resource->record_id;
+				}else{
+					$eContentRecord = new EContentRecord();
+					$eContentRecord->id = $resource->record_id;
+					if ($eContentRecord->find(true)){
+						if (!empty($eContentRecord->externalId)){
+							$primaryIdentifier = $eContentRecord->externalId;
+						}else{
+							$primaryIdentifier = $eContentRecord->ilsId;
+						}
+					}
+				}
+
+				if (isset($primaryIdentifier)){
+					$workIdentifier = new GroupedWorkPrimaryIdentifier();
+					$workIdentifier->identifier = $primaryIdentifier;
+					$workIdentifier->joinAdd(new GroupedWork());
+					$workIdentifier->selectAdd('permanent_id');
+					if ($workIdentifier->find(true)){
+						$userListEntry->groupedWorkPermanentId = $workIdentifier->permanent_id;
+						if (!$userListEntry->find()){
+							//This is a new list entry
+							$userListEntry->dateAdded = $userResource->saved;
+							$userListEntry->notes = $userResource->notes;
+							$userListEntry->weight = 0;
+							$userListEntry->insert();
+						}
+					}
+				}
+
+			}
+
+		}
+
 	}
 
 	public function populateWorkLevelRatings(){

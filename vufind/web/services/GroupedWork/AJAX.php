@@ -342,6 +342,200 @@ class GroupedWork_AJAX {
 		return json_encode($results);
 	}
 
+	function getEmailForm(){
+		global $interface;
+		require_once ROOT_DIR . '/sys/Mailer.php';
+
+		$sms = new SMSMailer();
+		$interface->assign('carriers', $sms->getCarriers());
+		$id = $_REQUEST['id'];
+		$interface->assign('id', $id);
+
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		$recordDriver = new GroupedWorkDriver($id);
+
+		$relatedRecords = $recordDriver->getRelatedRecords();
+		$interface->assign('relatedRecords', $relatedRecords);
+		$results = array(
+				'title' => 'Share via E-mail',
+				'modalBody' => $interface->fetch("GroupedWork/email-form-body.tpl"),
+				'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.GroupedWork.sendEmail(\"{$id}\"); return false;'>Send E-mail</span>"
+		);
+		return json_encode($results);
+	}
+
+	function sendEmail()
+	{
+		global $interface;
+		global $configArray;
+
+		$to = strip_tags($_REQUEST['to']);
+		$from = strip_tags($_REQUEST['from']);
+		$message = $_REQUEST['message'];
+
+		$id = $_REQUEST['id'];
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		$recordDriver = new GroupedWorkDriver($id);
+		$interface->assign('recordDriver', $recordDriver);
+
+		if (isset($_REQUEST['related_record'])){
+			$relatedRecord = $_REQUEST['related_record'];
+			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+			$recordDriver = new GroupedWorkDriver($id);
+
+			$relatedRecords = $recordDriver->getRelatedRecords();
+
+			foreach ($relatedRecords as $curRecord){
+				if ($curRecord['id'] = $relatedRecord){
+					if (isset($curRecord['callNumber'])){
+						$interface->assign('callnumber', $curRecord['callNumber']);
+					}
+					if (isset($curRecord['shelfLocation'])){
+						$interface->assign('shelfLocation', strip_tags($curRecord['shelfLocation']));
+					}
+				}
+			}
+		}
+
+		$subject = translate("Library Catalog Record") . ": " . $recordDriver->getTitle();
+		$interface->assign('from', $from);
+		$interface->assign('emailDetails', $recordDriver->getEmail());
+		$interface->assign('recordID', $recordDriver->getUniqueID());
+		if (strpos($message, 'http') === false && strpos($message, 'mailto') === false && $message == strip_tags($message)){
+			$interface->assign('message', $message);
+			$body = $interface->fetch('Emails/grouped-work-email.tpl');
+
+			require_once ROOT_DIR . '/sys/Mailer.php';
+			$mail = new VuFindMailer();
+			$emailResult = $mail->send($to, $configArray['Site']['email'], $subject, $body, $from);
+
+			if ($emailResult === true){
+				$result = array(
+						'result' => true,
+						'message' => 'Your e-mail was sent successfully.'
+				);
+			}elseif (PEAR_Singleton::isError($emailResult)){
+				$result = array(
+						'result' => false,
+						'message' => 'Your text message was count not be sent {$smsResult}.'
+				);
+			}else{
+				$result = array(
+						'result' => false,
+						'message' => 'Your text message could not be sent due to an unknown error.'
+				);
+			}
+		}else{
+			$result = array(
+					'result' => false,
+					'message' => 'Sorry, we can&apos;t send e-mails with html or other data in it.'
+			);
+		}
+		return json_encode($result);
+	}
+
+	function saveToList(){
+		$result = array();
+
+		global $user;
+		if ($user === false) {
+			$result['result'] = false;
+			$result['message'] = 'Please login before adding a title to list.';
+		}else{
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+			$result['result'] = true;
+			$id = $_REQUEST['id'];
+			$listId = $_REQUEST['listId'];
+			$notes = $_REQUEST['notes'];
+
+			//Check to see if we need to create a list
+			$userList = new UserList();
+			$listOk = true;
+			if (empty($listId)){
+				$userList->title = "My Favorites";
+				$userList->user_id = $user->id;
+				$userList->public = 0;
+				$userList->description = '';
+				$ret = $userList->insert();
+			}else{
+				$userList->id = $listId;
+				if (!$userList->find(true)){
+					$result['result'] = false;
+					$result['message'] = 'Sorry, we could not find that list in the system.';
+					$listOk = false;
+				}
+			}
+
+			if ($listOk){
+				$userListEntry = new UserListEntry();
+				$userListEntry->listId = $userList->id;
+				$userListEntry->groupedWorkPermanentId = $id;
+
+				$existingEntry = false;
+				if ($userListEntry->find(true)){
+					$existingEntry = true;
+				}
+				$userListEntry->notes = $notes;
+				$userListEntry->dateAdded = time();
+				if ($existingEntry){
+					$ret = $userListEntry->update();
+				}else{
+					$ret = $userListEntry->insert();
+				}
+			}
+
+			$result['result'] = true;
+			$result['message'] = 'This title was saved to your list successfully.';
+		}
+
+		return json_encode($result);
+	}
+
+	function getSaveToListForm(){
+		global $interface;
+		global $user;
+
+		$id = $_REQUEST['id'];
+
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+
+		//Get a list of all lists for the user
+		$containingLists = array();
+		$nonContainingLists = array();
+
+		$userLists = new UserList();
+		$userLists->user_id = $user->id;
+		$userLists->find();
+		while ($userLists->fetch()){
+			//Check to see if the user has already added the title to the list.
+			$userListEntry = new UserListEntry();
+			$userListEntry->listId = $userLists->id;
+			$userListEntry->groupedWorkPermanentId = $id;
+			if ($userListEntry->find(true)){
+				$containingLists[] = array(
+						'id' => $userLists->id,
+						'title' => $userLists->title
+				);
+			}else{
+				$nonContainingLists[] = array(
+						'id' => $userLists->id,
+						'title' => $userLists->title
+				);
+			}
+		}
+
+		$interface->assign('containingLists', $containingLists);
+		$interface->assign('nonContainingLists', $nonContainingLists);
+
+		$results = array(
+				'title' => 'Add To List',
+				'modalBody' => $interface->fetch("GroupedWork/save.tpl"),
+				'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveToList(\"{$id}\"); return false;'>Save To List</span>"
+		);
+		return json_encode($results);
+	}
+
 	function sendSMS(){
 		global $configArray;
 		global $interface;
@@ -386,7 +580,7 @@ class GroupedWork_AJAX {
 		}elseif (PEAR_Singleton::isError($smsResult)){
 			$result = array(
 					'result' => false,
-					'message' => 'Your text message was sent successfully.'
+					'message' => 'Your text message was count not be sent {$smsResult}.'
 			);
 		}else{
 			$result = array(

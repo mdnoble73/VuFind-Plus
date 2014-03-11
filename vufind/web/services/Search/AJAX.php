@@ -350,7 +350,7 @@ class AJAX extends Action {
 					// encode it so it can embed cleanly inside our XML response.
 					$json = array();
 					foreach ($data as $list) {
-						$listData = new User_list();
+						$listData = new UserList();
 						$listData->id = $list->list_id;
 						$link = '';
 						if ($listData->find(true)){

@@ -58,7 +58,7 @@ class Edit extends Action
 		// Loop through the list of lists on the edit screen:
 		foreach($_POST['lists'] as $listId) {
 			// Create a list object for the current list:
-			$list = new User_list();
+			$list = new UserList();
 			if ($listId != '') {
 				$list->id = $listId;
 				$list->find(true);

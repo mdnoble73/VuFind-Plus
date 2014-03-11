@@ -41,61 +41,19 @@ class MyList extends MyResearch {
 		global $interface;
 		global $user;
 
-		//Get all lists for the user
-		if ($user){
-			$tmpList = new User_list();
-			$tmpList->user_id = $user->id;
-			$tmpList->orderBy("title ASC");
-			$tmpList->find();
-			$allLists = array();
-			if ($tmpList->N > 0){
-				while ($tmpList->fetch()){
-					$allLists[$tmpList->id] = $tmpList->title;
-				}
-			}else{
-				$allList["-1"] = "My Favorites";
-			}
-			$interface->assign('allLists', $allLists);
-		}
-
-		//Figure out if we should show a link to classic opac to pay holds.
-		$ecommerceLink = $configArray['Site']['ecommerceLink'];
-		if ($user){
-			$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
-		}
-		if (strlen($ecommerceLink) > 0 && isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1){
-			$interface->assign('showEcommerceLink', true);
-			$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
-			if ($homeLibrary->payFinesLink == 'default' || strlen($homeLibrary->payFinesLink) == 0){
-				$interface->assign('ecommerceLink', $ecommerceLink);
-			}else{
-				$interface->assign('ecommerceLink', $homeLibrary->payFinesLink);
-			}
-			$interface->assign('payFinesLinkText', $homeLibrary->payFinesLinkText);
-		}else{
-			$interface->assign('showEcommerceLink', false);
-			$interface->assign('minimumFineAmount', 0);
-		}
-
 		// Fetch List object
-		if (isset($_GET['id'])){
-			$list = User_list::staticGet($_GET['id']);
-		}else{
-			//Use the first list.
-			if (isset($allLists)){
-				$firstListId = reset(array_keys($allLists));
-				if ($firstListId == false || $firstListId == -1){
-					$list = new User_list();
-					$list->user_id = $user->id;
-					$list->public = false;
-					$list->title = "My Favorites";
-				}else{
-					$list = User_list::staticGet($firstListId);
-				}
-			}
+		$listId = $_REQUEST['id'];
+		$list = new UserList();
+		$list->id = $listId;
+		if (!$list->find(true)){
+			//TODO: Use the first list?
+			$list = new UserList();
+			$list->user_id = $user->id;
+			$list->public = false;
+			$list->title = "My Favorites";
 		}
 
-		// Ensure user have privs to view the list
+		// Ensure user has privileges to view the list
 		if (!isset($list) || (!$list->public && !UserAccount::isLoggedIn())) {
 			require_once 'Login.php';
 			Login::launch();
@@ -191,7 +149,7 @@ class MyList extends MyResearch {
 		$interface->assign('listSelected', $list->id);
 
 		// Build Favorites List
-		$favorites = $list->getResources(isset($_GET['tag']) ? $_GET['tag'] : null);
+		$favorites = $list->getListEntries();
 
 		// Load the User object for the owner of the list (if necessary):
 		if ($user && ($user->id == $list->user_id)) {
@@ -212,36 +170,7 @@ class MyList extends MyResearch {
 		$favList = new FavoriteHandler($favorites, $listUser, $list->id, $userCanEdit);
 		$favList->assign();
 
-		//Need to add profile information from MyResearch to show profile data.
-		if ($user !== false){
-			global $configArray;
-			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
-			// Get My Profile
-			if ($this->catalog->status) {
-				if ($user->cat_username) {
-					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					if (PEAR_Singleton::isError($patron)){
-						PEAR_Singleton::raiseError($patron);
-					}
-
-					$result = $this->catalog->getMyProfile($patron);
-					if (!PEAR_Singleton::isError($result)) {
-						$interface->assign('profile', $result);
-					}
-				}
-			}
-
-			//Figure out if we should show a link to classic opac to pay holds.
-			$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
-			if (isset($homeLibrary) && $homeLibrary->showEcommerceLink == 1){
-				$interface->assign('showEcommerceLink', true);
-				$interface->assign('minimumFineAmount', $homeLibrary->minimumFineAmount);
-			}else{
-				$interface->assign('showEcommerceLink', false);
-				$interface->assign('minimumFineAmount', 0);
-			}
-		}
-
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('list.tpl');
 		$interface->display('layout.tpl');
 	}

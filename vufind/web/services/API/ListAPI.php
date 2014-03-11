@@ -21,7 +21,7 @@
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once ROOT_DIR . '/sys/Pager.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
+require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 require_once ROOT_DIR . '/sys/Utils/SwitchDatabase.php';
 require_once ROOT_DIR . '/sys/Utils/Pagination.php';
 
@@ -79,7 +79,7 @@ class ListAPI extends Action {
 	 * includes id, title, description, and number of titles
 	 */
 	function getPublicLists(){
-		$list = new User_list();
+		$list = new UserList();
 		$list->public = 1;
 		$list->find();
 		$results = array();
@@ -115,7 +115,7 @@ class ListAPI extends Action {
 
 		$userId = $user->id;
 
-		$list = new User_list();
+		$list = new UserList();
 		$list->user_id = $userId;
 		$list->find();
 		$results = array();
@@ -380,7 +380,7 @@ class ListAPI extends Action {
 	private function _getUserListTitles($listId){
 		global $user;
 		//The list is a patron generated list
-		$list = new User_list();
+		$list = new UserList();
 		$list->id = $listId;
 		if ($list->find(true)){
 			//Make sure the user has acess to the list
@@ -1217,7 +1217,7 @@ class ListAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$list = new User_list();
+			$list = new UserList();
 			$list->title = $_REQUEST['title'];
 			$list->description = isset($_REQUEST['description']) ? $_REQUEST['description'] : '';
 			$list->public = isset($_REQUEST['public']) ? (($_REQUEST['public'] == true || $_REQUEST['public'] == 1)? 1 : 0) : 0;
@@ -1284,7 +1284,7 @@ class ListAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$list = new User_list();
+			$list = new UserList();
 			$list->id = $_REQUEST['listId'];
 			$list->user_id = $user->id;
 			if (!$list->find(true)){
