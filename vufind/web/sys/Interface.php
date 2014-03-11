@@ -232,7 +232,7 @@ class UInterface extends Smarty
 		if ($this->isMobile){
 			$this->assign('pageTitle', translate($title));
 		}else{
-			$this->assign('pageTitle', translate($title) . ' | ' . $configArray['Site']['title']);
+			$this->assign('pageTitle', translate($title) . ' | ' . $this->get_template_vars('librarySystemName'));
 		}
 	}
 
