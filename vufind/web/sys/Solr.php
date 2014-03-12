@@ -344,7 +344,7 @@ class Solr implements IndexEngine {
 	 */
 	function getRecord($id)
 	{
-		if ($this->debug) {
+		if ($this->debugSolrQuery) {
 			echo "<pre>Get Record: $id</pre>\n";
 		}
 		/** @var Memcache $memCache */

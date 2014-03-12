@@ -2698,6 +2698,15 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'grouped_work_identifiers_ref_indexing' => array(
+				'title' => 'Grouped Work Identifiers Ref Indexing',
+				'description' =>'Add indexing to identifiers re.',
+				'sql' => array(
+						"ALTER TABLE grouped_work_identifiers_ref ADD INDEX(identifier_id)",
+						"ALTER TABLE grouped_work_identifiers_ref ADD INDEX(grouped_work_id)",
+				),
+			),
+
 			'ils_marc_checksums' => array(
 				'title' => 'ILS MARC Checksums',
 				'description' =>'Add a table to store checksums of MARC records stored in the ILS so we can determine if the record needs to be updated during grouping.',

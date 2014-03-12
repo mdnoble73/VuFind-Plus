@@ -712,36 +712,36 @@ class Novelist3{
 
 	private function loadNoveListTitle($currentId, $item, &$titleList, &$titlesOwned, $seriesName = ''){
 		global $user;
+		global $timer;
 
 		//Find the correct grouped work based on the isbns;
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifier.php';
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifierRef.php';
 
+		$timer->logTime("Start loadNoveListTitle");
 		/** @var SimpleXMLElement $titleItem */
 		$permanentId = null;
-		foreach($item->isbns as $isbn){
-			if (strlen($isbn) == 10 || strlen($isbn) == 13){
-				$groupedWorkIdentifier = new GroupedWorkIdentifier();
-				$groupedWorkIdentifier->type = "isbn";
-				$groupedWorkIdentifier->identifier = $isbn;
-				if ($groupedWorkIdentifier->find(true)){
-					$groupedWorkIdentifierRef = new GroupedWorkIdentifierRef();
-					$groupedWorkIdentifierRef->identifier_id = $groupedWorkIdentifier->id;
-					$groupedWorkIdentifierRef->find();
-					if ($groupedWorkIdentifierRef->N == 1){
-						$groupedWorkIdentifierRef->fetch();
-						$groupedWork = new GroupedWork();
-						$groupedWork->id = $groupedWorkIdentifierRef->grouped_work_id;
-						if ($groupedWork->find(true)){
-							$permanentId = $groupedWork->permanent_id;
-							break;
-						}
+		$concatenatedIsbns = "'" . implode("','",$item->isbns) . "'";
+		$groupedWorkIdentifier = new GroupedWorkIdentifier();
+		$groupedWorkIdentifier->type = "isbn";
+		$groupedWorkIdentifier->whereAdd("identifier in ($concatenatedIsbns)");
+		if ($groupedWorkIdentifier->find()){
+			while ($groupedWorkIdentifier->fetch()){
+				$groupedWorkIdentifierRef = new GroupedWorkIdentifierRef();
+				$groupedWorkIdentifierRef->identifier_id = $groupedWorkIdentifier->id;
+				$groupedWorkIdentifierRef->find();
+				if ($groupedWorkIdentifierRef->N == 1){
+					$groupedWorkIdentifierRef->fetch();
+					$groupedWork = new GroupedWork();
+					$groupedWork->id = $groupedWorkIdentifierRef->grouped_work_id;
+					if ($groupedWork->find(true)){
+						$permanentId = $groupedWork->permanent_id;
 					}
-
 				}
 			}
 		}
+		$timer->logTime("Find Grouped Work based on identifier");
 		$isCurrent = $currentId == $permanentId;
 		if (isset($seriesName)){
 			$series = $seriesName;
@@ -779,6 +779,7 @@ class Novelist3{
 			disableErrorHandler();
 			$ownedRecord = $searchObj->getRecord($permanentId);
 			enableErrorHandler();
+			$timer->logTime("Find grouped work in solr");
 
 			if ($ownedRecord != null){
 				if (strpos($ownedRecord['isbn'][0], ' ') > 0){
@@ -794,32 +795,18 @@ class Novelist3{
 						$series = $ownedRecord['series'][0];
 					}
 				}
-				//Load rating data
-				if ($ownedRecord['recordtype'] == 'marc'){
-					$resource = new Resource();
-					$resource->source = 'VuFind';
-					$resource->record_id = $ownedRecord['id'];
-					$resource->find(true);
-					$ratingData = $resource->getRatingData($user);
-					$fullRecordLink = '/Record/' . $ownedRecord['id'] . '/Home';
-				}elseif ($ownedRecord['recordtype'] == 'grouped_work'){
-					$recordDriver = RecordDriverFactory::initRecordDriver($ownedRecord);
-					$ratingData = $recordDriver->getRatingData($user);
-					$fullRecordLink = '/GroupedWork/' . $ownedRecord['id'] . '/Home';
-				}else{
-					require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
-					$shortId = str_replace('econtentRecord', '', $ownedRecord['id']);
-					$econtentRating = new EContentRating();
-					$econtentRating->recordId = $shortId;
-					$ratingData = $econtentRating->getRatingData($user, false);
-					$fullRecordLink = '/EcontentRecord/' . $shortId . '/Home';
-				}
-
+				//Load data about the record
+				/** @var GroupedWorkDriver $recordDriver */
+				$recordDriver = RecordDriverFactory::initRecordDriver($ownedRecord);
+				$timer->logTime("Create record driver");
+				$ratingData = $recordDriver->getRatingData($user);
+				$timer->logTime("Get Rating data");
+				$fullRecordLink = $recordDriver->getLinkUrl();
 
 				//See if we can get the series title from the record
 				$curTitle = array(
-					'title' => $ownedRecord['title'],
-					'title_short' => isset($ownedRecord['title_short']) ? $ownedRecord['title_short'] : $ownedRecord['title'],
+					'title' => $recordDriver->getTitle(),
+					'title_short' => $recordDriver->getTitle(),
 					'author' => isset($ownedRecord['author']) ? $ownedRecord['author'] : '',
 					//'publicationDate' => (string)$item->PublicationDate,
 					'isbn' => $isbn13,
@@ -831,7 +818,7 @@ class Novelist3{
 					'libraryOwned' => true,
 					'isCurrent' => $isCurrent,
 					'shortId' => substr($ownedRecord['id'], 1),
-					'format_category' => isset($ownedRecord['grouping_category']) ? $ownedRecord['grouping_category'] : '',
+					'format_category' => $recordDriver->getFormatCategory(),
 					'series' => $series,
 					'volume' => $volume,
 					'ratingData' => $ratingData,
@@ -839,6 +826,7 @@ class Novelist3{
 					'reason' => isset($item->reason) ? $item->reason : '',
 					'recordDriver' => $recordDriver,
 				);
+				$timer->logTime("Load title information");
 				$titlesOwned++;
 			}else{
 				$isbn = reset($item->isbns);

@@ -125,7 +125,11 @@ class GroupedWork_AJAX {
 			$cover .= "&issn=" . $record['issn'];
 		}
 		if (isset($record['format_category'])){
-			$cover .= "&category=" . $record['format_category'][0];
+			if (is_array($record['format_category'])){
+				$cover .= "&category=" . $record['format_category'][0];
+			}else{
+				$cover .= "&category=" . $record['format_category'];
+			}
 		}
 		$title = preg_replace("/\s*(\/|:)\s*$/","", $record['title']);
 		if (isset($record['series']) && $record['series'] != null){

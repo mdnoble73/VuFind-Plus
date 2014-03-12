@@ -984,6 +984,17 @@ class GroupedWorkDriver implements RecordInterface{
 		}
 	}
 
+	public function getFormatCategory(){
+		if (isset($this->fields['format_category'])){
+			if (is_array($this->fields['format_category'])){
+				return reset($this->fields['format_category']);
+			}else{
+				return $this->fields['format_category'];
+			}
+		}
+		return "";
+	}
+
 	public function loadEnrichment() {
 		$isbn = $this->getCleanISBN();
 		$enrichment = array();
