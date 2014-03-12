@@ -33,7 +33,7 @@ class AJAX extends Action {
 	function launch()
 	{
 		$method = $_GET['method'];
-		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset'))){
+		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset', 'getCreateListForm'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -97,26 +97,72 @@ class AJAX extends Action {
 	// Create new list
 	function AddList()
 	{
-		require_once ROOT_DIR . '/services/MyResearch/ListEdit.php';
+		global $user;
 		$return = array();
-		if (UserAccount::isLoggedIn()) {
-			$listService = new ListEdit();
-			$result = $listService->addList();
-			if (!PEAR_Singleton::isError($result)) {
-				$return['result'] = 'Done';
-				$return['newId'] = $result;
-			} else {
-				$error = $result->getMessage();
-				if (empty($error)) {
-					$error = 'Error';
+		if ($user) {
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+			$title = isset($_REQUEST['title']) ? $_REQUEST['title'] : '';
+			if (strlen(trim($title)) == 0){
+				$return['result'] = "false";
+				$return['message'] = "You must provide a title for the list";
+			}else{
+				$list = new UserList();
+				$list->title = $_REQUEST['title'];
+				$list->user_id = $user->id;
+				//Check to see if there is already a list with this id
+				$existingList = false;
+				if ($list->find(true)){
+					$existingList = true;
 				}
-				$return['result'] = translate($error);
+				$list->description = $_REQUEST['desc'];
+				$list->public = $_REQUEST['public'];
+				if ($existingList){
+					$list->update();
+				}else{
+					$list->insert();
+				}
+
+				if (isset($_REQUEST['recordId'])){
+					$recordToAdd = $_REQUEST['recordId'];
+					require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+					//Check to see if the user has already added the title to the list.
+					$userListEntry = new UserListEntry();
+					$userListEntry->listId = $list->id;
+					$userListEntry->groupedWorkPermanentId = $recordToAdd;
+					if (!$userListEntry->find(true)){
+						$userListEntry->dateAdded = time();
+						$userListEntry->insert();
+					}
+				}
+
+				$return['result'] = 'true';
+				$return['newId'] = $list->id;
+				if ($existingList){
+					$return['message'] = "Updated list {$title} successfully" ;
+				}else{
+					$return['message'] = "Created list {$title} successfully" ;
+				}
 			}
 		} else {
-			$return['result'] = "Unauthorized";
+			$return['result'] = "false";
+			$return['message'] = "You must be logged in to create a list";
 		}
 
 		return json_encode($return);
+	}
+
+	function getCreateListForm(){
+		global $interface;
+
+		$id = $_REQUEST['recordId'];
+		$interface->assign('recordId', $id);
+
+		$results = array(
+				'title' => 'Create new List',
+				'modalBody' => $interface->fetch("MyResearch/list-form.tpl"),
+				'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.addList(\"{$id}\"); return false;'>Create List</span>"
+		);
+		return json_encode($results);
 	}
 
 	/**

@@ -828,8 +828,8 @@ class GroupedWorkDriver implements RecordInterface{
 				foreach ($relatedRecordIds as $relatedRecordId){
 					require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 					$recordDriver = RecordDriverFactory::initRecordDriverById($relatedRecordId);
-					$recordDriver->setScopingEnabled($this->scopingEnabled);
 					if ($recordDriver != null && $recordDriver->isValid()){
+						$recordDriver->setScopingEnabled($this->scopingEnabled);
 						$relatedRecordsForBib = $recordDriver->getRelatedRecords();
 						foreach ($relatedRecordsForBib as $relatedRecord){
 							$relatedRecord['driver'] = $recordDriver;

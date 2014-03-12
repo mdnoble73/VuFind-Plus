@@ -19,37 +19,28 @@ VuFind.Account = (function(){
 			var recordId = form.find("input[name=recordId]").val();
 			var source = form.find("input[name=source]").val();
 			var title = form.find("input[name=title]").val();
-			var desc = form.find("input[name=desc]").val();
+			var desc = $("#listDesc").val();
 
 			var url = Globals.path + "/MyResearch/AJAX";
 			var params = "method=AddList&" +
 					"title=" + encodeURIComponent(title) + "&" +
 					"public=" + isPublic + "&" +
-					"desc=" + encodeURIComponent(desc) + "&";
+					"desc=" + encodeURIComponent(desc) + "&" +
+					"recordId=" + encodeURIComponent(recordId) ;
 
 			$.ajax({
 				url: url + '?' + params,
 				dataType: "json",
 				success: function (data) {
 					var value = data.result;
-					if (value) {
-						if (value == "Done") {
-							var newId = data.newId;
-							//Save the record to the list
-							var url = Globals.path + "/Resource/Save?lightbox=true&selectedList=" + newId + "&id=" + recordId + "&source=" + source;
-							VuFind.ajaxLightbox(url);
-						} else {
-							$("#modal-title").html("Error creating list");
-							$(".modal-body").html("<div class='alert alert-error'>There was a error creating your list<br/>" + value + "</div>")
-						}
+					if (data.result) {
+						VuFind.showMessage("Added Successfully", data.message);
 					} else {
-						$("#modal-title").html("Error creating list");
-						$(".modal-body").html("<div class='alert alert-error'>There was a error creating your list</div>")
+						VuFind.showMessage("Error", data.message);
 					}
 				},
 				error: function () {
-					$("#modal-title").html("Error creating list");
-					$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error creating your list<br/>" + textStatus + "</div>")
+					VuFind.showMessage("Error creating list", "There was an unexpected error creating your list");
 				}
 			});
 
@@ -248,6 +239,29 @@ VuFind.Account = (function(){
 				}
 			}
 			return selectedTitles;
+		},
+
+		showCreateListForm: function(id){
+			if (Globals.loggedIn){
+				var modalDialog = $("#modalDialog");
+				//$(".modal-body").html($('#userreview' + id).html());
+				var url = Globals.path + "/MyResearch/AJAX?method=getCreateListForm";
+				if (id != undefined){
+					url += '&recordId=' + encodeURIComponent(id);
+				}
+				$.getJSON(url, function(data){
+					$('#myModalLabel').html(data.title);
+					$('.modal-body').html(data.modalBody);
+					$('.modal-buttons').html(data.modalButtons);
+				});
+				modalDialog.load( );
+				modalDialog.modal('show');
+			}else{
+				VuFind.Account.ajaxLogin($trigger, function (){
+					return VuFind.GroupedWork.showEmailForm(trigger, id);
+				}, false);
+			}
+			return false;
 		}
 
 	};

@@ -2,7 +2,7 @@
 
 @import "/interface/themes/responsive/css/jcarousel.responsive.css";
 
-@import "/interface/themes/responsive/css/bootstrapSwitch.css";
+@import "/interface/themes/responsive/css/lib/bootstrap-switch.min.css";
 /**
 Variables for VuFind customization.  These can be overridden at the local theme level
 */

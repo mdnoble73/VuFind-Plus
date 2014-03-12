@@ -96,9 +96,15 @@ class FavoriteHandler
 		$interface->assign('sortList', $searchObject->getSortList());
 
 		// Retrieve records from index (currently, only Solr IDs supported):
-		$searchObject->setQueryIDs($this->favorites);
-		$result = $searchObject->processSearch();
-		$resourceList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
+
+		if (count($this->favorites) > 0){
+			$searchObject->setQueryIDs($this->favorites);
+			$result = $searchObject->processSearch();
+			$resourceList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
+		}else{
+			$resourceList = array();
+		}
+
 		$interface->assign('resourceList', $resourceList);
 
 		// Set up paging of list contents:

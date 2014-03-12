@@ -107,7 +107,8 @@ class RecordDriverFactory {
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			$recordDriver = new MarcRecord($recordId);
 			if (!$recordDriver->isValid()){
-				echo("Unable to load record driver for $recordId");
+				global $logger;
+				$logger->log("Unable to load record driver for $recordId", PEAR_LOG_WARNING);
 				$recordDriver = null;
 			}
 		}else{

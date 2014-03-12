@@ -30,13 +30,11 @@
 					  {/foreach}
 				  </select>
 				  &nbsp;or&nbsp;
-				  <a class="btn" href="{$path}/MyResearch/ListEdit?id={$id|escape:"url"}&amp;source={$source|escape}&lightbox"
-				     onclick="return VuFind.ajaxLightbox('{$url}/MyResearch/ListEdit?id={$id|escape}&source={$source|escape}&lightbox');">{translate text="Create a New List"}</a>
+				  <button class="btn btn-sm btn-default" onclick="return VuFind.Account.showCreateListForm('{$id|escape:"url"}');">{translate text="Create a New List"}</button>
 			  </div>
 			</div>
 		{else}
-		  <a class="btn" href="{$path}/MyResearch/ListEdit?id={$id|escape:"url"}&amp;source={$source|escape}"
-		     onclick="return VuFind.ajaxLightbox('{$url}/MyResearch/ListEdit?id={$id|escape}&source={$source|escape}&lightbox');">{translate text="Create a New List"}</a>
+		  <button class="btn btn-sm btn-default" onclick="return VuFind.Account.showCreateListForm('{$id|escape:"url"}');">{translate text="Create a New List"}</button>
 	  {/if}
 
 	  {if $showLists}

@@ -330,6 +330,10 @@ class MillenniumDriver implements DriverInterface
 			}
 
 			$locationCode = trim($itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '');
+			//Do a quick check of location code so we can remove this quickly when scoping is enabled
+			if ($scopingEnabled && strpos($locationCode, MillenniumDriver::$scopingLocationCode) !== 0){
+				continue;
+			}
 			$iType = trim($itemField->getSubfield('j') != null ? $itemField->getSubfield('j')->getData() : '');
 			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pType);
 			//$timer->logTime("Finished checking if item is holdable");
@@ -367,10 +371,7 @@ class MillenniumDriver implements DriverInterface
 					'locationLabel' => $locationLabel,
 					'shelfLocation' => isset($shelfLocationMap[$locationCode]) ? $shelfLocationMap[$locationCode] : '',
 				);
-				//TODO: Can we split these based on what is local and what is available if you are unscoped
-				if (!$scopingEnabled || strpos($locationCode, MillenniumDriver::$scopingLocationCode) === 0){
-					$items[] = $item;
-				}
+				$items[] = $item;
 			}else{
 				global $logger;
 				$logger->log("Removing item for location $locationCode because it is not holdable or it is not owned by the local library", PEAR_LOG_DEBUG);

@@ -470,7 +470,7 @@ class GroupedWork_AJAX {
 				$userList->user_id = $user->id;
 				$userList->public = 0;
 				$userList->description = '';
-				$ret = $userList->insert();
+				$userList->insert();
 			}else{
 				$userList->id = $listId;
 				if (!$userList->find(true)){
@@ -510,6 +510,7 @@ class GroupedWork_AJAX {
 		global $user;
 
 		$id = $_REQUEST['id'];
+		$interface->assign('id', $id);
 
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 

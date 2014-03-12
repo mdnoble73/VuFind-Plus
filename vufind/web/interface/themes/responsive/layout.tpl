@@ -25,6 +25,7 @@
 		<script src="{$path}/interface/themes/responsive/js/lib/jcarousel.responsive.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/bootstrap-datepicker.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery-ui-1.10.4.custom.min.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/lib/bootstrap-switch.min.js"></script>
 		<script src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
 		<script src="{$path}/ckeditor/ckeditor.js"></script>
 		<script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
@@ -35,6 +36,7 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind/browse.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/econtent-record.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/grouped-work.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/lists.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/overdrive.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/prospector.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/ratings.js"></script>

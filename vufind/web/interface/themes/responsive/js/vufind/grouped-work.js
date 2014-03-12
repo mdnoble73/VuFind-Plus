@@ -48,18 +48,18 @@ VuFind.GroupedWork = (function(){
 							//$('#goDeeperLink').show();
 							var goDeeperOptions = data.goDeeperOptions;
 							//add a tab before citation for each item
-							for (option in goDeeperOptions){
+							for (var option in goDeeperOptions){
 								if (option == 'excerpt'){
 									$("#excerpttab_label").show();
-									$("excerptPanel").show();
+									$("#excerptPanel").show();
 								}else if (option == 'avSummary'){
 									$("#tableofcontentstab_label").show();
-									$("avSummaryPlaceholder").show();
-									$("tableOfContentsPanel").show();
+									$("#avSummaryPlaceholder").show();
+									$("#tableOfContentsPanel").show();
 								}else if (option == 'avSummary' || option == 'tableOfContents'){
 									$("#tableofcontentstab_label").show();
-									$("tableOfContentsPlaceholder").show();
-									$("tableOfContentsPanel").show();
+									$("#tableOfContentsPlaceholder").show();
+									$("#tableOfContentsPanel").show();
 								}
 							}
 						}

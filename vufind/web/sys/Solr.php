@@ -1890,7 +1890,7 @@ class Solr implements IndexEngine {
 		$timer->logTime("Send data to solr");
 
 		if (!PEAR_Singleton::isError($result)) {
-			return $this->_process($this->client->getResponseBody(), $returnSolrError);
+			return $this->_process($this->client->getResponseBody(), $returnSolrError, $queryString);
 		} else {
 			return $result;
 		}
@@ -1964,10 +1964,11 @@ class Solr implements IndexEngine {
 	 *																					should we fail outright (false) or
 	 *																					treat it as an empty result set with
 	 *																					an error key set (true)?
+	 * @param string      $queryString        The raw query that was sent
 	 * @return	array													 The processed response from Solr
 	 * @access	private
 	 */
-	private function _process($result, $returnSolrError = false)
+	private function _process($result, $returnSolrError = false, $queryString = null)
 	{
 		global $timer;
 		// Catch errors from SOLR
@@ -1978,8 +1979,14 @@ class Solr implements IndexEngine {
 				return array('response' => array('numfound' => 0, 'docs' => array()),
 										'error' => $errorMsg);
 			} else {
-				PEAR_Singleton::raiseError(new PEAR_Error('Unable to process query<br />' .
-										'Solr Returned: ' . $errorMsg));
+				if ($this->debug){
+					$errorMessage = 'Unable to process query ' . urldecode($queryString);
+				}else{
+					$errorMessage = 'Unable to process query ';
+				}
+				PEAR_Singleton::raiseError(new PEAR_Error($errorMessage. '<br />' .
+						'Solr Returned: ' . $errorMsg));
+
 			}
 		}
 		$result = json_decode($result, true);
