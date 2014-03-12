@@ -118,16 +118,18 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		);
 		if ($isbn){
 			$moreDetailsOptions['syndicatedReviews'] = array(
-				'label' => 'Syndicated Reviews',
+				'label' => 'Published Reviews',
 				'body' => "<div id='syndicatedReviewPlaceholder'></div>",
 			);
 		}
 		//A few tabs require an ISBN
 		if ($isbn){
-			$moreDetailsOptions['goodreadsReviews'] = array(
-				'label' => 'Reviews from GoodReads',
-				'body' => '<iframe id="goodreads_iframe" class="goodReadsIFrame" src="https://www.goodreads.com/api/reviews_widget_iframe?did=DEVELOPER_ID&format=html&isbn=' . $isbn . '&links=660&review_back=fff&stars=000&text=000" width="100%" height="400px" frameborder="0"></iframe>',
-			);
+			if ($interface->getVariable('showGoodReadsReviews')){
+				$moreDetailsOptions['goodreadsReviews'] = array(
+					'label' => 'Reviews from GoodReads',
+					'body' => '<iframe id="goodreads_iframe" class="goodReadsIFrame" src="https://www.goodreads.com/api/reviews_widget_iframe?did=DEVELOPER_ID&format=html&isbn=' . $isbn . '&links=660&review_back=fff&stars=000&text=000" width="100%" height="400px" frameborder="0"></iframe>',
+				);
+			}
 			$moreDetailsOptions['similarTitles'] = array(
 				'label' => 'Similar Titles From Novelist',
 				'body' => '<div id="novelisttitlesPlaceholder"></div>',
@@ -152,10 +154,12 @@ class ExternalEContentDriver extends BaseEContentDriver{
 			'label' => 'Citations',
 			'body' => $interface->fetch('Record/cite.tpl'),
 		);
-		$moreDetailsOptions['staff'] = array(
-			'label' => 'Staff View',
-			'body' => $interface->fetch($this->getStaffView()),
-		);
+		if ($interface->getVariable('showStaffView')){
+			$moreDetailsOptions['staff'] = array(
+				'label' => 'Staff View',
+				'body' => $interface->fetch($this->getStaffView()),
+			);
+		}
 
 		return $moreDetailsOptions;
 	}

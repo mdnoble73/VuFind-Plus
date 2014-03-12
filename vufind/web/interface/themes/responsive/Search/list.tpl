@@ -74,14 +74,18 @@
 		<p>Can't find what you are looking for? <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$lookfor}&basicType={$searchIndex}">Suggest a purchase</a>.</p>
 	{/if}
 
+	{if $showSearchTools || ($user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')))}
 	<div class="searchtools well">
 		<strong>{translate text='Search Tools'}:</strong>
-		<a href="{$rssLink|escape}"><span class="silk feed">&nbsp;</span>{translate text='Get RSS Feed'}</a>
-		<a href="{$path}/Search/Email" onclick="ajaxLightbox('/Search/Email?lightbox'); return false;"><span class="silk email">&nbsp;</span>{translate text='Email this Search'}</a>
-		{if $savedSearch}<a href="{$path}/MyResearch/SaveSearch?delete={$searchId}"><span class="silk delete">&nbsp;</span>{translate text='save_search_remove'}</a>{else}<a href="{$path}/MyResearch/SaveSearch?save={$searchId}"><span class="silk add">&nbsp;</span>{translate text='save_search'}</a>{/if}
-		<a href="{$excelLink|escape}"><span class="silk table_go">&nbsp;</span>{translate text='Export To Excel'}</a>
+		{if $showSearchTools}
+			<a href="{$rssLink|escape}"><span class="silk feed">&nbsp;</span>{translate text='Get RSS Feed'}</a>
+			<a href="{$path}/Search/Email" onclick="ajaxLightbox('/Search/Email?lightbox'); return false;"><span class="silk email">&nbsp;</span>{translate text='Email this Search'}</a>
+			{if $savedSearch}<a href="{$path}/MyResearch/SaveSearch?delete={$searchId}"><span class="silk delete">&nbsp;</span>{translate text='save_search_remove'}</a>{else}<a href="{$path}/MyResearch/SaveSearch?save={$searchId}"><span class="silk add">&nbsp;</span>{translate text='save_search'}</a>{/if}
+			<a href="{$excelLink|escape}"><span class="silk table_go">&nbsp;</span>{translate text='Export To Excel'}</a>
+		{/if}
 		{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
 			<a href="#" onclick="return createWidgetFromSearch('{$searchId}')"><span class="silk cog_go">&nbsp;</span>{translate text='Create Widget'}</a>
 		{/if}
 	</div>
+	{/if}
 </div>

@@ -54,53 +54,7 @@ class EcontentRecord_Home extends Action{
 		}
 
 		$location = $locationSingleton->getActiveLocation();
-		if (isset($library)){
-			$interface->assign('showTextThis', $library->showTextThis);
-			$interface->assign('showEmailThis', $library->showEmailThis);
-			$interface->assign('showFavorites', $library->showFavorites);
-			$interface->assign('linkToAmazon', $library->linkToAmazon);
-			$interface->assign('enablePurchaseLinks', $library->linkToAmazon);
-			$interface->assign('enablePospectorIntegration', $library->enablePospectorIntegration);
-			if ($location != null){
-				$interface->assign('showAmazonReviews', (($location->showAmazonReviews == 1) && ($library->showAmazonReviews == 1)) ? 1 : 0);
-				$interface->assign('showStandardReviews', (($location->showStandardReviews == 1) && ($library->showStandardReviews == 1)) ? 1 : 0);
-				$interface->assign('showHoldButton', (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0);
-			}else{
-				$interface->assign('showAmazonReviews', $library->showAmazonReviews);
-				$interface->assign('showStandardReviews', $library->showStandardReviews);
-				$interface->assign('showHoldButton', $library->showHoldButton);
-			}
-			$interface->assign('showTagging', $library->showTagging);
-			$interface->assign('showRatings', $library->showRatings);
-			$interface->assign('showComments', $library->showComments);
-			$interface->assign('tabbedDetails', $library->tabbedDetails);
-			$interface->assign('showOtherEditionsPopup', $library->showOtherEditionsPopup == 1 ? true : false);
-			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
-		}else{
-			$interface->assign('showTextThis', 1);
-			$interface->assign('showEmailThis', 1);
-			$interface->assign('showFavorites', 1);
-			$interface->assign('linkToAmazon', 1);
-			$interface->assign('enablePurchaseLinks', 1);
-			$interface->assign('enablePospectorIntegration', 0);
-			if ($location != null){
-				$interface->assign('showAmazonReviews', $location->showAmazonReviews);
-				$interface->assign('showStandardReviews', $location->showStandardReviews);
-				$interface->assign('showHoldButton', $location->showHoldButton);
-			}else{
-				$interface->assign('showAmazonReviews', 1);
-				$interface->assign('showStandardReviews', 1);
-				$interface->assign('showHoldButton', 1);
-			}
-			$interface->assign('showTagging', 1);
-			$interface->assign('showRatings', 1);
-			$interface->assign('showComments', 1);
-			$interface->assign('tabbedDetails', 1);
-			$interface->assign('showProspectorTitlesAsTab', 0);
-			$interface->assign('showOtherEditionsPopup', 0);
-		}
-		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
-		$interface->assign('chiliFreshAccount', $configArray['Content']['chiliFreshAccount']);
+
 		$showCopiesLineInHoldingsSummary = true;
 		if ($library && $library->showCopiesLineInHoldingsSummary == 0){
 			$showCopiesLineInHoldingsSummary = false;

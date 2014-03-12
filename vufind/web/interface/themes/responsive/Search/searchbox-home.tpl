@@ -64,9 +64,6 @@
 			</div>
 			<div class="row text-center">
 				<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='VuFind.Searches.enableSearchTypes();'>
-					{if $filterList}
-						<option data-catalog_type="existing" data-original_type="{$searchSource}" value="existing" title="{translate text="Existing Search"}" selected="selected" id="existing_search_option">{translate text="in Existing Search Results"}</option>
-					{/if}
 					{/strip}
 					{foreach from=$searchSources item=searchOption key=searchKey}
 						<option data-catalog_type="{$searchOption.catalogType}"
@@ -78,6 +75,11 @@
 					{/foreach}
 					{strip}
 				</select>
+			</div>
+			<div class="row text-center">
+				{if $filterList}
+					<label for="keepFiltersSwitch" id="keepFiltersSwitchLabel"><input id="keepFiltersSwitch" type="checkbox" onclick="VuFind.Searches.filterAll(this);" /> Keep Applied Filters</label>
+				{/if}
 			</div>
 
 			{if $filterList || $hasCheckboxFilters}

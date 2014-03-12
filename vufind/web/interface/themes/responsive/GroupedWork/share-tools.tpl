@@ -1,4 +1,5 @@
 {strip}
+	{if $showTextThis == 1 || $showEmailThis == 1 || $showShareOnExternalSites == 1}
 	<div class="share-tools">
 		<span class="share-tools-label">SHARE</span>
 		{if $showTextThis == 1}
@@ -9,15 +10,18 @@
 				<img src="{img filename='email-icon.png'}" alt="E-mail this"/>
 			</a>
 		{/if}
-		<a href="http://twitter.com/home?status={$recordDriver->getTitle()|urlencode}+{$url}/GroupedWork/{$recordDriver->getPermanentId()}/Home" target="_blank">
-			<img src="{img filename='twitter-icon.png'}" alt="Share on Twitter"/>
-		</a>
-		<a href="http://www.facebook.com/sharer/sharer.php?u={$url}/GroupedWork/{$recordDriver->getPermanentId()}/Home" target="_blank">
-			<img src="{img filename='facebook-icon.png'}" alt="Share on Facebook"/>
-		</a>
+		{if $showShareOnExternalSites}
+			<a href="http://twitter.com/home?status={$recordDriver->getTitle()|urlencode}+{$url}/GroupedWork/{$recordDriver->getPermanentId()}/Home" target="_blank">
+				<img src="{img filename='twitter-icon.png'}" alt="Share on Twitter"/>
+			</a>
+			<a href="http://www.facebook.com/sharer/sharer.php?u={$url}/GroupedWork/{$recordDriver->getPermanentId()}/Home" target="_blank">
+				<img src="{img filename='facebook-icon.png'}" alt="Share on Facebook"/>
+			</a>
 
-		<a href="http://www.pinterest.com/pin/create/button/?url={$recordDriver->getLinkUrl()|escape:'url'}&media={$bookCoverUrlMedium|escape:'url'}&description=Pin%20on%20Pinterest">
-			<img src="{img filename='pinterest-icon.png'}" alt="Pin on Pinterest"/>
-		</a>
+			<a href="http://www.pinterest.com/pin/create/button/?url={$recordDriver->getLinkUrl()|escape:'url'}&media={$bookCoverUrlMedium|escape:'url'}&description=Pin%20on%20Pinterest">
+				<img src="{img filename='pinterest-icon.png'}" alt="Pin on Pinterest"/>
+			</a>
+		{/if}
 	</div>
+	{/if}
 {/strip}

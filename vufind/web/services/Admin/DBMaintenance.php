@@ -516,6 +516,27 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'library_location_display_controls' => array(
+				'title' => 'Library And Location display controls',
+				'description' => 'Add additional controls for display of enhanced functionality for libraries and locations',
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE library ADD showShareOnExternalSites INT(11) DEFAULT 1",
+					"ALTER TABLE library ADD showQRCode INT(11) DEFAULT 1",
+					"ALTER TABLE library ADD showGoodReadsReviews INT(11) DEFAULT 1",
+					"ALTER TABLE library ADD showStaffView INT(11) DEFAULT 1",
+					"ALTER TABLE library ADD showSearchTools INT(11) DEFAULT 1",
+					"ALTER TABLE location ADD showShareOnExternalSites INT(11) DEFAULT 1",
+					"ALTER TABLE location ADD showTextThis INT(11) DEFAULT 1",
+					"ALTER TABLE location ADD showEmailThis INT(11) DEFAULT 1",
+					"ALTER TABLE location ADD showFavorites INT(11) DEFAULT 1",
+					"ALTER TABLE location ADD showComments INT(11) DEFAULT 1",
+					"ALTER TABLE location ADD showQRCode INT(11) DEFAULT 1",
+					"ALTER TABLE location ADD showGoodReadsReviews INT(11) DEFAULT 1",
+					"ALTER TABLE location ADD showStaffView INT(11) DEFAULT 1",
+				)
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',

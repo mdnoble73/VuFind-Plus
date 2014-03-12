@@ -33,6 +33,10 @@ Home Page Variables
   background-color: #147ce2;
   border: none;
 }
+#keepFiltersSwitchLabel {
+  color: white;
+  font-weight: normal;
+}
 .sidebar-bold-button {
   text-align: center;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);

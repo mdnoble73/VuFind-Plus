@@ -47,7 +47,7 @@
 
 	</div>
 	<div class="alert alert-warning">
-		<strong>Warning! </strong>
+		<strong>Note! </strong>
 		Citation formats are based on standards as of July 2010.  Citations contain only title, author, edition, publisher, and year published. Citations should be used as a guideline and should be double checked for accuracy.
 	</div>
 {/if}

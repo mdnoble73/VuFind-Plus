@@ -72,13 +72,20 @@ class MillenniumDriver implements DriverInterface
 					MillenniumDriver::$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
 				}
 			}
-			$homeLocation = Location::getUserHomeLocation();
 			MillenniumDriver::$homeLocationCode = null;
 			MillenniumDriver::$homeLocationLabel = null;
-			if ($homeLocation){
-				MillenniumDriver::$homeLocationCode = $homeLocation->code;
-				MillenniumDriver::$homeLocationLabel = $homeLocation->facetLabel;
+			$searchLocation = Location::getSearchLocation();
+			if ($searchLocation){
+				MillenniumDriver::$homeLocationCode = $searchLocation->code;
+				MillenniumDriver::$homeLocationLabel = $searchLocation->facetLabel;
+			}else{
+				$homeLocation = Location::getUserHomeLocation();
+				if ($homeLocation){
+					MillenniumDriver::$homeLocationCode = $homeLocation->code;
+					MillenniumDriver::$homeLocationLabel = $homeLocation->facetLabel;
+				}
 			}
+
 			$timer->logTime("Finished loading location data");
 
 			MillenniumDriver::$scopingLocationCode = '';

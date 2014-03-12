@@ -168,7 +168,11 @@ VuFind.Searches = (function(){
 			}
 			$(searchFormId).submit();
 			return false;
-		}
+		},
 
+		filterAll: function(){
+			// Go through all elements
+			$(".existingFilter").prop('checked', true);
+		}
 	}
 }(VuFind.Searches || {}));

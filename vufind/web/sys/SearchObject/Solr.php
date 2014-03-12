@@ -44,7 +44,8 @@ class SearchObject_Solr extends SearchObject_Base
 	// Index
 	private $index = null;
 	// Field List
-	private $fields = '*,score';
+	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,format_category,isbn,upc,issn,related_record_ids,series,format,recordtype,score';
+	private $fieldsFull = '*,score';
 	// HTTP Method
 	//    private $method = HTTP_REQUEST_METHOD_GET;
 	private $method = HTTP_REQUEST_METHOD_POST;
@@ -1226,6 +1227,11 @@ class SearchObject_Solr extends SearchObject_Base
 		// The first record to retrieve:
 		//  (page - 1) * limit = start
 		$recordStart = ($this->page - 1) * $this->limit;
+		if ($this->debug || $this->index != 'grouped'){
+			$fieldsToReturn = $this->fieldsFull;
+		}else{
+			$fieldsToReturn = $this->fields;
+		}
 		$this->indexResult = $this->indexEngine->search(
 			$this->query,      // Query string
 			$this->index,      // DisMax Handler
@@ -1236,7 +1242,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$spellcheck,       // Spellcheck query
 			$this->dictionary, // Spellcheck dictionary
 			$finalSort,        // Field to sort on
-			$this->fields,     // Fields to return
+			$fieldsToReturn,     // Fields to return
 			$this->method,     // HTTP Request method
 			$returnIndexErrors // Include errors in response?
 		);

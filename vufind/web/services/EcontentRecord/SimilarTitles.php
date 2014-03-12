@@ -24,9 +24,6 @@ require_once ROOT_DIR . '/sys/SolrStats.php';
 
 class EcontentRecord_SimilarTitles extends Action
 {
-	/** @var  SearchObject_Solr $db */
-	private $db;
-
 	function launch()
 	{
 		global $configArray;
@@ -36,43 +33,18 @@ class EcontentRecord_SimilarTitles extends Action
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
-		$this->db = new $class($url);
-
-		//Enable and disable functionality based on library settings
-		global $library;
-		global $locationSingleton;
-		$location = $locationSingleton->getActiveLocation();
-		if (isset($library)){
-			if ($location != null){
-				$interface->assign('showHoldButton', (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0);
-			}else{
-				$interface->assign('showHoldButton', $library->showHoldButton);
-			}
-			$interface->assign('showTagging', $library->showTagging);
-			$interface->assign('showRatings', $library->showRatings);
-			$interface->assign('showComments', $library->showComments);
-			$interface->assign('showFavorites', $library->showFavorites);
-		}else{
-			if ($location != null){
-				$interface->assign('showHoldButton', $location->showHoldButton);
-			}else{
-				$interface->assign('showHoldButton', 1);
-			}
-			$interface->assign('showTagging', 1);
-			$interface->assign('showRatings', 1);
-			$interface->assign('showComments', 1);
-			$interface->assign('showFavorites', 1);
-		}
+		/** @var  SearchObject_Solr $db */
+		$db = new $class($url);
 
 		//Build the actual view
 		$interface->setTemplate('../Record/view-series.tpl');
 
 		$eContentRecord = new EContentRecord();
-		$this->id = strip_tags($_REQUEST['id']);
-		$eContentRecord->id = $this->id;
+		$id = strip_tags($_REQUEST['id']);
+		$eContentRecord->id = $id;
 		$eContentRecord->find(true);
 		
-		$similar = $this->db->getMoreLikeThis2($eContentRecord->getSolrId());
+		$similar = $db->getMoreLikeThis2($eContentRecord->getSolrId());
 		// Send the similar items to the template; if there is only one, we need
 		// to force it to be an array or things will not display correctly.
 		if (isset($similar) && count($similar['response']['docs']) > 0) {
@@ -107,7 +79,7 @@ class EcontentRecord_SimilarTitles extends Action
 		$enrichment = $novelist->loadEnrichment($eContentRecord->getIsbn());
 		$interface->assign('enrichment', $enrichment);
 
-		$interface->assign('id', $this->id);
+		$interface->assign('id', $id);
 
 		//Build the actual view
 		$interface->setTemplate('view-similar.tpl');

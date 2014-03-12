@@ -217,34 +217,7 @@ class Search_Results extends Action {
 
 		//Enable and disable functionality based on library settings
 		//This must be done before we process each result
-		global $library;
-		/** @var Location $locationSingleton */
-		global $locationSingleton;
-		$location = $locationSingleton->getActiveLocation();
-		$showHoldButton = 1;
-		$showHoldButtonInSearchResults = 1;
 		$interface->assign('showNotInterested', false);
-		if (isset($library) && $location != null){
-			$interface->assign('showFavorites', $library->showFavorites);
-			$interface->assign('showComments', $library->showComments);
-			$showHoldButton = (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0;
-			$showHoldButtonInSearchResults = (($location->showHoldButton == 1) && ($library->showHoldButtonInSearchResults == 1)) ? 1 : 0;
-		}else if ($location != null){
-			$interface->assign('showFavorites', 1);
-			$showHoldButton = $location->showHoldButton;
-		}else if (isset($library)){
-			$interface->assign('showFavorites', $library->showFavorites);
-			$showHoldButton = $library->showHoldButton;
-			$showHoldButtonInSearchResults = $library->showHoldButtonInSearchResults;
-			$interface->assign('showComments', $library->showComments);
-		}else{
-			$interface->assign('showFavorites', 1);
-			$interface->assign('showComments', 1);
-		}
-		if ($showHoldButton == 0){
-			$showHoldButtonInSearchResults = 0;
-		}
-		$interface->assign('showHoldButton', $showHoldButtonInSearchResults);
 		$interface->assign('page_body_style', 'sidebar_left');
 		$interface->assign('overDriveVersion', isset($configArray['OverDrive']['interfaceVersion']) ? $configArray['OverDrive']['interfaceVersion'] : 1);
 

@@ -40,10 +40,12 @@
 		</div>
 	{/if}
 
+	{if $showComments}
 	<div id="full-record-ratings" class="text-center row">
 		{* Let the user rate this title *}
 		{include file="GroupedWork/title-rating-full.tpl" ratingClass="" showFavorites=0 ratingData=$recordDriver->getRatingData() showNotInterested=false}
 	</div>
+	{/if}
 
 	<div id="recordTools" class="full-record-tools">
 		{include file="GroupedWork/result-tools.tpl" showMoreInfo=false summId=$recordDriver->getPermanentId()}
@@ -52,7 +54,9 @@
 	<div id="xs-main-content-insertion-point" class="row"></div>
 
 	{* QR Code *}
+	{if $showQRCode}
 	<div id="record-qr-code" class="text-center hidden-xs visible-md"><img src="{$recordDriver->getQRCodeUrl()}" alt="QR Code for Record"/></div>
+	{/if}
 
 	{if $user}
 		{* Account Menu *}
