@@ -373,8 +373,8 @@ class MillenniumDriver implements DriverInterface
 				);
 				$items[] = $item;
 			}else{
-				global $logger;
-				$logger->log("Removing item for location $locationCode because it is not holdable or it is not owned by the local library", PEAR_LOG_DEBUG);
+				//global $logger;
+				//$logger->log("Removing item for location $locationCode because it is not holdable or it is not owned by the local library", PEAR_LOG_DEBUG);
 			}
 			//$timer->logTime("Finished processing item");
 		}
