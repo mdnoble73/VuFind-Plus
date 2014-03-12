@@ -89,11 +89,13 @@ class Browse_AJAX extends Action {
 			foreach ($defaultFilters as $filter){
 				$this->searchObject->addFilter($filter);
 			}
-			//Get titles for the list
-			$this->searchObject->setSort($browseCategory->defaultSort);
+			//Set Sorting, this is actually slightly mangled from the category to Solr
+			$this->searchObject->setSort($browseCategory->getSolrSort());
 			$this->searchObject->clearFacets();
+			$this->searchObject->disableSpelling();
 			$this->searchObject->disableLogging();
 			$this->searchObject->setLimit(24);
+			//Get titles for the list
 			$this->searchObject->processSearch();
 			$records = $this->searchObject->getBrowseRecordHTML();
 			if (count($records) == 0){

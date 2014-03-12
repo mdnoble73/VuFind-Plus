@@ -88,4 +88,24 @@ class BrowseCategory extends  DB_DataObject{
 
 		return $validationResults;
 	}
+
+	public function getSolrSort() {
+		if ($this->defaultSort == 'relevance'){
+			return 'relevance';
+		}elseif ($this->defaultSort == 'popularity'){
+			return 'popularity desc';
+		}elseif ($this->defaultSort == 'newest_to_oldest'){
+			return 'days_since_added asc';
+		}elseif ($this->defaultSort == 'oldest_to_newest'){
+			return 'days_since_added desc';
+		}elseif ($this->defaultSort == 'author'){
+			return 'author,title';
+		}elseif ($this->defaultSort == 'title'){
+			return 'title,author';
+		}elseif ($this->defaultSort == 'user_rating'){
+			return 'rating desc,title';
+		}else{
+			return 'relevance';
+		}
+	}
 } 

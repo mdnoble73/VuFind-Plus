@@ -60,7 +60,7 @@ class ReadingHistory extends MyResearch
 						$readingHistoryAction = $_REQUEST['readingHistoryAction'];
 						$this->catalog->doReadingHistoryAction($readingHistoryAction, $selectedTitles);
 						//redirect back to ourself without the action.
-						header("Location: {$configArray['Site']['path']}/MyResearch/ReadingHistory");
+						header("Location: {$configArray['Site']['path']}/MyAccount/ReadingHistory");
 						die();
 					}
 

@@ -40,6 +40,7 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind/overdrive.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/prospector.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/ratings.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/reading-history.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/record.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/responsive.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/results-list.js"></script>

@@ -170,6 +170,14 @@ class SearchObject_Solr extends SearchObject_Base
 		$this->indexEngine->enableScoping();
 	}
 
+	public function disableSpelling(){
+		$this->spellcheck = false;
+	}
+
+	public function enableSpelling(){
+		$this->spellcheck = true;
+	}
+
 	/**
 	 * Add filters to the object based on values found in the $_REQUEST superglobal.
 	 *

@@ -24,16 +24,18 @@
 					<div>
 						<input name='readingHistoryAction' id='readingHistoryAction' value='' type='hidden' />
 						<div id="readingListActionsTop">
-							{if $historyActive == true}
-								{if $transList}
-									<a class="button" onclick='return deletedMarkedAction()' href="#">Delete Marked</a>
-									<a class="button" onclick='return deleteAllAction()' href="#">Delete All</a>
+							<div class="btn-group btn-group-sm">
+								{if $historyActive == true}
+									{if $transList}
+										<a class="btn btn-sm btn-default" onclick='return VuFind.Account.ReadingHistory.deletedMarkedAction()' href="#">Delete Marked</a>
+										<a class="btn btn-sm btn-default" onclick='return VuFind.Account.ReadingHistory.deleteAllAction()' href="#">Delete All</a>
+									{/if}
+									<a class="btn btn-sm btn-default" onclick="return VuFind.Account.ReadingHistory.exportListAction();">Export To Excel</a>
+									<a class="btn btn-sm btn-default" onclick="return VuFind.Account.ReadingHistory.optOutAction({if $transList}true{else}false{/if})" href="#">Stop Recording My Reading History</a>
+								{else}
+									<a class="btn btn-sm btn-primary" onclick='return VuFind.Account.ReadingHistory.optInAction()' href="#">Start Recording My Reading History</a>
 								{/if}
-								<a class="button" onclick="return exportListAction();">Export To Excel</a>
-								<a class="button" onclick="return optOutAction({if $transList}true{else}false{/if})" href="#">Stop Recording My Reading History</a>
-							{else}
-								<a class="button" onclick='return optInAction()' href="#">Start Recording My Reading History</a>
-							{/if}
+							</div>
 						</div>
 
 						{if $transList}
@@ -41,7 +43,7 @@
 								{if $pageLinks.all}<div class="myAccountPagination pagination">Page: {$pageLinks.all}</div>{/if}
 
 								<span id="recordsPerPage">
-								Records Per Page:
+								<label for="pagesize">Records Per Page:</label>
 								<select id="pagesize" class="pagesize" onchange="changePageSize()">
 									<option value="10" {if $recordsPerPage == 10}selected="selected"{/if}>10</option>
 									<option value="25" {if $recordsPerPage == 25}selected="selected"{/if}>25</option>
@@ -52,7 +54,7 @@
 								</span>
 
 								<span id="sortOptions">
-								Sort By:
+								<label for="sortMethod">Sort By:</label>
 								<select class="sortMethod" id="sortMethod" name="accountSort" onchange="changeAccountSort($(this).val())">
 									{foreach from=$sortOptions item=sortOptionLabel key=sortOption}
 										<option value="{$sortOption}" {if $sortOption == $defaultSortOption}selected="selected"{/if}>{$sortOptionLabel}</option>
@@ -61,7 +63,7 @@
 								</span>
 
 								<div class='sortOptions'>
-									Hide Covers <input type="checkbox" onclick="$('.imageCell').toggle();"/>
+									<label for="hideCovers">Hide Covers</label> <input id="hideCovers" type="checkbox" onclick="$('.imageCell').toggle();"/>
 								</div>
 							</div>
 
@@ -187,13 +189,13 @@
 						<div id="readingListActionsBottom">
 							{if $historyActive == true}
 								{if $transList}
-									<a class="button" onclick="return deletedMarkedAction()" href="#">Delete Marked</a>
-									<a class="button" onclick="return deleteAllAction()" href="#">Delete All</a>
+									<a class="btn btn-sm btn-default" onclick="return deletedMarkedAction()" href="#">Delete Marked</a>
+									<a class="btn btn-sm btn-default" onclick="return deleteAllAction()" href="#">Delete All</a>
 								{/if}
 								{* <button value="exportList" class="RLexportList" onclick='return exportListAction()'>Export Reading History</button> *}
-								<a class="button" onclick='return optOutAction({if $transList}true{else}false{/if})' href="#">Stop Recording My Reading History</a>
+								<a class="btn btn-sm btn-default" onclick='return optOutAction({if $transList}true{else}false{/if})' href="#">Stop Recording My Reading History</a>
 							{else}
-								<a class="button" onclick='return optInAction()' href="#">Start Recording My Reading History</a>
+								<a class="btn btn-sm btn-default" onclick='return optInAction()' href="#">Start Recording My Reading History</a>
 							{/if}
 						</div>
 
