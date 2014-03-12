@@ -93,6 +93,7 @@
 		</div>
         
         <div id="noResultsWorldcat">
+        <img src="{$path}/interface/themes/nashville/images/noResultsImage_OrangeMangifier.png" align="left" alt="Didn't what you were looking for icon" class="noResultsImage">    
             <h2>Didn't find what you were looking for?</h2>
 				<ul class="correctionSuggestionIndent">
                 	<li><a href="http://www.library.nashville.org/bmm/bmm_books_suggestionform.asp">Suggest a title for the library to purchase.</a></li>
