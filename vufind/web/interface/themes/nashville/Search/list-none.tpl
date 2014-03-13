@@ -93,10 +93,11 @@
 		</div>
         
         <div id="noResultsWorldcat">
+        <img src="{$path}/interface/themes/nashville/images/noResultsImage_OrangeMangifier.png" align="left" alt="Didn't what you were looking for icon" class="noResultsImage">    
             <h2>Didn't find what you were looking for?</h2>
 				<ul class="correctionSuggestionIndent">
-                	<li><a href="http://www.library.nashville.org/bmm/bmm_books_suggestionform.asp">Suggest a title for the library to purchase.</a></li>
-                    <li><a href="http://npl.worldcat.org/search?q={$lookfor|escape:"html"}">Repeat your search on npl.worldcat.org - we'll try to borrow the item for you.</a></li>
+					<li><a href="http://www.library.nashville.org/bmm/bmm_books_suggestionform.asp" onclick="_gaq.push(['_trackEvent','Link','Click','Didn't Find Links - Suggest Purchase']);">Suggest a title for the library to purchase.</a></li>
+                    <li><a href="http://npl.worldcat.org/search?q={$lookfor|escape:"html"}" onclick="_gaq.push(['_trackEvent','Link','Click','Didn't Find Links - NPL Worldcat Search']);">Repeat your search on npl.worldcat.org - we'll try to borrow the item for you.</a></li>
                 </ul>
             </div>
             

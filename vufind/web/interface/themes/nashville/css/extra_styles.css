@@ -671,3 +671,25 @@ div.footerCol h2 {border-bottom:1px dotted #ACACAC; padding:5px;text-align:left;
 div.footerCol ul {padding: 0 0 0 10px;}
 div.footerCol a {font-size:14px;}
 #ft #copyright {text-align: right;margin-top:5px;}
+
+/* -------- No Reults Box --------- */
+
+img.noResultsImage {
+margin-right: 15px;
+margin-left: 20px;
+box-shadow: 3px 3px 3px 1px #ccc;
+}
+#main-content #noResultsWorldcat {
+background-color: #F7F7F7;
+border: 1px solid #ccc;
+padding: 15px 15px 15px 28px;
+margin-top: 25px;
+}
+ul.correctionSuggestionIndent li {
+padding-bottom: 5px;
+list-style-type: circle;
+margin-left: 135px;
+}
+#noResultsWorldcat > h2 {
+margin: 0;
+}

@@ -43,9 +43,9 @@
 								{if $historyActive == true}
 									{if $transList}
 										<a class="button" onclick='return deletedMarkedAction()' href="#">Delete Marked</a>
-										<a class="button" onclick='return deleteAllAction()' href="#">Delete All</a>
+									<!-- <a class="button" onclick='return deleteAllAction()' href="#">Delete All</a> -->
 									{/if}
-									<!-- <a class="button" onclick="return exportListAction();">Export To Excel</a> -->
+								    <a class="button" onclick="return exportListAction();">Export To Excel</a>
 									<a class="button" onclick="return optOutAction({if $transList}true{else}false{/if})" href="#">Stop Recording My Reading History</a>
 								{else}
 									<a class="button" onclick='return optInAction()' href="#">Start Recording My Reading History</a>
