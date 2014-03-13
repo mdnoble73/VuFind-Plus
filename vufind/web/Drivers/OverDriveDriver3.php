@@ -582,7 +582,7 @@ class OverDriveDriver3 {
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
 		$params = array(
 			'reserveId' => $overDriveId,
-			'emailAddress' => $user->overdriveEmail
+			'emailAddress' => trim($user->overdriveEmail)
 		);
 		$response = $this->_callPatronUrl($user->cat_password, null, $url, $params);
 
