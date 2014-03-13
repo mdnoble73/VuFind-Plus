@@ -316,9 +316,7 @@
     <listener event="firstSearcher" class="solr.QuerySenderListener">
       <arr name="queries">
         <lst>
-          <str name="q">science art business engineering history</str>
-          <str name="facet.field">format</str>
-          <str name="fq">format:book</str>
+          <str name="q">Harry Potter</str>
         </lst>
       </arr>
     </listener>

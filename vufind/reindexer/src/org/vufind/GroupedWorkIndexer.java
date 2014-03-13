@@ -29,6 +29,7 @@ import org.apache.log4j.Logger;
  */
 public class GroupedWorkIndexer {
 	private String serverName;
+	private String solrPort;
 	private Logger logger;
 	private ConcurrentUpdateSolrServer updateServer;
 	private IlsRecordProcessor ilsRecordProcessor;
@@ -51,7 +52,7 @@ public class GroupedWorkIndexer {
 		this.logger = logger;
 		this.vufindConn = vufindConn;
 		this.configIni = configIni;
-		String solrPort = configIni.get("Reindex", "solrPort");
+		solrPort = configIni.get("Reindex", "solrPort");
 
 		availableAtLocationBoostValue = Integer.parseInt(configIni.get("Reindex", "availableAtLocationBoostValue"));
 		ownedByLocationBoostValue = Integer.parseInt(configIni.get("Reindex", "ownedByLocationBoostValue"));
@@ -142,11 +143,25 @@ public class GroupedWorkIndexer {
 	public void finishIndexing(){
 		try {
 			updateServer.commit(true, true);
-			//Optimize to trigger replication
-			updateServer.optimize();
-			updateServer.shutdown();
 		} catch (Exception e) {
 			logger.error("Error calling final commit", e);
+		}
+		try {
+			//Optimize to trigger replication
+			updateServer.optimize(true, true);
+		} catch (Exception e) {
+			logger.error("Error optimizing index", e);
+		}
+		try {
+			updateServer.shutdown();
+		} catch (Exception e) {
+			logger.error("Error shutting down update server", e);
+		}
+		//Swap the indexes
+		try {
+			URLPostResponse response = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=grouped2&other=grouped", logger);
+		} catch (Exception e) {
+			logger.error("Error shutting down update server", e);
 		}
 	}
 

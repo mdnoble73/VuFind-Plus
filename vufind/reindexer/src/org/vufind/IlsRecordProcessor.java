@@ -193,6 +193,7 @@ public abstract class IlsRecordProcessor {
 					}
 				}
 				availableItemsReader.close();
+				logger.info("Found a total of " + availableItemBarcodes.size() + " barcodes that are available");
 
 				//Remove any items that were checked out
 				logger.debug("removing availability for checked out barcodes");
@@ -202,6 +203,7 @@ public abstract class IlsRecordProcessor {
 					availableItemBarcodes.remove(Util.cleanIniValue(checkedOutBarcode));
 				}
 				checkoutsReader.close();
+				logger.info("After removing checked out barcodes, there were a total of " + availableItemBarcodes.size() + " barcodes that are available");
 
 			}catch(Exception e){
 				logger.error("Error loading available items", e);
@@ -804,12 +806,9 @@ public abstract class IlsRecordProcessor {
 						}
 					}
 				}else{
-					if (useICode2Suppression){
-						//Check icode2 to see if the item is suppressed
-						if (curItem.getSubfield(iCode2Subfield) != null){
-							String barcode = curItem.getSubfield(iCode2Subfield).getData();
-							available = availableItemBarcodes.contains(barcode);
-						}
+					if (curItem.getSubfield(barcodeSubfield) != null){
+						String barcode = curItem.getSubfield(barcodeSubfield).getData().trim();
+						available = availableItemBarcodes.contains(barcode);
 					}
 				}
 
