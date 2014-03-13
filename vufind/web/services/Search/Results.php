@@ -241,6 +241,7 @@ class Search_Results extends Action {
 		$enableProspectorIntegration = isset($configArray['Content']['Prospector']) ? $configArray['Content']['Prospector'] : false;
 		$showRatings = 1;
 		$showProspectorResultsAtEndOfSearch = true;
+		global $library;
 		if (isset($library)){
 			$enableProspectorIntegration = ($library->enablePospectorIntegration == 1);
 			$showRatings = $library->showRatings;
