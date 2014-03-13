@@ -430,7 +430,25 @@ class OverDriveRecordDriver implements RecordInterface {
 			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductAvailability.php';
 			$availability = new OverDriveAPIProductAvailability();
 			$availability->productId = $this->overDriveProduct->id;
-			$availability->whereAdd('libraryId = -1 OR libraryId = ' . $this->getLibraryScopingId());
+			//Only include shared collection if include digital collection is on
+			$searchLibrary = Library::getSearchLibrary();
+			$searchLocation = Location::getSearchLocation();
+			$includeSharedTitles = true;
+			if($searchLocation != null){
+				$includeSharedTitles = $searchLocation->includeDigitalCollection != 0;
+			}elseif ($searchLibrary != null){
+				$includeSharedTitles = $searchLibrary->includeDigitalCollection != 0;
+			}
+			$libraryScopingId = $this->getLibraryScopingId();
+			if ($includeSharedTitles){
+				$availability->whereAdd('libraryId = -1 OR libraryId = ' . $libraryScopingId);
+			}else{
+				if ($libraryScopingId == -1){
+					return $this->availability;
+				}else{
+					$availability->whereAdd('libraryId = ' . $libraryScopingId);
+				}
+			}
 			$availability->find();
 			while ($availability->fetch()){
 				$this->availability[] = clone $availability;
@@ -441,6 +459,7 @@ class OverDriveRecordDriver implements RecordInterface {
 
 	function getRelatedRecords(){
 		global $configArray;
+
 		$recordId = $this->getUniqueID();
 		$availability = $this->getAvailability();
 		$available = false;
@@ -454,6 +473,11 @@ class OverDriveRecordDriver implements RecordInterface {
 				$availableCopies += $curAvailability->copiesAvailable;
 			}
 			$totalCopies += $curAvailability->copiesOwned;
+		}
+
+		//If there are no copies, this isn't valid
+		if ($totalCopies == 0 && $availableCopies == 0){
+			return array();
 		}
 
 		$url = $configArray['Site']['path'] . '/OverDrive/' . $recordId;
