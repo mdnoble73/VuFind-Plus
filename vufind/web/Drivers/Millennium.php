@@ -357,6 +357,7 @@ class MillenniumDriver implements DriverInterface
 				if (strpos($locationCode, $tmpLocation) === 0){
 					$isLibraryItem = true;
 					$locationLabel = MillenniumDriver::$libraryLocationLabels[$tmpLocation];
+					break;
 				}
 			}
 			$isLocalItem = false;

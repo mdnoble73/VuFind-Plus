@@ -1348,6 +1348,7 @@ class MarcRecord extends IndexRecord
 	function getRelatedRecords(){
 		global $configArray;
 		global $timer;
+		global $interface;
 		$relatedRecords = array();
 		$recordId = $this->getUniqueID();
 
@@ -1419,7 +1420,7 @@ class MarcRecord extends IndexRecord
 			'source' => 'ils',
 			'actions' => array()
 		);
-		if ($this->isHoldable()){
+		if ($this->isHoldable() && $interface->getVariable('showHoldButton')){
 			$relatedRecord['actions'][] = array(
 				'title' => 'Place Hold',
 				'url' => $holdUrl
@@ -1432,14 +1433,13 @@ class MarcRecord extends IndexRecord
 
 	private function isHoldable(){
 		$items = $this->getItemsFast();
-		$firstCallNumber = null;
 		foreach ($items as $item){
 			//Try to get an available non reserve call number
 			if ($item['holdable'] == 1){
 				return true;
 			}
 		}
-		return $firstCallNumber;
+		return false;
 	}
 
 	private function getAvailableCopies($realTime){
