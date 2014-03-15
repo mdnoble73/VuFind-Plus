@@ -17,7 +17,7 @@
 			{if (!isset($profile)) }
 				<div id ='loginUsernameRow' class='loginFormRow'>
 					<div class='loginLabel'>{translate text='Username'}: </div>
-					<div class='loginField'><input type="text" pattern="[0-9]*" name="username" id="username" value="{$username|escape}" size="15"/></div>
+					<div class='loginField'><input type="text" pattern="[0-9]*" name="username" id="username" value="{$username|escape}" size="15" nblur="this.value=this.value.replace(/\s+/g,'')" /></div>
 				</div>
 				<div id ='loginPasswordRow' class='loginFormRow'>
 					<div class='loginLabel'>{translate text='Password'}: </div>
