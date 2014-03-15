@@ -3,6 +3,23 @@
 sites/*
 !sites/default
 !sites/packaging_default
+#config.ini
+#config.pwd.ini
+#!sites/default/config.pwd.ini
+#!sites/default/config.ini
+#sites/*/covers/large/*
+#sites/*/covers/medium/*
+#sites/*/covers/small/*
+#sites/*/covers/original/*
+#sites/*/econtent/library/*
+#sites/*/qrcodes/*
+#sites/*/solr/*/index/*
+#sites/*/solr/*/spelling/*
+#sites/*/solr/*/spellShingle/*
+#sites/*/solr/*/spellchecker/*
+#sites/*/solr/*/spellchecker/*
+#sites/*/marc/*
+#sites/*/marc_*/*
 vufind/documentation/
 vufind/admin/sql/
 vufind/packaging_app/config.ini
@@ -34,6 +51,11 @@ data-import
 *.class
 *.o
 *.so
+
+# Unneeded files that are large or built at runtime #
+#####################################################
+III_Telnet_Extract.pl
+LexileTitles.txt
 
 # Packages #
 ############
