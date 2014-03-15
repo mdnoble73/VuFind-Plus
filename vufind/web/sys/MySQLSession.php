@@ -60,7 +60,8 @@ class MySQLSession extends SessionInterface {
 	}
 
 	static public function gc($sess_maxlifetime) {
-		$s = new Session();
+		//Doing this in PHP  at random times, causes problems for VuFind, do it as part of cron in Java
+		/*$s = new Session();
 		$s->whereAdd('last_used + ' . $sess_maxlifetime . ' < ' . time());
 		$s->whereAdd('remember_me = 0');
 		$s->delete(true);
@@ -68,7 +69,7 @@ class MySQLSession extends SessionInterface {
 		$s = new Session();
 		$s->whereAdd('last_used + ' . SessionInterface::$rememberMeLifetime . ' < ' . time());
 		$s->whereAdd('remember_me = 1');
-		$s->delete(true);
+		$s->delete(true);*/
 	}
 
 }

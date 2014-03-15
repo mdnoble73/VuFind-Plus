@@ -15,7 +15,23 @@ public class DatabaseCleanup implements IProcessHandler {
 	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		CronProcessLogEntry processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Database Cleanup");
 		processLog.saveToDatabase(vufindConn, logger);
-		
+
+		//Remove expired sessions
+		try{
+			int rowsRemoved = 0;
+			long numStandardSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where last_used < (DATE_ADD(CURDATE(), INTERVAL -1 HOUR)) and remember_me = 0").executeUpdate();
+			processLog.addNote("Deleted " + numStandardSessionsDeleted + " expired Standard Sessions");
+			processLog.saveToDatabase(vufindConn, logger);
+			long numRememberMeSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where last_used < (DATE_ADD(CURDATE(), INTERVAL -2 WEEK)) and remember_me = 1").executeUpdate();
+			processLog.addNote("Deleted " + numStandardSessionsDeleted + " expired Remember Me Sessions");
+			processLog.saveToDatabase(vufindConn, logger);
+		}catch (SQLException e) {
+			processLog.incErrors();
+			processLog.addNote("Unable to delete expired sessions. " + e.toString());
+			logger.error("Error deleting expired sessions", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
+
 		//Remove old searches 
 		try {
 			int rowsRemoved = 0;
