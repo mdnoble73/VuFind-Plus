@@ -111,7 +111,7 @@
 					{/if}
 				</div>
 
-				<div id="recordTools" class="span3">
+				<div id="recordTools" class="span2">
 					{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
 
 					<div id="ratings" class="well text-center">
