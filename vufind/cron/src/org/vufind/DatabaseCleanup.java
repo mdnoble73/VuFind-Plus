@@ -19,10 +19,10 @@ public class DatabaseCleanup implements IProcessHandler {
 		//Remove expired sessions
 		try{
 			int rowsRemoved = 0;
-			long numStandardSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where last_used < (DATE_ADD(CURDATE(), INTERVAL -1 HOUR)) and remember_me = 0").executeUpdate();
+			long numStandardSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where FROM_UNIXTIME(last_used) < (DATE_ADD(CURDATE(), INTERVAL -1 HOUR)) and remember_me = 0").executeUpdate();
 			processLog.addNote("Deleted " + numStandardSessionsDeleted + " expired Standard Sessions");
 			processLog.saveToDatabase(vufindConn, logger);
-			long numRememberMeSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where last_used < (DATE_ADD(CURDATE(), INTERVAL -2 WEEK)) and remember_me = 1").executeUpdate();
+			long numRememberMeSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where FROM_UNIXTIME(last_used) < (DATE_ADD(CURDATE(), INTERVAL -2 WEEK)) and remember_me = 1").executeUpdate();
 			processLog.addNote("Deleted " + numStandardSessionsDeleted + " expired Remember Me Sessions");
 			processLog.saveToDatabase(vufindConn, logger);
 		}catch (SQLException e) {
@@ -65,7 +65,7 @@ public class DatabaseCleanup implements IProcessHandler {
 		}
 		
 		//Remove econtent records and related data that was created incorrectly. 
-		try {
+		/*try {
 			//Anything where the ILS id matches the ID is wrong.   
 			ResultSet eContentToCleanup = econtentConn.prepareStatement("SELECT id from econtent_record WHERE ilsId = id OR ilsId like 'econtentRecord%'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY).executeQuery();
 			PreparedStatement removeResourceStmt = vufindConn.prepareStatement("DELETE FROM resource where record_id = ? and source = 'eContent'");
@@ -115,7 +115,7 @@ public class DatabaseCleanup implements IProcessHandler {
 			processLog.addNote("Unable to remove incorrectly created econtent. " + e.toString());
 			logger.error("Error removing incorrectly created econtent", e);
 			processLog.saveToDatabase(vufindConn, logger);
-		}
+		}*/
 		processLog.setFinished();
 		processLog.saveToDatabase(vufindConn, logger);
 	}
