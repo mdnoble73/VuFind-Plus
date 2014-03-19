@@ -16,22 +16,26 @@ class MyRatings extends MyResearch{
 		//Load user ratings
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		$rating = new UserWorkReview();
-		$groupedWork = new GroupedWork();
-		$rating->joinAdd($groupedWork);
 		$rating->userId = $user->id;
 		$rating->find();
 		$ratings = array();
 		while($rating->fetch()){
-			$ratings[] = array(
-				'id' =>$rating->id,
-				'title' => ucwords($rating->full_title),
-				'author' => ucwords($rating->author),
-				'rating' => $rating->rating,
-				'link' => '/GroupedWork/' . $rating->groupedRecordPermanentId . '/Home',
-				'dateRated' => $rating->dateRated,
-				'ratingData' => array('user'=>$rating->rating),
-			);
+			$groupedWorkDriver = new GroupedWorkDriver($rating->groupedRecordPermanentId);
+			if ($groupedWorkDriver->isValid){
+				$ratings[] = array(
+					'id' =>$rating->id,
+					'groupedWorkId' => $rating->groupedRecordPermanentId,
+					'title' => $groupedWorkDriver->getTitle(),
+					'author' => $groupedWorkDriver->getPrimaryAuthor(),
+					'rating' => $rating->rating,
+					'review' => $rating->review,
+					'link' => $groupedWorkDriver->getLinkUrl(),
+					'dateRated' => $rating->dateRated,
+					'ratingData' => $groupedWorkDriver->getRatingData(),
+				);
+			}
 		}
 
 		asort($ratings);
@@ -39,33 +43,27 @@ class MyRatings extends MyResearch{
 		//Load titles the user is not interested in
 		$notInterested = array();
 
+		require_once ROOT_DIR . '/sys/LocalEnrichment/NotInterested.php';
 		$notInterestedObj = new NotInterested();
-		$resource = new Resource();
-		$notInterestedObj->joinAdd($resource);
 		$notInterestedObj->userId = $user->id;
-		$notInterestedObj->deleted = 0;
-		$notInterestedObj->selectAdd('user_not_interested.id as user_not_interested_id');
 		$notInterestedObj->find();
 		while ($notInterestedObj->fetch()){
-			if ($notInterestedObj->source == 'VuFind'){
-				$link = '/Record/' . $notInterestedObj->record_id;
-			}else{
-				$link = '/EcontentRecord/' . $notInterestedObj->record_id;
-			}
-			if ($notInterestedObj->deleted == 0){
+			$groupedWorkId = $notInterestedObj->groupedRecordPermanentId;
+			$groupedWorkDriver = new GroupedWorkDriver($groupedWorkId) ;
+			if ($groupedWorkDriver->isValid){
 				$notInterested[] = array(
-					'id' => $notInterestedObj->user_not_interested_id,
-					'title' => $notInterestedObj->title,
-					'author' => $notInterestedObj->author,
+					'id' => $notInterestedObj->id,
+					'title' => $groupedWorkDriver->getTitle(),
+					'author' => $groupedWorkDriver->getPrimaryAuthor(),
 					'dateMarked' => $notInterestedObj->dateMarked,
-					'link' => $link
+					'link' => $groupedWorkDriver->getLinkUrl()
 				);
 			}
 		}
 
-
 		$interface->assign('ratings', $ratings);
 		$interface->assign('notInterested', $notInterested);
+		$interface->assign('showNotInterested', false);
 
 		$interface->setPageTitle('My Ratings');
 		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');

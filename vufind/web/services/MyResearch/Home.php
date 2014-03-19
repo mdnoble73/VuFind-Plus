@@ -58,11 +58,6 @@ class Home extends MyResearch {
 		if (!$user){
 			$action = 'Home';
 		}elseif ($hasHomeTemplate){
-			//Var for the IDCLREADER TEMPLATE
-			$interface->assign('ButtonBack',false);
-			$interface->assign('ButtonHome',true);
-			$interface->assign('MobileTitle','&nbsp;');
-			
 			$interface->setTemplate('home.tpl');
 		}else{
 			if ($user && !$interface->isMobile()){

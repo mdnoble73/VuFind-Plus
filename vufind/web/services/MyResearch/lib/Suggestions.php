@@ -2,6 +2,7 @@
 require_once ROOT_DIR . '/Drivers/marmot_inc/UserRating.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
+require_once ROOT_DIR . '/sys/LocalEnrichment/NotInterested.php';
 
 class Suggestions{
 	/*
@@ -18,17 +19,10 @@ class Suggestions{
 		//Load all titles the user is not interested in
 		$notInterestedTitles = array();
 		$notInterested = new NotInterested();
-		$resource = new Resource();
-		$notInterested->joinAdd($resource);
 		$notInterested->userId = $userId;
 		$notInterested->find();
 		while ($notInterested->fetch()){
-			if ($notInterested->source == 'VuFind'){
-				$fullId = $notInterested->record_id;
-			}else{
-				$fullId = 'econtentRecord' . $notInterested->record_id;
-			}
-			$notInterestedTitles[$fullId] = $fullId;
+			$notInterestedTitles[$notInterested->groupedRecordPermanentId] = $notInterested->groupedRecordPermanentId;
 		}
 
 		//Load all titles the user has rated
@@ -37,8 +31,6 @@ class Suggestions{
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
 		$ratings = new UserWorkReview();
 		$ratings->userId = $userId;
-		//TODO: Update to use Not Interested with Grouped Works
-		//$notInterested->joinAdd($resource);
 		$ratings->find();
 		while ($ratings->fetch()){
 			$allRatedTitles[$ratings->groupedRecordPermanentId] = $ratings->groupedRecordPermanentId;
@@ -69,12 +61,11 @@ class Suggestions{
 			while($ratings->fetch()){
 				$groupedWorkId = $ratings->groupedRecordPermanentId;
 				//echo("Found resource for $resourceId - {$resource->title}<br/>");
-				$ratedTitles[$resource->record_id] = clone $ratings;
+				$ratedTitles[$ratings->groupedRecordPermanentId] = clone $ratings;
 				$isbns = $workApi->getIsbnsForWork($groupedWorkId);
 				$numRecommendations = Suggestions::getNovelistRecommendations($ratings, $groupedWorkId, $isbns, $allRatedTitles, $suggestions, $notInterestedTitles);
 				if ($numRecommendations == 0){
 					Suggestions::getSimilarlyRatedTitles($workApi, $db, $ratings, $userId, $allRatedTitles, $suggestions, $notInterestedTitles);
-					//echo("&nbsp;- Found $numRecommendations based on ratings from other users<br/>");
 				}
 			}
 		}
@@ -106,7 +97,6 @@ class Suggestions{
 				}
 			}
 		}
-		//print_r($groupedTitles);
 
 		//sort suggestions based on score from ascending to descending
 		uasort($suggestions, 'Suggestions::compareSuggestions');

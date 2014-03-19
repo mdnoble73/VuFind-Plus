@@ -202,7 +202,14 @@ function readConfig()
 			$serverArray = parse_ini_file($configFile, true);
 			$mainArray = ini_merge($mainArray, $serverArray);
 			$serverName = $tmpServername;
+
+			$passwordFile = "../../sites/$tmpServername/conf/config.pwd.ini";
+			if (file_exists($passwordFile)){
+				$serverArray = parse_ini_file($passwordFile, true);
+				$mainArray = ini_merge($mainArray, $serverArray);
+			}
 		}
+
 		array_shift($serverParts);
 	}
 

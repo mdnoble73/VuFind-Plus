@@ -2258,16 +2258,6 @@ public function renewItem($patronId, $itemId){
 			$result = $this->placeHoldViaSIP($recordId, $patronId, $comment, $type);
 		}
 
-		if ($result['result'] == true){
-			//Make a call to strands to update that the item was added to the list
-			global $configArray;
-			global $user;
-			if (isset($configArray['Strands']['APID']) && $user->disableRecommendations == 0){
-				$strandsUrl = "http://bizsolutions.strands.com/api2/event/addshoppingcart.sbs?needresult=true&apid={$configArray['Strands']['APID']}&item={$recordId}&user={$user->id}";
-				$ret = file_get_contents($strandsUrl);
-			}
-
-		}
 		return $result;
 	}
 

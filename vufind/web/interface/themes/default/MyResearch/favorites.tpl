@@ -19,41 +19,7 @@
 		{if $userNoticeFile}
 			{include file=$userNoticeFile}
 		{/if}
-			
-		{if $showStrands && $user->disableRecommendations == 0}
-			{assign var="scrollerName" value="Recommended"}
-			{assign var="wrapperId" value="recommended"}
-			{assign var="scrollerVariable" value="recommendedScroller"}
-			{assign var="scrollerTitle" value="Recommended for you"}
-			{include file=titleScroller.tpl}
-		
-			<script type="text/javascript">
-				{literal}
-				var recommendedScroller;
-				$(document).ready(function (){
-					recommendedScroller = new TitleScroller('titleScrollerRecommended', 'Recommended', 'recommended');
-					recommendedScroller.loadTitlesFrom('{/literal}{$path}{literal}/Search/AJAX?method=GetListTitles&id=strands:HOME-3&scrollerName=Recommended', false);
-				});
-				{/literal}
-			</script>
 
-			{assign var="scrollerName" value="RecentlyViewed"}
-			{assign var="wrapperId" value="recentlyViewed"}
-			{assign var="scrollerVariable" value="recentlyViewedScroller"}
-			{assign var="scrollerTitle" value="Recently Browsed"}
-			{include file=titleScroller.tpl}
-		
-			<script type="text/javascript">
-			{literal}
-			var recentlyViewedScroller;
-			$(document).ready(function (){
-				recentlyViewedScroller = new TitleScroller('titleScrollerRecentlyViewed', 'RecentlyViewed', 'recentlyViewed');
-				recentlyViewedScroller.loadTitlesFrom('{/literal}{$path}{literal}/Search/AJAX?method=GetListTitles&id=strands:HOME-4&scrollerName=RecentlyViewed', false);
-			});
-			{/literal}
-			</script>
-		{/if}
-				
 		<div class="yui-u">
 		
 			{if $showRatings == 1 && $user->disableRecommendations == 0 && $hasRatings}

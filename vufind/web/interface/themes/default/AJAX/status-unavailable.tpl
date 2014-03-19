@@ -1,1 +1,0 @@
-<span class="checkedout">{translate text="Checked Out"}</span>

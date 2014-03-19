@@ -139,8 +139,7 @@ class ConnectionManager
         }
         if ($url == null) {
             // Load appropriate default server URL based on index type:
-            $url = ($type == 'SolrStats')
-                ? $configArray['Statistics']['solr'] : $configArray['Index']['url'];
+            $url = $configArray['Index']['url'];
         }
 
         // Load the index connection code:

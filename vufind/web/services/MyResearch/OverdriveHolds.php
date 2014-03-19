@@ -52,10 +52,6 @@ class OverdriveHolds extends MyResearch {
 		}
 		$interface->assign('overDriveHolds', $overDriveHolds['holds']);
 
-		$interface->assign('ButtonBack',true);
-		$interface->assign('ButtonHome',true);
-		$interface->assign('MobileTitle','OverDrive Holds');
-
 		$hasSeparateTemplates = $interface->template_exists('MyResearch/overDriveAvailableHolds.tpl');
 		if ($hasSeparateTemplates){
 			$section = isset($_REQUEST['section']) ? $_REQUEST['section'] : 'available';

@@ -49,11 +49,6 @@ class AddToWishList extends Action {
 				return $interface->fetch('AJAX/login.tpl');
 			} else {
 				
-				//Var for the IDCLREADER TEMPLATE
-				$interface->assign('ButtonBack',true);
-				$interface->assign('ButtonHome',true);
-				$interface->assign('MobileTitle','Login to your account');
-				
 				$interface->setPageTitle('You must be logged in first');
 				$interface->assign('subTemplate', '../MyResearch/login.tpl');
 				$interface->setTemplate('view-alt.tpl');

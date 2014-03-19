@@ -31,6 +31,29 @@ VuFind.Searches = (function(){
 			return false;
 		},
 
+		sendEmail: function(){
+			if (Globals.loggedIn){
+				var from = $('#from').val();
+				var to = $('#to').val();
+				var message = $('#message').val();
+				var related_record = $('#related_record').val();
+				var sourceUrl = encodeURIComponent(window.location.href);
+
+				var url = Globals.path + "/Search/AJAX";
+				var params = "method=sendEmail&from=" + encodeURIComponent(from) + "&to=" + encodeURIComponent(to) + "&message=" + encodeURIComponent(message) + "&url=" + sourceUrl;
+				$.getJSON(url + '?' + params,
+						function(data) {
+							if (data.result) {
+								VuFind.showMessage("Success", data.message);
+							} else {
+								VuFind.showMessage("Error", data.message);
+							}
+						}
+				);
+			}
+			return false;
+		},
+
 		enableSearchTypes: function(){
 			var searchTypeElement = $("#searchSource");
 			var selectedSearchType = $(searchTypeElement.find(":selected"));

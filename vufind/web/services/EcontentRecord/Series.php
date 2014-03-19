@@ -20,7 +20,6 @@
 
 require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
-require_once ROOT_DIR . '/sys/SolrStats.php';
 
 class Series extends Action
 {

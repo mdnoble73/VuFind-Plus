@@ -53,7 +53,7 @@ VuFind.Lists = (function(){
 			return false;
 		},
 		emailListAction: function (id) {
-			ajaxLightbox(path + '/MyResearch/EmailList/' + id);
+			VuFind.Account.ajaxLightbox(path + '/MyResearch/EmailList/' + id);
 			return false;
 		},
 		citeListAction: function (id) {

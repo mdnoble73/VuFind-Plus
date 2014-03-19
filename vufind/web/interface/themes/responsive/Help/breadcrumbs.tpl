@@ -1,5 +1,5 @@
 <li>
-	{if $pageTemplate == 'view-alt.tpl' || isset($shortPageTitle)}
+	{if $shortPageTitle}
 	<em>{$shortPageTitle}</em>
 	{else}
 	<em>{$pageTemplate|replace:'.tpl':''|capitalize|translate}</em>

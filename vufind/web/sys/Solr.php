@@ -1455,7 +1455,7 @@ class Solr implements IndexEngine {
 			$institutionFacetName = 'owning_library';
 		}
 
-		//TODO: This block and the next block are reedundant and should be cleaned up
+		//TODO: This block and the next block are redundant and should be cleaned up
 		if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
 			$usableFilter = 'usable_by:('.$pType . ' OR all)';
 			if (strlen($owningLibrary) > 0){
@@ -1536,11 +1536,9 @@ class Solr implements IndexEngine {
 		}
 
 		//Process anything that the user is not interested in.
-		require_once ROOT_DIR . '/sys/NotInterested.php';
+		/*require_once ROOT_DIR . '/sys/LocalEnrichment/NotInterested.php';
 		if ($user){
 			$notInterested = new NotInterested();
-			$resource = new Resource();
-			$notInterested->joinAdd($resource);
 			$notInterested->userId = $user->id;
 			$notInterested->find();
 			if ($notInterested->N > 0){
@@ -1551,16 +1549,12 @@ class Solr implements IndexEngine {
 					if ($numRecords > 1){
 						$notInterestedFilter .= " OR ";
 					}
-					if ($notInterested->source == 'VuFind'){
-						$notInterestedFilter .= "id:" . $notInterested->record_id;
-					}else{
-						$notInterestedFilter .= "id:econtentRecord" . $notInterested->record_id;
-					}
+					$notInterestedFilter .= "id:" . $notInterested->groupedRecordPermanentId;
 				}
 				$notInterestedFilter .= ")";
 				$filter[] = $notInterestedFilter;
 			}
-		}
+		}*/
 
 		return $filter;
 	}
@@ -2147,6 +2141,9 @@ class Solr implements IndexEngine {
 
 		//Remove any exclamation marks that Solr will handle incorrectly.
 		$input = str_replace('!', ' ', $input);
+
+		//Remove any slashes that Solr will handle incorrectly.
+		$input = str_replace('\\', ' ', $input);
 
 		return $input;
 	}

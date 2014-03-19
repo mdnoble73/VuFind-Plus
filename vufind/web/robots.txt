@@ -3,8 +3,7 @@ Disallow: /cgi-bin/
 Disallow: /Search/
 Disallow: /Admin/
 Disallow: /Author/
-Disallow: /Browse/
-Disallow: /MyResearch/
+Disallow: /MyAccount/
 Disallow: /images/fiveStar/
 Disallow: /bookcover.php
 Disallow: /vufind/

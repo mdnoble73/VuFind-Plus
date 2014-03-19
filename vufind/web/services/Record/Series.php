@@ -19,7 +19,6 @@
  */
 
 require_once 'Record.php';
-require_once ROOT_DIR . '/sys/SolrStats.php';
 
 class Record_Series extends Record_Record
 {

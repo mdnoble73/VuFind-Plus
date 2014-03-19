@@ -66,9 +66,6 @@ abstract class Record_Record extends Action
 		$interface->assign('page_body_style', 'sidebar_left');
 		$interface->assign('libraryThingUrl', $configArray['LibraryThing']['url']);
 
-		//Determine whether or not materials request functionality should be enabled
-		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
-
 		//Load basic information needed in subclasses
 		if ($record_id == null || !isset($record_id)){
 			$this->id = $_GET['id'];
@@ -762,19 +759,7 @@ abstract class Record_Record extends Action
 	 * Record a record hit to the statistics index when stat tracking is enabled;
 	 * this is called by the Home action.
 	 */
-	public function recordHit()
-	{
-		//Don't do this since we implemented stats in MySQL rather than Solr
-		/*global $configArray;
-
-		if ($configArray['Statistics']['enabled']) {
-		// Setup Statistics Index Connection
-		$solrStats = new SolrStats($configArray['Statistics']['solr']);
-
-		// Save Record View
-		$solrStats->saveRecordView($this->recordDriver->getUniqueID());
-		unset($solrStats);
-		}*/
+	public function recordHit(){
 	}
 
 	/**

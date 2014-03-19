@@ -19,7 +19,6 @@
  */
 
 require_once ROOT_DIR . '/sys/NovelistFactory.php';
-require_once ROOT_DIR . '/sys/SolrStats.php';
 
 class GroupedWork_Series extends Action
 {

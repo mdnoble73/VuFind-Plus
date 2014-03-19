@@ -208,10 +208,6 @@ class OverDrive_AJAX extends Action {
 		$loanPeriods = $overDriveDriver->getLoanPeriodsForFormat($formatId);
 		$interface->assign('loanPeriods', $loanPeriods);
 
-		//Var for the IDCLREADER TEMPLATE
-		$interface->assign('ButtonHome',true);
-		$interface->assign('MobileTitle','{translate text="Loan Period"}');
-
 		return $interface->fetch('EcontentRecord/ajax-loan-period.tpl');
 	}
 
@@ -288,10 +284,6 @@ class OverDrive_AJAX extends Action {
 			$items = $eContentRecord->getItems();
 			$interface->assign('items', $items);
 		}
-
-		//Var for the IDCLREADER TEMPLATE
-		$interface->assign('ButtonHome',true);
-		$interface->assign('MobileTitle','{translate text="Select a Format"}');
 
 		return $interface->fetch('EcontentRecord/ajax-select-format.tpl');
 	}

@@ -1,25 +1,8 @@
-# Specific locations within VuFind #
-####################################
-sites/*
-!sites/default
-!sites/packaging_default
-#config.ini
-#config.pwd.ini
-#!sites/default/config.pwd.ini
-#!sites/default/config.ini
-#sites/*/covers/large/*
-#sites/*/covers/medium/*
-#sites/*/covers/small/*
-#sites/*/covers/original/*
-#sites/*/econtent/library/*
-#sites/*/qrcodes/*
-#sites/*/solr/*/index/*
-#sites/*/solr/*/spelling/*
-#sites/*/solr/*/spellShingle/*
-#sites/*/solr/*/spellchecker/*
-#sites/*/solr/*/spellchecker/*
-#sites/*/marc/*
-#sites/*/marc_*/*
+# Specific locations within VuFind to exclude from git #
+# Files are excluded either because                    #
+#  - they contain sensitive data (i.e. passwords)      #
+#  - they can change at runtime                        #
+########################################################
 vufind/documentation/
 vufind/admin/sql/
 vufind/packaging_app/config.ini
@@ -44,6 +27,27 @@ tests/selenium/*
 .idea/
 .settings/
 data-import
+config.pwd.ini
+!sites/default/config.pwd.ini
+!sites/default/config.ini
+sites/*/covers/large/*
+sites/*/covers/medium/*
+sites/*/covers/small/*
+sites/*/covers/original/*
+sites/*/econtent/library/*
+sites/*/qrcodes/*
+sites/*/solr/
+!sites/default/solr/jetty/
+sites/*/marc/*
+sites/*/marc_*/*
+sites/*/logs/*
+sites/*/backup
+sites/nashville.localhost/
+sites/nashgene.localhost/
+sites/wcpl.localhost/
+sites/opac.marmot.org/
+sites/opac2.marmot.org/
+sites/opac3.marmot.org/
 
 # Compiled source #                                                                                   
 ###################
@@ -103,3 +107,4 @@ Thumbs.db
 # Dreamweaver Files #
 #####################
 [_]notes/
+

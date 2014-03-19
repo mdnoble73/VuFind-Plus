@@ -1278,6 +1278,18 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'notInterestedWorks' => array(
+				'title' => 'Not Interested Table Works Update',
+				'description' => 'Update Not Interested Table to Link to Works' ,
+				'continueOnError' => true,
+				'sql' => array(
+					"TRUNCATE TABLE `user_not_interested`",
+					"ALTER TABLE `user_not_interested` ADD COLUMN groupedRecordPermanentId varchar(36)",
+					"ALTER TABLE `user_not_interested` DROP resourceId",
+				),
+			),
+
+
 			'userRatings1' => array(
 				'title' => 'User Ratings Update 1',
 				'description' => 'Add date rated for user ratings' ,
@@ -2851,21 +2863,9 @@ class DBMaintenance extends Admin_Admin {
 			//Get the grouped work for resource
 			$resource = new Resource();
 			$resource->id = $userResource->resource_id;
+
 			if ($resource->find(true)){
-				//Get the identifier for the resource
-				if ($resource->source == 'VuFind'){
-					$primaryIdentifier = $resource->record_id;
-				}else{
-					$eContentRecord = new EContentRecord();
-					$eContentRecord->id = $resource->record_id;
-					if ($eContentRecord->find(true)){
-						if (!empty($eContentRecord->externalId)){
-							$primaryIdentifier = $eContentRecord->externalId;
-						}else{
-							$primaryIdentifier = $eContentRecord->ilsId;
-						}
-					}
-				}
+				$primaryIdentifier = $this->getGroupedWorkForResource($resource);
 
 				if (isset($primaryIdentifier)){
 					$workIdentifier = new GroupedWorkPrimaryIdentifier();
@@ -3212,6 +3212,31 @@ class DBMaintenance extends Admin_Admin {
 		$subnet->find();
 		while ($subnet->fetch()){
 			$subnet->update();
+		}
+	}
+
+	/**
+	 * @param $resource
+	 * @return mixed
+	 */
+	public function getGroupedWorkForResource($resource) {
+//Get the identifier for the resource
+		if ($resource->source == 'VuFind') {
+			$primaryIdentifier = $resource->record_id;
+			return $primaryIdentifier;
+		} else {
+			$eContentRecord = new EContentRecord();
+			$eContentRecord->id = $resource->record_id;
+			if ($eContentRecord->find(true)) {
+				if (!empty($eContentRecord->externalId)) {
+					$primaryIdentifier = $eContentRecord->externalId;
+					return $primaryIdentifier;
+				} else {
+					$primaryIdentifier = $eContentRecord->ilsId;
+					return $primaryIdentifier;
+				}
+			}
+			return $primaryIdentifier;
 		}
 	}
 }

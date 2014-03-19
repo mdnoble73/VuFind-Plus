@@ -617,21 +617,6 @@ class OverDriveDriver2 {
 
 						$memCache->delete('overdrive_summary_' . $user->id);
 
-						//Record that the entry was checked out in strands
-						global $configArray;
-						if (isset($configArray['Strands']['APID']) && $user->disableRecommendations == 0){
-							//Get the record for the item
-							$eContentRecord = new EContentRecord();
-							$eContentRecord->whereAdd("sourceUrl like '%$overDriveId'");
-							if ($eContentRecord->find(true)){
-								$orderId = $user->id . '_' . time() ;
-								$strandsUrl = "http://bizsolutions.strands.com/api2/event/addshoppingcart.sbs?needresult=true&apid={$configArray['Strands']['APID']}&item=econtentRecord{$eContentRecord->id}::0.00::1&user={$user->id}&orderid={$orderId}";
-								$ret = file_get_contents($strandsUrl);
-								/*global $logger;
-								$logger->log("Strands Hold\r\n$ret", PEAR_LOG_INFO);*/
-							}
-						}
-
 						//Delete the cache for the record
 						$memCache->delete('overdrive_record_' . $overDriveId);
 					}else{

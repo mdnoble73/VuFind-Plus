@@ -1,7 +1,7 @@
 {strip}
 	{if $user->cat_username}
 		{if $profile.web_note}
-			<div id="web_note" class="text-info text-center well well-small">{$profile.web_note}</div>
+			<div id="web_note" class="alert alert-info text-center">{$profile.web_note}</div>
 		{/if}
 
 		<h3>{translate text='Checked Out Titles'}</h3>

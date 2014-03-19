@@ -28,45 +28,11 @@ class Browse_AJAX extends Action {
 	function launch()
 	{
 		header ('Content-type: application/json');
-		$response = array();
 		$method = $_REQUEST['method'];
-		if (in_array($method, array('getBrowseCategoryInfo', 'getMoreBrowseResults'))){
-			$response = $this->$method();
-		}else if (is_callable(array($this, $_GET['method']))) {
-			$this->searchObject = SearchObjectFactory::initSearchObject();
-			$this->searchObject->initBrowseScreen();
-			$this->searchObject->disableLogging();
-			$this->$method();
-			$result = $this->searchObject->processSearch();
-			$response['AJAXResponse'] = $result['facet_counts']['facet_fields'];
-			// Shutdown the search object
-			$this->searchObject->close();
-		} else {
-			$response['AJAXResponse'] = array('Error' => 'Invalid Method');
-		}
+		$response = $this->$method();
 
 
 		echo json_encode($response);
-	}
-
-	function GetOptions()
-	{
-		if (isset($_GET['field']))        $this->searchObject->addFacet($_GET['field']);
-		if (isset($_GET['facet_prefix'])) $this->searchObject->addFacetPrefix($_GET['facet_prefix']);
-		if (isset($_GET['query']))        $this->searchObject->setQueryString($_GET['query']);
-	}
-
-	function GetAlphabet()
-	{
-		if (isset($_GET['field'])) $this->searchObject->addFacet($_GET['field']);
-		if (isset($_GET['query'])) $this->searchObject->setQueryString($_GET['query']);
-		$this->searchObject->setFacetSortOrder(false);
-	}
-
-	function GetSubjects()
-	{
-		if (isset($_GET['field'])) $this->searchObject->addFacet($_GET['field']);
-		if (isset($_GET['query'])) $this->searchObject->setQueryString($_GET['query']);
 	}
 
 	function getBrowseCategoryInfo($textId = null){
@@ -154,4 +120,3 @@ class Browse_AJAX extends Action {
 		return $result;
 	}
 }
-?>

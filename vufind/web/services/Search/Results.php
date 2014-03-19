@@ -23,7 +23,6 @@ require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
 
-require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
 class Search_Results extends Action {
@@ -306,7 +305,6 @@ class Search_Results extends Action {
 			//Var for the IDCLREADER TEMPLATE
 			$interface->assign('ButtonBack',true);
 			$interface->assign('ButtonHome',true);
-			$interface->assign('MobileTitle','No Results Found');
 
 			// No record found
 			$interface->setTemplate('list-none.tpl');
@@ -391,7 +389,6 @@ class Search_Results extends Action {
 			//Var for the IDCLREADER TEMPLATE
 			$interface->assign('ButtonBack',true);
 			$interface->assign('ButtonHome',true);
-			$interface->assign('MobileTitle','Search Results');
 
 			// Process Paging
 			$link = $searchObject->renderLinkPageTemplate();
@@ -434,9 +431,6 @@ class Search_Results extends Action {
 				$interface->assign('unscopedResults', $unscopedResults);
 			}
 		}
-
-		//Determine whether or not materials request functionality should be enabled
-		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
 
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor']) && !is_array($_GET['lookfor'])) {
 			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');

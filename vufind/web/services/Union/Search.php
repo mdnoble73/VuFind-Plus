@@ -68,14 +68,6 @@ class Union_Search extends Action {
 					$_REQUEST['basicType'] = 'tag';
 					$results = new Search_Results();
 					$results->launch();
-				}elseif ($searchSource->searchWhat == 'title_browse' || $searchSource->searchWhat == 'author_browse' || $searchSource->searchWhat == 'subject_browse'){
-					require_once (ROOT_DIR . '/services/AlphaBrowse/Results.php');
-					$module = 'AlphaBrowse';
-					$interface->assign('module', $module);
-					$action = 'Results';
-					$interface->assign('action', $action);
-					$results = new AlphaBrowse_Results();
-					$results->launch();
 				}else{
 					$searchSources = new SearchSources();
 					$type = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : $_REQUEST['type'];
@@ -111,24 +103,13 @@ class Union_Search extends Action {
 				$results = new Results();
 				$results->launch();
 			}else{
-				$type = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : (isset($_REQUEST['type']) ? $_REQUEST['type'] : 'Keyword');
-				if (strpos($type , 'browse') === 0){
-					require_once (ROOT_DIR . '/services/AlphaBrowse/Results.php');
-					$module = 'AlphaBrowse';
-					$interface->assign('module', $module);
-					$action = 'Results';
-					$interface->assign('action', $action);
-					$results = new AlphaBrowse_Results();
-					$results->launch();
-				}else{
-					require_once (ROOT_DIR . '/services/Search/Results.php');
-					$module = 'Search';
-					$interface->assign('module', $module);
-					$action = 'Results';
-					$interface->assign('action', $action);
-					$results = new Search_Results();
-					$results->launch();
-				}
+				require_once (ROOT_DIR . '/services/Search/Results.php');
+				$module = 'Search';
+				$interface->assign('module', $module);
+				$action = 'Results';
+				$interface->assign('action', $action);
+				$results = new Search_Results();
+				$results->launch();
 			}
 		}
 	}

@@ -22,7 +22,6 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
 
-require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
 class Results extends Action {

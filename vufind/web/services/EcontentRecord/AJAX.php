@@ -5,7 +5,7 @@ require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 
 global $configArray;
 
-class AJAX extends Action {
+class EContentRecord_AJAX extends Action {
 
 	function AJAX() {
 	}
@@ -544,7 +544,6 @@ class AJAX extends Action {
 	function AddItem(){
 		require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 		require_once ROOT_DIR . '/sys/DataObjectUtil.php';
-		global $user;
 		global $interface;
 		global $configArray;
 		$structure = EContentItem::getObjectStructure();
@@ -560,12 +559,10 @@ class AJAX extends Action {
 	function EditItem(){
 		require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 		require_once ROOT_DIR . '/sys/DataObjectUtil.php';
-		global $user;
 		global $interface;
 		global $configArray;
 		$structure = EContentItem::getObjectStructure();
 		$object = new EContentItem();
-		$recordId = strip_tags($_REQUEST['id']);
 		$itemId = strip_tags($_REQUEST['itemId']);
 		$object->id = $itemId;
 		if ($object->find(true)){
@@ -582,7 +579,6 @@ class AJAX extends Action {
 		global $user;
 		require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 		if ($user->hasRole('epubAdmin')){
-			$recordId = strip_tags($_REQUEST['id']);
 			$itemId = strip_tags($_REQUEST['itemId']);
 			$econtentItem = new EContentItem();
 			$econtentItem->id = $itemId;
@@ -609,7 +605,7 @@ class AJAX extends Action {
 		$overdriveEmail = isset($_REQUEST['overdriveEmail']) ? $_REQUEST['overdriveEmail'] : $user->overdriveEmail;
 		if (isset($_REQUEST['overdriveEmail'])){
 			if ($_REQUEST['overdriveEmail'] != $user->overdriveEmail){
-				$user->overdriveEmail = $_REQUEST['overdriveEmail'];
+				$user->overdriveEmail = $overdriveEmail;
 				$user->update();
 				//Update the serialized instance stored in the session
 				$_SESSION['userinfo'] = serialize($user);
@@ -709,10 +705,6 @@ class AJAX extends Action {
 		$loanPeriods = $overDriveDriver->getLoanPeriodsForFormat($formatId);
 		$interface->assign('loanPeriods', $loanPeriods);
 
-		//Var for the IDCLREADER TEMPLATE
-		$interface->assign('ButtonHome',true);
-		$interface->assign('MobileTitle','{translate text="Loan Period"}');
-
 		return $interface->fetch('EcontentRecord/ajax-loan-period.tpl');
 	}
 
@@ -789,10 +781,6 @@ class AJAX extends Action {
 			$items = $eContentRecord->getItems();
 			$interface->assign('items', $items);
 		}
-
-		//Var for the IDCLREADER TEMPLATE
-		$interface->assign('ButtonHome',true);
-		$interface->assign('MobileTitle','{translate text="Select a Format"}');
 
 		return $interface->fetch('EcontentRecord/ajax-select-format.tpl');
 	}

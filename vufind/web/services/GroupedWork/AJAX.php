@@ -22,6 +22,28 @@ class GroupedWork_AJAX {
 		echo $this->$method();
 	}
 
+	function clearUserRating(){
+		global $user;
+		$id = $_REQUEST['id'];
+		$result = array('result' => false);
+		if (!$user){
+			$result['message'] = 'You must be logged in to delete ratings.';
+		}else{
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
+			$userWorkReview = new UserWorkReview();
+			$userWorkReview->groupedRecordPermanentId = $id;
+			$userWorkReview->userId = $user->id;
+			if ($userWorkReview->find(true)){
+				$userWorkReview->delete();
+				$result = array('result' => true, 'message' => 'We successfully deleted that rating for you.');
+			}else{
+				$result['message'] = 'Sorry, we could not find a that review in the system.';
+			}
+		}
+
+		return json_encode($result);
+	}
+
 	function getEnrichmentInfo(){
 		global $configArray;
 		global $interface;
@@ -434,12 +456,12 @@ class GroupedWork_AJAX {
 			}elseif (PEAR_Singleton::isError($emailResult)){
 				$result = array(
 						'result' => false,
-						'message' => 'Your text message was count not be sent {$smsResult}.'
+						'message' => "Your e-mail message could not be sent {$emailResult}."
 				);
 			}else{
 				$result = array(
 						'result' => false,
-						'message' => 'Your text message could not be sent due to an unknown error.'
+						'message' => 'Your e-mail message could not be sent due to an unknown error.'
 				);
 			}
 		}else{
@@ -607,6 +629,45 @@ class GroupedWork_AJAX {
 			);
 		}
 
+		return json_encode($result);
+	}
+
+	function markNotInterested(){
+		global $user;
+		$id = $_REQUEST['id'];
+		require_once ROOT_DIR . '/sys/LocalEnrichment/NotInterested.php';
+		$notInterested = new NotInterested();
+		$notInterested->userId = $user->id;
+		$notInterested->groupedRecordPermanentId = $id;
+
+		if (!$notInterested->find(true)){
+			$notInterested->dateMarked = time();
+			$notInterested->insert();
+			$result = array(
+				'result' => true,
+				'message' => "You won't be shown this title in the future.",
+			);
+		}else{
+			$result = array(
+				'result' => false,
+				'message' => "This record was already marked as something you aren't interested in.",
+			);
+		}
+		return json_encode($result);
+	}
+
+	function clearNotInterested(){
+		global $user;
+		$idToClear = $_REQUEST['id'];
+		require_once ROOT_DIR . '/sys/LocalEnrichment/NotInterested.php';
+		$notInterested = new NotInterested();
+		$notInterested->userId = $user->id;
+		$notInterested->id = $idToClear;
+		$result = array('result' => false);
+		if ($notInterested->find(true)){
+			$notInterested->delete();
+			$result = array('result' => true);
+		}
 		return json_encode($result);
 	}
 } 

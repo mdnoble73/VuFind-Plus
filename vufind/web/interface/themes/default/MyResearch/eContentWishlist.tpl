@@ -17,22 +17,6 @@
 				<div id="web_note">{$profile.web_note}</div>
 			{/if}
 		
-			{* Display recommendations for the user *}
-			{if $showStrands && $user->disableRecommendations == 0}
-				{assign var="scrollerName" value="Recommended"}
-				{assign var="wrapperId" value="recommended"}
-				{assign var="scrollerVariable" value="recommendedScroller"}
-				{assign var="scrollerTitle" value="Recommended for you"}
-				{include file=titleScroller.tpl}
-			
-				<script type="text/javascript">
-					var recommendedScroller;
-	
-					recommendedScroller = new TitleScroller('titleScrollerRecommended', 'Recommended', 'recommended');
-					recommendedScroller.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles&id=strands:HOME-3&scrollerName=Recommended', false);
-				</script>
-			{/if}
-					
 			<div class="myAccountTitle">{translate text='Your eContent Wish List'}</div>
 			{if $userNoticeFile}
 				{include file=$userNoticeFile}

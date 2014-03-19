@@ -6,14 +6,14 @@
 <script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
 {if $user->cat_username}
 	<div class="resulthead">
-		<div class="myAccountTitle">{translate text='My Ratings'}</div>
+		<h3>{translate text='My Ratings'}</h3>
 		{if $userNoticeFile}
 			{include file=$userNoticeFile}
 		{/if}
 
 		<div class="page">
 			{if $ratings}
-				<table class="myAccountTable" id="myRatingsTable">
+				<table class="table table-striped" id="myRatingsTable">
 					<thead>
 						<tr>
 							<th>{translate text='Date'}</th>
@@ -26,9 +26,9 @@
 					</thead>
 					<tbody>
 
-						{foreach from=$ratings item=record name="recordLoop" key=recordKey item=rating}
+						{foreach from=$ratings name="recordLoop" key=recordKey item=rating}
 
-							<tr id="record{$record.recordId|escape}" class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
+							<tr id="myRating{$rating.groupedWorkId|escape}" class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
 								<td>
 									{if isset($rating.dateRated)}
 										{$rating.dateRated|date_format}
@@ -44,39 +44,23 @@
 									{$rating.format}
 								</td>
 								<td class="myAccountCell">
-									{if $rating.source == 'VuFind'}
-										{include file='Record/title-rating.tpl' shortId=$rating.shortId recordId=$rating.fullId ratingData=$rating.ratingData}
-									{else}
-										{include file='EcontentRecord/title-rating.tpl' shortId=$rating.shortId recordId=$rating.shortId ratingData=$rating.ratingData}
-									{/if}
+									{include file='GroupedWork/title-rating.tpl' shortId=$rating.shortId recordId=$rating.fullId ratingData=$rating.ratingData}
+									<p>{$rating.review}</p>
 								</td>
 								<td class="myAccountCell">
-									<span class="button" onclick="return clearUserRating('{$rating.source}', '{$rating.fullId}', '{$rating.shortId}');">{translate text="Clear"}</span>
+									<span class="btn btn-xs btn-default" onclick="return VuFind.GroupedWork.clearUserRating('{$rating.groupedWorkId}');">{translate text="Clear"}</span>
 								</td>
 							</tr>
 						{/foreach}
 						</tbody>
 					</table>
-					<script type="text/javascript">
-						$(document).ready(function () {literal} {
-							$("#myRatingsTable")
-							 .tablesorter({
-									cssAsc: 'sortAscHeader',
-									cssDesc: 'sortDescHeader',
-									cssHeader: 'unsortedHeader',
-									headers: { 0: { sorter: 'date' }, 5: { sorter: false } },
-									sortList: [[0, 1]]
-								})
-							});
-						{/literal}
-					</script>
 				{else}
 					You have not rated any titles yet.
 				{/if}
 
 			{if $notInterested}
-				<div class="myAccountTitle">{translate text='Not Interested'}</div>
-				<table class="myAccountTable" id="notInterestedTable">
+				<h3>{translate text='Not Interested'}</h3>
+				<table class="myAccountTable table table-striped" id="notInterestedTable">
 					<thead>
 						<tr>
 							<th>Date</th>

@@ -60,40 +60,6 @@ class AJAX extends Action {
 		}
 	}
 
-	function clearUserRating(){
-		global $user;
-		$source = $_REQUEST['source'];
-		$recordId = $_REQUEST['recordId'];
-		$result = array('result' => false);
-		if ($source == 'VuFind'){
-			require_once ROOT_DIR . '/Drivers/marmot_inc/UserRating.php';
-			$resource = new Resource();
-			$resource->record_id = $recordId;
-			$resource->source = 'VuFind';
-			if ($resource->find(true)){
-				$rating = new UserRating();
-				$rating->userid = $user->id;
-				$rating->resourceid = $resource->id;
-				if ($rating->find(true)){
-					if ($rating->delete()){
-						$result = array('result' => true, 'message' => 'deleted user rating for resource ' . $rating->resourceid);
-					}
-				}
-			}
-		}else{
-			require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
-			$econtentRating = new EContentRating();
-			$econtentRating->userId = $user->id;
-			$econtentRating->recordId = $recordId;
-			if ($econtentRating->find(true)){
-				if ($econtentRating->delete()){
-					$result = array('result' => true);
-				}
-			}
-		}
-		return json_encode($result);
-	}
-
 	// Create new list
 	function AddList()
 	{

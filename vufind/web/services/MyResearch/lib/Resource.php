@@ -19,7 +19,6 @@ class Resource extends DB_DataObject {
 	public $upc;
 	public $format;
 	public $format_category;
-	//public $marc;
 	public $marc_checksum;
 	public $source;               // string(50)  not_null
 	public $deleted;

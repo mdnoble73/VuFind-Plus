@@ -19,7 +19,6 @@
  */
 
 require_once ROOT_DIR . '/Action.php';
-require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
 class SearchAPI extends Action {

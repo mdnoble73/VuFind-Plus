@@ -19,7 +19,6 @@
  */
 
 require_once 'Record.php';
-require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once 'Reviews.php';
 require_once 'UserComments.php';
 require_once 'Cite.php';

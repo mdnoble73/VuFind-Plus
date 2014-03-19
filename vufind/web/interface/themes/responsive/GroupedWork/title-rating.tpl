@@ -1,5 +1,5 @@
 {if $showRatings == 1}
-	<div {if $ratingClass}class="{$ratingClass}"{/if}>
+	<div {if $ratingClass}class="{$ratingClass} rate{$summId}"{/if}>
 		<div class="title-rating" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}');">
 			<span class="ui-rater-starsOff" style="width:90px">
 				{if $ratingData.user}
@@ -10,7 +10,7 @@
 			</span>
 		</div>
 		{if $showNotInterested == true}
-			<button class="button notInterested" title="Select Not Interested if you don't want to see this title again." onclick="return markNotInterested('VuFind', '{$recordId}');">Not&nbsp;Interested</button>
+			<button class="button notInterested" title="Select Not Interested if you don't want to see this title again." onclick="return VuFind.GroupedWork.markNotInterested('{$summId}');">Not&nbsp;Interested</button>
 		{/if}
 	</div>
 {/if}

@@ -19,7 +19,6 @@
  */
 
 require_once ROOT_DIR . '/Action.php';
-require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 require_once ROOT_DIR . '/sys/Utils/SwitchDatabase.php';
@@ -466,35 +465,10 @@ class ListAPI extends Action {
 				$listId = $listInfo[1];
 			}
 			return $this->_getUserListTitles($listId);
-		}elseif (preg_match('/strands:(.*)/', $listId, $strandsInfo)){
-			$strandsTemplate = $strandsInfo[1];
-			$results = $this->loadDataFromStrands($strandsTemplate, $user);
-			$ids = $this->getIdsFromStrandsResults($results);
-			$titles = $this->loadTitleInformationForIds($ids);
-			return array('success' => true, 'listName' => $strandsTemplate, 'listDescription' => 'Strands recommendations', 'titles'=>$titles, 'strands' => array('reqId' => $results->result->reqId, 'tpl' => $results->result->tpl));
-
-		}elseif (preg_match('/EContentStrands:(.*)/', $listId, $strandsInfo)){
-			require_once (ROOT_DIR . 'sys/eContent/EContentRecord.php');
-			$strandsTemplate = $strandsInfo[1];
-			$results = $this->loadDataFromStrands($strandsTemplate, $user);
-			$ids = $this->getIdsFromStrandsResults($results, 'econtentRecord');
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->whereAdd('id IN ('.implode(',',$ids).')');
-			$eContentRecord->find();
-			$titles = array();
-			while($eContentRecord->fetch())
-			{
-				$titles[] = $this->setEcontentRecordInfoForList($eContentRecord);
-			}
-			if(!empty($titles))
-			{
-				return array('success' => true, 'listName' => $strandsTemplate, 'listDescription' => 'Strands recommendations', 'titles'=>$titles, 'strands' => array('reqId' => $results->result->reqId, 'tpl' => $results->result->tpl));
-			}
-			return array('success'=>false, 'message'=>'The specified list is empty');
 		}elseif (preg_match('/review:(.*)/', $listId, $reviewInfo)){
 			require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
 			require_once ROOT_DIR . '/services/MyResearch/lib/User_resource.php';
-			//Load the data from strands
+			//Load the data from reviews
 			$reviewTag = $reviewInfo[1];
 			return $this->_getReviewTitles($reviewTag);
 
@@ -674,37 +648,6 @@ class ListAPI extends Action {
 		}
 	}
 
-
-	private function getIdsFromStrandsResults($results, $removePrefix = NULL)
-	{
-		$ids = array();
-		foreach ($results->result->recommendations as $recommendation){
-			if ($removePrefix !== NULL)
-			{
-				if(strpos($recommendation->itemId, $removePrefix) !== false)
-				{
-					$ids[] = substr($recommendation->itemId, strlen($removePrefix));
-				}
-			}
-			else
-			{
-				$ids[] = $recommendation->itemId;
-			}
-		}
-		return $ids;
-	}
-
-	private function loadDataFromStrands($strandsTemplate, $user)
-	{
-		global $configArray;
-		//Load the data from strands
-		$recordId = isset($_REQUEST['recordId']) ? $_REQUEST['recordId'] : '';
-		$userId = $user ? $user->id : '';
-		$strandsUrl = "http://bizsolutions.strands.com/api2/recs/item/get.sbs?apid={$configArray['Strands']['APID']}&user={$userId}&tpl={$strandsTemplate}&format=json&amount=25&metadata=false&explanation=true&item={$recordId}";
-		$results = json_decode(file_get_contents($strandsUrl));
-		return $results;
-	}
-
 	/**
 	 * Get econtent information for a title.
 	 *
@@ -773,30 +716,6 @@ class ListAPI extends Action {
 				'fullListLink' => $configArray['Site']['path'] . '/MyResearch/MyList/' . $listId,
 			);
 
-		}elseif (preg_match('/strands:(.*)/', $listId, $strandsInfo)){
-			//Load the data from strands
-			$strandsTemplate = $strandsInfo[1];
-			$recordId = isset($_REQUEST['recordId']) ? $_REQUEST['recordId'] : '';
-
-			//Determine how long the titles should be cached
-			if (isset($configArray['StrandsCaching'][$strandsTemplate])){
-				$cacheType = $configArray['StrandsCaching'][$strandsTemplate];
-			}else{
-				$cacheType = 'general';
-			}
-			$cacheLength = $configArray['Caching']['strands_' . $cacheType] ;
-			$cacheName = "strands_{$cacheType}_{$strandsTemplate}";
-			if ($cacheType == 'user'){
-				$cacheName .= '_' . $userId;
-			}else if ($cacheType == 'record'){
-				$cacheName .= '_' . $recordId;
-			}
-			return array(
-				'cacheType' => $cacheType,
-				'cacheName' => $cacheName,
-				'cacheLength' => $cacheLength,
-				'fullListLink' => ''
-			);
 		}elseif (preg_match('/review:(.*)/', $listId, $reviewInfo)){
 			return array(
 				'cacheType' => 'general',

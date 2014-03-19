@@ -10,7 +10,6 @@
 		<title>{$bookTitle} - {$libraryName} MP-3 Player</title>
 
 		<script type="text/javascript" src="{$path}/js/jquery-1.7.1.min.js"></script>
-		<script type="text/javascript" src="{$path}/js/bookcart/json2.js"></script>
 		<script type="text/javascript" src="{$path}/js/jquery.plugins.js"></script>
 		<script type="text/javascript" src="{$path}/js/jplayer/jquery.jplayer.min.js"></script>
 	  
@@ -162,10 +161,10 @@
 				
 				<div id="menu-header-links">
 					<div id="menu-account-links">
-					<span class="menu-account-link logoutOptions top-menu-item"{if !$user} style="display: none;"{/if}><a href="{$path}/MyResearch/EContentCheckedOut">{translate text="My Account"}</a></span>
-					<span class="menu-account-link logoutOptions top-menu-item"{if !$user} style="display: none;"{/if}><a href="{$path}/MyResearch/Logout">{translate text="Log Out"}</a></span>
+					<span class="menu-account-link logoutOptions top-menu-item"{if !$user} style="display: none;"{/if}><a href="{$path}/MyAccount/EContentCheckedOut">{translate text="My Account"}</a></span>
+					<span class="menu-account-link logoutOptions top-menu-item"{if !$user} style="display: none;"{/if}><a href="{$path}/MyAccount/Logout">{translate text="Log Out"}</a></span>
 					{if $showLoginButton == 1}
-					  <span class="menu-account-link loginOptions top-menu-item" {if $user} style="display: none;"{/if}><a href="{$path}/MyResearch/Home" class='loginLink'>{translate text="My Account"}</a></span>
+					  <span class="menu-account-link loginOptions top-menu-item" {if $user} style="display: none;"{/if}><a href="{$path}/MyAccount/Home" class='loginLink'>{translate text="My Account"}</a></span>
 					{/if}
 					</div>
 				</div>
@@ -185,7 +184,7 @@
   	
   	{if $showLogin}
       <div id="epubLoginForm">
-  			<form id="loginForm" action="{$path}/MyResearch/Home" method="post">
+  			<form id="loginForm" action="{$path}/MyAccount/Home" method="post">
   				<div id="loginFormContents">
             <input type="hidden" name="id" value="{$id}"/>
             <input type="hidden" name="returnUrl" value="{$path}{$fullPath}"/>

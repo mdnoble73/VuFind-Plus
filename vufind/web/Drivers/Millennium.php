@@ -224,37 +224,6 @@ class MillenniumDriver implements DriverInterface
 		/** @var Memcache $memCache */
 		global $memCache;
 		$scope = $this->getMillenniumScope();
-		//Clear millennium cache once per minute
-		/*$lastCacheClear = $memCache->get('millennium_cache_interval');
-		//echo ("lastCacheClear = $lastCacheClear, cache_interval = {$configArray['Caching']['millennium_cache_interval']}");
-		// Do not clear cache since it is blocking in MySQL
-		if ($lastCacheClear == false || isset($_REQUEST['reload'])){
-			//Get rid of anything in the cache older than 5 minutes
-			$millenniumCache = new MillenniumCache();
-			//First clean out any records that are more than 5 minutes old
-			if (isset($_REQUEST['reload'])){
-				$cacheExpirationTime = time() ;
-			}else{
-				$cacheExpirationTime = time() - 5 * 60;
-			}
-			//$logger->log("Clearing millennium cache before $cacheExpirationTime", PEAR_LOG_INFO);
-			//Update memcache before clearing the database so we don't have tons of threads trying to clear the cache
-			$memCache->set('millennium_cache_interval', $cacheExpirationTime, 0, $configArray['Caching']['millennium_cache_interval']);
-			$millenniumCache->whereAdd("cacheDate < $cacheExpirationTime");
-			$millenniumCache->delete(true);
-		}
-		//Now see if the record already exists in our cache.
-		$millenniumCache = new MillenniumCache();
-		$millenniumCache->recordId = $id;
-		$millenniumCache->scope = $scope;
-		$millenniumCache->find();
-		if ($millenniumCache->N > 0){
-			//Found a cache entry
-			$millenniumCache->fetch();
-			//We already deleted old cache entries so we don't need to check to see if the entry is stale.
-			//Just return the entry
-			return $millenniumCache;
-		}*/
 		//Load the pages for holdings, order information, and items
 		$millenniumCache = new MillenniumCache();
 		$millenniumCache->recordId = $id;
@@ -280,10 +249,6 @@ class MillenniumDriver implements DriverInterface
 		$timer->logTime('got frameset info from millennium');
 
 		$millenniumCache->cacheDate = time();
-		//Temporarily ignore errors
-		/*disableErrorHandler();
-		$millenniumCache->insert();
-		enableErrorHandler();*/
 
 		return $millenniumCache;
 
@@ -776,14 +741,22 @@ class MillenniumDriver implements DriverInterface
 
 		require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
-		$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
-		$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
-		$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
-		$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
+		if ($overDriveDriver->isUserValidForOverDrive($user)){
+			$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
+			$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
+			$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
+			$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
+			$profile['canUseOverDrive'] = true;
+		}else{
+			$profile['numOverDriveCheckedOut'] = 0;
+			$profile['numOverDriveHoldsAvailable'] = 0;
+			$profile['numOverDriveHoldsRequested'] = 0;
+			$profile['canUseOverDrive'] = false;
+		}
 
-		$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $overDriveSummary['numCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
-		$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $overDriveSummary['numAvailableHolds'] + $eContentAccountSummary['numEContentAvailableHolds'];
-		$profile['numHoldsRequestedTotal'] = $profile['numHoldsRequested'] + $overDriveSummary['numUnavailableHolds'] + $eContentAccountSummary['numEContentUnavailableHolds'];
+		$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $profile['numOverDriveCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
+		$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $profile['numOverDriveHoldsAvailable'] + $eContentAccountSummary['numEContentAvailableHolds'];
+		$profile['numHoldsRequestedTotal'] = $profile['numHoldsRequested'] + $profile['numOverDriveHoldsRequested'] + $eContentAccountSummary['numEContentUnavailableHolds'];
 		$profile['numHoldsTotal'] = $profile['numHoldsAvailableTotal'] + $profile['numHoldsRequestedTotal'];
 
 		//Get a count of the materials requests for the user

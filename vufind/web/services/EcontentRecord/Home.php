@@ -21,7 +21,6 @@
 require_once ROOT_DIR . '/services/Record/UserComments.php';
 require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
-require_once ROOT_DIR . '/sys/SolrStats.php';
 
 class EcontentRecord_Home extends Action{
 	/** @var  SearchObject_Solr $db */
@@ -356,11 +355,6 @@ class EcontentRecord_Home extends Action{
 			$interface->setTemplate('view.tpl');
 
 			$interface->setPageTitle($eContentRecord->title);
-
-			//Var for the IDCLREADER TEMPLATE
-			$interface->assign('ButtonBack',true);
-			$interface->assign('ButtonHome',true);
-			$interface->assign('MobileTitle','&nbsp;');
 
 			//Load Staff Details
 			$interface->assign('staffDetails', $this->recordDriver->getStaffView($eContentRecord));

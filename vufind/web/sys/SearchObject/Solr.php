@@ -135,9 +135,6 @@ class SearchObject_Solr extends SearchObject_Base
 		if (isset($searchSettings['Advanced_Searches'])) {
 			$this->advancedTypes = $searchSettings['Advanced_Searches'];
 		}
-		if (isset($searchSettings['Browse_Searches'])) {
-			$this->browseTypes = $searchSettings['Browse_Searches'];
-		}
 
 		// Load sort preferences (or defaults if none in .ini file):
 		if (isset($searchSettings['Sorting'])) {

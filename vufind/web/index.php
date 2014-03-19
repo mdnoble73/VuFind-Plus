@@ -158,12 +158,6 @@ if ($library){
 //Set that the interface is a single column by default
 $interface->assign('page_body_style', 'one_column');
 
-if (isset($configArray['Strands']) && isset($configArray['Strands']['APID']) && strlen($configArray['Strands']['APID']) > 0){
-	$interface->assign('strandsAPID', $configArray['Strands']['APID']);
-	$interface->assign('showStrands', true);
-}else{
-	$interface->assign('showStrands', false);
-}
 $interface->assign('showPackagingDetailsReport', isset($configArray['EContent']['showPackagingDetailsReport']) && $configArray['EContent']['showPackagingDetailsReport']);
 $interface->assign('showFines', $configArray['Catalog']['showFines']);
 
@@ -277,10 +271,6 @@ if (!$analytics->isTrackingDisabled()){
 	}
 }
 
-//Determine whether or not materials request functionality should be enabled
-require_once ROOT_DIR . '/sys/MaterialsRequest.php';
-$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
-
 // Process Authentication, must be done here so we can redirect based on user information
 // immediately after logging in.
 $interface->assign('loggedIn', $user == false ? 'false' : 'true');
@@ -289,13 +279,10 @@ if ($user) {
 	//Create a cookie for the user's home branch so we can sort holdings even if they logout.
 	//Cookie expires in 1 week.
 	setcookie('home_location', $user->homeLocationId, time()+60*60*24*7, '/');
-} else if (// Special case for Shibboleth:
-($configArray['Authentication']['method'] == 'Shibboleth' && $module == 'MyResearch') ||
-// Default case for all other authentication methods:
-((isset($_POST['username']) && isset($_POST['password'])) && ($action != 'Account' && $module != 'AJAX'))) {
+} else if (isset($_POST['username']) && isset($_POST['password']) && ($action != 'Account' && $module != 'AJAX')) {
 	$user = UserAccount::login();
 	if (PEAR_Singleton::isError($user)) {
-		require_once ROOT_DIR . '/services/MyResearch/Login.php';
+		require_once ROOT_DIR . '/services/MyAccount/Login.php';
 		Login::launch($user->getMessage());
 		exit();
 	}
@@ -426,18 +413,7 @@ if ($action == "AJAX" || $action == "JSON"){
 	$searchObject = SearchObjectFactory::initSearchObject();
 	$searchObject->init();
 	$timer->logTime('Create Search Object');
-	//Add browse types as well.
-	$includeAlphaBrowse = true;
-	if (isset($library) && $library->enableAlphaBrowse == false){
-		$includeAlphaBrowse = false;
-	}
-	if ($interface->isMobile()){
-		$includeAlphaBrowse = false;
-	}
 	$basicSearchTypes = is_object($searchObject) ?    $searchObject->getBasicTypes() : array();
-	if ($includeAlphaBrowse){
-		$basicSearchTypes = array_merge($basicSearchTypes, $searchObject->getBrowseTypes());
-	}
 	$interface->assign('basicSearchTypes', $basicSearchTypes);
 
 	//Load repeat search options
@@ -765,8 +741,8 @@ function vufind_autoloader($class) {
 		if (file_exists('sys/' . $class . '.php')){
 			$className = ROOT_DIR . '/sys/' . $class . '.php';
 			require_once $className;
-		}elseif (file_exists('services/MyResearch/lib/' . $class . '.php')){
-			$className = ROOT_DIR . '/services/MyResearch/lib/' . $class . '.php';
+		}elseif (file_exists('services/MyAccount/lib/' . $class . '.php')){
+			$className = ROOT_DIR . '/services/MyAccount/lib/' . $class . '.php';
 			require_once $className;
 		}else{
 			require_once $nameSpaceClass;
@@ -784,14 +760,14 @@ function loadModuleActionId(){
 	//Deal with old path based urls by removing the leading path.
 	$requestURI = $_SERVER['REQUEST_URI'];
 	$requestURI = preg_replace("/^\/?vufind\//", "", $requestURI);
-	if (preg_match("/(MyResearch|MyAccount)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
+	if (preg_match("/(MyAccount)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[3];
 		$_GET['action'] = $matches[2];
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['id'] = $matches[3];
 		$_REQUEST['action'] = $matches[2];
-	}elseif (preg_match("/(MyResearch|MyAccount)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
+	}elseif (preg_match("/(MyAccount)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['action'] = $matches[2];
 		$_REQUEST['id'] = '';
@@ -817,11 +793,6 @@ function loadModuleActionId(){
 		$_GET['action'] = $matches[2];
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
-	}
-	//Disable redirection of MyResearch to MyAccount for mobile theme
-	if (false && isset($_GET['module']) && $_GET['module'] == 'MyAccount'){
-		$_GET['module'] = 'MyResearch';
-		$_REQUEST['module'] = 'MyResearch';
 	}
 }
 
@@ -854,8 +825,6 @@ function loadUserData(){
 	//Load profile information
 	$catalog = new CatalogConnection($configArray['Catalog']['driver']);
 	$profile = $catalog->getMyProfile($user);
-	//global $logger;
-	//$logger->log("Patron profile phone number in MyResearch = " . $profile['phone'], PEAR_LOG_INFO);
 	if (!PEAR_Singleton::isError($profile)) {
 		$interface->assign('profile', $profile);
 	}
@@ -863,7 +832,7 @@ function loadUserData(){
 	//Load a list of lists
 	$lists = array();
 	if ($user->disableRecommendations == 0){
-		$lists[] = array('name' => 'Recommended For You', 'url' => '/MyResearch/SuggestedTitles', 'id' => 'suggestions');
+		$lists[] = array('name' => 'Recommended For You', 'url' => '/MyAccount/SuggestedTitles', 'id' => 'suggestions');
 	}
 	require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 	$tmpList = new UserList();
@@ -872,10 +841,10 @@ function loadUserData(){
 	$tmpList->find();
 	if ($tmpList->N > 0){
 		while ($tmpList->fetch()){
-			$lists[$tmpList->id] = array('name' => $tmpList->title, 'url' => '/MyResearch/MyList/' .$tmpList->id , 'id' => $tmpList->id);
+			$lists[$tmpList->id] = array('name' => $tmpList->title, 'url' => '/MyAccount/MyList/' .$tmpList->id , 'id' => $tmpList->id);
 		}
 	}else{
-		$lists[-1] = array('name' => "My Favorites", 'url' => '/MyResearch/MyList/-1', 'id' => -1);
+		$lists[-1] = array('name' => "My Favorites", 'url' => '/MyAccount/MyList/-1', 'id' => -1);
 	}
 	$interface->assign('lists', $lists);
 

@@ -125,56 +125,6 @@ class Resource_AJAX extends Action {
 		return json_encode(array('result' => $return));
 	}
 
-	function MarkNotInterested(){
-		global $user;
-		$recordId = $_REQUEST['recordId'];
-		$source = $_REQUEST['source'];
-		require_once ROOT_DIR . '/sys/NotInterested.php';
-		$notInterested = new NotInterested();
-		$notInterested->userId = $user->id;
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-		$resource = new Resource();
-		$resource->source = $source;
-		$resource->record_id = $recordId;
-
-		if ($resource->find(true)){
-			$notInterested->resourceId = $resource->id;
-			if (!$notInterested->find(true)){
-				$notInterested->dateMarked = time();
-				$notInterested->insert();
-				$result = array(
-					'result' => true,
-				);
-			}else{
-				$result = array(
-					'result' => false,
-					'message' => "This record was already marked as something you aren't interested in.",
-				);
-			}
-		}else{
-			$result = array(
-				'result' => false,
-				'message' => 'Unable to find the resource specified.',
-			);
-		}
-		return json_encode($result);
-	}
-
-	function ClearNotInterested(){
-		global $user;
-		$idToClear = $_REQUEST['id'];
-		require_once ROOT_DIR . '/sys/NotInterested.php';
-		$notInterested = new NotInterested();
-		$notInterested->userId = $user->id;
-		$notInterested->id = $idToClear;
-		$result = array('result' => false);
-		if ($notInterested->find(true)){
-			$notInterested->delete();
-			$result = array('result' => true);
-		}
-		return json_encode($result);
-	}
-
 	function GetNovelistData(){
 		$url = $_REQUEST['novelistUrl'];
 		$rawNovelistData = file_get_contents($url);

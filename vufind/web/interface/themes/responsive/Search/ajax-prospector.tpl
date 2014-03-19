@@ -3,7 +3,7 @@
 	{if $prospectorResults}
 		<div id='prospectorSearchResults'>
 		  <div id='prospectorSearchResultsHeader'>
-			  <img id='prospectorMan' src='{$path}/interface/themes/marmot/images/prospector_man.png'/>
+			  <img id='prospectorMan' src='{$path}/interface/themes/responsive/images/prospector_man.png'/>
 			  <div id='prospectorSearchResultsTitle'>In Prospector</div>
 			  <div id='prospectorSearchResultsNote'>Did you know that you can request items through Prospector and they will be delivered to your local library for pickup?</div>
 			  <div class='clearfix'>&nbsp;</div>

@@ -17,38 +17,37 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
- 
+
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/Admin/Admin.php';
 require_once 'XML/Unserializer.php';
 
-class Home extends Admin_Admin
-{
-    function launch()
-    {
-        global $configArray;
-        global $interface;
+class Home extends Admin_Admin {
+	function launch() {
+		global $configArray;
+		global $interface;
 
-        // Load SOLR Statistics
-        if ($configArray['Index']['engine'] == 'Solr') {
-            $xml = @file_get_contents($configArray['Index']['url'] . '/admin/cores');
+		// Load SOLR Statistics
+		if ($configArray['Index']['engine'] == 'Solr') {
+			$xml = @file_get_contents($configArray['Index']['url'] . '/admin/cores');
 
-            if ($xml) {
-                $options = array('parseAttributes' => 'true',
-                                 'keyAttribute' => 'name');
-                $unxml = new XML_Unserializer($options);
-                $unxml->unserialize($xml);
-                $data = $unxml->getUnserializedData();
-                $interface->assign('data', $data['status']);
-            }
-        }
+			if ($xml) {
+				$options = array('parseAttributes' => 'true',
+						'keyAttribute' => 'name');
+				$unxml = new XML_Unserializer($options);
+				$unxml->unserialize($xml);
+				$data = $unxml->getUnserializedData();
+				$interface->assign('data', $data['status']);
+			}
+		}
 
-        $interface->setTemplate('home.tpl');
-        $interface->setPageTitle('Home');
-        $interface->display('layout.tpl');
-    }
-    
-    function getAllowableRoles(){
-        return array('userAdmin', 'opacAdmin');
-    }
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
+		$interface->setTemplate('home.tpl');
+		$interface->setPageTitle('Home');
+		$interface->display('layout.tpl');
+	}
+
+	function getAllowableRoles() {
+		return array('userAdmin', 'opacAdmin');
+	}
 }

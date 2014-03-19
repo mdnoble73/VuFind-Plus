@@ -3,6 +3,33 @@
  */
 VuFind.GroupedWork = (function(){
 	return {
+		clearUserRating: function (groupedWorkId){
+			var url = Globals.path + '/GroupedWork/' + groupedWorkId + '/AJAX?method=clearUserRating';
+			$.getJSON(url, function(data){
+				if (data.result == true){
+					$('.rate' + groupedWorkId).find('.ui-rater-starsOn').width(0);
+					$('#myRating' + groupedWorkId).hide();
+					VuFind.showMessage('Success', data.message);
+				}else{
+					VuFind.showMessage('Sorry', data.message);
+				}
+			});
+			return false;
+		},
+
+		clearNotInterested: function (notInterestedId){
+			var url = Globals.path + '/GroupedWork/' + notInterestedId + '/AJAX?method=clearNotInterested';
+			$.getJSON(
+					url, function(data){
+						if (data.result == false){
+							alert("There was an error updating the title.");
+						}else{
+							$("#notInterested" + notInterestedId).hide();
+						}
+					}
+			);
+		},
+
 		getGoDeeperData: function (id, dataType){
 			var placeholder;
 			if (dataType == 'excerpt'){
@@ -123,6 +150,24 @@ VuFind.GroupedWork = (function(){
 					}
 				}
 			});
+		},
+
+		markNotInterested: function (recordId){
+			if (Globals.loggedIn){
+				var url = Globals.path + '/GroupedWork/' + recordId + '/AJAX?method=markNotInterested';
+				$.getJSON(
+						url, function(data){
+							if (data.result == true){
+								VuFind.showMessage('Success', data.message);
+							}else{
+								VuFind.showMessage('Sorry', data.message);
+							}
+						}
+				);
+				return false;
+			}else{
+				return VuFind.Account.ajaxLogin(null, function(){markNotInterested(source, recordId)}, false);
+			}
 		},
 
 		saveReview: function(id){

@@ -45,9 +45,6 @@ class OverdriveCheckedOut extends MyResearch {
 		}
 		$interface->assign('overDriveCheckedOutItems', $overDriveCheckedOutItems['items']);
 
-		$interface->assign('ButtonBack',true);
-		$interface->assign('ButtonHome',true);
-		$interface->assign('MobileTitle','OverDrive Checked Out Items');
 		$interface->assign('showNotInterested', false);
 
 		global $configArray;

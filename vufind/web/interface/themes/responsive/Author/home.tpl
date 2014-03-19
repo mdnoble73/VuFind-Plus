@@ -46,11 +46,13 @@
 
 	{if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
 
-	<div class="well well-small">
-		<strong>{translate text='Search Tools'}:</strong>
-		<a href="{$rssLink|escape}"><span class="silk feed">&nbsp;</span>{translate text='Get RSS Feed'}</a>
-		<a href="{$path}/Search/Email" onclick="getLightbox('Search', 'Email', null, null, '{translate text="Email this"}'); return false;"><span class="silk email">&nbsp;</span>{translate text='Email this Search'}</a>
-	</div>
+	{if $showSearchTools}
+		<div class="well well-small">
+			<strong>{translate text='Search Tools'}:</strong>
+			<a href="{$rssLink|escape}"><span class="silk feed">&nbsp;</span>{translate text='Get RSS Feed'}</a>
+			<a href="#" onclick="return VuFind.Account.ajaxLightbox('{$path}/Search/AJAX?method=getEmailForm', true);"><span class="silk email">&nbsp;</span>{translate text='Email this Search'}</a>
+		</div>
+	{/if}
 </div>
 {/strip}
 {if $showWikipedia}

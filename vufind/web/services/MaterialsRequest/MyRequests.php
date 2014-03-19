@@ -75,6 +75,7 @@ class MaterialsRequest_MyRequests extends MyResearch
 		}
 		$interface->assign('allRequests', $allRequests);
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('myMaterialRequests.tpl');
 		$interface->setPageTitle('My Materials Requests');
 		$interface->display('layout.tpl');

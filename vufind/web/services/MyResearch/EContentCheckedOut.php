@@ -52,11 +52,6 @@ class EContentCheckedOut extends MyResearch {
 				$interface->assign('defaultSortOption', $selectedSortOption);
 				$interface->assign('showNotInterested', false);
 
-				//Vars for the IDCLREADER TEMPLATE
-				$interface->assign('ButtonBack',true);
-				$interface->assign('ButtonHome',true);
-				$interface->assign('MobileTitle','eContents Checked Out');
-				
 				require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 				$driver = new EContentDriver();
 				

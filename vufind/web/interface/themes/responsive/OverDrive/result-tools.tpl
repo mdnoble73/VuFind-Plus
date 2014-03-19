@@ -16,7 +16,6 @@
 		<div class="resultAction"><a href="#" class="cart" onclick="return addToBag('{$id|escape}', '{$summTitle|replace:'"':''|escape:'javascript'}', 'EcontentRecord{$summId|escape:"url"}');"><span class="silk cart">&nbsp;</span>{translate text="Add to cart"}</a></div>
 		*}
 		{if $summId != -1}
-			<a href="{$path}/EcontentRecord/{$summId|escape:"url"}/SimilarTitles" class="btn btn-sm btn-block"><img src="/images/silk/arrow_switch.png">&nbsp;</span>More Like This</a>
 			{if $showComments == 1}
 				{assign var=id value=$summId scope="global"}
 				{include file="EcontentRecord/title-review.tpl" id=$summId}

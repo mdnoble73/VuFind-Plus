@@ -5,7 +5,7 @@
 {elseif $action != 'Dashboard'}
 	<li><a href="{$path}/Report/Dashboard">{translate text='Dashboard'}</a> <span class="divider">&raquo;</span></li>
 	<li>
-		{if $pageTemplate == 'view-alt.tpl'}
+		{if $pageTitle}
 			<em>{$pageTitle}</em>
 		{elseif $shortTitle}
 			<em>{$shortTitle}</em>

@@ -158,16 +158,18 @@ VuFind.Account = (function(){
 				requireLogin = false;
 			}
 			if (requireLogin && !Globals.loggedIn) {
-				ajaxLogin(null, function () {
+				VuFind.Account.ajaxLogin(null, function () {
 					ajaxLightbox(urlToDisplay, requireLogin);
 				}, false);
 			} else {
-				closeLightbox();
-				$(".modal-body").html("Loading");
 				var modalDialog = $("#modalDialog");
-				modalDialog.load(urlToDisplay, function () {
-					modalDialog.modal('show');
+				$.getJSON(urlToDisplay, function(data){
+					$('#myModalLabel').html(data.title);
+					$('.modal-body').html(data.modalBody);
+					$('.modal-buttons').html(data.modalButtons);
 				});
+				modalDialog.load( );
+				modalDialog.modal('show');
 			}
 			return false;
 		},

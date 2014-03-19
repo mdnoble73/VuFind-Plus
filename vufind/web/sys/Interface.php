@@ -178,22 +178,6 @@ class UInterface extends Smarty
 		$this->assign('currentTab', 'Search');
 
 		$this->assign('authMethod', $configArray['Authentication']['method']);
-
-		if ($configArray['Authentication']['method'] == 'Shibboleth') {
-			if(!isset($configArray['Shibboleth']['login']) || !isset($configArray['Shibboleth']['target'])){
-				throw new Exception('Missing parameter in the config.ini. Check if ' .
-                                       'the parameters login and target are set.' );
-			}
-
-			$sessionInitiator = $configArray['Shibboleth']['login'] . '?target=' . $configArray['Shibboleth']['target'];
-
-			if(isset($configArray['Shibboleth']['provider_id'])) {
-				$sessionInitiator = $sessionInitiator . '&providerId=' . $configArray['Shibboleth']['provider_id'];
-			}
-
-			$this->assign('sessionInitiator', $sessionInitiator);
-
-		}
 	}
 
 	public function getUrl(){
@@ -392,6 +376,11 @@ class UInterface extends Smarty
 		}else{
 			$this->assign('showDisplayNameInHeader', false);
 		}
+
+		//Determine whether or not materials request functionality should be enabled
+		require_once ROOT_DIR . '/sys/MaterialsRequest.php';
+		$this->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
+
 	}
 
 	public function getVariable($variableName) {

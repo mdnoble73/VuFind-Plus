@@ -5,7 +5,7 @@
   <p>
   {translate text='This item is already part of the following list/lists'}:<br />
   {foreach from=$containingLists item="list"}
-    <a href="{$path}/MyResearch/MyList/{$list.id}">{$list.title|escape:"html"}</a><br />
+    <a href="{$path}/MyAccount/MyList/{$list.id}">{$list.title|escape:"html"}</a><br />
   {/foreach}
   </p>
 {/if}
@@ -35,8 +35,8 @@
         {/foreach}
       </select>
       {/if}
-      <a href="{$path}/MyResearch/ListEdit?id={$id|escape:"url"}"
-         onclick="getLightbox('MyResearch', 'ListEdit', '{$id|escape}', '', 'Create new list', 'EcontentRecord', 'SaveToList', '{$id|escape}'); return false;">{translate text="or create a new list"}</a>
+      <a href="{$path}/MyAccount/ListEdit?id={$id|escape:"url"}"
+         onclick="getLightbox('MyAccount', 'ListEdit', '{$id|escape}', '', 'Create new list', 'EcontentRecord', 'SaveToList', '{$id|escape}'); return false;">{translate text="or create a new list"}</a>
     </td>
   </tr>
   {if $showLists}

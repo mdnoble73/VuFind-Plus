@@ -1,7 +1,7 @@
 <InProspector><![CDATA[{if is_array($prospectorResults) && count($prospectorResults) > 0}
 {if $showProspectorTitlesAsTab == 0}
 <div id='prospectorSidebarResults'>
-<img id='prospectorMan' src='{$path}/interface/themes/marmot/images/prospector_man_sidebar.png'/>
+<img id='prospectorMan' src='{$path}/interface/themes/responsive/images/prospector_man_sidebar.png'/>
 <div id='prospectorSearchResultsTitle'>{translate text="In Prospector"}</div>
 <div class='clearfix'>&nbsp;</div>
 </div>

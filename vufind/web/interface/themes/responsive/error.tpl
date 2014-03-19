@@ -1,113 +1,21 @@
-<!DOCTYPE html>
-<html lang="{$userLang}">
-<head>
-	<title>{$pageTitle|truncate:64:"..."}</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-	{if $addHeader}{$addHeader}{/if}
-	<link type="image/x-icon" href="{img filename=favicon.png}" rel="shortcut icon" />
-	<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$path}/Search/OpenSearch?method=describe" />
-
-	{* Include css as appropriate *}
-	{css filename="main.css"}
-	{* <link href="{$path}/interface/themes/responsive/css/marmot.css" rel="stylesheet" media="screen"> *}
-
-	{* Include correct javascript *}
-	<script src="{$path}/js/jquery-1.9.1.min.js"></script>
-	<script src="{$path}/interface/themes/responsive/js/scripts.js"></script>
-	<script type="text/javascript">
-		{literal}
-		var Globals = VuFind.Globals || {};
-		{/literal}
-		Globals.path = '{$path}';
-		Globals.url = '{$url}';
-		Globals.loggedIn = {$loggedIn};
-		{if $automaticTimeoutLength}
-		Globals.automaticTimeoutLength = {$automaticTimeoutLength};
+<div>
+	<h1>Oops, an error occurred</h1>
+	<h2>This error has been logged and we are working on a fix.</h2>
+	<h4>{$error->getMessage()}</h4>
+	<h4>{translate text="Please contact the Library Reference Department for assistance"}<br /></h4>
+	<h4><a href="mailto:{$supportEmail}">{$supportEmail}</a></h4>
+</div>
+<div id ="debug">
+	{if $debug}
+		<h4>{translate text="Debug Information"}</h4>
+		<p class="errorStmt">{$error->getDebugInfo()}</p>
+		{assign var=errorCode value=$error->getCode()}
+		{if $errorCode}
+			<p class="errorMsg">{translate text="Code"}: {$errorCode}</p>
 		{/if}
-		{if $automaticTimeoutLengthLoggedOut}
-		Globals.automaticTimeoutLengthLoggedOut = {$automaticTimeoutLengthLoggedOut};
-		{/if}
-	</script>
-
-	{if $includeAutoLogoutCode == true}
-		<script type="text/javascript" src="{$path}/js/autoLogout.js"></script>
+		<p>{translate text="Backtrace"}:</p>
+		{foreach from=$error->backtrace item=trace}
+			[{$trace.line}] {$trace.file}<br />
+		{/foreach}
 	{/if}
-	{if $additionalCss}
-		<style type="text/css">
-			{$additionalCss}
-		</style>
-	{/if}
-</head>
-<body class="module_{$module} action_{$action}">
-<div id="header-container">
-	{include file='header.tpl'}
 </div>
-
-{if $showTopSearchBox}
-	<div id='searchbar'>
-		{include file="Search/searchbox.tpl" showAsBar=true}
-	</div>
-{/if}
-
-{if $showBreadcrumbs}
-	<ul class="breadcrumb">
-		<li><a href="{$homeBreadcrumbLink}" id="home-breadcrumb"><i class="icon-home"></i> {translate text=$homeLinkText}</a> <span class="divider">&raquo;</span></li>
-		{include file="$module/breadcrumbs.tpl"}
-	</ul>
-{/if}
-
-<div class="container-fluid">
-	<div id="title">
-
-		<h1>Oops, an error occurred</h1>
-		<h2>This error has been logged and we are working on a fix.</h2>
-		<h4>{$error->getMessage()}</h4>
-		<h4>{translate text="Please contact the Library Reference Department for assistance"}<br /></h4>
-		<h4><a href="mailto:{$supportEmail}">{$supportEmail}</a></h4>
-	</div>
-	<div id ="debug">
-		{if $debug}
-			<h4>{translate text="Debug Information"}</h4>
-			<p class="errorStmt">{$error->getDebugInfo()}</p>
-			{assign var=errorCode value=$error->getCode()}
-			{if $errorCode}
-				<p class="errorMsg">{translate text="Code"}: {$errorCode}</p>
-			{/if}
-			<p>{translate text="Backtrace"}:</p>
-			{foreach from=$error->backtrace item=trace}
-				[{$trace.line}] {$trace.file}<br />
-			{/foreach}
-		{/if}
-	</div>
-</div>
-
-<div id="footer-container">
-	{include file="footer.tpl"}
-</div>
-
-<div id="modalDialog" class="modal hide fade" tabindex="-1" role="dialog">
-	<div class="modal-header">
-		<button type="button" class="close" data-dismiss="modal">×</button>
-		<h3 id="modal-title"></h3>
-	</div>
-	<div class="modal-body">
-		<div id="modal-loading" class="text-center">Loading...<br/><img src="{img filename='loading_bar.gif'}" title="Loading"/></div>
-	</div>
-	<div class="modal-footer">
-		<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
-	</div>
-</div>
-
-{include file="tracking.tpl"}
-
-{* Extra javascript at end so the pages loose faster. *}
-<script src="{$path}/interface/themes/responsive/js/rater.js"></script>
-<script src="{$path}/interface/themes/responsive/js/lib/bootstrap.min.js"></script>
-<script src="{$path}/interface/themes/responsive/js/bootstrap-switch.js"></script>
-<script src="{$path}/interface/themes/responsive/js/bootstrap-datepicker.js"></script>
-<script src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
-<script src="{$path}/ckeditor/ckeditor.js"></script>
-<script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
-</body>
-</html>

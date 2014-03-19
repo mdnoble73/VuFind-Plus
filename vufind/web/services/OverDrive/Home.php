@@ -21,7 +21,6 @@
 require_once ROOT_DIR . '/services/Record/UserComments.php';
 require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
 require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
-require_once ROOT_DIR . '/sys/SolrStats.php';
 
 class OverDrive_Home extends Action{
 	/** @var  SearchObject_Solr $db */
@@ -88,11 +87,6 @@ class OverDrive_Home extends Action{
 
 
 			$interface->setPageTitle($overDriveDriver->getTitle());
-
-			//Var for the IDCLREADER TEMPLATE
-			$interface->assign('ButtonBack',true);
-			$interface->assign('ButtonHome',true);
-			$interface->assign('MobileTitle','&nbsp;');
 
 			//Load Staff Details
 			$interface->assign('staffDetails', $overDriveDriver->getStaffView());

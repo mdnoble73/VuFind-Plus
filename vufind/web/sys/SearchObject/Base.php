@@ -997,7 +997,6 @@ abstract class SearchObject_Base
 	 */
 	public function getAdvancedTypes()  {return $this->advancedTypes;}
 	public function getBasicTypes()     {return $this->basicTypes;}
-	public function getBrowseTypes()    {return $this->browseTypes;}
 	public function getFilters()        {return $this->filterList;}
 	public function getPage()           {return $this->page;}
 	public function getLimit()          {return $this->limit;}

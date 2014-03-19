@@ -27,7 +27,7 @@ class AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_REQUEST['method'];
-		if (in_array($method, array('GetAutoSuggestList', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries', 'GetSeriesInfo'))){
+		if (in_array($method, array('GetAutoSuggestList', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries', 'GetSeriesInfo', 'getEmailForm', 'sendEmail'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -272,19 +272,49 @@ class AJAX extends Action {
 	}
 
 	// Email Search Results
-	function SendEmail()
+	function sendEmail()
 	{
-		require_once ROOT_DIR . '/services/Search/Email.php';
+		global $interface;
 
-		$emailService = new Search_Email();
-		$result = $emailService->sendEmail($_GET['url'], $_GET['to'], $_GET['from'], $_GET['message']);
+		$subject = translate('Library Catalog Search Result');
+		$url = $_REQUEST['url'];
+		$to = $_REQUEST['to'];
+		$from = $_REQUEST['from'];
+		$message = $_REQUEST['message'];
+		$interface->assign('from', $from);
+		if (strpos($message, 'http') === false && strpos($message, 'mailto') === false && $message == strip_tags($message)){
+			$interface->assign('message', $message);
+			$interface->assign('msgUrl', $url);
+			$body = $interface->fetch('Emails/share-link.tpl');
 
-		if (PEAR_Singleton::isError($result)) {
-			echo '<result>Error</result>';
-			echo '<details>' . htmlspecialchars(translate($result->getMessage())) . '</details>';
-		} else {
-			echo '<result>Done</result>';
+			require_once ROOT_DIR . '/sys/Mailer.php';
+			$mail = new VuFindMailer();
+			$emailResult = $mail->send($to, $from, $subject, $body);
+
+			if ($emailResult === true){
+				$result = array(
+						'result' => true,
+						'message' => 'Your e-mail was sent successfully.'
+				);
+			}elseif (PEAR_Singleton::isError($emailResult)){
+				$result = array(
+						'result' => false,
+						'message' => "Your e-mail message could not be sent {$emailResult}."
+				);
+			}else{
+				$result = array(
+						'result' => false,
+						'message' => 'Your e-mail message could not be sent due to an unknown error.'
+				);
+			}
+		}else{
+			$result = array(
+					'result' => false,
+					'message' => 'Sorry, we can&apos;t send e-mails with html or other data in it.'
+			);
 		}
+
+		echo json_encode($result);
 	}
 
 	function GetSaveStatus()
@@ -658,6 +688,16 @@ class AJAX extends Action {
 				'series' => $seriesInfo
 		));
 
+	}
+
+	function getEmailForm(){
+		global $interface;
+		$results = array(
+			'title' => 'E-Mail Search',
+			'modalBody' => $interface->fetch('Search/email.tpl'),
+			'modalButtons' => "<span class='tool btn btn-primary' onclick='return VuFind.Searches.sendEmail();'>Send E-Mail</span>"
+		);
+		echo json_encode($results);
 	}
 }
 

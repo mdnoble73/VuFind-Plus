@@ -138,11 +138,17 @@ class OverDriveDriver3 {
 				$patronTokenData = json_decode($return);
 				if ($patronTokenData){
 					if (isset($patronTokenData->error)){
-						echo("Error connecting to overdrive apis ". $patronTokenData->error);
+						if ($patronTokenData->error == 'unauthorized_client'){
+							return false;
+						}else{
+							echo("Error connecting to overdrive apis ". $patronTokenData->error);
+						}
 					}else{
 						$memCache->set('overdrive_patron_token_' . $patronBarcode, $patronTokenData, 0, $patronTokenData->expires_in - 10);
 					}
 				}
+			}else{
+				return false;
 			}
 		}
 		return $patronTokenData;
@@ -195,7 +201,7 @@ class OverDriveDriver3 {
 				);
 			}else{
 				//The user is not valid
-				if ($configArray['Site']['debug']){
+				if ($configArray['Site']['debug'] == true){
 					print_r($tokenData);
 				}
 				return false;
@@ -372,6 +378,10 @@ class OverDriveDriver3 {
 		global $configArray;
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
 		$response = $this->_callPatronUrl($user, $url);
+		if ($response == false){
+			//The user is not authorized to use OverDrive
+			return false;
+		}
 
 		//print_r($response);
 		$checkedOutTitles = array();
@@ -759,6 +769,17 @@ class OverDriveDriver3 {
 		$memCache->delete('overdrive_summary_' . $user->id);
 
 		return $result;
+	}
+
+	public function isUserValidForOverDrive($user){
+		global $configArray;
+		$requirePin = $configArray['OverDrive']['requirePin'];
+		if ($requirePin){
+			$tokenData = $this->_connectToPatronAPI($user->cat_username, $user->cat_password, false);
+		}else{
+			$tokenData = $this->_connectToPatronAPI($user->cat_password, null, false);
+		}
+		return $tokenData !== false;
 	}
 
 	public function updateLendingOptions(){

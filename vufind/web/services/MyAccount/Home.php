@@ -8,6 +8,7 @@
  * Time: 1:11 PM
  */
 require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyResearch/lib/Suggestions.php';
 class MyAccount_Home  extends MyResearch{
 	function launch(){
 		global $configArray;

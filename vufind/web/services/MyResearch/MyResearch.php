@@ -72,9 +72,6 @@ abstract class MyResearch extends Action
 			}
 		}
 
-		//Determine whether or not materials request functionality should be enabled
-		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
-
 		//Check to see if we have any acs or single use eContent in the catalog
 		//to enable the holds and wishlist appropriately
 		if (isset($configArray['EContent']['hasProtectedEContent'])){

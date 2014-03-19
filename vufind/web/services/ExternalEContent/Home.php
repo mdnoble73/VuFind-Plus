@@ -19,7 +19,6 @@
  */
 
 require_once ROOT_DIR . '/RecordDrivers/ExternalEContentDriver.php';
-require_once ROOT_DIR . '/sys/SolrStats.php';
 
 class ExternalEContent_Home extends Action{
 	/** @var  SearchObject_Solr $db */

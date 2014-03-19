@@ -48,93 +48,6 @@ function collapseFieldsets(){
 	}
 }
 
-function getLightbox(module, action, id, lookfor, message, followupModule,
-		followupAction, followupId, left, width, top, height) {
-	// Optional parameters
-	if (followupModule === undefined) {
-		followupModule = '';
-	}
-	if (followupAction === undefined) {
-		followupAction = '';
-	}
-	if (followupId === undefined) {
-		followupId = '';
-	}
-
-	if ((module == '') || (action == '')) {
-		hideLightbox();
-		return 0;
-	}
-
-	// Popup Lightbox
-	lightbox(left, width, top, height);
-
-	// Load Popup Box Content from AJAX Server
-	var url = path + "/AJAX/Home";
-	var params = 'method=GetLightbox' + '&lightbox=true' + '&submodule='
-			+ encodeURIComponent(module) + '&subaction=' + encodeURIComponent(action)
-			+ '&id=' + encodeURIComponent(id) + '&lookfor='
-			+ encodeURIComponent(lookfor) + '&message=' + encodeURIComponent(message)
-			+ '&followupModule=' + encodeURIComponent(followupModule)
-			+ '&followupAction=' + encodeURIComponent(followupAction)
-			+ '&followupId=' + encodeURIComponent(followupId);
-	
-	$.ajax({
-		url: url + '?' + params,
-		success : function(data) {
-			if (data && data.result) {
-				if (data.redirect && data.redirect.length() > 0) {
-					window.location = data.redirect;
-				} else {
-					$('$popupbox').innerHTML = data.result;
-
-					// set focus to the default location
-					if (document.loginForm != null) {
-						document.loginForm.username.focus();
-					}
-				}
-			} else {
-				document.getElementById('popupbox').innerHTML = document.getElementById('lightboxError').innerHTML;
-			}
-
-			// Check to see if an element within the lightbox needs to be given focus.
-			// Note that we need to introduce a slight delay before taking focus due
-			// to IE sensitivity.
-			var focusIt = function() {
-				var o = document.getElementById('mainFocus');
-				if (o) {
-					o.focus();
-				}
-			}
-			setTimeout(focusIt, 250);
-
-		},
-		error : function() {
-			document.getElementById('popupbox').innerHTML = document
-					.getElementById('lightboxError').innerHTML;
-		}
-	});
-}
-
-function SaltedLogin(elems, module, action, id, lookfor, message) {
-	// Load Popup Box Content from AJAX Server
-	var url = path + "/AJAX/Home";
-	var params = 'method=GetSalt';
-	$.ajax({
-		url: url + '?' + params,
-		success : function(transaction) {
-			var response = transaction.responseXML.documentElement;
-			if (response.getElementsByTagName('result')) {
-				Login(
-						elems,
-						response.getElementsByTagName('result').item(0).firstChild.nodeValue,
-						module, action, id, lookfor, message);
-
-			}
-		}
-	})
-}
-
 function Login(elems, salt, module, action, id, lookfor, message) {
 	var url = path + "/AJAX/JSON?method=loginUser"
 	$.ajax( {
@@ -1155,36 +1068,7 @@ function loadEContentHelpTopic(){
 	}
 }
 
-function markNotInterested(source, recordId){
-	if (loggedIn){
-		var url = path + '/Resource/AJAX?method=MarkNotInterested&source=' + source + '&recordId=' + recordId;
-		$.getJSON(
-				url, function(data){
-					if (data.result == true){
-						alert("You won't be shown this title again.");
-					}else{
-						alert("There was an error updating the title.");
-					}
-				}
-		);
-		return false;
-	}else{
-		return ajaxLogin(function(){markNotInterested(source, recordId)});
-	}
-}
 
-function clearNotInterested(notInterestedId){
-	var url = path + '/Resource/AJAX?method=ClearNotInterested&id=' + notInterestedId;
-	$.getJSON(
-			url, function(data){
-				if (data.result == false){
-					alert("There was an error updating the title.");
-				}else{
-					$("#notInterested" + notInterestedId).hide();
-				}
-			}
-	);
-}
 
 function getWikipediaArticle(articleName){
 	var url = path + "/Author/AJAX?method=getWikipediaData&articleName=" + articleName;

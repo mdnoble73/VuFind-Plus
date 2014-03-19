@@ -753,15 +753,6 @@ class EContentDriver implements DriverInterface{
 				}
 			}
 		}
-		if ($return['result'] == true){
-			//Make a call to strands to update that the item was placed on hold
-			global $configArray;
-			global $user;
-			if (isset($configArray['Strands']['APID']) && $user->disableRecommendations == 0){
-				$strandsUrl = "http://bizsolutions.strands.com/api2/event/addshoppingcart.sbs?needresult=true&apid={$configArray['Strands']['APID']}&item=econtentRecord{$id}&user={$user->id}";
-				$ret = file_get_contents($strandsUrl);
-			}
-		}
 		return $return;
 	}
 
@@ -1153,7 +1144,7 @@ class EContentDriver implements DriverInterface{
 					);
 				}else{
 					$links[] = array(
-									'url' => $configArray['Site']['path'] . "/MyResearch/Login",
+									'url' => $configArray['Site']['path'] . "/MyAccount/Login",
 									'text' => 'Login&nbsp;to&nbsp;download&nbsp;from&nbsp;Freegal',
 					);
 				}
@@ -1338,18 +1329,6 @@ class EContentDriver implements DriverInterface{
 		require_once(ROOT_DIR . '/sys/eContent/EContentHistoryEntry.php');
 
 		global $configArray;
-		if (isset($configArray['Strands']['APID']) && $user->disableRecommendations == 0 && $action == "Checked Out"){
-			//Check to see if this is the first time the user has read the title and if so record the entry in strands
-			$entry = new EContentHistoryEntry();
-			$entry->userId = $user->id;
-			$entry->recordId = $id;
-			$entry->find();
-			if ($entry->N == 0){
-				$orderId = $user->id . '_' . time() ;
-				$strandsUrl = "http://bizsolutions.strands.com/api2/event/purchased.sbs?needresult=true&apid={$configArray['Strands']['APID']}&item=econtentRecord{$id}::0.00::1&user={$user->id}&orderid={$orderId}";
-				$ret = file_get_contents($strandsUrl);
-			}
-		}
 
 		$entry = new EContentHistoryEntry();
 		$entry->userId = $user->id;

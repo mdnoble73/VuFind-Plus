@@ -37,7 +37,6 @@ public class UpdateReadingHistory implements IProcessHandler {
 	private PreparedStatement insertResourceStmt;
 	private PreparedStatement updateReadingHistoryStmt;
 	private PreparedStatement insertReadingHistoryStmt;
-	private String strandsApid;
 	private String vufindUrl;
 	private SimpleDateFormat checkoutDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private Logger logger;
@@ -61,8 +60,6 @@ public class UpdateReadingHistory implements IProcessHandler {
 			return;
 		}
 
-		strandsApid = configIni.get("Strands", "APID");
-		
 		String loadPrintSetting = processSettings.get("loadPrint");
 		if (loadPrintSetting != null){
 			loadPrintHistory = loadPrintSetting.equals("true");
@@ -336,25 +333,6 @@ public class UpdateReadingHistory implements IProcessHandler {
 			int updateOk = insertReadingHistoryStmt.executeUpdate();
 			if (updateOk != 1) {
 				logger.error("Failed to add item to reading history");
-			}
-			// Make a call to strands to indicate that the item was
-			// checked out.
-			if (strandsApid != null && strandsApid.length() > 0) {
-				String orderid = userId + "_" + (checkoutDate.getTime() / 1000);
-				//Need to send bibid rather than resource id to strands
-				String url = "http://bizsolutions.strands.com/api2/event/purchased.sbs?needresult=true&apid=" + strandsApid + "&item=" + bibId + "::0.00::1&user=" + userId + "&orderid=" + orderid;
-				logger.debug("Calling strands " + url);
-				URL strandsUrl = new URL(url);
-				URLConnection yc = strandsUrl.openConnection();
-				BufferedReader in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
-				String inputLine;
-
-				while ((inputLine = in.readLine()) != null){
-					logger.debug(inputLine);
-				}
-				in.close();
-			}else{
-				logger.debug("Skipping logging strands information.");
 			}
 		}
 

@@ -80,6 +80,7 @@ class MaterialsRequest_NewRequest extends Action
 		$interface->assign('useWorldCat', $useWorldCat);
 
 		$interface->setTemplate('new.tpl');
+		$interface->assign('sidebar', 'Search/home-sidebar.tpl');
 		$interface->setPageTitle('Materials Request');
 		
 		$interface->display('layout.tpl');
