@@ -187,4 +187,6 @@ abstract class BaseEContentDriver  extends MarcRecord {
 		global $configArray;
 		return $configArray['Site']['url'] . '/qrcode.php?type=' . $this->getModuleName() . '&id=' . $this->getPermanentId();
 	}
+
+	abstract function getSharing($locationCode, $eContentFieldData);
 }

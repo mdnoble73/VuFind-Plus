@@ -713,6 +713,7 @@ class Novelist3{
 	private function loadNoveListTitle($currentId, $item, &$titleList, &$titlesOwned, $seriesName = ''){
 		global $user;
 		global $timer;
+		global $configArray;
 
 		//Find the correct grouped work based on the isbns;
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
@@ -737,6 +738,7 @@ class Novelist3{
 					$groupedWork->id = $groupedWorkIdentifierRef->grouped_work_id;
 					if ($groupedWork->find(true)){
 						$permanentId = $groupedWork->permanent_id;
+						break;
 					}
 				}
 			}
@@ -769,36 +771,23 @@ class Novelist3{
 				'isCurrent' => $isCurrent,
 				'series' => $series,
 				'volume' => $volume,
-				'reason' => isset($item->reason) ? $item->reason : ''
+				'reason' => isset($item->reason) ? $item->reason : '',
+				'smallCover' => $cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=small&isn=" . $isbn13,
+				'mediumCover' => $cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn13,
 			);
 		}else{
 			//Get more information from Solr
-			//TODO:  cache this info since it can take a really long time to load
-			/** @var SearchObject_Solr $searchObj */
-			$searchObj = SearchObjectFactory::initSearchObject();
-			disableErrorHandler();
-			$ownedRecord = $searchObj->getRecord($permanentId);
-			enableErrorHandler();
+			/** @var GroupedWorkDriver $recordDriver */
+			$recordDriver = new GroupedWorkDriver($permanentId);
 			$timer->logTime("Find grouped work in solr");
 
-			if ($ownedRecord != null){
-				if (strpos($ownedRecord['isbn'][0], ' ') > 0){
-					$isbnInfo = explode(' ', $ownedRecord['isbn'][0]);
-					$isbn = $isbnInfo[0];
-				}else{
-					$isbn = $ownedRecord['isbn'][0];
-				}
-				$isbn13 = strlen($isbn) == 13 ? $isbn : ISBNConverter::convertISBN10to13($isbn);
-				$isbn10 = strlen($isbn) == 10 ? $isbn : ISBNConverter::convertISBN13to10($isbn);
+			if ($recordDriver->isValid){
 				if (!isset($series)){
 					if (isset($ownedRecord['series'])){
 						$series = $ownedRecord['series'][0];
 					}
 				}
 				//Load data about the record
-				/** @var GroupedWorkDriver $recordDriver */
-				$recordDriver = RecordDriverFactory::initRecordDriver($ownedRecord);
-				$timer->logTime("Create record driver");
 				$ratingData = $recordDriver->getRatingData($user);
 				$timer->logTime("Get Rating data");
 				$fullRecordLink = $recordDriver->getLinkUrl();
@@ -807,17 +796,17 @@ class Novelist3{
 				$curTitle = array(
 					'title' => $recordDriver->getTitle(),
 					'title_short' => $recordDriver->getTitle(),
-					'author' => isset($ownedRecord['author']) ? $ownedRecord['author'] : '',
+					'author' => $recordDriver->getPrimaryAuthor(),
 					//'publicationDate' => (string)$item->PublicationDate,
-					'isbn' => $isbn13,
-					'isbn10' => $isbn10,
-					'upc' => isset($ownedRecord['upc'][0]) ? $ownedRecord['upc'][0] : '',
-					'recordId' => $ownedRecord['id'],
-					'recordtype' => $ownedRecord['recordtype'],
-					'id' => $ownedRecord['id'], //This allows the record to be displayed in various locations.
+					'isbn' => $recordDriver->getCleanISBN(),
+					'isbn10' => $recordDriver->getCleanISBN(),
+					'upc' => $recordDriver->getCleanUPC(),
+					'recordId' => $recordDriver->getPermanentId(),
+					'recordtype' => 'grouped_work',
+					'id' => $recordDriver->getPermanentId(), //This allows the record to be displayed in various locations.
 					'libraryOwned' => true,
 					'isCurrent' => $isCurrent,
-					'shortId' => substr($ownedRecord['id'], 1),
+					'shortId' => $recordDriver->getPermanentId(),
 					'format_category' => $recordDriver->getFormatCategory(),
 					'series' => $series,
 					'volume' => $volume,
@@ -825,6 +814,8 @@ class Novelist3{
 					'fullRecordLink' => $fullRecordLink,
 					'reason' => isset($item->reason) ? $item->reason : '',
 					'recordDriver' => $recordDriver,
+					'smallCover' => $recordDriver->getBookcoverUrl('small'),
+					'mediumCover' => $recordDriver->getBookcoverUrl('medium'),
 				);
 				$timer->logTime("Load title information");
 				$titlesOwned++;
@@ -843,7 +834,9 @@ class Novelist3{
 					'isCurrent' => $isCurrent,
 					'series' => $series,
 					'volume' => $volume,
-					'reason' => isset($item->reason) ? $item->reason : ''
+					'reason' => isset($item->reason) ? $item->reason : '',
+					'smallCover' => $cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=small&isn=" . $isbn13,
+					'mediumCover' => $cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn13,
 				);
 			}
 		}

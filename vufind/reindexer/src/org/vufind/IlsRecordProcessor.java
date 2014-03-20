@@ -234,6 +234,8 @@ public abstract class IlsRecordProcessor {
 			} catch (Exception e) {
 				logger.error("Error reading data from ils file " + individualFile.toString(), e);
 			}
+		}else{
+			logger.warn("Did not find marc record for related record " + identifier);
 		}
 		//We didn't get a marc record, skip this record.
 	}

@@ -28,7 +28,6 @@ import java.util.zip.CRC32;
  *
  */
 public class RecordGrouperMain {
-
 	private static Logger logger	= Logger.getLogger(RecordGrouperMain.class);
 	private static String serverName;
 
@@ -62,7 +61,7 @@ public class RecordGrouperMain {
 		logger.debug("Starting grouping of records " + new Date().toString());
 
 		// Parse the configuration file
-		Ini configIni = loadConfigFile("config.ini");
+		Ini configIni = loadConfigFile();
 
 		//Connect to the database
 		Connection vufindConn = null;
@@ -97,8 +96,6 @@ public class RecordGrouperMain {
 		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, configIni, logger);
 		//Clear the database first
 		boolean clearDatabasePriorToGrouping = true;
-		boolean groupIlsRecords = true;
-		boolean groupOverDriveRecords = true;
 
 		if (clearDatabasePriorToGrouping){
 			try{
@@ -112,119 +109,15 @@ public class RecordGrouperMain {
 			}
 		}
 
-		int numRecordsProcessed = 0;
+		groupOverDriveRecords(econtentConnection, recordGroupingProcessor);
+		groupIlsRecords(configIni, recordGroupingProcessor);
 
-		//Group records from OverDrive
-		if (groupOverDriveRecords){
-			try{
-				PreparedStatement overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				PreparedStatement overDriveIdentifiersStmt = econtentConnection.prepareStatement("SELECT * FROM overdrive_api_product_identifiers WHERE id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				PreparedStatement overDriveCreatorStmt = econtentConnection.prepareStatement("SELECT fileAs FROM overdrive_api_product_creators WHERE productId = ? AND role like ? ORDER BY id", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				ResultSet overDriveRecordRS = overDriveRecordsStmt.executeQuery();
-				while (overDriveRecordRS.next()){
-					Long id = overDriveRecordRS.getLong("id");
 
-					String overdriveId = overDriveRecordRS.getString("overdriveId");
-					String mediaType = overDriveRecordRS.getString("mediaType");
-					String title = overDriveRecordRS.getString("title");
-					String subtitle = overDriveRecordRS.getString("subtitle");
-					String primaryCreatorRole = overDriveRecordRS.getString("primaryCreatorRole");
-					String author = overDriveRecordRS.getString("primaryCreatorName");
-					//primary creator in overdrive is always first name, last name.  Therefore, we need to look in the creators table
-					if (author != null){
-						overDriveCreatorStmt.setLong(1, id);
-						overDriveCreatorStmt.setString(2, primaryCreatorRole);
-						ResultSet creatorInfoRS = overDriveCreatorStmt.executeQuery();
-						boolean swapFirstNameLastName = false;
-						if (creatorInfoRS.next()){
-							String tmpAuthor = creatorInfoRS.getString("fileAs");
-							if (tmpAuthor.equals(author) && (mediaType.equals("ebook") || mediaType.equals("audiobook"))){
-								swapFirstNameLastName = true;
-							}else{
-								author = tmpAuthor;
-							}
-						} else {
-							swapFirstNameLastName = true;
-						}
-						if (swapFirstNameLastName){
-							if (author.contains(" ")){
-								String[] authorParts = author.split("\\s+");
-								StringBuilder tmpAuthor = new StringBuilder();
-								for (int i = 1; i < authorParts.length; i++){
-									tmpAuthor.append(authorParts[i]).append(" ");
-								}
-								tmpAuthor.append(authorParts[0]);
-								author = tmpAuthor.toString();
-							}
-						}
-						creatorInfoRS.close();
-					}
-
-					overDriveIdentifiersStmt.setLong(1, id);
-					ResultSet overDriveIdentifierRS = overDriveIdentifiersStmt.executeQuery();
-					HashSet<RecordIdentifier> overDriveIdentifiers = new HashSet<RecordIdentifier>();
-					RecordIdentifier primaryIdentifier = new RecordIdentifier();
-					primaryIdentifier.setValue("overdrive", overdriveId);
-					while (overDriveIdentifierRS.next()){
-						RecordIdentifier identifier = new RecordIdentifier();
-						identifier.setValue(overDriveIdentifierRS.getString("type"), overDriveIdentifierRS.getString("value"));
-						if (identifier.isValid()){
-							overDriveIdentifiers.add(identifier);
-						}
-					}
-
-					recordGroupingProcessor.processRecord(primaryIdentifier, title, subtitle, author, mediaType, overDriveIdentifiers);
-					numRecordsProcessed++;
-				}
-				overDriveRecordRS.close();
-				logger.info("Finished grouping " + numRecordsProcessed + " records from overdrive ");
-			}catch (Exception e){
-				System.out.println("Error loading OverDrive records: " + e.toString());
-				e.printStackTrace();
-			}
-		}
-		//logger.debug("-----------------------------------------------------------");
-		//logger.debug("Finished processing OverDrive records");
-		//recordGroupingProcessor.dumpStats();
-
-		if (groupIlsRecords){
-			String individualMarcPath = configIni.get("Reindex", "individualMarcPath");
-			String marcPath = configIni.get("Reindex", "marcPath");
-			File[] catalogBibFiles = new File(marcPath).listFiles();
-			if (catalogBibFiles != null){
-				for (File curBibFile : catalogBibFiles){
-					if (curBibFile.getName().endsWith(".mrc") || curBibFile.getName().endsWith(".marc")){
-						System.out.println("Processing " + curBibFile);
-						try{
-							FileInputStream marcFileStream = new FileInputStream(curBibFile);
-							MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, "UTF8");
-							while (catalogReader.hasNext()){
-								Record curBib = catalogReader.next();
-								recordGroupingProcessor.processMarcRecord(curBib);
-
-								writeIndividualMarc(individualMarcPath, curBib);
-
-								numRecordsProcessed++;
-								/*if (numRecordsProcessed % 25000 == 0){
-									long elapsedTime = new Date().getTime() - startTime;
-									recordGroupingProcessor.dumpStats();
-									long minutesWritingMarcs = timeSpentWritingMarcRecords / (60 * 1000);
-									logger.debug("Spent " + minutesWritingMarcs + " minutes writing marc records");
-								}*/
-							}
-							marcFileStream.close();
-						}catch(Exception e){
-							logger.error("Error loading catalog bibs: ", e);
-						}
-						logger.info("Finished grouping " + numRecordsProcessed + " records from the ils file " + curBibFile.getName());
-					}
-				}
-			}
-		}
-
-		//TODO: Group records from other sources
+		//TODO: Group records from other sources Gov Docs, One Click Digital, Zinio, etc
 
 		//TODO: Do fuzzy matching for any identifiers that link to more than one grouped work.
+
+		//TODO: Create Grouped works for lists
 
 		recordGroupingProcessor.dumpStats();
 
@@ -240,7 +133,110 @@ public class RecordGrouperMain {
 		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
 	}
 
-	private static void writeIndividualMarc(String individualMarcPath, Record marcRecord) {
+	private static void groupIlsRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor) {
+		int numRecordsProcessed = 0;
+		String individualMarcPath = configIni.get("Reindex", "individualMarcPath");
+		String marcPath = configIni.get("Reindex", "marcPath");
+		File[] catalogBibFiles = new File(marcPath).listFiles();
+		if (catalogBibFiles != null){
+			for (File curBibFile : catalogBibFiles){
+				if (curBibFile.getName().endsWith(".mrc") || curBibFile.getName().endsWith(".marc")){
+					System.out.println("Processing " + curBibFile);
+					try{
+						FileInputStream marcFileStream = new FileInputStream(curBibFile);
+						MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, "UTF8");
+						while (catalogReader.hasNext()){
+							Record curBib = catalogReader.next();
+
+							boolean marcUpToDate = writeIndividualMarc(individualMarcPath, curBib);
+							//TODO: Allow updating of record grouping dynamically.
+							recordGroupingProcessor.processMarcRecord(curBib);
+
+							numRecordsProcessed++;
+						}
+						marcFileStream.close();
+					}catch(Exception e){
+						logger.error("Error loading catalog bibs: ", e);
+					}
+					logger.info("Finished grouping " + numRecordsProcessed + " records from the ils file " + curBibFile.getName());
+				}
+			}
+		}
+	}
+
+	private static int groupOverDriveRecords(Connection econtentConnection, RecordGroupingProcessor recordGroupingProcessor) {
+		int numRecordsProcessed = 0;
+		try{
+			PreparedStatement overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement overDriveIdentifiersStmt = econtentConnection.prepareStatement("SELECT * FROM overdrive_api_product_identifiers WHERE id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement overDriveCreatorStmt = econtentConnection.prepareStatement("SELECT fileAs FROM overdrive_api_product_creators WHERE productId = ? AND role like ? ORDER BY id", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet overDriveRecordRS = overDriveRecordsStmt.executeQuery();
+			while (overDriveRecordRS.next()){
+				Long id = overDriveRecordRS.getLong("id");
+
+				String overdriveId = overDriveRecordRS.getString("overdriveId");
+				String mediaType = overDriveRecordRS.getString("mediaType");
+				String title = overDriveRecordRS.getString("title");
+				String subtitle = overDriveRecordRS.getString("subtitle");
+				String primaryCreatorRole = overDriveRecordRS.getString("primaryCreatorRole");
+				String author = overDriveRecordRS.getString("primaryCreatorName");
+				//primary creator in overdrive is always first name, last name.  Therefore, we need to look in the creators table
+				if (author != null){
+					overDriveCreatorStmt.setLong(1, id);
+					overDriveCreatorStmt.setString(2, primaryCreatorRole);
+					ResultSet creatorInfoRS = overDriveCreatorStmt.executeQuery();
+					boolean swapFirstNameLastName = false;
+					if (creatorInfoRS.next()){
+						String tmpAuthor = creatorInfoRS.getString("fileAs");
+						if (tmpAuthor.equals(author) && (mediaType.equals("ebook") || mediaType.equals("audiobook"))){
+							swapFirstNameLastName = true;
+						}else{
+							author = tmpAuthor;
+						}
+					} else {
+						swapFirstNameLastName = true;
+					}
+					if (swapFirstNameLastName){
+						if (author.contains(" ")){
+							String[] authorParts = author.split("\\s+");
+							StringBuilder tmpAuthor = new StringBuilder();
+							for (int i = 1; i < authorParts.length; i++){
+								tmpAuthor.append(authorParts[i]).append(" ");
+							}
+							tmpAuthor.append(authorParts[0]);
+							author = tmpAuthor.toString();
+						}
+					}
+					creatorInfoRS.close();
+				}
+
+				overDriveIdentifiersStmt.setLong(1, id);
+				ResultSet overDriveIdentifierRS = overDriveIdentifiersStmt.executeQuery();
+				HashSet<RecordIdentifier> overDriveIdentifiers = new HashSet<RecordIdentifier>();
+				RecordIdentifier primaryIdentifier = new RecordIdentifier();
+				primaryIdentifier.setValue("overdrive", overdriveId);
+				while (overDriveIdentifierRS.next()){
+					RecordIdentifier identifier = new RecordIdentifier();
+					identifier.setValue(overDriveIdentifierRS.getString("type"), overDriveIdentifierRS.getString("value"));
+					if (identifier.isValid()){
+						overDriveIdentifiers.add(identifier);
+					}
+				}
+
+				recordGroupingProcessor.processRecord(primaryIdentifier, title, subtitle, author, mediaType, overDriveIdentifiers);
+				numRecordsProcessed++;
+			}
+			overDriveRecordRS.close();
+			logger.info("Finished grouping " + numRecordsProcessed + " records from overdrive ");
+		}catch (Exception e){
+			System.out.println("Error loading OverDrive records: " + e.toString());
+			e.printStackTrace();
+		}
+		return numRecordsProcessed;
+	}
+
+	private static boolean writeIndividualMarc(String individualMarcPath, Record marcRecord) {
+		boolean marcRecordUpToDate = false;
 		//Copy the record to the individual marc path
 		DataField field907 = (DataField)marcRecord.getVariableField("907");
 		String recordNumber = null;
@@ -253,7 +249,6 @@ public class RecordGrouperMain {
 			}
 		}
 		if (recordNumber != null){
-			boolean marcRecordUpToDate = false;
 			boolean marcRecordExists = false;
 			long checksum = getChecksum(marcRecord);
 			if (marcRecordChecksums.containsKey(recordNumber)){
@@ -262,19 +257,24 @@ public class RecordGrouperMain {
 					marcRecordUpToDate = true;
 				}
 			}
-			if (!marcRecordUpToDate){
-				String shortId = recordNumber.replace(".", "");
-				String firstChars = shortId.substring(0, 4);
-				String basePath = individualMarcPath + "/" + firstChars;
-				String individualFilename = basePath + "/" + shortId + ".mrc";
-				File individualFile = new File(individualFilename);
-				File baseFile = new File(basePath);
-				if (!baseFile.exists()){
-					if (!baseFile.mkdirs()){
-						System.out.println("Could not create directory to store individual marc");
-					}
-				}
 
+			String shortId = recordNumber.replace(".", "");
+			String firstChars = shortId.substring(0, 4);
+			String basePath = individualMarcPath + "/" + firstChars;
+			String individualFilename = basePath + "/" + shortId + ".mrc";
+			File individualFile = new File(individualFilename);
+			File baseFile = new File(basePath);
+			if (!baseFile.exists()){
+				if (!baseFile.mkdirs()){
+					System.out.println("Could not create directory to store individual marc");
+				}
+			}
+
+			if (!individualFile.exists()){
+				marcRecordUpToDate = false;
+			}
+
+			if (!marcRecordUpToDate){
 				try {
 					OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(individualFile,false), Charset.forName("UTF-8").newEncoder());
 					ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -311,12 +311,15 @@ public class RecordGrouperMain {
 					logger.error("Error writing marc", e);
 				}
 			}
+		}else{
+			logger.error("Error did not find record number for MARC record");
 		}
+		return marcRecordUpToDate;
 	}
 
-	private static Ini loadConfigFile(String filename){
+	private static Ini loadConfigFile(){
 		//First load the default config file
-		String configName = "../../sites/default/conf/" + filename;
+		String configName = "../../sites/default/conf/config.ini";
 		logger.info("Loading configuration from " + configName);
 		File configFile = new File(configName);
 		if (!configFile.exists()) {
@@ -337,7 +340,7 @@ public class RecordGrouperMain {
 		}
 
 		//Now override with the site specific configuration
-		String siteSpecificFilename = "../../sites/" + serverName + "/conf/" + filename;
+		String siteSpecificFilename = "../../sites/" + serverName + "/conf/config.ini";
 		logger.info("Loading site specific config from " + siteSpecificFilename);
 		File siteSpecificFile = new File(siteSpecificFilename);
 		if (!siteSpecificFile.exists()) {
@@ -349,9 +352,20 @@ public class RecordGrouperMain {
 			siteSpecificIni.load(new FileReader(siteSpecificFile));
 			for (Profile.Section curSection : siteSpecificIni.values()){
 				for (String curKey : curSection.keySet()){
-					//logger.debug("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
-					//System.out.println("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
 					ini.put(curSection.getName(), curKey, curSection.get(curKey));
+				}
+			}
+			//Also load password files if they exist
+			String siteSpecificPassword = "../../sites/" + serverName + "/conf/config.pwd.ini";
+			logger.info("Loading password config from " + siteSpecificPassword);
+			File siteSpecificPasswordFile = new File(siteSpecificPassword);
+			if (siteSpecificPasswordFile.exists()) {
+				Ini siteSpecificPwdIni = new Ini();
+				siteSpecificPwdIni.load(new FileReader(siteSpecificPasswordFile));
+				for (Profile.Section curSection : siteSpecificPwdIni.values()){
+					for (String curKey : curSection.keySet()){
+						ini.put(curSection.getName(), curKey, curSection.get(curKey));
+					}
 				}
 			}
 		} catch (InvalidFileFormatException e) {

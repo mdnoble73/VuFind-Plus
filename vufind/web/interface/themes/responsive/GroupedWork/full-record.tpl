@@ -1,4 +1,4 @@
-<script type="text/javascript" src="{$path}/js/title-scroller.js"></script>
+<script type="text/javascript" src="{$path}/interface/themes/responsive/js/vufind/title-scroller.js"></script>
 {strip}
 {* Display Title *}
 	<h2 class="notranslate">

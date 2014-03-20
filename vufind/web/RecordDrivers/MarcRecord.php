@@ -31,8 +31,8 @@ class MarcRecord extends IndexRecord
 {
 	/** @var File_MARC_Record $marcRecord */
 	protected $marcRecord;
-	private $id;
-	private $valid = true;
+	protected $id;
+	protected $valid = true;
 
 	/**
 	 * @param array|File_MARC_Record|string $record
@@ -755,6 +755,16 @@ class MarcRecord extends IndexRecord
 	}
 
 	/**
+	 * Get the full title of the record.
+	 *
+	 * @return  string
+	 */
+	public function getShortTitle()
+	{
+		return $this->getFirstFieldValue('245', array('a'));
+	}
+
+	/**
 	 * Get the title of the record.
 	 *
 	 * @return  string
@@ -855,6 +865,10 @@ class MarcRecord extends IndexRecord
 		}
 	}
 
+	public function getContributors(){
+		return $this->getFieldArray(700, array('a', 'b', 'c', 'd'));
+	}
+
 	/**
 	 * Get the text to represent this record in the body of an email.
 	 *
@@ -914,7 +928,7 @@ class MarcRecord extends IndexRecord
 			require_once ROOT_DIR . '/services/Record/Description.php';
 
 			$timer->logTime("Starting to load description for marc record");
-			$descriptionArray = Record_Description::loadDescriptionFromMarc($this->marcRecord, false);
+			$descriptionArray = $this->loadDescriptionFromMarc($this->marcRecord, false);
 			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
 			$timer->logTime("Retrieved description for marc record");
 		}
@@ -923,6 +937,122 @@ class MarcRecord extends IndexRecord
 		$interface->assign('publisher', isset($descriptionArray['publisher']) ? $descriptionArray['publisher'] : '');
 
 		return $interface->fetch('Record/ajax-description-popup.tpl');
+	}
+
+	function loadDescriptionFromMarc($marcRecord, $allowExternalDescription = true){
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $configArray;
+
+		if (!$marcRecord){
+			$descriptionArray = array();
+			$description = "Description Not Provided";
+			$descriptionArray['description'] = $description;
+			return $descriptionArray;
+		}
+
+		// Get ISBN for cover and review use
+		$isbn = null;
+		/** @var File_MARC_Data_Field[] $isbnFields */
+		if ($isbnFields = $marcRecord->getFields('020')) {
+			//Use the first good ISBN we find.
+			foreach ($isbnFields as $isbnField){
+				if ($isbnSubfieldA = $isbnField->getSubfield('a')) {
+					$tmpIsbn = trim($isbnSubfieldA->getData());
+					if (strlen($tmpIsbn) > 0){
+						$pos = strpos($tmpIsbn, ' ');
+						if ($pos > 0) {
+							$tmpIsbn = substr($tmpIsbn, 0, $pos);
+						}
+						$tmpIsbn = trim($tmpIsbn);
+						if (strlen($tmpIsbn) > 0){
+							if (strlen($tmpIsbn) < 10){
+								$tmpIsbn = str_pad($tmpIsbn, 10, "0", STR_PAD_LEFT);
+							}
+							$isbn = $tmpIsbn;
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		$upc = null;
+		/** @var File_MARC_Data_Field $upcField */
+		if ($upcField = $marcRecord->getField('024')) {
+			if ($upcSubfield = $upcField->getSubfield('a')) {
+				$upc = trim($upcSubfield->getData());
+			}
+		}
+
+		$descriptionArray = $memCache->get("record_description_{$isbn}_{$upc}_{$allowExternalDescription}");
+		if (!$descriptionArray){
+			$marcDescription = null;
+			$description = '';
+			/** @var File_MARC_Data_Field $descriptionField */
+			if ($descriptionField = $marcRecord->getField('520')) {
+				if ($descriptionSubfield = $descriptionField->getSubfield('a')) {
+					$description = trim($descriptionSubfield->getData());
+					$marcDescription = $this->trimDescription($description);
+				}
+			}
+
+			//Load the description
+			//Check to see if there is a description in Syndetics and use that instead if available
+			$useMarcSummary = true;
+			if ($allowExternalDescription){
+				if (!is_null($isbn) || !is_null($upc)){
+					require_once ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php';
+					$summaryInfo = GoDeeperData::getSummary($isbn, $upc);
+					if (isset($summaryInfo['summary'])){
+						$descriptionArray['description'] = $this->trimDescription($summaryInfo['summary']);
+						$useMarcSummary = false;
+					}
+				}
+			}
+
+			if ($useMarcSummary){
+				if ($marcDescription != null){
+					$descriptionArray['description'] = $marcDescription;
+					$description = $marcDescription;
+				}else{
+					$description = "Description Not Provided";
+					$descriptionArray['description'] = $description;
+				}
+			}
+
+			//Load page count
+			/** @var File_MARC_Data_Field $length */
+			if ($length = $marcRecord->getField('300')){
+				if ($lengthSubfield = $length->getSubfield('a')){
+					$length = trim($lengthSubfield->getData());
+					$length = preg_replace("/[\\/|;:]/","",$length);
+					$length = preg_replace("/p\./","pages",$length);
+					$descriptionArray['length'] = $length;
+				}
+			}
+			//Load publisher
+			/** @var File_MARC_Data_Field $publisher */
+			if ($publisher = $marcRecord->getField('260')){
+				if ($publisherSubfield = $publisher->getSubfield('b')){
+					$publisher = trim($publisherSubfield->getData());
+					$descriptionArray['publisher'] = $publisher;
+				}
+			}
+			$memCache->set("record_description_{$isbn}_{$upc}_{$allowExternalDescription}", $descriptionArray, 0, $configArray['Caching']['record_description']);
+		}
+		return $descriptionArray;
+	}
+
+	private function trimDescription($description){
+			$chars = 300;
+			if (strlen($description)>$chars){
+					$description = $description." ";
+					$description = substr($description,0,$chars);
+					$description = substr($description,0,strrpos($description,' '));
+					$description = $description . "...";
+				}
+		return $description;
 	}
 
 	function getLanguage(){
@@ -1666,7 +1796,7 @@ class MarcRecord extends IndexRecord
 	 * @access  protected
 	 * @return  array
 	 */
-	protected function getISBNs()
+	public function getISBNs()
 	{
 		// If ISBN is in the index, it should automatically be an array... but if
 		// it's not set at all, we should normalize the value to an empty array.
@@ -1795,10 +1925,16 @@ class MarcRecord extends IndexRecord
 				'hideByDefault' => true
 			);
 		}
-		$moreDetailsOptions['details'] = array(
-			'label' => 'Details',
-			'body' => $interface->fetch('EcontentRecord/view-title-details.tpl'),
+		$moreDetailsOptions['more-details'] = array(
+			'label' => 'More Details',
+			'body' => $interface->fetch('Record/view-more-details.tpl'),
 		);
+		if ($interface->getVariable('showTagging')){
+			$moreDetailsOptions['tags'] = array(
+					'label' => 'Tagging',
+					'body' => $interface->fetch('GroupedWork/view-tags.tpl'),
+			);
+		}
 		$moreDetailsOptions['citations'] = array(
 			'label' => 'Citations',
 			'body' => $interface->fetch('Record/cite.tpl'),

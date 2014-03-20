@@ -29,6 +29,7 @@ require_once ROOT_DIR  . '/services/MyResearch/lib/Resource.php';
 require_once ROOT_DIR  . '/services/MyResearch/lib/Resource_tags.php';
 require_once ROOT_DIR  . '/services/MyResearch/lib/Tags.php';
 require_once ROOT_DIR  . '/RecordDrivers/Factory.php';
+require_once ROOT_DIR  . '/RecordDrivers/MarcRecord.php';
 
 abstract class Record_Record extends Action
 {
@@ -74,76 +75,18 @@ abstract class Record_Record extends Action
 		}
 		$interface->assign('id', $this->id);
 
-		require_once(ROOT_DIR . '/sys/MergedRecord.php');
-		$mergedRecord = new MergedRecord();
-		$mergedRecord->original_record = $this->id;
-		if ($mergedRecord->find(true)){
-			//redirect to the new record
-			header('Location: ' . $configArray['Site']['url'] . '/Record/' . $mergedRecord->new_record);
-			exit();
-		}
-
-		//Look for any records that have been merged with this record
-		$mergedRecord = new MergedRecord();
-		$mergedRecord->new_record = $this->id;
-		if ($mergedRecord->find()){
-			while ($mergedRecord->fetch()){
-				$this->mergedRecords[] = $mergedRecord->original_record;
-			}
-		}
-
 		//Check to see if the record exists within the resources table
-		$resource = new Resource();
-		$resource->record_id = $this->id;
-		$resource->source = 'VuFind';
-		$resource->deleted = 0;
-		if (!$resource->find()){
-			//Check to see if the record has been converted to an eContent record
-			require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
-			$econtentRecord = new EContentRecord();
-			$econtentRecord->ilsId = $this->id;
-			$econtentRecord->status = 'active';
-			if ($econtentRecord->find(true)){
-				header("Location: /EcontentRecord/{$econtentRecord->id}/Home");
-				die();
-			}
-			$logger->log("Did not find a resource for id {$this->id} in resources table." , PEAR_LOG_DEBUG);
-			//TODO: Determine if this is needed again
-			/*$interface->setTemplate('invalidRecord.tpl');
+		$this->recordDriver = new MarcRecord($this->id);
+		if (!$this->recordDriver->isValid()){
+			$interface->setTemplate('invalidRecord.tpl');
 			$interface->display('layout.tpl');
-			die();*/
+			die();
 		}
 
 		if ($configArray['Catalog']['ils'] == 'Millennium' || $configArray['Catalog']['ils'] == 'Sierra'){
 			$interface->assign('classicId', substr($this->id, 1, strlen($this->id) -2));
 			$interface->assign('classicUrl', $configArray['Catalog']['linking_url']);
 		}
-
-		// Setup Search Engine Connection
-		/*$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		$this->db = new $class($url);
-		$this->db->disableScoping();
-
-		// Retrieve Full Marc Record
-		disableErrorHandler();
-		if (!($record = $this->db->getRecord($this->id))) {
-			$interface->assign('id', $this->id);
-			$logger->log("Did not find a record for id {$this->id} in solr." , PEAR_LOG_DEBUG);
-			$interface->setTemplate('invalidRecord.tpl');
-			$interface->display('layout.tpl');
-			enableErrorHandler();
-			die();
-		}
-		enableErrorHandler();
-		$this->db->enableScoping();
-
-		$this->record = $record;
-		$interface->assign('record', $record);
-		$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
-		$timer->logTime('Initialized the Record Driver');
-
-		$interface->assign('coreMetadata', $this->recordDriver->getCoreMetadata());*/
 
 		// Process MARC Data
 		require_once ROOT_DIR  . '/sys/MarcLoader.php';
@@ -176,20 +119,7 @@ abstract class Record_Record extends Action
 			$interface->assign('mainAuthor', $mainAuthor);
 		}
 
-		$marcField = $marcRecord->getField('110');
-		if ($marcField){
-			$corporateAuthor = $this->getSubfieldData($marcField, 'a');
-			$interface->assign('corporateAuthor', $corporateAuthor);
-		}
 
-		$marcFields = $marcRecord->getFields('700');
-		if ($marcFields){
-			$contributors = array();
-			foreach ($marcFields as $marcField){
-				$contributors[] = $this->concatenateSubfieldData($marcField, array('a', 'b', 'c', 'd'));
-			}
-			$interface->assign('contributors', $contributors);
-		}
 
 		$published = $this->recordDriver->getPublicationDetails();
 		$interface->assign('published', $published);
@@ -566,8 +496,7 @@ abstract class Record_Record extends Action
 		}
 
 		//Determine the cover to use
-		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$this->id}&amp;isn={$this->isbn}&amp;issn={$this->issn}&amp;size=large&amp;upc={$this->upc}&amp;category=" . urlencode($format_category) . "&amp;format=" . urlencode(isset($format[0]) ? $format[0] : '');
-		$interface->assign('bookCoverUrl', $bookCoverUrl);
+		$interface->assign('bookCoverUrl', $this->recordDriver->getBookcoverUrl('large'));
 
 		//Load accelerated reader data
 		if (isset($record['accelerated_reader_interest_level'])){
@@ -743,7 +672,7 @@ abstract class Record_Record extends Action
 //					$notes[] = $curNote;
 //					$curNote = '';
 //				}
-// 20131112 split 505 contents notes on double-hyphens instead of title subfields (which created bad breaks misassociating titles and authors)
+// 20131112 split 505 contents notes on double-hyphens instead of title subfields (which created bad breaks mis-associating titles and authors)
 				if (preg_match("/--$/",$curNote)) {
 					$notes[] = $curNote;
 					$curNote = '';

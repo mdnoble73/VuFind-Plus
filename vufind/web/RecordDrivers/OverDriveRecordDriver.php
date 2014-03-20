@@ -99,12 +99,52 @@ class OverDriveRecordDriver implements RecordInterface {
 	 * For legal values, see getCitationFormats().  Returns null if
 	 * format is not supported.
 	 *
-	 * @param   string $format Citation format to display.
+	 * @param   string  $format     Citation format to display.
 	 * @access  public
 	 * @return  string              Name of Smarty template file to display.
 	 */
-	public function getCitation($format) {
-		// TODO: Implement getCitation() method.
+	public function getCitation($format)
+	{
+		require_once ROOT_DIR . '/sys/CitationBuilder.php';
+
+		// Build author list:
+		$authors = array();
+		$primary = $this->getAuthor();
+		if (!empty($primary)) {
+			$authors[] = $primary;
+		}
+		$authors = array_unique(array_merge($authors, $this->getContributors()));
+
+		// Collect all details for citation builder:
+		$publishers = $this->getPublishers();
+		$pubDates = $this->getPublicationDates();
+		$pubPlaces = $this->getPlacesOfPublication();
+		$details = array(
+				'authors' => $authors,
+				'title' => $this->getTitle(),
+				'subtitle' => $this->getSubtitle(),
+				'pubPlace' => count($pubPlaces) > 0 ? $pubPlaces[0] : null,
+				'pubName' => count($publishers) > 0 ? $publishers[0] : null,
+				'pubDate' => count($pubDates) > 0 ? $pubDates[0] : null,
+				'edition' => $this->getEdition(),
+				'format' => $this->getFormats()
+		);
+
+		// Build the citation:
+		$citation = new CitationBuilder($details);
+		switch($format) {
+			case 'APA':
+				return $citation->getAPA();
+			case 'AMA':
+				return $citation->getAMA();
+			case 'ChicagoAuthDate':
+				return $citation->getChicagoAuthDate();
+			case 'ChicagoHumanities':
+				return $citation->getChicagoHumanities();
+			case 'MLA':
+				return $citation->getMLA();
+		}
+		return '';
 	}
 
 	/**
@@ -114,8 +154,9 @@ class OverDriveRecordDriver implements RecordInterface {
 	 * @access  public
 	 * @return  array               Strings representing citation formats.
 	 */
-	public function getCitationFormats() {
-		// TODO: Implement getCitationFormats() method.
+	public function getCitationFormats()
+	{
+		return array('AMA', 'APA', 'ChicagoHumanities', 'ChicagoAuthDate', 'MLA');
 	}
 
 	/**
@@ -668,7 +709,7 @@ class OverDriveRecordDriver implements RecordInterface {
 	}
 
 	public function getContributors(){
-		return null;
+		return array();
 	}
 
 	public function getBookcoverUrl($size = 'small'){
@@ -706,6 +747,18 @@ class OverDriveRecordDriver implements RecordInterface {
 
 		//Load more details options
 		$moreDetailsOptions = array();
+		$moreDetailsOptions['series'] = array(
+			'label' => 'Also in this Series',
+			'body' => $interface->fetch('GroupedWork/series.tpl'),
+			'hideByDefault' => false,
+			'openByDefault' => true
+		);
+		$moreDetailsOptions['moreLikeThis'] = array(
+			'label' => 'More Like This',
+			'body' => $interface->fetch('GroupedWork/moreLikeThis.tpl'),
+			'hideByDefault' => false,
+			'openByDefault' => true
+		);
 		$moreDetailsOptions['formats'] = array(
 			'label' => 'Formats',
 			'body' => '<div id="formatsPlaceholder">Loading...</div>',
@@ -797,4 +850,32 @@ class OverDriveRecordDriver implements RecordInterface {
 		global $configArray;
 		return $configArray['Site']['url'] . '/qrcode.php?type=OverDrive&id=' . $this->getPermanentId();
 	}
+
+	private function getPublishers() {
+		$publishers = array();
+		if (isset($this->overDriveMetaData->publisher)){
+			$publishers[] = $this->overDriveMetaData->publisher;
+		}
+		return $publishers;
+	}
+
+	private function getPublicationDates() {
+		$publicationDates = array();
+		if (isset($this->overDriveMetaData->getDecodedRawData()->publishDateText)){
+			$publishDate = $this->overDriveMetaData->getDecodedRawData()->publishDateText;
+			$publishYear = substr($publishDate, -4);
+			$publicationDates[] = $publishYear;
+		}
+		return $publicationDates;
+	}
+
+	private function getPlacesOfPublication() {
+		return array();
+	}
+
+	private function getEdition() {
+		return isset($this->overDriveMetaData->getDecodedRawData()->edition) ? $this->overDriveMetaData->getDecodedRawData()->edition : '';
+	}
+
+
 }

@@ -96,7 +96,8 @@ class GroupedWork_AJAX {
 		if (isset($similar) && count($similar['response']['docs']) > 0) {
 			$similarTitles = array();
 			foreach ($similar['response']['docs'] as $key => $similarTitle){
-				$similarTitles[] = $this->getScrollerTitle($similarTitle, $key, 'MoreLikeThis');
+				$recordDriver = new GroupedWorkDriver($similarTitle);
+				$similarTitles[] = $recordDriver->getScrollerTitle($key, 'MoreLikeThis');
 			}
 			$similarTitlesInfo = array('titles' => $similarTitles, 'currentIndex' => 0);
 			$enrichmentResult['similarTitles'] = $similarTitlesInfo;
@@ -124,35 +125,7 @@ class GroupedWork_AJAX {
 	}
 
 	function getScrollerTitle($record, $index, $scrollerName){
-		global $configArray;
-		if (isset($record['isbn'])){
-			$isbn = $record['isbn'];
-			if (is_array($isbn)){
-				$isbn = reset($isbn);
-			}
-			if (strpos($isbn, ' ') > 0){
-				$isbn = substr($isbn, 0, strpos($isbn, ' '));
-			}
-		}else{
-			$isbn = '';
-		}
-		$cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn;
-		if (isset($record['id'])){
-			$cover .= "&id=" . $record['id'];
-		}
-		if (isset($record['upc'])){
-			$cover .= "&upc=" . $record['upc'];
-		}
-		if (isset($record['issn'])){
-			$cover .= "&issn=" . $record['issn'];
-		}
-		if (isset($record['format_category'])){
-			if (is_array($record['format_category'])){
-				$cover .= "&category=" . $record['format_category'][0];
-			}else{
-				$cover .= "&category=" . $record['format_category'];
-			}
-		}
+		$cover = $record['mediumCover'];
 		$title = preg_replace("/\s*(\/|:)\s*$/","", $record['title']);
 		if (isset($record['series']) && $record['series'] != null){
 			if (is_array($record['series'])){
@@ -166,7 +139,7 @@ class GroupedWork_AJAX {
 			}else{
 				$series = $record['series'];
 			}
-			if ($series){
+			if (isset($series)){
 				$title .= ' (' . $series ;
 				if (isset($record['volume'])){
 					$title .= ' Volume ' . $record['volume'];
@@ -177,7 +150,7 @@ class GroupedWork_AJAX {
 
 		if (isset($record['id'])){
 			$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$index}\" class=\"scrollerTitle\">" .
-					'<a href="' . $configArray['Site']['path'] . "/GroupedWork/" . $record['id'] . '" id="descriptionTrigger' . $record['id'] . '">' .
+					'<a href="' . $record['fullRecordLink'] . '" id="descriptionTrigger' . $record['id'] . '">' .
 					"<img src=\"{$cover}\" class=\"scrollerTitleCover\" alt=\"{$title} Cover\"/>" .
 					"</a></div>" .
 					"<div id='descriptionPlaceholder{$record['id']}' style='display:none'></div>";
@@ -191,7 +164,7 @@ class GroupedWork_AJAX {
 			'id' => isset($record['id']) ? $record['id'] : '',
 			'image' => $cover,
 			'title' => $title,
-			'author' => $record['author'],
+			'author' => isset($record['author']) ? $record['author'] : '',
 			'formattedTitle' => $formattedTitle
 		);
 	}
@@ -518,9 +491,9 @@ class GroupedWork_AJAX {
 				$userListEntry->notes = $notes;
 				$userListEntry->dateAdded = time();
 				if ($existingEntry){
-					$ret = $userListEntry->update();
+					$userListEntry->update();
 				}else{
-					$ret = $userListEntry->insert();
+					$userListEntry->insert();
 				}
 			}
 
@@ -669,5 +642,73 @@ class GroupedWork_AJAX {
 			$result = array('result' => true);
 		}
 		return json_encode($result);
+	}
+
+	function getAddTagForm(){
+		global $interface;
+		$id = $_REQUEST['id'];
+		$interface->assign('id', $id);
+
+		$results = array(
+				'title' => 'Add Tag',
+				'modalBody' => $interface->fetch("GroupedWork/addtag.tpl"),
+				'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveTag(\"{$id}\"); return false;'>Add Tags</span>"
+		);
+		return json_encode($results);
+	}
+
+	function saveTag()
+	{
+		global $user;
+		if ($user === false) {
+			return json_encode(array('success' => false, 'message' => 'Sorry, you must be logged in to add tags.'));
+		}
+
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
+
+		$id = $_REQUEST['id'];
+		// Parse apart the tags and save them in association with the resource:
+		preg_match_all('/"[^"]*"|[^,]+/', $_REQUEST['tag'], $words);
+		foreach ($words[0] as $tag) {
+			$tag = trim(strtolower(str_replace('"', '', $tag)));
+
+			$userTag = new UserTag();
+			$userTag->tag = $tag;
+			$userTag->userId = $user->id;
+			$userTag->groupedRecordPermanentId = $id;
+			if (!$userTag->find(true)){
+				//This is a new tag
+				$userTag->dateTagged = time();
+				$userTag->insert();
+			}else{
+				//This tag has already been added
+			}
+		}
+
+		return json_encode(array('success' => true, 'message' => 'All tags have been added to the title.  Refresh to view updated tag list.'));
+	}
+
+	function removeTag(){
+		global $user;
+		if ($user === false) {
+			return json_encode(array('success' => false, 'message' => 'Sorry, you must be logged in to remove tags.'));
+		}
+
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
+
+		$id = $_REQUEST['id'];
+		$tag = $_REQUEST['tag'];
+		$userTag = new UserTag();
+		$userTag->tag = $tag;
+		$userTag->userId = $user->id;
+		$userTag->groupedRecordPermanentId = $id;
+		if ($userTag->find(true)){
+			//This is a new tag
+			$userTag->delete();
+			return json_encode(array('success' => true, 'message' => 'Removed your tag from the title.  Refresh to view updated tag list.'));
+		}else{
+			//This tag has already been added
+			return json_encode(array('success' => true, 'message' => 'We could not find that tag for this record.'));
+		}
 	}
 } 

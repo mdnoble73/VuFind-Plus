@@ -47,15 +47,24 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 		}
 	}
 	function isValidForUser($locationCode, $eContentFieldData){
-		global $user;
-		if (!$user){
-			return true;
-		}
 		$sharing = $this->getSharing($locationCode, $eContentFieldData);
 		if ($sharing == 'shared'){
 			return true;
+		}else if ($sharing == 'library'){
+			$searchLibrary = Library::getSearchLibrary();
+			if ($searchLibrary == null || $searchLibrary->includeOutOfSystemExternalLinks || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
+				return true;
+			}else{
+				return false;
+			}
 		}else{
-			return false;
+			$searchLibrary = Library::getSearchLibrary();
+			$searchLocation = Location::getSearchLocation();
+			if ($searchLibrary->includeOutOfSystemExternalLinks || strpos($locationCode, $searchLocation->code) === 0){
+				return true;
+			}else{
+				return false;
+			}
 		}
 	}
 

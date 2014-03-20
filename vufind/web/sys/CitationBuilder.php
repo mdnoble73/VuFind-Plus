@@ -495,8 +495,8 @@ class CitationBuilder
 					}
 				}
 			}else{
-				if ($edition !== '1st ed.') {
-					return $edition;
+				if ($this->details['edition'] !== '1st ed.') {
+					return $this->details['edition'];
 				}
 			}
 		}

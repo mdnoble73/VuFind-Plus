@@ -46,6 +46,7 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind/responsive.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/results-list.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/searches.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/title-scroller.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/wikipedia.js"></script>
 
 

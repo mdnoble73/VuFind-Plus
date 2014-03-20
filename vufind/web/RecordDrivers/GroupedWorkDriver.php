@@ -281,6 +281,27 @@ class GroupedWorkDriver implements RecordInterface{
 		return 'RecordDrivers/GroupedWork/listentry.tpl';
 	}
 
+	public function getScrollerTitle($index, $scrollerName){
+		global $interface;
+		$interface->assign('index', $index);
+		$interface->assign('scrollerName', $scrollerName);
+		$interface->assign('id', $this->getPermanentId());
+		$interface->assign('title', $this->getTitle());
+		$interface->assign('linkUrl', $this->getLinkUrl());
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+
+		$interface->assign('recordDriver', $this);
+
+		return array(
+				'id' => isset($record['id']) ? $record['id'] : '',
+				'image' => $this->getBookcoverUrl('medium'),
+				'title' => $this->getTitle(),
+				'author' => $this->getPrimaryAuthor(),
+				'formattedTitle' => $interface->fetch('RecordDrivers/GroupedWork/scroller-title.tpl')
+		);
+	}
+
 	public function getLinkUrl(){
 		global $configArray;
 		return $configArray['Site']['url'] . '/GroupedWork/' . $this->getPermanentId() . '/Home';
@@ -1101,6 +1122,12 @@ class GroupedWorkDriver implements RecordInterface{
 			'label' => 'Details',
 			'body' => $interface->fetch('GroupedWork/view-title-details.tpl'),
 		);
+		if ($interface->getVariable('showTagging')){
+			$moreDetailsOptions['tags'] = array(
+					'label' => 'Tagging',
+					'body' => $interface->fetch('GroupedWork/view-tags.tpl'),
+			);
+		}
 		if ($interface->getVariable('showStaffView')){
 			$moreDetailsOptions['staff'] = array(
 				'label' => 'Staff View',
@@ -1109,5 +1136,30 @@ class GroupedWorkDriver implements RecordInterface{
 		}
 
 		return $moreDetailsOptions;
+	}
+
+	public function getTags(){
+		global $user;
+		/** @var UserTag[] $tags */
+		$tags = array();
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
+		$userTags = new UserTag();
+		$userTags->groupedRecordPermanentId = $this->getPermanentId();
+		$userTags->find();
+		while ($userTags->fetch()){
+			if (!isset($tags[$userTags->tag])){
+				$tags[$userTags->tag] = clone $userTags;
+				$tags[$userTags->tag]->userAddedThis = false;
+			}
+			$tags[$userTags->tag]->cnt++;
+			if (!$user){
+				return false;
+			}else{
+				if ($user->id == $tags[$userTags->tag]->userId){
+					$tags[$userTags->tag]->userAddedThis = true;
+				}
+			}
+		}
+		return $tags;
 	}
 }

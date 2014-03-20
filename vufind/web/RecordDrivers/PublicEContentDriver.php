@@ -8,7 +8,25 @@
  * Time: 9:45 AM
  */
 require_once ROOT_DIR . '/RecordDrivers/BaseEContentDriver.php';
+require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 class PublicEContentDriver extends BaseEContentDriver{
+	private $eContentRecord;
+	/**
+	 * @param array|File_MARC_Record|string $record
+	 */
+	public function __construct($record){
+		//Do default constructor
+		parent::__construct($record);
+		//Now load the eContent record based on the ils id
+		$this->eContentRecord = new EContentRecord();
+		$this->eContentRecord->ilsId = $this->id;
+		$this->eContentRecord->status = 'active';
+		if ($this->eContentRecord->find(true)){
+
+		}
+
+	}
+
 	function getValidProtectionTypes(){
 		return array('free', 'public domain');
 	}
@@ -47,5 +65,9 @@ class PublicEContentDriver extends BaseEContentDriver{
 
 	function getModuleName(){
 		return 'PublicEContent';
+	}
+
+	function getSharing($locationCode, $eContentFieldData){
+		return 'shared';
 	}
 } 

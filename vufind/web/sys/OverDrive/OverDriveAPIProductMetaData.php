@@ -26,4 +26,12 @@ class OverDriveAPIProductMetaData extends DB_DataObject {
 	public $rawData;
 	public $thumbnail;
 	public $cover;
+
+	private $decodedRawData = null;
+	public function getDecodedRawData(){
+		if ($this->decodedRawData == null){
+			$this->decodedRawData = json_decode($this->rawData);
+		}
+		return $this->decodedRawData;
+	}
 }

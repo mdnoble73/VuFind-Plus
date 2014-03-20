@@ -205,7 +205,7 @@ public class GroupedReindexProcess {
 		logger.info("Starting Reindex for " + serverName);
 
 		// Parse the configuration file
-		configIni = loadConfigFile("config.ini");
+		configIni = loadConfigFile();
 		
 		if (indexSettings != null){
 			logger.info("Loading index settings from override file " + indexSettings);
@@ -309,9 +309,9 @@ public class GroupedReindexProcess {
 		}
 	}
 	
-	private static Ini loadConfigFile(String filename){
+	private static Ini loadConfigFile(){
 		//First load the default config file 
-		String configName = "../../sites/default/conf/" + filename;
+		String configName = "../../sites/default/conf/config.ini";
 		logger.info("Loading configuration from " + configName);
 		File configFile = new File(configName);
 		if (!configFile.exists()) {
@@ -332,7 +332,7 @@ public class GroupedReindexProcess {
 		}
 		
 		//Now override with the site specific configuration
-		String siteSpecificFilename = "../../sites/" + serverName + "/conf/" + filename;
+		String siteSpecificFilename = "../../sites/" + serverName + "/conf/config.ini";
 		logger.info("Loading site specific config from " + siteSpecificFilename);
 		File siteSpecificFile = new File(siteSpecificFilename);
 		if (!siteSpecificFile.exists()) {
@@ -347,6 +347,19 @@ public class GroupedReindexProcess {
 					//logger.debug("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
 					//System.out.println("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
 					ini.put(curSection.getName(), curKey, curSection.get(curKey));
+				}
+			}
+			//Also load password files if they exist
+			String siteSpecificPassword = "../../sites/" + serverName + "/conf/config.pwd.ini";
+			logger.info("Loading password config from " + siteSpecificPassword);
+			File siteSpecificPasswordFile = new File(siteSpecificPassword);
+			if (siteSpecificPasswordFile.exists()) {
+				Ini siteSpecificPwdIni = new Ini();
+				siteSpecificPwdIni.load(new FileReader(siteSpecificPasswordFile));
+				for (Section curSection : siteSpecificPwdIni.values()){
+					for (String curKey : curSection.keySet()){
+						ini.put(curSection.getName(), curKey, curSection.get(curKey));
+					}
 				}
 			}
 		} catch (InvalidFileFormatException e) {

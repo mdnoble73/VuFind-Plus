@@ -28,6 +28,12 @@ tests/selenium/*
 .settings/
 data-import
 config.pwd.ini
+sites/nashville.localhost/
+sites/nashgene.localhost/
+sites/wcpl.localhost/
+sites/opac.marmot.org/
+sites/opac2.marmot.org/
+sites/opac3.marmot.org/
 !sites/default/config.pwd.ini
 !sites/default/config.ini
 sites/*/covers/large/*
@@ -42,12 +48,7 @@ sites/*/marc/*
 sites/*/marc_*/*
 sites/*/logs/*
 sites/*/backup
-sites/nashville.localhost/
-sites/nashgene.localhost/
-sites/wcpl.localhost/
-sites/opac.marmot.org/
-sites/opac2.marmot.org/
-sites/opac3.marmot.org/
+alltitles.csv
 
 # Compiled source #                                                                                   
 ###################
