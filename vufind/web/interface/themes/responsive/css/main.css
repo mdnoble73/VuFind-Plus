@@ -5333,6 +5333,10 @@ a.badge:focus {
   display: inherit !important;
 }
 @media (min-width: 768px) and (max-width: 979px) {
+    #ratings{
+        border:none;
+    }
+
   .hidden-desktop {
     display: inherit !important;
   }
@@ -5727,10 +5731,6 @@ a.badge:focus {
   }
 }
 @media (min-width: 768px) and (max-width: 979px) {
-
-    #ratings{
-        border:none;
-    }
 
   .row {
     margin-left: -20px;
