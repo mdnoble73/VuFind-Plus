@@ -270,10 +270,10 @@ a:focus {
     color: #888888;
 }
 
-#formatCategories a:link{ color:#888888; }
-#formatCategories a:visited{ color:#FFFFFF; }
-#formatCategories a:hover{ color:#FFFFFF; }
-#formatCategories a:active{ color:#FFFFFF}
+#formatCategories a:link{ color:#888888;font-size:10px; }
+#formatCategories a:visited{ color:#FFFFFF;font-size:10px; }
+#formatCategories a:hover{ color:#FFFFFF;font-size:10px; }
+#formatCategories a:active{ color:#FFFFFF;font-size:10px;}
 
 .container,
 .navbar-static-top .container,
