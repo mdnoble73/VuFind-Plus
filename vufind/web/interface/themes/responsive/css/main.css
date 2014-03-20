@@ -5354,6 +5354,11 @@ a.badge:focus {
   }
 }
 @media (max-width: 767px) {
+
+    .holdingsSummary{
+    text-align:center;
+    }
+
     #formatCategories {
         display: none;
     }
