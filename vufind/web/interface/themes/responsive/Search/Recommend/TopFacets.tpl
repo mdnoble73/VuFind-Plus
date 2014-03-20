@@ -15,8 +15,8 @@
 							{else}
 								<div class='categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} span2' >
 									<a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', 'formatCategory', '{$thisFacet.value|escape}');">
-										<img src="{$path}/interface/themes/responsive/images/{$thisFacet.value|lower|replace:' ':''}.png" alt="{translate text=$thisFacet.value|escape}"><br/>
-										{translate text=$thisFacet.value|escape}<br/>({$thisFacet.count})
+										<img src="{$path}/interface/themes/responsive/images/{$thisFacet.value|lower|replace:' ':''}.png" alt="{translate text=$thisFacet.value|escape}">{*<br/>
+										{translate text=$thisFacet.value|escape}<br/>*}({$thisFacet.count})
 									</a>
 								</div>
 							{/if}
