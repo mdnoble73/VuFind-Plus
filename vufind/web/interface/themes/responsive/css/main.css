@@ -7403,6 +7403,7 @@ div.striped > div:nth-child(odd) {
 }
 #recordcover {
   position: relative;
+    text-align:center;
 }
 .godeeper {
   bottom: 4px;
