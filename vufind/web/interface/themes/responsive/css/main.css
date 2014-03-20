@@ -5343,7 +5343,7 @@ a.badge:focus {
     #formatCategories {
         display: none;
     }
-    .container{
+    .navbar-static-top .container{
         width:620px;
 
     }
