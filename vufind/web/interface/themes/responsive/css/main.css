@@ -264,6 +264,11 @@ a:focus {
   min-height: 1px;
   margin-left: 20px;
 }
+
+#formatCategories {
+    background:#4e80bd;
+}
+
 .container,
 .navbar-static-top .container,
 .navbar-fixed-top .container,
