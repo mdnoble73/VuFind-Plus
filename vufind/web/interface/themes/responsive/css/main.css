@@ -7417,6 +7417,7 @@ div.striped > div:nth-child(odd) {
 #recordcover {
   position: relative;
     text-align:center;
+    background:#eaeaea;
 }
 .godeeper {
   bottom: 4px;
