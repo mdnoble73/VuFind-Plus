@@ -3320,6 +3320,10 @@ border:1px solid #eaeaea;
     padding-left:3px;
 }
 
+#ratings{
+    border:1px solid #4e80bd;
+}
+
 .alert {
   padding: 8px 35px 8px 14px;
   margin-bottom: 20px;
