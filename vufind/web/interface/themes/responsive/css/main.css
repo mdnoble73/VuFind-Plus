@@ -3321,7 +3321,9 @@ border:1px solid #eaeaea;
 }
 
 #ratings{
-    border:1px solid #4e80bd;
+    border-right:1px solid #4e80bd;
+    border-left:1px solid #4e80bd;
+    border-bottom:1px solid #4e80bd;
 }
 
 .alert {
