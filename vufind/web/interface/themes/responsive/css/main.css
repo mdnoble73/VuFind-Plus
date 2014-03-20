@@ -267,7 +267,13 @@ a:focus {
 
 #formatCategories {
     background:#4e80bd;
+    color: #888888;
 }
+
+#formatCategories a:link{ color:#888888; }
+#formatCategories a:visited{ color:#FFFFFF; }
+#formatCategories a:hover{ color:#FFFFFF; }
+#formatCategories a:active{ color:#FFFFFF}
 
 .container,
 .navbar-static-top .container,
