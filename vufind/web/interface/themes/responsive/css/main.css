@@ -5333,10 +5333,13 @@ a.badge:focus {
   display: inherit !important;
 }
 @media (min-width: 768px) and (max-width: 979px) {
+    /*
     #ratings,.btn-group-vertical > .btn + .btn{
         border:none;
-    }
-
+    }*/
+  #recordTools{
+      width:125px;
+  }
   .hidden-desktop {
     display: inherit !important;
   }
