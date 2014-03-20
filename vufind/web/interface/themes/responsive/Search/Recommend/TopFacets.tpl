@@ -8,15 +8,15 @@
 						{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 							{if $thisFacet.isApplied}
 								<div class='categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} span2'>
-									<img src="{$path}/interface/themes/responsive/images/{$thisFacet.value|lower|replace:' ':''}.png" alt="{translate text=$thisFacet.value|escape}"><br/>
-									{$thisFacet.value|escape}<br/>
+									<img src="{$path}/interface/themes/responsive/images/{$thisFacet.value|lower|replace:' ':''}.png" alt="{translate text=$thisFacet.value|escape}">{*<br/>
+									{$thisFacet.value|escape}<br/>*}
 									<a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', 'formatCategory', '{$thisFacet.value|escape}');">(remove filter)</a>
 								</div>
 							{else}
 								<div class='categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} span2' >
 									<a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', 'formatCategory', '{$thisFacet.value|escape}');">
 										<img src="{$path}/interface/themes/responsive/images/{$thisFacet.value|lower|replace:' ':''}.png" alt="{translate text=$thisFacet.value|escape}">{*<br/>
-										{translate text=$thisFacet.value|escape}<br/>*}({$thisFacet.count})
+										{translate text=$thisFacet.value|escape}<br/>*}<div>({$thisFacet.count})</div>
 									</a>
 								</div>
 							{/if}
