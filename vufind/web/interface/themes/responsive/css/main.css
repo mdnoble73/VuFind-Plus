@@ -5333,7 +5333,7 @@ a.badge:focus {
   display: inherit !important;
 }
 @media (min-width: 768px) and (max-width: 979px) {
-    #ratings{
+    #ratings,.btn-group-vertical > .btn + .btn{
         border:none;
     }
 
