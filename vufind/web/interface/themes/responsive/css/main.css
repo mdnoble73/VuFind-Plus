@@ -6157,9 +6157,9 @@ a.badge:focus {
     #formatCategories {
         display: none;
     }
-    .navbar-fixed-bottom .container {
+    /*.navbar-fixed-bottom .container {
         width: 630px;
-    }
+    }*/
 }
 @media (max-width: 480px) {
 
