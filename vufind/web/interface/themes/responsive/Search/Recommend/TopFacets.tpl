@@ -10,7 +10,7 @@
 								<div class='categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} span2'>
 									<img src="{$path}/interface/themes/responsive/images/{$thisFacet.value|lower|replace:' ':''}.png" alt="{translate text=$thisFacet.value|escape}">{*<br/>
 									{$thisFacet.value|escape}<br/>*}
-									<a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', 'formatCategory', '{$thisFacet.value|escape}');">(remove filter)</a>
+									<div><a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', 'formatCategory', '{$thisFacet.value|escape}');">(remove filter)</a></div>
 								</div>
 							{else}
 								<div class='categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} span2' >
