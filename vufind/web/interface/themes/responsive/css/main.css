@@ -6552,25 +6552,25 @@ a.badge:focus {
   }
 }
 #header-container .navbar-inner {
-    background-color: #242d40;
-    background-image: -moz-linear-gradient(top, #4d80bc, #242d40);
-    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#4d80bc), to(#242d40));
-    background-image: -webkit-linear-gradient(top, #4d80bc, #242d40);
-    background-image: -o-linear-gradient(top, #4d80bc, #242d40);
-    background-image: linear-gradient(to bottom, #4d80bc, #242d40);
+    background-color: #3F4E61;
+    background-image: -moz-linear-gradient(top, #4d80bc, #3F4E61);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#4d80bc), to(#3F4E61));
+    background-image: -webkit-linear-gradient(top, #4d80bc, #3F4E61);
+    background-image: -o-linear-gradient(top, #4d80bc, #3F4E61);
+    background-image: linear-gradient(to bottom, #4d80bc, #3F4E61);
     background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#4d80bcb8', endColorstr='#242d406b', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#4d80bcb8', endColorstr='#3F4E616b', GradientType=0);
     *zoom:1;
 }
 #footer-container .navbar-inner {
-    background-color: #242d40;
-    background-image: -moz-linear-gradient(top, #242d40, #4d80bc);
-    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#242d40), to(#4d80bc));
-    background-image: -webkit-linear-gradient(top, #242d40, #4d80bc);
-    background-image: -o-linear-gradient(top, #242d40, #4d80bc);
-    background-image: linear-gradient(to bottom, #242d40, #4d80bc);
+    background-color: #3F4E61;
+    background-image: -moz-linear-gradient(top, #3F4E61, #4d80bc);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#3F4E61), to(#4d80bc));
+    background-image: -webkit-linear-gradient(top, #3F4E61, #4d80bc);
+    background-image: -o-linear-gradient(top, #3F4E61, #4d80bc);
+    background-image: linear-gradient(to bottom, #3F4E61, #4d80bc);
     background-repeat: repeat-x;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#242d406b', endColorstr='#4d80bc6b', GradientType=0);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#3F4E616b', endColorstr='#4d80bc6b', GradientType=0);
     *zoom:1;
 }
 
