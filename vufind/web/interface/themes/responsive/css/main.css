@@ -7499,6 +7499,9 @@ div.striped > div:nth-child(odd) {
 .resultDetails .result-label {
   font-weight: bold;
   color: graytext;
+  display:inline-block;
+  *zoom:1;
+  *display:inline;
 }
 .resultDetails .row-fluid [class*="span"] {
   min-height: 16px;
