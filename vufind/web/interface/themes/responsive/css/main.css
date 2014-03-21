@@ -5352,9 +5352,7 @@ a.badge:focus {
     /*#ratings,.btn-group-vertical > .btn + .btn{
         font-size:10pt;
     }*/
-    .result-label{
-        width:45%;
-    }
+
     .listResultImage{
         max-width:90px;
     }
@@ -5376,6 +5374,9 @@ a.badge:focus {
   }
 }
 @media (max-width: 767px) {
+    .result-label{
+        width:45%;
+    }
 
     .holdingsSummary{
     text-align:center;
