@@ -12,7 +12,7 @@
 				{if $user->disableCoverArt != 1}
 					{*<div class='descriptionContent{$summShortId|escape}' style='display:none'>{$summDescription}</div>*}
 					<a href="{$summUrl}">
-						<img src="{$bookCoverUrlSmall}"
+						<img src="{$bookCoverUrlMedium}"
 						     class="listResultImage img-polaroid {*descriptionTrigger*}"
 						     alt="{translate text='Cover Image'}"
 						     {*data-record_id="{$summId}"
