@@ -42,8 +42,9 @@
 			<div class="resultDetails span9">
 				{if $summAuthor}
 					<div class="row-fluid">
-						<div class="result-label span3">by&nbsp;</div>
+						{*<div class="result-label span3">by&nbsp;</div>*}
 						<div class="span9 result-value">
+                            by&nbsp;
 							{if is_array($summAuthor)}
 								{foreach from=$summAuthor item=author}
 									<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
