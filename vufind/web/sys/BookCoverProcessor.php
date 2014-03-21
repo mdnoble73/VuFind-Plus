@@ -519,7 +519,7 @@ class BookCoverProcessor{
 			if ($this->size == 'small'){
 				$maxDimension = 100;
 			}elseif ($this->size == 'medium'){
-				$maxDimension = 50;
+				$maxDimension = 200;
 			}else{
 				$maxDimension = 400;
 			}
