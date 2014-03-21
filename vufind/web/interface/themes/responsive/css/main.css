@@ -5374,6 +5374,10 @@ a.badge:focus {
   }
 }
 @media (max-width: 767px) {
+    .span9{
+        width: 225px;
+        /* orig 476px */
+    }
     .holdingsSummary{
     text-align:center;
     }
@@ -5796,7 +5800,7 @@ a.badge:focus {
     width: 538px;
   }
   .span8 {
-    width: 225px;
+    width: 476px;
   /* orig 476px */
   }
   .span7 {
