@@ -6101,6 +6101,9 @@ a.badge:focus {
   }
 }
 @media (max-width: 767px) {
+    .row-fluid .span3,.row-fluid .span9{
+        width:235px;
+    }
   body {
     padding-left: 20px;
     padding-right: 20px;
@@ -6610,10 +6613,6 @@ a.badge:focus {
   .footer-column h4.collapsed:before {
     content: "► ";
   }
-    .span9{
-        width: 225px;
-        /* orig 476px */
-    }
 }
 @media (min-width: 767px) {
   .footerContents {
