@@ -233,7 +233,7 @@ a:focus {
   border-radius: 6px;
 }
 .listResultImage{
-    max-width:85%;
+    max-width:150px;
 }
 .img-polaroid {
     /*padding: 4px;
