@@ -44,7 +44,7 @@
 					<div class="row-fluid">
 						{*<div class="result-label span3">by&nbsp;</div>*}
 						<div class="span9 result-value">
-                            by&nbsp;
+                        {translate text='by'}&nbsp;
 							{if is_array($summAuthor)}
 								{foreach from=$summAuthor item=author}
 									<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
@@ -53,7 +53,7 @@
 								<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
 							{/if}
                             {if $summPublicationDates}
-                                &nbsp;Published&nbsp;{$summPublicationDates.0|escape}
+                                &nbsp;{translate text='Published'}&nbsp;{$summPublicationDates.0|escape}
                             {/if}
 						</div>
 					</div>
@@ -94,7 +94,6 @@
 				<div class="row-fluid">
 					{*<div class="result-label span3">Format: </div>*}
 					<div class="span9 result-value">
-                        Format:&nbsp;
                         <strong>
 							{if is_array($summFormats)}
 								{foreach from=$summFormats item=format}
