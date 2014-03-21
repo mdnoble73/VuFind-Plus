@@ -34,6 +34,9 @@
 				{if $summTitleStatement}
 					&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 				{/if}
+                {if $summPublicationDates}
+                    &nbsp;Published&nbsp;{$summPublicationDates.0|escape}
+                {/if}
 			</strong>
 		</div>
 
@@ -41,7 +44,7 @@
 			<div class="resultDetails span9">
 				{if $summAuthor}
 					<div class="row-fluid">
-						<div class="result-label span3">Author: </div>
+						<div class="result-label span3">by&nbsp;</div>
 						<div class="span9 result-value">
 							{if is_array($summAuthor)}
 								{foreach from=$summAuthor item=author}
@@ -61,7 +64,7 @@
 					</div>
 				{/if}
 
-				{if $summEditions}
+				{*{if $summEditions}
 					<div class="row-fluid hidden-phone">
 						<div class="result-label span3" id="resultInformationEdition{$summShortId|escape}">{translate text='Edition'}:</div>
 						<div class="span9 result-value">{$summEditions.0|escape}</div>
@@ -76,7 +79,7 @@
 							{$summPublicationPlaces.0|escape}{$summPublishers.0|escape}{$summPublicationDates.0|escape}
 						</div>
 					</div>
-				{/if}
+				{/if}*}
 
 				{* Highlighted term *}
 				{if !empty($summSnippetCaption) || !!empty($summSnippet)}
