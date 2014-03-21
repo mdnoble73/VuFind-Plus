@@ -6103,6 +6103,9 @@ a.badge:focus {
 @media (max-width: 767px) {
     .row-fluid .span3,.row-fluid .span9{
         width:235px;
+        display:inline-block;
+        *zoom:1;
+        *display:inline;
     }
   body {
     padding-left: 20px;
