@@ -6101,7 +6101,7 @@ a.badge:focus {
   }
 }
 @media (max-width: 767px) {
-    .row-fluid [class*="span"]{
+    .row-fluid [class*="span9"]{
         width:230px;
     }
   body {
