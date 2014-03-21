@@ -5350,7 +5350,7 @@ a.badge:focus {
 @media (min-width: 768px) and (max-width: 979px) {
 
     #ratings,.btn-group-vertical > .btn + .btn{
-        width:140px;
+        font-size:10pt;
     }
 
     .listResultImage{
