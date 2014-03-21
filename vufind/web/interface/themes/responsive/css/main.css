@@ -5348,18 +5348,18 @@ a.badge:focus {
   display: inherit !important;
 }
 @media (min-width: 768px) and (max-width: 979px) {
-    /*
+
     #ratings,.btn-group-vertical > .btn + .btn{
-        border:none;
-    }*/
+        width:140px;
+    }
 
     .listResultImage{
         max-width:90px;
     }
 
-  #recordTools,.resultActions{
+  /*#recordTools,.resultActions{
       width:140px;
-  }
+  }*/
   .hidden-desktop {
     display: inherit !important;
   }
