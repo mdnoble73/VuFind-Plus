@@ -6199,6 +6199,9 @@ a.badge:focus {
   }
 }
 @media (max-width: 639px) {
+    .result-label{
+        width:45%;
+    }
     #formatCategories {
         display: none;
     }
