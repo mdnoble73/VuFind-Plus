@@ -5354,11 +5354,11 @@ a.badge:focus {
     }*/
 
     .listResultImage{
-        max-width:75px;
+        max-width:80px;
     }
 
   #recordTools{
-      width:135px;
+      width:140px;
   }
   .hidden-desktop {
     display: inherit !important;
