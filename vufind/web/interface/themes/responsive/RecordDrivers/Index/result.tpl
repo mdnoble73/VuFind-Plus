@@ -92,9 +92,10 @@
 				{/if}
 
 				<div class="row-fluid">
-					<div class="result-label span3">Format: </div>
+					{*<div class="result-label span3">Format: </div>*}
 					<div class="span9 result-value">
-						<strong>
+                        Format:&nbsp;
+                        <strong>
 							{if is_array($summFormats)}
 								{foreach from=$summFormats item=format}
 									<span class="iconlabel" >{translate text=$format}</span>&nbsp;
