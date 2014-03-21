@@ -5796,7 +5796,8 @@ a.badge:focus {
     width: 538px;
   }
   .span8 {
-    width: 476px;
+    width: 225px;
+  /* orig 476px */
   }
   .span7 {
     width: 414px;
@@ -6199,9 +6200,6 @@ a.badge:focus {
   }
 }
 @media (max-width: 639px) {
-    .result-label{
-        width:45%;
-    }
     #formatCategories {
         display: none;
     }
