@@ -6101,9 +6101,6 @@ a.badge:focus {
   }
 }
 @media (max-width: 767px) {
-    .row-fluid .span3{
-        width:230px;
-    }
   body {
     padding-left: 20px;
     padding-right: 20px;
@@ -6607,6 +6604,9 @@ a.badge:focus {
 }
 
 @media (max-width: 767px) {
+    .row-fluid .span3{
+        width:230px;
+    }
   .footer-column h4:before {
     content: "▼ ";
   }
