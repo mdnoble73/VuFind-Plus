@@ -5352,7 +5352,9 @@ a.badge:focus {
     /*#ratings,.btn-group-vertical > .btn + .btn{
         font-size:10pt;
     }*/
-
+    .result-label{
+        width:45%;
+    }
     .listResultImage{
         max-width:90px;
     }
