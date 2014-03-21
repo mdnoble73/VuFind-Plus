@@ -5354,10 +5354,10 @@ a.badge:focus {
     }*/
 
     .listResultImage{
-        max-width:80px;
+        max-width:90px;
     }
 
-  #recordTools{
+  #recordTools,.resultActions{
       width:140px;
   }
   .hidden-desktop {
