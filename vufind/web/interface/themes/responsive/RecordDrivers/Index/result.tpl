@@ -119,8 +119,8 @@
 				</div>*}
 
 				<div class="row-fluid">
-					<div class="result-label span3">{translate text='Shelved at'}:</div>
-					<div class="span9 bold result-value" id="callNumberValue{$summShortId|escape}">Loading...</div>
+					<div class="result-label span3" style="display:inline-block;*zoom:1;*display:inline;">{translate text='Shelved at'}:</div>
+					<div class="span9 bold result-value" id="callNumberValue{$summShortId|escape}" style="display:inline-block;*zoom:1;*display:inline;">Loading...</div>
 				</div>
 
 				<div class="row-fluid">
