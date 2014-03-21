@@ -232,6 +232,9 @@ a:focus {
   -moz-border-radius: 6px;
   border-radius: 6px;
 }
+.listResultImage{
+    max-width:85%;
+}
 .img-polaroid {
     /*padding: 4px;
     background-color: #fff;
