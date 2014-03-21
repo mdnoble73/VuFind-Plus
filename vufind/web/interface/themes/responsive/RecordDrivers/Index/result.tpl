@@ -59,29 +59,29 @@
 					</div>
 				{/if}
 
-				{if $summISBN}
-					<div class="series{$summISBN} row-fluid">
-						<div class="result-label span3">Series: </div>
-						<div class="span9 result-value">Loading...</div>
-					</div>
-				{/if}
+                {*{if $summISBN}
+                    <div class="series{$summISBN} row-fluid">
+                        <div class="result-label span3">Series: </div>
+                        <div class="span9 result-value">Loading...</div>
+                    </div>
+                {/if}
 
-				{*{if $summEditions}
-					<div class="row-fluid hidden-phone">
-						<div class="result-label span3" id="resultInformationEdition{$summShortId|escape}">{translate text='Edition'}:</div>
-						<div class="span9 result-value">{$summEditions.0|escape}</div>
-					</div>
-				{/if}
+                {if $summEditions}
+                    <div class="row-fluid hidden-phone">
+                        <div class="result-label span3" id="resultInformationEdition{$summShortId|escape}">{translate text='Edition'}:</div>
+                        <div class="span9 result-value">{$summEditions.0|escape}</div>
+                    </div>
+                {/if}
 
-				{if $summPublicationDates || $summPublishers || $summPublicationPlaces}
-					<div class="row-fluid">
+                {if $summPublicationDates || $summPublishers || $summPublicationPlaces}
+                    <div class="row-fluid">
 
-						<div class="result-label span3">Published: </div>
-						<div class="span9 result-value">
-							{$summPublicationPlaces.0|escape}{$summPublishers.0|escape}{$summPublicationDates.0|escape}
-						</div>
-					</div>
-				{/if}*}
+                        <div class="result-label span3">Published: </div>
+                        <div class="span9 result-value">
+                            {$summPublicationPlaces.0|escape}{$summPublishers.0|escape}{$summPublicationDates.0|escape}
+                        </div>
+                    </div>
+                {/if}*}
 
 				{* Highlighted term *}
 				{if !empty($summSnippetCaption) || !!empty($summSnippet)}
