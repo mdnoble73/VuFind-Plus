@@ -20,8 +20,10 @@ class DefaultCoverImageBuilder {
 	private $colorText = array("red" => 1, "green" => 1, "blue" => 1);
 
 	public function __construct() {
-		$this->titleFont = ROOT_DIR . '/fonts/JosefinSans-Bold.ttf';
-		$this->authorFont = ROOT_DIR . '/fonts/JosefinSans-BoldItalic.ttf';
+        /* $this->titleFont = ROOT_DIR . '/fonts/JosefinSans-Bold.ttf';
+		$this->authorFont = ROOT_DIR . '/fonts/JosefinSans-BoldItalic.ttf';*/
+        $this->titleFont = ROOT_DIR . '/fonts/verdana.ttf';
+        $this->authorFont = ROOT_DIR . '/fonts/verdana.ttf';
 	}
 
 	public function getCover($title, $author, $format, $format_category, $filename) {
