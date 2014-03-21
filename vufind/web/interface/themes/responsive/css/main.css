@@ -6604,7 +6604,7 @@ a.badge:focus {
 }
 
 @media (max-width: 767px) {
-    .row-fluid .span3{
+    .row-fluid .result-label,.row-fluid .result-value{
         width:230px;
     }
   .footer-column h4:before {
