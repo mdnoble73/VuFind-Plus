@@ -101,7 +101,7 @@
 					</div>
 				</div>
 
-				{if $summPhysical}
+				{*{if $summPhysical}
 					<div class="row-fluid hidden-phone">
 						<div class="result-label span3">{translate text='Physical Desc'}:</div>
 						<div class="span9 result-value">{$summPhysical.0|escape}</div>
@@ -111,10 +111,10 @@
 				<div class="row-fluid">
 					<div class="result-label span3">{translate text='Location'}:</div>
 					<div class="span9 bold result-value" id="locationValue{$summShortId|escape}">Loading...</div>
-				</div>
+				</div>*}
 
 				<div class="row-fluid">
-					<div class="result-label span3">{translate text='Call Number'}:</div>
+					<div class="result-label span3">{translate text='Shelved at'}:</div>
 					<div class="span9 bold result-value" id="callNumberValue{$summShortId|escape}">Loading...</div>
 				</div>
 
@@ -123,16 +123,16 @@
 					<div class="span9 bold statusValue result-value" id="statusValue{$summShortId|escape}">Loading...</div>
 				</div>
 
-				<div class="row-fluid">
-					<div class="span12 result-value" id="descriptionValue{$summShortId|escape}">{$summDescription}</div>
-				</div>
+                {*<div class="row-fluid">
+                    <div class="span12 result-value" id="descriptionValue{$summShortId|escape}">{$summDescription}</div>
+                </div>
 
-				{*
-				<div class="row-fluid">
-					<div class="result-label span3">{translate text='Copies'}:</div>
-					<div class="span9 result-value" id="copiesValue{$summShortId|escape}">Loading...</div>
-				</div>
-				*}
+
+                <div class="row-fluid">
+                    <div class="result-label span3">{translate text='Copies'}:</div>
+                    <div class="span9 result-value" id="copiesValue{$summShortId|escape}">Loading...</div>
+                </div>
+                *}
 
 				{*
 				<div id = "holdingsSummary{if $summShortId}{$summShortId}{else}{$summId|escape}{/if}" class="holdingsSummary well well-small">
