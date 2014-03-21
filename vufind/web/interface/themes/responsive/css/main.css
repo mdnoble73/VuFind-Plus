@@ -6101,6 +6101,9 @@ a.badge:focus {
   }
 }
 @media (max-width: 767px) {
+    .result-label,.result-value{
+        width:230px;
+    }
   body {
     padding-left: 20px;
     padding-right: 20px;
