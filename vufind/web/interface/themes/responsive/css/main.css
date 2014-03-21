@@ -5374,10 +5374,6 @@ a.badge:focus {
   }
 }
 @media (max-width: 767px) {
-    .result-label{
-        width:45%;
-    }
-
     .holdingsSummary{
     text-align:center;
     }
@@ -6131,6 +6127,9 @@ a.badge:focus {
   .row-fluid {
     width: 100%;
   }
+    .result-label{
+        width:45%;
+    }
   .row,
   .thumbnails {
     margin-left: 0;
