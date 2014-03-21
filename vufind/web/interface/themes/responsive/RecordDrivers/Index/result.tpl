@@ -34,9 +34,7 @@
 				{if $summTitleStatement}
 					&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 				{/if}
-                {if $summPublicationDates}
-                    &nbsp;Published&nbsp;{$summPublicationDates.0|escape}
-                {/if}
+
 			</strong>
 		</div>
 
@@ -53,6 +51,9 @@
 							{else}
 								<a href="{$path}/Author/Home?author={$summAuthor|escape:"url"}">{$summAuthor|highlight:$lookfor}</a>
 							{/if}
+                            {if $summPublicationDates}
+                                &nbsp;Published&nbsp;{$summPublicationDates.0|escape}
+                            {/if}
 						</div>
 					</div>
 				{/if}
