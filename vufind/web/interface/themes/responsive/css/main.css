@@ -233,7 +233,7 @@ a:focus {
   border-radius: 6px;
 }
 .listResultImage{
-    max-width:100px;
+    max-width:120px;
 }
 .img-polaroid {
     /*padding: 4px;
@@ -5352,6 +5352,11 @@ a.badge:focus {
     #ratings,.btn-group-vertical > .btn + .btn{
         border:none;
     }*/
+
+    .listResultImage{
+        max-width:90px;
+    }
+
   #recordTools{
       width:125px;
   }
