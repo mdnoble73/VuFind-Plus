@@ -6606,6 +6606,9 @@ a.badge:focus {
 @media (max-width: 767px) {
     .row-fluid .result-label,.row-fluid .result-value{
         width:230px;
+        display:inline-block;
+        *zoom:1;
+        *display:inline-block;
     }
   .footer-column h4:before {
     content: "▼ ";
