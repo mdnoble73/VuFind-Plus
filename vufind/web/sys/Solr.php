@@ -1978,6 +1978,18 @@ class Solr implements IndexEngine {
 		);
 		$input = strtr($input, $quotes);
 
+		// If all double quotation marks do not match in pairs, delete all double quotation marks
+		$nquotes = preg_match_all('/"/', $input, $tmp);
+		if ($nquotes % 2 !== 0) {
+			$input = str_replace(array('"', '"'), '', $input);
+		}
+
+		// Insert a space between concatenated double quotation marks
+		// because a search for "" results in a Solr error
+		// e.g., ""->" ", no hits
+		// e.g., "star wars""empire strikes back"->"star wars" "empire strikes back"
+		$input = str_replace('""', '" "', $input);
+
 		// If the user has entered a lone BOOLEAN operator, convert it to lowercase
 		// so it is treated as a word (otherwise it will trigger a fatal error):
 		switch(trim($input)) {
@@ -1991,9 +2003,21 @@ class Solr implements IndexEngine {
 
 		// If the string consists only of control characters and/or BOOLEANs with no
 		// other input, wipe it out entirely to prevent weird errors:
-		$operators = array('AND', 'OR', 'NOT', '+', '-', '"', '&', '|');
+		$operators = array('AND', 'OR', 'NOT', '+', '-', '&', '|');
 		if (trim(str_replace($operators, '', $input)) == '') {
 			return '';
+		}
+
+		// If the string begins with one or more BOOLEAN operators, convert them to lowercase
+		// because search for, e.g., AND THEN THERE WERE NONE, results in a Solr error
+		if (preg_match('/^(AND|OR|NOT)\s+/', trim($input))) {
+			$input = preg_replace('/^((AND|OR|NOT)\s+)+/e', 'strtolower("$0")', trim($input));
+		}
+
+		// If the string ends with one or more BOOLEAN operators, convert them to lowercase
+		// because search for, e.g., , results in a Solr error
+		if (preg_match('/\s+(AND|OR|NOT)$/', trim($input))) {
+			$input = preg_replace('/(\s+(AND|OR|NOT))+$/e', 'strtolower("$0")', trim($input));
 		}
 
 		// Translate "all records" search into a blank string
@@ -2007,7 +2031,7 @@ class Solr implements IndexEngine {
 			$input = substr($input, 1);
 		}
 
-		// Ensure all parens match
+		// If all parentheses do not match in pairs, delete all parentheses
 		$start = preg_match_all('/\(/', $input, $tmp);
 		$end = preg_match_all('/\)/', $input, $tmp);
 		if ($start != $end) {
@@ -2047,8 +2071,11 @@ class Solr implements IndexEngine {
 						'[', ']', '{', '}');
 		$input = preg_replace($patterns, $matches, $input);
 
-		//Remove any exclamation marks that Solr will handle incorrectly.
+		// Remove any exclamation marks that Solr will handle incorrectly.
 		$input = str_replace('!', ' ', $input);
+
+		// Remove backslashes to avoid solr errors
+		$input = str_replace('\\', ' ', $input);
 
 		return $input;
 	}

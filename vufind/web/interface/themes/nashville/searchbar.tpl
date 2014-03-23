@@ -9,8 +9,7 @@
 *}
 {* 20140315 James: bad hack to staunch frequent solr errors on mixing basic and advanced search terms : should be replaced next week *}
 			<input id="lookfor" placeholder="Search Keyword / Title / Author" type="search" name="lookfor" size="30" 
-				value="{$lookfor|escape:"html"|regex_replace:"/\\\\/":""|regex_replace:"/^AND/":"and"|regex_replace:"/(All Fields:|Author:|Call Number:|ISBN\/ISSN\/UPC:|Keyword:|Publisher:|Series:|Subject:|Table of Contents:|Title:|Year of Publication:)/":""}" 
-				onblur="this.value=this.value.replace(/\\/g,''); this.value=this.value.replace(/^AND/,'and');" 
+				value="{$lookfor|escape:"html"|regex_replace:"/(All Fields:|Author:|Call Number:|ISBN\/ISSN\/UPC:|Keyword:|Publisher:|Series:|Subject:|Table of Contents:|Title:|Year of Publication:)/":""}" 
 				title="Enter one or more terms to search for. Surrounding a term with quotes will limit result to only those that exactly match the term."
 			/>
 			&nbsp;by&nbsp;
