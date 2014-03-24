@@ -11,7 +11,7 @@
 		{*
 		<div class="resultAction"><a href="#" class="cart" onclick="return addToBag('{$summId|escape}', '{$summTitle|replace:'"':''|escape:'javascript'}', '{$summShortId}');"><span class="silk cart">&nbsp;</span>{translate text="Add to cart"}</a></div>
 		*}
-		<a href="{$path}/Record/{$summId|escape:"url"}/SimilarTitles" class="btn btn-small btn-block"><img src="/images/silk/arrow_switch.png">&nbsp;More Like This</a>
+		<a href="{$path}/Record/{$summId|escape:"url"}/SimilarTitles" class="btn btn-small btn-block"><img src="/images/silk/arrow_switch.png">&nbsp;Similar</a>
 		{if $showComments == 1}
 			<a href="#" id="userreviewlink{$summShortId}" class="userreviewlink resultAction btn btn-small btn-block" title="Add a Review" onclick="return VuFind.Record.showReviewForm(this, '{$summId}', 'VuFind')">
 				<img src="/images/silk/comment_add.png">&nbsp;Add a Review
