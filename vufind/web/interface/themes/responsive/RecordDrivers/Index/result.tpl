@@ -97,7 +97,7 @@
                         <strong>
 							{if is_array($summFormats)}
 								{foreach from=$summFormats item=format}
-									<span class="iconlabel book" >{translate text=$format}</span>&nbsp;
+									<span class="iconlabel" >{translate text=$format}</span>&nbsp;
 								{/foreach}
 							{else}
 								<span class="iconlabel">{translate text=$summFormats}</span>
