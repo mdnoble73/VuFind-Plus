@@ -1,4 +1,4 @@
-<div id="main-content">
+<div id="main-content" class="col-xs-12">
   <h1>VuFind Administration</h1>
   <h2>Grouped Index</h2>
   <table class="citation">

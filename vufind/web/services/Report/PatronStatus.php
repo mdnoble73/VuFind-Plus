@@ -32,6 +32,7 @@ class Report_PatronStatus extends Action{
 
 		$interface->assign('errors', $this->errors);
 		$interface->setPageTitle('Patron Status Report');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('patronStatus.tpl');
 		$interface->display('layout.tpl');
 	}

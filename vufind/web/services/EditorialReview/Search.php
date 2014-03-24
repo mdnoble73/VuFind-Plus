@@ -24,7 +24,7 @@ require_once(ROOT_DIR . '/sys/LocalEnrichment/EditorialReview.php');
 require_once ROOT_DIR . '/sys/DataObjectUtil.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
-class Search extends Admin_Admin {
+class EditorialReview_Search extends Admin_Admin {
 
 	function launch()
 	{
@@ -68,6 +68,7 @@ class Search extends Admin_Admin {
 		$pager = new VuFindPager($options);
 		$interface->assign('pageLinks', $pager->getLinks());
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('search.tpl');
 
 		$interface->display('layout.tpl');

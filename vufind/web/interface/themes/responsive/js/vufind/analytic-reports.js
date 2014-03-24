@@ -1,7 +1,3 @@
-function changeActiveReport(){
-	var newDestination = $("#reportSwitcherSelect option:selected").data("destination");
-	window.location.href = newDestination;
-}
 function showFilterValues(control){
 	//Show options for this 
 	var activeFilter = $(control);
@@ -14,7 +10,6 @@ function showFilterValues(control){
 	}
 	filterValueSelection += "</select>";
 	activeFilter.after(filterValueSelection);
-	//
 }
 
 function getFilterParams() {
@@ -23,7 +18,7 @@ function getFilterParams() {
 
 function getPieChartData(reportName, chartVar){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=" + reportName + "&forGraph=true" + filterParms,
+	$.getJSON(Globals.path + "/Report/AJAX?method=" + reportName + "&forGraph=true" + filterParms,
 		function(data) {
 			$.each(data, function(i, val){
 				chartVar.series[0].addPoint(val, true, false);
@@ -39,7 +34,7 @@ function setupPieChart(divToRenderTo, reportDataName, title, seriesLabel){
 			type: 'pie'
 		},
 		legend : {
-			enabled: false,
+			enabled: false
 		},
 		title: {
 			text: title
@@ -66,9 +61,9 @@ function setupPieChart(divToRenderTo, reportDataName, title, seriesLabel){
 
 function getBarChartData(reportDataName, chartVariable){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=" + reportDataName + "&forGraph=true" + filterParms,
+	$.getJSON(Globals.path + "/Report/AJAX?method=" + reportDataName + "&forGraph=true" + filterParms,
 		function(data) {
-			var categories = new Array();
+			var categories = [];
 			$.each(data, function(i, val){
 				chartVariable.series[0].addPoint(val, true, false);
 				categories.push( val[0]);
@@ -84,7 +79,7 @@ function setupBarChart(divToRenderTo, reportDataName, title, xAxisLabel, yAxisLa
 			type: 'bar'
 		},
 		legend : {
-			enabled: false,
+			enabled: false
 		},
 		title: {
 			text: title
@@ -92,7 +87,7 @@ function setupBarChart(divToRenderTo, reportDataName, title, xAxisLabel, yAxisLa
 		xAxis: {
 			title: {
 				text: xAxisLabel
-			},
+			}
 		},
 		
 		yAxis: {
@@ -100,7 +95,7 @@ function setupBarChart(divToRenderTo, reportDataName, title, xAxisLabel, yAxisLa
 				text: yAxisLabel
 			},
 			allowDecimals: false,
-			min: 0,
+			min: 0
 		},
 		series: [{
 			name: yAxisLabel,
@@ -114,10 +109,10 @@ function setupInteractiveChart(divToRenderTo, title, xAxisLabel, yAxisLabel){
 	return new Highcharts.Chart({
 		chart : {
 			renderTo : divToRenderTo,
-			type: 'column',
+			type: 'column'
 		},
 		legend : {
-			enabled: false,
+			enabled: false
 		},
 		title: {
 			text: title
@@ -125,7 +120,7 @@ function setupInteractiveChart(divToRenderTo, title, xAxisLabel, yAxisLabel){
 		xAxis: {
 			title: {
 				text: xAxisLabel
-			},
+			}
 		},
 		
 		yAxis: {
@@ -133,7 +128,7 @@ function setupInteractiveChart(divToRenderTo, title, xAxisLabel, yAxisLabel){
 				text: yAxisLabel
 			},
 			allowDecimals: false,
-			min: 0,
+			min: 0
 		},
 		series: [{name:title, data:[0,0,0,0,0,0,0,0,0,0, 
 		                                  0,0,0,0,0,0,0,0,0,0,
@@ -141,7 +136,7 @@ function setupInteractiveChart(divToRenderTo, title, xAxisLabel, yAxisLabel){
 		                                  0,0,0,0,0,0,0,0,0,0, 
 		                                  0,0,0,0,0,0,0,0,0,0,
 		                                  0,0,0,0,0,0,0,0,0,0
-		                                  ]},
+		                                  ]}
 		         ]
 		
 	});
@@ -149,7 +144,7 @@ function setupInteractiveChart(divToRenderTo, title, xAxisLabel, yAxisLabel){
 
 function getRecentActivity(){
 	var filterParams = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getRecentActivity&interval=5" + filterParams,
+	$.getJSON(Globals.path + "/Report/AJAX?method=getRecentActivity&interval=5" + filterParams,
 		function(data) {
 			activePageViewChart.series[0].addPoint(parseInt(data.pageViews), true, true);
 			recentUsersChart.series[0].addPoint(parseInt(data.activeUsers), true, true);
@@ -172,7 +167,7 @@ function setupHoldsByResultChart() {
 			}
 		},
 		legend : {
-			enabled: false,
+			enabled: false
 		},
 		title: {
 			text: 'Holds By Result'
@@ -190,7 +185,7 @@ function setupHoldsByResultChart() {
 		xAxis: {
 			title: {
 				text: 'Holds'
-			},
+			}
 		},
 		
 		yAxis: {
@@ -198,7 +193,7 @@ function setupHoldsByResultChart() {
 				text: 'Result %'
 			},
 			allowDecimals: false,
-			min: 0,
+			min: 0
 		},
 		series: [{
 			name: 'Holds By Result',
@@ -208,9 +203,9 @@ function setupHoldsByResultChart() {
 }
 function getHoldsByResultData(){
 	var filterParms = getFilterParams();
-	$.getJSON(path + "/Report/AJAX?method=getHoldsByResultData&forGraph=true" + filterParms,
+	$.getJSON(Globals.path + "/Report/AJAX?method=getHoldsByResultData&forGraph=true" + filterParms,
 		function(data) {
-			var categories = new Array();
+			var categories = [];
 			$.each(data, function(i, val){
 				holdsByResultChart.series[0].addPoint(val, true, false);
 				categories.push( val[0]);

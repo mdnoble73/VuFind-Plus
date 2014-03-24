@@ -41,11 +41,21 @@ class MillenniumInventory {
 				'message' => 'There is not a url to millennium set in the config.ini file.  Please update the configuration',
 			);
 		}
-		if ($login == '' || $password1 == '' || $initials == '' || $password2 == ''){
+
+		$ils = $configArray['Catalog']['ils'];
+		if ($login == '' || $password1 == ''){
 			return array(
-				'success' => false,
-				'message' => 'Login information not provided correctly.  Please fill out all login fields',
+					'success' => false,
+					'message' => 'Login information not provided correctly.  Please fill out all login fields',
 			);
+		}
+		if ($ils != 'Sierra'){
+			if ($initials == '' || $password2 == ''){
+				return array(
+						'success' => false,
+						'message' => 'Login information not provided correctly.  Please fill out all login fields',
+				);
+			}
 		}
 
 		if (is_string($barcodes) && strlen($barcodes) == 0){
@@ -118,30 +128,40 @@ class MillenniumInventory {
 		sleep(1);
 
 		//Check that we logged in successfully
-		if (!preg_match('/Invalid login\/password/i', $sresult) && preg_match('/initials/i', $sresult)){
-			//we logged in successfully.
-			//enter initials
-			$post_data = array(
-				'action' => 'ValidateAirWkstUserAction',
-				'initials' => $initials,
-				'initialspassword' => $password2,
-				'nextaction' => 'null',
-				'purpose' => 'null',
-				'submit.x' => 30,
-				'submit.y' => 10,
-				'subpurpose' => 'null',
-				'validationstatus' => 'needinitials',
-			);
-			$post_items = array();
-			foreach ($post_data as $key => $value) {
-				$post_items[] = $key . '=' . urlencode($value);
+		$loginSuccess = false;
+		if (!preg_match('/Invalid login\/password/i', $sresult)){
+			if ($ils == 'Sierra'){
+				$loginSuccess = true;
+			}else{
+				$loginSuccess = preg_match('/initials/i', $sresult);
 			}
-			$post_string = implode ('&', $post_items);
-			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$sresult = curl_exec($this->curl_connection);
-			sleep(1);
-			$logger->log("Calling {$curl_url}?{$post_string}", PEAR_LOG_DEBUG);
-			//$logger->log("result of circa initials $sresult", PEAR_LOG_DEBUG);
+		}
+		if ($loginSuccess){
+			if ($ils != 'Sierra'){
+				//we logged in successfully.
+				//enter initials
+				$post_data = array(
+					'action' => 'ValidateAirWkstUserAction',
+					'initials' => $initials,
+					'initialspassword' => $password2,
+					'nextaction' => 'null',
+					'purpose' => 'null',
+					'submit.x' => 30,
+					'submit.y' => 10,
+					'subpurpose' => 'null',
+					'validationstatus' => 'needinitials',
+				);
+				$post_items = array();
+				foreach ($post_data as $key => $value) {
+					$post_items[] = $key . '=' . urlencode($value);
+				}
+				$post_string = implode ('&', $post_items);
+				curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
+				$sresult = curl_exec($this->curl_connection);
+				sleep(1);
+				$logger->log("Calling {$curl_url}?{$post_string}", PEAR_LOG_DEBUG);
+				//$logger->log("result of circa initials $sresult", PEAR_LOG_DEBUG);
+			}
 
 			if (!preg_match('/You are not authorized to use Circa/i', $sresult) && preg_match('/inventory control/i', $sresult)){
 				//Logged in and authorized, check in each barcode

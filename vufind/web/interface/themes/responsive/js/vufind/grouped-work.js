@@ -170,6 +170,24 @@ VuFind.GroupedWork = (function(){
 			}
 		},
 
+		removeTag:function(id, tag){
+			if (confirm("Are you sure you want to remove the tag \"" + tag + "\" from this title?")){
+				var url = Globals.path + '/GroupedWork/' + id + '/AJAX?method=removeTag';
+				url += "&tag=" + encodeURIComponent(tag);
+				$.getJSON(
+						url, function(data){
+							if (data.result == true){
+								VuFind.showMessage('Success', data.message);
+							}else{
+								VuFind.showMessage('Sorry', data.message);
+							}
+						}
+				);
+				return false;
+			}
+			return false;
+		},
+
 		saveReview: function(id){
 			if (Globals.loggedIn){
 				var comment = $('#comment' + id).val();
@@ -193,6 +211,31 @@ VuFind.GroupedWork = (function(){
 				);
 			}
 			return false;
+		},
+
+		saveTag: function(id){
+			var tag = $("#tags_to_apply").val();
+			$("#saveToList-button").prop('disabled', true);
+
+			var url = Globals.path + "/GroupedWork/" + id + "/AJAX";
+			var params = "method=SaveTag&" +
+					"tag=" + encodeURIComponent(tag);
+			$.ajax({
+				url: url+'?'+params,
+				dataType: "json",
+				success: function(data) {
+					if (data.success) {
+						VuFind.showMessage("Success", data.message);
+						setTimeout("VuFind.closeLightbox();", 3000);
+					} else {
+						VuFind.showMessage("Error adding tags", "There was an unexpected error adding tags to this title.<br/>" + data.message);
+					}
+
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					VuFind.showMessage("Error adding tags", "There was an unexpected error adding tags to this title.<br/>" + textStatus);
+				}
+			});
 		},
 
 		saveToList: function(id){
@@ -333,7 +376,6 @@ VuFind.GroupedWork = (function(){
 			var $trigger = $(trigger);
 			if (Globals.loggedIn){
 				var modalDialog = $("#modalDialog");
-				//$(".modal-body").html($('#userreview' + id).html());
 				$.getJSON(Globals.path + "/GroupedWork/" + id + "/AJAX?method=getSMSForm", function(data){
 					$('#myModalLabel').html(data.title);
 					$('.modal-body').html(data.modalBody);
@@ -344,6 +386,25 @@ VuFind.GroupedWork = (function(){
 			}else{
 				VuFind.Account.ajaxLogin($trigger, function (){
 					return VuFind.GroupedWork.showSmsForm(trigger, id);
+				}, false);
+			}
+			return false;
+		},
+
+		showTagForm: function(trigger, id, source){
+			if (Globals.loggedIn){
+				var modalDialog = $("#modalDialog");
+				$.getJSON(Globals.path + "/GroupedWork/" + id + "/AJAX?method=getAddTagForm", function(data){
+					$('#myModalLabel').html(data.title);
+					$('.modal-body').html(data.modalBody);
+					$('.modal-buttons').html(data.modalButtons);
+				});
+				modalDialog.load( );
+				modalDialog.modal('show');
+			}else{
+				trigger = $(trigger);
+				VuFind.Account.ajaxLogin(trigger, function (){
+					VuFind.GroupedWork.showTagForm(trigger, id, source);
 				}, false);
 			}
 			return false;

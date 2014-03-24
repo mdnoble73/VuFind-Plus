@@ -1070,6 +1070,13 @@ class GroupedWorkDriver implements RecordInterface{
 				'hideByDefault' => false,
 				'openByDefault' => true
 		);
+		if ($interface->getVariable('enablePospectorIntegration')){
+			$moreDetailsOptions['prospector'] = array(
+					'label' => 'More Copies In Prospector',
+					'body' => '<div id="inProspectorPlaceholder">Loading Prospector Copies...</div>',
+					'hideByDefault' => false
+			);
+		}
 		$moreDetailsOptions['tableOfContents'] = array(
 			'label' => 'Table of Contents',
 			'body' => $interface->fetch('GroupedWork/tableOfContents.tpl'),

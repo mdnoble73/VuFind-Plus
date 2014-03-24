@@ -25,9 +25,7 @@ require_once(ROOT_DIR . "/PHPExcel.php");
 class Report_DetailedReport extends Report_AnalyticsReport{
 
 	function launch(){
-		global $configArray;
 		global $interface;
-		global $user;
 		global $analytics;
 
 		//Setup filters
@@ -38,6 +36,7 @@ class Report_DetailedReport extends Report_AnalyticsReport{
 
 		$interface->assign('reportData', $reportData);
 		$interface->setPageTitle($reportData['name']);
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('detailedReport.tpl');
 		$interface->display('layout.tpl');
 	}

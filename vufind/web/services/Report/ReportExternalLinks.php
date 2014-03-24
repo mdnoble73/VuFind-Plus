@@ -379,6 +379,7 @@ class Report_ReportExternalLinks extends Report_Report{
 		}
 
 		$interface->setPageTitle('Report - External Link Tracking');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('reportExternalLinks.tpl');
 		$interface->display('layout.tpl');
 

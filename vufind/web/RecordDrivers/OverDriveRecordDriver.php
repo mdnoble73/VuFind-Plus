@@ -25,6 +25,7 @@ class OverDriveRecordDriver implements RecordInterface {
 	 * The Grouped Work that this record is connected to
 	 * @var  GroupedWork */
 	protected $groupedWork;
+	protected $groupedWorkDriver = null;
 
 	/**
 	 * Constructor.  We build the object using all the data retrieved
@@ -764,6 +765,23 @@ class OverDriveRecordDriver implements RecordInterface {
 			'body' => '<div id="formatsPlaceholder">Loading...</div>',
 			'openByDefault' => true
 		);
+		//Other editions if applicable
+		$relatedRecords = $this->getGroupedWorkDriver()->getRelatedRecords();
+		if (count($relatedRecords) > 0){
+			$interface->assign('relatedManifestations', $this->getGroupedWorkDriver()->getRelatedManifestations());
+			$moreDetailsOptions['otherEditions'] = array(
+					'label' => 'Other Editions',
+					'body' => $interface->fetch('GroupedWork/relatedManifestations.tpl'),
+					'hideByDefault' => false
+			);
+		}
+		if ($interface->getVariable('enablePospectorIntegration')){
+			$moreDetailsOptions['prospector'] = array(
+					'label' => 'More Copies In Prospector',
+					'body' => '<div id="inProspectorPlaceholder">Loading Prospector Copies...</div>',
+					'hideByDefault' => false
+			);
+		}
 		$moreDetailsOptions['tableOfContents'] = array(
 			'label' => 'Table of Contents',
 			'body' => $interface->fetch('GroupedWork/tableOfContents.tpl'),
@@ -816,6 +834,12 @@ class OverDriveRecordDriver implements RecordInterface {
 			'label' => 'Details',
 			'body' => $interface->fetch('OverDrive/view-title-details.tpl'),
 		);
+		if ($interface->getVariable('showTagging')){
+			$moreDetailsOptions['tags'] = array(
+					'label' => 'Tagging',
+					'body' => $interface->fetch('GroupedWork/view-tags.tpl'),
+			);
+		}
 		$moreDetailsOptions['citations'] = array(
 			'label' => 'Citations',
 			'body' => $interface->fetch('Record/cite.tpl'),
@@ -877,5 +901,15 @@ class OverDriveRecordDriver implements RecordInterface {
 		return isset($this->overDriveMetaData->getDecodedRawData()->edition) ? $this->overDriveMetaData->getDecodedRawData()->edition : '';
 	}
 
+	private function getGroupedWorkDriver() {
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		if ($this->groupedWorkDriver == null){
+			$this->groupedWorkDriver = new GroupedWorkDriver($this->getPermanentId());
+		}
+		return $this->groupedWorkDriver;
+	}
+	public function getTags(){
+		return $this->getGroupedWorkDriver()->getTags();
+	}
 
 }

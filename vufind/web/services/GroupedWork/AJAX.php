@@ -711,4 +711,57 @@ class GroupedWork_AJAX {
 			return json_encode(array('success' => true, 'message' => 'We could not find that tag for this record.'));
 		}
 	}
+
+	function getProspectorInfo(){
+		require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
+		global $configArray;
+		global $interface;
+		$id = $_REQUEST['id'];
+		$interface->assign('id', $id);
+
+		global $library;
+		if (isset($library)){
+			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
+		}else{
+			$interface->assign('showProspectorTitlesAsTab', 1);
+		}
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$searchObject->init();
+		// Setup Search Engine Connection
+		$class = $configArray['Index']['engine'];
+		$url = $configArray['Index']['url'];
+		/** @var SearchObject_Solr $db */
+		$db = new $class($url);
+
+		// Retrieve Full record from Solr
+		if (!($record = $db->getRecord($id))) {
+			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
+		}
+
+		$prospector = new Prospector();
+		//Check to see if the record exists within Prospector so we can get the prospector Id
+		$prospectorDetails = $prospector->getProspectorDetailsForLocalRecord($record);
+		$interface->assign('prospectorDetails', $prospectorDetails);
+
+		$searchTerms = array(
+				array(
+						'lookfor' => $record['title'],
+						'index' => 'Title'
+				),
+		);
+		if (isset($record['author'])){
+			$searchTerms[] = array(
+					'lookfor' => $record['author'],
+					'index' => 'Author'
+			);
+		}
+		$prospectorResults = $prospector->getTopSearchResults($searchTerms, 10, $prospectorDetails);
+		$interface->assign('prospectorResults', $prospectorResults);
+
+		$result = array(
+			'numTitles' => count($prospectorResults),
+			'formattedData' => $interface->fetch('GroupedWork/ajax-prospector.tpl')
+		);
+		return json_encode($result);
+	}
 } 

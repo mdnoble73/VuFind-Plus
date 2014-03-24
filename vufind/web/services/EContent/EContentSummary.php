@@ -38,6 +38,7 @@ class EContentSummary extends Admin_Admin
 		$collectionSummary = $this->loadCollectionSummary();
 		$interface->assign('collectionSummary', $collectionSummary);
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->display('layout.tpl');
 	}
 

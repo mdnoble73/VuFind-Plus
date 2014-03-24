@@ -1,16 +1,13 @@
-<div id="page-content" class="row">
-	<div id="sidebar" class="col-md-3">
-		{include file="MyResearch/menu.tpl"}
-	</div>
-  
-	<div id="main-content" class="col-md-9">
-		<h1>eContent Purchase Alert</h1>
+{strip}
+	<div id="main-content" class="col-md-12">
+		<h2>eContent Purchase Alert</h2>
 		
 		<p>A total of {$recordsToPurchase|@count} titles should have additional copies purchased.</p>
 		<form action="{$path}" method="get">
-		<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel" class="btn">
+			<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel" class="btn btn-sm btn-default">
 		</form>
-		<table class="table table-bordered table-striped">
+
+		<table class="table table-striped">
 			<thead>
 				<tr><th>ID</th><th>Title</th><th>Author</th><th>ISBN</th><th>ILS ID</th><th>Source</th><th>Total Copies</th><th>Number of Holds</th></tr>
 			</thead>
@@ -28,4 +25,4 @@
 			{/foreach}
 		</table>
 	</div>
-</div>
+{/strip}

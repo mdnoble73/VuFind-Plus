@@ -1,18 +1,14 @@
-<div id="page-content" class="row">
-	<div id="sidebar" class="col-md-3">
-		{include file="MyResearch/menu.tpl"}
-	</div>
-  
-	<div id="main-content" class="col-md-9">
-		<h1>eContent Records With Wish List</h1>
+{strip}
+	<div id="main-content" class="col-md-12">
+		<h2>eContent Records on Patron Wish Lists</h2>
 		
-		<p>A total of {$recordsOnWishList|@count} records have people on the wishlist.</p> 
+		<p>A total of {$recordsOnWishList|@count} records have people on the wish list.</p>
 		<div class="exportButton">
 			<form action="{$path}" method="get">
-				<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel" class="btn">
+				<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel" class="btn btn-sm btn-default">
 			</form>
 		</div>
-		<table class="table table-bordered table-striped">
+		<table class="table table-striped">
 			<thead>
 				<tr><th>ID</th><th>Title</th><th>Author</th><th>ISBN</th><th>ILS ID</th><th>Source</th><th>Wishlist Size</th></tr>
 			</thead>
@@ -29,4 +25,4 @@
 			{/foreach}
 		</table>
 	</div>
-</div>
+{/strip}

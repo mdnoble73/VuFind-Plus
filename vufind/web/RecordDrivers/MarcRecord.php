@@ -1872,11 +1872,22 @@ class MarcRecord extends IndexRecord
 			'openByDefault' => true
 		);
 		//Other editions if applicable
-		/*$moreDetailsOptions['Other Editions'] = array(
-				'label' => 'Other Editions',
-				'body' => $interface->fetch('GroupedWork/relatedManifestations.tpl'),
-				'hideByDefault' => false
-		);*/
+		$relatedRecords = $this->getGroupedWorkDriver()->getRelatedRecords();
+		if (count($relatedRecords) > 0){
+			$interface->assign('relatedManifestations', $this->getGroupedWorkDriver()->getRelatedManifestations());
+			$moreDetailsOptions['otherEditions'] = array(
+					'label' => 'Other Editions',
+					'body' => $interface->fetch('GroupedWork/relatedManifestations.tpl'),
+					'hideByDefault' => false
+			);
+		}
+		if ($interface->getVariable('enablePospectorIntegration')){
+			$moreDetailsOptions['prospector'] = array(
+					'label' => 'More Copies In Prospector',
+					'body' => '<div id="inProspectorPlaceholder">Loading Prospector Copies...</div>',
+					'hideByDefault' => false
+			);
+		}
 		$moreDetailsOptions['tableOfContents'] = array(
 			'label' => 'Table of Contents',
 			'body' => $interface->fetch('GroupedWork/tableOfContents.tpl'),
@@ -1952,4 +1963,5 @@ class MarcRecord extends IndexRecord
 	protected function getRecordType(){
 		return 'ils';
 	}
+
 }

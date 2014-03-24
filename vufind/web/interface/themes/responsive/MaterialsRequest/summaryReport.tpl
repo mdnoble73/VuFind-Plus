@@ -1,18 +1,14 @@
 <script type="text/javascript" src="{$path}/services/MaterialsRequest/ajax.js"></script>
 <script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
-<div id="page-content" class="row">
-	<div id="sidebar" class="col-md-3">
-		{include file="MyResearch/menu.tpl"}
-	</div>
 
-	<div id="main-content" class="col-md-9">
+	<div id="main-content" class="col-md-12">
 		<h2>Materials Request Summary Report</h2>
 		{if $error}
 			<div class="error">{$error}</div>
 		{else}
 			<div id="materialsRequestFilters">
 				<fieldset>
-				<legend>Filters:</legend>
+				<legend class="collapsible">Filters:</legend>
 				<form action="{$path}/MaterialsRequest/SummaryReport" method="get">
 					<div>
 					<div>
@@ -80,7 +76,7 @@
 		
 		{* Export to Excel option *}
 	</div>
-</div>
+
 <script type="text/javascript">
 {literal}
 	$("#startDate").datepicker();

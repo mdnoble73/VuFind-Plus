@@ -1,10 +1,3 @@
-<div id="page-content" class="content">
-	<div id="sidebar">
-		{include file="MyResearch/menu.tpl"}
-
-		{include file="Admin/menu.tpl"}
-	</div>
-
 	<div id="main-content">
 		<h1>Copy Library Facets</h1>
 		{if count($allLibraries) == 0}
@@ -25,4 +18,3 @@
 			</form>
 		{/if}
 	</div>
-</div>

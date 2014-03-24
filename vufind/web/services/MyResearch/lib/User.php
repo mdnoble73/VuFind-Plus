@@ -216,23 +216,15 @@ class User extends DB_DataObject
 
 	}
 
-	function getTags($resourceId = null, $listId = null){
-		require_once 'Resource_tags.php';
-		require_once 'Tags.php';
+	function getTags(){
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
 		$tagList = array();
 
-		$sql = "SELECT tags.id, tags.tag, COUNT(resource_tags.id) AS cnt " .
-               "FROM tags INNER JOIN resource_tags on tags.id = resource_tags.tag_id " .
-               "INNER JOIN resource on resource_tags.resource_id = resource.id WHERE " .
-               "resource_tags.user_id = '{$this->id}' ";
-		if (!is_null($resourceId)) {
-			$sql .= "AND resource.record_id = '$resourceId' ";
-		}
-		if (!is_null($listId)) {
-			$sql .= "AND resource_tags.list_id = '$listId' ";
-		}
-		$sql .= "GROUP BY tags.tag ORDER BY cnt DESC, tags.tag ASC";
-		$tag = new Tags();
+		$sql = "SELECT id, tag, COUNT(groupedRecordPermanentId) AS cnt " .
+               "FROM user_tags WHERE " .
+               "userId = '{$this->id}' ";
+		$sql .= "GROUP BY tag ORDER BY tag ASC";
+		$tag = new UserTag();
 		$tag->query($sql);
 		if ($tag->N) {
 			while ($tag->fetch()) {

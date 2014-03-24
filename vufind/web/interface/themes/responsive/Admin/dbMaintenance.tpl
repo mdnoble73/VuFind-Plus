@@ -7,7 +7,7 @@
 	<div id="maintenanceOptions"></div>
 	<form id="dbMaintenance" action="{$path}/Admin/{$action}">
 		<div>
-			<table>
+			<table class="table table-striped">
 				<thead>
 					<tr>
 						<th><input type="checkbox" id="selectAll" onclick="toggleCheckboxes('.selectedUpdate', $('#selectAll').attr('checked'));" checked="checked"/></th>

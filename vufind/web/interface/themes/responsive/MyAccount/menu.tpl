@@ -83,7 +83,7 @@
 							<div class="panel-body">
 								{foreach from=$tagList item=tag}
 									<div class="myAccountLink">
-										<a href='{$path}/Search/Results?lookfor={$tag->tag|escape:"url"}&amp;basicType=tag'>{$tag->tag|escape:"html"}</a> ({$tag->cnt})
+										<a href='{$path}/Search/Results?lookfor=tag:{$tag->tag|escape:"url"}&amp;basicType=tag'>{$tag->tag|escape:"html"}</a> ({$tag->cnt})
 										<a href='{$path}/MyResearch/RemoveTag?tagId={$tag->id}' onclick='return confirm("Are you sure you want to remove the tag \"{$tag->tag|escape:"javascript"}\" from all titles?");'>
 											<span class="silk tag_blue_delete" title="Delete Tag">&nbsp;</span>
 										</a>
@@ -97,7 +97,7 @@
 
 			{* Admin Functionality if Available *}
 			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
-				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'UserSuggestions', 'BookStores', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers'))}
+				{if in_array($action, array('Libraries', 'Locations', 'IPAddresses', 'ListWidgets', 'BrowseCategories', 'UserSuggestions', 'BookStores', 'PTypes', 'CirculationStatuses', 'LoanRules', 'LoanRuleDeterminers'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -165,32 +165,6 @@
 				</div>
 			{/if}
 
-			{if $user && ($user->hasRole('epubAdmin'))}
-				{if in_array($action, array('AttachEContent', 'AttachEContentLog'))}
-					{assign var="curSection" value=true}
-				{else}
-					{assign var="curSection" value=false}
-				{/if}
-				<div class="panel">
-					<a href="#eContentMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
-						<div class="panel-heading">
-							<div class="panel-title">
-								eContent
-							</div>
-						</div>
-					</a>
-					<div id="eContentMenu" class="panel-collapse collapse {if $curSection}in{/if}">
-						<div class="panel-body">
-							{*
-							<div class="adminMenuLink{if $action == "NewEPub"}active{/if}"><a href="{$path}/EcontentRecord/Edit">New eContent</a></div>
-							*}
-							<div class="adminMenuLink{if $action == "AttachEContent"}active{/if}"><a href="{$path}/EContent/AttachEContent">Attach EContent To Records</a></div>
-							<div class="adminMenuLink{if $action == "AttachEContentLog"}active{/if}"><a href="{$path}/EContent/AttachEContentLog">EContent Attachment Log</a></div>
-						</div>
-					</div>
-				</div>
-			{/if}
-
 			{if $user && ($user->hasRole('cataloging') || $user->hasRole('library_material_requests'))}
 				{if in_array($action, array('ManageRequests', 'SummaryReport', 'UserReport', 'ManageStatuses'))}
 					{assign var="curSection" value=true}
@@ -238,29 +212,6 @@
 				</div>
 			{/if}
 
-			{if $user && $user->hasRole('genealogyContributor')}
-				{if in_array($action, array('GenealogyImport', 'GenealogyFixDates', 'GenealogyReindex'))}
-					{assign var="curSection" value=true}
-				{else}
-					{assign var="curSection" value=false}
-				{/if}
-				<div class="panel">
-					<a href="#genealogyMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
-						<div class="panel-heading">
-							<div class="panel-title">
-								Genealogy
-							</div>
-						</div>
-					</a>
-					<div id="genealogyMenu" class="panel-collapse collapse {if $curSection}in{/if}">
-						<div class="panel-body">
-							<div class="adminMenuLink{if $action == "GenealogyImport"}active{/if}"><a href="{$path}/Admin/GenealogyImport">Import Information</a></div>
-							<div class="adminMenuLink{if $action == "GenealogyReindex"}active{/if}"><a href="{$path}/Admin/GenealogyReindex">Reindex</a></div>
-						</div>
-					</div>
-				</div>
-			{/if}
-
 			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
 				{if $module == "EditorialReview"}
 					{assign var="curSection" value=true}
@@ -283,7 +234,7 @@
 					</div>
 				</div>
 
-				{if in_array($action, array('Dashboard', 'Searches', 'PageViews', 'ILSIntegration', 'ReportPurchase', 'ReportExternalLinks'))}
+				{if in_array($action, array('Dashboard', 'Searches', 'PageViews', 'ILSIntegration', 'ReportPurchase', 'ReportExternalLinks', 'PatronStatus', 'DetailedReport'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}

@@ -82,6 +82,7 @@ class EditorialReview_Edit extends Admin_Admin {
 		$interface->assign('submitUrl', $configArray['Site']['path'] . '/EditorialReview/Edit');
 		$interface->assign('editForm', DataObjectUtil::getEditForm($structure));
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('edit.tpl');
 
 		$interface->display('layout.tpl');

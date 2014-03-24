@@ -1,5 +1,5 @@
 <script type="text/javascript" src="/js/highcharts/highcharts.js"></script>
-<script type="text/javascript" src="/js/analyticReports.js"></script>
+<script type="text/javascript" src="/interface/themes/responsive/js/vufind/analyticReports.js"></script>
 <div id="page-content" class="content">
 	{if $error}<p class="error">{$error}</p>{/if}
 	<div id="sidebar">

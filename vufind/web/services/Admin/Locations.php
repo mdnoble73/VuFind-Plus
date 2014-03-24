@@ -80,12 +80,8 @@ class Locations extends ObjectEditor
 		return $user->hasRole('opacAdmin');
 	}
 	function getAdditionalObjectActions($existingObject){
-		$objectActions = array();
+ 		$objectActions = array();
 		if ($existingObject != null){
-			$objectActions[] = array(
-				'text' => 'Edit Facets',
-				'url' => '/Admin/LocationFacetSettings?locationId=' . $existingObject->locationId,
-			);
 			$objectActions[] = array(
 				'text' => 'Reset Facets To Default',
 				'url' => '/Admin/Locations?objectAction=resetFacetsToDefault&amp;id=' . $existingObject->locationId,
@@ -154,6 +150,6 @@ class Locations extends ObjectEditor
 			$_REQUEST['objectAction'] = 'edit';
 		}
 		$structure = $this->getObjectStructure();
-		header("Location: /Admin/Locations?objectAction=edit&id=" . $libraryId);
+		header("Location: /Admin/Locations?objectAction=edit&id=" . $locationId);
 	}
 }

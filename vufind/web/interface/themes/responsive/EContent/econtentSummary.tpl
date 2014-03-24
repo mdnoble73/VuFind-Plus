@@ -1,14 +1,10 @@
-<div id="page-content" class="row">
-  <div id="sidebar" class="col-md-3">
-    {include file="MyResearch/menu.tpl"}
-  </div>
-  
-  <div id="main-content" class="col-md-9">
-		<h3>eContent Collection Summary</h3>
+{strip}
+  <div id="main-content" class="col-md-12">
+		<h2>eContent Collection Summary</h2>
 		<div class="statLine"><span class="statLabel">Number of eContent Files: </span><span class="statValue">{$collectionSummary.numTitles}</span></div>
 		
 		<h4>Number of Titles by Protection Type</h4>
-		<table class="table table-bordered table-hover">
+		<table class="table table-striped table-hover">
 			<thead>
 			<tr><th>Protection Type</th><th>Number of Titles</th></tr>
 			</thead>
@@ -23,7 +19,7 @@
 		</table>
 			
 		<h4>Number of Titles by Source</h4>
-		<table class="table table-bordered table-hover">
+		<table class="table table-striped table-hover">
 			<thead>
 			<tr><th>Source</th><th>Number of Titles</th></tr>
 			</thead>
@@ -37,4 +33,4 @@
 			</tbody>
 		</table>
   </div>
-</div>
+{/strip}

@@ -303,6 +303,30 @@ public class Cron {
 		} catch (IOException e) {
 			logger.error("Site Specific config file could not be read.", e);
 		}
+
+		//Now override with the site specific configuration
+		String passwordFilename = "../../sites/" + serverName + "/conf/config.pwd.ini";
+		logger.info("Loading site specific config from " + siteSpecificFilename);
+		File siteSpecificPasswordFile = new File(passwordFilename);
+		if (!siteSpecificPasswordFile.exists()) {
+			logger.error("Could not find server specific config password file");
+			System.exit(1);
+		}
+		try {
+			Ini siteSpecificIni = new Ini();
+			siteSpecificIni.load(new FileReader(siteSpecificPasswordFile));
+			for (Section curSection : siteSpecificIni.values()){
+				for (String curKey : curSection.keySet()){
+					//logger.debug("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+					//System.out.println("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+					ini.put(curSection.getName(), curKey, curSection.get(curKey));
+				}
+			}
+		} catch (InvalidFileFormatException e) {
+			logger.error("Site Specific config file is not valid.  Please check the syntax of the file.", e);
+		} catch (IOException e) {
+			logger.error("Site Specific config file could not be read.", e);
+		}
 		return ini;
 	}
 

@@ -1,21 +1,6 @@
 VuFind.Record = (function(){
 	return {
-		getAddTagForm: function(trigger, id, source){
-			if (Globals.loggedIn){
-				var url = Globals.path + "/Resource/AJAX?method=GetAddTagForm&id=" + id + "&source=" + source;
-				var $trigger = $(trigger);
-				$("#modal-title").text($trigger.attr("title"));
-				var modalDialog = $("#modalDialog");
-				modalDialog.load(url);
-				modalDialog.modal('show');
-			}else{
-				trigger = $(trigger);
-				VuFind.Account.ajaxLogin(trigger, function (){
-					VuFind.Record.getAddTagForm(trigger, id, source);
-				});
-			}
-			return false;
-		},
+
 
 		getSaveToListForm: function (trigger, id, source){
 			if (Globals.loggedIn){
@@ -116,12 +101,13 @@ VuFind.Record = (function(){
 		},
 
 		loadHoldingsInfo: function (id, shortId, source) {
+			var url;
 			if (source == 'VuFind'){
-				var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+				url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 			}else if (source == 'OverDrive'){
-				var url = Globals.path + "/OverDrive/" + encodeURIComponent(id) + "/AJAX";
+				url = Globals.path + "/OverDrive/" + encodeURIComponent(id) + "/AJAX";
 			}else{
-				var url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+				url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 			}
 			var params = "method=GetHoldingsInfo";
 			var fullUrl = url + "?" + params;
@@ -148,6 +134,21 @@ VuFind.Record = (function(){
 								}
 							}
 						}
+						var summaryDetails = $(data).find("SummaryDetails");
+						var callNumber = summaryDetails.find("callnumber").text();
+						$("#callNumberValue").html(callNumber);
+						var location = summaryDetails.find("availableAt").text();
+						if (location.length > 0){
+							$("#locationValue").html(location);
+						}else{
+							location = summaryDetails.find("location").text();
+							$("#locationValue").html(location);
+						}
+						var status = summaryDetails.find("status").text();
+						if (status == "Available At"){
+							status = "Available";
+						}
+						$("#statusValue").html(status).addClass(summaryDetails.find("class").text());
 					}else{
 						var formatsData = $(data).find("Formats").text();
 						if (formatsData) {
@@ -197,8 +198,9 @@ VuFind.Record = (function(){
 							if ($(data).find('AccessOnlineUrl').length > 0){
 								var url = $(data).find('AccessOnlineUrl').text();
 								var text = $(data).find('AccessOnlineText').text();
-								$("#accessOnline" + id).attr("href", url);
-								$("#accessOnline" + id).text($("<div/>").html(text).text());
+								var accessOnlineLink = $("#accessOnline" + id);
+								accessOnlineLink.attr("href", url);
+								accessOnlineLink.text($("<div/>").html(text).text());
 							}
 							$(".accessOnlineLink").show();
 						}
@@ -272,37 +274,6 @@ VuFind.Record = (function(){
 				});
 			}
 			return false;
-		},
-
-		saveTag: function(id, source, form){
-			var tag = $("#tags_to_apply").val();
-			$("#saveToList-button").prop('disabled', true);
-
-			var url = Globals.path + "/Resource/AJAX";
-			var params = "method=SaveTag&" +
-					"tag=" + encodeURIComponent(tag) + "&" +
-					"id=" + id + "&" +
-					"source=" + source;
-			$.ajax({
-				url: url+'?'+params,
-				dataType: "json",
-				success: function(data) {
-					var value = data.result;
-					if (value == "Done") {
-						$("#modal-title").html("Add to Tag Result");
-						$(".modal-body").html("<div class='alert alert-success'>" + data.message + "</div>")
-						setTimeout("VuFind.closeLightbox();", 3000);
-					} else {
-						$("#modal-title").html("Error adding tags");
-						$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error adding tags to this title.<br/>" + data.message + "</div>")
-					}
-
-				},
-				error: function(jqXHR, textStatus, errorThrown) {
-					$("#modal-title").html("Error adding tags");
-					$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error adding tags to this title.<br/>" + textStatus + "</div>")
-				}
-			});
 		},
 
 		saveToList: function(id, source, form){

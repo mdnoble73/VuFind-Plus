@@ -1,13 +1,6 @@
-<div id="page-content" class="content">
-	<div id="sidebar">
-		{include file="MyResearch/menu.tpl"}
-		
-		{include file="Admin/menu.tpl"}
-	</div>
-	
 	<div id="main-content">
 		<h1>{$shortPageTitle}</h1>
-		<a class="button" href='/Admin/LoanRules?objectAction=list'>Return to List</a>
+		<a class="btn btn-sm btn-default" href='/Admin/LoanRules?objectAction=list'>Return to List</a>
 		<div class="helpTextUnsized"><p>To reload loan rules:
 		<ol>
 		<li>Open Millennium</li>
@@ -21,9 +14,9 @@
 			<div>
 				<input type="hidden" name="objectAction" value="doLoanRuleReload" />
 				<textarea rows="20" cols="80" name="loanRuleData"></textarea>
-				<input type="submit" name="reload" value="Reload Data"/>
+				<br/>
+				<input type="submit" name="reload" value="Reload Data" class="btn btn-primary"/>
 			</div>
 		</form>
 
 	</div>
-</div>

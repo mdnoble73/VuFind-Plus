@@ -27,13 +27,13 @@ class Admin_AJAX extends Action {
 		global $timer;
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array())){
+		if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes'))){
 			//JSON Responses
-			header('Content-type: text/plain');
+			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes', 'getAddToWidgetForm', 'getOverDriveExtractNotes'))){
+		}else if (in_array($method, array('getAddToWidgetForm', 'getOverDriveExtractNotes'))){
 			//HTML responses
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -57,104 +57,121 @@ class Admin_AJAX extends Action {
 		}
 	}
 
-	function getReindexNotes()
-	{
-		global $interface;
+	function getReindexNotes(){
 		$id = $_REQUEST['id'];
 		$reindexProcess = new ReindexLogEntry();
 		$reindexProcess->id = $id;
+		$results = array(
+				'title' => '',
+				'modalBody' => '',
+				'modalButtons' => ""
+		);
 		if ($reindexProcess->find(true)){
-			$interface->assign('popupTitle', "Reindex Notes");
+			$results['title'] = "Reindex Notes";
 			if (strlen(trim($reindexProcess->notes)) == 0){
-				$interface->assign('popupContent', "No notes have been entered yet");
+				$results['modalBody'] = "No notes have been entered yet";
 			}else{
-				$interface->assign('popupContent', "<div class='helpText'>{$reindexProcess->notes}</div>");
+				$results['modalBody'] = "<div class='helpText'>{$reindexProcess->notes}</div>";
 			}
 		}else{
-			$interface->assign('popupTitle', "Error");
-			$interface->assign('popupContent', "We could not find a reindex entry with that id.  No notes available.");
+			$results['title'] = "Error";
+			$results['modalBody'] = "We could not find a reindex entry with that id.  No notes available.";
 		}
-		return $interface->fetch('popup-wrapper.tpl');
+		return json_encode($results);
 	}
 
-	function getReindexProcessNotes()
-	{
-		global $interface;
+	function getReindexProcessNotes(){
 		$id = $_REQUEST['id'];
 		$reindexProcess = new ReindexProcessLogEntry();
 		$reindexProcess->id = $id;
+		$results = array(
+				'title' => '',
+				'modalBody' => '',
+				'modalButtons' => ""
+		);
 		if ($reindexProcess->find(true)){
-			$interface->assign('popupTitle', "{$reindexProcess->processName} Notes");
+			$results['title'] = "{$reindexProcess->processName} Notes";
 			if (strlen(trim($reindexProcess->notes)) == 0){
-				$interface->assign('popupContent', "No notes have been entered for this process");
+				$results['modalBody'] = "No notes have been entered for this process";
 			}else{
-				$interface->assign('popupContent', "<div class='helpText'>{$reindexProcess->notes}</div>");
+				$results['modalBody'] = "<div class='helpText'>{$reindexProcess->notes}</div>";
 			}
 		}else{
-			$interface->assign('popupTitle', "Error");
-			$interface->assign('popupContent', "We could not find a process with that id.  No notes available.");
+			$results['title'] = "Error";
+			$results['modalBody'] = "We could not find a process with that id.  No notes available.";
 		}
-		return $interface->fetch('popup-wrapper.tpl');
+		return json_encode($results);
 	}
 
-	function getCronProcessNotes()
-	{
-		global $interface;
+	function getCronProcessNotes(){
 		$id = $_REQUEST['id'];
 		$cronProcess = new CronProcessLogEntry();
 		$cronProcess->id = $id;
+		$results = array(
+				'title' => '',
+				'modalBody' => '',
+				'modalButtons' => ""
+		);
 		if ($cronProcess->find(true)){
-			$interface->assign('popupTitle', "{$cronProcess->processName} Notes");
+			$results['title'] = "{$cronProcess->processName} Notes";
 			if (strlen($cronProcess->notes) == 0){
-				$interface->assign('popupContent', "No notes have been entered for this process");
+				$results['modalBody'] = "No notes have been entered for this process";
 			}else{
-				$interface->assign('popupContent', "<div class='helpText'>{$cronProcess->notes}</div>");
+				$results['modalBody'] = "<div class='helpText'>{$cronProcess->notes}</div>";
 			}
 		}else{
-			$interface->assign('popupTitle', "Error");
-			$interface->assign('popupContent', "We could not find a process with that id.  No notes available.");
+			$results['title'] = "Error";
+			$results['modalBody'] = "We could not find a process with that id.  No notes available.";
 		}
-		return $interface->fetch('popup-wrapper.tpl');
+		return json_encode($results);
 	}
 
-	function getCronNotes()
-	{
-		global $interface;
+	function getCronNotes()	{
 		$id = $_REQUEST['id'];
 		$cronLog = new CronLogEntry();
 		$cronLog->id = $id;
+
+		$results = array(
+				'title' => '',
+				'modalBody' => '',
+				'modalButtons' => ""
+		);
 		if ($cronLog->find(true)){
-			$interface->assign('popupTitle', "Cron Process {$cronLog->id} Notes");
+			$results['title'] = "Cron Process {$cronLog->id} Notes";
 			if (strlen($cronLog->notes) == 0){
-				$interface->assign('popupContent', "No notes have been entered for this cron run");
+				$results['modalBody'] = "No notes have been entered for this cron run";
 			}else{
-				$interface->assign('popupContent', "<div class='helpText'>{$cronLog->notes}</div>");
+				$results['modalBody'] = "<div class='helpText'>{$cronLog->notes}</div>";
 			}
 		}else{
-			$interface->assign('popupTitle', "Error");
-			$interface->assign('popupContent', "We could not find a cron entry with that id.  No notes available.");
+			$results['title'] = "Error";
+			$results['modalBody'] = "We could not find a cron entry with that id.  No notes available.";
 		}
-		return $interface->fetch('popup-wrapper.tpl');
+		return json_encode($results);
 	}
     
-    function getOverDriveExtractNotes()
-	{
+  function getOverDriveExtractNotes()	{
 		global $interface;
 		$id = $_REQUEST['id'];
 		$overdriveExtractLog = new OverDriveExtractLogEntry();
 		$overdriveExtractLog->id = $id;
+	  $results = array(
+			  'title' => '',
+			  'modalBody' => '',
+			  'modalButtons' => ""
+	  );
 		if ($overdriveExtractLog->find(true)){
-			$interface->assign('popupTitle', "OverDrive Extract {$overdriveExtractLog->id} Notes");
+			$results['title'] = "OverDrive Extract {$overdriveExtractLog->id} Notes";
 			if (strlen($overdriveExtractLog->notes) == 0){
-				$interface->assign('popupContent', "No notes have been entered for this OverDrive Extract run");
+				$results['modalBody'] = "No notes have been entered for this OverDrive Extract run";
 			}else{
-				$interface->assign('popupContent', "<div class='helpText'>{$overdriveExtractLog->notes}</div>");
+				$results['modalBody'] = "<div class='helpText'>{$overdriveExtractLog->notes}</div>";
 			}
 		}else{
-			$interface->assign('popupTitle', "Error");
-			$interface->assign('popupContent', "We could not find a OverDrive Extract entry with that id.  No notes available.");
+			$results['title'] = "Error";
+			$results['modalBody'] = "We could not find a OverDrive Extract entry with that id.  No notes available.";
 		}
-		return $interface->fetch('popup-wrapper.tpl');
+	  return json_encode($results);
 	}
 
 	function getAddToWidgetForm(){

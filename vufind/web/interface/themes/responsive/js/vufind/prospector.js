@@ -17,39 +17,16 @@ VuFind.Prospector = (function(){
 			});
 		},
 
-		loadRelatedProspectorTitles: function (id, source) {
+		loadRelatedProspectorTitles: function (id) {
 			var url;
-			if (source == 'VuFind'){
-				url = Globals.path + "Record/" + encodeURIComponent(id) + "/AJAX";
-			}else{
-				url = Globals.path + "EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
-			}
-			var params = "method=GetProspectorInfo";
+			url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
+			var params = "method=getProspectorInfo";
 			var fullUrl = url + "?" + params;
-			$.ajax( {
-				url : fullUrl,
-				success : function(data) {
-					var inProspectorData = $(data).find("InProspector").text();
-					if (inProspectorData) {
-						if (inProspectorData.length > 0) {
-							$("#inProspectorPlaceholder").html(inProspectorData);
-						}
-						var prospectorCopies = $(data).find("OwningLibrariesFormatted").text();
-						if (prospectorCopies && prospectorCopies.length > 0) {
-							$("#prospectorHoldingsPlaceholder").html(prospectorCopies);
-						}
-						$("#inProspectorSidegroup").show();
-					}else{
-						var prospectorLabel = $("#prospectortab_label");
-						if (prospectorLabel){
-							prospectorLabel.hide();
-							if ($("#holdingstab_label").is(":visible")){
-								$("#moredetails-tabs").tabs("option", "active", 0);
-							}else{
-								$("#moredetails-tabs").tabs("option", "active", 2);
-							}
-						}
-					}
+			$.getJSON(fullUrl, function(data) {
+				if (data.numTitles == 0){
+					$("#prospectorPanel").hide();
+				}else{
+					$("#inProspectorPlaceholder").html(data.formattedData);
 				}
 			});
 		}

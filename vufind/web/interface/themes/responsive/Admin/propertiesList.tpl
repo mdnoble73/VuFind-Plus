@@ -1,10 +1,9 @@
 
 <h2 id="pageTitle">{$shortPageTitle}</h2>
 <div class='adminTableRegion'>
-	<table class="adminTable table table-bordered table-striped table-condensed smallText">
+	<table class="adminTable table table-striped table-condensed smallText">
 		<thead>
 			<tr>
-				<th>Actions</th>
 				{foreach from=$structure item=property key=id}
 					{if !isset($property.hideInLists) || $property.hideInLists == false}
 					<th><label title='{$property.description}'>{$property.label}</label></th>
@@ -17,9 +16,7 @@
 			{if isset($dataList) && is_array($dataList)}
 				{foreach from=$dataList item=dataItem key=id}
 				<tr class='{cycle values="odd,even"} {$dataItem->class}'>
-				{if $dataItem->class != 'objectDeleted'}
-					<td><a href='{$path}/{$module}/{$toolName}?objectAction=edit&amp;id={$id}'><span class='silk edit'>&nbsp;</span>Edit</a></td>
-					{/if}
+
 					{foreach from=$structure item=property}
 						{assign var=propName value=$property.property}
 						{assign var=propOldName value=$property.propertyOld}
@@ -27,7 +24,11 @@
 						{assign var=propOldValue value=$dataItem->$propOldName}
 						{if !isset($property.hideInLists) || $property.hideInLists == false}
 							<td {if $propOldValue}class='fieldUpdated'{/if}>
-							{if $property.type == 'text' || $property.type == 'label' || $property.type == 'hidden' || $property.type == 'file' || $property.type == 'integer'}
+							{if $property.type == 'label'}
+								{if $dataItem->class != 'objectDeleted'}
+									<a href='{$path}/{$module}/{$toolName}?objectAction=edit&amp;id={$id}'>&nbsp;</span>{$propValue}{if $propOldValue} ({$propOldValue}){/if}</a>
+								{/if}
+							{elseif $property.type == 'text' || $property.type == 'hidden' || $property.type == 'file' || $property.type == 'integer'}
 								{$propValue}{if $propOldValue} ({$propOldValue}){/if}
 							{elseif $property.type == 'date'}
 								{$propValue}{if $propOldValue} ({$propOldValue}){/if}
@@ -78,7 +79,7 @@
 					{/foreach}
 					{if $dataItem->class != 'objectDeleted'}
 						<td>
-							<a href='{$path}/{$module}/{$toolName}?objectAction=edit&amp;id={$id}'><span class="silk edit">&nbsp;</span>Edit</a>
+							<a href='{$path}/{$module}/{$toolName}?objectAction=edit&amp;id={$id}'>Edit</a>
 							{if $additionalActions}
 								{foreach from=$additionalActions item=action}
 									<a href='{$action.path}&amp;id={$id}'>{$action.name}</a>

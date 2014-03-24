@@ -80,21 +80,12 @@ class Admin_Libraries extends ObjectEditor
 		$objectActions = array();
 		if ($existingObject != null){
 			$objectActions[] = array(
-				'text' => 'Edit Facets',
-				'url' => '/Admin/LibraryFacetSettings?libraryId=' . $existingObject->libraryId,
-			);
-			$objectActions[] = array(
 				'text' => 'Reset Facets To Default',
 				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=resetFacetsToDefault',
 			);
 			$objectActions[] = array(
 				'text' => 'Copy Library Facets',
 				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=copyFacetsFromLibrary',
-			);
-
-			$objectActions[] = array(
-				'text' => 'Edit Search Sources',
-				'url' => '/Admin/LibrarySearchSources?libraryId=' . $existingObject->libraryId,
 			);
 			$objectActions[] = array(
 				'text' => 'Copy Library Search Sources',

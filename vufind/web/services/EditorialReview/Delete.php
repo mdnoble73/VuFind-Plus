@@ -26,7 +26,6 @@ class EditorialReview_Delete extends Admin_Admin {
 
 	function launch()
 	{
-		global $interface;
 		global $configArray;
 
 		$editorialReview = new EditorialReview();

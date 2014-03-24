@@ -191,6 +191,7 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 		}else{
 			$interface->setTemplate('manageRequests.tpl');
 			$interface->setPageTitle('Manage Materials Requests');
+			$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 			$interface->display('layout.tpl');
 		}
 	}

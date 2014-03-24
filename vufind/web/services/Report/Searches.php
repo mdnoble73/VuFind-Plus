@@ -100,6 +100,7 @@ class Report_Searches extends Report_AnalyticsReport{
 		$interface->assign('latestNoHitSearches', $latestNoHitSearches);
 
 		$interface->setPageTitle('Report - Searches');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('searches.tpl');
 		$interface->display('layout.tpl');
 	}

@@ -89,6 +89,7 @@ class ArchivedEContent extends Admin_Admin
 			$this->exportToExcel($archivedRecords);
 		}
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('archivedEContent.tpl');
 		$interface->display('layout.tpl');
 	}

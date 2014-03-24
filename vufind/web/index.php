@@ -237,6 +237,7 @@ if ($translator == false || isset($_REQUEST['reloadTranslator'])){
 $interface->setLanguage($language);
 
 // Determine Module and Action
+/** @var User */
 global $user;
 $user = UserAccount::isLoggedIn();
 

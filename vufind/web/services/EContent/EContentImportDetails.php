@@ -171,6 +171,7 @@ class EContentImportDetails extends Admin_Admin
 		);
 		$pager = new VuFindPager($options);
 		$interface->assign('pageLinks', $pager->getLinks());
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('eContentImportDetails.tpl');
 		$interface->setPageTitle('eContent Import Details');
 		$interface->display('layout.tpl');

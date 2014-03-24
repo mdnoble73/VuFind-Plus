@@ -91,6 +91,7 @@ class IndexRecord implements RecordInterface
 	 * The Grouped Work that this record is connected to
 	 * @var  GroupedWork */
 	protected $groupedWork;
+	protected $groupedWorkDriver = null;
 
 	/**
 	 * Constructor.  We build the object using all the data retrieved
@@ -1286,6 +1287,14 @@ class IndexRecord implements RecordInterface
 	public function getGroupedWorkId(){
 		return $this->groupedWork->permanent_id;
 	}
+	public function getGroupedWorkDriver(){
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		if ($this->groupedWorkDriver == null){
+			$this->groupedWorkDriver = new GroupedWorkDriver($this->getPermanentId());
+		}
+		return $this->groupedWorkDriver;
+	}
+
 
 	/**
 	 * Get a highlighted author string, if available.
@@ -1397,7 +1406,7 @@ class IndexRecord implements RecordInterface
 	 * @access  protected
 	 * @return  array
 	 */
-	protected function getISBNs()
+	public function getISBNs()
 	{
 		// If ISBN is in the index, it should automatically be an array... but if
 		// it's not set at all, we should normalize the value to an empty array.
@@ -1442,10 +1451,10 @@ class IndexRecord implements RecordInterface
 	/**
 	 * Get an array of all ISSNs associated with the record (may be empty).
 	 *
-	 * @access  protected
+	 * @access  public
 	 * @return  array
 	 */
-	protected function getISSNs()
+	public function getISSNs()
 	{
 		// If ISSN is in the index, it should automatically be an array... but if
 		// it's not set at all, we should normalize the value to an empty array.
@@ -1459,7 +1468,7 @@ class IndexRecord implements RecordInterface
 	 * @access  protected
 	 * @return  array
 	 */
-	protected function getLanguages()
+	public function getLanguages()
 	{
 		return isset($this->fields['language']) ?
 		$this->fields['language'] : array();
@@ -1864,6 +1873,10 @@ class IndexRecord implements RecordInterface
 	function getQRCodeUrl(){
 		global $configArray;
 		return $configArray['Site']['url'] . '/qrcode.php?type=Record&id=' . $this->getPermanentId();
+	}
+
+	public function getTags(){
+		return $this->getGroupedWorkDriver()->getTags();
 	}
 }
 

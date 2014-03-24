@@ -1,9 +1,9 @@
 function showReindexNotes(id){
-	ajaxLightbox("/Admin/AJAX?method=getReindexNotes&id=" + id);
+	VuFind.Account.ajaxLightbox("/Admin/AJAX?method=getReindexNotes&id=" + id, true);
 	return false;
 }
 function showReindexProcessNotes(id){
-	ajaxLightbox("/Admin/AJAX?method=getReindexProcessNotes&id=" + id);
+	VuFind.Account.ajaxLightbox("/Admin/AJAX?method=getReindexProcessNotes&id=" + id, true);
 	return false;
 }
 function toggleReindexProcessInfo(id){
@@ -11,15 +11,15 @@ function toggleReindexProcessInfo(id){
 	$("#processInfo" + id).toggle();
 }
 function showReindexProcessNotes(id){
-	ajaxLightbox("/Admin/AJAX?method=getReindexProcessNotes&id=" + id);
+	VuFind.Account.ajaxLightbox("/Admin/AJAX?method=getReindexProcessNotes&id=" + id, true);
 	return false;
 }
 function showCronNotes(id){
-	ajaxLightbox("/Admin/AJAX?method=getCronNotes&id=" + id);
+	VuFind.Account.ajaxLightbox("/Admin/AJAX?method=getCronNotes&id=" + id, true);
 	return false;
 }
 function showCronProcessNotes(id){
-	ajaxLightbox("/Admin/AJAX?method=getCronProcessNotes&id=" + id);
+	VuFind.Account.ajaxLightbox("/Admin/AJAX?method=getCronProcessNotes&id=" + id, true);
 	return false;
 }
 function toggleCronProcessInfo(id){
@@ -27,6 +27,6 @@ function toggleCronProcessInfo(id){
 	$("#processInfo" + id).toggle();
 }
 function showOverDriveExtractNotes(id){
-	ajaxLightbox("/Admin/AJAX?method=getOverDriveExtractNotes&id=" + id);
+	VuFind.Account.ajaxLightbox("/Admin/AJAX?method=getOverDriveExtractNotes&id=" + id, true);
 	return false;
 }

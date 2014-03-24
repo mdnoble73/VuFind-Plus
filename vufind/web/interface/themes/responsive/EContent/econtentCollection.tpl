@@ -1,58 +1,62 @@
 <script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
-<div id="page-content" class="row">
-	<div id="sidebar" class="col-md-3">
-		{include file="MyResearch/menu.tpl"}
-	</div>
-
-	<div id="main-content" class="col-md-9">
-		<h3>eContent Collection Details</h3>
+{strip}
+	<div id="main-content" class="col-md-12">
+		<h2>eContent Collection Details</h2>
 		{if $error}
 			<div class="error">{$error}</div>
 		{else}
 			<div id="collectionDetailsFilters" class="reportFilters">
-				Filters:
 				<form id="filters" action="{$path}/EContent/EContentCollection" method="get">
-					<div>
-						<div>
-							<label for="source">Source to Show:</label> 
-							<select name="source" id="source">
-								{foreach from=$sourceFilter item="sourceItem"}
-									<option value="{$sourceItem}" {if $sourceItem == $source}selected="selected"{/if}>{$sourceItem}</option>
-								{/foreach}
-							</select>
+					<div class="row">
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="startDate">From</label> <input type="text" id="startDate" name="startDate" value="{$startDate}" size="8" class="form-control"/>
+							</div>
+							<div class="form-group">
+								<label for="endDate">To</label> <input type="text" id="endDate" name="endDate" value="{$endDate}" size="8" class="form-control"/>
+							</div>
 						</div>
-						<div>
-							Date: 
-							<label for="startDate">From</label> <input type="text" id="startDate" name="startDate" value="{$startDate}" size="8"/>
-							<label for="endDate">To</label> <input type="text" id="endDate" name="endDate" value="{$endDate}" size="8"/>
-						</div>
-						<div>
-						<input type="submit" name="submit" value="Update Filters" class="btn" />
-						<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel" class="btn" />
+						<div class="col-sm-6">
+							<div class="form-group">
+								<label for="source">Source to Show:</label>
+								<select name="source" id="source" class="form-control">
+									{foreach from=$sourceFilter item="sourceItem"}
+										<option value="{$sourceItem}" {if $sourceItem == $source}selected="selected"{/if}>{$sourceItem}</option>
+									{/foreach}
+								</select>
+							</div>
 						</div>
 					</div>
-					
-					<div id="reportSorting">
-						{if $pageLinks.all}
-							{translate text="Showing"}
-							<b>{$recordStart}</b> - <b>{$recordEnd}</b>
-							{translate text='of'} <b>{$recordCount}</b>
-							{if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>,{/if}
-						{/if}
-					            
-						<b>Results Per Page: </b>
-						<select name="itemsPerPage" id="itemsPerPage"\>
-						{foreach from=$itemsPerPageList item=itemsPerPageItem key=keyName}
-							<option value="{$itemsPerPageItem.amount}" {if $itemsPerPageItem.selected} selected="selected"{/if} >{$itemsPerPageItem.amount}</option>
-						{/foreach}
-					  </select>
-					  <input name="updateRecordsPerPage" value="Go" type="submit"/>
+					<div class="row">
+						<div class="col-sm-12">
+							<input type="submit" name="submit" value="Update Filters" class="btn btn-sm btn-info" />
+							&nbsp;<input type="submit" id="exportToExcel" name="exportToExcel" value="Export to Excel" class="btn btn-sm btn-default" />
+						</div>
+					</div>
+
+					<div id="reportSorting" class="row">
+						<div class="col-sm-12">
+							{if $pageLinks.all}
+								{translate text="Showing"}
+								<b>{$recordStart}</b> - <b>{$recordEnd}</b>
+								{translate text='of'} <b>{$recordCount}</b>
+								{if $searchType == 'basic'}{translate text='for search'}: <b>'{$lookfor|escape:"html"}'</b>,{/if}
+							{/if}
+
+							<label for="itemsPerPage">Results Per Page</label>
+							<select name="itemsPerPage" id="itemsPerPage">
+							{foreach from=$itemsPerPageList item=itemsPerPageItem key=keyName}
+								<option value="{$itemsPerPageItem.amount}" {if $itemsPerPageItem.selected} selected="selected"{/if} >{$itemsPerPageItem.amount}</option>
+							{/foreach}
+						  </select>
+					    <input name="updateRecordsPerPage" value="Go" type="submit"/>
+						</div>
 					</div>
 				</form>
 			</div>
 			
 			{if count($collectionDetails) > 0}
-				<table id="collectionDetails" class="tablesorter table table-bordered table-striped">
+				<table id="collectionDetails" class="tablesorter table table-striped">
 					<thead>
 						<tr>
 							<th>Id</th>
@@ -90,7 +94,7 @@
 			{/if}
 		{/if}
 	</div>
-</div>
+{/strip}
 <script type="text/javascript">
 {literal}
 	$("#startDate").datepicker();

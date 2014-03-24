@@ -50,6 +50,7 @@ class EContentTrialRecords extends Admin_Admin
 		}
 		$interface->assign('trialRecordsToPurchase', $trialRecordsToPurchase);
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('econtentTrialRecords.tpl');
 		$interface->display('layout.tpl');
 	}

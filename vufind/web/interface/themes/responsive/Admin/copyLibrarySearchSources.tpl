@@ -1,10 +1,3 @@
-<div id="page-content" class="content">
-	<div id="sidebar">
-		{include file="MyResearch/menu.tpl"}
-
-		{include file="Admin/menu.tpl"}
-	</div>
-
 	<div id="main-content">
 		<h1>Copy Library Search Sources</h1>
 		{if count($allLibraries) == 0}
@@ -20,9 +13,8 @@
 							<option value="{$library->libraryId}">{$library->displayName}</option>
 						{/foreach}
 					</select>
-					<input type="submit" name="submit" value="Copy Facets"/>
+					<input type="submit" name="submit" value="Copy Search Sources"/>
 				</div>
 			</form>
 		{/if}
 	</div>
-</div>

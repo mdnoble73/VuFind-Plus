@@ -5983,10 +5983,13 @@ td.visible-print {
   cursor: pointer;
 }
 .accordion-toggle:before {
-  content: "► ";
+  content: "►";
 }
-.accordian-toggle.collapsed:before {
-  content: "▼ ";
+.accordion-toggle.collapsed:before {
+  content: "►";
+}
+.accordion-toggle.expanded:before {
+  content: "▼";
 }
 .modal {
   position: fixed;
@@ -6941,6 +6944,9 @@ div#systemMessage {
   .result-value {
     margin-left: 8px !important;
   }
+}
+.result-value-bold {
+  font-weight: bold;
 }
 .resultDetails {
   font-size: 85%;

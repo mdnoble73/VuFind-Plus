@@ -1,9 +1,5 @@
-<div id="page-content" class="content row">
-  <div id="sidebar" class="col-md-3">
-    {include file="MyResearch/menu.tpl"}
-  </div>
-  
-  <div id="main-content" class="col-md-9">
+{strip}
+	<div id="main-content" class="col-md-12">
     {if $error}
       <div class='error'>{$error}</div>
     {/if}
@@ -49,4 +45,4 @@
 	    </fieldset>
     </form>
   </div>
-</div>
+{/strip}

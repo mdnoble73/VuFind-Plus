@@ -84,7 +84,6 @@ class ListWidgets extends ObjectEditor {
 		return $user->hasRole('opacAdmin');
 	}
 	function launch() 	{
-		global $configArray;
 		global $interface;
 		global $user;
 
@@ -125,7 +124,7 @@ class ListWidgets extends ObjectEditor {
 			$interface->assign('object', $widget);
 		}
 
-		//Do actions that require preprocessing
+		//Do actions that require pre-processing
 		if ($objectAction == 'save'){
 			if (!isset($widget)){
 				$widget = new ListWidget();
@@ -159,6 +158,7 @@ class ListWidgets extends ObjectEditor {
 			}
 		}
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setPageTitle('List Widgets');
 		$interface->display('layout.tpl');
 

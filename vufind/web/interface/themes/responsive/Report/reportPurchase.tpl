@@ -1,8 +1,3 @@
-{if (isset($title)) }
-<script type="text/javascript">
-	alert("{$title}");
-</script>
-{/if}
 <script type="text/javascript">
 {literal}
 $(function() {
@@ -13,12 +8,8 @@ $(function() {
 });
 {/literal}
 </script>
-<div id="page-content" class="row">
-	<div id="sidebar" class="col-md-3">
-		{include file="MyResearch/menu.tpl"}
-	</div>
-	
-	<div id="main-content" class="col-md-9">
+
+	<div id="main-content" class="col-md-12">
 		{if $user}
 			<div class="myAccountTitle">
 				<h1>Reports - Purchase Tracking</h1>
@@ -113,4 +104,3 @@ $(function() {
 				You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
 			{/if}
 	</div>
-</div>

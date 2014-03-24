@@ -1,21 +1,16 @@
 {strip}
-<div id="page-content" class="row">
-	<div id="sidebar" class="col-md-3">
-		{include file="MyResearch/menu.tpl"}
-	</div>
-  
-	<div id="main-content" class="col-md-9">
+	<div id="main-content" class="col-md-12">
 		<h3>Cron Log</h3>
 		
 		<div id="econtentAttachLogContainer">
-			<table class="logEntryDetails table-bordered table-hover table-condensed">
+			<table class="logEntryDetails table table-hover table-condensed">
 				<thead>
 					<tr><th>Id</th><th>Started</th><th>Finished</th><th>Elapsed</th><th>Processes Run</th><th>Had Errors?</th><th>Notes</th></tr>
 				</thead>
 				<tbody>
 					{foreach from=$logEntries item=logEntry}
 						<tr>
-							<td><a href="#" class="collapsed" id="cronEntry{$logEntry->id}" onclick="toggleCronProcessInfo('{$logEntry->id}');return false;">{$logEntry->id}</a></td>
+							<td><a href="#" class="accordion-toggle collapsed" id="cronEntry{$logEntry->id}" onclick="toggleCronProcessInfo('{$logEntry->id}');return false;">{$logEntry->id}</a></td>
 							<td>{$logEntry->startTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->endTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->getElapsedTime()}</td>
@@ -24,8 +19,8 @@
 							<td><a href="#" onclick="return showCronNotes('{$logEntry->id}');">Show Notes</a></td>
 						</tr>
 						<tr class="logEntryProcessDetails" id="processInfo{$logEntry->id}" style="display:none">
-							<td colspan="8">
-								<table class="logEntryProcessDetails">
+							<td colspan="7">
+								<table class="logEntryProcessDetails table table-striped table-condensed">
 									<thead>
 										<tr><th>Process Name</th><th>Started</th><th>End Time</th><th>Elapsed</th><th>Errors</th><th>Updates</th><th>Notes</th></tr>
 									</thead>
@@ -50,6 +45,5 @@
 			</table>
 		</div>
 	</div>
-</div>
-<script type="text/javascript" src="/js/admin.js"/>
 {/strip}
+<script type="text/javascript" src="/js/admin.js"></script>

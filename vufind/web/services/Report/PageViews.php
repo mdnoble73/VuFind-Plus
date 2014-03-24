@@ -35,6 +35,7 @@ class Report_PageViews extends Report_AnalyticsReport{
 		$this->loadSlowestPageViews();
 
 		$interface->setPageTitle('Report - Page Views');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('pageviews.tpl');
 		$interface->display('layout.tpl');
 	}

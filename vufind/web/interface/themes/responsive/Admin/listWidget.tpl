@@ -1,14 +1,11 @@
-<div id="page-content" class="row">
-	{if $error}<p class="error">{$error}</p>{/if} 
-	<div id="sidebar" class="col-md-3">
-		{include file="MyResearch/menu.tpl"}
-	</div>
-	<div id="main-content" class="col-md-9">
+	<div id="main-content" class="col-md-12">
 		<h3>List Widget</h3>
-		<a class="btn" href="{$path}/Admin/ListWidgets">All Widgets</a>
-		<a class="btn" href="{$path}/Admin/ListWidgets?objectAction=edit&amp;id={$object->id}"/>Edit</a>
-		<a class="btn" href="{$path}/API/SearchAPI?method=getListWidget&amp;id={$object->id}"/>Preview</a>
-		<a class="btn" href="{$path}/Admin/ListWidgets?objectAction=delete&amp;id={$object->id}" onclick="return confirm('Are you sure you want to delete {$object->name}?');"/>Delete</a>
+		<div class="btn-group">
+			<a class="btn btn-sm btn-default" href="{$path}/Admin/ListWidgets">All Widgets</a>
+			<a class="btn btn-sm btn-default" href="{$path}/Admin/ListWidgets?objectAction=edit&amp;id={$object->id}"/>Edit</a>
+			<a class="btn btn-sm btn-default" href="{$path}/API/SearchAPI?method=getListWidget&amp;id={$object->id}"/>Preview</a>
+			<a class="btn btn-sm btn-danger" href="{$path}/Admin/ListWidgets?objectAction=delete&amp;id={$object->id}" onclick="return confirm('Are you sure you want to delete {$object->name}?');"/>Delete</a>
+		</div>
 		{* Show details for the selected widget *}
 		<h4>{$object->name}</h4>
 		<div id='selectedWidgetLibrary'>Available to: {$object->getLibraryName()}</div>
@@ -50,4 +47,3 @@
 		</div>
 		
 	</div>
-</div>

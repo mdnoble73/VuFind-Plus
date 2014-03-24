@@ -33,6 +33,7 @@ class Circa_Home extends Action
 		}
 
 		//Get view & load template
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('home.tpl');
 		$interface->display('layout.tpl', 'Circa');
 	}
@@ -44,17 +45,19 @@ class Circa_Home extends Action
 		$interface->assign('lastLogin', $login);
 		$password1 = $_REQUEST['password1'];
 		$interface->assign('lastPassword1', $password1);
+		/*
 		$initials = $_REQUEST['initials'];
 		$interface->assign('lastInitials', $initials);
 		$password2 = $_REQUEST['password2'];
 		$interface->assign('lastPassword2', $password2);
+		*/
 		$barcodes = $_REQUEST['barcodes'];
 		$updateIncorrectStatuses = isset($_REQUEST['updateIncorrectStatuses']);
 		$interface->assign('lastUpdateIncorrectStatuses', $updateIncorrectStatuses);
 
 		try {
 			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
-			$results = $catalog->doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses);
+			$results = $catalog->doInventory($login, $password1, null, null, $barcodes, $updateIncorrectStatuses);
 			return $results;
 		} catch (PDOException $e) {
 			// What should we do with this error?

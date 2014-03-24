@@ -159,7 +159,7 @@ VuFind.Account = (function(){
 			}
 			if (requireLogin && !Globals.loggedIn) {
 				VuFind.Account.ajaxLogin(null, function () {
-					ajaxLightbox(urlToDisplay, requireLogin);
+					VuFind.Account.ajaxLightbox(urlToDisplay, requireLogin);
 				}, false);
 			} else {
 				var modalDialog = $("#modalDialog");

@@ -1,6 +1,7 @@
 var VuFind = (function(){
 	$(document).ready(function(){
 		VuFind.initializeModalDialogs();
+		VuFind.setupFieldSetToggles();
 
 		$("#modalDialog").modal({show:false});
 
@@ -87,6 +88,19 @@ var VuFind = (function(){
 
 			elem.parentNode.replaceChild(input, elem);
 			return input;
+		},
+
+		setupFieldSetToggles: function (){
+			$('legend.collapsible').each(function(index){
+				$(this).siblings().hide();
+				$(this).addClass("collapsed");
+				$(this).click(function() {
+					$(this).toggleClass("expanded");
+					$(this).toggleClass("collapsed");
+					$(this).siblings().slideToggle();
+					return false;
+				});
+			});
 		},
 
 		showMessage: function(title, body, autoClose){

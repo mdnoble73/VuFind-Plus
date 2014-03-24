@@ -1,13 +1,12 @@
 {strip}
 <script type="text/javascript" src="/js/highcharts/highcharts.js"></script>
-<script type="text/javascript" src="/js/analyticReports.js"></script>
+<script type="text/javascript" src="/interface/themes/responsive/js/vufind/analytic-reports.js"></script>
 
 <div class="row">
-	{include file="Report/reportSwitcher.tpl"}
 	{include file="Report/analyticsFilters.tpl"}
 </div>
 
-<h2 class="clearer">Holds</h2>
+<h3 class="clearer">Holds</h3>
 <div class="row">
 	{* Holds by Result*}
 	<div id="holdsByResultContainer" class="col-md-4">
@@ -48,17 +47,17 @@
 	{* Holds by Home Libary *}
 </div>
 
-<h2 class="clearer">Renewals</h2>
+<h3 class="clearer">Renewals</h3>
 {* Sessions by number of renewals (1, 2, 3, 4, etc) *}
 {* Sessions by number of failed renewals (1, 2, 3, 4, etc) *}
-<h2 class="clearer">Reading History</h2>
+<h3 class="clearer">Reading History</h3>
 {* Sessions with Reading History Updates *}
 {* Sessions with Reading History View *}
 {* Trend of *}
-<h2 class="clearer">Profile</h2>
+<h3 class="clearer">Profile</h3>
 {* Sessions with Profile View *}
 {* Sessions with Profile Update *}
-<h2 class="clearer">Self Registration</h2>
+<h3 class="clearer">Self Registration</h3>
 
 {/strip}
 {* Setup charts for rendering*}

@@ -67,6 +67,7 @@ class EContentPurchaseAlert extends Admin_Admin
 			$this->exportToExcel($recordsToPurchase);
 		}
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('econtentPurchaseAlert.tpl');
 		$interface->display('layout.tpl');
 	}

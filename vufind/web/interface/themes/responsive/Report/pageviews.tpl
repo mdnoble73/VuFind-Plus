@@ -1,9 +1,8 @@
 {strip}
 <script type="text/javascript" src="/js/highcharts/highcharts.js"></script>
-<script type="text/javascript" src="/js/analyticReports.js"></script>
+<script type="text/javascript" src="/interface/themes/responsive/js/vufind/analytic-reports.js"></script>
 
 <div class="row">
-	{include file="Report/reportSwitcher.tpl"}
 	{include file="Report/analyticsFilters.tpl"}
 </div>
 

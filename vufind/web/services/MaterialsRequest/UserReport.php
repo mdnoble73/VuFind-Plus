@@ -124,6 +124,7 @@ class MaterialsRequest_UserReport extends Admin_Admin {
 
 		$interface->setTemplate('userReport.tpl');
 		$interface->setPageTitle('Materials Request User Report');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->display('layout.tpl');
 	}
 

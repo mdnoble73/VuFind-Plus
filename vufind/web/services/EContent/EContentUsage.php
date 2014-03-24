@@ -35,7 +35,6 @@ class EContentUsage extends Admin_Admin
 		$interface->setTemplate('econtentUsage.tpl');
 		$interface->setPageTitle('eContent Usage Summary');
 
-		$today = time();
 		//Grab the Selected Date Start
 		if (isset($_REQUEST['dateFilterStart'])){
 			$selectedDateStart = $_REQUEST['dateFilterStart'];
@@ -58,7 +57,6 @@ class EContentUsage extends Admin_Admin
 		$interface->assign('resultsSourceFilter', $this->getSourceFilter());
 		$selectedSourceFilter = null;
 		if (isset($_REQUEST['sourceFilter'])){
-			$selectedSourceFilter = array();
 			$selectedSourceFilter = $_REQUEST['sourceFilter'];
 		}
 		$interface->assign('selectedSourceFilter', $selectedSourceFilter);
@@ -67,14 +65,11 @@ class EContentUsage extends Admin_Admin
 		$interface->assign('resultsAccessTypeFilter', $this->getAccessTypeFilter());
 		$selectedAccessTypeFilter = null;
 		if (isset($_REQUEST['accessTypeFilter'])){
-			$selectedAccessTypeFilter = array();
 			$selectedAccessTypeFilter = $_REQUEST['accessTypeFilter'];
 		}
 		$interface->assign('selectedAccessTypeFilter', $selectedAccessTypeFilter);
 
 		//Min/Max Filter
-		$minFilter = "";
-		$maxFilter = "";
 		if (isset($_REQUEST['minPageViewsFilter']) && is_numeric ($_REQUEST['minPageViewsFilter'])){
 			$minFilter = $_REQUEST['minPageViewsFilter'];
 		} else {
@@ -98,6 +93,7 @@ class EContentUsage extends Admin_Admin
 			$this->getItemsPerPageList();
 		}
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->display('layout.tpl');
 	}
 
@@ -156,7 +152,6 @@ class EContentUsage extends Admin_Admin
 			$baseQuery .= "AND econtent_record.source IN (". $sourceEntries . ") ";
 		}
 		if (count($selectedAccessTypeFilter) > 0) {
-			$accessTypes = join("','", $selectedAccessTypeFilter);
 			$accessTypes = "";
 			foreach ($selectedAccessTypeFilter as $curAccessType){
 				if (strlen($accessTypes) > 0){
@@ -169,8 +164,6 @@ class EContentUsage extends Admin_Admin
 
 		$baseQuery .= "GROUP BY econtent_record.id ".
 				"ORDER BY title, econtent_record.id ASC ";
-
-
 
 		$countQuery = "SELECT COUNT(id) as totalResults FROM (" . $baseQuery . ") baseQuery ";
 		$usageQuery = "SELECT * FROM (" . $baseQuery . ") baseQuery ";

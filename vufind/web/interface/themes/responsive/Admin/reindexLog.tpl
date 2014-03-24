@@ -1,21 +1,16 @@
 {strip}
-<div id="page-content" class="row">
-	<div id="sidebar" class="col-md-3">
-		{include file="MyResearch/menu.tpl"}
-	</div>
-  
-	<div id="main-content" class="col-md-9">
+	<div id="main-content" class="col-md-12">
 		<h3>Reindex Log</h3>
 		
 		<div id="econtentAttachLogContainer">
-			<table class="logEntryDetails table table-bordered table-condensed table-hover">
+			<table class="logEntryDetails table table-condensed table-hover">
 				<thead>
 					<tr><th>Id</th><th>Started</th><th>Last Update</th><th>Finished</th><th>Elapsed</th><th>Processes Run</th><th>Had Errors?</th><th>Notes</th></tr>
 				</thead>
 				<tbody>
 					{foreach from=$logEntries item=logEntry}
 						<tr>
-							<td><a href="#" class="collapsed" id="reindexEntry{$logEntry->id}" onclick="toggleReindexProcessInfo('{$logEntry->id}');return false;">{$logEntry->id}</a></td>
+							<td><a href="#" class="accordion-toggle collapsed" id="reindexEntry{$logEntry->id}" onclick="toggleReindexProcessInfo('{$logEntry->id}');return false;">{$logEntry->id}</a></td>
 							<td>{$logEntry->startTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->lastUpdate|date_format:"%D %T"}</td>
 							<td>{$logEntry->endTime|date_format:"%D %T"}</td>
@@ -26,7 +21,7 @@
 						</tr>
 						<tr class="logEntryProcessDetails" id="processInfo{$logEntry->id}" style="display:none">
 							<td colspan="8" >
-								<table class="logEntryProcessDetails">
+								<table class="logEntryProcessDetails table table-striped table-condensed">
 									<thead>
 										<tr><th>Process Name</th><th>Print Marc Records Processed</th><th>eContent Marc Records Processed</th><th>Non-Marc OverDrive Records Processed</th><th>Resources Processed</th><th>Errors</th><th>Added</th><th>Updated</th><th>Deleted</th><th>Skipped</th><th>Notes</th></tr>
 									</thead>
@@ -43,6 +38,5 @@
 			</table>
 		</div>
 	</div>
-</div>
-<script type="text/javascript" src="/js/admin.js" />
+	<script type="text/javascript" src="/js/admin.js" ></script>
 {/strip}

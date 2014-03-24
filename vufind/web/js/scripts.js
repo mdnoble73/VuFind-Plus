@@ -521,19 +521,7 @@ function searchSubmit(){
 	document.forms.searchForm.submit();
 }
 
-function setupFieldsetToggles(){
-	$('legend.collapsible').each(function(index){
-		$(this).siblings().hide();
-		$(this).addClass("collapsed");
-		$(this).click(function() {
-			$(this).toggleClass("expanded");
-			$(this).toggleClass("collapsed");
-			$(this).siblings().slideToggle();
-			return false;
-		});
-	});
 
-}
 
 function pwdToText(fieldId){
 	var elem = document.getElementById(fieldId);

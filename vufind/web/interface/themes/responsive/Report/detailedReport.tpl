@@ -1,28 +1,27 @@
 {strip}
-<script type="text/javascript" src="/js/analyticReports.js"></script>
-<div id="page-content" class="content">
-	{include file="Report/analyticsFilters.tpl"}
-	<h3>{$reportData.name}</h3>
-	<table id="reportData" class="tablesorter reportDataTable">
-		<thead>
-			<tr>
-				{foreach from=$reportData.columns item=columnName}
-					<th>{$columnName}</th>
-				{/foreach}
-			</tr>
-		</thead>
-		<tbody>
-			{foreach from=$reportData.data item=dataRow}
+	<script type="text/javascript" src="/interface/themes/responsive/js/vufind/analytic-reports.js"></script>
+	<div id="page-content" class="content">
+		{include file="Report/analyticsFilters.tpl"}
+		<h2>{$reportData.name}</h2>
+		<table id="reportData" class="tablesorter reportDataTable">
+			<thead>
 				<tr>
-					{foreach from=$dataRow item=dataVal}
-						<td>{$dataVal}</td>
+					{foreach from=$reportData.columns item=columnName}
+						<th>{$columnName}</th>
 					{/foreach}
 				</tr>
-			{/foreach}
-		</tbody>
-	</table>
-</div>
-<div class="clearer"></div>
+			</thead>
+			<tbody>
+				{foreach from=$reportData.data item=dataRow}
+					<tr>
+						{foreach from=$dataRow item=dataVal}
+							<td>{$dataVal}</td>
+						{/foreach}
+					</tr>
+				{/foreach}
+			</tbody>
+		</table>
+	</div>
 {/strip}
 {* Setup charts for rendering*}
 <script type="text/javascript">

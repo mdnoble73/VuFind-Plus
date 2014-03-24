@@ -2772,6 +2772,23 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'work_level_tagging' => array(
+				'title' => 'Work Level Tagging',
+				'description' => 'Stores tags at the work level rather than the individual record.',
+				'sql' => array(
+					"CREATE table user_tags (
+						id INT(11) NOT NULL AUTO_INCREMENT,
+						groupedRecordPermanentId VARCHAR(36),
+						userId INT(11),
+						tag VARCHAR(50),
+						dateTagged INT(11),
+						INDEX(`groupedRecordPermanentId`),
+						INDEX(`userId`),
+						PRIMARY KEY(`id`)
+					) ENGINE = MYISAM",
+				),
+			),
+
 			'user_list_entry' => array(
 				'title' => 'User List Entry (Grouped Work)',
 				'description' => 'Add grouped works to lists rather than resources.',

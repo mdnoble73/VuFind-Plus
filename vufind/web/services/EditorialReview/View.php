@@ -37,6 +37,7 @@ class EditorialReview_View extends Admin_Admin {
 			$interface->assign('editorialReview', $editorialReview);
 		}
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('view.tpl');
 
 		$interface->display('layout.tpl');
