@@ -83,7 +83,7 @@
 							<div class="panel-body">
 								{foreach from=$tagList item=tag}
 									<div class="myAccountLink">
-										<a href='{$path}/Search/Results?lookfor=tag:{$tag->tag|escape:"url"}&amp;basicType=tag'>{$tag->tag|escape:"html"}</a> ({$tag->cnt})
+										<a href='{$path}/Search/Results?lookfor={$tag->tag|escape:"url"}&amp;basicType=tag'>{$tag->tag|escape:"html"}</a> ({$tag->cnt})
 										<a href='{$path}/MyResearch/RemoveTag?tagId={$tag->id}' onclick='return confirm("Are you sure you want to remove the tag \"{$tag->tag|escape:"javascript"}\" from all titles?");'>
 											<span class="silk tag_blue_delete" title="Delete Tag">&nbsp;</span>
 										</a>
@@ -207,6 +207,11 @@
 					<div id="circulationMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
 							<div class="adminMenuLink{if $action == "Home" && $module == "Circa"}active{/if}"><a href="{$path}/Circa/Home">Inventory</a></div>
+							<hr/>
+							<div class="adminMenuLink{if $action == "OfflineCirculation" && $module == "Circa"} active{/if}"><a href="{$path}/Circa/OfflineCirculation">Offline Circulation</a></div>
+							<hr/>
+							<div class="adminMenuLink{if $action == "OfflineHoldsReport" && $module == "Circa"}active{/if}"><a href="{$path}/Circa/OfflineHoldsReport">Offline Holds Report</a></div>
+							<div class="adminMenuLink{if $action == "OfflineCirculationReport" && $module == "Circa"}active{/if}"><a href="{$path}/Circa/OfflineCirculationReport">Offline Circulation Report</a></div>
 						</div>
 					</div>
 				</div>
