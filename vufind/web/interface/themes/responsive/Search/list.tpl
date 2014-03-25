@@ -32,11 +32,11 @@
         <!--<div id="main-content-with-sidebar" class="hidden-xs visible-sm col-sm-8 col-md-8 col-lg-9">-->
 		<div id="searchInfo">
 			{* Recommendations
-			{if $topRecommendations}*}
+			{if $topRecommendations}
 				{foreach from=$topRecommendations item="recommendations"}
 					{include file=$recommendations}
 				{/foreach}
-			{*{/if}*}
+			{/if}*}
 
 			{* Listing Options *}
 			<div class="resulthead">
