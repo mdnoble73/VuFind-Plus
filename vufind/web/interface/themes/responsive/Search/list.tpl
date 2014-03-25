@@ -4,6 +4,7 @@
 	alert("{$title}");
 </script>
 {/if}
+<div id="xs-main-content-insertion-point" class="row"></div>
 <div class="row-fluid">
 	{* Narrow Search Options *}
 	<div id="sidebar" class="span3">
@@ -27,7 +28,7 @@
 	</div>
 	{* End Narrow Search Options *}
 
-	<div id="main-content" class="span9">
+	<div id="main-content-with-sidebar" class="span9">
 		<div id="searchInfo">
 			{* Recommendations *}
 			{if $topRecommendations}
