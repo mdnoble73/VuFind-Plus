@@ -1,5 +1,5 @@
 {strip}
-{if $topFacetSet}
+{*{if $topFacetSet}*}
 	{foreach from=$topFacetSet item=cluster key=title}
 		{if $cluster.label == 'Category' || $cluster.label == 'Format Category'}
 			{if ($categorySelected == false)}
@@ -67,5 +67,5 @@
 			</div>
 		{/if}
 	{/foreach}
-{/if}
+{*{/if}*}
 {/strip}
