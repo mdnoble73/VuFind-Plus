@@ -28,7 +28,8 @@
 	</div>
 	{* End Narrow Search Options *}
 
-	<div id="main-content-with-sidebar" class="hidden-xs visible-sm col-sm-8 col-md-8 col-lg-9">
+	<div id="main-content-with-sidebar" class="span9">
+        <!--<div id="main-content-with-sidebar" class="hidden-xs visible-sm col-sm-8 col-md-8 col-lg-9">-->
 		<div id="searchInfo">
 			{* Recommendations *}
 			{if $topRecommendations}
