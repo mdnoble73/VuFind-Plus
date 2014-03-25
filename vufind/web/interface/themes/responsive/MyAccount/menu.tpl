@@ -207,9 +207,7 @@
 					<div id="circulationMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
 							<div class="adminMenuLink{if $action == "Home" && $module == "Circa"}active{/if}"><a href="{$path}/Circa/Home">Inventory</a></div>
-							<hr/>
 							<div class="adminMenuLink{if $action == "OfflineCirculation" && $module == "Circa"} active{/if}"><a href="{$path}/Circa/OfflineCirculation">Offline Circulation</a></div>
-							<hr/>
 							<div class="adminMenuLink{if $action == "OfflineHoldsReport" && $module == "Circa"}active{/if}"><a href="{$path}/Circa/OfflineHoldsReport">Offline Holds Report</a></div>
 							<div class="adminMenuLink{if $action == "OfflineCirculationReport" && $module == "Circa"}active{/if}"><a href="{$path}/Circa/OfflineCirculationReport">Offline Circulation Report</a></div>
 						</div>

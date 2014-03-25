@@ -5,10 +5,10 @@
 		<input type='hidden' name='campus' value='{$hold_message_data.campus}' />
 	{/if}
 	{if $hold_message_data.error}
-		<div class='hold_result_error'>{$hold_message_data.error}</div>
+		<div class='alert alert-danger'>{$hold_message_data.error}</div>
 	{else}
 		{if $hold_message_data.successful == 'all'}
-			<div class='hold_result successful'>
+			<div class='alert alert-success'>
 			{if count($hold_message_data.titles) > 1}
 				All hold requests were successful.
 			{else}
@@ -16,9 +16,9 @@
 			{/if}
 			</div>
 		{elseif $hold_message_data.successful == 'partial'}
-			<div class='hold_result partial'>Some hold requests need additional information.</div>
+			<div class='alert alert-warning'>Some hold requests need additional information.</div>
 		{else}
-			<div class='hold_result none'>Your hold request{if count($hold_message_data.titles) > 1}s{/if} need{if count($hold_message_data.titles) <=1 }s{/if} additional information.</div>
+			<div class='alert alert-warning'>Your hold request{if count($hold_message_data.titles) > 1}s{/if} need{if count($hold_message_data.titles) <=1 }s{/if} additional information.</div>
 		{/if}
 	{/if}
 		<ol class='hold_result_details'>

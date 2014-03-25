@@ -1846,4 +1846,28 @@ class MillenniumDriver implements DriverInterface
 
 		return $results;
 	}
+
+	/**
+	 * Calculates a check digit for a III identifier
+	 * @param basedId String the base id without checksum
+	 * @return String the check digit
+	 */
+	function getCheckDigit($baseId){
+		$baseId = str_replace('b', '', $baseId);
+		if (strlen($baseId) != 7){
+			return "a";
+		}else{
+			$sumOfDigits = 0;
+			for ($i = 0; $i < 7; $i++){
+				$curDigit = substr($baseId, $i, 1);
+				$sumOfDigits += (8 - $i) * $curDigit;
+			}
+			$modValue = $sumOfDigits % 11;
+			if ($modValue == 10){
+				return "x";
+			}else{
+				return $modValue;
+			}
+		}
+	}
 }

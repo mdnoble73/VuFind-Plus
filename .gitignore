@@ -12,15 +12,12 @@ vufind/web/interface/cache/
 vufind/web/interface/compile/
 vufind/web/files/medium/*.jpg
 vufind/web/files/thumbnail/*.jpg
-vufind/web/*_strandsCatalog.csv
-vufind/web/*Strands.csv
 vufind/web/phpinfo.php
 vufind/import/src_backup
 vufind/web/images/covers/medium/*
 vufind/web/images/covers/small/*
 vufind/web/images/covers/large/*
 vufind/web/files/original/*
-vufind/web/*.csv
 vufind/web/google*.html
 tests/conf/config.ini
 tests/selenium/*
@@ -48,7 +45,7 @@ sites/*/marc/*
 sites/*/marc_*/*
 sites/*/logs/*
 sites/*/backup
-alltitles.csv
+*.csv
 
 # Compiled source #                                                                                   
 ###################

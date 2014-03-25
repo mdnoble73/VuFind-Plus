@@ -153,19 +153,9 @@ class MillenniumCheckouts {
 			if ($sCount > 1){
 				//Get additional information from resources table
 				if ($curTitle['shortId'] && strlen($curTitle['shortId']) > 0){
-					/** @var Resource|object $resource */
-					$resource = new Resource();
-					$resource->source = 'VuFind';
-					$resource->shortId = $curTitle['shortId'];
-					if ($resource->find(true)){
-						$timer->logTime("Found resource for " . $curTitle['shortId']);
-						$curTitle = array_merge($curTitle, get_object_vars($resource));
-						$curTitle['recordId'] = $resource->record_id;
-						$curTitle['id'] = $resource->record_id;
-					}else{
-						$timer->logTime("Did not find resource for " . $curTitle['shortId']);
-						//echo("Warning did not find resource for {$historyEntry['shortId']}");
-					}
+					$checkDigit = $this->driver->getCheckDigit($curTitle['shortId']);
+					$curTitle['recordId'] = '.' . $curTitle['shortId'] . $checkDigit;
+					$curTitle['id'] = '.' . $curTitle['shortId'] . $checkDigit;
 				}
 				$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
 				$sortKey = $sortTitle;

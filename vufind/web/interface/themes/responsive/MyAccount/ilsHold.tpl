@@ -4,7 +4,7 @@
 			<div class="row">
 				<div class="selectTitle col-md-2">
 					{if $section == 'available'}
-						<input type="checkbox" name="availableholdselected[]" value="{$record.cancelId}" id="selected{$record.recordId|escape:"url"}" class="titleSelect{$sectionKey} titleSelect"/>&nbsp;
+						<input type="checkbox" name="availableholdselected[]" value="{$record.cancelId}" id="selected{$record.cancelId|escape:"url"}" class="titleSelect{$sectionKey} titleSelect"/>&nbsp;
 					{else}
 						<input type="checkbox" name="waitingholdselected[]" value="{$record.cancelId}" id="selected{$record.cancelId|escape:"url"}" class="titleSelect{$sectionKey} titleSelect"/>&nbsp;
 					{/if}
@@ -132,7 +132,7 @@
 
 				<div class="col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
-						<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.cancelSelectedHolds();" class="btn btn-sm">Cancel Hold</a>
+						<a href="#" onclick="$('#selected{$record.cancelId}').prop('checked', 'checked');return VuFind.Account.cancelSelectedHolds();" class="btn btn-sm btn-warning">Cancel Hold</a>
 					</div>
 
 					{* Include standard tools *}

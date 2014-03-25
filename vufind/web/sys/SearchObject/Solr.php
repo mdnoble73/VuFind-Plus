@@ -1017,31 +1017,25 @@ class SearchObject_Solr extends SearchObject_Base
 	private function processTagSearch($lookfor)
 	{
 		// Include the app database objects
-		require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 
 		// Find our tag in the database
-		$tag = new Tags();
+		$tag = new UserTag();
 		$tag->tag = $lookfor;
+		$tag->selectAdd(null);
+		$tag->selectAdd('DISTINCT(groupedRecordPermanentId) as groupedRecordPermanentId');
 		$newSearch = array();
-		if ($tag->find(true)) {
+		$newSearch[0] = array('join' => 'OR', 'group' => array());
+		$tag->find();
+		while ($tag->fetch()) {
 			// Grab the list of records tagged with this tag
-			$resourceList = $tag->getResources();
-			if (count($resourceList)) {
-				$newSearch[0] = array('join' => 'OR', 'group' => array());
-				foreach ($resourceList as $resource) {
-					$id = $resource->record_id;
-					if ($resource->source == 'eContent'){
-						$id = 'econtentRecord' . $id;
-					}
-
-					$newSearch[0]['group'][] = array(
-                        'field' => 'id',
-                        'lookfor' => $id,
-                        'bool' => 'OR'
-                        );
-				}
-			}
+			$id = $tag->groupedRecordPermanentId;
+			$newSearch[0]['group'][] = array(
+                    'field' => 'id',
+                    'lookfor' => $id,
+                    'bool' => 'OR'
+                    );
 		}
 
 		return $newSearch;

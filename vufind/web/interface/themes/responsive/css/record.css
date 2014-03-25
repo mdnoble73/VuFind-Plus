@@ -1,4 +1,16 @@
 /**
+Variables for VuFind customization.  These can be overridden at the local theme level
+*/
+/**
+Header Variables
+**/
+/**
+Footer Variables
+*/
+/**
+Home Page Variables
+*/
+/**
  * Additional Styling specific to the display of full records.
  *
  * If a style is used both within the results list and within a record it should
@@ -78,4 +90,10 @@
 }
 .eContentFormatUsage {
   font-size: 11px;
+}
+.hold_result_title_failed {
+  color: #a94442;
+}
+.hold_result_title_ok {
+  color: #3c763d;
 }

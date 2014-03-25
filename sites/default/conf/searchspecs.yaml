@@ -317,7 +317,7 @@ AllFields:
   DismaxFields:
     - allfields
     - id
-    - id_alt
+    - alternate_ids
   QueryFields:
     allfields:
       - [and, ~]
@@ -330,13 +330,13 @@ AllFieldsProper:
   DismaxFields:
     - allfields_proper
     - id
-    - id_alt
+    - alternate_ids
   QueryFields:
     allfields_proper:
       - [and, ~]
     id:
       - [onephrase, ~]
-    id_alt:
+    alternate_ids:
       - [onephrase, ~]
 
 Keyword:
@@ -400,7 +400,7 @@ Keyword:
       - [or, ~]
     id:
       - [onephrase, ~]
-    id_alt:
+    alternate_ids:
       - [exact, ~]
     local_callnumber_exact:
       - [localized_callnumber, 800]
@@ -478,7 +478,7 @@ KeywordProper:
       - [exact, ~]
     id:
       - [onephrase, ~]
-    id_alt:
+    alternate_ids:
       - [onephrase, ~]
     local_callnumber_exact:
       - [localized_callnumber, 800]
@@ -614,7 +614,7 @@ KeywordGroupedProper:
       - [exact, ~]
     id:
       - [onephrase, ~]
-    id_alt:
+    alternate_ids:
       - [onephrase, ~]
     local_callnumber_exact:
       - [localized_callnumber, 800]
@@ -629,7 +629,7 @@ id:
     - id:
       - [onephrase, ~]
       - [or, ~]
-    - id_alt:
+    - alternate_ids:
       - [onephrase, ~]
       - [or, ~]
 
@@ -638,7 +638,7 @@ ids:
   QueryFields:
     - id:
       - [or, ~]
-    -id_alt:
+    -alternate_ids:
       - [onephrase, ~]
       - [or, ~]
 

@@ -6930,6 +6930,12 @@ div#systemMessage {
 .eContentFormatUsage {
   font-size: 11px;
 }
+.hold_result_title_failed {
+  color: #a94442;
+}
+.hold_result_title_ok {
+  color: #3c763d;
+}
 /**
  * Additional styling specific to the results list.
  *

@@ -183,13 +183,15 @@ class MillenniumHolds{
 				}
 			}
 			if ($loadTitles){
-				$resource = new Resource();
-				$resource->shortId = $tmpBib;
-				if ($resource->find(true)){
-					if (strlen($title) > 0) $title .= ", ";
-					$title .= $resource->title;
-				}else{
-					$logger->log("Did not find bib for = $tmpBib", PEAR_LOG_DEBUG);
+				foreach ($holds['holds']['available'] as $availableHold){
+					if ($availableHold['shortId'] == $tmpBib){
+						$title = $availableHold['title'];
+					}
+				}
+				foreach ($holds['holds']['unavailable'] as $unavailableHold){
+					if ($unavailableHold['shortId'] == $tmpBib){
+						$title = $unavailableHold['title'];
+					}
 				}
 			}
 		}

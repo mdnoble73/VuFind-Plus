@@ -107,6 +107,7 @@ class Circa_OfflineCirculation extends Action{
 		$interface->assign('results', $results);
 
 		//Get view & load template
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('offlineCirculation.tpl');
 		$interface->display('layout.tpl', 'Circa');
 	}

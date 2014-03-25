@@ -220,7 +220,7 @@ class User extends DB_DataObject
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
 		$tagList = array();
 
-		$sql = "SELECT id, tag, COUNT(groupedRecordPermanentId) AS cnt " .
+		$sql = "SELECT id, groupedRecordPermanentId, tag, COUNT(groupedRecordPermanentId) AS cnt " .
                "FROM user_tags WHERE " .
                "userId = '{$this->id}' ";
 		$sql .= "GROUP BY tag ORDER BY tag ASC";
