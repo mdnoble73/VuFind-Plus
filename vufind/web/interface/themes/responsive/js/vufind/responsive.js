@@ -1,5 +1,5 @@
 /**
- * Created by MNoble; copied over by bmcfadden  on 3/25/14.
+ * Created by MNoble; copied over by bmcfadden   on 3/25/14.
  */
 
 VuFind.Responsive = (function(){
