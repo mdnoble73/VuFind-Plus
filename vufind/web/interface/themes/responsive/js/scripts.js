@@ -1582,8 +1582,16 @@ VuFind.Responsive = (function(){
 }(VuFind.Responsive || {}));
 
 $(document).ready(function(){
-    $("<div style='position:fixed;top:50px;left:20px;background:#CCCCCC;cursor:pointer;' id='scroller'>Scroll down and stuff</div>").appendTo("body");
-    $("#scroller").click(function(){
+    $("<div style='position:fixed;top:50px;left:20px;background:#CCCCCC;cursor:pointer;' id='scrolldown'>Scroll down and stuff</div>").appendTo("body");
+    $("<div style='position:fixed;top:50px;left:20px;background:#CCCCCC;cursor:pointer;display:none;' id='scrollup'>Scroll up and stuff</div>").appendTo("body");
+    $("#scrolldown").click(function(){
         $("html,body").animate({scrollTop:$(document).height()}, 1000);
+        $("#scrollup").show();
+        $(this).hide();
+    });
+    $("#scrollup").click(function(){
+        $("html,body").animate({scrollTop:0}, 1000);
+        $("#scrolldown").show();
+        $(this).hide();
     });
 });
