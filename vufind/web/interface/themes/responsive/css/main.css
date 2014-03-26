@@ -6477,6 +6477,7 @@ a.badge:focus {
 }
 #undersearch_div img{
     height:20px;
+    margin-bottom:3px;
 }
 @media (max-width: 480px) {
   #search_box_group {
