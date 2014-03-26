@@ -5163,9 +5163,12 @@ a.badge:focus {
 }
 .sortpart{
     width:45%;
-    display:inline-block;
-    *zoom:1;
-    *display:inline;
+}
+.flL{
+    float:left;
+}
+.flR{
+    float:right;
 }
 .carousel {
   position: relative;
