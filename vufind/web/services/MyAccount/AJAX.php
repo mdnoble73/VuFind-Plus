@@ -29,4 +29,20 @@ class MyAccount_AJAX {
 		);
 		return json_encode($formDefinition);
 	}
+
+	function removeTag(){
+		global $user;
+		$tagToRemove = $_REQUEST['tag'];
+
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
+		$userTag = new UserTag();
+		$userTag->tag = $tagToRemove;
+		$userTag->userId = $user->id;
+		$numDeleted = $userTag->delete();
+		$result = array(
+				'result' => true,
+				'message' => "Removed tag '{$tagToRemove}' from $numDeleted titles."
+		);
+		return json_encode($result);
+	}
 } 

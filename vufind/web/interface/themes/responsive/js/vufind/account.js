@@ -144,6 +144,21 @@ VuFind.Account = (function(){
 			return false;
 		},
 
+		removeTag: function(tag){
+			if (confirm("Are you sure you want to remove the tag \"" + tag + "\" from all titles?")){
+				var url = Globals.path + "/MyAccount/AJAX?method=removeTag&tag=" + encodeURI(tag);
+				$.getJSON(url, function(data){
+					if (data.result == true){
+						VuFind.showMessage('Tag Deleted', data.message);
+						setTimeout(function(){window.location.reload()}, 3000);
+					}else{
+						VuFind.showMessage('Tag Not Deleted', data.message);
+					}
+				});
+			}
+			return false;
+		},
+
 		renewSelectedTitles: function () {
 			var selectedTitles = VuFind.getSelectedTitles();
 			if (selectedTitles.length == 0) {

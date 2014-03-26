@@ -83,9 +83,9 @@
 							<div class="panel-body">
 								{foreach from=$tagList item=tag}
 									<div class="myAccountLink">
-										<a href='{$path}/Search/Results?lookfor={$tag->tag|escape:"url"}&amp;basicType=tag'>{$tag->tag|escape:"html"}</a> ({$tag->cnt})
-										<a href='{$path}/MyResearch/RemoveTag?tagId={$tag->id}' onclick='return confirm("Are you sure you want to remove the tag \"{$tag->tag|escape:"javascript"}\" from all titles?");'>
-											<span class="silk tag_blue_delete" title="Delete Tag">&nbsp;</span>
+										<a href='{$path}/Search/Results?lookfor={$tag->tag|escape:"url"}&amp;basicType=tag'>{$tag->tag|escape:"html"}</a> ({$tag->cnt})&nbsp;
+										<a href='#' onclick="return VuFind.Account.removeTag('{$tag->tag}');">
+											<span class="glyphicon glyphicon-remove-circle" title="Delete Tag">&nbsp;</span>
 										</a>
 									</div>
 								{/foreach}

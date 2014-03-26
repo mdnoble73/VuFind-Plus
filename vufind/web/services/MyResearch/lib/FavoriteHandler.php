@@ -17,7 +17,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
 /**
@@ -42,7 +41,7 @@ class FavoriteHandler
 	 * Constructor.
 	 *
 	 * @access  public
-	 * @param   array   $favorites  Array of Resource objects.
+	 * @param   array   $favorites  Array of grouped work ids.
 	 * @param   object  $user       User object owning tag/note metadata.
 	 * @param   int     $listId     ID of list containing desired tags/notes (or
 	 *                              null to show tags/notes from all user's lists).

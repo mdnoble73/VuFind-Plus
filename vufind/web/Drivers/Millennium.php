@@ -1812,28 +1812,38 @@ class MillenniumDriver implements DriverInterface
 						$bibNumber = $bibNumberMatches[$bibCtr][1];
 						$bibTitle = strip_tags($bibNumberMatches[$bibCtr][2]);
 
-						//Check to see if this title is already on the list.
-						$resourceOnList = false;
-						foreach ($currentListResources as $currentResource){
-							if ($currentResource->shortId == $bibNumber){
-								$resourceOnList = true;
-								break;
-							}
-						}
-
-						if (!$resourceOnList){
-							$titleResource = new Resource();
-							$titleResource->shortId = $bibNumber;
-							if ($titleResource->find(true)){
-								//We have the correct resource
-								$user->addResource($titleResource, $newList, null,'');
-							}else{
-								//The title is not in the resources, add an error to the results
-								if (!isset($results['errors'])){
-									$results['errors'] = array();
+						//Get the grouped work for the resource
+						require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
+						require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+						$primaryIdentifier = new GroupedWorkPrimaryIdentifier();
+						$groupedWork = new GroupedWork();
+						$primaryIdentifier->identifier = '.' + $bibNumber + $this->getCheckDigit($bibNumber);
+						$primaryIdentifier->type = 'ils';
+						$primaryIdentifier->joinAdd($groupedWork);
+						if ($primaryIdentifier->find(true)){
+							//Check to see if this title is already on the list.
+							$resourceOnList = false;
+							foreach ($currentListResources as $currentResource){
+								if ($currentResource->groupedWorkPermanentId == $primaryIdentifier->permanent_id){
+									$resourceOnList = true;
+									break;
 								}
-								$results['errors'][] = "\"$bibTitle\" on list $title could not be found in the catalog and was not imported.";
 							}
+
+							if (!$resourceOnList){
+								$listEntry = new UserListEntry();
+								$listEntry->groupedWorkPermanentId = $primaryIdentifier->permanent_id;
+								$listEntry->listId = $newList->id;
+								$listEntry->notes = '';
+								$listEntry->dateAdded = time();
+								$listEntry->insert();
+							}
+						}else{
+							//The title is not in the resources, add an error to the results
+							if (!isset($results['errors'])){
+								$results['errors'] = array();
+							}
+							$results['errors'][] = "\"$bibTitle\" on list $title could not be found in the catalog and was not imported.";
 						}
 
 						$results['totalTitles']++;

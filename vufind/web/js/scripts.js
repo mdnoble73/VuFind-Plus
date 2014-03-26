@@ -795,17 +795,7 @@ function showReviewForm(id, source){
 	}
 	return false;
 }
-function getSaveToListForm(id, source){
-	if (loggedIn){
-		var url = path + "/Resource/Save?lightbox=true&id=" + id + "&source=" + source;
-		ajaxLightbox(url);
-	}else{
-		ajaxLogin(function (){
-			getSaveToListForm(id, source);
-		});
-	}
-	return false;
-}
+
 
 function saveRecord(id, source, formElem, strings) {
 	successCallback = function() {
@@ -817,119 +807,6 @@ function saveRecord(id, source, formElem, strings) {
 	};
 	performSaveRecord(id, source, formElem, strings, 'VuFind', successCallback);
 	return false;
-}
-function performSaveRecord(id, source, formElem, strings, service, successCallback)
-{
-	document.body.style.cursor = 'wait';
-	var tags = formElem.elements['mytags'].value;
-	var notes = formElem.elements['notes'].value;
-	var list = formElem.elements['list'].options[formElem.elements['list'].selectedIndex].value;
-
-	var url = path + "/Resource/AJAX";
-	var params = "method=SaveRecord&" +
-							 "mytags=" + encodeURIComponent(tags) + "&" +
-							 "list=" + list + "&" +
-							 "notes=" + encodeURIComponent(notes) + "&" +
-							 "id=" + id + "&" +
-							 "source=" + source;
-	$.ajax({
-		url: url+'?'+params,
-		dataType: "json",
-		success: function(data) {
-			if (data.result) {
-					var value = data.result;
-					if (value == "Done") {
-							successCallback();
-							hideLightbox();
-					} else {
-							getLightbox('Record', 'Save', id, null, strings.add);
-					}
-			} else {
-					document.getElementById('popupbox').innerHTML = strings.error;
-					setTimeout("hideLightbox();", 3000);
-			}
-			document.body.style.cursor = 'default';
-			
-	},
-	error: function() {
-			document.getElementById('popupbox').innerHTML = strings.error;
-			setTimeout("hideLightbox();", 3000);
-			document.body.style.cursor = 'default';
-	}
-	});
-}
-
-function GetAddTagForm(id, source){
-	if (loggedIn){
-		var url = path + "/Resource/AJAX?method=GetAddTagForm&id=" + id + "&source=" + source;
-		ajaxLightbox(url);
-	}else{
-		ajaxLogin(function(){
-			GetAddTagForm(id, source);
-		});
-	}
-}
-
-function SaveTag(id, source, formElem, strings) {
-	if (loggedIn){
-		var tags = formElem.elements['tag'].value;
-	
-		var url = path + "/Resource/AJAX";
-		var params = "method=SaveTag&tag=" + encodeURIComponent(tags) + "&id=" + id + "&source=" + source ;
-	
-		$.ajax({
-			url: url + '?' + params,
-			dataType: 'json',
-			success : function(data) {
-				var result = data ? data.result : false;
-				if (result && result.length > 0) {
-					if (result == "Unauthorized") {
-						alert("You must be logged in to add tags");
-					} else {
-						GetTags(id, source, 'tagList', strings);
-						document.getElementById('popupbox').innerHTML = '<h3>' + strings.success + '</h3>';
-						setTimeout("hideLightbox();", 3000);
-					}
-				} else {
-					document.getElementById('popupbox').innerHTML = strings.save_error;
-				}
-			},
-			error : function() {
-				document.getElementById('popupbox').innerHTML = strings.save_error;
-			}
-		});
-	}else{
-		ajaxLogin(function(){
-			SaveTag(id, formElem, strings);
-		});
-	}
-}
-
-function GetTags(id, elemId, strings) {
-	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=GetTags";
-	$.ajax({
-		url: url + '?' + params,
-		dataType: 'json',
-		success : function(data) {
-			if (data.result) {
-				var tags = data.result.tags;
-				var output = "";
-				if (tags && tags.length > 0) {
-					for (i = 0; i < tags.length; i++) {
-						output = output + '<div class="sidebarValue"><a href="' + path + '/Search/Results?tag=' + encodeURIComponent(tags[i].tag) + '">'
-								+ jsEntityEncode(tags[i].tag) + '</a> (' + tags[i].count + ")</div>";
-					}
-				}
-				$("#" + elemId).html(output);
-			} else {
-				$("#" + elemId).html(strings.load_error);
-			}
-		},
-		error : function() {
-			$("#" + elemId).html(strings.load_error);
-		}
-	});
 }
 
 function getQuerystringParameters(){

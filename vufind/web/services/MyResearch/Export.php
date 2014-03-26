@@ -75,7 +75,7 @@ class Export extends MyResearch
                 "/MyResearch/MyList/" . urlencode($_REQUEST['listID']);
 		} else {
 			$this->followupUrl = $configArray['Site']['path'] .
-                "/MyResearch/Favorites";
+                "/MyAccount/Home";
 		}
 
 		// Check for Session Info
@@ -158,7 +158,6 @@ class Export extends MyResearch
 	 */
 	private function _exportInit()
 	{
-		global $configArray;
 		global $interface;
 
 		// Check for essentials

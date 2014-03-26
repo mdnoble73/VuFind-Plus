@@ -20,7 +20,6 @@
 
 require_once ROOT_DIR . '/Action.php';
 
-require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
 class CancelHold extends Action
@@ -30,9 +29,6 @@ class CancelHold extends Action
 	 * or returned.
 	 **/
 	function launch(){
-		global $configArray;
-		global $user;
-		
 		$id = $_REQUEST['id'];
 
 		//Setup JSON response

@@ -20,9 +20,6 @@
 require_once ROOT_DIR . '/RecordDrivers/Interface.php';
 
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/Resource_tags.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
 
 /**
  * Index Record Driver
@@ -495,7 +492,6 @@ class IndexRecord implements RecordInterface
 				}
 			}
 			$interface->assign('listNotes', $notes);
-			$interface->assign('listTags', $user->getTags($id, $listId));
 		}
 
 		// Pass some parameters along to the template to influence edit controls:
@@ -503,13 +499,7 @@ class IndexRecord implements RecordInterface
 		$interface->assign('listEditAllowed', $allowEdit);
 
 		//Get Rating
-		$resource = new Resource();
-		$resource->source = 'VuFind';
-		$resource->record_id = $id;
-		$resource->find(true);
-		$ratingData = $resource->getRatingData($user);
-		//print_r($ratingData);
-		$interface->assign('ratingData', $ratingData);
+		$interface->assign('ratingData', $this->getRatingData());
 
 		return 'RecordDrivers/Index/listentry.tpl';
 	}
@@ -739,14 +729,7 @@ class IndexRecord implements RecordInterface
 		}
 
 		//Get Rating
-		$resource = new Resource();
-		$resource->source = 'VuFind';
-		$resource->record_id = $id;
-		if ($resource->find(true)){
-			$ratingData = $resource->getRatingData($user);
-			//print_r($ratingData);
-			$interface->assign('summRating', $ratingData);
-		}
+		$interface->assign('summRating', $this->getRatingData());
 
 		//Description
 		$interface->assign('summDescription', $this->getDescription());
@@ -834,13 +817,7 @@ class IndexRecord implements RecordInterface
 		$interface->assign('summSnippet', $snippet ? $snippet['snippet'] : false);
 
 		//Get Rating
-		$resource = new Resource();
-		$resource->source = 'VuFind';
-		$resource->record_id = $id;
-		$resource->find(true);
-		$ratingData = $resource->getRatingData($user);
-		//print_r($ratingData);
-		$interface->assign('summRating', $ratingData);
+		$interface->assign('summRating', $this->getRatingData());
 
 		//Determine the cover to use
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));

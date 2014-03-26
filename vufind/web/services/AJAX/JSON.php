@@ -71,52 +71,6 @@ class AJAX_JSON extends Action {
 		return $userLists;
 	}
 
-	function saveToMyList(){
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-
-		$listId = $_REQUEST['list'];
-		$tags = $_REQUEST['mytags'];
-		$notes = $_REQUEST['notes'];
-		$ids = $_REQUEST['id'];
-
-		global $user;
-
-		$list = new UserList();
-		if ($_GET['list'] != '') {
-			$list->id = $listId;
-			$list->find(true);
-		} else {
-			$list->user_id = $user->id;
-			$list->title = "My Favorites";
-			$list->insert();
-		}
-
-		$ctr = 0;
-		foreach ($ids as $id){
-			$source = 'VuFind';
-			$recordId = $id;
-			if (strpos($recordId, 'econtentRecord') === 0){
-				$source = 'eContent';
-				$recordId = str_ireplace("econtentrecord", "", $recordId);
-			}
-			$ctr++;
-			$resource = new Resource();
-			$resource->record_id = $recordId;
-			$resource->source = $source;
-			if (!$resource->find(true)) {
-				$resource->insert();
-			}
-
-			preg_match_all('/"[^"]*"|[^,]+/', $tags, $tagArray);
-			//Make sure that Solr is only updated once for performance reasons.
-			$user->addResource($resource, $list, $tagArray[0], $notes, $ctr == count($ids));
-		}
-		return array(
-          'status' => 'OK'
-          );
-	}
-
 	function loginUser(){
 		//Login the user.  Must be called via Post parameters.
 		global $user;

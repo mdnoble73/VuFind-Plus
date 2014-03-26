@@ -20,10 +20,9 @@
 
 require_once ROOT_DIR . '/Action.php';
 
-require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
-class Home extends Action
+class EContent_Home extends Action
 {
 	private $user;
 

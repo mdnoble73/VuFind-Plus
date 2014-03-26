@@ -23,7 +23,6 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/CatalogConnection.php';
 
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 
 abstract class MyResearch extends Action
 {
@@ -44,7 +43,7 @@ abstract class MyResearch extends Action
 
 		if ($this->requireLogin && !UserAccount::isLoggedIn()) {
 			require_once 'Login.php';
-			Login::launch();
+			MyResearch_Login::launch();
 			exit();
 		}
 		//$interface->assign('userNoticeFile', 'MyResearch/listNotice.tpl');

@@ -26,8 +26,6 @@
 					</form>
 				</div>
 			</div>
-
-			{include file="Admin/menu.tpl"}
 		</div>
 
 		<div id="main-content">

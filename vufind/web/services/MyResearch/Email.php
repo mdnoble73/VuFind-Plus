@@ -74,7 +74,7 @@ class Email extends MyResearch
                 "/MyResearch/MyList/" . urlencode($_REQUEST['listID']);
 		} else {
 			$this->followupUrl = $configArray['Site']['url'] .
-                "/MyResearch/Favorites";
+                "/Account/Home";
 		}
 
 		if (isset($_POST['submit'])) {

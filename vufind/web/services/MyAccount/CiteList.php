@@ -25,19 +25,18 @@ require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
 class CiteList extends Action {
 	function launch() {
 		global $interface;
-		global $configArray;
-		global $user;
 
 		//Get all lists for the user
 
 		// Fetch List object
 		if (isset($_REQUEST['id'])){
+			/** @var UserList $list */
 			$list = UserList::staticGet($_GET['listId']);
 		}
 		$interface->assign('favList', $list);
 
 		// Get all titles on the list
-		$favorites = $list->getResources(null);
+		$favorites = $list->getListEntries();
 
 		$favList = new FavoriteHandler($favorites, null, $list->id, false);
 		$citationFormat = $_REQUEST['citationFormat'];

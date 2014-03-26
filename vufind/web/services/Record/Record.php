@@ -549,16 +549,6 @@ abstract class Record_Record extends Action
 		$interface->assign('lastsearch', isset($_SESSION['lastSearchURL']) ?
 		$_SESSION['lastSearchURL'] : false);
 
-		// Retrieve tags associated with the record
-		$limit = 5;
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		$resource->source = 'VuFind';
-		$resource->find(true);
-		$tags = $resource->getTags($limit);
-		$interface->assign('tagList', $tags);
-		$timer->logTime('Got tag list');
-
 		$this->cacheId = 'Record|' . $_GET['id'] . '|' . get_class($this);
 
 		// Send down text for inclusion in breadcrumbs

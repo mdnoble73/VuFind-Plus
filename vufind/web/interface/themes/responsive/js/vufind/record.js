@@ -257,39 +257,6 @@ VuFind.Record = (function(){
 			return false;
 		},
 
-		saveToList: function(id, source, form){
-			var notes = $("#addToList-notes").val();
-			var list = $("#addToList-list").val();
-			$("#saveToList-button").prop('disabled', true);
-
-			var url = Globals.path + "/Resource/AJAX";
-			var params = "method=SaveRecord&" +
-					"list=" + list + "&" +
-					"notes=" + encodeURIComponent(notes) + "&" +
-					"id=" + id + "&" +
-					"source=" + source;
-			$.ajax({
-				url: url+'?'+params,
-				dataType: "json",
-				success: function(data) {
-					var value = data.result;
-					if (value == "Done") {
-						$("#modal-title").html("Add to List Result");
-						$(".modal-body").html("<div class='alert alert-success'>" + data.message + "</div>")
-						setTimeout("VuFind.closeLightbox();", 3000);
-					} else {
-						$("#modal-title").html("Error adding to list");
-						$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error adding the title to the list.<br/>" + data.message + "</div>")
-					}
-
-				},
-				error: function(jqXHR, textStatus, errorThrown) {
-					$("#modal-title").html("Error adding to list");
-					$(".modal-body").html("<div class='alert alert-error'>There was an unexpected error adding the title to the list.<br/>" + textStatus + "</div>")
-				}
-			});
-		},
-
 		/**
 		 * Used to send a text message related to a specific record.
 		 * Includes title, author, call number, etc.
@@ -365,23 +332,6 @@ VuFind.Record = (function(){
 					$(".modal-body").html("<div class='alert alert-error'>Unexpected error sending text message</div>");
 				}
 			});
-		},
-
-		showReviewForm: function(trigger, id, source){
-			if (Globals.loggedIn){
-				var $trigger = $(trigger);
-				$("#modal-title").text($trigger.attr("title"));
-				var modalDialog = $("#modalDialog");
-				//$(".modal-body").html($('#userreview' + id).html());
-				modalDialog.load(Globals.path + "/Resource/AJAX?method=GetReviewForm&id=" + id + "&source=" + source);
-				modalDialog.modal('show');
-			}else{
-				var $trigger = $(trigger);
-				VuFind.Account.ajaxLogin($trigger, function (){
-					return VuFind.Record.showReviewForm($trigger, id, source);
-				});
-			}
-			return false;
 		}
 	};
 }(VuFind.Record || {}));

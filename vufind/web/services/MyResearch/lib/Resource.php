@@ -156,65 +156,6 @@ class Resource extends DB_DataObject {
 		return $tagList;
 	}
 
-	function addTag($tag, $user)
-	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource_tags.php';
-
-		$tags = new Tags();
-		$tags->tag = $tag;
-		if (!$tags->find(true)) {
-			$tags->insert();
-		}
-
-		$rTag = new Resource_tags();
-		$rTag->resource_id = $this->id;
-		$rTag->tag_id = $tags->id;
-		$rTag->user_id = $user->id;
-		if (!$rTag->find()) {
-			$rTag->insert();
-		}
-
-		return true;
-	}
-
-	function removeTag($tagId, $user, $removeFromAllResources = false)
-	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource_tags.php';
-
-		$rTag = new Resource_tags();
-		if (!$removeFromAllResources){
-
-			$rTag->resource_id = $this->id;
-		}
-		$rTag->tag_id = $tagId;
-		$rTag->user_id = $user->id;
-		$rTag->find();
-		if ($rTag->N > 0){
-			while ($rTag->fetch()) {
-				$rTag->delete();
-			}
-		}else{
-			//the tag was not found.
-			return false;
-		}
-
-		//Check to see if the tag is still in use by any user for any resource.
-		$rTag = new Resource_tags();
-		$rTag->tag_id = $tagId;
-		$rTag->find();
-		if ($rTag->N == 0){
-			//Tag is still in use, delete it.
-			$tags = new Tags();
-			$tags->id = $tagId;
-			if ($tags->find(true)) {
-				$tags->delete();
-			}
-		}
-
-		return true;
-	}
 
 	function addComment($body, $user, $source = 'VuFind')
 	{

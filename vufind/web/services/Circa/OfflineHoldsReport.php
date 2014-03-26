@@ -34,11 +34,10 @@ class Circa_OfflineHoldsReport extends Admin_Admin{
 		$offlineHoldsObj->find();
 		while ($offlineHoldsObj->fetch()){
 			$offlineHold = array();
-			$resource = new Resource();
-			$resource->source = 'VuFind';
-			$resource->record_id = $offlineHoldsObj->bibId;
-			if ($resource->find(true)){
-				$offlineHold['title'] = $resource->title;
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			$recordDriver = new MarcRecord($offlineHoldsObj->bibId);
+			if ($recordDriver->isValid()){
+				$offlineHold['title'] = $recordDriver->getTitle();
 			}
 			$offlineHold['patronBarcode'] = $offlineHoldsObj->patronBarcode;
 			$offlineHold['bibId'] = $offlineHoldsObj->bibId;
@@ -49,6 +48,7 @@ class Circa_OfflineHoldsReport extends Admin_Admin{
 		}
 
 		$interface->setPageTitle('Offline Holds Report');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->assign('offlineHolds', $offlineHolds);
 		$interface->setTemplate('offlineHoldsReport.tpl');
 		$interface->display('layout.tpl');

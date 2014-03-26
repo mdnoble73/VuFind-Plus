@@ -164,11 +164,10 @@ class MyAccount_Holds extends MyResearch{
 				while ($offlineHoldsObj->fetch()){
 					//Load the title
 					$offlineHold = array();
-					$resource = new Resource();
-					$resource->source = 'VuFind';
-					$resource->record_id = $offlineHoldsObj->bibId;
-					if ($resource->find(true)){
-						$offlineHold['title'] = $resource->title;
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($offlineHoldsObj->bibId);
+					if ($recordDriver->isValid()){
+						$offlineHold['title'] = $recordDriver->getTitle();
 					}
 					$offlineHold['bibId'] = $offlineHoldsObj->bibId;
 					$offlineHold['timeEntered'] = $offlineHoldsObj->timeEntered;

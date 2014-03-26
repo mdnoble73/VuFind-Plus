@@ -1,7 +1,4 @@
 <?php
-require_once ROOT_DIR . '/Drivers/marmot_inc/UserRating.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
 require_once ROOT_DIR . '/sys/LocalEnrichment/NotInterested.php';
 
 class Suggestions{

@@ -121,16 +121,6 @@ class PublicEContent_Home extends Action{
 			$searchObject->init($searchSource);
 			$searchObject->getNextPrevLinks();
 
-			// Retrieve tags associated with the record
-			$limit = 5;
-			$resource = new Resource();
-			$resource->record_id = $_GET['id'];
-			$resource->source = 'eContent';
-			$resource->find(true);
-			$tags = $resource->getTags($limit);
-			$interface->assign('tagList', $tags);
-			$timer->logTime('Got tag list');
-
 			//Load notes if any
 			$marcRecord = MarcLoader::loadEContentMarcRecord($eContentRecord);
 			if ($marcRecord){

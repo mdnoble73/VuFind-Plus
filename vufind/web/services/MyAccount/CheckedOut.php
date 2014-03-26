@@ -77,22 +77,6 @@ class MyAccount_CheckedOut extends MyResearch{
 
 						$interface->assign('showNotInterested', false);
 						foreach ($allCheckedOut as $i => $data) {
-							//Get Rating
-							$resource = new Resource();
-							if ($data['checkoutSource'] == 'ILS'){
-								$resource->source = 'VuFind';
-							}else{
-								$resource->source = 'eContent';
-							}
-
-							if (isset($data['id'])){
-								$resource->record_id = $data['id'];
-								if ($resource->find(true)){
-									$data['ratingData'] = $resource->getRatingData($user);
-								}
-							}
-							$allCheckedOut[$i] = $data;
-
 							$itemBarcode = isset($data['barcode']) ? $data['barcode'] : null;
 							$itemId = isset($data['itemid']) ? $data['itemid'] : null;
 							if ($itemBarcode != null && isset($_SESSION['renew_message'][$itemBarcode])){
