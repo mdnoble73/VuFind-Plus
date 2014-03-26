@@ -5161,6 +5161,12 @@ a.badge:focus {
     padding-left:4px;
     margin-bottom:2px;
 }
+.sortpart{
+    width:50%;
+    display:inline-block;
+    *zoom:1;
+    *display:inline;
+}
 .carousel {
   position: relative;
   margin-bottom: 20px;
