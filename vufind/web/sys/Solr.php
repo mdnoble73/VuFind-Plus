@@ -2008,6 +2008,13 @@ class Solr implements IndexEngine {
 			return '';
 		}
 
+		// If the string begins or ends with one or more BOOLEAN operator symbols, delete them
+		// because search for, e.g., --++||SPACE INVADERS||++--, results in a Solr error
+		if (preg_match('/^([-+&|]*).*([-+&|]*)$/', trim($input))) {
+			$input = preg_replace('/^([-+&|]*)/e', '', trim($input));
+			$input = preg_replace('/([-+&|]*)$/e', '', trim($input));
+		}
+
 		// If the string begins with one or more BOOLEAN operators, convert them to lowercase
 		// because search for, e.g., AND THEN THERE WERE NONE, results in a Solr error
 		if (preg_match('/^(AND|OR|NOT)\s+/', trim($input))) {
