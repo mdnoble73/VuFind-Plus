@@ -5156,9 +5156,10 @@ a.badge:focus {
 .facetTitle{
     background:#90a5c0;
     color:#ffffff;
-    padding-top:3px;
-    padding-bottom:3px;
+    padding-top:5px;
+    padding-bottom:5px;
     padding-left:4px;
+    margin-bottom:2px;
 }
 .carousel {
   position: relative;

@@ -31,9 +31,9 @@
 				{foreach from=$sideFacetSet item=cluster key=title name=facetSet}
 					{if count($cluster.list) > 0}
 					<div class="facetList">
-						<h5 class="facetTitle {if $cluster.collapseByDefault}collapsed{else}expanded{/if}" onclick="$(this).toggleClass('expanded');$(this).toggleClass('collapsed');$('#facetDetails_{$title}').toggle()">
+						<div class="facetTitle {if $cluster.collapseByDefault}collapsed{else}expanded{/if}" onclick="$(this).toggleClass('expanded');$(this).toggleClass('collapsed');$('#facetDetails_{$title}').toggle()">
 							{translate text=$cluster.label}
-						</h5>
+						</div>
 						<div id="facetDetails_{$title}" class="facetDetails" {if $cluster.collapseByDefault}style="display:none"{/if}>
 
 							{if $title == 'publishDate' || $title == 'birthYear' || $title == 'deathYear'}
