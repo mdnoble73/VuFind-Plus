@@ -113,7 +113,7 @@
                 <input name="searchSource" type="radio" value="estuff" title="{translate text="show only eBooks and eAudio results"}" />*}
             {* Ben Link to Search Tips Help *}
             <a href="{$path}/Help/Home?topic=search" class="modalDialogTrigger" data-title="{translate text='Search Tips'}">
-            <img class="brand" src="{img filename="ask_icon_sm.fw.png"}" alt="{$librarySystemName}" title="{translate text='Search Tips'}" id="help_undersearch" />
+            <img class="" src="{img filename="ask_icon_sm.fw.png"}" alt="{$librarySystemName}" title="{translate text='Search Tips'}" id="help_undersearch" />
                 </a>
         </div>
 	</form>
