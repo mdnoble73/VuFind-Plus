@@ -5144,7 +5144,7 @@ a.badge:focus {
 }
 .accordion-heading .accordion-toggle {
   display: block;
-  padding: 8px 15px;
+  padding: 8px 8px;
 }
 .accordion-toggle {
   cursor: pointer;
