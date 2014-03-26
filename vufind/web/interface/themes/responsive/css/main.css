@@ -5144,7 +5144,7 @@ a.badge:focus {
 }
 .accordion-heading .accordion-toggle {
   display: block;
-  padding: 8px 8px;
+  padding: 8px 15px;
 }
 .accordion-toggle {
   cursor: pointer;
@@ -5152,6 +5152,9 @@ a.badge:focus {
 .accordion-inner {
   padding: 9px 15px;
   border-top: 1px solid #e5e5e5;
+}
+#facetTitle{
+    background:#90a5c0;
 }
 .carousel {
   position: relative;
