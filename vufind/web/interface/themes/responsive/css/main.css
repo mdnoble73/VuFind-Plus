@@ -5162,7 +5162,7 @@ a.badge:focus {
     margin-bottom:2px;
 }
 .sortpart{
-    width:55%;
+    width:50%;
 }
 .flL{
     float:left;
@@ -5776,7 +5776,9 @@ a.badge:focus {
   }
 }
 @media (min-width: 768px) and (max-width: 979px) {
-
+    .sortpart{
+        width:100%;
+    }
   .row {
     margin-left: -20px;
     *zoom: 1;
