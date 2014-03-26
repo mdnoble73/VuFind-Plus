@@ -53,7 +53,7 @@
 
 					{* Add a line between facets for clarity*}
 					{if !$smarty.foreach.facetSet.last}
-					<hr class="facetSeparator"/>
+					<!--<hr class="facetSeparator"/>-->
 					{/if}
 					{/if}
 				{/foreach}
