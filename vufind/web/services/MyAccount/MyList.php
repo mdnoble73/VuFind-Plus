@@ -20,9 +20,6 @@
 
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/User_resource.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/Resource_tags.php';
 require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
 
 /**
@@ -55,8 +52,8 @@ class MyList extends MyResearch {
 
 		// Ensure user has privileges to view the list
 		if (!isset($list) || (!$list->public && !UserAccount::isLoggedIn())) {
-			require_once 'Login.php';
-			Login::launch();
+			require_once ROOT_DIR . 'services/MyResearch/Login.php';
+			MyResearch_Login::launch();
 			exit();
 		}
 		if (!$list->public && $list->user_id != $user->id) {
@@ -111,7 +108,7 @@ class MyList extends MyResearch {
 					$list->update();
 				}elseif ($actionToPerform == 'deleteList'){
 					$list->delete();
-					header("Location: {$configArray['Site']['path']}/MyResearch/Home");
+					header("Location: {$configArray['Site']['path']}/MyAccount/Home");
 					die();
 				}elseif ($actionToPerform == 'bulkAddTitles'){
 					$notes = $this->bulkAddTitles($list);
@@ -125,21 +122,20 @@ class MyList extends MyResearch {
 					$itemsToRemove = $_REQUEST['selected'];
 					foreach ($itemsToRemove as $id => $selected){
 						//add back the leading . to get the full bib record
-						$resource = Resource::staticGet('record_id', "$id");
-						$list->removeResource($resource);
+						$list->removeListEntry($id);
 					}
 				}elseif ($actionToPerform == 'deleteAll'){
-					$list->removeAllResources(isset($_GET['tag']) ? $_GET['tag'] : null);
+					$list->removeAllListEntries(isset($_GET['tag']) ? $_GET['tag'] : null);
 				}
 				$list->update();
-			}elseif (isset($_GET['delete'])) {
-				$resource = Resource::staticGet('record_id', $_GET['delete']);
-				$list->removeResource($resource);
+			}elseif (isset($_REQUEST['delete'])) {
+				$recordToDelete = $_REQUEST['delete'];
+				$list->removeListEntry($recordToDelete);
 				$list->update();
 			}
 
 			//Redirect back to avoid having the parameters stay in the URL.
-			header("Location: {$configArray['Site']['path']}/MyResearch/MyList/{$list->id}");
+			header("Location: {$configArray['Site']['path']}/MyAccount/MyList/{$list->id}");
 			die();
 
 		}
@@ -195,22 +191,20 @@ class MyList extends MyResearch {
 				$firstDoc = $results['response']['docs'][0];
 				//Get the id of the document
 				$id = $firstDoc['id'];
-				if (preg_match('/eContentRecord/', $id)){
-					$source = 'eContent';
-					$id = substr($id, 14);
-				}else{
-					$source = 'VuFind';
+				$numAdded++;
+				$userListEntry = new UserListEntry();
+				$userListEntry->listId = $list->id;
+				$userListEntry->groupedWorkPermanentId = $id;
+				$existingEntry = false;
+				if ($userListEntry->find(true)){
+					$existingEntry = true;
 				}
-				//Get the resource for the id
-				$resource = new Resource();
-				$resource->record_id = $id;
-				$resource->source = $source;
-				if ($resource->find(true)){
-					$numAdded++;
-					$user->addResource($resource, $list, null, false);
+				$userListEntry->notes = '';
+				$userListEntry->dateAdded = time();
+				if ($existingEntry){
+					$userListEntry->update();
 				}else{
-					//Could not find a resource for the id
-					$notes[] = "Could not find a resource matching " . $titleSearch;
+					$userListEntry->insert();
 				}
 			}else{
 				$notes[] = "Could not find a title matching " . $titleSearch;

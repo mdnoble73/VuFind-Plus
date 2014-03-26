@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . "/Action.php";
 
-class Login extends Action
+class MyResearch_Login extends Action
 {
 	function __construct()
 	{

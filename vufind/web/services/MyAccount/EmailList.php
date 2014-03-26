@@ -57,7 +57,7 @@ class EmailList extends Action {
 		$list->id = $_REQUEST['listId'];
 		if ($list->find(true)){
 			// Build Favorites List
-			$titles = $list->getResources(null);
+			$titles = $list->getListTitles(null);
 
 			// Load the User object for the owner of the list (if necessary):
 			if ($user && $user->id == $list->user_id || $list->public == 1) {

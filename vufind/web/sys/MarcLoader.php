@@ -71,39 +71,6 @@ class MarcLoader{
 						$memCache->set('marc_record_' . $shortId, $marcRecord, 0, $configArray['Caching']['marc_record']);
 					}
 				}
-			}else{
-				require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-				$resource = new Resource;
-				$resource->record_id = $ilsId;
-				if ($recordType == 'marc'){
-					$resource->source = 'VuFind';
-				}elseif ($recordType == 'econtentRecord'){
-					$resource->source = 'eContent';
-				}
-				//$resource->deleted = 0;
-				$resource->selectAdd("marc");
-				$resource->whereAdd('marc is not null');
-				if ($resource->find(true)){
-					$marc = trim($resource->marc);
-					$marc = preg_replace('/#29;/', "\x1D", $marc);
-					$marc = preg_replace('/#30;/', "\x1E", $marc);
-					$marc = preg_replace('/#31;/', "\x1F", $marc);
-					$marc = preg_replace('/#163;/', "\xA3", $marc);
-					$marc = preg_replace('/#169;/', "\xA9", $marc);
-					$marc = preg_replace('/#174;/', "\xAE", $marc);
-					$marc = preg_replace('/#230;/', "\xE6", $marc);
-					$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-
-					if (!($marcRecord = $marc->next())) {
-						PEAR_Singleton::raiseError(new PEAR_Error('Could not load marc record for record ' . $shortId));
-					}else{
-						if ($memCache){
-							$memCache->set('marc_record_' . $shortId, $marcRecord, 0, $configArray['Caching']['marc_record']);
-						}
-					}
-				}else{
-					return null;
-				}
 			}
 		}
 		return $marcRecord;

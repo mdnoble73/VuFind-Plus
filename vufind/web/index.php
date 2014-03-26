@@ -842,10 +842,10 @@ function loadUserData(){
 	$tmpList->find();
 	if ($tmpList->N > 0){
 		while ($tmpList->fetch()){
-			$lists[$tmpList->id] = array('name' => $tmpList->title, 'url' => '/MyAccount/MyList/' .$tmpList->id , 'id' => $tmpList->id);
+			$lists[$tmpList->id] = array('name' => $tmpList->title, 'url' => '/MyAccount/MyList/' .$tmpList->id , 'id' => $tmpList->id, 'numTitles' => $tmpList->num_titles());
 		}
 	}else{
-		$lists[-1] = array('name' => "My Favorites", 'url' => '/MyAccount/MyList/-1', 'id' => -1);
+		$lists[-1] = array('name' => "My Favorites", 'url' => '/MyAccount/MyList/-1', 'id' => -1, 'numTitles' => 0);
 	}
 	$interface->assign('lists', $lists);
 

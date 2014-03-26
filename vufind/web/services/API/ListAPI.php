@@ -391,7 +391,7 @@ class ListAPI extends Action {
 				}
 			}
 			//Load the titles for the list.
-			$listResources = $list->getResources();
+			$listResources = $list->getListTitles();
 
 			$ids = array();
 			$datesSaved = array();

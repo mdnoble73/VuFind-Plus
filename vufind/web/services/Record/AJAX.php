@@ -158,13 +158,12 @@ class Record_AJAX extends Action {
 				if (count($purchaseLinks) > 0){
 					$interface->assign('purchaseLinks', $purchaseLinks);
 				}else{
-					$resource = new Resource();
-					$resource->record_id = $id;
-					$resource->source = 'VuFind';
-					if ($resource->find(true)){
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($id);
+					if ($recordDriver->isValid()){
+						$title = $recordDriver->getTitle();
+						$author = $recordDriver->getAuthor();
 
-						$title = $resource->title;
-						$author = $resource->author;
 						require_once ROOT_DIR . '/services/Record/Purchase.php';
 						$purchaseLinks = Record_Purchase::getStoresForTitle($title, $author);
 
@@ -221,31 +220,6 @@ class Record_AJAX extends Action {
 		return json_encode($result);
 	}
 
-	function GetSaveStatus()
-	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-
-		// check if user is logged in
-		if ((!$user = UserAccount::isLoggedIn())) {
-			return "<result>Unauthorized</result>";
-		}
-
-		// Check if resource is saved to favorites
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		$resource->source = 'VuFind';
-		if ($resource->find(true)) {
-			if ($user->hasResource($resource)) {
-				return '<result>Saved</result>';
-			} else {
-				return '<result>Not Saved</result>';
-			}
-		} else {
-			return '<result>Not Saved</result>';
-		}
-	}
-
 	// Email Record
 	function SendEmail()
 	{
@@ -288,99 +262,6 @@ class Record_AJAX extends Action {
 				return '<result><![CDATA[' . $result . ']]></result>';
 			}
 		}
-	}
-
-	function SaveComment()
-	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-
-		$user = UserAccount::isLoggedIn();
-		if ($user === false) {
-			return "<result>Unauthorized</result>";
-		}
-
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		$resource->source = 'VuFind';
-		if (!$resource->find(true)) {
-			$resource->insert();
-		}
-		$resource->addComment($_REQUEST['comment'], $user);
-
-		return json_encode(array('result' => 'Done'));
-	}
-
-	function DeleteComment()
-	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
-		global $user;
-
-		// Process Delete Comment
-		if (is_object($user)) {
-			$comment = new Comments();
-			$comment->id = $_GET['commentId'];
-			if ($comment->find(true)) {
-				if ($user->id == $comment->user_id || $user->hasRole('opacAdmin')) {
-					$comment->delete();
-				}
-			}
-		}
-		return '<result>true</result>';
-	}
-
-	function GetComments()
-	{
-		global $interface;
-
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
-
-		$interface->assign('id', $_GET['id']);
-
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		$resource->source = 'VuFind';
-		$commentList = array('user'=>array(), 'staff'=> array());
-		if ($resource->find(true)) {
-			$commentList = $resource->getComments();
-		}
-
-		$interface->assign('commentList', $commentList['user']);
-		$userComments = $interface->fetch('Record/view-comments-list.tpl');
-		$interface->assign('staffCommentList', $commentList['staff']);
-		$staffComments = $interface->fetch('Record/view-staff-reviews-list.tpl');
-
-		return json_encode(array(
-			'staffComments' => $staffComments,
-			'userComments' => $userComments,
-		));
-	}
-
-	function RateTitle(){
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-		require_once(ROOT_DIR . '/Drivers/marmot_inc/UserRating.php');
-		global $user;
-		global $analytics;
-		if (!isset($user) || $user == false){
-			header('HTTP/1.0 500 Internal server error');
-			return 'Please login to rate this title.';
-		}
-		$rating = $_REQUEST['rating'];
-		//Save the rating
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		$resource->source = 'VuFind';
-		if (!$resource->find(true)) {
-			$resource->insert();
-		}
-		$resource->addRating($rating, $user);
-		$analytics->addEvent('User Enrichment', 'Rate Title', $resource->title);
-
-		/** @var Memcache $memCache */
-		global $memCache;
-		$memCache->delete('rating_' . $_GET['id']);
-
-		return $rating;
 	}
 
 	function GetGoDeeperData(){

@@ -1,24 +1,5 @@
 VuFind.Record = (function(){
 	return {
-
-
-		getSaveToListForm: function (trigger, id, source){
-			if (Globals.loggedIn){
-				var url = Globals.path + "/Resource/Save?lightbox=true&id=" + id + "&source=" + source;
-				var $trigger = $(trigger);
-				$("#modal-title").text($trigger.attr("title"));
-				var modalDialog = $("#modalDialog");
-				modalDialog.load(url);
-				modalDialog.modal('show');
-			}else{
-				trigger = $(trigger);
-				VuFind.Account.ajaxLogin(trigger, function (){
-					VuFind.Record.getSaveToListForm(trigger, id, source);
-				});
-			}
-			return false;
-		},
-
 		GetGoDeeperData: function (id, isbn, upc, dataType){
 			if (dataType == 'excerpt'){
 				var placeholder = $("#excerptPlaceholder");

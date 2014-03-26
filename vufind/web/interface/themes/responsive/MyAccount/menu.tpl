@@ -49,7 +49,7 @@
 			</div>
 
 			{* My Lists*}
-			<div class="panel">
+			<div class="panel {if $action == 'MyRatings' || $action == 'Suggested Titles' || $action == 'MyList'}active{/if}">
 				<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myListsPanel">
 					<div class="panel-heading">
 						<div class="panel-title">
@@ -57,12 +57,12 @@
 						</div>
 					</div>
 				</a>
-				<div id="myListsPanel" class="panel-collapse collapse">
+				<div id="myListsPanel" class="panel-collapse collapse {if $action == 'MyRatings' || $action == 'Suggested Titles' || $action == 'MyList'}in{/if}">
 					<div class="panel-body">
 						<div class="myAccountLink"><a href="{$path}/MyResearch/MyRatings">{translate text='Titles You Rated'}</a></div>
 						{foreach from=$lists item=list}
 							{if $list.id != -1}
-								<div class="myAccountLink"><a href="{$list.url}">{$list.name}</a></div>
+								<div class="myAccountLink"><a href="{$list.url}">{$list.name} ({$list.numTitles})</a></div>
 							{/if}
 						{/foreach}
 					</div>

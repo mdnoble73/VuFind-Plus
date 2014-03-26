@@ -136,15 +136,6 @@ class EcontentRecord_Home extends Action{
 			$similar = $this->db->getMoreLikeThis('econtentRecord' . $eContentRecord->id);
 			$timer->logTime('Got More Like This');
 
-			// Find Other Editions
-			if ($configArray['Content']['showOtherEditionsPopup'] == false){
-				$editions = OtherEditionHandler::getEditions($eContentRecord->solrId(), $eContentRecord->getIsbn(), null);
-				if (!PEAR_Singleton::isError($editions)) {
-					$interface->assign('editions', $editions);
-				}
-				$timer->logTime('Got Other editions');
-			}
-
 			//Load the citations
 			$this->loadCitation($eContentRecord);
 

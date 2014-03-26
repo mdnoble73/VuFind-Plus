@@ -25,9 +25,6 @@ require_once 'File/MARC.php';
 require_once ROOT_DIR  . '/sys/Language.php';
 
 require_once ROOT_DIR  . '/services/MyResearch/lib/User.php';
-require_once ROOT_DIR  . '/services/MyResearch/lib/Resource.php';
-require_once ROOT_DIR  . '/services/MyResearch/lib/Resource_tags.php';
-require_once ROOT_DIR  . '/services/MyResearch/lib/Tags.php';
 require_once ROOT_DIR  . '/RecordDrivers/Factory.php';
 require_once ROOT_DIR  . '/RecordDrivers/MarcRecord.php';
 
@@ -563,40 +560,6 @@ abstract class Record_Record extends Action
 		$timer->logTime('Got tag list');
 
 		$this->cacheId = 'Record|' . $_GET['id'] . '|' . get_class($this);
-
-		// Find Similar Records
-		/** @var Memcache $memCache */
-		//TODO: Restore this functionality
-		/*global $memCache;
-		$similar = $memCache->get('similar_titles_' . $this->id);
-		if ($similar == false){
-			$similar = $this->db->getMoreLikeThis($this->id);
-			// Send the similar items to the template; if there is only one, we need
-			// to force it to be an array or things will not display correctly.
-			if (isset($similar) && count($similar['response']['docs']) > 0) {
-				$similar = $similar['response']['docs'];
-			}else{
-				$similar = array();
-				$timer->logTime("Did not find any similar records");
-			}
-			$memCache->set('similar_titles_' . $this->id, $similar, 0, $configArray['Caching']['similar_titles']);
-		}
-		$this->similarTitles = $similar;
-		$interface->assign('similarRecords', $similar);
-		$timer->logTime('Loaded similar titles');*/
-
-		// Find Other Editions
-		if ($configArray['Content']['showOtherEditionsPopup'] == false){
-			$editions = OtherEditionHandler::getEditions($this->id, $this->isbn, isset($this->record['issn']) ? $this->record['issn'] : null);
-			if (!PEAR_Singleton::isError($editions)) {
-				$interface->assign('editions', $editions);
-			}else{
-				$timer->logTime("Did not find any other editions");
-			}
-			$timer->logTime('Got Other editions');
-		}
-
-		$interface->assign('showStrands', isset($configArray['Strands']['APID']) && strlen($configArray['Strands']['APID']) > 0);
 
 		// Send down text for inclusion in breadcrumbs
 		$interface->assign('breadcrumbText', $this->recordDriver->getBreadcrumb());

@@ -112,15 +112,15 @@ class MyLists extends Action
 					foreach ($itemsToRemove as $id => $selected){
 						//add back the leading . to get the full bib record
 						$resource = Resource::staticGet('record_id', "$id");
-						$list->removeResource($resource);
+						$list->removeListEntry($resource);
 					}
 				}elseif ($actionToPerform == 'deleteAll'){
-					$list->removeAllResources(isset($_GET['tag']) ? $_GET['tag'] : null);
+					$list->removeAllListEntries(isset($_GET['tag']) ? $_GET['tag'] : null);
 				}
 				$list->update();
 			}elseif (isset($_GET['delete'])) {
 				$resource = Resource::staticGet('record_id', $_GET['delete']);
-				$list->removeResource($resource);
+				$list->removeListEntry($resource);
 				$list->update();
 			}
 
@@ -134,7 +134,7 @@ class MyLists extends Action
 		$interface->assign('favList', $list);
 
 		// Build Favorites List
-		$favorites = $list->getResources(isset($_GET['tag']) ? $_GET['tag'] : null);
+		$favorites = $list->getListTitles(isset($_GET['tag']) ? $_GET['tag'] : null);
 
 		// Load the User object for the owner of the list (if necessary):
 		if ($user && $user->id == $list->user_id) {

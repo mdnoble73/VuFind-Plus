@@ -1,6 +1,6 @@
 {strip}
 {if $allowEdit}
-	<form action="{$path}/MyResearch/MyList/{$favList->id}" id="myListFormHead">
+	<form action="{$path}/MyAccount/MyList/{$favList->id}" id="myListFormHead">
 		<div>
 			<input type="hidden" name="myListActionHead" id="myListActionHead"/>
 {/if}

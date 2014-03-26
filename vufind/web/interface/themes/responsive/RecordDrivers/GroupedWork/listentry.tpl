@@ -60,9 +60,9 @@
 		<div class="col-sm-2 col-md-2 col-lg-1">
 			<div class="btn-group btn-group-vertical">
 				{if $listEditAllowed}
-					<a href="{$path}/MyResearch/Edit?id={$summId|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}" class="btn btn-sm btn-default">{translate text='Edit'}</a>
+					<a href="{$path}/MyAccount/Edit?id={$summId|escape:"url"}{if !is_null($listSelected)}&amp;list_id={$listSelected|escape:"url"}{/if}" class="btn btn-sm btn-default">{translate text='Edit'}</a>
 					{* Use a different delete URL if we're removing from a specific list or the overall favorites: *}
-					<a href="{$path}/MyResearch/MyList/{$listSelected|escape:"url"}?delete={$summId|escape:"url"}" onclick="return confirm('Are you sure you want to delete this?');" class="btn btn-sm btn-default">{translate text='Delete'}</a>
+					<a href="{$path}/MyAccount/MyList/{$listSelected|escape:"url"}?delete={$summId|escape:"url"}" onclick="return confirm('Are you sure you want to delete this?');" class="btn btn-sm btn-default">{translate text='Delete'}</a>
 				{/if}
 			</div>
 		</div>

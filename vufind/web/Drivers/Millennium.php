@@ -1799,7 +1799,7 @@ class MillenniumDriver implements DriverInterface
 					$newList->insert();
 				}
 
-				$currentListResources = $newList->getResources();
+				$currentListResources = $newList->getListTitles();
 
 				//Get a list of all titles within the list to be imported
 				$listDetailsPage = $this->_fetchPatronInfoPage($patronDump, 'mylists?listNum='. $listId);

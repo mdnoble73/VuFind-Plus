@@ -88,9 +88,6 @@
 <script type="text/javascript">
 	$(document).ready(function() {literal} { {/literal}
 		doGetStatusSummaries();
-		{if $user}
-		//doGetSaveStatuses();
-		{/if}
 		doGetSeriesInfo();
 		{literal} }); {/literal}
 </script>

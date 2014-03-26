@@ -32,11 +32,6 @@ class AJAX extends Action {
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			$this->$method();
-		}elseif (in_array($method, array('getOtherEditions'))){
-			header('Content-type: text/html');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			$this->$method();
 		}else{
 			header('Content-type: text/xml');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -317,122 +312,6 @@ class AJAX extends Action {
 		echo json_encode($result);
 	}
 
-	function GetSaveStatus()
-	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-
-		// check if user is logged in
-		if (!($user = UserAccount::isLoggedIn())) {
-			echo "<result>Unauthorized</result>";
-			return;
-		}
-
-		// Check if resource is saved to favorites
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		if ($resource->find(true)) {
-			if ($user->hasResource($resource)) {
-				echo '<result>Saved</result>';
-			} else {
-				echo '<result>Not Saved</result>';
-			}
-		} else {
-			echo '<result>Not Saved</result>';
-		}
-	}
-
-	/**
-	 * Get Save Statuses
-	 *
-	 * This is responsible for printing the save status for a collection of
-	 * records in XML format.
-	 *
-	 * @access	public
-	 * @author	Chris Delis <cedelis@uillinois.edu>
-	 */
-	function GetSaveStatuses()
-	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-		global $configArray;
-
-		// check if user is logged in
-		if (!($user = UserAccount::isLoggedIn())) {
-			echo "<result>Unauthorized</result>";
-			return;
-		}
-
-		for ($i=0; ; $i++) {
-			if (! isset($_GET['id' . $i])) break;
-			$id = $_GET['id' . $i];
-			echo '<item id="' . htmlspecialchars($id) . '">';
-
-			// Check if resource is saved to favorites
-			$resource = new Resource();
-			$resource->record_id = $id;
-			if ($resource->find(true)) {
-				$data = $user->getSavedData($id, $resource->source);
-				if ($data) {
-					echo '<result>';
-					// Convert the resource list into JSON so it's easily readable
-					// by the calling Javascript code.	Note that we have to entity
-					// encode it so it can embed cleanly inside our XML response.
-					$json = array();
-					foreach ($data as $list) {
-						$listData = new UserList();
-						$listData->id = $list->list_id;
-						$link = '';
-						if ($listData->find(true)){
-							if ($listData->user_id == $user->id || $listData->public){
-								$link = $configArray['Site']['path'] . '/MyResearch/MyList/' . $listData->id;
-							}
-						}
-						$json[] = array('id' => $list->id, 'title' => $list->list_title, 'link' => $link);
-					}
-					echo htmlspecialchars(json_encode($json));
-					echo '</result>';
-				} else {
-					echo '<result>False</result>';
-				}
-			} else {
-				echo '<result>False</result>';
-			}
-
-			echo '</item>';
-		}
-	}
-
-	function GetSavedData()
-	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-
-		// check if user is logged in
-		if ((!$user = UserAccount::isLoggedIn())) {
-			echo "<result>Unauthorized</result>";
-			return;
-		}
-
-		echo "<result>\n";
-
-		$saved = $user->getSavedData($_GET['id']);
-		if ($saved->notes) {
-			echo "	<Notes>$saved->notes</Notes>\n";
-		}
-
-		$myTagList = $user->getTags($_GET['id']);
-		if (count($myTagList)) {
-			foreach ($myTagList as $tag) {
-				echo "	<Tag>" . $tag->tag . "</Tag>\n";
-			}
-		}
-
-		echo '</result>';
-	}
-
-
-
 	function GetAutoSuggestList(){
 		require_once ROOT_DIR . '/services/Search/lib/SearchSuggestions.php';
 		global $timer;
@@ -595,72 +474,6 @@ class AJAX extends Action {
 
 		}
 		echo $listData;
-	}
-
-	function getOtherEditions(){
-		global $interface;
-		global $analytics;
-		$id = $_REQUEST['id'];
-		$isEContent = $_REQUEST['isEContent'];
-
-		if ($isEContent == 'true'){
-			require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
-			$econtentRecord = new EContentRecord();
-			$econtentRecord->id = $id;
-			if ($econtentRecord->find(true)){
-				$otherEditions = OtherEditionHandler::getEditions($econtentRecord->id, $econtentRecord->getIsbn(), $econtentRecord->getIssn(), 10);
-			}else{
-				$error = "Sorry we couldn't find that record in the catalog.";
-			}
-		}else{
-			$resource = new Resource();
-			$resource->record_id = $id;
-			$resource->source = 'VuFind';
-			$solrId = $id;
-			if ($resource->find(true)){
-				$otherEditions = OtherEditionHandler::getEditions($solrId, $resource->isbn , null, 10);
-			}else{
-				$error = "Sorry we couldn't find that record in the catalog.";
-			}
-		}
-
-		if (isset($otherEditions)){
-			//Get resource for each edition
-			$editionResources = array();
-			if (is_array($otherEditions)){
-				foreach ($otherEditions as $edition){
-					/** @var Resource $editionResource */
-					$editionResource = new Resource();
-					if (preg_match('/econtentRecord(\d+)/', $edition['id'], $matches)){
-						$editionResource->source = 'eContent';
-						$editionResource->record_id = trim($matches[1]);
-					}else{
-						$editionResource->record_id = $edition['id'];
-						$editionResource->source = 'VuFind';
-					}
-
-					if ($editionResource->find(true)){
-						$editionResources[] = $editionResource;
-					}else{
-						$logger= new Logger();
-						$logger->log("Could not find resource {$editionResource->source} {$editionResource->record_id} - {$edition['id']}", PEAR_LOG_DEBUG);
-					}
-				}
-				$analytics->addEvent('Enrichment', 'Other Editions', count($otherEditions));
-			}else{
-				$analytics->addEvent('Enrichment', 'Other Editions Error');
-			}
-			$interface->assign('otherEditions', $editionResources);
-			$interface->assign('popupTitle', 'Other Editions');
-			$interface->assign('popupTemplate', 'Resource/otherEditions.tpl');
-			echo $interface->fetch('popup-wrapper.tpl');
-		}elseif (isset($error)){
-			$analytics->addEvent('Enrichment', 'Other Editions Error', $error);
-			echo $error;
-		}else{
-			echo("There are no other editions for this title currently in the catalog.");
-			$analytics->addEvent('Enrichment', 'Other Editions', 0, 'No Other ISBNs');
-		}
 	}
 
 	function GetSeriesInfo(){

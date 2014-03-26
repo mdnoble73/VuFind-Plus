@@ -1,18 +1,3 @@
-function getSaveStatus(id, elemId) {
-	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=GetSaveStatus";
-	$.ajax( {
-		url : url + '?' + params,
-		success : function(data) {
-			var response = $(data);
-			var result = response.find('result');
-			if (result.text() == 'Saved') {
-				$('#' + elemId).addClass('savedFavorite');
-			}
-		}
-	});
-}
-
 function SendEmail(id, to, from, message, strings) {
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=SendEmail&" + "from=" + encodeURIComponent(from) + "&" + "to=" + encodeURIComponent(to) + "&" + "message=" + encodeURIComponent(message);

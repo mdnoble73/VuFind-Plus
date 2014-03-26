@@ -63,12 +63,6 @@ function Login(elems, salt, module, action, id, lookfor, message) {
 				$('.loginOptions').hide();
 				$('.logoutOptions').show();
 				$('#myAccountNameLink').html(response.result.name);
-				// Update user save statuses if the current context calls for it:
-				if (typeof (doGetSaveStatuses) == 'function') {
-					doGetSaveStatuses();
-				} else if (typeof (redrawSaveStatus) == 'function') {
-					redrawSaveStatus();
-				}
 
 				// Load the post-login action:
 				getLightbox(module, action, id, lookfor, message);
@@ -678,54 +672,6 @@ $(divId).tooltip({
  */
 
 /*
- * Create a new list for storing favorites:
- */
-function addList(form, failMsg)
-{
-	for (var i = 0; i < form.public.length; i++) {
-		if (form.public[i].checked) {
-			var isPublic = form.public[i].value;
-		}
-	}
-
-	var url = path + "/MyResearch/AJAX";
-	var recordId = form.recordId.value;
-	var source = form.source.value;
-	var params = "method=AddList&" +
-							 "title=" + encodeURIComponent(form.title.value) + "&" +
-							 "public=" + isPublic + "&" +
-							 "desc=" + encodeURIComponent(form.desc.value) + "&" +
-							 "followupModule=" + form.followupModule.value + "&" +
-							 "followupAction=" + form.followupAction.value + "&" +
-							 "followupId=" + form.followupId.value;
-
-	$.ajax({
-		url: url+'?'+params,
-		dataType: "json",
-		success: function(data) {
-			var value = data.result;
-			if (value) {
-				if (value == "Done") {
-					var newId = data.newId;
-					//Save the record to the list
-					var url = path + "/Resource/Save?lightbox=true&selectedList=" + newId + "&id=" + recordId + "&source=" + source;
-					ajaxLightbox(url);
-				} else {
-					alert(value.length > 0 ? value : failMsg);
-				}
-			} else {
-				$('#popupbox').html(failMsg);
-				setTimeout("hideLightbox();", 3000);
-			}
-		},
-		error: function() {
-			$('#popupbox').html(failMsg);
-			setTimeout("hideLightbox();", 3000);
-		}
-	});
-}
-
-/*
  * Given a base URL and a set of parameters, use AJAX to send an email; this
  * assumes that a lightbox is already open.
  */
@@ -984,11 +930,6 @@ function GetTags(id, elemId, strings) {
 			$("#" + elemId).html(strings.load_error);
 		}
 	});
-}
-
-function loadOtherEditionSummaries(id, isEcontent){
-	var url = path + "/Search/AJAX?method=getOtherEditions&id=" + id + "&isEContent=" + isEcontent;
-	ajaxLightbox(url);
 }
 
 function getQuerystringParameters(){

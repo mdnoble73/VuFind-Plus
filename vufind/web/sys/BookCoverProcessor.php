@@ -467,13 +467,11 @@ class BookCoverProcessor{
 				$author = $econtentRecord->author;
 			}
 		}else{
-			require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-			$resource = new Resource();
-			$resource->source = 'VuFind';
-			$resource->record_id = $this->id;
-			if ($resource->find(true)){
-				$title = $resource->title;
-				$author = $resource->author;
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			$recordDriver = new MarcRecord($this->id);
+			if ($recordDriver->isValid()){
+				$title = $recordDriver->getTitle();
+				$author = $recordDriver->getAuthor();
 			}
 		}
 

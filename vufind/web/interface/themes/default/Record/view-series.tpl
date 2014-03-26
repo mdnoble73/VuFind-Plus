@@ -53,7 +53,6 @@
 	<script type="text/javascript">
 	$(document).ready(function() {literal} { {/literal}
 		doGetStatusSummaries();
-		doGetSaveStatuses();
 	{literal} }); {/literal}
 	</script>
 	

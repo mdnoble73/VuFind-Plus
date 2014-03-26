@@ -24,7 +24,7 @@ class UserList extends SolrDataObject
 	###END_AUTOCODE
 
 	function cores(){
-		return array('biblio', 'biblio2');
+		return array('grouped', 'grouped2');
 	}
 
 	function solrId(){
@@ -272,7 +272,7 @@ class UserList extends SolrDataObject
 		return $structure;
 	}
 	function contents(){
-		$resources = $this->getResources();
+		$resources = $this->getListTitles();
 		$contents = '';
 		foreach ($resources as $resource){
 			$contents .= ' ' . $resource->title . ' ' . (isset($resource->author) ? $resource->author : '') ;
@@ -280,10 +280,15 @@ class UserList extends SolrDataObject
 		return $contents;
 	}
 	function num_titles(){
-		return count($this->getResources());
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+		$listEntry = new UserListEntry();
+		$listEntry->listId = $this->id;
+		$listEntry->find();
+
+		return $listEntry->N;
 	}
 	function num_holdings(){
-		return count($this->getResources());
+		return count($this->getListTitles());
 	}
 	function insert(){
 		if ($this->public == 0){
@@ -307,7 +312,10 @@ class UserList extends SolrDataObject
 		}
 	}
 
-	private $resourceList = null;
+	/**
+	 * @var array An array of resources keyed by the list id since we can iterate over multiple lists while fetching from the DB
+	 */
+	private $listTitles = array();
 
 	function getListEntries(){
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
@@ -322,70 +330,40 @@ class UserList extends SolrDataObject
 	}
 
 	/**
-	 * @param String[]|null $tags
-	 * @return Resource[]|null
+	 * @return UserListEntry[]|null
 	 */
-	function getResources($tags = null)
+	function getListTitles()
 	{
-		if ($this->resourceList != null){
-			return $this->resourceList;
+		if (isset($this->listTitles[$this->id])){
+			return $this->listTitles[$this->id];
 		}
-		$resourceList = array();
+		$listTitles = array();
 
-		$sql = "SELECT DISTINCT resource.*, user_resource.saved, user_resource.notes FROM resource, user_resource " .
-								"WHERE resource.id = user_resource.resource_id " .
-								"AND user_resource.user_id = '$this->user_id' " .
-								"AND user_resource.list_id = '$this->id' " .
-								"AND resource.deleted = 0";
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+		$listEntry = new UserListEntry();
+		$listEntry->listId = $this->id;
+		$listEntry->find();
 
-		if ($tags) {
-			for ($i=0; $i<count($tags); $i++) {
-				$sql .= " AND resource.id IN (SELECT DISTINCT resource_tags.resource_id " .
-										"FROM resource_tags, tags " .
-										"WHERE resource_tags.tag_id=tags.id AND tags.tag = '" .
-				addslashes($tags[$i]) . "' AND resource_tags.user_id = '$this->user_id' " .
-										"AND resource_tags.list_id = '$this->id')";
+		while ($listEntry->fetch()){
+			$cleanedEntry = $this->cleanListEntry(clone($listEntry));
+			if ($cleanedEntry != false){
+				$listTitles[] = $cleanedEntry;
 			}
 		}
 
-		/** @var Resource|object $resource */
-		$resource = new Resource();
-		$resource->query($sql);
-		if ($resource->N) {
-			while ($resource->fetch()) {
-				$cleanedResource = $this->cleanResource(clone($resource));
-				if ($cleanedResource != false){
-					$cleanedResource->tags = $cleanedResource->getTagsForList($this->id);
-					$resourceList[] = $cleanedResource;
-				}
-			}
-		}
-
-		$this->resourceList = $resourceList;
-		return $this->resourceList;
+		$this->listTitles[$this->id] = $listTitles;
+		return $this->listTitles[$this->id];
 	}
 
 	var $catalog;
 
 	/**
-	 * @param Resource $resource - The resource to be cleaned
-	 * @return Resource|bool
+	 * @param UserListEntry $listEntry - The resource to be cleaned
+	 * @return UserListEntry|bool
 	 */
-	function cleanResource($resource){
+	function cleanListEntry($listEntry){
 		global $configArray;
 		global $user;
-
-		require_once ROOT_DIR . '/sys/MergedRecord.php';
-		//Check to see if the record has been merged with something else?
-		$mergedRecord = new MergedRecord();
-		$mergedRecord->original_record = $resource->record_id;
-		if ($mergedRecord->find(true)){
-			$tmpResource = new Resource();
-			$tmpResource->record_id = $mergedRecord->new_record;
-			if ($tmpResource->find(true)){
-				$resource = $tmpResource;
-			}
-		}
 
 		// Connect to Database
 		$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
@@ -403,85 +381,63 @@ class UserList extends SolrDataObject
 			if (isset($library)) $censorWords = $library->hideCommentsWithBadWords == 0 ? true : false;
 			if ($censorWords){
 				//Filter Title
-				$titleText = $resource->title;
+				$titleText = $this->title;
 				foreach ($badWordsList as $badWord){
 					$titleText = preg_replace($badWord, '***', $titleText);
 				}
-				$resource->title = $titleText;
+				$this->title = $titleText;
 				//Filter description
 				$descriptionText = $this->description;
 				foreach ($badWordsList as $badWord){
 					$descriptionText = preg_replace($badWord, '***', $descriptionText);
 				}
 				$this->description = $descriptionText;
+				//Filter notes
+				$notesText = $listEntry->notes;
+				foreach ($badWordsList as $badWord){
+					$notesText = preg_replace($badWord, '***', $notesText);
+				}
+				$this->description = $notesText;
 			}else{
 				//Check for bad words in the title or description
-				$titleText = $resource->title;
-				if (isset($resource->description)){
-					$titleText .= ' ' . $resource->description;
+				$titleText = $this->title;
+				if (isset($listEntry->description)){
+					$titleText .= ' ' . $listEntry->description;
 				}
+				//Filter notes
+				$titleText .= ' ' . $listEntry->notes;
 				foreach ($badWordsList as $badWord){
 					if (preg_match($badWord,$titleText)){
 						return false;
-						//PEAR_Singleton::raiseError(new PEAR_Error('You do not have permission to view this list'));
-						//break;
 					}
 				}
 			}
 		}
-		return $resource;
-	}
-
-	function getTags()
-	{
-		$tagList = array();
-
-		$sql = "SELECT resource_tags.* FROM resource, resource_tags, user_resource " .
-								"WHERE resource.id = user_resource.resource_id " .
-								"AND resource.id = resource_tags.resource_id " .
-								"AND user_resource.user_id = '$this->user_id' " .
-								"AND user_resource.list_id = '$this->id'";
-
-		/** @var Resource|object $resource */
-		$resource = new Resource();
-		$resource->query($sql);
-		if ($resource->N) {
-			while ($resource->fetch()) {
-				$tagList[] = clone($resource);
-			}
-		}
-
-		return $tagList;
+		return $listEntry;
 	}
 
 	/**
-		* @todo: delete any unused tags
-		*/
-	function removeResource($resource)
+	 * @param String $workToRemove
+	 */
+	function removeListEntry($workToRemove)
 	{
-		// Remove the Saved Resource
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-		$join = new User_resource();
-		$join->user_id = $this->user_id;
-		$join->resource_id = $resource->id;
-		$join->list_id = $this->id;
-		$join->delete();
+		// Remove the Saved List Entry
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+		$listEntry = new UserListEntry();
+		$listEntry->groupedWorkPermanentId = $workToRemove;
+		$listEntry->listId = $this->id;
+		$listEntry->delete();
 
-		// Remove the Tags from the resource
-		$join = new Resource_tags();
-		$join->user_id = $this->user_id;
-		$join->resource_id = $resource->id;
-		$join->list_id = $this->id;
-		$join->delete();
+		unset($this->listTitles[$this->id]);
 	}
 
 	/**
 		* remove all resources within this list
 		*/
-	function removeAllResources($tags = null){
-		$allResources = $this->getResources($tags);
-		foreach ($allResources as $resource){
-			$this->removeResource($tags);
+	function removeAllListEntries($tags = null){
+		$allListEntries = $this->getListTitles($tags);
+		foreach ($allListEntries as $listEntry){
+			$this->removeListEntry($listEntry);
 		}
 	}
 	function usable_by(){

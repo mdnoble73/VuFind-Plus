@@ -344,16 +344,6 @@ class AJAX extends Action {
 		return $interface->fetch('MyResearch/ajax-login.tpl');
 	}
 
-	function getBulkAddToListForm(){
-		global $interface;
-		// Display Page
-		$interface->assign('listId', strip_tags($_REQUEST['listId']));
-		$interface->assign('popupTitle', 'Add titles to list');
-		$pageContent = $interface->fetch('MyResearch/bulkAddToListPopup.tpl');
-		$interface->assign('popupContent', $pageContent);
-		echo $interface->fetch('popup-wrapper.tpl');
-	}
-
 	function getPinUpdateForm(){
 		global $interface;
 		$interface->assign('popupTitle', 'Modify PIN number');
