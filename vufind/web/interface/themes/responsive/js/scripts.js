@@ -1584,12 +1584,14 @@ VuFind.Responsive = (function(){
 $(document).ready(function(){
     $("<div style='position:fixed;top:50px;left:20px;background:#CCCCCC;cursor:pointer;display:none;' id='scrolldown'>Scroll down and stuff</div>").appendTo("body");
     $("<div style='position:fixed;top:50px;left:20px;background:#CCCCCC;cursor:pointer;display:none;' id='scrollup'>Scroll up and stuff</div>").appendTo("body");
+    $(document).scroll(function(){
     var docH = $(document).height();
     var scrH = $(document).scrollTop();
     var halfit = docH/2;
     if( scrH >= halfit){
         $("#scrollup").show();
     }
+    });
     $("#scrolldown").click(function(){
         $("html,body").animate({scrollTop:$(document).height()}, 1000);
         //$("#scrollup").show();
