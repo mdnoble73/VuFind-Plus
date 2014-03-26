@@ -1582,5 +1582,8 @@ VuFind.Responsive = (function(){
 }(VuFind.Responsive || {}));
 
 $(document).ready(function(){
-    $("<div style='position:fixed;top:50px;left:20px;background:#000;'>Scroll down and stuff</div>").appendTo("body");
+    $("<div style='position:fixed;top:50px;left:20px;background:#CCCCCC;cursor:pointer;' id='scroller'>Scroll down and stuff</div>").appendTo("body");
+    $("#scroller").click(function(){
+        $("html,body").animate({scrollTop:$(document).height()}, 1000);
+    });
 });
