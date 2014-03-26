@@ -54,9 +54,9 @@ class TopFacets implements RecommendationInterface
 
 		// Load the desired facet information:
 		$config = getExtraConfigArray($iniFile);
-		/*if ($this->searchObject->getSearchType() == 'genealogy'){*/
+		if ($this->searchObject->getSearchType() == 'genealogy'){
 			$this->mainFacets = array();
-		/*}else{
+		}else{
 			$searchLibrary = Library::getActiveLibrary();
 			global $locationSingleton;
 			$searchLocation = $locationSingleton->getActiveLocation();
@@ -92,7 +92,7 @@ class TopFacets implements RecommendationInterface
 					$this->facetSettings[$facetName] = $facet;
 				}
 			}
-		}*/
+		}
 
 		// Load other relevant settings:
 		$this->baseSettings = array(
