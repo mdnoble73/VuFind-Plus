@@ -1,5 +1,5 @@
 {strip}
-<div class="searchform {if $showAsBar}navbar navbar-static-top{else}well{/if}">
+<div class="searchform {if $showAsBar}navbar navbar-static-top{else}well{/if}" style="position:fixed;top:85px;">
 	{if $showAsBar}
 	<div class="navbar-inner">
 		<div class="container">

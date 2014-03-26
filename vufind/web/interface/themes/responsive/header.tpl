@@ -1,5 +1,5 @@
 {strip}
-<div class="navbar navbar-static-top" style="position:fixed;top:0px;left:0px;">
+<div class="navbar navbar-static-top" style="position:fixed;top:0px;">
 	<div class="navbar-inner">
 		<div class="container">
 			<div>
