@@ -106,9 +106,9 @@
 					</div>
 				</div>
 			{/if}
-            <a href="{$path}/Help/Home?topic=search" class="modalDialogTrigger" data-title="{translate text='Search Tips'}">
+            <!--<a href="{$path}/Help/Home?topic=search" class="modalDialogTrigger" data-title="{translate text='Search Tips'}">
                 <img class="" src="{img filename="ask_icon_sm.fw.png"}" alt="{$librarySystemName}" title="{translate text='Search Tips'}" id="help_undersearch" />
-            </a>
+            </a>-->
 		</fieldset>
         <!--<div id="undersearch_div">
             {* Ben custom filters
