@@ -106,8 +106,11 @@
 					</div>
 				</div>
 			{/if}
+            <a href="{$path}/Help/Home?topic=search" class="modalDialogTrigger" data-title="{translate text='Search Tips'}">
+                <img class="" src="{img filename="ask_icon_sm.fw.png"}" alt="{$librarySystemName}" title="{translate text='Search Tips'}" id="help_undersearch" />
+            </a>
 		</fieldset>
-        <div id="undersearch_div">
+        <!--<div id="undersearch_div">
             {* Ben custom filters
                 All:&nbsp;<input name="searchSource" type="radio" value="allstuff" checked="checked" title="{translate text="show all results"}" /> &nbsp;Only Downloadable:&nbsp;
                 <input name="searchSource" type="radio" value="estuff" title="{translate text="show only eBooks and eAudio results"}" />*}
@@ -115,7 +118,7 @@
             <a href="{$path}/Help/Home?topic=search" class="modalDialogTrigger" data-title="{translate text='Search Tips'}">
             <img class="" src="{img filename="ask_icon_sm.fw.png"}" alt="{$librarySystemName}" title="{translate text='Search Tips'}" id="help_undersearch" />
                 </a>
-        </div>
+        </div>-->
 	</form>
 	{if $showAsBar}
 				</div>{*nav-collapse*}
