@@ -13,7 +13,7 @@
 				<!--<div class="sortpart flL"><label for="sort"><strong>{translate text='Sort By'}</strong></label></div>-->
 
             <!--<div class="sortpart flR">-->
-                <span style="font-weight:bold;font-size:14pt;">Sort by&nbsp;&nbsp;</span><select id="sort" name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;" class="input-medium">
+                <span style="font-weight:bold;font-size:12pt;">Sort by&nbsp;&nbsp;</span><select id="sort" name="sort" onchange="document.location.href = this.options[this.selectedIndex].value;" class="input-medium">
 					{foreach from=$sortList item=sortData key=sortLabel}
 						<option value="{$sortData.sortUrl|escape}"{if $sortData.selected} selected="selected"{/if}>{translate text=$sortData.desc}</option>
 					{/foreach}
