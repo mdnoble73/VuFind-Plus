@@ -380,7 +380,9 @@ class OverDriveDriver3 {
 		$response = $this->_callPatronUrl($user, $url);
 		if ($response == false){
 			//The user is not authorized to use OverDrive
-			return false;
+			return array(
+					'items' => array()
+			);
 		}
 
 		//print_r($response);

@@ -797,10 +797,10 @@ class MillenniumDriver implements DriverInterface
 			//Special processing to allow MCVSD Students to login
 			//with their student id.
 			if ($this->fixShortBarcodes){
-				if (strlen($barcode)== 5){
+				if (strlen($barcode)== 5 && is_numeric($barcode)){
 					$originalCode = $barcode;
 					$barcode = "41000000" . $barcode;
-				}elseif (strlen($barcode)== 6){
+				}elseif (strlen($barcode)== 6 && is_numeric($barcode)){
 					$originalCode = $barcode;
 					$barcode = "4100000" . $barcode;
 				}else{
