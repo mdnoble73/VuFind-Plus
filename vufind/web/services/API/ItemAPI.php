@@ -54,6 +54,7 @@ class ItemAPI extends Action {
 	public $id;
 
 	/**
+	 * @var MarcRecord|IndexRecord
 	 * marc record in File_Marc object
 	 */
 	protected $recordDriver;
@@ -179,19 +180,6 @@ class ItemAPI extends Action {
 				$eContentRating->recordId = $eContentRecord->id;
 				$itemData['ratingData'] = $eContentRating->getRatingData(false, false);
 
-				// Retrieve tags associated with the record
-				$limit = 5;
-				$resource = new Resource();
-				$resource->record_id = $eContentRecord->id;
-				$resource->source = 'eContent';
-				if ($tags = $resource->getTags()) {
-					array_slice($tags, 0, $limit);
-				}
-				$itemData['tagList'] = $tags;
-				$timer->logTime('Got tag list');
-
-				$itemData['userComments'] = $resource->getComments();
-
 				require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 				$driver = new EContentDriver();
 				$itemData['holdings'] = $driver->getHolding($eContentRecord->id);
@@ -277,26 +265,9 @@ class ItemAPI extends Action {
 			}
 			$itemData['description'] = $description;
 
-			// Retrieve tags associated with the record
-			$limit = 5;
-			$resource = new Resource();
-			$resource->record_id = $this->id;
-			$resource->source = 'VuFind';
-			if ($tags = $resource->getTags()) {
-				array_slice($tags, 0, $limit);
-			}
-			$itemData['tagList'] = $tags;
-			$timer->logTime('Got tag list');
-
 			//setup 5 star ratings
-			global $user;
-			$ratingData = $resource->getRatingData($user);
+			$ratingData = $this->recordDriver->getRatingData();
 			$itemData['ratingData'] = $ratingData;
-			$timer->logTime('Got 5 star data');
-
-			// Load User comments
-			$itemData['userComments'] =  Record_UserComments::getComments($this->id);
-			$timer->logTime('Loaded Comments');
 
 			//Load Holdings
 			$itemData['holdings'] = Record_Holdings::loadHoldings($this->id);
@@ -435,12 +406,7 @@ class ItemAPI extends Action {
 			$itemData['description'] = $description;
 
 			//setup 5 star ratings
-			global $user;
-			$resource = new Resource();
-			$resource->record_id = $this->id;
-			$resource->source = 'VuFind';
-			$ratingData = $resource->getRatingData($user);
-			$itemData['ratingData'] = $ratingData;
+			$itemData['ratingData'] = $this->recordDriver->getRatingData();
 			$timer->logTime('Got 5 star data');
 		}
 

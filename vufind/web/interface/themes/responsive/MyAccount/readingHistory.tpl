@@ -96,7 +96,7 @@
 										{if $user->disableCoverArt != 1}
 											<td class="myAccountCell imageCell">
 												<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" id="descriptionTrigger{$record.recordId|escape:"url"}">
-													<img src="{$path}/bookcover.php?id={$record.recordId}&amp;issn={$record.issn}&amp;isn={$record.isbn|@formatISBN}&amp;size=small&amp;upc={$record.upc}&amp;category={$record.format_category|escape:"url"}" class="listResultImage" alt="{translate text='Cover Image'}"/>
+													<img src="{$record.coverUrl}" class="listResultImage" alt="{translate text='Cover Image'}"/>
 												</a>
 
 												<div id='descriptionPlaceholder{$record.recordId|escape}' style='display:none'></div>
@@ -123,7 +123,7 @@
 											</div>
 											<div class="resultItemLine2">
 												{if $record.author}
-													{translate text='by'}
+													{translate text='by'}&nbsp;
 													{if is_array($record.author)}
 														{foreach from=$summAuthor item=author}
 															<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
@@ -156,7 +156,7 @@
 										{if $showRatings == 1}
 											<td class="myAccountCell">
 												{if $record.recordId != -1}
-													{include file="Record/title-rating.tpl" ratingClass="searchStars" recordId=$record.recordId shortId=$record.shortId ratingData=$record.ratingData}
+													{include file="GroupedWork/title-rating.tpl" ratingClass="searchStars" summId=$record.permanentId ratingData=$record.ratingData showNotInterested=false}
 												{/if}
 											</td>
 										{/if}

@@ -118,8 +118,7 @@ class MillenniumReadingHistory {
 			}
 			$post_string = implode ('&', $post_items);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$loginResult = curl_exec($curl_connection);
-			$curlInfo = curl_getinfo($curl_connection);
+			curl_exec($curl_connection);
 		}
 
 		if ($action == 'deleteMarked'){
@@ -138,7 +137,7 @@ class MillenniumReadingHistory {
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/rsh&" . $title_string;
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-			$sResult = curl_exec($curl_connection);
+			curl_exec($curl_connection);
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Delete Marked Reading History Titles');
 			}
@@ -185,90 +184,83 @@ class MillenniumReadingHistory {
 
 		$s = preg_replace ("/<br \/>/","", $s);
 
-		$srows = preg_split("/<tr([^>]*)>/",$s);
+		$sRows = preg_split("/<tr([^>]*)>/",$s);
 
-		$scount = 0;
-		$skeys = array_pad(array(),10,"");
+		$sCount = 1;
+		$sKeys = array_pad(array(),10,"");
 		$readingHistoryTitles = array();
-		$itemindex = 0;
-		foreach ($srows as $srow) {
+		foreach ($sRows as $srow) {
 			$tmpRow = preg_replace('/\r\n|\n|\r/', "", strip_tags($srow));
 			if (strlen(trim($tmpRow)) == 0){
 				continue;
 			}elseif(preg_match('/Result Page/', $tmpRow)){
 				continue;
 			}
-			$scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
+			$sCols = preg_split("/<t(h|d)([^>]*)>/",$srow);
 			$historyEntry = array();
-			for ($i=0; $i < sizeof($scols); $i++) {
-				$scols[$i] = str_replace("&nbsp;"," ",$scols[$i]);
-				$scols[$i] = preg_replace ("/<br+?>/"," ", $scols[$i]);
-				$scols[$i] = html_entity_decode(trim(substr($scols[$i],0,stripos($scols[$i],"</t"))));
-				//print_r($scols[$i]);
-				if ($scount == 1) {
-					$skeys[$i] = strip_tags($scols[$i]);
-				} else if ($scount > 1) {
-					if (stripos($skeys[$i],"Mark") > -1) {
-						if (preg_match('/id="rsh(\\d+)"/', $scols[$i], $matches)){
+			for ($i=0; $i < sizeof($sCols); $i++) {
+				$sCols[$i] = str_replace("&nbsp;"," ",$sCols[$i]);
+				$sCols[$i] = preg_replace ("/<br+?>/"," ", $sCols[$i]);
+				$sCols[$i] = html_entity_decode(trim(substr($sCols[$i],0,stripos($sCols[$i],"</t"))));
+				if ($sCount == 1) {
+					$sKeys[$i] = strip_tags($sCols[$i]);
+				} else if ($sCount > 1) {
+					if (stripos($sKeys[$i],"Mark") > -1) {
+						if (preg_match('/id="rsh(\\d+)"/', $sCols[$i], $matches)){
 							$itemIndex = $matches[1];
 							$historyEntry['itemindex'] = $itemIndex;
 						}
 						$historyEntry['deletable'] = "BOX";
 					}
 
-					if (stripos($skeys[$i],"Title") > -1) {
-						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
+					if (stripos($sKeys[$i],"Title") > -1) {
+						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $sCols[$i], $matches)) {
 							$shortId = $matches[1];
 							$bibId = '.' . $matches[2];
 							$title = strip_tags($matches[2]);
 
 							$historyEntry['id'] = $bibId;
 							$historyEntry['shortId'] = $shortId;
-						}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $scols[$i], $matches)){
+						}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $sCols[$i], $matches)){
 							$shortId = $matches[1];
-							$bibId = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
+							$bibId = '.' . $matches[1] . $this->driver->getCheckDigit($shortId);
 							$title = $matches[2];
 							$historyEntry['id'] = $bibId;
 							$historyEntry['shortId'] = $shortId;
 						}else{
-							$title = strip_tags($scols[$i]);
+							$title = strip_tags($sCols[$i]);
 						}
 
 						$historyEntry['title'] = $title;
 					}
 
-					if (stripos($skeys[$i],"Author") > -1) {
-						$historyEntry['author'] = strip_tags($scols[$i]);
+					if (stripos($sKeys[$i],"Author") > -1) {
+						$historyEntry['author'] = strip_tags($sCols[$i]);
 					}
 
-					if (stripos($skeys[$i],"Checked Out") > -1) {
-						$historyEntry['checkout'] = strip_tags($scols[$i]);
+					if (stripos($sKeys[$i],"Checked Out") > -1) {
+						$historyEntry['checkout'] = strip_tags($sCols[$i]);
 					}
-					if (stripos($skeys[$i],"Details") > -1) {
-						$historyEntry['details'] = strip_tags($scols[$i]);
+					if (stripos($sKeys[$i],"Details") > -1) {
+						$historyEntry['details'] = strip_tags($sCols[$i]);
 					}
 
 					$historyEntry['borrower_num'] = $patron['id'];
 				} //Done processing column
 			} //Done processing row
 
-			if ($scount > 1){
+			if ($sCount > 1){
 				$historyEntry['title_sort'] = strtolower($historyEntry['title']);
 
 				//$historyEntry['itemindex'] = $itemindex++;
 				//Get additional information from resources table
 				if (isset($historyEntry['shortId']) && strlen($historyEntry['shortId']) > 0){
-					/** @var Resource|Object $resource */
-					$resource = new Resource();
-					$resource->shortId = $historyEntry['shortId'];
-					if ($resource->find(true)){
-						$historyEntry = array_merge($historyEntry, get_object_vars($resource));
-						$historyEntry['recordId'] = $resource->record_id;
-						$historyEntry['shortId'] = str_replace('.b', 'b', $resource->record_id);
-						$historyEntry['ratingData'] = $resource->getRatingData();
-					}else{
-						//echo("Warning did not find resource for {$historyEntry['shortId']}");
-					}
+					$historyEntry['recordId'] = "." . $historyEntry['shortId'] . $this->driver->getCheckDigit($historyEntry['shortId']);
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($historyEntry['recordId']);
+					$historyEntry['ratingData'] = $recordDriver->getRatingData();
+					$historyEntry['permanentId'] = $recordDriver->getPermanentId();
+					$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('small');
 				}
 				if ($sortOption == "title"){
 					$titleKey = $historyEntry['title_sort'];
@@ -287,10 +279,10 @@ class MillenniumReadingHistory {
 				}else{
 					$titleKey = $historyEntry['title_sort'];
 				}
-				$titleKey .= '_' . ($scount + $recordsRead);
+				$titleKey .= '_' . ($sCount + $recordsRead);
 				$readingHistoryTitles[$titleKey] = $historyEntry;
 			}
-			$scount++;
+			$sCount++;
 		}//processed all rows in the table
 		return $readingHistoryTitles;
 	}

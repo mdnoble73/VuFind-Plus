@@ -23,11 +23,11 @@
 							<td colspan="8" >
 								<table class="logEntryProcessDetails table table-striped table-condensed">
 									<thead>
-										<tr><th>Process Name</th><th>Print Marc Records Processed</th><th>eContent Marc Records Processed</th><th>Non-Marc OverDrive Records Processed</th><th>Resources Processed</th><th>Errors</th><th>Added</th><th>Updated</th><th>Deleted</th><th>Skipped</th><th>Notes</th></tr>
+										<tr><th>Process Name</th><th>Print Marc Records Processed</th><th>eContent Marc Records Processed</th><th>Non-Marc OverDrive Records Processed</th><th>Errors</th><th>Added</th><th>Updated</th><th>Deleted</th><th>Skipped</th><th>Notes</th></tr>
 									</thead>
 									<tbody>
 									{foreach from=$logEntry->processes() item=process}
-										<tr><td>{$process->processName}</td><td>{$process->recordsProcessed}</td><td>{$process->eContentRecordsProcessed}</td><td>{$process->overDriveNonMarcRecordsProcessed}</td><td>{$process->resourcesProcessed}</td><td>{$process->numErrors}</td><td>{$process->numAdded}</td><td>{$process->numUpdated}</td><td>{$process->numDeleted}</td><td>{$process->numSkipped}</td><td><a href="#" onclick="return showReindexProcessNotes('{$process->id}');">Show Notes</a></td></tr>
+										<tr><td>{$process->processName}</td><td>{$process->recordsProcessed}</td><td>{$process->eContentRecordsProcessed}</td><td>{$process->overDriveNonMarcRecordsProcessed}</td><td>{$process->numErrors}</td><td>{$process->numAdded}</td><td>{$process->numUpdated}</td><td>{$process->numDeleted}</td><td>{$process->numSkipped}</td><td><a href="#" onclick="return showReindexProcessNotes('{$process->id}');">Show Notes</a></td></tr>
 									{/foreach}
 									</tbody>
 								</table>

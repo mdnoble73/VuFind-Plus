@@ -259,7 +259,6 @@
 		<field name="tag" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="rating" type="float" indexed="true" stored="true" multiValued="false" default="2.5"/>
 		<field name="rating_facet" type="string" indexed="true" stored="true" multiValued="true"/>
-		<field name="system_list" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<!-- Special fields for Lists -->
 		<field name="num_titles" type="integer" indexed="true" stored="true" multiValued="false" default="0"/>
 		<!-- Field to get random titles -->

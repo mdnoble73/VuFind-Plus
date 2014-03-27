@@ -4,22 +4,12 @@
 <head>
 	<title>{$widget->name}</title>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-  {css filename="consolidated.min.css"}
-	{css filename="extra_styles.css"}
-  
-  <script type="text/javascript">
-    path = '{$path}';
-  </script>
-    
-  {js filename="consolidated.min.js"}
+
+	{include file="cssAndJsIncludes.tpl"}
+
   {if $widget->customCss}
   	<link rel="stylesheet" type="text/css" href="{$widget->customCss}" />
   {/if}
-	{if $additionalCss}
-		<style type="text/css">
-			{$additionalCss}
-		</style>
-	{/if}
   <base href="{$path}" target="_parent" />
 </head>
 

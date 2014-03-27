@@ -1799,7 +1799,7 @@ class MillenniumDriver implements DriverInterface
 					$newList->insert();
 				}
 
-				$currentListResources = $newList->getListTitles();
+				$currentListTitles = $newList->getListTitles();
 
 				//Get a list of all titles within the list to be imported
 				$listDetailsPage = $this->_fetchPatronInfoPage($patronDump, 'mylists?listNum='. $listId);
@@ -1823,8 +1823,8 @@ class MillenniumDriver implements DriverInterface
 						if ($primaryIdentifier->find(true)){
 							//Check to see if this title is already on the list.
 							$resourceOnList = false;
-							foreach ($currentListResources as $currentResource){
-								if ($currentResource->groupedWorkPermanentId == $primaryIdentifier->permanent_id){
+							foreach ($currentListTitles as $currentTitle){
+								if ($currentTitle->groupedWorkPermanentId == $primaryIdentifier->permanent_id){
 									$resourceOnList = true;
 									break;
 								}

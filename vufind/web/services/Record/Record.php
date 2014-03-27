@@ -569,12 +569,6 @@ abstract class Record_Record extends Action
 			$interface->assign('proxy', $configArray['EZproxy']['host']);
 		}
 
-		//setup 5 star ratings
-		global $user;
-		$ratingData = $resource->getRatingData($user);
-		$interface->assign('ratingData', $ratingData);
-		$timer->logTime('Got 5 star data');
-
 		//Get Next/Previous Links
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
 		$searchObject = SearchObjectFactory::initSearchObject();

@@ -194,84 +194,6 @@ class IndexRecord implements RecordInterface
 	}
 
 	/**
-	 * Assign necessary Smarty variables and return a template name to
-	 * load in order to display core metadata (the details shown in the
-	 * top portion of the record view pages, above the tabs).
-	 *
-	 * @access  public
-	 * @return  string              Name of Smarty template file to display.
-	 */
-	public function getCoreMetadata()
-	{
-		global $configArray;
-		global $interface;
-
-		// Assign required variables (some of these are also used by templates for
-		// tabs, since every tab can assume that the core data is already assigned):
-		$this->assignTagList();
-		$interface->assign('isbn', $this->getCleanISBN());  // needed for covers
-		$interface->assign('recordFormat', $this->getFormats());
-		$interface->assign('recordLanguage', $this->getLanguages());
-
-		// These variables are only used by the core template, and they are prefixed
-		// with "core" to prevent conflicts with other variable names.
-		$interface->assign('coreShortTitle', $this->getShortTitle());
-		$interface->assign('coreSubtitle', $this->getSubtitle());
-		$interface->assign('coreTitleStatement', $this->getTitleStatement());
-		$interface->assign('coreTitleSection', $this->getTitleSection());
-		$interface->assign('coreNextTitles', $this->getNewerTitles());
-		$interface->assign('corePrevTitles', $this->getPreviousTitles());
-		$interface->assign('corePublications', $this->getPublicationDetails());
-		$interface->assign('coreEdition', $this->getEdition());
-		$interface->assign('coreSeries', $this->getSeries());
-		$interface->assign('coreSubjects', $this->getAllSubjectHeadings());
-
-		// Only display OpenURL link if the option is turned on and we have
-		// an ISSN.  We may eventually want to make this rule more flexible,
-		// but for now the ISSN restriction is designed to be consistent with
-		// the way we display items on the search results list.
-		$hasOpenURL = ($this->openURLActive('record') && $this->getCleanISSN());
-		if ($hasOpenURL) {
-			$interface->assign('coreOpenURL', $this->getOpenURL());
-		}
-
-		// Only load URLs if we have no OpenURL or we are configured to allow
-		// URLs and OpenURLs to coexist:
-		if (!isset($configArray['OpenURL']['replace_other_urls']) ||
-		!$configArray['OpenURL']['replace_other_urls'] || !$hasOpenURL) {
-			$interface->assign('coreURLs', $this->getURLs());
-		}
-
-		// The secondary author array may contain a corporate or primary author;
-		// let's be sure we filter out duplicate values.
-		$mainAuthor = $this->getPrimaryAuthor();
-		$corpAuthor = $this->getCorporateAuthor();
-		$secondaryAuthors = $this->getSecondaryAuthors();
-		$duplicates = array();
-		if (!empty($mainAuthor)) {
-			$duplicates[] = $mainAuthor;
-		}
-		if (!empty($corpAuthor)) {
-			$duplicates[] = $corpAuthor;
-		}
-		if (!empty($duplicates)) {
-			$secondaryAuthors = array_diff($secondaryAuthors, $duplicates);
-		}
-		$interface->assign('coreMainAuthor', $mainAuthor);
-		$interface->assign('coreCorporateAuthor', $corpAuthor);
-		$interface->assign('coreContributors', $secondaryAuthors);
-
-		// Assign only the first piece of summary data for the core; we'll get the
-		// rest as part of the extended data.
-		$summary = $this->getSummary();
-		$summary = count($summary) > 0 ? $summary[0] : null;
-		$interface->assign('coreSummary', $summary);
-
-		// Send back the template name:
-		return 'RecordDrivers/Index/core.tpl';
-	}
-
-	/**
 	 * Get an array of search results for other editions of the title
 	 * represented by this record (empty if unavailable).  In most cases,
 	 * this will use the XISSN/XISBN logic to find matches.
@@ -1008,23 +930,6 @@ class IndexRecord implements RecordInterface
 		/* Video is not supported yet.
 		 */
 		return false;
-	}
-
-	/**
-	 * Assign a tag list to the interface based on the current unique ID.
-	 *
-	 * @access  protected
-	 */
-	protected function assignTagList()
-	{
-		global $interface;
-
-		// Retrieve tags associated with the record
-		$resource = new Resource();
-		$resource->record_id = $this->getUniqueID();
-		$resource->source = 'VuFind';
-		$tags = $resource->getTags();
-		$interface->assign('tagList', is_array($tags) ? $tags : array());
 	}
 
 	/**

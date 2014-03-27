@@ -99,6 +99,27 @@ class MarcRecord extends IndexRecord
 	}
 
 	/**
+	 * Return the unique identifier of this record within the Solr index;
+	 * useful for retrieving additional information (like tags and user
+	 * comments) from the external MySQL database.
+	 *
+	 * @access  public
+	 * @return  string              Unique identifier.
+	 */
+	public function getShortId()
+	{
+		$shortId = '';
+		if (isset($this->id)){
+			$shortId = $this->id;
+			if (strpos($shortId, '.b') === 0){
+				$shortId = str_replace('.b', 'b', $shortId);
+				$shortId = substr($shortId, 0, strlen($shortId) -1);
+			}
+		}
+		return $shortId;
+	}
+
+	/**
 	 * Assign necessary Smarty variables and return a template name to
 	 * load in order to export the record in the requested format.  For
 	 * legal values, see getExportFormats().  Returns null if format is
@@ -762,6 +783,23 @@ class MarcRecord extends IndexRecord
 	public function getShortTitle()
 	{
 		return $this->getFirstFieldValue('245', array('a'));
+	}
+
+	/**
+	 * Get the full title of the record.
+	 *
+	 * @return  string
+	 */
+	public function getSortableTitle()
+	{
+		/** @var File_MARC_Data_Field $titleField */
+		$titleField = $this->marcRecord->getField('245');
+		if ($titleField != null && $titleField->getSubfield('a') != null){
+			$untrimmedTitle = $titleField->getSubfield('a')->getData();
+			$charsToTrim = $titleField->getIndicator(2);
+			return substr($untrimmedTitle, $charsToTrim);
+		}
+		return 'Unknown';
 	}
 
 	/**

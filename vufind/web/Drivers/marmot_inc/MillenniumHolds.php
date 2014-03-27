@@ -315,7 +315,6 @@ class MillenniumHolds{
 	}
 
 	public function parseHoldsPage($sResult){
-		global $logger;
 		$availableHolds = array();
 		$unavailableHolds = array();
 		$holds = array(
@@ -324,7 +323,6 @@ class MillenniumHolds{
 		);
 
 		$sResult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* HOLD.?\W<[^<]+?>\W<[^<]+?>/", "", $sResult);
-		//$logger->log('Hold information = ' . $sresult, PEAR_LOG_INFO);
 
 		$s = substr($sResult, stripos($sResult, 'patFunc'));
 
@@ -374,11 +372,11 @@ class MillenniumHolds{
 					if (stripos($sKeys[$i],"TITLE") > -1) {
 						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $sCols[$i], $matches)) {
 							$shortId = $matches[1];
-							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
+							$bibid = '.' . $matches[1] . $this->driver->getCheckDigit($shortId);
 							$title = strip_tags($matches[2]);
 						}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $sCols[$i], $matches)){
 							$shortId = $matches[1];
-							$bibid = '.' . $matches[1]; //Technically, this isn't correct since the check digit is missing
+							$bibid = '.' . $matches[1] . $this->driver->getCheckDigit($shortId);
 							$title = strip_tags($matches[2]);
 						}else{
 							$bibid = '';
@@ -387,6 +385,7 @@ class MillenniumHolds{
 						}
 
 						$curHold['id'] = $bibid;
+						$curHold['recordId'] = $bibid;
 						$curHold['shortId'] = $shortId;
 						$curHold['title'] = $title;
 					}
@@ -501,8 +500,6 @@ class MillenniumHolds{
 	public function getMyHolds($patron = null, $page = 1, $recordsPerPage = -1, $sortOption = 'title')
 	{
 		global $timer;
-		global $configArray;
-		global $user;
 		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
 
 		//Load the information from millennium using CURL
@@ -512,46 +509,26 @@ class MillenniumHolds{
 		$holds = $this->parseHoldsPage($sResult);
 		$timer->logTime("Parsed Holds page");
 
-		//Get a list of all record id so we can load supplemental information
-		$recordIds = array();
-		foreach($holds as $holdSections){
-			foreach($holdSections as $hold){
-				$recordIds[] = "'" . $hold['shortId'] . "'";
-			}
-		}
-		//Get records from resource table
-		$resourceInfo = new Resource();
-		if (count($recordIds) > 0){
-			$recordIdString = implode(",", $recordIds);
-			mysql_select_db($configArray['Database']['database_vufind_dbname']);
-			$resourceSql = "SELECT * FROM resource where source = 'VuFind' AND shortId in (" . $recordIdString .")";
-			$resourceInfo->query($resourceSql);
-			$timer->logTime('Got records for all titles');
+		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+		foreach($holds as $section => $holdSections){
+			foreach($holdSections as $key => $hold){
+				$recordDriver = new MarcRecord($hold['recordId']);
+				if ($recordDriver->isValid()){
+					$hold['id'] = $recordDriver->getUniqueID();
+					$hold['shortId'] = $recordDriver->getShortId();
+					//Load title, author, and format information about the title
+					$hold['title'] = $recordDriver->getTitle();
+					$hold['sortTitle'] = $recordDriver->getSortableTitle();
+					$hold['author'] = $recordDriver->getAuthor();
+					$hold['format'] = $recordDriver->getFormat();
+					$hold['isbn'] = $recordDriver->getCleanISBN();
+					$hold['upc'] = $recordDriver->getCleanUPC();
+					$hold['format_category'] = $recordDriver->getFormatCategory();
 
-			//Load title author, etc. information
-			while ($resourceInfo->fetch()){
-				foreach($holds as $section => $holdSections){
-					foreach($holdSections as $key => $hold){
-						$hold['recordId'] = $hold['id'];
-						if ($hold['shortId'] == $resourceInfo->shortId){
-							$hold['recordId'] = $resourceInfo->record_id;
-							$hold['id'] = $resourceInfo->record_id;
-							$hold['shortId'] = $resourceInfo->shortId;
-							//Load title, author, and format information about the title
-							$hold['title'] = isset($resourceInfo->title) ? $resourceInfo->title : 'Unknown';
-							$hold['sortTitle'] = isset($resourceInfo->title_sort) ? $resourceInfo->title_sort : 'unknown';
-							$hold['author'] = isset($resourceInfo->author) ? $resourceInfo->author : null;
-							$hold['format'] = isset($resourceInfo->format) ?$resourceInfo->format : null;
-							$hold['isbn'] = isset($resourceInfo->isbn) ? $resourceInfo->isbn : '';
-							$hold['upc'] = isset($resourceInfo->upc) ? $resourceInfo->upc : '';
-							$hold['format_category'] = isset($resourceInfo->format_category) ? $resourceInfo->format_category : '';
+					//Load rating information
+					$hold['ratingData'] = $recordDriver->getRatingData();
 
-							//Load rating information
-							$hold['ratingData'] = $resourceInfo->getRatingData($user);
-
-							$holds[$section][$key] = $hold;
-						}
-					}
+					$holds[$section][$key] = $hold;
 				}
 			}
 		}

@@ -69,16 +69,6 @@ interface RecordInterface
     public function getCitationFormats();
 
     /**
-     * Assign necessary Smarty variables and return a template name to 
-     * load in order to display core metadata (the details shown in the 
-     * top portion of the record view pages, above the tabs).
-     *
-     * @access  public
-     * @return  string              Name of Smarty template file to display.
-     */
-    public function getCoreMetadata();
-
-    /**
      * Get an array of search results for other editions of the title 
      * represented by this record (empty if unavailable).  In most cases, 
      * this will use the XISSN/XISBN logic to find matches.

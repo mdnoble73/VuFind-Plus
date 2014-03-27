@@ -9,7 +9,7 @@
 		<tbody>
 			{foreach from=$availableWidgets key=id item=widget}
 				<tr><td>{$widget->id}</td><td>{$widget->name}</td><td>{$widget->getLibraryName()}</td><td>{$widget->description}</td><td>
-					<div class="btn-group">
+					<div class="btn-group btn-group-sm">
 						<a class="btn btn-sm btn-default" href="{$path}/Admin/ListWidgets?objectAction=view&id={$widget->id}"/>View</a>
 						<a class="btn btn-sm btn-default" href="{$path}/Admin/ListWidgets?objectAction=edit&id={$widget->id}"/>Edit</a>
 						<a class="btn btn-sm btn-default" href="{$path}/API/SearchAPI?method=getListWidget&id={$widget->id}"/>Preview</a>

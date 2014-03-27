@@ -764,4 +764,14 @@ class GroupedWork_AJAX {
 		);
 		return json_encode($result);
 	}
+
+	function getNovelistData(){
+		$url = $_REQUEST['novelistUrl'];
+		$rawNovelistData = file_get_contents($url);
+		//Trim off the wrapping data ();
+		$rawNovelistData = substr($rawNovelistData, 1, -2);
+		$jsonData = json_decode($rawNovelistData);
+		$novelistData = $jsonData->body;
+		echo($novelistData);
+	}
 } 

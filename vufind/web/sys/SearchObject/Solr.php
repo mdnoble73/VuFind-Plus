@@ -588,6 +588,25 @@ class SearchObject_Solr extends SearchObject_Base
 		return $recordSet;
 	}
 
+	public function getListWidgetTitles(){
+		$widgetTitles = array();
+		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+			$current = & $this->indexResult['response']['docs'][$x];
+			$record = RecordDriverFactory::initRecordDriver($current);
+			if (!PEAR_Singleton::isError($record)){
+				if (method_exists($record, 'getListWidgetTitle')){
+					$widgetTitles[] = $record->getListWidgetTitle();
+				}else{
+					$widgetTitles[] = 'List Widget Title not available';
+				}
+
+			}else{
+				$widgetTitles[] = "Unable to find record";
+			}
+		}
+		return $widgetTitles;
+	}
+
 	/*
 	 * Get an array of citations for the records within the searc results
 	 */
