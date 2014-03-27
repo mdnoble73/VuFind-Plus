@@ -1582,8 +1582,6 @@ VuFind.Responsive = (function(){
 }(VuFind.Responsive || {}));
 
 $(document).ready(function(){
-    $("<div style='position:fixed;top:50px;left:20px;background:#CCCCCC;cursor:pointer;display:none;' id='scrolldown'>Scroll down and stuff</div>").appendTo("body");
-    $("<div style='position:fixed;top:50px;left:20px;background:#CCCCCC;cursor:pointer;display:none;' id='scrollup'>Scroll up and stuff</div>").appendTo("body");
     $(document).scroll(function(){
     var docH = $(document).height();
     var scrH = $(document).scrollTop();
