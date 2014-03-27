@@ -49,8 +49,8 @@
 
 	</div>
 </div>
-    <div style='position:fixed;top:50px;left:20px;cursor:pointer;'>
-    <div id='scrollup'><img src='{img filename="scrollup.fw.png"}' /></div>
-    <div id='scrolldown'><img src='{img filename="scrolldown.fw.png"}' /></div>
+    <div id="scrollupdown" class="trans4">
+    <div id="scrollup"><img src="{img filename="scrollup.fw.png"}" /></div>
+    <div id="scrolldown"><img src="{img filename="scrolldown.fw.png"}" /></div>
     </div>
 {/strip}

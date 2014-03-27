@@ -7561,3 +7561,20 @@ li.facetValue a {
 li.facetValue a :hover {
   text-decoration: none !important;
 }
+/* Eventually move all my CSS here */
+
+#scrollupdown{
+    position:fixed;
+    top:50px;
+    left:20px;
+    cursor:pointer;
+    border:2px solid #4e80bd;
+}
+.trans4{
+    -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=40)";
+    filter: alpha(opacity=40);
+    zoom:1;
+    -moz-opacity:0.4;
+    -khtml-opacity: 0.4;
+    opacity:0.4;
+}
