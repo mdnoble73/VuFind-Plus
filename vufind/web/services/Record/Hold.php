@@ -145,7 +145,7 @@ class Hold extends Action {
 
 			/** @var Library $library */
 			global $library;
-			$patronHomeBranch = $library->getPatronHomeLibrary();
+			$patronHomeBranch = Library::getPatronHomeLibrary();
 			if ($patronHomeBranch != null){
 				if ($patronHomeBranch->defaultNotNeededAfterDays > 0){
 					$interface->assign('defaultNotNeededAfterDays', date('m/d/Y', time() + $patronHomeBranch->defaultNotNeededAfterDays * 60 * 60 * 24));
@@ -154,9 +154,19 @@ class Hold extends Action {
 				}
 				$interface->assign('showHoldCancelDate', $patronHomeBranch->showHoldCancelDate);
 			}else{
-				//Show the hold cancellation date for now.  It may be hidden later when the user logs in.
-				$interface->assign('showHoldCancelDate', 1);
-				$interface->assign('defaultNotNeededAfterDays', '');
+				if ($library){
+					//Show the hold cancellation date for now.  It may be hidden later when the user logs in.
+					if ($library->defaultNotNeededAfterDays > 0){
+						$interface->assign('defaultNotNeededAfterDays', date('m/d/Y', time() + $library->defaultNotNeededAfterDays * 60 * 60 * 24));
+					}else{
+						$interface->assign('defaultNotNeededAfterDays', '');
+					}
+					$interface->assign('showHoldCancelDate', $library->showHoldCancelDate);
+				}else{
+					//Show the hold cancellation date for now.  It may be hidden later when the user logs in.
+					$interface->assign('showHoldCancelDate', 1);
+					$interface->assign('defaultNotNeededAfterDays', '');
+				}
 			}
 			$activeLibrary = $library->getActiveLibrary();
 			if ($activeLibrary != null){
