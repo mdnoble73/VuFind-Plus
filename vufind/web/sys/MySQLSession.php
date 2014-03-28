@@ -8,31 +8,46 @@ class MySQLSession extends SessionInterface {
 		$s = new Session();
 		$s->session_id = $sess_id;
 
+		$cookieData = '';
 		if ($s->find(true)) {
-			// enforce lifetime of this session data
-			if ($s->remember_me == 0 && $s->last_used + self::$lifetime > time()) {
-				$s->last_used = time();
+			//First check to see if the session expired
+			$curTime = time();
+			if ($s->remember_me){
+				$sessionExpirationTime = $s->last_used + self::$rememberMeLifetime;
+			}else{
+				$sessionExpirationTime = $s->last_used + self::$lifetime;
+			}
+			if ($curTime > $sessionExpirationTime){
+				self::destroy($sess_id);
+			}else{
+				// updated the session in the database to show that we just used it
+				$s->last_used = $curTime;
 				$s->update();
-				return $s->data;
-			} else if ($s->remember_me == 1 && $s->last_used + self::$rememberMeLifetime > time()) {
-				$s->last_used = time();
-				$s->update();
-				return $s->data;
-			} else {
-				$s->delete();
-				return '';
+				//And increase the cookie lifetime
+				if (isset($_REQUEST['rememberMe']) && $_REQUEST['rememberMe'] == true || $s->remember_me == 1){
+					$sessionNewExpirationTime = $s->last_used + self::$rememberMeLifetime;
+				}else{
+					$sessionNewExpirationTime = $s->last_used + self::$lifetime;
+				}
+				$cookieData = $s->data;
 			}
 		} else {
-			// in seconds - easier for calcuating duration
+			//There is no active session, we need to create a new one.
 			$s->last_used = time();
 			// in date format - easier to read
 			$s->created = date('Y-m-d h:i:s');
 			if (isset($_SESSION['rememberMe']) && $_SESSION['rememberMe'] == true){
 				$s->remember_me = 1;
+				$sessionNewExpirationTime = $s->last_used + self::$rememberMeLifetime;
+			}else{
+				$sessionNewExpirationTime = $s->last_used + self::$lifetime;
 			}
 			$s->insert();
-			return '';
 		}
+		/*if ($sessionNewExpirationTime){
+			setcookie('VFP_SESSION', $sess_id, $sessionNewExpirationTime, '/');
+		}*/
+		return $cookieData;
 	}
 
 	static public function write($sess_id, $data) {
@@ -43,8 +58,10 @@ class MySQLSession extends SessionInterface {
 			if (isset($_SESSION['rememberMe']) && $_SESSION['rememberMe'] == true){
 				$s->remember_me = 1;
 			}
+			parent::write($sess_id, $data);
 			return $s->update();
 		} else {
+			//No session active
 			return false;
 		}
 	}
@@ -52,6 +69,9 @@ class MySQLSession extends SessionInterface {
 	static public function destroy($sess_id) {
 		// Perform standard actions required by all session methods:
 		parent::destroy($sess_id);
+
+		//Remove our custom cookie
+		//setcookie('VFP_SESSION', $sess_id, -1, '/');
 
 		// Now do database-specific destruction:
 		$s = new Session();

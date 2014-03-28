@@ -284,7 +284,7 @@ if ($user) {
 	$user = UserAccount::login();
 	if (PEAR_Singleton::isError($user)) {
 		require_once ROOT_DIR . '/services/MyAccount/Login.php';
-		Login::launch($user->getMessage());
+		MyAccount_Login::launch($user->getMessage());
 		exit();
 	}
 	$interface->assign('user', $user);
@@ -805,9 +805,6 @@ function initializeSession(){
 	$session_lifetime = $configArray['Session']['lifetime'];
 	$session_rememberMeLifetime = $configArray['Session']['rememberMeLifetime'];
 	register_shutdown_function('session_write_close');
-	if (isset($configArray['Site']['cookie_domain'])){
-		session_set_cookie_params(0, '/', $configArray['Site']['cookie_domain']);
-	}
 	$sessionClass = ROOT_DIR . '/sys/' . $session_type . '.php';
 	require_once $sessionClass;
 	if (class_exists($session_type)) {

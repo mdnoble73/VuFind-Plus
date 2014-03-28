@@ -45,11 +45,9 @@ class UserAccount
 		if (isset($_REQUEST['rememberMe'])){
 			$_SESSION['rememberMe'] = true;
 			$session_rememberMeLifetime = $configArray['Session']['rememberMeLifetime'];
-			session_set_cookie_params($session_rememberMeLifetime);
 		}else{
 			$_SESSION['rememberMe'] = false;
 			$session_lifetime = $configArray['Session']['lifetime'];
-			session_set_cookie_params($session_lifetime);
 		}
 	}
 
@@ -96,13 +94,6 @@ class UserAccount
 
 		$_SESSION = array();
 
-		if (isset($_COOKIE[session_name()])) {
-			setcookie(session_name(), '', time()-42000, '/');
-		}
-		if (isset($_COOKIE['book_BAG_COOKIE_vufind'])) {
-			setcookie('book_BAG_COOKIE_vufind', '', time()-42000, '/');
-		}
-
 		session_destroy();
 	}
 
@@ -113,9 +104,6 @@ class UserAccount
 	public static function softLogout(){
 		if (isset($_SESSION['userinfo'])){
 			unset($_SESSION['userinfo']);
-		}
-		if (isset($_COOKIE['book_BAG_COOKIE_vufind'])) {
-			setcookie('book_BAG_COOKIE_vufind', '', time()-42000, '/');
 		}
 	}
 }
