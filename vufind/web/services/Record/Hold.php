@@ -143,8 +143,9 @@ class Hold extends Action {
 				$interface->assign('focusElementId', 'username');
 			}
 
-			global $librarySingleton;
-			$patronHomeBranch = $librarySingleton->getPatronHomeLibrary();
+			/** @var Library $library */
+			global $library;
+			$patronHomeBranch = $library->getPatronHomeLibrary();
 			if ($patronHomeBranch != null){
 				if ($patronHomeBranch->defaultNotNeededAfterDays > 0){
 					$interface->assign('defaultNotNeededAfterDays', date('m/d/Y', time() + $patronHomeBranch->defaultNotNeededAfterDays * 60 * 60 * 24));
@@ -157,7 +158,7 @@ class Hold extends Action {
 				$interface->assign('showHoldCancelDate', 1);
 				$interface->assign('defaultNotNeededAfterDays', '');
 			}
-			$activeLibrary = $librarySingleton->getActiveLibrary();
+			$activeLibrary = $library->getActiveLibrary();
 			if ($activeLibrary != null){
 				$interface->assign('holdDisclaimer', $activeLibrary->holdDisclaimer);
 			}else{
