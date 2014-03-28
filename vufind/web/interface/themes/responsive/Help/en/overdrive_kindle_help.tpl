@@ -32,7 +32,7 @@ Reading Kindle eBooks from the library is easy. All you have to do is check out 
 	</li>
 	<li>Transfer the book to your Kindle.</li>
 		<ol>
-			<li>To transfer the title to your kindle you will need to first <a href="{$path}/MyResearch/Login">login to your account</a> in the catalog.</li>
+			<li>To transfer the title to your kindle you will need to first <a href="{$path}/MyAccount/Login">login to your account</a> in the catalog.</li>
 			<li>If your Kindle supports wireless delivery of books you can
 		</ol>
 	<li>Read the book.</li>

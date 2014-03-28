@@ -73,7 +73,7 @@ class EditList extends Action
 
 		if (!($user = UserAccount::isLoggedIn())) {
 			include_once 'Login.php';
-			Login::launch();
+			MyAccount_Login::launch();
 			exit();
 		}
 

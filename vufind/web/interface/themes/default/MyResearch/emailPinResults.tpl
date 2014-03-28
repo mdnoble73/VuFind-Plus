@@ -11,7 +11,7 @@
     	{else}
     		Your PIN number has been sent to the email address we have on file.
     		<p> 
-    		<a href="{$path}/MyResearch/Login">Login here</a>
+    		<a href="{$path}/MyAccount/Login">Login here</a>
     		</p>
 			{/if}
     </div>

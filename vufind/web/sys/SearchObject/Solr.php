@@ -254,7 +254,7 @@ class SearchObject_Solr extends SearchObject_Base
 		// Basic Search logic
 		if ($this->initBasicSearch()) {
 			// If we found a basic search, we don't need to do anything further.
-		} else if (isset($_REQUEST['tag']) && $module != 'MyResearch') {
+		} else if (isset($_REQUEST['tag']) && $module != 'MyAccount') {
 			// Tags, just treat them as normal searches for now.
 			// The search processer knows what to do with them.
 			if ($_REQUEST['tag'] != '') {
@@ -318,7 +318,7 @@ class SearchObject_Solr extends SearchObject_Base
 			// We don't need spell checking
 			$this->spellcheck = false;
 			$this->searchType = strtolower($action);
-		} else if ($module == 'MyResearch') {
+		} else if ($module == 'MyAccount') {
 			$this->spellcheck = false;
 			$this->searchType = ($action == 'Home') ? 'favorites' : 'list';
 		}
@@ -958,9 +958,9 @@ class SearchObject_Solr extends SearchObject_Base
 		} else if ($this->searchType == 'reserves') {
 			return $this->serverUrl . '/Search/Reserves?';
 		} else if ($this->searchType == 'favorites') {
-			return $this->serverUrl . '/MyResearch/Home?';
+			return $this->serverUrl . '/MyAccount/Home?';
 		} else if ($this->searchType == 'list') {
-			return $this->serverUrl . '/MyResearch/MyList/' .
+			return $this->serverUrl . '/MyAccount/MyList/' .
 			urlencode($_GET['id']) . '?';
 		}
 

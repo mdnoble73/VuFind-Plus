@@ -55,7 +55,7 @@
 			<p>You do not have any holds that are ready for pickup from OverDrive.</p>
 		{/if}
 	{else}
-		You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
+		You must login to view this information. Click <a href="{$path}/MyAccount/Login">here</a> to login.
 	{/if}
 	</div>
 </div>

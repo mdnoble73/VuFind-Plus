@@ -1,11 +1,9 @@
 {strip}
-<div id="page-content" class="content">
+<div id="page-content" class="col-xs-12">
 	{if $message}<p class="text-error lead">{$message|translate}</p>{/if}
-	<div class="resulthead">
-		<h3>{translate text='Login to your account'}</h3>
-	</div>
+	<h2>{translate text='Login to your account'}</h2>
 	<div id="loginFormWrapper">
-		<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form-horizontal">
+		<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form">
 			<div id='loginFormFields'>
 				<div id ='loginUsernameRow' class='form-group'>
 					<label for="username" class='control-label'>{translate text='Username'}: </label>

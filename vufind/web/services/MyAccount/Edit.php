@@ -45,8 +45,8 @@ class MyAccount_Edit extends Action
 		global $configArray;
 
 		if (!($user = UserAccount::isLoggedIn())) {
-			require_once ROOT_DIR . '/services/MyResearch/Login.php';
-			MyResearch_Login::launch();
+			require_once ROOT_DIR . '/services/MyAccount/Login.php';
+			MyAccount_Login::launch();
 			exit();
 		}
 

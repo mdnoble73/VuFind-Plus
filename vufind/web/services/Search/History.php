@@ -31,8 +31,8 @@ class History extends Action {
 		// In some contexts, we want to require a login before showing search
 		// history:
 		if (isset($_REQUEST['require_login']) && !UserAccount::isLoggedIn()) {
-			require_once ROOT_DIR . '/services/MyResearch/Login.php';
-			Login::launch();
+			require_once ROOT_DIR . '/services/MyAccount/Login.php';
+			MyAccount_Login::launch();
 			exit();
 		}
 
@@ -104,7 +104,7 @@ class History extends Action {
 			$interface->assign('noHistory', true);
 		}
 
-		//Load profile inforamtion for display in My Account menu
+		//Load profile information for display in My Account menu
 		//This code is also in MyResearch.php
 		if ($user !== false){
 			global $configArray;

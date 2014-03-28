@@ -19,7 +19,7 @@
 		</div>
 		<div class="col-xs-3 col-sm-2 col-md-2 col-lg-2">
 			<div class="header-button header-primary" >
-				<a href="{$path}/MyResearch/Logout" id="logoutLink" >{translate text="Log Out"}</a>
+				<a href="{$path}/MyAccount/Logout" id="logoutLink" >{translate text="Log Out"}</a>
 			</div>
 		</div>
 	</div>

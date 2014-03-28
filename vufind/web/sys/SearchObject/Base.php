@@ -2094,7 +2094,7 @@ public function getNextPrevLinks(){
 								$interface->assign('previousType', 'EcontentRecord');
 								$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
 							}elseif (strpos($previousRecord['id'], 'list') === 0){
-								$interface->assign('previousType', 'MyResearch/MyList');
+								$interface->assign('previousType', 'MyAccount/MyList');
 								$interface->assign('previousId', str_replace('list', '', $previousRecord['id']));
 							}else if ($previousRecord['recordtype'] == 'grouped_work'){
 								$interface->assign('previousType', 'GroupedWork');
@@ -2121,7 +2121,7 @@ public function getNextPrevLinks(){
 								$interface->assign('nextType', 'EcontentRecord');
 								$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
 							}elseif (strpos($nextRecord['id'], 'list') === 0){
-								$interface->assign('nextType', 'MyResearch/MyList');
+								$interface->assign('nextType', 'MyAccount/MyList');
 								$interface->assign('nextId', str_replace('list', '', $nextRecord['id']));
 							}else if ($nextRecord['recordtype'] == 'grouped_work'){
 								$interface->assign('nextType', 'GroupedWork');

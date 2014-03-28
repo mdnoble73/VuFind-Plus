@@ -54,7 +54,7 @@
 			<p>You do not have any titles on hold in OverDrive.</p>
 		{/if}
 	{else}
-		You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
+		You must login to view this information. Click <a href="{$path}/MyAccount/Login">here</a> to login.
 	{/if}
 	</div>
 </div>

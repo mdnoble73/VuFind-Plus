@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
@@ -18,12 +19,16 @@ public class DatabaseCleanup implements IProcessHandler {
 
 		//Remove expired sessions
 		try{
-			int rowsRemoved = 0;
-			long numStandardSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where FROM_UNIXTIME(last_used) < (DATE_ADD(CURDATE(), INTERVAL -1 HOUR)) and remember_me = 0").executeUpdate();
+			long now = new Date().getTime();
+			long defaultTimeout = Long.parseLong(Util.cleanIniValue(configIni.get("Session", "lifetime")));
+			long earliestDefaultSessionToKeep = now - defaultTimeout;
+			long numStandardSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where last_used < " + earliestDefaultSessionToKeep + " and remember_me = 0").executeUpdate();
 			processLog.addNote("Deleted " + numStandardSessionsDeleted + " expired Standard Sessions");
 			processLog.saveToDatabase(vufindConn, logger);
-			long numRememberMeSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where FROM_UNIXTIME(last_used) < (DATE_ADD(CURDATE(), INTERVAL -2 WEEK)) and remember_me = 1").executeUpdate();
-			processLog.addNote("Deleted " + numStandardSessionsDeleted + " expired Remember Me Sessions");
+			long rememberMeTimeout = Long.parseLong(Util.cleanIniValue(configIni.get("Session", "rememberMeLifetime")));
+			long earliestRememberMeSessionToKeep = now - rememberMeTimeout;
+			long numRememberMeSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where last_used < " + earliestRememberMeSessionToKeep + " and remember_me = 1").executeUpdate();
+			processLog.addNote("Deleted " + numRememberMeSessionsDeleted + " expired Remember Me Sessions");
 			processLog.saveToDatabase(vufindConn, logger);
 		}catch (SQLException e) {
 			processLog.incErrors();

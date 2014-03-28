@@ -1,4 +1,5 @@
 {strip}
+	<div class="alert alert-info">Novelist provides detailed suggestions for titles you might like if you enjoyed this book.  Suggestions are based on recommendations from librarians and other contributors.</div>
 	<div id="similarTitlesNovelist" class="striped div-striped">
 		{foreach from=$similarTitles item=similarTitle name="recordLoop"}
 			<div class="novelist-similar-item">

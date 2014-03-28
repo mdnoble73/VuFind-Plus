@@ -53,8 +53,8 @@ class ListEdit extends Action
 				$interface->assign('message', 'You must be logged in first');
 				return $interface->fetch('AJAX/login.tpl');
 			} else {
-				require_once 'Login.php';
-				Login::launch();
+				require_once ROOT_DIR . '/services/MyAccount/Login.php';
+				MyAccount_Login::launch();
 			}
 			exit();
 		}

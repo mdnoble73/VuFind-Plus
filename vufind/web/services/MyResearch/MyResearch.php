@@ -42,8 +42,8 @@ abstract class MyResearch extends Action
 		$interface->assign('ils', $configArray['Catalog']['ils']);
 
 		if ($this->requireLogin && !UserAccount::isLoggedIn()) {
-			require_once 'Login.php';
-			MyResearch_Login::launch();
+			require_once ROOT_DIR . '/services/MyAccount/Login.php';
+			MyAccount_Login::launch();
 			exit();
 		}
 		//$interface->assign('userNoticeFile', 'MyResearch/listNotice.tpl');

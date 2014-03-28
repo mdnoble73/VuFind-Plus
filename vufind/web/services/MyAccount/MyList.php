@@ -52,8 +52,8 @@ class MyList extends MyResearch {
 
 		// Ensure user has privileges to view the list
 		if (!isset($list) || (!$list->public && !UserAccount::isLoggedIn())) {
-			require_once ROOT_DIR . 'services/MyResearch/Login.php';
-			MyResearch_Login::launch();
+			require_once ROOT_DIR . 'services/MyAccount/Login.php';
+			MyAccount_Login::launch();
 			exit();
 		}
 		if (!$list->public && $list->user_id != $user->id) {

@@ -7,7 +7,7 @@
 			<a id="myAccountNameLink" href="{$path}/MyAccount/Home">Logged In As {$user->firstname|capitalize} {$user->lastname|capitalize}</a>
 		</div>
 		<div class="logoutOptions" {if !$user} style="display: none;"{/if}>
-			<a href="{$path}/MyResearch/Logout" id="logoutLink" >{translate text="Log Out"}</a>
+			<a href="{$path}/MyAccount/Logout" id="logoutLink" >{translate text="Log Out"}</a>
 		</div>
 		<div class="loginOptions" {if $user} style="display: none;"{/if}>
 			{if $showLoginButton == 1}

@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . "/Action.php";
 
-class MyResearch_Login extends Action
+class MyAccount_Login extends Action
 {
 	function __construct()
 	{
@@ -36,7 +36,7 @@ class MyResearch_Login extends Action
 		// We should never access this module directly -- this is called by other
 		// actions as a support function.  If accessed directly, just redirect to
 		// the MyResearch home page.
-		if ($module == 'MyResearch' && $action == 'Login') {
+		if ($module == 'MyAccount' && $action == 'Login') {
 			header('Location: Home');
 			die();
 		}
@@ -103,7 +103,8 @@ class MyResearch_Login extends Action
 		
 		//set focus to the username field by default.
 		$interface->assign('focusElementId', 'username');
-		$interface->setTemplate('../MyResearch/login.tpl');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
+		$interface->setTemplate('../MyAccount/login.tpl');
 		$interface->setPageTitle('Login');
 		$interface->display('layout.tpl');
 	}
