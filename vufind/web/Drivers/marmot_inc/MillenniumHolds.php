@@ -321,8 +321,8 @@ class MillenniumHolds{
 			'unavailable' => $unavailableHolds
 		);
 
-		$sResult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* HOLD.?\W<[^<]+?>\W<[^<]+?>/", "", $sResult);
-		//$logger->log('Hold information = ' . $sresult, PEAR_LOG_INFO);
+		$sResult = preg_replace("/<tr.*?\d* HOLDS*.*?<\/tr>/s", "", $sResult);
+		//$logger->log('Hold information = ' . $sResult, PEAR_LOG_INFO);
 
 		$s = substr($sResult, stripos($sResult, 'patFunc'));
 
