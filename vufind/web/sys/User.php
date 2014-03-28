@@ -40,11 +40,16 @@ class UserAccount
 	// Updates the user information in the session.
 	public static function updateSession($user)
 	{
+		global $configArray;
 		$_SESSION['userinfo'] = serialize($user);
 		if (isset($_REQUEST['rememberMe'])){
 			$_SESSION['rememberMe'] = true;
+			$session_rememberMeLifetime = $configArray['Session']['rememberMeLifetime'];
+			session_set_cookie_params($session_rememberMeLifetime);
 		}else{
 			$_SESSION['rememberMe'] = false;
+			$session_lifetime = $configArray['Session']['lifetime'];
+			session_set_cookie_params($session_lifetime);
 		}
 	}
 
