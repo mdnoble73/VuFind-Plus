@@ -1582,10 +1582,10 @@ VuFind.Responsive = (function(){
 }(VuFind.Responsive || {}));
 
 $(document).ready(function(){
+    var winH = $(window).height();
     $("#scrollupdown").css({"top":winH/2});
     $(document).scroll(function(){
     var docH = $(document).height();
-    var winH = $(window).height();
     var scrH = $(document).scrollTop();
     var halfit = docH/2;
     //if( scrH >= halfit){
