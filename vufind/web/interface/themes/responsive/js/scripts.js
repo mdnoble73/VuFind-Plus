@@ -655,7 +655,7 @@ VuFind.ResultsList = {
 	},
 
 	toggleFacetVisibility: function(){
-		//$facetsSection = $("#collapse-side-facets");
+		$facetsSection = $("#collapse-side-facets");
 	}
 
 
@@ -1582,6 +1582,7 @@ VuFind.Responsive = (function(){
 }(VuFind.Responsive || {}));
 
 $(document).ready(function(){
+    $("#collapse-side-facets").show();
     var winH = $(window).height();
     $("#scrollupdown").css({"top":winH/3});
     $(document).scroll(function(){
