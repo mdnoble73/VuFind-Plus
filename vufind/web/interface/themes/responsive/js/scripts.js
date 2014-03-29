@@ -1584,10 +1584,11 @@ VuFind.Responsive = (function(){
 $(document).ready(function(){
     $(document).scroll(function(){
     var docH = $(document).height();
+    var winH = $(window).height();
     var scrH = $(document).scrollTop();
     var halfit = docH/2;
     //if( scrH >= halfit){
-        $("#scrollupdown").removeClass("trans5").addClass("trans2");
+        $("#scrollupdown").removeClass("trans5").addClass("trans2").css({"top":winH/2});
     //}
     });
     $(document).scroll(function() {
