@@ -7570,6 +7570,14 @@ li.facetValue a :hover {
     cursor:pointer;
     border:2px solid #4e80bd;
 }
+.trans5{
+    -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=50)";
+    filter: alpha(opacity=50);
+    zoom:1;
+    -moz-opacity:0.5;
+    -khtml-opacity: 0.5;
+    opacity:0.5;
+}
 .trans4{
     -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=40)";
     filter: alpha(opacity=40);
@@ -7577,4 +7585,20 @@ li.facetValue a :hover {
     -moz-opacity:0.4;
     -khtml-opacity: 0.4;
     opacity:0.4;
+}
+.trans3{
+    -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+    filter: alpha(opacity=30);
+    zoom:1;
+    -moz-opacity:0.3;
+    -khtml-opacity: 0.3;
+    opacity:0.3;
+}
+.trans2{
+    -ms-filter:"progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
+    filter: alpha(opacity=20);
+    zoom:1;
+    -moz-opacity:0.2;
+    -khtml-opacity: 0.2;
+    opacity:0.2;
 }

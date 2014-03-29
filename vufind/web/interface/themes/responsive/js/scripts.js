@@ -1586,9 +1586,9 @@ $(document).ready(function(){
     var docH = $(document).height();
     var scrH = $(document).scrollTop();
     var halfit = docH/2;
-    if( scrH >= halfit){
-        $("#scrollup").show();
-    }
+    //if( scrH >= halfit){
+        $("#scrollupdown").removeClass("trans2").addClass("trans5");
+    //}
     });
     $("#scrolldown").click(function(){
         $("html,body").animate({scrollTop:$(document).height()}, 1000);
