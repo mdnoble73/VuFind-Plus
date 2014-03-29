@@ -1569,14 +1569,14 @@ VuFind.Responsive = (function(){
                     xsContentInsertionPointElement.html(mainContent);
                     mainContentElement.html("");
                 }
-            }else{
+            }/*else{
                 //Sm or better resolution
                 mainContent = xsContentInsertionPointElement.html();
                 if (mainContent && mainContent.length){
                     mainContentElement.html(mainContent);
                     xsContentInsertionPointElement.html("");
                 }
-            }
+            }*/
         }
     };
 }(VuFind.Responsive || {}));
