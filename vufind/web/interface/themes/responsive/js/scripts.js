@@ -1590,6 +1590,14 @@ $(document).ready(function(){
         $("#scrollupdown").removeClass("trans2").addClass("trans5");
     //}
     });
+    $(document).scroll(function() {
+        clearTimeout($.data(this, 'scrollTimer'));
+        $.data(this, 'scrollTimer', setTimeout(function() {
+            // do something
+            $("#scrollupdown").removeClass("trans5").addClass("trans2");
+            //console.log("Haven't scrolled in 250ms!");
+        }, 250));
+    });
     $("#scrolldown").click(function(){
         $("html,body").animate({scrollTop:$(document).height()}, 1000);
         //$("#scrollup").show();
@@ -1600,4 +1608,5 @@ $(document).ready(function(){
         //$("#scrolldown").show();
         //$(this).hide();
     });
+
 });
