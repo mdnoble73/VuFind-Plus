@@ -1582,7 +1582,7 @@ VuFind.Responsive = (function(){
 }(VuFind.Responsive || {}));
 
 $(document).ready(function(){
-    $(".facetList").show();
+    $(".facetTitle").show();
     var winH = $(window).height();
     $("#scrollupdown").css({"top":winH/3});
     $(document).scroll(function(){
