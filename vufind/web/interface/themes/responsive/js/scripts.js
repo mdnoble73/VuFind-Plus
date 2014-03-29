@@ -1583,7 +1583,7 @@ VuFind.Responsive = (function(){
 
 $(document).ready(function(){
     var winH = $(window).height();
-    $("#scrollupdown").css({"top":winH/2});
+    $("#scrollupdown").css({"top":winH/4});
     $(document).scroll(function(){
     var docH = $(document).height();
     var scrH = $(document).scrollTop();
