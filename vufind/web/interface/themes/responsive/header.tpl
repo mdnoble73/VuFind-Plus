@@ -49,7 +49,7 @@
 
 	</div>
 </div>
-    <div id="scrollupdown" class="trans2">
+    <div id="scrollupdown" class="trans5">
     <div id="scrollup"><img src="{img filename="scrollup.fw.png"}" /></div>
     <div id="scrolldown"><img src="{img filename="scrolldown.fw.png"}" /></div>
     </div>

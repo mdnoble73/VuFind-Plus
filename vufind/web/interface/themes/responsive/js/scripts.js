@@ -1587,14 +1587,14 @@ $(document).ready(function(){
     var scrH = $(document).scrollTop();
     var halfit = docH/2;
     //if( scrH >= halfit){
-        $("#scrollupdown").removeClass("trans2").addClass("trans5");
+        $("#scrollupdown").removeClass("trans5").addClass("trans2");
     //}
     });
     $(document).scroll(function() {
         clearTimeout($.data(this, 'scrollTimer'));
         $.data(this, 'scrollTimer', setTimeout(function() {
             // do something
-            $("#scrollupdown").removeClass("trans5").addClass("trans2");
+            $("#scrollupdown").removeClass("trans2").addClass("trans5");
             //console.log("Haven't scrolled in 250ms!");
         }, 500));
     });
