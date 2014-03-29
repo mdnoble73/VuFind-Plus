@@ -1596,7 +1596,7 @@ $(document).ready(function(){
             // do something
             $("#scrollupdown").removeClass("trans5").addClass("trans2");
             //console.log("Haven't scrolled in 250ms!");
-        }, 250));
+        }, 500));
     });
     $("#scrolldown").click(function(){
         $("html,body").animate({scrollTop:$(document).height()}, 1000);
