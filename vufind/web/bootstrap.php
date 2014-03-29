@@ -25,6 +25,10 @@ if ($configArray['System']['debug']) {
 	error_reporting(E_ALL & ~E_DEPRECATED);
 }
 
+//Use output buffering to allow session cookies to have different values
+// this can't be determined before session_start is called
+ob_start();
+
 initMemcache();
 initDatabase();
 requireSystemLibraries();

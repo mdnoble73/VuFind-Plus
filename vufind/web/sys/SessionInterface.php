@@ -15,9 +15,9 @@ class SessionInterface {
 		//Set one year by default
 		global $configArray;
 		if (isset($configArray['Site']['cookie_domain'])){
-			session_set_cookie_params(31536000, '/', $configArray['Site']['cookie_domain']);
+			session_set_cookie_params(0, '/', $configArray['Site']['cookie_domain']);
 		}else{
-			session_set_cookie_params(31536000, '/');
+			session_set_cookie_params(0, '/');
 		}
 		session_start();
 	}

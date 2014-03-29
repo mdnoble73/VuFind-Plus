@@ -57,8 +57,10 @@ class MySQLSession extends SessionInterface {
 			$s->data = $data;
 			if (isset($_SESSION['rememberMe']) && ($_SESSION['rememberMe'] == true || $_SESSION['rememberMe'] === "true")){
 				$s->remember_me = 1;
+				setcookie(session_name(),session_id(),time()+self::$rememberMeLifetime,'/');
 			}else{
 				$s->remember_me = 0;
+				session_set_cookie_params(0);
 			}
 			parent::write($sess_id, $data);
 			return $s->update();
