@@ -7566,7 +7566,7 @@ li.facetValue a :hover {
 #scrollupdown{
     position:fixed;
     top:10px;
-    right:10px;
+    right:0px;
     cursor:pointer;
     border:2px solid #4e80bd;
 }
