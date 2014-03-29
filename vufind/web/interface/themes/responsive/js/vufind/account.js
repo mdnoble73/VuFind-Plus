@@ -98,7 +98,8 @@ VuFind.Account = (function(){
 		processAjaxLogin: function (ajaxCallback) {
 			var username = $("#username").val();
 			var password = $("#password").val();
-			var rememberMe = $("#rememberMe").val();
+			var rememberMeCtl = $("#rememberMe");
+			var rememberMe = rememberMeCtl.prop('checked');
 			var loginErrorElem = $('#loginError');
 			if (!username || !password) {
 				loginErrorElem.text("Please enter both your name and library card number");

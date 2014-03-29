@@ -178,6 +178,18 @@ class UInterface extends Smarty
 		$this->assign('currentTab', 'Search');
 
 		$this->assign('authMethod', $configArray['Authentication']['method']);
+
+		if ($configArray['System']['debug']){
+			$this->assign('debug', true);
+		}
+
+		$session = new Session();
+		$session->session_id = session_id();
+		if ($session->find(true)){
+			$this->assign('session', session_id() . ', remember me ' . $session->remember_me);
+		}else{
+			$this->assign('session', session_id() . ' - not saved');
+		}
 	}
 
 	public function getUrl(){

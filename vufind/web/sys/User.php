@@ -40,15 +40,13 @@ class UserAccount
 	// Updates the user information in the session.
 	public static function updateSession($user)
 	{
-		global $configArray;
 		$_SESSION['userinfo'] = serialize($user);
-		if (isset($_REQUEST['rememberMe'])){
+		if (isset($_REQUEST['rememberMe']) && ($_REQUEST['rememberMe'] === "true" || $_REQUEST['rememberMe'] === "on")){
 			$_SESSION['rememberMe'] = true;
-			$session_rememberMeLifetime = $configArray['Session']['rememberMeLifetime'];
 		}else{
 			$_SESSION['rememberMe'] = false;
-			$session_lifetime = $configArray['Session']['lifetime'];
 		}
+		session_commit();
 	}
 
 	// Try to log in the user using current query parameters; return User object
@@ -84,17 +82,13 @@ class UserAccount
 	}
 
 	/**
-	 * Completely logout the user anhilating their entire session.
+	 * Completely logout the user annihilating their entire session.
 	 */
 	public static function logout()
 	{
-		if(!isset($_SESSION)){
-			session_start();
-		}
-
+		session_destroy(session_id());
+		session_regenerate_id(true);
 		$_SESSION = array();
-
-		session_destroy();
 	}
 
 	/**

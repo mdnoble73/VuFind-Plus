@@ -2,12 +2,15 @@
 <div class="navbar navbar-static-bottom">
 	<div class="navbar-inner">
 		<div class="row">
-			{if !$productionServer}
-				<div class="col-sm-6 text-left" id="install-info">
+			<div class="col-sm-6 text-left" id="install-info">
+				{if $debug}
 					<small class='location_info'>{$physicalLocation} ({$activeIp}) - {$deviceName}</small>
-					<small class='version_info'> / v. {$gitBranch}</small>
-				</div>
-			{/if}
+				{/if}
+				<small class='version_info'>{if $debug} / {/if}v. {$gitBranch}</small>
+				{if $debug}
+					<small class='session_info'> / session. {$session}</small>
+				{/if}
+			</div>
 			<div class="col-sm-6 text-right" id="connect-with-us-info">
 				{if $twitterLink || $facebookLink || $generalContactLink}
 					<span id="connect-with-us-label" class="large">CONNECT WITH US</span>
