@@ -655,7 +655,7 @@ VuFind.ResultsList = {
 	},
 
 	toggleFacetVisibility: function(){
-		$facetsSection = $("#collapse-side-facets");
+		//$facetsSection = $("#collapse-side-facets");
 	}
 
 
