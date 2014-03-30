@@ -29,6 +29,7 @@ class GroupedWorkDriver implements RecordInterface{
 			/** @var Solr $db */
 			$db = new $class($url);
 			$db->disableScoping();
+			disableErrorHandler();
 
 			// Retrieve the record from Solr
 			if (!($record = $db->getRecord($id))) {
@@ -37,6 +38,7 @@ class GroupedWorkDriver implements RecordInterface{
 				$this->fields = $record;
 			}
 			$db->enableScoping();
+			enableErrorHandler();
 		}else{
 			$this->fields = $indexFields;
 		}
