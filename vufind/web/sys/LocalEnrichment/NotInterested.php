@@ -15,8 +15,4 @@ class NotInterested extends DB_DataObject{
 	public $dateMarked;
 
 	public $__table = 'user_not_interested';
-
-	//Additional properties added with joins
-	public $source;
-	public $record_id;
 }

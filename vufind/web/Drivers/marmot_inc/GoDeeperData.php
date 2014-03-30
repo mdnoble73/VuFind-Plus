@@ -391,6 +391,7 @@ class GoDeeperData{
 				if (isset($data)){
 					if (isset($data->VarFlds->VarDFlds->Notes->Fld520)){
 						$excerptData['excerpt'] = (string)$data->VarFlds->VarDFlds->Notes->Fld520;
+						$excerptData['excerpt'] = '<p>' . str_replace(chr( 194 ) . chr( 160 ), '</p><p>', $excerptData['excerpt']) . '</p>';
 					}
 				}
 

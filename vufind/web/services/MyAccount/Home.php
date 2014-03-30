@@ -22,26 +22,22 @@ class MyAccount_Home  extends MyResearch{
 
 			//Show alerts if any titles are overdue and if holds are ready to pickup.
 
+
 			//If user has suggestions on, show them a list of suggested titles.$suggestions = Suggestions::getSuggestions();
 			$suggestions = Suggestions::getSuggestions();
 			$resourceList = array();
 			$curIndex = 0;
 
 			// Setup Search Engine Connection
-			$class = $configArray['Index']['engine'];
-			$url = $configArray['Index']['url'];
-			/** @var SearchObject_Solr $solrDb */
-			$solrDb = new $class($url);
+			$searchObject = SearchObjectFactory::initSearchObject();
 
 			if (is_array($suggestions)) {
+				$suggestionIds = array();
 				foreach($suggestions as $suggestion) {
-					$interface->assign('resultIndex', ++$curIndex);
-					$record = $solrDb->getRecord($suggestion['titleInfo']['id']);
-					/** @var IndexRecord $recordDriver */
-					$recordDriver = RecordDriverFactory::initRecordDriver($record);
-					$resourceEntry = $interface->fetch($recordDriver->getSearchResult());
-					$resourceList[] = $resourceEntry;
+					$suggestionIds[] = $suggestion['titleInfo']['id'];
 				}
+				$results = $searchObject->searchForRecordIds($suggestionIds);
+				$resourceList = $searchObject->getSuggestionListHTML();
 			}
 			$interface->assign('suggestions', $resourceList);
 

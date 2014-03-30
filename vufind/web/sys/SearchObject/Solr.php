@@ -543,6 +543,29 @@ class SearchObject_Solr extends SearchObject_Base
 	 * @access  public
 	 * @return  array   Array of HTML chunks for individual records.
 	 */
+	public function getSuggestionListHTML()
+	{
+		global $interface;
+
+		$html = array();
+		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+			$current = & $this->indexResult['response']['docs'][$x];
+			if (!$this->debug){
+				unset($current['explain']);
+				unset($current['score']);
+			}
+			$record = RecordDriverFactory::initRecordDriver($current);
+			$html[] = $interface->fetch($record->getSuggestionEntry());
+		}
+		return $html;
+	}
+	/**
+	 * Use the record driver to build an array of HTML displays from the search
+	 * results suitable for use on a user's "favorites" page.
+	 *
+	 * @access  public
+	 * @return  array   Array of HTML chunks for individual records.
+	 */
 	public function getBrowseRecordHTML()
 	{
 		global $interface;
@@ -1903,7 +1926,7 @@ class SearchObject_Solr extends SearchObject_Base
 	/**
 	 * Retrieves a document specified by the ID.
 	 *
-	 * @param   string  $ids        An array of documents to retrieve from Solr
+	 * @param   string[]  $ids        An array of documents to retrieve from Solr
 	 * @access  public
 	 * @throws  object              PEAR Error
 	 * @return  string              The requested resource
@@ -1912,6 +1935,20 @@ class SearchObject_Solr extends SearchObject_Base
 	{
 		return $this->indexEngine->getRecords($ids);
 	}
+
+	/**
+	 * Retrieves a document specified by the ID.
+	 *
+	 * @param   string[]  $ids        An array of documents to retrieve from Solr
+	 * @access  public
+	 * @throws  object              PEAR Error
+	 * @return  string              The requested resource
+	 */
+	function searchForRecordIds($ids)
+	{
+		$this->indexResult = $this->indexEngine->searchForRecordIds($ids);
+	}
+
 
 	/**
 	 * Retrieves a document specified by the item barcode.

@@ -1289,6 +1289,16 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
+			'notInterestedWorksRemoveUserIndex' => array(
+				'title' => 'Not Interested Table Works Update to remove old indexes',
+				'description' => 'Update Not Interested Table to Remove old indexes that limited users to one title as not interested' ,
+				'continueOnError' => true,
+				'sql' => array(
+					"ALTER TABLE user_not_interested DROP INDEX userId",
+					"ALTER TABLE user_not_interested DROP INDEX userId_2",
+					"ALTER TABLE user_not_interested ADD INDEX INDEX(`userId`)",
+				),
+			),
 
 			'userRatings1' => array(
 				'title' => 'User Ratings Update 1',

@@ -448,6 +448,26 @@ class Solr implements IndexEngine {
 		return $records;
 	}
 
+	function searchForRecordIds($ids){
+		if (count($ids) == 0){
+			return array();
+		}
+		// Query String Parameters
+		$idString = '';
+		foreach ($ids as $id){
+			if (strlen($idString) > 0){
+				$idString .= ' OR ';
+			}
+			$idString .= "id:\"$id\"";
+		}
+		$options = array('q' => $idString, 'rows' => count($ids));
+		$result = $this->_select('GET', $options);
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result);
+		}
+		return $result;
+	}
+
 	/**
 	 * Get records similar to one record
 	 * Uses MoreLikeThis Request Handler
@@ -584,11 +604,12 @@ class Solr implements IndexEngine {
 	 *
 	 * @access	public
 	 * @var     string[]  $ids     A list of ids to return data for
+	 * @var     string[]  $notInterestedIds     A list of ids the user is not interested in
 	 * @throws	object						PEAR Error
 	 * @return	array							An array of query results
 	 *
 	 */
-	function getMoreLikeThese($ids)
+	function getMoreLikeThese($ids, $notInterestedIds)
 	{
 		// Query String Parameters
 		$idString = implode(' OR ', $ids);
@@ -597,6 +618,11 @@ class Solr implements IndexEngine {
 		$searchLibrary = Library::getSearchLibrary();
 		$searchLocation = Location::getSearchLocation();
 		$scopingFilters = $this->getScopingFilters($searchLibrary, $searchLocation);
+
+		$notInterestedString = implode(' OR ', $notInterestedIds);
+		if (strlen($notInterestedString) > 0){
+			$idString .= ' OR ' . $notInterestedString;
+		}
 		$options['fq'][] = "-id:($idString)";
 		foreach ($scopingFilters as $filter){
 			$options['fq'][] = $filter;
@@ -607,6 +633,15 @@ class Solr implements IndexEngine {
 			$options['shards'] = implode(',',$this->_solrShards);
 		}
 
+		$options['rows'] = 30;
+
+		// Limit Fields
+		if ($this->debug) {
+			$options['fl'] = $fields;
+		} else {
+			// This should be an explicit list
+			$options['fl'] = '*,score';
+		}
 		$result = $this->_select('GET', $options);
 		if (PEAR_Singleton::isError($result)) {
 			PEAR_Singleton::raiseError($result);

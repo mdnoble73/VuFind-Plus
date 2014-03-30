@@ -8,6 +8,13 @@ class Suggestions{
 	 */
 	static function getSuggestions($userId = -1){
 		global $configArray;
+
+		//Configuration for suggestions
+		$doNovelistRecommendations = true;
+		$numTitlesToLoadNovelistRecommendationsFor = 10;
+		$doMetadataRecommendations = true;
+		$doSimilarlyRatedRecommendations = false;
+		$maxRecommendations = 30;
 		if ($userId == -1){
 			global $user;
 			$userId = $user->id;
@@ -41,64 +48,82 @@ class Suggestions{
 		$url = $configArray['Index']['url'];
 		$db = new $class($url);
 
-		//Get a list of all titles the user has rated (3 star and above)
-		$ratings = new UserWorkReview();
-		$ratings->whereAdd("userId = $userId", 'AND');
-		$ratings->whereAdd('rating >= 3', 'AND');
-		$ratings->orderBy('rating DESC, dateRated DESC, id DESC');
-		//Use the 20 highest ratings to make real-time recommendations faster
-		$ratings->limit(0, 5);
-
-		$ratings->find();
 		$suggestions = array();
-		//echo("User has rated {$ratings->N} titles<br/>");
-		require_once ROOT_DIR . '/services/API/WorkAPI.php';
-		$workApi = new WorkAPI();
-		if ($ratings->N > 0){
-			while($ratings->fetch()){
-				$groupedWorkId = $ratings->groupedRecordPermanentId;
-				//echo("Found resource for $resourceId - {$resource->title}<br/>");
-				$ratedTitles[$ratings->groupedRecordPermanentId] = clone $ratings;
-				$isbns = $workApi->getIsbnsForWork($groupedWorkId);
-				$numRecommendations = Suggestions::getNovelistRecommendations($ratings, $groupedWorkId, $isbns, $allRatedTitles, $suggestions, $notInterestedTitles);
-				if ($numRecommendations == 0){
+		if ($doNovelistRecommendations){
+			//Get a list of all titles the user has rated (3 star and above)
+			$ratings = new UserWorkReview();
+			$ratings->whereAdd("userId = $userId", 'AND');
+			$ratings->whereAdd('rating >= 3', 'AND');
+			$ratings->orderBy('rating DESC, dateRated DESC, id DESC');
+			//Use just recent ratings to make real-time recommendations faster
+			$ratings->limit(0, $numTitlesToLoadNovelistRecommendationsFor);
+
+			$ratings->find();
+			//echo("User has rated {$ratings->N} titles<br/>");
+			require_once ROOT_DIR . '/services/API/WorkAPI.php';
+			$workApi = new WorkAPI();
+			if ($ratings->N > 0){
+				while($ratings->fetch()){
+					$groupedWorkId = $ratings->groupedRecordPermanentId;
+					//echo("Found resource for $resourceId - {$resource->title}<br/>");
+					$ratedTitles[$ratings->groupedRecordPermanentId] = clone $ratings;
+					$isbns = $workApi->getIsbnsForWork($groupedWorkId);
+					Suggestions::getNovelistRecommendations($ratings, $groupedWorkId, $isbns, $allRatedTitles, $suggestions, $notInterestedTitles);
+					/*if (count($suggestions) >= $maxRecommendations){
+						break;
+					}*/
+				}
+			}
+		}
+
+		if ($doSimilarlyRatedRecommendations && count($suggestions) < $maxRecommendations){
+			//Get a list of all titles the user has rated (3 star and above)
+			$ratings = new UserWorkReview();
+			$ratings->whereAdd("userId = $userId", 'AND');
+			$ratings->whereAdd('rating >= 3', 'AND');
+			$ratings->orderBy('rating DESC, dateRated DESC, id DESC');
+			//Use just recent ratings to make real-time recommendations faster
+			$ratings->limit(0, $numTitlesToLoadNovelistRecommendationsFor);
+
+			$ratings->find();
+			//echo("User has rated {$ratings->N} titles<br/>");
+			require_once ROOT_DIR . '/services/API/WorkAPI.php';
+			$workApi = new WorkAPI();
+			if ($ratings->N > 0){
+				while($ratings->fetch()){
 					Suggestions::getSimilarlyRatedTitles($workApi, $db, $ratings, $userId, $allRatedTitles, $suggestions, $notInterestedTitles);
 				}
 			}
 		}
 
-		//If the user has not rated anything, return nothing.
-		if (count($allLikedRatedTitles) == 0){
-			return array();
-		}
-		//Get recommendations based on everything I've rated using more like this functionality
-		$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		/** @var Solr $db */
-		$db = new $class($url);
-		//$db->debug = true;
-		$moreLikeTheseSuggestions = $db->getMoreLikeThese($allLikedRatedTitles);
-		//print_r($moreLikeTheseSuggestions);
-		if (count($suggestions) < 30){
+		//Get metadata recommendations if enabled, we have ratings, and we don't have enough suggestions yet
+		if ($doMetadataRecommendations && count($allLikedRatedTitles) > 0 && count($suggestions) < $maxRecommendations){
+			//Get recommendations based on everything I've rated using more like this functionality
+			$class = $configArray['Index']['engine'];
+			$url = $configArray['Index']['url'];
+			/** @var Solr $db */
+			$db = new $class($url);
+			//$db->debug = true;
+			$moreLikeTheseSuggestions = $db->getMoreLikeThese($allLikedRatedTitles, $notInterestedTitles);
 			foreach ($moreLikeTheseSuggestions['response']['docs'] as $suggestion){
-				//print_r($suggestion);
 				if (!array_key_exists($suggestion['id'], $allRatedTitles) && !array_key_exists($suggestion['id'], $notInterestedTitles)){
 					$suggestions[$suggestion['id']] = array(
-						'rating' => $suggestion['rating'] - 2.5,
-						'titleInfo' => $suggestion,
-						'basedOn' => 'MetaData for all titles rated',
+							'rating' => $suggestion['rating'] - 2.5,
+							'titleInfo' => $suggestion,
+							'basedOn' => 'MetaData for all titles rated',
 					);
 				}
-				if (count($suggestions) == 30){
+				if (count($suggestions) == $maxRecommendations){
 					break;
 				}
 			}
 		}
 
+
 		//sort suggestions based on score from ascending to descending
 		uasort($suggestions, 'Suggestions::compareSuggestions');
-		//Only return up to 50 suggestions to make the page size reasonable
-		$suggestions = array_slice($suggestions, 0, 30, true);
+		//Only return up to $maxRecommendations suggestions to make the page size reasonable
+		$suggestions = array_slice($suggestions, 0, $maxRecommendations, true);
 		//Return suggestions for use in the user interface.
 		return $suggestions;
 	}

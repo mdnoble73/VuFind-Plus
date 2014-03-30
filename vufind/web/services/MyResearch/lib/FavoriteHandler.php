@@ -95,7 +95,6 @@ class FavoriteHandler
 		$interface->assign('sortList', $searchObject->getSortList());
 
 		// Retrieve records from index (currently, only Solr IDs supported):
-
 		if (count($this->favorites) > 0){
 			$searchObject->setQueryIDs($this->favorites);
 			$result = $searchObject->processSearch();

@@ -269,6 +269,46 @@ class GroupedWorkDriver implements RecordInterface{
 		return 'RecordDrivers/GroupedWork/listentry.tpl';
 	}
 
+	public function getSuggestionEntry(){
+		global $interface;
+		global $timer;
+
+		$id = $this->getUniqueID();
+		$timer->logTime("Starting to load search result for grouped work $id");
+		$interface->assign('summId', $id);
+		if (substr($id, 0, 1) == '.'){
+			$interface->assign('summShortId', substr($id, 1));
+		}else{
+			$interface->assign('summShortId', $id);
+		}
+
+		$interface->assign('summUrl', $this->getLinkUrl());
+		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('summSubTitle', $this->getSubtitle());
+		$interface->assign('summAuthor', $this->getPrimaryAuthor());
+		$isbn = $this->getCleanISBN();
+		$interface->assign('summISBN', $isbn);
+		$interface->assign('summFormats', $this->getFormats());
+
+		$interface->assign('numRelatedRecords', $this->getNumRelatedRecords());
+
+		//Get Rating
+		$interface->assign('summRating', $this->getRatingData());
+
+		//Description
+		$interface->assign('summDescription', $this->getDescriptionFast());
+		$timer->logTime('Finished Loading Description');
+		$interface->assign('summSeries', $this->getSeries());
+		$timer->logTime('Finished Loading Series');
+
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+
+		$interface->assign('recordDriver', $this);
+
+		return 'RecordDrivers/GroupedWork/suggestionEntry.tpl';
+	}
+
 	public function getScrollerTitle($index, $scrollerName){
 		global $interface;
 		$interface->assign('index', $index);

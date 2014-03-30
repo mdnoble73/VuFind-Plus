@@ -3,7 +3,7 @@
 	<h4 class="modal-title" id="myModalLabel">Login</h4>
 </div>
 <div class="modal-body">
-	<p class="text-error text-center" id="loginError" style="display: none"></p>
+	<p class="alert alert-danger" id="loginError" style="display: none"></p>
 	<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form-horizontal" role="form">
 		<div id ='loginUsernameRow' class='form-group'>
 			<label for="username" class='control-label col-sm-3'>{translate text='Username'}</label>

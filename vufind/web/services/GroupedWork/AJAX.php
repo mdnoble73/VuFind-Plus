@@ -96,8 +96,8 @@ class GroupedWork_AJAX {
 		if (isset($similar) && count($similar['response']['docs']) > 0) {
 			$similarTitles = array();
 			foreach ($similar['response']['docs'] as $key => $similarTitle){
-				$recordDriver = new GroupedWorkDriver($similarTitle);
-				$similarTitles[] = $recordDriver->getScrollerTitle($key, 'MoreLikeThis');
+				$similarTitleDriver = new GroupedWorkDriver($similarTitle);
+				$similarTitles[] = $similarTitleDriver->getScrollerTitle($key, 'MoreLikeThis');
 			}
 			$similarTitlesInfo = array('titles' => $similarTitles, 'currentIndex' => 0);
 			$enrichmentResult['similarTitles'] = $similarTitlesInfo;

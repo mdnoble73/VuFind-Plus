@@ -12,21 +12,23 @@
 				{* TODO: Show an alert if any titles ready for pickup *}
 			</p>
 
-			<h3>{translate text='Recommended for you'}</h3>
-			{if !$hasRatings}
-				<p>
-					You have not rated any titles.
-					If you rate titles, we can provide you with suggestions for titles you might like to read.
-					Suggestions are based on titles you like (rated 4 or 5 stars) and information within the catalog.
-					Library staff does not have access to your suggestions.
-				</p>
-			{else}
-				<p>Based on the titles you have rated so far, these titles may be of interest to you.  To improve your suggestions keep rating more titles.</p>
-				{foreach from=$suggestions item=suggestion name=recordLoop}
-					<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
-						{$suggestion}
-					</div>
-				{/foreach}
+			{if $showRatings}
+				<h3>{translate text='Recommended for you'}</h3>
+				{if !$hasRatings}
+					<p>
+						You have not rated any titles.
+						If you rate titles, we can provide you with suggestions for titles you might like to read.
+						Suggestions are based on titles you like (rated 4 or 5 stars) and information within the catalog.
+						Library staff does not have access to your suggestions.
+					</p>
+				{else}
+					<p>Based on the titles you have rated so far, these titles may be of interest to you.  To improve your suggestions keep rating more titles.</p>
+					{foreach from=$suggestions item=suggestion name=recordLoop}
+						<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
+							{$suggestion}
+						</div>
+					{/foreach}
+				{/if}
 			{/if}
 		{else}
 			You must login to view this information. Click <a href="{$path}/MyAccount/Login">here</a> to login.
