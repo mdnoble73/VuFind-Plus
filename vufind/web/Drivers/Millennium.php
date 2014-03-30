@@ -790,13 +790,22 @@ class MillenniumDriver implements DriverInterface
 		global $configArray;
 		/** @var Memcache $memCache */
 		global $memCache;
-		global $timer;
+		global $library;
 		$patronDump = $memCache->get("patron_dump_$barcode");
 		if (!$patronDump || $forceReload){
 			$host=$configArray['OPAC']['patron_host'];
-			//Special processing to allow MCVSD Students to login
-			//with their student id.
+			//Special processing to allow users to login with short barcodes
+			if ($library){
+				$originalCode = $barcode;
+				if ($library->barcodePrefix){
+					if (strpos($barcode, $library->barcodePrefix) !== 0){
+						//Add the barcode prefix to the barcode
+						$barcode = $library->barcodePrefix . $barcode;
+					}
+				}
+			}
 			if ($this->fixShortBarcodes){
+
 				if (strlen($barcode)== 5 && is_numeric($barcode)){
 					$originalCode = $barcode;
 					$barcode = "41000000" . $barcode;

@@ -537,6 +537,16 @@ class DBMaintenance extends Admin_Admin {
 				)
 			),
 
+			'library_barcodes' => array(
+					'title' => 'Library Barcodes',
+					'description' => 'Better handling of library barcodes to handle automatic prefixing.',
+					'sql' => array(
+							"ALTER TABLE library ADD barcodePrefix VARCHAR(15) DEFAULT ''",
+							"ALTER TABLE library ADD minBarcodeLength INT(11) DEFAULT 0",
+							"ALTER TABLE library ADD maxBarcodeLength INT(11) DEFAULT 0",
+					),
+			),
+
 			'library_facets' => array(
 				'title' => 'Library Facets',
 				'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',
@@ -1296,7 +1306,7 @@ class DBMaintenance extends Admin_Admin {
 				'sql' => array(
 					"ALTER TABLE user_not_interested DROP INDEX userId",
 					"ALTER TABLE user_not_interested DROP INDEX userId_2",
-					"ALTER TABLE user_not_interested ADD INDEX INDEX(`userId`)",
+					"ALTER TABLE user_not_interested ADD INDEX(`userId`)",
 				),
 			),
 

@@ -548,14 +548,16 @@ class SearchObject_Solr extends SearchObject_Base
 		global $interface;
 
 		$html = array();
-		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
-			$current = & $this->indexResult['response']['docs'][$x];
-			if (!$this->debug){
-				unset($current['explain']);
-				unset($current['score']);
+		if (isset($this->indexResult['response']) && isset($this->indexResult['response']['docs'])){
+			for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
+				$current = & $this->indexResult['response']['docs'][$x];
+				if (!$this->debug){
+					unset($current['explain']);
+					unset($current['score']);
+				}
+				$record = RecordDriverFactory::initRecordDriver($current);
+				$html[] = $interface->fetch($record->getSuggestionEntry());
 			}
-			$record = RecordDriverFactory::initRecordDriver($current);
-			$html[] = $interface->fetch($record->getSuggestionEntry());
 		}
 		return $html;
 	}
