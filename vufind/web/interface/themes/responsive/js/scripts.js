@@ -1562,13 +1562,14 @@ VuFind.Responsive = (function(){
             var xsContentInsertionPointElement = $("#xs-main-content-insertion-point");
             var mainContent;
             if (resolution < 750) {
+                alert("resolution under 750");
                 // XS screen resolution
                 //move content from main-content-with-sidebar to xs-main-content-insertion-point
                 mainContent = mainContentElement.html();
                 if (mainContent && mainContent.length){
                     xsContentInsertionPointElement.html(mainContent);
                     mainContentElement.html("");
-                    alert("resolution under 750");
+
                 }
             }else{
                 //Sm or better resolution
@@ -1576,7 +1577,7 @@ VuFind.Responsive = (function(){
                 if (mainContent && mainContent.length){
                     mainContentElement.html(mainContent);
                     xsContentInsertionPointElement.html("");
-                    alert("resolution other than under 750");
+
                 }
             }
         }
