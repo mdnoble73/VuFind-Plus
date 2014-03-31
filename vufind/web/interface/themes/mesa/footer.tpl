@@ -42,7 +42,7 @@
 	<ul>
 		<li><a href="http://mesacountylibraries.libcal.com/events">{translate text='Library Events'}</a></li>
 		<li><a href="http://mesacountylibraries.org/locations/all-locations/ ">{translate text='Library Locations and Hours'}</a></li>
-		<li><a href="https://www.mesa.k12.co.us/parentbridge/">{translate text='District 51 Parent Bridge'}</a></li>
+		<li><a href="https://sis.d51schools.org/Login_PXP.aspx">{translate text='District 51 Parent Bridge'}</a></li>
 	</ul>
 </div>
 <div class="footerCol">
