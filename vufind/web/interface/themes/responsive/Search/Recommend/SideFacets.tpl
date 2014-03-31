@@ -8,7 +8,7 @@
 			Show Filters
 		</a>*}
 
-		<div id="collapse-side-facets" class="nav-collapse collapse collapse-facets">
+		<div id="collapse-side-facets" class="nav-collapse collapse">
 			{if isset($checkboxFilters) && count($checkboxFilters) > 0}
 				<p>
 					{include file='checkboxFilters.tpl'}
