@@ -6122,7 +6122,7 @@ a.badge:focus {
 @media (max-width: 767px) {
     #collapse-side-facets{
         height:auto;
-        width:auto;
+        width:300px;
         display:block;
     }
   body {
