@@ -6120,6 +6120,11 @@ a.badge:focus {
   }
 }
 @media (max-width: 767px) {
+    #collapse-side-facets{
+        height:auto;
+        width:auto;
+        display:block;
+    }
   body {
     padding-left: 20px;
     padding-right: 20px;
