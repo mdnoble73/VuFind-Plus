@@ -1568,15 +1568,17 @@ VuFind.Responsive = (function(){
                 if (mainContent && mainContent.length){
                     xsContentInsertionPointElement.html(mainContent);
                     mainContentElement.html("");
+                    alert("resolution under 750");
                 }
-            }/*else{
+            }else{
                 //Sm or better resolution
                 mainContent = xsContentInsertionPointElement.html();
                 if (mainContent && mainContent.length){
                     mainContentElement.html(mainContent);
                     xsContentInsertionPointElement.html("");
+                    alert("resolution other than under 750");
                 }
-            }*/
+            }
         }
     };
 }(VuFind.Responsive || {}));
