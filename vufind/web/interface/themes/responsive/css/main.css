@@ -7607,6 +7607,11 @@ li.facetValue a :hover {
     -khtml-opacity: 0.2;
     opacity:0.2;
 }
+/*top facet stuff*/
+.authorbox{
+    background:#47586E;
+    color: #888888;
+}
 .benjie div{
     padding-right:15px;
     /*border:1px solid #ddd;*/
