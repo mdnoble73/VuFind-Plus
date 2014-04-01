@@ -64,9 +64,9 @@ class TopFacets implements RecommendationInterface
 			$hasSearchLibraryFacets = ($searchLibrary != null && (count($searchLibrary->facets) > 0));
 			$hasSearchLocationFacets = ($searchLocation != null && (count($searchLocation->facets) > 0));
 			if ($hasSearchLocationFacets){
-				//$facets = $searchLocation->facets;
+				$facets = $searchLocation->facets;
 			}elseif ($hasSearchLibraryFacets){
-				//$facets = $searchLibrary->facets;
+				$facets = $searchLibrary->facets;
 			}else{
 				$facets = Library::getDefaultFacets();
 			}
