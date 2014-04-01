@@ -40,7 +40,7 @@
 		{else}
 			<div class="authorbox top-facet">
 				<h5>{translate text=$cluster.label}<span>{translate text="top_facet_suffix"}</span></h5>
-				<table class="facetsTop navmenu narrow_begin">
+				<table class="facetsTop navmenu narrow_begin benjie">
 					{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 						{if $smarty.foreach.narrowLoop.iteration == ($topFacetSettings.rows * $topFacetSettings.cols) + 1}
 							<tr id="more{$title}"><td><a href="#" onclick="moreFacets('{$title}'); return false;">{translate text='more'} ...</a></td></tr>
