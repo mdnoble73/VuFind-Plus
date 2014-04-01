@@ -68,7 +68,8 @@ class TopFacets implements RecommendationInterface
 			//}elseif ($hasSearchLibraryFacets){
 				//$facets = $searchLibrary->facets;
 			//}else{
-				$facets = Library::getDefaultFacets();
+				//$facets = Library::getDefaultFacets();
+            $facets = $searchLibrary->facets;
 			//}
 			foreach ($facets as $facet){
 				if ($facet->showAboveResults == 1){
