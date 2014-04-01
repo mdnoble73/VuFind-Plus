@@ -52,7 +52,7 @@
                     </div>
                     {/if}
                     {if $smarty.foreach.narrowLoop.iteration % $topFacetSettings.cols == 1}
-                    <div>
+                    <div class="benline">
                         {/if}
                         {if $thisFacet.isApplied}
                             {$thisFacet.value|escape}</a> <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$thisFacet.value|escape}');">(remove)</a>
