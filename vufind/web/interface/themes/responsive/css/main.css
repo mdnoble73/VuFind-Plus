@@ -7614,10 +7614,12 @@ li.facetValue a :hover {
 }
 .benjie div{
     padding-right:15px;
+    font-size:10px;
     /*border:1px solid #ddd;*/
 }
 .benline{
     display:inline-block;
     *zoom:1;
     *display:inline;
+    text-align:center;
 }
