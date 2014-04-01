@@ -55,8 +55,10 @@
                     <div class="benline">
                         {/if}
                         {if $thisFacet.isApplied}
-                            <img src="{$path}/interface/themes/responsive/images/{$thisFacet.value|lower|replace:' ':''}.png" alt="{translate text=$thisFacet.value|escape}">
+                        <div class="benline"><div>
+                                <img src="{$path}/interface/themes/responsive/images/{$thisFacet.value|lower|replace:' ':''}.png" alt="{translate text=$thisFacet.value|escape}"></div><div>
                             {*{$thisFacet.value|escape}*}</a> <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$thisFacet.value|escape}');">(remove)</a>
+                            </div></div>
                         {else}
                             <div class="benline"><div><a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', '{$cluster.label}', '{$thisFacet.value|escape}');">
                                        {* {$thisFacet.value|escape}*}
