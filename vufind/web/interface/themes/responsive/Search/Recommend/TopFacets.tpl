@@ -38,7 +38,7 @@
 				</div>
 			</div>
 		{else}
-            <div class="authorbox top-facet">
+            <!--<div class="authorbox top-facet">-->
 
                 <!--<div class="facetsTop navmenu narrow_begin benjie">-->
                 <div class="formatCategories well text-center top-facet" id="formatCategories">
@@ -74,7 +74,7 @@
                     {/if}
                     {/foreach}
                 </div>
-            </div>
+            <!--</div>-->
 		{/if}
 	{/foreach}
 {/if}
