@@ -7610,6 +7610,8 @@ li.facetValue a :hover {
 .benjie div{
     padding-right:5px;
     border:1px solid #ddd;
+}
+.benline{
     display:inline-block;
     *zoom:1;
     *display:inline;

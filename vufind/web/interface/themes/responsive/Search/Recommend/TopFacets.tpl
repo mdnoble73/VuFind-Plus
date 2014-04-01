@@ -52,12 +52,12 @@
                     </div>
                     {/if}
                     {if $smarty.foreach.narrowLoop.iteration % $topFacetSettings.cols == 1}
-                    <div>
+                    <div class="benline">
                         {/if}
                         {if $thisFacet.isApplied}
                             {$thisFacet.value|escape}</a> <img src="{$path}/images/silk/tick.png" alt="Selected" /> <a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', '{$cluster.label}', '{$thisFacet.value|escape}');">(remove)</a>
                         {else}
-                            <a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', '{$cluster.label}', '{$thisFacet.value|escape}');">{$thisFacet.value|escape}</a> <div>({$thisFacet.count})</div>
+                            <div><a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', '{$cluster.label}', '{$thisFacet.value|escape}');">{$thisFacet.value|escape}</a></div><div>({$thisFacet.count})</div>
                         {/if}
                         {if $smarty.foreach.narrowLoop.iteration % $topFacetSettings.cols == 0 || $smarty.foreach.narrowLoop.last}
                     </div>
