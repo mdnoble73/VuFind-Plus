@@ -7610,10 +7610,10 @@ li.facetValue a :hover {
 /*top facet stuff*/
 .authorbox{
     background:#47586E;
-    color: #888888;
+    color: #F9F9F9;
 }
 .benjie div{
-    padding-right:15px;
+    padding-right:10px;
     font-size:10px;
     /*border:1px solid #ddd;*/
 }
