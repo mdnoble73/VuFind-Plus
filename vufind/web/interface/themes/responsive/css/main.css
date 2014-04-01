@@ -7607,3 +7607,8 @@ li.facetValue a :hover {
     -khtml-opacity: 0.2;
     opacity:0.2;
 }
+.benjie div{
+    display:inline-block;
+    *zoom:1;
+    *display:inline;
+}
