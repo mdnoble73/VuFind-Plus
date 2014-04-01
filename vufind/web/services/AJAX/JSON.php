@@ -156,6 +156,10 @@ class AJAX_JSON extends Action {
 					list($hour, $minutes) = explode(':', $hourString);
 					if ($hour < 12){
 						$hourObj->open .= ' AM';
+					}elseif ($hour == 12){
+						$hourObj->open = 'Noon';
+					}elseif ($hour == 24){
+						$hourObj->open = 'Midnight';
 					}else{
 						$hour -= 12;
 						$hourObj->open = "$hour:$minutes PM";
@@ -164,6 +168,10 @@ class AJAX_JSON extends Action {
 					list($hour, $minutes) = explode(':', $hourString);
 					if ($hour < 12){
 						$hourObj->close .= ' AM';
+					}elseif ($hour == 12){
+						$hourObj->close = 'Noon';
+					}elseif ($hour == 24){
+						$hourObj->close = 'Midnight';
 					}else{
 						$hour -= 12;
 						$hourObj->close = "$hour:$minutes PM";
