@@ -1056,7 +1056,7 @@ public abstract class IlsRecordProcessor {
 
 				if (field.getSubfield('a') != null) {
 					String type = field.getSubfield('a').getData();
-					if (type.matches("(?i)accelerated reader")) {
+					if (type.matches("(?i)accelerated reader") && field.getSubfield('d') != null) {
 						String rawData = field.getSubfield('d').getData();
 						try {
 							Pattern Regex = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ
