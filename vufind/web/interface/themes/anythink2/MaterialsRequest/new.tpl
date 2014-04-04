@@ -4,7 +4,9 @@
     <h1>{translate text='Request it!'}<img src="http://www.oclc.org/developer/sites/default/files/badges/wc_badge1.png" width="88" height="31" alt="Some library data on this site is provided by WorldCat, the world's largest library catalog [WorldCat.org]" /></h1>
     <div id="materialsRequest">
       <div class="materialsRequestExplanation">
-        <div id="messages">Boy, do Anythinkers know what they want! Requests are now limited to 60 per customer, per year.</div>
+	      <div id="messages">
+		      Boy, do Anythinkers know what they want! Requests are now limited to 60 per customer, per year. <a href="http://www.anythinklibraries.org/blog/make-most-out-your-anythink-requests-these-tips">Learn more...</a>
+	      </div>
         {if !$user}
           <p>If you can't find what you're looking for in our catalog, let us do the work for you. We'll try requesting it from another library or consider purchasing it for Anythink's collection.</p>
           <p>Please login below to get started.</p>
