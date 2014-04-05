@@ -35,7 +35,7 @@ require_once ROOT_DIR . '/Drivers/Millennium.php';
  */
 class Nashville extends MillenniumDriver{
 	public function __construct(){
-		$this->fixShortBarcodes = true;
+		$this->fixShortBarcodes = false;
 	}
 	/**
 	 * Login with barcode and pin
