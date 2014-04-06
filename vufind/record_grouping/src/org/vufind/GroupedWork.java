@@ -15,8 +15,7 @@ import java.util.regex.Pattern;
  * Time: 9:02 AM
  */
 public class GroupedWork implements Cloneable{
-	private String title = "";              //Up to 100 chars
-	private String subtitle = "";           //Up to 175 chars
+	private String fullTitle = "";              //Up to 100 chars
 	private String author = "";             //Up to 50  chars
 	public String groupingCategory = "";   //Up to 25  chars
 
@@ -26,7 +25,7 @@ public class GroupedWork implements Cloneable{
 		String permanentId = null;
 		try {
 			MessageDigest idGenerator = MessageDigest.getInstance("MD5");
-			String fullTitle = getFullTitle();
+			String fullTitle = getTitle();
 			if (fullTitle.equals("")){
 				idGenerator.update("--null--".getBytes());
 			}else{
@@ -98,10 +97,11 @@ public class GroupedWork implements Cloneable{
 		return groupingAuthor;
 	}
 
-	static Pattern commonSubtitlesPattern = Pattern.compile("^(.*)((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|an? .* story|a .*\\s?book|poems|the movie|.*series book \\d+)$");
+	static Pattern commonSubtitlesPattern = Pattern.compile("^(.*?)((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|an? .* story|a .*\\s?book|poems|the movie|[\\w\\s]+series book \\d+|[\\w\\s]+trilogy book \\d+)$");
 	private String normalizeSubtitle(String originalTitle) {
 		if (originalTitle.length() > 0){
-			String groupingSubtitle = originalTitle.replaceAll("&", "and");
+			String groupingSubtitle = originalTitle.replaceAll("&#8211;", "-");
+			groupingSubtitle = groupingSubtitle.replaceAll("&", "and");
 
 			//Remove any bracketed parts of the title
 			groupingSubtitle = bracketedCharacterStrip.matcher(groupingSubtitle).replaceAll("");
@@ -156,18 +156,22 @@ public class GroupedWork implements Cloneable{
 		}
 
 		//If the title includes a : in it, take the first part as the title and the second as the subtitle
-		//TODO: test this
 		Matcher subtitleMatcher = subtitleIndicator.matcher(groupingTitle);
 		if (subtitleMatcher.find()){
 			int startPos = subtitleMatcher.start();
-			setSubtitle(groupingTitle.substring(startPos + 1));
+			String subtitle = normalizeSubtitle(groupingTitle.substring(startPos + 1));
 			groupingTitle = groupingTitle.substring(0, startPos);
+			//Add the subtitle back
+			if (subtitle != null && subtitle.length() > 0){
+				groupingTitle += " " + subtitle;
+			}
 		}
 
 		//Fix abbreviations
 		groupingTitle = initialsFix.matcher(groupingTitle).replaceAll(" ");
 		//Replace & with and for better matching
-		groupingTitle = groupingTitle.replace("&", "and");
+		groupingTitle = groupingTitle.replaceAll("&#8211;", "-");
+		groupingTitle = groupingTitle.replaceAll("&", "and");
 		groupingTitle = specialCharacterStrip.matcher(groupingTitle).replaceAll("").toLowerCase();
 		//Replace consecutive spaces
 		groupingTitle = consecutiveCharacterStrip.matcher(groupingTitle).replaceAll(" ");
@@ -190,16 +194,19 @@ public class GroupedWork implements Cloneable{
 		}
 	}
 
-	public String getFullTitle(){
-		String fullTitle = this.title + " " + this.subtitle;
-		return fullTitle.trim();
-	}
 	public String getTitle() {
-		return title;
+		return fullTitle;
 	}
 
-	public void setTitle(String title, int numNonFilingCharacters) {
-		this.title = normalizeTitle(title, numNonFilingCharacters);
+	public void setTitle(String title, int numNonFilingCharacters, String subtitle) {
+		title = normalizeTitle(title, numNonFilingCharacters);
+		if (subtitle != null){
+			subtitle = normalizeSubtitle(subtitle);
+			if (subtitle.length() > 0){
+				title += " " + subtitle;
+			}
+		}
+		this.fullTitle = title.trim();
 	}
 
 	public String getAuthor() {
@@ -208,24 +215,6 @@ public class GroupedWork implements Cloneable{
 
 	public void setAuthor(String author) {
 		this.author = normalizeAuthor(author);
-	}
-
-	public String getSubtitle() {
-		return subtitle;
-	}
-
-	public void setSubtitle(String subtitle) {
-		if (this.subtitle.length() != 0){
-			//We got multiple subtitles by splitting the original title.
-			//move the current subtitle back to the title and then add this subtitle
-			String tmpTitle = this.title + " " + this.subtitle;
-			int titleEnd = 100;
-			if (titleEnd < tmpTitle.length()) {
-				tmpTitle = tmpTitle.substring(0, titleEnd);
-			}
-			this.title = tmpTitle.trim();
-		}
-		this.subtitle = normalizeSubtitle(subtitle);
 	}
 
 	private static Pattern sortTrimmingPattern = Pattern.compile("(?i)^(?:(?:a|an|the|el|la|\"|')\\s)(.*)$");

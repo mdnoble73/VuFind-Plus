@@ -258,8 +258,6 @@ public class RecordGroupingProcessor {
 			if (nonFilingCharacters == ' ') nonFilingCharacters = '0';
 			int numNonFilingCharacters = Integer.parseInt(Character.toString(nonFilingCharacters));
 
-			workForTitle.setTitle(fullTitle, numNonFilingCharacters);
-
 			//Add in subtitle (subfield b as well to avoid problems with gov docs, etc)
 			StringBuilder groupingSubtitle = new StringBuilder();
 			if (field245.getSubfield('b') != null){
@@ -275,7 +273,8 @@ public class RecordGroupingProcessor {
 				if (groupingSubtitle.length() > 0) groupingSubtitle.append(" ");
 				groupingSubtitle.append(field245.getSubfield('p').getData());
 			}
-			workForTitle.setSubtitle(groupingSubtitle.toString());
+
+			workForTitle.setTitle(fullTitle, numNonFilingCharacters, groupingSubtitle.toString());
 		}
 
 		//Format
@@ -362,7 +361,7 @@ public class RecordGroupingProcessor {
 
 				//Need to insert a new grouped record
 				long startAdd = new Date().getTime();
-				insertGroupedWorkStmt.setString(1, groupedWork.getFullTitle());
+				insertGroupedWorkStmt.setString(1, groupedWork.getTitle());
 				insertGroupedWorkStmt.setString(2, groupedWork.getAuthor());
 				insertGroupedWorkStmt.setString(3, groupedWork.groupingCategory);
 				insertGroupedWorkStmt.setString(4, groupedWorkPermanentId);
@@ -456,13 +455,7 @@ public class RecordGroupingProcessor {
 		GroupedWork groupedWork = new GroupedWork();
 
 		//Replace & with and for better matching
-		if (title != null){
-			groupedWork.setTitle(title, 0);
-		}
-
-		if (subtitle != null){
-			groupedWork.setSubtitle(subtitle);
-		}
+		groupedWork.setTitle(title, 0, subtitle);
 
 		if (author != null){
 			groupedWork.setAuthor(author);
