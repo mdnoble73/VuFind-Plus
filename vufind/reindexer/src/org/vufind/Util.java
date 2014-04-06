@@ -474,7 +474,7 @@ public class Util {
 		if (format == null){
 			return "";
 		}
-		if (format.endsWith("/") || format.endsWith(",") || format.endsWith(".")) {
+		if (format.endsWith("/") || format.endsWith(",") || format.endsWith(".") || format.endsWith(";")) {
 			format = format.substring(0, format.length() - 1);
 		}
 		return format.trim();

@@ -6,7 +6,6 @@ import org.ini4j.Ini;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
-import java.net.MalformedURLException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -72,11 +71,7 @@ public class GroupedWorkIndexer {
 		publicDomainEContentProcessor = new PublicDomainEContentProcessor(this, vufindConn, econtentConn, configIni, logger);
 
 		//Initialize the updateServer
-		try {
-			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 5000, 10);
-		} catch (MalformedURLException e) {
-			logger.error("Could not create update server for solr", e);
-		}
+		updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 5000, 10);
 
 		//Load translation maps
 		loadTranslationMaps();
@@ -147,7 +142,7 @@ public class GroupedWorkIndexer {
 			logger.error("Error calling final commit", e);
 		}
 		try {
-			//Optimize to trigger replication
+			//Optimize to trigger improve performance
 			updateServer.optimize(true, true);
 		} catch (Exception e) {
 			logger.error("Error optimizing index", e);
@@ -225,7 +220,7 @@ public class GroupedWorkIndexer {
 		for(String isbn : groupedWork.getIsbns()){
 			if (lexileInformation.containsKey(isbn)){
 				LexileTitle lexileTitle = lexileInformation.get(isbn);
-				groupedWork.setLexileCode(lexileTitle.getLexileCode());
+				groupedWork.setLexileCode(this.translateValue("lexile_code", lexileTitle.getLexileCode()));
 				groupedWork.setLexileScore(lexileTitle.getLexileScore());
 				groupedWork.addAwards(lexileTitle.getAwards());
 				if (lexileTitle.getSeries().length() > 0){

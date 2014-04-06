@@ -1,141 +1,78 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-This is the Jetty 6 HTTP server and servlet container.
+Solr example
+------------
 
-For more information about Jetty, please see the Jetty wiki: 
+This directory contains an instance of the Jetty Servlet container setup to 
+run Solr using an example configuration.
 
-   http://docs.codehaus.org/display/JETTY/
+To run this example:
 
-DIRECTORY LAYOUT
-================
-bin                   utility scripts and executables
-contexts              Deployment directory for context descriptors
-contrib               Source modules for optional jetty packages in the jetty-contrib repository, which has a larger more open group of committers
-etc                   Configuration files
-examples              Example projects
-extras                Source modules for optional jetty packages in the main jetty repository.
-javadoc               Generated javadoc
-lib                   Generated libraries
-LICENSES              License
-logs                  Request log and server log files
-modules               Source modules for core jetty packages
-patches               Optional patches for source modules
-pom.xml               Build configuration for maven
-project-website       Project Website
-README.txt            This file
-resources             Directory for resources to include on classpath
-start.jar             Start jar for jetty
-VERSION.txt           Version history
-webapps               Deployment directory for standard webapps
+  java -jar start.jar
 
+in this example directory, and when Solr is started connect to 
 
-RUNNING JETTY
-=============
-From the release, you can run the server with:
+  http://localhost:8983/solr/
 
-   java -jar start.jar
+To add documents to the index, use the post.jar (or post.sh script) in
+the example/exampledocs subdirectory (while Solr is running), for example:
 
-and then point your browser at 
+     cd exampledocs
+     java -jar post.jar *.xml
+Or:  sh post.sh *.xml
 
-   http://localhost:8080
+For more information about this example please read...
 
-and click to the test webapp, where there are some demos and more
-information.
+ * example/solr/README.txt
+   For more information about the "Solr Home" and Solr specific configuration
+ * http://lucene.apache.org/solr/tutorial.html
+   For a Tutorial using this example configuration
+ * http://wiki.apache.org/solr/SolrResources 
+   For a list of other tutorials and introductory articles.
 
-The start command above is equivalent to 
+Notes About These Examples
+--------------------------
 
-   java -jar start.jar etc/jetty.xml
+* SolrHome *
 
-which gives a configuration file on the commandline. An explicit
-configuration file (or multiple configuration files) may be
-given to select specific configurations.
+By default, start.jar starts Solr in Jetty using the default Solr Home
+directory of "./solr/" (relative to the working directory of hte servlet 
+container).  To run other example configurations, you can specify the 
+solr.solr.home system property when starting jetty...
 
-There is also a unix start script in bin/jetty.sh that can be used
-in /etc/init.d
+  java -Dsolr.solr.home=multicore -jar start.jar
+  java -Dsolr.solr.home=example-DIH/solr -jar start.jar
 
-JETTY DEPENDENCIES
-==================
+* References to Jar Files Outside This Directory *
 
-The Jetty build is rather large, because it bundles many optional
-packages.
+Various example SolrHome dirs contained in this directory may use "<lib>"
+statements in the solrconfig.xml file to reference plugin jars outside of 
+this directory for loading "contrib" plugins via relative paths.  
 
-Jetty depends ONLY on a jre 1.4 runtime and the three jars found in
-the top level of the $JETTY_HOME/lib directory:
+If you make a copy of this example server and wish to use the 
+ExtractingRequestHandler (SolrCell), DataImportHandler (DIH), UIMA, the 
+clustering component, or any other modules in "contrib", you will need to 
+copy the required jars or update the paths to those jars in your 
+solrconfig.xml.
 
-  servlet-api-2.5-$VERSION.jar
-  jetty-$VERSION.jar
-  jetty-util-$VERSION.jar
+* Logging *
+
+By default, Jetty & Solr will log to the console a logs/solr.log. This can be convenient when 
+first getting started, but eventually you will want to log just to a file. To 
+configure logging, edit the log4j.properties file in "resources".
  
-For small foot print applications, these three jars can be 
-trimmed of excess classes - we will soon automate generation
-of such minimal assemblies.
-
-The jars found in the subdirectories are all optional:
-
-  jsp-2.0/*.jar   (depends on java 2 (jre 1.4))
-  jsp-2.1/*.jar   (depends on java 5 (jre 1.5))
-  management/*.jar
-  naming/*.jar
-  plus/*.jar
-  xbean/*.jar
-
-The start.jar includes all these options if they are
-left in the lib subdirectories.
-
-The start.jar will also select the version of JSP to
-use based on the version of the jre available.
-
-
-RUNNING WITH JMX
-================
-
-The server can be run with JMX management with the command:
-
-   java -jar start.jar etc/jetty-jmx.xml etc/jetty.xml
-   
-This command adds the jmx configuration file before the server
-configuration.
-
-RUNNING WITH JETTY PLUS
-=======================
-
-The server can be run as JettyPlus (JNDI, JAAS etc.) with the 
-command:
-
-   java -jar start.jar etc/jetty.xml etc/jetty-plus.xml
-   
-This command adds the plus configuration file after the server configuration file,
-although you will first need to follow the instructions inside the etc/jetty-plus.xml
-file.
-
-RUNNING WITH OTHER CONTAINERS
-=============================
-If you wish to use Continuations in other containers, the jetty-util.jar
-can be included in WEB-INF/lib and will provide waiting continuations
-
-
-BUILDING JETTY
-==============
-
-Jetty uses maven 2 as its build system.  Maven will fetch
-the dependancies, build the server and assemble a runnable
-version:
-
-  mvn install
-
-Jetty itself only needs java 1.4, however to build JSP 2.1 
-support you need to use java5 AND you will need to have
-cvs installed.    If you want to use java1.4,
-then you can use the jsp-2.0 modules instead of the 
-jsp-api-2.1 and  jsp-2.1 modules.
-
-
-DEPENDENCIES 
-============
-The only real dependancy is the servlet api, so only 
-the jars in the top level of the lib directory are needed
-to run Jetty (and they can be trimmed from many applications).
-
-The jars in the subdirectories of lib are all optional, but
-are included on the classpath by the standard start.jar 
-mechanism
+It is also possible to setup log4j or other popular logging frameworks.
 

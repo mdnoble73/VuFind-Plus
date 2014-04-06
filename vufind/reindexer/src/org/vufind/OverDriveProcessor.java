@@ -2,6 +2,8 @@ package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -290,6 +292,17 @@ public class OverDriveProcessor {
 			//Need to divide this because it seems to be all time checkouts for all libraries, not just our libraries
 			//Hopefully OverDrive will give us better stats in the near future that we can use.
 			groupedWork.addPopularity(metadataRS.getFloat("popularity") / 500f);
+
+			//Decode JSON data to get a little more information
+			try {
+				JSONObject jsonData = new JSONObject(metadataRS.getString("rawData"));
+				if (jsonData.has("ATOS")){
+					groupedWork.setAcceleratedReaderReadingLevel(jsonData.getString("ATOS"));
+				}
+			} catch (JSONException e) {
+				logger.error("Error loading raw data for OverDrive MetaData");
+			}
+
 		}
 		metadataRS.close();
 	}

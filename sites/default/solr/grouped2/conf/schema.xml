@@ -4,6 +4,7 @@
 		<fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
 		<fieldType name="integer" class="solr.SortableIntField" omitNorms="true"/>
 		<fieldType name="float" class="solr.FloatField" omitNorms="true"/>
+		<fieldType name="long" class="solr.TrieLongField" precisionStep="0" positionIncrementGap="0"/>
 		<fieldType name="date" class="solr.DateField"/>
 		<fieldType name="textFacet" class="solr.TextField" sortMissingLast="true" omitNorms="true">
 			<analyzer>
@@ -64,13 +65,13 @@
 				<filter class="solr.TrimFilterFactory"/>
 				<!-- The PatternReplaceFilter gives you the flexibility to use
              Java Regular expression to replace any sequence of characters
-             matching a pattern with an arbitrary replacement string, 
+             matching a pattern with an arbitrary replacement string,
              which may include back references to portions of the original
              string matched by the pattern.
-             
+
              See the Java Regular Expression documentation for more
              information on pattern and replacement string syntax.
-             
+
              http://java.sun.com/j2se/1.5.0/docs/api/java/util/regex/package-summary.html
           -->
 				<filter class="solr.PatternReplaceFilterFactory" pattern="([^a-z1-9\s])" replacement="" replace="all"/>
@@ -121,6 +122,8 @@
 		<fieldType name="random" class="solr.RandomSortField"/>
 	</types>
 	<fields>
+		<!-- Required by Solr 4.x -->
+		<field name="_version_" type="long" indexed="true" stored="true"/>
 		<!-- Main Id -->
 		<field name="id" type="string" indexed="true" stored="true" omitNorms="true"/>
 		<field name="alternate_ids" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
@@ -251,16 +254,17 @@
 		<dynamicField name="local_callnumber_left_*" type="text-left" indexed="true" stored="true" multiValued="true"/>
 		<dynamicField name="callnumber_sort_*" type="text-exact" indexed="true" stored="true" multiValued="false"/>
 		<!-- Fields for boosting branch holdings -->
-		<dynamicField name="lib_boost_*" type="integer" indexed="true" stored="true" multiValued="false" omitNorms="true" default="0"/>
+		<dynamicField name="lib_boost_*" type="integer" indexed="true" stored="true" multiValued="false" omitNorms="true"/>
 		<!-- relevance determiners -->
 		<field name="popularity" type="integer" indexed="true" stored="true" multiValued="false" default="0"/>
-		<field name="num_holdings" type="integer" omitNorms="true" indexed="true" stored="true" multiValued="false" default="0"/>
+		<field name="num_holdings" type="integer" omitNorms="true" indexed="true" stored="true" multiValued="false"/>
 		<!-- Fields from VuFind Enrichment -->
 		<field name="tag" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="rating" type="float" indexed="true" stored="true" multiValued="false" default="2.5"/>
 		<field name="rating_facet" type="string" indexed="true" stored="true" multiValued="true"/>
+		<field name="system_list" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<!-- Special fields for Lists -->
-		<field name="num_titles" type="integer" indexed="true" stored="true" multiValued="false" default="0"/>
+		<field name="num_titles" type="integer" indexed="true" stored="true" multiValued="false"/>
 		<!-- Field to get random titles -->
 		<dynamicField name="random*" type="random" indexed="true" stored="true"/>
 

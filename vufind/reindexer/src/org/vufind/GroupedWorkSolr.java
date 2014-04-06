@@ -589,11 +589,17 @@ public class GroupedWorkSolr {
 	}
 
 	public void addSeries(Set<String> fieldList) {
-		this.series.addAll(fieldList);
+		for(String curField : fieldList){
+			if (!curField.equalsIgnoreCase("none")){
+				this.series.add(Util.trimTrailingPunctuation(curField));
+			}
+		}
 	}
 
 	public void addSeries(String series) {
-		this.series.add(series);
+		if (!series.equalsIgnoreCase("none")){
+			this.series.add(Util.trimTrailingPunctuation(series));
+		}
 	}
 
 	public void addSeries2(Set<String> fieldList) {
