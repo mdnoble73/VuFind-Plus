@@ -7,7 +7,7 @@
  * Date: 5/1/13
  * Time: 9:58 AM
  */
-require_once 'MyResearch.php';
+require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
 class MyRatings extends MyResearch{
 	public function launch(){
 		global $interface;

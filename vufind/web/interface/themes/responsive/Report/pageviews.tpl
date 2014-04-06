@@ -1,7 +1,5 @@
 {strip}
 <script type="text/javascript" src="/js/highcharts/highcharts.js"></script>
-<script type="text/javascript" src="/interface/themes/responsive/js/vufind/analytic-reports.js"></script>
-
 <div class="row">
 	{include file="Report/analyticsFilters.tpl"}
 </div>
@@ -68,12 +66,12 @@
 {literal}
 
 $(document).ready(function() {
-	setupBarChart("pageViewsByModuleChart", "pageViewsByModule", "Page Views By Module", "Module", "Page Views");
-	setupBarChart("pageViewsByModuleActionChart", "pageViewsByModuleAction", "Page Views By Module & Action", "Module & Action", "Page Views");
-	setupBarChart("pageViewsByThemeChart", "pageViewsByTheme", "Page Views By Theme", "Theme", "Page Views");
-	setupBarChart("pageViewsByDeviceChart", "pageViewsByDevice", "Page Views By Device", "Device", "Page Views");
-	setupPieChart("pageViewsByHomeLocationChart", "pageViewsByHomeLocation", "Page Views By Home Location", "Home Location", "Page Views");
-	setupPieChart("pageViewsByPhysicalLocationChart", "pageViewsByPhysicalLocation", "Page Views By Physical Location", "Physical Location", "Page Views");
+	VuFind.AnalyticReports.setupBarChart("pageViewsByModuleChart", "pageViewsByModule", "Page Views By Module", "Module", "Page Views");
+	VuFind.AnalyticReports.setupBarChart("pageViewsByModuleActionChart", "pageViewsByModuleAction", "Page Views By Module & Action", "Module & Action", "Page Views");
+	VuFind.AnalyticReports.setupBarChart("pageViewsByThemeChart", "pageViewsByTheme", "Page Views By Theme", "Theme", "Page Views");
+	VuFind.AnalyticReports.setupBarChart("pageViewsByDeviceChart", "pageViewsByDevice", "Page Views By Device", "Device", "Page Views");
+	VuFind.AnalyticReports.setupPieChart("pageViewsByHomeLocationChart", "pageViewsByHomeLocation", "Page Views By Home Location", "Home Location", "Page Views");
+	VuFind.AnalyticReports.setupPieChart("pageViewsByPhysicalLocationChart", "pageViewsByPhysicalLocation", "Page Views By Physical Location", "Physical Location", "Page Views");
 });
 {/literal}
 </script>

@@ -654,7 +654,11 @@ class EContentRecord_AJAX extends Action {
 	function CancelOverDriveHold(){
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
-		$format = $_REQUEST['formatId'];
+		if (isset($_REQUEST['formatId'])){
+			$format = $_REQUEST['formatId'];
+		}else{
+			$format = null;
+		}
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();

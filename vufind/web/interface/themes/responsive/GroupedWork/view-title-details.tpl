@@ -1,91 +1,103 @@
 {strip}
-	<div>
-		<dl class="dl-horizontal">
-			{if $recordDriver->getContributors()}
-				<dt>{translate text='Contributors'}:</dt>
+	{if $recordDriver->getContributors()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Contributors'}:</div>
+			<div class="col-md-9 result-value">
 				{foreach from=$recordDriver->getContributors() item=contributor name=loop}
-					<dd><a href="{$path}/Author/Home?author={$contributor|trim|escape:"url"}">{$contributor|escape}</a></dd>
+					<a href="{$path}/Author/Home?author={$contributor|trim|escape:"url"}">{$contributor|escape}</a><br/>
 				{/foreach}
-			{/if}
+			</div>
+		</div>
+	{/if}
 
-			{if $recordDriver->getMpaaRating()}
-				<dt>{translate text='Rating'}:</dt>
-				<dd>{$recordDriver->getMpaaRating()|escape}</dd>
-			{/if}
+	{if $recordDriver->getMpaaRating()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Rating'}:</div>
+			<div class="col-md-9 result-value">{$recordDriver->getMpaaRating()|escape}</div>
+		</div>
+	{/if}
 
-			{if $recordDriver->getISBNs()}
-				<dt>{translate text='ISBN'}:</dt>
+	{if $recordDriver->getISBNs()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='ISBN'}:</div>
+			<div class="col-md-9 result-value">
 				{foreach from=$recordDriver->getISBNs() item=tmpIsbn name=loop}
-					<dd>{$tmpIsbn|escape}</dd>
+					{$tmpIsbn|escape}<br/>
 				{/foreach}
-			{/if}
+			</div>
+		</div>
+	{/if}
 
-			{if $recordDriver->getISSNs()}
-				<dt>{translate text='ISSN'}:</dt>
-				<dd>{$recordDriver->getISSNs()}</dd>
-			{/if}
+	{if $recordDriver->getISSNs()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='ISSN'}:</div>
+			<div class="col-md-9 result-value">{$recordDriver->getISSNs()}</div>
+		</div>
+	{/if}
 
-			{if $recordDriver->getUPCs()}
-				<dt>{translate text='UPC'}:</dt>
+	{if $recordDriver->getUPCs()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='UPC'}:</div>
+			<div class="col-md-9 result-value">
 				{foreach from=$recordDriver->getUPCs() item=tmpUpc name=loop}
-					<dd>{$tmpUpc|escape}</dd>
+					{$tmpUpc|escape}<br/>
 				{/foreach}
-			{/if}
+			</div>
+		</div>
+	{/if}
 
-			{if $recordDriver->getIndexedSeries()}
-				<dt>{translate text='Series'}:</dt>
+	{if $recordDriver->getIndexedSeries()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Series'}:</div>
+			<div class="col-md-9 result-value">
 				{foreach from=$recordDriver->getIndexedSeries() item=seriesItem name=loop}
-					<dd><a href="{$path}/Search/Results?lookfor=%22{$seriesItem|escape:"url"}%22&amp;type=Series">{$seriesItem|escape}</a></dd>
+					<a href="{$path}/Search/Results?lookfor=%22{$seriesItem|escape:"url"}%22&amp;type=Series">{$seriesItem|escape}</a><br/>
 				{/foreach}
-			{/if}
+			</div>
+		</div>
+	{/if}
 
-			{if $arData}
-				<dt>{translate text='Accelerated Reader'}:</dt>
-				<dd>{$arData.interestLevel|escape}</dd>
-				<dd>Level {$arData.readingLevel|escape}, {$arData.pointValue|escape} Points</dd>
-			{/if}
+	{if $recordDriver->getAcceleratedReaderData() != null}
+		{assign var="arData" value=$recordDriver->getAcceleratedReaderData()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Accelerated Reader'}:</div>
+			<div class="col-md-9 result-value">
+				{if $arData.interestLevel}
+					{$arData.interestLevel|escape}<br/>
+				{/if}
+				Level {$arData.readingLevel|escape}, {$arData.pointValue|escape} Points
+			</div>
+		</div>
+	{/if}
 
-			{if $lexileScore}
-				<dt>{translate text='Lexile Score'}:</dt>
-				<dd>{$lexileScore|escape}</dd>
-			{/if}
+	{if $recordDriver->getLexileCode()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Lexile Code'}:</div>
+			<div class="col-md-9 result-value">
+				{$recordDriver->getLexileCode()|escape}
+			</div>
+		</div>
+	{/if}
 
-			{if $standardSubjects}
-				<dt>{translate text='Subjects'}</dt>
-				{foreach from=$standardSubjects item=subject name=loop}
-					<dd>
-						{foreach from=$subject item=subjectPart name=subloop}
-							{if !$smarty.foreach.subloop.first} -- {/if}
-							<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
-						{/foreach}
-					</dd>
+	{if $recordDriver->getLexileScore()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Lexile Score'}:</div>
+			<div class="col-md-9 result-value">
+				{$recordDriver->getLexileScore()|escape}
+			</div>
+		</div>
+	{/if}
+
+	{if $recordDriver->getSubjects()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Subjects'}</div>
+			<div class="col-md-9 result-value">
+				{assign var="subjects" value=$recordDriver->getSubjects()}
+				{foreach from=$subjects item=subject name=loop}
+					<a href="{$path}/Search/Results?lookfor=%22{$subject|escape:"url"}%22&amp;basicType=Subject">{$subject|escape}</a>
+					<br/>
 				{/foreach}
-			{/if}
-
-			{if $bisacSubjects}
-				<dt>{translate text='Bisac Subjects'}</dt>
-				{foreach from=$bisacSubjects item=subject name=loop}
-					<dd>
-						{foreach from=$subject item=subjectPart name=subloop}
-							{if !$smarty.foreach.subloop.first} -- {/if}
-							<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
-						{/foreach}
-					</dd>
-				{/foreach}
-			{/if}
-
-			{if $oclcFastSubjects}
-				<dt>{translate text='OCLC Fast Subjects'}</dt>
-				{foreach from=$oclcFastSubjects item=subject name=loop}
-					<dd>
-						{foreach from=$subject item=subjectPart name=subloop}
-							{if !$smarty.foreach.subloop.first} -- {/if}
-							<a href="{$path}/Search/Results?lookfor=%22{$subjectPart.search|escape:"url"}%22&amp;basicType=Subject">{$subjectPart.title|escape}</a>
-						{/foreach}
-					</dd>
-				{/foreach}
-			{/if}
-
-		</dl>
-	</div>
+			</div>
+		</div>
+	{/if}
 {/strip}

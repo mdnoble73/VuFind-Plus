@@ -44,8 +44,6 @@
 					<div class="col-md-9 result-value">
 						{if $record.formatSelected}
 							You downloaded the <strong>{$record.selectedFormat.name}</strong> format of this title.
-							<br/>
-							<a href="#" onclick="followOverDriveDownloadLink('{$record.overDriveId}', '{$record.selectedFormat.format}')" class="btn">Download&nbsp;Again</a>
 						{else}
 							<div class="form-inline">
 								<label for="downloadFormat_{$record.overDriveId}">Select one format to download.</label>
@@ -55,7 +53,7 @@
 										<option value="{$format.id}">{$format.name}</option>
 									{/foreach}
 								</select>
-								<a href="#" onclick="selectOverDriveDownloadFormat('{$record.overDriveId}')" class="btn btn-sm">Download</a>
+								<a href="#" onclick="VuFind.OverDrive.selectOverDriveDownloadFormat('{$record.overDriveId}')" class="btn btn-sm btn-primary">Download</a>
 							</div>
 						{/if}
 					</div>
@@ -65,11 +63,14 @@
 			<div class="col-md-3">
 				<div class="btn-group btn-group-vertical btn-block">
 					{if $record.overdriveRead}
-						<a href="#" onclick="followOverDriveDownloadLink('{$record.overDriveId}', 'ebook-overdrive')" class="btn btn-sm">Read&nbsp;Online</a>
+						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.overDriveId}', 'ebook-overdrive')" class="btn btn-sm btn-primary">Read&nbsp;Online</a>
+					{/if}
+					{if $record.formatSelected}
+						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.overDriveId}', '{$record.selectedFormat.format}')" class="btn btn-sm btn-primary">Download&nbsp;Again</a>
 					{/if}
 
 					{if $record.earlyReturn}
-						<a href="#" onclick="returnOverDriveTitle('{$record.overDriveId}', '{$record.transactionId}');" class="btn btn-sm">Return&nbsp;Now</a>
+						<a href="#" onclick="return VuFind.OverDrive.returnOverDriveTitle('{$record.overDriveId}', '{$record.transactionId}');" class="btn btn-sm btn-warning">Return&nbsp;Now</a>
 					{/if}
 				</div>
 

@@ -116,11 +116,6 @@ abstract class Record_Record extends Action
 			$interface->assign('mainAuthor', $mainAuthor);
 		}
 
-
-
-		$published = $this->recordDriver->getPublicationDetails();
-		$interface->assign('published', $published);
-
 		$marcFields = $marcRecord->getFields('250');
 		if ($marcFields){
 			$editionsThis = array();
@@ -223,28 +218,6 @@ abstract class Record_Record extends Action
 			if ($streetDate != ''){
 				$interface->assign('streetDate', $streetDate);
 			}
-		}
-
-		/** @var File_MARC_Data_Field[] $marcField440 */
-		$marcField440 = $marcRecord->getFields('440');
-		/** @var File_MARC_Data_Field[] $marcField490 */
-		$marcField490 = $marcRecord->getFields('490');
-		/** @var File_MARC_Data_Field[] $marcField830 */
-		$marcField830 = $marcRecord->getFields('830');
-		if ($marcField440 || $marcField490 || $marcField830){
-			$series = array();
-			foreach ($marcField440 as $field){
-				$series[] = $this->getSubfieldData($field, 'a');
-			}
-			foreach ($marcField490 as $field){
-				if ($field->getIndicator(1) == 0){
-					$series[] = $this->getSubfieldData($field, 'a');
-				}
-			}
-			foreach ($marcField830 as $field){
-				$series[] = $this->getSubfieldData($field, 'a');
-			}
-			$interface->assign('series', $series);
 		}
 
 		//Load description from Syndetics

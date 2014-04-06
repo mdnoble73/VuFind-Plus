@@ -1,5 +1,5 @@
 <div>
-	<form method="post" name="modifyPinNumber" action="{$path}/MyResearch/Profile">
+	<form method="post" name="modifyPinNumber" action="{$path}/MyAccount/Profile">
 		<div>
 			<input type="hidden" name="updatePin" value="true"/>
 			<div>

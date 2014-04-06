@@ -32,7 +32,7 @@ VuFind.OverDrive = (function(){
 					success: function(data){
 						if (data.result == true){
 							VuFind.showMessage("Title Checked Out Successfully", data.message, true);
-							window.location.href = Globals.path + "/MyResearch/OverdriveCheckedOut";
+							window.location.href = Globals.path + "/MyAccount/CheckedOut";
 						}else{
 							if (data.noCopies == true){
 								VuFind.closeLightbox();
@@ -58,6 +58,7 @@ VuFind.OverDrive = (function(){
 					checkoutOverDriveItemOneClick(overdriveId);
 				}, false);
 			}
+			return false;
 		},
 
 		doOverDriveHold: function(overDriveId, formatId, overdriveEmail, promptForOverdriveEmail){
@@ -76,6 +77,28 @@ VuFind.OverDrive = (function(){
 				async: false,
 				error: function(){
 					VuFind.showMessage("Error Placing Hold", "An error occurred processing your request in OverDrive.  Please try again in a few minutes.", false);
+				}
+			});
+		},
+
+		followOverDriveDownloadLink: function(overDriveId, formatId){
+			var ajaxUrl = Globals.path + "/EcontentRecord/AJAX?method=GetDownloadLink&overDriveId=" + overDriveId + "&formatId=" + formatId;
+			$.ajax({
+				url: ajaxUrl,
+				cache: false,
+				success: function(data){
+					if (data.result){
+						//Reload the page
+						window.location.href = data.downloadUrl ;
+					}else{
+						alert(data.message);
+					}
+				},
+				dataType: 'json',
+				async: false,
+				error: function(){
+					alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
+					hideLightbox();
 				}
 			});
 		},
@@ -105,23 +128,6 @@ VuFind.OverDrive = (function(){
 			return result;
 		},
 
-		getOverDriveSummary: function(){
-			$.getJSON(Globals.path + '/MyResearch/AJAX?method=getOverDriveSummary', function (data){
-				if (data.error){
-					// Unable to load overdrive summary
-				}else{
-					// Load checked out items
-					$(".checkedOutItemsOverDrivePlaceholder").html(data.numCheckedOut);
-					// Load available holds
-					$(".availableHoldsOverDrivePlaceholder").html(data.numAvailableHolds);
-					// Load unavailable holds
-					$(".unavailableHoldsOverDrivePlaceholder").html(data.numUnavailableHolds);
-					// Load wishlist
-					$(".wishlistOverDrivePlaceholder").html(data.numWishlistItems);
-				}
-			});
-		},
-
 		placeOverDriveHold: function(overDriveId, formatId){
 			if (Globals.loggedIn){
 				//Get any prompts needed for placing holds (e-mail and format depending on the interface.
@@ -134,6 +140,85 @@ VuFind.OverDrive = (function(){
 					VuFind.OverDrive.placeOverDriveHold(overDriveId, formatId);
 				});
 			}
+			return false;
+		},
+
+		processOverDriveHoldPrompts: function(){
+			var overdriveId = $("#overdriveHoldPromptsForm input[name=overdriveId]").val();
+			var formatId = -1;
+			if ($("#overdriveHoldPromptsForm input[name=formatId]") && $("#overdriveHoldPromptsForm input[name=formatId]").val() != undefined){
+				formatId = $("#overdriveHoldPromptsForm input[name=formatId]").val();
+				if (formatId == undefined){
+					formatId = "";
+				}
+			}else if($('#formatId :selected') && $('#formatId :selected').val() != undefined){
+				formatId = $('#formatId :selected').val();
+			}
+			var promptForOverdriveEmail;
+			if ($("#overdriveHoldPromptsForm input[name=promptForOverdriveEmail]").is(":checked")){
+				promptForOverdriveEmail = 0;
+			}else{
+				promptForOverdriveEmail = 1;
+			}
+			var overdriveEmail = $("#overdriveHoldPromptsForm input[name=overdriveEmail]").val();
+			VuFind.OverDrive.doOverDriveHold(overdriveId, formatId, overdriveEmail, promptForOverdriveEmail);
+		},
+
+		returnOverDriveTitle: function (overDriveId, transactionId){
+			if (confirm('Are you sure you want to return this title?')){
+				VuFind.showMessage("Returning Title", "Returning your title in OverDrive.  This may take a minute.");
+				var ajaxUrl = Globals.path + "/EcontentRecord/AJAX?method=ReturnOverDriveItem&overDriveId=" + overDriveId + "&transactionId=" + transactionId;
+				$.ajax({
+					url: ajaxUrl,
+					cache: false,
+					success: function(data){
+						VuFind.showMessage("Title Returned", data.message);
+						if (data.result){
+							//Reload the page
+							setTimeout(function(){
+								VuFind.closeLightbox();
+								window.location.href = window.location.href ;
+							}, 3000);
+						}
+					},
+					dataType: 'json',
+					async: false,
+					error: function(){
+						VuFind.showMessage("Error Returning Title", "An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
+					}
+				});
+			}
+			return false;
+		},
+
+		selectOverDriveDownloadFormat: function(overDriveId){
+			var selectedFormatId = $("#downloadFormat_" + overDriveId + " option:selected").val();
+			var selectedFormatText = $("#downloadFormat_" + overDriveId + " option:selected").text();
+			if (selectedFormatId == -1){
+				alert("Please select a format to download.");
+			}else{
+				if (confirm("Are you sure you want to download the " + selectedFormatText + " format? You cannot change format after downloading.")){
+					var ajaxUrl = Globals.path + "/EcontentRecord/AJAX?method=SelectOverDriveDownloadFormat&overDriveId=" + overDriveId + "&formatId=" + selectedFormatId;
+					$.ajax({
+						url: ajaxUrl,
+						cache: false,
+						success: function(data){
+							if (data.result){
+								//Reload the page
+								window.location.href = data.downloadUrl;
+							}else{
+								VuFind.showMessage("Error Selecting Format", data.message);
+							}
+						},
+						dataType: 'json',
+						async: false,
+						error: function(){
+							VuFind.showMessage("Error Selecting Format", "An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
+						}
+					});
+				}
+			}
+			return false;
 		}
 	}
 }(VuFind.OverDrive || {}));

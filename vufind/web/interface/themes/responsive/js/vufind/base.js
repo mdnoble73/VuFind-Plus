@@ -103,6 +103,21 @@ var VuFind = (function(){
 			});
 		},
 
+		loadEContentHelpTopic: function (){
+			var selectedDevice = $("#device :selected").val();
+			var selectedFormat = $("#format :selected").val();
+
+			if (selectedDevice != "selectone" && selectedFormat != "selectone"){
+				$.getJSON(
+						Globals.path + '/Help/AJAX?method=getHelpTopic&device=' + selectedDevice + '&format=' +selectedFormat,
+						function (data){
+							$("#stepByStepInstructions").show()
+							$("#helpInstructions").html(data.helpText);
+						}
+				);
+			}
+		},
+
 		showMessage: function(title, body, autoClose){
 			if (autoClose == undefined){
 				autoClose = false;

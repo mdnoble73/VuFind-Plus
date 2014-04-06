@@ -9,7 +9,7 @@
 					{if $user->disableCoverArt != 1}
 						{if $record.id}
 							<a href="{$path}/Record/{$record.id|escape:"url"}">
-								<img src="{$coverUrl}/bookcover.php?id={$record.id}&amp;isn={$record.isbn|@formatISBN}&amp;size=medium&amp;upc={$record.upc}&amp;issn={$record.issn}&amp;category={$record.format_category.0|escape:"url"}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
+								<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
 							</a>
 						{/if}
 					{/if}
@@ -110,7 +110,7 @@
 
 				<div class="col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
-						<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.renewSelectedTitles();" class="btn btn-sm">Renew</a>
+						<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-primary">Renew</a>
 					</div>
 
 					{* Include standard tools *}

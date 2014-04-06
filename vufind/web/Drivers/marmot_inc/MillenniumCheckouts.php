@@ -156,6 +156,9 @@ class MillenniumCheckouts {
 					$checkDigit = $this->driver->getCheckDigit($curTitle['shortId']);
 					$curTitle['recordId'] = '.' . $curTitle['shortId'] . $checkDigit;
 					$curTitle['id'] = '.' . $curTitle['shortId'] . $checkDigit;
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($curTitle['recordId']);
+					$curTitle['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
 				}
 				$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
 				$sortKey = $sortTitle;

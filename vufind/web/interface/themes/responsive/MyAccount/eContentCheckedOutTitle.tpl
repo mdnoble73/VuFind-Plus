@@ -55,7 +55,7 @@
 				<div class="col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
 						{foreach from=$record.links item=link}
-							<a href="{if $link.url}{$link.url}{else}#{/if}" {if $link.onclick}onclick="{$link.onclick}"{/if} class="btn btn-sm">{$link.text}</a>
+							<a href="{if $link.url}{$link.url}{else}#{/if}" {if $link.onclick}onclick="{$link.onclick}"{/if} class="btn btn-sm btn-default">{$link.text}</a>
 						{/foreach}
 					</div>
 

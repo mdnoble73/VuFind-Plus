@@ -56,7 +56,7 @@
 <div id="page-content" class="content">
   {if $error}<p class="error">{$error}</p>{/if} 
   <div id="sidebar">
-    {include file="MyResearch/menu.tpl"}
+    {include file="MyAccount/menu.tpl"}
   </div>
   	  
 	  <div id="main-content">

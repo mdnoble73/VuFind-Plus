@@ -4,7 +4,7 @@
 			<div id="web_note" class="alert alert-info text-center">{$profile.web_note}</div>
 		{/if}
 
-		<h3>{translate text='Checked Out Titles'}</h3>
+		<h2>{translate text='Checked Out Titles'}</h2>
 		{if $userNoticeFile}
 			{include file=$userNoticeFile}
 		{/if}
@@ -13,7 +13,7 @@
 			<div class='libraryHours alert alert-success'>{$libraryHoursMessage}</div>
 		{/if}
 		{if $transList}
-			<form id="renewForm" action="{$path}/MyResearch/RenewMultiple">
+			<form id="renewForm" action="{$path}/MyAccount/RenewMultiple">
 				<div id="pager" class="navbar form-inline text-center">
 					<label for="accountSort" class="control-label">{translate text='Sort by'}:&nbsp;
 						<select name="accountSort" id="sort" class="input-medium" onchange="changeAccountSort($(this).val());">
@@ -27,9 +27,9 @@
 				</div>
 
 				<div class="btn-group">
-					<a href="#" onclick="return VuFind.Account.renewSelectedTitles();" class="btn">Renew Selected Items</a>
-					<a href="{$path}/MyResearch/RenewAll" class="btn">Renew All</a>
-					<a href="{$path}/MyResearch/CheckedOut?exportToExcel" class="btn" id="exportToExcelTop" >Export to Excel</a>
+					<a href="#" onclick="return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-default">Renew Selected Items</a>
+					<a href="{$path}/MyAccount/RenewAll" class="btn btn-sm btn-default">Renew All</a>
+					<a href="{$path}/MyAccount/CheckedOut?exportToExcel" class="btn btn-sm btn-default" id="exportToExcelTop" >Export to Excel</a>
 				</div>
 
 				<div class="striped">
@@ -49,9 +49,9 @@
 				</div>
 
 				<div class="btn-group">
-					<a href="#" onclick="return VuFind.Account.renewSelectedTitles();" class="btn">Renew Selected Items</a>
-					<a href="{$path}/MyResearch/RenewAll" class="btn">Renew All</a>
-					<a href="{$path}/MyResearch/CheckedOut?exportToExcel" class="btn" id="exportToExcelBottom" >Export to Excel</a>
+					<a href="#" onclick="return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-default">Renew Selected Items</a>
+					<a href="{$path}/MyAccount/RenewAll" class="btn btn-sm btn-default">Renew All</a>
+					<a href="{$path}/MyAccount/CheckedOut?exportToExcel" class="btn btn-sm btn-default" id="exportToExcelBottom" >Export to Excel</a>
 				</div>
 			</form>
 			

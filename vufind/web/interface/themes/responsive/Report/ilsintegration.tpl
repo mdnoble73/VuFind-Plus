@@ -1,7 +1,5 @@
 {strip}
 <script type="text/javascript" src="/js/highcharts/highcharts.js"></script>
-<script type="text/javascript" src="/interface/themes/responsive/js/vufind/analytic-reports.js"></script>
-
 <div class="row">
 	{include file="Report/analyticsFilters.tpl"}
 </div>
@@ -65,11 +63,11 @@
 {literal}
 
 $(document).ready(function() {
-	setupPieChart("holdsByResultChart", "holdsByResult", "Holds By Result", "% Used");
-	setupPieChart("holdsBySessionChart", "holdsPerSession", "Holds Per Session", "% Used");
-	setupPieChart("holdsCancelledBySessionChart", "holdsCancelledPerSession", "Holds Cancelled Per Session", "% Used");
-	setupPieChart("holdsUpdatedBySessionChart", "holdsUpdatedPerSession", "Holds Updated Per Session", "% Used");
-	setupPieChart("holdsFailedBySessionChart", "holdsFailedPerSession", "Holds Failed Per Session", "% Used");
+	VuFind.AnalyticReports.setupPieChart("holdsByResultChart", "holdsByResult", "Holds By Result", "% Used");
+	VuFind.AnalyticReports.setupPieChart("holdsBySessionChart", "holdsPerSession", "Holds Per Session", "% Used");
+	VuFind.AnalyticReports.setupPieChart("holdsCancelledBySessionChart", "holdsCancelledPerSession", "Holds Cancelled Per Session", "% Used");
+	VuFind.AnalyticReports.setupPieChart("holdsUpdatedBySessionChart", "holdsUpdatedPerSession", "Holds Updated Per Session", "% Used");
+	VuFind.AnalyticReports.setupPieChart("holdsFailedBySessionChart", "holdsFailedPerSession", "Holds Failed Per Session", "% Used");
 });
 {/literal}
 </script>

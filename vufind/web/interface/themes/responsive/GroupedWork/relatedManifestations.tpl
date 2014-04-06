@@ -29,7 +29,7 @@
 							{elseif $relatedManifestation.availableOnline}
 								<div class="related-manifestation-shelf-status available">Available Online</div>
 							{elseif $relatedManifestation.available}
-								<div class="related-manifestation-shelf-status available">Available from another library</div>
+								<div class="related-manifestation-shelf-status availableOther">Available from another library</div>
 							{else}
 								<div class="related-manifestation-shelf-status checked_out">Checked Out</div>
 							{/if}
@@ -61,7 +61,7 @@
 				  </div>
 					<div class="row">
 						<div class="col-sm-12 hidden" id="relatedRecordPopup_{$id}_{$relatedManifestation.format|escapeCSS}">
-							{include file="GroupedWork/relatedRecords.tpl" relatedRecords=$relatedManifestation.relatedRecords}
+							{include file="GroupedWork/relatedRecords.tpl" relatedRecords=$relatedManifestation.relatedRecords relatedManifestation=$relatedManifestation}
 						</div>
 					</div>
 				</div>

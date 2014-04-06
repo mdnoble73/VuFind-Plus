@@ -15,37 +15,26 @@
 		</div>
 	</div>
 
-	{if $isbns}
+	{if count($recordDriver->getISBNs()) > 0}
 		<div class="row">
 			<div class="result-label col-md-3">{translate text='ISBN'}:</div>
 			<div class="col-md-9 result-value">
-				{implode subject=$isbns glue=", "}
+				{implode subject=$recordDriver->getISBNs() glue=", "}
 			</div>
 		</div>
 	{/if}
 
-	{if $issn}
-		<div class="row">
-			<div class="result-label col-md-3">{translate text='ISSN'}:</div>
-			<div class="col-md-9 result-value">
-				{$issn}
-				{if $goldRushLink}
-					&nbsp;<a href='{$goldRushLink}' target='_blank'>Check for online articles</a>
-				{/if}
-			</div>
-		</div>
-	{/if}
-
-	{if $upc}
+	{if count($recordDriver->getUPCs()) > 0}
 		<div class="row">
 			<div class="result-label col-md-3">{translate text='UPC'}:</div>
 			<div class="col-md-9 result-value">
-				{$upc|escape}
+				{implode subject=$recordDriver->getUPCs() glue=", "}
 			</div>
 		</div>
 	{/if}
 
-	{if $arData}
+	{if $recordDriver->getAcceleratedReaderData() != null}
+		{assign var="arData" value=$recordDriver->getAcceleratedReaderData()}
 		<div class="row">
 			<div class="result-label col-md-3">{translate text='Accelerated Reader'}:</div>
 			<div class="col-md-9 result-value">
@@ -55,11 +44,20 @@
 		</div>
 	{/if}
 
-	{if $lexileScore}
+	{if $recordDriver->getLexileCode()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Lexile Code'}:</div>
+			<div class="col-md-9 result-value">
+				{$recordDriver->getLexileCode()|escape}
+			</div>
+		</div>
+	{/if}
+
+	{if $recordDriver->getLexileScore()}
 		<div class="row">
 			<div class="result-label col-md-3">{translate text='Lexile Score'}:</div>
 			<div class="col-md-9 result-value">
-				{$lexileScore|escape}
+				{$recordDriver->getLexileScore()|escape}
 			</div>
 		</div>
 	{/if}

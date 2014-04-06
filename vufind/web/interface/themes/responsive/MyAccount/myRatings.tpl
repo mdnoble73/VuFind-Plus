@@ -48,7 +48,7 @@
 									<p>{$rating.review}</p>
 								</td>
 								<td class="myAccountCell">
-									<span class="btn btn-xs btn-default" onclick="return VuFind.GroupedWork.clearUserRating('{$rating.groupedWorkId}');">{translate text="Clear"}</span>
+									<span class="btn btn-xs btn-warning" onclick="return VuFind.GroupedWork.clearUserRating('{$rating.groupedWorkId}');">{translate text="Clear"}</span>
 								</td>
 							</tr>
 						{/foreach}
@@ -75,7 +75,7 @@
 								<td>{$notInterestedTitle.dateMarked|date_format}</td>
 								<td><a href="{$notInterestedTitle.link}">{$notInterestedTitle.title}</a></td>
 								<td>{$notInterestedTitle.author}</td>
-								<td><span class="button" onclick="return clearNotInterested('{$notInterestedTitle.id}');">Clear</span></td>
+								<td><span class="btn btn-xs btn-warning" onclick="return clearNotInterested('{$notInterestedTitle.id}');">Clear</span></td>
 							</tr>
 						{/foreach}
 					</tbody>

@@ -77,7 +77,7 @@
 	{/foreach}
 	{/foreach}
 	{* Cannot replace & since that causes the data to not load properly *}
-	var filterParams = "{if $filterString}&{$filterString}{/if}";
+	VuFind.AnalyticReports.filterParams = "{if $filterString}&{$filterString}{/if}";
 	{literal}
 </script>
 {/literal}

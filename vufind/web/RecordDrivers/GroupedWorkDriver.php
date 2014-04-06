@@ -1037,6 +1037,7 @@ class GroupedWorkDriver implements RecordInterface{
 			return array(
 				'seriesTitle' => $novelistData->seriesTitle,
 				'volume' => $novelistData->volume,
+				'fromNovelist' => true,
 			);
 		}
 		return null;
@@ -1215,5 +1216,49 @@ class GroupedWorkDriver implements RecordInterface{
 			}
 		}
 		return $tags;
+	}
+
+	public function getAcceleratedReaderData(){
+		$hasArData = false;
+		$arData = array();
+		if ($this->fields['accelerated_reader_point_value'] > 0){
+			$arData['pointValue'] = $this->fields['accelerated_reader_point_value'];
+			$hasArData = true;
+		}
+		if ($this->fields['accelerated_reader_reading_level'] > 0){
+			$arData['readingLevel'] = $this->fields['accelerated_reader_reading_level'];
+			$hasArData = true;
+		}
+		if ($this->fields['accelerated_reader_interest_level'] > 0){
+			$arData['interestLevel'] = $this->fields['accelerated_reader_interest_level'];
+			$hasArData = true;
+		}
+
+		if ($hasArData){
+			return $arData;
+		}else{
+			return null;
+		}
+	}
+
+	public function getLexileCode(){
+		return isset($this->fields['lexile_code']) ? $this->fields['lexile_code'] : null;
+	}
+	public function getLexileScore(){
+		if (isset($this->fields['lexile_score'])){
+			if ($this->fields['lexile_score'] > 0){
+				return $this->fields['lexile_score'];
+			}
+		}
+		return null;
+	}
+	public function getSubjects(){
+		if (isset($this->fields['topic_facet'])){
+			$subjects = $this->fields['topic_facet'];
+			asort($subjects);
+			return $subjects;
+		}else{
+			return null;
+		}
 	}
 }

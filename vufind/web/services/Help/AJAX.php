@@ -14,8 +14,8 @@ class Help_AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_GET['method'];
-		if (in_array($method, array('getHelpTopic'))){
-			header('Content-type: text/plain');
+		if (in_array($method, array('getHelpTopic', 'getSupportForm'))){
+			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
@@ -37,9 +37,18 @@ class Help_AJAX extends Action {
 		}
 	}
 
+	function getSupportForm(){
+		global $interface;
+		$results = array(
+				'title' => 'eContent Support Request',
+				'modalBody' => $interface->fetch('Help/eContentSupport.tpl'),
+				'modalButtons' => "<span class='tool btn btn-primary' onclick='$(\"#eContentSupport\").submit(); return false;'>Submit</span>"
+		);
+		return json_encode($results);
+	}
+
 	function getHelpTopic(){
 		global $interface;
-		global $logger;
 		$device = $_REQUEST['device'];
 		$format = $_REQUEST['format'];
 		$result = array();

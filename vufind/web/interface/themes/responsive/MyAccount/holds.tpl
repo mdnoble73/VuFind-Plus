@@ -4,7 +4,7 @@
 				<div id="web_note" class="text-info text-center well well-small">{$profile.web_note}</div>
 			{/if}
 
-			<h3>{translate text='Titles On Hold'}</h3>
+			<h2>{translate text='Titles On Hold'}</h2>
 			{if $userNoticeFile}
 				{include file=$userNoticeFile}
 			{/if}
@@ -13,31 +13,19 @@
 			{* Check to see if there is data for the section *}
 			<div class='holdSectionBody'>
 				{if $libraryHoursMessage}
-					<div class='libraryHours'>{$libraryHoursMessage}</div>
+					<div class='libraryHours alert alert-success'>{$libraryHoursMessage}</div>
 				{/if}
 
 				{foreach from=$recordList item=sectionData key=sectionKey}
-					<h4>{if $sectionKey == 'available'}Holds Ready For Pickup{else}Pending Holds{/if}</h4>
+					<h3>{if $sectionKey == 'available'}Holds Ready For Pickup{else}Pending Holds{/if}</h3>
+					<p class="alert alert-info">
+						{if $sectionKey == 'available'}
+							These titles have arrived at the library or are available online for you to use.
+						{else}
+							These titles are currently checked out to other patrons.  We will notify you via e-mail, phone, or print when a titles is available based on your preferences.
+						{/if}
+					</p>
 					{if is_array($recordList.$sectionKey) && count($recordList.$sectionKey) > 0}
-						{* Form to update holds at one time *}
-						<div id='holdsWithSelected{$sectionKey}Top' class='holdsWithSelected{$sectionKey}'>
-							<form id='withSelectedHoldsFormTop{$sectionKey}' action='{$fullPath}'>
-								<div>
-									<input type="hidden" name="withSelectedAction" value="" />
-									<div id='holdsUpdateSelected{$sectionKey}'>
-										<input type="submit" class="btn" name="cancelSelected" value="Cancel Selected" onclick="return cancelSelectedHolds();"/>
-										<input type="submit" class="btn" id="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}Top" name="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" value="Export to Excel" />
-									</div>
-								</div>
-							</form> {* End with selected controls for holds *}
-						</div>
-
-						<div id="pager" class="pager">
-							<div class='sortOptions'>
-								Hide Covers <input type="checkbox" onclick="$('.imageColumn').toggle();"/>
-							</div>
-						</div>
-
 						{* Make sure there is a break between the form and the table *}
 						<div class='clearer'></div>
 
@@ -64,8 +52,8 @@
 							<div>
 								<input type="hidden" name="withSelectedAction" value="" />
 								<div id='holdsUpdateSelected{$sectionKey}Bottom' class='holdsUpdateSelected{$sectionKey}'>
-									<input type="submit" class="btn" name="cancelSelected" value="Cancel Selected" onclick="return cancelSelectedHolds();"/>
-									<input type="submit" class="btn" id="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}Bottom" name="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" value="Export to Excel" />
+									<input type="submit" class="btn btn-sm btn-warning" name="cancelSelected" value="Cancel Selected" onclick="return cancelSelectedHolds();"/>
+									<input type="submit" class="btn btn-sm btn-default" id="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}Bottom" name="exportToExcel{if $sectionKey=='available'}Available{else}Unavailable{/if}" value="Export to Excel" />
 								</div>
 							</div>
 						</form>

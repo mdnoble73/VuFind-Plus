@@ -25,8 +25,6 @@ class OverDrive_Home extends Action{
 	/** @var  SearchObject_Solr $db */
 	private $id;
 	private $isbn;
-	private $issn;
-	private $recordDriver;
 
 	function launch(){
 		global $interface;
@@ -53,12 +51,16 @@ class OverDrive_Home extends Action{
 			$this->isbn = $overDriveDriver->getCleanISBN();
 			$interface->assign('recordDriver', $overDriveDriver);
 
-			$interface->assign('cleanDescription', strip_tags($overDriveDriver->getDescriptionFast(), '<p><br><b><i><em><strong>'));
-
-			if (isset($_REQUEST['detail'])){
-				$detail = strip_tags($_REQUEST['detail']);
-				$interface->assign('defaultDetailsTab', $detail);
+			//Load status summary
+			require_once (ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
+			$driver = OverDriveDriverFactory::getDriver();
+			$holdings = $driver->getHoldings($overDriveDriver);
+			$scopedAvailability = $driver->getScopedAvailability($overDriveDriver);
+			$holdingsSummary = $driver->getStatusSummary($this->id, $scopedAvailability, $holdings);
+			if (PEAR_Singleton::isError($holdingsSummary)) {
+				PEAR_Singleton::raiseError($holdingsSummary);
 			}
+			$interface->assign('holdingsSummary', $holdingsSummary);
 
 			//Load the citations
 			$this->loadCitations($overDriveDriver);
@@ -96,40 +98,5 @@ class OverDrive_Home extends Action{
 			$citationCount++;
 		}
 		$interface->assign('citationCount', $citationCount);
-	}
-
-
-	function processNoteFields($allFields){
-		$notes = array();
-		foreach ($allFields as $marcField){
-			foreach ($marcField->getSubFields() as $subfield){
-				$note = $subfield->getData();
-				if ($subfield->getCode() == 't'){
-					$note = "&nbsp;&nbsp;&nbsp;" . $note;
-				}
-				$note = trim($note);
-				if (strlen($note) > 0){
-					$notes[] = $note;
-				}
-			}
-		}
-		return $notes;
-	}
-
-	function processTableOfContentsFields($allFields){
-		$notes = array();
-		foreach ($allFields as $marcField){
-			$curNote = '';
-			foreach ($marcField->getSubFields() as $subfield){
-				$note = $subfield->getData();
-				$curNote .= " " . $note;
-				$curNote = trim($curNote);
-				if (strlen($curNote) > 0 && in_array($subfield->getCode(), array('t', 'a'))){
-					$notes[] = $curNote;
-					$curNote = '';
-				}
-			}
-		}
-		return $notes;
 	}
 }

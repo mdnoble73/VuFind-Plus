@@ -69,7 +69,7 @@ class RenewMultiple extends Action
 		}
 
 		//Redirect back to the hold screen with status from the renewal
-		header("Location: " . $configArray['Site']['path'] . '/MyResearch/CheckedOut');
+		header("Location: " . $configArray['Site']['path'] . '/MyAccount/CheckedOut');
 	}
 
 }

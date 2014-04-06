@@ -67,6 +67,7 @@ Home Page Variables
   border-radius: 3px;
   margin-bottom: 10px;
   position: relative;
+  background-color: white;
 }
 .eContentHoldingHeader {
   background-color: #EDEDED;

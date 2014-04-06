@@ -451,7 +451,7 @@ class OverDriveDriver3 {
 				$bookshelfItem['recordUrl'] = $configArray['Site']['path'] . '/OverDrive/' . $overDriveRecord->getUniqueID() . '/Home';
 				$bookshelfItem['title'] = $overDriveRecord->getTitle();
 				$bookshelfItem['author'] = $overDriveRecord->getAuthor();
-				$bookshelfItem['imageUrl'] = $overDriveRecord->getLinkUrl(false);
+				$bookshelfItem['linkUrl'] = $overDriveRecord->getLinkUrl(false);
 				$bookshelfItem['ratingData'] = $overDriveRecord->getRatingData();
 
 				$key = $bookshelfItem['checkoutSource'] . $bookshelfItem['overDriveId'];
@@ -498,25 +498,15 @@ class OverDriveDriver3 {
 				$hold['holdSource'] = 'OverDrive';
 
 				//Figure out which eContent record this is for.
-				$eContentRecord = new EContentRecord();
-				$eContentRecord->externalId = $hold['overDriveId'];
-				$eContentRecord->source = 'OverDrive';
-				$eContentRecord->status = 'active';
-				if ($eContentRecord->find(true)){
-					$hold['recordId'] = $eContentRecord->id;
-					$hold['recordUrl'] = $configArray['Site']['path'] . '/EcontentRecord/' . $eContentRecord->id . '/Home';
-					$hold['title'] = $eContentRecord->title;
-					$hold['author'] = $eContentRecord->author;
-					$hold['imageUrl'] = $configArray['Site']['coverUrl'] . '/bookcover.php?size=medium&econtent=true&id=' . $eContentRecord->id;
-
-					//Get Rating
-					require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
-					$econtentRating = new EContentRating();
-					$econtentRating->recordId = $eContentRecord->id;
-					$hold['ratingData'] = $econtentRating->getRatingData($user, false);
-				}else{
-					$hold['recordId'] = -1;
-				}
+				require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
+				$overDriveRecord = new OverDriveRecordDriver($hold['overDriveId']);
+				$hold['recordId'] = $overDriveRecord->getUniqueID();
+				$hold['coverUrl'] = $overDriveRecord->getCoverUrl('medium');
+				$hold['recordUrl'] = $configArray['Site']['path'] . '/OverDrive/' . $overDriveRecord->getUniqueID() . '/Home';
+				$hold['title'] = $overDriveRecord->getTitle();
+				$hold['author'] = $overDriveRecord->getAuthor();
+				$hold['linkUrl'] = $overDriveRecord->getLinkUrl(false);
+				$hold['ratingData'] = $overDriveRecord->getRatingData();
 
 				$key = $hold['holdSource'] . $hold['overDriveId'];
 				if ($hold['available']){
@@ -856,15 +846,12 @@ class OverDriveDriver3 {
 			$item->links = array();
 			if ($addCheckoutLink){
 				if ($configArray['OverDrive']['interfaceVersion'] == 1){
-					$checkoutLink = "return checkoutOverDriveItem('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');";
-					$checkoutLinkResponsive = "return VuFind.OverDrive.checkoutOverDriveItem('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');";
+					$checkoutLink = "return VuFind.OverDrive.checkoutOverDriveItem('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');";
 				}else{
-					$checkoutLink = "return checkoutOverDriveItemOneClick('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');";
-					$checkoutLinkResponsive = "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');";
+					$checkoutLink = "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');";
 				}
 				$item->links[] = array(
 					'onclick' => $checkoutLink,
-					'onclickResponsive' => $checkoutLinkResponsive,
 					'text' => 'Check Out',
 					'overDriveId' => $overDriveRecordDriver->getUniqueID(),
 					'formatId' => $item->numericId,
@@ -872,8 +859,7 @@ class OverDriveDriver3 {
 				);
 			}else if ($addPlaceHoldLink){
 				$item->links[] = array(
-					'onclick' => "return placeOverDriveHold('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');",
-					'onclickResponsive' => "return VuFind.OverDrive.placeOverDriveHold('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');",
+					'onclick' => "return VuFind.OverDrive.placeOverDriveHold('{$overDriveRecordDriver->getUniqueID()}', '{$item->numericId}');",
 					'text' => 'Place Hold',
 					'overDriveId' => $overDriveRecordDriver->getUniqueID(),
 					'formatId' => $item->numericId,

@@ -78,11 +78,6 @@
 
 				<div id="recordTools" class="col-md-3">
 					{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
-
-					<div id="ratings" class="well center">
-						{* Let the user rate this title *}
-						{include file="Record/title-rating-full.tpl" ratingClass="" recordId=$id shortId=$shortId ratingData=$ratingData showFavorites=0}
-					</div>
 				</div>
 			</div>
 

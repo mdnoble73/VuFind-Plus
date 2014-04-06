@@ -69,17 +69,6 @@ interface RecordInterface
     public function getCitationFormats();
 
     /**
-     * Get an array of search results for other editions of the title 
-     * represented by this record (empty if unavailable).  In most cases, 
-     * this will use the XISSN/XISBN logic to find matches.
-     *
-     * @access  public
-     * @return  mixed               Editions in index engine result format.
-     *                              (or null if no hits, or PEAR_Error object).
-     */
-    public function getEditions();
-
-    /**
      * Get the text to represent this record in the body of an email.
      *
      * @access  public

@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
 
-class Profile extends MyResearch
+class MyAccount_Profile extends MyResearch
 {
 	function launch()
 	{
@@ -69,13 +69,13 @@ class Profile extends MyResearch
 			$overDriveDriver = OverDriveDriverFactory::getDriver();
 			$result = $overDriveDriver->updateLendingOptions();
 
-			header("Location: " . $configArray['Site']['path'] . '/MyResearch/Profile');
+			header("Location: " . $configArray['Site']['path'] . '/MyAccount/Profile');
 			exit();
 		}elseif (isset($_POST['updatePin']) && !$configArray['Catalog']['offline']) {
 			$result = $this->catalog->updatePin();
 			$_SESSION['profileUpdateErrors'] = $result;
 
-			header("Location: " . $configArray['Site']['path'] . '/MyResearch/Profile');
+			header("Location: " . $configArray['Site']['path'] . '/MyAccount/Profile');
 			exit();
 		}else if (isset($_POST['edit']) && !$configArray['Catalog']['offline']){
 			$interface->assign('edit', true);

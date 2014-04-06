@@ -61,6 +61,7 @@ class eContentSupport extends Action
 			}
 		}else{
 			if (isset($_REQUEST['lightbox'])){
+				$interface->assign('lightbox', true);
 				if ($user){
 					$interface->assign('name', $user->cat_username);
 					$interface->assign('email', $user->email);
@@ -70,7 +71,9 @@ class eContentSupport extends Action
 				$interface->assign('popupContent', $popupContent);
 				$interface->display('popup-wrapper.tpl');
 			}else{
+				$interface->assign('lightbox', false);
 				$interface->setTemplate('eContentSupport.tpl');
+				$interface->assign('sidebar', 'Search/home-sidebar.tpl');
 				$interface->display('layout.tpl');
 			}
 		}

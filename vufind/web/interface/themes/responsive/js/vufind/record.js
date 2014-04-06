@@ -85,8 +85,6 @@ VuFind.Record = (function(){
 			var url;
 			if (source == 'VuFind'){
 				url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-			}else if (source == 'OverDrive'){
-				url = Globals.path + "/OverDrive/" + encodeURIComponent(id) + "/AJAX";
 			}else{
 				url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 			}
@@ -117,17 +115,27 @@ VuFind.Record = (function(){
 						}
 						var summaryDetails = $(data).find("SummaryDetails");
 						var callNumber = summaryDetails.find("callnumber").text();
-						$("#callNumberValue").html(callNumber);
+						if (callNumber.length>0){
+							$("#callNumberValue").html(callNumber);
+						}else{
+							$("#callNumberRow").hide();
+						}
 						var location = summaryDetails.find("availableAt").text();
 						if (location.length > 0){
 							$("#locationValue").html(location);
 						}else{
 							location = summaryDetails.find("location").text();
-							$("#locationValue").html(location);
+							if (location.length > 0){
+								$("#locationValue").html(location);
+							}else{
+								$("#locationRow").hide();
+							}
 						}
 						var status = summaryDetails.find("status").text();
 						if (status == "Available At"){
 							status = "Available";
+						}else if(status == "Marmot"){
+							status = "Available from another library";
 						}
 						$("#statusValue").html(status).addClass(summaryDetails.find("class").text());
 					}else{

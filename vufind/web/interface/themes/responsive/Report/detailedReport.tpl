@@ -1,5 +1,4 @@
 {strip}
-	<script type="text/javascript" src="/interface/themes/responsive/js/vufind/analytic-reports.js"></script>
 	<div id="page-content" class="content">
 		{include file="Report/analyticsFilters.tpl"}
 		<h2>{$reportData.name}</h2>

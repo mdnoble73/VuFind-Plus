@@ -852,29 +852,6 @@ function toggleSection(sectionName){
 	$("." + sectionName).toggle();
 	$("#holdings-section-" + sectionName).toggleClass('collapsed expanded');
 }
-function showEContentSupportForm(){
-	if (loggedIn){
-		return ajaxLightbox(path + '/Help/eContentSupport?lightbox=true');
-	}else{
-		return ajaxLogin(function (){showEContentSupportForm()});
-	}
-}
-function loadEContentHelpTopic(){
-	var selectedDevice = $("#device :selected").val();
-	var selectedFormat = $("#format :selected").val();
-	
-	if (selectedDevice != "selectone" && selectedFormat != "selectone"){
-		$.getJSON(
-			path + '/Help/AJAX?method=getHelpTopic&device=' + selectedDevice + '&format=' +selectedFormat,
-			function (data){
-				$("#stepByStepInstructions").show()
-				$("#helpInstructions").html(data.helpText);
-			}
-		);
-	}
-}
-
-
 
 function getWikipediaArticle(articleName){
 	var url = path + "/Author/AJAX?method=getWikipediaData&articleName=" + articleName;

@@ -7,9 +7,9 @@
 				</div>
 				<div class="col-md-9 text-center">
 					{if $record.recordId}
-					<a href="{$path}/EcontentRecord/{$record.recordId|escape:"url"}">
+					<a href="{$record.linkUrl}">
 						{/if}
-						<img src="{$coverUrl}/bookcover.php?id={$record.recordId}&amp&econtent&size=medium" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
+						<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
 						{if $record.recordId}
 					</a>
 					{/if}
@@ -21,7 +21,7 @@
 			<div class="row">
 				<strong>
 					{if $record.recordId != -1}
-					<a href="{$path}/EcontentRecord/{$record.recordId|escape:"url"}" class="title">
+					<a href="{$record.linkUrl}" class="title">
 						{/if}
 						{if !$record.title}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}
 						{if $record.recordId != -1}
@@ -86,13 +86,11 @@
 				<div class="col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
 						{if $section == 'available'}
-							<a href="#" onclick="return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$record.overDriveId}');" class="btn btn-sm">Cancel Hold</a>
+							<a href="#" onclick="return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$record.overDriveId}');" class="btn btn-sm btn-primary">Checkout</a>
 						{/if}
-						<a href="#" onclick="return VuFind.OverDrive.cancelOverDriveHold('{$record.overDriveId}');" class="btn btn-sm">Cancel Hold</a>
+						<a href="#" onclick="return VuFind.OverDrive.cancelOverDriveHold('{$record.overDriveId}');" class="btn btn-sm btn-warning">Cancel Hold</a>
 					</div>
 
-					{* Include standard tools *}
-					{* include file='EcontentRecord/result-tools.tpl' summId=$record.recordId summShortId=$record.shortId ratingData=$record.ratingData recordUrl=$record.recordUrl showMoreInfo=true showHoldButton=false *}
 				</div>
 			</div>
 		</div>

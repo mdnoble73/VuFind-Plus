@@ -41,7 +41,7 @@
 						<div class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="Materials Requests"><a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials Requests'} ({$profile.numMaterialsRequests})</a></div>
 						{/if}
 						<div class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyAccount/ReadingHistory">My Reading History</a></div>
-						<div class="myAccountLink{if $pageTemplate=="profile.tpl"} active{/if}"><a href="{$path}/MyResearch/Profile">Account Settings</a></div>
+						<div class="myAccountLink{if $pageTemplate=="profile.tpl"} active{/if}"><a href="{$path}/MyAccount/Profile">Account Settings</a></div>
 						{* Only highlight saved searches as active if user is logged in: *}
 						<div class="myAccountLink{if $user && $pageTemplate=="history.tpl"} active{/if}"><a href="{$path}/Search/History?require_login">{translate text='history_saved_searches'}</a></div>
 					</div>
@@ -59,10 +59,10 @@
 				</a>
 				<div id="myListsPanel" class="panel-collapse collapse {if $action == 'MyRatings' || $action == 'Suggested Titles' || $action == 'MyList'}in{/if}">
 					<div class="panel-body">
-						<div class="myAccountLink"><a href="{$path}/MyResearch/MyRatings">{translate text='Titles You Rated'}</a></div>
+						<div class="myAccountLink"><a href="{$path}/MyAccount/MyRatings">{translate text='Titles You Rated'}</a></div>
 						{foreach from=$lists item=list}
 							{if $list.id != -1}
-								<div class="myAccountLink"><a href="{$list.url}">{$list.name} ({$list.numTitles})</a></div>
+								<div class="myAccountLink"><a href="{$list.url}">{$list.name}{if $list.numTitles} ({$list.numTitles}){/if}</a></div>
 							{/if}
 						{/foreach}
 					</div>

@@ -43,4 +43,14 @@
 	{if $showQRCode}
 	<div id="record-qr-code" class="text-center row row hidden-xs visible-md"><img src="{$recordDriver->getQRCodeUrl()}" alt="QR Code for Record"/></div>
 	{/if}
+
+	{if $user}
+		<div id="results-sort-label" class="row">
+			{translate text='My Account'}
+		</div>
+		{* Account Menu *}
+		{include file="MyAccount/menu.tpl"}
+	{/if}
+
+	{include file="library-sidebar.tpl"}
 {/strip}

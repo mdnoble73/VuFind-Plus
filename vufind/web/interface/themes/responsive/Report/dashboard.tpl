@@ -1,6 +1,5 @@
 {strip}
 	<script type="text/javascript" src="/js/highcharts/highcharts.js"></script>
-	<script type="text/javascript" src="/interface/themes/responsive/js/vufind/analytic-reports.js"></script>
 	<div class="row">
 		{include file="Report/analyticsFilters.tpl"}
 	</div>
@@ -28,13 +27,13 @@
 <script type="text/javascript">
 {literal}
 
-var activePageViewChart = setupInteractiveChart('activePageViewsChart', 'Page Views', 'Time', 'Count');
-var recentUsersChart = setupInteractiveChart('activeUsersChart', 'Users', 'Time', 'Count');
-var recentSearchesChart = setupInteractiveChart('activeSearchesChart', 'Searches', 'Time', 'Count');
-var recentEventsChart = setupInteractiveChart('activeEventsChart', 'Events', 'Time', 'Count');
+var activePageViewChart = VuFind.AnalyticReports.setupInteractiveChart('activePageViewsChart', 'Page Views', 'Time', 'Count');
+var recentUsersChart = VuFind.AnalyticReports.setupInteractiveChart('activeUsersChart', 'Users', 'Time', 'Count');
+var recentSearchesChart = VuFind.AnalyticReports.setupInteractiveChart('activeSearchesChart', 'Searches', 'Time', 'Count');
+var recentEventsChart = VuFind.AnalyticReports.setupInteractiveChart('activeEventsChart', 'Events', 'Time', 'Count');
 
 $(document).ready(function() {
-	getRecentActivity();
+	VuFind.AnalyticReports.getRecentActivity();
 });
 {/literal}
 </script>

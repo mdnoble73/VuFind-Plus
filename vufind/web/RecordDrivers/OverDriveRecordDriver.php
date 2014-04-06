@@ -17,7 +17,9 @@ class OverDriveRecordDriver implements RecordInterface {
 	/** @var  OverDriveAPIProductMetaData */
 	private $overDriveMetaData;
 	private $valid;
-	private $isbns;
+	private $isbns = null;
+	private $upcs = null;
+	private $asins = null;
 	private $items;
 	protected $scopingEnabled = false;
 
@@ -161,19 +163,6 @@ class OverDriveRecordDriver implements RecordInterface {
 	}
 
 	/**
-	 * Get an array of search results for other editions of the title
-	 * represented by this record (empty if unavailable).  In most cases,
-	 * this will use the XISSN/XISBN logic to find matches.
-	 *
-	 * @access  public
-	 * @return  mixed               Editions in index engine result format.
-	 *                              (or null if no hits, or PEAR_Error object).
-	 */
-	public function getEditions() {
-		// TODO: Implement getEditions() method.
-	}
-
-	/**
 	 * Get the text to represent this record in the body of an email.
 	 *
 	 * @access  public
@@ -245,7 +234,11 @@ class OverDriveRecordDriver implements RecordInterface {
 	 * @return  string              Name of Smarty template file to display.
 	 */
 	public function getHoldings() {
-		// TODO: Implement getHoldings() method.
+		require_once (ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
+		$driver = OverDriveDriverFactory::getDriver();
+
+		/** @var OverDriveAPIProductFormats[] $holdings */
+		return $driver->getHoldings($this);
 	}
 
 	/**
@@ -306,6 +299,20 @@ class OverDriveRecordDriver implements RecordInterface {
 	 */
 	public function getSearchResult() {
 		// TODO: Implement getSearchResult() method.
+	}
+
+	public function getSeries(){
+		$seriesData = $this->getGroupedWorkDriver()->getSeries();
+		if ($seriesData == null){
+			$seriesName = isset($this->getOverDriveMetaData()->getDecodedRawData()->series) ? $this->getOverDriveMetaData()->getDecodedRawData()->series : null;
+			if ($seriesName != null){
+				$seriesData = array(
+					'seriesTitle' => $seriesName,
+					'fromNovelist' => false,
+				);
+			}
+		}
+		return $seriesData;
 	}
 
 	/**
@@ -446,7 +453,14 @@ class OverDriveRecordDriver implements RecordInterface {
 	}
 
 	function getLanguage(){
-		return 'English';
+		$metaData = $this->getOverDriveMetaData()->getDecodedRawData();
+		$languages = array();
+		if (isset($metaData->languages)){
+			foreach ($metaData->languages as $language){
+				$languages[] = $language->name;
+			}
+		}
+		return $languages;
 	}
 
 	private $availability = null;
@@ -539,12 +553,12 @@ class OverDriveRecordDriver implements RecordInterface {
 		if ($available){
 			$relatedRecord['actions'][] = array(
 				'title' => 'Check Out',
-				'onClick' => "return  VuFind.OverDrive.checkoutOverDriveItemOneClick('{$recordId}');"
+				'onClick' => "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$recordId}');"
 			);
 		}else{
 			$relatedRecord['actions'][] = array(
 				'title' => 'Place Hold',
-					'onClick' => "return  VuFind.OverDrive.placeOverDriveHold('{$recordId}');"
+					'onClick' => "return VuFind.OverDrive.placeOverDriveHold('{$recordId}');"
 			);
 		}
 		return array($relatedRecord);
@@ -627,7 +641,7 @@ class OverDriveRecordDriver implements RecordInterface {
 	 * @access  protected
 	 * @return  array
 	 */
-	protected function getISBNs()
+	public function getISBNs()
 	{
 		//Load ISBNs for the product
 		if ($this->isbns == null){
@@ -642,6 +656,65 @@ class OverDriveRecordDriver implements RecordInterface {
 			}
 		}
 		return $this->isbns;
+	}
+
+	/**
+	 * Get an array of all UPCs associated with the record (may be empty).
+	 *
+	 * @access  protected
+	 * @return  array
+	 */
+	public function getUPCs()
+	{
+		//Load UPCs for the product
+		if ($this->upcs == null){
+			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductIdentifiers.php';
+			$overDriveIdentifiers = new OverDriveAPIProductIdentifiers();
+			$overDriveIdentifiers->type = 'UPC';
+			$overDriveIdentifiers->productId = $this->overDriveProduct->id;
+			$this->upcs = array();
+			$overDriveIdentifiers->find();
+			while ($overDriveIdentifiers->fetch()){
+				$this->upcs[] = $overDriveIdentifiers->value;
+			}
+		}
+		return $this->upcs;
+	}
+
+	public function getAcceleratedReaderData(){
+		return $this->getGroupedWorkDriver()->getAcceleratedReaderData();
+	}
+	public function getLexileCode(){
+		return $this->getGroupedWorkDriver()->getLexileCode();
+	}
+	public function getLexileScore(){
+		return $this->getGroupedWorkDriver()->getLexileScore();
+	}
+	public function getSubjects(){
+		return $this->getOverDriveMetaData()->getDecodedRawData()->subjects;
+	}
+
+	/**
+	 * Get an array of all ASINs associated with the record (may be empty).
+	 *
+	 * @access  protected
+	 * @return  array
+	 */
+	public function getASINs()
+	{
+		//Load UPCs for the product
+		if ($this->asins == null){
+			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductIdentifiers.php';
+			$overDriveIdentifiers = new OverDriveAPIProductIdentifiers();
+			$overDriveIdentifiers->type = 'ASIN';
+			$overDriveIdentifiers->productId = $this->overDriveProduct->id;
+			$this->asins = array();
+			$overDriveIdentifiers->find();
+			while ($overDriveIdentifiers->fetch()){
+				$this->asins[] = $overDriveIdentifiers->value;
+			}
+		}
+		return $this->asins;
 	}
 
 	/**
@@ -734,6 +807,33 @@ class OverDriveRecordDriver implements RecordInterface {
 
 		$isbn = $this->getCleanISBN();
 
+		//Load holdings information from the driver
+		require_once (ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
+		$driver = OverDriveDriverFactory::getDriver();
+
+		/** @var OverDriveAPIProductFormats[] $holdings */
+		$holdings = $driver->getHoldings($this);
+		$scopedAvailability = $driver->getScopedAvailability($this);
+		$interface->assign('availability', $scopedAvailability['mine']);
+		$interface->assign('availabilityOther', $scopedAvailability['other']);
+		$showAvailability = true;
+		$showAvailabilityOther = true;
+		$interface->assign('showAvailability', $showAvailability);
+		$interface->assign('showAvailabilityOther', $showAvailabilityOther);
+		$showOverDriveConsole = false;
+		$showAdobeDigitalEditions = false;
+		foreach ($holdings as $item){
+			if (in_array($item->textId, array('ebook-epub-adobe', 'ebook-pdf-adobe'))){
+				$showAdobeDigitalEditions = true;
+			}else if (in_array($item->textId, array('video-wmv', 'music-wma', 'music-wma', 'audiobook-wma', 'audiobook-mp3'))){
+				$showOverDriveConsole = true;
+			}
+		}
+		$interface->assign('showOverDriveConsole', $showOverDriveConsole);
+		$interface->assign('showAdobeDigitalEditions', $showAdobeDigitalEditions);
+
+		$interface->assign('holdings', $holdings);
+
 		//Load more details options
 		$moreDetailsOptions = array();
 		$moreDetailsOptions['series'] = array(
@@ -750,7 +850,7 @@ class OverDriveRecordDriver implements RecordInterface {
 		);
 		$moreDetailsOptions['formats'] = array(
 			'label' => 'Formats',
-			'body' => '<div id="formatsPlaceholder">Loading...</div>',
+			'body' => $interface->fetch('OverDrive/view-formats.tpl'),
 			'openByDefault' => true
 		);
 		//Other editions if applicable
@@ -818,9 +918,9 @@ class OverDriveRecordDriver implements RecordInterface {
 				'hideByDefault' => true
 			);
 		}
-		$moreDetailsOptions['details'] = array(
-			'label' => 'Details',
-			'body' => $interface->fetch('OverDrive/view-title-details.tpl'),
+		$moreDetailsOptions['moreDetails'] = array(
+			'label' => 'More Details',
+			'body' => $interface->fetch('OverDrive/view-more-details.tpl'),
 		);
 		if ($interface->getVariable('showTagging')){
 			$moreDetailsOptions['tags'] = array(
@@ -834,7 +934,7 @@ class OverDriveRecordDriver implements RecordInterface {
 		);
 		$moreDetailsOptions['copies'] = array(
 			'label' => 'Copy Details',
-			'body' => '<div id="copiesPlaceholder">Loading...</div>',
+			'body' => $interface->fetch('OverDrive/view-copies.tpl'),
 		);
 		if ($interface->getVariable('showStaffView')){
 			$moreDetailsOptions['staff'] = array(
@@ -873,8 +973,8 @@ class OverDriveRecordDriver implements RecordInterface {
 
 	private function getPublicationDates() {
 		$publicationDates = array();
-		if (isset($this->overDriveMetaData->getDecodedRawData()->publishDateText)){
-			$publishDate = $this->overDriveMetaData->getDecodedRawData()->publishDateText;
+		if (isset($this->getOverDriveMetaData()->getDecodedRawData()->publishDateText)){
+			$publishDate = $this->getOverDriveMetaData()->getDecodedRawData()->publishDateText;
 			$publishYear = substr($publishDate, -4);
 			$publicationDates[] = $publishYear;
 		}
@@ -885,8 +985,45 @@ class OverDriveRecordDriver implements RecordInterface {
 		return array();
 	}
 
-	private function getEdition() {
-		return isset($this->overDriveMetaData->getDecodedRawData()->edition) ? $this->overDriveMetaData->getDecodedRawData()->edition : '';
+	/**
+	 * Get an array of publication detail lines combining information from
+	 * getPublicationDates(), getPublishers() and getPlacesOfPublication().
+	 *
+	 * @access  public
+	 * @return  array
+	 */
+	function getPublicationDetails()
+	{
+		$places = $this->getPlacesOfPublication();
+		$names = $this->getPublishers();
+		$dates = $this->getPublicationDates();
+
+		$i = 0;
+		$returnVal = array();
+		while (isset($places[$i]) || isset($names[$i]) || isset($dates[$i])) {
+			// Put all the pieces together, and do a little processing to clean up
+			// unwanted whitespace.
+			$publicationInfo = (isset($places[$i]) ? $places[$i] . ' ' : '') .
+					(isset($names[$i]) ? $names[$i] . ' ' : '') .
+					(isset($dates[$i]) ? $dates[$i] : '');
+			$returnVal[] = trim(str_replace('  ', ' ', $publicationInfo));
+			$i++;
+		}
+
+		return $returnVal;
+	}
+
+	public function getEdition($returnFirst = false) {
+		$edition = isset($this->overDriveMetaData->getDecodedRawData()->edition) ? $this->overDriveMetaData->getDecodedRawData()->edition : null;
+		if ($returnFirst || is_null($edition)){
+			return $edition;
+		}else{
+			return array($edition);
+		}
+	}
+
+	public function getStreetDate(){
+		return isset($this->overDriveMetaData->getDecodedRawData()->publishDateText) ? $this->overDriveMetaData->getDecodedRawData()->publishDateText : null;
 	}
 
 	private function getGroupedWorkDriver() {

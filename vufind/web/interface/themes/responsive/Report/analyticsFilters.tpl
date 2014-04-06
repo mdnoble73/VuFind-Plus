@@ -15,7 +15,7 @@
 			{assign var=nextFilterIndex value=1}
 			{foreach from=$activeFilters item=filterInfo key=filterIndex}
 				<div class="filterSetting" id="filterSetting{$filterIndex}">
-					<select name="filter[{$filterIndex}]" id="filter{$filterIndex}" data-filter-index="{$filterIndex}" onchange="showFilterValues(this)">
+					<select name="filter[{$filterIndex}]" id="filter{$filterIndex}" data-filter-index="{$filterIndex}" onchange="VuFind.AnalyticReports.showFilterValues(this)">
 						<option value="">Select a value</option>
 						{foreach from=$filters item=filter key=filterId}
 							<option value="{$filter.field}" {if $filterInfo.name == $filter.field}selected="selected"{/if}>{$filter.label}</option>
@@ -33,7 +33,7 @@
 			{/foreach}
 			{* Display a list of filters that can be applied *}
 			<div class="filterSetting" id="filterSetting{$nextFilterIndex}">
-				<select name="filter[{$nextFilterIndex}]" id="filter{$nextFilterIndex}" data-filter-index="{$nextFilterIndex}" onchange="showFilterValues(this)">
+				<select name="filter[{$nextFilterIndex}]" id="filter{$nextFilterIndex}" data-filter-index="{$nextFilterIndex}" onchange="VuFind.AnalyticReports.showFilterValues(this)">
 					<option value="">Select a value</option>
 					{foreach from=$filters item=filter}
 						<option value="{$filter.field}">{$filter.label}</option>

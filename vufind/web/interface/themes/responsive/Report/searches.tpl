@@ -1,6 +1,5 @@
 {strip}
 	<script type="text/javascript" src="/js/highcharts/highcharts.js"></script>
-	<script type="text/javascript" src="/interface/themes/responsive/js/vufind/analytic-reports.js"></script>
 	<div class="row">
 		{include file="Report/analyticsFilters.tpl"}
 	</div>
@@ -72,10 +71,10 @@
 <script type="text/javascript">
 {literal}
 $(document).ready(function() {
-	setupPieChart("searchesByTypeChart", 'searchesByType', 'Searches By Type', '% Used');
-	setupPieChart("searchesByScopeChart", 'searchesByScope', 'Searches By Scope', '% Used');
-	setupPieChart("searchesWithFacetsChart", 'searchesWithFacets', 'Searches with Facets', '% Used');
-	setupPieChart("facetUsageByTypeChart", 'facetUsageByType', 'Facets By Type', '% Used');
+	VuFind.AnalyticReports.setupPieChart("searchesByTypeChart", 'searchesByType', 'Searches By Type', '% Used');
+	VuFind.AnalyticReports.setupPieChart("searchesByScopeChart", 'searchesByScope', 'Searches By Scope', '% Used');
+	VuFind.AnalyticReports.setupPieChart("searchesWithFacetsChart", 'searchesWithFacets', 'Searches with Facets', '% Used');
+	VuFind.AnalyticReports.setupPieChart("facetUsageByTypeChart", 'facetUsageByType', 'Facets By Type', '% Used');
 });
 {/literal}
 </script>

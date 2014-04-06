@@ -185,6 +185,9 @@
 .related-manifestation-shelf-status.checked_out {
   color: red;
 }
+.related-manifestation-shelf-status.availableOther {
+  color: #BB0099;
+}
 .related_record_status {
   font-size: 13px;
   font-weight: bold;
@@ -193,5 +196,8 @@
   color: green;
 }
 .related_record_status.checked_out {
+  color: red;
+}
+.related_record_status.availableOther {
   color: red;
 }

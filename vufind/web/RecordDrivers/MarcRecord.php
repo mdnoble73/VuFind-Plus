@@ -488,11 +488,11 @@ class MarcRecord extends IndexRecord
 	/**
 	 * Get the edition of the current record.
 	 *
-	 * @access  protected
+	 * @access  public
 	 * @param   boolean $returnFirst whether or not only the first value is desired
 	 * @return  string
 	 */
-	protected function getEdition($returnFirst = false)
+	public function getEdition($returnFirst = false)
 	{
 		if ($returnFirst){
 			return $this->getFirstFieldValue('250');
@@ -611,32 +611,33 @@ class MarcRecord extends IndexRecord
 	 * be either the name string, or an associative array with 'name' and 'number'
 	 * keys.
 	 *
-	 * @access  protected
+	 * @access  public
 	 * @return  array
 	 */
-	protected function getSeries()
+	public function getSeries()
 	{
-		$matches = array();
+		$seriesInfo = $this->getGroupedWorkDriver()->getSeries();
+		if (count($seriesInfo) == 0){
+			$matches = array();
 
-		// First check the 440, 800 and 830 fields for series information:
-		$primaryFields = array(
-            '440' => array('a', 'p'),
-            '800' => array('a', 'b', 'c', 'd', 'f', 'p', 'q', 't'),
-            '830' => array('a', 'p'));
-		$matches = $this->getSeriesFromMARC($primaryFields);
-		if (!empty($matches)) {
-			return $matches;
+			// First check the 440, 800 and 830 fields for series information:
+			$primaryFields = array(
+					'440' => array('a', 'p'),
+					'800' => array('a', 'b', 'c', 'd', 'f', 'p', 'q', 't'),
+					'830' => array('a', 'p'));
+			$matches = $this->getSeriesFromMARC($primaryFields);
+			if (!empty($matches)) {
+				return $matches;
+			}
+
+			// Now check 490 and display it only if 440/800/830 were empty:
+			$secondaryFields = array('490' => array('a'));
+			$matches = $this->getSeriesFromMARC($secondaryFields);
+			if (!empty($matches)) {
+				return $matches;
+			}
 		}
-
-		// Now check 490 and display it only if 440/800/830 were empty:
-		$secondaryFields = array('490' => array('a'));
-		$matches = $this->getSeriesFromMARC($secondaryFields);
-		if (!empty($matches)) {
-			return $matches;
-		}
-
-		// Still no results found?  Resort to the Solr-based method just in case!
-		return parent::getSeries();
+		return $seriesInfo;
 	}
 
 	/**
@@ -1885,6 +1886,16 @@ class MarcRecord extends IndexRecord
 		}
 	}
 
+	public function getAcceleratedReaderData(){
+		return $this->getGroupedWorkDriver()->getAcceleratedReaderData();
+	}
+	public function getLexileCode(){
+		return $this->getGroupedWorkDriver()->getLexileCode();
+	}
+	public function getLexileScore(){
+		return $this->getGroupedWorkDriver()->getLexileScore();
+	}
+
 	public function getMoreDetailsOptions(){
 		global $interface;
 
@@ -1974,7 +1985,7 @@ class MarcRecord extends IndexRecord
 				'hideByDefault' => true
 			);
 		}
-		$moreDetailsOptions['more-details'] = array(
+		$moreDetailsOptions['moreDetails'] = array(
 			'label' => 'More Details',
 			'body' => $interface->fetch('Record/view-more-details.tpl'),
 		);

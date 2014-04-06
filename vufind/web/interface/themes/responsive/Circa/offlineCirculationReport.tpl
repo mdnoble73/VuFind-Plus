@@ -2,7 +2,7 @@
 	<div id="page-content" class="content">
 		{if $error}<p class="error">{$error}</p>{/if}
 		<div id="sidebar">
-			<div class="button"><a href="{$path}/MyResearch/Home">Return to Account</a></div>
+			<div class="button"><a href="{$path}/MyAccount/Home">Return to Account</a></div>
 			<hr />
 
 			{* Report filters *}

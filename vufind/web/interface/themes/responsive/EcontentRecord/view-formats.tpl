@@ -40,7 +40,7 @@
 			{/if}
 			{* Options for the user to view online or download *}
 			{foreach from=$eContentItem->links item=link}
-				<a href="{if $link.url}{$link.url}{else}#{/if}" {if $link.onclickResponsive}onclick="{$link.onclickResponsive}"{/if} class="btn btn-primary">{$link.text}</a>&nbsp;
+				<a href="{if $link.url}{$link.url}{else}#{/if}" {if $link.onclick}onclick="{$link.onclick}"{/if} class="btn btn-primary">{$link.text}</a>&nbsp;
 			{/foreach}
 			{if $user && $user->hasRole('epubAdmin') && ($record->accessType != 'external' && strlen($record->ilsId) > 0)}
 				<a href="#" onclick="return editItem('{$id}', '{$eContentItem->id}')" class="btn">Edit</a>&nbsp;

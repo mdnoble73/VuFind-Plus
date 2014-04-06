@@ -2,7 +2,7 @@
 	<table class="table table-striped table-condensed">
 		<thead>
 		<tr>
-			{if $relatedManifestation.format == 'eBook' || $relatedManifestation.format == 'eAudio'}
+			{if $relatedManifestation.format == 'eBook' || $relatedManifestation.format == 'eAudiobook'}
 				<th>Source</th>
 			{/if}
 			{display_if_inconsistent array=$relatedRecords key="edition"}
@@ -29,7 +29,7 @@
 				{* <td>
 				{$relatedRecord.holdRatio}
 				</td> *}
-				{if $relatedManifestation.format == 'eBook' || $relatedManifestation.format == 'eAudio'}
+				{if $relatedManifestation.format == 'eBook' || $relatedManifestation.format == 'eAudiobook'}
 					<td><a href="{$relatedRecord.url}">{$relatedRecord.source}</a></td>
 				{/if}
 				{display_if_inconsistent array=$relatedRecords key="edition"}
@@ -45,7 +45,7 @@
 					<td><a href="{$relatedRecord.url}">{$relatedRecord.physical}</a></td>
 				{/display_if_inconsistent}
 				{display_if_inconsistent array=$relatedRecords key="language"}
-					<td><a href="{$relatedRecord.url}">{$relatedRecord.language}</a></td>
+					<td><a href="{$relatedRecord.url}">{implode subject=$relatedRecord.language glue=","}</a></td>
 				{/display_if_inconsistent}
 				<td>
 					{if $relatedRecord.available}
@@ -72,7 +72,7 @@
 				<td>
 					<div class="btn-group">
 					{foreach from=$relatedRecord.actions item=curAction}
-						<a href="{$curAction.url}" class="btn btn-sm">{$curAction.title}</a>
+						<a href="{$curAction.url}" {if $curAction.onClick}onclick="{$curAction.onClick}"{/if} class="btn btn-sm btn-default">{$curAction.title}</a>
 					{/foreach}
 					</div>
 				</td>

@@ -23,6 +23,6 @@
 			<input type="hidden" name="overdriveEmail" value="{$overdriveEmail}"/>
 		{/if}
 		<br/>
-		<input type="submit" name="submit" value="Place Hold" onclick="return processOverDriveHoldPrompts()"/>
+		<input type="submit" name="submit" value="Place Hold" onclick="return VuFind.OverDrive.processOverDriveHoldPrompts()"/>
 	</div>
 </form>

@@ -1,55 +1,50 @@
 <script type="text/javascript">
 {literal}$(document).ready(function(){{/literal}
-	VuFind.Record.loadHoldingsInfo('{$id|escape:"url"}', '{$id|escape:"url"}', 'OverDrive');
 	VuFind.GroupedWork.loadEnrichmentInfo('{$recordDriver->getPermanentId()|escape:"url"}');
 	VuFind.GroupedWork.loadReviewInfo('{$recordDriver->getPermanentId()|escape:"url"}');
 	VuFind.Prospector.loadRelatedProspectorTitles('{$recordDriver->getPermanentId()|escape:"url"}');
 {literal}});{/literal}
 </script>
 {strip}
-	{* Display Title *}
-	<h2>
-		{$recordDriver->getTitle()|removeTrailingPunctuation|escape}{if $recordDriver->getSubTitle()}: {$recordDriver->getSubTitle()|removeTrailingPunctuation|escape}{/if}
-		{if $recordDriver->getFormats()}
-			&nbsp;<small>({implode subject=$recordDriver->getFormats() glue=", "})</small>
-		{/if}
-	</h2>
+	<div class="col-xs-12">
+		{* Display Title *}
+		<h2>
+			{$recordDriver->getTitle()|removeTrailingPunctuation|escape}{if $recordDriver->getSubTitle()}: {$recordDriver->getSubTitle()|removeTrailingPunctuation|escape}{/if}
+			{if $recordDriver->getFormats()}
+				<br/><small>({implode subject=$recordDriver->getFormats() glue=", "})</small>
+			{/if}
+		</h2>
 
-	{* Display more information about the title*}
-	{if $recordDriver->getAuthor()}
 		<div class="row">
-			<div class="result-label col-md-3">Author: </div>
-			<div class="col-md-9 result-value">
-				<a href="{$path}/Author/Home?author={$recordDriver->getAuthor()|escape:"url"}">{$recordDriver->getAuthor()|highlight:$lookfor}</a>
-			</div>
-		</div>
-	{/if}
 
-	<div id="main-content" class="col-md-12">
-		<div class="row">
-			<div id="record-details-column" class="col-md-9">
-				<div id="record-details-header">
-					<div id="holdingsSummaryPlaceholder" class="holdingsSummaryRecord">Loading...</div>
+			<div id="main-content" class="col-xs-12">
+				<div class="row">
+
+					<div id="record-details-column" class="col-sm-9">
+						{include file="OverDrive/view-title-details.tpl"}
+
+					</div>
+
+					<div id="recordTools" class="col-md-3">
+						<div class="btn-toolbar">
+							<div class="btn-group btn-group-vertical btn-block">
+								{* Show hold/checkout button as appropriate *}
+								{if $holdingsSummary.showPlaceHold}
+									{* Place hold link *}
+									<a href="#" class="btn btn-sm btn-block btn-primary" id="placeHold{$recordDriver->getUniqueID()|escape:"url"}" onclick="return VuFind.OverDrive.placeOverDriveHold('{$recordDriver->getUniqueID()}')">{translate text="Place Hold"}</a>
+								{/if}
+								{if $holdingsSummary.showCheckout}
+									{* Checkout link *}
+									<a href="#" class="btn btn-sm btn-block btn-primary" id="checkout{$recordDriver->getUniqueID()|escape:"url"}" onclick="return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$recordDriver->getUniqueID()}')">{translate text="Checkout"}</a>
+								{/if}
+							</div>
+						</div>
+					</div>
 				</div>
 
-				{if $recordDriver->getDescription()}
-					<dl>
-						<dt>{translate text='Description'}</dt>
-						<dd class="recordDescription">
-							{$recordDriver->getDescription()}
-						</dd>
-					</dl>
-				{/if}
-			</div>
-
-			<div id="recordTools" class="col-md-3">
-				{include file="OverDrive/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
+				{include file=$moreDetailsTemplate}
 
 			</div>
 		</div>
-
-		{include file=$moreDetailsTemplate}
-
-		<hr/>
 	</div>
 {/strip}

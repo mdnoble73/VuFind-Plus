@@ -3,48 +3,23 @@
 #  - they contain sensitive data (i.e. passwords)      #
 #  - they can change at runtime                        #
 ########################################################
-vufind/documentation/
-vufind/admin/sql/
-vufind/packaging_app/config.ini
-vufind/web/images/fiveStar/*.png
-vufind/web/images/charts/*.png
-vufind/web/interface/cache/
-vufind/web/interface/compile/
-vufind/web/files/medium/*.jpg
-vufind/web/files/thumbnail/*.jpg
+sites/*
+!sites/default
+vufind/web/interface/cache/*
+vufind/web/interface/compile/*
 vufind/web/phpinfo.php
-vufind/import/src_backup
+vufind/web/images/fiveStar/*
+vufind/web/images/charts/*
+vufind/web/files/medium/*
+vufind/web/files/thumbnail/*
 vufind/web/images/covers/medium/*
 vufind/web/images/covers/small/*
 vufind/web/images/covers/large/*
 vufind/web/files/original/*
 vufind/web/google*.html
-tests/conf/config.ini
 tests/selenium/*
-.idea/
-.settings/
 data-import
 config.pwd.ini
-sites/nashville.localhost/
-sites/nashgene.localhost/
-sites/wcpl.localhost/
-sites/opac.marmot.org/
-sites/opac2.marmot.org/
-sites/opac3.marmot.org/
-!sites/default/config.pwd.ini
-!sites/default/config.ini
-sites/*/covers/large/*
-sites/*/covers/medium/*
-sites/*/covers/small/*
-sites/*/covers/original/*
-sites/*/econtent/library/*
-sites/*/qrcodes/*
-sites/*/solr/
-!sites/default/solr/jetty/
-sites/*/marc/*
-sites/*/marc_*/*
-sites/*/logs/*
-sites/*/backup
 *.csv
 
 # Compiled source #                                                                                   
@@ -93,6 +68,8 @@ LexileTitles.txt
 .classpath
 org.eclipse.*.prefs
 *.iml
+.idea/
+.settings/
 
 # OS generated files #
 ######################

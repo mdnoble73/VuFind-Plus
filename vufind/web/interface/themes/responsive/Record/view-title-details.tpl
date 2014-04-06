@@ -20,24 +20,21 @@
 		</div>
 	{/if}
 
-	{if $series}
-		<div class="row">
-			<div class="result-label col-md-3">{translate text='Series'}:</div>
+	{if $recordDriver->getSeries()}
+		<div class="series row">
+			<div class="result-label col-md-3">Series: </div>
 			<div class="col-md-9 result-value">
-				{foreach from=$series item=seriesItem name=loop}
-					<a href="{$path}/Search/Results?lookfor=%22{$seriesItem|escape:"url"}%22&amp;type=Series">{$seriesItem|escape}</a><br />
-				{/foreach}
+				{assign var=summSeries value=$recordDriver->getSeries()}
+				<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}/Series">{$summSeries.seriesTitle}</a>{if $summSeries.volume} volume {$summSeries.volume}{/if}
 			</div>
 		</div>
 	{/if}
 
-	{if $published}
+	{if $recordDriver->getPublicationDetails()}
 		<div class="row">
 			<div class="result-label col-md-3">{translate text='Published'}:</div>
 			<div class="col-md-9 result-value">
-				{foreach from=$published item=publish name=loop}
-					{$publish|escape}
-				{/foreach}
+				{implode subject=$recordDriver->getPublicationDetails() glue=", "}
 			</div>
 		</div>
 	{/if}
@@ -49,14 +46,14 @@
 		</div>
 	</div>
 
-	<div class="row">
-		{if $editionsThis}
+	{if $recordDriver->getEdition()}
+		<div class="row">
 			<div class="result-label col-md-3">{translate text='Edition'}:</div>
 			<div class="col-md-9 result-value">
-				{implode subject=$editionsThis glue=", "}
+				{implode subject=$recordDriver->getEdition() glue=", "}
 			</div>
-		{/if}
-	</div>
+		</div>
+	{/if}
 
 	{if $physicalDescriptions}
 		<div class="row">
@@ -74,19 +71,19 @@
 		</div>
 	{/if}
 
-	<div class="row">
+	<div class="row" id="locationRow">
 		<div class="result-label col-md-3">{translate text='Location'}:</div>
 		<div class="col-md-9 result-value result-value-bold" id="locationValue">Loading...</div>
 	</div>
 
-	<div class="row">
+	<div class="row" id="callNumberRow">
 		<div class="result-label col-md-3">{translate text='Call Number'}:</div>
 		<div class="col-md-9 result-value result-value-bold" id="callNumberValue">Loading...</div>
 	</div>
 
 	<div class="row">
 		<div class="result-label col-md-3">{translate text='Status'}:</div>
-		<div class="col-md-9 result-value result-value-bold" id="statusValue">Loading...</div>
+		<div class="col-md-9 result-value result-value-bold statusValue" id="statusValue">Loading...</div>
 	</div>
 
 	{if $summary}
