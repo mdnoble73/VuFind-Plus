@@ -18,9 +18,11 @@ vufind/web/images/covers/large/*
 vufind/web/files/original/*
 vufind/web/google*.html
 tests/selenium/*
+tests/conf/config.ini
 data-import
 config.pwd.ini
 *.csv
+
 
 # Compiled source #                                                                                   
 ###################
