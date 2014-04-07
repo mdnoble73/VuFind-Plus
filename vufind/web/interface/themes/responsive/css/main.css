@@ -5366,6 +5366,9 @@ a.badge:focus {
 }
 @media (min-width: 768px) and (max-width: 979px) {
 
+    #formatCategories {
+        display: none;
+    }
     /*#ratings,.btn-group-vertical > .btn + .btn{
         font-size:10pt;
     }*/
