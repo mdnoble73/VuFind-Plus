@@ -8,9 +8,10 @@
 	{if $showAsBar}
 		<label for="lookfor" class="control-label"><a class="brand" href="#">Search</a></label>
 		<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <img src="{$path}/interface/themes/responsive/images/scrolldown.fw.png" alt="Show searchbox">
+			<!--<span class="icon-bar"></span>
 			<span class="icon-bar"></span>
-			<span class="icon-bar"></span>
-			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>-->
 		</a>
 		<div class="nav-collapse collapse">
 	{/if}
