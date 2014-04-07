@@ -7627,3 +7627,10 @@ li.facetValue a :hover {
     *display:inline;
     text-align:center;
 }
+.showsearch_mob{
+    display: none;
+    float: right;
+    padding: 7px 10px;
+    margin-left: 5px;
+    margin-right: 5px;
+}
