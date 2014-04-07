@@ -51,7 +51,7 @@
 </div>
     <div id="scrollupdown" class="trans5">
     <div id="scrollup"><img src="{img filename="scrollup.fw.png"}" /></div>
-        <div style="height:40px;">&nbsp;</div>
+        <div style="height:60px;">&nbsp;</div>
     <div id="scrolldown"><img src="{img filename="scrolldown.fw.png"}" /></div>
     </div>
 {/strip}
