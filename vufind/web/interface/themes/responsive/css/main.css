@@ -3989,7 +3989,7 @@ border:1px solid #eaeaea;
   -moz-box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.125);
   box-shadow: inset 0 3px 8px rgba(0, 0, 0, 0.125);
 }
-/* Ben showsearch */
+/* Ben showsearch and scroll updown */
 .showsearch_mob{
     display: none;
     float: right;
@@ -3997,7 +3997,10 @@ border:1px solid #eaeaea;
     margin-left: 5px;
     margin-right: 5px;
 }
-/* end Ben showsearch */
+#scrollupdown{
+    display:none;
+}
+/* end Ben showsearch and scroll updown */
 .navbar .btn-navbar {
   display: none;
   float: right;
@@ -5403,7 +5406,9 @@ a.badge:focus {
   }
 }
 @media (max-width: 767px) {
-
+    #scrollupdown{
+        display:block;
+    }
     .holdingsSummary{
     text-align:center;
     }
