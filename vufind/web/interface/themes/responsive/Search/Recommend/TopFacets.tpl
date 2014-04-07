@@ -41,7 +41,7 @@
             <!--<div class="authorbox top-facet">-->
 
                 <!--<div class="facetsTop navmenu narrow_begin benjie">-->
-                <div class="formatCategories well text-center top-facet" id="formatCategories">
+                <div class="formatCategories well text-center top-facet benjie" id="formatCategories">
                     {foreach from=$cluster.list item=thisFacet name="narrowLoop"}
                     {if $smarty.foreach.narrowLoop.iteration == ($topFacetSettings.rows * $topFacetSettings.cols) + 1}
                     <div id="more{$title}"><a href="#" onclick="moreFacets('{$title}'); return false;">{translate text='more'} ...</a></div>
