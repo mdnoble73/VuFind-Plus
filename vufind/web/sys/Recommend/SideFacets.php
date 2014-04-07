@@ -104,7 +104,7 @@ class SideFacets implements RecommendationInterface
 
 				//Figure out if the facet should be included
 				if ($mainSection == 'Results'){
-					if ($facet->showInResults == 1 && $facet->showAboveResults == 0){
+					if ($facet->showInResults == 1 /*&& $facet->showAboveResults == 0*/){
 						$this->facetSettings[$facetName] = $facet;
 						$this->mainFacets[$facetName] = $facet->displayName;
 					}elseif ($facet->showInAdvancedSearch == 1 && $facet->showAboveResults == 0){
