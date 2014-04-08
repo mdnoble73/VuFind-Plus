@@ -641,46 +641,47 @@ class MillenniumDriver implements DriverInterface
 	 * @param boolean $forceReload whether or not cached data can be used.
 	 * @return array
 	 */
-	public function _getPatronDump($barcode, $forceReload = false)
+	public function _getPatronDump(&$barcode, $forceReload = false)
 	{
 		global $configArray;
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $timer;
+
 		$patronDump = $memCache->get("patron_dump_$barcode");
 		if (!$patronDump || $forceReload){
 			$host=$configArray['OPAC']['patron_host'];
+			$barcodesToTest = array();
+			$barcodesToTest[] = $barcode;
+
 			//Special processing to allow MCVSD Students to login
 			//with their student id.
 			if (strlen($barcode)== 5){
-				$originalCode = $barcode;
-				$barcode = "41000000" . $barcode;
+				$barcodesToTest[] = "41000000" . $barcode;
+				$barcodesToTest[] = "mv" . $barcode;
 			}elseif (strlen($barcode)== 6){
-				$originalCode = $barcode;
-				$barcode = "4100000" . $barcode;
+				$barcodesToTest[] = "4100000" . $barcode;
+				$barcodesToTest[] = "mv" . $barcode;
 			}else{
 				$originalCode = null;
 			}
 
-			$patronDump = $this->_parsePatronApiPage($host, $barcode);
+			foreach ($barcodesToTest as $i=>$barcode){
+				$patronDump = $this->_parsePatronApiPage($host, $barcode);
 
-			if (is_null($patronDump)){
-				return $patronDump;
-			}else if (isset($patronDump['ERRNUM']) && $originalCode != null){
-				$patronDump = $this->_parsePatronApiPage($host, $originalCode);
 				if (is_null($patronDump)){
 					return $patronDump;
+				}else if (isset($patronDump['ERRNUM']) && $i != count($barcodesToTest) - 1){
+					//check the next barcode
 				}else{
+
 					$memCache->set("patron_dump_$barcode", $patronDump, 0, $configArray['Caching']['patron_dump']);
 					//Need to wait a little bit since getting the patron api locks the record in the DB
 					usleep(250);
+					break;
 				}
-			}else{
-
-				$memCache->set("patron_dump_$barcode", $patronDump, 0, $configArray['Caching']['patron_dump']);
-				//Need to wait a little bit since getting the patron api locks the record in the DB
-				usleep(250);
 			}
+
 		}
 		return $patronDump;
 	}
@@ -1446,6 +1447,7 @@ class MillenniumDriver implements DriverInterface
 		//This expects the user to enter one or two names and only
 		//Validates the first name that was entered.
 		$enteredNames = preg_split('^[\s-]^', strtolower($username));
+		$userValid = false;
 		foreach ($enteredNames as $name) {
 			if (in_array($name, $allNameComponents, false)) {
 				$userValid = true;
