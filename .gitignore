@@ -23,6 +23,8 @@ data-import
 config.pwd.ini
 *.csv
 
+# Include Selected Folders for Site Configuration? #
+####################################################
 
 # Compiled source #                                                                                   
 ###################
