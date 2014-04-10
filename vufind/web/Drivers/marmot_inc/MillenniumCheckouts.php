@@ -274,7 +274,7 @@ class MillenniumCheckouts {
 		//Clear the existing patron info and get new information.
 		$hold_result = array();
 		$hold_result['Total'] = $curCheckedOut;
-		preg_match_all("/RENEWED successfully/si", $sresult, $matches);
+		preg_match_all("/RENEWED</b><br />Now due/", $sresult, $matches);
 		$numRenewals = count($matches[0]);
 		$hold_result['Renewed'] = $numRenewals;
 		$hold_result['Unrenewed'] = $hold_result['Total'] - $hold_result['Renewed'];
