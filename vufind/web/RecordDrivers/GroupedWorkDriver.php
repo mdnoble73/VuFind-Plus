@@ -29,7 +29,9 @@ class GroupedWorkDriver implements RecordInterface{
 			/** @var Solr $db */
 			$db = new $class($url);
 			$db->disableScoping();
-			disableErrorHandler();
+			if (function_exists('disableErrorHandler')){
+				disableErrorHandler();
+			}
 
 			// Retrieve the record from Solr
 			if (!($record = $db->getRecord($id))) {
@@ -38,7 +40,9 @@ class GroupedWorkDriver implements RecordInterface{
 				$this->fields = $record;
 			}
 			$db->enableScoping();
-			enableErrorHandler();
+			if (function_exists('enableErrorHandler')){
+				enableErrorHandler();
+			}
 		}else{
 			$this->fields = $indexFields;
 		}
@@ -780,6 +784,13 @@ class GroupedWorkDriver implements RecordInterface{
 		}else{
 			return array();
 		}
+	}
+
+	/** Get all ISBNs that are unique to this work */
+	public function getUniqueISBNs(){
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifier.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkIdentifierRef.php';
+
 	}
 
 	/**

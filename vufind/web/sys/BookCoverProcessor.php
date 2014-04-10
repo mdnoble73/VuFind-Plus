@@ -16,6 +16,8 @@ class BookCoverProcessor{
 	private $cacheName;
 	private $cacheFile;
 	public $error;
+	/** @var null|GroupedWorkDriver */
+	private $groupedWork = null;
 	private $reload;
 	/** @var  Logger $logger */
 	private $logger;
@@ -60,6 +62,10 @@ class BookCoverProcessor{
 			return;
 		}
 
+		if ($this->getGroupedWorkCover()){
+			return;
+		}
+
 		$this->log("No image found, using die image", PEAR_LOG_INFO);
 		$this->getDefaultCover();
 
@@ -77,6 +83,8 @@ class BookCoverProcessor{
 			$filename = $overDriveMetadata->cover;
 			if ($filename != null){
 				return $this->processImageURL($filename);
+			}else{
+				return false;
 			}
 		}else{
 			return false;
@@ -160,17 +168,19 @@ class BookCoverProcessor{
 
 	private function initMemcache(){
 		global $memCache;
-		// Set defaults if nothing set in config file.
-		$host = isset($configArray['Caching']['memcache_host']) ? $configArray['Caching']['memcache_host'] : 'localhost';
-		$port = isset($configArray['Caching']['memcache_port']) ? $configArray['Caching']['memcache_port'] : 11211;
-		$timeout = isset($configArray['Caching']['memcache_connection_timeout']) ? $configArray['Caching']['memcache_connection_timeout'] : 1;
+		if (!isset($memCache)){
+			// Set defaults if nothing set in config file.
+			$host = isset($configArray['Caching']['memcache_host']) ? $configArray['Caching']['memcache_host'] : 'localhost';
+			$port = isset($configArray['Caching']['memcache_port']) ? $configArray['Caching']['memcache_port'] : 11211;
+			$timeout = isset($configArray['Caching']['memcache_connection_timeout']) ? $configArray['Caching']['memcache_connection_timeout'] : 1;
 
-		// Connect to Memcache:
-		$memCache = new Memcache();
-		if (!$memCache->pconnect($host, $port, $timeout)) {
-			PEAR_Singleton::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
+			// Connect to Memcache:
+			$memCache = new Memcache();
+			if (!$memCache->pconnect($host, $port, $timeout)) {
+				PEAR_Singleton::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
+			}
+			$this->logTime("Initialize Memcache");
 		}
-		$this->logTime("Initialize Memcache");
 	}
 
 	private function loadParameters(){
@@ -313,18 +323,16 @@ class BookCoverProcessor{
 						$this->logTime("Checked $func");
 					}
 				}
+			}
 
-				//Have not found an image yet, check files uploaded by publisher
-				if ($this->configArray['Content']['loadPublisherCovers'] && isset($this->isn) ){
-					$this->log("Looking for image from publisher isbn10: $this->isbn10 isbn13: $this->isbn13 in $this->bookCoverPath/original/.", PEAR_LOG_INFO);
-					$this->makeIsbn10And13();
-					if ($this->getCoverFromPublisher($this->bookCoverPath . '/original/')){
-						return true;
-					}
-					$this->log("Did not find a file in publisher folder.", PEAR_LOG_INFO);
+			//Have not found an image yet, check files uploaded by publisher
+			if ($this->configArray['Content']['loadPublisherCovers'] && isset($this->isn) ){
+				$this->log("Looking for image from publisher isbn10: $this->isbn10 isbn13: $this->isbn13 in $this->bookCoverPath/original/.", PEAR_LOG_INFO);
+				$this->makeIsbn10And13();
+				if ($this->getCoverFromPublisher($this->bookCoverPath . '/original/')){
+					return true;
 				}
-
-				$this->log("Could not find a cover, using default based on category $this->category.", PEAR_LOG_INFO);
+				$this->log("Did not find a file in publisher folder.", PEAR_LOG_INFO);
 			}
 		}
 		return false;
@@ -358,6 +366,8 @@ class BookCoverProcessor{
 			$epubFile->id = $this->id;
 			if ($epubFile->find(true)){
 				$marcRecord = MarcLoader::loadEContentMarcRecord($epubFile);
+			}else{
+				$marcRecord = false;
 			}
 		}else{
 			$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
@@ -450,13 +460,15 @@ class BookCoverProcessor{
 		$useDefaultNoCover = true;
 
 		//Get the resource for the cover so we can load the title and author
+		$title = '';
+		$author = '';
 		if($this->type == 'grouped_work'){
+			$this->loadGroupedWork();
 			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
-			$groupedWork = new GroupedWork();
-			$groupedWork->permanent_id = $this->id;
-			if ($groupedWork->find(true)){
-				$title = ucwords($groupedWork->full_title);
-				$author = ucwords($groupedWork->author);
+			if ($this->groupedWork){
+				$title = ucwords($this->groupedWork->getTitle());
+				$author = ucwords($this->groupedWork->getPrimaryAuthor());
+				$this->category = 'blank';
 			}
 		}elseif ($this->isEContent){
 			require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
@@ -868,5 +880,48 @@ class BookCoverProcessor{
 		if (false){
 			$this->timer->logTime($message);
 		}
+	}
+
+	private function getGroupedWorkCover() {
+		if ($this->loadGroupedWork()){
+			//First check the permanent id
+			$this->isn = $this->groupedWork->getCleanISBN();
+			if ($this->getCoverFromProvider()){
+				return true;
+			}
+
+			$this->upc = null;
+			$isbns = $this->groupedWork->getISBNs();
+			foreach ($isbns as $isbn){
+				$this->isn = $isbn;
+				if ($this->getCoverFromProvider()){
+					return true;
+				}
+			}
+			$upcs = $this->groupedWork->getUPCs();
+			$this->isn = null;
+			foreach ($upcs as $upc){
+				$this->upc = $upc;
+				if ($this->getCoverFromProvider()){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private function loadGroupedWork(){
+		if ($this->groupedWork == null){
+			// Include Search Engine Class
+			require_once ROOT_DIR . '/sys/Solr.php';
+			$this->initMemcache();
+
+			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+			$this->groupedWork = new GroupedWorkDriver($this->id);
+			if (!$this->groupedWork->isValid){
+				$this->groupedWork = false;
+			}
+		}
+		return $this->groupedWork;
 	}
 }
