@@ -22,13 +22,12 @@ require_once ROOT_DIR . '/CatalogConnection.php';
 
 require_once ROOT_DIR . '/Action.php';
 
-class Hold extends Action {
+class Record_Hold extends Action {
 	/** @var  MillenniumDriver|Marmot|Sierra */
 	var $catalog;
 
 	function launch() {
 		global $configArray;
-		global $user;
 
 		try {
 			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
@@ -45,7 +44,7 @@ class Hold extends Action {
 		if (method_exists($this->catalog->driver, 'placeHold')) {
 			$this->placeHold();
 		} else {
-			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Process Place Hold - ILS Not Supported'));
+			PEAR_Singleton::raiseError('Cannot Process Place Hold - ILS Not Supported');
 		}
 	}
 
@@ -136,6 +135,7 @@ class Hold extends Action {
 				$interface->assign('focusElementId', 'username');
 			}
 
+			global $library;
 			$patronHomeBranch = Library::getPatronHomeLibrary();
 			if ($patronHomeBranch != null){
 				if ($patronHomeBranch->defaultNotNeededAfterDays > 0){
@@ -145,9 +145,19 @@ class Hold extends Action {
 				}
 				$interface->assign('showHoldCancelDate', $patronHomeBranch->showHoldCancelDate);
 			}else{
-				//Show the hold cancellation date for now.  It may be hidden later when the user logs in.
-				$interface->assign('showHoldCancelDate', 1);
-				$interface->assign('defaultNotNeededAfterDays', '');
+				if ($library){
+					//Show the hold cancellation date for now.  It may be hidden later when the user logs in.
+					if ($library->defaultNotNeededAfterDays > 0){
+						$interface->assign('defaultNotNeededAfterDays', date('m/d/Y', time() + $library->defaultNotNeededAfterDays * 60 * 60 * 24));
+					}else{
+						$interface->assign('defaultNotNeededAfterDays', '');
+					}
+					$interface->assign('showHoldCancelDate', $library->showHoldCancelDate);
+				}else{
+					//Show the hold cancellation date for now.  It may be hidden later when the user logs in.
+					$interface->assign('showHoldCancelDate', 1);
+					$interface->assign('defaultNotNeededAfterDays', '');
+				}
 			}
 			$activeLibrary = Library::getActiveLibrary();
 			if ($activeLibrary != null){
@@ -162,7 +172,7 @@ class Hold extends Action {
 		if ($record) {
 			$interface->assign('record', $record);
 		} else {
-			PEAR_Singleton::raiseError(new PEAR_Error('Cannot find record ' . $_GET['id']));
+			PEAR_Singleton::raiseError('Cannot find record ' . $_GET['id']);
 		}
 
 		$interface->assign('id', $_GET['id']);

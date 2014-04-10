@@ -746,6 +746,7 @@ class OverDriveDriver2 {
 	private function _loginToOverDrive($ch, $user){
 		global $configArray;
 		global $analytics;
+		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
 		$overdriveUrl = $configArray['OverDrive']['url'];
 		curl_setopt_array($ch, array(
 			CURLOPT_FOLLOWLOCATION => true,
@@ -755,6 +756,8 @@ class OverDriveDriver2 {
 			CURLOPT_USERAGENT => "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:8.0.1) Gecko/20100101 Firefox/8.0.1",
 			CURLOPT_AUTOREFERER => true,
 			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_COOKIEJAR => $cookieJar ,
+			CURLOPT_COOKIESESSION => (is_null($cookieJar) ? true : false)
 		));
 		$initialPage = curl_exec($ch);
 		$pageInfo = curl_getinfo($ch);
@@ -785,6 +788,7 @@ class OverDriveDriver2 {
 		$postParams = array(
 			'LibraryCardNumber' => $barcode,
 			'URL' => 'Default.htm',
+			'RememberMe' => 'on'
 		);
 		if ($configArray['OverDrive']['requirePin']){
 			$postParams['LibraryCardPin'] = $user->cat_password;
@@ -798,7 +802,9 @@ class OverDriveDriver2 {
 		}
 		$post_string = implode ('&', $post_items);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $post_string);
-		$loginUrl = str_replace('SignIn.htm?URL=MyAccount%2ehtm', 'BANGAuthenticate.dll',  $loginFormUrl);
+		//$loginUrl = str_replace('SignIn.htm?URL=MyAccount%2ehtm', 'BANGAuthenticate.dll',  $loginFormUrl);
+		$loginUrl = str_replace('lib.overdrive.com', 'libraryreserve.com', $overdriveUrl . '/10/50/en/BANGAuthenticate.dll');
+		$loginUrl = str_replace('http://', 'https://', $loginUrl);
 		curl_setopt($ch, CURLOPT_URL, $loginUrl);
 		$myAccountMenuContent = curl_exec($ch);
 		$accountPageInfo = curl_getinfo($ch);
