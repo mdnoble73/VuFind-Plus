@@ -130,10 +130,12 @@
    <field name="spelling" type="textSpell" indexed="true" stored="true"/>
    <field name="spellingShingle" type="textSpellShingle" indexed="true" stored="true" multiValued="true"/>
    <field name="birthDate" type="date" indexed="true" stored="true" multiValued="false"/>
-   <field name="deathDate" type="date" indexed="true" stored="trues" multiValued="false"/>
+   <field name="deathDate" type="date" indexed="true" stored="true" multiValued="false"/>
    <field name="birthYear" type="string" indexed="true" stored="true" multiValued="false"/>
    <field name="deathYear" type="string" indexed="true" stored="true" multiValued="false"/>
    <field name="ageAtDeath" type="text" indexed="true" stored="true" multiValued="false"/>
+   <field name="intermentDate" type="date" indexed="true" stored="true" multiValued="false"/>
+   <field name="intermentYear" type="string" indexed="true" stored="true" multiValued="false"/>
    <field name="cemeteryName" type="textFacet" indexed="true" stored="true"/>
    <field name="cemeteryLocation" type="textFacet" indexed="true" stored="true"/>
    <field name="mortuaryName" type="textFacet" indexed="true" stored="true"/>
