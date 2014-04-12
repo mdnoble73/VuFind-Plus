@@ -136,7 +136,7 @@ class Library extends DB_DataObject
 		return array('libraryId', 'subdomain');
 	}
 
-	function getObjectStructure(){
+	static function getObjectStructure(){
 		// get the structure for the library system's holidays
 		$holidaysStructure = Holiday::getObjectStructure();
 
@@ -183,7 +183,7 @@ class Library extends DB_DataObject
 		}
 
 		$structure = array(
-			'libraryId' => array('property'=>'libraryId', 'type'=>'label', 'label'=>'Library Id', 'description'=>'The unique id of the libary within the database'),
+			'libraryId' => array('property'=>'libraryId', 'type'=>'label', 'label'=>'Library Id', 'description'=>'The unique id of the library within the database'),
 			'subdomain' => array('property'=>'subdomain', 'type'=>'text', 'label'=>'Subdomain', 'description'=>'A unique id to identify the library within the system'),
 			'displayName' => array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'A name to identify the library within the system', 'size'=>'40'),
 			'accountingUnit' => array('property'=>'accountingUnit', 'type'=>'integer', 'label'=>'Accounting Unit', 'description'=>'The accounting unit this library belongs to', 'size'=>'4', 'hideInLists' => false),
