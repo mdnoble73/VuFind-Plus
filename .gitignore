@@ -74,6 +74,7 @@ org.eclipse.*.prefs
 *.iml
 .idea/
 .settings/
+out/
 
 # OS generated files #
 ######################
