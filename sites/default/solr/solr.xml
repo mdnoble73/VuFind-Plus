@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?><solr sharedLib="lib" persistent="true">
+<?xml version='1.0' encoding='UTF-8'?><solr persistent="true">
 <cores adminPath="/admin/cores">
   <core name="grouped" instanceDir="grouped"/>
   <core name="grouped2" instanceDir="grouped2"/>

@@ -597,7 +597,7 @@ public class GroupedWorkSolr {
 	}
 
 	public void addSeries(String series) {
-		if (!series.equalsIgnoreCase("none")){
+		if (series != null && !series.equalsIgnoreCase("none")){
 			this.series.add(Util.trimTrailingPunctuation(series));
 		}
 	}
