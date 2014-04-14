@@ -64,7 +64,7 @@
                             <div class="benline categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''}"><div><a href="{$thisFacet.url|escape}" onclick="trackEvent('Apply Facet', '{$cluster.label}', '{$thisFacet.value|escape}');">
                                        {* {$thisFacet.value|escape}*}
                                         <img src="{$path}/interface/themes/responsive/images/{$thisFacet.value|lower|replace:' ':''}.png" alt="{translate text=$thisFacet.value|escape}">
-                                    </a></div><div>({$thisFacet.count})</div></div>
+                                    </a></div><div class="tf_count">({$thisFacet.count})</div></div>
                         {/if}
                         {if $smarty.foreach.narrowLoop.iteration % $topFacetSettings.cols == 0 || $smarty.foreach.narrowLoop.last}
                     </div>
