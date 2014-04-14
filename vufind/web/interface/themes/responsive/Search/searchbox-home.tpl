@@ -45,7 +45,7 @@
 									<li class="divider genealogyType"></li>
 
 									<li class="catalogType">
-										<a href="{$path}/Search/AdvancedPopup" id="advancedSearch" title="{translate text='Advanced Search'}" class="modalDialogTrigger">
+										<a id="advancedSearch" title="{translate text='Advanced Search'}" onclick="VuFind.Account.ajaxLightbox('{$path}/Search/AdvancedPopup', false)">
 											<i class="icon-plus-sign"></i> {translate text="Advanced"}
 										</a>
 									</li>

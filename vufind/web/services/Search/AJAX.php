@@ -512,6 +512,7 @@ class AJAX extends Action {
 		);
 		echo json_encode($results);
 	}
+
 }
 
 function ar2xml($ar)

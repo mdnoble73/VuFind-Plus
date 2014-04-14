@@ -8,9 +8,12 @@
 			<div id="advancedSearchRows">
 				<div class="form-group advancedRow" id="group1" data-row_number="1">
 
+					<div class="col-xs-1">
 						<input type="hidden" name="groupStart[1]" id="groupStart1Input" class="groupStartInput" title="Start Group"/>
-						<button id="groupStart1" data-toggle="button" data-hidden_element="#groupStart1Input" onclick="return VuFind.toggleHiddenElementWithButton(this);" class="btn btn-sm groupStartButton">(</button>
-						<select name="searchType[1]" class="searchType">
+						<button id="groupStart1" data-toggle="button" data-hidden_element="#groupStart1Input" onclick="return VuFind.toggleHiddenElementWithButton(this);" class="btn btn-sm btn-default groupStartButton">(</button>
+					</div>
+					<div class="col-xs-3">
+						<select name="searchType[1]" class="searchType form-control">
 							{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
 								<option value="{$searchVal}">{$searchDesc|translate}</option>
 							{/foreach}
@@ -23,32 +26,33 @@
 								<option value="{$filterName}" data-is_facet="true">{$facetLabel|translate}</option>
 							{/foreach}
 						</select>
-
-						<input type="text" name="lookfor[1]" class="lookfor" title="Search For" placeholder="Search for" data-provide="typeahead" data-source='VuFind.Searches.getSpellingSuggestion();' autocomplete="off"/>
+					</div>
+					<div class="col-xs-3">
+						<input type="text" name="lookfor[1]" class="lookfor form-control input-sm" title="Search For" placeholder="Search for" data-provide="typeahead" data-source='VuFind.Searches.getSpellingSuggestion();' autocomplete="off"/>
+					</div>
+					<div class="col-xs-1">
 						<input type="hidden" name="groupEnd[1]" id="groupEnd1Input" title="End Group" class="groupEndInput"/>
-						<button id="groupEnd1" data-toggle="button" data-hidden_element="#groupEnd1Input" onclick="return VuFind.toggleHiddenElementWithButton(this);" class="btn btn-sm groupEndButton">)</button>
+						<button id="groupEnd1" data-toggle="button" data-hidden_element="#groupEnd1Input" onclick="return VuFind.toggleHiddenElementWithButton(this);" class="btn btn-sm btn-default groupEndButton">)</button>
+					</div>
 
 					{/strip} {strip}
-
-						<select name="join[1]" class="input-small joinOption">
+					<div class="col-xs-2">
+						<select name="join[1]" class="form-control joinOption input-sm">
 							<option value="AND">{translate text="AND"}</option>
 							<option value="AND NOT">{translate text="AND NOT"}</option>
 							<option value="OR">{translate text="OR"}</option>
 							<option value="OR NOT">{translate text="OR NOT"}</option>
 						</select>
-
-						&nbsp;
+					</div>
+					<div class="col-xs-2">
 						<button name="addCriteria" class="btn btn-sm btn-default addCriteria" onclick="return VuFind.Searches.addAdvancedGroup(this);" title="Add Criteria">
 							<span class="glyphicon glyphicon-plus-sign"></span>
 						</button>
 						<button name="deleteCriteria" class="btn btn-sm btn-default deleteCriteria" onclick="return VuFind.Searches.deleteAdvancedGroup(this);" title="Delete Criteria">
 							<span class="glyphicon glyphicon-minus-sign"></span>
 						</button>
-
+					</div>
 				</div>
-			</div>
-			<div class="btn-group">
-				<button type="submit" name="submit" class="btn btn-primary">{translate text="Find"}</button>
 			</div>
 		</fieldset>
 	</form>

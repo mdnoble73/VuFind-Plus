@@ -315,9 +315,8 @@ class Search_Results extends Action {
 			if ($error !== false) {
 				// If it's a parse error or the user specified an invalid field, we
 				// should display an appropriate message:
-				if (stristr($error, 'org.apache.lucene.queryParser.ParseException') ||
-				preg_match('/^undefined field/', $error)) {
-					$interface->assign('parseError', true);
+				if (stristr($error['msg'], 'org.apache.lucene.queryParser.ParseException') || preg_match('/^undefined field/', $error['msg'])) {
+					$interface->assign('parseError', $error['msg']);
 
 					// Unexpected error -- let's treat this as a fatal condition.
 				} else {

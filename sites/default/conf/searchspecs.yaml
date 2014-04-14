@@ -376,7 +376,7 @@ Keyword:
       - [and, 50]
     author_additional:
       - [and, 50]
-    contents:
+    table_of_contents:
       - [and, 10]
     topic:
       - [onephrase, 125]
@@ -420,7 +420,7 @@ KeywordProper:
     - title_proper^850
     - series_proper^100
     - author^300
-    - contents_proper^10
+    - table_of_contents^10
     - topic_proper^500
     - geographic_proper^300
     - genre_proper^300
@@ -450,7 +450,7 @@ KeywordProper:
     author:
       - [onephrase, 300]
       - [and, 250]
-    contents_proper:
+    table_of_contents:
       - [and, 10]
     topic_proper:
       - [onephrase, 500]
@@ -564,7 +564,7 @@ KeywordGroupedProper:
     - title_proper^850
     - series_proper^100
     - author^300
-    - contents_proper^10
+    - table_of_contents^10
     - topic_proper^500
     - geographic_proper^300
     - genre_proper^300
@@ -586,7 +586,7 @@ KeywordGroupedProper:
     author:
       - [onephrase, 300]
       - [and, 250]
-    contents_proper:
+    table_of_contents:
       - [and, 10]
     topic_proper:
       - [onephrase, 500]
@@ -698,7 +698,7 @@ language:
 
 toc:
   QueryFields:
-    - contents:
+    - table_of_contents:
       - [and, 100]
 
 topic:

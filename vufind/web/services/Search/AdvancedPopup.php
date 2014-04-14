@@ -74,9 +74,15 @@ class AdvancedPopup extends Search_AdvancedBase {
 		natcasesort($facetList);
 		$interface->assign('facetList', $facetList);
 
-		$interface->assign('popupTitle', 'Advanced Search');
-		$popupContent = $interface->fetch('Search/advancedPopup.tpl');
-		$interface->assign('popupContent', $popupContent);
-		$interface->display('popup-wrapper.tpl');
+		header('Content-type: application/json');
+		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+
+		$results = array(
+				'title' => 'Advanced Search',
+				'modalBody' => $interface->fetch("Search/advancedPopup.tpl"),
+				'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Searches.submitAdvancedSearch(); return false;'>Find</span>"
+		);
+		echo json_encode($results);
 	}
 }

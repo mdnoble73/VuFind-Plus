@@ -196,6 +196,11 @@ VuFind.Searches = (function(){
 		filterAll: function(){
 			// Go through all elements
 			$(".existingFilter").prop('checked', true);
+		},
+
+		submitAdvancedSearch: function(){
+			$('#advancedPopup').submit();
+			return false;
 		}
 	}
 }(VuFind.Searches || {}));
