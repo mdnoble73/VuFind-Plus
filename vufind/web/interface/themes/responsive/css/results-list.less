@@ -203,3 +203,23 @@
 .related_record_status.availableOther{
   color: red;
 }
+.moreFacetPopup{
+  -webkit-column-gap:   15px;
+  -moz-column-gap:      15px;
+  column-gap:           15px;
+  @media(min-width: 0){
+    -webkit-column-count: 1;
+    -moz-column-count:    1;
+    column-count:         1;
+  }
+  @media(min-width: @screen-sm-min){
+    -webkit-column-count: 2;
+    -moz-column-count:    2;
+    column-count:         2;
+  }
+  @media(min-width: @screen-md-min){
+    -webkit-column-count: 3;
+    -moz-column-count:    3;
+    column-count:         3;
+  }
+}

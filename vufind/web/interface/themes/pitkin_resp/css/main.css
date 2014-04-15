@@ -6327,8 +6327,8 @@ div#systemMessage {
 #header-container {
   padding-top: 0px;
   height: 105px;
-  background: linear-gradient(to bottom, #f5f5f5, #e0e0e0 85%, #f0f0f0);
-  border-bottom: 8px solid #45820d;
+  background: linear-gradient(to bottom, #817c81, #525254 85%, #444545);
+  border-bottom: 8px solid #333333;
   margin-bottom: 0px;
   min-height: 110px;
 }
@@ -6338,7 +6338,7 @@ div#systemMessage {
 .header-button {
   text-align: center;
   height: 97px !important;
-  border-bottom: 4px solid #f0f0f0;
+  border-bottom: 4px solid #444545;
 }
 .header-button > a {
   line-height: 97px !important;
@@ -6367,7 +6367,7 @@ div#systemMessage {
   padding-top: 5px;
 }
 #footer-container {
-  border-top: 8px solid #45820d;
+  border-top: 8px solid #333333;
   padding-top: 3px;
 }
 #install-info {

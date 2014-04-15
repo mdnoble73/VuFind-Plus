@@ -11,11 +11,9 @@
 	<div id="moreFacetPopup_{$title}" style="display:none">
 		<p>Please select one of the items below to narrow your search by {$cluster.label}.</p>
 		<div class="container-12">
-			<div class="row">
+			<div class="row moreFacetPopup">
 				{foreach from=$cluster.sortedList item=thisFacet name="narrowLoop"}
-					<div class="col-xs-12 col-sm-6 col-md-4 col-lg-4 thumbnail">
-						{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count}){/if}
-					</div>
+					<div>{if $thisFacet.url !=null}<a href="{$thisFacet.url|escape}">{/if}{$thisFacet.display|escape}{if $thisFacet.url !=null}</a>{/if}{if $thisFacet.count != ''}&nbsp;({$thisFacet.count}){/if}</div>
 				{/foreach}
 			</div>
 		</div>
