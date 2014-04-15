@@ -2882,7 +2882,50 @@ class DBMaintenance extends Admin_Admin {
 					) ENGINE = MYISAM",
 				),
 			),
+
+			'remove_old_resource_tables' => array(
+				'title' => 'Remove old Resource Tables',
+				'description' => 'Remove old tables that were used for storing information based on resource',
+				'sql' => array(
+					"DROP TABLE IF EXISTS comments",
+					"DROP TABLE IF EXISTS resource_tags",
+					"DROP TABLE IF EXISTS user_resource",
+					"DROP TABLE IF EXISTS resource",
+				),
+			),
+
+			'remove_browse_tables' => array(
+					'title' => 'Remove old Browse Tables',
+					'description' => 'Remove old tables that were used for alphabetic browsing',
+					'sql' => array(
+							"dropBrowseTables",
+					),
+			),
 		);
+	}
+
+	public function dropBrowseTables(&$update){
+		$this->runSQLStatement($update, 'DROP TABLE IF EXISTS title_browse');
+		$this->runSQLStatement($update, 'DROP TABLE IF EXISTS title_browse_metadata');
+		$this->runSQLStatement($update, 'DROP TABLE IF EXISTS title_browse_scoped_results_global');
+		$this->runSQLStatement($update, 'DROP TABLE IF EXISTS author_browse');
+		$this->runSQLStatement($update, 'DROP TABLE IF EXISTS author_browse_metadata');
+		$this->runSQLStatement($update, 'DROP TABLE IF EXISTS author_browse_scoped_results_global');
+		$this->runSQLStatement($update, 'DROP TABLE IF EXISTS subject_browse');
+		$this->runSQLStatement($update, 'DROP TABLE IF EXISTS subject_browse_metadata');
+		$this->runSQLStatement($update, 'DROP TABLE IF EXISTS subject_browse_scoped_results_global');
+		$this->runSQLStatement($update, 'DROP TABLE IF EXISTS callnumber_browse');
+		$this->runSQLStatement($update, 'DROP TABLE IF EXISTS callnumber_browse_metadata');
+		$this->runSQLStatement($update, 'DROP TABLE IF EXISTS callnumber_browse_scoped_results_global');
+
+		$library = new Library();
+		$library->find();
+		while ($library->fetch()){
+			$this->runSQLStatement($update, "DROP TABLE IF EXISTS title_browse_scoped_results_library_{$library->subdomain}");
+			$this->runSQLStatement($update, "DROP TABLE IF EXISTS author_browse_scoped_results_library_{$library->subdomain}");
+			$this->runSQLStatement($update, "DROP TABLE IF EXISTS subject_browse_scoped_results_library_{$library->subdomain}");
+			$this->runSQLStatement($update, "DROP TABLE IF EXISTS callnumber_browse_scoped_results_library_{$library->subdomain}");
+		}
 	}
 
 	public function populateListsWithGroupedWorks(){
