@@ -396,6 +396,18 @@ class UInterface extends Smarty
 		require_once ROOT_DIR . '/sys/MaterialsRequest.php';
 		$this->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
 
+		//Load library links
+		if (isset($library)){
+			$links = $library->libraryLinks;
+			$libraryLinks = array();
+			foreach ($links as $libraryLink){
+				if (!array_key_exists($libraryLink->category, $libraryLinks)){
+					$libraryLinks[$libraryLink->category] = array();
+				}
+				$libraryLinks[$libraryLink->category][$libraryLink->linkText] = $libraryLink->url;
+			}
+			$this->assign('libraryLinks', $libraryLinks);
+		}
 	}
 
 	public function getVariable($variableName) {

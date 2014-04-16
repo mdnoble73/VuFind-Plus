@@ -72,17 +72,6 @@ class Home extends Action {
 			}
 		}
 
-		//Load library links
-		$links = $library->libraryLinks;
-		$libraryLinks = array();
-		foreach ($links as $libraryLink){
-			if (!array_key_exists($libraryLink->category, $libraryLinks)){
-				$libraryLinks[$libraryLink->category] = array();
-			}
-			$libraryLinks[$libraryLink->category][$libraryLink->linkText] = $libraryLink->url;
-		}
-		$interface->assign('libraryLinks', $libraryLinks);
-
 		//Load browse categories
 		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
 		/** @var BrowseCategory[] $browseCategories */
