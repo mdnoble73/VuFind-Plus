@@ -512,6 +512,7 @@ class MillenniumHolds{
 		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 		foreach($holds as $section => $holdSections){
 			foreach($holdSections as $key => $hold){
+				disableErrorHandler();
 				$recordDriver = new MarcRecord($hold['recordId']);
 				if ($recordDriver->isValid()){
 					$hold['id'] = $recordDriver->getUniqueID();
@@ -530,6 +531,7 @@ class MillenniumHolds{
 
 					$holds[$section][$key] = $hold;
 				}
+				enableErrorHandler();
 			}
 		}
 
