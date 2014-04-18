@@ -38,7 +38,7 @@ class GoDeeperData{
 					//echo($response);
 
 					//Parse the XML
-					if (preg_match('/<!DOCTYPE\\sHTML.*/', $response)) {
+					if (preg_match('/<!DOCTYPE\\sHTML.*/i', $response)) {
 						//The ISBN was not found in syndetics (we got an error message)
 					} else {
 						//Got a valid response
