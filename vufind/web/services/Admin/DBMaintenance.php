@@ -894,7 +894,19 @@ class DBMaintenance extends Admin_Admin {
                 ),
             ),
 
-			'recommendations_optOut' => array(
+				'genealogy_nashville_2' => array(
+						'title' => 'Genealogy Update : Nashville 2',
+						'description' => 'Update Genealogy : for Nashville to add Nashville City Cemetery information.',
+						'continueOnError' => true,
+						'sql' => array(
+								"ALTER TABLE person ADD COLUMN intermentDate DATE NULL",
+								"ALTER TABLE person ADD COLUMN intermentDateDay INT NULL COMMENT 'The day of the month the person interred empty or null if not known'",
+								"ALTER TABLE person ADD COLUMN intermentDateMonth INT NULL COMMENT 'The month the person interred, null or blank if not known'",
+								"ALTER TABLE person ADD COLUMN intermentDateYear INT NULL COMMENT 'The year the person interred, null or blank if not known'",
+						),
+				),
+
+				'recommendations_optOut' => array(
 				'title' => 'Recommendations Opt Out',
 				'description' => 'Add tracking for whether the user wants to opt out of recommendations',
 				'sql' => array(

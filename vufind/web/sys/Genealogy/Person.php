@@ -34,6 +34,10 @@ class Person extends SolrDataObject
 	public $ageAtDeath;
 
 	//Burial information
+	public $intermentDate;
+	public $intermentDateDay;
+	public $intermentDateMonth;
+	public $intermentDateYear;
 	public $cemeteryName;
 	public $cemeteryLocation;
 	public $addition;
@@ -200,6 +204,7 @@ class Person extends SolrDataObject
 			array('property'=>'residence', 'type'=>'text', 'maxLength'=>255, 'size'=>40, 'label'=>'Residence', 'description'=>'The race of the person.', 'storeDb' => true, 'storeSolr' => false),
 			array('property'=>'causeOfDeath', 'type'=>'text', 'maxLength'=>255, 'size'=>40, 'label'=>'Cause of Death', 'description'=>'The cause of death.', 'storeDb' => true, 'storeSolr' => true),
 			array('property'=>'burialSection', 'type' => 'section', 'label' =>'Burial Information', 'hideInLists' => true, 'properties' => array(
+				array('property'=>'intermentDate', 'type'=>'partialDate', 'label'=>'Interment Date', 'description'=>'The date the person was interred.', 'storeDb' => true, 'storeSolr' => true, 'propNameMonth'=>'intermentDateMonth', 'propNameDay'=>'intermentDateDay', 'propNameYear'=>'intermentDateYear'),
 				array('property'=>'cemeteryName', 'type'=>'text', 'maxLength'=>255, 'label'=>'Cemetery', 'description'=>'The cemetery where the person is buried.', 'storeDb' => true, 'storeSolr' => true),
 				array('property'=>'cemeteryLocation', 'type'=>'text', 'maxLength'=>255, 'label'=>'Cemetery Location', 'description'=>'The location of the cemetery.', 'storeDb' => true, 'storeSolr' => true),
 				array('property'=>'addition', 'type'=>'text', 'maxLength'=>100, 'label'=>'Cemetery Addition', 'description'=>'The addition within the cemetery where the person is buried.', 'storeDb' => true, 'storeSolr' => false),

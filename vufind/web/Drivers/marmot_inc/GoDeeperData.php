@@ -38,7 +38,7 @@ class GoDeeperData{
 					//echo($response);
 
 					//Parse the XML
-					if (preg_match('/<!DOCTYPE\\sHTML.*/', $response)) {
+					if (preg_match('/<!DOCTYPE\\sHTML.*/i', $response)) {
 						//The ISBN was not found in syndetics (we got an error message)
 					} else {
 						//Got a valid response
@@ -92,7 +92,7 @@ class GoDeeperData{
 					}
 				}catch (Exception $e) {
 					global $logger;
-					$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
+					$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_WARNING);
 					if (isset($response)){
 						$logger->log($response, PEAR_LOG_INFO);
 					}
