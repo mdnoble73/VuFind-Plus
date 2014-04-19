@@ -92,7 +92,7 @@ class GoDeeperData{
 					}
 				}catch (Exception $e) {
 					global $logger;
-					$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_ERR);
+					$logger->log("Error fetching data from Syndetics $e", PEAR_LOG_WARNING);
 					if (isset($response)){
 						$logger->log($response, PEAR_LOG_INFO);
 					}
