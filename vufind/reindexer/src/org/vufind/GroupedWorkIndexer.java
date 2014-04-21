@@ -220,7 +220,10 @@ public class GroupedWorkIndexer {
 		for(String isbn : groupedWork.getIsbns()){
 			if (lexileInformation.containsKey(isbn)){
 				LexileTitle lexileTitle = lexileInformation.get(isbn);
-				groupedWork.setLexileCode(this.translateValue("lexile_code", lexileTitle.getLexileCode()));
+				String lexileCode = lexileTitle.getLexileCode();
+				if (lexileCode.length() > 0){
+					groupedWork.setLexileCode(this.translateValue("lexile_code", lexileCode));
+				}
 				groupedWork.setLexileScore(lexileTitle.getLexileScore());
 				groupedWork.addAwards(lexileTitle.getAwards());
 				if (lexileTitle.getSeries().length() > 0){

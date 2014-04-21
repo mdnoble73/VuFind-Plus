@@ -95,8 +95,8 @@ public class GroupedReindexProcess {
 		logger.info("Reloading schemas from default");
 		try {
 			//Synonyms
-			logger.debug("Copying " + "../../sites/default/solr/biblio/conf/synonyms.txt" + " to " + "../../sites/default/solr/grouped2/conf/synonyms.txt");
-			if (!Util.copyFile(new File("../../sites/default/solr/biblio/conf/synonyms.txt"), new File("../../sites/default/solr/grouped2/conf/synonyms.txt"))){
+			logger.debug("Copying " + "../../sites/default/solr/grouped/conf/synonyms.txt" + " to " + "../../sites/default/solr/grouped2/conf/synonyms.txt");
+			if (!Util.copyFile(new File("../../sites/default/solr/grouped/conf/synonyms.txt"), new File("../../sites/default/solr/grouped2/conf/synonyms.txt"))){
 				logger.warn("Unable to copy synonyms.txt to grouped2");
 				addNoteToReindexLog("Unable to copy synonyms.txt to grouped2");
 			}
