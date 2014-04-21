@@ -157,6 +157,7 @@
 							<div class="adminMenuLink {if $action == "DBMaintenance"}active{/if}"><a href="{$path}/Admin/DBMaintenance">DB Maintenance - VuFind</a></div>
 							<div class="adminMenuLink {if $action == "DBMaintenanceEContent"}active{/if}"><a href="{$path}/Admin/DBMaintenanceEContent">DB Maintenance - EContent</a></div>
 							<div class="adminMenuLink {if $module == 'Admin' && $action == "Home"}active{/if}"><a href="{$path}/Admin/Home">Solr Information</a></div>
+							<div class="adminMenuLink {if $module == 'Admin' && $action == "PHPInfo"}active{/if}"><a href="{$path}/Admin/PHPInfo">PHP Information</a></div>
 							<div class="adminMenuLink {if $action == "CronLog"}active{/if}"><a href="{$path}/Admin/CronLog">Cron Log</a></div>
 							<div class="adminMenuLink {if $action == "ReindexLog"}active{/if}"><a href="{$path}/Admin/ReindexLog">Reindex Log</a></div>
 							<div class="adminMenuLink {if $action == "OverDriveExtractLog"}active{/if}"><a href="{$path}/Admin/OverDriveExtractLog">OverDrive Extract Log</a></div>
