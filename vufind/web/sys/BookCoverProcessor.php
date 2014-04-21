@@ -71,11 +71,11 @@ class BookCoverProcessor{
 
 	}
 
-	private function getOverDriveCover(){
+	private function getOverDriveCover($id = null){
 		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
 		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductMetaData.php';
 		$overDriveProduct = new OverDriveAPIProduct();
-		$overDriveProduct->overdriveId = $this->id;
+		$overDriveProduct->overdriveId = $id == null ? $this->id : $id;
 		if ($overDriveProduct->find(true)){
 			$overDriveMetadata = new OverDriveAPIProductMetaData();
 			$overDriveMetadata->productId = $overDriveProduct->id;
@@ -355,22 +355,24 @@ class BookCoverProcessor{
 		}
 	}
 
-	private function getCoverFromMarc(){
+	private function getCoverFromMarc($marcRecord = null){
 		$this->log("Looking for picture as part of 856 tag.", PEAR_LOG_INFO);
 
-		$this->initDatabaseConnection();
-		//Process the marc record
-		require_once ROOT_DIR . '/sys/MarcLoader.php';
-		if ($this->isEContent){
-			$epubFile = new EContentRecord();
-			$epubFile->id = $this->id;
-			if ($epubFile->find(true)){
-				$marcRecord = MarcLoader::loadEContentMarcRecord($epubFile);
+		if ($marcRecord == null){
+			$this->initDatabaseConnection();
+			//Process the marc record
+			require_once ROOT_DIR . '/sys/MarcLoader.php';
+			if ($this->isEContent){
+				$epubFile = new EContentRecord();
+				$epubFile->id = $this->id;
+				if ($epubFile->find(true)){
+					$marcRecord = MarcLoader::loadEContentMarcRecord($epubFile);
+				}else{
+					$marcRecord = false;
+				}
 			}else{
-				$marcRecord = false;
+				$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
 			}
-		}else{
-			$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
 		}
 
 		if (!$marcRecord) {
@@ -904,6 +906,20 @@ class BookCoverProcessor{
 				$this->upc = $upc;
 				if ($this->getCoverFromProvider()){
 					return true;
+				}
+			}
+
+			//Have not found a grouped work based on isbn or upc, check based on related records
+			$relatedRecords = $this->groupedWork->getRelatedRecords();
+			foreach ($relatedRecords as $relatedRecord){
+				if ($relatedRecord['source'] == 'OverDrive'){
+					if ($this->getOverDriveCover($relatedRecord['id'])){
+						return true;
+					}
+				}elseif($relatedRecord['source'] == 'ils'){
+					if ($this->getCoverFromMarc($relatedRecord['driver']->getMarcRecord())){
+						return true;
+					}
 				}
 			}
 		}

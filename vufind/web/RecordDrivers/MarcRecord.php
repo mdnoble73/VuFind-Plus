@@ -1589,7 +1589,7 @@ class MarcRecord extends IndexRecord
 			'source' => 'ils',
 			'actions' => array()
 		);
-		if ($this->isHoldable() && $interface->getVariable('showHoldButton')){
+		if ($this->isHoldable() && isset($interface) && $interface->getVariable('showHoldButton')){
 			$relatedRecord['actions'][] = array(
 				'title' => 'Place Hold',
 				'url' => $holdUrl
@@ -1758,6 +1758,7 @@ class MarcRecord extends IndexRecord
 		if (MarcRecord::$catalogDriver == null){
 			global $configArray;
 			try {
+				require_once ROOT_DIR . '/CatalogConnection.php';
 				MarcRecord::$catalogDriver = new CatalogConnection($configArray['Catalog']['driver']);
 			} catch (PDOException $e) {
 				// What should we do with this error?
@@ -2013,4 +2014,10 @@ class MarcRecord extends IndexRecord
 		return 'ils';
 	}
 
+	/**
+	 * @return File_MARC_Record
+	 */
+	public function getMarcRecord(){
+		return $this->marcRecord;
+	}
 }

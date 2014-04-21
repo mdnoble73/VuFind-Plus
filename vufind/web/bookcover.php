@@ -1,5 +1,6 @@
 <?php
-define ('ROOT_DIR', __DIR__);
+require_once 'bootstrap.php';
+//define ('ROOT_DIR', __DIR__);
 /**
  *
  * Copyright (C) Villanova University 2007.
@@ -19,7 +20,7 @@ define ('ROOT_DIR', __DIR__);
  *
  */
 
-require_once ROOT_DIR . '/sys/PEAR_Singleton.php';
+/*require_once ROOT_DIR . '/sys/PEAR_Singleton.php';
 PEAR_Singleton::init();
 require_once ROOT_DIR . '/sys/Timer.php';
 require_once ROOT_DIR . '/sys/Logger.php';
@@ -57,7 +58,8 @@ if ($configArray['System']['debug']) {
 }
 
 date_default_timezone_set($configArray['Site']['timezone']);
-$timer->logTime("bootstrap");
+$timer->logTime("bootstrap");*/
+require_once ROOT_DIR . '/sys/BookCoverProcessor.php';
 
 //Create class to handle processing of covers
 $processor = new BookCoverProcessor();
