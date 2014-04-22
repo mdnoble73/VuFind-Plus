@@ -694,9 +694,9 @@ class Solr implements IndexEngine {
 
 		global $language;
 		if ($language == 'es') {
-			$boostFactors[] = 'language_boost_es';
+			$boostFactors[] = 'sum(language_boost_es,1)';
 		} else {
-			$boostFactors[] = 'language_boost';
+			$boostFactors[] = 'sum(language_boost,1)';
 		}
 
 		$applyHoldingsBoost = true;
