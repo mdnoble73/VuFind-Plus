@@ -42,7 +42,10 @@ class Browse_AJAX extends Action {
 		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
 		$browseCategory = new BrowseCategory();
 		if ($textId == null){
-			$textId = $_REQUEST['textId'];
+			$textId = isset($_REQUEST['textId']) ? $_REQUEST['textId'] : null;
+		}
+		if ($textId == null){
+			return $result;
 		}
 		$browseCategory->textId = $textId;
 		if ($browseCategory->find(true)){
