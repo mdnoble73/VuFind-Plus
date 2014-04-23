@@ -78,7 +78,15 @@ class OverDriveRecordDriver implements RecordInterface {
 		return $this->getGroupedWorkId();
 	}
 	public function getGroupedWorkId(){
-		return $this->groupedWork->permanent_id;
+		if (!isset($this->groupedWork)){
+			$this->loadGroupedWork();
+		}
+		if ($this->groupedWork){
+			return $this->groupedWork->permanent_id;
+		}else{
+			return null;
+		}
+
 	}
 
 	public function isValid(){
@@ -799,7 +807,12 @@ class OverDriveRecordDriver implements RecordInterface {
 	public function getRatingData() {
 		require_once ROOT_DIR . '/services/API/WorkAPI.php';
 		$workAPI = new WorkAPI();
-		return $workAPI->getRatingData($this->groupedWork->permanent_id);
+		$groupedWorkId = $this->getGroupedWorkId();
+		if ($groupedWorkId == null){
+			return null;
+		}else{
+			return $workAPI->getRatingData($this->getGroupedWorkId());
+		}
 	}
 
 	public function getMoreDetailsOptions(){

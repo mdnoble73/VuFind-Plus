@@ -829,9 +829,6 @@ function loadUserData(){
 
 	//Load a list of lists
 	$lists = array();
-	if ($user->disableRecommendations == 0){
-		$lists[] = array('name' => 'Recommended For You', 'url' => '/MyAccount/SuggestedTitles', 'id' => 'suggestions');
-	}
 	require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 	$tmpList = new UserList();
 	$tmpList->user_id = $user->id;

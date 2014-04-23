@@ -248,4 +248,61 @@ class User extends DB_DataObject
 			return false;
 		}
 	}
+
+	function updateOverDriveOptions(){
+		if (isset($_REQUEST['promptForOverdriveEmail'])){
+			if ($_REQUEST['promptForOverdriveEmail'] == 'yes' || $_REQUEST['promptForOverdriveEmail'] == 'on'){
+				$this->promptForOverdriveEmail = 1;
+			}else{
+				$this->promptForOverdriveEmail = 0;
+			}
+		}
+		if (isset($_REQUEST['overdriveEmail'])){
+			$this->overdriveEmail = strip_tags($_REQUEST['overdriveEmail']);
+		}
+		$this->update();
+		//Update the serialized instance stored in the session
+		$_SESSION['userinfo'] = serialize($this);
+	}
+
+	function updateCatalogOptions(){
+		//Validate that the input data is correct
+		if (isset($_POST['myLocation1']) && preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
+			PEAR_Singleton::raiseError('The 1st location had an incorrect format.');
+		}
+		if (isset($_POST['myLocation2']) && preg_match('/^\d{1,3}$/', $_POST['myLocation2']) == 0){
+			PEAR_Singleton::raiseError('The 2nd location had an incorrect format.');
+		}
+		if (isset($_REQUEST['bypassAutoLogout'])){
+			if ($_REQUEST['bypassAutoLogout'] == 'yes'){
+				$this->bypassAutoLogout = 1;
+			}else{
+				$this->bypassAutoLogout = 0;
+			}
+		}
+
+		//Make sure the selected location codes are in the database.
+		if (isset($_POST['myLocation1'])){
+			$location = new Location();
+			$location->whereAdd("locationId = '{$_POST['myLocation1']}'");
+			$location->find();
+			if ($location->N != 1) {
+				PEAR_Singleton::raiseError('The 1st location could not be found in the database.');
+			}
+			$this->myLocation1Id = $_POST['myLocation1'];
+		}
+		if (isset($_POST['myLocation2'])){
+			$location = new Location();
+			$location->whereAdd();
+			$location->whereAdd("locationId = '{$_POST['myLocation2']}'");
+			$location->find();
+			if ($location->N != 1) {
+				PEAR_Singleton::raiseError('The 2nd location could not be found in the database.');
+			}
+			$this->myLocation2Id = $_POST['myLocation2'];
+		}
+		$this->update();
+		//Update the serialized instance stored in the session
+		$_SESSION['userinfo'] = serialize($this);
+	}
 }

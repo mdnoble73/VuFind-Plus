@@ -28,11 +28,12 @@
 
 								{if $profile.expireclose}<div class="myAccountLink"><a class ="alignright" title="Please contact your local library to have your library card renewed." style="color:green; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">Your library card will expire on {$profile.expires}.</a></div>{/if}
 							</div>
-							<br/>
+							<hr class="menu"/>
 						{/if}
 
 						<div class="myAccountLink{if $pageTemplate=="checkedout.tpl"} active{/if}"><a href="{$path}/MyAccount/CheckedOut" id="checkedOut">Checked Out Titles ({$profile.numCheckedOutTotal})</a></div>
 						<div class="myAccountLink{if $pageTemplate=="holds.tpl"} active{/if}"><a href="{$path}/MyAccount/Holds" id="holds">Titles On Hold ({$profile.numHoldsTotal})</a></div>
+						<div class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyAccount/ReadingHistory">Reading History</a></div>
 
 						{if $showFines}
 						<div class="myAccountLink{if $pageTemplate=="fines.tpl"} active{/if}" title="Fines and account messages"><a href="{$path}/MyResearch/Fines">{translate text='Fines and Messages'}</a></div>
@@ -40,7 +41,12 @@
 						{if $enableMaterialsRequest}
 						<div class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="Materials Requests"><a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials Requests'} ({$profile.numMaterialsRequests})</a></div>
 						{/if}
-						<div class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyAccount/ReadingHistory">My Reading History</a></div>
+						<hr class="menu"/>
+						<div class="myAccountLink"><a href="{$path}/MyAccount/MyRatings">{translate text='Titles You Rated'}</a></div>
+						{if $user->disableRecommendations == 0}
+							<div class="myAccountLink"><a href="{$path}/MyAccount/SuggestedTitles">{translate text='Recommended For You'}</a></div>
+						{/if}
+						<hr class="menu"/>
 						<div class="myAccountLink{if $pageTemplate=="profile.tpl"} active{/if}"><a href="{$path}/MyAccount/Profile">Account Settings</a></div>
 						{* Only highlight saved searches as active if user is logged in: *}
 						<div class="myAccountLink{if $user && $pageTemplate=="history.tpl"} active{/if}"><a href="{$path}/Search/History?require_login">{translate text='history_saved_searches'}</a></div>
@@ -49,25 +55,27 @@
 			</div>
 
 			{* My Lists*}
-			<div class="panel {if $action == 'MyRatings' || $action == 'Suggested Titles' || $action == 'MyList'}active{/if}">
-				<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myListsPanel">
-					<div class="panel-heading">
-						<div class="panel-title">
-							MY LISTS
+			{if $lists}
+				<div class="panel {if $action == 'MyRatings' || $action == 'Suggested Titles' || $action == 'MyList'}active{/if}">
+					<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myListsPanel">
+						<div class="panel-heading">
+							<div class="panel-title">
+								MY LISTS
+							</div>
+						</div>
+					</a>
+					<div id="myListsPanel" class="panel-collapse collapse {if $action == 'MyRatings' || $action == 'Suggested Titles' || $action == 'MyList'}in{/if}">
+						<div class="panel-body">
+
+							{foreach from=$lists item=list}
+								{if $list.id != -1}
+									<div class="myAccountLink"><a href="{$list.url}">{$list.name}{if $list.numTitles} ({$list.numTitles}){/if}</a></div>
+								{/if}
+							{/foreach}
 						</div>
 					</div>
-				</a>
-				<div id="myListsPanel" class="panel-collapse collapse {if $action == 'MyRatings' || $action == 'Suggested Titles' || $action == 'MyList'}in{/if}">
-					<div class="panel-body">
-						<div class="myAccountLink"><a href="{$path}/MyAccount/MyRatings">{translate text='Titles You Rated'}</a></div>
-						{foreach from=$lists item=list}
-							{if $list.id != -1}
-								<div class="myAccountLink"><a href="{$list.url}">{$list.name}{if $list.numTitles} ({$list.numTitles}){/if}</a></div>
-							{/if}
-						{/foreach}
-					</div>
 				</div>
-			</div>
+			{/if}
 
 			{if $tagList}
 				<div class="panel">

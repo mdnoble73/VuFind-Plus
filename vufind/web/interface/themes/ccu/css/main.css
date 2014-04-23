@@ -6302,6 +6302,12 @@ body {
     width: 100%;
   }
 }
+hr.menu {
+  margin-top: 3px;
+  margin-bottom: 3px;
+  height: 0px;
+  border-top: 1px solid #d3d3d3;
+}
 .breadcrumbs {
   background-color: #f5f5f5;
   padding: 3px;
@@ -6472,7 +6478,7 @@ div#systemMessage {
   background: linear-gradient(to bottom, #4dacde, #0f8fd2);
 }
 .sidebar-links .panel-title {
-  font-size: 12px;
+  font-size: 13px;
   color: #333333;
   text-shadow: 1px 1px white;
 }
@@ -6481,7 +6487,7 @@ div#systemMessage {
   text-shadow: 1px 1px #555555;
 }
 .sidebar-links .panel-body {
-  font-size: 11px;
+  font-size: 12px;
   color: #333333;
   background-color: #eeeeee;
 }
@@ -6675,6 +6681,32 @@ div#systemMessage {
   font-weight: bold;
   font-size: 16px;
   padding: 2px;
+}
+/** Account Settings formatting */
+#account-settings-accordion .panel-group .panel + .panel {
+  margin-top: 0px;
+}
+#account-settings-accordion .panel-heading {
+  padding: 5px 15px;
+  background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
+  border-bottom: 1px solid #a1a1a1;
+}
+#account-settings-accordion .active .panel-heading {
+  background: linear-gradient(to bottom, #4dacde, #0f8fd2);
+}
+#account-settings-accordion .panel-title {
+  font-size: 13px;
+  color: #333333;
+  text-shadow: 1px 1px white;
+}
+#account-settings-accordion .active .panel-title {
+  color: white;
+  text-shadow: 1px 1px #555555;
+}
+#account-settings-accordion .panel-body {
+  font-size: 12px;
+  color: #333333;
+  background-color: #eeeeee;
 }
 /**
  * Additional Styling related to the help system
@@ -7056,6 +7088,7 @@ div#systemMessage {
   color: white;
   padding: 3px 0px;
   margin-top: 20px;
+  font-size: 14px;
 }
 #results-sort {
   width: 80%;

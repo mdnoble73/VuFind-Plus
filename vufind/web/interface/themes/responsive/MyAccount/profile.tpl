@@ -1,66 +1,327 @@
 {strip}
-  {if $user->cat_username}
-	  {if $profile.web_note}
-		  <div id="web_note" class="text-info text-center well well-small">{$profile.web_note}</div>
-	  {/if}
-    <div class="resulthead">
-      <h3>{translate text='Account Settings'}</h3>
-    </div>
-    {if $userNoticeFile}
-      {include file=$userNoticeFile}
-    {/if}
+	<div id="main-content">
+		{if $user->cat_username}
+			<div class="resulthead">
+				{if $profile.web_note}
+					<div id="web_note" class="alert alert-info text-center">{$profile.web_note}</div>
+				{/if}
 
-    <div class="page">
-	    {if $profileUpdateErrors}
-	      <div class='profileUpdateErrors'>
-	      {foreach from=$profileUpdateErrors item=error}
-	        <div class='profileUpdateError'>{$error}</div>
-	      {/foreach}
-	      </div>
-	    {/if}
-	    <form action='' method='post'>
-	    <table class="citation" width="100%">
-	      <thead>
-	      <tr><th colspan='2'>Personal Information - can only be changed by the library</th></tr>
-	      </thead>
-	      <tr><th width="100px">{translate text='Full Name'}:</th><td>{$profile.fullname|escape}</td></tr>
-	      <tr><th width="100px">{translate text='Display Name'}:</th><td><input type ='text' name='displayName' id='displayName' value='{$profile.displayName|escape}' /> <span class='fieldHelp'>A name to display when you are logged in and with any reviews you have submitted.</span></td></tr>
-	      <tr><th>{translate text='Address'}:</th><td>{if false && $edit == true}<input name='address1' value='{$profile.address1|escape}' size='50' maxlength='75' />{else}{$profile.address1|escape}{/if}</td></tr>
-	      <tr><th>{translate text='City'}:</th><td>{if false && $edit == true}<input name='city' value='{$profile.city|escape}' size='50' maxlength='75' />{else}{$profile.city|escape}{/if}</td></tr>
-	      <tr><th>{translate text='State'}:</th><td>{if false && $edit == true}<input name='state' value='{$profile.state|escape}' size='50' maxlength='75' />{else}{$profile.state|escape}{/if}</td></tr>
-	      <tr><th>{translate text='Zip'}:</th><td>{if false && $edit == true}<input name='zip' value='{$profile.zip|escape}' size='50' maxlength='75' />{else}{$profile.zip|escape}{/if}</td></tr>
-	      <tr><th>{translate text='Phone Number'}:</th><td>{if false && $edit == true}<input name='phone' value='{$profile.phone|escape}' size='50' maxlength='75' />{else}{$profile.phone|escape}{/if}</td></tr>
-	      <tr><th>{translate text='Expiration Date'}:</th><td>{$profile.expires|escape}</td></tr>
-	      <tr><th>{translate text='Home Library'}:</th><td>{$profile.homeLocationName|escape}</td></tr>
-	      <tr><th>{translate text='Show Recommendations'}:</th><td><input type="radio" name='disableRecommendations' {if $user->disableRecommendations == 1}checked="checked"{/if} value="1"/>No <input type="radio" name='disableRecommendations' {if $user->disableRecommendations == 0}checked="checked"{/if} value="0"/> Yes</td></tr>
-	      <tr><th>{translate text='Show Cover Art'}:</th><td><input type="radio" name='disableCoverArt' {if $user->disableCoverArt == 1}checked="checked"{/if} value="1"/>No <input type="radio" name='disableCoverArt' {if $user->disableCoverArt == 0}checked="checked"{/if} value="0"/> Yes</td></tr>
-	      {if $onInternalIP || $profile.bypassAutoLogout==1}
-	      <tr><th>{translate text='Bypass Automatic Logout'}:</th><td><input type='radio' name="bypassAutoLogout" value='yes' {if $profile.bypassAutoLogout==1}checked='checked'{/if}/>Yes&nbsp;&nbsp;<input type='radio' name="bypassAutoLogout" value='no' {if $profile.bypassAutoLogout==0}checked='checked'{/if}/>No<br/><em>Warning: If this is set to yes, you must manually logout of your account.  You should not use this setting if you regularly access the catalog from public computers.</em></td></tr>
-	      {/if}
-	      <tr><th colspan='2'><input type='submit' value='Update' name='update'/></th></tr>
+				<h2>{translate text='Account Settings'}</h2>
+			</div>
 
-	      <thead>
-	      <tr><th colspan='2'>Email Information</th></tr>
-	      </thead>
-	      <tr><th>{translate text='E-mail'}:</th><td>{if true || $edit == true}<input name='email' value='{$profile.email|escape}' size='50' maxlength='75' />{else}{$profile.email|escape}{/if}</td></tr>
-	      <tr><th colspan='2'><input type='submit' value='Update' name='update'/></th></tr>
+			<div class="panel-group" id="account-settings-accordion">
+				{* ILS Settings *}
+				<div class="panel active">
+					<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#contactPanel">
+						<div class="panel-heading">
+							<div class="panel-title">
+								Contact Information
+							</div>
+						</div>
+					</a>
+					<div id="contactPanel" class="panel-collapse collapse in">
+						<div class="panel-body">
+							<form action='' method='post' class="form-horizontal">
+								<input type="hidden" name="updateScope" value="contact"/>
+								<div class="form-group">
+									<div class="col-xs-4"><strong>{translate text='Full Name'}:</strong></div><div class="col-xs-8">{$profile.fullname|escape}</div>
+								</div>
+									{if !$offline}
+										<div class="form-group"><div class="col-xs-4"><strong>{translate text='Fines'}:</strong></div><div class="col-xs-8">{$profile.fines|escape}</div></div>
+										<div class="form-group"><div class="col-xs-4"><strong>{translate text='Expiration Date'}:</strong></div><div class="col-xs-8">{$profile.expires|escape}</div></div>
+									{/if}
+								<div class="form-group"><div class="col-xs-4"><strong>{translate text='Home Library'}:</strong></div><div class="col-xs-8">{$profile.homeLocation|escape}</div></div>
+								{if !$offline}
+									<div class="form-group">
+										<div class="col-xs-4">
+											<label for="address1">{translate text='Address'}:</label>
+										</div>
+										<div class="col-xs-8">
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress}
+												<input name='address1' id="address1" value='{$profile.address1|escape}' size='50' maxlength='75' class="form-control" />
+											{else}
+												{$profile.address1|escape}
+											{/if}
+										</div>
+									</div>
+									<div class="form-group">
+										<div class="col-xs-4"><label for="city">{translate text='City'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='city' id="city" value='{$profile.city|escape}' size='50' maxlength='75' class="form-control"/>{else}{$profile.city|escape}{/if}
+										</div>
+									</div>
+									<div class="form-group">
+										<div class="col-xs-4"><label for="state">{translate text='State'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='state' id="state" value='{$profile.state|escape}' size='50' maxlength='75' class="form-control"/>{else}{$profile.state|escape}{/if}
+										</div>
+									</div>
+									<div class="form-group">
+										<div class="col-xs-4"><label for="zip">{translate text='Zip'}:</label></div>
+										<div class="col-xs-8">{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='zip' id="zip" value='{$profile.zip|escape}' size='50' maxlength='75' class="form-control"/>{else}{$profile.zip|escape}{/if}</div>
+									</div>
+									<div class="form-group">
+										<div class="col-xs-4"><label for="phone">{translate text='Primary Phone Number'}:</label></div>
+										<div class="col-xs-8">{if $edit == true && $canUpdateContactInfo == true}<input type="tel" name='phone' id="phone" value='{$profile.phone|escape}' size='50' maxlength='75' class="form-control"/>{else}{$profile.phone|escape}{/if}</div>
+									</div>
+									{if $showWorkPhoneInProfile}
+										<div class="form-group">
+											<div class="col-xs-4"><label for="workPhone">{translate text='Work Phone Number'}:</label></div>
+											<div class="col-xs-8">{if $edit == true && $canUpdateContactInfo == true}<input name='workPhone' id="workPhone" value='{$profile.workPhone|escape}' size='50' maxlength='75' class="form-control"/>{else}{$profile.workPhone|escape}{/if}</div>
+										</div>
+									{/if}
+								{/if}
+								<div class="form-group">
+									<div class="col-xs-4"><label for="email">{translate text='E-mail'}:</label></div>
+									<div class="col-xs-8">
+										{if $edit == true && $canUpdateContactInfo == true}<input type='email' name='email' id="email" value='{$profile.email|escape}' size='50' maxlength='75' class="form-control"/>{else}{$profile.email|escape}{/if}
+									</div>
+								</div>
+								{if $showPickupLocationInProfile}
+									<div class="form-group">
+										<div class="col-xs-4"><label for="pickupLocation" class="">{translate text='Pickup Location'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit == true && $canUpdateContactInfo == true}
+												<select name="pickupLocation" id="pickupLocation" class="form-control">
+													{if count($pickupLocations) > 0}
+														{foreach from=$pickupLocations item=location}
+															<option value="{$location->code}" {if $location->selected == "selected"}selected="selected"{/if}>{$location->displayName}</option>
+														{/foreach}
+													{else}
+														<option>placeholder</option>
+													{/if}
+												</select>
+											{else}
+												{$profile.homeLocation|escape}
+											{/if}
+										</div>
+									</div>
+								{/if}
 
-	      <thead>
-	      <tr><th colspan='2'>Personal Identification Number (PIN) or the last 4 digits of your telephone no.</th></tr>
-	      </thead>
-	      <tr><th>{translate text='Old PIN'}:</th><td><input type='password' name='oldPin' value='' size='4' maxlength='4' /></td></tr>
-	      <tr><th>{translate text='New PIN'}:</th><td><input type='password' name='newPin' value='' size='4' maxlength='4' /></td></tr>
-	      <tr><th>{translate text='Re-enter New PIN'}:</th><td><input type='password' name='verifyPin' value='' size='4' maxlength='4' /></td></tr>
-	      <tr><th colspan='2'><input type='submit' value='Update' name='update'/></th></tr>
+								{if $showNoticeTypeInProfile}
+									<div class="alert alert-info col-xs-8 col-xs-offset-4">
+										The following settings determine how you would like to receive notifications when physical materials are ready for pickup at your library.  Notifications for online content are always delivered via e-mail.
+									</div>
 
-	    </table>
+									<div class="form-group">
+										<div class="col-xs-4"><strong>{translate text='Receive notices by'}:</strong></div>
+										<div class="col-xs-8">
+											{if $edit == true && $canUpdateContactInfo == true}
+												<div class="btn-group btn-group-sm" data-toggle="buttons">
+													{if true}
+														<label for="noticesMail" class="btn btn-sm btn-default {if $profile.notices == 'a'}active{/if}"><input type="radio" value="a" id="noticesMail" name="notices" {if $profile.notices == 'a'}checked="checked"{/if}> Postal Mail</label>
+													{/if}
+													{if false}
+														<label for="noticesTel" class="btn btn-sm btn-default {if $profile.notices == 'p'}active{/if}"><input type="radio" value="p" id="noticesTel" name="notices" {if $profile.notices == 'p'}checked="checked"{/if}> Telephone</label>
+													{/if}
+													<label for="noticesEmail" class="btn btn-sm btn-default {if $profile.notices == 'z'}active{/if}"><input type="radio" value="z" id="noticesEmail" name="notices" {if $profile.notices == 'z'}checked="checked"{/if}> Email</label>
+												</div>
+											{else}
+												{$profile.noticePreferenceLabel|escape}
+											{/if}
+										</div>
+									</div>
+								{/if}
+								{if $showSMSNoticesInProfile || true}
+									<div class="form-group">
+										<div class="col-xs-4"><label for="smsNotices">{translate text='Receive SMS Messages'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit == true && $canUpdateContactInfo == true}
+												<input type="checkbox" name="smsNotices" id="smsNotices" {if $profile.mobileNumber}checked='checked'{/if}/>
+												<script type="text/javascript">
+													{literal}
+													$(document).ready(function(){
+														$("#smsNotices").bootstrapSwitch();
+													});
+													{/literal}
+												</script>
+												<p class="help-block">
+													SMS Messages are sent in addition to postal mail/e-mail alerts. <strong>Message and data rates may apply.</strong>
+												</p>
+												<p class="help-block">
+													<a href="{$path}/Help/Home?topic=smsTerms" data-title="SMS Notice Terms" class="modalDialogTrigger">View Terms and Conditions</a>
+												</p>
+											{else}
 
-	    </form>
-    </div>
-  {else}
-    <div class="page">
-      You must login to view this information. Click <a href="{$path}/MyAccount/Login">here</a> to login.
-	   </div>
-  {/if}
+											{/if}
+										</div>
+									</div>
+									<div class="form-group">
+										<div class="col-xs-4"><label for="mobileNumber">{translate text='Mobile Number'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit == true && $canUpdateContactInfo == true}
+												<input type="tel" name="mobileNumber" value="{$profile.mobileNumber}" class="form-control"/>
+											{else}
+
+											{/if}
+										</div>
+									</div>
+								{/if}
+
+								{if !$offline && $edit == true && $canUpdateContactInfo}
+									<div class="form-group">
+										<div class="col-xs-8 col-xs-offset-4">
+											<input type='submit' value='Update Contact Information' name='updateOverDrive' class="btn btn-sm btn-primary"/>
+										</div>
+									</div>
+								{/if}
+							</form>
+						</div>
+					</div>
+				</div>
+
+				{*OverDrive Options*}
+				<div class="panel active">
+					<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#overdrivePanel">
+						<div class="panel-heading">
+							<div class="panel-title">
+								OverDrive Options
+							</div>
+						</div>
+					</a>
+					<div id="overdrivePanel" class="panel-collapse collapse in">
+						<div class="panel-body">
+							<form action="{$path}/MyAccount/Profile" method="post" class="form-horizontal">
+								<input type="hidden" name="updateScope" value="overdrive"/>
+								<div class="form-group">
+									<div class="col-xs-4"><label for="overdriveEmail" class="control-label">{translate text='OverDrive Hold e-mail'}:</label></div>
+									<div class="col-xs-8">
+										{if $edit == true}<input name='overdriveEmail' id="overdriveEmail" class="form-control" value='{$profile.overdriveEmail|escape}' size='50' maxlength='75' />{else}{$profile.overdriveEmail|escape}{/if}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-xs-4"><label for="promptForOverdriveEmail" class="control-label">{translate text='Prompt for OverDrive e-mail'}:</label></div>
+									<div class="col-xs-8">
+										{if $edit == true}
+											<input type="checkbox" name="promptForOverdriveEmail" id="promptForOverdriveEmail" {if $profile.promptForOverdriveEmail==1}checked='checked'{/if}/>
+											<script type="text/javascript">
+												{literal}
+												$(document).ready(function(){
+													$("#promptForOverdriveEmail").bootstrapSwitch();
+												});
+												{/literal}
+											</script>
+										{else}
+											{if $profile.promptForOverdriveEmail==0}No{else}Yes{/if}
+										{/if}
+									</div>
+								</div>
+								{if $overDriveLendingOptions}
+									<strong>Lending Options</strong>
+									<p class="help-block">Select how long you would like to checkout each type of material from OverDrive.</p>
+									{foreach from=$overDriveLendingOptions item=lendingOption}
+										<div class="form-group">
+											<div class="col-xs-4"><label class="control-label">{$lendingOption.name}:</label></div>
+											<div class="col-xs-8">
+												<div class="btn-group btn-group-sm" data-toggle="buttons">
+													{foreach from=$lendingOption.options item=option}
+														{if $edit}
+															<label for="{$lendingOption.id}_{$option.value}" class="btn btn-sm btn-default {if $option.selected}active{/if}"><input type="radio" name="{$lendingOption.id}" value="{$option.value}" id="{$lendingOption.id}_{$option.value}" {if $option.selected}checked="checked"{/if} class="form-control">&nbsp;{$option.name}</label>
+															&nbsp; &nbsp;
+														{elseif $option.selected}
+															{$option.name}
+														{/if}
+													{/foreach}
+													</div>
+											</div>
+										</div>
+									{/foreach}
+								{/if}
+								{if !$offline && $edit == true}
+									<div class="form-group">
+										<div class="col-xs-8 col-xs-offset-4">
+											<input type='submit' value='Update OverDrive Options' name='updateOverDrive' class="btn btn-sm btn-primary"/>
+										</div>
+									</div>
+								{/if}
+							</form>
+						</div>
+					</div>
+				</div>
+
+				{* Catalog Settings *}
+				<div class="panel active">
+					<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#ilsPanel">
+						<div class="panel-heading">
+							<div class="panel-title">
+								Catalog Options
+							</div>
+						</div>
+					</a>
+					<div id="ilsPanel" class="panel-collapse collapse in">
+						<div class="panel-body">
+							<form action="" method="post" class="form-horizontal">
+								<input type="hidden" name="updateScope" value="catalog"/>
+								<div class="form-group">
+									<div class="col-xs-4"><label for="myLocation1" class="control-label">{translate text='My First Alternate Library'}:</label></div>
+									<div class="col-xs-8">
+										{if $edit == true}
+											{html_options name="myLocation1" id="myLocation1" class="form-control" options=$locationList selected=$profile.myLocation1Id}
+										{else}
+											{$profile.myLocation1|escape}
+										{/if}
+									</div>
+								</div>
+								<div class="form-group">
+									<div class="col-xs-4"><label for="myLocation2" class="control-label">{translate text='My Second Alternate Library'}:</label></div>
+									<div class="col-xs-8">{if $edit == true}{html_options name="myLocation2" id="myLocation2" class="form-control" options=$locationList selected=$profile.myLocation2Id}{else}{$profile.myLocation2|escape}{/if}</div>
+								</div>
+								{if $userIsStaff}
+									<div class="form-group">
+										<div class="col-xs-4"><label for="bypassAutoLogout" class="control-label">{translate text='Bypass Automatic Logout'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit == true}
+												<input type="checkbox" name="bypassAutoLogout" id="bypassAutoLogout" {if $profile.bypassAutoLogout==1}checked='checked'{/if}/>
+												<script type="text/javascript">
+													{literal}
+													$(document).ready(function(){
+														$("#bypassAutoLogout").bootstrapSwitch();
+													});
+													{/literal}
+												</script>
+											{else}
+												{if $profile.bypassAutoLogout==0}No{else}Yes{/if}
+											{/if}
+										</div>
+									</div>
+								{/if}
+								{if !$offline && $edit == true}
+									<div class="form-group">
+										<div class="col-xs-8 col-xs-offset-4">
+											<input type='submit' value='Update Catalog Options' name='updateCatalog' class="btn btn-sm btn-primary"/>
+										</div>
+									</div>
+								{/if}
+							</form>
+						</div>
+					</div>
+				</div>
+
+				{* Display user roles if the user has any roles*}
+				{if count($user->roles) > 0}
+					<div class="panel active">
+						<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#rolesPanel">
+							<div class="panel-heading">
+								<div class="panel-title">
+									Roles
+								</div>
+							</div>
+						</a>
+						<div id="rolesPanel" class="panel-collapse collapse in">
+							<div class="panel-body">
+								{foreach from=$user->roles item=role}
+									<div class="row"><div class="col-xs-12">{$role}</div></div>
+								{/foreach}
+							</div>
+						</div>
+					</div>
+				{/if}
+			</div>
+
+		{else}
+			<div class="page">
+				You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
+			</div>
+		{/if}
+	</div>
 {/strip}
-

@@ -30,6 +30,12 @@ body {
     width: 100%;
   }
 }
+hr.menu {
+  margin-top: 3px;
+  margin-bottom: 3px;
+  height: 0px;
+  border-top: 1px solid #d3d3d3;
+}
 .breadcrumbs {
   background-color: #f5f5f5;
   padding: 3px;

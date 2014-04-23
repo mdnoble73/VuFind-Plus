@@ -711,6 +711,7 @@ class MillenniumDriver implements DriverInterface
 				'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
 				'phone' => (isset($patronDump) && isset($patronDump['TELEPHONE'])) ? $patronDump['TELEPHONE'] : (isset($patronDump['HOME_PHONE']) ? $patronDump['HOME_PHONE'] : ''),
 				'workPhone' => (isset($patronDump) && isset($patronDump['G/WK_PHONE'])) ? $patronDump['G/WK_PHONE'] : '',
+				'mobileNumber' => (isset($patronDump) && isset($patronDump['MOBILE_NO'])) ? $patronDump['MOBILE_NO'] : '',
 				'fines' => isset($patronDump) ? $patronDump['MONEY_OWED'] : '0',
 				'finesval' => $finesVal,
 				'expires' => isset($patronDump) ? $patronDump['EXP_DATE'] : '',
@@ -1093,10 +1094,7 @@ class MillenniumDriver implements DriverInterface
 		//Setup the call to Millennium
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
-		$this->_updateVuFindPatronInfo();
-
 		if ($canUpdateContactInfo){
-			$scope = $this->getMillenniumScope();
 			//Update profile information
 			$extraPostInfo = array();
 			if (isset($_REQUEST['address1'])){
@@ -1111,20 +1109,25 @@ class MillenniumDriver implements DriverInterface
 			}
 			$extraPostInfo['email'] = $_REQUEST['email'];
 
-			if (isset($_REQUEST['notices'])){
-				$extraPostInfo['notices'] = $_REQUEST['notices'];
-			}
-
-			if (isset($_REQUEST['notices'])){
-				$extraPostInfo['notices'] = $_REQUEST['notices'];
-			}
-
 			if (isset($_REQUEST['pickupLocation'])){
 				$pickupLocation = $_REQUEST['pickupLocation'];
 				if (strlen($pickupLocation) < 5){
 					$pickupLocation = $pickupLocation . str_repeat(' ', 5 - strlen($pickupLocation));
 				}
 				$extraPostInfo['locx00'] = $pickupLocation;
+			}
+
+			if (isset($_REQUEST['notices'])){
+				$extraPostInfo['notices'] = $_REQUEST['notices'];
+			}
+
+			if (isset($_REQUEST['mobileNumber'])){
+				$extraPostInfo['mobile'] = $_REQUEST['mobileNumber'];
+				if (strlen($_REQUEST['mobileNumber']) > 0 && $_REQUEST['smsNotices'] == 'on'){
+					$extraPostInfo['optin'] = 'on';
+				}else{
+					$extraPostInfo['optin'] = 'off';
+				}
 			}
 
 			//Login to the patron's account
@@ -1208,59 +1211,6 @@ class MillenniumDriver implements DriverInterface
 			}
 			return false;
 		}
-
-	}
-
-	protected function _updateVuFindPatronInfo(){
-		global $user;
-
-		//Validate that the input data is correct
-		if (isset($_POST['myLocation1']) && preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
-			PEAR_Singleton::raiseError('The 1st location had an incorrect format.');
-		}
-		if (isset($_POST['myLocation2']) && preg_match('/^\d{1,3}$/', $_POST['myLocation2']) == 0){
-			PEAR_Singleton::raiseError('The 2nd location had an incorrect format.');
-		}
-		if (isset($_REQUEST['bypassAutoLogout'])){
-			if ($_REQUEST['bypassAutoLogout'] == 'yes'){
-				$user->bypassAutoLogout = 1;
-			}else{
-				$user->bypassAutoLogout = 0;
-			}
-		}
-		if (isset($_REQUEST['promptForOverdriveEmail'])){
-			if ($_REQUEST['promptForOverdriveEmail'] == 'yes'){
-				$user->promptForOverdriveEmail = 1;
-			}else{
-				$user->promptForOverdriveEmail = 0;
-			}
-		}
-		if (isset($_REQUEST['overdriveEmail'])){
-			$user->overdriveEmail = strip_tags($_REQUEST['overdriveEmail']);
-		}
-		//Make sure the selected location codes are in the database.
-		if (isset($_POST['myLocation1'])){
-			$location = new Location();
-			$location->whereAdd("locationId = '{$_POST['myLocation1']}'");
-			$location->find();
-			if ($location->N != 1) {
-				PEAR_Singleton::raiseError('The 1st location could not be found in the database.');
-			}
-			$user->myLocation1Id = $_POST['myLocation1'];
-		}
-		if (isset($_POST['myLocation2'])){
-			$location = new Location();
-			$location->whereAdd();
-			$location->whereAdd("locationId = '{$_POST['myLocation2']}'");
-			$location->find();
-			if ($location->N != 1) {
-				PEAR_Singleton::raiseError('The 2nd location could not be found in the database.');
-			}
-			$user->myLocation2Id = $_POST['myLocation2'];
-		}
-		$user->update();
-		//Update the serialized instance stored in the session
-		$_SESSION['userinfo'] = serialize($user);
 	}
 
 	var $pType;

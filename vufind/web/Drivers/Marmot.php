@@ -34,5 +34,5 @@ require_once ROOT_DIR . '/Drivers/Millennium.php';
  * @author CJ O'Hara <cj@marmot.org>
  */
 class Marmot extends MillenniumDriver{
-	
+
 }

@@ -35,7 +35,7 @@ class MyAccount_Profile extends MyResearch
 			$canUpdateContactInfo = true;
 			$canUpdateAddress = true;
 			$showWorkPhoneInProfile = false;
-			$showNoticeTypeInProfile = false;
+			$showNoticeTypeInProfile = true;
 			$showPickupLocationInProfile = false;
 		}else{
 			$canUpdateContactInfo = ($activeLibrary->allowProfileUpdates == 1);
@@ -43,12 +43,12 @@ class MyAccount_Profile extends MyResearch
 			$showWorkPhoneInProfile = ($activeLibrary->showWorkPhoneInProfile == 1);
 			$showNoticeTypeInProfile = ($activeLibrary->showNoticeTypeInProfile == 1);
 			$showPickupLocationInProfile = ($activeLibrary->showPickupLocationInProfile == 1);
-
-			global $locationSingleton;
-			//Get the list of pickup branch locations for display in the user interface.
-			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
-			$interface->assign('pickupLocations', $locations);
 		}
+		global $locationSingleton;
+		//Get the list of pickup branch locations for display in the user interface.
+		$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
+		$interface->assign('pickupLocations', $locations);
+
 		$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);
 		$interface->assign('canUpdateAddress', $canUpdateAddress);
 		$interface->assign('showWorkPhoneInProfile', $showWorkPhoneInProfile);
@@ -62,12 +62,20 @@ class MyAccount_Profile extends MyResearch
 			$interface->assign('offline', false);
 		}
 
-		if (isset($_POST['update']) && !$configArray['Catalog']['offline']) {
-			$result = $this->catalog->updatePatronInfo($canUpdateContactInfo);
-			$_SESSION['profileUpdateErrors'] = $result;
-			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
-			$overDriveDriver = OverDriveDriverFactory::getDriver();
-			$result = $overDriveDriver->updateLendingOptions();
+		if (isset($_POST['updateScope']) && !$configArray['Catalog']['offline']) {
+			$updateScope = $_REQUEST['updateScope'];
+			if ($updateScope == 'contact'){
+				$result = $this->catalog->updatePatronInfo($canUpdateContactInfo);
+				$_SESSION['profileUpdateErrors'] = $result;
+			}elseif($updateScope == 'catalog'){
+				$user->updateCatalogOptions();
+			}elseif($updateScope == 'overdrive'){
+				require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+				$overDriveDriver = OverDriveDriverFactory::getDriver();
+				$result = $overDriveDriver->updateLendingOptions();
+
+				$user->updateOverDriveOptions();
+			}
 
 			header("Location: " . $configArray['Site']['path'] . '/MyAccount/Profile');
 			exit();
@@ -77,7 +85,7 @@ class MyAccount_Profile extends MyResearch
 
 			header("Location: " . $configArray['Site']['path'] . '/MyAccount/Profile');
 			exit();
-		}else if (isset($_POST['edit']) && !$configArray['Catalog']['offline']){
+		}else if (!$configArray['Catalog']['offline']){
 			$interface->assign('edit', true);
 		}else{
 			$interface->assign('edit', false);
@@ -97,13 +105,13 @@ class MyAccount_Profile extends MyResearch
 		}
 
 		//Get the list of locations for display in the user interface.
-		global $locationSingleton;
-		$locationSingleton->whereAdd("validHoldPickupBranch = 1");
-		$locationSingleton->find();
+		$location = new Location();
+		$location->validHoldPickupBranch = 1;
+		$location->find();
 
 		$locationList = array();
-		while ($locationSingleton->fetch()) {
-			$locationList[$locationSingleton->locationId] = $locationSingleton->displayName;
+		while ($location->fetch()) {
+			$locationList[$location->locationId] = $location->displayName;
 		}
 		$interface->assign('locationList', $locationList);
 
