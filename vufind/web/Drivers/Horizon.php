@@ -62,6 +62,25 @@ class Horizon implements DriverInterface{
 		}
 	}
 
+	/**
+	 * Loads items information as quickly as possible (no direct calls to the ILS).  Does do filtering by loan rules
+	 *
+	 * return is an array of items with the following information:
+	 *  location
+	 *  callnumber
+	 *  available
+	 *  holdable
+	 *  lastStatusCheck (time)
+	 *
+	 * @param $id
+	 * @param $scopingEnabled
+	 * @param $marcRecord
+	 * @return mixed
+	 */
+	public function getItemsFast($id, $scopingEnabled, $marcRecord = null){
+		return $this->getHolding($id);
+	}
+
 	public function getHolding($id, $record = null, $mysip = null, $forSummary = false){
 		global $timer;
 		global $configArray;
