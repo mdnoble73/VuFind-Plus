@@ -1,1 +1,0 @@
-Log files from Jetty (Solr) go here.  Should be cleared periodically

@@ -1,1 +1,0 @@
-Cached copies of large images go here

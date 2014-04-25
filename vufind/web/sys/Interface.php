@@ -38,29 +38,7 @@ class UInterface extends Smarty
 		$local = $configArray['Site']['local'];
 		$this->vufindTheme = $configArray['Site']['theme'];
 
-		$isMobile = mobile_device_detect();
-
-		// Use mobile theme for mobile devices (if enabled in config.ini)
-		if (isset($configArray['Site']['mobile_theme'])) {
-			// If the user is overriding the UI setting, store that:
-			if (isset($_GET['ui'])) {
-				$_COOKIE['ui'] = $_GET['ui'];
-				setcookie('ui', $_GET['ui'], null, '/');
-				// If we don't already have a UI setting, detect if we're on a mobile
-				// and store the result in a cookie so we don't waste time doing the
-				// detection routine on every page:
-			} else if (!isset($_COOKIE['ui'])) {
-				$_COOKIE['ui'] = $isMobile ? 'mobile' : 'standard';
-				setcookie('ui', $_COOKIE['ui'], null, '/');
-			}
-			// If we're mobile, override the standard theme with the mobile one:
-			if ($_COOKIE['ui'] == 'mobile') {
-				//Add library specific themes after the mobile theme so we can get images
-				$this->vufindTheme = $configArray['Site']['mobile_theme'] . "," . $this->vufindTheme;
-
-				$this->isMobile = true;
-			}
-		}
+		$this->isMobile = mobile_device_detect();
 		$this->assign('isMobile', $this->isMobile ? 'true' : 'false');
 		$this->assign('device', get_device_name());
 
@@ -142,8 +120,6 @@ class UInterface extends Smarty
 		$this->assign('template_dir',$this->template_dir);
 		$this->assign('url', $url);
 		$this->assign('coverUrl', $configArray['Site']['coverUrl']);
-		$this->assign('consolidateCss', isset($configArray['Site']['consolidateCss']) ? $configArray['Site']['consolidateCss'] : false);
-		$this->assign('consolidateJs', isset($configArray['Site']['consolidateJs']) ? $configArray['Site']['consolidateJs'] : false);
 		$this->assign('fullPath', str_replace('&', '&amp;', $_SERVER['REQUEST_URI']));
 		$this->assign('requestHasParams', strpos($_SERVER['REQUEST_URI'], '?') > 0);
 		$this->assign('supportEmail', $configArray['Site']['email']);
@@ -152,28 +128,6 @@ class UInterface extends Smarty
 		$this->assign('primaryTheme', reset($themeArray));
 		$this->assign('device', get_device_name());
 		$timer->logTime('Basic configuration');
-
-		if (isset($configArray['OpenURL']) && isset($configArray['OpenURL']['url'])) {
-			// Trim off any parameters (for legacy compatibility -- default config
-			// used to include extraneous parameters):
-			list($base) = explode('?', $configArray['OpenURL']['url']);
-		} else {
-			$base = false;
-		}
-		$this->assign('openUrlBase', empty($base) ? false : $base);
-
-		// Other OpenURL settings:
-		$this->assign('openUrlWindow',
-		empty($configArray['OpenURL']['window_settings']) ?
-		false : $configArray['OpenURL']['window_settings']);
-		$this->assign('openUrlGraphic', empty($configArray['OpenURL']['graphic']) ?
-		false : $configArray['OpenURL']['graphic']);
-		$this->assign('openUrlGraphicWidth',
-		empty($configArray['OpenURL']['graphic_width']) ?
-		false : $configArray['OpenURL']['graphic_width']);
-		$this->assign('openUrlGraphicHeight',
-		empty($configArray['OpenURL']['graphic_height']) ?
-		false : $configArray['OpenURL']['graphic_height']);
 
 		$this->assign('currentTab', 'Search');
 

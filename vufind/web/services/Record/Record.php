@@ -62,7 +62,6 @@ abstract class Record_Record extends Action
 		global $logger;
 
 		$interface->assign('page_body_style', 'sidebar_left');
-		$interface->assign('libraryThingUrl', $configArray['LibraryThing']['url']);
 
 		//Load basic information needed in subclasses
 		if ($record_id == null || !isset($record_id)){
@@ -527,20 +526,12 @@ abstract class Record_Record extends Action
 		// Send down text for inclusion in breadcrumbs
 		$interface->assign('breadcrumbText', $this->recordDriver->getBreadcrumb());
 
-		// Send down OpenURL for COinS use:
-		$interface->assign('openURL', $this->recordDriver->getOpenURL());
-
 		// Send down legal export formats (if any):
 		$interface->assign('exportFormats', $this->recordDriver->getExportFormats());
 
 		// Set AddThis User
 		$interface->assign('addThis', isset($configArray['AddThis']['key']) ?
 		$configArray['AddThis']['key'] : false);
-
-		// Set Proxy URL
-		if (isset($configArray['EZproxy']['host'])) {
-			$interface->assign('proxy', $configArray['EZproxy']['host']);
-		}
 
 		//Get Next/Previous Links
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';

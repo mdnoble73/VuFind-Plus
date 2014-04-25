@@ -341,40 +341,6 @@ class IndexRecord implements RecordInterface
 
 	/**
 	 * Assign necessary Smarty variables and return a template name to
-	 * load in order to display holdings extracted from the base record
-	 * (i.e. URLs in MARC 856 fields).  This is designed to supplement,
-	 * not replace, holdings information extracted through the ILS driver
-	 * and displayed in the Holdings tab of the record view page.  Returns
-	 * null if no data is available.
-	 *
-	 * @access  public
-	 * @return  string              Name of Smarty template file to display.
-	 */
-	public function getHoldings()
-	{
-		global $interface;
-		global $configArray;
-
-		// Only display OpenURL link if the option is turned on and we have
-		// an ISSN.  We may eventually want to make this rule more flexible,
-		// but for now the ISSN restriction is designed to be consistent with
-		// the way we display items on the search results list.
-		$hasOpenURL = ($this->openURLActive('holdings') && $this->getCleanISSN());
-		if ($hasOpenURL) {
-			$interface->assign('holdingsOpenURL', $this->getOpenURL());
-		}
-
-		// Display regular URLs unless OpenURL is present and configured to
-		// replace them:
-		if (!isset($configArray['OpenURL']['replace_other_urls']) ||
-		!$configArray['OpenURL']['replace_other_urls'] || !$hasOpenURL) {
-			$interface->assign('holdingURLs', $this->getURLs());
-		}
-		return 'RecordDrivers/Index/holdings.tpl';
-	}
-
-	/**
-	 * Assign necessary Smarty variables and return a template name to
 	 * load in order to display a summary of the item suitable for use in
 	 * user's favorites list.
 	 *
@@ -424,127 +390,6 @@ class IndexRecord implements RecordInterface
 		$interface->assign('ratingData', $this->getRatingData());
 
 		return 'RecordDrivers/Index/listentry.tpl';
-	}
-
-	/**
-	 * Get the OpenURL parameters to represent this record (useful for the
-	 * title attribute of a COinS span tag).
-	 *
-	 * @access  public
-	 * @return  string              OpenURL parameters.
-	 */
-	public function getOpenURL()
-	{
-		// Get the COinS ID -- it should be in the OpenURL section of config.ini,
-		// but we'll also check the COinS section for compatibility with legacy
-		// configurations (this moved between the RC2 and 1.0 releases).
-		global $configArray;
-		$coinsID = isset($configArray['OpenURL']['rfr_id']) ?
-		$configArray['OpenURL']['rfr_id'] :
-		$configArray['COinS']['identifier'];
-		if (empty($coinsID)) {
-			$coinsID = 'vufind.svn.sourceforge.net';
-		}
-
-		// Get a representative publication date:
-		$pubDate = $this->getPublicationDates();
-		$pubDate = empty($pubDate) ? '' : $pubDate[0];
-
-		// Start an array of OpenURL parameters:
-		$params = array(
-            'ctx_ver' => 'Z39.88-2004',
-            'ctx_enc' => 'info:ofi/enc:UTF-8',
-            'rfr_id' => "info:sid/{$coinsID}:generator",
-            'rft.title' => $this->getTitle(),
-            'rft.date' => $pubDate
-		);
-
-		// Add additional parameters based on the format of the record:
-		$formats = $this->getFormats();
-
-		// If we have multiple formats, Book and Journal are most important...
-		if (in_array('Book', $formats)) {
-			$format = 'Book';
-		} else if (in_array('Journal', $formats)) {
-			$format = 'Journal';
-		} else if (count($formats) > 0){
-			$format = $formats[0];
-		}else{
-			$format = 'Unknown';
-		}
-		switch($format) {
-			case 'Book':
-				$params['rft_val_fmt'] = 'info:ofi/fmt:kev:mtx:book';
-				$params['rft.genre'] = 'book';
-				$params['rft.btitle'] = $params['rft.title'];
-				$series = $this->getSeries();
-				if (count($series) > 0) {
-					// Handle both possible return formats of getSeries:
-					$params['rft.series'] = is_array($series[0]) ?
-					$series[0]['name'] : $series[0];
-				}
-				$params['rft.au'] = $this->getPrimaryAuthor();
-				$publishers = $this->getPublishers();
-				if (count($publishers) > 0) {
-					$params['rft.pub'] = $publishers[0];
-				}
-				$params['rft.edition'] = $this->getEdition();
-				$params['rft.isbn'] = $this->getCleanISBN();
-				break;
-			case 'Journal':
-				/* This is probably the most technically correct way to represent
-				 * a journal run as an OpenURL; however, it doesn't work well with
-				 * Zotero, so it is currently commented out -- instead, we just add
-				 * some extra fields and then drop through to the default case.
-				 $params['rft_val_fmt'] = 'info:ofi/fmt:kev:mtx:journal';
-				 $params['rft.genre'] = 'journal';
-				 $params['rft.jtitle'] = $params['rft.title'];
-				 $params['rft.issn'] = $this->getCleanISSN();
-				 $params['rft.au'] = $this->getPrimaryAuthor();
-				 break;
-				 */
-				$params['rft.issn'] = $this->getCleanISSN();
-
-				// Including a date in a title-level Journal OpenURL may be too
-				// limiting -- in some link resolvers, it may cause the exclusion
-				// of databases if they do not cover the exact date provided!
-				unset($params['rft.date']);
-
-				// If we're working with the SFX resolver, we should add a
-				// special parameter to ensure that electronic holdings links
-				// are shown even though no specific date or issue is specified:
-				if (isset($configArray['OpenURL']['resolver']) &&
-				strtolower($configArray['OpenURL']['resolver']) == 'sfx') {
-					$params['sfx.ignore_date_threshold'] = 1;
-				}
-				break;
-			default:
-				$params['rft_val_fmt'] = 'info:ofi/fmt:kev:mtx:dc';
-				$params['rft.creator'] = $this->getPrimaryAuthor();
-				$publishers = $this->getPublishers();
-				if (count($publishers) > 0) {
-					$params['rft.pub'] = $publishers[0];
-				}
-				$params['rft.format'] = $format;
-				$langs = $this->getLanguages();
-				if (count($langs) > 0) {
-					$params['rft.language'] = $langs[0];
-				}
-				break;
-		}
-
-		// Assemble the URL:
-		$parts = array();
-		foreach($params as $key => $value) {
-			if (is_array($value)){
-				foreach($value as $arrVal){
-					$parts[] = $key . '[]=' . urlencode($arrVal);
-				}
-			}else{
-				$parts[] = $key . '=' . urlencode($value);
-			}
-		}
-		return implode('&', $parts);
 	}
 
 	/**
@@ -634,21 +479,7 @@ class IndexRecord implements RecordInterface
 		$interface->assign('summSnippetCaption', $snippet ? $snippet['caption'] : false);
 		$interface->assign('summSnippet', $snippet ? $snippet['snippet'] : false);
 
-		// Only display OpenURL link if the option is turned on and we have
-		// an ISSN.  We may eventually want to make this rule more flexible,
-		// but for now the ISSN restriction is designed to be consistent with
-		// the way we display items on the search results list.
-		$hasOpenURL = ($this->openURLActive('results') && $issn);
-		$interface->assign('summOpenUrl', $hasOpenURL ? $this->getOpenURL() : false);
-
-		// Display regular URLs unless OpenURL is present and configured to
-		// replace them:
-		if (!isset($configArray['OpenURL']['replace_other_urls']) ||
-		!$configArray['OpenURL']['replace_other_urls'] || !$hasOpenURL) {
-			$interface->assign('summURLs', $this->getURLs());
-		} else {
-			$interface->assign('summURLs', array());
-		}
+		$interface->assign('summURLs', $this->getURLs());
 
 		//Get Rating
 		$interface->assign('summRating', $this->getRatingData());
@@ -1656,33 +1487,6 @@ class IndexRecord implements RecordInterface
 			}
 		}
 		return $urls;
-	}
-
-	/**
-	 * Does the OpenURL configuration indicate that we should display OpenURLs in
-	 * the specified context?
-	 *
-	 * @access  protected
-	 * @param   string      $area           'results', 'record' or 'holdings'
-	 * @return  bool
-	 */
-	protected function openURLActive($area)
-	{
-		global $configArray;
-
-		// Doesn't matter the target area if no OpenURL resolver is specified:
-		if (!isset($configArray['OpenURL']['url'])) {
-			return false;
-		}
-
-		// If a setting exists, return that:
-		if (isset($configArray['OpenURL']['show_in_' . $area])) {
-			return $configArray['OpenURL']['show_in_' . $area];
-		}
-
-		// If we got this far, use the defaults -- true for results, false for
-		// everywhere else.
-		return ($area == 'results');
 	}
 
 	public function getScore(){

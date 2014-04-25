@@ -119,19 +119,6 @@ interface RecordInterface
     public function getExtendedMetadata();
 
     /**
-     * Assign necessary Smarty variables and return a template name to 
-     * load in order to display holdings extracted from the base record 
-     * (i.e. URLs in MARC 856 fields).  This is designed to supplement, 
-     * not replace, holdings information extracted through the ILS driver  
-     * and displayed in the Holdings tab of the record view page.  Returns 
-     * null if no data is available.
-     *
-     * @access  public
-     * @return  string              Name of Smarty template file to display.
-     */
-    public function getHoldings();
-
-    /**
      * Assign necessary Smarty variables and return a template name to
      * load in order to display a summary of the item suitable for use in
      * user's favorites list.
@@ -144,15 +131,6 @@ interface RecordInterface
      * @return  string              Name of Smarty template file to display.
      */
     public function getListEntry($user, $listId = null, $allowEdit = true);
-
-    /**
-     * Get the OpenURL parameters to represent this record (useful for the 
-     * title attribute of a COinS span tag).
-     *
-     * @access  public
-     * @return  string              OpenURL parameters.
-     */
-    public function getOpenURL();
 
     /**
      * Get an XML RDF representation of the data in this record.

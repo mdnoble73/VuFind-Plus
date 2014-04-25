@@ -342,17 +342,6 @@ class GroupedWorkDriver implements RecordInterface{
 	}
 
 	/**
-	 * Get the OpenURL parameters to represent this record (useful for the
-	 * title attribute of a COinS span tag).
-	 *
-	 * @access  public
-	 * @return  string              OpenURL parameters.
-	 */
-	public function getOpenURL() {
-		// TODO: Implement getOpenURL() method.
-	}
-
-	/**
 	 * Get an XML RDF representation of the data in this record.
 	 *
 	 * @access  public

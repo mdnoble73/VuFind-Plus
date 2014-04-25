@@ -3,8 +3,8 @@
 #  - they contain sensitive data (i.e. passwords)      #
 #  - they can change at runtime                        #
 ########################################################
-sites/*
-!sites/default
+sites/*/backup
+!sites/default/backup
 vufind/web/interface/cache/*
 vufind/web/interface/compile/*
 vufind/web/phpinfo.php
@@ -22,6 +22,7 @@ tests/conf/config.ini
 data-import
 config.pwd.ini
 *.csv
+config.pwd.ini
 
 # Include Selected Folders for Site Configuration? #
 ####################################################

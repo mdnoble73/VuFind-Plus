@@ -13,12 +13,7 @@ class SessionInterface {
 		session_set_save_handler(array(get_class($this), 'open'), array(get_class($this),'close'), array(get_class($this),'read'), array(get_class($this),'write'), array(get_class($this),'destroy'), array(get_class($this),'gc'));
 		//Have to set the default timeout before we call session start, set a really long timeout by default since PHP doesn't like to extend the PHPSESSION timeout
 		//Set one year by default
-		global $configArray;
-		if (isset($configArray['Site']['cookie_domain'])){
-			session_set_cookie_params(0, '/', $configArray['Site']['cookie_domain']);
-		}else{
-			session_set_cookie_params(0, '/');
-		}
+		session_set_cookie_params(0, '/');
 		session_start();
 	}
 
