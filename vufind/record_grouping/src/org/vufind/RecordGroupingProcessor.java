@@ -110,7 +110,7 @@ public class RecordGroupingProcessor {
 		//Make sure we only get one ils identifier
 		for (DataField cur907 : field907){
 			Subfield subfieldA = cur907.getSubfield('a');
-			if (subfieldA != null && subfieldA.getData().length() > 2){
+			if (subfieldA != null && (recordNumberPrefix.length() == 0 || subfieldA.getData().length() > recordNumberPrefix.length())){
 				if (cur907.getSubfield('a').getData().substring(0,recordNumberPrefix.length()).equals(recordNumberPrefix)){
 					String recordNumber = cur907.getSubfield('a').getData();
 					primaryIdentifier = recordNumber;
@@ -256,7 +256,10 @@ public class RecordGroupingProcessor {
 
 			char nonFilingCharacters = field245.getIndicator2();
 			if (nonFilingCharacters == ' ') nonFilingCharacters = '0';
-			int numNonFilingCharacters = Integer.parseInt(Character.toString(nonFilingCharacters));
+			int numNonFilingCharacters = 0;
+			if (nonFilingCharacters >= '0' && nonFilingCharacters <= '9'){
+				numNonFilingCharacters = Integer.parseInt(Character.toString(nonFilingCharacters));
+			}
 
 			//Add in subtitle (subfield b as well to avoid problems with gov docs, etc)
 			StringBuilder groupingSubtitle = new StringBuilder();

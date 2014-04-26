@@ -2827,7 +2827,7 @@ class DBMaintenance extends Admin_Admin {
 				),
 			),
 
-				'populate_lists_with_grouped_works' => array(
+				/*'populate_lists_with_grouped_works' => array(
 						'title' => 'Populate Lists with Grouped Works',
 						'description' => 'Add grouped works to lists rather than resources.',
 						'sql' => array(
@@ -2841,7 +2841,7 @@ class DBMaintenance extends Admin_Admin {
 				'sql' => array(
 					"populateWorkLevelRatings"
 				),
-			),
+			),*/
 
 			'browse_categories' => array(
 				'title' => 'Browse Categories',
@@ -2928,7 +2928,7 @@ class DBMaintenance extends Admin_Admin {
 		}
 	}
 
-	public function populateListsWithGroupedWorks(){
+	/*public function populateListsWithGroupedWorks(){
 		set_time_limit(120);
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 		require_once ROOT_DIR . '/services/MyResearch/lib/User_resource.php';
@@ -2968,9 +2968,9 @@ class DBMaintenance extends Admin_Admin {
 
 		}
 
-	}
+	}*/
 
-	public function populateWorkLevelRatings(){
+	/*public function populateWorkLevelRatings(){
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
 		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
@@ -3047,7 +3047,7 @@ class DBMaintenance extends Admin_Admin {
 
 
 		mysql_free_result($result);
-	}
+	}*/
 
 	public function addTableListWidgetListsLinks()
 	{

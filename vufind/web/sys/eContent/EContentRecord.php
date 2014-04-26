@@ -827,49 +827,6 @@ class EContentRecord extends DB_DataObject{
 	}
 
 	/**
-	 * Get a list of devices that this title should work on based on format.
-	 */
-	function econtent_device(){
-		$formats = $this->format();
-		$devices = array();
-		$deviceCompatibilityMap = $this->getDeviceCompatibilityMap();
-		foreach ($formats as $format){
-			if (array_key_exists($format, $deviceCompatibilityMap)){
-				$devices = array_merge($devices, $deviceCompatibilityMap[$format]);
-			}
-		}
-		return $devices;
-	}
-
-	/**
-	 * Get a list of all formats that are in the catalog with a list of devices that support that format.
-	 * Information is stored in device_compatibility_map.ini with a format per line and devices that support
-	 * the format separated by line.
-	 */
-	function getDeviceCompatibilityMap(){
-		global $memCache;
-		global $configArray;
-		global $serverName;
-		$deviceMap = $memCache->get('device_compatibility_map');
-		if ($deviceMap == false){
-			$deviceMap = array();
-			if (file_exists("../../sites/$serverName/conf/device_compatibility_map.ini")){
-				// Return the file path (note that all ini files are in the conf/ directory)
-				$deviceMapFile = "../../sites/$serverName/conf/device_compatibility_map.ini";
-			}else{
-				$deviceMapFile = "../../sites/default/conf/device_compatibility_map.ini";
-			}
-			$formatInformation = parse_ini_file($deviceMapFile);
-			foreach ($formatInformation as $format => $devicesCsv){
-				$devices = explode(",", $devicesCsv);
-				$deviceMap[$format] = $devices;
-			}
-			$memCache->set('device_compatibility_map', $deviceMap, 0, $configArray['Caching']['device_compatibility_map']);
-		}
-		return $deviceMap;
-	}
-
-	/**
 	 * Get a list of all formats that are in the catalog with a mapping to the correct category to use for the format.
 	 * Information is stored in econtent_category_map.ini with a format per line and the category to use after it.
 	 * Use a * to match any category

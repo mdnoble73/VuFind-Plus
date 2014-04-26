@@ -139,7 +139,7 @@ public class ExtractOverDriveInfo {
 			
 			ResultSet loadSubjectsRS = loadSubjectsStmt.executeQuery();
 			while (loadSubjectsRS.next()){
-				existingSubjectIds.put(loadSubjectsRS.getString("name"), loadSubjectsRS.getLong("id"));
+				existingSubjectIds.put(loadSubjectsRS.getString("name").toLowerCase(), loadSubjectsRS.getLong("id"));
 			}
 			
 			PreparedStatement advantageCollectionMapStmt = vufindConn.prepareStatement("SELECT libraryId, overdriveAdvantageName, overdriveAdvantageProductsKey FROM library where overdriveAdvantageName > ''");
@@ -652,24 +652,31 @@ public class ExtractOverDriveInfo {
 					clearSubjectRefStmt.setLong(1, databaseId);
 					clearSubjectRefStmt.executeUpdate();
 					if (metaData.has("subjects")){
+						HashSet<String> subjectsProcessed = new HashSet<String>();
 						JSONArray subjects = metaData.getJSONArray("subjects");
 						for (int i = 0; i < subjects.length(); i++){
 							JSONObject subject = subjects.getJSONObject(i);
-							String curSubject = subject.getString("value");
+							String curSubject = subject.getString("value").trim();
+							String lcaseSubject = curSubject.toLowerCase();
+							//First make sure we haven't processed this, htere are a few records where the same subject occurs twice
+							if (subjectsProcessed.contains(lcaseSubject)){
+								continue;
+							}
 							long subjectId;
-							if (existingSubjectIds.containsKey(curSubject)){
-								subjectId = existingSubjectIds.get(curSubject);
+							if (existingSubjectIds.containsKey(lcaseSubject)){
+								subjectId = existingSubjectIds.get(lcaseSubject);
 							}else{
 								addSubjectStmt.setString(1, curSubject);
 								addSubjectStmt.executeUpdate();
 								ResultSet keys = addSubjectStmt.getGeneratedKeys();
 								keys.next();
 								subjectId = keys.getLong(1);
-								existingSubjectIds.put(curSubject, subjectId);
+								existingSubjectIds.put(lcaseSubject, subjectId);
 							}
 							addSubjectRefStmt.setLong(1, databaseId);
 							addSubjectRefStmt.setLong(2, subjectId);
 							addSubjectRefStmt.executeUpdate();
+							subjectsProcessed.add(lcaseSubject);
 						}
 					}
 					

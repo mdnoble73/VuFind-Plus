@@ -47,6 +47,8 @@ public class RecordIdentifier {
 			return identifier.matches("^\\d{7,14}?$");
 		}else if (type.equals("isbn") || type.equals("upc")){
 			return identifier.matches("^\\d{9}X|\\d{10}|\\d{12}X|\\d{13}$");
+		}else if (type.equals("publishercatalognumber") || type.equals("doi")){
+			return false;
 		}else{
 			return identifier.length() > 0;
 		}

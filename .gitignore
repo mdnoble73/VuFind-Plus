@@ -12,9 +12,6 @@ vufind/web/images/fiveStar/*
 vufind/web/images/charts/*
 vufind/web/files/medium/*
 vufind/web/files/thumbnail/*
-vufind/web/images/covers/medium/*
-vufind/web/images/covers/small/*
-vufind/web/images/covers/large/*
 vufind/web/files/original/*
 vufind/web/google*.html
 tests/selenium/*
@@ -22,10 +19,6 @@ tests/conf/config.ini
 data-import
 config.pwd.ini
 *.csv
-config.pwd.ini
-
-# Include Selected Folders for Site Configuration? #
-####################################################
 
 # Compiled source #                                                                                   
 ###################

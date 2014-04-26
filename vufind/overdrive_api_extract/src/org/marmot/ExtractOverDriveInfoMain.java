@@ -152,6 +152,25 @@ public class ExtractOverDriveInfoMain {
 		} catch (IOException e) {
 			logger.error("Site Specific config file could not be read.", e);
 		}
+		//Also load password files if they exist
+		String siteSpecificPassword = "../../sites/" + serverName + "/conf/config.pwd.ini";
+		logger.info("Loading password config from " + siteSpecificPassword);
+		File siteSpecificPasswordFile = new File(siteSpecificPassword);
+		if (siteSpecificPasswordFile.exists()) {
+			try {
+				Ini siteSpecificPwdIni = new Ini();
+				siteSpecificPwdIni.load(new FileReader(siteSpecificPasswordFile));
+				for (Section curSection : siteSpecificPwdIni.values()){
+					for (String curKey : curSection.keySet()){
+						ini.put(curSection.getName(), curKey, curSection.get(curKey));
+					}
+				}
+			} catch (InvalidFileFormatException e) {
+				logger.error("Site Specific password config file is not valid.  Please check the syntax of the file.", e);
+			} catch (IOException e) {
+				logger.error("Site Specific password config file could not be read.", e);
+			}
+		}
 		return ini;
 	}
 }

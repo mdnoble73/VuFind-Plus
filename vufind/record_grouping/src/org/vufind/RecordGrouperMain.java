@@ -19,6 +19,7 @@ import java.sql.*;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.zip.CRC32;
 
 /**
@@ -40,6 +41,9 @@ public class RecordGrouperMain {
 	private static PreparedStatement insertMarcRecordChecksum;
 	private static PreparedStatement updateMarcRecordChecksum;
 
+	private static String recordNumberTag = "";
+	private static String recordNumberPrefix = "";
+
 	public static void main(String[] args) {
 		// Get the configuration filename
 		if (args.length == 0) {
@@ -58,7 +62,7 @@ public class RecordGrouperMain {
 			System.exit(1);
 		}
 
-		logger.debug("Starting grouping of records " + new Date().toString());
+		logger.warn("Starting grouping of records " + new Date().toString());
 
 		// Parse the configuration file
 		Ini configIni = loadConfigFile();
@@ -91,7 +95,6 @@ public class RecordGrouperMain {
 			logger.error("Error loading marc checksums for ILS records", e);
 			System.exit(1);
 		}
-
 
 		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, configIni, logger);
 		//Clear the database first
@@ -127,41 +130,62 @@ public class RecordGrouperMain {
 			logger.error("Error closing database ", e);
 			System.exit(1);
 		}
-		logger.info("Finished grouping records " + new Date().toString());
+		logger.warn("Finished grouping records " + new Date().toString());
 		long endTime = new Date().getTime();
 		long elapsedTime = endTime - processStartTime;
-		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
+		logger.warn("Elapsed Minutes " + (elapsedTime / 60000));
 	}
 
 	private static void groupIlsRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor) {
 		int numRecordsProcessed = 0;
 		String individualMarcPath = configIni.get("Reindex", "individualMarcPath");
 		String marcPath = configIni.get("Reindex", "marcPath");
+
+		recordNumberTag = configIni.get("Reindex", "recordNumberTag");
+		recordNumberPrefix = configIni.get("Reindex", "recordNumberPrefix");
+
 		File[] catalogBibFiles = new File(marcPath).listFiles();
 		if (catalogBibFiles != null){
+			String lastRecordProcessed = "";
 			for (File curBibFile : catalogBibFiles){
 				if (curBibFile.getName().endsWith(".mrc") || curBibFile.getName().endsWith(".marc")){
-					System.out.println("Processing " + curBibFile);
 					try{
 						FileInputStream marcFileStream = new FileInputStream(curBibFile);
-						MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, "UTF8");
+						MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, "MARC8");
 						while (catalogReader.hasNext()){
 							Record curBib = catalogReader.next();
-
-							boolean marcUpToDate = writeIndividualMarc(individualMarcPath, curBib);
+							String recordNumber = getRecordNumberForBib(curBib);
+							boolean marcUpToDate = writeIndividualMarc(individualMarcPath, curBib, recordNumber);
 							//TODO: Allow updating of record grouping dynamically.
 							recordGroupingProcessor.processMarcRecord(curBib);
 
+							lastRecordProcessed = recordNumber;
 							numRecordsProcessed++;
 						}
 						marcFileStream.close();
 					}catch(Exception e){
-						logger.error("Error loading catalog bibs: ", e);
+						logger.error("Error loading catalog bibs on record " + numRecordsProcessed + " the last record processed was " + lastRecordProcessed, e);
 					}
-					logger.info("Finished grouping " + numRecordsProcessed + " records from the ils file " + curBibFile.getName());
+					logger.warn("Finished grouping " + numRecordsProcessed + " records from the ils file " + curBibFile.getName());
 				}
 			}
 		}
+	}
+
+	private static String getRecordNumberForBib(Record marcRecord) {
+		String recordNumber = null;
+		List<DataField> field907 = marcRecord.getVariableFields(recordNumberTag);
+		//Make sure we only get one ils identifier
+		for (DataField cur907 : field907){
+			Subfield subfieldA = cur907.getSubfield('a');
+			if (subfieldA != null && (recordNumberPrefix.length() == 0 || subfieldA.getData().length() > recordNumberPrefix.length())){
+				if (cur907.getSubfield('a').getData().substring(0,recordNumberPrefix.length()).equals(recordNumberPrefix)){
+					recordNumber = cur907.getSubfield('a').getData();
+					break;
+				}
+			}
+		}
+		return recordNumber;
 	}
 
 	private static int groupOverDriveRecords(Connection econtentConnection, RecordGroupingProcessor recordGroupingProcessor) {
@@ -227,7 +251,7 @@ public class RecordGrouperMain {
 				numRecordsProcessed++;
 			}
 			overDriveRecordRS.close();
-			logger.info("Finished grouping " + numRecordsProcessed + " records from overdrive ");
+			logger.warn("Finished grouping " + numRecordsProcessed + " records from overdrive ");
 		}catch (Exception e){
 			System.out.println("Error loading OverDrive records: " + e.toString());
 			e.printStackTrace();
@@ -235,19 +259,9 @@ public class RecordGrouperMain {
 		return numRecordsProcessed;
 	}
 
-	private static boolean writeIndividualMarc(String individualMarcPath, Record marcRecord) {
+	private static boolean writeIndividualMarc(String individualMarcPath, Record marcRecord, String recordNumber) {
 		boolean marcRecordUpToDate = false;
 		//Copy the record to the individual marc path
-		DataField field907 = (DataField)marcRecord.getVariableField("907");
-		String recordNumber = null;
-		if (field907 != null) {
-			Subfield subfieldA = field907.getSubfield('a');
-			if (subfieldA != null && subfieldA.getData().length() > 2){
-				if (field907.getSubfield('a').getData().substring(0,2).equals(".b")){
-					recordNumber = field907.getSubfield('a').getData();
-				}
-			}
-		}
 		if (recordNumber != null){
 			boolean marcRecordExists = false;
 			long checksum = getChecksum(marcRecord);
@@ -259,6 +273,9 @@ public class RecordGrouperMain {
 			}
 
 			String shortId = recordNumber.replace(".", "");
+			while (shortId.length() < 9){
+				shortId = "0" + shortId;
+			}
 			String firstChars = shortId.substring(0, 4);
 			String basePath = individualMarcPath + "/" + firstChars;
 			String individualFilename = basePath + "/" + shortId + ".mrc";
