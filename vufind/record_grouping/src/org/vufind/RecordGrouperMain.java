@@ -12,6 +12,7 @@ import org.marc4j.MarcWriter;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
+import org.marc4j.marc.VariableField;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -151,7 +152,7 @@ public class RecordGrouperMain {
 				if (curBibFile.getName().endsWith(".mrc") || curBibFile.getName().endsWith(".marc")){
 					try{
 						FileInputStream marcFileStream = new FileInputStream(curBibFile);
-						MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, "MARC8");
+						MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, "UTF8");
 						while (catalogReader.hasNext()){
 							Record curBib = catalogReader.next();
 							String recordNumber = getRecordNumberForBib(curBib);
@@ -174,14 +175,17 @@ public class RecordGrouperMain {
 
 	private static String getRecordNumberForBib(Record marcRecord) {
 		String recordNumber = null;
-		List<DataField> field907 = marcRecord.getVariableFields(recordNumberTag);
+		List<VariableField> field907 = marcRecord.getVariableFields(recordNumberTag);
 		//Make sure we only get one ils identifier
-		for (DataField cur907 : field907){
-			Subfield subfieldA = cur907.getSubfield('a');
-			if (subfieldA != null && (recordNumberPrefix.length() == 0 || subfieldA.getData().length() > recordNumberPrefix.length())){
-				if (cur907.getSubfield('a').getData().substring(0,recordNumberPrefix.length()).equals(recordNumberPrefix)){
-					recordNumber = cur907.getSubfield('a').getData();
-					break;
+		for (VariableField cur907 : field907){
+			if (cur907 instanceof DataField){
+				DataField cur907Data = (DataField)cur907;
+				Subfield subfieldA = cur907Data.getSubfield('a');
+				if (subfieldA != null && (recordNumberPrefix.length() == 0 || subfieldA.getData().length() > recordNumberPrefix.length())){
+					if (cur907Data.getSubfield('a').getData().substring(0,recordNumberPrefix.length()).equals(recordNumberPrefix)){
+						recordNumber = cur907Data.getSubfield('a').getData();
+						break;
+					}
 				}
 			}
 		}
@@ -295,7 +299,8 @@ public class RecordGrouperMain {
 				try {
 					OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(individualFile,false), Charset.forName("UTF-8").newEncoder());
 					ByteArrayOutputStream out = new ByteArrayOutputStream();
-					MarcWriter writer2 = new MarcStreamWriter(out, "UTF-8");
+					MarcStreamWriter writer2 = new MarcStreamWriter(out, "UTF-8");
+					writer2.setAllowOversizeEntry(true);
 					writer2.write(marcRecord);
 					writer2.close();
 
