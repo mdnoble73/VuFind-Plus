@@ -589,17 +589,20 @@ public abstract class IlsRecordProcessor {
 
 	public Set<String> getPublicationDates(Record record) {
 		@SuppressWarnings("unchecked")
-		List<DataField> rdaFields = (List<DataField>)record.getVariableFields("264");
+		List<VariableField> rdaFields = record.getVariableFields("264");
 		HashSet<String> publicationDates = new HashSet<String>();
 		String date;
 		//Try to get from RDA data
 		if (rdaFields.size() > 0){
-			for (DataField curField : rdaFields){
-				if (curField.getIndicator2() == '1'){
-					Subfield subFieldC = curField.getSubfield('c');
-					if (subFieldC != null){
-						date = subFieldC.getData();
-						publicationDates.add(date);
+			for (VariableField curField : rdaFields){
+				if (curField instanceof DataField){
+					DataField dataField = (DataField)curField;
+					if (dataField.getIndicator2() == '1'){
+						Subfield subFieldC = dataField.getSubfield('c');
+						if (subFieldC != null){
+							date = subFieldC.getData();
+							publicationDates.add(date);
+						}
 					}
 				}
 			}
@@ -616,7 +619,8 @@ public abstract class IlsRecordProcessor {
 		Set<String> publisher = new LinkedHashSet<String>();
 		//First check for 264 fields
 		@SuppressWarnings("unchecked")
-		List<DataField> rdaFields = (List<DataField>)record.getVariableFields("264");
+
+		List<DataField> rdaFields = getDataFields(record, "264");
 		if (rdaFields.size() > 0){
 			for (DataField curField : rdaFields){
 				if (curField.getIndicator2() == '1'){
@@ -933,7 +937,7 @@ public abstract class IlsRecordProcessor {
 		return locationCodes;
 	}
 
-	private List<DataField> getDataFields(Record marcRecord, String tag) {
+	protected List<DataField> getDataFields(Record marcRecord, String tag) {
 		List variableFields = marcRecord.getVariableFields(tag);
 		List<DataField> variableFieldsReturn = new ArrayList<DataField>();
 		for (Object variableField : variableFields){

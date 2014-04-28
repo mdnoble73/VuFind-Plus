@@ -172,7 +172,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		}
 
 		@SuppressWarnings("unchecked")
-		List<DataField> physicalDescription = record.getVariableFields("300");
+		List<DataField> physicalDescription = getDataFields(record, "300");
 		if (physicalDescription != null) {
 			Iterator<DataField> fieldsIter = physicalDescription.iterator();
 			DataField field;
@@ -195,7 +195,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 			}
 		}
 		@SuppressWarnings("unchecked")
-		List<DataField> topicalTerm = record.getVariableFields("650");
+		List<DataField> topicalTerm = getDataFields(record, "650");
 		if (topicalTerm != null) {
 			Iterator<DataField> fieldsIter = topicalTerm.iterator();
 			DataField field;
@@ -214,7 +214,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		}
 
 		@SuppressWarnings("unchecked")
-		List<DataField> localTopicalTerm = record.getVariableFields("690");
+		List<DataField> localTopicalTerm = getDataFields(record, "690");
 		if (localTopicalTerm != null) {
 			Iterator<DataField> fieldsIterator = localTopicalTerm.iterator();
 			DataField field;
@@ -233,7 +233,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 
 		// check the 007 - this is a repeating field
 		@SuppressWarnings("unchecked")
-		List<DataField> fields = record.getVariableFields("007");
+		List<DataField> fields = getDataFields(record, "007");
 		if (fields != null) {
 			Iterator<DataField> fieldsIter = fields.iterator();
 			ControlField formatField;
