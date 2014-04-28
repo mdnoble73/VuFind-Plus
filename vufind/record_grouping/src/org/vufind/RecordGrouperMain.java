@@ -139,13 +139,9 @@ public class RecordGrouperMain {
 		groupOverDriveRecords(econtentConnection, recordGroupingProcessor);
 		groupIlsRecords(configIni, recordGroupingProcessor);
 
-		//TODO: Group records from other sources Gov Docs, One Click Digital, Zinio, etc
-
-		//TODO: Create Grouped works for lists?
-
 		//Update the last grouping time in the variables table
 		try{
-			Long finishTime = new Date().getTime();
+			Long finishTime = new Date().getTime() / 1000;
 			if (lastGroupingTimeVariableId != null){
 				PreparedStatement updateVariableStmt  = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
 				updateVariableStmt.setLong(1, finishTime);
@@ -238,7 +234,7 @@ public class RecordGrouperMain {
 		try{
 			PreparedStatement overDriveRecordsStmt;
 			if (lastGroupingTime != null && !fullRegrouping){
-				overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0 and (dateUpdated > ? OR lastMetadataChange > ? OR lastAvailabilityChange > ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0 and (dateUpdated >= ? OR lastMetadataChange >= ? OR lastAvailabilityChange >= ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				overDriveRecordsStmt.setLong(1, lastGroupingTime);
 				overDriveRecordsStmt.setLong(2, lastGroupingTime);
 				overDriveRecordsStmt.setLong(3, lastGroupingTime);
@@ -306,7 +302,15 @@ public class RecordGrouperMain {
 			overDriveRecordRS.close();
 
 			if (!fullRegrouping){
-				//TODO: Remove any records that were deleted since the last grouping
+				PreparedStatement deletedRecordStmt = econtentConnection.prepareStatement("SELECT overdriveId FROM overdrive_api_products WHERE deleted = 1 and dateDeleted >= ?");
+				overDriveRecordsStmt.setLong(1, lastGroupingTime);
+				ResultSet recordsToDelete = deletedRecordStmt.executeQuery();
+				while (recordsToDelete.next()){
+					RecordIdentifier primaryIdentifier = new RecordIdentifier();
+					String overdriveId = recordsToDelete.getString("overdriveId");
+					primaryIdentifier.setValue("overdrive", overdriveId);
+					recordGroupingProcessor.deletePrimaryIdentifier(primaryIdentifier);
+				}
 			}
 			logger.warn("Finished grouping " + numRecordsProcessed + " records from overdrive ");
 		}catch (Exception e){

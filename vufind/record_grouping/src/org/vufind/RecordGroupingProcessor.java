@@ -385,14 +385,7 @@ public class RecordGroupingProcessor {
 
 	private void addPrimaryIdentifierForWorkToDB(long groupedWorkId, RecordIdentifier primaryIdentifier) {
 		if (!fullRegrouping){
-			try {
-				//Delete the previous primary identifiers as needed
-				removePrimaryIdentifierStmt.setString(1, primaryIdentifier.getType());
-				removePrimaryIdentifierStmt.setString(2, primaryIdentifier.getIdentifier());
-				removePrimaryIdentifierStmt.executeUpdate();
-			} catch (SQLException e) {
-				logger.error("Error removing primary identifier from old grouped works " + primaryIdentifier.toString(), e);
-			}
+			deletePrimaryIdentifier(primaryIdentifier);
 		}
 
 		try {
@@ -956,12 +949,6 @@ public class RecordGroupingProcessor {
 	}
 
 
-	/*public void dumpSubtitleVariances() {
-		for (String curSubTitle : subtitleVariances.keySet()){
-			System.out.println(subtitleVariances.get(curSubTitle) + ", " + curSubTitle);
-		}
-	}*/
-
 	public void dumpStats() {
 		long totalElapsedTime = new Date().getTime() - startTime;
 		long totalElapsedMinutes = totalElapsedTime / (60 * 1000);
@@ -976,5 +963,16 @@ public class RecordGroupingProcessor {
 		logger.debug("It took " + minutesAddingRecords + " minutes to add the records to the database");
 		long minutesAddingIdentifiers = timeAddingIdentifiersToDatabase / (60 * 1000);
 		logger.debug("It took " + minutesAddingIdentifiers + " minutes to add the identifiers to the database");
+	}
+
+	public void deletePrimaryIdentifier(RecordIdentifier primaryIdentifier) {
+		try {
+			//Delete the previous primary identifiers as needed
+			removePrimaryIdentifierStmt.setString(1, primaryIdentifier.getType());
+			removePrimaryIdentifierStmt.setString(2, primaryIdentifier.getIdentifier());
+			removePrimaryIdentifierStmt.executeUpdate();
+		} catch (SQLException e) {
+			logger.error("Error removing primary identifier from old grouped works " + primaryIdentifier.toString(), e);
+		}
 	}
 }
