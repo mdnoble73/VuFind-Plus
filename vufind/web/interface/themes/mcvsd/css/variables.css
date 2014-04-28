@@ -1,8 +1,0 @@
-//Variables Customizations for MCVSD theme
-@header-top-color: #FFFFFF; //Top color for background gradient in header
-@header-middle-color: #F1F1F1; //middle color for background gradient in header @80% of header height from bottom
-@header-bottom-color: #E3E3E3; //Bottom color for background gradient in header
-@header-bottom-border-color: #00311A;
-@footer-top-border-color: #00311A;
-@home-search-top-color: #00703C;
-@home-search-bottom-color: #006234;

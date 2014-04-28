@@ -6334,7 +6334,7 @@ div#systemMessage {
   padding-top: 0px;
   height: 105px;
   background: linear-gradient(to bottom, #f5f5f5, #e0e0e0 85%, #f0f0f0);
-  border-bottom: 8px solid #45820d;
+  border-bottom: 8px solid #00311a;
   margin-bottom: 0px;
   min-height: 110px;
 }
@@ -6373,7 +6373,7 @@ div#systemMessage {
   padding-top: 5px;
 }
 #footer-container {
-  border-top: 8px solid #45820d;
+  border-top: 8px solid #00311a;
   padding-top: 3px;
 }
 #install-info {
@@ -6406,8 +6406,8 @@ div#systemMessage {
  Styling for home page elements
 */
 #home-page-search {
-  background-color: #00a4e3;
-  background: linear-gradient(to bottom, #00a4e3, #147ce2);
+  background-color: #00703c;
+  background: linear-gradient(to bottom, #00703c, #006234);
   padding: 20px 0 10px;
   margin-bottom: 5px;
 }
@@ -6422,7 +6422,7 @@ div#systemMessage {
 #searchSource {
   padding: 5px 0;
   color: white;
-  background-color: #147ce2;
+  background-color: #006234;
   border: none;
   width: 90%;
 }
