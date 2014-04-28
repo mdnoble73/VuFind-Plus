@@ -32,6 +32,7 @@ Home Page Variables
   color: white;
   background-color: #147ce2;
   border: none;
+  width: 90%;
 }
 #keepFiltersSwitchLabel {
   color: white;
