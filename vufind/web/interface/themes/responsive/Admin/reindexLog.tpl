@@ -10,14 +10,14 @@
 				<tbody>
 					{foreach from=$logEntries item=logEntry}
 						<tr>
-							<td><a href="#" class="accordion-toggle collapsed" id="reindexEntry{$logEntry->id}" onclick="toggleReindexProcessInfo('{$logEntry->id}');return false;">{$logEntry->id}</a></td>
+							<td><a href="#" class="collapsed" id="reindexEntry{$logEntry->id}" onclick="VuFind.Admin.toggleReindexProcessInfo('{$logEntry->id}');return false;">{$logEntry->id}</a></td>
 							<td>{$logEntry->startTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->lastUpdate|date_format:"%D %T"}</td>
 							<td>{$logEntry->endTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->getElapsedTime()}</td>
 							<td>{$logEntry->getNumProcesses()}</td>
 							<td>{if $logEntry->getHadErrors()}Yes{else}No{/if}</td>
-							<td><a href="#" onclick="return showReindexNotes('{$logEntry->id}');">Show Notes</a></td>
+							<td><a href="#" onclick="return VuFind.Admin.showReindexNotes('{$logEntry->id}');">Show Notes</a></td>
 						</tr>
 						<tr class="logEntryProcessDetails" id="processInfo{$logEntry->id}" style="display:none">
 							<td colspan="8" >
@@ -28,6 +28,18 @@
 									<tbody>
 									{foreach from=$logEntry->processes() item=process}
 										<tr><td>{$process->processName}</td><td>{$process->recordsProcessed}</td><td>{$process->eContentRecordsProcessed}</td><td>{$process->overDriveNonMarcRecordsProcessed}</td><td>{$process->numErrors}</td><td>{$process->numAdded}</td><td>{$process->numUpdated}</td><td>{$process->numDeleted}</td><td>{$process->numSkipped}</td><td><a href="#" onclick="return showReindexProcessNotes('{$process->id}');">Show Notes</a></td></tr>
+										<tr>
+											<td>{$process->processName}</td>
+											<td>{$process->recordsProcessed}</td>
+											<td>{$process->eContentRecordsProcessed}</td>
+											<td>{$process->overDriveNonMarcRecordsProcessed}</td>
+											<td>{$process->resourcesProcessed}</td>
+											<td>{$process->numErrors}</td>
+											<td>{$process->numAdded}</td>
+											<td>{$process->numUpdated}</td>
+											<td>{$process->numDeleted}</td>
+											<td>{$process->numSkipped}</td>
+											<td><a href="#" onclick="return VuFind.Admin.showReindexProcessNotes('{$process->id}');">Show Notes</a></td></tr>
 									{/foreach}
 									</tbody>
 								</table>
@@ -38,5 +50,4 @@
 			</table>
 		</div>
 	</div>
-	<script type="text/javascript" src="/js/admin.js" ></script>
 {/strip}

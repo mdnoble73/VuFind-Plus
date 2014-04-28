@@ -94,7 +94,9 @@
 			</script>
 		{/if}
 
-		{include file="tracking.tpl"}
+		{if file_exists("tracking.tpl")}
+			{include file="tracking.tpl"}
+		{/if}
 
 	</body>
 </html>

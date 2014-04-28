@@ -23,12 +23,11 @@
                             <td>{$logEntry->numSkipped}</td>
                             <td>{$logEntry->numAvailabilityChanges}</td>
                             <td>{$logEntry->numMetadataChanges}</td>
-							<td><a href="#" onclick="return showOverDriveExtractNotes('{$logEntry->id}');">Show Notes</a></td>
+							<td><a href="#" onclick="return VuFind.Admin.showOverDriveExtractNotes('{$logEntry->id}');">Show Notes</a></td>
 						</tr>
 					{/foreach}
 				</tbody>
 			</table>
 		</div>
 	</div>
-	<script type="text/javascript" src="/js/admin.js"></script>
 {/strip}

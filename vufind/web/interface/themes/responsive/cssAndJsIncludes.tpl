@@ -23,6 +23,7 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind/globals.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/base.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/account.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/admin.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/browse.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/econtent-record.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/grouped-work.js"></script>
@@ -42,6 +43,7 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind/globals.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/base.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/account.min.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/admin.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/browse.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/econtent-record.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/grouped-work.min.js"></script>
