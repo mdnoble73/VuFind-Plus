@@ -33,6 +33,7 @@ public class RecordGroupingProcessor {
 	private PreparedStatement insertIdentifierStmt;
 	private PreparedStatement addIdentifierToGroupedWorkStmt;
 	private PreparedStatement addPrimaryIdentifierForWorkStmt;
+	private PreparedStatement removePrimaryIdentifierStmt;
 //	private PreparedStatement getRecordWithoutSubfieldStmt;
 //	private PreparedStatement getRecordIgnoringSubfieldStmt;
 
@@ -40,6 +41,7 @@ public class RecordGroupingProcessor {
 	private int numGroupedWorksAdded = 0;
 	private int numGroupedWorksFoundByExactMatch = 0;
 
+	private boolean fullRegrouping;
 	private long startTime = new Date().getTime();
 	private int timeSettingUpWork = 0;
 	private int timeInExactMatch = 0;
@@ -50,8 +52,9 @@ public class RecordGroupingProcessor {
 	private static HashMap<String, String> authorAuthorities = new HashMap<String, String>();
 	private static HashMap<String, String> titleAuthorities = new HashMap<String, String>();
 
-	public RecordGroupingProcessor(Connection dbConnection, Ini configIni, Logger logger) {
+	public RecordGroupingProcessor(Connection dbConnection, Ini configIni, Logger logger, boolean fullRegrouping) {
 		this.logger = logger;
+		this.fullRegrouping = fullRegrouping;
 		recordNumberTag = configIni.get("Reindex", "recordNumberTag");
 		recordNumberPrefix = configIni.get("Reindex", "recordNumberPrefix");
 		itemTag = configIni.get("Reindex", "itemTag");
@@ -63,8 +66,9 @@ public class RecordGroupingProcessor {
 			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkTableName + " (full_title, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
 			getExistingIdentifierStmt = dbConnection.prepareStatement("SELECT id FROM " + RecordGrouperMain.groupedWorkIdentifiersTableName + " where type = ? and identifier = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			insertIdentifierStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkIdentifiersTableName + " (type, identifier) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
-			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkIdentifiersRefTableName + " (grouped_work_id, identifier_id) VALUES (?, ?)");
+			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT IGNORE INTO " + RecordGrouperMain.groupedWorkIdentifiersRefTableName + " (grouped_work_id, identifier_id) VALUES (?, ?)");
 			addPrimaryIdentifierForWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_primary_identifiers (grouped_work_id, type, identifier) VALUES (?, ?, ?)");
+			removePrimaryIdentifierStmt = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_identifiers WHERE type = ? and identifier = ?");
 //			getRecordWithoutSubfieldStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkTableName + " where title = ? AND author = ? AND grouping_category=? AND subtitle = ''");
 //			getRecordIgnoringSubfieldStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkTableName + " where title = ? AND author = ? AND grouping_category=?");
 			loadAuthorities();
@@ -346,21 +350,6 @@ public class RecordGroupingProcessor {
 				numGroupedWorksFoundByExactMatch++;
 			}else{
 				groupedWorkRS.close();
-				//Look for matches based on identifiers
-				//Don't do this now since it takes a very long time and only finds a few records that we don't find with subtitle matching.
-				/*long groupedWorkIdFuzzy = getFuzzyMatchFromCatalog(groupedWork);
-				if (groupedWorkIdFuzzy != -1){
-					numGroupedWorksFoundByFuzzyMatch++;
-				} */
-
-				//Look for the work based on subtitles
-				//Don't eliminate subtitles because we get some weird matches that change the meaning
-				/*long groupedWorkIdSubtitle = findWorkWithSubtitleVariations(groupedWork);
-				if (groupedWorkIdSubtitle != -1){
-					groupedWorkId = groupedWorkIdSubtitle;
-					numGroupedWorksFoundBySubtitleVariations++;
-				}*/
-
 
 				//Need to insert a new grouped record
 				long startAdd = new Date().getTime();
@@ -368,6 +357,8 @@ public class RecordGroupingProcessor {
 				insertGroupedWorkStmt.setString(2, groupedWork.getAuthor());
 				insertGroupedWorkStmt.setString(3, groupedWork.groupingCategory);
 				insertGroupedWorkStmt.setString(4, groupedWorkPermanentId);
+
+				//TODO: Add date added and date updated for grouped works
 
 				insertGroupedWorkStmt.executeUpdate();
 				ResultSet generatedKeysRS = insertGroupedWorkStmt.getGeneratedKeys();
@@ -393,6 +384,17 @@ public class RecordGroupingProcessor {
 	}
 
 	private void addPrimaryIdentifierForWorkToDB(long groupedWorkId, RecordIdentifier primaryIdentifier) {
+		if (!fullRegrouping){
+			try {
+				//Delete the previous primary identifiers as needed
+				removePrimaryIdentifierStmt.setString(1, primaryIdentifier.getType());
+				removePrimaryIdentifierStmt.setString(2, primaryIdentifier.getIdentifier());
+				removePrimaryIdentifierStmt.executeUpdate();
+			} catch (SQLException e) {
+				logger.error("Error removing primary identifier from old grouped works " + primaryIdentifier.toString(), e);
+			}
+		}
+
 		try {
 			addPrimaryIdentifierForWorkStmt.setLong(1, groupedWorkId);
 			addPrimaryIdentifierForWorkStmt.setString(2, primaryIdentifier.getType());
@@ -405,6 +407,9 @@ public class RecordGroupingProcessor {
 
 	private void addIdentifiersForRecordToDB(long groupedWorkId, HashSet<RecordIdentifier> identifiers) throws SQLException {
 		long start = new Date().getTime();
+
+		//TODO: add a reference between primary identifiers and identifiers.
+		//Cleanup identifiers that no longer have any primary identifiers at the end.
 
 		for (RecordIdentifier curIdentifier :  identifiers){
 			if (recordIdentifiers.containsKey(curIdentifier.toString())){
@@ -427,7 +432,9 @@ public class RecordGroupingProcessor {
 					if (curIdentifier.getType().equals("ils")){
 						logger.error("Tried to insert a duplicate ils identifier " + curIdentifier.toString());
 					}else{
-						logger.warn("Tried to insert a duplicate identifier " + curIdentifier.toString());
+						if (fullRegrouping){
+							logger.warn("Tried to insert a duplicate identifier " + curIdentifier.toString());
+						}
 					}
 					//Get the id of the identifier
 					getExistingIdentifierStmt.setString(1, curIdentifier.getType());

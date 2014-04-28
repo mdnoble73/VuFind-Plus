@@ -8,7 +8,6 @@ import org.ini4j.Profile;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
 import org.marc4j.MarcStreamWriter;
-import org.marc4j.MarcWriter;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
@@ -44,6 +43,10 @@ public class RecordGrouperMain {
 
 	private static String recordNumberTag = "";
 	private static String recordNumberPrefix = "";
+
+	private static Long lastGroupingTime;
+	private static Long lastGroupingTimeVariableId;
+	private static boolean fullRegrouping = false;
 
 	public static void main(String[] args) {
 		// Get the configuration filename
@@ -81,6 +84,20 @@ public class RecordGrouperMain {
 			System.exit(1);
 		}
 
+		//Get the last grouping time
+		try{
+			PreparedStatement loadLastGroupingTime = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_grouping_time'");
+			ResultSet lastGroupingTimeRS = loadLastGroupingTime.executeQuery();
+			if (lastGroupingTimeRS.next()){
+				lastGroupingTime = lastGroupingTimeRS.getLong("value");
+				lastGroupingTimeVariableId = lastGroupingTimeRS.getLong("id");
+			}
+
+		} catch (Exception e){
+			logger.error("Error loading last grouping time", e);
+			System.exit(1);
+		}
+
 		//Load MARC Existing MARC Record checksums from VuFind
 		try{
 			PreparedStatement loadIlsMarcChecksums = vufindConn.prepareStatement("SELECT * from ils_marc_checksums",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -97,9 +114,15 @@ public class RecordGrouperMain {
 			System.exit(1);
 		}
 
-		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, configIni, logger);
+		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, configIni, logger, fullRegrouping);
 		//Clear the database first
-		boolean clearDatabasePriorToGrouping = true;
+		boolean clearDatabasePriorToGrouping = false;
+		if (args.length >= 2 && args[1].equalsIgnoreCase("clearDatabase")){
+			clearDatabasePriorToGrouping = true;
+			fullRegrouping = true;
+		}else{
+			fullRegrouping = false;
+		}
 
 		if (clearDatabasePriorToGrouping){
 			try{
@@ -116,12 +139,26 @@ public class RecordGrouperMain {
 		groupOverDriveRecords(econtentConnection, recordGroupingProcessor);
 		groupIlsRecords(configIni, recordGroupingProcessor);
 
-
 		//TODO: Group records from other sources Gov Docs, One Click Digital, Zinio, etc
 
-		//TODO: Do fuzzy matching for any identifiers that link to more than one grouped work.
+		//TODO: Create Grouped works for lists?
 
-		//TODO: Create Grouped works for lists
+		//Update the last grouping time in the variables table
+		try{
+			Long finishTime = new Date().getTime();
+			if (lastGroupingTimeVariableId != null){
+				PreparedStatement updateVariableStmt  = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
+				updateVariableStmt.setLong(1, finishTime);
+				updateVariableStmt.setLong(2, lastGroupingTimeVariableId);
+				updateVariableStmt.executeUpdate();
+			} else{
+				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_grouping_time', ?)");
+				insertVariableStmt.setString(1, Long.toString(finishTime));
+				insertVariableStmt.executeUpdate();
+			}
+		}catch (Exception e){
+			logger.error("Error setting last grouping time", e);
+		}
 
 		recordGroupingProcessor.dumpStats();
 
@@ -152,13 +189,14 @@ public class RecordGrouperMain {
 				if (curBibFile.getName().endsWith(".mrc") || curBibFile.getName().endsWith(".marc")){
 					try{
 						FileInputStream marcFileStream = new FileInputStream(curBibFile);
-						MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, "UTF8");
+						MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, "MARC8");
 						while (catalogReader.hasNext()){
 							Record curBib = catalogReader.next();
 							String recordNumber = getRecordNumberForBib(curBib);
 							boolean marcUpToDate = writeIndividualMarc(individualMarcPath, curBib, recordNumber);
-							//TODO: Allow updating of record grouping dynamically.
-							recordGroupingProcessor.processMarcRecord(curBib);
+							if (!marcUpToDate || fullRegrouping){
+								recordGroupingProcessor.processMarcRecord(curBib);
+							}
 
 							lastRecordProcessed = recordNumber;
 							numRecordsProcessed++;
@@ -170,6 +208,9 @@ public class RecordGrouperMain {
 					logger.warn("Finished grouping " + numRecordsProcessed + " records from the ils file " + curBibFile.getName());
 				}
 			}
+
+			//TODO: Remove any records that are no longer in the export
+
 		}
 	}
 
@@ -195,7 +236,15 @@ public class RecordGrouperMain {
 	private static int groupOverDriveRecords(Connection econtentConnection, RecordGroupingProcessor recordGroupingProcessor) {
 		int numRecordsProcessed = 0;
 		try{
-			PreparedStatement overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement overDriveRecordsStmt;
+			if (lastGroupingTime != null && !fullRegrouping){
+				overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0 and (dateUpdated > ? OR lastMetadataChange > ? OR lastAvailabilityChange > ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				overDriveRecordsStmt.setLong(1, lastGroupingTime);
+				overDriveRecordsStmt.setLong(2, lastGroupingTime);
+				overDriveRecordsStmt.setLong(3, lastGroupingTime);
+			}else{
+				overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			}
 			PreparedStatement overDriveIdentifiersStmt = econtentConnection.prepareStatement("SELECT * FROM overdrive_api_product_identifiers WHERE id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			PreparedStatement overDriveCreatorStmt = econtentConnection.prepareStatement("SELECT fileAs FROM overdrive_api_product_creators WHERE productId = ? AND role like ? ORDER BY id", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet overDriveRecordRS = overDriveRecordsStmt.executeQuery();
@@ -255,6 +304,10 @@ public class RecordGrouperMain {
 				numRecordsProcessed++;
 			}
 			overDriveRecordRS.close();
+
+			if (!fullRegrouping){
+				//TODO: Remove any records that were deleted since the last grouping
+			}
 			logger.warn("Finished grouping " + numRecordsProcessed + " records from overdrive ");
 		}catch (Exception e){
 			System.out.println("Error loading OverDrive records: " + e.toString());
@@ -295,7 +348,7 @@ public class RecordGrouperMain {
 				marcRecordUpToDate = false;
 			}
 
-			if (!marcRecordUpToDate){
+			if (!marcRecordUpToDate || fullRegrouping){
 				try {
 					OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(individualFile,false), Charset.forName("UTF-8").newEncoder());
 					ByteArrayOutputStream out = new ByteArrayOutputStream();

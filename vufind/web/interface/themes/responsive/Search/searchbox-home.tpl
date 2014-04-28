@@ -63,7 +63,7 @@
 				</div>
 			</div>
 			<div class="row text-center">
-				<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='VuFind.Searches.enableSearchTypes();'>
+				<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='VuFind.Searches.enableSearchTypes();' class="form-control">
 					{/strip}
 					{foreach from=$searchSources item=searchOption key=searchKey}
 						<option data-catalog_type="{$searchOption.catalogType}"

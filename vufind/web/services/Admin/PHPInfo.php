@@ -9,7 +9,6 @@
  */
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/Admin/Admin.php';
-require_once 'XML/Unserializer.php';
 
 class Admin_PHPInfo extends Admin_Admin {
 	function launch() {
@@ -29,6 +28,6 @@ class Admin_PHPInfo extends Admin_Admin {
 	}
 
 	function getAllowableRoles() {
-		return array('userAdmin', 'opacAdmin');
+		return array('opacAdmin');
 	}
 }
