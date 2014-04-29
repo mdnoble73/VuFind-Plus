@@ -38,8 +38,10 @@ public class RecordGrouperMain {
 	public static String groupedWorkPrimaryIdentifiersTableName = "grouped_work_primary_identifiers";
 
 	private static HashMap<String, Long> marcRecordChecksums = new HashMap<String, Long>();
+	private static HashSet<String> marcRecordIdsInDatabase = new HashSet<String>();
 	private static PreparedStatement insertMarcRecordChecksum;
 	private static PreparedStatement updateMarcRecordChecksum;
+	private static PreparedStatement removeMarcRecordChecksum;
 
 	private static String recordNumberTag = "";
 	private static String recordNumberPrefix = "";
@@ -103,9 +105,11 @@ public class RecordGrouperMain {
 			PreparedStatement loadIlsMarcChecksums = vufindConn.prepareStatement("SELECT * from ils_marc_checksums",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			insertMarcRecordChecksum = vufindConn.prepareStatement("INSERT INTO ils_marc_checksums (ilsId, checksum) VALUES (?, ?)");
 			updateMarcRecordChecksum = vufindConn.prepareStatement("UPDATE ils_marc_checksums SET checksum = ? WHERE ilsId = ?");
+			removeMarcRecordChecksum = vufindConn.prepareStatement("DELETE FROM ils_marc_checksums WHERE ilsId = ?");
 			ResultSet ilsMarcChecksumRS = loadIlsMarcChecksums.executeQuery();
 			while (ilsMarcChecksumRS.next()){
 				marcRecordChecksums.put(ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("checksum"));
+				marcRecordIdsInDatabase.add(ilsMarcChecksumRS.getString("ilsId"));
 			}
 			ilsMarcChecksumRS.close();
 
@@ -193,7 +197,8 @@ public class RecordGrouperMain {
 							if (!marcUpToDate || fullRegrouping){
 								recordGroupingProcessor.processMarcRecord(curBib);
 							}
-
+							//Mark that the record was processed
+							marcRecordIdsInDatabase.remove(recordNumber);
 							lastRecordProcessed = recordNumber;
 							numRecordsProcessed++;
 						}
@@ -205,8 +210,22 @@ public class RecordGrouperMain {
 				}
 			}
 
-			//TODO: Remove any records that are no longer in the export
-
+			logger.info("Deleting " + marcRecordIdsInDatabase.size() + " record ids from the database since they are no longer in the export.");
+			for (String recordNumber : marcRecordIdsInDatabase){
+				if (!fullRegrouping){
+					//Remove the record from the grouped work
+					RecordIdentifier primaryIdentifier = new RecordIdentifier();
+					primaryIdentifier.setValue("ils", recordNumber);
+					recordGroupingProcessor.deletePrimaryIdentifier(primaryIdentifier);
+				}
+				//Remove the record from the ils_marc_checksums table
+				try {
+					removeMarcRecordChecksum.setString(1, recordNumber);
+					removeMarcRecordChecksum.executeUpdate();
+				} catch (SQLException e) {
+					logger.error("Error removing ILS id " + recordNumber + " from ils_marc_checksums table", e);
+				}
+			}
 		}
 	}
 
@@ -302,8 +321,13 @@ public class RecordGrouperMain {
 			overDriveRecordRS.close();
 
 			if (!fullRegrouping){
-				PreparedStatement deletedRecordStmt = econtentConnection.prepareStatement("SELECT overdriveId FROM overdrive_api_products WHERE deleted = 1 and dateDeleted >= ?");
-				overDriveRecordsStmt.setLong(1, lastGroupingTime);
+				PreparedStatement deletedRecordStmt;
+				if (lastGroupingTime == null){
+					deletedRecordStmt = econtentConnection.prepareStatement("SELECT overdriveId FROM overdrive_api_products WHERE deleted = 1");
+				}else{
+					deletedRecordStmt = econtentConnection.prepareStatement("SELECT overdriveId FROM overdrive_api_products WHERE deleted = 1 and dateDeleted >= ?");
+					deletedRecordStmt.setLong(1, lastGroupingTime);
+				}
 				ResultSet recordsToDelete = deletedRecordStmt.executeQuery();
 				while (recordsToDelete.next()){
 					RecordIdentifier primaryIdentifier = new RecordIdentifier();
