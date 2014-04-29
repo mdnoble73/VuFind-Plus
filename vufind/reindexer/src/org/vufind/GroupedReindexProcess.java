@@ -30,6 +30,7 @@ public class GroupedReindexProcess {
 	private static String indexSettings;
 	private static Ini configIni;
 	private static String solrPort;
+	private static String solrDir;
 	
 	//Reporting information
 	private static long reindexLogId;
@@ -95,8 +96,8 @@ public class GroupedReindexProcess {
 		logger.info("Reloading schemas from default");
 		try {
 			//Synonyms
-			logger.debug("Copying " + "../../sites/default/solr/grouped/conf/synonyms.txt" + " to " + "../../sites/default/solr/grouped2/conf/synonyms.txt");
-			if (!Util.copyFile(new File("../../sites/default/solr/grouped/conf/synonyms.txt"), new File("../../sites/default/solr/grouped2/conf/synonyms.txt"))){
+			logger.debug("Copying " + "../../data_dir_setup/solr/grouped/conf/synonyms.txt" + " to " + "../../data_dir_setup/solr/grouped2/conf/synonyms.txt");
+			if (!Util.copyFile(new File("../../data_dir_setup/solr/grouped/conf/synonyms.txt"), new File("../../data_dir_setup/solr/grouped2/conf/synonyms.txt"))){
 				logger.warn("Unable to copy synonyms.txt to grouped2");
 				addNoteToReindexLog("Unable to copy synonyms.txt to grouped2");
 			}
@@ -115,29 +116,29 @@ public class GroupedReindexProcess {
 		boolean reloadIndex = true;
 		addNoteToReindexLog("Reloading Schema " + schemaName);
 		try {
-			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/schema.xml" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/schema.xml");
-			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/schema.xml"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/schema.xml"))){
+			logger.debug("Copying " + "../../data_dir_setup/solr/" + schemaName + "/conf/schema.xml" + " to " + solrDir + "/" + schemaName + "/conf/schema.xml");
+			if (!Util.copyFile(new File("../../data_dir_setup/solr/" + schemaName + "/conf/schema.xml"), new File(solrDir + "/" + schemaName + "/conf/schema.xml"))){
 				logger.info("Unable to copy schema for " + schemaName);
 				addNoteToReindexLog("Unable to copy schema for " + schemaName);
 				reloadIndex = false;
 			}
-			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt");
-			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt"))){
+			logger.debug("Copying " + "../../data_dir_setup/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt" + " to " + solrDir + "/" + schemaName + "/conf/mapping-FoldToASCII.txt");
+			if (!Util.copyFile(new File("../../data_dir_setup/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt"), new File(solrDir + "/" + schemaName + "/conf/mapping-FoldToASCII.txt"))){
 				logger.info("Unable to copy mapping-FoldToASCII.txt for " + schemaName);
 				addNoteToReindexLog("Unable to copy mapping-FoldToASCII.txt for " + schemaName);
 			}
-			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt");
-			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt"))){
+			logger.debug("Copying " + "../../data_dir_setup/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt" + " to " + solrDir + "/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt");
+			if (!Util.copyFile(new File("../../data_dir_setup/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt"), new File(solrDir + "/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt"))){
 				logger.info("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 				addNoteToReindexLog("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 			}
-			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/synonyms.txt" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/synonyms.txt");
-			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/synonyms.txt"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/synonyms.txt"))){
+			logger.debug("Copying " + "../../data_dir_setup/solr/" + schemaName + "/conf/synonyms.txt" + " to " + solrDir + "/" + schemaName + "/conf/synonyms.txt");
+			if (!Util.copyFile(new File("../../data_dir_setup/solr/" + schemaName + "/conf/synonyms.txt"), new File(solrDir + "/" + schemaName + "/conf/synonyms.txt"))){
 				logger.info("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 				addNoteToReindexLog("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 			}
-			logger.debug("Copying " + "../../sites/default/solr/" + schemaName + "/conf/solrconfig.xml" + " to " + "../../sites/" + serverName + "/solr/" + schemaName + "/conf/solrconfig.xml");
-			if (!Util.copyFile(new File("../../sites/default/solr/" + schemaName + "/conf/solrconfig.xml"), new File("../../sites/" + serverName + "/solr/" + schemaName + "/conf/solrconfig.xml"))){
+			logger.debug("Copying " + "../../data_dir_setup/solr/" + schemaName + "/conf/solrconfig.xml" + " to " + solrDir + "/" + schemaName + "/conf/solrconfig.xml");
+			if (!Util.copyFile(new File("../../data_dir_setup/solr/" + schemaName + "/conf/solrconfig.xml"), new File(solrDir + "/" + schemaName + "/conf/solrconfig.xml"))){
 				logger.info("Unable to copy solrconfig.xml for " + schemaName);
 				addNoteToReindexLog("Unable to copy solrconfig.xml for " + schemaName);
 			}
@@ -240,6 +241,11 @@ public class GroupedReindexProcess {
 		if (solrPort == null || solrPort.length() == 0) {
 			logger.error("You must provide the port where the solr index is loaded in the import configuration file");
 			System.exit(1);
+		}
+
+		solrDir = configIni.get("Index", "local");
+		if (solrDir == null){
+			solrDir = "../../sites/" + serverName + "/solr";
 		}
 		
 		String reloadDefaultSchemaStr = configIni.get("Reindex", "reloadDefaultSchema");

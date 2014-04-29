@@ -55,4 +55,3 @@ WI,Wisconsin
 WY,Wyoming
 Kesha,Ke ha
 Pink,Pnk,P!nk
-u,you

@@ -121,7 +121,7 @@ public abstract class IlsRecordProcessor {
 				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT code, facetLabel FROM location", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				ResultSet locationInformationRS = locationInformationStmt.executeQuery();
 				while (locationInformationRS.next()){
-					String code = locationInformationRS.getString("code");
+					String code = locationInformationRS.getString("code").toLowerCase();
 					String facetLabel = locationInformationRS.getString("facetLabel");
 					locationMap.put(code, facetLabel);
 				}
@@ -214,6 +214,9 @@ public abstract class IlsRecordProcessor {
 
 	public void processRecord(GroupedWorkSolr groupedWork, String identifier){
 		String shortId = identifier.replace(".", "");
+		while (shortId.length() < 9){
+			shortId = "0" + shortId;
+		}
 		String firstChars = shortId.substring(0, 4);
 		String basePath = individualMarcPath + "/" + firstChars;
 		String individualFilename = basePath + "/" + shortId + ".mrc";
@@ -900,6 +903,7 @@ public abstract class IlsRecordProcessor {
 		if (locationCode == null || locationCode.length() == 0){
 			return locationFacets;
 		}
+		locationCode = locationCode.toLowerCase();
 		for(String ilsCode : locationMap.keySet()){
 			if (locationCode.startsWith(ilsCode)){
 				locationFacets.add(locationMap.get(ilsCode));
