@@ -26,8 +26,7 @@
 			<div id='overdriveMediaConsoleInfo'>
 				<p>
 					Need help opening your title?  <a href="{$path}/Help/eContentHelp" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')">View step by step instructions</a> for most formats and devices.<br/>
-					If you still need help, please fill out <a href="{$path}/Help/eContentSupport" onclick="return showEContentSupportForm()">this support form</a>.
-				</p>
+					<a href="http://www.questionpoint.org/crs/servlet/org.oclc.admin.BuildForm?&institution=10447&type=1&language=1" target="_blank">Please contact us</a>, if you would like help.</p>
 				<img src="http://catalog.library.nashville.org/interface/themes/nashville/images/overdrive.png" width="160" height="41" alt="Powered by Overdrive" class="alignleft"/>
 								<p><a href="http://www.overdrive.com/software/omc/">Download OverDrive&reg; Media Console&trade;</a> to access OverDrive Audio Books and eBooks on most devices.</p>
 				<div class="clearer">&nbsp;</div>
