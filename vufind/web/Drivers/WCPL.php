@@ -494,7 +494,7 @@ class WCPL extends Horizon
 		global $logger;
 		if ($this->useDb){
 			$logger->log("Starting patron login", PEAR_LOG_DEBUG);
-			$borrowerNumberSql = "select borrower# from borrow_barcode where borrower_barcode='$username'";
+			$borrowerNumberSql = "select borrower# from borrower_barcode where bbarcode='$username' and lost_date is null";
 			try {
 				$borrowerNumberRS = $this->_query($borrowerNumberSql);
 				if ($this->_num_rows($borrowerNumberRS) == 1){
