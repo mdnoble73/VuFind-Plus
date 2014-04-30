@@ -491,9 +491,10 @@ class WCPL extends Horizon
 	}
 
 	public function patronLogin($username, $password){
+		global $logger;
 		if ($this->useDb){
+			$logger->log("Starting patron login", PEAR_LOG_DEBUG);
 			$borrowerNumberSql = "select borrower# from borrow_barcode where borrower_barcode='$username'";
-			$sql = "select name, pin#, location,expiration_date from borrower where borrower# = $username";
 			try {
 				$borrowerNumberRS = $this->_query($borrowerNumberSql);
 				if ($this->_num_rows($borrowerNumberRS) == 1){
@@ -530,7 +531,6 @@ class WCPL extends Horizon
 								$user->phone = $phoneInfoRow['phone_no'];
 							}
 
-							//TODO: Load patron type
 							$user->patronType = $basicInfoRow['btype'];
 
 							//Update that the user authenticated
@@ -552,8 +552,14 @@ class WCPL extends Horizon
 									'patronType' => $basicInfoRow['btype']
 							);
 							return $userArray;
+						}else{
+							$logger->log("Pin number was incorrect", PEAR_LOG_WARNING);
 						}
+					}else{
+						$logger->log("Could not find pin for borrower $borrowerNumber", PEAR_LOG_WARNING);
 					}
+				}else{
+					$logger->log("Could not find patron with username $username", PEAR_LOG_WARNING);
 				}
 				//User was not valid
 				return null;
