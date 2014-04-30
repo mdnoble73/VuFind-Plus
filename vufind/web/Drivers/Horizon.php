@@ -1415,7 +1415,7 @@ public function getMyHoldsViaDB($patron)
 		}
 	}
 
-private $patronProfiles = array();
+	private $patronProfiles = array();
 	public function getMyProfile($patron) {
 		global $timer;
 		global $configArray;
@@ -2895,7 +2895,7 @@ private function parseSip2Fines($finesData){
 	private function parseSip2ChargedItems($chargedData){
 		$chargedItems = array();
 		$chargedItems['count'] = count($chargedData);
-		return $chargeedItems;
+		return $chargedItems;
 	}
 
 	function addDays($givendate,$day) {
@@ -2938,6 +2938,15 @@ private function parseSip2Fines($finesData){
 			return sybase_fetch_array($result_id);
 		}else{
 			return mssql_fetch_array($result_id);
+		}
+	}
+
+	protected function _num_rows($result_id){
+		global $configArray;
+		if (strcasecmp($configArray['System']['operatingSystem'], 'windows') == 0){
+			return sybase_num_rows($result_id);
+		}else{
+			return mssql_num_rows($result_id);
 		}
 	}
 

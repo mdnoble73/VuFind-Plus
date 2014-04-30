@@ -490,4 +490,248 @@ class WCPL extends Horizon
 
 	}
 
+	public function patronLogin($username, $password){
+		if ($this->useDb){
+			$borrowerNumberSql = "select borrower# from borrow_barcode where borrower_barcode='$username'";
+			$sql = "select name, pin#, location,expiration_date from borrower where borrower# = $username";
+			try {
+				$borrowerNumberRS = $this->_query($borrowerNumberSql);
+				if ($this->_num_rows($borrowerNumberRS) == 1){
+					$borrowerNumberRow = $this->_fetch_assoc($borrowerNumberRS);
+					$borrowerNumber = $borrowerNumberRow['borrower#'];
+					$borrowerPinSql =  "select pin# from borrower where borrower#=$borrowerNumber";
+					$borrowerPinRS = $this->_query($borrowerPinSql);
+					if ($this->_num_rows($borrowerPinRS) == 1){
+						$borrowerPinRow = $this->_fetch_assoc($borrowerPinRS);
+						if ($borrowerPinRow['pin#'] == $password){
+							$user = new User();
+							$user->username = $username;
+
+							//The user is valid, get information about the patron
+							$basicInfoSql = "select name, pin#, btype, location,expiration_date from borrower where borrower# = $borrowerNumber";
+							$basicInfoRS = $this->_query($basicInfoSql);
+							$basicInfoRow = $this->_fetch_assoc($basicInfoRS);
+							$fullName = $basicInfoRow['name'];
+							$firstname = trim(substr($fullName, 1 + strripos($fullName, ',')));
+							$lastname = trim(substr($fullName, 0, strripos($fullName, ',')));
+
+							$contactInfoSql = "select address1, address2, address3, city_st, postal_code, email_address from borrower_address where borrower# = $borrowerNumber";
+							$contactInfoRS = $this->_query($contactInfoSql);
+							$contactInfoRow = $this->_fetch_assoc($contactInfoRS);
+
+							$user->email = $contactInfoRow['email_address'];
+							$user->major = 'null';
+							$user->college = 'null';
+
+							$phoneInfoSql = "select phone_no from borrower_phone where borrower#=$borrowerNumber";
+							$phoneInfoRS = $this->_query($phoneInfoSql);
+							if ($this->_num_rows($phoneInfoRS) == 1){
+								$phoneInfoRow = $this->_fetch_assoc($phoneInfoRS);
+								$user->phone = $phoneInfoRow['phone_no'];
+							}
+
+							//TODO: Load patron type
+							$user->patronType = $basicInfoRow['btype'];
+
+							//Update that the user authenticated
+							$updateBorrowerAuthSql = "update borrower set last_authentication_date = datediff(dd, '1 jan 1970', getdate()) and borrower# = $borrowerNumber";
+							$this->_query($updateBorrowerAuthSql);
+
+							$userArray = array(
+									'id'        => $borrowerNumber,
+									'username'  => $username,
+									'firstname' => $firstname,
+									'lastname'  => $lastname,
+									'fullname'  => $fullName,
+									'cat_username' => $username,
+									'cat_password' => $password,
+									'displayName' => $fullName,
+									'email' => $contactInfoRow['email_address'],
+									'major' => null,
+									'college' => null,
+									'patronType' => $basicInfoRow['btype']
+							);
+							return $userArray;
+						}
+					}
+				}
+				//User was not valid
+				return null;
+			} catch (PDOException $e) {
+				return new PEAR_Error($e->getMessage());
+			}
+		}else{
+			return parent::patronLogin($username, $password);
+		}
+	}
+
+	private $patronProfiles = array();
+	public function getMyProfile($patron) {
+		global $timer;
+		global $user;
+		if ($this->useDb){
+			//Get profile information from the database, borrower number is patron id
+			if (is_object($patron)){
+				$patron = get_object_vars($patron);
+				$borrowerNumber = $patron['id'];
+			}else{
+				$borrowerNumber= $patron['id'];
+			}
+			if (array_key_exists($borrowerNumber, $this->patronProfiles) && !isset($_REQUEST['reload'])){
+				$timer->logTime('Retrieved Cached Profile for Patron');
+				return $this->patronProfiles[$borrowerNumber];
+			}
+
+			$basicInfoSql = "select name, pin#, btype, location,expiration_date from borrower where borrower# = $borrowerNumber";
+			$basicInfoRS = $this->_query($basicInfoSql);
+			$basicInfoRow = $this->_fetch_assoc($basicInfoRS);
+
+			$contactInfoSql = "select address1, address2, address3, city_st, postal_code, email_address from borrower_address where borrower# = $borrowerNumber";
+			$contactInfoRS = $this->_query($contactInfoSql);
+			$contactInfoRow = $this->_fetch_assoc($contactInfoRS);
+
+			//TODO: Split city and state
+			$city = $contactInfoRow['city_st'];
+			$state = $contactInfoRow['city_st'];
+
+			//TODO: Load fines
+			$fines = 0;
+
+			//Load additional expiration info
+			$timeExpire = $this->addDays('1970-01-01', $basicInfoRow['expiration_date']);
+			$timeNow = time();
+			$timeToExpire = $timeExpire - $timeNow;
+			if ($timeToExpire <= 30 * 24 * 60 * 60){
+				$expireClose = 1;
+			}else{
+				$expireClose = 0;
+			}
+
+			//Load location information
+			$homeBranchCode = $basicInfoRow['location'];
+			$homeBranchCode = str_replace('+', '', $homeBranchCode);
+			//Translate home branch to plain text
+			$location = new Location();
+			$location->whereAdd("code = '$homeBranchCode'");
+			$location->find(1);
+
+			if ($user) {
+				if ($user->homeLocationId == 0 && isset($location)) {
+					$user->homeLocationId = $location->locationId;
+					if ($location->nearbyLocation1 > 0){
+						$user->myLocation1Id = $location->nearbyLocation1;
+					}else{
+						$user->myLocation1Id = $location->locationId;
+					}
+					if ($location->nearbyLocation2 > 0){
+						$user->myLocation2Id = $location->nearbyLocation2;
+					}else{
+						$user->myLocation2Id = $location->locationId;
+					}
+					if ($user instanceof User) {
+						//Update the database
+						$user->update();
+						//Update the serialized instance stored in the session
+						$_SESSION['userinfo'] = serialize($user);
+					}
+				}
+			}
+
+			//Load transaction counts
+			$availableHoldsSql = "select count(*) as numHolds from request where request_status= 1 and borrower#= $$borrowerNumber";
+			$availableHoldsRS = $this->_query($availableHoldsSql);
+			$availableHoldsRow = $this->_fetch_assoc($availableHoldsRS);
+			$numHoldsAvailable = $availableHoldsRow['numHolds'];
+
+			$unavailableHoldsSql = "select count(*) as numHolds from request where request_status in (0,2) and borrower#= $$borrowerNumber";
+			$unavailableHoldsRS = $this->_query($unavailableHoldsSql);
+			$unavailableHoldsRow = $this->_fetch_assoc($unavailableHoldsRS);
+			$numHoldsRequested = $unavailableHoldsRow['numHolds'];
+
+			$checkoutsSql = "select count(*) as numCheckouts from circ where borrower#= $$borrowerNumber";
+			$checkoutsRS = $this->_query($checkoutsSql);
+			$checkoutsRow = $this->_fetch_assoc($checkoutsRS);
+			$numCheckedOut = $availableHoldsRow['numCheckouts'];
+
+			$profile = array('lastname' => $patron['lastname'],
+					'firstname' => $patron['firstname'],
+					'fullname' => $patron['fullname'],
+					'address1' => $contactInfoRow['address1'],
+					'address2' => $contactInfoRow['address2'],
+					'city' => $city,
+					'state' => $state,
+					'zip'=> $contactInfoRow['postal_code'],
+					'email' => $patron['email'] ,
+					'overdriveEmail' => ($user) ? $user->overdriveEmail : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : ''),
+					'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
+					'phone' => $user->phone,
+					'workPhone' => '',
+					'mobileNumber' => '',
+					'fines' => $fines,
+					'finesval' => $fines,
+					'expires' => date('M-j-Y'),
+					'expireclose' => $expireClose,
+					'homeLocationCode' => isset($homeBranchCode) ? trim($homeBranchCode) : '',
+					'homeLocationId' => isset($location) ? $location->locationId : 0,
+					'homeLocation' => isset($location) ? $location->displayName : '',
+					'myLocation1Id' => ($user) ? $user->myLocation1Id : -1,
+					'myLocation1' => isset($myLocation1) ? $myLocation1->displayName : '',
+					'myLocation2Id' => ($user) ? $user->myLocation2Id : -1,
+					'myLocation2' => isset($myLocation2) ? $myLocation2->displayName : '',
+					'numCheckedOut' => $numCheckedOut,
+					'numHolds' => $numHoldsAvailable + $numHoldsRequested,
+					'numHoldsAvailable' => $numHoldsAvailable,
+					'numHoldsRequested' => $numHoldsRequested,
+					'bypassAutoLogout' => ($user) ? $user->bypassAutoLogout : 0,
+					'ptype' => $patron['patronType'],
+					'notices' => '',
+					'web_note' => '',
+			);
+
+			//Get eContent info as well
+			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
+			$eContentDriver = new EContentDriver();
+			$eContentAccountSummary = $eContentDriver->getAccountSummary();
+			$profile = array_merge($profile, $eContentAccountSummary);
+
+			require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
+			$overDriveDriver = OverDriveDriverFactory::getDriver();
+			if ($overDriveDriver->isUserValidForOverDrive($user)){
+				$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
+				$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
+				$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
+				$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
+				$profile['canUseOverDrive'] = true;
+			}else{
+				$profile['numOverDriveCheckedOut'] = 0;
+				$profile['numOverDriveHoldsAvailable'] = 0;
+				$profile['numOverDriveHoldsRequested'] = 0;
+				$profile['canUseOverDrive'] = false;
+			}
+
+			$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $profile['numOverDriveCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
+			$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $profile['numOverDriveHoldsAvailable'] + $eContentAccountSummary['numEContentAvailableHolds'];
+			$profile['numHoldsRequestedTotal'] = $profile['numHoldsRequested'] + $profile['numOverDriveHoldsRequested'] + $eContentAccountSummary['numEContentUnavailableHolds'];
+			$profile['numHoldsTotal'] = $profile['numHoldsAvailableTotal'] + $profile['numHoldsRequestedTotal'];
+
+			//Get a count of the materials requests for the user
+			if ($user){
+				$materialsRequest = new MaterialsRequest();
+				$materialsRequest->createdBy = $user->id;
+				$homeLibrary = Library::getPatronHomeLibrary();
+				$statusQuery = new MaterialsRequestStatus();
+				$statusQuery->isOpen = 1;
+				$statusQuery->libraryId = $homeLibrary->libraryId;
+				$materialsRequest->joinAdd($statusQuery);
+				$materialsRequest->find();
+				$profile['numMaterialsRequests'] = $materialsRequest->N;
+			}
+
+			$timer->logTime("Got Patron Profile");
+			$this->patronProfiles[$patron['id']] = $profile;
+			return $profile;
+		}else{
+			return parent::getMyProfile($patron);
+		}
+	}
 }

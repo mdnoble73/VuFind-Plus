@@ -192,7 +192,7 @@ class SIPAuthentication implements Authentication {
 	 */
 	private function processSIP2User($info, $username, $password, $patronInfoResponse){
 		global $timer;
-		require_once "services/MyResearch/lib/User.php";
+		require_once ROOT_DIR . "/services/MyResearch/lib/User.php";
 
 		$user = new User();
 		$user->username = $info['variable']['AA'][0];
