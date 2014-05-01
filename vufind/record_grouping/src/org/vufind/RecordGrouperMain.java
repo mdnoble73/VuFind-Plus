@@ -94,71 +94,34 @@ public class RecordGrouperMain {
 				lastGroupingTime = lastGroupingTimeRS.getLong("value");
 				lastGroupingTimeVariableId = lastGroupingTimeRS.getLong("id");
 			}
-
+			lastGroupingTimeRS.close();
+			loadLastGroupingTime.close();
 		} catch (Exception e){
 			logger.error("Error loading last grouping time", e);
 			System.exit(1);
 		}
 
-		//Load MARC Existing MARC Record checksums from VuFind
-		try{
-			PreparedStatement loadIlsMarcChecksums = vufindConn.prepareStatement("SELECT * from ils_marc_checksums",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			insertMarcRecordChecksum = vufindConn.prepareStatement("INSERT INTO ils_marc_checksums (ilsId, checksum) VALUES (?, ?)");
-			updateMarcRecordChecksum = vufindConn.prepareStatement("UPDATE ils_marc_checksums SET checksum = ? WHERE ilsId = ?");
-			removeMarcRecordChecksum = vufindConn.prepareStatement("DELETE FROM ils_marc_checksums WHERE ilsId = ?");
-			ResultSet ilsMarcChecksumRS = loadIlsMarcChecksums.executeQuery();
-			while (ilsMarcChecksumRS.next()){
-				marcRecordChecksums.put(ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("checksum"));
-				marcRecordIdsInDatabase.add(ilsMarcChecksumRS.getString("ilsId"));
-			}
-			ilsMarcChecksumRS.close();
-
-		}catch (Exception e){
-			logger.error("Error loading marc checksums for ILS records", e);
-			System.exit(1);
-		}
-
-		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, configIni, logger, fullRegrouping);
-		//Clear the database first
+		//Check to see if we need to clear the database
 		boolean clearDatabasePriorToGrouping = false;
-		if (args.length >= 2 && args[1].equalsIgnoreCase("clearDatabase")){
+		if (args.length >= 2 && args[1].equalsIgnoreCase("fullRegrouping")){
 			clearDatabasePriorToGrouping = true;
 			fullRegrouping = true;
 		}else{
 			fullRegrouping = false;
 		}
 
-		if (clearDatabasePriorToGrouping){
-			try{
-				vufindConn.prepareStatement("TRUNCATE " + groupedWorkTableName).executeUpdate();
-				vufindConn.prepareStatement("TRUNCATE " + groupedWorkIdentifiersTableName).executeUpdate();
-				vufindConn.prepareStatement("TRUNCATE " + groupedWorkIdentifiersRefTableName).executeUpdate();
-				vufindConn.prepareStatement("TRUNCATE " + groupedWorkPrimaryIdentifiersTableName).executeUpdate();
-			}catch (Exception e){
-				System.out.println("Error clearing database " + e.toString());
-				System.exit(1);
-			}
-		}
+		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, configIni, logger, fullRegrouping);
+
+		clearDatabase(vufindConn, clearDatabasePriorToGrouping);
+		loadIlsChecksums(vufindConn);
 
 		groupOverDriveRecords(econtentConnection, recordGroupingProcessor);
 		groupIlsRecords(configIni, recordGroupingProcessor);
+		removeGroupedWorksWithoutPrimaryIdentifiers(vufindConn);
+		removeUnlinkedIdentifiers(vufindConn);
+		makeIdentifiersLinkingToMultipleWorksInvalidForEnrichment(vufindConn);
+		updateLastGroupingTime(vufindConn);
 
-		//Update the last grouping time in the variables table
-		try{
-			Long finishTime = new Date().getTime() / 1000;
-			if (lastGroupingTimeVariableId != null){
-				PreparedStatement updateVariableStmt  = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
-				updateVariableStmt.setLong(1, finishTime);
-				updateVariableStmt.setLong(2, lastGroupingTimeVariableId);
-				updateVariableStmt.executeUpdate();
-			} else{
-				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_grouping_time', ?)");
-				insertVariableStmt.setString(1, Long.toString(finishTime));
-				insertVariableStmt.executeUpdate();
-			}
-		}catch (Exception e){
-			logger.error("Error setting last grouping time", e);
-		}
 
 		recordGroupingProcessor.dumpStats();
 
@@ -174,6 +137,118 @@ public class RecordGrouperMain {
 		logger.warn("Elapsed Minutes " + (elapsedTime / 60000));
 	}
 
+	private static void updateLastGroupingTime(Connection vufindConn) {
+		//Update the last grouping time in the variables table
+		try{
+			Long finishTime = new Date().getTime() / 1000;
+			if (lastGroupingTimeVariableId != null){
+				PreparedStatement updateVariableStmt  = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
+				updateVariableStmt.setLong(1, finishTime);
+				updateVariableStmt.setLong(2, lastGroupingTimeVariableId);
+				updateVariableStmt.executeUpdate();
+				updateVariableStmt.close();
+			} else{
+				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_grouping_time', ?)");
+				insertVariableStmt.setString(1, Long.toString(finishTime));
+				insertVariableStmt.executeUpdate();
+				insertVariableStmt.close();
+			}
+		}catch (Exception e){
+			logger.error("Error setting last grouping time", e);
+		}
+	}
+
+	private static void makeIdentifiersLinkingToMultipleWorksInvalidForEnrichment(Connection vufindConn) {
+		//Mark any identifiers that link to more than one grouped record and therefore should not be used for enrichment
+		try{
+			PreparedStatement invalidIdentifiersStmt = vufindConn.prepareStatement("SELECT grouped_work_primary_to_secondary_id_ref.`secondary_identifier_id`, COUNT(grouped_work_id) as num_related_works FROM `grouped_work_primary_to_secondary_id_ref` INNER JOIN grouped_work_primary_identifiers ON `primary_identifier_id` = grouped_work_primary_identifiers.id GROUP BY secondary_identifier_id HAVING num_related_works > 1");
+			ResultSet invalidIdentifiersRS = invalidIdentifiersStmt.executeQuery();
+			PreparedStatement updateInvalidIdentifierStmt = vufindConn.prepareStatement("UPDATE grouped_work_identifiers SET valid_for_enrichment = 0 where id = ?");
+			while (invalidIdentifiersRS.next()){
+				updateInvalidIdentifierStmt.setLong(1, invalidIdentifiersRS.getLong("secondary_identifier_id"));
+				updateInvalidIdentifierStmt.executeUpdate();
+			}
+			invalidIdentifiersRS.close();
+			invalidIdentifiersStmt.close();
+		}catch (Exception e){
+			logger.error("Unable to mark identifiers as invalid for enrichment", e);
+		}
+	}
+
+	private static void removeUnlinkedIdentifiers(Connection vufindConn) {
+		//Remove any identifiers that are no longer linked to a primary identifier
+		try{
+			PreparedStatement unlinkedIdentifiersStmt = vufindConn.prepareStatement("SELECT grouped_work_identifiers.id, count(primary_identifier_id) as num_primary_identifiers from grouped_work_identifiers left join grouped_work_primary_to_secondary_id_ref on grouped_work_identifiers.id = secondary_identifier_id GROUP BY secondary_identifier_id having num_primary_identifiers = 0");
+			ResultSet unlinkedIdentifiersRS = unlinkedIdentifiersStmt.executeQuery();
+			PreparedStatement removeIdentifierStmt = vufindConn.prepareStatement("DELETE FROM grouped_work_identifiers where id = ?");
+			while (unlinkedIdentifiersRS.next()){
+				removeIdentifierStmt.setLong(1, unlinkedIdentifiersRS.getLong(1));
+				removeIdentifierStmt.executeUpdate();
+			}
+			unlinkedIdentifiersRS.close();
+			unlinkedIdentifiersStmt.close();
+		}catch(Exception e){
+			logger.error("Error removing identifiers that are no longer linked to a primary identifier", e);
+		}
+	}
+
+	private static void removeGroupedWorksWithoutPrimaryIdentifiers(Connection vufindConn) {
+		//Remove any grouped works that no longer link to a primary identifier
+		try{
+			PreparedStatement groupedWorksWithoutIdentifiersStmt = vufindConn.prepareStatement("SELECT grouped_work.id, count(identifier) as num_related_records from grouped_work left join grouped_work_primary_identifiers on grouped_work.id = grouped_work_primary_identifiers.grouped_work_id GROUP BY grouped_work.id HAVING num_related_records = 0");
+			ResultSet groupedWorksWithoutIdentifiersRS = groupedWorksWithoutIdentifiersStmt.executeQuery();
+			PreparedStatement deleteWorkStmt = vufindConn.prepareStatement("DELETE from grouped_work WHERE id = ?");
+			PreparedStatement deleteRelatedIdentifiersStmt = vufindConn.prepareStatement("DELETE from grouped_work_identifiers_ref WHERE grouped_work_id = ?");
+			while (groupedWorksWithoutIdentifiersRS.next()){
+				deleteWorkStmt.setLong(1, groupedWorksWithoutIdentifiersRS.getLong(1));
+				deleteWorkStmt.executeUpdate();
+
+				deleteRelatedIdentifiersStmt.setLong(1, groupedWorksWithoutIdentifiersRS.getLong(1));
+				deleteRelatedIdentifiersStmt.executeUpdate();
+			}
+			groupedWorksWithoutIdentifiersRS.close();
+		}catch (Exception e){
+			logger.error("Unable to remove grouped works that no longer have a primary identifier", e);
+		}
+	}
+
+	private static void loadIlsChecksums(Connection vufindConn) {
+		//Load MARC Existing MARC Record checksums from VuFind
+		try{
+			insertMarcRecordChecksum = vufindConn.prepareStatement("INSERT INTO ils_marc_checksums (ilsId, checksum) VALUES (?, ?)");
+			updateMarcRecordChecksum = vufindConn.prepareStatement("UPDATE ils_marc_checksums SET checksum = ? WHERE ilsId = ?");
+			removeMarcRecordChecksum = vufindConn.prepareStatement("DELETE FROM ils_marc_checksums WHERE ilsId = ?");
+			if (!fullRegrouping){
+				PreparedStatement loadIlsMarcChecksums = vufindConn.prepareStatement("SELECT * from ils_marc_checksums",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				ResultSet ilsMarcChecksumRS = loadIlsMarcChecksums.executeQuery();
+				while (ilsMarcChecksumRS.next()){
+					marcRecordChecksums.put(ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("checksum"));
+					marcRecordIdsInDatabase.add(ilsMarcChecksumRS.getString("ilsId"));
+				}
+				ilsMarcChecksumRS.close();
+			}
+		}catch (Exception e){
+			logger.error("Error loading marc checksums for ILS records", e);
+			System.exit(1);
+		}
+	}
+
+	private static void clearDatabase(Connection vufindConn, boolean clearDatabasePriorToGrouping) {
+		if (clearDatabasePriorToGrouping){
+			try{
+				vufindConn.prepareStatement("TRUNCATE ils_marc_checksums").executeUpdate();
+				vufindConn.prepareStatement("TRUNCATE " + groupedWorkTableName).executeUpdate();
+				vufindConn.prepareStatement("TRUNCATE " + groupedWorkIdentifiersTableName).executeUpdate();
+				vufindConn.prepareStatement("TRUNCATE " + groupedWorkIdentifiersRefTableName).executeUpdate();
+				vufindConn.prepareStatement("TRUNCATE " + groupedWorkPrimaryIdentifiersTableName).executeUpdate();
+				vufindConn.prepareStatement("TRUNCATE grouped_work_primary_to_secondary_id_ref").executeUpdate();
+			}catch (Exception e){
+				System.out.println("Error clearing database " + e.toString());
+				System.exit(1);
+			}
+		}
+	}
+
 	private static void groupIlsRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor) {
 		int numRecordsProcessed = 0;
 		String individualMarcPath = configIni.get("Reindex", "individualMarcPath");
@@ -182,6 +257,8 @@ public class RecordGrouperMain {
 		recordNumberTag = configIni.get("Reindex", "recordNumberTag");
 		recordNumberPrefix = configIni.get("Reindex", "recordNumberPrefix");
 
+		String marcEncoding = configIni.get("Reindex", "marcEncoding");
+
 		File[] catalogBibFiles = new File(marcPath).listFiles();
 		if (catalogBibFiles != null){
 			String lastRecordProcessed = "";
@@ -189,18 +266,21 @@ public class RecordGrouperMain {
 				if (curBibFile.getName().endsWith(".mrc") || curBibFile.getName().endsWith(".marc")){
 					try{
 						FileInputStream marcFileStream = new FileInputStream(curBibFile);
-						MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, "MARC8");
+						MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
 						while (catalogReader.hasNext()){
 							Record curBib = catalogReader.next();
 							String recordNumber = getRecordNumberForBib(curBib);
 							boolean marcUpToDate = writeIndividualMarc(individualMarcPath, curBib, recordNumber);
-							if (!marcUpToDate || fullRegrouping){
+							if (!marcUpToDate){
 								recordGroupingProcessor.processMarcRecord(curBib);
 							}
 							//Mark that the record was processed
 							marcRecordIdsInDatabase.remove(recordNumber);
 							lastRecordProcessed = recordNumber;
 							numRecordsProcessed++;
+							if (numRecordsProcessed % 100000 == 0){
+								recordGroupingProcessor.dumpStats();
+							}
 						}
 						marcFileStream.close();
 					}catch(Exception e){
@@ -348,76 +428,107 @@ public class RecordGrouperMain {
 		boolean marcRecordUpToDate = false;
 		//Copy the record to the individual marc path
 		if (recordNumber != null){
-			boolean marcRecordExists = false;
+			boolean marcRecordExistsInDb = false;
 			long checksum = getChecksum(marcRecord);
-			if (marcRecordChecksums.containsKey(recordNumber)){
-				marcRecordExists = true;
-				if (checksum == marcRecordChecksums.get(recordNumber)){
-					marcRecordUpToDate = true;
+			File individualFile = getFileForIlsRecord(individualMarcPath, recordNumber);
+			if (!fullRegrouping){
+				Long existingChecksum = marcRecordChecksums.get(recordNumber);
+				if (existingChecksum != null){
+					marcRecordExistsInDb = true;
+					if (existingChecksum.equals(checksum)){
+						marcRecordUpToDate = true;
+					}else{
+						logger.debug("Checksum for " + recordNumber + " has changed new " + checksum + " old " + existingChecksum + ", need to reindex");
+					}
+				}
+				if (!individualFile.exists()){
+					marcRecordUpToDate = false;
 				}
 			}
 
-			String shortId = recordNumber.replace(".", "");
-			while (shortId.length() < 9){
-				shortId = "0" + shortId;
-			}
-			String firstChars = shortId.substring(0, 4);
-			String basePath = individualMarcPath + "/" + firstChars;
-			String individualFilename = basePath + "/" + shortId + ".mrc";
-			File individualFile = new File(individualFilename);
-			File baseFile = new File(basePath);
-			if (!baseFile.exists()){
-				if (!baseFile.mkdirs()){
-					System.out.println("Could not create directory to store individual marc");
-				}
-			}
-
-			if (!individualFile.exists()){
-				marcRecordUpToDate = false;
-			}
-
-			if (!marcRecordUpToDate || fullRegrouping){
+			if (!marcRecordUpToDate){
 				try {
-					OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(individualFile,false), Charset.forName("UTF-8").newEncoder());
-					ByteArrayOutputStream out = new ByteArrayOutputStream();
-					MarcStreamWriter writer2 = new MarcStreamWriter(out, "UTF-8");
-					writer2.setAllowOversizeEntry(true);
-					writer2.write(marcRecord);
-					writer2.close();
+					outputMarcRecord(marcRecord, individualFile);
 
-					String result = null;
-					try {
-						result = out.toString("UTF-8");
-					} catch (UnsupportedEncodingException e) {
-						// e.printStackTrace();
-						System.out.println(e.getCause());
-					}
-					if (result != null){
-						writer.write(result);
-					}
-					writer.close();
-
-					try{
-						if (!marcRecordExists){
-							insertMarcRecordChecksum.setString(1, recordNumber);
-							insertMarcRecordChecksum.setLong(2, checksum);
-							insertMarcRecordChecksum.executeUpdate();
-						}else{
-							updateMarcRecordChecksum.setLong(1, checksum);
-							updateMarcRecordChecksum.setString(2, recordNumber);
-							updateMarcRecordChecksum.executeUpdate();
-						}
-					}catch (SQLException e){
-						logger.error("Unable to update checksum for ils marc record", e);
-					}
+					updateMarcRecordChecksum(recordNumber, marcRecordExistsInDb, checksum);
 				} catch (IOException e) {
 					logger.error("Error writing marc", e);
 				}
 			}
 		}else{
 			logger.error("Error did not find record number for MARC record");
+			marcRecordUpToDate = true;
 		}
 		return marcRecordUpToDate;
+	}
+
+	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber) {
+		String shortId = getFileIdForRecordNumber(recordNumber);
+		String firstChars = shortId.substring(0, 4);
+		String basePath = individualMarcPath + "/" + firstChars;
+		String individualFilename = basePath + "/" + shortId + ".mrc";
+		File individualFile = new File(individualFilename);
+		createBaseDirectory(basePath);
+		return individualFile;
+	}
+
+	private static HashSet<String>basePathsValidated = new HashSet<String>();
+	private static void createBaseDirectory(String basePath) {
+		if (basePathsValidated.contains(basePath)) {
+			return;
+		}
+		File baseFile = new File(basePath);
+		if (!baseFile.exists()){
+			if (!baseFile.mkdirs()){
+				System.out.println("Could not create directory to store individual marc");
+			}
+		}
+		basePathsValidated.add(basePath);
+	}
+
+	private static String getFileIdForRecordNumber(String recordNumber) {
+		String shortId = recordNumber.replace(".", "");
+		while (shortId.length() < 9){
+			shortId = "0" + shortId;
+		}
+		return shortId;
+	}
+
+	private static void updateMarcRecordChecksum(String recordNumber, boolean marcRecordExists, long checksum) {
+		try{
+			if (!marcRecordExists){
+				insertMarcRecordChecksum.setString(1, recordNumber);
+				insertMarcRecordChecksum.setLong(2, checksum);
+				insertMarcRecordChecksum.executeUpdate();
+			}else{
+				updateMarcRecordChecksum.setLong(1, checksum);
+				updateMarcRecordChecksum.setString(2, recordNumber);
+				updateMarcRecordChecksum.executeUpdate();
+			}
+		}catch (SQLException e){
+			logger.error("Unable to update checksum for ils marc record", e);
+		}
+	}
+
+	private static void outputMarcRecord(Record marcRecord, File individualFile) throws IOException {
+		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(individualFile,false), Charset.forName("UTF-8").newEncoder());
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		MarcStreamWriter writer2 = new MarcStreamWriter(out, "UTF-8");
+		writer2.setAllowOversizeEntry(true);
+		writer2.write(marcRecord);
+		writer2.close();
+
+		String result = null;
+		try {
+			result = out.toString("UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			// e.printStackTrace();
+			System.out.println(e.getCause());
+		}
+		if (result != null){
+			writer.write(result);
+		}
+		writer.close();
 	}
 
 	private static Ini loadConfigFile(){

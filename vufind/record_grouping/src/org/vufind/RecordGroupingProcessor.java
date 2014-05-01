@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.*;
 import java.util.Date;
-//import java.util.regex.Pattern;
 
 /**
  * Description goes here
@@ -27,15 +26,15 @@ public class RecordGroupingProcessor {
 	private String itemTag;
 	private boolean useEContentSubfield = false;
 	private char eContentSubfield = ' ';
-	private PreparedStatement getGroupedWorkStmt;
 	private PreparedStatement insertGroupedWorkStmt;
+	private PreparedStatement updateDateUpdatedForGroupedWorkStmt;
 	private PreparedStatement getExistingIdentifierStmt;
 	private PreparedStatement insertIdentifierStmt;
 	private PreparedStatement addIdentifierToGroupedWorkStmt;
 	private PreparedStatement addPrimaryIdentifierForWorkStmt;
 	private PreparedStatement removePrimaryIdentifierStmt;
-//	private PreparedStatement getRecordWithoutSubfieldStmt;
-//	private PreparedStatement getRecordIgnoringSubfieldStmt;
+	private PreparedStatement removeIdentifiersForPrimaryIdentifierStmt;
+	private PreparedStatement addPrimaryIdentifierToSecondaryIdentifierRefStmt;
 
 	private int numRecordsProcessed = 0;
 	private int numGroupedWorksAdded = 0;
@@ -52,6 +51,8 @@ public class RecordGroupingProcessor {
 	private static HashMap<String, String> authorAuthorities = new HashMap<String, String>();
 	private static HashMap<String, String> titleAuthorities = new HashMap<String, String>();
 
+	private HashMap<String, Long> existingGroupedWorks = new HashMap<String, Long>();
+
 	public RecordGroupingProcessor(Connection dbConnection, Ini configIni, Logger logger, boolean fullRegrouping) {
 		this.logger = logger;
 		this.fullRegrouping = fullRegrouping;
@@ -62,16 +63,25 @@ public class RecordGroupingProcessor {
 		eContentSubfield = getSubfieldIndicatorFromConfig(configIni, "eContentSubfield");
 
 		try{
-			getGroupedWorkStmt = dbConnection.prepareStatement("SELECT id FROM " + RecordGrouperMain.groupedWorkTableName + " where permanent_id = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkTableName + " (full_title, author, grouping_category, permanent_id) VALUES (?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
+			insertGroupedWorkStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkTableName + " (full_title, author, grouping_category, permanent_id, date_updated) VALUES (?, ?, ?, ?, ?)", Statement.RETURN_GENERATED_KEYS) ;
+			updateDateUpdatedForGroupedWorkStmt = dbConnection.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = ?");
 			getExistingIdentifierStmt = dbConnection.prepareStatement("SELECT id FROM " + RecordGrouperMain.groupedWorkIdentifiersTableName + " where type = ? and identifier = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			insertIdentifierStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkIdentifiersTableName + " (type, identifier) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
 			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT IGNORE INTO " + RecordGrouperMain.groupedWorkIdentifiersRefTableName + " (grouped_work_id, identifier_id) VALUES (?, ?)");
-			addPrimaryIdentifierForWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_primary_identifiers (grouped_work_id, type, identifier) VALUES (?, ?, ?)");
+			addPrimaryIdentifierForWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_primary_identifiers (grouped_work_id, type, identifier) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 			removePrimaryIdentifierStmt = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_identifiers WHERE type = ? and identifier = ?");
-//			getRecordWithoutSubfieldStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkTableName + " where title = ? AND author = ? AND grouping_category=? AND subtitle = ''");
-//			getRecordIgnoringSubfieldStmt = dbConnection.prepareStatement("SELECT * FROM " + RecordGrouperMain.groupedWorkTableName + " where title = ? AND author = ? AND grouping_category=?");
+			removeIdentifiersForPrimaryIdentifierStmt = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_to_secondary_id_ref where primary_identifier_id = ?");
+			addPrimaryIdentifierToSecondaryIdentifierRefStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_primary_to_secondary_id_ref (primary_identifier_id, secondary_identifier_id) VALUES (?, ?) ");
 			loadAuthorities();
+			if (!fullRegrouping){
+				PreparedStatement loadExistingGroupedWorksStmt = dbConnection.prepareStatement("SELECT id, permanent_id from grouped_work");
+				ResultSet loadExistingGroupedWorksRS = loadExistingGroupedWorksStmt.executeQuery();
+				while (loadExistingGroupedWorksRS.next()){
+					existingGroupedWorks.put(loadExistingGroupedWorksRS.getString("permanent_id"), loadExistingGroupedWorksRS.getLong("id"));
+				}
+				loadExistingGroupedWorksRS.close();
+				loadExistingGroupedWorksStmt.close();
+			}
 		}catch (Exception e){
 			logger.error("Error setting up prepared statements", e);
 		}
@@ -94,6 +104,14 @@ public class RecordGroupingProcessor {
 		}
 	}
 
+	public static String mapTitleAuthority(String originalTitle){
+		if (titleAuthorities.containsKey(originalTitle)){
+			return titleAuthorities.get(originalTitle);
+		}else{
+			return originalTitle;
+		}
+	}
+
 	private void loadAuthorities() {
 		try {
 			CSVReader csvReader = new CSVReader(new FileReader(new File("./author_authorities.properties")));
@@ -103,13 +121,22 @@ public class RecordGroupingProcessor {
 				curLine = csvReader.readNext();
 			}
 		} catch (IOException e) {
-			logger.error("Unable to load authorities", e);
+			logger.error("Unable to load author authorities", e);
+		}
+		try {
+			CSVReader csvReader = new CSVReader(new FileReader(new File("./title_authorities.properties")));
+			String[] curLine = csvReader.readNext();
+			while (curLine != null){
+				titleAuthorities.put(curLine[0], curLine[1]);
+				curLine = csvReader.readNext();
+			}
+		} catch (IOException e) {
+			logger.error("Unable to load title authorities", e);
 		}
 	}
 
-	private HashSet<RecordIdentifier> getPrimaryIdentifierFromMarcRecord(Record marcRecord){
-		HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
-		String primaryIdentifier = null;
+	private RecordIdentifier getPrimaryIdentifierFromMarcRecord(Record marcRecord){
+		RecordIdentifier identifier = null;
 		List<DataField> field907 = getDataFields(marcRecord, recordNumberTag);
 		//Make sure we only get one ils identifier
 		for (DataField cur907 : field907){
@@ -117,17 +144,15 @@ public class RecordGroupingProcessor {
 			if (subfieldA != null && (recordNumberPrefix.length() == 0 || subfieldA.getData().length() > recordNumberPrefix.length())){
 				if (cur907.getSubfield('a').getData().substring(0,recordNumberPrefix.length()).equals(recordNumberPrefix)){
 					String recordNumber = cur907.getSubfield('a').getData();
-					primaryIdentifier = recordNumber;
+					identifier = new RecordIdentifier();
+					identifier.setValue("ils", recordNumber);
 					break;
 				}
 			}
 		}
 
 		if (useEContentSubfield){
-			//Check to see if the record has eContent and if so create primary identifiers based on the protection type
-			boolean hasEContentFields = false;
 			boolean allItemsOverDrive = true;
-			TreeSet<String> protectionTypes = new TreeSet<String>();
 
 			List<DataField> itemFields = getDataFields(marcRecord, itemTag);
 			for (DataField itemField : itemFields){
@@ -135,15 +160,9 @@ public class RecordGroupingProcessor {
 					//Check the protection types and sources
 					String eContentData = itemField.getSubfield(eContentSubfield).getData();
 					if (eContentData.indexOf(':') >= 0){
-						hasEContentFields = true;
 						String[] eContentFields = eContentData.split(":");
 						String sourceType = eContentFields[0].toLowerCase().trim();
-						String protectionType = eContentFields[1].toLowerCase().trim();
 						if (!sourceType.equals("overdrive")){
-							if (protectionType.equals("public domain")){
-								protectionType = "free";
-							}
-							protectionTypes.add(protectionType);
 							allItemsOverDrive = false;
 						}
 					}else{
@@ -155,31 +174,15 @@ public class RecordGroupingProcessor {
 			}
 			if (allItemsOverDrive){
 				//Don't return a primary identifier for this record (we will suppress the bib and just use OverDrive APIs)
-				return identifiers;
-			}else if (!hasEContentFields){
-				RecordIdentifier identifier = new RecordIdentifier();
-				identifier.setValue("ils", primaryIdentifier);
-				if (identifier.isValid()){
-					identifiers.add(identifier);
-				}
-			}else{
-				for(String protectionType : protectionTypes ){
-					RecordIdentifier identifier = new RecordIdentifier();
-					identifier.setValue(protectionType, primaryIdentifier);
-					if (identifier.isValid()){
-						identifiers.add(identifier);
-					}
-				}
-			}
-		}else{
-			RecordIdentifier identifier = new RecordIdentifier();
-			identifier.setValue("ils", primaryIdentifier);
-			if (identifier.isValid()){
-				identifiers.add(identifier);
+				return null;
 			}
 		}
 
-		return identifiers;
+		if (identifier != null && identifier.isValid()){
+			return identifier;
+		}else{
+			return null;
+		}
 	}
 	private HashSet<RecordIdentifier> getIdentifiersFromMarcRecord(Record marcRecord) {
 		HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
@@ -320,7 +323,7 @@ public class RecordGroupingProcessor {
 		}
 
 		//Identifiers
-		HashSet<RecordIdentifier> primaryIdentifiers = getPrimaryIdentifierFromMarcRecord(marcRecord);
+		RecordIdentifier primaryIdentifier = getPrimaryIdentifierFromMarcRecord(marcRecord);
 		HashSet<RecordIdentifier> identifiers = getIdentifiersFromMarcRecord(marcRecord);
 
 		workForTitle.groupingCategory = groupingFormat;
@@ -328,37 +331,36 @@ public class RecordGroupingProcessor {
 
 		timeSettingUpWork += (new Date().getTime() - start);
 
-		if (primaryIdentifiers.size() > 0){
-			addGroupedWorkToDatabase(primaryIdentifiers, workForTitle);
+		if (primaryIdentifier != null){
+			addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
 		}
 	}
 
-	private void addGroupedWorkToDatabase(HashSet<RecordIdentifier> primaryIdentifiers, GroupedWork groupedWork) {
+	private void addGroupedWorkToDatabase(RecordIdentifier primaryIdentifier, GroupedWork groupedWork) {
 		String groupedWorkPermanentId = groupedWork.getPermanentId();
 		numRecordsProcessed++;
 		long groupedWorkId = -1;
 		try{
 			long start = new Date().getTime();
-			getGroupedWorkStmt.setString(1, groupedWorkPermanentId);
-			ResultSet groupedWorkRS = getGroupedWorkStmt.executeQuery();
-			long end = new Date().getTime();
-			timeInExactMatch += (end - start);
-			if (groupedWorkRS.next()){
+			boolean groupedWorkFound = false;
+			if (existingGroupedWorks.containsKey(groupedWorkPermanentId)){
 				//There is an existing grouped record
-				groupedWorkId = groupedWorkRS.getLong(1);
-				groupedWorkRS.close();
-				numGroupedWorksFoundByExactMatch++;
-			}else{
-				groupedWorkRS.close();
+				groupedWorkId = existingGroupedWorks.get(groupedWorkPermanentId);
 
+				//Mark that the work has been updated
+				markWorkUpdated(groupedWorkId);
+				numGroupedWorksFoundByExactMatch++;
+				groupedWorkFound = true;
+			}
+
+			if (!groupedWorkFound){
 				//Need to insert a new grouped record
 				long startAdd = new Date().getTime();
 				insertGroupedWorkStmt.setString(1, groupedWork.getTitle());
 				insertGroupedWorkStmt.setString(2, groupedWork.getAuthor());
 				insertGroupedWorkStmt.setString(3, groupedWork.groupingCategory);
 				insertGroupedWorkStmt.setString(4, groupedWorkPermanentId);
-
-				//TODO: Add date added and date updated for grouped works
+				insertGroupedWorkStmt.setLong(5, new Date().getTime() / 1000);
 
 				insertGroupedWorkStmt.executeUpdate();
 				ResultSet generatedKeysRS = insertGroupedWorkStmt.getGeneratedKeys();
@@ -369,89 +371,126 @@ public class RecordGroupingProcessor {
 				long endAdd = new Date().getTime();
 				timeAddingRecordsToDatabase += endAdd - startAdd;
 				numGroupedWorksAdded++;
+				existingGroupedWorks.put(groupedWorkPermanentId, groupedWorkId);
 			}
+			long end = new Date().getTime();
+			timeInExactMatch += (end - start);
 
 			//Update identifiers
-			addIdentifiersForRecordToDB(groupedWorkId, groupedWork.identifiers);
-
-			for (RecordIdentifier curIdentifier : primaryIdentifiers){
-				addPrimaryIdentifierForWorkToDB(groupedWorkId, curIdentifier);
-			}
+			addPrimaryIdentifierForWorkToDB(groupedWorkId, primaryIdentifier);
+			addIdentifiersForRecordToDB(groupedWorkId, groupedWork.identifiers, primaryIdentifier);
 		}catch (Exception e){
 			logger.error("Error adding grouped record to grouped work ", e);
 		}
 
 	}
 
-	private void addPrimaryIdentifierForWorkToDB(long groupedWorkId, RecordIdentifier primaryIdentifier) {
-		if (!fullRegrouping){
-			deletePrimaryIdentifier(primaryIdentifier);
+	private void markWorkUpdated(long groupedWorkId) {
+		try{
+			updateDateUpdatedForGroupedWorkStmt.setLong(1, new Date().getTime() / 1000);
+			updateDateUpdatedForGroupedWorkStmt.setLong(2, groupedWorkId);
+			updateDateUpdatedForGroupedWorkStmt.executeUpdate();
+		}catch (Exception e){
+			logger.error("Error updating date updated for grouped work ", e);
 		}
+	}
+
+	private void addPrimaryIdentifierForWorkToDB(long groupedWorkId, RecordIdentifier primaryIdentifier) {
+		deletePrimaryIdentifier(primaryIdentifier);
 
 		try {
 			addPrimaryIdentifierForWorkStmt.setLong(1, groupedWorkId);
 			addPrimaryIdentifierForWorkStmt.setString(2, primaryIdentifier.getType());
 			addPrimaryIdentifierForWorkStmt.setString(3, primaryIdentifier.getIdentifier());
 			addPrimaryIdentifierForWorkStmt.executeUpdate();
+			ResultSet primaryIdentifierRS = addPrimaryIdentifierForWorkStmt.getGeneratedKeys();
+			primaryIdentifierRS.next();
+			primaryIdentifier.setIdentifierId(primaryIdentifierRS.getLong(1));
+			primaryIdentifierRS.close();
 		} catch (SQLException e) {
 			logger.error("Error adding primary identifier to grouped work " + groupedWorkId + " " + primaryIdentifier.toString(), e);
 		}
 	}
 
-	private void addIdentifiersForRecordToDB(long groupedWorkId, HashSet<RecordIdentifier> identifiers) throws SQLException {
+	private void addIdentifiersForRecordToDB(long groupedWorkId, HashSet<RecordIdentifier> identifiers, RecordIdentifier primaryIdentifier) throws SQLException {
 		long start = new Date().getTime();
 
-		//TODO: add a reference between primary identifiers and identifiers.
-		//Cleanup identifiers that no longer have any primary identifiers at the end.
+		//Remove any references to old identifiers
+		removeIdentifiersForPrimaryIdentifier(primaryIdentifier);
 
+		//Cleanup identifiers that no longer have any primary identifiers at the end.
 		for (RecordIdentifier curIdentifier :  identifiers){
 			if (recordIdentifiers.containsKey(curIdentifier.toString())){
 				curIdentifier = recordIdentifiers.get(curIdentifier.toString());
 			} else {
-			  //This is a brand new identifier
-				insertIdentifierStmt.setString(1, curIdentifier.getType());
-				insertIdentifierStmt.setString(2, curIdentifier.getIdentifier());
-				try{
-					insertIdentifierStmt.executeUpdate();
-					ResultSet generatedKeys = insertIdentifierStmt.getGeneratedKeys();
-					generatedKeys.next();
-					long identifierId = generatedKeys.getLong(1);
-					generatedKeys.close();
-					curIdentifier.setIdentifierId(identifierId);
-					if (curIdentifier.isSharedIdentifier()){
-						recordIdentifiers.put(curIdentifier.toString(), curIdentifier);
-					}
-				}catch (SQLException e){
-					if (curIdentifier.getType().equals("ils")){
-						logger.error("Tried to insert a duplicate ils identifier " + curIdentifier.toString());
-					}else{
-						if (fullRegrouping){
-							logger.warn("Tried to insert a duplicate identifier " + curIdentifier.toString());
-						}
-					}
-					//Get the id of the identifier
-					getExistingIdentifierStmt.setString(1, curIdentifier.getType());
-					getExistingIdentifierStmt.setString(2, curIdentifier.getIdentifier());
-					ResultSet identifierIdRs = getExistingIdentifierStmt.executeQuery();
-					if (identifierIdRs.next()){
-						curIdentifier.setIdentifierId(identifierIdRs.getLong(1));
-					}
-				}
+				insertNewSecondaryIdentifier(curIdentifier);
 			}
 			if (!curIdentifier.isLinkedToGroupedWork(groupedWorkId)){
-				//Add the identifier reference
-				try{
-					addIdentifierToGroupedWorkStmt.setLong(1, groupedWorkId);
-					addIdentifierToGroupedWorkStmt.setLong(2, curIdentifier.getIdentifierId());
-					addIdentifierToGroupedWorkStmt.executeUpdate();
-					curIdentifier.addRelatedGroupedWork(groupedWorkId);
-				}catch (SQLException e){
-					logger.error("Error adding identifier " + curIdentifier.getType() + " - " + curIdentifier.getIdentifier() + " identifierId " + curIdentifier.getIdentifierId() + " to grouped work " + groupedWorkId, e);
-				}
+				addSecondaryIdentifierToGroupedWork(groupedWorkId, curIdentifier);
 			}
+			addPrimaryToSecondaryReferences(primaryIdentifier, curIdentifier);
 		}
 		long end = new Date().getTime();
 		timeAddingIdentifiersToDatabase += end - start;
+	}
+
+	private void addPrimaryToSecondaryReferences(RecordIdentifier primaryIdentifier, RecordIdentifier curIdentifier) throws SQLException {
+		//add a reference between the primary identifier and secondary identifiers.
+		addPrimaryIdentifierToSecondaryIdentifierRefStmt.setLong(1, primaryIdentifier.getIdentifierId());
+		addPrimaryIdentifierToSecondaryIdentifierRefStmt.setLong(2, curIdentifier.getIdentifierId());
+		addPrimaryIdentifierToSecondaryIdentifierRefStmt.executeUpdate();
+	}
+
+	private void addSecondaryIdentifierToGroupedWork(long groupedWorkId, RecordIdentifier curIdentifier) {
+		//Add the identifier reference
+		try{
+			addIdentifierToGroupedWorkStmt.setLong(1, groupedWorkId);
+			addIdentifierToGroupedWorkStmt.setLong(2, curIdentifier.getIdentifierId());
+			addIdentifierToGroupedWorkStmt.executeUpdate();
+			curIdentifier.addRelatedGroupedWork(groupedWorkId);
+		}catch (SQLException e){
+			logger.error("Error adding identifier " + curIdentifier.getType() + " - " + curIdentifier.getIdentifier() + " identifierId " + curIdentifier.getIdentifierId() + " to grouped work " + groupedWorkId, e);
+		}
+	}
+
+	private void insertNewSecondaryIdentifier(RecordIdentifier curIdentifier) throws SQLException {
+		//This is a brand new identifier
+		insertIdentifierStmt.setString(1, curIdentifier.getType());
+		insertIdentifierStmt.setString(2, curIdentifier.getIdentifier());
+		try{
+			insertIdentifierStmt.executeUpdate();
+			ResultSet generatedKeys = insertIdentifierStmt.getGeneratedKeys();
+			generatedKeys.next();
+			long identifierId = generatedKeys.getLong(1);
+			generatedKeys.close();
+			curIdentifier.setIdentifierId(identifierId);
+			if (curIdentifier.isSharedIdentifier()){
+				recordIdentifiers.put(curIdentifier.toString(), curIdentifier);
+			}
+		}catch (SQLException e){
+			if (fullRegrouping){
+				logger.warn("Tried to insert a duplicate identifier " + curIdentifier.toString());
+			}
+			//Get the id of the identifier
+			getExistingIdentifierStmt.setString(1, curIdentifier.getType());
+			getExistingIdentifierStmt.setString(2, curIdentifier.getIdentifier());
+			ResultSet identifierIdRs = getExistingIdentifierStmt.executeQuery();
+			if (identifierIdRs.next()){
+				curIdentifier.setIdentifierId(identifierIdRs.getLong(1));
+			}
+			identifierIdRs.close();
+		}
+	}
+
+	private void removeIdentifiersForPrimaryIdentifier(RecordIdentifier primaryIdentifier) {
+		if (!fullRegrouping){
+			try{
+				removeIdentifiersForPrimaryIdentifierStmt.setLong(1, primaryIdentifier.getIdentifierId());
+				removeIdentifiersForPrimaryIdentifierStmt.executeUpdate();
+			} catch (SQLException e) {
+				logger.error("Unable to remove secondary identifiers from primary identifier " + primaryIdentifier.toString() + " id " + primaryIdentifier.getIdentifierId(), e);
+			}
+		}
 	}
 
 	public void processRecord(RecordIdentifier primaryIdentifier, String title, String subtitle, String author, String format, HashSet<RecordIdentifier>identifiers){
@@ -476,9 +515,7 @@ public class RecordGroupingProcessor {
 
 		groupedWork.identifiers = identifiers;
 
-		HashSet<RecordIdentifier> primaryIdentifiers = new HashSet<RecordIdentifier>();
-		primaryIdentifiers.add(primaryIdentifier);
-		addGroupedWorkToDatabase(primaryIdentifiers, groupedWork);
+		addGroupedWorkToDatabase(primaryIdentifier, groupedWork);
 	}
 
 	private String getFormat(Record record) {
@@ -966,11 +1003,16 @@ public class RecordGroupingProcessor {
 	}
 
 	public void deletePrimaryIdentifier(RecordIdentifier primaryIdentifier) {
+		if (fullRegrouping) return;
 		try {
 			//Delete the previous primary identifiers as needed
 			removePrimaryIdentifierStmt.setString(1, primaryIdentifier.getType());
 			removePrimaryIdentifierStmt.setString(2, primaryIdentifier.getIdentifier());
 			removePrimaryIdentifierStmt.executeUpdate();
+
+			//Also remove the links to the secondary identifiers
+			removeIdentifiersForPrimaryIdentifierStmt.setLong(1, primaryIdentifier.getIdentifierId());
+			removeIdentifiersForPrimaryIdentifierStmt.executeUpdate();
 		} catch (SQLException e) {
 			logger.error("Error removing primary identifier from old grouped works " + primaryIdentifier.toString(), e);
 		}

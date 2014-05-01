@@ -87,6 +87,10 @@ public class GroupedWork implements Cloneable{
 		if (distributedByRemovalMatcher.find()){
 			groupingAuthor = distributedByRemovalMatcher.group(1);
 		}
+		//Remove md if the author ends with md
+		if (groupingAuthor.endsWith(" md")){
+			groupingAuthor = groupingAuthor.substring(0, groupingAuthor.length() - 3);
+		}
 
 		if (groupingAuthor.length() > 50){
 			groupingAuthor = groupingAuthor.substring(0, 50);
@@ -97,7 +101,17 @@ public class GroupedWork implements Cloneable{
 		return groupingAuthor;
 	}
 
-	static Pattern commonSubtitlesPattern = Pattern.compile("^(.*?)((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|an? .* story|a .*\\s?book|poems|the movie|[\\w\\s]+series book \\d+|[\\w\\s]+trilogy book \\d+)$");
+	static Pattern commonSubtitlesPattern = Pattern.compile("^(.*?)((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|an? .* story|a .*\\s?book|poems|the movie|[\\w\\s]+series book \\d+|[\\w\\s]+trilogy book \\d+|large print)$");
+	static Pattern firstPattern = Pattern.compile("1st");
+	static Pattern secondPattern = Pattern.compile("2nd");
+	static Pattern thirdPattern = Pattern.compile("3rd");
+	static Pattern fourthPattern = Pattern.compile("4th");
+	static Pattern fifthPattern = Pattern.compile("5th");
+	static Pattern sixthPattern = Pattern.compile("6th");
+	static Pattern seventhPattern = Pattern.compile("7th");
+	static Pattern eighthPattern = Pattern.compile("8th");
+	static Pattern ninthPattern = Pattern.compile("9th");
+	static Pattern tenthPattern = Pattern.compile("10th");
 	private String normalizeSubtitle(String originalTitle) {
 		if (originalTitle.length() > 0){
 			String groupingSubtitle = originalTitle.replaceAll("&#8211;", "-");
@@ -116,16 +130,16 @@ public class GroupedWork implements Cloneable{
 			}
 
 			//Normalize numeric titles
-			groupingSubtitle = groupingSubtitle.replace("1st", "first");
-			groupingSubtitle = groupingSubtitle.replace("2nd", "second");
-			groupingSubtitle = groupingSubtitle.replace("3rd", "third");
-			groupingSubtitle = groupingSubtitle.replace("4th", "fourth");
-			groupingSubtitle = groupingSubtitle.replace("5th", "fifth");
-			groupingSubtitle = groupingSubtitle.replace("6th", "sixth");
-			groupingSubtitle = groupingSubtitle.replace("7th", "seventh");
-			groupingSubtitle = groupingSubtitle.replace("8th", "eighth");
-			groupingSubtitle = groupingSubtitle.replace("9th", "ninth");
-			groupingSubtitle = groupingSubtitle.replace("10th", "tenth");
+			groupingSubtitle = firstPattern.matcher(groupingSubtitle).replaceAll("first");
+			groupingSubtitle = secondPattern.matcher(groupingSubtitle).replaceAll("second");
+			groupingSubtitle = thirdPattern.matcher(groupingSubtitle).replaceAll("third");
+			groupingSubtitle = fourthPattern.matcher(groupingSubtitle).replaceAll("fourth");
+			groupingSubtitle = fifthPattern.matcher(groupingSubtitle).replaceAll("fifth");
+			groupingSubtitle = sixthPattern.matcher(groupingSubtitle).replaceAll("sixth");
+			groupingSubtitle = seventhPattern.matcher(groupingSubtitle).replaceAll("seventh");
+			groupingSubtitle = eighthPattern.matcher(groupingSubtitle).replaceAll("eighth");
+			groupingSubtitle = ninthPattern.matcher(groupingSubtitle).replaceAll("ninth");
+			groupingSubtitle = tenthPattern.matcher(groupingSubtitle).replaceAll("tenth");
 
 			if (groupingSubtitle.length() > 175){
 				groupingSubtitle = groupingSubtitle.substring(0, 175);
@@ -206,7 +220,7 @@ public class GroupedWork implements Cloneable{
 				title += " " + subtitle;
 			}
 		}
-		this.fullTitle = title.trim();
+		this.fullTitle = RecordGroupingProcessor.mapTitleAuthority(title.trim());
 	}
 
 	public String getAuthor() {

@@ -23,7 +23,7 @@ public class RecordIdentifier {
 	private String myString = null;
 	public String toString(){
 		if (myString == null){
-			myString = new StringBuilder(type).append(":").append(identifier.toUpperCase()).toString();
+			myString = type + ":" + identifier.toUpperCase();
 		}
 		return myString;
 	}
@@ -43,12 +43,12 @@ public class RecordIdentifier {
 	}
 
 	public boolean isValid() {
-		if (type.equals("upc")){
+		if (type.equals("publishercatalognumber") || type.equals("doi") || type.equals("asin")){
+			return false;
+		}else if (type.equals("upc")){
 			return identifier.matches("^\\d{7,14}?$");
 		}else if (type.equals("isbn") || type.equals("upc")){
 			return identifier.matches("^\\d{9}X|\\d{10}|\\d{12}X|\\d{13}$");
-		}else if (type.equals("publishercatalognumber") || type.equals("doi")){
-			return false;
 		}else{
 			return identifier.length() > 0;
 		}
