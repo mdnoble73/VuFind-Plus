@@ -1,7 +1,10 @@
 package org.vufind;
 
 import java.io.*;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 import au.com.bytecode.opencsv.CSVWriter;
@@ -10,10 +13,13 @@ import org.apache.log4j.PropertyConfigurator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
-import org.marc4j.MarcStreamWriter;
-import org.marc4j.MarcWriter;
-import org.marc4j.marc.*;
-import org.marc4j.marc.impl.*;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * Export data to
@@ -45,221 +51,38 @@ public class SierraExportMain{
 			exportPath = exportPath.substring(1, exportPath.length() - 1);
 		}
 
-		//Connect to the database
+		//Connect to the vufind database
+		Connection vufindConn = null;
+		try{
+			String databaseConnectionInfo = cleanIniValue(ini.get("Database", "database_vufind_jdbc"));
+			vufindConn = DriverManager.getConnection(databaseConnectionInfo);
+		}catch (Exception e){
+			System.out.println("Error connecting to vufind database " + e.toString());
+			System.exit(1);
+		}
+
+		//Connect to the sierra database
 		String url = ini.get("Catalog", "sierra_db");
 		if (url.startsWith("\"")){
 			url = url.substring(1, url.length() - 1);
 		}
 		Connection conn = null;
-		int numRecordsRead = 0;
 		try{
 			//Open the connection to the database
 			conn = DriverManager.getConnection(url);
 
+			exportActiveOrders(exportPath, conn);
 
-			boolean exportRecords = false;
-			if (exportRecords){
-				logger.info("Starting export of records");
-				//Create a file to hold the results
-				File outputFile = new File(exportPath + "/exported_marcs.mrc");
-				MarcWriter marcWriter = new MarcStreamWriter(new FileOutputStream(outputFile));
+			exportAvailability(exportPath, conn);
 
-				PreparedStatement loadAllRecordsStmt = conn.prepareStatement("SELECT id from sierra_view.bib_record where is_suppressed = 'f' limit 10000;",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				PreparedStatement loadLeaderStmt = conn.prepareStatement("SELECT * from sierra_view.leader_field where record_id=?;",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE);
-				PreparedStatement loadVarFieldsStmt = conn.prepareStatement("SELECT * from sierra_view.varfield_view where record_id=? order by marc_tag, occ_num;");
-				PreparedStatement loadItemsStmt = conn.prepareStatement("SELECT * from sierra_view.item_view where sierra_view.item_view.id in (SELECT item_record_id from sierra_view.bib_record_item_record_link where bib_record_id =?)");
-				ResultSet allRecords = loadAllRecordsStmt.executeQuery();
-				MarcFactory marcFactory = MarcFactoryImpl.newInstance();
-				int totalRecords = 1616273;
-				while (allRecords.next()){
-					Record marcRecord = marcFactory.newRecord();
-					Long curId = allRecords.getLong("id");
-					//String recordNumber = allRecords.getString("record_num");
-					//System.out.println("Processing record " + curId);
-
-					//Setup the leader
-					loadLeaderStmt.setLong(1, curId);
-					ResultSet leaderData = loadLeaderStmt.executeQuery();
-					Leader leader = marcRecord.getLeader();
-					marcRecord.setLeader(leader);
-					if (leaderData.next()){
-						char recordStatusCode = leaderData.getString("record_status_code").length() == 1  ? leaderData.getString("record_status_code").charAt(0) : ' ';
-						leader.setRecordStatus(recordStatusCode);
-						leader.setTypeOfRecord(leaderData.getString("record_type_code").charAt(0));
-						leader.setImplDefined1(new char[]{leaderData.getString("bib_level_code").charAt(0), leaderData.getString("control_type_code").charAt(0)});
-						leader.setCharCodingScheme(leaderData.getString("char_encoding_scheme_code").charAt(0));
-						leader.setImplDefined2(new char[]{leaderData.getString("encoding_level_code").charAt(0), leaderData.getString("descriptive_cat_form_code").charAt(0), leaderData.getString("multipart_level_code").charAt(0)});
-					}else{
-						System.out.println("  Warning, no leader data found for record " + curId);
-						continue;
-					}
-
-					//Setup fields
-					loadVarFieldsStmt.setLong(1, curId);
-					ResultSet subfields = loadVarFieldsStmt.executeQuery();
-					DataField curField = null;
-					while (subfields.next()){
-						String marcTag = subfields.getString("marc_tag");
-						if (marcTag == null || marcTag.length() == 0){
-							continue;
-						}
-						int occurrence = subfields.getInt("occ_num");
-						int tagNum = Integer.parseInt(marcTag);
-						if (tagNum < 10){
-							ControlField controlField = marcFactory.newControlField(marcTag, subfields.getString("field_content"));
-							marcRecord.addVariableField(controlField);
-						}else{
-							//Changed field, create a new one.
-							char indicator1 = subfields.getString("marc_ind1").charAt(0);
-							if (indicator1 == '\\'){
-								indicator1 = ' ';
-							}
-							char indicator2 = subfields.getString("marc_ind2").charAt(0);
-							if (indicator2 == '\\'){
-								indicator2 = ' ';
-							}
-							DataField dataField = marcFactory.newDataField(marcTag, indicator1, indicator2);
-							marcRecord.addVariableField(dataField);
-							String content = subfields.getString("field_content");
-							String[] fields = content.split("\\|");
-							for (String field : fields){
-								if (field.length() >= 1){
-									char tag = field.charAt(0);
-									dataField.addSubfield(new SubfieldImpl(tag, field.substring(1)));
-								}
-							}
-						}
-					}
-
-					//Export items
-					loadItemsStmt.setLong(1, curId);
-					ResultSet items = loadItemsStmt.executeQuery();
-					int numItems = 0;
-					while (items.next()){
-						//System.out.println("    Processing item " + items.getLong("id"));
-						//Create 989 subfields for each item
-						DataField itemField = marcFactory.newDataField("989", ' ', ' ');
-						marcRecord.addVariableField(itemField);
-						String barcode = items.getString("barcode");
-						if (barcode != null && barcode.length() > 0){
-							itemField.addSubfield(new SubfieldImpl('b', items.getString("barcode")));
-						}
-						itemField.addSubfield(new SubfieldImpl('d', items.getString("location_code")));
-						itemField.addSubfield(new SubfieldImpl('j', items.getString("itype_code_num")));
-						itemField.addSubfield(new SubfieldImpl('g', items.getString("item_status_code")));
-						itemField.addSubfield(new SubfieldImpl('h', items.getString("checkout_total")));
-						itemField.addSubfield(new SubfieldImpl('i', items.getString("renewal_total")));
-						//Get additional data
-						Long itemId = items.getLong("id");
-
-						//loadSubfieldsStmt.setLong(1, itemId);
-						//subfields = loadSubfieldsStmt.executeQuery();
-						//while (subfields.next()){
-						//	String marcTag = subfields.getString("marc_tag");
-						//	String tag = subfields.getString("tag");
-						//	String content = subfields.getString("content");
-						//	System.out.println("      " + marcTag + "|" + tag + " " + content);
-						//}
-
-						numItems++;
-					}
-					//System.out.println("  Found " + numItems + " items");
-
-					numRecordsRead++;
-					//Write the record
-					marcWriter.write(marcRecord);
-					if (numRecordsRead % 1000 == 0){
-						Date curDate = new Date();
-						long elapsedTime = curDate.getTime() - startTime.getTime();
-						long predictedFinish = elapsedTime * totalRecords / numRecordsRead ;
-						double predictedFinishHours = (double)predictedFinish / (double)(1000 * 60 * 60);
-						Date finishTime = new Date();
-						finishTime.setTime(predictedFinish + startTime.getTime());
-						System.out.println("Read " + numRecordsRead + " in " + (elapsedTime / 1000) + " seconds predicted total run time for " + totalRecords + " is " + String.format("%.2f", predictedFinishHours) + " hours");
-					}
-				}
-			}
-
-			boolean exportActiveOrders = true;
-			if (exportActiveOrders){
-				logger.info("Starting export of active orders");
-				PreparedStatement getActiveOrdersStmt = conn.prepareStatement("select bib_view.record_num as bib_record_num, order_view.record_num as order_record_num, accounting_unit_code_num, order_status_code \n" +
-						"from sierra_view.order_view " +
-						"inner join sierra_view.bib_record_order_record_link on bib_record_order_record_link.order_record_id = order_view.record_id " +
-						"inner join sierra_view.bib_view on sierra_view.bib_view.id = bib_record_order_record_link.bib_record_id " +
-						"where order_status_code = 'o' or order_status_code = '1' and order_view.is_suppressed = 'f' ");
-				ResultSet activeOrdersRS = null;
-				boolean loadError = false;
-				try{
-					activeOrdersRS = getActiveOrdersStmt.executeQuery();
-				} catch (SQLException e1){
-					logger.error("Error loading active orders", e1);
-					loadError = true;
-				}
-				if (!loadError){
-					File orderRecordFile = new File(exportPath + "/active_orders.csv");
-					CSVWriter orderRecordWriter = new CSVWriter(new FileWriter(orderRecordFile));
-					orderRecordWriter.writeAll(activeOrdersRS, true);
-					orderRecordWriter.close();
-					activeOrdersRS.close();
-				}
-			}
-
-			boolean exportAvailableItems = true;
-			if (exportAvailableItems){
-				logger.info("Starting export of available items");
-				PreparedStatement getAvailableItemsStmt = conn.prepareStatement("SELECT barcode " +
-						"from sierra_view.item_view " +
-						//"left join sierra_view.checkout on sierra_view.item_view.id = sierra_view.checkout.item_record_id " +
-						"WHERE " +
-						"item_status_code IN ('-', 'o', 'd', 'w', 'j', 'u') " +
-						"AND icode2 != 'n' AND icode2 != 'x' " +
-						"AND is_suppressed = 'f' " +
-						"AND BARCODE != ''"
-						//"AND patron_record_id = null"
-				);
-				ResultSet activeOrdersRS = null;
-				boolean loadError = false;
-				try{
-					activeOrdersRS = getAvailableItemsStmt.executeQuery();
-				}catch (SQLException e1){
-					logger.error("Error loading available items", e1);
-					loadError = true;
-				}
-				if (!loadError){
-					File availableItemsFile = new File(exportPath + "/available_items.csv");
-					CSVWriter availableItemWriter = new CSVWriter(new FileWriter(availableItemsFile));
-					availableItemWriter.writeAll(activeOrdersRS, false);
-					availableItemWriter.close();
-					activeOrdersRS.close();
-				}
-
-				//Also export items with checkouts
-				logger.info("Starting export of checkouts");
-				PreparedStatement allCheckoutsStmt = conn.prepareStatement("SELECT barcode " +
-						"FROM sierra_view.checkout " +
-						"INNER JOIN sierra_view.item_view on item_view.id = checkout.item_record_id"
-				);
-				ResultSet checkoutsRS = null;
-				loadError = false;
-				try{
-					checkoutsRS = allCheckoutsStmt.executeQuery();
-				}catch (SQLException e1){
-					logger.error("Error loading checkouts", e1);
-					loadError = true;
-				}
-				if (!loadError){
-					File checkoutsFile = new File(exportPath + "/checkouts.csv");
-					CSVWriter checkoutsWriter = new CSVWriter(new FileWriter(checkoutsFile));
-					checkoutsWriter.writeAll(checkoutsRS, false);
-					checkoutsWriter.close();
-					checkoutsRS.close();
-				}
-			}
 		}catch(Exception e){
 			System.out.println("Error: " + e.toString());
 			e.printStackTrace();
 		}
+
+		//Get a list of works that have changed since the last index
+		getChangedRecordsFromApi(ini, vufindConn);
+
 		if (conn != null){
 			try{
 				//Close the connection
@@ -269,8 +92,162 @@ public class SierraExportMain{
 				e.printStackTrace();
 			}
 		}
+
+		if (vufindConn != null){
+			try{
+				//Close the connection
+				vufindConn.close();
+			}catch(Exception e){
+				System.out.println("Error closing connection: " + e.toString());
+				e.printStackTrace();
+			}
+		}
 		Date currentTime = new Date();
 		logger.info(currentTime.toString() + ": Finished Sierra Extract");
+	}
+
+	private static void getChangedRecordsFromApi(Ini ini, Connection vufindConn) {
+		//Get the time the last extract was done
+		try{
+			logger.debug("Starting to load changed records from Sierra using the API");
+			Long lastSierraExtractTime = null;
+			Long lastSierraExtractTimeVariableId = null;
+			PreparedStatement loadLastSierraExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_sierra_extract_time'");
+			ResultSet lastSierraExtractTimeRS = loadLastSierraExtractTimeStmt.executeQuery();
+			if (lastSierraExtractTimeRS.next()){
+				lastSierraExtractTime = lastSierraExtractTimeRS.getLong("value");
+				lastSierraExtractTimeVariableId = lastSierraExtractTimeRS.getLong("id");
+			}
+
+			//Only mark records as changed
+			if (lastSierraExtractTime != null){
+				//TODO:: Test this after the API is installed
+				String apiVersion = cleanIniValue(ini.get("Catalog", "api_version"));
+				if (apiVersion == null || apiVersion.length() == 0){
+					return;
+				}
+				String apiBaseUrl = ini.get("Catalog", "url") + "/iii/sierra-api/v" + apiVersion;
+
+				SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+				String dateUpdated = dateFormatter.format(new Date(lastSierraExtractTime * 1000));
+				long updateTime = new Date().getTime() / 1000;
+
+				//Extract the ids of all records that have changed.  That will allow us to mark
+				//That the grouped record has changed which will force the work to be indexed
+				//In reality, this will only update availability unless we pull the full marc record
+				//from the API since we only have updated availability, not location data or metadata
+				PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
+				JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/?updatedDate=[" + dateUpdated + ",]&limit=2000&fields=id&deleted=false&suppressed=false");
+				if (changedRecords != null && changedRecords.has("entries")){
+					JSONArray changedIds = changedRecords.getJSONArray("entries");
+					for(int i = 0; i < changedIds.length(); i++){
+						String curId = changedIds.getString(i);
+						String fullId = ".b" + curId + getCheckDigit(curId);
+						markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
+						markGroupedWorkForBibAsChangedStmt.setString(2, fullId);
+						markGroupedWorkForBibAsChangedStmt.executeUpdate();
+
+						//TODO: Determine if it is worth forming a full MARC record for ouput to the marc_recs folder
+					}
+				}
+
+				//TODO: Process deleted records as well
+			}
+
+			//Update the last extract time
+			Long finishTime = new Date().getTime() / 1000;
+			if (lastSierraExtractTimeVariableId != null){
+				PreparedStatement updateVariableStmt  = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
+				updateVariableStmt.setLong(1, finishTime);
+				updateVariableStmt.setLong(2, lastSierraExtractTimeVariableId);
+				updateVariableStmt.executeUpdate();
+				updateVariableStmt.close();
+			} else{
+				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_sierra_extract_time', ?)");
+				insertVariableStmt.setString(1, Long.toString(finishTime));
+				insertVariableStmt.executeUpdate();
+				insertVariableStmt.close();
+			}
+
+		} catch (Exception e){
+			logger.error("Error loading changed records from Sierra API", e);
+			System.exit(1);
+		}
+	}
+
+	private static void exportAvailability(String exportPath, Connection conn) throws SQLException, IOException {
+		logger.info("Starting export of available items");
+		PreparedStatement getAvailableItemsStmt = conn.prepareStatement("SELECT barcode " +
+				"from sierra_view.item_view " +
+				//"left join sierra_view.checkout on sierra_view.item_view.id = sierra_view.checkout.item_record_id " +
+				"WHERE " +
+				"item_status_code IN ('-', 'o', 'd', 'w', 'j', 'u') " +
+				"AND icode2 != 'n' AND icode2 != 'x' " +
+				"AND is_suppressed = 'f' " +
+				"AND BARCODE != ''"
+				//"AND patron_record_id = null"
+		);
+		ResultSet activeOrdersRS = null;
+		boolean loadError = false;
+		try{
+			activeOrdersRS = getAvailableItemsStmt.executeQuery();
+		}catch (SQLException e1){
+			logger.error("Error loading available items", e1);
+			loadError = true;
+		}
+		if (!loadError){
+			File availableItemsFile = new File(exportPath + "/available_items.csv");
+			CSVWriter availableItemWriter = new CSVWriter(new FileWriter(availableItemsFile));
+			availableItemWriter.writeAll(activeOrdersRS, false);
+			availableItemWriter.close();
+			activeOrdersRS.close();
+		}
+
+		//Also export items with checkouts
+		logger.info("Starting export of checkouts");
+		PreparedStatement allCheckoutsStmt = conn.prepareStatement("SELECT barcode " +
+				"FROM sierra_view.checkout " +
+				"INNER JOIN sierra_view.item_view on item_view.id = checkout.item_record_id"
+		);
+		ResultSet checkoutsRS = null;
+		loadError = false;
+		try{
+			checkoutsRS = allCheckoutsStmt.executeQuery();
+		}catch (SQLException e1){
+			logger.error("Error loading checkouts", e1);
+			loadError = true;
+		}
+		if (!loadError){
+			File checkoutsFile = new File(exportPath + "/checkouts.csv");
+			CSVWriter checkoutsWriter = new CSVWriter(new FileWriter(checkoutsFile));
+			checkoutsWriter.writeAll(checkoutsRS, false);
+			checkoutsWriter.close();
+			checkoutsRS.close();
+		}
+	}
+
+	private static void exportActiveOrders(String exportPath, Connection conn) throws SQLException, IOException {
+		logger.info("Starting export of active orders");
+		PreparedStatement getActiveOrdersStmt = conn.prepareStatement("select bib_view.record_num as bib_record_num, order_view.record_num as order_record_num, accounting_unit_code_num, order_status_code \n" +
+				"from sierra_view.order_view " +
+				"inner join sierra_view.bib_record_order_record_link on bib_record_order_record_link.order_record_id = order_view.record_id " +
+				"inner join sierra_view.bib_view on sierra_view.bib_view.id = bib_record_order_record_link.bib_record_id " +
+				"where order_status_code = 'o' or order_status_code = '1' and order_view.is_suppressed = 'f' ");
+		ResultSet activeOrdersRS = null;
+		boolean loadError = false;
+		try{
+			activeOrdersRS = getActiveOrdersStmt.executeQuery();
+		} catch (SQLException e1){
+			logger.error("Error loading active orders", e1);
+			loadError = true;
+		}
+		if (!loadError){
+			File orderRecordFile = new File(exportPath + "/active_orders.csv");
+			CSVWriter orderRecordWriter = new CSVWriter(new FileWriter(orderRecordFile));
+			orderRecordWriter.writeAll(activeOrdersRS, true);
+			orderRecordWriter.close();
+			activeOrdersRS.close();
+		}
 	}
 
 	private static Ini loadConfigFile(String filename){
@@ -333,5 +310,172 @@ public class SierraExportMain{
 		}
 
 		return ini;
+	}
+
+	public static String cleanIniValue(String value) {
+		if (value == null) {
+			return null;
+		}
+		value = value.trim();
+		if (value.startsWith("\"")) {
+			value = value.substring(1);
+		}
+		if (value.endsWith("\"")) {
+			value = value.substring(0, value.length() - 1);
+		}
+		return value;
+	}
+
+	private static String sierraAPIToken;
+	private static String sierraAPITokenType;
+	private static long sierraAPIExpiration;
+	private static boolean connectToSierraAPI(Ini configIni, String baseUrl){
+		//Check to see if we already have a valid token
+		if (sierraAPIToken != null){
+			if (sierraAPIExpiration - new Date().getTime() > 0){
+				//logger.debug("token is still valid");
+				return true;
+			}else{
+				logger.debug("Token has exipred");
+			}
+		}
+		//Connect to the API to get our token
+		HttpURLConnection conn;
+		try {
+			URL emptyIndexURL = new URL(baseUrl + "/token");
+			conn = (HttpURLConnection) emptyIndexURL.openConnection();
+			if (conn instanceof HttpsURLConnection){
+				HttpsURLConnection sslConn = (HttpsURLConnection)conn;
+				sslConn.setHostnameVerifier(new HostnameVerifier() {
+
+					@Override
+					public boolean verify(String hostname, SSLSession session) {
+						//Do not verify host names
+						return true;
+					}
+				});
+			}
+			conn.setRequestMethod("POST");
+			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
+			String clientKey = cleanIniValue(configIni.get("Catalog", "clientKey"));
+			String clientSecret = cleanIniValue(configIni.get("Catalog", "clientSecret"));
+			String encoded = Base64.encodeBase64String((clientKey + ":" + clientSecret).getBytes());
+			conn.setRequestProperty("Authorization", "Basic "+encoded);
+			conn.setDoOutput(true);
+			OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream(), "UTF8");
+			wr.write("grant_type=client_credentials");
+			wr.flush();
+			wr.close();
+
+			StringBuilder response = new StringBuilder();
+			if (conn.getResponseCode() == 200) {
+				// Get the response
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+				String line;
+				while ((line = rd.readLine()) != null) {
+					response.append(line);
+				}
+				rd.close();
+				JSONObject parser = new JSONObject(response.toString());
+				sierraAPIToken = parser.getString("access_token");
+				sierraAPITokenType = parser.getString("token_type");
+				logger.debug("Token expires at " + parser.getLong("expires_in"));
+				sierraAPIExpiration = new Date().getTime() + (parser.getLong("expires_in") * 1000) - 10000;
+				//logger.debug("OverDrive token is " + sierraAPIToken);
+			} else {
+				logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive authentication service" );
+				// Get any errors
+				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+				String line;
+				while ((line = rd.readLine()) != null) {
+					response.append(line);
+				}
+				logger.debug("  Finished reading response\r\n" + response);
+
+				rd.close();
+				return false;
+			}
+
+		} catch (Exception e) {
+			logger.error("Error connecting to overdrive API", e );
+			return false;
+		}
+		return true;
+	}
+
+	private static JSONObject callSierraApiURL(Ini configIni, String baseUrl, String overdriveUrl) {
+		if (connectToSierraAPI(configIni, baseUrl)){
+			//Connect to the API to get our token
+			HttpURLConnection conn;
+			try {
+				URL emptyIndexURL = new URL(overdriveUrl);
+				conn = (HttpURLConnection) emptyIndexURL.openConnection();
+				if (conn instanceof HttpsURLConnection){
+					HttpsURLConnection sslConn = (HttpsURLConnection)conn;
+					sslConn.setHostnameVerifier(new HostnameVerifier() {
+
+						@Override
+						public boolean verify(String hostname, SSLSession session) {
+							//Do not verify host names
+							return true;
+						}
+					});
+				}
+				conn.setRequestMethod("GET");
+				conn.setRequestProperty("Authorization", sierraAPITokenType + " " + sierraAPIToken);
+
+				StringBuilder response = new StringBuilder();
+				if (conn.getResponseCode() == 200) {
+					// Get the response
+					BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+					String line;
+					while ((line = rd.readLine()) != null) {
+						response.append(line);
+					}
+					//logger.debug("  Finished reading response");
+					rd.close();
+					return new JSONObject(response.toString());
+				} else {
+					logger.error("Received error " + conn.getResponseCode() + " connecting to sierra API");
+					// Get any errors
+					BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+					String line;
+					while ((line = rd.readLine()) != null) {
+						response.append(line);
+					}
+					logger.debug("  Finished reading response");
+					logger.debug(response.toString());
+
+					rd.close();
+				}
+
+			} catch (Exception e) {
+				logger.debug("Error loading data from overdrive API ", e );
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Calculates a check digit for a III identifier
+	 * @param basedId String the base id without checksum
+	 * @return String the check digit
+	 */
+	public static String getCheckDigit(String basedId) {
+		if (basedId.length() != 7){
+			return "a";
+		}else{
+			int sumOfDigits = 0;
+			for (int i = 0; i < 7; i++){
+				sumOfDigits += (8 - i) * Integer.parseInt(basedId.substring(i, i+1));
+			}
+			int modValue = sumOfDigits % 11;
+			if (modValue == 10){
+				return "x";
+			}else{
+				return Integer.toString(modValue);
+			}
+		}
+
 	}
 }
