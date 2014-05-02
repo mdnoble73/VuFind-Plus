@@ -119,6 +119,7 @@ margin-left: 5px;
 
 #loginBlock{position:relative;top:0;right:0;z-index:99;min-width:300px;-webkit-border-bottom-left-radius:10px;-khtml-border-radius-bottomleft:10px;-moz-border-radius-bottomleft:10px;border-bottom-left-radius:10px;display:inline-block;}#loginOptions{}
 #headerLinksTopBar{background:#eee;width:950px;margin-bottom:5px;padding:5px;}.feedbackBlock{width:300px;float:left;} #languageBlock{position:relative;top:0;right:0;}.languageLink{position:relative;padding-top:0px;font-size:100%}.languageLink{margin-left:5px;text-decoration:none;float:right;}.languageLink.selected{font-weight:bold}
+.grayUnavailalbeMessage {color:#747474;}
 
 
 
