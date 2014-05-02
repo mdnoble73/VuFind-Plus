@@ -48,7 +48,10 @@
 			{if !$inLibrary}
 			<div id ='loginPasswordRow3' class='loginFormRow'>
 				<div class='loginLabel'>&nbsp;</div>
-				<div class='loginField'><input type="checkbox" id="rememberMe" name="rememberMe" checked="checked" /><label for="rememberMe">{translate text="Remember Me"}</label></div>
+			<!--
+                        <input type="checkbox" id="rememberMe" name="rememberMe" checked="checked" /><label for="rememberMe">{translate text="Remember Me"}</label>
+						-->
+                        <div class='grayUnavailalbeMessage'>Remember me currently unavailable</div>
 			</div>
 			{/if}                
 			<div id='loginSubmitButtonRow' class='loginFormRow'>
