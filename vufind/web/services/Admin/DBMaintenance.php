@@ -82,7 +82,6 @@ class DBMaintenance extends Admin_Admin {
 		global $configArray;
 
 		return array(
-
 				'roles_1' => array(
 						'title' => 'Roles 1',
 						'description' => 'Add new role for epubAdmin',
@@ -321,15 +320,6 @@ class DBMaintenance extends Admin_Admin {
 								"ALTER TABLE `library` ADD `eContentSupportAddress` VARCHAR(256) DEFAULT 'askmarmot@marmot.org';",
 						),
 				),
-
-			/*'library_27' => array(
-				'title' => 'Library 27',
-				'description' => 'Remove showOtherFormatCategory.',
-				'continueOnError' => true,
-				'sql' => array(
-					"ALTER TABLE `library` DROP `showOtherFormatCategory`;",
-				),
-			),*/
 
 				'library_28' => array(
 						'title' => 'Library 28',
@@ -1066,25 +1056,6 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
-			/*'usage_tracking' => array(
-				'title' => 'Create Usage Tracking Table',
-				'description' => 'Create aggregate page view tracking table',
-				'sql' => array(
-					'CREATE TABLE IF NOT EXISTS usage_tracking (' .
-					'usageId int(11) NOT NULL AUTO_INCREMENT, '.
-					'ipId INT NOT NULL, ' .
-					'locationId INT NOT NULL, ' .
-					'numPageViews INT NOT NULL DEFAULT "0", ' .
-					'numHolds INT NOT NULL DEFAULT "0", ' .
-					'numRenewals INT NOT NULL DEFAULT "0", ' .
-					"trackingDate BIGINT NOT NULL, ".
-					'PRIMARY KEY (usageId) '.
-					') ENGINE=InnoDB',
-
-					'ALTER TABLE usage_tracking ADD INDEX ( `usageId` )',
-				),
-			),*/
-
 				'resource_update_table' => array(
 						'title' => 'Update resource table',
 						'description' => 'Update resource tracking table to include additional information resources for sorting',
@@ -1164,34 +1135,6 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
-			/*'resource_update9' => array(
-				'title' => 'Update resource 9',
-				'description' => 'Updates resources to use MyISAM rather than INNODB for . ',
-				'sql' => array(
-					//"UPDATE resource set marc = null, marc_checksum = -1;",
-					"ALTER TABLE resource_callnumber ENGINE = MYISAM",
-					"ALTER TABLE resource_subject ENGINE = MYISAM",
-					"ALTER TABLE `resource_callnumber` CHANGE `callnumber` `callnumber` VARCHAR( 50 ) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT ''",
-				),
-			),
-
-			'resource_callnumber' => array(
-				'title' => 'Resource call numbers',
-				'description' => 'Build table to store call numbers for resources',
-				'sql' => array(
-					'CREATE TABLE IF NOT EXISTS resource_callnumber (' .
-					'id int(11) NOT NULL AUTO_INCREMENT, '.
-					'resourceId INT NOT NULL, ' .
-					'locationId INT NOT NULL, ' .
-					'callnumber VARCHAR(50) NOT NULL DEFAULT "", ' .
-					'PRIMARY KEY (id), '.
-					'INDEX (`callnumber`), ' .
-					'INDEX (`resourceId`), ' .
-					'INDEX (`locationId`)' .
-					') ENGINE=InnoDB',
-				),
-			),*/
-
 				'resource_subject' => array(
 						'title' => 'Resource subject',
 						'description' => 'Build table to store subjects for resources',
@@ -1213,14 +1156,6 @@ class DBMaintenance extends Admin_Admin {
 								') ENGINE=InnoDB',
 						),
 				),
-
-			/*'resource_subject_1' => array(
-				'title' => 'Resource subject update 1',
-				'description' => 'Increase the length of the subject column',
-				'sql' => array(
-					'ALTER TABLE subject CHANGE subject subject VARCHAR(512) NOT NULL'
-				),
-			),*/
 
 				'readingHistory' => array(
 						'title' => 'Reading History Creation',
@@ -1520,15 +1455,6 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
-			/*'indexUsageTracking' => array(
-				'title' => 'Index Usage Tracking',
-				'description' => 'Update Usage Tracking to include index based on ip and tracking date',
-				'continueOnError' => true,
-				'sql' => array(
-					"ALTER TABLE `usage_tracking` ADD INDEX `IP_DATE` ( `ipId` , `trackingDate` )",
-				),
-			),*/
-
 				'merged_records' => array(
 						'title' => 'Merged Records Table',
 						'description' => 'Create Merged Records table to store ',
@@ -1606,7 +1532,6 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
-			/* This routine completely changed, removing alpha_browse_setup since alpha_browse_setup_1 complete redoes the tables */
 				'alpha_browse_setup_2' => array(
 						'title' => 'Setup Alphabetic Browse',
 						'description' => 'Build tables to handle alphabetic browse functionality.',
@@ -1620,15 +1545,6 @@ class DBMaintenance extends Admin_Admin {
 								INDEX ( `sortValue` ),
 								UNIQUE (`value`)
 								) ENGINE = MYISAM;",
-							/*"DROP TABLE IF EXISTS `title_browse_scoped_results`",
-							"CREATE TABLE `title_browse_scoped_results`(
-								`browseValueId` INT(11) NOT NULL,
-								`scope` TINYINT NOT NULL,
-								`scopeId` INT(11) NOT NULL,
-								`record` VARCHAR( 50 ) NOT NULL,
-							PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
-							INDEX (`scopeId`)
-							) ENGINE = MYISAM",*/
 
 								"DROP TABLE IF EXISTS `author_browse`",
 								"CREATE TABLE `author_browse` (
@@ -1639,15 +1555,6 @@ class DBMaintenance extends Admin_Admin {
 								INDEX ( `sortValue` ),
 								UNIQUE (`value`)
 								) ENGINE = MYISAM;",
-							/*"DROP TABLE IF EXISTS `author_browse_scoped_results`",
-							"CREATE TABLE `author_browse_scoped_results`(
-								`browseValueId` INT(11) NOT NULL,
-								`scope` TINYINT NOT NULL,
-								`scopeId` INT(11) NOT NULL,
-								`record` VARCHAR( 50 ) NOT NULL,
-							PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
-							INDEX (`scopeId`)
-							) ENGINE = MYISAM",*/
 
 								"DROP TABLE IF EXISTS `callnumber_browse`",
 								"CREATE TABLE `callnumber_browse` (
@@ -1658,15 +1565,6 @@ class DBMaintenance extends Admin_Admin {
 								INDEX ( `sortValue` ),
 								UNIQUE (`value`)
 								) ENGINE = MYISAM;",
-							/*"DROP TABLE IF EXISTS `callnumber_browse_scoped_results`",
-							"CREATE TABLE `callnumber_browse_scoped_results`(
-								`browseValueId` INT(11) NOT NULL,
-								`scope` TINYINT NOT NULL,
-								`scopeId` INT(11) NOT NULL,
-								`record` VARCHAR( 50 ) NOT NULL,
-							PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
-							INDEX (`scopeId`)
-							) ENGINE = MYISAM",*/
 
 								"DROP TABLE IF EXISTS `subject_browse`",
 								"CREATE TABLE `subject_browse` (
@@ -1677,15 +1575,6 @@ class DBMaintenance extends Admin_Admin {
 								INDEX ( `sortValue` ),
 								UNIQUE (`value`)
 								) ENGINE = MYISAM;",
-							/*"DROP TABLE IF EXISTS `subject_browse_scoped_results`",
-							"CREATE TABLE `subject_browse_scoped_results`(
-								`browseValueId` INT(11) NOT NULL,
-								`scope` TINYINT NOT NULL,
-								`scopeId` INT(11) NOT NULL,
-								`record` VARCHAR( 50 ) NOT NULL,
-							PRIMARY KEY ( `browseValueId`, `scope`, `scopeId`, `record` ),
-							INDEX (`scopeId`)
-							) ENGINE = MYISAM",*/
 						),
 				),
 
@@ -2048,58 +1937,6 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
-			/*'cleanup_search' => array(
-				'title' => 'Cleanup Search table',
-				'description' => 'Cleanup Search table to remove unused tables and add needed indexes',
-				'sql' => array(
-					'ALTER TABLE search DROP folder_id',
-					'ALTER TABLE search DROP title',
-					'ALTER TABLE search ADD INDEX (`saved`)',
-				),
-			),*/
-
-
-			/*'remove_old_tables' => array(
-				'title' => 'Remove old tables',
-				'description' => 'Remove tables that are no longer needed due to usage of memcache',
-				'sql' => array(
-					//Update resource table indexes
-					'DROP TABLE IF EXISTS list_cache',
-					'DROP TABLE IF EXISTS list_cache2',
-					'DROP TABLE IF EXISTS novelist_cache',
-					'DROP TABLE IF EXISTS reviews_cache',
-					'DROP TABLE IF EXISTS sip2_item_cache',
-				),
-			),
-	
-			'remove_old_tables_2' => array(
-				'title' => 'Remove old tables 2',
-				'description' => 'Remove tables that are no longer needed due to changes in functionality',
-				'sql' => array(
-					'DROP TABLE IF EXISTS administrators',
-					'DROP TABLE IF EXISTS administrators_to_roles',
-					'DROP TABLE IF EXISTS resource_callnumber',
-					'DROP TABLE IF EXISTS resource_subject',
-				),
-			),
-	
-			'remove_old_tables_3' => array(
-				'title' => 'Remove usage tracking tables',
-				'description' => 'Remove usage tracking tables (replaced with better analytics)',
-				'sql' => array(
-					'DROP TABLE IF EXISTS usagetracking',
-					'DROP TABLE IF EXISTS usage_tracking',
-				),
-			),
-	
-			'remove_old_tables_4' => array(
-				'title' => 'Remove subject tables',
-				'description' => 'Remove subject table (replaced with browse tables)',
-				'sql' => array(
-					'DROP TABLE IF EXISTS subject',
-				),
-			),*/
-
 				'rename_tables' => array(
 						'title' => 'Rename tables',
 						'description' => 'Rename tables for consistency and cross platform usage',
@@ -2186,15 +2023,6 @@ class DBMaintenance extends Admin_Admin {
 								") ENGINE=InnoDB",
 						),
 				),
-
-			/*'remove_old_millennium_hold_logic' => array(
-				'title' => 'Remove Old Millennium Hold Logic',
-				'description' => 'Build tables to store loan rule determiners',
-				'sql' => array(
-					"DROP TABLE ptype_restricted_locations",
-					"DROP TABLE non_holdable_locations",
-				),
-			),*/
 
 				'location_hours' => array(
 						'title' => 'Location Hours',
@@ -2776,6 +2604,19 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
+				'grouped_work_engine' => array(
+						'title' => 'Grouped Work Engine',
+						'description' => 'Change storage engine to INNODB for grouped work tables',
+						'sql' => array(
+								'ALTER TABLE `grouped_work` ENGINE = InnoDB',
+								'ALTER TABLE `grouped_work_identifiers` ENGINE = InnoDB',
+								'ALTER TABLE `grouped_work_identifiers_ref` ENGINE = InnoDB',
+								'ALTER TABLE `grouped_work_primary_identifiers` ENGINE = InnoDB',
+								'ALTER TABLE `grouped_work_primary_to_secondary_id_ref` ENGINE = InnoDB',
+								'ALTER TABLE `ils_marc_checksums` ENGINE = InnoDB',
+						)
+				),
+
 				'ils_marc_checksums' => array(
 						'title' => 'ILS MARC Checksums',
 						'description' => 'Add a table to store checksums of MARC records stored in the ILS so we can determine if the record needs to be updated during grouping.',
@@ -2901,6 +2742,22 @@ class DBMaintenance extends Admin_Admin {
 								"dropBrowseTables",
 						),
 				),
+
+				'search_scopes' => array(
+						'title' => 'Create Search Scopes',
+						'description' => 'Create search scopes to minimize the number of dynamic fields in solr and give better control over what is shown to each user',
+						'sql' => array(
+								"CREATE TABLE search_scopes (
+									id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+									textId VARCHAR(60) NOT NULL DEFAULT -1,
+									label VARCHAR(255) NOT NULL,
+									description MEDIUMTEXT,
+									locationsToIncludeAllItems VARCHAR(255),
+									locationsToIncludeIfHoldable VARCHAR(255),
+									pTypesToInclude VARCHAR(255)
+								) ENGINE = MYISAM"
+						),
+				),
 		);
 	}
 
@@ -2928,127 +2785,6 @@ class DBMaintenance extends Admin_Admin {
 		}
 	}
 
-	/*public function populateListsWithGroupedWorks(){
-		set_time_limit(120);
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/User_resource.php';
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
-		require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
-		$userResource = new User_resource();
-		$userResource->find();
-		while ($userResource->fetch()){
-			$userListEntry = new UserListEntry();
-			$userListEntry->listId = $userResource->list_id;
-			//Get the grouped work for resource
-			$resource = new Resource();
-			$resource->id = $userResource->resource_id;
-
-			if ($resource->find(true)){
-				$primaryIdentifier = $this->getGroupedWorkForResource($resource);
-
-				if (isset($primaryIdentifier)){
-					$workIdentifier = new GroupedWorkPrimaryIdentifier();
-					$workIdentifier->identifier = $primaryIdentifier;
-					$workIdentifier->joinAdd(new GroupedWork());
-					$workIdentifier->selectAdd('permanent_id');
-					if ($workIdentifier->find(true)){
-						$userListEntry->groupedWorkPermanentId = $workIdentifier->permanent_id;
-						if (!$userListEntry->find()){
-							//This is a new list entry
-							$userListEntry->dateAdded = $userResource->saved;
-							$userListEntry->notes = $userResource->notes;
-							$userListEntry->weight = 0;
-							$userListEntry->insert();
-						}
-					}
-				}
-
-			}
-
-		}
-
-	}*/
-
-	/*public function populateWorkLevelRatings(){
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
-
-		$sql = "TRUNCATE table user_work_rating";
-		mysql_query($sql);
-		$sql = "SELECT userid, rating, dateRated, record_id, source from user_rating inner join resource on resource.id = resourceid";
-		$result = mysql_query($sql);
-		while ($row = mysql_fetch_assoc($result)) {
-			//We got a rating from the user, find the appropriate work based on the resource
-			if ($row['source'] == 'VuFind'){
-				//Should be an ils identifier for this
-				$workIdentifier = new GroupedWorkPrimaryIdentifier();
-				$workIdentifier->identifier = $row['record_id'];
-				$workIdentifier->joinAdd(new GroupedWork());
-				$workIdentifier->selectAdd('permanent_id');
-				if ($workIdentifier->find(true)){
-					$userWorkRating = new UserWorkReview();
-					$userWorkRating->groupedRecordPermanentId = $workIdentifier->permanent_id;
-					$userWorkRating->userId = $row['userid'];
-					$userWorkRating->rating = $row['rating'];
-					$userWorkRating->dateRated = $row['dateRated'];
-					$userWorkRating->review = '';
-					$ret = $userWorkRating->insert();
-				}else{
-					echo("Warning, did not find grouped work for eContent record {$row['record_id']}<br/>");
-				}
-			}else{
-				//eContent
-				echo("Warning, resource was marked as eContent, but should not have been {$row['record_id']}<br/>");
-			}
-		}
-
-		//TODO: Load all econtent from econtent ratings
-
-
-		//Merge ratings with comments to get reviews
-		$sql = "SELECT user_id, comment, created, record_id, source from comments inner join resource on resource.id = resource_id";
-		$result = mysql_query($sql);
-		while ($row = mysql_fetch_assoc($result)) {
-//We got a rating from the user, find the appropriate work based on the resource
-			if ($row['source'] == 'VuFind'){
-				//Should be an ils identifier for this
-				$workIdentifier = new GroupedWorkPrimaryIdentifier();
-				$workIdentifier->identifier = $row['record_id'];
-				$workIdentifier->joinAdd(new GroupedWork());
-				$workIdentifier->selectAdd('permanent_id');
-				if ($workIdentifier->find(true)){
-					$userWorkRating = new UserWorkReview();
-					$userWorkRating->groupedRecordPermanentId = $workIdentifier->permanent_id;
-					$userWorkRating->userid = $row['user_id'];
-					//First check to see if we already have a rating
-					$existingRating = false;
-					if ($userWorkRating->find(true)){
-						$existingRating = true;
-					}else{
-						$userWorkRating->rating = -1;
-						$userWorkRating->dateRated = $row['created'];
-					}
-					$userWorkRating->review = $row['comment'];
-					if ($existingRating){
-						$userWorkRating->update();
-					}else{
-						$userWorkRating->insert();
-					}
-				}else{
-					echo("Warning, did not find grouped work for {$row['record_id']}<br/>");
-				}
-			}else{
-				//eContent
-				//TODO: process econtent comments
-			}
-		}
-
-
-		mysql_free_result($result);
-	}*/
-
 	public function addTableListWidgetListsLinks() {
 		set_time_limit(120);
 		$sql = 'CREATE TABLE IF NOT EXISTS `list_widget_lists_links`( ' .
@@ -3060,14 +2796,6 @@ class DBMaintenance extends Admin_Admin {
 				'PRIMARY KEY (`id`) ' .
 				') ENGINE=MyISAM DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;';
 		mysql_query($sql);
-		/*$result = mysql_query('SELECT id,fullListLink FROM `list_widget_lists` WHERE `fullListLink` != "" ');
-		while($row = mysql_fetch_assoc($result))
-		{
-			$sqlInsert = 'INSERT INTO `list_widget_lists_links` (`id`,`listWidgetListsId`,`name`,`link`) VALUES (NULL,\''.$row['id'].'\',\'Full List Link\',\''.$row['fullListLink'].'\') ';
-			mysql_query($sqlInsert);
-		}
-		mysql_free_result($result);
-		mysql_query('ALTER TABLE `list_widget_lists` DROP `fullListLink`');*/
 	}
 
 
@@ -3178,9 +2906,6 @@ class DBMaintenance extends Admin_Admin {
 					FROM callnumber_browse_scoped_results
 					WHERE scope = 1 and scopeId = {$library->libraryId};");
 		}
-
-		//TODO: Convert tables that do lots of indexing to INNODB
-
 	}
 
 	function setScopingTableEngine($update) {

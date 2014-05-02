@@ -33,6 +33,7 @@ public class ExtractOverDriveInfo {
 	private OverDriveExtractLogEntry results;
 
 	private Long lastExtractTime;
+	private Long extractStartTime;
 	private String lastUpdateTimeParam = "";
 	
 	//Overdrive API information
@@ -77,6 +78,7 @@ public class ExtractOverDriveInfo {
 	private PreparedStatement addAvailabilityStmt;
 	private PreparedStatement deleteAvailabilityStmt;
 	private PreparedStatement updateProductAvailabilityStmt;
+	private PreparedStatement markGroupedWorkForBibAsChangedStmt;
 	private boolean hadTimeoutsFromOverDrive;
 	
 	private CRC32 checksumCalculator = new CRC32();
@@ -86,6 +88,8 @@ public class ExtractOverDriveInfo {
 	public void extractOverDriveInfo(Ini configIni, Connection vufindConn, Connection econtentConn, OverDriveExtractLogEntry logEntry, boolean doFullReload) {
 		this.econtentConn = econtentConn;
 		this.results = logEntry;
+
+		extractStartTime = new Date().getTime() / 1000;
 
 		try {
 			addProductStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_products set overdriveid = ?, mediaType = ?, title = ?, subtitle = ?, series = ?, primaryCreatorRole = ?, primaryCreatorName = ?, cover = ?, dateAdded = ?, dateUpdated = ?, lastMetadataCheck = 0, lastMetadataChange = 0, lastAvailabilityCheck = 0, lastAvailabilityChange = 0, rawData=?", PreparedStatement.RETURN_GENERATED_KEYS);
@@ -114,6 +118,7 @@ public class ExtractOverDriveInfo {
 			addAvailabilityStmt = econtentConn.prepareStatement("INSERT INTO overdrive_api_product_availability set productId = ?, libraryId = ?, available = ?, copiesOwned = ?, copiesAvailable = ?, numberOfHolds = ?");
 			deleteAvailabilityStmt = econtentConn.prepareStatement("DELETE FROM overdrive_api_product_availability where id = ?");
 			updateProductAvailabilityStmt = econtentConn.prepareStatement("UPDATE overdrive_api_products SET lastAvailabilityCheck = ?, lastAvailabilityChange = ? where id = ?");
+			markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'overdrive' and identifier = ?)") ;
 
 			//Get the last time we extracted data from OverDrive
 			if (!doFullReload){
@@ -298,6 +303,10 @@ public class ExtractOverDriveInfo {
 			boolean availabilityChanged = updateOverDriveAvailability(overDriveInfo, overDriveDBInfo.getDbId(), overDriveDBInfo);
 			
 			if (updateMade || availabilityChanged || metadataChanged){
+				//Mark that the grouped work needs to be updated
+				markGroupedWorkForBibAsChangedStmt.setLong(1, extractStartTime);
+				markGroupedWorkForBibAsChangedStmt.setString(2, overDriveInfo.getId());
+				markGroupedWorkForBibAsChangedStmt.executeUpdate();
 				results.incUpdated();
 			}else{
 				results.incSkipped();

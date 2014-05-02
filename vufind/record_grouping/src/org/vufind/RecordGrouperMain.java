@@ -161,15 +161,22 @@ public class RecordGrouperMain {
 	private static void makeIdentifiersLinkingToMultipleWorksInvalidForEnrichment(Connection vufindConn) {
 		//Mark any identifiers that link to more than one grouped record and therefore should not be used for enrichment
 		try{
-			PreparedStatement invalidIdentifiersStmt = vufindConn.prepareStatement("SELECT grouped_work_primary_to_secondary_id_ref.`secondary_identifier_id`, COUNT(grouped_work_id) as num_related_works FROM `grouped_work_primary_to_secondary_id_ref` INNER JOIN grouped_work_primary_identifiers ON `primary_identifier_id` = grouped_work_primary_identifiers.id GROUP BY secondary_identifier_id HAVING num_related_works > 1");
+			boolean autoCommit = vufindConn.getAutoCommit();
+			vufindConn.setAutoCommit(false);
+			PreparedStatement invalidIdentifiersStmt = vufindConn.prepareStatement("SELECT grouped_work_primary_to_secondary_id_ref.`secondary_identifier_id`, COUNT(grouped_work_id) as num_related_works FROM `grouped_work_primary_to_secondary_id_ref` INNER JOIN grouped_work_primary_identifiers ON `primary_identifier_id` = grouped_work_primary_identifiers.id GROUP BY secondary_identifier_id HAVING num_related_works > 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			ResultSet invalidIdentifiersRS = invalidIdentifiersStmt.executeQuery();
 			PreparedStatement updateInvalidIdentifierStmt = vufindConn.prepareStatement("UPDATE grouped_work_identifiers SET valid_for_enrichment = 0 where id = ?");
+			int numIdentifiersUpdated = 0;
 			while (invalidIdentifiersRS.next()){
 				updateInvalidIdentifierStmt.setLong(1, invalidIdentifiersRS.getLong("secondary_identifier_id"));
 				updateInvalidIdentifierStmt.executeUpdate();
+				numIdentifiersUpdated++;
 			}
+			logger.info("Marked " + numIdentifiersUpdated + " identifiers as invalid for enrichment because they link to multiple grouped records");
 			invalidIdentifiersRS.close();
 			invalidIdentifiersStmt.close();
+			vufindConn.commit();
+			vufindConn.setAutoCommit(autoCommit);
 		}catch (Exception e){
 			logger.error("Unable to mark identifiers as invalid for enrichment", e);
 		}
@@ -178,15 +185,22 @@ public class RecordGrouperMain {
 	private static void removeUnlinkedIdentifiers(Connection vufindConn) {
 		//Remove any identifiers that are no longer linked to a primary identifier
 		try{
-			PreparedStatement unlinkedIdentifiersStmt = vufindConn.prepareStatement("SELECT grouped_work_identifiers.id, count(primary_identifier_id) as num_primary_identifiers from grouped_work_identifiers left join grouped_work_primary_to_secondary_id_ref on grouped_work_identifiers.id = secondary_identifier_id GROUP BY secondary_identifier_id having num_primary_identifiers = 0");
+			boolean autoCommit = vufindConn.getAutoCommit();
+			vufindConn.setAutoCommit(false);
+			PreparedStatement unlinkedIdentifiersStmt = vufindConn.prepareStatement("SELECT grouped_work_identifiers.id, count(primary_identifier_id) as num_primary_identifiers from grouped_work_identifiers left join grouped_work_primary_to_secondary_id_ref on grouped_work_identifiers.id = secondary_identifier_id GROUP BY secondary_identifier_id having num_primary_identifiers = 0", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			ResultSet unlinkedIdentifiersRS = unlinkedIdentifiersStmt.executeQuery();
 			PreparedStatement removeIdentifierStmt = vufindConn.prepareStatement("DELETE FROM grouped_work_identifiers where id = ?");
+			int numUnlinkedIdentifiersRemoved = 0;
 			while (unlinkedIdentifiersRS.next()){
 				removeIdentifierStmt.setLong(1, unlinkedIdentifiersRS.getLong(1));
 				removeIdentifierStmt.executeUpdate();
+				numUnlinkedIdentifiersRemoved++;
 			}
+			logger.info("Removed " + numUnlinkedIdentifiersRemoved + " identifiers that were not linked to primary identifiers");
 			unlinkedIdentifiersRS.close();
 			unlinkedIdentifiersStmt.close();
+			vufindConn.commit();
+			vufindConn.setAutoCommit(autoCommit);
 		}catch(Exception e){
 			logger.error("Error removing identifiers that are no longer linked to a primary identifier", e);
 		}
@@ -195,18 +209,25 @@ public class RecordGrouperMain {
 	private static void removeGroupedWorksWithoutPrimaryIdentifiers(Connection vufindConn) {
 		//Remove any grouped works that no longer link to a primary identifier
 		try{
-			PreparedStatement groupedWorksWithoutIdentifiersStmt = vufindConn.prepareStatement("SELECT grouped_work.id, count(identifier) as num_related_records from grouped_work left join grouped_work_primary_identifiers on grouped_work.id = grouped_work_primary_identifiers.grouped_work_id GROUP BY grouped_work.id HAVING num_related_records = 0");
+			boolean autoCommit = vufindConn.getAutoCommit();
+			vufindConn.setAutoCommit(false);
+			PreparedStatement groupedWorksWithoutIdentifiersStmt = vufindConn.prepareStatement("SELECT grouped_work.id, count(identifier) as num_related_records from grouped_work left join grouped_work_primary_identifiers on grouped_work.id = grouped_work_primary_identifiers.grouped_work_id GROUP BY grouped_work.id HAVING num_related_records = 0", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			ResultSet groupedWorksWithoutIdentifiersRS = groupedWorksWithoutIdentifiersStmt.executeQuery();
 			PreparedStatement deleteWorkStmt = vufindConn.prepareStatement("DELETE from grouped_work WHERE id = ?");
 			PreparedStatement deleteRelatedIdentifiersStmt = vufindConn.prepareStatement("DELETE from grouped_work_identifiers_ref WHERE grouped_work_id = ?");
+			int numWorksNotLinkedToPrimaryIdentifier = 0;
 			while (groupedWorksWithoutIdentifiersRS.next()){
 				deleteWorkStmt.setLong(1, groupedWorksWithoutIdentifiersRS.getLong(1));
 				deleteWorkStmt.executeUpdate();
 
 				deleteRelatedIdentifiersStmt.setLong(1, groupedWorksWithoutIdentifiersRS.getLong(1));
 				deleteRelatedIdentifiersStmt.executeUpdate();
+				numWorksNotLinkedToPrimaryIdentifier++;
 			}
+			logger.info("Removed " + numWorksNotLinkedToPrimaryIdentifier + " grouped works that were not linked to primary identifiers");
 			groupedWorksWithoutIdentifiersRS.close();
+			vufindConn.commit();
+			vufindConn.setAutoCommit(autoCommit);
 		}catch (Exception e){
 			logger.error("Unable to remove grouped works that no longer have a primary identifier", e);
 		}
@@ -251,6 +272,7 @@ public class RecordGrouperMain {
 
 	private static void groupIlsRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor) {
 		int numRecordsProcessed = 0;
+		int numRecordsRead = 0;
 		String individualMarcPath = configIni.get("Reindex", "individualMarcPath");
 		String marcPath = configIni.get("Reindex", "marcPath");
 
@@ -258,6 +280,14 @@ public class RecordGrouperMain {
 		recordNumberPrefix = configIni.get("Reindex", "recordNumberPrefix");
 
 		String marcEncoding = configIni.get("Reindex", "marcEncoding");
+
+		//Load all files in the individual marc path.  This allows us to list directories rather than doing millions of
+		//individual look ups
+		HashSet<String> existingMarcFiles = new HashSet<String>();
+		File individualMarcFile = new File(individualMarcPath);
+		logger.debug("Starting to read existing marc files from disc");
+		loadExistingMarcFiles(individualMarcFile, existingMarcFiles);
+		logger.debug("Finished reading existing marc files from disc");
 
 		File[] catalogBibFiles = new File(marcPath).listFiles();
 		if (catalogBibFiles != null){
@@ -270,23 +300,24 @@ public class RecordGrouperMain {
 						while (catalogReader.hasNext()){
 							Record curBib = catalogReader.next();
 							String recordNumber = getRecordNumberForBib(curBib);
-							boolean marcUpToDate = writeIndividualMarc(individualMarcPath, curBib, recordNumber);
+							boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber);
 							if (!marcUpToDate){
 								recordGroupingProcessor.processMarcRecord(curBib);
+								numRecordsProcessed++;
 							}
 							//Mark that the record was processed
 							marcRecordIdsInDatabase.remove(recordNumber);
 							lastRecordProcessed = recordNumber;
-							numRecordsProcessed++;
-							if (numRecordsProcessed % 100000 == 0){
+							numRecordsRead++;
+							if (numRecordsRead % 100000 == 0){
 								recordGroupingProcessor.dumpStats();
 							}
 						}
 						marcFileStream.close();
 					}catch(Exception e){
-						logger.error("Error loading catalog bibs on record " + numRecordsProcessed + " the last record processed was " + lastRecordProcessed, e);
+						logger.error("Error loading catalog bibs on record " + numRecordsRead + " the last record processed was " + lastRecordProcessed, e);
 					}
-					logger.warn("Finished grouping " + numRecordsProcessed + " records from the ils file " + curBibFile.getName());
+					logger.warn("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the ils file " + curBibFile.getName());
 				}
 			}
 
@@ -304,6 +335,22 @@ public class RecordGrouperMain {
 					removeMarcRecordChecksum.executeUpdate();
 				} catch (SQLException e) {
 					logger.error("Error removing ILS id " + recordNumber + " from ils_marc_checksums table", e);
+				}
+			}
+		}
+	}
+
+	private static void loadExistingMarcFiles(File individualMarcPath, HashSet<String> existingFiles) {
+		File[] subFiles = individualMarcPath.listFiles();
+		if (subFiles != null){
+			for (File curFile : subFiles){
+				String fileName = curFile.getName();
+				if (!fileName.equals(".") && !fileName.equals("..")){
+					if (curFile.isDirectory()){
+						loadExistingMarcFiles(curFile, existingFiles);
+					}else{
+						existingFiles.add(fileName);
+					}
 				}
 			}
 		}
@@ -424,26 +471,19 @@ public class RecordGrouperMain {
 		return numRecordsProcessed;
 	}
 
-	private static boolean writeIndividualMarc(String individualMarcPath, Record marcRecord, String recordNumber) {
-		boolean marcRecordUpToDate = false;
+	private static boolean writeIndividualMarc(HashSet<String> existingMarcFiles, String individualMarcPath, Record marcRecord, String recordNumber) {
+		Boolean marcRecordUpToDate = false;
 		//Copy the record to the individual marc path
 		if (recordNumber != null){
-			boolean marcRecordExistsInDb = false;
-			long checksum = getChecksum(marcRecord);
+			Boolean marcRecordExistsInDb = false;
+			Long checksum = getChecksum(marcRecord);
 			File individualFile = getFileForIlsRecord(individualMarcPath, recordNumber);
+
 			if (!fullRegrouping){
-				Long existingChecksum = marcRecordChecksums.get(recordNumber);
-				if (existingChecksum != null){
-					marcRecordExistsInDb = true;
-					if (existingChecksum.equals(checksum)){
-						marcRecordUpToDate = true;
-					}else{
-						logger.debug("Checksum for " + recordNumber + " has changed new " + checksum + " old " + existingChecksum + ", need to reindex");
-					}
-				}
-				if (!individualFile.exists()){
-					marcRecordUpToDate = false;
-				}
+				Long existingChecksum = getExistingChecksum(recordNumber);
+				marcRecordExistsInDb = existingChecksum != null;
+				marcRecordUpToDate = existingChecksum != null && existingChecksum.equals(checksum);
+				marcRecordUpToDate = checkIfIndividualMarcFileExists(existingMarcFiles, marcRecordUpToDate, individualFile);
 			}
 
 			if (!marcRecordUpToDate){
@@ -460,6 +500,17 @@ public class RecordGrouperMain {
 			marcRecordUpToDate = true;
 		}
 		return marcRecordUpToDate;
+	}
+
+	private static Boolean checkIfIndividualMarcFileExists(HashSet<String> existingMarcFiles, Boolean marcRecordUpToDate, File individualFile) {
+		if (!existingMarcFiles.contains(individualFile.getName())){
+			marcRecordUpToDate = false;
+		}
+		return marcRecordUpToDate;
+	}
+
+	private static Long getExistingChecksum(String recordNumber) {
+		return marcRecordChecksums.get(recordNumber);
 	}
 
 	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber) {
