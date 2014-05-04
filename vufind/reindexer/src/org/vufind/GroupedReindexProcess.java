@@ -27,7 +27,7 @@ public class GroupedReindexProcess {
 
 	//General configuration
 	private static String serverName;
-	private static String indexSettings;
+	private static boolean fullReindex = false;
 	private static Ini configIni;
 	private static String solrPort;
 	private static String solrDir;
@@ -61,13 +61,16 @@ public class GroupedReindexProcess {
 		serverName = args[0];
 		System.setProperty("reindex.process.serverName", serverName);
 		
-		if (args.length > 1){
-			indexSettings = args[1];
+		if (args.length >= 2 && args[1].equalsIgnoreCase("fullReindex")){
+			fullReindex = true;
 		}
 		
 		initializeReindex();
 		
-		addNoteToReindexLog("Initialized Reindex " + indexSettings);
+		addNoteToReindexLog("Initialized Reindex ");
+		if (fullReindex){
+			addNoteToReindexLog("Performing full reindex");
+		}
 		
 		//Reload schemas
 		if (reloadDefaultSchema){
@@ -76,14 +79,17 @@ public class GroupedReindexProcess {
 		
 		//Process grouped works
 		try {
-			GroupedWorkIndexer groupedWorkIndexer = new GroupedWorkIndexer(serverName, vufindConn, econtentConn, configIni, logger);
+			GroupedWorkIndexer groupedWorkIndexer = new GroupedWorkIndexer(serverName, vufindConn, econtentConn, configIni, fullReindex, logger);
+
 			groupedWorkIndexer.processGroupedWorks();
+			groupedWorkIndexer.processPublicUserLists();
+
 			groupedWorkIndexer.finishIndexing();
 		} catch (Error e) {
 			logger.error("Error processing reindex ", e);
 			addNoteToReindexLog("Error processing reindex " + e.toString());
 		}
-		
+
 		// Send completion information
 		endTime = new Date().getTime();
 		sendCompletionMessage();
@@ -173,24 +179,32 @@ public class GroupedReindexProcess {
 	
 	private static void initializeReindex() {
 		// Delete the existing reindex.log file
-		File solrmarcLog = new File("../../sites/" + serverName + "/logs/grouped_reindex.log");
-		if (solrmarcLog.exists()){
-			solrmarcLog.delete();
-		}
-		for (int i = 1; i <= 10; i++){
-			solrmarcLog = new File("../../sites/" + serverName + "/logs/grouped_reindex.log." + i);
-			if (solrmarcLog.exists()){
-				solrmarcLog.delete();
+		File solrMarcLog = new File("/var/log/vufind-plus/" + serverName + "/logs/grouped_reindex.log");
+		if (solrMarcLog.exists()){
+			if (!solrMarcLog.delete()){
+				logger.warn("Could not remove " + solrMarcLog.toString());
 			}
 		}
-		solrmarcLog = new File("org.solrmarc.log");
-		if (solrmarcLog.exists()){
-			solrmarcLog.delete();
+		for (int i = 1; i <= 10; i++){
+			solrMarcLog = new File("/var/log/vufind-plus/" + serverName + "/logs/grouped_reindex.log." + i);
+			if (solrMarcLog.exists()){
+				if (!solrMarcLog.delete()){
+					logger.warn("Could not remove " + solrMarcLog.toString());
+				}
+			}
+		}
+		solrMarcLog = new File("org.solrmarc.log");
+		if (solrMarcLog.exists()){
+			if (!solrMarcLog.delete()){
+				logger.warn("Could not remove " + solrMarcLog.toString());
+			}
 		}
 		for (int i = 1; i <= 4; i++){
-			solrmarcLog = new File("org.solrmarc.log." + i);
-			if (solrmarcLog.exists()){
-				solrmarcLog.delete();
+			solrMarcLog = new File("org.solrmarc.log." + i);
+			if (solrMarcLog.exists()){
+				if (!solrMarcLog.delete()){
+					logger.warn("Could not remove " + solrMarcLog.toString());
+				}
 			}
 		}
 		
@@ -207,36 +221,7 @@ public class GroupedReindexProcess {
 
 		// Parse the configuration file
 		configIni = loadConfigFile();
-		
-		if (indexSettings != null){
-			logger.info("Loading index settings from override file " + indexSettings);
-			String indexSettingsName = "../../sites/" + serverName + "/conf/" + indexSettings + ".ini";
-			File indexSettingsFile = new File(indexSettingsName);
-			if (!indexSettingsFile.exists()) {
-				indexSettingsName = "../../sites/default/conf/" + indexSettings + ".ini";
-				indexSettingsFile = new File(indexSettingsName);
-				if (!indexSettingsFile.exists()) {
-					logger.error("Could not find indexSettings file " + indexSettings);
-					System.exit(1);
-				}
-			}
-			try {
-				Ini indexSettingsIni = new Ini();
-				indexSettingsIni.load(new FileReader(indexSettingsFile));
-				for (Section curSection : indexSettingsIni.values()){
-					for (String curKey : curSection.keySet()){
-						logger.debug("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
-						//System.out.println("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
-						configIni.put(curSection.getName(), curKey, curSection.get(curKey));
-					}
-				}
-			} catch (InvalidFileFormatException e) {
-				logger.error("IndexSettings file is not valid.  Please check the syntax of the file.", e);
-			} catch (IOException e) {
-				logger.error("IndexSettings file could not be read.", e);
-			}
-		}
-		
+
 		solrPort = configIni.get("Reindex", "solrPort");
 		if (solrPort == null || solrPort.length() == 0) {
 			logger.error("You must provide the port where the solr index is loaded in the import configuration file");
@@ -245,7 +230,7 @@ public class GroupedReindexProcess {
 
 		solrDir = configIni.get("Index", "local");
 		if (solrDir == null){
-			solrDir = "../../sites/" + serverName + "/solr";
+			solrDir = "/data/vufind-plus/" + serverName + "/solr";
 		}
 		
 		String reloadDefaultSchemaStr = configIni.get("Reindex", "reloadDefaultSchema");
@@ -303,7 +288,7 @@ public class GroupedReindexProcess {
 	private static void sendCompletionMessage(){
 		long elapsedTime = endTime - startTime;
 		float elapsedMinutes = (float)elapsedTime / (float)(60000); 
-		logger.info("Time elpased: " + elapsedMinutes + " minutes");
+		logger.info("Time elapsed: " + elapsedMinutes + " minutes");
 		
 		try {
 			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE reindex_log SET endTime = ? WHERE id = ?");

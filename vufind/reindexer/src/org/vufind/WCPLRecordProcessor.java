@@ -2,9 +2,11 @@ package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
+import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 
 import java.sql.Connection;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -20,7 +22,7 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 	}
 
 	@Override
-	public Set<String> loadFormats(Record record, boolean returnFirst) {
+	public Set<String> loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<DataField> printItems, List<DataField> econtentItems) {
 		return null;
 	}
 }

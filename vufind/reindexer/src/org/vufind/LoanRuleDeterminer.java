@@ -83,6 +83,8 @@ public class LoanRuleDeterminer {
 		}
 		return result;
 	}
+
+
 	public boolean matchesLocation(String locationCode) {
 		if (location.equals("*") || location.equals("?????")){
 			return true;

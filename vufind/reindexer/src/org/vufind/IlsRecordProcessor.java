@@ -221,39 +221,35 @@ public abstract class IlsRecordProcessor {
 		String basePath = individualMarcPath + "/" + firstChars;
 		String individualFilename = basePath + "/" + shortId + ".mrc";
 		File individualFile = new File(individualFilename);
-		if (individualFile.exists()){
-			try {
-				FileInputStream inputStream = new FileInputStream(individualFile);
-				MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
-				if (marcReader.hasNext()){
-					try{
-						Record record = marcReader.next();
-						updateGroupedWorkSolrDataBasedOnMarc(groupedWork, record, identifier);
-					}catch (Exception e) {
-						logger.error("Error updating solr based on marc record", e);
-					}
+		try {
+			FileInputStream inputStream = new FileInputStream(individualFile);
+			MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
+			if (marcReader.hasNext()){
+				try{
+					Record record = marcReader.next();
+					updateGroupedWorkSolrDataBasedOnMarc(groupedWork, record, identifier);
+				}catch (Exception e) {
+					logger.error("Error updating solr based on marc record", e);
 				}
-				inputStream.close();
-			} catch (Exception e) {
-				logger.error("Error reading data from ils file " + individualFile.toString(), e);
 			}
-		}else{
-			logger.warn("Did not find marc record for related record " + identifier);
+			inputStream.close();
+		} catch (Exception e) {
+			logger.error("Error reading data from ils file " + individualFile.toString(), e);
 		}
-		//We didn't get a marc record, skip this record.
 	}
 
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		try{
-			List<DataField> unsuppressedItems = getUnsuppressedItems(record);
+			List<DataField> printItems = getUnsuppressedPrintItems(record);
+			List<DataField> econtentItems = getUnsuppressedEContentItems(record);
 
-			loadRecordType(groupedWork, record);
+			loadRecordType(groupedWork, record, printItems, econtentItems);
 
 			//Do updates based on the overall bib
 			loadTitles(groupedWork, record);
 			loadAuthors(groupedWork, record);
 
-			loadFormatDetails(groupedWork, record);
+			loadFormatDetails(groupedWork, record, identifier, printItems, econtentItems);
 
 			groupedWork.addTopic(getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690a"));
 			groupedWork.addTopicFacet(getFieldList(record, "600a:600x:600a:610x:611x:611x:630a:630x:648x:650a:650x:651x:655x"));
@@ -270,7 +266,7 @@ public abstract class IlsRecordProcessor {
 			groupedWork.addEra(getFieldList(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y"));
 			groupedWork.addContents(getFieldList(record, "505a:505t"));
 
-			loadCallNumbers(groupedWork, record);
+			loadBibCallNumbers(groupedWork, record);
 			loadLanguageDetails(groupedWork, record);
 			loadPublicationDetails(groupedWork, record);
 			loadLiteraryForms(groupedWork, record);
@@ -278,33 +274,39 @@ public abstract class IlsRecordProcessor {
 			groupedWork.addMpaaRating(groupedWork, getMpaaRating(record));
 
 			//Do updates based on items
-			loadOwnershipInformation(groupedWork, unsuppressedItems);
-			loadAvailability(groupedWork, unsuppressedItems);
-			loadUsability(groupedWork, unsuppressedItems);
-			loadPopularity(groupedWork, unsuppressedItems);
-			loadDateAdded(groupedWork, unsuppressedItems);
-			loadITypes(groupedWork, unsuppressedItems);
-			loadLocalCallNumbers(groupedWork, unsuppressedItems);
+			loadOwnershipInformation(groupedWork, printItems, econtentItems);
+			loadAvailability(groupedWork, printItems, econtentItems);
+			loadUsability(groupedWork, printItems, econtentItems);
+			loadPopularity(groupedWork, printItems, econtentItems);
+			loadDateAdded(groupedWork, printItems, econtentItems);
+			loadITypes(groupedWork, printItems, econtentItems);
+			loadLocalCallNumbers(groupedWork, printItems, econtentItems);
 			groupedWork.addBarcodes(getFieldList(record, itemTag + barcodeSubfield));
 			groupedWork.setAcceleratedReaderInterestLevel(getAcceleratedReaderInterestLevel(record));
 			groupedWork.setAcceleratedReaderReadingLevel(getAcceleratedReaderReadingLevel(record));
 			groupedWork.setAcceleratedReaderPointValue(getAcceleratedReaderPointLevel(record));
 
+			loadEContentSourcesAndProtectionTypes(groupedWork, econtentItems);
+
 			loadOrderIds(groupedWork, record);
 
 			groupedWork.addAllFields(getAllFields(record));
 
-			groupedWork.addHoldings(unsuppressedItems.size());
+			groupedWork.addHoldings(printItems.size());
 		}catch (Exception e){
 			logger.error("Error updating grouped work for MARC record with identifier " + identifier, e);
 		}
 	}
 
-	protected void loadLocalCallNumbers(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItems) {
+	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<DataField> econtentItems) {
+		//By default, do nothing
+	}
+
+	protected void loadLocalCallNumbers(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
 		//By default, do nothing.
 	}
 
-	protected void loadCallNumbers(GroupedWorkSolr groupedWork, Record record) {
+	protected void loadBibCallNumbers(GroupedWorkSolr groupedWork, Record record) {
 		groupedWork.setCallNumberA(getFirstFieldVal(record, "099a:090a:050a"));
 		String firstCallNumber = getFirstFieldVal(record, "099a[0]:090a[0]:050a[0]");
 		if (firstCallNumber != null){
@@ -338,11 +340,7 @@ public abstract class IlsRecordProcessor {
 		}
 	}
 
-	protected List<DataField> getUnsuppressedItems(Record record) {
-		return getUnsuppressedPrintItems(record);
-	}
-
-	protected void loadRecordType(GroupedWorkSolr groupedWork, Record record) {
+	protected void loadRecordType(GroupedWorkSolr groupedWork, Record record, List<DataField> printItems, List<DataField> econtentItems) {
 		String recordId = getFirstFieldVal(record, recordNumberTag + "a");
 		groupedWork.addRelatedRecord("ils:" + recordId);
 	}
@@ -352,57 +350,14 @@ public abstract class IlsRecordProcessor {
 		List<DataField> unsuppressedItemRecords = new ArrayList<DataField>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
-				//Check to see if the item has an eContent indicator
-				boolean isEContent = false;
-				boolean isOverDrive = false;
-				if (useEContentSubfield){
-					if (itemField.getSubfield(eContentSubfield) != null){
-						String eContentData = itemField.getSubfield(eContentSubfield).getData();
-						if (eContentData.indexOf(':') >= 0){
-							isEContent = true;
-							String[] eContentFields = eContentData.split(":");
-							String sourceType = eContentFields[0].toLowerCase().trim();
-							if (sourceType.equals("overdrive")){
-								isOverDrive = true;
-							}
-						}
-					}
-				}
-				if (!isOverDrive && !isEContent){
-					unsuppressedItemRecords.add(itemField);
-				}
+				unsuppressedItemRecords.add(itemField);
 			}
 		}
 		return unsuppressedItemRecords;
 	}
 
 	protected List<DataField> getUnsuppressedEContentItems(Record record){
-		List<DataField> itemRecords = getDataFields(record, itemTag);
-		List<DataField> unsuppressedEcontentRecords = new ArrayList<DataField>();
-		for (DataField itemField : itemRecords){
-			if (!isItemSuppressed(itemField)){
-				//Check to see if the item has an eContent indicator
-				boolean isEContent = false;
-				boolean isOverDrive = false;
-				if (useEContentSubfield){
-					if (itemField.getSubfield(eContentSubfield) != null){
-						String eContentData = itemField.getSubfield(eContentSubfield).getData();
-						if (eContentData.indexOf(':') >= 0){
-							isEContent = true;
-							String[] eContentFields = eContentData.split(":");
-							String sourceType = eContentFields[0].toLowerCase().trim();
-							if (sourceType.equals("overdrive")){
-								isOverDrive = true;
-							}
-						}
-					}
-				}
-				if (!isOverDrive && isEContent){
-					unsuppressedEcontentRecords.add(itemField);
-				}
-			}
-		}
-		return unsuppressedEcontentRecords;
+		return new ArrayList<DataField>();
 	}
 
 	Pattern mpaaRatingRegex1 = null;
@@ -447,8 +402,18 @@ public abstract class IlsRecordProcessor {
 		}
 	}
 
-	private void loadITypes(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItemRecords) {
-		for (DataField curItem : unsuppressedItemRecords){
+	private void loadITypes(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
+		for (DataField curItem : printItems){
+			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
+			Subfield iTypeField = curItem.getSubfield(iTypeSubfield);
+			if (iTypeField != null && locationSubfield != null){
+				String iType = indexer.translateValue("itype", iTypeField.getData());
+				String location = locationSubfield.getData();
+				ArrayList<String> relatedSubdomains = getLibrarySubdomainsForLocationCode(location);
+				groupedWork.setIType(iType, relatedSubdomains);
+			}
+		}
+		for (DataField curItem : econtentItems){
 			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
 			Subfield iTypeField = curItem.getSubfield(iTypeSubfield);
 			if (iTypeField != null && locationSubfield != null){
@@ -461,8 +426,24 @@ public abstract class IlsRecordProcessor {
 	}
 
 	private static SimpleDateFormat dateAddedFormatter = new SimpleDateFormat("yyMMdd");
-	private void loadDateAdded(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItemRecords) {
-		for (DataField curItem : unsuppressedItemRecords){
+	private void loadDateAdded(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
+		for (DataField curItem : printItems){
+			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
+			Subfield dateAddedField = curItem.getSubfield(dateCreatedSubfield);
+			if (locationSubfield != null && dateAddedField != null){
+				String locationCode = locationSubfield.getData();
+				String dateAddedStr = dateAddedField.getData();
+				try{
+					Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
+					ArrayList<String> relatedLocations = getLibrarySubdomainsForLocationCode(locationCode);
+					relatedLocations.addAll(getIlsCodesForDetailedLocationCode(locationCode));
+					groupedWork.setDateAdded(dateAdded, relatedLocations);
+				} catch (ParseException e) {
+					logger.error("Error processing date added", e);
+				}
+			}
+		}
+		for (DataField curItem : econtentItems){
 			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
 			Subfield dateAddedField = curItem.getSubfield(dateCreatedSubfield);
 			if (locationSubfield != null && dateAddedField != null){
@@ -657,9 +638,9 @@ public abstract class IlsRecordProcessor {
 		groupedWork.setLanguages(translatedLanguages);
 	}
 
-	private void loadPopularity(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItemRecords) {
+	private void loadPopularity(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
 		float popularity = 0;
-		for (DataField itemField : unsuppressedItemRecords){
+		for (DataField itemField : printItems){
 			//Get number of times the title has been checked out
 			Subfield totalCheckoutsField = itemField.getSubfield(totalCheckoutSubfield);
 			int totalCheckouts = 0;
@@ -680,16 +661,18 @@ public abstract class IlsRecordProcessor {
 			//logger.debug("Popularity for item " + itemPopularity + " ytdCheckouts=" + ytdCheckouts + " lastYearCheckouts=" + lastYearCheckouts + " totalCheckouts=" + totalCheckouts);
 			popularity += itemPopularity;
 		}
+		//TODO: Load popularity for eContent
 		groupedWork.addPopularity(popularity);
 	}
 
-	protected void loadFormatDetails(GroupedWorkSolr groupedWork, Record record) {
-		Set<String> formats = loadFormats(record, false);
+	protected void loadFormatDetails(GroupedWorkSolr groupedWork, Record record, String identifier, List<DataField> printItems, List<DataField> econtentItems) {
+		Set<String> formats = loadFormats(groupedWork, record, identifier, printItems, econtentItems);
 		HashSet<String> translatedFormats = new HashSet<String>();
 		HashSet<String> formatCategories = new HashSet<String>();
 		Long formatBoost = 1L;
 		if (formats != null){
 			for (String format : formats){
+				format = format.replace(' ', '_');
 				translatedFormats.add(indexer.translateValue("format", format));
 				formatCategories.add(indexer.translateValue("format_category", format));
 				String formatBoostStr = indexer.translateValue("format_boost", format);
@@ -763,9 +746,9 @@ public abstract class IlsRecordProcessor {
 		}
 	}
 
-	protected void loadUsability(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItemRecords) {
-		//Load a list of ptypes that can use this record based on loan rules
-		for (DataField curItem : unsuppressedItemRecords){
+	protected void loadUsability(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
+		//Load a list of pTypes that can use this record based on loan rules
+		for (DataField curItem : printItems){
 			Subfield iTypeSubfieldVal = curItem.getSubfield(iTypeSubfield);
 			Subfield locationCodeSubfield = curItem.getSubfield(locationSubfieldIndicator);
 			if (iTypeSubfieldVal != null && locationCodeSubfield != null){
@@ -774,9 +757,10 @@ public abstract class IlsRecordProcessor {
 				groupedWork.addCompatiblePTypes(getCompatiblePTypes(iType, locationCode));
 			}
 		}
+		//TODO: Also do this for eContent titles based on sharing in eContent field
 	}
 
-	private boolean isItemSuppressed(DataField curItem) {
+	protected boolean isItemSuppressed(DataField curItem) {
 		Subfield icode2Subfield = curItem.getSubfield(iCode2Subfield);
 		if (icode2Subfield == null){
 			return false;
@@ -791,12 +775,12 @@ public abstract class IlsRecordProcessor {
 		return icode2.equals("n") || icode2.equals("x") || locationCode.equals("zzzz");
 	}
 
-	private void loadAvailability(GroupedWorkSolr groupedWork, List<DataField> itemRecords) {
+	private void loadAvailability(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
 		//Calculate availability based on the record
 		HashSet<String> availableAt = new HashSet<String>();
 		HashSet<String> availableLocationCodes = new HashSet<String>();
 
-		for (DataField curItem : itemRecords){
+		for (DataField curItem : printItems){
 			Subfield statusSubfield = curItem.getSubfield(statusSubfieldIndicator);
 			Subfield dueDateField = curItem.getSubfield(dueDateSubfield);
 			Subfield locationCodeField = curItem.getSubfield(locationSubfieldIndicator);
@@ -829,14 +813,13 @@ public abstract class IlsRecordProcessor {
 			}
 		}
 		groupedWork.addAvailableLocations(availableAt, availableLocationCodes);
-
 	}
 
-	private void loadOwnershipInformation(GroupedWorkSolr groupedWork, List<DataField> itemRecords) {
+	private void loadOwnershipInformation(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
 		HashSet<String> owningLibraries = new HashSet<String>();
 		HashSet<String> owningLocations = new HashSet<String>();
 		HashSet<String> owningLocationCodes = new HashSet<String>();
-		for (DataField curItem : itemRecords){
+		for (DataField curItem : printItems){
 			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
 			if (locationSubfield != null){
 				String locationCode = locationSubfield.getData().trim();
@@ -957,7 +940,17 @@ public abstract class IlsRecordProcessor {
 		String cacheKey = iType + ":" + locationCode;
 		if (ptypesByItypeAndLocation.containsKey(cacheKey)){
 			return ptypesByItypeAndLocation.get(cacheKey);
+		}else{
+			logger.debug("Did not get cached ptype compatibility for " + cacheKey);
 		}
+		LinkedHashSet<String> result = calculateCompatiblePTypes(iType, locationCode);
+
+		//logger.debug("  " + result.size() + " ptypes can use this");
+		ptypesByItypeAndLocation.put(cacheKey, result);
+		return result;
+	}
+
+	private LinkedHashSet<String> calculateCompatiblePTypes(String iType, String locationCode) {
 		//logger.debug("getCompatiblePTypes for " + cacheKey);
 		LinkedHashSet<String> result = new LinkedHashSet<String>();
 		Long iTypeLong = Long.parseLong(iType);
@@ -966,19 +959,18 @@ public abstract class IlsRecordProcessor {
 			//logger.debug("  Checking pType " + pType);
 			//Loop through the loan rules to see if this itype can be used based on the location code
 			for (LoanRuleDeterminer curDeterminer : loanRuleDeterminers){
-				//logger.debug("   Checking determiner " + curDeterminer.getRowNumber() + " " + curDeterminer.getLocation());
-				//Make sure the location matchs
-				if (curDeterminer.matchesLocation(locationCode)){
-					//logger.debug("    " + curDeterminer.getRowNumber() + " matches location");
-					if (curDeterminer.getItemType().equals("999") || curDeterminer.getItemTypes().contains(iTypeLong)){
-						//logger.debug("    " + curDeterminer.getRowNumber() + " matches iType");
-						if (curDeterminer.getPatronType().equals("999") || curDeterminer.getPatronTypes().contains(pType)){
-							//logger.debug("    " + curDeterminer.getRowNumber() + " matches pType");
+				//logger.debug("    " + curDeterminer.getRowNumber() + " matches location");
+				if (curDeterminer.getItemType().equals("999") || curDeterminer.getItemTypes().contains(iTypeLong)){
+					//logger.debug("    " + curDeterminer.getRowNumber() + " matches iType");
+					if (curDeterminer.getPatronType().equals("999") || curDeterminer.getPatronTypes().contains(pType)){
+						//logger.debug("    " + curDeterminer.getRowNumber() + " matches pType");
+						//Make sure the location matches
+						if (curDeterminer.matchesLocation(locationCode)){
 							LoanRule loanRule = loanRules.get(curDeterminer.getLoanRuleId());
 							if (loanRule.getHoldable().equals(Boolean.TRUE)){
 								result.add(pType.toString());
 							}
-							//We got a match, stop processig
+							//We got a match, stop processing
 							//logger.debug("    using determiner " + curDeterminer.getRowNumber() + " for ptype " + pType);
 							break;
 						}
@@ -986,13 +978,11 @@ public abstract class IlsRecordProcessor {
 				}
 			}
 		}
-		//logger.debug("  " + result.size() + " ptypes can use this");
-		ptypesByItypeAndLocation.put(cacheKey, result);
 		return result;
 	}
 
 	public String getAcceleratedReaderReadingLevel(Record marcRecord) {
-		String result = null;
+		String result;
 		// Get a list of all tags that may contain the lexile score.
 		@SuppressWarnings("unchecked")
 		List<VariableField> input = marcRecord.getVariableFields("526");
@@ -1052,7 +1042,7 @@ public abstract class IlsRecordProcessor {
 
 	public String getAcceleratedReaderPointLevel(Record marcRecord) {
 		try {
-			String result = null;
+			String result;
 			// Get a list of all tags that may contain the lexile score.
 			@SuppressWarnings("unchecked")
 			List<VariableField> input = marcRecord.getVariableFields("526");
@@ -1091,7 +1081,6 @@ public abstract class IlsRecordProcessor {
 
 	public String getAcceleratedReaderInterestLevel(Record marcRecord) {
 		try {
-			String result = null;
 			// Get a list of all tags that may contain the lexile score.
 			@SuppressWarnings("unchecked")
 			List<VariableField> input = marcRecord.getVariableFields("526");
@@ -1500,7 +1489,7 @@ public abstract class IlsRecordProcessor {
 	 *
 	 * @return Set format of record
 	 */
-	public abstract Set<String> loadFormats(Record record, boolean returnFirst);
+	public abstract Set<String> loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<DataField> printItems, List<DataField> econtentItems);
 
 	private char getSubfieldIndicatorFromConfig(Ini configIni, String subfieldName) {
 		String subfieldString = configIni.get("Reindex", subfieldName);

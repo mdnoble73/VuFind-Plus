@@ -37,7 +37,7 @@ public class OverDriveProcessor {
 	private static HashSet<String> allLocationCodes = new HashSet<String>();
 
 
-	public OverDriveProcessor(GroupedWorkIndexer groupedWorkIndexer, Connection vufindConn, Connection econtentConn, Ini configIni, Logger logger) {
+	public OverDriveProcessor(GroupedWorkIndexer groupedWorkIndexer, Connection vufindConn, Connection econtentConn, Ini configIni, boolean fullReindex, Logger logger) {
 		this.indexer = groupedWorkIndexer;
 		this.logger = logger;
 		try {

@@ -145,13 +145,9 @@ class Solr implements IndexEngine {
 		if (empty($index)) {
 			global $library;
 			if ($library){
-				if ($library->searchGroupedRecords){
-					$index = 'grouped';
-				}else{
-					$index = 'biblio';
-				}
+				$index = 'grouped';
 			}else{
-				$index = isset($configArray['Index']['default_core']) ? $configArray['Index']['default_core'] : "biblio";
+				$index = isset($configArray['Index']['default_core']) ? $configArray['Index']['default_core'] : "grouped";
 			}
 
 			$this->index = $index;

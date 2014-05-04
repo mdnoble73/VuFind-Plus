@@ -15,122 +15,98 @@ import java.util.*;
 public class GroupedWorkSolr {
 	private String id;
 	private HashSet<String> relatedRecordIds = new HashSet<String>();
+
+	private String acceleratedReaderInterestLevel;
+	private String acceleratedReaderReadingLevel;
+	private String acceleratedReaderPointValue;
+	private String allFields = "";
 	private HashSet<String> alternateIds = new HashSet<String>();
-	private HashSet<String> recordSources = new HashSet<String>();
-
-	private HashSet<String> owningLibraries = new HashSet<String>();
-	private HashSet<String> owningLocations = new HashSet<String>();
-	private HashSet<String> collectionGroup = new HashSet<String>();
-
-	private HashSet<String> collectionAdams = new HashSet<String>();
-	private HashSet<String> collectionMsc = new HashSet<String>();
-	private HashSet<String> collectionWestern = new HashSet<String>();
-
-	private HashMap<String, HashSet<String>> collectionByLibrarySystem = new HashMap<String, HashSet<String>>();
-	private HashSet<String> detailedLocation = new HashSet<String>();
-	private HashMap<String, HashSet<String>> detailedLocationByLibrarySystem = new HashMap<String, HashSet<String>>();
-
-	private HashSet<String> availableAt = new HashSet<String>();
-	private HashMap<String, HashSet<String>> availabilityToggleByLibrarySystem = new HashMap<String, HashSet<String>>();
-
-	private HashSet<String> usableBy = new HashSet<String>();
-
-	private String title;
-	private String displayTitle;
-	private String subTitle;
-	private HashSet<String> fullTitles = new HashSet<String>();
-	private String titleSort;
-	private HashSet<String> titleAlt = new HashSet<String>();
-	private HashSet<String> titleOld = new HashSet<String>();
-	private HashSet<String> titleNew = new HashSet<String>();
-
-	private String author;
-	private String authorDisplay;
 	private String authAuthor;
+	private String author;
 	private String authorLetter;
+	private HashSet<String> authorAdditional = new HashSet<String>();
+	private String authorDisplay;
 	private HashSet<String> author2 = new HashSet<String>();
 	private HashSet<String> authAuthor2 = new HashSet<String>();
 	private HashSet<String> author2Role = new HashSet<String>();
-	private HashSet<String> authorAdditional = new HashSet<String>();
-
-	private String groupingCategory;
+	private HashSet<String> awards = new HashSet<String>();
+	private HashSet<String> availableAt = new HashSet<String>();
+	private HashMap<String, HashSet<String>> availabilityToggleByLibrarySystem = new HashMap<String, HashSet<String>>();
+	private HashSet<String> barcodes = new HashSet<String>();
+	private String callNumberA;
+	private String callNumberFirst;
+	private String callNumberSubject;
+	private HashSet<String> collectionGroup = new HashSet<String>();
+	private HashSet<String> collectionAdams = new HashSet<String>();
+	private HashSet<String> collectionMsc = new HashSet<String>();
+	private HashSet<String> collectionWestern = new HashSet<String>();
+	private HashMap<String, HashSet<String>> collectionByLibrarySystem = new HashMap<String, HashSet<String>>();
+	private HashSet<String> contents = new HashSet<String>();
+	private Date dateAdded = null;
+	private HashSet<String> dateSpans = new HashSet<String>();
+	private HashSet<String> detailedLocation = new HashSet<String>();
+	private HashMap<String, HashSet<String>> detailedLocationByLibrarySystem = new HashMap<String, HashSet<String>>();
+	private String displayTitle;
+	private Long earliestPublicationDate = null;
+	private HashSet<String> econtentDevices = new HashSet<String>();
+	private HashSet<String> econtentProtectionTypes = new HashSet<String>();
+	private HashSet<String> econtentSources = new HashSet<String>();
+	private HashSet<String> editions = new HashSet<String>();
+	private HashSet<String> eras = new HashSet<String>();
 	private HashSet<String> formats = new HashSet<String>();
 	private HashSet<String> formatCategories = new HashSet<String>();
 	private Long formatBoost = 1L;
-	private HashMap<String, HashSet<String>> localizedFormats = new HashMap<String, HashSet<String>>();
-
-	private HashSet<String> languages = new HashSet<String>();
-	private Long languageBoost = 1L;
-	private Long languageBoostSpanish = 1L;
-
-	private HashSet<String> publishers = new HashSet<String>();
-	private HashSet<String> publicationDates = new HashSet<String>();
-	private Long earliestPublicationDate = null;
-
-	private HashSet<String> topics = new HashSet<String>();
-	private HashSet<String> topicFacets = new HashSet<String>();
-	private HashSet<String> series = new HashSet<String>();
-	private HashSet<String> series2 = new HashSet<String>();
-	private HashSet<String> physicals = new HashSet<String>();
-	private HashSet<String> dateSpans = new HashSet<String>();
-	private HashSet<String> editions = new HashSet<String>();
-	private HashSet<String> contents = new HashSet<String>();
+	private HashSet<String> fullTitles = new HashSet<String>();
 	private HashSet<String> genres = new HashSet<String>();
 	private HashSet<String> genreFacets = new HashSet<String>();
 	private HashSet<String> geographic = new HashSet<String>();
 	private HashSet<String> geographicFacets = new HashSet<String>();
-	private HashSet<String> eras = new HashSet<String>();
-
-	private HashSet<String> literaryFormFull = new HashSet<String>();
-	private HashSet<String> literaryForm = new HashSet<String>();
-	private HashSet<String> targetAudienceFull = new HashSet<String>();
-	private HashSet<String> targetAudience = new HashSet<String>();
-
-	private Date dateAdded = null;
-	private HashMap<String, Date> localTimeSinceAdded = new HashMap<String, Date>();
-
-	private HashSet<String> iTypes = new HashSet<String>();
-	private HashMap<String, HashSet<String>> localITypes = new HashMap<String, HashSet<String>>();
-	private HashSet<String> mpaaRatings = new HashSet<String>();
-	private HashSet<String> barcodes = new HashSet<String>();
-
-	//Awards and ratings
-	private HashSet<String> awards = new HashSet<String>();
-	private String lexileScore = "-1";
-	private String lexileCode = "";
-	private String acceleratedReaderInterestLevel;
-	private String acceleratedReaderReadingLevel;
-	private String acceleratedReaderPointValue;
-
-	private float rating = 2.5f;
-
-	private String allFields = "";
-	private HashSet<String> keywords = new HashSet<String>();
-
-	private HashSet<String> lccns = new HashSet<String>();
-	private HashSet<String> oclcs = new HashSet<String>();
+	private String groupingCategory;
 	private HashSet<String> isbns = new HashSet<String>();
 	private HashSet<String> issns = new HashSet<String>();
-	private HashSet<String> upcs = new HashSet<String>();
-
-	private String callNumberA;
-	private String callNumberFirst;
-	private String callNumberSubject;
-
+	private HashSet<String> iTypes = new HashSet<String>();
+	private HashSet<String> keywords = new HashSet<String>();
+	private HashSet<String> languages = new HashSet<String>();
+	private Long languageBoost = 1L;
+	private Long languageBoostSpanish = 1L;
+	private HashSet<String> lccns = new HashSet<String>();
+	private String lexileScore = "-1";
+	private String lexileCode = "";
+	private HashSet<String> literaryFormFull = new HashSet<String>();
+	private HashSet<String> literaryForm = new HashSet<String>();
+	private HashMap<String, HashSet<String>> localizedFormats = new HashMap<String, HashSet<String>>();
+	private HashMap<String, Long> localBoost = new HashMap<String, Long>();
 	private String localCallNumber;
 	private HashMap<String, HashSet<String>> localCallNumbers = new HashMap<String, HashSet<String>>();
-	private HashMap<String, String> sortableCallNumbers = new HashMap<String, String>();
-
-	//local boosting
-	private HashMap<String, Long> localBoost = new HashMap<String, Long>();
-
-	private Long numHoldings = 0L;
-	private float popularity;
-	private HashSet<String> econtentDevices = new HashSet<String>();
-	private HashSet<String> econtentSources = new HashSet<String>();
-	private HashMap<String, HashSet<String>> localEContentSources = new HashMap<String, HashSet<String>>();
-	private HashSet<String> econtentProtectionTypes = new HashSet<String>();
 	private HashMap<String, HashSet<String>> localEContentProtectionTypes = new HashMap<String, HashSet<String>>();
+	private HashMap<String, HashSet<String>> localEContentSources = new HashMap<String, HashSet<String>>();
+	private HashMap<String, HashSet<String>> localITypes = new HashMap<String, HashSet<String>>();
+	private HashMap<String, Date> localTimeSinceAdded = new HashMap<String, Date>();
+	private HashSet<String> mpaaRatings = new HashSet<String>();
+	private Long numHoldings = 0L;
+	private HashSet<String> oclcs = new HashSet<String>();
+	private HashSet<String> owningLibraries = new HashSet<String>();
+	private HashSet<String> owningLocations = new HashSet<String>();
+	private HashSet<String> physicals = new HashSet<String>();
+	private float popularity;
+	private HashSet<String> publishers = new HashSet<String>();
+	private HashSet<String> publicationDates = new HashSet<String>();
+	private float rating = 2.5f;
+	private HashSet<String> series = new HashSet<String>();
+	private HashSet<String> series2 = new HashSet<String>();
+	private HashMap<String, String> sortableCallNumbers = new HashMap<String, String>();
+	private String subTitle;
+	private HashSet<String> targetAudienceFull = new HashSet<String>();
+	private HashSet<String> targetAudience = new HashSet<String>();
+	private String title;
+	private HashSet<String> titleAlt = new HashSet<String>();
+	private HashSet<String> titleOld = new HashSet<String>();
+	private HashSet<String> titleNew = new HashSet<String>();
+	private String titleSort;
+	private HashSet<String> topics = new HashSet<String>();
+	private HashSet<String> topicFacets = new HashSet<String>();
+	private HashSet<String> upcs = new HashSet<String>();
+	private HashSet<String> usableBy = new HashSet<String>();
 
 	public SolrInputDocument getSolrDocument(int availableAtBoostValue, int ownedByBoostValue) {
 		SolrInputDocument doc = new SolrInputDocument();
@@ -140,7 +116,6 @@ public class GroupedWorkSolr {
 		doc.addField("recordtype", "grouped_work");
 		//Related records and sources
 		doc.addField("related_record_ids", relatedRecordIds);
-		doc.addField("record_source", recordSources);
 		//Ownership and location
 		doc.addField("owning_library", owningLibraries);
 		doc.addField("owning_location", owningLocations);
@@ -438,10 +413,6 @@ public class GroupedWorkSolr {
 
 	public void addOwningLibraries(HashSet<String> owningLibraries) {
 		this.owningLibraries.addAll(owningLibraries);
-	}
-
-	public void addRecordSources(HashSet<String> recordSources) {
-		this.recordSources.addAll(recordSources);
 	}
 
 	public void addOwningLocations(HashSet<String> owningLocations) {

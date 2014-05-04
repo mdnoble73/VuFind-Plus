@@ -5,12 +5,10 @@ import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
 import org.ini4j.Ini;
 
 import java.io.*;
-import java.lang.reflect.Constructor;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -33,45 +31,59 @@ public class GroupedWorkIndexer {
 	private ConcurrentUpdateSolrServer updateServer;
 	private IlsRecordProcessor ilsRecordProcessor;
 	private OverDriveProcessor overDriveProcessor;
-	private ExternalEContentProcessor externalEContentProcessor;
-	private RestrictedEContentProcessor restrictedEContentProcessor;
-	private PublicDomainEContentProcessor publicDomainEContentProcessor;
 	private HashMap<String, HashMap<String, String>> translationMaps = new HashMap<String, HashMap<String, String>>();
 	private HashMap<String, LexileTitle> lexileInformation = new HashMap<String, LexileTitle>();
 
 	private PreparedStatement getRatingStmt;
 	private Connection vufindConn;
-	private Ini configIni;
 
 	protected int availableAtLocationBoostValue = 50;
 	protected int ownedByLocationBoostValue = 10;
 
-	public GroupedWorkIndexer(String serverName, Connection vufindConn, Connection econtentConn, Ini configIni, Logger logger) {
+	private boolean fullReindex = false;
+	private long lastReindexTime;
+	private Long lastReindexTimeVariableId;
+
+	public GroupedWorkIndexer(String serverName, Connection vufindConn, Connection econtentConn, Ini configIni, boolean fullReindex, Logger logger) {
 		this.serverName = serverName;
 		this.logger = logger;
 		this.vufindConn = vufindConn;
-		this.configIni = configIni;
+		this.fullReindex = fullReindex;
 		solrPort = configIni.get("Reindex", "solrPort");
 
 		availableAtLocationBoostValue = Integer.parseInt(configIni.get("Reindex", "availableAtLocationBoostValue"));
 		ownedByLocationBoostValue = Integer.parseInt(configIni.get("Reindex", "ownedByLocationBoostValue"));
 
-		String ilsIndexingClassString = configIni.get("Reindex", "ilsIndexingClass");
+		//Load the last Index time
 		try{
-			Class ilsIndexingClass = Class.forName(ilsIndexingClassString);
-			Constructor ilsIndexingConstructor = ilsIndexingClass.getConstructor(GroupedWorkIndexer.class, Connection.class, Ini.class, Logger.class);
-			Object indexingObject = ilsIndexingConstructor.newInstance(this, vufindConn, configIni, logger);
-			ilsRecordProcessor = (IlsRecordProcessor)indexingObject;
-		}catch (Exception e){
-			logger.error("Unable to create ilsRecordProcessor", e);
+			PreparedStatement loadLastGroupingTime = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_grouping_time'");
+			ResultSet lastGroupingTimeRS = loadLastGroupingTime.executeQuery();
+			if (lastGroupingTimeRS.next()){
+				lastReindexTime = lastGroupingTimeRS.getLong("value");
+				lastReindexTimeVariableId = lastGroupingTimeRS.getLong("id");
+			}
+			lastGroupingTimeRS.close();
+			loadLastGroupingTime.close();
+		} catch (Exception e){
+			logger.error("Could not load last index time from variables table ", e);
 		}
-		overDriveProcessor = new OverDriveProcessor(this, vufindConn, econtentConn, configIni, logger);
-		externalEContentProcessor = new ExternalEContentProcessor(this, vufindConn, econtentConn, configIni, logger);
-		restrictedEContentProcessor = new RestrictedEContentProcessor(this, vufindConn, econtentConn, configIni, logger);
-		publicDomainEContentProcessor = new PublicDomainEContentProcessor(this, vufindConn, econtentConn, configIni, logger);
+
+		String ilsIndexingClassString = configIni.get("Reindex", "ilsIndexingClass");
+		if (ilsIndexingClassString.equals("Marmot")){
+			ilsRecordProcessor = new MarmotRecordProcessor(this, vufindConn, econtentConn, configIni, logger);
+		}else if(ilsIndexingClassString.equals("Nashville")){
+			ilsRecordProcessor = new NashvilleRecordProcessor(this, vufindConn, configIni, logger);
+		}else if(ilsIndexingClassString.equals("WCPL")){
+			ilsRecordProcessor = new WCPLRecordProcessor(this, vufindConn, configIni, logger);
+		}
+		overDriveProcessor = new OverDriveProcessor(this, vufindConn, econtentConn, configIni, fullReindex, logger);
 
 		//Initialize the updateServer
-		updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 5000, 10);
+		if (fullReindex){
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 5000, 10);
+		}else{
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped", 5000, 10);
+		}
 
 		//Load translation maps
 		loadTranslationMaps();
@@ -86,7 +98,9 @@ public class GroupedWorkIndexer {
 		String lexileExportPath = configIni.get("Reindex", "lexileExportPath");
 		loadLexileData(lexileExportPath);
 
-		clearIndex();
+		if (fullReindex){
+			clearIndex();
+		}
 	}
 
 	private void loadLexileData(String lexileExportPath) {
@@ -120,18 +134,12 @@ public class GroupedWorkIndexer {
 
 	private void clearIndex() {
 		//Check to see if we should clear the existing index
-		String clearMarcRecordsAtStartOfIndexVal = configIni.get("Reindex", "clearMarcRecordsAtStartOfIndex");
-		boolean clearMarcRecordsAtStartOfIndex = clearMarcRecordsAtStartOfIndexVal != null && Boolean.parseBoolean(clearMarcRecordsAtStartOfIndexVal);
-		//TODO: Make this optional again.
-		if (true || clearMarcRecordsAtStartOfIndex){
-			logger.info("Clearing existing marc records from index");
-			try {
-				updateServer.deleteByQuery("recordtype:grouped_work", 10);
-				updateServer.commit(true, true);
-			} catch (Exception e) {
-				logger.error("Error deleting from index", e);
-			}
-
+		logger.info("Clearing existing marc records from index");
+		try {
+			updateServer.deleteByQuery("recordtype:grouped_work", 10);
+			updateServer.commit(true, true);
+		} catch (Exception e) {
+			logger.error("Error deleting from index", e);
 		}
 	}
 
@@ -153,18 +161,49 @@ public class GroupedWorkIndexer {
 			logger.error("Error shutting down update server", e);
 		}
 		//Swap the indexes
-		try {
-			URLPostResponse response = Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=grouped2&other=grouped", logger);
-		} catch (Exception e) {
-			logger.error("Error shutting down update server", e);
+		if (fullReindex)  {
+			try {
+				Util.getURL("http://localhost:" + solrPort + "/solr/admin/cores?action=SWAP&core=grouped2&other=grouped", logger);
+			} catch (Exception e) {
+				logger.error("Error shutting down update server", e);
+			}
+		}
+		updateLastReindexTime();
+	}
+
+	private void updateLastReindexTime() {
+		//Update the last grouping time in the variables table
+		try{
+			Long finishTime = new Date().getTime() / 1000;
+			if (lastReindexTimeVariableId != null){
+				PreparedStatement updateVariableStmt  = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
+				updateVariableStmt.setLong(1, finishTime);
+				updateVariableStmt.setLong(2, lastReindexTimeVariableId);
+				updateVariableStmt.executeUpdate();
+				updateVariableStmt.close();
+			} else{
+				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_grouping_time', ?)");
+				insertVariableStmt.setString(1, Long.toString(finishTime));
+				insertVariableStmt.executeUpdate();
+				insertVariableStmt.close();
+			}
+		}catch (Exception e){
+			logger.error("Error setting last grouping time", e);
 		}
 	}
 
 	public void processGroupedWorks() {
 		try {
-			PreparedStatement getAllGroupedWorks = vufindConn.prepareStatement("SELECT * FROM grouped_work", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement getAllGroupedWorks;
+			if (fullReindex){
+				getAllGroupedWorks = vufindConn.prepareStatement("SELECT * FROM grouped_work", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			}else{
+				//Load all grouped works that have changed since the last time the index ran
+				getAllGroupedWorks = vufindConn.prepareStatement("SELECT * FROM grouped_work WHERE date_updated > ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				getAllGroupedWorks.setLong(1, lastReindexTime);
+			}
 			PreparedStatement getGroupedWorkPrimaryIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_primary_identifiers where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			PreparedStatement getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ? and valid_for_enrichment = 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			ResultSet groupedWorks = getAllGroupedWorks.executeQuery();
 			int numWorksProcessed = 0;
 			while (groupedWorks.next()){
@@ -182,12 +221,14 @@ public class GroupedWorkIndexer {
 				while (groupedWorkPrimaryIdentifiers.next()){
 					String type = groupedWorkPrimaryIdentifiers.getString("type");
 					String identifier = groupedWorkPrimaryIdentifiers.getString("identifier");
+					//This does the bulk of the work building fields for the solr document
 					updateGroupedWorkForPrimaryIdentifier(groupedWork, type, identifier);
 				}
 
 				//Update the grouped record based on data for each work
 				getGroupedWorkIdentifiers.setLong(1, id);
 				ResultSet groupedWorkIdentifiers = getGroupedWorkIdentifiers.executeQuery();
+				//This just adds isbns, issns, upcs, and oclc numbers to the index
 				while (groupedWorkIdentifiers.next()){
 					String type = groupedWorkIdentifiers.getString("type");
 					String identifier = groupedWorkIdentifiers.getString("identifier");
@@ -195,7 +236,7 @@ public class GroupedWorkIndexer {
 				}
 
 				//Load local (VuFind) enrichment for the work
-				loadLocalEnrichment(vufindConn, groupedWork);
+				loadLocalEnrichment(groupedWork);
 				//Load lexile data for the work
 				loadLexileDataForWork(groupedWork);
 
@@ -206,7 +247,7 @@ public class GroupedWorkIndexer {
 					logger.error("Error adding record to solr", e);
 				}
 				numWorksProcessed++;
-				if (numWorksProcessed % 1000 == 0){
+				if (numWorksProcessed % 5000 == 0){
 					commitChanges();
 					//logger.info("Processed " + numWorksProcessed + " grouped works processed.");
 				}
@@ -244,7 +285,7 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	private void loadLocalEnrichment(Connection groupedRecordConn, GroupedWorkSolr groupedWork) {
+	private void loadLocalEnrichment(GroupedWorkSolr groupedWork) {
 		//Load rating
 		try{
 			getRatingStmt.setString(1, groupedWork.getId());
@@ -261,22 +302,16 @@ public class GroupedWorkIndexer {
 	}
 
 	private void updateGroupedWorkForPrimaryIdentifier(GroupedWorkSolr groupedWork, String type, String identifier) {
+		groupedWork.addAlternateId(identifier);
 		type = type.toLowerCase();
 		if (type.equals("ils")){
 			//Get the ils record from the individual marc records
 			ilsRecordProcessor.processRecord(groupedWork, identifier);
 		}else if (type.equals("overdrive")){
 			overDriveProcessor.processRecord(groupedWork, identifier);
-		}else if (type.equals("external")){
-			externalEContentProcessor.processRecord(groupedWork, identifier);
-		}else if (type.equals("drm")){
-			restrictedEContentProcessor.processRecord(groupedWork, identifier);
-		}else if (type.equals("free")){
-			publicDomainEContentProcessor.processRecord(groupedWork, identifier);
 		}else{
 			logger.warn("Unknown identifier type " + type);
 		}
-		groupedWork.addAlternateId(identifier);
 	}
 
 	private void updateGroupedWorkForSecondaryIdentifier(GroupedWorkSolr groupedWork, String type, String identifier) {
@@ -289,8 +324,6 @@ public class GroupedWorkIndexer {
 			groupedWork.addIssn(identifier);
 		}else if (type.equals("oclc")){
 			groupedWork.addOclc(identifier);
-		}else if (type.equals("asin")){
-			//Ignore for now
 		}else if (type.equals("order")){
 			//Add as an alternate id
 			groupedWork.addAlternateId(identifier);
@@ -347,7 +380,7 @@ public class GroupedWorkIndexer {
 	HashSet<String> unableToTranslateWarnings = new HashSet<String>();
 	public String translateValue(String mapName, String value){
 		HashMap<String, String> translationMap = translationMaps.get(mapName);
-		String translatedValue = null;
+		String translatedValue;
 		if (translationMap == null){
 			logger.error("Unable to find translation map for " + mapName);
 			translatedValue = value;
@@ -368,7 +401,7 @@ public class GroupedWorkIndexer {
 			}
 		}
 		if (translatedValue != null){
-			translatedValue.trim();
+			translatedValue = translatedValue.trim();
 			if (translatedValue.length() == 0){
 				translatedValue = null;
 			}
@@ -384,16 +417,15 @@ public class GroupedWorkIndexer {
 		return  translatedCollection;
 	}
 
-	private final static Pattern FOUR_DIGIT_PATTERN_BRACES							= Pattern.compile("\\[[12]\\d{3,3}\\]");
-	private final static Pattern				FOUR_DIGIT_PATTERN_ONE_BRACE					= Pattern.compile("\\[[12]\\d{3,3}");
+	private final static Pattern FOUR_DIGIT_PATTERN_BRACES							= Pattern.compile("\\[[12]\\d{3}\\]");
+	private final static Pattern				FOUR_DIGIT_PATTERN_ONE_BRACE					= Pattern.compile("\\[[12]\\d{3}");
 	private final static Pattern				FOUR_DIGIT_PATTERN_STARTING_WITH_1_2	= Pattern.compile("(20|19|18|17|16|15)[0-9][0-9]");
-	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_1						= Pattern.compile("l\\d{3,3}");
-	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_2						= Pattern.compile("\\[19\\]\\d{2,2}");
+	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_1						= Pattern.compile("l\\d{3}");
+	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_2						= Pattern.compile("\\[19\\]\\d{2}");
 	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_3						= Pattern.compile("(20|19|18|17|16|15)[0-9][-?0-9]");
 	private final static Pattern				FOUR_DIGIT_PATTERN_OTHER_4						= Pattern.compile("i.e. (20|19|18|17|16|15)[0-9][0-9]");
 	private final static Pattern				BC_DATE_PATTERN												= Pattern.compile("[0-9]+ [Bb][.]?[Cc][.]?");
-	private final static Pattern				FOUR_DIGIT_PATTERN										= Pattern.compile("\\d{4,4}");
-	private final static DecimalFormat timeFormat														= new DecimalFormat("00.00");
+
 	/**
 	 * Cleans non-digits from a String
 	 *
@@ -410,15 +442,8 @@ public class GroupedWorkIndexer {
 		String cleanDate = null; // raises DD-anomaly
 
 		if (matcher_braces.find()) {
-			Matcher matcher = FOUR_DIGIT_PATTERN.matcher(date);
 			cleanDate = matcher_braces.group();
 			cleanDate = removeOuterBrackets(cleanDate);
-			if (matcher.find()) {
-				String tmp = matcher.group();
-				if (!tmp.equals(cleanDate)) {
-					tmp = "" + tmp;
-				}
-			}
 		} else{
 			Matcher matcher_ie_date = FOUR_DIGIT_PATTERN_OTHER_4.matcher(date);
 			if (matcher_ie_date.find()) {
@@ -428,13 +453,6 @@ public class GroupedWorkIndexer {
 				if (matcher_one_brace.find()) {
 					cleanDate = matcher_one_brace.group();
 					cleanDate = removeOuterBrackets(cleanDate);
-					Matcher matcher = FOUR_DIGIT_PATTERN.matcher(date);
-					if (matcher.find()) {
-						String tmp = matcher.group();
-						if (!tmp.equals(cleanDate)) {
-							tmp = "" + tmp;
-						}
-					}
 				} else {
 					Matcher matcher_bc_date = BC_DATE_PATTERN.matcher(date);
 					if (matcher_bc_date.find()) {
@@ -501,5 +519,9 @@ public class GroupedWorkIndexer {
 		}
 
 		return result.trim();
+	}
+
+	public void processPublicUserLists() {
+		//TODO:  Add public lists to the index
 	}
 }

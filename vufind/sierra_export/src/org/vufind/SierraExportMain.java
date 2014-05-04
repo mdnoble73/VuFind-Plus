@@ -151,7 +151,7 @@ public class SierraExportMain{
 					}
 				}
 
-				//TODO: Process deleted records as well
+				//TODO: Process deleted records as well?
 			}
 
 			//Update the last extract time

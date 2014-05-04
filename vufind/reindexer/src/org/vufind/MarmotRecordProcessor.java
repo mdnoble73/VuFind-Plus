@@ -18,8 +18,57 @@ import java.util.*;
  * Time: 3:00 PM
  */
 public class MarmotRecordProcessor extends IlsRecordProcessor {
-	public MarmotRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
+	/*private Connection econtentConn;
+	private PreparedStatement loadEContentRecordForIlsIdStmt;
+	private PreparedStatement loadEContentItemsForRecordStmt;*/
+
+	public MarmotRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Connection econtentConn, Ini configIni, Logger logger) {
 		super(indexer, vufindConn, configIni, logger);
+		/*this.econtentConn = econtentConn;
+		try{
+			loadEContentRecordForIlsIdStmt = econtentConn.prepareStatement("SELECT * FROM econtent_record where ilsId = ? and status = 'active'");
+			loadEContentItemsForRecordStmt = econtentConn.prepareStatement("SELECT * FROM econtent_item where recordId = ?");
+		}catch (SQLException e){
+			logger.error("Unable to create statements for Restricted EContent");
+		}*/
+	}
+
+	protected void loadRecordType(GroupedWorkSolr groupedWork, Record record, List<DataField> printItems, List<DataField> econtentItems) {
+		//Check the items to see if we need to subdivide the record
+		//We can potentially subdivide into external eContent, public domain, and restricted
+		String recordId = getFirstFieldVal(record, recordNumberTag + "a");
+
+		HashSet<String> recordTypes = new HashSet<String>();
+		for (DataField curItem : econtentItems){
+			String subfieldW = curItem.getSubfield('w').getData();
+			if (subfieldW.indexOf(':') > 0){
+				String[] econtentData = subfieldW.split("\\s?:\\s?");
+				String protectionType = econtentData[1].toLowerCase().trim();
+				if (protectionType.equals("acs") || protectionType.equals("drm")){
+					recordTypes.add("restricted_econtent") ;
+				}else if (protectionType.equals("public domain") || protectionType.equals("free")){
+					recordTypes.add("public_domain_econtent");
+				}else if (protectionType.equals("external")){
+					recordTypes.add("external_econtent");
+				}else{
+					logger.warn("Unknown protection type " + protectionType);
+				}
+			}else{
+				logger.warn("Invalid subfieldw for item in record " + recordId);
+				recordTypes.add("ils");
+			}
+		}
+		//No items, must be an order record, assume it is ils
+		if (printItems.size() > 0){
+			recordTypes.add("ils");
+		}
+		for (String recordType : recordTypes){
+			groupedWork.addRelatedRecord(recordType + ":" + recordId);
+		}
+	}
+
+	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
+		super.updateGroupedWorkSolrDataBasedOnMarc(groupedWork, record, identifier);
 	}
 
 	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, String locationCode){
@@ -35,8 +84,8 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		groupedWork.addDetailedLocation(indexer.translateValue("detailed_location", locationCode), subdomainsForLocation, relatedLocationCodesForLocation);
 	}
 
-	protected void loadLocalCallNumbers(GroupedWorkSolr groupedWork, List<DataField> unsuppressedItems) {
-		for (DataField curItem : unsuppressedItems){
+	protected void loadLocalCallNumbers(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
+		for (DataField curItem : printItems){
 			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
 			if (locationSubfield != null){
 				String locationCode = locationSubfield.getData();
@@ -64,33 +113,193 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		}
 	}
 
+	protected List<DataField> getUnsuppressedPrintItems(Record record){
+		List<DataField> itemRecords = getDataFields(record, itemTag);
+		List<DataField> unsuppressedItemRecords = new ArrayList<DataField>();
+		for (DataField itemField : itemRecords){
+			if (!isItemSuppressed(itemField)){
+				//Check to see if the item has an eContent indicator
+				boolean isEContent = false;
+				boolean isOverDrive = false;
+				if (useEContentSubfield){
+					if (itemField.getSubfield(eContentSubfield) != null){
+						String eContentData = itemField.getSubfield(eContentSubfield).getData();
+						if (eContentData.indexOf(':') >= 0){
+							isEContent = true;
+							String[] eContentFields = eContentData.split(":");
+							String sourceType = eContentFields[0].toLowerCase().trim();
+							if (sourceType.equals("overdrive")){
+								isOverDrive = true;
+							}
+						}
+					}
+				}
+				if (!isOverDrive && !isEContent){
+					unsuppressedItemRecords.add(itemField);
+				}
+			}
+		}
+		return unsuppressedItemRecords;
+	}
+
+	protected List<DataField> getUnsuppressedEContentItems(Record record){
+		List<DataField> itemRecords = getDataFields(record, itemTag);
+		List<DataField> unsuppressedEcontentRecords = new ArrayList<DataField>();
+		for (DataField itemField : itemRecords){
+			if (!isItemSuppressed(itemField)){
+				//Check to see if the item has an eContent indicator
+				boolean isEContent = false;
+				boolean isOverDrive = false;
+				if (useEContentSubfield){
+					if (itemField.getSubfield(eContentSubfield) != null){
+						String eContentData = itemField.getSubfield(eContentSubfield).getData();
+						if (eContentData.indexOf(':') >= 0){
+							isEContent = true;
+							String[] eContentFields = eContentData.split(":");
+							String sourceType = eContentFields[0].toLowerCase().trim();
+							if (sourceType.equals("overdrive")){
+								isOverDrive = true;
+							}
+						}else{
+							if (itemField.getSubfield(eContentSubfield).getData().trim().equalsIgnoreCase("overdrive")){
+								isOverDrive = true;
+							}
+						}
+					}
+				}
+				if (!isOverDrive && isEContent){
+					unsuppressedEcontentRecords.add(itemField);
+				}
+			}
+		}
+		return unsuppressedEcontentRecords;
+	}
+
+
+	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<DataField> itemRecords) {
+		for (DataField curItem : itemRecords){
+			//Check subfield w to get the source
+			if (curItem.getSubfield('w') != null){
+				String locationCode = curItem.getSubfield(locationSubfieldIndicator) == null ? null : curItem.getSubfield(locationSubfieldIndicator).getData();
+				HashSet<String> sources = new HashSet<String>();
+				HashSet<String> protectionTypes = new HashSet<String>();
+
+				String subfieldW = curItem.getSubfield('w').getData();
+				String[] econtentData = subfieldW.split("\\s?:\\s?");
+				String eContentSource = econtentData[0].trim();
+				String protectionType = econtentData[1].toLowerCase().trim();
+
+				sources.add(eContentSource);
+				if (protectionType.equals("external")){
+					protectionTypes.add("Externally Validated");
+				}else if (protectionType.equals("public domain") || protectionType.equals("free")){
+					protectionTypes.add("Public Domain");
+				}else if (protectionType.equals("acs") || protectionType.equals("drm")){
+					protectionTypes.add("Limited Access");
+				}
+				boolean shareWithAll = false;
+				boolean shareWithLibrary = false;
+				if (econtentData.length >= 3){
+					String sharing = econtentData[2].trim();
+					if (sharing.equalsIgnoreCase("shared")){
+						shareWithAll = true;
+					}else if (sharing.equalsIgnoreCase("library")){
+						shareWithLibrary = true;
+					}
+				}else{
+					shareWithLibrary = true;
+				}
+
+				if (locationCode != null && locationCode.equalsIgnoreCase("mdl")){
+					//Share with everyone
+					shareWithAll = true;
+				}
+				if (shareWithAll){
+					groupedWork.addEContentSources(sources, subdomainMap.values() , locationMap.values());
+					groupedWork.addEContentProtectionTypes(protectionTypes, subdomainMap.values() , locationMap.values());
+				}else if (shareWithLibrary){
+					groupedWork.addEContentSources(sources, getLibrarySubdomainsForLocationCode(locationCode), getRelatedLocationCodesForLocationCode(locationCode));
+					groupedWork.addEContentProtectionTypes(protectionTypes, getLibrarySubdomainsForLocationCode(locationCode), getRelatedLocationCodesForLocationCode(locationCode));
+				}else{
+					groupedWork.addEContentSources(sources, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
+					groupedWork.addEContentProtectionTypes(protectionTypes, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
+				}
+
+			}
+		}
+	}
+
 	/**
 	 * Determine Record Format(s)
 	 *
 	 * @return Set format of record
 	 */
-	public Set<String> loadFormats(Record record, boolean returnFirst) {
+	public Set<String> loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<DataField> printItems, List<DataField> econtentItems) {
 		Set<String> result = new LinkedHashSet<String>();
-		String leader = record.getLeader().toString();
-		char leaderBit;
-		ControlField fixedField = (ControlField) record.getVariableField("008");
-		//DataField title = (DataField) record.getVariableField("245");
-		char formatCode;
+		if (printItems.size() > 0){
+			String leader = record.getLeader().toString();
+			char leaderBit;
+			ControlField fixedField = (ControlField) record.getVariableField("008");
 
-		// check for music recordings quickly so we can figure out if it is music
-		// for category (needto do here since checking what is on the Compact
-		// Disc/Phonograph, etc is difficult).
-		if (leader.length() >= 6) {
-			leaderBit = leader.charAt(6);
-			switch (Character.toUpperCase(leaderBit)) {
-				case 'J':
-					result.add("MusicRecording");
-					break;
+			// check for music recordings quickly so we can figure out if it is music
+			// for category (need to do here since checking what is on the Compact
+			// Disc/Phonograph, etc is difficult).
+			if (leader.length() >= 6) {
+				leaderBit = leader.charAt(6);
+				switch (Character.toUpperCase(leaderBit)) {
+					case 'J':
+						result.add("MusicRecording");
+						break;
+				}
+			}
+			getFormatFromPublicationInfo(record, result);
+			getFormatFromNotes(record, result);
+			getFormatFromEdition(record, result);
+			getFormatFromPhysicalDescription(record, result);
+			getFormatFromSubjects(record, result);
+			getFormatFrom007(record, result);
+			getFormatFromLeader(result, leader, fixedField);
+		}
+		if (econtentItems.size() > 0){
+			getFormatFromEcontentItems(identifier, result, econtentItems);
+		}
+
+		// Nothing worked!
+		if (result.isEmpty()) {
+			result.add("Unknown");
+		}
+
+		return result;
+	}
+
+	private void getFormatFromEcontentItems(String identifier, Set<String> result, List<DataField> econtentItems) {
+		for (DataField curItem : econtentItems){
+			if (curItem.getSubfield('w') != null){
+				String subfieldW = curItem.getSubfield('w').getData();
+				String[] econtentData = subfieldW.split("\\s?:\\s?");
+				String protectionType = econtentData[1].toLowerCase().trim();
+				if (protectionType.equals("acs") || protectionType.equals("drm") || protectionType.equals("public domain") || protectionType.equals("free")){
+					if (econtentData.length >= 4){
+						String filename = econtentData[3];
+						String fileExtension = filename.substring(filename.lastIndexOf('.') + 1);
+						result.add(fileExtension);
+					}else{
+						logger.warn("Filename for local econtent not specified " + subfieldW + " " + identifier);
+					}
+				}else if (protectionType.equals("external")){
+					String iType = curItem.getSubfield(iTypeSubfield) == null ? null : curItem.getSubfield(iTypeSubfield).getData();
+					if (iType != null){
+						String translatedFormat = indexer.translateValue("econtent_itype_format", iType);
+						result.add(translatedFormat);
+					}
+				}else{
+					logger.warn("Unknown protection type " + protectionType);
+				}
 			}
 		}
-		if (result.size() >= 1 && returnFirst)
-			return result;
+	}
 
+	private void getFormatFromPublicationInfo(Record record, Set<String> result) {
 		// check for playaway in 260|b
 		DataField sysDetailsNote = (DataField) record.getVariableField("260");
 		if (sysDetailsNote != null) {
@@ -99,12 +308,48 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 						.toLowerCase();
 				if (sysDetailsValue.contains("playaway")) {
 					result.add("Playaway");
-					if (returnFirst)
-						return result;
 				}
 			}
 		}
+	}
 
+	private void getFormatFromEdition(Record record, Set<String> result) {
+		// Check for large print book (large format in 650, 300, or 250 fields)
+		// Check for blu-ray in 300 fields
+		DataField edition = (DataField) record.getVariableField("250");
+		if (edition != null) {
+			if (edition.getSubfield('a') != null) {
+				if (edition.getSubfield('a').getData().toLowerCase()
+						.contains("large type")) {
+					result.add("LargePrint");
+				}
+			}
+		}
+	}
+
+	private void getFormatFromPhysicalDescription(Record record, Set<String> result) {
+		@SuppressWarnings("unchecked")
+		List<DataField> physicalDescription = getDataFields(record, "300");
+		if (physicalDescription != null) {
+			Iterator<DataField> fieldsIter = physicalDescription.iterator();
+			DataField field;
+			while (fieldsIter.hasNext()) {
+				field = fieldsIter.next();
+				@SuppressWarnings("unchecked")
+				List<Subfield> subFields = field.getSubfields();
+				for (Subfield subfield : subFields) {
+					if (subfield.getData().toLowerCase().contains("large type") || subfield.getData().toLowerCase().contains("large print")) {
+						result.add("LargePrint");
+					} else if (subfield.getData().toLowerCase().contains("bluray")
+							|| subfield.getData().toLowerCase().contains("blu-ray")) {
+						result.add("Blu-ray");
+					}
+				}
+			}
+		}
+	}
+
+	private void getFormatFromNotes(Record record, Set<String> result) {
 		// Check for formats in the 538 field
 		DataField sysDetailsNote2 = (DataField) record.getVariableField("538");
 		if (sysDetailsNote2 != null) {
@@ -113,21 +358,13 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 						.toLowerCase();
 				if (sysDetailsValue.contains("playaway")) {
 					result.add("Playaway");
-					if (returnFirst)
-						return result;
 				} else if (sysDetailsValue.contains("bluray")
 						|| sysDetailsValue.contains("blu-ray")) {
 					result.add("Blu-ray");
-					if (returnFirst)
-						return result;
 				} else if (sysDetailsValue.contains("dvd")) {
 					result.add("DVD");
-					if (returnFirst)
-						return result;
 				} else if (sysDetailsValue.contains("vertical file")) {
 					result.add("VerticalFile");
-					if (returnFirst)
-						return result;
 				}
 			}
 		}
@@ -139,61 +376,12 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				String noteValue = noteField.getSubfield('a').getData().toLowerCase();
 				if (noteValue.contains("vertical file")) {
 					result.add("VerticalFile");
-					if (returnFirst)
-						return result;
 				}
 			}
 		}
+	}
 
-		// check if there's an h in the 245
-		/*if (title != null) {
-			if (title.getSubfield('h') != null) {
-				if (title.getSubfield('h').getData().toLowerCase()
-						.contains("[electronic resource]")) {
-					result.add("Electronic");
-					if (returnFirstValue)
-						return result;
-				}
-			}
-		}*/
-
-		// Check for large print book (large format in 650, 300, or 250 fields)
-		// Check for blu-ray in 300 fields
-		DataField edition = (DataField) record.getVariableField("250");
-		if (edition != null) {
-			if (edition.getSubfield('a') != null) {
-				if (edition.getSubfield('a').getData().toLowerCase()
-						.contains("large type")) {
-					result.add("LargePrint");
-					if (returnFirst)
-						return result;
-				}
-			}
-		}
-
-		@SuppressWarnings("unchecked")
-		List<DataField> physicalDescription = getDataFields(record, "300");
-		if (physicalDescription != null) {
-			Iterator<DataField> fieldsIter = physicalDescription.iterator();
-			DataField field;
-			while (fieldsIter.hasNext()) {
-				field = fieldsIter.next();
-				@SuppressWarnings("unchecked")
-				List<Subfield> subFields = field.getSubfields();
-				for (Subfield subfield : subFields) {
-					if (subfield.getData().toLowerCase().contains("large type")) {
-						result.add("LargePrint");
-						if (returnFirst)
-							return result;
-					} else if (subfield.getData().toLowerCase().contains("bluray")
-							|| subfield.getData().toLowerCase().contains("blu-ray")) {
-						result.add("Blu-ray");
-						if (returnFirst)
-							return result;
-					}
-				}
-			}
-		}
+	private void getFormatFromSubjects(Record record, Set<String> result) {
 		@SuppressWarnings("unchecked")
 		List<DataField> topicalTerm = getDataFields(record, "650");
 		if (topicalTerm != null) {
@@ -206,8 +394,6 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				for (Subfield subfield : subfields) {
 					if (subfield.getData().toLowerCase().contains("large type")) {
 						result.add("LargePrint");
-						if (returnFirst)
-							return result;
 					}
 				}
 			}
@@ -224,14 +410,14 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				if (subfieldA != null) {
 					if (subfieldA.getData().toLowerCase().contains("seed library")) {
 						result.add("SeedPacket");
-						if (returnFirst)
-							return result;
 					}
 				}
 			}
 		}
+	}
 
-		// check the 007 - this is a repeating field
+	private void getFormatFrom007(Record record, Set<String> result) {
+		char formatCode;// check the 007 - this is a repeating field
 		@SuppressWarnings("unchecked")
 		List<DataField> fields = getDataFields(record, "007");
 		if (fields != null) {
@@ -429,16 +615,13 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 						}
 						break;
 				}
-				if (returnFirst && !result.isEmpty()) {
-					return result;
-				}
-			}
-			if (!result.isEmpty() && returnFirst) {
-				return result;
 			}
 		}
+	}
 
-		// check the Leader at position 6
+	private void getFormatFromLeader(Set<String> result, String leader, ControlField fixedField) {
+		char leaderBit;
+		char formatCode;// check the Leader at position 6
 		if (leader.length() >= 6) {
 			leaderBit = leader.charAt(6);
 			switch (Character.toUpperCase(leaderBit)) {
@@ -480,9 +663,6 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					break;
 			}
 		}
-		if (!result.isEmpty() && returnFirst) {
-			return result;
-		}
 
 		if (leader.length() >= 7) {
 			// check the Leader at position 7
@@ -511,12 +691,39 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					}
 			}
 		}
-
-		// Nothing worked!
-		if (result.isEmpty()) {
-			result.add("Unknown");
-		}
-
-		return result;
 	}
+
+	/*private EContentRecord getEContentRecord(String identifier){
+		EContentRecord record = null;
+		try{
+			loadEContentRecordForIlsIdStmt.setString(1, identifier);
+			ResultSet eContentRecordData = loadEContentRecordForIlsIdStmt.executeQuery();
+			if (eContentRecordData.next()){
+				record = new EContentRecord();
+				record.setIlsId(identifier);
+				record.setAccessType(eContentRecordData.getString("accessType"));
+				record.setEContentRecordId(eContentRecordData.getLong("id"));
+				record.setAvailableCopies(eContentRecordData.getLong("availableCopies"));
+				record.setOnOrderCopies(eContentRecordData.getLong("onOrderCopies"));
+				record.setSource(eContentRecordData.getString("source"));
+
+				//Load items
+				loadEContentRecordForIlsIdStmt.setLong(1, record.getEContentRecordId());
+				ResultSet eContentItemData = loadEContentRecordForIlsIdStmt.executeQuery();
+				while (eContentItemData.next()){
+					EContentItem item = new EContentItem();
+					item.setFilename(eContentItemData.getString("filename"));
+					item.setFolder(eContentItemData.getString("folder"));
+					item.setItemType(eContentItemData.getString("item_type"));
+					item.setLibraryId(eContentItemData.getLong("libraryId"));
+					record.addEContentItem(item);
+				}
+			}else{
+				//TODO: Should we create the record here?
+			}
+		}catch(SQLException e){
+			logger.error("Error loading eContent Record", e);
+		}
+		return record;
+	}*/
 }

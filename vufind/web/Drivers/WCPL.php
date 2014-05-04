@@ -513,7 +513,7 @@ class WCPL extends Horizon
 							$basicInfoRS = $this->_query($basicInfoSql);
 							$basicInfoRow = $this->_fetch_assoc($basicInfoRS);
 							$fullName = $basicInfoRow['name'];
-							$firstname = trim(substr($fullName, 1 + strripos($fullName, ',')));
+							$firstname = trim(substr($fullName, strripos($fullName, ',')));
 							$lastname = trim(substr($fullName, 0, strripos($fullName, ',')));
 
 							$contactInfoSql = "select address1, address2, address3, city_st, postal_code, email_address from borrower_address where borrower# = $borrowerNumber";
@@ -657,7 +657,7 @@ class WCPL extends Horizon
 			$checkoutsSql = "select count(*) as numCheckouts from circ where borrower#= $$borrowerNumber";
 			$checkoutsRS = $this->_query($checkoutsSql);
 			$checkoutsRow = $this->_fetch_assoc($checkoutsRS);
-			$numCheckedOut = $availableHoldsRow['numCheckouts'];
+			$numCheckedOut = $checkoutsRow['numCheckouts'];
 
 			$profile = array('lastname' => $patron['lastname'],
 					'firstname' => $patron['firstname'],
