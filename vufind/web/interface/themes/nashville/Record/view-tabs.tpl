@@ -1,10 +1,16 @@
 <div id="moredetails-tabs">
 	{* Define tabs for the display *}
 	<ul>
-		<li id="holdingstab_label"><a href="#holdingstab">{translate text="Copies"}</a></li>
-		
-        <li id="detailstab_label"><a href="#detailstab">{translate text="Title Details"}</a></li>
-		
+    
+{* Set original tabs to display in the default order for in-library use and swapped them for out of library to put Title Details before Copies for home users *}
+        {if !$inLibrary}    
+	        <li id="holdingstab_label"><a href="#holdingstab">{translate text="Copies"}</a></li>
+	        <li id="detailstab_label"><a href="#detailstab">{translate text="Title Details"}</a></li>
+	{else}
+	        <li id="detailstab_label"><a href="#detailstab">{translate text="Title Details"}</a></li>
+	        <li id="holdingstab_label"><a href="#holdingstab">{translate text="Copies"}</a></li>
+	{/if}
+{* End of the tab swap *}
        
         {if $enableMaterialsRequest || is_array($otherEditions) }
 			<li id="otherEditionsTab_label"><a href="#otherEditionsTab">{translate text="Other Formats"}</a></li>
@@ -34,36 +40,67 @@
 		<li><a href="#stafftab">{translate text="Staff View"}</a></li>
 	</ul>
 
-	<div id = "holdingstab">
-		<a name="holdings"></a>
-		<div id="holdingsPlaceholder"></div>
+{* Set original tabs to display in the default order for in-library use and swapped them for out of library to put Title Details before Copies for home users *}
+{if !$inLibrary}
+        <div id = "holdingstab">
+            <a name="holdings"></a>
+            <div id="holdingsPlaceholder"></div>
+    
+            {if $internetLinks && $show856LinksAsTab == 0}
+                <h3>{translate text="Internet"}</h3>
+                <div>
+                    {foreach from=$internetLinks item=internetLink}
+                        {if $proxy}
+                        <a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><br/>
+                        {else}
+                        <a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a><br/>
+                        {/if}
+                    {/foreach}
+                </div>
+            {/if}
+    
+            {if $enablePurchaseLinks == 1 && !$purchaseLinks}
+                <br/>
+                <div class='purchaseTitle button'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
+            {/if}
+    
+        </div>
+        
+        <div id="detailstab">
+            {include file="Record/view-title-details.tpl"}
+        </div>
+{else}   
 
-		{if $internetLinks && $show856LinksAsTab == 0}
-			<h3>{translate text="Internet"}</h3>
-			<div>
-				{foreach from=$internetLinks item=internetLink}
-					{if $proxy}
-					<a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><br/>
-					{else}
-					<a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a><br/>
-					{/if}
-				{/foreach}
-			</div>
-		{/if}
-
-		{if $enablePurchaseLinks == 1 && !$purchaseLinks}
-			<br/>
-			<div class='purchaseTitle button'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
-		{/if}
-
-	</div>
-
-
-
-	
 		<div id="detailstab">
 			{include file="Record/view-title-details.tpl"}
 		</div>
+	
+        <div id = "holdingstab">
+        	<a name="holdings"></a>
+            <div id="holdingsPlaceholder"></div>
+			{if $internetLinks && $show856LinksAsTab == 0}
+                <h3>{translate text="Internet"}</h3>
+                <div>
+                    {foreach from=$internetLinks item=internetLink}
+                        {if $proxy}
+                        <a href="{$proxy}/login?url={$internetLink.link|escape:"url"}">{$internetLink.linkText|escape}</a><br/>
+                        {else}
+                        <a href="{$internetLink.link|escape}">{$internetLink.linkText|escape}</a><br/>
+                        {/if}
+                    {/foreach}
+                </div>
+            {/if}
+        
+            {if $enablePurchaseLinks == 1 && !$purchaseLinks}
+                <br/>
+                <div class='purchaseTitle button'><a href="#" onclick="return showPurchaseOptions('{$id}');">{translate text='Buy a Copy'}</a></div>
+            {/if}
+		 </div>
+{/if}
+
+{* End of the tab swap *}
+
+
 	
 
 	 
