@@ -38,7 +38,10 @@
 							<br />
 	                                                <a href="#" onclick="ajaxLightbox('/MyResearch/AJAX?method=getPinResetForm')">Forgot PIN?</a>
                             <br />
-                            {if !$inLibrary}<input type="checkbox" id="rememberMe" name="rememberMe" checked="checked" /><label for="rememberMe">{translate text="Remember Me"}</label>{/if}
+                           <!-- {if !$inLibrary}<input type="checkbox" id="rememberMe" name="rememberMe" checked="checked" /><label for="rememberMe">{translate text="Remember Me"}</label>{/if}
+                           -->
+                        <div class='grayUnavailalbeMessage'>Remember me currently unavailable</div>
+                    
 						</div>
 					</form>
 				 </div>
