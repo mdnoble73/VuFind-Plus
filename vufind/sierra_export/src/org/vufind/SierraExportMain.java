@@ -61,6 +61,9 @@ public class SierraExportMain{
 			System.exit(1);
 		}
 
+		//Get a list of works that have changed since the last index
+		getChangedRecordsFromApi(ini, vufindConn);
+
 		//Connect to the sierra database
 		String url = ini.get("Catalog", "sierra_db");
 		if (url.startsWith("\"")){
@@ -79,9 +82,6 @@ public class SierraExportMain{
 			System.out.println("Error: " + e.toString());
 			e.printStackTrace();
 		}
-
-		//Get a list of works that have changed since the last index
-		getChangedRecordsFromApi(ini, vufindConn);
 
 		if (conn != null){
 			try{
@@ -136,19 +136,27 @@ public class SierraExportMain{
 				//That the grouped record has changed which will force the work to be indexed
 				//In reality, this will only update availability unless we pull the full marc record
 				//from the API since we only have updated availability, not location data or metadata
-				PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
-				JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/?updatedDate=[" + dateUpdated + ",]&limit=2000&fields=id&deleted=false&suppressed=false");
-				if (changedRecords != null && changedRecords.has("entries")){
-					JSONArray changedIds = changedRecords.getJSONArray("entries");
-					for(int i = 0; i < changedIds.length(); i++){
-						String curId = changedIds.getString(i);
-						String fullId = ".b" + curId + getCheckDigit(curId);
-						markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
-						markGroupedWorkForBibAsChangedStmt.setString(2, fullId);
-						markGroupedWorkForBibAsChangedStmt.executeUpdate();
+				long offset = 0;
+				boolean moreToRead = true;
+				while (moreToRead){
+					PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
+					JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/?updatedDate=[" + dateUpdated + ",]&limit=2000&fields=id&deleted=false&suppressed=false&offset=" + offset);
+					int numChangedIds = 0;
+					if (changedRecords != null && changedRecords.has("entries")){
+						JSONArray changedIds = changedRecords.getJSONArray("entries");
+						numChangedIds = changedIds.length();
+						for(int i = 0; i < numChangedIds; i++){
+							String curId = changedIds.getJSONObject(i).getString("id");
+							String fullId = ".b" + curId + getCheckDigit(curId);
+							markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
+							markGroupedWorkForBibAsChangedStmt.setString(2, fullId);
+							markGroupedWorkForBibAsChangedStmt.executeUpdate();
 
-						//TODO: Determine if it is worth forming a full MARC record for ouput to the marc_recs folder
+							//TODO: Determine if it is worth forming a full MARC record for output to the marc_recs folder
+						}
 					}
+					moreToRead = (numChangedIds >= 2000);
+					offset += 2000;
 				}
 
 				//TODO: Process deleted records as well?
