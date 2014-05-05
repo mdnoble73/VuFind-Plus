@@ -1098,9 +1098,13 @@ class Solr implements IndexEngine {
 			$shards = is_array($checkedShards) ? $checkedShards : array($checkedShards);
 		} else {
 			// If no default is configured, use all shards...
-			$shards = array_keys($configArray['IndexShards']);
+			if (isset($configArray['IndexShards'])){
+				$shards = array_keys($configArray['IndexShards']);
+			}
 		}
-		$this->_loadShards($shards);
+		if (isset($shards)){
+			$this->_loadShards($shards);
+		}
 	}
 
 	function enableScoping(){
@@ -1111,9 +1115,13 @@ class Solr implements IndexEngine {
 			$shards = is_array($checkedShards) ? $checkedShards : array($checkedShards);
 		} else {
 			// If no default is configured, use all shards...
-			$shards = array_keys($configArray['IndexShards']);
+			if (isset($configArray['IndexShards'])){
+				$shards = array_keys($configArray['IndexShards']);
+			}
 		}
-		$this->_loadShards($shards);
+		if (isset($shards)){
+			$this->_loadShards($shards);
+		}
 	}
 
 	function isScopingEnabled(){
