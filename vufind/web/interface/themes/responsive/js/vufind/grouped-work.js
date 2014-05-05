@@ -170,6 +170,16 @@ VuFind.GroupedWork = (function(){
 			}
 		},
 
+		reloadCover: function (id){
+			var url = Globals.path + '/GroupedWork/' + id + '/AJAX?method=reloadCover';
+			$.getJSON(url, function (data){
+						VuFind.showMessage("Success", data.message);
+						setTimeout("VuFind.closeLightbox();", 3000);
+					}
+			);
+			return false;
+		},
+
 		removeTag:function(id, tag){
 			if (confirm("Are you sure you want to remove the tag \"" + tag + "\" from this title?")){
 				var url = Globals.path + '/GroupedWork/' + id + '/AJAX?method=removeTag';

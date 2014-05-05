@@ -1,3 +1,5 @@
+<button onclick="return VuFind.GroupedWork.reloadCover('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default">Reload Cover</button>
+
 <h4>Grouping Information</h4>
 <table class="table-striped table table-condensed notranslate">
 	{foreach from=$groupedWorkDetails key='field' item='value'}

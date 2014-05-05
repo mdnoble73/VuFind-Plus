@@ -774,4 +774,24 @@ class GroupedWork_AJAX {
 		$novelistData = $jsonData->body;
 		echo($novelistData);
 	}
+
+	function reloadCover(){
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		$id = $_REQUEST['id'];
+		$recordDriver = new GroupedWorkDriver($id);
+		
+		//Reload small cover
+		$smallCoverUrl = $recordDriver->getBookcoverUrl('small') . '&reload';
+		file_get_contents($smallCoverUrl);
+
+		//Reload medium cover
+		$mediumCoverUrl = $recordDriver->getBookcoverUrl('medium') . '&reload';
+		file_get_contents($mediumCoverUrl);
+		
+		//Reload large cover
+		$largeCoverUrl = $recordDriver->getBookcoverUrl('large') . '&reload';
+		file_get_contents($largeCoverUrl);
+
+		return json_encode(array('success' => true, 'message' => 'Covers have been reloaded.  You may need to refresh the page to clear your local cache.'));
+	}
 } 
