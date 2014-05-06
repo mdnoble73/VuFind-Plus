@@ -91,13 +91,38 @@ class ExternalEContentDriver extends BaseEContentDriver{
 
 		$isbn = $this->getCleanISBN();
 
+		$items = $this->getItemsFast();
+		$interface->assign('items', $items);
+
 		//Load more details options
 		$moreDetailsOptions = array();
-		$moreDetailsOptions['formats'] = array(
-			'label' => 'Formats',
-			'body' => '<div id="formatsPlaceholder">Loading...</div>',
+		$moreDetailsOptions['series'] = array(
+				'label' => 'Also in this Series',
+				'body' => $interface->fetch('GroupedWork/series.tpl'),
+				'hideByDefault' => false,
+				'openByDefault' => true
+		);
+		$moreDetailsOptions['moreLikeThis'] = array(
+				'label' => 'More Like This',
+				'body' => $interface->fetch('GroupedWork/moreLikeThis.tpl'),
+				'hideByDefault' => false,
+				'openByDefault' => true
+		);
+		$moreDetailsOptions['copies'] = array(
+			'label' => 'Copies',
+			'body' => $interface->fetch('ExternalEContent/view-items.tpl'),
 			'openByDefault' => true
 		);
+		//Other editions if applicable
+		$relatedRecords = $this->getGroupedWorkDriver()->getRelatedRecords();
+		if (count($relatedRecords) > 0){
+			$interface->assign('relatedManifestations', $this->getGroupedWorkDriver()->getRelatedManifestations());
+			$moreDetailsOptions['otherEditions'] = array(
+					'label' => 'Other Editions',
+					'body' => $interface->fetch('GroupedWork/relatedManifestations.tpl'),
+					'hideByDefault' => false
+			);
+		}
 		$moreDetailsOptions['tableOfContents'] = array(
 			'label' => 'Table of Contents',
 			'body' => $interface->fetch('GroupedWork/tableOfContents.tpl'),
@@ -170,5 +195,30 @@ class ExternalEContentDriver extends BaseEContentDriver{
 
 	function getModuleName(){
 		return 'ExternalEContent';
+	}
+
+	function getFormats(){
+		global $configArray;
+		$formats = array();
+		//Get the format based on the iType
+		$itemFields = $this->marcRecord->getFields('989');
+		/** @var File_MARC_Data_Field[] $itemFields */
+		foreach ($itemFields as $itemField){
+			$locationCode = trim($itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '');
+			$eContentData = trim($itemField->getSubfield('w') != null ? $itemField->getSubfield('w')->getData() : '');
+			if ($eContentData && strpos($eContentData, ':') > 0){
+				$eContentFieldData = explode(':', $eContentData);
+				$source = trim($eContentFieldData[0]);
+				$protectionType = trim($eContentFieldData[1]);
+				if ($this->isValidProtectionType($protectionType)){
+					if ($this->isValidForUser($locationCode, $eContentFieldData)){
+						$iTypeField = $itemField->getSubfield($configArray['Reindex']['iTypeSubfield'])->getData();
+						$format = mapValue('econtent_itype_format', $iTypeField);
+						$formats[$format] = $format;
+					}
+				}
+			}
+		}
+		return $formats;
 	}
 } 

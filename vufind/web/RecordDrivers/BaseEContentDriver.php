@@ -49,6 +49,11 @@ abstract class BaseEContentDriver  extends MarcRecord {
 							}else{
 								$locationLabel = $locationCode . ' Online';
 							}
+							$links = array();
+							$links[] = array(
+									'onclick' => '/ExternalEContent/' . $this->getId() . '/Link',
+									'text' => 'Access Online'
+							);
 
 							//Add an item
 							$item = array(
@@ -63,7 +68,9 @@ abstract class BaseEContentDriver  extends MarcRecord {
 								'shelfLocation' => 'Online ' . $source,
 								'source' => $source,
 								'sharing' => $this->getSharing($locationCode, $eContentFieldData),
+								'links' => $links,
 							);
+
 							$this->fastItems[] = $item;
 						}
 					}
@@ -147,7 +154,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 		return $sources;
 	}
 
-	private function isValidProtectionType($protectionType) {
+	protected function isValidProtectionType($protectionType) {
 		return in_array(strtolower($protectionType), $this->getValidProtectionTypes());
 	}
 

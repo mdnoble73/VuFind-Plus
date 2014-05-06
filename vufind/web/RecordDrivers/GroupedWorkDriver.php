@@ -328,7 +328,7 @@ class GroupedWorkDriver implements RecordInterface{
 		$interface->assign('recordDriver', $this);
 
 		return array(
-				'id' => isset($record['id']) ? $record['id'] : '',
+				'id' => $this->getPermanentId(),
 				'image' => $this->getBookcoverUrl('medium'),
 				'title' => $this->getTitle(),
 				'author' => $this->getPrimaryAuthor(),

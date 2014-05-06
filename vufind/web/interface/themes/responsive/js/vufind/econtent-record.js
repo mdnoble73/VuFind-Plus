@@ -4,7 +4,7 @@
 VuFind.ExternalEContentRecord = (function(){
 	return {
 		loadHoldingsInfo: function(id, type, callback){
-			var url = Globals.path + "/ExternalEContentRecord/" + encodeURIComponent(id) + "/AJAX";
+			var url = Globals.path + "/ExternalEContent/" + encodeURIComponent(id) + "/AJAX";
 			var params = "method=GetHoldingsInfo";
 			var fullUrl = url + "?" + params;
 			$.ajax( {

@@ -964,8 +964,6 @@ class MarcRecord extends IndexRecord
 		//Bypass loading solr, etc if we already have loaded the descriptive info before
 		$descriptionArray = $memCache->get("record_description_{$id}");
 		if (!$descriptionArray){
-			require_once ROOT_DIR . '/services/Record/Description.php';
-
 			$timer->logTime("Starting to load description for marc record");
 			$descriptionArray = $this->loadDescriptionFromMarc($this->marcRecord, false);
 			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);

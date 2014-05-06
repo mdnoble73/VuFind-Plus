@@ -129,7 +129,7 @@ TitleScroller.prototype.updateScroller = function() {
 		}
 		
 	} catch (err) {
-		alert("error in updateScroller " + err.description);
+		alert("error in updateScroller for scroller " + this.scrollerId + " " + err.description);
 		scrollerBody.html("error loading titles from data " + err + ". Please try again later.");
 		scrollerBody.show();
 		$(".scrollerLoadingContainer").hide();
