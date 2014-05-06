@@ -153,6 +153,10 @@ public class SierraExportMain{
 							markGroupedWorkForBibAsChangedStmt.executeUpdate();
 
 							//TODO: Determine if it is worth forming a full MARC record for output to the marc_recs folder
+							//Note: right now it isn't because item data isn't exported as part of the marc data
+							/*JSONObject marcRecord = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/" + curId + "/marc");
+							if (marcRecord != null){
+							}*/
 						}
 					}
 					moreToRead = (numChangedIds >= 2000);
