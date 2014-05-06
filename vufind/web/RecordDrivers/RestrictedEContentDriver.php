@@ -81,7 +81,7 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 	}
 
 	protected function getRecordType(){
-		return 'drm';
+		return 'ils';
 	}
 
 	function getModuleName(){

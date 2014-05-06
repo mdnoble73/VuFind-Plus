@@ -165,7 +165,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 	}
 
 	protected function getRecordType(){
-		return 'external';
+		return 'ils';
 	}
 
 	function getModuleName(){

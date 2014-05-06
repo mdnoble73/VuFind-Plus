@@ -497,6 +497,23 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
+				'econtent_locations_to_include' => array(
+						'title' => 'eContent Locations To Include',
+						'description' => 'Adds the ability to define which shared location codes should be included in the search scope',
+						'sql' => array(
+								"ALTER TABLE library ADD econtentLocationsToInclude VARCHAR(255)",
+								"ALTER TABLE location ADD econtentLocationsToInclude VARCHAR(255)",
+						),
+				),
+
+				'pTypesForLibrary' => array(
+						'title' => 'pTypesForLibrary',
+						'description' => 'A list of pTypes that are valid for the library',
+						'sql' => array(
+								"ALTER TABLE library ADD pTypes VARCHAR(255)",
+						),
+				),
+
 				'hours_and_locations_control' => array(
 						'title' => 'Hours and Locations Control',
 						'description' => 'Allow additional control over library hours and locations display.',
@@ -2740,22 +2757,6 @@ class DBMaintenance extends Admin_Admin {
 						'description' => 'Remove old tables that were used for alphabetic browsing',
 						'sql' => array(
 								"dropBrowseTables",
-						),
-				),
-
-				'search_scopes' => array(
-						'title' => 'Create Search Scopes',
-						'description' => 'Create search scopes to minimize the number of dynamic fields in solr and give better control over what is shown to each user',
-						'sql' => array(
-								"CREATE TABLE search_scopes (
-									id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-									textId VARCHAR(60) NOT NULL DEFAULT -1,
-									label VARCHAR(255) NOT NULL,
-									description MEDIUMTEXT,
-									locationsToIncludeAllItems VARCHAR(255),
-									locationsToIncludeIfHoldable VARCHAR(255),
-									pTypesToInclude VARCHAR(255)
-								) ENGINE = MYISAM"
 						),
 				),
 		);

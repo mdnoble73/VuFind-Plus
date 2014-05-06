@@ -175,7 +175,13 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		return unsuppressedEcontentRecords;
 	}
 
-
+	/**
+	 * Do item based determination of econtent sources, and protection types.
+	 * For Marmot also load availability and ownership information for eContent since it is so similar.
+	 *
+	 * @param groupedWork
+	 * @param itemRecords
+	 */
 	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<DataField> itemRecords) {
 		for (DataField curItem : itemRecords){
 			//Check subfield w to get the source
@@ -190,12 +196,18 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				String protectionType = econtentData[1].toLowerCase().trim();
 
 				sources.add(eContentSource);
+
+				boolean available = false;
 				if (protectionType.equals("external")){
 					protectionTypes.add("Externally Validated");
+					available = true;
 				}else if (protectionType.equals("public domain") || protectionType.equals("free")){
 					protectionTypes.add("Public Domain");
+					available = true;
 				}else if (protectionType.equals("acs") || protectionType.equals("drm")){
 					protectionTypes.add("Limited Access");
+					//TODO: Determine availability
+					available = true;
 				}
 				boolean shareWithAll = false;
 				boolean shareWithLibrary = false;
@@ -214,17 +226,104 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					//Share with everyone
 					shareWithAll = true;
 				}
+				HashSet<String> owningLibraries = new HashSet<String>();
+				HashSet<String> availableLibraries = new HashSet<String>();
+				HashSet<String> owningSubdomainsAndLocations = new HashSet<String>();
+				HashSet<String> availableSubdomainsAndLocations = new HashSet<String>();
 				if (shareWithAll){
 					groupedWork.addEContentSources(sources, subdomainMap.values() , locationMap.values());
 					groupedWork.addEContentProtectionTypes(protectionTypes, subdomainMap.values() , locationMap.values());
+					groupedWork.addCompatiblePTypes(allPTypes);
+					owningLibraries.add("Shared Digital Collection");
+					owningLibraries.addAll(libraryOnlineFacetMap.values());
+					owningSubdomainsAndLocations.addAll(subdomainMap.values());
+					owningSubdomainsAndLocations.addAll(locationMap.values());
+					if (available){
+						availableLibraries.addAll(libraryFacetMap.values());
+						availableSubdomainsAndLocations.addAll(subdomainMap.values());
+						availableSubdomainsAndLocations.addAll(locationMap.values());
+					}
 				}else if (shareWithLibrary){
-					groupedWork.addEContentSources(sources, getLibrarySubdomainsForLocationCode(locationCode), getRelatedLocationCodesForLocationCode(locationCode));
-					groupedWork.addEContentProtectionTypes(protectionTypes, getLibrarySubdomainsForLocationCode(locationCode), getRelatedLocationCodesForLocationCode(locationCode));
+					ArrayList<String> validSubdomains = getLibrarySubdomainsForLocationCode(locationCode);
+					ArrayList<String> validLocationCodes = getRelatedLocationCodesForLocationCode(locationCode);
+					groupedWork.addEContentSources(sources, validSubdomains, validLocationCodes);
+					groupedWork.addEContentProtectionTypes(protectionTypes, validSubdomains, validLocationCodes);
+					for (String curLocation : pTypesByLibrary.keySet()){
+						if (locationCode.startsWith(curLocation)){
+							groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
+						}
+					}
+					owningLibraries.addAll(getLibraryOnlineFacetsForLocationCode(locationCode));
+					if (available){
+						availableLibraries.addAll(getLibraryOnlineFacetsForLocationCode(locationCode));
+						availableSubdomainsAndLocations.addAll(validSubdomains);
+						availableSubdomainsAndLocations.addAll(validLocationCodes);
+					}
 				}else{
+					//Share with just the individual location
 					groupedWork.addEContentSources(sources, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
 					groupedWork.addEContentProtectionTypes(protectionTypes, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
+					//TODO: Add correct owning and available locations
+					for (String curLocation : pTypesByLibrary.keySet()){
+						if (locationCode.startsWith(curLocation)){
+							groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
+						}
+					}
 				}
+				groupedWork.addOwningLibraries(owningLibraries);
+				groupedWork.addOwningLocationCodesAndSubdomains(owningSubdomainsAndLocations);
+				groupedWork.addAvailableLocations(availableLibraries, availableSubdomainsAndLocations);
+			}//Has subfield w
+		}
+	}
 
+	protected void loadUsability(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
+		super.loadUsability(groupedWork, printItems, econtentItems);
+
+		for (DataField itemField : econtentItems){
+			if (itemField.getSubfield(eContentSubfield) != null){
+				String eContentData = itemField.getSubfield(eContentSubfield).getData();
+				String locationCode = itemField.getSubfield(locationSubfieldIndicator) == null ? null : itemField.getSubfield(locationSubfieldIndicator).getData().trim();
+				if (eContentData.indexOf(':') >= 0){
+					boolean shareWithAll = false;
+					boolean shareWithLibrary = false;
+					String[] econtentData = eContentData.split("\\s?:\\s?");
+					if (econtentData.length >= 3){
+						String sharing = econtentData[2].trim();
+						if (sharing.equalsIgnoreCase("shared")){
+							shareWithAll = true;
+						}else if (sharing.equalsIgnoreCase("library")){
+							shareWithLibrary = true;
+						}
+					}else{
+						if (locationCode != null){
+							if (locationCode.startsWith("mdl")){
+								shareWithAll = true;
+							}else{
+								shareWithLibrary = true;
+							}
+						}else{
+							logger.error("Location code was null for item, skipping to next");
+							continue;
+						}
+					}
+					if (shareWithAll){
+						groupedWork.addCompatiblePTypes(allPTypes);
+						break;
+					}else if (shareWithLibrary){
+						if (locationCode == null){
+							logger.error("Location code was null for item, skipping to next");
+						} else {
+							for(String curLocation : pTypesByLibrary.keySet()){
+								if (locationCode.startsWith(curLocation)){
+									groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
+								}
+							}
+						}
+					} else{
+						logger.warn("Could not determine usability, was not shared with library or everyone");
+					}
+				}
 			}
 		}
 	}
@@ -280,9 +379,15 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				String protectionType = econtentData[1].toLowerCase().trim();
 				if (protectionType.equals("acs") || protectionType.equals("drm") || protectionType.equals("public domain") || protectionType.equals("free")){
 					if (econtentData.length >= 4){
-						String filename = econtentData[3];
-						String fileExtension = filename.substring(filename.lastIndexOf('.') + 1);
-						result.add(fileExtension);
+						String filename = econtentData[3].trim().toLowerCase();
+						if (filename.indexOf('.') > 0){
+							String fileExtension = filename.substring(filename.lastIndexOf('.') + 1);
+							result.add(fileExtension);
+						}else{
+							//For now we know these are folders of MP3 files
+							//TODO: Probably should actually open the folder to make sure that it contains MP3 files
+							result.add("mp3");
+						}
 					}else{
 						logger.warn("Filename for local econtent not specified " + subfieldW + " " + identifier);
 					}

@@ -982,15 +982,17 @@ class IndexRecord implements RecordInterface
 	 * Load the grouped work that this record is connected to.
 	 */
 	public function loadGroupedWork() {
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
-		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
-		$groupedWork = new GroupedWork();
-		$query = "SELECT grouped_work.* FROM grouped_work INNER JOIN grouped_work_primary_identifiers ON grouped_work.id = grouped_work_id WHERE type='{$this->getRecordType()}' AND identifier = '" . $this->getUniqueID() . "'";
-		$groupedWork->query($query);
+		if ($this->groupedWork == null){
+			require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
+			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+			$groupedWork = new GroupedWork();
+			$query = "SELECT grouped_work.* FROM grouped_work INNER JOIN grouped_work_primary_identifiers ON grouped_work.id = grouped_work_id WHERE type='{$this->getRecordType()}' AND identifier = '" . $this->getUniqueID() . "'";
+			$groupedWork->query($query);
 
-		if ($groupedWork->N == 1){
-			$groupedWork->fetch();
-			$this->groupedWork = clone $groupedWork;
+			if ($groupedWork->N == 1){
+				$groupedWork->fetch();
+				$this->groupedWork = clone $groupedWork;
+			}
 		}
 	}
 
@@ -1533,7 +1535,7 @@ class IndexRecord implements RecordInterface
 	public function getRatingData() {
 		require_once ROOT_DIR . '/services/API/WorkAPI.php';
 		$workAPI = new WorkAPI();
-		return $workAPI->getRatingData($this->groupedWork->permanent_id);
+		return $workAPI->getRatingData($this->getGroupedWorkId());
 	}
 
 	protected function getRecordType(){

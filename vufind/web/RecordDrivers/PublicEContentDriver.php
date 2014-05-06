@@ -17,14 +17,7 @@ class PublicEContentDriver extends BaseEContentDriver{
 	public function __construct($record){
 		//Do default constructor
 		parent::__construct($record);
-		//Now load the eContent record based on the ils id
-		$this->eContentRecord = new EContentRecord();
-		$this->eContentRecord->ilsId = $this->id;
-		$this->eContentRecord->status = 'active';
-		if ($this->eContentRecord->find(true)){
-
-		}
-
+		$this->loadGroupedWork();
 	}
 
 	function getValidProtectionTypes(){
@@ -59,8 +52,12 @@ class PublicEContentDriver extends BaseEContentDriver{
 		return $configArray['Site']['path'] . '/PublicEContent/' . $recordId;
 	}
 
+	public function getHoldings() {
+
+	}
+
 	protected function getRecordType(){
-		return 'free';
+		return 'ils';
 	}
 
 	function getModuleName(){

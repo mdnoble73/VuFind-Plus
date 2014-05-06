@@ -55,12 +55,15 @@ public abstract class IlsRecordProcessor {
 	protected char callNumberCutterSubfield;
 
 	private static boolean libraryAndLocationDataLoaded = false;
-	protected static HashMap<String, String> libraryMap = new HashMap<String, String>();
+	protected static HashMap<String, String> libraryFacetMap = new HashMap<String, String>();
+	protected static HashMap<String, String> libraryOnlineFacetMap = new HashMap<String, String>();
 	protected static HashMap<String, String> locationMap = new HashMap<String, String>();
 	protected static HashMap<String, String> subdomainMap = new HashMap<String, String>();
 
 	private static boolean loanRuleDataLoaded = false;
-	private static ArrayList<Long> pTypes = new ArrayList<Long>();
+	protected static ArrayList<Long> pTypes = new ArrayList<Long>();
+	protected static HashMap<String, HashSet<String>> pTypesByLibrary = new HashMap<String, HashSet<String>>();
+	protected static HashSet<String> allPTypes = new HashSet<String>();
 	private static HashMap<Long, LoanRule> loanRules = new HashMap<Long, LoanRule>();
 	private static ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<LoanRuleDeterminer>();
 
@@ -114,7 +117,11 @@ public abstract class IlsRecordProcessor {
 					String code = libraryInformationRS.getString("ilsCode");
 					String facetLabel = libraryInformationRS.getString("facetLabel");
 					String subdomain = libraryInformationRS.getString("subdomain");
-					libraryMap.put(code, facetLabel);
+					if (facetLabel.length() > 0){
+						String onlineFacetLabel = facetLabel + " Online";
+						libraryFacetMap.put(code, facetLabel);
+						libraryOnlineFacetMap.put(code, onlineFacetLabel);
+					}
 					subdomainMap.put(code, subdomain);
 				}
 
@@ -140,6 +147,22 @@ public abstract class IlsRecordProcessor {
 				ResultSet pTypesRS = pTypesStmt.executeQuery();
 				while (pTypesRS.next()) {
 					pTypes.add(pTypesRS.getLong("pType"));
+					allPTypes.add(pTypesRS.getString("pType"));
+				}
+
+				PreparedStatement pTypesByLibraryStmt = vufindConn.prepareStatement("SELECT pTypes, ilsCode from library", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				ResultSet pTypesByLibraryRS = pTypesByLibraryStmt.executeQuery();
+				while (pTypesByLibraryRS.next()) {
+					String ilsCode = pTypesByLibraryRS.getString("ilsCode");
+					String pTypes = pTypesByLibraryRS.getString("pTypes");
+					if (pTypes != null && pTypes.length() > 0){
+						String[] pTypeElements = pTypes.split(",");
+						HashSet<String> pTypesForLibrary = new HashSet<String>();
+						for (String pType : pTypeElements){
+							pTypesForLibrary.add(pType);
+						}
+						pTypesByLibrary.put(ilsCode, pTypesForLibrary);
+					}
 				}
 
 				PreparedStatement loanRuleStmt = vufindConn.prepareStatement("SELECT * from loan_rules", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -757,7 +780,6 @@ public abstract class IlsRecordProcessor {
 				groupedWork.addCompatiblePTypes(getCompatiblePTypes(iType, locationCode));
 			}
 		}
-		//TODO: Also do this for eContent titles based on sharing in eContent field
 	}
 
 	protected boolean isItemSuppressed(DataField curItem) {
@@ -775,7 +797,7 @@ public abstract class IlsRecordProcessor {
 		return icode2.equals("n") || icode2.equals("x") || locationCode.equals("zzzz");
 	}
 
-	private void loadAvailability(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
+	protected void loadAvailability(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
 		//Calculate availability based on the record
 		HashSet<String> availableAt = new HashSet<String>();
 		HashSet<String> availableLocationCodes = new HashSet<String>();
@@ -815,7 +837,7 @@ public abstract class IlsRecordProcessor {
 		groupedWork.addAvailableLocations(availableAt, availableLocationCodes);
 	}
 
-	private void loadOwnershipInformation(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
+	protected void loadOwnershipInformation(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
 		HashSet<String> owningLibraries = new HashSet<String>();
 		HashSet<String> owningLocations = new HashSet<String>();
 		HashSet<String> owningLocationCodes = new HashSet<String>();
@@ -841,17 +863,30 @@ public abstract class IlsRecordProcessor {
 
 	}
 
-	private ArrayList<String> getLibraryFacetsForLocationCode(String locationCode) {
+	protected ArrayList<String> getLibraryFacetsForLocationCode(String locationCode) {
 		ArrayList<String> libraryFacets = new ArrayList<String>();
-		for(String libraryCode : libraryMap.keySet()){
+		for(String libraryCode : libraryFacetMap.keySet()){
 			if (locationCode.startsWith(libraryCode)){
-				libraryFacets.add(libraryMap.get(libraryCode));
+				libraryFacets.add(libraryFacetMap.get(libraryCode));
 			}
 		}
 		if (libraryFacets.size() == 0){
 			logger.warn("Did not find any library facets for " + locationCode);
 		}
 		return libraryFacets;
+	}
+
+	protected ArrayList<String> getLibraryOnlineFacetsForLocationCode(String locationCode) {
+		ArrayList<String> libraryOnlineFacets = new ArrayList<String>();
+		for(String libraryCode : libraryOnlineFacetMap.keySet()){
+			if (locationCode.startsWith(libraryCode)){
+				libraryOnlineFacets.add(libraryFacetMap.get(libraryCode));
+			}
+		}
+		if (libraryOnlineFacets.size() == 0){
+			logger.warn("Did not find any online library facets for " + locationCode);
+		}
+		return libraryOnlineFacets;
 	}
 
 	private ArrayList<String> getRelatedSubdomainsForLocationCode(String locationCode) {

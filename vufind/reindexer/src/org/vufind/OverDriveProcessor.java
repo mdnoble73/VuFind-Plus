@@ -62,7 +62,7 @@ public class OverDriveProcessor {
 				Long libraryId = libraryInformationRS.getLong("libraryId");
 				String facetLabel = libraryInformationRS.getString("facetLabel");
 				if (facetLabel.length() > 0){
-				facetLabel += " Online";
+					facetLabel += " Online";
 				}
 				String subdomain = libraryInformationRS.getString("subdomain");
 				libraryMap.put(libraryId, facetLabel);
@@ -132,6 +132,7 @@ public class OverDriveProcessor {
 					int copiesOwned = availabilityRS.getInt("copiesOwned");
 					if (libraryId == -1){
 						//Everyone has access to this
+						owningLibraries.add("Shared Digital Collection");
 						owningLibraries.addAll(libraryMap.values());
 						owningSubdomainsAndLocations.addAll(subdomainMap.values());
 						for (Long curLibraryId : libraryMap.keySet()){
@@ -160,6 +161,7 @@ public class OverDriveProcessor {
 				groupedWork.addAvailableLocations(availableLibraries, availableSubdomainsAndLocations);
 				groupedWork.addEContentSource("OverDrive", owningSubdomainsAndLocations, new ArrayList<String>());
 				groupedWork.addEContentProtectionType("Limited Access", owningSubdomainsAndLocations, new ArrayList<String>());
+				//TODO: Compatible ptypes should be based on the owning library
 				groupedWork.addCompatiblePType("all");
 			}
 		} catch (SQLException e) {
