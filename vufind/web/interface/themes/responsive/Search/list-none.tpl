@@ -88,7 +88,6 @@
 <script type="text/javascript">
 	$(document).ready(function() {literal} { {/literal}
 		doGetStatusSummaries();
-		doGetSeriesInfo();
 		{literal} }); {/literal}
 </script>
 {/strip}

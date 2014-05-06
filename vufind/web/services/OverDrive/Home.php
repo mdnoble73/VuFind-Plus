@@ -24,7 +24,6 @@ require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
 class OverDrive_Home extends Action{
 	/** @var  SearchObject_Solr $db */
 	private $id;
-	private $isbn;
 
 	function launch(){
 		global $interface;
@@ -41,21 +40,20 @@ class OverDrive_Home extends Action{
 
 		$this->id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $this->id);
-		$overDriveDriver = new OverDriveRecordDriver($this->id);
+		$recordDriver = new OverDriveRecordDriver($this->id);
 
-		if (!$overDriveDriver->isValid()){
+		if (!$recordDriver->isValid()){
 			$interface->setTemplate('../Record/invalidRecord.tpl');
 			$interface->display('layout.tpl');
 			die();
 		}else{
-			$this->isbn = $overDriveDriver->getCleanISBN();
-			$interface->assign('recordDriver', $overDriveDriver);
+			$interface->assign('recordDriver', $recordDriver);
 
 			//Load status summary
 			require_once (ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
 			$driver = OverDriveDriverFactory::getDriver();
-			$holdings = $driver->getHoldings($overDriveDriver);
-			$scopedAvailability = $driver->getScopedAvailability($overDriveDriver);
+			$holdings = $driver->getHoldings($recordDriver);
+			$scopedAvailability = $driver->getScopedAvailability($recordDriver);
 			$holdingsSummary = $driver->getStatusSummary($this->id, $scopedAvailability, $holdings);
 			if (PEAR_Singleton::isError($holdingsSummary)) {
 				PEAR_Singleton::raiseError($holdingsSummary);
@@ -63,7 +61,7 @@ class OverDrive_Home extends Action{
 			$interface->assign('holdingsSummary', $holdingsSummary);
 
 			//Load the citations
-			$this->loadCitations($overDriveDriver);
+			$this->loadCitations($recordDriver);
 
 			// Retrieve User Search History
 			$interface->assign('lastsearch', isset($_SESSION['lastSearchURL']) ?
@@ -75,8 +73,8 @@ class OverDrive_Home extends Action{
 			$searchObject->init($searchSource);
 			$searchObject->getNextPrevLinks();
 
-			$interface->setPageTitle($overDriveDriver->getTitle());
-			$interface->assign('moreDetailsOptions', $overDriveDriver->getMoreDetailsOptions());
+			$interface->setPageTitle($recordDriver->getTitle());
+			$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
 
 			// Display Page
 			$interface->assign('sidebar', 'OverDrive/full-record-sidebar.tpl');
@@ -88,6 +86,9 @@ class OverDrive_Home extends Action{
 		}
 	}
 
+	/**
+	 * @param OverDriveRecordDriver $recordDriver
+	 */
 	function loadCitations($recordDriver){
 		global $interface;
 

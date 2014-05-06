@@ -1,3 +1,5 @@
+<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}" class="btn btn-sm btn-default">Go To Grouped Work</a>
+
 {if $marcRecord}
 	<div id="formattedMarcRecord">
 		<h3>MARC Record</h3>

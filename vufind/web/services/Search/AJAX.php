@@ -27,7 +27,7 @@ class AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_REQUEST['method'];
-		if (in_array($method, array('GetAutoSuggestList', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries', 'GetSeriesInfo', 'getEmailForm', 'sendEmail'))){
+		if (in_array($method, array('GetAutoSuggestList', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries', 'getEmailForm', 'sendEmail'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -159,15 +159,6 @@ class AJAX extends Action {
 		global $timer;
 		global $library;
 
-		$showOtherEditionsPopup = false;
-		if ($configArray['Content']['showOtherEditionsPopup']){
-			if ($library){
-				$showOtherEditionsPopup = ($library->showOtherEditionsPopup == 1);
-			}else{
-				$showOtherEditionsPopup = true;
-			}
-		}
-		$interface->assign('showOtherEditionsPopup', $showOtherEditionsPopup);
 		$showCopiesLineInHoldingsSummary = true;
 		if ($library && $library->showCopiesLineInHoldingsSummary == 0){
 			$showCopiesLineInHoldingsSummary = false;
@@ -474,33 +465,6 @@ class AJAX extends Action {
 
 		}
 		echo $listData;
-	}
-
-	function GetSeriesInfo(){
-		require_once ROOT_DIR . '/sys/NovelistFactory.php';
-		$novelist = NovelistFactory::getNovelist();
-		if (isset($_REQUEST['isbn'])){
-			$isbns = $_REQUEST['isbn'];
-		}else{
-			$isbns = array();
-		}
-
-		$seriesInfo = array();
-		foreach ($isbns as $isbn){
-			$enrichment = $novelist->loadEnrichment($isbn);
-			if (isset($enrichment['seriesTitle'])){
-				$enrichment['seriesTitle'] = preg_replace('/\s*series$/i','',$enrichment['seriesTitle']);
-				$seriesInfo[$isbn] = "<a href='/Search/Results?sort=year&lookfor=series:" . urlencode($enrichment['seriesTitle']) . "'>{$enrichment['seriesTitle']}</a>" ;
-				if (isset($enrichment['volumeLabel']) && strlen($enrichment['volumeLabel']) > 0){
-					$seriesInfo[$isbn] .=  ', ' . $enrichment['volumeLabel'];
-				}
-			}
-		}
-		echo json_encode(array(
-				'success' => true,
-				'series' => $seriesInfo
-		));
-
 	}
 
 	function getEmailForm(){

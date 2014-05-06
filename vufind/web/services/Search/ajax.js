@@ -290,25 +290,6 @@ function getSeriesInfo(isbn){
 	GetSeriesList[GetSeriesList.length] = isbn;
 }
 
-function doGetSeriesInfo(){
-	var now = new Date();
-	var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
-
-	var url = path + "/Search/AJAX?method=GetSeriesInfo";
-	for (var i=0; i<GetSeriesList.length; i++) {
-		url += "&isbn[]=" + encodeURIComponent(GetSeriesList[i]);
-	}
-	url += "&time="+ts;
-	$.getJSON(url,function(data){
-		if (data.success){
-			$.each(data.series, function(key, val){
-				$(".series" + key).html(val);
-			});
-		}
-	});
-
-}
-
 function getSubjects(phrase)
 {
 		var liList = '';

@@ -59,7 +59,6 @@ abstract class Record_Record extends Action
 		global $configArray;
 		global $library;
 		global $timer;
-		global $logger;
 
 		$interface->assign('page_body_style', 'sidebar_left');
 

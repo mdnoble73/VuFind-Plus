@@ -261,7 +261,6 @@ class EContentRecord_AJAX extends Action {
 	function GetHoldingsInfo(){
 		global $interface;
 		global $configArray;
-		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
 		//Load holdings information from the driver
@@ -296,9 +295,6 @@ class EContentRecord_AJAX extends Action {
 		$interface->assign('source', $eContentRecord->source);
 		$interface->assign('accessType', $eContentRecord->accessType);
 		$interface->assign('showEContentNotes', $showEContentNotes);
-		if ($eContentRecord->getIsbn() == null || strlen($eContentRecord->getIsbn()) == 0){
-			$interface->assign('showOtherEditionsPopup', false);
-		}
 		$showOverDriveConsole = false;
 		$showAdobeDigitalEditions = false;
 		foreach ($holdings as $item){

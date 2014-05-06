@@ -31,7 +31,6 @@
 
 					<div id="record-details-column" class="col-sm-9">
 						{include file="Record/view-title-details.tpl"}
-
 					</div>
 
 					<div id="recordTools" class="col-md-3">

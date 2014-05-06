@@ -42,24 +42,6 @@ VuFind.ResultsList = (function(){
 			return contentHolder[0].innerHTML;
 		},
 
-		loadSeriesInfo: function(){
-			var now = new Date();
-			var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
-
-			var url = Globals.path + "/Search/AJAX?method=GetSeriesInfo";
-			for (var i=0; i < this.seriesList.length; i++) {
-				url += "&isbn[]=" + encodeURIComponent(this.seriesList[i]);
-			}
-			url += "&time="+ts;
-			$.getJSON(url,function(data){
-				if (data.success){
-					$.each(data.series, function(key, val){
-						$(".series" + key).find(".result-value").html(val);
-					});
-				}
-			});
-		},
-
 		loadStatusSummaries: function (){
 			var now = new Date();
 			var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());

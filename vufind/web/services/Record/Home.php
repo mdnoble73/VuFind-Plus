@@ -39,10 +39,6 @@ class Record_Home extends Record_Record{
 
 		$interface->assign('recordId', $recordId);
 
-		if (!isset($this->isbn)){
-			$interface->assign('showOtherEditionsPopup', false);
-		}
-
 		$interface->assign('moreDetailsOptions', $this->recordDriver->getMoreDetailsOptions());
 
 		//Build the actual view

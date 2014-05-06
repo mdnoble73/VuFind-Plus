@@ -65,9 +65,4 @@
 			{/if}
 		{/if}
 	{/if}
-	{* {if $showOtherEditionsPopup}
-		<div class="otherEditions">
-			<a href="#" onclick="loadOtherEditionSummaries('{$holdingsSummary.recordId}', false)">Other Formats and Languages</a>
-		</div>
-	{/if} *}
  </div>

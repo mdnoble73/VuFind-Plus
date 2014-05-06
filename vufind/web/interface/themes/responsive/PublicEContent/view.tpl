@@ -6,7 +6,7 @@
 	VuFind.GroupedWork.loadEnrichmentInfo('{$recordDriver->getPermanentId()|escape:"url"}');
 	VuFind.GroupedWork.loadReviewInfo('{$recordDriver->getPermanentId()|escape:"url"}');
 	{if $enablePospectorIntegration == 1}
-	VuFind.Prospector.loadRelatedProspectorTitles('{$id|escape:"url"}', 'VuFind');
+		VuFind.Prospector.loadRelatedProspectorTitles('{$id|escape:"url"}', 'VuFind');
 	{/if}
 {literal}});{/literal}
 </script>

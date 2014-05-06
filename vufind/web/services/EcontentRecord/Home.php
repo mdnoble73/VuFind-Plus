@@ -88,8 +88,6 @@ class EcontentRecord_Home extends Action{
 				}else{
 					$this->isbn = "";
 				}
-			}elseif ($this->isbn == null || strlen($this->isbn) == 0){
-				$interface->assign('showOtherEditionsPopup', false);
 			}
 			$this->issn = $eContentRecord->getPropertyArray('issn');
 			if (is_array($this->issn)){

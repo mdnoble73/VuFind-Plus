@@ -584,7 +584,6 @@ class Record_AJAX extends Action {
 		}else{
 			$interface->assign('offline', false);
 		}
-		$interface->assign('showOtherEditionsPopup', 0);
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
 		Record_Holdings::loadHoldings($id);
