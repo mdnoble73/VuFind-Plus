@@ -135,11 +135,24 @@ class TopFacets implements RecommendationInterface
 		$facetList = $this->searchObject->getFacetList($this->facets, false);
 		foreach ($facetList as $facetSetkey => $facetSet){
 			if ($facetSet['label'] == 'Category' || $facetSet['label'] == 'Format Category'){
+				$validCategories = array(
+						'Books',
+						'eBook',
+						'Audio Books',
+						'eAudio',
+						'Music',
+						'Movies',
+				);
+
 				//add an image name for display in the template
 				foreach ($facetSet['list'] as $facetKey => $facet){
-					$facet['imageName'] = strtolower(str_replace(' ', '', $facet['value'])) . ".png";
-					$facet['imageNameSelected'] = strtolower(str_replace(' ', '', $facet['value'])) . "_selected.png";
-					$facetSet['list'][$facetKey] = $facet;
+					if (in_array($facetKey,$validCategories)){
+						$facet['imageName'] = strtolower(str_replace(' ', '', $facet['value'])) . ".png";
+						$facet['imageNameSelected'] = strtolower(str_replace(' ', '', $facet['value'])) . "_selected.png";
+						$facetSet['list'][$facetKey] = $facet;
+					}else{
+						unset($facetSet['list'][$facetKey]);
+					}
 				}
 
 				uksort($facetSet['list'], "format_category_comparator");
