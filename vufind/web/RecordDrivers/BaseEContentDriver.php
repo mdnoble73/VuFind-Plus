@@ -49,11 +49,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 							}else{
 								$locationLabel = $locationCode . ' Online';
 							}
-							$links = array();
-							$links[] = array(
-									'onclick' => '/ExternalEContent/' . $this->getId() . '/Link',
-									'text' => 'Access Online'
-							);
+							$actions = $this->getActionsForItem($itemField);
 
 							//Add an item
 							$item = array(
@@ -68,7 +64,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 								'shelfLocation' => 'Online ' . $source,
 								'source' => $source,
 								'sharing' => $this->getSharing($locationCode, $eContentFieldData),
-								'links' => $links,
+								'actions' => $actions,
 							);
 
 							$this->fastItems[] = $item;
@@ -196,4 +192,6 @@ abstract class BaseEContentDriver  extends MarcRecord {
 	}
 
 	abstract function getSharing($locationCode, $eContentFieldData);
+
+	abstract function getActionsForItem($itemField);
 }

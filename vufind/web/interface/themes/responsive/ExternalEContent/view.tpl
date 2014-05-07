@@ -34,8 +34,8 @@
 							<div class="btn-group btn-group-vertical btn-block">
 								{foreach from=$items item=item key=index}
 									{* Options for the user to view online or download *}
-									{foreach from=$item.links item=link}
-										<a href="{if $link.url}{$link.url}{else}#{/if}" {if $link.onclick}onclick="{$link.onclick}"{/if} class="btn btn-sm btn-primary">{$link.text}</a>&nbsp;
+									{foreach from=$item.actions item=link}
+										<a href="{if $link.url}{$link.url}{else}#{/if}" {if $link.onclick}onclick="{$link.onclick}"{/if} class="btn btn-sm btn-primary">{$link.title}</a>&nbsp;
 									{/foreach}
 								{/foreach}
 							</div>

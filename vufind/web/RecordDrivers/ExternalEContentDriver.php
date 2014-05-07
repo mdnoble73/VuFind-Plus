@@ -221,4 +221,24 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		}
 		return $formats;
 	}
+
+	/**
+	 * @param File_MARC_Data_Field $itemField
+	 * @return array
+	 */
+	function getActionsForItem($itemField){
+		$urlSubfield = $itemField->getSubfield('u');
+		if ($urlSubfield != null){
+			$url = $urlSubfield->getData();
+		}else{
+			//TODO: Get from the 856 field
+		}
+		$actions = array();
+		$actions[] = array(
+				'url' => $url,
+				'title' => 'Access Online'
+		);
+		return $actions;
+	}
+
 } 

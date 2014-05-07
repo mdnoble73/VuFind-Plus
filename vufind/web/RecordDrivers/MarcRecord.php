@@ -1585,7 +1585,7 @@ class MarcRecord extends IndexRecord
 			'locationLabel' => $this->getLocationLabel(),
 			'shelfLocation' => $this->getShelfLocation(),
 			'source' => 'ils',
-			'actions' => array()
+			'actions' => $this->getAllActions()
 		);
 		if ($this->isHoldable() && isset($interface) && $interface->getVariable('showHoldButton')){
 			$relatedRecord['actions'][] = array(
@@ -1694,6 +1694,17 @@ class MarcRecord extends IndexRecord
 			}
 		}
 		return false;
+	}
+
+	private function getAllActions() {
+		$items = $this->getItemsFast();
+		$allActions = array();
+		foreach ($items as $item){
+			if ($item['actions'] && count($item['actions'] > 0)){
+				$allActions = array_merge($allActions, $item['actions']);
+			}
+		}
+		return $allActions;
 	}
 
 	private function getCallNumber(){
