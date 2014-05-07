@@ -13,9 +13,9 @@
         {/if}
 
 {if $inLibrary}
-<a href="http://www.surveymonkey.com/s/VuFindFeedbackOPAC" class="languageBlockLink">Give Us Feedback</a>
+<a href="http://www.questionpoint.org/crs/servlet/org.oclc.admin.BuildForm?&institution=10447&type=1&language=1" class="languageBlockLink">Give Us Feedback</a>
 {else}
-<a href="http://www.surveymonkey.com/s/vufindplus_feedback" class="languageBlockLink" target="_blank">Give Us Feedback</a>
+<a href="http://www.questionpoint.org/crs/servlet/org.oclc.admin.BuildForm?&institution=10447&type=1&language=1" class="languageBlockLink" target="_blank">Give Us Feedback</a>
 {/if}
 
     </div>
