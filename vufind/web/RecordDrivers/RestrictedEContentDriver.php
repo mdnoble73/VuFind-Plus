@@ -87,4 +87,22 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 	function getModuleName(){
 		return 'RestrictedEContent';
 	}
+
+	function getActionsForItem($itemField){
+		$actions = array();
+		if ($this->isAvailable(true)){
+			$actions[] = array(
+					'url' => '',
+					'onclick' => 'alert("TODO: Place a hold")',
+					'title' => 'Place Hold'
+			);
+		}else{
+			$actions[] = array(
+					'url' => '',
+					'onclick' => 'alert("TODO: Checkout the title")',
+					'title' => 'Check Out'
+			);
+		}
+		return $actions;
+	}
 } 

@@ -48,6 +48,10 @@
 					{/foreach}
 				</div>
 
+				<p class="alert alert-info">
+					eBooks and eAudiobooks cannot be renewed before they expire.  If you want to renew, please wait for the title to expire and then check it out again.  You will need to download the title again after checking out the title again.
+				</p>
+
 				<div class="btn-group">
 					<a href="#" onclick="return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-default">Renew Selected Items</a>
 					<a href="{$path}/MyAccount/RenewAll" class="btn btn-sm btn-default">Renew All</a>

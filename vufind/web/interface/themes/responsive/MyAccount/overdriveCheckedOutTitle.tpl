@@ -47,7 +47,7 @@
 						{else}
 							<div class="form-inline">
 								<label for="downloadFormat_{$record.overDriveId}">Select one format to download.</label>
-								<select name="downloadFormat_{$record.overDriveId}" id="downloadFormat_{$record.overDriveId}" class="input-medium">
+								<select name="downloadFormat_{$record.overDriveId}" id="downloadFormat_{$record.overDriveId}" class="input-sm form-control">
 									<option value="-1">Select a Format</option>
 									{foreach from=$record.formats item=format}
 										<option value="{$format.id}">{$format.name}</option>

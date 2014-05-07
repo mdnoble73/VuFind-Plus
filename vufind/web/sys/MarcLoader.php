@@ -50,8 +50,8 @@ class MarcLoader{
 		global $memCache;
 		global $configArray;
 		$shortId = str_replace('.', '', $ilsId);
-		if (strlen($shortId) < 8){
-			$shortId = str_pad($shortId, 8, "0", STR_PAD_LEFT);
+		if (strlen($shortId) < 9){
+			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
 		}
 		$firstChars = substr($shortId, 0, 4);
 		if ($memCache && !isset($_REQUEST['reload'])){

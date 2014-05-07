@@ -382,11 +382,13 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 						String filename = econtentData[3].trim().toLowerCase();
 						if (filename.indexOf('.') > 0){
 							String fileExtension = filename.substring(filename.lastIndexOf('.') + 1);
-							result.add(fileExtension);
+							String translatedFormat = indexer.translateValue("econtent_itype_format", fileExtension);
+							result.add(translatedFormat);
 						}else{
 							//For now we know these are folders of MP3 files
 							//TODO: Probably should actually open the folder to make sure that it contains MP3 files
-							result.add("mp3");
+							String translatedFormat = indexer.translateValue("econtent_itype_format", "mp3");
+							result.add(translatedFormat);
 						}
 					}else{
 						logger.warn("Filename for local econtent not specified " + subfieldW + " " + identifier);
