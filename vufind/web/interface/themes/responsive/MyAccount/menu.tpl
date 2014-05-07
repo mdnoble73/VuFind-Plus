@@ -15,7 +15,7 @@
 				</a>
 				<div id="myAccountPanel" class="panel-collapse collapse {if $module == 'MyAccount' || $module == 'MyResearch' || ($module == 'Search' && $action == 'Home')}in{/if}">
 					<div class="panel-body">
-						{if $profile.finesval > 0 || $profile.expireclose}
+						{if $profile.finesval > 0 || ($showExpirationWarnings && $profile.expireclose)}
 							<div id="myAccountFines">
 								{if $profile.finesval > 0}
 									{if $showEcommerceLink && $profile.finesval > $minimumFineAmount}
@@ -26,7 +26,7 @@
 									{/if}
 								{/if}
 
-								{if $profile.expireclose}<div class="myAccountLink"><a class ="alignright" title="Please contact your local library to have your library card renewed." style="color:green; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">Your library card will expire on {$profile.expires}.</a></div>{/if}
+								{if $showExpirationWarnings && $profile.expireclose}<div class="myAccountLink"><a class ="alignright" title="Please contact your local library to have your library card renewed." style="color:green; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">Your library card will expire on {$profile.expires}.</a></div>{/if}
 							</div>
 							<hr class="menu"/>
 						{/if}

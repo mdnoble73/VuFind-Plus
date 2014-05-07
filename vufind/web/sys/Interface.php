@@ -259,6 +259,7 @@ class UInterface extends Smarty
 			$this->assign('show856LinksAsTab', $library->show856LinksAsTab);
 			$this->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
 			$this->assign('showSearchTools', $library->showSearchTools);
+			$this->assign('showExpirationWarnings', $library->showExpirationWarnings);
 		}else{
 			$this->assign('showLoginButton', 1);
 			$this->assign('showAdvancedSearchbox', 1);
@@ -270,6 +271,7 @@ class UInterface extends Smarty
 			$this->assign('show856LinksAsTab', 1);
 			$this->assign('showProspectorTitlesAsTab', 0);
 			$this->assign('showSearchTools', 1);
+			$this->assign('showExpirationWarnings', 1);
 		}
 		if (isset($library) && $location != null){
 			$this->assign('showFavorites', $location->showFavorites && $library->showFavorites);

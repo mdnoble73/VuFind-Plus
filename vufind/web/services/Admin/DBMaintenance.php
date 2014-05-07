@@ -497,6 +497,14 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
+				'library_expiration_warning' => array(
+						'title' => 'Library Expiration Warning',
+						'description' => 'Determines whether or not the expiration warning should be shown to patrons who are set to expire soon.',
+						'sql' => array(
+								"ALTER TABLE library ADD showExpirationWarnings TINYINT(1) DEFAULT 1",
+						),
+				),
+
 				'econtent_locations_to_include' => array(
 						'title' => 'eContent Locations To Include',
 						'description' => 'Adds the ability to define which shared location codes should be included in the search scope',
