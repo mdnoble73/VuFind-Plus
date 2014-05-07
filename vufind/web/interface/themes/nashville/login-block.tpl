@@ -12,7 +12,6 @@
             {/foreach}
         {/if}
 
-<a href="http://nplencore.library.nashville.org" class="languageBlockLink">Old Catalog</a> | 
 {if $inLibrary}
 <a href="http://www.surveymonkey.com/s/VuFindFeedbackOPAC" class="languageBlockLink">Give Us Feedback</a>
 {else}
