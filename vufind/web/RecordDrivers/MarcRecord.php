@@ -1700,7 +1700,7 @@ class MarcRecord extends IndexRecord
 		$items = $this->getItemsFast();
 		$allActions = array();
 		foreach ($items as $item){
-			if ($item['actions'] && count($item['actions'] > 0)){
+			if (isset($item['actions']) && count($item['actions'] > 0)){
 				$allActions = array_merge($allActions, $item['actions']);
 			}
 		}
