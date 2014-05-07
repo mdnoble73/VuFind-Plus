@@ -336,7 +336,7 @@ class Horizon implements DriverInterface{
 			}
 		}
 		//Get records from resource table
-		$resourceInfo = new Resource();
+		/*$resourceInfo = new Resource();
 		if (count($recordIds) > 0){
 			$recordIdString = implode(",", $recordIds);
 			$resourceSql = "SELECT * FROM resource where source = 'VuFind' AND record_id in ({$recordIdString})";
@@ -363,7 +363,7 @@ class Horizon implements DriverInterface{
 					}
 				}
 			}
-		}
+		}*/
 
 		foreach($holds as $section => $holdSections){
 			foreach($holdSections as $key => $hold){
@@ -1550,8 +1550,7 @@ private $transactions = array();
 				$recordIds[] = "'" . $data['id'] . "'";
 			}
 			//Get records from resource table
-			$resourceInfo = new Resource();
-			if (count($recordIds) > 0){
+			/*if (count($recordIds) > 0){
 				$recordIdString = implode(",", $recordIds);
 				$resourceSql = "SELECT * FROM resource where source = 'VuFind' AND record_id in ({$recordIdString})";
 				$resourceInfo->query($resourceSql);
@@ -1577,7 +1576,7 @@ private $transactions = array();
 						}
 					}
 				}
-			}
+			}*/
 
 			//Get econtent info and hold queue length
 			foreach ($transactions as $key => $transaction){

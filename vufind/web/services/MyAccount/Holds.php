@@ -114,6 +114,7 @@ class MyAccount_Holds extends MyResearch{
 					}
 
 					//Get holds from OverDrive
+					require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 					$overDriveDriver = OverDriveDriverFactory::getDriver();
 					$overDriveHolds = $overDriveDriver->getOverDriveHolds($user);
 

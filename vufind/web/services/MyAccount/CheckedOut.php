@@ -64,6 +64,7 @@ class MyAccount_CheckedOut extends MyResearch{
 					$timer->logTime("Loaded transactions from catalog.");
 
 					//Get checked out titles from OverDrive
+					require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 					$overDriveDriver = OverDriveDriverFactory::getDriver();
 					$overDriveCheckedOutItems = $overDriveDriver->getOverDriveCheckedOutItems($user);
 
