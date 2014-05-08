@@ -146,6 +146,7 @@ window.onload = start
 			<h2>This error has been logged and we are working on a fix.</h2>
 			<h4>{$error->getMessage()}</h4>
 <!--			<h4>If this problem persists, please try our <a href="http://nplencore.library.nashville.org">Encore catalog</a><br /></h4> -->
+			<h4>Please try your search again at <a href="http://catalog.library.nashville.org">http://catalog.library.nashville.org</a></h4>
 		</div>
 		<div id ="debug">
 			{if $debug}
