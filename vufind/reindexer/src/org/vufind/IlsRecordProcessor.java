@@ -1149,7 +1149,12 @@ public abstract class IlsRecordProcessor {
 						if (curDeterminer.matchesLocation(locationCode)){
 							LoanRule loanRule = loanRules.get(curDeterminer.getLoanRuleId());
 							if (loanRule.getHoldable().equals(Boolean.TRUE)){
-								result.add(pType.toString());
+								if (curDeterminer.getPatronTypes().equals("999")){
+									result.add("all");
+									return result;
+								}else{
+									result.add(pType.toString());
+								}
 							}
 							//We got a match, stop processing
 							//logger.debug("    using determiner " + curDeterminer.getRowNumber() + " for ptype " + pType);

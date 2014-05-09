@@ -146,7 +146,7 @@ class MillenniumDriver implements DriverInterface
 			global $configArray;
 			global $serverName;
 			$this->loanRules = $memCache->get($serverName . '_loan_rules');
-			if (!$this->loanRules){
+			if (!$this->loanRules || isset($_REQUEST['reload'])){
 				$this->loanRules = array();
 				$loanRule = new LoanRule();
 				$loanRule->find();
@@ -157,10 +157,10 @@ class MillenniumDriver implements DriverInterface
 			$memCache->set($serverName . '_loan_rules', $this->loanRules, 0, $configArray['Caching']['loan_rules']);
 
 			$this->loanRuleDeterminers = $memCache->get($serverName . '_loan_rule_determiners');
-			if (!$this->loanRuleDeterminers){
+			if (!$this->loanRuleDeterminers || isset($_REQUEST['reload'])){
 				$this->loanRuleDeterminers = array();
 				$loanRuleDeterminer = new LoanRuleDeterminer();
-				//$loanRuleDeterminer->active = 1;
+				$loanRuleDeterminer->active = 1;
 				$loanRuleDeterminer->orderBy('rowNumber DESC');
 				$loanRuleDeterminer->find();
 				while ($loanRuleDeterminer->fetch()){
