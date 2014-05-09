@@ -994,6 +994,7 @@ public abstract class IlsRecordProcessor {
 
 	}
 
+	private HashSet<String> locationsWithoutLibraryFacets = new HashSet<String>();
 	protected ArrayList<String> getLibraryFacetsForLocationCode(String locationCode) {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> libraryFacets = new ArrayList<String>();
@@ -1003,11 +1004,15 @@ public abstract class IlsRecordProcessor {
 			}
 		}
 		if (libraryFacets.size() == 0){
-			logger.warn("Did not find any library facets for " + locationCode);
+			if (!locationsWithoutLibraryFacets.contains(locationCode)){
+				logger.warn("Did not find any library facets for " + locationCode);
+				locationsWithoutLibraryFacets.add(locationCode);
+			}
 		}
 		return libraryFacets;
 	}
 
+	private HashSet<String> locationsWithoutLibraryOnlineFacets = new HashSet<String>();
 	protected ArrayList<String> getLibraryOnlineFacetsForLocationCode(String locationCode) {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> libraryOnlineFacets = new ArrayList<String>();
@@ -1017,7 +1022,10 @@ public abstract class IlsRecordProcessor {
 			}
 		}
 		if (libraryOnlineFacets.size() == 0){
-			logger.warn("Did not find any online library facets for " + locationCode);
+			if (!locationsWithoutLibraryOnlineFacets.contains(locationCode)){
+				logger.warn("Did not find any online library facets for " + locationCode);
+				locationsWithoutLibraryOnlineFacets.add(locationCode);
+			}
 		}
 		return libraryOnlineFacets;
 	}
