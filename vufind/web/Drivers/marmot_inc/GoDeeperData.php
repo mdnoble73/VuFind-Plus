@@ -138,7 +138,7 @@ class GoDeeperData{
 				));
 
 				$response = @file_get_contents($requestUrl, 0, $ctx);
-				if (!preg_match('/Error in Query Selection/', $response)){
+				if (!preg_match('/Error in Query Selection|The page you are looking for could not be found/', $response)){
 					//Parse the XML
 					$data = new SimpleXMLElement($response);
 
@@ -189,7 +189,7 @@ class GoDeeperData{
 				$response =file_get_contents($requestUrl, 0, $ctx);
 				$tocData = array();
 
-				if (!preg_match('/Error in Query Selection/', $response)){
+				if (!preg_match('/Error in Query Selection|The page you are looking for could not be found/', $response)){
 					//Parse the XML
 					$data = new SimpleXMLElement($response);
 
@@ -470,7 +470,7 @@ class GoDeeperData{
 				));
 				$response = file_get_contents($requestUrl, 0, $ctx);
 				$avSummaryData = array();
-				if (!preg_match('/Error in Query Selection/', $response)){
+				if (!preg_match('/Error in Query Selection|The page you are looking for could not be found/', $response)){
 					//Parse the XML
 					$data = new SimpleXMLElement($response);
 
