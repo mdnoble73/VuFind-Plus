@@ -21,13 +21,18 @@ class BookCoverProcessor{
 	private $reload;
 	/** @var  Logger $logger */
 	private $logger;
+	private $doCoverLogging;
 	private $configArray;
 	/** @var  Timer $timer */
 	private $timer;
+	private $doTimings;
 	public function loadCover($configArray, $timer, $logger){
 		$this->configArray = $configArray;
 		$this->timer = $timer;
+		$this->doTimings = $this->configArray['System']['coverTimings'];
 		$this->logger = $logger;
+		$this->doCoverLogging = $this->configArray['System']['coverLogging'];
+
 		$this->log("Starting to load cover", PEAR_LOG_INFO);
 		$this->bookCoverPath = $configArray['Site']['coverPath'];
 		if (!$this->loadParameters()){
@@ -874,13 +879,13 @@ class BookCoverProcessor{
 	}
 
 	function log($message, $level = PEAR_LOG_DEBUG){
-		if (false){
+		if ($this->doCoverLogging){
 			$this->logger->log($message, $level);
 		}
 	}
 
 	function logTime($message){
-		if (false){
+		if ($this->doTimings){
 			$this->timer->logTime($message);
 		}
 	}
