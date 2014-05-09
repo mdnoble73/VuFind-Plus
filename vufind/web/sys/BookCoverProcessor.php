@@ -375,7 +375,7 @@ class BookCoverProcessor{
 				}else{
 					$marcRecord = false;
 				}
-			}else{
+			}elseif ($this->type == 'ils'){
 				$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
 			}
 		}
