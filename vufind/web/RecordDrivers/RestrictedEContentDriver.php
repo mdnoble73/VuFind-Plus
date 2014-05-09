@@ -93,14 +93,14 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 		if ($this->isAvailable(true)){
 			$actions[] = array(
 					'url' => '',
-					'onclick' => 'alert("TODO: Place a hold")',
-					'title' => 'Place Hold'
+					'onclick' => 'alert("TODO: Checkout the title")',
+					'title' => 'Check Out'
 			);
 		}else{
 			$actions[] = array(
 					'url' => '',
-					'onclick' => 'alert("TODO: Checkout the title")',
-					'title' => 'Check Out'
+					'onclick' => 'alert("TODO: Place a hold")',
+					'title' => 'Place Hold'
 			);
 		}
 		return $actions;

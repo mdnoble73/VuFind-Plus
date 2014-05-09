@@ -67,4 +67,14 @@ class PublicEContentDriver extends BaseEContentDriver{
 	function getSharing($locationCode, $eContentFieldData){
 		return 'shared';
 	}
+
+	function getActionsForItem($itemField){
+		$actions = array();
+		$actions[] = array(
+				'url' => '',
+				'onclick' => 'alert("TODO: Checkout the title")',
+				'title' => 'Check Out'
+		);
+		return $actions;
+	}
 } 
