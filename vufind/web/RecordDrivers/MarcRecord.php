@@ -1522,29 +1522,6 @@ class MarcRecord extends IndexRecord
 		$url = $this->getRecordUrl();
 		$holdUrl = $configArray['Site']['path'] . '/Record/' . $recordId . '/Hold';
 
-		//Remove OverDrive records that are not formatted properly
-		/** @var File_MARC_Data_Field $field856 */
-		$field856 = $this->marcRecord->getField('856');
-		if ($field856 != null){
-			$subfieldU = $field856->getSubfield('u');
-			if ($subfieldU != null && strpos($subfieldU->getData(), 'overdrive.com') !== FALSE){
-				//Check items to make sure that we got something with |g
-				$hasEContentSubfield = false;
-				/** @var File_MARC_Data_Field[] $itemFields */
-				$itemFields = $this->marcRecord->getField('989');
-				foreach ($itemFields as $item){
-					if ($item->getSubfield('w') != null){
-						$hasEContentSubfield = true;
-						break;
-					}
-				}
-				if (!$hasEContentSubfield){
-					return $relatedRecords;
-				}
-			}
-		}
-		$timer->logTime("Finished making sure the record is not eContent");
-
 		$publishers = $this->getPublishers();
 		$publisher = count($publishers) >= 1 ? $publishers[0] : '';
 		$publicationDates = $this->getPublicationDates();
