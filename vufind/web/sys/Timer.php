@@ -4,6 +4,7 @@ class Timer{
 	private $firstTime = 0;
 	private $timingMessages;
 	private $timingsEnabled = false;
+	private $minTimeToLog = 0;
 
 	public function Timer($startTime){
 		global $configArray;
@@ -11,9 +12,13 @@ class Timer{
 			if (isset($configArray['System']['timings'])) {
 				$this->timingsEnabled = $configArray['System']['timings'];
 			}
+			if (isset($configArray['System']['minTimeToLog'])){
+				$this->minTimeToLog = $configArray['System']['minTimeToLog'];
+			}
 		}else{
 			$this->timingsEnabled = true;
 		}
+
 		$startTime = microtime(true);
 		$this->lastTime = $startTime;
 		$this->firstTime = $startTime;
@@ -23,7 +28,7 @@ class Timer{
 		if ($this->timingsEnabled){
 			$curTime = microtime(true);
 			$elapsedTime = round($curTime - $this->lastTime, 4);
-			if ($elapsedTime > 0){
+			if ($elapsedTime > $this->minTimeToLog){
 				$this->timingMessages[] = "\"$message\",\"$curTime\",\"$elapsedTime\"";
 			}
 			$this->lastTime = $curTime;
@@ -36,11 +41,13 @@ class Timer{
 
 	public function writeTimings(){
 		if ($this->timingsEnabled){
+			$minTimeToLog = 0;
+
 			$curTime = microtime(true);
 			$elapsedTime = round($curTime - $this->lastTime, 4);
-			//if ($elapsedTime > 0){
+			if ($elapsedTime > $minTimeToLog){
 				$this->timingMessages[] = "Finished run: $curTime ($elapsedTime sec)";
-			//}
+			}
 			$this->lastTime = $curTime;
 			global $logger;
 			$totalElapsedTime =round(microtime(true) - $this->firstTime, 4);
