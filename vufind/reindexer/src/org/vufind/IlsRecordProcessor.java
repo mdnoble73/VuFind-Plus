@@ -111,12 +111,16 @@ public abstract class IlsRecordProcessor {
 		if (!libraryAndLocationDataLoaded){
 			//Setup translation maps for system and location
 			try {
-				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT ilsCode, subdomain, facetLabel FROM library", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT ilsCode, subdomain, displayName, facetLabel FROM library", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
 				while (libraryInformationRS.next()){
-					String code = libraryInformationRS.getString("ilsCode");
+					String code = libraryInformationRS.getString("ilsCode").toLowerCase();
 					String facetLabel = libraryInformationRS.getString("facetLabel");
 					String subdomain = libraryInformationRS.getString("subdomain");
+					String displayName = libraryInformationRS.getString("displayName");
+					if (facetLabel.length() == 0){
+						facetLabel = displayName;
+					}
 					if (facetLabel.length() > 0){
 						String onlineFacetLabel = facetLabel + " Online";
 						libraryFacetMap.put(code, facetLabel);
@@ -125,11 +129,15 @@ public abstract class IlsRecordProcessor {
 					subdomainMap.put(code, subdomain);
 				}
 
-				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT code, facetLabel FROM location", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT code, facetLabel, displayName FROM location", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				ResultSet locationInformationRS = locationInformationStmt.executeQuery();
 				while (locationInformationRS.next()){
 					String code = locationInformationRS.getString("code").toLowerCase();
 					String facetLabel = locationInformationRS.getString("facetLabel");
+					String displayName = locationInformationRS.getString("displayName");
+					if (facetLabel.length() == 0){
+						facetLabel = displayName;
+					}
 					locationMap.put(code, facetLabel);
 				}
 			} catch (SQLException e) {
@@ -541,7 +549,8 @@ public abstract class IlsRecordProcessor {
 	}
 
 	private void loadLiteraryForms(GroupedWorkSolr groupedWork, Record record) {
-		Set<String> literaryForms = new LinkedHashSet<String>();
+		//First get the literary Forms from the 008.  These need translation
+		LinkedHashSet<String> literaryForms = new LinkedHashSet<String>();
 		try {
 			String leader = record.getLeader().toString();
 
@@ -552,14 +561,7 @@ public abstract class IlsRecordProcessor {
 			char recordType = Character.toUpperCase(leader.charAt(6));
 			char bibLevel = Character.toUpperCase(leader.charAt(7));
 			// Figure out what material type the record is
-			if ((recordType == 'A' || recordType == 'T')
-					&& (bibLevel == 'A' || bibLevel == 'C' || bibLevel == 'D' || bibLevel == 'M') /* Books */
-					|| (recordType == 'M') /* Computer Files */
-					|| (recordType == 'C' || recordType == 'D' || recordType == 'I' || recordType == 'J') /* Music */
-					|| (recordType == 'G' || recordType == 'K' || recordType == 'O' || recordType == 'R') /*
-																																																 * Visual
-																																																 * Materials
-																																																 */
+			if (((recordType == 'A' || recordType == 'T') && (bibLevel == 'A' || bibLevel == 'C' || bibLevel == 'D' || bibLevel == 'M')) /* Books */
 					) {
 				char literaryFormChar;
 				if (ohOhSixField != null && ohOhSixField.getData().length() > 16) {
@@ -583,8 +585,137 @@ public abstract class IlsRecordProcessor {
 		} catch (Exception e) {
 			logger.error("Unexpected error", e);
 		}
+		if (literaryForms.size() > 1){
+			//Uh oh, we have a problem
+			logger.warn("Received multiple literary forms for a single marc record");
+		}
 		groupedWork.addLiteraryForms(indexer.translateCollection("literary_form", literaryForms));
 		groupedWork.addLiteraryFormsFull(indexer.translateCollection("literary_form_full", literaryForms));
+
+		//Now get literary forms from the subjects, these don't need translation
+		HashMap<String, Integer> literaryFormsWithCount = new HashMap<String, Integer>();
+		HashMap<String, Integer> literaryFormsFull = new HashMap<String, Integer>();
+		//Check the subjects
+		Set<String> subjectFormData = getFieldList(record, "650v:651v");
+		for(String subjectForm : subjectFormData){
+			subjectForm = Util.trimTrailingPunctuation(subjectForm);
+			if (subjectForm.equalsIgnoreCase("Fiction")
+					|| subjectForm.equalsIgnoreCase("Young adult fiction" )
+					|| subjectForm.equalsIgnoreCase("Juvenile fiction" )
+					|| subjectForm.equalsIgnoreCase("Junior fiction" )
+					|| subjectForm.equalsIgnoreCase("Comic books, strips, etc")
+					|| subjectForm.equalsIgnoreCase("Comic books,strips, etc")
+					|| subjectForm.equalsIgnoreCase("Children's fiction" )
+					|| subjectForm.equalsIgnoreCase("Fictional Works" )
+					|| subjectForm.equalsIgnoreCase("Cartoons and comics" )
+					|| subjectForm.equalsIgnoreCase("Folklore" )
+					|| subjectForm.equalsIgnoreCase("Legends" )
+					|| subjectForm.equalsIgnoreCase("Stories" )
+					|| subjectForm.equalsIgnoreCase("Fantasy" )
+					|| subjectForm.equalsIgnoreCase("Mystery fiction")
+					|| subjectForm.equalsIgnoreCase("Romances")
+					){
+				addToMapWithCount(literaryFormsWithCount, "Fiction");
+				addToMapWithCount(literaryFormsFull, "Fiction");
+			}else if (subjectForm.equalsIgnoreCase("Biography")){
+				addToMapWithCount(literaryFormsWithCount, "Non Fiction");
+				addToMapWithCount(literaryFormsFull, "Non Fiction");
+			}else if (subjectForm.equalsIgnoreCase("Novela juvenil")
+					|| subjectForm.equalsIgnoreCase("Novela")
+					){
+				addToMapWithCount(literaryFormsWithCount, "Fiction");
+				addToMapWithCount(literaryFormsFull, "Fiction");
+				addToMapWithCount(literaryFormsFull, "Novels");
+			}else if (subjectForm.equalsIgnoreCase("Drama")
+					|| subjectForm.equalsIgnoreCase("Dramas")
+					|| subjectForm.equalsIgnoreCase("Juvenile drama")
+					){
+				addToMapWithCount(literaryFormsWithCount, "Fiction");
+				addToMapWithCount(literaryFormsFull, "Fiction");
+				addToMapWithCount(literaryFormsFull, "Dramas");
+			}else if (subjectForm.equalsIgnoreCase("Poetry")
+					|| subjectForm.equalsIgnoreCase("Juvenile Poetry")
+					){
+				addToMapWithCount(literaryFormsWithCount, "Fiction");
+				addToMapWithCount(literaryFormsFull, "Poetry");
+			}else if (subjectForm.equalsIgnoreCase("Humor")
+					|| subjectForm.equalsIgnoreCase("Juvenile Humor")
+					|| subjectForm.equalsIgnoreCase("Comedy")
+					|| subjectForm.equalsIgnoreCase("Wit and humor")
+					|| subjectForm.equalsIgnoreCase("Satire")
+					|| subjectForm.equalsIgnoreCase("Humor, Juvenile")
+					|| subjectForm.equalsIgnoreCase("Humour")
+					){
+				addToMapWithCount(literaryFormsWithCount, "Fiction");
+				addToMapWithCount(literaryFormsFull, "Fiction");
+				addToMapWithCount(literaryFormsFull, "Humor, Satires, etc.");
+			}else if (subjectForm.equalsIgnoreCase("Correspondence")
+					){
+				addToMapWithCount(literaryFormsWithCount, "Non Fiction");
+				addToMapWithCount(literaryFormsFull, "Letters");
+			}else if (subjectForm.equalsIgnoreCase("Short stories")
+					){
+				addToMapWithCount(literaryFormsWithCount, "Fiction");
+				addToMapWithCount(literaryFormsFull, "Fiction");
+				addToMapWithCount(literaryFormsFull, "Short stories");
+			}else if (subjectForm.equalsIgnoreCase("essays")
+					){
+				addToMapWithCount(literaryFormsWithCount, "Non Fiction");
+				addToMapWithCount(literaryFormsFull, "Essays");
+			}else if (subjectForm.equalsIgnoreCase("Personal narratives, American")
+					|| subjectForm.equalsIgnoreCase("Personal narratives, Polish")
+					|| subjectForm.equalsIgnoreCase("Personal narratives, Sudanese")
+					|| subjectForm.equalsIgnoreCase("Personal narratives, Jewish")
+					|| subjectForm.equalsIgnoreCase("Personal narratives")
+					|| subjectForm.equalsIgnoreCase("Guidebooks")
+					|| subjectForm.equalsIgnoreCase("Guide-books")
+					|| subjectForm.equalsIgnoreCase("Handbooks, manuals, etc")
+					|| subjectForm.equalsIgnoreCase("Problems, exercises, etc")
+					|| subjectForm.equalsIgnoreCase("Case studies")
+					|| subjectForm.equalsIgnoreCase("Handbooks")
+					|| subjectForm.equalsIgnoreCase("Biographies")
+					|| subjectForm.equalsIgnoreCase("Interviews")
+					|| subjectForm.equalsIgnoreCase("Autobiography")
+					|| subjectForm.equalsIgnoreCase("Cookbooks")
+					|| subjectForm.equalsIgnoreCase("Dictionaries")
+					|| subjectForm.equalsIgnoreCase("Encyclopedias")
+					|| subjectForm.equalsIgnoreCase("Encyclopedias, Juvenile")
+					|| subjectForm.equalsIgnoreCase("Dictionaries, Juvenile")
+					|| subjectForm.equalsIgnoreCase("Nonfiction")
+					|| subjectForm.equalsIgnoreCase("Non-fiction")
+					|| subjectForm.equalsIgnoreCase("Juvenile non-fiction")
+					|| subjectForm.equalsIgnoreCase("Maps")
+					|| subjectForm.equalsIgnoreCase("Catalogs")
+					|| subjectForm.equalsIgnoreCase("Recipes")
+					|| subjectForm.equalsIgnoreCase("Diaries")
+					|| subjectForm.equalsIgnoreCase("Designs and Plans")
+					|| subjectForm.equalsIgnoreCase("Reference books")
+					|| subjectForm.equalsIgnoreCase("Travel guide")
+					|| subjectForm.equalsIgnoreCase("Textbook")
+					|| subjectForm.equalsIgnoreCase("Atlas")
+					|| subjectForm.equalsIgnoreCase("Atlases")
+					|| subjectForm.equalsIgnoreCase("Study guides")
+					){
+				addToMapWithCount(literaryFormsWithCount, "Non Fiction");
+				addToMapWithCount(literaryFormsFull, "Non Fiction");
+			}else{
+				if (!unknownSubjectForms.contains(subjectForm)){
+					//logger.warn("Unknown subject form " + subjectForm);
+					unknownSubjectForms.add(subjectForm);
+				}
+			}
+		}
+		groupedWork.addLiteraryForms(literaryFormsWithCount);
+		groupedWork.addLiteraryFormsFull(literaryFormsFull);
+	}
+	private HashSet<String> unknownSubjectForms = new HashSet<String>();
+
+	private void addToMapWithCount(HashMap<String, Integer> map, String elementToAdd){
+		if (map.containsKey(elementToAdd)){
+			map.put(elementToAdd, map.get(elementToAdd) + 1);
+		}else{
+			map.put(elementToAdd, 1);
+		}
 	}
 
 	private void loadPublicationDetails(GroupedWorkSolr groupedWork, Record record) {
@@ -864,6 +995,7 @@ public abstract class IlsRecordProcessor {
 	}
 
 	protected ArrayList<String> getLibraryFacetsForLocationCode(String locationCode) {
+		locationCode = locationCode.toLowerCase();
 		ArrayList<String> libraryFacets = new ArrayList<String>();
 		for(String libraryCode : libraryFacetMap.keySet()){
 			if (locationCode.startsWith(libraryCode)){
@@ -877,6 +1009,7 @@ public abstract class IlsRecordProcessor {
 	}
 
 	protected ArrayList<String> getLibraryOnlineFacetsForLocationCode(String locationCode) {
+		locationCode = locationCode.toLowerCase();
 		ArrayList<String> libraryOnlineFacets = new ArrayList<String>();
 		for(String libraryCode : libraryOnlineFacetMap.keySet()){
 			if (locationCode.startsWith(libraryCode)){
@@ -890,6 +1023,7 @@ public abstract class IlsRecordProcessor {
 	}
 
 	private ArrayList<String> getRelatedSubdomainsForLocationCode(String locationCode) {
+		locationCode = locationCode.toLowerCase();
 		ArrayList<String> subdomains = new ArrayList<String>();
 		for(String libraryCode : subdomainMap.keySet()){
 			if (locationCode.startsWith(libraryCode)){
@@ -903,6 +1037,7 @@ public abstract class IlsRecordProcessor {
 	}
 
 	protected ArrayList<String> getLibrarySubdomainsForLocationCode(String locationCode) {
+		locationCode = locationCode.toLowerCase();
 		ArrayList<String> librarySubdomains = new ArrayList<String>();
 		for(String libraryCode : subdomainMap.keySet()){
 			if (locationCode.startsWith(libraryCode)){
@@ -917,6 +1052,7 @@ public abstract class IlsRecordProcessor {
 
 	private HashSet<String> locationCodesWithoutFacets = new HashSet<String>();
 	private ArrayList<String> getLocationFacetsForLocationCode(String locationCode) {
+		locationCode = locationCode.toLowerCase();
 		ArrayList<String> locationFacets = new ArrayList<String>();
 		if (locationCode == null || locationCode.length() == 0){
 			return locationFacets;
@@ -937,6 +1073,7 @@ public abstract class IlsRecordProcessor {
 	}
 
 	protected ArrayList<String> getRelatedLocationCodesForLocationCode(String locationCode){
+		locationCode = locationCode.toLowerCase();
 		ArrayList<String> locationFacets = new ArrayList<String>();
 		if (locationCode == null || locationCode.length() == 0){
 			return locationFacets;
@@ -950,6 +1087,7 @@ public abstract class IlsRecordProcessor {
 	}
 
 	private ArrayList<String> getIlsCodesForDetailedLocationCode(String locationCode) {
+		locationCode = locationCode.toLowerCase();
 		ArrayList<String> locationCodes = new ArrayList<String>();
 		for(String ilsCode : locationMap.keySet()){
 			if (locationCode.startsWith(ilsCode)){

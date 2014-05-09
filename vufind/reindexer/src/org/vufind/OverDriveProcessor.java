@@ -176,26 +176,31 @@ public class OverDriveProcessor {
 		ResultSet subjectsRS = getProductSubjectsStmt.executeQuery();
 		HashSet<String> topics = new HashSet<String>();
 		HashSet<String> genres = new HashSet<String>();
-		String literaryForm = null;
-		String literaryFormFull = null;
+		HashMap<String, Integer> literaryForm = new HashMap<String, Integer>();
+		HashMap<String, Integer> literaryFormFull = new HashMap<String, Integer>();
 		String targetAudience = "Adult";
 		String targetAudienceFull = "Adult";
 		while (subjectsRS.next()){
 			String curSubject = subjectsRS.getString("name");
 			if (curSubject.contains("Nonfiction")){
-				literaryForm = "Non Fiction";
-				literaryFormFull = "Non Fiction";
+				addToMapWithCount(literaryForm, "Non Fiction");
+				addToMapWithCount(literaryFormFull, "Non Fiction");
 				genres.add("Non Fiction");
 			}else	if (curSubject.contains("Fiction")){
-				literaryForm = "Fiction";
-				literaryFormFull = "Fiction";
+				addToMapWithCount(literaryForm, "Fiction");
+				addToMapWithCount(literaryFormFull, "Fiction");
 				genres.add("Fiction");
 			}
 
 			if (curSubject.contains("Poetry")){
-				literaryFormFull = "Poetry";
-			}if (curSubject.contains("Short Stories") || curSubject.contains("Drama") || curSubject.contains("Essays")){
-				literaryFormFull = curSubject;
+				addToMapWithCount(literaryForm, "Fiction");
+				addToMapWithCount(literaryFormFull, "Poetry");
+			}else if (curSubject.contains("Essays")){
+				addToMapWithCount(literaryForm, "Non Fiction");
+				addToMapWithCount(literaryFormFull, curSubject);
+			}else if (curSubject.contains("Short Stories") || curSubject.contains("Drama")){
+				addToMapWithCount(literaryForm, "Fiction");
+				addToMapWithCount(literaryFormFull, curSubject);
 			}
 
 			if (curSubject.contains("Juvenile")){
@@ -218,14 +223,22 @@ public class OverDriveProcessor {
 		groupedWork.addTopicFacet(topics);
 		groupedWork.addGenre(genres);
 		groupedWork.addGenreFacet(genres);
-		if (literaryForm != null){
-			groupedWork.addLiteraryForm(literaryForm);
+		if (literaryForm.size() > 0){
+			groupedWork.addLiteraryForms(literaryForm);
 		}
-		if (literaryFormFull != null){
-			groupedWork.addLiteraryFormFull(literaryFormFull);
+		if (literaryFormFull.size() > 0){
+			groupedWork.addLiteraryFormsFull(literaryFormFull);
 		}
 		groupedWork.addTargetAudience(targetAudience);
 		groupedWork.addTargetAudienceFull(targetAudienceFull);
+	}
+
+	private void addToMapWithCount(HashMap<String, Integer> map, String elementToAdd){
+		if (map.containsKey(elementToAdd)){
+			map.put(elementToAdd, map.get(elementToAdd) + 1);
+		}else{
+			map.put(elementToAdd, 1);
+		}
 	}
 
 	private void loadOverDriveLanguages(GroupedWorkSolr groupedWork, Long productId) throws SQLException {

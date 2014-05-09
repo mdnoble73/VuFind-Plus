@@ -44,6 +44,8 @@ public class GroupedWorkIndexer {
 	private long lastReindexTime;
 	private Long lastReindexTimeVariableId;
 
+	private HashSet<String> worksWithInvalidLiteraryForms = new HashSet<String>();
+
 	public GroupedWorkIndexer(String serverName, Connection vufindConn, Connection econtentConn, Ini configIni, boolean fullReindex, Logger logger) {
 		this.serverName = serverName;
 		this.logger = logger;
@@ -168,7 +170,23 @@ public class GroupedWorkIndexer {
 				logger.error("Error shutting down update server", e);
 			}
 		}
+		writeWorksWithInvalidLiteraryForms();
 		updateLastReindexTime();
+	}
+
+	private void writeWorksWithInvalidLiteraryForms() {
+		File worksWithInvalidLiteraryFormsFile = new File ("/var/log/vufind-plus/" + serverName + "/worksWithInvalidLiteraryForms.txt");
+		try{
+			FileWriter writer = new FileWriter(worksWithInvalidLiteraryFormsFile, false);
+			logger.warn("Found " + worksWithInvalidLiteraryForms.size() + " grouped works with invalid literary forms\r\n");
+			writer.write("Found " + worksWithInvalidLiteraryForms.size() + " grouped works with invalid literary forms\r\n");
+			writer.write("Works with inconsistent literary forms\r\n");
+			for (String curId : worksWithInvalidLiteraryForms){
+				writer.write(curId + "\r\n");
+			}
+		}catch(Exception e){
+			logger.error("Error writing works with invalid literary forms", e);
+		}
 	}
 
 	private void updateLastReindexTime() {
@@ -193,6 +211,7 @@ public class GroupedWorkIndexer {
 	}
 
 	public void processGroupedWorks() {
+		int numWorksProcessed = 0;
 		try {
 			PreparedStatement getAllGroupedWorks;
 			if (fullReindex){
@@ -205,14 +224,13 @@ public class GroupedWorkIndexer {
 			PreparedStatement getGroupedWorkPrimaryIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_primary_identifiers where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			PreparedStatement getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ? and valid_for_enrichment = 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			ResultSet groupedWorks = getAllGroupedWorks.executeQuery();
-			int numWorksProcessed = 0;
 			while (groupedWorks.next()){
 				Long id = groupedWorks.getLong("id");
 				String permanentId = groupedWorks.getString("permanent_id");
 				String grouping_category = groupedWorks.getString("grouping_category");
 
 				//Create a solr record for the grouped work
-				GroupedWorkSolr groupedWork = new GroupedWorkSolr();
+				GroupedWorkSolr groupedWork = new GroupedWorkSolr(this, logger);
 				groupedWork.setId(permanentId);
 				groupedWork.setGroupingCategory(grouping_category);
 
@@ -255,6 +273,7 @@ public class GroupedWorkIndexer {
 		} catch (SQLException e) {
 			logger.error("Unexpected SQL error", e);
 		}
+		logger.warn("Finished processing grouped works.  Processed a total of " + numWorksProcessed + " grouped works");
 	}
 
 	private void loadLexileDataForWork(GroupedWorkSolr groupedWork) {
@@ -523,5 +542,9 @@ public class GroupedWorkIndexer {
 
 	public void processPublicUserLists() {
 		//TODO:  Add public lists to the index
+	}
+
+	public void addWorkWithInvalidLiteraryForms(String id) {
+		this.worksWithInvalidLiteraryForms.add(id);
 	}
 }

@@ -474,10 +474,10 @@ public class Util {
 		if (format == null){
 			return "";
 		}
-		if (format.endsWith("/") || format.endsWith(",") || format.endsWith(".") || format.endsWith(";")) {
-			format = format.substring(0, format.length() - 1);
+		while (format.endsWith("/") || format.endsWith(",") || format.endsWith(".") || format.endsWith(";")) {
+			format = format.substring(0, format.length() - 1).trim();
 		}
-		return format.trim();
+		return format;
 	}
 
 	private static Pattern sortTrimmingPattern = Pattern.compile("(?i)^(?:(?:a|an|the|el|la|\"|')\\s)(.*)$");

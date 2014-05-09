@@ -1,5 +1,6 @@
 package org.vufind;
 
+import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
 
 import java.util.*;
@@ -72,8 +73,8 @@ public class GroupedWorkSolr {
 	private HashSet<String> lccns = new HashSet<String>();
 	private String lexileScore = "-1";
 	private String lexileCode = "";
-	private HashSet<String> literaryFormFull = new HashSet<String>();
-	private HashSet<String> literaryForm = new HashSet<String>();
+	private HashMap<String, Integer> literaryFormFull = new HashMap<String, Integer>();
+	private HashMap<String, Integer> literaryForm = new HashMap<String, Integer>();
 	private HashMap<String, HashSet<String>> localizedFormats = new HashMap<String, HashSet<String>>();
 	private HashMap<String, Long> localBoost = new HashMap<String, Long>();
 	private String localCallNumber;
@@ -107,6 +108,13 @@ public class GroupedWorkSolr {
 	private HashSet<String> topicFacets = new HashSet<String>();
 	private HashSet<String> upcs = new HashSet<String>();
 	private HashSet<String> usableBy = new HashSet<String>();
+
+	private Logger logger;
+	private GroupedWorkIndexer groupedWorkIndexer;
+	public GroupedWorkSolr(GroupedWorkIndexer groupedWorkIndexer, Logger logger) {
+		this.logger = logger;
+		this.groupedWorkIndexer = groupedWorkIndexer;
+	}
 
 	public SolrInputDocument getSolrDocument(int availableAtBoostValue, int ownedByBoostValue) {
 		SolrInputDocument doc = new SolrInputDocument();
@@ -199,9 +207,11 @@ public class GroupedWorkSolr {
 		doc.addField("geographic_facet", geographicFacets);
 		doc.addField("era", eras);
 		checkDefaultValue(literaryFormFull, "Not Coded");
-		doc.addField("literary_form_full", literaryFormFull);
+		checkInconsistentLiteraryFormsFull();
+		doc.addField("literary_form_full", literaryFormFull.keySet());
 		checkDefaultValue(literaryForm, "Not Coded");
-		doc.addField("literary_form", literaryForm);
+		checkInconsistentLiteraryForms();
+		doc.addField("literary_form", literaryForm.keySet());
 		checkDefaultValue(targetAudienceFull, "Unknown");
 		doc.addField("target_audience_full", targetAudienceFull);
 		checkDefaultValue(targetAudience, "Unknown");
@@ -217,7 +227,7 @@ public class GroupedWorkSolr {
 
 				long indexTime = indexDate.getTime();
 				long publicationTime = publicationDate.getTime().getTime();
-				long bibDaysSinceAdded = (long)(indexTime - publicationTime) / (long)(1000 * 60 * 60 * 24);
+				long bibDaysSinceAdded = (indexTime - publicationTime) / (long)(1000 * 60 * 60 * 24);
 				doc.addField("days_since_added", Long.toString(bibDaysSinceAdded));
 				doc.addField("time_since_added", getTimeSinceAddedForDate(publicationDate.getTime()));
 			}else{
@@ -295,12 +305,129 @@ public class GroupedWorkSolr {
 		return doc;
 	}
 
+	private void checkInconsistentLiteraryForms() {
+		if (literaryForm.size() == 1){
+			//Yay, just one literary form
+			return;
+		}else{
+			if (literaryForm.containsKey("Unknown")){
+				//We got unknown and something else, remove the unknown
+				literaryForm.remove("Unknown");
+			}
+			if (literaryForm.size() >= 2){
+				//Hmm, we got both fiction and non-fiction
+				Integer numFictionIndicators = literaryForm.get("Fiction");
+				Integer numNonFictionIndicators = literaryForm.get("Non Fiction");
+				if (numFictionIndicators.equals(numNonFictionIndicators)){
+					//Houston we have a problem.
+					//logger.warn("Found inconsistent literary forms for grouped work " + id + " both fiction and non fiction had the same amount of usage.  Defaulting to neither.");
+					literaryForm.clear();
+					literaryForm.put("Unknown", 1);
+					groupedWorkIndexer.addWorkWithInvalidLiteraryForms(id);
+				}else if (numFictionIndicators.compareTo(numNonFictionIndicators) > 0){
+					logger.debug("Popularity dictates that Fiction is the correct literary form for grouped work " + id);
+					literaryForm.remove("Non Fiction");
+				}else if (numFictionIndicators.compareTo(numNonFictionIndicators) > 0){
+					logger.debug("Popularity dictates that Non Fiction is the correct literary form for grouped work " + id);
+					literaryForm.remove("Fiction");
+				}
+			}
+		}
+	}
+
+	private void checkInconsistentLiteraryFormsFull() {
+		if (literaryFormFull.size() == 1){
+			//Yay, just one literary form
+			return;
+		}else{
+			if (literaryFormFull.containsKey("Unknown")){
+				//We got unknown and something else, remove the unknown
+				literaryFormFull.remove("Unknown");
+			}
+			if (literaryFormFull.size() >= 2){
+				//Hmm, we got multiple forms.  Check to see if there are inconsistent forms
+				// i.e. Fiction and Non-Fiction are incompatible, but Novels and Fiction could be mixed
+				int maxUsage = 0;
+				HashSet<String> highestUsageLiteraryForms = new HashSet<String>();
+				for (String literaryForm : literaryFormFull.keySet()){
+					int curUsage = literaryFormFull.get(literaryForm);
+					if (curUsage > maxUsage){
+						highestUsageLiteraryForms.clear();
+						highestUsageLiteraryForms.add(literaryForm);
+						maxUsage = curUsage;
+					}else if (curUsage == maxUsage){
+						highestUsageLiteraryForms.add(literaryForm);
+					}
+				}
+				if (highestUsageLiteraryForms.size() > 1){
+					//Check to see if the highest usage literary forms are inconsistent
+					if (hasInconsistentLiteraryForms(highestUsageLiteraryForms)){
+						//Ugh, we have inconsistent literary forms and can't make an educated guess as to which is correct.
+						literaryFormFull.clear();
+						literaryFormFull.put("Unknown", 1);
+						groupedWorkIndexer.addWorkWithInvalidLiteraryForms(id);
+					}
+				}else{
+					removeInconsistentFullLiteraryForms(literaryFormFull, highestUsageLiteraryForms);
+				}
+			}
+		}
+	}
+
+	private void removeInconsistentFullLiteraryForms(HashMap<String, Integer> literaryFormFull, HashSet<String> highestUsageLiteraryForms) {
+		boolean firstLiteraryFormIsNonFiction = nonFictionFullLiteraryForms.contains(highestUsageLiteraryForms.iterator().next());
+		boolean changeMade = true;
+		while (changeMade){
+			changeMade = false;
+			for (String curLiteraryForm : literaryFormFull.keySet()){
+				if (firstLiteraryFormIsNonFiction != nonFictionFullLiteraryForms.contains(curLiteraryForm)){
+					logger.debug(curLiteraryForm + " got voted off the island for grouped work " + id + " because it was inconsistent with other full literary forms.");
+					literaryFormFull.remove(curLiteraryForm);
+					changeMade = true;
+					break;
+				}
+			}
+		}
+	}
+
+	static ArrayList<String> nonFictionFullLiteraryForms = new ArrayList<String>();
+	static{
+		nonFictionFullLiteraryForms.add("Non Fiction");
+		nonFictionFullLiteraryForms.add("Essays");
+		nonFictionFullLiteraryForms.add("Letters");
+		nonFictionFullLiteraryForms.add("Speeches");
+	}
+	private boolean hasInconsistentLiteraryForms(HashSet<String> highestUsageLiteraryForms) {
+		boolean firstLiteraryFormIsNonFiction = false;
+		int numFormsChecked = 0;
+		for (String curLiteraryForm : highestUsageLiteraryForms){
+			if (numFormsChecked == 0){
+				firstLiteraryFormIsNonFiction = nonFictionFullLiteraryForms.contains(curLiteraryForm);
+			}else{
+				if (firstLiteraryFormIsNonFiction != nonFictionFullLiteraryForms.contains(curLiteraryForm)){
+					return true;
+				}
+			}
+			numFormsChecked++;
+		}
+		return false;
+	}
+
 	private void checkDefaultValue(HashSet<String> valuesCollection, String defaultValue) {
 		//Remove the default value if we get something more specific
 		if (valuesCollection.contains(defaultValue) && valuesCollection.size() > 1){
 			valuesCollection.remove(defaultValue);
 		}else if (valuesCollection.size() == 0){
 			valuesCollection.add(defaultValue);
+		}
+	}
+
+	private void checkDefaultValue(HashMap<String, Integer> valuesCollection, String defaultValue) {
+		//Remove the default value if we get something more specific
+		if (valuesCollection.containsKey(defaultValue) && valuesCollection.size() > 1){
+			valuesCollection.remove(defaultValue);
+		}else if (valuesCollection.size() == 0){
+			valuesCollection.put(defaultValue, 1);
 		}
 	}
 
@@ -656,19 +783,55 @@ public class GroupedWorkSolr {
 	}
 
 	public void addLiteraryForms(HashSet<String> literaryForms) {
-		this.literaryForm.addAll(literaryForms);
+		for (String curLiteraryForm : literaryForms){
+			this.addLiteraryForm(curLiteraryForm);
+		}
+	}
+
+	public void addLiteraryForms(HashMap<String, Integer> literaryForms) {
+		for (String curLiteraryForm : literaryForms.keySet()){
+			this.addLiteraryForm(curLiteraryForm, literaryForms.get(curLiteraryForm));
+		}
+	}
+
+	public void addLiteraryForm(String literaryForm, int count) {
+		literaryForm = literaryForm.trim();
+		if (this.literaryForm.containsKey(literaryForm)){
+			Integer numMatches = this.literaryForm.get(literaryForm);
+			this.literaryForm.put(literaryForm, numMatches + count);
+		}else{
+			this.literaryForm.put(literaryForm, count);
+		}
 	}
 
 	public void addLiteraryForm(String literaryForm) {
-		this.literaryForm.add(literaryForm.trim());
+		addLiteraryForm(literaryForm, 1);
+	}
+
+	public void addLiteraryFormsFull(HashMap<String, Integer> literaryFormsFull) {
+		for (String curLiteraryForm : literaryFormsFull.keySet()){
+			this.addLiteraryFormFull(curLiteraryForm, literaryFormsFull.get(curLiteraryForm));
+		}
 	}
 
 	public void addLiteraryFormsFull(HashSet<String> literaryFormsFull) {
-		this.literaryFormFull.addAll(literaryFormsFull);
+		for (String curLiteraryForm : literaryFormsFull){
+			this.addLiteraryFormFull(curLiteraryForm);
+		}
+	}
+
+	public void addLiteraryFormFull(String literaryForm, int count) {
+		literaryForm = literaryForm.trim();
+		if (this.literaryFormFull.containsKey(literaryForm)){
+			Integer numMatches = this.literaryFormFull.get(literaryForm);
+			this.literaryFormFull.put(literaryForm, numMatches + count);
+		}else{
+			this.literaryFormFull.put(literaryForm, count);
+		}
 	}
 
 	public void addLiteraryFormFull(String literaryForm) {
-		this.literaryFormFull.add(literaryForm.trim());
+		this.addLiteraryFormFull(literaryForm, 1);
 	}
 
 	public void addTargetAudiences(HashSet<String> target_audience) {
