@@ -31,7 +31,7 @@ class BookCoverProcessor{
 		$this->timer = $timer;
 		$this->doTimings = $this->configArray['System']['coverTimings'];
 		$this->logger = $logger;
-		$this->doCoverLogging = $this->configArray['System']['coverLogging'];
+		$this->doCoverLogging = $this->configArray['Logging']['coverLogging'];
 
 		$this->log("Starting to load cover", PEAR_LOG_INFO);
 		$this->bookCoverPath = $configArray['Site']['coverPath'];
