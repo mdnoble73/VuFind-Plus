@@ -910,6 +910,9 @@ class GroupedWorkDriver implements RecordInterface{
 				usort($relatedRecords, array("GroupedWorkDriver", "compareRelatedRecords"));
 			}
 			$this->relatedRecords = $relatedRecords;
+			if (count($relatedRecords) == 0){
+				echo("Warning, loaded 0 related records for grouped work " + $this->getPermanentId());
+		}
 		}
 		$timer->logTime("Finished loading related records");
 		return $this->relatedRecords;

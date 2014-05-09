@@ -66,6 +66,8 @@
 					</div>
 				</div>
 			</div>
+		{foreachelse}
+			<div class="row related-manifestation">No formats of this title are currently available to you.  {if !$user}You may be able to access additional titles if you login.{/if}</div>
 		{/foreach}
 	</div>
 {/strip}
