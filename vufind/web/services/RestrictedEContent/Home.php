@@ -19,9 +19,9 @@
  */
 
 require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
-require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
+require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
 
-class PublicEContent_Home extends Action{
+class RestrictedEContent_Home extends Action{
 	/** @var  SearchObject_Solr $db */
 	protected $db;
 	private $id;
@@ -43,7 +43,7 @@ class PublicEContent_Home extends Action{
 
 		$this->id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $this->id);
-		$recordDriver = new PublicEContentDriver($this->id);
+		$recordDriver = new RestrictedEContentDriver($this->id);
 
 		if (!$recordDriver->isValid()){
 			$interface->setTemplate('../Record/invalidRecord.tpl');
@@ -71,7 +71,7 @@ class PublicEContent_Home extends Action{
 			$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
 
 			// Display Page
-			$interface->assign('sidebar', 'PublicEContent/full-record-sidebar.tpl');
+			$interface->assign('sidebar', 'RestrictedEContent/full-record-sidebar.tpl');
 			$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
 			$interface->setTemplate('view.tpl');
 
@@ -80,7 +80,7 @@ class PublicEContent_Home extends Action{
 	}
 
 	/**
-	 * @param PublicEContentDriver $recordDriver
+	 * @param RestrictedEContentDriver $recordDriver
 	 */
 	function loadCitations($recordDriver)
 	{
