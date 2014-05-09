@@ -277,10 +277,10 @@ class MillenniumDriver implements DriverInterface
 	 * @return mixed
 	 */
 	public function getItemsFast($id, $scopingEnabled, $marcRecord = null){
-		//global $timer;
 		if ($marcRecord == null){
 			$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
-			//$timer->logTime("Finished loading MARC Record");
+			global $timer;
+			$timer->logTime("Finished loading MARC Record for getItemsFast");
 		}
 
 		MillenniumDriver::loadLibraryLocationInformation();
@@ -347,12 +347,12 @@ class MillenniumDriver implements DriverInterface
 				);
 				$items[] = $item;
 			}else{
-				//global $logger;
-				//$logger->log("Removing item for location $locationCode because it is not holdable or it is not owned by the local library", PEAR_LOG_DEBUG);
+				global $logger;
+				$logger->log("Removing item for location $locationCode because it is not holdable or it is not owned by the local library", PEAR_LOG_DEBUG);
 			}
 			//$timer->logTime("Finished processing item");
 		}
-		//$timer->logTime("Finished load items fast for Millennium record");
+		$timer->logTime("Finished load items fast for Millennium record");
 		return $items;
 	}
 

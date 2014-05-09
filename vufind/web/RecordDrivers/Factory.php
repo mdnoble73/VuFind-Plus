@@ -112,7 +112,8 @@ class RecordDriverFactory {
 				$recordDriver = null;
 			}
 		}else{
-			echo("Unknown record type " . $recordType);
+			global $logger;
+			$logger->log("Unknown record type " . $recordType, PEAR_LOG_ERR);
 			$recordDriver = null;
 		}
 		enableErrorHandler();
