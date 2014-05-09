@@ -288,6 +288,7 @@ class MillenniumDriver implements DriverInterface
 		//Get the items Fields from the record
 		/** @var File_MARC_Data_Field[] $itemFields */
 		$itemFields = $marcRecord->getFields('989');
+		global $timer;
 		$timer->logTime("Finished loading item fields for $id, found " . count($itemFields));
 		$items = array();
 		$pType = $this->getPType();
