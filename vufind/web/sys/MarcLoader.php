@@ -71,7 +71,7 @@ class MarcLoader{
 					PEAR_Singleton::raiseError(new PEAR_Error('Could not load marc record for record ' . $shortId));
 				}else{
 					if ($memCache){
-						$memCache->set('marc_record_' . $shortId, $marcRecord, 0, $configArray['Caching']['marc_record']);
+						$memCache->set('marc_record_' . $shortId, $marcRecord, MEMCACHE_COMPRESSED, $configArray['Caching']['marc_record']);
 					}
 				}
 			}
