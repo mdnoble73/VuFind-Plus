@@ -288,7 +288,7 @@ class MillenniumDriver implements DriverInterface
 		//Get the items Fields from the record
 		/** @var File_MARC_Data_Field[] $itemFields */
 		$itemFields = $marcRecord->getFields('989');
-		//$timer->logTime("Finished loading item fields");
+		$timer->logTime("Finished loading item fields for $id, found " . count($itemFields));
 		$items = array();
 		$pType = $this->getPType();
 		//$timer->logTime("Finished loading pType");
@@ -305,6 +305,8 @@ class MillenniumDriver implements DriverInterface
 			$locationCode = trim($itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '');
 			//Do a quick check of location code so we can remove this quickly when scoping is enabled
 			if ($scopingEnabled && strlen(MillenniumDriver::$scopingLocationCode) > 0 && strpos($locationCode, MillenniumDriver::$scopingLocationCode) !== 0){
+				global $logger;
+				$logger->log("Removed item because scoping is enabled and the location code $locationCode did not start with " . MillenniumDriver::$scopingLocationCode, PEAR_LOG_DEBUG);
 				continue;
 			}
 			$iType = trim($itemField->getSubfield('j') != null ? $itemField->getSubfield('j')->getData() : '');
