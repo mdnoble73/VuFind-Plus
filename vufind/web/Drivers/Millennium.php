@@ -1367,7 +1367,6 @@ class MillenniumDriver implements DriverInterface
 		global $timer;
 		$memcacheKey = "loan_rule_result_{$locationCode}_{$iType}_{$pType}";
 		$cachedValue = $memCache->get($memcacheKey);
-		$cachedValue = false;
 		if ($cachedValue !== false && !isset($_REQUEST['reload'])){
 			return $cachedValue == 'true';
 		}else{
