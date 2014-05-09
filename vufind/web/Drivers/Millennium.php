@@ -352,6 +352,7 @@ class MillenniumDriver implements DriverInterface
 			}
 			//$timer->logTime("Finished processing item");
 		}
+		global $timer;
 		$timer->logTime("Finished load items fast for Millennium record");
 		return $items;
 	}
