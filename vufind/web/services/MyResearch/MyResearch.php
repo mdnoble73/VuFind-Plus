@@ -39,7 +39,6 @@ abstract class MyResearch extends Action
 		global $user;
 
 		$interface->assign('page_body_style', 'sidebar_left');
-		$interface->assign('ils', $configArray['Catalog']['ils']);
 
 		if ($this->requireLogin && !UserAccount::isLoggedIn()) {
 			require_once ROOT_DIR . '/services/MyAccount/Login.php';

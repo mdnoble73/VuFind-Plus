@@ -46,8 +46,6 @@ abstract class Admin_Admin extends Action
 			}
 		}
 
-		$interface->assign('ils', $configArray['Catalog']['ils']);
-
 		//Check to see if we have any acs or single use eContent in the catalog
 		//to enable the holds and wishlist appropriately
 		if (isset($configArray['EContent']['hasProtectedEContent'])){

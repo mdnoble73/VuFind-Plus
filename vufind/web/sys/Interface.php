@@ -124,6 +124,7 @@ class UInterface extends Smarty
 		$this->assign('requestHasParams', strpos($_SERVER['REQUEST_URI'], '?') > 0);
 		$this->assign('supportEmail', $configArray['Site']['email']);
 		$this->assign('libraryName', $configArray['Site']['title']);
+		$this->assign('ils', $configArray['Catalog']['ils']);
 		$this->assign('theme', $this->vufindTheme);
 		$this->assign('primaryTheme', reset($themeArray));
 		$this->assign('device', get_device_name());
@@ -181,7 +182,6 @@ class UInterface extends Smarty
 	function setPageTitle($title)
 	{
 		//Marmot override, add the name of the site to the title unless we are using the mobile interface.
-		global $configArray;
 		if ($this->isMobile){
 			$this->assign('pageTitle', translate($title));
 		}else{
@@ -213,6 +213,8 @@ class UInterface extends Smarty
 	 * @param string $cache_id
 	 * @param string $compile_id
 	 * @param boolean $display
+	 *
+	 * @return string
 	 */
 	function fetch($resource_name, $cache_id = null, $compile_id = null, $display = false)
 	{
