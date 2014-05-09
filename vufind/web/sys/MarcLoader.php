@@ -47,33 +47,19 @@ class MarcLoader{
 	 */
 	public static function loadMarcRecordByILSId($ilsId, $recordType = 'marc'){
 		/** @var Memcache $memCache */
-		global $memCache;
 		global $configArray;
 		$shortId = str_replace('.', '', $ilsId);
 		if (strlen($shortId) < 9){
 			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
 		}
 		$firstChars = substr($shortId, 0, 4);
-		if ($memCache && !isset($_REQUEST['reload'])){
-			$marcRecord = $memCache->get('marc_record_' . $shortId);
-		}else{
-			$marcRecord = false;
-		}
-		if ($marcRecord == false){
-			//First check the file system
-
-			$individualName = $configArray['Reindex']['individualMarcPath'] . "/{$firstChars}/{$shortId}.mrc";
-			//echo ($individualName);
-			if (isset($configArray['Reindex']['individualMarcPath']) && file_exists($individualName)){
-				//$rawMarc = file_get_contents($individualName);
-				$marc = new File_MARC($individualName, File_MARC::SOURCE_FILE);
-				if (!($marcRecord = $marc->next())) {
-					PEAR_Singleton::raiseError(new PEAR_Error('Could not load marc record for record ' . $shortId));
-				}else{
-					if ($memCache){
-						$memCache->set('marc_record_' . $shortId, $marcRecord, MEMCACHE_COMPRESSED, $configArray['Caching']['marc_record']);
-					}
-				}
+		$individualName = $configArray['Reindex']['individualMarcPath'] . "/{$firstChars}/{$shortId}.mrc";
+		$marcRecord = false;
+		if (isset($configArray['Reindex']['individualMarcPath'])){
+			//$rawMarc = file_get_contents($individualName);
+			$marc = new File_MARC($individualName, File_MARC::SOURCE_FILE);
+			if (!($marcRecord = $marc->next())) {
+				PEAR_Singleton::raiseError(new PEAR_Error('Could not load marc record for record ' . $shortId));
 			}
 		}
 		return $marcRecord;
