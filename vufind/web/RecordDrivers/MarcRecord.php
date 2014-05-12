@@ -1183,7 +1183,7 @@ class MarcRecord extends IndexRecord
 		// Check for blu-ray in 300 fields
 		$edition = strtolower($this->getFirstFieldValue("250"));
 		if ($edition != null) {
-			if (strpos($edition, "large type") !== FALSE) {
+			if (strpos($edition, "large type") !== FALSE || strpos($edition, "large print") !== FALSE) {
 				$result[] =  "Large Print";
 			}
 		}

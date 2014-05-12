@@ -296,6 +296,11 @@ class MillenniumDriver implements DriverInterface
 
 		$shelfLocationMap = getTranslationMap('shelf_location');
 
+		global $configArray;
+		$statusSubfield = $configArray['Reindex']['statusSubfield'];
+		$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
+		$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
+
 		foreach ($itemFields as $itemField){
 			//Ignore eContent items
 			$eContentData = trim($itemField->getSubfield('w') != null ? $itemField->getSubfield('w')->getData() : '');
@@ -310,11 +315,11 @@ class MillenniumDriver implements DriverInterface
 				$logger->log("Removed item because scoping is enabled and the location code $locationCode did not start with " . MillenniumDriver::$scopingLocationCode, PEAR_LOG_DEBUG);
 				continue;
 			}
-			$iType = trim($itemField->getSubfield('j') != null ? $itemField->getSubfield('j')->getData() : '');
+			$iType = trim($itemField->getSubfield($iTypeSubfield) != null ? $itemField->getSubfield($iTypeSubfield)->getData() : '');
 			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pType);
 			//$timer->logTime("Finished checking if item is holdable");
-			$status = trim($itemField->getSubfield('o') != null ? trim($itemField->getSubfield('o')->getData()) : '');
-			$dueDate = $itemField->getSubfield('m') != null ? trim($itemField->getSubfield('m')->getData()) : null;
+			$status = trim($itemField->getSubfield($statusSubfield) != null ? trim($itemField->getSubfield($statusSubfield)->getData()) : '');
+			$dueDate = $itemField->getSubfield($dueDateSubfield) != null ? trim($itemField->getSubfield($dueDateSubfield)->getData()) : null;
 			$available = ($status == '-' && ($dueDate == null || strlen($dueDate) == 0));
 			$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
 			$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
