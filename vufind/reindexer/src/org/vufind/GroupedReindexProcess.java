@@ -95,10 +95,10 @@ public class GroupedReindexProcess {
 		sendCompletionMessage();
 		
 		addNoteToReindexLog("Finished Reindex for " + serverName);
-		logger.warn("Finished Reindex for " + serverName);
+		logger.info("Finished Reindex for " + serverName);
 		long endTime = new Date().getTime();
 		long elapsedTime = endTime - startTime;
-		logger.warn("Elapsed Minutes " + (elapsedTime / 60000));
+		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
 	}
 	
 	private static void reloadDefaultSchemas() {
@@ -220,7 +220,7 @@ public class GroupedReindexProcess {
 			System.exit(1);
 		}
 		
-		logger.warn("Starting Reindex for " + serverName);
+		logger.info("Starting Reindex for " + serverName);
 
 		// Parse the configuration file
 		configIni = loadConfigFile();

@@ -177,12 +177,14 @@ public class GroupedWorkIndexer {
 	private void writeWorksWithInvalidLiteraryForms() {
 		File worksWithInvalidLiteraryFormsFile = new File ("/var/log/vufind-plus/" + serverName + "/worksWithInvalidLiteraryForms.txt");
 		try{
-			FileWriter writer = new FileWriter(worksWithInvalidLiteraryFormsFile, false);
-			logger.warn("Found " + worksWithInvalidLiteraryForms.size() + " grouped works with invalid literary forms\r\n");
-			writer.write("Found " + worksWithInvalidLiteraryForms.size() + " grouped works with invalid literary forms\r\n");
-			writer.write("Works with inconsistent literary forms\r\n");
-			for (String curId : worksWithInvalidLiteraryForms){
-				writer.write(curId + "\r\n");
+			if (worksWithInvalidLiteraryForms.size() > 0){
+				FileWriter writer = new FileWriter(worksWithInvalidLiteraryFormsFile, false);
+				logger.warn("Found " + worksWithInvalidLiteraryForms.size() + " grouped works with invalid literary forms\r\n");
+				writer.write("Found " + worksWithInvalidLiteraryForms.size() + " grouped works with invalid literary forms\r\n");
+				writer.write("Works with inconsistent literary forms\r\n");
+				for (String curId : worksWithInvalidLiteraryForms){
+					writer.write(curId + "\r\n");
+				}
 			}
 		}catch(Exception e){
 			logger.error("Error writing works with invalid literary forms", e);
@@ -273,7 +275,7 @@ public class GroupedWorkIndexer {
 		} catch (SQLException e) {
 			logger.error("Unexpected SQL error", e);
 		}
-		logger.warn("Finished processing grouped works.  Processed a total of " + numWorksProcessed + " grouped works");
+		logger.info("Finished processing grouped works.  Processed a total of " + numWorksProcessed + " grouped works");
 	}
 
 	private void loadLexileDataForWork(GroupedWorkSolr groupedWork) {
