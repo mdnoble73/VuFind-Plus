@@ -448,15 +448,15 @@ public class SierraExportMain{
 					rd.close();
 					return new JSONObject(response.toString());
 				} else {
-					logger.error("Received error " + conn.getResponseCode() + " connecting to sierra API");
+					logger.error("Received error " + conn.getResponseCode() + " calling sierra API " + overdriveUrl);
 					// Get any errors
 					BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
 					String line;
 					while ((line = rd.readLine()) != null) {
 						response.append(line);
 					}
-					logger.debug("  Finished reading response");
-					logger.debug(response.toString());
+					logger.error("  Finished reading response");
+					logger.error(response.toString());
 
 					rd.close();
 				}
