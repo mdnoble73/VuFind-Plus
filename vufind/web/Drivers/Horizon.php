@@ -78,7 +78,8 @@ class Horizon implements DriverInterface{
 	 * @return mixed
 	 */
 	public function getItemsFast($id, $scopingEnabled, $marcRecord = null){
-		return $this->getHolding($id);
+		$fastItems = $this->getHolding($id);
+		return $fastItems;
 	}
 
 	public function getHolding($id, $record = null, $mysip = null, $forSummary = false){
@@ -143,8 +144,12 @@ class Horizon implements DriverInterface{
 					$itemId = trim($item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '');
 
 					//Get the barcode from the horizon database
+					$itemData['isLocalItem'] = true;
+					$itemData['isLibraryItem'] = true;
 					$itemData['locationCode'] = trim(strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' ));
 					$itemData['location'] = $this->translateLocation($itemData['locationCode']);
+					$itemData['locationLabel'] = $itemData['location'];
+					$itemData['shelfLocation'] = $itemData['location'];
 
 					if (!$configArray['Catalog']['itemLevelCallNumbers'] && $callNumber != ''){
 						$itemData['callnumber'] = $callNumber;
