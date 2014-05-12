@@ -193,7 +193,7 @@ class MillenniumReadingHistory {
 			$tmpRow = preg_replace('/\r\n|\n|\r/', "", strip_tags($srow));
 			if (strlen(trim($tmpRow)) == 0){
 				continue;
-			}elseif(preg_match('/Result Page/', $tmpRow)){
+			}elseif(preg_match('/Result Page|Records \d+-\d+ of \d+/', $tmpRow)){
 				continue;
 			}
 			$sCols = preg_split("/<t(h|d)([^>]*)>/",$srow);
@@ -260,7 +260,9 @@ class MillenniumReadingHistory {
 					$recordDriver = new MarcRecord($historyEntry['recordId']);
 					$historyEntry['ratingData'] = $recordDriver->getRatingData();
 					$historyEntry['permanentId'] = $recordDriver->getPermanentId();
-					$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('small');
+					$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
+					$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+					$historyEntry['format'] = $recordDriver->getFormats();
 				}
 				if ($sortOption == "title"){
 					$titleKey = $historyEntry['title_sort'];

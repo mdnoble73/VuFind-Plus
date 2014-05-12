@@ -1108,6 +1108,10 @@ class MarcRecord extends IndexRecord
 		}
 	}
 
+	function getFormats(){
+		return $this->getFormat();
+	}
+
 	function getFormat(){
 		$result = array();
 

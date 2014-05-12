@@ -1549,11 +1549,22 @@ class IndexRecord implements RecordInterface
 	public function getLinkUrl($useUnscopedHoldingsSummary = false) {
 		global $interface;
 		$id = $this->getUniqueID();
-		$linkUrl = '/Record/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+		$linkUrl = '/Record/' . $id . '/Home';
+		$extraParams = array();
+		if (strlen($interface->get_template_vars('searchId')) > 0){
+			$extraParams[] = 'searchId=' . $interface->get_template_vars('searchId');
+			$extraParams[] = 'recordIndex=' . $interface->get_template_vars('recordIndex');
+			$extraParams[] = 'page='  . $interface->get_template_vars('page');
+
+		}
+
 		if ($useUnscopedHoldingsSummary){
-			$linkUrl .= '&amp;searchSource=marmot';
+			$extraParams[] = 'searchSource=marmot';
 		}else{
-			$linkUrl .= '&amp;searchSource=' . $interface->get_template_vars('searchSource');
+			$extraParams[] = 'searchSource=' . $interface->get_template_vars('searchSource');
+		}
+		if (count($extraParams) > 0){
+			$linkUrl .= '?' . implode('&', $extraParams);
 		}
 		return $linkUrl;
 	}
