@@ -127,10 +127,13 @@ class Horizon implements DriverInterface{
 			$itemSubfield       = $configArray['Catalog']['itemSubfield'];
 			$callnumberSubfield = $configArray['Catalog']['callnumberSubfield'];
 			$statusSubfield     = $configArray['Catalog']['statusSubfield'];
+			$collectionSubfield     = $configArray['Catalog']['collectionSubfield'];
 			$firstItemWithSIPdata = null;
+			/** @var File_MARC_Data_Field[] $items */
 			foreach ($items as $itemIndex => $item){
 				$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
 				//Check to see if we already have data for this barcode
+				/** @var Memcache $memCache */
 				global $memCache;
 				if (isset($barcode) && strlen($barcode) > 0 && !isset($_REQUEST['reload'])){
 					$itemData = $memCache->get("item_data_{$barcode}_{$forSummary}");
@@ -149,7 +152,8 @@ class Horizon implements DriverInterface{
 					$itemData['locationCode'] = trim(strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' ));
 					$itemData['location'] = $this->translateLocation($itemData['locationCode']);
 					$itemData['locationLabel'] = $itemData['location'];
-					$itemData['shelfLocation'] = $this->translateCollection($item->getSubfield('c'));
+					$collection = trim($item->getSubfield($collectionSubfield) != null ? $item->getSubfield($collectionSubfield)->getData() : '');
+					$itemData['shelfLocation'] = $this->translateCollection($collection);
 
 					if (!$configArray['Catalog']['itemLevelCallNumbers'] && $callNumber != ''){
 						$itemData['callnumber'] = $callNumber;
