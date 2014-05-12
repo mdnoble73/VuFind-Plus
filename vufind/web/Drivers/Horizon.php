@@ -132,7 +132,7 @@ class Horizon implements DriverInterface{
 				$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
 				//Check to see if we already have data for this barcode
 				global $memCache;
-				if (isset($barcode) && strlen($barcode) > 0){
+				if (isset($barcode) && strlen($barcode) > 0 && !isset($_REQUEST['reload'])){
 					$itemData = $memCache->get("item_data_{$barcode}_{$forSummary}");
 				}else{
 					$itemData = false;
@@ -149,7 +149,7 @@ class Horizon implements DriverInterface{
 					$itemData['locationCode'] = trim(strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' ));
 					$itemData['location'] = $this->translateLocation($itemData['locationCode']);
 					$itemData['locationLabel'] = $itemData['location'];
-					$itemData['shelfLocation'] = $itemData['location'];
+					$itemData['shelfLocation'] = $this->translateCollection($item->getSubfield('c'));
 
 					if (!$configArray['Catalog']['itemLevelCallNumbers'] && $callNumber != ''){
 						$itemData['callnumber'] = $callNumber;
@@ -170,7 +170,8 @@ class Horizon implements DriverInterface{
 							$timer->logTime("Got status from database item $itemIndex");
 						}
 					}
-					$availableRegex = "/^({$configArray['Catalog']['availableStatuses']})$/i";
+					$availableStatuses = $configArray['Catalog']['availableStatuses'];
+					$availableRegex = "/^({$availableStatuses})$/i";
 					if (preg_match($availableRegex, $itemData['status']) == 0){
 						$itemData['availability'] = false;
 					}else{
@@ -191,7 +192,8 @@ class Horizon implements DriverInterface{
 						}
 					}
 					//Online items are not holdable.
-					if (preg_match("/^({$configArray['Catalog']['nonHoldableStatuses']})$/i", $itemData['status'])){
+					$nonHoldableStatuses = $configArray['Catalog']['nonHoldableStatuses'];
+					if (preg_match("/^({$nonHoldableStatuses})$/i", $itemData['status'])){
 						$itemData['holdable'] = false;
 					}
 
