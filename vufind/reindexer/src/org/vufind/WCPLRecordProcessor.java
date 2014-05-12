@@ -23,6 +23,8 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 
 	@Override
 	public Set<String> loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<DataField> printItems, List<DataField> econtentItems) {
-		return null;
+		//Get formats based on 949c
+		Set<String> collectionFields = this.getFieldList(record, "949c");
+		return collectionFields;
 	}
 }
