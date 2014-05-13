@@ -394,7 +394,6 @@ public class SierraExportMain{
 				logger.debug("Token expires at " + parser.getLong("expires_in"));
 				sierraAPIExpiration = new Date().getTime() + (parser.getLong("expires_in") * 1000) - 10000;
 				//logger.debug("OverDrive token is " + sierraAPIToken);
-				Thread.sleep(1000);
 			} else {
 				logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive authentication service" );
 				// Get any errors
