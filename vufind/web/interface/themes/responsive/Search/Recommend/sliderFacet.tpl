@@ -20,6 +20,6 @@
 				<input type="hidden" name="{$paramName}" value="{$parmValue|escape}" />
 			{/if}
 		{/foreach}
-		<input type="submit" value="Go" id="goButton" />
+		<input type="submit" value="Go" id="goButton" class="goButton btn btn-sm btn-default" />
 	</div>
 </form>
