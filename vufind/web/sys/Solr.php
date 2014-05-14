@@ -1460,12 +1460,6 @@ class Solr implements IndexEngine {
 
 		//*************************
 		//Marmot overrides for filtering based on library system and location
-		//Only show visible records
-		if ($this->index != 'grouped'){
-			if (!isset($configArray['Index']['ignoreBibSuppression']) || $configArray['Index']['ignoreBibSuppression'] == false){
-				$filter[] = '-bib_suppression:suppressed';
-			}
-		}
 		//Only include titles that the user has access to based on pType
 		$pType = 0;
 		$owningSystem = '';
@@ -1476,9 +1470,17 @@ class Solr implements IndexEngine {
 			$pType = $user->patronType;
 		}elseif (isset($searchLocation) && $searchLocation->defaultPType > 0 && $canUseDefaultPType){
 			$pType = $searchLocation->defaultPType;
-		}elseif (isset($searchLibrary) && $searchLibrary->defaultPType > 0 && $canUseDefaultPType){
-			$pType = $searchLibrary->defaultPType;
 		}
+		if ($pType == 0 && isset($searchLibrary)){
+			//We always want to restrict by pType even if we aren't scoping to just the library
+			//holdings since patron's don't want to see things they can't see.
+			if (strlen($searchLibrary->pTypes) > 0){
+				$pType = str_replace(',', ' OR ', $searchLibrary->pTypes);
+			}else if ($searchLibrary->defaultPType > 0){
+				$pType = $searchLibrary->defaultPType;
+			}
+		}
+
 		if (isset($searchLocation)){
 			$owningLibrary = $searchLocation->facetLabel;
 		}
@@ -1494,7 +1496,8 @@ class Solr implements IndexEngine {
 			$institutionFacetName = 'owning_library';
 		}
 
-		//TODO: This block and the next block are redundant and should be cleaned up
+		//This block makes sure that titles are usable by the current user.  It is always run if we have a reasonable idea
+		//who is using the catalog. This enables "super scope" even if the user is doing a repeat search.
 		if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
 			$usableFilter = 'usable_by:('.$pType . ' OR all)';
 			if (strlen($owningLibrary) > 0){
@@ -1514,7 +1517,7 @@ class Solr implements IndexEngine {
 			$filter[] = '(' . $usableFilter . ')';
 		}
 
-		//TODO: clean up this blokc in favor of the previous
+		//This block checks whether or not the title is owned by
 		if ($this->scopingDisabled == false){
 			if (isset($searchLibrary)){
 				if ($searchLibrary->restrictSearchByLibrary && $searchLibrary->includeDigitalCollection){

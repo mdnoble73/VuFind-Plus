@@ -302,10 +302,6 @@ class Search_Results extends Action {
 				$interface->assign('searchSuggestions', $commonSearches);
 			}
 
-			//Var for the IDCLREADER TEMPLATE
-			$interface->assign('ButtonBack',true);
-			$interface->assign('ButtonHome',true);
-
 			// No record found
 			$interface->setTemplate('list-none.tpl');
 			$interface->assign('recordCount', 0);
@@ -384,10 +380,6 @@ class Search_Results extends Action {
 			$interface->assign('sitepath', $configArray['Site']['path']);
 			$interface->assign('subpage', 'Search/list-list.tpl');
 			$interface->setTemplate('list.tpl');
-
-			//Var for the IDCLREADER TEMPLATE
-			$interface->assign('ButtonBack',true);
-			$interface->assign('ButtonHome',true);
 
 			// Process Paging
 			$link = $searchObject->renderLinkPageTemplate();

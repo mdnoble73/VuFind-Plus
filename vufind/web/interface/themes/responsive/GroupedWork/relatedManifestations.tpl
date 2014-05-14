@@ -9,7 +9,7 @@
 			<div class="row related-manifestation">
 				<div class="col-sm-12">
 				  <div class="row">
-						<div class="col-sm-3 manifestation-format">
+						<div class="col-xs-4 col-md-3 manifestation-format">
 							{if $relatedManifestation.numRelatedRecords == 1}
 								<span class='manifestation-toggle-placeholder'>&nbsp;</span>
 								<a href="{$relatedManifestation.url}">{$relatedManifestation.format}</a>
@@ -23,7 +23,7 @@
 								</a>
 							{/if}
 						</div>
-						<div class="col-sm-7">
+						<div class="col-xs-8 col-md-5 col-lg-6">
 							{if $relatedManifestation.availableLocally}
 								<div class="related-manifestation-shelf-status available">On Shelf</div>
 							{elseif $relatedManifestation.availableOnline}
@@ -49,7 +49,7 @@
 							{/if}
 
 						</div>
-						<div class="col-sm-2 manifestation-actions">
+						<div class="col-xs-8 col-xs-offset-4 col-md-4 col-md-offset-0 col-lg-3 manifestation-actions">
 							<div class="btn-toolbar">
 								<div class="btn-group btn-group-vertical btn-block">
 									{foreach from=$relatedManifestation.actions item=curAction}
