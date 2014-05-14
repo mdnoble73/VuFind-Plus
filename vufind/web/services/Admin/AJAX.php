@@ -27,13 +27,13 @@ class Admin_AJAX extends Action {
 		global $timer;
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes'))){
+		if (in_array($method, array('getReindexNotes', 'getReindexProcessNotes', 'getCronNotes', 'getCronProcessNotes', 'getAddToWidgetForm'))){
 			//JSON Responses
 			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('getAddToWidgetForm', 'getOverDriveExtractNotes'))){
+		}else if (in_array($method, array('getOverDriveExtractNotes'))){
 			//HTML responses
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -180,7 +180,6 @@ class Admin_AJAX extends Action {
 		// Display Page
 		$interface->assign('id', strip_tags($_REQUEST['id']));
 		$interface->assign('source', strip_tags($_REQUEST['source']));
-		$interface->assign('popupTitle', 'Create a Widget');
 		$existingWidgets = array();
 		$listWidget = new ListWidget();
 		if ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
@@ -193,8 +192,11 @@ class Admin_AJAX extends Action {
 			$existingWidgets[$listWidget->id] = $listWidget->name;
 		}
 		$interface->assign('existingWidgets', $existingWidgets);
-		$pageContent = $interface->fetch('Admin/addToWidgetForm.tpl');
-		$interface->assign('popupContent', $pageContent);
-		echo $interface->fetch('popup-wrapper.tpl');
+		$results = array(
+				'title' => 'Create a Widget',
+				'modalBody' => $interface->fetch('Admin/addToWidgetForm.tpl'),
+				'modalButtons' => "<span class='tool btn btn-primary' onclick='$(\"#bulkAddToList\").submit();'>Create Widget</span>"
+		);
+		return json_encode($results);
 	}
 }

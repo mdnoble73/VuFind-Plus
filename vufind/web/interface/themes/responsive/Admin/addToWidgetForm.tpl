@@ -8,7 +8,7 @@
 			{/if}
 		</p>
 	</div>
-	<form method="post" name="bulkAddToList" action="{$path}/Admin/CreateListWidget">
+	<form method="post" name="bulkAddToList" id="bulkAddToList" action="{$path}/Admin/CreateListWidget">
 		<div>
 			<input type="hidden" name="source" value="{$source}" />
 			<input type="hidden" name="id" value="{$id}" />
@@ -23,7 +23,6 @@
 			{/if}
 			<label for="widgetName"><b>New Widget Name</b></label>: <input type="text" id="widgetName" name="widgetName" value="" />
 			<br/>
-			<input type="submit" value="Create Widget" />
 		</div>
 	</form>
 </div>
