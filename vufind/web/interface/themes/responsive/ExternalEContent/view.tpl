@@ -25,11 +25,11 @@
 			<div id="main-content" class="col-xs-12">
 				<div class="row">
 
-					<div id="record-details-column" class="col-sm-9">
+					<div id="record-details-column" class="col-sm-10">
 						{include file="ExternalEContent/view-title-details.tpl"}
 					</div>
 
-					<div id="recordTools" class="col-md-3">
+					<div id="recordTools" class="col-sm-2">
 						<div class="btn-toolbar">
 							<div class="btn-group btn-group-vertical btn-block">
 								{foreach from=$items item=item key=index}

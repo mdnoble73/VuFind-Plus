@@ -73,6 +73,7 @@ VuFind.Account = (function(){
 				}
 				var dialogDestination = Globals.path + '/MyResearch/AJAX?method=LoginForm';
 				var modalDialog = $("#modalDialog");
+				$('.modal-body').html("Loading...");
 				var modalBody = $(".modal-content");
 				modalBody.load(dialogDestination);
 				$(".modal-title").text(dialogTitle);
@@ -179,6 +180,8 @@ VuFind.Account = (function(){
 				}, false);
 			} else {
 				var modalDialog = $("#modalDialog");
+				$('#myModalLabel').html("Loading, please wait");
+				$('.modal-body').html("...");
 				$.getJSON(urlToDisplay, function(data){
 					$('#myModalLabel').html(data.title);
 					$('.modal-body').html(data.modalBody);

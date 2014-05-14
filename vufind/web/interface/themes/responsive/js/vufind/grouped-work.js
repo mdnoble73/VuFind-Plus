@@ -341,6 +341,7 @@ VuFind.GroupedWork = (function(){
 			});
 			modalDialog.load( );
 			modalDialog.modal('show');
+			return false;
 		},
 
 		showReviewForm: function(trigger, id){

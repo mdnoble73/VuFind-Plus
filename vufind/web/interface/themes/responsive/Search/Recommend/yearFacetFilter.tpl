@@ -18,7 +18,7 @@
 		{/if}
 	{/foreach}
 	<input type="submit" value="Go" class="goButton btn btn-sm btn-default" />
-	
+
 	{if $title == 'publishDate'}
 		<div id='yearDefaultLinks'>
 			<a onclick="$('#{$title}yearfrom').val('2010');$('#{$title}yearto').val('');" href='javascript:void(0);'>since&nbsp;2010</a>

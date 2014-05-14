@@ -228,16 +228,32 @@ class ExternalEContentDriver extends BaseEContentDriver{
 	 */
 	function getActionsForItem($itemField){
 		$urlSubfield = $itemField->getSubfield('u');
+		$actions = array();
 		if ($urlSubfield != null){
 			$url = $urlSubfield->getData();
+			$actions[] = array(
+					'url' => $url,
+					'title' => 'Access Online'
+			);
 		}else{
-			//TODO: Get from the 856 field
+			//Get from the 856 field
+			/** @var File_MARC_Data_Field $linkFields */
+			$linkFields = $this->marcRecord->getFields('856');
+			foreach ($linkFields as $link){
+				$urlSubfield = $link->getSubfield('u');
+				if ($urlSubfield != null){
+					$url = $urlSubfield->getData();
+					$title = 'Access Online';
+					if (substr_compare($url, 'pdf', strlen($url)-3, strlen(3)) === 0){
+						$title = 'Access PDF';
+					}
+					$actions[] = array(
+							'url' => $url,
+							'title' => $title
+					);
+				}
+			}
 		}
-		$actions = array();
-		$actions[] = array(
-				'url' => $url,
-				'title' => 'Access Online'
-		);
 		return $actions;
 	}
 

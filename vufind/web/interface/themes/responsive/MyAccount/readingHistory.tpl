@@ -6,14 +6,14 @@
 				<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
 			</div>
 		{/if}
-		<h2>{translate text='My Reading History'} {if $historyActive == true}<span id='readingListWhatsThis' onclick="$('#readingListDisclaimer').toggle();">(What's This?)</span>{/if}</h2>
+		<h2>{translate text='My Reading History'} {if $historyActive == true}<small><a id='readingListWhatsThis' href="#" onclick="$('#readingListDisclaimer').toggle();return false;">(What's This?)</a></small>{/if}</h2>
 
 		<div class="row">
 		{if $userNoticeFile}
 				{include file=$userNoticeFile}
 			{/if}
 
-			<div id='readingListDisclaimer' {if $historyActive == true}style='display: none'{/if}>
+			<div id='readingListDisclaimer' {if $historyActive == true}style='display: none'{/if} class="alert alert-info">
 				The library takes seriously the privacy of your library records. Therefore, we do not keep track of what you borrow after you return it.
 				However, our automated system has a feature called "My Reading History" that allows you to track items you check out.
 				Participation in the feature is entirely voluntary. You may start or stop using it, as well as delete any or all entries in "My Reading History" at any time.
@@ -30,11 +30,11 @@
 					<div class="btn-group btn-group-sm">
 						{if $historyActive == true}
 							{if $transList}
-								<a class="btn btn-sm btn-default" onclick='return VuFind.Account.ReadingHistory.deletedMarkedAction()' href="#">Delete Marked</a>
-								<a class="btn btn-sm btn-default" onclick='return VuFind.Account.ReadingHistory.deleteAllAction()' href="#">Delete All</a>
+								<a class="btn btn-sm btn-warning" onclick='return VuFind.Account.ReadingHistory.deletedMarkedAction()' href="#">Delete Marked</a>
+								<a class="btn btn-sm btn-danger" onclick='return VuFind.Account.ReadingHistory.deleteAllAction()' href="#">Delete All</a>
 							{/if}
-							<a class="btn btn-sm btn-default" onclick="return VuFind.Account.ReadingHistory.exportListAction();">Export To Excel</a>
-							<a class="btn btn-sm btn-default" onclick="return VuFind.Account.ReadingHistory.optOutAction({if $transList}true{else}false{/if})" href="#">Stop Recording My Reading History</a>
+							<a class="btn btn-sm btn-info" onclick="return VuFind.Account.ReadingHistory.exportListAction();">Export To Excel</a>
+							<a class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.optOutAction({if $transList}true{else}false{/if})" href="#">Stop Recording My Reading History</a>
 						{else}
 							<a class="btn btn-sm btn-primary" onclick='return VuFind.Account.ReadingHistory.optInAction()' href="#">Start Recording My Reading History</a>
 						{/if}

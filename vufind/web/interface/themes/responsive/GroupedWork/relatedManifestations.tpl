@@ -49,14 +49,18 @@
 							{/if}
 
 						</div>
-						<div class="col-sm-2 btn-group manifestation-actions">
-							{foreach from=$relatedManifestation.actions item=curAction}
-								{if $curAction.url}
-									<a href="{$curAction.url}" class="btn btn-sm" onclick="return VuFind.Account.followLinkIfLoggedIn(this, '{$curAction.url}')">{$curAction.title}</a>
-								{else}
-									<a href="#" class="btn btn-sm" onclick="{$curAction.onClick}">{$curAction.title}</a>
-								{/if}
-							{/foreach}
+						<div class="col-sm-2 manifestation-actions">
+							<div class="btn-toolbar">
+								<div class="btn-group btn-group-vertical btn-block">
+									{foreach from=$relatedManifestation.actions item=curAction}
+										{if $curAction.url}
+											<a href="{$curAction.url}" class="btn btn-sm btn-primary" onclick="return VuFind.Account.followLinkIfLoggedIn(this, '{$curAction.url}')">{$curAction.title}</a>
+										{else}
+											<a href="#" class="btn btn-sm btn-primary" onclick="{$curAction.onClick}">{$curAction.title}</a>
+										{/if}
+									{/foreach}
+								</div>
+							</div>
 						</div>
 				  </div>
 					<div class="row">
