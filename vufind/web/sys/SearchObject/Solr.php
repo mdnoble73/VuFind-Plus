@@ -1882,7 +1882,7 @@ class SearchObject_Solr extends SearchObject_Base
 		$sheet = $objPHPExcel->getActiveSheet();
 		$curRow = 1;
 		$curCol = 0;
-		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Bib #');
+		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Record #');
 		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Title');
 		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Author');
 		$sheet->setCellValueByColumnAndRow($curCol++, $curRow, 'Publisher');

@@ -437,6 +437,7 @@ if ($action == "AJAX" || $action == "JSON"){
 			$interface->assign('searchType',          $savedSearch->getSearchType());
 			$interface->assign('searchIndex',         $savedSearch->getSearchIndex());
 			$interface->assign('filterList', $savedSearch->getFilterList());
+			$interface->assign('savedSearch', $savedSearch->isSavedSearch());
 		}
 		$timer->logTime('Load last search for redisplay');
 	}

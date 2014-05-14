@@ -205,6 +205,27 @@ VuFind.Account = (function(){
 			return false;
 		},
 
+		deleteSearch: function(searchId){
+			if (!Globals.loggedIn){
+				VuFind.Account.ajaxLogin(null, function () {
+					VuFind.Searches.saveSearch(searchId);
+				}, false);
+			}else{
+				var url = Globals.path + "/MyAccount/AJAX";
+				var params = "method=deleteSearch&searchId=" + encodeURIComponent(searchId);
+				$.getJSON(url + '?' + params,
+						function(data) {
+							if (data.result) {
+								VuFind.showMessage("Success", data.message);
+							} else {
+								VuFind.showMessage("Error", data.message);
+							}
+						}
+				);
+			}
+			return false;
+		},
+
 		freezeSelectedHolds: function (){
 			var selectedTitles = this.getSelectedTitles();
 			if (selectedTitles.length == 0){
@@ -257,6 +278,27 @@ VuFind.Account = (function(){
 				}
 			}
 			return selectedTitles;
+		},
+
+		saveSearch: function(searchId){
+			if (!Globals.loggedIn){
+				VuFind.Account.ajaxLogin(null, function () {
+					VuFind.Searches.saveSearch(searchId);
+				}, false);
+			}else{
+				var url = Globals.path + "/MyAccount/AJAX";
+				var params = "method=saveSearch&searchId=" + encodeURIComponent(searchId);
+				$.getJSON(url + '?' + params,
+						function(data) {
+							if (data.result) {
+								VuFind.showMessage("Success", data.message);
+							} else {
+								VuFind.showMessage("Error", data.message);
+							}
+						}
+				);
+			}
+			return false;
 		},
 
 		showCreateListForm: function(id){
