@@ -1,7 +1,13 @@
 package org.vufind;
 
+import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.ini4j.Ini;
 
 import java.io.*;
@@ -28,6 +34,7 @@ public class GroupedWorkIndexer {
 	private String serverName;
 	private String solrPort;
 	private Logger logger;
+	private SolrServer solrServer;
 	private ConcurrentUpdateSolrServer updateServer;
 	private IlsRecordProcessor ilsRecordProcessor;
 	private OverDriveProcessor overDriveProcessor;
@@ -70,6 +77,8 @@ public class GroupedWorkIndexer {
 			logger.error("Could not load last index time from variables table ", e);
 		}
 
+		loadSystemAndLocationData();
+
 		String ilsIndexingClassString = configIni.get("Reindex", "ilsIndexingClass");
 		if (ilsIndexingClassString.equals("Marmot")){
 			ilsRecordProcessor = new MarmotRecordProcessor(this, vufindConn, econtentConn, configIni, logger);
@@ -80,12 +89,15 @@ public class GroupedWorkIndexer {
 		}
 		overDriveProcessor = new OverDriveProcessor(this, vufindConn, econtentConn, configIni, fullReindex, logger);
 
-		//Initialize the updateServer
+		//Initialize the updateServer and solr server
 		if (fullReindex){
 			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 5000, 10);
+			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped2");
 		}else{
 			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped", 5000, 10);
+			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped");
 		}
+
 
 		//Load translation maps
 		loadTranslationMaps();
@@ -102,6 +114,52 @@ public class GroupedWorkIndexer {
 
 		if (fullReindex){
 			clearIndex();
+		}
+	}
+
+	private boolean libraryAndLocationDataLoaded = false;
+	protected HashMap<String, String> libraryFacetMap = new HashMap<String, String>();
+	protected HashMap<String, String> libraryOnlineFacetMap = new HashMap<String, String>();
+	protected HashMap<String, String> locationMap = new HashMap<String, String>();
+	protected HashMap<String, String> subdomainMap = new HashMap<String, String>();
+
+	private void loadSystemAndLocationData() {
+		if (!libraryAndLocationDataLoaded){
+			//Setup translation maps for system and location
+			try {
+				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT ilsCode, subdomain, displayName, facetLabel FROM library", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
+				while (libraryInformationRS.next()){
+					String code = libraryInformationRS.getString("ilsCode").toLowerCase();
+					String facetLabel = libraryInformationRS.getString("facetLabel");
+					String subdomain = libraryInformationRS.getString("subdomain");
+					String displayName = libraryInformationRS.getString("displayName");
+					if (facetLabel.length() == 0){
+						facetLabel = displayName;
+					}
+					if (facetLabel.length() > 0){
+						String onlineFacetLabel = facetLabel + " Online";
+						libraryFacetMap.put(code, facetLabel);
+						libraryOnlineFacetMap.put(code, onlineFacetLabel);
+					}
+					subdomainMap.put(code, subdomain);
+				}
+
+				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT code, facetLabel, displayName FROM location", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				ResultSet locationInformationRS = locationInformationStmt.executeQuery();
+				while (locationInformationRS.next()){
+					String code = locationInformationRS.getString("code").toLowerCase();
+					String facetLabel = locationInformationRS.getString("facetLabel");
+					String displayName = locationInformationRS.getString("displayName");
+					if (facetLabel.length() == 0){
+						facetLabel = displayName;
+					}
+					locationMap.put(code, facetLabel);
+				}
+			} catch (SQLException e) {
+				logger.error("Error setting up system maps", e);
+			}
+			libraryAndLocationDataLoaded = true;
 		}
 	}
 
@@ -543,10 +601,103 @@ public class GroupedWorkIndexer {
 	}
 
 	public void processPublicUserLists() {
-		//TODO:  Add public lists to the index
+		try{
+
+			PreparedStatement listsStmt;
+			if (fullReindex){
+				//Delete all lists from the index
+				updateServer.deleteByQuery("recordtype:list");
+				//Get a list of all public lists
+				listsStmt = vufindConn.prepareStatement("SELECT user_list.id as id, deleted, public, title, description, user_list.created, dateUpdated, firstname, lastname, displayName, homeLocationId from user_list INNER JOIN user on user_id = user.id WHERE public = 1 AND deleted = 0");
+			}else{
+				//Get a list of all lists that are were changed since the last update
+				listsStmt = vufindConn.prepareStatement("SELECT user_list.id as id, deleted, public, title, description, user_list.created, dateUpdated, firstname, lastname, displayName, homeLocationId from user_list INNER JOIN user on user_id = user.id WHERE dateUpdated > ?");
+				listsStmt.setLong(1, lastReindexTime);
+			}
+
+			PreparedStatement getTitlesForListStmt = vufindConn.prepareStatement("SELECT groupedWorkPermanentId, notes from user_list_entry WHERE listId = ?");
+			ResultSet allPublicListsRS = listsStmt.executeQuery();
+			while (allPublicListsRS.next()){
+				updateSolrForList(getTitlesForListStmt, allPublicListsRS);
+			}
+			updateServer.commit();
+
+		}catch (Exception e){
+			logger.error("Error processing public lists", e);
+		}
+
+	}
+
+	private void updateSolrForList(PreparedStatement getTitlesForListStmt, ResultSet allPublicListsRS) throws SQLException, SolrServerException, IOException {
+		UserListSolr userListSolr = new UserListSolr(this);
+		Long listId = allPublicListsRS.getLong("id");
+
+		int deleted = allPublicListsRS.getInt("deleted");
+		int isPublic = allPublicListsRS.getInt("public");
+		if (deleted == 1 || isPublic == 0){
+			updateServer.deleteByQuery("id:list");
+		}else{
+			userListSolr.setId(listId);
+			userListSolr.setTitle(allPublicListsRS.getString("title"));
+			userListSolr.setDescription(allPublicListsRS.getString("description"));
+			userListSolr.setCreated(allPublicListsRS.getLong("created"));
+
+			String displayName = allPublicListsRS.getString("displayName");
+			String firstName = allPublicListsRS.getString("firstname");
+			String lastName = allPublicListsRS.getString("lastname");
+			if (displayName != null && displayName.length() > 0){
+				userListSolr.setAuthor(displayName);
+			}else{
+				if (firstName == null) firstName = "";
+				if (lastName == null) lastName = "";
+				String firstNameFirstChar = "";
+				if (firstName.length() > 0){
+					firstNameFirstChar = firstName.charAt(0) + ". ";
+				}
+				userListSolr.setAuthor(firstNameFirstChar + lastName);
+			}
+			long homeLocationId = allPublicListsRS.getLong("homeLocationId");
+
+			//Get information about all of the list titles.
+			getTitlesForListStmt.setLong(1, listId);
+			ResultSet allTitlesRS = getTitlesForListStmt.executeQuery();
+			while (allTitlesRS.next()){
+				String groupedWorkId = allTitlesRS.getString("groupedWorkPermanentId");
+				String notes = allTitlesRS.getString("notes");
+				SolrQuery query = new SolrQuery();
+				query.setQuery("id:" + groupedWorkId + " AND recordtype:grouped_work");
+				query.setFields("title", "author");
+
+				QueryResponse response = solrServer.query(query);
+				SolrDocumentList results = response.getResults();
+				//Should only ever get one response
+				for (Object result : results) {
+					SolrDocument curWork = (SolrDocument) result;
+					userListSolr.addListTitle(groupedWorkId, curWork.getFieldValue("title"), curWork.getFieldValue("author"));
+				}
+			}
+
+			updateServer.add(userListSolr.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
+		}
 	}
 
 	public void addWorkWithInvalidLiteraryForms(String id) {
 		this.worksWithInvalidLiteraryForms.add(id);
+	}
+
+	public HashMap<String, String> getSubdomainMap() {
+		return subdomainMap;
+	}
+
+	public HashMap<String, String> getLocationMap() {
+		return locationMap;
+	}
+
+	public HashMap<String, String> getLibraryFacetMap() {
+		return libraryFacetMap;
+	}
+
+	public HashMap<String, String> getLibraryOnlineFacetMap() {
+		return libraryOnlineFacetMap;
 	}
 }

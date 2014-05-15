@@ -4,7 +4,7 @@
  */
 require_once 'DB/DataObject.php';
 
-class UserList extends SolrDataObject
+class UserList extends DB_DataObject
 {
 	###START_AUTOCODE
 	/* the code below is auto generated do not remove the above tag */
@@ -16,24 +16,14 @@ class UserList extends SolrDataObject
 	public $description;											// string(500)
 	public $created;													// datetime(19)	not_null binary
 	public $public;													// int(11)	not_null
+	public $deleted;
+	public $dateUpdated;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('UserList',$k,$v); }
 
 	/* the code above is auto generated do not remove the tag below */
 	###END_AUTOCODE
-
-	function cores(){
-		return array('grouped', 'grouped2');
-	}
-
-	function solrId(){
-		return $this->recordtype() . $this->id;
-	}
-
-	function recordtype(){
-		return 'list';
-	}
 
 	function title(){
 		return $this->title;
@@ -291,25 +281,21 @@ class UserList extends SolrDataObject
 		return count($this->getListTitles());
 	}
 	function insert(){
-		if ($this->public == 0){
-			parent::insertDetailed(false);
-		}else{
-			parent::insertDetailed(true);
-		}
+		$this->created = time();
+		$this->dateUpdated = time();
+		parent::insert();
 	}
 	function update(){
-		if ($this->public == 0){
-			parent::updateDetailed(false);
-		}else{
-			parent::updateDetailed(true);
+		if ($this->created == 0){
+			$this->created = time();
 		}
+		$this->dateUpdated = time();
+		parent::update();
 	}
-	function updateDetailed($insertInSolr = true){
-		if ($this->public == 0){
-			parent::updateDetailed(false);
-		}else{
-			parent::updateDetailed($insertInSolr);
-		}
+	function delete(){
+		$this->deleted = 1;
+		$this->dateUpdated = time();
+		parent::update();
 	}
 
 	/**

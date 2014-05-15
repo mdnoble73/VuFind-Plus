@@ -231,17 +231,17 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				HashSet<String> owningSubdomainsAndLocations = new HashSet<String>();
 				HashSet<String> availableSubdomainsAndLocations = new HashSet<String>();
 				if (shareWithAll){
-					groupedWork.addEContentSources(sources, subdomainMap.values() , locationMap.values());
-					groupedWork.addEContentProtectionTypes(protectionTypes, subdomainMap.values() , locationMap.values());
+					groupedWork.addEContentSources(sources, indexer.getSubdomainMap().values() , indexer.getLocationMap().values());
+					groupedWork.addEContentProtectionTypes(protectionTypes, indexer.getSubdomainMap().values() , indexer.getLocationMap().values());
 					groupedWork.addCompatiblePTypes(allPTypes);
 					owningLibraries.add("Shared Digital Collection");
-					owningLibraries.addAll(libraryOnlineFacetMap.values());
-					owningSubdomainsAndLocations.addAll(subdomainMap.values());
-					owningSubdomainsAndLocations.addAll(locationMap.values());
+					owningLibraries.addAll(indexer.getLibraryOnlineFacetMap().values());
+					owningSubdomainsAndLocations.addAll(indexer.getSubdomainMap().values());
+					owningSubdomainsAndLocations.addAll(indexer.getLocationMap().values());
 					if (available){
-						availableLibraries.addAll(libraryFacetMap.values());
-						availableSubdomainsAndLocations.addAll(subdomainMap.values());
-						availableSubdomainsAndLocations.addAll(locationMap.values());
+						availableLibraries.addAll(indexer.getLibraryFacetMap().values());
+						availableSubdomainsAndLocations.addAll(indexer.getSubdomainMap().values());
+						availableSubdomainsAndLocations.addAll(indexer.getLocationMap().values());
 					}
 				}else if (shareWithLibrary){
 					ArrayList<String> validSubdomains = getLibrarySubdomainsForLocationCode(locationCode);

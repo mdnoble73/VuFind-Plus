@@ -32,6 +32,7 @@ class ListRecord extends IndexRecord
 		$interface->assign('summId', $id);
 		$interface->assign('summShortId', substr($id, 4)); //Trim the list prefix for the short id
 		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('summAuthor', $this->getPrimaryAuthor());
 		if (isset($this->fields['description'])){
 			$interface->assign('summDescription', $this->fields['description']);
 		}else{

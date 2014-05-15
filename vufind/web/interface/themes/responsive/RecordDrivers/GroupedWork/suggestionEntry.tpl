@@ -46,6 +46,10 @@
 			<div class="resultActions row">
 				{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
 			</div>
+
+			<div class="resultActions row">
+				{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
+			</div>
 		</div>
 
 	</div>

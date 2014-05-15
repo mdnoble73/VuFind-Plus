@@ -214,6 +214,9 @@ class GroupedWorkDriver implements RecordInterface{
 			$interface->assign('summShortId', $id);
 		}
 
+		$relatedManifestations = $this->getRelatedManifestations();
+		$interface->assign('relatedManifestations', $relatedManifestations);
+
 		//Build the link URL.
 		//If there is only one record for the work we will link straight to that.
 		$relatedRecords = $this->getRelatedRecords();
@@ -297,6 +300,9 @@ class GroupedWorkDriver implements RecordInterface{
 		$interface->assign('summFormats', $this->getFormats());
 
 		$interface->assign('numRelatedRecords', $this->getNumRelatedRecords());
+
+		$relatedManifestations = $this->getRelatedManifestations();
+		$interface->assign('relatedManifestations', $relatedManifestations);
 
 		//Get Rating
 		$interface->assign('summRating', $this->getRatingData());

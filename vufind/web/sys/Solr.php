@@ -2377,7 +2377,8 @@ class Solr implements IndexEngine {
 		$fields = $memCache->get('schema_fields');
 		if (!$fields){
 			global $configArray;
-			$schema = simplexml_load_file($configArray['Site']['local'] . '/../../sites/default/solr/grouped/conf/schema.xml');
+			$schemaUrl = $configArray['Index']['url'] . '/grouped/admin/file?file=schema.xml&contentType=text/xml;charset=utf-8';
+			$schema = simplexml_load_file($schemaUrl);
 			$fields = array();
 			/** @var SimpleXMLElement $field */
 			foreach ($schema->fields->field as $field){

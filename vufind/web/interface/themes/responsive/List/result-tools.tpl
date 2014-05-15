@@ -1,7 +1,7 @@
-<div class="btn-toolbar">
-	<div class="btn-group btn-group-vertical btn-block">
+<div class="result-tools-horizontal btn-toolbar" role="toolbar">
+	<div class="btn-group btn-group-sm">
 		{if $showMoreInfo !== false}
-		<a href="{$path}/MyResearch/MyList/{$summShortId}" class="btn btn-sm btn-block"><img src="/images/silk/information.png">&nbsp;More Info</a>
+		<a href="{$path}/MyAccount/MyList/{$summShortId}" class="btn btn-sm">More Info</a>
 		{/if}
 	</div>
 </div>

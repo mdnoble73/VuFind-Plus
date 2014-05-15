@@ -40,6 +40,7 @@ class MyList extends MyResearch {
 
 		// Fetch List object
 		$listId = $_REQUEST['id'];
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 		$list = new UserList();
 		$list->id = $listId;
 		if (!$list->find(true)){
@@ -52,20 +53,15 @@ class MyList extends MyResearch {
 
 		// Ensure user has privileges to view the list
 		if (!isset($list) || (!$list->public && !UserAccount::isLoggedIn())) {
-			require_once ROOT_DIR . 'services/MyAccount/Login.php';
+			require_once ROOT_DIR . '/services/MyAccount/Login.php';
 			MyAccount_Login::launch();
 			exit();
 		}
 		if (!$list->public && $list->user_id != $user->id) {
-			PEAR_Singleton::raiseError(new PEAR_Error(translate('list_access_denied')));
-		}
-
-		//Reindex can happen by anyone since it needs to be called by cron
-		if (isset($_REQUEST['myListActionHead']) && strlen($_REQUEST['myListActionHead']) > 0){
-			$actionToPerform = $_REQUEST['myListActionHead'];
-			if ($actionToPerform == 'reindex'){
-				$list->updateDetailed(true);
-			}
+			$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
+			$interface->setTemplate('invalidList.tpl');
+			$interface->display('layout.tpl');
+			return;
 		}
 
 		if (isset($_SESSION['listNotes'])){
@@ -100,8 +96,7 @@ class MyList extends MyResearch {
 					$list->update();
 				}elseif ($actionToPerform == 'makePrivate'){
 					$list->public = 0;
-					$list->updateDetailed(false);
-					$list->removeFromSolr();
+					$list->update();
 				}elseif ($actionToPerform == 'saveList'){
 					$list->title = $_REQUEST['newTitle'];
 					$list->description = $_REQUEST['newDescription'];

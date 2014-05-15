@@ -357,8 +357,8 @@ class AJAX extends Action {
 
 		//Load results from Prospector
 		$prospector = new Prospector();
-		$prospectorResults = $prospector->getTopSearchResults($searchObject->getSearchTerms(), $prospectorNumTitlesToLoad);
-		$interface->assign('prospectorResults', $prospectorResults);
+		//$prospectorResults = $prospector->getTopSearchResults($searchObject->getSearchTerms(), $prospectorNumTitlesToLoad);
+		//$interface->assign('prospectorResults', $prospectorResults);
 		$prospectorLink = $prospector->getSearchLink($searchObject->getSearchTerms());
 		$interface->assign('prospectorLink', $prospectorLink);
 		$timer->logTime('load Prospector titles');

@@ -54,12 +54,6 @@ public abstract class IlsRecordProcessor {
 	protected char callNumberSubfield;
 	protected char callNumberCutterSubfield;
 
-	private static boolean libraryAndLocationDataLoaded = false;
-	protected static HashMap<String, String> libraryFacetMap = new HashMap<String, String>();
-	protected static HashMap<String, String> libraryOnlineFacetMap = new HashMap<String, String>();
-	protected static HashMap<String, String> locationMap = new HashMap<String, String>();
-	protected static HashMap<String, String> subdomainMap = new HashMap<String, String>();
-
 	private static boolean loanRuleDataLoaded = false;
 	protected static ArrayList<Long> pTypes = new ArrayList<Long>();
 	protected static HashMap<String, HashSet<String>> pTypesByLibrary = new HashMap<String, HashSet<String>>();
@@ -101,50 +95,8 @@ public abstract class IlsRecordProcessor {
 			additionalCollections = additionalCollectionsString.split(",");
 		}
 
-		loadSystemAndLocationData(vufindConn, logger);
-
 		loadAvailableItemBarcodes(marcRecordPath, logger);
 		loadLoanRuleInformation(vufindConn, logger);
-	}
-
-	private static void loadSystemAndLocationData(Connection vufindConn, Logger logger) {
-		if (!libraryAndLocationDataLoaded){
-			//Setup translation maps for system and location
-			try {
-				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT ilsCode, subdomain, displayName, facetLabel FROM library", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-				ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
-				while (libraryInformationRS.next()){
-					String code = libraryInformationRS.getString("ilsCode").toLowerCase();
-					String facetLabel = libraryInformationRS.getString("facetLabel");
-					String subdomain = libraryInformationRS.getString("subdomain");
-					String displayName = libraryInformationRS.getString("displayName");
-					if (facetLabel.length() == 0){
-						facetLabel = displayName;
-					}
-					if (facetLabel.length() > 0){
-						String onlineFacetLabel = facetLabel + " Online";
-						libraryFacetMap.put(code, facetLabel);
-						libraryOnlineFacetMap.put(code, onlineFacetLabel);
-					}
-					subdomainMap.put(code, subdomain);
-				}
-
-				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT code, facetLabel, displayName FROM location", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-				ResultSet locationInformationRS = locationInformationStmt.executeQuery();
-				while (locationInformationRS.next()){
-					String code = locationInformationRS.getString("code").toLowerCase();
-					String facetLabel = locationInformationRS.getString("facetLabel");
-					String displayName = locationInformationRS.getString("displayName");
-					if (facetLabel.length() == 0){
-						facetLabel = displayName;
-					}
-					locationMap.put(code, facetLabel);
-				}
-			} catch (SQLException e) {
-				logger.error("Error setting up system maps", e);
-			}
-			libraryAndLocationDataLoaded = true;
-		}
 	}
 
 	private static void loadLoanRuleInformation(Connection vufindConn, Logger logger) {
@@ -841,7 +793,7 @@ public abstract class IlsRecordProcessor {
 			}
 		}
 		//By default, formats are valid for all locations.
-		groupedWork.addFormats(translatedFormats, subdomainMap.values(), locationMap.keySet());
+		groupedWork.addFormats(translatedFormats, indexer.getSubdomainMap().values(), indexer.getLocationMap().keySet());
 		groupedWork.addFormatCategories(formatCategories);
 		groupedWork.setFormatBoost(formatBoost);
 	}
@@ -998,9 +950,9 @@ public abstract class IlsRecordProcessor {
 	protected ArrayList<String> getLibraryFacetsForLocationCode(String locationCode) {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> libraryFacets = new ArrayList<String>();
-		for(String libraryCode : libraryFacetMap.keySet()){
+		for(String libraryCode : indexer.getLibraryFacetMap().keySet()){
 			if (locationCode.startsWith(libraryCode)){
-				libraryFacets.add(libraryFacetMap.get(libraryCode));
+				libraryFacets.add(indexer.getLibraryFacetMap().get(libraryCode));
 			}
 		}
 		if (libraryFacets.size() == 0){
@@ -1016,9 +968,9 @@ public abstract class IlsRecordProcessor {
 	protected ArrayList<String> getLibraryOnlineFacetsForLocationCode(String locationCode) {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> libraryOnlineFacets = new ArrayList<String>();
-		for(String libraryCode : libraryOnlineFacetMap.keySet()){
+		for(String libraryCode : indexer.getLibraryOnlineFacetMap().keySet()){
 			if (locationCode.startsWith(libraryCode)){
-				libraryOnlineFacets.add(libraryFacetMap.get(libraryCode));
+				libraryOnlineFacets.add(indexer.getLibraryOnlineFacetMap().get(libraryCode));
 			}
 		}
 		if (libraryOnlineFacets.size() == 0){
@@ -1033,9 +985,9 @@ public abstract class IlsRecordProcessor {
 	private ArrayList<String> getRelatedSubdomainsForLocationCode(String locationCode) {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> subdomains = new ArrayList<String>();
-		for(String libraryCode : subdomainMap.keySet()){
+		for(String libraryCode : indexer.getSubdomainMap().keySet()){
 			if (locationCode.startsWith(libraryCode)){
-				subdomains.add(subdomainMap.get(libraryCode));
+				subdomains.add(indexer.getSubdomainMap().get(libraryCode));
 			}
 		}
 		if (subdomains.size() == 0){
@@ -1047,9 +999,9 @@ public abstract class IlsRecordProcessor {
 	protected ArrayList<String> getLibrarySubdomainsForLocationCode(String locationCode) {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> librarySubdomains = new ArrayList<String>();
-		for(String libraryCode : subdomainMap.keySet()){
+		for(String libraryCode : indexer.getSubdomainMap().keySet()){
 			if (locationCode.startsWith(libraryCode)){
-				librarySubdomains.add(subdomainMap.get(libraryCode));
+				librarySubdomains.add(indexer.getSubdomainMap().get(libraryCode));
 			}
 		}
 		if (librarySubdomains.size() == 0){
@@ -1066,9 +1018,9 @@ public abstract class IlsRecordProcessor {
 			return locationFacets;
 		}
 		locationCode = locationCode.toLowerCase();
-		for(String ilsCode : locationMap.keySet()){
+		for(String ilsCode : indexer.getLocationMap().keySet()){
 			if (locationCode.startsWith(ilsCode)){
-				locationFacets.add(locationMap.get(ilsCode));
+				locationFacets.add(indexer.getLocationMap().get(ilsCode));
 			}
 		}
 		if (locationFacets.size() == 0){
@@ -1086,7 +1038,7 @@ public abstract class IlsRecordProcessor {
 		if (locationCode == null || locationCode.length() == 0){
 			return locationFacets;
 		}
-		for(String ilsCode : locationMap.keySet()){
+		for(String ilsCode : indexer.getLocationMap().keySet()){
 			if (locationCode.startsWith(ilsCode)){
 				locationFacets.add(ilsCode);
 			}
@@ -1097,7 +1049,7 @@ public abstract class IlsRecordProcessor {
 	private ArrayList<String> getIlsCodesForDetailedLocationCode(String locationCode) {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> locationCodes = new ArrayList<String>();
-		for(String ilsCode : locationMap.keySet()){
+		for(String ilsCode : indexer.getLocationMap().keySet()){
 			if (locationCode.startsWith(ilsCode)){
 				locationCodes.add(ilsCode);
 			}

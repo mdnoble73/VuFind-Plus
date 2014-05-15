@@ -2709,6 +2709,17 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
+				'user_list_indexing' => array(
+					'title' => 'Update User List to make indexing easier',
+					'description' => 'Add date updated and deleted to the table so we can easily do partial indexes of the data.',
+					'sql' => array(
+						"ALTER TABLE user_list ADD dateUpdated INT(11)",
+						"ALTER TABLE user_list ADD deleted TINYINT(1) DEFAULT 0",
+						"ALTER TABLE user_list DROP created",
+						"ALTER TABLE user_list ADD created INT(11)",
+					)
+				),
+
 				'browse_categories' => array(
 						'title' => 'Browse Categories',
 						'description' => 'Setup Browse Category Table',

@@ -10,9 +10,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -539,5 +537,47 @@ public class Util {
 			}
 		}
 
+	}
+
+	public static Long getDaysSinceAddedForDate(Date curDate){
+		if (curDate == null){
+			return null;
+		}
+		return (indexDate.getTime() - curDate.getTime()) / (1000 * 60 * 60 * 24);
+	}
+	private static Date indexDate = new Date();
+	public static Date getIndexDate(){
+		return indexDate;
+	}
+	public static LinkedHashSet<String> getTimeSinceAddedForDate(Date curDate) {
+		if (curDate == null){
+			return null;
+		}
+		long timeDifferenceDays = (indexDate.getTime() - curDate.getTime())
+				/ (1000 * 60 * 60 * 24);
+		// System.out.println("Time Difference Days: " + timeDifferenceDays);
+		LinkedHashSet<String> result = new LinkedHashSet<String>();
+		if (timeDifferenceDays <= 1) {
+			result.add("Day");
+		}
+		if (timeDifferenceDays <= 7) {
+			result.add("Week");
+		}
+		if (timeDifferenceDays <= 30) {
+			result.add("Month");
+		}
+		if (timeDifferenceDays <= 60) {
+			result.add("2 Months");
+		}
+		if (timeDifferenceDays <= 90) {
+			result.add("Quarter");
+		}
+		if (timeDifferenceDays <= 180) {
+			result.add("Six Months");
+		}
+		if (timeDifferenceDays <= 365) {
+			result.add("Year");
+		}
+		return result;
 	}
 }

@@ -225,20 +225,20 @@ public class GroupedWorkSolr {
 				Calendar publicationDate = GregorianCalendar.getInstance();
 				publicationDate.set(earliestPublicationDate.intValue(), Calendar.DECEMBER, 31);
 
-				long indexTime = indexDate.getTime();
+				long indexTime = Util.getIndexDate().getTime();
 				long publicationTime = publicationDate.getTime().getTime();
 				long bibDaysSinceAdded = (indexTime - publicationTime) / (long)(1000 * 60 * 60 * 24);
 				doc.addField("days_since_added", Long.toString(bibDaysSinceAdded));
-				doc.addField("time_since_added", getTimeSinceAddedForDate(publicationDate.getTime()));
+				doc.addField("time_since_added", Util.getTimeSinceAddedForDate(publicationDate.getTime()));
 			}else{
 				doc.addField("days_since_added", Long.toString(Integer.MAX_VALUE));
 			}
 		}else{
-			doc.addField("days_since_added", getDaysSinceAddedForDate(dateAdded));
-			doc.addField("time_since_added", getTimeSinceAddedForDate(dateAdded));
+			doc.addField("days_since_added", Util.getDaysSinceAddedForDate(dateAdded));
+			doc.addField("time_since_added", Util.getTimeSinceAddedForDate(dateAdded));
 		}
 		for (String subdomain: localTimeSinceAdded.keySet()){
-			doc.addField("local_time_since_added_" + subdomain, getTimeSinceAddedForDate(localTimeSinceAdded.get(subdomain)));
+			doc.addField("local_time_since_added_" + subdomain, Util.getTimeSinceAddedForDate(localTimeSinceAdded.get(subdomain)));
 		}
 		doc.addField("itype", iTypes);
 		for (String subdomain: localITypes.keySet()){
@@ -861,45 +861,6 @@ public class GroupedWorkSolr {
 				localTimeSinceAdded.put(relatedLocation, date);
 			}
 		}
-	}
-
-	private Long getDaysSinceAddedForDate(Date curDate){
-		if (curDate == null){
-			return null;
-		}
-		return (indexDate.getTime() - curDate.getTime()) / (1000 * 60 * 60 * 24);
-	}
-	private static Date indexDate = new Date();
-	private LinkedHashSet<String> getTimeSinceAddedForDate(Date curDate) {
-		if (curDate == null){
-			return null;
-		}
-		long timeDifferenceDays = (indexDate.getTime() - curDate.getTime())
-				/ (1000 * 60 * 60 * 24);
-		// System.out.println("Time Difference Days: " + timeDifferenceDays);
-		LinkedHashSet<String> result = new LinkedHashSet<String>();
-		if (timeDifferenceDays <= 1) {
-			result.add("Day");
-		}
-		if (timeDifferenceDays <= 7) {
-			result.add("Week");
-		}
-		if (timeDifferenceDays <= 30) {
-			result.add("Month");
-		}
-		if (timeDifferenceDays <= 60) {
-			result.add("2 Months");
-		}
-		if (timeDifferenceDays <= 90) {
-			result.add("Quarter");
-		}
-		if (timeDifferenceDays <= 180) {
-			result.add("Six Months");
-		}
-		if (timeDifferenceDays <= 365) {
-			result.add("Year");
-		}
-		return result;
 	}
 
 	private Set<String> getRatingFacet(Float rating) {
