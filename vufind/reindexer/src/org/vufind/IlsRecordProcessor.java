@@ -234,6 +234,8 @@ public abstract class IlsRecordProcessor {
 
 			loadFormatDetails(groupedWork, record, identifier, printItems, econtentItems);
 
+			groupedWork.addAllFields(getAllFields(record));
+			groupedWork.addKeywords(getAllSearchableFields(record, 100, 900));
 			groupedWork.addTopic(getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690a"));
 			groupedWork.addTopicFacet(getFieldList(record, "600a:600x:600a:610x:611x:611x:630a:630x:648x:650a:650x:651x:655x"));
 			groupedWork.addSeries(getFieldList(record, "440ap:800pqt:830ap"));
@@ -1176,6 +1178,59 @@ public abstract class IlsRecordProcessor {
 		}
 
 		return allFieldData.toString();
+	}
+
+	/**
+	 * Loops through all datafields and creates a field for "all fields"
+	 * searching. Shameless stolen from Vufind Indexer Custom Code
+	 *
+	 * @param lowerBound
+	 *          - the "lowest" marc field to include (e.g. 100)
+	 * @param upperBound
+	 *          - one more than the "highest" marc field to include (e.g. 900 will
+	 *          include up to 899).
+	 * @return a string containing ALL subfields of ALL marc fields within the
+	 *         range indicated by the bound string arguments.
+	 */
+	@SuppressWarnings("unchecked")
+	public String getAllSearchableFields(Record record, int lowerBound, int upperBound) {
+		StringBuilder buffer = new StringBuilder("");
+
+		List<DataField> fields = record.getDataFields();
+		for (DataField field : fields) {
+			// Get all fields starting with the 100 and ending with the 839
+			// This will ignore any "code" fields and only use textual fields
+			int tag = localParseInt(field.getTag(), -1);
+			if ((tag >= lowerBound) && (tag < upperBound)) {
+				// Loop through subfields
+				List<Subfield> subfields = field.getSubfields();
+				for (Subfield subfield : subfields) {
+					if (buffer.length() > 0)
+						buffer.append(" ");
+					buffer.append(subfield.getData());
+				}
+			}
+		}
+
+		return buffer.toString();
+	}
+
+	/**
+	 * return an int for the passed string
+	 *
+	 * @param str The String value of the integer to prompt
+	 * @param defValue
+	 *          - default value, if string doesn't parse into int
+	 */
+	private int localParseInt(String str, int defValue) {
+		int value = defValue;
+		try {
+			value = Integer.parseInt(str);
+		} catch (NumberFormatException nfe) {
+			// provided value is not valid numeric string
+			// Ignoring it and moving happily on.
+		}
+		return (value);
 	}
 
 	public String getAcceleratedReaderPointLevel(Record marcRecord) {

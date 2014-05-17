@@ -1079,4 +1079,8 @@ public class GroupedWorkSolr {
 			}
 		}
 	}
+
+	public void addKeywords(String keywords){
+		this.keywords.add(keywords);
+	}
 }
