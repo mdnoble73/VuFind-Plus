@@ -117,7 +117,9 @@ public class RecordGroupingProcessor {
 			CSVReader csvReader = new CSVReader(new FileReader(new File("./author_authorities.properties")));
 			String[] curLine = csvReader.readNext();
 			while (curLine != null){
-				authorAuthorities.put(curLine[0], curLine[1]);
+				if (curLine.length >= 2){
+					authorAuthorities.put(curLine[0], curLine[1]);
+				}
 				curLine = csvReader.readNext();
 			}
 		} catch (IOException e) {
@@ -127,7 +129,9 @@ public class RecordGroupingProcessor {
 			CSVReader csvReader = new CSVReader(new FileReader(new File("./title_authorities.properties")));
 			String[] curLine = csvReader.readNext();
 			while (curLine != null){
-				titleAuthorities.put(curLine[0], curLine[1]);
+				if (curLine.length >= 2){
+					titleAuthorities.put(curLine[0], curLine[1]);
+				}
 				curLine = csvReader.readNext();
 			}
 		} catch (IOException e) {
@@ -204,15 +208,8 @@ public class RecordGroupingProcessor {
 					}
 				}else if (identifierField.getTag().equals("024")){
 					identifierType = "upc";
-				}else if (identifierField.getTag().equals("022")){
-					identifierType = "issn";
 				}else {
-					identifierType = "oclc";
-					identifierValue = identifierValue.replaceAll("\\(.*\\)", "");
-					if (identifierValue.length() <= 4){
-						//Looks like a garbage OCLC number
-						continue;
-					}
+					identifierType = "issn";
 				}
 				RecordIdentifier identifier = new RecordIdentifier();
 				if (identifierValue.length() > 20){

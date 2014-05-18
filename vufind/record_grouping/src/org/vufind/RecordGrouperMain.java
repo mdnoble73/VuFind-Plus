@@ -115,12 +115,35 @@ public class RecordGrouperMain {
 		clearDatabase(vufindConn, clearDatabasePriorToGrouping);
 		loadIlsChecksums(vufindConn);
 
-		groupOverDriveRecords(econtentConnection, recordGroupingProcessor);
-		groupIlsRecords(configIni, recordGroupingProcessor);
-		removeGroupedWorksWithoutPrimaryIdentifiers(vufindConn);
-		removeUnlinkedIdentifiers(vufindConn);
-		makeIdentifiersLinkingToMultipleWorksInvalidForEnrichment(vufindConn);
-		updateLastGroupingTime(vufindConn);
+		boolean errorAddingGroupedWorks = false;
+		try{
+			vufindConn.setAutoCommit(false);
+			groupOverDriveRecords(econtentConnection, recordGroupingProcessor);
+			vufindConn.commit();
+			groupIlsRecords(configIni, recordGroupingProcessor);
+			vufindConn.commit();
+			vufindConn.setAutoCommit(true);
+		}catch (SQLException e){
+			logger.error("Error updating grouped works", e);
+			errorAddingGroupedWorks = true;
+		}
+
+		try{
+			vufindConn.setAutoCommit(false);
+			if (!errorAddingGroupedWorks){
+				removeGroupedWorksWithoutPrimaryIdentifiers(vufindConn);
+				vufindConn.commit();
+				removeUnlinkedIdentifiers(vufindConn);
+				vufindConn.commit();
+				makeIdentifiersLinkingToMultipleWorksInvalidForEnrichment(vufindConn);
+				vufindConn.commit();
+				updateLastGroupingTime(vufindConn);
+				vufindConn.commit();
+			}
+			vufindConn.setAutoCommit(true);
+		}catch (SQLException e){
+			logger.error("Error in grouped work post processing", e);
+		}
 
 
 		recordGroupingProcessor.dumpStats();
@@ -159,26 +182,80 @@ public class RecordGrouperMain {
 	}
 
 	private static void makeIdentifiersLinkingToMultipleWorksInvalidForEnrichment(Connection vufindConn) {
-		//Mark any identifiers that link to more than one grouped record and therefore should not be used for enrichment
+		//Mark any secondaryIdentifiers that link to more than one grouped record and therefore should not be used for enrichment
 		try{
 			boolean autoCommit = vufindConn.getAutoCommit();
+			//First mark that all are ok to use
+			PreparedStatement markAllIdentifiersAsValidStmt = vufindConn.prepareStatement("UPDATE grouped_work_identifiers SET valid_for_enrichment = 1");
+			markAllIdentifiersAsValidStmt.executeUpdate();
+
+			//Get a list of any secondaryIdentifiers that are used to load enrichment (isbn, issn, upc) that are attached to more than one grouped work
 			vufindConn.setAutoCommit(false);
-			PreparedStatement invalidIdentifiersStmt = vufindConn.prepareStatement("SELECT grouped_work_primary_to_secondary_id_ref.`secondary_identifier_id`, COUNT(grouped_work_id) as num_related_works FROM `grouped_work_primary_to_secondary_id_ref` INNER JOIN grouped_work_primary_identifiers ON `primary_identifier_id` = grouped_work_primary_identifiers.id GROUP BY secondary_identifier_id HAVING num_related_works > 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement invalidIdentifiersStmt = vufindConn.prepareStatement(
+					"SELECT grouped_work_identifiers.id as secondary_identifier_id, type, identifier, GROUP_CONCAT(permanent_id), GROUP_CONCAT(full_title) as titles, GROUP_CONCAT(author) as authors, GROUP_CONCAT(grouping_category) as categories, COUNT(grouped_work_id) as num_related_works\n" +
+							"FROM grouped_work_identifiers \n" +
+							"INNER JOIN grouped_work_identifiers_ref ON grouped_work_identifiers.id = identifier_id\n" +
+							"INNER JOIN grouped_work ON grouped_work_id = grouped_work.id\n" +
+							"WHERE type IN ('isbn', 'issn', 'upc')\n" +
+							"GROUP BY grouped_work_identifiers.id\n" +
+							"HAVING num_related_works > 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			ResultSet invalidIdentifiersRS = invalidIdentifiersStmt.executeQuery();
 			PreparedStatement updateInvalidIdentifierStmt = vufindConn.prepareStatement("UPDATE grouped_work_identifiers SET valid_for_enrichment = 0 where id = ?");
 			int numIdentifiersUpdated = 0;
 			while (invalidIdentifiersRS.next()){
+				String type = invalidIdentifiersRS.getString("type");
+				String identifier = invalidIdentifiersRS.getString("identifier");
+				String titles = invalidIdentifiersRS.getString("titles");
+				String[] titlesBroken = titles.split(",");
+				if (titlesBroken.length >= 2){
+					String firstTitle = titlesBroken[0];
+					for (int i = 1; i < titlesBroken.length; i++){
+						String curTitle = titlesBroken[i];
+						if (!curTitle.equals(firstTitle)){
+							if (curTitle.startsWith(firstTitle) || firstTitle.startsWith(curTitle)){
+								logger.info(type + " " + identifier + " did not match on titles '" + titles + "', but the titles are similar");
+							}
+						}
+					}
+				}
+				String authors = invalidIdentifiersRS.getString("authors");
+				String[] authorsBroken = authors.split(",");
+				if (authorsBroken.length >= 2){
+					String firstAuthor = authorsBroken[0];
+					for (int i = 1; i < authorsBroken.length; i++){
+						String curAuthor = authorsBroken[i];
+						if (!curAuthor.equals(firstAuthor)){
+							if (curAuthor.startsWith(firstAuthor) || firstAuthor.startsWith(curAuthor)){
+								logger.info(type + " " + identifier + " did not match on authors '" + authors + "', but the authors are similar");
+							}
+						}
+					}
+				}
+				String categories = invalidIdentifiersRS.getString("categories");
+				String[] categoriesBroken = categories.split(",");
+				if (categoriesBroken.length >= 2){
+					String firstCategory = categoriesBroken[0];
+					for (int i = 1; i < categoriesBroken.length; i++){
+						String curCategory = categoriesBroken[i];
+						if (!curCategory.equals(firstCategory)){
+							if (curCategory.startsWith(firstCategory) || firstCategory.startsWith(curCategory)){
+								logger.info(type + " " + identifier + " did not match on categories '" + categories + "', but the categories are similar");
+							}
+						}
+					}
+				}
+
 				updateInvalidIdentifierStmt.setLong(1, invalidIdentifiersRS.getLong("secondary_identifier_id"));
 				updateInvalidIdentifierStmt.executeUpdate();
 				numIdentifiersUpdated++;
 			}
-			logger.info("Marked " + numIdentifiersUpdated + " identifiers as invalid for enrichment because they link to multiple grouped records");
+			logger.info("Marked " + numIdentifiersUpdated + " secondaryIdentifiers as invalid for enrichment because they link to multiple grouped records");
 			invalidIdentifiersRS.close();
 			invalidIdentifiersStmt.close();
 			vufindConn.commit();
 			vufindConn.setAutoCommit(autoCommit);
 		}catch (Exception e){
-			logger.error("Unable to mark identifiers as invalid for enrichment", e);
+			logger.error("Unable to mark secondary identifiers as invalid for enrichment", e);
 		}
 	}
 
@@ -450,9 +527,9 @@ public class RecordGrouperMain {
 			if (!fullRegrouping){
 				PreparedStatement deletedRecordStmt;
 				if (lastGroupingTime == null){
-					deletedRecordStmt = econtentConnection.prepareStatement("SELECT overdriveId FROM overdrive_api_products WHERE deleted = 1");
+					deletedRecordStmt = econtentConnection.prepareStatement("SELECT overdriveId FROM overdrive_api_products WHERE deleted = 1",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				}else{
-					deletedRecordStmt = econtentConnection.prepareStatement("SELECT overdriveId FROM overdrive_api_products WHERE deleted = 1 and dateDeleted >= ?");
+					deletedRecordStmt = econtentConnection.prepareStatement("SELECT overdriveId FROM overdrive_api_products WHERE deleted = 1 and dateDeleted >= ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 					deletedRecordStmt.setLong(1, lastGroupingTime);
 				}
 				ResultSet recordsToDelete = deletedRecordStmt.executeQuery();
@@ -562,24 +639,10 @@ public class RecordGrouperMain {
 	}
 
 	private static void outputMarcRecord(Record marcRecord, File individualFile) throws IOException {
-		OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(individualFile,false), Charset.forName("UTF-8").newEncoder());
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		MarcStreamWriter writer2 = new MarcStreamWriter(out, "UTF-8");
+		MarcStreamWriter writer2 = new MarcStreamWriter(new FileOutputStream(individualFile,false), "UTF-8");
 		writer2.setAllowOversizeEntry(true);
 		writer2.write(marcRecord);
 		writer2.close();
-
-		String result = null;
-		try {
-			result = out.toString("UTF-8");
-		} catch (UnsupportedEncodingException e) {
-			// e.printStackTrace();
-			System.out.println(e.getCause());
-		}
-		if (result != null){
-			writer.write(result);
-		}
-		writer.close();
 	}
 
 	private static Ini loadConfigFile(){

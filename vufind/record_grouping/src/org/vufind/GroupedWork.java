@@ -15,58 +15,63 @@ import java.util.regex.Pattern;
  * Time: 9:02 AM
  */
 public class GroupedWork implements Cloneable{
+	//The id of the work within the database.
+	private String permanentId;
+
 	private String fullTitle = "";              //Up to 100 chars
 	private String author = "";             //Up to 50  chars
 	public String groupingCategory = "";   //Up to 25  chars
-
 	public HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
 
 	public String getPermanentId() {
-		String permanentId = null;
-		try {
-			MessageDigest idGenerator = MessageDigest.getInstance("MD5");
-			String fullTitle = getTitle();
-			if (fullTitle.equals("")){
-				idGenerator.update("--null--".getBytes());
-			}else{
-				idGenerator.update(fullTitle.getBytes());
+		if (this.permanentId == null){
+			String permanentId;
+			try {
+				MessageDigest idGenerator = MessageDigest.getInstance("MD5");
+				String fullTitle = getTitle();
+				if (fullTitle.equals("")){
+					idGenerator.update("--null--".getBytes());
+				}else{
+					idGenerator.update(fullTitle.getBytes());
+				}
+				if (author.equals("")){
+					idGenerator.update("--null--".getBytes());
+				}else{
+					idGenerator.update(author.getBytes());
+				}
+				if (groupingCategory.equals("")){
+					idGenerator.update("--null--".getBytes());
+				}else{
+					idGenerator.update(groupingCategory.getBytes());
+				}
+				permanentId = new BigInteger(1, idGenerator.digest()).toString(16);
+				while (permanentId.length() < 32){
+					permanentId = "0" + permanentId;
+				}
+				//Insert -'s for formatting
+				this.permanentId = permanentId.substring(0, 8) + "-" + permanentId.substring(8, 12) + "-" + permanentId.substring(12, 16) + "-" + permanentId.substring(16, 20) + "-" + permanentId.substring(20);
+			} catch (NoSuchAlgorithmException e) {
+				System.out.println("Error generating permanent id" + e.toString());
 			}
-			if (author.equals("")){
-				idGenerator.update("--null--".getBytes());
-			}else{
-				idGenerator.update(author.getBytes());
-			}
-			if (groupingCategory.equals("")){
-				idGenerator.update("--null--".getBytes());
-			}else{
-				idGenerator.update(groupingCategory.getBytes());
-			}
-			permanentId = new BigInteger(1, idGenerator.digest()).toString(16);
-			while (permanentId.length() < 32){
-				permanentId = "0" + permanentId;
-			}
-			//Insert -'s for formatting
-			permanentId = permanentId.substring(0, 8) + "-" + permanentId.substring(8, 12) + "-" + permanentId.substring(12, 16) + "-" + permanentId.substring(16, 20) + "-" + permanentId.substring(20);
-		} catch (NoSuchAlgorithmException e) {
-			System.out.println("Error generating permanent id" + e.toString());
 		}
-		//System.out.println("Permanent Id is " + permanentId);
-		return permanentId;
+		//System.out.println("Permanent Id is " + this.permanentId);
+		return this.permanentId;
 	}
 
-	static Pattern authorExtract1 = Pattern.compile("^(.*)\\spresents.*$");
-	static Pattern authorExtract2 = Pattern.compile("^(?:(?:a|an)\\s)?(.*)\\spresentation.*$");
-	static Pattern homeEntertainmentRemoval = Pattern.compile("^(.*)\\shome entertainment$");
-	static Pattern distributedByRemoval = Pattern.compile("^distributed (?:in.*\\s)?by\\s(.*)$");
+	static Pattern authorExtract1 = Pattern.compile("^(.+?)\\spresents.*$");
+	static Pattern authorExtract2 = Pattern.compile("^(?:(?:a|an)\\s)?(.+?)\\spresentation.*$");
+	static Pattern distributedByRemoval = Pattern.compile("^distributed (?:in.*\\s)?by\\s(.+)$");
 	static Pattern initialsFix = Pattern.compile("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))");
 	static Pattern specialCharacterStrip = Pattern.compile("[^\\w\\s]");
 	static Pattern consecutiveCharacterStrip = Pattern.compile("\\s{2,}");
 	static Pattern bracketedCharacterStrip = Pattern.compile("\\[(.*?)\\]");
+	static Pattern commonAuthorSuffixPattern = Pattern.compile("^(.+?)\\s(?:general editor|editor|editor in chief|etc|inc|inc\\setc|co|corporation|llc|partners|company|home entertainment)$");
+	static Pattern commonAuthorPrefixPattern = Pattern.compile("^(?:edited by|by the editors of|by|chosen by|translated by|prepared by|translated and edited by|completely rev by|pictures by|selected and adapted by|with a foreword by|with a new foreword by|introd by|introduction by|intro by|retold by)\\s(.+)$");
 
 	private String normalizeAuthor(String author) {
 		String groupingAuthor = initialsFix.matcher(author).replaceAll(" ");
 		groupingAuthor = bracketedCharacterStrip.matcher(groupingAuthor).replaceAll("");
-		groupingAuthor = specialCharacterStrip.matcher(groupingAuthor).replaceAll("").trim().toLowerCase();
+		groupingAuthor = specialCharacterStrip.matcher(groupingAuthor).replaceAll(" ").trim().toLowerCase();
 		groupingAuthor = consecutiveCharacterStrip.matcher(groupingAuthor).replaceAll(" ");
 		//extract common additional info (especially for movie studios)
 		Matcher authorExtract1Matcher = authorExtract1.matcher(groupingAuthor);
@@ -77,10 +82,13 @@ public class GroupedWork implements Cloneable{
 		if (authorExtract2Matcher.find()){
 			groupingAuthor = authorExtract2Matcher.group(1);
 		}
-		//Remove home entertainment
-		Matcher homeEntertainmentMatcher = homeEntertainmentRemoval.matcher(groupingAuthor);
-		if (homeEntertainmentMatcher.find()){
-			groupingAuthor = homeEntertainmentMatcher.group(1);
+		Matcher editorMatcher1 = commonAuthorSuffixPattern.matcher(groupingAuthor);
+		if (editorMatcher1.find()){
+			groupingAuthor = editorMatcher1.group(1);
+		}
+		Matcher editorMatcher2 = commonAuthorPrefixPattern.matcher(groupingAuthor);
+		if (editorMatcher2.find()){
+			groupingAuthor = editorMatcher2.group(1);
 		}
 		//Remove home entertainment
 		Matcher distributedByRemovalMatcher = distributedByRemoval.matcher(groupingAuthor);
@@ -101,7 +109,7 @@ public class GroupedWork implements Cloneable{
 		return groupingAuthor;
 	}
 
-	static Pattern commonSubtitlesPattern = Pattern.compile("^(.*?)((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|an? .* story|a .*\\s?book|poems|the movie|[\\w\\s]+series book \\d+|[\\w\\s]+trilogy book \\d+|large print)$");
+	static Pattern commonSubtitlesPattern = Pattern.compile("^(.*?)((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|an? .* story|a .*\\s?book|poems|the movie|[\\w\\s]+series book \\d+|[\\w\\s]+trilogy book \\d+|large print|graphic novel|magazine)$");
 	static Pattern firstPattern = Pattern.compile("1st");
 	static Pattern secondPattern = Pattern.compile("2nd");
 	static Pattern thirdPattern = Pattern.compile("3rd");
@@ -186,7 +194,14 @@ public class GroupedWork implements Cloneable{
 		//Replace & with and for better matching
 		groupingTitle = groupingTitle.replaceAll("&#8211;", "-");
 		groupingTitle = groupingTitle.replaceAll("&", "and");
-		groupingTitle = specialCharacterStrip.matcher(groupingTitle).replaceAll("").toLowerCase();
+
+		//Remove some common subtitles that are meaningless (do again here in case they were part of the title).
+		Matcher commonSubtitleMatcher = commonSubtitlesPattern.matcher(groupingTitle);
+		if (commonSubtitleMatcher.matches()){
+			groupingTitle = commonSubtitleMatcher.group(1);
+		}
+
+		groupingTitle = specialCharacterStrip.matcher(groupingTitle).replaceAll(" ").toLowerCase();
 		//Replace consecutive spaces
 		groupingTitle = consecutiveCharacterStrip.matcher(groupingTitle).replaceAll(" ");
 
@@ -242,4 +257,5 @@ public class GroupedWork implements Cloneable{
 		sortTitle = sortTitle.trim();
 		return sortTitle;
 	}
+
 }
