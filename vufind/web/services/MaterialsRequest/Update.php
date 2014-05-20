@@ -124,6 +124,7 @@ class MaterialsRequest_Update extends Action {
 		$interface->assign('showIllField', $configArray['MaterialsRequest']['showIllField']);
 		
 		$interface->setTemplate('update-result.tpl');
+		$interface->assign('sidebar', 'Search/home-sidebar.tpl');
 		$interface->setPageTitle('Update Result');
 		$interface->display('layout.tpl');
 	}

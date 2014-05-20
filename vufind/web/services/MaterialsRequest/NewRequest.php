@@ -55,7 +55,7 @@ class MaterialsRequest_NewRequest extends Action
 		$interface->assign('new', true);
 		if (isset($_REQUEST['lookfor']) && strlen ($_REQUEST['lookfor']) > 0){ 
 			$request = new MaterialsRequest();
-			$searchType = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : (isset($_REQUEST['type']) ? $_REQUEST['type'] : 'Keyword');
+			$searchType = isset($_REQUEST['basicType']) ? $_REQUEST['basicType'] : (isset($_REQUEST['type']) ? $_REQUEST['type                                 '] : 'Keyword');
 			if (strcasecmp($searchType, 'author') == 0){
 				$request->author = $_REQUEST['lookfor'];
 			}else{

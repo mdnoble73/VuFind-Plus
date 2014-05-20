@@ -35,17 +35,12 @@ class MaterialsRequest_AJAX extends Action{
 
 	function launch(){
 		$method = $_GET['method'];
-		if (in_array($method, array('CancelRequest', 'GetWorldCatTitles', 'GetWorldCatIdentifiers'))){
+		if (in_array($method, array('CancelRequest', 'GetWorldCatTitles', 'GetWorldCatIdentifiers', 'MaterialsRequestDetails', 'UpdateMaterialsRequest'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			$result = $this->$method();
 			echo json_encode($result);
-		}else if (in_array($method, array('MaterialsRequestDetails', 'UpdateMaterialsRequest'))){
-			header('Content-type: text/html');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo $this->$method();
 		}else{
 			echo "Unknown Method";
 		}
@@ -143,7 +138,12 @@ class MaterialsRequest_AJAX extends Action{
 				$interface->assign('error', 'Sorry, we couldn\'t find a materials request for that id.');
 			}
 		}
-		return $interface->fetch('MaterialsRequest/ajax-update-request.tpl');
+		$return = array(
+			'title' => 'Update Materials Request',
+			'modalBody' => $interface->fetch('MaterialsRequest/ajax-update-request.tpl'),
+			'modalButtons' => "<span class='btn btn-primary' onclick='$(\"#materialsRequestUpdateForm\").submit();'>Update Request</span>"
+		);
+		return $return;
 	}
 	
 	function MaterialsRequestDetails(){
@@ -180,7 +180,12 @@ class MaterialsRequest_AJAX extends Action{
 				$interface->assign('error', 'Sorry, we couldn\'t find a materials request for that id.');
 			}
 		}
-		return $interface->fetch('MaterialsRequest/ajax-request-details.tpl');
+		$return = array(
+				'title' => 'Materials Request Details',
+				'modalBody' => $interface->fetch('MaterialsRequest/ajax-request-details.tpl'),
+				'modalButtons' => ''
+		);
+		return $return;
 	}
 	
 	function GetWorldCatIdentifiers(){

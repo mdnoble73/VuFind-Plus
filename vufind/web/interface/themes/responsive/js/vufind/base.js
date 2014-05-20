@@ -153,6 +153,12 @@ var VuFind = (function(){
 			$(".locationInfo").hide();
 			$("#locationAddress" + selectedId).show();
 			return false;
+		},
+
+		toggleCheckboxes: function (checkboxSelector, toggleSelector){
+			var toggle = $(toggleSelector);
+			var value = toggle.prop('checked');
+			$(checkboxSelector).prop('checked', value);
 		}
 
 	}

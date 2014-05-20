@@ -16,6 +16,7 @@
 	<script src="{$path}/interface/themes/responsive/js/lib/jquery-ui-1.10.4.custom.min.js"></script>
 	<script src="{$path}/interface/themes/responsive/js/lib/bootstrap-switch.min.js"></script>
 	<script src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
+	<script src="{$path}/js/validate/jquery.validate.min.js"></script>
 	<script src="{$path}/ckeditor/ckeditor.js"></script>
 	<script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
 	{* Load application specific Javascript *}
@@ -29,6 +30,7 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind/grouped-work.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/lists.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/lists-widgets.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/materials-request.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/overdrive.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/prospector.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/ratings.js"></script>
@@ -49,6 +51,7 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind/grouped-work.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/lists.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/lists-widgets.min.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/materials-request.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/overdrive.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/prospector.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/ratings.min.js"></script>
