@@ -62,6 +62,7 @@ public class GroupedWork implements Cloneable{
 	static Pattern authorExtract2 = Pattern.compile("^(?:(?:a|an)\\s)?(.+?)\\spresentation.*$");
 	static Pattern distributedByRemoval = Pattern.compile("^distributed (?:in.*\\s)?by\\s(.+)$");
 	static Pattern initialsFix = Pattern.compile("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))");
+	static Pattern apostropheStrip = Pattern.compile("'s");
 	static Pattern specialCharacterStrip = Pattern.compile("[^\\w\\s]");
 	static Pattern consecutiveCharacterStrip = Pattern.compile("\\s{2,}");
 	static Pattern bracketedCharacterStrip = Pattern.compile("\\[(.*?)\\]");
@@ -128,7 +129,8 @@ public class GroupedWork implements Cloneable{
 			//Remove any bracketed parts of the title
 			groupingSubtitle = bracketedCharacterStrip.matcher(groupingSubtitle).replaceAll("");
 
-			groupingSubtitle = specialCharacterStrip.matcher(groupingSubtitle).replaceAll("").toLowerCase().trim();
+			groupingSubtitle = apostropheStrip.matcher(groupingSubtitle).replaceAll("s");
+			groupingSubtitle = specialCharacterStrip.matcher(groupingSubtitle).replaceAll(" ").toLowerCase().trim();
 			groupingSubtitle = consecutiveCharacterStrip.matcher(groupingSubtitle).replaceAll(" ");
 
 			//Remove some common subtitles that are meaningless
@@ -201,6 +203,7 @@ public class GroupedWork implements Cloneable{
 			groupingTitle = commonSubtitleMatcher.group(1);
 		}
 
+		groupingTitle = apostropheStrip.matcher(groupingTitle).replaceAll("s");
 		groupingTitle = specialCharacterStrip.matcher(groupingTitle).replaceAll(" ").toLowerCase();
 		//Replace consecutive spaces
 		groupingTitle = consecutiveCharacterStrip.matcher(groupingTitle).replaceAll(" ");
