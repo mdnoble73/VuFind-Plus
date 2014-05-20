@@ -246,7 +246,9 @@
 						</div>
 					</div>
 				</div>
+			{/if}
 
+			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('locationReports') || $user->hasRole('contentEditor'))}
 				{if in_array($action, array('Dashboard', 'Searches', 'PageViews', 'ILSIntegration', 'ReportPurchase', 'ReportExternalLinks', 'PatronStatus', 'DetailedReport'))}
 					{assign var="curSection" value=true}
 				{else}
@@ -262,13 +264,18 @@
 					</a>
 					<div id="reportsMenu" class="panel-collapse collapse {if $curSection}in{/if}">
 						<div class="panel-body">
-							<div class="adminMenuLink{if $action == "Dashboard"}active{/if}"><a href="{$path}/Report/Dashboard">Dashboard</a></div>
-							<div class="adminMenuLink{if $action == "Searches"}active{/if}"><a href="{$path}/Report/Searches">Searches</a></div>
-							<div class="adminMenuLink{if $action == "PageViews"}active{/if}"><a href="{$path}/Report/PageViews">Page Views</a></div>
-							<div class="adminMenuLink{if $action == "ILSIntegration"}active{/if}"><a href="{$path}/Report/ILSIntegration">ILS Integration</a></div>
-							<div class="adminMenuLink{if $action == "ReportPurchase"}active{/if}"><a href="{$path}/Report/ReportPurchase">Purchase Tracking</a></div>
-							<div class="adminMenuLink{if $action == "ReportExternalLinks"}active{/if}"><a href="{$path}/Report/ReportExternalLinks">External Link Tracking</a></div>
+							{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
+								<div class="adminMenuLink{if $action == "Dashboard"}active{/if}"><a href="{$path}/Report/Dashboard">Dashboard</a></div>
+								<div class="adminMenuLink{if $action == "Searches"}active{/if}"><a href="{$path}/Report/Searches">Searches</a></div>
+								<div class="adminMenuLink{if $action == "PageViews"}active{/if}"><a href="{$path}/Report/PageViews">Page Views</a></div>
+								<div class="adminMenuLink{if $action == "ILSIntegration"}active{/if}"><a href="{$path}/Report/ILSIntegration">ILS Integration</a></div>
+								<div class="adminMenuLink{if $action == "ReportPurchase"}active{/if}"><a href="{$path}/Report/ReportPurchase">Purchase Tracking</a></div>
+								<div class="adminMenuLink{if $action == "ReportExternalLinks"}active{/if}"><a href="{$path}/Report/ReportExternalLinks">External Link Tracking</a></div>
+							{/if}
 							<div class="adminMenuLink{if $action == "PatronStatus"}active{/if}"><a href="{$path}/Report/PatronStatus">Patron Status</a></div>
+							{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('locationReports'))}
+								<div class="adminMenuLink{if $action == "PatronStatus"}active{/if}"><a href="{$path}/Report/StudentReport">Student Reports</a></div>
+							{/if}
 						</div>
 					</div>
 				</div>

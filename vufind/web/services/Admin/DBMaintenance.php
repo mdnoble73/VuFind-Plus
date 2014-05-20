@@ -90,6 +90,14 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
+				'roles_2' => array(
+						'title' => 'Roles 2',
+						'description' => 'Add new role for locationReports',
+						'sql' => array(
+								"INSERT INTO roles (name, description) VALUES ('locationReports', 'Allows the user to view reports for their location.')",
+						),
+				),
+
 				'library_1' => array(
 						'title' => 'Library 1',
 						'description' => 'Update Library table to include showSeriesAsTab column',
