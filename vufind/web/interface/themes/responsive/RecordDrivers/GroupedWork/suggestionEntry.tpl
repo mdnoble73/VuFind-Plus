@@ -44,7 +44,7 @@
 			</div>
 
 			<div class="resultActions row">
-				{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
+				{include file='GroupedWork/relatedManifestations.tpl'}
 			</div>
 
 			<div class="resultActions row">
