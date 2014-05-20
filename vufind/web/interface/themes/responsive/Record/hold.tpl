@@ -4,13 +4,13 @@
 			<div class="holdsSummary">
 				<h3>Placing hold on <span id='newHoldCount'>1</span> title.</h3>
 				<input type="hidden" name="holdCount" id="holdCount" value="1"/>
-				<div class="pageWarning" id="overHoldCountWarning" {if !$showOverHoldLimit}style="display:none"{/if}>Warning: You have reached the maximum of <span class='maxHolds'>{$maxHolds}</span> holds for your account.  You must cancel a hold before you can place a hold on this title.</div>
+				<div class="alert alert-warning" id="overHoldCountWarning" {if !$showOverHoldLimit}style="display:none"{/if}>Warning: You have reached the maximum of <span class='maxHolds'>{$maxHolds}</span> holds for your account.  You must cancel a hold before you can place a hold on this title.</div>
 				<div id='holdError' class="pageWarning" style='display: none'></div>
 			</div>
 			{if $holdDisclaimer}
 				<div id="holdDisclaimer">{$holdDisclaimer}</div>
 			{/if}
-			<p class="help-block">
+			<p class="alert alert-info">
 				Holds allow you to request that a title be delivered to your home library.
 				Once the title arrives at your library you will be sent an e-mail, receive a phone call, or receive a postcard informing you that the title is ready for you.
 				You will then have 8 days to pickup the title from your home library.

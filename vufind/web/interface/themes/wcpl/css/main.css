@@ -6388,6 +6388,11 @@ div#systemMessage {
 .connect-icon {
   padding: 0px 3px 0px 3px;
 }
+@media print {
+  #side-bar {
+    display: none;
+  }
+}
 #main-content-with-sidebar {
   padding-right: 0px;
   padding-bottom: 15px;
