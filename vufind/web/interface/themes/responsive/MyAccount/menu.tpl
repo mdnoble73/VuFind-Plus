@@ -249,7 +249,7 @@
 			{/if}
 
 			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('locationReports') || $user->hasRole('contentEditor'))}
-				{if in_array($action, array('Dashboard', 'Searches', 'PageViews', 'ILSIntegration', 'ReportPurchase', 'ReportExternalLinks', 'PatronStatus', 'DetailedReport'))}
+				{if in_array($action, array('Dashboard', 'Searches', 'PageViews', 'ILSIntegration', 'ReportPurchase', 'ReportExternalLinks', 'PatronStatus', 'DetailedReport', 'StudentReport'))}
 					{assign var="curSection" value=true}
 				{else}
 					{assign var="curSection" value=false}
@@ -274,7 +274,7 @@
 								<div class="adminMenuLink{if $action == "PatronStatus"}active{/if}"><a href="{$path}/Report/PatronStatus">Patron Status</a></div>
 							{/if}
 							{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('locationReports'))}
-								<div class="adminMenuLink{if $action == "PatronStatus"}active{/if}"><a href="{$path}/Report/StudentReport">Student Reports</a></div>
+								<div class="adminMenuLink{if $action == "StudentReport"}active{/if}"><a href="{$path}/Report/StudentReport">Student Reports</a></div>
 							{/if}
 						</div>
 					</div>

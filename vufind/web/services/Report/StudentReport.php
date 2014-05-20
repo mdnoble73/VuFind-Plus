@@ -23,10 +23,10 @@ class Report_StudentReport extends Admin_Admin {
 			$allowableLocationCodes = '.*';
 		}elseif ($user->hasRole('libraryAdmin')){
 			$homeLibrary = Library::getPatronHomeLibrary();
-			$allowableLocationCodes = $homeLibrary->ilsCode . '.*';
+			$allowableLocationCodes = trim($homeLibrary->ilsCode) . '.*';
 		}elseif ($user->hasRole('locationReports')){
 			$homeLocation = Location::getUserHomeLocation();
-			$allowableLocationCodes = $homeLocation->code . '.*';
+			$allowableLocationCodes = trim($homeLocation->code) . '.*';
 		}
 		$availableReports = array();
 		$dh  = opendir($reportDir);
