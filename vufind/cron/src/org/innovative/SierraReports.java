@@ -111,30 +111,30 @@ public class SierraReports implements IProcessHandler {
 				String fullAddress = patronsForSchoolRS.getString("addr1") + " " + patronsForSchoolRS.getString("city") + ", " + patronsForSchoolRS.getString("region") + " " + patronsForSchoolRS.getString("postal_code");
 				patronInfo[14] = fullAddress;
 
-
 				//Get a list of items that are checked out to each user
 				itemsOutStmt.setLong(1, patronId);
 				ResultSet itemsOutRS = itemsOutStmt.executeQuery();
-				if (itemsOutRS.isLast()){
+				int numItemsWritten = 0;
+				while (itemsOutRS.next()){
+					String callNumber = itemsOutRS.getString("callnumber");
+					if (callNumber == null){
+						callNumber = "";
+					} else{
+						callNumber = callNumber.replaceAll("\\|\\w", "");
+					}
+					patronInfo[8] = callNumber;
+					patronInfo[9] = itemsOutRS.getString("title");
+					patronInfo[10] = itemsOutRS.getString("barcode");
+					patronInfo[11] = itemsOutRS.getString("location_code");
+					patronInfo[12] = itemsOutRS.getString("due_gmt");
+					patronInfo[13] = itemsOutRS.getString("item_status_code");
+					patronReportCsvWriter.writeNext(patronInfo);
+					patronInfo[7] = "";
+					numItemsWritten++;
+				}
+				if (numItemsWritten == 0){
 					//No items are checked out
 					patronReportCsvWriter.writeNext(patronInfo);
-				}else{
-					while (itemsOutRS.next()){
-						String callNumber = itemsOutRS.getString("callnumber");
-						if (callNumber == null){
-							callNumber = "";
-						} else{
-							callNumber = callNumber.replaceAll("\\|\\w", "");
-						}
-						patronInfo[8] = callNumber;
-						patronInfo[9] = itemsOutRS.getString("title");
-						patronInfo[10] = itemsOutRS.getString("barcode");
-						patronInfo[11] = itemsOutRS.getString("location_code");
-						patronInfo[12] = itemsOutRS.getString("due_gmt");
-						patronInfo[13] = itemsOutRS.getString("item_status_code");
-						patronReportCsvWriter.writeNext(patronInfo);
-						patronInfo[7] = "";
-					}
 				}
 			}
 			patronReportWriter.close();
