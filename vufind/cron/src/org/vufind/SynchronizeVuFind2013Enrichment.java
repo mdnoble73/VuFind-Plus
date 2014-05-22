@@ -416,19 +416,21 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 		String individualFilename = basePath + "/" + shortId + ".mrc";
 		File individualFile = new File(individualFilename);
 		Record record = null;
-		try {
-			FileInputStream inputStream = new FileInputStream(individualFile);
-			MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
-			if (marcReader.hasNext()){
-				try{
-					record = marcReader.next();
-				}catch (Exception e) {
-					logger.error("Error updating solr based on marc record", e);
+		if (individualFile.exists()){
+			try {
+				FileInputStream inputStream = new FileInputStream(individualFile);
+				MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
+				if (marcReader.hasNext()){
+					try{
+						record = marcReader.next();
+					}catch (Exception e) {
+						logger.error("Error updating solr based on marc record", e);
+					}
 				}
+				inputStream.close();
+			} catch (Exception e) {
+				logger.error("Error reading data from ils file " + individualFile.toString(), e);
 			}
-			inputStream.close();
-		} catch (Exception e) {
-			logger.error("Error reading data from ils file " + individualFile.toString(), e);
 		}
 		return record;
 	}
