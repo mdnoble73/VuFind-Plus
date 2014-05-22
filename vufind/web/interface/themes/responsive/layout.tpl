@@ -16,7 +16,7 @@
 	<body class="module_{$module} action_{$action}" id="{$module}-{$action}">
 		<div class="container">
 			{if $systemMessage}
-				<div id="systemMessage" class="row">{$systemMessage}</div>
+				<div id="system-message-header" class="row">{$systemMessage}</div>
 			{/if}
 			<div class="row breadcrumbs">
 				<div class="col-xs-12 col-sm-9">

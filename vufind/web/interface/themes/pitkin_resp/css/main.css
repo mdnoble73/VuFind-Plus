@@ -6324,7 +6324,7 @@ hr.menu {
   padding: 0 5px;
   color: #cccccc;
 }
-div#systemMessage {
+div#system-message-header {
   background-color: #FF6;
   color: black;
   text-align: center;
@@ -6332,7 +6332,7 @@ div#systemMessage {
 }
 #header-container {
   padding-top: 0px;
-  height: 105px;
+  height: 130px;
   background: linear-gradient(to bottom, #817c81, #525254 85%, #444545);
   border-bottom: 8px solid #333333;
   margin-bottom: 0px;
@@ -6343,11 +6343,11 @@ div#systemMessage {
 }
 .header-button {
   text-align: center;
-  height: 97px !important;
+  height: 122px !important;
   border-bottom: 4px solid #444545;
 }
 .header-button > a {
-  line-height: 97px !important;
+  line-height: 122px !important;
   text-align: center;
   vertical-align: middle;
   padding: 0px;
@@ -7343,4 +7343,32 @@ div#systemMessage {
 #moreResultsFromProspector {
   margin: 5px;
   text-align: right;
+}
+#header-container {
+  background-image: url('/interface/themes/pitkin_resp/images/header_background.png');
+}
+#header-logo {
+  border-radius: 0.5em;
+  margin-top: 7px;
+  padding: 5px;
+  background-color: rgba(51, 51, 51, 0.6);
+}
+.header-button {
+  border-radius: 0.5em;
+  background-color: rgba(51, 51, 51, 0.6);
+  margin-top: 20px;
+  height: 60px !important;
+  border: 0px;
+}
+.header-button > a {
+  color: white !important;
+  line-height: 60px !important;
+  text-shadow: none;
+}
+.header-button > a:visited {
+  color: white !important;
+}
+.header-button:hover {
+  border-bottom: 0px;
+  box-shadow: 2px 2px 5px white;
 }

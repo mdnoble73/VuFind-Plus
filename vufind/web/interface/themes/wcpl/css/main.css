@@ -6324,7 +6324,7 @@ hr.menu {
   padding: 0 5px;
   color: #cccccc;
 }
-div#systemMessage {
+div#system-message-header {
   background-color: #FF6;
   color: black;
   text-align: center;
