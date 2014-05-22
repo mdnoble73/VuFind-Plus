@@ -5,7 +5,8 @@ import org.ini4j.Ini;
 import org.ini4j.Profile;
 
 import java.sql.*;
-import java.util.HashMap;
+import java.sql.Date;
+import java.util.*;
 
 /**
  * Synchronizes any changes made to a VuFind 2013 installation to the current installation.
@@ -32,6 +33,8 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 	private PreparedStatement addListStmt;
 	private PreparedStatement getExistingListTitleStmt;
 	private PreparedStatement addTitleToListStmt;
+	private PreparedStatement addWorkReviewStmt;
+	private PreparedStatement getExistingWorkReviewStmt;
 
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Profile.Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
@@ -59,12 +62,16 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 
 				getExistingListStmt = vufindConn.prepareStatement("SELECT id FROM user_list WHERE user_id = ? AND title = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				addListStmt = vufindConn.prepareStatement("INSERT into user_list (user_id, title, description, public, dateUpdated, created, deleted) VALUES (?, ?, ?, ?, ?, ?, 0)", PreparedStatement.RETURN_GENERATED_KEYS);
-				getExistingListTitleStmt = vufindConn.prepareStatement("SELECT * FROM user_list_entry WHERE listId = ? and groupedWorkPermanentId = ?");
+				getExistingListTitleStmt = vufindConn.prepareStatement("SELECT * FROM user_list_entry WHERE listId = ? and groupedWorkPermanentId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				addTitleToListStmt = vufindConn.prepareStatement("INSERT into user_list_entry (listId, groupedWorkPermanentId, notes, dateAdded, weight) VALUES (?, ?, ?, ?, 0)");
 
+				getExistingWorkReviewStmt = vufindConn.prepareStatement("SELECT id from user_work_review WHERE groupedRecordPermanentId = ? AND userId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				addWorkReviewStmt = vufindConn.prepareStatement("INSERT into user_work_review (groupedRecordPermanentId, userId, rating, review, dateRated) VALUES (?, ?, ?, ?, ?)");
+
+				//TODO: synchronizeNotInterested();
+				synchronizeRatingsAndReviews();
 				synchronizeLists();
 				synchronizeTags();
-				//TODO: synchronizeRatingsAndReviews();
 
 			} else{
 				logger.error("Could not connect to VuFind 2013");
@@ -75,6 +82,87 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 		}finally{
 			processLog.setFinished();
 			processLog.saveToDatabase(vufindConn, logger);
+		}
+	}
+
+	private void synchronizeRatingsAndReviews() {
+		try{
+			PreparedStatement getRatingsWithReviews = vufind2013connection.prepareStatement("SELECT username, source, record_id, rating, comment, comments.created FROM user_rating LEFT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id WHERE comment is NOT NULL");
+			PreparedStatement getRatingsWithoutReviews = vufind2013connection.prepareStatement("SELECT username, source, record_id, rating FROM user_rating LEFT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id WHERE comment is NULL");
+			PreparedStatement getReviewsWithoutRatings = vufind2013connection.prepareStatement("SELECT username, source, record_id, comment, comments.created FROM user_rating RIGHT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on user_id = user.id INNER JOIN resource on resource_id = resource.id WHERE rating is NULL");
+
+			//Process ratings with reviews
+			ResultSet ratingsWithReviewsRS = getRatingsWithReviews.executeQuery();
+			while (ratingsWithReviewsRS.next()){
+				String username = ratingsWithReviewsRS.getString("username");
+				Long userId = synchronizeUser(username);
+				if (userId != null){
+					String groupedWorkId = getWorkForResource(ratingsWithReviewsRS.getString("source"), ratingsWithReviewsRS.getString("record_id"));
+					if (groupedWorkId != null){
+						Integer rating = ratingsWithReviewsRS.getInt("rating");
+						String review = ratingsWithReviewsRS.getString("comment");
+						Date dateRated = ratingsWithReviewsRS.getDate("created");
+						Long timeRated = dateRated == null ? null : dateRated.getTime() / 1000;
+						addWorkReview(groupedWorkId, userId, rating, review, timeRated);
+					}
+				}
+			}
+
+			//Process ratings without reviews
+			ResultSet ratingsWithoutReviewsRS = getRatingsWithoutReviews.executeQuery();
+			while (ratingsWithoutReviewsRS.next()){
+				String username = ratingsWithoutReviewsRS.getString("username");
+				Long userId = synchronizeUser(username);
+				if (userId != null){
+					String groupedWorkId = getWorkForResource(ratingsWithoutReviewsRS.getString("source"), ratingsWithoutReviewsRS.getString("record_id"));
+					if (groupedWorkId != null){
+						Integer rating = ratingsWithoutReviewsRS.getInt("rating");
+						addWorkReview(groupedWorkId, userId, rating, "", null);
+					}
+				}
+			}
+
+			//Process reviews without ratings
+			ResultSet reviewsWithoutRatingsRS = getReviewsWithoutRatings.executeQuery();
+			while (reviewsWithoutRatingsRS.next()){
+				String username = reviewsWithoutRatingsRS.getString("username");
+				Long userId = synchronizeUser(username);
+				if (userId != null){
+					String groupedWorkId = getWorkForResource(reviewsWithoutRatingsRS.getString("source"), reviewsWithoutRatingsRS.getString("record_id"));
+					if (groupedWorkId != null){
+						String review = reviewsWithoutRatingsRS.getString("comment");
+						Date dateRated = reviewsWithoutRatingsRS.getDate("created");
+						Long timeRated = dateRated == null ? null : dateRated.getTime() / 1000;
+						addWorkReview(groupedWorkId, userId, -1, review, timeRated);
+					}
+				}
+			}
+		}catch (Exception e){
+			logger.error("Error sycnhronizing ratings and reviews", e);
+		}
+	}
+
+	private void addWorkReview(String groupedWorkId, Long userId, Integer rating, String review, Long dateRated) {
+		try{
+			//Check to see if there is already a review for the statement
+			getExistingWorkReviewStmt.setString(1, groupedWorkId);
+			getExistingWorkReviewStmt.setLong(2, userId);
+			ResultSet existingWorkReviewRS = getExistingWorkReviewStmt.executeQuery();
+			if (!existingWorkReviewRS.next()){
+				addWorkReviewStmt.setString(1, groupedWorkId);
+				addWorkReviewStmt.setLong(2, userId);
+				addWorkReviewStmt.setInt(3, rating);
+				if (review == null) review = "";
+				addWorkReviewStmt.setString(4, review);
+				if (dateRated == null){
+					addWorkReviewStmt.setLong(5, new java.util.Date().getTime() / 1000);
+				}else{
+					addWorkReviewStmt.setLong(5, dateRated);
+				}
+				addWorkReviewStmt.executeUpdate();
+			}
+		}catch (Exception e){
+			logger.error("Error adding work review", e);
 		}
 	}
 
