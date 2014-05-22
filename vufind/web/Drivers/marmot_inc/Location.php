@@ -622,7 +622,7 @@ class Location extends DB_DataObject
 			}
 			return $this->facets;
 		}elseif  ($name == 'browseCategories'){
-			if (!isset($this->browseCategories) && $this->libraryId){
+			if (!isset($this->browseCategories) && $this->locationId){
 				$this->browseCategories = array();
 				$browseCategory = new LocationBrowseCategory();
 				$browseCategory->locationId = $this->locationId;
