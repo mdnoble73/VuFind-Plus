@@ -18,9 +18,7 @@ import java.util.*;
  */
 public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 	private Logger logger;
-	private CronProcessLogEntry processLog;
 	private Connection vufind2013connection;
-	private Connection econtent2013connection;
 	private PreparedStatement getUserFromVuFind2013Stmt;
 	private PreparedStatement getUserFromVuFind2014Stmt;
 	private PreparedStatement addUserToVuFind2014Stmt;
@@ -40,15 +38,15 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Profile.Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
-		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Synchronize VuFind 2013 Enrichment");
+		CronProcessLogEntry processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Synchronize VuFind 2013 Enrichment");
 		processLog.saveToDatabase(vufindConn, logger);
 		this.logger = logger;
 		try {
-			//TODO: Get the time the last synchronization was done so we can only synchronize new things?
+			//Get the time the last synchronization was done so we can only synchronize new things?
 
 			//Establish connection to VuFind 2013 instance
 			vufind2013connection = getVuFind2013Connection(configIni);
-			econtent2013connection = getEContent2013Connection(configIni);
+			Connection econtent2013connection = getEContent2013Connection(configIni);
 			if (vufind2013connection != null){
 				//Initialize prepared statements we will need later
 				getUserFromVuFind2013Stmt = vufind2013connection.prepareStatement("SELECT * from user where username = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
@@ -171,7 +169,7 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 				}
 			}
 		}catch (Exception e){
-			logger.error("Error sycnhronizing ratings and reviews", e);
+			logger.error("Error syncnhronizing ratings and reviews", e);
 		}
 	}
 
@@ -320,7 +318,8 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 				if (groupedWorkRS.next()){
 					permanentId = groupedWorkRS.getString("permanent_id");
 				}else{
-					logger.warn("Could not find grouped work for ILS record " + resourceRecordId);
+					//This is normal since we regularly delete and merge records
+					logger.debug("Could not find grouped work for ILS record " + resourceRecordId);
 				}
 			}else{
 				//Get the ils id for the econtent record
@@ -337,10 +336,10 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 							if (groupedWorkRS.next()){
 								permanentId = groupedWorkRS.getString("permanent_id");
 							} else{
-								logger.warn("Could not find grouped work for overdrive record " + externalId);
+								logger.debug("Could not find grouped work for overdrive record " + externalId);
 							}
 						}else{
-							logger.warn("Could not handle getting grouped work for " + econtentSource + " " + resourceRecordId);
+							logger.debug("Could not handle getting grouped work for " + econtentSource + " " + resourceRecordId);
 						}
 					}else{
 						getGroupedWorkStmt.setString(1, ilsId);
