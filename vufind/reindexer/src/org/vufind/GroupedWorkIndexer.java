@@ -237,7 +237,7 @@ public class GroupedWorkIndexer {
 		try{
 			if (worksWithInvalidLiteraryForms.size() > 0){
 				FileWriter writer = new FileWriter(worksWithInvalidLiteraryFormsFile, false);
-				logger.warn("Found " + worksWithInvalidLiteraryForms.size() + " grouped works with invalid literary forms\r\n");
+				logger.debug("Found " + worksWithInvalidLiteraryForms.size() + " grouped works with invalid literary forms\r\n");
 				writer.write("Found " + worksWithInvalidLiteraryForms.size() + " grouped works with invalid literary forms\r\n");
 				writer.write("Works with inconsistent literary forms\r\n");
 				for (String curId : worksWithInvalidLiteraryForms){

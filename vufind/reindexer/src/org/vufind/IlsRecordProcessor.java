@@ -1027,7 +1027,7 @@ public abstract class IlsRecordProcessor {
 		}
 		if (locationFacets.size() == 0){
 			if (!locationCodesWithoutFacets.contains(locationCode)){
-				logger.warn("Did not find any location facets for '" + locationCode + "'");
+				logger.debug("Did not find any location facets for '" + locationCode + "'");
 				locationCodesWithoutFacets.add(locationCode);
 			}
 		}
