@@ -35,6 +35,8 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 	private PreparedStatement addTitleToListStmt;
 	private PreparedStatement addWorkReviewStmt;
 	private PreparedStatement getExistingWorkReviewStmt;
+	private PreparedStatement getExistingNotInterestedStmt;
+	private PreparedStatement addNotInterestedStmt;
 
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Profile.Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
@@ -42,7 +44,7 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 		processLog.saveToDatabase(vufindConn, logger);
 		this.logger = logger;
 		try {
-			//TODO: Get the time the last synchronization was done
+			//TODO: Get the time the last synchronization was done so we can only synchronize new things?
 
 			//Establish connection to VuFind 2013 instance
 			vufind2013connection = getVuFind2013Connection(configIni);
@@ -68,7 +70,10 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 				getExistingWorkReviewStmt = vufindConn.prepareStatement("SELECT id from user_work_review WHERE groupedRecordPermanentId = ? AND userId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				addWorkReviewStmt = vufindConn.prepareStatement("INSERT into user_work_review (groupedRecordPermanentId, userId, rating, review, dateRated) VALUES (?, ?, ?, ?, ?)");
 
-				//TODO: synchronizeNotInterested();
+				getExistingNotInterestedStmt = vufindConn.prepareStatement("SELECT * FROM user_not_interested where userId = ? AND groupedRecordPermanentId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				addNotInterestedStmt = vufindConn.prepareStatement("INSERT INTO user_not_interested (userId, groupedRecordPermanentId, dateMarked) VALUES (?, ?, ?)");
+
+				synchronizeNotInterested();
 				synchronizeRatingsAndReviews();
 				synchronizeLists();
 				synchronizeTags();
@@ -85,11 +90,39 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 		}
 	}
 
+	private void synchronizeNotInterested() {
+		try{
+			PreparedStatement getNotInterestedFromVuFind2013 = vufind2013connection.prepareStatement("SELECT username, source, record_id, dateMarked from user_not_interested INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet notInterestedVuFind2013 = getNotInterestedFromVuFind2013.executeQuery();
+			while (notInterestedVuFind2013.next()){
+				String username = notInterestedVuFind2013.getString("username");
+				Long userId = synchronizeUser(username);
+				if (userId != null){
+					String groupedWorkId = getWorkForResource(notInterestedVuFind2013.getString("source"), notInterestedVuFind2013.getString("record_id"));
+					if (groupedWorkId != null){
+						//Check to see if the user already has marked that they are not interested in this.
+						getExistingNotInterestedStmt.setLong(1, userId);
+						getExistingNotInterestedStmt.setString(2, groupedWorkId);
+						ResultSet hasExistingNotInterestedRS = getExistingNotInterestedStmt.executeQuery();
+						if (!hasExistingNotInterestedRS.next()){
+							addNotInterestedStmt.setLong(1, userId);
+							addNotInterestedStmt.setString(2, groupedWorkId);
+							addNotInterestedStmt.setLong(3, notInterestedVuFind2013.getLong("dateMarked"));
+							addNotInterestedStmt.executeUpdate();
+						}
+					}
+				}
+			}
+		} catch (Exception e){
+			logger.error("Error synchronizing not interested information");
+		}
+	}
+
 	private void synchronizeRatingsAndReviews() {
 		try{
-			PreparedStatement getRatingsWithReviews = vufind2013connection.prepareStatement("SELECT username, source, record_id, rating, comment, comments.created FROM user_rating LEFT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id WHERE comment is NOT NULL");
-			PreparedStatement getRatingsWithoutReviews = vufind2013connection.prepareStatement("SELECT username, source, record_id, rating FROM user_rating LEFT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id WHERE comment is NULL");
-			PreparedStatement getReviewsWithoutRatings = vufind2013connection.prepareStatement("SELECT username, source, record_id, comment, comments.created FROM user_rating RIGHT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on user_id = user.id INNER JOIN resource on resource_id = resource.id WHERE rating is NULL");
+			PreparedStatement getRatingsWithReviews = vufind2013connection.prepareStatement("SELECT username, source, record_id, rating, comment, comments.created FROM user_rating LEFT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id WHERE comment is NOT NULL", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement getRatingsWithoutReviews = vufind2013connection.prepareStatement("SELECT username, source, record_id, rating FROM user_rating LEFT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id WHERE comment is NULL", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement getReviewsWithoutRatings = vufind2013connection.prepareStatement("SELECT username, source, record_id, comment, comments.created FROM user_rating RIGHT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on user_id = user.id INNER JOIN resource on resource_id = resource.id WHERE rating is NULL", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 
 			//Process ratings with reviews
 			ResultSet ratingsWithReviewsRS = getRatingsWithReviews.executeQuery();
