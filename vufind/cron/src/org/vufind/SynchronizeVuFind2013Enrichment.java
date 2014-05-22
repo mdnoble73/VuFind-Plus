@@ -3,10 +3,20 @@ package org.vufind;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
+import org.marc4j.MarcPermissiveStreamReader;
+import org.marc4j.MarcReader;
+import org.marc4j.marc.DataField;
+import org.marc4j.marc.Record;
+import org.marc4j.marc.Subfield;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.sql.*;
 import java.sql.Date;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.zip.DataFormatException;
 
 /**
  * Synchronizes any changes made to a VuFind 2013 installation to the current installation.
@@ -35,12 +45,14 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 	private PreparedStatement getExistingWorkReviewStmt;
 	private PreparedStatement getExistingNotInterestedStmt;
 	private PreparedStatement addNotInterestedStmt;
+	private String individualMarcPath;
 
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Profile.Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		CronProcessLogEntry processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Synchronize VuFind 2013 Enrichment");
 		processLog.saveToDatabase(vufindConn, logger);
 		this.logger = logger;
+		this.individualMarcPath = Util.cleanIniValue(configIni.get("Reindex", "individualMarcPath"));
 		try {
 			//Get the time the last synchronization was done so we can only synchronize new things?
 
@@ -303,6 +315,7 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 		}
 	}
 
+	private Pattern overdriveUrlPattern = Pattern.compile("overdrive.*?ID=(.*?)$", Pattern.CANON_EQ);
 	private HashMap<String, String> processedResources = new HashMap<String, String>();
 	private String getWorkForResource(String resourceSource, String resourceRecordId) {
 		String resourceKey = resourceSource + "_" + resourceRecordId;
@@ -347,12 +360,41 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 						if (groupedWorkRS.next()){
 							permanentId = groupedWorkRS.getString("permanent_id");
 						}else{
-							logger.warn("Could not find grouped work for ils record " + ilsId + " referenced from econtent record " + resourceRecordId);
-							//TODO: Some of these are because the marc record refers to an OverDrive record that we are suppressing in VuFind 2014
+							//Some of these are because the marc record refers to an OverDrive record that we are suppressing in VuFind 2014
+							Record marcRecord = getMarcRecordForIlsId(ilsId);
+							if (marcRecord != null){
+								List urlFields = marcRecord.getVariableFields("856");
+								for (Object urlFieldObj : urlFields){
+									if (urlFieldObj instanceof DataField){
+										DataField urlField = (DataField)urlFieldObj;
+										if (urlField.getSubfield('u') != null){
+											String url = urlField.getSubfield('u').getData();
+
+											Matcher overdriveUrlMatcher = overdriveUrlPattern.matcher(url);
+											if (overdriveUrlMatcher.find()) {
+												String overdriveId = overdriveUrlMatcher.group(1);
+												getGroupedWorkForOverDriveStmt.setString(1, overdriveId);
+												ResultSet groupedWorkRS2 = getGroupedWorkForOverDriveStmt.executeQuery();
+												if (groupedWorkRS2.next()){
+													permanentId = groupedWorkRS2.getString("permanent_id");
+													break;
+												} else{
+													logger.debug("Could not find grouped work for overdrive record " + overdriveId);
+												}
+											}
+										}
+									}
+								}
+								if (permanentId == null){
+									logger.debug("Could not find grouped work for ils record " + ilsId + " referenced from econtent record " + resourceRecordId + " even after checking marc record");
+								}
+							} else {
+								logger.debug("Could not find grouped work for ils record " + ilsId + " referenced from econtent record " + resourceRecordId);
+							}
 						}
 					}
 				}else{
-					logger.warn("Could not find econtent record for econtent record id " + resourceRecordId);
+					logger.debug("Could not find econtent record for econtent record id " + resourceRecordId);
 				}
 			}
 		}catch (Exception e){
@@ -362,6 +404,33 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 			processedResources.put(resourceKey, permanentId);
 		}
 		return permanentId;
+	}
+
+	private Record getMarcRecordForIlsId(String ilsId) {
+		String shortId = ilsId.replace(".", "");
+		while (shortId.length() < 9){
+			shortId = "0" + shortId;
+		}
+		String firstChars = shortId.substring(0, 4);
+		String basePath = individualMarcPath + "/" + firstChars;
+		String individualFilename = basePath + "/" + shortId + ".mrc";
+		File individualFile = new File(individualFilename);
+		Record record = null;
+		try {
+			FileInputStream inputStream = new FileInputStream(individualFile);
+			MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
+			if (marcReader.hasNext()){
+				try{
+					record = marcReader.next();
+				}catch (Exception e) {
+					logger.error("Error updating solr based on marc record", e);
+				}
+			}
+			inputStream.close();
+		} catch (Exception e) {
+			logger.error("Error reading data from ils file " + individualFile.toString(), e);
+		}
+		return record;
 	}
 
 	private HashMap<String, Long> processedUsers = new HashMap<String, Long>();
