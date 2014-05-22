@@ -56,10 +56,12 @@ class MarcLoader{
 		$individualName = $configArray['Reindex']['individualMarcPath'] . "/{$firstChars}/{$shortId}.mrc";
 		$marcRecord = false;
 		if (isset($configArray['Reindex']['individualMarcPath'])){
-			//$rawMarc = file_get_contents($individualName);
-			$marc = new File_MARC($individualName, File_MARC::SOURCE_FILE);
-			if (!($marcRecord = $marc->next())) {
-				PEAR_Singleton::raiseError(new PEAR_Error('Could not load marc record for record ' . $shortId));
+			if (file_exists($individualName)){
+				//$rawMarc = file_get_contents($individualName);
+				$marc = new File_MARC($individualName, File_MARC::SOURCE_FILE);
+				if (!($marcRecord = $marc->next())) {
+					PEAR_Singleton::raiseError(new PEAR_Error('Could not load marc record for record ' . $shortId));
+				}
 			}
 		}
 		return $marcRecord;

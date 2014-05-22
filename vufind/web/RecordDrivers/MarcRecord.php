@@ -47,10 +47,6 @@ class MarcRecord extends IndexRecord
 			$this->marcRecord = MarcLoader::loadMarcRecordByILSId($record);
 			if (!$this->marcRecord) {
 				$this->valid = false;
-				global $errorHandlingEnabled;
-				if ($errorHandlingEnabled){
-					PEAR_Singleton::raiseError(new PEAR_Error('Cannot Process MARC Record for record ' . $record));
-				}
 			}
 		}else{
 			// Call the parent's constructor...
@@ -61,10 +57,6 @@ class MarcRecord extends IndexRecord
 			$this->marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
 			if (!$this->marcRecord) {
 				$this->valid = false;
-				global $errorHandlingEnabled;
-				if ($errorHandlingEnabled){
-					PEAR_Singleton::raiseError(new PEAR_Error('Cannot Process MARC Record for record ' . $record['id']));
-				}
 			}
 		}
 		if (!isset($this->id)){
