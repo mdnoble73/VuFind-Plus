@@ -38,9 +38,7 @@ public class GroupedWorkSolr {
 	private String callNumberFirst;
 	private String callNumberSubject;
 	private HashSet<String> collectionGroup = new HashSet<String>();
-	private HashSet<String> collectionAdams = new HashSet<String>();
-	private HashSet<String> collectionMsc = new HashSet<String>();
-	private HashSet<String> collectionWestern = new HashSet<String>();
+	private HashMap<String, HashSet<String>> additionalCollections = new HashMap<String, HashSet<String>>();
 	private HashMap<String, HashSet<String>> collectionByLibrarySystem = new HashMap<String, HashSet<String>>();
 	private HashSet<String> contents = new HashSet<String>();
 	private Date dateAdded = null;
@@ -128,9 +126,9 @@ public class GroupedWorkSolr {
 		doc.addField("owning_library", owningLibraries);
 		doc.addField("owning_location", owningLocations);
 		doc.addField("collection_group", collectionGroup);
-		doc.addField("collection_adams", collectionAdams);
-		doc.addField("collection_msc", collectionMsc);
-		doc.addField("collection_western", collectionWestern);
+		for (String additionalCollection : additionalCollections.keySet()){
+			doc.addField("collection_" + additionalCollection, additionalCollections.get(additionalCollection));
+		}
 		//detailed locations
 		doc.addField("detailed_location", detailedLocation);
 		for (String subdomain: detailedLocationByLibrarySystem.keySet()){
@@ -554,16 +552,11 @@ public class GroupedWorkSolr {
 		collectionGroup.add(collection_group);
 	}
 
-	public void addCollectionAdams(String collection) {
-		collectionAdams.add(collection);
-	}
-
-	public void addCollectionMsc(String collection) {
-		collectionMsc.add(collection);
-	}
-
-	public void addCollectionWestern(String collection) {
-		collectionWestern.add(collection);
+	public void addAdditionalCollection(String collectionName, String collection) {
+		if (!additionalCollections.containsKey(collectionName)){
+			additionalCollections.put(collectionName, new HashSet<String>());
+		}
+		additionalCollections.get(collectionName).add(collection);
 	}
 
 	public void addDetailedLocation(String location, ArrayList<String> relatedSubdomains, ArrayList<String> relatedLocations){

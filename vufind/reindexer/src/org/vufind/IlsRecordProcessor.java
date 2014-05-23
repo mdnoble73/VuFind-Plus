@@ -91,7 +91,7 @@ public abstract class IlsRecordProcessor {
 		callNumberCutterSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberCutterSubfield");
 
 		String additionalCollectionsString = configIni.get("Reindex", "additionalCollections");
-		if (additionalCollections != null){
+		if (additionalCollectionsString != null){
 			additionalCollections = additionalCollectionsString.split(",");
 		}
 
