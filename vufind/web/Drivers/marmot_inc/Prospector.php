@@ -159,7 +159,7 @@ class Prospector{
 	 * Retrieve details about a record within prospector
 	 *
 	 * @param $record - The full record information from Prospector
-	 * @return Associative array with the record number in prospector and the list of libraries that own the title in prospector
+	 * @return array with the record number in prospector and the list of libraries that own the title in prospector
 	 */
 	function getProspectorDetailsForLocalRecord($record){
 		//Disable prospector details for now.
