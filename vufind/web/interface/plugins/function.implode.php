@@ -26,8 +26,7 @@ function smarty_function_implode($params, &$smarty)
 	}
 
 	if (!isset($params['glue'])) {
-		$smarty->trigger_error("implode: missing 'glue' parameter");
-		return;
+		$params['glue'] = ", ";
 	}
 
 	$subject = $params['subject'];

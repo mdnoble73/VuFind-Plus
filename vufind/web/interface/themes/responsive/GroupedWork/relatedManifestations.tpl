@@ -40,12 +40,20 @@
 								</div>
 							{/if}
 							{if $relatedManifestation.shelfLocation}
-								<div class="related-manifestation-shelf-location">
-									Shelf Location: <span class="notranslate">{$relatedManifestation.shelfLocation}</span>
+								<div class="related-manifestation-shelf-location row">
+									<div class="col-xs-4">Shelf Location</div>
+									<div class="col-xs-8">
+										<strong><span class="notranslate">{implode subject=$relatedManifestation.shelfLocation}</span></strong>
+									</div>
 								</div>
 							{/if}
 							{if $relatedManifestation.callNumber}
-								<div class="related-manifestation-call-number">Call Number: <span class="notranslate">{$relatedManifestation.callNumber}</span></div>
+								<div class="related-manifestation-call-number row">
+									<div class="col-xs-4">Call Number</div>
+									<div class="col-xs-8">
+										<strong><span class="notranslate">{implode subject=$relatedManifestation.callNumber}</span></strong>
+									</div>
+								</div>
 							{/if}
 
 						</div>

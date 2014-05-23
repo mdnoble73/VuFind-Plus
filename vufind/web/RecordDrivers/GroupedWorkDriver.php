@@ -934,13 +934,13 @@ class GroupedWorkDriver implements RecordInterface{
 					'format' => $curRecord['format'],
 					'copies' => 0,
 					'availableCopies' => 0,
-					'callNumber' => $curRecord['callNumber'] ? $curRecord['callNumber'] : '',
+					'callNumber' => array(),
 					'available' => false,
 					'hasLocalItem' => false,
 					'relatedRecords' => array(),
 					'preferredEdition' => null,
 					'statusMessage' => '',
-					'shelfLocation' => '',
+					'shelfLocation' => array(),
 					'availableLocally' => false,
 					'availableOnline' => false,
 				);
@@ -957,16 +957,13 @@ class GroupedWorkDriver implements RecordInterface{
 			if (!$relatedManifestations[$curRecord['format']]['hasLocalItem'] && $curRecord['hasLocalItem']){
 				$relatedManifestations[$curRecord['format']]['hasLocalItem'] = $curRecord['hasLocalItem'];
 			}
-			if (!$relatedManifestations[$curRecord['format']]['shelfLocation'] && $curRecord['shelfLocation']){
-				$relatedManifestations[$curRecord['format']]['shelfLocation'] = $curRecord['shelfLocation'];
+			if ($curRecord['shelfLocation']){
+				$relatedManifestations[$curRecord['format']]['shelfLocation'][$curRecord['shelfLocation']] = $curRecord['shelfLocation'];
 			}
-			if ($curRecord['hasLocalItem']){
-				$key = 1;
-			}else{
-				$key = 2;
+			if ($curRecord['callNumber']){
+				$relatedManifestations[$curRecord['format']]['callNumber'][$curRecord['callNumber']] = $curRecord['callNumber'];
 			}
-			$key .= '-' . $curRecord['holdRatio']. '_' .  $curRecord['id'];
-			$relatedManifestations[$curRecord['format']]['relatedRecords'][$key] = $curRecord;
+			$relatedManifestations[$curRecord['format']]['relatedRecords'][] = $curRecord;
 			$relatedManifestations[$curRecord['format']]['copies'] += $curRecord['copies'];
 			$relatedManifestations[$curRecord['format']]['availableCopies'] += $curRecord['availableCopies'];
 
@@ -976,35 +973,13 @@ class GroupedWorkDriver implements RecordInterface{
 		//Check to see what we need to do for actions
 		foreach ($relatedManifestations as $key => $manifestation){
 			$manifestation['numRelatedRecords'] = count($manifestation['relatedRecords']);
-			ksort($manifestation['relatedRecords']);
 			if (count($manifestation['relatedRecords']) == 1){
 				$firstRecord = reset($manifestation['relatedRecords']);
 				$manifestation['url'] = $firstRecord['url'];
 				$manifestation['actions'] = $firstRecord['actions'];
 			}else{
-				//Figure out what the preferred record is to place a hold on
-				$bestRecord = null;
-				foreach ($manifestation['relatedRecords'] as $index => $record){
-					if ($bestRecord == null){
-						$bestRecord = $record;
-					}else{
-						//Check to see if this record is better than the current record.
-						if ($bestRecord['available'] == true && $record['available'] == false){
-							//The current record is not available, but the best record is so it is better.
-						}else if ($bestRecord['available'] == false && $record['available'] == true){
-							//The current record is available which makes it better automatically
-							$bestRecord = $record;
-						}else{
-							//Check number of (copies - holds + available copies) / total copies
-							//TODO: Do we need to account for the record being owned by the home library?  Possibly with an extra boost
-							if ($record['holdRatio'] > $bestRecord['holdRatio']){
-								$bestRecord = $record;
-							}
-						}
-					}
-
-				}
-
+				//Figure out what the preferred record is to place a hold on.  Since sorting has been done properly, this should always be the first
+				$bestRecord = reset($manifestation['relatedRecords']);
 				$manifestation['actions'] = $bestRecord['actions'];
 			}
 			$relatedManifestations[$key] = $manifestation;
@@ -1017,16 +992,80 @@ class GroupedWorkDriver implements RecordInterface{
 	static function compareRelatedRecords($a, $b){
 		$formatComparison = strcasecmp($a['format'], $b['format']);
 		if ($formatComparison == 0){
-			//Same format, sort by number of copies, descending
-			if ($a['copies'] == $b['copies']){
+			//Compare editions if available
+			$editionComparisonResult = GroupedWorkDriver::compareEditionsForRecords($a, $b);
+			if ($editionComparisonResult == 0){
+				//Put anything with a local copy higher
+				$localItemComparisonResult = GroupedWorkDriver::compareLocalItemsForRecords($a, $b);
+				if ($localItemComparisonResult == 0){
+					//Anything that is available goes higher
+					$availabilityComparisonResults = GroupedWorkDriver::compareAvailabilityForRecords($a, $b);
+					if ($availabilityComparisonResults == 0){
+						//All else being equal, sort by hold ratio
+						if ($a['holdRatio'] == $b['holdRatio']){
+							//Hold Ratio is the same, last thing to check is the number of copies
+							if ($a['copies'] == $b['copies']){
+								return 0;
+							}elseif ($a['copies'] > $b['copies']){
+								return -1;
+							}else{
+								return 1;
+							}
+						}elseif ($a['holdRatio'] > $b['holdRatio']){
+							return -1;
+						}else{
+							return 1;
+						}
+					}else{
+						return $availabilityComparisonResults;
+					}
+				}else{
+					return $localItemComparisonResult;
+				}
+			}else{
+				return $editionComparisonResult;
+			}
+		}else{
+			return $formatComparison;
+		}
+	}
+
+	static function compareEditionsForRecords($a, $b){
+		$editionA = preg_replace('/\D/', '', $a['edition']);
+		$editionB = preg_replace('/\D/', '', $b['edition']);
+		if ($editionA == $editionB){
+			return 0;
+		}else if ($editionA > $editionB){
+			return -1;
+		}else{
+			return 1;
+		}
+	}
+
+	static function compareAvailabilityForRecords($a, $b){
+		if ($a['availableLocally'] && $b['availableLocally']){
+			if ($a['available'] && $b['available']){
 				return 0;
-			}elseif ($a['copies'] > $b['copies']){
+			}elseif ($a['available']){
 				return -1;
 			}else{
 				return 1;
 			}
+		}else if ($a['availableLocally']){
+			return -1;
 		}else{
-			return $formatComparison;
+			return 1;
+		}
+
+	}
+
+	static function compareLocalItemsForRecords($a, $b){
+		if ($a['hasLocalItem'] && $b['hasLocalItem']){
+			return 0;
+		}elseif ($a['hasLocalItem']){
+			return -1;
+		}else{
+			return 0;
 		}
 	}
 
