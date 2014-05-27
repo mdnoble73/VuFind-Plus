@@ -22,8 +22,10 @@ VuFind.Lists = (function(){
 		},
 
 		deleteListAction: function (){
-			$('#myListActionHead').val('deleteList');
-			$('#myListFormHead').submit();
+			if (confirm("Are you sure you want to delete this list?")){
+				$('#myListActionHead').val('deleteList');
+				$('#myListFormHead').submit();
+			}
 			return false;
 		},
 
@@ -39,8 +41,10 @@ VuFind.Lists = (function(){
 			return false;
 		},
 		deletedMarkedListItemsAction: function (){
-			$('#myListActionItem').val('deleteMarked');
-			$('#myListFormItem').submit();
+			if (confirm("Are you sure you want to delete the selected titles from this list?  This cannot be undone.")){
+				$('#myListActionItem').val('deleteMarked');
+				$('#myListFormItem').submit();
+			}
 			return false;
 		},
 		moveMarkedAction: function (){
@@ -48,8 +52,10 @@ VuFind.Lists = (function(){
 			return false;
 		},
 		deleteAllListItemsAction: function (){
-			$('#myListActionItem').val('deleteAll');
-			$('#myListFormItem').submit();
+			if (confirm("Are you sure you want to delete all titles from this list?  This cannot be undone.")){
+				$('#myListActionItem').val('deleteAll');
+				$('#myListFormItem').submit();
+			}
 			return false;
 		},
 		emailListAction: function (id) {
