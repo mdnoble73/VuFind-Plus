@@ -86,7 +86,7 @@ class UserAccount
 	 */
 	public static function logout()
 	{
-		session_destroy(session_id());
+		session_destroy();
 		session_regenerate_id(true);
 		$_SESSION = array();
 	}

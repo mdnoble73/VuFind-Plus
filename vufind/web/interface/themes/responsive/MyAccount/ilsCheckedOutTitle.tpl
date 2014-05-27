@@ -1,6 +1,6 @@
 {strip}
 	<div id="record{$record.source}_{$record.id|escape}" class="result row">
-		<div class="col-sm-3 col-md-3">
+		<div class="col-xs-12 col-sm-3 col-md-3">
 			<div class="row">
 				<div class="selectTitle col-md-2">
 					<input type="checkbox" name="selected[{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}"/>
@@ -16,7 +16,7 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-9">
+		<div class="col-xs-12 col-sm-9">
 			<div class="row">
 				<strong>
 					{if $record.id}

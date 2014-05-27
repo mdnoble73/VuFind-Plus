@@ -116,6 +116,10 @@ div#system-message-header {
 .connect-icon {
   padding: 0px 3px 0px 3px;
 }
+#navigation-controls {
+  border-top: 8px solid #088ec6;
+  background: white;
+}
 @media print {
   #side-bar {
     display: none;

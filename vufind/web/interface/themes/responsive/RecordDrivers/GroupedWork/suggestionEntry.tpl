@@ -1,11 +1,11 @@
 {strip}
 	<a name="record{$summId|escape:"url"}" ></a>
 	<div id="groupedRecord{$summId|escape}" class="resultsList row">
-		<div class="col-sm-3 col-md-3 col-lg-2 text-center">
+		<div class="col-xs-12 col-sm-3 col-md-3 col-lg-2 text-center">
 			<img src="{$bookCoverUrlMedium}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}">
 			{include file="GroupedWork/title-rating.tpl" ratingClass="" recordId=$summId shortId=$summShortId ratingData=$summRating showNotInterested=true}
 		</div>
-		<div class="col-sm-9 col-md-9 col-lg-10">
+		<div class="col-xs-12 col-sm-9 col-md-9 col-lg-10">
 			<div class="row">
 				<div class="col-xs-12">
 					<a href="{$summUrl}" class="result-title notranslate">{$summTitle|removeTrailingPunctuation|escape}</a><br />
@@ -44,11 +44,15 @@
 			</div>
 
 			<div class="resultActions row">
-				{include file='GroupedWork/relatedManifestations.tpl'}
+				<div class="col-xs-12">
+					{include file='GroupedWork/relatedManifestations.tpl'}
+				</div>
 			</div>
 
 			<div class="resultActions row">
-				{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
+				<div class="col-xs-12">
+					{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
+				</div>
 			</div>
 		</div>
 

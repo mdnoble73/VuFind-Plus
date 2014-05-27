@@ -10,7 +10,7 @@
 						<ul>
 							{foreach from=$browseCategories item=browseCategory name="browseCategoryLoop"}
 								<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9}" data-category-id="{$browseCategory->textId}">
-									<a href="#" onclick="VuFind.Browse.changeBrowseCategory('{$browseCategory->textId}');">
+									<a href="#" onclick="return VuFind.Browse.changeBrowseCategory('{$browseCategory->textId}');">
 										<div >
 											{$browseCategory->label}
 										</div>

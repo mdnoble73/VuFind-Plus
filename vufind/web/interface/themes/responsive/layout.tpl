@@ -27,6 +27,7 @@
 					</ul>
 					{/if}
 				</div>
+				<a name="top"></a>
 				<div class="col-xs-12 col-sm-3 text-right">
 					{if $google_translate_key}
 						{literal}
@@ -61,7 +62,7 @@
 					<div class="col-xs-12 col-sm-4 col-md-4 col-lg-3" id="side-bar">
 						{include file="$sidebar"}
 					</div>
-					<div class="hidden-xs visible-sm col-sm-8 col-md-8 col-lg-9" id="main-content-with-sidebar">
+					<div class="hidden-xs visible-sm col-xs-12 col-sm-8 col-md-8 col-lg-9" id="main-content-with-sidebar">
 						{include file="$module/$pageTemplate"}
 					</div>
 				{else}
@@ -71,6 +72,19 @@
 
 			<div id="footer-container" class="row">
 				{include file="footer_responsive.tpl"}
+			</div>
+
+			<div id="navigation-controls" class="navbar navbar-fixed-bottom row visible-xs hidden-sm hidden-md hidden-lg">
+				<a href="#top"><div class="col-xs-6 text-center">Back To Top</div></a>
+				{if $showLoginButton == 1}
+					{if $user}
+						<a href="#account-menu"><div class="col-xs-6 text-center">Account Menu</div></a>
+					{else}
+						<a href="{$path}/MyAccount/Home" title='Login' onclick="return VuFind.Account.followLinkIfLoggedIn(this);">
+							<div class="col-xs-6 text-center">{translate text="Login"}</div>
+						</a>
+					{/if}
+				{/if}
 			</div>
 		</div>
 

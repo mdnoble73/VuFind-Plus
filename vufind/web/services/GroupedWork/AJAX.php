@@ -119,7 +119,7 @@ class GroupedWork_AJAX {
 		}
 
 		//Related data
-		$enrichmentResult['relatedContent'] = $interface->fetch('Record\relatedContent.tpl');
+		$enrichmentResult['relatedContent'] = $interface->fetch('Record/relatedContent.tpl');
 
 		return json_encode($enrichmentResult);
 	}

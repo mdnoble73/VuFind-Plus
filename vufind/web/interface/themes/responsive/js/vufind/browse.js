@@ -17,6 +17,7 @@ VuFind.Browse = (function(){
 					VuFind.Browse.curCategory = data.textId;
 				}
 			});
+			return false;
 		},
 
 		getMoreResults: function(){
@@ -35,8 +36,24 @@ VuFind.Browse = (function(){
 }(VuFind.Browse || {}));
 
 $(document).ready(function(){
-	$('#browse-category-carousel').on('jcarousel:targetin', 'li', function(event, carousel){
+	var browseCategoryCarousel = $("#browse-category-carousel");
+	browseCategoryCarousel.on('jcarousel:create jcarousel:reload', function() {
+		var element = $(this), width = element.innerWidth();
+
+		if (width > 700) {
+			width = width / 4;
+		} else if (width > 5500) {
+			width = width / 3;
+		} else if (width > 400) {
+			width = width / 2;
+		}
+
+
+		element.jcarousel('items').css('width', width + 'px');
+	});
+	browseCategoryCarousel.on('jcarousel:targetin', 'li', function(event, carousel){
 		var categoryId = $(this).data('category-id');
 		VuFind.Browse.changeBrowseCategory(categoryId);
 	});
+
 });

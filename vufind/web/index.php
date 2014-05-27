@@ -246,6 +246,14 @@ $module = (isset($_GET['module'])) ? $_GET['module'] : null;
 $module = preg_replace('/[^\w]/', '', $module);
 $action = (isset($_GET['action'])) ? $_GET['action'] : null;
 $action = preg_replace('/[^\w]/', '', $action);
+
+//Redirect some common spam components so they go to a valid place, and redirect old actions to new
+if ($action == 'trackback'){
+	$action = null;
+}
+if ($action == 'SimilarTitles'){
+	$action = 'Home';
+}
 //Set these initially in case user login fails, we will need the module to be set.
 $interface->assign('module', $module);
 $interface->assign('action', $action);

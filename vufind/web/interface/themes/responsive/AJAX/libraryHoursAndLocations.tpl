@@ -2,7 +2,7 @@
 	<form role="from">
 		<div class="form-group">
 			<label for="selectLibrary">Select a Location</label>
-			<select name="selectLibrary" id="selectLibrary" onchange="return VuFind.showLocationHoursAndMap();">
+			<select name="selectLibrary" id="selectLibrary" onchange="return VuFind.showLocationHoursAndMap();" class="form-control">
 				{foreach from=$libraryLocations item=curLocation}
 					<option value="{$curLocation.id}">{$curLocation.name}</option>
 				{/foreach}
@@ -15,7 +15,7 @@
 				<h3>{$curLocation.name}</h3>
 			</div>
 			<div class="row">
-				<div class="col-xs-3">
+				<div class="col-sm-3">
 					<dl>
 						<dt>Address</dt>
 						<dd>
@@ -25,7 +25,7 @@
 						<dd>{$curLocation.phone}</dd>
 					</dl>
 				</div>
-				<div class="col-xs-9">
+				<div class="col-sm-9">
 					<a href="{$curLocation.map_link}"><img src="{$curLocation.map_image}" alt="Map"></a>
 					<br/><a href="{$curLocation.map_link}">Directions</a>
 				</div>

@@ -4,6 +4,7 @@
 	<div id="home-account-links" class="sidebar-links row">
 		<div class="panel-group" id="account-link-accordion">
 			{* My Account *}
+			<a name="account-menu"></a>
 			<div class="panel {if $module == 'MyAccount' || $module == 'MyResearch' || ($module == 'Search' && $action == 'Home')}active{/if}">
 				{* Clickable header for my account section *}
 				<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myAccountPanel">

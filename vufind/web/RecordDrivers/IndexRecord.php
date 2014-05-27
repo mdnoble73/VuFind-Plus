@@ -1000,8 +1000,13 @@ class IndexRecord implements RecordInterface
 		return $this->getGroupedWorkId();
 	}
 	public function getGroupedWorkId(){
-		return $this->groupedWork->permanent_id;
+		if ($this->groupedWork == null){
+			return null;
+		}else{
+			return $this->groupedWork->permanent_id;
+		}
 	}
+
 	public function getGroupedWorkDriver(){
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		if ($this->groupedWorkDriver == null){
