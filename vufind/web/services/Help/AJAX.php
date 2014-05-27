@@ -70,25 +70,21 @@ class Help_AJAX extends Action {
 			$result['helpText'] = $interface->fetch("Help/en/springerlink.tpl");
 		}elseif ($format == 'ebsco'){
 			$result['helpText'] = $interface->fetch("Help/en/ebsco.tpl");
-                }elseif	($format == 'wma') {
-                        if ($device == 'kindle' || $device == 'kindle_fire' || $device == 'mac' || $device == 'nook'){
-                              	$result['helpText'] = $interface->fetch("Help/en/wma_sucks.tpl");
+		}elseif	($format == 'wma') {
+			if ($device == 'kindle' || $device == 'kindle_fire' || $device == 'mac' || $device == 'nook'){
+				$result['helpText'] = $interface->fetch("Help/en/wma_sucks.tpl");
+			}else if ($device == 'pc'){
+				$result['helpText'] = $interface->fetch("Help/en/audiobook_pc.tpl");
 			}
 		}elseif ($format == 'mp3'){
 			if ($device == 'pc'){
 				$result['helpText'] = $interface->fetch("Help/en/audiobook_pc.tpl");
 			}elseif ($device == 'mac'){
-				if ($format == 'mp3' ){
-					$result['helpText'] = $interface->fetch("Help/en/mp3_mac.tpl");
-				}
+				$result['helpText'] = $interface->fetch("Help/en/mp3_mac.tpl");
 			}elseif ($device == 'kindle'){
-				if ($format == 'mp3' ){
-					$result['helpText'] = $interface->fetch("Help/en/audiobook_pc.tpl");
-				}
+				$result['helpText'] = $interface->fetch("Help/en/audiobook_pc.tpl");
 			}elseif ($device == 'kindle_fire'){
-				if ($format == 'mp3' ){
-					$result['helpText'] = $interface->fetch("Help/en/mp3_kindle_fire.tpl");
-				}
+				$result['helpText'] = $interface->fetch("Help/en/mp3_kindle_fire.tpl");
 			}else{
 				$result['helpText'] = $interface->fetch("Help/en/audiobook_mobile.tpl");
 			}
