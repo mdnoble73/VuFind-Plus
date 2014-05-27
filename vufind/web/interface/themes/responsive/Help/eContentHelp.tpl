@@ -1,6 +1,6 @@
 <p>
-1) Please select the device you are trying to read or listen to a book on.
-<select name="device" id="device" onchange="loadEContentHelpTopic()">
+<label for="device">1) Please select the device you are trying to read or listen to a book on.</label>
+<select name="device" id="device" onchange="VuFind.loadEContentHelpTopic()" class="form-control">
 	<option value="selectone">Select One...</option>
 	<option value="pc" {if $defaultDevice == 'pc'}selected="selected"{/if}>Windows PC</option>
 	<option value="mac" {if $defaultDevice == 'mac'}selected="selected"{/if}>Macintosh Computer</option>
@@ -13,8 +13,8 @@
 </select>
 </p>
 <p>
-2) Please select the format you are trying to read or listen to.
-<select name="format" id="format" onchange="loadEContentHelpTopic()">
+<label for="format">2) Please select the format you are trying to read or listen to.</label>
+<select name="format" id="format" onchange="VuFind.loadEContentHelpTopic()" class="form-control">
 	<option value="selectone">Select One...</option>
 	<option value="ebook" {if $defaultFormat == 'ebook'}selected="selected"{/if}>EPUB eBook</option>
 	<option value="kindle" {if $defaultFormat == 'kindle'}selected="selected"{/if}>Kindle eBook</option>
@@ -32,5 +32,5 @@
 	<div id="helpInstructions"></div>
 </div>
 <script type="text/javascript">
-	loadEContentHelpTopic();
+	VuFind.loadEContentHelpTopic();
 </script>
