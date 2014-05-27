@@ -1035,17 +1035,17 @@ public class GroupedWorkSolr {
 	}
 
 	public void setCallNumberA(String callNumber) {
-		if (callNumber != null && callNumberA != null){
+		if (callNumber != null && callNumberA == null){
 			this.callNumberA = callNumber;
 		}
 	}
 	public void setCallNumberFirst(String callNumber) {
-		if (callNumber != null && callNumberFirst != null){
+		if (callNumber != null && callNumberFirst == null){
 			this.callNumberFirst = callNumber;
 		}
 	}
 	public void setCallNumberSubject(String callNumber) {
-		if (callNumber != null && callNumberSubject != null){
+		if (callNumber != null && callNumberSubject == null){
 			this.callNumberSubject = callNumber;
 		}
 	}
