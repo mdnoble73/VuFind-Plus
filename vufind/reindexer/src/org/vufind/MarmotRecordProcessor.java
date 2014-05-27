@@ -361,7 +361,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 			getFormatFromLeader(result, leader, fixedField);
 		}
 		if (econtentItems.size() > 0){
-			getFormatFromEcontentItems(identifier, result, econtentItems);
+			getFormatFromEcontentItems(groupedWork, identifier, result, econtentItems);
 		}
 
 		// Nothing worked!
@@ -372,24 +372,35 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		return result;
 	}
 
-	private void getFormatFromEcontentItems(String identifier, Set<String> result, List<DataField> econtentItems) {
+	private void getFormatFromEcontentItems(GroupedWorkSolr groupedWork, String identifier, Set<String> result, List<DataField> econtentItems) {
 		for (DataField curItem : econtentItems){
 			if (curItem.getSubfield('w') != null){
+				String locationCode = curItem.getSubfield('d').getData();
 				String subfieldW = curItem.getSubfield('w').getData();
 				String[] econtentData = subfieldW.split("\\s?:\\s?");
 				String protectionType = econtentData[1].toLowerCase().trim();
+				String sharing;
+				if (econtentData.length > 2) {
+					sharing = econtentData[2].toLowerCase().trim();
+				}else{
+					if (locationCode.startsWith("mdl")){
+						sharing = "shared";
+					}else{
+						sharing = "library";
+					}
+				}
 				if (protectionType.equals("acs") || protectionType.equals("drm") || protectionType.equals("public domain") || protectionType.equals("free")){
 					if (econtentData.length >= 4){
 						String filename = econtentData[3].trim().toLowerCase();
 						if (filename.indexOf('.') > 0){
 							String fileExtension = filename.substring(filename.lastIndexOf('.') + 1);
 							String translatedFormat = indexer.translateValue("econtent_itype_format", fileExtension);
-							result.add(translatedFormat);
+							addFormatToWorkOrSharedFormatCollection(groupedWork, result, locationCode, sharing, translatedFormat);
 						}else{
 							//For now we know these are folders of MP3 files
 							//TODO: Probably should actually open the folder to make sure that it contains MP3 files
 							String translatedFormat = indexer.translateValue("econtent_itype_format", "mp3");
-							result.add(translatedFormat);
+							addFormatToWorkOrSharedFormatCollection(groupedWork, result, locationCode, sharing, translatedFormat);
 						}
 					}else{
 						logger.warn("Filename for local econtent not specified " + subfieldW + " " + identifier);
@@ -398,12 +409,21 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					String iType = curItem.getSubfield(iTypeSubfield) == null ? null : curItem.getSubfield(iTypeSubfield).getData();
 					if (iType != null){
 						String translatedFormat = indexer.translateValue("econtent_itype_format", iType);
-						result.add(translatedFormat);
+						addFormatToWorkOrSharedFormatCollection(groupedWork, result, locationCode, sharing, translatedFormat);
 					}
 				}else{
 					logger.warn("Unknown protection type " + protectionType);
 				}
 			}
+		}
+	}
+
+	private void addFormatToWorkOrSharedFormatCollection(GroupedWorkSolr groupedWork, Set<String> result, String locationCode, String sharing, String translatedFormat) {
+		if (sharing.equals("shared")) {
+			result.add(translatedFormat);
+		}else{
+			//add the format to the work
+			groupedWork.addFormat(translatedFormat, getLibrarySubdomainsForLocationCode(locationCode), getRelatedLocationCodesForLocationCode(locationCode));
 		}
 	}
 

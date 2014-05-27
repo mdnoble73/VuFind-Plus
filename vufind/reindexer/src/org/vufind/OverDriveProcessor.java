@@ -116,7 +116,6 @@ public class OverDriveProcessor {
 				productRS.close();
 
 				loadOverDriveMetadata(groupedWork, productId);
-				loadOverDriveFormats(groupedWork, productId);
 				loadOverDriveLanguages(groupedWork, productId);
 				loadOverDriveSubjects(groupedWork, productId);
 				//Load availability
@@ -124,6 +123,8 @@ public class OverDriveProcessor {
 				ResultSet availabilityRS = getProductAvailabilityStmt.executeQuery();
 				HashSet<String> owningLibraries = new HashSet<String>();
 				HashSet<String> availableLibraries = new HashSet<String>();
+				HashSet<String> owningSubdomains = new HashSet<String>();
+				HashSet<String> owningLocations = new HashSet<String>();
 				HashSet<String> owningSubdomainsAndLocations = new HashSet<String>();
 				HashSet<String> availableSubdomainsAndLocations = new HashSet<String>();
 				while (availabilityRS.next()){
@@ -135,8 +136,10 @@ public class OverDriveProcessor {
 						owningLibraries.add("Shared Digital Collection");
 						owningLibraries.addAll(libraryMap.values());
 						owningSubdomainsAndLocations.addAll(subdomainMap.values());
+						owningSubdomains.addAll(subdomainMap.values());
 						for (Long curLibraryId : libraryMap.keySet()){
 							owningSubdomainsAndLocations.addAll(locationsForLibrary.get(curLibraryId));
+							owningLocations.addAll(locationsForLibrary.get(curLibraryId));
 						}
 						if (available){
 							availableLibraries.addAll(libraryMap.values());
@@ -149,6 +152,8 @@ public class OverDriveProcessor {
 						owningLibraries.add(libraryMap.get(libraryId));
 						owningSubdomainsAndLocations.add(subdomainMap.get(libraryId));
 						owningSubdomainsAndLocations.addAll(locationsForLibrary.get(libraryId));
+						owningSubdomains.add(subdomainMap.get(libraryId));
+						owningLocations.addAll(locationsForLibrary.get(libraryId));
 						if (available){
 							availableLibraries.add(libraryMap.get(libraryId));
 							availableSubdomainsAndLocations.add(subdomainMap.get(libraryId));
@@ -163,6 +168,8 @@ public class OverDriveProcessor {
 				groupedWork.addEContentProtectionType("Limited Access", owningSubdomainsAndLocations, new ArrayList<String>());
 				//TODO: Compatible ptypes should be based on the owning library
 				groupedWork.addCompatiblePType("all");
+
+				loadOverDriveFormats(groupedWork, productId, owningSubdomains, owningLocations);
 			}
 		} catch (SQLException e) {
 			logger.error("Error loading information from Database for overdrive title", e);
@@ -264,7 +271,7 @@ public class OverDriveProcessor {
 		languagesRS.close();
 	}
 
-	private void loadOverDriveFormats(GroupedWorkSolr groupedWork, Long productId) throws SQLException {
+	private void loadOverDriveFormats(GroupedWorkSolr groupedWork, Long productId, HashSet<String> owningSubdomains, HashSet<String> owningLocations) throws SQLException {
 		//Load formats
 		getProductFormatsStmt.setLong(1, productId);
 		ResultSet formatsRS = getProductFormatsStmt.executeQuery();
@@ -290,7 +297,7 @@ public class OverDriveProcessor {
 			}
 		}
 		//By default, formats are good for all locations
-		groupedWork.addFormats(formats, subdomainMap.values(), allLocationCodes);
+		groupedWork.addFormats(formats, owningSubdomains, owningLocations);
 		groupedWork.setFormatBoost(formatBoost);
 		groupedWork.addEContentDevices(eContentDevices);
 		formatsRS.close();

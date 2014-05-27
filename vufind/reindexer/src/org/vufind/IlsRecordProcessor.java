@@ -773,6 +773,15 @@ public abstract class IlsRecordProcessor {
 		groupedWork.addPopularity(popularity);
 	}
 
+	/**
+	 * Loads information about all formats that apply to the work
+	 *
+	 * @param groupedWork
+	 * @param record
+	 * @param identifier
+	 * @param printItems
+	 * @param econtentItems
+	 */
 	protected void loadFormatDetails(GroupedWorkSolr groupedWork, Record record, String identifier, List<DataField> printItems, List<DataField> econtentItems) {
 		Set<String> formats = loadFormats(groupedWork, record, identifier, printItems, econtentItems);
 		HashSet<String> translatedFormats = new HashSet<String>();
@@ -1680,7 +1689,7 @@ public abstract class IlsRecordProcessor {
 	/**
 	 * Determine Record Format(s)
 	 *
-	 * @return Set format of record
+	 * @return Set format of record that applies to all libraries
 	 */
 	public abstract Set<String> loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<DataField> printItems, List<DataField> econtentItems);
 

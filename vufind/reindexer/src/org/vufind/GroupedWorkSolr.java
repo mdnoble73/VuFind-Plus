@@ -649,6 +649,26 @@ public class GroupedWorkSolr {
 		}
 	}
 
+	public void addFormat(String format, Collection<String> relatedSubdomains, Collection<String> relatedLocations) {
+		this.formats.add(format);
+		for (String subdomain : relatedSubdomains){
+			HashSet<String> formatsForIdentifier = localizedFormats.get(subdomain);
+			if (formatsForIdentifier == null){
+				formatsForIdentifier = new HashSet<String>();
+				localizedFormats.put(subdomain, formatsForIdentifier);
+			}
+			formatsForIdentifier.add(format);
+		}
+		for (String locationCode : relatedLocations){
+			HashSet<String> formatsForIdentifier = localizedFormats.get(locationCode);
+			if (formatsForIdentifier == null){
+				formatsForIdentifier = new HashSet<String>();
+				localizedFormats.put(locationCode, formatsForIdentifier);
+			}
+			formatsForIdentifier.add(format);
+		}
+	}
+
 	public void addFormatCategories(HashSet<String> formatCategories) {
 		this.formatCategories.addAll(formatCategories);
 	}
