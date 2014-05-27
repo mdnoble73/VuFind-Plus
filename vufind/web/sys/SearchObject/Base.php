@@ -2088,20 +2088,22 @@ public function getNextPrevLinks(){
 							}
 
 							//Convert back to 1 based index
-							$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
-							$interface->assign('previousTitle', $previousRecord['title']);
-							if (strpos($previousRecord['id'], 'econtentRecord') === 0){
-								$interface->assign('previousType', 'EcontentRecord');
-								$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
-							}elseif (strpos($previousRecord['id'], 'list') === 0){
-								$interface->assign('previousType', 'MyAccount/MyList');
-								$interface->assign('previousId', str_replace('list', '', $previousRecord['id']));
-							}else if ($previousRecord['recordtype'] == 'grouped_work'){
-								$interface->assign('previousType', 'GroupedWork');
-								$interface->assign('previousId', $previousRecord['id']);
-							}else{
-								$interface->assign('previousType', 'Record');
-								$interface->assign('previousId', $previousRecord['id']);
+							if (isset($previousRecord)){
+								$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
+								$interface->assign('previousTitle', $previousRecord['title']);
+								if (strpos($previousRecord['id'], 'econtentRecord') === 0){
+									$interface->assign('previousType', 'EcontentRecord');
+									$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
+								}elseif (strpos($previousRecord['id'], 'list') === 0){
+									$interface->assign('previousType', 'MyAccount/MyList');
+									$interface->assign('previousId', str_replace('list', '', $previousRecord['id']));
+								}else if ($previousRecord['recordtype'] == 'grouped_work'){
+									$interface->assign('previousType', 'GroupedWork');
+									$interface->assign('previousId', $previousRecord['id']);
+								}else{
+									$interface->assign('previousType', 'Record');
+									$interface->assign('previousId', $previousRecord['id']);
+								}
 							}
 						}
 						if ($currentResultIndex + 1 < $searchObject->getResultTotal()){

@@ -1043,15 +1043,19 @@ class GroupedWorkDriver implements RecordInterface{
 	}
 
 	static function compareAvailabilityForRecords($a, $b){
-		if ($a['availableLocally'] && $b['availableLocally']){
-			if ($a['available'] && $b['available']){
+		$availableLocallyA = isset($a['availableLocally']) && $a['availableLocally'];
+		$availableLocallyB = isset($b['availableLocally']) && $b['availableLocally'];
+		if ($availableLocallyA && $availableLocallyB){
+			$availableA = isset($a['available']) && $a['available'];
+			$availableB = isset($b['available']) && $b['available'];
+			if ($availableA && $availableB){
 				return 0;
-			}elseif ($a['available']){
+			}elseif ($availableA){
 				return -1;
 			}else{
 				return 1;
 			}
-		}else if ($a['availableLocally']){
+		}else if ($availableLocallyA){
 			return -1;
 		}else{
 			return 1;
