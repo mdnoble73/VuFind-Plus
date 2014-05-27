@@ -8,7 +8,7 @@
  * Time: 2:32 PM
  */
 
-class MyResearch_SelectInterface extends Action{
+class MyAccount_SelectInterface extends Action{
 	function launch(){
 		global $interface;
 		global $user;
