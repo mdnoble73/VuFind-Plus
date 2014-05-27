@@ -76,7 +76,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 			groupedWork.addCollectionGroup(indexer.translateValue("collection_group", locationCode));
 			if (additionalCollections != null){
 				for (String additionalCollection : additionalCollections){
-					groupedWork.addAdditionalCollection(additionalCollection, indexer.translateValue(additionalCollection, locationCode));
+					groupedWork.addAdditionalCollection(additionalCollection, indexer.translateValue("collection_" + additionalCollection, locationCode));
 				}
 			}
 			ArrayList<String> subdomainsForLocation = getLibrarySubdomainsForLocationCode(locationCode);
