@@ -1,7 +1,7 @@
 
 <div id="headerLinksTopBar">
 
-<a href="http://library.nashville.org/getacard">Get a Card</a> | <a href="http://www.questionpoint.org/crs/servlet/org.oclc.admin.BuildForm?&institution=10447&type=1&language=1" class="languageBlockLink" target="_blank">Give Us Feedback</a>
+<a href="http://library.nashville.org/card/crd_getcard.asp">Get a Card</a> | <a href="http://www.questionpoint.org/crs/servlet/org.oclc.admin.BuildForm?&institution=10447&type=1&language=1" class="languageBlockLink" target="_blank">Give Us Feedback</a>
 
     <div id="loginBlock" class="alignright" style="text-align: right;">
         <div id="logoutOptions" class="logoutOptions" {if !$user} style="display: none;"{/if}>
