@@ -191,13 +191,20 @@ class Author_Home extends Action
 		$workIsbns = array();
 		foreach ($searchObject->getResultRecordSet() as $title){
 			$groupedWorkId = $title['id'];
-			$workIsbns = $title['isbn'];
-			if (count($workIsbns) > 0){
-				break;
+			if (isset($title['isbn'])){
+				if (is_array($title['isbn'])){
+					$workIsbns = $title['isbn'];
+				}else{
+					$workIsbns[] = $title['isbn'];
+				}
+
+				if (count($workIsbns) > 0){
+					break;
+				}
 			}
 		}
 
-		if (!is_null($workIsbns) && count($workIsbns) > 0){
+		if (count($workIsbns) > 0){
 			//Make sure to trim off any format information from the ISBN
 			$novelist = NovelistFactory::getNovelist();
 			$enrichment['novelist'] = $novelist->getSimilarAuthors($groupedWorkId, $workIsbns);
