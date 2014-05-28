@@ -46,6 +46,12 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 	private PreparedStatement getExistingNotInterestedStmt;
 	private PreparedStatement addNotInterestedStmt;
 	private String individualMarcPath;
+	private PreparedStatement getExistingMaterialsRequestStatusStmt;
+	private PreparedStatement addMaterialsRequestStatusStmt;
+	private PreparedStatement updateMaterialsRequestStatusStmt;
+	private PreparedStatement getExistingMaterialsRequestStmt;
+	private PreparedStatement addMaterialsRequestStmt;
+	private PreparedStatement updateMaterialsRequestStmt;
 
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Profile.Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
@@ -83,6 +89,19 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 				getExistingNotInterestedStmt = vufindConn.prepareStatement("SELECT * FROM user_not_interested where userId = ? AND groupedRecordPermanentId = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				addNotInterestedStmt = vufindConn.prepareStatement("INSERT INTO user_not_interested (userId, groupedRecordPermanentId, dateMarked) VALUES (?, ?, ?)");
 
+				getExistingMaterialsRequestStatusStmt = vufindConn.prepareStatement("SELECT * FROM materials_request_status WHERE description = ? AND libraryId = ?");
+				addMaterialsRequestStatusStmt = vufindConn.prepareStatement("INSERT INTO materials_request_status (description, isDefault, sendEmailToPatron, emailTemplate, isOpen, isPatronCancel, libraryId) VALUES (?, ?, ?, ?, ?, ?, ?)");
+				updateMaterialsRequestStatusStmt = vufindConn.prepareStatement("UPDATE materials_request_status SET isDefault = ?, sendEmailToPatron = ?, emailTemplate = ?, isOpen = ?, isPatronCancel = ? WHERE description = ? AND libraryId = ?");
+
+				getExistingMaterialsRequestStmt = vufindConn.prepareStatement("SELECT * FROM materials_request WHERE createdBy = ? and dateCreated = ?");
+				addMaterialsRequestStmt = vufindConn.prepareStatement("INSERT INTO materials_request (title, author, format, ageLevel, isbn, oclcNumber, publisher, publicationYear, articleInfo, abridged, about, comments, status, dateCreated, createdBy, dateUpdated, emailSent, holdsCreated, email, phone, season, magazineTitle, upc, issn, bookType, subFormat, magazineDate, magazineVolume, magazinePageNumbers, placeHoldWhenAvailable, holdPickupLocation, bookmobileStop, illItem, magazineNumber) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+				updateMaterialsRequestStmt = vufindConn.prepareStatement("UPDATE materials_request SET title = ?, author = ?, format = ?, ageLevel = ?, isbn = ?, oclcNumber = ?, publisher = ?, publicationYear = ?, articleInfo = ?, abridged = ?, about = ?, comments = ?, status = ?, dateUpdated = ?, emailSent = ?, holdsCreated = ?, email = ?, phone = ?, season = ?, magazineTitle = ?, upc = ?, issn = ?, bookType = ?, subFormat = ?, magazineDate = ?, magazineVolume = ?, magazinePageNumbers = ?, placeHoldWhenAvailable = ?, holdPickupLocation = ?, bookmobileStop = ?, illItem = ?, magazineNumber = ? WHERE dateCreated = ? AND createdBy = ?");
+
+				synchronizeMaterialsRequests();
+				//TODO:  Editorial Reviews
+				//synchronizeEditorialReviews();
+				//TODO: eContent Ratings
+				//synchronizeEContentRatings();
 				synchronizeNotInterested();
 				synchronizeRatingsAndReviews();
 				synchronizeLists();
@@ -97,6 +116,167 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 		}finally{
 			processLog.setFinished();
 			processLog.saveToDatabase(vufindConn, logger);
+		}
+	}
+
+	private void synchronizeMaterialsRequests() {
+		try{
+			//Synchronize statuses
+			PreparedStatement getMaterialsRequestStatusesVuFind2013 = vufind2013connection.prepareStatement("SELECT * FROM materials_request_status");
+			ResultSet materialsRequestStatusesVuFind2013 = getMaterialsRequestStatusesVuFind2013.executeQuery();
+			while (materialsRequestStatusesVuFind2013.next()){
+				String description = materialsRequestStatusesVuFind2013.getString("description");
+				Long libraryId = materialsRequestStatusesVuFind2013.getLong("libraryId");
+				//Check to see if the status exists already
+				getExistingMaterialsRequestStatusStmt.setString(1, description);
+				getExistingMaterialsRequestStatusStmt.setLong(2, libraryId);
+				ResultSet existingMaterialsRequestStatusRS = getExistingMaterialsRequestStatusStmt.executeQuery();
+				if (existingMaterialsRequestStatusRS.next()){
+					updateMaterialsRequestStatusStmt.setLong(1, materialsRequestStatusesVuFind2013.getLong("isDefault"));
+					updateMaterialsRequestStatusStmt.setLong(2, materialsRequestStatusesVuFind2013.getLong("sendEmailToPatron"));
+					updateMaterialsRequestStatusStmt.setString(3, materialsRequestStatusesVuFind2013.getString("emailTemplate"));
+					updateMaterialsRequestStatusStmt.setLong(4, materialsRequestStatusesVuFind2013.getLong("isOpen"));
+					updateMaterialsRequestStatusStmt.setLong(5, materialsRequestStatusesVuFind2013.getLong("isPatronCancel"));
+					updateMaterialsRequestStatusStmt.setString(6, description);
+					updateMaterialsRequestStatusStmt.setLong(7, libraryId);
+					int rowsUpdated = updateMaterialsRequestStatusStmt.executeUpdate();
+					if (rowsUpdated == 0){
+						logger.warn("No rows updated when updating materials request status " + description + " " + libraryId);
+					}
+				}else{
+					addMaterialsRequestStatusStmt.setString(1, description);
+					addMaterialsRequestStatusStmt.setLong(2, materialsRequestStatusesVuFind2013.getLong("isDefault"));
+					addMaterialsRequestStatusStmt.setLong(3, materialsRequestStatusesVuFind2013.getLong("sendEmailToPatron"));
+					addMaterialsRequestStatusStmt.setString(4, materialsRequestStatusesVuFind2013.getString("emailTemplate"));
+					addMaterialsRequestStatusStmt.setLong(5, materialsRequestStatusesVuFind2013.getLong("isOpen"));
+					addMaterialsRequestStatusStmt.setLong(6, materialsRequestStatusesVuFind2013.getLong("isPatronCancel"));
+					addMaterialsRequestStatusStmt.setLong(7, libraryId);
+					int rowsUpdated = addMaterialsRequestStatusStmt.executeUpdate();
+					if (rowsUpdated == 0){
+						logger.warn("No rows added when adding materials request status " + description + " " + libraryId);
+					}
+				}
+			}
+			materialsRequestStatusesVuFind2013.close();
+
+			//Synchronize requests
+			PreparedStatement getMaterialsRequestsVuFind2013 = vufind2013connection.prepareStatement("SELECT username, materials_request.*, materials_request_status.description as statusName, materials_request_status.libraryId  FROM materials_request INNER JOIN user on createdBy = user.id INNER JOIN materials_request_status ON status = materials_request_status.id");
+			ResultSet materialsRequestsVuFind2013 = getMaterialsRequestsVuFind2013.executeQuery();
+			while (materialsRequestsVuFind2013.next()){
+				String createdByUser = materialsRequestsVuFind2013.getString("username");
+				Long dateCreated = materialsRequestsVuFind2013.getLong("dateCreated");
+				Long dateUpdated = materialsRequestsVuFind2013.getLong("dateUpdated");
+
+				//Synchronize the user so we have the new user id
+				Long vufind2014User = synchronizeUser(createdByUser);
+				//Get the status for the request
+				String oldStatusName = materialsRequestsVuFind2013.getString("statusName");
+				Long oldLibraryId = materialsRequestsVuFind2013.getLong("libraryId");
+				getExistingMaterialsRequestStatusStmt.setString(1, oldStatusName);
+				getExistingMaterialsRequestStatusStmt.setLong(2, oldLibraryId);
+				ResultSet materialsRequestStatus = getExistingMaterialsRequestStatusStmt.executeQuery();
+				Long vuFind2014RequestStatus;
+				if (materialsRequestStatus.next()){
+					vuFind2014RequestStatus = materialsRequestStatus.getLong("id");
+				} else{
+					logger.warn("The status for the request has not been properly migrated!");
+					continue;
+				}
+				materialsRequestStatus.close();
+
+				//Check to see if we already have a request created by that user
+				getExistingMaterialsRequestStmt.setLong(1, vufind2014User);
+				getExistingMaterialsRequestStmt.setLong(2, dateCreated);
+				ResultSet existingMaterialsRequestRS = getExistingMaterialsRequestStmt.executeQuery();
+				if (existingMaterialsRequestRS.next()){
+					//Just check to see if the status changed.
+					if (existingMaterialsRequestRS.getLong("dateUpdated") < dateUpdated){
+						//The request was updated in VuFind 2013, need to update in VuFind 2014
+						updateMaterialsRequestStmt.setString(1, materialsRequestsVuFind2013.getString("title"));
+						updateMaterialsRequestStmt.setString(2, materialsRequestsVuFind2013.getString("author"));
+						updateMaterialsRequestStmt.setString(3, materialsRequestsVuFind2013.getString("format"));
+						updateMaterialsRequestStmt.setString(4, materialsRequestsVuFind2013.getString("ageLevel"));
+						updateMaterialsRequestStmt.setString(5, materialsRequestsVuFind2013.getString("isbn"));
+						updateMaterialsRequestStmt.setString(6, materialsRequestsVuFind2013.getString("oclcNumber"));
+						updateMaterialsRequestStmt.setString(7, materialsRequestsVuFind2013.getString("publisher"));
+						updateMaterialsRequestStmt.setString(8, materialsRequestsVuFind2013.getString("publicationYear"));
+						updateMaterialsRequestStmt.setString(9, materialsRequestsVuFind2013.getString("articleInfo"));
+						updateMaterialsRequestStmt.setLong(10, materialsRequestsVuFind2013.getLong("abridged"));
+						updateMaterialsRequestStmt.setString(11, materialsRequestsVuFind2013.getString("about"));
+						updateMaterialsRequestStmt.setString(12, materialsRequestsVuFind2013.getString("comments"));
+						updateMaterialsRequestStmt.setLong(13, vuFind2014RequestStatus);
+						updateMaterialsRequestStmt.setLong(14, materialsRequestsVuFind2013.getLong("dateUpdated"));
+						updateMaterialsRequestStmt.setLong(15, materialsRequestsVuFind2013.getLong("emailSent"));
+						updateMaterialsRequestStmt.setLong(16, materialsRequestsVuFind2013.getLong("holdsCreated"));
+						updateMaterialsRequestStmt.setString(17, materialsRequestsVuFind2013.getString("email"));
+						updateMaterialsRequestStmt.setString(18, materialsRequestsVuFind2013.getString("phone"));
+						updateMaterialsRequestStmt.setString(19, materialsRequestsVuFind2013.getString("season"));
+						updateMaterialsRequestStmt.setString(20, materialsRequestsVuFind2013.getString("magazineTitle"));
+						updateMaterialsRequestStmt.setString(21, materialsRequestsVuFind2013.getString("upc"));
+						updateMaterialsRequestStmt.setString(22, materialsRequestsVuFind2013.getString("issn"));
+						updateMaterialsRequestStmt.setString(23, materialsRequestsVuFind2013.getString("bookType"));
+						updateMaterialsRequestStmt.setString(24, materialsRequestsVuFind2013.getString("subFormat"));
+						updateMaterialsRequestStmt.setString(25, materialsRequestsVuFind2013.getString("magazineDate"));
+						updateMaterialsRequestStmt.setString(26, materialsRequestsVuFind2013.getString("magazineVolume"));
+						updateMaterialsRequestStmt.setString(27, materialsRequestsVuFind2013.getString("magazinePageNumbers"));
+						updateMaterialsRequestStmt.setLong(28, materialsRequestsVuFind2013.getLong("placeHoldWhenAvailable"));
+						updateMaterialsRequestStmt.setLong(29, materialsRequestsVuFind2013.getLong("holdPickupLocation"));
+						updateMaterialsRequestStmt.setString(30, materialsRequestsVuFind2013.getString("bookmobileStop"));
+						updateMaterialsRequestStmt.setLong(31, materialsRequestsVuFind2013.getLong("illItem"));
+						updateMaterialsRequestStmt.setString(32, materialsRequestsVuFind2013.getString("magazineNumber"));
+						updateMaterialsRequestStmt.setLong(33, materialsRequestsVuFind2013.getLong("dateCreated"));
+						updateMaterialsRequestStmt.setLong(34, vufind2014User);
+						int numAdded = updateMaterialsRequestStmt.executeUpdate();
+						if (numAdded != 1){
+							logger.warn("Could not update materials request for " + createdByUser + " created on " + dateCreated);
+						}
+					}
+				}else{
+					//Insert the request
+					addMaterialsRequestStmt.setString(1, materialsRequestsVuFind2013.getString("title"));
+					addMaterialsRequestStmt.setString(2, materialsRequestsVuFind2013.getString("author"));
+					addMaterialsRequestStmt.setString(3, materialsRequestsVuFind2013.getString("format"));
+					addMaterialsRequestStmt.setString(4, materialsRequestsVuFind2013.getString("ageLevel"));
+					addMaterialsRequestStmt.setString(5, materialsRequestsVuFind2013.getString("isbn"));
+					addMaterialsRequestStmt.setString(6, materialsRequestsVuFind2013.getString("oclcNumber"));
+					addMaterialsRequestStmt.setString(7, materialsRequestsVuFind2013.getString("publisher"));
+					addMaterialsRequestStmt.setString(8, materialsRequestsVuFind2013.getString("publicationYear"));
+					addMaterialsRequestStmt.setString(9, materialsRequestsVuFind2013.getString("articleInfo"));
+					addMaterialsRequestStmt.setLong(10, materialsRequestsVuFind2013.getLong("abridged"));
+					addMaterialsRequestStmt.setString(11, materialsRequestsVuFind2013.getString("about"));
+					addMaterialsRequestStmt.setString(12, materialsRequestsVuFind2013.getString("comments"));
+					addMaterialsRequestStmt.setLong(13, vuFind2014RequestStatus);
+					addMaterialsRequestStmt.setLong(14, materialsRequestsVuFind2013.getLong("dateCreated"));
+					addMaterialsRequestStmt.setLong(15, vufind2014User);
+					addMaterialsRequestStmt.setLong(16, materialsRequestsVuFind2013.getLong("dateUpdated"));
+					addMaterialsRequestStmt.setLong(17, materialsRequestsVuFind2013.getLong("emailSent"));
+					addMaterialsRequestStmt.setLong(18, materialsRequestsVuFind2013.getLong("holdsCreated"));
+					addMaterialsRequestStmt.setString(19, materialsRequestsVuFind2013.getString("email"));
+					addMaterialsRequestStmt.setString(20, materialsRequestsVuFind2013.getString("phone"));
+					addMaterialsRequestStmt.setString(21, materialsRequestsVuFind2013.getString("season"));
+					addMaterialsRequestStmt.setString(22, materialsRequestsVuFind2013.getString("magazineTitle"));
+					addMaterialsRequestStmt.setString(23, materialsRequestsVuFind2013.getString("upc"));
+					addMaterialsRequestStmt.setString(24, materialsRequestsVuFind2013.getString("issn"));
+					addMaterialsRequestStmt.setString(25, materialsRequestsVuFind2013.getString("bookType"));
+					addMaterialsRequestStmt.setString(26, materialsRequestsVuFind2013.getString("subFormat"));
+					addMaterialsRequestStmt.setString(27, materialsRequestsVuFind2013.getString("magazineDate"));
+					addMaterialsRequestStmt.setString(28, materialsRequestsVuFind2013.getString("magazineVolume"));
+					addMaterialsRequestStmt.setString(29, materialsRequestsVuFind2013.getString("magazinePageNumbers"));
+					addMaterialsRequestStmt.setLong(30, materialsRequestsVuFind2013.getLong("placeHoldWhenAvailable"));
+					addMaterialsRequestStmt.setLong(31, materialsRequestsVuFind2013.getLong("holdPickupLocation"));
+					addMaterialsRequestStmt.setString(32, materialsRequestsVuFind2013.getString("bookmobileStop"));
+					addMaterialsRequestStmt.setLong(33, materialsRequestsVuFind2013.getLong("illItem"));
+					addMaterialsRequestStmt.setString(34, materialsRequestsVuFind2013.getString("magazineNumber"));
+					int numAdded = addMaterialsRequestStmt.executeUpdate();
+					if (numAdded != 1){
+						logger.warn("Could not insert materials request for " + createdByUser + " created on " + dateCreated);
+					}
+				}
+				existingMaterialsRequestRS.close();
+			}
+			materialsRequestsVuFind2013.close();
+		} catch (Exception e){
+			logger.error("Error synchronizing materials requests information");
 		}
 	}
 
