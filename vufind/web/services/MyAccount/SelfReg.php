@@ -20,31 +20,26 @@
 
 require_once ROOT_DIR . "/Action.php";
 
-class SelfReg extends Action
-{
-    protected $catalog;
-    
-    function __construct()
-    {
-        global $configArray;
-        // Connect to Catalog
-        $this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
-    }
+class SelfReg extends Action {
+	protected $catalog;
 
-    function launch($msg = null)
-    {
-        global $interface;
-        global $configArray;
-        
-        if (isset($_REQUEST['submit'])){
-            //Submit the form to classic millennium
-            $result = $this->catalog->selfRegister();
-            $interface->assign('selfRegResult', $result);
-        }
+	function __construct() {
+		global $configArray;
+		// Connect to Catalog
+		$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+	}
 
-        $interface->setTemplate('selfReg.tpl');
-        $interface->display('layout.tpl');
-    }
+	function launch($msg = null) {
+		global $interface;
+
+		if (isset($_REQUEST['submit'])) {
+			//Submit the form to classic millennium
+			$result = $this->catalog->selfRegister();
+			$interface->assign('selfRegResult', $result);
+		}
+
+		$interface->setTemplate('selfReg.tpl');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
+		$interface->display('layout.tpl');
+	}
 }
-
-?>

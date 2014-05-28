@@ -45,7 +45,7 @@
 				</div>
 
 				{if $enableSelfRegistration == 1}
-					<a href='{$path}/MyResearch/SelfReg'>Register for a new Library Card</a>
+					<a href='{$path}/MyAccount/SelfReg'>Register for a new Library Card</a>
 				{/if}
 
 			</div>

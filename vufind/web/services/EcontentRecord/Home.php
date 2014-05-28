@@ -18,7 +18,6 @@
  *
  */
 
-require_once ROOT_DIR . '/services/Record/UserComments.php';
 require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
 
@@ -62,7 +61,6 @@ class EcontentRecord_Home extends Action{
 		$timer->logTime('Configure UI for library and location');
 
 		$interface->assign('overDriveVersion', isset($configArray['OverDrive']['interfaceVersion']) ? $configArray['OverDrive']['interfaceVersion'] : 1);
-		Record_UserComments::loadEContentComments();
 		$timer->logTime('Loaded Comments');
 
 		$eContentRecord = new EContentRecord();
