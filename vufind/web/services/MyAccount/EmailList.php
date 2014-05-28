@@ -26,26 +26,27 @@ require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
 class EmailList extends Action {
 	function launch() {
 		global $interface;
-		global $configArray;
 
 		if (isset($_POST['submit'])) {
 			$result = $this->sendEmail($_POST['to'], $_POST['from'], $_POST['message']);
 			if (!PEAR_Singleton::isError($result)) {
 				require_once 'MyList.php';
 				$_GET['id'] = $_REQUEST['listId'];
-				MyList::launch();
+				MyAccount_MyList::launch();
 				exit();
 			} else {
 				$interface->assign('message', $result->getMessage());
 			}
+		}else{
+			// Display Page
+			$interface->assign('listId', strip_tags($_REQUEST['id']));
+			$formDefinition = array(
+					'title' => 'Email a list',
+					'modalBody' => $interface->fetch('MyAccount/emailListPopup.tpl'),
+					'modalButtons' => "<input type='submit' name='submit' value='Send' class='btn btn-primary' onclick='$(\"#emailListForm\").submit()'/>"
+			);
+			echo json_encode($formDefinition);
 		}
-
-		// Display Page
-		$interface->assign('listId', strip_tags($_REQUEST['id']));
-		$interface->assign('popupTitle', 'Email a list');
-		$pageContent = $interface->fetch('MyResearch/emailListPopup.tpl');
-		$interface->assign('popupContent', $pageContent);
-		echo $interface->fetch('popup-wrapper.tpl');
 	}
 
 	function sendEmail($to, $from, $message) {

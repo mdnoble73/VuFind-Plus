@@ -18,11 +18,11 @@
  *
  */
 
-require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
 
-class SaveSearch extends MyResearch
+class SaveSearch extends MyAccount
 {
 	function launch()
 	{

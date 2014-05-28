@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/CatalogConnection.php';
 
 require_once ROOT_DIR . '/Action.php';
 
-class MyResearch_HoldMultiple extends Action
+class MyAccount_HoldMultiple extends Action
 {
 	/** @var  CatalogConnection */
 	var $catalog;

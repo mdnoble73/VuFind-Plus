@@ -18,9 +18,9 @@
  *
  */
 
-require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 
-class EContentHolds extends MyResearch {
+class EContentHolds extends MyAccount {
 	function launch(){
 		global $configArray;
 		global $interface;

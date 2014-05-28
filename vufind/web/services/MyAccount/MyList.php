@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
-require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 
 /**
  * This class does not use MyResearch base class (we don't need to connect to
@@ -28,7 +28,7 @@ require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
  * allow public lists to work properly).
  * @version  $Revision$
  */
-class MyList extends MyResearch {
+class MyAccount_MyList extends MyAccount {
 	function __construct(){
 		$this->requireLogin = false;
 		parent::__construct();

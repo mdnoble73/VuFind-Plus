@@ -990,43 +990,93 @@ class GroupedWorkDriver implements RecordInterface{
 	}
 
 	static function compareRelatedRecords($a, $b){
-		$formatComparison = strcasecmp($a['format'], $b['format']);
-		if ($formatComparison == 0){
-			//Compare editions if available
-			$editionComparisonResult = GroupedWorkDriver::compareEditionsForRecords($a, $b);
-			if ($editionComparisonResult == 0){
-				//Put anything with a local copy higher
-				$localItemComparisonResult = GroupedWorkDriver::compareLocalItemsForRecords($a, $b);
-				if ($localItemComparisonResult == 0){
-					//Anything that is available goes higher
-					$availabilityComparisonResults = GroupedWorkDriver::compareAvailabilityForRecords($a, $b);
-					if ($availabilityComparisonResults == 0){
-						//All else being equal, sort by hold ratio
-						if ($a['holdRatio'] == $b['holdRatio']){
-							//Hold Ratio is the same, last thing to check is the number of copies
-							if ($a['copies'] == $b['copies']){
-								return 0;
-							}elseif ($a['copies'] > $b['copies']){
+		//Put english titles before spanish by default
+		$languageComparison = GroupedWorkDriver::compareLanguagesForRecords($a, $b);
+		if ($languageComparison == 0){
+			$formatComparison = strcasecmp($a['format'], $b['format']);
+			if ($formatComparison == 0){
+				//Compare editions if available
+				$editionComparisonResult = GroupedWorkDriver::compareEditionsForRecords($a, $b);
+				if ($editionComparisonResult == 0){
+					//Put anything with a local copy higher
+					$localItemComparisonResult = GroupedWorkDriver::compareLocalItemsForRecords($a, $b);
+					if ($localItemComparisonResult == 0){
+						//Anything that is available goes higher
+						$availabilityComparisonResults = GroupedWorkDriver::compareAvailabilityForRecords($a, $b);
+						if ($availabilityComparisonResults == 0){
+							//All else being equal, sort by hold ratio
+							if ($a['holdRatio'] == $b['holdRatio']){
+								//Hold Ratio is the same, last thing to check is the number of copies
+								if ($a['copies'] == $b['copies']){
+									return 0;
+								}elseif ($a['copies'] > $b['copies']){
+									return -1;
+								}else{
+									return 1;
+								}
+							}elseif ($a['holdRatio'] > $b['holdRatio']){
 								return -1;
 							}else{
 								return 1;
 							}
-						}elseif ($a['holdRatio'] > $b['holdRatio']){
-							return -1;
 						}else{
-							return 1;
+							return $availabilityComparisonResults;
 						}
 					}else{
-						return $availabilityComparisonResults;
+						return $localItemComparisonResult;
 					}
 				}else{
-					return $localItemComparisonResult;
+					return $editionComparisonResult;
 				}
 			}else{
-				return $editionComparisonResult;
+				return $formatComparison;
+			}
+		}else {
+			return $languageComparison;
+		}
+	}
+
+	static function compareLanguagesForRecords($a, $b){
+		$aHasEnglish = false;
+		if (is_array($a['language'])){
+			$languageA = strtolower(reset($a['language']));
+			foreach ($a['language'] as $language){
+				if (strcasecmp('english', $language) == 0){
+					$aHasEnglish = true;
+					break;
+				}
 			}
 		}else{
-			return $formatComparison;
+			$languageA = strtolower($a['language']);
+			if (strcasecmp('english', $languageA) == 0){
+				$aHasEnglish = true;
+			}
+		}
+		$bHasEnglish = false;
+		if (is_array($b['language'])){
+			$languageB = strtolower(reset($b['language']));
+			foreach ($b['language'] as $language){
+				if (strcasecmp('english', $language) == 0){
+					$bHasEnglish = true;
+					break;
+				}
+			}
+		}else{
+			$languageB = strtolower($b['language']);
+			if (strcasecmp('english', $languageB) == 0){
+				$bHasEnglish = true;
+			}
+		}
+		if ($aHasEnglish && $bHasEnglish){
+			return 0;
+		}else{
+			if ($aHasEnglish){
+				return -1;
+			}else if ($bHasEnglish){
+				return 1;
+			}else{
+				return -strcmp($languageA, $languageB);
+			}
 		}
 	}
 

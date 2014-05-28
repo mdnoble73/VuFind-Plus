@@ -18,11 +18,11 @@
  *
  */
 
-require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 
 require_once 'Structures/DataGrid.php';
 
-class Fines extends MyResearch
+class Fines extends MyAccount
 {
 	function launch()
 	{

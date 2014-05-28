@@ -18,10 +18,10 @@
  *
  */
 
-require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
-class ReadingHistory extends MyResearch
+class ReadingHistory extends MyAccount
 {
 	function launch()
 	{

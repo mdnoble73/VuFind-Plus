@@ -68,7 +68,7 @@ function suspendSelectedEContentHolds(){
 		alert("Please select the date when the hold should be reactivated.");
 		return false;
 	}
-	var url = path + '/MyResearch/EContentHolds?multiAction=suspendSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
+	var url = path + '/MyAccount/Holds?multiAction=suspendSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
 	window.location = url;
 	return false;
 }

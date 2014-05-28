@@ -1,7 +1,7 @@
 {strip}
 	<form action="{$path}/MyAccount/MyList/{$favList->id}" id="myListFormHead">
 		<div>
-			<input type="hidden" name="myListActionHead" id="myListActionHead"/>
+			<input type="hidden" name="myListActionHead" id="myListActionHead" class="form"/>
 			<h3 id='listTitle'><span class="silk list">&nbsp;</span>{$favList->title|escape:"html"}</h3>
 			{if $notes}
 				<div id="listNotes">
@@ -17,31 +17,42 @@
 				{if $favList->description}<div class="listDescription alignleft" id="listDescription">{$favList->description|escape}</div>{/if}
 				{if $allowEdit}
 					<div id='listEditControls' style="display:none">
-						<label for='listTitleEdit'>Title: </label><br />
-						<input type='text' id='listTitleEdit' name='newTitle' value="{$favList->title|escape:"html"}" maxlength="255" size="80"/><br />
-						<label for='listDescriptionEdit'>Description: </label><br />
-						<textarea name='newDescription' id='listDescriptionEdit' rows="3" cols="80">{$favList->description|escape:"html"}</textarea>
+						<label for='listTitleEdit' class="control-label">Title: </label>
+						<input type='text' id='listTitleEdit' name='newTitle' value="{$favList->title|escape:"html"}" maxlength="255" size="80" class="form-control"/>
+						<label for='listDescriptionEdit' class="control-label">Description: </label>
+						<textarea name='newDescription' id='listDescriptionEdit' rows="3" cols="80" class="form-control">{$favList->description|escape:"html"}</textarea>
+						<br/>
 					</div>
 				{/if}
 				<div class="clearer"></div>
-				<div id='listTopButtons' class="btn-group btn-group-sm">
+				<div id='listTopButtons' class="btn-toolbar">
 					{if $allowEdit}
-						<button value="editList" id="FavEdit" class="btn btn-sm btn-default" onclick='return VuFind.Lists.editListAction()'>Edit List</button>
-						<button value="batchAdd" id="FavBatchAdd" class="btn btn-sm btn-default" onclick='return VuFind.Lists.batchAddToListAction({$favList->id})'>Batch Add Titles</button>
-						<button value="saveList" id="FavSave" class="btn btn-sm btn-default" style="display:none" onclick='return VuFind.Lists.updateListAction()'>Save Changes</button>
-						{if $favList->public == 0}
-							<button value="makePublic" id="FavPublic" class="btn btn-sm btn-default" onclick='return VuFind.Lists.makeListPublicAction()'>Make Public</button>
-						{else}
-							<button value="makePrivate" id="FavPrivate" class="btn btn-sm btn-default" onclick='return VuFind.Lists.makeListPrivateAction()'>Make Private</button>
-							{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
-								&nbsp;&nbsp;<a href="#" class="button btn btn-sm btn-default" id="FavCreateWidget" onclick="return VuFind.Lists.createWidgetFromList('{$favList->id}')">Create Widget</a>
+						<div class="btn-group">
+							<button value="editList" id="FavEdit" class="btn btn-sm btn-info" onclick='return VuFind.Lists.editListAction()'>Edit List</button>
+							<button value="saveList" id="FavSave" class="btn btn-sm btn-primary" style="display:none" onclick='return VuFind.Lists.updateListAction()'>Save Changes</button>
+						</div>
+						<div class="btn-group">
+							<button value="batchAdd" id="FavBatchAdd" class="btn btn-sm btn-default" onclick='return VuFind.Lists.batchAddToListAction({$favList->id})'>Batch Add Titles</button>
+							{if $favList->public == 0}
+								<button value="makePublic" id="FavPublic" class="btn btn-sm btn-default" onclick='return VuFind.Lists.makeListPublicAction()'>Make Public</button>
+							{else}
+								<button value="makePrivate" id="FavPrivate" class="btn btn-sm btn-default" onclick='return VuFind.Lists.makeListPrivateAction()'>Make Private</button>
+								{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('contentEditor'))}
+									&nbsp;&nbsp;<a href="#" class="button btn btn-sm btn-default" id="FavCreateWidget" onclick="return VuFind.Lists.createWidgetFromList('{$favList->id}')">Create Widget</a>
+								{/if}
 							{/if}
-						{/if}
-						<button value="deleteList" id="FavDelete" class="btn btn-sm btn-default" onclick='return VuFind.Lists.deleteListAction()'>Delete List</button>
+						</div>
 					{/if}
-					<button value="emailList" id="FavEmail" class="btn btn-sm btn-default" onclick='return VuFind.Lists.emailListAction("{$favList->id}")'>Email List</button>
-					<button value="printList" id="FavPrint" class="btn btn-sm btn-default" onclick='return VuFind.Lists.printListAction();'>Print List</button>
-					<button value="citeList" id="FavCite" class="btn btn-sm btn-default" onclick='return VuFind.Lists.citeListAction("{$favList->id}");'>Generate Citations</button>
+					<div class="btn-group">
+						<button value="emailList" id="FavEmail" class="btn btn-sm btn-default" onclick='return VuFind.Lists.emailListAction("{$favList->id}")'>Email List</button>
+						<button value="printList" id="FavPrint" class="btn btn-sm btn-default" onclick='return VuFind.Lists.printListAction();'>Print List</button>
+						<button value="citeList" id="FavCite" class="btn btn-sm btn-default" onclick='return VuFind.Lists.citeListAction("{$favList->id}");'>Generate Citations</button>
+					</div>
+					{if $favList->public != 0}
+						<div class="btn-group">
+							<button value="deleteList" id="FavDelete" class="btn btn-sm btn-warning" onclick='return VuFind.Lists.deleteListAction()'>Delete List</button>
+						</div>
+					{/if}
 				</div>
 			{/if}
 		</div>

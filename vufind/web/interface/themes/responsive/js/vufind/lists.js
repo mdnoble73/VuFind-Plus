@@ -68,7 +68,7 @@ VuFind.Lists = (function(){
 		},
 
 		SendMyListEmail: function (to, from, message, id, strings) {
-			var url = Globals.path + "/MyResearch/EmailList";
+			var url = Globals.path + "/MyAccount/EmailList";
 			var params = "method=SendEmail&" + "url=" + URLEncode(window.location.href) + "&" + "from=" + encodeURIComponent(from) + "&" + "to=" + encodeURIComponent(to)
 					+ "&" + "message=" + encodeURIComponent(message) + "&listId=" + id;
 			sendAJAXEmail(url, params, strings);

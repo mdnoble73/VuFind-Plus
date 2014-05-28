@@ -23,7 +23,7 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
-class ListEdit extends Action
+class MyAccount_ListEdit extends Action
 {
 	private $user;
 
@@ -35,7 +35,6 @@ class ListEdit extends Action
 	function launch()
 	{
 		global $interface;
-		global $configArray;
 
 		// Depending on context, we may get the record ID that initiated the "add
 		// list" action in a couple of different places -- make sure we check all
@@ -54,7 +53,8 @@ class ListEdit extends Action
 				return $interface->fetch('AJAX/login.tpl');
 			} else {
 				require_once ROOT_DIR . '/services/MyAccount/Login.php';
-				MyAccount_Login::launch();
+				$loginAction = new MyAccount_Login();
+				$loginAction->launch();
 			}
 			exit();
 		}
@@ -99,8 +99,8 @@ class ListEdit extends Action
 			$list->insert();
 			$list->find();
 			return $list->id;
+		}else{
+			return false;
 		}
 	}
-
 }
-?>

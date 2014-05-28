@@ -7,9 +7,9 @@
  * Date: 10/10/13
  * Time: 1:11 PM
  */
-require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Suggestions.php';
-class MyAccount_Home  extends MyResearch{
+class MyAccount_Home  extends MyAccount{
 	function launch(){
 		global $configArray;
 		global $interface;

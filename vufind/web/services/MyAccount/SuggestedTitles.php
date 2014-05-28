@@ -18,7 +18,7 @@
  *
  */
 
-require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Suggestions.php';
 
@@ -29,7 +29,7 @@ require_once ROOT_DIR . '/services/MyResearch/lib/Suggestions.php';
  *
  * @version  $Revision: 1.27 $
  */
-class SuggestedTitles extends MyResearch
+class SuggestedTitles extends MyAccount
 {
 
 	function launch()

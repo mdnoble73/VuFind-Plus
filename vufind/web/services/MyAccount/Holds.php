@@ -8,8 +8,8 @@
  * Time: 1:11 PM
  */
 
-require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
-class MyAccount_Holds extends MyResearch{
+require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
+class MyAccount_Holds extends MyAccount{
 	function launch()
 	{
 		global $configArray;

@@ -7,8 +7,8 @@
  * Date: 5/1/13
  * Time: 9:58 AM
  */
-require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
-class MyRatings extends MyResearch{
+require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
+class MyRatings extends MyAccount{
 	public function launch(){
 		global $interface;
 		global $user;

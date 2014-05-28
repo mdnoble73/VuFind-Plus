@@ -1,6 +1,6 @@
 <div id="page-content" class="content">
   <div id="sidebar">
-    {include file="MyResearch/menu.tpl"}
+    {include file="MyAccount/menu.tpl"}
     
     {include file="Admin/menu.tpl"}
   </div>

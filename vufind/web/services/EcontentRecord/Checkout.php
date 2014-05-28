@@ -102,7 +102,7 @@ class Checkout extends Action{
 
 			}else{
 				$logger->log('No referrer set, but there is a message to show, go to the main eContent page', PEAR_LOG_INFO);
-				header("Location: /MyResearch/EContentCheckedOut");
+				header("Location: /MyAccount/CheckedOut");
 			}
 		} else {
 			$logger->log('eContent checkout finished, do not need to show a message', PEAR_LOG_INFO);

@@ -1,5 +1,5 @@
 <div id="page-content" class="content">
-	<form name='placeHoldForm' id='placeHoldForm' action="{$path}/MyResearch/HoldMultiple" method="post">
+	<form name='placeHoldForm' id='placeHoldForm' action="{$path}/MyAccount/HoldMultiple" method="post">
 		<div>
 			<div class="holdsSummary">
 				<h3>Placing holds on <span id='newHoldCount'>{$ids|@count}</span> titles.</h3>

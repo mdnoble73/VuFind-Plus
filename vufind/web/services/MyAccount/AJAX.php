@@ -212,7 +212,6 @@ class MyAccount_AJAX {
 	{
 		require_once ROOT_DIR . '/Drivers/marmot_inc/Location.php';
 		global $configArray;
-		global $user;
 
 		try {
 			$catalog = new CatalogConnection($configArray['Catalog']['driver']);

@@ -8,8 +8,8 @@
  * Time: 10:35 PM
  */
 
-require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
-class ImportListsFromClassic extends MyResearch{
+require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
+class ImportListsFromClassic extends MyAccount{
 
 	/**
 	 * Process parameters and display the page.

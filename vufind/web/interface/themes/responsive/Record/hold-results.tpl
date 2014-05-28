@@ -1,7 +1,7 @@
 {strip}
 <div class="contents">
 	{if $hold_message_data.showItemForm}
-	<form action='{$path}/MyResearch/HoldItems' method="POST">
+	<form action='{$path}/MyAccount/HoldItems' method="POST">
 		<input type='hidden' name='campus' value='{$hold_message_data.campus}' />
 	{/if}
 	{if $hold_message_data.error}

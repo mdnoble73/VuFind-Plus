@@ -18,9 +18,9 @@
  *
  */
 
-require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 
-class MyAccount_Profile extends MyResearch
+class MyAccount_Profile extends MyAccount
 {
 	function launch()
 	{

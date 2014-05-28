@@ -8,8 +8,8 @@
  * Time: 1:10 PM
  */
 
-require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
-class MyAccount_CheckedOut extends MyResearch{
+require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
+class MyAccount_CheckedOut extends MyAccount{
 	function launch(){
 		global $configArray;
 		global $interface;

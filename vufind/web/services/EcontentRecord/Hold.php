@@ -104,7 +104,7 @@ class Hold extends Action{
 
 			}else{
 				$logger->log('No referrer set, but there is a message to show, go to the main holds page', PEAR_LOG_INFO);
-				header("Location: " . $configArray['Site']['path'] . '/MyResearch/EContentHolds?section=unavailable');
+				header("Location: " . $configArray['Site']['path'] . '/MyAccount/Holds?section=unavailable');
 			}
 		} else {
 			$logger->log('placeHold finished, do not need to show a message', PEAR_LOG_INFO);

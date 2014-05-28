@@ -24,7 +24,7 @@ require_once ROOT_DIR . '/CatalogConnection.php';
 
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 
-abstract class MyResearch extends Action
+abstract class MyAccount extends Action
 {
 	/** @var  SearchObject_Solr|SearchObject_Base */
 	protected $db;
@@ -42,7 +42,8 @@ abstract class MyResearch extends Action
 
 		if ($this->requireLogin && !UserAccount::isLoggedIn()) {
 			require_once ROOT_DIR . '/services/MyAccount/Login.php';
-			MyAccount_Login::launch();
+			$myAccountAction = new MyAccount_Login();
+			$myAccountAction->launch();
 			exit();
 		}
 		//$interface->assign('userNoticeFile', 'MyResearch/listNotice.tpl');
