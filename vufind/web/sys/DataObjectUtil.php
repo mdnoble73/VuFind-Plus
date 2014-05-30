@@ -368,10 +368,18 @@ class DataObjectUtil
 						foreach ($subStructure as $subProperty){
 							$requestKey = $propertyName . '_' . $subProperty['property'];
 							$subPropertyName = $subProperty['property'];
-							if (in_array($subProperty['type'], array('text', 'enum', 'date', 'integer', 'numeric') )){
+							if (in_array($subProperty['type'], array('text', 'enum', 'integer', 'numeric') )){
 								$subObject->$subPropertyName = $_REQUEST[$requestKey][$id];
 							}elseif (in_array($subProperty['type'], array('checkbox') )){
 								$subObject->$subPropertyName = isset($_REQUEST[$requestKey][$id]) ? 1 : 0;
+							}elseif ($subProperty['type'] == 'date'){
+								if (strlen($_REQUEST[$requestKey][$id]) == 0 || $_REQUEST[$requestKey][$id] == '0000-00-00'){
+									$subObject->$subPropertyName = null;
+								}else{
+									$dateParts = date_parse($_REQUEST[$requestKey][$id]);
+									$time = $dateParts['year'] . '-' . $dateParts['month'] . '-' . $dateParts['day'];
+									$subObject->$subPropertyName = $time;
+								}
 							}elseif (!in_array($subProperty['type'], array('label', 'foreignKey', 'oneToMany') )){
 								//echo("Invalid Property Type " . $subProperty['type']);
 							}
