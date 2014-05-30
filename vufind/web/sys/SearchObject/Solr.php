@@ -601,14 +601,16 @@ class SearchObject_Solr extends SearchObject_Base
 	{
 		//Marmot add shortIds without dot for use in display.
 		$recordSet = $this->indexResult['response']['docs'];
-		foreach ($recordSet as $key => $record){
-			//Trim off the dot from the start
-			$record['shortId'] = substr($record['id'], 1);
-			if (!$this->debug){
-				unset($record['explain']);
-				unset($record['score']);
+		if (is_array($recordSet)){
+			foreach ($recordSet as $key => $record){
+				//Trim off the dot from the start
+				$record['shortId'] = substr($record['id'], 1);
+				if (!$this->debug){
+					unset($record['explain']);
+					unset($record['score']);
+				}
+				$recordSet[$key] = $record;
 			}
-			$recordSet[$key] = $record;
 		}
 		return $recordSet;
 	}
