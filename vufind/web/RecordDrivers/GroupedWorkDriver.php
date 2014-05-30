@@ -956,7 +956,7 @@ class GroupedWorkDriver implements RecordInterface{
 			if (!$relatedManifestations[$curRecord['format']]['available'] && $curRecord['available']){
 				$relatedManifestations[$curRecord['format']]['available'] = $curRecord['available'];
 			}
-			if (!$relatedManifestations[$curRecord['format']]['inLibraryUseOnly'] && isset($curRecord['inLibraryUseOnly']) && $curRecord['inLibraryUseOnly']){
+			if (isset($curRecord['inLibraryUseOnly']) && $curRecord['inLibraryUseOnly']){
 				$relatedManifestations[$curRecord['format']]['inLibraryUseOnly'] = $curRecord['inLibraryUseOnly'];
 			}else{
 				$relatedManifestations[$curRecord['format']]['allLibraryUseOnly'] = false;
