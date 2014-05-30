@@ -18,6 +18,7 @@ import java.util.*;
  * Time: 3:00 PM
  */
 public class MarmotRecordProcessor extends IlsRecordProcessor {
+
 	/*private Connection econtentConn;
 	private PreparedStatement loadEContentRecordForIlsIdStmt;
 	private PreparedStatement loadEContentItemsForRecordStmt;*/
@@ -288,6 +289,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				if (eContentData.indexOf(':') >= 0){
 					boolean shareWithAll = false;
 					boolean shareWithLibrary = false;
+					boolean shareWithSome = false;
 					String[] econtentData = eContentData.split("\\s?:\\s?");
 					if (econtentData.length >= 3){
 						String sharing = econtentData[2].trim();
@@ -299,7 +301,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					}else{
 						if (locationCode != null){
 							if (locationCode.startsWith("mdl")){
-								shareWithAll = true;
+								shareWithSome = true;
 							}else{
 								shareWithLibrary = true;
 							}
@@ -311,16 +313,18 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					if (shareWithAll){
 						groupedWork.addCompatiblePTypes(allPTypes);
 						break;
-					}else if (shareWithLibrary){
-						if (locationCode == null){
+					}else if (shareWithLibrary) {
+						if (locationCode == null) {
 							logger.error("Location code was null for item, skipping to next");
 						} else {
-							for(String curLocation : pTypesByLibrary.keySet()){
-								if (locationCode.startsWith(curLocation)){
+							for (String curLocation : pTypesByLibrary.keySet()) {
+								if (locationCode.startsWith(curLocation)) {
 									groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
 								}
 							}
 						}
+					}else if (shareWithSome){
+						groupedWork.addCompatiblePTypes(pTypesForSpecialLocationCodes.get(locationCode));
 					} else{
 						logger.warn("Could not determine usability, was not shared with library or everyone");
 					}
