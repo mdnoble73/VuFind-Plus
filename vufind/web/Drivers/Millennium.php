@@ -320,7 +320,8 @@ class MillenniumDriver implements DriverInterface
 			//$timer->logTime("Finished checking if item is holdable");
 			$status = trim($itemField->getSubfield($statusSubfield) != null ? trim($itemField->getSubfield($statusSubfield)->getData()) : '');
 			$dueDate = $itemField->getSubfield($dueDateSubfield) != null ? trim($itemField->getSubfield($dueDateSubfield)->getData()) : null;
-			$available = ($status == '-' && ($dueDate == null || strlen($dueDate) == 0));
+			$available = (in_array($status, array('-', 'o', 'd', 'w', ')', 'u')) && ($dueDate == null || strlen($dueDate) == 0));
+			$inLibraryUseOnly = $status == 'o';
 			$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
 			$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
 			$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
@@ -348,6 +349,7 @@ class MillenniumDriver implements DriverInterface
 					'callnumber' => $fullCallNumber,
 					'availability' => $available,
 					'holdable' => $holdable,
+					'inLibraryUseOnly' => $inLibraryUseOnly,
 					'isLocalItem' => $isLocalItem,
 					'isLibraryItem' => $isLibraryItem,
 					'locationLabel' => $locationLabel,

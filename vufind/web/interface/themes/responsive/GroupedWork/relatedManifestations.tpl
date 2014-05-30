@@ -25,9 +25,15 @@
 						</div>
 						<div class="col-xs-8 col-md-5 col-lg-6">
 							{if $relatedManifestation.availableLocally}
-								<div class="related-manifestation-shelf-status available">On Shelf</div>
+								{if $relatedManifestation.allLibraryUseOnly}
+									<div class="related-manifestation-shelf-status available">On Shelf, Library Use Only</div>
+								{else}
+									<div class="related-manifestation-shelf-status available">On Shelf</div>
+								{/if}
 							{elseif $relatedManifestation.availableOnline}
 								<div class="related-manifestation-shelf-status available">Available Online</div>
+							{elseif $relatedManifestation.inLibraryUseOnly}
+								<div class="related-manifestation-shelf-status available">In Library Use Only</div>
 							{elseif $relatedManifestation.available}
 								<div class="related-manifestation-shelf-status availableOther">Available from another library</div>
 							{else}

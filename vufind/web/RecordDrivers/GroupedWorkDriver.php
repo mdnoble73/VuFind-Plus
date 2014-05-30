@@ -943,6 +943,8 @@ class GroupedWorkDriver implements RecordInterface{
 					'shelfLocation' => array(),
 					'availableLocally' => false,
 					'availableOnline' => false,
+					'inLibraryUseOnly' => false,
+					'allLibraryUseOnly' => true,
 				);
 			}
 			if (!$relatedManifestations[$curRecord['format']]['availableLocally'] && isset($curRecord['availableLocally']) && $curRecord['availableLocally'] == true){
@@ -953,6 +955,11 @@ class GroupedWorkDriver implements RecordInterface{
 			}
 			if (!$relatedManifestations[$curRecord['format']]['available'] && $curRecord['available']){
 				$relatedManifestations[$curRecord['format']]['available'] = $curRecord['available'];
+			}
+			if (!$relatedManifestations[$curRecord['format']]['inLibraryUseOnly'] && isset($curRecord['inLibraryUseOnly']) && $curRecord['inLibraryUseOnly']){
+				$relatedManifestations[$curRecord['format']]['inLibraryUseOnly'] = $curRecord['inLibraryUseOnly'];
+			}else{
+				$relatedManifestations[$curRecord['format']]['allLibraryUseOnly'] = false;
 			}
 			if (!$relatedManifestations[$curRecord['format']]['hasLocalItem'] && $curRecord['hasLocalItem']){
 				$relatedManifestations[$curRecord['format']]['hasLocalItem'] = $curRecord['hasLocalItem'];
