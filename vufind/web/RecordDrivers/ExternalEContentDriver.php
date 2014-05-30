@@ -22,7 +22,22 @@ class ExternalEContentDriver extends BaseEContentDriver{
 	}
 
 	function isAvailable($realTime){
-		return true;
+		$itemFields = $this->marcRecord->getFields('989');
+		/** @var File_MARC_Data_Field[] $itemFields */
+		foreach ($itemFields as $itemField){
+			$locationCode = trim($itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '');
+			$eContentData = trim($itemField->getSubfield('w') != null ? $itemField->getSubfield('w')->getData() : '');
+			if ($eContentData && strpos($eContentData, ':') > 0){
+				$eContentFieldData = explode(':', $eContentData);
+				$protectionType = trim($eContentFieldData[1]);
+				if ($this->isValidProtectionType($protectionType)){
+					if ($this->isValidForUser($locationCode, $eContentFieldData)){
+						return true;
+					}
+				}
+			}
+		}
+		return false;
 	}
 	function isEContentHoldable($locationCode, $eContentFieldData){
 		return false;
@@ -55,7 +70,12 @@ class ExternalEContentDriver extends BaseEContentDriver{
 	function isValidForUser($locationCode, $eContentFieldData){
 		$sharing = $this->getSharing($locationCode, $eContentFieldData);
 		if ($sharing == 'shared'){
-			return true;
+			$searchLibrary = Library::getSearchLibrary();
+			if ($searchLibrary == null || (strpos($searchLibrary->econtentLocationsToInclude, $locationCode) !== FALSE)){
+				return true;
+			}else{
+				return false;
+			}
 		}else if ($sharing == 'library'){
 			$searchLibrary = Library::getSearchLibrary();
 			if ($searchLibrary == null || $searchLibrary->includeOutOfSystemExternalLinks || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
@@ -75,7 +95,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 	}
 
 	function getSharing($locationCode, $eContentFieldData){
-		if ($locationCode == 'mdl'){
+		if (strpos($locationCode, 'mdl') === 0){
 			return 'shared';
 		}else{
 			$sharing = 'library';
