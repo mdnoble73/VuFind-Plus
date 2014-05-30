@@ -26,7 +26,7 @@
 						<div class="col-xs-8 col-md-5 col-lg-6">
 							{if $relatedManifestation.availableLocally}
 								{if $relatedManifestation.allLibraryUseOnly}
-									<div class="related-manifestation-shelf-status available">On Shelf, Library Use Only</div>
+									<div class="related-manifestation-shelf-status available">On Shelf (library use only)</div>
 								{else}
 									<div class="related-manifestation-shelf-status available">On Shelf</div>
 								{/if}
