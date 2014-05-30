@@ -4,7 +4,7 @@
 
 	<div id="home-page-login" class="text-center row">
 		<div class="logoutOptions hidden-phone" {if !$user} style="display: none;"{/if}>
-			<a id="myAccountNameLink" href="{$path}/MyAccount/Home">Logged In As {$user->firstname|capitalize} {$user->lastname|capitalize}</a>
+			<a id="myAccountNameLink" href="{$path}/MyAccount/Home">Logged in as {$user->firstname|capitalize} {$user->lastname|capitalize}</a>
 		</div>
 		<div class="logoutOptions" {if !$user} style="display: none;"{/if}>
 			<a href="{$path}/MyAccount/Logout" id="logoutLink" >{translate text="Log Out"}</a>

@@ -4,11 +4,9 @@
 				<div id="web_note" class="text-info text-center well well-small">{$profile.web_note}</div>
 			{/if}
 
-			<h2>{translate text='Titles On Hold'}</h2>
 			{if $userNoticeFile}
 				{include file=$userNoticeFile}
 			{/if}
-
 
 			{* Check to see if there is data for the section *}
 			<div class='holdSectionBody'>
