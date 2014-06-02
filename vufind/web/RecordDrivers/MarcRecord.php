@@ -1508,68 +1508,72 @@ class MarcRecord extends IndexRecord
 
 		return $configArray['Site']['path'] . '/Record/' . $recordId;
 	}
+
+	private $relatedRecords = null;
 	function getRelatedRecords(){
-		global $configArray;
-		global $timer;
-		global $interface;
-		$relatedRecords = array();
-		$recordId = $this->getUniqueID();
+		if ($this->relatedRecords == null){
+			global $configArray;
+			global $timer;
+			global $interface;
+			$relatedRecords = array();
+			$recordId = $this->getUniqueID();
 
-		$url = $this->getRecordUrl();
-		$holdUrl = $configArray['Site']['path'] . '/Record/' . $recordId . '/Hold';
+			$url = $this->getRecordUrl();
+			$holdUrl = $configArray['Site']['path'] . '/Record/' . $recordId . '/Hold';
 
-		$publishers = $this->getPublishers();
-		$publisher = count($publishers) >= 1 ? $publishers[0] : '';
-		$publicationDates = $this->getPublicationDates();
-		$publicationDate = count($publicationDates) >= 1 ? $publicationDates[0] : '';
-		$physicalDescriptions = $this->getPhysicalDescriptions();
-		$physicalDescription = count($physicalDescriptions) >= 1 ? $physicalDescriptions[0] : '';
-		$timer->logTime("Finished loading publication info");
+			$publishers = $this->getPublishers();
+			$publisher = count($publishers) >= 1 ? $publishers[0] : '';
+			$publicationDates = $this->getPublicationDates();
+			$publicationDate = count($publicationDates) >= 1 ? $publicationDates[0] : '';
+			$physicalDescriptions = $this->getPhysicalDescriptions();
+			$physicalDescription = count($physicalDescriptions) >= 1 ? $physicalDescriptions[0] : '';
+			$timer->logTime("Finished loading publication info in getRelatedRecords $recordId");
 
-		$totalCopies = $this->getNumCopies();
-		//Don't add records the user can't get.
-		if ($totalCopies == 0){
-			return $relatedRecords;
-		}
-		$availableCopies = $this->getAvailableCopies(false);
-		$hasLocalItem = $this->hasLocalItem();
-		$numHolds = 0;
-		$relatedRecord = array(
-			'id' => $recordId,
-			'url' => $url,
-			'holdUrl' => $holdUrl,
-			'format' => reset($this->getFormat()),
-			'edition' => $this->getEdition(true),
-			'language' => $this->getLanguage(),
-			'title' => $this->getTitle(),
-			'subtitle' => $this->getSubtitle(),
-			'publisher' => $publisher,
-			'publicationDate' => $publicationDate,
-			'section' => $this->getTitleSection(),
-			'physical' => $physicalDescription,
-			'callNumber' => $this->getCallNumber(),
-			'available' => $this->isAvailable(false),
-			'availableLocally' => $this->isAvailableLocally(false),
-			'inLibraryUseOnly' => $this->isLibraryUseOnly(false),
-			'availableCopies' => $availableCopies,
-			'copies' => $totalCopies,
-			'numHolds' => $numHolds,
-			'hasLocalItem' => $hasLocalItem,
-			'holdRatio' => $totalCopies > 0 ? ($availableCopies + ($totalCopies - $numHolds) / $totalCopies) : 0,
-			'locationLabel' => $this->getLocationLabel(),
-			'shelfLocation' => $this->getShelfLocation(),
-			'source' => 'ils',
-			'actions' => $this->getAllActions()
-		);
-		if ($this->isHoldable() && isset($interface) && $interface->getVariable('showHoldButton')){
-			$relatedRecord['actions'][] = array(
-				'title' => 'Place Hold',
-				'url' => $holdUrl
+			$totalCopies = $this->getNumCopies();
+			//Don't add records the user can't get.
+			if ($totalCopies == 0){
+				return $relatedRecords;
+			}
+			$availableCopies = $this->getAvailableCopies(false);
+			$hasLocalItem = $this->hasLocalItem();
+			$numHolds = 0;
+			$relatedRecord = array(
+					'id' => $recordId,
+					'url' => $url,
+					'holdUrl' => $holdUrl,
+					'format' => reset($this->getFormat()),
+					'edition' => $this->getEdition(true),
+					'language' => $this->getLanguage(),
+					'title' => $this->getTitle(),
+					'subtitle' => $this->getSubtitle(),
+					'publisher' => $publisher,
+					'publicationDate' => $publicationDate,
+					'section' => $this->getTitleSection(),
+					'physical' => $physicalDescription,
+					'callNumber' => $this->getCallNumber(),
+					'available' => $this->isAvailable(false),
+					'availableLocally' => $this->isAvailableLocally(false),
+					'inLibraryUseOnly' => $this->isLibraryUseOnly(false),
+					'availableCopies' => $availableCopies,
+					'copies' => $totalCopies,
+					'numHolds' => $numHolds,
+					'hasLocalItem' => $hasLocalItem,
+					'holdRatio' => $totalCopies > 0 ? ($availableCopies + ($totalCopies - $numHolds) / $totalCopies) : 0,
+					'locationLabel' => $this->getLocationLabel(),
+					'shelfLocation' => $this->getShelfLocation(),
+					'source' => 'ils',
+					'actions' => $this->getAllActions()
 			);
+			if ($this->isHoldable() && isset($interface) && $interface->getVariable('showHoldButton')){
+				$relatedRecord['actions'][] = array(
+						'title' => 'Place Hold',
+						'url' => $holdUrl
+				);
+			}
+			$timer->logTime("Finished getRelatedRecords $recordId");
+			$this->relatedRecords[] = $relatedRecord;
 		}
-
-		$relatedRecords[] = $relatedRecord;
-		return $relatedRecords;
+		return $this->relatedRecords;
 	}
 
 	private function isHoldable(){

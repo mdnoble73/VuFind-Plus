@@ -29,7 +29,8 @@ class Timer{
 			$curTime = microtime(true);
 			$elapsedTime = round($curTime - $this->lastTime, 4);
 			if ($elapsedTime > $this->minTimeToLog){
-				$this->timingMessages[] = "\"$message\",\"$curTime\",\"$elapsedTime\"";
+				$totalElapsedTime = round($curTime - $this->firstTime, 4);
+				$this->timingMessages[] = "\"$message\",\"$elapsedTime\",\"$totalElapsedTime\"";
 			}
 			$this->lastTime = $curTime;
 		}

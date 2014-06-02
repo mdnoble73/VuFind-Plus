@@ -104,11 +104,12 @@ class LoanRuleDeterminer extends DB_DataObject
 			return true;
 		}else{
 			try{
+				//return substr($location, 0, strlen($this->trimmedLocation())) === $this->trimmedLocation();
 				return preg_match("/^{$this->trimmedLocation()}/i", $location);
 			}catch(Exception $e){
 				echo("Could not handle regular expression " . $this->trimmedLocation());
+				return false;
 			}
-
 		}
 	}
 }

@@ -294,8 +294,6 @@ class MillenniumDriver implements DriverInterface
 		$pType = $this->getPType();
 		//$timer->logTime("Finished loading pType");
 
-		$shelfLocationMap = getTranslationMap('shelf_location');
-
 		global $configArray;
 		$statusSubfield = $configArray['Reindex']['statusSubfield'];
 		$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
@@ -317,14 +315,6 @@ class MillenniumDriver implements DriverInterface
 			}
 			$iType = trim($itemField->getSubfield($iTypeSubfield) != null ? $itemField->getSubfield($iTypeSubfield)->getData() : '');
 			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pType);
-			//$timer->logTime("Finished checking if item is holdable");
-			$status = trim($itemField->getSubfield($statusSubfield) != null ? trim($itemField->getSubfield($statusSubfield)->getData()) : '');
-			$dueDate = $itemField->getSubfield($dueDateSubfield) != null ? trim($itemField->getSubfield($dueDateSubfield)->getData()) : null;
-			$available = (in_array($status, array('-', 'o', 'd', 'w', ')', 'u')) && ($dueDate == null || strlen($dueDate) == 0));
-			$inLibraryUseOnly = $status == 'o';
-			$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
-			$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
-			$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
 
 			$isLibraryItem = false;
 			$locationLabel = '';
@@ -335,15 +325,25 @@ class MillenniumDriver implements DriverInterface
 					break;
 				}
 			}
-			$isLocalItem = false;
-			if (MillenniumDriver::$homeLocationCode != null && strpos($locationCode, MillenniumDriver::$homeLocationCode) === 0){
-				$isLocalItem = true;
-				$locationLabel = MillenniumDriver::$homeLocationLabel;
-			}
+			//$timer->logTime("Finished checking if item is holdable");
 
-			//Check to make sure the location is correct
-
+			//Check to make sure the user has access to this item
 			if ($holdable || $isLibraryItem){
+				$isLocalItem = false;
+				if (MillenniumDriver::$homeLocationCode != null && strpos($locationCode, MillenniumDriver::$homeLocationCode) === 0){
+					$isLocalItem = true;
+					$locationLabel = MillenniumDriver::$homeLocationLabel;
+				}
+
+				$status = trim($itemField->getSubfield($statusSubfield) != null ? trim($itemField->getSubfield($statusSubfield)->getData()) : '');
+				$dueDate = $itemField->getSubfield($dueDateSubfield) != null ? trim($itemField->getSubfield($dueDateSubfield)->getData()) : null;
+				$available = (in_array($status, array('-', 'o', 'd', 'w', ')', 'u')) && ($dueDate == null || strlen($dueDate) == 0));
+				$inLibraryUseOnly = $status == 'o';
+				$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
+				$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
+				$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
+
+				$shelfLocationMap = getTranslationMap('shelf_location');
 				$item = array(
 					'location' => $locationCode,
 					'callnumber' => $fullCallNumber,
@@ -356,14 +356,11 @@ class MillenniumDriver implements DriverInterface
 					'shelfLocation' => isset($shelfLocationMap[$locationCode]) ? $shelfLocationMap[$locationCode] : '',
 				);
 				$items[] = $item;
-			}else{
-				global $logger;
-				$logger->log("Removing item for location $locationCode because it is not holdable or it is not owned by the local library", PEAR_LOG_DEBUG);
 			}
 			//$timer->logTime("Finished processing item");
 		}
 		global $timer;
-		$timer->logTime("Finished load items fast for Millennium record");
+		$timer->logTime("Finished load items fast for Millennium record $id there were " . count($itemFields) . " item fields originally, filtered to " . count($items));
 		return $items;
 	}
 
@@ -1381,6 +1378,7 @@ class MillenniumDriver implements DriverInterface
 		if ($cachedValue !== false && !isset($_REQUEST['reload'])){
 			return $cachedValue == 'true';
 		}else{
+			$timer->logTime("Start checking if item is holdable $locationCode, $iType, $pType");
 			$this->loadLoanRules();
 			if (count($this->loanRuleDeterminers) == 0){
 				//If we don't have any loan rules determiners, assume that the item is holdable.
@@ -1415,10 +1413,10 @@ class MillenniumDriver implements DriverInterface
 					//$logger->log("Location incorrect {$loanRuleDeterminer->location} != {$locationCode}", PEAR_LOG_DEBUG);
 				}
 			}
+			$memCache->set($memcacheKey, ($holdable ? 'true' : 'false'), 0 , $configArray['Caching']['loan_rule_result']);
+			$timer->logTime("Finished checking if item is holdable $locationCode, $iType, $pType");
 		}
 
-		$memCache->set($memcacheKey, ($holdable ? 'true' : 'false'), 0 , $configArray['Caching']['loan_rule_result']);
-		$timer->logTime("Finished checking if item is holdable $locationCode, $iType, $pType");
 		return $holdable;
 	}
 

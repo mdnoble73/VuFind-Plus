@@ -150,7 +150,7 @@ class SearchAPI extends Action {
 				}
 			}
 			$jsonResults['categorySelected'] = $categorySelected;
-			$timer->logTime('load selected category');
+			$timer->logTime('finish checking to see if a format category has been loaded already');
 
 			// Process Paging
 			$link = $searchObject->renderLinkPageTemplate();
