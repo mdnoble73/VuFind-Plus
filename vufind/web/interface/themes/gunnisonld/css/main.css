@@ -7350,3 +7350,40 @@ div#system-message-header {
   margin: 5px;
   text-align: right;
 }
+@media (min-width: 768px) {
+  #header-container {
+    background-image: url('/interface/themes/gunnisonld/images/header_background.png');
+  }
+}
+@media (max-width: 767px) {
+  #header-logo {
+    padding: 10px 0 0 0;
+    margin-left: -15px;
+  }
+}
+@media (min-width: 768px) {
+  #header-logo {
+    border-radius: 0.5em;
+    margin-top: 7px;
+    padding: 5px;
+  }
+}
+.header-button {
+  border-radius: 0.5em;
+  background-color: rgba(51, 51, 51, 0.6);
+  margin-top: 20px;
+  height: 60px !important;
+  border: 0px;
+}
+.header-button > a {
+  color: white !important;
+  line-height: 60px !important;
+  text-shadow: none;
+}
+.header-button > a:visited {
+  color: white !important;
+}
+.header-button:hover {
+  border-bottom: 0px;
+  box-shadow: 2px 2px 5px white;
+}
