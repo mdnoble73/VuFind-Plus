@@ -526,10 +526,13 @@ class SearchObject_Solr extends SearchObject_Base
 		$html = array();
 		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
 			$current = & $this->indexResult['response']['docs'][$x];
+			$interface->assign('recordIndex', $x + 1);
+			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
 			if (!$this->debug){
 				unset($current['explain']);
 				unset($current['score']);
 			}
+			/** @var GroupedWorkDriver $record */
 			$record = RecordDriverFactory::initRecordDriver($current);
 			$html[] = $interface->fetch($record->getListEntry($user, $listId, $allowEdit));
 		}

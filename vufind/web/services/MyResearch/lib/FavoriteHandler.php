@@ -67,7 +67,7 @@ class FavoriteHandler
 	{
 		global $interface;
 
-		$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
+		$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 20;
 		$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 		$startRecord = ($page - 1) * $recordsPerPage + 1;
 		if ($startRecord < 0){
@@ -83,15 +83,16 @@ class FavoriteHandler
 			'endRecord' => $endRecord,
 			'perPage' => $recordsPerPage
 		);
-		$this->favorites = array_slice($this->favorites, $startRecord -1, $recordsPerPage);
-		// Initialize from the current search globals
-		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->init();
-		$interface->assign('sortList', $searchObject->getSortList());
+		//Don't slice here since it is done in the search object
+		//$this->favorites = array_slice($this->favorites, $startRecord -1, $recordsPerPage);
 
 		// Initialise from the current search globals
+		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
+		$searchObject->disableScoping();
+		$searchObject->setLimit($recordsPerPage);
+		$searchObject->setPage($page);
 		$interface->assign('sortList', $searchObject->getSortList());
 
 		// Retrieve records from index (currently, only Solr IDs supported):

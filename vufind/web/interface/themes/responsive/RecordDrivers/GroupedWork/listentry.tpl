@@ -8,6 +8,7 @@
 		<div class="col-sm-7 col-md-7 col-lg-9">
 			<div class="row">
 				<div class="col-xs-12">
+					<span class="result-index">{$resultIndex})</span>&nbsp;
 					<a href="{$summUrl}" class="result-title notranslate">{$summTitle|removeTrailingPunctuation|escape}</a><br />
 					{if $summTitleStatement}
 						&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}

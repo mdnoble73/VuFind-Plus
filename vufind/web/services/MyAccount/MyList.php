@@ -139,9 +139,6 @@ class MyAccount_MyList extends MyAccount {
 		$interface->assign('favList', $list);
 		$interface->assign('listSelected', $list->id);
 
-		// Build Favorites List
-		$favorites = $list->getListEntries();
-
 		// Load the User object for the owner of the list (if necessary):
 		if ($user && ($user->id == $list->user_id)) {
 			$listUser = $user;
@@ -158,7 +155,7 @@ class MyAccount_MyList extends MyAccount {
 		// Create a handler for displaying favorites and use it to assign
 		// appropriate template variables:
 		$interface->assign('allowEdit', $userCanEdit);
-		$favList = new FavoriteHandler($favorites, $listUser, $list->id, $userCanEdit);
+		$favList = new FavoriteHandler($list->getListEntries(), $listUser, $list->id, $userCanEdit);
 		$favList->assign();
 
 		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
