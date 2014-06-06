@@ -48,9 +48,9 @@
 						<button value="printList" id="FavPrint" class="btn btn-sm btn-default" onclick='return VuFind.Lists.printListAction();'>Print List</button>
 						<button value="citeList" id="FavCite" class="btn btn-sm btn-default" onclick='return VuFind.Lists.citeListAction("{$favList->id}");'>Generate Citations</button>
 					</div>
-					{if $favList->public != 0}
+					{if $allowEdit}
 						<div class="btn-group">
-							<button value="deleteList" id="FavDelete" class="btn btn-sm btn-warning" onclick='return VuFind.Lists.deleteListAction()'>Delete List</button>
+							<button value="deleteList" id="FavDelete" class="btn btn-sm btn-danger" onclick='return VuFind.Lists.deleteListAction();'>Delete List</button>
 						</div>
 					{/if}
 				</div>
