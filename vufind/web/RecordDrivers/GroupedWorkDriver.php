@@ -1274,21 +1274,27 @@ class GroupedWorkDriver implements RecordInterface{
 					'body' => '<iframe id="goodreads_iframe" class="goodReadsIFrame" src="https://www.goodreads.com/api/reviews_widget_iframe?did=DEVELOPER_ID&format=html&isbn=' . $isbn . '&links=660&review_back=fff&stars=000&text=000" width="100%" height="400px" frameborder="0"></iframe>',
 				);
 			}
-			$moreDetailsOptions['similarTitles'] = array(
-				'label' => 'Similar Titles From Novelist',
-				'body' => '<div id="novelisttitlesPlaceholder"></div>',
-				'hideByDefault' => true
-			);
-			$moreDetailsOptions['similarAuthors'] = array(
-				'label' => 'Similar Authors From Novelist',
-				'body' => '<div id="novelistauthorsPlaceholder"></div>',
-				'hideByDefault' => true
-			);
-			$moreDetailsOptions['similarSeries'] = array(
-				'label' => 'Similar Series From Novelist',
-				'body' => '<div id="novelistseriesPlaceholder"></div>',
-				'hideByDefault' => true
-			);
+			if ($interface->getVariable('showSimilarTitles')){
+				$moreDetailsOptions['similarTitles'] = array(
+					'label' => 'Similar Titles From Novelist',
+					'body' => '<div id="novelisttitlesPlaceholder"></div>',
+					'hideByDefault' => true
+				);
+			}
+			if ($interface->getVariable('showSimilarAuthors')){
+				$moreDetailsOptions['similarAuthors'] = array(
+					'label' => 'Similar Authors From Novelist',
+					'body' => '<div id="novelistauthorsPlaceholder"></div>',
+					'hideByDefault' => true
+				);
+			}
+			if ($interface->getVariable('showSimilarTitles')){
+				$moreDetailsOptions['similarSeries'] = array(
+					'label' => 'Similar Series From Novelist',
+					'body' => '<div id="novelistseriesPlaceholder"></div>',
+					'hideByDefault' => true
+				);
+			}
 		}
 		$moreDetailsOptions['details'] = array(
 			'label' => 'Details',
