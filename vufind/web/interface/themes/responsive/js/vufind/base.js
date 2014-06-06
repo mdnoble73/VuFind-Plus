@@ -159,6 +159,12 @@ var VuFind = (function(){
 			var toggle = $(toggleSelector);
 			var value = toggle.prop('checked');
 			$(checkboxSelector).prop('checked', value);
+		},
+
+		submitOnEnter: function(event, formToSubmit){
+			if (event.keyCode == 13){
+				$(formToSubmit).submit();
+			}
 		}
 
 	}

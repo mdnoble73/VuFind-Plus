@@ -14,7 +14,7 @@
 		<div id ='loginPasswordRow' class='form-group'>
 			<label for="password" class='control-label col-sm-3'>{translate text='Password'}: </label>
 			<div class='col-sm-9'>
-				<input type="password" name="password" id="password" size="28"/>
+				<input type="password" name="password" id="password" size="28" onkeypress="return VuFind.submitOnEnter(event, '#loginForm');"/>
 			</div>
 		</div>
 		<div id ='loginPasswordRow2' class='form-group'>
