@@ -70,7 +70,7 @@ class SearchSources{
 			);
 		}elseif (isset($library)){
 			$searchOptions['local'] = array(
-              'name' => $library->displayName,
+              'name' => strlen($library->abbreviatedDisplayName) > 0 ? $library->abbreviatedDisplayName :  $library->displayName,
               'description' => "The {$library->displayName} catalog.",
 							'catalogType' => 'catalog'
 			);
