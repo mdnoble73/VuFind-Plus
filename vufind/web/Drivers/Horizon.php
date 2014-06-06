@@ -50,7 +50,7 @@ class Horizon implements DriverInterface{
 					$configArray['Catalog']['username'],
 					$configArray['Catalog']['password']);
 
-					// Select the databse
+					// Select the database
 					mssql_select_db($configArray['Catalog']['database']);
 				}
 			}catch (Exception $e){

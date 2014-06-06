@@ -14,7 +14,7 @@ require_once ROOT_DIR . '/RecordDrivers/Interface.php';
 class GroupedWorkDriver implements RecordInterface{
 
 	protected $fields;
-	protected $scopingEnabled = false;
+	protected $scopingEnabled = true;
 	public $isValid = true;
 	public function __construct($indexFields)
 	{
@@ -891,17 +891,28 @@ class GroupedWorkDriver implements RecordInterface{
 	private $relatedRecords = null;
 	public function getRelatedRecords() {
 		global $timer;
-		$timer->logTime("Starting to load related records");
 		if ($this->relatedRecords == null){
+			$timer->logTime("Starting to load related records for {$this->getUniqueID()}");
 			$relatedRecords = array();
-			if (isset($this->fields['related_record_ids'])){
-				$relatedRecordIds = $this->fields['related_record_ids'];
+
+			//Determine which related records field we should be looking at
+			$searchScope = isset($_REQUEST['searchScope']) ? $_REQUEST['searchScope'] : false;
+			$relatedRecordFieldName = 'related_record_ids';
+			if ($searchScope){
+				if (isset($this->fields["related_record_ids_$searchScope"])){
+					$relatedRecordFieldName = "related_record_ids_$searchScope";
+				}
+			}
+
+			if (isset($this->fields[$relatedRecordFieldName])){
+				$relatedRecordIds = $this->fields[$relatedRecordFieldName];
 				if (!is_array($relatedRecordIds)){
 					$relatedRecordIds = array($relatedRecordIds);
 				}
 				foreach ($relatedRecordIds as $relatedRecordId){
 					require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 					$recordDriver = RecordDriverFactory::initRecordDriverById($relatedRecordId);
+					$timer->logTime("Initialized Record Driver for $relatedRecordId");
 					if ($recordDriver != null && $recordDriver->isValid()){
 						$recordDriver->setScopingEnabled($this->scopingEnabled);
 						$relatedRecordsForBib = $recordDriver->getRelatedRecords();
@@ -923,9 +934,9 @@ class GroupedWorkDriver implements RecordInterface{
 
 	public function getRelatedManifestations() {
 		global $timer;
-		$timer->logTime("Starting to load related records");
+		$timer->logTime("Starting to load related records in getRelatedManifestations");
 		$relatedRecords = $this->getRelatedRecords();
-		$timer->logTime("Finished loading related records");
+		$timer->logTime("Finished loading related records in getRelatedManifestations");
 		//Group the records based on format
 		$relatedManifestations = array();
 		foreach ($relatedRecords as $curRecord){

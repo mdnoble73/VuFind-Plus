@@ -1926,9 +1926,9 @@ class MarcRecord extends IndexRecord
 			'body' => '<div id="holdingsPlaceholder"></div>',
 			'openByDefault' => true
 		);
-		//Other editions if applicable
+		//Other editions if applicable (only if we aren't the only record!)
 		$relatedRecords = $this->getGroupedWorkDriver()->getRelatedRecords();
-		if (count($relatedRecords) > 0){
+		if (count($relatedRecords) > 1){
 			$interface->assign('relatedManifestations', $this->getGroupedWorkDriver()->getRelatedManifestations());
 			$moreDetailsOptions['otherEditions'] = array(
 					'label' => 'Other Editions',
