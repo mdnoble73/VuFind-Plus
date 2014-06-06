@@ -73,7 +73,8 @@ class PublicEContentDriver extends BaseEContentDriver{
 		$actions[] = array(
 				'url' => '',
 				'onclick' => 'alert("TODO: Checkout the title")',
-				'title' => 'Check Out'
+				'title' => 'Check Out',
+				'requireLogin' => true,
 		);
 		return $actions;
 	}

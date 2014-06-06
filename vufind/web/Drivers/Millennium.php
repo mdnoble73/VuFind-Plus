@@ -306,14 +306,14 @@ class MillenniumDriver implements DriverInterface
 				continue;
 			}
 
-			$locationCode = trim($itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '');
+			$locationCode = $itemField->getSubfield('d') != null ? trim($itemField->getSubfield('d')->getData()) : '';
 			//Do a quick check of location code so we can remove this quickly when scoping is enabled
 			if ($scopingEnabled && strlen(MillenniumDriver::$scopingLocationCode) > 0 && strpos($locationCode, MillenniumDriver::$scopingLocationCode) !== 0){
 				global $logger;
 				$logger->log("Removed item because scoping is enabled and the location code $locationCode did not start with " . MillenniumDriver::$scopingLocationCode, PEAR_LOG_DEBUG);
 				continue;
 			}
-			$iType = trim($itemField->getSubfield($iTypeSubfield) != null ? $itemField->getSubfield($iTypeSubfield)->getData() : '');
+			$iType = $itemField->getSubfield($iTypeSubfield) != null ? trim($itemField->getSubfield($iTypeSubfield)->getData()) : '';
 			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pType);
 
 			$isLibraryItem = false;
@@ -325,7 +325,7 @@ class MillenniumDriver implements DriverInterface
 					break;
 				}
 			}
-			//$timer->logTime("Finished checking if item is holdable");
+			$timer->logTime("Finished checking if item is holdable");
 
 			//Check to make sure the user has access to this item
 			if ($holdable || $isLibraryItem){

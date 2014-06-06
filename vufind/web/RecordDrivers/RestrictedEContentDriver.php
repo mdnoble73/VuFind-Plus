@@ -28,14 +28,19 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 		return true;
 	}
 	function isEContentHoldable($locationCode, $eContentFieldData){
-		return true;
+		return $this->isValidForUser($locationCode, $eContentFieldData);
 	}
 	function isLocalItem($locationCode, $eContentFieldData){
 		$sharing = $this->getSharing($locationCode, $eContentFieldData);
 		if ($sharing == 'shared'){
 			return true;
 		}else{
-			return false;
+			$searchLibrary = Library::getSearchLibrary();
+			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
+				return true;
+			}else{
+				return false;
+			}
 		}
 	}
 	function isLibraryItem($locationCode, $eContentFieldData){
@@ -43,7 +48,12 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 		if ($sharing == 'shared'){
 			return true;
 		}else{
-			return false;
+			$searchLibrary = Library::getSearchLibrary();
+			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
+				return true;
+			}else{
+				return false;
+			}
 		}
 	}
 	function isValidForUser($locationCode, $eContentFieldData){
@@ -52,15 +62,15 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 			return true;
 		}else if ($sharing == 'library'){
 			$searchLibrary = Library::getSearchLibrary();
-			if ($searchLibrary == null || $searchLibrary->includeOutOfSystemExternalLinks || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
+			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
 				return true;
 			}else{
 				return false;
 			}
 		}else{
-			$searchLibrary = Library::getSearchLibrary();
+			//Just share with the specific location
 			$searchLocation = Location::getSearchLocation();
-			if ($searchLibrary->includeOutOfSystemExternalLinks || strpos($locationCode, $searchLocation->code) === 0){
+			if (strpos($locationCode, $searchLocation->code) === 0){
 				return true;
 			}else{
 				return false;
@@ -94,13 +104,15 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 			$actions[] = array(
 					'url' => '',
 					'onclick' => 'alert("TODO: Checkout the title")',
-					'title' => 'Check Out'
+					'title' => 'Check Out',
+					'requireLogin' => true,
 			);
 		}else{
 			$actions[] = array(
 					'url' => '',
 					'onclick' => 'alert("TODO: Place a hold")',
-					'title' => 'Place Hold'
+					'title' => 'Place Hold',
+					'requireLogin' => true,
 			);
 		}
 		return $actions;

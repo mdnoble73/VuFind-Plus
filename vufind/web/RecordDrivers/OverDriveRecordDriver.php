@@ -550,12 +550,14 @@ class OverDriveRecordDriver implements RecordInterface {
 		if ($available){
 			$relatedRecord['actions'][] = array(
 				'title' => 'Check Out',
-				'onClick' => "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$recordId}');"
+				'onClick' => "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$recordId}');",
+				'requireLogin' => false,
 			);
 		}else{
 			$relatedRecord['actions'][] = array(
 				'title' => 'Place Hold',
-					'onClick' => "return VuFind.OverDrive.placeOverDriveHold('{$recordId}');"
+				'onClick' => "return VuFind.OverDrive.placeOverDriveHold('{$recordId}');",
+				'requireLogin' => false,
 			);
 		}
 		return array($relatedRecord);

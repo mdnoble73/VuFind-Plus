@@ -1518,6 +1518,13 @@ class MarcRecord extends IndexRecord
 			$relatedRecords = array();
 			$recordId = $this->getUniqueID();
 
+			$totalCopies = $this->getNumCopies();
+			//Don't add records the user can't get.
+			if ($totalCopies == 0){
+				return $relatedRecords;
+			}
+			$timer->logTime("Finished initial check to make sure there are items for $recordId");
+
 			$url = $this->getRecordUrl();
 			$holdUrl = $configArray['Site']['path'] . '/Record/' . $recordId . '/Hold';
 
@@ -1529,11 +1536,6 @@ class MarcRecord extends IndexRecord
 			$physicalDescription = count($physicalDescriptions) >= 1 ? $physicalDescriptions[0] : '';
 			$timer->logTime("Finished loading publication info in getRelatedRecords $recordId");
 
-			$totalCopies = $this->getNumCopies();
-			//Don't add records the user can't get.
-			if ($totalCopies == 0){
-				return $relatedRecords;
-			}
 			$availableCopies = $this->getAvailableCopies(false);
 			$hasLocalItem = $this->hasLocalItem();
 			$numHolds = 0;
@@ -1567,7 +1569,8 @@ class MarcRecord extends IndexRecord
 			if ($this->isHoldable() && isset($interface) && $interface->getVariable('showHoldButton')){
 				$relatedRecord['actions'][] = array(
 						'title' => 'Place Hold',
-						'url' => $holdUrl
+						'url' => $holdUrl,
+						'requireLogin' => true,
 				);
 			}
 			$timer->logTime("Finished getRelatedRecords $recordId");

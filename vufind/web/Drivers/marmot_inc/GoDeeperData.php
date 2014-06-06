@@ -124,7 +124,7 @@ class GoDeeperData{
 		global $memCache;
 		$summaryData = $memCache->get("syndetics_summary_{$isbn}_{$upc}");
 
-		if (!$summaryData){
+		if (!$summaryData || isset($_REQUEST['reload'])){
 			try{
 				$clientKey = $configArray['Syndetics']['key'];
 				//Load the index page from syndetics

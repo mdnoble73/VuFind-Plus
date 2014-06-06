@@ -51,7 +51,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 			return true;
 		}else if ($sharing == 'library'){
 			$searchLibrary = Library::getSearchLibrary();
-			if ($searchLibrary == null || $searchLibrary->includeOutOfSystemExternalLinks || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
+			if ($searchLibrary == null || $searchLibrary->econtentLocationsToInclude == 'all' || strlen($searchLibrary->econtentLocationsToInclude) == 0  || $searchLibrary->includeOutOfSystemExternalLinks || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
 				return true;
 			}else{
 				return false;
@@ -71,7 +71,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		$sharing = $this->getSharing($locationCode, $eContentFieldData);
 		if ($sharing == 'shared'){
 			$searchLibrary = Library::getSearchLibrary();
-			if ($searchLibrary == null || (strpos($searchLibrary->econtentLocationsToInclude, $locationCode) !== FALSE)){
+			if ($searchLibrary == null || $searchLibrary->econtentLocationsToInclude == 'all' || strlen($searchLibrary->econtentLocationsToInclude) == 0 || (strpos($searchLibrary->econtentLocationsToInclude, $locationCode) !== FALSE)){
 				return true;
 			}else{
 				return false;
@@ -253,7 +253,8 @@ class ExternalEContentDriver extends BaseEContentDriver{
 			$url = $urlSubfield->getData();
 			$actions[] = array(
 					'url' => $url,
-					'title' => 'Access Online'
+					'title' => 'Access Online',
+					'requireLogin' => false,
 			);
 		}else{
 			//Get from the 856 field
@@ -269,7 +270,8 @@ class ExternalEContentDriver extends BaseEContentDriver{
 					}
 					$actions[] = array(
 							'url' => $url,
-							'title' => $title
+							'title' => $title,
+							'requireLogin' => false,
 					);
 				}
 			}
