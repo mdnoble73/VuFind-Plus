@@ -42,10 +42,12 @@
 						{if $enableMaterialsRequest}
 						<div class="myAccountLink{if $pageTemplate=="myMaterialRequests.tpl"} active{/if}" title="Materials Requests"><a href="{$path}/MaterialsRequest/MyRequests">{translate text='Materials Requests'} ({$profile.numMaterialsRequests})</a></div>
 						{/if}
-						<hr class="menu"/>
-						<div class="myAccountLink"><a href="{$path}/MyAccount/MyRatings">{translate text='Titles You Rated'}</a></div>
-						{if $user->disableRecommendations == 0}
-							<div class="myAccountLink"><a href="{$path}/MyAccount/SuggestedTitles">{translate text='Recommended For You'}</a></div>
+						{if $showRatings}
+							<hr class="menu"/>
+							<div class="myAccountLink"><a href="{$path}/MyAccount/MyRatings">{translate text='Titles You Rated'}</a></div>
+							{if $user->disableRecommendations == 0}
+								<div class="myAccountLink"><a href="{$path}/MyAccount/SuggestedTitles">{translate text='Recommended For You'}</a></div>
+							{/if}
 						{/if}
 						<hr class="menu"/>
 						<div class="myAccountLink{if $pageTemplate=="profile.tpl"} active{/if}"><a href="{$path}/MyAccount/Profile">Account Settings</a></div>
