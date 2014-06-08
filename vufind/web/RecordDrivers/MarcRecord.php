@@ -1673,13 +1673,14 @@ class MarcRecord extends IndexRecord
 		}else{
 			$items = $this->getItemsFast();
 		}
+		$allLibraryUseOnly = true;
 		foreach ($items as $item){
 			//Try to get an available non reserve call number
-			if (isset($item['inLibraryUseOnly']) && $item['inLibraryUseOnly']){
-				return true;
+			if (!isset($item['inLibraryUseOnly']) || !$item['inLibraryUseOnly']){
+				$allLibraryUseOnly = false;
 			}
 		}
-		return false;
+		return $allLibraryUseOnly;
 	}
 
 	private function hasLocalItem() {
