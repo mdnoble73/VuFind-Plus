@@ -130,6 +130,10 @@
 		<field name="recordtype" type="string" indexed="true" stored="true" multiValued="false" omitNorms="false"/>
 		<!-- Related Record Ids (type:id) -->
 		<field name="related_record_ids" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
+		<field name="related_record_items" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
+		<dynamicField name="related_record_ids_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
+		<dynamicField name="related_items_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
+
 		<!-- Fields to determine ownership and location based on location codes -->
 		<field name="owning_library" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
 		<field name="owning_location" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
