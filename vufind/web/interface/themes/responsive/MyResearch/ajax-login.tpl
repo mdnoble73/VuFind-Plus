@@ -41,3 +41,25 @@
 		<input type="submit" name="submit" value="Login" id="loginFormSubmit" class="btn btn-primary extraModalButton" onclick="return VuFind.Account.processAjaxLogin()"/>
 	</span>
 </div>
+{literal}
+<script type="text/javascript">
+	$(document).ready(
+		function (){
+			var rememberMe = true;
+			if (localStorage.lastUserName && localStorage.lastUserName != ""){
+				$("#username").val(localStorage.lastUserName);
+			}else{
+				rememberMe = false;
+			}
+			if (localStorage.lastPwd && localStorage.lastPwd != ""){
+				$("#password").val(localStorage.lastPwd);
+			}else{
+				rememberMe = false;
+			}
+			if (rememberMe){
+				$("#rememberMe").prop("checked", "checked");
+			}
+		}
+	);
+</script>
+{/literal}

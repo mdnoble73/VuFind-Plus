@@ -3,6 +3,7 @@
 	{if $message}<p class="text-error lead">{$message|translate}</p>{/if}
 	<h2>{translate text='Login to your account'}</h2>
 	<div id="loginFormWrapper">
+		<p class="alert alert-danger" id="loginError" style="display: none"></p>
 		<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form">
 			<div id='loginFormFields'>
 				<div id ='loginUsernameRow' class='form-group'>
@@ -29,7 +30,7 @@
 							</label>
 						{/if}
 
-						<input type="submit" name="submit" value="Login" id="loginFormSubmit" class="btn"/>
+						<input type="submit" name="submit" value="Login" id="loginFormSubmit" class="btn btn-primary" onclick="return VuFind.Account.preProcessLogin();"/>
 						{if $followup}<input type="hidden" name="followup" value="{$followup}"/>{/if}
 						{if $followupModule}<input type="hidden" name="followupModule" value="{$followupModule}"/>{/if}
 						{if $followupAction}<input type="hidden" name="followupAction" value="{$followupAction}"/>{/if}
@@ -54,3 +55,25 @@
 	<script type="text/javascript">$('#username').focus();</script>
 </div>
 {/strip}
+{literal}
+	<script type="text/javascript">
+		$(document).ready(
+			function (){
+				var rememberMe = true;
+				if (localStorage.lastUserName && localStorage.lastUserName != ""){
+					$("#username").val(localStorage.lastUserName);
+				}else{
+					rememberMe = false;
+				}
+				if (localStorage.lastPwd && localStorage.lastPwd != ""){
+					$("#password").val(localStorage.lastPwd);
+				}else{
+					rememberMe = false;
+				}
+				if (rememberMe){
+					$("#rememberMe").prop("checked", "checked");
+				}
+			}
+		);
+	</script>
+{/literal}

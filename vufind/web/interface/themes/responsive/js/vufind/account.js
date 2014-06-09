@@ -96,6 +96,27 @@ VuFind.Account = (function(){
 			return false;
 		},
 
+		preProcessLogin: function (){
+			var username = $("#username").val();
+			var password = $("#password").val();
+			var rememberMeCtl = $("#rememberMe");
+			var rememberMe = rememberMeCtl.prop('checked');
+			var loginErrorElem = $('#loginError');
+			if (!username || !password) {
+				loginErrorElem.text("Please enter both your name and library card number");
+				loginErrorElem.show();
+				return false;
+			}
+			if (rememberMe){
+				localStorage.lastUserName = username;
+				localStorage.lastPwd = password;
+			}else{
+				localStorage.lastUserName = "";
+				localStorage.lastPwd = "";
+			}
+			return true;
+		},
+
 		processAjaxLogin: function (ajaxCallback) {
 			var username = $("#username").val();
 			var password = $("#password").val();
@@ -106,6 +127,13 @@ VuFind.Account = (function(){
 				loginErrorElem.text("Please enter both your name and library card number");
 				loginErrorElem.show();
 				return false;
+			}
+			if (rememberMe){
+				localStorage.lastUserName = username;
+				localStorage.lastPwd = password;
+			}else{
+				localStorage.lastUserName = "";
+				localStorage.lastPwd = "";
 			}
 			loginErrorElem.hide();
 			var url = Globals.path + "/AJAX/JSON?method=loginUser";
