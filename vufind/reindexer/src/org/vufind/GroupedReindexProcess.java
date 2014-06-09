@@ -104,6 +104,12 @@ public class GroupedReindexProcess {
 	private static void reloadDefaultSchemas() {
 		logger.info("Reloading schemas from default");
 		try {
+			//Copy schema to grouped2
+			logger.debug("Copying " + "../../data_dir_setup/solr/grouped/conf/schema.xml" + " to " + "../../data_dir_setup/solr/grouped2/conf/schema.xml");
+			if (!Util.copyFile(new File("../../data_dir_setup/solr/grouped/conf/schema.xml"), new File("../../data_dir_setup/solr/grouped2/conf/schema.xml"))){
+				logger.warn("Unable to copy schema.xml to grouped2");
+				addNoteToReindexLog("Unable to copy schema.xml to grouped2");
+			}
 			//Synonyms
 			logger.debug("Copying " + "../../data_dir_setup/solr/grouped/conf/synonyms.txt" + " to " + "../../data_dir_setup/solr/grouped2/conf/synonyms.txt");
 			if (!Util.copyFile(new File("../../data_dir_setup/solr/grouped/conf/synonyms.txt"), new File("../../data_dir_setup/solr/grouped2/conf/synonyms.txt"))){
@@ -127,28 +133,28 @@ public class GroupedReindexProcess {
 		try {
 			logger.debug("Copying " + "../../data_dir_setup/solr/" + schemaName + "/conf/schema.xml" + " to " + solrDir + "/" + schemaName + "/conf/schema.xml");
 			if (!Util.copyFile(new File("../../data_dir_setup/solr/" + schemaName + "/conf/schema.xml"), new File(solrDir + "/" + schemaName + "/conf/schema.xml"))){
-				logger.info("Unable to copy schema for " + schemaName);
+				logger.warn("Unable to copy schema for " + schemaName);
 				addNoteToReindexLog("Unable to copy schema for " + schemaName);
 				reloadIndex = false;
 			}
 			logger.debug("Copying " + "../../data_dir_setup/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt" + " to " + solrDir + "/" + schemaName + "/conf/mapping-FoldToASCII.txt");
 			if (!Util.copyFile(new File("../../data_dir_setup/solr/" + schemaName + "/conf/mapping-FoldToASCII.txt"), new File(solrDir + "/" + schemaName + "/conf/mapping-FoldToASCII.txt"))){
-				logger.info("Unable to copy mapping-FoldToASCII.txt for " + schemaName);
+				logger.warn("Unable to copy mapping-FoldToASCII.txt for " + schemaName);
 				addNoteToReindexLog("Unable to copy mapping-FoldToASCII.txt for " + schemaName);
 			}
 			logger.debug("Copying " + "../../data_dir_setup/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt" + " to " + solrDir + "/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt");
 			if (!Util.copyFile(new File("../../data_dir_setup/solr/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt"), new File(solrDir + "/" + schemaName + "/conf/mapping-ISOLatin1Accent.txt"))){
-				logger.info("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
+				logger.warn("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 				addNoteToReindexLog("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 			}
 			logger.debug("Copying " + "../../data_dir_setup/solr/" + schemaName + "/conf/synonyms.txt" + " to " + solrDir + "/" + schemaName + "/conf/synonyms.txt");
 			if (!Util.copyFile(new File("../../data_dir_setup/solr/" + schemaName + "/conf/synonyms.txt"), new File(solrDir + "/" + schemaName + "/conf/synonyms.txt"))){
-				logger.info("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
+				logger.warn("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 				addNoteToReindexLog("Unable to copy mapping-ISOLatin1Accent.txt for " + schemaName);
 			}
 			logger.debug("Copying " + "../../data_dir_setup/solr/" + schemaName + "/conf/solrconfig.xml" + " to " + solrDir + "/" + schemaName + "/conf/solrconfig.xml");
 			if (!Util.copyFile(new File("../../data_dir_setup/solr/" + schemaName + "/conf/solrconfig.xml"), new File(solrDir + "/" + schemaName + "/conf/solrconfig.xml"))){
-				logger.info("Unable to copy solrconfig.xml for " + schemaName);
+				logger.warn("Unable to copy solrconfig.xml for " + schemaName);
 				addNoteToReindexLog("Unable to copy solrconfig.xml for " + schemaName);
 			}
 		} catch (IOException e) {

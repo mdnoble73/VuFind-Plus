@@ -6,6 +6,7 @@ import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 
 import java.sql.Connection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,11 +24,10 @@ public class NashvilleRecordProcessor extends IlsRecordProcessor {
 	}
 
 	@Override
-	public Set<String> loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<DataField> printItems, List<DataField> econtentItems) {
+	public void loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
 		String format = getFirstFieldVal(record, "998d");
 		Set<String> formats = new HashSet<String>();
 		formats.add(format);
-		return formats;
 	}
 
 }

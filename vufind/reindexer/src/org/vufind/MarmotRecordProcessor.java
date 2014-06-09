@@ -19,10 +19,6 @@ import java.util.*;
  */
 public class MarmotRecordProcessor extends IlsRecordProcessor {
 
-	/*private Connection econtentConn;
-	private PreparedStatement loadEContentRecordForIlsIdStmt;
-	private PreparedStatement loadEContentItemsForRecordStmt;*/
-
 	public MarmotRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Connection econtentConn, Ini configIni, Logger logger) {
 		super(indexer, vufindConn, configIni, logger);
 		/*this.econtentConn = econtentConn;
@@ -32,40 +28,6 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		}catch (SQLException e){
 			logger.error("Unable to create statements for Restricted EContent");
 		}*/
-	}
-
-	protected void loadRecordType(GroupedWorkSolr groupedWork, Record record, List<DataField> printItems, List<DataField> econtentItems) {
-		//Check the items to see if we need to subdivide the record
-		//We can potentially subdivide into external eContent, public domain, and restricted
-		String recordId = getFirstFieldVal(record, recordNumberTag + "a");
-
-		HashSet<String> recordTypes = new HashSet<String>();
-		for (DataField curItem : econtentItems){
-			String subfieldW = curItem.getSubfield('w').getData();
-			if (subfieldW.indexOf(':') > 0){
-				String[] econtentData = subfieldW.split("\\s?:\\s?");
-				String protectionType = econtentData[1].toLowerCase().trim();
-				if (protectionType.equals("acs") || protectionType.equals("drm")){
-					recordTypes.add("restricted_econtent") ;
-				}else if (protectionType.equals("public domain") || protectionType.equals("free")){
-					recordTypes.add("public_domain_econtent");
-				}else if (protectionType.equals("external")){
-					recordTypes.add("external_econtent");
-				}else{
-					logger.warn("Unknown protection type " + protectionType);
-				}
-			}else{
-				logger.warn("Invalid subfieldw for item in record " + recordId);
-				recordTypes.add("ils");
-			}
-		}
-		//No items, must be an order record, assume it is ils
-		if (printItems.size() > 0){
-			recordTypes.add("ils");
-		}
-		for (String recordType : recordTypes){
-			groupedWork.addRelatedRecord(recordType + ":" + recordId);
-		}
 	}
 
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
@@ -80,29 +42,22 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					groupedWork.addAdditionalCollection(additionalCollection, indexer.translateValue("collection_" + additionalCollection, locationCode));
 				}
 			}
-			ArrayList<String> subdomainsForLocation = getLibrarySubdomainsForLocationCode(locationCode);
-			ArrayList<String> relatedLocationCodesForLocation = getRelatedLocationCodesForLocationCode(locationCode);
-			groupedWork.addDetailedLocation(indexer.translateValue("detailed_location", locationCode), subdomainsForLocation, relatedLocationCodesForLocation);
+			String translatedDetailedLocation = indexer.translateValue("detailed_location", locationCode);
+			for (LocalizedWorkDetails localizedWorkDetails : groupedWork.getLocalizedWorkDetails().values()){
+				if (localizedWorkDetails.getLocalizationInfo().isLocationCodeIncluded(locationCode)){
+					localizedWorkDetails.addDetailedLocation(translatedDetailedLocation);
+				}
+			}
 		}
 	}
 
-	protected void loadLocalCallNumbers(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
-		for (DataField curItem : printItems){
-			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
-			if (locationSubfield != null){
-				String locationCode = locationSubfield.getData();
-				String callNumberPrestamp = "";
-				if (callNumberPrestampSubfield != ' '){
-					callNumberPrestamp = curItem.getSubfield(callNumberPrestampSubfield) == null ? "" : curItem.getSubfield(callNumberPrestampSubfield).getData();
-				}
-				String callNumber = "";
-				if (callNumberSubfield != ' '){
-					callNumber = curItem.getSubfield(callNumberSubfield) == null ? "" : curItem.getSubfield(callNumberSubfield).getData();
-				}
-				String callNumberCutter = "";
-				if (callNumberCutterSubfield != ' '){
-					callNumberCutter = curItem.getSubfield(callNumberCutterSubfield) == null ? "" : curItem.getSubfield(callNumberCutterSubfield).getData();
-				}
+	protected void loadLocalCallNumbers(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
+		for (PrintIlsRecord curItem : printItems){
+			String locationCode = curItem.getLocation();
+			if (locationCode != null){
+				String callNumberPrestamp = curItem.getCallNumberPreStamp() == null ? "" : curItem.getCallNumberPreStamp();
+				String callNumber = curItem.getCallNumber() == null ? "" : curItem.getCallNumber();
+				String callNumberCutter = curItem.getCallNumberCutter() == null ? "" : curItem.getCallNumberCutter();
 				String fullCallNumber = callNumberPrestamp + callNumber + callNumberCutter;
 				String sortableCallNumber = callNumber + callNumberCutter;
 				if (fullCallNumber.length() > 0){
@@ -115,17 +70,17 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		}
 	}
 
-	protected List<DataField> getUnsuppressedPrintItems(Record record){
+	protected List<PrintIlsRecord> getUnsuppressedPrintItems(Record record){
 		List<DataField> itemRecords = getDataFields(record, itemTag);
-		List<DataField> unsuppressedItemRecords = new ArrayList<DataField>();
+		List<PrintIlsRecord> unsuppressedItemRecords = new ArrayList<PrintIlsRecord>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
 				//Check to see if the item has an eContent indicator
 				boolean isEContent = false;
 				boolean isOverDrive = false;
 				if (useEContentSubfield){
-					if (itemField.getSubfield(eContentSubfield) != null){
-						String eContentData = itemField.getSubfield(eContentSubfield).getData();
+					if (itemField.getSubfield(eContentSubfieldIndicator) != null){
+						String eContentData = itemField.getSubfield(eContentSubfieldIndicator).getData();
 						if (eContentData.indexOf(':') >= 0){
 							isEContent = true;
 							String[] eContentFields = eContentData.split(":");
@@ -137,24 +92,24 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					}
 				}
 				if (!isOverDrive && !isEContent){
-					unsuppressedItemRecords.add(itemField);
+					unsuppressedItemRecords.add(getPrintIlsRecord(itemField));
 				}
 			}
 		}
 		return unsuppressedItemRecords;
 	}
 
-	protected List<DataField> getUnsuppressedEContentItems(Record record){
+	protected List<EContentIlsRecord> getUnsuppressedEContentItems(String identifier, Record record){
 		List<DataField> itemRecords = getDataFields(record, itemTag);
-		List<DataField> unsuppressedEcontentRecords = new ArrayList<DataField>();
+		List<EContentIlsRecord> unsuppressedEcontentRecords = new ArrayList<EContentIlsRecord>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
 				//Check to see if the item has an eContent indicator
 				boolean isEContent = false;
 				boolean isOverDrive = false;
 				if (useEContentSubfield){
-					if (itemField.getSubfield(eContentSubfield) != null){
-						String eContentData = itemField.getSubfield(eContentSubfield).getData();
+					if (itemField.getSubfield(eContentSubfieldIndicator) != null){
+						String eContentData = itemField.getSubfield(eContentSubfieldIndicator).getData();
 						if (eContentData.indexOf(':') >= 0){
 							isEContent = true;
 							String[] eContentFields = eContentData.split(":");
@@ -163,14 +118,14 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 								isOverDrive = true;
 							}
 						}else{
-							if (itemField.getSubfield(eContentSubfield).getData().trim().equalsIgnoreCase("overdrive")){
+							if (itemField.getSubfield(eContentSubfieldIndicator).getData().trim().equalsIgnoreCase("overdrive")){
 								isOverDrive = true;
 							}
 						}
 					}
 				}
 				if (!isOverDrive && isEContent){
-					unsuppressedEcontentRecords.add(itemField);
+					unsuppressedEcontentRecords.add(getEContentIlsRecord(identifier, itemField));
 				}
 			}
 		}
@@ -184,151 +139,133 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 	 * @param groupedWork
 	 * @param itemRecords
 	 */
-	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<DataField> itemRecords) {
-		for (DataField curItem : itemRecords){
+	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<EContentIlsRecord> itemRecords) {
+		for (EContentIlsRecord curItem : itemRecords){
 			//Check subfield w to get the source
-			if (curItem.getSubfield('w') != null){
-				String locationCode = curItem.getSubfield(locationSubfieldIndicator) == null ? null : curItem.getSubfield(locationSubfieldIndicator).getData();
-				HashSet<String> sources = new HashSet<String>();
-				HashSet<String> protectionTypes = new HashSet<String>();
+			String locationCode = curItem.getLocation();
+			HashSet<String> sources = new HashSet<String>();
+			HashSet<String> protectionTypes = new HashSet<String>();
 
-				String subfieldW = curItem.getSubfield('w').getData();
-				String[] econtentData = subfieldW.split("\\s?:\\s?");
-				String eContentSource = econtentData[0].trim();
-				String protectionType = econtentData[1].toLowerCase().trim();
+			String eContentSource = curItem.getSource();
+			String protectionType = curItem.getProtectionType();
 
-				sources.add(eContentSource);
+			sources.add(eContentSource);
 
-				boolean available = false;
-				if (protectionType.equals("external")){
-					protectionTypes.add("Externally Validated");
-					available = true;
-				}else if (protectionType.equals("public domain") || protectionType.equals("free")){
-					protectionTypes.add("Public Domain");
-					available = true;
-				}else if (protectionType.equals("acs") || protectionType.equals("drm")){
-					protectionTypes.add("Limited Access");
-					//TODO: Determine availability
-					available = true;
+			boolean available = false;
+			if (protectionType.equals("external")){
+				protectionTypes.add("Externally Validated");
+				available = true;
+			}else if (protectionType.equals("public domain") || protectionType.equals("free")){
+				protectionTypes.add("Public Domain");
+				available = true;
+			}else if (protectionType.equals("acs") || protectionType.equals("drm")){
+				protectionTypes.add("Limited Access");
+				//TODO: Determine availability based on if it is checked out in the database
+				available = true;
+			}
+
+			boolean shareWithAll = false;
+			boolean shareWithLibrary = false;
+			String sharing = curItem.getSharing();
+			if (sharing.equalsIgnoreCase("shared")){
+				shareWithAll = true;
+			}else if (sharing.equalsIgnoreCase("library")){
+				shareWithLibrary = true;
+			}
+
+			if (locationCode != null && locationCode.equalsIgnoreCase("mdl")){
+				//Share with everyone
+				shareWithAll = true;
+			}
+			HashSet<String> owningLibraries = new HashSet<String>();
+			HashSet<String> availableLibraries = new HashSet<String>();
+			HashSet<String> owningSubdomainsAndLocations = new HashSet<String>();
+			HashSet<String> availableSubdomainsAndLocations = new HashSet<String>();
+			if (shareWithAll){
+				//When we share with everyone, we only really want to share with people that want it
+				groupedWork.addEContentSources(sources, curItem.getValidSubdomains() , curItem.getValidLocations());
+				groupedWork.addEContentProtectionTypes(protectionTypes, curItem.getValidSubdomains() , curItem.getValidLocations());
+				groupedWork.addCompatiblePTypes(curItem.getCompatiblePTypes());
+				//owningLibraries.add("Shared Digital Collection");
+				owningLibraries.addAll(curItem.getValidLibraryFacets());
+				owningSubdomainsAndLocations.addAll(indexer.getSubdomainMap().values());
+				owningSubdomainsAndLocations.addAll(indexer.getLocationMap().values());
+				if (available){
+					availableLibraries.addAll(indexer.getLibraryFacetMap().values());
+					availableSubdomainsAndLocations.addAll(indexer.getSubdomainMap().values());
+					availableSubdomainsAndLocations.addAll(indexer.getLocationMap().values());
 				}
-				boolean shareWithAll = false;
-				boolean shareWithLibrary = false;
-				if (econtentData.length >= 3){
-					String sharing = econtentData[2].trim();
-					if (sharing.equalsIgnoreCase("shared")){
-						shareWithAll = true;
-					}else if (sharing.equalsIgnoreCase("library")){
-						shareWithLibrary = true;
-					}
-				}else{
-					shareWithLibrary = true;
-				}
-
-				if (locationCode != null && locationCode.equalsIgnoreCase("mdl")){
-					//Share with everyone
-					shareWithAll = true;
-				}
-				HashSet<String> owningLibraries = new HashSet<String>();
-				HashSet<String> availableLibraries = new HashSet<String>();
-				HashSet<String> owningSubdomainsAndLocations = new HashSet<String>();
-				HashSet<String> availableSubdomainsAndLocations = new HashSet<String>();
-				if (shareWithAll){
-					groupedWork.addEContentSources(sources, indexer.getSubdomainMap().values() , indexer.getLocationMap().values());
-					groupedWork.addEContentProtectionTypes(protectionTypes, indexer.getSubdomainMap().values() , indexer.getLocationMap().values());
-					groupedWork.addCompatiblePTypes(allPTypes);
-					owningLibraries.add("Shared Digital Collection");
-					owningLibraries.addAll(indexer.getLibraryOnlineFacetMap().values());
-					owningSubdomainsAndLocations.addAll(indexer.getSubdomainMap().values());
-					owningSubdomainsAndLocations.addAll(indexer.getLocationMap().values());
-					if (available){
-						availableLibraries.addAll(indexer.getLibraryFacetMap().values());
-						availableSubdomainsAndLocations.addAll(indexer.getSubdomainMap().values());
-						availableSubdomainsAndLocations.addAll(indexer.getLocationMap().values());
-					}
-				}else if (shareWithLibrary){
-					ArrayList<String> validSubdomains = getLibrarySubdomainsForLocationCode(locationCode);
-					ArrayList<String> validLocationCodes = getRelatedLocationCodesForLocationCode(locationCode);
-					groupedWork.addEContentSources(sources, validSubdomains, validLocationCodes);
-					groupedWork.addEContentProtectionTypes(protectionTypes, validSubdomains, validLocationCodes);
-					for (String curLocation : pTypesByLibrary.keySet()){
-						if (locationCode.startsWith(curLocation)){
-							groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
-						}
-					}
-					owningLibraries.addAll(getLibraryOnlineFacetsForLocationCode(locationCode));
-					if (available){
-						availableLibraries.addAll(getLibraryOnlineFacetsForLocationCode(locationCode));
-						availableSubdomainsAndLocations.addAll(validSubdomains);
-						availableSubdomainsAndLocations.addAll(validLocationCodes);
-					}
-				}else{
-					//Share with just the individual location
-					groupedWork.addEContentSources(sources, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
-					groupedWork.addEContentProtectionTypes(protectionTypes, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
-					//TODO: Add correct owning and available locations
-					for (String curLocation : pTypesByLibrary.keySet()){
-						if (locationCode.startsWith(curLocation)){
-							groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
-						}
+			}else if (shareWithLibrary){
+				ArrayList<String> validSubdomains = getLibrarySubdomainsForLocationCode(locationCode);
+				ArrayList<String> validLocationCodes = getRelatedLocationCodesForLocationCode(locationCode);
+				groupedWork.addEContentSources(sources, validSubdomains, validLocationCodes);
+				groupedWork.addEContentProtectionTypes(protectionTypes, validSubdomains, validLocationCodes);
+				for (String curLocation : pTypesByLibrary.keySet()){
+					if (locationCode.startsWith(curLocation)){
+						groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
 					}
 				}
-				groupedWork.addOwningLibraries(owningLibraries);
-				groupedWork.addOwningLocationCodesAndSubdomains(owningSubdomainsAndLocations);
-				groupedWork.addAvailableLocations(availableLibraries, availableSubdomainsAndLocations);
-			}//Has subfield w
-		}
+				owningLibraries.addAll(getLibraryOnlineFacetsForLocationCode(locationCode));
+				if (available){
+					availableLibraries.addAll(getLibraryOnlineFacetsForLocationCode(locationCode));
+					availableSubdomainsAndLocations.addAll(validSubdomains);
+					availableSubdomainsAndLocations.addAll(validLocationCodes);
+				}
+			}else{
+				//Share with just the individual location
+				groupedWork.addEContentSources(sources, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
+				groupedWork.addEContentProtectionTypes(protectionTypes, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
+				//TODO: Add correct owning and available locations
+				for (String curLocation : pTypesByLibrary.keySet()){
+					if (locationCode.startsWith(curLocation)){
+						groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
+					}
+				}
+			}
+			groupedWork.addOwningLibraries(owningLibraries);
+			groupedWork.addOwningLocationCodesAndSubdomains(owningSubdomainsAndLocations);
+			groupedWork.addAvailableLocations(availableLibraries, availableSubdomainsAndLocations);
+		}//Has subfield w
 	}
 
-	protected void loadUsability(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
+	protected void loadUsability(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
 		super.loadUsability(groupedWork, printItems, econtentItems);
 
-		for (DataField itemField : econtentItems){
-			if (itemField.getSubfield(eContentSubfield) != null){
-				String eContentData = itemField.getSubfield(eContentSubfield).getData();
-				String locationCode = itemField.getSubfield(locationSubfieldIndicator) == null ? null : itemField.getSubfield(locationSubfieldIndicator).getData().trim();
-				if (eContentData.indexOf(':') >= 0){
-					boolean shareWithAll = false;
-					boolean shareWithLibrary = false;
-					boolean shareWithSome = false;
-					String[] econtentData = eContentData.split("\\s?:\\s?");
-					if (econtentData.length >= 3){
-						String sharing = econtentData[2].trim();
-						if (sharing.equalsIgnoreCase("shared")){
-							shareWithAll = true;
-						}else if (sharing.equalsIgnoreCase("library")){
-							shareWithLibrary = true;
+		for (EContentIlsRecord itemField : econtentItems){
+			String locationCode = itemField.getLocation();
+			boolean shareWithAll = false;
+			boolean shareWithLibrary = false;
+			boolean shareWithSome = false;
+			String sharing = itemField.getSharing();
+			if (sharing.equals("shared")){
+				if (locationCode.startsWith("mdl")){
+					shareWithSome = true;
+				}else{
+					shareWithAll = true;
+				}
+			}else if (sharing.equalsIgnoreCase("library")){
+				shareWithLibrary = true;
+			}
+
+			if (shareWithAll){
+				groupedWork.addCompatiblePTypes(allPTypes);
+				break;
+			}else if (shareWithLibrary) {
+				if (locationCode == null) {
+					logger.error("Location code was null for item, skipping to next");
+				} else {
+					for (String curLocation : pTypesByLibrary.keySet()) {
+						if (locationCode.startsWith(curLocation)) {
+							groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
 						}
-					}else{
-						if (locationCode != null){
-							if (locationCode.startsWith("mdl")){
-								shareWithSome = true;
-							}else{
-								shareWithLibrary = true;
-							}
-						}else{
-							logger.error("Location code was null for item, skipping to next");
-							continue;
-						}
-					}
-					if (shareWithAll){
-						groupedWork.addCompatiblePTypes(allPTypes);
-						break;
-					}else if (shareWithLibrary) {
-						if (locationCode == null) {
-							logger.error("Location code was null for item, skipping to next");
-						} else {
-							for (String curLocation : pTypesByLibrary.keySet()) {
-								if (locationCode.startsWith(curLocation)) {
-									groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
-								}
-							}
-						}
-					}else if (shareWithSome){
-						groupedWork.addCompatiblePTypes(pTypesForSpecialLocationCodes.get(locationCode));
-					} else{
-						logger.warn("Could not determine usability, was not shared with library or everyone");
 					}
 				}
+			}else if (shareWithSome){
+				if (pTypesForSpecialLocationCodes.containsKey(locationCode)) {
+					groupedWork.addCompatiblePTypes(pTypesForSpecialLocationCodes.get(locationCode));
+				}
+			} else{
+				logger.warn("Could not determine usability, was not shared with library or everyone");
 			}
 		}
 	}
@@ -338,9 +275,10 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 	 *
 	 * @return Set format of record
 	 */
-	public Set<String> loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<DataField> printItems, List<DataField> econtentItems) {
-		Set<String> result = new LinkedHashSet<String>();
+	public void loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
 		if (printItems.size() > 0){
+			Set<String> printFormats = new LinkedHashSet<String>();
+
 			String leader = record.getLeader().toString();
 			char leaderBit;
 			ControlField fixedField = (ControlField) record.getVariableField("008");
@@ -352,82 +290,111 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				leaderBit = leader.charAt(6);
 				switch (Character.toUpperCase(leaderBit)) {
 					case 'J':
-						result.add("MusicRecording");
+						printFormats.add("MusicRecording");
 						break;
 				}
 			}
-			getFormatFromPublicationInfo(record, result);
-			getFormatFromNotes(record, result);
-			getFormatFromEdition(record, result);
-			getFormatFromPhysicalDescription(record, result);
-			getFormatFromSubjects(record, result);
-			getFormatFrom007(record, result);
-			getFormatFromLeader(result, leader, fixedField);
+			getFormatFromPublicationInfo(record, printFormats);
+			getFormatFromNotes(record, printFormats);
+			getFormatFromEdition(record, printFormats);
+			getFormatFromPhysicalDescription(record, printFormats);
+			getFormatFromSubjects(record, printFormats);
+			getFormatFrom007(record, printFormats);
+			getFormatFromLeader(printFormats, leader, fixedField);
+
+			HashSet<String> translatedFormats = indexer.translateCollection("format", printFormats);
+			HashSet<String> translatedFormatCategories = indexer.translateCollection("format_category", printFormats);
+			groupedWork.addFormats(translatedFormats);
+			groupedWork.addFormatCategories(translatedFormatCategories);
+			Long formatBoost = 0L;
+			HashSet<String> formatBoosts = indexer.translateCollection("format_boost", printFormats);
+			for (String tmpFormatBoost : formatBoosts){
+				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
+				if (tmpFormatBoostLong > formatBoost){
+					formatBoost = tmpFormatBoostLong;
+				}
+			}
+			groupedWork.setFormatBoost(formatBoost);
+			//These formats are apply to all scopes that can access any of the items
+			for (PrintIlsRecord curItem : printItems){
+				String locationCode = curItem.getLocation() == null ? "" : curItem.getLocation();
+				String iType = curItem.getiType() == null ? "" : curItem.getiType();
+				if (locationCode.length() > 0 && iType.length() > 0) {
+					HashSet<String> compatiblePTypes = this.getCompatiblePTypes(iType, locationCode);
+					for (ScopedWorkDetails scopedWorkDetails : groupedWork.getScopedWorkDetails().values()) {
+						if (scopedWorkDetails.getScope().isItemPartOfScope(locationCode, compatiblePTypes)) {
+							scopedWorkDetails.addFormats(translatedFormats);
+							scopedWorkDetails.addFormatCategories(translatedFormatCategories);
+							scopedWorkDetails.setFormatBoost(formatBoost);
+						}
+					}
+				}
+			}
 		}
 		if (econtentItems.size() > 0){
-			getFormatFromEcontentItems(groupedWork, identifier, result, econtentItems);
+			getFormatFromEcontentItems(groupedWork, identifier, econtentItems);
 		}
-
-		// Nothing worked!
-		if (result.isEmpty()) {
-			result.add("Unknown");
-		}
-
-		return result;
 	}
 
-	private void getFormatFromEcontentItems(GroupedWorkSolr groupedWork, String identifier, Set<String> result, List<DataField> econtentItems) {
-		for (DataField curItem : econtentItems){
-			if (curItem.getSubfield('w') != null){
-				String locationCode = curItem.getSubfield('d').getData();
-				String subfieldW = curItem.getSubfield('w').getData();
-				String[] econtentData = subfieldW.split("\\s?:\\s?");
-				String protectionType = econtentData[1].toLowerCase().trim();
-				String sharing;
-				if (econtentData.length > 2) {
-					sharing = econtentData[2].toLowerCase().trim();
-				}else{
-					if (locationCode.startsWith("mdl")){
-						sharing = "shared";
-					}else{
-						sharing = "library";
-					}
-				}
-				if (protectionType.equals("acs") || protectionType.equals("drm") || protectionType.equals("public domain") || protectionType.equals("free")){
-					if (econtentData.length >= 4){
-						String filename = econtentData[3].trim().toLowerCase();
-						if (filename.indexOf('.') > 0){
-							String fileExtension = filename.substring(filename.lastIndexOf('.') + 1);
-							String translatedFormat = indexer.translateValue("econtent_itype_format", fileExtension);
-							addFormatToWorkOrSharedFormatCollection(groupedWork, result, locationCode, sharing, translatedFormat);
-						}else{
-							//For now we know these are folders of MP3 files
-							//TODO: Probably should actually open the folder to make sure that it contains MP3 files
-							String translatedFormat = indexer.translateValue("econtent_itype_format", "mp3");
-							addFormatToWorkOrSharedFormatCollection(groupedWork, result, locationCode, sharing, translatedFormat);
-						}
-					}else{
-						logger.warn("Filename for local econtent not specified " + subfieldW + " " + identifier);
-					}
-				}else if (protectionType.equals("external")){
-					String iType = curItem.getSubfield(iTypeSubfield) == null ? null : curItem.getSubfield(iTypeSubfield).getData();
+	private void getFormatFromEcontentItems(GroupedWorkSolr groupedWork, String identifier, List<EContentIlsRecord> econtentItems) {
+		for (EContentIlsRecord curItem : econtentItems){
+			String locationCode = curItem.getLocation();
+			String protectionType = curItem.getProtectionType();
+			String sharing = curItem.getSharing();
+			if (protectionType.equals("acs") || protectionType.equals("drm") || protectionType.equals("public domain") || protectionType.equals("free")){
+				String filename = curItem.getFilename();
+				if (filename == null) {
+					//Did not get a filename, use the iType as a placeholder
+					String iType = curItem.getiType();
 					if (iType != null){
 						String translatedFormat = indexer.translateValue("econtent_itype_format", iType);
-						addFormatToWorkOrSharedFormatCollection(groupedWork, result, locationCode, sharing, translatedFormat);
+						String translatedFormatCategory = indexer.translateValue("econtent_itype_format_category", iType);
+						String translatedFormatBoost = indexer.translateValue("econtent_itype_format_boost", iType);
+						addFormatToWorkOrSharedFormatCollection(groupedWork, curItem, translatedFormat, translatedFormatCategory, translatedFormatBoost);
+					}else{
+						logger.warn("Did not get a filename or itype for " + identifier);
 					}
-				}else{
-					logger.warn("Unknown protection type " + protectionType);
+				}else if (filename.indexOf('.') > 0) {
+					String fileExtension = filename.substring(filename.lastIndexOf('.') + 1);
+					String translatedFormat = indexer.translateValue("econtent_itype_format", fileExtension);
+					String translatedFormatCategory = indexer.translateValue("econtent_itype_format_category", fileExtension);
+					String translatedFormatBoost = indexer.translateValue("econtent_itype_format_boost", fileExtension);
+					addFormatToWorkOrSharedFormatCollection(groupedWork, curItem, translatedFormat, translatedFormatCategory, translatedFormatBoost);
+				} else {
+					//For now we know these are folders of MP3 files
+					//TODO: Probably should actually open the folder to make sure that it contains MP3 files
+					String translatedFormat = indexer.translateValue("econtent_itype_format", "mp3");
+					String translatedFormatCategory = indexer.translateValue("econtent_itype_format_category", "mp3");
+					String translatedFormatBoost = indexer.translateValue("econtent_itype_format_boost", "mp3");
+					addFormatToWorkOrSharedFormatCollection(groupedWork, curItem, translatedFormat, translatedFormatCategory, translatedFormatBoost);
 				}
+			}else if (protectionType.equals("external")){
+				String iType = curItem.getiType();
+				if (iType != null){
+					String translatedFormat = indexer.translateValue("econtent_itype_format", iType);
+					String translatedFormatCategory = indexer.translateValue("econtent_itype_format_category", iType);
+					String translatedFormatBoost = indexer.translateValue("econtent_itype_format_boost", iType);
+					addFormatToWorkOrSharedFormatCollection(groupedWork, curItem, translatedFormat, translatedFormatCategory, translatedFormatBoost);
+				}else{
+					logger.warn("Did not get a iType for external eContent " + identifier);
+				}
+			}else{
+				logger.warn("Unknown protection type " + protectionType);
 			}
 		}
 	}
 
-	private void addFormatToWorkOrSharedFormatCollection(GroupedWorkSolr groupedWork, Set<String> result, String locationCode, String sharing, String translatedFormat) {
-		if (sharing.equals("shared")) {
-			result.add(translatedFormat);
-		}else{
-			//add the format to the work
-			groupedWork.addFormat(translatedFormat, getLibrarySubdomainsForLocationCode(locationCode), getRelatedLocationCodesForLocationCode(locationCode));
+	private void addFormatToWorkOrSharedFormatCollection(GroupedWorkSolr groupedWork, EContentIlsRecord ilsRecord, String translatedFormat, String formatCategory, String translatedFormatBoost) {
+		groupedWork.addFormat(translatedFormat);
+		groupedWork.addFormatCategory(formatCategory);
+		Long formatBoost = Long.parseLong(translatedFormatBoost);
+		groupedWork.setFormatBoost(formatBoost);
+		for (ScopedWorkDetails scopedWorkDetails : groupedWork.getScopedWorkDetails().values()){
+			if (scopedWorkDetails.getScope().isEContentLocationPartOfScope(ilsRecord)){
+				scopedWorkDetails.addFormat(translatedFormat);
+				scopedWorkDetails.addFormatCategory(formatCategory);
+				scopedWorkDetails.setFormatBoost(formatBoost);
+			}
 		}
 	}
 

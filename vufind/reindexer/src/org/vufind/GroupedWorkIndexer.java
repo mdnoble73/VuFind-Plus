@@ -52,6 +52,8 @@ public class GroupedWorkIndexer {
 	private Long lastReindexTimeVariableId;
 
 	private HashSet<String> worksWithInvalidLiteraryForms = new HashSet<String>();
+	private HashSet<Scope> scopes = new HashSet<Scope>();
+	private HashSet<LocalizationInfo> localizations = new HashSet<LocalizationInfo>();
 
 	public GroupedWorkIndexer(String serverName, Connection vufindConn, Connection econtentConn, Ini configIni, boolean fullReindex, Logger logger) {
 		this.serverName = serverName;
@@ -127,7 +129,7 @@ public class GroupedWorkIndexer {
 		if (!libraryAndLocationDataLoaded){
 			//Setup translation maps for system and location
 			try {
-				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT ilsCode, subdomain, displayName, facetLabel FROM library", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, displayName, facetLabel, pTypes, restrictSearchByLibrary, econtentLocationsToInclude, includeDigitalCollection, includeOutOfSystemExternalLinks, useScope FROM library", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
 				while (libraryInformationRS.next()){
 					String code = libraryInformationRS.getString("ilsCode").toLowerCase();
@@ -143,18 +145,100 @@ public class GroupedWorkIndexer {
 						libraryOnlineFacetMap.put(code, onlineFacetLabel);
 					}
 					subdomainMap.put(code, subdomain);
+					//These options determine how scoping is done
+					Long libraryId = libraryInformationRS.getLong("libraryId");
+					String pTypes = libraryInformationRS.getString("pTypes");
+					boolean restrictSearchByLibrary = libraryInformationRS.getBoolean("restrictSearchByLibrary");
+					String econtentLocationsToInclude = libraryInformationRS.getString("econtentLocationsToInclude");
+					boolean includeOutOfSystemExternalLinks = libraryInformationRS.getBoolean("includeOutOfSystemExternalLinks");
+					boolean useScope = libraryInformationRS.getBoolean("useScope");
+					boolean includeOverdrive = libraryInformationRS.getBoolean("includeDigitalCollection");
+					//Determine if we need to build a scope for this library
+					if (pTypes.length() == 0 && !restrictSearchByLibrary && econtentLocationsToInclude.equalsIgnoreCase("all") && includeOutOfSystemExternalLinks && !useScope){
+						logger.debug("Not creating a scope for library because there are no restrictions for library " + subdomain);
+					}else{
+						//We need to build a scope
+						Scope newScope = new Scope();
+						newScope.setScopeName(subdomain);
+						newScope.setLibraryId(libraryId);
+						newScope.setFacetLabel(facetLabel);
+						newScope.setLibraryLocationCodePrefix(code);
+						newScope.setIncludeOutOfSystemExternalLinks(includeOutOfSystemExternalLinks);
+						newScope.setRelatedPTypes(pTypes.split(","));
+						newScope.setIncludeBibsOwnedByTheLibraryOnly(restrictSearchByLibrary);
+						newScope.setIncludeItemsOwnedByTheLibraryOnly(useScope);
+						newScope.setEContentLocationCodesToInclude(econtentLocationsToInclude.split(","));
+						newScope.setIncludeOverDriveCollection(includeOverdrive);
+						scopes.add(newScope);
+					}
 				}
 
-				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT code, facetLabel, displayName FROM location", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, code, ilsCode, library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.useScope as useScopeLibrary, location.useScope as useScopeLocation, library.scope AS libraryScope, location.scope AS locationScope, restrictSearchByLocation, restrictSearchByLibrary, library.econtentLocationsToInclude as econtentLocationsToIncludeLibrary, location.econtentLocationsToInclude as econtentLocationsToIncludeLocation, library.includeDigitalCollection as includeDigitalCollectionLibrary, location.includeDigitalCollection as includeDigitalCollectionLocation, includeOutOfSystemExternalLinks FROM location INNER JOIN library on library.libraryId = location.libraryid", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				ResultSet locationInformationRS = locationInformationStmt.executeQuery();
 				while (locationInformationRS.next()){
 					String code = locationInformationRS.getString("code").toLowerCase();
+					String libraryIlsCode = locationInformationRS.getString("ilsCode").toLowerCase();
 					String facetLabel = locationInformationRS.getString("facetLabel");
 					String displayName = locationInformationRS.getString("displayName");
 					if (facetLabel.length() == 0){
 						facetLabel = displayName;
 					}
 					locationMap.put(code, facetLabel);
+
+					LocalizationInfo localizationInfo = new LocalizationInfo();
+					localizationInfo.setLocalName(code);
+					localizationInfo.setLocationCodePrefix(code);
+					localizations.add(localizationInfo);
+
+
+					//Determine if we need to build a scope for this location
+					Long libraryId = locationInformationRS.getLong("libraryId");
+					String pTypes = locationInformationRS.getString("pTypes");
+					boolean restrictSearchByLibrary = locationInformationRS.getBoolean("restrictSearchByLibrary");
+					boolean restrictSearchByLocation = locationInformationRS.getBoolean("restrictSearchByLocation");
+					boolean includeOverDriveCollectionLibrary = locationInformationRS.getBoolean("includeDigitalCollectionLibrary");
+					boolean includeOverDriveCollectionLocation = locationInformationRS.getBoolean("includeDigitalCollectionLocation");
+					String econtentLocationsToIncludeLibrary = locationInformationRS.getString("econtentLocationsToIncludeLibrary");
+					String econtentLocationsToIncludeLocation = locationInformationRS.getString("econtentLocationsToIncludeLocation");
+					if (econtentLocationsToIncludeLocation == null || econtentLocationsToIncludeLocation.length() == 0){
+						econtentLocationsToIncludeLocation = econtentLocationsToIncludeLibrary;
+					}
+					boolean includeOutOfSystemExternalLinks = locationInformationRS.getBoolean("includeOutOfSystemExternalLinks");
+					boolean useScopeLibrary = locationInformationRS.getBoolean("useScopeLibrary");
+					Integer libraryScope = locationInformationRS.getInt("libraryScope");
+					boolean useScopeLocation = locationInformationRS.getBoolean("useScopeLocation");
+					Integer locationScope = locationInformationRS.getInt("locationScope");
+					if (pTypes.length() == 0 && !restrictSearchByLocation && econtentLocationsToIncludeLocation.equalsIgnoreCase("all") && includeOutOfSystemExternalLinks && !useScopeLocation){
+						logger.debug("Not creating a scope for locations because there are no restrictions for the location " + code);
+					}else{
+						//Check to see if the location has the same restrictions as the library.
+						boolean needLocationScope = false;
+						if (restrictSearchByLocation || !econtentLocationsToIncludeLibrary.equals(econtentLocationsToIncludeLocation)){
+							needLocationScope = true;
+						}else if (useScopeLocation && !libraryScope.equals(locationScope)){
+							needLocationScope = true;
+						}
+						if (needLocationScope){
+							Scope locationScopeInfo = new Scope();
+							locationScopeInfo.setScopeName(code);
+							locationScopeInfo.setLibraryId(libraryId);
+							locationScopeInfo.setLibraryLocationCodePrefix(code);
+							locationScopeInfo.setLocationLocationCodePrefix(libraryIlsCode);
+							locationScopeInfo.setRelatedPTypes(pTypes.split(","));
+							locationScopeInfo.setFacetLabel(facetLabel);
+							locationScopeInfo.setIncludeBibsOwnedByTheLibraryOnly(restrictSearchByLibrary);
+							locationScopeInfo.setIncludeBibsOwnedByTheLocationOnly(restrictSearchByLocation);
+							locationScopeInfo.setIncludeItemsOwnedByTheLibraryOnly(useScopeLibrary);
+							locationScopeInfo.setIncludeItemsOwnedByTheLocationOnly(useScopeLocation);
+							locationScopeInfo.setEContentLocationCodesToInclude(econtentLocationsToIncludeLocation.split(","));
+							locationScopeInfo.setIncludeOutOfSystemExternalLinks(includeOutOfSystemExternalLinks);
+							locationScopeInfo.setIncludeOverDriveCollection(includeOverDriveCollectionLibrary && includeOverDriveCollectionLocation);
+
+							scopes.add(locationScopeInfo);
+						}else{
+							logger.debug("No scope needed for " + code + " because the library scope works just fine");
+						}
+					}
 				}
 			} catch (SQLException e) {
 				logger.error("Error setting up system maps", e);
@@ -699,5 +783,13 @@ public class GroupedWorkIndexer {
 
 	public HashMap<String, String> getLibraryOnlineFacetMap() {
 		return libraryOnlineFacetMap;
+	}
+
+	public HashSet<Scope> getScopes() {
+		return this.scopes;
+	}
+
+	public HashSet<LocalizationInfo> getLocalizations() {
+		return this.localizations;
 	}
 }

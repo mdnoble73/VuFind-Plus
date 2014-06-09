@@ -6,6 +6,7 @@ import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 
 import java.sql.Connection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -22,9 +23,8 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 	}
 
 	@Override
-	public Set<String> loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<DataField> printItems, List<DataField> econtentItems) {
+	public void loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
 		//Get formats based on 949c
 		Set<String> collectionFields = this.getFieldList(record, "949c");
-		return collectionFields;
 	}
 }

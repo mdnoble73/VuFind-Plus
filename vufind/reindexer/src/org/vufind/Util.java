@@ -164,6 +164,8 @@ public class Util {
 			source = new FileInputStream(sourceFile).getChannel();
 			destination = new FileOutputStream(destFile).getChannel();
 			destination.transferFrom(source, 0, source.size());
+		}catch (Exception e){
+			return false;
 		} finally {
 			if (source != null) {
 				source.close();
@@ -478,6 +480,14 @@ public class Util {
 		return format;
 	}
 
+	public static Collection<String> trimTrailingPunctuation(Set<String> fieldList) {
+		HashSet<String> trimmedCollection = new HashSet<String>();
+		for (String field : fieldList){
+			trimmedCollection.add(trimTrailingPunctuation(field));
+		}
+		return trimmedCollection;
+	}
+
 	private static Pattern sortTrimmingPattern = Pattern.compile("(?i)^(?:(?:a|an|the|el|la|\"|')\\s)(.*)$");
 	public static String makeValueSortable(String curTitle) {
 		if (curTitle == null) return "";
@@ -579,5 +589,21 @@ public class Util {
 			result.add("Year");
 		}
 		return result;
+	}
+
+
+	public static boolean isNumeric(String stringToTest) {
+		if (stringToTest == null){
+			return false;
+		}
+		if (stringToTest.length() == 0){
+			return false;
+		}
+		for (char curChar : stringToTest.toCharArray()){
+			if (!Character.isDigit(curChar) && curChar != '.'){
+				return false;
+			}
+		}
+		return true;
 	}
 }

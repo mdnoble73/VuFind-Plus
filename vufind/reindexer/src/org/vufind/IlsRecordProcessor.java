@@ -1,6 +1,8 @@
 package org.vufind;
 
+import com.sun.xml.internal.ws.util.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.solr.util.NumberUtils;
 import org.ini4j.Ini;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.marc.*;
@@ -43,7 +45,7 @@ public abstract class IlsRecordProcessor {
 	protected char locationSubfieldIndicator;
 	protected char iTypeSubfield;
 	protected boolean useEContentSubfield = false;
-	protected char eContentSubfield;
+	protected char eContentSubfieldIndicator;
 	protected char lastYearCheckoutSubfield;
 	protected char ytdCheckoutSubfield;
 	protected char totalCheckoutSubfield;
@@ -53,6 +55,8 @@ public abstract class IlsRecordProcessor {
 	protected char callNumberPrestampSubfield;
 	protected char callNumberSubfield;
 	protected char callNumberCutterSubfield;
+	protected char itemRecordNumberSubfieldIndicator;
+	protected char itemUrlSubfieldIndicator;
 
 	private static boolean loanRuleDataLoaded = false;
 	protected static ArrayList<Long> pTypes = new ArrayList<Long>();
@@ -75,7 +79,7 @@ public abstract class IlsRecordProcessor {
 		itemTag = configIni.get("Reindex", "itemTag");
 		recordNumberTag = configIni.get("Reindex", "recordNumberTag");
 		useEContentSubfield = Boolean.parseBoolean(configIni.get("Reindex", "useEContentSubfield"));
-		eContentSubfield = getSubfieldIndicatorFromConfig(configIni, "eContentSubfield");
+		eContentSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "eContentSubfield");
 		barcodeSubfield = getSubfieldIndicatorFromConfig(configIni, "barcodeSubfield");
 		statusSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "statusSubfield");
 		dueDateSubfield = getSubfieldIndicatorFromConfig(configIni, "dueDateSubfield");
@@ -90,6 +94,8 @@ public abstract class IlsRecordProcessor {
 		callNumberPrestampSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberPrestampSubfield");
 		callNumberSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberSubfield");
 		callNumberCutterSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberCutterSubfield");
+		itemRecordNumberSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "itemRecordNumberSubfield");
+		itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "itemUrlSubfield");
 
 		String additionalCollectionsString = configIni.get("Reindex", "additionalCollections");
 		if (additionalCollectionsString != null){
@@ -120,9 +126,7 @@ public abstract class IlsRecordProcessor {
 					if (pTypes != null && pTypes.length() > 0){
 						String[] pTypeElements = pTypes.split(",");
 						HashSet<String> pTypesForLibrary = new HashSet<String>();
-						for (String pType : pTypeElements){
-							pTypesForLibrary.add(pType);
-						}
+						Collections.addAll(pTypesForLibrary, pTypeElements);
 						pTypesByLibrary.put(ilsCode, pTypesForLibrary);
 						if (econtentLocationsToIncludeStr.length() > 0) {
 							String[] econtentLocationsToInclude = econtentLocationsToIncludeStr.split(",");
@@ -237,8 +241,8 @@ public abstract class IlsRecordProcessor {
 
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		try{
-			List<DataField> printItems = getUnsuppressedPrintItems(record);
-			List<DataField> econtentItems = getUnsuppressedEContentItems(record);
+			List<PrintIlsRecord> printItems = getUnsuppressedPrintItems(record);
+			List<EContentIlsRecord> econtentItems = getUnsuppressedEContentItems(identifier, record);
 
 			loadRecordType(groupedWork, record, printItems, econtentItems);
 
@@ -297,11 +301,11 @@ public abstract class IlsRecordProcessor {
 		}
 	}
 
-	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<DataField> econtentItems) {
+	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<EContentIlsRecord> econtentItems) {
 		//By default, do nothing
 	}
 
-	protected void loadLocalCallNumbers(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
+	protected void loadLocalCallNumbers(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
 		//By default, do nothing.
 	}
 
@@ -339,24 +343,206 @@ public abstract class IlsRecordProcessor {
 		}
 	}
 
-	protected void loadRecordType(GroupedWorkSolr groupedWork, Record record, List<DataField> printItems, List<DataField> econtentItems) {
+	protected void loadRecordType(GroupedWorkSolr groupedWork, Record record, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
 		String recordId = getFirstFieldVal(record, recordNumberTag + "a");
-		groupedWork.addRelatedRecord("ils:" + recordId);
+		String recordIdentifier = "ils:" + recordId;
+		groupedWork.addRelatedRecord(recordIdentifier);
+
+		for (PrintIlsRecord printItem : printItems){
+			for (Scope scope : printItem.getRelatedScopes()) {
+				groupedWork.getScopedWorkDetails().get(scope.getScopeName()).getRelatedRecords().add(recordIdentifier);
+			}
+		}
+
+		for (EContentIlsRecord econtentItem : econtentItems){
+			groupedWork.addRelatedRecord(econtentItem.getRecordIdentifier());
+			for (Scope scope : econtentItem.getRelatedScopes()) {
+				groupedWork.getScopedWorkDetails().get(scope.getScopeName()).getRelatedRecords().add(econtentItem.getRecordIdentifier());
+			}
+		}
 	}
 
-	protected List<DataField> getUnsuppressedPrintItems(Record record){
+	protected List<PrintIlsRecord> getUnsuppressedPrintItems(Record record){
 		List<DataField> itemRecords = getDataFields(record, itemTag);
-		List<DataField> unsuppressedItemRecords = new ArrayList<DataField>();
+		List<PrintIlsRecord> unsuppressedItemRecords = new ArrayList<PrintIlsRecord>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
-				unsuppressedItemRecords.add(itemField);
+				PrintIlsRecord ilsRecord = getPrintIlsRecord(itemField);
+				if (ilsRecord.getLocation() != null) {
+					unsuppressedItemRecords.add(ilsRecord);
+				}
 			}
 		}
 		return unsuppressedItemRecords;
 	}
 
-	protected List<DataField> getUnsuppressedEContentItems(Record record){
-		return new ArrayList<DataField>();
+	protected EContentIlsRecord getEContentIlsRecord(String identifier, DataField itemField){
+		EContentIlsRecord ilsRecord = new EContentIlsRecord();
+
+		ilsRecord.setDateCreated(getItemSubfieldData(dateCreatedSubfield, itemField));
+		ilsRecord.setLocation(getItemSubfieldData(locationSubfieldIndicator, itemField));
+		ilsRecord.setiType(getItemSubfieldData(iTypeSubfield, itemField));
+		ilsRecord.setCallNumberPreStamp(getItemSubfieldData(callNumberPrestampSubfield, itemField));
+		ilsRecord.setCallNumber(getItemSubfieldData(callNumberSubfield, itemField));
+		ilsRecord.setCallNumberCutter(getItemSubfieldData(callNumberCutterSubfield, itemField));
+		ilsRecord.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
+
+		Subfield eContentSubfield = itemField.getSubfield(eContentSubfieldIndicator);
+		if (eContentSubfield != null){
+			String eContentData = eContentSubfield.getData().trim();
+			if (eContentData.indexOf(':') > 0) {
+				String[] eContentFields = eContentData.split(":");
+				//First element is the source, and we will always have at least the source and protection type
+				ilsRecord.setSource(eContentFields[0].trim());
+				ilsRecord.setProtectionType(eContentFields[1].trim().toLowerCase());
+				if (eContentFields.length >= 3){
+					ilsRecord.setSharing(eContentFields[2].trim().toLowerCase());
+				}else{
+					//Sharing depends on the location code
+					if (ilsRecord.getLocation().startsWith("mdl")){
+						ilsRecord.setSharing("shared");
+					}else{
+						ilsRecord.setSharing("library");
+					}
+				}
+
+				//Remaining fields have variable definitions based on content that has been loaded over the past year or so
+				if (eContentFields.length >= 4){
+					//If the 4th field is numeric, it is the number of copies that can be checked out.
+					if (Util.isNumeric(eContentFields[3].trim())){
+						ilsRecord.setNumberOfCopies(eContentFields[3].trim());
+						if (eContentFields.length >= 5){
+							ilsRecord.setFilename(eContentFields[4].trim());
+						}else{
+							logger.warn("Filename for local econtent not specified " + eContentData + " " + identifier);
+						}
+						if (eContentFields.length >= 6){
+							ilsRecord.setAcsId(eContentFields[5].trim());
+						}
+					}else{
+						//Field 4 is the filename
+						ilsRecord.setFilename(eContentFields[3].trim());
+						if (eContentFields.length >= 5){
+							ilsRecord.setAcsId(eContentFields[4].trim());
+						}
+					}
+				}
+			}
+		}
+
+		//Set record type
+		String protectionType = ilsRecord.getProtectionType();
+		if (protectionType.equals("acs") || protectionType.equals("drm")){
+			ilsRecord.setRecordIdentifier("restricted_econtent:" + identifier); ;
+		}else if (protectionType.equals("public domain") || protectionType.equals("free")){
+			ilsRecord.setRecordIdentifier("public_domain_econtent:" + identifier);
+		}else if (protectionType.equals("external")){
+			ilsRecord.setRecordIdentifier("external_econtent:" + identifier);
+		}else{
+			logger.warn("Unknown protection type " + protectionType);
+		}
+
+		//Get the url if any
+		Subfield urlSubfield = itemField.getSubfield(itemUrlSubfieldIndicator);
+		if (urlSubfield != null){
+			ilsRecord.setUrl(urlSubfield.getData().trim());
+		}
+
+		//Determine availability
+		boolean available = false;
+		if (protectionType.equals("external")){
+			available = true;
+		}else if (protectionType.equals("public domain") || protectionType.equals("free")){
+			available = true;
+		}else if (protectionType.equals("acs") || protectionType.equals("drm")){
+			//TODO: Determine availability based on if it is checked out in the database
+			available = true;
+		}
+		ilsRecord.setAvailable(available);
+
+		//Determine which scopes this title belongs to
+		for (Scope curScope : indexer.getScopes()){
+			if (curScope.isEContentLocationPartOfScope(ilsRecord)){
+				ilsRecord.addRelatedScope(curScope);
+			}
+		}
+
+		//TODO: Determine the format, format category, and boost factor for this title
+		return ilsRecord;
+	}
+
+	protected PrintIlsRecord getPrintIlsRecord(DataField itemField) {
+		PrintIlsRecord ilsRecord = new PrintIlsRecord();
+
+		//Load base information from the Marc Record
+		ilsRecord.setStatus(getItemSubfieldData(statusSubfieldIndicator, itemField));
+		ilsRecord.setDateDue(getItemSubfieldData(dueDateSubfield, itemField));
+		ilsRecord.setDateCreated(getItemSubfieldData(dateCreatedSubfield, itemField));
+		ilsRecord.setLocation(getItemSubfieldData(locationSubfieldIndicator, itemField));
+		ilsRecord.setiType(getItemSubfieldData(iTypeSubfield, itemField));
+		ilsRecord.setLastYearCheckouts(getItemSubfieldData(lastYearCheckoutSubfield, itemField));
+		ilsRecord.setYtdCheckouts(getItemSubfieldData(ytdCheckoutSubfield, itemField));
+		ilsRecord.setTotalCheckouts(getItemSubfieldData(totalCheckoutSubfield, itemField));
+		ilsRecord.setiCode2(getItemSubfieldData(iCode2Subfield, itemField));
+		ilsRecord.setCallNumberPreStamp(getItemSubfieldData(callNumberPrestampSubfield, itemField));
+		ilsRecord.setCallNumber(getItemSubfieldData(callNumberSubfield, itemField));
+		ilsRecord.setCallNumberCutter(getItemSubfieldData(callNumberCutterSubfield, itemField));
+		ilsRecord.setBarcode(getItemSubfieldData(barcodeSubfield, itemField));
+		ilsRecord.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
+
+		//Determine Availability
+		boolean available = false;
+		if (getAvailabilityFromMarc){
+			if (ilsRecord.getStatus() != null) {
+				String status = ilsRecord.getStatus();
+				String dueDate = ilsRecord.getDateDue() == null ? "" : ilsRecord.getDateDue();
+				String availableStatus = "-dowju";
+				if (availableStatus.indexOf(status.charAt(0)) >= 0) {
+					if (dueDate.length() == 0) {
+						available = true;
+					}
+				}
+			}
+		}else{
+			if (ilsRecord.getBarcode() != null){
+				available = availableItemBarcodes.contains(ilsRecord.getBarcode());
+			}
+		}
+		ilsRecord.setAvailable(available);
+
+		if (ilsRecord.getiType() != null && ilsRecord.getLocation() != null) {
+			//Figure out which ptypes are compatible with this itype
+			ilsRecord.setCompatiblePTypes(getCompatiblePTypes(ilsRecord.getiType(), ilsRecord.getLocation()));
+			//Determine which scopes have access to this record
+			for (Scope curScope : indexer.getScopes()) {
+				if (curScope.isItemPartOfScope(ilsRecord.getLocation(), ilsRecord.getCompatiblePTypes())) {
+					ilsRecord.addRelatedScope(curScope);
+				}
+			}
+		}
+
+		//Determine which localizations this record belongs to
+		if (ilsRecord.getLocation() != null) {
+			for (LocalizationInfo localizationInfo : indexer.getLocalizations()) {
+				if (localizationInfo.isLocationCodeIncluded(ilsRecord.getLocation())) {
+					ilsRecord.addRelatedLocalization(localizationInfo);
+				}
+			}
+		}
+
+		return ilsRecord;
+	}
+
+	private String getItemSubfieldData(char subfieldIndicator, DataField itemField) {
+		if (subfieldIndicator == ' '){
+			return null;
+		}else {
+			return itemField.getSubfield(subfieldIndicator) != null ? itemField.getSubfield(subfieldIndicator).getData().trim() : null;
+		}
+	}
+
+	protected List<EContentIlsRecord> getUnsuppressedEContentItems(String identifier, Record record){
+		return new ArrayList<EContentIlsRecord>();
 	}
 
 	Pattern mpaaRatingRegex1 = null;
@@ -401,23 +587,20 @@ public abstract class IlsRecordProcessor {
 		}
 	}
 
-	private void loadITypes(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
-		for (DataField curItem : printItems){
-			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
-			Subfield iTypeField = curItem.getSubfield(iTypeSubfield);
-			if (iTypeField != null && locationSubfield != null){
-				String iType = indexer.translateValue("itype", iTypeField.getData());
-				String location = locationSubfield.getData();
+	private void loadITypes(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
+		for (PrintIlsRecord curItem : printItems){
+			String location = curItem.getLocation();
+			String iType = curItem.getiType();
+			if (iType != null && location != null){
+				String translatedIType = indexer.translateValue("itype", iType);
 				ArrayList<String> relatedSubdomains = getLibrarySubdomainsForLocationCode(location);
 				groupedWork.setIType(iType, relatedSubdomains);
 			}
 		}
-		for (DataField curItem : econtentItems){
-			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
-			Subfield iTypeField = curItem.getSubfield(iTypeSubfield);
-			if (iTypeField != null && locationSubfield != null){
-				String iType = indexer.translateValue("itype", iTypeField.getData());
-				String location = locationSubfield.getData();
+		for (EContentIlsRecord curItem : econtentItems){
+			String iType = curItem.getiType();
+			String location = curItem.getLocation();
+			if (iType != null && location != null){
 				ArrayList<String> relatedSubdomains = getLibrarySubdomainsForLocationCode(location);
 				groupedWork.setIType(iType, relatedSubdomains);
 			}
@@ -425,13 +608,11 @@ public abstract class IlsRecordProcessor {
 	}
 
 	private static SimpleDateFormat dateAddedFormatter = new SimpleDateFormat("yyMMdd");
-	private void loadDateAdded(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
-		for (DataField curItem : printItems){
-			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
-			Subfield dateAddedField = curItem.getSubfield(dateCreatedSubfield);
-			if (locationSubfield != null && dateAddedField != null){
-				String locationCode = locationSubfield.getData();
-				String dateAddedStr = dateAddedField.getData();
+	private void loadDateAdded(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
+		for (PrintIlsRecord curItem : printItems){
+			String locationCode = curItem.getLocation();
+			String dateAddedStr = curItem.getDateCreated();
+			if (locationCode != null && dateAddedStr != null){
 				try{
 					Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
 					ArrayList<String> relatedLocations = getLibrarySubdomainsForLocationCode(locationCode);
@@ -442,12 +623,10 @@ public abstract class IlsRecordProcessor {
 				}
 			}
 		}
-		for (DataField curItem : econtentItems){
-			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
-			Subfield dateAddedField = curItem.getSubfield(dateCreatedSubfield);
-			if (locationSubfield != null && dateAddedField != null){
-				String locationCode = locationSubfield.getData();
-				String dateAddedStr = dateAddedField.getData();
+		for (EContentIlsRecord curItem : econtentItems){
+			String locationCode = curItem.getLocation();
+			String dateAddedStr = curItem.getDateCreated();
+			if (locationCode != null && dateAddedStr != null){
 				try{
 					Date dateAdded = dateAddedFormatter.parse(dateAddedStr);
 					ArrayList<String> relatedLocations = getLibrarySubdomainsForLocationCode(locationCode);
@@ -760,24 +939,24 @@ public abstract class IlsRecordProcessor {
 		groupedWork.setLanguages(translatedLanguages);
 	}
 
-	private void loadPopularity(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
+	private void loadPopularity(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
 		float popularity = 0;
-		for (DataField itemField : printItems){
+		for (PrintIlsRecord itemField : printItems){
 			//Get number of times the title has been checked out
-			Subfield totalCheckoutsField = itemField.getSubfield(totalCheckoutSubfield);
+			String totalCheckoutsField = itemField.getTotalCheckouts();
 			int totalCheckouts = 0;
 			if (totalCheckoutsField != null){
-				totalCheckouts = Integer.parseInt(totalCheckoutsField.getData());
+				totalCheckouts = Integer.parseInt(totalCheckoutsField);
 			}
-			Subfield ytdCheckoutsField = itemField.getSubfield(ytdCheckoutSubfield);
+			String ytdCheckoutsField = itemField.getYtdCheckouts();
 			int ytdCheckouts = 0;
 			if (ytdCheckoutsField != null){
-				ytdCheckouts = Integer.parseInt(ytdCheckoutsField.getData());
+				ytdCheckouts = Integer.parseInt(ytdCheckoutsField);
 			}
-			Subfield lastYearCheckoutsField = itemField.getSubfield(lastYearCheckoutSubfield);
+			String lastYearCheckoutsField = itemField.getLastYearCheckouts();
 			int lastYearCheckouts = 0;
 			if (lastYearCheckoutsField != null){
-				lastYearCheckouts = Integer.parseInt(lastYearCheckoutsField.getData());
+				lastYearCheckouts = Integer.parseInt(lastYearCheckoutsField);
 			}
 			double itemPopularity = ytdCheckouts + .5 * (lastYearCheckouts) + .1 * (totalCheckouts - lastYearCheckouts - ytdCheckouts);
 			//logger.debug("Popularity for item " + itemPopularity + " ytdCheckouts=" + ytdCheckouts + " lastYearCheckouts=" + lastYearCheckouts + " totalCheckouts=" + totalCheckouts);
@@ -796,31 +975,8 @@ public abstract class IlsRecordProcessor {
 	 * @param printItems
 	 * @param econtentItems
 	 */
-	protected void loadFormatDetails(GroupedWorkSolr groupedWork, Record record, String identifier, List<DataField> printItems, List<DataField> econtentItems) {
-		Set<String> formats = loadFormats(groupedWork, record, identifier, printItems, econtentItems);
-		HashSet<String> translatedFormats = new HashSet<String>();
-		HashSet<String> formatCategories = new HashSet<String>();
-		Long formatBoost = 1L;
-		if (formats != null){
-			for (String format : formats){
-				format = format.replace(' ', '_');
-				translatedFormats.add(indexer.translateValue("format", format));
-				formatCategories.add(indexer.translateValue("format_category", format));
-				String formatBoostStr = indexer.translateValue("format_boost", format);
-				try{
-					Long curFormatBoost = Long.parseLong(formatBoostStr);
-					if (curFormatBoost > formatBoost){
-						formatBoost = curFormatBoost;
-					}
-				}catch (NumberFormatException e){
-					logger.warn("Could not parse format_boost " + formatBoostStr);
-				}
-			}
-		}
-		//By default, formats are valid for all locations.
-		groupedWork.addFormats(translatedFormats, indexer.getSubdomainMap().values(), indexer.getLocationMap().keySet());
-		groupedWork.addFormatCategories(formatCategories);
-		groupedWork.setFormatBoost(formatBoost);
+	protected void loadFormatDetails(GroupedWorkSolr groupedWork, Record record, String identifier, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
+		loadFormats(groupedWork, record, identifier, printItems, econtentItems);
 	}
 
 
@@ -877,14 +1033,12 @@ public abstract class IlsRecordProcessor {
 		}
 	}
 
-	protected void loadUsability(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
+	protected void loadUsability(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
 		//Load a list of pTypes that can use this record based on loan rules
-		for (DataField curItem : printItems){
-			Subfield iTypeSubfieldVal = curItem.getSubfield(iTypeSubfield);
-			Subfield locationCodeSubfield = curItem.getSubfield(locationSubfieldIndicator);
-			if (iTypeSubfieldVal != null && locationCodeSubfield != null){
-				String iType = iTypeSubfieldVal.getData().trim();
-				String locationCode = locationCodeSubfield.getData().trim();
+		for (PrintIlsRecord curItem : printItems){
+			String iType = curItem.getiType();
+			String locationCode = curItem.getLocation();
+			if (iType != null && locationCode != null){
 				groupedWork.addCompatiblePTypes(getCompatiblePTypes(iType, locationCode));
 			}
 		}
@@ -905,54 +1059,30 @@ public abstract class IlsRecordProcessor {
 		return icode2.equals("n") || icode2.equals("x") || locationCode.equals("zzzz");
 	}
 
-	protected void loadAvailability(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
+	protected void loadAvailability(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
 		//Calculate availability based on the record
 		HashSet<String> availableAt = new HashSet<String>();
 		HashSet<String> availableLocationCodes = new HashSet<String>();
 
-		for (DataField curItem : printItems){
-			Subfield statusSubfield = curItem.getSubfield(statusSubfieldIndicator);
-			Subfield dueDateField = curItem.getSubfield(dueDateSubfield);
-			Subfield locationCodeField = curItem.getSubfield(locationSubfieldIndicator);
-			if (locationCodeField != null){
-				String locationCode = locationCodeField.getData().trim();
-				boolean available = false;
-				if (getAvailabilityFromMarc){
-					if (statusSubfield != null) {
-						String status = statusSubfield.getData();
-						String dueDate = dueDateField == null ? "" : dueDateField.getData().trim();
-						String availableStatus = "-dowju";
-						if (availableStatus.indexOf(status.charAt(0)) >= 0) {
-							if (dueDate.length() == 0) {
-								available = true;
-							}
-						}
-					}
-				}else{
-					if (curItem.getSubfield(barcodeSubfield) != null){
-						String barcode = curItem.getSubfield(barcodeSubfield).getData().trim();
-						available = availableItemBarcodes.contains(barcode);
-					}
-				}
-
-				if (available) {
-					availableAt.addAll(getLocationFacetsForLocationCode(locationCode));
-					availableLocationCodes.addAll(getRelatedLocationCodesForLocationCode(locationCode));
-					availableLocationCodes.addAll(getRelatedSubdomainsForLocationCode(locationCode));
+		for (PrintIlsRecord curItem : printItems){
+			if (curItem.getLocation() != null){
+				if (curItem.isAvailable()){
+					availableAt.addAll(getLocationFacetsForLocationCode(curItem.getLocation()));
+					availableLocationCodes.addAll(getRelatedLocationCodesForLocationCode(curItem.getLocation()));
+					availableLocationCodes.addAll(getRelatedSubdomainsForLocationCode(curItem.getLocation()));
 				}
 			}
 		}
 		groupedWork.addAvailableLocations(availableAt, availableLocationCodes);
 	}
 
-	protected void loadOwnershipInformation(GroupedWorkSolr groupedWork, List<DataField> printItems, List<DataField> econtentItems) {
+	protected void loadOwnershipInformation(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
 		HashSet<String> owningLibraries = new HashSet<String>();
 		HashSet<String> owningLocations = new HashSet<String>();
 		HashSet<String> owningLocationCodes = new HashSet<String>();
-		for (DataField curItem : printItems){
-			Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
-			if (locationSubfield != null){
-				String locationCode = locationSubfield.getData().trim();
+		for (PrintIlsRecord curItem : printItems){
+			String locationCode = curItem.getLocation();
+			if (locationCode != null){
 				owningLibraries.addAll(getLibraryFacetsForLocationCode(locationCode));
 
 				owningLocations.addAll(getLocationFacetsForLocationCode(locationCode));
@@ -1111,6 +1241,10 @@ public abstract class IlsRecordProcessor {
 	private LinkedHashSet<String> calculateCompatiblePTypes(String iType, String locationCode) {
 		//logger.debug("getCompatiblePTypes for " + cacheKey);
 		LinkedHashSet<String> result = new LinkedHashSet<String>();
+		if (!Util.isNumeric(iType)){
+			logger.warn("IType " + iType + " was not numeric marking as incompatible with everything");
+			return result;
+		}
 		Long iTypeLong = Long.parseLong(iType);
 		//Loop through all patron types to see if the item is holdable
 		for (Long pType : pTypes){
@@ -1702,15 +1836,13 @@ public abstract class IlsRecordProcessor {
 
 	/**
 	 * Determine Record Format(s)
-	 *
-	 * @return Set format of record that applies to all libraries
 	 */
-	public abstract Set<String> loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<DataField> printItems, List<DataField> econtentItems);
+	public abstract void loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems);
 
 	private char getSubfieldIndicatorFromConfig(Ini configIni, String subfieldName) {
 		String subfieldString = configIni.get("Reindex", subfieldName);
 		char subfield = ' ';
-		if (subfieldString.length() > 0)  {
+		if (subfieldString != null && subfieldString.length() > 0)  {
 			subfield = subfieldString.charAt(0);
 		}
 		return subfield;

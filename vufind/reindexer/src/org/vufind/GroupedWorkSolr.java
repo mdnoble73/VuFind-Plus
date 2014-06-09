@@ -39,12 +39,10 @@ public class GroupedWorkSolr {
 	private String callNumberSubject;
 	private HashSet<String> collectionGroup = new HashSet<String>();
 	private HashMap<String, HashSet<String>> additionalCollections = new HashMap<String, HashSet<String>>();
-	private HashMap<String, HashSet<String>> collectionByLibrarySystem = new HashMap<String, HashSet<String>>();
 	private HashSet<String> contents = new HashSet<String>();
 	private Date dateAdded = null;
 	private HashSet<String> dateSpans = new HashSet<String>();
 	private HashSet<String> detailedLocation = new HashSet<String>();
-	private HashMap<String, HashSet<String>> detailedLocationByLibrarySystem = new HashMap<String, HashSet<String>>();
 	private String displayTitle;
 	private Long earliestPublicationDate = null;
 	private HashSet<String> econtentDevices = new HashSet<String>();
@@ -73,7 +71,6 @@ public class GroupedWorkSolr {
 	private String lexileCode = "";
 	private HashMap<String, Integer> literaryFormFull = new HashMap<String, Integer>();
 	private HashMap<String, Integer> literaryForm = new HashMap<String, Integer>();
-	private HashMap<String, HashSet<String>> localizedFormats = new HashMap<String, HashSet<String>>();
 	private HashMap<String, Long> localBoost = new HashMap<String, Long>();
 	private String localCallNumber;
 	private HashMap<String, HashSet<String>> localCallNumbers = new HashMap<String, HashSet<String>>();
@@ -107,11 +104,38 @@ public class GroupedWorkSolr {
 	private HashSet<String> upcs = new HashSet<String>();
 	private HashSet<String> usableBy = new HashSet<String>();
 
+	private HashMap<String, ScopedWorkDetails> scopedWorkDetails = new HashMap<String, ScopedWorkDetails>();
+	private HashMap<String, LocalizedWorkDetails> localizedWorkDetails = new HashMap<String, LocalizedWorkDetails>();
+
 	private Logger logger;
 	private GroupedWorkIndexer groupedWorkIndexer;
 	public GroupedWorkSolr(GroupedWorkIndexer groupedWorkIndexer, Logger logger) {
 		this.logger = logger;
 		this.groupedWorkIndexer = groupedWorkIndexer;
+
+		//Setup the scopes for the work
+		createScopes(groupedWorkIndexer.getScopes());
+		createLocalizations(groupedWorkIndexer.getLocalizations());
+	}
+
+	private void createLocalizations(HashSet<LocalizationInfo> localizations) {
+		for (LocalizationInfo localizationInfo: localizations){
+			this.localizedWorkDetails.put(localizationInfo.getLocalName(), new LocalizedWorkDetails(localizationInfo));
+		}
+	}
+
+	private void createScopes(HashSet<Scope> scopes) {
+		for (Scope curScope : scopes) {
+			this.scopedWorkDetails.put(curScope.getScopeName(), new ScopedWorkDetails(curScope));
+		}
+	}
+
+	public HashMap<String, ScopedWorkDetails> getScopedWorkDetails(){
+		return this.scopedWorkDetails;
+	}
+
+	public HashMap<String, LocalizedWorkDetails> getLocalizedWorkDetails(){
+		return this.localizedWorkDetails;
 	}
 
 	public SolrInputDocument getSolrDocument(int availableAtBoostValue, int ownedByBoostValue) {
@@ -129,22 +153,8 @@ public class GroupedWorkSolr {
 		for (String additionalCollection : additionalCollections.keySet()){
 			doc.addField("collection_" + additionalCollection, additionalCollections.get(additionalCollection));
 		}
-		//detailed locations
 		doc.addField("detailed_location", detailedLocation);
-		for (String subdomain: detailedLocationByLibrarySystem.keySet()){
-			doc.addField("detailed_location_" + subdomain, detailedLocationByLibrarySystem.get(subdomain));
-		}
-		//availability
 		doc.addField("available_at", availableAt);
-		for (String subdomain: availabilityToggleByLibrarySystem.keySet()){
-			HashSet<String> availabilityToggle = availabilityToggleByLibrarySystem.get(subdomain);
-			doc.addField("availability_toggle_" + subdomain, availabilityToggle);
-			if (availabilityToggle.size() == 2){
-				doc.addField("lib_boost_" + subdomain, availableAtBoostValue);
-			}else{
-				doc.addField("lib_boost_" + subdomain, ownedByBoostValue);
-			}
-		}
 
 		//Determine who can use the record
 		doc.addField("usable_by", usableBy);
@@ -178,9 +188,7 @@ public class GroupedWorkSolr {
 		doc.addField("format", formats);
 		doc.addField("format_category", formatCategories);
 		doc.addField("format_boost", formatBoost);
-		for (String identifier: localizedFormats.keySet()){
-			doc.addField("format_" + identifier, localizedFormats.get(identifier));
-		}
+
 		//language related fields
 		doc.addField("language", languages);
 		doc.addField("language_boost", languageBoost);
@@ -235,13 +243,8 @@ public class GroupedWorkSolr {
 			doc.addField("days_since_added", Util.getDaysSinceAddedForDate(dateAdded));
 			doc.addField("time_since_added", Util.getTimeSinceAddedForDate(dateAdded));
 		}
-		for (String subdomain: localTimeSinceAdded.keySet()){
-			doc.addField("local_time_since_added_" + subdomain, Util.getTimeSinceAddedForDate(localTimeSinceAdded.get(subdomain)));
-		}
 		doc.addField("itype", iTypes);
-		for (String subdomain: localITypes.keySet()){
-			doc.addField("itype_" + subdomain, localITypes.get(subdomain));
-		}
+
 		doc.addField("barcode", barcodes);
 		//Awards and ratings
 		doc.addField("mpaa_rating", mpaaRatings);
@@ -258,17 +261,11 @@ public class GroupedWorkSolr {
 		//EContent fields
 		doc.addField("econtent_device", econtentDevices);
 		doc.addField("econtent_source", econtentSources);
-		for (String subdomain : localEContentSources.keySet()){
-			doc.addField("econtent_source_" + subdomain, localEContentSources.get(subdomain));
-		}
 		doc.addField("econtent_protection_type", econtentProtectionTypes);
-		for (String subdomain : localEContentProtectionTypes.keySet()){
-			doc.addField("econtent_protection_type_" + subdomain, localEContentProtectionTypes.get(subdomain));
-		}
 
 		doc.addField("table_of_contents", contents);
 		//broad search terms
-		// TODO: determine if we still need allfields?
+		// TODO: determine if we still need all fields?
 		doc.addField("all_fields", allFields);
 		//TODO: change keywords to be more like old version?
 		doc.addField("keywords", Util.getCRSeparatedStringFromSet(keywords));
@@ -283,6 +280,49 @@ public class GroupedWorkSolr {
 		doc.addField("callnumber-first", callNumberFirst);
 		doc.addField("callnumber-subject", callNumberSubject);
 		doc.addField("local_callnumber", localCallNumber);
+		//relevance determiners
+		doc.addField("popularity", Long.toString((long)popularity));
+		doc.addField("num_holdings", numHoldings);
+		//vufind enrichment
+		doc.addField("rating", rating);
+		doc.addField("rating_facet", getRatingFacet(rating));
+
+		//Save information from scopes
+		for (ScopedWorkDetails scopedWorkDetail : scopedWorkDetails.values()){
+			if (scopedWorkDetail.getRelatedRecords().size() > 0) {
+				doc.addField("related_record_ids_" + scopedWorkDetail.getScope().getScopeName(), scopedWorkDetail.getRelatedRecords());
+				doc.addField("related_items_" + scopedWorkDetail.getScope().getScopeName(), scopedWorkDetail.getRelatedItems());
+				doc.addField("format_" + scopedWorkDetail.getScope().getScopeName(), scopedWorkDetail.getFormats());
+				doc.addField("format_category_" + scopedWorkDetail.getScope().getScopeName(), scopedWorkDetail.getFormatCategories());
+			}
+		}
+
+		//Save information from localized works
+		for (LocalizedWorkDetails localizationInfo : localizedWorkDetails.values()){
+			doc.addField("detailed_location_" + localizationInfo.getLocalizationInfo().getLocalName(), localizationInfo.getDetailedLocations());
+		}
+		//availability
+		for (String subdomain: availabilityToggleByLibrarySystem.keySet()){
+			HashSet<String> availabilityToggle = availabilityToggleByLibrarySystem.get(subdomain);
+			doc.addField("availability_toggle_" + subdomain, availabilityToggle);
+			if (availabilityToggle.size() == 2){
+				doc.addField("lib_boost_" + subdomain, availableAtBoostValue);
+			}else{
+				doc.addField("lib_boost_" + subdomain, ownedByBoostValue);
+			}
+		}
+		for (String subdomain: localTimeSinceAdded.keySet()){
+			doc.addField("local_time_since_added_" + subdomain, Util.getTimeSinceAddedForDate(localTimeSinceAdded.get(subdomain)));
+		}
+		for (String subdomain: localITypes.keySet()){
+			doc.addField("itype_" + subdomain, localITypes.get(subdomain));
+		}
+		for (String subdomain : localEContentSources.keySet()){
+			doc.addField("econtent_source_" + subdomain, localEContentSources.get(subdomain));
+		}
+		for (String subdomain : localEContentProtectionTypes.keySet()){
+			doc.addField("econtent_protection_type_" + subdomain, localEContentProtectionTypes.get(subdomain));
+		}
 		for (String identifier: localCallNumbers.keySet()){
 			doc.addField("local_callnumber_" + identifier, localCallNumbers.get(identifier));
 		}
@@ -293,12 +333,6 @@ public class GroupedWorkSolr {
 		for (String identifier: localBoost.keySet()){
 			doc.addField("lib_boost_" + identifier, localBoost.get(identifier));
 		}
-		//relevance determiners
-		doc.addField("popularity", Long.toString((long)popularity));
-		doc.addField("num_holdings", numHoldings);
-		//vufind enrichment
-		doc.addField("rating", rating);
-		doc.addField("rating_facet", getRatingFacet(rating));
 
 		return doc;
 	}
@@ -559,24 +593,8 @@ public class GroupedWorkSolr {
 		additionalCollections.get(collectionName).add(collection);
 	}
 
-	public void addDetailedLocation(String location, ArrayList<String> relatedSubdomains, ArrayList<String> relatedLocations){
+	public void addDetailedLocation(String location){
 		detailedLocation.add(location);
-		for (String subdomain: relatedSubdomains){
-			HashSet<String> tmpDetailedLocations = detailedLocationByLibrarySystem.get(subdomain);
-			if (tmpDetailedLocations == null){
-				tmpDetailedLocations = new HashSet<String>();
-				detailedLocationByLibrarySystem.put(subdomain, tmpDetailedLocations);
-			}
-			tmpDetailedLocations.add(location);
-		}
-		for (String locationCode: relatedLocations){
-			HashSet<String> tmpDetailedLocations = detailedLocationByLibrarySystem.get(locationCode);
-			if (tmpDetailedLocations == null){
-				tmpDetailedLocations = new HashSet<String>();
-				detailedLocationByLibrarySystem.put(locationCode, tmpDetailedLocations);
-			}
-			tmpDetailedLocations.add(location);
-		}
 	}
 
 
@@ -602,7 +620,11 @@ public class GroupedWorkSolr {
 	}
 
 	public void addCompatiblePTypes(HashSet<String> compatiblePTypes){
-		usableBy.addAll(compatiblePTypes);
+		if (compatiblePTypes != null) {
+			usableBy.addAll(compatiblePTypes);
+		}else{
+			logger.warn("compatiblePTypes was null in addCompatiblePTypes");
+		}
 	}
 
 	public void addCompatiblePType(String pType){
@@ -629,44 +651,12 @@ public class GroupedWorkSolr {
 		this.authorAdditional.addAll(fieldList);
 	}
 
-	public void addFormats(Set<String> formats, Collection<String> relatedSubdomains, Collection<String> relatedLocations) {
+	public void addFormats(Set<String> formats) {
 		this.formats.addAll(formats);
-		for (String subdomain : relatedSubdomains){
-			HashSet<String> formatsForIdentifier = localizedFormats.get(subdomain);
-			if (formatsForIdentifier == null){
-				formatsForIdentifier = new HashSet<String>();
-				localizedFormats.put(subdomain, formatsForIdentifier);
-			}
-			formatsForIdentifier.addAll(formats);
-		}
-		for (String locationCode : relatedLocations){
-			HashSet<String> formatsForIdentifier = localizedFormats.get(locationCode);
-			if (formatsForIdentifier == null){
-				formatsForIdentifier = new HashSet<String>();
-				localizedFormats.put(locationCode, formatsForIdentifier);
-			}
-			formatsForIdentifier.addAll(formats);
-		}
 	}
 
-	public void addFormat(String format, Collection<String> relatedSubdomains, Collection<String> relatedLocations) {
+	public void addFormat(String format) {
 		this.formats.add(format);
-		for (String subdomain : relatedSubdomains){
-			HashSet<String> formatsForIdentifier = localizedFormats.get(subdomain);
-			if (formatsForIdentifier == null){
-				formatsForIdentifier = new HashSet<String>();
-				localizedFormats.put(subdomain, formatsForIdentifier);
-			}
-			formatsForIdentifier.add(format);
-		}
-		for (String locationCode : relatedLocations){
-			HashSet<String> formatsForIdentifier = localizedFormats.get(locationCode);
-			if (formatsForIdentifier == null){
-				formatsForIdentifier = new HashSet<String>();
-				localizedFormats.put(locationCode, formatsForIdentifier);
-			}
-			formatsForIdentifier.add(format);
-		}
 	}
 
 	public void addFormatCategories(HashSet<String> formatCategories) {
@@ -692,11 +682,11 @@ public class GroupedWorkSolr {
 	}
 
 	public void addTopic(Set<String> fieldList) {
-		this.topics.addAll(fieldList);
+		this.topics.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
 	public void addTopicFacet(Set<String> fieldList) {
-		this.topicFacets.addAll(fieldList);
+		this.topicFacets.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
 	public void addSeries(Set<String> fieldList) {
@@ -734,19 +724,19 @@ public class GroupedWorkSolr {
 	}
 
 	public void addGenre(Set<String> fieldList) {
-		this.genres.addAll(fieldList);
+		this.genres.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
 	public void addGenreFacet(Set<String> fieldList) {
-		this.genreFacets.addAll(fieldList);
+		this.genreFacets.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
 	public void addGeographic(Set<String> fieldList) {
-		this.geographic.addAll(fieldList);
+		this.geographic.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
 	public void addGeographicFacet(Set<String> fieldList) {
-		this.geographicFacets.addAll(fieldList);
+		this.geographicFacets.addAll(Util.trimTrailingPunctuation(fieldList));
 	}
 
 	public void addEra(Set<String> fieldList) {
