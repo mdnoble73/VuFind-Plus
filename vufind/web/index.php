@@ -846,7 +846,12 @@ function loadUserData(){
 	$tmpList->find();
 	if ($tmpList->N > 0){
 		while ($tmpList->fetch()){
-			$lists[$tmpList->id] = array('name' => $tmpList->title, 'url' => '/MyAccount/MyList/' .$tmpList->id , 'id' => $tmpList->id, 'numTitles' => $tmpList->num_titles());
+			$lists[$tmpList->id] = array(
+					'name' => $tmpList->title,
+					'url' => '/MyAccount/MyList/' .$tmpList->id ,
+					'id' => $tmpList->id,
+					'numTitles' => $tmpList->num_titles()
+			);
 		}
 	}
 	$interface->assign('lists', $lists);
