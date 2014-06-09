@@ -32,7 +32,6 @@ public class EContentIlsRecord {
 	private boolean available;
 	private HashSet<Scope> relatedScopes = new HashSet<Scope>();
 	private HashSet<LocalizationInfo> relatedLocalizations = new HashSet<LocalizationInfo>();
-	private LinkedHashSet<String> compatiblePTypes;
 	private String recordIdentifier;
 
 	public String getDateCreated() {
@@ -175,12 +174,12 @@ public class EContentIlsRecord {
 		this.relatedLocalizations = relatedLocalizations;
 	}
 
-	public LinkedHashSet<String> getCompatiblePTypes() {
+	public HashSet<String> getCompatiblePTypes() {
+		HashSet<String> compatiblePTypes = new HashSet<String>();
+		for (Scope scope : relatedScopes)       {
+			compatiblePTypes.addAll(scope.getRelatedPTypes());
+		}
 		return compatiblePTypes;
-	}
-
-	public void setCompatiblePTypes(LinkedHashSet<String> compatiblePTypes) {
-		this.compatiblePTypes = compatiblePTypes;
 	}
 
 	public String getRecordIdentifier() {
