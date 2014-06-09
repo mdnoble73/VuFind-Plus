@@ -1566,7 +1566,8 @@ class MarcRecord extends IndexRecord
 					'source' => 'ils',
 					'actions' => $this->getAllActions()
 			);
-			if ($this->isHoldable() && isset($interface) && $interface->getVariable('showHoldButton')){
+			$showHoldButton = $interface->getVariable('displayingSearchResults') ? $interface->getVariable('showHoldButtonInSearchResults'): $interface->getVariable('showHoldButton');
+			if ($this->isHoldable() && isset($interface) && $showHoldButton){
 				$relatedRecord['actions'][] = array(
 						'title' => 'Place Hold',
 						'url' => $holdUrl,

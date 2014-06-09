@@ -385,6 +385,7 @@ class GroupedWorkDriver implements RecordInterface{
 		global $interface;
 		global $timer;
 
+		$interface->assign('displayingSearchResults', true);
 		$interface->assign('useUnscopedHoldingsSummary', $useUnscopedHoldingsSummary);
 
 		$id = $this->getUniqueID();
