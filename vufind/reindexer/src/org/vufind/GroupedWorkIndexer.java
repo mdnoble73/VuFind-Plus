@@ -148,6 +148,7 @@ public class GroupedWorkIndexer {
 					//These options determine how scoping is done
 					Long libraryId = libraryInformationRS.getLong("libraryId");
 					String pTypes = libraryInformationRS.getString("pTypes");
+					if (pTypes == null) {pTypes = "";}
 					boolean restrictSearchByLibrary = libraryInformationRS.getBoolean("restrictSearchByLibrary");
 					String econtentLocationsToInclude = libraryInformationRS.getString("econtentLocationsToInclude");
 					boolean includeOutOfSystemExternalLinks = libraryInformationRS.getBoolean("includeOutOfSystemExternalLinks");
