@@ -151,6 +151,7 @@ public class GroupedWorkIndexer {
 					if (pTypes == null) {pTypes = "";}
 					boolean restrictSearchByLibrary = libraryInformationRS.getBoolean("restrictSearchByLibrary");
 					String econtentLocationsToInclude = libraryInformationRS.getString("econtentLocationsToInclude");
+					if (econtentLocationsToInclude == null) {econtentLocationsToInclude = "all";}
 					boolean includeOutOfSystemExternalLinks = libraryInformationRS.getBoolean("includeOutOfSystemExternalLinks");
 					boolean useScope = libraryInformationRS.getBoolean("useScope");
 					boolean includeOverdrive = libraryInformationRS.getBoolean("includeDigitalCollection");
