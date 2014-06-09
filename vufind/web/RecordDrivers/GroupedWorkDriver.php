@@ -735,15 +735,7 @@ class GroupedWorkDriver implements RecordInterface{
 	function getBookcoverUrl($size){
 		global $configArray;
 		$bookCoverUrl = $configArray['Site']['url'] . "/bookcover.php?id={$this->getUniqueID()}&size={$size}&type=grouped_work";
-		$isbn = $this->getCleanISBN();
-		if ($isbn){
-			$bookCoverUrl .= "&isn={$isbn}";
-		}else{
-			$upc = $this->getCleanUPC();
-			if ($upc){
-				$bookCoverUrl .= "&upc={$upc}";
-			}
-		}
+
 		if (isset($this->fields['format_category'])){
 			if (is_array($this->fields['format_category'])){
 				$bookCoverUrl .= "&category=" . reset($this->fields['format_category']);
@@ -802,7 +794,7 @@ class GroupedWorkDriver implements RecordInterface{
 		require_once ROOT_DIR . '/sys/Novelist/NovelistData.php';
 		$novelistData = new NovelistData();
 		$novelistData->groupedRecordPermanentId = $this->getPermanentId();
-		if ($novelistData->find(true) && $novelistData->primaryISBN != null){
+		if (!isset($_REQUEST['reload']) && $novelistData->find(true) && $novelistData->primaryISBN != null){
 			return $novelistData->primaryISBN;
 		}else{
 			// Get all the ISBNs and initialize the return value:

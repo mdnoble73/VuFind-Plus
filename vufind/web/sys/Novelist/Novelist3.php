@@ -58,7 +58,7 @@ class Novelist3{
 
 		//Check to see if we need to do an update
 		if (!$recordExists || $doUpdate){
-			if ($recordExists && $novelistData->primaryISBN != null && strlen($novelistData->primaryISBN) > 0){
+			if ($recordExists && $novelistData->primaryISBN != null && strlen($novelistData->primaryISBN) > 0 && !isset($_REQUEST['reload'])){
 				//Just check the primary ISBN since we know that was good.
 				$isbns = array($novelistData->primaryISBN);
 			}
