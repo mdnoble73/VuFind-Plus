@@ -3,6 +3,7 @@ package org.vufind;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -105,9 +106,9 @@ public class MaterialsRequest implements IProcessHandler{
 		//Place a hold on the title for the user
 		URL placeHoldUrl;
 		if (recordId.matches("econtentRecord\\d+")){
-			placeHoldUrl = new URL(vufindUrl + "/API/UserAPI?method=placeEContentHold&username=" + cat_username + "&password=" + cat_password + "&recordId=" + recordId);
+			placeHoldUrl = new URL(vufindUrl + "/API/UserAPI?method=placeEContentHold&username=" + URLEncoder.encode(cat_username, "utf8") + "&password=" + URLEncoder.encode(cat_password, "utf8") + "&recordId=" + recordId);
 		}else{
-			placeHoldUrl = new URL(vufindUrl + "/API/UserAPI?method=placeHold&username=" + cat_username + "&password=" + cat_password + "&bibId=" + recordId + "&campus=" + holdPickupLocation);
+			placeHoldUrl = new URL(vufindUrl + "/API/UserAPI?method=placeHold&username=" + URLEncoder.encode(cat_username, "utf8") + "&password=" + URLEncoder.encode(cat_password, "utf8") + "&bibId=" + recordId + "&campus=" + holdPickupLocation);
 		}
 		logger.info("Place Hold URL: " + placeHoldUrl);
 		Object placeHoldDataRaw = placeHoldUrl.getContent();
@@ -124,6 +125,8 @@ public class MaterialsRequest implements IProcessHandler{
 					String message = "";
 					if (result.has("holdMessage")) {
 						message = result.getString("holdMessage");
+					}else{
+						message = result.getString("message");
 					}
 					logger.warn("hold could not be created for " + cat_password + " for record " + recordId + " due to " + message);
 					logger.warn("Place Hold URL: " + placeHoldUrl);
@@ -145,13 +148,13 @@ public class MaterialsRequest implements IProcessHandler{
 		if ((requestIsbn != null && requestIsbn.length() > 0) || (requestIssn != null && requestIssn.length() > 0) || (requestUpc != null && requestUpc.length() > 0) || (requestOclcNumber != null && requestOclcNumber.length() > 0)){
 			URL searchUrl;
 			if (requestIsbn != null && requestIsbn.length() > 0){
-				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=" + requestIsbn + "&type=isn");
+				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=" + URLEncoder.encode(requestIsbn, "utf8") + "&type=isn");
 			}else if (requestIssn != null && requestIssn.length() > 0){
-				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=" + requestIssn + "&type=isn");
+				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=" + URLEncoder.encode(requestIssn, "utf8") + "&type=isn");
 			}else if (requestUpc != null && requestUpc.length() > 0){
-				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=" + requestUpc + "&type=isn");
+				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=" + URLEncoder.encode(requestUpc, "utf8") + "&type=isn");
 			}else{
-				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=oclc" + requestOclcNumber + "&type=allfields");
+				searchUrl = new URL(vufindUrl + "/API/SearchAPI?method=search&lookfor=oclc" + URLEncoder.encode(requestOclcNumber, "utf8") + "&type=allfields");
 			}
 			Object searchDataRaw = searchUrl.getContent();
 			if (searchDataRaw instanceof InputStream) {
@@ -166,6 +169,7 @@ public class MaterialsRequest implements IProcessHandler{
 						recordId = firstRecord.getString("id");
 					}
 				} catch (JSONException e) {
+					logger.error(searchUrl);
 					logger.error("Unable to load search result", e);
 					processLog.incErrors();
 					processLog.addNote("Unable to load search result " + e.toString());
