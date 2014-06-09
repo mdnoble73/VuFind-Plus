@@ -121,9 +121,14 @@ public class MaterialsRequest implements IProcessHandler{
 					logger.info("hold was created successfully.");
 					processLog.incUpdated();
 				}else{
-					logger.info("hold could not be created " + result.getString("holdMessage"));
+					String message = "";
+					if (result.has("holdMessage")) {
+						message = result.getString("holdMessage");
+					}
+					logger.warn("hold could not be created for " + cat_password + " for record " + recordId + " due to " + message);
+					logger.warn("Place Hold URL: " + placeHoldUrl);
 					processLog.incErrors();
-					processLog.addNote("hold could not be created " + result.getString("holdMessage"));
+					processLog.addNote("hold could not be created " + message);
 				}
 			} catch (JSONException e) {
 				logger.error("Unable to load results of placing the hold", e);
