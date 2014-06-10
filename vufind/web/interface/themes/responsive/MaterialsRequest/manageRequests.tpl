@@ -85,7 +85,7 @@
 										<option value="{$status}"/>{$statusLabel}</option>
 									{/foreach}
 								</select>
-								<span class="btn btn-sm btn-primary input-group-addon" type="submit" name="updateStatus" onclick="return VuFind.MaterialsRequest.updateSelectedRequests();">Update Selected Requests</span>
+								<span class="btn btn-sm btn-primary input-group-addon" onclick="return VuFind.MaterialsRequest.updateSelectedRequests();">Update Selected Requests</span>
 							</div>
 						</div>
 					</div>

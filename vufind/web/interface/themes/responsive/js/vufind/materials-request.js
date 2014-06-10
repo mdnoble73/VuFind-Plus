@@ -54,7 +54,7 @@ VuFind.MaterialsRequest = (function(){
 		},
 
 		exportSelectedRequests: function(){
-			var selectedRequests = getSelectedRequests(true);
+			var selectedRequests = this.getSelectedRequests(true);
 			if (selectedRequests.length == 0){
 				return false;
 			}
@@ -68,8 +68,11 @@ VuFind.MaterialsRequest = (function(){
 				alert("Please select a status to update the requests to.");
 				return false;
 			}
-			var selectedRequests = getSelectedRequests(false);
-			return selectedRequests.length != 0;
+			var selectedRequests = this.getSelectedRequests(false);
+			if (selectedRequests.length != 0){
+				$("#updateRequests").submit();
+			}
+
 		},
 
 		getSelectedRequests: function(promptToSelectAll){
