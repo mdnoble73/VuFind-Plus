@@ -60,7 +60,12 @@ div#system-message-header{
 }
 #header-logo{
   padding: 10px 10px 0 0;
+  @media(max-width: @screen-xs-max){
+    max-width: 100%;
+    height:auto;
+  }
 }
+
 .header-button{
   text-align: center;
   height: @header-height - 8px !important;

@@ -52,8 +52,10 @@
 				</div>
 			</div>
 
-			<div id="header-container" class="row">
-				{include file='header_responsive.tpl'}
+			<div id="header-wrapper" class="row">
+				<div id="header-container">
+					{include file='header_responsive.tpl'}
+				</div>
 			</div>
 
 			<div id="content-container" class="row">

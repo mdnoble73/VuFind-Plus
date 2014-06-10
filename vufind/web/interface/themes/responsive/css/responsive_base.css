@@ -6341,6 +6341,12 @@ div#system-message-header {
 #header-logo {
   padding: 10px 10px 0 0;
 }
+@media (max-width: 767px) {
+  #header-logo {
+    max-width: 100%;
+    height: auto;
+  }
+}
 .header-button {
   text-align: center;
   height: 82px !important;
