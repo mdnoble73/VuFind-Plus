@@ -227,6 +227,8 @@ abstract class SearchObject_Base
 					$field = 'availability_toggle_' . $searchLibrary->subdomain;
 				}elseif ($field == 'format' && $configArray['Index']['enableDetailedFormats']){
 					$field = 'format_' . $searchLibrary->subdomain;
+				}elseif ($field == 'format_category' && $configArray['Index']['enableDetailedFormats']){
+					$field = 'format_category_' . $searchLibrary->subdomain;
 				}elseif ($field == 'econtent_source' && $configArray['Index']['enableDetailedEContentSources']){
 					$field = 'econtent_source_' . $searchLibrary->subdomain;
 				}elseif ($field == 'econtent_protection_type' && $configArray['Index']['enableDetailedEContentSources']){

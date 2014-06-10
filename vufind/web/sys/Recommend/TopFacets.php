@@ -76,6 +76,8 @@ class TopFacets implements RecommendationInterface
 					if (isset($searchLibrary)){
 						if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
 							$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
+						}else if ($facet->facetName == 'format_category' && $configArray['Index']['enableDetailedFormats']){
+							$facetName = 'format_category_' . $searchLibrary->subdomain;
 						}
 					}
 					if (isset($userLocation)){
