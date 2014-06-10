@@ -586,10 +586,15 @@ abstract class Record_Record extends Action
 				if (preg_match("/--$/",$curNote)) {
 					$notes[] = $curNote;
 					$curNote = '';
-				} 
+				}elseif (strpos($curNote, '--') !== false){
+					$brokenNotes = explode('--', $curNote);
+					$notes = array_merge($notes, $brokenNotes);
+					$curNote = '';
+				}
 			}
-			$notes[] = $curNote;
-			$curNote = '';
+			if ($curNote != ''){
+				$notes[] = $curNote;
+			}
 		}
 		return $notes;
 	}

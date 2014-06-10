@@ -2,10 +2,10 @@
 	<div id="tableOfContentsPlaceholder" style="display:none"></div>
 
 	{if $tableOfContents}
-		<ul class='notesList'>
-			{foreach from=$tableOfContents item=note}
-				<li>{$note}</li>
-			{/foreach}
-		</ul>
+		{foreach from=$tableOfContents item=note}
+			<div class="row">
+				<div class="col-xs-12">{$note}</div>
+			</div>
+		{/foreach}
 	{/if}
 {/strip}

@@ -69,6 +69,18 @@ class MarcRecord extends IndexRecord
 		parent::loadGroupedWork();
 	}
 
+	protected $itemsFromIndex;
+	public function setItemsFromIndex($itemsFromIndex){
+		$this->itemsFromIndex = array();
+		foreach ($itemsFromIndex as $item){
+			$itemData = explode('|', $item);
+			if ($itemData[0] == "ils:{$this->id}"){
+				$this->itemsFromIndex[] = $itemData;
+			}
+		}
+		$this->itemsFromIndex = $itemsFromIndex;
+	}
+
 	public function isValid(){
 		return $this->valid;
 	}
@@ -1746,8 +1758,12 @@ class MarcRecord extends IndexRecord
 	private $fastItems = null;
 	public function getItemsFast(){
 		if ($this->fastItems == null){
-			$driver = MarcRecord::getCatalogDriver();
-			$this->fastItems = $driver->getItemsFast($this->getUniqueID(), $this->scopingEnabled, $this->marcRecord);
+			/*if ($this->itemsFromIndex){
+
+			}else{*/
+				$driver = MarcRecord::getCatalogDriver();
+				$this->fastItems = $driver->getItemsFast($this->getUniqueID(), $this->scopingEnabled, $this->marcRecord);
+			//}
 		}
 		return $this->fastItems;
 	}
@@ -1953,7 +1969,7 @@ class MarcRecord extends IndexRecord
 		$moreDetailsOptions['tableOfContents'] = array(
 			'label' => 'Table of Contents',
 			'body' => $interface->fetch('GroupedWork/tableOfContents.tpl'),
-			'hideByDefault' => true
+			'hideByDefault' => $interface->getVariable('tableOfContents') ? false : true
 		);
 		$moreDetailsOptions['excerpt'] = array(
 			'label' => 'Excerpt',
