@@ -1,4 +1,7 @@
 <a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}" class="btn btn-sm btn-default">Go To Grouped Work</a>
+{if $classicUrl && $classicId}
+<a href="{$classicUrl}/record={$classicId|escape:"url"}&amp;searchscope={$millenniumScope}" class="btn btn-sm btn-info">View in Classic</a>
+{/if}
 
 {if $marcRecord}
 	<div id="formattedMarcRecord">

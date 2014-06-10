@@ -403,7 +403,7 @@ abstract class Record_Record extends Action
 				}
 				$note = implode(',', $noteText);
 				if (strlen($note) > 0){
-					$notes[] = "<dt>$label</dt><dd>" . $note . '</dd>';
+					$notes[] = array('label' => $label, 'note' => $note);
 				}
 			}
 		}

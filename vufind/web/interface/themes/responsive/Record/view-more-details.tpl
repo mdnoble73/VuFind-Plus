@@ -24,6 +24,15 @@
 		</div>
 	{/if}
 
+	{if count($recordDriver->getISSNs()) > 0}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='ISSN'}:</div>
+			<div class="col-md-9 result-value">
+				{implode subject=$recordDriver->getISSNs() glue=", "}
+			</div>
+		</div>
+	{/if}
+
 	{if count($recordDriver->getUPCs()) > 0}
 		<div class="row">
 			<div class="result-label col-md-3">{translate text='UPC'}:</div>
@@ -105,5 +114,15 @@
 				{/foreach}
 			</div>
 		</div>
+	{/if}
+
+	{if $notes}
+		<h4>{translate text='Notes'}</h4>
+		{foreach from=$notes item=note name=loop}
+			<div class="row">
+				<div class="result-label col-sm-3">{$note.label}</div>
+				<div class="col-sm-9 result-value">{$note.note}</div>
+			</div>
+		{/foreach}
 	{/if}
 {/strip}
