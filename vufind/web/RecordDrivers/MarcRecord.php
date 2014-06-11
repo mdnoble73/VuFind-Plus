@@ -78,7 +78,6 @@ class MarcRecord extends IndexRecord
 				$this->itemsFromIndex[] = $itemData;
 			}
 		}
-		$this->itemsFromIndex = $itemsFromIndex;
 	}
 
 	public function isValid(){
@@ -910,6 +909,21 @@ class MarcRecord extends IndexRecord
 
 	public function getContributors(){
 		return $this->getFieldArray(700, array('a', 'b', 'c', 'd'));
+	}
+
+	public function getDetailedContributors(){
+		$contributors = array();
+		/** @var File_MARC_Data_Field[] $sevenHundredFields */
+		$sevenHundredFields = $this->marcRecord->getFields('700');
+		foreach($sevenHundredFields as $field){
+			$contributors[] = array(
+				'name' => reset($this->getSubfieldArray($field, array('a', 'b', 'c', 'd'), true)),
+				'role' => $field->getSubfield('4') != null ? mapValue('contributor_role', $field->getSubfield('4')->getData()) : '',
+				'title' => reset($this->getSubfieldArray($field, array('t', 'n', 'r'), true)),
+			);
+		}
+		$this->getFieldArray(700, array('a', 'b', 'c', 'd'));
+		return $contributors;
 	}
 
 	/**
@@ -1758,12 +1772,40 @@ class MarcRecord extends IndexRecord
 	private $fastItems = null;
 	public function getItemsFast(){
 		if ($this->fastItems == null){
-			/*if ($this->itemsFromIndex){
-
-			}else{*/
+			$searchLibrary = Library::getSearchLibrary();
+			if ($searchLibrary){
+				$libraryLocationCode = $searchLibrary->ilsCode;
+			}
+			$searchLocation = Location::getSearchLocation();
+			if ($searchLocation){
+				$homeLocationCode = $searchLocation->code;
+				$homeLocationLabel = $searchLocation->facetLabel;
+			}else{
+				$homeLocation = Location::getUserHomeLocation();
+				if ($homeLocation){
+					$homeLocationCode = $homeLocation->code;
+					$homeLocationLabel = $homeLocation->facetLabel;
+				}
+			}
+			if ($this->itemsFromIndex){
+				$this->fastItems = array();
+				foreach ($this->itemsFromIndex as $itemData){
+					$this->fastItems[] = array(
+						'location' => $itemData[2],
+						'callnumber' => $itemData[3],
+						'availability' => $itemData[4] == 'true',
+						'holdable' => true,
+						'inLibraryUseOnly' => $itemData[5] == 'true',
+						'isLocalItem' => isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && strpos($itemData[2], $libraryLocationCode) === 0,
+						'isLibraryItem' => isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($itemData[2], $homeLocationCode) === 0,
+						'locationLabel' => true,
+						'shelfLocation' => mapValue('shelf_location', $itemData[2]),
+					);
+				}
+			}else{
 				$driver = MarcRecord::getCatalogDriver();
 				$this->fastItems = $driver->getItemsFast($this->getUniqueID(), $this->scopingEnabled, $this->marcRecord);
-			//}
+			}
 		}
 		return $this->fastItems;
 	}

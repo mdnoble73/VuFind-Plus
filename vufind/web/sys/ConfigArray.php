@@ -61,7 +61,7 @@ function getTranslationMap($name)
 	/** @var Memcache $memCache */
 	global $memCache;
 	$mapValues = $memCache->get('translation_map_' . $name);
-	if ($mapValues != false){
+	if ($mapValues != false && $mapValues != null){
 		return $mapValues;
 	}
 
@@ -102,6 +102,9 @@ function getTranslationMap($name)
 
 function mapValue($mapName, $value){
 	$map = getTranslationMap($mapName);
+	if ($map == null){
+		return $value;
+	}
 	if (isset($map[$value])){
 		return $map[$value];
 	}elseif(isset($map['*'])){
