@@ -1,3 +1,4 @@
+<script src="{$path}/ckeditor/ckeditor.js"></script>
 {strip}
 	<div class="col-xs-12">
 		{if $shortPageTitle || $objectName}

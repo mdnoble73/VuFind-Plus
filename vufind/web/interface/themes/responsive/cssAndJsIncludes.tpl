@@ -1,14 +1,13 @@
 {strip}
 	{* Include css as appropriate *}
 	{css filename="main.css"}
-	{* <link href="{$path}/interface/themes/responsive/css/marmot.css" rel="stylesheet" media="screen"> *}
 
 	{* Include correct all javascript *}
 	{* TODO: Somehow minify all of this into one little file *}
 	<script src="{$path}/js/jquery-1.9.1.min.js"></script>
 	{* Load Libraries*}
 
-	<script src="{$path}/interface/themes/responsive/js/lib/rater.js"></script>
+	<script src="{$path}/interface/themes/responsive/js/lib/rater.min.js"></script>
 	<script src="{$path}/interface/themes/responsive/js/lib/bootstrap.min.js"></script>
 	<script src="{$path}/interface/themes/responsive/js/lib/jcarousel.min.js"></script>
 	<script src="{$path}/interface/themes/responsive/js/lib/jcarousel.responsive.js"></script>
@@ -17,7 +16,6 @@
 	<script src="{$path}/interface/themes/responsive/js/lib/bootstrap-switch.min.js"></script>
 	<script src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
 	<script src="{$path}/js/validate/jquery.validate.min.js"></script>
-	<script src="{$path}/ckeditor/ckeditor.js"></script>
 	<script type="text/javascript" src="https://www.google.com/recaptcha/api/js/recaptcha_ajax.js"></script>
 	{* Load application specific Javascript *}
 	{if $debugJs}
