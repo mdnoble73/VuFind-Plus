@@ -57,12 +57,12 @@ class EmailList extends Action {
 		$list->id = $_REQUEST['listId'];
 		if ($list->find(true)){
 			// Build Favorites List
-			$titles = $list->getListTitles(null);
+			$titles = $list->getListTitles();
 
 			// Load the User object for the owner of the list (if necessary):
 			if ($user && $user->id == $list->user_id || $list->public == 1) {
 				//The user can access the list
-				$favoriteHandler = new FavoriteHandler($titles, $user);
+				$favoriteHandler = new FavoriteHandler($titles, $user, $list->id, false);
 				$titleDetails = $favoriteHandler->getTitles();
 				$interface->assign('titles', $titleDetails);
 				$interface->assign('list', $list);

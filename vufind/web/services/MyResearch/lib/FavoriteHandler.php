@@ -31,7 +31,9 @@ require_once ROOT_DIR . '/sys/Pager.php';
  */
 class FavoriteHandler
 {
+	/** @var UserListEntry[] */
 	private $favorites;
+	/** @var User */
 	private $user;
 	private $listId;
 	private $allowEdit;
@@ -41,8 +43,8 @@ class FavoriteHandler
 	 * Constructor.
 	 *
 	 * @access  public
-	 * @param   array   $favorites  Array of grouped work ids.
-	 * @param   object  $user       User object owning tag/note metadata.
+	 * @param   UserListEntry[]   $favorites  Array of grouped work ids.
+	 * @param   User  $user       User object owning tag/note metadata.
 	 * @param   int     $listId     ID of list containing desired tags/notes (or
 	 *                              null to show tags/notes from all user's lists).
 	 * @param   bool    $allowEdit  Should we display edit controls?
@@ -55,7 +57,9 @@ class FavoriteHandler
 		$this->allowEdit = $allowEdit;
 
 		// Process the IDs found in the favorites (sort by source):
-		$this->ids = $favorites;
+		foreach ($favorites as $favorite){
+			$this->ids[] = $favorite->groupedWorkPermanentId;
+		}
 	}
 
 	/**
@@ -129,13 +133,14 @@ class FavoriteHandler
 
 	function getTitles(){
 		// Initialise from the current search globals
+		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 
 		// Retrieve records from index (currently, only Solr IDs supported):
-		if (array_key_exists('vufind', $this->ids) && count($this->ids['vufind']) > 0) {
-			$searchObject->setQueryIDs($this->ids['vufind']);
-			$result = $searchObject->processSearch();
+		if (count($this->ids) > 0) {
+			$searchObject->setQueryIDs($this->ids);
+			$searchObject->processSearch();
 			return $searchObject->getResultRecordSet();
 		}else{
 			return array();
@@ -148,9 +153,9 @@ class FavoriteHandler
 		$searchObject->init();
 
 		// Retrieve records from index (currently, only Solr IDs supported):
-		if (array_key_exists('vufind', $this->ids) && count($this->ids['vufind']) > 0) {
-			$searchObject->setQueryIDs($this->ids['vufind']);
-			$result = $searchObject->processSearch();
+		if (count($this->ids) > 0) {
+			$searchObject->setQueryIDs($this->ids);
+			$searchObject->processSearch();
 			return $searchObject->getCitations($citationFormat);
 		}else{
 			return array();
