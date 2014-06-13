@@ -27,13 +27,12 @@ class EmailList extends Action {
 	function launch() {
 		global $interface;
 
-		if (isset($_POST['submit'])) {
+		if (isset($_POST['from'])) {
 			$result = $this->sendEmail($_POST['to'], $_POST['from'], $_POST['message']);
 			if (!PEAR_Singleton::isError($result)) {
 				require_once 'MyList.php';
-				$_GET['id'] = $_REQUEST['listId'];
-				MyAccount_MyList::launch();
-				exit();
+				header("Location:/MyAccount/MyList/" . $_REQUEST['listId']);
+				die();
 			} else {
 				$interface->assign('message', $result->getMessage());
 			}
