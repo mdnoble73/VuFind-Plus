@@ -58,7 +58,11 @@ class FavoriteHandler
 
 		// Process the IDs found in the favorites (sort by source):
 		foreach ($favorites as $favorite){
-			$this->ids[] = $favorite->groupedWorkPermanentId;
+			if (is_object($favorite)){
+				$this->ids[] = $favorite->groupedWorkPermanentId;
+			}else{
+				$this->ids[] = $favorite;
+			}
 		}
 	}
 
