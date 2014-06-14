@@ -19,6 +19,7 @@ VuFind.Responsive = (function(){
 				if (mainContent && mainContent.length){
 					xsContentInsertionPointElement.html(mainContent);
 					mainContentElement.html("");
+					VuFind.initCarousels();
 				}
 			}else{
 				//Sm or better resolution
@@ -26,8 +27,10 @@ VuFind.Responsive = (function(){
 				if (mainContent && mainContent.length){
 					mainContentElement.html(mainContent);
 					xsContentInsertionPointElement.html("");
+					VuFind.initCarousels();
 				}
 			}
+
 		}
 	};
 }(VuFind.Responsive || {}));

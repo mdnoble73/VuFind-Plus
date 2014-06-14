@@ -1,5 +1,4 @@
 <script type="text/javascript" src="{$path}/MaterialsRequest/ajax.js"></script>
-<script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
 <div id="main-content">
 	<h2>My Materials Requests</h2>
 	{if $error}

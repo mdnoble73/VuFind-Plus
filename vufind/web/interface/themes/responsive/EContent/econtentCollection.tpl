@@ -1,4 +1,3 @@
-<script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
 {strip}
 	<div id="main-content" class="col-md-12">
 		<h2>eContent Collection Details</h2>

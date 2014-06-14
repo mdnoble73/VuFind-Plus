@@ -1,4 +1,3 @@
-<script type="text/javascript" src="{$path}/js/validate/jquery.validate.js"></script>
 <h3>{translate text='Register for a Library Card'}</h3>
 <div class="page">
 	<div id='selfRegDescription' class="alert alert-info">This page allows you to register as a patron of our library online. You will have limited privileges initially.</div>

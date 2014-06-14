@@ -1,4 +1,3 @@
-<script type="text/javascript" src="{$path}/js/validate/jquery.validate.js"></script>
 <div id="page-content" class="content">
 
 	<div id="main-content">

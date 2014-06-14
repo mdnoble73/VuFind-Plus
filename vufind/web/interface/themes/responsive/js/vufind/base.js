@@ -2,6 +2,7 @@ var VuFind = (function(){
 	$(document).ready(function(){
 		VuFind.initializeModalDialogs();
 		VuFind.setupFieldSetToggles();
+		VuFind.initCarousels();
 
 		$("#modalDialog").modal({show:false});
 
@@ -23,6 +24,55 @@ var VuFind = (function(){
 			if (modalDialog.is(":visible")){
 				modalDialog.modal('hide');
 			}
+		},
+
+		initCarousels:function(){
+			var jcarousel = $('.jcarousel');
+
+			jcarousel.on('jcarousel:reload jcarousel:create', function () {
+				var element = $(this);
+				var width = element.innerWidth();
+				var itemWidth = width;
+				if (width >= 600) {
+					itemWidth = width / 4;
+				}else if (width >= 400) {
+					itemWidth = width / 3;
+				}else if (width >= 300) {
+					itemWidth = width / 2;
+				}
+
+				element.jcarousel('items').css('width', Math.floor(itemWidth) + 'px');
+			})
+			.jcarousel({
+				wrap: 'circular'
+			});
+
+			$('.jcarousel-control-prev')
+					.jcarouselControl({
+						target: '-=1'
+					});
+
+			$('.jcarousel-control-next')
+					.jcarouselControl({
+						target: '+=1'
+					});
+
+			$('.jcarousel-pagination')
+					.on('jcarouselpagination:active', 'a', function() {
+						$(this).addClass('active');
+					})
+					.on('jcarouselpagination:inactive', 'a', function() {
+						$(this).removeClass('active');
+					})
+					.on('click', function(e) {
+						e.preventDefault();
+					})
+					.jcarouselPagination({
+						perPage: 1,
+						item: function(page) {
+							return '<a href="#' + page + '">' + page + '</a>';
+						}
+					});
 		},
 
 		initializeModalDialogs: function() {

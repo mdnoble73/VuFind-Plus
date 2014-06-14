@@ -1,4 +1,3 @@
-<script type="text/javascript" src="{$path}/js/validate/jquery.validate.js" ></script>
 <script type="text/javascript" src="{$path}/ckeditor/ckeditor.js"></script>
 {strip}
 	<div id="main-content" class="col-md-12">

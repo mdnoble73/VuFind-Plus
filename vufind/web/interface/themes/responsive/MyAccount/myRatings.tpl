@@ -3,7 +3,6 @@
 		alert("{$title}");
 	</script>
 {/if}
-<script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
 {if $user->cat_username}
 	<div class="resulthead">
 		<h3>{translate text='My Ratings'}</h3>

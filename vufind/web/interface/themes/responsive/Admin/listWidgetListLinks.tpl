@@ -1,4 +1,3 @@
-<script type="text/javascript" src="{$path}/js/validate/jquery.validate.min.js" ></script>
  {literal}
 <script type="text/javascript">
   $(document).ready(function(){

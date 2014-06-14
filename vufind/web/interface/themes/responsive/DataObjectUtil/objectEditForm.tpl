@@ -1,4 +1,3 @@
-<script type="text/javascript" src="{$path}/js/validate/jquery.validate.min.js" ></script>
 {* Errors *}
 {if isset($errors) && count($errors) > 0}
 	<div id='errors'>

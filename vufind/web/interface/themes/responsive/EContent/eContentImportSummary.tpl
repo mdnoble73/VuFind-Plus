@@ -1,5 +1,4 @@
 <script type="text/javascript" src="{$path}/services/MaterialsRequest/ajax.js"></script>
-<script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
 {strip}
 	<div id="main-content" class="col-sm-12">
 		<h2>eContent Import Summary Report</h2>

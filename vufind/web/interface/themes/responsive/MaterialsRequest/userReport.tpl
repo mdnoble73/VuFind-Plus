@@ -1,5 +1,4 @@
 <script type="text/javascript" src="{$path}/services/MaterialsRequest/ajax.js"></script>
-<script type="text/javascript" src="{$path}/js/tablesorter/jquery.tablesorter.min.js"></script>
 
 	<div id="main-content" class="col-md-12">
 		<h3>Materials Request Requests by User Report</h3>

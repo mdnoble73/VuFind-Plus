@@ -1,4 +1,3 @@
-<script type="text/javascript" src="{$path}/js/validate/jquery.validate.min.js" ></script>
 <div class="col-xs-12">
 	<div class="alert alert-info">
 		Need help downloading a title or using the title on your device?  Please fill out this support form.

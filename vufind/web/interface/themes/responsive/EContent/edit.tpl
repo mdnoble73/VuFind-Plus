@@ -1,4 +1,3 @@
-<script type="text/javascript" src="{$path}/js/validate/jquery.validate.js" ></script>
 <script type="text/javascript" src="{$path}/js/econtent.js" ></script>
 <div id="page-content" class="content">
   <div id="sidebar">
