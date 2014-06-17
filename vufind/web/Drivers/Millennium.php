@@ -452,7 +452,7 @@ class MillenniumDriver implements DriverInterface
 	 * @param   string  $username   The patron username
 	 * @param   string  $password   The patron password
 	 * @return  mixed               A string of the user's ID number
-	 *                              If an error occures, return a PEAR_Error
+	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
 	public function patronLogin($username, $password)
@@ -463,6 +463,8 @@ class MillenniumDriver implements DriverInterface
 		//Strip any non digit characters from the password
 		//Can't do this any longer since some libraries do have characters in their barcode:
 		//$password = preg_replace('/[a-or-zA-OR-Z\W]/', '', $password);
+		//Remove any spaces from the barcode
+		$password = preg_replace('/[^a-zA-Z\d]/', '', $password);
 
 		if ($configArray['Catalog']['offline'] == true){
 			//The catalog is offline, check the database to see if the user is valid
