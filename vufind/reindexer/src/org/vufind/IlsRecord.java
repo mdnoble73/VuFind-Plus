@@ -51,7 +51,7 @@ public class IlsRecord {
 			return formats.iterator().next();
 		}else{
 			if (!recordsWithoutFormats.contains(recordId)) {
-				logger.warn("Record " + recordId + " had no formats!");
+				logger.info("Record " + recordId + " had no formats!");
 				recordsWithoutFormats.add(recordId);
 			}
 			return "Unknown";
