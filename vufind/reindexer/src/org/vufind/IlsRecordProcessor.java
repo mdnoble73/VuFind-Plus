@@ -1,8 +1,6 @@
 package org.vufind;
 
-import com.sun.xml.internal.ws.util.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.solr.util.NumberUtils;
 import org.ini4j.Ini;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.marc.*;
@@ -241,26 +239,33 @@ public abstract class IlsRecordProcessor {
 
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		try{
-			List<PrintIlsRecord> printItems = getUnsuppressedPrintItems(record);
-			List<EContentIlsRecord> econtentItems = getUnsuppressedEContentItems(identifier, record);
+			//First load a list of print items and econtent items from the MARC record since they are needed to handle
+			//Scoping and availability of records.
+			List<PrintIlsItem> printItems = getUnsuppressedPrintItems(record);
+			List<EContentIlsItem> econtentItems = getUnsuppressedEContentItems(identifier, record);
 
-			loadRecordType(groupedWork, record, printItems, econtentItems);
+			//Break the MARC record up based on item information and load data that is scoped
+			//i.e. formats, iTypes, date added to catalog, etc
+			HashSet<IlsRecord> ilsRecords = loadScopedDataForMarcRecord(groupedWork, record, printItems, econtentItems);
 
-			//Do updates based on the overall bib
+			//Do updates based on the overall bib (shared regardless of scoping)
 			loadTitles(groupedWork, record);
 			loadAuthors(groupedWork, record);
 
-			loadFormatDetails(groupedWork, record, identifier, printItems, econtentItems);
-
 			groupedWork.addAllFields(getAllFields(record));
 			groupedWork.addKeywords(getAllSearchableFields(record, 100, 900));
+			//Load description
+			String fullDescription = Util.getCRSeparatedString(getFieldList(record, "520a"));
+			for (IlsRecord ilsRecord : ilsRecords) {
+				groupedWork.addDescription(fullDescription, ilsRecord.getPrimaryFormat());
+			}
 			groupedWork.addTopic(getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690a"));
 			groupedWork.addTopicFacet(getFieldList(record, "600a:600x:600a:610x:611x:611x:630a:630x:648x:650a:650x:651x:655x"));
 			groupedWork.addSeries(getFieldList(record, "440ap:800pqt:830ap"));
 			groupedWork.addSeries2(getFieldList(record, "490a"));
-			groupedWork.addPhysical(getFieldList(record, "300abcefg:530abcd"));
+			loadPhysicalDescription(groupedWork, record, ilsRecords);
 			groupedWork.addDateSpan(getFieldList(record, "362a"));
-			groupedWork.addEditions(getFieldList(record, "250a"));
+			loadEditions(groupedWork, record, ilsRecords);
 			groupedWork.addContents(getFieldList(record, "505a:505t"));
 			groupedWork.addGenre(getFieldList(record, "655abcvxyz"));
 			groupedWork.addGenreFacet(getFieldList(record, "600v:610v:611v:630v:648v:650v:651v:655a:655v"));
@@ -270,8 +275,8 @@ public abstract class IlsRecordProcessor {
 			groupedWork.addContents(getFieldList(record, "505a:505t"));
 
 			loadBibCallNumbers(groupedWork, record);
-			loadLanguageDetails(groupedWork, record);
-			loadPublicationDetails(groupedWork, record);
+			loadLanguageDetails(groupedWork, record, ilsRecords);
+			loadPublicationDetails(groupedWork, record, ilsRecords);
 			loadLiteraryForms(groupedWork, record);
 			loadTargetAudiences(groupedWork, record);
 			groupedWork.addMpaaRating(groupedWork, getMpaaRating(record));
@@ -288,6 +293,8 @@ public abstract class IlsRecordProcessor {
 			groupedWork.setAcceleratedReaderInterestLevel(getAcceleratedReaderInterestLevel(record));
 			groupedWork.setAcceleratedReaderReadingLevel(getAcceleratedReaderReadingLevel(record));
 			groupedWork.setAcceleratedReaderPointValue(getAcceleratedReaderPointLevel(record));
+			groupedWork.setRelatedRecords(ilsRecords);
+			groupedWork.setFormatInformation(ilsRecords);
 
 			loadEContentSourcesAndProtectionTypes(groupedWork, econtentItems);
 
@@ -301,11 +308,33 @@ public abstract class IlsRecordProcessor {
 		}
 	}
 
-	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<EContentIlsRecord> econtentItems) {
+	private void loadEditions(GroupedWorkSolr groupedWork, Record record, HashSet<IlsRecord> ilsRecords) {
+		Set<String> editions = getFieldList(record, "250a");
+		if (editions.size() > 0) {
+			for (IlsRecord ilsRecord : ilsRecords) {
+				String edition = editions.iterator().next();
+				ilsRecord.setEdition(edition);
+			}
+		}
+		groupedWork.addEditions(editions);
+	}
+
+	private void loadPhysicalDescription(GroupedWorkSolr groupedWork, Record record, HashSet<IlsRecord> ilsRecords) {
+		Set<String> physicalDescriptions = getFieldList(record, "300abcefg:530abcd");
+		if (physicalDescriptions.size() > 0){
+			String physicalDescription = physicalDescriptions.iterator().next();
+			for(IlsRecord ilsRecord : ilsRecords){
+				ilsRecord.setPhysicalDescription(physicalDescription);
+			}
+		}
+		groupedWork.addPhysical(physicalDescriptions);
+	}
+
+	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<EContentIlsItem> econtentItems) {
 		//By default, do nothing
 	}
 
-	protected void loadLocalCallNumbers(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
+	protected void loadLocalCallNumbers(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
 		//By default, do nothing.
 	}
 
@@ -343,32 +372,66 @@ public abstract class IlsRecordProcessor {
 		}
 	}
 
-	protected void loadRecordType(GroupedWorkSolr groupedWork, Record record, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
+	/**
+	 * Break the marc record up into individual records based on the information in the record.
+	 * Typically, we will get a single IlsRecord back.  However, we may get multiple records back
+	 * if the original MARC record has both print and econtent records on it.
+	 *
+	 * @param groupedWork The groupes work that we are updating
+	 * @param record The original MARC record
+	 * @param printItems a list of print items from the MARC record
+	 * @param econtentItems a list of econtent itmes from the MARC record
+	 * @return A list of Ils Records that relate to the original marc
+	 */
+	protected HashSet<IlsRecord> loadScopedDataForMarcRecord(GroupedWorkSolr groupedWork, Record record, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
+		HashSet<IlsRecord> ilsRecords = new HashSet<IlsRecord>();
 		String recordId = getFirstFieldVal(record, recordNumberTag + "a");
 		String recordIdentifier = "ils:" + recordId;
-		groupedWork.addRelatedRecord(recordIdentifier);
-
-		for (PrintIlsRecord printItem : printItems){
-			for (Scope scope : printItem.getRelatedScopes()) {
-				groupedWork.getScopedWorkDetails().get(scope.getScopeName()).getRelatedRecords().add(recordIdentifier);
+		if (printItems.size() > 0) {
+			IlsRecord printRecord = new IlsRecord();
+			printRecord.setRecordId(recordIdentifier);
+			printRecord.addItems(printItems);
+			//Load formats for the print record
+			loadPrintFormatInformation(printRecord, record);
+			ilsRecords.add(printRecord);
+			for (PrintIlsItem printItem : printItems) {
+				if (printItem != null) {
+					String itemInfo = recordIdentifier + "|" + printItem.getRelatedItemInfo();
+					groupedWork.addRelatedItem(itemInfo);
+					for (Scope scope : printItem.getRelatedScopes()) {
+						ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
+						scopedWorkDetails.addRelatedItem(itemInfo);
+					}
+				}else{
+					logger.warn("Got an invalid print item in loadScopedDataForMarcRecord for " + recordId);
+				}
 			}
 		}
 
-		for (EContentIlsRecord econtentItem : econtentItems){
-			groupedWork.addRelatedRecord(econtentItem.getRecordIdentifier());
+		for (EContentIlsItem econtentItem : econtentItems) {
+			//TODO: Check to see if there is already a record we want to use.
+			IlsRecord econtentRecord = new IlsRecord();
+			econtentRecord.setRecordId(econtentItem.getRecordIdentifier());
+			econtentRecord.addItem(econtentItem);
+			loadEContentFormatInformation(econtentRecord, econtentItem);
+			String itemInfo = econtentItem.getRecordIdentifier() + "|" + econtentItem.getRelatedItemInfo();
+			groupedWork.addRelatedItem(itemInfo);
+			ilsRecords.add(econtentRecord);
 			for (Scope scope : econtentItem.getRelatedScopes()) {
-				groupedWork.getScopedWorkDetails().get(scope.getScopeName()).getRelatedRecords().add(econtentItem.getRecordIdentifier());
+				ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
+				scopedWorkDetails.addRelatedItem(itemInfo);
 			}
 		}
+		return ilsRecords;
 	}
 
-	protected List<PrintIlsRecord> getUnsuppressedPrintItems(Record record){
+	protected List<PrintIlsItem> getUnsuppressedPrintItems(Record record){
 		List<DataField> itemRecords = getDataFields(record, itemTag);
-		List<PrintIlsRecord> unsuppressedItemRecords = new ArrayList<PrintIlsRecord>();
+		List<PrintIlsItem> unsuppressedItemRecords = new ArrayList<PrintIlsItem>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
-				PrintIlsRecord ilsRecord = getPrintIlsRecord(itemField);
-				if (ilsRecord.getLocation() != null) {
+				PrintIlsItem ilsRecord = getPrintIlsRecord(itemField);
+				if (ilsRecord != null) {
 					unsuppressedItemRecords.add(ilsRecord);
 				}
 			}
@@ -376,8 +439,8 @@ public abstract class IlsRecordProcessor {
 		return unsuppressedItemRecords;
 	}
 
-	protected EContentIlsRecord getEContentIlsRecord(String identifier, DataField itemField){
-		EContentIlsRecord ilsRecord = new EContentIlsRecord();
+	protected EContentIlsItem getEContentIlsRecord(String identifier, DataField itemField){
+		EContentIlsItem ilsRecord = new EContentIlsItem();
 
 		ilsRecord.setDateCreated(getItemSubfieldData(dateCreatedSubfield, itemField));
 		ilsRecord.setLocation(getItemSubfieldData(locationSubfieldIndicator, itemField));
@@ -471,14 +534,18 @@ public abstract class IlsRecordProcessor {
 		return ilsRecord;
 	}
 
-	protected PrintIlsRecord getPrintIlsRecord(DataField itemField) {
-		PrintIlsRecord ilsRecord = new PrintIlsRecord();
+	protected PrintIlsItem getPrintIlsRecord(DataField itemField) {
+		PrintIlsItem ilsRecord = new PrintIlsItem();
 
 		//Load base information from the Marc Record
 		ilsRecord.setStatus(getItemSubfieldData(statusSubfieldIndicator, itemField));
+		ilsRecord.setLocation(getItemSubfieldData(locationSubfieldIndicator, itemField));
+		//if the status and location are null, we can assume this is not a valid item
+		if (ilsRecord.getStatus() == null && ilsRecord.getLocation() == null){
+			return null;
+		}
 		ilsRecord.setDateDue(getItemSubfieldData(dueDateSubfield, itemField));
 		ilsRecord.setDateCreated(getItemSubfieldData(dateCreatedSubfield, itemField));
-		ilsRecord.setLocation(getItemSubfieldData(locationSubfieldIndicator, itemField));
 		ilsRecord.setiType(getItemSubfieldData(iTypeSubfield, itemField));
 		ilsRecord.setLastYearCheckouts(getItemSubfieldData(lastYearCheckoutSubfield, itemField));
 		ilsRecord.setYtdCheckouts(getItemSubfieldData(ytdCheckoutSubfield, itemField));
@@ -541,8 +608,8 @@ public abstract class IlsRecordProcessor {
 		}
 	}
 
-	protected List<EContentIlsRecord> getUnsuppressedEContentItems(String identifier, Record record){
-		return new ArrayList<EContentIlsRecord>();
+	protected List<EContentIlsItem> getUnsuppressedEContentItems(String identifier, Record record){
+		return new ArrayList<EContentIlsItem>();
 	}
 
 	Pattern mpaaRatingRegex1 = null;
@@ -587,8 +654,8 @@ public abstract class IlsRecordProcessor {
 		}
 	}
 
-	private void loadITypes(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
-		for (PrintIlsRecord curItem : printItems){
+	private void loadITypes(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
+		for (PrintIlsItem curItem : printItems){
 			String location = curItem.getLocation();
 			String iType = curItem.getiType();
 			if (iType != null && location != null){
@@ -597,7 +664,7 @@ public abstract class IlsRecordProcessor {
 				groupedWork.setIType(iType, relatedSubdomains);
 			}
 		}
-		for (EContentIlsRecord curItem : econtentItems){
+		for (EContentIlsItem curItem : econtentItems){
 			String iType = curItem.getiType();
 			String location = curItem.getLocation();
 			if (iType != null && location != null){
@@ -608,8 +675,8 @@ public abstract class IlsRecordProcessor {
 	}
 
 	private static SimpleDateFormat dateAddedFormatter = new SimpleDateFormat("yyMMdd");
-	private void loadDateAdded(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
-		for (PrintIlsRecord curItem : printItems){
+	private void loadDateAdded(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
+		for (PrintIlsItem curItem : printItems){
 			String locationCode = curItem.getLocation();
 			String dateAddedStr = curItem.getDateCreated();
 			if (locationCode != null && dateAddedStr != null){
@@ -623,7 +690,7 @@ public abstract class IlsRecordProcessor {
 				}
 			}
 		}
-		for (EContentIlsRecord curItem : econtentItems){
+		for (EContentIlsItem curItem : econtentItems){
 			String locationCode = curItem.getLocation();
 			String dateAddedStr = curItem.getDateCreated();
 			if (locationCode != null && dateAddedStr != null){
@@ -865,11 +932,27 @@ public abstract class IlsRecordProcessor {
 		}
 	}
 
-	private void loadPublicationDetails(GroupedWorkSolr groupedWork, Record record) {
+	private void loadPublicationDetails(GroupedWorkSolr groupedWork, Record record, HashSet<IlsRecord> ilsRecords) {
+		//Load publishers
 		Set<String> publishers = this.getPublishers(record);
 		groupedWork.addPublishers(publishers);
-		Set<String> publicationDate = this.getPublicationDates(record);
-		groupedWork.addPublicationDates(publicationDate);
+		if (publishers.size() > 0){
+			String publisher = publishers.iterator().next();
+			for(IlsRecord ilsRecord : ilsRecords){
+				ilsRecord.setPublisher(publisher);
+			}
+		}
+
+		//Load publication dates
+		Set<String> publicationDates = this.getPublicationDates(record);
+		groupedWork.addPublicationDates(publicationDates);
+		if (publicationDates.size() > 0){
+			String publicationDate = publicationDates.iterator().next();
+			for(IlsRecord ilsRecord : ilsRecords){
+				ilsRecord.setPublicationDate(publicationDate);
+			}
+		}
+
 	}
 
 	public Set<String> getPublicationDates(Record record) {
@@ -920,11 +1003,19 @@ public abstract class IlsRecordProcessor {
 		return publisher;
 	}
 
-	private void loadLanguageDetails(GroupedWorkSolr groupedWork, Record record) {
+	private void loadLanguageDetails(GroupedWorkSolr groupedWork, Record record, HashSet<IlsRecord> ilsRecords) {
 		Set <String> languages = getFieldList(record, "008[35-37]:041a:041d:041j");
 		HashSet<String> translatedLanguages = new HashSet<String>();
+		boolean isFirstLanguage = true;
 		for (String language : languages){
-			translatedLanguages.add(indexer.translateValue("language", language));
+			String tranlatedLanguage = indexer.translateValue("language", language);
+			translatedLanguages.add(tranlatedLanguage);
+			if (isFirstLanguage){
+				for (IlsRecord ilsRecord : ilsRecords){
+					ilsRecord.setLanguage(tranlatedLanguage);
+				}
+			}
+			isFirstLanguage = false;
 			String languageBoost = indexer.translateValue("language_boost", language);
 			if (languageBoost != null){
 				Long languageBoostVal = Long.parseLong(languageBoost);
@@ -937,11 +1028,12 @@ public abstract class IlsRecordProcessor {
 			}
 		}
 		groupedWork.setLanguages(translatedLanguages);
+
 	}
 
-	private void loadPopularity(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
+	private void loadPopularity(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
 		float popularity = 0;
-		for (PrintIlsRecord itemField : printItems){
+		for (PrintIlsItem itemField : printItems){
 			//Get number of times the title has been checked out
 			String totalCheckoutsField = itemField.getTotalCheckouts();
 			int totalCheckouts = 0;
@@ -965,20 +1057,6 @@ public abstract class IlsRecordProcessor {
 		//TODO: Load popularity for eContent
 		groupedWork.addPopularity(popularity);
 	}
-
-	/**
-	 * Loads information about all formats that apply to the work
-	 *
-	 * @param groupedWork
-	 * @param record
-	 * @param identifier
-	 * @param printItems
-	 * @param econtentItems
-	 */
-	protected void loadFormatDetails(GroupedWorkSolr groupedWork, Record record, String identifier, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
-		loadFormats(groupedWork, record, identifier, printItems, econtentItems);
-	}
-
 
 	private void loadAuthors(GroupedWorkSolr groupedWork, Record record) {
 		//auth_author = 100abcd, first
@@ -1017,7 +1095,7 @@ public abstract class IlsRecordProcessor {
 		//title sort
 		groupedWork.setSortableTitle(this.getSortableTitle(record));
 		//title alt
-		groupedWork.addAlternateTitles(this.getFieldList(record, "130adfgklnpst:240a:246a:730adfgklnpst:740a"));
+		groupedWork.addAlternateTitles(this.getFieldList(record, "130adfgklnpst:240a:246a:700tnr:730adfgklnpst:740a"));
 		//title old
 		groupedWork.addOldTitles(this.getFieldList(record, "780ast"));
 		//title new
@@ -1033,9 +1111,9 @@ public abstract class IlsRecordProcessor {
 		}
 	}
 
-	protected void loadUsability(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
+	protected void loadUsability(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
 		//Load a list of pTypes that can use this record based on loan rules
-		for (PrintIlsRecord curItem : printItems){
+		for (PrintIlsItem curItem : printItems){
 			String iType = curItem.getiType();
 			String locationCode = curItem.getLocation();
 			if (iType != null && locationCode != null){
@@ -1059,12 +1137,12 @@ public abstract class IlsRecordProcessor {
 		return icode2.equals("n") || icode2.equals("x") || locationCode.equals("zzzz");
 	}
 
-	protected void loadAvailability(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
+	protected void loadAvailability(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
 		//Calculate availability based on the record
 		HashSet<String> availableAt = new HashSet<String>();
 		HashSet<String> availableLocationCodes = new HashSet<String>();
 
-		for (PrintIlsRecord curItem : printItems){
+		for (PrintIlsItem curItem : printItems){
 			if (curItem.getLocation() != null){
 				if (curItem.isAvailable()){
 					availableAt.addAll(getLocationFacetsForLocationCode(curItem.getLocation()));
@@ -1076,11 +1154,11 @@ public abstract class IlsRecordProcessor {
 		groupedWork.addAvailableLocations(availableAt, availableLocationCodes);
 	}
 
-	protected void loadOwnershipInformation(GroupedWorkSolr groupedWork, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
+	protected void loadOwnershipInformation(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
 		HashSet<String> owningLibraries = new HashSet<String>();
 		HashSet<String> owningLocations = new HashSet<String>();
 		HashSet<String> owningLocationCodes = new HashSet<String>();
-		for (PrintIlsRecord curItem : printItems){
+		for (PrintIlsItem curItem : printItems){
 			String locationCode = curItem.getLocation();
 			if (locationCode != null){
 				owningLibraries.addAll(getLibraryFacetsForLocationCode(locationCode));
@@ -1837,7 +1915,17 @@ public abstract class IlsRecordProcessor {
 	/**
 	 * Determine Record Format(s)
 	 */
-	public abstract void loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems);
+	public abstract void loadPrintFormatInformation(IlsRecord ilsRecord, Record record);
+
+	/**
+	 * Load information about eContent formats.
+	 *
+	 * @param econtentRecord
+	 * @param econtentItem
+	 */
+	protected void loadEContentFormatInformation(IlsRecord econtentRecord, EContentIlsItem econtentItem) {
+
+	}
 
 	private char getSubfieldIndicatorFromConfig(Ini configIni, String subfieldName) {
 		String subfieldString = configIni.get("Reindex", subfieldName);

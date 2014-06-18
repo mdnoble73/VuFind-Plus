@@ -42,8 +42,8 @@ public class ScopedWorkDetails {
 		return relatedItems;
 	}
 
-	public void setRelatedItems(HashSet<String> relatedItems) {
-		this.relatedItems = relatedItems;
+	public void addRelatedItem(String relatedItem) {
+		this.relatedItems.add(relatedItem);
 	}
 
 	public HashSet<String> getiTypes() {
@@ -137,5 +137,16 @@ public class ScopedWorkDetails {
 		} else if (formatBoost > this.formatBoost){
 			this.formatBoost = formatBoost;
 		}
+	}
+
+	public void addRelatedRecord(String recordId, String primaryFormat, String edition, String language, String publisher, String publicationDate, String physicalDescription) {
+		relatedRecords.add(recordId
+						+ "|" + (primaryFormat == null ? "" : Util.trimTrailingPunctuation(primaryFormat.replace('|', ' ')))
+						+ "|" + (edition == null ? "" : Util.trimTrailingPunctuation(edition.replace('|', ' ')))
+						+ "|" + (language == null ? "" : Util.trimTrailingPunctuation(language.replace('|', ' ')))
+						+ "|" + (publisher == null ? "" : Util.trimTrailingPunctuation(publisher.replace('|', ' ')))
+						+ "|" + (publicationDate == null ? "" : Util.trimTrailingPunctuation(publicationDate.replace('|', ' ')))
+						+ "|" + (physicalDescription == null ? "" : Util.trimTrailingPunctuation(physicalDescription.replace('|', ' ')))
+		);
 	}
 }

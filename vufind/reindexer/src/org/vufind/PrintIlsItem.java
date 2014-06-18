@@ -10,26 +10,18 @@ import java.util.LinkedHashSet;
  * Date: 6/3/2014
  * Time: 8:35 AM
  */
-public class PrintIlsRecord {
+public class PrintIlsItem extends IlsItem {
 	private String status;
 	private String dateDue;
 	private String dateCreated;
-	private String location;
-	private String iType;
 	private String lastYearCheckouts;
 	private String ytdCheckouts;
 	private String totalCheckouts;
 	private String iCode2;
-	private String callNumberPreStamp;
-	private String callNumber;
-	private String callNumberCutter;
 	private String barcode;
-	private String itemRecordNumber;
 
 	//Data that is calculated from other data
 	private boolean available;
-	private HashSet<Scope> relatedScopes = new HashSet<Scope>();
-	private HashSet<LocalizationInfo> relatedLocalizations = new HashSet<LocalizationInfo>();
 	private LinkedHashSet<String> compatiblePTypes;
 
 	public String getStatus() {
@@ -54,22 +46,6 @@ public class PrintIlsRecord {
 
 	public void setDateCreated(String dateCreated) {
 		this.dateCreated = dateCreated;
-	}
-
-	public String getLocation() {
-		return location;
-	}
-
-	public void setLocation(String location) {
-		this.location = location;
-	}
-
-	public String getiType() {
-		return iType;
-	}
-
-	public void setiType(String iType) {
-		this.iType = iType;
 	}
 
 	public String getLastYearCheckouts() {
@@ -104,30 +80,6 @@ public class PrintIlsRecord {
 		this.iCode2 = iCode2;
 	}
 
-	public String getCallNumberPreStamp() {
-		return callNumberPreStamp;
-	}
-
-	public void setCallNumberPreStamp(String callNumberPreStamp) {
-		this.callNumberPreStamp = callNumberPreStamp;
-	}
-
-	public String getCallNumber() {
-		return callNumber;
-	}
-
-	public void setCallNumber(String callNumber) {
-		this.callNumber = callNumber;
-	}
-
-	public String getCallNumberCutter() {
-		return callNumberCutter;
-	}
-
-	public void setCallNumberCutter(String callNumberCutter) {
-		this.callNumberCutter = callNumberCutter;
-	}
-
 	public String getBarcode() {
 		return barcode;
 	}
@@ -136,29 +88,12 @@ public class PrintIlsRecord {
 		this.barcode = barcode;
 	}
 
-	public String getItemRecordNumber() {
-		return itemRecordNumber;
-	}
-
-	public void setItemRecordNumber(String itemRecordNumber) {
-		this.itemRecordNumber = itemRecordNumber;
-	}
-
-
 	public boolean isAvailable() {
 		return available;
 	}
 
 	public void setAvailable(boolean available) {
 		this.available = available;
-	}
-
-	public HashSet<Scope> getRelatedScopes() {
-		return relatedScopes;
-	}
-
-	public void addRelatedScope(Scope scope){
-		relatedScopes.add(scope);
 	}
 
 	public void setCompatiblePTypes(LinkedHashSet<String> compatiblePTypes) {
@@ -169,7 +104,18 @@ public class PrintIlsRecord {
 		return compatiblePTypes;
 	}
 
-	public void addRelatedLocalization(LocalizationInfo localizationInfo) {
-		relatedLocalizations.add(localizationInfo);
+	public String getRelatedItemInfo(){
+		return this.getItemRecordNumber() +
+				"|" + this.location +
+				"|" + this.getFullCallNumber() +
+				"|" + (this.available ? "true" : "false") +
+				"|" + (this.isLibraryUseOnly() ? "true" : "false") +
+				"|" + Util.getCommaSeparatedString(this.compatiblePTypes);
 	}
+
+	private boolean isLibraryUseOnly() {
+		return status != null && status.equals("o");
+	}
+
+
 }

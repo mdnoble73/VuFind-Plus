@@ -7,7 +7,7 @@ package org.vufind;
  * Date: 6/2/2014
  * Time: 3:36 PM
  */
-public class LocalizationInfo {
+public class LocalizationInfo implements Comparable<LocalizationInfo> {
 	private String localName;
 	private String locationCodePrefix;
 
@@ -29,5 +29,10 @@ public class LocalizationInfo {
 
 	public boolean isLocationCodeIncluded(String locationCode){
 		return locationCode.startsWith(locationCodePrefix);
+	}
+
+	@Override
+	public int compareTo(LocalizationInfo o) {
+		return localName.compareTo(o.localName);
 	}
 }

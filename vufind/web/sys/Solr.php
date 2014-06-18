@@ -631,8 +631,8 @@ class Solr implements IndexEngine {
 
 		$options['rows'] = 30;
 
-		// Limit Fields
-		if ($this->debug) {
+		// TODO: Limit Fields
+		if ($this->debug && isset($fields)) {
 			$options['fl'] = $fields;
 		} else {
 			// This should be an explicit list

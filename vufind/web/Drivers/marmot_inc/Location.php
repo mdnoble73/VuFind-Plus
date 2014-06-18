@@ -441,7 +441,7 @@ class Location extends DB_DataObject
 
 	static function getSearchLocation($searchSource = null){
 		if (is_null($searchSource)){
-			$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+			$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : (isset($_SESSION['searchSource']) ? $_SESSION['searchSource'] : 'local');
 			if (strpos($searchSource, 'library') === 0){
 				$trimmedSearchSource = str_replace('library', '', $searchSource);
 				require_once  ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';

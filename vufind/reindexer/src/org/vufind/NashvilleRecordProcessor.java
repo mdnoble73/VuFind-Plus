@@ -2,11 +2,9 @@ package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
-import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 
 import java.sql.Connection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -24,7 +22,7 @@ public class NashvilleRecordProcessor extends IlsRecordProcessor {
 	}
 
 	@Override
-	public void loadFormats(GroupedWorkSolr groupedWork, Record record, String identifier, List<PrintIlsRecord> printItems, List<EContentIlsRecord> econtentItems) {
+	public void loadPrintFormatInformation(IlsRecord ilsRecord, Record record) {
 		String format = getFirstFieldVal(record, "998d");
 		Set<String> formats = new HashSet<String>();
 		formats.add(format);

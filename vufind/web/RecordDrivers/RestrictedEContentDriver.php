@@ -70,7 +70,9 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 		}else{
 			//Just share with the specific location
 			$searchLocation = Location::getSearchLocation();
-			if (strpos($locationCode, $searchLocation->code) === 0){
+			if (!$searchLocation){
+				return true;
+			}elseif (strpos($locationCode, $searchLocation->code) === 0){
 				return true;
 			}else{
 				return false;
@@ -99,6 +101,25 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 	}
 
 	function getActionsForItem($itemField){
+		$actions = array();
+		if ($this->isAvailable(true)){
+			$actions[] = array(
+					'url' => '',
+					'onclick' => 'alert("TODO: Checkout the title")',
+					'title' => 'Check Out',
+					'requireLogin' => true,
+			);
+		}else{
+			$actions[] = array(
+					'url' => '',
+					'onclick' => 'alert("TODO: Place a hold")',
+					'title' => 'Place Hold',
+					'requireLogin' => true,
+			);
+		}
+		return $actions;
+	}
+	function getActionsForItemFromIndexData($itemData){
 		$actions = array();
 		if ($this->isAvailable(true)){
 			$actions[] = array(

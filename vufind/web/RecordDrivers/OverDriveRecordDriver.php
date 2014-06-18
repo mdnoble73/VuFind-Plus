@@ -55,6 +55,16 @@ class OverDriveRecordDriver implements RecordInterface {
 		}
 	}
 
+	protected $itemsFromIndex;
+	public function setItemsFromIndex($itemsFromIndex){
+		$this->itemsFromIndex = $itemsFromIndex;
+	}
+
+	protected $detailedRecordInfoFromIndex;
+	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex){
+		$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
+	}
+
 	public function setScopingEnabled($enabled){
 		$this->scopingEnabled = $enabled;
 	}

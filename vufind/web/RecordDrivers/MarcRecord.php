@@ -30,7 +30,7 @@ require_once ROOT_DIR . '/RecordDrivers/IndexRecord.php';
 class MarcRecord extends IndexRecord
 {
 	/** @var File_MARC_Record $marcRecord */
-	protected $marcRecord;
+	protected $marcRecord = null;
 	protected $id;
 	protected $valid = true;
 
@@ -44,10 +44,8 @@ class MarcRecord extends IndexRecord
 		}elseif (is_string($record)){
 			require_once ROOT_DIR . '/sys/MarcLoader.php';
 			$this->id = $record;
-			$this->marcRecord = MarcLoader::loadMarcRecordByILSId($record);
-			if (!$this->marcRecord) {
-				$this->valid = false;
-			}
+
+			$this->valid = MarcLoader::marcExistsForILSId($record);
 		}else{
 			// Call the parent's constructor...
 			parent::__construct($record);
@@ -71,13 +69,12 @@ class MarcRecord extends IndexRecord
 
 	protected $itemsFromIndex;
 	public function setItemsFromIndex($itemsFromIndex){
-		$this->itemsFromIndex = array();
-		foreach ($itemsFromIndex as $item){
-			$itemData = explode('|', $item);
-			if ($itemData[0] == "ils:{$this->id}"){
-				$this->itemsFromIndex[] = $itemData;
-			}
-		}
+		$this->itemsFromIndex = $itemsFromIndex;
+	}
+
+	protected $detailedRecordInfoFromIndex;
+	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex){
+		$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
 	}
 
 	public function isValid(){
@@ -141,10 +138,10 @@ class MarcRecord extends IndexRecord
 				// This makes use of core metadata fields in addition to the
 				// assignment below:
 				header('Content-type: application/x-endnote-refer');
-				$interface->assign('marc', $this->marcRecord);
+				$interface->assign('marc', $this->getMarcRecord());
 				return 'RecordDrivers/Marc/export-endnote.tpl';
 			case 'marc':
-				$interface->assign('rawMarc', $this->marcRecord->toRaw());
+				$interface->assign('rawMarc', $this->getMarcRecord()->toRaw());
 				return 'RecordDrivers/Marc/export-marc.tpl';
 			case 'rdf':
 				header("Content-type: application/rdf+xml");
@@ -162,7 +159,7 @@ class MarcRecord extends IndexRecord
 				// This makes use of core metadata fields in addition to the
 				// assignment below:
 				header('Content-type: text/plain');
-				$interface->assign('marc', $this->marcRecord);
+				$interface->assign('marc', $this->getMarcRecord());
 				return 'RecordDrivers/Marc/export-refworks.tpl';
 			default:
 				return null;
@@ -214,7 +211,7 @@ class MarcRecord extends IndexRecord
 	public function getRDFXML()
 	{
 		// Get Record as MARCXML
-		$xml = trim($this->marcRecord->toXML());
+		$xml = trim($this->getMarcRecord()->toXML());
 
 		// Load Stylesheet
 		$style = new DOMDocument;
@@ -271,7 +268,7 @@ class MarcRecord extends IndexRecord
 		global $interface;
 
 		// Get Record as MARCXML
-		/*$xml = trim($this->marcRecord->toXML());
+		/*$xml = trim($this->getMarcRecord()->toXML());
 
 		// Transform MARCXML
 		$style = new DOMDocument;
@@ -286,7 +283,7 @@ class MarcRecord extends IndexRecord
 			$interface->assign('details', 'MARC record could not be read.');
 		}*/
 
-		$interface->assign('marcRecord', $this->marcRecord);
+		$interface->assign('marcRecord', $this->getMarcRecord());
 
 		$solrRecord = $this->fields;
 		if ($solrRecord){
@@ -309,7 +306,7 @@ class MarcRecord extends IndexRecord
 		global $interface;
 
 		// Return null if we have no table of contents:
-		$fields = $this->marcRecord->getFields('505');
+		$fields = $this->getMarcRecord()->getFields('505');
 		if (!$fields) {
 			return null;
 		}
@@ -337,7 +334,7 @@ class MarcRecord extends IndexRecord
 	public function hasTOC()
 	{
 		// Is there a table of contents in the MARC record?
-		if ($this->marcRecord->getFields('505')) {
+		if ($this->getMarcRecord()->getFields('505')) {
 			return true;
 		}
 		return false;
@@ -384,7 +381,7 @@ class MarcRecord extends IndexRecord
 		// Try each MARC field one at a time:
 		foreach($fields as $field) {
 			// Do we have any results for the current field?  If not, try the next.
-			$results = $this->marcRecord->getFields($field);
+			$results = $this->getMarcRecord()->getFields($field);
 			if (!$results) {
 				continue;
 			}
@@ -474,7 +471,7 @@ class MarcRecord extends IndexRecord
 		$matches = array();
 
 		// Try to look up the specified field, return empty array if it doesn't exist.
-		$fields = $this->marcRecord->getFields($field);
+		$fields = $this->getMarcRecord()->getFields($field);
 		if (!is_array($fields)) {
 			return $matches;
 		}
@@ -659,7 +656,7 @@ class MarcRecord extends IndexRecord
 		// Loop through the field specification....
 		foreach($fieldInfo as $field => $subfields) {
 			// Did we find any matching fields?
-			$series = $this->marcRecord->getFields($field);
+			$series = $this->getMarcRecord()->getFields($field);
 			if (is_array($series)) {
 				foreach($series as $currentField) {
 					// Can we find a name using the specified subfield list?
@@ -797,7 +794,7 @@ class MarcRecord extends IndexRecord
 	public function getSortableTitle()
 	{
 		/** @var File_MARC_Data_Field $titleField */
-		$titleField = $this->marcRecord->getField('245');
+		$titleField = $this->getMarcRecord()->getField('245');
 		if ($titleField != null && $titleField->getSubfield('a') != null){
 			$untrimmedTitle = $titleField->getSubfield('a')->getData();
 			$charsToTrim = $titleField->getIndicator(2);
@@ -849,7 +846,7 @@ class MarcRecord extends IndexRecord
 	{
 		$retVal = array();
 
-		$urls = $this->marcRecord->getFields('856');
+		$urls = $this->getMarcRecord()->getFields('856');
 		if ($urls) {
 			foreach($urls as $url) {
 				// Is there an address in the current field?
@@ -914,7 +911,7 @@ class MarcRecord extends IndexRecord
 	public function getDetailedContributors(){
 		$contributors = array();
 		/** @var File_MARC_Data_Field[] $sevenHundredFields */
-		$sevenHundredFields = $this->marcRecord->getFields('700');
+		$sevenHundredFields = $this->getMarcRecord()->getFields('700');
 		foreach($sevenHundredFields as $field){
 			$contributors[] = array(
 				'name' => reset($this->getSubfieldArray($field, array('a', 'b', 'c', 'd'), true)),
@@ -965,7 +962,7 @@ class MarcRecord extends IndexRecord
 
 	function getDescriptionFast(){
 		/** @var File_MARC_Data_Field $descriptionField */
-		$descriptionField = $this->marcRecord->getField('520');
+		$descriptionField = $this->getMarcRecord()->getField('520');
 		if ($descriptionField != null && $descriptionField->getSubfield('a') != null){
 			return $descriptionField->getSubfield('a')->getData();
 		}
@@ -983,7 +980,7 @@ class MarcRecord extends IndexRecord
 		$descriptionArray = $memCache->get("record_description_{$id}");
 		if (!$descriptionArray){
 			$timer->logTime("Starting to load description for marc record");
-			$descriptionArray = $this->loadDescriptionFromMarc($this->marcRecord, false);
+			$descriptionArray = $this->loadDescriptionFromMarc($this->getMarcRecord(), false);
 			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
 			$timer->logTime("Retrieved description for marc record");
 		}
@@ -1112,7 +1109,7 @@ class MarcRecord extends IndexRecord
 
 	function getLanguage(){
 		/** @var File_MARC_Control_Field $field008 */
-		$field008 = $this->marcRecord->getField('008');
+		$field008 = $this->getMarcRecord()->getField('008');
 		if ($field008 != null && strlen($field008->getData() >= 37)){
 			$languageCode = substr($field008->getData(), 35, 3);
 			if ($languageCode == 'eng'){
@@ -1133,9 +1130,9 @@ class MarcRecord extends IndexRecord
 	function getFormat(){
 		$result = array();
 
-		$leader = $this->marcRecord->getLeader();
+		$leader = $this->getMarcRecord()->getLeader();
 		/** @var File_MARC_Control_Field $fixedField */
-		$fixedField = $this->marcRecord->getField("008");
+		$fixedField = $this->getMarcRecord()->getField("008");
 
 		// check for music recordings quickly so we can figure out if it is music
 		// for category (need to do here since checking what is on the Compact
@@ -1151,7 +1148,7 @@ class MarcRecord extends IndexRecord
 
 		// check for playaway in 260|b
 		/** @var File_MARC_Data_Field $sysDetailsNote */
-		$sysDetailsNote = $this->marcRecord->getField("260");
+		$sysDetailsNote = $this->getMarcRecord()->getField("260");
 		if ($sysDetailsNote != null) {
 			if ($sysDetailsNote->getSubfield('b') != null) {
 				$sysDetailsValue = strtolower($sysDetailsNote->getSubfield('b')->getData());
@@ -1248,7 +1245,7 @@ class MarcRecord extends IndexRecord
 		}
 
 		// check the 007 - this is a repeating field
-		$fields = $this->marcRecord->getFields("007");
+		$fields = $this->getMarcRecord()->getFields("007");
 		if ($fields != null) {
 			/** @var File_MARC_Control_Field $formatField */
 			foreach ($fields as $formatField) {
@@ -1544,46 +1541,72 @@ class MarcRecord extends IndexRecord
 			$relatedRecords = array();
 			$recordId = $this->getUniqueID();
 
-			$totalCopies = $this->getNumCopies();
-			//Don't add records the user can't get.
-			if ($totalCopies == 0){
-				return $relatedRecords;
-			}
-			$timer->logTime("Finished initial check to make sure there are items for $recordId");
-
 			$url = $this->getRecordUrl();
 			$holdUrl = $configArray['Site']['path'] . '/Record/' . $recordId . '/Hold';
 
-			$publishers = $this->getPublishers();
-			$publisher = count($publishers) >= 1 ? $publishers[0] : '';
-			$publicationDates = $this->getPublicationDates();
-			$publicationDate = count($publicationDates) >= 1 ? $publicationDates[0] : '';
-			$physicalDescriptions = $this->getPhysicalDescriptions();
-			$physicalDescription = count($physicalDescriptions) >= 1 ? $physicalDescriptions[0] : '';
-			$timer->logTime("Finished loading publication info in getRelatedRecords $recordId");
+			if ($this->detailedRecordInfoFromIndex){
+				$format = $this->detailedRecordInfoFromIndex[1];
+				$edition = $this->detailedRecordInfoFromIndex[2];
+				$language = $this->detailedRecordInfoFromIndex[3];
+				$publisher = $this->detailedRecordInfoFromIndex[4];
+				$publicationDate = $this->detailedRecordInfoFromIndex[5];
+				$physicalDescription = $this->detailedRecordInfoFromIndex[6];
+				$timer->logTime("Finished loading information from indexed info for $recordId");
+			}else{
+				$publishers = $this->getPublishers();
+				$publisher = count($publishers) >= 1 ? $publishers[0] : '';
+				$publicationDates = $this->getPublicationDates();
+				$publicationDate = count($publicationDates) >= 1 ? $publicationDates[0] : '';
+				$physicalDescriptions = $this->getPhysicalDescriptions();
+				$physicalDescription = count($physicalDescriptions) >= 1 ? $physicalDescriptions[0] : '';
+				$format = reset($this->getFormat());
+				$edition = $this->getEdition(true);
+				$language = $this->getLanguage();
+				$timer->logTime("Finished loading MARC information in getRelatedRecords $recordId");
+			}
 
-			$availableCopies = $this->getAvailableCopies(false);
-			$hasLocalItem = $this->hasLocalItem();
+			$items = $this->getItemsFast();
+			$availableCopies = 0;
+			$localAvailableCopies = 0;
+			$localCopies = 0;
+			$totalCopies = 0;
+			$hasLocalItem = false;
+			foreach ($items as $item){
+				$totalCopies++;
+				if ($item['availability'] == true){
+					$availableCopies++;
+				}
+				if ($item['isLocalItem'] || $item['isLibraryItem']){
+					$hasLocalItem = true;
+					$localCopies++;
+					if ($item['availability'] == true){
+						$localAvailableCopies++;
+					}
+				}
+			}
+			if ($totalCopies == 0){
+				return $relatedRecords;
+			}
+			//TODO: Load the number of holds on the record
 			$numHolds = 0;
 			$relatedRecord = array(
 					'id' => $recordId,
 					'url' => $url,
 					'holdUrl' => $holdUrl,
-					'format' => reset($this->getFormat()),
-					'edition' => $this->getEdition(true),
-					'language' => $this->getLanguage(),
-					'title' => $this->getTitle(),
-					'subtitle' => $this->getSubtitle(),
+					'format' => $format,
+					'edition' => $edition,
+					'language' => $language,
 					'publisher' => $publisher,
 					'publicationDate' => $publicationDate,
-					'section' => $this->getTitleSection(),
 					'physical' => $physicalDescription,
 					'callNumber' => $this->getCallNumber(),
 					'available' => $this->isAvailable(false),
-					'availableLocally' => $this->isAvailableLocally(false),
+					'availableLocally' => $localAvailableCopies > 0,
 					'inLibraryUseOnly' => $this->isLibraryUseOnly(false),
 					'availableCopies' => $availableCopies,
 					'copies' => $totalCopies,
+					'localAvailableCopies' => $localAvailableCopies,
+					'localCopies' => $localCopies,
 					'numHolds' => $numHolds,
 					'hasLocalItem' => $hasLocalItem,
 					'holdRatio' => $totalCopies > 0 ? ($availableCopies + ($totalCopies - $numHolds) / $totalCopies) : 0,
@@ -1804,7 +1827,7 @@ class MarcRecord extends IndexRecord
 				}
 			}else{
 				$driver = MarcRecord::getCatalogDriver();
-				$this->fastItems = $driver->getItemsFast($this->getUniqueID(), $this->scopingEnabled, $this->marcRecord);
+				$this->fastItems = $driver->getItemsFast($this->getUniqueID(), $this->scopingEnabled, $this->getMarcRecord());
 			}
 		}
 		return $this->fastItems;
@@ -1866,7 +1889,7 @@ class MarcRecord extends IndexRecord
 	{
 		$publicationDates = $this->getFieldArray('260', array('c'));
 		/** @var File_MARC_Data_Field[] $rdaPublisherFields */
-		$rdaPublisherFields = $this->marcRecord->getFields('264');
+		$rdaPublisherFields = $this->getMarcRecord()->getFields('264');
 		foreach ($rdaPublisherFields as $rdaPublisherField){
 			if ($rdaPublisherField->getIndicator(2) == 1 && $rdaPublisherField->getSubfield('c') != null){
 				$publicationDates[] = $rdaPublisherField->getSubfield('c')->getData();
@@ -1888,7 +1911,7 @@ class MarcRecord extends IndexRecord
 	{
 		$publishers = $this->getFieldArray('260', array('b'));
 		/** @var File_MARC_Data_Field[] $rdaPublisherFields */
-		$rdaPublisherFields = $this->marcRecord->getFields('264');
+		$rdaPublisherFields = $this->getMarcRecord()->getFields('264');
 		foreach ($rdaPublisherFields as $rdaPublisherField){
 			if ($rdaPublisherField->getIndicator(2) == 1 && $rdaPublisherField->getSubfield('b') != null){
 				$publishers[] = $rdaPublisherField->getSubfield('b')->getData();
@@ -1919,7 +1942,7 @@ class MarcRecord extends IndexRecord
 		}else{
 			$isbns = array();
 			/** @var File_MARC_Data_Field[] $isbnFields */
-			$isbnFields = $this->marcRecord->getFields('020');
+			$isbnFields = $this->getMarcRecord()->getFields('020');
 			foreach($isbnFields as $isbnField){
 				if ($isbnField->getSubfield('a') != null){
 					$isbns[] = $isbnField->getSubfield('a')->getData();
@@ -1947,7 +1970,7 @@ class MarcRecord extends IndexRecord
 		}else{
 			$upcs = array();
 			/** @var File_MARC_Data_Field[] $upcFields */
-			$upcFields = $this->marcRecord->getFields('024');
+			$upcFields = $this->getMarcRecord()->getFields('024');
 			foreach($upcFields as $upcField){
 				if ($upcField->getSubfield('a') != null){
 					$upcs[] = $upcField->getSubfield('a')->getData();
@@ -2094,6 +2117,11 @@ class MarcRecord extends IndexRecord
 	 * @return File_MARC_Record
 	 */
 	public function getMarcRecord(){
+		if ($this->marcRecord == null){
+			$this->marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
+			global $timer;
+			$timer->logTime("Finished loading marc record for {$this->id}");
+		}
 		return $this->marcRecord;
 	}
 }

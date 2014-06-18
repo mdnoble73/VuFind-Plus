@@ -16,6 +16,7 @@ import java.util.*;
 public class GroupedWorkSolr {
 	private String id;
 	private HashSet<String> relatedRecordIds = new HashSet<String>();
+	private HashSet<String> relatedItems = new HashSet<String>();
 
 	private String acceleratedReaderInterestLevel;
 	private String acceleratedReaderReadingLevel;
@@ -43,6 +44,9 @@ public class GroupedWorkSolr {
 	private Date dateAdded = null;
 	private HashSet<String> dateSpans = new HashSet<String>();
 	private HashSet<String> detailedLocation = new HashSet<String>();
+	private HashSet<String> description = new HashSet<String>();
+	private String displayDescription = "";
+	private String displayDescriptionFormat = "";
 	private String displayTitle;
 	private Long earliestPublicationDate = null;
 	private HashSet<String> econtentDevices = new HashSet<String>();
@@ -104,11 +108,12 @@ public class GroupedWorkSolr {
 	private HashSet<String> upcs = new HashSet<String>();
 	private HashSet<String> usableBy = new HashSet<String>();
 
-	private HashMap<String, ScopedWorkDetails> scopedWorkDetails = new HashMap<String, ScopedWorkDetails>();
-	private HashMap<String, LocalizedWorkDetails> localizedWorkDetails = new HashMap<String, LocalizedWorkDetails>();
+	private TreeMap<String, ScopedWorkDetails> scopedWorkDetails = new TreeMap<String, ScopedWorkDetails>();
+	private TreeMap<String, LocalizedWorkDetails> localizedWorkDetails = new TreeMap<String, LocalizedWorkDetails>();
 
 	private Logger logger;
 	private GroupedWorkIndexer groupedWorkIndexer;
+
 	public GroupedWorkSolr(GroupedWorkIndexer groupedWorkIndexer, Logger logger) {
 		this.logger = logger;
 		this.groupedWorkIndexer = groupedWorkIndexer;
@@ -118,23 +123,23 @@ public class GroupedWorkSolr {
 		createLocalizations(groupedWorkIndexer.getLocalizations());
 	}
 
-	private void createLocalizations(HashSet<LocalizationInfo> localizations) {
+	private void createLocalizations(TreeSet<LocalizationInfo> localizations) {
 		for (LocalizationInfo localizationInfo: localizations){
 			this.localizedWorkDetails.put(localizationInfo.getLocalName(), new LocalizedWorkDetails(localizationInfo));
 		}
 	}
 
-	private void createScopes(HashSet<Scope> scopes) {
+	private void createScopes(TreeSet<Scope> scopes) {
 		for (Scope curScope : scopes) {
 			this.scopedWorkDetails.put(curScope.getScopeName(), new ScopedWorkDetails(curScope));
 		}
 	}
 
-	public HashMap<String, ScopedWorkDetails> getScopedWorkDetails(){
+	public TreeMap<String, ScopedWorkDetails> getScopedWorkDetails(){
 		return this.scopedWorkDetails;
 	}
 
-	public HashMap<String, LocalizedWorkDetails> getLocalizedWorkDetails(){
+	public TreeMap<String, LocalizedWorkDetails> getLocalizedWorkDetails(){
 		return this.localizedWorkDetails;
 	}
 
@@ -146,6 +151,7 @@ public class GroupedWorkSolr {
 		doc.addField("recordtype", "grouped_work");
 		//Related records and sources
 		doc.addField("related_record_ids", relatedRecordIds);
+		doc.addField("related_record_items", relatedItems);
 		//Ownership and location
 		doc.addField("owning_library", owningLibraries);
 		doc.addField("owning_location", owningLocations);
@@ -286,6 +292,8 @@ public class GroupedWorkSolr {
 		//vufind enrichment
 		doc.addField("rating", rating);
 		doc.addField("rating_facet", getRatingFacet(rating));
+		doc.addField("description", Util.getCRSeparatedString(description));
+		doc.addField("display_description", displayDescription);
 
 		//Save information from scopes
 		for (ScopedWorkDetails scopedWorkDetail : scopedWorkDetails.values()){
@@ -473,7 +481,7 @@ public class GroupedWorkSolr {
 
 	public void setTitle(String title) {
 		if (title != null){
-			//TODO: determine if the title should be changed?
+			//TODO: determine if the title should be changed or always use the first one?
 			this.title = title.replace("&", "and");
 			keywords.add(title);
 		}
@@ -484,6 +492,8 @@ public class GroupedWorkSolr {
 			return;
 		}
 		newTitle = Util.trimTrailingPunctuation(newTitle.replace("&", "and"));
+		//Strip out anything in brackets
+		newTitle.replaceAll("\\[.*?\\]", "");
 		if (this.displayTitle == null || newTitle.length() > this.displayTitle.length()){
 			this.displayTitle = newTitle;
 		}
@@ -536,8 +546,15 @@ public class GroupedWorkSolr {
 		keywords.add(author);
 	}
 
-	public void addRelatedRecord(String recordIdentifier) {
-		relatedRecordIds.add(recordIdentifier);
+	public void addRelatedRecord(String recordIdentifier, String format, String edition, String language, String publisher, String publicationDate, String physicalDescription) {
+		relatedRecordIds.add(recordIdentifier
+				+ "|" + (format == null ? "" : Util.trimTrailingPunctuation(format.replace('|', ' ')))
+				+ "|" + (edition == null ? "" : Util.trimTrailingPunctuation(edition.replace('|', ' ')))
+				+ "|" + (language == null ? "" : Util.trimTrailingPunctuation(language.replace('|', ' ')))
+				+ "|" + (publisher == null ? "" : Util.trimTrailingPunctuation(publisher.replace('|', ' ')))
+				+ "|" + (publicationDate == null ? "" : Util.trimTrailingPunctuation(publicationDate.replace('|', ' ')))
+				+ "|" + (physicalDescription == null ? "" : Util.trimTrailingPunctuation(physicalDescription.replace('|', ' ')))
+		);
 	}
 
 	public void addLccn(String lccn) {
@@ -1085,5 +1102,58 @@ public class GroupedWorkSolr {
 
 	public void addKeywords(String keywords){
 		this.keywords.add(keywords);
+	}
+
+	public void addDescription(String description, String recordFormat){
+		if (description == null || description.length() == 0){
+			return;
+		}
+		this.description.add(description);
+		if (this.displayDescription.length() == 0){
+			this.displayDescription = description;
+			this.displayDescriptionFormat = recordFormat;
+		}else{
+			//Only overwrite if we get a better format
+			if (recordFormat.equals("Book") || recordFormat.equals("eBook") ){
+				if (description.length() > this.displayDescription.length()){
+					this.displayDescription = description;
+					this.displayDescriptionFormat = recordFormat;
+				}
+			} else if (!displayDescriptionFormat.equals("Book") && !displayDescriptionFormat.equals("eBook")){
+				if (description.length() > this.displayDescription.length()) {
+					this.displayDescription = description;
+					this.displayDescriptionFormat = recordFormat;
+				}
+			}
+		}
+	}
+
+	public void addRelatedItem(String relatedItemInfo) {
+		relatedItems.add(relatedItemInfo);
+	}
+
+	public void setRelatedRecords(HashSet<IlsRecord> ilsRecords) {
+		for(IlsRecord ilsRecord : ilsRecords){
+			addRelatedRecord(ilsRecord.getRecordId(), ilsRecord.getPrimaryFormat(), ilsRecord.getEdition(), ilsRecord.getLanguage(), ilsRecord.getPublisher(), ilsRecord.getPublicationDate(), ilsRecord.getPhysicalDescription());
+			//Now update for scopes
+			for (Scope relatedScope : ilsRecord.getRelatedScopes()){
+				scopedWorkDetails.get(relatedScope.getScopeName()).addRelatedRecord(ilsRecord.getRecordId(), ilsRecord.getPrimaryFormat(), ilsRecord.getEdition(), ilsRecord.getLanguage(), ilsRecord.getPublisher(), ilsRecord.getPublicationDate(), ilsRecord.getPhysicalDescription());
+			}
+		}
+	}
+
+	public void setFormatInformation(HashSet<IlsRecord> ilsRecords) {
+		for(IlsRecord ilsRecord : ilsRecords){
+			addFormats(ilsRecord.getFormats());
+			addFormatCategories(ilsRecord.getFormatCategories());
+			setFormatBoost(ilsRecord.getFormatBoost());
+			//Now update for scopes
+			for (Scope relatedScope : ilsRecord.getRelatedScopes()){
+				ScopedWorkDetails workDetails = scopedWorkDetails.get(relatedScope.getScopeName());
+				workDetails.addFormat(ilsRecord.getFormats());
+				workDetails.addFormatCategories(ilsRecord.getFormatCategories());
+				workDetails.setFormatBoost(ilsRecord.getFormatBoost());
+			}
+		}
 	}
 }

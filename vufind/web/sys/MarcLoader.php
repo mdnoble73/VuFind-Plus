@@ -46,7 +46,6 @@ class MarcLoader{
 	 * @return File_MARC_Record
 	 */
 	public static function loadMarcRecordByILSId($ilsId, $recordType = 'marc'){
-		/** @var Memcache $memCache */
 		global $configArray;
 		$shortId = str_replace('.', '', $ilsId);
 		if (strlen($shortId) < 9){
@@ -65,6 +64,25 @@ class MarcLoader{
 			}
 		}
 		return $marcRecord;
+	}
+
+	/**
+	 * @param string $ilsId       The id of the record within the ils
+	 * @return boolean
+	 */
+	public static function marcExistsForILSId($ilsId){
+		global $configArray;
+		$shortId = str_replace('.', '', $ilsId);
+		if (strlen($shortId) < 9){
+			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
+		}
+		$firstChars = substr($shortId, 0, 4);
+		$individualName = $configArray['Reindex']['individualMarcPath'] . "/{$firstChars}/{$shortId}.mrc";
+		if (isset($configArray['Reindex']['individualMarcPath'])){
+			return file_exists($individualName);
+		}else{
+			return false;
+		}
 	}
 }
 ?>

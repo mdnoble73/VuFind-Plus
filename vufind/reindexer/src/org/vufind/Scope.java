@@ -9,7 +9,7 @@ import java.util.HashSet;
  * Date: 6/2/2014
  * Time: 1:08 PM
  */
-public class Scope {
+public class Scope implements Comparable<Scope>{
 	private String scopeName;
 	private String facetLabel;
 	private HashSet<String> relatedPTypes = new HashSet<String>();
@@ -104,7 +104,7 @@ private boolean includeOutOfSystemExternalLinks;
 		return false;
 	}
 
-	public boolean isEContentLocationPartOfScope(EContentIlsRecord ilsRecord) {
+	public boolean isEContentLocationPartOfScope(EContentIlsItem ilsRecord) {
 		String sharing = ilsRecord.getSharing();
 		String locationCode = ilsRecord.getLocation();
 		if (ilsRecord.getProtectionType().endsWith("external") && includeOutOfSystemExternalLinks){
@@ -144,4 +144,8 @@ private boolean includeOutOfSystemExternalLinks;
 		return includeOutOfSystemExternalLinks;
 	}
 
+	@Override
+	public int compareTo(Scope o) {
+		return scopeName.compareTo(o.scopeName);
+	}
 }

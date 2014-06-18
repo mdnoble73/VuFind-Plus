@@ -281,10 +281,10 @@ class MillenniumStatusLoader{
 					if ($scope == $this->driver->getDefaultScope() && $pType > 0){
 						//Never remove the title if it is owned by the current library (could be in library use only)
 						if (isset($library) && strlen($library->ilsCode) > 0 && strpos($holding['locationCode'], $library->ilsCode) === 0){
-							$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
+							//$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
 						}else{
 							if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
-								$logger->log("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
+								//$logger->log("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
 								//echo("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}");
 								unset($ret[$holdingKey]);
 								continue;
@@ -368,10 +368,10 @@ class MillenniumStatusLoader{
 				if ($scope == $this->driver->getDefaultScope() && $pType > 0){
 					//Never remove the title if it is owned by the current library (could be in library use only)
 					if (isset($library) && strlen($library->ilsCode) > 0 && strpos($holding['locationCode'], $library->ilsCode) === 0){
-						$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
+						//$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
 					}else{
 						if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
-							$logger->log("Removing item because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
+							//$logger->log("Removing item because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
 							//echo("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}");
 							continue;
 						}

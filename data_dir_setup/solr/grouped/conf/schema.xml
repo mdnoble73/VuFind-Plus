@@ -240,6 +240,7 @@
 		<field name="table_of_contents" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="keywords" type="text" indexed="true" stored="true"/>
 		<field name="description" type="text" indexed="true" stored="true"/>
+		<field name="display_description" type="text" indexed="true" stored="true"/>
 		<!-- Identifiers -->
 		<field name="lccn" type="string" indexed="true" stored="true" multiValued="true"/>
 		<field name="oclc" type="string" indexed="true" stored="true" multiValued="true"/>

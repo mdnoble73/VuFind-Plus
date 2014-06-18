@@ -14,60 +14,127 @@ abstract class BaseEContentDriver  extends MarcRecord {
 	abstract function getModuleName();
 	abstract function getValidProtectionTypes();
 
+	protected $itemsFromIndex;
+	public function setItemsFromIndex($itemsFromIndex){
+		$this->itemsFromIndex = $itemsFromIndex;
+	}
+
+	protected $detailedRecordInfoFromIndex;
+	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex){
+		$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
+	}
+
 	public function getItems(){
 		return $this->getItemsFast();
 	}
 	private $fastItems = null;
 	public function getItemsFast(){
 		if ($this->fastItems == null){
+			$searchLibrary = Library::getSearchLibrary();
+			if ($searchLibrary){
+				$libraryLocationCode = $searchLibrary->ilsCode;
+			}
+			$searchLocation = Location::getSearchLocation();
+			if ($searchLocation){
+				$homeLocationCode = $searchLocation->code;
+				$homeLocationLabel = $searchLocation->facetLabel;
+			}else{
+				$homeLocation = Location::getUserHomeLocation();
+				if ($homeLocation){
+					$homeLocationCode = $homeLocation->code;
+					$homeLocationLabel = $homeLocation->facetLabel;
+				}
+			}
+
 			$this->fastItems = array();
 
-			/** @var File_MARC_Data_Field[] $itemFields */
-			$itemFields = $this->marcRecord->getFields('989');
-			foreach ($itemFields as $itemField){
-				$locationCode = trim($itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '');
-				$eContentData = trim($itemField->getSubfield('w') != null ? $itemField->getSubfield('w')->getData() : '');
-				if ($eContentData && strpos($eContentData, ':') > 0){
-					$eContentFieldData = explode(':', $eContentData);
-					$source = trim($eContentFieldData[0]);
-					$protectionType = trim($eContentFieldData[1]);
-					if ($this->isValidProtectionType($protectionType)){
-						if ($this->isValidForUser($locationCode, $eContentFieldData)){
-							$libraryLabelObj = new Library();
-							$libraryLabelObj->whereAdd("'$locationCode' LIKE CONCAT(ilsCode, '%') and ilsCode <> ''");
-							$libraryLabelObj->selectAdd();
-							$libraryLabelObj->selectAdd('displayName');
-							if ($libraryLabelObj->find(true)){
-								$libraryLabel = $libraryLabelObj->displayName;
-							}else{
-								$libraryLabel = $locationCode . ' Online';
-							}
-							$locationLabelObj = new Location();
-							$locationLabelObj->whereAdd("'$locationCode' LIKE CONCAT(code, '%') and code <> ''");
-							if ($locationLabelObj->find(true)){
-								$locationLabel = $locationLabelObj->displayName;
-							}else{
-								$locationLabel = $locationCode . ' Online';
-							}
-							$actions = $this->getActionsForItem($itemField);
+			if ($this->itemsFromIndex){
+				$this->fastItems = array();
+				foreach ($this->itemsFromIndex as $itemData){
+					$locationCode = $itemData[2];
+					$sharing = $itemData[4];
+					$source = $itemData[5];
+					$actions = $this->getActionsForItemFromIndexData($itemData);
+					$libraryLabelObj = new Library();
+					$libraryLabelObj->whereAdd("'$locationCode' LIKE CONCAT(ilsCode, '%') and ilsCode <> ''");
+					$libraryLabelObj->selectAdd();
+					$libraryLabelObj->selectAdd('displayName');
+					if ($libraryLabelObj->find(true)){
+						$libraryLabel = $libraryLabelObj->displayName;
+					}else{
+						$libraryLabel = $locationCode . ' Online';
+					}
+					$locationLabelObj = new Location();
+					$locationLabelObj->whereAdd("'$locationCode' LIKE CONCAT(code, '%') and code <> ''");
+					if ($locationLabelObj->find(true)){
+						$locationLabel = $locationLabelObj->displayName;
+					}else{
+						$locationLabel = $locationCode . ' Online';
+					}
+					$this->fastItems[] = array(
+							'location' => $locationCode,
+							'callnumber' => '',
+							'availability' => $itemData[3] == 'true',
+							'holdable' => $this->isEContentHoldable($locationCode, $itemData),
+							'inLibraryUseOnly' => false,
+							'isLocalItem' => isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && strpos($locationCode, $libraryLocationCode) === 0,
+							'isLibraryItem' => isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0,
+							'locationLabel' => 'Online',
+							'libraryLabel' => $libraryLabel,
+							'shelfLocation' => mapValue('shelf_location', $itemData[2]),
+							'source' => 'Online ' . $source,
+							'sharing' => $sharing,
+							'actions' => $actions,
+					);
+				}
+			}else{
+				/** @var File_MARC_Data_Field[] $itemFields */
+				$itemFields = $this->getMarcRecord()->getFields('989');
+				foreach ($itemFields as $itemField){
+					$locationCode = trim($itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '');
+					$eContentData = trim($itemField->getSubfield('w') != null ? $itemField->getSubfield('w')->getData() : '');
+					if ($eContentData && strpos($eContentData, ':') > 0){
+						$eContentFieldData = explode(':', $eContentData);
+						$source = trim($eContentFieldData[0]);
+						$protectionType = trim($eContentFieldData[1]);
+						if ($this->isValidProtectionType($protectionType)){
+							if ($this->isValidForUser($locationCode, $eContentFieldData)){
+								$libraryLabelObj = new Library();
+								$libraryLabelObj->whereAdd("'$locationCode' LIKE CONCAT(ilsCode, '%') and ilsCode <> ''");
+								$libraryLabelObj->selectAdd();
+								$libraryLabelObj->selectAdd('displayName');
+								if ($libraryLabelObj->find(true)){
+									$libraryLabel = $libraryLabelObj->displayName;
+								}else{
+									$libraryLabel = $locationCode . ' Online';
+								}
+								$locationLabelObj = new Location();
+								$locationLabelObj->whereAdd("'$locationCode' LIKE CONCAT(code, '%') and code <> ''");
+								if ($locationLabelObj->find(true)){
+									$locationLabel = $locationLabelObj->displayName;
+								}else{
+									$locationLabel = $locationCode . ' Online';
+								}
+								$actions = $this->getActionsForItem($itemField);
 
-							//Add an item
-							$item = array(
-								'location' => $locationCode,
-								'locationLabel' => $locationLabel,
-								'libraryLabel' => $libraryLabel,
-								'callnumber' => '',
-								'availability' => $this->isAvailable(false), //We assume that all external econtent is always available
-								'holdable' => $this->isEContentHoldable($locationCode, $eContentFieldData),
-								'isLocalItem' => $this->isLocalItem($locationCode, $eContentFieldData),
-								'isLibraryItem' => $this->isLibraryItem($locationCode, $eContentFieldData),
-								'shelfLocation' => 'Online ' . $source,
-								'source' => $source,
-								'sharing' => $this->getSharing($locationCode, $eContentFieldData),
-								'actions' => $actions,
-							);
+								//Add an item
+								$item = array(
+										'location' => $locationCode,
+										'locationLabel' => $locationLabel,
+										'libraryLabel' => $libraryLabel,
+										'callnumber' => '',
+										'availability' => $this->isAvailable(false), //We assume that all external econtent is always available
+										'holdable' => $this->isEContentHoldable($locationCode, $eContentFieldData),
+										'isLocalItem' => $this->isLocalItem($locationCode, $eContentFieldData),
+										'isLibraryItem' => $this->isLibraryItem($locationCode, $eContentFieldData),
+										'shelfLocation' => 'Online ' . $source,
+										'source' => $source,
+										'sharing' => $this->getSharing($locationCode, $eContentFieldData),
+										'actions' => $actions,
+								);
 
-							$this->fastItems[] = $item;
+								$this->fastItems[] = $item;
+							}
 						}
 					}
 				}
@@ -79,7 +146,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 	function getFormat(){
 		$result = array();
 		/** @var File_MARC_Data_Field[] $itemFields */
-		$itemFields = $this->marcRecord->getFields('989');
+		$itemFields = $this->getMarcRecord()->getFields('989');
 		foreach ($itemFields as $item){
 			$subfieldW = $item->getSubfield('w');
 			if ($subfieldW != null){
@@ -103,7 +170,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 
 	function getFormatCategory(){
 		/** @var File_MARC_Data_Field[] $itemFields */
-		$itemFields = $this->marcRecord->getFields('989');
+		$itemFields = $this->getMarcRecord()->getFields('989');
 		foreach ($itemFields as $item){
 			$subfieldW = $item->getSubfield('w');
 			if ($subfieldW != null){
@@ -194,4 +261,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 	abstract function getSharing($locationCode, $eContentFieldData);
 
 	abstract function getActionsForItem($itemField);
+
+	abstract function getActionsForItemFromIndexData($itemData);
+
 }

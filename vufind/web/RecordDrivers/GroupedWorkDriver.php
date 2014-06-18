@@ -705,17 +705,28 @@ class GroupedWorkDriver implements RecordInterface{
 	}
 
 	function getDescriptionFast(){
-		$relatedRecords = $this->getRelatedRecords();
-		$bestDescription = '';
-		foreach ($relatedRecords as $relatedRecord){
-			$fastDescription = $relatedRecord['driver']->getDescriptionFast();
-			if ($fastDescription != null && strlen($fastDescription) > 0){
-				if (strlen($fastDescription) > $bestDescription){
-					$bestDescription = $fastDescription;
+		if (isset($this->fields['display_description'])){
+			return $this->fields['display_description'];
+		}else{
+			$relatedRecords = $this->getRelatedRecords();
+			//Look for a description from a book in english
+			foreach ($relatedRecords as $relatedRecord){
+				if (($relatedRecord['format'] == 'Book' || $relatedRecord['format'] == 'eBook') && $relatedRecord['language'] == 'English'){
+					$fastDescription = $relatedRecord['driver']->getDescriptionFast();
+					if ($fastDescription != null && strlen($fastDescription) > 0){
+						return $fastDescription;
+					}
 				}
 			}
+			//Didn't get a description, get the description from the first record
+			foreach ($relatedRecords as $relatedRecord){
+				$fastDescription = $relatedRecord['driver']->getDescriptionFast();
+				if ($fastDescription != null && strlen($fastDescription) > 0){
+					return $fastDescription;
+				}
+			}
+			return '';
 		}
-		return $bestDescription;
 	}
 
 	function getDescription(){
@@ -889,11 +900,35 @@ class GroupedWorkDriver implements RecordInterface{
 			$relatedRecords = array();
 
 			//Determine which related records field we should be looking at
-			$searchScope = isset($_REQUEST['searchScope']) ? $_REQUEST['searchScope'] : false;
+			$searchScope = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : isset($_SESSION['searchSource']) ? $_SESSION['searchSource'] : false;
+			if ($searchScope == 'local'){
+				$searchLocation = Location::getSearchLocation();
+				if ($searchLocation){
+					$searchScope = $searchLocation->code;
+				}else{
+					$searchLibrary = Library::getSearchLibrary();
+					if ($searchLibrary){
+						$searchScope = $searchLibrary->subdomain;
+					}else{
+						$searchScope = false;
+					}
+				}
+			}elseif($searchScope == 'marmot'){
+				$searchScope = false;
+			}
+
 			$relatedRecordFieldName = 'related_record_ids';
 			if ($searchScope){
 				if (isset($this->fields["related_record_ids_$searchScope"])){
 					$relatedRecordFieldName = "related_record_ids_$searchScope";
+				}
+			}
+
+			//Get a list of related items
+			$relatedItemsFieldName = 'related_record_items';
+			if ($searchScope){
+				if (isset($this->fields["related_items_$searchScope"])){
+					$relatedItemsFieldName = "related_items_$searchScope";
 				}
 			}
 
@@ -902,9 +937,45 @@ class GroupedWorkDriver implements RecordInterface{
 				if (!is_array($relatedRecordIds)){
 					$relatedRecordIds = array($relatedRecordIds);
 				}
-				foreach ($relatedRecordIds as $relatedRecordId){
+				if (isset($this->fields[$relatedItemsFieldName])){
+					$itemsFromIndex = array();
+					$itemsFromIndexRaw = $this->fields[$relatedItemsFieldName];
+					if (!is_array($itemsFromIndexRaw)){
+						$itemsFromIndexRaw = array($itemsFromIndexRaw);
+					}
+					foreach ($itemsFromIndexRaw as $tmpItem){
+						if (strpos($tmpItem, '|') !== FALSE){
+							$itemsFromIndex[] = explode('|', $tmpItem);
+						}else{
+							$itemsFromIndex[] = array($tmpItem);
+						}
+					}
+				}else{
+					$itemsFromIndex = null;
+				}
+				foreach ($relatedRecordIds as $relatedRecordInfo){
+					$hasDetailedRecordInfo = false;
+					if (strpos($relatedRecordInfo, '|') !== FALSE){
+						$relatedRecordInfo = explode('|', $relatedRecordInfo);
+						$relatedRecordId = $relatedRecordInfo[0];
+						$hasDetailedRecordInfo = true;
+					}else{
+						$relatedRecordId = $relatedRecordInfo;
+					}
 					require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 					$recordDriver = RecordDriverFactory::initRecordDriverById($relatedRecordId);
+					if ($itemsFromIndex != null){
+						$filteredItemsFromIndex = array();
+						foreach ($itemsFromIndex as $item){
+							if ($item[0] == $relatedRecordId){
+								$filteredItemsFromIndex[] = $item;
+							}
+						}
+						$recordDriver->setItemsFromIndex($filteredItemsFromIndex);
+					}
+					if ($hasDetailedRecordInfo){
+						$recordDriver->setDetailedRecordInfoFromIndex($relatedRecordInfo);
+					}
 					$timer->logTime("Initialized Record Driver for $relatedRecordId");
 					if ($recordDriver != null && $recordDriver->isValid()){
 						$recordDriver->setScopingEnabled($this->scopingEnabled);
@@ -938,6 +1009,8 @@ class GroupedWorkDriver implements RecordInterface{
 					'format' => $curRecord['format'],
 					'copies' => 0,
 					'availableCopies' => 0,
+					'localCopies' => 0,
+					'localAvailableCopies' => 0,
 					'callNumber' => array(),
 					'available' => false,
 					'hasLocalItem' => false,
@@ -951,10 +1024,10 @@ class GroupedWorkDriver implements RecordInterface{
 					'allLibraryUseOnly' => true,
 				);
 			}
-			if (!$relatedManifestations[$curRecord['format']]['availableLocally'] && isset($curRecord['availableLocally']) && $curRecord['availableLocally'] == true){
-				$relatedManifestations[$curRecord['format']]['availableLocally'] = $curRecord['availableLocally'];
+			if (isset($curRecord['availableLocally']) && $curRecord['availableLocally'] == true){
+				$relatedManifestations[$curRecord['format']]['availableLocally'] = true;
 			}
-			if (!$relatedManifestations[$curRecord['format']]['availableOnline'] && $curRecord['available'] && $curRecord['locationLabel'] == 'Online'){
+			if ($curRecord['available'] && $curRecord['locationLabel'] === 'Online'){
 				$relatedManifestations[$curRecord['format']]['availableOnline'] = true;
 			}
 			if (!$relatedManifestations[$curRecord['format']]['available'] && $curRecord['available']){
@@ -977,6 +1050,10 @@ class GroupedWorkDriver implements RecordInterface{
 			$relatedManifestations[$curRecord['format']]['relatedRecords'][] = $curRecord;
 			$relatedManifestations[$curRecord['format']]['copies'] += $curRecord['copies'];
 			$relatedManifestations[$curRecord['format']]['availableCopies'] += $curRecord['availableCopies'];
+			if ($curRecord['hasLocalItem']){
+				$relatedManifestations[$curRecord['format']]['localCopies'] += (isset($curRecord['localCopies']) ? $curRecord['localCopies'] : 0);
+				$relatedManifestations[$curRecord['format']]['localAvailableCopies'] += (isset($curRecord['localAvailableCopies']) ? $curRecord['localAvailableCopies'] : 0);
+			}
 
 		}
 		$timer->logTime("Finished initial processing of related records");

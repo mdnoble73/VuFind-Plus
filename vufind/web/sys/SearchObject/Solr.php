@@ -44,7 +44,7 @@ class SearchObject_Solr extends SearchObject_Base
 	// Index
 	private $index = null;
 	// Field List
-	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,format_category,isbn,upc,issn,related_record_ids,series,format,recordtype,score';
+	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,format_category,isbn,upc,issn,related_record_ids,related_record_items,series,format,recordtype,display_description';
 	private $fieldsFull = '*,score';
 	// HTTP Method
 	//    private $method = HTTP_REQUEST_METHOD_GET;
@@ -1267,7 +1267,8 @@ class SearchObject_Solr extends SearchObject_Base
 		// The first record to retrieve:
 		//  (page - 1) * limit = start
 		$recordStart = ($this->page - 1) * $this->limit;
-		if ($this->debug || $this->index != 'grouped'){
+		//TODO: Fix this to remove irrelevant fields based on scoping
+		if (true || $this->debug){
 			$fieldsToReturn = $this->fieldsFull;
 		}else{
 			$fieldsToReturn = $this->fields;

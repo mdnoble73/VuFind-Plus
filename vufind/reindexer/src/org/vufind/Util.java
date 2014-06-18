@@ -606,4 +606,15 @@ public class Util {
 		}
 		return true;
 	}
+
+	public static String getCommaSeparatedString(HashSet<String> values) {
+		StringBuffer crSeparatedString = new StringBuffer();
+		for (String curValue : values) {
+			if (crSeparatedString.length() > 0) {
+				crSeparatedString.append(",");
+			}
+			crSeparatedString.append(curValue);
+		}
+		return crSeparatedString.toString();
+	}
 }

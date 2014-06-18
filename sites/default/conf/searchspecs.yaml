@@ -377,6 +377,7 @@ Keyword:
     author_additional:
       - [and, 50]
     table_of_contents:
+      - [onephrase, 50]
       - [and, 10]
     topic:
       - [onephrase, 125]
@@ -385,7 +386,13 @@ Keyword:
     genre:
       - [onephrase, 75]
     keywords:
-      - [and, 100]
+      - [onephrase, 50]
+      - [and, 10]
+      - [or, ~]
+    description:
+      - [onephrase, 60]
+      - [and, 10]
+      - [or, ~]
     issn:
       - [and, 100]
       - [or, ~]

@@ -1,26 +1,17 @@
 package org.vufind;
 
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 
 /**
  * Description goes here
  * VuFind-Plus
  * User: Mark Noble
- * Date: 6/3/2014
- * Time: 1:52 PM
+ * Date: 6/16/2014
+ * Time: 9:17 AM
  */
-public class EContentIlsRecord {
-	private String location;
+public class IlsItem {
+	protected String location;
 	private String iType;
-	private String protectionType;
-	private String source;
-	private String sharing;
-	private String acsId;
-	private String filename;
-	private String numberOfCopies;
-	private String url;
 
 	private String dateCreated;
 	private String callNumberPreStamp;
@@ -28,8 +19,6 @@ public class EContentIlsRecord {
 	private String callNumberCutter;
 	private String itemRecordNumber;
 
-	//Data that is calculated from other data
-	private boolean available;
 	private HashSet<Scope> relatedScopes = new HashSet<Scope>();
 	private HashSet<LocalizationInfo> relatedLocalizations = new HashSet<LocalizationInfo>();
 	private String recordIdentifier;
@@ -58,22 +47,6 @@ public class EContentIlsRecord {
 		this.iType = iType;
 	}
 
-	public String getProtectionType() {
-		return protectionType;
-	}
-
-	public void setProtectionType(String protectionType) {
-		this.protectionType = protectionType;
-	}
-
-	public String getSource() {
-		return source;
-	}
-
-	public void setSource(String source) {
-		this.source = source;
-	}
-
 	public String getCallNumberPreStamp() {
 		return callNumberPreStamp;
 	}
@@ -98,60 +71,26 @@ public class EContentIlsRecord {
 		this.callNumberCutter = callNumberCutter;
 	}
 
+	public String getFullCallNumber() {
+		StringBuilder fullCallNumber = new StringBuilder();
+		if (this.callNumberPreStamp != null) {
+			fullCallNumber.append(this.callNumberPreStamp);
+		}
+		if (this.callNumber != null){
+			fullCallNumber.append(this.callNumber);
+		}
+		if (this.callNumberCutter != null){
+			fullCallNumber.append(this.callNumberCutter);
+		}
+		return fullCallNumber.toString();
+	}
+
 	public String getItemRecordNumber() {
 		return itemRecordNumber;
 	}
 
 	public void setItemRecordNumber(String itemRecordNumber) {
 		this.itemRecordNumber = itemRecordNumber;
-	}
-
-	public String getSharing() {
-		return sharing;
-	}
-
-	public void setSharing(String sharing) {
-		this.sharing = sharing;
-	}
-
-	public String getAcsId() {
-		return acsId;
-	}
-
-	public void setAcsId(String acsId) {
-		this.acsId = acsId;
-	}
-
-	public String getFilename() {
-		return filename;
-	}
-
-	public void setFilename(String filename) {
-		this.filename = filename;
-	}
-
-	public String getNumberOfCopies() {
-		return numberOfCopies;
-	}
-
-	public void setNumberOfCopies(String numberOfCopies) {
-		this.numberOfCopies = numberOfCopies;
-	}
-
-	public String getUrl() {
-		return url;
-	}
-
-	public void setUrl(String url) {
-		this.url = url;
-	}
-
-	public boolean isAvailable() {
-		return available;
-	}
-
-	public void setAvailable(boolean available) {
-		this.available = available;
 	}
 
 	public HashSet<Scope> getRelatedScopes() {
@@ -174,20 +113,20 @@ public class EContentIlsRecord {
 		this.relatedLocalizations = relatedLocalizations;
 	}
 
-	public HashSet<String> getCompatiblePTypes() {
-		HashSet<String> compatiblePTypes = new HashSet<String>();
-		for (Scope scope : relatedScopes)       {
-			compatiblePTypes.addAll(scope.getRelatedPTypes());
-		}
-		return compatiblePTypes;
-	}
-
 	public String getRecordIdentifier() {
 		return recordIdentifier;
 	}
 
 	public void setRecordIdentifier(String recordIdentifier) {
 		this.recordIdentifier = recordIdentifier;
+	}
+
+	public HashSet<String> getCompatiblePTypes() {
+		HashSet<String> compatiblePTypes = new HashSet<String>();
+		for (Scope scope : relatedScopes)       {
+			compatiblePTypes.addAll(scope.getRelatedPTypes());
+		}
+		return compatiblePTypes;
 	}
 
 	public HashSet<String> getValidSubdomains() {
@@ -198,15 +137,15 @@ public class EContentIlsRecord {
 		return subdomains;
 	}
 
-	public HashSet<String> getValidLocations() {
-		return new HashSet<String>();
-	}
-
 	public HashSet<String> getValidLibraryFacets() {
 		HashSet<String> subdomains = new HashSet<String>();
 		for (Scope curScope : relatedScopes){
 			subdomains.add(curScope.getFacetLabel());
 		}
 		return subdomains;
+	}
+
+	public void addRelatedLocalization(LocalizationInfo localizationInfo) {
+		this.relatedLocalizations.add(localizationInfo);
 	}
 }

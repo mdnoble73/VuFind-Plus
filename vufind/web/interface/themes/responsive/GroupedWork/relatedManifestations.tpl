@@ -25,7 +25,9 @@
 						</div>
 						<div class="col-xs-8 col-md-5 col-lg-6">
 							{if $relatedManifestation.availableLocally}
-								{if $relatedManifestation.allLibraryUseOnly}
+								{if $relatedManifestation.availableOnline}
+									<div class="related-manifestation-shelf-status available">Available Online</div>
+								{elseif $relatedManifestation.allLibraryUseOnly}
 									<div class="related-manifestation-shelf-status available">On Shelf (library use only)</div>
 								{else}
 									<div class="related-manifestation-shelf-status available">On Shelf</div>
@@ -34,12 +36,22 @@
 								<div class="related-manifestation-shelf-status available">Available Online</div>
 							{elseif $relatedManifestation.inLibraryUseOnly}
 								<div class="related-manifestation-shelf-status available">In Library Use Only</div>
+							{elseif $relatedManifestation.available && $relatedManifestation.hasLocalItem}
+								<div class="related-manifestation-shelf-status availableOther">Checked Out/Available Elsewhere</div>
 							{elseif $relatedManifestation.available}
 								<div class="related-manifestation-shelf-status availableOther">Available from another library</div>
 							{else}
 								<div class="related-manifestation-shelf-status checked_out">Checked Out</div>
 							{/if}
-							<div class="related-manifestation-copies">{$relatedManifestation.availableCopies} of {$relatedManifestation.copies} copies available.</div>
+							<div class="related-manifestation-copies">
+								{if $relatedManifestation.localCopies > 0}
+									{$relatedManifestation.localAvailableCopies} of {$relatedManifestation.localCopies} copies available locally.
+									{literal}  {/literal}
+								{/if}
+								{if $relatedManifestation.copies-$relatedManifestation.localCopies > 0}
+									{$relatedManifestation.availableCopies-$relatedManifestation.localAvailableCopies} of {$relatedManifestation.copies-$relatedManifestation.localCopies} copies avail. elsewhere.
+								{/if}
+							</div>
 							{if false && $relatedManifestation.numRelatedRecords > 1}
 								<div class="related-manifestation-editions">
 							    {$relatedManifestation.numRelatedRecords} editions.

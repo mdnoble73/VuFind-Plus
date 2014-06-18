@@ -23,6 +23,7 @@ class Novelist3{
 			return $novelistData;
 		}
 
+		$timer->logTime("Starting to load data from novelist for $groupedRecordId");
 		//Now check the database
 		$novelistData = new NovelistData();
 		$novelistData->groupedRecordPermanentId = $groupedRecordId;
@@ -89,7 +90,7 @@ class Novelist3{
 						enableErrorHandler();
 
 						$response = $req->getResponseBody();
-						$timer->logTime("Made call to Novelist for enrichment information");
+						$timer->logTime("Made call to Novelist to get basic enrichment info $isbn");
 
 						//Parse the JSON
 						$data = json_decode($response);
@@ -105,6 +106,7 @@ class Novelist3{
 							//Series Information
 							if (isset($data->FeatureContent->SeriesInfo)){
 								$this->loadSeriesInfoFast($data->FeatureContent->SeriesInfo, $novelistData);
+								$timer->logTime("loaded series data");
 							}
 
 							//We got good data, quit looking at ISBNs
@@ -743,7 +745,7 @@ class Novelist3{
 				}
 			}
 		}
-		$timer->logTime("Find Grouped Work based on identifier");
+		$timer->logTime("Load Novelist Title - Find Grouped Work based on identifier $permanentId");
 		$isCurrent = $currentId == $permanentId;
 		if (isset($seriesName)){
 			$series = $seriesName;

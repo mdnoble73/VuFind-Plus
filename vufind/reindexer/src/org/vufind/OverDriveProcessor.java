@@ -84,7 +84,6 @@ public class OverDriveProcessor {
 	}
 
 	public void processRecord(GroupedWorkSolr groupedWork, String identifier) {
-		groupedWork.addRelatedRecord("overdrive:" + identifier);
 		try {
 			getProductInfoStmt.setString(1, identifier);
 			ResultSet productRS = getProductInfoStmt.executeQuery();
@@ -104,12 +103,16 @@ public class OverDriveProcessor {
 				groupedWork.setDisplayTitle(fullTitle);
 				String mediaType = productRS.getString("mediaType");
 				String formatCategory;
+				String primaryFormat;
 				if (mediaType.equals("Audiobook")){
 					formatCategory = "Audio Books";
+					primaryFormat = "eAudiobook";
 				}else if (mediaType.equals("Video")){
 					formatCategory = "Movies";
+					primaryFormat = "eVideo";
 				}else{
 					formatCategory = mediaType;
+					primaryFormat = mediaType;
 				}
 				groupedWork.addFormatCategory(formatCategory);
 				groupedWork.addSeries(productRS.getString("series"));
@@ -117,8 +120,8 @@ public class OverDriveProcessor {
 				groupedWork.setAuthorDisplay(productRS.getString("primaryCreatorName"));
 				productRS.close();
 
-				loadOverDriveMetadata(groupedWork, productId);
-				loadOverDriveLanguages(groupedWork, productId);
+				HashMap<String, String> metadata = loadOverDriveMetadata(groupedWork, productId);
+				String primaryLanguage = loadOverDriveLanguages(groupedWork, productId);
 				loadOverDriveSubjects(groupedWork, productId);
 
 				//Load availability & determine which scopes are valid for the record
@@ -135,6 +138,8 @@ public class OverDriveProcessor {
 				HashSet<String> owningLocations = new HashSet<String>();
 				HashSet<String> owningSubdomainsAndLocations = new HashSet<String>();
 				HashSet<String> availableSubdomainsAndLocations = new HashSet<String>();
+
+				groupedWork.addRelatedRecord("overdrive:" + identifier, primaryFormat, "", primaryLanguage, metadata.get("publisher"), metadata.get("publicationDate"), "");
 				while (availabilityRS.next()){
 					long libraryId = availabilityRS.getLong("libraryId");
 					boolean available = availabilityRS.getBoolean("available");
@@ -286,13 +291,18 @@ public class OverDriveProcessor {
 		}
 	}
 
-	private void loadOverDriveLanguages(GroupedWorkSolr groupedWork, Long productId) throws SQLException {
+	private String loadOverDriveLanguages(GroupedWorkSolr groupedWork, Long productId) throws SQLException {
+		String primaryLanguage = null;
 		//Load languages
 		getProductLanguagesStmt.setLong(1, productId);
 		ResultSet languagesRS = getProductLanguagesStmt.executeQuery();
 		HashSet<String> languages = new HashSet<String>();
 		while (languagesRS.next()){
-			languages.add(languagesRS.getString("name"));
+			String language = languagesRS.getString("name");
+			languages.add(language);
+			if (primaryLanguage == null){
+				primaryLanguage = language;
+			}
 			String languageCode = languagesRS.getString("code");
 			String languageBoost = indexer.translateValue("language_boost", languageCode);
 			if (languageBoost != null){
@@ -307,6 +317,10 @@ public class OverDriveProcessor {
 		}
 		groupedWork.setLanguages(languages);
 		languagesRS.close();
+		if (primaryLanguage == null){
+			primaryLanguage = "English";
+		}
+		return primaryLanguage;
 	}
 
 	private void loadOverDriveFormats(GroupedWorkSolr groupedWork, Long productId, String formatCategory, HashSet<String> owningSubdomains, HashSet<String> owningLocations, HashSet<Scope> validScopes) throws SQLException {
@@ -347,14 +361,19 @@ public class OverDriveProcessor {
 		formatsRS.close();
 	}
 
-	private void loadOverDriveMetadata(GroupedWorkSolr groupedWork, Long productId) throws SQLException {
+	private HashMap<String, String> loadOverDriveMetadata(GroupedWorkSolr groupedWork, Long productId) throws SQLException {
+		HashMap<String, String> returnMetadata = new HashMap<String, String>();
 		//Load metadata
 		getProductMetadataStmt.setLong(1, productId);
 		ResultSet metadataRS = getProductMetadataStmt.executeQuery();
 		if (metadataRS.next()){
 			groupedWork.setSortableTitle(metadataRS.getString("sortTitle"));
-			groupedWork.addPublisher(metadataRS.getString("publisher"));
-			groupedWork.addPublicationDate(metadataRS.getString("publishDate"));
+			String publisher = metadataRS.getString("publisher");
+			groupedWork.addPublisher(publisher);
+			returnMetadata.put("publisher", publisher);
+			String publicationDate = metadataRS.getString("publishDate");
+			groupedWork.addPublicationDate(publicationDate);
+			returnMetadata.put("publicationDate", publicationDate);
 			//Need to divide this because it seems to be all time checkouts for all libraries, not just our libraries
 			//Hopefully OverDrive will give us better stats in the near future that we can use.
 			groupedWork.addPopularity(metadataRS.getFloat("popularity") / 500f);
@@ -368,8 +387,8 @@ public class OverDriveProcessor {
 			} catch (JSONException e) {
 				logger.error("Error loading raw data for OverDrive MetaData");
 			}
-
 		}
 		metadataRS.close();
+		return returnMetadata;
 	}
 }

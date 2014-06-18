@@ -78,4 +78,15 @@ class PublicEContentDriver extends BaseEContentDriver{
 		);
 		return $actions;
 	}
+
+	function getActionsForItemFromIndexData($itemData){
+		$actions = array();
+		$actions[] = array(
+				'url' => '',
+				'onclick' => 'alert("TODO: Checkout the title")',
+				'title' => 'Check Out',
+				'requireLogin' => true,
+		);
+		return $actions;
+	}
 } 

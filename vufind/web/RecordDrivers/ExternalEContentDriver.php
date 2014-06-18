@@ -22,9 +22,10 @@ class ExternalEContentDriver extends BaseEContentDriver{
 	}
 
 	function isAvailable($realTime){
-		$itemFields = $this->marcRecord->getFields('989');
+		return true;
+		//$itemFields = $this->getMarcRecord()->getFields('989');
 		/** @var File_MARC_Data_Field[] $itemFields */
-		foreach ($itemFields as $itemField){
+		/*foreach ($itemFields as $itemField){
 			$locationCode = trim($itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '');
 			$eContentData = trim($itemField->getSubfield('w') != null ? $itemField->getSubfield('w')->getData() : '');
 			if ($eContentData && strpos($eContentData, ':') > 0){
@@ -37,7 +38,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 				}
 			}
 		}
-		return false;
+		return false;*/
 	}
 	function isEContentHoldable($locationCode, $eContentFieldData){
 		return false;
@@ -221,7 +222,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		global $configArray;
 		$formats = array();
 		//Get the format based on the iType
-		$itemFields = $this->marcRecord->getFields('989');
+		$itemFields = $this->getMarcRecord()->getFields('989');
 		/** @var File_MARC_Data_Field[] $itemFields */
 		foreach ($itemFields as $itemField){
 			$locationCode = trim($itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '');
@@ -259,7 +260,7 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		}else{
 			//Get from the 856 field
 			/** @var File_MARC_Data_Field $linkFields */
-			$linkFields = $this->marcRecord->getFields('856');
+			$linkFields = $this->getMarcRecord()->getFields('856');
 			foreach ($linkFields as $link){
 				$urlSubfield = $link->getSubfield('u');
 				if ($urlSubfield != null){
@@ -276,6 +277,28 @@ class ExternalEContentDriver extends BaseEContentDriver{
 				}
 			}
 		}
+		return $actions;
+	}
+
+	/**
+	 * @param String[] $itemData
+	 * @return array
+	 */
+	function getActionsForItemFromIndexData($itemData){
+		$actions = array();
+		if (count($itemData) >= 7){
+			$url = $itemData[6];
+			$title = 'Access Online';
+			if (substr_compare($url, 'pdf', strlen($url)-3, strlen(3)) === 0){
+				$title = 'Access PDF';
+			}
+			$actions[] = array(
+					'url' => $url,
+					'title' => $title,
+					'requireLogin' => false,
+			);
+		}
+
 		return $actions;
 	}
 

@@ -52,8 +52,8 @@ public class GroupedWorkIndexer {
 	private Long lastReindexTimeVariableId;
 
 	private HashSet<String> worksWithInvalidLiteraryForms = new HashSet<String>();
-	private HashSet<Scope> scopes = new HashSet<Scope>();
-	private HashSet<LocalizationInfo> localizations = new HashSet<LocalizationInfo>();
+	private TreeSet<Scope> scopes = new TreeSet<Scope>();
+	private TreeSet<LocalizationInfo> localizations = new TreeSet<LocalizationInfo>();
 
 	public GroupedWorkIndexer(String serverName, Connection vufindConn, Connection econtentConn, Ini configIni, boolean fullReindex, Logger logger) {
 		this.serverName = serverName;
@@ -129,7 +129,7 @@ public class GroupedWorkIndexer {
 		if (!libraryAndLocationDataLoaded){
 			//Setup translation maps for system and location
 			try {
-				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, displayName, facetLabel, pTypes, restrictSearchByLibrary, econtentLocationsToInclude, includeDigitalCollection, includeOutOfSystemExternalLinks, useScope FROM library", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, displayName, facetLabel, pTypes, restrictSearchByLibrary, econtentLocationsToInclude, includeDigitalCollection, includeOutOfSystemExternalLinks, useScope FROM library ORDER BY ilsCode ASC", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
 				while (libraryInformationRS.next()){
 					String code = libraryInformationRS.getString("ilsCode").toLowerCase();
@@ -156,7 +156,7 @@ public class GroupedWorkIndexer {
 					boolean useScope = libraryInformationRS.getBoolean("useScope");
 					boolean includeOverdrive = libraryInformationRS.getBoolean("includeDigitalCollection");
 					//Determine if we need to build a scope for this library
-					if (pTypes.length() == 0 && !restrictSearchByLibrary && econtentLocationsToInclude.equalsIgnoreCase("all") && includeOutOfSystemExternalLinks && !useScope){
+					if ((pTypes.length() == 0 || pTypes.equals("-1")) && !restrictSearchByLibrary && econtentLocationsToInclude.equalsIgnoreCase("all") && includeOutOfSystemExternalLinks && !useScope){
 						logger.debug("Not creating a scope for library because there are no restrictions for library " + subdomain);
 					}else{
 						//We need to build a scope
@@ -175,7 +175,7 @@ public class GroupedWorkIndexer {
 					}
 				}
 
-				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, code, ilsCode, library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.useScope as useScopeLibrary, location.useScope as useScopeLocation, library.scope AS libraryScope, location.scope AS locationScope, restrictSearchByLocation, restrictSearchByLibrary, library.econtentLocationsToInclude as econtentLocationsToIncludeLibrary, location.econtentLocationsToInclude as econtentLocationsToIncludeLocation, library.includeDigitalCollection as includeDigitalCollectionLibrary, location.includeDigitalCollection as includeDigitalCollectionLocation, includeOutOfSystemExternalLinks FROM location INNER JOIN library on library.libraryId = location.libraryid", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, code, ilsCode, library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.useScope as useScopeLibrary, location.useScope as useScopeLocation, library.scope AS libraryScope, location.scope AS locationScope, restrictSearchByLocation, restrictSearchByLibrary, library.econtentLocationsToInclude as econtentLocationsToIncludeLibrary, location.econtentLocationsToInclude as econtentLocationsToIncludeLocation, library.includeDigitalCollection as includeDigitalCollectionLibrary, location.includeDigitalCollection as includeDigitalCollectionLocation, includeOutOfSystemExternalLinks FROM location INNER JOIN library on library.libraryId = location.libraryid ORDER BY code ASC", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				ResultSet locationInformationRS = locationInformationStmt.executeQuery();
 				while (locationInformationRS.next()){
 					String code = locationInformationRS.getString("code").toLowerCase();
@@ -574,8 +574,8 @@ public class GroupedWorkIndexer {
 		return translatedValue;
 	}
 
-	public HashSet<String> translateCollection(String mapName, Set<String> values) {
-		HashSet<String> translatedCollection = new HashSet<String>();
+	public LinkedHashSet<String> translateCollection(String mapName, Set<String> values) {
+		LinkedHashSet<String> translatedCollection = new LinkedHashSet<String>();
 		for (String value : values){
 			translatedCollection.add(translateValue(mapName, value));
 		}
@@ -787,11 +787,11 @@ public class GroupedWorkIndexer {
 		return libraryOnlineFacetMap;
 	}
 
-	public HashSet<Scope> getScopes() {
+	public TreeSet<Scope> getScopes() {
 		return this.scopes;
 	}
 
-	public HashSet<LocalizationInfo> getLocalizations() {
+	public TreeSet<LocalizationInfo> getLocalizations() {
 		return this.localizations;
 	}
 }
