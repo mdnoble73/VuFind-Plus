@@ -344,16 +344,16 @@ class UInterface extends Smarty
 			$this->assign('allowPinReset', $library->allowPinReset);
 			$this->assign('librarySystemName', $library->displayName);
 			$this->assign('showLibraryHoursAndLocationsLink', $library->showLibraryHoursAndLocationsLink);
+			$this->assign('showDisplayNameInHeader', $library->showDisplayNameInHeader);
 		}else{
 			$this->assign('showLibraryHoursAndLocationsLink', 1);
 			$this->assign('showRatings', 1);
 			$this->assign('allowPinReset', 0);
+			$this->assign('showDisplayNameInHeader', 0);
 		}
 		if ($location != null){
 			$this->assign('showDisplayNameInHeader', $location->showDisplayNameInHeader);
 			$this->assign('librarySystemName', $location->displayName);
-		}else{
-			$this->assign('showDisplayNameInHeader', false);
 		}
 
 		//Determine whether or not materials request functionality should be enabled

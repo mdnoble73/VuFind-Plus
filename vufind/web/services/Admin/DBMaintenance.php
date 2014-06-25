@@ -570,6 +570,14 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
+				'library_show_display_name' => array(
+						'title' => 'Library Show Display Name In Header',
+						'description' => 'Add option to allow display name to be shown in the header for the library',
+						'sql' => array(
+								"ALTER TABLE library ADD showDisplayNameInHeader TINYINT DEFAULT 0",
+						),
+				),
+
 				'library_facets' => array(
 						'title' => 'Library Facets',
 						'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',

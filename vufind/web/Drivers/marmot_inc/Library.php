@@ -17,6 +17,7 @@ class Library extends DB_DataObject
 	public $subdomain; 				//varchar(15)
 	public $accountingUnit;
 	public $displayName; 			//varchar(50)
+	public $showDisplayNameInHeader;
 	public $abbreviatedDisplayName;
 	public $systemMessage;
 	public $ilsCode;
@@ -190,6 +191,7 @@ class Library extends DB_DataObject
 			'libraryId' => array('property'=>'libraryId', 'type'=>'label', 'label'=>'Library Id', 'description'=>'The unique id of the library within the database'),
 			'subdomain' => array('property'=>'subdomain', 'type'=>'text', 'label'=>'Subdomain', 'description'=>'A unique id to identify the library within the system'),
 			'displayName' => array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'A name to identify the library within the system', 'size'=>'40'),
+			'showDisplayNameInHeader' => array('property'=>'showDisplayNameInHeader', 'type'=>'checkbox', 'label'=>'Show Display Name in Header', 'description'=>'Whether or not the display name should be shown in the header next to the logo', 'hideInLists' => true, 'default'=>false),
 			'abbreviatedDisplayName' => array('property'=>'abbreviatedDisplayName', 'type'=>'text', 'label'=>'Abbreviated Display Name', 'description'=>'A short name to identify the library when space is low', 'size'=>'40'),
 			'accountingUnit' => array('property'=>'accountingUnit', 'type'=>'integer', 'label'=>'Accounting Unit', 'description'=>'The accounting unit this library belongs to', 'size'=>'4', 'hideInLists' => false),
 			'makeOrderRecordsAvailableToOtherLibraries' => array('property'=>'makeOrderRecordsAvailableToOtherLibraries', 'type'=>'checkbox', 'label'=>'Make Order Records Available To Other Libraries', 'description'=>'Whether or not order records should be shown to other libraries', 'hideInLists' => true),
