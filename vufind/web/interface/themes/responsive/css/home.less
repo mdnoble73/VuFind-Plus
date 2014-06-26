@@ -81,7 +81,7 @@
   background: linear-gradient(to bottom, #4dacde, #0f8fd2);
 }
 .sidebar-links .panel-title{
-  font-size: 13px;
+  font-size: @sidebar-font-size;
   color: @gray-dark;
   text-shadow: 1px 1px white;
 }
@@ -90,7 +90,7 @@
   text-shadow: 1px 1px @gray;
 }
 .sidebar-links .panel-body{
-  font-size:12px;
+  font-size:13px;
   color: @gray-dark;
   background-color: #eeeeee;
 }
@@ -152,17 +152,7 @@
 .browse-category a div{
   height:80px;
 }
-@categoryLineShadow: #64b7d8;
-@categoryLineColor: #89cae5;
-@category1MainColor: #186180;
-@category2MainColor: #0d8ec7;
-@category3MainColor: #16a0db;
-@category4MainColor: #2ca7db;
-@category5MainColor: #37aadb;
-@category6MainColor: #4db1db;
-@category7MainColor: #5fb7db;
-@category8MainColor: #83c1db;
-@category9MainColor: #99c8db;
+
 .browse-category.category0{
   background-color: @category1MainColor;
   background: linear-gradient(to bottom, @category1MainColor, @category1MainColor 82%, @categoryLineShadow 83%, @categoryLineColor 84%, @categoryLineColor 88%, @categoryLineShadow 89%, @category1MainColor 90%, @category1MainColor);

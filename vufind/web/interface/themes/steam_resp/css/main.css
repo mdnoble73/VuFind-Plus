@@ -13,7 +13,10 @@ Header Variables
 Footer Variables
 */
 /**
-Home Page Variables
+Search Box color
+*/
+/**
+Sidebar font data
 */
 /**
  * Main responsive theme css
@@ -6494,7 +6497,7 @@ div#system-message-header {
   background: linear-gradient(to bottom, #4dacde, #0f8fd2);
 }
 .sidebar-links .panel-title {
-  font-size: 13px;
+  font-size: 14px;
   color: #333333;
   text-shadow: 1px 1px white;
 }
@@ -6503,7 +6506,7 @@ div#system-message-header {
   text-shadow: 1px 1px #555555;
 }
 .sidebar-links .panel-body {
-  font-size: 12px;
+  font-size: 13px;
   color: #333333;
   background-color: #eeeeee;
 }
