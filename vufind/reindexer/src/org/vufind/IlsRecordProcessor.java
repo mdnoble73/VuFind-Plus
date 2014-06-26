@@ -661,15 +661,16 @@ public abstract class IlsRecordProcessor {
 			if (iType != null && location != null){
 				String translatedIType = indexer.translateValue("itype", iType);
 				ArrayList<String> relatedSubdomains = getLibrarySubdomainsForLocationCode(location);
-				groupedWork.setIType(iType, relatedSubdomains);
+				groupedWork.setIType(translatedIType, relatedSubdomains);
 			}
 		}
 		for (EContentIlsItem curItem : econtentItems){
 			String iType = curItem.getiType();
+			String translatedIType = indexer.translateValue("itype", iType);
 			String location = curItem.getLocation();
 			if (iType != null && location != null){
 				ArrayList<String> relatedSubdomains = getLibrarySubdomainsForLocationCode(location);
-				groupedWork.setIType(iType, relatedSubdomains);
+				groupedWork.setIType(translatedIType, relatedSubdomains);
 			}
 		}
 	}
