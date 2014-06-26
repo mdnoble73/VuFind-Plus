@@ -1078,11 +1078,22 @@ class GroupedWorkDriver implements RecordInterface{
 	}
 
 	static function compareRelatedRecords($a, $b){
-		//Put english titles before spanish by default
-		$languageComparison = GroupedWorkDriver::compareLanguagesForRecords($a, $b);
-		if ($languageComparison == 0){
-			$formatComparison = strcasecmp($a['format'], $b['format']);
-			if ($formatComparison == 0){
+		//First sort by format
+		$format1 = $a['format'];
+		$format2 = $b['format'];
+		$formatComparison = strcasecmp($format1, $format2);
+		//Make sure that book is the very first format always
+		if ($formatComparison != 0){
+			if ($format1 == 'Book'){
+				return -1;
+			}elseif($format2 == 'Book'){
+				return 1;
+			}
+		}
+		if ($formatComparison == 0){
+			//Put english titles before spanish by default
+			$languageComparison = GroupedWorkDriver::compareLanguagesForRecords($a, $b);
+			if ($languageComparison == 0){
 				//Compare editions if available
 				$editionComparisonResult = GroupedWorkDriver::compareEditionsForRecords($a, $b);
 				if ($editionComparisonResult == 0){
@@ -1117,10 +1128,10 @@ class GroupedWorkDriver implements RecordInterface{
 					return $editionComparisonResult;
 				}
 			}else{
-				return $formatComparison;
+				return $languageComparison;
 			}
 		}else {
-			return $languageComparison;
+			return $formatComparison;
 		}
 	}
 
