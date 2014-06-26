@@ -1543,10 +1543,17 @@ class Solr implements IndexEngine {
 			if (isset($defaultCollection) && strlen($defaultCollection) > 0){
 				$filter[] = 'collection_group:"' . $defaultCollection . '"';
 			}
+		}
 
-			if ($this->searchSource == 'econtent'){
-				$filter[] = 'recordtype:"econtentRecord"';
+		if ($this->searchSource == 'econtent'){
+			$onlineFilter = "$buildingFacetName:\"Shared Digital Collection\"";
+			if (isset($searchLibrary)){
+				$onlineFilter .= " OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\"";
 			}
+			if ($searchLocation != null){
+				$onlineFilter .= " OR $institutionFacetName:\"{$searchLocation->facetLabel} Online\"";
+			}
+			$filter[] = $onlineFilter;
 		}
 
 		$blacklistRecords = null;
