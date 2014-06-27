@@ -13,8 +13,10 @@ VuFind.Browse = (function(){
 					$('.selected-browse-label-search-text').html(label);
 					$('#home-page-browse-thumbnails').html(data.records);
 					$('#selected-browse-search-link').attr('href', data.searchUrl);
+					$('.browse-category').removeClass('selected');
 					VuFind.Browse.curPage = 1;
 					VuFind.Browse.curCategory = data.textId;
+					$('#browse-category-' + VuFind.Browse.curCategory).addClass('selected');
 				}
 			});
 			return false;

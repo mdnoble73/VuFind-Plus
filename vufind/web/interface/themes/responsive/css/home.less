@@ -138,7 +138,7 @@
 }
 .browse-category{
   color: white;
-  font-size: 24px;
+  font-size: @browse-category-font-size;
   padding: 10px;
   text-shadow: 1px 1px @gray;
   background-color: #5fb7db;
@@ -151,6 +151,9 @@
 }
 .browse-category a div{
   height:80px;
+}
+.browse-category.selected{
+  border:2px solid #3497d1;
 }
 
 .browse-category.category0{

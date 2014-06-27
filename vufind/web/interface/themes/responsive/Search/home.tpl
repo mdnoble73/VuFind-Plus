@@ -9,7 +9,7 @@
 					<div class="jcarousel" id="browse-category-carousel">
 						<ul>
 							{foreach from=$browseCategories item=browseCategory name="browseCategoryLoop"}
-								<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9}" data-category-id="{$browseCategory->textId}">
+								<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9} {if $smarty.foreach.browseCategoryLoop.index == 0}selected{/if}" data-category-id="{$browseCategory->textId}" id="browse-category-{$browseCategory->textId}">
 									<a href="#" onclick="return VuFind.Browse.changeBrowseCategory('{$browseCategory->textId}');">
 										<div >
 											{$browseCategory->label}
