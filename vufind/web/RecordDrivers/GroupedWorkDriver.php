@@ -900,7 +900,7 @@ class GroupedWorkDriver implements RecordInterface{
 			$relatedRecords = array();
 
 			//Determine which related records field we should be looking at
-			$searchScope = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : isset($_SESSION['searchSource']) ? $_SESSION['searchSource'] : false;
+			$searchScope = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : (isset($_SESSION['searchSource']) ? $_SESSION['searchSource'] : false);
 			if ($searchScope == 'local'){
 				$searchLocation = Location::getSearchLocation();
 				if ($searchLocation){

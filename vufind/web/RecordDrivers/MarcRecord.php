@@ -911,12 +911,12 @@ class MarcRecord extends IndexRecord
 	public function getDetailedContributors(){
 		$contributors = array();
 		/** @var File_MARC_Data_Field[] $sevenHundredFields */
-		$sevenHundredFields = $this->getMarcRecord()->getFields('700');
+		$sevenHundredFields = $this->getMarcRecord()->getFields('700|710', true);
 		foreach($sevenHundredFields as $field){
 			$contributors[] = array(
 				'name' => reset($this->getSubfieldArray($field, array('a', 'b', 'c', 'd'), true)),
 				'role' => $field->getSubfield('4') != null ? mapValue('contributor_role', $field->getSubfield('4')->getData()) : '',
-				'title' => reset($this->getSubfieldArray($field, array('t', 'n', 'r'), true)),
+				'title' => reset($this->getSubfieldArray($field, array('t', 'm', 'n', 'r'), true)),
 			);
 		}
 		$this->getFieldArray(700, array('a', 'b', 'c', 'd'));
