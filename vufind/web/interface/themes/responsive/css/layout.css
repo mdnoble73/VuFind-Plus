@@ -56,7 +56,7 @@ hr.menu {
   color: #cccccc;
 }
 div#system-message-header {
-  background-color: #FF6;
+  background-color: #f2f2f2;
   color: black;
   text-align: center;
   padding: 3px;
@@ -64,6 +64,7 @@ div#system-message-header {
 #header-container {
   padding-top: 0px;
   height: 90px;
+  background-color: #f2f2f2;
   background: linear-gradient(to bottom, #f2f2f2, #dddddd 85%, #e0e0e0);
   border-bottom: 8px solid #b7b7b7;
   margin-bottom: 0px;

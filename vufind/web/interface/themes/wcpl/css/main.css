@@ -6328,7 +6328,7 @@ hr.menu {
   color: #cccccc;
 }
 div#system-message-header {
-  background-color: #FF6;
+  background-color: #4c7eb9;
   color: black;
   text-align: center;
   padding: 3px;
@@ -6336,6 +6336,7 @@ div#system-message-header {
 #header-container {
   padding-top: 0px;
   height: 115px;
+  background-color: #4c7eb9;
   background: linear-gradient(to bottom, #4c7eb9, #395982 85%, #314869);
   border-bottom: 8px solid #2c3d58;
   margin-bottom: 0px;
@@ -6450,6 +6451,7 @@ div#system-message-header {
 }
 .sidebar-bold-button {
   text-align: center;
+  background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: white;
   padding: 3px 0px;
@@ -6476,6 +6478,7 @@ div#system-message-header {
 }
 #home-page-hours-locations {
   text-align: center;
+  background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: white;
   padding: 3px 0px;
@@ -6490,10 +6493,12 @@ div#system-message-header {
 }
 .sidebar-links .panel-heading {
   padding: 5px 15px;
+  background-color: #e7e7e7;
   background: linear-gradient(to bottom, #e7e7e7, #d7d7d7);
   border-bottom: 1px solid #a1a1a1;
 }
 .sidebar-links .active .panel-heading {
+  background-color: #4dacde;
   background: linear-gradient(to bottom, #4dacde, #0f8fd2);
 }
 .sidebar-links .panel-title {
@@ -6609,6 +6614,7 @@ div#system-message-header {
   background-color: white;
 }
 #selected-browse-label {
+  background-color: white;
   background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #bbd4e3 45%, #bbd4e3 55%, #ffffff 56%);
   margin-bottom: 5px;
 }
@@ -7073,6 +7079,7 @@ div#system-message-header {
 }
 .sidebar-label {
   text-align: center;
+  background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: white;
   padding: 3px 0px;
@@ -7080,14 +7087,16 @@ div#system-message-header {
 }
 #narrow-search-label {
   text-align: center;
+  background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: white;
   padding: 3px 0px;
   margin-top: 20px;
 }
 .facetTitle {
+  background-color: #e8e8e8;
   background: linear-gradient(to bottom, #e8e8e8, #d7d7d7);
-  color: #888888;
+  color: #555555;
   text-shadow: 1px 1px #fcfcfc;
   padding: 8px 30px 6px 30px;
   border-top: 1px solid #f4f4f4;
@@ -7106,6 +7115,7 @@ div#system-message-header {
 }
 #results-sort-label {
   text-align: center;
+  background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
   color: white;
   padding: 3px 0px;
@@ -7143,6 +7153,7 @@ div#system-message-header {
   margin-left: 30px;
 }
 .result-tools-horizontal .btn {
+  background-color: #909090;
   background: linear-gradient(to bottom, #909090, #686b6c);
   color: white;
 }
