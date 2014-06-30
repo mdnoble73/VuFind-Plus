@@ -35,7 +35,7 @@ class LibraryBrowseCategory extends DB_DataObject{
 		$browseCategories->find();
 		$browseCategoryList = array();
 		while($browseCategories->fetch()){
-			$browseCategoryList[$browseCategories->textId] = $browseCategories->label;
+			$browseCategoryList[$browseCategories->textId] = $browseCategories->label . " ({$browseCategories->textId})";
 		}
 		$structure = array(
 				'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of the hours within the database'),
