@@ -227,7 +227,6 @@ class GroupedWorkDriver implements RecordInterface{
 			$linkUrl = $driver->getLinkUrl();
 		}else{
 			$linkUrl = $this->getLinkUrl() . '?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
-
 		}
 
 		$interface->assign('summUrl', $linkUrl);
@@ -237,6 +236,44 @@ class GroupedWorkDriver implements RecordInterface{
 		$isbn = $this->getCleanISBN();
 		$interface->assign('summISBN', $isbn);
 		$interface->assign('summFormats', $this->getFormats());
+
+		$summPublisher = null;
+		$summPubDate = null;
+		$summPhysicalDesc = null;
+		$summEdition = null;
+		$summLanguage = null;
+		$isFirst = true;
+		foreach ($relatedRecords as $relatedRecord){
+			if ($isFirst){
+				$summPublisher = $relatedRecord['publisher'];
+				$summPubDate = $relatedRecord['publicationDate'];
+				$summPhysicalDesc = $relatedRecord['physical'];
+				$summEdition = $relatedRecord['edition'];
+				$summLanguage = $relatedRecord['language'];
+			}else{
+				if ($summPublisher != $relatedRecord['publisher']){
+					$summPublisher = null;
+				}
+				if ($summPubDate != $relatedRecord['publicationDate']){
+					$summPubDate = null;
+				}
+				if ($summPhysicalDesc != $relatedRecord['physical']){
+					$summPhysicalDesc = null;
+				}
+				if ($summEdition != $relatedRecord['edition']){
+					$summEdition = null;
+				}
+				if ($summLanguage != $relatedRecord['language']){
+					$summLanguage = null;
+				}
+			}
+			$isFirst = false;
+		}
+		$interface->assign('summPublisher', $summPublisher);
+		$interface->assign('summPubDate', $summPubDate);
+		$interface->assign('summPhysicalDesc', $summPhysicalDesc);
+		$interface->assign('summEdition', $summEdition);
+		$interface->assign('summLanguage', $summLanguage);
 
 		$interface->assign('numRelatedRecords', $this->getNumRelatedRecords());
 
@@ -424,7 +461,45 @@ class GroupedWorkDriver implements RecordInterface{
 		$interface->assign('summISBN', $isbn);
 		$interface->assign('summFormats', $this->getFormats());
 
-		$interface->assign('numRelatedRecords', $this->getNumRelatedRecords());
+		$interface->assign('numRelatedRecords', count($relatedRecords));
+
+		$summPublisher = null;
+		$summPubDate = null;
+		$summPhysicalDesc = null;
+		$summEdition = null;
+		$summLanguage = null;
+		$isFirst = true;
+		foreach ($relatedRecords as $relatedRecord){
+			if ($isFirst){
+				$summPublisher = $relatedRecord['publisher'];
+				$summPubDate = $relatedRecord['publicationDate'];
+				$summPhysicalDesc = $relatedRecord['physical'];
+				$summEdition = $relatedRecord['edition'];
+				$summLanguage = $relatedRecord['language'];
+			}else{
+				if ($summPublisher != $relatedRecord['publisher']){
+					$summPublisher = null;
+				}
+				if ($summPubDate != $relatedRecord['publicationDate']){
+					$summPubDate = null;
+				}
+				if ($summPhysicalDesc != $relatedRecord['physical']){
+					$summPhysicalDesc = null;
+				}
+				if ($summEdition != $relatedRecord['edition']){
+					$summEdition = null;
+				}
+				if ($summLanguage != $relatedRecord['language']){
+					$summLanguage = null;
+				}
+			}
+			$isFirst = false;
+		}
+		$interface->assign('summPublisher', $summPublisher);
+		$interface->assign('summPubDate', $summPubDate);
+		$interface->assign('summPhysicalDesc', $summPhysicalDesc);
+		$interface->assign('summEdition', $summEdition);
+		$interface->assign('summLanguage', $summLanguage);
 
 		if ($configArray['System']['debugSolr']){
 			$interface->assign('summScore', $this->getScore());

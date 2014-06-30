@@ -54,6 +54,42 @@
 			</div>
 		{/if}
 
+		{if $summEdition}
+			<div class="row">
+				<div class="result-label col-md-3">Edition: </div>
+				<div class="col-md-9 result-value">
+					{$summEdition}
+				</div>
+			</div>
+		{/if}
+
+		{if $summPublisher}
+			<div class="row">
+				<div class="result-label col-md-3">Publisher: </div>
+				<div class="col-md-9 result-value">
+					{$summPublisher}
+				</div>
+			</div>
+		{/if}
+
+		{if $summPubDate}
+			<div class="row">
+				<div class="result-label col-md-3">Publication Date: </div>
+				<div class="col-md-9 result-value">
+					{$summPubDate}
+				</div>
+			</div>
+		{/if}
+
+		{if $summLanguage}
+			<div class="row">
+				<div class="result-label col-md-3">Language: </div>
+				<div class="col-md-9 result-value">
+					{$summLanguage}
+				</div>
+			</div>
+		{/if}
+
 		<div class="row well-small">
 			<div class="col-md-12">
 				{include file="GroupedWork/relatedManifestations.tpl" id=$summId}
