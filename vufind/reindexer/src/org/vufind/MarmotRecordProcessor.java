@@ -366,16 +366,16 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				}
 			}else if (filename.indexOf('.') > 0) {
 				String fileExtension = filename.substring(filename.lastIndexOf('.') + 1);
-				String translatedFormat = indexer.translateValue("econtent_itype_format", fileExtension);
-				String translatedFormatCategory = indexer.translateValue("econtent_itype_format_category", fileExtension);
-				String translatedFormatBoost = indexer.translateValue("econtent_itype_format_boost", fileExtension);
+				String translatedFormat = indexer.translateValue("format", fileExtension);
+				String translatedFormatCategory = indexer.translateValue("format_category", fileExtension);
+				String translatedFormatBoost = indexer.translateValue("format_boost", fileExtension);
 				econtentRecord.setFormatInformation(translatedFormat, translatedFormatCategory, translatedFormatBoost);
 			} else {
 				//For now we know these are folders of MP3 files
 				//TODO: Probably should actually open the folder to make sure that it contains MP3 files
-				String translatedFormat = indexer.translateValue("econtent_itype_format", "mp3");
-				String translatedFormatCategory = indexer.translateValue("econtent_itype_format_category", "mp3");
-				String translatedFormatBoost = indexer.translateValue("econtent_itype_format_boost", "mp3");
+				String translatedFormat = indexer.translateValue("format", "mp3");
+				String translatedFormatCategory = indexer.translateValue("format_category", "mp3");
+				String translatedFormatBoost = indexer.translateValue("format_boost", "mp3");
 				econtentRecord.setFormatInformation(translatedFormat, translatedFormatCategory, translatedFormatBoost);
 			}
 		}else if (protectionType.equals("external")){

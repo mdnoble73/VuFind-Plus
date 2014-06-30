@@ -297,7 +297,11 @@ public class GroupedWorkIndexer {
 		}
 		try {
 			//Optimize to trigger improve performance
-			updateServer.optimize(true, true);
+			if (fullReindex) {
+				updateServer.optimize(true, true);
+			}else{
+				updateServer.optimize(false, false);
+			}
 		} catch (Exception e) {
 			logger.error("Error optimizing index", e);
 		}

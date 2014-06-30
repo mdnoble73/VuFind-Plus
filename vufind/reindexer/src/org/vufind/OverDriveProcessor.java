@@ -140,12 +140,14 @@ public class OverDriveProcessor {
 				HashSet<String> availableSubdomainsAndLocations = new HashSet<String>();
 
 				groupedWork.addRelatedRecord("overdrive:" + identifier, primaryFormat, "", primaryLanguage, metadata.get("publisher"), metadata.get("publicationDate"), "");
+				boolean partOfSharedCollection = false;
 				while (availabilityRS.next()){
 					long libraryId = availabilityRS.getLong("libraryId");
 					boolean available = availabilityRS.getBoolean("available");
 					int copiesOwned = availabilityRS.getInt("copiesOwned");
 					if (libraryId == -1){
 						//Everyone has access to this
+						partOfSharedCollection = true;
 						//Add all scopes that want the overdrive collection
 						boolean changeMade = true;
 						while (changeMade) {
@@ -175,6 +177,7 @@ public class OverDriveProcessor {
 							}
 						}
 					}else{
+						//This is an advantage title
 						boolean changeMade = true;
 						while (changeMade) {
 							changeMade = false;
@@ -197,7 +200,7 @@ public class OverDriveProcessor {
 							availableSubdomainsAndLocations.add(subdomainMap.get(libraryId));
 							availableSubdomainsAndLocations.addAll(locationsForLibrary.get(libraryId));
 						}
-					}
+					}//End processing availability
 				}
 				groupedWork.addOwningLibraries(owningLibraries);
 				groupedWork.addOwningLocationCodesAndSubdomains(owningSubdomainsAndLocations);
