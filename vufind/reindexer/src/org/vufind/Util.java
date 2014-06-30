@@ -617,4 +617,27 @@ public class Util {
 		}
 		return crSeparatedString.toString();
 	}
+
+	public static boolean compareFiles(File file1, File file2, Logger logger){
+		try {
+			BufferedReader reader1 = new BufferedReader(new FileReader(file1));
+			BufferedReader reader2 = new BufferedReader(new FileReader(file2));
+			String curLine1 = reader1.readLine();
+			String curLine2 = reader2.readLine();
+			boolean filesMatch = Util.compareStrings(curLine1, curLine2);
+			while (curLine1 != null && curLine2 != null && filesMatch){
+				curLine1 = reader1.readLine();
+				curLine2 = reader2.readLine();
+				filesMatch = Util.compareStrings(curLine1, curLine2);
+			}
+			return filesMatch;
+		}catch (IOException e){
+			logger.error("Error comparing files", e);
+			return false;
+		}
+	}
+
+	private static boolean compareStrings(String curLine1, String curLine2) {
+		return curLine1 == null && curLine2 == null || !(curLine1 == null || curLine2 == null) && curLine1.equals(curLine2);
+	}
 }

@@ -129,10 +129,10 @@
 		<field name="alternate_ids" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<field name="recordtype" type="string" indexed="true" stored="true" multiValued="false" omitNorms="false"/>
 		<!-- Related Record Ids (type:id) -->
-		<field name="related_record_ids" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
-		<field name="related_record_items" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
-		<dynamicField name="related_record_ids_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
-		<dynamicField name="related_items_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
+		<field name="related_record_ids" type="string" indexed="false" stored="true" multiValued="true"/>
+		<field name="related_record_items" type="string" indexed="false" stored="true" multiValued="true"/>
+		<dynamicField name="related_record_ids_*" type="string" indexed="false" stored="true" multiValued="true"/>
+		<dynamicField name="related_items_*" type="string" indexed="false" stored="true" multiValued="true"/>
 
 		<!-- Fields to determine ownership and location based on location codes -->
 		<field name="owning_library" type="string" indexed="true" stored="true" multiValued="true" omitNorms="false"/>
@@ -238,8 +238,8 @@
 		<!-- Broad Search Terms -->
 		<field name="all_fields" type="text" indexed="true" stored="false"/>
 		<field name="table_of_contents" type="text" indexed="true" stored="true" multiValued="true"/>
-		<field name="keywords" type="text" indexed="true" stored="true"/>
-		<field name="description" type="text" indexed="true" stored="true"/>
+		<field name="keywords" type="text" indexed="true" stored="false"/>
+		<field name="description" type="text" indexed="true" stored="false"/>
 		<field name="display_description" type="text" indexed="true" stored="true"/>
 		<!-- Identifiers -->
 		<field name="lccn" type="string" indexed="true" stored="true" multiValued="true"/>
