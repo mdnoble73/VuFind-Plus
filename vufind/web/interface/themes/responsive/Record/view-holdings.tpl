@@ -79,7 +79,7 @@
 					{/if}
 
 					{if count($issueSummary.holdings) > 0}
-					<span id='showHoldings-{$smarty.foreach.summaryLoop.iteration}' class='showIssuesLink'>Show Individual Issues</span>
+					<span id='showHoldings-{$smarty.foreach.summaryLoop.iteration}' class='btn btn-sm btn-info'>Show Individual Issues</span>
 					<script	type="text/javascript">
 						$('#showHoldings-{$smarty.foreach.summaryLoop.iteration}').click(function(){literal} { {/literal}
 						 if (!$('#showHoldings-{$smarty.foreach.summaryLoop.iteration}').hasClass('expanded')){literal} { {/literal}
@@ -96,10 +96,10 @@
 					{/if}
 					{if $showCheckInGrid && $issueSummary.checkInGridId}
 					&nbsp;
-					<span id='showCheckInGrid-{$smarty.foreach.summaryLoop.iteration}' class='showCheckinGrid'>Show Check-in Grid</span>
+					<span id='showCheckInGrid-{$smarty.foreach.summaryLoop.iteration}' class='btn btn-sm btn-info'>Show Check-in Grid</span>
 					<script	type="text/javascript">
 						$('#showCheckInGrid-{$smarty.foreach.summaryLoop.iteration}').click(function(){literal} { {/literal}
-						 ajaxLightbox('{$path}/Record/{$id}/CheckInGrid?lookfor={$issueSummary.checkInGridId}', null, '5%', '90%', '5%', '90%');
+							VuFind.Account.ajaxLightbox('{$path}/Record/{$id}/CheckInGrid?lookfor={$issueSummary.checkInGridId}', false);
 						{literal} }); {/literal}
 					</script>
 					{/if}

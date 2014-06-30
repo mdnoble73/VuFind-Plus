@@ -48,35 +48,6 @@ function collapseFieldsets(){
 	}
 }
 
-function Login(elems, salt, module, action, id, lookfor, message) {
-	var url = path + "/AJAX/JSON?method=loginUser"
-	$.ajax( {
-		url : url,
-		data : {
-			username : $('#username').val(),
-			password : $('#password').val()
-		},
-		success : function(response) {
-			if (response.result.success == true) {
-				// Update the main display to show the user is logged in
-				// Hide "log in" options and show "log out" options:
-				$('.loginOptions').hide();
-				$('.logoutOptions').show();
-				$('#myAccountNameLink').html(response.result.name);
-
-				// Load the post-login action:
-				getLightbox(module, action, id, lookfor, message);
-
-			} else {
-				alert("That login was not recognized.  Please try again.");
-			}
-		},
-		dataType : 'json',
-		type : 'post'
-	});
-
-}
-
 function lightbox(left, width, top, height){
 	
 	if (!width) width = 'auto';

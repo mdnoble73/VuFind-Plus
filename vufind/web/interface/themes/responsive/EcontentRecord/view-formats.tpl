@@ -12,7 +12,7 @@
 				</div>
 				<div class="eContentFormatUsage col-md-3">
 					{assign var="displayFormat" value=$eContentItem->getDisplayFormat()|substr:0:1}
-					<a href="#" onclick="return ajaxLightbox('/Help/eContentHelp?lightbox=true&id={$id}&itemId={$eContentItem->id}');">
+					<a href="#" onclick="return VuFind.Account.ajaxLightbox('/Help/eContentHelp?lightbox=true&id={$id}&itemId={$eContentItem->id}');">
 						{$eContentItem->getHelpText()}
 					</a>
 				</div>

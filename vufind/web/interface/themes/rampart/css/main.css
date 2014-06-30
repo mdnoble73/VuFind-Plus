@@ -7019,6 +7019,13 @@ div#system-message-header {
 .hold_result_title_ok {
   color: #3c763d;
 }
+.checkInCell {
+  border: 1px solid #3e63a6;
+  float: left;
+  height: 5em;
+  padding: 4px;
+  width: 150px;
+}
 /**
  * Additional styling specific to the results list.
  *

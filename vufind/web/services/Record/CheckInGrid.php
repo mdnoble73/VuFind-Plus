@@ -31,7 +31,12 @@ class CheckInGrid extends Action {
 		$driver = new Marmot();
 		$checkInGrid = $driver->getCheckInGrid(strip_tags($_REQUEST['id']), strip_tags($_REQUEST['lookfor']));
 		$interface->assign('checkInGrid', $checkInGrid);
-		// Use for lightbox
-		echo $interface->fetch('Record/checkInGrid.tpl');
+
+		$results = array(
+				'title' => 'Check-In Grid',
+				'modalBody' => $interface->fetch('Record/checkInGrid.tpl'),
+				'modalButtons' => ""
+		);
+		echo json_encode($results);
 	}
 }

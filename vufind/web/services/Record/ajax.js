@@ -406,5 +406,5 @@ libraryThingWidgetsLoaded = function(){
 
 function showPurchaseOptions(id){
 	var url = path + "/Record/" + id + "/AJAX?method=getPurchaseOptions";
-	ajaxLightbox(url)
+	VuFind.Account.ajaxLightbox(url, false)
 }

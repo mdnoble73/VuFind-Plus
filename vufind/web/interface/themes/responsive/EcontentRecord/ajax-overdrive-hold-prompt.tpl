@@ -9,7 +9,7 @@
 				{/foreach}
 			</select>
 
-			<p>Not sure which format to pick?  We have <a onclick="return ajaxLightbox('/Help/eContentHelp?lightbox=true')" href="/Help/eContentHelp">instructions</a> for how to use most formats on common devices <a onclick="return ajaxLightbox('/Help/eContentHelp?lightbox=true')" href="/Help/eContentHelp">here</a>.</p>
+			<p>Not sure which format to pick?  We have <a onclick="return VuFind.Account.ajaxLightbox('/Help/eContentHelp?lightbox=true', false);" href="/Help/eContentHelp">instructions</a> for how to use most formats on common devices <a onclick="return VuFind.Account.ajaxLightbox('/Help/eContentHelp?lightbox=true', false)" href="/Help/eContentHelp">here</a>.</p>
 		{elseif $formatId}
 			<input type="hidden" name="formatId" value="{$formatId}" />
 		{/if}

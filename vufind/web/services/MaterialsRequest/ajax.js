@@ -41,11 +41,11 @@ function cancelMaterialsRequest(id){
 }
 
 function showMaterialsRequestDetails(id){
-	ajaxLightbox(path + "/MaterialsRequest/AJAX?method=MaterialsRequestDetails&id=" +id );
+	VuFind.Account.ajaxLightbox(path + "/MaterialsRequest/AJAX?method=MaterialsRequestDetails&id=" +id, true );
 }
 
 function updateMaterialsRequest(id){
-	ajaxLightbox(path + "/MaterialsRequest/AJAX?method=UpdateMaterialsRequest&id=" +id );
+	VuFind.Account.ajaxLightbox(path + "/MaterialsRequest/AJAX?method=UpdateMaterialsRequest&id=" +id , true);
 }
 
 function exportSelectedRequests(){
