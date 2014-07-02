@@ -143,6 +143,23 @@ if (isset($library)){
 }
 $timer->logTime('Interface checks for library and location');
 
+// Determine Module and Action
+$module = (isset($_GET['module'])) ? $_GET['module'] : null;
+$module = preg_replace('/[^\w]/', '', $module);
+$action = (isset($_GET['action'])) ? $_GET['action'] : null;
+$action = preg_replace('/[^\w]/', '', $action);
+
+//Redirect some common spam components so they go to a valid place, and redirect old actions to new
+if ($action == 'trackback'){
+	$action = null;
+}
+if ($action == 'SimilarTitles'){
+	$action = 'Home';
+}
+//Set these initially in case user login fails, we will need the module to be set.
+$interface->assign('module', $module);
+$interface->assign('action', $action);
+
 //Determine the Search Source, need to do this always.
 global $searchSource;
 $searchSource = 'global';
@@ -301,27 +318,10 @@ if ($translator == false || isset($_REQUEST['reloadTranslator'])){
 }
 $interface->setLanguage($language);
 
-// Determine Module and Action
 /** @var User */
 global $user;
 $user = UserAccount::isLoggedIn();
-
 $timer->logTime('Check if user is logged in');
-$module = (isset($_GET['module'])) ? $_GET['module'] : null;
-$module = preg_replace('/[^\w]/', '', $module);
-$action = (isset($_GET['action'])) ? $_GET['action'] : null;
-$action = preg_replace('/[^\w]/', '', $action);
-
-//Redirect some common spam components so they go to a valid place, and redirect old actions to new
-if ($action == 'trackback'){
-	$action = null;
-}
-if ($action == 'SimilarTitles'){
-	$action = 'Home';
-}
-//Set these initially in case user login fails, we will need the module to be set.
-$interface->assign('module', $module);
-$interface->assign('action', $action);
 
 $deviceName = get_device_name();
 $interface->assign('deviceName', $deviceName);
@@ -357,7 +357,8 @@ if ($user) {
 	$user = UserAccount::login();
 	if (PEAR_Singleton::isError($user)) {
 		require_once ROOT_DIR . '/services/MyAccount/Login.php';
-		MyAccount_Login::launch($user->getMessage());
+		$launchAction = new MyAccount_Login();
+		$launchAction->launch($user->getMessage());
 		exit();
 	}
 	$interface->assign('user', $user);
