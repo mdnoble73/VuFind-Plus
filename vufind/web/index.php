@@ -165,6 +165,9 @@ if (isset($_GET['searchSource'])){
 	}
 }
 
+$searchLibrary = Library::getSearchLibrary(null);
+$searchLocation = Location::getSearchLocation(null);
+
 //Based on the search source, determine the search scope and set a global variable
 global $solrScope;
 $solrScope = false;
@@ -200,9 +203,10 @@ if ($searchSource == 'local'){
 	$solrScope = $searchSource;
 }
 
+$searchLibrary = Library::getSearchLibrary($searchSource);
+$searchLocation = Location::getSearchLocation($searchSource);
+
 global $millenniumScope;
-$searchLibrary = Library::getSearchLibrary();
-$searchLocation = Location::getSearchLocation();
 if ($library){
 	if ($searchLibrary){
 		$millenniumScope = $searchLibrary->scope;
