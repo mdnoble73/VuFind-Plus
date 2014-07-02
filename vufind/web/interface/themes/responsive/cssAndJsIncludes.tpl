@@ -64,7 +64,11 @@
 	</script>
 
 	{if $includeAutoLogoutCode == true}
-		<script type="text/javascript" src="{$path}/js/autoLogout.js"></script>
+		{if $debugJs}
+			<script type="text/javascript" src="{$path}/interface/themes/responsive/js/vufind/autoLogout.js"></script>
+		{else}
+			<script type="text/javascript" src="{$path}/interface/themes/responsive/js/vufind/autoLogout.min.js"></script>
+		{/if}
 	{/if}
 	{if $additionalCss}
 		<style type="text/css">

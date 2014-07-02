@@ -86,4 +86,17 @@ VuFind.ExternalEContentRecord = (function(){
 			});
 		}
 	}
-}(VuFind.EContentRecord));
+}(VuFind.ExternalEContentRecord));
+
+VuFind.LocalEContent = (function(){
+	return {
+		checkout: function(itemId){
+			var checkoutUrl =
+			alert("Checking Out " + itemId);
+		},
+
+		placeHold: function(itemId){
+			alert("Placing a hold on item " + itemId);
+		}
+	}
+}(VuFind.LocalEContent));

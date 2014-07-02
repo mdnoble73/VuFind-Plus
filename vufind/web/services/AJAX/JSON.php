@@ -194,4 +194,25 @@ class AJAX_JSON extends Action {
 		$interface->assign('libraryLocations', $libraryLocations);
 		return $interface->fetch('AJAX/libraryHoursAndLocations.tpl');
 	}
+
+	function getAutoLogoutPrompt(){
+		global $interface;
+		$result = array(
+			'title' => 'Still There?',
+			'modalBody' => $interface->fetch('AJAX/autoLogoutPrompt.tpl'),
+			'modalButtons' => "<div id='continueSession' class='btn btn-default' onclick='continueSession();'>Continue</div>" .
+												"<div id='endSession' class='btn btn-warning' onclick='endSession();'>Logout</div>"
+		);
+		return $result;
+	}
+
+	function getReturnToHomePrompt(){
+		global $interface;
+		$result = array(
+				'title' => 'Still There?',
+				'modalBody' => $interface->fetch('AJAX/autoReturnToHomePrompt.tpl'),
+				'modalButtons' => "<a id='continueSession' class='btn btn-default' onclick='continueSession();'>Continue</a>"
+		);
+		return $result;
+	}
 }

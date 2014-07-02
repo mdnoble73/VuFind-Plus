@@ -211,6 +211,9 @@ VuFind.Account = (function(){
 				$('#myModalLabel').html("Loading, please wait");
 				$('.modal-body').html("...");
 				$.getJSON(urlToDisplay, function(data){
+					if (data.result){
+						data = data.result;
+					}
 					$('#myModalLabel').html(data.title);
 					$('.modal-body').html(data.modalBody);
 					$('.modal-buttons').html(data.modalButtons);

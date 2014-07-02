@@ -79,10 +79,10 @@
 							<div class="btn-toolbar">
 								<div class="btn-group btn-group-vertical btn-block">
 									{foreach from=$relatedManifestation.actions item=curAction}
-										{if $curAction.url}
+										{if $curAction.url && strlen($curAction.url) > 0}
 											<a href="{$curAction.url}" class="btn btn-sm btn-primary" onclick="{if $curAction.requireLogin}return VuFind.Account.followLinkIfLoggedIn(this, '{$curAction.url}');{/if}">{$curAction.title}</a>
 										{else}
-											<a href="#" class="btn btn-sm btn-primary" onclick="{$curAction.onClick}">{$curAction.title}</a>
+											<a href="#" class="btn btn-sm btn-primary" onclick="{$curAction.onclick}">{$curAction.title}</a>
 										{/if}
 									{/foreach}
 								</div>
