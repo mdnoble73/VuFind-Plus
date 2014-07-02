@@ -439,9 +439,10 @@ class Location extends DB_DataObject
 		return $this->physicalLocation;
 	}
 
+	static $searchLocation  = array();
 	static function getSearchLocation($searchSource = null){
 		if (is_null($searchSource)){
-			$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : (isset($_SESSION['searchSource']) ? $_SESSION['searchSource'] : 'local');
+			global $searchSource;
 			if (strpos($searchSource, 'library') === 0){
 				$trimmedSearchSource = str_replace('library', '', $searchSource);
 				require_once  ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
@@ -452,26 +453,30 @@ class Location extends DB_DataObject
 				}
 			}
 		}
-		if (is_object($searchSource)){
-			$scopingSetting = $searchSource->catalogScoping;
-		}else{
-			$scopingSetting = $searchSource;
-		}
-		if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'location'){
-			global $locationSingleton;
-			return $locationSingleton->getActiveLocation();
-		}else if ($scopingSetting == 'marmot' || $scopingSetting == 'unscoped'){
-			return null;
-		}else{
-			$location = new Location();
-			$location->code = $scopingSetting;
-			$location->find();
-			if ($location->N > 0){
-				$location->fetch();
-				return clone($location);
+		if (!array_key_exists($searchSource, Location::$searchLocation)){
+			echo "Loading search location $searchSource<br/>";
+			if (is_object($searchSource)){
+				$scopingSetting = $searchSource->catalogScoping;
+			}else{
+				$scopingSetting = $searchSource;
 			}
-			return null;
+			if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'location'){
+				global $locationSingleton;
+				Location::$searchLocation[$searchSource] = $locationSingleton->getActiveLocation();
+			}else if ($scopingSetting == 'marmot' || $scopingSetting == 'unscoped'){
+				Location::$searchLocation[$searchSource] = null;
+			}else{
+				$location = new Location();
+				$location->code = $scopingSetting;
+				$location->find();
+				if ($location->N > 0){
+					$location->fetch();
+					Location::$searchLocation[$searchSource] = clone($location);
+				}
+				Location::$searchLocation[$searchSource] = null;
+			}
 		}
+		return Location::$searchLocation[$searchSource];
 	}
 
 	/**

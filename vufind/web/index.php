@@ -143,17 +143,78 @@ if (isset($library)){
 }
 $timer->logTime('Interface checks for library and location');
 
-if ($library){
-	$searchLibrary = $library->getSearchLibrary();
-	if ($searchLibrary){
-		$interface->assign('millenniumScope', $searchLibrary->scope);
-	}else{
-		$interface->assign('millenniumScope', '93');
-	}
+//Determine the Search Source, need to do this always.
+global $searchSource;
+$searchSource = 'global';
+if (isset($_GET['searchSource'])){
+	$searchSource = $_GET['searchSource'];
+	$_REQUEST['searchSource'] = $searchSource; //Update request since other check for it here
+	$_SESSION['searchSource'] = $searchSource; //Update the session so we can remember what the user was doing last.
 }else{
-	$interface->assign('millenniumScope', '93');
+	if ( isset($_SESSION['searchSource'])){ //Didn't get a source, use what the user was doing last
+		$searchSource = $_SESSION['searchSource'];
+		$_REQUEST['searchSource'] = $searchSource;
+	}else{
+		//Use a default search source
+		if ($module == 'Person'){
+			$searchSource = 'genealogy';
+		}else{
+			$searchSource = 'local';
+		}
+		$_REQUEST['searchSource'] = $searchSource;
+	}
 }
 
+//Based on the search source, determine the search scope and set a global variable
+global $solrScope;
+$solrScope = false;
+if ($searchSource == 'local'){
+	$locationIsScoped = $searchLocation != null &&
+			($searchLocation->restrictSearchByLocation ||
+					$searchLocation->econtentLocationsToInclude != 'all' ||
+					$searchLocation->useScope ||
+					!$searchLocation->includeDigitalCollection);
+
+	$libraryIsScoped = $searchLibrary != null &&
+			($searchLibrary->restrictSearchByLibrary ||
+					$searchLibrary->econtentLocationsToInclude != 'all' ||
+					strlen($searchLibrary->pTypes) > 0 ||
+					$searchLibrary->useScope ||
+					!$searchLibrary->includeDigitalCollection);
+
+	if ($locationIsScoped &&
+			(
+					(
+							$searchLocation->econtentLocationsToInclude != $searchLibrary->econtentLocationsToInclude
+							&& strlen($searchLocation->econtentLocationsToInclude) > 0
+							&& $searchLocation->econtentLocationsToInclude != 'all'
+					) || (
+							$searchLocation->useScope && $searchLibrary->scope != $searchLocation->scope
+					)
+			)){
+		$solrScope = $searchLocation->code;
+	}elseif ($libraryIsScoped){
+		$solrScope = $searchLibrary->subdomain;
+	}
+}elseif($searchSource != 'marmot' && $searchSource != 'global'){
+	$solrScope = $searchSource;
+}
+
+global $millenniumScope;
+$searchLibrary = Library::getSearchLibrary();
+$searchLocation = Location::getSearchLocation();
+if ($library){
+	if ($searchLibrary){
+		$millenniumScope = $searchLibrary->scope;
+	}elseif (isset($searchLocation)){
+		MillenniumDriver::$scopingLocationCode = $searchLocation->code;
+	}else{
+		$millenniumScope = isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
+	}
+}else{
+	$millenniumScope = isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
+}
+$interface->assign('millenniumScope', $millenniumScope);
 
 //Set that the interface is a single column by default
 $interface->assign('page_body_style', 'one_column');
@@ -360,25 +421,6 @@ $interface->assign('module', $module);
 $interface->assign('action', $action);
 $timer->logTime('Load module and action');
 
-//Determine the Search Source, need to do this always.
-if (isset($_GET['searchSource'])){
-	$searchSource = $_GET['searchSource'];
-	$_REQUEST['searchSource'] = $searchSource; //Update request since other check for it here
-	$_SESSION['searchSource'] = $searchSource; //Update the session so we can remember what the user was doing last.
-}else{
-	if ( isset($_SESSION['searchSource'])){ //Didn't get a source, use what the user was doing last
-		$searchSource = $_SESSION['searchSource'];
-		$_REQUEST['searchSource'] = $searchSource;
-	}else{
-		//Use a default search source
-		if ($module == 'Person'){
-			$searchSource = 'genealogy';
-		}else{
-			$searchSource = 'local';
-		}
-		$_REQUEST['searchSource'] = $searchSource;
-	}
-}
 if (isset($_REQUEST['basicType'])){
 	$interface->assign('basicSearchIndex', $_REQUEST['basicType']);
 }else{

@@ -439,9 +439,10 @@ class Library extends DB_DataObject
 		return $structure;
 	}
 
+	static $searchLibrary  = array();
 	static function getSearchLibrary($searchSource = null){
 		if (is_null($searchSource)){
-			$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : (isset($_SESSION['searchSource']) ? $_SESSION['searchSource'] : 'local');
+			global $searchSource;
 			if (strpos($searchSource, 'library') === 0){
 				$trimmedSearchSource = str_replace('library', '', $searchSource);
 				require_once  ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
@@ -452,31 +453,35 @@ class Library extends DB_DataObject
 				}
 			}
 		}
-		if (is_object($searchSource)){
-			$scopingSetting = $searchSource->catalogScoping;
-		}else{
-			$scopingSetting = $searchSource;
-		}
-		if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'library' || $scopingSetting == 'location'){
-			return Library::getActiveLibrary();
-		}else if ($scopingSetting == 'marmot' || $scopingSetting == 'unscoped'){
-			return null;
-		}else{
-			$location = Location::getSearchLocation();
-			if (is_null($location)){
-				//Check to see if we have a library for the subdomain
-				$library = new Library();
-				$library->subdomain = $scopingSetting;
-				$library->find();
-				if ($library->N > 0){
-					$library->fetch();
-					return clone($library);
-				}
-				return null;
+		if (!array_key_exists($searchSource, Library::$searchLibrary)){
+			echo "Loading search library $searchSource<br/>";
+			if (is_object($searchSource)){
+				$scopingSetting = $searchSource->catalogScoping;
 			}else{
-				return self::getLibraryForLocation($location->locationId);
+				$scopingSetting = $searchSource;
+			}
+			if ($scopingSetting == 'local' || $scopingSetting == 'econtent' || $scopingSetting == 'library' || $scopingSetting == 'location'){
+				Library::$searchLibrary[$searchSource] = Library::getActiveLibrary();
+			}else if ($scopingSetting == 'marmot' || $scopingSetting == 'unscoped'){
+				Library::$searchLibrary[$searchSource] = null;
+			}else{
+				$location = Location::getSearchLocation();
+				if (is_null($location)){
+					//Check to see if we have a library for the subdomain
+					$library = new Library();
+					$library->subdomain = $scopingSetting;
+					$library->find();
+					if ($library->N > 0){
+						$library->fetch();
+						return clone($library);
+					}
+					Library::$searchLibrary[$searchSource] = null;
+				}else{
+					Library::$searchLibrary[$searchSource] = self::getLibraryForLocation($location->locationId);
+				}
 			}
 		}
+		return Library::$searchLibrary[$searchSource];
 	}
 
 	static function getActiveLibrary(){

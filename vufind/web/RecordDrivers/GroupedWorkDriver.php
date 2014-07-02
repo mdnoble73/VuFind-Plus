@@ -974,36 +974,20 @@ class GroupedWorkDriver implements RecordInterface{
 			$timer->logTime("Starting to load related records for {$this->getUniqueID()}");
 			$relatedRecords = array();
 
-			//Determine which related records field we should be looking at
-			$searchScope = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : (isset($_SESSION['searchSource']) ? $_SESSION['searchSource'] : false);
-			if ($searchScope == 'local'){
-				$searchLocation = Location::getSearchLocation();
-				if ($searchLocation){
-					$searchScope = $searchLocation->code;
-				}else{
-					$searchLibrary = Library::getSearchLibrary();
-					if ($searchLibrary){
-						$searchScope = $searchLibrary->subdomain;
-					}else{
-						$searchScope = false;
-					}
-				}
-			}elseif($searchScope == 'marmot'){
-				$searchScope = false;
-			}
+			global $solrScope;
 
 			$relatedRecordFieldName = 'related_record_ids';
-			if ($searchScope){
-				if (isset($this->fields["related_record_ids_$searchScope"])){
-					$relatedRecordFieldName = "related_record_ids_$searchScope";
+			if ($solrScope){
+				if (isset($this->fields["related_record_ids_$solrScope"])){
+					$relatedRecordFieldName = "related_record_ids_$solrScope";
 				}
 			}
 
 			//Get a list of related items
 			$relatedItemsFieldName = 'related_record_items';
-			if ($searchScope){
-				if (isset($this->fields["related_items_$searchScope"])){
-					$relatedItemsFieldName = "related_items_$searchScope";
+			if ($solrScope){
+				if (isset($this->fields["related_items_$solrScope"])){
+					$relatedItemsFieldName = "related_items_$solrScope";
 				}
 			}
 

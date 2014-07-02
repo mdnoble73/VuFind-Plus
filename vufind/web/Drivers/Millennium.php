@@ -192,23 +192,9 @@ class MillenniumDriver implements DriverInterface
 	public function getMillenniumScope(){
 		if (isset($_REQUEST['useUnscopedHoldingsSummary'])){
 			return $this->getDefaultScope();
-		}
-		$searchLibrary = Library::getSearchLibrary();
-		$searchLocation = Location::getSearchLocation();
-
-		$branchScope = '';
-		//Load the holding label for the branch where the user is physically.
-		if (!is_null($searchLocation)){
-			if ($searchLocation->useScope && $searchLocation->restrictSearchByLocation){
-				$branchScope = $searchLocation->scope;
-			}
-		}
-		if (strlen($branchScope)){
-			return $branchScope;
-		}else if (isset($searchLibrary) && $searchLibrary->useScope && $searchLibrary->restrictSearchByLibrary) {
-			return $searchLibrary->scope;
 		}else{
-      return $this->getDefaultScope();
+			global $millenniumScope;
+			return $millenniumScope;
 		}
 	}
 

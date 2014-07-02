@@ -221,20 +221,25 @@ class Search_Results extends Action {
 		$interface->assign('overDriveVersion', isset($configArray['OverDrive']['interfaceVersion']) ? $configArray['OverDrive']['interfaceVersion'] : 1);
 
 		//Check to see if we should show unscoped results
-		$enableUnscopedSearch = false;
-		$searchLibrary = Library::getSearchLibrary();
-		if ($searchLibrary != null && $searchLibrary->showMarmotResultsAtEndOfSearch){
-			if (is_object($searchSource)){
-				$enableUnscopedSearch = $searchSource->catalogScoping != 'unscoped';
-				$unscopedSearch = clone($searchObject);
-			}else{
-				$searchSources = new SearchSources();
-				$searchOptions = $searchSources->getSearchSources();
-				if (isset($searchOptions['marmot'])){
+		global $solrScope;
+		if ($solrScope){
+			$enableUnscopedSearch = false;
+			$searchLibrary = Library::getSearchLibrary();
+			if ($searchLibrary != null && $searchLibrary->showMarmotResultsAtEndOfSearch){
+				if (is_object($searchSource)){
+					$enableUnscopedSearch = $searchSource->catalogScoping != 'unscoped';
 					$unscopedSearch = clone($searchObject);
-					$enableUnscopedSearch = true;
+				}else{
+					$searchSources = new SearchSources();
+					$searchOptions = $searchSources->getSearchSources();
+					if (isset($searchOptions['marmot'])){
+						$unscopedSearch = clone($searchObject);
+						$enableUnscopedSearch = true;
+					}
 				}
 			}
+		}else{
+			$enableUnscopedSearch = false;
 		}
 
 		$enableProspectorIntegration = isset($configArray['Content']['Prospector']) ? $configArray['Content']['Prospector'] : false;
