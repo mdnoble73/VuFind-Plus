@@ -259,8 +259,8 @@ class MillenniumStatusLoader{
 				//Now that we have the location code, try to match with the marc record
 				$holding['iType'] = 0;
 				if ($matchItemsWithMarcItems){
-					foreach ($marcItemData as $itemData){
-						if (!$itemData['matched']){
+					foreach ($marcItemData as $itemKey => $itemData){
+						if ($itemData['matched'] === false){
 							$locationMatched = (strpos($itemData['location'], $holding['locationCode']) === 0);
 							$itemCallNumber = isset($itemData['callnumber']) ? $itemData['callnumber'] : '';
 							$holdingCallNumber = isset($holding['callnumber']) ? $holding['callnumber'] : '';
@@ -272,6 +272,8 @@ class MillenniumStatusLoader{
 							if ($locationMatched && $callNumberMatched){
 								$holding['iType'] = $itemData['iType'];
 								$itemData['matched'] = true;
+								$marcItemData[$itemKey] = $itemData;
+								break;
 							}
 						}
 					}
@@ -284,7 +286,7 @@ class MillenniumStatusLoader{
 							//$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
 						}else{
 							if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
-								//$logger->log("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
+								$logger->log("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
 								//echo("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}");
 								unset($ret[$holdingKey]);
 								continue;
