@@ -286,7 +286,7 @@ class MillenniumStatusLoader{
 							//$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
 						}else{
 							if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
-								$logger->log("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
+								//$logger->log("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
 								//echo("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}");
 								unset($ret[$holdingKey]);
 								continue;
