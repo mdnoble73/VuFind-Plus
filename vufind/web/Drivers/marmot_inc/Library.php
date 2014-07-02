@@ -454,7 +454,6 @@ class Library extends DB_DataObject
 			}
 		}
 		if (!array_key_exists($searchSource, Library::$searchLibrary)){
-			echo "Loading search library $searchSource<br/>";
 			if (is_object($searchSource)){
 				$scopingSetting = $searchSource->catalogScoping;
 			}else{

@@ -454,7 +454,6 @@ class Location extends DB_DataObject
 			}
 		}
 		if (!array_key_exists($searchSource, Location::$searchLocation)){
-			echo "Loading search location $searchSource<br/>";
 			if (is_object($searchSource)){
 				$scopingSetting = $searchSource->catalogScoping;
 			}else{
