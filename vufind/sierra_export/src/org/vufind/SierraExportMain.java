@@ -142,27 +142,31 @@ public class SierraExportMain{
 				PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
 				vufindConn.setAutoCommit(false);
 				while (moreToRead){
-					JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/?updatedDate=[" + dateUpdated + ",]&limit=2000&fields=id&deleted=false&suppressed=false&offset=" + offset);
+					JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=2000&fields=id,bibIds&deleted=false&suppressed=false&offset=" + offset);
 					int numChangedIds = 0;
 					if (changedRecords != null && changedRecords.has("entries")){
 						JSONArray changedIds = changedRecords.getJSONArray("entries");
 						numChangedIds = changedIds.length();
 						for(int i = 0; i < numChangedIds; i++){
-							String curId = changedIds.getJSONObject(i).getString("id");
-							String fullId = ".b" + curId + getCheckDigit(curId);
-							try {
-								markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
-								markGroupedWorkForBibAsChangedStmt.setString(2, fullId);
-								markGroupedWorkForBibAsChangedStmt.executeUpdate();
+							//String itemId = changedIds.getJSONObject(i).getString("id");
+							JSONArray bibIds = changedIds.getJSONObject(i).getJSONArray("bibIds");
+							for (int j = 0; j < bibIds.length(); j++){
+								String curId = bibIds.getString(j);
+								String fullId = ".b" + curId + getCheckDigit(curId);
+								try {
+									markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
+									markGroupedWorkForBibAsChangedStmt.setString(2, fullId);
+									markGroupedWorkForBibAsChangedStmt.executeUpdate();
 
-								//TODO: Determine if it is worth forming a full MARC record for output to the marc_recs folder
-								//Note: right now it isn't because item data isn't exported as part of the marc data
+									//TODO: Determine if it is worth forming a full MARC record for output to the marc_recs folder
+									//Note: right now it isn't because item data isn't exported as part of the marc data
 								/*JSONObject marcRecord = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/" + curId + "/marc");
 								if (marcRecord != null){
 								}*/
-							}catch (SQLException e){
-;								logger.error("Could not mark that " + fullId + " was changed due to error ", e);
-								errorUpdatingDatabase = true;
+								}catch (SQLException e){
+									logger.error("Could not mark that " + fullId + " was changed due to error ", e);
+									errorUpdatingDatabase = true;
+								}
 							}
 						}
 					}
