@@ -120,6 +120,7 @@ public class SierraExportMain{
 			}
 
 			//Only mark records as changed
+			boolean errorUpdatingDatabase = false;
 			if (lastSierraExtractTime != null){
 				//TODO:: Test this after the API is installed
 				String apiVersion = cleanIniValue(ini.get("Catalog", "api_version"));
@@ -138,8 +139,9 @@ public class SierraExportMain{
 				//from the API since we only have updated availability, not location data or metadata
 				long offset = 0;
 				boolean moreToRead = true;
+				PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
+				vufindConn.setAutoCommit(false);
 				while (moreToRead){
-					PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
 					JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/?updatedDate=[" + dateUpdated + ",]&limit=2000&fields=id&deleted=false&suppressed=false&offset=" + offset);
 					int numChangedIds = 0;
 					if (changedRecords != null && changedRecords.has("entries")){
@@ -148,39 +150,56 @@ public class SierraExportMain{
 						for(int i = 0; i < numChangedIds; i++){
 							String curId = changedIds.getJSONObject(i).getString("id");
 							String fullId = ".b" + curId + getCheckDigit(curId);
-							markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
-							markGroupedWorkForBibAsChangedStmt.setString(2, fullId);
-							markGroupedWorkForBibAsChangedStmt.executeUpdate();
+							try {
+								markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
+								markGroupedWorkForBibAsChangedStmt.setString(2, fullId);
+								markGroupedWorkForBibAsChangedStmt.executeUpdate();
 
-							//TODO: Determine if it is worth forming a full MARC record for output to the marc_recs folder
-							//Note: right now it isn't because item data isn't exported as part of the marc data
-							/*JSONObject marcRecord = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/" + curId + "/marc");
-							if (marcRecord != null){
-							}*/
+								//TODO: Determine if it is worth forming a full MARC record for output to the marc_recs folder
+								//Note: right now it isn't because item data isn't exported as part of the marc data
+								/*JSONObject marcRecord = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/" + curId + "/marc");
+								if (marcRecord != null){
+								}*/
+							}catch (SQLException e){
+;								logger.error("Could not mark that " + fullId + " was changed due to error ", e);
+								errorUpdatingDatabase = true;
+							}
 						}
 					}
 					moreToRead = (numChangedIds >= 2000);
 					offset += 2000;
+					//Commit in bulk for better performance
+					try {
+						vufindConn.commit();
+					}catch(SQLException e){
+						logger.error("Error committing changed records", e);
+						errorUpdatingDatabase = true;
+					}
+
 				}
+				vufindConn.setAutoCommit(false);
 
 				//TODO: Process deleted records as well?
 			}
 
-			//Update the last extract time
-			Long finishTime = new Date().getTime() / 1000;
-			if (lastSierraExtractTimeVariableId != null){
-				PreparedStatement updateVariableStmt  = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
-				updateVariableStmt.setLong(1, finishTime);
-				updateVariableStmt.setLong(2, lastSierraExtractTimeVariableId);
-				updateVariableStmt.executeUpdate();
-				updateVariableStmt.close();
-			} else{
-				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_sierra_extract_time', ?)");
-				insertVariableStmt.setString(1, Long.toString(finishTime));
-				insertVariableStmt.executeUpdate();
-				insertVariableStmt.close();
+			if (!errorUpdatingDatabase) {
+				//Update the last extract time
+				Long finishTime = new Date().getTime() / 1000;
+				if (lastSierraExtractTimeVariableId != null) {
+					PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
+					updateVariableStmt.setLong(1, finishTime);
+					updateVariableStmt.setLong(2, lastSierraExtractTimeVariableId);
+					updateVariableStmt.executeUpdate();
+					updateVariableStmt.close();
+				} else {
+					PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_sierra_extract_time', ?)");
+					insertVariableStmt.setString(1, Long.toString(finishTime));
+					insertVariableStmt.executeUpdate();
+					insertVariableStmt.close();
+				}
+			}else{
+				logger.error("There was an error updating the database, not setting last extract time.");
 			}
-
 		} catch (Exception e){
 			logger.error("Error loading changed records from Sierra API", e);
 			System.exit(1);
