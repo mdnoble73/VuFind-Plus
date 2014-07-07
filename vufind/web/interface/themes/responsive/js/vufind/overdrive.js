@@ -55,7 +55,7 @@ VuFind.OverDrive = (function(){
 				});
 			}else{
 				VuFind.Account.ajaxLogin(null, function(){
-					checkoutOverDriveItemOneClick(overdriveId);
+					VuFind.OverDrive.checkoutOverDriveItemOneClick(overdriveId);
 				}, false);
 			}
 			return false;
@@ -104,7 +104,7 @@ VuFind.OverDrive = (function(){
 		},
 
 		getOverDriveHoldPrompts: function(overDriveId, formatId){
-			var url = Globals.path + "/EcontentRecord/AJAX?method=GetOverDriveHoldPrompts&overDriveId=" + overDriveId;
+			var url = Globals.path + "/OverDrive/" + overDriveId + "/AJAX?method=GetOverDriveHoldPrompts";
 			if (formatId != undefined){
 				url += "&formatId=" + formatId;
 			}
@@ -115,14 +115,14 @@ VuFind.OverDrive = (function(){
 				success: function(data){
 					result = data;
 					if (data.promptNeeded){
-						VuFind.showMessage(data.promptTitle, data.prompts, false);
+						VuFind.showMessageWithButtons(data.promptTitle, data.prompts, data.buttons);
 					}
 				},
 				dataType: 'json',
 				async: false,
 				error: function(){
 					alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
-					hideLightbox();
+					VuFind.closeLightbox();
 				}
 			});
 			return result;

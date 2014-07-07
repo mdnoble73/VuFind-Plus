@@ -64,7 +64,7 @@ class Admin_AJAX extends Action {
 		$results = array(
 				'title' => '',
 				'modalBody' => '',
-				'modalButtons' => ""
+				'modalButtons' => ''
 		);
 		if ($reindexProcess->find(true)){
 			$results['title'] = "Reindex Notes";

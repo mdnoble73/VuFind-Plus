@@ -217,8 +217,8 @@ class OverDrive_AJAX extends Action {
 		global $interface;
 		$formatId = isset($_REQUEST['formatId']) ? $_REQUEST['formatId'] : null;
 		$interface->assign('formatId', $formatId);
-		$overDriveId = $_REQUEST['overDriveId'];
-		$interface->assign('overDriveId', $overDriveId);
+		$id = $_REQUEST['id'];
+		$interface->assign('overDriveId', $id);
 		if ($user->overdriveEmail == 'undefined'){
 			$user->overdriveEmail = '';
 		}
@@ -229,34 +229,14 @@ class OverDrive_AJAX extends Action {
 
 		$interface->assign('overdriveEmail', $user->overdriveEmail);
 		$interface->assign('promptForEmail', $promptForEmail);
-		$promptForFormat = false;
-		if (!isset($configArray['OverDrive']) || $configArray['OverDrive']['interfaceVersion'] < 2){
-			if (strlen($formatId) == 0){
-				$promptForFormat = true;
-			}
-		}
-		if ($promptForFormat){
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->externalId = $overDriveId;
-			if ($eContentRecord->find(true)){
-				$items = $eContentRecord->getItems();
-				$interface->assign('items', $items);
-			}
-		}
-		$interface->assign('promptForFormat', $promptForFormat);
-		if ($promptForFormat || $promptForEmail){
-			if ($promptForFormat && $promptForEmail){
-				$promptTitle = 'Additional information needed';
-			}elseif($promptForFormat){
-				$promptTitle = 'Select a format';
-			}else{
-				$promptTitle = 'Enter an e-mail';
-			}
+		if ($promptForEmail){
+			$promptTitle = 'Enter an e-mail';
 			return json_encode(
 				array(
 					'promptNeeded' => true,
 					'promptTitle' => $promptTitle,
 					'prompts' => $interface->fetch('EcontentRecord/ajax-overdrive-hold-prompt.tpl'),
+					'buttons' => '<input class="btn btn-primary" type="submit" name="submit" value="Place Hold" onclick="return VuFind.OverDrive.processOverDriveHoldPrompts();"/>'
 				)
 			);
 		}else{

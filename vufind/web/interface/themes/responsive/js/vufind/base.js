@@ -182,6 +182,14 @@ var VuFind = (function(){
 			}
 		},
 
+		showMessageWithButtons: function(title, body, buttons){
+			$("#myModalLabel").html(title);
+			$(".modal-body").html(body);
+			$('.modal-buttons').html(buttons);
+			var modalDialog = $("#modalDialog");
+			modalDialog.modal('show');
+		},
+
 		toggleHiddenElementWithButton: function(button){
 			var hiddenElementName = $(button).data('hidden_element');
 			var hiddenElement = $(hiddenElementName);
