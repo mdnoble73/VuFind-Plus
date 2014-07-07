@@ -1,12 +1,13 @@
 VuFind.Record = (function(){
 	return {
 		GetGoDeeperData: function (id, isbn, upc, dataType){
+			var placeholder;
 			if (dataType == 'excerpt'){
-				var placeholder = $("#excerptPlaceholder");
+				placeholder = $("#excerptPlaceholder");
 			}else if (dataType == 'avSummary'){
-				var placeholder = $("#avSummaryPlaceholder");
+				placeholder = $("#avSummaryPlaceholder");
 			}else if (dataType == 'tableOfContents'){
-				var placeholder = $("#tableOfContentsPlaceholder");
+				placeholder = $("#tableOfContentsPlaceholder");
 			}
 			if (placeholder.hasClass("loaded")) return;
 			placeholder.show();
@@ -19,17 +20,18 @@ VuFind.Record = (function(){
 					placeholder.html(data);
 					placeholder.addClass('loaded');
 				},
-				failure : function(jqXHR, textStatus, errorThrown) {
+				failure : function() {
 					alert('Error: Could Not Load Syndetics information.');
 				}
 			});
 		},
 
 		loadEnrichmentInfo: function (id, isbn, upc, source) {
-			if (source = 'VuFind'){
-				var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+			var url;
+			if (source == 'VuFind'){
+				url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 			}else{
-				var url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+				url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 			}
 			var params = "method=GetEnrichmentInfoJSON&isbn=" + encodeURIComponent(isbn) + "&upc=" + encodeURIComponent(upc);
 			var fullUrl = url + "?" + params;
@@ -41,7 +43,7 @@ VuFind.Record = (function(){
 						var seriesData = data.seriesInfo;
 						if (seriesData && seriesData.length > 0) {
 
-							seriesScroller = new TitleScroller('titleScrollerSeries', 'Series', 'seriesList');
+							var seriesScroller = new TitleScroller('titleScrollerSeries', 'Series', 'seriesList');
 
 							seriesData = $.parseJSON(seriesData);
 							if (seriesData.titles.length > 0){
@@ -75,7 +77,7 @@ VuFind.Record = (function(){
 						alert("error loading enrichment: " + e);
 					}
 				},
-				failure : function(jqXHR, textStatus, errorThrown) {
+				failure : function() {
 					alert('Error: Could Not Load Enrichment information.');
 				}
 			});
@@ -115,7 +117,7 @@ VuFind.Record = (function(){
 						}
 						var summaryDetails = $(data).find("SummaryDetails");
 						var callNumber = summaryDetails.find("callnumber").text();
-						if (callNumber.length>0){
+						if (callNumber.length > 0){
 							$("#callNumberValue").html(callNumber);
 						}else{
 							$("#callNumberRow").hide();
@@ -148,18 +150,19 @@ VuFind.Record = (function(){
 							}
 						}
 						var copiesData = $(data).find("Copies").text();
+						var formatsTabLink = $("#formatstabLink").find("a");
 						if (copiesData) {
 							if (copiesData.length > 0) {
 								$("#copiesPlaceholder").html(copiesData).trigger("create");
 							}else{
 								$("#copiestabLink").hide();
 								$("#copiesPlaceholder").html("No Copies Information found, please try again later.");
-								$("#formatstabLink a").text("Copies");
+								formatsTabLink.text("Copies");
 							}
 						}else{
 							$("#copiestabLink").hide();
 							$("#copiesPlaceholder").html("No Copies Information found, please try again later.");
-							$("#formatstabLink a").text("Copies");
+							formatsTabLink.text("Copies");
 						}
 					}
 					var holdingsSummary = $(data).find("HoldingsSummary").text();
@@ -269,16 +272,18 @@ VuFind.Record = (function(){
 		 * Used to send a text message related to a specific record.
 		 * Includes title, author, call number, etc.
 		 * @param id
+		 * @param source
 		 */
 		sendEmail: function(id, source){
 			var emailForm = $("#emailForm");
 			var to = emailForm.find("input[name=to]").val();
 			var from = emailForm.find("input[name=from]").val();
 			var message = emailForm.find("input[name=message]").val();
+			var url;
 			if (source == 'VuFind'){
-				var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+				url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 			}else{
-				var url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+				url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 			}
 			var params = "method=SendEmail&" + "to=" + encodeURIComponent(to) + "&" + "from=" + encodeURIComponent(from) + "&" + "message=" + encodeURIComponent(message);
 
@@ -308,15 +313,17 @@ VuFind.Record = (function(){
 		 * Used to send a text message related to a specific record.
 		 * Includes title, author, call number, etc.
 		 * @param id
+		 * @param source
 		 */
 		sendSMS: function(id, source){
 			var smsForm = $("#smsForm");
 			var to = smsForm.find("input[name=to]").val();
 			var provider = smsForm.find("input[name=provider]").val();
+			var url;
 			if (source == 'VuFind'){
-				var url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
+				url = Globals.path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 			}else{
-				var url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
+				url = Globals.path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 			}
 			var params = "method=SendSMS&" + "to=" + encodeURIComponent(to) + "&" + "provider=" + encodeURIComponent(provider);
 

@@ -113,8 +113,8 @@ TitleScroller.prototype.updateScroller = function() {
 				TitleScroller.prototype.finishLoadingScroller.call(curScroller);
 			});
 		}else if (this.style == 'vertical'){
-			for ( var i in this.scrollerTitles) {
-				scrollerBodyContents += this.scrollerTitles[i]['formattedTitle'];
+			for ( var j in this.scrollerTitles) {
+				scrollerBodyContents += this.scrollerTitles[j]['formattedTitle'];
 			}
 			scrollerBody.html(scrollerBodyContents);
 			scrollerBody.height(this.scrollerTitles.length * 131);
@@ -243,7 +243,6 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 			});
 		}
 	}else{
-		var scrollerBodyContents = "";
 		scrollerBody.left = "0px";
 		scrollerBody.html(this.scrollerTitles[currentScrollerIndex]['formattedTitle']);
 	}
@@ -262,7 +261,7 @@ TitleScroller.prototype.activateCurrentTitle = function() {
  *
  */
 
-;(function($) {
+(function($) {
 	$.fn.waitForImages = function(finishedCallback, eachCallback) {
 
 		eachCallback = eachCallback || function() {};
@@ -272,7 +271,7 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 				name: 'invalid_callback',
 				message: 'An invalid callback was supplied.'
 			};
-		};
+		}
 
 		var objs = $(this),
 				allImgs = objs.find('img'),
@@ -291,8 +290,8 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 					imgs = obj.find('img');
 
 			if (imgs.length == 0) {
-				return true;
-			};
+				return;
+			}
 
 			imgs.each(function() {
 				var image = new Image,
@@ -303,8 +302,8 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 					eachCallback.call(imgElement, allImgsLoaded, allImgsLength);
 					if (allImgsLoaded == allImgsLength) {
 						finishedCallback.call(obj[0]);
-						return false;
-					};
+					}
+					return false;
 				};
 
 				//Also handle errors and aborts
@@ -313,8 +312,8 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 					eachCallback.call(imgElement, allImgsLoaded, allImgsLength);
 					if (allImgsLoaded == allImgsLength) {
 						finishedCallback.call(obj[0]);
-						return false;
-					};
+					}
+					return false;
 				};
 
 				image.onerror = function() {
@@ -322,8 +321,8 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 					eachCallback.call(imgElement, allImgsLoaded, allImgsLength);
 					if (allImgsLoaded == allImgsLength) {
 						finishedCallback.call(obj[0]);
-						return false;
-					};
+					}
+					return false;
 				};
 
 				image.src = this.src;

@@ -32,7 +32,6 @@ VuFind.Account = (function(){
 				url: url + '?' + params,
 				dataType: "json",
 				success: function (data) {
-					var value = data.result;
 					if (data.result) {
 						VuFind.showMessage("Added Successfully", data.message);
 					} else {
@@ -267,26 +266,29 @@ VuFind.Account = (function(){
 			}
 			var suspendDate = '';
 			//Check to see whether or not we are using a suspend date.
-			if ($('#suspendDateTop').length){
-				if ($('#suspendDateTop').val().length > 0){
-					var suspendDate = $('#suspendDateTop').val();
+			var suspendDateTop = $('#suspendDateTop');
+			var url = '';
+			var queryParams = '';
+			if (suspendDateTop.length){
+				if (suspendDateTop.val().length > 0){
+					suspendDate = suspendDateTop.val();
 				}else{
-					var suspendDate = $('#suspendDateBottom').val();
+					suspendDate = $('#suspendDateBottom').val();
 				}
 
 				if (suspendDate.length == 0){
 					alert("Please select the date when the hold should be reactivated.");
 					return false;
 				}
-				var url = Globals.path + '/MyAccount/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
-				var queryParams = VuFind.getQuerystringParameters();
+				url = Globals.path + '/MyAccount/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
+				queryParams = VuFind.getQuerystringParameters();
 				if ($.inArray('section', queryParams)){
 					url += '&section=' + queryParams['section'];
 				}
 				window.location = url;
 			}else{
-				var url = Globals.path + '/MyAccount/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
-				var queryParams = VuFind.getQuerystringParameters();
+				url = Globals.path + '/MyAccount/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
+				queryParams = VuFind.getQuerystringParameters();
 				if ($.inArray('section', queryParams)){
 					url += '&section=' + queryParams['section'];
 				}
@@ -305,8 +307,9 @@ VuFind.Account = (function(){
 			if (selectedTitles.length == 0 && promptForSelectAll){
 				var ret = confirm('You have not selected any items, process all items?');
 				if (ret == true){
-					$("input.titleSelect").attr('checked', 'checked');
-					selectedTitles = $("input.titleSelect").map(function() {
+					var titleSelect = $("input.titleSelect");
+					titleSelect.attr('checked', 'checked');
+					selectedTitles = titleSelect.map(function() {
 						return $(this).attr('name') + "=" + $(this).val();
 					}).get().join("&");
 				}

@@ -249,10 +249,11 @@ function showRedirectToHomeMessage(){
 }
 
 function startIdleTimer(){
+	var timeout;
 	if (Globals.loggedIn){
-		var timeout = Globals.automaticTimeoutLength * 1000;
+		timeout = Globals.automaticTimeoutLength * 1000;
 	}else{
-		var timeout = Globals.automaticTimeoutLengthLoggedOut * 1000;
+		timeout = Globals.automaticTimeoutLengthLoggedOut * 1000;
 	}
 	if (timeout > 0){
 		$.idleTimer(timeout);

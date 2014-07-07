@@ -141,7 +141,7 @@ var VuFind = (function(){
 		},
 
 		setupFieldSetToggles: function (){
-			$('legend.collapsible').each(function(index){
+			$('legend.collapsible').each(function(){
 				$(this).siblings().hide();
 				$(this).addClass("collapsed");
 				$(this).click(function() {
@@ -154,14 +154,14 @@ var VuFind = (function(){
 		},
 
 		loadEContentHelpTopic: function (){
-			var selectedDevice = $("#device :selected").val();
-			var selectedFormat = $("#format :selected").val();
+			var selectedDevice = $("#device").find(":selected").val();
+			var selectedFormat = $("#format").find(":selected").val();
 
 			if (selectedDevice != "selectone" && selectedFormat != "selectone"){
 				$.getJSON(
 						Globals.path + '/Help/AJAX?method=getHelpTopic&device=' + selectedDevice + '&format=' +selectedFormat,
 						function (data){
-							$("#stepByStepInstructions").show()
+							$("#stepByStepInstructions").show();
 							$("#helpInstructions").html(data.helpText);
 						}
 				);

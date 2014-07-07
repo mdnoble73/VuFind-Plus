@@ -45,7 +45,7 @@ VuFind.GroupedWork = (function(){
 			var params = "method=GetGoDeeperData&dataType=" + encodeURIComponent(dataType);
 			var fullUrl = url + "?" + params;
 			$.getJSON( fullUrl,function(data) {
-				placeholder.html(data.formattedData)
+				placeholder.html(data.formattedData);
 				placeholder.addClass('loaded');
 			});
 		},
@@ -66,7 +66,7 @@ VuFind.GroupedWork = (function(){
 						}
 						var similarTitleData = data.similarTitles;
 						if (similarTitleData && similarTitleData.titles.length > 0) {
-							morelikethisScroller = new TitleScroller('titleScrollerMoreLikeThis', 'MoreLikeThis', 'morelikethisList');
+							var morelikethisScroller = new TitleScroller('titleScrollerMoreLikeThis', 'MoreLikeThis', 'morelikethisList');
 							$('#moreLikeThisInfo').show();
 							morelikethisScroller.loadTitlesFromJsonData(similarTitleData);
 						}
@@ -242,7 +242,7 @@ VuFind.GroupedWork = (function(){
 					}
 
 				},
-				error: function(jqXHR, textStatus, errorThrown) {
+				error: function(jqXHR, textStatus) {
 					VuFind.showMessage("Error adding tags", "There was an unexpected error adding tags to this title.<br/>" + textStatus);
 				}
 			});

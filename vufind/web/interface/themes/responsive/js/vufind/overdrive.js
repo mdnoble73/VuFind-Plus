@@ -144,23 +144,24 @@ VuFind.OverDrive = (function(){
 		},
 
 		processOverDriveHoldPrompts: function(){
-			var overdriveId = $("#overdriveHoldPromptsForm input[name=overdriveId]").val();
+			var overdriveHoldPromptsForm = $("#overdriveHoldPromptsForm");
+			var overdriveId = overdriveHoldPromptsForm.find("input[name=overdriveId]").val();
 			var formatId = -1;
-			if ($("#overdriveHoldPromptsForm input[name=formatId]") && $("#overdriveHoldPromptsForm input[name=formatId]").val() != undefined){
-				formatId = $("#overdriveHoldPromptsForm input[name=formatId]").val();
+			if (overdriveHoldPromptsForm.find("input[name=formatId]") && overdriveHoldPromptsForm.find("input[name=formatId]").val() != undefined){
+				formatId = overdriveHoldPromptsForm.find("input[name=formatId]").val();
 				if (formatId == undefined){
 					formatId = "";
 				}
-			}else if($('#formatId :selected') && $('#formatId :selected').val() != undefined){
-				formatId = $('#formatId :selected').val();
+			}else if($('#formatId').find(':selected') && $('#formatId').find(':selected').val() != undefined){
+				formatId = $('#formatId').find(':selected').val();
 			}
 			var promptForOverdriveEmail;
-			if ($("#overdriveHoldPromptsForm input[name=promptForOverdriveEmail]").is(":checked")){
+			if (overdriveHoldPromptsForm.find("input[name=promptForOverdriveEmail]").is(":checked")){
 				promptForOverdriveEmail = 0;
 			}else{
 				promptForOverdriveEmail = 1;
 			}
-			var overdriveEmail = $("#overdriveHoldPromptsForm input[name=overdriveEmail]").val();
+			var overdriveEmail = overdriveHoldPromptsForm.find("input[name=overdriveEmail]").val();
 			VuFind.OverDrive.doOverDriveHold(overdriveId, formatId, overdriveEmail, promptForOverdriveEmail);
 		},
 
@@ -192,8 +193,9 @@ VuFind.OverDrive = (function(){
 		},
 
 		selectOverDriveDownloadFormat: function(overDriveId){
-			var selectedFormatId = $("#downloadFormat_" + overDriveId + " option:selected").val();
-			var selectedFormatText = $("#downloadFormat_" + overDriveId + " option:selected").text();
+			var selectedOption = $("#downloadFormat_" + overDriveId + " option:selected");
+			var selectedFormatId = selectedOption.val();
+			var selectedFormatText = selectedOption.text();
 			if (selectedFormatId == -1){
 				alert("Please select a format to download.");
 			}else{

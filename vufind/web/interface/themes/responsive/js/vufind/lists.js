@@ -15,7 +15,7 @@ VuFind.Lists = (function(){
 			return false;
 		},
 
-		makeListPrivateAction: function (showError){
+		makeListPrivateAction: function (){
 			$('#myListActionHead').val('makePrivate');
 			$('#myListFormHead').submit();
 			return false;
@@ -36,8 +36,9 @@ VuFind.Lists = (function(){
 		},
 
 		requestMarkedAction: function (){
-			$('#myListFormItem').attr('action', Globals.path + "/MyAccount/HoldMultiple");
-			$('#myListFormItem').submit();
+			var myListFormItem = $('#myListFormItem');
+			myListFormItem.attr('action', Globals.path + "/MyAccount/HoldMultiple");
+			myListFormItem.submit();
 			return false;
 		},
 		deletedMarkedListItemsAction: function (){

@@ -53,7 +53,7 @@ $(document).ready(function(){
 
 		element.jcarousel('items').css('width', width + 'px');
 	});
-	browseCategoryCarousel.on('jcarousel:targetin', 'li', function(event, carousel){
+	browseCategoryCarousel.on('jcarousel:targetin', 'li', function(){
 		var categoryId = $(this).data('category-id');
 		VuFind.Browse.changeBrowseCategory(categoryId);
 	});

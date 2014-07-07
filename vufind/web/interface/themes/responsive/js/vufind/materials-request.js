@@ -72,7 +72,7 @@ VuFind.MaterialsRequest = (function(){
 			if (selectedRequests.length != 0){
 				$("#updateRequests").submit();
 			}
-
+			return false;
 		},
 
 		getSelectedRequests: function(promptToSelectAll){
@@ -106,14 +106,15 @@ VuFind.MaterialsRequest = (function(){
 		setFieldVisibility: function(){
 			$(".formatSpecificField").hide();
 			//Get the selected format
-			var selectedFormat = $("#format option:selected").val();
+			var selectedFormat = $("#format").find("option:selected").val();
 			$("." + selectedFormat + "Field").show();
 
 			//Update labels as neded
-			$("#author").addClass("required");
+			var author = $("#author");
+			author.addClass("required");
 			if (selectedFormat == 'bluray' || selectedFormat == 'dvd' || selectedFormat == 'vhs'){
 				$("#authorFieldLabel").html("Actor / Director:");
-				$("#author").removeClass("required");
+				author.removeClass("required");
 			}else if (selectedFormat == 'cdMusic'){
 				$("#authorFieldLabel").html("Artist / Composer <span class='requiredIndicator'>*</span>");
 			}else{
@@ -154,7 +155,7 @@ VuFind.MaterialsRequest = (function(){
 			var placeHold = $("input[name=placeHoldWhenAvailable]:checked").val();
 			if (placeHold == 1){
 				$("#pickupLocationField").show();
-				if ($("#pickupLocation option:selected").val() == 'bookmobile'){
+				if ($("#pickupLocation").find("option:selected").val() == 'bookmobile'){
 					$("#bookmobileStopField").show();
 				}else{
 					$("#bookmobileStopField").hide();
@@ -186,7 +187,7 @@ VuFind.MaterialsRequest = (function(){
 								$('#email').val(response.result.email);
 							}
 							if (response.result.homeLocationId){
-								var optionToSelect = $("#pickupLocation option[value=" + response.result.homeLocationId + "]");
+								var optionToSelect = $("#pickupLocation").find("option[value=" + response.result.homeLocationId + "]");
 								optionToSelect.attr("selected", "selected");
 							}
 						}else{
@@ -194,12 +195,10 @@ VuFind.MaterialsRequest = (function(){
 						}
 					}else{
 						alert("That login was not recognized.  Please try again.");
-						return false;
 					}
 				},
-				error: function(jqXHR, textStatus, errorThrown){
+				error: function(){
 					alert("That login was not recognized.  Please try again.");
-					return false;
 				},
 				dataType: 'json',
 				type: 'post'
