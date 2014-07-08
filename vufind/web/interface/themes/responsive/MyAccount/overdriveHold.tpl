@@ -1,11 +1,11 @@
 {strip}
-	<div class="row" id="overDriveHold_{$record.overDriveId}">
-		<div class="col-md-3">
+	<div class="result row" id="overDriveHold_{$record.overDriveId}">
+		<div class="col-xs-12 col-sm-3">
 			<div class="row">
-				<div class="selectTitle col-md-2">
+				<div class="selectTitle col-xs-2">
 					&nbsp;
 				</div>
-				<div class="col-md-9 text-center">
+				<div class="col-xs-9 text-center">
 					{if $record.recordId}
 					<a href="{$record.linkUrl}">
 						{/if}
@@ -17,30 +17,32 @@
 			</div>
 		</div>
 
-		<div class="col-md-9">
+		<div class="col-xs-12 col-sm-9">
 			<div class="row">
-				<strong>
-					{if $record.recordId != -1}
-					<a href="{$record.linkUrl}" class="title">
-						{/if}
-						{if !$record.title}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}
+				<div class="col-xs-12">
+					<strong>
 						{if $record.recordId != -1}
-					</a>
-					{/if}
-					{if $record.subTitle}
-						<div class="searchResultSectionInfo">
-							{$record.subTitle|removeTrailingPunctuation}
-						</div>
-					{/if}
-				</strong>
+						<a href="{$record.linkUrl}" class="title">
+							{/if}
+							{if !$record.title}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}
+							{if $record.recordId != -1}
+						</a>
+						{/if}
+						{if $record.subTitle}
+							<div class="searchResultSectionInfo">
+								{$record.subTitle|removeTrailingPunctuation}
+							</div>
+						{/if}
+					</strong>
+				</div>
 			</div>
 
 			<div class="row">
-				<div class="resultDetails col-md-9">
+				<div class="resultDetails col-xs-12 col-sm-9">
 					{if $record.author}
 						<div class="row">
-							<div class="result-label col-md-3">{translate text='Author'}</div>
-							<div class="col-md-9 result-value">
+							<div class="result-label col-xs-3">{translate text='Author'}</div>
+							<div class="col-xs-9 result-value">
 								{if is_array($record.author)}
 									{foreach from=$record.author item=author}
 										<a href="{$path}/Author/Home?author={$author|escape:"url"}">{$author|highlight:$lookfor}</a>
@@ -55,8 +57,8 @@
 					{if $section == 'available'}
 					{* Available Hold *}
 						<div class="row">
-							<div class="result-label col-md-3">{translate text='Notification Sent'}</div>
-							<div class="col-md-9 result-value">
+							<div class="result-label col-xs-3">{translate text='Notification Sent'}</div>
+							<div class="col-xs-9 result-value">
 								{if $record.notificationDate}
 									{$record.notificationDate|date_format:"%b %d, %Y at %l:%M %p"}
 								{else}
@@ -66,8 +68,8 @@
 						</div>
 
 						<div class="row">
-							<div class="result-label col-md-3">{translate text='Expires'}</div>
-							<div class="col-md-9 result-value">
+							<div class="result-label col-xs-3">{translate text='Expires'}</div>
+							<div class="col-xs-9 result-value">
 								{$record.expirationDate|date_format:"%b %d, %Y"}
 							</div>
 						</div>
@@ -75,15 +77,15 @@
 					{else}
 						{* Unavailable hold *}
 						<div class="row">
-							<div class="result-label col-md-3">{translate text='Position'}</div>
-							<div class="col-md-9 result-value">
+							<div class="result-label col-xs-3">{translate text='Position'}</div>
+							<div class="col-xs-9 result-value">
 								{$record.holdQueuePosition} out of {$record.holdQueueLength}
 							</div>
 						</div>
 					{/if}
 				</div>
 
-				<div class="col-md-3">
+				<div class="col-xs-12 col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
 						{if $section == 'available'}
 							<a href="#" onclick="return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$record.overDriveId}');" class="btn btn-sm btn-primary">Checkout</a>

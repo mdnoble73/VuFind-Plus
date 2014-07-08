@@ -14,14 +14,13 @@
 		{/if}
 		{if $transList}
 			<form id="renewForm" action="{$path}/MyAccount/RenewMultiple">
-				<div id="pager" class="navbar form-inline text-center">
-					<label for="accountSort" class="control-label">{translate text='Sort by'}:&nbsp;
-						<select name="accountSort" id="sort" class="input-medium" onchange="changeAccountSort($(this).val());">
+				<div id="pager" class="navbar form-inline">
+					<label for="accountSort" class="control-label">{translate text='Sort by'}:&nbsp;</label>
+						<select name="accountSort" id="accountSort" class="form-control" onchange="changeAccountSort($(this).val());">
 						{foreach from=$sortOptions item=sortDesc key=sortVal}
 							<option value="{$sortVal}"{if $defaultSortOption == $sortVal} selected="selected"{/if}>{translate text=$sortDesc}</option>
 						{/foreach}
-						</select>
-					</label>
+					</select>
 
 					<label for="hideCovers" class="control-label checkbox  pull-right"> Hide Covers <input id="hideCovers" type="checkbox" onclick="$('.imageColumn').toggle();"/></label>
 				</div>
@@ -31,6 +30,8 @@
 					<a href="{$path}/MyAccount/RenewAll" class="btn btn-sm btn-default">Renew All</a>
 					<a href="{$path}/MyAccount/CheckedOut?exportToExcel" class="btn btn-sm btn-default" id="exportToExcelTop" >Export to Excel</a>
 				</div>
+
+				<br/>
 
 				<div class="striped">
 					{foreach from=$transList item=checkedOutTitle name=checkedOutTitleLoop key=checkedOutKey}

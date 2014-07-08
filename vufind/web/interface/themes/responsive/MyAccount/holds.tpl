@@ -45,6 +45,7 @@
 					</div>
 
 					{* Code to handle updating multiple holds at one time *}
+					<br/>
 					<div class='holdsWithSelected{$sectionKey}'>
 						<form id='withSelectedHoldsFormBottom{$sectionKey}' action='{$fullPath}'>
 							<div>
