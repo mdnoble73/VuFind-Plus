@@ -195,7 +195,10 @@ public class ExtractOverDriveInfo {
 				}
 				
 				//Update products in database
+				econtentConn.setAutoCommit(false);
 				updateDatabase();
+				econtentConn.commit();
+				econtentConn.setAutoCommit(true);
 			}
 
 			//Mark the new last update time if we did not get errors loading products from the database
