@@ -421,6 +421,8 @@ Keyword:
       - [onephrase, 75]
     literary_form_full:
       - [onephrase, 75]
+    econtent_source:
+      - [onephrase, 75]
 
 KeywordProper:
   DismaxFields:

@@ -74,9 +74,13 @@ class AJAX_JSON extends Action {
 	function loginUser(){
 		//Login the user.  Must be called via Post parameters.
 		global $user;
+		global $interface;
+		global $configArray;
 		$user = UserAccount::isLoggedIn();
 		if (!$user || PEAR_Singleton::isError($user)){
 			$user = UserAccount::login();
+
+			$interface->assign('user', $user);
 			if (!$user || PEAR_Singleton::isError($user)){
 				return array(
 					'success'=>false,
@@ -88,6 +92,7 @@ class AJAX_JSON extends Action {
 		$patronHomeBranch = Location::getUserHomeLocation();
 		//Check to see if materials request should be activated
 		require_once ROOT_DIR . '/sys/MaterialsRequest.php';
+
 		return array(
 			'success'=>true,
 			'name'=>ucwords($user->firstname . ' ' . $user->lastname),

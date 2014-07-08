@@ -223,6 +223,26 @@ VuFind.Account = (function(){
 			return false;
 		},
 
+		cancelPendingHold: function(holdIdToCancel){
+			var url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&waitingholdselected[]=' + holdIdToCancel;
+			var queryParams = VuFind.getQuerystringParameters();
+			if ($.inArray('section', queryParams) && queryParams['section'] != 'undefined'){
+				url += '&section=' + queryParams['section'];
+			}
+			window.location = url;
+			return false;
+		},
+
+		cancelAvailableHold: function(holdIdToCancel){
+			var url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&availableholdselected[]=' + holdIdToCancel;
+			var queryParams = VuFind.getQuerystringParameters();
+			if ($.inArray('section', queryParams) && queryParams['section'] != 'undefined'){
+				url += '&section=' + queryParams['section'];
+			}
+			window.location = url;
+			return false;
+		},
+
 		cancelSelectedHolds: function(){
 			var selectedTitles = this.getSelectedTitles(false);
 			if (selectedTitles.length == 0){
@@ -231,7 +251,7 @@ VuFind.Account = (function(){
 			}
 			var url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&' + selectedTitles;
 			var queryParams = VuFind.getQuerystringParameters();
-			if ($.inArray('section', queryParams)){
+			if ($.inArray('section', queryParams) && queryParams['section'] != 'undefined'){
 				url += '&section=' + queryParams['section'];
 			}
 			window.location = url;

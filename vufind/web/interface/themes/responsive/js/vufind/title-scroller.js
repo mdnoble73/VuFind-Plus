@@ -164,12 +164,6 @@ TitleScroller.prototype.finishLoadingScroller = function() {
 			}
 		}, 5000);
 	}
-	if (this.enableDescription) {
-		for ( var i in this.scrollerTitles) {
-			resultDescription(this.scrollerTitles[i]['id'],
-					this.scrollerTitles[i]['id']);
-		}
-	}
 };
 
 TitleScroller.prototype.scrollToRight = function() {
@@ -200,7 +194,9 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 				scrollerTitles[currentScrollerIndex]['author']);
 	} else {
 		var callback = window[this.onSelectCallback];
-		callback(scrollerTitles[currentScrollerIndex]);
+		if (typeof(callback) == "function"){
+			callback(scrollerTitles[currentScrollerIndex]);
+		}
 	}
 	var scrollerBody = $('#' + this.scrollerId
 			+ " .scrollerBodyContainer .scrollerBody");

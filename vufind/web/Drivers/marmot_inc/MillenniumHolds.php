@@ -45,7 +45,7 @@ class MillenniumHolds{
 				//Hold was successful
 				$hold_result['result'] = true;
 				if (!isset($reason) || strlen($reason) == 0){
-					$hold_result['message'] = 'Your hold was placed successfully';
+					$hold_result['message'] = 'Your hold was placed successfully.  It may take up to 45 seconds for the hold to appear on your account.';
 				}else{
 					$hold_result['message'] = $reason;
 				}
@@ -289,6 +289,8 @@ class MillenniumHolds{
 		usleep(250);
 		//Clear holds for the patron
 		unset($this->holds[$patronId]);
+
+		$this->driver->clearPatronProfile();
 
 		global $analytics;
 		if ($type == 'cancel' || $type == 'recall'){
@@ -638,6 +640,7 @@ class MillenniumHolds{
 		$this->driver->db = new $class($url);
 
 		// Retrieve Full Marc Record
+		require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 		$record = RecordDriverFactory::initRecordDriverById('ils:' . $bib1);
 		if (!$record) {
 			$title = null;
@@ -685,8 +688,8 @@ class MillenniumHolds{
 					$date = date('m/d/Y', $sixMonthsFromNow);
 				}
 
-				if (isset($_POST['campus'])){
-					$campus=trim($_POST['campus']);
+				if (isset($_REQUEST['campus'])){
+					$campus=trim($_REQUEST['campus']);
 				}else{
 					global $user;
 					$campus = $user->homeLocationId;
@@ -819,6 +822,8 @@ class MillenniumHolds{
 						$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);
 					}
 				}
+				//Clear the patron profile
+				$this->driver->clearPatronProfile();
 				return $hold_result;
 			}
 		}

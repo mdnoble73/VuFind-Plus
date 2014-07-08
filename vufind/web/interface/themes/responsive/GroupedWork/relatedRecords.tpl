@@ -73,7 +73,7 @@
 					<div class="btn-group btn-group-vertical btn-group-sm">
 						<a href="{$relatedRecord.url}" class="btn btn-sm btn-info">More Info</a>
 						{foreach from=$relatedRecord.actions item=curAction}
-							<a href="{$curAction.url}" {if $curAction.onClick}onclick="{$curAction.onClick}"{/if} class="btn btn-sm btn-default">{$curAction.title}</a>
+							<a href="{$curAction.url}" {if $curAction.onclick}onclick="{$curAction.onclick}"{/if} class="btn btn-sm btn-default">{$curAction.title}</a>
 						{/foreach}
 					</div>
 				</td>

@@ -1624,8 +1624,9 @@ class MarcRecord extends IndexRecord
 			if ($this->isHoldable() && isset($interface) && $showHoldButton){
 				$relatedRecord['actions'][] = array(
 						'title' => 'Place Hold',
-						'url' => $holdUrl,
-						'requireLogin' => true,
+						'url' => '',
+						'onclick' => "return VuFind.Record.showPlaceHold('{$recordId}');",
+						'requireLogin' => false,
 				);
 			}
 			$timer->logTime("Finished getRelatedRecords $recordId");

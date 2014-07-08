@@ -134,7 +134,11 @@
 
 				<div class="col-xs-12 col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
-						<a href="#" onclick="$('#selected{$record.cancelId}').prop('checked', 'checked');return VuFind.Account.cancelSelectedHolds();" class="btn btn-sm btn-warning">Cancel Hold</a>
+						{if $section == 'available'}
+							<a href="#" onclick="return VuFind.Account.cancelAvailableHold('{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</a>
+						{else}
+							<a href="#" onclick="return VuFind.Account.cancelPendingHold('{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</a>
+						{/if}
 					</div>
 
 					{* Include standard tools *}

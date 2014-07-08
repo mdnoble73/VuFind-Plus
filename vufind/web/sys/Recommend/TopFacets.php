@@ -57,6 +57,8 @@ class TopFacets implements RecommendationInterface
 		if ($this->searchObject->getSearchType() == 'genealogy'){
 			$this->mainFacets = array();
 		}else{
+			global $searchScope;
+
 			$searchLibrary = Library::getActiveLibrary();
 			global $locationSingleton;
 			$searchLocation = $locationSingleton->getActiveLocation();
@@ -73,11 +75,11 @@ class TopFacets implements RecommendationInterface
 			foreach ($facets as $facet){
 				if ($facet->showAboveResults == 1){
 					$facetName = $facet->facetName;
-					if (isset($searchLibrary)){
+					if ($searchScope){
 						if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
-							$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
+							$facetName = 'availability_toggle_' . $searchScope;
 						}else if ($facet->facetName == 'format_category' && $configArray['Index']['enableDetailedFormats']){
-							$facetName = 'format_category_' . $searchLibrary->subdomain;
+							$facetName = 'format_category_' . $searchScope;
 						}
 					}
 					if (isset($userLocation)){
