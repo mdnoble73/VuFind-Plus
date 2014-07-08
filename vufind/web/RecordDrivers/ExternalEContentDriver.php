@@ -229,7 +229,6 @@ class ExternalEContentDriver extends BaseEContentDriver{
 			$eContentData = trim($itemField->getSubfield('w') != null ? $itemField->getSubfield('w')->getData() : '');
 			if ($eContentData && strpos($eContentData, ':') > 0){
 				$eContentFieldData = explode(':', $eContentData);
-				$source = trim($eContentFieldData[0]);
 				$protectionType = trim($eContentFieldData[1]);
 				if ($this->isValidProtectionType($protectionType)){
 					if ($this->isValidForUser($locationCode, $eContentFieldData)){
@@ -243,63 +242,26 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		return $formats;
 	}
 
-	/**
-	 * @param File_MARC_Data_Field $itemField
-	 * @return array
-	 */
-	function getActionsForItem($itemField){
-		$urlSubfield = $itemField->getSubfield('u');
-		$actions = array();
-		if ($urlSubfield != null){
-			$url = $urlSubfield->getData();
-			$actions[] = array(
-					'url' => $url,
-					'title' => 'Access Online',
-					'requireLogin' => false,
-			);
-		}else{
-			//Get from the 856 field
-			/** @var File_MARC_Data_Field $linkFields */
-			$linkFields = $this->getMarcRecord()->getFields('856');
-			foreach ($linkFields as $link){
-				$urlSubfield = $link->getSubfield('u');
-				if ($urlSubfield != null){
-					$url = $urlSubfield->getData();
-					$title = 'Access Online';
-					if (substr_compare($url, 'pdf', strlen($url)-3, strlen(3)) === 0){
-						$title = 'Access PDF';
-					}
-					$actions[] = array(
-							'url' => $url,
-							'title' => $title,
-							'requireLogin' => false,
-					);
-				}
-			}
-		}
-		return $actions;
+	function getEContentFormat($fileOrUrl, $iType){
+		return mapValue('econtent_itype_format', $iType);
 	}
 
 	/**
-	 * @param String[] $itemData
+	 * @param string $itemId
+	 * @param string $fileOrUrl
 	 * @return array
 	 */
-	function getActionsForItemFromIndexData($itemData){
+	function getActionsForItem($itemId, $fileOrUrl){
 		$actions = array();
-		if (count($itemData) >= 7){
-			$url = $itemData[6];
-			$title = 'Access Online';
-			if (substr_compare($url, 'pdf', strlen($url)-3, strlen(3)) === 0){
-				$title = 'Access PDF';
-			}
-			$actions[] = array(
-					'url' => $url,
-					'title' => $title,
-					'requireLogin' => false,
-			);
+		$title = 'Access Online';
+		if (substr_compare($fileOrUrl, 'pdf', strlen($fileOrUrl)-3, strlen(3)) === 0){
+			$title = 'Access PDF';
 		}
-
+		$actions[] = array(
+				'url' => $fileOrUrl,
+				'title' => $title,
+				'requireLogin' => false,
+		);
 		return $actions;
 	}
-
-} 
+}

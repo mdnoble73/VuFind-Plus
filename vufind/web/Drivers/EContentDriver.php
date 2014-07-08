@@ -1324,8 +1324,6 @@ class EContentDriver implements DriverInterface{
 
 		require_once(ROOT_DIR . '/sys/eContent/EContentHistoryEntry.php');
 
-		global $configArray;
-
 		$entry = new EContentHistoryEntry();
 		$entry->userId = $user->id;
 		$entry->recordId = $id;

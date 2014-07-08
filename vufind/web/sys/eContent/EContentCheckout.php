@@ -14,6 +14,7 @@ class EContentCheckout extends DB_DataObject {
 	public $dateReturned;
 	public $dateFulfilled;
 	public $recordId;
+	public $itemId;
 	public $userId;
 	public $status; //Out, Returned
 	public $acsDownloadLink;

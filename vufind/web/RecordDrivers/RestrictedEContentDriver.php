@@ -100,19 +100,24 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 		return 'RestrictedEContent';
 	}
 
+	/**
+	 * @param File_MARC_Data_Field $itemField
+	 * @return array
+	 */
 	function getActionsForItem($itemField){
+		$itemId = $itemField->getSubfield('1')->getData();
 		$actions = array();
 		if ($this->isAvailable(true)){
 			$actions[] = array(
 					'url' => '',
-					'onclick' => 'alert("TODO: Checkout the title")',
+					'onclick' => "VuFind.LocalEContent.checkout('{$itemId}')", //Checkout based on item id
 					'title' => 'Check Out',
 					'requireLogin' => true,
 			);
 		}else{
 			$actions[] = array(
 					'url' => '',
-					'onclick' => 'alert("TODO: Place a hold")',
+					'onclick' => "VuFind.LocalEContent.placeHold('{$itemId}')",
 					'title' => 'Place Hold',
 					'requireLogin' => true,
 			);
@@ -124,18 +129,67 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 		if ($this->isAvailable(true)){
 			$actions[] = array(
 					'url' => '',
-					'onclick' => 'alert("TODO: Checkout the title")',
+					'onclick' => "VuFind.LocalEContent.checkout('{$itemData[1]}')", //Checkout based on item id
 					'title' => 'Check Out',
 					'requireLogin' => true,
 			);
 		}else{
 			$actions[] = array(
 					'url' => '',
-					'onclick' => 'alert("TODO: Place a hold")',
+					'onclick' => "VuFind.LocalEContent.placeHold('{$itemData[1]}')",
 					'title' => 'Place Hold',
 					'requireLogin' => true,
 			);
 		}
 		return $actions;
+	}
+
+	function getFormat(){
+		$result = array();
+		/** @var File_MARC_Data_Field[] $itemFields */
+		$itemFields = $this->getMarcRecord()->getFields('989');
+		foreach ($itemFields as $item){
+			$subfieldW = $item->getSubfield('w');
+			if ($subfieldW != null){
+				if (strpos($subfieldW->getData(), ':') !== FALSE){
+					$eContentFieldData = explode(':', $subfieldW->getData());
+					$protectionType = trim($eContentFieldData[1]);
+					if ($this->isValidProtectionType($protectionType)){
+						//Format is based off the iType
+						$iTypeField = $item->getSubfield('j');
+						if ($iTypeField != null){
+							$result[] = mapValue('econtent_itype_format', $iTypeField->getData());
+						}else{
+							$result[] = 'eBook';
+						}
+					}
+				}
+			}
+		}
+		return $result;
+	}
+
+	function getFormatCategory(){
+		/** @var File_MARC_Data_Field[] $itemFields */
+		$itemFields = $this->getMarcRecord()->getFields('989');
+		foreach ($itemFields as $item){
+			$subfieldW = $item->getSubfield('w');
+			if ($subfieldW != null){
+				if (strpos($subfieldW->getData(), ':') !== FALSE){
+					$eContentFieldData = explode(':', $subfieldW->getData());
+					$protectionType = trim($eContentFieldData[1]);
+					if ($this->isValidProtectionType($protectionType)){
+						//Format is based off the iType
+						$iTypeField = $item->getSubfield('j');
+						if ($iTypeField != null){
+							return mapValue('econtent_itype_format_category', $iTypeField->getData());
+						}else{
+							return 'eBook';
+						}
+					}
+				}
+			}
+		}
+		return 'eBook';
 	}
 } 

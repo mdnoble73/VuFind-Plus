@@ -214,6 +214,28 @@ class DBMaintenanceEContent extends Admin_Admin {
 				),
 			),
 
+			'econtentUpdates2014' => array(
+				'title' => 'VuFind 2014 eContent Updates',
+				'description' => 'Update eContent Checkouts for VuFind 20124',
+				'sql' => array(
+					'DROP TABLE IF EXISTS econtent_record',
+					'DROP TABLE IF EXISTS econtent_item',
+					'DROP TABLE IF EXISTS econtent_availability',
+					'DROP TABLE IF EXISTS econtent_rating',
+					'DROP TABLE IF EXISTS econtent_wishlist',
+					'DROP TABLE IF EXISTS econtent_marc_import',
+					'TRUNCATE TABLE econtent_checkout',
+					'ALTER TABLE econtent_checkout CHANGE recordId recordId VARCHAR(20)',
+					'ALTER TABLE econtent_checkout ADD itemId VARCHAR(20)',
+					'TRUNCATE TABLE econtent_hold',
+					'ALTER TABLE econtent_hold CHANGE recordId recordId VARCHAR(20)',
+					'ALTER TABLE econtent_hold ADD itemId VARCHAR(20)',
+					'TRUNCATE TABLE econtent_history',
+					'ALTER TABLE econtent_history CHANGE recordId recordId VARCHAR(20)',
+					'ALTER TABLE econtent_history ADD itemId VARCHAR(20)',
+				)
+			),
+
 			'eContentHistory'	=> array(
 				'title' => 'eContent History table',
 				'description' => 'Sets up tables for handling history of eContent',

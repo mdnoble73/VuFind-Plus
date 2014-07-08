@@ -125,12 +125,15 @@ class eContentHelp extends Action
 		$interface->assign('defaultDevice', $defaultDevice);
 
 		if (isset($_REQUEST['lightbox'])){
-			$interface->assign('popupTitle', 'Step by Step Instructions for using eContent');
-			$popupContent = $interface->fetch('Help/eContentHelp.tpl');
-			$interface->assign('popupContent', $popupContent);
-			$interface->display('popup-wrapper.tpl');
+			$result = array(
+				'title' => 'Step by Step Instructions for using eContent',
+				'modalBody' => $interface->fetch('Help/eContentHelp.tpl'),
+				'modalButtons' => ''
+			);
+			echo json_encode($result);
 		}else{
 			$interface->setTemplate('eContentHelp.tpl');
+			$interface->assign('sidebar', 'Search/home-sidebar.tpl');
 			$interface->display('layout.tpl');
 		}
 	}

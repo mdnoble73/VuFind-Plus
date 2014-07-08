@@ -1,6 +1,30 @@
 /**
  * Created by mark on 2/11/14.
  */
+VuFind.EContent = (function(){
+	return {
+		submitHelpForm: function(){
+			var url = Globals.path + '/Help/eContentSupport';
+			$.ajax({
+				type: "POST",
+				url: url,
+				data: $("#eContentSupport").serialize(), // serializes the form's elements.
+				success: function(data)
+				{
+					var jsonData = JSON.parse(data);
+					VuFind.showMessage(jsonData.title, jsonData.message);
+
+				},
+				failure: function(data){
+					alert("Could not submit the form");
+				}
+			});
+
+			return false;
+		}
+	}
+}(VuFind.EContent));
+
 VuFind.ExternalEContentRecord = (function(){
 	return {
 		loadHoldingsInfo: function(id, type, callback){
@@ -90,9 +114,28 @@ VuFind.ExternalEContentRecord = (function(){
 
 VuFind.LocalEContent = (function(){
 	return {
-		checkout: function(itemId){
-			var checkoutUrl =
-			alert("Checking Out " + itemId);
+		checkoutPublicEContent: function(recordId, itemId){
+			if (Globals.loggedIn){
+				var checkoutUrl = Globals.path + '/PublicEContent/' + recordId + '/AJAX?method=checkout&itemId=' + itemId;
+				$.getJSON(checkoutUrl, function(data){
+					if (data.result) {
+						VuFind.showMessage("Success", data.message);
+					} else {
+						VuFind.showMessage("Error", data.message);
+					}
+				});
+			}else{
+				VuFind.Account.ajaxLogin(null, function(){
+					VuFind.LocalEContent.checkoutPublicEContent(recordId, itemId);
+				}, false);
+			}
+		},
+
+		checkoutRestrictedEContent: function(itemId){
+			var checkoutUrl = Globals.path + '/RestrictedEContent/' + recordId + '/AJAX?method=checkout&itemId=' + itemId;
+			$.getJSON(checkoutUrl, function(data){
+
+			});
 		},
 
 		placeHold: function(itemId){

@@ -21,71 +21,73 @@
 require_once ROOT_DIR . '/Action.php';
 
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
+require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
 
 class EContent_JSON extends Action
 {
-	private $user;
-
-	function __construct()
-	{
-		$this->user = UserAccount::isLoggedIn();
-	}
-
 	function launch()
 	{
 		global $configArray;
 
 		$id = $_REQUEST['id'];
-		$item = $_REQUEST['item'];
+		$file = $_REQUEST['file'];
 
 		//Check the database to see if there is an existing title
-		require_once(ROOT_DIR . '/sys/eContent/EContentItem.php');
-		$epubFile = new EContentItem();
-		$epubFile->id = $_REQUEST['item'];
-		$epubFile->find();
-		$bookFile = null;
-		if ($epubFile->find(true)){
-			if (preg_match("/{$epubFile->recordId}/", $id)){
+		$recordDriver = new PublicEContentDriver($id);
+		if (!$recordDriver->isValid()){
+			$output = json_encode(array('error'=>'Invalid Record.  The specified title does not exist.'));
+		}else{
+			$itemId = $_REQUEST['item'];
+			if (!$recordDriver->isCheckedOut($itemId)){
+				$output = json_encode(array('error'=>'This title is not checked out to you.  Please checkout the title.'));
+			}else{
+				//TODO: Validate that this file belongs to the checked out record
 				$libraryPath = $configArray['EContent']['library'];
-				$bookFile = "{$libraryPath}/{$epubFile->filename}";
+				$bookFile = "{$libraryPath}/{$file}";
 				if (!file_exists($bookFile)){
 					$bookFile = null;
+					$epubExists = false;
+				}else{
+					$epubExists = true;
 				}
-			}
-		}
 
-		if (file_exists($bookFile)){
-			require_once(ROOT_DIR . '/sys/eReader/ebook.php');
-			$ebook = new ebook($bookFile);
-			$epubExists = true;
-		}else{
-			$epubExists = false;
-		}
-		if ($epubExists){
-			if ($_GET['method'] == 'getComponent' || $_GET['method'] == 'getComponentCustom') {
-				//Content type will depend on the type of content created.
-				$output = $this->$_GET['method']($ebook, $id, $item);
-			}else{
-				header('Content-type: text/plain');
-				header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-				header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-				if (is_callable(array($this, $_GET['method']))) {
-					$output = json_encode(array('result'=>$this->$_GET['method']($ebook, $id)));
-				} else {
-					$output = json_encode(array('error'=>'invalid_method ' . $_GET['method']));
+				require_once(ROOT_DIR . '/sys/eReader/ebook.php');
+				$ebook = new ebook($bookFile);
+
+				if ($epubExists){
+					if ( $_GET['method'] == 'getComponentCustom') {
+						//Content type will depend on the type of content created.
+						$output = $this->$_GET['method']($ebook, $id, $itemId, $file);
+					}else{
+						header('Content-type: text/plain');
+						header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+						header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+						if (is_callable(array($this, $_GET['method']))) {
+							$output = json_encode(array('result'=>$this->$_GET['method']($ebook, $id, $itemId, $file)));
+						} else {
+							$output = json_encode(array('error'=>'invalid_method ' . $_GET['method']));
+						}
+					}
+				}else{
+					header('Content-type: text/plain');
+					header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+					header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+					$output = json_encode(array('error'=>'e-pub file does not exist'));
 				}
 			}
-		}else{
-			header('Content-type: text/plain');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			$output = json_encode(array('error'=>'e-pub file does not exist'));
 		}
 
 		echo $output;
 	}
 
-	function getComponent($ebook, $id, $item){
+	/**
+	 * @param ebook $ebook
+	 * @param string $id
+	 * @param string $item
+	 * @param string $file
+	 * @return mixed|string
+	 */
+	function getComponentCustom($ebook, $id, $item, $file){
 		global $configArray;
 		$component = $_REQUEST['component'];
 		$component = stripslashes($component);
@@ -93,84 +95,14 @@ class EContent_JSON extends Action
 			$component = substr($component, 0, strpos($component, "#"));
 		}
 
-		//Get the content type for this id
-		$componentTypes = $ebook->getManifest('type');
-
 		try{
 			$componentText = $ebook->getContentById($component);
-		}catch(Exeption $e){
-			return 'Unable to load content for component ' . $component;
-		}
-
-		//Get the componentType of the content we are getting.
-		for ($i = 0; $i < $ebook->getManifestSize(); $i++){
-			$manifestId = $ebook->getManifestItem($i, 'id');
-			$manifestHref= $ebook->getManifestItem($i, 'href');
-			$manifestType= $ebook->getManifestItem($i, 'type');
-			if ($manifestId == $component){
-				$componentType = $manifestType;
-			}
-		}
-
-		if (in_array($componentType, array('image/jpeg', 'image/gif', 'image/tif', 'text/css'))){
-			header("Content-type: {$componentType}");
-			//Do not json encode the data
-		}else{
-			//After we get the component, we need to do some processing to fix internal links, images, and css files
-			//so they display properly.
-			//Loop through the manifest to find any files that are referenced
-			for ($i = 0; $i < $ebook->getManifestSize(); $i++){
-				$manifestId = $ebook->getManifestItem($i, 'id');
-				$manifestHref= $ebook->getManifestItem($i, 'href');
-				$manifestType= $ebook->getManifestItem($i, 'type');
-
-				if (in_array($manifestType, array('image/jpeg', 'image/gif', 'image/tif', 'text/css'))){
-					//Javascript or image
-					$pattern = str_replace("~", "\~", preg_quote($manifestHref));
-					$replacement = $configArray['Site']['path'] . "/EContent/" . preg_quote($id) ."/JSON?method=getComponent&component=" . preg_quote($manifestId) . "&item=" . $item;
-					$componentText = preg_replace("~$pattern~", $replacement, $componentText);
-				}else{
-					//Link to another location within the document
-					//convert to a window.reader.moveTo(componentId, location)
-					//$componentText = preg_replace('/<a href=["\']#'. preg_quote($manifestHref) . '["\']/', "<a onclick=\"window.parent.reader.moveTo({componentId: '{$escapedManifestId}', xpath:'//a[@id={$escapedManifestId}]'})\" href=\"#\"", $componentText);
-					$pattern = str_replace("~", "\~", '<a (.*?)href=["\']'. preg_quote($manifestHref) . '#(.*?)["\']');
-					$replacement = '<a \\1 onclick=\"window.parent.reader.moveTo({componentId: \'' . addslashes($manifestId) . '\', xpath:\'//a[@id=\\2]\'});return false;" href="#"';
-					$componentText = preg_replace("~$pattern~", $replacement, $componentText);
-				}
-			}
-
-			header('Content-type: text/plain');
-			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
-			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			if (is_null($componentText)){
-				$componentText = '';
-			}
-			$componentText = json_encode(array('result'=>$componentText));
-		}
-
-		return $componentText;
-	}
-
-	function getComponentCustom($ebook, $id, $item){
-		global $configArray;
-		$component = $_REQUEST['component'];
-		$component = stripslashes($component);
-		if (strpos($component, "#") > 0){
-			$component = substr($component, 0, strpos($component, "#"));
-		}
-
-		//Get the content type for this id
-		$componentTypes = $ebook->getManifest('type');
-
-		try{
-			$componentText = $ebook->getContentById($component);
-		}catch(Exeption $e){
+		}catch(Exception $e){
 			return 'Unable to load content for component ' . $component;
 		}
 		//Get the componentType of the content we are getting.
 		for ($i = 0; $i < $ebook->getManifestSize(); $i++){
 			$manifestId = $ebook->getManifestItem($i, 'id');
-			$manifestHref= $ebook->getManifestItem($i, 'href');
 			$manifestType= $ebook->getManifestItem($i, 'type');
 
 			if ($manifestId == $component){
@@ -197,7 +129,7 @@ class EContent_JSON extends Action
 						//Ignore css for now
 						$replacement = '';
 					}else{
-						$replacement = $configArray['Site']['path'] . "/EContent/" . preg_quote($id) ."/JSON?method=getComponent&item=" . $item . "&component=" . preg_quote($manifestId);
+						$replacement = $configArray['Site']['path'] . "/EContent/" . preg_quote($id) ."/JSON?method=getComponentCustom&item=" . $item . "&component=" . preg_quote($manifestId) . "&file=" . $file;
 					}
 					$componentText = preg_replace("~$pattern~", $replacement, $componentText);
 				}else{
@@ -223,10 +155,5 @@ class EContent_JSON extends Action
 		}
 
 		return $componentText;
-	}
-
-	function hasEpub(){
-		//If we got this far, the book does exist.  Otherwise we would have gotten an error before.
-		return true;
 	}
 }

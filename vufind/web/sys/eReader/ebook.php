@@ -641,9 +641,9 @@ class ebook{
 
  	/**
  	 * Gets the manifest item desired
- 	 * @param $index The index number of the manifest item.
- 	 * @param $item What attribute do you want from the manifest (id, href, or media-type).
- 	 * @return a string of the requested data if it exists else returns null.
+ 	 * @param string $index The index number of the manifest item.
+ 	 * @param string $item What attribute do you want from the manifest (id, href, or media-type).
+ 	 * @return string - a string of the requested data if it exists else returns null.
  	 **/
 	public function getManifestItem($index, $item){
 		return $this->ebookReader->getManifestItem($index, $item);

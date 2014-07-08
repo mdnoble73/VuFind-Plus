@@ -3,6 +3,7 @@
 		Need help downloading a title or using the title on your device?  Please fill out this support form.
 	</div>
 	<form id="eContentSupport" action="{$path}/Help/eContentSupport" method="post">
+		<input type="hidden" name="submit" value="submitted"/>
 		{if !$user}
 			<div class='form-group'>
 				<label for='libraryCardNumber' class='control-label'>Library Card Number: *</label><input type="text" name="libraryCardNumber" id="libraryCardNumber" class="required form-control" maxlength="20" size="20"/>
@@ -47,13 +48,13 @@
 				<option value="other">Other - Please specify Below</option>
 			</select>
 		</div>
-		<div class='propertyInput'>
+		<div class='form-group'>
 			<label for='problem' class='control-label'>Please describe your issue:</label><br/>
 			<textarea rows="10" cols="40" name="problem" id="problem" class="form-control"></textarea>
 		</div>
 		{if $lightbox == false}
 			<div class='form-group'>
-				<input type="submit" name="submit" value="Submit" class="btn btn-sm btn-primary"/>
+				<button class='btn btn-sm btn-primary' onclick='return VuFind.EContent.submitHelpForm();'>Submit</button>
 			</div>
 		{/if}
 	</form>

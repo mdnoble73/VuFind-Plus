@@ -54,10 +54,16 @@ class eContentSupport extends Action
 			$body = $interface->fetch('Help/eContentSupportEmail.tpl');
 			if ($mail->send($to, $configArray['Site']['email'], $subject, $body, $from)){
 				$analytics->addEvent("Emails", "eContent Support Succeeded", $_REQUEST['device'], $_REQUEST['format'], $_REQUEST['operatingSystem']);
-				echo("<p>Your request was sent to our support team.  We will respond to your request as quickly as possible.</p><p>Thank you for using the catalog.</p><input type='button' onclick='hideLightbox()' value='Close'/>");
+				echo(json_encode(array(
+					'title' => "Support Request Sent",
+					'message' => "<p>Your request was sent to our support team.  We will respond to your request as quickly as possible.</p><p>Thank you for using the catalog.</p>"
+				)));
 			}else{
 				$analytics->addEvent("Emails", "eContent Support Failed", $_REQUEST['device'], $_REQUEST['format'], $_REQUEST['operatingSystem']);
-				echo("<p>We're sorry, but your request could not be submitted to our support team at this time.</p><p>Please try again later.</p><input type='button' onclick='hideLightbox()' value='Close' />");
+				echo(json_encode(array(
+						'title' => "Support Request Not Sent",
+						'message' => "<p>We're sorry, but your request could not be submitted to our support team at this time.</p><p>Please try again later.</p>"
+				)));
 			}
 		}else{
 			if (isset($_REQUEST['lightbox'])){
@@ -66,10 +72,12 @@ class eContentSupport extends Action
 					$interface->assign('name', $user->cat_username);
 					$interface->assign('email', $user->email);
 				}
-				$interface->assign('popupTitle', 'eContent Support');
-				$popupContent = $interface->fetch('Help/eContentSupport.tpl');
-				$interface->assign('popupContent', $popupContent);
-				$interface->display('popup-wrapper.tpl');
+				$result = array(
+						'title' => 'eContent Support',
+						'modalBody' => $interface->fetch('Help/eContentSupport.tpl'),
+						'modalButtons' => "<button class='btn btn-sm btn-primary' onclick='return VuFind.EContent.submitHelpForm();'>Submit</button>",
+				);
+				echo json_encode($result);
 			}else{
 				$interface->assign('lightbox', false);
 				$interface->setTemplate('eContentSupport.tpl');

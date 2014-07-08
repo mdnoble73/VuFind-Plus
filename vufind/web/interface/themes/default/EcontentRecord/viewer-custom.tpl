@@ -21,13 +21,13 @@
 		{if !$errorOccurred}
 		{literal}
 			<script type="text/javascript">
-				var manifest = new Array();
+				var manifest = [];
 				{/literal}
 				{foreach from=$manifest key=href item=manifestId}
 					manifest['{$href|replace:"'":"\'"}'] = '{$manifestId|replace:"'":"\'"}';
 				{/foreach}
 				
-				var tableOfContents = new Array();
+				var tableOfContents = [];
 				{foreach from=$contents item=tocEntry}
 					tableOfContents['{if strlen($tocEntry->src) > 0}{$tocEntry->src}{else}{$tocEntry->location}{/if}'] = '{$tocEntry->title|replace:"'":"\'"}';
 					{foreach from=$tocEntry->children item=tocEntry2}
@@ -38,59 +38,63 @@
 
 				var tocVisible = true;
 				function toggleControls(){
-					if ($('#toolbarToggle').hasClass('controlsVisible')){
-						$('#toolbarToggle').removeClass('controlsVisible');
-						$('#toolbarToggle').addClass('controlsHidden');
+					var toolbarToggle = $('#toolbarToggle');
+					var reader = $('#reader');
+					if (toolbarToggle.hasClass('controlsVisible')){
+						toolbarToggle.removeClass('controlsVisible');
+						toolbarToggle.addClass('controlsHidden');
 						$('#hideableHeader').hide();
 						$('#epubToolbarTop').hide();
 						$('#epubToolbarBottom').hide();
-						$('#reader').css('top', '0px');
-						$('#reader').css('bottom', '0px');
-						$('#reader').css('left', '0px');
+						reader.css('top', '0px');
+						reader.css('bottom', '0px');
+						reader.css('left', '0px');
 						$('#tableOfContents').hide();
 						$('#readerPosition').hide();
-						$('#toolbarToggle').html('Show Controls');
+						toolbarToggle.html('Show Controls');
 					}else{
-						$('#toolbarToggle').removeClass('controlsHidden');
-						$('#toolbarToggle').addClass('controlsVisible');
+						toolbarToggle.removeClass('controlsHidden');
+						toolbarToggle.addClass('controlsVisible');
 						$('#hideableHeader').show();
 						$('#epubToolbarTop').show();
 						$('#epubToolbarBottom').show();
-						$('#reader').css('top', '104px');
-						$('#reader').css('bottom', '23px');
+						reader.css('top', '104px');
+						reader.css('bottom', '23px');
 						if (tocVisible){
-							$('#reader').css('left', '200px');
+							reader.css('left', '200px');
 							$('#tableOfContents').show();
 						}else{
-							$('#reader').css('left', '0px');
+							reader.css('left', '0px');
 							$('#tableOfContents').hide();
 						}
 						$('#readerPosition').show();
-						$('#toolbarToggle').html('Hide Controls');
+						toolbarToggle.html('Hide Controls');
 					}
 				}
 
 				function toggleToc(){
+					var reader = $('#reader');
 					if (tocVisible){
 						tocVisible = false;
 						$('#tableOfContents').hide();
-						$('#reader').css('left', '0px');
+						reader.css('left', '0px');
 						$('#toggleTOC').html("Show TOC");
 					}else{
 						tocVisible = true;
 						$('#tableOfContents').show();
-						$('#reader').css('left', '200px');
+						reader.css('left', '200px');
 						$('#toggleTOC').html("Hide TOC");
 					}
 				}
 				
 
 				function prevPage(){
+					var reader = $('#reader');
 					//Check to see if we are already at the top of the page and if so, go back to the end of the previous item in the manifest
-					if ($('#reader').scrollTop() == 0){
+					if (reader.scrollTop() == 0){
 						var prevComponent = '';
 						for (var manifestItem in manifest){
-							if (manifest[manifestItem] == curComponent){
+							if (curComponent == manifest[manifestItem]){
 								break;
 							}
 							prevComponent = manifest[manifestItem]; 
@@ -100,21 +104,22 @@
 						}else{
 							showTocEntry(prevComponent, function (){
 								var documentEnd = document.getElementById('reader').scrollHeight; 
-								$('#reader').animate({
+								reader.animate({
 									scrollTop: documentEnd
 								}, 500, saveCurrentPosition())
 							});
 						}
 					}else{
-						$('#reader').animate({
-							scrollTop: -$('#reader').height() + $('#reader').scrollTop()
+						reader.animate({
+							scrollTop: -reader.height() + reader.scrollTop()
 						}, 500, saveCurrentPosition());
 					}
 				}
 
 				function nextPage(){
+					var reader = $('#reader');
 					//Check to see if we are already at the end of the page and if so, go back to the next item in the manifest
-					if (Math.abs($('#reader').scrollTop() - (document.getElementById('reader').scrollHeight - document.getElementById('reader').offsetHeight)) < 20){
+					if (Math.abs(reader.scrollTop() - (document.getElementById('reader').scrollHeight - document.getElementById('reader').offsetHeight)) < 20){
 						//Get the current item in the manifest
 						var nextComponent = '';
 						var curComponentFound = false; 
@@ -123,7 +128,7 @@
 								nextComponent = manifest[manifestItem];
 								break;
 							}
-							if (manifest[manifestItem] == curComponent){
+							if (curComponent == manifest[manifestItem]){
 								curComponentFound = true;
 							}
 						}
@@ -133,33 +138,39 @@
 							showTocEntry(nextComponent);
 						}
 					}else{
-						$('#reader').animate({
-							scrollTop: $('#reader').height() + $('#reader').scrollTop()
+						reader.animate({
+							scrollTop: reader.height() + reader.scrollTop()
 						}, 500, saveCurrentPosition());
 					}
 				}
 
 				var curComponent;
 				function showTocEntry(componentId, completeCallback){
+					var reader = $('#reader');
 					componentParts = componentId.split('#', 2);
 					component = componentParts[0];
 					anchor = componentParts[1];
 					//Get the entry via AJAX callback 
 					if (curComponent != component){
 						curComponent = component; 
-						$('#reader').html("Loading...");
+						reader.html("Loading...");
 						var jsonString = $.ajax({
 							url: '{/literal}{$path}{literal}/EContent/{/literal}{$id}{literal}/JSON',
-							data: {method : "getComponentCustom", component: componentId, item: "{/literal}{$item}{literal}"},
+							data: {
+								method : "getComponentCustom",
+								component: componentId,
+								item: "{/literal}{$itemId}{literal}",
+								file: "{/literal}{$file}{literal}"
+							},
 							async: false,
 							dataType: 'json'
 							});
 						var jsonData = $.parseJSON(jsonString.responseText);
 						var jsonResult = jsonData.result; 
 						if (jsonResult.length == 0){
-							$('#reader').html("Could not find content for " + componentId);
+							reader.html("Could not find content for " + componentId);
 						} else{
-							$('#reader').html(jsonResult);
+							reader.html(jsonResult);
 						}
 					}
 
@@ -167,8 +178,8 @@
 						completeCallback.call();
 					}else{
 						if ($('#' + anchor).offset() != null){
-							$('#reader').animate({
-								scrollTop: $('#' + anchor).offset().top + $('#reader').scrollTop() - $('#reader').offset().top
+							reader.animate({
+								scrollTop: $('#' + anchor).offset().top + reader.scrollTop() - reader.offset().top
 							}, 500, saveCurrentPosition());
 						}else{
 							saveCurrentPosition();
@@ -196,7 +207,7 @@
 						var currentPosition = {
 								component: curComponent,
 								topAnchor: curAnchor
-						}
+						};
 	
 						$.cookie(ebookCookie, JSON.stringify(currentPosition), {path: '/', expires: 30});
 
