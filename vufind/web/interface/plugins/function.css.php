@@ -18,7 +18,7 @@ function smarty_function_css($params, &$smarty)
 	// Extract details from the config file and parameters so we can find CSS files:
 	global $configArray;
 	global $interface;
-	$path = $configArray['Site']['url'];
+	$path = $configArray['Site']['path'];
 	$local = $configArray['Site']['local'];
 	$themes = $interface->getThemes();
 	$filename = $params['filename'];
