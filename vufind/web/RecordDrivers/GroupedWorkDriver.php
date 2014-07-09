@@ -1079,12 +1079,16 @@ class GroupedWorkDriver implements RecordInterface{
 					'shelfLocation' => array(),
 					'availableLocally' => false,
 					'availableOnline' => false,
+					'availableHere' => false,
 					'inLibraryUseOnly' => false,
 					'allLibraryUseOnly' => true,
 				);
 			}
 			if (isset($curRecord['availableLocally']) && $curRecord['availableLocally'] == true){
 				$relatedManifestations[$curRecord['format']]['availableLocally'] = true;
+			}
+			if (isset($curRecord['availableHere']) && $curRecord['availableHere'] == true){
+				$relatedManifestations[$curRecord['format']]['availableHere'] = true;
 			}
 			if ($curRecord['available'] && $curRecord['locationLabel'] === 'Online'){
 				$relatedManifestations[$curRecord['format']]['availableOnline'] = true;

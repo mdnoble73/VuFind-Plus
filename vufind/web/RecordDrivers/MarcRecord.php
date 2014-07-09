@@ -1570,6 +1570,7 @@ class MarcRecord extends IndexRecord
 			$items = $this->getItemsFast();
 			$availableCopies = 0;
 			$localAvailableCopies = 0;
+			$branchAvailableCopies = 0;
 			$localCopies = 0;
 			$totalCopies = 0;
 			$hasLocalItem = false;
@@ -1583,6 +1584,12 @@ class MarcRecord extends IndexRecord
 					$localCopies++;
 					if ($item['availability'] == true){
 						$localAvailableCopies++;
+					}
+				}
+				if ($item['isLocalItem'] ){
+					$localCopies++;
+					if ($item['availability'] == true){
+						$branchAvailableCopies++;
 					}
 				}
 			}
@@ -1604,6 +1611,7 @@ class MarcRecord extends IndexRecord
 					'callNumber' => $this->getCallNumber(),
 					'available' => $this->isAvailable(false),
 					'availableLocally' => $localAvailableCopies > 0,
+					'availableHere' => $branchAvailableCopies > 0,
 					'inLibraryUseOnly' => $this->isLibraryUseOnly(false),
 					'availableCopies' => $availableCopies,
 					'copies' => $totalCopies,
@@ -1805,13 +1813,6 @@ class MarcRecord extends IndexRecord
 			$searchLocation = Location::getSearchLocation();
 			if ($searchLocation){
 				$homeLocationCode = $searchLocation->code;
-				$homeLocationLabel = $searchLocation->facetLabel;
-			}else{
-				$homeLocation = Location::getUserHomeLocation();
-				if ($homeLocation){
-					$homeLocationCode = $homeLocation->code;
-					$homeLocationLabel = $homeLocation->facetLabel;
-				}
 			}
 			if ($this->itemsFromIndex){
 				$this->fastItems = array();
@@ -1822,8 +1823,8 @@ class MarcRecord extends IndexRecord
 						'availability' => $itemData[4] == 'true',
 						'holdable' => true,
 						'inLibraryUseOnly' => $itemData[5] == 'true',
-						'isLocalItem' => isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && strpos($itemData[2], $libraryLocationCode) === 0,
-						'isLibraryItem' => isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($itemData[2], $homeLocationCode) === 0,
+						'isLibraryItem' => isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && strpos($itemData[2], $libraryLocationCode) === 0,
+						'isLocalItem' => isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($itemData[2], $homeLocationCode) === 0,
 						'locationLabel' => true,
 						'shelfLocation' => mapValue('shelf_location', $itemData[2]),
 					);
