@@ -202,7 +202,7 @@ abstract class SearchObject_Base
 		global $locationSingleton;
 		$searchLocation = $locationSingleton->getActiveLocation();
 		$userLocation = Location::getUserHomeLocation();
-		global $searchScope;
+		global $solrScope;
 
 		// Check for duplicates -- if it's not in the array, we can add it
 		if (!$this->hasFilter($newFilter)) {
@@ -227,17 +227,17 @@ abstract class SearchObject_Base
 				}
 			}
 
-			if ($searchScope){
+			if ($solrScope){
 				if ($field == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
-					$field = 'availability_toggle_' . $searchScope;
+					$field = 'availability_toggle_' . $solrScope;
 				}elseif ($field == 'format' && $configArray['Index']['enableDetailedFormats']){
-					$field = 'format_' . $searchScope;
+					$field = 'format_' . $solrScope;
 				}elseif ($field == 'format_category' && $configArray['Index']['enableDetailedFormats']){
-					$field = 'format_category_' . $searchScope;
+					$field = 'format_category_' . $solrScope;
 				}elseif ($field == 'econtent_source' && $configArray['Index']['enableDetailedEContentSources']){
-					$field = 'econtent_source_' . $searchScope;
+					$field = 'econtent_source_' . $solrScope;
 				}elseif ($field == 'econtent_protection_type' && $configArray['Index']['enableDetailedEContentSources']){
-					$field = 'econtent_protection_type_' . $searchScope;
+					$field = 'econtent_protection_type_' . $solrScope;
 				}
 			}
 

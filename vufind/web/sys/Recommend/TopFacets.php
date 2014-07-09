@@ -57,8 +57,6 @@ class TopFacets implements RecommendationInterface
 		if ($this->searchObject->getSearchType() == 'genealogy'){
 			$this->mainFacets = array();
 		}else{
-			global $searchScope;
-
 			$searchLibrary = Library::getActiveLibrary();
 			global $locationSingleton;
 			$searchLocation = $locationSingleton->getActiveLocation();
@@ -72,14 +70,22 @@ class TopFacets implements RecommendationInterface
 			}else{
 				$facets = Library::getDefaultFacets();
 			}
+			global $solrScope;
 			foreach ($facets as $facet){
 				if ($facet->showAboveResults == 1){
 					$facetName = $facet->facetName;
-					if ($searchScope){
+					if ($solrScope){
 						if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
-							$facetName = 'availability_toggle_' . $searchScope;
+							$facetName = 'availability_toggle_' . $solrScope;
 						}else if ($facet->facetName == 'format_category' && $configArray['Index']['enableDetailedFormats']){
-							$facetName = 'format_category_' . $searchScope;
+							$facetName = 'format_category_' . $solrScope;
+						}
+					}
+					/*if (isset($searchLibrary)){
+						if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+							$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
+						}else if ($facet->facetName == 'format_category' && $configArray['Index']['enableDetailedFormats']){
+							$facetName = 'format_category_' . $searchLibrary->subdomain;
 						}
 					}
 					if (isset($userLocation)){
@@ -91,7 +97,7 @@ class TopFacets implements RecommendationInterface
 						if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
 							$facetName = 'availability_toggle_' . $searchLocation->code;
 						}
-					}
+					}*/
 					$this->facets[$facetName] = $facet->displayName;
 					$this->facetSettings[$facetName] = $facet;
 				}
