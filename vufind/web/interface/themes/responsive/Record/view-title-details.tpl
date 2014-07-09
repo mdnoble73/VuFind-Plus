@@ -97,18 +97,7 @@
 		<div class="row">
 			<div class="result-label col-sm-4">{translate text='Description'}</div>
 			<div class="result-value col-sm-8">
-				{if strlen($summary) > 600}
-					<span id="shortSummary">
-									{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'|truncate:600}{*Leave unescaped because some syndetics reviews have html in them *}
-						<a href='#' onclick='$("#shortSummary").slideUp();$("#fullSummary").slideDown()'>More</a>
-									</span>
-					<span id="fullSummary" style="display:none">
-									{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
-						<a href='#' onclick='$("#shortSummary").slideDown();$("#fullSummary").slideUp()'>Less</a>
-									</span>
-				{else}
-					{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
-				{/if}
+				{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
 			</div>
 		</div>
 	{/if}
