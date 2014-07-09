@@ -1225,6 +1225,8 @@ class MarcRecord extends IndexRecord
 			$topicalTerm = strtolower($topicalTerm);
 			if (strpos($topicalTerm, "large type") !== FALSE){
 				$result[] =  "Large Print";
+			}elseif (strpos($topicalTerm, "playaway") !== FALSE){
+				$result[] =  "Playaway";
 			}
 		}
 

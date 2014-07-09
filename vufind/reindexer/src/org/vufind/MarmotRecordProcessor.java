@@ -506,8 +506,11 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				@SuppressWarnings("unchecked")
 				List<Subfield> subfields = field.getSubfields();
 				for (Subfield subfield : subfields) {
-					if (subfield.getData().toLowerCase().contains("large type")) {
+					String subfieldData = subfield.getData().toLowerCase();
+					if (subfieldData.contains("large type")) {
 						result.add("LargePrint");
+					}else if (subfieldData.contains("playaway")) {
+						result.add("Playaway");
 					}
 				}
 			}
