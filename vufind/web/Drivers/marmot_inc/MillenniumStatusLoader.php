@@ -280,7 +280,7 @@ class MillenniumStatusLoader{
 
 					//Check to see if this item can be held by the current patron.  Only important when
 					//we know what pType is in use and we are showing all items.
-					if ($scope == $this->driver->getDefaultScope() && $pType > 0){
+					if ($scope == $this->driver->getDefaultScope() && $pType >= 0){
 						//Never remove the title if it is owned by the current library (could be in library use only)
 						if (isset($library) && strlen($library->ilsCode) > 0 && strpos($holding['locationCode'], $library->ilsCode) === 0){
 							//$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
@@ -291,6 +291,11 @@ class MillenniumStatusLoader{
 								unset($ret[$holdingKey]);
 								continue;
 							}
+						}
+					}else if ($pType >= 0 && $holding['holdable'] == 1){
+						//We won't want to remove titles based on holdability, but we do want to check if it is holdable
+						if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
+							$holding['holdable'] = 0;
 						}
 					}
 				}
@@ -432,7 +437,7 @@ class MillenniumStatusLoader{
 			if (preg_match_all('/<tr\\s+class="bibOrderEntry">.*?<td\\s*>(.*?)<\/td>/s', $millenniumInfo->framesetInfo, $orderMatches)){
 				for ($i = 0; $i < count($orderMatches[1]); $i++) {
 					$location = trim($orderMatches[1][$i]);
-					$location = preg_replace('/\\sC\\d{3}[\\s\\.]/', '', $location);
+					$location = preg_replace('/\\sC\\d{3}\\w{0,2}[\\s\\.]/', '', $location);
 					//Remove courier code if any
 					$sorted_array['7' . $location . $i] = array(
 	                    'location' => $location,
