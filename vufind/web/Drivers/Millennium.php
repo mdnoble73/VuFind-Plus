@@ -343,7 +343,10 @@ class MillenniumDriver implements DriverInterface
 				$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
 				$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
 
-				$shelfLocationMap = getTranslationMap('shelf_location');
+				$shelfLocation = mapValue('shelf_location', $locationCode);
+				if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $shelfLocation, $locationParts)){
+					$shelfLocation = $locationParts[1];
+				}
 				$item = array(
 					'location' => $locationCode,
 					'callnumber' => $fullCallNumber,
@@ -353,7 +356,7 @@ class MillenniumDriver implements DriverInterface
 					'isLocalItem' => $isLocalItem,
 					'isLibraryItem' => $isLibraryItem,
 					'locationLabel' => $locationLabel,
-					'shelfLocation' => isset($shelfLocationMap[$locationCode]) ? $shelfLocationMap[$locationCode] : '',
+					'shelfLocation' => $shelfLocation,
 				);
 				$items[] = $item;
 			}

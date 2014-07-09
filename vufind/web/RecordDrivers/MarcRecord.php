@@ -1817,6 +1817,11 @@ class MarcRecord extends IndexRecord
 			if ($this->itemsFromIndex){
 				$this->fastItems = array();
 				foreach ($this->itemsFromIndex as $itemData){
+					$shelfLocation = mapValue('shelf_location', $itemData[2]);
+					//Try to trim the courier code if any
+					if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $shelfLocation, $locationParts)){
+						$shelfLocation = $locationParts[1];
+					}
 					$this->fastItems[] = array(
 						'location' => $itemData[2],
 						'callnumber' => $itemData[3],
@@ -1826,7 +1831,7 @@ class MarcRecord extends IndexRecord
 						'isLibraryItem' => isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && strpos($itemData[2], $libraryLocationCode) === 0,
 						'isLocalItem' => isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($itemData[2], $homeLocationCode) === 0,
 						'locationLabel' => true,
-						'shelfLocation' => mapValue('shelf_location', $itemData[2]),
+						'shelfLocation' => $shelfLocation,
 					);
 				}
 			}else{
