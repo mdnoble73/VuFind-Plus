@@ -373,8 +373,9 @@ VuFind.Record = (function(){
 			var params = '&campus=' + $('#campus').val();
 			params += '&cancelHoldDate=' + $('#cancelHoldDate').text();
 			params += '&autologout=' + $('#autologout').val();
-			if ($('#selectedItem').length > 0){
-				params += '&selectedItem=' + $('#selectedItem').val();
+			var selectedItem = $('#selectedItem');
+			if (selectedItem.length > 0){
+				params += '&selectedItem=' + selectedItem.val();
 			}
 			$.getJSON(Globals.path + "/Record/" + id + "/AJAX?method=placeHold" + params, function(data){
 				if (data.success){
