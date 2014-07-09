@@ -2,8 +2,7 @@
 	<div class="browse-title thumbnail browse-thumbnail text-center">
 		<a onclick="return VuFind.GroupedWork.showGroupedWorkInfo('{$summId}')" href="{$path}/GroupedWork/{$summId}">
 			<div>
-				<img class="hidden-xs hidden-sm visible-md" src="{$bookCoverUrlMedium}" alt="{$summTitle} by {$summAuthor}" title="{$summTitle} by {$summAuthor}">
-				<img class="visible-xs visible-sm hidden-md hidden-lg" src="{$bookCoverUrl}" alt="{$summTitle} by {$summAuthor}" title="{$summTitle} by {$summAuthor}">
+				<img class="img-responsive" src="{$bookCoverUrlMedium}" alt="{$summTitle} by {$summAuthor}" title="{$summTitle} by {$summAuthor}">
 			</div>
 		</a>
 		{if $showComments}
