@@ -41,7 +41,7 @@
 	{else}
 		{* This is all merged using the merge_javascript.php file called automatically with a File Watcher*}
 		{* Code is minified using uglify.js *}
-		<script src="{$path}/interface/themes/responsive/js/vufind.min.js"></script>
+		<script src="{$url}/interface/themes/responsive/js/vufind.min.js"></script>
 	{/if}
 
 	<script type="text/javascript">
