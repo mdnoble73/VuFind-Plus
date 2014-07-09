@@ -2,6 +2,9 @@
 Variables for VuFind customization.  These can be overridden at the local theme level
 */
 @body-text-color: #6B6B6B;
+@link-color-resp: #428bca;
+@font-family-sans-serif-resp:  "Helvetica Neue", Helvetica, Arial, sans-serif;
+@font-family-serif-resp:       Georgia, "Times New Roman", Times, serif;
 
 /**
 Header Variables
@@ -42,14 +45,6 @@ Sidebar font data
 @categoryLineShadow: #64b7d8;
 @categoryLineColor: #89cae5;
 @category1MainColor: #0d8ec7;
-/*@category2MainColor: #16a0db;
-@category3MainColor: #2ca7db;
-@category4MainColor: #37aadb;
-@category5MainColor: #4db1db;
-@category6MainColor: #5fb7db;
-@category7MainColor: #83c1db;
-@category8MainColor: #99c8db;
-@category9MainColor: #186180;*/
 @category2MainColor: lighten(@category1MainColor, 3%);
 @category3MainColor: lighten(@category1MainColor, 6%);
 @category4MainColor: lighten(@category1MainColor, 9%);
@@ -58,3 +53,7 @@ Sidebar font data
 @category7MainColor: lighten(@category1MainColor, 18%);
 @category8MainColor: lighten(@category1MainColor, 21%);
 @category9MainColor: lighten(@category1MainColor, 24%);
+@selectedCategoryBorderColor: #3497d1;
+
+//Accordions
+@accordion-active-header-color: #4dacde;

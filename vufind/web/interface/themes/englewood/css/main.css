@@ -18,14 +18,6 @@ Search Box color
 /**
 Sidebar font data
 */
-/*@category2MainColor: #16a0db;
-@category3MainColor: #2ca7db;
-@category4MainColor: #37aadb;
-@category5MainColor: #4db1db;
-@category6MainColor: #5fb7db;
-@category7MainColor: #83c1db;
-@category8MainColor: #99c8db;
-@category9MainColor: #186180;*/
 /**
 @home-search-top-color: #146B0A; //Top color for background gradient in header
 @home-search-bottom-color: #45820D; //Bottom color for background gradient in header
@@ -2312,8 +2304,8 @@ input[type="button"].btn-block {
 }
 @font-face {
   font-family: 'Glyphicons Halflings';
-  src: url('/fonts/glyphicons-halflings-regular.eot');
-  src: url('/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('/fonts/glyphicons-halflings-regular.woff') format('woff'), url('/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
+  src: url('../fonts/glyphicons-halflings-regular.eot');
+  src: url('../fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../fonts/glyphicons-halflings-regular.woff') format('woff'), url('../fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
 }
 .glyphicon {
   position: relative;
@@ -6003,6 +5995,16 @@ td.visible-print {
 /**
  * Basic Style overrides
  */
+a,
+a:visited {
+  color: #428bca;
+}
+a:hover {
+  color: #3071a9;
+}
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
 .expanded,
 .collapsed {
   cursor: pointer;
@@ -6521,7 +6523,7 @@ div#system-message-header {
 }
 .sidebar-links .active .panel-heading {
   background-color: #4dacde;
-  background: linear-gradient(to bottom, #4dacde, #0f8fd2);
+  background: linear-gradient(to bottom, #4dacde, #2796d1);
 }
 .sidebar-links .panel-title {
   font-size: 14px;
@@ -7354,7 +7356,8 @@ div#system-message-header {
   border-bottom: 1px solid #a1a1a1;
 }
 #more-details-accordion .active .panel-heading {
-  background: linear-gradient(to bottom, #4dacde, #0f8fd2);
+  background-color: #4dacde;
+  background: linear-gradient(to bottom, #4dacde, #2796d1);
 }
 #more-details-accordion .panel-title {
   font-size: 13px;

@@ -1,12 +1,10 @@
 /**
  * Main responsive theme css
  */
-@import "bootstrap/less/variables.less";
 //Default values for variables
 @navbarCollapseWidth: 480px;
 @navbarCollapseDesktopWidth: 481px;
 @horizontalComponentOffsetNarrow:       80px;
-//TODO: This is bad, it has a hardcoded url in it.
 @icon-font-path: '/fonts/';
 
 @import "bootstrap/less/bootstrap.less";
@@ -14,6 +12,15 @@
 /**
  * Basic Style overrides
  */
+a, a:visited{
+  color: @link-color-resp;
+}
+a:hover{
+  color: darken(@link-color-resp, 10%);
+}
+body {
+  font-family: @font-family-sans-serif-resp;
+}
 .expanded, .collapsed {
   cursor: pointer;
 }

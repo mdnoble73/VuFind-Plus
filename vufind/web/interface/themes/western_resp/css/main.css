@@ -18,14 +18,6 @@ Search Box color
 /**
 Sidebar font data
 */
-/*@category2MainColor: #16a0db;
-@category3MainColor: #2ca7db;
-@category4MainColor: #37aadb;
-@category5MainColor: #4db1db;
-@category6MainColor: #5fb7db;
-@category7MainColor: #83c1db;
-@category8MainColor: #99c8db;
-@category9MainColor: #186180;*/
 /**
  * Main responsive theme css
  */
@@ -2298,8 +2290,8 @@ input[type="button"].btn-block {
 }
 @font-face {
   font-family: 'Glyphicons Halflings';
-  src: url('/fonts/glyphicons-halflings-regular.eot');
-  src: url('/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('/fonts/glyphicons-halflings-regular.woff') format('woff'), url('/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
+  src: url('../fonts/glyphicons-halflings-regular.eot');
+  src: url('../fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../fonts/glyphicons-halflings-regular.woff') format('woff'), url('../fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
 }
 .glyphicon {
   position: relative;
@@ -5989,6 +5981,16 @@ td.visible-print {
 /**
  * Basic Style overrides
  */
+a,
+a:visited {
+  color: #e00034;
+}
+a:hover {
+  color: #ad0028;
+}
+body {
+  font-family: Utopia, Arial, sans-serif;
+}
 .expanded,
 .collapsed {
   cursor: pointer;
@@ -6346,7 +6348,7 @@ div#system-message-header {
   height: 130px;
   background-color: #817c81;
   background: linear-gradient(to bottom, #817c81, #525254 85%, #444545);
-  border-bottom: 8px solid #333333;
+  border-bottom: 8px solid #6f737a;
   margin-bottom: 0px;
   min-height: 110px;
 }
@@ -6391,7 +6393,7 @@ div#system-message-header {
   padding-top: 5px;
 }
 #footer-container {
-  border-top: 8px solid #333333;
+  border-top: 8px solid #6f737a;
   padding-top: 3px;
 }
 #install-info {
@@ -6407,7 +6409,7 @@ div#system-message-header {
   padding: 0px 3px 0px 3px;
 }
 #navigation-controls {
-  border-top: 8px solid #333333;
+  border-top: 8px solid #6f737a;
   background: white;
 }
 @media print {
@@ -6433,8 +6435,8 @@ div#system-message-header {
  Styling for home page elements
 */
 #home-page-search {
-  background-color: #00a4e3;
-  background: linear-gradient(to bottom, #00a4e3, #147ce2);
+  background-color: #e00034;
+  background: linear-gradient(to bottom, #e00034, #ad0028);
   padding: 20px 0 10px;
   margin-bottom: 5px;
 }
@@ -6449,7 +6451,7 @@ div#system-message-header {
 #searchSource {
   padding: 5px 0;
   color: white;
-  background-color: #147ce2;
+  background-color: #ad0028;
   border: none;
   width: 90%;
 }
@@ -6506,8 +6508,8 @@ div#system-message-header {
   border-bottom: 1px solid #a1a1a1;
 }
 .sidebar-links .active .panel-heading {
-  background-color: #4dacde;
-  background: linear-gradient(to bottom, #4dacde, #0f8fd2);
+  background-color: #a71930;
+  background: linear-gradient(to bottom, #a71930, #7b1223);
 }
 .sidebar-links .panel-title {
   font-size: 14px;
@@ -6579,43 +6581,43 @@ div#system-message-header {
   height: 80px;
 }
 .browse-category.selected {
-  border: 2px solid #3497d1;
+  border: 2px solid #e00034;
 }
 .browse-category.category0 {
-  background-color: #0d8ec7;
-  background: linear-gradient(to bottom, #0d8ec7, #0d8ec7 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #0d8ec7 90%, #0d8ec7);
+  background-color: #a71930;
+  background: linear-gradient(to bottom, #a71930, #a71930 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #a71930 90%, #a71930);
 }
 .browse-category.category1 {
-  background-color: #0e98d5;
-  background: linear-gradient(to bottom, #0e98d5, #0e98d5 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #0e98d5 90%, #0e98d5);
+  background-color: #b41b34;
+  background: linear-gradient(to bottom, #b41b34, #b41b34 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #b41b34 90%, #b41b34);
 }
 .browse-category.category2 {
-  background-color: #0fa2e4;
-  background: linear-gradient(to bottom, #0fa2e4, #0fa2e4 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #0fa2e4 90%, #0fa2e4);
+  background-color: #c21d38;
+  background: linear-gradient(to bottom, #c21d38, #c21d38 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #c21d38 90%, #c21d38);
 }
 .browse-category.category3 {
-  background-color: #12acf0;
-  background: linear-gradient(to bottom, #12acf0, #12acf0 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #12acf0 90%, #12acf0);
+  background-color: #cf1f3b;
+  background: linear-gradient(to bottom, #cf1f3b, #cf1f3b 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #cf1f3b 90%, #cf1f3b);
 }
 .browse-category.category4 {
-  background-color: #21b1f0;
-  background: linear-gradient(to bottom, #21b1f0, #21b1f0 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #21b1f0 90%, #21b1f0);
+  background-color: #dc213f;
+  background: linear-gradient(to bottom, #dc213f, #dc213f 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #dc213f 90%, #dc213f);
 }
 .browse-category.category5 {
-  background-color: #2fb6f1;
-  background: linear-gradient(to bottom, #2fb6f1, #2fb6f1 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #2fb6f1 90%, #2fb6f1);
+  background-color: #e02d4a;
+  background: linear-gradient(to bottom, #e02d4a, #e02d4a 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #e02d4a 90%, #e02d4a);
 }
 .browse-category.category6 {
-  background-color: #3dbbf2;
-  background: linear-gradient(to bottom, #3dbbf2, #3dbbf2 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #3dbbf2 90%, #3dbbf2);
+  background-color: #e23a55;
+  background: linear-gradient(to bottom, #e23a55, #e23a55 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #e23a55 90%, #e23a55);
 }
 .browse-category.category7 {
-  background-color: #4cc0f3;
-  background: linear-gradient(to bottom, #4cc0f3, #4cc0f3 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #4cc0f3 90%, #4cc0f3);
+  background-color: #e44861;
+  background: linear-gradient(to bottom, #e44861, #e44861 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #e44861 90%, #e44861);
 }
 .browse-category.category8 {
-  background-color: #5ac5f4;
-  background: linear-gradient(to bottom, #5ac5f4, #5ac5f4 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #5ac5f4 90%, #5ac5f4);
+  background-color: #e6556c;
+  background: linear-gradient(to bottom, #e6556c, #e6556c 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #e6556c 90%, #e6556c);
 }
 #home-page-browse-results {
   padding: 15px;
@@ -7340,7 +7342,8 @@ div#system-message-header {
   border-bottom: 1px solid #a1a1a1;
 }
 #more-details-accordion .active .panel-heading {
-  background: linear-gradient(to bottom, #4dacde, #0f8fd2);
+  background-color: #a71930;
+  background: linear-gradient(to bottom, #a71930, #7b1223);
 }
 #more-details-accordion .panel-title {
   font-size: 13px;
@@ -7397,4 +7400,13 @@ div#system-message-header {
 }
 #header-wrapper {
   background: linear-gradient(to bottom, #b5192b 0%, #d82538 100%) repeat scroll 0 0 rgba(0, 0, 0, 0);
+}
+.facetTitle {
+  background: #f8f8f8;
+}
+.facetTitle:hover {
+  background-color: #9d162b;
+  background: -moz-linear-gradient(left center, #9d162b 0%, #d81f3c 100%);
+  color: white;
+  text-shadow: none;
 }
