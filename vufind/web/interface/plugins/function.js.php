@@ -49,7 +49,7 @@ function smarty_function_js($params, &$smarty){
 	// so we can find CSS files:
 	global $configArray;
 	
-	$path = $configArray['Site']['path'];
+	$path = $configArray['Site']['url'];
 	$local = $configArray['Site']['local'];
 	$themes = explode(',', $smarty->getVuFindTheme());
 	$themes[] = 'default';
