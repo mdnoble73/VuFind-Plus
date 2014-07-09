@@ -20,20 +20,19 @@
 		<div class="col-xs-12 col-sm-9">
 			<div class="row">
 				<div class="col-xs-12">
-					<strong>
+					<span class="result-index">{$resultIndex})</span>&nbsp;
+					{if $record.recordId != -1}
+					<a href="{$record.linkUrl}" class="result-title notranslate">
+						{/if}
+						{if !$record.title}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}
 						{if $record.recordId != -1}
-						<a href="{$record.linkUrl}" class="title">
-							{/if}
-							{if !$record.title}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}
-							{if $record.recordId != -1}
-						</a>
-						{/if}
-						{if $record.subTitle}
-							<div class="searchResultSectionInfo">
-								{$record.subTitle|removeTrailingPunctuation}
-							</div>
-						{/if}
-					</strong>
+					</a>
+					{/if}
+					{if $record.subTitle}
+						<div class="searchResultSectionInfo">
+							{$record.subTitle|removeTrailingPunctuation}
+						</div>
+					{/if}
 				</div>
 			</div>
 

@@ -25,20 +25,19 @@
 		<div class="col-xs-12 col-sm-9">
 			<div class="row">
 				<div class="col-xs-12">
-					<strong>
-						{if $record.recordId}
-							<a href="{$path}/Record/{$record.recordId|escape:"url"}">
-						{/if}
-						{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
-						{if $record.recordId}
-							</a>
-						{/if}
-						{if $record.title2}
-							<div class="searchResultSectionInfo">
-								{$record.title2|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
-							</div>
-						{/if}
-					</strong>
+					<span class="result-index">{$resultIndex})</span>&nbsp;
+					{if $record.recordId}
+						<a href="{$path}/Record/{$record.recordId|escape:"url"}" class="result-title notranslate">
+					{/if}
+					{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
+					{if $record.recordId}
+						</a>
+					{/if}
+					{if $record.title2}
+						<div class="searchResultSectionInfo">
+							{$record.title2|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
+						</div>
+					{/if}
 				</div>
 			</div>
 
@@ -135,9 +134,9 @@
 				<div class="col-xs-12 col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
 						{if $section == 'available'}
-							<a href="#" onclick="return VuFind.Account.cancelAvailableHold('{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</a>
+							<button onclick="return VuFind.Account.cancelAvailableHold('{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
 						{else}
-							<a href="#" onclick="return VuFind.Account.cancelPendingHold('{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</a>
+							<button onclick="return VuFind.Account.cancelPendingHold('{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
 						{/if}
 					</div>
 
