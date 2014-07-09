@@ -362,7 +362,7 @@ VuFind.Record = (function(){
 				modalDialog.modal('show');
 			}else{
 				VuFind.Account.ajaxLogin(null, function(){
-					VuFind.Record.placeHold(id);
+					VuFind.Record.showPlaceHold(id);
 				}, false);
 			}
 			return false;
