@@ -12,10 +12,10 @@
 				<th>Publisher</th>
 			{/display_if_inconsistent}
 			{display_if_inconsistent array=$relatedRecords key="publicationDate"}
-				<th>Publication Date</th>
+				<th>Pub. Date</th>
 			{/display_if_inconsistent}
 			{display_if_inconsistent array=$relatedRecords key="physical"}
-				<th>Physical Desc.</th>
+				<th>Phys Desc.</th>
 			{/display_if_inconsistent}
 			{display_if_inconsistent array=$relatedRecords key="language"}
 				<th>Language</th>
