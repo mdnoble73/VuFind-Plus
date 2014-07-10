@@ -750,7 +750,7 @@ class Record_AJAX extends Action {
 				$results = array(
 						'success' => true,
 						'needsItemLevelHold' => true,
-						'message' => $interface->fetch('Record\item-hold-popup.tpl'),
+						'message' => $interface->fetch('Record/item-hold-popup.tpl'),
 						'title' => $return['title'],
 				);
 			}else{
