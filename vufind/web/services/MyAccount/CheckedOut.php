@@ -111,7 +111,7 @@ class MyAccount_CheckedOut extends MyAccount{
 
 		//Determine which columns to show
 		$ils = $configArray['Catalog']['ils'];
-		$showOut = ($ils == 'Horizon');
+		$showOut = ($ils == 'Horizon' );
 		$showRenewed = ($ils == 'Horizon' || $ils == 'Millennium'  || $ils == 'Sierra');
 		$showWaitList = ($ils == 'Horizon');
 

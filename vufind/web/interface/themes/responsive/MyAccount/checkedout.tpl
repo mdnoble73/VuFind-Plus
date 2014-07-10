@@ -36,11 +36,11 @@
 				<div class="striped">
 					{foreach from=$transList item=checkedOutTitle name=checkedOutTitleLoop key=checkedOutKey}
 						{if $checkedOutTitle.checkoutSource == 'ILS'}
-							{include file="MyAccount/ilsCheckedOutTitle.tpl" record=$checkedOutTitle}
+							{include file="MyAccount/ilsCheckedOutTitle.tpl" record=$checkedOutTitle resultIndex=$smarty.foreach.checkedOutTitleLoop.iteration}
 						{elseif $checkedOutTitle.checkoutSource == 'OverDrive'}
-							{include file="MyAccount/overdriveCheckedOutTitle.tpl" record=$checkedOutTitle}
+							{include file="MyAccount/overdriveCheckedOutTitle.tpl" record=$checkedOutTitle resultIndex=$smarty.foreach.checkedOutTitleLoop.iteration}
 						{elseif $checkedOutTitle.checkoutSource == 'eContent'}
-							{include file="MyAccount/eContentCheckedOutTitle.tpl" record=$checkedOutTitle}
+							{include file="MyAccount/eContentCheckedOutTitle.tpl" record=$checkedOutTitle resultIndex=$smarty.foreach.checkedOutTitleLoop.iteration}
 						{else}
 							<div class="row">
 								Unknown record source {$checkedOutTitle.checkoutSource}

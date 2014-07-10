@@ -5998,6 +5998,10 @@ a:visited {
 a:hover {
   color: #ad0028;
 }
+a.btn-primary,
+a.btn-warning {
+  color: #ffffff;
+}
 body {
   font-family: Utopia, Arial, sans-serif;
 }
@@ -6756,6 +6760,14 @@ div#system-message-header {
   color: #333333;
   background-color: #eeeeee;
 }
+.overdueLabel {
+  color: red;
+  font-weight: bold;
+}
+.dueSoonLabel {
+  color: #e58e29;
+  font-weight: bold;
+}
 /**
  * Additional Styling related to the help system
  */
@@ -7063,9 +7075,6 @@ div#system-message-header {
 }
 .result-value-bold {
   font-weight: bold;
-}
-.resultDetails {
-  font-size: 92%;
 }
 .result-label {
   font-weight: bold;
