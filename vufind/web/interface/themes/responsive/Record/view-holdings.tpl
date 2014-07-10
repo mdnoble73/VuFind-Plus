@@ -8,7 +8,7 @@
 		{foreach from=$holding1 item=holding}
 			{if $lastSection != $holding.section}
 				{if $lastSection != ""}
-								</table>
+								</div>
 							</div>
 						</div>
 					</div>
@@ -20,28 +20,28 @@
 						</div>
 						<div id="holdings-section-{$holding.section|replace:' ':'_'}" class="accordion-body collapse {if $holding.sectionId <=5}in{/if}">
 							<div class="accordion-inner">
-								<table class="table-striped" width="100%">
+								<div class="striped">
 				{/if}
 				{assign var=lastSection value=$holding.section}
 			{/if}
 
-			<tr>
-				<td style = "padding-bottom:5px;">
-					<span><strong>
+			<div class="row">
+				<div class="col-xs-6">
+					<strong>
 					{$holding.location|escape}
 					{if $holding.locationLink} (<a href='{$holding.locationLink}' target='_blank'>Map</a>){/if}
-					</strong></span>
-				</td>
-				<td style = "padding-bottom:5px;" class="holdingsCallNumber">
+					</strong>
+				</div>
+				<div class="holdingsCallNumber col-xs-4">
 					{$holding.callnumber|escape}
 					{if $holding.link}
 						{foreach from=$holding.link item=link}
 							<a href='{$link.link}' target='_blank'>{$link.linkText}</a><br />
 						{/foreach}
 					{/if}
-				</td>
+				</div>
 
-				<td style = "padding-bottom:5px;">
+				<div class="col-xs-2">
 					{if $holding.reserve == "Y"}
 						{translate text="On Reserve - Ask at Circulation Desk"}
 					{else}
@@ -51,8 +51,8 @@
 							<span class="checkedout">{$holding.statusfull}{if $holding.holdable == 0 && $showHoldButton} <label class='notHoldable' title='{$holding.nonHoldableReason}'>(Not Holdable)</label>{/if}</span>
 						{/if}
 					{/if}
-				</td>
-			</tr>
+				</div>
+			</div>
 			{/foreach}
 		{/foreach}
 		</div>
