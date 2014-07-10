@@ -197,10 +197,7 @@ public class ExtractOverDriveInfo {
 				}
 				
 				//Update products in database
-				econtentConn.setAutoCommit(false);
 				updateDatabase();
-				econtentConn.commit();
-				econtentConn.setAutoCommit(true);
 			}
 
 			//Mark the new last update time if we did not get errors loading products from the database
@@ -231,12 +228,20 @@ public class ExtractOverDriveInfo {
 		for (String overDriveId : overDriveTitles.keySet()){
 			OverDriveRecordInfo overDriveInfo = overDriveTitles.get(overDriveId);
 			//Check to see if the title already exists within the database.
-			if (databaseProducts.containsKey(overDriveId)){
-				updateProductInDB(overDriveInfo, databaseProducts.get(overDriveId));
-				databaseProducts.remove(overDriveId);
-			}else{
-				addProductToDB(overDriveInfo);
+			try {
+				econtentConn.setAutoCommit(false);
+				if (databaseProducts.containsKey(overDriveId)) {
+					updateProductInDB(overDriveInfo, databaseProducts.get(overDriveId));
+					databaseProducts.remove(overDriveId);
+				} else {
+					addProductToDB(overDriveInfo);
+				}
+				econtentConn.commit();
+				econtentConn.setAutoCommit(true);
+			}catch (SQLException e){
+				logger.error("Error saving/updating product ", e);
 			}
+
 			results.saveResults();
 			numProcessed++;
 			if (numProcessed % 100 == 0){
