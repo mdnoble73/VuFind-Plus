@@ -1396,10 +1396,12 @@ class GroupedWorkDriver implements RecordInterface{
 			'body' => '<div id="excerptPlaceholder">Loading Excerpt...</div>',
 			'hideByDefault' => true
 		);
-		$moreDetailsOptions['borrowerReviews'] = array(
-			'label' => 'Borrower Reviews',
-			'body' => "<div id='customerReviewPlaceholder'></div>",
-		);
+		if ($interface->getVariable('showComments')){
+			$moreDetailsOptions['borrowerReviews'] = array(
+				'label' => 'Borrower Reviews',
+				'body' => "<div id='customerReviewPlaceholder'></div>",
+			);
+		}
 		$moreDetailsOptions['editorialReviews'] = array(
 			'label' => 'Editorial Reviews',
 			'body' => "<div id='editorialReviewPlaceholder'></div>",
