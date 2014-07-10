@@ -258,6 +258,26 @@ VuFind.Account = (function(){
 			return false;
 		},
 
+		/* update the sort parameter and redirect the user back to the same page */
+		changeAccountSort: function (newSort){
+			// Get the current url
+			var currentLocation = window.location.href;
+			// Check to see if we already have a sort parameter. .
+			if (currentLocation.match(/(accountSort=[^&]*)/)) {
+				// Replace the existing sort with the new sort parameter
+				currentLocation = currentLocation.replace(/accountSort=[^&]*/, 'accountSort=' + newSort);
+			} else {
+				// Add the new sort parameter
+				if (currentLocation.match(/\?/)) {
+					currentLocation += "&accountSort=" + newSort;
+				}else{
+					currentLocation += "?accountSort=" + newSort;
+				}
+			}
+			// Redirect back to this page.
+			window.location.href = currentLocation;
+		},
+
 		deleteSearch: function(searchId){
 			if (!Globals.loggedIn){
 				VuFind.Account.ajaxLogin(null, function () {

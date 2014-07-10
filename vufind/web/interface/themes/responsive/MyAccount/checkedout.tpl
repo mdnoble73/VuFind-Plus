@@ -16,7 +16,7 @@
 			<form id="renewForm" action="{$path}/MyAccount/RenewMultiple">
 				<div id="pager" class="navbar form-inline">
 					<label for="accountSort" class="control-label">{translate text='Sort by'}:&nbsp;</label>
-						<select name="accountSort" id="accountSort" class="form-control" onchange="changeAccountSort($(this).val());">
+						<select name="accountSort" id="accountSort" class="form-control" onchange="VuFind.Account.changeAccountSort($(this).val());">
 						{foreach from=$sortOptions item=sortDesc key=sortVal}
 							<option value="{$sortVal}"{if $defaultSortOption == $sortVal} selected="selected"{/if}>{translate text=$sortDesc}</option>
 						{/foreach}
