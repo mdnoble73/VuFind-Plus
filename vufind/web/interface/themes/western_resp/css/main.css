@@ -5999,7 +5999,8 @@ a:hover {
   color: #ad0028;
 }
 a.btn-primary,
-a.btn-warning {
+a.btn-warning,
+a.btn-info {
   color: #ffffff;
 }
 body {
