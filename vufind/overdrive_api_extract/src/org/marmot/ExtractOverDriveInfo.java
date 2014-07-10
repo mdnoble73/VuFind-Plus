@@ -128,11 +128,13 @@ public class ExtractOverDriveInfo {
 					lastExtractTime = lastExtractTimeRS.getLong("value");
 					Date lastExtractDate = new Date(lastExtractTime);
 					SimpleDateFormat lastUpdateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-					logger.debug("Loading all records that have changed since " + lastUpdateFormat.format(lastExtractDate));
+					logger.info("Loading all records that have changed since " + lastUpdateFormat.format(lastExtractDate));
 					lastUpdateTimeParam = "lastupdatetime=" + lastUpdateFormat.format(lastExtractDate);
 					//Simple Date Format doesn't give us quite the right timezone format so adjust
 					lastUpdateTimeParam = lastUpdateTimeParam.substring(0, lastUpdateTimeParam.length() - 2) + ":" + lastUpdateTimeParam.substring(lastUpdateTimeParam.length() - 2);
 				}
+			}else{
+				logger.info("Doing a full reload of all records.");
 			}
 			//Update the last extract time
 			Long extractStartTime = new Date().getTime();
@@ -405,7 +407,7 @@ public class ExtractOverDriveInfo {
 				}
 			}
 			loadProductsFromUrl(libraryName, mainProductUrl);
-			logger.debug("loaded " + overDriveTitles.size() + " overdrive titles in shared collection");
+			logger.info("loaded " + overDriveTitles.size() + " overdrive titles in shared collection");
 			//Get a list of advantage collections
 			if (libraryInfo.getJSONObject("links").has("advantageAccounts")){
 				JSONObject advantageInfo = callOverDriveURL(libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
@@ -431,7 +433,7 @@ public class ExtractOverDriveInfo {
 					results.addNote("The API indicate that the library has advantage accounts, but none were returned from " + libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
 					results.incErrors();
 				}
-				logger.debug("loaded " + overDriveTitles.size() + " overdrive titles in shared collection and advantage collections");
+				logger.info("loaded " + overDriveTitles.size() + " overdrive titles in shared collection and advantage collections");
 			}
 			results.setNumProducts(overDriveTitles.size());
 			return true;
@@ -452,12 +454,12 @@ public class ExtractOverDriveInfo {
 			return;
 		}
 		long numProducts = productInfo.getLong("totalItems");
+		Long libraryId = getLibraryIdForOverDriveAccount(libraryName);
 		//if (numProducts > 50) numProducts = 50;
-		logger.debug(libraryName + " collection has " + numProducts + " products in it");
+		logger.info(libraryName + " collection has " + numProducts + " products in it.  The libraryId for the collection is " + libraryId);
 		results.addNote("Loading OverDrive information for " + libraryName);
 		results.saveResults();
 		long batchSize = 300;
-		Long libraryId = getLibraryIdForOverDriveAccount(libraryName);
 		for (int i = 0; i < numProducts; i += batchSize){
 			logger.debug("Processing " + libraryName + " batch from " + i + " to " + (i + batchSize));
 			String batchUrl = mainProductUrl;

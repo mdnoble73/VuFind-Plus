@@ -56,7 +56,7 @@ public class ExtractOverDriveInfoMain {
 			// broken Java implementations
 			Class.forName("com.mysql.jdbc.Driver").newInstance();
 
-			logger.info("Loaded driver for MySQL");
+			logger.debug("Loaded driver for MySQL");
 		} catch (Exception ex) {
 			logger.info("Could not load driver for MySQL, exiting.", ex);
 			return;
@@ -105,12 +105,13 @@ public class ExtractOverDriveInfoMain {
 		logEntry.setFinished();
 		logEntry.addNote("Finished OverDrive extraction");
 		logEntry.saveResults();
+		logger.info("Finished OverDrive extraction");
 	}
 	
 	private static Ini loadConfigFile(String filename){
 		//First load the default config file 
 		String configName = "../../sites/default/conf/" + filename;
-		logger.info("Loading configuration from " + configName);
+		logger.debug("Loading configuration from " + configName);
 		File configFile = new File(configName);
 		if (!configFile.exists()) {
 			logger.error("Could not find configuration file " + configName);
@@ -131,7 +132,7 @@ public class ExtractOverDriveInfoMain {
 		
 		//Now override with the site specific configuration
 		String siteSpecificFilename = "../../sites/" + serverName + "/conf/" + filename;
-		logger.info("Loading site specific config from " + siteSpecificFilename);
+		logger.debug("Loading site specific config from " + siteSpecificFilename);
 		File siteSpecificFile = new File(siteSpecificFilename);
 		if (!siteSpecificFile.exists()) {
 			logger.error("Could not find server specific config file");
@@ -154,7 +155,7 @@ public class ExtractOverDriveInfoMain {
 		}
 		//Also load password files if they exist
 		String siteSpecificPassword = "../../sites/" + serverName + "/conf/config.pwd.ini";
-		logger.info("Loading password config from " + siteSpecificPassword);
+		logger.debug("Loading password config from " + siteSpecificPassword);
 		File siteSpecificPasswordFile = new File(siteSpecificPassword);
 		if (siteSpecificPasswordFile.exists()) {
 			try {
