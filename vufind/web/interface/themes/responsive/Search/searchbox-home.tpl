@@ -22,7 +22,7 @@
 							       value="{$lookfor|escape:"html"}"
 							       title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term."
 							       onkeyup="return VuFind.Searches.resetSearchType()"
-							       onclick="$(this).select()"
+							       onfocus="$(this).select()"
 							       autocomplete="off"
 											{strip}/>
 							<div class="input-group-btn">
