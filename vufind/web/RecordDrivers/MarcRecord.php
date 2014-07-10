@@ -1587,7 +1587,6 @@ class MarcRecord extends IndexRecord
 					}
 				}
 				if ($item['isLocalItem'] ){
-					$localCopies++;
 					if ($item['availability'] == true){
 						$branchAvailableCopies++;
 					}
