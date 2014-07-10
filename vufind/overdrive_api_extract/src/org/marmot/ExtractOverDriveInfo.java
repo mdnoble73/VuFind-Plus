@@ -20,6 +20,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
 
+import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
@@ -347,7 +348,7 @@ public class ExtractOverDriveInfo {
 			addProductStmt.setLong(++curCol, curTime);
 			addProductStmt.setString(++curCol, overDriveInfo.getRawData());
 			addProductStmt.executeUpdate();
-			
+
 			ResultSet newIdRS = addProductStmt.getGeneratedKeys();
 			newIdRS.next();
 			long databaseId = newIdRS.getLong(1);
@@ -357,7 +358,11 @@ public class ExtractOverDriveInfo {
 			//Update metadata based information
 			updateOverDriveMetaData(overDriveInfo, databaseId, null);
 			updateOverDriveAvailability(overDriveInfo, databaseId, null);
-			
+		} catch (MySQLIntegrityConstraintViolationException e1){
+			logger.error("Error saving product " + overDriveInfo.getId() + " to the database, it was already added by another process");
+			results.addNote("Error saving product " + overDriveInfo.getId() + " to the database, it was already added by another process");
+			results.incErrors();
+			results.saveResults();
 		} catch (SQLException e) {
 			logger.error("Error saving product " + overDriveInfo.getId() + " to the database", e);
 			results.addNote("Error saving product " + overDriveInfo.getId() + " to the database " + e.toString());
@@ -776,7 +781,14 @@ public class ExtractOverDriveInfo {
 				if (updateMetaData){
 					updateProductMetadataStmt.setLong(2, curTime);
 				}else{
-					updateProductMetadataStmt.setLong(2, dbInfo.getLastMetadataChange());
+					Long lastMetaDataChange = null;
+					if (dbInfo != null) {
+						lastMetaDataChange = dbInfo.getLastMetadataChange();
+					}
+					if (lastMetaDataChange == null){
+						lastMetaDataChange = curTime;
+					}
+					updateProductMetadataStmt.setLong(2, lastMetaDataChange);
 				}
 				updateProductMetadataStmt.setLong(3, databaseId);
 				updateProductMetadataStmt.executeUpdate();
