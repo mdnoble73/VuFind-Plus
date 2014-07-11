@@ -6364,10 +6364,10 @@ div#system-message-header {
 }
 #header-container {
   padding-top: 0px;
-  height: 105px;
+  height: 150px;
   background-color: #ffffff;
   background: linear-gradient(to bottom, #ffffff, #ffffff 85%, #ffffff);
-  border-bottom: 8px solid #45820d;
+  border-bottom: 8px solid #01597d;
   margin-bottom: 0px;
   min-height: 110px;
 }
@@ -6382,11 +6382,11 @@ div#system-message-header {
 }
 .header-button {
   text-align: center;
-  height: 97px !important;
+  height: 142px !important;
   border-bottom: 4px solid #ffffff;
 }
 .header-button > a {
-  line-height: 97px !important;
+  line-height: 142px !important;
   text-align: center;
   vertical-align: middle;
   padding: 0px;
@@ -6412,7 +6412,7 @@ div#system-message-header {
   padding-top: 5px;
 }
 #footer-container {
-  border-top: 8px solid #45820d;
+  border-top: 8px solid #01597d;
   padding-top: 3px;
 }
 #install-info {
@@ -6428,7 +6428,7 @@ div#system-message-header {
   padding: 0px 3px 0px 3px;
 }
 #navigation-controls {
-  border-top: 8px solid #45820d;
+  border-top: 8px solid #01597d;
   background: white;
 }
 @media print {
@@ -7409,4 +7409,32 @@ div#system-message-header {
 #moreResultsFromProspector {
   margin: 5px;
   text-align: right;
+}
+#header-container {
+  background-image: url('/interface/themes/englewood/images/header_background.png');
+  background-repeat: no-repeat;
+}
+#header-logo {
+  display: none;
+}
+.header-button {
+  border-radius: 0.5em;
+  background-color: rgba(255, 255, 255, 0.75);
+  margin-top: 20px;
+  height: 60px !important;
+  border: 0px;
+}
+.header-button > a {
+  color: black !important;
+  line-height: 60px !important;
+  text-shadow: none;
+  font-weight: bolder;
+  font-size: 15px;
+}
+.header-button > a:visited {
+  color: black !important;
+}
+.header-button:hover {
+  border-bottom: 0px;
+  box-shadow: 2px 2px 5px darkgrey;
 }
