@@ -18,7 +18,6 @@
  *
  */
 
-require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
 
 class PublicEContent_Home extends Action{

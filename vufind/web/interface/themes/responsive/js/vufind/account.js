@@ -223,6 +223,26 @@ VuFind.Account = (function(){
 			return false;
 		},
 
+		cancelPendingHold: function(holdIdToCancel){
+			var url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&waitingholdselected[]=' + holdIdToCancel;
+			var queryParams = VuFind.getQuerystringParameters();
+			if ($.inArray('section', queryParams) && queryParams['section'] != 'undefined'){
+				url += '&section=' + queryParams['section'];
+			}
+			window.location = url;
+			return false;
+		},
+
+		cancelAvailableHold: function(holdIdToCancel){
+			var url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&availableholdselected[]=' + holdIdToCancel;
+			var queryParams = VuFind.getQuerystringParameters();
+			if ($.inArray('section', queryParams) && queryParams['section'] != 'undefined'){
+				url += '&section=' + queryParams['section'];
+			}
+			window.location = url;
+			return false;
+		},
+
 		cancelSelectedHolds: function(){
 			var selectedTitles = this.getSelectedTitles(false);
 			if (selectedTitles.length == 0){
@@ -231,11 +251,31 @@ VuFind.Account = (function(){
 			}
 			var url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&' + selectedTitles;
 			var queryParams = VuFind.getQuerystringParameters();
-			if ($.inArray('section', queryParams)){
+			if ($.inArray('section', queryParams) && queryParams['section'] != 'undefined'){
 				url += '&section=' + queryParams['section'];
 			}
 			window.location = url;
 			return false;
+		},
+
+		/* update the sort parameter and redirect the user back to the same page */
+		changeAccountSort: function (newSort){
+			// Get the current url
+			var currentLocation = window.location.href;
+			// Check to see if we already have a sort parameter. .
+			if (currentLocation.match(/(accountSort=[^&]*)/)) {
+				// Replace the existing sort with the new sort parameter
+				currentLocation = currentLocation.replace(/accountSort=[^&]*/, 'accountSort=' + newSort);
+			} else {
+				// Add the new sort parameter
+				if (currentLocation.match(/\?/)) {
+					currentLocation += "&accountSort=" + newSort;
+				}else{
+					currentLocation += "?accountSort=" + newSort;
+				}
+			}
+			// Redirect back to this page.
+			window.location.href = currentLocation;
 		},
 
 		deleteSearch: function(searchId){

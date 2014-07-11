@@ -327,7 +327,7 @@ class CatalogConnection
 	 *
 	 * This is responsible for retrieving the profile for a specific patron.
 	 *
-	 * @param array $patron The patron array
+	 * @param array|User $patron The patron array
 	 *
 	 * @return mixed        Array of the patron's profile data on success,
 	 * PEAR_Error otherwise.

@@ -18,6 +18,16 @@ Search Box color
 /**
 Sidebar font data
 */
+/*
+Red – #a71930
+Bright Red - #E00034
+Shadowed White - #D1D3D4
+White
+Medium Western Slate - #6F737A
+Black
+Light Western Slate - #858A91
+Western Slate - #565A5C
+*/
 /**
  * Main responsive theme css
  */
@@ -2290,8 +2300,8 @@ input[type="button"].btn-block {
 }
 @font-face {
   font-family: 'Glyphicons Halflings';
-  src: url('/fonts/glyphicons-halflings-regular.eot');
-  src: url('/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('/fonts/glyphicons-halflings-regular.woff') format('woff'), url('/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
+  src: url('../../../../fonts/glyphicons-halflings-regular.eot');
+  src: url('../../../../fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../../../../fonts/glyphicons-halflings-regular.woff') format('woff'), url('../../../../fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../../../../fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
 }
 .glyphicon {
   position: relative;
@@ -5981,6 +5991,21 @@ td.visible-print {
 /**
  * Basic Style overrides
  */
+a,
+a:visited {
+  color: #e00034;
+}
+a:hover {
+  color: #ad0028;
+}
+a.btn-primary,
+a.btn-warning,
+a.btn-info {
+  color: #ffffff;
+}
+body {
+  font-family: Utopia, Arial, sans-serif;
+}
 .expanded,
 .collapsed {
   cursor: pointer;
@@ -6338,7 +6363,7 @@ div#system-message-header {
   height: 130px;
   background-color: #817c81;
   background: linear-gradient(to bottom, #817c81, #525254 85%, #444545);
-  border-bottom: 8px solid #333333;
+  border-bottom: 8px solid #6f737a;
   margin-bottom: 0px;
   min-height: 110px;
 }
@@ -6383,7 +6408,7 @@ div#system-message-header {
   padding-top: 5px;
 }
 #footer-container {
-  border-top: 8px solid #333333;
+  border-top: 8px solid #6f737a;
   padding-top: 3px;
 }
 #install-info {
@@ -6399,7 +6424,7 @@ div#system-message-header {
   padding: 0px 3px 0px 3px;
 }
 #navigation-controls {
-  border-top: 8px solid #333333;
+  border-top: 8px solid #6f737a;
   background: white;
 }
 @media print {
@@ -6425,8 +6450,8 @@ div#system-message-header {
  Styling for home page elements
 */
 #home-page-search {
-  background-color: #00a4e3;
-  background: linear-gradient(to bottom, #00a4e3, #147ce2);
+  background-color: #e00034;
+  background: linear-gradient(to bottom, #e00034, #ad0028);
   padding: 20px 0 10px;
   margin-bottom: 5px;
 }
@@ -6441,7 +6466,7 @@ div#system-message-header {
 #searchSource {
   padding: 5px 0;
   color: white;
-  background-color: #147ce2;
+  background-color: #ad0028;
   border: none;
   width: 90%;
 }
@@ -6498,8 +6523,8 @@ div#system-message-header {
   border-bottom: 1px solid #a1a1a1;
 }
 .sidebar-links .active .panel-heading {
-  background-color: #4dacde;
-  background: linear-gradient(to bottom, #4dacde, #0f8fd2);
+  background-color: #a71930;
+  background: linear-gradient(to bottom, #a71930, #7b1223);
 }
 .sidebar-links .panel-title {
   font-size: 14px;
@@ -6571,43 +6596,43 @@ div#system-message-header {
   height: 80px;
 }
 .browse-category.selected {
-  border: 2px solid #3497d1;
+  border: 2px solid #e00034;
 }
 .browse-category.category0 {
-  background-color: #0d8ec7;
-  background: linear-gradient(to bottom, #0d8ec7, #0d8ec7 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #0d8ec7 90%, #0d8ec7);
+  background-color: #a71930;
+  background: linear-gradient(to bottom, #a71930, #a71930 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #a71930 90%, #a71930);
 }
 .browse-category.category1 {
-  background-color: #16a0db;
-  background: linear-gradient(to bottom, #16a0db, #16a0db 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #16a0db 90%, #16a0db);
+  background-color: #b41b34;
+  background: linear-gradient(to bottom, #b41b34, #b41b34 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #b41b34 90%, #b41b34);
 }
 .browse-category.category2 {
-  background-color: #2ca7db;
-  background: linear-gradient(to bottom, #2ca7db, #2ca7db 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #2ca7db 90%, #2ca7db);
+  background-color: #c21d38;
+  background: linear-gradient(to bottom, #c21d38, #c21d38 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #c21d38 90%, #c21d38);
 }
 .browse-category.category3 {
-  background-color: #37aadb;
-  background: linear-gradient(to bottom, #37aadb, #37aadb 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #37aadb 90%, #37aadb);
+  background-color: #cf1f3b;
+  background: linear-gradient(to bottom, #cf1f3b, #cf1f3b 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #cf1f3b 90%, #cf1f3b);
 }
 .browse-category.category4 {
-  background-color: #4db1db;
-  background: linear-gradient(to bottom, #4db1db, #4db1db 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #4db1db 90%, #4db1db);
+  background-color: #dc213f;
+  background: linear-gradient(to bottom, #dc213f, #dc213f 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #dc213f 90%, #dc213f);
 }
 .browse-category.category5 {
-  background-color: #5fb7db;
-  background: linear-gradient(to bottom, #5fb7db, #5fb7db 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #5fb7db 90%, #5fb7db);
+  background-color: #e02d4a;
+  background: linear-gradient(to bottom, #e02d4a, #e02d4a 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #e02d4a 90%, #e02d4a);
 }
 .browse-category.category6 {
-  background-color: #83c1db;
-  background: linear-gradient(to bottom, #83c1db, #83c1db 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #83c1db 90%, #83c1db);
+  background-color: #e23a55;
+  background: linear-gradient(to bottom, #e23a55, #e23a55 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #e23a55 90%, #e23a55);
 }
 .browse-category.category7 {
-  background-color: #99c8db;
-  background: linear-gradient(to bottom, #99c8db, #99c8db 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #99c8db 90%, #99c8db);
+  background-color: #e44861;
+  background: linear-gradient(to bottom, #e44861, #e44861 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #e44861 90%, #e44861);
 }
 .browse-category.category8 {
-  background-color: #186180;
-  background: linear-gradient(to bottom, #186180, #186180 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #186180 90%, #186180);
+  background-color: #e6556c;
+  background: linear-gradient(to bottom, #e6556c, #e6556c 82%, #565a5c 83%, #858a91 84%, #858a91 88%, #565a5c 89%, #e6556c 90%, #e6556c);
 }
 #home-page-browse-results {
   padding: 15px;
@@ -6735,6 +6760,14 @@ div#system-message-header {
   font-size: 12px;
   color: #333333;
   background-color: #eeeeee;
+}
+.overdueLabel {
+  color: red;
+  font-weight: bold;
+}
+.dueSoonLabel {
+  color: #e58e29;
+  font-weight: bold;
 }
 /**
  * Additional Styling related to the help system
@@ -7036,16 +7069,8 @@ div#system-message-header {
   padding: 10px 5px 15px;
   font-size: 12px;
 }
-@media (max-width: 480px) {
-  .result-value {
-    margin-left: 8px !important;
-  }
-}
 .result-value-bold {
   font-weight: bold;
-}
-.resultDetails {
-  font-size: 85%;
 }
 .result-label {
   font-weight: bold;
@@ -7332,7 +7357,8 @@ div#system-message-header {
   border-bottom: 1px solid #a1a1a1;
 }
 #more-details-accordion .active .panel-heading {
-  background: linear-gradient(to bottom, #4dacde, #0f8fd2);
+  background-color: #a71930;
+  background: linear-gradient(to bottom, #a71930, #7b1223);
 }
 #more-details-accordion .panel-title {
   font-size: 13px;
@@ -7389,4 +7415,13 @@ div#system-message-header {
 }
 #header-wrapper {
   background: linear-gradient(to bottom, #b5192b 0%, #d82538 100%) repeat scroll 0 0 rgba(0, 0, 0, 0);
+}
+.facetTitle {
+  background: #f8f8f8;
+}
+.facetTitle:hover {
+  background-color: #9d162b;
+  background: -moz-linear-gradient(left center, #9d162b 0%, #d81f3c 100%);
+  color: white;
+  text-shadow: none;
 }

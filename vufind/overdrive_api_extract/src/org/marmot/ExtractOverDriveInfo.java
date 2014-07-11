@@ -20,6 +20,7 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
 
+import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
@@ -128,11 +129,13 @@ public class ExtractOverDriveInfo {
 					lastExtractTime = lastExtractTimeRS.getLong("value");
 					Date lastExtractDate = new Date(lastExtractTime);
 					SimpleDateFormat lastUpdateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-					logger.debug("Loading all records that have changed since " + lastUpdateFormat.format(lastExtractDate));
+					logger.info("Loading all records that have changed since " + lastUpdateFormat.format(lastExtractDate));
 					lastUpdateTimeParam = "lastupdatetime=" + lastUpdateFormat.format(lastExtractDate);
 					//Simple Date Format doesn't give us quite the right timezone format so adjust
 					lastUpdateTimeParam = lastUpdateTimeParam.substring(0, lastUpdateTimeParam.length() - 2) + ":" + lastUpdateTimeParam.substring(lastUpdateTimeParam.length() - 2);
 				}
+			}else{
+				logger.info("Doing a full reload of all records.");
 			}
 			//Update the last extract time
 			Long extractStartTime = new Date().getTime();
@@ -226,12 +229,20 @@ public class ExtractOverDriveInfo {
 		for (String overDriveId : overDriveTitles.keySet()){
 			OverDriveRecordInfo overDriveInfo = overDriveTitles.get(overDriveId);
 			//Check to see if the title already exists within the database.
-			if (databaseProducts.containsKey(overDriveId)){
-				updateProductInDB(overDriveInfo, databaseProducts.get(overDriveId));
-				databaseProducts.remove(overDriveId);
-			}else{
-				addProductToDB(overDriveInfo);
+			try {
+				econtentConn.setAutoCommit(false);
+				if (databaseProducts.containsKey(overDriveId)) {
+					updateProductInDB(overDriveInfo, databaseProducts.get(overDriveId));
+					databaseProducts.remove(overDriveId);
+				} else {
+					addProductToDB(overDriveInfo);
+				}
+				econtentConn.commit();
+				econtentConn.setAutoCommit(true);
+			}catch (SQLException e){
+				logger.error("Error saving/updating product ", e);
 			}
+
 			results.saveResults();
 			numProcessed++;
 			if (numProcessed % 100 == 0){
@@ -337,7 +348,7 @@ public class ExtractOverDriveInfo {
 			addProductStmt.setLong(++curCol, curTime);
 			addProductStmt.setString(++curCol, overDriveInfo.getRawData());
 			addProductStmt.executeUpdate();
-			
+
 			ResultSet newIdRS = addProductStmt.getGeneratedKeys();
 			newIdRS.next();
 			long databaseId = newIdRS.getLong(1);
@@ -347,7 +358,11 @@ public class ExtractOverDriveInfo {
 			//Update metadata based information
 			updateOverDriveMetaData(overDriveInfo, databaseId, null);
 			updateOverDriveAvailability(overDriveInfo, databaseId, null);
-			
+		} catch (MySQLIntegrityConstraintViolationException e1){
+			logger.error("Error saving product " + overDriveInfo.getId() + " to the database, it was already added by another process");
+			results.addNote("Error saving product " + overDriveInfo.getId() + " to the database, it was already added by another process");
+			results.incErrors();
+			results.saveResults();
 		} catch (SQLException e) {
 			logger.error("Error saving product " + overDriveInfo.getId() + " to the database", e);
 			results.addNote("Error saving product " + overDriveInfo.getId() + " to the database " + e.toString());
@@ -402,7 +417,7 @@ public class ExtractOverDriveInfo {
 				}
 			}
 			loadProductsFromUrl(libraryName, mainProductUrl);
-			logger.debug("loaded " + overDriveTitles.size() + " overdrive titles in shared collection");
+			logger.info("loaded " + overDriveTitles.size() + " overdrive titles in shared collection");
 			//Get a list of advantage collections
 			if (libraryInfo.getJSONObject("links").has("advantageAccounts")){
 				JSONObject advantageInfo = callOverDriveURL(libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
@@ -428,7 +443,7 @@ public class ExtractOverDriveInfo {
 					results.addNote("The API indicate that the library has advantage accounts, but none were returned from " + libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
 					results.incErrors();
 				}
-				logger.debug("loaded " + overDriveTitles.size() + " overdrive titles in shared collection and advantage collections");
+				logger.info("loaded " + overDriveTitles.size() + " overdrive titles in shared collection and advantage collections");
 			}
 			results.setNumProducts(overDriveTitles.size());
 			return true;
@@ -449,12 +464,12 @@ public class ExtractOverDriveInfo {
 			return;
 		}
 		long numProducts = productInfo.getLong("totalItems");
+		Long libraryId = getLibraryIdForOverDriveAccount(libraryName);
 		//if (numProducts > 50) numProducts = 50;
-		logger.debug(libraryName + " collection has " + numProducts + " products in it");
+		logger.info(libraryName + " collection has " + numProducts + " products in it.  The libraryId for the collection is " + libraryId);
 		results.addNote("Loading OverDrive information for " + libraryName);
 		results.saveResults();
 		long batchSize = 300;
-		Long libraryId = getLibraryIdForOverDriveAccount(libraryName);
 		for (int i = 0; i < numProducts; i += batchSize){
 			logger.debug("Processing " + libraryName + " batch from " + i + " to " + (i + batchSize));
 			String batchUrl = mainProductUrl;
@@ -766,7 +781,14 @@ public class ExtractOverDriveInfo {
 				if (updateMetaData){
 					updateProductMetadataStmt.setLong(2, curTime);
 				}else{
-					updateProductMetadataStmt.setLong(2, dbInfo.getLastMetadataChange());
+					Long lastMetaDataChange = null;
+					if (dbInfo != null) {
+						lastMetaDataChange = dbInfo.getLastMetadataChange();
+					}
+					if (lastMetaDataChange == null){
+						lastMetaDataChange = curTime;
+					}
+					updateProductMetadataStmt.setLong(2, lastMetaDataChange);
 				}
 				updateProductMetadataStmt.setLong(3, databaseId);
 				updateProductMetadataStmt.executeUpdate();

@@ -72,7 +72,8 @@
   border-bottom: 1px solid #a1a1a1;
 }
 #more-details-accordion .active .panel-heading{
-  background: linear-gradient(to bottom, #4dacde, #0f8fd2);
+  background-color: @accordion-active-header-color;
+  background: linear-gradient(to bottom, @accordion-active-header-color, darken(@accordion-active-header-color, 10%));
 }
 #more-details-accordion .panel-title{
   font-size: 13px;

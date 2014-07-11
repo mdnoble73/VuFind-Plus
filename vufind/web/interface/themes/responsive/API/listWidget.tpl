@@ -14,8 +14,9 @@
 </head>
 
 <body class="embeddedListWidgetBody">
-	{include file='API/listWidgetTabs.tpl'}
-  
+	<div class="container-fluid">
+		{include file='API/listWidgetTabs.tpl'}
+  </div>
 </body>
 </html>
 {/strip}

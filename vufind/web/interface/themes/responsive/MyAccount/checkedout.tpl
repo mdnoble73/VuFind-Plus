@@ -14,14 +14,13 @@
 		{/if}
 		{if $transList}
 			<form id="renewForm" action="{$path}/MyAccount/RenewMultiple">
-				<div id="pager" class="navbar form-inline text-center">
-					<label for="accountSort" class="control-label">{translate text='Sort by'}:&nbsp;
-						<select name="accountSort" id="sort" class="input-medium" onchange="changeAccountSort($(this).val());">
+				<div id="pager" class="navbar form-inline">
+					<label for="accountSort" class="control-label">{translate text='Sort by'}:&nbsp;</label>
+						<select name="accountSort" id="accountSort" class="form-control" onchange="VuFind.Account.changeAccountSort($(this).val());">
 						{foreach from=$sortOptions item=sortDesc key=sortVal}
 							<option value="{$sortVal}"{if $defaultSortOption == $sortVal} selected="selected"{/if}>{translate text=$sortDesc}</option>
 						{/foreach}
-						</select>
-					</label>
+					</select>
 
 					<label for="hideCovers" class="control-label checkbox  pull-right"> Hide Covers <input id="hideCovers" type="checkbox" onclick="$('.imageColumn').toggle();"/></label>
 				</div>
@@ -32,14 +31,16 @@
 					<a href="{$path}/MyAccount/CheckedOut?exportToExcel" class="btn btn-sm btn-default" id="exportToExcelTop" >Export to Excel</a>
 				</div>
 
+				<br/>
+
 				<div class="striped">
 					{foreach from=$transList item=checkedOutTitle name=checkedOutTitleLoop key=checkedOutKey}
 						{if $checkedOutTitle.checkoutSource == 'ILS'}
-							{include file="MyAccount/ilsCheckedOutTitle.tpl" record=$checkedOutTitle}
+							{include file="MyAccount/ilsCheckedOutTitle.tpl" record=$checkedOutTitle resultIndex=$smarty.foreach.checkedOutTitleLoop.iteration}
 						{elseif $checkedOutTitle.checkoutSource == 'OverDrive'}
-							{include file="MyAccount/overdriveCheckedOutTitle.tpl" record=$checkedOutTitle}
+							{include file="MyAccount/overdriveCheckedOutTitle.tpl" record=$checkedOutTitle resultIndex=$smarty.foreach.checkedOutTitleLoop.iteration}
 						{elseif $checkedOutTitle.checkoutSource == 'eContent'}
-							{include file="MyAccount/eContentCheckedOutTitle.tpl" record=$checkedOutTitle}
+							{include file="MyAccount/eContentCheckedOutTitle.tpl" record=$checkedOutTitle resultIndex=$smarty.foreach.checkedOutTitleLoop.iteration}
 						{else}
 							<div class="row">
 								Unknown record source {$checkedOutTitle.checkoutSource}

@@ -2290,8 +2290,8 @@ input[type="button"].btn-block {
 }
 @font-face {
   font-family: 'Glyphicons Halflings';
-  src: url('/fonts/glyphicons-halflings-regular.eot');
-  src: url('/fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('/fonts/glyphicons-halflings-regular.woff') format('woff'), url('/fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('/fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
+  src: url('../../../../fonts/glyphicons-halflings-regular.eot');
+  src: url('../../../../fonts/glyphicons-halflings-regular.eot?#iefix') format('embedded-opentype'), url('../../../../fonts/glyphicons-halflings-regular.woff') format('woff'), url('../../../../fonts/glyphicons-halflings-regular.ttf') format('truetype'), url('../../../../fonts/glyphicons-halflings-regular.svg#glyphicons-halflingsregular') format('svg');
 }
 .glyphicon {
   position: relative;
@@ -5981,6 +5981,21 @@ td.visible-print {
 /**
  * Basic Style overrides
  */
+a,
+a:visited {
+  color: #428bca;
+}
+a:hover {
+  color: #3071a9;
+}
+a.btn-primary,
+a.btn-warning,
+a.btn-info {
+  color: #ffffff;
+}
+body {
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
 .expanded,
 .collapsed {
   cursor: pointer;
@@ -6499,7 +6514,7 @@ div#system-message-header {
 }
 .sidebar-links .active .panel-heading {
   background-color: #4dacde;
-  background: linear-gradient(to bottom, #4dacde, #0f8fd2);
+  background: linear-gradient(to bottom, #4dacde, #2796d1);
 }
 .sidebar-links .panel-title {
   font-size: 14px;
@@ -6578,36 +6593,36 @@ div#system-message-header {
   background: linear-gradient(to bottom, #0d8ec7, #0d8ec7 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #0d8ec7 90%, #0d8ec7);
 }
 .browse-category.category1 {
-  background-color: #16a0db;
-  background: linear-gradient(to bottom, #16a0db, #16a0db 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #16a0db 90%, #16a0db);
+  background-color: #0e98d5;
+  background: linear-gradient(to bottom, #0e98d5, #0e98d5 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #0e98d5 90%, #0e98d5);
 }
 .browse-category.category2 {
-  background-color: #2ca7db;
-  background: linear-gradient(to bottom, #2ca7db, #2ca7db 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #2ca7db 90%, #2ca7db);
+  background-color: #0fa2e4;
+  background: linear-gradient(to bottom, #0fa2e4, #0fa2e4 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #0fa2e4 90%, #0fa2e4);
 }
 .browse-category.category3 {
-  background-color: #37aadb;
-  background: linear-gradient(to bottom, #37aadb, #37aadb 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #37aadb 90%, #37aadb);
+  background-color: #12acf0;
+  background: linear-gradient(to bottom, #12acf0, #12acf0 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #12acf0 90%, #12acf0);
 }
 .browse-category.category4 {
-  background-color: #4db1db;
-  background: linear-gradient(to bottom, #4db1db, #4db1db 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #4db1db 90%, #4db1db);
+  background-color: #21b1f0;
+  background: linear-gradient(to bottom, #21b1f0, #21b1f0 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #21b1f0 90%, #21b1f0);
 }
 .browse-category.category5 {
-  background-color: #5fb7db;
-  background: linear-gradient(to bottom, #5fb7db, #5fb7db 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #5fb7db 90%, #5fb7db);
+  background-color: #2fb6f1;
+  background: linear-gradient(to bottom, #2fb6f1, #2fb6f1 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #2fb6f1 90%, #2fb6f1);
 }
 .browse-category.category6 {
-  background-color: #83c1db;
-  background: linear-gradient(to bottom, #83c1db, #83c1db 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #83c1db 90%, #83c1db);
+  background-color: #3dbbf2;
+  background: linear-gradient(to bottom, #3dbbf2, #3dbbf2 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #3dbbf2 90%, #3dbbf2);
 }
 .browse-category.category7 {
-  background-color: #99c8db;
-  background: linear-gradient(to bottom, #99c8db, #99c8db 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #99c8db 90%, #99c8db);
+  background-color: #4cc0f3;
+  background: linear-gradient(to bottom, #4cc0f3, #4cc0f3 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #4cc0f3 90%, #4cc0f3);
 }
 .browse-category.category8 {
-  background-color: #186180;
-  background: linear-gradient(to bottom, #186180, #186180 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #186180 90%, #186180);
+  background-color: #5ac5f4;
+  background: linear-gradient(to bottom, #5ac5f4, #5ac5f4 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #5ac5f4 90%, #5ac5f4);
 }
 #home-page-browse-results {
   padding: 15px;
@@ -6735,6 +6750,14 @@ div#system-message-header {
   font-size: 12px;
   color: #333333;
   background-color: #eeeeee;
+}
+.overdueLabel {
+  color: red;
+  font-weight: bold;
+}
+.dueSoonLabel {
+  color: #e58e29;
+  font-weight: bold;
 }
 /**
  * Additional Styling related to the help system
@@ -7036,16 +7059,8 @@ div#system-message-header {
   padding: 10px 5px 15px;
   font-size: 12px;
 }
-@media (max-width: 480px) {
-  .result-value {
-    margin-left: 8px !important;
-  }
-}
 .result-value-bold {
   font-weight: bold;
-}
-.resultDetails {
-  font-size: 85%;
 }
 .result-label {
   font-weight: bold;
@@ -7332,7 +7347,8 @@ div#system-message-header {
   border-bottom: 1px solid #a1a1a1;
 }
 #more-details-accordion .active .panel-heading {
-  background: linear-gradient(to bottom, #4dacde, #0f8fd2);
+  background-color: #4dacde;
+  background: linear-gradient(to bottom, #4dacde, #2796d1);
 }
 #more-details-accordion .panel-title {
   font-size: 13px;
@@ -7400,20 +7416,20 @@ div#system-message-header {
 }
 .header-button {
   border-radius: 0.5em;
-  background-color: rgba(51, 51, 51, 0.6);
+  background-color: rgba(31, 31, 31, 0.7);
   margin-top: 20px;
   height: 60px !important;
   border: 0px;
 }
 .header-button > a {
-  color: white !important;
+  color: ghostwhite !important;
   line-height: 60px !important;
   text-shadow: none;
 }
 .header-button > a:visited {
-  color: white !important;
+  color: ghostwhite !important;
 }
 .header-button:hover {
   border-bottom: 0px;
-  box-shadow: 2px 2px 5px white;
+  box-shadow: 2px 2px 5px #DCE0D7;
 }

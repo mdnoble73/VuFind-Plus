@@ -19,20 +19,19 @@
 
 		<div class="col-md-9">
 			<div class="row">
-				<strong>
+				<span class="result-index">{$resultIndex})</span>&nbsp;
+				{if $record.recordId}
+				<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="result-title notranslate">
+					{/if}
+					{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
 					{if $record.recordId}
-					<a href="{$path}/Record/{$record.recordId|escape:"url"}?searchId={$searchId}&amp;recordIndex={$recordIndex}&amp;page={$page}" class="title">
-						{/if}
-						{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
-						{if $record.recordId}
-					</a>
-					{/if}
-					{if $record.title2}
-						<div class="searchResultSectionInfo">
-							{$record.title2|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
-						</div>
-					{/if}
-				</strong>
+				</a>
+				{/if}
+				{if $record.title2}
+					<div class="searchResultSectionInfo">
+						{$record.title2|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
+					</div>
+				{/if}
 			</div>
 
 			<div class="row">

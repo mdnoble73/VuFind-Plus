@@ -821,7 +821,7 @@ class GroupedWorkDriver implements RecordInterface{
 
 	function getBookcoverUrl($size){
 		global $configArray;
-		$bookCoverUrl = $configArray['Site']['url'] . "/bookcover.php?id={$this->getUniqueID()}&size={$size}&type=grouped_work";
+		$bookCoverUrl = $configArray['Site']['path'] . "/bookcover.php?id={$this->getUniqueID()}&size={$size}&type=grouped_work";
 
 		if (isset($this->fields['format_category'])){
 			if (is_array($this->fields['format_category'])){
@@ -1079,12 +1079,16 @@ class GroupedWorkDriver implements RecordInterface{
 					'shelfLocation' => array(),
 					'availableLocally' => false,
 					'availableOnline' => false,
+					'availableHere' => false,
 					'inLibraryUseOnly' => false,
 					'allLibraryUseOnly' => true,
 				);
 			}
 			if (isset($curRecord['availableLocally']) && $curRecord['availableLocally'] == true){
 				$relatedManifestations[$curRecord['format']]['availableLocally'] = true;
+			}
+			if (isset($curRecord['availableHere']) && $curRecord['availableHere'] == true){
+				$relatedManifestations[$curRecord['format']]['availableHere'] = true;
 			}
 			if ($curRecord['available'] && $curRecord['locationLabel'] === 'Online'){
 				$relatedManifestations[$curRecord['format']]['availableOnline'] = true;
@@ -1392,10 +1396,12 @@ class GroupedWorkDriver implements RecordInterface{
 			'body' => '<div id="excerptPlaceholder">Loading Excerpt...</div>',
 			'hideByDefault' => true
 		);
-		$moreDetailsOptions['borrowerReviews'] = array(
-			'label' => 'Borrower Reviews',
-			'body' => "<div id='customerReviewPlaceholder'></div>",
-		);
+		if ($interface->getVariable('showComments')){
+			$moreDetailsOptions['borrowerReviews'] = array(
+				'label' => 'Borrower Reviews',
+				'body' => "<div id='customerReviewPlaceholder'></div>",
+			);
+		}
 		$moreDetailsOptions['editorialReviews'] = array(
 			'label' => 'Editorial Reviews',
 			'body' => "<div id='editorialReviewPlaceholder'></div>",

@@ -202,6 +202,7 @@ abstract class SearchObject_Base
 		global $locationSingleton;
 		$searchLocation = $locationSingleton->getActiveLocation();
 		$userLocation = Location::getUserHomeLocation();
+		global $solrScope;
 
 		// Check for duplicates -- if it's not in the array, we can add it
 		if (!$this->hasFilter($newFilter)) {
@@ -223,18 +224,23 @@ abstract class SearchObject_Base
 					$field = 'itype_' . $searchLibrary->subdomain;
 				}elseif ($field == 'detailed_location'){
 					$field = 'detailed_location_' . $searchLibrary->subdomain;
-				}elseif ($field == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
-					$field = 'availability_toggle_' . $searchLibrary->subdomain;
-				}elseif ($field == 'format' && $configArray['Index']['enableDetailedFormats']){
-					$field = 'format_' . $searchLibrary->subdomain;
-				}elseif ($field == 'format_category' && $configArray['Index']['enableDetailedFormats']){
-					$field = 'format_category_' . $searchLibrary->subdomain;
-				}elseif ($field == 'econtent_source' && $configArray['Index']['enableDetailedEContentSources']){
-					$field = 'econtent_source_' . $searchLibrary->subdomain;
-				}elseif ($field == 'econtent_protection_type' && $configArray['Index']['enableDetailedEContentSources']){
-					$field = 'econtent_protection_type_' . $searchLibrary->subdomain;
 				}
 			}
+
+			if ($solrScope){
+				if ($field == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					$field = 'availability_toggle_' . $solrScope;
+				}elseif ($field == 'format' && $configArray['Index']['enableDetailedFormats']){
+					$field = 'format_' . $solrScope;
+				}elseif ($field == 'format_category' && $configArray['Index']['enableDetailedFormats']){
+					$field = 'format_category_' . $solrScope;
+				}elseif ($field == 'econtent_source' && $configArray['Index']['enableDetailedEContentSources']){
+					$field = 'econtent_source_' . $solrScope;
+				}elseif ($field == 'econtent_protection_type' && $configArray['Index']['enableDetailedEContentSources']){
+					$field = 'econtent_protection_type_' . $solrScope;
+				}
+			}
+
 			if (isset($userLocation)){
 				if ($field == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
 					$field = 'availability_toggle_' . $userLocation->code;

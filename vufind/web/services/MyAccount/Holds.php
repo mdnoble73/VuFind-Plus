@@ -108,7 +108,7 @@ class MyAccount_Holds extends MyAccount{
 					}
 
 					//Get Holds from the ILS
-					$ilsHolds = $this->catalog->getMyHolds($patron, $page, $recordsPerPage, $selectedSortOption);
+					$ilsHolds = $this->catalog->getMyHolds($patron, 1, -1, $selectedSortOption);
 					if (PEAR_Singleton::isError($ilsHolds)) {
 						$ilsHolds = array();
 					}

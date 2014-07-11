@@ -2,10 +2,10 @@
 	<div id="record{$record.source}_{$record.id|escape}" class="result row">
 		<div class="col-xs-12 col-sm-3 col-md-3">
 			<div class="row">
-				<div class="selectTitle col-md-2">
+				<div class="selectTitle col-xs-2">
 					<input type="checkbox" name="selected[{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}"/>
 				</div>
-				<div class="col-md-9 text-center">
+				<div class="col-xs-10 text-center">
 					{if $user->disableCoverArt != 1}
 						{if $record.id}
 							<a href="{$path}/Record/{$record.id|escape:"url"}">
@@ -18,9 +18,10 @@
 		</div>
 		<div class="col-xs-12 col-sm-9">
 			<div class="row">
-				<strong>
+				<div class="col-xs-12">
+					<span class="result-index">{$resultIndex})</span>&nbsp;
 					{if $record.id}
-						<a href="{$path}/Record/{$record.id|escape:"url"}" class="title">
+						<a href="{$path}/Record/{$record.id|escape:"url"}" class="result-title notranslate">
 					{/if}
 					{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}{/if}
 					{if $record.id}
@@ -31,10 +32,10 @@
 							{$record.title2|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 						</div>
 					{/if}
-				</strong>
+				</div>
 			</div>
 			<div class="row">
-				<div class="resultDetails col-md-9">
+				<div class="resultDetails col-xs-12 col-md-9">
 					{if $record.author}
 						<div class="row">
 							<div class="result-label col-md-3">{translate text='Author'}</div>
@@ -69,16 +70,16 @@
 						<div class="col-md-9 result-value">
 							{$record.duedate|date_format}
 							{if $record.overdue}
-								<span class='text-error'><strong> OVERDUE</strong></span>
+								<span class='overdueLabel'> OVERDUE</span>
 							{elseif $record.daysUntilDue == 0}
-								<span class='text-warning'> (Due today)</span>
+								<span class='dueSoonLabel'> (Due today)</span>
 							{elseif $record.daysUntilDue == 1}
-								<span class='text-warning'> (Due tomorrow)</span>
+								<span class='dueSoonLabel'> (Due tomorrow)</span>
 							{elseif $record.daysUntilDue <= 7}
-								<span class='text-warning'> (Due in {$record.daysUntilDue} days)</span>
+								<span class='dueSoonLabel'> (Due in {$record.daysUntilDue} days)</span>
 							{/if}
 							{if $record.fine}
-								<span class='text-error'><strong> FINE {$record.fine}</strong></span>
+								<span class='overdueLabel'> FINE {$record.fine}</span>
 							{/if}
 						</div>
 					</div>

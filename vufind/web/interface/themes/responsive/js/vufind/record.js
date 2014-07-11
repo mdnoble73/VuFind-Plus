@@ -347,6 +347,47 @@ VuFind.Record = (function(){
 					$(".modal-body").html("<div class='alert alert-error'>Unexpected error sending text message</div>");
 				}
 			});
+		},
+
+		showPlaceHold: function(id){
+			if (Globals.loggedIn){
+				var modalDialog = $("#modalDialog");
+				//$(".modal-body").html($('#userreview' + id).html());
+				$.getJSON(Globals.path + "/Record/" + id + "/AJAX?method=getPlaceHoldForm", function(data){
+					$('#myModalLabel').html(data.title);
+					$('.modal-body').html(data.modalBody);
+					$('.modal-buttons').html(data.modalButtons);
+				});
+				modalDialog.load( );
+				modalDialog.modal('show');
+			}else{
+				VuFind.Account.ajaxLogin(null, function(){
+					VuFind.Record.showPlaceHold(id);
+				}, false);
+			}
+			return false;
+		},
+
+		submitHoldForm: function(){
+			var id = $('#id').val();
+			var params = '&campus=' + $('#campus').val();
+			params += '&cancelHoldDate=' + $('#cancelHoldDate').text();
+			params += '&autologout=' + $('#autologout').val();
+			var selectedItem = $('#selectedItem');
+			if (selectedItem.length > 0){
+				params += '&selectedItem=' + selectedItem.val();
+			}
+			$.getJSON(Globals.path + "/Record/" + id + "/AJAX?method=placeHold" + params, function(data){
+				if (data.success){
+					if (data.needsItemLevelHold){
+						$('.modal-body').html(data.message);
+					}else{
+						VuFind.showMessage('Hold Placed Successfully', data.message);
+					}
+				}else{
+					VuFind.showMessage('Hold Failed', data.message);
+				}
+			});
 		}
 	};
 }(VuFind.Record || {}));

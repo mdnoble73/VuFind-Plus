@@ -188,7 +188,7 @@ $searchLocation = Location::getSearchLocation(null);
 //Based on the search source, determine the search scope and set a global variable
 global $solrScope;
 $solrScope = false;
-if ($searchSource == 'local'){
+if ($searchSource == 'local' || $searchSource == 'econtent'){
 	$locationIsScoped = $searchLocation != null &&
 			($searchLocation->restrictSearchByLocation ||
 					$searchLocation->econtentLocationsToInclude != 'all' ||
@@ -198,7 +198,7 @@ if ($searchSource == 'local'){
 	$libraryIsScoped = $searchLibrary != null &&
 			($searchLibrary->restrictSearchByLibrary ||
 					$searchLibrary->econtentLocationsToInclude != 'all' ||
-					strlen($searchLibrary->pTypes) > 0 ||
+					(strlen($searchLibrary->pTypes) > 0 && $searchLibrary->pTypes != -1) ||
 					$searchLibrary->useScope ||
 					!$searchLibrary->includeDigitalCollection);
 

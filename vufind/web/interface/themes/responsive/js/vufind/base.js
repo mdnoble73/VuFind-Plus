@@ -19,6 +19,20 @@ var VuFind = (function(){
 	 * Created by mark on 1/14/14.
 	 */
 	return {
+		changePageSize: function(){
+			var url = window.location.href;
+			if (url.match(/[&?]pagesize=\d+/)) {
+				url = url.replace(/pagesize=\d+/, "pagesize=" + $("#pagesize").val());
+			} else {
+				if (url.indexOf("?", 0) > 0){
+					url = url+ "&pagesize=" + $("#pagesize").val();
+				}else{
+					url = url+ "?pagesize=" + $("#pagesize").val();
+				}
+			}
+			window.location.href = url;
+		},
+
 		closeLightbox: function(){
 			var modalDialog = $("#modalDialog");
 			if (modalDialog.is(":visible")){

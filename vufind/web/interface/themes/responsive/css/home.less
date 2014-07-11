@@ -81,8 +81,8 @@
   border-bottom: 1px solid #a1a1a1;
 }
 .sidebar-links .active .panel-heading{
-  background-color: #4dacde;
-  background: linear-gradient(to bottom, #4dacde, #0f8fd2);
+  background-color: @accordion-active-header-color;
+  background: linear-gradient(to bottom, @accordion-active-header-color, darken(@accordion-active-header-color, 10%));
 }
 .sidebar-links .panel-title{
   font-size: @sidebar-font-size;
@@ -157,7 +157,7 @@
   height:80px;
 }
 .browse-category.selected{
-  border:2px solid #3497d1;
+  border:2px solid @selectedCategoryBorderColor;
 }
 
 .browse-category.category0{

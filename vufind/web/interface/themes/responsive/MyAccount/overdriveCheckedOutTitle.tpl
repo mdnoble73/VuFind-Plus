@@ -18,11 +18,10 @@
 	</div>
 	<div class="col-md-9">
 		<div class="row">
-			<strong>
-				{if $record.recordId != -1}<a href="{$record.recordUrl}">{/if}{$record.title}{if $record.recordId == -1}OverDrive Record {$record.overDriveId}{/if}{if $record.recordId != -1}</a>{/if}
-				{if $record.subTitle}<br/>{$record.subTitle}{/if}
-
-			</strong>
+			<div class="col-xs-12">
+				<span class="result-index">{$resultIndex})</span>&nbsp;
+				{if $record.recordId != -1}<a href="{$record.recordUrl}" class="result-title notranslate">{/if}{$record.title}{if $record.recordId == -1}OverDrive Record {$record.overDriveId}{/if}{if $record.recordId != -1}</a>{/if}
+			</div>
 		</div>
 		<div class="row">
 			<div class="resultDetails col-md-9">
@@ -47,6 +46,7 @@
 						{else}
 							<div class="form-inline">
 								<label for="downloadFormat_{$record.overDriveId}">Select one format to download.</label>
+								<br/>
 								<select name="downloadFormat_{$record.overDriveId}" id="downloadFormat_{$record.overDriveId}" class="input-sm form-control">
 									<option value="-1">Select a Format</option>
 									{foreach from=$record.formats item=format}

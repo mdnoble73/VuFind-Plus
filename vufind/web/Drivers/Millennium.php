@@ -343,7 +343,10 @@ class MillenniumDriver implements DriverInterface
 				$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
 				$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
 
-				$shelfLocationMap = getTranslationMap('shelf_location');
+				$shelfLocation = mapValue('shelf_location', $locationCode);
+				if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $shelfLocation, $locationParts)){
+					$shelfLocation = $locationParts[1];
+				}
 				$item = array(
 					'location' => $locationCode,
 					'callnumber' => $fullCallNumber,
@@ -353,7 +356,7 @@ class MillenniumDriver implements DriverInterface
 					'isLocalItem' => $isLocalItem,
 					'isLibraryItem' => $isLibraryItem,
 					'locationLabel' => $locationLabel,
-					'shelfLocation' => isset($shelfLocationMap[$locationCode]) ? $shelfLocationMap[$locationCode] : '',
+					'shelfLocation' => $shelfLocation,
 				);
 				$items[] = $item;
 			}
@@ -518,7 +521,7 @@ class MillenniumDriver implements DriverInterface
 					'firstname' => isset($firstName) ? $firstName : '',
 					'lastname'  => isset($lastName) ? $lastName : '',
 					'fullname'  => isset($fullName) ? $fullName : '',     //Added to array for possible display later.
-					'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
+					'cat_username' => $patronDump['PATRN_NAME'],
 					'cat_password' => $password,
 
 					'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
@@ -536,7 +539,6 @@ class MillenniumDriver implements DriverInterface
 		}
 	}
 
-	private $patronProfiles = array();
 	/**
 	 * Get Patron Profile
 	 *
@@ -544,25 +546,29 @@ class MillenniumDriver implements DriverInterface
 	 * Interface defined in CatalogConnection.php
 	 *
 	 * @param   array   $patron     The patron array
+	 * @param   boolean $forceReload Whether or not we should force a reload of the data
 	 * @return  array               Array of the patron's profile data
-	 *                              If an error occures, return a PEAR_Error
+	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function getMyProfile($patron)
+	public function getMyProfile($patron, $forceReload = false)
 	{
 		global $timer;
 		global $configArray;
+		/** @var Memcache $memCache */
+		global $memCache;
 
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
-			$id2 = $this->_getBarcode();
+			$id2 = $this->_getBarcode($patron);
 		}else{
 			$id2= $patron['id'];
 		}
 
-		if (array_key_exists($patron['id'], $this->patronProfiles) && !isset($_REQUEST['reload'])){
+		$patronProfile = $memCache->get('patronProfile_' . $patron['id']);
+		if ($patronProfile && !isset($_REQUEST['reload']) && !$forceReload){
 			$timer->logTime('Retrieved Cached Profile for Patron');
-			return $this->patronProfiles[$patron['id']];
+			return $patronProfile;
 		}
 
 		global $user;
@@ -784,7 +790,7 @@ class MillenniumDriver implements DriverInterface
 		}
 
 		$timer->logTime("Got Patron Profile");
-		$this->patronProfiles[$patron['id']] = $profile;
+		$memCache->set('patronProfile_' . $patron['id'], $profile, 0, $configArray['Caching']['patron_profile']) ;
 		return $profile;
 	}
 
@@ -1253,10 +1259,16 @@ class MillenniumDriver implements DriverInterface
 		return $this->pType;
 	}
 
-	public function _getBarcode(){
+	/**
+	 * @param null|User $patron
+	 * @return mixed
+	 */
+	public function _getBarcode($patron = null){
 		global $user;
-		//Don't rewrite patron barcodes since some use long and some use short.
-		return $user->cat_password;
+		if ($user){
+			//Don't rewrite patron barcodes since some use long and some use short.
+			return $user->cat_password;
+		}
 	}
 
 	/**
@@ -1631,6 +1643,7 @@ class MillenniumDriver implements DriverInterface
 		$fullName = str_replace(",", " ", $patronName);
 		$fullName = str_replace(";", " ", $fullName);
 		$fullName = str_replace(";", "'", $fullName);
+		$fullName = preg_replace("/\s{2,}/", " ", $fullName);
 		$allNameComponents = preg_split('^[\s-]^', strtolower($fullName));
 		$nameParts = explode(' ', $fullName);
 		$lastName = strtolower($nameParts[0]);
@@ -1844,5 +1857,14 @@ class MillenniumDriver implements DriverInterface
 				return $modValue;
 			}
 		}
+	}
+
+	public function clearPatronProfile() {
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $user;
+
+		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
+
 	}
 }

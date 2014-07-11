@@ -10,6 +10,14 @@ $driver = OverDriveDriverFactory::getDriver();
 
 $libraryInfo = $driver->getLibraryAccountInformation();
 print_r($libraryInfo);
+
+echo("<h1>Advantage Accounts</h1>");
+$advantageAccounts = $driver->getAdvantageAccountInformation();
+foreach($advantageAccounts->advantageAccounts as $accountInfo){
+	print_r($accountInfo->name . ' - ' . $accountInfo->collectionToken . '<br/>');
+}
+
+
 echo("<h1>{$libraryInfo->name}</h1>");
 
 echo("<h2>Products</h2>");

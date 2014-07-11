@@ -1308,8 +1308,10 @@ class IndexRecord implements RecordInterface
 			// unwanted whitespace.
 			$publicationInfo = (isset($places[$i]) ? $places[$i] . ' ' : '') .
 					(isset($names[$i]) ? $names[$i] . ' ' : '') .
-					(isset($dates[$i]) ? $dates[$i] : '');
-			$returnVal[] = trim(str_replace('  ', ' ', $publicationInfo));
+					(isset($dates[$i]) ? (', ' . $dates[$i] . '.') : '');
+			$publicationInfo = trim(str_replace('  ', ' ', $publicationInfo));
+			$publicationInfo = str_replace(' ,', ',', $publicationInfo);
+			$returnVal[] = $publicationInfo;
 			$i++;
 		}
 

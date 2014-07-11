@@ -892,6 +892,10 @@ class MarcRecord extends IndexRecord
 		die();
 	}
 
+	public function getPrimaryAuthor(){
+		return $this->getAuthor();
+	}
+
 	public function getAuthor(){
 		if (isset($this->fields['auth_author'])){
 			return $this->fields['auth_author'];
@@ -902,6 +906,11 @@ class MarcRecord extends IndexRecord
 			}
 			return $author;
 		}
+	}
+
+	protected function getSecondaryAuthors()
+	{
+		return $this->getContributors();
 	}
 
 	public function getContributors(){
@@ -1225,6 +1234,8 @@ class MarcRecord extends IndexRecord
 			$topicalTerm = strtolower($topicalTerm);
 			if (strpos($topicalTerm, "large type") !== FALSE){
 				$result[] =  "Large Print";
+			}elseif (strpos($topicalTerm, "playaway") !== FALSE){
+				$result[] =  "Playaway";
 			}
 		}
 
@@ -1568,6 +1579,7 @@ class MarcRecord extends IndexRecord
 			$items = $this->getItemsFast();
 			$availableCopies = 0;
 			$localAvailableCopies = 0;
+			$branchAvailableCopies = 0;
 			$localCopies = 0;
 			$totalCopies = 0;
 			$hasLocalItem = false;
@@ -1581,6 +1593,11 @@ class MarcRecord extends IndexRecord
 					$localCopies++;
 					if ($item['availability'] == true){
 						$localAvailableCopies++;
+					}
+				}
+				if ($item['isLocalItem'] ){
+					if ($item['availability'] == true){
+						$branchAvailableCopies++;
 					}
 				}
 			}
@@ -1602,6 +1619,7 @@ class MarcRecord extends IndexRecord
 					'callNumber' => $this->getCallNumber(),
 					'available' => $this->isAvailable(false),
 					'availableLocally' => $localAvailableCopies > 0,
+					'availableHere' => $branchAvailableCopies > 0,
 					'inLibraryUseOnly' => $this->isLibraryUseOnly(false),
 					'availableCopies' => $availableCopies,
 					'copies' => $totalCopies,
@@ -1624,8 +1642,9 @@ class MarcRecord extends IndexRecord
 			if ($this->isHoldable() && isset($interface) && $showHoldButton){
 				$relatedRecord['actions'][] = array(
 						'title' => 'Place Hold',
-						'url' => $holdUrl,
-						'requireLogin' => true,
+						'url' => '',
+						'onclick' => "return VuFind.Record.showPlaceHold('{$recordId}');",
+						'requireLogin' => false,
 				);
 			}
 			$timer->logTime("Finished getRelatedRecords $recordId");
@@ -1802,27 +1821,25 @@ class MarcRecord extends IndexRecord
 			$searchLocation = Location::getSearchLocation();
 			if ($searchLocation){
 				$homeLocationCode = $searchLocation->code;
-				$homeLocationLabel = $searchLocation->facetLabel;
-			}else{
-				$homeLocation = Location::getUserHomeLocation();
-				if ($homeLocation){
-					$homeLocationCode = $homeLocation->code;
-					$homeLocationLabel = $homeLocation->facetLabel;
-				}
 			}
 			if ($this->itemsFromIndex){
 				$this->fastItems = array();
 				foreach ($this->itemsFromIndex as $itemData){
+					$shelfLocation = mapValue('shelf_location', $itemData[2]);
+					//Try to trim the courier code if any
+					if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $shelfLocation, $locationParts)){
+						$shelfLocation = $locationParts[1];
+					}
 					$this->fastItems[] = array(
 						'location' => $itemData[2],
 						'callnumber' => $itemData[3],
 						'availability' => $itemData[4] == 'true',
 						'holdable' => true,
 						'inLibraryUseOnly' => $itemData[5] == 'true',
-						'isLocalItem' => isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && strpos($itemData[2], $libraryLocationCode) === 0,
-						'isLibraryItem' => isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($itemData[2], $homeLocationCode) === 0,
+						'isLibraryItem' => isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && strpos($itemData[2], $libraryLocationCode) === 0,
+						'isLocalItem' => isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($itemData[2], $homeLocationCode) === 0,
 						'locationLabel' => true,
-						'shelfLocation' => mapValue('shelf_location', $itemData[2]),
+						'shelfLocation' => $shelfLocation,
 					);
 				}
 			}else{
@@ -2041,10 +2058,12 @@ class MarcRecord extends IndexRecord
 			'body' => '<div id="excerptPlaceholder">Loading Excerpt...</div>',
 			'hideByDefault' => true
 		);
-		$moreDetailsOptions['borrowerReviews'] = array(
-			'label' => 'Borrower Reviews',
-			'body' => "<div id='customerReviewPlaceholder'></div>",
-		);
+		if ($interface->getVariable('showComments')){
+			$moreDetailsOptions['borrowerReviews'] = array(
+				'label' => 'Borrower Reviews',
+				'body' => "<div id='customerReviewPlaceholder'></div>",
+			);
+		}
 		$moreDetailsOptions['editorialReviews'] = array(
 			'label' => 'Editorial Reviews',
 			'body' => "<div id='editorialReviewPlaceholder'></div>",

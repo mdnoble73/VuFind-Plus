@@ -31,7 +31,7 @@ class Record_AJAX extends Action {
 		$analytics->disableTracking();
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'SaveComment', 'SaveTag', 'SaveRecord', 'GetEnrichmentInfoJSON'))){
+		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'SaveComment', 'SaveTag', 'SaveRecord', 'GetEnrichmentInfoJSON', 'getPlaceHoldForm', 'placeHold'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -672,5 +672,102 @@ class Record_AJAX extends Action {
 		$interface->assign('publisher', isset($descriptionArray['publisher']) ? $descriptionArray['publisher'] : '');
 
 		return $interface->fetch('Record/ajax-description-popup.tpl');
+	}
+
+	function getPlaceHoldForm(){
+		global $interface;
+		global $user;
+		global $configArray;
+		if ($user){
+			$id = $_REQUEST['id'];
+			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$profile = $catalog->getMyProfile($user);
+			$interface->assign('profile', $profile);
+
+			//Get information to show a warning if the user does not have sufficient holds
+			require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
+			$maxHolds = -1;
+			//Determine if we should show a warning
+			$ptype = new PType();
+			$ptype->pType = $user->patronType;
+			if ($ptype->find(true)){
+				$maxHolds = $ptype->maxHolds;
+			}
+			$currentHolds = $profile['numHolds'];
+			if ($maxHolds != -1 && ($currentHolds + 1 > $maxHolds)){
+				$interface->assign('showOverHoldLimit', true);
+				$interface->assign('maxHolds', $maxHolds);
+				$interface->assign('currentHolds', $currentHolds);
+			}
+
+			global $locationSingleton;
+			//Get the list of pickup branch locations for display in the user interface.
+			$locations = $locationSingleton->getPickupBranches($profile, $profile['homeLocationId']);
+			$interface->assign('pickupLocations', $locations);
+
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			$marcRecord = new MarcRecord($id);
+			$interface->assign('id', $id);
+			$title = $marcRecord->getTitle();
+			$interface->assign('title', $title);
+			$results = array(
+					'title' => 'Place Hold on ' . $title,
+					'modalBody' => $interface->fetch("Record/hold-popup.tpl"),
+					'modalButtons' => "<input type='submit' name='submit' id='requestTitleButton' value='Submit Hold Request' class='btn btn-primary' onclick='return VuFind.Record.submitHoldForm();'/>"
+			);
+		}else{
+			$results = array(
+					'title' => 'Please login',
+					'modalBody' => "You must be logged in.  Please close this dialog and login before placing your hold.",
+					'modalButtons' => ""
+			);
+		}
+
+		return json_encode($results);
+	}
+
+	function placeHold(){
+		global $user;
+		global $configArray;
+		global $interface;
+		$recordId = $_REQUEST['id'];
+		if ($user){
+			//The user is already logged in
+			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			if (isset($_REQUEST['selectedItem'])){
+				$return = $catalog->placeItemHold($recordId, $_REQUEST['selectedItem'], $user->$barcodeProperty, '', '');
+			}else{
+				$return = $catalog->placeHold($recordId, $user->$barcodeProperty, '', '');
+			}
+
+			if (isset($return['items'])){
+				$campus = $_REQUEST['campus'];
+				$interface->assign('campus', $campus);
+				$interface->assign('items', $return['items']);
+				$interface->assign('id', $recordId);
+				//Need to place item level holds.
+				$results = array(
+						'success' => true,
+						'needsItemLevelHold' => true,
+						'message' => $interface->fetch('Record/item-hold-popup.tpl'),
+						'title' => $return['title'],
+				);
+			}else{
+				$message = $return['message'];
+				$results = array(
+						'success' => $return['result'],
+						'message' => $message,
+						'title' => $return['title'],
+				);
+			}
+		} else {
+			$results = array(
+				'success' => false,
+				'message' => 'You must be logged in to place a hold.  Please close this dialog and login.',
+				'title' => 'Please login',
+			);
+		}
+		return json_encode($results);
 	}
 }

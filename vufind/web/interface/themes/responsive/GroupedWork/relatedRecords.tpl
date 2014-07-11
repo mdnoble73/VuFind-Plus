@@ -12,10 +12,10 @@
 				<th>Publisher</th>
 			{/display_if_inconsistent}
 			{display_if_inconsistent array=$relatedRecords key="publicationDate"}
-				<th>Publication Date</th>
+				<th>Pub. Date</th>
 			{/display_if_inconsistent}
 			{display_if_inconsistent array=$relatedRecords key="physical"}
-				<th>Physical Desc.</th>
+				<th>Phys Desc.</th>
 			{/display_if_inconsistent}
 			{display_if_inconsistent array=$relatedRecords key="language"}
 				<th>Language</th>
@@ -73,7 +73,7 @@
 					<div class="btn-group btn-group-vertical btn-group-sm">
 						<a href="{$relatedRecord.url}" class="btn btn-sm btn-info">More Info</a>
 						{foreach from=$relatedRecord.actions item=curAction}
-							<a href="{$curAction.url}" {if $curAction.onClick}onclick="{$curAction.onClick}"{/if} class="btn btn-sm btn-default">{$curAction.title}</a>
+							<a href="{$curAction.url}" {if $curAction.onclick}onclick="{$curAction.onclick}"{/if} class="btn btn-sm btn-default">{$curAction.title}</a>
 						{/foreach}
 					</div>
 				</td>

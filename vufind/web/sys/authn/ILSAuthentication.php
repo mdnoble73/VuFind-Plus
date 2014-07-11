@@ -7,6 +7,7 @@ class ILSAuthentication implements Authentication {
 	private $password;
 	public function authenticate(){
 		global $configArray;
+		global $user;
 
 		$this->username = $_REQUEST['username'];
 		$this->password = $_REQUEST['password'];
@@ -21,6 +22,10 @@ class ILSAuthentication implements Authentication {
 				$patron = $catalog->patronLogin($this->username, $this->password);
 				if ($patron && !PEAR_Singleton::isError($patron)) {
 					$user = $this->processILSUser($patron);
+
+					//Also call getPatronProfile to update extra fields
+					$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+					$catalog->getMyProfile($user);
 				} else {
 					$user = new PEAR_Error('authentication_error_invalid');
 				}

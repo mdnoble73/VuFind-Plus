@@ -66,7 +66,7 @@ VuFind.GroupedWork = (function(){
 						}
 						var similarTitleData = data.similarTitles;
 						if (similarTitleData && similarTitleData.titles.length > 0) {
-							var morelikethisScroller = new TitleScroller('titleScrollerMoreLikeThis', 'MoreLikeThis', 'morelikethisList');
+							morelikethisScroller = new TitleScroller('titleScrollerMoreLikeThis', 'MoreLikeThis', 'morelikethisList');
 							$('#moreLikeThisInfo').show();
 							morelikethisScroller.loadTitlesFromJsonData(similarTitleData);
 						}
