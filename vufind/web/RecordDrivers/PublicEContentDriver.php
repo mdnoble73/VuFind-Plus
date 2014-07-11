@@ -74,6 +74,7 @@ class PublicEContentDriver extends BaseEContentDriver{
 			if (!$user){
 				$this->checkedOut = false;
 			}else{
+				require_once ROOT_DIR . '/sys/eContent/EContentCheckout.php';
 				$eContentCheckout = new EContentCheckout();
 				$eContentCheckout->recordId = $this->getUniqueID();
 				$eContentCheckout->itemId = $itemId;
@@ -282,6 +283,7 @@ class PublicEContentDriver extends BaseEContentDriver{
 					'message' => 'You must be logged in to checkout a title'
 			);
 		}else{
+			require_once ROOT_DIR . '/sys/eContent/EContentCheckout.php';
 			$eContentCheckout = new EContentCheckout();
 			$eContentCheckout->userId = $user->id;
 			$eContentCheckout->recordId = $this->getUniqueID();

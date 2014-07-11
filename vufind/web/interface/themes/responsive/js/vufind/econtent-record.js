@@ -140,6 +140,21 @@ VuFind.LocalEContent = (function(){
 
 		placeHold: function(itemId){
 			alert("Placing a hold on item " + itemId);
+		},
+
+		returnTitle: function(recordId, itemId){
+			if (Globals.loggedIn){
+				var returnUrl = Globals.path + '/PublicEContent/' + recordId + '/AJAX?method=return&itemId=' + itemId;
+				$.getJSON(returnUrl, function(data){
+					if (data.result) {
+						VuFind.showMessage("Success", data.message);
+					} else {
+						VuFind.showMessage("Error", data.message);
+					}
+				});
+			}else{
+				VuFind.showMessage('Please login', 'You myst be logged in to return a title.');
+			}
 		}
 	}
 }(VuFind.LocalEContent));

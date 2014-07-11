@@ -24,6 +24,7 @@ class PublicEContent_AJAX extends Action {
 		$recordId = $_REQUEST['id'];
 		$itemId = $_REQUEST['itemId'];
 
+		require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
 		$recordDriver = new PublicEContentDriver($recordId);
 		$result = $recordDriver->checkout($itemId);
 		return json_encode($result);
@@ -33,6 +34,7 @@ class PublicEContent_AJAX extends Action {
 		$recordId = $_REQUEST['id'];
 		$itemId = $_REQUEST['itemId'];
 
+		require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
 		$recordDriver = new PublicEContentDriver($recordId);
 		$result = $recordDriver->returnTitle($itemId);
 		return json_encode($result);

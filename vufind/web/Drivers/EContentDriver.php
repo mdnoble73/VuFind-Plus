@@ -572,32 +572,37 @@ class EContentDriver implements DriverInterface{
 		$return['transactions'] = array();
 		$return['numTransactions'] = $eContentCheckout->find();
 		while ($eContentCheckout->fetch()){
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $eContentCheckout->recordId;
-			if ($eContentRecord->find(true)){
+			require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
+			$publicDriver = new PublicEContentDriver($eContentCheckout->recordId);
+			if ($publicDriver->isValid()){
 				$daysUntilDue = ceil(($eContentCheckout->dateDue - time()) / (24 * 60 * 60));
 				$overdue = $daysUntilDue < 0;
-				$waitList = $this->getWaitList($eContentRecord->id);
-				$links = $this->_getCheckedOutEContentLinks($eContentRecord, null, $eContentCheckout);
+
+				$items = $publicDriver->getItems();
+
+				$links[] = array(
+						'text' => 'Return&nbsp;Now',
+						'onclick' => "if (confirm('Are you sure you want to return this title?')){VuFind.LocalEContent.returnTitle('$eContentCheckout->recordId', '$eContentCheckout->itemId')};return false;",
+						'typeReturn' => 0);
+
 				//Get Ratings
-				require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
-				$econtentRating = new EContentRating();
-				$econtentRating->recordId = $eContentRecord->id;
-				$ratingData = $econtentRating->getRatingData($user, false);
 				$return['transactions'][] = array(
-					'id' => $eContentRecord->id,
-					'recordId' => 'econtentRecord' . $eContentRecord->id,
-					'source' => $eContentRecord->source,
+					'id' => $eContentCheckout->recordId,
+					'recordId' => $publicDriver->getUniqueID(),
+					'recordType' => 'PublicEContent',
 					'checkoutSource' => 'eContent',
-					'title' => $eContentRecord->title,
-					'author' => $eContentRecord->author,
+					'title' => $publicDriver->getTitle(),
+					'author' => $publicDriver->getPrimaryAuthor(),
 					'duedate' => $eContentCheckout->dateDue,
 					'checkoutdate' => $eContentCheckout->dateCheckedOut,
 					'daysUntilDue' => $daysUntilDue,
-					'holdQueueLength' => $waitList,
+					//'holdQueueLength' => $waitList,
 					'links' => $links,
-					'ratingData' => $ratingData,
-					'recordUrl' => $configArray['Site']['path'] . '/EcontentRecord/' . $eContentRecord->id . '/Home',
+					'items' => $items,
+					'ratingData' => $publicDriver->getRatingData(),
+					'overdue' => $overdue,
+					'recordUrl' => $configArray['Site']['path'] . '/PublicEContent/' . $publicDriver->getUniqueID() . '/Home',
+					'bookcoverUrl' => $publicDriver->getBookcoverUrl('medium'),
 				);
 			}
 		}
