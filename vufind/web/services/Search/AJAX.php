@@ -424,13 +424,7 @@ class AJAX extends Action {
 
 						$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
 						$shortId = $rawData['id'];
-						if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
-							$recordId = substr($rawData['id'], 14);
-							$formattedTitle .= '<a onclick="trackEvent(\'ListWidget\', \'Title Click\', \'' . $listName . '\')" href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
-						}else{
-							$shortId = str_replace('.b', 'b', $shortId);
-							$formattedTitle .= '<a onclick="trackEvent(\'ListWidget\', \'Title Click\', \'' . $listName . '\')" href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $shortId . '">';
-						}
+						$formattedTitle .= '<a onclick="trackEvent(\'ListWidget\', \'Title Click\', \'' . $listName . '\')" href="' . $configArray['Site']['path'] . "/GroupedWork/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $shortId . '">';
 						$imageUrl = $rawData['small_image'];
 						if (isset($_REQUEST['coverSize']) && $_REQUEST['coverSize'] == 'medium'){
 							$imageUrl = $rawData['image'];
