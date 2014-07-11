@@ -403,13 +403,8 @@ class AJAX extends Action {
 
 			$titles = $listAPI->getListTitles();
 			$timer->logTime("getListTitles");
-			$addStrandsTracking = false;
 			$strandsInfo = null;
 			if ($titles['success'] == true){
-				if (isset($titles['strands'])){
-					$addStrandsTracking = true;
-					$strandsInfo = $titles['strands'];
-				}
 				$titles = $titles['titles'];
 				if (is_array($titles)){
 					foreach ($titles as $key => $rawData){
@@ -424,7 +419,7 @@ class AJAX extends Action {
 
 						$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
 						$shortId = $rawData['id'];
-						$formattedTitle .= '<a onclick="trackEvent(\'ListWidget\', \'Title Click\', \'' . $listName . '\')" href="' . $configArray['Site']['path'] . "/GroupedWork/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $shortId . '">';
+						$formattedTitle .= '<a onclick="trackEvent(\'ListWidget\', \'Title Click\', \'' . $listName . '\')" href="' . $configArray['Site']['path'] . "/GroupedWork/" . $rawData['id'] . '" id="descriptionTrigger' . $shortId . '">';
 						$imageUrl = $rawData['small_image'];
 						if (isset($_REQUEST['coverSize']) && $_REQUEST['coverSize'] == 'medium'){
 							$imageUrl = $rawData['image'];
