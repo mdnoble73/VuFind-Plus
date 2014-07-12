@@ -212,6 +212,29 @@ class MillenniumDriver implements DriverInterface
 		}
 	}
 
+	public function getLibraryScope(){
+		if (isset($_REQUEST['useUnscopedHoldingsSummary'])){
+			return $this->getDefaultScope();
+		}
+		$searchLibrary = Library::getSearchLibrary();
+		$searchLocation = Location::getSearchLocation();
+
+		$branchScope = '';
+		//Load the holding label for the branch where the user is physically.
+		if (!is_null($searchLocation)){
+			if (isset($searchLocation->scope) && $searchLocation->scope > 0){
+				$branchScope = $searchLocation->scope;
+			}
+		}
+		if (strlen($branchScope)){
+			return $branchScope;
+		}else if (isset($searchLibrary) && isset($searchLibrary->scope) && $searchLibrary->scope > 0) {
+			return $searchLibrary->scope;
+		}else{
+			return $this->getDefaultScope();
+		}
+	}
+
 	public function getDefaultScope(){
 		global $configArray;
 		return isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
@@ -1568,7 +1591,7 @@ class MillenniumDriver implements DriverInterface
 		$email = $_REQUEST['email'];
 
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
-		$curl_url = $configArray['Catalog']['url'] . "/selfreg~S" . $this->getMillenniumScope();
+		$curl_url = $configArray['Catalog']['url'] . "/selfreg~S" . $this->getLibraryScope();
 		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
 		//echo "$curl_url";
 		$curl_connection = curl_init($curl_url);

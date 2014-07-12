@@ -412,6 +412,12 @@ class MyAccount_AJAX {
 
 	function LoginForm(){
 		global $interface;
+		global $library;
+		if (isset($library)){
+			$interface->assign('enableSelfRegistration', $library->enableSelfRegistration);
+		}else{
+			$interface->assign('enableSelfRegistration', 0);
+		}
 		return $interface->fetch('MyResearch/ajax-login.tpl');
 	}
 
