@@ -7415,9 +7415,6 @@ div#system-message-header {
   background-image: url('/interface/themes/englewood/images/header_background.png');
   background-repeat: no-repeat;
 }
-#header-logo {
-  display: none;
-}
 .header-button {
   border-radius: 0.5em;
   background-color: rgba(255, 255, 255, 0.75);
