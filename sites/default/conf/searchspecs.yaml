@@ -355,6 +355,7 @@ Keyword:
         - [exact, 800]
         - [onephrase, 500]
         - [and, 200]
+        - [single_word_removal, 50]
       - title:
         - [onephrase, 200]
         - [and, 125]
@@ -388,11 +389,10 @@ Keyword:
     keywords:
       - [onephrase, 50]
       - [and, 10]
-      - [or, ~]
+      - [single_word_removal, ~]
     description:
       - [onephrase, 60]
       - [and, 10]
-      - [or, ~]
     issn:
       - [and, 100]
       - [or, ~]
@@ -495,78 +495,6 @@ KeywordProper:
       - [localized_callnumber, 300]
     barcode:
       - [onephrase, ~]
-
-KeywordGrouped:
-  QueryFields:
-    - title_exact:
-      - [localized_callnumber, 2400]
-    - title_left:
-      - [localized_callnumber, 1600]
-    -
-      - [OR, 50]
-      - title_proper:
-        - [exact, 800]
-        - [onephrase, 500]
-        - [and, 200]
-      - title:
-        - [onephrase, 200]
-        - [and, 125]
-      - title_alt:
-        - [and, 100]
-      - title_new:
-        - [and, 50]
-    series:
-      - [exact, 800]
-      - [onephrase, 300]
-      - [and, 50]
-    series2:
-      - [and, 30]
-    author:
-      - [exact, 800]
-      - [onephrase, 250]
-      - [and, 200]
-    author2:
-      - [and, 50]
-    author_additional:
-      - [and, 50]
-    table_of_contents:
-      - [and, 10]
-    topic:
-      - [onephrase, 125]
-    geographic:
-      - [onephrase, 75]
-    genre:
-      - [onephrase, 75]
-    keywords:
-      - [and, 100]
-    issn:
-      - [and, 100]
-      - [or, ~]
-    isbn:
-      - [and, 100]
-      - [or, ~]
-    upc:
-      - [and, 100]
-      - [or, ~]
-    upc:
-      - [and, 100]
-      - [or, ~]
-    id:
-      - [onephrase, ~]
-    alternate_ids:
-      - [exact, ~]
-    local_callnumber_exact:
-      - [localized_callnumber, 800]
-    local_callnumber_left:
-      - [localized_callnumber, 300]
-    local_callnumber:
-      - [exact, ~]
-    barcode:
-      - [exact, ~]
-    target_audience:
-      - [onephrase, 75]
-    literary_form_full:
-      - [onephrase, 75]
 
 KeywordGroupedProper:
   DismaxFields:

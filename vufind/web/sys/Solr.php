@@ -836,13 +836,32 @@ class Solr implements IndexEngine {
 			$values['exact'] = str_replace(':', '\\:', $lookfor);
 			$values['and'] = $andQuery;
 			$values['or'] = $orQuery;
+			$singleWordRemoval = "";
+			if (count($tokenized) < 3){
+				$singleWordRemoval = '"' . str_replace('"', '', implode(' ', $tokenized)) . '"';
+			}else{
+				for ($i = 0; $i < count($tokenized); $i++){
+					$newTerm = '"';
+					for ($j = 0; $j < count($tokenized); $j++){
+						if ($j != $i){
+							$newTerm .= $tokenized[$j] . ' ';
+						}
+					}
+					$newTerm = trim($newTerm) . '"';
+					if (strlen($singleWordRemoval) > 0){
+						$singleWordRemoval .= ' OR ';
+					}
+					$singleWordRemoval .= $newTerm;
+				}
+			}
+			$values['single_word_removal'] = $singleWordRemoval;
 		} else {
 			// If we're skipping tokenization, we just want to pass $lookfor through
 			// unmodified (it's probably an advanced search that won't benefit from
 			// tokenization).	We'll just set all possible values to the same thing,
 			// except that we'll try to do the "one phrase" in quotes if possible.
 			$onephrase = strstr($lookfor, '"') ? $lookfor : '"' . $lookfor . '"';
-			$values = array('exact' => $onephrase, 'onephrase' => $onephrase, 'and' => $lookfor, 'or' => $lookfor);
+			$values = array('exact' => $onephrase, 'onephrase' => $onephrase, 'and' => $lookfor, 'or' => $lookfor, 'single_word_removal' => $onephrase);
 		}
 
 		//Create localized call number
@@ -1195,13 +1214,6 @@ class Solr implements IndexEngine {
 				$handler = 'AllFieldsProper';
 			}else if ($handler == 'Title'){
 				$handler = 'TitleProper';
-			}
-		}
-		if ($this->index == 'grouped'){
-			if ($handler == 'Keyword'){
-				$handler = 'KeywordGrouped';
-			}elseif ($handler == 'KeywordProper'){
-				$handler = 'KeywordGroupedProper';
 			}
 		}
 
