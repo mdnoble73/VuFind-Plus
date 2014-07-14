@@ -345,9 +345,9 @@ Keyword:
     -
       - [OR, 500]
       - title_exact:
-        - [localized_callnumber, 500]
+        - [localized_callnumber, 7000]
       - author_exact:
-        - [localized_callnumber, 100]
+        - [localized_callnumber, 2000]
       - id:
         - [onephrase, ~]
       - alternate_ids:
@@ -358,9 +358,9 @@ Keyword:
     -
       - [OR, 100]
       - title_left:
-        - [localized_callnumber, 500]
+        - [localized_callnumber, 3000]
       - author_left:
-        - [localized_callnumber, 100]
+        - [localized_callnumber, 1000]
       - local_callnumber_exact:
         - [localized_callnumber, 400]
 # Now look within our keywords for more exact titles.
