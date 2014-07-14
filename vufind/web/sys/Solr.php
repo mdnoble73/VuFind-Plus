@@ -787,24 +787,25 @@ class Solr implements IndexEngine {
 		//Add rating as part of the ranking, normalize so ratings of less that 2.5 are below unrated entries.
 		$boostFactors[] = 'sum(rating,1)';
 
+		global $solrScope;
 		if (isset($searchLibrary) && !is_null($searchLibrary) && $searchLibrary->boostByLibrary == 1) {
-			$boostFactors[] = "sum(product(lib_boost_{$searchLibrary->subdomain},{$searchLibrary->additionalLocalBoostFactor}),1)";
+			$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$searchLibrary->additionalLocalBoostFactor}),1)";
 		}else{
 			//Handle boosting even if we are in a global scope
 			global $library;
 			if ($library && $library->boostByLibrary == 1){
-				$boostFactors[] = "sum(product(lib_boost_{$library->subdomain},{$library->additionalLocalBoostFactor}),1)";
+				$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$library->additionalLocalBoostFactor}),1)";
 			}
 		}
 
 		if (isset($searchLocation) && !is_null($searchLocation) && $searchLocation->boostByLocation == 1) {
-			$boostFactors[] = "sum(product(lib_boost_{$searchLocation->code},{$searchLocation->additionalLocalBoostFactor}),1)";
+			$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$searchLocation->additionalLocalBoostFactor}),1)";
 		}else{
 			//Handle boosting even if we are in a global scope
 			global $locationSingleton;
 			$physicalLocation = $locationSingleton->getActiveLocation();
 			if ($physicalLocation != null && $physicalLocation->boostByLocation ==1){
-				$boostFactors[] = "sum(product(lib_boost_{$physicalLocation->code},{$physicalLocation->additionalLocalBoostFactor}),1)";
+				$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$physicalLocation->additionalLocalBoostFactor}),1)";
 			}
 		}
 		return $boostFactors;
@@ -869,7 +870,7 @@ class Solr implements IndexEngine {
 		if (strpos($lookfor, '*') !== false){
 			$noWildCardLookFor = str_replace('*', '', $lookfor);
 		}
-		$values['localized_callnumber'] = str_replace(array('"', ':', '/'), ' ', $noWildCardLookFor);
+		$values['localized_callnumber'] = '"' . str_replace(array('"', ':', '/'), ' ', $noWildCardLookFor) . '"';
 
 		// Apply custom munge operations if necessary:
 		if (is_array($custom) && $basic) {

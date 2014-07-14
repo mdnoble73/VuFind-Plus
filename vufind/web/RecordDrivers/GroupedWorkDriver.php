@@ -769,7 +769,7 @@ class GroupedWorkDriver implements RecordInterface{
 		if (isset($this->fields['score'])){
 			return $this->fields['score'];
 		}
-		return 0;
+		return null;
 	}
 
 	public function getExplain(){
