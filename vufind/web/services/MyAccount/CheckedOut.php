@@ -60,7 +60,7 @@ class MyAccount_CheckedOut extends MyAccount{
 					$interface->assign('libraryHoursMessage', $libraryHoursMessage);
 
 					//Get checked out titles from the ILS
-					$catalogTransactions = $this->catalog->getMyTransactions($page, $recordsPerPage, $selectedSortOption);
+					$catalogTransactions = $this->catalog->getMyTransactions(1, -1, $selectedSortOption);
 					$timer->logTime("Loaded transactions from catalog.");
 
 					//Get checked out titles from OverDrive
