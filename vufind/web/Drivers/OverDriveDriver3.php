@@ -505,6 +505,7 @@ class OverDriveDriver3 {
 				$hold['title'] = $overDriveRecord->getTitle();
 				$hold['author'] = $overDriveRecord->getAuthor();
 				$hold['linkUrl'] = $overDriveRecord->getLinkUrl(false);
+				$hold['format'] = $overDriveRecord->getFormats();
 				$hold['ratingData'] = $overDriveRecord->getRatingData();
 
 				$key = $hold['holdSource'] . $hold['overDriveId'];

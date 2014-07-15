@@ -53,23 +53,22 @@
 						</div>
 					{/if}
 
-					{if $section == 'available'}
-					{* Available Hold *}
+					{if $record.format}
 						<div class="row">
-							<div class="result-label col-xs-3">{translate text='Notification Sent'}</div>
+							<div class="result-label col-xs-3">{translate text='Format'}</div>
 							<div class="col-xs-9 result-value">
-								{if $record.notificationDate}
-									{$record.notificationDate|date_format:"%b %d, %Y at %l:%M %p"}
-								{else}
-									Now
-								{/if}
+								{implode subject=$record.format glue=", "}
 							</div>
 						</div>
+					{/if}
+
+					{if $section == 'available'}
+					{* Available Hold *}
 
 						<div class="row">
 							<div class="result-label col-xs-3">{translate text='Expires'}</div>
 							<div class="col-xs-9 result-value">
-								{$record.expirationDate|date_format:"%b %d, %Y"}
+								{$record.expirationDate|date_format:"%b %d, %Y at %l:%M %p"}
 							</div>
 						</div>
 
