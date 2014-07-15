@@ -418,6 +418,9 @@ class MyAccount_AJAX {
 		}else{
 			$interface->assign('enableSelfRegistration', 0);
 		}
+		if (isset($_REQUEST['multistep'])){
+			$interface->assign('multistep', true);
+		}
 		return $interface->fetch('MyResearch/ajax-login.tpl');
 	}
 
