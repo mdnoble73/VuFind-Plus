@@ -1622,7 +1622,7 @@ class MillenniumDriver implements DriverInterface
 
 		//Parse the library card number from the response
 		if (preg_match('/Your barcode is:.*?(\\d+)<\/(b|strong)>/s', $sresult, $matches)) {
-			$barcode = $matches[0];
+			$barcode = $matches[1];
 			return array('success' => true, 'barcode' => $barcode);
 		} else {
 			return array('success' => false, 'barcode' => '');
