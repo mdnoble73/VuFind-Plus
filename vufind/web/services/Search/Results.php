@@ -253,7 +253,6 @@ class Search_Results extends Action {
 		}
 		$interface->assign('showRatings', $showRatings);
 
-		$numProspectorTitlesToLoad = 0;
 		$numUnscopedTitlesToLoad = 0;
 
 		// Save the ID of this search to the session so we can return to it easily:
@@ -326,7 +325,6 @@ class Search_Results extends Action {
 				}
 			}
 
-			$numProspectorTitlesToLoad = 10;
 			$numUnscopedTitlesToLoad = 10;
 			$timer->logTime('no hits processing');
 
@@ -394,17 +392,16 @@ class Search_Results extends Action {
 			$pager = new VuFindPager($options);
 			$interface->assign('pageLinks', $pager->getLinks());
 			if ($pager->isLastPage()){
-				$numProspectorTitlesToLoad = 5;
 				$numUnscopedTitlesToLoad = 5;
 			}
 			$timer->logTime('finish hits processing');
 		}
 
-		if ($numProspectorTitlesToLoad > 0 && $enableProspectorIntegration && $showProspectorResultsAtEndOfSearch){
-			$interface->assign('prospectorNumTitlesToLoad', $numProspectorTitlesToLoad);
+		if ($enableProspectorIntegration && $showProspectorResultsAtEndOfSearch){
+			$interface->assign('showProspectorLink', true);
 			$interface->assign('prospectorSavedSearchId', $searchObject->getSearchId());
 		}else{
-			$interface->assign('prospectorNumTitlesToLoad', 0);
+			$interface->assign('showProspectorLink', false);
 		}
 
 		if ($enableUnscopedSearch && isset($unscopedSearch)){
