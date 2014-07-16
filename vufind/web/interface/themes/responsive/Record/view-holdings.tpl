@@ -26,7 +26,7 @@
 			{/if}
 
 			<div class="row">
-				<div class="col-xs-6">
+				<div class="col-xs-5">
 					<strong>
 					{$holding.location|escape}
 					{if $holding.locationLink} (<a href='{$holding.locationLink}' target='_blank'>Map</a>){/if}
@@ -41,7 +41,7 @@
 					{/if}
 				</div>
 
-				<div class="col-xs-2">
+				<div class="col-xs-3">
 					{if $holding.reserve == "Y"}
 						{translate text="On Reserve - Ask at Circulation Desk"}
 					{else}

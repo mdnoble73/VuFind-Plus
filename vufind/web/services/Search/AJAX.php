@@ -339,12 +339,6 @@ class AJAX extends Action {
 		global $configArray;
 		global $interface;
 		global $timer;
-		global $library;
-		if (isset($library)){
-			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
-		}else{
-			$interface->assign('showProspectorTitlesAsTab', 0);
-		}
 
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();

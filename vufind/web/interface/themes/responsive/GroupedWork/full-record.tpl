@@ -25,31 +25,7 @@
 
 	{if $error}<p class="error">{$error}</p>{/if}
 
-
-	{if $recordDriver->getDescription()}
-		<div class="row">
-			<div class="col-sm-12">
-				<span class="result-label">Description: </span>
-
-				{assign value=$recordDriver->getDescription() var="summary"}
-				{if strlen($summary) > 600}
-					<span id="shortSummary">
-					{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'|truncate:600}{*Leave unescaped because some syndetics reviews have html in them *}
-						<a href='#' onclick='$("#shortSummary").slideUp();$("#fullSummary").slideDown()'>More</a>
-					</span>
-					<span id="fullSummary" style="display:none">
-					{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
-						<a href='#' onclick='$("#shortSummary").slideDown();$("#fullSummary").slideUp()'>Less</a>
-					</span>
-				{else}
-					{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
-				{/if}
-			</div>
-		</div>
-	{/if}
-
-
-	{assign value=$recordDriver->getRelatedManifestations() var="relatedManifestations"}
+{assign value=$recordDriver->getRelatedManifestations() var="relatedManifestations"}
 	{include file="GroupedWork/relatedManifestations.tpl"}
 
 	{include file=$moreDetailsTemplate}

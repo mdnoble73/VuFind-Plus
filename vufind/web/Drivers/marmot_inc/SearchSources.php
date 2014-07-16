@@ -27,7 +27,6 @@ class SearchSources{
 		$repeatSearchSetting = '';
 		$repeatInWorldCat = false;
 		$repeatInProspector = true;
-		$repeatInAmazon = true;
 		$repeatInOverdrive = false;
 		$systemsToRepeatIn = array();
 		$searchGenealogy = true;
@@ -54,7 +53,6 @@ class SearchSources{
 			$systemsToRepeatIn = explode('|', $library->systemsToRepeatIn);
 		}
 		if (isset($library)){
-			$repeatInAmazon = $library->repeatInAmazon;
 			$searchGenealogy = $library->enableGenealogy;
 			$repeatCourseReserves = $library->enableCourseReserves == 1;
 		}
@@ -218,15 +216,6 @@ class SearchSources{
 			//'link' => "http://goldrush.coalliance.org/index.cfm?fuseaction=Search&amp;inst_code={$library->goldRushCode}&amp;search_type={$worldCatSearchType}&amp;search_term=".urlencode($lookfor),
         'name' => 'Gold Rush Magazine Finder',
         'description' => 'A catalog of online journals and full text articles.',
-        'external' => true,
-				'catalogType' => 'catalog'
-			);
-		}
-
-		if ($repeatInAmazon && !$interface->isMobile()){
-			$searchOptions['amazon'] = array(
-        'name' => 'Amazon',
-        'description' => 'Online retailer selling a wide variety of books, movies, music, and more.',
         'external' => true,
 				'catalogType' => 'catalog'
 			);

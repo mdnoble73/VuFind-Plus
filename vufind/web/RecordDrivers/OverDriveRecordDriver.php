@@ -9,7 +9,7 @@
  */
 
 require_once ROOT_DIR . '/RecordDrivers/Interface.php';
-class OverDriveRecordDriver implements RecordInterface {
+class OverDriveRecordDriver extends RecordInterface {
 
 	private $id;
 	/** @var OverDriveAPIProduct  */
@@ -849,19 +849,7 @@ class OverDriveRecordDriver implements RecordInterface {
 		$interface->assign('holdings', $holdings);
 
 		//Load more details options
-		$moreDetailsOptions = array();
-		$moreDetailsOptions['series'] = array(
-			'label' => 'Also in this Series',
-			'body' => $interface->fetch('GroupedWork/series.tpl'),
-			'hideByDefault' => false,
-			'openByDefault' => true
-		);
-		$moreDetailsOptions['moreLikeThis'] = array(
-			'label' => 'More Like This',
-			'body' => $interface->fetch('GroupedWork/moreLikeThis.tpl'),
-			'hideByDefault' => false,
-			'openByDefault' => true
-		);
+		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn);
 		$moreDetailsOptions['formats'] = array(
 			'label' => 'Formats',
 			'body' => $interface->fetch('OverDrive/view-formats.tpl'),
@@ -877,82 +865,16 @@ class OverDriveRecordDriver implements RecordInterface {
 					'hideByDefault' => false
 			);
 		}
-		if ($interface->getVariable('enablePospectorIntegration')){
-			$moreDetailsOptions['prospector'] = array(
-					'label' => 'More Copies In Prospector',
-					'body' => '<div id="inProspectorPlaceholder">Loading Prospector Copies...</div>',
-					'hideByDefault' => false
-			);
-		}
-		$moreDetailsOptions['tableOfContents'] = array(
-			'label' => 'Table of Contents',
-			'body' => $interface->fetch('GroupedWork/tableOfContents.tpl'),
-			'hideByDefault' => true
-		);
-		$moreDetailsOptions['excerpt'] = array(
-			'label' => 'Excerpt',
-			'body' => '<div id="excerptPlaceholder">Loading Excerpt...</div>',
-			'hideByDefault' => true
-		);
-		$moreDetailsOptions['borrowerReviews'] = array(
-			'label' => 'Borrower Reviews',
-			'body' => "<div id='customerReviewPlaceholder'></div>",
-		);
-		$moreDetailsOptions['editorialReviews'] = array(
-			'label' => 'Editorial Reviews',
-			'body' => "<div id='editorialReviewPlaceholder'></div>",
-		);
-		if ($isbn){
-			$moreDetailsOptions['syndicatedReviews'] = array(
-				'label' => 'Published Reviews',
-				'body' => "<div id='syndicatedReviewPlaceholder'></div>",
-			);
-		}
-		//A few tabs require an ISBN
-		if ($isbn){
-			if ($interface->getVariable('showGoodReadsReviews')){
-				$moreDetailsOptions['goodreadsReviews'] = array(
-					'label' => 'Reviews from GoodReads',
-					'body' => '<iframe id="goodreads_iframe" class="goodReadsIFrame" src="https://www.goodreads.com/api/reviews_widget_iframe?did=DEVELOPER_ID&format=html&isbn=' . $isbn . '&links=660&review_back=fff&stars=000&text=000" width="100%" height="400px" frameborder="0"></iframe>',
-				);
-			}
-			if ($interface->getVariable('showSimilarTitles')){
-				$moreDetailsOptions['similarTitles'] = array(
-					'label' => 'Similar Titles From Novelist',
-					'body' => '<div id="novelisttitlesPlaceholder"></div>',
-					'hideByDefault' => true
-				);
-			}
-			if ($interface->getVariable('showSimilarAuthors')){
-				$moreDetailsOptions['similarAuthors'] = array(
-					'label' => 'Similar Authors From Novelist',
-					'body' => '<div id="novelistauthorsPlaceholder"></div>',
-					'hideByDefault' => true
-				);
-			}
-			if ($interface->getVariable('showSimilarTitles')){
-				$moreDetailsOptions['similarSeries'] = array(
-					'label' => 'Similar Series From Novelist',
-					'body' => '<div id="novelistseriesPlaceholder"></div>',
-					'hideByDefault' => true
-				);
-			}
-		}
+
 		$moreDetailsOptions['moreDetails'] = array(
 			'label' => 'More Details',
 			'body' => $interface->fetch('OverDrive/view-more-details.tpl'),
 		);
-		if ($interface->getVariable('showTagging')){
-			$moreDetailsOptions['tags'] = array(
-					'label' => 'Tagging',
-					'body' => $interface->fetch('GroupedWork/view-tags.tpl'),
-			);
-		}
 		$moreDetailsOptions['citations'] = array(
 			'label' => 'Citations',
 			'body' => $interface->fetch('Record/cite.tpl'),
 		);
-		$moreDetailsOptions['copies'] = array(
+		$moreDetailsOptions['copyDetails'] = array(
 			'label' => 'Copy Details',
 			'body' => $interface->fetch('OverDrive/view-copies.tpl'),
 		);
@@ -963,7 +885,7 @@ class OverDriveRecordDriver implements RecordInterface {
 			);
 		}
 
-		return $moreDetailsOptions;
+		return $this->filterAndSortMoreDetailsOptions($moreDetailsOptions);
 	}
 
 	public function getLinkUrl($useUnscopedHoldingsSummary = false) {

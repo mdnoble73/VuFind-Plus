@@ -28,7 +28,7 @@ require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
  * fields from the index.  It is invoked when a record-format-specific
  * driver cannot be found.
  */
-class IndexRecord implements RecordInterface
+class IndexRecord extends RecordInterface
 {
 	protected $fields;
 	protected $index = false;
@@ -1583,6 +1583,10 @@ class IndexRecord implements RecordInterface
 
 	public function getTags(){
 		return $this->getGroupedWorkDriver()->getTags();
+	}
+
+	public function getMoreDetailsOptions(){
+		return $this->getBaseMoreDetailsOptions(false);
 	}
 }
 

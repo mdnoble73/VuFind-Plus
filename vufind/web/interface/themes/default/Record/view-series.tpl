@@ -44,9 +44,6 @@
 					</div>
 
 				{/foreach}
-				{if !$enableBookCart}
-				<input type="submit" name="placeHolds" value="Request Selected Items" class="requestSelectedItems"/>
-				{/if}
 			</div>
 		</form>
 	

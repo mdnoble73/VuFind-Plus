@@ -734,6 +734,19 @@ class MarcRecord extends IndexRecord
 	}
 
 	/**
+	 * @param File_MARC_Data_Field $marcField
+	 * @param File_MARC_Subfield $subField
+	 * @return string
+	 */
+	public function getSubfieldData($marcField, $subField){
+		if ($marcField){
+			return $marcField->getSubfield($subField) ? $marcField->getSubfield($subField)->getData() : '';
+		}else{
+			return '';
+		}
+	}
+
+	/**
 	 * Get an array of summary strings for the record.
 	 *
 	 * @access  protected
@@ -983,21 +996,39 @@ class MarcRecord extends IndexRecord
 		global $memCache;
 		global $configArray;
 		global $interface;
-		global $timer;
+		global $library;
 		$id = $this->getUniqueID();
-		//Bypass loading solr, etc if we already have loaded the descriptive info before
-		$descriptionArray = $memCache->get("record_description_{$id}");
-		if (!$descriptionArray){
-			$timer->logTime("Starting to load description for marc record");
-			$descriptionArray = $this->loadDescriptionFromMarc($this->getMarcRecord(), false);
-			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
-			$timer->logTime("Retrieved description for marc record");
-		}
-		$interface->assign('description', $descriptionArray['description']);
-		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');
-		$interface->assign('publisher', isset($descriptionArray['publisher']) ? $descriptionArray['publisher'] : '');
 
-		return $interface->fetch('Record/ajax-description-popup.tpl');
+		$useMarcSummary = true;
+		if ($this->getCleanISBN() || $this->getCleanUPC()){
+			if (!$library || ($library && $library->preferSyndeticsSummary == 1)){
+				require_once ROOT_DIR  . '/Drivers/marmot_inc/GoDeeperData.php';
+				$summaryInfo = GoDeeperData::getSummary($this->getCleanISBN(), $this->getCleanUPC());
+				if (isset($summaryInfo['summary'])){
+					$summary = $summaryInfo['summary'];
+					$useMarcSummary = false;
+				}
+			}
+		}
+		if ($useMarcSummary){
+			if ($summaryFields = $this->marcRecord->getFields('520')) {
+				$summary = '';
+				foreach($summaryFields as $summaryField){
+					$summary .= '<p>' . $this->getSubfieldData($summaryField, 'a') . '</p>';
+				}
+				$interface->assign('summary', $summary);
+				$interface->assign('summaryTeaser', strip_tags($summary));
+			}elseif ($library && $library->preferSyndeticsSummary == 0){
+				require_once ROOT_DIR  . '/Drivers/marmot_inc/GoDeeperData.php';
+				$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
+				if (isset($summaryInfo['summary'])){
+					$summary = $summaryInfo['summary'];
+				}
+			}
+		}
+
+
+		return $summary;
 	}
 
 	function loadDescriptionFromMarc($marcRecord, $allowExternalDescription = true){
@@ -1005,7 +1036,7 @@ class MarcRecord extends IndexRecord
 		global $memCache;
 		global $configArray;
 
-		if (!$marcRecord){
+		if (!$this->getMarcRecord()){
 			$descriptionArray = array();
 			$description = "Description Not Provided";
 			$descriptionArray['description'] = $description;
@@ -1082,24 +1113,6 @@ class MarcRecord extends IndexRecord
 				}
 			}
 
-			//Load page count
-			/** @var File_MARC_Data_Field $length */
-			if ($length = $marcRecord->getField('300')){
-				if ($lengthSubfield = $length->getSubfield('a')){
-					$length = trim($lengthSubfield->getData());
-					$length = preg_replace("/[\\/|;:]/","",$length);
-					$length = preg_replace("/p\./","pages",$length);
-					$descriptionArray['length'] = $length;
-				}
-			}
-			//Load publisher
-			/** @var File_MARC_Data_Field $publisher */
-			if ($publisher = $marcRecord->getField('260')){
-				if ($publisherSubfield = $publisher->getSubfield('b')){
-					$publisher = trim($publisherSubfield->getData());
-					$descriptionArray['publisher'] = $publisher;
-				}
-			}
 			$memCache->set("record_description_{$isbn}_{$upc}_{$allowExternalDescription}", $descriptionArray, 0, $configArray['Caching']['record_description']);
 		}
 		return $descriptionArray;
@@ -2013,19 +2026,7 @@ class MarcRecord extends IndexRecord
 		$isbn = $this->getCleanISBN();
 
 		//Load more details options
-		$moreDetailsOptions = array();
-		$moreDetailsOptions['series'] = array(
-				'label' => 'Also in this Series',
-				'body' => $interface->fetch('GroupedWork/series.tpl'),
-				'hideByDefault' => false,
-				'openByDefault' => true
-		);
-		$moreDetailsOptions['moreLikeThis'] = array(
-				'label' => 'More Like This',
-				'body' => $interface->fetch('GroupedWork/moreLikeThis.tpl'),
-				'hideByDefault' => false,
-				'openByDefault' => true
-		);
+		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn);
 		$moreDetailsOptions['copies'] = array(
 			'label' => 'Copies',
 			'body' => '<div id="holdingsPlaceholder"></div>',
@@ -2041,79 +2042,15 @@ class MarcRecord extends IndexRecord
 					'hideByDefault' => false
 			);
 		}
-		if ($interface->getVariable('enablePospectorIntegration')){
-			$moreDetailsOptions['prospector'] = array(
-					'label' => 'More Copies In Prospector',
-					'body' => '<div id="inProspectorPlaceholder">Loading Prospector Copies...</div>',
-					'hideByDefault' => false
-			);
-		}
-		$moreDetailsOptions['tableOfContents'] = array(
-			'label' => 'Table of Contents',
-			'body' => $interface->fetch('GroupedWork/tableOfContents.tpl'),
-			'hideByDefault' => $interface->getVariable('tableOfContents') ? false : true
-		);
-		$moreDetailsOptions['excerpt'] = array(
-			'label' => 'Excerpt',
-			'body' => '<div id="excerptPlaceholder">Loading Excerpt...</div>',
-			'hideByDefault' => true
-		);
-		if ($interface->getVariable('showComments')){
-			$moreDetailsOptions['borrowerReviews'] = array(
-				'label' => 'Borrower Reviews',
-				'body' => "<div id='customerReviewPlaceholder'></div>",
-			);
-		}
-		$moreDetailsOptions['editorialReviews'] = array(
-			'label' => 'Editorial Reviews',
-			'body' => "<div id='editorialReviewPlaceholder'></div>",
-		);
-		if ($isbn){
-			$moreDetailsOptions['syndicatedReviews'] = array(
-				'label' => 'Published Reviews',
-				'body' => "<div id='syndicatedReviewPlaceholder'></div>",
-			);
-		}
-		//A few tabs require an ISBN
-		if ($isbn){
-			if ($interface->getVariable('showGoodReadsReviews')){
-				$moreDetailsOptions['goodreadsReviews'] = array(
-					'label' => 'Reviews from GoodReads',
-					'body' => '<iframe id="goodreads_iframe" class="goodReadsIFrame" src="https://www.goodreads.com/api/reviews_widget_iframe?did=DEVELOPER_ID&format=html&isbn=' . $isbn . '&links=660&review_back=fff&stars=000&text=000" width="100%" height="400px" frameborder="0"></iframe>',
-				);
-			}
-			if ($interface->getVariable('showSimilarTitles')){
-				$moreDetailsOptions['similarTitles'] = array(
-						'label' => 'Similar Titles From Novelist',
-						'body' => '<div id="novelisttitlesPlaceholder"></div>',
-						'hideByDefault' => true
-				);
-			}
-			if ($interface->getVariable('showSimilarAuthors')){
-				$moreDetailsOptions['similarAuthors'] = array(
-					'label' => 'Similar Authors From Novelist',
-					'body' => '<div id="novelistauthorsPlaceholder"></div>',
-					'hideByDefault' => true
-				);
-			}
-			if ($interface->getVariable('showSimilarTitles')){
-				$moreDetailsOptions['similarSeries'] = array(
-					'label' => 'Similar Series From Novelist',
-					'body' => '<div id="novelistseriesPlaceholder"></div>',
-					'hideByDefault' => true
-				);
-			}
-		}
 		$moreDetailsOptions['moreDetails'] = array(
 			'label' => 'More Details',
 			'body' => $interface->fetch('Record/view-more-details.tpl'),
 		);
-		if ($interface->getVariable('showTagging')){
-			$moreDetailsOptions['tags'] = array(
-					'label' => 'Tagging',
-					'body' => $interface->fetch('GroupedWork/view-tags.tpl'),
-			);
-		}
+		$this->loadSubjects();
+		$moreDetailsOptions['subjects'] = array(
+				'label' => 'Subjects',
+				'body' => $interface->fetch('Record/view-subjects.tpl'),
+		);
 		$moreDetailsOptions['citations'] = array(
 			'label' => 'Citations',
 			'body' => $interface->fetch('Record/cite.tpl'),
@@ -2125,7 +2062,72 @@ class MarcRecord extends IndexRecord
 			);
 		}
 
-		return $moreDetailsOptions;
+		return $this->filterAndSortMoreDetailsOptions($moreDetailsOptions);
+	}
+
+	public function loadSubjects(){
+		global $interface;
+		global $configArray;
+		$marcRecord = $this->getMarcRecord();
+		if (isset($configArray['Content']['subjectFieldsToShow'])){
+			$subjectFieldsToShow = $configArray['Content']['subjectFieldsToShow'];
+			$subjectFields = explode(',', $subjectFieldsToShow);
+
+			$subjects = array();
+			$standardSubjects = array();
+			$bisacSubjects = array();
+			$oclcFastSubjects = array();
+			foreach ($subjectFields as $subjectField){
+				/** @var File_MARC_Data_Field[] $marcFields */
+				$marcFields = $marcRecord->getFields($subjectField);
+				if ($marcFields){
+					foreach ($marcFields as $marcField){
+						$searchSubject = "";
+						$subject = array();
+						//Determine the type of the subject
+						$type = 'standard';
+						$subjectSource = $marcField->getSubfield('2');
+						if ($subjectSource != null){
+							if (preg_match('/bisac/i', $subjectSource->getData())){
+								$type = 'bisac';
+							}elseif (preg_match('/fast/i', $subjectSource->getData())){
+								$type = 'fast';
+							}
+						}
+
+						foreach ($marcField->getSubFields() as $subField){
+							/** @var File_MARC_Subfield $subField */
+							if ($subField->getCode() != '2' && $subField->getCode() != '0'){
+								$subFieldData = $subField->getData();
+								if ($type == 'bisac' && $subField->getCode() == 'a'){
+									$subFieldData = ucwords(strtolower($subFieldData));
+								}
+								$searchSubject .= " " . $subFieldData;
+								$subject[] = array(
+										'search' => trim($searchSubject),
+										'title'  => $subFieldData,
+								);
+							}
+						}
+						if ($type == 'bisac'){
+							$bisacSubjects[] = $subject;
+							$subjects[] = $subject;
+						}elseif ($type == 'fast'){
+							//Suppress fast subjects by default
+							$oclcFastSubjects[] = $subject;
+						}else{
+							$subjects[] = $subject;
+							$standardSubjects[] = $subject;
+						}
+
+					}
+				}
+			}
+			$interface->assign('subjects', $subjects);
+			$interface->assign('standardSubjects', $standardSubjects);
+			$interface->assign('bisacSubjects', $bisacSubjects);
+			$interface->assign('oclcFastSubjects', $oclcFastSubjects);
+		}
 	}
 
 	protected function getRecordType(){

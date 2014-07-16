@@ -53,13 +53,6 @@ $interface->assign('focusElementId', 'lookfor');
 //Set footer information
 /** @var Location $locationSingleton */
 global $locationSingleton;
-$location = $locationSingleton->getActiveLocation();
-$interface->assign('footerTemplate', 'footer.tpl');
-if (isset($location) && $location->footerTemplate != 'default'){
-	$interface->assign('footerTemplate', $location->footerTemplate);
-}else if (isset($location) && $interface->template_exists('footer_' . $location->code . '.tpl')){
-	$interface->assign('footerTemplate', 'footer_' . $location->code . '.tpl');
-}
 getGitBranch();
 
 $interface->loadDisplayOptions();
@@ -99,44 +92,23 @@ $interface->assign('physicalLocation', $physicalLocation);
 $productionServer = $configArray['Site']['isProduction'];
 $interface->assign('productionServer', $productionServer);
 
-//Set default Ask a Librarian link
-if (isset($library) && strlen($library->askALibrarianLink) > 0){
-	$interface->assign('askALibrarianLink', $library->askALibrarianLink);
-}else{
-	$interface->assign('askALibrarianLink', 'http://www.askcolorado.org/');
-}
-if (isset($library) && strlen($library->illLink) > 0){
-	$interface->assign('illLink', $library->illLink);
-}
-if (isset($library) && strlen($library->suggestAPurchase) > 0){
-	$interface->assign('suggestAPurchaseLink', $library->suggestAPurchase);
-}
-
-if (isset($library) && strlen($library->boopsieLink) > 0){
-	$interface->assign('boopsieLink', $library->boopsieLink);
-}
-
 $location = $locationSingleton->getActiveLocation();
 
 if (isset($library)){
 
 	if ($location != null){
-		$interface->assign('showAmazonReviews', (($location->showAmazonReviews == 1) && ($library->showAmazonReviews == 1)) ? 1 : 0);
 		$interface->assign('showStandardReviews', (($location->showStandardReviews == 1) && ($library->showStandardReviews == 1)) ? 1 : 0);
 		$interface->assign('showHoldButton', (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0);
 	}else{
-		$interface->assign('showAmazonReviews', $library->showAmazonReviews);
 		$interface->assign('showStandardReviews', $library->showStandardReviews);
 		$interface->assign('showHoldButton', $library->showHoldButton);
 	}
 }else{
 
 	if ($location != null){
-		$interface->assign('showAmazonReviews', $location->showAmazonReviews);
 		$interface->assign('showStandardReviews', $location->showStandardReviews);
 		$interface->assign('showHoldButton', $location->showHoldButton);
 	}else{
-		$interface->assign('showAmazonReviews', 1);
 		$interface->assign('showStandardReviews', 1);
 		$interface->assign('showHoldButton', 1);
 	}

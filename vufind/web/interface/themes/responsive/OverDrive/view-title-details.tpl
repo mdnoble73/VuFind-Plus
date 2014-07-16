@@ -52,11 +52,4 @@
 		<div class="result-label col-md-3">{translate text='Status'}:</div>
 		<div class="col-md-9 result-value result-value-bold statusValue {$holdingsSummary.class}" id="statusValue">{$holdingsSummary.status|escape}</div>
 	</div>
-
-	{if $recordDriver->getDescription()}
-		<div class="row">
-			<div class="result-label col-md-3">{translate text='Description'}:</div>
-			<div class="col-md-9 result-value">{$recordDriver->getDescription()}</div>
-		</div>
-	{/if}
 {/strip}

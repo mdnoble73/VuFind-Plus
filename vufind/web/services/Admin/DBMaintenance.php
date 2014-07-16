@@ -794,6 +794,29 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
+				'more_details_customization' => array(
+					'title' => 'More Details Customization',
+					'description' => 'Setup tables to allow customization of more details in full record view',
+					'sql' => array(
+							"CREATE TABLE library_more_details (
+									id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+									libraryId INT(11) NOT NULL DEFAULT -1,
+									weight INT NOT NULL DEFAULT 0,
+									source VARCHAR(25) NOT NULL,
+									collapseByDefault TINYINT(1),
+									INDEX (libraryId)
+								)",
+							"CREATE TABLE location_more_details (
+								id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+								locationId INT(11) NOT NULL DEFAULT -1,
+								weight INT NOT NULL DEFAULT 0,
+								source VARCHAR(25) NOT NULL,
+								collapseByDefault TINYINT(1),
+								INDEX (locationId)
+							)"
+					),
+				),
+
 				'user_display_name' => array(
 						'title' => 'User display name',
 						'description' => 'Add displayName field to User table to allow users to have aliases',
@@ -2792,6 +2815,32 @@ class DBMaintenance extends Admin_Admin {
 						'description' => 'Remove old tables that were used for alphabetic browsing',
 						'sql' => array(
 								"dropBrowseTables",
+						),
+				),
+
+				'remove_unused_options' => array(
+						'title' => 'Remove Unused Library and Location Options',
+						'description' => 'Remove unused options for library and location tables',
+						'sql' => array(
+								"ALTER TABLE library DROP accountingUnit",
+								"ALTER TABLE library DROP makeOrderRecordsAvailableToOtherLibraries",
+								"ALTER TABLE library DROP searchesFile",
+								"ALTER TABLE library DROP suggestAPurchase",
+								"ALTER TABLE library DROP showAmazonReviews",
+								"ALTER TABLE library DROP linkToAmazon",
+								"ALTER TABLE library DROP illLink",
+								"ALTER TABLE library DROP askALibrarianLink",
+								"ALTER TABLE library DROP boopsieLink",
+								"ALTER TABLE library DROP tabbedDetails",
+								"ALTER TABLE library DROP showSeriesAsTab",
+								"ALTER TABLE library DROP repeatInAmazon",
+								"ALTER TABLE library DROP enableBookCart",
+								"ALTER TABLE library DROP enableAlphaBrowse",
+								"ALTER TABLE library DROP homePageWidgetId",
+								"ALTER TABLE library DROP searchGroupedRecords",
+								"ALTER TABLE location DROP showAmazonReviews",
+								"ALTER TABLE location DROP footerTemplate",
+								"ALTER TABLE location DROP homePageWidgetId",
 						),
 				),
 		);
