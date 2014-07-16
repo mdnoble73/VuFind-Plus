@@ -391,7 +391,7 @@ Keyword:
         - [and, 200]
       - title:
         - [and, 125]
-        - [or, ~]
+        - [single_word_removal, ~]
       - title_alt:
         - [and, 100]
       - title_new:
