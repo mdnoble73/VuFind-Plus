@@ -372,7 +372,9 @@ VuFind.Record = (function(){
 			var id = $('#id').val();
 			var params = '&campus=' + $('#campus').val();
 			params += '&cancelHoldDate=' + $('#cancelHoldDate').text();
-			params += '&autologout=' + $('#autologout').val();
+			if ($('#autologout').prop('checked')){
+				params += '&autologout=true';
+			}
 			var selectedItem = $('#selectedItem');
 			if (selectedItem.length > 0){
 				params += '&selectedItem=' + selectedItem.val();
@@ -386,6 +388,12 @@ VuFind.Record = (function(){
 					}
 				}else{
 					VuFind.showMessage('Hold Failed', data.message);
+				}
+				if (data.autologout == true){
+					setTimeout(function(){
+						VuFind.closeLightbox();
+						window.location.href = window.location.href;
+					}, 3000);
 				}
 			});
 		}
