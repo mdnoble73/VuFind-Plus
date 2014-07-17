@@ -27,10 +27,13 @@
 
 					<br/>
 				<div id="additionalProfileOptions">
+                
+                	
 					<ul>
 						<li><a href="#contacttab">Contact Info</a></li>
 <!--						<li><a href="#catalogtab">Catalog Options</a></li>	-->
 						<li><a href="#overdrivetab">OverDrive Options</a></li>
+                        <!--<li><a href="#enewstab">Update eNewsletter Preferences</a></li>-->
 						{if count($user->roles) > 0}
 							<li><a href="#rolestab">Roles</a></li>
 						{/if}
@@ -70,8 +73,9 @@
 								</tr>
 							{/if}
 							{if $showNoticeTypeInProfile}
-								<tr><th>{translate text='Receive notices by'}:</th><td>{if $edit == true && $canUpdateContactInfo == true}<input type="radio" value="p" id="notices" name="notices">Telephone<br/><input type="radio" value="z" id="notices" name="notices">Email{else}{$profile.noticePreferenceLabel|escape}{/if}</td></tr>
+								<tr><th>{translate text='Receive renew/overdue<br />notices by'}:</th><td>{if $edit == true && $canUpdateContactInfo == true}<input type="radio" value="p" id="notices" name="notices">Telephone<br/><input type="radio" value="z" id="notices" name="notices">Email{else}{$profile.noticePreferenceLabel|escape}{/if}</td></tr>
 							{/if}
+                            <tr><th>{translate text='eNewsletter Preferences'}:</th><td><a href="http://www.library.nashville.org/Info/gen_email.asp" target='_blank'>Update Preferences (will open in a new window)</a></td></tr>
 						</table>
 					</div>
 
@@ -122,7 +126,29 @@
 							</table>
 						{/if}
 					</div>
-
+					
+                    <!--
+                    <div id="enewstab">
+                            {literal}
+                            <script type="text/javascript">
+                            $("#additionalProfileOptions").on('activate', function(event, ui){
+                                 if (ui|.newPanel.attr('id') != |'enewstab'){
+                                     $(':sumbit').hide();
+                                 }else{
+                                     $(':sumbit').show();
+                                 }
+                            });
+                            </script>
+                            {/literal}
+							 <div id="emailNewsletterSignup">
+            					<div class="resulthead">
+                					<div class="myAccountTitle">Email Newsletter Options</div>
+                				</div>
+            					<link href="https://app.e2ma.net/css/signup.lrg.css" rel="stylesheet" type="text/css"><script type="text/javascript" src="https://app.e2ma.net/app2/audience/tts_signup/1761703/8671e7b4d35f3d498f22e225dbe70bd9/19914/?v=a"></script><div id="load_check" class="signup_form_message" >This form needs Javascript to display, which your browser doesn't support. <a href="https://app.e2ma.net/app2/audience/signup/1761703/19914/?v=a"> Sign up here</a> instead </div><script type="text/javascript">signupFormObj.drawForm();</script>
+            				</div>
+					</div>
+					-->
+                    
 					{* Display user roles if the user has any roles*}
 					{if count($user->roles) > 0}
 						<div id="rolestab">
@@ -139,8 +165,10 @@
 				<script type="text/javascript">
 					$(function() {
 						$("#additionalProfileOptions").tabs();
+						
 					});
 				</script>
+               
 				{/literal}
 			
 				<br />
@@ -159,6 +187,8 @@
 			You must login to view this information. Click <a href="{$path}/MyResearch/Login">here</a> to login.
 		{/if}
 			</div>
+
+           
 		</div>
 	
 	</div>
