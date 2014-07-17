@@ -54,12 +54,11 @@
 		{/foreach}
 	{/if}
 
-	{if $prospectorNumTitlesToLoad > 0}
-		<script type="text/javascript">VuFind.Prospector.getProspectorResults({$prospectorNumTitlesToLoad}, {$prospectorSavedSearchId});</script>
+	{if $showProspectorLink > 0}
+		<script type="text/javascript">VuFind.Prospector.getProspectorResults(5, {$prospectorSavedSearchId});</script>
 		{* Prospector Results *}
 		<div id='prospectorSearchResultsPlaceholder'></div>
 	{/if}
-
 
 	{* Display Repeat this search links *}
 	{if strlen($lookfor) > 0 && count($repeatSearchOptions) > 0}

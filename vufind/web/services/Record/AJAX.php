@@ -597,12 +597,6 @@ class Record_AJAX extends Action {
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
 
-		global $library;
-		if (isset($library)){
-			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
-		}else{
-			$interface->assign('showProspectorTitlesAsTab', 1);
-		}
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 		// Setup Search Engine Connection
@@ -760,6 +754,10 @@ class Record_AJAX extends Action {
 						'message' => $message,
 						'title' => $return['title'],
 				);
+				if (isset($_REQUEST['autologout'])){
+					UserAccount::softLogout();
+					$results['autologout'] = true;
+				}
 			}
 		} else {
 			$results = array(
@@ -767,6 +765,10 @@ class Record_AJAX extends Action {
 				'message' => 'You must be logged in to place a hold.  Please close this dialog and login.',
 				'title' => 'Please login',
 			);
+			if (isset($_REQUEST['autologout'])){
+				UserAccount::softLogout();
+				$results['autologout'] = true;
+			}
 		}
 		return json_encode($results);
 	}

@@ -46,4 +46,8 @@ class ListRecord extends IndexRecord
 
 		return 'RecordDrivers/List/result.tpl';
 	}
+
+	public function getMoreDetailsOptions(){
+		return array();
+	}
 }

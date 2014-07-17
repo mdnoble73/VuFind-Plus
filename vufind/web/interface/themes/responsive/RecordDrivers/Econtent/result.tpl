@@ -4,7 +4,7 @@
 		<div class="row">
 			<div class="selectTitle hidden-phone col-md-4">
 				<label for="selectedEcontentRecord{$summId|escape:"url"}" class="resultIndex checkbox"><strong>{$resultIndex}</strong>
-					<input type="checkbox" name="selected[econtentRecord{$summId|escape:"url"}]" class="titleSelect" id="selectedEcontentRecord{$summId|escape:"url"}" {if $enableBookCart}onclick="toggleInBag('econtentRecord{$summId|escape:"url"}', '{$summTitle|replace:'"':''|replace:'&':'&amp;'|escape:'javascript'}', this);"{/if} />&nbsp;
+					<input type="checkbox" name="selected[econtentRecord{$summId|escape:"url"}]" class="titleSelect" id="selectedEcontentRecord{$summId|escape:"url"}" />&nbsp;
 				</label>
 			</div>
 			<div class="col-md-7 text-center">

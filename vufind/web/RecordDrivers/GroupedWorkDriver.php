@@ -11,7 +11,7 @@
  */
 
 require_once ROOT_DIR . '/RecordDrivers/Interface.php';
-class GroupedWorkDriver implements RecordInterface{
+class GroupedWorkDriver extends RecordInterface{
 
 	protected $fields;
 	protected $scopingEnabled = true;
@@ -769,7 +769,7 @@ class GroupedWorkDriver implements RecordInterface{
 		if (isset($this->fields['score'])){
 			return $this->fields['score'];
 		}
-		return 0;
+		return null;
 	}
 
 	public function getExplain(){
@@ -1366,92 +1366,15 @@ class GroupedWorkDriver implements RecordInterface{
 		$isbn = $this->getCleanISBN();
 
 		//Load more details options
-		$moreDetailsOptions = array();
-		$moreDetailsOptions['series'] = array(
-				'label' => 'Also in this Series',
-				'body' => $interface->fetch('GroupedWork/series.tpl'),
-				'hideByDefault' => false,
-				'openByDefault' => true
-		);
-		$moreDetailsOptions['moreLikeThis'] = array(
-				'label' => 'More Like This',
-				'body' => $interface->fetch('GroupedWork/moreLikeThis.tpl'),
-				'hideByDefault' => false,
-				'openByDefault' => true
-		);
-		if ($interface->getVariable('enablePospectorIntegration')){
-			$moreDetailsOptions['prospector'] = array(
-					'label' => 'More Copies In Prospector',
-					'body' => '<div id="inProspectorPlaceholder">Loading Prospector Copies...</div>',
-					'hideByDefault' => false
-			);
-		}
-		$moreDetailsOptions['tableOfContents'] = array(
-			'label' => 'Table of Contents',
-			'body' => $interface->fetch('GroupedWork/tableOfContents.tpl'),
-			'hideByDefault' => true
-		);
-		$moreDetailsOptions['excerpt'] = array(
-			'label' => 'Excerpt',
-			'body' => '<div id="excerptPlaceholder">Loading Excerpt...</div>',
-			'hideByDefault' => true
-		);
-		if ($interface->getVariable('showComments')){
-			$moreDetailsOptions['borrowerReviews'] = array(
-				'label' => 'Borrower Reviews',
-				'body' => "<div id='customerReviewPlaceholder'></div>",
-			);
-		}
-		$moreDetailsOptions['editorialReviews'] = array(
-			'label' => 'Editorial Reviews',
-			'body' => "<div id='editorialReviewPlaceholder'></div>",
-		);
-		if ($isbn){
-			$moreDetailsOptions['syndicatedReviews'] = array(
-				'label' => 'Published Reviews',
-				'body' => "<div id='syndicatedReviewPlaceholder'></div>",
-			);
-		}
-		//A few tabs require an ISBN
-		if ($isbn){
-			if ($interface->getVariable('showGoodReadsReviews')){
-				$moreDetailsOptions['goodreadsReviews'] = array(
-					'label' => 'Reviews from GoodReads',
-					'body' => '<iframe id="goodreads_iframe" class="goodReadsIFrame" src="https://www.goodreads.com/api/reviews_widget_iframe?did=DEVELOPER_ID&format=html&isbn=' . $isbn . '&links=660&review_back=fff&stars=000&text=000" width="100%" height="400px" frameborder="0"></iframe>',
-				);
-			}
-			if ($interface->getVariable('showSimilarTitles')){
-				$moreDetailsOptions['similarTitles'] = array(
-					'label' => 'Similar Titles From Novelist',
-					'body' => '<div id="novelisttitlesPlaceholder"></div>',
-					'hideByDefault' => true
-				);
-			}
-			if ($interface->getVariable('showSimilarAuthors')){
-				$moreDetailsOptions['similarAuthors'] = array(
-					'label' => 'Similar Authors From Novelist',
-					'body' => '<div id="novelistauthorsPlaceholder"></div>',
-					'hideByDefault' => true
-				);
-			}
-			if ($interface->getVariable('showSimilarTitles')){
-				$moreDetailsOptions['similarSeries'] = array(
-					'label' => 'Similar Series From Novelist',
-					'body' => '<div id="novelistseriesPlaceholder"></div>',
-					'hideByDefault' => true
-				);
-			}
-		}
+		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn != false);
 		$moreDetailsOptions['details'] = array(
 			'label' => 'Details',
 			'body' => $interface->fetch('GroupedWork/view-title-details.tpl'),
 		);
-		if ($interface->getVariable('showTagging')){
-			$moreDetailsOptions['tags'] = array(
-					'label' => 'Tagging',
-					'body' => $interface->fetch('GroupedWork/view-tags.tpl'),
-			);
-		}
+		$moreDetailsOptions['subjects'] = array(
+				'label' => 'Subjects',
+				'body' => $interface->fetch('GroupedWork/view-subjects.tpl'),
+		);
 		if ($interface->getVariable('showStaffView')){
 			$moreDetailsOptions['staff'] = array(
 				'label' => 'Staff View',
@@ -1459,7 +1382,7 @@ class GroupedWorkDriver implements RecordInterface{
 			);
 		}
 
-		return $moreDetailsOptions;
+		return $this->filterAndSortMoreDetailsOptions($moreDetailsOptions);
 	}
 
 	public function getTags(){

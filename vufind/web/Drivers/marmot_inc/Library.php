@@ -9,20 +9,19 @@ require_once ROOT_DIR . '/Drivers/marmot_inc/NearbyBookStore.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LibraryFacetSetting.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
 require_once ROOT_DIR . '/sys/Browse/LibraryBrowseCategory.php';
+require_once ROOT_DIR . '/sys/LibraryMoreDetails.php';
 
 class Library extends DB_DataObject
 {
 	public $__table = 'library';    // table name
 	public $libraryId; 				//int(11)
 	public $subdomain; 				//varchar(15)
-	public $accountingUnit;
 	public $displayName; 			//varchar(50)
 	public $showDisplayNameInHeader;
 	public $abbreviatedDisplayName;
 	public $systemMessage;
 	public $ilsCode;
 	public $themeName; 				//varchar(15)
-	public $searchesFile;        //varchar(15)
 	public $restrictSearchByLibrary;
 	public $includeDigitalCollection;
 	public $includeOutOfSystemExternalLinks;
@@ -31,8 +30,6 @@ class Library extends DB_DataObject
 	public $scope; 					//smallint(6)
 	public $useScope;		 		//tinyint(4)
 	public $hideCommentsWithBadWords; //tinyint(4)
-	public $showAmazonReviews;
-	public $linkToAmazon;
 	public $showStandardReviews;
 	public $showHoldButton;
 	public $showHoldButtonInSearchResults;
@@ -42,8 +39,6 @@ class Library extends DB_DataObject
 	public $showComments;
 	public $showTagging;
 	public $showRatings;
-	public $illLink;
-	public $askALibrarianLink;
 	public $showCopiesLineInHoldingsSummary;
 	public $showFavorites;
 	public $showOtherEditionsPopup;
@@ -53,21 +48,17 @@ class Library extends DB_DataObject
 	public $validPickupSystems;
 	public $pTypes;
 	public $defaultPType;
-	public $suggestAPurchase;
-	public $boopsieLink;
 	public $facetLabel;
 	public $showAvailableAtAnyLocation;
 	public $showEcommerceLink;
 	public $payFinesLink;
 	public $payFinesLinkText;
 	public $minimumFineAmount;
-	public $tabbedDetails;
 	public $goldRushCode;
 	public $repeatSearchOption;
 	public $repeatInOnlineCollection;
 	public $repeatInProspector;
 	public $repeatInWorldCat;
-	public $repeatInAmazon;
 	public $repeatInOverdrive;
 	public $overdriveAdvantageName;
 	public $overdriveAdvantageProductsKey;
@@ -77,7 +68,6 @@ class Library extends DB_DataObject
 	public $homeLinkText;
 	public $useHomeLinkInBreadcrumbs;
 	public $showAdvancedSearchbox;
-	public $enableBookCart;
 	public $enablePospectorIntegration;
 	public $showProspectorResultsAtEndOfSearch;
 	public $prospectorCode;
@@ -85,10 +75,8 @@ class Library extends DB_DataObject
 	public $showHoldCancelDate;
 	public $enableCourseReserves;
 	public $enableSelfRegistration;
-	public $showSeriesAsTab;
 	public $showItsHere;
 	public $holdDisclaimer;
-	public $enableAlphaBrowse;
 	public $enableMaterialsRequest;
 	public $eContentLinkRules;
 	public $includeNovelistEnrichment;
@@ -102,7 +90,6 @@ class Library extends DB_DataObject
 	public $showSimilarTitles;
 	public $showGoDeeper;
 	public $defaultNotNeededAfterDays;
-	public $homePageWidgetId;
 	public $showCheckInGrid;
 	public $boostByLibrary;
 	public $additionalLocalBoostFactor;
@@ -115,7 +102,6 @@ class Library extends DB_DataObject
 	public $showNoticeTypeInProfile;
 	public $showPickupLocationInProfile;
 	public $additionalCss;
-	public $searchGroupedRecords;
 	public $maxRequestsPerYear;
 	public $maxOpenRequests;
 	public $twitterLink;
@@ -164,6 +150,10 @@ class Library extends DB_DataObject
 		unset($searchSourceStructure['weight']);
 		unset($searchSourceStructure['libraryId']);
 
+		$libraryMoreDetailsStructure = LibraryMoreDetails::getObjectStructure();
+		unset($libraryMoreDetailsStructure['weight']);
+		unset($libraryMoreDetailsStructure['libraryId']);
+
 		$libraryLinksStructure = LibraryLinks::getObjectStructure();
 		unset($libraryLinksStructure['weight']);
 		unset($libraryLinksStructure['libraryId']);
@@ -193,8 +183,6 @@ class Library extends DB_DataObject
 			'displayName' => array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'A name to identify the library within the system', 'size'=>'40'),
 			'showDisplayNameInHeader' => array('property'=>'showDisplayNameInHeader', 'type'=>'checkbox', 'label'=>'Show Display Name in Header', 'description'=>'Whether or not the display name should be shown in the header next to the logo', 'hideInLists' => true, 'default'=>false),
 			'abbreviatedDisplayName' => array('property'=>'abbreviatedDisplayName', 'type'=>'text', 'label'=>'Abbreviated Display Name', 'description'=>'A short name to identify the library when space is low', 'size'=>'40'),
-			'accountingUnit' => array('property'=>'accountingUnit', 'type'=>'integer', 'label'=>'Accounting Unit', 'description'=>'The accounting unit this library belongs to', 'size'=>'4', 'hideInLists' => false),
-			'makeOrderRecordsAvailableToOtherLibraries' => array('property'=>'makeOrderRecordsAvailableToOtherLibraries', 'type'=>'checkbox', 'label'=>'Make Order Records Available To Other Libraries', 'description'=>'Whether or not order records should be shown to other libraries', 'hideInLists' => true),
 			'systemMessage' => array('property'=>'systemMessage', 'type'=>'html', 'label'=>'System Message', 'description'=>'A message to be displayed at the top of the screen', 'size'=>'80', 'maxLength' =>'512', 'allowableTags' => '<a><b><em><div><script>', 'hideInLists' => true),
 			array('property'=>'displaySection', 'type' => 'section', 'label' =>'Basic Display', 'hideInLists' => true, 'properties' => array(
 				'themeName' => array('property'=>'themeName', 'type'=>'text', 'label'=>'Theme Name', 'description'=>'The name of the theme which should be used for the library', 'hideInLists' => true, 'default' => 'default'),
@@ -202,24 +190,16 @@ class Library extends DB_DataObject
 				'additionalCss' => array('property'=>'additionalCss', 'type'=>'textarea', 'label'=>'Additional CSS', 'description'=>'Extra CSS to apply to the site.  Will apply to all pages.', 'hideInLists' => true),
 				'useHomeLinkInBreadcrumbs' => array('property'=>'useHomeLinkInBreadcrumbs', 'type'=>'checkbox', 'label'=>'Use Home Link in Breadcrumbs', 'description'=>'Whether or not the home link should be used in the breadcumbs.', 'hideInLists' => true,),
 				'homeLinkText' => array('property'=>'homeLinkText', 'type'=>'text', 'label'=>'Home Link Text', 'description'=>'The text to show for the Home breadcrumb link', 'size'=>'40', 'hideInLists' => true, 'default' => 'Home'),
-				'homePageWidgetId' => array('property'=>'homePageWidgetId', 'type'=>'text', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page.  To show more than one widget, separate the ids with commas.', 'hideInLists' => true, 'default' => 0),
 				'showLibraryHoursAndLocationsLink' => array('property'=>'showLibraryHoursAndLocationsLink', 'type'=>'checkbox', 'label'=>'Show Library Hours and Locations Link', 'description'=>'Whether or not the library hours and locations link is shown on the home page.', 'hideInLists' => true, 'default' => true),
-				'illLink'  => array('property'=>'illLink', 'type'=>'url', 'label'=>'ILL Link', 'description'=>'A link to a library system specific ILL page', 'size'=>'80', 'hideInLists' => true,),
-				'eContentSupportAddress'  => array('property'=>'eContentSupportAddress', 'type'=>'email', 'label'=>'E-Content Support Address', 'description'=>'An e-mail address to receive support requests for patrons with eContent problems.', 'size'=>'80', 'hideInLists' => true, 'default'=>'askmarmot@marmot.org'),
-				'enableBookCart'  => array('property'=>'enableBookCart', 'type'=>'checkbox', 'label'=>'Enable Book Cart', 'description'=>'Whether or not the Book Cart should be used for this library.', 'hideInLists' => true, 'default' => 1),
+				'eContentSupportAddress'  => array('property'=>'eContentSupportAddress', 'type'=>'multiemail', 'label'=>'E-Content Support Address', 'description'=>'An e-mail address to receive support requests for patrons with eContent problems.', 'size'=>'80', 'hideInLists' => true, 'default'=>'askmarmot@marmot.org'),
 				'enableGenealogy' => array('property'=>'enableGenealogy', 'type'=>'checkbox', 'label'=>'Enable Genealogy Functionality', 'description'=>'Whether or not patrons can search genealogy.', 'hideInLists' => true, 'default' => 1),
 				'enableCourseReserves' => array('property'=>'enableCourseReserves', 'type'=>'checkbox', 'label'=>'Enable Repeat Search in Course Reserves', 'description'=>'Whether or not patrons can repeat searches within course reserves.', 'hideInLists' => true,),
-				'enableAlphaBrowse' => array('property'=>'enableAlphaBrowse', 'type'=>'checkbox', 'label'=>'Enable Alphabetic Browse', 'description'=>'Enable Alphabetic Browsing of titles, authors, etc.', 'hideInLists' => true, 'default' => 1),
-				'boopsieLink'  => array('property'=>'boopsieLink', 'type'=>'url', 'label'=>'Boopsie Link', 'description'=>'A link to the Boopsie Mobile App', 'size'=>'80', 'hideInLists' => true,),
-				'eContentLinkRules' => array('property'=>'eContentLinkRules', 'type'=>'text', 'label'=>'EContent Link Rules', 'description'=>'A regular expression defining a set of criteria to determine whether or not a link belongs to this library.', 'size'=>'40'),
 			)),
 
 			array('property'=>'contact', 'type' => 'section', 'label' =>'Contact Links', 'hideInLists' => true, 'properties' => array(
 				'facebookLink' => array('property'=>'facebookLink', 'type'=>'text', 'label'=>'Facebook Link Url', 'description'=>'The url to Facebook (leave blank if the library does not have a Facebook account', 'size'=>'40', 'maxLength' => 255, 'hideInLists' => true, 'default' => 'Home'),
 				'twitterLink' => array('property'=>'twitterLink', 'type'=>'text', 'label'=>'Twitter Link Url', 'description'=>'The url to Twitter (leave blank if the library does not have a Twitter account', 'size'=>'40', 'maxLength' => 255, 'hideInLists' => true, 'default' => 'Home'),
 				'generalContactLink' => array('property'=>'generalContactLink', 'type'=>'text', 'label'=>'General Contact Link Url', 'description'=>'The url to a General Contact Page, i.e webform or mailto link', 'size'=>'40', 'maxLength' => 255, 'hideInLists' => true, 'default' => 'Home'),
-				'askALibrarianLink'  => array('property'=>'askALibrarianLink', 'type'=>'url', 'label'=>'Ask a Librarian Link', 'description'=>'A link to a library system specific Ask a Librarian page', 'size'=>'80', 'hideInLists' => true,),
-				'suggestAPurchase'  => array('property'=>'suggestAPurchase', 'type'=>'url', 'label'=>'Suggest a Purchase Link', 'description'=>'A link to a library system specific Suggest a Purchase page', 'size'=>'80', 'hideInLists' => true,),
 			)),
 
 			array('property'=>'ilsSection', 'type' => 'section', 'label' =>'ILS/Account Integration', 'hideInLists' => true, 'properties' => array(
@@ -257,7 +237,6 @@ class Library extends DB_DataObject
 				'minimumFineAmount' => array('property'=>'minimumFineAmount', 'type'=>'currency', 'displayFormat'=>'%0.2f', 'label'=>'Minimum Fine Amount', 'description'=>'The minimum fine amount to display the e-commerce link', 'hideInLists' => true,),
 			)),
 			array('property'=>'searchingSection', 'type' => 'section', 'label' =>'Searching', 'hideInLists' => true, 'properties' => array(
-				'searchGroupedRecords' => array('property'=>'searchGroupedRecords', 'type'=>'checkbox', 'label'=>'Search Grouped Records', 'description'=>'Whether or grouped records should be searched', 'hideInLists' => false, 'default'=>true),
 				'facetLabel' => array('property'=>'facetLabel', 'type'=>'text', 'label'=>'Facet Label', 'description'=>'The label for the library system in the Library System Facet.', 'size'=>'40', 'hideInLists' => true,),
 				'restrictSearchByLibrary' => array('property'=>'restrictSearchByLibrary', 'type'=>'checkbox', 'label'=>'Restrict Search By Library', 'description'=>'Whether or not search results should only include titles from this library', 'hideInLists' => true),
 				'includeDigitalCollection' => array('property'=>'includeDigitalCollection', 'type'=>'checkbox', 'label'=>'Include Digital Collection', 'description'=>'Whether or not titles from the digital collection should be included in searches', 'hideInLists' => true),
@@ -267,21 +246,17 @@ class Library extends DB_DataObject
 				'additionalLocalBoostFactor' => array('property'=>'additionalLocalBoostFactor', 'type'=>'integer', 'label'=>'Additional Local Boost Factor', 'description'=>'An additional numeric boost to apply to any locally owned and locally available titles', 'hideInLists' => true),
 				'restrictOwningBranchesAndSystems' => array('property'=>'restrictOwningBranchesAndSystems', 'type'=>'checkbox', 'label'=>'Restrict Owning Branch and System Facets to this library', 'description'=>'Whether or not the Owning Branch and Owning System Facets will only display values relevant to this library.', 'hideInLists' => true),
 				'showAvailableAtAnyLocation' => array('property'=>'showAvailableAtAnyLocation', 'type'=>'checkbox', 'label'=>'Show Available At Any Location?', 'description'=>'Whether or not to show any Marmot Location within the Available At facet', 'hideInLists' => true),
-				'searchesFile' => array('property'=>'searchesFile', 'type'=>'text', 'label'=>'Searches File', 'description'=>'The name of the searches file which should be used while searching', 'hideInLists' => true,),
 				'repeatSearchOption'  => array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Marmot'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all'),
 				'systemsToRepeatIn'  => array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'size'=>'20', 'hideInLists' => true,),
 				'repeatInOnlineCollection' => array('property'=>'repeatInOnlineCollection', 'type'=>'checkbox', 'label'=>'Repeat In Online Collection', 'description'=>'Turn on to allow repeat search in the Online Collection.', 'hideInLists' => true, 'default'=>false),
 				'showMarmotResultsAtEndOfSearch' => array('property'=>'showMarmotResultsAtEndOfSearch', 'type'=>'checkbox', 'label'=>'Show Marmot Results in Scoped Search', 'description'=>'Whether or not the VuFind should show search results from Marmot at the end of scoped searches.', 'hideInLists' => true, 'default' => 1),
 				'showAdvancedSearchbox'  => array('property'=>'showAdvancedSearchbox', 'type'=>'checkbox', 'label'=>'Show Advanced Search Link', 'description'=>'Whether or not users should see the advanced search link next to the search box.  It will still appear in the footer.', 'hideInLists' => true, 'default' => 1),
 				'applyNumberOfHoldingsBoost' => array('property'=>'applyNumberOfHoldingsBoost', 'type'=>'checkbox', 'label'=>'Apply Number Of Holdings Boost', 'description'=>'Whether or not the relevance will use boosting by number of holdings in the catalog.', 'hideInLists' => true, 'default' => 1),
-				'repeatInAmazon'  => array('property'=>'repeatInAmazon', 'type'=>'checkbox', 'label'=>'Repeat In Amazon', 'description'=>'Turn on to allow repeat search in Amazon functionality.', 'hideInLists' => true),
 				'showSearchTools'  => array('property'=>'showSearchTools', 'type'=>'checkbox', 'label'=>'Show Search Tools', 'description'=>'Turn on to activate search tools (save search, export to excel, rss feed, etc).', 'hideInLists' => true),
 				'recordsToBlackList' => array('property'=>'recordsToBlackList', 'type'=>'textarea', 'label'=>'Records to deaccession', 'description'=>'A list of records to deaccession (hide) in search results.  Enter one record per line.', 'hideInLists' => true,),
 			)),
 
 			array('property'=>'enrichmentSection', 'type' => 'section', 'label' =>'Catalog Enrichment', 'hideInLists' => true, 'properties' => array(
-				'showAmazonReviews'  => array('property'=>'showAmazonReviews', 'type'=>'checkbox', 'label'=>'Show Amazon Reviews', 'description'=>'Whether or not reviews from Amazon are displayed on the full record page.', 'hideInLists' => true,),
-				'linkToAmazon'  => array('property'=>'linkToAmazon', 'type'=>'checkbox', 'label'=>'Link To Amazon', 'description'=>'Whether or not a purchase on Amazon link should be shown.  Should generally match showAmazonReviews setting', 'hideInLists' => true,),
 				'showStandardReviews'  => array('property'=>'showStandardReviews', 'type'=>'checkbox', 'label'=>'Show Standard Reviews', 'description'=>'Whether or not reviews from Content Cafe/Syndetics are displayed on the full record page.', 'hideInLists' => true, 'default' => 1),
 				'showGoodReadsReviews' => array('property'=>'showGoodReadsReviews', 'type'=>'checkbox', 'label'=>'Show GoodReads Reviews', 'description'=>'Whether or not reviews from GoodReads are displayed on the full record page.', 'hideInLists' => true, 'default'=>true),
 				'preferSyndeticsSummary' => array('property'=>'preferSyndeticsSummary', 'type'=>'checkbox', 'label'=>'Prefer Syndetics Summary', 'description'=>'Whether or not the Syndetics Summary should be preferred over the Summary in the Marc Record.', 'hideInLists' => true, 'default' => 1),
@@ -294,7 +269,6 @@ class Library extends DB_DataObject
 				'showWikipediaContent' => array('property'=>'showWikipediaContent', 'type'=>'checkbox', 'label'=>'Show Wikipedia Content', 'description'=>'Whether or not Wikipedia content should be shown on author page', 'default'=>'1', 'hideInLists' => true,),
 			)),
 			array('property'=>'fullRecordSection', 'type' => 'section', 'label' =>'Full Record Display', 'hideInLists' => true, 'properties' => array(
-				'tabbedDetails'  => array('property'=>'tabbedDetails', 'type'=>'checkbox', 'label'=>'Tabbed Details', 'description'=>'Whether or not details (reviews, copies, citations, etc) should be shown in tabs', 'hideInLists' => true, 'default' => 1),
 				'showTextThis'  => array('property'=>'showTextThis', 'type'=>'checkbox', 'label'=>'Show Text This', 'description'=>'Whether or not the Text This link is shown', 'hideInLists' => true, 'default' => 1),
 				'showEmailThis'  => array('property'=>'showEmailThis', 'type'=>'checkbox', 'label'=>'Show Email This', 'description'=>'Whether or not the Email This link is shown', 'hideInLists' => true, 'default' => 1),
 				'showShareOnExternalSites'  => array('property'=>'showShareOnExternalSites', 'type'=>'checkbox', 'label'=>'Show Sharing To External Sites', 'description'=>'Whether or not sharing on external sites (Twitter, Facebook, Pinterest, etc. is shown)', 'hideInLists' => true, 'default' => 1),
@@ -305,12 +279,26 @@ class Library extends DB_DataObject
 				'showTableOfContentsTab' => array('property'=>'showTableOfContentsTab', 'type'=>'checkbox', 'label'=>'Show Table of Contents Tab', 'description'=>'Whether or not a separate tab will be shown for table of contents 505 field.', 'hideInLists' => true, 'default' => 1),
 				'notesTabName' => array('property'=>'notesTabName', 'type'=>'text', 'label'=>'Notes Tab Name', 'description'=>'Text to display for the the notes tab.', 'size'=>'40', 'maxLength' => '50', 'hideInLists' => true, 'default' => 'Notes'),
 				'exportOptions' => array('property'=>'exportOptions', 'type'=>'text', 'label'=>'Export Options', 'description'=>'A list of export options that should be enabled separated by pipes.  Valid values are currently RefWorks and EndNote.', 'size'=>'40', 'hideInLists' => true,),
-				'showSeriesAsTab'  => array('property'=>'showSeriesAsTab', 'type'=>'checkbox', 'label'=>'Show Series as Tab', 'description'=>'Whether or not series information should be shown in a tab or in a scrollable window.', 'hideInLists' => true,),
 				'show856LinksAsTab'  => array('property'=>'show856LinksAsTab', 'type'=>'checkbox', 'label'=>'Show 856 Links as Tab', 'description'=>'Whether or not 856 links will be shown in their own tab or on the same tab as holdings.', 'hideInLists' => true, 'default' => 1),
 				'showProspectorTitlesAsTab' => array('property'=>'showProspectorTitlesAsTab', 'type'=>'checkbox', 'label'=>'Show Prospector Titles as Tab', 'description'=>'Whether or not Prospector TItles links will be shown in their own tab or in the sidebar in full record view.', 'default' => 1, 'hideInLists' => true,),
 				'showCheckInGrid' => array('property'=>'showCheckInGrid', 'type'=>'checkbox', 'label'=>'Show Check-in Grid', 'description'=>'Whether or not the check-in grid is shown for periodicals.', 'default' => 1, 'hideInLists' => true,),
 				'showStaffView' => array('property'=>'showStaffView', 'type'=>'checkbox', 'label'=>'Show Staff View', 'description'=>'Whether or not the staff view is displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+				'moreDetailsOptions' => array(
+						'property'=>'moreDetailsOptions',
+						'type'=>'oneToMany',
+						'label'=>'Full Record Options',
+						'description'=>'Record Options for the display of full record',
+						'keyThis' => 'libraryId',
+						'keyOther' => 'libraryId',
+						'subObjectType' => 'LibraryMoreDetails',
+						'structure' => $libraryMoreDetailsStructure,
+						'sortable' => true,
+						'storeDb' => true,
+						'allowEdit' => true,
+						'canEdit' => true,
+				),
 			)),
+
 			array('property'=>'holdingsSummarySection', 'type' => 'section', 'label' =>'Holdings Summary', 'hideInLists' => true, 'properties' => array(
 				'showCopiesLineInHoldingsSummary' => array('property'=>'showCopiesLineInHoldingsSummary', 'type'=>'checkbox', 'label'=>'Show Copies Line In Holdings Summary', 'description'=>'Whether or not the number of copies should be shown in the holdins summary', 'default'=>'1', 'hideInLists' => true,),
 				'showItsHere' => array('property'=>'showItsHere', 'type'=>'checkbox', 'label'=>'Show It\'s Here', 'description'=>'Whether or not the holdings summray should show It\'s here based on IP and the currently logged in patron\'s location.', 'hideInLists' => true, 'default' => 1),
@@ -351,10 +339,10 @@ class Library extends DB_DataObject
 				'structure' => $holidaysStructure,
 				'label' => 'Holidays',
 				'description' => 'Holidays',
-				//'hideInLists' => true,
 				'sortable' => false,
 				'storeDb' => true
 			),
+
 			'nearbyBookStores' => array(
 				'property'=>'nearbyBookStores',
 				'type'=>'oneToMany',
@@ -364,7 +352,6 @@ class Library extends DB_DataObject
 				'keyOther' => 'libraryId',
 				'subObjectType' => 'NearbyBookStore',
 				'structure' => $nearbyBookStoreStructure,
-				//'hideInLists' => true,
 				'sortable' => true,
 				'storeDb' => true
 			),
@@ -378,12 +365,13 @@ class Library extends DB_DataObject
 				'keyOther' => 'libraryId',
 				'subObjectType' => 'LibraryFacetSetting',
 				'structure' => $facetSettingStructure,
-				//'hideInLists' => true,
 				'sortable' => true,
 				'storeDb' => true,
 				'allowEdit' => true,
 				'canEdit' => true,
 			),
+
+
 
 			'searchSources' => array(
 				'property'=>'searchSources',
@@ -401,18 +389,18 @@ class Library extends DB_DataObject
 			),
 
 			'browseCategories' => array(
-					'property'=>'browseCategories',
-					'type'=>'oneToMany',
-					'label'=>'Browse Categories',
-					'description'=>'Browse Categories To Show on the Home Screen',
-					'keyThis' => 'libraryId',
-					'keyOther' => 'libraryId',
-					'subObjectType' => 'LibraryBrowseCategory',
-					'structure' => $libraryBrowseCategoryStructure,
-					'sortable' => true,
-					'storeDb' => true,
-					'allowEdit' => false,
-					'canEdit' => false,
+				'property'=>'browseCategories',
+				'type'=>'oneToMany',
+				'label'=>'Browse Categories',
+				'description'=>'Browse Categories To Show on the Home Screen',
+				'keyThis' => 'libraryId',
+				'keyOther' => 'libraryId',
+				'subObjectType' => 'LibraryBrowseCategory',
+				'structure' => $libraryBrowseCategoryStructure,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => false,
+				'canEdit' => false,
 			),
 
 			'libraryLinks' => array(
@@ -559,6 +547,18 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->nearbyBookStores;
+		}elseif ($name == "moreDetailsOptions") {
+			if (!isset($this->moreDetailsOptions) && $this->libraryId){
+				$this->moreDetailsOptions = array();
+				$moreDetailsOptions = new LibraryMoreDetails();
+				$moreDetailsOptions->libraryId = $this->libraryId;
+				$moreDetailsOptions->orderBy('weight');
+				$moreDetailsOptions->find();
+				while($moreDetailsOptions->fetch()){
+					$this->moreDetailsOptions[$moreDetailsOptions->id] = clone($moreDetailsOptions);
+				}
+			}
+			return $this->moreDetailsOptions;
 		}elseif ($name == "facets") {
 			if (!isset($this->facets) && $this->libraryId){
 				$this->facets = array();
@@ -617,6 +617,8 @@ class Library extends DB_DataObject
 			$this->holidays = $value;
 		}elseif ($name == "nearbyBookStores") {
 			$this->nearbyBookStores = $value;
+		}elseif ($name == "moreDetailsOptions") {
+			$this->moreDetailsOptions = $value;
 		}elseif ($name == "facets") {
 			$this->facets = $value;
 		}elseif ($name == 'searchSources'){
@@ -646,6 +648,7 @@ class Library extends DB_DataObject
 			$this->saveSearchSources();
 			$this->saveLibraryLinks();
 			$this->saveBrowseCategories();
+			$this->saveMoreDetailsOptions();
 			return $ret;
 		}
 	}
@@ -666,6 +669,7 @@ class Library extends DB_DataObject
 			$this->saveSearchSources();
 			$this->saveLibraryLinks();
 			$this->saveBrowseCategories();
+			$this->saveMoreDetailsOptions();
 			return $ret;
 		}
 	}
@@ -746,6 +750,32 @@ class Library extends DB_DataObject
 		$facets->libraryId = $this->libraryId;
 		$facets->delete();
 		$this->searchSources = array();
+	}
+
+	public function saveMoreDetailsOptions(){
+		if (isset ($this->moreDetailsOptions) && is_array($this->moreDetailsOptions)){
+			/** @var LibraryMoreDetails $options */
+			foreach ($this->moreDetailsOptions as $options){
+				if (isset($options->deleteOnSave) && $options->deleteOnSave == true){
+					$options->delete();
+				}else{
+					if (isset($options->id) && is_numeric($options->id)){
+						$ret = $options->update();
+					}else{
+						$options->libraryId = $this->libraryId;
+						$options->insert();
+					}
+				}
+			}
+			unset($this->moreDetailsOptions);
+		}
+	}
+
+	public function clearMoreDetailsOptions(){
+		$options = new LibraryMoreDetails();
+		$options->libraryId = $this->libraryId;
+		$options->delete();
+		$this->moreDetailsOptions = array();
 	}
 
 	public function saveFacets(){

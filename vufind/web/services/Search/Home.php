@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . '/Action.php';
 
-class Home extends Action {
+class Search_Home extends Action {
 
 	function launch()
 	{
@@ -46,31 +46,7 @@ class Home extends Action {
 			}
 		}
 
-		//Get the lists to show on the home page
-		require_once ROOT_DIR . '/sys/ListWidget.php';
-		$showWidgets = false;
 		$activeLocation = $locationSingleton->getActiveLocation();
-		if ($activeLocation != null && strlen($activeLocation->homePageWidgetId) > 0 && $activeLocation->homePageWidgetId != 0){
-			$widgetsToShow = $activeLocation->homePageWidgetId;
-			$showWidgets = true;
-		}else if (isset($library) && strlen($library->homePageWidgetId) > 0 && $library->homePageWidgetId != 0){
-			$widgetsToShow = $library->homePageWidgetId;
-			$showWidgets = true;
-		}
-		if ($showWidgets && isset($widgetsToShow)){
-			$widgetIds = explode(",", $widgetsToShow);
-			$widgets = array();
-			foreach ($widgetIds as $widgetId){
-				$widget = new ListWidget();
-				$widget->id = $widgetId;
-				if ($widget->find(true)){
-					$widgets[] = $widget;
-				}
-			}
-			if (count($widgets) > 0){
-				$interface->assign('widgets', $widgets);
-			}
-		}
 
 		//Load browse categories
 		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';

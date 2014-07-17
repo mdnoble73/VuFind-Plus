@@ -316,15 +316,6 @@ function updateConfigForScoping($configArray) {
 		$configArray['Site']['theme'] = $library->themeName . ',' . $configArray['Site']['theme'] . ',default';
 		$configArray['Site']['title'] = $library->displayName;
 
-		//Update the searches file
-		if (strlen($library->searchesFile) > 0 && $library->searchesFile != 'default'){
-			$file = trim("../../sites/$serverName/conf/searches/" . $library->searchesFile . '.ini');
-			if (file_exists($file)) {
-				$configArray['Extra_Config']['searches'] = 'searches/' . $library->searchesFile . '.ini';
-			}
-		}
-
-
 		$location = $locationSingleton->getActiveLocation();
 
 		//Add an extra css file for the location if it exists.

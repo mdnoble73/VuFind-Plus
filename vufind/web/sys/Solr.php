@@ -155,12 +155,12 @@ class Solr implements IndexEngine {
 
 		//Check for a more specific searchspecs file
 		global $serverName;
-		if (file_exists("../../sites/$serverName/conf/searchspecs.yaml")){
+		if (file_exists(ROOT_DIR . "/../../sites/$serverName/conf/searchspecs.yaml")){
 			// Return the file path (note that all ini files are in the conf/ directory)
-			$this->searchSpecsFile = "../../sites/$serverName/conf/searchspecs.yaml";
-		}elseif(file_exists("../../sites/default/conf/searchspecs.yaml")){
+			$this->searchSpecsFile = ROOT_DIR . "/../../sites/$serverName/conf/searchspecs.yaml";
+		}elseif(file_exists(ROOT_DIR . "/../../sites/default/conf/searchspecs.yaml")){
 			// Return the file path (note that all ini files are in the conf/ directory)
-			$this->searchSpecsFile = "../../sites/default/conf/searchspecs.yaml";
+			$this->searchSpecsFile = ROOT_DIR . "/../../sites/default/conf/searchspecs.yaml";
 		}
 
 		$this->host = $host . '/' . $index;
@@ -787,24 +787,25 @@ class Solr implements IndexEngine {
 		//Add rating as part of the ranking, normalize so ratings of less that 2.5 are below unrated entries.
 		$boostFactors[] = 'sum(rating,1)';
 
+		global $solrScope;
 		if (isset($searchLibrary) && !is_null($searchLibrary) && $searchLibrary->boostByLibrary == 1) {
-			$boostFactors[] = "sum(product(lib_boost_{$searchLibrary->subdomain},{$searchLibrary->additionalLocalBoostFactor}),1)";
+			$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$searchLibrary->additionalLocalBoostFactor}),1)";
 		}else{
 			//Handle boosting even if we are in a global scope
 			global $library;
 			if ($library && $library->boostByLibrary == 1){
-				$boostFactors[] = "sum(product(lib_boost_{$library->subdomain},{$library->additionalLocalBoostFactor}),1)";
+				$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$library->additionalLocalBoostFactor}),1)";
 			}
 		}
 
 		if (isset($searchLocation) && !is_null($searchLocation) && $searchLocation->boostByLocation == 1) {
-			$boostFactors[] = "sum(product(lib_boost_{$searchLocation->code},{$searchLocation->additionalLocalBoostFactor}),1)";
+			$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$searchLocation->additionalLocalBoostFactor}),1)";
 		}else{
 			//Handle boosting even if we are in a global scope
 			global $locationSingleton;
 			$physicalLocation = $locationSingleton->getActiveLocation();
 			if ($physicalLocation != null && $physicalLocation->boostByLocation ==1){
-				$boostFactors[] = "sum(product(lib_boost_{$physicalLocation->code},{$physicalLocation->additionalLocalBoostFactor}),1)";
+				$boostFactors[] = "sum(product(lib_boost_{$solrScope},{$physicalLocation->additionalLocalBoostFactor}),1)";
 			}
 		}
 		return $boostFactors;
@@ -836,13 +837,32 @@ class Solr implements IndexEngine {
 			$values['exact'] = str_replace(':', '\\:', $lookfor);
 			$values['and'] = $andQuery;
 			$values['or'] = $orQuery;
+			$singleWordRemoval = "";
+			if (count($tokenized) < 3){
+				$singleWordRemoval = '"' . str_replace('"', '', implode(' ', $tokenized)) . '"';
+			}else{
+				for ($i = 0; $i < count($tokenized); $i++){
+					$newTerm = '"';
+					for ($j = 0; $j < count($tokenized); $j++){
+						if ($j != $i){
+							$newTerm .= $tokenized[$j] . ' ';
+						}
+					}
+					$newTerm = trim($newTerm) . '"';
+					if (strlen($singleWordRemoval) > 0){
+						$singleWordRemoval .= ' OR ';
+					}
+					$singleWordRemoval .= $newTerm;
+				}
+			}
+			$values['single_word_removal'] = $singleWordRemoval;
 		} else {
 			// If we're skipping tokenization, we just want to pass $lookfor through
 			// unmodified (it's probably an advanced search that won't benefit from
 			// tokenization).	We'll just set all possible values to the same thing,
 			// except that we'll try to do the "one phrase" in quotes if possible.
 			$onephrase = strstr($lookfor, '"') ? $lookfor : '"' . $lookfor . '"';
-			$values = array('exact' => $onephrase, 'onephrase' => $onephrase, 'and' => $lookfor, 'or' => $lookfor);
+			$values = array('exact' => $onephrase, 'onephrase' => $onephrase, 'and' => $lookfor, 'or' => $lookfor, 'single_word_removal' => $onephrase);
 		}
 
 		//Create localized call number
@@ -850,7 +870,7 @@ class Solr implements IndexEngine {
 		if (strpos($lookfor, '*') !== false){
 			$noWildCardLookFor = str_replace('*', '', $lookfor);
 		}
-		$values['localized_callnumber'] = str_replace(array('"', ':', '/'), ' ', $noWildCardLookFor);
+		$values['localized_callnumber'] = '"' . str_replace(array('"', ':', '/'), ' ', $noWildCardLookFor) . '"';
 
 		// Apply custom munge operations if necessary:
 		if (is_array($custom) && $basic) {
@@ -1195,13 +1215,6 @@ class Solr implements IndexEngine {
 				$handler = 'AllFieldsProper';
 			}else if ($handler == 'Title'){
 				$handler = 'TitleProper';
-			}
-		}
-		if ($this->index == 'grouped'){
-			if ($handler == 'Keyword'){
-				$handler = 'KeywordGrouped';
-			}elseif ($handler == 'KeywordProper'){
-				$handler = 'KeywordGroupedProper';
 			}
 		}
 

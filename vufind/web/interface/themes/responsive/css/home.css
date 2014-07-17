@@ -68,7 +68,7 @@ Sidebar font data
   padding: 15px 0px;
   height: 100%;
 }
-#home-page-hours-locations {
+.sidebar-button {
   text-align: center;
   background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
@@ -76,7 +76,7 @@ Sidebar font data
   padding: 3px 0px;
   margin-bottom: 15px;
 }
-#home-page-hours-locations a {
+.sidebar-button a {
   color: white;
 }
 /** Library Link Formatting */

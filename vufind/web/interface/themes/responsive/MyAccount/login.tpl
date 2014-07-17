@@ -4,20 +4,28 @@
 	<h2>{translate text='Login to your account'}</h2>
 	<div id="loginFormWrapper">
 		<p class="alert alert-danger" id="loginError" style="display: none"></p>
-		<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form">
+		<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form-horizontal">
 			<div id='loginFormFields'>
 				<div id ='loginUsernameRow' class='form-group'>
-					<label for="username" class='control-label'>{translate text='Username'}: </label>
-					<div class='controls'><input type="text" name="username" id="username" value="{$username|escape}" size="28"/></div>
+					<label for="username" class='control-label col-xs-12 col-sm-4'>{translate text='Username'}</label>
+					<div class='col-xs-12 col-sm-8'>
+						<input type="text" name="username" id="username" value="{$username|escape}" size="28" class="form-control"/>
+					</div>
 				</div>
 				<div id ='loginPasswordRow' class='form-group'>
-					<label for="password" class='control-label'>{translate text='Password'}: </label>
-					<div class='controls'>
-						<input type="password" name="password" id="password" size="28"/>
+					<label for="password" class='control-label col-xs-12 col-sm-4'>{translate text='Password'}: </label>
+					<div class='col-xs-12 col-sm-8'>
+						<input type="password" name="password" id="password" size="28" onkeypress="return VuFind.submitOnEnter(event, '#loginForm');" class="form-control"/>
+
+						{if $enableSelfRegistration == 1}
+							<p class="help-block">
+								Don't have a library card?  <a href='{$path}/MyAccount/SelfReg'>Register for a new Library Card</a>.
+							</p>
+						{/if}
 					</div>
 				</div>
 				<div id ='loginPasswordRow2' class='form-group'>
-					<div class='controls'>
+					<div class='col-xs-12 col-sm-offset-4 col-sm-8'>
 						<label for="showPwd" class="checkbox">
 							<input type="checkbox" id="showPwd" name="showPwd" onclick="return VuFind.pwdToText('password')"/>
 							{translate text="Reveal Password"}
@@ -28,8 +36,12 @@
 								<input type="checkbox" id="rememberMe" name="rememberMe"/>
 								{translate text="Remember Me"}
 							</label>
-						{/if}
+							{/if}
+					</div>
+				</div>
 
+				<div id ='loginPasswordRow2' class='form-group'>
+					<div class='col-xs-12 col-sm-offset-4 col-sm-8'>
 						<input type="submit" name="submit" value="Login" id="loginFormSubmit" class="btn btn-primary" onclick="return VuFind.Account.preProcessLogin();"/>
 						{if $followup}<input type="hidden" name="followup" value="{$followup}"/>{/if}
 						{if $followupModule}<input type="hidden" name="followupModule" value="{$followupModule}"/>{/if}
@@ -41,13 +53,8 @@
 						{if $comment}
 							<input type="hidden" name="comment" name="comment" value="{$comment|escape:"html"}"/>
 						{/if}
-
 					</div>
 				</div>
-
-				{if $enableSelfRegistration == 1}
-					<a href='{$path}/MyAccount/SelfReg'>Register for a new Library Card</a>
-				{/if}
 
 			</div>
 		</form>

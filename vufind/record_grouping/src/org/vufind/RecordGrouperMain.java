@@ -49,6 +49,7 @@ public class RecordGrouperMain {
 	private static Long lastGroupingTime;
 	private static Long lastGroupingTimeVariableId;
 	private static boolean fullRegrouping = false;
+	private static boolean fullRegroupingNoClear = false;
 
 	public static void main(String[] args) {
 		// Get the configuration filename
@@ -103,7 +104,9 @@ public class RecordGrouperMain {
 
 		//Check to see if we need to clear the database
 		boolean clearDatabasePriorToGrouping = false;
-		if (args.length >= 2 && args[1].equalsIgnoreCase("fullRegrouping")){
+		if (args.length >= 2 && args[1].equalsIgnoreCase("fullRegroupingNoClear")) {
+			fullRegroupingNoClear = true;
+		}else if (args.length >= 2 && args[1].equalsIgnoreCase("fullRegrouping")){
 			clearDatabasePriorToGrouping = true;
 			fullRegrouping = true;
 		}else{
@@ -456,7 +459,7 @@ public class RecordGrouperMain {
 		int numRecordsProcessed = 0;
 		try{
 			PreparedStatement overDriveRecordsStmt;
-			if (lastGroupingTime != null && !fullRegrouping){
+			if (lastGroupingTime != null && !fullRegrouping && !fullRegroupingNoClear){
 				overDriveRecordsStmt = econtentConnection.prepareStatement("SELECT id, overdriveId, mediaType, title, subtitle, primaryCreatorRole, primaryCreatorName FROM overdrive_api_products WHERE deleted = 0 and (dateUpdated >= ? OR lastMetadataChange >= ? OR lastAvailabilityChange >= ?)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				overDriveRecordsStmt.setLong(1, lastGroupingTime);
 				overDriveRecordsStmt.setLong(2, lastGroupingTime);

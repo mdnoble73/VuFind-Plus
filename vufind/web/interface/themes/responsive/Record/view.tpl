@@ -32,6 +32,8 @@
 						{include file="Record/view-title-details.tpl"}
 					</div>
 
+					<br/>
+
 					<div id="recordTools" class="col-md-3">
 						{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
 					</div>

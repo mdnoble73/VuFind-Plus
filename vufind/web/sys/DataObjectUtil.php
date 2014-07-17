@@ -167,7 +167,7 @@ class DataObjectUtil
 			foreach ($property['properties'] as $subProperty){
 				DataObjectUtil::processProperty($object, $subProperty);
 			}
-		}else if (in_array($property['type'], array('text', 'enum', 'hidden', 'url', 'email'))){
+		}else if (in_array($property['type'], array('text', 'enum', 'hidden', 'url', 'email', 'multiemail'))){
 			$object->$propertyName = strip_tags(trim($_REQUEST[$propertyName]));
 
 		}else if (in_array( $property['type'], array('textarea', 'html', 'folder', 'crSeparated'))){

@@ -116,85 +116,22 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		$interface->assign('items', $items);
 
 		//Load more details options
-		$moreDetailsOptions = array();
-		$moreDetailsOptions['series'] = array(
-				'label' => 'Also in this Series',
-				'body' => $interface->fetch('GroupedWork/series.tpl'),
-				'hideByDefault' => false,
-				'openByDefault' => true
-		);
-		$moreDetailsOptions['moreLikeThis'] = array(
-				'label' => 'More Like This',
-				'body' => $interface->fetch('GroupedWork/moreLikeThis.tpl'),
-				'hideByDefault' => false,
-				'openByDefault' => true
-		);
+		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn);
+
 		$moreDetailsOptions['copies'] = array(
 			'label' => 'Copies',
 			'body' => $interface->fetch('ExternalEContent/view-items.tpl'),
 			'openByDefault' => true
 		);
-		//Other editions if applicable (only if we aren't the only record!)
-		$relatedRecords = $this->getGroupedWorkDriver()->getRelatedRecords();
-		if (count($relatedRecords) > 1){
-			$interface->assign('relatedManifestations', $this->getGroupedWorkDriver()->getRelatedManifestations());
-			$moreDetailsOptions['otherEditions'] = array(
-					'label' => 'Other Editions',
-					'body' => $interface->fetch('GroupedWork/relatedManifestations.tpl'),
-					'hideByDefault' => false
-			);
-		}
-		$moreDetailsOptions['tableOfContents'] = array(
-			'label' => 'Table of Contents',
-			'body' => $interface->fetch('GroupedWork/tableOfContents.tpl'),
-			'hideByDefault' => true
-		);
-		$moreDetailsOptions['excerpt'] = array(
-			'label' => 'Excerpt',
-			'body' => '<div id="excerptPlaceholder">Loading Excerpt...</div>',
-			'hideByDefault' => true
-		);
-		$moreDetailsOptions['borrowerReviews'] = array(
-			'label' => 'Borrower Reviews',
-			'body' => "<div id='customerReviewPlaceholder'></div>",
-		);
-		$moreDetailsOptions['editorialReviews'] = array(
-			'label' => 'Editorial Reviews',
-			'body' => "<div id='editorialReviewPlaceholder'></div>",
-		);
-		if ($isbn){
-			$moreDetailsOptions['syndicatedReviews'] = array(
-				'label' => 'Published Reviews',
-				'body' => "<div id='syndicatedReviewPlaceholder'></div>",
-			);
-		}
-		//A few tabs require an ISBN
-		if ($isbn){
-			if ($interface->getVariable('showGoodReadsReviews')){
-				$moreDetailsOptions['goodreadsReviews'] = array(
-					'label' => 'Reviews from GoodReads',
-					'body' => '<iframe id="goodreads_iframe" class="goodReadsIFrame" src="https://www.goodreads.com/api/reviews_widget_iframe?did=DEVELOPER_ID&format=html&isbn=' . $isbn . '&links=660&review_back=fff&stars=000&text=000" width="100%" height="400px" frameborder="0"></iframe>',
-				);
-			}
-			$moreDetailsOptions['similarTitles'] = array(
-				'label' => 'Similar Titles From Novelist',
-				'body' => '<div id="novelisttitlesPlaceholder"></div>',
-				'hideByDefault' => true
-			);
-			$moreDetailsOptions['similarAuthors'] = array(
-				'label' => 'Similar Authors From Novelist',
-				'body' => '<div id="novelistauthorsPlaceholder"></div>',
-				'hideByDefault' => true
-			);
-			$moreDetailsOptions['similarSeries'] = array(
-				'label' => 'Similar Series From Novelist',
-				'body' => '<div id="novelistseriesPlaceholder"></div>',
-				'hideByDefault' => true
-			);
-		}
-		$moreDetailsOptions['details'] = array(
-			'label' => 'Details',
+
+		$moreDetailsOptions['moreDetails'] = array(
+			'label' => 'More Details',
 			'body' => $interface->fetch('EcontentRecord/view-title-details.tpl'),
+		);
+		$this->loadSubjects();
+		$moreDetailsOptions['subjects'] = array(
+				'label' => 'Subjects',
+				'body' => $interface->fetch('Record/view-subjects.tpl'),
 		);
 		$moreDetailsOptions['citations'] = array(
 			'label' => 'Citations',

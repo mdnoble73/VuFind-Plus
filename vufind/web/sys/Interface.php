@@ -253,13 +253,11 @@ class UInterface extends Smarty
 			$this->assign('generalContactLink', $library->generalContactLink);
 			$this->assign('showLoginButton', $library->showLoginButton);
 			$this->assign('showAdvancedSearchbox', $library->showAdvancedSearchbox);
-			$this->assign('enableBookCart', $library->enableBookCart);
-			$this->assign('enablePurchaseLinks', $library->linkToAmazon);
+			$this->assign('enablePurchaseLinks', count($library->getBookStores()) > 0);
 			$this->assign('enablePospectorIntegration', $library->enablePospectorIntegration);
 			$this->assign('showTagging', $library->showTagging);
 			$this->assign('showRatings', $library->showRatings);
 			$this->assign('show856LinksAsTab', $library->show856LinksAsTab);
-			$this->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
 			$this->assign('showSearchTools', $library->showSearchTools);
 			$this->assign('showExpirationWarnings', $library->showExpirationWarnings);
 			$this->assign('showSimilarTitles', $library->showSimilarTitles);
@@ -268,13 +266,11 @@ class UInterface extends Smarty
 		}else{
 			$this->assign('showLoginButton', 1);
 			$this->assign('showAdvancedSearchbox', 1);
-			$this->assign('enableBookCart', 1);
 			$this->assign('enablePurchaseLinks', 1);
 			$this->assign('enablePospectorIntegration', isset($configArray['Content']['Prospector']) && $configArray['Content']['Prospector'] == true ? 1 : 0);
 			$this->assign('showTagging', 1);
 			$this->assign('showRatings', 1);
 			$this->assign('show856LinksAsTab', 1);
-			$this->assign('showProspectorTitlesAsTab', 0);
 			$this->assign('showSearchTools', 1);
 			$this->assign('showExpirationWarnings', 1);
 			$this->assign('showSimilarTitles', 1);

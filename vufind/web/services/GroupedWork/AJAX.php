@@ -720,12 +720,6 @@ class GroupedWork_AJAX {
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
 
-		global $library;
-		if (isset($library)){
-			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
-		}else{
-			$interface->assign('showProspectorTitlesAsTab', 1);
-		}
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 		// Setup Search Engine Connection

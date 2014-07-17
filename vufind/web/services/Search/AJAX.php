@@ -332,19 +332,12 @@ class AJAX extends Action {
 	}
 
 	function getProspectorResults(){
-		$prospectorNumTitlesToLoad = $_GET['prospectorNumTitlesToLoad'];
 		$prospectorSavedSearchId = $_GET['prospectorSavedSearchId'];
 
 		require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
 		global $configArray;
 		global $interface;
 		global $timer;
-		global $library;
-		if (isset($library)){
-			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
-		}else{
-			$interface->assign('showProspectorTitlesAsTab', 0);
-		}
 
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
@@ -403,13 +396,8 @@ class AJAX extends Action {
 
 			$titles = $listAPI->getListTitles();
 			$timer->logTime("getListTitles");
-			$addStrandsTracking = false;
 			$strandsInfo = null;
 			if ($titles['success'] == true){
-				if (isset($titles['strands'])){
-					$addStrandsTracking = true;
-					$strandsInfo = $titles['strands'];
-				}
 				$titles = $titles['titles'];
 				if (is_array($titles)){
 					foreach ($titles as $key => $rawData){
@@ -424,13 +412,7 @@ class AJAX extends Action {
 
 						$formattedTitle = "<div id=\"scrollerTitle{$scrollerName}{$key}\" class=\"scrollerTitle\">";
 						$shortId = $rawData['id'];
-						if (preg_match('/econtentRecord\d+/i', $rawData['id'])){
-							$recordId = substr($rawData['id'], 14);
-							$formattedTitle .= '<a onclick="trackEvent(\'ListWidget\', \'Title Click\', \'' . $listName . '\')" href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $recordId . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $rawData['id'] . '">';
-						}else{
-							$shortId = str_replace('.b', 'b', $shortId);
-							$formattedTitle .= '<a onclick="trackEvent(\'ListWidget\', \'Title Click\', \'' . $listName . '\')" href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . ($addStrandsTracking ? "?strandsReqId={$strandsInfo['reqId']}&strandsTpl={$strandsInfo['tpl']}" : '') . '" id="descriptionTrigger' . $shortId . '">';
-						}
+						$formattedTitle .= '<a onclick="trackEvent(\'ListWidget\', \'Title Click\', \'' . $listName . '\')" href="' . $configArray['Site']['path'] . "/GroupedWork/" . $rawData['id'] . '" id="descriptionTrigger' . $shortId . '">';
 						$imageUrl = $rawData['small_image'];
 						if (isset($_REQUEST['coverSize']) && $_REQUEST['coverSize'] == 'medium'){
 							$imageUrl = $rawData['image'];

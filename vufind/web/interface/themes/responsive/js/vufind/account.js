@@ -65,12 +65,19 @@ VuFind.Account = (function(){
 					VuFind.Account.ajaxCallback = null;
 				}
 			} else {
+				var multistep = false;
+				if (ajaxCallback != undefined && typeof(ajaxCallback) === "function") {
+					multistep = true;
+				}
 				VuFind.Account.ajaxCallback = ajaxCallback;
 				VuFind.Account.closeModalOnAjaxSuccess = closeModalOnAjaxSuccess;
 				if (trigger != undefined && trigger != null) {
 					var dialogTitle = trigger.attr("title") ? trigger.attr("title") : trigger.data("title");
 				}
 				var dialogDestination = Globals.path + '/MyResearch/AJAX?method=LoginForm';
+				if (multistep){
+					dialogDestination += "&multistep=true";
+				}
 				var modalDialog = $("#modalDialog");
 				$('.modal-body').html("Loading...");
 				var modalBody = $(".modal-content");

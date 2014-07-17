@@ -31,7 +31,6 @@ class Location extends DB_DataObject
 	public $restrictSearchByLocation;
 	public $includeDigitalCollection;
 	public $showHoldButton;
-	public $showAmazonReviews;
 	public $showStandardReviews;
 	public $repeatSearchOption;
 	public $repeatInOnlineCollection;
@@ -42,8 +41,6 @@ class Location extends DB_DataObject
 	public $homeLink;
 	public $defaultPType;
 	public $ptypesToAllowRenewals;
-	public $footerTemplate;
-	public $homePageWidgetId;
 	public $boostByLocation;
 	public $additionalLocalBoostFactor;
 	public $recordsToBlackList;
@@ -116,6 +113,10 @@ class Location extends DB_DataObject
 		unset($locationBrowseCategoryStructure['weight']);
 		unset($locationBrowseCategoryStructure['locationId']);
 
+		$locationMoreDetailsStructure = LocationMoreDetails::getObjectStructure();
+		unset($locationMoreDetailsStructure['weight']);
+		unset($locationMoreDetailsStructure['locationId']);
+
 		$structure = array(
 			array('property'=>'code', 'type'=>'text', 'label'=>'Code', 'description'=>'The code for use when communicating with Millennium'),
 			array('property'=>'displayName', 'type'=>'text', 'label'=>'Display Name', 'description'=>'The full name of the location for display to the user', 'size'=>'40'),
@@ -133,8 +134,6 @@ class Location extends DB_DataObject
 			array('property'=>'displaySection', 'type' => 'section', 'label' =>'Basic Display', 'hideInLists' => true, 'properties' => array(
 				array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'hideInLists' => true, 'size'=>'40'),
 				array('property'=>'additionalCss', 'type'=>'textarea', 'label'=>'Additional CSS', 'description'=>'Extra CSS to apply to the site.  Will apply to all pages.', 'hideInLists' => true),
-				array('property'=>'homePageWidgetId', 'type'=>'text', 'label'=>'Home Page Widget Id', 'description'=>'An id for the list widget to display on the home page.  To show more than one widget, separate the ids with commas.', 'hideInLists' => true),
-				array('property'=>'footerTemplate', 'type'=>'text', 'label'=>'Footer Template', 'description'=>'The name of the footer file to display in the regular interface when scoped to a single school.  Use default to display the default footer', 'hideInLists' => true, 'default' => 'default'),
 			)),
 
 			array('property'=>'ilsSection', 'type' => 'section', 'label' =>'ILS/Account Integration', 'hideInLists' => true, 'properties' => array(
@@ -150,7 +149,6 @@ class Location extends DB_DataObject
 
 			array('property'=>'searchingSection', 'type' => 'section', 'label' =>'Searching', 'hideInLists' => true, 'properties' => array(
 				array('property'=>'facetLabel', 'type'=>'text', 'label'=>'Facet Label', 'description'=>'The label of the facet that identifies this location.', 'hideInLists' => true, 'size'=>'40'),
-				//array('property'=>'defaultLocationFacet', 'type'=>'text', 'label'=>'Default Location Facet', 'description'=>'A facet to apply during initial searches.  If left blank, no additional refinement will be done.', 'hideInLists' => true, 'size'=>'40'),
 				array('property'=>'restrictSearchByLocation', 'type'=>'checkbox', 'label'=>'Restrict Search By Location', 'description'=>'Whether or not search results should only include titles from this location', 'hideInLists' => true, 'default'=>false),
 				array('property'=>'includeDigitalCollection', 'type'=>'checkbox', 'label'=>'Include Digital Collection', 'description'=>'Whether or not titles from the digital collection should be included in searches', 'hideInLists' => true, 'default'=>true),
 				array('property'=>'econtentLocationsToInclude', 'type'=>'text', 'label'=>'eContent Locations To Include', 'description'=>'A list of eContent Locations to include within the scope.', 'size'=>'40', 'hideInLists' => true,),
@@ -166,7 +164,6 @@ class Location extends DB_DataObject
 			)),
 
 			array('property'=>'enrichmentSection', 'type' => 'section', 'label' =>'Catalog Enrichment', 'hideInLists' => true, 'properties' => array(
-				array('property'=>'showAmazonReviews', 'type'=>'checkbox', 'label'=>'Show Amazon Reviews', 'description'=>'Whether or not reviews from Amazon are displayed on the full record page.', 'hideInLists' => true, 'default'=>false),
 				array('property'=>'showStandardReviews', 'type'=>'checkbox', 'label'=>'Show Standard Reviews', 'description'=>'Whether or not reviews from Content Cafe/Syndetics are displayed on the full record page.', 'hideInLists' => true, 'default'=>true),
 				array('property'=>'showGoodReadsReviews', 'type'=>'checkbox', 'label'=>'Show GoodReads Reviews', 'description'=>'Whether or not reviews from GoodReads are displayed on the full record page.', 'hideInLists' => true, 'default'=>true),
 				'showFavorites'  => array('property'=>'showFavorites', 'type'=>'checkbox', 'label'=>'Show Favorites', 'description'=>'Whether or not users can maintain favorites lists', 'hideInLists' => true, 'default' => 1),
@@ -179,6 +176,20 @@ class Location extends DB_DataObject
 				'showComments'  => array('property'=>'showComments', 'type'=>'checkbox', 'label'=>'Show Comments', 'description'=>'Whether or not user comments are shown (also disables adding comments)', 'hideInLists' => true, 'default' => 1),
 				'showQRCode'  => array('property'=>'showQRCode', 'type'=>'checkbox', 'label'=>'Show QR Code', 'description'=>'Whether or not the catalog should show a QR Code in full record view', 'hideInLists' => true, 'default' => 1),
 				array('property'=>'showStaffView', 'type'=>'checkbox', 'label'=>'Show Staff View', 'description'=>'Whether or not the staff view is displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+				'moreDetailsOptions' => array(
+						'property'=>'moreDetailsOptions',
+						'type'=>'oneToMany',
+						'label'=>'Full Record Options',
+						'description'=>'Record Options for the display of full record',
+						'keyThis' => 'locationId',
+						'keyOther' => 'locationId',
+						'subObjectType' => 'LocationMoreDetails',
+						'structure' => $locationMoreDetailsStructure,
+						'sortable' => true,
+						'storeDb' => true,
+						'allowEdit' => true,
+						'canEdit' => true,
+				),
 			)),
 
 			array(
@@ -190,7 +201,6 @@ class Location extends DB_DataObject
 				'structure' => $hoursStructure,
 				'label' => 'Hours',
 				'description' => 'Library Hours',
-				//'hideInLists' => true,
 				'sortable' => false,
 				'storeDb' => true
 			),
@@ -204,7 +214,6 @@ class Location extends DB_DataObject
 				'keyOther' => 'locationId',
 				'subObjectType' => 'LocationFacetSetting',
 				'structure' => $facetSettingStructure,
-				//'hideInLists' => true,
 				'sortable' => true,
 				'storeDb' => true,
 				'allowEdit' => true,
@@ -611,6 +620,18 @@ class Location extends DB_DataObject
 				}
 			}
 			return $this->hours;
+		}elseif ($name == "moreDetailsOptions") {
+			if (!isset($this->moreDetailsOptions) && $this->libraryId){
+				$this->moreDetailsOptions = array();
+				$moreDetailsOptions = new LocationMoreDetails();
+				$moreDetailsOptions->locationId = $this->locationId;
+				$moreDetailsOptions->orderBy('weight');
+				$moreDetailsOptions->find();
+				while($moreDetailsOptions->fetch()){
+					$this->moreDetailsOptions[$moreDetailsOptions->id] = clone($moreDetailsOptions);
+				}
+			}
+			return $this->moreDetailsOptions;
 		}elseif ($name == "facets") {
 			if (!isset($this->facets)){
 				$this->facets = array();
@@ -646,6 +667,8 @@ class Location extends DB_DataObject
 	public function __set($name, $value){
 		if ($name == "hours") {
 			$this->hours = $value;
+		}elseif ($name == "moreDetailsOptions") {
+			$this->moreDetailsOptions = $value;
 		}elseif ($name == "facets") {
 			$this->facets = $value;
 		}elseif ($name == 'browseCategories'){
@@ -666,6 +689,7 @@ class Location extends DB_DataObject
 			$this->saveHours();
 			$this->saveFacets();
 			$this->saveBrowseCategories();
+			$this->saveMoreDetailsOptions();
 		}
 		return $ret;
 	}
@@ -681,6 +705,7 @@ class Location extends DB_DataObject
 			$this->saveHours();
 			$this->saveFacets();
 			$this->saveBrowseCategories();
+			$this->saveMoreDetailsOptions();
 		}
 		return $ret;
 	}
@@ -709,6 +734,32 @@ class Location extends DB_DataObject
 		$browseCategories->locationId = $this->locationId;
 		$browseCategories->delete();
 		$this->browseCategories = array();
+	}
+
+	public function saveMoreDetailsOptions(){
+		if (isset ($this->moreDetailsOptions) && is_array($this->moreDetailsOptions)){
+			/** @var LibraryMoreDetails $options */
+			foreach ($this->moreDetailsOptions as $options){
+				if (isset($options->deleteOnSave) && $options->deleteOnSave == true){
+					$options->delete();
+				}else{
+					if (isset($options->id) && is_numeric($options->id)){
+						$ret = $options->update();
+					}else{
+						$options->locationId = $this->locationId;
+						$options->insert();
+					}
+				}
+			}
+			unset($this->moreDetailsOptions);
+		}
+	}
+
+	public function clearMoreDetailsOptions(){
+		$options = new LocationMoreDetails();
+		$options->locationId = $this->locationId;
+		$options->delete();
+		$this->moreDetailsOptions = array();
 	}
 
 	public function saveFacets(){

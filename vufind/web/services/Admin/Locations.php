@@ -87,6 +87,10 @@ class Locations extends ObjectEditor
 				'url' => '/Admin/Locations?objectAction=resetFacetsToDefault&amp;id=' . $existingObject->locationId,
 			);
 			$objectActions[] = array(
+				'text' => 'Reset More Details To Default',
+				'url' => '/Admin/Locations?id=' . $existingObject->locationId . '&amp;objectAction=resetMoreDetailsToDefault',
+			);
+			$objectActions[] = array(
 				'text' => 'Copy Location Data',
 				'url' => '/Admin/Locations?id=' . $existingObject->locationId . '&amp;objectAction=copyDataFromLocation',
 			);
@@ -159,6 +163,35 @@ class Locations extends ObjectEditor
 			$defaultFacets = Location::getDefaultFacets($locationId);
 
 			$location->facets = $defaultFacets;
+			$location->update();
+
+			$_REQUEST['objectAction'] = 'edit';
+		}
+		$structure = $this->getObjectStructure();
+		header("Location: /Admin/Locations?objectAction=edit&id=" . $locationId);
+	}
+
+	function resetMoreDetailsToDefault(){
+		$location = new Location();
+		$locationId = $_REQUEST['id'];
+		$location->locationId = $locationId;
+		if ($location->find(true)){
+			$location->clearMoreDetailsOptions();
+
+			$defaultOptions = array();
+			require_once ROOT_DIR . '/RecordDrivers/Interface.php';
+			$defaultMoreDetailsOptions = RecordInterface::getDefaultMoreDetailsOptions();
+			$i = 0;
+			foreach ($defaultMoreDetailsOptions as $source => $defaultState){
+				$optionObj = new LocationMoreDetails();
+				$optionObj->locationId = $locationId;
+				$optionObj->collapseByDefault = $defaultState == 'closed';
+				$optionObj->source = $source;
+				$optionObj->weight = $i++;
+				$defaultOptions[] = $optionObj;
+			}
+
+			$location->moreDetailsOptions = $defaultOptions;
 			$location->update();
 
 			$_REQUEST['objectAction'] = 'edit';
