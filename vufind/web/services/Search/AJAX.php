@@ -332,7 +332,6 @@ class AJAX extends Action {
 	}
 
 	function getProspectorResults(){
-		$prospectorNumTitlesToLoad = $_GET['prospectorNumTitlesToLoad'];
 		$prospectorSavedSearchId = $_GET['prospectorSavedSearchId'];
 
 		require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
