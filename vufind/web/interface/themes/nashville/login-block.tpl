@@ -1,9 +1,6 @@
 
 <div id="headerLinksTopBar">
-
-<a href="http://library.nashville.org/card/crd_getcard.asp">Get a Card</a> | <a href="http://www.questionpoint.org/crs/servlet/org.oclc.admin.BuildForm?&institution=10447&type=1&language=1" class="languageBlockLink" target="_blank">Give Us Feedback</a>
-
-    <div id="loginBlock" class="alignright" style="text-align: right;">
+<div id="loginBlock" class="alignright" style="text-align: right;">
         <div id="logoutOptions" class="logoutOptions" {if !$user} style="display: none;"{/if}>
             <a href="{$path}/MyResearch/Home" id="myAccountNameLink"> {$user->firstname|capitalize} {$user->lastname|capitalize}</a> | <a href="{$path}/MyResearch/Home">{translate text="Your Account"}</a> | <a href="{$path}/MyResearch/Logout" id="logoutLink" >{translate
                 text="Log Out"}</a>
@@ -17,6 +14,9 @@
             {/if}
         </div>
     </div>
+<a href="http://library.nashville.org/card/crd_getcard.asp">Get a Card</a> | <a href="http://www.questionpoint.org/crs/servlet/org.oclc.admin.BuildForm?&institution=10447&type=1&language=1" class="languageBlockLink" target="_blank">Give Us Feedback</a>
+
+    
 
 </div>
 
