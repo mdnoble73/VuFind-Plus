@@ -39,6 +39,8 @@
 					</div>
 				</div>
 
+				<br/>
+
 				{include file=$moreDetailsTemplate}
 
 			</div>

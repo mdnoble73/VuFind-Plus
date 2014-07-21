@@ -21,24 +21,8 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		return $configArray['Site']['path'] . '/ExternalEContent/' . $recordId;
 	}
 
-	function isAvailable($realTime){
+	function isItemAvailable($itemId, $totalCopies){
 		return true;
-		//$itemFields = $this->getMarcRecord()->getFields('989');
-		/** @var File_MARC_Data_Field[] $itemFields */
-		/*foreach ($itemFields as $itemField){
-			$locationCode = trim($itemField->getSubfield('d') != null ? $itemField->getSubfield('d')->getData() : '');
-			$eContentData = trim($itemField->getSubfield('w') != null ? $itemField->getSubfield('w')->getData() : '');
-			if ($eContentData && strpos($eContentData, ':') > 0){
-				$eContentFieldData = explode(':', $eContentData);
-				$protectionType = trim($eContentFieldData[1]);
-				if ($this->isValidProtectionType($protectionType)){
-					if ($this->isValidForUser($locationCode, $eContentFieldData)){
-						return true;
-					}
-				}
-			}
-		}
-		return false;*/
 	}
 	function isEContentHoldable($locationCode, $eContentFieldData){
 		return false;
@@ -186,9 +170,10 @@ class ExternalEContentDriver extends BaseEContentDriver{
 	/**
 	 * @param string $itemId
 	 * @param string $fileOrUrl
+	 * @param string|null $acsId
 	 * @return array
 	 */
-	function getActionsForItem($itemId, $fileOrUrl){
+	function getActionsForItem($itemId, $fileOrUrl, $acsId){
 		$actions = array();
 		$title = 'Access Online';
 		if (substr_compare($fileOrUrl, 'pdf', strlen($fileOrUrl)-3, strlen(3)) === 0){

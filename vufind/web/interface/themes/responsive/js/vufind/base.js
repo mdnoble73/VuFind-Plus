@@ -182,17 +182,28 @@ var VuFind = (function(){
 			}
 		},
 
-		showMessage: function(title, body, autoClose){
+		showMessage: function(title, body, autoClose, refreshAfterClose){
 			if (autoClose == undefined){
 				autoClose = false;
+			}
+			if (refreshAfterClose == undefined){
+				refreshAfterClose = false;
 			}
 			$("#myModalLabel").html(title);
 			$(".modal-body").html(body);
 			$('.modal-buttons').html('');
 			var modalDialog = $("#modalDialog");
 			modalDialog.modal('show');
-			if (autoClose){
-				setTimeout("closeLightbox();", 3000);
+			if (autoClose && refreshAfterClose){
+				setTimeout(function(){
+					location.reload(true);
+				}
+				, 3000);
+			}else{
+				setTimeout(function(){
+					VuFind.closeLightbox();
+				}
+				, 3000);
 			}
 		},
 

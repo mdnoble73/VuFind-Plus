@@ -82,7 +82,7 @@ function cancelOverDriveHold(overDriveId, formatId){
 			success: function(data){
 				alert(data.message);
 				if (data.result){
-					window.location.href = window.location.href ;
+					location.reload();
 				}else{
 					hideLightbox();
 				}

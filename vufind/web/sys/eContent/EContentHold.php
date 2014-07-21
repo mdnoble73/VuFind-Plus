@@ -10,6 +10,7 @@ class EContentHold extends DB_DataObject {
 	public $__table = 'econtent_hold';    // table name
 	public $id;
 	public $recordId;
+	public $itemId;
 	public $datePlaced;
 	public $dateUpdated;
 	public $userId;

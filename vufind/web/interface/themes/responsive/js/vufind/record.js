@@ -384,16 +384,10 @@ VuFind.Record = (function(){
 					if (data.needsItemLevelHold){
 						$('.modal-body').html(data.message);
 					}else{
-						VuFind.showMessage('Hold Placed Successfully', data.message);
+						VuFind.showMessage('Hold Placed Successfully', data.message, true, data.autologout);
 					}
 				}else{
 					VuFind.showMessage('Hold Failed', data.message);
-				}
-				if (data.autologout == true){
-					setTimeout(function(){
-						VuFind.closeLightbox();
-						window.location.href = window.location.href;
-					}, 3000);
 				}
 			});
 		}

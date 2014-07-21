@@ -39,6 +39,7 @@ class Record_Home extends Record_Record{
 
 		$interface->assign('recordId', $recordId);
 
+		$publicationDetails = $this->recordDriver->getPublicationDetails();
 		$interface->assign('moreDetailsOptions', $this->recordDriver->getMoreDetailsOptions());
 
 		//Build the actual view

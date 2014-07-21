@@ -1093,6 +1093,9 @@ class GroupedWorkDriver extends RecordInterface{
 			if ($curRecord['available'] && $curRecord['locationLabel'] === 'Online'){
 				$relatedManifestations[$curRecord['format']]['availableOnline'] = true;
 			}
+			if (isset($curRecord['availableOnline']) && $curRecord['availableOnline']){
+				$relatedManifestations[$curRecord['format']]['availableOnline'] = true;
+			}
 			if (!$relatedManifestations[$curRecord['format']]['available'] && $curRecord['available']){
 				$relatedManifestations[$curRecord['format']]['available'] = $curRecord['available'];
 			}

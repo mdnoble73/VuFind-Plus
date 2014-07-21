@@ -1311,6 +1311,7 @@ class IndexRecord extends RecordInterface
 					(isset($dates[$i]) ? (', ' . $dates[$i] . '.') : '');
 			$publicationInfo = trim(str_replace('  ', ' ', $publicationInfo));
 			$publicationInfo = str_replace(' ,', ',', $publicationInfo);
+			$publicationInfo = htmlentities($publicationInfo);
 			$returnVal[] = $publicationInfo;
 			$i++;
 		}

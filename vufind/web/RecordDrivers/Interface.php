@@ -262,9 +262,13 @@ abstract class RecordInterface {
 	public function getBaseMoreDetailsOptions($isbn){
 		global $interface;
 		$moreDetailsOptions = array();
+		$description = $this->getDescription();
+		if (strlen($description) == 0){
+			$description = 'Description not provided';
+		}
 		$moreDetailsOptions['description'] = array(
 				'label' => 'Description',
-				'body' => strip_tags($this->getDescription(), '<b><p><i><em><strong><ul><li><ol>'),
+				'body' => strip_tags($description, '<b><p><i><em><strong><ul><li><ol>'),
 				'hideByDefault' => false,
 				'openByDefault' => true
 		);

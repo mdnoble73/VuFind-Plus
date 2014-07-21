@@ -29,16 +29,16 @@
 						{include file="PublicEContent/view-title-details.tpl"}
 					</div>
 
+					<br/>
+
 					<div id="recordTools" class="col-md-3">
 						<div class="btn-toolbar">
 							<div class="btn-group btn-group-vertical btn-block">
-								{foreach from=$items item=item key=index}
-									{* Options for the user to view online or download *}
-									{foreach from=$item.actions item=link}
-										{if $link.showInSummary}
-											<a href="{if $link.url}{$link.url}{else}#{/if}" {if $link.onclick && strlen($link.onclick) > 0}onclick="{$link.onclick}"{/if} class="btn btn-sm btn-primary">{$link.title}</a>&nbsp;
-										{/if}
-									{/foreach}
+								{* Options for the user to view online or download *}
+								{foreach from=$summaryActions item=link}
+									{if $link.showInSummary == true}
+										<a href="{if $link.url}{$link.url}{else}#{/if}" {if $link.onclick && strlen($link.onclick) > 0}onclick="{$link.onclick}"{/if} class="btn btn-sm btn-primary">{$link.title}</a>&nbsp;
+									{/if}
 								{/foreach}
 							</div>
 						</div>

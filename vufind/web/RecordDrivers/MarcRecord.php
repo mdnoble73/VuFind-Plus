@@ -790,6 +790,16 @@ class MarcRecord extends IndexRecord
 	}
 
 	/**
+	 * Get the uniform title of the record.
+	 *
+	 * @return  array
+	 */
+	public function getUniformTitle()
+	{
+		return $this->getFieldArray('240', array('a', 'd', 'f', 'g', 'h', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's'));
+	}
+
+	/**
 	 * Get the full title of the record.
 	 *
 	 * @return  string
@@ -992,18 +1002,18 @@ class MarcRecord extends IndexRecord
 	}
 
 	function getDescription(){
-		/** @var Memcache $memCache */
-		global $memCache;
-		global $configArray;
 		global $interface;
 		global $library;
 		$id = $this->getUniqueID();
 
 		$useMarcSummary = true;
-		if ($this->getCleanISBN() || $this->getCleanUPC()){
+		$summary = '';
+		$isbn = $this->getCleanISBN();
+		$upc = $this->getCleanUPC();
+		if ($isbn || $upc){
 			if (!$library || ($library && $library->preferSyndeticsSummary == 1)){
 				require_once ROOT_DIR  . '/Drivers/marmot_inc/GoDeeperData.php';
-				$summaryInfo = GoDeeperData::getSummary($this->getCleanISBN(), $this->getCleanUPC());
+				$summaryInfo = GoDeeperData::getSummary($isbn, $upc);
 				if (isset($summaryInfo['summary'])){
 					$summary = $summaryInfo['summary'];
 					$useMarcSummary = false;
@@ -1020,7 +1030,7 @@ class MarcRecord extends IndexRecord
 				$interface->assign('summaryTeaser', strip_tags($summary));
 			}elseif ($library && $library->preferSyndeticsSummary == 0){
 				require_once ROOT_DIR  . '/Drivers/marmot_inc/GoDeeperData.php';
-				$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
+				$summaryInfo = GoDeeperData::getSummary($isbn, $upc);
 				if (isset($summaryInfo['summary'])){
 					$summary = $summaryInfo['summary'];
 				}
@@ -1630,7 +1640,7 @@ class MarcRecord extends IndexRecord
 					'publicationDate' => $publicationDate,
 					'physical' => $physicalDescription,
 					'callNumber' => $this->getCallNumber(),
-					'available' => $this->isAvailable(false),
+					'available' => $availableCopies > 0,
 					'availableLocally' => $localAvailableCopies > 0,
 					'availableHere' => $branchAvailableCopies > 0,
 					'inLibraryUseOnly' => $this->isLibraryUseOnly(false),
@@ -1666,7 +1676,7 @@ class MarcRecord extends IndexRecord
 		return $this->relatedRecords;
 	}
 
-	private function isHoldable(){
+	protected function isHoldable(){
 		$items = $this->getItemsFast();
 		foreach ($items as $item){
 			//Try to get an available non reserve call number
@@ -1724,6 +1734,7 @@ class MarcRecord extends IndexRecord
 		}
 		return $locationLabel;
 	}
+
 	public function isAvailable($realTime){
 		if ($realTime){
 			$items = $this->getItems();

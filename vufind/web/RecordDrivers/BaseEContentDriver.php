@@ -38,12 +38,10 @@ abstract class BaseEContentDriver  extends MarcRecord {
 			$searchLocation = Location::getSearchLocation();
 			if ($searchLocation){
 				$homeLocationCode = $searchLocation->code;
-				$homeLocationLabel = $searchLocation->facetLabel;
 			}else{
 				$homeLocation = Location::getUserHomeLocation();
 				if ($homeLocation){
 					$homeLocationCode = $homeLocation->code;
-					$homeLocationLabel = $homeLocation->facetLabel;
 				}
 			}
 
@@ -60,7 +58,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 					if (count($itemData) > 6){
 						$fileOrUrl = $itemData[6];
 					}
-					$actions = $this->getActionsForItem($itemId, $fileOrUrl);
+					$actions = $this->getActionsForItem($itemId, $fileOrUrl, null);
 					$libraryLabelObj = new Library();
 					$libraryLabelObj->whereAdd("'$locationCode' LIKE CONCAT(ilsCode, '%') and ilsCode <> ''");
 					$libraryLabelObj->selectAdd();
@@ -70,17 +68,12 @@ abstract class BaseEContentDriver  extends MarcRecord {
 					}else{
 						$libraryLabel = $locationCode . ' Online';
 					}
-					$locationLabelObj = new Location();
-					$locationLabelObj->whereAdd("'$locationCode' LIKE CONCAT(code, '%') and code <> ''");
-					if ($locationLabelObj->find(true)){
-						$locationLabel = $locationLabelObj->displayName;
-					}else{
-						$locationLabel = $locationCode . ' Online';
-					}
+					//TODO: Get the correct numbe rof available copies
+					$totalCopies = 1;
 					$this->fastItems[] = array(
 							'location' => $locationCode,
 							'callnumber' => '',
-							'availability' => $itemData[3] == 'true',
+							'availability' => $this->isItemAvailable($itemId, $totalCopies),
 							'holdable' => $this->isEContentHoldable($locationCode, $itemData),
 							'inLibraryUseOnly' => false,
 							'isLocalItem' => isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && strpos($locationCode, $libraryLocationCode) === 0,
@@ -109,6 +102,9 @@ abstract class BaseEContentDriver  extends MarcRecord {
 							$eContentFieldData = explode(':', $eContentData);
 							$source = trim($eContentFieldData[0]);
 							$protectionType = trim($eContentFieldData[1]);
+
+							//TODO: Correctly determine the number of copies that are available.
+							$totalCopies = 1;
 							if ($this->isValidProtectionType($protectionType)){
 								if ($this->isValidForUser($locationCode, $eContentFieldData)){
 									$libraryLabelObj = new Library();
@@ -129,6 +125,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 									}
 									//Get the file or url that is related to this item.
 									$fileOrUrl = '';
+									$acsId = null;
 									if ($protectionType == 'external'){
 										$urlSubfield = $itemField->getSubfield('u');
 										if ($urlSubfield != null){
@@ -148,28 +145,33 @@ abstract class BaseEContentDriver  extends MarcRecord {
 										if (count($eContentFieldData) > 3){
 											$fileOrUrl = $eContentFieldData[3];
 										}
+										if (count($eContentFieldData) > 4){
+											$acsId = $eContentFieldData[4];
+										}
 									}
 									$fileOrUrl = trim($fileOrUrl);
-									$actions = $this->getActionsForItem($itemId, $fileOrUrl);
+									$actions = $this->getActionsForItem($itemId, $fileOrUrl, $acsId);
+
 
 									$format = $this->getEContentFormat($fileOrUrl, $iType);
+									$sharing = $this->getSharing($locationCode, $eContentFieldData);
 									//Add an item
 									$item = array(
 											'location' => $locationCode,
 											'locationLabel' => $locationLabel,
 											'libraryLabel' => $libraryLabel,
 											'callnumber' => '',
-											'availability' => $this->isAvailable(false),
+											'availability' => $this->isItemAvailable($itemId, $totalCopies),
 											'holdable' => $this->isEContentHoldable($locationCode, $eContentFieldData),
 											'isLocalItem' => $this->isLocalItem($locationCode, $eContentFieldData),
 											'isLibraryItem' => $this->isLibraryItem($locationCode, $eContentFieldData),
 											'shelfLocation' => 'Online ' . $source,
 											'source' => $source,
-											'sharing' => $this->getSharing($locationCode, $eContentFieldData),
+											'sharing' => $sharing,
 											'fileOrUrl' => $fileOrUrl,
 											'format' => $format,
 											'helpText' => $this->getHelpText($fileOrUrl),
-											'usageNotes' => $this->getUsageRestrictions(),
+											'usageNotes' => $this->getUsageRestrictions($sharing, $libraryLabel, $locationLabel),
 											'formatNotes' => $this->getFormatNotes($fileOrUrl),
 											'size' => $this->getFileSize($fileOrUrl),
 											'actions' => $actions,
@@ -247,7 +249,10 @@ abstract class BaseEContentDriver  extends MarcRecord {
 		foreach ($sources as $source){
 			foreach ($parentRecords as $relatedRecord){
 				$relatedRecord['source'] = $source;
-				$relatedRecord['usageRestrictions'] = $this->getUsageRestrictions();
+				if ($relatedRecord['available']){
+					$relatedRecord['availableOnline'] = true;
+				}
+				//$relatedRecord['usageRestrictions'] = $this->getUsageRestrictions();
 				$relatedRecords[] = $relatedRecord;
 			}
 		}
@@ -271,20 +276,17 @@ abstract class BaseEContentDriver  extends MarcRecord {
 	abstract function isEContentHoldable($locationCode, $eContentFieldData);
 	abstract function isLocalItem($locationCode, $eContentFieldData);
 	abstract function isLibraryItem($locationCode, $eContentFieldData);
-	function getUsageRestrictions(){
-		$fastItems = $this->getItemsFast();
-		$shareWith = array();
-		foreach ($fastItems as $fastItem){
-			$sharing = $fastItem['sharing'];
-			if ($sharing == 'shared'){
-				return "Available to Everyone";
-			}else if ($sharing == 'library'){
-				$shareWith[] = $fastItem['libraryLabel'];
-			}else if ($sharing == 'location'){
-				$shareWith[] = $fastItem['locationLabel'];
-			}
+	abstract function isItemAvailable($itemId, $totalCopies);
+	function getUsageRestrictions($sharing, $libraryLabel, $locationLabel){
+		if ($sharing == 'shared'){
+			return "Available to Everyone";
+		}else if ($sharing == 'library'){
+			return 'Available to patrons of ' . $libraryLabel;
+		}else if ($sharing == 'location'){
+			return 'Available to patrons of ' .  $locationLabel;
+		}else{
+			return 'Unable to determine usage restrictions';
 		}
-		return 'Available to patrons of ' . implode(', ', $shareWith);
 	}
 	abstract function isValidForUser($locationCode, $eContentFieldData);
 
@@ -307,7 +309,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 
 	abstract function getSharing($locationCode, $eContentFieldData);
 
-	abstract function getActionsForItem($itemId, $fileName);
+	abstract function getActionsForItem($itemId, $fileName, $acsId);
 
 	abstract function getEContentFormat($fileOrUrl, $iType);
 
@@ -319,4 +321,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 		return 0;
 	}
 
+	protected function isHoldable(){
+		return false;
+	}
 }

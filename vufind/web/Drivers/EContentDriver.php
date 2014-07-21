@@ -504,21 +504,24 @@ class EContentDriver implements DriverInterface{
 		$availableHolds->status ='available';
 		$availableHolds->find();
 		while ($availableHolds->fetch()){
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $availableHolds->recordId;
-			if ($eContentRecord->find(true)){
+			require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
+			$recordDriver = new RestrictedEContentDriver($availableHolds->recordId);
+
+			if ($recordDriver->isValid()){
 				$expirationDate = $availableHolds->dateUpdated + 5 * 24 * 60 * 60;
 				$holds['holds']['available'][] = array(
-					'id' => $eContentRecord->id,
-					'recordId' => 'econtentRecord' . $eContentRecord->id,
-					'source' => $eContentRecord->source,
-					'title' => $eContentRecord->title,
-					'author' => $eContentRecord->author,
+					'id' => $availableHolds->recordId,
+					'recordId' => $recordDriver->getUniqueID(),
+					'source' => $recordDriver->getSources(),
+					'title' => $recordDriver->getTitle(),
+					'author' => $recordDriver->getPrimaryAuthor(),
 					'available' => true,
 					'create' => $availableHolds->datePlaced,
 					'expire' => $expirationDate,
 					'status' => $availableHolds->status,
 					'links' => $this->getOnHoldEContentLinks($availableHolds),
+					'recordUrl' => $recordDriver->getLinkUrl(),
+					'bookcoverUrl' => $recordDriver->getBookcoverUrl('medium'),
 					'holdSource' => 'eContent'
 				);
 			}
@@ -528,15 +531,16 @@ class EContentDriver implements DriverInterface{
 		$unavailableHolds->whereAdd("(status = 'active' or status = 'suspended')");
 		$unavailableHolds->find();
 		while ($unavailableHolds->fetch()){
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $unavailableHolds->recordId;
-			if ($eContentRecord->find(true)){
+			require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
+			$recordDriver = new RestrictedEContentDriver($unavailableHolds->recordId);
+
+			if ($recordDriver->isValid()){
 				$holds['holds']['unavailable'][] = array(
-					'id' => $eContentRecord->id,
-					'recordId' => 'econtentRecord' . $eContentRecord->id,
-					'source' => $eContentRecord->source,
-					'title' => $eContentRecord->title,
-					'author' => $eContentRecord->author,
+					'id' => $unavailableHolds->recordId,
+					'recordId' => $recordDriver->getUniqueID(),
+					'source' => $recordDriver->getSources(),
+					'title' => $recordDriver->getTitle(),
+					'author' => $recordDriver->getPrimaryAuthor(),
 					'available' => true,
 					'createTime' => $unavailableHolds->datePlaced,
 					'status' => $unavailableHolds->status,
@@ -544,7 +548,10 @@ class EContentDriver implements DriverInterface{
 					'links' => $this->getOnHoldEContentLinks($unavailableHolds),
 					'frozen' => $unavailableHolds->status == 'suspended',
 					'reactivateDate' => $unavailableHolds->reactivateDate,
-					'holdSource' => 'eContent'
+					'recordUrl' => $recordDriver->getLinkUrl(),
+					'bookcoverUrl' => $recordDriver->getBookcoverUrl('medium'),
+					'holdSource' => 'eContent',
+					'format' => $recordDriver->getFormats(),
 				);
 			}
 		}
@@ -563,7 +570,6 @@ class EContentDriver implements DriverInterface{
 	}
 
 	public function getMyTransactions($user){
-		global $configArray;
 		$return = array();
 		$eContentCheckout = new EContentCheckout();
 		$eContentCheckout->userId = $user->id;
@@ -572,37 +578,43 @@ class EContentDriver implements DriverInterface{
 		$return['transactions'] = array();
 		$return['numTransactions'] = $eContentCheckout->find();
 		while ($eContentCheckout->fetch()){
-			require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
-			$publicDriver = new PublicEContentDriver($eContentCheckout->recordId);
-			if ($publicDriver->isValid()){
+			if ($eContentCheckout->protectionType == 'free'){
+				require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
+				$recordDriver = new PublicEContentDriver($eContentCheckout->recordId);
+			}else{
+				require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
+				$recordDriver = new RestrictedEContentDriver($eContentCheckout->recordId);
+			}
+
+			if ($recordDriver->isValid()){
 				$daysUntilDue = ceil(($eContentCheckout->dateDue - time()) / (24 * 60 * 60));
 				$overdue = $daysUntilDue < 0;
 
-				$items = $publicDriver->getItems();
+				$items = $recordDriver->getItems();
 
-				$links[] = array(
+				$links['return'] = array(
 						'text' => 'Return&nbsp;Now',
-						'onclick' => "if (confirm('Are you sure you want to return this title?')){VuFind.LocalEContent.returnTitle('$eContentCheckout->recordId', '$eContentCheckout->itemId')};return false;",
+						'onclick' => "if (confirm('Are you sure you want to cancel this hold?')){VuFind.LocalEContent.cancelHold('$eContentCheckout->recordId', '$eContentCheckout->itemId')};return false;",
 						'typeReturn' => 0);
 
 				//Get Ratings
 				$return['transactions'][] = array(
 					'id' => $eContentCheckout->recordId,
-					'recordId' => $publicDriver->getUniqueID(),
-					'recordType' => 'PublicEContent',
+					'recordId' => $recordDriver->getUniqueID(),
+					'recordType' => $eContentCheckout->protectionType == 'free' ? 'PublicEContent' : 'RestrictedEContent',
 					'checkoutSource' => 'eContent',
-					'title' => $publicDriver->getTitle(),
-					'author' => $publicDriver->getPrimaryAuthor(),
+					'title' => $recordDriver->getTitle(),
+					'author' => $recordDriver->getPrimaryAuthor(),
 					'duedate' => $eContentCheckout->dateDue,
 					'checkoutdate' => $eContentCheckout->dateCheckedOut,
 					'daysUntilDue' => $daysUntilDue,
 					//'holdQueueLength' => $waitList,
 					'links' => $links,
 					'items' => $items,
-					'ratingData' => $publicDriver->getRatingData(),
+					'ratingData' => $recordDriver->getRatingData(),
 					'overdue' => $overdue,
-					'recordUrl' => $configArray['Site']['path'] . '/PublicEContent/' . $publicDriver->getUniqueID() . '/Home',
-					'bookcoverUrl' => $publicDriver->getBookcoverUrl('medium'),
+					'recordUrl' => $recordDriver->getLinkUrl(),
+					'bookcoverUrl' => $recordDriver->getBookcoverUrl('medium'),
 				);
 			}
 		}

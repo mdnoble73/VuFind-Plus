@@ -26,17 +26,17 @@
 				<div class="row">
 
 					<div id="record-details-column" class="col-sm-9">
-						{include file="ExternalEContent/view-title-details.tpl"}
+						{include file="RestrictedEContent/view-title-details.tpl"}
 					</div>
 
 					<div id="recordTools" class="col-md-3">
 						<div class="btn-toolbar">
 							<div class="btn-group btn-group-vertical btn-block">
-								{foreach from=$items item=item key=index}
-									{* Options for the user to view online or download *}
-									{foreach from=$item.actions item=link}
-										<a href="{if $link.url}{$link.url}{else}#{/if}" {if $link.onclick}onclick="{$link.onclick}"{/if} class="btn btn-sm btn-primary">{$link.title}</a>&nbsp;
-									{/foreach}
+								{* Options for the user to view online or download *}
+								{foreach from=$summaryActions item=link}
+									{if $link.showInSummary == true}
+										<a href="{if $link.url}{$link.url}{else}#{/if}" {if $link.onclick && strlen($link.onclick) > 0}onclick="{$link.onclick}"{/if} class="btn btn-sm btn-primary">{$link.title}</a>&nbsp;
+									{/if}
 								{/foreach}
 							</div>
 						</div>

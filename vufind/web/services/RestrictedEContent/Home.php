@@ -55,6 +55,16 @@ class RestrictedEContent_Home extends Action{
 			$items = $recordDriver->getItemsFast();
 			$interface->assign('items', $items);
 
+			$summaryActions = array();
+			foreach ($items as $item){
+				foreach ($item['actions'] as $key => $action){
+					if ($action['showInSummary']){
+						$summaryActions[$key] = $action;
+					}
+				}
+			}
+			$interface->assign('summaryActions', $summaryActions);
+
 			//Load the citations
 			$this->loadCitations($recordDriver);
 

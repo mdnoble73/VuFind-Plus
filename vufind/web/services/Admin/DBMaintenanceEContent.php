@@ -214,6 +214,15 @@ class DBMaintenanceEContent extends Admin_Admin {
 				),
 			),
 
+			'eContentCheckout_protectionType'	=> array(
+				'title' => 'eContent Checkout Protection Type',
+				'description' => 'Add protection type to eContent Checkout',
+				'dependencies' => array(),
+				'sql' => array(
+						"ALTER TABLE econtent_checkout ADD protectionType ENUM('acs', 'free')",
+				),
+			),
+
 			'econtentUpdates2014' => array(
 				'title' => 'VuFind 2014 eContent Updates',
 				'description' => 'Update eContent Checkouts for VuFind 20124',

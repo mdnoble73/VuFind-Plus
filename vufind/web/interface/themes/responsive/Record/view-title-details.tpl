@@ -1,5 +1,17 @@
 {strip}
 	{* Display more information about the title*}
+
+	{if $recordDriver->getUniformTitle()}
+		<div class="row">
+			<div class="result-label col-xs-4">Uniform Title: </div>
+			<div class="col-xs-8 result-value">
+				{foreach from=$recordDriver->getUniformTitle() item=uniformTitle}
+					<a href="{$path}/Search/Results?lookfor={$uniformTitle|escape:"url"}">{$uniformTitle|highlight:$lookfor}</a><br/>
+				{/foreach}
+			</div>
+		</div>
+	{/if}
+
 	{if $recordDriver->getAuthor()}
 		<div class="row">
 			<div class="result-label col-xs-4">Author: </div>
@@ -92,13 +104,4 @@
 		<div class="result-label col-xs-4">{translate text='Status'}:</div>
 		<div class="col-xs-8 result-value result-value-bold statusValue" id="statusValue">Loading...</div>
 	</div>
-
-	{if $summary}
-		<div class="row">
-			<div class="result-label col-xs-12 col-sm-4">{translate text='Description'}</div>
-			<div class="result-value col-xs-12 col-sm-8">
-				{$summary|stripTags:'<b><p><i><em><strong><ul><li><ol>'}{*Leave unescaped because some syndetics reviews have html in them *}
-			</div>
-		</div>
-	{/if}
 {/strip}

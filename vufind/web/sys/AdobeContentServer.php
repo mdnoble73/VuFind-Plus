@@ -103,14 +103,19 @@ class AdobeContentServer
       return $titleInfo;
 	}
 
-	static function mintDownloadLink($eContentItem, $eContentCheckout){
+	/**
+	 * @param String $acsId
+	 * @param EContentCheckout $eContentCheckout
+	 * @return null|string
+	 */
+	static function mintDownloadLink($acsId, $eContentCheckout){
 		global $configArray;
 		global $user;
 
 		if ($user == false){
 			return null;
 		}
-		if (is_null($eContentItem->acsId) || strlen($eContentItem->acsId) == 0){
+		if (is_null($acsId) || strlen($acsId) == 0){
 			return null;
 		}
 
@@ -124,10 +129,8 @@ class AdobeContentServer
 			$gbauthdate=gmdate('r', $dateval);
 
 			$rights = "";
-			if (strpos($eContentItem->acsId, "urn:uuid:") === FALSE){
-				$acsId = "urn:uuid:" . $eContentItem->acsId;
-			}else{
-				$acsId = $eContentItem->acsId;
+			if (strpos($acsId, "urn:uuid:") === FALSE){
+				$acsId = "urn:uuid:" . $acsId;
 			}
 
 			$bookDownloadURL =
@@ -159,8 +162,6 @@ class AdobeContentServer
 	}
 
 	static function getUniqueID(){
-		$strOut = "";
-
 		$r1 = self::get_random_digits();
 
 		// TRUNCATE TO THE FIELD SIZE IF NEEDED

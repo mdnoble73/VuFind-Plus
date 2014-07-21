@@ -114,12 +114,29 @@ VuFind.ExternalEContentRecord = (function(){
 
 VuFind.LocalEContent = (function(){
 	return {
+		cancelHold: function(recordId, itemId){
+			if (Globals.loggedIn){
+				var returnUrl = Globals.path + '/RestrictedEContent/' + recordId + '/AJAX?method=cancelHold&itemId=' + itemId;
+				$.getJSON(returnUrl, function(data){
+					if (data.result) {
+						VuFind.showMessage("Success", data.message, true, true);
+					} else {
+						VuFind.showMessage("Error", data.message);
+					}
+				});
+			}else{
+				VuFind.Account.ajaxLogin(null, function(){
+					VuFind.LocalEContent.cancelHold(recordId, itemId);
+				});
+			}
+		},
+
 		checkoutPublicEContent: function(recordId, itemId){
 			if (Globals.loggedIn){
 				var checkoutUrl = Globals.path + '/PublicEContent/' + recordId + '/AJAX?method=checkout&itemId=' + itemId;
 				$.getJSON(checkoutUrl, function(data){
 					if (data.result) {
-						VuFind.showMessage("Success", data.message);
+						VuFind.showMessage("Success", data.message, true, true);
 					} else {
 						VuFind.showMessage("Error", data.message);
 					}
@@ -131,29 +148,71 @@ VuFind.LocalEContent = (function(){
 			}
 		},
 
-		checkoutRestrictedEContent: function(itemId){
-			var checkoutUrl = Globals.path + '/RestrictedEContent/' + recordId + '/AJAX?method=checkout&itemId=' + itemId;
-			$.getJSON(checkoutUrl, function(data){
-
-			});
-		},
-
-		placeHold: function(itemId){
-			alert("Placing a hold on item " + itemId);
-		},
-
-		returnTitle: function(recordId, itemId){
+		checkoutRestrictedEContent: function(recordId, itemId){
 			if (Globals.loggedIn){
-				var returnUrl = Globals.path + '/PublicEContent/' + recordId + '/AJAX?method=return&itemId=' + itemId;
-				$.getJSON(returnUrl, function(data){
+				var checkoutUrl = Globals.path + '/RestrictedEContent/' + recordId + '/AJAX?method=checkout&itemId=' + itemId;
+				$.getJSON(checkoutUrl, function(data){
 					if (data.result) {
-						VuFind.showMessage("Success", data.message);
+						VuFind.showMessage("Success", data.message, true, true);
 					} else {
 						VuFind.showMessage("Error", data.message);
 					}
 				});
 			}else{
-				VuFind.showMessage('Please login', 'You myst be logged in to return a title.');
+				VuFind.Account.ajaxLogin(null, function(){
+					VuFind.LocalEContent.checkoutRestrictedEContent(recordId, itemId);
+				});
+			}
+		},
+
+		placeHoldOnRestrictedEContent: function(recordId, itemId){
+			if (Globals.loggedIn){
+				var returnUrl = Globals.path + '/RestrictedEContent/' + recordId + '/AJAX?method=placeHold&itemId=' + itemId;
+				$.getJSON(returnUrl, function(data){
+					if (data.result) {
+						VuFind.showMessage("Success", data.message, true, true);
+					} else {
+						VuFind.showMessage("Error", data.message);
+					}
+				});
+			}else{
+				VuFind.Account.ajaxLogin(null, function(){
+					VuFind.LocalEContent.placeHoldOnRestrictedEContent(recordId, itemId);
+				});
+			}
+		},
+
+		returnPublicEContent: function(recordId, itemId){
+			if (Globals.loggedIn){
+				var returnUrl = Globals.path + '/PublicEContent/' + recordId + '/AJAX?method=returnTitle&itemId=' + itemId;
+				$.getJSON(returnUrl, function(data){
+					if (data.result) {
+						VuFind.showMessage("Success", data.message, true, true);
+					} else {
+						VuFind.showMessage("Error", data.message);
+					}
+				});
+			}else{
+				VuFind.Account.ajaxLogin(null, function(){
+					VuFind.LocalEContent.returnPublicEContent(recordId, itemId);
+				});
+			}
+		},
+
+		returnRestrictedEContent: function(recordId, itemId){
+			if (Globals.loggedIn){
+				var returnUrl = Globals.path + '/RestrictedEContent/' + recordId + '/AJAX?method=returnTitle&itemId=' + itemId;
+				$.getJSON(returnUrl, function(data){
+					if (data.result) {
+						VuFind.showMessage("Success", data.message, true, true);
+					} else {
+						VuFind.showMessage("Error", data.message);
+					}
+				});
+			}else{
+				VuFind.Account.ajaxLogin(null, function(){
+					VuFind.LocalEContent.returnRestrictedEContent(recordId, itemId);
+				});
 			}
 		}
 	}
