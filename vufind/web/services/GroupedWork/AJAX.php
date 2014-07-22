@@ -35,9 +35,31 @@ class GroupedWork_AJAX {
 			$userWorkReview->userId = $user->id;
 			if ($userWorkReview->find(true)){
 				$userWorkReview->delete();
-				$result = array('result' => true, 'message' => 'We successfully deleted that rating for you.');
+				$result = array('result' => true, 'message' => 'We successfully deleted the rating for you.');
 			}else{
-				$result['message'] = 'Sorry, we could not find a that review in the system.';
+				$result['message'] = 'Sorry, we could not find that review in the system.';
+			}
+		}
+
+		return json_encode($result);
+	}
+
+	function deleteUserReview(){
+		global $user;
+		$id = $_REQUEST['id'];
+		$result = array('result' => false);
+		if (!$user){
+			$result['message'] = 'You must be logged in to delete ratings.';
+		}else{
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
+			$userWorkReview = new UserWorkReview();
+			$userWorkReview->groupedRecordPermanentId = $id;
+			$userWorkReview->userId = $user->id;
+			if ($userWorkReview->find(true)){
+				$userWorkReview->delete();
+				$result = array('result' => true, 'message' => 'We successfully deleted the rating for you.');
+			}else{
+				$result['message'] = 'Sorry, we could not find that review in the system.';
 			}
 		}
 

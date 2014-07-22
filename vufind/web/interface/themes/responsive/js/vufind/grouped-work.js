@@ -9,7 +9,7 @@ VuFind.GroupedWork = (function(){
 				if (data.result == true){
 					$('.rate' + groupedWorkId).find('.ui-rater-starsOn').width(0);
 					$('#myRating' + groupedWorkId).hide();
-					VuFind.showMessage('Success', data.message);
+					VuFind.showMessage('Success', data.message, true);
 				}else{
 					VuFind.showMessage('Sorry', data.message);
 				}
@@ -22,12 +22,27 @@ VuFind.GroupedWork = (function(){
 			$.getJSON(
 					url, function(data){
 						if (data.result == false){
-							alert("There was an error updating the title.");
+							VuFind.showMessage('Sorry', "There was an error updating the title.");
 						}else{
 							$("#notInterested" + notInterestedId).hide();
 						}
 					}
 			);
+		},
+
+		deleteReview: function(id, reviewId){
+			if (confirm("Are you sure you want to delete this review?")){
+				var url = Globals.path + '/GroupedWork/' + id + '/AJAX?method=deleteUserReview';
+				$.getJSON(url, function(data){
+					if (data.result == true){
+						$('#review_' + reviewId).hide();
+						VuFind.showMessage('Success', data.message, true);
+					}else{
+						VuFind.showMessage('Sorry', data.message);
+					}
+				});
+			}
+			return false;
 		},
 
 		getGoDeeperData: function (id, dataType){

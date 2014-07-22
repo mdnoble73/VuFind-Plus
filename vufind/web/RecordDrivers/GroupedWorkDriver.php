@@ -1369,7 +1369,7 @@ class GroupedWorkDriver extends RecordInterface{
 		$isbn = $this->getCleanISBN();
 
 		//Load more details options
-		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn != false);
+		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn);
 		$moreDetailsOptions['details'] = array(
 			'label' => 'Details',
 			'body' => $interface->fetch('GroupedWork/view-title-details.tpl'),

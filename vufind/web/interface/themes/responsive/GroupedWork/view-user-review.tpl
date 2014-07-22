@@ -12,7 +12,7 @@
 				</span>
 			{/if}
 			{if $user && ($review->userid == $user->id || $user->hasRole('opacAdmin'))}
-				<span onclick='deleteReview("{$id|escape:"url"}", "{$review->id}");' class="btn btn-sm"><i class="icon-minus-sign"></i> {translate text='Delete'}</span>
+				<span onclick='return VuFind.GroupedWork.deleteReview("{$id|escape:"url"}", "{$review->id}");' class="btn btn-sm"><i class="icon-minus-sign"></i> {translate text='Delete'}</span>
 			{/if}
 		</div>
 	</div>
