@@ -1193,7 +1193,7 @@ class EContentDriver implements DriverInterface{
 		//Link to cancel hold
 		$links[] = array(
 			'text' => 'Cancel&nbsp;Hold',
-			'onclick' => "if (confirm('Are you sure you want to cancel this title?')){cancelEContentHold('{$configArray['Site']['path']}/EcontentRecord/{$eContentHold->recordId}/CancelHold')};return false;",
+			'onclick' => "if (confirm('Are you sure you want to cancel this title?')){VuFind.LocalEContent.cancelHold('{$eContentHold->recordId}', '{$eContentHold->itemId}')};return false;",
 
 		);
 		//Link to suspend hold

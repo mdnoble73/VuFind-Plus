@@ -417,4 +417,42 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 			}
 		}
 	}
+
+	public function cancelHold($itemId) {
+		global $user;
+
+		if (!$user){
+			return array(
+					'result' => false,
+					'message' => 'You must be logged in to cancel a hold'
+			);
+		}else{
+			require_once ROOT_DIR . '/sys/eContent/EContentHold.php';
+			$eContentHold = new EContentHold();
+			$eContentHold->userId = $user->id;
+			$eContentHold->recordId = $this->getUniqueID();
+			$eContentHold->itemId = $itemId;
+			$eContentHold->whereAdd("status IN ('active', 'suspended')");
+			if ($eContentHold->find(true)){
+				$eContentHold->status = 'cancelled';
+				$eContentHold->dateUpdated = time();
+				if ($eContentHold->update()){
+					return array(
+							'result' => true,
+							'message' => 'Successfully cancelled this hold for you.'
+					);
+				}else{
+					return array(
+							'result' => false,
+							'message' => 'There was an unknown error cancelling your hold on this title.'
+					);
+				}
+			}else{
+				return array(
+						'result' => false,
+						'message' => 'Sorry, this title is not on hold for you.'
+				);
+			}
+		}
+	}
 } 
