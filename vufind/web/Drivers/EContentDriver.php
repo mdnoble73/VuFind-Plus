@@ -4,7 +4,6 @@ require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 require_once ROOT_DIR . '/sys/eContent/EContentHold.php';
 require_once ROOT_DIR . '/sys/eContent/EContentCheckout.php';
-require_once ROOT_DIR . '/sys/eContent/EContentWishList.php';
 require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';
 
 /**
@@ -413,11 +412,6 @@ class EContentDriver implements DriverInterface{
 				$statusSummary['class'] = 'checkedOut';
 			}
 
-			$wishList = new EContentWishList();
-			$wishList->recordId = $id;
-			$wishList->status = 'active';
-			$wishList->find();
-			$wishListSize = $wishList->N;
 		}
 
 		//Determine which buttons to show
@@ -1374,13 +1368,6 @@ class EContentDriver implements DriverInterface{
 			$eContentHolds->userId = $user->id;
 			$eContentHolds->find();
 			$accountSummary['numEContentUnavailableHolds'] = $eContentHolds->N;
-
-			//Get a count of items on the wishlist
-			$eContentWishList = new EContentWishList();
-			$eContentWishList->status = 'active';
-			$eContentWishList->userId = $user->id;
-			$eContentWishList->find();
-			$accountSummary['numEContentWishList'] = $eContentWishList->N;
 		}else{
 			return array(
 				'numEContentCheckedOut' => 0,
@@ -1391,22 +1378,6 @@ class EContentDriver implements DriverInterface{
 		}
 
 		return $accountSummary;
-	}
-
-	function addToWishList($id, $user){
-		$wishlistEntry = new EContentWishList();
-		$wishlistEntry->userId = $user->id;
-		$wishlistEntry->recordId = $id;
-		$wishlistEntry->status = 'active';
-
-		if ($wishlistEntry->find(true)){
-			//The record was already added to the database
-		}else{
-			//Add to the database
-			$wishlistEntry->dateAdded = time();
-			$wishlistEntry->insert();
-		}
-		return true;
 	}
 
 	/**
