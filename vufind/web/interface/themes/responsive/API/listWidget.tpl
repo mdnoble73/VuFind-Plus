@@ -5,7 +5,7 @@
 	<title>{$widget->name}</title>
   <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 
-	{include file="cssAndJsIncludes.tpl"}
+	{include file="cssAndJsIncludes.tpl" includeAutoLogoutCode=false}
 
   {if $widget->customCss}
   	<link rel="stylesheet" type="text/css" href="{$widget->customCss}" />
