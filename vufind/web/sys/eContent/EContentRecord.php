@@ -113,14 +113,14 @@ class EContentRecord extends DB_DataObject{
 			'storeDb' => true,
 		),
 
-		'institution' => array(
+		'owning_library' => array(
 			'property'=>'institution',
 			'type'=>'method',
 			'methodName'=>'institution',
 			'storeDb' => false,
 		),
-		'building' => array(
-			'property'=>'building',
+		'owning_location' => array(
+			'property'=>'owning_location',
 			'type'=>'method',
 			'methodName'=>'building',
 			'storeDb' => false,

@@ -1577,10 +1577,10 @@ class SearchObject_Solr extends SearchObject_Base
 			$doBranchProcessing = false;
 
 			//Marmot specific processing to do custom resorting of facets.
-			if ($field == 'institution' && isset($currentLibrary) && !is_null($currentLibrary)){
+			if ($field == 'owning_library' && isset($currentLibrary) && !is_null($currentLibrary)){
 				$doInstitutionProcessing = true;
 			}
-			if ($field == 'building' && (!is_null($relatedLocationFacets) || !is_null($activeLocationFacet))){
+			if ($field == 'owning_location' && (!is_null($relatedLocationFacets) || !is_null($activeLocationFacet))){
 				$doBranchProcessing = true;
 			}elseif($field == 'available_at'){
 				$doBranchProcessing = true;
@@ -1704,9 +1704,9 @@ class SearchObject_Solr extends SearchObject_Base
 
 			//How many facets should be shown by default
 			//Only show one system unless we are in the global scope
-			if ($field == 'institution' && isset($currentLibrary)){
+			if ($field == 'owning_library' && isset($currentLibrary)){
 				$list[$field]['valuesToShow'] = $numValidLibraries;
-			}else if ($field == 'building' && isset($relatedLocationFacets) && $numValidRelatedLocations > 0){
+			}else if ($field == 'owning_location' && isset($relatedLocationFacets) && $numValidRelatedLocations > 0){
 				$list[$field]['valuesToShow'] = $numValidRelatedLocations;
 			}else if ($field == 'available_at'){
 				$list[$field]['valuesToShow'] = count($list[$field]['list']);
@@ -1716,7 +1716,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 			//Sort the facet alphabetically?
 			//Sort the system and location alphabetically unless we are in the global scope
-			if (in_array($field, array('institution', 'building', 'available_at'))  && isset($currentLibrary) ){
+			if (in_array($field, array('owning_library', 'owning_location', 'available_at'))  && isset($currentLibrary) ){
 				$list[$field]['showAlphabetically'] = true;
 			}else{
 				$list[$field]['showAlphabetically'] = false;

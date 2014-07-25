@@ -654,6 +654,18 @@ class DBMaintenance extends Admin_Admin {
 						),
 				),
 
+				'facet_grouping_updates' => array(
+						'title' => 'Update facets to handle record grouping',
+						'description' => 'Change names of facets based on record grouping changes. ',
+						'continueOnError' => true,
+						'sql' => array(
+								"UPDATE location_facet_setting SET facetName = 'owning_location' WHERE  facetName = 'building'",
+								"UPDATE library_facet_setting SET facetName = 'owning_location' WHERE  facetName = 'building'",
+								"UPDATE location_facet_setting SET facetName = 'owning_library' WHERE  facetName = 'institution'",
+								"UPDATE library_facet_setting SET facetName = 'owning_library' WHERE  facetName = 'institution'",
+						),
+				),
+
 				'location_1' => array(
 						'title' => 'Location 1',
 						'description' => 'Add fields orginally defined for Marmot',

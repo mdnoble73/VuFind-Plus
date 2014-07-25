@@ -19,8 +19,8 @@ abstract class FacetSetting extends DB_DataObject {
 
 	public function getAvailableFacets(){
 		$availableFacets = array(
-			"institution" => "Library System",
-			"building" => "Branch",
+			"owning_library" => "Library System",
+			"owning_location" => "Branch",
 			"available_at" => "Available At",
 			"availability_toggle" => "Available?",
 			"collection_group" => "Collection",

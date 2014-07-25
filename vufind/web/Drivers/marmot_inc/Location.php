@@ -1036,13 +1036,13 @@ class Location extends DB_DataObject
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
-		$facet->setupSideFacet('institution', 'Owning System', true);
+		$facet->setupSideFacet('owning_library', 'Owning System', true);
 		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
-		$facet->setupSideFacet('building', 'Owning Branch', true);
+		$facet->setupSideFacet('owning_location', 'Owning Branch', true);
 		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;

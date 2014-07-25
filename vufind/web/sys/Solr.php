@@ -1364,14 +1364,6 @@ class Solr implements IndexEngine {
 							$options['facet.field'][$key] = '{!ex=avail}' . $facetName;
 						}
 						//Update facets for grouped core
-						//TODO: change these in the database later.
-						if ($this->index == 'grouped'){
-							if ($facetName == 'institution'){
-								$options['facet.field'][$key] = 'owning_library';
-							}elseif ($facetName == 'building'){
-								$options['facet.field'][$key] = 'owning_location';
-							}
-						}
 					}
 				}
 			}else{
@@ -1500,14 +1492,8 @@ class Solr implements IndexEngine {
 		if (isset($searchLibrary)){
 			$owningSystem = $searchLibrary->facetLabel;
 		}
-		$buildingFacetName = 'building';
-		if ($this->index == 'grouped') {
-			$buildingFacetName = 'owning_location';
-		}
-		$institutionFacetName = 'institution';
-		if ($this->index == 'grouped') {
-			$institutionFacetName = 'owning_library';
-		}
+		$buildingFacetName = 'owning_location';
+		$institutionFacetName = 'owning_library';
 
 		//This block makes sure that titles are usable by the current user.  It is always run if we have a reasonable idea
 		//who is using the catalog. This enables "super scope" even if the user is doing a repeat search.

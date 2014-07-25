@@ -211,15 +211,15 @@ class UserList extends DB_DataObject
 				'storeDb' => false,
 				'storeSolr' => true,
 			),
-			'institution' => array(
-				'property'=>'institution',
+			'owning_library' => array(
+				'property'=>'owning_library',
 				'type'=>'method',
 				'methodName'=>'institution',
 				'storeDb' => false,
 				'storeSolr' => true,
 			),
-			'building' => array(
-				'property'=>'building',
+			'owning_location' => array(
+				'property'=>'owning_location',
 				'type'=>'method',
 				'methodName'=>'building',
 				'storeDb' => false,

@@ -55,7 +55,7 @@ class IndexRecord extends RecordInterface
 	'author', 'author-letter', 'title', 'title_short', 'title_full',
 	'title_full_unstemmed', 'title_auth', 'title_sub', 'spelling', 'id',
 	'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed', 'keywords_proper',
-	'spellingShingle', 'collection', 'building', 'institution', 'title_proper',
+	'spellingShingle', 'collection', 'owning_library', 'owning_location', 'title_proper',
 	'contents_proper', 'genre_proper', 'geographic_proper'
 	);
 
