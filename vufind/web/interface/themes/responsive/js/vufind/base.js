@@ -199,7 +199,7 @@ var VuFind = (function(){
 					location.reload(true);
 				}
 				, 3000);
-			}else{
+			}else if (autoClose) {
 				setTimeout(function(){
 					VuFind.closeLightbox();
 				}
