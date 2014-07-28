@@ -129,6 +129,7 @@ class AdobeContentServer
 			$gbauthdate=gmdate('r', $dateval);
 
 			$rights = "";
+			$acsId = trim($acsId);
 			if (strpos($acsId, "urn:uuid:") === FALSE){
 				$acsId = "urn:uuid:" . $acsId;
 			}
