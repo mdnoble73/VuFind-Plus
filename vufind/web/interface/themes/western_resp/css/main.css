@@ -6540,6 +6540,11 @@ div#system-message-header {
   color: #333333;
   background-color: #eeeeee;
 }
+.sidebar-links .panel-body a,
+.sidebar-links .panel-body a:visited,
+.sidebar-links .panel-body a:hover {
+  color: #e00034;
+}
 /** Browse Formatting */
 #home-page-browse-header {
   background-color: #d7dce3;
