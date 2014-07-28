@@ -480,8 +480,9 @@ class Location extends DB_DataObject
 				if ($location->N > 0){
 					$location->fetch();
 					Location::$searchLocation[$searchSource] = clone($location);
+				}else{
+					Location::$searchLocation[$searchSource] = null;
 				}
-				Location::$searchLocation[$searchSource] = null;
 			}
 		}
 		return Location::$searchLocation[$searchSource];
