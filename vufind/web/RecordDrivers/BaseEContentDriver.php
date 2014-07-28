@@ -68,7 +68,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 					}else{
 						$libraryLabel = $locationCode . ' Online';
 					}
-					//TODO: Get the correct numbe rof available copies
+					//TODO: Get the correct number of available copies
 					$totalCopies = 1;
 					$this->fastItems[] = array(
 							'location' => $locationCode,
@@ -103,7 +103,6 @@ abstract class BaseEContentDriver  extends MarcRecord {
 							$source = trim($eContentFieldData[0]);
 							$protectionType = trim($eContentFieldData[1]);
 
-							//TODO: Correctly determine the number of copies that are available.
 							$totalCopies = 1;
 							if ($this->isValidProtectionType($protectionType)){
 								if ($this->isValidForUser($locationCode, $eContentFieldData)){
@@ -143,10 +142,13 @@ abstract class BaseEContentDriver  extends MarcRecord {
 										}
 									}else{
 										if (count($eContentFieldData) > 3){
-											$fileOrUrl = $eContentFieldData[3];
+											$fileOrUrl =trim($eContentFieldData[3]);
 										}
 										if (count($eContentFieldData) > 4){
-											$acsId = $eContentFieldData[4];
+											$acsId = trim($eContentFieldData[4]);
+										}
+										if (count($eContentFieldData) > 5){
+											$totalCopies = trim($eContentFieldData[5]);
 										}
 									}
 									$fileOrUrl = trim($fileOrUrl);
