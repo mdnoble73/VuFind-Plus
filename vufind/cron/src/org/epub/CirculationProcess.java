@@ -55,9 +55,6 @@ public class CirculationProcess implements IProcessHandler{
 		//Cancel holds that have not been picked up after 5 days
 		abandonHolds();
 		
-		//Place holds for wishlist records that were purchased
-		processWishlist();
-		
 		//Send notices for items that are available that haven't had notices printed for them yet
 		sendNotices();
 		
@@ -65,63 +62,6 @@ public class CirculationProcess implements IProcessHandler{
 		processLog.saveToDatabase(vufindConn, logger);
 	}
 	
-	private void processWishlist() {
-		logger.info("Processing the wishlist.");
-		processLog.addNote("Processing the wishlist.");
-		try {
-			//Get a list of all eContent Records that have a wishlist and that also have items
-			PreparedStatement recordsToProcess = econtentConn.prepareStatement("SELECT econtent_record.id, title, author, source, count(DISTINCT econtent_wishlist.userId) as numWishList, count(DISTINCT econtent_item.id) as numItems, availableCopies FROM econtent_record INNER JOIN econtent_wishlist on econtent_record.id = econtent_wishlist.recordId INNER JOIN econtent_item on econtent_record.id = econtent_item.recordId WHERE econtent_wishlist.status = 'active' GROUP BY econtent_record.id");
-			PreparedStatement wishListEntries = econtentConn.prepareStatement("SELECT econtent_wishlist.userId, econtent_wishlist.id FROM econtent_wishlist WHERE recordId = ? ORDER BY dateAdded ASC");
-			PreparedStatement insertHold = econtentConn.prepareStatement("INSERT INTO econtent_hold (recordId, datePlaced, dateUpdated, userId, status) VALUES (?, ?, ?, ?, ?)");
-			PreparedStatement markWishlistFilled = econtentConn.prepareStatement("UPDATE econtent_wishlist SET status = 'filled' WHERE id = ?");
-			
-			ResultSet recordsToProcessRs = recordsToProcess.executeQuery();
-			
-			while (recordsToProcessRs.next()){
-				long recordId = recordsToProcessRs.getLong("id");
-				long numAvailableRecords = recordsToProcessRs.getLong("availableCopies");
-				logger.info("Record " + recordId + " has items added to it.  Processing the wishlist.");
-				//Get a list of all users that had the record on their wishlist
-				wishListEntries.setLong(1, recordId);
-				ResultSet usersToProcess = wishListEntries.executeQuery();
-				long curUser = 0;
-				while (usersToProcess.next()){
-					long userId = usersToProcess.getLong("userId");
-					long wishlistId = usersToProcess.getLong("id");
-					logger.info("Adding holds for user " + userId);
-					//Create a hold for the user
-					String holdStatus;
-					if (curUser < numAvailableRecords){
-						//hold is available
-						holdStatus = "available";
-					}else{
-						//hold is active
-						holdStatus = "active";
-					}
-					long curDate = new Date().getTime() / 1000;
-					insertHold.setLong(1, recordId);
-					insertHold.setLong(2, curDate);
-					insertHold.setLong(3, curDate);
-					insertHold.setLong(4, userId);
-					insertHold.setString(5, holdStatus);
-					insertHold.executeUpdate();
-					
-					//Update the wishlist to show that the wishlist was filled
-					logger.info("Adding holds for user " + userId);
-					markWishlistFilled.setLong(1, wishlistId);
-					markWishlistFilled.executeUpdate();
-					processLog.incUpdated();
-					
-				}
-				
-			}
-		} catch (SQLException e) {
-			logger.error("Error processing wish list.", e);
-			processLog.incErrors();
-			processLog.addNote("Error processing wish list. " + e.toString());
-		}
-	}
-
 	private void activateSuspendedHolds() {
 		processLog.addNote("Activating suspended eContent holds");
 		long curTime = new Date().getTime() ;
