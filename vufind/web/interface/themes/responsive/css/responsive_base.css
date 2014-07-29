@@ -1,8 +1,3 @@
-@import "/interface/themes/default/css/ratings.css";
-
-@import "/interface/themes/responsive/css/jcarousel.responsive.css";
-
-@import "/interface/themes/responsive/css/lib/bootstrap-switch.min.css";
 /**
  * Main responsive theme css
  */
@@ -6063,6 +6058,55 @@ div.striped > div:nth-child(odd) {
   display: inline-block;
 }
 /** Third party imports **/
+.ui-rater > span {
+  vertical-align: top;
+}
+.ui-rater-rating {
+  margin-left: 0.8em;
+}
+.ui-rater-starsOff,
+.ui-rater-starsOn {
+  display: inline-block;
+  height: 18px;
+  background: url(/interface/themes/default/images/star/stars.png) repeat-x 0 0px;
+  zoom: 1;
+  *display: inline;
+}
+.ui-rater-starsOn {
+  display: block;
+  max-width: 90px;
+  top: 0;
+  background-position: 0 -36px;
+}
+.ui-rater-starsOn.userRated {
+  background-position: 0 -18px !important;
+}
+.ui-rater-starsHover {
+  background-position: 0 -18px !important;
+}
+#ratingSummary {
+  margin: 0 20px;
+  width: 145px;
+  overflow: hidden;
+  background: #f9f9f9;
+  border: 1px solid #cccccc;
+  -moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+  padding: 5px;
+}
+.smallText {
+  font-size: 10px;
+}
+.ratingHead {
+  color: #3e63a6;
+  margin: 3px 3px 6px;
+  font-weight: bold;
+}
+.searchStars {
+  float: right;
+  margin-right: 40px;
+  text-align: center;
+}
 /*!
  * Datepicker for Bootstrap
  *
@@ -6283,6 +6327,287 @@ fieldset[disabled] .datepicker td span.active.active {
   cursor: pointer;
   width: 16px;
   height: 16px;
+}
+.jcarousel-wrapper {
+  margin: 20px auto;
+  position: relative;
+}
+/** Carousel **/
+.jcarousel {
+  position: relative;
+  overflow: hidden;
+  width: 90%;
+  left: 5%;
+}
+.jcarousel ul {
+  width: 20000em;
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.jcarousel li {
+  width: 200px;
+  float: left;
+  border: 1px solid #fff;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+.jcarousel img {
+  display: block;
+  max-width: 100%;
+  height: auto !important;
+}
+/** Carousel Controls **/
+.jcarousel-control-prev,
+.jcarousel-control-next {
+  position: absolute;
+  top: 0;
+  width: 30px;
+  height: 100px;
+  text-align: center;
+  background: #4E443C;
+  color: #fff;
+  text-decoration: none;
+  text-shadow: 0 0 1px #000;
+  font: 24px/100px Arial, sans-serif;
+  -webkit-box-shadow: 0 0 4px #F0EFE7;
+  -moz-box-shadow: 0 0 4px #F0EFE7;
+  box-shadow: 0 0 4px #F0EFE7;
+}
+.jcarousel-control-prev {
+  left: 15px;
+}
+.jcarousel-control-next {
+  right: 15px;
+}
+/** Carousel Pagination **/
+.jcarousel-pagination {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  -webkit-transform: translate(-50%, 0);
+  -ms-transform: translate(-50%, 0);
+  transform: translate(-50%, 0);
+  margin: 0;
+}
+.jcarousel-pagination a {
+  text-decoration: none;
+  display: inline-block;
+  font-size: 11px;
+  height: 10px;
+  width: 10px;
+  line-height: 10px;
+  background: #fff;
+  color: #4E443C;
+  border-radius: 10px;
+  text-indent: -9999px;
+  margin-right: 7px;
+  -webkit-box-shadow: 0 0 2px #4E443C;
+  -moz-box-shadow: 0 0 2px #4E443C;
+  box-shadow: 0 0 2px #4E443C;
+}
+.jcarousel-pagination a.active {
+  background: #4E443C;
+  color: #fff;
+  opacity: 1;
+  -webkit-box-shadow: 0 0 2px #F0EFE7;
+  -moz-box-shadow: 0 0 2px #F0EFE7;
+  box-shadow: 0 0 2px #F0EFE7;
+}
+/* ========================================================================
+ * bootstrap-switch - v3.0.0
+ * http://www.bootstrap-switch.org
+ * ========================================================================
+ * Copyright 2012-2013 Mattia Larentis
+ *
+ * ========================================================================
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ * ========================================================================
+ */
+.bootstrap-switch {
+  display: inline-block;
+  cursor: pointer;
+  border-radius: 4px;
+  border: 1px solid;
+  border-color: #ccc;
+  position: relative;
+  text-align: left;
+  overflow: hidden;
+  line-height: 8px;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  vertical-align: middle;
+  min-width: 100px;
+  -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+  transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+}
+.bootstrap-switch.bootstrap-switch-mini {
+  min-width: 71px;
+}
+.bootstrap-switch.bootstrap-switch-mini > div > span,
+.bootstrap-switch.bootstrap-switch-mini > div > label {
+  padding-bottom: 4px;
+  padding-top: 4px;
+  font-size: 10px;
+  line-height: 9px;
+}
+.bootstrap-switch.bootstrap-switch-mini .bootstrap-switch-mini-icons {
+  height: 1.2em;
+  line-height: 9px;
+  vertical-align: text-top;
+  text-align: center;
+  transform: scale(0.6);
+  margin-top: -1px;
+  margin-bottom: -1px;
+}
+.bootstrap-switch.bootstrap-switch-small {
+  min-width: 79px;
+}
+.bootstrap-switch.bootstrap-switch-small > div > span,
+.bootstrap-switch.bootstrap-switch-small > div > label {
+  padding-bottom: 3px;
+  padding-top: 3px;
+  font-size: 12px;
+  line-height: 18px;
+}
+.bootstrap-switch.bootstrap-switch-large {
+  min-width: 120px;
+}
+.bootstrap-switch.bootstrap-switch-large > div > span,
+.bootstrap-switch.bootstrap-switch-large > div > label {
+  padding-bottom: 9px;
+  padding-top: 9px;
+  font-size: 16px;
+  line-height: normal;
+}
+.bootstrap-switch.bootstrap-switch-animate > div {
+  -webkit-transition: margin-left 0.5s;
+  transition: margin-left 0.5s;
+}
+.bootstrap-switch.bootstrap-switch-on > div {
+  margin-left: 0;
+}
+.bootstrap-switch.bootstrap-switch-on > div > label {
+  border-bottom-right-radius: 3px;
+  border-top-right-radius: 3px;
+}
+.bootstrap-switch.bootstrap-switch-off > div {
+  margin-left: -50%;
+}
+.bootstrap-switch.bootstrap-switch-off > div > label {
+  border-bottom-left-radius: 3px;
+  border-top-left-radius: 3px;
+}
+.bootstrap-switch.bootstrap-switch-disabled,
+.bootstrap-switch.bootstrap-switch-readonly {
+  opacity: .5;
+  filter: alpha(opacity=50);
+  cursor: default !important;
+}
+.bootstrap-switch.bootstrap-switch-disabled > div > span,
+.bootstrap-switch.bootstrap-switch-readonly > div > span,
+.bootstrap-switch.bootstrap-switch-disabled > div > label,
+.bootstrap-switch.bootstrap-switch-readonly > div > label {
+  cursor: default !important;
+}
+.bootstrap-switch.bootstrap-switch-focused {
+  border-color: #66afe9;
+  outline: 0;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+}
+.bootstrap-switch > div {
+  display: inline-block;
+  width: 150%;
+  top: 0;
+  border-radius: 4px;
+  -webkit-transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0);
+}
+.bootstrap-switch > div > span,
+.bootstrap-switch > div > label {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-block !important;
+  height: 100%;
+  padding-bottom: 4px;
+  padding-top: 4px;
+  font-size: 14px;
+  line-height: 20px;
+}
+.bootstrap-switch > div > span {
+  text-align: center;
+  z-index: 1;
+  width: 33.33333333%;
+}
+.bootstrap-switch > div > span.bootstrap-switch-handle-on {
+  color: red;
+  border-bottom-left-radius: 3px;
+  border-top-left-radius: 3px;
+}
+.bootstrap-switch > div > span.bootstrap-switch-handle-off {
+  color: #000;
+  background: #eee;
+  border-bottom-right-radius: 3px;
+  border-top-right-radius: 3px;
+}
+.bootstrap-switch > div > span.bootstrap-switch-primary {
+  color: #fff;
+  background: #428bca;
+}
+.bootstrap-switch > div > span.bootstrap-switch-info {
+  color: #fff;
+  background: #5bc0de;
+}
+.bootstrap-switch > div > span.bootstrap-switch-success {
+  color: #fff;
+  background: #5cb85c;
+}
+.bootstrap-switch > div > span.bootstrap-switch-warning {
+  background: #f0ad4e;
+  color: #ffffff;
+}
+.bootstrap-switch > div > span.bootstrap-switch-danger {
+  color: #fff;
+  background: #d9534f;
+}
+.bootstrap-switch > div > span.bootstrap-switch-default {
+  color: #000;
+  background: #eeeeee;
+}
+.bootstrap-switch > div > label {
+  text-align: center;
+  margin-top: -1px;
+  margin-bottom: -1px;
+  z-index: 100;
+  width: 33.33333333%;
+  color: #333;
+  background: #ffffff;
+}
+.bootstrap-switch input[type=radio],
+.bootstrap-switch input[type=checkbox] {
+  position: absolute!important;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  filter: alpha(opacity=0);
+  z-index: -1;
 }
 /** Imports of functionality related to VuFind **/
 /**
