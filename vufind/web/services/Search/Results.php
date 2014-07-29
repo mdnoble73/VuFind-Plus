@@ -397,7 +397,7 @@ class Search_Results extends Action {
 			$timer->logTime('finish hits processing');
 		}
 
-		if ($enableProspectorIntegration && $showProspectorResultsAtEndOfSearch){
+		if ($enableProspectorIntegration){
 			$interface->assign('showProspectorLink', true);
 			$interface->assign('prospectorSavedSearchId', $searchObject->getSearchId());
 		}else{

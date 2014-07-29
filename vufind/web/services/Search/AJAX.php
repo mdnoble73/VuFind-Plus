@@ -337,6 +337,7 @@ class AJAX extends Action {
 		require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
 		global $configArray;
 		global $interface;
+		global $library;
 		global $timer;
 
 		/** @var SearchObject_Solr $searchObject */
@@ -350,8 +351,13 @@ class AJAX extends Action {
 
 		//Load results from Prospector
 		$prospector = new Prospector();
-		//$prospectorResults = $prospector->getTopSearchResults($searchObject->getSearchTerms(), $prospectorNumTitlesToLoad);
-		//$interface->assign('prospectorResults', $prospectorResults);
+
+		// Only show prospector results within search results if enabled
+		if ($library && $library->enablePospectorIntegration && $library->showProspectorResultsAtEndOfSearch){
+			$prospectorResults = $prospector->getTopSearchResults($searchObject->getSearchTerms(), 5);
+			$interface->assign('prospectorResults', $prospectorResults);
+		}
+
 		$prospectorLink = $prospector->getSearchLink($searchObject->getSearchTerms());
 		$interface->assign('prospectorLink', $prospectorLink);
 		$timer->logTime('load Prospector titles');
