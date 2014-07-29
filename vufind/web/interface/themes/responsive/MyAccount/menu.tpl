@@ -203,6 +203,28 @@
 				</div>
 			{/if}
 
+			{if $user && ($user->hasRole('cataloging') || $user->hasRole('opacAdmin'))}
+				{if in_array($action, array('MergedGroupedWorks'))}
+					{assign var="curSection" value=true}
+				{else}
+					{assign var="curSection" value=false}
+				{/if}
+				<div class="panel">
+					<a href="#catalogingRequestMenu" data-toggle="collapse" data-parent="#adminMenuAccordion">
+						<div class="panel-heading">
+							<div class="panel-title">
+								Cataloging
+							</div>
+						</div>
+					</a>
+					<div id="catalogingRequestMenu" class="panel-collapse collapse {if $curSection}in{/if}">
+						<div class="panel-body">
+							<div class="adminMenuLink{if $action == "MergedGroupedWorks"}active{/if}"><a href="{$path}/Admin/MergedGroupedWorks">Grouped Work Merging</a></div>
+						</div>
+					</div>
+				</div>
+			{/if}
+
 			{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
 				{if $module == 'Circa'}
 					{assign var="curSection" value=true}
