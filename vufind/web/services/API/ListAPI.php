@@ -719,7 +719,6 @@ class ListAPI extends Action {
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
-		global $user;
 		$cacheId = 'saved_search_titles_' . $searchId;
 		$listTitles = $memCache->get($cacheId);
 		if ($listTitles == false || isset($_REQUEST['reload'])){

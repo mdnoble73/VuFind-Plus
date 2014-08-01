@@ -1790,6 +1790,16 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'browse_categories_search_term_and_stats' => array(
+					'title' => 'Browse Categories Search Term and Stats',
+					'description' => 'Add a search term and statistics to browse categories',
+					'sql' => array(
+						"ALTER TABLE browse_category ADD searchTerm VARCHAR(100) NOT NULL DEFAULT ''",
+						"ALTER TABLE browse_category ADD numTimesShown MEDIUMINT NOT NULL DEFAULT 0",
+						"ALTER TABLE browse_category ADD numTitlesClickedOn MEDIUMINT NOT NULL DEFAULT 0",
+					),
+				),
+
 				'localized_browse_categories' => array(
 					'title' => 'Localized Browse Categories',
 					'description' => 'Setup Localized Browse Category Tables',

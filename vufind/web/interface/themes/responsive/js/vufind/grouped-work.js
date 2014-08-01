@@ -346,10 +346,14 @@ VuFind.GroupedWork = (function(){
 			return false;
 		},
 
-		showGroupedWorkInfo:function(id){
+		showGroupedWorkInfo:function(id, browseCategoryId){
 			var modalDialog = $("#modalDialog");
 			//$(".modal-body").html($('#userreview' + id).html());
-			$.getJSON(Globals.path + "/GroupedWork/AJAX?method=getWorkInfo&id=" + id, function(data){
+			var url = Globals.path + "/GroupedWork/AJAX?method=getWorkInfo&id=" + id;
+			if (browseCategoryId != undefined){
+				url += "&browseCategoryId=" + browseCategoryId;
+			}
+			$.getJSON(url, function(data){
 				$('#myModalLabel').html(data.title);
 				$('.modal-body').html(data.modalBody);
 				$('.modal-buttons').html(data.modalButtons);

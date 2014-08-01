@@ -31,9 +31,101 @@ class Browse_AJAX extends Action {
 		$method = $_REQUEST['method'];
 		$response = $this->$method();
 
-
 		echo json_encode($response);
 	}
+
+	function getAddBrowseCategoryForm(){
+		global $interface;
+		// Display Page
+		$interface->assign('searchId', strip_tags($_REQUEST['searchId']));
+		$results = array(
+			'title' => 'Add to Home Page',
+			'modalBody' => $interface->fetch('Browse/addBrowseCategoryForm.tpl'),
+			'modalButtons' => "<span class='tool btn btn-primary' onclick='return VuFind.Browse.createBrowseCategory();'>Create Category</span>"
+		);
+		return $results;
+	}
+
+	function createBrowseCategory(){
+		global $library;
+		global $locationSingleton;
+		global $user;
+		$searchLocation = $locationSingleton->getSearchLocation();
+		$categoryName = isset($_REQUEST['categoryName']) ? $_REQUEST['categoryName'] : '';
+
+		//Get the text id for the category
+		$textId = str_replace(' ', '_', strtolower(trim($categoryName)));
+		if (strlen($textId) == 0){
+			return array(
+				'result' => false,
+				'message' => 'Please enter a category name'
+			);
+		}
+		if ($searchLocation){
+			$textId = $searchLocation->code . '_' . $textId;
+		}elseif ($library){
+			$textId = $library->subdomain . '_' . $textId;
+		}
+
+		//Check to see if we have an existing browse category
+		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
+		$browseCategory = new BrowseCategory();
+		$browseCategory->textId = $textId;
+		if ($browseCategory->find(true)){
+			return array(
+				'result' => false,
+				'message' => "Sorry the title of the category was not unique.  Please enter a new name."
+			);
+		}else{
+			$searchId = $_REQUEST['searchId'];
+
+			/** @var SearchObject_Solr|SearchObject_Base $searchObj */
+			$searchObj = SearchObjectFactory::initSearchObject();
+			$searchObj->init();
+			$searchObj = $searchObj->restoreSavedSearch($searchId, false, true);
+
+			if (!$browseCategory->updateFromSearch($searchObj)){
+				return array(
+					'result' => false,
+					'message' => "Sorry, this search is too complex to create a category from."
+				);
+			}
+
+			$browseCategory->label = $categoryName;
+			$browseCategory->userId = $user->id;
+			$browseCategory->sharing = 'everyone';
+			$browseCategory->catalogScoping = 'unscoped';
+			$browseCategory->description = '';
+
+			//setup and add the category
+			if (!$browseCategory->insert()){
+				return array(
+					'result' => false,
+					'message' => "There was an unknown error saving the category.  Please contact Marmot."
+				);
+			}
+
+			//Now add to the library/location
+			if ($searchLocation){
+				require_once ROOT_DIR . '/sys/Browse/LocationBrowseCategory.php';
+				$locationBrowseCategory = new LocationBrowseCategory();
+				$locationBrowseCategory->locationId = $searchLocation->locationId;
+				$locationBrowseCategory->browseCategoryTextId = $textId;
+				$locationBrowseCategory->insert();
+			}elseif ($library){
+				require_once ROOT_DIR . '/sys/Browse/LibraryBrowseCategory.php';
+				$libraryBrowseCategory = new LibraryBrowseCategory();
+				$libraryBrowseCategory->libraryId = $library->libraryId;
+				$libraryBrowseCategory->browseCategoryTextId = $textId;
+				$libraryBrowseCategory->insert();
+			}
+
+			return array(
+				'result' => true
+			);
+		}
+	}
+
 
 	function getBrowseCategoryInfo($textId = null){
 		global $interface;
@@ -49,6 +141,7 @@ class Browse_AJAX extends Action {
 		}
 		$browseCategory->textId = $textId;
 		if ($browseCategory->find(true)){
+			$interface->assign('browseCategoryId', $textId);
 			$result['result'] = true;
 			$result['textId'] = $browseCategory->textId;
 			$result['label'] = $browseCategory->label;
@@ -60,6 +153,10 @@ class Browse_AJAX extends Action {
 			}
 			//Set Sorting, this is actually slightly mangled from the category to Solr
 			$this->searchObject->setSort($browseCategory->getSolrSort());
+			if ($browseCategory->searchTerm != ''){
+				$this->searchObject->setSearchTerm($browseCategory->searchTerm);
+			}
+
 			$this->searchObject->clearFacets();
 			$this->searchObject->disableSpelling();
 			$this->searchObject->disableLogging();
@@ -74,6 +171,9 @@ class Browse_AJAX extends Action {
 			$result['records'] = implode('',$records);
 			$result['numRecords'] = count($records);
 			$result['searchUrl'] = $this->searchObject->renderSearchUrl();
+
+			$browseCategory->numTimesShown += 1;
+			$browseCategory->update();
 		}
 		// Shutdown the search object
 		$this->searchObject->close();
@@ -94,6 +194,7 @@ class Browse_AJAX extends Action {
 		}
 		$browseCategory->textId = $textId;
 		if ($browseCategory->find(true)){
+			$interface->assign('browseCategoryId', $textId);
 			$result['result'] = true;
 			$result['textId'] = $browseCategory->textId;
 			$result['label'] = $browseCategory->label;
@@ -102,6 +203,9 @@ class Browse_AJAX extends Action {
 			$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
 			foreach ($defaultFilters as $filter){
 				$this->searchObject->addFilter($filter);
+			}
+			if ($browseCategory->searchTerm != ''){
+				$this->searchObject->setSearchTerm($browseCategory->searchTerm);
 			}
 			//Get titles for the list
 			$this->searchObject->setSort($browseCategory->defaultSort);

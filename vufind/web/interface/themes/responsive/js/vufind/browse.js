@@ -2,6 +2,11 @@ VuFind.Browse = (function(){
 	return {
 		curPage: 1,
 		curCategory: '',
+		addToHomePage: function(searchId){
+			VuFind.Account.ajaxLightbox(Globals.path + '/Browse/AJAX?method=getAddBrowseCategoryForm&searchId=' + searchId, true);
+			return false;
+		},
+
 		changeBrowseCategory: function(categoryTextId){
 			var url = Globals.path + '/Browse/AJAX?method=getBrowseCategoryInfo&textId=' + categoryTextId;
 			$.getJSON(url, function(data){
@@ -21,6 +26,21 @@ VuFind.Browse = (function(){
 			});
 			return false;
 		},
+
+		createBrowseCategory: function(){
+			var url = Globals.path + "/Browse/AJAX?method=createBrowseCategory" ;
+			url += "&searchId=" + $('#searchId').val();
+			url += "&categoryName=" + $('#categoryName').val();
+			$.getJSON(url, function(data){
+				if (data.result == false){
+					VuFind.showMessage("Unable to create category", data.message);
+				}else{
+					VuFind.showMessage("Successfully added", "This search was added to the homepage successfully.", true);
+				}
+			});
+			return false;
+		},
+
 
 		getMoreResults: function(){
 			var url = Globals.path + '/Browse/AJAX?method=getMoreBrowseResults&textId=' + this.curCategory + "&pageToLoad=" + (this.curPage + 1);

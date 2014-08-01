@@ -205,9 +205,6 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	public function init($searchSource = null)
 	{
-		global $module;
-		global $action;
-
 		// Call the standard initialization routine in the parent:
 		parent::init($searchSource);
 
@@ -231,20 +228,23 @@ class SearchObject_Solr extends SearchObject_Base
 		$this->initSort();
 		$this->initFilters();
 
-		if (isset($_REQUEST['lookfor']) && !is_array($_REQUEST['lookfor'])){
+		$searchTerm = isset($_REQUEST['lookfor']) ? $_REQUEST['lookfor'] : null;
+		global $module;
+		global $action;
+		if (isset($searchTerm) && !is_array($searchTerm)){
 			//Marmot - search both ISBN-10 and ISBN-13
 			//Check to see if the search term looks like an ISBN10 or ISBN13
-			if (isset($_REQUEST['type']) && isset($_REQUEST['lookfor']) &&
+			if (isset($_REQUEST['type']) && isset($searchTerm) &&
 			($_REQUEST['type'] == 'ISN' || $_REQUEST['type'] == 'Keyword' || $_REQUEST['type'] == 'AllFields') &&
-			(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/', $_REQUEST['lookfor']) ||
-			preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $_REQUEST['lookfor']))) {
+			(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/', $searchTerm) ||
+			preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $searchTerm))) {
 				require_once(ROOT_DIR . '/sys/ISBN.php');
-				$isbn = new ISBN($_REQUEST['lookfor']);
+				$isbn = new ISBN($searchTerm);
 				if ($isbn->isValid()){
 					$isbn10 = $isbn->get10();
 					$isbn13 = $isbn->get13();
 					if ($isbn10 && $isbn13){
-						$_REQUEST['lookfor'] = $isbn->get10() . ' OR ' . $isbn->get13();
+						$searchTerm = $isbn->get10() . ' OR ' . $isbn->get13();
 					}
 				}
 			}
@@ -252,7 +252,7 @@ class SearchObject_Solr extends SearchObject_Base
 
 		//********************
 		// Basic Search logic
-		if ($this->initBasicSearch()) {
+		if ($this->initBasicSearch($searchTerm)) {
 			// If we found a basic search, we don't need to do anything further.
 		} else if (isset($_REQUEST['tag']) && $module != 'MyAccount') {
 			// Tags, just treat them as normal searches for now.
@@ -330,6 +330,10 @@ class SearchObject_Solr extends SearchObject_Base
 
 		return true;
 	} // End init()
+
+	public function setSearchTerm($searchTerm){
+		$this->initBasicSearch($searchTerm);
+	}
 
 	/**
 	 * Initialise the object for retrieving advanced

@@ -501,23 +501,29 @@ abstract class SearchObject_Base
 	 * $_REQUEST superglobal.
 	 *
 	 * @access  protected
+	 * @param String|String[] $searchTerm
 	 * @return  boolean  True if search settings were found, false if not.
 	 */
-	protected function initBasicSearch()
+	protected function initBasicSearch($searchTerm = null)
 	{
-		// If no lookfor parameter was found, we have no search terms to
-		// add to our array!
-		if (!isset($_REQUEST['lookfor'])) {
-			return false;
+		if ($searchTerm == null){
+			// If no lookfor parameter was found, we have no search terms to
+			// add to our array!
+			if (!isset($_REQUEST['lookfor'])) {
+				return false;
+			}else{
+				$searchTerm = $_REQUEST['lookfor'];
+			}
 		}
+
 
 		// If lookfor is an array, we may be dealing with a legacy Advanced
 		// Search URL.  If there's only one parameter, we can flatten it,
 		// but otherwise we should treat it as an error -- no point in going
 		// to great lengths for compatibility.
-		if (is_array($_REQUEST['lookfor'])) {
-			if (count($_REQUEST['lookfor']) == 1) {
-				$_REQUEST['lookfor'] = strip_tags(reset($_REQUEST['lookfor']));
+		if (is_array($searchTerm)) {
+			if (count($searchTerm) == 1) {
+				$searchTerm = strip_tags(reset($searchTerm));
 				$_REQUEST['type'] = strip_tags(reset($_REQUEST['searchType']));
 			} else {
 				return false;
@@ -540,7 +546,7 @@ abstract class SearchObject_Base
 
 		$this->searchTerms[] = array(
             'index'   => $type,
-            'lookfor' => $_REQUEST['lookfor']
+            'lookfor' => $searchTerm
 		);
 		return true;
 	}
