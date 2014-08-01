@@ -101,7 +101,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 						if ($eContentData && strpos($eContentData, ':') > 0){
 							$eContentFieldData = explode(':', $eContentData);
 							$source = trim($eContentFieldData[0]);
-							$protectionType = trim($eContentFieldData[1]);
+							$protectionType = strtolower(trim($eContentFieldData[1]));
 
 							$totalCopies = 1;
 							if ($this->isValidProtectionType($protectionType)){

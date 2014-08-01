@@ -176,14 +176,17 @@ class ExternalEContentDriver extends BaseEContentDriver{
 	function getActionsForItem($itemId, $fileOrUrl, $acsId){
 		$actions = array();
 		$title = 'Access Online';
-		if (substr_compare($fileOrUrl, 'pdf', strlen($fileOrUrl)-3, strlen(3)) === 0){
-			$title = 'Access PDF';
-		}
-		$actions[] = array(
+		if (strlen($fileOrUrl) > 0){
+			if (substr_compare($fileOrUrl, 'pdf', strlen($fileOrUrl)-3, strlen(3)) === 0){
+				$title = 'Access PDF';
+			}
+			$actions[] = array(
 				'url' => $fileOrUrl,
 				'title' => $title,
 				'requireLogin' => false,
-		);
+			);
+		}
+
 		return $actions;
 	}
 }
