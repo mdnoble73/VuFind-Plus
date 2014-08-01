@@ -381,7 +381,7 @@ public class RecordGrouperMain {
 							Record curBib = catalogReader.next();
 							String recordNumber = getRecordNumberForBib(curBib);
 							boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber);
-							if (!marcUpToDate){
+							if (!marcUpToDate || fullRegroupingNoClear){
 								recordGroupingProcessor.processMarcRecord(curBib);
 								numRecordsProcessed++;
 							}

@@ -34,6 +34,7 @@ public class RecordGroupingProcessor {
 	private PreparedStatement addPrimaryIdentifierForWorkStmt;
 	private PreparedStatement removePrimaryIdentifierStmt;
 	private PreparedStatement removeIdentifiersForPrimaryIdentifierStmt;
+	private PreparedStatement removePrimaryIdentifiersForWorkStmt;
 	private PreparedStatement addPrimaryIdentifierToSecondaryIdentifierRefStmt;
 
 	private int numRecordsProcessed = 0;
@@ -53,6 +54,9 @@ public class RecordGroupingProcessor {
 
 	private HashMap<String, Long> existingGroupedWorks = new HashMap<String, Long>();
 
+	//A list of grouped works that have been manually merged.
+	private HashMap<String, String> mergedGroupedWorks = new HashMap<String, String>();
+
 	public RecordGroupingProcessor(Connection dbConnection, Ini configIni, Logger logger, boolean fullRegrouping) {
 		this.logger = logger;
 		this.fullRegrouping = fullRegrouping;
@@ -71,6 +75,7 @@ public class RecordGroupingProcessor {
 			addPrimaryIdentifierForWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_primary_identifiers (grouped_work_id, type, identifier) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
 			removePrimaryIdentifierStmt = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_identifiers WHERE type = ? and identifier = ?");
 			removeIdentifiersForPrimaryIdentifierStmt = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_to_secondary_id_ref where primary_identifier_id = ?");
+			removePrimaryIdentifiersForWorkStmt = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_identifiers where grouped_work_id = ?");
 			addPrimaryIdentifierToSecondaryIdentifierRefStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_primary_to_secondary_id_ref (primary_identifier_id, secondary_identifier_id) VALUES (?, ?) ");
 			loadAuthorities();
 			if (!fullRegrouping){
@@ -82,6 +87,12 @@ public class RecordGroupingProcessor {
 				loadExistingGroupedWorksRS.close();
 				loadExistingGroupedWorksStmt.close();
 			}
+			PreparedStatement loadMergedWorksStmt = dbConnection.prepareStatement("SELECT * from merged_grouped_works");
+			ResultSet mergedWorksRS = loadMergedWorksStmt.executeQuery();
+			while (mergedWorksRS.next()){
+				mergedGroupedWorks.put(mergedWorksRS.getString("sourceGroupedWorkId"), mergedWorksRS.getString("destinationGroupedWorkId"));
+			}
+			mergedWorksRS.close();
 		}catch (Exception e){
 			logger.error("Error setting up prepared statements", e);
 		}
@@ -335,6 +346,26 @@ public class RecordGroupingProcessor {
 
 	private void addGroupedWorkToDatabase(RecordIdentifier primaryIdentifier, GroupedWork groupedWork) {
 		String groupedWorkPermanentId = groupedWork.getPermanentId();
+		if (mergedGroupedWorks.containsKey(groupedWorkPermanentId)){
+			String originalGroupedWorkPermanentId = groupedWorkPermanentId;
+			groupedWorkPermanentId = mergedGroupedWorks.get(groupedWorkPermanentId);
+			groupedWork.overridePermanentId(groupedWorkPermanentId);
+
+			logger.debug("Overriding grouped work " + originalGroupedWorkPermanentId + " with " + groupedWorkPermanentId);
+
+			//Mark that the original was updated
+			if (existingGroupedWorks.containsKey(originalGroupedWorkPermanentId)) {
+				//There is an existing grouped record
+				long originalGroupedWorkId = existingGroupedWorks.get(originalGroupedWorkPermanentId);
+				markWorkUpdated(originalGroupedWorkId);
+				try {
+					removePrimaryIdentifiersForWorkStmt.setLong(1, originalGroupedWorkId);
+					removePrimaryIdentifiersForWorkStmt.executeUpdate();
+				} catch (SQLException e) {
+					logger.error("Error removing primary identifiers for merged work " + originalGroupedWorkPermanentId + "(" + originalGroupedWorkId + ")");
+				}
+			}
+		}
 		numRecordsProcessed++;
 		long groupedWorkId = -1;
 		try{

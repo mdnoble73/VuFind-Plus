@@ -261,4 +261,7 @@ public class GroupedWork implements Cloneable{
 		return sortTitle;
 	}
 
+	public void overridePermanentId(String groupedWorkPermanentId) {
+		this.permanentId = groupedWorkPermanentId;
+	}
 }
