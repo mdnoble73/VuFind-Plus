@@ -105,6 +105,7 @@ function mapValue($mapName, $value){
 	if ($map == null){
 		return $value;
 	}
+	$value = str_replace(' ', '_', $value);
 	if (isset($map[$value])){
 		return $map[$value];
 	}elseif(isset($map['*'])){

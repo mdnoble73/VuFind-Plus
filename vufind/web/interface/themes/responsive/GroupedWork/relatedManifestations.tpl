@@ -5,8 +5,12 @@
 				Formats
 			</div>
 		</div>
+		{assign var=hasHiddenFormats value=false}
 		{foreach from=$relatedManifestations item=relatedManifestation}
-			<div class="row related-manifestation">
+			{if $relatedManifestation.hideByDefault}
+				{assign var=hasHiddenFormats value=true}
+			{/if}
+			<div class="row related-manifestation {if $relatedManifestation.hideByDefault}hiddenManifestation_{$summId}{/if}" {if $relatedManifestation.hideByDefault}style="display: none"{/if}>
 				<div class="col-sm-12">
 				  <div class="row">
 						<div class="col-xs-4 col-md-3 manifestation-format">
@@ -113,5 +117,12 @@
 				</div>
 			</div>
 		{/foreach}
+		{if $hasHiddenFormats}
+			<div class="row related-manifestation" id="formatToggle_{$summId}">
+				<div class="col-sm-12">
+					<a href="#" onclick="$('.hiddenManifestation_{$summId}').show();$('#formatToggle_{$summId}').hide();return false;">View all Formats</a>
+				</div>
+			</div>
+		{/if}
 	</div>
 {/strip}

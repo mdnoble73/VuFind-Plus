@@ -1259,6 +1259,8 @@ class MarcRecord extends IndexRecord
 				$result[] =  "Large Print";
 			}elseif (strpos($topicalTerm, "playaway") !== FALSE){
 				$result[] =  "Playaway";
+			}elseif (strpos($topicalTerm, "graphic novel") !== FALSE){
+				$result[] =  "Graphic Novel";
 			}
 		}
 
@@ -1556,7 +1558,19 @@ class MarcRecord extends IndexRecord
 			$result = array_unique($result);
 		}
 
-		return $result;
+		return $this->filterFormats($result);
+	}
+
+	/**
+	 * Remove formats that are less specific
+	 *
+	 * @param $allFormats
+	 */
+	function filterFormats($allFormats){
+		if (in_array('Video', $allFormats) && in_array('DVD', $allFormats)){
+			$allFormats = array_remove_by_value($allFormats, 'Video');
+		}
+		return $allFormats;
 	}
 
 	function getRecordUrl(){
@@ -1599,6 +1613,7 @@ class MarcRecord extends IndexRecord
 				$timer->logTime("Finished loading MARC information in getRelatedRecords $recordId");
 			}
 
+			$formatCategory = mapValue('format_category_by_format', $format);
 			$items = $this->getItemsFast();
 			$availableCopies = 0;
 			$localAvailableCopies = 0;
@@ -1634,6 +1649,7 @@ class MarcRecord extends IndexRecord
 					'url' => $url,
 					'holdUrl' => $holdUrl,
 					'format' => $format,
+					'formatCategory' => $formatCategory,
 					'edition' => $edition,
 					'language' => $language,
 					'publisher' => $publisher,

@@ -1066,6 +1066,7 @@ class GroupedWorkDriver extends RecordInterface{
 			if (!array_key_exists($curRecord['format'], $relatedManifestations)){
 				$relatedManifestations[$curRecord['format']] = array(
 					'format' => $curRecord['format'],
+					'formatCategory' => $curRecord['formatCategory'],
 					'copies' => 0,
 					'availableCopies' => 0,
 					'localCopies' => 0,
@@ -1082,6 +1083,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'availableHere' => false,
 					'inLibraryUseOnly' => false,
 					'allLibraryUseOnly' => true,
+					'hideByDefault' => false,
 				);
 			}
 			if (isset($curRecord['availableLocally']) && $curRecord['availableLocally'] == true){
@@ -1124,7 +1126,23 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 		$timer->logTime("Finished initial processing of related records");
 
-		//Check to see what we need to do for actions
+		//Check to see if we have applied a format or format category facet
+		$selectedFormat = null;
+		$selectedFormatCategory = null;
+		$selectedAvailability = null;
+		if (isset($_REQUEST['filter'])){
+			foreach ($_REQUEST['filter'] as $filter){
+				if (preg_match('/^format_category(?:\w*):"?(.+?)"?$/', $filter, $matches)){
+					$selectedFormatCategory = urldecode($matches[1]);
+				}elseif (preg_match('/^format(?:\w*):"?(.+?)"?$/', $filter, $matches)){
+					$selectedFormat = urldecode($matches[1]);
+				}elseif (preg_match('/^availability_toggle(?:\w*):"?(.+?)"?$/', $filter, $matches)){
+					$selectedAvailability = urldecode($matches[1]);
+				}
+			}
+		}
+
+		//Check to see what we need to do for actions, and determine if the record should be hidden by default
 		foreach ($relatedManifestations as $key => $manifestation){
 			$manifestation['numRelatedRecords'] = count($manifestation['relatedRecords']);
 			if (count($manifestation['relatedRecords']) == 1){
@@ -1135,6 +1153,15 @@ class GroupedWorkDriver extends RecordInterface{
 				//Figure out what the preferred record is to place a hold on.  Since sorting has been done properly, this should always be the first
 				$bestRecord = reset($manifestation['relatedRecords']);
 				$manifestation['actions'] = $bestRecord['actions'];
+			}
+			if ($selectedFormat && $selectedFormat != $manifestation['format']){
+				$manifestation['hideByDefault'] = true;
+			}
+			if ($selectedFormatCategory && $selectedFormatCategory != $manifestation['formatCategory']){
+				$manifestation['hideByDefault'] = true;
+			}
+			if ($selectedAvailability == 'Available Now' && !($manifestation['availableLocally'] || $manifestation['availableOnline'])){
+				$manifestation['hideByDefault'] = true;
 			}
 			$relatedManifestations[$key] = $manifestation;
 		}

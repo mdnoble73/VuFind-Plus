@@ -557,6 +557,8 @@ class OverDriveRecordDriver extends RecordInterface {
 			'source' => 'OverDrive',
 			'actions' => array()
 		);
+		$formatCategory = mapValue('format_category_by_format', $relatedRecord['format']);
+		$relatedRecord['formatCategory'] = $formatCategory;
 		if ($available){
 			$relatedRecord['actions'][] = array(
 				'title' => 'Check Out',
