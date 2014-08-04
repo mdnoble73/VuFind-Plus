@@ -165,7 +165,8 @@ if ($searchSource == 'local' || $searchSource == 'econtent'){
 			($searchLocation->restrictSearchByLocation ||
 					$searchLocation->econtentLocationsToInclude != 'all' ||
 					$searchLocation->useScope ||
-					!$searchLocation->includeDigitalCollection);
+					!$searchLocation->includeDigitalCollection ||
+					strlen($searchLocation->extraLocationCodesToInclude) > 0);
 
 	$libraryIsScoped = $searchLibrary != null &&
 			($searchLibrary->restrictSearchByLibrary ||

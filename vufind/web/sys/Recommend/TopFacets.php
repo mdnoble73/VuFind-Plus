@@ -75,27 +75,10 @@ class TopFacets implements RecommendationInterface
 				if ($facet->showAboveResults == 1){
 					$facetName = $facet->facetName;
 					if ($solrScope){
-						/*if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+						if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
 							$facetName = 'availability_toggle_' . $solrScope;
-						}else */if ($facet->facetName == 'format_category' && $configArray['Index']['enableDetailedFormats']){
+						}else if ($facet->facetName == 'format_category' && $configArray['Index']['enableDetailedFormats']){
 							$facetName = 'format_category_' . $solrScope;
-						}
-					}
-					if (isset($searchLibrary)){
-						if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
-							$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
-						}/*else if ($facet->facetName == 'format_category' && $configArray['Index']['enableDetailedFormats']){
-							$facetName = 'format_category_' . $searchLibrary->subdomain;
-						}*/
-					}
-					if (isset($userLocation)){
-						if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
-							$facetName = 'availability_toggle_' . $userLocation->code;
-						}
-					}
-					if (isset($searchLocation)){
-						if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
-							$facetName = 'availability_toggle_' . $searchLocation->code;
 						}
 					}
 					$this->facets[$facetName] = $facet->displayName;

@@ -1,5 +1,6 @@
 {strip}
 {if $topFacetSet}
+	<br/>
 	{foreach from=$topFacetSet item=cluster key=title}
 		{if $cluster.label == 'Category' || $cluster.label == 'Format Category'}
 			{if ($categorySelected == false)}
