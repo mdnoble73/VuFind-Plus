@@ -59,21 +59,6 @@ abstract class Admin_Admin extends Action
 		if ($user !== false){
 			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
 
-			$interface->assign('user', $user);
-			// Get My Profile
-			if ($this->catalog->status) {
-				if ($user->cat_username) {
-					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					if (PEAR_Singleton::isError($patron)){
-						PEAR_Singleton::raiseError($patron);
-					}
-
-					$profile = $this->catalog->getMyProfile($patron);
-					if (!PEAR_Singleton::isError($profile)) {
-						$interface->assign('profile', $profile);
-					}
-				}
-			}
 			//Figure out if we should show a link to classic opac to pay holds.
 			$ecommerceLink = $configArray['Site']['ecommerceLink'];
 			$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);

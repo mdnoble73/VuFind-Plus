@@ -75,7 +75,6 @@ class AJAX_JSON extends Action {
 		//Login the user.  Must be called via Post parameters.
 		global $user;
 		global $interface;
-		global $configArray;
 		$user = UserAccount::isLoggedIn();
 		if (!$user || PEAR_Singleton::isError($user)){
 			$user = UserAccount::login();
