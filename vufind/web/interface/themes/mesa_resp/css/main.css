@@ -7727,3 +7727,12 @@ div#system-message-header {
   margin: 5px;
   text-align: right;
 }
+.header-button > a {
+  color: #336fa3 !important;
+}
+.header-button > a:visited {
+  color: #336fa3 !important;
+}
+.header-button:hover {
+  border-bottom: 0px;
+}
