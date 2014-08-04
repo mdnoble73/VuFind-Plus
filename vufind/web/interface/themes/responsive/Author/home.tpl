@@ -1,7 +1,10 @@
 {strip}
 <div>
 	<h2>{$authorName}</h2>
-	<div id="wikipedia_placeholder" class="row"></div>
+	<div class="row">
+		<div id="wikipedia_placeholder" class="col-xs-12">
+		</div>
+	</div>
 
 	{if $topRecommendations}
 		{foreach from=$topRecommendations item="recommendations"}

@@ -16,6 +16,7 @@
 											</div>
 											<div class="col-xs-6 formatCategoryLabel">
 												{$thisFacet.value|escape}
+												<br/>(Remove)
 											</div>
 										</div>
 									</a>
