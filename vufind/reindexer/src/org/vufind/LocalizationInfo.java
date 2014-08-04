@@ -1,5 +1,7 @@
 package org.vufind;
 
+import java.util.regex.Pattern;
+
 /**
  * Contains information about how to localize data
  * VuFind-Plus
@@ -10,6 +12,8 @@ package org.vufind;
 public class LocalizationInfo implements Comparable<LocalizationInfo> {
 	private String localName;
 	private String locationCodePrefix;
+	private Pattern extraLocationCodesPattern;
+	private String facetLabel;
 
 	public String getLocationCodePrefix() {
 		return locationCodePrefix;
@@ -28,11 +32,34 @@ public class LocalizationInfo implements Comparable<LocalizationInfo> {
 	}
 
 	public boolean isLocationCodeIncluded(String locationCode){
-		return locationCode.startsWith(locationCodePrefix);
+		if (locationCode.startsWith(locationCodePrefix)){
+			return true;
+		}else{
+			if (extraLocationCodesPattern != null){
+				if (extraLocationCodesPattern.matcher(locationCode).matches()) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	@Override
 	public int compareTo(LocalizationInfo o) {
 		return localName.compareTo(o.localName);
+	}
+
+	public void setExtraLocationCodes(String extraLocationCodesToInclude) {
+		if (extraLocationCodesToInclude != null && extraLocationCodesToInclude.length() > 0) {
+			this.extraLocationCodesPattern = Pattern.compile(extraLocationCodesToInclude);
+		}
+	}
+
+	public String getFacetLabel() {
+		return facetLabel;
+	}
+
+	public void setFacetLabel(String facetLabel) {
+		this.facetLabel = facetLabel;
 	}
 }

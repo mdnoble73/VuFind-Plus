@@ -298,10 +298,11 @@ public class GroupedWorkSolr {
 		//Save information from scopes
 		for (ScopedWorkDetails scopedWorkDetail : scopedWorkDetails.values()){
 			if (scopedWorkDetail.getRelatedRecords().size() > 0) {
-				doc.addField("related_record_ids_" + scopedWorkDetail.getScope().getScopeName(), scopedWorkDetail.getRelatedRecords());
-				doc.addField("related_items_" + scopedWorkDetail.getScope().getScopeName(), scopedWorkDetail.getRelatedItems());
-				doc.addField("format_" + scopedWorkDetail.getScope().getScopeName(), scopedWorkDetail.getFormats());
-				doc.addField("format_category_" + scopedWorkDetail.getScope().getScopeName(), scopedWorkDetail.getFormatCategories());
+				String scopeName = scopedWorkDetail.getScope().getScopeName();
+				doc.addField("related_record_ids_" + scopeName, scopedWorkDetail.getRelatedRecords());
+				doc.addField("related_items_" + scopeName, scopedWorkDetail.getRelatedItems());
+				doc.addField("format_" + scopeName, scopedWorkDetail.getFormats());
+				doc.addField("format_category_" +scopeName, scopedWorkDetail.getFormatCategories());
 			}
 		}
 

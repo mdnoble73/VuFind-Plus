@@ -67,7 +67,7 @@ public class GroupedWorkIndexer {
 
 		//Load the last Index time
 		try{
-			PreparedStatement loadLastGroupingTime = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_grouping_time'");
+			PreparedStatement loadLastGroupingTime = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_reindex_time'");
 			ResultSet lastGroupingTimeRS = loadLastGroupingTime.executeQuery();
 			if (lastGroupingTimeRS.next()){
 				lastReindexTime = lastGroupingTimeRS.getLong("value");
@@ -175,12 +175,13 @@ public class GroupedWorkIndexer {
 					}
 				}
 
-				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, code, ilsCode, library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.useScope as useScopeLibrary, location.useScope as useScopeLocation, library.scope AS libraryScope, location.scope AS locationScope, restrictSearchByLocation, restrictSearchByLibrary, library.econtentLocationsToInclude as econtentLocationsToIncludeLibrary, location.econtentLocationsToInclude as econtentLocationsToIncludeLocation, library.includeDigitalCollection as includeDigitalCollectionLibrary, location.includeDigitalCollection as includeDigitalCollectionLocation, includeOutOfSystemExternalLinks FROM location INNER JOIN library on library.libraryId = location.libraryid ORDER BY code ASC", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, code, ilsCode, library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.useScope as useScopeLibrary, location.useScope as useScopeLocation, library.scope AS libraryScope, location.scope AS locationScope, restrictSearchByLocation, restrictSearchByLibrary, library.econtentLocationsToInclude as econtentLocationsToIncludeLibrary, location.econtentLocationsToInclude as econtentLocationsToIncludeLocation, library.includeDigitalCollection as includeDigitalCollectionLibrary, location.includeDigitalCollection as includeDigitalCollectionLocation, includeOutOfSystemExternalLinks, extraLocationCodesToInclude FROM location INNER JOIN library on library.libraryId = location.libraryid ORDER BY code ASC", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				ResultSet locationInformationRS = locationInformationStmt.executeQuery();
 				while (locationInformationRS.next()){
 					String code = locationInformationRS.getString("code").toLowerCase();
 					String libraryIlsCode = locationInformationRS.getString("ilsCode").toLowerCase();
 					String facetLabel = locationInformationRS.getString("facetLabel");
+					String extraLocationCodesToInclude = locationInformationRS.getString("extraLocationCodesToInclude").toLowerCase();
 					String displayName = locationInformationRS.getString("displayName");
 					if (facetLabel.length() == 0){
 						facetLabel = displayName;
@@ -190,6 +191,8 @@ public class GroupedWorkIndexer {
 					LocalizationInfo localizationInfo = new LocalizationInfo();
 					localizationInfo.setLocalName(code);
 					localizationInfo.setLocationCodePrefix(code);
+					localizationInfo.setExtraLocationCodes(extraLocationCodesToInclude);
+					localizationInfo.setFacetLabel(facetLabel);
 					localizations.add(localizationInfo);
 
 
@@ -235,6 +238,7 @@ public class GroupedWorkIndexer {
 							locationScopeInfo.setEContentLocationCodesToInclude(econtentLocationsToIncludeLocation.split(","));
 							locationScopeInfo.setIncludeOutOfSystemExternalLinks(includeOutOfSystemExternalLinks);
 							locationScopeInfo.setIncludeOverDriveCollection(includeOverDriveCollectionLibrary && includeOverDriveCollectionLocation);
+							locationScopeInfo.setExtraLocationCodes(extraLocationCodesToInclude);
 
 							scopes.add(locationScopeInfo);
 						}else{
@@ -350,7 +354,7 @@ public class GroupedWorkIndexer {
 				updateVariableStmt.executeUpdate();
 				updateVariableStmt.close();
 			} else{
-				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_grouping_time', ?)");
+				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_reindex_time', ?)");
 				insertVariableStmt.setString(1, Long.toString(finishTime));
 				insertVariableStmt.executeUpdate();
 				insertVariableStmt.close();
@@ -368,7 +372,7 @@ public class GroupedWorkIndexer {
 				getAllGroupedWorks = vufindConn.prepareStatement("SELECT * FROM grouped_work", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			}else{
 				//Load all grouped works that have changed since the last time the index ran
-				getAllGroupedWorks = vufindConn.prepareStatement("SELECT * FROM grouped_work WHERE date_updated IS NULL OR date_updated > ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				getAllGroupedWorks = vufindConn.prepareStatement("SELECT * FROM grouped_work WHERE date_updated IS NULL OR date_updated >= ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				getAllGroupedWorks.setLong(1, lastReindexTime);
 			}
 			PreparedStatement getGroupedWorkPrimaryIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_primary_identifiers where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
@@ -386,11 +390,17 @@ public class GroupedWorkIndexer {
 
 				getGroupedWorkPrimaryIdentifiers.setLong(1, id);
 				ResultSet groupedWorkPrimaryIdentifiers = getGroupedWorkPrimaryIdentifiers.executeQuery();
+				int numPrimaryIdentifiers = 0;
 				while (groupedWorkPrimaryIdentifiers.next()){
 					String type = groupedWorkPrimaryIdentifiers.getString("type");
 					String identifier = groupedWorkPrimaryIdentifiers.getString("identifier");
 					//This does the bulk of the work building fields for the solr document
 					updateGroupedWorkForPrimaryIdentifier(groupedWork, type, identifier);
+					numPrimaryIdentifiers++;
+				}
+
+				if (numPrimaryIdentifiers == 0){
+					continue;
 				}
 
 				//Update the grouped record based on data for each work

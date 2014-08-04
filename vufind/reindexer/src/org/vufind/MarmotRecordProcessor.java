@@ -310,6 +310,8 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				logger.debug("Did not get any formats for print record " + ilsRecord.getRecordId());
 			}
 
+			filterPrintFormats(printFormats);
+
 			HashSet<String> translatedFormats = indexer.translateCollection("format", printFormats);
 			HashSet<String> translatedFormatCategories = indexer.translateCollection("format_category", printFormats);
 			ilsRecord.addFormats(translatedFormats);
@@ -323,6 +325,24 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				}
 			}
 			ilsRecord.setFormatBoost(formatBoost);
+		}
+	}
+
+	private void filterPrintFormats(Set<String> printFormats) {
+		if (printFormats.contains("Video") && printFormats.contains("DVD")){
+			printFormats.remove("Video");
+		}else if (printFormats.contains("SoundDisc") && printFormats.contains("SoundRecording")){
+			printFormats.remove("SoundRecording");
+		}else if (printFormats.contains("SoundCassette") && printFormats.contains("SoundRecording")){
+			printFormats.remove("SoundRecording");
+		}else if (printFormats.contains("Playaway") && printFormats.contains("SoundRecording")){
+			printFormats.remove("SoundRecording");
+		}else if (printFormats.contains("Book") && printFormats.contains("LargePrint")){
+			printFormats.remove("Book");
+		}else if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
+			printFormats.remove("Book");
+		}else if (printFormats.size() > 1){
+			return;
 		}
 	}
 
@@ -510,6 +530,8 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					if (subfieldData.contains("large type")) {
 						result.add("LargePrint");
 					}else if (subfieldData.contains("playaway")) {
+						result.add("Playaway");
+					}else if (subfieldData.contains("graphic novel")) {
 						result.add("Playaway");
 					}
 				}

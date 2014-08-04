@@ -1162,13 +1162,18 @@ public abstract class IlsRecordProcessor {
 		for (PrintIlsItem curItem : printItems){
 			String locationCode = curItem.getLocation();
 			if (locationCode != null){
-				owningLibraries.addAll(getLibraryFacetsForLocationCode(locationCode));
-
-				owningLocations.addAll(getLocationFacetsForLocationCode(locationCode));
+				ArrayList<String> owningLibrariesForLocationCode = getLibraryFacetsForLocationCode(locationCode);
+				owningLibraries.addAll(owningLibrariesForLocationCode);
+				ArrayList<String> owningLocationsForLocationCode = getLocationFacetsForLocationCode(locationCode);
+				owningLocations.addAll(owningLocationsForLocationCode);
 				owningLocationCodes.addAll(getRelatedLocationCodesForLocationCode(locationCode));
 				owningLocationCodes.addAll(getRelatedSubdomainsForLocationCode(locationCode));
 
 				loadAdditionalOwnershipInformation(groupedWork, locationCode);
+			}
+			for (LocalizationInfo localizationInfo : curItem.getRelatedLocalizations()){
+				owningLocations.add(localizationInfo.getFacetLabel());
+				owningLocationCodes.add(localizationInfo.getLocationCodePrefix());
 			}
 		}
 		groupedWork.addOwningLibraries(owningLibraries);

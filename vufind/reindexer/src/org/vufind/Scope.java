@@ -1,6 +1,7 @@
 package org.vufind;
 
 import java.util.HashSet;
+import java.util.regex.Pattern;
 
 /**
  * Description goes here
@@ -16,12 +17,13 @@ public class Scope implements Comparable<Scope>{
 	private boolean includeBibsOwnedByTheLibraryOnly;
 	private boolean includeItemsOwnedByTheLibraryOnly;
 	private HashSet<String> eContentLocationCodesToInclude = new HashSet<String>();
-private boolean includeOutOfSystemExternalLinks;
+	private boolean includeOutOfSystemExternalLinks;
 	private String libraryLocationCodePrefix;
 	private String locationLocationCodePrefix;
 	private boolean includeBibsOwnedByTheLocationOnly;
 	private boolean includeItemsOwnedByTheLocationOnly;
 	private boolean includeOverDriveCollection;
+	private Pattern extraLocationCodesPattern;
 	private Long libraryId;
 
 	public String getScopeName() {
@@ -84,12 +86,18 @@ private boolean includeOutOfSystemExternalLinks;
 	}
 
 	public boolean isItemPartOfScope(String locationCode, HashSet<String> compatiblePTypes){
+		if (extraLocationCodesPattern != null){
+			if (extraLocationCodesPattern.matcher(locationCode).matches()) {
+				return true;
+			}
+		}
 		if (includeBibsOwnedByTheLibraryOnly && !locationCode.startsWith(libraryLocationCodePrefix)){
 			return false;
 		}
 		if (includeBibsOwnedByTheLocationOnly && !locationCode.startsWith(locationLocationCodePrefix)){
 			return false;
 		}
+
 		//If the item is holdable by anyone in the current scope it should be included.
 		if (relatedPTypes.size() == 0 || relatedPTypes.contains("all")){
 			//Include all items regardless of if they are holdable or not.
@@ -142,6 +150,12 @@ private boolean includeOutOfSystemExternalLinks;
 
 	public boolean isIncludeOutOfSystemExternalLinks() {
 		return includeOutOfSystemExternalLinks;
+	}
+
+	public void setExtraLocationCodes(String extraLocationCodesToInclude) {
+		if (extraLocationCodesToInclude != null && extraLocationCodesToInclude.length() > 0) {
+			this.extraLocationCodesPattern = Pattern.compile(extraLocationCodesToInclude);
+		}
 	}
 
 	@Override
