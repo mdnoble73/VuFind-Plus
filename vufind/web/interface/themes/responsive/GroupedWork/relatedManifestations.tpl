@@ -30,7 +30,7 @@
 						<div class="col-xs-8 col-md-5 col-lg-6">
 							{if $relatedManifestation.availableHere && $showItsHere}
 								{if $relatedManifestation.availableOnline}
-									<div class="related-manifestation-shelf-status available">It's Here</div>
+									<div class="related-manifestation-shelf-status available">Available Online</div>
 								{elseif $relatedManifestation.allLibraryUseOnly}
 									<div class="related-manifestation-shelf-status available">It's Here (library use only)</div>
 								{else}
