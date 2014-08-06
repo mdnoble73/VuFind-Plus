@@ -3,6 +3,15 @@ require_once(ROOT_DIR . '/Drivers/marmot_inc/ISBNConverter.php');
 require_once ROOT_DIR . '/sys/Novelist/NovelistData.php';
 class Novelist3{
 
+	function doesGroupedWorkHaveCachedSeries($groupedRecordId){
+		$novelistData = new NovelistData();
+		$novelistData->groupedRecordPermanentId = $groupedRecordId;
+		if ($novelistData->find(true)){
+			return true;
+		}else{
+			return false;
+		}
+	}
 	function loadBasicEnrichment($groupedRecordId, $isbns){
 		global $timer;
 		global $configArray;

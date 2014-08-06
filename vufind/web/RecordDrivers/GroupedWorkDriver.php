@@ -288,7 +288,13 @@ class GroupedWorkDriver extends RecordInterface{
 		//Description
 		$interface->assign('summDescription', $this->getDescriptionFast());
 		$timer->logTime('Finished Loading Description');
-		$interface->assign('summSeries', $this->getSeries());
+		if ($this->hasCachedSeries()){
+			$interface->assign('ajaxSeries', false);
+			$interface->assign('summSeries', $this->getSeries());
+		}else{
+			$interface->assign('ajaxSeries', true);
+		}
+
 		$timer->logTime('Finished Loading Series');
 
 		//Get information from list entry
@@ -347,7 +353,12 @@ class GroupedWorkDriver extends RecordInterface{
 		//Description
 		$interface->assign('summDescription', $this->getDescriptionFast());
 		$timer->logTime('Finished Loading Description');
-		$interface->assign('summSeries', $this->getSeries());
+		if ($this->hasCachedSeries()){
+			$interface->assign('ajaxSeries', false);
+			$interface->assign('summSeries', $this->getSeries());
+		}else{
+			$interface->assign('ajaxSeries', true);
+		}
 		$timer->logTime('Finished Loading Series');
 
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
@@ -512,7 +523,12 @@ class GroupedWorkDriver extends RecordInterface{
 		//Description
 		$interface->assign('summDescription', $this->getDescriptionFast());
 		$timer->logTime('Finished Loading Description');
-		$interface->assign('summSeries', $this->getSeries());
+		if ($this->hasCachedSeries()){
+			$interface->assign('ajaxSeries', false);
+			$interface->assign('summSeries', $this->getSeries());
+		}else{
+			$interface->assign('ajaxSeries', true);
+		}
 		$timer->logTime('Finished Loading Series');
 
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
@@ -1317,6 +1333,12 @@ class GroupedWorkDriver extends RecordInterface{
 
 	public function getIndexedSeries(){
 		return $this->fields['series'];
+	}
+
+	public function hasCachedSeries(){
+		//Get a list of isbns from the record
+		$novelist = NovelistFactory::getNovelist();
+		return $novelist->doesGroupedWorkHaveCachedSeries($this->getPermanentId());
 	}
 
 	public function getSeries(){
