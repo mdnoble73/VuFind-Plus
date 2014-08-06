@@ -71,6 +71,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 					//TODO: Get the correct number of available copies
 					$totalCopies = 1;
 					$this->fastItems[] = array(
+							'itemId' => $itemId,
 							'location' => $locationCode,
 							'callnumber' => '',
 							'availability' => $this->isItemAvailable($itemId, $totalCopies),
@@ -159,6 +160,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 									$sharing = $this->getSharing($locationCode, $eContentFieldData);
 									//Add an item
 									$item = array(
+											'itemId' => $itemId,
 											'location' => $locationCode,
 											'locationLabel' => $locationLabel,
 											'libraryLabel' => $libraryLabel,

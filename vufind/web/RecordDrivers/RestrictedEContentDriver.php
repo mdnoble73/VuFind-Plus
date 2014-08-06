@@ -71,7 +71,13 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 		}else if ($sharing == 'library'){
 			$searchLibrary = Library::getSearchLibrary();
 			if ($searchLibrary == null || (strlen($searchLibrary->ilsCode) > 0 && strpos($locationCode, $searchLibrary->ilsCode) === 0)){
-				return true;
+				global $user;
+				if ($user){
+					$patronHomeLibrary = Library::getPatronHomeLibrary();
+					return ($patronHomeLibrary == null || (strlen($patronHomeLibrary->ilsCode) > 0 && strpos($locationCode, $patronHomeLibrary->ilsCode) === 0));
+				}else{
+					return true;
+				}
 			}else{
 				return false;
 			}
@@ -309,33 +315,47 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 			);
 		}else{
 			//TODO: count the existing checkouts to determine if there are items available
-			require_once ROOT_DIR . '/sys/eContent/EContentCheckout.php';
-			$eContentCheckout = new EContentCheckout();
-			$eContentCheckout->userId = $user->id;
-			$eContentCheckout->recordId = $this->getUniqueID();
-			$eContentCheckout->itemId = $itemId;
-			$eContentCheckout->protectionType = 'acs';
-			if ($eContentCheckout->find(true) && $eContentCheckout->status == 'out'){
+			$items = $this->getItems();
+			$userHasAccess = false;
+			foreach ($items as $item){
+				if ($item['itemId'] == $itemId){
+					$userHasAccess = true;
+				}
+			}
+			if (!$userHasAccess){
 				return array(
-						'result' => true,
-						'message' => 'This title is already checked out to you'
+					'result' => false,
+					'message' => "Sorry, you don't have access to this title."
 				);
 			}else{
-				global $configArray;
-				$eContentCheckout->dateCheckedOut = time();
-				$loanTerm = $configArray['EContent']['loanTerm'];
-				$eContentCheckout->dateDue = time() + $loanTerm * 24 * 60 * 60; //Allow titles to be checked our for 3 weeks
-				$eContentCheckout->status = 'out';
-				if ($eContentCheckout->insert()){
+				require_once ROOT_DIR . '/sys/eContent/EContentCheckout.php';
+				$eContentCheckout = new EContentCheckout();
+				$eContentCheckout->userId = $user->id;
+				$eContentCheckout->recordId = $this->getUniqueID();
+				$eContentCheckout->itemId = $itemId;
+				$eContentCheckout->protectionType = 'acs';
+				if ($eContentCheckout->find(true) && $eContentCheckout->status == 'out'){
 					return array(
-							'result' => true,
-							'message' => 'The title was checked out to you successfully.  You may read it from Checked Out page within your account.'
+						'result' => true,
+						'message' => 'This title is already checked out to you'
 					);
 				}else{
-					return array(
+					global $configArray;
+					$eContentCheckout->dateCheckedOut = time();
+					$loanTerm = $configArray['EContent']['loanTerm'];
+					$eContentCheckout->dateDue = time() + $loanTerm * 24 * 60 * 60; //Allow titles to be checked our for 3 weeks
+					$eContentCheckout->status = 'out';
+					if ($eContentCheckout->insert()){
+						return array(
+							'result' => true,
+							'message' => 'The title was checked out to you successfully.  You may read it from Checked Out page within your account.'
+						);
+					}else{
+						return array(
 							'result' => false,
 							'message' => 'Unexpected error checking out the title.'
-					);
+						);
+					}
 				}
 			}
 		}
@@ -396,18 +416,33 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 			$eContentHold->itemId = $itemId;
 			$eContentHold->whereAdd("status NOT IN ('cancelled', 'filled')");
 			if (!$eContentHold->find(true)){
-				$eContentHold->status = 'active';
-				$eContentHold->datePlaced = time();
-				if ($eContentHold->insert()){
+				//Make sure the user has access to the title
+				$items = $this->getItems();
+				$userHasAccess = false;
+				foreach ($items as $item){
+					if ($item['itemId'] == $itemId){
+						$userHasAccess = true;
+					}
+				}
+				if (!$userHasAccess){
 					return array(
-							'result' => true,
-							'message' => 'Successfully placed hold for you.'
+						'result' => false,
+						'message' => "Sorry, you don't have access to this title."
 					);
 				}else{
-					return array(
+					$eContentHold->status = 'active';
+					$eContentHold->datePlaced = time();
+					if ($eContentHold->insert()){
+						return array(
+							'result' => true,
+							'message' => 'Successfully placed hold for you.'
+						);
+					}else{
+						return array(
 							'result' => false,
 							'message' => 'There was an unknown error placing a hold on this title.'
-					);
+						);
+					}
 				}
 			}else{
 				return array(
