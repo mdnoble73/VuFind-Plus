@@ -50,11 +50,7 @@
 
 	<div class="row">
 		<div class="result-label col-md-3">{translate text='Status'}:</div>
-		{if $recordDriver->isAvailable(true)}
-			<div class="col-md-9 result-value result-value-bold statusValue here" id="statusValue">Available Online</div>
-		{else}
-			<div class="col-md-9 result-value result-value-bold statusValue unavailable" id="statusValue">Not Available</div>
-		{/if}
+		<div class="col-md-9 result-value result-value-bold statusValue here" id="statusValue">Available Online</div>
 	</div>
 
 	{if $recordDriver->getDescription()}
