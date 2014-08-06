@@ -1,9 +1,37 @@
 VuFind.Searches = (function(){
 	$(document).ready(function(){
 		VuFind.Searches.enableSearchTypes();
+		VuFind.Searches.initAutoComplete();
 	});
 	return{
 		searchGroups: [],
+
+		initAutoComplete: function(){
+			try{
+				$("#lookfor").autocomplete({
+					source:function(request,response){
+						var url=Globals.path+"/Search/AJAX?method=GetAutoSuggestList&searchTerm=" + $("#lookfor").val();
+						$.ajax({
+							url:url,
+							dataType:"json",
+							success:function(data){
+								response(data);
+							}
+						});
+					},
+					position:{
+						my:"left top",
+						at:"left bottom",
+						of:"#lookfor",
+						collision:"none"
+					},
+					minLength:4,
+					delay:600
+				});
+			}catch(e){
+				alert("error during autocomplete setup"+e);
+			}
+		},
 
 		addAdvancedGroup: function(button){
 			var currentRow;
