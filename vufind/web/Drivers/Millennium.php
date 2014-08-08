@@ -1216,8 +1216,8 @@ class MillenniumDriver implements DriverInterface
 			//Make sure to clear any cached data
 			/** @var Memcache $memCache */
 			global $memCache;
-			$memCache->delete("patron_dump_{$user->id}");
-			usleep(250);
+			$memCache->delete("patron_dump_{$this->_getBarcode()}");
+			$memCache->delete('patronProfile_' . $user->id);
 		}
 
 		//Should get Patron Information Updated on success
