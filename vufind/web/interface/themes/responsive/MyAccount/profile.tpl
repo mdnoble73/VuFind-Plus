@@ -21,7 +21,7 @@
 					</a>
 					<div id="contactPanel" class="panel-collapse collapse in">
 						<div class="panel-body">
-							<form action='' method='post' class="form-horizontal">
+							<form action='' method='post' class="form-horizontal" id="contactUpdateForm">
 								<input type="hidden" name="updateScope" value="contact"/>
 								<div class="form-group">
 									<div class="col-xs-4"><strong>{translate text='Full Name'}:</strong></div><div class="col-xs-8">{$profile.fullname|escape}</div>
@@ -38,7 +38,7 @@
 										</div>
 										<div class="col-xs-8">
 											{if $edit && $canUpdateContactInfo && $canUpdateAddress}
-												<input name='address1' id="address1" value='{$profile.address1|escape}' size='50' maxlength='75' class="form-control" />
+												<input name='address1' id="address1" value='{$profile.address1|escape}' size='50' maxlength='75' class="form-control required" />
 											{else}
 												{$profile.address1|escape}
 											{/if}
@@ -47,18 +47,18 @@
 									<div class="form-group">
 										<div class="col-xs-4"><label for="city">{translate text='City'}:</label></div>
 										<div class="col-xs-8">
-											{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='city' id="city" value='{$profile.city|escape}' size='50' maxlength='75' class="form-control"/>{else}{$profile.city|escape}{/if}
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='city' id="city" value='{$profile.city|escape}' size='50' maxlength='75' class="form-control required"/>{else}{$profile.city|escape}{/if}
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="state">{translate text='State'}:</label></div>
 										<div class="col-xs-8">
-											{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='state' id="state" value='{$profile.state|escape}' size='50' maxlength='75' class="form-control"/>{else}{$profile.state|escape}{/if}
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='state' id="state" value='{$profile.state|escape}' size='50' maxlength='75' class="form-control required"/>{else}{$profile.state|escape}{/if}
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="zip">{translate text='Zip'}:</label></div>
-										<div class="col-xs-8">{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='zip' id="zip" value='{$profile.zip|escape}' size='50' maxlength='75' class="form-control"/>{else}{$profile.zip|escape}{/if}</div>
+										<div class="col-xs-8">{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='zip' id="zip" value='{$profile.zip|escape}' size='50' maxlength='75' class="form-control required"/>{else}{$profile.zip|escape}{/if}</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="phone">{translate text='Primary Phone Number'}:</label></div>
@@ -165,6 +165,9 @@
 										</div>
 									</div>
 								{/if}
+								<script type="text/javascript">
+									$("#contactUpdateForm").validate();
+								</script>
 							</form>
 						</div>
 					</div>
