@@ -263,6 +263,9 @@ class User extends DB_DataObject
 		$this->update();
 		//Update the serialized instance stored in the session
 		$_SESSION['userinfo'] = serialize($this);
+		/** @var Memcache $memCache */
+		global $memCache;
+		$memCache->delete('patronProfile_' . $this->id);
 	}
 
 	function updateCatalogOptions(){
@@ -273,12 +276,10 @@ class User extends DB_DataObject
 		if (isset($_POST['myLocation2']) && preg_match('/^\d{1,3}$/', $_POST['myLocation2']) == 0){
 			PEAR_Singleton::raiseError('The 2nd location had an incorrect format.');
 		}
-		if (isset($_REQUEST['bypassAutoLogout'])){
-			if ($_REQUEST['bypassAutoLogout'] == 'yes'){
-				$this->bypassAutoLogout = 1;
-			}else{
-				$this->bypassAutoLogout = 0;
-			}
+		if (isset($_REQUEST['bypassAutoLogout']) && ($_REQUEST['bypassAutoLogout'] == 'yes' || $_REQUEST['bypassAutoLogout'] == 'on')){
+			$this->bypassAutoLogout = 1;
+		}else{
+			$this->bypassAutoLogout = 0;
 		}
 
 		//Make sure the selected location codes are in the database.
@@ -304,5 +305,9 @@ class User extends DB_DataObject
 		$this->update();
 		//Update the serialized instance stored in the session
 		$_SESSION['userinfo'] = serialize($this);
+
+		/** @var Memcache $memCache */
+		global $memCache;
+		$memCache->delete('patronProfile_' . $this->id);
 	}
 }

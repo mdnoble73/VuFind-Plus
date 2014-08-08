@@ -77,12 +77,14 @@ class MyAccount_Profile extends MyAccount
 				$user->updateOverDriveOptions();
 			}
 
+			session_write_close();
 			header("Location: " . $configArray['Site']['path'] . '/MyAccount/Profile');
 			exit();
 		}elseif (isset($_POST['updatePin']) && !$configArray['Catalog']['offline']) {
 			$result = $this->catalog->updatePin();
 			$_SESSION['profileUpdateErrors'] = $result;
 
+			session_write_close();
 			header("Location: " . $configArray['Site']['path'] . '/MyAccount/Profile');
 			exit();
 		}else if (!$configArray['Catalog']['offline']){

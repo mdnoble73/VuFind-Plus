@@ -250,7 +250,7 @@
 					</a>
 					<div id="ilsPanel" class="panel-collapse collapse in">
 						<div class="panel-body">
-							<form action="" method="post" class="form-horizontal">
+							<form action="{$path}/MyAccount/Profile" method="post" class="form-horizontal">
 								<input type="hidden" name="updateScope" value="catalog"/>
 								<div class="form-group">
 									<div class="col-xs-4"><label for="myLocation1" class="control-label">{translate text='My First Alternate Library'}:</label></div>

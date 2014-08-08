@@ -583,13 +583,17 @@ class MillenniumDriver implements DriverInterface
 
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
+			$userId = $patron['id'];
 			$id2 = $this->_getBarcode($patron);
 		}else{
-			$id2= $patron['id'];
+			global $user;
+			$userId = $user->id;
+			$id2= $patron['cat_password'];
 		}
 
-		$patronProfile = $memCache->get('patronProfile_' . $patron['id']);
+		$patronProfile = $memCache->get('patronProfile_' . $userId);
 		if ($patronProfile && !isset($_REQUEST['reload']) && !$forceReload){
+			//echo("Using cached profile for patron " . $userId);
 			$timer->logTime('Retrieved Cached Profile for Patron');
 			return $patronProfile;
 		}
@@ -901,23 +905,8 @@ class MillenniumDriver implements DriverInterface
 		curl_close($curlConnection);
 
 		//Strip the actual contents out of the body of the page.
-		//$r = substr($result, stripos($result, 'BODY'));
-		//$r = substr($r,strpos($r,">")+1);
-		//$r = substr($r,0,stripos($r,"</BODY"));
 		$cleanPatronData = strip_tags($result);
 
-		//Remove the bracketed information from each row
-		//$r = preg_replace("/\[.+?]=/","=",$trimmedResult);
-
-		//Split the rows on each BR tag.
-		//This could also be done with a regex similar to the following:
-		//(.*)<BR\s*>
-		//And then get all matches of group 1.
-		//Or a regex similar to
-		//(.*?)\[.*?\]=(.*?)<BR\s*>
-		//Group1 would be the keys and group 2 the values.
-		/* $rows = preg_split("/<BR.*?>/i",$r); */
-		//$rows = explode("*",$rows);
 		//Add the key and value from each row into an associative array.
 		$patronDump = array();
 		preg_match_all('/(.*?)\\[.*?\\]=(.*)/', $cleanPatronData, $patronData, PREG_SET_ORDER);
@@ -1161,7 +1150,7 @@ class MillenniumDriver implements DriverInterface
 			}
 
 			if (isset($_REQUEST['mobileNumber'])){
-				$extraPostInfo['mobile'] = $_REQUEST['mobileNumber'];
+				$extraPostInfo['mobile'] = preg_replace('/\d/', '', $_REQUEST['mobileNumber']);
 				if (strlen($_REQUEST['mobileNumber']) > 0 && $_REQUEST['smsNotices'] == 'on'){
 					$extraPostInfo['optin'] = 'on';
 				}else{
