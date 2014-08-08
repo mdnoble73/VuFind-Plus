@@ -532,7 +532,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					}else if (subfieldData.contains("playaway")) {
 						result.add("Playaway");
 					}else if (subfieldData.contains("graphic novel")) {
-						result.add("Playaway");
+						result.add("GraphicNovel");
 					}
 				}
 			}
