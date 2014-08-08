@@ -6,11 +6,15 @@
 			{/if}
 
 			<h3>{translate text='Account Summary'}</h3>
-			<p>
-				You currently have a total of <strong>{$profile.numCheckedOutTotal}</strong> titles <a href="{$path}/MyAccount/CheckedOut">checked out</a>, and <strong>{$profile.numHoldsTotal}</strong> titles on <a href="{$path}/MyAccount/Holds">hold</a>.
+			<div>
+				You currently have:
+				<ul>
+					<li><strong>{$profile.numCheckedOutTotal}</strong> titles <a href="{$path}/MyAccount/CheckedOut">checked out</a></li>
+					<li><strong>{$profile.numHoldsTotal}</strong> titles on <a href="{$path}/MyAccount/Holds">hold</a></li>
+				</ul>
 				{* TODO: Show an alert if any titles are expired or are going to expire *}
 				{* TODO: Show an alert if any titles ready for pickup *}
-			</p>
+			</div>
 
 			{if $showRatings}
 				<h3>{translate text='Recommended for you'}</h3>
@@ -22,7 +26,7 @@
 						Library staff does not have access to your suggestions.
 					</p>
 				{else}
-					<p>Based on the titles you have rated so far, these titles may be of interest to you.  To improve your suggestions keep rating more titles.</p>
+					<p>Based on the titles you have <a href="{$path}/MyAccount/MyRatings">rated</a>, we have <a href="{$path}/MyAccount/SuggestedTitles">suggestions for you</a>.  To improve your suggestions keep rating more titles.</p>
 					{foreach from=$suggestions item=suggestion name=recordLoop}
 						<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
 							{$suggestion}

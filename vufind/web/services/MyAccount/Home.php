@@ -29,7 +29,7 @@ class MyAccount_Home  extends MyAccount{
 			$curIndex = 0;
 
 			// Setup Search Engine Connection
-			$searchObject = SearchObjectFactory::initSearchObject();
+			/*$searchObject = SearchObjectFactory::initSearchObject();
 
 			if (is_array($suggestions)) {
 				$suggestionIds = array();
@@ -39,7 +39,7 @@ class MyAccount_Home  extends MyAccount{
 				$results = $searchObject->searchForRecordIds($suggestionIds);
 				$resourceList = $searchObject->getSuggestionListHTML();
 			}
-			$interface->assign('suggestions', $resourceList);
+			$interface->assign('suggestions', $resourceList);*/
 
 			//Check to see if the user has rated any titles
 			$interface->assign('hasRatings', $user->hasRatings());
