@@ -1150,7 +1150,7 @@ class MillenniumDriver implements DriverInterface
 			}
 
 			if (isset($_REQUEST['mobileNumber'])){
-				$extraPostInfo['mobile'] = preg_replace('/\d/', '', $_REQUEST['mobileNumber']);
+				$extraPostInfo['mobile'] = preg_replace('/\D/', '', $_REQUEST['mobileNumber']);
 				if (strlen($_REQUEST['mobileNumber']) > 0 && $_REQUEST['smsNotices'] == 'on'){
 					$extraPostInfo['optin'] = 'on';
 				}else{
@@ -1216,7 +1216,7 @@ class MillenniumDriver implements DriverInterface
 			//Make sure to clear any cached data
 			/** @var Memcache $memCache */
 			global $memCache;
-			$memCache->delete("patron_dump_{$this->_getBarcode()}");
+			$memCache->delete("patron_dump_{$user->id}");
 			usleep(250);
 		}
 
