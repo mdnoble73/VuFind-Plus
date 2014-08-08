@@ -2104,7 +2104,7 @@ public function getNextPrevLinks(){
 							//Convert back to 1 based index
 							if (isset($previousRecord)){
 								$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
-								$interface->assign('previousTitle', $previousRecord['title']);
+								$interface->assign('previousTitle', $previousRecord['title_display']);
 								if (strpos($previousRecord['id'], 'econtentRecord') === 0){
 									$interface->assign('previousType', 'EcontentRecord');
 									$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
@@ -2133,7 +2133,7 @@ public function getNextPrevLinks(){
 							//Convert back to 1 based index
 							$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
 							if (isset($nextRecord)){
-								$interface->assign('nextTitle', $nextRecord['title']);
+								$interface->assign('nextTitle', $nextRecord['title_display']);
 								if (strpos($nextRecord['id'], 'econtentRecord') === 0){
 									$interface->assign('nextType', 'EcontentRecord');
 									$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
