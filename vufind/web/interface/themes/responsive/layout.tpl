@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="{$userLang}">
-	<head>
+	<head>{strip}
 		<title>{$pageTitle|truncate:64:"..."}</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 		<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
@@ -12,8 +12,10 @@
 		<link rel="search" type="application/opensearchdescription+xml" title="Library Catalog Search" href="{$path}/Search/OpenSearch?method=describe" />
 
 		{include file="cssAndJsIncludes.tpl"}
+		{/strip}
 	</head>
 	<body class="module_{$module} action_{$action}" id="{$module}-{$action}">
+		{strip}
 		<div class="container">
 			{if $systemMessage}
 				<div id="system-message-header" class="row">{$systemMessage}</div>
@@ -113,6 +115,6 @@
 		{if file_exists("tracking.tpl")}
 			{include file="tracking.tpl"}
 		{/if}
-
+		{/strip}
 	</body>
 </html>
