@@ -147,6 +147,7 @@ class BrowseCategory extends  DB_DataObject{
 			}
 			$formattedFilters .= $filter[0]['field'] . ':' . $filter[0]['value'];
 		}
+		$this->defaultFilter = $formattedFilters;
 
 		//Default sort
 		$solrSort = $searchObj->getSort();
