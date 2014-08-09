@@ -188,7 +188,7 @@ VuFind.GroupedWork = (function(){
 		reloadCover: function (id){
 			var url = Globals.path + '/GroupedWork/' + id + '/AJAX?method=reloadCover';
 			$.getJSON(url, function (data){
-						VuFind.showMessage("Success", data.message);
+						VuFind.showMessage("Success", data.message, true, true);
 						setTimeout("VuFind.closeLightbox();", 3000);
 					}
 			);

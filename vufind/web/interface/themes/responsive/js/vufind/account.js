@@ -285,6 +285,25 @@ VuFind.Account = (function(){
 			window.location.href = currentLocation;
 		},
 
+		changeHoldPickupLocation: function (holdId){
+			if (Globals.loggedIn){
+				var modalDialog = $("#modalDialog");
+				//$(".modal-body").html($('#userreview' + id).html());
+				$.getJSON(Globals.path + "/MyAccount/AJAX?method=getChangeHoldLocationForm&holdId=" + holdId, function(data){
+					$('#myModalLabel').html(data.title);
+					$('.modal-body').html(data.modalBody);
+					$('.modal-buttons').html(data.modalButtons);
+				});
+				modalDialog.load( );
+				modalDialog.modal('show');
+			}else{
+				VuFind.Account.ajaxLogin(null, function (){
+					return VuFind.GroupedWork.changeHoldPickupLocation(holdId);
+				}, false);
+			}
+			return false;
+		},
+
 		deleteSearch: function(searchId){
 			if (!Globals.loggedIn){
 				VuFind.Account.ajaxLogin(null, function () {
@@ -304,6 +323,33 @@ VuFind.Account = (function(){
 				);
 			}
 			return false;
+		},
+
+		doChangeHoldLocation: function(){
+			var holdId = $('#holdId').val();
+			var newLocation = $('#newPickupLocation').val();
+			var url = Globals.path + "/MyAccount/AJAX?method=changeHoldLocation&holdId=" + encodeURIComponent(holdId) + "&newLocation=" + encodeURIComponent(newLocation);
+			$.getJSON(url,
+					function(data) {
+						if (data.result) {
+							VuFind.showMessage("Success", data.message, true, true);
+						} else {
+							VuFind.showMessage("Error", data.message);
+						}
+					}
+			);
+		},
+
+		freezeHold: function(holdId){
+			VuFind.showMessage("Freezing Hold", "Freezing your hold.  This may take a minute.");
+			var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&holdId=' + holdId;
+			$.getJSON(url, function(data){
+				if (data.result) {
+					VuFind.showMessage("Success", data.message, true, true);
+				} else {
+					VuFind.showMessage("Error", data.message);
+				}
+			});
 		},
 
 		freezeSelectedHolds: function (){
@@ -406,6 +452,18 @@ VuFind.Account = (function(){
 				}, false);
 			}
 			return false;
+		},
+
+		thawHold: function(holdId){
+			VuFind.showMessage("Thawing Hold", "Thawing your hold.  This may take a minute.");
+			var url = Globals.path + '/MyAccount/AJAX?method=thawHold&holdId=' + holdId;
+			$.getJSON(url, function(data){
+				if (data.result) {
+					VuFind.showMessage("Success", data.message, true, true);
+				} else {
+					VuFind.showMessage("Error", data.message);
+				}
+			});
 		}
 
 	};

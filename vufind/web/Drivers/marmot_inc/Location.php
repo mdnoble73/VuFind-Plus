@@ -242,6 +242,11 @@ class Location extends DB_DataObject
 		return $structure;
 	}
 
+	/**
+	 * @param array|User $patronProfile
+	 * @param int $selectedBranchId
+	 * @return Location[]
+	 */
 	function getPickupBranches($patronProfile, $selectedBranchId) {
 		//Get the library for the patron's home branch.
 		/** @var Library $librarySingleton */

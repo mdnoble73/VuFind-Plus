@@ -137,6 +137,12 @@
 							<button onclick="return VuFind.Account.cancelAvailableHold('{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
 						{else}
 							<button onclick="return VuFind.Account.cancelPendingHold('{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
+							{if $record.frozen}
+								<button onclick="return VuFind.Account.thawHold('{$record.cancelId}');" class="btn btn-sm btn-default">Thaw Hold</button>
+							{elseif $record.freezeable}
+								<button onclick="return VuFind.Account.freezeHold('{$record.cancelId}');" class="btn btn-sm btn-default">Freeze Hold</button>
+							{/if}
+							<button onclick="return VuFind.Account.changeHoldPickupLocation('{$record.cancelId}');" class="btn btn-sm btn-default">Change Pickup Loc.</button>
 						{/if}
 					</div>
 

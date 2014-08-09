@@ -119,12 +119,16 @@ class MillenniumHolds{
 		$scope = $this->driver->getDefaultScope();
 		//go to the holds page and get the number of holds on the account
 		$holds = $this->getMyHolds();
-		$numHoldsStart = count($holds['available'] + $holds['unavailable']);
+		$numHoldsStart = count($holds['holds']['available'] + $holds['holds']['unavailable']);
 
 		if (!isset($xNum) ){
-			$waitingHolds = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
-			$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
-			$xNum = array_merge($waitingHolds, $availableHolds);
+			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])){
+				$waitingHolds = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
+				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
+				$xNum = array_merge($waitingHolds, $availableHolds);
+			}else{
+				$xNum = array($cancelId);
+			}
 		}
 		$location = new Location();
 		if (isset($locationId) && is_numeric($locationId)){
@@ -134,6 +138,8 @@ class MillenniumHolds{
 				$location->fetch();
 				$paddedLocation = str_pad(trim($location->code), 5, "+");
 			}
+		}elseif (isset($locationId)){
+			$paddedLocation = $locationId;
 		}else{
 			$paddedLocation = null;
 		}

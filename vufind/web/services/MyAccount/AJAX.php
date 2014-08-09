@@ -11,7 +11,7 @@
 class MyAccount_AJAX {
 	function launch(){
 		$method = $_GET['method'];
-		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag', 'saveSearch', 'deleteSavedSearch'))){
+		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag', 'saveSearch', 'deleteSavedSearch', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation'))){
 			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -129,6 +129,56 @@ class MyAccount_AJAX {
 				'message' => $message,
 		);
 		return json_encode($result);
+	}
+
+	function freezeHold(){
+		global $configArray;
+		global $user;
+
+
+		try {
+			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+
+			$holdId = $_REQUEST['holdId'];
+			$result = $catalog->driver->updateHoldDetailed($user->password, 'update', '', null, $holdId, null, 'on');
+			return json_encode($result);
+		} catch (PDOException $e) {
+			// What should we do with this error?
+			if ($configArray['System']['debug']) {
+				echo '<pre>';
+				echo 'DEBUG: ' . $e->getMessage();
+				echo '</pre>';
+			}
+		}
+		return json_encode(array(
+			'result' => false,
+			'message' => 'We could not connect to the circulation system, please try again later.'
+		));
+	}
+
+	function thawHold(){
+		global $configArray;
+		global $user;
+
+
+		try {
+			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+
+			$holdId = $_REQUEST['holdId'];
+			$result = $catalog->driver->updateHoldDetailed($user->password, 'update', '', null, $holdId, null, 'off');
+			return json_encode($result);
+		} catch (PDOException $e) {
+			// What should we do with this error?
+			if ($configArray['System']['debug']) {
+				echo '<pre>';
+				echo 'DEBUG: ' . $e->getMessage();
+				echo '</pre>';
+			}
+		}
+		return json_encode(array(
+			'result' => false,
+			'message' => 'We could not connect to the circulation system, please try again later.'
+		));
 	}
 
 	//TODO: Review these methods to see what can be deleted
@@ -432,12 +482,52 @@ class MyAccount_AJAX {
 		return $interface->fetch('popup-wrapper.tpl');
 	}
 
-	function getPinResetForm(){
+	function getChangeHoldLocationForm(){
 		global $interface;
-		$interface->assign('popupTitle', 'Reset PIN Request');
-		$pageContent = $interface->fetch('MyResearch/resetPinPopup.tpl');
-		$interface->assign('popupContent', $pageContent);
-		return $interface->fetch('popup-wrapper.tpl');
+		global $user;
+		$id = $_REQUEST['holdId'];
+		$interface->assign('holdId', $id);
+
+		$location = new Location();
+		$pickupBranches = $location->getPickupBranches($user, null);
+		$locationList = array();
+		foreach ($pickupBranches as $curLocation) {
+			$locationList[$curLocation->code] = $curLocation->displayName;
+		}
+		$interface->assign('pickupLocations', $locationList);
+
+		$results = array(
+			'title' => 'Change Hold Location',
+			'modalBody' => $interface->fetch("MyAccount/changeHoldLocation.tpl"),
+			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.doChangeHoldLocation(); return false;'>Change Location</span>"
+		);
+		return json_encode($results);
+	}
+
+	function changeHoldLocation(){
+		global $configArray;
+		global $user;
+
+
+		try {
+			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+
+			$holdId = $_REQUEST['holdId'];
+			$newPickupLocation = $_REQUEST['newLocation'];
+			$result = $catalog->driver->updateHoldDetailed($user->password, 'update', '', null, $holdId, $newPickupLocation, null);
+			return json_encode($result);
+		} catch (PDOException $e) {
+			// What should we do with this error?
+			if ($configArray['System']['debug']) {
+				echo '<pre>';
+				echo 'DEBUG: ' . $e->getMessage();
+				echo '</pre>';
+			}
+		}
+		return json_encode(array(
+			'result' => false,
+			'message' => 'We could not connect to the circulation system, please try again later.'
+		));
 	}
 
 	function requestPinReset(){
