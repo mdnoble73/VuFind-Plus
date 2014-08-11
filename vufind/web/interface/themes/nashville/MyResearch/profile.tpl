@@ -60,7 +60,8 @@
 											<select name="pickupLocation" id="pickupLocation">
 												{if count($pickupLocations) > 0}
 													{foreach from=$pickupLocations item=location}
-														<option value="{$location->code}" {if $location->selected == "selected"}selected="selected"{/if}>{$location->displayName}</option>
+														<!-- <option value="{$location->code}" {if $location->selected == "selected"}selected="selected"{/if}>{$location->displayName}</option> -->
+														<option value="{$location->code}" {if $location->displayName|escape == $profile.homeLocation|escape}selected="selected"{/if}>{$location->displayName}</option>
 													{/foreach}
 												{else}
 													<option>placeholder</option>
@@ -73,7 +74,7 @@
 								</tr>
 							{/if}
 							{if $showNoticeTypeInProfile}
-								<tr><th>{translate text='Receive renew/overdue<br />notices by'}:</th><td>{if $edit == true && $canUpdateContactInfo == true}<input type="radio" value="p" id="notices" name="notices">Telephone<br/><input type="radio" value="z" id="notices" name="notices">Email{else}{$profile.noticePreferenceLabel|escape}{/if}</td></tr>
+								<tr><th>{translate text='Receive renew/overdue<br />notices by'}:</th><td>{if $edit == true && $canUpdateContactInfo == true}<input type="radio" value="p" id="notices" name="notices" {if $profile.notices=="p"}checked{/if}>Telephone<br/><input type="radio" value="z" id="notices" name="notices" {if $profile.notices=="z"}checked{/if}>Email{else}{$profile.noticePreferenceLabel|escape}{/if}</td></tr>
 							{/if}
                             <tr><th>{translate text='eNewsletter Preferences'}:</th><td><a href="http://www.library.nashville.org/Info/gen_email.asp" target='_blank'>Update Preferences (will open in a new window)</a></td></tr>
 						</table>
