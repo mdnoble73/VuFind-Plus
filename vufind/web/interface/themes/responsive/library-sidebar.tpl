@@ -17,7 +17,7 @@
 		{/if}
 
 		{if $libraryLinks}
-			<div id="home-library-links" class="sidebar-links">
+			<div id="home-library-links" class="sidebar-links accordion">
 				<div class="panel-group" id="link-accordion">
 					{foreach from=$libraryLinks item=linkCategory key=categoryName name=linkLoop}
 						<div class="panel {if $smarty.foreach.linkLoop.first && !$user}active{/if}">

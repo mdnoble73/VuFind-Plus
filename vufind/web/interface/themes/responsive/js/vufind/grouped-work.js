@@ -367,7 +367,6 @@ VuFind.GroupedWork = (function(){
 			var $trigger = $(trigger);
 			if (Globals.loggedIn){
 				var modalDialog = $("#modalDialog");
-				//$(".modal-body").html($('#userreview' + id).html());
 				$.getJSON(Globals.path + "/GroupedWork/AJAX?method=getReviewForm&id=" + id, function(data){
 					$('#myModalLabel').html(data.title);
 					$('.modal-body').html(data.modalBody);

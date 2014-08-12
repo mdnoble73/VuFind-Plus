@@ -18,7 +18,7 @@
 			{* Responsive theme enforces that the user is always logged in before getting here*}
 			<div id='holdOptions'>
 				<div id='pickupLocationOptions' class="form-group">
-					<label class='control-label'>{translate text="I want to pick this up at"}: </label>
+					<label for="campus" class='control-label'>{translate text="I want to pick this up at"}: </label>
 					<div class='controls'>
 						<select name="campus" id="campus">
 							{if count($pickupLocations) > 0}
@@ -57,7 +57,6 @@
 	{literal}
 	$(function() {
 		$( "#cancelDatePicker" ).datepicker();
-		//$( "#canceldate" ).datepicker({ minDate: 0, showOn: "button", buttonImage: "{/literal}{$path}{literal}/images/silk/calendar.png", numberOfMonths: 1,	buttonImageOnly: true});
 	});
 	{/literal}
 </script>

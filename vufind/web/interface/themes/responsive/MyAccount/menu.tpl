@@ -1,10 +1,16 @@
 {strip}
 {if $user != false}
+	<br/>
 	{* Setup the accoridon *}
 	<div id="home-account-links" class="sidebar-links row">
-		<div class="panel-group" id="account-link-accordion">
+		<div class="panel-group accordion" id="account-link-accordion">
 			{* My Account *}
 			<a name="account-menu"></a>
+			{if $module == 'MyAccount' || $module == 'MyResearch' || ($module == 'Search' && $action == 'Home')}
+				{assign var="curSection" value=true}
+			{else}
+				{assign var="curSection" value=false}
+			{/if}
 			<div class="panel {if $module == 'MyAccount' || $module == 'MyResearch' || ($module == 'Search' && $action == 'Home')}active{/if}">
 				{* Clickable header for my account section *}
 				<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myAccountPanel">
@@ -14,7 +20,7 @@
 						</div>
 					</div>
 				</a>
-				<div id="myAccountPanel" class="panel-collapse collapse {if $module == 'MyAccount' || $module == 'MyResearch' || ($module == 'Search' && $action == 'Home')}in{/if}">
+				<div id="myAccountPanel" class="panel-collapse collapse {if $curSection}in{/if}">
 					<div class="panel-body">
 						{if $profile.finesval > 0 || ($showExpirationWarnings && $profile.expireclose)}
 							<div id="myAccountFines">
@@ -59,7 +65,12 @@
 
 			{* My Lists*}
 			{if $lists}
-				<div class="panel {if $action == 'MyRatings' || $action == 'Suggested Titles' || $action == 'MyList'}active{/if}">
+				{if $action == 'MyList'}
+					{assign var="curSection" value=true}
+				{else}
+					{assign var="curSection" value=false}
+				{/if}
+				<div class="panel {if $curSection}active{/if}">
 					<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myListsPanel">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -84,7 +95,7 @@
 				<div class="panel">
 					<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myTagsPanel">
 						<div class="panel-heading">
-							<div class="panel-title">
+							<div class="panel-title collapsed">
 								MY TAGS
 							</div>
 						</div>

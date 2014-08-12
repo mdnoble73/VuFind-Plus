@@ -29,15 +29,22 @@ body {
   cursor: pointer;
 }
 
-.accordion-toggle:before {
-  content: "►";
+.accordion .panel-title.collapsed:before {
+  content: "► ";
+}
+.accordion .panel-title.expanded:before {
+  content: "▼ ";
 }
 
-.accordion-toggle.collapsed:before {
-  content: "►";
+.panel .panel-title:before {
+  content: "► ";
 }
-.accordion-toggle.expanded:before {
-  content: "▼";
+.panel.active .panel-title:before {
+  content: "▼ ";
+}
+
+.panel-title{
+  font-size: 14px;
 }
 
 .modal {

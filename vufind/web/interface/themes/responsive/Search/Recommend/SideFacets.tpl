@@ -21,11 +21,11 @@
 		{* Available filters *}
 		{if $sideFacetSet && $recordCount > 0}
 			<div id="narrow-search-label" class="sidebar-label">{translate text='Narrow Search'}</div>
-			<div id="facet-accordion">
+			<div id="facet-accordion" class="accordion">
 				{foreach from=$sideFacetSet item=cluster key=title name=facetSet}
 					{if count($cluster.list) > 0}
 						<div class="facetList">
-							<div class="facetTitle {if true || $cluster.collapseByDefault}collapsed{else}expanded{/if}" onclick="$(this).toggleClass('expanded');$(this).toggleClass('collapsed');$('#facetDetails_{$title}').toggle()">
+							<div class="facetTitle panel-title {if true || $cluster.collapseByDefault}collapsed{else}expanded{/if}" onclick="$(this).toggleClass('expanded');$(this).toggleClass('collapsed');$('#facetDetails_{$title}').toggle()">
 								{translate text=$cluster.label}
 							</div>
 							<div id="facetDetails_{$title}" class="facetDetails" {if true || $cluster.collapseByDefault}style="display:none"{/if}>

@@ -324,8 +324,7 @@ class GroupedWork_AJAX {
 		return json_encode($results);
 	}
 
-	function saveReview()
-	{
+	function saveReview() {
 		$result = array();
 
 		global $user;

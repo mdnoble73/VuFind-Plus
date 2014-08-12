@@ -6674,17 +6674,17 @@ hr.menu {
   color: #cccccc;
 }
 div#system-message-header {
-  background-color: #817c81;
+  background-color: #f2f2f2;
   color: black;
   text-align: center;
   padding: 3px;
 }
 #header-container {
   padding-top: 0px;
-  height: 130px;
-  background-color: #817c81;
-  background: linear-gradient(to bottom, #817c81, #525254 85%, #444545);
-  border-bottom: 8px solid #333333;
+  height: 90px;
+  background-color: #f2f2f2;
+  background: linear-gradient(to bottom, #f2f2f2, #dddddd 85%, #e0e0e0);
+  border-bottom: 8px solid #b7b7b7;
   margin-bottom: 0px;
   min-height: 110px;
 }
@@ -6699,11 +6699,11 @@ div#system-message-header {
 }
 .header-button {
   text-align: center;
-  height: 122px !important;
-  border-bottom: 4px solid #444545;
+  height: 82px !important;
+  border-bottom: 4px solid #e0e0e0;
 }
 .header-button > a {
-  line-height: 122px !important;
+  line-height: 82px !important;
   text-align: center;
   vertical-align: middle;
   padding: 0px;
@@ -6729,7 +6729,7 @@ div#system-message-header {
   padding-top: 5px;
 }
 #footer-container {
-  border-top: 8px solid #333333;
+  border-top: 8px solid #088ec6;
   padding-top: 3px;
 }
 #install-info {
@@ -6745,7 +6745,7 @@ div#system-message-header {
   padding: 0px 3px 0px 3px;
 }
 #navigation-controls {
-  border-top: 8px solid #333333;
+  border-top: 8px solid #088ec6;
   background: white;
 }
 @media print {
@@ -7795,31 +7795,6 @@ div#system-message-header {
   margin: 5px;
   text-align: right;
 }
-#header-container {
-  background-image: url('/interface/themes/pitkin_resp/images/header_background.png');
-}
 #header-logo {
-  border-radius: 0.5em;
-  margin-top: 7px;
-  padding: 5px;
-  background-color: rgba(51, 51, 51, 0.6);
-}
-.header-button {
-  border-radius: 0.5em;
-  background-color: rgba(51, 51, 51, 0.6);
-  margin-top: 20px;
-  height: 60px !important;
-  border: 0px;
-}
-.header-button > a {
-  color: white !important;
-  line-height: 60px !important;
-  text-shadow: none;
-}
-.header-button > a:visited {
-  color: white !important;
-}
-.header-button:hover {
-  border-bottom: 0px;
-  box-shadow: 2px 2px 5px white;
+  max-width: 100%;
 }

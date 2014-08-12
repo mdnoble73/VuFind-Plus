@@ -749,8 +749,7 @@ class BookCoverProcessor{
 			return false;
 		}
 		if (is_callable('json_decode')) {
-			$url = 'http://books.google.com/books?jscmd=viewapi&' .
-	               'bibkeys=ISBN:' . $this->isn . '&callback=addTheCover';
+			$url = 'http://books.google.com/books?jscmd=viewapi&bibkeys=ISBN:' . $this->isn . '&callback=addTheCover';
 			require_once ROOT_DIR . '/sys/Proxy_Request.php';
 			$client = new Proxy_Request();
 			$client->setMethod(HTTP_REQUEST_METHOD_GET);
