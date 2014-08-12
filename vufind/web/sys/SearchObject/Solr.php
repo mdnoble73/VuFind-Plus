@@ -1271,12 +1271,9 @@ class SearchObject_Solr extends SearchObject_Base
 		// The first record to retrieve:
 		//  (page - 1) * limit = start
 		$recordStart = ($this->page - 1) * $this->limit;
-		//TODO: Fix this to remove irrelevant fields based on scoping
-		if (true || $this->debug){
-			$fieldsToReturn = $this->fieldsFull;
-		}else{
-			$fieldsToReturn = $this->fields;
-		}
+		//Remove irrelevant fields based on scoping
+		$fieldsToReturn = $this->getFieldsToReturn();
+
 		$this->indexResult = $this->indexEngine->search(
 			$this->query,      // Query string
 			$this->index,      // DisMax Handler
@@ -1941,7 +1938,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	function getRecord($id)
 	{
-		return $this->indexEngine->getRecord($id);
+		return $this->indexEngine->getRecord($id, $this->getFieldsToReturn());
 	}
 
 	/**
@@ -1954,7 +1951,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	function getRecords($ids)
 	{
-		return $this->indexEngine->getRecords($ids);
+		return $this->indexEngine->getRecords($ids, $this->getFieldsToReturn());
 	}
 
 	/**
@@ -1981,6 +1978,28 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	function getRecordByBarcode($barcode){
 		return $this->indexEngine->getRecordByBarcode($barcode);
+	}
+
+	private function getFieldsToReturn() {
+		$fieldsToReturn = $this->fields;
+		global $solrScope;
+		if ($solrScope != false){
+			$fieldsToReturn .= ',related_record_ids_' . $solrScope;
+			$fieldsToReturn .= ',related_items_' . $solrScope;
+			$fieldsToReturn .= ',format_' . $solrScope;
+			$fieldsToReturn .= ',format_category_' . $solrScope;
+			$fieldsToReturn .= ',collection_' . $solrScope;
+			$fieldsToReturn .= ',local_time_since_added_' . $solrScope;
+		}else{
+			$fieldsToReturn .= ',related_record_ids';
+			$fieldsToReturn .= ',related_record_items';
+			$fieldsToReturn .= ',related_items_related_record_ids';
+			$fieldsToReturn .= ',format';
+			$fieldsToReturn .= ',format_category';
+			$fieldsToReturn .= ',days_since_added';
+			$fieldsToReturn .= ',local_callnumber';
+		}
+		return $fieldsToReturn;
 	}
 
 }

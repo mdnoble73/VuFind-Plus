@@ -334,11 +334,12 @@ class Solr implements IndexEngine {
 	 * Retrieves a document specified by the ID.
 	 *
 	 * @param	 string	$id				 The document to retrieve from Solr
+	 * @param string $fieldsToReturn An optional list of fields to return separated by commas
 	 * @access	public
 	 * @throws	object							PEAR Error
 	 * @return	string							The requested resource
 	 */
-	function getRecord($id)
+	function getRecord($id, $fieldsToReturn = null)
 	{
 		if ($this->debugSolrQuery) {
 			echo "<pre>Get Record: $id</pre>\n";
@@ -351,6 +352,9 @@ class Solr implements IndexEngine {
 
 			// Query String Parameters
 			$options = array('q' => "id:\"$id\"");
+			if ($fieldsToReturn){
+				$options['fields'] = $fieldsToReturn;
+			}
 			$result = $this->_select('GET', $options);
 			if (PEAR_Singleton::isError($result)) {
 				PEAR_Singleton::raiseError($result);
