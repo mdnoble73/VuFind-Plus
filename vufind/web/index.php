@@ -186,11 +186,15 @@ if ($searchSource == 'local' || $searchSource == 'econtent'){
 					)
 			)){
 		$solrScope = $searchLocation->code;
-	}elseif ($libraryIsScoped){
+	}else{
 		$solrScope = $searchLibrary->subdomain;
 	}
 }elseif($searchSource != 'marmot' && $searchSource != 'global'){
 	$solrScope = $searchSource;
+}
+$solrScope = trim($solrScope);
+if (strlen($solrScope) == 0){
+	$solrScope = false;
 }
 
 $searchLibrary = Library::getSearchLibrary($searchSource);
