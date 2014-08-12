@@ -6738,6 +6738,20 @@ div#system-message-header {
   white-space: normal;
   padding-top: 5px;
 }
+#header-links {
+  text-align: center;
+}
+.header-link-wrapper {
+  display: inline-block;
+  padding: 2px 15px;
+  border-right: 1px solid #0078ae;
+}
+#header-links .header-link-wrapper:last-of-type {
+  border-right: 0px solid black;
+}
+.header-link-wrapper a {
+  font-size: 16px;
+}
 #footer-container {
   border-top: 8px solid #6f737a;
   padding-top: 3px;
@@ -7506,6 +7520,9 @@ div#system-message-header {
 }
 .facetValue:last-of-type {
   margin-bottom: 3px;
+}
+.facet-form {
+  margin: 5px 30px;
 }
 .sidebar-label {
   text-align: center;

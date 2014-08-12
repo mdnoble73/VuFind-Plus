@@ -369,6 +369,9 @@ class UInterface extends Smarty
 				$libraryLinks[$libraryLink->category][$libraryLink->linkText] = $libraryLink->url;
 			}
 			$this->assign('libraryLinks', $libraryLinks);
+
+			$topLinks = $library->libraryTopLinks;
+			$this->assign('topLinks', $topLinks);
 		}
 	}
 

@@ -1,12 +1,16 @@
-<form id='{$title}Filter' action='{$fullPath}'>
-	<div>
+<form id='{$title}Filter' action='{$fullPath}' class="form-inline">
+	<div class="facet-form">
 		{if $title == 'lexile_score'}
 			<div id="lexile-range"></div>
 		{/if}
-		<label for="{$title}from" class='yearboxlabel'>From:</label>
-		<input type="text" size="4" maxlength="4" class="yearbox" name="{$title}from" id="{$title}from" value="" />
-		<label for="{$title}to" class='yearboxlabel'>To:</label>
-		<input type="text" size="4" maxlength="4" class="yearbox" name="{$title}to" id="{$title}to" value="" />
+		<div class="form-group">
+			<label for="{$title}from" class='yearboxlabel sr-only control-label'>From:</label>
+			<input type="text" size="4" maxlength="4" class="yearbox form-control" placeholder="from" name="{$title}from" id="{$title}from" value="" />
+		</div>
+		<div class="form-group">
+			<label for="{$title}to" class='yearboxlabel sr-only control-label'>To:</label>
+			<input type="text" size="4" maxlength="4" class="yearbox form-control" placeholder="to" name="{$title}to" id="{$title}to" value="" />
+		</div>
 		{* To make sure that applying this filter does not remove existing filters we need to copy the get variables as hidden variables *}
 		{foreach from=$smarty.get item=parmValue key=paramName}
 			{if is_array($smarty.get.$paramName)}
@@ -20,6 +24,6 @@
 				<input type="hidden" name="{$paramName}" value="{$parmValue|escape}" />
 			{/if}
 		{/foreach}
-		<input type="submit" value="Go" id="goButton" class="goButton btn btn-sm btn-default" />
+		<input type="submit" value="Go" id="goButton" class="goButton btn btn-sm btn-primary" />
 	</div>
 </form>

@@ -10,6 +10,8 @@ require_once ROOT_DIR . '/Drivers/marmot_inc/LibraryFacetSetting.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LibrarySearchSource.php';
 require_once ROOT_DIR . '/sys/Browse/LibraryBrowseCategory.php';
 require_once ROOT_DIR . '/sys/LibraryMoreDetails.php';
+require_once ROOT_DIR . '/sys/LibraryLinks.php';
+require_once ROOT_DIR . '/sys/LibraryTopLinks.php';
 
 class Library extends DB_DataObject
 {
@@ -157,6 +159,10 @@ class Library extends DB_DataObject
 		$libraryLinksStructure = LibraryLinks::getObjectStructure();
 		unset($libraryLinksStructure['weight']);
 		unset($libraryLinksStructure['libraryId']);
+
+		$libraryTopLinksStructure = LibraryTopLinks::getObjectStructure();
+		unset($libraryTopLinksStructure['weight']);
+		unset($libraryTopLinksStructure['libraryId']);
 
 		$libraryBrowseCategoryStructure = LibraryBrowseCategory::getObjectStructure();
 		unset($libraryBrowseCategoryStructure['weight']);
@@ -406,12 +412,27 @@ class Library extends DB_DataObject
 			'libraryLinks' => array(
 				'property'=>'libraryLinks',
 				'type'=>'oneToMany',
-				'label'=>'Home Page Links',
-				'description'=>'Links To Show on the Home Screen',
+				'label'=>'Sidebar Links',
+				'description'=>'Links To Show in the sidebar',
 				'keyThis' => 'libraryId',
 				'keyOther' => 'libraryId',
 				'subObjectType' => 'LibraryLinks',
 				'structure' => $libraryLinksStructure,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => false,
+				'canEdit' => false,
+			),
+
+			'libraryTopLinks' => array(
+				'property'=>'libraryTopLinks',
+				'type'=>'oneToMany',
+				'label'=>'Header Links',
+				'description'=>'Links To Show in the header',
+				'keyThis' => 'libraryId',
+				'keyOther' => 'libraryId',
+				'subObjectType' => 'LibraryTopLinks',
+				'structure' => $libraryTopLinksStructure,
 				'sortable' => true,
 				'storeDb' => true,
 				'allowEdit' => false,
@@ -595,6 +616,18 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->libraryLinks;
+		}elseif ($name == 'libraryTopLinks'){
+			if (!isset($this->libraryTopLinks) && $this->libraryId){
+				$this->libraryTopLinks = array();
+				$libraryLink = new LibraryTopLinks();
+				$libraryLink->libraryId = $this->libraryId;
+				$libraryLink->orderBy('weight');
+				$libraryLink->find();
+				while($libraryLink->fetch()){
+					$this->libraryTopLinks[$libraryLink->id] = clone($libraryLink);
+				}
+			}
+			return $this->libraryTopLinks;
 		}elseif  ($name == 'browseCategories'){
 			if (!isset($this->browseCategories) && $this->libraryId){
 				$this->browseCategories = array();
@@ -625,6 +658,8 @@ class Library extends DB_DataObject
 			$this->searchSources = $value;
 		}elseif ($name == 'libraryLinks'){
 			$this->libraryLinks = $value;
+		}elseif ($name == 'libraryTopLinks'){
+			$this->libraryTopLinks = $value;
 		}elseif ($name == 'browseCategories'){
 			$this->browseCategories = $value;
 		}else{
@@ -647,6 +682,7 @@ class Library extends DB_DataObject
 			$this->saveFacets();
 			$this->saveSearchSources();
 			$this->saveLibraryLinks();
+			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
 			$this->saveMoreDetailsOptions();
 			return $ret;
@@ -668,6 +704,7 @@ class Library extends DB_DataObject
 			$this->saveFacets();
 			$this->saveSearchSources();
 			$this->saveLibraryLinks();
+			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
 			$this->saveMoreDetailsOptions();
 			return $ret;
@@ -724,6 +761,32 @@ class Library extends DB_DataObject
 		$libraryLinks->libraryId = $this->libraryId;
 		$libraryLinks->delete();
 		$this->libraryLinks = array();
+	}
+
+	public function saveLibraryTopLinks(){
+		if (isset ($this->libraryTopLinks) && is_array($this->libraryTopLinks)){
+			/** @var LibraryTopLinks[] $libraryTopLinks */
+			foreach ($this->libraryTopLinks as $libraryLink){
+				if (isset($libraryLink->deleteOnSave) && $libraryLink->deleteOnSave == true){
+					$libraryLink->delete();
+				}else{
+					if (isset($libraryLink->id) && is_numeric($libraryLink->id)){
+						$ret = $libraryLink->update();
+					}else{
+						$libraryLink->libraryId = $this->libraryId;
+						$libraryLink->insert();
+					}
+				}
+			}
+			unset($this->libraryTopLinks);
+		}
+	}
+
+	public function clearLibraryTopLinks(){
+		$libraryTopLinks = new LibraryTopLinks();
+		$libraryTopLinks->libraryId = $this->libraryId;
+		$libraryTopLinks->delete();
+		$this->libraryTopLinks = array();
 	}
 
 	public function saveSearchSources(){

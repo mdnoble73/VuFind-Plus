@@ -399,6 +399,23 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_top_links' => array(
+			'title' => 'Library Top Links',
+			'description' => 'Add configurable links to display within the header. ',
+			'dependencies' => array(),
+			'continueOnError' => true,
+			'sql' => array(
+				"CREATE TABLE IF NOT EXISTS library_top_links (" .
+				"id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, " .
+				"libraryId INT NOT NULL, " .
+				"linkText VARCHAR(100) NOT NULL, " .
+				"url VARCHAR(255) NOT NULL, " .
+				"weight INT NOT NULL DEFAULT '0' " .
+				") ENGINE = MYISAM",
+				"ALTER TABLE `library_top_links` ADD INDEX `libraryId` (`libraryId`)",
+			),
+		),
+
 		'library_pin_reset' => array(
 			'title' => 'Library PIN Reset',
 			'description' => 'Allow libraries to offer a link to reset a PIN (for libraries that use PINs.)',

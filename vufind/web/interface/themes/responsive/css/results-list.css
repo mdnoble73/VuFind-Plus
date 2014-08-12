@@ -63,6 +63,9 @@ Sidebar font data
 .facetValue:last-of-type {
   margin-bottom: 3px;
 }
+.facet-form {
+  margin: 5px 30px;
+}
 .sidebar-label {
   text-align: center;
   background-color: #7c7c7d;
