@@ -7,7 +7,7 @@
 	Marmot Library Network SMS Alerts Service Description</h3>
 <p>The SMS Alerts service gives you the option to receive text messages from
 	Marmot Library Network on your mobile device. After you opt into SMS Alerts,
-	Marmot Library Network will send you text messages to bring an event to your attention, such as an overdue item or a hold ready for pickup. Contact the library for specific information about when you'll receive alerts.</p>
+	Marmot Library Network will send you library notices via text messages when you have overdue items, holds ready for pickup, etc. Contact the library for specific information about when you'll receive alerts.</p>
 <p>You can choose to opt out of the SMS Alerts service at any time.</p>
 <h3>Pricing: Message and data rates may apply. </h3>
 <h3>Short Code Information</h3>
