@@ -1578,6 +1578,7 @@ class MillenniumDriver implements DriverInterface
 		$state = $_REQUEST['state'];
 		$zip = $_REQUEST['zip'];
 		$email = $_REQUEST['email'];
+		$phone = $_REQUEST['phone'];
 
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 		$curl_url = $configArray['Catalog']['url'] . "/selfreg~S" . $this->getLibraryScope();
@@ -1598,6 +1599,7 @@ class MillenniumDriver implements DriverInterface
 		$post_data['stat_aaddress'] = $state;
 		$post_data['post_aaddress'] = $zip;
 		$post_data['zemailaddr'] = $email;
+		$post_data['tphone1'] = $phone;
 		$post_items = array();
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
