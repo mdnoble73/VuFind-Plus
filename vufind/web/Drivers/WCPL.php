@@ -604,7 +604,7 @@ class WCPL extends Horizon
 			$fines = 0;
 
 			//Load additional expiration info
-			$timeExpire = $this->addDays('1970-01-01', $basicInfoRow['expiration_date']);
+			$timeExpire = strtotime($this->addDays('1970-01-01', $basicInfoRow['expiration_date']));
 			$timeNow = time();
 			$timeToExpire = $timeExpire - $timeNow;
 			if ($timeToExpire <= 30 * 24 * 60 * 60){
@@ -675,7 +675,7 @@ class WCPL extends Horizon
 					'mobileNumber' => '',
 					'fines' => $fines,
 					'finesval' => $fines,
-					'expires' => date('M-j-Y'),
+					'expires' => date('M-j-Y', $timeExpire),
 					'expireclose' => $expireClose,
 					'homeLocationCode' => isset($homeBranchCode) ? trim($homeBranchCode) : '',
 					'homeLocationId' => isset($location) ? $location->locationId : 0,
