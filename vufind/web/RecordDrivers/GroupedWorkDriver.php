@@ -1398,7 +1398,12 @@ class GroupedWorkDriver extends RecordInterface{
 		$userReview->find();
 		while ($userReview->fetch()){
 			if (!$userReview->displayName){
-				$userReview->displayName = substr($userReview->firstname, 0, 1) . '. ' . $userReview->lastname;
+				if (strlen($userReview->firstname) >= 1){
+					$userReview->displayName = substr($userReview->firstname, 0, 1) . '. ' . $userReview->lastname;
+				}else{
+					$userReview->displayName = $userReview->lastname;
+				}
+
 			}
 			//TODO: Clean the review text
 			$reviews[] = clone $userReview;
