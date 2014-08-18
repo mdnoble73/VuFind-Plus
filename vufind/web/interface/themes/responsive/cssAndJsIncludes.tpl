@@ -7,6 +7,8 @@
 		<script src="{$path}/js/jquery-1.9.1.min.js"></script>
 		{* Load Libraries*}
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery.tablesorter.min.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/lib/jquery.tablesorter.pager.min.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/lib/jquery.tablesorter.widgets.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery.validate.min.js"></script>
 
 		<script src="{$path}/interface/themes/responsive/js/lib/recaptcha_ajax.js"></script>

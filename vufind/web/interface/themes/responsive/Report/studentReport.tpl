@@ -29,15 +29,48 @@
 				<p>
 					There are a total of <strong>{$reportData|@count}</strong> rows that meet your criteria.
 				</p>
-				<table id="studentReportTable" class="table table-striped table-condensed">
-					{foreach from=$reportData item=dataRow}
-						<tr>
-							{foreach from=$dataRow item=dataCell}
-								<td>{$dataCell}</td>
-							{/foreach}
-						</tr>
+				<table id="studentReportTable" class="table table-condensed tablesorter">
+					{foreach from=$reportData item=dataRow name=studentData}
+						{if $smarty.foreach.studentData.index == 0}
+							<thead>
+								<tr>
+									{foreach from=$dataRow item=dataCell name=dataCol}
+										{if in_array($smarty.foreach.dataCol.index, array('0', '1', '3', '5', '6', '11', '13')) }
+											<th class="filter-select">{$dataCell}</th>
+										{else}
+											<th>{$dataCell}</th>
+										{/if}
+									{/foreach}
+								</tr>
+							</thead>
+						{else}
+							{if $smarty.foreach.studentData.index == 1}
+								<tbody>
+							{/if}
+							<tr>
+								{foreach from=$dataRow item=dataCell}
+									<td>{$dataCell}</td>
+								{/foreach}
+							</tr>
+						{/if}
 					{/foreach}
+					</tbody>
 				</table>
+				<script type="text/javascript">
+					{literal}
+					$(document).ready(function(){
+						$('#studentReportTable').tablesorter({
+							theme: 'blue',
+							width: 'fixed',
+							widgets: ["zebra", "filter"],
+							widgetOptions: {
+								filter_hideFilters : false,
+								filter_ignoreCase: true
+							}
+						});
+					});
+					{/literal}
+				</script>
 			{/if}
 		{else}
 			You must login to view this information. Click <a href="{$path}/MyAccount/Login">here</a> to login.

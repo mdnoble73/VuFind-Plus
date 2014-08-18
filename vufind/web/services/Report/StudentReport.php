@@ -48,10 +48,10 @@ class Report_StudentReport extends Admin_Admin {
 		$showOverdueOnly = isset($_REQUEST['showOverdueOnly']) ? $_REQUEST['showOverdueOnly'] == 'overdue': true;
 		$interface->assign('showOverdueOnly', $showOverdueOnly);
 		$now = time();
+		$fileData = array();
 		if ($selectedReport){
 			$fhnd = fopen($reportDir . '/' . $selectedReport, "r");
 			if ($fhnd){
-				$fileData = array();
 				while (($data = fgetcsv($fhnd)) !== FALSE){
 					$okToInclude = true;
 					if ($showOverdueOnly){
@@ -61,7 +61,7 @@ class Report_StudentReport extends Admin_Admin {
 							$okToInclude = false;
 						}
 					}
-					if ($okToInclude){
+					if ($okToInclude || count($fileData) == 0){
 						$fileData[] = $data;
 					}
 				}
@@ -73,7 +73,15 @@ class Report_StudentReport extends Admin_Admin {
 			header('Content-Type: text/csv');
 			header('Content-Disposition: attachment; filename=' . $selectedReport);
 			header('Content-Length:' . filesize($reportDir . '/' . $selectedReport));
-			readfile($reportDir . '/' . $selectedReport);
+			foreach ($fileData as $row){
+				foreach ($row as $index => $cell){
+					if ($index != 0){
+						echo(",");
+					}
+					echo($cell);
+				}
+				echo("\r\n");
+			}
 			exit;
 		}
 

@@ -7,6 +7,7 @@ lib/bootstrap-switch.min.js
 lib/jcarousel.min.js
 lib/jquery.tablesorter.min.js
 lib/jquery.tablesorter.pager.min.js
+lib/jquery.tablesorter.widgets.min.js
 lib/jquery.validate.min.js
 lib/additional-methods.min.js
 lib/rater.min.js
