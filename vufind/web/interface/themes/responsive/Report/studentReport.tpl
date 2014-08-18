@@ -6,11 +6,17 @@
 				<div class="error">{$error}</div>
 			{/foreach}
 			<form class="form form-inline">
-				<label for="selectedReport" class="control-label">Available Reports</label>
+				<label for="selectedReport" class="control-label">Available Reports&nbsp;</label>
 				<select name="selectedReport" id="selectedReport" class="form-control input-sm">
 					{foreach from=$availableReports item=curReport key=reportLocation}
-						<option value="{$reportLocation}" {if $reportLocation==$selectedReport}selected="selected"{/if}>{$curReport}</option>
+						<option value="{$reportLocation}" {if $curReport==$selectedReport}selected="selected"{/if}>{$curReport}</option>
 					{/foreach}
+				</select>
+				&nbsp;
+				<label for="showOverdueOnly" class="control-label">Include&nbsp;</label>
+				<select name="showOverdueOnly" id="showOverdueOnly" class="form-control input-sm">
+					<option value="overdue" {if $showOverdueOnly}selected="selected"{/if}>Overdue Items</option>
+					<option value="checkedOut" {if !$showOverdueOnly}selected="selected"{/if}>Checked Out Items</option>
 				</select>
 				&nbsp;
 				<input type="submit" name="showData" value="Show Data" class="btn btn-sm btn-primary"/>
@@ -20,7 +26,10 @@
 
 			{if $reportData}
 				<br/>
-				<table class="table table-striped table-condensed">
+				<p>
+					There are a total of <strong>{$reportData|@count}</strong> rows that meet your criteria.
+				</p>
+				<table id="studentReportTable" class="table table-striped table-condensed">
 					{foreach from=$reportData item=dataRow}
 						<tr>
 							{foreach from=$dataRow item=dataCell}

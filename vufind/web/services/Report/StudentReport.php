@@ -45,12 +45,25 @@ class Report_StudentReport extends Admin_Admin {
 
 		$selectedReport = isset($_REQUEST['selectedReport']) ? $availableReports[$_REQUEST['selectedReport']] : reset($availableReports);
 		$interface->assign('selectedReport', $selectedReport);
+		$showOverdueOnly = isset($_REQUEST['showOverdueOnly']) ? $_REQUEST['showOverdueOnly'] == 'overdue': true;
+		$interface->assign('showOverdueOnly', $showOverdueOnly);
+		$now = time();
 		if ($selectedReport){
 			$fhnd = fopen($reportDir . '/' . $selectedReport, "r");
 			if ($fhnd){
 				$fileData = array();
 				while (($data = fgetcsv($fhnd)) !== FALSE){
-					$fileData[] = $data;
+					$okToInclude = true;
+					if ($showOverdueOnly){
+						$dueDate = $data[12];
+						$dueTime = strtotime($dueDate);
+						if ($dueTime >= $now){
+							$okToInclude = false;
+						}
+					}
+					if ($okToInclude){
+						$fileData[] = $data;
+					}
 				}
 				$interface->assign('reportData', $fileData);
 			}
