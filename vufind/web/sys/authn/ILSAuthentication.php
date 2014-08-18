@@ -64,9 +64,13 @@ class ILSAuthentication implements Authentication {
 		$user->patronType   = $info['patronType']   == null ? " " : $info['patronType'];
 		$user->web_note     = $info['web_note']     == null ? " " : $info['web_note'];
 
-		if (empty($user->displayName) || true){
-			$user->displayName = $info['fullname'];
-		}
+		if (empty($user->displayName)){
+			if (strlen($user->firstname) >= 1){
+				$user->displayName = substr($user->firstname, 0, 1) . '. ' . $user->lastname;
+			}else{
+				$user->displayName = $user->lastname;
+			}
+	}
 
 		if ($insert) {
 			$user->created = date('Y-m-d');
