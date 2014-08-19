@@ -99,7 +99,7 @@
 								{/if}
 
 								{if $showNoticeTypeInProfile}
-									<div class="alert alert-info col-xs-8 col-xs-offset-4">
+									<div class="alert alert-info">
 										The following settings determine how you would like to receive notifications when physical materials are ready for pickup at your library.  Notifications for online content are always delivered via e-mail.
 									</div>
 
@@ -135,10 +135,9 @@
 													});
 													{/literal}
 												</script>
-												<p class="help-block">
-													SMS Messages are sent in addition to postal mail/e-mail alerts. <strong>Message and data rates may apply.</strong>
-												</p>
-												<p class="help-block">
+												<p class="help-block alert alert-warning">
+													SMS Messages are sent <strong>in addition</strong> to postal mail/e-mail/phone alerts. <strong>Message and data rates may apply.</strong>
+													<br/><br/>
 													<a href="{$path}/Help/Home?topic=smsTerms" data-title="SMS Notice Terms" class="modalDialogTrigger">View Terms and Conditions</a>
 												</p>
 											{else}
@@ -161,7 +160,7 @@
 								{if !$offline && $edit == true && $canUpdateContactInfo}
 									<div class="form-group">
 										<div class="col-xs-8 col-xs-offset-4">
-											<input type='submit' value='Update Contact Information' name='updateOverDrive' class="btn btn-sm btn-primary"/>
+											<input type='submit' value='Update Contact Information' name='updateContactInfo' class="btn btn-sm btn-primary"/>
 										</div>
 									</div>
 								{/if}
@@ -229,6 +228,8 @@
 											</div>
 										</div>
 									{/foreach}
+								{else}
+									<p class="alert alert-info">You can update your OverDrive preferences including checkout periods, maturity levels, and display of mature adult covers by editing your account settings on the <a href="{$overDriveUrl}">OverDrive website</a>.</p>
 								{/if}
 								{if !$offline && $edit == true}
 									<div class="form-group">

@@ -487,7 +487,11 @@ class OverDriveDriver3 {
 			foreach ($response->holds as $curTitle){
 				$hold = array();
 				$hold['overDriveId'] = $curTitle->reserveId;
-				$hold['notifyEmail'] = $curTitle->emailAddress;
+				if ($curTitle->emailAddress){
+					$hold['notifyEmail'] = $curTitle->emailAddress;
+				}else{
+					//print_r($curTitle);
+				}
 				$hold['holdQueueLength'] = $curTitle->numberOfHolds;
 				$hold['holdQueuePosition'] = $curTitle->holdListPosition;
 				$hold['available'] = isset($curTitle->actions->checkout);

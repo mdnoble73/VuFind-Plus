@@ -69,12 +69,12 @@ class MyAccount_Profile extends MyAccount
 				$_SESSION['profileUpdateErrors'] = $result;
 			}elseif($updateScope == 'catalog'){
 				$user->updateCatalogOptions();
-			}elseif($updateScope == 'overdrive'){
+			/*}elseif($updateScope == 'overdrive'){
 				require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 				$overDriveDriver = OverDriveDriverFactory::getDriver();
 				$result = $overDriveDriver->updateLendingOptions();
 
-				$user->updateOverDriveOptions();
+				$user->updateOverDriveOptions();*/
 			}
 
 			session_write_close();
@@ -93,13 +93,13 @@ class MyAccount_Profile extends MyAccount
 			$interface->assign('edit', false);
 		}
 
-		require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+		/*require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		if ($overDriveDriver->version >= 2){
 			$lendingPeriods = $overDriveDriver->getLendingPeriods($user);
 			$interface->assign('overDriveLendingOptions', $lendingPeriods);
-		}
-
+		}*/
+		$interface->assign('overDriveUrl', $configArray['OverDrive']['url']);
 
 		if (isset($_SESSION['profileUpdateErrors'])){
 			$interface->assign('profileUpdateErrors', $_SESSION['profileUpdateErrors']);
