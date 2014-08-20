@@ -255,6 +255,7 @@ class Results extends Action {
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
 		// Done, display the page
+		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
 		$interface->display('layout.tpl');
 	} // End launch()
 }
