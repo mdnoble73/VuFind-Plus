@@ -395,7 +395,7 @@ VuFind.GroupedWork = (function(){
 			}else{
 				trigger = $(trigger);
 				VuFind.Account.ajaxLogin(trigger, function (){
-					VuFind.GroupeWork.showSaveToListForm(trigger, id, source);
+					VuFind.GroupeWork.showSaveToListForm(trigger, id);
 				});
 			}
 			return false;
