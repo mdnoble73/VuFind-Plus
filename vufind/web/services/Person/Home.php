@@ -203,6 +203,7 @@ class Home extends Action
 		}
 
 		// Display Page
+		$interface->assign('sidebar', 'Person/full-record-sidebar.tpl');
 		$interface->display('layout.tpl');
 	}
 }
