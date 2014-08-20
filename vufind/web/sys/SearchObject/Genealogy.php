@@ -44,7 +44,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 	// Index
 	private $index = null;
 	// Field List
-	private $fields = 'score';
+	private $fields = '*,score';
 	// HTTP Method
 	//    private $method = HTTP_REQUEST_METHOD_GET;
 	private $method = HTTP_REQUEST_METHOD_POST;
@@ -53,6 +53,7 @@ class SearchObject_Genealogy extends SearchObject_Base
 
 	// OTHER VARIABLES
 	// Index
+	/** @var Solr */
 	private $indexEngine = null;
 	// Facets information
 	private $allFacetSettings = array();    // loaded from facets.ini
