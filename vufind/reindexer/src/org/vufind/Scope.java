@@ -25,6 +25,7 @@ public class Scope implements Comparable<Scope>{
 	private boolean includeOverDriveCollection;
 	private Pattern extraLocationCodesPattern;
 	private Long libraryId;
+	private Long accountingUnit;
 
 	public String getScopeName() {
 		return scopeName;
@@ -98,6 +99,18 @@ public class Scope implements Comparable<Scope>{
 			return false;
 		}
 
+		//Make sure to include all items for the location regardless of holdability
+		if (includeBibsOwnedByTheLocationOnly){
+			if (locationCode.startsWith(locationLocationCodePrefix)){
+				return true;
+			}
+		}else if (includeBibsOwnedByTheLibraryOnly){
+			if (locationCode.startsWith(libraryLocationCodePrefix)){
+				return true;
+			}
+		}
+
+
 		//If the item is holdable by anyone in the current scope it should be included.
 		if (relatedPTypes.size() == 0 || relatedPTypes.contains("all")){
 			//Include all items regardless of if they are holdable or not.
@@ -161,5 +174,13 @@ public class Scope implements Comparable<Scope>{
 	@Override
 	public int compareTo(Scope o) {
 		return scopeName.compareTo(o.scopeName);
+	}
+
+	public Long getAccountingUnit() {
+		return accountingUnit;
+	}
+
+	public void setAccountingUnit(Long accountingUnit) {
+		this.accountingUnit = accountingUnit;
 	}
 }

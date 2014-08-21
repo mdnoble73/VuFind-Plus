@@ -1,5 +1,6 @@
 package org.vufind;
 
+import au.com.bytecode.opencsv.CSVReader;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.marc4j.marc.ControlField;
@@ -7,6 +8,9 @@ import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.sql.Connection;
 import java.util.*;
 
@@ -18,20 +22,61 @@ import java.util.*;
  * Time: 3:00 PM
  */
 public class MarmotRecordProcessor extends IlsRecordProcessor {
+	private String marcExportPath;
+	private static HashMap<String, ArrayList<SierraOrderInformation>> orderRecordsByBib = new HashMap<String, ArrayList<SierraOrderInformation>>();
 
-	public MarmotRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Connection econtentConn, Ini configIni, Logger logger) {
+	public MarmotRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
 		super(indexer, vufindConn, configIni, logger);
-		/*this.econtentConn = econtentConn;
-		try{
-			loadEContentRecordForIlsIdStmt = econtentConn.prepareStatement("SELECT * FROM econtent_record where ilsId = ? and status = 'active'");
-			loadEContentItemsForRecordStmt = econtentConn.prepareStatement("SELECT * FROM econtent_item where recordId = ?");
-		}catch (SQLException e){
-			logger.error("Unable to create statements for Restricted EContent");
-		}*/
+
+		marcExportPath = configIni.get("Reindex", "marcPath");
+		loadOrderRecords();
+	}
+
+	private void loadOrderRecords() {
+		File activeOrdersFile = new File(marcExportPath + "/active_orders.csv");
+		if (activeOrdersFile.exists()){
+			try {
+				CSVReader reader = new CSVReader(new FileReader(activeOrdersFile));
+				String[] curLine = reader.readNext();
+				//Skip the header
+				curLine = reader.readNext();
+				while (curLine != null){
+					SierraOrderInformation orderInformation = new SierraOrderInformation();
+					orderInformation.setBibRecordNumber(".b" + curLine[0] + getCheckDigit(curLine[0]));
+					orderInformation.setOrderNumber(".o" + curLine[1] + getCheckDigit(curLine[1]));
+					orderInformation.setAccountingUnit(Long.parseLong(curLine[2]));
+					orderInformation.setStatusCode(curLine[3]);
+					ArrayList<SierraOrderInformation> orderRecordsForBib = orderRecordsByBib.get(orderInformation.getBibRecordNumber());
+					if (orderRecordsForBib == null){
+						orderRecordsForBib = new ArrayList<SierraOrderInformation>();
+						orderRecordsByBib.put(orderInformation.getBibRecordNumber(), orderRecordsForBib);
+					}
+					orderRecordsForBib.add(orderInformation);
+					curLine = reader.readNext();
+				}
+				reader.close();
+			}catch (IOException e){
+				logger.error("Error loading order records", e);
+			}
+		}
 	}
 
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		super.updateGroupedWorkSolrDataBasedOnMarc(groupedWork, record, identifier);
+
+		//Check to see if we have order records for the bib.  If so, add ownership for those records.
+		/*if (orderRecordsByBib.containsKey(identifier)){
+			ArrayList<SierraOrderInformation> orderInformationForBib = orderRecordsByBib.get(identifier);
+			//We have a match, determine which scopes to add the record to
+			for (ScopedWorkDetails scope : groupedWork.getScopedWorkDetails().values()){
+				for (SierraOrderInformation orderInformation : orderInformationForBib) {
+					if (scope.getScope().getAccountingUnit() == orderInformation.getAccountingUnit()) {
+						//TODO: Figure out what needs to be done to add the order to the scope.
+					}
+				}
+			}
+
+		}*/
 	}
 
 	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, String locationCode){
@@ -139,8 +184,8 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 	 * Do item based determination of econtent sources, and protection types.
 	 * For Marmot also load availability and ownership information for eContent since it is so similar.
 	 *
-	 * @param groupedWork
-	 * @param itemRecords
+	 * @param groupedWork The Work to load sources and protection types for
+	 * @param itemRecords The item records related to the current Marc Record being indexed
 	 */
 	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<EContentIlsItem> itemRecords) {
 		for (EContentIlsItem curItem : itemRecords){
@@ -275,8 +320,6 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 
 	/**
 	 * Determine Record Format(s)
-	 *
-	 * @return Set format of record
 	 */
 	public void loadPrintFormatInformation(IlsRecord ilsRecord, Record record){
 		if (ilsRecord.getRelatedItems().size() > 0){
@@ -526,13 +569,28 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				@SuppressWarnings("unchecked")
 				List<Subfield> subfields = field.getSubfields();
 				for (Subfield subfield : subfields) {
-					String subfieldData = subfield.getData().toLowerCase();
-					if (subfieldData.contains("large type")) {
-						result.add("LargePrint");
-					}else if (subfieldData.contains("playaway")) {
-						result.add("Playaway");
-					}else if (subfieldData.contains("graphic novel")) {
-						result.add("GraphicNovel");
+					if (subfield.getCode() == 'a'){
+						String subfieldData = subfield.getData().toLowerCase();
+						if (subfieldData.contains("large type")) {
+							result.add("LargePrint");
+						}else if (subfieldData.contains("playaway")) {
+							result.add("Playaway");
+						}else if (subfieldData.contains("graphic novel")) {
+							boolean okToAdd = false;
+							if (field.getSubfield('v') != null){
+								String subfieldVData = field.getSubfield('v').getData().toLowerCase();
+								if (!subfieldVData.contains("Television adaptation")){
+									okToAdd = true;
+								}else{
+									System.out.println("Not including graphic novel format");
+								}
+							}else{
+								okToAdd = true;
+							}
+							if (okToAdd){
+								result.add("GraphicNovel");
+							}
+						}
 					}
 				}
 			}
@@ -849,37 +907,26 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		}
 	}
 
-	/*private EContentRecord getEContentRecord(String identifier){
-		EContentRecord record = null;
-		try{
-			loadEContentRecordForIlsIdStmt.setString(1, identifier);
-			ResultSet eContentRecordData = loadEContentRecordForIlsIdStmt.executeQuery();
-			if (eContentRecordData.next()){
-				record = new EContentRecord();
-				record.setIlsId(identifier);
-				record.setAccessType(eContentRecordData.getString("accessType"));
-				record.setEContentRecordId(eContentRecordData.getLong("id"));
-				record.setAvailableCopies(eContentRecordData.getLong("availableCopies"));
-				record.setOnOrderCopies(eContentRecordData.getLong("onOrderCopies"));
-				record.setSource(eContentRecordData.getString("source"));
-
-				//Load items
-				loadEContentRecordForIlsIdStmt.setLong(1, record.getEContentRecordId());
-				ResultSet eContentItemData = loadEContentRecordForIlsIdStmt.executeQuery();
-				while (eContentItemData.next()){
-					EContentItem item = new EContentItem();
-					item.setFilename(eContentItemData.getString("filename"));
-					item.setFolder(eContentItemData.getString("folder"));
-					item.setItemType(eContentItemData.getString("item_type"));
-					item.setLibraryId(eContentItemData.getLong("libraryId"));
-					record.addEContentItem(item);
-				}
-			}else{
-				//TODO: Should we create the record here?
+	/**
+	 * Calculates a check digit for a III identifier
+	 * @param basedId String the base id without checksum
+	 * @return String the check digit
+	 */
+	public static String getCheckDigit(String basedId) {
+		if (basedId.length() != 7){
+			return "a";
+		}else{
+			int sumOfDigits = 0;
+			for (int i = 0; i < 7; i++){
+				sumOfDigits += (8 - i) * Integer.parseInt(basedId.substring(i, i+1));
 			}
-		}catch(SQLException e){
-			logger.error("Error loading eContent Record", e);
+			int modValue = sumOfDigits % 11;
+			if (modValue == 10){
+				return "x";
+			}else{
+				return Integer.toString(modValue);
+			}
 		}
-		return record;
-	}*/
+
+	}
 }

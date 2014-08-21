@@ -83,7 +83,7 @@ public class GroupedWorkIndexer {
 
 		String ilsIndexingClassString = configIni.get("Reindex", "ilsIndexingClass");
 		if (ilsIndexingClassString.equals("Marmot")){
-			ilsRecordProcessor = new MarmotRecordProcessor(this, vufindConn, econtentConn, configIni, logger);
+			ilsRecordProcessor = new MarmotRecordProcessor(this, vufindConn, configIni, logger);
 		}else if(ilsIndexingClassString.equals("Nashville")){
 			ilsRecordProcessor = new NashvilleRecordProcessor(this, vufindConn, configIni, logger);
 		}else if(ilsIndexingClassString.equals("WCPL")){

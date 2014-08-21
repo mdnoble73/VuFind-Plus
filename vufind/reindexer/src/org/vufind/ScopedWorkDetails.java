@@ -29,6 +29,7 @@ public class ScopedWorkDetails {
 	private HashSet<Date> localTimeSinceAdded = new HashSet<Date>();
 	private HashSet<String> eContentSource = new HashSet<String>();
 	private HashSet<String> eContentProtectionType = new HashSet<String>();
+	private long accountingUnit;
 
 	public HashSet<String> getRelatedRecords() {
 		return relatedRecords;
@@ -149,4 +150,6 @@ public class ScopedWorkDetails {
 						+ "|" + (physicalDescription == null ? "" : Util.trimTrailingPunctuation(physicalDescription.replace('|', ' ')))
 		);
 	}
+
+
 }
