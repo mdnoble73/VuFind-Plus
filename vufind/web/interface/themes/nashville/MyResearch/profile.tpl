@@ -21,8 +21,8 @@
 						{if !$offline}
 						<tr><th>{translate text='Fines'}:</th><td>{$profile.fines|escape}</td></tr>
 						<tr><th>{translate text='Expiration Date'}:</th><td>{$profile.expires|escape}</td></tr>
-						{/if}
 						<tr><th>{translate text='Home Library'}:</th><td>{$profile.homeLocation|escape}</td></tr>
+						{/if}
 					</table>
 
 					<br/>
@@ -60,8 +60,7 @@
 											<select name="pickupLocation" id="pickupLocation">
 												{if count($pickupLocations) > 0}
 													{foreach from=$pickupLocations item=location}
-														<!-- <option value="{$location->code}" {if $location->selected == "selected"}selected="selected"{/if}>{$location->displayName}</option> -->
-														<option value="{$location->code}" {if $location->displayName|escape == $profile.homeLocation|escape}selected="selected"{/if}>{$location->displayName}</option>
+														<option value="{$location->code}" {if $location->displayName|escape == $profile.homeLocation|escape}selected="selected"{/if}>{if substr($location->code,0,2)=="ps"}{$location->code} : {/if}{$location->displayName}</option>
 													{/foreach}
 												{else}
 													<option>placeholder</option>
