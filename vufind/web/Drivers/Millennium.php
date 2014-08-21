@@ -498,7 +498,7 @@ class MillenniumDriver implements DriverInterface
 			}
 
 			if ($user) {
-				if ($user->homeLocationId == 0 && isset($location)) {
+				if (isset($location) && $user->homeLocationId != $location->locationId) {
 					$user->homeLocationId = $location->locationId;
 					if ($location->nearbyLocation1 > 0){
 						$user->myLocation1Id = $location->nearbyLocation1;
