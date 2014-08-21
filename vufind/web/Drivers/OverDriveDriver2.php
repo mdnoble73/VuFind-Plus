@@ -850,7 +850,7 @@ class OverDriveDriver2 {
 			$analytics->addEvent('OverDrive', 'Login', 'over fine limit');
 		}else{
 			global $logger;
-			$logger->log("Could not login to OverDrive ($matchAccount), page results: \r\n" . $myAccountMenuContent, PEAR_LOG_INFO);
+			//$logger->log("Could not login to OverDrive ($matchAccount), page results: \r\n" . $myAccountMenuContent, PEAR_LOG_INFO);
 			$overDriveInfo = null;
 			$overDriveInfo = array();
 			$overDriveInfo['result'] = false;

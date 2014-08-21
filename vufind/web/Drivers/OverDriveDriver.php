@@ -332,7 +332,7 @@ class OverDriveDriver {
 				$overDriveInfo = $this->_loginToOverDrive($ch, $user);
 				if ($overDriveInfo['result'] == false){
 					global $logger;
-					$logger->log("Could not login to overdrive ". $ch, PEAR_LOG_INFO);
+					//$logger->log("Could not login to overdrive ". $ch, PEAR_LOG_INFO);
 					$bookshelf['error'] = $overDriveInfo['message'];
 					return $bookshelf;
 				}
