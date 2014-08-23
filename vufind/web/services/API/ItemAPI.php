@@ -21,7 +21,6 @@
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 require_once ROOT_DIR . '/sys/ISBN.php';
-require_once ROOT_DIR . '/services/Record/UserComments.php';
 require_once ROOT_DIR . '/services/Record/Holdings.php';
 require_once ROOT_DIR . '/CatalogConnection.php';
 
@@ -112,6 +111,100 @@ class ItemAPI extends Action {
 		}
 		$ret = AdobeContentServer::packageFile($fullFilename, '', 1,'',$availableCopies);
 		return $ret;
+	}
+
+	function getDescriptionByTitleAndAuthor(){
+		global $configArray;
+
+		//Load the title and author from the data passed in
+		$title = trim($_REQUEST['title']);
+		$author = trim($_REQUEST['author']);
+
+		// Setup Search Engine Connection
+		$class = $configArray['Index']['engine'];
+		$url = $configArray['Index']['url'];
+		/** @var SearchObject_Solr db */
+		$this->db = new $class($url);
+
+		//Setup the results to return from the API method
+		$results = array();
+
+		//Search the database by title and author
+		if ($title && $author){
+			$searchResults = $this->db->search("$title $author");
+		}elseif ($title){
+			$searchResults = $this->db->search("title:$title");
+		}elseif ($author){
+			$searchResults = $this->db->search("author:$author");
+		}else{
+			$results = array(
+				'result' => false,
+				'message' => 'Please enter a title and/or author'
+			);
+			return $results;
+		}
+
+		if ($searchResults['response']['numFound'] == 0){
+			$results = array(
+				'result' => false,
+				'message' => 'Sorry, we could not find a description for that title and author'
+			);
+		} else{
+			$firstRecord = $searchResults['response']['docs'][0];
+			$results = array(
+				'result' => true,
+				'message' => 'Found a summary for record ' . $firstRecord['title_display'] . ' by ' . $firstRecord['author_display'],
+				'recordsFound' => $searchResults['response']['numFound'],
+				'description' => $firstRecord['display_description']
+			);
+		}
+		return $results;
+	}
+
+	function getDescriptionByRecordId(){
+		global $configArray;
+
+		//Load the record id that the user wants to search for
+		$recordId = trim($_REQUEST['recordId']);
+
+		// Setup Search Engine Connection
+		$class = $configArray['Index']['engine'];
+		$url = $configArray['Index']['url'];
+		/** @var SearchObject_Solr db */
+		$this->db = new $class($url);
+
+		//Setup the results to return from the API method
+		$results = array();
+
+		//Search the database by title and author
+		if ($recordId){
+			if (preg_match('/^b\d{7}[\dx]$/', $recordId)){
+				$recordId = '.' . $recordId;
+			}
+			$searchResults = $this->db->search("$recordId", 'Id');
+		}else{
+			$results = array(
+				'result' => false,
+				'message' => 'Please enter the record Id to look for'
+			);
+			return $results;
+		}
+
+		if ($searchResults['response']['numFound'] == 0){
+			$results = array(
+				'result' => false,
+				'message' => 'Sorry, we could not find a description for that record id'
+			);
+		} else{
+			$firstRecord = $searchResults['response']['docs'][0];
+			$results = array(
+				'result' => true,
+				'message' => 'Found a summary for record ' . $firstRecord['title_display'] . ' by ' . $firstRecord['author_display'],
+				'recordsFound' => $searchResults['response']['numFound'],
+				'description' => $firstRecord['display_description']
+			);
+		}
+		return $results;
 	}
 
 	/**
