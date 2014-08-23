@@ -85,7 +85,11 @@ class ItemAPI extends Action {
 		}
 
 		if (is_callable(array($this, $method))) {
-			$output = json_encode(array('result'=>$this->$method()));
+			if (in_array($method, array('getDescriptionByRecordId', 'getDescriptionByTitleAndAuthor'))){
+				$output = json_encode($this->$method());
+			}else{
+				$output = json_encode(array('result'=>$this->$method()));
+			}
 		} else {
 			$output = json_encode(array('error'=>"invalid_method '$method'"));
 		}
