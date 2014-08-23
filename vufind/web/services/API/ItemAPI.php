@@ -155,11 +155,14 @@ class ItemAPI extends Action {
 			);
 		} else{
 			$firstRecord = $searchResults['response']['docs'][0];
+			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+			$groupedWork = new GroupedWorkDriver($firstRecord);
+
 			$results = array(
 				'result' => true,
 				'message' => 'Found a summary for record ' . $firstRecord['title_display'] . ' by ' . $firstRecord['author_display'],
 				'recordsFound' => $searchResults['response']['numFound'],
-				'description' => $firstRecord['display_description']
+				'description' => $groupedWork->getDescription()
 			);
 		}
 		return $results;
@@ -201,11 +204,14 @@ class ItemAPI extends Action {
 			);
 		} else{
 			$firstRecord = $searchResults['response']['docs'][0];
+			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+			$groupedWork = new GroupedWorkDriver($firstRecord);
+
 			$results = array(
 				'result' => true,
 				'message' => 'Found a summary for record ' . $firstRecord['title_display'] . ' by ' . $firstRecord['author_display'],
 				'recordsFound' => $searchResults['response']['numFound'],
-				'description' => $firstRecord['display_description']
+				'description' => $groupedWork->getDescription()
 			);
 		}
 		return $results;
