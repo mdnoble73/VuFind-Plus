@@ -6978,6 +6978,7 @@ div#system-message-header {
 }
 .browse-category.selected {
   border: 2px solid #22702a;
+  font-size: 28px;
 }
 .browse-category.category0 {
   background-color: #34af42;
