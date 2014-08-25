@@ -622,7 +622,18 @@ class GroupedWorkDriver extends RecordInterface{
 	 * @return  string              Name of Smarty template file to display.
 	 */
 	public function getTOC() {
-		// TODO: Implement getTOC() method.
+		$tableOfContents = array();
+		foreach ($this->getRelatedRecords() as $record){
+			$recordTOC = $record['driver']->getTOC();
+			if (count($recordTOC) > 0){
+				$editionDescription = "From the {$record['format']}";
+				if ($record['edition']){
+					$editionDescription .= " - {$record['edition']}";
+				}
+				$tableOfContents = array_merge($tableOfContents, array("<h4>From the $editionDescription</h4>"), $recordTOC);
+			}
+		}
+		return $tableOfContents;
 	}
 
 	/**
@@ -1420,6 +1431,9 @@ class GroupedWorkDriver extends RecordInterface{
 		global $interface;
 
 		$isbn = $this->getCleanISBN();
+
+		$tableOfContents = $this->getTOC();
+		$interface->assign('tableOfContents', $tableOfContents);
 
 		//Load more details options
 		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn);

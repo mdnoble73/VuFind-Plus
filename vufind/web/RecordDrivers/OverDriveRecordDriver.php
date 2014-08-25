@@ -361,7 +361,7 @@ class OverDriveRecordDriver extends RecordInterface {
 	 * @return  string              Name of Smarty template file to display.
 	 */
 	public function getTOC() {
-		// TODO: Implement getTOC() method.
+		return array();
 	}
 
 	/**
