@@ -303,26 +303,12 @@ class MarcRecord extends IndexRecord
 	 */
 	public function getTOC()
 	{
-		global $interface;
-
-		// Return null if we have no table of contents:
-		$fields = $this->getMarcRecord()->getFields('505');
-		if (!$fields) {
-			return null;
+		$tableOfContents = array();
+		$marcFields505 = $this->getMarcRecord()->getFields('505');
+		if ($marcFields505){
+			$tableOfContents = $this->processTableOfContentsFields($marcFields505);
 		}
-
-		// If we got this far, we have a table -- collect it as a string:
-		$toc = '';
-		foreach($fields as $field) {
-			$subfields = $field->getSubfields();
-			foreach($subfields as $subfield) {
-				$toc .= $subfield->getData();
-			}
-		}
-
-		// Assign the appropriate variable and return the template name:
-		$interface->assign('toc', $toc);
-		return 'RecordDrivers/Marc/toc.tpl';
+		return $tableOfContents;
 	}
 
 	/**
@@ -2052,6 +2038,10 @@ class MarcRecord extends IndexRecord
 
 		$isbn = $this->getCleanISBN();
 
+		//Load table of contents
+		$tableOfContents = $this->getTOC();
+		$interface->assign('tableOfContents', $tableOfContents);
+
 		//Load more details options
 		$moreDetailsOptions = $this->getBaseMoreDetailsOptions($isbn);
 		$moreDetailsOptions['copies'] = array(
@@ -2171,5 +2161,39 @@ class MarcRecord extends IndexRecord
 			$timer->logTime("Finished loading marc record for {$this->id}");
 		}
 		return $this->marcRecord;
+	}
+
+	/**
+	 * @param File_MARC_Data_Field[] $allFields
+	 * @return array
+	 */
+	function processTableOfContentsFields($allFields){
+		$notes = array();
+		foreach ($allFields as $marcField){
+			$curNote = '';
+			/** @var File_MARC_Subfield $subfield */
+			foreach ($marcField->getSubfields() as $subfield){
+				$note = $subfield->getData();
+				$curNote .= " " . $note;
+				$curNote = trim($curNote);
+//				if (strlen($curNote) > 0 && in_array($subfield->getCode(), array('t', 'a'))){
+//					$notes[] = $curNote;
+//					$curNote = '';
+//				}
+// 20131112 split 505 contents notes on double-hyphens instead of title subfields (which created bad breaks mis-associating titles and authors)
+				if (preg_match("/--$/",$curNote)) {
+					$notes[] = $curNote;
+					$curNote = '';
+				}elseif (strpos($curNote, '--') !== false){
+					$brokenNotes = explode('--', $curNote);
+					$notes = array_merge($notes, $brokenNotes);
+					$curNote = '';
+				}
+			}
+			if ($curNote != ''){
+				$notes[] = $curNote;
+			}
+		}
+		return $notes;
 	}
 }

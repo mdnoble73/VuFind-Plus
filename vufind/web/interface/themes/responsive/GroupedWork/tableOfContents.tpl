@@ -7,5 +7,8 @@
 				<div class="col-xs-12">{$note}</div>
 			</div>
 		{/foreach}
+		<script type="text/javascript">
+			VuFind.GroupedWork.hasTableOfContentsInRecord = true;
+		</script>
 	{/if}
 {/strip}

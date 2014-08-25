@@ -235,28 +235,8 @@ abstract class Record_Record extends Action
 
 		$timer->logTime('Got detailed data from Marc Record');
 
-		$tableOfContents = array();
-		$marcFields505 = $marcRecord->getFields('505');
-		if ($marcFields505){
-			$tableOfContents = $this->processTableOfContentsFields($marcFields505);
-		}
-
 		$notes = array();
-		/*$marcFields500 = $marcRecord->getFields('500');
-		$marcFields504 = $marcRecord->getFields('504');
-		$marcFields511 = $marcRecord->getFields('511');
-		$marcFields518 = $marcRecord->getFields('518');
-		$marcFields520 = $marcRecord->getFields('520');
-		if ($marcFields500 || $marcFields504 || $marcFields505 || $marcFields511 || $marcFields518 || $marcFields520){
-			$allFields = array_merge($marcFields500, $marcFields504, $marcFields511, $marcFields518, $marcFields520);
-			$notes = $this->processNoteFields($allFields);
-		}*/
 
-		if ((isset($library) && $library->showTableOfContentsTab == 0) || count($tableOfContents) == 0) {
-			$notes = array_merge($notes, $tableOfContents);
-		}else{
-			$interface->assign('tableOfContents', $tableOfContents);
-		}
 		if (isset($library) && strlen($library->notesTabName) > 0){
 			$interface->assign('notesTabName', $library->notesTabName);
 		}else{
@@ -472,40 +452,6 @@ abstract class Record_Record extends Action
 				if (strlen($note) > 0){
 					$notes[] = $note;
 				}
-			}
-		}
-		return $notes;
-	}
-
-	/**
-	 * @param File_MARC_Data_Field[] $allFields
-	 * @return array
-	 */
-	function processTableOfContentsFields($allFields){
-		$notes = array();
-		foreach ($allFields as $marcField){
-			$curNote = '';
-			/** @var File_MARC_Subfield $subfield */
-			foreach ($marcField->getSubfields() as $subfield){
-				$note = $subfield->getData();
-				$curNote .= " " . $note;
-				$curNote = trim($curNote);
-//				if (strlen($curNote) > 0 && in_array($subfield->getCode(), array('t', 'a'))){
-//					$notes[] = $curNote;
-//					$curNote = '';
-//				}
-// 20131112 split 505 contents notes on double-hyphens instead of title subfields (which created bad breaks mis-associating titles and authors)
-				if (preg_match("/--$/",$curNote)) {
-					$notes[] = $curNote;
-					$curNote = '';
-				}elseif (strpos($curNote, '--') !== false){
-					$brokenNotes = explode('--', $curNote);
-					$notes = array_merge($notes, $brokenNotes);
-					$curNote = '';
-				}
-			}
-			if ($curNote != ''){
-				$notes[] = $curNote;
 			}
 		}
 		return $notes;

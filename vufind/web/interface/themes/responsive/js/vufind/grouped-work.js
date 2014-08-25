@@ -3,6 +3,8 @@
  */
 VuFind.GroupedWork = (function(){
 	return {
+		hasTableOfContentsInRecord: false,
+
 		clearUserRating: function (groupedWorkId){
 			var url = Globals.path + '/GroupedWork/' + groupedWorkId + '/AJAX?method=clearUserRating';
 			$.getJSON(url, function(data){
@@ -104,6 +106,11 @@ VuFind.GroupedWork = (function(){
 									$("#tableOfContentsPanel").show();
 								}
 							}
+						}
+						if (VuFind.GroupedWork.hasTableOfContentsInRecord){
+							$("#tableofcontentstab_label").show();
+							$("#tableOfContentsPlaceholder").show();
+							$("#tableOfContentsPanel").show();
 						}
 						var relatedContentData = data.relatedContent;
 						if (relatedContentData && relatedContentData.length > 0) {
