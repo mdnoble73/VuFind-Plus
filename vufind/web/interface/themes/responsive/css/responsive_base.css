@@ -6026,6 +6026,14 @@ body {
     width: 100%;
   }
 }
+@media print {
+  #header-wrapper {
+    display: none;
+  }
+  #side-bar {
+    display: none;
+  }
+}
 @media (max-width: 767px) {
   .footer-column h4:before {
     content: "▼ ";
@@ -7741,26 +7749,26 @@ div#system-message-header {
   background-color: #088ec6;
   color: #ffffff;
 }
-@media (min-width: 480px) {
-  #side-bar .userreviewlink {
-    width: 196px;
-  }
+#side-bar .userreviewlink {
+  width: 196px;
 }
 .userreviewlink:hover {
   background-color: #2897c6;
   color: #ffffff;
 }
+#side-bar .addtolistlink {
+  width: 196px;
+}
 .addtolistlink {
   background-color: #088ec6;
   color: #ffffff;
-  width: 196px;
 }
 .addtolistlink:hover {
   background-color: #2897c6;
   color: #ffffff;
 }
 .full-record-tools {
-  padding: 4px 35px;
+  padding: 4px 0px;
 }
 .full-rating {
   padding: 10px 5px 4px;
