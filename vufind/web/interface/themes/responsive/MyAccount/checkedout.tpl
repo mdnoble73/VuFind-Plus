@@ -22,7 +22,7 @@
 						{/foreach}
 					</select>
 
-					<label for="hideCovers" class="control-label checkbox  pull-right"> Hide Covers <input id="hideCovers" type="checkbox" onclick="$('.imageColumn').toggle();"/></label>
+					<label for="hideCovers" class="control-label checkbox  pull-right"> Hide Covers <input id="hideCovers" type="checkbox" onclick="$('.coverColumn').toggle();"/></label>
 				</div>
 
 				<div class="btn-group">

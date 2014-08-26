@@ -5,7 +5,7 @@
 			<div class="selectTitle col-md-2">
 				&nbsp;{* Can't renew overdrive titles*}
 			</div>
-			<div class="col-md-9 text-center">
+			<div class="col-md-9 text-center coverColumn">
 				{if $user->disableCoverArt != 1}
 					{if $record.recordId}
 						<a href="{$record.recordUrl|escape:"url"}">

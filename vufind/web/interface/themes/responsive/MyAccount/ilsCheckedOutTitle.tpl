@@ -5,7 +5,7 @@
 				<div class="selectTitle col-xs-2">
 					<input type="checkbox" name="selected[{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}"/>
 				</div>
-				<div class="col-xs-10 text-center">
+				<div class="col-xs-10 text-center coverColumn">
 					{if $user->disableCoverArt != 1}
 						{if $record.id}
 							<a href="{$path}/Record/{$record.id|escape:"url"}">

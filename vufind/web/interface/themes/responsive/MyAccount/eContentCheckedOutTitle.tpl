@@ -5,7 +5,7 @@
 				<div class="selectTitle col-xs-2">
 					&nbsp;{* Can't renew eContent titles*}
 				</div>
-				<div class="col-xs-10 text-center">
+				<div class="col-xs-10 text-center coverColumn">
 					{if $user->disableCoverArt != 1}
 						{if $record.recordId}
 							<a href="{$record.recordUrl}">
