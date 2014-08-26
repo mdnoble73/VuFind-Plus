@@ -153,6 +153,11 @@ div#system-message-header {
   padding-right: 0px;
   padding-bottom: 15px;
 }
+@media print {
+  #main-content-with-sidebar {
+    width: 100%;
+  }
+}
 #main-content-with-sidebar > .row {
   margin-right: -30px;
 }

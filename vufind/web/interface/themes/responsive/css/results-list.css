@@ -102,6 +102,11 @@ Sidebar font data
 .formatCategoryLabel a {
   color: #8d929a;
 }
+@media print {
+  .top-facet {
+    display: none;
+  }
+}
 #results-sort-label {
   text-align: center;
   background-color: #7c7c7d;

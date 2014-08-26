@@ -21,6 +21,12 @@ a:hover{
 a.btn-primary, a.btn-warning, a.btn-info{
   color: #ffffff;
 }
+@media print {
+  a:link:after,
+  a:visited:after {
+    content: "" !important;
+  }
+}
 
 body {
   font-family: @font-family-sans-serif-resp;
@@ -31,16 +37,28 @@ body {
 
 .accordion .panel-title.collapsed:before {
   content: "► ";
+  @media print{
+    content: "";
+  }
 }
 .accordion .panel-title.expanded:before {
   content: "▼ ";
+  @media print{
+    content: "";
+  }
 }
 
 .panel .panel-title:before {
   content: "► ";
+  @media print{
+    content: "";
+  }
 }
 .panel.active .panel-title:before {
   content: "▼ ";
+  @media print{
+    content: "";
+  }
 }
 
 .panel-title{
@@ -56,6 +74,18 @@ body {
 
 .btn:active, .btn.active{
   font-weight: bold;
+}
+
+.btn-toolbar{
+  @media print{
+    display: none;
+  }
+}
+
+.btn-group{
+  @media print{
+    display: none;
+  }
 }
 
 .tab-content {
