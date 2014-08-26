@@ -1,4 +1,5 @@
 {strip}
+	{if count($libraryLocations) > 1}
 	<form role="from">
 		<div class="form-group">
 			<label for="selectLibrary">Select a Location</label>
@@ -9,13 +10,14 @@
 			</select>
 		</div>
 	</form>
+	{/if}
 	{foreach from=$libraryLocations item=curLocation name=locationLoop}
 		<div class="locationInfo container" id="locationAddress{$curLocation.id}" {if !$smarty.foreach.locationLoop.first}style="display:none"{/if}>
 			<div class="row">
 				<h3>{$curLocation.name}</h3>
 			</div>
 			<div class="row">
-				<div class="col-sm-3">
+				<div class="col-xs-12 col-sm-3">
 					<dl>
 						<dt>Address</dt>
 						<dd>
@@ -25,7 +27,7 @@
 						<dd>{$curLocation.phone}</dd>
 					</dl>
 				</div>
-				<div class="col-sm-9">
+				<div class="col-xs-12 col-sm-9">
 					<a href="{$curLocation.map_link}"><img src="{$curLocation.map_image}" alt="Map"></a>
 					<br/><a href="{$curLocation.map_link}">Directions</a>
 				</div>
@@ -34,7 +36,7 @@
 				<h4>Hours</h4>
 				{foreach from=$curLocation.hours item=curHours}
 					<div class="row">
-						<div class="col-xs-4">
+						<div class="col-xs-12 col-sm-4 result-label">
 							{if $curHours->day == 0}
 								Sunday
 							{elseif $curHours->day == 1}
@@ -51,7 +53,7 @@
 								Saturday
 							{/if}
 						</div>
-						<div class="col-xs-8 text-left">
+						<div class="col-xs-12 col-sm-8 text-left">
 							{if $curHours->closed}
 								Closed
 							{else}
