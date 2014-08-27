@@ -4,6 +4,18 @@ VuFind.Responsive = (function(){
 		$(window).trigger('resize');
 	});
 
+	var mediaQueryList = window.matchMedia('print');
+	mediaQueryList.addListener(function(mql) {
+		VuFind.Responsive.isPrint = mql.matches;
+		VuFind.Responsive.adjustLayout();
+		//console.log("The site is now print? " + VuFind.Responsive.isPrint);
+	});
+	window.onbeforeprint = function() {
+		VuFind.Responsive.isPrint = true;
+		VuFind.Responsive.adjustLayout();
+	};
+
+
 	return {
 		adjustLayout: function(){
 			// get resolution
@@ -12,7 +24,7 @@ VuFind.Responsive = (function(){
 			var mainContentElement = $("#main-content-with-sidebar");
 			var xsContentInsertionPointElement = $("#xs-main-content-insertion-point");
 			var mainContent;
-			if (resolution < 750) {
+			if (resolution < 750 && !VuFind.Responsive.isPrint) {
 				// XS screen resolution
 				//move content from main-content-with-sidebar to xs-main-content-insertion-point
 				mainContent = mainContentElement.html();

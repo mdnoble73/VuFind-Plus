@@ -6858,6 +6858,11 @@ div#system-message-header {
   background: white;
 }
 @media print {
+  #navigation-controls {
+    display: none !important;
+  }
+}
+@media print {
   #side-bar {
     display: none;
   }
@@ -6869,6 +6874,7 @@ div#system-message-header {
 @media print {
   #main-content-with-sidebar {
     width: 100%;
+    display: block !important;
   }
 }
 #main-content-with-sidebar > .row {

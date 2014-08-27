@@ -134,6 +134,9 @@ div#system-message-header{
 #navigation-controls{
   border-top: 8px solid @footer-top-border-color;
   background: white;
+  @media print {
+    display: none !important;
+  }
 }
 //Sidebar & Main content
 #side-bar{
@@ -147,6 +150,7 @@ div#system-message-header{
   padding-bottom: 15px;
   @media print{
     width:100%;
+    display: block !important;
   }
 }
 #main-content-with-sidebar > .row{
