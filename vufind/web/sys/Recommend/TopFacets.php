@@ -83,6 +83,12 @@ class TopFacets implements RecommendationInterface
 					}
 					$this->facets[$facetName] = $facet->displayName;
 					$this->facetSettings[$facetName] = $facet;
+					if (!$solrScope && $facet->facetName == 'availability_toggle'){
+						//Don't do availability toggles in the global scope.
+						//TODO: Base this off the default scope (i.e. mercury/responsive).
+						unset($this->facets[$facetName]);
+						unset($this->facetSettings[$facetName]);
+					}
 				}
 			}
 		}
