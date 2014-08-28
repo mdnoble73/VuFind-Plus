@@ -106,13 +106,14 @@ class Browse_AJAX extends Action {
 			}
 
 			//Now add to the library/location
-			if ($searchLocation){
+			/*if ($searchLocation){
 				require_once ROOT_DIR . '/sys/Browse/LocationBrowseCategory.php';
 				$locationBrowseCategory = new LocationBrowseCategory();
 				$locationBrowseCategory->locationId = $searchLocation->locationId;
 				$locationBrowseCategory->browseCategoryTextId = $textId;
 				$locationBrowseCategory->insert();
-			}elseif ($library){
+			}else*/
+			if ($library){
 				require_once ROOT_DIR . '/sys/Browse/LibraryBrowseCategory.php';
 				$libraryBrowseCategory = new LibraryBrowseCategory();
 				$libraryBrowseCategory->libraryId = $library->libraryId;
