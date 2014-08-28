@@ -394,9 +394,20 @@ if ($module == null && $action == null){
 	//We have no information about where to go, go to the default location from config
 	$module = $configArray['Site']['defaultModule'];
 	$action = 'Home';
-
 }elseif ($action == null){
 	$action = 'Home';
+}
+//Override MyAccount Home as needed
+if ($module == 'MyAccount' && $action == 'Home' && $user){
+	$profile = $interface->getVariable('profile');
+	if ($profile['numCheckedOutTotal'] > 0){
+		$action ='CheckedOut';
+		header('Location:/MyAccount/CheckedOut');
+		exit();
+	}elseif ($profile['numHoldsTotal'] > 0){
+		header('Location:/MyAccount/Holds');
+		exit();
+	}
 }
 
 $interface->assign('module', $module);
