@@ -24,7 +24,7 @@
 							{$curLocation.address}
 						</dd>
 						<dt>Phone</dt>
-						<dd>{$curLocation.phone}</dd>
+						<dd><a href="tel:{$curLocation.phone}">{$curLocation.phone}</a></dd>
 					</dl>
 				</div>
 				<div class="col-xs-12 col-sm-9">
