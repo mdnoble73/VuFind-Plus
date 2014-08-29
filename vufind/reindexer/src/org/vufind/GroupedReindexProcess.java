@@ -75,11 +75,11 @@ public class GroupedReindexProcess {
 		//Process grouped works
 		try {
 			GroupedWorkIndexer groupedWorkIndexer = new GroupedWorkIndexer(serverName, vufindConn, econtentConn, configIni, fullReindex, logger);
-
-			groupedWorkIndexer.processGroupedWorks();
-			groupedWorkIndexer.processPublicUserLists();
-
-			groupedWorkIndexer.finishIndexing();
+			if (groupedWorkIndexer.isOkToIndex()) {
+				groupedWorkIndexer.processGroupedWorks();
+				groupedWorkIndexer.processPublicUserLists();
+				groupedWorkIndexer.finishIndexing();
+			}
 		} catch (Error e) {
 			logger.error("Error processing reindex ", e);
 			addNoteToReindexLog("Error processing reindex " + e.toString());

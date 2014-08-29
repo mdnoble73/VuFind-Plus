@@ -11,12 +11,10 @@ import org.apache.solr.common.SolrDocumentList;
 import org.ini4j.Ini;
 
 import java.io.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -50,6 +48,10 @@ public class GroupedWorkIndexer {
 	private boolean fullReindex = false;
 	private long lastReindexTime;
 	private Long lastReindexTimeVariableId;
+	private boolean partialReindexRunning;
+	private Long partialReindexRunningVariableId;
+	private boolean okToIndex = true;
+
 
 	private HashSet<String> worksWithInvalidLiteraryForms = new HashSet<String>();
 	private TreeSet<Scope> scopes = new TreeSet<Scope>();
@@ -79,8 +81,40 @@ public class GroupedWorkIndexer {
 			logger.error("Could not load last index time from variables table ", e);
 		}
 
+		//Check to see if a partial reindex is running
+		try{
+			PreparedStatement loadPartialReindexRunning = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'partial_reindex_running'");
+			ResultSet loadPartialReindexRunningRS = loadPartialReindexRunning.executeQuery();
+			if (loadPartialReindexRunningRS.next()){
+				partialReindexRunning = loadPartialReindexRunningRS.getBoolean("value");
+				partialReindexRunningVariableId = loadPartialReindexRunningRS.getLong("id");
+			}
+			loadPartialReindexRunningRS.close();
+			loadPartialReindexRunning.close();
+		} catch (Exception e){
+			logger.error("Could not load last index time from variables table ", e);
+		}
+
+		//Initialize the updateServer and solr server
+		if (fullReindex){
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 5000, 10);
+			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped2");
+		}else{
+			if (partialReindexRunning){
+				//Oops, a reindex is already running.
+				logger.error("A partial reindex is already running, not starting another for better performance");
+				okToIndex = false;
+				return;
+			}else{
+				updatePartialReindexRunning(true);
+			}
+			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped", 5000, 10);
+			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped");
+		}
+
 		loadSystemAndLocationData();
 
+		//Initialize processors
 		String ilsIndexingClassString = configIni.get("Reindex", "ilsIndexingClass");
 		if (ilsIndexingClassString.equals("Marmot")){
 			ilsRecordProcessor = new MarmotRecordProcessor(this, vufindConn, configIni, logger);
@@ -90,16 +124,6 @@ public class GroupedWorkIndexer {
 			ilsRecordProcessor = new WCPLRecordProcessor(this, vufindConn, configIni, logger);
 		}
 		overDriveProcessor = new OverDriveProcessor(this, vufindConn, econtentConn, configIni, fullReindex, logger);
-
-		//Initialize the updateServer and solr server
-		if (fullReindex){
-			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 5000, 10);
-			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped2");
-		}else{
-			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped", 5000, 10);
-			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped");
-		}
-
 
 		//Load translation maps
 		loadTranslationMaps();
@@ -117,6 +141,10 @@ public class GroupedWorkIndexer {
 		if (fullReindex){
 			clearIndex();
 		}
+	}
+
+	public boolean isOkToIndex(){
+		return okToIndex;
 	}
 
 	private boolean libraryAndLocationDataLoaded = false;
@@ -299,16 +327,18 @@ public class GroupedWorkIndexer {
 		} catch (Exception e) {
 			logger.error("Error calling final commit", e);
 		}
-		try {
-			//Optimize to trigger improve performance
+		//Solr now optimizes itself.  No need to force an optimization.
+		/*try {
+			//Optimize to trigger improved performance
 			if (fullReindex) {
 				updateServer.optimize(true, true);
 			}else{
+				//Don't optimize when doing partial
 				updateServer.optimize(false, false);
 			}
 		} catch (Exception e) {
 			logger.error("Error optimizing index", e);
-		}
+		}*/
 		try {
 			updateServer.shutdown();
 		} catch (Exception e) {
@@ -324,6 +354,33 @@ public class GroupedWorkIndexer {
 		}
 		writeWorksWithInvalidLiteraryForms();
 		updateLastReindexTime();
+		updatePartialReindexRunning(false);
+	}
+
+	private void updatePartialReindexRunning(boolean running) {
+		if (!fullReindex) {
+			//Update the last grouping time in the variables table
+			try {
+				if (partialReindexRunningVariableId != null) {
+					PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
+					updateVariableStmt.setString(1, Boolean.toString(running));
+					updateVariableStmt.setLong(2, partialReindexRunningVariableId);
+					updateVariableStmt.executeUpdate();
+					updateVariableStmt.close();
+				} else {
+					PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('partial_reindex_running', ?)", Statement.RETURN_GENERATED_KEYS);
+					insertVariableStmt.setString(1, Boolean.toString(running));
+					insertVariableStmt.executeUpdate();
+					ResultSet generatedKeys = insertVariableStmt.getGeneratedKeys();
+					if (generatedKeys.next()){
+						partialReindexRunningVariableId = generatedKeys.getLong(1);
+					}
+					insertVariableStmt.close();
+				}
+			} catch (Exception e) {
+				logger.error("Error setting last grouping time", e);
+			}
+		}
 	}
 
 	private void writeWorksWithInvalidLiteraryForms() {
@@ -499,14 +556,10 @@ public class GroupedWorkIndexer {
 			groupedWork.addIsbn(identifier);
 		}else if (type.equals("upc")){
 			groupedWork.addUpc(identifier);
-		}else if (type.equals("issn")){
-			groupedWork.addIssn(identifier);
-		}else if (type.equals("oclc")){
-			groupedWork.addOclc(identifier);
 		}else if (type.equals("order")){
 			//Add as an alternate id
 			groupedWork.addAlternateId(identifier);
-		}else{
+		}else if (!type.equals("issn") && !type.equals("oclc")){
 			logger.warn("Unknown identifier type " + type);
 		}
 	}

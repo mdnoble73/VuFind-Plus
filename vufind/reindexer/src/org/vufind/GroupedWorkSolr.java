@@ -564,6 +564,9 @@ public class GroupedWorkSolr {
 	public void addOclc(String oclc) {
 		oclcs.add(oclc);
 	}
+	public void addOclcNumbers(Set<String> oclcs) {
+		this.oclcs.addAll(oclcs);
+	}
 	public void addIsbn(String isbn) {
 		isbns.add(isbn);
 	}
@@ -572,6 +575,9 @@ public class GroupedWorkSolr {
 	}
 	public void addIssn(String issn) {
 		issns.add(issn);
+	}
+	public void addIssns(Set<String> issns) {
+		this.issns.addAll(issns);
 	}
 	public void addUpc(String upc) {
 		upcs.add(upc);

@@ -273,6 +273,8 @@ public abstract class IlsRecordProcessor {
 			groupedWork.addGeographicFacet(getFieldList(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z"));
 			groupedWork.addEra(getFieldList(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y"));
 			groupedWork.addContents(getFieldList(record, "505a:505t"));
+			groupedWork.addIssns(getFieldList(record, "022a"));
+			groupedWork.addOclcNumbers(getFieldList(record, "035a"));
 
 			loadBibCallNumbers(groupedWork, record);
 			loadLanguageDetails(groupedWork, record, ilsRecords);
