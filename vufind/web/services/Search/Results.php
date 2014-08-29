@@ -172,7 +172,13 @@ class Search_Results extends Action {
 
 		// Set Interface Variables
 		//   Those we can construct BEFORE the search is executed
-		$interface->setPageTitle('Search Results');
+		$displayQuery = $searchObject->displayQuery();
+		$pageTitle = $displayQuery;
+		if (strlen($pageTitle) > 20){
+			$pageTitle = substr($pageTitle, 0, 20) . '...';
+		}
+		$pageTitle .= ' | Search Results';
+		$interface->setPageTitle($pageTitle );
 		$interface->assign('sortList',   $searchObject->getSortList());
 		$interface->assign('rssLink',    $searchObject->getRSSUrl());
 		$interface->assign('excelLink',  $searchObject->getExcelUrl());
@@ -191,7 +197,7 @@ class Search_Results extends Action {
 		//   no matter whether there were any results
 		$interface->assign('qtime',               round($searchObject->getQuerySpeed(), 2));
 		$interface->assign('spellingSuggestions', $searchObject->getSpellingSuggestions());
-		$interface->assign('lookfor',             $searchObject->displayQuery());
+		$interface->assign('lookfor',             $displayQuery);
 		$interface->assign('searchType',          $searchObject->getSearchType());
 		// Will assign null for an advanced search
 		$interface->assign('searchIndex',         $searchObject->getSearchIndex());
