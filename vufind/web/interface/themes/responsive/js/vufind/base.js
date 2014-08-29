@@ -224,11 +224,12 @@ var VuFind = (function(){
 
 		showElementInPopup: function(title, elementId){
 			VuFind.closeLightbox();
-			$("#modal-title").html(title);
+			$(".modal-title").html(title);
 			var elementText = $(elementId).html();
 			$(".modal-body").html(elementText);
 			var modalDialog = $("#modalDialog");
 			modalDialog.modal('show');
+			return false;
 		},
 
 		showLocationHoursAndMap: function(){

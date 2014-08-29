@@ -1655,6 +1655,7 @@ class MarcRecord extends IndexRecord
 					'holdRatio' => $totalCopies > 0 ? ($availableCopies + ($totalCopies - $numHolds) / $totalCopies) : 0,
 					'locationLabel' => $this->getLocationLabel(),
 					'shelfLocation' => $this->getShelfLocation(),
+					'itemSummary' => $this->getItemSummary(),
 					'source' => 'ils',
 					'actions' => $this->getAllActions()
 			);
@@ -1735,6 +1736,53 @@ class MarcRecord extends IndexRecord
 			}
 		}
 		return $locationLabel;
+	}
+
+	private function getItemSummary(){
+		global $library;
+		$searchLocation = Location::getSearchLocation();
+		$itemSummary = array();
+		$items = $this->getItemsFast();
+		foreach ($items as $item){
+			$description = $item['shelfLocation'] . ': ' . $item['callnumber'];
+			if ($item['isLocalItem']){
+				$key = '1 ' . $description;
+			}elseif ($item['isLibraryItem']){
+				$key = '2 ' . $description;
+			}else{
+				$key = '3 ' . $description;
+			}
+
+			$displayByDefault = false;
+			if ($item['availability']){
+				if ($searchLocation){
+					$displayByDefault = $item['isLocalItem'];
+				}elseif ($library){
+					$displayByDefault = $item['isLibraryItem'];
+				}
+			}
+			$itemInfo = array(
+				'description' => $description,
+				'shelfLocation' => $item['shelfLocation'],
+				'callNumber' => $item['callnumber'],
+				'totalCopies' => 1,
+				'availableCopies' => $item['availability'] ? 1 : 0,
+				'isLocalItem' => $item['isLocalItem'],
+				'isLibraryItem' => $item['isLibraryItem'],
+				'displayByDefault' => $displayByDefault,
+			);
+			if (isset($itemSummary[$key])){
+				$itemSummary[$key]['totalCopies']++;
+				$itemSummary[$key]['availableCopies']+=$itemInfo['availableCopies'];
+				if ($itemInfo['displayByDefault']){
+					$itemSummary[$key]['displayByDefault'] = true;
+				}
+			}else{
+				$itemSummary[$key] = $itemInfo;
+			}
+		}
+		ksort($itemSummary);
+		return $itemSummary;
 	}
 
 	public function isAvailable($realTime){

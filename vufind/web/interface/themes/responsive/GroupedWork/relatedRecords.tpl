@@ -48,22 +48,37 @@
 					<td><a href="{$relatedRecord.url}">{implode subject=$relatedRecord.language glue=","}</a></td>
 				{/display_if_inconsistent}
 				<td>
-					{if $relatedRecord.available}
-						<div class="related_record_status available">Available</div>
-						{$relatedRecord.availableCopies} of {$relatedRecord.copies} copies available.
+					{if $relatedRecord.availableHere && $showItsHere}
+						{if $relatedRecord.availableOnline}
+							<div class="related-manifestation-shelf-status available">Available Online</div>
+						{elseif $relatedRecord.allLibraryUseOnly}
+							<div class="related-manifestation-shelf-status available">It's Here (library use only)</div>
+						{else}
+							<div class="related-manifestation-shelf-status available">It's Here</div>
+						{/if}
+					{elseif $relatedRecord.availableLocally}
+						{if $relatedRecord.availableOnline}
+							<div class="related-manifestation-shelf-status available">Available Online</div>
+						{elseif $relatedRecord.allLibraryUseOnly}
+							<div class="related-manifestation-shelf-status available">On Shelf (library use only)</div>
+						{elseif $onInternalIP}
+							<div class="related-manifestation-shelf-status availableOther">Available at another branch</div>
+						{else}
+							<div class="related-manifestation-shelf-status available">On Shelf</div>
+						{/if}
+					{elseif $relatedRecord.availableOnline}
+						<div class="related-manifestation-shelf-status available">Available Online</div>
+					{elseif $relatedRecord.inLibraryUseOnly}
+						<div class="related-manifestation-shelf-status available">In Library Use Only</div>
+					{elseif $relatedRecord.available && $relatedRecord.hasLocalItem}
+						<div class="related-manifestation-shelf-status availableOther">Checked Out/Available Elsewhere</div>
+					{elseif $relatedRecord.available}
+						<div class="related-manifestation-shelf-status availableOther">Available from another library</div>
 					{else}
-						<div class="related_record_status checked_out">Checked Out</div>
-						{$relatedRecord.copies} {if $relatedRecord.copies > 1}copies{else}copy{/if} checked out.
+						<div class="related-manifestation-shelf-status checked_out">Checked Out</div>
 					{/if}
-					{if $relatedRecord.shelfLocation}
-						<br/>{$relatedRecord.shelfLocation}
-					{/if}
-					{if $relatedRecord.shelfLocation}
-						<br/>Shelf Location: {$relatedRecord.shelfLocation}
-					{/if}
-					{if $relatedRecord.callNumber}
-						<br/>Call Number: {$relatedRecord.callNumber}
-					{/if}
+
+					{include file='GroupedWork/issueSummary.tpl' summary=$relatedRecord.itemSummary totalCopies=$relatedRecord.copies itemSummaryId=$relatedRecord.id}
 
 					{if $relatedRecord.usageRestrictions}
 						<br/>{$relatedRecord.usageRestrictions}

@@ -1098,19 +1098,20 @@ class GroupedWorkDriver extends RecordInterface{
 					'availableCopies' => 0,
 					'localCopies' => 0,
 					'localAvailableCopies' => 0,
-					'callNumber' => array(),
 					'available' => false,
 					'hasLocalItem' => false,
 					'relatedRecords' => array(),
 					'preferredEdition' => null,
 					'statusMessage' => '',
-					'shelfLocation' => array(),
+					'itemLocations' => array(),
 					'availableLocally' => false,
 					'availableOnline' => false,
 					'availableHere' => false,
 					'inLibraryUseOnly' => false,
 					'allLibraryUseOnly' => true,
 					'hideByDefault' => false,
+					'itemSummary' => array(),
+					'itemSummaryLocal' => array(),
 				);
 			}
 			if (isset($curRecord['availableLocally']) && $curRecord['availableLocally'] == true){
@@ -1149,7 +1150,9 @@ class GroupedWorkDriver extends RecordInterface{
 				$relatedManifestations[$curRecord['format']]['localCopies'] += (isset($curRecord['localCopies']) ? $curRecord['localCopies'] : 0);
 				$relatedManifestations[$curRecord['format']]['localAvailableCopies'] += (isset($curRecord['localAvailableCopies']) ? $curRecord['localAvailableCopies'] : 0);
 			}
-
+			if (isset($curRecord['itemSummary'])){
+				$relatedManifestations[$curRecord['format']]['itemSummary'] = $this->mergeItemSummary($relatedManifestations[$curRecord['format']]['itemSummary'], $curRecord['itemSummary']);
+			}
 		}
 		$timer->logTime("Finished initial processing of related records");
 
@@ -1522,5 +1525,21 @@ class GroupedWorkDriver extends RecordInterface{
 		}else{
 			return null;
 		}
+	}
+
+	private function mergeItemSummary($localCopies, $itemSummary) {
+		foreach ($itemSummary as $key => $item){
+			if (isset($localCopies[$key])){
+				$localCopies[$key]['totalCopies'] += $item['totalCopies'];
+				$localCopies[$key]['availableCopies'] += $item['availableCopies'];
+				if ($item['displayByDefault']){
+					$localCopies[$key]['displayByDefault'] = true;
+				}
+			}else{
+				$localCopies[$key] = $item;
+			}
+		}
+		ksort($localCopies);
+		return $localCopies;
 	}
 }

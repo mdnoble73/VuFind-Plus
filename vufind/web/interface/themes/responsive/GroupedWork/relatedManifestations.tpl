@@ -57,36 +57,8 @@
 							{else}
 								<div class="related-manifestation-shelf-status checked_out">Checked Out</div>
 							{/if}
-							<div class="related-manifestation-copies">
-								{if $relatedManifestation.localCopies > 0}
-									{$relatedManifestation.localAvailableCopies} of {$relatedManifestation.localCopies} copies available locally.
-									{literal}  {/literal}
-								{/if}
-								{if $relatedManifestation.copies-$relatedManifestation.localCopies > 0}
-									{$relatedManifestation.availableCopies-$relatedManifestation.localAvailableCopies} of {$relatedManifestation.copies-$relatedManifestation.localCopies} copies avail. elsewhere.
-								{/if}
-							</div>
-							{if false && $relatedManifestation.numRelatedRecords > 1}
-								<div class="related-manifestation-editions">
-							    {$relatedManifestation.numRelatedRecords} editions.
-								</div>
-							{/if}
-							{if $relatedManifestation.shelfLocation}
-								<div class="related-manifestation-shelf-location row">
-									<div class="col-xs-4">Shelf Location</div>
-									<div class="col-xs-8">
-										<strong><span class="notranslate">{implode subject=$relatedManifestation.shelfLocation}</span></strong>
-									</div>
-								</div>
-							{/if}
-							{if $relatedManifestation.callNumber}
-								<div class="related-manifestation-call-number row">
-									<div class="col-xs-4">Call Number</div>
-									<div class="col-xs-8">
-										<strong><span class="notranslate">{implode subject=$relatedManifestation.callNumber}</span></strong>
-									</div>
-								</div>
-							{/if}
+
+							{include file='GroupedWork/issueSummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id}
 
 						</div>
 						<div class="col-xs-8 col-xs-offset-4 col-md-4 col-md-offset-0 col-lg-3 manifestation-actions">

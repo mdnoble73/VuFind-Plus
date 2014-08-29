@@ -6011,6 +6011,9 @@ a.btn-info {
 body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
+.noBreak {
+  white-space: nowrap;
+}
 .expanded,
 .collapsed {
   cursor: pointer;
@@ -7047,7 +7050,7 @@ div#system-message-header {
 }
 .browse-category.selected {
   border: 2px solid #3497d1;
-  font-size: 28px;
+  font-size: 25px;
 }
 .browse-category.category0 {
   background-color: #0d8ec7;
@@ -7781,6 +7784,15 @@ div#system-message-header {
 }
 .related_record_status.availableOther {
   color: red;
+}
+.itemSummaryTable tr.available {
+  color: green;
+  font-weight: bold;
+}
+.itemSummary {
+  font-size: 12px;
+  text-indent: -10px;
+  padding-left: 10px;
 }
 .moreFacetPopup {
   -webkit-column-gap: 15px;

@@ -20,7 +20,7 @@
  * @return  string
  */
 function smarty_modifier_escapeCSS($string) {
-	$string = preg_replace('/[^a-zA-Z_-]/', '_', $string);
+	$string = preg_replace('/[^a-zA-Z0-9_-]/', '_', $string);
 
 	return $string;
 }
