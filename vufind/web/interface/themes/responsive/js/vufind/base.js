@@ -33,10 +33,16 @@ var VuFind = (function(){
 			window.location.href = url;
 		},
 
-		closeLightbox: function(){
+		closeLightbox: function(callback){
 			var modalDialog = $("#modalDialog");
 			if (modalDialog.is(":visible")){
 				modalDialog.modal('hide');
+				if (callback != undefined){
+					var closeLightboxListener = modalDialog.on('hidden.bs.modal', function (e) {
+						modalDialog.off('hidden.bs.modal');
+						callback();
+					});
+				}
 			}
 		},
 
@@ -223,13 +229,17 @@ var VuFind = (function(){
 		},
 
 		showElementInPopup: function(title, elementId){
-			VuFind.closeLightbox();
-			$(".modal-title").html(title);
-			var elementText = $(elementId).html();
-			$(".modal-body").html(elementText);
 			var modalDialog = $("#modalDialog");
-			modalDialog.modal('show');
-			return false;
+			if (modalDialog.is(":visible")){
+				VuFind.closeLightbox(function(){VuFind.showElementInPopup(title, elementId)});
+			}else{
+				$(".modal-title").html(title);
+				var elementText = $(elementId).html();
+				$(".modal-body").html(elementText);
+				var modalDialog = $("#modalDialog");
+				modalDialog.modal('show');
+				return false;
+			}
 		},
 
 		showLocationHoursAndMap: function(){
