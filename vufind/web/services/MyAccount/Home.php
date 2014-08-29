@@ -24,9 +24,9 @@ class MyAccount_Home  extends MyAccount{
 
 
 			//If user has suggestions on, show them a list of suggested titles.$suggestions = Suggestions::getSuggestions();
-			$suggestions = Suggestions::getSuggestions();
+			/*$suggestions = Suggestions::getSuggestions();
 			$resourceList = array();
-			$curIndex = 0;
+			$curIndex = 0;*/
 
 			// Setup Search Engine Connection
 			/*$searchObject = SearchObjectFactory::initSearchObject();
