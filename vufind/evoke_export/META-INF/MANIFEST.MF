@@ -1,4 +1,4 @@
 Manifest-Version: 1.0
-Class-Path: codec-1.6.jar commons-logging-1.1.1.jar ini4j-0.5.2.jar log4j-1.2.15.jar mysql-5.1.15-bin.jar opencsv-2.2.jar
+Class-Path: lib/codec-1.6.jar lib/commons-logging-1.1.1.jar lib/ini4j-0.5.2.jar lib/log4j-1.2.15.jar lib/mysql-5.1.15-bin.jar lib/opencsv-2.2.jar
 Main-Class: org.marmot.EVokeExportMain
 
