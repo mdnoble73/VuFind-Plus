@@ -1171,7 +1171,7 @@ public abstract class IlsRecordProcessor {
 				owningLocationCodes.addAll(getRelatedLocationCodesForLocationCode(locationCode));
 				owningLocationCodes.addAll(getRelatedSubdomainsForLocationCode(locationCode));
 
-				loadAdditionalOwnershipInformation(groupedWork, locationCode);
+				loadAdditionalOwnershipInformation(groupedWork, curItem);
 			}
 			for (LocalizationInfo localizationInfo : curItem.getRelatedLocalizations()){
 				owningLocations.add(localizationInfo.getFacetLabel());
@@ -1183,7 +1183,7 @@ public abstract class IlsRecordProcessor {
 		groupedWork.addOwningLocationCodesAndSubdomains(owningLocationCodes);
 	}
 
-	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, String locationCode){
+	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, PrintIlsItem printItem){
 
 	}
 

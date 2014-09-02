@@ -30,6 +30,7 @@ public class ScopedWorkDetails {
 	private HashSet<String> eContentSource = new HashSet<String>();
 	private HashSet<String> eContentProtectionType = new HashSet<String>();
 	private long accountingUnit;
+	private HashSet<String> detailedLocations = new HashSet<String>();
 
 	public HashSet<String> getRelatedRecords() {
 		return relatedRecords;
@@ -152,4 +153,11 @@ public class ScopedWorkDetails {
 	}
 
 
+	public void addDetailedLocation(String translatedDetailedLocation) {
+		this.detailedLocations.add(translatedDetailedLocation);
+	}
+
+	public HashSet<String> getDetailedLocations(){
+		return this.detailedLocations;
+	}
 }

@@ -303,6 +303,7 @@ public class GroupedWorkSolr {
 				doc.addField("related_items_" + scopeName, scopedWorkDetail.getRelatedItems());
 				doc.addField("format_" + scopeName, scopedWorkDetail.getFormats());
 				doc.addField("format_category_" +scopeName, scopedWorkDetail.getFormatCategories());
+				doc.addField("detailed_location_" +scopeName, scopedWorkDetail.getDetailedLocations());
 			}
 		}
 

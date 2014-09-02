@@ -79,7 +79,8 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		}*/
 	}
 
-	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, String locationCode){
+	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, PrintIlsItem printItem){
+		String locationCode = printItem.getLocation();
 		if (locationCode.length() > 0 && !locationCode.equalsIgnoreCase("none")){
 			groupedWork.addCollectionGroup(indexer.translateValue("collection_group", locationCode));
 			if (additionalCollections != null){
@@ -88,6 +89,11 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				}
 			}
 			String translatedDetailedLocation = indexer.translateValue("detailed_location", locationCode);
+			for (ScopedWorkDetails curScope: groupedWork.getScopedWorkDetails().values()){
+				if (curScope.getScope().isLocationCodeIncludedDirectly(locationCode)) {
+					curScope.addDetailedLocation(translatedDetailedLocation);
+				}
+			}
 			for (LocalizedWorkDetails localizedWorkDetails : groupedWork.getLocalizedWorkDetails().values()){
 				if (localizedWorkDetails.getLocalizationInfo().isLocationCodeIncluded(locationCode)){
 					localizedWorkDetails.addDetailedLocation(translatedDetailedLocation);
