@@ -1504,15 +1504,15 @@ class Solr implements IndexEngine {
 		if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
 			$usableFilter = 'usable_by:('.$pType . ' OR all)';
 			if (strlen($owningLibrary) > 0){
-				$usableFilter .= " OR $buildingFacetName:\"$owningLibrary\" OR $buildingFacetName:\"$owningLibrary Online\"";
+				$usableFilter .= " OR $buildingFacetName:\"$owningLibrary\" OR $buildingFacetName:\"$owningLibrary Online\" OR $buildingFacetName:\"$owningLibrary On Order\"";
 			}
 			if (strlen($owningSystem) > 0){
-				$usableFilter .= " OR $institutionFacetName:\"$owningSystem\" OR $buildingFacetName:\"$owningSystem Online\"";
+				$usableFilter .= " OR $institutionFacetName:\"$owningSystem\" OR $buildingFacetName:\"$owningSystem Online\" OR $buildingFacetName:\"$owningLibrary On Order\"";
 			}
 			$homeLibrary = Library::getPatronHomeLibrary();
 			if ($homeLibrary && $homeLibrary != $searchLibrary){
 				$homeLibraryFacet = $homeLibrary->facetLabel;
-				$usableFilter .= " OR $buildingFacetName:\"$homeLibraryFacet\" OR $buildingFacetName:\"$homeLibraryFacet Online\"";
+				$usableFilter .= " OR $buildingFacetName:\"$homeLibraryFacet\" OR $buildingFacetName:\"$homeLibraryFacet Online\" OR $buildingFacetName:\"$homeLibraryFacet On Order\"";
 			}
 			if (isset($searchLibrary) && $searchLibrary->includeDigitalCollection){
 				$usableFilter .= " OR $institutionFacetName:\"Shared Digital Collection\"";

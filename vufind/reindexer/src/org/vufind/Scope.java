@@ -201,19 +201,15 @@ public class Scope implements Comparable<Scope>{
 	}
 
 	public boolean isLocationCodeIncludedDirectly(String locationCode) {
-		if (includeBibsOwnedByTheLocationOnly){
-			if (locationCode.startsWith(locationLocationCodePrefix)){
+		if (locationLocationCodePrefix != null && locationCode.startsWith(locationLocationCodePrefix)){
+			return true;
+		}
+		if (libraryLocationCodePrefix != null && locationCode.startsWith(libraryLocationCodePrefix)){
+			return true;
+		}
+		if (extraLocationCodesPattern != null){
+			if (extraLocationCodesPattern.matcher(locationCode).matches()) {
 				return true;
-			}
-		}else if (includeBibsOwnedByTheLibraryOnly){
-			if (locationCode.startsWith(libraryLocationCodePrefix)){
-				return true;
-			}
-		}else{
-			if (extraLocationCodesPattern != null){
-				if (extraLocationCodesPattern.matcher(locationCode).matches()) {
-					return true;
-				}
 			}
 		}
 		if (isGlobalScope){

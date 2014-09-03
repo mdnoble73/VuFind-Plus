@@ -450,6 +450,16 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_order_information' => array(
+			'title' => 'Library Order Information',
+			'description' => 'Add Properties to handle integration of order records within VuFind',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE library ADD orderAccountingUnit INT(11) DEFAULT Null",
+				"ALTER TABLE library ADD makeOrderRecordsAvailableToOtherLibraries TINYINT(1) DEFAULT 0",
+			),
+		),
+
 		'econtent_locations_to_include' => array(
 			'title' => 'eContent Locations To Include',
 			'description' => 'Adds the ability to define which shared location codes should be included in the search scope',

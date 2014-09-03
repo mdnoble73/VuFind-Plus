@@ -1844,8 +1844,8 @@ class DBMaintenance extends Admin_Admin {
 					'title' => 'Remove Unused Library and Location Options',
 					'description' => 'Remove unused options for library and location tables',
 					'sql' => array(
-						"ALTER TABLE library DROP accountingUnit",
-						"ALTER TABLE library DROP makeOrderRecordsAvailableToOtherLibraries",
+						//"ALTER TABLE library DROP accountingUnit",
+						//"ALTER TABLE library DROP makeOrderRecordsAvailableToOtherLibraries",
 						"ALTER TABLE library DROP searchesFile",
 						"ALTER TABLE library DROP suggestAPurchase",
 						"ALTER TABLE library DROP showAmazonReviews",

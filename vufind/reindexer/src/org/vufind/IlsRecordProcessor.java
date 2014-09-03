@@ -243,6 +243,7 @@ public abstract class IlsRecordProcessor {
 			//Scoping and availability of records.
 			List<PrintIlsItem> printItems = getUnsuppressedPrintItems(record);
 			List<EContentIlsItem> econtentItems = getUnsuppressedEContentItems(identifier, record);
+			List<OnOrderItem> onOrderItems = getOnOrderItems(identifier, record);
 
 			//Break the MARC record up based on item information and load data that is scoped
 			//i.e. formats, iTypes, date added to catalog, etc
@@ -284,7 +285,7 @@ public abstract class IlsRecordProcessor {
 			groupedWork.addMpaaRating(groupedWork, getMpaaRating(record));
 
 			//Do updates based on items
-			loadOwnershipInformation(groupedWork, printItems, econtentItems);
+			loadOwnershipInformation(groupedWork, printItems, econtentItems, onOrderItems);
 			loadAvailability(groupedWork, printItems, econtentItems);
 			loadUsability(groupedWork, printItems, econtentItems);
 			loadPopularity(groupedWork, printItems, econtentItems);
@@ -308,6 +309,10 @@ public abstract class IlsRecordProcessor {
 		}catch (Exception e){
 			logger.error("Error updating grouped work for MARC record with identifier " + identifier, e);
 		}
+	}
+
+	protected List<OnOrderItem> getOnOrderItems(String identifier, Record record){
+		return new ArrayList<OnOrderItem>();
 	}
 
 	private void loadEditions(GroupedWorkSolr groupedWork, Record record, HashSet<IlsRecord> ilsRecords) {
@@ -1157,7 +1162,7 @@ public abstract class IlsRecordProcessor {
 		groupedWork.addAvailableLocations(availableAt, availableLocationCodes);
 	}
 
-	protected void loadOwnershipInformation(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
+	protected void loadOwnershipInformation(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, List<OnOrderItem> onOrderItems) {
 		HashSet<String> owningLibraries = new HashSet<String>();
 		HashSet<String> owningLocations = new HashSet<String>();
 		HashSet<String> owningLocationCodes = new HashSet<String>();
@@ -1176,6 +1181,11 @@ public abstract class IlsRecordProcessor {
 			for (LocalizationInfo localizationInfo : curItem.getRelatedLocalizations()){
 				owningLocations.add(localizationInfo.getFacetLabel());
 				owningLocationCodes.add(localizationInfo.getLocationCodePrefix());
+			}
+		}
+		for (OnOrderItem curOrderItem: onOrderItems){
+			for (Scope curScope : curOrderItem.getRelatedScopes()){
+				owningLocations.add(curScope.getFacetLabel() + " On Order");
 			}
 		}
 		groupedWork.addOwningLibraries(owningLibraries);
