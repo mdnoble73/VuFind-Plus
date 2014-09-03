@@ -1,5 +1,7 @@
 package org.vufind;
 
+import org.apache.log4j.Logger;
+
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -69,6 +71,7 @@ public class GroupedWork implements Cloneable{
 	static Pattern commonAuthorSuffixPattern = Pattern.compile("^(.+?)\\s(?:general editor|editor|editor in chief|etc|inc|inc\\setc|co|corporation|llc|partners|company|home entertainment)$");
 	static Pattern commonAuthorPrefixPattern = Pattern.compile("^(?:edited by|by the editors of|by|chosen by|translated by|prepared by|translated and edited by|completely rev by|pictures by|selected and adapted by|with a foreword by|with a new foreword by|introd by|introduction by|intro by|retold by)\\s(.+)$");
 
+	static Logger logger = Logger.getLogger(GroupedWork.class);
 	private String normalizeAuthor(String author) {
 		String groupingAuthor = initialsFix.matcher(author).replaceAll(" ");
 		groupingAuthor = bracketedCharacterStrip.matcher(groupingAuthor).replaceAll("");
@@ -176,7 +179,13 @@ public class GroupedWork implements Cloneable{
 		String tmpTitle = bracketedCharacterStrip.matcher(groupingTitle).replaceAll("");
 		//Make sure we don't strip the entire title
 		if (tmpTitle.length() > 0){
-			groupingTitle = tmpTitle;
+			//And make sure we don't get just special characters
+			tmpTitle = specialCharacterStrip.matcher(tmpTitle).replaceAll(" ").toLowerCase().trim();
+			if (tmpTitle.length() > 0) {
+				groupingTitle = tmpTitle;
+			//}else{
+			//	logger.warn("Just saved us from trimming " + groupingTitle + " to nothing");
+			}
 		}
 
 		//If the title includes a : in it, take the first part as the title and the second as the subtitle
@@ -199,7 +208,7 @@ public class GroupedWork implements Cloneable{
 
 		//Remove some common subtitles that are meaningless (do again here in case they were part of the title).
 		Matcher commonSubtitleMatcher = commonSubtitlesPattern.matcher(groupingTitle);
-		if (commonSubtitleMatcher.matches()){
+		if (commonSubtitleMatcher.matches() && commonSubtitleMatcher.group(1).length() != 0){
 			groupingTitle = commonSubtitleMatcher.group(1);
 		}
 
@@ -213,6 +222,10 @@ public class GroupedWork implements Cloneable{
 			groupingTitle = groupingTitle.substring(0, titleEnd);
 		}
 		groupingTitle = groupingTitle.trim();
+		if (groupingTitle.length() == 0){
+			logger.error("Title " + fullTitle + " was normalized to nothing");
+			groupingTitle = fullTitle;
+		}
 		return groupingTitle;
 	}
 

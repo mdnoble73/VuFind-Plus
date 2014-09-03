@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
  * Time: 1:08 PM
  */
 public class Scope implements Comparable<Scope>{
+	private boolean isGlobalScope = true;
 	private String scopeName;
 	private String facetLabel;
 	private HashSet<String> relatedPTypes = new HashSet<String>();
@@ -42,6 +43,9 @@ public class Scope implements Comparable<Scope>{
 				this.relatedPTypes.add(relatedPType.trim());
 			}
 		}
+		if (this.relatedPTypes.size() > 0 && !(this.relatedPTypes.contains("all") || this.relatedPTypes.contains("-1"))){
+			isGlobalScope = false;
+		}
 	}
 
 	public HashSet<String> getRelatedPTypes() {
@@ -50,15 +54,24 @@ public class Scope implements Comparable<Scope>{
 
 	public void setIncludeBibsOwnedByTheLibraryOnly(boolean includeBibsOwnedByTheLibraryOnly) {
 		this.includeBibsOwnedByTheLibraryOnly = includeBibsOwnedByTheLibraryOnly;
+		if (includeBibsOwnedByTheLibraryOnly){
+			isGlobalScope = false;
+		}
 	}
 
 	public void setIncludeItemsOwnedByTheLibraryOnly(boolean includeItemsOwnedByTheLibraryOnly) {
 		this.includeItemsOwnedByTheLibraryOnly = includeItemsOwnedByTheLibraryOnly;
+		if (includeItemsOwnedByTheLibraryOnly){
+			isGlobalScope = false;
+		}
 	}
 
 	public void setEContentLocationCodesToInclude(String[] eContentLocationCodesToInclude) {
 		for (String eContentLocationCodeToInclude : eContentLocationCodesToInclude) {
 			this.eContentLocationCodesToInclude.add(eContentLocationCodeToInclude.trim());
+		}
+		if (eContentLocationCodesToInclude.length > 0){
+			isGlobalScope = false;
 		}
 	}
 
@@ -98,6 +111,9 @@ public class Scope implements Comparable<Scope>{
 		if (includeBibsOwnedByTheLocationOnly && !locationCode.startsWith(locationLocationCodePrefix)){
 			return false;
 		}
+		if (isGlobalScope){
+			return true;
+		}
 
 		//Make sure to include all items for the location regardless of holdability
 		if (includeBibsOwnedByTheLocationOnly){
@@ -112,7 +128,7 @@ public class Scope implements Comparable<Scope>{
 
 
 		//If the item is holdable by anyone in the current scope it should be included.
-		if (relatedPTypes.size() == 0 || relatedPTypes.contains("all")){
+		if (relatedPTypes.size() == 0 || relatedPTypes.contains("all") || relatedPTypes.contains("-1")){
 			//Include all items regardless of if they are holdable or not.
 			return true;
 		}
@@ -182,5 +198,27 @@ public class Scope implements Comparable<Scope>{
 
 	public void setAccountingUnit(Long accountingUnit) {
 		this.accountingUnit = accountingUnit;
+	}
+
+	public boolean isLocationCodeIncludedDirectly(String locationCode) {
+		if (includeBibsOwnedByTheLocationOnly){
+			if (locationCode.startsWith(locationLocationCodePrefix)){
+				return true;
+			}
+		}else if (includeBibsOwnedByTheLibraryOnly){
+			if (locationCode.startsWith(libraryLocationCodePrefix)){
+				return true;
+			}
+		}else{
+			if (extraLocationCodesPattern != null){
+				if (extraLocationCodesPattern.matcher(locationCode).matches()) {
+					return true;
+				}
+			}
+		}
+		if (isGlobalScope){
+			return true;
+		}
+		return false;
 	}
 }

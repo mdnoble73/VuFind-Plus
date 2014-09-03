@@ -202,7 +202,7 @@ public class RecordGroupingProcessor {
 	private HashSet<RecordIdentifier> getIdentifiersFromMarcRecord(Record marcRecord) {
 		HashSet<RecordIdentifier> identifiers = new HashSet<RecordIdentifier>();
 		//Load identifiers
-		List<DataField> identifierFields = getDataFields(marcRecord, new String[]{"020", "024", "022", "035"});
+		List<DataField> identifierFields = getDataFields(marcRecord, new String[]{"020", "024"});
 		for (DataField identifierField : identifierFields){
 			if (identifierField.getSubfield('a') != null){
 				String identifierValue = identifierField.getSubfield('a').getData().trim();
@@ -217,10 +217,8 @@ public class RecordGroupingProcessor {
 					if (identifierValue.length() == 10){
 						identifierValue = convertISBN10to13(identifierValue);
 					}
-				}else if (identifierField.getTag().equals("024")){
+				}else{
 					identifierType = "upc";
-				}else {
-					identifierType = "issn";
 				}
 				RecordIdentifier identifier = new RecordIdentifier();
 				if (identifierValue.length() > 20){
