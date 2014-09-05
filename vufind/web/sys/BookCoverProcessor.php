@@ -921,9 +921,12 @@ class BookCoverProcessor{
 					if ($this->getOverDriveCover($relatedRecord['id'])){
 						return true;
 					}
-				}elseif($relatedRecord['source'] == 'ils'){
-					if ($this->getCoverFromMarc($relatedRecord['driver']->getMarcRecord())){
-						return true;
+				}else{
+					$driver = $relatedRecord['driver'];
+					if (method_exists($driver, 'getMarcRecord')){
+						if ($this->getCoverFromMarc($driver->getMarcRecord())){
+							return true;
+						}
 					}
 				}
 			}
