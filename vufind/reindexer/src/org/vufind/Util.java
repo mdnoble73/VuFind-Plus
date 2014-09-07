@@ -87,10 +87,10 @@ public class Util {
 			return null;
 		}
 		value = value.trim();
-		if (value.charAt(0) == '"') {
+		if (value.length() > 0 && value.charAt(0) == '"') {
 			value = value.substring(1);
 		}
-		if (value.charAt(value.length() -1) == '"') {
+		if (value.length() > 0 && value.charAt(value.length() -1) == '"') {
 			value = value.substring(0, value.length() - 1);
 		}
 		return value;
