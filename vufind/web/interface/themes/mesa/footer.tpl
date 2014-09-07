@@ -30,7 +30,7 @@
 	</p>
 	<ul>
 		<li><a href="{$path}/Browse/Home">{translate text='Browse the Catalog'}</a></li>
-		<li><a href="http://researchhelp.mcpld.org/research">{translate text='Research and Learning Center'}</a></li>
+		<li><a href="http://guides.mesacountylibraries.org">{translate text='Research and Learning Center'}</a></li>
 		<li><a href="http://marmot.lib.overdrive.com" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Digital Downloads'}</a></li>
 		<li><a href="http://search.ebscohost.com/login.aspx?authtype=ip,cpid&amp;custid=s9040366&amp;profile=novplus" rel="external" onclick="window.open (this.href, 'child'); return false">{translate text='Novelist'}</a></li>
 	</ul>
