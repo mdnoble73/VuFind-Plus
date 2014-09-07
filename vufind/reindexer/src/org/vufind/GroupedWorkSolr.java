@@ -109,7 +109,6 @@ public class GroupedWorkSolr {
 	private HashSet<String> usableBy = new HashSet<String>();
 
 	private TreeMap<String, ScopedWorkDetails> scopedWorkDetails = new TreeMap<String, ScopedWorkDetails>();
-	private TreeMap<String, LocalizedWorkDetails> localizedWorkDetails = new TreeMap<String, LocalizedWorkDetails>();
 
 	private Logger logger;
 	private GroupedWorkIndexer groupedWorkIndexer;
@@ -120,13 +119,6 @@ public class GroupedWorkSolr {
 
 		//Setup the scopes for the work
 		createScopes(groupedWorkIndexer.getScopes());
-		createLocalizations(groupedWorkIndexer.getLocalizations());
-	}
-
-	private void createLocalizations(TreeSet<LocalizationInfo> localizations) {
-		for (LocalizationInfo localizationInfo: localizations){
-			this.localizedWorkDetails.put(localizationInfo.getLocalName(), new LocalizedWorkDetails(localizationInfo));
-		}
 	}
 
 	private void createScopes(TreeSet<Scope> scopes) {
@@ -137,10 +129,6 @@ public class GroupedWorkSolr {
 
 	public TreeMap<String, ScopedWorkDetails> getScopedWorkDetails(){
 		return this.scopedWorkDetails;
-	}
-
-	public TreeMap<String, LocalizedWorkDetails> getLocalizedWorkDetails(){
-		return this.localizedWorkDetails;
 	}
 
 	public SolrInputDocument getSolrDocument(int availableAtBoostValue, int ownedByBoostValue) {
@@ -310,14 +298,6 @@ public class GroupedWorkSolr {
 			}
 		}
 
-		//Save information from localized works
-		/*for (LocalizedWorkDetails localizationInfo : localizedWorkDetails.values()){
-			HashSet<String> detailedLocations = localizationInfo.getDetailedLocations();
-			doc.addField("detailed_location_" + localizationInfo.getLocalizationInfo().getLocalName(), localizationInfo.getDetailedLocations());
-			if (detailedLocations.size() > 0) {
-				doc.addField("detailed_location_" + localizationInfo.getLocalizationInfo().getLocalName(), detailedLocations);
-			}
-		}*/
 		//availability
 		for (String subdomain: availabilityToggleByLibrarySystem.keySet()){
 			HashSet<String> availabilityToggle = availabilityToggleByLibrarySystem.get(subdomain);

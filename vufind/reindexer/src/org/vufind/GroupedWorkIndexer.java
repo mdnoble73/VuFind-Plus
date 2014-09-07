@@ -56,7 +56,6 @@ public class GroupedWorkIndexer {
 
 	private HashSet<String> worksWithInvalidLiteraryForms = new HashSet<String>();
 	private TreeSet<Scope> scopes = new TreeSet<Scope>();
-	private TreeSet<LocalizationInfo> localizations = new TreeSet<LocalizationInfo>();
 
 	public GroupedWorkIndexer(String serverName, Connection vufindConn, Connection econtentConn, Ini configIni, boolean fullReindex, Logger logger) {
 		this.serverName = serverName;
@@ -229,14 +228,6 @@ public class GroupedWorkIndexer {
 					}
 					locationMap.put(code, facetLabel);
 
-					LocalizationInfo localizationInfo = new LocalizationInfo();
-					localizationInfo.setLocalName(code);
-					localizationInfo.setLocationCodePrefix(code);
-					localizationInfo.setExtraLocationCodes(extraLocationCodesToInclude);
-					localizationInfo.setFacetLabel(facetLabel);
-					localizations.add(localizationInfo);
-
-
 					//Determine if we need to build a scope for this location
 					Long libraryId = locationInformationRS.getLong("libraryId");
 					String pTypes = locationInformationRS.getString("pTypes");
@@ -268,8 +259,8 @@ public class GroupedWorkIndexer {
 							Scope locationScopeInfo = new Scope();
 							locationScopeInfo.setScopeName(code);
 							locationScopeInfo.setLibraryId(libraryId);
-							locationScopeInfo.setLibraryLocationCodePrefix(code);
-							locationScopeInfo.setLocationLocationCodePrefix(libraryIlsCode);
+							locationScopeInfo.setLibraryLocationCodePrefix(libraryIlsCode);
+							locationScopeInfo.setLocationLocationCodePrefix(code);
 							locationScopeInfo.setRelatedPTypes(pTypes.split(","));
 							locationScopeInfo.setFacetLabel(facetLabel);
 							locationScopeInfo.setIncludeBibsOwnedByTheLibraryOnly(restrictSearchByLibrary);
@@ -341,17 +332,18 @@ public class GroupedWorkIndexer {
 			logger.error("Error calling final commit", e);
 		}
 		//Solr now optimizes itself.  No need to force an optimization.
-		/*try {
-			//Optimize to trigger improved performance
+		try {
+			//Optimize to trigger improved performance.  If we're doing a full reindex, need to wait for the searcher since
+			// we are going to swap in a minute.
 			if (fullReindex) {
 				updateServer.optimize(true, true);
 			}else{
-				//Don't optimize when doing partial
+				//Optimize, but don't bother waiting for the searcher to complete
 				updateServer.optimize(false, false);
 			}
 		} catch (Exception e) {
 			logger.error("Error optimizing index", e);
-		}*/
+		}
 		try {
 			updateServer.shutdown();
 		} catch (Exception e) {
@@ -497,7 +489,7 @@ public class GroupedWorkIndexer {
 				numWorksProcessed++;
 				if (numWorksProcessed % 5000 == 0){
 					commitChanges();
-					//logger.info("Processed " + numWorksProcessed + " grouped works processed.");
+					logger.info("Processed " + numWorksProcessed + " grouped works processed.");
 				}
 				if (maxWorksToProcess != -1 && numWorksProcessed >= maxWorksToProcess){
 					logger.warn("Stopping processing now because we've reached the max works to process.");
@@ -873,9 +865,5 @@ public class GroupedWorkIndexer {
 
 	public TreeSet<Scope> getScopes() {
 		return this.scopes;
-	}
-
-	public TreeSet<LocalizationInfo> getLocalizations() {
-		return this.localizations;
 	}
 }

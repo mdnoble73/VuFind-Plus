@@ -105,7 +105,8 @@ public class Scope implements Comparable<Scope>{
 				return true;
 			}
 		}
-		if (includeBibsOwnedByTheLibraryOnly && !locationCode.startsWith(libraryLocationCodePrefix)){
+		Pattern libraryCodePattern = Pattern.compile(libraryLocationCodePrefix);
+		if (includeBibsOwnedByTheLibraryOnly && !libraryCodePattern.matcher(locationCode).lookingAt()){
 			return false;
 		}
 		if (includeBibsOwnedByTheLocationOnly && !locationCode.startsWith(locationLocationCodePrefix)){
@@ -204,7 +205,8 @@ public class Scope implements Comparable<Scope>{
 		if (locationLocationCodePrefix != null && locationCode.startsWith(locationLocationCodePrefix)){
 			return true;
 		}
-		if (libraryLocationCodePrefix != null && locationCode.startsWith(libraryLocationCodePrefix)){
+		Pattern libraryCodePattern = Pattern.compile(libraryLocationCodePrefix);
+		if (libraryLocationCodePrefix != null && libraryCodePattern.matcher(locationCode).lookingAt()){
 			return true;
 		}
 		if (extraLocationCodesPattern != null){

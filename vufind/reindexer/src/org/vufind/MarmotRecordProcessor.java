@@ -13,6 +13,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * ILS Indexing with customizations specific to Marmot
@@ -101,11 +102,11 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					curScope.addDetailedLocation(translatedDetailedLocation);
 				}
 			}
-			for (LocalizedWorkDetails localizedWorkDetails : groupedWork.getLocalizedWorkDetails().values()){
+			/*for (LocalizedWorkDetails localizedWorkDetails : groupedWork.getLocalizedWorkDetails().values()){
 				if (localizedWorkDetails.getLocalizationInfo().isLocationCodeIncluded(locationCode)){
 					localizedWorkDetails.addDetailedLocation(translatedDetailedLocation);
 				}
-			}
+			}*/
 		}
 	}
 
@@ -262,7 +263,8 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				groupedWork.addEContentSources(sources, validSubdomains, validLocationCodes);
 				groupedWork.addEContentProtectionTypes(protectionTypes, validSubdomains, validLocationCodes);
 				for (String curLocation : pTypesByLibrary.keySet()){
-					if (locationCode.startsWith(curLocation)){
+					Pattern libraryCodePattern = Pattern.compile(curLocation);
+					if (libraryCodePattern.matcher(locationCode).lookingAt()){
 						groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
 					}
 				}
@@ -316,7 +318,8 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					logger.error("Location code was null for item, skipping to next");
 				} else {
 					for (String curLocation : pTypesByLibrary.keySet()) {
-						if (locationCode.startsWith(curLocation)) {
+						Pattern libraryCodePattern = Pattern.compile(curLocation);
+						if (libraryCodePattern.matcher(locationCode).lookingAt()){
 							groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
 						}
 					}
