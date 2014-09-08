@@ -8,10 +8,12 @@
 @import "../../responsive/css/responsive_base.less";
 
 #header-container{
-  background-image: url('/interface/themes/vail/images/header_background.png');
+//  background-image: url('/interface/themes/vail/images/header_background.png');
+  background-image: @header_image;
 }
+// padding adds light-colored space for the logo to be displayed against a black background
 #header-logo{
-  margin-top: 20px;
+  margin-top: 10px;
   background-color:@header-top-color;
   border-radius:  0.5em;
   padding: 10px;

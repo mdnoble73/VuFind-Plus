@@ -6766,7 +6766,7 @@ div#system-message-header {
 }
 #header-container {
   padding-top: 0px;
-  height: 134px;
+  height: 128px;
   background-color: #ffffff;
   background: linear-gradient(to bottom, #ffffff, #ffffff 85%, #ffffff);
   border-bottom: 8px solid #000000;
@@ -6784,11 +6784,11 @@ div#system-message-header {
 }
 .header-button {
   text-align: center;
-  height: 126px !important;
+  height: 120px !important;
   border-bottom: 4px solid #ffffff;
 }
 .header-button > a {
-  line-height: 126px !important;
+  line-height: 120px !important;
   text-align: center;
   vertical-align: middle;
   padding: 0px;
@@ -7924,10 +7924,10 @@ div#system-message-header {
   text-align: right;
 }
 #header-container {
-  background-image: url('/interface/themes/vail/images/header_background.png');
+  background-image: url('/interface/themes/vail/images/header_background_2.png');
 }
 #header-logo {
-  margin-top: 20px;
+  margin-top: 10px;
   background-color: #ffffff;
   border-radius: 0.5em;
   padding: 10px;
