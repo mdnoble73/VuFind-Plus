@@ -28,13 +28,13 @@
 			<div id="main-content" class="col-xs-12">
 				<div class="row">
 
-					<div id="record-details-column" class="col-xs-12 col-sm-9">
+					<div id="record-details-column" class="col-sm-9">
 						{include file="Record/view-title-details.tpl"}
 					</div>
 
 					<br/>
 
-					<div id="recordTools" class="col-xs-12 col-sm-3">
+					<div id="recordTools" class="col-md-3">
 						{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}
 					</div>
 				</div>

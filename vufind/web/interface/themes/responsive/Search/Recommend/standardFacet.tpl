@@ -34,8 +34,7 @@
 	{/foreach}
 	{if $smarty.foreach.narrowLoop.total > $cluster.valuesToShow}
 		<div class="facetValue">
-			<a href="#" onclick="VuFind.ResultsList.lessFacets('{$title}'); return false;">{translate text='less'} ...</a>
+			<a href="#" onclick="VuFind.ResultsList.lessFacets('{$title}'); return false;">{translate text='less'} ...</a></div>
 		</div>
-		</div>{* closes hidden div *}
 	{/if}
 {/if}
