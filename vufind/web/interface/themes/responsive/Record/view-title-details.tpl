@@ -26,6 +26,13 @@
 			<div class="result-label col-xs-4">{translate text='Contributors'}:</div>
 			<div class="col-xs-8 result-value">
 				{foreach from=$recordDriver->getDetailedContributors() item=contributor name=loop}
+					{if $smarty.foreach.loop.index == 5}
+						<div id="showAdditionalContributorsLink">
+							<a onclick="VuFind.Record.moreContributors(); return false;" href="#">{translate text='more'} ...</a>
+						</div>
+						{*create hidden div*}
+						<div id="additionalContributors" style="display:none">
+					{/if}
 					<a href="{$path}/Author/Home?author={$contributor.name|trim|escape:"url"}">{$contributor.name|escape}</a>
 					{if $contributor.role}
 						&nbsp;{$contributor.role}
@@ -33,8 +40,14 @@
 					{if $contributor.title}
 						&nbsp;<a href="{$path}/Search/Results?lookfor={$contributor.title}&amp;basicType=Title">{$contributor.title}</a>
 					{/if}
-					<br/>
+				<br/>
 				{/foreach}
+				{if $smarty.foreach.loop.index >= 5}
+					<div>
+						<a href="#" onclick="VuFind.Record.lessContributors(); return false;">{translate text='less'} ...</a>
+					</div>
+					</div>{* closes hidden div *}
+				{/if}
 			</div>
 		</div>
 	{/if}
