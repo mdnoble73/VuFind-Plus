@@ -450,6 +450,25 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_order_information' => array(
+			'title' => 'Library Order Information',
+			'description' => 'Add Properties to handle integration of order records within VuFind',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE library ADD orderAccountingUnit INT(11) DEFAULT Null",
+				"ALTER TABLE library ADD makeOrderRecordsAvailableToOtherLibraries TINYINT(1) DEFAULT 0",
+			),
+		),
+
+		'library_ils_code_expansion' => array(
+			'title' => 'Library Expand ILS Code',
+			'description' => 'Expand ILS Code to allow regular expressions to be used',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE library CHANGE ilsCode ilsCode VARCHAR(15) NOT NULL",
+			),
+		),
+
 		'econtent_locations_to_include' => array(
 			'title' => 'eContent Locations To Include',
 			'description' => 'Adds the ability to define which shared location codes should be included in the search scope',

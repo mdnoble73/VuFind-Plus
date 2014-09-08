@@ -243,6 +243,7 @@ public abstract class IlsRecordProcessor {
 			//Scoping and availability of records.
 			List<PrintIlsItem> printItems = getUnsuppressedPrintItems(record);
 			List<EContentIlsItem> econtentItems = getUnsuppressedEContentItems(identifier, record);
+			List<OnOrderItem> onOrderItems = getOnOrderItems(identifier, record);
 
 			//Break the MARC record up based on item information and load data that is scoped
 			//i.e. formats, iTypes, date added to catalog, etc
@@ -284,7 +285,7 @@ public abstract class IlsRecordProcessor {
 			groupedWork.addMpaaRating(groupedWork, getMpaaRating(record));
 
 			//Do updates based on items
-			loadOwnershipInformation(groupedWork, printItems, econtentItems);
+			loadOwnershipInformation(groupedWork, printItems, econtentItems, onOrderItems);
 			loadAvailability(groupedWork, printItems, econtentItems);
 			loadUsability(groupedWork, printItems, econtentItems);
 			loadPopularity(groupedWork, printItems, econtentItems);
@@ -308,6 +309,10 @@ public abstract class IlsRecordProcessor {
 		}catch (Exception e){
 			logger.error("Error updating grouped work for MARC record with identifier " + identifier, e);
 		}
+	}
+
+	protected List<OnOrderItem> getOnOrderItems(String identifier, Record record){
+		return new ArrayList<OnOrderItem>();
 	}
 
 	private void loadEditions(GroupedWorkSolr groupedWork, Record record, HashSet<IlsRecord> ilsRecords) {
@@ -586,15 +591,6 @@ public abstract class IlsRecordProcessor {
 			for (Scope curScope : indexer.getScopes()) {
 				if (curScope.isItemPartOfScope(ilsRecord.getLocation(), ilsRecord.getCompatiblePTypes())) {
 					ilsRecord.addRelatedScope(curScope);
-				}
-			}
-		}
-
-		//Determine which localizations this record belongs to
-		if (ilsRecord.getLocation() != null) {
-			for (LocalizationInfo localizationInfo : indexer.getLocalizations()) {
-				if (localizationInfo.isLocationCodeIncluded(ilsRecord.getLocation())) {
-					ilsRecord.addRelatedLocalization(localizationInfo);
 				}
 			}
 		}
@@ -1157,7 +1153,7 @@ public abstract class IlsRecordProcessor {
 		groupedWork.addAvailableLocations(availableAt, availableLocationCodes);
 	}
 
-	protected void loadOwnershipInformation(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
+	protected void loadOwnershipInformation(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, List<OnOrderItem> onOrderItems) {
 		HashSet<String> owningLibraries = new HashSet<String>();
 		HashSet<String> owningLocations = new HashSet<String>();
 		HashSet<String> owningLocationCodes = new HashSet<String>();
@@ -1173,9 +1169,10 @@ public abstract class IlsRecordProcessor {
 
 				loadAdditionalOwnershipInformation(groupedWork, curItem);
 			}
-			for (LocalizationInfo localizationInfo : curItem.getRelatedLocalizations()){
-				owningLocations.add(localizationInfo.getFacetLabel());
-				owningLocationCodes.add(localizationInfo.getLocationCodePrefix());
+		}
+		for (OnOrderItem curOrderItem: onOrderItems){
+			for (Scope curScope : curOrderItem.getRelatedScopes()){
+				owningLocations.add(curScope.getFacetLabel() + " On Order");
 			}
 		}
 		groupedWork.addOwningLibraries(owningLibraries);
@@ -1192,7 +1189,8 @@ public abstract class IlsRecordProcessor {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> libraryFacets = new ArrayList<String>();
 		for(String libraryCode : indexer.getLibraryFacetMap().keySet()){
-			if (locationCode.startsWith(libraryCode)){
+			Pattern libraryCodePattern = Pattern.compile(libraryCode);
+			if (libraryCodePattern.matcher(locationCode).lookingAt()){
 				libraryFacets.add(indexer.getLibraryFacetMap().get(libraryCode));
 			}
 		}
@@ -1210,7 +1208,8 @@ public abstract class IlsRecordProcessor {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> libraryOnlineFacets = new ArrayList<String>();
 		for(String libraryCode : indexer.getLibraryOnlineFacetMap().keySet()){
-			if (locationCode.startsWith(libraryCode)){
+			Pattern libraryCodePattern = Pattern.compile(libraryCode);
+			if (libraryCodePattern.matcher(locationCode).lookingAt()){
 				libraryOnlineFacets.add(indexer.getLibraryOnlineFacetMap().get(libraryCode));
 			}
 		}
@@ -1227,7 +1226,8 @@ public abstract class IlsRecordProcessor {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> subdomains = new ArrayList<String>();
 		for(String libraryCode : indexer.getSubdomainMap().keySet()){
-			if (locationCode.startsWith(libraryCode)){
+			Pattern libraryCodePattern = Pattern.compile(libraryCode);
+			if (libraryCodePattern.matcher(locationCode).lookingAt()){
 				subdomains.add(indexer.getSubdomainMap().get(libraryCode));
 			}
 		}
@@ -1241,7 +1241,8 @@ public abstract class IlsRecordProcessor {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> librarySubdomains = new ArrayList<String>();
 		for(String libraryCode : indexer.getSubdomainMap().keySet()){
-			if (locationCode.startsWith(libraryCode)){
+			Pattern libraryCodePattern = Pattern.compile(libraryCode);
+			if (libraryCodePattern.matcher(locationCode).lookingAt()){
 				librarySubdomains.add(indexer.getSubdomainMap().get(libraryCode));
 			}
 		}
@@ -1252,15 +1253,21 @@ public abstract class IlsRecordProcessor {
 	}
 
 	private HashSet<String> locationCodesWithoutFacets = new HashSet<String>();
+	private HashMap<String, ArrayList<String>> locationFacetsForLocationCode = new HashMap<String, ArrayList<String>>();
 	private ArrayList<String> getLocationFacetsForLocationCode(String locationCode) {
 		locationCode = locationCode.toLowerCase();
+		if (locationFacetsForLocationCode.containsKey(locationCode)){
+			return locationFacetsForLocationCode.get(locationCode);
+		}
 		ArrayList<String> locationFacets = new ArrayList<String>();
 		if (locationCode == null || locationCode.length() == 0){
+			locationFacetsForLocationCode.put(locationCode, locationFacets);
 			return locationFacets;
 		}
 		locationCode = locationCode.toLowerCase();
 		for(String ilsCode : indexer.getLocationMap().keySet()){
-			if (locationCode.startsWith(ilsCode)){
+			Pattern libraryCodePattern = Pattern.compile(ilsCode);
+			if (libraryCodePattern.matcher(locationCode).lookingAt()){
 				locationFacets.add(indexer.getLocationMap().get(ilsCode));
 			}
 		}
@@ -1270,31 +1277,45 @@ public abstract class IlsRecordProcessor {
 				locationCodesWithoutFacets.add(locationCode);
 			}
 		}
+		locationFacetsForLocationCode.put(locationCode, locationFacets);
 		return locationFacets;
 	}
 
+	protected HashMap<String, ArrayList> relatedLocationCodesForLocationCode = new HashMap<String, ArrayList>();
 	protected ArrayList<String> getRelatedLocationCodesForLocationCode(String locationCode){
 		locationCode = locationCode.toLowerCase();
+		if (relatedLocationCodesForLocationCode.containsKey(locationCode)){
+			return relatedLocationCodesForLocationCode.get(locationCode);
+		}
 		ArrayList<String> locationFacets = new ArrayList<String>();
 		if (locationCode == null || locationCode.length() == 0){
+			relatedLocationCodesForLocationCode.put(locationCode, locationFacets);
 			return locationFacets;
 		}
 		for(String ilsCode : indexer.getLocationMap().keySet()){
-			if (locationCode.startsWith(ilsCode)){
+			Pattern libraryCodePattern = Pattern.compile(ilsCode);
+			if (libraryCodePattern.matcher(locationCode).lookingAt()){
 				locationFacets.add(ilsCode);
 			}
 		}
+		relatedLocationCodesForLocationCode.put(locationCode, locationFacets);
 		return locationFacets;
 	}
 
+	protected HashMap<String, ArrayList> ilsCodesForDetailedLocationCode = new HashMap<String, ArrayList>();
 	private ArrayList<String> getIlsCodesForDetailedLocationCode(String locationCode) {
 		locationCode = locationCode.toLowerCase();
+		if (ilsCodesForDetailedLocationCode.containsKey(locationCode)){
+			return ilsCodesForDetailedLocationCode.get(locationCode);
+		}
 		ArrayList<String> locationCodes = new ArrayList<String>();
 		for(String ilsCode : indexer.getLocationMap().keySet()){
-			if (locationCode.startsWith(ilsCode)){
+			Pattern locationPattern = Pattern.compile(ilsCode);
+			if (locationPattern.matcher(locationCode).lookingAt()){
 				locationCodes.add(ilsCode);
 			}
 		}
+		ilsCodesForDetailedLocationCode.put(locationCode, locationCodes);
 		return locationCodes;
 	}
 

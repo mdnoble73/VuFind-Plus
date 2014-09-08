@@ -1,5 +1,6 @@
 package org.vufind;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.regex.Pattern;
 
@@ -105,7 +106,8 @@ public class Scope implements Comparable<Scope>{
 				return true;
 			}
 		}
-		if (includeBibsOwnedByTheLibraryOnly && !locationCode.startsWith(libraryLocationCodePrefix)){
+		Pattern libraryCodePattern = Pattern.compile(libraryLocationCodePrefix);
+		if (includeBibsOwnedByTheLibraryOnly && !libraryCodePattern.matcher(locationCode).lookingAt()){
 			return false;
 		}
 		if (includeBibsOwnedByTheLocationOnly && !locationCode.startsWith(locationLocationCodePrefix)){
@@ -200,25 +202,31 @@ public class Scope implements Comparable<Scope>{
 		this.accountingUnit = accountingUnit;
 	}
 
+	HashMap<String, Boolean> locationCodeIncludedDirectly = new HashMap<String, Boolean>();
 	public boolean isLocationCodeIncludedDirectly(String locationCode) {
-		if (includeBibsOwnedByTheLocationOnly){
-			if (locationCode.startsWith(locationLocationCodePrefix)){
+		if (locationCodeIncludedDirectly.containsKey(locationCode)){
+			return locationCodeIncludedDirectly.get(locationCode);
+		}
+		if (locationLocationCodePrefix != null && locationCode.startsWith(locationLocationCodePrefix)){
+			locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
+			return true;
+		}
+		Pattern libraryCodePattern = Pattern.compile(libraryLocationCodePrefix);
+		if (libraryLocationCodePrefix != null && libraryCodePattern.matcher(locationCode).lookingAt()){
+			locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
+			return true;
+		}
+		if (extraLocationCodesPattern != null){
+			if (extraLocationCodesPattern.matcher(locationCode).matches()) {
+				locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
 				return true;
-			}
-		}else if (includeBibsOwnedByTheLibraryOnly){
-			if (locationCode.startsWith(libraryLocationCodePrefix)){
-				return true;
-			}
-		}else{
-			if (extraLocationCodesPattern != null){
-				if (extraLocationCodesPattern.matcher(locationCode).matches()) {
-					return true;
-				}
 			}
 		}
 		if (isGlobalScope){
+			locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
 			return true;
 		}
+		locationCodeIncludedDirectly.put(locationCode, Boolean.FALSE);
 		return false;
 	}
 }

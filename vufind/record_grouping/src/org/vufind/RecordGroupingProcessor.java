@@ -170,6 +170,7 @@ public class RecordGroupingProcessor {
 			boolean allItemsOverDrive = true;
 
 			List<DataField> itemFields = getDataFields(marcRecord, itemTag);
+			int numItems = itemFields.size();
 			for (DataField itemField : itemFields){
 				if (itemField.getSubfield(eContentSubfield) != null){
 					//Check the protection types and sources
@@ -186,6 +187,9 @@ public class RecordGroupingProcessor {
 				}else{
 					allItemsOverDrive = false;
 				}
+			}
+			if (numItems == 0){
+				allItemsOverDrive = false;
 			}
 			if (allItemsOverDrive){
 				//Don't return a primary identifier for this record (we will suppress the bib and just use OverDrive APIs)

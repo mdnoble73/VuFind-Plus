@@ -13,6 +13,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * ILS Indexing with customizations specific to Marmot
@@ -61,22 +62,29 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		}
 	}
 
-	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
-		super.updateGroupedWorkSolrDataBasedOnMarc(groupedWork, record, identifier);
+	protected List<OnOrderItem> getOnOrderItems(String identifier, Record record){
+		ArrayList<OnOrderItem> onOrderItems = new ArrayList<OnOrderItem>();
 
 		//Check to see if we have order records for the bib.  If so, add ownership for those records.
-		/*if (orderRecordsByBib.containsKey(identifier)){
+		if (orderRecordsByBib.containsKey(identifier)){
 			ArrayList<SierraOrderInformation> orderInformationForBib = orderRecordsByBib.get(identifier);
 			//We have a match, determine which scopes to add the record to
-			for (ScopedWorkDetails scope : groupedWork.getScopedWorkDetails().values()){
-				for (SierraOrderInformation orderInformation : orderInformationForBib) {
-					if (scope.getScope().getAccountingUnit() == orderInformation.getAccountingUnit()) {
-						//TODO: Figure out what needs to be done to add the order to the scope.
+			for (SierraOrderInformation orderInformation : orderInformationForBib) {
+				OnOrderItem orderItem = new OnOrderItem();
+				orderItem.setOrderNumber(orderInformation.getOrderNumber());
+				orderItem.setBibNumber(orderInformation.getBibRecordNumber());
+				orderItem.setStatus(orderInformation.getStatusCode());
+				//Get the location code/codes for the order
+				for (Scope curScope : indexer.getScopes()){
+					if (curScope.getAccountingUnit() != null && curScope.getAccountingUnit().equals(orderInformation.getAccountingUnit())) {
+						orderItem.addRelatedScope(curScope);
 					}
 				}
+				onOrderItems.add(orderItem);
 			}
+		}
 
-		}*/
+		return onOrderItems;
 	}
 
 	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, PrintIlsItem printItem){
@@ -94,11 +102,11 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					curScope.addDetailedLocation(translatedDetailedLocation);
 				}
 			}
-			for (LocalizedWorkDetails localizedWorkDetails : groupedWork.getLocalizedWorkDetails().values()){
+			/*for (LocalizedWorkDetails localizedWorkDetails : groupedWork.getLocalizedWorkDetails().values()){
 				if (localizedWorkDetails.getLocalizationInfo().isLocationCodeIncluded(locationCode)){
 					localizedWorkDetails.addDetailedLocation(translatedDetailedLocation);
 				}
-			}
+			}*/
 		}
 	}
 
@@ -243,11 +251,11 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				//owningLibraries.add("Shared Digital Collection");
 				owningLibraries.addAll(curItem.getValidLibraryFacets());
 				owningSubdomainsAndLocations.addAll(indexer.getSubdomainMap().values());
-				owningSubdomainsAndLocations.addAll(indexer.getLocationMap().values());
+				owningSubdomainsAndLocations.addAll(indexer.getLocationMap().keySet());
 				if (available){
 					availableLibraries.addAll(indexer.getLibraryFacetMap().values());
 					availableSubdomainsAndLocations.addAll(indexer.getSubdomainMap().values());
-					availableSubdomainsAndLocations.addAll(indexer.getLocationMap().values());
+					availableSubdomainsAndLocations.addAll(indexer.getLocationMap().keySet());
 				}
 			}else if (shareWithLibrary){
 				ArrayList<String> validSubdomains = getLibrarySubdomainsForLocationCode(locationCode);
@@ -255,7 +263,8 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				groupedWork.addEContentSources(sources, validSubdomains, validLocationCodes);
 				groupedWork.addEContentProtectionTypes(protectionTypes, validSubdomains, validLocationCodes);
 				for (String curLocation : pTypesByLibrary.keySet()){
-					if (locationCode.startsWith(curLocation)){
+					Pattern libraryCodePattern = Pattern.compile(curLocation);
+					if (libraryCodePattern.matcher(locationCode).lookingAt()){
 						groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
 					}
 				}
@@ -309,7 +318,8 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					logger.error("Location code was null for item, skipping to next");
 				} else {
 					for (String curLocation : pTypesByLibrary.keySet()) {
-						if (locationCode.startsWith(curLocation)) {
+						Pattern libraryCodePattern = Pattern.compile(curLocation);
+						if (libraryCodePattern.matcher(locationCode).lookingAt()){
 							groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
 						}
 					}

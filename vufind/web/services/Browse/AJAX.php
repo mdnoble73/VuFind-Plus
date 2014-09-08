@@ -205,12 +205,15 @@ class Browse_AJAX extends Action {
 			foreach ($defaultFilters as $filter){
 				$this->searchObject->addFilter($filter);
 			}
+			//Set Sorting, this is actually slightly mangled from the category to Solr
+			$this->searchObject->setSort($browseCategory->getSolrSort());
 			if ($browseCategory->searchTerm != ''){
 				$this->searchObject->setSearchTerm($browseCategory->searchTerm);
 			}
+
 			//Get titles for the list
-			$this->searchObject->setSort($browseCategory->defaultSort);
 			$this->searchObject->clearFacets();
+			$this->searchObject->disableSpelling();
 			$this->searchObject->disableLogging();
 			$this->searchObject->setLimit(24);
 			$this->searchObject->setPage($pageToLoad);

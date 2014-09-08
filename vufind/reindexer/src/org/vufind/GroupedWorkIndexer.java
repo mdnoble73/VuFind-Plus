@@ -38,6 +38,7 @@ public class GroupedWorkIndexer {
 	private OverDriveProcessor overDriveProcessor;
 	private HashMap<String, HashMap<String, String>> translationMaps = new HashMap<String, HashMap<String, String>>();
 	private HashMap<String, LexileTitle> lexileInformation = new HashMap<String, LexileTitle>();
+	private Long maxWorksToProcess = -1L;
 
 	private PreparedStatement getRatingStmt;
 	private Connection vufindConn;
@@ -55,7 +56,6 @@ public class GroupedWorkIndexer {
 
 	private HashSet<String> worksWithInvalidLiteraryForms = new HashSet<String>();
 	private TreeSet<Scope> scopes = new TreeSet<Scope>();
-	private TreeSet<LocalizationInfo> localizations = new TreeSet<LocalizationInfo>();
 
 	public GroupedWorkIndexer(String serverName, Connection vufindConn, Connection econtentConn, Ini configIni, boolean fullReindex, Logger logger) {
 		this.serverName = serverName;
@@ -66,6 +66,16 @@ public class GroupedWorkIndexer {
 
 		availableAtLocationBoostValue = Integer.parseInt(configIni.get("Reindex", "availableAtLocationBoostValue"));
 		ownedByLocationBoostValue = Integer.parseInt(configIni.get("Reindex", "ownedByLocationBoostValue"));
+
+		String maxWorksToProcessStr = Util.cleanIniValue(configIni.get("Reindex", "maxWorksToProcess"));
+		if (maxWorksToProcessStr.length() > 0){
+			try{
+				maxWorksToProcess = Long.parseLong(maxWorksToProcessStr);
+				logger.warn("Processing a maximum of " + maxWorksToProcess + " works");
+			}catch (NumberFormatException e){
+				logger.warn("Unable to parse max works to process " + maxWorksToProcessStr);
+			}
+		}
 
 		//Load the last Index time
 		try{
@@ -157,7 +167,7 @@ public class GroupedWorkIndexer {
 		if (!libraryAndLocationDataLoaded){
 			//Setup translation maps for system and location
 			try {
-				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, displayName, facetLabel, pTypes, restrictSearchByLibrary, econtentLocationsToInclude, includeDigitalCollection, includeOutOfSystemExternalLinks, useScope FROM library ORDER BY ilsCode ASC", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, displayName, facetLabel, pTypes, restrictSearchByLibrary, econtentLocationsToInclude, includeDigitalCollection, includeOutOfSystemExternalLinks, useScope, orderAccountingUnit FROM library ORDER BY ilsCode ASC", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
 				while (libraryInformationRS.next()){
 					String code = libraryInformationRS.getString("ilsCode").toLowerCase();
@@ -183,6 +193,7 @@ public class GroupedWorkIndexer {
 					boolean includeOutOfSystemExternalLinks = libraryInformationRS.getBoolean("includeOutOfSystemExternalLinks");
 					boolean useScope = libraryInformationRS.getBoolean("useScope");
 					boolean includeOverdrive = libraryInformationRS.getBoolean("includeDigitalCollection");
+					Long accountingUnit = libraryInformationRS.getLong("orderAccountingUnit");
 					//Determine if we need to build a scope for this library
 					if ((pTypes.length() == 0 || pTypes.equals("-1")) && !restrictSearchByLibrary && econtentLocationsToInclude.equalsIgnoreCase("all") && includeOutOfSystemExternalLinks && !useScope){
 						logger.debug("Not creating a scope for library because there are no restrictions for library " + subdomain);
@@ -190,6 +201,7 @@ public class GroupedWorkIndexer {
 						//We need to build a scope
 						Scope newScope = new Scope();
 						newScope.setScopeName(subdomain);
+						newScope.setAccountingUnit(accountingUnit);
 						newScope.setLibraryId(libraryId);
 						newScope.setFacetLabel(facetLabel);
 						newScope.setLibraryLocationCodePrefix(code);
@@ -215,14 +227,6 @@ public class GroupedWorkIndexer {
 						facetLabel = displayName;
 					}
 					locationMap.put(code, facetLabel);
-
-					LocalizationInfo localizationInfo = new LocalizationInfo();
-					localizationInfo.setLocalName(code);
-					localizationInfo.setLocationCodePrefix(code);
-					localizationInfo.setExtraLocationCodes(extraLocationCodesToInclude);
-					localizationInfo.setFacetLabel(facetLabel);
-					localizations.add(localizationInfo);
-
 
 					//Determine if we need to build a scope for this location
 					Long libraryId = locationInformationRS.getLong("libraryId");
@@ -255,8 +259,8 @@ public class GroupedWorkIndexer {
 							Scope locationScopeInfo = new Scope();
 							locationScopeInfo.setScopeName(code);
 							locationScopeInfo.setLibraryId(libraryId);
-							locationScopeInfo.setLibraryLocationCodePrefix(code);
-							locationScopeInfo.setLocationLocationCodePrefix(libraryIlsCode);
+							locationScopeInfo.setLibraryLocationCodePrefix(libraryIlsCode);
+							locationScopeInfo.setLocationLocationCodePrefix(code);
 							locationScopeInfo.setRelatedPTypes(pTypes.split(","));
 							locationScopeInfo.setFacetLabel(facetLabel);
 							locationScopeInfo.setIncludeBibsOwnedByTheLibraryOnly(restrictSearchByLibrary);
@@ -328,17 +332,18 @@ public class GroupedWorkIndexer {
 			logger.error("Error calling final commit", e);
 		}
 		//Solr now optimizes itself.  No need to force an optimization.
-		/*try {
-			//Optimize to trigger improved performance
+		try {
+			//Optimize to trigger improved performance.  If we're doing a full reindex, need to wait for the searcher since
+			// we are going to swap in a minute.
 			if (fullReindex) {
 				updateServer.optimize(true, true);
 			}else{
-				//Don't optimize when doing partial
+				//Optimize, but don't bother waiting for the searcher to complete
 				updateServer.optimize(false, false);
 			}
 		} catch (Exception e) {
 			logger.error("Error optimizing index", e);
-		}*/
+		}
 		try {
 			updateServer.shutdown();
 		} catch (Exception e) {
@@ -484,7 +489,11 @@ public class GroupedWorkIndexer {
 				numWorksProcessed++;
 				if (numWorksProcessed % 5000 == 0){
 					commitChanges();
-					//logger.info("Processed " + numWorksProcessed + " grouped works processed.");
+					logger.info("Processed " + numWorksProcessed + " grouped works processed.");
+				}
+				if (maxWorksToProcess != -1 && numWorksProcessed >= maxWorksToProcess){
+					logger.warn("Stopping processing now because we've reached the max works to process.");
+					break;
 				}
 			}
 		} catch (SQLException e) {
@@ -513,7 +522,7 @@ public class GroupedWorkIndexer {
 
 	private void commitChanges() {
 		try {
-			updateServer.commit(true, true);
+			updateServer.commit(false, false);
 		} catch (SolrServerException e) {
 			logger.error("Error updating solr", e);
 		} catch (IOException e) {
@@ -856,9 +865,5 @@ public class GroupedWorkIndexer {
 
 	public TreeSet<Scope> getScopes() {
 		return this.scopes;
-	}
-
-	public TreeSet<LocalizationInfo> getLocalizations() {
-		return this.localizations;
 	}
 }

@@ -1,15 +1,22 @@
 VuFind.Responsive = (function(){
 	$(document).ready(function(){
-		$(window).resize(VuFind.Responsive.adjustLayout);
+		$(window).resize(function(){
+			VuFind.Responsive.adjustLayout();
+		});
 		$(window).trigger('resize');
 	});
 
-	var mediaQueryList = window.matchMedia('print');
-	mediaQueryList.addListener(function(mql) {
-		VuFind.Responsive.isPrint = mql.matches;
-		VuFind.Responsive.adjustLayout();
-		//console.log("The site is now print? " + VuFind.Responsive.isPrint);
-	});
+	try{
+		var mediaQueryList = window.matchMedia('print');
+		mediaQueryList.addListener(function(mql) {
+			VuFind.Responsive.isPrint = mql.matches;
+			VuFind.Responsive.adjustLayout();
+			//console.log("The site is now print? " + VuFind.Responsive.isPrint);
+		});
+	}catch(err){
+		//For now, just ignore this error.
+	}
+
 	window.onbeforeprint = function() {
 		VuFind.Responsive.isPrint = true;
 		VuFind.Responsive.adjustLayout();

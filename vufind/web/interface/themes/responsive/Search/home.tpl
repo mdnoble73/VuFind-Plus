@@ -47,5 +47,9 @@
 	</div>
 {/strip}
 <script type="text/javascript">
-	VuFind.Browse.curCategory = '{$browseResults.textId}';
+	{literal}
+	$(document).ready(function(){
+		VuFind.Browse.curCategory = '{$browseResults.textId}';
+	});
+	{/literal}
 </script>

@@ -20,7 +20,6 @@ public class IlsItem {
 	private String itemRecordNumber;
 
 	private HashSet<Scope> relatedScopes = new HashSet<Scope>();
-	private HashSet<LocalizationInfo> relatedLocalizations = new HashSet<LocalizationInfo>();
 	private String recordIdentifier;
 
 	public String getDateCreated() {
@@ -105,14 +104,6 @@ public class IlsItem {
 		relatedScopes.add(scope);
 	}
 
-	public HashSet<LocalizationInfo> getRelatedLocalizations() {
-		return relatedLocalizations;
-	}
-
-	public void setRelatedLocalizations(HashSet<LocalizationInfo> relatedLocalizations) {
-		this.relatedLocalizations = relatedLocalizations;
-	}
-
 	public String getRecordIdentifier() {
 		return recordIdentifier;
 	}
@@ -145,7 +136,4 @@ public class IlsItem {
 		return subdomains;
 	}
 
-	public void addRelatedLocalization(LocalizationInfo localizationInfo) {
-		this.relatedLocalizations.add(localizationInfo);
-	}
 }
