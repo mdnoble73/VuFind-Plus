@@ -13,6 +13,8 @@ VuFind.Responsive = (function(){
 			VuFind.Responsive.adjustLayout();
 			//console.log("The site is now print? " + VuFind.Responsive.isPrint);
 		});
+	}catch(err){
+		//For now, just ignore this error.
 	}
 
 	window.onbeforeprint = function() {
