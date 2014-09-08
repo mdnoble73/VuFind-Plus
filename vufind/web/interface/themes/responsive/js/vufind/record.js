@@ -390,6 +390,17 @@ VuFind.Record = (function(){
 					VuFind.showMessage('Hold Failed', data.message);
 				}
 			});
+		},
+
+		moreContributors: function(){
+			document.getElementById('showAdditionalContributorsLink').style.display="none";
+			document.getElementById('additionalContributors').style.display="block";
+		},
+
+		lessContributors: function(){
+			document.getElementById('showAdditionalContributorsLink').style.display="block";
+			document.getElementById('additionalContributors').style.display="none";
 		}
+
 	};
 }(VuFind.Record || {}));
