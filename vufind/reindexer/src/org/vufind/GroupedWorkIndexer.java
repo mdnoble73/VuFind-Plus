@@ -488,7 +488,7 @@ public class GroupedWorkIndexer {
 				}
 				numWorksProcessed++;
 				if (numWorksProcessed % 5000 == 0){
-					commitChanges();
+					//commitChanges();
 					logger.info("Processed " + numWorksProcessed + " grouped works processed.");
 				}
 				if (maxWorksToProcess != -1 && numWorksProcessed >= maxWorksToProcess){
