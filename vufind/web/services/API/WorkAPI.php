@@ -22,7 +22,7 @@ class WorkAPI {
 	}
 
 	function getRatingData($permanentId = null){
-		if ($permanentId == null){
+		if (is_null($permanentId) && isset($_REQUEST['id'])){
 			$permanentId = $_REQUEST['id'];
 		}
 
@@ -38,6 +38,11 @@ class WorkAPI {
 			'num4star' => 0,
 			'num5star' => 0,
 		);
+
+		//Somehow we didn't get an id (work no longer exists in the index)
+		if (is_null($permanentId)){
+			return $ratingData;
+		}
 
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
 		$reviewData = new UserWorkReview();

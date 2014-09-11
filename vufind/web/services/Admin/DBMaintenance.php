@@ -1800,6 +1800,14 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'browse_categories_lists' => array(
+					'title' => 'Browse Categories from Lists',
+					'description' => 'Add a the ability to define a browse category from a list',
+					'sql' => array(
+						"ALTER TABLE browse_category ADD sourceListId MEDIUMINT NULL DEFAULT NULL",
+					),
+				),
+
 				'localized_browse_categories' => array(
 					'title' => 'Localized Browse Categories',
 					'description' => 'Setup Localized Browse Category Tables',

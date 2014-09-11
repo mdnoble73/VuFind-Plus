@@ -147,31 +147,46 @@ class Browse_AJAX extends Action {
 			$result['textId'] = $browseCategory->textId;
 			$result['label'] = $browseCategory->label;
 			$result['description'] = $browseCategory->description;
-			$defaultFilterInfo = $browseCategory->defaultFilter;
-			$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
-			foreach ($defaultFilters as $filter){
-				$this->searchObject->addFilter($filter);
-			}
-			//Set Sorting, this is actually slightly mangled from the category to Solr
-			$this->searchObject->setSort($browseCategory->getSolrSort());
-			if ($browseCategory->searchTerm != ''){
-				$this->searchObject->setSearchTerm($browseCategory->searchTerm);
-			}
 
-			$this->searchObject->clearFacets();
-			$this->searchObject->disableSpelling();
-			$this->searchObject->disableLogging();
-			$this->searchObject->setLimit(24);
-			//Get titles for the list
-			$this->searchObject->processSearch();
-			$records = $this->searchObject->getBrowseRecordHTML();
+			if ($browseCategory->sourceListId != null && $browseCategory->sourceListId > 0){
+				require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+				$sourceList = new UserList();
+				$sourceList->id = $browseCategory->sourceListId;
+				if ($sourceList->find(true)){
+					$records = $sourceList->getBrowseRecords(0, 24);
+				}else{
+					$records = array();
+				}
+				$result['searchUrl'] = '/MyAccount/MyList/' . $browseCategory->sourceListId;
+			}else{
+				$defaultFilterInfo = $browseCategory->defaultFilter;
+				$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
+				foreach ($defaultFilters as $filter){
+					$this->searchObject->addFilter($filter);
+				}
+				//Set Sorting, this is actually slightly mangled from the category to Solr
+				$this->searchObject->setSort($browseCategory->getSolrSort());
+				if ($browseCategory->searchTerm != ''){
+					$this->searchObject->setSearchTerm($browseCategory->searchTerm);
+				}
+
+				$this->searchObject->clearFacets();
+				$this->searchObject->disableSpelling();
+				$this->searchObject->disableLogging();
+				$this->searchObject->setLimit(24);
+				//Get titles for the list
+				$this->searchObject->processSearch();
+
+				$records = $this->searchObject->getBrowseRecordHTML();
+
+				$result['searchUrl'] = $this->searchObject->renderSearchUrl();
+			}
 			if (count($records) == 0){
 				$records[] = $interface->fetch('Browse/noResults.tpl');
 			}
 
 			$result['records'] = implode('',$records);
 			$result['numRecords'] = count($records);
-			$result['searchUrl'] = $this->searchObject->renderSearchUrl();
 
 			$browseCategory->numTimesShown += 1;
 			$browseCategory->update();
@@ -200,25 +215,36 @@ class Browse_AJAX extends Action {
 			$result['textId'] = $browseCategory->textId;
 			$result['label'] = $browseCategory->label;
 			$result['description'] = $browseCategory->description;
-			$defaultFilterInfo = $browseCategory->defaultFilter;
-			$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
-			foreach ($defaultFilters as $filter){
-				$this->searchObject->addFilter($filter);
-			}
-			//Set Sorting, this is actually slightly mangled from the category to Solr
-			$this->searchObject->setSort($browseCategory->getSolrSort());
-			if ($browseCategory->searchTerm != ''){
-				$this->searchObject->setSearchTerm($browseCategory->searchTerm);
-			}
+			if ($browseCategory->sourceListId != null && $browseCategory->sourceListId > 0){
+				require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+				$sourceList = new UserList();
+				$sourceList->id = $browseCategory->sourceListId;
+				if ($sourceList->find(true)){
+					$records = $sourceList->getBrowseRecords(($pageToLoad -1) * 24, 24);
+				}else{
+					$records = array();
+				}
+			}else{
+				$defaultFilterInfo = $browseCategory->defaultFilter;
+				$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
+				foreach ($defaultFilters as $filter){
+					$this->searchObject->addFilter($filter);
+				}
+				//Set Sorting, this is actually slightly mangled from the category to Solr
+				$this->searchObject->setSort($browseCategory->getSolrSort());
+				if ($browseCategory->searchTerm != ''){
+					$this->searchObject->setSearchTerm($browseCategory->searchTerm);
+				}
 
-			//Get titles for the list
-			$this->searchObject->clearFacets();
-			$this->searchObject->disableSpelling();
-			$this->searchObject->disableLogging();
-			$this->searchObject->setLimit(24);
-			$this->searchObject->setPage($pageToLoad);
-			$this->searchObject->processSearch();
-			$records = $this->searchObject->getBrowseRecordHTML();
+				//Get titles for the list
+				$this->searchObject->clearFacets();
+				$this->searchObject->disableSpelling();
+				$this->searchObject->disableLogging();
+				$this->searchObject->setLimit(24);
+				$this->searchObject->setPage($pageToLoad);
+				$this->searchObject->processSearch();
+				$records = $this->searchObject->getBrowseRecordHTML();
+			}
 			if (count($records) == 0){
 				$records[] = $interface->fetch('Browse/noResults.tpl');
 			}
