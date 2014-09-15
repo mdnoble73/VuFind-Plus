@@ -6,6 +6,7 @@ import java.net.URL;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashSet;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import org.apache.log4j.Logger;
@@ -61,6 +62,29 @@ public class SierraExportMain{
 			System.exit(1);
 		}
 
+		Long sierraExtractRunningVariableId = null;
+		boolean sierraExtractRunning = false;
+		try{
+			PreparedStatement loadSierraExtractRunning = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'sierra_extract_running'");
+			ResultSet loadPartialExtractRunningRS = loadSierraExtractRunning.executeQuery();
+			if (loadPartialExtractRunningRS.next()){
+				sierraExtractRunning = loadPartialExtractRunningRS.getBoolean("value");
+				sierraExtractRunningVariableId = loadPartialExtractRunningRS.getLong("id");
+			}
+			loadPartialExtractRunningRS.close();
+			loadSierraExtractRunning.close();
+
+			if (sierraExtractRunning){
+				//Oops, a reindex is already running.
+				logger.error("A sierra extract is already running, not starting another for better performance");
+				return;
+			}else{
+				updateSierraExtractRunning(vufindConn, sierraExtractRunningVariableId, true);
+			}
+		} catch (Exception e){
+			logger.error("Could not load last index time from variables table ", e);
+		}
+
 		//Get a list of works that have changed since the last index
 		getChangedRecordsFromApi(ini, vufindConn);
 
@@ -82,6 +106,8 @@ public class SierraExportMain{
 			System.out.println("Error: " + e.toString());
 			e.printStackTrace();
 		}
+
+		updateSierraExtractRunning(vufindConn, sierraExtractRunningVariableId, false);
 
 		if (conn != null){
 			try{
@@ -112,6 +138,7 @@ public class SierraExportMain{
 			logger.debug("Starting to load changed records from Sierra using the API");
 			Long lastSierraExtractTime = null;
 			Long lastSierraExtractTimeVariableId = null;
+
 			PreparedStatement loadLastSierraExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_sierra_extract_time'");
 			ResultSet lastSierraExtractTimeRS = loadLastSierraExtractTimeStmt.executeQuery();
 			if (lastSierraExtractTimeRS.next()){
@@ -122,7 +149,6 @@ public class SierraExportMain{
 			//Only mark records as changed
 			boolean errorUpdatingDatabase = false;
 			if (lastSierraExtractTime != null){
-				//TODO:: Test this after the API is installed
 				String apiVersion = cleanIniValue(ini.get("Catalog", "api_version"));
 				if (apiVersion == null || apiVersion.length() == 0){
 					return;
@@ -140,9 +166,14 @@ public class SierraExportMain{
 				long offset = 0;
 				boolean moreToRead = true;
 				PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
-				vufindConn.setAutoCommit(false);
+				boolean firstLoad = true;
+				HashSet<String> changedBibs = new HashSet<String>();
 				while (moreToRead){
 					JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=2000&fields=id,bibIds&deleted=false&suppressed=false&offset=" + offset);
+					if (firstLoad){
+						logger.warn("A total of " + changedRecords.getInt("total") + " items have been updated since " + dateUpdated);
+						firstLoad = false;
+					}
 					int numChangedIds = 0;
 					if (changedRecords != null && changedRecords.has("entries")){
 						JSONArray changedIds = changedRecords.getJSONArray("entries");
@@ -153,35 +184,41 @@ public class SierraExportMain{
 							for (int j = 0; j < bibIds.length(); j++){
 								String curId = bibIds.getString(j);
 								String fullId = ".b" + curId + getCheckDigit(curId);
-								try {
-									markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
-									markGroupedWorkForBibAsChangedStmt.setString(2, fullId);
-									markGroupedWorkForBibAsChangedStmt.executeUpdate();
-
-									//TODO: Determine if it is worth forming a full MARC record for output to the marc_recs folder
-									//Note: right now it isn't because item data isn't exported as part of the marc data
-								/*JSONObject marcRecord = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/" + curId + "/marc");
-								if (marcRecord != null){
-								}*/
-								}catch (SQLException e){
-									logger.error("Could not mark that " + fullId + " was changed due to error ", e);
-									errorUpdatingDatabase = true;
-								}
+								changedBibs.add(fullId);
 							}
 						}
 					}
 					moreToRead = (numChangedIds >= 2000);
 					offset += 2000;
-					//Commit in bulk for better performance
+				}
+
+				vufindConn.setAutoCommit(false);
+				logger.warn("A total of " + changedBibs.size() + " bibs were updated");
+				int numUpdates = 0;
+				for (String curBibId : changedBibs){
 					try {
-						vufindConn.commit();
-					}catch(SQLException e){
-						logger.error("Error committing changed records", e);
+						markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
+						markGroupedWorkForBibAsChangedStmt.setString(2, curBibId);
+						markGroupedWorkForBibAsChangedStmt.executeUpdate();
+
+						//TODO: Determine if it is worth forming a full MARC record for output to the marc_recs folder
+						//Note: right now it isn't because item data isn't exported as part of the marc data
+								/*JSONObject marcRecord = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/" + curId + "/marc");
+								if (marcRecord != null){
+								}*/
+
+						numUpdates++;
+						if (numUpdates % 1000 == 0){
+							vufindConn.commit();
+						}
+					}catch (SQLException e){
+						logger.error("Could not mark that " + curBibId + " was changed due to error ", e);
 						errorUpdatingDatabase = true;
 					}
-
 				}
-				vufindConn.setAutoCommit(false);
+				//Turn auto commit back on
+				vufindConn.commit();
+				vufindConn.setAutoCommit(true);
 
 				//TODO: Process deleted records as well?
 			}
@@ -212,30 +249,47 @@ public class SierraExportMain{
 
 	private static void exportAvailability(String exportPath, Connection conn) throws SQLException, IOException {
 		logger.info("Starting export of available items");
-		PreparedStatement getAvailableItemsStmt = conn.prepareStatement("SELECT barcode " +
-				"from sierra_view.item_view " +
-				//"left join sierra_view.checkout on sierra_view.item_view.id = sierra_view.checkout.item_record_id " +
-				"WHERE " +
-				"item_status_code IN ('-', 'o', 'd', 'w', 'j', 'u') " +
-				"AND icode2 != 'n' AND icode2 != 'x' " +
-				"AND is_suppressed = 'f' " +
-				"AND BARCODE != ''"
-				//"AND patron_record_id = null"
-		);
-		ResultSet activeOrdersRS = null;
+		char[] availableStatuses = new char[]{'-', 'o', 'd', 'w', 'j', 'u'};
+		File availableItemsFile = new File(exportPath + "/available_items_temp.csv");
+		CSVWriter availableItemWriter = new CSVWriter(new FileWriter(availableItemsFile));
 		boolean loadError = false;
-		try{
-			activeOrdersRS = getAvailableItemsStmt.executeQuery();
-		}catch (SQLException e1){
-			logger.error("Error loading available items", e1);
-			loadError = true;
+		for(char curStatus : availableStatuses){
+			PreparedStatement getAvailableItemsStmt = conn.prepareStatement("SELECT barcode " +
+							"from sierra_view.item_view " +
+							"WHERE " +
+							"item_status_code = '" + curStatus + "'" +
+							"AND icode2 != 'n' AND icode2 != 'x' " +
+							"AND is_suppressed = 'f' " +
+							"AND BARCODE != ''"
+			);
+			ResultSet activeOrdersRS = null;
+			try{
+				activeOrdersRS = getAvailableItemsStmt.executeQuery();
+			}catch (SQLException e1){
+				logger.error("Error loading available items for status " + curStatus, e1);
+				loadError = true;
+			}
+			if (!loadError){
+				availableItemWriter.writeAll(activeOrdersRS, false);
+				activeOrdersRS.close();
+			}
 		}
+		availableItemWriter.close();
+
 		if (!loadError){
-			File availableItemsFile = new File(exportPath + "/available_items.csv");
-			CSVWriter availableItemWriter = new CSVWriter(new FileWriter(availableItemsFile));
-			availableItemWriter.writeAll(activeOrdersRS, false);
-			availableItemWriter.close();
-			activeOrdersRS.close();
+			//Copy the file
+			File availableItems = new File(exportPath + "/available_items.csv");
+			if (availableItems.exists()) {
+				if (!availableItems.delete()){
+					logger.error("Could not delete available items file");
+					loadError = true;
+				}
+			}
+			if (!loadError){
+				if (!availableItemsFile.renameTo(availableItems)){
+					logger.error("Could not rename available_items_temp.csv to available_items.csv");
+				}
+			}
 		}
 
 		//Also export items with checkouts
@@ -414,11 +468,11 @@ public class SierraExportMain{
 				JSONObject parser = new JSONObject(response.toString());
 				sierraAPIToken = parser.getString("access_token");
 				sierraAPITokenType = parser.getString("token_type");
-				logger.debug("Token expires at " + parser.getLong("expires_in"));
+				//logger.debug("Token expires in " + parser.getLong("expires_in") + " seconds");
 				sierraAPIExpiration = new Date().getTime() + (parser.getLong("expires_in") * 1000) - 10000;
-				//logger.debug("OverDrive token is " + sierraAPIToken);
+				//logger.debug("Sierra token is " + sierraAPIToken);
 			} else {
-				logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive authentication service" );
+				logger.error("Received error " + conn.getResponseCode() + " connecting to sierra authentication service" );
 				// Get any errors
 				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
 				String line;
@@ -432,18 +486,18 @@ public class SierraExportMain{
 			}
 
 		} catch (Exception e) {
-			logger.error("Error connecting to overdrive API", e );
+			logger.error("Error connecting to sierra API", e );
 			return false;
 		}
 		return true;
 	}
 
-	private static JSONObject callSierraApiURL(Ini configIni, String baseUrl, String overdriveUrl) {
+	private static JSONObject callSierraApiURL(Ini configIni, String baseUrl, String sierraUrl) {
 		if (connectToSierraAPI(configIni, baseUrl)){
 			//Connect to the API to get our token
 			HttpURLConnection conn;
 			try {
-				URL emptyIndexURL = new URL(overdriveUrl);
+				URL emptyIndexURL = new URL(sierraUrl);
 				conn = (HttpURLConnection) emptyIndexURL.openConnection();
 				if (conn instanceof HttpsURLConnection){
 					HttpsURLConnection sslConn = (HttpsURLConnection)conn;
@@ -471,7 +525,7 @@ public class SierraExportMain{
 					rd.close();
 					return new JSONObject(response.toString());
 				} else {
-					logger.error("Received error " + conn.getResponseCode() + " calling sierra API " + overdriveUrl);
+					logger.error("Received error " + conn.getResponseCode() + " calling sierra API " + sierraUrl);
 					// Get any errors
 					BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
 					String line;
@@ -485,7 +539,7 @@ public class SierraExportMain{
 				}
 
 			} catch (Exception e) {
-				logger.debug("Error loading data from overdrive API ", e );
+				logger.debug("Error loading data from sierra API ", e );
 			}
 		}
 		return null;
@@ -512,5 +566,29 @@ public class SierraExportMain{
 			}
 		}
 
+	}
+
+	private static void updateSierraExtractRunning(Connection vufindConn, Long partialExtractRunningVariableId, boolean running) {
+		//Update the last grouping time in the variables table
+		try {
+			if (partialExtractRunningVariableId != null) {
+				PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
+				updateVariableStmt.setString(1, Boolean.toString(running));
+				updateVariableStmt.setLong(2, partialExtractRunningVariableId);
+				updateVariableStmt.executeUpdate();
+				updateVariableStmt.close();
+			} else {
+				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('sierra_extract_running', ?)", Statement.RETURN_GENERATED_KEYS);
+				insertVariableStmt.setString(1, Boolean.toString(running));
+				insertVariableStmt.executeUpdate();
+				/* ResultSet generatedKeys = insertVariableStmt.getGeneratedKeys();
+				if (generatedKeys.next()){
+					partialExtractRunningVariableId = generatedKeys.getLong(1);
+				} */
+				insertVariableStmt.close();
+			}
+		} catch (Exception e) {
+			logger.error("Error setting partial extract running", e);
+		}
 	}
 }
