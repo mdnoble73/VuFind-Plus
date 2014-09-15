@@ -32,6 +32,7 @@ import org.apache.commons.codec.binary.Base64;
 public class SierraExportMain{
 	private static Logger logger = Logger.getLogger(SierraExportMain.class);
 	private static String serverName;
+	private static Long sierraExtractRunningVariableId = null;
 
 	public static void main(String[] args){
 		serverName = args[0];
@@ -62,7 +63,6 @@ public class SierraExportMain{
 			System.exit(1);
 		}
 
-		Long sierraExtractRunningVariableId = null;
 		boolean sierraExtractRunning = false;
 		try{
 			PreparedStatement loadSierraExtractRunning = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'sierra_extract_running'");
@@ -79,7 +79,7 @@ public class SierraExportMain{
 				logger.error("A sierra extract is already running, not starting another for better performance");
 				return;
 			}else{
-				updateSierraExtractRunning(vufindConn, sierraExtractRunningVariableId, true);
+				updateSierraExtractRunning(vufindConn, true);
 			}
 		} catch (Exception e){
 			logger.error("Could not load last index time from variables table ", e);
@@ -107,7 +107,7 @@ public class SierraExportMain{
 			e.printStackTrace();
 		}
 
-		updateSierraExtractRunning(vufindConn, sierraExtractRunningVariableId, false);
+		updateSierraExtractRunning(vufindConn, false);
 
 		if (conn != null){
 			try{
@@ -568,23 +568,23 @@ public class SierraExportMain{
 
 	}
 
-	private static void updateSierraExtractRunning(Connection vufindConn, Long partialExtractRunningVariableId, boolean running) {
+	private static void updateSierraExtractRunning(Connection vufindConn, boolean running) {
 		//Update the last grouping time in the variables table
 		try {
-			if (partialExtractRunningVariableId != null) {
+			if (sierraExtractRunningVariableId != null) {
 				PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
 				updateVariableStmt.setString(1, Boolean.toString(running));
-				updateVariableStmt.setLong(2, partialExtractRunningVariableId);
+				updateVariableStmt.setLong(2, sierraExtractRunningVariableId);
 				updateVariableStmt.executeUpdate();
 				updateVariableStmt.close();
 			} else {
 				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('sierra_extract_running', ?)", Statement.RETURN_GENERATED_KEYS);
 				insertVariableStmt.setString(1, Boolean.toString(running));
 				insertVariableStmt.executeUpdate();
-				/* ResultSet generatedKeys = insertVariableStmt.getGeneratedKeys();
+				ResultSet generatedKeys = insertVariableStmt.getGeneratedKeys();
 				if (generatedKeys.next()){
-					partialExtractRunningVariableId = generatedKeys.getLong(1);
-				} */
+					sierraExtractRunningVariableId = generatedKeys.getLong(1);
+				}
 				insertVariableStmt.close();
 			}
 		} catch (Exception e) {
