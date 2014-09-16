@@ -28,8 +28,6 @@ class ReindexLog extends Admin_Admin
 	{
 		global $interface;
 
-		global $interface;
-
 		$interface->setPageTitle('Reindex Log');
 		
 		$logEntries = array();
