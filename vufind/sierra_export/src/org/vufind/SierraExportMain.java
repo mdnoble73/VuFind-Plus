@@ -7,6 +7,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.TimeZone;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import org.apache.log4j.Logger;
@@ -155,8 +156,12 @@ public class SierraExportMain{
 				}
 				String apiBaseUrl = ini.get("Catalog", "url") + "/iii/sierra-api/v" + apiVersion;
 
+				//Last Update in UTC
+				Date lastExtractDate = new Date(lastSierraExtractTime * 1000);
+
 				SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-				String dateUpdated = dateFormatter.format(new Date(lastSierraExtractTime * 1000));
+				dateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
+				String dateUpdated = dateFormatter.format(lastExtractDate);
 				long updateTime = new Date().getTime() / 1000;
 
 				//Extract the ids of all records that have changed.  That will allow us to mark
