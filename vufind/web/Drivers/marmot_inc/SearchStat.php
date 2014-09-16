@@ -49,14 +49,17 @@ class SearchStat extends DB_DataObject
 		//If we are scoped, limit suggestions to searches that have been done in the
 		//same scope so we get a correct number of hits
 		//$searchStat->selectAdd("sum(numResults) as totalSearches");
-		$searchStat->whereAdd("libraryId = " . $libraryId);
-		$searchStat->whereAdd("locationId = " . $locationId);
+		$searchStat->libraryId = $libraryId;
+		$searchStat->locationId = $locationId;
 
 		//If we are searching a specific type, limit results to that type so the results
 		//are better.
 		if ($type == 'ISN' || $type == 'Tag' || $type == 'Author'){
-			$searchStat->whereAdd("type = '" . mysql_escape_string($type) ."'");
+			$searchStat->type = $type;
+		}else{
+			$searchStat->whereAdd("type = '' OR type ='{$type}'");
 		}
+
 		//Don't suggest things to users that will result in them not getting any results
 		$searchStat->whereAdd("numResults > 0");
 		$splitPhrase = explode(' ', $phrase);
@@ -64,7 +67,7 @@ class SearchStat extends DB_DataObject
 		if ($rebuiltPhrase)
 		$searchStat->whereAdd("(phrase like '" . mysql_escape_string($rebuiltPhrase) ."%' or phrase sounds like '" . mysql_escape_string($phrase) ."')");
 		//$searchStat->groupBy('phrase');
-		$searchStat->orderBy("numResults DESC");
+		$searchStat->orderBy("numSearches DESC");
 		$searchStat->limit(0, 20);
 		$searchStat->find();
 		$results = array();
