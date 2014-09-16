@@ -175,12 +175,12 @@ public class SierraExportMain{
 				HashSet<String> changedBibs = new HashSet<String>();
 				while (moreToRead){
 					JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=2000&fields=id,bibIds&deleted=false&suppressed=false&offset=" + offset);
-					if (firstLoad){
-						logger.warn("A total of " + changedRecords.getInt("total") + " items have been updated since " + dateUpdated);
-						firstLoad = false;
-					}
 					int numChangedIds = 0;
 					if (changedRecords != null && changedRecords.has("entries")){
+						if (firstLoad){
+							logger.warn("A total of " + changedRecords.getInt("total") + " items have been updated since " + dateUpdated);
+							firstLoad = false;
+						}
 						JSONArray changedIds = changedRecords.getJSONArray("entries");
 						numChangedIds = changedIds.length();
 						for(int i = 0; i < numChangedIds; i++){
