@@ -104,6 +104,15 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'index_search_stats_counts' => array(
+					'title' => 'Index search stats table counts',
+					'description' => 'Add index to search stats table to improve autocomplete speed',
+					'sql' => array(
+						"ALTER TABLE `search_stats` ADD INDEX `numResults` (`numResults` )",
+						"ALTER TABLE `search_stats` ADD INDEX `numSearches` (`numSearches` )",
+					),
+				),
+
 				'genealogy' => array(
 					'title' => 'Genealogy Setup',
 					'description' => 'Initial setup of genealogy information',
