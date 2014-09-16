@@ -153,6 +153,7 @@ public class ExtractOverDriveInfo {
 					Date lastExtractDate = new Date(lastExtractTime);
 					SimpleDateFormat lastUpdateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 					logger.info("Loading all records that have changed since " + lastUpdateFormat.format(lastExtractDate));
+					logEntry.addNote("Loading all records that have changed since " + lastUpdateFormat.format(lastExtractDate));
 					lastUpdateTimeParam = "lastupdatetime=" + lastUpdateFormat.format(lastExtractDate);
 					//Simple Date Format doesn't give us quite the right timezone format so adjust
 					lastUpdateTimeParam = lastUpdateTimeParam.substring(0, lastUpdateTimeParam.length() - 2) + ":" + lastUpdateTimeParam.substring(lastUpdateTimeParam.length() - 2);
