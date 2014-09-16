@@ -19,7 +19,8 @@ public class DatabaseCleanup implements IProcessHandler {
 
 		//Remove expired sessions
 		try{
-			long now = new Date().getTime();
+			//Make sure to normalize the time based to be milliseconds, not microseconds
+			long now = new Date().getTime() / 1000;
 			long defaultTimeout = Long.parseLong(Util.cleanIniValue(configIni.get("Session", "lifetime")));
 			long earliestDefaultSessionToKeep = now - defaultTimeout;
 			long numStandardSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where last_used < " + earliestDefaultSessionToKeep + " and remember_me = 0").executeUpdate();
