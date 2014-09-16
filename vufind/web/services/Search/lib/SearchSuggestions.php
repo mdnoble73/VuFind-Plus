@@ -43,7 +43,8 @@ class SearchSuggestions{
 	function getAllSuggestions($searchTerm, $searchType){
 		global $timer;
 
-		$searchSuggestions = $this->getCommonSearchesMySql($searchTerm, $searchType);
+		//$searchSuggestions = $this->getCommonSearchesMySql($searchTerm, $searchType);
+		$searchSuggestions = array();
 		$timer->logTime('Loaded common search suggestions');
 		//ISN and Authors are not typically regular words
 		if ($searchType != 'ISN' && $searchType != 'Author'){
