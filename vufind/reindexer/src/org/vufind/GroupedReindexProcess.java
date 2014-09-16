@@ -73,11 +73,13 @@ public class GroupedReindexProcess {
 		reloadDefaultSchemas();
 
 		//Process grouped works
+		long numWorksProcessed = 0;
+		long numListsProcessed = 0;
 		try {
 			GroupedWorkIndexer groupedWorkIndexer = new GroupedWorkIndexer(serverName, vufindConn, econtentConn, configIni, fullReindex, logger);
 			if (groupedWorkIndexer.isOkToIndex()) {
-				groupedWorkIndexer.processGroupedWorks();
-				groupedWorkIndexer.processPublicUserLists();
+				numWorksProcessed = groupedWorkIndexer.processGroupedWorks();
+				numListsProcessed = groupedWorkIndexer.processPublicUserLists();
 				groupedWorkIndexer.finishIndexing();
 			}
 		} catch (Error e) {
@@ -87,7 +89,7 @@ public class GroupedReindexProcess {
 
 		// Send completion information
 		endTime = new Date().getTime();
-		sendCompletionMessage();
+		sendCompletionMessage(numWorksProcessed, numListsProcessed);
 		
 		addNoteToReindexLog("Finished Reindex for " + serverName);
 		logger.info("Finished Reindex for " + serverName);
@@ -222,7 +224,7 @@ public class GroupedReindexProcess {
 			logger.error("Error adding note to Reindex Log", e);
 		}
 	}
-	
+
 	private static void initializeReindex() {
 		// Delete the existing reindex.log file
 		File solrMarcLog = new File("/var/log/vufind-plus/" + serverName + "/logs/grouped_reindex.log");
@@ -326,15 +328,17 @@ public class GroupedReindexProcess {
 		
 	}
 	
-	private static void sendCompletionMessage(){
+	private static void sendCompletionMessage(Long numWorksProcessed, Long numListsProcessed){
 		long elapsedTime = endTime - startTime;
 		float elapsedMinutes = (float)elapsedTime / (float)(60000); 
 		logger.info("Time elapsed: " + elapsedMinutes + " minutes");
 		
 		try {
-			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE reindex_log SET endTime = ? WHERE id = ?");
+			PreparedStatement finishedStatement = vufindConn.prepareStatement("UPDATE reindex_log SET endTime = ?, numWorksProcessed = ?, numListsProcessed = ? WHERE id = ?");
 			finishedStatement.setLong(1, new Date().getTime() / 1000);
-			finishedStatement.setLong(2, reindexLogId);
+			finishedStatement.setLong(2, numWorksProcessed);
+			finishedStatement.setLong(3, numListsProcessed);
+			finishedStatement.setLong(4, reindexLogId);
 			finishedStatement.executeUpdate();
 		} catch (SQLException e) {
 			logger.error("Unable to update reindex log with completion time.", e);

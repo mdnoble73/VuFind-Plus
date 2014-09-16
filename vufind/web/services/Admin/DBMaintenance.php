@@ -1031,6 +1031,17 @@ class DBMaintenance extends Admin_Admin {
 				),
 
 
+				'reindexLog_grouping' => array(
+					'title' => 'Reindex Log Grouping Update',
+					'description' => 'Update Reindex Logging for Record Grouping.',
+					'sql' => array(
+						"DROP TABLE reindex_process_log",
+						"ALTER TABLE reindex_log ADD COLUMN numWorksProcessed INT(11) NOT NULL DEFAULT 0",
+						"ALTER TABLE reindex_log ADD COLUMN numListsProcessed INT(11) NOT NULL DEFAULT 0"
+					),
+				),
+
+
 				'cronLog' => array(
 					'title' => 'Cron Log table',
 					'description' => 'Create Cron Log table to track reindexing.',

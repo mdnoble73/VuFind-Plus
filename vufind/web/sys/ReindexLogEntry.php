@@ -13,40 +13,14 @@ class ReindexLogEntry extends DB_DataObject
 	public $lastUpdate;
 	public $endTime;
 	public $notes;
-	private $_processes = null;
+	public $numWorksProcessed;
+	public $numListsProcessed;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('ReindexLogEntry',$k,$v); }
 
 	function keys() {
 		return array('id');
-	}
-
-	function processes(){
-		if (is_null($this->_processes)){
-			$this->_processes = array();
-			$reindexProcess = new ReindexProcessLogEntry();
-			$reindexProcess->reindex_id = $this->id;
-			$reindexProcess->orderBy('processName');
-			$reindexProcess->find();
-			while ($reindexProcess->fetch()){
-				$this->_processes[] = clone $reindexProcess;
-			}
-		}
-		return $this->_processes;
-	}
-
-	function getNumProcesses(){
-		return count($this->processes());
-	}
-
-	function getHadErrors(){
-		foreach ($this->processes() as $process){
-			if ($process->numErrors > 0){
-				return true;
-			}
-		}
-		return false;
 	}
 
 	function getElapsedTime(){
