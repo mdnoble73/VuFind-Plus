@@ -7948,6 +7948,9 @@ div#system-message-header {
   border-bottom: 0px;
   box-shadow: 2px 2px 5px white;
 }
+#home-page-login {
+  background-color: #feae1a;
+}
 #browse-category-carousel {
   overflow: visible;
   left: 0;
