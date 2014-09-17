@@ -13,7 +13,12 @@
 }
 .header-button{
   border-radius:  0.5em;
-  background-color: rgba(51,51,51,0.6);
+//  background-color: rgba(51,51,51,0.6); // regular login button colors
+//  background-color: rgba(242, 113, 2, 0.44); // another orange-ish
+  background-color: rgba(250, 148, 1, 0.5);  // best orange-ish buttons. plb 9-17-2014
+
+
+
   margin-top: 20px;
   height: 60px !important;
   border: 0px;
@@ -30,3 +35,41 @@
   border-bottom: 0px;
   box-shadow: 2px 2px 5px white;
 }
+
+// custom styling of main browse category carousel
+
+#browse-category-carousel {
+  overflow: visible; // allow all list items to be seen
+  left: 0;
+  width: 95%;
+  margin-left: 5%;
+}
+#browse-category-carousel ul {
+  position: static; // restore positioning behavior
+  width: 100%;
+}
+
+#browse-category-carousel li {
+  // set number items to display in a row based on screen size
+  // default 4 per row, smallest 2 per row, small 3 per row
+  width: 23% !important;
+  @media (max-width: @screen-sm-max) {
+    width: 31% !important;
+  }
+  @media (max-width: @screen-xs-max) {
+    width: 48% !important;
+  }
+ float: left; // retains float left; ul positional is more critical. plb 9-16-2014
+}
+// hide scrolling controls
+#browse-category-picker .jcarousel-control-prev, #browse-category-picker .jcarousel-control-next, #browse-category-picker .jcarousel-pagination {
+  display: none;
+}
+
+//#browse-category-picker .browse-category.category1,
+//#browse-category-picker .browse-category.category1,#browse-category-picker .browse-category.category2,#browse-category-picker .browse-category.category3,#browse-category-picker .browse-category.category4,
+//#browse-category-picker .browse-category.category5,#browse-category-picker .browse-category.category6,#browse-category-picker .browse-category.category7,#browse-category-picker .browse-category.category8 {
+//  background-color: @category1MainColor;
+//  background: linear-gradient(to bottom, @category1MainColor, @category1MainColor 82%, @categoryLineShadow 83%, @categoryLineColor 84%, @categoryLineColor 88%, @categoryLineShadow 89%, @category1MainColor 90%, @category1MainColor);
+//  // set each category as one color, removing the fading of color for successive categories
+//}
