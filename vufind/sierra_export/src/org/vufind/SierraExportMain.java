@@ -174,7 +174,7 @@ public class SierraExportMain{
 				boolean firstLoad = true;
 				HashSet<String> changedBibs = new HashSet<String>();
 				while (moreToRead){
-					JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=2000&fields=id,bibIds&deleted=false&suppressed=false&offset=" + offset);
+					JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=2000&fields=id,bibIds&deleted=false&suppressed=false&offset=" + offset, false);
 					int numChangedIds = 0;
 					if (changedRecords != null && changedRecords.has("entries")){
 						if (firstLoad){
@@ -497,7 +497,7 @@ public class SierraExportMain{
 		return true;
 	}
 
-	private static JSONObject callSierraApiURL(Ini configIni, String baseUrl, String sierraUrl) {
+	private static JSONObject callSierraApiURL(Ini configIni, String baseUrl, String sierraUrl, boolean logErrors) {
 		if (connectToSierraAPI(configIni, baseUrl)){
 			//Connect to the API to get our token
 			HttpURLConnection conn;
@@ -530,17 +530,21 @@ public class SierraExportMain{
 					rd.close();
 					return new JSONObject(response.toString());
 				} else {
-					logger.error("Received error " + conn.getResponseCode() + " calling sierra API " + sierraUrl);
-					// Get any errors
-					BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-					String line;
-					while ((line = rd.readLine()) != null) {
-						response.append(line);
-					}
-					logger.error("  Finished reading response");
-					logger.error(response.toString());
+					if (logErrors) {
+						logger.error("Received error " + conn.getResponseCode() + " calling sierra API " + sierraUrl);
+						// Get any errors
+						BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+						String line;
+						while ((line = rd.readLine()) != null) {
+							response.append(line);
+						}
+						logger.error("  Finished reading response");
+						logger.error(response.toString());
 
-					rd.close();
+						rd.close();
+					}else{
+						logger.debug("Received error " + conn.getResponseCode() + " calling sierra API " + sierraUrl);
+					}
 				}
 
 			} catch (Exception e) {
