@@ -49,7 +49,7 @@
 <script type="text/javascript">
 	{literal}
 	$(document).ready(function(){
-		VuFind.Browse.curCategory = '{$browseResults.textId}';
+		VuFind.Browse.curCategory = '{/literal}{$browseResults.textId}{literal}';
 	});
 	{/literal}
 </script>
