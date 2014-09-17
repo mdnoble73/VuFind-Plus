@@ -3,11 +3,25 @@
 
 	<h2>
 		{$person->firstName|escape} {$person->middleName|escape}{if $person->nickName} "{$person->nickName|escape}"{/if}{if $person->maidenName} ({$person->maidenName}){/if} {$person->lastName|escape}
-		{if $userIsAdmin}
-			<a href='{$path}/Admin/People?objectAction=edit&amp;id={$id}' ><span title='Edit this person' class='silk user_edit'>&nbsp;</span></a>
-			<a href='{$path}/Admin/People?objectAction=delete&amp;id={$id}' onclick='return confirm("Removing this person will permanently remove them from the system.	Are you sure?")'><span title='Delete this person' class='silk user_delete'>&nbsp;</span></a>
-		{/if}
 	</h2>
+	{if $userIsAdmin}
+		<div class="btn-toolbar">
+			<div class="btn-group">
+				<a href='{$path}/Admin/People?objectAction=edit&amp;id={$id}' title='Edit this person' class='btn btn-xs btn-default'>
+					Edit
+				</a>
+				<a href='{$path}/Admin/Marriages?objectAction=add&amp;personId={$id}' title='Add a Marriage' class='btn btn-xs btn-default'>
+					Add Marriage
+				</a>
+				<a href='{$path}/Admin/Obituaries?objectAction=add&amp;personId={$id}' title='Add an Obituary' class='btn btn-xs btn-default'>
+					Add Obituary
+				</a>
+			</div>
+			<a href='{$path}/Admin/People?objectAction=delete&amp;id={$id}' title='Delete this person' class='btn btn-xs btn-danger' onclick='return confirm("Removing this person will permanently remove them from the system.	Are you sure?")'>
+				Delete
+			</a>
+		</div>
+	{/if}
 	{if $person->otherName}
 		<div class='personDetail'><span class='result-label'>Other Names:</span><span class='personDetailValue'>{$person->otherName|escape}</span></div>
 	{/if}
@@ -35,17 +49,19 @@
 	{/if}
 
 	{if count($marriages) > 0 || $userIsAdmin}
-		<h3>Marriages
-		{if $userIsAdmin}
-			<a href='{$path}/Admin/Marriages?objectAction=add&amp;personId={$id}' title='Add a Marriage'><span class='silk group_add' title='Add a Marriage'>&nbsp;</span></a>
-		{/if}
-		</h3>
+		<h3>Marriages</h3>
 		{foreach from=$marriages item=marriage}
 			<div class="marriageTitle">
 				 {$marriage.spouseName}{if $marriage.formattedMarriageDate} - {$marriage.formattedMarriageDate}{/if}
 				 {if $userIsAdmin}
-						<a href='{$path}/Admin/Marriages?objectAction=edit&amp;id={$marriage.marriageId}' title='Edit this Marriage'><span class='silk group_edit' title='Edit this Marriage'>&nbsp;</span></a>
-						<a href='{$path}/Admin/Marriages?objectAction=delete&amp;id={$marriage.marriageId}' title='Delete this Marriage' onclick='return confirm("Removing this marriage will permanently remove it from the system.	Are you sure?")'><span class='silk group_delete' title='Delete this Marriage'>&nbsp;</span></a>
+						<div class="btn-toolbar">
+							<a href='{$path}/Admin/Marriages?objectAction=edit&amp;id={$marriage.marriageId}' title='Edit this Marriage' class='btn btn-xs btn-default'>
+								Edit
+							</a>
+							<a href='{$path}/Admin/Marriages?objectAction=delete&amp;id={$marriage.marriageId}' title='Delete this Marriage' onclick='return confirm("Removing this marriage will permanently remove it from the system.	Are you sure?")' class='btn btn-xs btn-danger'>
+								Delete
+							</a>
+						</div>
 				 {/if}
 			</div>
 			{if $marriage.comments}
@@ -82,17 +98,19 @@
 		{/if}
 	{/if}
 	{if count($obituaries) > 0 || $userIsAdmin}
-		<h3>Obituaries
-		{if $userIsAdmin}
-			<a href='{$path}/Admin/Obituaries?objectAction=add&amp;personId={$id}' title='Add an Obituary'><img src='{$path}/images/silk/report_add.png' alt='Add a Marriage' /></a>
-		{/if}
-		</h3>
+		<h3>Obituaries</h3>
 		{foreach from=$obituaries item=obituary}
 			<div class="obituaryTitle">
 			{$obituary.source}{if $obituary.sourcePage} page {$obituary.sourcePage}{/if}{if $obituary.formattedObitDate} - {$obituary.formattedObitDate}{/if}
 			{if $userIsAdmin}
-				 <a href='{$path}/Admin/Obituaries?objectAction=edit&amp;id={$obituary.obituaryId}' title='Edit this Obituary'><span class='silk report_edit' title='Edit this Obituary'>&nbsp;</span></a>
-				 <a href='{$path}/Admin/Obituaries?objectAction=delete&amp;id={$obituary.obituaryId}' title='Delete this Obituary' onclick='return confirm("Removing this obituary will permanently remove it from the system.	Are you sure?")'><span class='silk report_delete' title='Delete this Obituary'>&nbsp;</span></a>
+				<div class="btn-toolbar">
+					<a href='{$path}/Admin/Obituaries?objectAction=edit&amp;id={$obituary.obituaryId}' title='Edit this Obituary' class='btn btn-xs btn-default'>
+						Edit
+					</a>
+					<a href='{$path}/Admin/Obituaries?objectAction=delete&amp;id={$obituary.obituaryId}' title='Delete this Obituary' onclick='return confirm("Removing this obituary will permanently remove it from the system.	Are you sure?")' class='btn btn-xs btn-danger'>
+						Delete
+					</a>
+				</div>
 			{/if}
 			</div>
 			{if $obituary.contents && $obituary.picture}
