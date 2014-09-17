@@ -104,6 +104,37 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'index_search_stats_counts' => array(
+					'title' => 'Index search stats table counts',
+					'description' => 'Add index to search stats table to improve autocomplete speed',
+					'sql' => array(
+						"ALTER TABLE `search_stats` ADD INDEX `numResults` (`numResults` )",
+						"ALTER TABLE `search_stats` ADD INDEX `numSearches` (`numSearches` )",
+					),
+				),
+
+				'new_search_stats' => array(
+					'title' => 'Create new search stats table with better performance',
+					'description' => 'Create an optimized table for performing auto completes based on prior searches',
+					'sql' => array(
+						"CREATE TABLE `search_stats_new` (
+						  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique id of the search statistic',
+						  `phrase` varchar(500) NOT NULL COMMENT 'The phrase being searched for',
+						  `lastSearch` int(16) NOT NULL COMMENT 'The last time this search was done',
+						  `numSearches` int(16) NOT NULL COMMENT 'The number of times this search has been done.',
+						  PRIMARY KEY (`id`),
+						  KEY `numSearches` (`numSearches`),
+						  KEY `lastSearch` (`lastSearch`),
+						  KEY `phrase` (`phrase`),
+						  FULLTEXT `phrase_text` (`phrase`)
+						) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 COMMENT='Statistical information about searches for use in reporting '",
+						"INSERT INTO search_stats_new (phrase, lastSearch, numSearches) SELECT TRIM(REPLACE(phrase, char(9), '')) as phrase, MAX(lastSearch), sum(numSearches) FROM search_stats WHERE numResults > 0 GROUP BY TRIM(REPLACE(phrase,char(9), ''))",
+						"DELETE FROM search_stats_new WHERE phrase LIKE '%(%'",
+						"DELETE FROM search_stats_new WHERE phrase LIKE '%)%'",
+					),
+				),
+
+
 				'genealogy' => array(
 					'title' => 'Genealogy Setup',
 					'description' => 'Initial setup of genealogy information',
@@ -1031,6 +1062,17 @@ class DBMaintenance extends Admin_Admin {
 				),
 
 
+				'reindexLog_grouping' => array(
+					'title' => 'Reindex Log Grouping Update',
+					'description' => 'Update Reindex Logging for Record Grouping.',
+					'sql' => array(
+						"DROP TABLE reindex_process_log",
+						"ALTER TABLE reindex_log ADD COLUMN numWorksProcessed INT(11) NOT NULL DEFAULT 0",
+						"ALTER TABLE reindex_log ADD COLUMN numListsProcessed INT(11) NOT NULL DEFAULT 0"
+					),
+				),
+
+
 				'cronLog' => array(
 					'title' => 'Cron Log table',
 					'description' => 'Create Cron Log table to track reindexing.',
@@ -1797,6 +1839,14 @@ class DBMaintenance extends Admin_Admin {
 						"ALTER TABLE browse_category ADD searchTerm VARCHAR(100) NOT NULL DEFAULT ''",
 						"ALTER TABLE browse_category ADD numTimesShown MEDIUMINT NOT NULL DEFAULT 0",
 						"ALTER TABLE browse_category ADD numTitlesClickedOn MEDIUMINT NOT NULL DEFAULT 0",
+					),
+				),
+
+				'browse_categories_lists' => array(
+					'title' => 'Browse Categories from Lists',
+					'description' => 'Add a the ability to define a browse category from a list',
+					'sql' => array(
+						"ALTER TABLE browse_category ADD sourceListId MEDIUMINT NULL DEFAULT NULL",
 					),
 				),
 

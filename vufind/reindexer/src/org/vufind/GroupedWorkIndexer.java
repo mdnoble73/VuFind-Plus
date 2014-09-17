@@ -113,6 +113,7 @@ public class GroupedWorkIndexer {
 			if (partialReindexRunning){
 				//Oops, a reindex is already running.
 				logger.error("A partial reindex is already running, not starting another for better performance");
+				GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, not starting another for better performance");
 				okToIndex = false;
 				return;
 			}else{
@@ -426,19 +427,29 @@ public class GroupedWorkIndexer {
 		}
 	}
 
-	public void processGroupedWorks() {
-		int numWorksProcessed = 0;
+	public Long processGroupedWorks() {
+		Long numWorksProcessed = 0l;
 		try {
 			PreparedStatement getAllGroupedWorks;
+			PreparedStatement getNumWorksToIndex;
 			if (fullReindex){
 				getAllGroupedWorks = vufindConn.prepareStatement("SELECT * FROM grouped_work", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				getNumWorksToIndex = vufindConn.prepareStatement("SELECT count(id) FROM grouped_work", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			}else{
 				//Load all grouped works that have changed since the last time the index ran
 				getAllGroupedWorks = vufindConn.prepareStatement("SELECT * FROM grouped_work WHERE date_updated IS NULL OR date_updated >= ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				getAllGroupedWorks.setLong(1, lastReindexTime);
+				getNumWorksToIndex = vufindConn.prepareStatement("SELECT count(id) FROM grouped_work WHERE date_updated IS NULL OR date_updated >= ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				getNumWorksToIndex.setLong(1, lastReindexTime);
 			}
 			PreparedStatement getGroupedWorkPrimaryIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_primary_identifiers where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			PreparedStatement getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ? and valid_for_enrichment = 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			//Get the number of works we will be processing
+			ResultSet numWorksToIndexRS = getNumWorksToIndex.executeQuery();
+			numWorksToIndexRS.next();
+			Long numWorksToIndex = numWorksToIndexRS.getLong(1);
+			GroupedReindexProcess.addNoteToReindexLog("Starting to process " + numWorksToIndex + " grouped works");
+
 			ResultSet groupedWorks = getAllGroupedWorks.executeQuery();
 			while (groupedWorks.next()){
 				Long id = groupedWorks.getLong("id");
@@ -488,7 +499,7 @@ public class GroupedWorkIndexer {
 				}
 				numWorksProcessed++;
 				if (numWorksProcessed % 5000 == 0){
-					commitChanges();
+					//commitChanges();
 					logger.info("Processed " + numWorksProcessed + " grouped works processed.");
 				}
 				if (maxWorksToProcess != -1 && numWorksProcessed >= maxWorksToProcess){
@@ -500,6 +511,7 @@ public class GroupedWorkIndexer {
 			logger.error("Unexpected SQL error", e);
 		}
 		logger.info("Finished processing grouped works.  Processed a total of " + numWorksProcessed + " grouped works");
+		return numWorksProcessed;
 	}
 
 	private void loadLexileDataForWork(GroupedWorkSolr groupedWork) {
@@ -762,9 +774,9 @@ public class GroupedWorkIndexer {
 		return result.trim();
 	}
 
-	public void processPublicUserLists() {
+	public Long processPublicUserLists() {
+		Long numListsProcessed = 0l;
 		try{
-
 			PreparedStatement listsStmt;
 			if (fullReindex){
 				//Delete all lists from the index
@@ -781,13 +793,14 @@ public class GroupedWorkIndexer {
 			ResultSet allPublicListsRS = listsStmt.executeQuery();
 			while (allPublicListsRS.next()){
 				updateSolrForList(getTitlesForListStmt, allPublicListsRS);
+				numListsProcessed++;
 			}
 			updateServer.commit();
 
 		}catch (Exception e){
 			logger.error("Error processing public lists", e);
 		}
-
+		return numListsProcessed;
 	}
 
 	private void updateSolrForList(PreparedStatement getTitlesForListStmt, ResultSet allPublicListsRS) throws SQLException, SolrServerException, IOException {
@@ -818,7 +831,6 @@ public class GroupedWorkIndexer {
 				}
 				userListSolr.setAuthor(firstNameFirstChar + lastName);
 			}
-			long homeLocationId = allPublicListsRS.getLong("homeLocationId");
 
 			//Get information about all of the list titles.
 			getTitlesForListStmt.setLong(1, listId);

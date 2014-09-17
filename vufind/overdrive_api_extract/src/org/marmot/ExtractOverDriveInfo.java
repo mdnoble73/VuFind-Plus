@@ -5,11 +5,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,12 +26,16 @@ import org.json.JSONObject;
 
 public class ExtractOverDriveInfo {
 	private static Logger logger = Logger.getLogger(ExtractOverDriveInfo.class);
+	private Connection vufindConn;
 	private Connection econtentConn;
 	private OverDriveExtractLogEntry results;
 
 	private Long lastExtractTime;
 	private Long extractStartTime;
 	private String lastUpdateTimeParam = "";
+
+	private boolean partialExtractRunning;
+	private Long partialExtractRunningVariableId;
 	
 	//Overdrive API information
 	private String clientSecret;
@@ -87,6 +87,7 @@ public class ExtractOverDriveInfo {
 	private boolean errorsWhileLoadingProducts;
 
 	public void extractOverDriveInfo(Ini configIni, Connection vufindConn, Connection econtentConn, OverDriveExtractLogEntry logEntry, boolean doFullReload) {
+		this.vufindConn = vufindConn;
 		this.econtentConn = econtentConn;
 		this.results = logEntry;
 
@@ -123,6 +124,28 @@ public class ExtractOverDriveInfo {
 
 			//Get the last time we extracted data from OverDrive
 			if (!doFullReload){
+				//Check to see if a partial extract is running
+				try{
+					PreparedStatement loadPartialExtractRunning = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'partial_overdrive_extract_running'");
+					ResultSet loadPartialExtractRunningRS = loadPartialExtractRunning.executeQuery();
+					if (loadPartialExtractRunningRS.next()){
+						partialExtractRunning = loadPartialExtractRunningRS.getBoolean("value");
+						partialExtractRunningVariableId = loadPartialExtractRunningRS.getLong("id");
+					}
+					loadPartialExtractRunningRS.close();
+					loadPartialExtractRunning.close();
+
+					if (partialExtractRunning){
+						//Oops, a reindex is already running.
+						logger.error("A partial overdrive extract is already running, not starting another for better performance");
+						return;
+					}else{
+						updatePartialExtractRunning(true);
+					}
+				} catch (Exception e){
+					logger.error("Could not load last index time from variables table ", e);
+				}
+				
 				PreparedStatement getVariableStatement = vufindConn.prepareStatement("SELECT * FROM variables where name = 'last_overdrive_extract_time'");
 				ResultSet lastExtractTimeRS = getVariableStatement.executeQuery();
 				if (lastExtractTimeRS.next()){
@@ -130,6 +153,7 @@ public class ExtractOverDriveInfo {
 					Date lastExtractDate = new Date(lastExtractTime);
 					SimpleDateFormat lastUpdateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 					logger.info("Loading all records that have changed since " + lastUpdateFormat.format(lastExtractDate));
+					logEntry.addNote("Loading all records that have changed since " + lastUpdateFormat.format(lastExtractDate));
 					lastUpdateTimeParam = "lastupdatetime=" + lastUpdateFormat.format(lastExtractDate);
 					//Simple Date Format doesn't give us quite the right timezone format so adjust
 					lastUpdateTimeParam = lastUpdateTimeParam.substring(0, lastUpdateTimeParam.length() - 2) + ":" + lastUpdateTimeParam.substring(lastUpdateTimeParam.length() - 2);
@@ -214,6 +238,10 @@ public class ExtractOverDriveInfo {
 				updateExtractTime.setLong(1, extractStartTime);
 				updateExtractTime.executeUpdate();
 				logger.debug("Setting last extract time to " + lastExtractTime + " " + new Date(extractStartTime).toString());
+
+				if (!doFullReload){
+					updatePartialExtractRunning(false);
+				}
 			}
 		} catch (SQLException e) {
 		// handle any errors
@@ -1046,7 +1074,7 @@ public class ExtractOverDriveInfo {
 				JSONObject parser = new JSONObject(response.toString());
 				overDriveAPIToken = parser.getString("access_token");
 				overDriveAPITokenType = parser.getString("token_type");
-				logger.debug("Token expires at " + parser.getLong("expires_in"));
+				//logger.debug("Token expires in " + parser.getLong("expires_in") + " seconds");
 				overDriveAPIExpiration = new Date().getTime() + (parser.getLong("expires_in") * 1000) - 10000;
 				//logger.debug("OverDrive token is " + overDriveAPIToken);
 			} else {
@@ -1068,5 +1096,29 @@ public class ExtractOverDriveInfo {
 			return false;
 		}
 		return true;
+	}
+
+	private void updatePartialExtractRunning(boolean running) {
+		//Update the last grouping time in the variables table
+		try {
+			if (partialExtractRunningVariableId != null) {
+				PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
+				updateVariableStmt.setString(1, Boolean.toString(running));
+				updateVariableStmt.setLong(2, partialExtractRunningVariableId);
+				updateVariableStmt.executeUpdate();
+				updateVariableStmt.close();
+			} else {
+				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('partial_overdrive_extract_running', ?)", Statement.RETURN_GENERATED_KEYS);
+				insertVariableStmt.setString(1, Boolean.toString(running));
+				insertVariableStmt.executeUpdate();
+				ResultSet generatedKeys = insertVariableStmt.getGeneratedKeys();
+				if (generatedKeys.next()){
+					partialExtractRunningVariableId = generatedKeys.getLong(1);
+				}
+				insertVariableStmt.close();
+			}
+		} catch (Exception e) {
+			logger.error("Error setting partial extract running", e);
+		}
 	}
 }

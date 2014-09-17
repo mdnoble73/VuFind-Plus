@@ -434,4 +434,23 @@ class UserList extends DB_DataObject
 	function usable_by(){
 		return 'all';
 	}
+
+	public function getBrowseRecords($start, $numTitles) {
+		global $interface;
+		$browseRecords = array();
+		$titles = $this->getListEntries();
+		$titles = array_slice($titles, $start, $numTitles);
+		foreach ($titles as $groupedWorkId){
+			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+			$groupedWork = new GroupedWorkDriver($groupedWorkId);
+			if ($groupedWork->isValid){
+				if (method_exists($groupedWork, 'getBrowseResult')){
+					$browseRecords[] = $interface->fetch($groupedWork->getBrowseResult());
+				}else{
+					$browseRecords[] = 'Browse Result not available';
+				}
+			}
+		}
+		return $browseRecords;
+	}
 }

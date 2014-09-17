@@ -21,8 +21,8 @@ require_once ROOT_DIR . '/Drivers/marmot_inc/SpellingWord.php';
 
 class SearchSuggestions{
 	function getCommonSearchesMySql($searchTerm, $searchType){
-		require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
-		$searchStat = new SearchStat();
+		require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');
+		$searchStat = new SearchStatNew();
 		$suggestions = $searchStat->getSearchSuggestions( $searchTerm, $searchType);
 		if (count ($suggestions) > 10){
 			$suggestions = array_slice($suggestions, 0, 10);
