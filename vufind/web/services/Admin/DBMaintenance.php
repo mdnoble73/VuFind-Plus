@@ -113,16 +113,6 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
-				'index_search_stats_phrase' => array(
-					'title' => 'Index search stats table - phrase, library, location',
-					'description' => 'Add index to search stats table to improve autocomplete speed',
-					'sql' => array(
-						"ALTER TABLE `search_stats` ADD INDEX ( `locationId` ) ",
-						"ALTER TABLE `search_stats` ADD INDEX ( `libraryId` ) ",
-					),
-				),
-
-
 				'new_search_stats' => array(
 					'title' => 'Create new search stats table with better performance',
 					'description' => 'Create an optimized table for performing auto completes based on prior searches',
