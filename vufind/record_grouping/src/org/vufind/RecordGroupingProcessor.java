@@ -26,6 +26,7 @@ public class RecordGroupingProcessor {
 	private String itemTag;
 	private boolean useEContentSubfield = false;
 	private char eContentSubfield = ' ';
+	private Connection dbConnection;
 	private PreparedStatement insertGroupedWorkStmt;
 	private PreparedStatement updateDateUpdatedForGroupedWorkStmt;
 	private PreparedStatement getExistingIdentifierStmt;
@@ -60,6 +61,7 @@ public class RecordGroupingProcessor {
 	public RecordGroupingProcessor(Connection dbConnection, Ini configIni, Logger logger, boolean fullRegrouping) {
 		this.logger = logger;
 		this.fullRegrouping = fullRegrouping;
+		this.dbConnection = dbConnection;
 		recordNumberTag = configIni.get("Reindex", "recordNumberTag");
 		recordNumberPrefix = configIni.get("Reindex", "recordNumberPrefix");
 		itemTag = configIni.get("Reindex", "itemTag");
@@ -409,6 +411,10 @@ public class RecordGroupingProcessor {
 			//Update identifiers
 			addPrimaryIdentifierForWorkToDB(groupedWorkId, primaryIdentifier);
 			addIdentifiersForRecordToDB(groupedWorkId, groupedWork.identifiers, primaryIdentifier);
+
+			if (numRecordsProcessed % 1000 == 0){
+				dbConnection.commit();
+			}
 		}catch (Exception e){
 			logger.error("Error adding grouped record to grouped work ", e);
 		}
