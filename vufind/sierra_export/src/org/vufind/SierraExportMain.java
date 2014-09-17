@@ -178,7 +178,7 @@ public class SierraExportMain{
 					int numChangedIds = 0;
 					if (changedRecords != null && changedRecords.has("entries")){
 						if (firstLoad){
-							logger.warn("A total of " + changedRecords.getInt("total") + " items have been updated since " + dateUpdated);
+							logger.info("A total of " + changedRecords.getInt("total") + " items have been updated since " + dateUpdated);
 							firstLoad = false;
 						}
 						JSONArray changedIds = changedRecords.getJSONArray("entries");
@@ -198,7 +198,7 @@ public class SierraExportMain{
 				}
 
 				vufindConn.setAutoCommit(false);
-				logger.warn("A total of " + changedBibs.size() + " bibs were updated");
+				logger.info("A total of " + changedBibs.size() + " bibs were updated");
 				int numUpdates = 0;
 				for (String curBibId : changedBibs){
 					try {
