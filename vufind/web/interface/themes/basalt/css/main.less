@@ -68,6 +68,13 @@
   display: none;
 }
 
+// Selected Category needs to give a highlighted appearance
+.browse-category.selected {
+  background-color: @selectedCategoryColor;
+  background: linear-gradient(to bottom, @selectedCategoryColor, @selectedCategoryColor 82%, @categoryLineShadow 83%, @categoryLineColor 84%, @categoryLineColor 88%, @categoryLineShadow 89%, @selectedCategoryColor 90%, @selectedCategoryColor);
+
+}
+
 //#browse-category-picker .browse-category.category1,
 //#browse-category-picker .browse-category.category1,#browse-category-picker .browse-category.category2,#browse-category-picker .browse-category.category3,#browse-category-picker .browse-category.category4,
 //#browse-category-picker .browse-category.category5,#browse-category-picker .browse-category.category6,#browse-category-picker .browse-category.category7,#browse-category-picker .browse-category.category8 {

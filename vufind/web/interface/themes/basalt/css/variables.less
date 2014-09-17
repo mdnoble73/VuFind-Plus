@@ -1,4 +1,4 @@
-//Variables Customizations for Englewood theme
+//Variables Customizations for Basalt theme
 @header-top-color: #EFEFEF; //Top color for background gradient in header
 @header-middle-color: #EFEFEF; //middle color for background gradient in header @80% of header height from bottom
 @header-bottom-color: #EFEFEF; //Bottom color for background gradient in header
@@ -13,10 +13,14 @@
 @categoryLineColor: #5F7465;
 @categoryLineShadow: #607261;
 
-@selectedCategoryBorderColor: #63B200;
+//@selectedCategoryBorderColor: #63B200;
+@selectedCategoryBorderColor: @categoryLineColor; // makes outline more subtle
 
+// Selected Category color to give a highlighted appearance
+@selectedCategoryColor: lighten(@category1MainColor, 14%); //softer touch
+//@selectedCategoryColor: lighten(@category1MainColor, 19%); // stronger highlight
 
-// set all category colors to the first color to remove lightening of successive categories. plv 9-17-2014
+// set all browse category colors to the first color to remove lightening of successive categories. plv 9-17-2014
 @category2MainColor: @category1MainColor;
 @category3MainColor: @category1MainColor;
 @category4MainColor: @category1MainColor;
@@ -26,4 +30,6 @@
 @category8MainColor: @category1MainColor;
 @category9MainColor: @category1MainColor;
 
+
+// set opened accordions to Basalt copper-rust color
 @accordion-active-header-color : #78ada3;
