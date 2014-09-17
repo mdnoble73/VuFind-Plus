@@ -24,7 +24,7 @@ class SearchStatNew extends DB_DataObject
 		$searchStat = new SearchStatNew();
 		//Don't suggest things to users that will result in them not getting any results
 		$searchStat->whereAdd("MATCH(phrase) AGAINST ('" . $searchStat->escape($phrase) ."')");
-		$searchStat->orderBy("numSearches DESC");
+		//$searchStat->orderBy("numSearches DESC");
 		$searchStat->limit(0, 20);
 		$searchStat->find();
 		$results = array();
