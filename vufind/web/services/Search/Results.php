@@ -432,8 +432,8 @@ class Search_Results extends Action {
 		}
 
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor']) && !is_array($_GET['lookfor'])) {
-			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
-			$searchStat = new SearchStat();
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');
+			$searchStat = new SearchStatNew();
 			$searchStat->saveSearch( strip_tags($_GET['lookfor']),  strip_tags(isset($_GET['type']) ? $_GET['type'] : (isset($_GET['basicType']) ? $_GET['basicType'] : 'Keyword')), $searchObject->getResultTotal());
 		}
 

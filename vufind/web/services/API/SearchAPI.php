@@ -187,8 +187,8 @@ class SearchAPI extends Action {
 
 
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
-			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
-			$searchStat = new SearchStat();
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');
+			$searchStat = new SearchStatNew();
 			$searchStat->saveSearch( strip_tags($_GET['lookfor']), strip_tags($_GET['type']), $searchObject->getResultTotal());
 		}
 
@@ -232,14 +232,14 @@ class SearchAPI extends Action {
 	}
 
 	/**
-	 * Retreive the top 20 search terms by popularity from the search_stats table
+	 * Retrieve the top 20 search terms by popularity from the search_stats table
 	 * Enter description here ...
 	 */
 	function getTopSearches(){
-		require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
+		require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');
 		$numSearchesToReturn = isset($_REQUEST['numResults']) ? $_REQUEST['numResults'] : 20;
-		$searchStats = new SearchStat();
-		$searchStats->query("SELECT phrase, sum(numSearches) as numTotalSearches FROM `search_stats` where phrase != '' group by phrase order by numTotalSearches DESC LIMIT " . $numSearchesToReturn);
+		$searchStats = new SearchStatNew();
+		$searchStats->query("SELECT phrase, numSearches as numTotalSearches FROM `search_stats_new` where phrase != '' order by numTotalSearches DESC LIMIT " . $numSearchesToReturn);
 		$searches = array();
 		while ($searchStats->fetch()){
 			$searches[] = $searchStats->phrase;

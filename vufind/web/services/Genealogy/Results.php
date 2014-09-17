@@ -242,12 +242,6 @@ class Results extends Action {
 			$timer->logTime('finish hits processing');
 		}
 
-		/*if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
-		 require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
-		 $searchStat = new SearchStat();
-		 $searchStat->saveSearch( $_GET['lookfor'], $_GET['type'], $searchObject->getResultTotal());
-		 }*/
-
 		// Save the ID of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchId'] = $searchObject->getSearchId();
 

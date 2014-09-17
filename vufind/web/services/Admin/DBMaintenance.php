@@ -113,6 +113,38 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'index_search_stats_phrase' => array(
+					'title' => 'Index search stats table - phrase, library, location',
+					'description' => 'Add index to search stats table to improve autocomplete speed',
+					'sql' => array(
+						"ALTER TABLE `search_stats` ADD INDEX ( `locationId` ) ",
+						"ALTER TABLE `search_stats` ADD INDEX ( `libraryId` ) ",
+					),
+				),
+
+
+				'new_search_stats' => array(
+					'title' => 'Create new search stats table with better performance',
+					'description' => 'Create an optimized table for performing auto completes based on prior searches',
+					'sql' => array(
+						"CREATE TABLE `search_stats_new` (
+						  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'The unique id of the search statistic',
+						  `phrase` varchar(500) NOT NULL COMMENT 'The phrase being searched for',
+						  `lastSearch` int(16) NOT NULL COMMENT 'The last time this search was done',
+						  `numSearches` int(16) NOT NULL COMMENT 'The number of times this search has been done.',
+						  PRIMARY KEY (`id`),
+						  KEY `numSearches` (`numSearches`),
+						  KEY `lastSearch` (`lastSearch`),
+						  KEY `phrase` (`phrase`),
+						  FULLTEXT `phrase_text` (`phrase`)
+						) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 COMMENT='Statistical information about searches for use in reporting '",
+						"INSERT INTO search_stats_new (phrase, lastSearch, numSearches) SELECT TRIM(REPLACE(phrase, char(9), '')) as phrase, MAX(lastSearch), sum(numSearches) FROM search_stats WHERE numResults > 0 GROUP BY TRIM(REPLACE(phrase,char(9), ''))",
+						"DELETE FROM search_stats_new WHERE phrase LIKE '%(%'",
+						"DELETE FROM search_stats_new WHERE phrase LIKE '%)%'",
+					),
+				),
+
+
 				'genealogy' => array(
 					'title' => 'Genealogy Setup',
 					'description' => 'Initial setup of genealogy information',
