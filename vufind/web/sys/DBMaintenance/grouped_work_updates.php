@@ -148,6 +148,14 @@ function getGroupedWorkUpdates(){
 					UNIQUE KEY (sourceGroupedWorkId,destinationGroupedWorkId)
 				) ENGINE=MyISAM DEFAULT CHARSET=utf8",
 			)
+		),
+
+		'grouped_work_index_date_updated' => array(
+			'title' => 'Grouped Work Index Date Update',
+			'description' => 'Index date updated to improve performance',
+			'sql' => array(
+				"ALTER TABLE `grouped_work` ADD INDEX(`date_updated`)",
+			)
 		)
 	);
 }
