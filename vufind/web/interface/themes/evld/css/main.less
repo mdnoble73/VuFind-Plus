@@ -1,0 +1,26 @@
+// Core variables and mixins
+@import "../../responsive/css/variables.less";
+@import "variables.less";
+
+// Always include the base .less file
+@import "../../responsive/css/responsive_base.less";
+
+.header-button{
+  border-radius:  0.5em;
+  background-color: #808080;
+  margin-top: 20px;
+  height: 60px !important;
+  border: 0px;
+}
+.header-button > a{
+  color: ghostwhite !important;
+  line-height: 60px !important;
+  text-shadow: none;
+}
+.header-button > a:visited{
+  color: ghostwhite !important;
+}
+.header-button:hover{
+  border-bottom: 0px;
+  box-shadow: 2px 2px 5px #DCE0D7;
+}
