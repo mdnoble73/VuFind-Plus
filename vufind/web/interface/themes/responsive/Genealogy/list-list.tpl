@@ -6,5 +6,5 @@
 {/foreach}
 
 {if $userIsAdmin}
-<a href='{$path}/Admin/People?objectAction=addNew' class='btn btn-sm'>Add someone new</a>
+<a href='{$path}/Admin/People?objectAction=addNew' class='btn btn-sm btn-info'>Add someone new</a>
 {/if}

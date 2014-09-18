@@ -7923,6 +7923,18 @@ div#system-message-header {
   margin: 5px;
   text-align: right;
 }
+.blockhead {
+  border-bottom: 1px solid #c0c0c0;
+  color: #3e63a6;
+  font-size: 20px;
+  margin-bottom: 10px;
+  margin-right: 15px;
+  padding-top: 3px;
+}
+.obituaryTitle,
+.marriageTitle {
+  font-weight: bold;
+}
 #header-container {
   background-image: url('/interface/themes/vail/images/header_background_2.png');
 }

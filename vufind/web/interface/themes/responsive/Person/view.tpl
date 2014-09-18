@@ -49,7 +49,7 @@
 	{/if}
 
 	{if count($marriages) > 0 || $userIsAdmin}
-		<h3>Marriages</h3>
+		<h3 class="blockhead">Marriages</h3>
 		{foreach from=$marriages item=marriage}
 			<div class="marriageTitle">
 				 {$marriage.spouseName}{if $marriage.formattedMarriageDate} - {$marriage.formattedMarriageDate}{/if}
@@ -71,7 +71,7 @@
 
 	{/if}
 	{if $person->cemeteryName || $person->cemeteryLocation || $person->mortuaryName || $person->cemeteryAvenue || $person->lot || $person->block || $person->grave || $person->addition}
-		<h3>Burial Details</h3>
+		<h3 class="blockhead">Burial Details</h3>
 		{if $person->cemeteryName}
 		<div class='personDetail'><span class='result-label'>Cemetery Name:</span><span class='personDetailValue'>{$person->cemeteryName}</span></div>
 		{/if}
@@ -98,7 +98,7 @@
 		{/if}
 	{/if}
 	{if count($obituaries) > 0 || $userIsAdmin}
-		<h3>Obituaries</h3>
+		<h3 class="blockhead">Obituaries</h3>
 		{foreach from=$obituaries item=obituary}
 			<div class="obituaryTitle">
 			{$obituary.source}{if $obituary.sourcePage} page {$obituary.sourcePage}{/if}{if $obituary.formattedObitDate} - {$obituary.formattedObitDate}{/if}
@@ -128,9 +128,9 @@
 
 	{/if}
 	{if $person->ledgerVolume || $person->ledgerYear || $person->ledgerEntry}
-		<h3>Ledger Information</h3>
+		<h3 class="blockhead">Ledger Information</h3>
 		{if $person->ledgerVolume}
-			<div class='personDetail'><span class='result-label'>Volume:</span><span class='personDetailValue'>{$person->ledgerVolume}</span></div>
+			<div class='personDetail'><span class='result-label'>Volume:</span><span class='result-value-bold'>{$person->ledgerVolume}</span></div>
 		{/if}
 		{if $person->ledgerYear}
 			<div class='personDetail'><span class='result-label'>Year:</span><span class='personDetailValue'>{$person->ledgerYear}</span></div>
@@ -139,7 +139,7 @@
 			<div class='personDetail'><span class='result-label'>Entry:</span><span class='personDetailValue'>{$person->ledgerEntry}</span></div>
 		{/if}
 	{/if}
-	<h3>Comments</h3>
+	<h3 class="blockhead">Comments</h3>
 	{if $person->comments}
 	<div class='personComments'>{$person->comments|escape}</div>
 	{else}
