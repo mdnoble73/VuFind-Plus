@@ -908,7 +908,7 @@ class GroupedWorkDriver extends RecordInterface{
 		require_once ROOT_DIR . '/sys/Novelist/NovelistData.php';
 		$novelistData = new NovelistData();
 		$novelistData->groupedRecordPermanentId = $this->getPermanentId();
-		if (!isset($_REQUEST['reload']) && $novelistData->find(true) && $novelistData->primaryISBN != null){
+		if (!isset($_REQUEST['reload']) && $this->getPermanentId() != null && $this->getPermanentId() != '' && $novelistData->find(true) && $novelistData->primaryISBN != null){
 			return $novelistData->primaryISBN;
 		}else{
 			// Get all the ISBNs and initialize the return value:

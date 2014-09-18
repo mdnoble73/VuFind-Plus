@@ -5,9 +5,13 @@ class Novelist3{
 
 	function doesGroupedWorkHaveCachedSeries($groupedRecordId){
 		$novelistData = new NovelistData();
-		$novelistData->groupedRecordPermanentId = $groupedRecordId;
-		if ($novelistData->find(true)){
-			return true;
+		if ($groupedRecordId != null && $groupedRecordId != ''){
+			$novelistData->groupedRecordPermanentId = $groupedRecordId;
+			if ($novelistData->find(true)){
+				return true;
+			}else{
+				return false;
+			}
 		}else{
 			return false;
 		}
@@ -21,6 +25,10 @@ class Novelist3{
 			$profile = $configArray['Novelist']['profile'];
 			$pwd = $configArray['Novelist']['pwd'];
 		}else{
+			return null;
+		}
+
+		if ($groupedRecordId == null || $groupedRecordId == ''){
 			return null;
 		}
 
@@ -161,6 +169,10 @@ class Novelist3{
 			$profile = $configArray['Novelist']['profile'];
 			$pwd = $configArray['Novelist']['pwd'];
 		}else{
+			return null;
+		}
+
+		if ($groupedRecordId == null || $groupedRecordId == ''){
 			return null;
 		}
 
@@ -317,6 +329,10 @@ class Novelist3{
 			return null;
 		}
 
+		if ($groupedRecordId == null || $groupedRecordId == ''){
+			return null;
+		}
+
 		//Check to see if we have cached data, first check MemCache.
 		/** @var Memcache $memCache */
 		global $memCache;
@@ -445,6 +461,10 @@ class Novelist3{
 			return null;
 		}
 
+		if ($groupedRecordId == null || $groupedRecordId == ''){
+			return null;
+		}
+
 		//Check to see if we have cached data, first check MemCache.
 		/** @var Memcache $memCache */
 		global $memCache;
@@ -561,6 +581,10 @@ class Novelist3{
 			$profile = $configArray['Novelist']['profile'];
 			$pwd = $configArray['Novelist']['pwd'];
 		}else{
+			return null;
+		}
+
+		if ($groupedRecordId == null || $groupedRecordId == ''){
 			return null;
 		}
 
