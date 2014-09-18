@@ -4,8 +4,6 @@
 			<ul class="HelpMenu">
 				<li><a href="#Phrase Searches">Phrase Searches</a></li>
 				<li><a href="#Wildcard Searches">Wildcard Searches</a></li>
-				<li><a href="#Fuzzy Searches">Fuzzy Searches</a></li>
-				<li><a href="#Proximity Searches">Proximity Searches</a></li>
 				<li><a href="#Range Searches">Range Searches</a></li>
 				<li><a href="#Boosting a Term">Boosting a Term</a></li>
 				<li><a href="#Boolean operators">Boolean Operators</a>
@@ -37,25 +35,6 @@
 					<p>You can also use the wildcard searches in the middle of a term.</p>
 					<pre class="code">te*t</pre>
 					<p>Note: You cannot use a * or ? symbol as the first character of a search.</p>
-				</dd>
-
-				<dt><a name="Fuzzy Searches"></a>Fuzzy Searches</dt>
-				<dd>
-					<p>Use the tilde <strong>~</strong> symbol at the end of a <strong>Single</strong> word Term. For example to search for a term similar in spelling to "roam" use the fuzzy search: </p>
-					<pre class="code">roam~</pre>
-					<p>This search will find terms like foam and roams.</p>
-					<p>An additional parameter can specify the required similarity. The value is between 0 and 1, with a value closer to 1 only terms with a higher similarity will be matched. For example:</p>
-					<pre class="code">roam~0.8</pre>
-					<p>The default that is used if the parameter is not given is 0.5.</p>
-				</dd>
-
-				<dt><a name="Proximity Searches"></a>Proximity Searches</dt>
-				<dd>
-					<p>
-						Use the tilde <strong>~</strong> symbol at the end of a <strong>Multiple</strong> word Term.
-						For example, to search for economics and keynes that are within 10 words apart:
-					</p>
-					<pre class="code">"economics Keynes"~10</pre>
 				</dd>
 
 				{literal}
