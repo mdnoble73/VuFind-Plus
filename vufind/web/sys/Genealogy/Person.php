@@ -17,10 +17,10 @@ class Person extends SolrDataObject
 	public $otherName;
 	public $nickName;
 	public $veteranOf;
-    public $sex;
-    public $race;
-    public $residence;
-    public $causeOfDeath;
+	public $sex;
+	public $race;
+	public $residence;
+	public $causeOfDeath;
 
 	//Age information
 	public $birthDate;
