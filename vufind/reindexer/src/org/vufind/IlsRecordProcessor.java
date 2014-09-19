@@ -1169,6 +1169,9 @@ public abstract class IlsRecordProcessor {
 
 				loadAdditionalOwnershipInformation(groupedWork, curItem);
 			}
+			for (Scope curScope : curItem.getRelatedScopes()){
+				owningLocations.add(curScope.getFacetLabel());
+			}
 		}
 		for (OnOrderItem curOrderItem: onOrderItems){
 			for (Scope curScope : curOrderItem.getRelatedScopes()){
