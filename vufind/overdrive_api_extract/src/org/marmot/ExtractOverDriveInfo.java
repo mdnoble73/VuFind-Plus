@@ -508,7 +508,7 @@ public class ExtractOverDriveInfo {
 			}
 			batchUrl += "offset=" + i + "&limit=" + batchSize;
 			JSONObject productBatchInfo = callOverDriveURL(batchUrl);
-			if (productBatchInfo != null){
+			if (productBatchInfo != null && productBatchInfo.has("products")){
 				JSONArray products = productBatchInfo.getJSONArray("products");
 				logger.debug(" Found " + products.length() + " products");
 				for(int j = 0; j <products.length(); j++ ){
