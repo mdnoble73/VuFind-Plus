@@ -7371,6 +7371,9 @@ div#system-message-header {
   height: 140px;
   position: relative;
 }
+.scrollerWithRatings .scrollerBody {
+  height: 155px;
+}
 .scrollerLoadingContainer {
   width: 100%;
   padding-top: 40px;
@@ -7462,6 +7465,59 @@ div#system-message-header {
   cursor: pointer;
   z-index: 100;
   text-align: center;
+}
+.singleTitleWithNextWidget {
+  width: 200px;
+}
+.singleTitleWithNextWidget .scrollerTitle img {
+  display: inline-block;
+  opacity: 1;
+}
+.singleTitleWithNextWidget .scrollerTitle.selected img {
+  display: inline-block;
+}
+.singleTitleWithNextWidget .scrollerTitle.selected {
+  border: 0 solid black;
+  border-radius: 3px;
+  padding: 0;
+}
+.singleTitleWithNextWidget .scrollerBodyContainer {
+  margin: 5px 0;
+  text-align: center;
+  width: 100%;
+}
+.singleTitleWithNextWidget .rightScrollerButton {
+  float: none;
+  position: absolute;
+  right: 5px;
+}
+.mediumScroller.singleTitleWithNextWidget,
+.mediumScroller.singleTitleWidget {
+  width: 275px;
+}
+.mediumScroller.verticalTitleScroller {
+  width: 225px;
+}
+.mediumScroller .scrollerTitleCover {
+  max-height: 200px;
+  max-width: 200px;
+}
+.mediumScroller .scrollerTitle {
+  max-width: 204px;
+}
+.mediumScroller .scrollerBody {
+  height: 215px;
+}
+.mediumScroller.scrollerWithRatings .scrollerBody {
+  height: 230px;
+}
+.mediumScroller .leftScrollerButton,
+.mediumScroller .rightScrollerButton {
+  margin-top: 85px;
+}
+.mediumScroller .scrollerButtonUp,
+.mediumScroller .scrollerButtonDown {
+  width: 223px;
 }
 /**
  * Additional Styling specific to the display of full records.
