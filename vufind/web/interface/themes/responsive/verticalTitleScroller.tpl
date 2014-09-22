@@ -7,7 +7,7 @@
 		</div>
 		{/if}
 		<div id="titleScroller{$scrollerName}" class="titleScrollerBody">
-			<div class="scrollerButtonUp" onclick="{$scrollerVariable}.scrollToLeft();">Up</div>
+			<div class="scrollerButtonUp btn btn-primary" onclick="{$scrollerVariable}.scrollToLeft();"><i class="glyphicon glyphicon-chevron-up"></i></div>
 			<div class="scrollerBodyContainer">
 				<div class="scrollerBody" style="display:none"></div>
 				<div class="scrollerLoadingContainer">
@@ -15,20 +15,8 @@
 				</div>
 			</div>
 			<div class="clearer"></div>
-			<div class="scrollerButtonDown" onclick="{$scrollerVariable}.scrollToRight();">Down</div>
+			<div class="scrollerButtonDown btn btn-primary" onclick="{$scrollerVariable}.scrollToRight();"><i class="glyphicon glyphicon-chevron-down"></i></div>
 		</div>
 	</div>
 </div>
-<script type="text/javascript">
-	$("#list-"+ '{$wrapperId}'+" .scrollerButtonUp").button(
-	{literal}
-					{icons: {primary:'ui-icon-triangle-1-n'}, text: false}
-	{/literal}
-	);
-	$("#list-" + '{$wrapperId}'+" .scrollerButtonDown").button(
-					{literal}
-					{icons: {primary:'ui-icon-triangle-1-s'}, text: false}
-					{/literal}
-	);
-</script>
 {/strip}
