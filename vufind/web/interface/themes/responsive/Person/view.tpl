@@ -23,29 +23,29 @@
 		</div>
 	{/if}
 	{if $person->otherName}
-		<div class='personDetail'><span class='result-label'>Other Names:</span><span class='personDetailValue'>{$person->otherName|escape}</span></div>
+		<div class='personDetail'><span class='result-label'>Other Names: </span><span class='personDetailValue'>{$person->otherName|escape}</span></div>
 	{/if}
 	{if $birthDate}
-		<div class='personDetail'><span class='result-label'>Birth Date:</span><span class='personDetailValue'>{$birthDate}</span></div>
+		<div class='personDetail'><span class='result-label'>Birth Date: </span><span class='personDetailValue'>{$birthDate}</span></div>
 	{/if}
 	{if $deathDate}
-		<div class='personDetail'><span class='result-label'>Death Date:</span><span class='personDetailValue'>{$deathDate}</span></div>
+		<div class='personDetail'><span class='result-label'>Death Date: </span><span class='personDetailValue'>{$deathDate}</span></div>
 	{/if}
 	{if $ageAtDeath}
-		<div class='personDetail'><span class='result-label'>Age at Death:</span><span class='personDetailValue'>{$person->ageAtDeath|escape}</span></div>
+		<div class='personDetail'><span class='result-label'>Age at Death: </span><span class='personDetailValue'>{$person->ageAtDeath|escape}</span></div>
 	{/if}
 	{if $person->sex}
-		<div class='personDetail'><span class='result-label'>Sex:</span><span class='personDetailValue'>{$person->sex|escape}</span></div>
+		<div class='personDetail'><span class='result-label'>Sex: </span><span class='personDetailValue'>{$person->sex|escape}</span></div>
 	{/if}
 	{if $person->race}
-		<div class='personDetail'><span class='result-label'>Race:</span><span class='personDetailValue'>{$person->race|escape}</span></div>
+		<div class='personDetail'><span class='result-label'>Race: </span><span class='personDetailValue'>{$person->race|escape}</span></div>
 	{/if}
 	{if $person->veteranOf}
 		{implode subject=$person->veteranOf glue=", " assign='veteranOf'}
-		<div class='personDetail'><span class='result-label'>Veteran Of:</span><span class='personDetailValue'>{$veteranOf}</span></div>
+		<div class='personDetail'><span class='result-label'>Veteran Of: </span><span class='personDetailValue'>{$veteranOf}</span></div>
 	{/if}
 	{if $person->causeOfDeath}
-		<div class='personDetail'><span class='result-label'>Cause of Death:</span><span class='personDetailValue'>{$person->causeOfDeath|escape}</span></div>
+		<div class='personDetail'><span class='result-label'>Cause of Death: </span><span class='personDetailValue'>{$person->causeOfDeath|escape}</span></div>
 	{/if}
 
 	{if count($marriages) > 0 || $userIsAdmin}
@@ -73,13 +73,13 @@
 	{if $person->cemeteryName || $person->cemeteryLocation || $person->mortuaryName || $person->cemeteryAvenue || $person->lot || $person->block || $person->grave || $person->addition}
 		<h3 class="blockhead">Burial Details</h3>
 		{if $person->cemeteryName}
-		<div class='personDetail'><span class='result-label'>Cemetery Name:</span><span class='personDetailValue'>{$person->cemeteryName}</span></div>
+		<div class='personDetail'><span class='result-label'>Cemetery Name: </span><span class='personDetailValue'>{$person->cemeteryName}</span></div>
 		{/if}
 		{if $person->cemeteryLocation}
-		<div class='personDetail'><span class='result-label'>Cemetery Location:</span><span class='personDetailValue'>{$person->cemeteryLocation}</span></div>
+		<div class='personDetail'><span class='result-label'>Cemetery Location: </span><span class='personDetailValue'>{$person->cemeteryLocation}</span></div>
 		{/if}
 		{if $person->cemeteryAvenue}
-			<div class='personDetail'><span class='result-label'>Cemetery Avenue:</span><span class='personDetailValue'>{$person->cemeteryAvenue}</span></div>
+			<div class='personDetail'><span class='result-label'>Cemetery Avenue: </span><span class='personDetailValue'>{$person->cemeteryAvenue}</span></div>
 		{/if}
 		{if $person->addition || $person->lot || $person->block || $person->grave}
 		<div class='personDetail'><span class='result-label'>Burial Location:</span>
@@ -90,11 +90,11 @@
 			{if $person->grave}Grave {$person->grave}{/if}
 		</span></div>
 		{if $person->tombstoneInscription}
-		<div class='personDetail'><span class='result-label'>Tombstone Inscription:</span><div class='personDetailValue'>{$person->tombstoneInscription}</div></div>
+		<div class='personDetail'><span class='result-label'>Tombstone Inscription: </span><div class='personDetailValue'>{$person->tombstoneInscription}</div></div>
 		{/if}
 		{/if}
 		{if $person->mortuaryName}
-		<div class='personDetail'><span class='result-label'>Mortuary Name:</span><span class='personDetailValue'>{$person->mortuaryName}</span></div>
+		<div class='personDetail'><span class='result-label'>Mortuary Name: </span><span class='personDetailValue'>{$person->mortuaryName}</span></div>
 		{/if}
 	{/if}
 	{if count($obituaries) > 0 || $userIsAdmin}
