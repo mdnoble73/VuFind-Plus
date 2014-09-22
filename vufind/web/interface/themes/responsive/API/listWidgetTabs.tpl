@@ -90,7 +90,7 @@
 		 		{assign var="listName" value=$list->name|regex_replace:'/\W/':''|escape:url}
 				{if $list->displayFor == 'all' || ($list->displayFor == 'loggedIn' && $user) || ($list->displayFor == 'notLoggedIn' && !$user)}
 					{if $index == 0}
-						listScroller{$listName} = new TitleScroller('titleScroller{$listName}', '{$listName}', 'list{$listName}', {if $widget->showTitleDescriptions==1}true{else}false{/if}, '{$widget->onSelectCallback}', {if $widget->autoRotate==1}true{else}false{/if}, '{$widget->style}');
+						listScroller{$listName} = new TitleScroller('titleScroller{$listName}', '{$listName}', 'list{$listName}', {if $widget->autoRotate==1}true{else}false{/if}, '{$widget->style}');
 						listScroller{$listName}.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles%26id={$list->source|escape:url}%26scrollerName={$listName}%26coverSize={$widget->coverSize}%26showRatings={$widget->showRatings}', false);
 					{/if}
 					{assign var=index value=$index+1}
@@ -139,7 +139,7 @@
 					{else}
 						else if (listIndex == {$index}){literal}{{/literal}
 							if (listScroller{$listName} == null){literal}{{/literal}
-								listScroller{$listName} = new TitleScroller('titleScroller{$listName}', '{$listName}', 'list{$listName}', {if $widget->showTitleDescriptions==1}true{else}false{/if}, '{$widget->onSelectCallback}', {if $widget->autoRotate==1}true{else}false{/if}, '{$widget->style}');
+								listScroller{$listName} = new TitleScroller('titleScroller{$listName}', '{$listName}', 'list{$listName}', {if $widget->autoRotate==1}true{else}false{/if}, '{$widget->style}');
 								listScroller{$listName}.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles%26id={$list->source|escape:url}%26scrollerName={$listName}%26coverSize={$widget->coverSize}%26showRatings={$widget->showRatings}', false);
 							{literal}}else{{/literal}
 								listScroller{$listName}.activateCurrentTitle();

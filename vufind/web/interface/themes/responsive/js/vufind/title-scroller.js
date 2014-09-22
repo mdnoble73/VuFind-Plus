@@ -4,14 +4,12 @@
  * @param scrollerId - the id of the scroller which will hold the titles
  * @param scrollerShortName
  * @param container - a container to display if any titles are found
- * @param enableDescription - Whether or not the description popup window should be shown
- * @param onSelectCallback - a javascript function to fire whenever the title is changed
  * @param autoScroll - whether or not the selected title should change automatically
  * @param style - The style of the scroller vertical, horizontal, or single
  * @return
  */
 function TitleScroller(scrollerId, scrollerShortName, container,
-		enableDescription, onSelectCallback, autoScroll, style) {
+		autoScroll, style) {
 	this.scrollerTitles = [];
 	this.currentScrollerIndex = 0;
 	this.numScrollerTitles = 0;
@@ -20,16 +18,6 @@ function TitleScroller(scrollerId, scrollerShortName, container,
 	this.container = container;
 	this.scrollInterval = 0;
 
-	if (typeof enableDescription == "undefined") {
-		this.enableDescription = true;
-	} else {
-		this.enableDescription = enableDescription;
-	}
-	if (typeof onSelectCallback == "undefined") {
-		this.onSelectCallback = '';
-	} else {
-		this.onSelectCallback = onSelectCallback;
-	}
 	if (typeof autoScroll == "undefined") {
 		this.autoScroll = false;
 	} else {
@@ -187,17 +175,8 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 	var scrollerTitles = this.scrollerTitles;
 	var scrollerShortName = this.scrollerShortName;
 	var currentScrollerIndex = this.currentScrollerIndex;
-	if (typeof this.onSelectCallback == "undefined" || this.onSelectCallback == '') {
-		$("#titleScrollerSelectedTitle" + scrollerShortName).html(
-				scrollerTitles[currentScrollerIndex]['title']);
-		$("#titleScrollerSelectedAuthor" + scrollerShortName).html(
-				scrollerTitles[currentScrollerIndex]['author']);
-	} else {
-		var callback = window[this.onSelectCallback];
-		if (typeof(callback) == "function"){
-			callback(scrollerTitles[currentScrollerIndex]);
-		}
-	}
+	$("#titleScrollerSelectedTitle" + scrollerShortName).html(scrollerTitles[currentScrollerIndex]['title']);
+	$("#titleScrollerSelectedAuthor" + scrollerShortName).html(scrollerTitles[currentScrollerIndex]['author']);
 	var scrollerBody = $('#' + this.scrollerId
 			+ " .scrollerBodyContainer .scrollerBody");
 	//Make sure to clear the current tooltip if any

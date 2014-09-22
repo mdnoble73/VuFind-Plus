@@ -83,14 +83,14 @@ class ListWidget extends DB_DataObject
         'storeDb' => true,
         'hideInLists' => true,
       ),
-      'showTitleDescriptions' => array(
+      /*'showTitleDescriptions' => array(
         'property' => 'showTitleDescriptions',
         'type' => 'checkbox',
         'label' => 'Should the description pop-up be shown when hovering over titles?',
         'storeDb' => true,
         'default' => true,
         'hideInLists' => true,
-      ),
+      ),*/
 			'showTitle' => array(
 				'property' => 'showTitle',
 				'type' => 'checkbox',
@@ -148,14 +148,14 @@ class ListWidget extends DB_DataObject
 				'default' => 'small',
 				'hideInLists' => true,
 			),
-      'onSelectCallback' => array(
+      /*'onSelectCallback' => array(
         'property'=>'onSelectCallback',
         'type'=>'text',
         'label'=>'On Select Callback',
         'description'=>'A javascript callback to invoke when a title is selected to override the default behavior.',
         'storeDb' => true,
         'hideInLists' => true,
-      ),
+      ),*/
       'customCss' => array(
         'property'=>'customCss',
         'type'=>'url',
