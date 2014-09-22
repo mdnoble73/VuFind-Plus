@@ -238,10 +238,9 @@ public class ExtractOverDriveInfo {
 				updateExtractTime.setLong(1, extractStartTime);
 				updateExtractTime.executeUpdate();
 				logger.debug("Setting last extract time to " + lastExtractTime + " " + new Date(extractStartTime).toString());
-
-				if (!doFullReload){
-					updatePartialExtractRunning(false);
-				}
+			}
+			if (!doFullReload){
+				updatePartialExtractRunning(false);
 			}
 		} catch (SQLException e) {
 		// handle any errors
