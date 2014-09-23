@@ -167,7 +167,7 @@ class BookCoverProcessor{
 		}
 		$options =& PEAR_Singleton::getStaticProperty('DB_DataObject', 'options');
 		$options = $this->configArray['Database'];
-		$this->logTime("Connect to databse");
+		$this->logTime("Connect to database");
 		require_once ROOT_DIR . '/Drivers/marmot_inc/Library.php';
 	}
 
