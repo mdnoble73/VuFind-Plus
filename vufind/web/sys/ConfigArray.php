@@ -291,7 +291,7 @@ function updateConfigForScoping($configArray) {
 
 		if ($Library->N == 1) {
 			$Library->fetch();
-			//Make the library infroamtion global so we can work with it later.
+			//Make the library information global so we can work with it later.
 			$library = $Library;
 		}else{
 			//The subdomain can also indicate a location.
