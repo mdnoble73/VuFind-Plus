@@ -12,6 +12,8 @@ public class SierraOrderInformation {
 	private String orderNumber;
 	private long accountingUnit;
 	private String statusCode;
+	private int copies;
+	private String locationCode;
 
 	public String getBibRecordNumber() {
 		return bibRecordNumber;
@@ -43,5 +45,21 @@ public class SierraOrderInformation {
 
 	public void setStatusCode(String statusCode) {
 		this.statusCode = statusCode;
+	}
+
+	public int getCopies() {
+		return copies;
+	}
+
+	public void setCopies(int copies) {
+		this.copies = copies;
+	}
+
+	public String getLocationCode() {
+		return locationCode;
+	}
+
+	public void setLocationCode(String locationCode) {
+		this.locationCode = locationCode;
 	}
 }

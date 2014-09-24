@@ -488,6 +488,10 @@ public class GroupedWorkSolr {
 		}
 	}
 
+	public String getDisplayTitle(){
+		return displayTitle;
+	}
+
 	public void setSubTitle(String subTitle) {
 		if (subTitle != null){
 			//TODO: determine if the subtitle should be changed?

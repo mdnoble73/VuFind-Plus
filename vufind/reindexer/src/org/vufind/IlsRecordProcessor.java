@@ -241,13 +241,13 @@ public abstract class IlsRecordProcessor {
 		try{
 			//First load a list of print items and econtent items from the MARC record since they are needed to handle
 			//Scoping and availability of records.
-			List<PrintIlsItem> printItems = getUnsuppressedPrintItems(record);
+			List<PrintIlsItem> printItems = getUnsuppressedPrintItems(identifier, record);
 			List<EContentIlsItem> econtentItems = getUnsuppressedEContentItems(identifier, record);
 			List<OnOrderItem> onOrderItems = getOnOrderItems(identifier, record);
 
 			//Break the MARC record up based on item information and load data that is scoped
 			//i.e. formats, iTypes, date added to catalog, etc
-			HashSet<IlsRecord> ilsRecords = loadScopedDataForMarcRecord(groupedWork, record, printItems, econtentItems);
+			HashSet<IlsRecord> ilsRecords = loadScopedDataForMarcRecord(groupedWork, record, printItems, econtentItems, onOrderItems);
 
 			//Do updates based on the overall bib (shared regardless of scoping)
 			loadTitles(groupedWork, record);
@@ -388,16 +388,21 @@ public abstract class IlsRecordProcessor {
 	 * @param record The original MARC record
 	 * @param printItems a list of print items from the MARC record
 	 * @param econtentItems a list of econtent itmes from the MARC record
+	 * @param onOrderItems
 	 * @return A list of Ils Records that relate to the original marc
 	 */
-	protected HashSet<IlsRecord> loadScopedDataForMarcRecord(GroupedWorkSolr groupedWork, Record record, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
+	protected HashSet<IlsRecord> loadScopedDataForMarcRecord(GroupedWorkSolr groupedWork, Record record, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, List<OnOrderItem> onOrderItems) {
 		HashSet<IlsRecord> ilsRecords = new HashSet<IlsRecord>();
 		String recordId = getFirstFieldVal(record, recordNumberTag + "a");
 		String recordIdentifier = "ils:" + recordId;
-		if (printItems.size() > 0) {
+		if (printItems.size() > 0 || onOrderItems.size() > 0) {
 			IlsRecord printRecord = new IlsRecord();
 			printRecord.setRecordId(recordIdentifier);
 			printRecord.addItems(printItems);
+			printRecord.addRelatedOrderItems(onOrderItems);
+			if (onOrderItems.size() > 0) {
+				logger.warn("Record " + recordId + " " + groupedWork.getDisplayTitle() + " has " + onOrderItems.size() + " order records");
+			}
 			//Load formats for the print record
 			loadPrintFormatInformation(printRecord, record);
 			ilsRecords.add(printRecord);
@@ -411,6 +416,19 @@ public abstract class IlsRecordProcessor {
 					}
 				}else{
 					logger.warn("Got an invalid print item in loadScopedDataForMarcRecord for " + recordId);
+				}
+			}
+
+			for (OnOrderItem orderItem : onOrderItems) {
+				if (orderItem != null) {
+					String itemInfo = orderItem.getRecordIdentifier() + "|" + orderItem.getRelatedItemInfo();
+					groupedWork.addRelatedItem(itemInfo);
+					for (Scope scope : orderItem.getRelatedScopes()) {
+						ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
+						scopedWorkDetails.addRelatedItem(itemInfo);
+					}
+				} else {
+					logger.warn("Got an invalid order item in loadScopedDataForMarcRecord for " + recordId);
 				}
 			}
 		}
@@ -432,12 +450,13 @@ public abstract class IlsRecordProcessor {
 		return ilsRecords;
 	}
 
-	protected List<PrintIlsItem> getUnsuppressedPrintItems(Record record){
+	protected List<PrintIlsItem> getUnsuppressedPrintItems(String identifier, Record record){
 		List<DataField> itemRecords = getDataFields(record, itemTag);
 		List<PrintIlsItem> unsuppressedItemRecords = new ArrayList<PrintIlsItem>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
 				PrintIlsItem ilsRecord = getPrintIlsRecord(itemField);
+				ilsRecord.setRecordIdentifier(identifier);
 				if (ilsRecord != null) {
 					unsuppressedItemRecords.add(ilsRecord);
 				}
@@ -557,10 +576,9 @@ public abstract class IlsRecordProcessor {
 		ilsRecord.setLastYearCheckouts(getItemSubfieldData(lastYearCheckoutSubfield, itemField));
 		ilsRecord.setYtdCheckouts(getItemSubfieldData(ytdCheckoutSubfield, itemField));
 		ilsRecord.setTotalCheckouts(getItemSubfieldData(totalCheckoutSubfield, itemField));
-		ilsRecord.setiCode2(getItemSubfieldData(iCode2Subfield, itemField));
-		ilsRecord.setCallNumberPreStamp(getItemSubfieldData(callNumberPrestampSubfield, itemField));
-		ilsRecord.setCallNumber(getItemSubfieldData(callNumberSubfield, itemField));
-		ilsRecord.setCallNumberCutter(getItemSubfieldData(callNumberCutterSubfield, itemField));
+		ilsRecord.setCallNumberPreStamp(getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField));
+		ilsRecord.setCallNumber(getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField));
+		ilsRecord.setCallNumberCutter(getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField));
 		ilsRecord.setBarcode(getItemSubfieldData(barcodeSubfield, itemField));
 		ilsRecord.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
 
@@ -603,6 +621,14 @@ public abstract class IlsRecordProcessor {
 			return null;
 		}else {
 			return itemField.getSubfield(subfieldIndicator) != null ? itemField.getSubfield(subfieldIndicator).getData().trim() : null;
+		}
+	}
+
+	private String getItemSubfieldDataWithoutTrimming(char subfieldIndicator, DataField itemField) {
+		if (subfieldIndicator == ' '){
+			return null;
+		}else {
+			return itemField.getSubfield(subfieldIndicator) != null ? itemField.getSubfield(subfieldIndicator).getData() : null;
 		}
 	}
 
@@ -1170,7 +1196,11 @@ public abstract class IlsRecordProcessor {
 				loadAdditionalOwnershipInformation(groupedWork, curItem);
 			}
 			for (Scope curScope : curItem.getRelatedScopes()){
-				owningLocations.add(curScope.getFacetLabel());
+				if (curScope.isLocationScope() && curScope.isLocationCodeIncludedDirectly(locationCode)) {
+					if (!owningLocations.contains(curScope.getFacetLabel())) {
+						owningLocations.add(curScope.getFacetLabel());
+					}
+				}
 			}
 		}
 		for (OnOrderItem curOrderItem: onOrderItems){

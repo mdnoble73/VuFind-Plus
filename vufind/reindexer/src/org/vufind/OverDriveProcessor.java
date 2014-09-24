@@ -88,135 +88,141 @@ public class OverDriveProcessor {
 			getProductInfoStmt.setString(1, identifier);
 			ResultSet productRS = getProductInfoStmt.executeQuery();
 			if (productRS.next()){
+				//Make sure the record isn't deleted
 				Long productId = productRS.getLong("id");
 				String title = productRS.getString("title");
-				String subtitle = productRS.getString("subtitle");
-				if (subtitle == null){
-					subtitle = "";
-				}
-				groupedWork.setTitle(title);
-				groupedWork.setDisplayTitle(title);
-				groupedWork.setSubTitle(subtitle);
-				String fullTitle = title + " " + subtitle;
-				fullTitle = fullTitle.trim();
-				groupedWork.addFullTitle(fullTitle);
-				groupedWork.setDisplayTitle(fullTitle);
-				String mediaType = productRS.getString("mediaType");
-				String formatCategory;
-				String primaryFormat;
-				if (mediaType.equals("Audiobook")){
-					formatCategory = "Audio Books";
-					primaryFormat = "eAudiobook";
-				}else if (mediaType.equals("Video")){
-					formatCategory = "Movies";
-					primaryFormat = "eVideo";
-				}else{
-					formatCategory = mediaType;
-					primaryFormat = mediaType;
-				}
-				groupedWork.addFormatCategory(formatCategory);
-				groupedWork.addSeries(productRS.getString("series"));
-				groupedWork.setAuthor(productRS.getString("primaryCreatorName"));
-				groupedWork.setAuthorDisplay(productRS.getString("primaryCreatorName"));
-				productRS.close();
+				if (productRS.getInt("deleted") == 1){
+					logger.warn("Not processing deleted overdrive product " + title + " - " + identifier);
+				}else {
+					String subtitle = productRS.getString("subtitle");
+					if (subtitle == null) {
+						subtitle = "";
+					}
+					groupedWork.setTitle(title);
+					groupedWork.setDisplayTitle(title);
+					groupedWork.setSubTitle(subtitle);
+					String fullTitle = title + " " + subtitle;
+					fullTitle = fullTitle.trim();
+					groupedWork.addFullTitle(fullTitle);
+					groupedWork.setDisplayTitle(fullTitle);
+					String mediaType = productRS.getString("mediaType");
+					String formatCategory;
+					String primaryFormat;
+					if (mediaType.equals("Audiobook")) {
+						formatCategory = "Audio Books";
+						primaryFormat = "eAudiobook";
+					} else if (mediaType.equals("Video")) {
+						formatCategory = "Movies";
+						primaryFormat = "eVideo";
+					} else {
+						formatCategory = mediaType;
+						primaryFormat = mediaType;
+					}
+					groupedWork.addFormatCategory(formatCategory);
+					groupedWork.addSeries(productRS.getString("series"));
+					groupedWork.setAuthor(productRS.getString("primaryCreatorName"));
+					groupedWork.setAuthorDisplay(productRS.getString("primaryCreatorName"));
+					productRS.close();
 
-				HashMap<String, String> metadata = loadOverDriveMetadata(groupedWork, productId);
-				String primaryLanguage = loadOverDriveLanguages(groupedWork, productId);
-				loadOverDriveSubjects(groupedWork, productId);
+					HashMap<String, String> metadata = loadOverDriveMetadata(groupedWork, productId);
+					String primaryLanguage = loadOverDriveLanguages(groupedWork, productId);
+					loadOverDriveSubjects(groupedWork, productId);
 
-				//Load availability & determine which scopes are valid for the record
-				//Start by assuming that all scopes are invalid, and then prove which ones are valid
-				HashSet<Scope> validScopes = new HashSet<Scope>();
-				HashSet<Scope> invalidScopes = new HashSet<Scope>();
-				invalidScopes.addAll(indexer.getScopes());
+					//Load availability & determine which scopes are valid for the record
+					//Start by assuming that all scopes are invalid, and then prove which ones are valid
+					HashSet<Scope> validScopes = new HashSet<Scope>();
+					HashSet<Scope> invalidScopes = new HashSet<Scope>();
+					invalidScopes.addAll(indexer.getScopes());
 
-				getProductAvailabilityStmt.setLong(1, productId);
-				ResultSet availabilityRS = getProductAvailabilityStmt.executeQuery();
-				HashSet<String> owningLibraries = new HashSet<String>();
-				HashSet<String> availableLibraries = new HashSet<String>();
-				HashSet<String> owningSubdomains = new HashSet<String>();
-				HashSet<String> owningLocations = new HashSet<String>();
-				HashSet<String> owningSubdomainsAndLocations = new HashSet<String>();
-				HashSet<String> availableSubdomainsAndLocations = new HashSet<String>();
+					getProductAvailabilityStmt.setLong(1, productId);
+					ResultSet availabilityRS = getProductAvailabilityStmt.executeQuery();
+					HashSet<String> owningLibraries = new HashSet<String>();
+					HashSet<String> availableLibraries = new HashSet<String>();
+					HashSet<String> owningSubdomains = new HashSet<String>();
+					HashSet<String> owningLocations = new HashSet<String>();
+					HashSet<String> owningSubdomainsAndLocations = new HashSet<String>();
+					HashSet<String> availableSubdomainsAndLocations = new HashSet<String>();
 
-				groupedWork.addRelatedRecord("overdrive:" + identifier, primaryFormat, "", primaryLanguage, metadata.get("publisher"), metadata.get("publicationDate"), "");
-				boolean partOfSharedCollection = false;
-				while (availabilityRS.next()){
-					long libraryId = availabilityRS.getLong("libraryId");
-					boolean available = availabilityRS.getBoolean("available");
-					int copiesOwned = availabilityRS.getInt("copiesOwned");
-					if (libraryId == -1){
-						//Everyone has access to this
-						partOfSharedCollection = true;
-						//Add all scopes that want the overdrive collection
-						boolean changeMade = true;
-						while (changeMade) {
-							changeMade = false;
-							for (Scope curScope : invalidScopes) {
-								if (curScope.isIncludeOverDriveCollection()) {
-									validScopes.add(curScope);
-									invalidScopes.remove(curScope);
-									changeMade = true;
-									break;
+					groupedWork.addRelatedRecord("overdrive:" + identifier, primaryFormat, "", primaryLanguage, metadata.get("publisher"), metadata.get("publicationDate"), "");
+					boolean partOfSharedCollection = false;
+					while (availabilityRS.next()) {
+						long libraryId = availabilityRS.getLong("libraryId");
+						boolean available = availabilityRS.getBoolean("available");
+						int copiesOwned = availabilityRS.getInt("copiesOwned");
+						if (libraryId == -1) {
+							//Everyone has access to this
+							partOfSharedCollection = true;
+							//Add all scopes that want the overdrive collection
+							boolean changeMade = true;
+							while (changeMade) {
+								changeMade = false;
+								for (Scope curScope : invalidScopes) {
+									if (curScope.isIncludeOverDriveCollection()) {
+										validScopes.add(curScope);
+										invalidScopes.remove(curScope);
+										changeMade = true;
+										break;
+									}
 								}
 							}
-						}
-						owningLibraries.add("Shared Digital Collection");
-						owningLibraries.addAll(libraryMap.values());
-						owningSubdomainsAndLocations.addAll(subdomainMap.values());
-						owningSubdomains.addAll(subdomainMap.values());
-						for (Long curLibraryId : libraryMap.keySet()){
-							owningSubdomainsAndLocations.addAll(locationsForLibrary.get(curLibraryId));
-							owningLocations.addAll(locationsForLibrary.get(curLibraryId));
-						}
-						if (available){
-							availableLibraries.addAll(libraryMap.values());
-							availableSubdomainsAndLocations.addAll(subdomainMap.values());
-							for (Long curLibraryId : libraryMap.keySet()){
-								availableSubdomainsAndLocations.addAll(locationsForLibrary.get(curLibraryId));
+							owningLibraries.add("Shared Digital Collection");
+							owningLibraries.addAll(libraryMap.values());
+							owningSubdomainsAndLocations.addAll(subdomainMap.values());
+							owningSubdomains.addAll(subdomainMap.values());
+							for (Long curLibraryId : libraryMap.keySet()) {
+								owningSubdomainsAndLocations.addAll(locationsForLibrary.get(curLibraryId));
+								owningLocations.addAll(locationsForLibrary.get(curLibraryId));
 							}
-						}
-					}else{
-						//This is an advantage title
-						boolean changeMade = true;
-						while (changeMade) {
-							changeMade = false;
-							for (Scope curScope : invalidScopes) {
-								if (curScope.isIncludeOverDriveCollection() && curScope.getLibraryId().equals(libraryId) || curScope.isIncludeOutOfSystemExternalLinks()) {
-									validScopes.add(curScope);
-									invalidScopes.remove(curScope);
-									changeMade = true;
-									break;
+							if (available) {
+								availableLibraries.addAll(libraryMap.values());
+								availableSubdomainsAndLocations.addAll(subdomainMap.values());
+								for (Long curLibraryId : libraryMap.keySet()) {
+									availableSubdomainsAndLocations.addAll(locationsForLibrary.get(curLibraryId));
 								}
 							}
-						}
-						owningLibraries.add(libraryMap.get(libraryId));
-						owningSubdomainsAndLocations.add(subdomainMap.get(libraryId));
-						owningSubdomainsAndLocations.addAll(locationsForLibrary.get(libraryId));
-						owningSubdomains.add(subdomainMap.get(libraryId));
-						owningLocations.addAll(locationsForLibrary.get(libraryId));
-						if (available){
-							availableLibraries.add(libraryMap.get(libraryId));
-							availableSubdomainsAndLocations.add(subdomainMap.get(libraryId));
-							availableSubdomainsAndLocations.addAll(locationsForLibrary.get(libraryId));
-						}
-					}//End processing availability
+						} else {
+							//This is an advantage title
+							boolean changeMade = true;
+							while (changeMade) {
+								changeMade = false;
+								for (Scope curScope : invalidScopes) {
+									if (curScope.isIncludeOverDriveCollection() && curScope.getLibraryId().equals(libraryId) || curScope.isIncludeOutOfSystemExternalLinks()) {
+										validScopes.add(curScope);
+										invalidScopes.remove(curScope);
+										changeMade = true;
+										break;
+									}
+								}
+							}
+							owningLibraries.add(libraryMap.get(libraryId));
+							owningSubdomainsAndLocations.add(subdomainMap.get(libraryId));
+							owningSubdomainsAndLocations.addAll(locationsForLibrary.get(libraryId));
+							owningSubdomains.add(subdomainMap.get(libraryId));
+							owningLocations.addAll(locationsForLibrary.get(libraryId));
+							if (available) {
+								availableLibraries.add(libraryMap.get(libraryId));
+								availableSubdomainsAndLocations.add(subdomainMap.get(libraryId));
+								availableSubdomainsAndLocations.addAll(locationsForLibrary.get(libraryId));
+							}
+						}//End processing availability
+					}
+					groupedWork.addOwningLibraries(owningLibraries);
+					groupedWork.addOwningLocationCodesAndSubdomains(owningSubdomainsAndLocations);
+
+
+					groupedWork.addAvailableLocations(availableLibraries, availableSubdomainsAndLocations);
+					groupedWork.addEContentSource("OverDrive", owningSubdomainsAndLocations, new ArrayList<String>());
+					groupedWork.addEContentProtectionType("Limited Access", owningSubdomainsAndLocations, new ArrayList<String>());
+					//Setup information based on the scopes
+					for (Scope validScope : validScopes) {
+						groupedWork.addCompatiblePTypes(validScope.getRelatedPTypes());
+						groupedWork.getScopedWorkDetails().get(validScope.getScopeName()).getRelatedRecords().add("overdrive:" + identifier);
+					}
+
+					loadOverDriveFormats(groupedWork, productId, formatCategory, owningSubdomains, owningLocations, validScopes);
 				}
-				groupedWork.addOwningLibraries(owningLibraries);
-				groupedWork.addOwningLocationCodesAndSubdomains(owningSubdomainsAndLocations);
-
-
-				groupedWork.addAvailableLocations(availableLibraries, availableSubdomainsAndLocations);
-				groupedWork.addEContentSource("OverDrive", owningSubdomainsAndLocations, new ArrayList<String>());
-				groupedWork.addEContentProtectionType("Limited Access", owningSubdomainsAndLocations, new ArrayList<String>());
-				//Setup information based on the scopes
-				for (Scope validScope : validScopes) {
-					groupedWork.addCompatiblePTypes(validScope.getRelatedPTypes());
-					groupedWork.getScopedWorkDetails().get(validScope.getScopeName()).getRelatedRecords().add("overdrive:" + identifier);
-				}
-
-				loadOverDriveFormats(groupedWork, productId, formatCategory, owningSubdomains, owningLocations, validScopes);
 			}
+			productRS.close();
 		} catch (SQLException e) {
 			logger.error("Error loading information from Database for overdrive title", e);
 		}
@@ -284,6 +290,7 @@ public class OverDriveProcessor {
 		}
 		groupedWork.addTargetAudience(targetAudience);
 		groupedWork.addTargetAudienceFull(targetAudienceFull);
+		subjectsRS.close();
 	}
 
 	private void addToMapWithCount(HashMap<String, Integer> map, String elementToAdd){

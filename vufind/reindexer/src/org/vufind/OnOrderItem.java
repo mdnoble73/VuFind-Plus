@@ -14,10 +14,8 @@ public class OnOrderItem {
 	private String bibNumber;
 	private HashSet<Scope> relatedScopes = new HashSet<Scope>();
 	private String status;
-
-	public String getStatus() {
-		return status;
-	}
+	private int copies;
+	private String locationCode;
 
 	public void setStatus(String status) {
 		this.status = status;
@@ -31,10 +29,6 @@ public class OnOrderItem {
 		this.orderNumber = orderNumber;
 	}
 
-	public String getBibNumber() {
-		return bibNumber;
-	}
-
 	public void setBibNumber(String bibNumber) {
 		this.bibNumber = bibNumber;
 	}
@@ -45,5 +39,25 @@ public class OnOrderItem {
 
 	public HashSet<Scope> getRelatedScopes(){
 		return relatedScopes;
+	}
+
+	public String getRelatedItemInfo() {
+		return this.getOrderNumber() + "|" + locationCode +"||false|false||" + status + "|" + copies;
+	}
+
+	public String getRecordIdentifier() {
+		return "ils:" + bibNumber;
+	}
+
+	public void setLocationCode(String locationCode) {
+		this.locationCode = locationCode;
+	}
+
+	public int getCopies() {
+		return copies;
+	}
+
+	public void setCopies(int copies) {
+		this.copies = copies;
 	}
 }

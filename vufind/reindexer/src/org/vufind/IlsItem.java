@@ -81,7 +81,7 @@ public class IlsItem {
 		if (this.callNumberCutter != null){
 			fullCallNumber.append(this.callNumberCutter);
 		}
-		return fullCallNumber.toString();
+		return fullCallNumber.toString().trim();
 	}
 
 	public String getItemRecordNumber() {

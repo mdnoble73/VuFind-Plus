@@ -26,6 +26,7 @@ public class IlsRecord {
 	private String publisher;
 	private String publicationDate;
 	private String physicalDescription;
+	private HashSet<OnOrderItem> relatedOrderItems = new HashSet<OnOrderItem>();
 
 	public String getRecordId() {
 		return recordId;
@@ -37,10 +38,6 @@ public class IlsRecord {
 
 	public HashSet<IlsItem> getRelatedItems() {
 		return relatedItems;
-	}
-
-	public void setRelatedItems(HashSet<IlsItem> relatedItems) {
-		this.relatedItems = relatedItems;
 	}
 
 	private HashSet<String> recordsWithoutFormats = new HashSet<String>();
@@ -152,5 +149,13 @@ public class IlsRecord {
 			recordScopes.addAll(ilsItem.getRelatedScopes());
 		}
 		return recordScopes;
+	}
+
+	public HashSet<OnOrderItem> getRelatedOrderItems() {
+		return relatedOrderItems;
+	}
+
+	public void addRelatedOrderItems(List<OnOrderItem> onOrderItems) {
+		this.relatedOrderItems.addAll(onOrderItems);
 	}
 }

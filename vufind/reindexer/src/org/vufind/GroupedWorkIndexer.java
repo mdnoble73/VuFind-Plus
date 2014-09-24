@@ -201,6 +201,8 @@ public class GroupedWorkIndexer {
 					}else{
 						//We need to build a scope
 						Scope newScope = new Scope();
+						newScope.setIsLibraryScope(true);
+						newScope.setIsLocationScope(false);
 						newScope.setScopeName(subdomain);
 						newScope.setAccountingUnit(accountingUnit);
 						newScope.setLibraryId(libraryId);
@@ -258,6 +260,8 @@ public class GroupedWorkIndexer {
 						}
 						if (needLocationScope){
 							Scope locationScopeInfo = new Scope();
+							locationScopeInfo.setIsLibraryScope(false);
+							locationScopeInfo.setIsLocationScope(true);
 							locationScopeInfo.setScopeName(code);
 							locationScopeInfo.setLibraryId(libraryId);
 							locationScopeInfo.setLibraryLocationCodePrefix(libraryIlsCode);

@@ -38,15 +38,17 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		if (activeOrdersFile.exists()){
 			try {
 				CSVReader reader = new CSVReader(new FileReader(activeOrdersFile));
-				String[] curLine = reader.readNext();
 				//Skip the header
-				curLine = reader.readNext();
+				reader.readNext();
+				String[] curLine = reader.readNext();
 				while (curLine != null){
 					SierraOrderInformation orderInformation = new SierraOrderInformation();
 					orderInformation.setBibRecordNumber(".b" + curLine[0] + getCheckDigit(curLine[0]));
 					orderInformation.setOrderNumber(".o" + curLine[1] + getCheckDigit(curLine[1]));
 					orderInformation.setAccountingUnit(Long.parseLong(curLine[2]));
 					orderInformation.setStatusCode(curLine[3]);
+					orderInformation.setCopies(Integer.parseInt(curLine[4]));
+					orderInformation.setLocationCode(curLine[5]);
 					ArrayList<SierraOrderInformation> orderRecordsForBib = orderRecordsByBib.get(orderInformation.getBibRecordNumber());
 					if (orderRecordsForBib == null){
 						orderRecordsForBib = new ArrayList<SierraOrderInformation>();
@@ -74,13 +76,20 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				orderItem.setOrderNumber(orderInformation.getOrderNumber());
 				orderItem.setBibNumber(orderInformation.getBibRecordNumber());
 				orderItem.setStatus(orderInformation.getStatusCode());
+				orderItem.setLocationCode(orderInformation.getLocationCode());
+				orderItem.setCopies(orderInformation.getCopies());
 				//Get the location code/codes for the order
-				for (Scope curScope : indexer.getScopes()){
-					if (curScope.getAccountingUnit() != null && curScope.getAccountingUnit().equals(orderInformation.getAccountingUnit())) {
-						orderItem.addRelatedScope(curScope);
+				if (!orderInformation.getLocationCode().equals("multi")) {
+					for (Scope curScope : indexer.getScopes()) {
+						//Part of scope if the location code is included directly
+						//or if the scope is not limited to only including library/location codes.
+						if ((!curScope.isIncludeItemsOwnedByTheLibraryOnly() && !curScope.isIncludeItemsOwnedByTheLocationOnly()) ||
+								curScope.isLocationCodeIncludedDirectly(orderInformation.getLocationCode())) {
+							orderItem.addRelatedScope(curScope);
+						}
 					}
+					onOrderItems.add(orderItem);
 				}
-				onOrderItems.add(orderItem);
 			}
 		}
 
@@ -129,7 +138,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		}
 	}
 
-	protected List<PrintIlsItem> getUnsuppressedPrintItems(Record record){
+	protected List<PrintIlsItem> getUnsuppressedPrintItems(String identifier, Record record){
 		List<DataField> itemRecords = getDataFields(record, itemTag);
 		List<PrintIlsItem> unsuppressedItemRecords = new ArrayList<PrintIlsItem>();
 		for (DataField itemField : itemRecords){
@@ -264,7 +273,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				groupedWork.addEContentProtectionTypes(protectionTypes, validSubdomains, validLocationCodes);
 				for (String curLocation : pTypesByLibrary.keySet()){
 					Pattern libraryCodePattern = Pattern.compile(curLocation);
-					if (libraryCodePattern.matcher(locationCode).lookingAt()){
+					if (locationCode != null && libraryCodePattern.matcher(locationCode).lookingAt()){
 						groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
 					}
 				}
@@ -280,7 +289,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				groupedWork.addEContentProtectionTypes(protectionTypes, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
 				//TODO: Add correct owning and available locations
 				for (String curLocation : pTypesByLibrary.keySet()){
-					if (locationCode.startsWith(curLocation)){
+					if (locationCode != null && locationCode.startsWith(curLocation)){
 						groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
 					}
 				}
@@ -338,7 +347,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 	 * Determine Record Format(s)
 	 */
 	public void loadPrintFormatInformation(IlsRecord ilsRecord, Record record){
-		if (ilsRecord.getRelatedItems().size() > 0){
+		if (ilsRecord.getRelatedItems().size() > 0 || ilsRecord.getRelatedOrderItems().size() > 0){
 			Set<String> printFormats = new LinkedHashSet<String>();
 
 			String leader = record.getLeader().toString();
@@ -400,9 +409,9 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 			printFormats.remove("Book");
 		}else if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
 			printFormats.remove("Book");
-		}else if (printFormats.size() > 1){
+		}/*else if (printFormats.size() > 1){
 			return;
-		}
+		}*/
 	}
 
 	private void getFormatFromTitle(Record record, Set<String> printFormats) {
@@ -427,9 +436,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 	}
 
 	protected void loadEContentFormatInformation(IlsRecord econtentRecord, EContentIlsItem econtentItem) {
-		String locationCode = econtentItem.getLocation();
 		String protectionType = econtentItem.getProtectionType();
-		String sharing = econtentItem.getSharing();
 		if (protectionType.equals("acs") || protectionType.equals("drm") || protectionType.equals("public domain") || protectionType.equals("free")){
 			String filename = econtentItem.getFilename();
 			if (filename == null) {

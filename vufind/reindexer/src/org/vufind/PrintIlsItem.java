@@ -1,6 +1,5 @@
 package org.vufind;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 
 /**
@@ -17,7 +16,6 @@ public class PrintIlsItem extends IlsItem {
 	private String lastYearCheckouts;
 	private String ytdCheckouts;
 	private String totalCheckouts;
-	private String iCode2;
 	private String barcode;
 
 	//Data that is calculated from other data
@@ -72,14 +70,6 @@ public class PrintIlsItem extends IlsItem {
 		this.totalCheckouts = totalCheckouts;
 	}
 
-	public String getiCode2() {
-		return iCode2;
-	}
-
-	public void setiCode2(String iCode2) {
-		this.iCode2 = iCode2;
-	}
-
 	public String getBarcode() {
 		return barcode;
 	}
@@ -110,7 +100,8 @@ public class PrintIlsItem extends IlsItem {
 				"|" + this.getFullCallNumber() +
 				"|" + (this.available ? "true" : "false") +
 				"|" + (this.isLibraryUseOnly() ? "true" : "false") +
-				"|" + Util.getCommaSeparatedString(this.compatiblePTypes);
+				"|" + Util.getCommaSeparatedString(this.compatiblePTypes) +
+				"|" + this.status;
 	}
 
 	private boolean isLibraryUseOnly() {

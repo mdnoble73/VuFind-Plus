@@ -16,7 +16,7 @@ public class Scope implements Comparable<Scope>{
 	private String scopeName;
 	private String facetLabel;
 	private HashSet<String> relatedPTypes = new HashSet<String>();
-	private boolean includeBibsOwnedByTheLibraryOnly;
+private boolean includeBibsOwnedByTheLibraryOnly;
 	private boolean includeItemsOwnedByTheLibraryOnly;
 	private HashSet<String> eContentLocationCodesToInclude = new HashSet<String>();
 	private boolean includeOutOfSystemExternalLinks;
@@ -28,6 +28,8 @@ public class Scope implements Comparable<Scope>{
 	private Pattern extraLocationCodesPattern;
 	private Long libraryId;
 	private Long accountingUnit;
+	private boolean isLibraryScope;
+	private boolean isLocationScope;
 
 	public String getScopeName() {
 		return scopeName;
@@ -211,10 +213,23 @@ public class Scope implements Comparable<Scope>{
 			locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
 			return true;
 		}
-		Pattern libraryCodePattern = Pattern.compile(libraryLocationCodePrefix);
-		if (libraryLocationCodePrefix != null && libraryCodePattern.matcher(locationCode).lookingAt()){
-			locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
-			return true;
+
+		if (isLibraryScope) {
+			if (libraryLocationCodePrefix != null){
+				Pattern libraryCodePattern = Pattern.compile(libraryLocationCodePrefix);
+				if (libraryCodePattern.matcher(locationCode).lookingAt()) {
+					locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
+					return true;
+				}
+			}
+		}else{
+			if (locationLocationCodePrefix != null) {
+				Pattern locationCodePattern = Pattern.compile(locationLocationCodePrefix);
+				if (locationCodePattern.matcher(locationCode).lookingAt()) {
+					locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
+					return true;
+				}
+			}
 		}
 		if (extraLocationCodesPattern != null){
 			if (extraLocationCodesPattern.matcher(locationCode).matches()) {
@@ -228,5 +243,45 @@ public class Scope implements Comparable<Scope>{
 		}
 		locationCodeIncludedDirectly.put(locationCode, Boolean.FALSE);
 		return false;
+	}
+
+	public void setIsLibraryScope(boolean isLibraryScope) {
+		this.isLibraryScope = isLibraryScope;
+	}
+
+	public boolean isLibraryScope() {
+		return isLibraryScope;
+	}
+
+	public void setLibraryScope(boolean isLibraryScope) {
+		this.isLibraryScope = isLibraryScope;
+	}
+
+	public void setIsLocationScope(boolean isLocationScope) {
+		this.isLocationScope = isLocationScope;
+	}
+
+	public boolean isLocationScope() {
+		return isLocationScope;
+	}
+
+	public void setLocationScope(boolean isLocationScope) {
+		this.isLocationScope = isLocationScope;
+	}
+
+	public boolean isIncludeBibsOwnedByTheLibraryOnly() {
+		return includeBibsOwnedByTheLibraryOnly;
+	}
+
+	public boolean isIncludeBibsOwnedByTheLocationOnly() {
+		return includeBibsOwnedByTheLocationOnly;
+	}
+
+	public boolean isIncludeItemsOwnedByTheLibraryOnly() {
+		return includeItemsOwnedByTheLibraryOnly;
+	}
+
+	public boolean isIncludeItemsOwnedByTheLocationOnly() {
+		return includeItemsOwnedByTheLocationOnly;
 	}
 }
