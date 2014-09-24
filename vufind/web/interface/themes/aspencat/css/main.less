@@ -1,0 +1,11 @@
+// Core variables and mixins
+@import "../../responsive/css/variables.less";
+@import "variables";
+
+// Always include the base .less file
+@import "../../responsive/css/responsive_base.less";
+
+#header-container {
+  min-height: @header-height + 20;
+  // in some other themes, @header-height is less than the min height set in responsive, set at 110px. plb 9-24-2014
+}
