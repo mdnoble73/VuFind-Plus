@@ -529,7 +529,7 @@ public class RecordGrouperMain {
 
 			if (!fullRegrouping){
 				PreparedStatement deletedRecordStmt;
-				if (lastGroupingTime == null){
+				if (lastGroupingTime == null || fullRegroupingNoClear){
 					deletedRecordStmt = econtentConnection.prepareStatement("SELECT overdriveId FROM overdrive_api_products WHERE deleted = 1",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				}else{
 					deletedRecordStmt = econtentConnection.prepareStatement("SELECT overdriveId FROM overdrive_api_products WHERE deleted = 1 and dateDeleted >= ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
