@@ -269,6 +269,10 @@ function updateConfigForScoping($configArray) {
 				$subdomain = $serverComponents[0];
 			}
 		}
+		//Trim off test indicator when doing lookups for library/location
+		if (substr($subdomain, -1) == '2' || substr($subdomain, -1) == '3'){
+			$subdomain = substr($subdomain, 0, -1);
+		}
 	}
 
 	$timer->logTime('got subdomain');
