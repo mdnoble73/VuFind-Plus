@@ -446,6 +446,14 @@ class ListAPI extends Action {
 				}else{
 					return array('success'=>false, 'message'=>'The specified search could not be found.');
 				}
+			}else{
+				//Do a default search
+				$titles = $this->getSystemListTitles($listId);
+				if (count($titles) > 0 ){
+					return array('success'=>true, 'listTitle' => $listId, 'listDescription' => "System Generated List", 'titles'=>$titles, 'cacheLength'=>4);
+				}else{
+					return array('success'=>false, 'message'=>'The specified list could not be found.');
+				}
 			}
 
 		}else{
@@ -886,5 +894,31 @@ class ListAPI extends Action {
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
+	}
+
+	function getSystemListTitles($listName){
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $configArray;
+		$listTitles = $memCache->get('system_list_titles_' . $listName);
+		if ($listTitles == false || isset($_REQUEST['reload'])){
+			//return a random selection of 30 titles from the list.
+			$searchObj = SearchObjectFactory::initSearchObject();
+			$searchObj->init();
+			$searchObj->setBasicQuery("*:*");
+			if (!preg_match('/^search:/', $listName)){
+				$searchObj->addFilter("system_list:$listName");
+			}
+			if (isset($_REQUEST['numTitles'])){
+				$searchObj->setLimit($_REQUEST['numTitles']);
+			}else{
+				$searchObj->setLimit(25);
+			}
+			$searchObj->processSearch(false, false);
+			$listTitles = $searchObj->getListWidgetTitles();
+
+			$memCache->set('system_list_titles_' . $listName, $listTitles, 0, $configArray['Caching']['system_list_titles']);
+		}
+		return $listTitles;
 	}
 }
