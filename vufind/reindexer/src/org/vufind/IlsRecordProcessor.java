@@ -400,9 +400,9 @@ public abstract class IlsRecordProcessor {
 			printRecord.setRecordId(recordIdentifier);
 			printRecord.addItems(printItems);
 			printRecord.addRelatedOrderItems(onOrderItems);
-			if (onOrderItems.size() > 0) {
+			/*if (onOrderItems.size() > 0) {
 				logger.warn("Record " + recordId + " " + groupedWork.getDisplayTitle() + " has " + onOrderItems.size() + " order records");
-			}
+			}*/
 			//Load formats for the print record
 			loadPrintFormatInformation(printRecord, record);
 			ilsRecords.add(printRecord);
