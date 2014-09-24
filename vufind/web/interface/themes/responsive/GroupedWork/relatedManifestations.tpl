@@ -55,7 +55,7 @@
 							{elseif $relatedManifestation.available}
 								<div class="related-manifestation-shelf-status availableOther">Available from another library</div>
 							{else}
-								<div class="related-manifestation-shelf-status checked_out">Checked Out</div>
+								<div class="related-manifestation-shelf-status checked_out">{if $relatedManifestation.groupedStatus}{$relatedManifestation.groupedStatus}{else}Checked Out{/if}</div>
 							{/if}
 
 							{include file='GroupedWork/issueSummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id}

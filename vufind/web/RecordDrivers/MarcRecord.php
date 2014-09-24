@@ -1601,12 +1601,14 @@ class MarcRecord extends IndexRecord
 
 			$formatCategory = mapValue('format_category_by_format', $format);
 			$items = $this->getItemsFast();
+			$onOrderCopies = 0;
 			$availableCopies = 0;
 			$localAvailableCopies = 0;
 			$branchAvailableCopies = 0;
 			$localCopies = 0;
 			$totalCopies = 0;
 			$hasLocalItem = false;
+			$groupedStatus = "Currently Unavailable";
 			foreach ($items as $item){
 				$totalCopies++;
 				if ($item['availability'] == true){
@@ -1622,6 +1624,36 @@ class MarcRecord extends IndexRecord
 				if ($item['isLocalItem'] ){
 					if ($item['availability'] == true){
 						$branchAvailableCopies++;
+					}
+				}
+				if (isset($item['onOrderCopies'])){
+					$onOrderCopies += $item['onOrderCopies'];
+				}
+				//Check to see if we got a better grouped status
+				if (isset($item['groupedStatus'])){
+					if ($groupedStatus == 'Currently Unavailable'){
+						if ($item['groupedStatus'] != 'Currently Unavailable'){
+							$groupedStatus = $item['groupedStatus'];
+						}
+					}elseif ($groupedStatus == 'Checked Out'){
+						if ($item['groupedStatus'] != 'Currently Unavailable' && $item['groupedStatus'] != 'Checked Out'){
+							$groupedStatus = $item['groupedStatus'];
+						}
+					}elseif ($groupedStatus == 'Available Soon'){
+						if ($item['groupedStatus'] != 'Currently Unavailable' && $item['groupedStatus'] != 'Checked Out' && $item['groupedStatus'] != 'Available Soon'){
+							$groupedStatus = $item['groupedStatus'];
+						}
+					}elseif ($groupedStatus == 'Library Use Only'){
+						if ($item['groupedStatus'] != 'Currently Unavailable' && $item['groupedStatus'] != 'Checked Out'
+							&& $item['groupedStatus'] != 'Available Soon' && $item['groupedStatus'] != 'Library Use Only'){
+							$groupedStatus = $item['groupedStatus'];
+						}
+					}elseif ($groupedStatus == 'Available Online'){
+						if ($item['groupedStatus'] != 'Currently Unavailable' && $item['groupedStatus'] != 'Checked Out'
+							&& $item['groupedStatus'] != 'Available Soon' && $item['groupedStatus'] != 'Library Use Only'
+							&& $item['groupedStatus'] != 'Available Online'){
+							$groupedStatus = $item['groupedStatus'];
+						}
 					}
 				}
 			}
@@ -1648,6 +1680,7 @@ class MarcRecord extends IndexRecord
 					'inLibraryUseOnly' => $this->isLibraryUseOnly(false),
 					'availableCopies' => $availableCopies,
 					'copies' => $totalCopies,
+					'onOrderCopies' => $onOrderCopies,
 					'localAvailableCopies' => $localAvailableCopies,
 					'localCopies' => $localCopies,
 					'numHolds' => $numHolds,
@@ -1656,6 +1689,7 @@ class MarcRecord extends IndexRecord
 					'locationLabel' => $this->getLocationLabel(),
 					'shelfLocation' => $this->getShelfLocation(),
 					'itemSummary' => $this->getItemSummary(),
+					'groupedStatus' => $groupedStatus,
 					'source' => 'ils',
 					'actions' => $this->getAllActions()
 			);
@@ -1841,7 +1875,7 @@ class MarcRecord extends IndexRecord
 		return false;
 	}
 
-	private function getAllActions() {
+	protected function getAllActions() {
 		$items = $this->getItemsFast();
 		$allActions = array();
 		foreach ($items as $item){
@@ -1904,9 +1938,32 @@ class MarcRecord extends IndexRecord
 					if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $shelfLocation, $locationParts)){
 						$shelfLocation = $locationParts[1];
 					}
+					$callNumber = $itemData[3];
+					$onOrderCopies = 0;
+					if (substr($itemData[1], 0, 2) == '.o'){
+						$groupedStatus = "Available Soon";
+						$callNumber = "ON ORDER";
+						$status = "On Order";
+						$onOrderCopies = $itemData[8];
+					}else{
+						if (isset($itemData[7])){
+							$status = mapValue('item_status', $itemData[7]);
+							$groupedStatus = mapValue('item_grouped_status', $itemData[7]);
+							if ($status == 'On Shelf' && $itemData[4] != 'true'){
+								$status = 'Checked Out';
+								$groupedStatus = "Checked Out";
+							}
+						}else if ($itemData[4] == 'true'){
+							$status = "On Shelf";
+							$groupedStatus = "On Shelf";
+						}else{
+							$status = "Checked Out";
+							$groupedStatus = "Checked Out";
+						}
+					}
 					$this->fastItems[] = array(
 						'location' => $itemData[2],
-						'callnumber' => $itemData[3],
+						'callnumber' => $callNumber,
 						'availability' => $itemData[4] == 'true',
 						'holdable' => true,
 						'inLibraryUseOnly' => $itemData[5] == 'true',
@@ -1914,6 +1971,9 @@ class MarcRecord extends IndexRecord
 						'isLocalItem' => isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($itemData[2], $homeLocationCode) === 0,
 						'locationLabel' => true,
 						'shelfLocation' => $shelfLocation,
+						'onOrderCopies' => $onOrderCopies,
+						'status' => $status,
+						'groupedStatus' => $groupedStatus,
 					);
 				}
 			}else{
@@ -1938,7 +1998,7 @@ class MarcRecord extends IndexRecord
 	/**
 	 * @return MillenniumDriver|Sierra|Marmot|DriverInterface
 	 */
-	private static function getCatalogDriver(){
+	protected static function getCatalogDriver(){
 		if (MarcRecord::$catalogDriver == null){
 			global $configArray;
 			try {

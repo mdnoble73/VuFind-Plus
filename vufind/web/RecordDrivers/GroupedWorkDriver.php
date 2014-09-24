@@ -1112,6 +1112,7 @@ class GroupedWorkDriver extends RecordInterface{
 					'hideByDefault' => false,
 					'itemSummary' => array(),
 					'itemSummaryLocal' => array(),
+					'groupedStatus' => ''
 				);
 			}
 			if (isset($curRecord['availableLocally']) && $curRecord['availableLocally'] == true){
@@ -1152,6 +1153,36 @@ class GroupedWorkDriver extends RecordInterface{
 			}
 			if (isset($curRecord['itemSummary'])){
 				$relatedManifestations[$curRecord['format']]['itemSummary'] = $this->mergeItemSummary($relatedManifestations[$curRecord['format']]['itemSummary'], $curRecord['itemSummary']);
+			}
+			if (isset($curRecord['groupedStatus'])){
+				$groupedStatus = $relatedManifestations[$curRecord['format']]['groupedStatus'];
+				if ($groupedStatus == ''){
+					$groupedStatus = $curRecord['groupedStatus'];
+				}elseif ($groupedStatus == 'Currently Unavailable'){
+					if ($curRecord['groupedStatus'] != 'Currently Unavailable'){
+						$groupedStatus = $curRecord['groupedStatus'];
+					}
+				}elseif ($groupedStatus == 'Checked Out'){
+					if ($curRecord['groupedStatus'] != 'Currently Unavailable' && $curRecord['groupedStatus'] != 'Checked Out'){
+						$groupedStatus = $curRecord['groupedStatus'];
+					}
+				}elseif ($groupedStatus == 'Available Soon'){
+					if ($curRecord['groupedStatus'] != 'Currently Unavailable' && $curRecord['groupedStatus'] != 'Checked Out' && $curRecord['groupedStatus'] != 'Available Soon'){
+						$groupedStatus = $curRecord['groupedStatus'];
+					}
+				}elseif ($groupedStatus == 'Library Use Only'){
+					if ($curRecord['groupedStatus'] != 'Currently Unavailable' && $curRecord['groupedStatus'] != 'Checked Out'
+						&& $curRecord['groupedStatus'] != 'Available Soon' && $curRecord['groupedStatus'] != 'Library Use Only'){
+						$groupedStatus = $curRecord['groupedStatus'];
+					}
+				}elseif ($groupedStatus == 'Available Online'){
+					if ($curRecord['groupedStatus'] != 'Currently Unavailable' && $curRecord['groupedStatus'] != 'Checked Out'
+						&& $curRecord['groupedStatus'] != 'Available Soon' && $curRecord['groupedStatus'] != 'Library Use Only'
+						&& $curRecord['groupedStatus'] != 'Available Online'){
+						$groupedStatus = $curRecord['groupedStatus'];
+					}
+				}
+				$relatedManifestations[$curRecord['format']]['groupedStatus'] = $groupedStatus;
 			}
 		}
 		$timer->logTime("Finished initial processing of related records");
