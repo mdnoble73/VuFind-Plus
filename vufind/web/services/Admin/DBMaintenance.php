@@ -51,7 +51,7 @@ class DBMaintenance extends Admin_Admin {
 						//Give enough time for long queries to run
 
 						if (method_exists($this, $sql)) {
-							$this->$sql(&$update);
+							$this->$sql($update);
 						} else {
 							if (!$this->runSQLStatement(&$update, $sql)) {
 								break;
@@ -2004,7 +2004,7 @@ class DBMaintenance extends Admin_Admin {
 		}
 	}
 
-	function createScopingTables($update) {
+	function createScopingTables(&$update) {
 		//Create global scoping tables
 		$library = new Library();
 		$library->find();
@@ -2065,7 +2065,7 @@ class DBMaintenance extends Admin_Admin {
 		}
 	}
 
-	function setScopingTableEngine($update) {
+	function setScopingTableEngine(&$update) {
 		//$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_global` ENGINE = InnoDB");
 		$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_global` ADD INDEX ( `record` )");
 		//$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_global` ENGINE = InnoDB");
@@ -2090,7 +2090,7 @@ class DBMaintenance extends Admin_Admin {
 		}
 	}
 
-	function setScopingTableEngine2($update) {
+	function setScopingTableEngine2(&$update) {
 		$this->runSQLStatement(&$update, "TRUNCATE TABLE title_browse_scoped_results_global");
 		$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_global` ENGINE = InnoDB");
 		$this->runSQLStatement(&$update, "TRUNCATE TABLE author_browse_scoped_results_global");
@@ -2114,7 +2114,7 @@ class DBMaintenance extends Admin_Admin {
 		}
 	}
 
-	function removeScopingTableIndex($update) {
+	function removeScopingTableIndex(&$update) {
 		$this->runSQLStatement(&$update, "TRUNCATE TABLE title_browse_scoped_results_global");
 		$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_global` DROP INDEX `record`");
 		$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_global` ENGINE = MYISAM");
