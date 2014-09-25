@@ -97,7 +97,7 @@ public class CirculationProcess implements IProcessHandler{
 		try{
 			PreparedStatement usersToSendReturnReminderNoticesTo = econtentConn.prepareStatement("SELECT DISTINCT userId FROM econtent_checkout WHERE status ='out' AND returnReminderNoticeSent = 0 AND dateDue < ?");
 			PreparedStatement getUserEmailStmt = vufindConn.prepareStatement("SELECT email, firstname, lastname, displayName FROM user where id = ?");
-			PreparedStatement getExpiringCheckoutsForUser = econtentConn.prepareStatement("SELECT dateCheckedOut, dateDue, title, author, econtent_record.id, econtent_checkout.id as checkoutId FROM econtent_checkout INNER JOIN econtent_record on econtent_record.id = econtent_checkout.recordId WHERE userId = ? AND econtent_checkout.status ='out' AND returnReminderNoticeSent = 0 AND dateDue < ?");
+			PreparedStatement getExpiringCheckoutsForUser = econtentConn.prepareStatement("SELECT dateCheckedOut, dateDue, title, author, econtent_checkout.id as checkoutId FROM econtent_checkout WHERE userId = ? AND econtent_checkout.status ='out' AND returnReminderNoticeSent = 0 AND dateDue < ?");
 			PreparedStatement updateNoticeSent = econtentConn.prepareStatement("UPDATE econtent_checkout SET returnReminderNoticeSent = 1 WHERE id = ?");
 			SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMMM d, yyyy");
 			
@@ -116,15 +116,15 @@ public class CirculationProcess implements IProcessHandler{
 				ResultSet userInfo = getUserEmailStmt.executeQuery();
 				while (userInfo.next()){
 					String emailSubject = noticeLibraryName + " Notice";
-					StringBuffer emailBody = new StringBuffer();
+					StringBuilder emailBody = new StringBuilder();
 					String email = userInfo.getString("email");
 					String firstname = userInfo.getString("firstname");
 					String lastname = userInfo.getString("lastname");
 					
 					if (!email.equals("email")){
 						logger.info("Sending notification to " + firstname + " " + lastname);
-						emailBody.append(firstname + " " + lastname + "\r\n\r\n\r\n");
-						emailBody.append("This is a courtesy reminder from the library that the following items will be due on " + dateFormat.format(new Date(lastDueDateToSendNotice * 1000)) + ". ");
+						emailBody.append(firstname).append(" ").append(lastname).append("\r\n\r\n\r\n");
+						emailBody.append("This is a courtesy reminder from the library that the following items will be due on ").append(dateFormat.format(new Date(lastDueDateToSendNotice * 1000))).append(". ");
 						emailBody.append("Your access to the items will be automatically removed.  If you have downloaded any items to a portable reader, please delete the items from your device by ths date. \r\n\r\n");
 						
 						//Get a list of records that are available where notices have not been sent
@@ -134,15 +134,15 @@ public class CirculationProcess implements IProcessHandler{
 						while (expiringCheckouts.next()){
 							String title = expiringCheckouts.getString("title");
 							String author = expiringCheckouts.getString("author");
-							emailBody.append("    " + title + " by " + author + "\r\n");
+							emailBody.append("    ").append(title).append(" by ").append(author).append("\r\n");
 							long dateCheckedOut = expiringCheckouts.getLong("dateCheckedOut");
 							Date dateCheckedOutDate = new Date(dateCheckedOut * 1000);
-							emailBody.append("    Checked Out: " + dateFormat.format(dateCheckedOutDate) + "\r\n");
+							emailBody.append("    Checked Out: ").append(dateFormat.format(dateCheckedOutDate)).append("\r\n");
 						}
 						
 						emailBody.append("Thank you,\r\n\r\n");
-						emailBody.append(noticeLibraryName + "\r\n");
-						emailBody.append(siteUrl + "\r\n");
+						emailBody.append(noticeLibraryName).append("\r\n");
+						emailBody.append(siteUrl).append("\r\n");
 						
 						sendNotice(email, emailSubject, emailBody.toString(), logger);
 						
@@ -177,7 +177,7 @@ public class CirculationProcess implements IProcessHandler{
 			PreparedStatement usersToSendAbandonedNoticesTo = econtentConn.prepareStatement("SELECT DISTINCT userId FROM econtent_hold WHERE status ='abandoned' AND holdAbandonedNoticeSent = 0");
 			ResultSet usersToSendNoticesTo = usersToSendAbandonedNoticesTo.executeQuery();
 			PreparedStatement getUserEmailStmt = vufindConn.prepareStatement("SELECT email, firstname, lastname, displayName FROM user where id = ?");
-			PreparedStatement getAbandonedHoldsForUser = econtentConn.prepareStatement("SELECT datePlaced, dateUpdated, econtent_hold.status, title, author, econtent_record.id, econtent_hold.id as holdId FROM econtent_hold INNER JOIN econtent_record on econtent_record.id = econtent_hold.recordId WHERE userId = ? AND econtent_hold.status ='abandoned' AND holdAbandonedNoticeSent = 0");
+			PreparedStatement getAbandonedHoldsForUser = econtentConn.prepareStatement("SELECT datePlaced, dateUpdated, econtent_hold.status, title, author, econtent_hold.id as holdId FROM econtent_hold WHERE userId = ? AND econtent_hold.status ='abandoned' AND holdAbandonedNoticeSent = 0");
 			PreparedStatement updateNoticeSent = econtentConn.prepareStatement("UPDATE econtent_hold SET holdAbandonedNoticeSent = 1 WHERE id = ?");
 			SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMMM d, yyyy");
 			
@@ -187,14 +187,14 @@ public class CirculationProcess implements IProcessHandler{
 				ResultSet userInfo = getUserEmailStmt.executeQuery();
 				while (userInfo.next()){
 					String emailSubject = noticeLibraryName + " - Hold Abandoned Notice";
-					StringBuffer emailBody = new StringBuffer();
+					StringBuilder emailBody = new StringBuilder();
 					String email = userInfo.getString("email");
 					String firstname = userInfo.getString("firstname");
 					String lastname = userInfo.getString("lastname");
 					
 					if (!email.equals("email")){
 						logger.info("Sending notification to " + firstname + " " + lastname);
-						emailBody.append(firstname + " " + lastname + "\r\n\r\n\r\n");
+						emailBody.append(firstname).append(" ").append(lastname).append("\r\n\r\n\r\n");
 						emailBody.append("We wanted to let you know that the following items were held for you at the library.  Since you were unable to pick these holds up they have now expired.\r\n\r\n");
 						
 						//Get a list of records that are available where notices have not been sent
@@ -203,17 +203,17 @@ public class CirculationProcess implements IProcessHandler{
 						while (availableHolds.next()){
 							String title = availableHolds.getString("title");
 							String author = availableHolds.getString("author");
-							emailBody.append("    " + title + " by " + author + "\r\n");
+							emailBody.append("    ").append(title).append(" by ").append(author).append("\r\n");
 							long datePlaced = availableHolds.getLong("datePlaced");
 							Date datePlacedDate = new Date(datePlaced * 1000);
 							long dateHoldExpires = datePlaced * 1000 + 1000 * 60 * 60 * 24 * 5; // Add 5 days
 							Date dateHoldExpiresDate = new Date(dateHoldExpires);
-							emailBody.append("    Placed on hold: " + dateFormat.format(datePlacedDate) + "    Expired: " + dateFormat.format(dateHoldExpiresDate) + "\r\n");
+							emailBody.append("    Placed on hold: ").append(dateFormat.format(datePlacedDate)).append("    Expired: ").append(dateFormat.format(dateHoldExpiresDate)).append("\r\n");
 						}
 						
 						emailBody.append("Thank you,\r\n\r\n");
-						emailBody.append(noticeLibraryName + "\r\n");
-						emailBody.append(siteUrl + "\r\n");
+						emailBody.append(noticeLibraryName).append("\r\n");
+						emailBody.append(siteUrl).append("\r\n");
 						
 						sendNotice(email, emailSubject, emailBody.toString(), logger);
 						
@@ -253,7 +253,7 @@ public class CirculationProcess implements IProcessHandler{
 			//Get a list of records to send notices for
 			PreparedStatement usersToSendReminderNoticesTo = econtentConn.prepareStatement("SELECT DISTINCT userId FROM econtent_hold WHERE dateUpdated < ? AND status ='available' AND holdReminderNoticeSent = 0");
 			PreparedStatement getUserEmailStmt = vufindConn.prepareStatement("SELECT email, firstname, lastname, displayName FROM user where id = ?");
-			PreparedStatement getAvailableHoldsForUser = econtentConn.prepareStatement("SELECT datePlaced, dateUpdated, econtent_hold.status, title, author, econtent_record.id, econtent_hold.id as holdId FROM econtent_hold INNER JOIN econtent_record on econtent_record.id = econtent_hold.recordId WHERE holdReminderNoticeSent = 0 AND userId = ? and econtent_hold.status = 'available' AND dateUpdated < ?");
+			PreparedStatement getAvailableHoldsForUser = econtentConn.prepareStatement("SELECT datePlaced, dateUpdated, econtent_hold.status, title, author, econtent_hold.id as holdId FROM econtent_hold WHERE holdReminderNoticeSent = 0 AND userId = ? and econtent_hold.status = 'available' AND dateUpdated < ?");
 			PreparedStatement updateNoticeSent = econtentConn.prepareStatement("UPDATE econtent_hold SET holdReminderNoticeSent = 1 WHERE id = ?");
 			SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMMM d, yyyy");
 			
@@ -265,14 +265,14 @@ public class CirculationProcess implements IProcessHandler{
 				ResultSet userInfo = getUserEmailStmt.executeQuery();
 				while (userInfo.next()){
 					String emailSubject = noticeLibraryName + " - Hold Reminder Notice";
-					StringBuffer emailBody = new StringBuffer();
+					StringBuilder emailBody = new StringBuilder();
 					String email = userInfo.getString("email");
 					String firstname = userInfo.getString("firstname");
 					String lastname = userInfo.getString("lastname");
 					
 					if (!email.equals("email")){
 						logger.info("Sending notification to " + firstname + " " + lastname);
-						emailBody.append(firstname + " " + lastname + "\r\n\r\n\r\n");
+						emailBody.append(firstname).append(" ").append(lastname).append("\r\n\r\n\r\n");
 						emailBody.append("This is a reminder that the following items that you requested are now available for online usage. ");
 						emailBody.append("You can checkout the items by accessing your eContent at {$siteUrl}/MyResearch/MyEContent.\r\n\r\n");
 						emailBody.append("***Please Note***\r\n");
@@ -285,17 +285,17 @@ public class CirculationProcess implements IProcessHandler{
 						while (availableHolds.next()){
 							String title = availableHolds.getString("title");
 							String author = availableHolds.getString("author");
-							emailBody.append("    " + title + " by " + author + "\r\n");
+							emailBody.append("    ").append(title).append(" by ").append(author).append("\r\n");
 							long datePlaced = availableHolds.getLong("datePlaced");
 							Date datePlacedDate = new Date(datePlaced * 1000);
 							long dateHoldExpires = datePlaced * 1000 + 1000 * 60 * 60 * 24 * 5; // Add 5 days
 							Date dateHoldExpiresDate = new Date(dateHoldExpires);
-							emailBody.append("    Placed on hold: " + dateFormat.format(datePlacedDate) + "    Expires: " + dateFormat.format(dateHoldExpiresDate) + "\r\n");
+							emailBody.append("    Placed on hold: ").append(dateFormat.format(datePlacedDate)).append("    Expires: ").append(dateFormat.format(dateHoldExpiresDate)).append("\r\n");
 						}
 						
 						emailBody.append("Thank you,\r\n\r\n");
-						emailBody.append(noticeLibraryName + "\r\n");
-						emailBody.append(siteUrl + "\r\n");
+						emailBody.append(noticeLibraryName).append("\r\n");
+						emailBody.append(siteUrl).append("\r\n");
 						
 						sendNotice(email, emailSubject, emailBody.toString(), logger);
 						
@@ -333,7 +333,7 @@ public class CirculationProcess implements IProcessHandler{
 			//Get a list of records to send notices for
 			PreparedStatement usersToSendNoticesToStmt = econtentConn.prepareStatement("SELECT DISTINCT userId FROM econtent_hold WHERE status = 'available' and holdAvailableNoticeSent = 0");
 			PreparedStatement getUserEmailStmt = vufindConn.prepareStatement("SELECT email, firstname, lastname, displayName FROM user where id = ?");
-			PreparedStatement getAvailableHoldsForUser = econtentConn.prepareStatement("SELECT datePlaced, dateUpdated, econtent_hold.status, title, author, econtent_record.id, econtent_hold.id as holdId FROM econtent_hold INNER JOIN econtent_record on econtent_record.id = econtent_hold.recordId WHERE holdAvailableNoticeSent = 0 AND userId = ? and econtent_hold.status = 'available'");
+			PreparedStatement getAvailableHoldsForUser = econtentConn.prepareStatement("SELECT datePlaced, dateUpdated, econtent_hold.status, title, author, econtent_hold.id as holdId FROM econtent_hold WHERE holdAvailableNoticeSent = 0 AND userId = ? and econtent_hold.status = 'available'");
 			PreparedStatement updateNoticeSent = econtentConn.prepareStatement("UPDATE econtent_hold SET holdAvailableNoticeSent = 1 WHERE id = ?");
 			SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMMM d, yyyy");
 			
@@ -344,14 +344,14 @@ public class CirculationProcess implements IProcessHandler{
 				ResultSet userInfo = getUserEmailStmt.executeQuery();
 				while (userInfo.next()){
 					String emailSubject = noticeLibraryName + " - Hold Notice";
-					StringBuffer emailBody = new StringBuffer();
+					StringBuilder emailBody = new StringBuilder();
 					String email = userInfo.getString("email");
 					String firstname = userInfo.getString("firstname");
 					String lastname = userInfo.getString("lastname");
 					
 					if (!email.equals("email")){
 						logger.info("Sending notification to " + firstname + " " + lastname);
-						emailBody.append(firstname + " " + lastname + "\r\n\r\n\r\n");
+						emailBody.append(firstname).append(" ").append(lastname).append("\r\n\r\n\r\n");
 						emailBody.append("The following items that you requested are now available for online usage. ");
 						emailBody.append("You can checkout the items by accessing your eContent at {$siteUrl}/MyResearch/MyEContent.\r\n\r\n");
 						emailBody.append("***Please Note***\r\n");
@@ -363,18 +363,18 @@ public class CirculationProcess implements IProcessHandler{
 						while (availableHolds.next()){
 							String title = availableHolds.getString("title");
 							String author = availableHolds.getString("author");
-							emailBody.append("    " + title + " by " + author + "\r\n");
+							emailBody.append("    ").append(title).append(" by ").append(author).append("\r\n");
 							long datePlaced = availableHolds.getLong("datePlaced");
 							Date datePlacedDate = new Date(datePlaced * 1000);
 							long dateHoldExpires = new Date().getTime() + 1000 * 60 * 60 * 24 * 5; // Add 5 days
 							Date dateHoldExpiresDate = new Date(dateHoldExpires);
 							
-							emailBody.append("    Placed on hold: " + dateFormat.format(datePlacedDate) + "    Expires: " + dateFormat.format(dateHoldExpiresDate) + "\r\n");
+							emailBody.append("    Placed on hold: ").append(dateFormat.format(datePlacedDate)).append("    Expires: ").append(dateFormat.format(dateHoldExpiresDate)).append("\r\n");
 						}
 						
 						emailBody.append("Thank you,\r\n\r\n");
-						emailBody.append(noticeLibraryName + "\r\n");
-						emailBody.append(siteUrl + "\r\n");
+						emailBody.append(noticeLibraryName).append("\r\n");
+						emailBody.append(siteUrl).append("\r\n");
 						
 						sendNotice(email, emailSubject, emailBody.toString(), logger);
 						

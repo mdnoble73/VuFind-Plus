@@ -16,6 +16,8 @@ class EContentHold extends DB_DataObject {
 	public $userId;
 	public $status; //Active, Suspended, Cancelled, Filled 
 	public $reactivateDate;
+	public $title;
+	public $author;
 	
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('econtent_hold',$k,$v); }

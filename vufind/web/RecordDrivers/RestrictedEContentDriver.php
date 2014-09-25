@@ -345,6 +345,8 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 					$loanTerm = $configArray['EContent']['loanTerm'];
 					$eContentCheckout->dateDue = time() + $loanTerm * 24 * 60 * 60; //Allow titles to be checked our for 3 weeks
 					$eContentCheckout->status = 'out';
+					$eContentCheckout->title = $this->getTitle();
+					$eContentCheckout->author = $this->getAuthor();
 					if ($eContentCheckout->insert()){
 						return array(
 							'result' => true,
@@ -432,6 +434,8 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 				}else{
 					$eContentHold->status = 'active';
 					$eContentHold->datePlaced = time();
+					$eContentHold->title = $this->getTitle();
+					$eContentHold->author = $this->getAuthor();
 					if ($eContentHold->insert()){
 						return array(
 							'result' => true,

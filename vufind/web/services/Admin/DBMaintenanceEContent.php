@@ -245,6 +245,17 @@ class DBMaintenanceEContent extends Admin_Admin {
 				)
 			),
 
+			'econtentHoldCheckoutTitles' => array(
+				'title' => 'Add Title Information for Holds and Checkouts',
+				'description' => 'Add title and author to econtent hold and checkout tables to allow sending notices',
+				'sql' => array(
+					'ALTER TABLE econtent_checkout ADD title VARCHAR(276)',
+					'ALTER TABLE econtent_checkout ADD author VARCHAR(100)',
+					'ALTER TABLE econtent_hold ADD title VARCHAR(276)',
+					'ALTER TABLE econtent_hold ADD author VARCHAR(100)',
+				)
+			),
+
 			'eContentHistory'	=> array(
 				'title' => 'eContent History table',
 				'description' => 'Sets up tables for handling history of eContent',
