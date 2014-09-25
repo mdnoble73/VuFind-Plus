@@ -1507,7 +1507,7 @@ class Solr implements IndexEngine {
 				$usableFilter .= " OR $buildingFacetName:\"$owningLibrary\" OR $buildingFacetName:\"$owningLibrary Online\" OR $buildingFacetName:\"$owningLibrary On Order\"";
 			}
 			if (strlen($owningSystem) > 0){
-				$usableFilter .= " OR $institutionFacetName:\"$owningSystem\" OR $buildingFacetName:\"$owningSystem Online\" OR $buildingFacetName:\"$owningLibrary On Order\"";
+				$usableFilter .= " OR $institutionFacetName:\"$owningSystem\" OR $buildingFacetName:\"$owningSystem Online\" OR $buildingFacetName:\"$owningSystem On Order\"";
 			}
 			$homeLibrary = Library::getPatronHomeLibrary();
 			if ($homeLibrary && $homeLibrary != $searchLibrary){

@@ -78,6 +78,7 @@ abstract class Record_Record extends Action
 		//Check to see if the record exists within the resources table
 		$this->recordDriver = new MarcRecord($this->id);
 		if (!$this->recordDriver->isValid()){
+			$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');
 			$interface->setTemplate('invalidRecord.tpl');
 			$interface->display('layout.tpl');
 			die();

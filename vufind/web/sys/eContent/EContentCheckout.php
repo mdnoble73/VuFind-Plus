@@ -22,6 +22,8 @@ class EContentCheckout extends DB_DataObject {
 	public $acsTransactionId;
 	public $userAcsId;
 	public $protectionType;
+	public $title;
+	public $author;
 	
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('econtent_checkout',$k,$v); }
