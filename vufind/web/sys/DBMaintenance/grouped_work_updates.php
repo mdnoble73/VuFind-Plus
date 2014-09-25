@@ -156,6 +156,14 @@ function getGroupedWorkUpdates(){
 			'sql' => array(
 				"ALTER TABLE `grouped_work` ADD INDEX(`date_updated`)",
 			)
+		),
+
+		'grouped_work_evoke' => array(
+			'title' => 'Grouped Work eVoke',
+			'description' => 'Allow eVoke as a valid identifier type ',
+			'sql' => array(
+				"ALTER TABLE grouped_work_primary_identifiers CHANGE `type` `type` ENUM('ils', 'external', 'drm', 'free', 'overdrive', 'evoke' ) NOT NULL",
+			)
 		)
 	);
 }

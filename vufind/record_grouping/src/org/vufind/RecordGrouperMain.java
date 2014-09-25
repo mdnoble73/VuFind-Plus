@@ -14,7 +14,6 @@ import org.marc4j.marc.Subfield;
 import org.marc4j.marc.VariableField;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.sql.*;
 import java.util.Date;
 import java.util.HashMap;
@@ -121,6 +120,8 @@ public class RecordGrouperMain {
 		boolean errorAddingGroupedWorks = false;
 		try{
 			vufindConn.setAutoCommit(false);
+			groupEVokeRecords(configIni, recordGroupingProcessor);
+			vufindConn.commit();
 			groupOverDriveRecords(econtentConnection, recordGroupingProcessor);
 			vufindConn.commit();
 			groupIlsRecords(configIni, recordGroupingProcessor);
@@ -161,6 +162,58 @@ public class RecordGrouperMain {
 		long endTime = new Date().getTime();
 		long elapsedTime = endTime - processStartTime;
 		logger.warn("Elapsed Minutes " + (elapsedTime / 60000));
+	}
+
+	private static void groupEVokeRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor) {
+		if (configIni.containsKey("eVoke")){
+			logger.debug("Grouping eVoke records");
+			int numRecordsProcessed = 0;
+			int numRecordsRead = 0;
+			String marcPath = configIni.get("eVoke", "evokePath");
+
+			//Loop through each of the files tha have been exported
+			File[] recordPrefixPaths = new File(marcPath).listFiles();
+			if (recordPrefixPaths != null){
+				String lastRecordProcessed = "";
+				for (File curPrefixPath : recordPrefixPaths){
+					if (curPrefixPath.isDirectory()) {
+						File[] catalogBibFiles = curPrefixPath.listFiles();
+						for (File curBibFile : catalogBibFiles) {
+							if (curBibFile.getName().endsWith(".mrc")) {
+								try {
+									Record marcRecord = EVokeMarcReader.readMarc(curBibFile);
+									//Record number is based on the filename. It isn't actually in the MARC record at all.
+									String recordNumber = curBibFile.getName();
+									recordNumber = recordNumber.substring(0, recordNumber.lastIndexOf('.'));
+									RecordIdentifier primaryIdentifier = new RecordIdentifier();
+									primaryIdentifier.setValue("evoke", recordNumber);
+									try {
+										//TODO: Determine if the record has changed since we last indexed (if doing a partial update).
+										recordGroupingProcessor.processEVokeRecord(marcRecord, primaryIdentifier);
+										numRecordsProcessed++;
+										lastRecordProcessed = recordNumber;
+										numRecordsRead++;
+										if (numRecordsRead % 100000 == 0) {
+											recordGroupingProcessor.dumpStats();
+										}
+									}catch (Exception e){
+										logger.error("Unable to process record " + recordNumber, e);
+									}
+								} catch (Exception e) {
+									logger.error("Error loading eVoke records " + numRecordsRead + " the last record processed was " + lastRecordProcessed, e);
+								}
+							}
+							logger.warn("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the eVoke file " + curBibFile.getName());
+						}
+					}
+				}
+				//TODO: Delete records that no longer exist
+			}
+		} else{
+			logger.debug("eVoke is not configured, not processing records.");
+		}
+
+
 	}
 
 	private static void updateLastGroupingTime(Connection vufindConn) {
