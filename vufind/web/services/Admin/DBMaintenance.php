@@ -2009,28 +2009,28 @@ class DBMaintenance extends Admin_Admin {
 		$library = new Library();
 		$library->find();
 		while ($library->fetch()) {
-			$this->runSQLStatement(&$update,
+			$this->runSQLStatement($update,
 				"CREATE TABLE `title_browse_scoped_results_library_{$library->subdomain}` (
 					`browseValueId` INT( 11 ) NOT NULL ,
 					`record` VARCHAR( 50 ) NOT NULL ,
 					PRIMARY KEY ( `browseValueId` , `record` ) ,
 					INDEX ( `browseValueId` )
 				) ENGINE = MYISAM");
-			$this->runSQLStatement(&$update,
+			$this->runSQLStatement($update,
 				"CREATE TABLE `author_browse_scoped_results_library_{$library->subdomain}` (
 					`browseValueId` INT( 11 ) NOT NULL ,
 					`record` VARCHAR( 50 ) NOT NULL ,
 					PRIMARY KEY ( `browseValueId` , `record` ) ,
 					INDEX ( `browseValueId` )
 				) ENGINE = MYISAM");
-			$this->runSQLStatement(&$update,
+			$this->runSQLStatement($update,
 				"CREATE TABLE `subject_browse_scoped_results_library_{$library->subdomain}` (
 					`browseValueId` INT( 11 ) NOT NULL ,
 					`record` VARCHAR( 50 ) NOT NULL ,
 					PRIMARY KEY ( `browseValueId` , `record` ) ,
 					INDEX ( `browseValueId` )
 				) ENGINE = MYISAM");
-			$this->runSQLStatement(&$update,
+			$this->runSQLStatement($update,
 				"CREATE TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` (
 					`browseValueId` INT( 11 ) NOT NULL ,
 					`record` VARCHAR( 50 ) NOT NULL ,
@@ -2038,26 +2038,26 @@ class DBMaintenance extends Admin_Admin {
 					INDEX ( `browseValueId` )
 				) ENGINE = MYISAM");
 			//Truncate old data
-			$this->runSQLStatement(&$update, "TRUNCATE TABLE `title_browse_scoped_results_library_{$library->subdomain}`");
-			$this->runSQLStatement(&$update, "TRUNCATE TABLE `author_browse_scoped_results_library_{$library->subdomain}`");
-			$this->runSQLStatement(&$update, "TRUNCATE TABLE `subject_browse_scoped_results_library_{$library->subdomain}`");
-			$this->runSQLStatement(&$update, "TRUNCATE TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}`");
-			$this->runSQLStatement(&$update,
+			$this->runSQLStatement($update, "TRUNCATE TABLE `title_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement($update, "TRUNCATE TABLE `author_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement($update, "TRUNCATE TABLE `subject_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement($update, "TRUNCATE TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement($update,
 				"INSERT INTO title_browse_scoped_results_library_" . $library->subdomain . " (`browseValueId`, record)
 					SELECT title_browse_scoped_results.browseValueId, title_browse_scoped_results.record
 					FROM title_browse_scoped_results
 					WHERE scope = 1 and scopeId = {$library->libraryId};");
-			$this->runSQLStatement(&$update,
+			$this->runSQLStatement($update,
 				"INSERT INTO author_browse_scoped_results_library_" . $library->subdomain . " (`browseValueId`, record)
 					SELECT author_browse_scoped_results.browseValueId, author_browse_scoped_results.record
 					FROM author_browse_scoped_results
 					WHERE scope = 1 and scopeId = {$library->libraryId};");
-			$this->runSQLStatement(&$update,
+			$this->runSQLStatement($update,
 				"INSERT INTO subject_browse_scoped_results_library_" . $library->subdomain . " (`browseValueId`, record)
 					SELECT subject_browse_scoped_results.browseValueId, subject_browse_scoped_results.record
 					FROM subject_browse_scoped_results
 					WHERE scope = 1 and scopeId = {$library->libraryId};");
-			$this->runSQLStatement(&$update,
+			$this->runSQLStatement($update,
 				"INSERT INTO callnumber_browse_scoped_results_library_" . $library->subdomain . " (`browseValueId`, record)
 					SELECT callnumber_browse_scoped_results.browseValueId, callnumber_browse_scoped_results.record
 					FROM callnumber_browse_scoped_results
@@ -2066,87 +2066,87 @@ class DBMaintenance extends Admin_Admin {
 	}
 
 	function setScopingTableEngine(&$update) {
-		//$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_global` ENGINE = InnoDB");
-		$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_global` ADD INDEX ( `record` )");
-		//$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_global` ENGINE = InnoDB");
-		$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_global` ADD INDEX ( `record` )");
-		//$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_global` ENGINE = InnoDB");
-		$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_global` ADD INDEX ( `record` )");
-		//$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_global` ENGINE = InnoDB");
-		$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_global` ADD INDEX ( `record` )");
+		//$this->runSQLStatement($update, "ALTER TABLE `title_browse_scoped_results_global` ENGINE = InnoDB");
+		$this->runSQLStatement($update, "ALTER TABLE `title_browse_scoped_results_global` ADD INDEX ( `record` )");
+		//$this->runSQLStatement($update, "ALTER TABLE `author_browse_scoped_results_global` ENGINE = InnoDB");
+		$this->runSQLStatement($update, "ALTER TABLE `author_browse_scoped_results_global` ADD INDEX ( `record` )");
+		//$this->runSQLStatement($update, "ALTER TABLE `subject_browse_scoped_results_global` ENGINE = InnoDB");
+		$this->runSQLStatement($update, "ALTER TABLE `subject_browse_scoped_results_global` ADD INDEX ( `record` )");
+		//$this->runSQLStatement($update, "ALTER TABLE `callnumber_browse_scoped_results_global` ENGINE = InnoDB");
+		$this->runSQLStatement($update, "ALTER TABLE `callnumber_browse_scoped_results_global` ADD INDEX ( `record` )");
 
 		$library = new Library();
 		$library->find();
 		while ($library->fetch()) {
-			//$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
-			$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_library_" . $library->subdomain . "` ADD INDEX ( `record` )");
-			//$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
-			$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_library_" . $library->subdomain . "` ADD INDEX ( `record` )");
-			//$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
-			$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_library_" . $library->subdomain . "` ADD INDEX ( `record` )");
-			//$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
-			$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_library_" . $library->subdomain . "` ADD INDEX ( `record` )");
+			//$this->runSQLStatement($update, "ALTER TABLE `title_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
+			$this->runSQLStatement($update, "ALTER TABLE `title_browse_scoped_results_library_" . $library->subdomain . "` ADD INDEX ( `record` )");
+			//$this->runSQLStatement($update, "ALTER TABLE `author_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
+			$this->runSQLStatement($update, "ALTER TABLE `author_browse_scoped_results_library_" . $library->subdomain . "` ADD INDEX ( `record` )");
+			//$this->runSQLStatement($update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
+			$this->runSQLStatement($update, "ALTER TABLE `subject_browse_scoped_results_library_" . $library->subdomain . "` ADD INDEX ( `record` )");
+			//$this->runSQLStatement($update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
+			$this->runSQLStatement($update, "ALTER TABLE `callnumber_browse_scoped_results_library_" . $library->subdomain . "` ADD INDEX ( `record` )");
 
 		}
 	}
 
 	function setScopingTableEngine2(&$update) {
-		$this->runSQLStatement(&$update, "TRUNCATE TABLE title_browse_scoped_results_global");
-		$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_global` ENGINE = InnoDB");
-		$this->runSQLStatement(&$update, "TRUNCATE TABLE author_browse_scoped_results_global");
-		$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_global` ENGINE = InnoDB");
-		$this->runSQLStatement(&$update, "TRUNCATE TABLE subject_browse_scoped_results_global");
-		$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_global` ENGINE = InnoDB");
-		$this->runSQLStatement(&$update, "TRUNCATE TABLE callnumber_browse_scoped_results_global");
-		$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_global` ENGINE = InnoDB");
+		$this->runSQLStatement($update, "TRUNCATE TABLE title_browse_scoped_results_global");
+		$this->runSQLStatement($update, "ALTER TABLE `title_browse_scoped_results_global` ENGINE = InnoDB");
+		$this->runSQLStatement($update, "TRUNCATE TABLE author_browse_scoped_results_global");
+		$this->runSQLStatement($update, "ALTER TABLE `author_browse_scoped_results_global` ENGINE = InnoDB");
+		$this->runSQLStatement($update, "TRUNCATE TABLE subject_browse_scoped_results_global");
+		$this->runSQLStatement($update, "ALTER TABLE `subject_browse_scoped_results_global` ENGINE = InnoDB");
+		$this->runSQLStatement($update, "TRUNCATE TABLE callnumber_browse_scoped_results_global");
+		$this->runSQLStatement($update, "ALTER TABLE `callnumber_browse_scoped_results_global` ENGINE = InnoDB");
 
 		$library = new Library();
 		$library->find();
 		while ($library->fetch()) {
-			$this->runSQLStatement(&$update, "TRUNCATE TABLE `title_browse_scoped_results_library_{$library->subdomain}`");
-			$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
-			$this->runSQLStatement(&$update, "TRUNCATE TABLE `author_browse_scoped_results_library_{$library->subdomain}`");
-			$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
-			$this->runSQLStatement(&$update, "TRUNCATE TABLE `subject_browse_scoped_results_library_{$library->subdomain}`");
-			$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
-			$this->runSQLStatement(&$update, "TRUNCATE TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}`");
-			$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
+			$this->runSQLStatement($update, "TRUNCATE TABLE `title_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement($update, "ALTER TABLE `title_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
+			$this->runSQLStatement($update, "TRUNCATE TABLE `author_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement($update, "ALTER TABLE `author_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
+			$this->runSQLStatement($update, "TRUNCATE TABLE `subject_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement($update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
+			$this->runSQLStatement($update, "TRUNCATE TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement($update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` ENGINE = InnoDB");
 		}
 	}
 
 	function removeScopingTableIndex(&$update) {
-		$this->runSQLStatement(&$update, "TRUNCATE TABLE title_browse_scoped_results_global");
-		$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_global` DROP INDEX `record`");
-		$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_global` ENGINE = MYISAM");
-		$this->runSQLStatement(&$update, "TRUNCATE TABLE author_browse_scoped_results_global");
-		$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_global` DROP INDEX `record`");
-		$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_global` ENGINE = MYISAM");
-		$this->runSQLStatement(&$update, "TRUNCATE TABLE subject_browse_scoped_results_global");
-		$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_global` DROP INDEX `record`");
-		$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_global` ENGINE = MYISAM");
-		$this->runSQLStatement(&$update, "TRUNCATE TABLE callnumber_browse_scoped_results_global");
-		$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_global` DROP INDEX `record`");
-		$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_global` ENGINE = MYISAM");
+		$this->runSQLStatement($update, "TRUNCATE TABLE title_browse_scoped_results_global");
+		$this->runSQLStatement($update, "ALTER TABLE `title_browse_scoped_results_global` DROP INDEX `record`");
+		$this->runSQLStatement($update, "ALTER TABLE `title_browse_scoped_results_global` ENGINE = MYISAM");
+		$this->runSQLStatement($update, "TRUNCATE TABLE author_browse_scoped_results_global");
+		$this->runSQLStatement($update, "ALTER TABLE `author_browse_scoped_results_global` DROP INDEX `record`");
+		$this->runSQLStatement($update, "ALTER TABLE `author_browse_scoped_results_global` ENGINE = MYISAM");
+		$this->runSQLStatement($update, "TRUNCATE TABLE subject_browse_scoped_results_global");
+		$this->runSQLStatement($update, "ALTER TABLE `subject_browse_scoped_results_global` DROP INDEX `record`");
+		$this->runSQLStatement($update, "ALTER TABLE `subject_browse_scoped_results_global` ENGINE = MYISAM");
+		$this->runSQLStatement($update, "TRUNCATE TABLE callnumber_browse_scoped_results_global");
+		$this->runSQLStatement($update, "ALTER TABLE `callnumber_browse_scoped_results_global` DROP INDEX `record`");
+		$this->runSQLStatement($update, "ALTER TABLE `callnumber_browse_scoped_results_global` ENGINE = MYISAM");
 
 		$library = new Library();
 		$library->find();
 		while ($library->fetch()) {
-			$this->runSQLStatement(&$update, "TRUNCATE TABLE `title_browse_scoped_results_library_{$library->subdomain}`");
-			$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_library_{$library->subdomain}` DROP INDEX `record`");
-			$this->runSQLStatement(&$update, "ALTER TABLE `title_browse_scoped_results_library_{$library->subdomain}` ENGINE = MYISAM");
-			$this->runSQLStatement(&$update, "TRUNCATE TABLE `author_browse_scoped_results_library_{$library->subdomain}`");
-			$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_library_{$library->subdomain}` DROP INDEX `record`");
-			$this->runSQLStatement(&$update, "ALTER TABLE `author_browse_scoped_results_library_{$library->subdomain}` ENGINE = MYISAM");
-			$this->runSQLStatement(&$update, "TRUNCATE TABLE `subject_browse_scoped_results_library_{$library->subdomain}`");
-			$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` DROP INDEX `record`");
-			$this->runSQLStatement(&$update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` ENGINE = MYISAM");
-			$this->runSQLStatement(&$update, "TRUNCATE TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}`");
-			$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` DROP INDEX `record`");
-			$this->runSQLStatement(&$update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` ENGINE = MYISAM");
+			$this->runSQLStatement($update, "TRUNCATE TABLE `title_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement($update, "ALTER TABLE `title_browse_scoped_results_library_{$library->subdomain}` DROP INDEX `record`");
+			$this->runSQLStatement($update, "ALTER TABLE `title_browse_scoped_results_library_{$library->subdomain}` ENGINE = MYISAM");
+			$this->runSQLStatement($update, "TRUNCATE TABLE `author_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement($update, "ALTER TABLE `author_browse_scoped_results_library_{$library->subdomain}` DROP INDEX `record`");
+			$this->runSQLStatement($update, "ALTER TABLE `author_browse_scoped_results_library_{$library->subdomain}` ENGINE = MYISAM");
+			$this->runSQLStatement($update, "TRUNCATE TABLE `subject_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement($update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` DROP INDEX `record`");
+			$this->runSQLStatement($update, "ALTER TABLE `subject_browse_scoped_results_library_{$library->subdomain}` ENGINE = MYISAM");
+			$this->runSQLStatement($update, "TRUNCATE TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}`");
+			$this->runSQLStatement($update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` DROP INDEX `record`");
+			$this->runSQLStatement($update, "ALTER TABLE `callnumber_browse_scoped_results_library_{$library->subdomain}` ENGINE = MYISAM");
 		}
 	}
 
-	function runSQLStatement($update, $sql) {
+	function runSQLStatement(&$update, $sql) {
 		set_time_limit(500);
 		$result = mysql_query($sql);
 		$updateOk = true;
