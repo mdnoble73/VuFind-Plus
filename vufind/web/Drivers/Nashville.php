@@ -20,7 +20,7 @@
 require_once ROOT_DIR . '/Drivers/Millennium.php';
 
 /**
- * VuFind Connector for Marmot's Innovative catalog (millenium)
+ * VuFind Connector for Nashville Public Library's Innovative catalog (Millenium)
  *
  * This class uses screen scraping techniques to gather record holdings written
  * by Adam Bryn of the Tri-College consortium.
@@ -32,6 +32,11 @@ require_once ROOT_DIR . '/Drivers/Millennium.php';
  *
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @author CJ O'Hara <cj@marmot.org>
+ * 
+ * Extended by James Staub based on specific requirements for
+ * Nashville Public Library
+ *
+ * @author James Staub <james.staub@nashville.gov>
  */
 class Nashville extends MillenniumDriver{
 	public function __construct(){
@@ -46,7 +51,7 @@ class Nashville extends MillenniumDriver{
 	{
 		global $configArray;
 		global $timer;
-		//global $logger;
+		global $logger;
 
 		if ($configArray['Catalog']['offline'] == true){
 			//$logger->log("Trying to authenticate in offline mode $barcode, $pin", PEAR_LOG_DEBUG);
@@ -80,8 +85,21 @@ class Nashville extends MillenniumDriver{
 				return null;
 			}
 		}else{
+
+// Case: Millennium patron record does not have PIN. 
+// When a library uses IPSSO - Innovative Patron Single Sign On - the initial login does a redirect and requires additonal parameters.
+// ipsso.html ifpinneeded token is active. Need to do an actual login rather than just checking patron dump
+// 1. retrieve the ipsso.html page at /patroninfo to scrape the 'lt' value
+// 2. POST the first round, pin=''
+// 3. retrieve the ipsso.html page primed to receive pin1 and pin2 input, scrape the second 'lt' value
+// 4. POST the second round, pin1 and pin2 from user input
+// 5. display ipsso-generated error messages
+// 6. PATRONAPI dump
+// 7. PATRONAPI pintest
+// 8. display PATRONAPI error messages
+// 9. redirect patron to /MyResearch/Home
+
 			if (isset($_REQUEST['password2']) && strlen($_REQUEST['password2']) > 0){
-				//User is setting a pin for the first time.  Need to do an actual login rather than just checking patron dump
 				$header=array();
 				$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
 				$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
@@ -95,67 +113,89 @@ class Nashville extends MillenniumDriver{
 				curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
 				curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
 				curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-				curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-				curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+				curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true); // should set CURLOPT_RETURNTRANSFER to true in production - JAMES 20140830
+				curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, true); // should set CURLOPT_SSL_VERIFYPEER to true in production - JAMES 20140830   
 				curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
 				curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
 				curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
 				curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
 				curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
-				curl_setopt($curl_connection, CURLOPT_HEADER, false);
-
-				//Go to the login page
+				curl_setopt($curl_connection, CURLOPT_HEADER, true); // should set CURLOPT_HEADER to false[?] in production - JAMES 20140830
+                                        
+				//Go to the login page to scrape the 'lt' value
 				$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
 				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 				curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 				$sresult = curl_exec($curl_connection);
 
-				$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
-				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+				//Scrape the 'lt' value from the IPSSO login page
+				if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $sresult, $loginMatches)) {
+					$lt = $loginMatches[1];
+				//POST the first round - pin is blank
+				        $post_data['code'] = $barcode;
+				        $post_data['pin'] = "";
+				        $post_data['lt'] = $lt;
+				        $post_data['_eventId'] = 'submit';
+				        $post_items = array();
+				        foreach ($post_data as $key => $value) {
+				                $post_items[] = $key . '=' . $value;
+				        }
+				        $post_string = implode ('&', $post_items);
+					$redirectPageInfo = curl_getinfo($curl_connection, CURLINFO_EFFECTIVE_URL);
+				        curl_setopt($curl_connection, CURLOPT_URL, $redirectPageInfo);
+					curl_setopt($curl_connection, CURLOPT_POST, true);
+				        curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+				        $sresult = curl_exec($curl_connection);
+				//Is the patron's PIN already set?
+					if (preg_match('/<fieldset class="newpin" id="ipssonewpin">/si', $sresult, $newPinMatches)) {
+					//if (preg_match('/Please enter a new PIN/si', $sresult, $newPinMatches)) {
+				//Scrape the 'lt' value from the IPSSO login page primed to receive a new PIN, which is different from the last page's 'lt' value
+						if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $sresult, $loginMatches)) {
+							$lt2 = $loginMatches[1];
+				//POST the second round - pin1 and pin2
+							$post_data['code'] = $barcode;
+							$post_data['pin1'] = $_REQUEST['password'];
+							$post_data['pin2'] = $_REQUEST['password2'];
+							$post_data['lt'] = $lt2;
+							$post_data['_eventId'] = 'submit';
+							$post_items = array();
+							foreach ($post_data as $key => $value) {
+								$post_items[] = $key . '=' . $value;
+							}
+							$post_string = implode ('&', $post_items);
+							$redirectPageInfo = curl_getinfo($curl_connection, CURLINFO_EFFECTIVE_URL);
+							curl_setopt($curl_connection, CURLOPT_URL, $redirectPageInfo);
+							curl_setopt($curl_connection, CURLOPT_POST, true);
+							curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+							$sresult = curl_exec($curl_connection);
 
-				//First post without the pin number
-				$post_data = array();
-				$post_data['submit.x']="35";
-				$post_data['submit.y']="21";
-				$post_data['code']= $barcode;
-				$post_data['pin']= "";
-				curl_setopt($curl_connection, CURLOPT_POST, true);
-				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-				foreach ($post_data as $key => $value) {
-					$post_items[] = $key . '=' . $value;
+							if (preg_match('/<div id="status" class="errors">(.+?)<\/div>/si', $sresult, $ipssoErrors)) {
+								$ipssoError = $ipssoErrors[1];
+								//echo($ipssoError."\n");
+//SOME ERROR MESSAGES THAT APPEAR WHEN SETTING PIN
+//PIN insertion failed. Your record is in use by system. Please try again later.
+//Please enter a new PIN.
+//PINs do not match. Try again!
+//Your pin is not complex enough to be secure. Please select another one.
+//Marmot[?] error catchers
+//if (preg_match('/the information you submitted was invalid/i', $sresult)){
+//	PEAR_Singleton::raiseError('Unable to register your new pin #.  The pin was invalid or this account already has a pin set for it.');
+//}else if (preg_match('/PIN insertion failed/i', $sresult)){
+//	PEAR_Singleton::raiseError('Unable to register your new pin #.  PIN insertion failed.');
+//}
+							}
+						} else {
+							//echo("lt2 not found at " . $redirectPageInfo . "\n");
+						}
+					} else {
+						//PIN is already set in patron record
+						//echo("new PIN message NOT FOUND at " . $redirectPageInfo . "\n");
+					}
+				} else {
+					//echo("lt not found in sresult\n");
 				}
-				$post_string = implode ('&', $post_items);
-				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-				$sresult = curl_exec($curl_connection);
-				if (!preg_match('/Please enter your PIN/i', $sresult)){
-					PEAR_Singleton::raiseError('Unable to register your new pin #.  Did not get to registration page.');
-				}
-
-				//Now post with both pins
-				$post_data = array();
-				$post_items = array();
-				$post_data['code']= $barcode;
-				$post_data['pin1']= $pin;
-				$post_data['pin2']= $_REQUEST['password2'];
-				$post_data['submit.x']="35";
-				$post_data['submit.y']="15";
-				curl_setopt($curl_connection, CURLOPT_POST, true);
-				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-				foreach ($post_data as $key => $value) {
-					$post_items[] = $key . '=' . $value;
-				}
-				$post_string = implode ('&', $post_items);
-				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-				set_time_limit(15);
-				$sresult = curl_exec($curl_connection);
-				$post_data = array();
 
 				unlink($cookie);
-				if (preg_match('/the information you submitted was invalid/i', $sresult)){
-					PEAR_Singleton::raiseError('Unable to register your new pin #.  The pin was invalid or this account already has a pin set for it.');
-				}else if (preg_match('/PIN insertion failed/i', $sresult)){
-					PEAR_Singleton::raiseError('Unable to register your new pin #.  PIN insertion failed.');
-				}
 			}
 
 			//Load the raw information about the patron
@@ -172,7 +212,7 @@ class Nashville extends MillenniumDriver{
 			curl_setopt($curlConnection, CURLOPT_CONNECTTIMEOUT, 30);
 			curl_setopt($curlConnection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
 			curl_setopt($curlConnection, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($curlConnection, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($curlConnection, CURLOPT_SSL_VERIFYPEER, true);
 			curl_setopt($curlConnection, CURLOPT_FOLLOWLOCATION, 1);
 			curl_setopt($curlConnection, CURLOPT_UNRESTRICTED_AUTH, true);
 
@@ -181,7 +221,7 @@ class Nashville extends MillenniumDriver{
 			curl_close($curlConnection);
 
 			$api_contents = trim(strip_tags($api_contents));
-
+			//$logger->log('PATRONAPI pintest response : ' . $api_contents, PEAR_LOG_DEBUG);
 			$api_array_lines = explode("\n", $api_contents);
 			foreach ($api_array_lines as $api_line) {
 				$api_line_arr = explode("=", $api_line);
@@ -190,6 +230,7 @@ class Nashville extends MillenniumDriver{
 
 			if (!isset($api_data['RETCOD'])){
 				$userValid = false;
+
 			}else if ($api_data['RETCOD'] == 0){
 				$userValid = true;
 			}else{

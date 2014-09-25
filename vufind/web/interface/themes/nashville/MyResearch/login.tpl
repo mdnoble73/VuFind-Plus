@@ -16,8 +16,16 @@
 						<input type="password" pattern="[0-9]*" name="password" id="password" size="28"/>
 					</div>
 				</div>
+ 				<div id ='loginPasswordConfirmRow' class='loginFormRow' style="display:none">
+					<div class='loginLabel'>{translate text='Confirm pin #'}: </div>
+					<div class='loginField'>
+						<input type="password" name="password2" id="password2" size="28"/>
+					</div>
+				</div>
+				<div class='loginLabel'>&nbsp;</div>
+				<div class='loginField'><a href="#" onclick="document.getElementById('loginPasswordConfirmRow').style.display='block';">Create new PIN</div>
 				{if $allowPinReset}
-                                <div id ='loginPasswordRow2' class='loginFormRow'>
+                               <div id ='loginPasswordRow2' class='loginFormRow'>
 					<div class='loginLabel'>&nbsp;</div>
                                         <div class='loginField'>
                                                 <a href="#" onclick="ajaxLightbox('/MyResearch/AJAX?method=getPinResetForm')">Forgot PIN?</a>

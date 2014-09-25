@@ -11,7 +11,8 @@ class ILSAuthentication implements Authentication {
 		$this->username = $_REQUEST['username'];
 		$this->password = $_REQUEST['password'];
 
-		if($this->username == '' || $this->password == ''){
+/*		if($this->username == '' || $this->password == ''){	*/
+		if($this->username == ''){
 			$user = new PEAR_Error('authentication_error_blank');
 		} else {
 			// Connect to Database
