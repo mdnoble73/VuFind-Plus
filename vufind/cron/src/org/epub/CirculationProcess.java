@@ -443,13 +443,14 @@ public class CirculationProcess implements IProcessHandler{
 		long curTimeSeconds = curTime/ 1000;
 		long latestDateToRemainActive = curTimeSeconds - (5 * 24 * 60 * 60);
 		try {
-			PreparedStatement getAbandonedHolds = econtentConn.prepareStatement("SELECT id, recordId FROM econtent_hold WHERE dateUpdated < ? AND status ='available'");
+			PreparedStatement getAbandonedHolds = econtentConn.prepareStatement("SELECT id, recordId, itemId FROM econtent_hold WHERE dateUpdated < ? AND status ='available'");
 			PreparedStatement abandonHold = econtentConn.prepareStatement("UPDATE econtent_hold SET status = 'abandoned', dateUpdated = ? WHERE id = ?");
 			getAbandonedHolds.setLong(1, latestDateToRemainActive);
 			ResultSet abandonedHolds = getAbandonedHolds.executeQuery();
 			while (abandonedHolds.next()){
 				long id = abandonedHolds.getLong("id");
-				long recordId = abandonedHolds.getLong("recordId");
+				String recordId = abandonedHolds.getString("recordId");
+				String itemId = abandonedHolds.getString("itemId");
 				logger.info("Hold " + id + " has been abandoned");
 				abandonHold.setLong(1, curTimeSeconds);
 				abandonHold.setLong(2, id);
@@ -461,7 +462,7 @@ public class CirculationProcess implements IProcessHandler{
 					processLog.incErrors();
 				}else{
 					processLog.incUpdated();
-					processHoldQueue(recordId, curTimeSeconds, logger);
+					processHoldQueue(recordId, itemId, curTimeSeconds, logger);
 				}
 			}
 		} catch (SQLException e) {
@@ -473,15 +474,16 @@ public class CirculationProcess implements IProcessHandler{
 
 	PreparedStatement getNextAvailableHold;
 	PreparedStatement markHoldAvailable;
-	private void processHoldQueue(long recordId, long curTimeSeconds, Logger logger) throws SQLException {
+	private void processHoldQueue(String recordId, String itemId, long curTimeSeconds, Logger logger) throws SQLException {
 		if (getNextAvailableHold == null){
-			getNextAvailableHold = econtentConn.prepareStatement("SELECT id FROM econtent_hold WHERE recordId = ? AND status='active' ORDER BY datePlaced ASC LIMIT 0, 1");
+			getNextAvailableHold = econtentConn.prepareStatement("SELECT id FROM econtent_hold WHERE recordId = ? AND itemId = ? AND status='active' ORDER BY datePlaced ASC LIMIT 0, 1");
 		}
 		if (markHoldAvailable == null){
 			markHoldAvailable = econtentConn.prepareStatement("UPDATE econtent_hold SET status='available', dateUpdated=? WHERE id = ?");
 		}
 		//Check to see if there are holds and return the item to the next user
-		getNextAvailableHold.setLong(1, recordId);
+		getNextAvailableHold.setString(1, recordId);
+		getNextAvailableHold.setString(2, itemId);
 		ResultSet nextHold = getNextAvailableHold.executeQuery();
 		if (nextHold.next()){
 			long holdId = nextHold.getLong("id");
@@ -503,12 +505,13 @@ public class CirculationProcess implements IProcessHandler{
 		long curTimeSeconds = curTime/ 1000;
 		//Get a list of all items that are overdue from the database
 		try {
-			PreparedStatement getOverdueItems = econtentConn.prepareStatement("SELECT id, recordId, userId, dateDue FROM econtent_checkout WHERE status='out' AND dateDue < " + curTimeSeconds);
+			PreparedStatement getOverdueItems = econtentConn.prepareStatement("SELECT id, recordId, itemId, userId, dateDue FROM econtent_checkout WHERE status='out' AND dateDue < " + curTimeSeconds);
 			PreparedStatement returnOverdueItem = econtentConn.prepareStatement("UPDATE econtent_checkout SET status = 'returned', dateReturned = ? WHERE id=?");
 			ResultSet overdueItems = getOverdueItems.executeQuery();
 			while (overdueItems.next()){
 				long id = overdueItems.getLong("id");
-				long recordId = overdueItems.getLong("recordId");
+				String recordId = overdueItems.getString("recordId");
+				String itemId = overdueItems.getString("itemId");
 				long userId = overdueItems.getLong("userId");
 				long dueDate = overdueItems.getLong("dateDue");
 				logger.info("Record " + recordId + " is checked out to " + userId + " and is overdue was due at " + dueDate + " it is now " + curTimeSeconds);
@@ -521,7 +524,7 @@ public class CirculationProcess implements IProcessHandler{
 					processLog.incErrors();
 					processLog.addNote("Unable to return record " + recordId + " checked out to " + userId);
 				}else{
-					processHoldQueue(recordId, curTimeSeconds, logger);
+					processHoldQueue(recordId, itemId, curTimeSeconds, logger);
 					processLog.incUpdated();
 				}
 			}
