@@ -189,20 +189,20 @@ class MyAccount_AJAX {
 		$return = array();
 		if ($user) {
 			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
-			$title = isset($_REQUEST['title']) ? $_REQUEST['title'] : '';
+			$title = isset($_REQUEST['title']) ? urldecode($_REQUEST['title']) : '';
 			if (strlen(trim($title)) == 0){
 				$return['result'] = "false";
 				$return['message'] = "You must provide a title for the list";
 			}else{
 				$list = new UserList();
-				$list->title = $_REQUEST['title'];
+				$list->title = $title;
 				$list->user_id = $user->id;
 				//Check to see if there is already a list with this id
 				$existingList = false;
 				if ($list->find(true)){
 					$existingList = true;
 				}
-				$list->description = $_REQUEST['desc'];
+				$list->description = urldecode($_REQUEST['desc']);
 				$list->public = $_REQUEST['public'];
 				if ($existingList){
 					$list->update();
@@ -211,7 +211,7 @@ class MyAccount_AJAX {
 				}
 
 				if (isset($_REQUEST['recordId'])){
-					$recordToAdd = $_REQUEST['recordId'];
+					$recordToAdd = urldecode($_REQUEST['recordId']);
 					require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 					//Check to see if the user has already added the title to the list.
 					$userListEntry = new UserListEntry();
