@@ -15,7 +15,7 @@ class GroupedWork_Home extends Action{
 		global $interface;
 		global $timer;
 		global $logger;
-
+		$interface->assign('sidebar', 'GroupedWork/full-record-sidebar.tpl');
 
 		$id = $_REQUEST['id'];
 
@@ -23,7 +23,7 @@ class GroupedWork_Home extends Action{
 		$recordDriver = new GroupedWorkDriver($id);
 		if (!$recordDriver->isValid){
 			$logger->log("Did not find a record for id {$id} in solr." , PEAR_LOG_DEBUG);
-			$interface->setTemplate('invalidRecord.tpl');
+			$interface->setTemplate('../Record/invalidRecord.tpl');
 			$interface->display('layout.tpl');
 			die();
 		}
@@ -43,7 +43,6 @@ class GroupedWork_Home extends Action{
 		$interface->setPageTitle($recordDriver->getTitle());
 		$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
 
-		$interface->assign('sidebar', 'GroupedWork/full-record-sidebar.tpl');
 		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
 		$interface->setTemplate('full-record.tpl');
 
