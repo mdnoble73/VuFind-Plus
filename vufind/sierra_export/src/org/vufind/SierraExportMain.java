@@ -206,12 +206,6 @@ public class SierraExportMain{
 						markGroupedWorkForBibAsChangedStmt.setString(2, curBibId);
 						markGroupedWorkForBibAsChangedStmt.executeUpdate();
 
-						//TODO: Determine if it is worth forming a full MARC record for output to the marc_recs folder
-						//Note: right now it isn't because item data isn't exported as part of the marc data
-								/*JSONObject marcRecord = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/bibs/" + curId + "/marc");
-								if (marcRecord != null){
-								}*/
-
 						numUpdates++;
 						if (numUpdates % 1000 == 0){
 							vufindConn.commit();
