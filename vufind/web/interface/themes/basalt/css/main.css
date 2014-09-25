@@ -8051,4 +8051,5 @@ div#system-message-header {
 .browse-category.selected {
   background-color: #a4c8c1;
   background: linear-gradient(to bottom, #a4c8c1, #a4c8c1 82%, #607261 83%, #5f7465 84%, #5f7465 88%, #607261 89%, #a4c8c1 90%, #a4c8c1);
+  font-size: 22px;
 }
