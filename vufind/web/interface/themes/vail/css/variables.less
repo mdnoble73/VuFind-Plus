@@ -1,34 +1,32 @@
 //Variables Customizations for Vail theme
-// initial variables taken from basalt\variables.less plb 9-2-14
-
 
 // official logo colors from Vail Graphical Standards
 
 @vail_logo_blue  : #2fa7df; // Pantone Process Cyan C
-//@vail_logo_blue : rgb(47, 167, 223);
 @vail_logo_green : #54B948; // Patone 361
 @vail_logo_black : #000000; // Black
 @vail_logo_white : #ffffff; // white
-
-// previous values plb 9-3-14
-//@header-top-color: #EFEFEF; //Top color for background gradient in header
-//@header-middle-color: #EFEFEF; //middle color for background gradient in header @80% of header height from bottom
-//@header-bottom-color: #EFEFEF; //Bottom color for background gradient in header
 
 @header-top-color: @vail_logo_white; //Top color for background gradient in header
 @header-middle-color: @vail_logo_white; //middle color for background gradient in header @80% of header height from bottom
 @header-bottom-color: @vail_logo_white; //Bottom color for background gradient in header
 
-@header-bottom-border-color: @vail_logo_black;
-@footer-top-border-color: @vail_logo_black;
-//@header-height: 134px;
-@header-height: 128px; // slimmed down 6px plb 9-4-14
+//@header-buttons-background-color : rgba(51,51,51,0.6); // original default
+//@header-buttons-background-color : fade(@vail_logo_white, 60%);
+//@header-buttons-background-color : fade(darken(@vail_logo_white, 10%), 60%);
+//@header-buttons-background-color : fade(darken(@vail_logo_white, 10%), 40%);
+@header-buttons-background-color : fade(darken(@vail_logo_white, 10%), 30%);
 
-// added plb 9-4-14
-@header_image : url('/interface/themes/vail/images/header_background_2.png');
+//@header-bottom-border-color: @vail_logo_black;
+@header-bottom-border-color: @vail_logo_green;
+
+@footer-top-border-color: @vail_logo_black;
+@header-height: 139px; // matched to header background image
+
+@header_image : url('/interface/themes/vail/images/header_background.png');
 
 @home-search-top-color: @vail_logo_blue; //Top color for background gradient in header
-@home-search-bottom-color: @vail_logo_blue;
+@home-search-bottom-color: lighten(@vail_logo_blue, 25%);
 
 @category1MainColor: @vail_logo_blue;
 @categoryLineColor: @vail_logo_green;

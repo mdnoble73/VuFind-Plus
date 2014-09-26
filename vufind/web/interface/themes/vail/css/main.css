@@ -6882,7 +6882,7 @@ div#system-message-header {
 */
 #home-page-search {
   background-color: #2fa7df;
-  background: linear-gradient(to bottom, #2fa7df, #2fa7df);
+  background: linear-gradient(to bottom, #2fa7df, #9ed6f0);
   padding: 20px 0 10px;
   margin-bottom: 5px;
 }
@@ -6897,7 +6897,7 @@ div#system-message-header {
 #searchSource {
   padding: 5px 0;
   color: white;
-  background-color: #2fa7df;
+  background-color: #9ed6f0;
   border: none;
   width: 90%;
 }
@@ -7921,7 +7921,7 @@ div#system-message-header {
   text-align: right;
 }
 #header-container {
-  background-image: url('/interface/themes/vail/images/header_background3.png');
+  background-image: url('/interface/themes/vail/images/header_background.png');
   border-bottom: 4px solid #54b948;
 }
 #header-logo {
