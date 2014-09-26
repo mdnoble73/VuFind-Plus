@@ -7371,9 +7371,6 @@ div#system-message-header {
   height: 140px;
   position: relative;
 }
-.scrollerWithRatings .scrollerBody {
-  height: 155px;
-}
 .scrollerLoadingContainer {
   width: 100%;
   padding-top: 40px;
@@ -7465,59 +7462,6 @@ div#system-message-header {
   cursor: pointer;
   z-index: 100;
   text-align: center;
-}
-.singleTitleWithNextWidget {
-  width: 200px;
-}
-.singleTitleWithNextWidget .scrollerTitle img {
-  display: inline-block;
-  opacity: 1;
-}
-.singleTitleWithNextWidget .scrollerTitle.selected img {
-  display: inline-block;
-}
-.singleTitleWithNextWidget .scrollerTitle.selected {
-  border: 0 solid black;
-  border-radius: 3px;
-  padding: 0;
-}
-.singleTitleWithNextWidget .scrollerBodyContainer {
-  margin: 5px 0;
-  text-align: center;
-  width: 100%;
-}
-.singleTitleWithNextWidget .rightScrollerButton {
-  float: none;
-  position: absolute;
-  right: 5px;
-}
-.mediumScroller.singleTitleWithNextWidget,
-.mediumScroller.singleTitleWidget {
-  width: 275px;
-}
-.mediumScroller.verticalTitleScroller {
-  width: 225px;
-}
-.mediumScroller .scrollerTitleCover {
-  max-height: 200px;
-  max-width: 200px;
-}
-.mediumScroller .scrollerTitle {
-  max-width: 204px;
-}
-.mediumScroller .scrollerBody {
-  height: 215px;
-}
-.mediumScroller.scrollerWithRatings .scrollerBody {
-  height: 230px;
-}
-.mediumScroller .leftScrollerButton,
-.mediumScroller .rightScrollerButton {
-  margin-top: 85px;
-}
-.mediumScroller .scrollerButtonUp,
-.mediumScroller .scrollerButtonDown {
-  width: 223px;
 }
 /**
  * Additional Styling specific to the display of full records.
@@ -7632,14 +7576,11 @@ div#system-message-header {
   color: #44484a;
 }
 #formatCategories {
-  border-bottom: 3px solid #d5d6da;
   padding-top: 3px;
-  padding-bottom: 8px;
 }
-@media (max-width: 480px) {
-  #formatCategories {
-    display: none;
-  }
+#availabilityControlContainer {
+  border-bottom: 3px solid #d5d6da;
+  padding-bottom: 8px;
 }
 .top-facet {
   margin-bottom: 10px;
@@ -7978,16 +7919,4 @@ div#system-message-header {
 #moreResultsFromProspector {
   margin: 5px;
   text-align: right;
-}
-.blockhead {
-  border-bottom: 1px solid #c0c0c0;
-  color: #3e63a6;
-  font-size: 20px;
-  margin-bottom: 10px;
-  margin-right: 15px;
-  padding-top: 3px;
-}
-.obituaryTitle,
-.marriageTitle {
-  font-weight: bold;
 }

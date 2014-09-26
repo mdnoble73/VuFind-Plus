@@ -7,7 +7,6 @@
 				<div class="formatCategories top-facet" id="formatCategories">
 					<div id='categoryValues' class="row">
 						{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
-
 							{if $thisFacet.isApplied}
 								<div class='categoryValue categoryValue_{translate text=$thisFacet.value|lower|replace:' ':''} col-xs-2'>
 									<a href="{$thisFacet.removalUrl|escape}" class="removeFacetLink" onclick="trackEvent('Remove Facet', 'formatCategory', '{$thisFacet.value|escape}');" title="Remove Filter">
@@ -42,7 +41,7 @@
 				</div>
 			{/if}
 		{elseif preg_match('/available/i', $cluster.label)}
-			<div class="row text-center top-facet">
+			<div id="availabilityControlContainer" class="row text-center top-facet">
 				<div id="availabilityControl" class='btn-group' data-toggle="buttons-radio">
 					{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 						{if $thisFacet.isApplied}
