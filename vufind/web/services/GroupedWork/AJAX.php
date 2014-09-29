@@ -225,10 +225,24 @@ class GroupedWork_AJAX {
 			}
 		}
 		$interface->assign('recordDriver', $recordDriver);
+
+//		// if the grouped work consists of only 1 related item, return the record url, otherwise return the grouped-work url
+		$relatedRecords = $recordDriver->getRelatedRecords();
+
+//		// long version, for unlikely case that $relatedRecords[0] won't work
+//		if (count($relatedRecords) == 1) {
+//			$onlyRecord = reset($relatedRecords);
+//			$url = $onlyRecord['url'];
+//		} else {
+//			$url = $recordDriver->getLinkUrl();
+//		}
+		// short version
+		$url = (count($relatedRecords) == 1) ? $relatedRecords[0]['url'] : $recordDriver->getLinkUrl();
+
 		$results = array(
 				'title' => $recordDriver->getTitle(),
 				'modalBody' => $interface->fetch("GroupedWork/work-details.tpl"),
-				'modalButtons' => "<a href='/GroupedWork/{$id}/Home'><span class='tool btn btn-primary'>More Info</span></a>"
+				'modalButtons' => "<a href='$url'><span class='tool btn btn-primary'>More Info</span></a>"
 		);
 		return json_encode($results);
 

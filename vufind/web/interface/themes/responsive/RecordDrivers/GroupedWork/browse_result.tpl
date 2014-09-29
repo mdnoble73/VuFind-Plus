@@ -1,6 +1,6 @@
 {strip}
 	<div class="browse-title thumbnail browse-thumbnail text-center">
-		<a onclick="return VuFind.GroupedWork.showGroupedWorkInfo('{$summId}', '{$browseCategoryId}')" href="{$path}/GroupedWork/{$summId}">
+		<a onclick="return VuFind.GroupedWork.showGroupedWorkInfo('{$summId}', '{$browseCategoryId}')" href="{$summUrl}">
 			<div>
 				<img class="img-responsive" src="{$bookCoverUrlMedium}" alt="{$summTitle} by {$summAuthor}" title="{$summTitle} by {$summAuthor}">
 			</div>
@@ -18,3 +18,4 @@
 		{/if}
 	</div>
 {/strip}
+

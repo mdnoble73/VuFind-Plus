@@ -17,6 +17,7 @@ VuFind.Browse = (function(){
 					$('.selected-browse-label-text').html(label);
 					$('.selected-browse-label-search-text').html(label);
 					$('#home-page-browse-thumbnails').html(data.records);
+					console.log(data.records);
 					$('#selected-browse-search-link').attr('href', data.searchUrl);
 					$('.browse-category').removeClass('selected');
 					VuFind.Browse.curPage = 1;

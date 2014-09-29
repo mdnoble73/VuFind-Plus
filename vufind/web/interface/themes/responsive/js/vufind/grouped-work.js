@@ -370,6 +370,23 @@ VuFind.GroupedWork = (function(){
 			return false;
 		},
 
+		//// added plb 9-26-2014
+		//showRecordInfo:function(id, browseCategoryId){
+		//	var modalDialog = $("#modalDialog");
+		//	//$(".modal-body").html($('#userreview' + id).html());
+		//	var url = Globals.path + "/GroupedWork/AJAX?method=getWorkInfo&id=" + id;
+		//	if (browseCategoryId != undefined){
+		//		url += "&browseCategoryId=" + browseCategoryId;
+		//	}
+		//	$.getJSON(url, function(data){
+		//		$('#myModalLabel').html(data.title);
+		//		$('.modal-body').html(data.modalBody);
+		//		$('.modal-buttons').html(data.modalButtons);
+		//	});
+		//	modalDialog.load( );
+		//	modalDialog.modal('show');
+		//	return false;
+		//},
 		showReviewForm: function(trigger, id){
 			var $trigger = $(trigger);
 			if (Globals.loggedIn){

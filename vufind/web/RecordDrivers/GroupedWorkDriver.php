@@ -548,15 +548,29 @@ class GroupedWorkDriver extends RecordInterface{
 		global $interface;
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
-		$linkUrl = '/GroupedWork/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
-		$interface->assign('summUrl', $linkUrl);
+
+		// if the grouped work consists of only 1 related item, return the record url, otherwise return the grouped-work url
+		$relatedRecords = $this->getRelatedRecords();
+
+		// long version, for unlikely case that $relatedRecords[0] won't work
+//		if (count($relatedRecords) == 1) {
+//			$onlyRecord = reset($relatedRecords);
+//			$url = $onlyRecord['url'];
+//		} else {
+//			$url = $this->getLinkUrl();
+//		}
+
+		// short version
+		$url = (count($relatedRecords) == 1) ? $relatedRecords[0]['url'] : $this->getLinkUrl();
+
+		
+		$interface->assign('summUrl', $url);
 		$interface->assign('summTitle', $this->getTitle());
 		$interface->assign('summSubTitle', $this->getSubtitle());
 		$interface->assign('summAuthor', $this->getPrimaryAuthor());
 
 		//Get Rating
 		$interface->assign('ratingData', $this->getRatingData());
-
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
 		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
 
