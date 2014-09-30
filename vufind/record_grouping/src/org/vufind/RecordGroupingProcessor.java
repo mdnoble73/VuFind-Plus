@@ -264,46 +264,67 @@ public class RecordGroupingProcessor {
 	}
 
 	public void processMarcRecord(Record marcRecord){
-		long start = new Date().getTime();
-		//Get data for the grouped record
-		GroupedWork workForTitle = new GroupedWork();
+		RecordIdentifier primaryIdentifier = getPrimaryIdentifierFromMarcRecord(marcRecord);
+		processMarcRecord(marcRecord, primaryIdentifier);
+	}
 
-		//Title
-		DataField field245 = (DataField)marcRecord.getVariableField("245");
-		if (field245 != null && field245.getSubfield('a') != null){
-			String fullTitle = field245.getSubfield('a').getData();
+	public void processMarcRecord(Record marcRecord, RecordIdentifier primaryIdentifier){
+		if (primaryIdentifier != null){
+			long start = new Date().getTime();
+			//Get data for the grouped record
+			GroupedWork workForTitle = new GroupedWork();
 
-			char nonFilingCharacters = field245.getIndicator2();
-			if (nonFilingCharacters == ' ') nonFilingCharacters = '0';
-			int numNonFilingCharacters = 0;
-			if (nonFilingCharacters >= '0' && nonFilingCharacters <= '9'){
-				numNonFilingCharacters = Integer.parseInt(Character.toString(nonFilingCharacters));
-			}
+			//Title
+			DataField field245 = setWorkTitleBasedOnMarcRecord(marcRecord, workForTitle);
 
-			//Add in subtitle (subfield b as well to avoid problems with gov docs, etc)
-			StringBuilder groupingSubtitle = new StringBuilder();
-			if (field245.getSubfield('b') != null){
-				groupingSubtitle.append(field245.getSubfield('b').getData());
-			}
+			//Format
+			String format = getFormat(marcRecord);
+			String groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
 
-			//Group volumes, seasons, etc. independently
-			if (field245.getSubfield('n') != null){
-				if (groupingSubtitle.length() > 0) groupingSubtitle.append(" ");
-				groupingSubtitle.append(field245.getSubfield('n').getData());
-			}
-			if (field245.getSubfield('p') != null){
-				if (groupingSubtitle.length() > 0) groupingSubtitle.append(" ");
-				groupingSubtitle.append(field245.getSubfield('p').getData());
-			}
+			//Author
+			setWorkAuthorBasedOnMarcRecord(marcRecord, workForTitle, field245, groupingFormat);
 
-			workForTitle.setTitle(fullTitle, numNonFilingCharacters, groupingSubtitle.toString());
+			//Identifiers
+			HashSet<RecordIdentifier> identifiers = getIdentifiersFromMarcRecord(marcRecord);
+
+			workForTitle.groupingCategory = groupingFormat;
+			workForTitle.identifiers = identifiers;
+
+			timeSettingUpWork += (new Date().getTime() - start);
+
+			addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
 		}
+	}
 
-		//Format
-		String format = getFormat(marcRecord);
-		String groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
+	public void processEVokeRecord(Record marcRecord, RecordIdentifier primaryIdentifier){
+		if (primaryIdentifier != null){
+			long start = new Date().getTime();
+			//Get data for the grouped record
+			GroupedWork workForTitle = new GroupedWork();
 
-		//Author
+			//Title
+			DataField field245 = setWorkTitleBasedOnMarcRecord(marcRecord, workForTitle);
+
+			//Format - right now
+			String format = "eBook";
+			String groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
+
+			//Author
+			setWorkAuthorBasedOnMarcRecord(marcRecord, workForTitle, field245, groupingFormat);
+
+			//Identifiers
+			HashSet<RecordIdentifier> identifiers = getIdentifiersFromMarcRecord(marcRecord);
+
+			workForTitle.groupingCategory = groupingFormat;
+			workForTitle.identifiers = identifiers;
+
+			timeSettingUpWork += (new Date().getTime() - start);
+
+			addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
+		}
+	}
+
+	private void setWorkAuthorBasedOnMarcRecord(Record marcRecord, GroupedWork workForTitle, DataField field245, String groupingFormat) {
 		String author = null;
 		DataField field100 = (DataField)marcRecord.getVariableField("100");
 		DataField field110 = (DataField)marcRecord.getVariableField("110");
@@ -333,19 +354,39 @@ public class RecordGroupingProcessor {
 		if (author != null){
 			workForTitle.setAuthor(author);
 		}
+	}
 
-		//Identifiers
-		RecordIdentifier primaryIdentifier = getPrimaryIdentifierFromMarcRecord(marcRecord);
-		HashSet<RecordIdentifier> identifiers = getIdentifiersFromMarcRecord(marcRecord);
+	private DataField setWorkTitleBasedOnMarcRecord(Record marcRecord, GroupedWork workForTitle) {
+		DataField field245 = (DataField)marcRecord.getVariableField("245");
+		if (field245 != null && field245.getSubfield('a') != null){
+			String fullTitle = field245.getSubfield('a').getData();
 
-		workForTitle.groupingCategory = groupingFormat;
-		workForTitle.identifiers = identifiers;
+			char nonFilingCharacters = field245.getIndicator2();
+			if (nonFilingCharacters == ' ') nonFilingCharacters = '0';
+			int numNonFilingCharacters = 0;
+			if (nonFilingCharacters >= '0' && nonFilingCharacters <= '9'){
+				numNonFilingCharacters = Integer.parseInt(Character.toString(nonFilingCharacters));
+			}
 
-		timeSettingUpWork += (new Date().getTime() - start);
+			//Add in subtitle (subfield b as well to avoid problems with gov docs, etc)
+			StringBuilder groupingSubtitle = new StringBuilder();
+			if (field245.getSubfield('b') != null){
+				groupingSubtitle.append(field245.getSubfield('b').getData());
+			}
 
-		if (primaryIdentifier != null){
-			addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
+			//Group volumes, seasons, etc. independently
+			if (field245.getSubfield('n') != null){
+				if (groupingSubtitle.length() > 0) groupingSubtitle.append(" ");
+				groupingSubtitle.append(field245.getSubfield('n').getData());
+			}
+			if (field245.getSubfield('p') != null){
+				if (groupingSubtitle.length() > 0) groupingSubtitle.append(" ");
+				groupingSubtitle.append(field245.getSubfield('p').getData());
+			}
+
+			workForTitle.setTitle(fullTitle, numNonFilingCharacters, groupingSubtitle.toString());
 		}
+		return field245;
 	}
 
 	private void addGroupedWorkToDatabase(RecordIdentifier primaryIdentifier, GroupedWork groupedWork) {

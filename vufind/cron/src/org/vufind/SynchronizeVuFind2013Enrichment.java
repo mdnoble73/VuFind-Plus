@@ -28,6 +28,7 @@ import java.util.zip.DataFormatException;
  */
 public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 	private Logger logger;
+	private String librariesToSynchronize = null;
 	private Connection vufind2013connection;
 	private PreparedStatement getUserFromVuFind2013Stmt;
 	private PreparedStatement getUserFromVuFind2014Stmt;
@@ -59,6 +60,9 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 		processLog.saveToDatabase(vufindConn, logger);
 		this.logger = logger;
 		this.individualMarcPath = Util.cleanIniValue(configIni.get("Reindex", "individualMarcPath"));
+		if (processSettings.containsKey("librariesToSynchronize")) {
+			librariesToSynchronize = Util.cleanIniValue(processSettings.get("librariesToSynchronize"));
+		}
 		try {
 			//Get the time the last synchronization was done so we can only synchronize new things?
 
@@ -68,6 +72,7 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 			if (vufind2013connection != null){
 				//Initialize prepared statements we will need later
 				getUserFromVuFind2013Stmt = vufind2013connection.prepareStatement("SELECT * from user where username = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+
 				getUserFromVuFind2014Stmt = vufindConn.prepareStatement("SELECT id from user where username = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				addUserToVuFind2014Stmt = vufindConn.prepareStatement("INSERT INTO user (username,password,firstname,lastname,email,cat_username,cat_password,created,homeLocationId,myLocation1Id,myLocation2Id,bypassAutoLogout,displayName,phone,patronType,disableRecommendations,disableCoverArt,overdriveEmail,promptForOverdriveEmail) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)", PreparedStatement.RETURN_GENERATED_KEYS);
 
@@ -122,7 +127,18 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 	private void synchronizeMaterialsRequests() {
 		try{
 			//Synchronize statuses
-			PreparedStatement getMaterialsRequestStatusesVuFind2013 = vufind2013connection.prepareStatement("SELECT * FROM materials_request_status");
+			PreparedStatement getMaterialsRequestStatusesVuFind2013;
+			if (librariesToSynchronize == null) {
+				getMaterialsRequestStatusesVuFind2013 = vufind2013connection.prepareStatement("SELECT * FROM materials_request_status ");
+			}else{
+				getMaterialsRequestStatusesVuFind2013 = vufind2013connection.prepareStatement("SELECT materials_request_status . *\n" +
+						"FROM `materials_request_status`\n" +
+						"INNER JOIN library ON library.libraryId = materials_request_status.libraryId\n" +
+						"WHERE subdomain\n" +
+						"IN (\n" +
+						librariesToSynchronize +
+						")");
+			}
 			ResultSet materialsRequestStatusesVuFind2013 = getMaterialsRequestStatusesVuFind2013.executeQuery();
 			while (materialsRequestStatusesVuFind2013.next()){
 				String description = materialsRequestStatusesVuFind2013.getString("description");
@@ -160,7 +176,17 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 			materialsRequestStatusesVuFind2013.close();
 
 			//Synchronize requests
-			PreparedStatement getMaterialsRequestsVuFind2013 = vufind2013connection.prepareStatement("SELECT username, materials_request.*, materials_request_status.description as statusName, materials_request_status.libraryId  FROM materials_request INNER JOIN user on createdBy = user.id INNER JOIN materials_request_status ON status = materials_request_status.id");
+			PreparedStatement getMaterialsRequestsVuFind2013;
+			if (librariesToSynchronize == null) {
+				getMaterialsRequestsVuFind2013 = vufind2013connection.prepareStatement("SELECT username, materials_request.*, materials_request_status.description as statusName, materials_request_status.libraryId  FROM materials_request INNER JOIN user on createdBy = user.id INNER JOIN materials_request_status ON status = materials_request_status.id");
+			}else{
+				getMaterialsRequestsVuFind2013 = vufind2013connection.prepareStatement("SELECT username, materials_request.*, materials_request_status.description as statusName, materials_request_status.libraryId  FROM materials_request \n" +
+						"INNER JOIN user on createdBy = user.id \n" +
+						"INNER JOIN materials_request_status ON status = materials_request_status.id\n" +
+						"INNER JOIN location on location.locationId = user.homeLocationId\n" +
+						"INNER JOIN library on location.libraryId = library.libraryId\n" +
+						"WHERE subdomain IN (" + librariesToSynchronize + ")");
+			}
 			ResultSet materialsRequestsVuFind2013 = getMaterialsRequestsVuFind2013.executeQuery();
 			while (materialsRequestsVuFind2013.next()){
 				String createdByUser = materialsRequestsVuFind2013.getString("username");
@@ -282,7 +308,14 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 
 	private void synchronizeNotInterested() {
 		try{
-			PreparedStatement getNotInterestedFromVuFind2013 = vufind2013connection.prepareStatement("SELECT username, source, record_id, dateMarked from user_not_interested INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement getNotInterestedFromVuFind2013;
+			if (librariesToSynchronize == null) {
+				getNotInterestedFromVuFind2013 = vufind2013connection.prepareStatement("SELECT username, source, record_id, dateMarked from user_not_interested INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			}else{
+				getNotInterestedFromVuFind2013 = vufind2013connection.prepareStatement("SELECT username, source, record_id, dateMarked from user_not_interested INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id INNER JOIN location on location.locationId = user.homeLocationId\n" +
+						"INNER JOIN library on location.libraryId = library.libraryId\n" +
+						"WHERE subdomain IN (" + librariesToSynchronize + ")", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			}
 			ResultSet notInterestedVuFind2013 = getNotInterestedFromVuFind2013.executeQuery();
 			while (notInterestedVuFind2013.next()){
 				String username = notInterestedVuFind2013.getString("username");
@@ -310,9 +343,27 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 
 	private void synchronizeRatingsAndReviews() {
 		try{
-			PreparedStatement getRatingsWithReviews = vufind2013connection.prepareStatement("SELECT username, source, record_id, rating, comment, comments.created FROM user_rating LEFT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id WHERE comment is NOT NULL", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			PreparedStatement getRatingsWithoutReviews = vufind2013connection.prepareStatement("SELECT username, source, record_id, rating FROM user_rating LEFT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id WHERE comment is NULL", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			PreparedStatement getReviewsWithoutRatings = vufind2013connection.prepareStatement("SELECT username, source, record_id, comment, comments.created FROM user_rating RIGHT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on user_id = user.id INNER JOIN resource on resource_id = resource.id WHERE rating is NULL", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement getRatingsWithReviews;
+			PreparedStatement getRatingsWithoutReviews;
+			PreparedStatement getReviewsWithoutRatings;
+			if (librariesToSynchronize == null) {
+				getRatingsWithReviews = vufind2013connection.prepareStatement("SELECT username, source, record_id, rating, comment, comments.created FROM user_rating LEFT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id WHERE comment is NOT NULL", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				getRatingsWithoutReviews = vufind2013connection.prepareStatement("SELECT username, source, record_id, rating FROM user_rating LEFT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id WHERE comment is NULL", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				getReviewsWithoutRatings = vufind2013connection.prepareStatement("SELECT username, source, record_id, comment, comments.created FROM user_rating RIGHT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on user_id = user.id INNER JOIN resource on resource_id = resource.id WHERE rating is NULL", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			}else{
+				getRatingsWithReviews = vufind2013connection.prepareStatement("SELECT username, source, record_id, rating, comment, comments.created FROM user_rating LEFT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id\n" +
+						"INNER JOIN location on location.locationId = user.homeLocationId\n" +
+						"INNER JOIN library on location.libraryId = library.libraryId\n" +
+						"WHERE subdomain IN (" + librariesToSynchronize + ") AND comment is NOT NULL", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				getRatingsWithoutReviews = vufind2013connection.prepareStatement("SELECT username, source, record_id, rating FROM user_rating LEFT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on userid = user.id INNER JOIN resource on resourceid = resource.id \n" +
+						"INNER JOIN location on location.locationId = user.homeLocationId\n" +
+						"INNER JOIN library on location.libraryId = library.libraryId\n" +
+						"WHERE subdomain IN (" + librariesToSynchronize + ") AND comment is NULL", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				getReviewsWithoutRatings = vufind2013connection.prepareStatement("SELECT username, source, record_id, comment, comments.created FROM user_rating RIGHT OUTER JOIN comments ON comments.user_id = user_rating.userId AND comments.resource_id = user_rating.resourceid INNER JOIN user on user_id = user.id INNER JOIN resource on resource_id = resource.id\n" +
+						"INNER JOIN location on location.locationId = user.homeLocationId\n" +
+						"INNER JOIN library on location.libraryId = library.libraryId\n" +
+						"WHERE subdomain IN (" + librariesToSynchronize + ") AND rating is NULL", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			}
 
 			//Process ratings with reviews
 			ResultSet ratingsWithReviewsRS = getRatingsWithReviews.executeQuery();
@@ -393,8 +444,18 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 		try{
 			//Get a list of all lists in VuFind 2013
 			//TODO: Filter based on last time the synchronization was run, filter based on
-			PreparedStatement getListsStmt = vufind2013connection.prepareStatement("SELECT user_list.id as listId, username, password, title, description, public FROM user_list inner join user on user_id = user.id");
-			PreparedStatement getListTitlesStmt = vufind2013connection.prepareStatement("SELECT source, record_id, notes, saved FROM user_resource INNER JOIN resource on resource_id = resource.id WHERE list_id = ?");
+			PreparedStatement getListsStmt;
+			PreparedStatement getListTitlesStmt;
+			if (librariesToSynchronize == null) {
+				getListsStmt = vufind2013connection.prepareStatement("SELECT user_list.id as listId, username, password, title, description, public FROM user_list inner join user on user_id = user.id");
+				getListTitlesStmt = vufind2013connection.prepareStatement("SELECT source, record_id, notes, saved FROM user_resource INNER JOIN resource on resource_id = resource.id WHERE list_id = ?");
+			}else{
+				getListsStmt = vufind2013connection.prepareStatement("SELECT user_list.id as listId, username, password, title, description, public FROM user_list inner join user on user_id = user.id\n" +
+						"INNER JOIN location on location.locationId = user.homeLocationId\n" +
+						"INNER JOIN library on location.libraryId = library.libraryId\n" +
+						"WHERE subdomain in (" + librariesToSynchronize + ")");
+				getListTitlesStmt = vufind2013connection.prepareStatement("SELECT source, record_id, notes, saved FROM user_resource INNER JOIN resource on resource_id = resource.id WHERE list_id = ?");
+			}
 			ResultSet vufind2013Lists = getListsStmt.executeQuery();
 			while (vufind2013Lists.next()){
 				//Check to see if we have a user with the given username (unique id in Sierra)
@@ -456,7 +517,16 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 		//Get a list of all tags for all users
 		try{
 			//TODO: limit to only loading tags added after the last synchronization
-			String vufind2013Tags = "SELECT tag, record_id, source, username, password, title, author, posted from resource_tags inner join tags on tags.id = resource_tags.tag_id inner join resource on resource_id = resource.id inner join user on user_id = user.id";
+			String vufind2013Tags;
+			if (librariesToSynchronize == null){
+				vufind2013Tags = "SELECT tag, record_id, source, username, password, title, author, posted from resource_tags inner join tags on tags.id = resource_tags.tag_id inner join resource on resource_id = resource.id inner join user on user_id = user.id";
+			} else{
+				vufind2013Tags = "SELECT tag, record_id, source, username, password, title, author, posted from resource_tags inner join tags on tags.id = resource_tags.tag_id inner join resource on resource_id = resource.id inner join user on user_id = user.id\n" +
+						"INNER JOIN location on location.locationId = user.homeLocationId\n" +
+						"INNER JOIN library on location.libraryId = library.libraryId\n" +
+						"WHERE subdomain in (" + librariesToSynchronize + ")";
+			}
+
 			PreparedStatement vufind2013TagsStmt = vufind2013connection.prepareStatement(vufind2013Tags);
 			ResultSet vufind2013TagsRS = vufind2013TagsStmt.executeQuery();
 			while (vufind2013TagsRS.next()){

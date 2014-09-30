@@ -6759,17 +6759,17 @@ hr.menu {
   color: #cccccc;
 }
 div#system-message-header {
-  background-color: #efefef;
+  background-color: #8fb4e8;
   color: black;
   text-align: center;
   padding: 3px;
 }
 #header-container {
   padding-top: 0px;
-  height: 134px;
-  background-color: #efefef;
-  background: linear-gradient(to bottom, #efefef, #efefef 85%, #efefef);
-  border-bottom: 8px solid #78ada3;
+  height: 40px;
+  background-color: #8fb4e8;
+  background: linear-gradient(to bottom, #8fb4e8, #608ac1 85%, #547db5);
+  border-bottom: 8px solid #5478a8;
   margin-bottom: 0px;
   min-height: 110px;
 }
@@ -6784,11 +6784,11 @@ div#system-message-header {
 }
 .header-button {
   text-align: center;
-  height: 126px !important;
-  border-bottom: 4px solid #efefef;
+  height: 32px !important;
+  border-bottom: 4px solid #547db5;
 }
 .header-button > a {
-  line-height: 126px !important;
+  line-height: 32px !important;
   text-align: center;
   vertical-align: middle;
   padding: 0px;
@@ -6828,7 +6828,7 @@ div#system-message-header {
   font-size: 16px;
 }
 #footer-container {
-  border-top: 8px solid #78ada3;
+  border-top: 8px solid #608ac1;
   padding-top: 3px;
 }
 #install-info {
@@ -6844,7 +6844,7 @@ div#system-message-header {
   padding: 0px 3px 0px 3px;
 }
 #navigation-controls {
-  border-top: 8px solid #78ada3;
+  border-top: 8px solid #608ac1;
   background: white;
 }
 @media print {
@@ -6881,8 +6881,8 @@ div#system-message-header {
  Styling for home page elements
 */
 #home-page-search {
-  background-color: #ec5802;
-  background: linear-gradient(to bottom, #ec5802, #fea501);
+  background-color: #547db5;
+  background: linear-gradient(to bottom, #547db5, #8fb4e8);
   padding: 20px 0 10px;
   margin-bottom: 5px;
 }
@@ -6897,7 +6897,7 @@ div#system-message-header {
 #searchSource {
   padding: 5px 0;
   color: white;
-  background-color: #fea501;
+  background-color: #8fb4e8;
   border: none;
   width: 90%;
 }
@@ -6954,8 +6954,8 @@ div#system-message-header {
   border-bottom: 1px solid #a1a1a1;
 }
 .sidebar-links .active .panel-heading {
-  background-color: #78ada3;
-  background: linear-gradient(to bottom, #78ada3, #5b978b);
+  background-color: #4dacde;
+  background: linear-gradient(to bottom, #4dacde, #2796d1);
 }
 .sidebar-links .panel-title {
   font-size: 14px;
@@ -7032,44 +7032,44 @@ div#system-message-header {
   height: 80px;
 }
 .browse-category.selected {
-  border: 2px solid #5f7465;
+  border: 2px solid #3497d1;
   font-size: 23px;
 }
 .browse-category.category0 {
-  background-color: #78ada3;
-  background: linear-gradient(to bottom, #78ada3, #78ada3 82%, #607261 83%, #5f7465 84%, #5f7465 88%, #607261 89%, #78ada3 90%, #78ada3);
+  background-color: #0d8ec7;
+  background: linear-gradient(to bottom, #0d8ec7, #0d8ec7 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #0d8ec7 90%, #0d8ec7);
 }
 .browse-category.category1 {
-  background-color: #78ada3;
-  background: linear-gradient(to bottom, #78ada3, #78ada3 82%, #607261 83%, #5f7465 84%, #5f7465 88%, #607261 89%, #78ada3 90%, #78ada3);
+  background-color: #0e98d5;
+  background: linear-gradient(to bottom, #0e98d5, #0e98d5 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #0e98d5 90%, #0e98d5);
 }
 .browse-category.category2 {
-  background-color: #78ada3;
-  background: linear-gradient(to bottom, #78ada3, #78ada3 82%, #607261 83%, #5f7465 84%, #5f7465 88%, #607261 89%, #78ada3 90%, #78ada3);
+  background-color: #0fa2e4;
+  background: linear-gradient(to bottom, #0fa2e4, #0fa2e4 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #0fa2e4 90%, #0fa2e4);
 }
 .browse-category.category3 {
-  background-color: #78ada3;
-  background: linear-gradient(to bottom, #78ada3, #78ada3 82%, #607261 83%, #5f7465 84%, #5f7465 88%, #607261 89%, #78ada3 90%, #78ada3);
+  background-color: #12acf0;
+  background: linear-gradient(to bottom, #12acf0, #12acf0 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #12acf0 90%, #12acf0);
 }
 .browse-category.category4 {
-  background-color: #78ada3;
-  background: linear-gradient(to bottom, #78ada3, #78ada3 82%, #607261 83%, #5f7465 84%, #5f7465 88%, #607261 89%, #78ada3 90%, #78ada3);
+  background-color: #21b1f0;
+  background: linear-gradient(to bottom, #21b1f0, #21b1f0 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #21b1f0 90%, #21b1f0);
 }
 .browse-category.category5 {
-  background-color: #78ada3;
-  background: linear-gradient(to bottom, #78ada3, #78ada3 82%, #607261 83%, #5f7465 84%, #5f7465 88%, #607261 89%, #78ada3 90%, #78ada3);
+  background-color: #2fb6f1;
+  background: linear-gradient(to bottom, #2fb6f1, #2fb6f1 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #2fb6f1 90%, #2fb6f1);
 }
 .browse-category.category6 {
-  background-color: #78ada3;
-  background: linear-gradient(to bottom, #78ada3, #78ada3 82%, #607261 83%, #5f7465 84%, #5f7465 88%, #607261 89%, #78ada3 90%, #78ada3);
+  background-color: #3dbbf2;
+  background: linear-gradient(to bottom, #3dbbf2, #3dbbf2 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #3dbbf2 90%, #3dbbf2);
 }
 .browse-category.category7 {
-  background-color: #78ada3;
-  background: linear-gradient(to bottom, #78ada3, #78ada3 82%, #607261 83%, #5f7465 84%, #5f7465 88%, #607261 89%, #78ada3 90%, #78ada3);
+  background-color: #4cc0f3;
+  background: linear-gradient(to bottom, #4cc0f3, #4cc0f3 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #4cc0f3 90%, #4cc0f3);
 }
 .browse-category.category8 {
-  background-color: #78ada3;
-  background: linear-gradient(to bottom, #78ada3, #78ada3 82%, #607261 83%, #5f7465 84%, #5f7465 88%, #607261 89%, #78ada3 90%, #78ada3);
+  background-color: #5ac5f4;
+  background: linear-gradient(to bottom, #5ac5f4, #5ac5f4 82%, #64b7d8 83%, #89cae5 84%, #89cae5 88%, #64b7d8 89%, #5ac5f4 90%, #5ac5f4);
 }
 #home-page-browse-results {
   padding: 15px;
@@ -7930,8 +7930,8 @@ div#system-message-header {
   border-bottom: 1px solid #a1a1a1;
 }
 #more-details-accordion .active .panel-heading {
-  background-color: #78ada3;
-  background: linear-gradient(to bottom, #78ada3, #5b978b);
+  background-color: #4dacde;
+  background: linear-gradient(to bottom, #4dacde, #2796d1);
 }
 #more-details-accordion .panel-title {
   font-size: 13px;
@@ -7992,64 +7992,5 @@ div#system-message-header {
   font-weight: bold;
 }
 #header-container {
-  background-image: url('/interface/themes/basalt/images/header_background.png');
-}
-#header-logo {
-  margin-top: 20px;
-}
-.header-button {
-  border-radius: 0.5em;
-  background-color: rgba(250, 148, 1, 0.5);
-  margin-top: 20px;
-  height: 60px !important;
-  border: 0px;
-}
-.header-button > a {
-  color: white !important;
-  line-height: 60px !important;
-  text-shadow: none;
-}
-.header-button > a:visited {
-  color: white !important;
-}
-.header-button:hover {
-  border-bottom: 0px;
-  box-shadow: 2px 2px 5px white;
-}
-#home-page-login {
-  background-color: #feae1a;
-}
-#browse-category-carousel {
-  overflow: visible;
-  left: 0;
-  width: 95%;
-  margin-left: 5%;
-}
-#browse-category-carousel ul {
-  position: static;
-  width: 100%;
-}
-#browse-category-carousel li {
-  width: 23% !important;
-  float: left;
-}
-@media (max-width: 991px) {
-  #browse-category-carousel li {
-    width: 31% !important;
-  }
-}
-@media (max-width: 767px) {
-  #browse-category-carousel li {
-    width: 48% !important;
-  }
-}
-#browse-category-picker .jcarousel-control-prev,
-#browse-category-picker .jcarousel-control-next,
-#browse-category-picker .jcarousel-pagination {
-  display: none;
-}
-.browse-category.selected {
-  background-color: #a4c8c1;
-  background: linear-gradient(to bottom, #a4c8c1, #a4c8c1 82%, #607261 83%, #5f7465 84%, #5f7465 88%, #607261 89%, #a4c8c1 90%, #a4c8c1);
-  font-size: 22px;
+  min-height: 60px;
 }

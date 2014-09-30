@@ -132,7 +132,7 @@ public class EVokeExportMain {
 		try {
 			JSONObject recordInfo = callEVokeUrl(evokeApiBaseUrl + "/RecordService/Get_Record?recordId=" + recordId);
 			if (recordInfo != null){
-				String marcAsJSON = recordInfo.toString();
+				String marcAsJSON = recordInfo.toString().trim();
 				//Save the record to the filesystem
 				File marcFile = getFileForEVokeRecord(recordId, exportPath);
 				FileWriter marcWriter = new FileWriter(marcFile);
@@ -194,7 +194,11 @@ public class EVokeExportMain {
 				}
 				//logger.debug("  Finished reading response");
 				rd.close();
-				return new JSONObject(response.toString());
+				if (response.toString().equals("null") || response.length() == 0){
+					return null;
+				}else {
+					return new JSONObject(response.toString());
+				}
 			}else {
 				logger.error("Received error " + conn.getResponseCode() + " connecting to eVoke API" );
 				// Get any errors
@@ -260,8 +264,8 @@ public class EVokeExportMain {
 			//TODO: Eventually, this needs a way of checking to see how many titles there actually are.
 			//TODO: Update this to have better time resolution than daily changes when the API is ready
 			//For now, we just set an arbitrarily large number
-			String lastExtractDate = new SimpleDateFormat("dd/MM/yyyy").format(new Date(lastEVokeExtractTime * 1000));
-			String today = new SimpleDateFormat("dd/MM/yyyy").format(new Date());
+			String lastExtractDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date(lastEVokeExtractTime * 1000));
+			String today = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
 			JSONObject newAndUpdatedTitles = callEVokeUrl(evokeApiBaseUrl + "/SearchService/BoundedSearch?ini=" + lastExtractDate + "&end=" + today + "&limit=10000");
 			if (newAndUpdatedTitles != null){
 				if (newAndUpdatedTitles.has("recordId")){
