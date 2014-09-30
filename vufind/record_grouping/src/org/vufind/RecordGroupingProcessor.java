@@ -7,6 +7,7 @@ import org.marc4j.marc.*;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.sql.*;
 import java.util.*;
@@ -40,25 +41,22 @@ public class RecordGroupingProcessor {
 
 	private int numRecordsProcessed = 0;
 	private int numGroupedWorksAdded = 0;
-	private int numGroupedWorksFoundByExactMatch = 0;
 
 	private boolean fullRegrouping;
 	private long startTime = new Date().getTime();
-	private int timeSettingUpWork = 0;
-	private int timeInExactMatch = 0;
-	private int timeAddingRecordsToDatabase = 0;
-	private int timeAddingIdentifiersToDatabase = 0;
 
 	private HashMap<String, RecordIdentifier> recordIdentifiers = new HashMap<String, RecordIdentifier>();
 	private static HashMap<String, String> authorAuthorities = new HashMap<String, String>();
 	private static HashMap<String, String> titleAuthorities = new HashMap<String, String>();
+
+	private HashMap<String, HashMap<String, String>> translationMaps = new HashMap<String, HashMap<String, String>>();
 
 	private HashMap<String, Long> existingGroupedWorks = new HashMap<String, Long>();
 
 	//A list of grouped works that have been manually merged.
 	private HashMap<String, String> mergedGroupedWorks = new HashMap<String, String>();
 
-	public RecordGroupingProcessor(Connection dbConnection, Ini configIni, Logger logger, boolean fullRegrouping) {
+	public RecordGroupingProcessor(Connection dbConnection, String serverName, Ini configIni, Logger logger, boolean fullRegrouping) {
 		this.logger = logger;
 		this.fullRegrouping = fullRegrouping;
 		this.dbConnection = dbConnection;
@@ -98,6 +96,8 @@ public class RecordGroupingProcessor {
 		}catch (Exception e){
 			logger.error("Error setting up prepared statements", e);
 		}
+
+		loadTranslationMaps(serverName);
 	}
 
 	private char getSubfieldIndicatorFromConfig(Ini configIni, String subfieldName) {
@@ -263,14 +263,13 @@ public class RecordGroupingProcessor {
 		return variableFieldsReturn;
 	}
 
-	public void processMarcRecord(Record marcRecord){
+	public void processMarcRecord(Record marcRecord, String loadFormatFrom, char formatSubfield){
 		RecordIdentifier primaryIdentifier = getPrimaryIdentifierFromMarcRecord(marcRecord);
-		processMarcRecord(marcRecord, primaryIdentifier);
+		processMarcRecord(marcRecord, primaryIdentifier, loadFormatFrom, formatSubfield);
 	}
 
-	public void processMarcRecord(Record marcRecord, RecordIdentifier primaryIdentifier){
+	public void processMarcRecord(Record marcRecord, RecordIdentifier primaryIdentifier, String loadFormatFrom, char formatSubfield){
 		if (primaryIdentifier != null){
-			long start = new Date().getTime();
 			//Get data for the grouped record
 			GroupedWork workForTitle = new GroupedWork();
 
@@ -278,8 +277,14 @@ public class RecordGroupingProcessor {
 			DataField field245 = setWorkTitleBasedOnMarcRecord(marcRecord, workForTitle);
 
 			//Format
-			String format = getFormat(marcRecord);
-			String groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
+			String groupingFormat;
+			if (loadFormatFrom.equals("bib")){
+				String format = getFormatFromBib(marcRecord);
+				groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
+			}else {
+				//get format from item
+				groupingFormat = getFormatFromItems(marcRecord, formatSubfield);
+			}
 
 			//Author
 			setWorkAuthorBasedOnMarcRecord(marcRecord, workForTitle, field245, groupingFormat);
@@ -290,15 +295,12 @@ public class RecordGroupingProcessor {
 			workForTitle.groupingCategory = groupingFormat;
 			workForTitle.identifiers = identifiers;
 
-			timeSettingUpWork += (new Date().getTime() - start);
-
 			addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
 		}
 	}
 
 	public void processEVokeRecord(Record marcRecord, RecordIdentifier primaryIdentifier){
 		if (primaryIdentifier != null){
-			long start = new Date().getTime();
 			//Get data for the grouped record
 			GroupedWork workForTitle = new GroupedWork();
 
@@ -317,8 +319,6 @@ public class RecordGroupingProcessor {
 
 			workForTitle.groupingCategory = groupingFormat;
 			workForTitle.identifiers = identifiers;
-
-			timeSettingUpWork += (new Date().getTime() - start);
 
 			addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
 		}
@@ -414,7 +414,6 @@ public class RecordGroupingProcessor {
 		numRecordsProcessed++;
 		long groupedWorkId = -1;
 		try{
-			long start = new Date().getTime();
 			boolean groupedWorkFound = false;
 			if (existingGroupedWorks.containsKey(groupedWorkPermanentId)){
 				//There is an existing grouped record
@@ -422,13 +421,11 @@ public class RecordGroupingProcessor {
 
 				//Mark that the work has been updated
 				markWorkUpdated(groupedWorkId);
-				numGroupedWorksFoundByExactMatch++;
 				groupedWorkFound = true;
 			}
 
 			if (!groupedWorkFound){
 				//Need to insert a new grouped record
-				long startAdd = new Date().getTime();
 				insertGroupedWorkStmt.setString(1, groupedWork.getTitle());
 				insertGroupedWorkStmt.setString(2, groupedWork.getAuthor());
 				insertGroupedWorkStmt.setString(3, groupedWork.groupingCategory);
@@ -441,13 +438,9 @@ public class RecordGroupingProcessor {
 					groupedWorkId = generatedKeysRS.getLong(1);
 				}
 				generatedKeysRS.close();
-				long endAdd = new Date().getTime();
-				timeAddingRecordsToDatabase += endAdd - startAdd;
 				numGroupedWorksAdded++;
 				existingGroupedWorks.put(groupedWorkPermanentId, groupedWorkId);
 			}
-			long end = new Date().getTime();
-			timeInExactMatch += (end - start);
 
 			//Update identifiers
 			addPrimaryIdentifierForWorkToDB(groupedWorkId, primaryIdentifier);
@@ -490,8 +483,6 @@ public class RecordGroupingProcessor {
 	}
 
 	private void addIdentifiersForRecordToDB(long groupedWorkId, HashSet<RecordIdentifier> identifiers, RecordIdentifier primaryIdentifier) throws SQLException {
-		long start = new Date().getTime();
-
 		//Remove any references to old identifiers
 		removeIdentifiersForPrimaryIdentifier(primaryIdentifier);
 
@@ -507,8 +498,6 @@ public class RecordGroupingProcessor {
 			}
 			addPrimaryToSecondaryReferences(primaryIdentifier, curIdentifier);
 		}
-		long end = new Date().getTime();
-		timeAddingIdentifiersToDatabase += end - start;
 	}
 
 	private void addPrimaryToSecondaryReferences(RecordIdentifier primaryIdentifier, RecordIdentifier curIdentifier) throws SQLException {
@@ -595,11 +584,24 @@ public class RecordGroupingProcessor {
 		addGroupedWorkToDatabase(primaryIdentifier, groupedWork);
 	}
 
-	private String getFormat(Record record) {
+	private String getFormatFromItems(Record record, char formatSubfield) {
+		List<DataField> itemFields = getDataFields(record, itemTag);
+		for (DataField itemField : itemFields) {
+			if (itemField.getSubfield(formatSubfield) != null) {
+				String originalFormat = itemField.getSubfield(formatSubfield).getData().toLowerCase();
+				String format = translateValue("format_group", originalFormat);
+				if (format != null && !format.equals(originalFormat)){
+					return format;
+				}
+			}
+		}
+		return "book";
+	}
+	private String getFormatFromBib(Record record) {
 		//Check to see if the title is eContent based on the 989 field
-		List<DataField> itemFields = getDataFields(record, "989");
-		for (DataField itemField : itemFields){
-			if (itemField.getSubfield('w') != null){
+		List<DataField> itemFields = getDataFields(record, itemTag);
+		for (DataField itemField : itemFields) {
+			if (itemField.getSubfield('w') != null) {
 				//The record is some type of eContent.  For this purpose, we don't care what type.
 				return "eContent";
 			}
@@ -733,11 +735,11 @@ public class RecordGroupingProcessor {
 				}
 				// Check for blu-ray (s in position 4)
 				// This logic does not appear correct.
-				/*
-				 * if (formatField.getData() != null && formatField.getData().length()
-				 * >= 4){ if (formatField.getData().toUpperCase().charAt(4) == 'S'){
-				 * result.add("Blu-ray"); break; } }
-				 */
+			/*
+			 * if (formatField.getData() != null && formatField.getData().length()
+			 * >= 4){ if (formatField.getData().toUpperCase().charAt(4) == 'S'){
+			 * result.add("Blu-ray"); break; } }
+			 */
 				formatCode = formatField.getData().toUpperCase().charAt(0);
 				switch (formatCode) {
 					case 'A':
@@ -915,7 +917,7 @@ public class RecordGroupingProcessor {
 				// Serial
 				case 'S':
 					// Look in 008 to determine what type of Continuing Resource
-					if (fixedField != null){
+					if (fixedField != null) {
 						formatCode = fixedField.getData().toUpperCase().charAt(21);
 						switch (formatCode) {
 							case 'N':
@@ -928,7 +930,6 @@ public class RecordGroupingProcessor {
 					}
 			}
 		}
-
 		// Nothing worked!
 		return "Unknown";
 	}
@@ -1069,14 +1070,6 @@ public class RecordGroupingProcessor {
 		logger.debug("-----------------------------------------------------------");
 		logger.debug("Processed " + numRecordsProcessed + " records in " + totalElapsedMinutes + " minutes");
 		logger.debug("Created a total of " + numGroupedWorksAdded + " grouped works");
-		long timeSettingUpWorkMinutes = timeSettingUpWork / (60 * 1000);
-		logger.debug("Took " + timeSettingUpWorkMinutes + " minutes to load the works from MARC file");
-		long minutesInExactMatch = timeInExactMatch / (60 * 1000);
-		logger.debug("Found " + numGroupedWorksFoundByExactMatch + " works by exact match in " + minutesInExactMatch + " minutes");
-		long minutesAddingRecords = timeAddingRecordsToDatabase / (60 * 1000);
-		logger.debug("It took " + minutesAddingRecords + " minutes to add the records to the database");
-		long minutesAddingIdentifiers = timeAddingIdentifiersToDatabase / (60 * 1000);
-		logger.debug("It took " + minutesAddingIdentifiers + " minutes to add the identifiers to the database");
 	}
 
 	public void deletePrimaryIdentifier(RecordIdentifier primaryIdentifier) {
@@ -1093,5 +1086,82 @@ public class RecordGroupingProcessor {
 		} catch (SQLException e) {
 			logger.error("Error removing primary identifier from old grouped works " + primaryIdentifier.toString(), e);
 		}
+	}
+
+	private void loadTranslationMaps(String serverName){
+		//Load all translationMaps, first from default, then from the site specific configuration
+		File defaultTranslationMapDirectory = new File("../../sites/default/translation_maps");
+		File[] defaultTranslationMapFiles = defaultTranslationMapDirectory.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith("properties");
+			}
+		});
+
+		File serverTranslationMapDirectory = new File("../../sites/" + serverName + "/translation_maps");
+		File[] serverTranslationMapFiles = serverTranslationMapDirectory.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith("properties");
+			}
+		});
+
+		for (File curFile : defaultTranslationMapFiles){
+			String mapName = curFile.getName().replace(".properties", "");
+			mapName = mapName.replace("_map", "");
+			translationMaps.put(mapName, loadTranslationMap(curFile));
+		}
+		for (File curFile : serverTranslationMapFiles){
+			String mapName = curFile.getName().replace(".properties", "");
+			mapName = mapName.replace("_map", "");
+			translationMaps.put(mapName, loadTranslationMap(curFile));
+		}
+	}
+
+	private HashMap<String, String> loadTranslationMap(File translationMapFile) {
+		Properties props = new Properties();
+		try {
+			props.load(new FileReader(translationMapFile));
+		} catch (IOException e) {
+			logger.error("Could not read translation map, " + translationMapFile.getAbsolutePath(), e);
+		}
+		HashMap<String, String> translationMap = new HashMap<String, String>();
+		for (Object keyObj : props.keySet()){
+			String key = (String)keyObj;
+			translationMap.put(key, props.getProperty(key));
+		}
+		return translationMap;
+	}
+
+	HashSet<String> unableToTranslateWarnings = new HashSet<String>();
+	public String translateValue(String mapName, String value){
+		HashMap<String, String> translationMap = translationMaps.get(mapName);
+		String translatedValue;
+		if (translationMap == null){
+			logger.error("Unable to find translation map for " + mapName);
+			translatedValue = value;
+		}else{
+			if (translationMap.containsKey(value)){
+				translatedValue = translationMap.get(value);
+			}else{
+				if (translationMap.containsKey("*")){
+					translatedValue = translationMap.get("*");
+				}else{
+					String concatenatedValue = mapName + ":" + value;
+					if (!unableToTranslateWarnings.contains(concatenatedValue)){
+						logger.warn("Could not translate '" + concatenatedValue + "'");
+						unableToTranslateWarnings.add(concatenatedValue);
+					}
+					translatedValue = value;
+				}
+			}
+		}
+		if (translatedValue != null){
+			translatedValue = translatedValue.trim();
+			if (translatedValue.length() == 0){
+				translatedValue = null;
+			}
+		}
+		return translatedValue;
 	}
 }

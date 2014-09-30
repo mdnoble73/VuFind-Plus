@@ -15,10 +15,8 @@ import org.marc4j.marc.VariableField;
 
 import java.io.*;
 import java.sql.*;
+import java.util.*;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.zip.CRC32;
 
 /**
@@ -112,7 +110,7 @@ public class RecordGrouperMain {
 			fullRegrouping = false;
 		}
 
-		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, configIni, logger, fullRegrouping);
+		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, serverName, configIni, logger, fullRegrouping);
 
 		clearDatabase(vufindConn, clearDatabasePriorToGrouping);
 		loadIlsChecksums(vufindConn);
@@ -178,32 +176,34 @@ public class RecordGrouperMain {
 				for (File curPrefixPath : recordPrefixPaths){
 					if (curPrefixPath.isDirectory()) {
 						File[] catalogBibFiles = curPrefixPath.listFiles();
-						for (File curBibFile : catalogBibFiles) {
-							if (curBibFile.getName().endsWith(".mrc")) {
-								try {
-									Record marcRecord = EVokeMarcReader.readMarc(curBibFile);
-									//Record number is based on the filename. It isn't actually in the MARC record at all.
-									String recordNumber = curBibFile.getName();
-									recordNumber = recordNumber.substring(0, recordNumber.lastIndexOf('.'));
-									RecordIdentifier primaryIdentifier = new RecordIdentifier();
-									primaryIdentifier.setValue("evoke", recordNumber);
+						if (catalogBibFiles != null) {
+							for (File curBibFile : catalogBibFiles) {
+								if (curBibFile.getName().endsWith(".mrc")) {
 									try {
-										//TODO: Determine if the record has changed since we last indexed (if doing a partial update).
-										recordGroupingProcessor.processEVokeRecord(marcRecord, primaryIdentifier);
-										numRecordsProcessed++;
-										lastRecordProcessed = recordNumber;
-										numRecordsRead++;
-										if (numRecordsRead % 100000 == 0) {
-											recordGroupingProcessor.dumpStats();
+										Record marcRecord = EVokeMarcReader.readMarc(curBibFile);
+										//Record number is based on the filename. It isn't actually in the MARC record at all.
+										String recordNumber = curBibFile.getName();
+										recordNumber = recordNumber.substring(0, recordNumber.lastIndexOf('.'));
+										RecordIdentifier primaryIdentifier = new RecordIdentifier();
+										primaryIdentifier.setValue("evoke", recordNumber);
+										try {
+											//TODO: Determine if the record has changed sislnce we last indexed (if doing a partial update).
+											recordGroupingProcessor.processEVokeRecord(marcRecord, primaryIdentifier);
+											numRecordsProcessed++;
+											lastRecordProcessed = recordNumber;
+											numRecordsRead++;
+											if (numRecordsRead % 100000 == 0) {
+												recordGroupingProcessor.dumpStats();
+											}
+										} catch (Exception e) {
+											logger.error("Unable to process record " + recordNumber, e);
 										}
-									}catch (Exception e){
-										logger.error("Unable to process record " + recordNumber, e);
+									} catch (Exception e) {
+										logger.error("Error loading eVoke records " + numRecordsRead + " the last record processed was " + lastRecordProcessed, e);
 									}
-								} catch (Exception e) {
-									logger.error("Error loading eVoke records " + numRecordsRead + " the last record processed was " + lastRecordProcessed, e);
 								}
+								logger.warn("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the eVoke file " + curBibFile.getName());
 							}
-							logger.warn("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the eVoke file " + curBibFile.getName());
 						}
 					}
 				}
@@ -414,6 +414,12 @@ public class RecordGrouperMain {
 
 		String marcEncoding = configIni.get("Reindex", "marcEncoding");
 
+		String loadFormatFrom = configIni.get("Reindex", "loadFormatFrom").trim();
+		char formatSubfield = ' ';
+		if (loadFormatFrom.equals("item")){
+			formatSubfield = configIni.get("Reindex", "formatSubfield").trim().charAt(0);
+		}
+
 		//Load all files in the individual marc path.  This allows us to list directories rather than doing millions of
 		//individual look ups
 		HashSet<String> existingMarcFiles = new HashSet<String>();
@@ -435,7 +441,7 @@ public class RecordGrouperMain {
 							String recordNumber = getRecordNumberForBib(curBib);
 							boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber);
 							if (!marcUpToDate || fullRegroupingNoClear){
-								recordGroupingProcessor.processMarcRecord(curBib);
+								recordGroupingProcessor.processMarcRecord(curBib, loadFormatFrom, formatSubfield);
 								numRecordsProcessed++;
 							}
 							//Mark that the record was processed
@@ -779,4 +785,6 @@ public class RecordGrouperMain {
 		crc32.update(marcRecord.toString().getBytes());
 		return crc32.getValue();
 	}
+
+
 }
