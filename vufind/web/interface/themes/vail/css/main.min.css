@@ -6766,10 +6766,10 @@ div#system-message-header {
 }
 #header-container {
   padding-top: 0px;
-  height: 128px;
+  height: 139px;
   background-color: #ffffff;
   background: linear-gradient(to bottom, #ffffff, #ffffff 85%, #ffffff);
-  border-bottom: 8px solid #000000;
+  border-bottom: 8px solid #54b948;
   margin-bottom: 0px;
   min-height: 110px;
 }
@@ -6784,11 +6784,11 @@ div#system-message-header {
 }
 .header-button {
   text-align: center;
-  height: 120px !important;
+  height: 131px !important;
   border-bottom: 4px solid #ffffff;
 }
 .header-button > a {
-  line-height: 120px !important;
+  line-height: 131px !important;
   text-align: center;
   vertical-align: middle;
   padding: 0px;
@@ -6882,7 +6882,7 @@ div#system-message-header {
 */
 #home-page-search {
   background-color: #2fa7df;
-  background: linear-gradient(to bottom, #2fa7df, #2fa7df);
+  background: linear-gradient(to bottom, #2fa7df, #9ed6f0);
   padding: 20px 0 10px;
   margin-bottom: 5px;
 }
@@ -6897,7 +6897,7 @@ div#system-message-header {
 #searchSource {
   padding: 5px 0;
   color: white;
-  background-color: #2fa7df;
+  background-color: #9ed6f0;
   border: none;
   width: 90%;
 }
@@ -7632,14 +7632,11 @@ div#system-message-header {
   color: #44484a;
 }
 #formatCategories {
-  border-bottom: 3px solid #d5d6da;
   padding-top: 3px;
-  padding-bottom: 8px;
 }
-@media (max-width: 480px) {
-  #formatCategories {
-    display: none;
-  }
+#availabilityControlContainer {
+  border-bottom: 3px solid #d5d6da;
+  padding-bottom: 8px;
 }
 .top-facet {
   margin-bottom: 10px;
@@ -7992,17 +7989,18 @@ div#system-message-header {
   font-weight: bold;
 }
 #header-container {
-  background-image: url('/interface/themes/vail/images/header_background_2.png');
+  background-image: url('/interface/themes/vail/images/header_background.png');
+  border-bottom: 4px solid #54b948;
 }
 #header-logo {
-  margin-top: 10px;
-  background-color: #ffffff;
+  background-color: rgba(230, 230, 230, 0.3);
   border-radius: 0.5em;
-  padding: 10px;
+  margin-top: 8px;
+  padding: 20px 60px;
 }
 .header-button {
   border-radius: 0.5em;
-  background-color: #ffffff;
+  background-color: rgba(230, 230, 230, 0.3);
   margin-top: 20px;
   height: 60px !important;
   border: 0px;
