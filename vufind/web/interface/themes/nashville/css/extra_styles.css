@@ -201,6 +201,7 @@ margin-top:-25px;
 /* Place Hold - pick up page */
 .note {font-size: inheret;font-style: normal;color: #191919;}
 .loginLabel {font-size:14px;font-weight:normal;}
+#holdDisclaimer {background: #eee; border: #000 1px solid; color: #06c; margin: 1em; padding: 1em;}
 
 /* My Account Grids */
 .myAccountTable {border: 0px solid #ccc;border-radius: 6px;border-collapse: collapse;margin-top: 4px;margin-bottom: 4px;width: 100%;}
