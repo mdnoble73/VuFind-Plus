@@ -28,6 +28,11 @@ abstract class ObjectEditor extends Admin_Admin
 	{
 		global $interface;
 
+		if (isset($_SESSION['lastError'])){
+			$interface->assign('lastError', $_SESSION['lastError']);
+			unset($_SESSION['lastError']);
+		}
+
 		$interface->assign('canAddNew', $this->canAddNew());
 		$interface->assign('canDelete', $this->canDelete());
 		$interface->assign('showReturnToList', $this->showReturnToList());
@@ -360,13 +365,15 @@ abstract class ObjectEditor extends Admin_Admin
 
 	function editObject($objectAction, $structure){
 		global $interface;
+		$errorOccurred = false;
 		//Save or create a new object
 		$id = $_REQUEST['id'];
 		if (empty($id) || $id < 0){
 			//Insert a new record
 			$curObject = $this->insertObject($structure);
 			if ($curObject == false){
-				$interface->assign('title', "An error occurred inserting new {$this->getObjectType()}");
+				$_SESSION['lastError'] = "An error occurred inserting new {$this->getObjectType()}";
+				$errorOccurred = true;
 			}
 		}else{
 			//Work with an existing record
@@ -376,23 +383,31 @@ abstract class ObjectEditor extends Admin_Admin
 					//Update the object
 					$this->updateFromUI($curObject, $structure);
 					$ret = $curObject->update();
-					if ($ret == false){
-						$interface->assign('title', "An error occurred updating {$this->getObjectType()} with id of $id");
+					if ($ret === false){
+						if ($curObject->_lastError){
+							$errorDescription = $curObject->_lastError->getUserInfo();
+						}else{
+							$errorDescription = 'Unknown error';
+						}
+						$_SESSION['lastError'] = "An error occurred updating {$this->getObjectType()} with id of $id <br/>{$errorDescription}";
+						$errorOccurred = true;
 					}
 				}else if ($objectAction =='delete'){
 					//Delete the record
 					$ret = $curObject->delete();
-					if ($ret == false){
-						$interface->assign('title', "Unable to delete {$this->getObjectType()} with id of $id");
+					if ($ret === false){
+						$_SESSION['lastError'] = "Unable to delete {$this->getObjectType()} with id of $id";
+						$errorOccurred = true;
 					}
 				}
 			}else{
 				//Couldn't find the record.  Something went haywire.
-				$interface->assign('title', "An error occurred, could not find {$this->getObjectType()} with id of $id");
+				$_SESSION['lastError'] = "An error occurred, could not find {$this->getObjectType()} with id of $id";
+				$errorOccurred = true;
 			}
 		}
 		global $configArray;
-		if (isset($_REQUEST['submitStay'])){
+		if (isset($_REQUEST['submitStay']) || $errorOccurred){
 			header("Location: {$configArray['Site']['path']}/{$this->getModule()}/{$this->getToolName()}?objectAction=edit&id=$id");
 		}elseif (isset($_REQUEST['submitAddAnother'])){
 			header("Location: {$configArray['Site']['path']}/{$this->getModule()}/{$this->getToolName()}?objectAction=addNew");
