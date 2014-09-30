@@ -6,6 +6,7 @@ import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -34,6 +35,10 @@ public class EVokeExportMain {
 	private static Long lastEVokeExtractTime = null;
 	private static Long lastEVokeExtractTimeVariableId = null;
 	private static CookieManager manager = new CookieManager();
+
+	private static PreparedStatement getExistingRecordStmt;
+	private static PreparedStatement insertRecordStmt;
+	private static PreparedStatement updateRecordStmt;
 
 	public static void main(String[] args) {
 		serverName = args[0];
@@ -75,6 +80,16 @@ public class EVokeExportMain {
 			System.exit(1);
 		}
 
+		try {
+			getExistingRecordStmt = vufindConn.prepareStatement("SELECT * FROM evoke_record WHERE evoke_id = ?");
+			insertRecordStmt = vufindConn.prepareStatement("INSERT INTO evoke_record (evoke_id, dateAdded, dateUpdated, deleted, dateDeleted) VALUES (?, ?, ?, 0, -1)");
+			updateRecordStmt = vufindConn.prepareStatement("UPDATE evoke_record SET dateUpdated = ? WHERE evoke_id = ?", PreparedStatement.RETURN_GENERATED_KEYS);
+		}catch (Exception e){
+			logger.error("Unable to create database statements for eVoke extract", e);
+			System.out.println("Unable to create database statements for eVoke extract " + e.toString());
+			System.exit(1);
+		}
+
 		loadLastExtractTime(vufindConn);
 
 		manager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
@@ -88,15 +103,14 @@ public class EVokeExportMain {
 
 		updateLastExtractTime(vufindConn);
 
-		if (vufindConn != null){
-			try{
-				//Close the connection
-				vufindConn.close();
-			}catch(Exception e){
-				System.out.println("Error closing connection: " + e.toString());
-				e.printStackTrace();
-			}
+		try{
+			//Close the connection
+			vufindConn.close();
+		}catch(Exception e){
+			System.out.println("Error closing connection: " + e.toString());
+			e.printStackTrace();
 		}
+
 		Date currentTime = new Date();
 		logger.info(currentTime.toString() + ": Finished eVoke Extract");
 	}
@@ -119,7 +133,7 @@ public class EVokeExportMain {
 					JSONArray recordIds = allTitles.getJSONArray("recordId");
 					for (int i = 0; i < recordIds.length(); i++){
 						String curId = recordIds.getString(i);
-						loadMarcForRecordId(curId, exportPath);
+						exportRecordId(curId, exportPath);
 					}
 				}
 			}
@@ -128,7 +142,7 @@ public class EVokeExportMain {
 		}
 	}
 
-	private static void loadMarcForRecordId(String recordId, String exportPath) {
+	private static void exportRecordId(String recordId, String exportPath) {
 		try {
 			JSONObject recordInfo = callEVokeUrl(evokeApiBaseUrl + "/RecordService/Get_Record?recordId=" + recordId);
 			if (recordInfo != null){
@@ -138,10 +152,58 @@ public class EVokeExportMain {
 				FileWriter marcWriter = new FileWriter(marcFile);
 				marcWriter.write(marcAsJSON);
 				marcWriter.close();
+
+				//Save or add the record to the database
+				//Check to see if there is a record in the database already
+				getExistingRecordStmt.setString(1, recordId);
+				ResultSet existingRecordInfo = getExistingRecordStmt.executeQuery();
+				long curTime = new Date().getTime() / 1000;
+				long evokeDBId = -1;
+				if (existingRecordInfo.next()){
+					evokeDBId = existingRecordInfo.getLong("id");
+					//TODO: Only update this if something changed (different marc data or different loanable info)
+					updateRecordStmt.setLong(1, curTime);
+					updateRecordStmt.setString(2, recordId);
+					updateRecordStmt.executeUpdate();
+				}else{
+					insertRecordStmt.setString(1, recordId);
+					insertRecordStmt.setLong(2, curTime);
+					insertRecordStmt.setLong(3, curTime);
+					insertRecordStmt.executeUpdate();
+
+					ResultSet recordIds = insertRecordStmt.getGeneratedKeys();
+					if (recordIds.next()) {
+						evokeDBId = recordIds.getLong(1);
+						recordIds.close();
+					}
+				}
+
+				if (evokeDBId != -1) {
+					//Extract loanables
+					JSONObject loanables = callEVokeUrl(evokeApiBaseUrl + "/RecordService/Get_Loanables?recordId=" + recordId);
+					//Add loanables to the database
+					if (loanables.has("loanable")) {
+						if (loanables.get("loanable") instanceof JSONArray) {
+							extractLoanable(loanables.getJSONObject("loanable"), recordId, evokeDBId);
+						} else {
+							JSONArray loanableArray = loanables.getJSONArray("loanable");
+							for (int i = 0; i < loanableArray.length(); i++){
+								extractLoanable(loanableArray.getJSONObject(i), recordId, evokeDBId);
+							}
+						}
+					}
+				}
 			}
 		}catch (Exception e){
 			logger.error("Error loading all titles from eVoke API", e);
 		}
+	}
+
+	private static void extractLoanable(JSONObject loanable, String evokeId, long evokeDBId) throws JSONException {
+		String loanableId = loanable.getString("loanableId");
+		//Get the availability for the loanable
+
+
 	}
 
 	private static File getFileForEVokeRecord(String recordId, String eVokePath) {
@@ -272,7 +334,7 @@ public class EVokeExportMain {
 					JSONArray recordIds = newAndUpdatedTitles.getJSONArray("recordId");
 					for (int i = 0; i < recordIds.length(); i++){
 						String curId = recordIds.getString(i);
-						loadMarcForRecordId(curId, exportPath);
+						exportRecordId(curId, exportPath);
 					}
 				}
 			}

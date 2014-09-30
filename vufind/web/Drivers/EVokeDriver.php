@@ -31,7 +31,7 @@ class EVokeDriver {
 			if (isset($checkedOutTitlesRaw->response->loan)){
 				$loans = $checkedOutTitlesRaw->response->loan;
 				//Check to see if we just have one loan
-				if (isset($loans->type)){
+				if (!is_array($loans) && property_exists($loans, '@type')){
 					//There is just a single loan, not multiple, convert to an array
 					$loans = array($loans);
 				}
