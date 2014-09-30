@@ -36,6 +36,7 @@ public class GroupedWorkIndexer {
 	private ConcurrentUpdateSolrServer updateServer;
 	private IlsRecordProcessor ilsRecordProcessor;
 	private OverDriveProcessor overDriveProcessor;
+	private EVokeProcessor evokeProcessor;
 	private HashMap<String, HashMap<String, String>> translationMaps = new HashMap<String, HashMap<String, String>>();
 	private HashMap<String, LexileTitle> lexileInformation = new HashMap<String, LexileTitle>();
 	private Long maxWorksToProcess = -1L;
@@ -111,11 +112,18 @@ public class GroupedWorkIndexer {
 			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped2");
 		}else{
 			if (partialReindexRunning){
-				//Oops, a reindex is already running.
-				logger.error("A partial reindex is already running, not starting another for better performance");
-				GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, not starting another for better performance");
-				okToIndex = false;
-				return;
+				//Make sure that it hasn't been a long time since the last index ran (1 hour).
+				if (new Date().getTime() - (lastReindexTime * 1000) > (60 * 60 * 1000)){
+					//Oops, a reindex is already running.
+					logger.error("A partial reindex is already running, but it's been an hour or more since the last one started.  Indexing anyway.");
+					GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, but it's been an hour or more since the last one started.  Indexing anyway.");
+				} else{
+					//Oops, a reindex is already running.
+					logger.error("A partial reindex is already running, not starting another for better performance");
+					GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, not starting another for better performance");
+					okToIndex = false;
+					return;
+				}
 			}else{
 				updatePartialReindexRunning(true);
 			}
@@ -134,8 +142,8 @@ public class GroupedWorkIndexer {
 		}else if(ilsIndexingClassString.equals("WCPL")){
 			ilsRecordProcessor = new WCPLRecordProcessor(this, vufindConn, configIni, logger);
 		}
-		overDriveProcessor = new OverDriveProcessor(this, vufindConn, econtentConn, configIni, fullReindex, logger);
-
+		overDriveProcessor = new OverDriveProcessor(this, vufindConn, econtentConn, logger);
+		evokeProcessor = new EVokeProcessor(this, vufindConn, configIni, logger);
 		//Load translation maps
 		loadTranslationMaps();
 
@@ -570,6 +578,8 @@ public class GroupedWorkIndexer {
 			ilsRecordProcessor.processRecord(groupedWork, identifier);
 		}else if (type.equals("overdrive")){
 			overDriveProcessor.processRecord(groupedWork, identifier);
+		}else if (type.equals("evoke")){
+			evokeProcessor.processRecord(groupedWork, identifier);
 		}else{
 			logger.warn("Unknown identifier type " + type);
 		}
