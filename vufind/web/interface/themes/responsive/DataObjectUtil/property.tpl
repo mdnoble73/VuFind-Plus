@@ -32,8 +32,10 @@
 					</div>
 				</div>
 			</div>
-		{elseif $property.type == 'text' || $property.type == 'folder' || $property.type == 'integer'}
+		{elseif $property.type == 'text' || $property.type == 'folder'}
 			<input type='text' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} title='{$property.description}' class='form-control {if $property.required}required{/if}'/>
+		{elseif $property.type == 'integer'}
+			<input type='number' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} title='{$property.description}' class='form-control {if $property.required}required{/if}'/>
 		{elseif $property.type == 'url'}
 			<input type='text' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} title='{$property.description}' class='form-control url {if $property.required}required{/if}' />
 		{elseif $property.type == 'email'}

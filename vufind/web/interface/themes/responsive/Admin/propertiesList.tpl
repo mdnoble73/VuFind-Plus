@@ -1,5 +1,10 @@
 
 <h2 id="pageTitle">{$shortPageTitle}</h2>
+{if $lastError}
+	<div class="alert alert-danger">
+		{$lastError}
+	</div>
+{/if}
 <div class='adminTableRegion'>
 	<table class="adminTable table table-striped table-condensed smallText">
 		<thead>

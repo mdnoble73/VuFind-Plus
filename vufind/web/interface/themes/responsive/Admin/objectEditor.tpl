@@ -1,4 +1,9 @@
 <script src="{$path}/ckeditor/ckeditor.js"></script>
+{if $lastError}
+	<div class="alert alert-danger">
+		{$lastError}
+	</div>
+{/if}
 {strip}
 	<div class="col-xs-12">
 		{if $shortPageTitle || $objectName}
