@@ -17,14 +17,7 @@
 		</div>
 	</div>
 	{/foreach}
-	
-	<div id="formatHelp">
-		Need help?  We have <a href="{$path}/Help/eContentHelp" onclick="return VuFind.Account.ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true', false)">step by step instructions</a> for most formats and devices <a href="{$path}/Help/eContentHelp" onclick="return VuFind.Account.ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true', false)">here</a>.<br/>
-		If you still need help after following the instructions, please fill out this <a href="{$path}/Help/eContentSupport" onclick="return showEContentSupportForm()">support form</a>. 
-	</div>
 {else}
 	No Copies Found
 {/if}
-
-
 {/strip}

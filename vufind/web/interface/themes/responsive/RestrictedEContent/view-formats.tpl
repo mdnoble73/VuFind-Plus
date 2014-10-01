@@ -7,12 +7,6 @@
 						<div class="col-md-9">
 							<strong>{$eContentItem.format}</strong>
 						</div>
-						<div class="eContentFormatUsage col-md-3">
-							{assign var="displayFormat" value=$eContentItem.format|substr:0:1}
-							<a href="#" onclick="return VuFind.Account.ajaxLightbox('/Help/eContentHelp?lightbox=true&id={$id}&itemId={$eContentItem->id}');">
-								{$eContentItem.helpText}
-							</a>
-						</div>
 					</div>
 
 					<div class="eContentHoldingUsage muted">
@@ -43,8 +37,4 @@
 			No Formats Found
 		</p>
 	{/if}
-	<div id="formatHelp" class="alert alert-info">
-		Need help?  We have <a href="{$path}/Help/eContentHelp" onclick="return VuFind.Account.ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true', false)">step by step instructions</a> for most formats and devices <a href="{$path}/Help/eContentHelp"  onclick="return VuFind.Account.ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true', false)">here</a>.<br/>
-		If you still need help after following the instructions, please fill out this <a href="{$path}/Help/eContentSupport" onclick="return VuFind.Account.ajaxLightbox('{$path}/Help/eContentSupport?lightbox=true', true)">support form</a>.
-	</div>
 {/strip}

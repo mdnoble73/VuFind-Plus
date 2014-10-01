@@ -10,12 +10,6 @@
 						{if $showEContentNotes} <div class="note">{$eContentItem->notes}</div>{/if}
 					</div>
 				</div>
-				<div class="eContentFormatUsage col-md-3">
-					{assign var="displayFormat" value=$eContentItem->getDisplayFormat()|substr:0:1}
-					<a href="#" onclick="return VuFind.Account.ajaxLightbox('/Help/eContentHelp?lightbox=true&id={$id}&itemId={$eContentItem->id}');">
-						{$eContentItem->getHelpText()}
-					</a>
-				</div>
 			</div>
 
 			<div class="eContentHoldingUsage muted">
@@ -49,11 +43,6 @@
 		</div>
 	</div>
 	{/foreach}
-	
-	<div id="formatHelp">
-		Need help?  We have <a href="{$path}/Help/eContentHelp" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')">step by step instructions</a> for most formats and devices <a href="{$path}/Help/eContentHelp" onclick="return ajaxLightbox('{$path}/Help/eContentHelp?lightbox=true')">here</a>.<br/>
-		If you still need help after following the instructions, please fill out this <a href="{$path}/Help/eContentSupport" onclick="return showEContentSupportForm()">support form</a>. 
-	</div>
 {else}
 	No Copies Found
 {/if}

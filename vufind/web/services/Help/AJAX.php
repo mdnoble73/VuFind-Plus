@@ -8,6 +8,7 @@ global $configArray;
 class Help_AJAX extends Action {
 
 	function AJAX() {
+
 	}
 
 	function launch() {
@@ -48,66 +49,6 @@ class Help_AJAX extends Action {
 	}
 
 	function getHelpTopic(){
-		global $interface;
-		$device = $_REQUEST['device'];
-		$format = $_REQUEST['format'];
-		$result = array();
-		if ($format == 'kindle'){
-			if ($device == 'kindle' || $device == 'kindle_fire'){
-				$result['helpText'] = $interface->fetch("Help/en/ebook_kindle.tpl");
-			}else{
-				$result['helpText'] = $interface->fetch("Help/en/overdrive_kindle_help.tpl");
-			}
-		}elseif ($format == 'ebook' ){
-			if ($device == 'kindle_fire' || $device == 'kindle'){
-				$result['helpText'] = $interface->fetch("Help/en/econtent_unsupported.tpl");
-			}elseif ($device == 'android' || $device == 'ios'){
-				$result['helpText'] = $interface->fetch("Help/en/ebook_mobile.tpl");
-			}else{
-				$result['helpText'] = $interface->fetch("Help/en/ebook_pc_mac.tpl");
-			}
-		}elseif ($format == 'springerlink'){
-			$result['helpText'] = $interface->fetch("Help/en/springerlink.tpl");
-		}elseif ($format == 'ebsco'){
-			$result['helpText'] = $interface->fetch("Help/en/ebsco.tpl");
-		}elseif	($format == 'wma') {
-			if ($device == 'kindle' || $device == 'kindle_fire' || $device == 'mac' || $device == 'nook'){
-				$result['helpText'] = $interface->fetch("Help/en/wma_sucks.tpl");
-			}else if ($device == 'pc'){
-				$result['helpText'] = $interface->fetch("Help/en/audiobook_pc.tpl");
-			}
-		}elseif ($format == 'mp3'){
-			if ($device == 'pc'){
-				$result['helpText'] = $interface->fetch("Help/en/audiobook_pc.tpl");
-			}elseif ($device == 'mac'){
-				$result['helpText'] = $interface->fetch("Help/en/mp3_mac.tpl");
-			}elseif ($device == 'kindle'){
-				$result['helpText'] = $interface->fetch("Help/en/audiobook_pc.tpl");
-			}elseif ($device == 'kindle_fire'){
-				$result['helpText'] = $interface->fetch("Help/en/mp3_kindle_fire.tpl");
-			}else{
-				$result['helpText'] = $interface->fetch("Help/en/audiobook_mobile.tpl");
-			}
-		}elseif ($format == 'eVideo' ){
-			if ($device == 'pc'){
-				$result['helpText'] = $interface->fetch("Help/en/evideo_pc.tpl");
-			}elseif ($device == 'mac'){
-				$result['helpText'] = $interface->fetch("Help/en/evideo_mac.tpl");
-			}else{
-				$result['helpText'] = $interface->fetch("Help/en/evideo_mobile.tpl");
-			}
-		}elseif ($format == 'eMusic' ){
-			if ($device == 'pc'){
-				$result['helpText'] = $interface->fetch("Help/en/emusic_pc.tpl");
-			}elseif ($device == 'mac'){
-				$result['helpText'] = $interface->fetch("Help/en/emusic_mac.tpl");
-			}else{
-				$result['helpText'] = $interface->fetch("Help/en/emusic_mobile.tpl");
-			}
-		}else{
-			$result['helpText'] = $interface->fetch("Help/en/no_econtent_help.tpl");
-		}
-		echo json_encode($result);
+		// used to call eContent Help. This content has ben removed.
 	}
-
 }

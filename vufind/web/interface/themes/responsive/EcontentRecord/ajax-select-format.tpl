@@ -17,7 +17,6 @@
 			{else}
 				<input type="submit" name="submit" value="Place Hold" onclick="return placeOverDriveHold('{$overDriveId}', $('#formatId :selected').val())"/>
 			{/if}
-			<p>Not sure which format to pick?  We have <a onclick="return VuFind.Account.ajaxLightbox('/Help/eContentHelp?lightbox=true', false)" href="/Help/eContentHelp">instructions</a> for how to use most formats on common devices <a onclick="return VuFind.Account.ajaxLightbox('/Help/eContentHelp?lightbox=true', false)" href="/Help/eContentHelp">here</a>.</p>
 		</div>
 	</form>
 </div>
