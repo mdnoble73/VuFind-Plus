@@ -15,7 +15,7 @@ class Help_AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_GET['method'];
-		if (in_array($method, array('getHelpTopic', 'getSupportForm'))){
+		if (in_array($method, array('getSupportForm'))){
 			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -39,16 +39,22 @@ class Help_AJAX extends Action {
 	}
 
 	function getSupportForm(){
-		global $interface;
+		global $interface, $user;
+
+	// Presets for the form to be filled out with
+		$interface->assign('lightbox', true);
+		if ($user){
+			$interface->assign('name', $user->cat_username);
+			$interface->assign('email', $user->email);
+		}
+
 		$results = array(
-				'title' => 'eContent Support Request',
-				'modalBody' => $interface->fetch('Help/eContentSupport.tpl'),
-				'modalButtons' => "<span class='tool btn btn-primary' onclick='$(\"#eContentSupport\").submit(); return false;'>Submit</span>"
+			'title' => 'eContent Support Request',
+			'modalBody' => $interface->fetch('Help/eContentSupport.tpl'),
+//		'modalButtons' => "<span class='tool btn btn-primary' onclick='$(\"#eContentSupport\").submit(); return false;'>Submit</span>" // does not complete action. plb 10-2-2014
+			'modalButtons' => '<span class="tool btn btn-primary" onclick="VuFind.EContent.submitHelpForm();">Submit</span>'
 		);
 		return json_encode($results);
 	}
 
-	function getHelpTopic(){
-		// used to call eContent Help. This content has ben removed.
-	}
 }

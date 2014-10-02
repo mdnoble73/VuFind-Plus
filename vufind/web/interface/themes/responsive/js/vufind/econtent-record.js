@@ -9,11 +9,9 @@ VuFind.EContent = (function(){
 				type: "POST",
 				url: url,
 				data: $("#eContentSupport").serialize(), // serializes the form's elements.
-				success: function(data)
-				{
+				success: function(data){
 					var jsonData = JSON.parse(data);
 					VuFind.showMessage(jsonData.title, jsonData.message);
-
 				},
 				failure: function(data){
 					alert("Could not submit the form");
