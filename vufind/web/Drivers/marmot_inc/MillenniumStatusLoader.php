@@ -94,7 +94,7 @@ class MillenniumStatusLoader{
 					preg_match_all('/<td.*?>.*?<a href="(.*?)".*?>(.*?)<\/a>.*?<\/td>/si', $linksTable, $linkData, PREG_SET_ORDER);
 					for ($i = 0; $i < count($linkData); $i++) {
 						$linkText = $linkData[$i][2];
-						if ($linkText != 'Latest Received' && !preg_match('/\.(jpeg|jpg|gif|png)"/',$linkText)){
+						if ($linkText != 'Latest Received' && !preg_match('/\.(jpeg|jpg|gif|png)$/',$linkText)){
 						//if ($linkText != 'Latest Received'){
 							$newHolding = array(
 									'type' => 'holding',
