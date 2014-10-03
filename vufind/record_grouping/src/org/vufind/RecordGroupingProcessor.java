@@ -168,6 +168,7 @@ public class RecordGroupingProcessor {
 			}
 		}
 
+		//Check to see if the record is an overdrive record
 		if (useEContentSubfield){
 			boolean allItemsOverDrive = true;
 
@@ -196,6 +197,18 @@ public class RecordGroupingProcessor {
 			if (allItemsOverDrive){
 				//Don't return a primary identifier for this record (we will suppress the bib and just use OverDrive APIs)
 				return null;
+			}
+		}else{
+			//Check the 856 for an overdrive url
+			List<DataField> linkFields = getDataFields(marcRecord, "856");
+			for (DataField linkField : linkFields){
+				if (linkField.getSubfield('u') != null){
+					//Check the url to see if it is from OverDrive
+					String linkData = linkField.getSubfield('u').getData().trim();
+					if (linkData.matches("(?i)^http://.*?lib\\.overdrive\\.com/ContentDetails\\.htm\\?id=[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}$")){
+						return null;
+					}
+				}
 			}
 		}
 
