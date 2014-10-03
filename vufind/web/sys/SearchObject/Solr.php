@@ -44,7 +44,7 @@ class SearchObject_Solr extends SearchObject_Base
 	// Index
 	private $index = null;
 	// Field List
-	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,format_category,isbn,upc,issn,related_record_ids,related_record_items,series,format,recordtype,display_description';
+	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,format_category,isbn,upc,issn,related_record_ids,related_record_items,series,format,recordtype,display_description,literary_form,literary_form_full';
 	private $fieldsFull = '*,score';
 	// HTTP Method
 	//    private $method = HTTP_REQUEST_METHOD_GET;
@@ -1990,6 +1990,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$fieldsToReturn .= ',format_category_' . $solrScope;
 			$fieldsToReturn .= ',collection_' . $solrScope;
 			$fieldsToReturn .= ',local_time_since_added_' . $solrScope;
+
 		}else{
 			$fieldsToReturn .= ',related_record_ids';
 			$fieldsToReturn .= ',related_record_items';
