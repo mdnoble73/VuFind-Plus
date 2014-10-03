@@ -28,4 +28,17 @@ public class NashvilleRecordProcessor extends IlsRecordProcessor {
 		formats.add(format);
 	}
 
+	@Override
+	protected boolean isItemAvailable(PrintIlsItem ilsRecord) {
+		boolean available = false;
+		String status = ilsRecord.getStatus();
+		String dueDate = ilsRecord.getDateDue() == null ? "" : ilsRecord.getDateDue();
+		String availableStatus = "-dowju";
+		if (availableStatus.indexOf(status.charAt(0)) >= 0) {
+			if (dueDate.length() == 0) {
+				available = true;
+			}
+		}
+		return available;
+	}
 }

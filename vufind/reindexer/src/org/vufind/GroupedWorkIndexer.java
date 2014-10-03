@@ -141,6 +141,12 @@ public class GroupedWorkIndexer {
 			ilsRecordProcessor = new NashvilleRecordProcessor(this, vufindConn, configIni, logger);
 		}else if(ilsIndexingClassString.equals("WCPL")){
 			ilsRecordProcessor = new WCPLRecordProcessor(this, vufindConn, configIni, logger);
+		}else if(ilsIndexingClassString.equals("Anythink")){
+			ilsRecordProcessor = new AnythinkRecordProcessor(this, vufindConn, configIni, logger);
+		}else{
+			logger.error("Unknown indexing class " + ilsIndexingClassString);
+			okToIndex = false;
+			return;
 		}
 		overDriveProcessor = new OverDriveProcessor(this, vufindConn, econtentConn, logger);
 		evokeProcessor = new EVokeProcessor(this, vufindConn, configIni, logger);
@@ -204,9 +210,10 @@ public class GroupedWorkIndexer {
 					boolean includeOverdrive = libraryInformationRS.getBoolean("includeDigitalCollection");
 					Long accountingUnit = libraryInformationRS.getLong("orderAccountingUnit");
 					//Determine if we need to build a scope for this library
-					if ((pTypes.length() == 0 || pTypes.equals("-1")) && !restrictSearchByLibrary && econtentLocationsToInclude.equalsIgnoreCase("all") && includeOutOfSystemExternalLinks && !useScope){
+					//MDN 10/1/2014 always build scopes because it makes coding more consistent elsewhere.
+					/*if ((pTypes.length() == 0 || pTypes.equals("-1")) && !restrictSearchByLibrary && econtentLocationsToInclude.equalsIgnoreCase("all") && includeOutOfSystemExternalLinks && !useScope){
 						logger.debug("Not creating a scope for library because there are no restrictions for library " + subdomain);
-					}else{
+					}else{*/
 						//We need to build a scope
 						Scope newScope = new Scope();
 						newScope.setIsLibraryScope(true);
@@ -223,7 +230,7 @@ public class GroupedWorkIndexer {
 						newScope.setEContentLocationCodesToInclude(econtentLocationsToInclude.split(","));
 						newScope.setIncludeOverDriveCollection(includeOverdrive);
 						scopes.add(newScope);
-					}
+					//}
 				}
 
 				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, code, ilsCode, library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.useScope as useScopeLibrary, location.useScope as useScopeLocation, library.scope AS libraryScope, location.scope AS locationScope, restrictSearchByLocation, restrictSearchByLibrary, library.econtentLocationsToInclude as econtentLocationsToIncludeLibrary, location.econtentLocationsToInclude as econtentLocationsToIncludeLocation, library.includeDigitalCollection as includeDigitalCollectionLibrary, location.includeDigitalCollection as includeDigitalCollectionLocation, includeOutOfSystemExternalLinks, extraLocationCodesToInclude FROM location INNER JOIN library on library.libraryId = location.libraryid ORDER BY code ASC", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
@@ -247,6 +254,9 @@ public class GroupedWorkIndexer {
 					boolean includeOverDriveCollectionLibrary = locationInformationRS.getBoolean("includeDigitalCollectionLibrary");
 					boolean includeOverDriveCollectionLocation = locationInformationRS.getBoolean("includeDigitalCollectionLocation");
 					String econtentLocationsToIncludeLibrary = locationInformationRS.getString("econtentLocationsToIncludeLibrary");
+					if (econtentLocationsToIncludeLibrary == null){
+						econtentLocationsToIncludeLibrary = "all";
+					}
 					String econtentLocationsToIncludeLocation = locationInformationRS.getString("econtentLocationsToIncludeLocation");
 					if (econtentLocationsToIncludeLocation == null || econtentLocationsToIncludeLocation.length() == 0){
 						econtentLocationsToIncludeLocation = econtentLocationsToIncludeLibrary;

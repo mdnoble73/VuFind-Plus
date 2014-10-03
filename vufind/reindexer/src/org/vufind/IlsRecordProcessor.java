@@ -33,6 +33,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected String itemTag;
 	protected char barcodeSubfield;
 	protected char statusSubfieldIndicator;
+	protected char collectionSubfield;
 	protected char dueDateSubfield;
 	protected char dateCreatedSubfield;
 	protected char locationSubfieldIndicator;
@@ -73,6 +74,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		useEContentSubfield = Boolean.parseBoolean(configIni.get("Reindex", "useEContentSubfield"));
 		eContentSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "eContentSubfield");
 		barcodeSubfield = getSubfieldIndicatorFromConfig(configIni, "barcodeSubfield");
+		collectionSubfield = getSubfieldIndicatorFromConfig(configIni, "collectionSubfield");
 		statusSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "statusSubfield");
 		dueDateSubfield = getSubfieldIndicatorFromConfig(configIni, "dueDateSubfield");
 		locationSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "locationSubfield");
@@ -396,6 +398,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		ilsRecord.setCallNumber(getItemSubfieldData(callNumberSubfield, itemField));
 		ilsRecord.setCallNumberCutter(getItemSubfieldData(callNumberCutterSubfield, itemField));
 		ilsRecord.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
+		if (collectionSubfield != ' ') {
+			ilsRecord.setCollection(getItemSubfieldData(collectionSubfield, itemField));
+		}
 
 		Subfield eContentSubfield = itemField.getSubfield(eContentSubfieldIndicator);
 		if (eContentSubfield != null){
@@ -502,19 +507,13 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		ilsRecord.setCallNumberCutter(getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField));
 		ilsRecord.setBarcode(getItemSubfieldData(barcodeSubfield, itemField));
 		ilsRecord.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
+		ilsRecord.setCollection(getItemSubfieldData(collectionSubfield, itemField));
 
 		//Determine Availability
 		boolean available = false;
 		if (getAvailabilityFromMarc){
 			if (ilsRecord.getStatus() != null) {
-				String status = ilsRecord.getStatus();
-				String dueDate = ilsRecord.getDateDue() == null ? "" : ilsRecord.getDateDue();
-				String availableStatus = "-dowju";
-				if (availableStatus.indexOf(status.charAt(0)) >= 0) {
-					if (dueDate.length() == 0) {
-						available = true;
-					}
-				}
+				available = isItemAvailable(ilsRecord);
 			}
 		}else{
 			if (ilsRecord.getBarcode() != null){
@@ -526,16 +525,18 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		if (ilsRecord.getiType() != null && ilsRecord.getLocation() != null) {
 			//Figure out which ptypes are compatible with this itype
 			ilsRecord.setCompatiblePTypes(getCompatiblePTypes(ilsRecord.getiType(), ilsRecord.getLocation()));
-			//Determine which scopes have access to this record
-			for (Scope curScope : indexer.getScopes()) {
-				if (curScope.isItemPartOfScope(ilsRecord.getLocation(), ilsRecord.getCompatiblePTypes())) {
-					ilsRecord.addRelatedScope(curScope);
-				}
+		}
+		//Determine which scopes have access to this record
+		for (Scope curScope : indexer.getScopes()) {
+			if (curScope.isItemPartOfScope(ilsRecord.getLocation(), ilsRecord.getCompatiblePTypes())) {
+				ilsRecord.addRelatedScope(curScope);
 			}
 		}
 
 		return ilsRecord;
 	}
+
+	protected abstract boolean isItemAvailable(PrintIlsItem ilsRecord);
 
 	private String getItemSubfieldData(char subfieldIndicator, DataField itemField) {
 		if (subfieldIndicator == ' '){
@@ -649,18 +650,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	protected boolean isItemSuppressed(DataField curItem) {
-		Subfield icode2Subfield = curItem.getSubfield(iCode2Subfield);
-		if (icode2Subfield == null){
-			return false;
-		}
-		String icode2 = icode2Subfield.getData().toLowerCase().trim();
-		Subfield locationCodeSubfield = curItem.getSubfield(locationSubfieldIndicator);
-		if (locationCodeSubfield == null)                                                 {
-			return false;
-		}
-		String locationCode = locationCodeSubfield.getData().trim();
-
-		return icode2.equals("n") || icode2.equals("x") || locationCode.equals("zzzz");
+		return false;
 	}
 
 	protected void loadAvailability(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {

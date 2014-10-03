@@ -21,6 +21,11 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 	}
 
 	@Override
+	protected boolean isItemAvailable(PrintIlsItem ilsRecord) {
+		return false;
+	}
+
+	@Override
 	public void loadPrintFormatInformation(IlsRecord ilsRecord, Record record) {
 		//Get formats based on 949c
 		Set<String> collectionFields = this.getFieldList(record, "949c");

@@ -18,6 +18,7 @@ public class IlsItem {
 	private String callNumber;
 	private String callNumberCutter;
 	private String itemRecordNumber;
+	private String collection;
 
 	private HashSet<Scope> relatedScopes = new HashSet<Scope>();
 	private String recordIdentifier;
@@ -136,4 +137,11 @@ public class IlsItem {
 		return subdomains;
 	}
 
+	public String getCollection() {
+		return collection;
+	}
+
+	public void setCollection(String collection) {
+		this.collection = collection;
+	}
 }

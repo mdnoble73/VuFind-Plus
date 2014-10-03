@@ -170,6 +170,35 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		return unsuppressedItemRecords;
 	}
 
+	@Override
+	protected boolean isItemAvailable(PrintIlsItem ilsRecord) {
+		boolean available = false;
+		String status = ilsRecord.getStatus();
+		String dueDate = ilsRecord.getDateDue() == null ? "" : ilsRecord.getDateDue();
+		String availableStatus = "-dowju";
+		if (availableStatus.indexOf(status.charAt(0)) >= 0) {
+			if (dueDate.length() == 0) {
+				available = true;
+			}
+		}
+		return available;
+	}
+
+	protected boolean isItemSuppressed(DataField curItem) {
+		Subfield icode2Subfield = curItem.getSubfield(iCode2Subfield);
+		if (icode2Subfield == null){
+			return false;
+		}
+		String icode2 = icode2Subfield.getData().toLowerCase().trim();
+		Subfield locationCodeSubfield = curItem.getSubfield(locationSubfieldIndicator);
+		if (locationCodeSubfield == null)                                                 {
+			return false;
+		}
+		String locationCode = locationCodeSubfield.getData().trim();
+
+		return icode2.equals("n") || icode2.equals("x") || locationCode.equals("zzzz");
+	}
+
 	protected List<EContentIlsItem> getUnsuppressedEContentItems(String identifier, Record record){
 		List<DataField> itemRecords = getDataFields(record, itemTag);
 		List<EContentIlsItem> unsuppressedEcontentRecords = new ArrayList<EContentIlsItem>();

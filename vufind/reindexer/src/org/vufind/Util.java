@@ -276,6 +276,9 @@ public class Util {
 	}
 
 	public static String getCommaSeparatedString(HashSet<String> values) {
+		if (values == null){
+			return "";
+		}
 		StringBuffer crSeparatedString = new StringBuffer();
 		for (String curValue : values) {
 			if (crSeparatedString.length() > 0) {
