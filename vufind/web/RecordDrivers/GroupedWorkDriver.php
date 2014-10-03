@@ -48,6 +48,16 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 	}
 
+	private static function normalizeEdition($edition) {
+		$edition = strtolower($edition);
+		$edition = str_replace('first', '1', $edition);
+		$edition = str_replace('second', '2', $edition);
+		$edition = str_replace('third', '3', $edition);
+		$edition = str_replace('fourth', '4', $edition);
+		$edition = preg_replace('/\D/', '', $edition);
+		return $edition;
+	}
+
 	public function setScopingEnabled($enabled){
 		$this->scopingEnabled = $enabled;
 	}
@@ -1088,7 +1098,7 @@ class GroupedWorkDriver extends RecordInterface{
 					$timer->logTime("Finished loading related records for $relatedRecordId");
 				}
 				//Sort the records based on format and then edition
-				usort($relatedRecords, array("GroupedWorkDriver", "compareRelatedRecords"));
+				usort($relatedRecords, array($this, "compareRelatedRecords"));
 			}
 			$this->relatedRecords = $relatedRecords;
 		}
@@ -1245,7 +1255,16 @@ class GroupedWorkDriver extends RecordInterface{
 		return $relatedManifestations;
 	}
 
-	static function compareRelatedRecords($a, $b){
+	function compareRelatedRecords($a, $b){
+		//Get literary form to determine if we should compare editions
+		$literaryForm = '';
+		if (isset($this->fields['literary_form'])){
+			if (is_array($this->fields['literary_form'])){
+				$literaryForm = reset($this->fields['literary_form']);
+			}else{
+				$literaryForm = $this->fields['literary_form'];
+			}
+		}
 		//First sort by format
 		$format1 = $a['format'];
 		$format2 = $b['format'];
@@ -1263,7 +1282,7 @@ class GroupedWorkDriver extends RecordInterface{
 			$languageComparison = GroupedWorkDriver::compareLanguagesForRecords($a, $b);
 			if ($languageComparison == 0){
 				//Compare editions if available
-				$editionComparisonResult = GroupedWorkDriver::compareEditionsForRecords($a, $b);
+				$editionComparisonResult = GroupedWorkDriver::compareEditionsForRecords($literaryForm, $a, $b);
 				if ($editionComparisonResult == 0){
 					//Put anything with a local copy higher
 					$localItemComparisonResult = GroupedWorkDriver::compareLocalItemsForRecords($a, $b);
@@ -1347,16 +1366,20 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 	}
 
-	static function compareEditionsForRecords($a, $b){
-		$editionA = preg_replace('/\D/', '', $a['edition']);
-		$editionB = preg_replace('/\D/', '', $b['edition']);
-		if ($editionA == $editionB){
-			return 0;
-		}else if ($editionA > $editionB){
-			return -1;
-		}else{
-			return 1;
+	static function compareEditionsForRecords($literaryForm, $a, $b){
+		//We only want to compare editions if the work is non-fiction
+		if ($literaryForm == 'Non Fiction'){
+			$editionA = GroupedWorkDriver::normalizeEdition($a['edition']);
+			$editionB = GroupedWorkDriver::normalizeEdition($b['edition']);
+			if ($editionA == $editionB){
+				return 0;
+			}else if ($editionA > $editionB){
+				return -1;
+			}else{
+				return 1;
+			}
 		}
+		return 0;
 	}
 
 	static function compareAvailabilityForRecords($a, $b){
