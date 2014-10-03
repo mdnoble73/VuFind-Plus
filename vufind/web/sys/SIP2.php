@@ -722,6 +722,10 @@ class sip2
 		}
 		$this->_debugmsg( "SIP2: Attempting to connect to '$address' on port '{$this->port}'...");
 
+		//Set SIP timeouts
+		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 0, 'usec' => 250));
+		socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 0, 'usec' => 250));
+
 		/* open a connection to the host */
 		$result = socket_connect($this->socket, $address, $this->port);
 		if (!$result) {

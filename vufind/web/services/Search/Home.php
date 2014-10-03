@@ -83,12 +83,13 @@ class Search_Home extends Action {
 		$interface->assign('browseCategories', $browseCategories);
 
 		//Get the Browse Results for the first list
-		require_once ROOT_DIR . '/services/Browse/AJAX.php';
-		$browseAJAX = new Browse_AJAX();
-		$browseResults = $browseAJAX->getBrowseCategoryInfo(reset($browseCategories)->textId);
+		if (count($browseCategories) > 0){
+			require_once ROOT_DIR . '/services/Browse/AJAX.php';
+			$browseAJAX = new Browse_AJAX();
+			$browseResults = $browseAJAX->getBrowseCategoryInfo(reset($browseCategories)->textId);
 
-		$interface->assign('browseResults', $browseResults);
-
+			$interface->assign('browseResults', $browseResults);
+		}
 
 		$interface->setPageTitle('Catalog Home');
 		$interface->assign('sidebar', 'Search/home-sidebar.tpl');
