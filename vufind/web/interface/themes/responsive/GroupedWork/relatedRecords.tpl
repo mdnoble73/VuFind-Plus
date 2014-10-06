@@ -75,7 +75,7 @@
 					{elseif $relatedRecord.available}
 						<div class="related-manifestation-shelf-status availableOther">Available from another library</div>
 					{else}
-						<div class="related-manifestation-shelf-status checked_out">Checked Out</div>
+						<div class="related-manifestation-shelf-status checked_out">{$relatedRecord.groupedStatus}</div>
 					{/if}
 
 					{include file='GroupedWork/issueSummary.tpl' summary=$relatedRecord.itemSummary totalCopies=$relatedRecord.copies itemSummaryId=$relatedRecord.id}
