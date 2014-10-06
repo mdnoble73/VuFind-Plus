@@ -154,6 +154,14 @@ class Innovative implements DriverInterface
 	public function getItemsFast($id, $scopingEnabled){
 		return array();
 	}
+
+	public function getMyProfile($patron, $forceReload = false) {
+		// TODO: Implement getMyProfile() method.
+	}
+
+	public function patronLogin($username, $password) {
+		// TODO: Implement patronLogin() method.
+	}
 }
 
 ?>
