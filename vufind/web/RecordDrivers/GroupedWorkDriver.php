@@ -19,27 +19,22 @@ class GroupedWorkDriver extends RecordInterface{
 	public function __construct($indexFields)
 	{
 		if (is_string($indexFields)){
-			global $configArray;
-
 			$id = $indexFields;
 			//Just got a record id, let's load the full record from Solr
 			// Setup Search Engine Connection
-			$class = $configArray['Index']['engine'];
-			$url = $configArray['Index']['url'];
-			/** @var Solr $db */
-			$db = new $class($url);
-			$db->disableScoping();
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->disableScoping();
 			if (function_exists('disableErrorHandler')){
 				disableErrorHandler();
 			}
 
 			// Retrieve the record from Solr
-			if (!($record = $db->getRecord($id))) {
+			if (!($record = $searchObject->getRecord($id))) {
 				$this->isValid = false;
 			}else{
 				$this->fields = $record;
 			}
-			$db->enableScoping();
+			$searchObject->enableScoping();
 			if (function_exists('enableErrorHandler')){
 				enableErrorHandler();
 			}

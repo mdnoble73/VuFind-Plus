@@ -347,13 +347,17 @@ class Solr implements IndexEngine {
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
-		$record = $memCache->get("solr_record_$id");
-		if ($record == false){
+		global $solrScope;
+		$record = $memCache->get("solr_record_{$id}_{$solrScope}");
+		if ($record == false || isset($_REQUEST['reload'])){
 
 			// Query String Parameters
 			$options = array('q' => "id:\"$id\"");
 			if ($fieldsToReturn){
-				$options['fields'] = $fieldsToReturn;
+				$options['fl'] = $fieldsToReturn;
+			}else{
+				$validFields = $this->_loadValidFields();
+				$options['fl'] = implode(',', $validFields);
 			}
 			$result = $this->_select('GET', $options);
 			if (PEAR_Singleton::isError($result)) {
@@ -362,7 +366,7 @@ class Solr implements IndexEngine {
 
 			if (isset($result['response']['docs'][0])){
 				$record = $result['response']['docs'][0];
-				$memCache->set("solr_record_$id", $record, 0, $configArray['Caching']['solr_record']);
+				$memCache->set("solr_record_{$id}_{$solrScope}", $record, 0, $configArray['Caching']['solr_record']);
 			}else{
 				global $logger;
 				$logger->log("Unable to find record $id in Solr", PEAR_LOG_ERR);
@@ -2384,8 +2388,9 @@ class Solr implements IndexEngine {
 	private function _loadValidFields(){
 		/** @var Memcache $memCache */
 		global $memCache;
-		$fields = $memCache->get('schema_fields');
-		if (!$fields){
+		global $solrScope;
+		$fields = $memCache->get("schema_fields_$solrScope");
+		if (!$fields || isset($_REQUEST['reload'])){
 			global $configArray;
 			$schemaUrl = $configArray['Index']['url'] . '/grouped/admin/file?file=schema.xml&contentType=text/xml;charset=utf-8';
 			$schema = simplexml_load_file($schemaUrl);
@@ -2395,7 +2400,12 @@ class Solr implements IndexEngine {
 				//print_r($field);
 				$fields[] = (string)$field['name'];
 			}
-			$memCache->set('schema_fields', $fields, 0, 24 * 60 * 60);
+			if ($solrScope){
+				foreach ($schema->fields->dynamicField as $field){
+					$fields[] = substr((string)$field['name'], 0, -1) . $solrScope ;
+				}
+			}
+			$memCache->set("schema_fields_$solrScope", $fields, 0, 24 * 60 * 60);
 		}
 		return $fields;
 	}

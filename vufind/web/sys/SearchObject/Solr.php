@@ -1938,7 +1938,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	function getRecord($id)
 	{
-		return $this->indexEngine->getRecord($id, $this->getFieldsToReturn());
+		return $this->indexEngine->getRecord($id);
 	}
 
 	/**
@@ -1951,7 +1951,7 @@ class SearchObject_Solr extends SearchObject_Base
 	 */
 	function getRecords($ids)
 	{
-		return $this->indexEngine->getRecords($ids, $this->getFieldsToReturn());
+		return $this->indexEngine->getRecords($ids);
 	}
 
 	/**

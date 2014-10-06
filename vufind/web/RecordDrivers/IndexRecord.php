@@ -1112,9 +1112,8 @@ class IndexRecord extends RecordInterface
 
 		// Build the index engine if we don't already have one:
 		if (!$this->index) {
-			$class = $configArray['Index']['engine'];
-			$url = $configArray['Index']['url'];
-			$this->index = new $class($url);
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$this->index = new $searchObject;
 		}
 
 		return $this->index;
