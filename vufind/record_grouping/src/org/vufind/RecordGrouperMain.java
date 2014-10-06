@@ -116,19 +116,9 @@ public class RecordGrouperMain {
 		loadIlsChecksums(vufindConn);
 
 		boolean errorAddingGroupedWorks = false;
-		try{
-			vufindConn.setAutoCommit(false);
-			groupEVokeRecords(configIni, recordGroupingProcessor);
-			vufindConn.commit();
-			groupOverDriveRecords(econtentConnection, recordGroupingProcessor);
-			vufindConn.commit();
-			groupIlsRecords(configIni, recordGroupingProcessor);
-			vufindConn.commit();
-			vufindConn.setAutoCommit(true);
-		}catch (SQLException e){
-			logger.error("Error updating grouped works", e);
-			errorAddingGroupedWorks = true;
-		}
+		groupEVokeRecords(configIni, recordGroupingProcessor);
+		groupOverDriveRecords(econtentConnection, recordGroupingProcessor);
+		groupIlsRecords(configIni, recordGroupingProcessor);
 
 		try{
 			vufindConn.setAutoCommit(false);
