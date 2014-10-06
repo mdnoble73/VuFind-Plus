@@ -7,6 +7,7 @@ import org.marc4j.marc.Record;
 
 import java.sql.Connection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -73,4 +74,9 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 			groupedWork.addCollectionGroup(indexer.translateValue("collection_group", collection.toLowerCase()));
 		}
 	}
+
+	protected Set<String> getBisacSubjects(Record record){
+		return getFieldList(record, "690a");
+	}
+
 }

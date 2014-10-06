@@ -52,6 +52,8 @@ abstract class FacetSetting extends DB_DataObject {
 			"callnumber-first" => "LC Call Number",
 			"awards_facet" => "Awards",
 			"detailed_location" => "Detailed Location",
+			"lc_subject" => "LC Subject",
+			"bisac_subject" => "Bisac Subject",
 		);
 		asort($availableFacets);
 		return $availableFacets;

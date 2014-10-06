@@ -35,6 +35,7 @@ public class GroupedWorkSolr {
 	private HashSet<String> availableAt = new HashSet<String>();
 	private HashMap<String, HashSet<String>> availabilityToggleByLibrarySystem = new HashMap<String, HashSet<String>>();
 	private HashSet<String> barcodes = new HashSet<String>();
+	private HashSet<String> bisacSubjects = new HashSet<String>();
 	private String callNumberA;
 	private String callNumberFirst;
 	private String callNumberSubject;
@@ -71,6 +72,7 @@ public class GroupedWorkSolr {
 	private Long languageBoost = 1L;
 	private Long languageBoostSpanish = 1L;
 	private HashSet<String> lccns = new HashSet<String>();
+	private HashSet<String> lcSubjects = new HashSet<String>();
 	private String lexileScore = "-1";
 	private String lexileCode = "";
 	private HashMap<String, Integer> literaryFormFull = new HashMap<String, Integer>();
@@ -201,6 +203,8 @@ public class GroupedWorkSolr {
 		doc.addField("series2", series2);
 		doc.addField("topic", topics);
 		doc.addField("topic_facet", topicFacets);
+		doc.addField("lc_subject", lcSubjects);
+		doc.addField("bisac_subject", bisacSubjects);
 		doc.addField("genre", genres);
 		doc.addField("genre_facet", genreFacets);
 		doc.addField("geographic", geographic);
@@ -1157,5 +1161,13 @@ public class GroupedWorkSolr {
 				workDetails.setFormatBoost(ilsRecord.getFormatBoost());
 			}
 		}
+	}
+
+	public void addLCSubjects(Set<String> lcSubjects) {
+		this.lcSubjects.addAll(lcSubjects);
+	}
+
+	public void addBisacSubjects(Set<String> bisacSubjects) {
+		this.bisacSubjects.addAll(bisacSubjects);
 	}
 }

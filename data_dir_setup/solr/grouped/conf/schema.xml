@@ -182,7 +182,9 @@
 		<dynamicField name="format_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<field name="format_boost" type="integer" indexed="true" stored="true" multiValued="false" omitNorms="true" default="1"/>
 		<field name="format_category" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
-		<field name="format_category_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+		<dynamicField name="format_category_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+		<dynamicField name="availability_by_format_category_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+		<dynamicField name="availability_by_format_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<!-- Language Related Fields -->
 		<field name="language" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<field name="language_boost" type="integer" indexed="true" stored="true" multiValued="false" omitNorms="true" default="1"/>
@@ -202,6 +204,8 @@
 		<field name="topic" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="topic_proper" type="textProper" indexed="true" stored="true" multiValued="true"/>
 		<field name="topic_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>
+		<field name="lc_subject" type="textFacet" indexed="true" stored="true" multiValued="true"/>
+		<field name="bisac_subject" type="textFacet" indexed="true" stored="true" multiValued="true"/>
 		<field name="genre" type="text" indexed="true" stored="true" multiValued="true"/>
 		<field name="genre_proper" type="textProper" indexed="true" stored="true" multiValued="true"/>
 		<field name="genre_facet" type="textFacet" indexed="true" stored="true" multiValued="true" termVectors="true"/>

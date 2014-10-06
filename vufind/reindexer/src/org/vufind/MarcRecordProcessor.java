@@ -35,6 +35,10 @@ public abstract class MarcRecordProcessor {
 		loadAuthors(groupedWork, record);
 		groupedWork.addTopic(getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690a"));
 		groupedWork.addTopicFacet(getFieldList(record, "600a:600x:610x:611x:630a:630x:648x:650a:650x:651x:655x"));
+		//Add lc subjects
+		groupedWork.addLCSubjects(getLCSubjects(record));
+		//Add bisac subjects
+		groupedWork.addBisacSubjects(getBisacSubjects(record));
 		groupedWork.addSeries(getFieldList(record, "440ap:800pqt:830ap"));
 		groupedWork.addSeries2(getFieldList(record, "490a"));
 		groupedWork.addDateSpan(getFieldList(record, "362a"));
@@ -56,6 +60,51 @@ public abstract class MarcRecordProcessor {
 		groupedWork.setAcceleratedReaderPointValue(getAcceleratedReaderPointLevel(record));
 		groupedWork.addAllFields(getAllFields(record));
 		groupedWork.addKeywords(getAllSearchableFields(record, 100, 900));
+	}
+
+	protected Set<String> getBisacSubjects(Record record){
+		HashSet<String> bisacSubjects = new HashSet<String>();
+		List<DataField> fields = getDataFields(record, "650");
+		for (DataField field : fields){
+			if (field.getIndicator2() == '0' || field.getIndicator2() == '1') {
+				continue;
+			}
+			if (field.getSubfield('2') != null){
+				if (field.getSubfield('2').getData().equals("bisacsh") ||
+						field.getSubfield('2').getData().equals("bisacmt") ||
+						field.getSubfield('2').getData().equals("bisacrt")){
+					if (field.getSubfield('a') != null){
+						bisacSubjects.add(field.getSubfield('a').getData());
+					}
+					if (field.getSubfield('x') != null){
+						bisacSubjects.add(field.getSubfield('x').getData());
+					}
+				}
+			}
+		}
+		return bisacSubjects;
+	}
+
+
+	protected Set<String> getLCSubjects(Record record) {
+		HashSet<String> lcSubjects = new HashSet<String>();
+		List<DataField> fields = getDataFields(record, "650");
+		for (DataField field : fields){
+			if (field.getIndicator2() == '0' || field.getIndicator2() == '1'){
+				if (field.getSubfield('2') != null){
+					if (field.getSubfield('2').getData().equals("bisacsh")){
+						continue;
+					}
+				}
+				if (field.getSubfield('a') != null){
+					lcSubjects.add(field.getSubfield('a').getData());
+				}
+				if (field.getSubfield('x') != null){
+					lcSubjects.add(field.getSubfield('x').getData());
+				}
+			}
+		}
+		return lcSubjects;
 	}
 
 	protected abstract void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier);
