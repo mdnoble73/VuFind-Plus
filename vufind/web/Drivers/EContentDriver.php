@@ -364,18 +364,6 @@ class EContentDriver implements DriverInterface{
 			$holds->find();
 			$statusSummary['numAvailableHolds'] = $holds->N;
 
-			//Check to see if the record is on the user's wishlist
-			if ($user){
-				$eContentWishList = new EContentWishList();
-				$eContentWishList->userId = $user->id;
-				$eContentWishList->recordId = $id;
-				$eContentWishList->status = 'active';
-				$eContentWishList->find();
-				if ($eContentWishList->N > 0){
-					$addedToWishList = true;
-				}
-			}
-
 			if (count($holdings) == 0){
 				$statusSummary['availableCopies'] = 0;
 			}else{
@@ -1395,5 +1383,13 @@ class EContentDriver implements DriverInterface{
 	 */
 	public function getItemsFast($id, $scopingEnabled) {
 		return $this->getStatus($id);
+	}
+
+	public function getMyProfile($patron, $forceReload = false) {
+		// TODO: Implement getMyProfile() method.
+	}
+
+	public function patronLogin($username, $password) {
+		// TODO: Implement patronLogin() method.
 	}
 }

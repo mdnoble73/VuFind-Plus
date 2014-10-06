@@ -50,5 +50,7 @@ interface DriverInterface
 	public function getStatuses($ids);
 	public function getHolding($id);
 	public function getPurchaseHistory($id);
+	public function getMyProfile($patron, $forceReload = false);
+	public function patronLogin($username, $password);
 }
 ?>

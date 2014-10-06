@@ -1427,13 +1427,13 @@ public function getMyHoldsViaDB($patron)
 	}
 
 	private $patronProfiles = array();
-	public function getMyProfile($patron) {
+	public function getMyProfile($patron, $forceReload = false) {
 		global $timer;
 		global $configArray;
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
 		}
-		if (array_key_exists($patron['username'], $this->patronProfiles)){
+		if (array_key_exists($patron['username'], $this->patronProfiles) && !$forceReload){
 			$timer->logTime('Retrieved Cached Profile for Patron');
 			return $this->patronProfiles[$patron['username']];
 		}
@@ -2012,11 +2012,7 @@ public function renewItem($patronId, $itemId){
 
 						//Get the id for the item
 						$searchObject = SearchObjectFactory::initSearchObject();
-						$class = $configArray['Index']['engine'];
-						$url = $configArray['Index']['url'];
-						$index = new $class($url);
-
-						$record = $index->getRecordByBarcode($itemId);
+						$record = $searchObject->getRecordByBarcode($itemId);
 
 						if ($record){
 							//Get holdings summary
@@ -2450,13 +2446,10 @@ public function renewItem($patronId, $itemId){
 
 	public function getRecordTitle($recordId){
 		//Get the title of the book.
-		global $configArray;
-		$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		$this->db = new $class($url);
+		$searchObject = SearchObjectFactory::initSearchObject();
 
 		// Retrieve Full Marc Record
-		if (!($record = $this->db->getRecord($recordId))) {
+		if (!($record = $searchObject->getRecord($recordId))) {
 			$title = null;
 		}else{
 			if (isset($record['title_full'][0])){
