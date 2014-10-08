@@ -5,18 +5,20 @@
 {if !empty($message)}
 {translate text="Message From Sender"}:
 {$message}
+------------------------------------------------------------
 {/if}
 {if $error}
-	{$error}
-{else}
+{$error}
 ------------------------------------------------------------
+{else}
 {foreach from=$titles item=title}
+
 {$title.title_display}
 {$title.author_display}
 {$url}/GroupedWork/{$title.id}/Home
 
 {section name=listEntry loop=$listEntries}
-{*If the listEntry has a note see if it the same work*}
+{*If the listEntry has a note see if it is the same work*}
 {if $listEntries[listEntry]->notes && $listEntries[listEntry]->groupedWorkPermanentId == $title.id}
 Notes: {$listEntries[listEntry]->notes}
 

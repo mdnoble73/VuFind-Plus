@@ -135,11 +135,14 @@ class FavoriteHandler
 		$interface->assign('pageLinks', $pager->getLinks());
 	}
 
-	function getTitles(){
+	function getTitles($numListEntries){
 		// Initialise from the current search globals
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
+		// these are added for emailing list  plb 10-8-2014
+		$searchObject->disableScoping(); // get title data regardless of scope
+		$searchObject->setLimit($numListEntries); // only get results for each item
 
 		// Retrieve records from index (currently, only Solr IDs supported):
 		if (count($this->ids) > 0) {
