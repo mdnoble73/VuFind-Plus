@@ -11,7 +11,18 @@
 {else}
 ------------------------------------------------------------
 {foreach from=$titles item=title}
-{$title.title} {$title.author} ({$url}/GroupedWork/{$title.id}/Home)
+{$title.title_display}
+{$title.author_display}
+{$url}/GroupedWork/{$title.id}/Home
+
+{section name=listEntry loop=$listEntries}
+{*If the listEntry has a note see if it the same work*}
+{if $listEntries[listEntry]->notes && $listEntries[listEntry]->groupedWorkPermanentId == $title.id}
+Notes: {$listEntries[listEntry]->notes}
+
+{/if}
+{/section}
+---------------------
 {/foreach}
 {/if}
 

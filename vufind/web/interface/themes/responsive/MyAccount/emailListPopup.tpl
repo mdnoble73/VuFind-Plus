@@ -6,9 +6,9 @@
 		onSubmit='VuFind.Lists.SendMyListEmail(this.elements[&quot;to&quot;].value,
 		this.elements[&quot;from&quot;].value, this.elements[&quot;message&quot;].value,this.elements[&quot;listId&quot;].value
 		{* Pass translated strings to Javascript -- ugly but necessary: *}
-		{literal}{{/literal}sending: &quot;{translate text='email_sending'}&quot;,
+		{ldelim}sending: &quot;{translate text='email_sending'}&quot;,
 		 success: &quot;{translate text='email_success'}&quot;,
-		 failure: &quot;{translate text='email_failure'}&quot;{literal}}{/literal}
+		 failure: &quot;{translate text='email_failure'}&quot;{rdelim}
 		); return false;'>
 		<div class="form-group">
 			<input type="hidden" name="listId" value="{$listId|escape}">
