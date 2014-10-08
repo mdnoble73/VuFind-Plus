@@ -1631,29 +1631,17 @@ class MarcRecord extends IndexRecord
 				}
 				//Check to see if we got a better grouped status
 				if (isset($item['groupedStatus'])){
-					if ($groupedStatus == 'Currently Unavailable'){
-						if ($item['groupedStatus'] != 'Currently Unavailable'){
-							$groupedStatus = $item['groupedStatus'];
-						}
-					}elseif ($groupedStatus == 'Checked Out'){
-						if ($item['groupedStatus'] != 'Currently Unavailable' && $item['groupedStatus'] != 'Checked Out'){
-							$groupedStatus = $item['groupedStatus'];
-						}
-					}elseif ($groupedStatus == 'Available Soon'){
-						if ($item['groupedStatus'] != 'Currently Unavailable' && $item['groupedStatus'] != 'Checked Out' && $item['groupedStatus'] != 'Available Soon'){
-							$groupedStatus = $item['groupedStatus'];
-						}
-					}elseif ($groupedStatus == 'Library Use Only'){
-						if ($item['groupedStatus'] != 'Currently Unavailable' && $item['groupedStatus'] != 'Checked Out'
-							&& $item['groupedStatus'] != 'Available Soon' && $item['groupedStatus'] != 'Library Use Only'){
-							$groupedStatus = $item['groupedStatus'];
-						}
-					}elseif ($groupedStatus == 'Available Online'){
-						if ($item['groupedStatus'] != 'Currently Unavailable' && $item['groupedStatus'] != 'Checked Out'
-							&& $item['groupedStatus'] != 'Available Soon' && $item['groupedStatus'] != 'Library Use Only'
-							&& $item['groupedStatus'] != 'Available Online'){
-							$groupedStatus = $item['groupedStatus'];
-						}
+					$statusRankings = array(
+						'On Order' => 1,
+						'Currently Unavailable' => 2,
+						'Checked Out' => 3,
+						'Coming Soon' => 4,
+						'Library Use Only' => 5,
+						'Available Online' => 6,
+						'On Shelf' => 7
+					);
+					if ($statusRankings[$item['groupedStatus']] > $statusRankings[$groupedStatus]){
+						$groupedStatus = $item['groupedStatus'];
 					}
 				}
 			}
@@ -1941,7 +1929,7 @@ class MarcRecord extends IndexRecord
 					$callNumber = $itemData[3];
 					$onOrderCopies = 0;
 					if (substr($itemData[1], 0, 2) == '.o'){
-						$groupedStatus = "Available Soon";
+						$groupedStatus = "On Order";
 						$callNumber = "ON ORDER";
 						$status = "On Order";
 						$onOrderCopies = $itemData[8];

@@ -58,7 +58,7 @@
 								<div class="related-manifestation-shelf-status checked_out">{if $relatedManifestation.groupedStatus}{$relatedManifestation.groupedStatus}{else}Checked Out{/if}</div>
 							{/if}
 
-							{include file='GroupedWork/issueSummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id}
+							{include file='GroupedWork/copySummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id}
 
 						</div>
 						<div class="col-xs-8 col-xs-offset-4 col-md-4 col-md-offset-0 col-lg-3 manifestation-actions">
