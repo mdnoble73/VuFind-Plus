@@ -1634,8 +1634,8 @@ class MarcRecord extends IndexRecord
 					$statusRankings = array(
 						'On Order' => 1,
 						'Currently Unavailable' => 2,
-						'Checked Out' => 3,
-						'Coming Soon' => 4,
+						'Coming Soon' => 3,
+						'Checked Out' => 4,
 						'Library Use Only' => 5,
 						'Available Online' => 6,
 						'On Shelf' => 7
