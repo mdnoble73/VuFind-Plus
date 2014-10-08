@@ -29,6 +29,7 @@ class EmailList extends Action {
 
 		if (isset($_POST['from'])) {
 			$result = $this->sendEmail($_POST['to'], $_POST['from'], $_POST['message']);
+
 			if (!PEAR_Singleton::isError($result)) {
 				require_once 'MyList.php';
 				header("Location:/MyAccount/MyList/" . $_REQUEST['listId']);
@@ -58,6 +59,7 @@ class EmailList extends Action {
 		if ($list->find(true)){
 			// Build Favorites List
 			$titles = $list->getListTitles();
+			$interface->assign('listEntries', $titles);
 
 			// Load the User object for the owner of the list (if necessary):
 			if ($user && $user->id == $list->user_id || $list->public == 1) {
@@ -73,7 +75,9 @@ class EmailList extends Action {
 			$interface->assign('error', 'Unable to read list');
 		}
 
-		$interface->assign('from', $from);
+		//$interface->assign('from', $from);
+		// not used in my-list.tpl  plb 10-7-2014
+
 		if (strpos($message, 'http') === false && strpos($message, 'mailto') === false && $message == strip_tags($message)){
 			$interface->assign('message', $message);
 			$body = $interface->fetch('Emails/my-list.tpl');
