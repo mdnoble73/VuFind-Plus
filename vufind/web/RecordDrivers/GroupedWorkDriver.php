@@ -1173,33 +1173,22 @@ class GroupedWorkDriver extends RecordInterface{
 			if (isset($curRecord['itemSummary'])){
 				$relatedManifestations[$curRecord['format']]['itemSummary'] = $this->mergeItemSummary($relatedManifestations[$curRecord['format']]['itemSummary'], $curRecord['itemSummary']);
 			}
+			$statusRankings = array(
+				'On Order' => 1,
+				'Currently Unavailable' => 2,
+				'Checked Out' => 3,
+				'Coming Soon' => 4,
+				'Library Use Only' => 5,
+				'Available Online' => 6,
+				'On Shelf' => 7
+			);
 			if (isset($curRecord['groupedStatus'])){
 				$groupedStatus = $relatedManifestations[$curRecord['format']]['groupedStatus'];
 				if ($groupedStatus == ''){
 					$groupedStatus = $curRecord['groupedStatus'];
-				}elseif ($groupedStatus == 'Currently Unavailable'){
-					if ($curRecord['groupedStatus'] != 'Currently Unavailable'){
-						$groupedStatus = $curRecord['groupedStatus'];
-					}
-				}elseif ($groupedStatus == 'Checked Out'){
-					if ($curRecord['groupedStatus'] != 'Currently Unavailable' && $curRecord['groupedStatus'] != 'Checked Out'){
-						$groupedStatus = $curRecord['groupedStatus'];
-					}
-				}elseif ($groupedStatus == 'Available Soon'){
-					if ($curRecord['groupedStatus'] != 'Currently Unavailable' && $curRecord['groupedStatus'] != 'Checked Out' && $curRecord['groupedStatus'] != 'Available Soon'){
-						$groupedStatus = $curRecord['groupedStatus'];
-					}
-				}elseif ($groupedStatus == 'Library Use Only'){
-					if ($curRecord['groupedStatus'] != 'Currently Unavailable' && $curRecord['groupedStatus'] != 'Checked Out'
-						&& $curRecord['groupedStatus'] != 'Available Soon' && $curRecord['groupedStatus'] != 'Library Use Only'){
-						$groupedStatus = $curRecord['groupedStatus'];
-					}
-				}elseif ($groupedStatus == 'Available Online'){
-					if ($curRecord['groupedStatus'] != 'Currently Unavailable' && $curRecord['groupedStatus'] != 'Checked Out'
-						&& $curRecord['groupedStatus'] != 'Available Soon' && $curRecord['groupedStatus'] != 'Library Use Only'
-						&& $curRecord['groupedStatus'] != 'Available Online'){
-						$groupedStatus = $curRecord['groupedStatus'];
-					}
+				//Check to see if we are getting a better status
+				}elseif ($statusRankings[$curRecord['groupedStatus']] > $statusRankings[$groupedStatus]){
+					$groupedStatus = $curRecord['groupedStatus'];
 				}
 				$relatedManifestations[$curRecord['format']]['groupedStatus'] = $groupedStatus;
 			}

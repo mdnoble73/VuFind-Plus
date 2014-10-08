@@ -53,3 +53,39 @@
 //#searchSource {
 //  color: black;
 //}
+
+// custom styling of main browse category carousel
+#browse-category-carousel {
+  overflow: visible; // allow all list items to be seen
+  left: 0;
+  width: 95%;
+  margin-left: 5%;
+}
+#browse-category-carousel ul {
+  position: static; // restore positioning behavior
+  width: 100%;
+}
+
+#browse-category-carousel li {
+  // set number items to display in a row based on screen size
+  // default 4 per row, smallest 2 per row, small 3 per row
+  width: 23% !important;
+  @media (max-width: @screen-sm-max) {
+    width: 31% !important;
+  }
+  @media (max-width: @screen-xs-max) {
+    width: 48% !important;
+  }
+  float: left; // retains float left; ul positional is more critical. plb 9-16-2014
+}
+// hide scrolling controls
+#browse-category-picker .jcarousel-control-prev, #browse-category-picker .jcarousel-control-next, #browse-category-picker .jcarousel-pagination {
+  display: none;
+}
+
+// Selected Category needs to give a highlighted appearance
+.browse-category.selected {
+  background-color: @selectedCategoryColor;
+  background: linear-gradient(to bottom, @selectedCategoryColor, @selectedCategoryColor 82%, @categoryLineShadow 83%, @categoryLineColor 84%, @categoryLineColor 88%, @categoryLineShadow 89%, @selectedCategoryColor 90%, @selectedCategoryColor);
+  font-size: @browse-category-font-size + 2;
+}

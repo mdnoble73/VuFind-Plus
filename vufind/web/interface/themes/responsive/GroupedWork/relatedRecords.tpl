@@ -78,7 +78,7 @@
 						<div class="related-manifestation-shelf-status checked_out">{$relatedRecord.groupedStatus}</div>
 					{/if}
 
-					{include file='GroupedWork/issueSummary.tpl' summary=$relatedRecord.itemSummary totalCopies=$relatedRecord.copies itemSummaryId=$relatedRecord.id}
+					{include file='GroupedWork/copySummary.tpl' summary=$relatedRecord.itemSummary totalCopies=$relatedRecord.copies itemSummaryId=$relatedRecord.id}
 
 					{if $relatedRecord.usageRestrictions}
 						<br/>{$relatedRecord.usageRestrictions}
