@@ -826,7 +826,7 @@ function loadModuleActionId(){
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['id'] = $matches[2];
 		$_REQUEST['action'] = $matches[3];
-	}elseif (preg_match("/([^\/?]+)\/((?:\.b)?[\da-fA-F-]+x?)(?:\?|$)/", $requestURI, $matches)){
+	}elseif (preg_match("/([^\/?]+)\/((?:\.b)?[\da-fA-F-]+x?)(?:\?|\/?$)/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[2];
 		$_GET['action'] = 'Home';
