@@ -477,6 +477,7 @@ class ItemAPI extends Action {
 				require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 				$driver = new EContentDriver();
 				$itemData['holdings'] = $driver->getHolding($eContentRecord->id);
+				$itemData['availability'] = $eContentRecord->getAvailability();
 			}
 		}else{
 			$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
