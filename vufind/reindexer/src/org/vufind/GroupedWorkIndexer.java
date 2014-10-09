@@ -113,17 +113,18 @@ public class GroupedWorkIndexer {
 		}else{
 			if (partialReindexRunning){
 				//Make sure that it hasn't been a long time since the last index ran (1 hour).
-				if (new Date().getTime() - (lastReindexTime * 1000) > (60 * 60 * 1000)){
+				//MDN 10/9 don't do this because we do get long periods of inactivity in the middle of the night
+				/*if (new Date().getTime() - (lastReindexTime * 1000) > (6 * 60 * 60 * 1000)){
 					//Oops, a reindex is already running.
 					logger.error("A partial reindex is already running, but it's been an hour or more since the last one started.  Indexing anyway.");
 					GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, but it's been an hour or more since the last one started.  Indexing anyway.");
-				} else{
+				} else{*/
 					//Oops, a reindex is already running.
 					logger.error("A partial reindex is already running, not starting another for better performance");
 					GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, not starting another for better performance");
 					okToIndex = false;
 					return;
-				}
+				//}
 			}else{
 				updatePartialReindexRunning(true);
 			}

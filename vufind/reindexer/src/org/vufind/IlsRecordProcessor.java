@@ -564,8 +564,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			String iType = curItem.getiType();
 			if (iType != null && location != null){
 				String translatedIType = indexer.translateValue("itype", iType);
-				ArrayList<String> relatedSubdomains = getLibrarySubdomainsForLocationCode(location);
-				groupedWork.setIType(translatedIType, relatedSubdomains);
+				if (translatedIType != null) {
+					ArrayList<String> relatedSubdomains = getLibrarySubdomainsForLocationCode(location);
+					ArrayList<String> relatedLocations = getRelatedLocationCodesForLocationCode(location);
+					groupedWork.setIType(translatedIType, relatedSubdomains, relatedLocations);
+				}
 			}
 		}
 		for (EContentIlsItem curItem : econtentItems){
@@ -574,7 +577,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			String location = curItem.getLocation();
 			if (iType != null && location != null){
 				ArrayList<String> relatedSubdomains = getLibrarySubdomainsForLocationCode(location);
-				groupedWork.setIType(translatedIType, relatedSubdomains);
+				ArrayList<String> relatedLocations = getRelatedLocationCodesForLocationCode(location);
+				groupedWork.setIType(translatedIType, relatedSubdomains, relatedLocations);
 			}
 		}
 	}

@@ -912,13 +912,21 @@ public class GroupedWorkSolr {
 		return ratingFacet;
 	}
 
-	public void setIType(String iType, ArrayList<String> relatedSubdomains) {
-		this.iTypes.add(iType);
-		for (String subdomain : relatedSubdomains){
-			if (!localITypes.containsKey(subdomain)){
-				localITypes.put(subdomain, new HashSet<String>());
+	public void setIType(String iType, ArrayList<String> relatedSubdomains, ArrayList<String> relatedLocations) {
+		if (iType != null) {
+			this.iTypes.add(iType);
+			for (String subdomain : relatedSubdomains) {
+				if (!localITypes.containsKey(subdomain)) {
+					localITypes.put(subdomain, new HashSet<String>());
+				}
+				localITypes.get(subdomain).add(iType);
 			}
-			localITypes.get(subdomain).add(iType);
+			for (String location : relatedLocations) {
+				if (!localITypes.containsKey(location)) {
+					localITypes.put(location, new HashSet<String>());
+				}
+				localITypes.get(location).add(iType);
+			}
 		}
 	}
 
