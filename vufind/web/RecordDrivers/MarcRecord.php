@@ -1913,10 +1913,12 @@ class MarcRecord extends IndexRecord
 			$searchLibrary = Library::getSearchLibrary();
 			if ($searchLibrary){
 				$libraryLocationCode = $searchLibrary->ilsCode;
+				$extraLocations = '';
 			}
 			$searchLocation = Location::getSearchLocation();
 			if ($searchLocation){
 				$homeLocationCode = $searchLocation->code;
+				$extraLocations = $searchLocation->extraLocationCodesToInclude;
 			}
 			if ($this->itemsFromIndex){
 				$this->fastItems = array();
@@ -1956,7 +1958,7 @@ class MarcRecord extends IndexRecord
 						'holdable' => true,
 						'inLibraryUseOnly' => $itemData[5] == 'true',
 						'isLibraryItem' => isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && strpos($itemData[2], $libraryLocationCode) === 0,
-						'isLocalItem' => isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($itemData[2], $homeLocationCode) === 0,
+						'isLocalItem' => (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($itemData[2], $homeLocationCode) === 0) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/", $itemData[2])),
 						'locationLabel' => true,
 						'shelfLocation' => $shelfLocation,
 						'onOrderCopies' => $onOrderCopies,
