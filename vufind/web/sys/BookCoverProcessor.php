@@ -422,8 +422,7 @@ class BookCoverProcessor{
 					$subfield_a = $marcField->getSubfield('a')->getData();
 					if (preg_match('/seed library.*/i', $subfield_a, $matches)){
 						$this->log("Title is a seed library title", PEAR_LOG_INFO);
-						$themeName = $this->configArray['Site']['theme'];
-						$filename = "interface/themes/{$themeName}/images/seed_library_logo.jpg";
+						$filename = "interface/themes/responsive/images/seed_library_logo.jpg";
 						if ($this->processImageURL($filename, true)){
 							return true;
 						}
