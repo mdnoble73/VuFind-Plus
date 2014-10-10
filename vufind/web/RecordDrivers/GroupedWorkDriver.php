@@ -1182,7 +1182,7 @@ class GroupedWorkDriver extends RecordInterface{
 				'Available Online' => 6,
 				'On Shelf' => 7
 			);
-			if (isset($curRecord['groupedStatus'])){
+			if (isset($curRecord['groupedStatus']) && $curRecord['groupedStatus'] != ''){
 				$groupedStatus = $relatedManifestations[$curRecord['format']]['groupedStatus'];
 				if ($groupedStatus == ''){
 					$groupedStatus = $curRecord['groupedStatus'];
