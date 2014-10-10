@@ -392,6 +392,16 @@ VuFind.Record = (function(){
 			});
 		},
 
+		reloadCover: function(id){
+			var url = Globals.path + '/Record/' + id + '/AJAX?method=reloadCover';
+			$.getJSON(url, function (data){
+						VuFind.showMessage("Success", data.message, true, true);
+						setTimeout("VuFind.closeLightbox();", 3000);
+					}
+			);
+			return false;
+		},
+
 		moreContributors: function(){
 			document.getElementById('showAdditionalContributorsLink').style.display="none";
 			document.getElementById('additionalContributors').style.display="block";
