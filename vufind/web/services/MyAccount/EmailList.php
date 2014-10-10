@@ -81,8 +81,7 @@ class EmailList extends Action {
 		if (strpos($message, 'http') === false && strpos($message, 'mailto') === false && $message == strip_tags($message)){
 			$interface->assign('message', $message);
 			$body = $interface->fetch('Emails/my-list.tpl');
-//			return $titleDetails;
-			return $body;
+			
 			$mail = new VuFindMailer();
 			$subject = $list->title;
 			return $mail->send($to, $from, $subject, $body);
