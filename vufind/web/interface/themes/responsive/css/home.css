@@ -126,6 +126,7 @@ Sidebar font data
   margin-top: 15px;
   margin-bottom: 15px;
   margin-right: -15px;
+  z-index: -1;
 }
 .browse-label-text {
   background-color: #d7dce3;
@@ -135,6 +136,7 @@ Sidebar font data
   vertical-align: top;
   margin: auto;
   padding: 0 8px;
+  z-index: 2;
 }
 .browse-arrow {
   background-color: #9ea0a4;

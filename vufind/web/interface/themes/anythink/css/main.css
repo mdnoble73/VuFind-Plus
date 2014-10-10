@@ -13,6 +13,26 @@ Search Box color
 /**
 Sidebar font data
 */
+/*
+@category1MainColor: @vail_dark_blue;
+@categoryLineColor: @vail_logo_green;
+@categoryLineShadow: darken(@vail_logo_green,20%);
+
+//@selectedCategoryBorderColor: #63B200;
+@selectedCategoryBorderColor: @categoryLineColor; // makes outline more subtle
+
+// Selected Category color to give a highlighted appearance
+@selectedCategoryColor: lighten(@category1MainColor, 14%); //softer touch
+
+// set all browse category colors to the first color to remove lightening of successive categories. plv 9-17-2014
+@category2MainColor: @category1MainColor;
+@category3MainColor: @category1MainColor;
+@category4MainColor: @category1MainColor;
+@category5MainColor: @category1MainColor;
+@category6MainColor: @category1MainColor;
+@category7MainColor: @category1MainColor;
+@category8MainColor: @category1MainColor;
+@category9MainColor: @category1MainColor;*/
 /**
  * Main responsive theme css
  */
@@ -5994,7 +6014,11 @@ a.btn-info {
   }
 }
 body {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: "Trebuchet MS", Tahoma, Verdana, Arial, Helvetica, "Bitstream Vera Sans", sans-serif;
+  background-color: #2f7ad0;
+}
+body > .container {
+  background-color: #ffffff;
 }
 .noBreak {
   white-space: nowrap;
@@ -6769,7 +6793,7 @@ div#system-message-header {
   height: 90px;
   background-color: #ffffff;
   background: linear-gradient(to bottom, #ffffff, #ffffff 85%, #ffffff);
-  border-bottom: 8px solid #2f6eb6;
+  border-bottom: 8px solid #fde3ca;
   margin-bottom: 0px;
   min-height: 110px;
 }
@@ -6802,8 +6826,8 @@ div#system-message-header {
   border-bottom: 4px solid #2a6496;
 }
 .header-primary {
-  border-left: 2px solid #d9d8d8;
-  border-right: 2px solid #d9d8d8;
+  border-left: 2px solid #ffffff;
+  border-right: 2px solid #ffffff;
 }
 #library-name-header {
   font-size: 30px;
@@ -6828,7 +6852,7 @@ div#system-message-header {
   font-size: 16px;
 }
 #footer-container {
-  border-top: 8px solid #2f6eb6;
+  border-top: 8px solid #fde3ca;
   padding-top: 3px;
 }
 #install-info {
@@ -6844,7 +6868,7 @@ div#system-message-header {
   padding: 0px 3px 0px 3px;
 }
 #navigation-controls {
-  border-top: 8px solid #2f6eb6;
+  border-top: 8px solid #fde3ca;
   background: white;
 }
 @media print {
@@ -6881,8 +6905,8 @@ div#system-message-header {
  Styling for home page elements
 */
 #home-page-search {
-  background-color: #00a4e3;
-  background: linear-gradient(to bottom, #00a4e3, #147ce2);
+  background-color: #2a6ebb;
+  background: linear-gradient(to bottom, #2a6ebb, #2a6ebb);
   padding: 20px 0 10px;
   margin-bottom: 5px;
 }
@@ -6897,7 +6921,7 @@ div#system-message-header {
 #searchSource {
   padding: 5px 0;
   color: white;
-  background-color: #147ce2;
+  background-color: #2a6ebb;
   border: none;
   width: 90%;
 }
@@ -6986,19 +7010,21 @@ div#system-message-header {
 }
 #browse-label {
   height: 5px;
-  background-color: #bbd4e3;
+  background-color: #5895d9;
   margin-top: 15px;
   margin-bottom: 15px;
   margin-right: -15px;
+  z-index: -1;
 }
 .browse-label-text {
   background-color: #d7dce3;
   font-size: 22px;
-  color: #3497d1;
+  color: #2a6ebb;
   line-height: 5px;
   vertical-align: top;
   margin: auto;
   padding: 0 8px;
+  z-index: 2;
 }
 .browse-arrow {
   background-color: #9ea0a4;
@@ -7992,4 +8018,32 @@ div#system-message-header {
   background-image: url('/interface/themes/anythink/images/squiggle.png');
   background-position: -70px -154px;
   background-repeat: no-repeat;
+}
+.header-button > a {
+  color: #998f86 !important;
+  font-size: 125%;
+  line-height: 30px !important;
+  padding: 0;
+  text-align: right;
+  text-decoration: underline;
+  text-shadow: 1px 1px #ffffff;
+  vertical-align: middle;
+}
+.header-button > a:hover {
+  color: #2a6ebb !important;
+}
+.header-button:hover {
+  border-bottom: 0px;
+}
+.btn-primary,
+.userreviewlink,
+.addtolistlink {
+  background: linear-gradient(#ffffff, #dddddd) repeat-x scroll 0 0 #dddddd;
+  border-color: #dddddd #bbbbbb #999999 !important;
+  color: #000000 !important;
+}
+.btn-primary:hover,
+.userreviewlink:hover,
+.addtolistlink:hover {
+  background-image: linear-gradient(#ffffff, #eeeeee 1px, #cccccc);
 }

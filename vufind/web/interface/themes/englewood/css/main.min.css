@@ -6010,6 +6010,10 @@ a.btn-info {
 }
 body {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background-color: #ffffff;
+}
+body > .container {
+  background-color: #ffffff;
 }
 .noBreak {
   white-space: nowrap;
@@ -7005,6 +7009,7 @@ div#system-message-header {
   margin-top: 15px;
   margin-bottom: 15px;
   margin-right: -15px;
+  z-index: -1;
 }
 .browse-label-text {
   background-color: #d7dce3;
@@ -7014,6 +7019,7 @@ div#system-message-header {
   vertical-align: top;
   margin: auto;
   padding: 0 8px;
+  z-index: 2;
 }
 .browse-arrow {
   background-color: #9ea0a4;

@@ -104,11 +104,11 @@
 
 /** Browse Formatting */
 #home-page-browse-header{
-  background-color: #d7dce3;
+  background-color: @browse-header-background;
   padding-bottom: 15px;
 }
 #home-page-browse-content{
-  background-color: #d7dce3;
+  background-color: @browse-header-background;
 }
 #browse-carousel{
 
@@ -119,15 +119,17 @@
   margin-top: 15px;
   margin-bottom: 15px;
   margin-right: -15px;
+  z-index: -1;
 }
 .browse-label-text{
-  background-color: #d7dce3;
+  background-color: @browse-header-background;
   font-size: 22px;
   color: @browse-label-text-color;
   line-height: 5px;
   vertical-align: top;
   margin: auto;
   padding: 0 8px;
+  z-index: 2;
 }
 .browse-arrow{
   background-color: #9ea0a4;
