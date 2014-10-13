@@ -69,11 +69,19 @@ VuFind.Lists = (function(){
 		},
 
 		SendMyListEmail: function (to, from, message, id, strings) {
+			console.log('This function was called.'); // plb debugging only, REMOVE_DEBUG
 			var url = Globals.path + "/MyAccount/EmailList";
-			var params = "method=SendEmail&" + "url=" + URLEncode(window.location.href) + "&" + "from=" + encodeURIComponent(from) + "&" + "to=" + encodeURIComponent(to)
-					+ "&" + "message=" + encodeURIComponent(message) + "&listId=" + id;
+			console.log('about to encode URL.');
+			//var params = "method=SendEmail&" + "url=" + encodeURIComponent(window.location.href) + "&" + "from=" + encodeURIComponent(from) + "&" + "to=" + encodeURIComponent(to)
+			//		+ "&" + "message=" + encodeURIComponent(message) + "&listId=" + id;
+			var params = "method=SendEmail" + "&from=" + encodeURIComponent(from) + "&to=" + encodeURIComponent(to)
+					+ "&message=" + encodeURIComponent(message) + "&listId=" + id;
+			console.log('params : '+params);
+			console.log('about to call sendAJAXEmail');
 			sendAJAXEmail(url, params, strings);
+			console.log('Finished calling sendAJAXEmail'); // REMOVE_DEBUG
 		},
+
 		batchAddToListAction: function (id){
 			VuFind.Account.ajaxLightbox(Globals.path + '/MyAccount/AJAX/?method=getBulkAddToListForm&listId=' + id);
 			return false;
