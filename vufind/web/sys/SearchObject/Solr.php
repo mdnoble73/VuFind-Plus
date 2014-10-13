@@ -234,8 +234,14 @@ class SearchObject_Solr extends SearchObject_Base
 		if (isset($searchTerm) && !is_array($searchTerm)){
 			//Marmot - search both ISBN-10 and ISBN-13
 			//Check to see if the search term looks like an ISBN10 or ISBN13
-			if (isset($_REQUEST['type']) && isset($searchTerm) &&
-			($_REQUEST['basicType'] == '' || $_REQUEST['basicType'] == 'ISN' || $_REQUEST['basicType'] == 'Keyword' || $_REQUEST['basicType'] == 'AllFields') &&
+			$searchType = 'Keyword';
+			if (isset($_REQUEST['type'])){
+				$searchType = $_REQUEST['type'];
+			}elseif (isset($_REQUEST['basicType'])){
+				$searchType = $_REQUEST['basicType'];
+			}
+			if (isset($searchTerm) &&
+			($searchType == '' || $searchType == 'ISN' || $searchType == 'Keyword' || $searchType == 'AllFields') &&
 			(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/', $searchTerm) ||
 			preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $searchTerm))) {
 				require_once(ROOT_DIR . '/sys/ISBN.php');
