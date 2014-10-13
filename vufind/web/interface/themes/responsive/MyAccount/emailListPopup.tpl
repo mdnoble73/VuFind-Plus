@@ -3,8 +3,8 @@
 
 	<form id="emailListForm" action="{$path}/MyAccount/EmailList" method="post"
 		class="form form-horizontal"
-		onSubmit='VuFind.Lists.SendMyListEmail(this.elements[&quot;to&quot;].value,
-		this.elements[&quot;from&quot;].value, this.elements[&quot;message&quot;].value,this.elements[&quot;listId&quot;].value
+		onSubmit='console.log("Form Submitted");VuFind.Lists.SendMyListEmail(this.elements[&quot;to&quot;].value,
+		this.elements[&quot;from&quot;].value, this.elements[&quot;message&quot;].value,this.elements[&quot;listId&quot;].value,
 		{* Pass translated strings to Javascript -- ugly but necessary: *}
 		{ldelim}sending: &quot;{translate text='email_sending'}&quot;,
 		 success: &quot;{translate text='email_success'}&quot;,
@@ -33,4 +33,5 @@
 </div>
 <script type="text/javascript">
 	$("#emailListForm").validate();
+	console.log('Validate ran.'); // REMOVE_DEBUG
 </script>
