@@ -10,7 +10,7 @@
 			<table class="table table-striped">
 				<thead>
 					<tr>
-						<th><input type="checkbox" id="selectAll" onclick="toggleCheckboxes('.selectedUpdate', $('#selectAll').attr('checked'));" checked="checked"/></th>
+						<th><input type="checkbox" id="selectAll" onclick="VuFind.toggleCheckboxes('.selectedUpdate:visible', '#selectAll');" checked="checked"/></th>
 						<th>Name</th>
 						<th>Description</th>
 						<th>Already Run?</th>
