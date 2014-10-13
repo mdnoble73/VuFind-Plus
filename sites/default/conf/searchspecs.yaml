@@ -315,11 +315,11 @@ SeriesProper:
 
 AllFields:
   DismaxFields:
-    - allfields
+    - all_fields
     - id
     - alternate_ids
   QueryFields:
-    allfields:
+    all_fields:
       - [and, ~]
     id:
       - [onephrase, ~]
@@ -328,11 +328,11 @@ AllFields:
 
 AllFieldsProper:
   DismaxFields:
-    - allfields_proper
+    - all_fields_proper
     - id
     - alternate_ids
   QueryFields:
-    allfields_proper:
+    all_fields_proper:
       - [and, ~]
     id:
       - [onephrase, ~]
