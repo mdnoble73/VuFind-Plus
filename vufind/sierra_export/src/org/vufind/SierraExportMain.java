@@ -5,9 +5,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.TimeZone;
 
 import au.com.bytecode.opencsv.CSVWriter;
 import org.apache.log4j.Logger;
@@ -22,6 +21,11 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLSession;
 import org.apache.commons.codec.binary.Base64;
+import org.marc4j.*;
+import org.marc4j.marc.DataField;
+import org.marc4j.marc.Record;
+import org.marc4j.marc.VariableField;
+import org.marc4j.marc.impl.SubfieldImpl;
 
 /**
  * Export data to
@@ -34,6 +38,11 @@ public class SierraExportMain{
 	private static Logger logger = Logger.getLogger(SierraExportMain.class);
 	private static String serverName;
 	private static Long sierraExtractRunningVariableId = null;
+	private static String itemTag;
+	private static char itemRecordNumberSubfield;
+	private static char locationSubfield;
+	private static char statusSubfield;
+	private static char dueDateSubfield;
 
 	public static void main(String[] args){
 		serverName = args[0];
@@ -140,6 +149,13 @@ public class SierraExportMain{
 			Long lastSierraExtractTime = null;
 			Long lastSierraExtractTimeVariableId = null;
 
+			String individualMarcPath = ini.get("Reindex", "individualMarcPath");
+			itemTag = ini.get("Reindex", "itemTag");
+			itemRecordNumberSubfield = getSubfieldIndicatorFromConfig(ini, "itemRecordNumberSubfield");
+			locationSubfield = getSubfieldIndicatorFromConfig(ini, "locationSubfield");
+			statusSubfield = getSubfieldIndicatorFromConfig(ini, "statusSubfield");
+			dueDateSubfield = getSubfieldIndicatorFromConfig(ini, "dueDateSubfield");
+
 			PreparedStatement loadLastSierraExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_sierra_extract_time'");
 			ResultSet lastSierraExtractTimeRS = loadLastSierraExtractTimeStmt.executeQuery();
 			if (lastSierraExtractTimeRS.next()){
@@ -164,6 +180,8 @@ public class SierraExportMain{
 				String dateUpdated = dateFormatter.format(lastExtractDate);
 				long updateTime = new Date().getTime() / 1000;
 
+				SimpleDateFormat marcDateFormat = new SimpleDateFormat("yyMMdd");
+
 				//Extract the ids of all records that have changed.  That will allow us to mark
 				//That the grouped record has changed which will force the work to be indexed
 				//In reality, this will only update availability unless we pull the full marc record
@@ -172,9 +190,9 @@ public class SierraExportMain{
 				boolean moreToRead = true;
 				PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
 				boolean firstLoad = true;
-				HashSet<String> changedBibs = new HashSet<String>();
+				HashMap<String, ArrayList<ItemChangeInfo>> changedBibs = new HashMap<String, ArrayList<ItemChangeInfo>>();
 				while (moreToRead){
-					JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=2000&fields=id,bibIds&deleted=false&suppressed=false&offset=" + offset, false);
+					JSONObject changedRecords = callSierraApiURL(ini, apiBaseUrl, apiBaseUrl + "/items/?updatedDate=[" + dateUpdated + ",]&limit=2000&fields=id,bibIds,location,status,fixedFields&deleted=false&suppressed=false&offset=" + offset, false);
 					int numChangedIds = 0;
 					if (changedRecords != null && changedRecords.has("entries")){
 						if (firstLoad){
@@ -184,30 +202,63 @@ public class SierraExportMain{
 						JSONArray changedIds = changedRecords.getJSONArray("entries");
 						numChangedIds = changedIds.length();
 						for(int i = 0; i < numChangedIds; i++){
-							//String itemId = changedIds.getJSONObject(i).getString("id");
-							JSONArray bibIds = changedIds.getJSONObject(i).getJSONArray("bibIds");
+							JSONObject curItem = changedIds.getJSONObject(i);
+							String itemId = curItem.getString("id");
+							String location = curItem.getJSONObject("location").getString("code");
+							String status = curItem.getJSONObject("status").getString("code");
+							String dueDateMarc = null;
+							if (curItem.getJSONObject("fixedFields").has("65")){
+								String dueDateStr = curItem.getJSONObject("fixedFields").getJSONObject("65").getString("value");
+								//The due date is in the format 2014-10-16T10:00:00Z, convert to what the marc record shows which is just yymmdd
+								Date dueDate = dateFormatter.parse(dueDateStr);
+								dueDateMarc = marcDateFormat.format(dueDate);
+							}
+
+
+							ItemChangeInfo changeInfo = new ItemChangeInfo();
+							changeInfo.setItemId(".i" + itemId + getCheckDigit(itemId));
+							changeInfo.setLocation(location);
+							changeInfo.setStatus(status);
+
+							changeInfo.setDueDate(dueDateMarc);
+
+							JSONArray bibIds = curItem.getJSONArray("bibIds");
 							for (int j = 0; j < bibIds.length(); j++){
 								String curId = bibIds.getString(j);
 								String fullId = ".b" + curId + getCheckDigit(curId);
-								changedBibs.add(fullId);
+								ArrayList<ItemChangeInfo> itemChanges;
+								if (changedBibs.containsKey(fullId)) {
+									itemChanges = changedBibs.get(fullId);
+								}else{
+									itemChanges = new ArrayList<ItemChangeInfo>();
+									changedBibs.put(fullId, itemChanges);
+								}
+								itemChanges.add(changeInfo);
 							}
 						}
 					}
 					moreToRead = (numChangedIds >= 2000);
 					offset += 2000;
+					/*if (offset > 10000){
+						logger.warn("There are an abnormally large number of changed records, breaking");
+						break;
+					}*/
 				}
 
 				vufindConn.setAutoCommit(false);
 				logger.info("A total of " + changedBibs.size() + " bibs were updated");
 				int numUpdates = 0;
-				for (String curBibId : changedBibs){
+				for (String curBibId : changedBibs.keySet()){
+					//Update the marc record
+					updateMarc(individualMarcPath, curBibId, changedBibs.get(curBibId));
+					//Update the database
 					try {
 						markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
 						markGroupedWorkForBibAsChangedStmt.setString(2, curBibId);
 						markGroupedWorkForBibAsChangedStmt.executeUpdate();
 
 						numUpdates++;
-						if (numUpdates % 1000 == 0){
+						if (numUpdates % 50 == 0){
 							vufindConn.commit();
 						}
 					}catch (SQLException e){
@@ -244,6 +295,71 @@ public class SierraExportMain{
 			logger.error("Error loading changed records from Sierra API", e);
 			System.exit(1);
 		}
+	}
+
+	private static void updateMarc(String individualMarcPath, String curBibId, ArrayList<ItemChangeInfo> itemChangeInfo) {
+		//Load the existing marc record from file
+		try {
+			File marcFile = getFileForIlsRecord(individualMarcPath, curBibId);
+			FileInputStream inputStream = new FileInputStream(marcFile);
+			MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
+			if (marcReader.hasNext()){
+				Record marcRecord = marcReader.next();
+				inputStream.close();
+
+				//Loop through all item fields to see what has changed
+				List<VariableField> itemFields = marcRecord.getVariableFields(itemTag);
+				for (VariableField itemFieldVar : itemFields){
+					DataField itemField = (DataField)itemFieldVar;
+					String itemRecordNumber = itemField.getSubfield(itemRecordNumberSubfield).getData();
+					//Update the items
+					for(ItemChangeInfo curItem : itemChangeInfo){
+						//Find the correct item
+						if (itemRecordNumber.equals(curItem.getItemId())){
+							itemField.getSubfield(locationSubfield).setData(curItem.getLocation());
+							itemField.getSubfield(statusSubfield).setData(curItem.getStatus());
+							if (curItem.getDueDate() == null) {
+								if (itemField.getSubfield(dueDateSubfield) != null){
+									itemField.getSubfield(dueDateSubfield).setData("      ");
+								}
+							}else{
+								if (itemField.getSubfield(dueDateSubfield) == null) {
+									itemField.addSubfield(new SubfieldImpl(dueDateSubfield, curItem.getDueDate()));
+								}else{
+									itemField.getSubfield(dueDateSubfield).setData(curItem.getDueDate());
+								}
+							}
+						}
+					}
+				}
+
+				//Write the new marc record
+				MarcWriter writer = new MarcStreamWriter(new FileOutputStream(marcFile, false));
+				writer.write(marcRecord);
+				writer.close();
+			}else{
+				logger.warn("Could not read marc record for " + curBibId);
+			}
+		}catch (Exception e){
+			logger.error("Unable to update marc record for bib " + curBibId);
+		}
+	}
+
+	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber) {
+		String shortId = getFileIdForRecordNumber(recordNumber);
+		String firstChars = shortId.substring(0, 4);
+		String basePath = individualMarcPath + "/" + firstChars;
+		String individualFilename = basePath + "/" + shortId + ".mrc";
+		File individualFile = new File(individualFilename);
+		return individualFile;
+	}
+
+	private static String getFileIdForRecordNumber(String recordNumber) {
+		String shortId = recordNumber.replace(".", "");
+		while (shortId.length() < 9){
+			shortId = "0" + shortId;
+		}
+		return shortId;
 	}
 
 	private static void exportAvailability(String exportPath, Connection conn) throws SQLException, IOException {
@@ -413,6 +529,15 @@ public class SierraExportMain{
 			value = value.substring(0, value.length() - 1);
 		}
 		return value;
+	}
+
+	private static char getSubfieldIndicatorFromConfig(Ini configIni, String subfieldName) {
+		String subfieldString = configIni.get("Reindex", subfieldName);
+		char subfield = ' ';
+		if (subfieldString != null && subfieldString.length() > 0)  {
+			subfield = subfieldString.charAt(0);
+		}
+		return subfield;
 	}
 
 	private static String sierraAPIToken;
