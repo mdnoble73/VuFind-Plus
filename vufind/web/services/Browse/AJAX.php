@@ -162,7 +162,7 @@ class Browse_AJAX extends Action {
 				$defaultFilterInfo = $browseCategory->defaultFilter;
 				$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
 				foreach ($defaultFilters as $filter){
-					$this->searchObject->addFilter($filter);
+					$this->searchObject->addFilter(trim($filter));
 				}
 				//Set Sorting, this is actually slightly mangled from the category to Solr
 				$this->searchObject->setSort($browseCategory->getSolrSort());
@@ -228,7 +228,7 @@ class Browse_AJAX extends Action {
 				$defaultFilterInfo = $browseCategory->defaultFilter;
 				$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
 				foreach ($defaultFilters as $filter){
-					$this->searchObject->addFilter($filter);
+					$this->searchObject->addFilter(trim($filter));
 				}
 				//Set Sorting, this is actually slightly mangled from the category to Solr
 				$this->searchObject->setSort($browseCategory->getSolrSort());
