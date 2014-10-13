@@ -301,47 +301,53 @@ public class SierraExportMain{
 		//Load the existing marc record from file
 		try {
 			File marcFile = getFileForIlsRecord(individualMarcPath, curBibId);
-			FileInputStream inputStream = new FileInputStream(marcFile);
-			MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
-			if (marcReader.hasNext()){
-				Record marcRecord = marcReader.next();
-				inputStream.close();
+			if (marcFile.exists()) {
+				FileInputStream inputStream = new FileInputStream(marcFile);
+				MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
+				if (marcReader.hasNext()) {
+					Record marcRecord = marcReader.next();
+					inputStream.close();
 
-				//Loop through all item fields to see what has changed
-				List<VariableField> itemFields = marcRecord.getVariableFields(itemTag);
-				for (VariableField itemFieldVar : itemFields){
-					DataField itemField = (DataField)itemFieldVar;
-					String itemRecordNumber = itemField.getSubfield(itemRecordNumberSubfield).getData();
-					//Update the items
-					for(ItemChangeInfo curItem : itemChangeInfo){
-						//Find the correct item
-						if (itemRecordNumber.equals(curItem.getItemId())){
-							itemField.getSubfield(locationSubfield).setData(curItem.getLocation());
-							itemField.getSubfield(statusSubfield).setData(curItem.getStatus());
-							if (curItem.getDueDate() == null) {
-								if (itemField.getSubfield(dueDateSubfield) != null){
-									itemField.getSubfield(dueDateSubfield).setData("      ");
-								}
-							}else{
-								if (itemField.getSubfield(dueDateSubfield) == null) {
-									itemField.addSubfield(new SubfieldImpl(dueDateSubfield, curItem.getDueDate()));
-								}else{
-									itemField.getSubfield(dueDateSubfield).setData(curItem.getDueDate());
+					//Loop through all item fields to see what has changed
+					List<VariableField> itemFields = marcRecord.getVariableFields(itemTag);
+					for (VariableField itemFieldVar : itemFields) {
+						DataField itemField = (DataField) itemFieldVar;
+						if (itemField.getSubfield(itemRecordNumberSubfield) != null) {
+							String itemRecordNumber = itemField.getSubfield(itemRecordNumberSubfield).getData();
+							//Update the items
+							for (ItemChangeInfo curItem : itemChangeInfo) {
+								//Find the correct item
+								if (itemRecordNumber.equals(curItem.getItemId())) {
+									itemField.getSubfield(locationSubfield).setData(curItem.getLocation());
+									itemField.getSubfield(statusSubfield).setData(curItem.getStatus());
+									if (curItem.getDueDate() == null) {
+										if (itemField.getSubfield(dueDateSubfield) != null) {
+											itemField.getSubfield(dueDateSubfield).setData("      ");
+										}
+									} else {
+										if (itemField.getSubfield(dueDateSubfield) == null) {
+											itemField.addSubfield(new SubfieldImpl(dueDateSubfield, curItem.getDueDate()));
+										} else {
+											itemField.getSubfield(dueDateSubfield).setData(curItem.getDueDate());
+										}
+									}
 								}
 							}
 						}
 					}
-				}
 
-				//Write the new marc record
-				MarcWriter writer = new MarcStreamWriter(new FileOutputStream(marcFile, false));
-				writer.write(marcRecord);
-				writer.close();
+					//Write the new marc record
+					MarcWriter writer = new MarcStreamWriter(new FileOutputStream(marcFile, false));
+					writer.write(marcRecord);
+					writer.close();
+				} else {
+					logger.warn("Could not read marc record for " + curBibId);
+				}
 			}else{
-				logger.warn("Could not read marc record for " + curBibId);
+				logger.debug("Marc Record does not exist for " + curBibId + " it is not part of the main extract yet.");
 			}
 		}catch (Exception e){
-			logger.error("Unable to update marc record for bib " + curBibId);
+			logger.error("Error updating marc record for bib " + curBibId, e);
 		}
 	}
 
