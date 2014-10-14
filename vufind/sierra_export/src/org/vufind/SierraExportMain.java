@@ -110,7 +110,7 @@ public class SierraExportMain{
 
 			exportActiveOrders(exportPath, conn);
 
-			exportAvailability(exportPath, conn);
+			//exportAvailability(exportPath, conn);
 
 		}catch(Exception e){
 			System.out.println("Error: " + e.toString());
@@ -204,7 +204,12 @@ public class SierraExportMain{
 						for(int i = 0; i < numChangedIds; i++){
 							JSONObject curItem = changedIds.getJSONObject(i);
 							String itemId = curItem.getString("id");
-							String location = curItem.getJSONObject("location").getString("code");
+							String location;
+							if (curItem.has("location")) {
+								location = curItem.getJSONObject("location").getString("code");
+							}else{
+								location = "";
+							}
 							String status = curItem.getJSONObject("status").getString("code");
 							String dueDateMarc = null;
 							if (curItem.getJSONObject("fixedFields").has("65")){
@@ -213,7 +218,6 @@ public class SierraExportMain{
 								Date dueDate = dateFormatter.parse(dueDateStr);
 								dueDateMarc = marcDateFormat.format(dueDate);
 							}
-
 
 							ItemChangeInfo changeInfo = new ItemChangeInfo();
 							changeInfo.setItemId(".i" + itemId + getCheckDigit(itemId));
@@ -368,7 +372,7 @@ public class SierraExportMain{
 		return shortId;
 	}
 
-	private static void exportAvailability(String exportPath, Connection conn) throws SQLException, IOException {
+	/*private static void exportAvailability(String exportPath, Connection conn) throws SQLException, IOException {
 		logger.info("Starting export of available items");
 		char[] availableStatuses = new char[]{'-', 'o', 'd', 'w', 'j', 'u'};
 		File availableItemsFile = new File(exportPath + "/available_items_temp.csv");
@@ -434,7 +438,7 @@ public class SierraExportMain{
 			checkoutsWriter.close();
 			checkoutsRS.close();
 		}
-	}
+	}*/
 
 	private static void exportActiveOrders(String exportPath, Connection conn) throws SQLException, IOException {
 		logger.info("Starting export of active orders");
