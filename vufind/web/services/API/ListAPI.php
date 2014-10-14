@@ -879,6 +879,9 @@ class ListAPI extends Action {
 		$titles = array();
 		if (count($ids) > 0){
 			$searchObject->setQueryIDs($ids);
+			if (isset($_RESULT['page']) && $_RESULT['page'] == false){
+				$searchObject->setLimit(count($ids));
+			}
 			$searchObject->processSearch();
 			$matchingRecords = $searchObject->getResultRecordSet();
 			foreach ($matchingRecords as $record){
