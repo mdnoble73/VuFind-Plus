@@ -1,15 +1,7 @@
 <div align="left">
 	{if $message}<div class="error">{$message|translate}</div>{/if}
 
-	<form id="emailListForm" action="{$path}/MyAccount/EmailList" method="post"
-		class="form form-horizontal"
-		onSubmit='console.log("Form Submitted");VuFind.Lists.SendMyListEmail(this.elements[&quot;to&quot;].value,
-		this.elements[&quot;from&quot;].value, this.elements[&quot;message&quot;].value,this.elements[&quot;listId&quot;].value,
-		{* Pass translated strings to Javascript -- ugly but necessary: *}
-		{ldelim}sending: &quot;{translate text='email_sending'}&quot;,
-		 success: &quot;{translate text='email_success'}&quot;,
-		 failure: &quot;{translate text='email_failure'}&quot;{rdelim}
-		); return false;'>
+	<form id="emailListForm" action="{$path}/MyAccount/EmailList" method="post" class="form form-horizontal">
 		<div class="form-group">
 			<input type="hidden" name="listId" value="{$listId|escape}">
 			<label for="to" class="control-label col-xs-2">{translate text='To'}</label>
@@ -31,7 +23,15 @@
 		</div>
 	</form>
 </div>
+
 <script type="text/javascript">
-	$("#emailListForm").validate();
-	console.log('Validate ran.'); // REMOVE_DEBUG
+	{literal}
+	$("#emailListForm").validate({
+		submitHandler: function(){
+			console.log('Submitting from Validation.'); // REMOVE_DEBUG
+			VuFind.Lists.SendMyListEmail();
+			console.log('Send MyList Email ran');
+		}
+	});
+	{/literal}
 </script>

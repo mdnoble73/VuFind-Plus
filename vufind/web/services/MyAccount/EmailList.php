@@ -24,26 +24,36 @@ require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
 
 class EmailList extends Action {
+
+	private $listId;
+
 	function launch() {
 		global $interface;
 
-		if (isset($_POST['from'])) {
+		if (isset($_REQUEST['listId']) && ctype_digit($_REQUEST['listId'])) $this->listId = $_REQUEST['listId'];
+		// set the list id only if consists of only numbers
+
+		// AJAX call
+		if (isset($_GET['from'])) {
+			$result = $this->sendEmail($_GET['to'], $_GET['from'], $_GET['message']);
+			echo json_encode($result);
+
+		// Traditional Form Submit (on browser-side javascript fail)
+		} elseif (isset($_POST['from'])) {
 			$result = $this->sendEmail($_POST['to'], $_POST['from'], $_POST['message']);
 
-			if (!PEAR_Singleton::isError($result)) {
-				require_once 'MyList.php';
-				header("Location:/MyAccount/MyList/" . $_REQUEST['listId']);
-				die();
-			} else {
-				$interface->assign('message', $result->getMessage());
-			}
-		}else{
-			// Display Page
+			// Reload List
+			require_once 'MyList.php';
+			header("Location:/MyAccount/MyList/" . $this->listId);
+			die();
+
+		} else { 			// Display Email Form
 			$interface->assign('listId', strip_tags($_REQUEST['id']));
 			$formDefinition = array(
 					'title' => 'Email a list',
 					'modalBody' => $interface->fetch('MyAccount/emailListPopup.tpl'),
-					'modalButtons' => "<input type='submit' name='submit' value='Send' class='btn btn-primary' onclick='$(\"#emailListForm\").submit()'/>"
+					'modalButtons' => "<input type='submit' name='submit' value='Send' class='btn btn-primary' onclick='console.log(\"Send button clicked\");$(\"#emailListForm\").submit();console.log(\"submit activated\");'/>"
+				// DEBUG_REMOVE
 			);
 			echo json_encode($formDefinition);
 		}
@@ -55,17 +65,17 @@ class EmailList extends Action {
 
 		//Load the list
 		$list = new UserList();
-		$list->id = $_REQUEST['listId'];
+		$list->id = $this->listId;
 		if ($list->find(true)){
 			// Build Favorites List
 			$titles = $list->getListTitles();
 			$interface->assign('listEntries', $titles);
 
 			// Load the User object for the owner of the list (if necessary):
-			if ($user && $user->id == $list->user_id || $list->public == 1) {
+			if ($list->public == true || ($user && $user->id == $list->user_id)) {
 				//The user can access the list
 				$favoriteHandler = new FavoriteHandler($titles, $user, $list->id, false);
-				$titleDetails = $favoriteHandler->getTitles(count($titles));
+				$titleDetails = $favoriteHandler->getTitles(count($titles)); // get all titles for email list, not just a page's worth
 				$interface->assign('titles', $titleDetails);
 				$interface->assign('list', $list);
 			} else {
@@ -81,13 +91,35 @@ class EmailList extends Action {
 		if (strpos($message, 'http') === false && strpos($message, 'mailto') === false && $message == strip_tags($message)){
 			$interface->assign('message', $message);
 			$body = $interface->fetch('Emails/my-list.tpl');
-			
+
 			$mail = new VuFindMailer();
 			$subject = $list->title;
-			return $mail->send($to, $from, $subject, $body);
+			$emailResult = $mail->send($to, $from, $subject, $body);
+
+			if ($emailResult === true){
+				$result = array(
+					'result' => true,
+					'message' => 'Your e-mail was sent successfully.'
+				);
+			}elseif (PEAR_Singleton::isError($emailResult)){
+				$result = array(
+					'result' => false,
+					'message' => "Your e-mail message could not be sent {$emailResult}."
+				);
+			}else{
+				$result = array(
+					'result' => false,
+					'message' => 'Your e-mail message could not be sent due to an unknown error.'
+				);
+			}
 		}else{
-			return false;
+			$result = array(
+				'result' => false,
+				'message' => 'Sorry, we can&apos;t send e-mails with html or other data in it.'
+			);
 		}
+		return $result;
 	}
+
 }
 ?>
