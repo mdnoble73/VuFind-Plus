@@ -28,9 +28,7 @@
 	{literal}
 	$("#emailListForm").validate({
 		submitHandler: function(){
-			console.log('Submitting from Validation.'); // REMOVE_DEBUG
 			VuFind.Lists.SendMyListEmail();
-			console.log('Send MyList Email ran');
 		}
 	});
 	{/literal}

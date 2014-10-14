@@ -69,26 +69,7 @@ VuFind.Lists = (function(){
 		},
 
 		SendMyListEmail: function (to, from, message, id, strings) {
-
-			console.log('SendMyListEmail function was called.'); // plb debugging only, REMOVE_DEBUG
 			var url = Globals.path + "/MyAccount/EmailList";
-
-			//console.log('about to encode URL.');
-			//var params = "method=SendEmail" + "&from=" + encodeURIComponent(from) + "&to=" + encodeURIComponent(to)
-			//		+ "&message=" + encodeURIComponent(message) + "&listId=" + id;
-			//console.log('params : '+params);
-			//console.log('about to call sendAJAXEmail');
-			//sendAJAXEmail(url, params, strings);
-			// this function is deprecated. plb 10-13-14
-
-			/*VuFind.Lists.SendMyListEmail(this.elements[&quot;to&quot;].value,
-			this.elements[&quot;from&quot;].value, this.elements[&quot;message&quot;].value,this.elements[&quot;listId&quot;].value,
-			{* Pass translated strings to Javascript -- ugly but necessary: * DEBUG}
-			{ldelim}sending: &quot;{translate text='email_sending'}&quot;,
-			success: &quot;{translate text='email_success'}&quot;,
-			failure: &quot;{translate text='email_failure'}&quot;{rdelim}
-			) */
-
 
 			$.getJSON(url,
 				{ // form inputs passed as data
@@ -99,7 +80,6 @@ VuFind.Lists = (function(){
 					//,method  : 'SendEmail' //Doesn't look as if it is used.  plb 10-14-2014
 				},
 				function(data) {
-					console.log(data); // REMOVE_DEBUG
 					if (data.result) {
 						VuFind.showMessage("Success", data.message);
 					} else {
@@ -108,7 +88,6 @@ VuFind.Lists = (function(){
 				}
 			);
 
-			console.log('Finished calling getJSON'); // REMOVE_DEBUG
 		},
 
 		batchAddToListAction: function (id){
