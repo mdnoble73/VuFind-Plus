@@ -485,8 +485,17 @@ public class GroupedWorkSolr {
 			return;
 		}
 		newTitle = Util.trimTrailingPunctuation(newTitle.replace("&", "and"));
-		//Strip out anything in brackets
-		newTitle.replaceAll("\\[.*?\\]", "");
+		//Strip out anything in brackets unless that would cause us to show nothing
+		String tmpTitle = newTitle.replaceAll("\\[.*?\\]", "").trim();
+		if (tmpTitle.length() > 0){
+			newTitle = tmpTitle;
+		}
+		//Remove common formats
+		tmpTitle = newTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd)$", "").trim();
+		if (tmpTitle.length() > 0){
+			newTitle = tmpTitle;
+		}
+
 		if (this.displayTitle == null || newTitle.length() > this.displayTitle.length()){
 			this.displayTitle = newTitle;
 		}
