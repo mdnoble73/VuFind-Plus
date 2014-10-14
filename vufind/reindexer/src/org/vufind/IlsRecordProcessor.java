@@ -5,10 +5,8 @@ import org.ini4j.Ini;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.marc.*;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -60,13 +58,13 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private static HashMap<Long, LoanRule> loanRules = new HashMap<Long, LoanRule>();
 	private static ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<LoanRuleDeterminer>();
 
-	private static boolean availabilityDataLoaded = false;
+	/*private static boolean availabilityDataLoaded = false;
 	private static boolean getAvailabilityFromMarc = true;
-	private static TreeSet<String> availableItemBarcodes = new TreeSet<String>();
+	private static TreeSet<String> availableItemBarcodes = new TreeSet<String>();*/
 
 	public IlsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
 		super(indexer, logger);
-		String marcRecordPath = configIni.get("Reindex", "marcPath");
+		//String marcRecordPath = configIni.get("Reindex", "marcPath");
 		individualMarcPath = configIni.get("Reindex", "individualMarcPath");
 
 		itemTag = configIni.get("Reindex", "itemTag");
@@ -96,7 +94,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			additionalCollections = additionalCollectionsString.split(",");
 		}
 
-		loadAvailableItemBarcodes(marcRecordPath, logger);
+		//loadAvailableItemBarcodes(marcRecordPath, logger);
 		loadLoanRuleInformation(vufindConn, logger);
 	}
 
@@ -170,7 +168,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	private static void loadAvailableItemBarcodes(String marcRecordPath, Logger logger) {
+	/*private static void loadAvailableItemBarcodes(String marcRecordPath, Logger logger) {
 		if (!availabilityDataLoaded){
 			File availableItemsFile = new File(marcRecordPath + "/available_items.csv");
 			if (!availableItemsFile.exists()){
@@ -205,7 +203,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}
 			availabilityDataLoaded = true;
 		}
-	}
+	}*/
 
 	@Override
 	public void processRecord(GroupedWorkSolr groupedWork, String identifier){
@@ -511,15 +509,15 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		//Determine Availability
 		boolean available = false;
-		if (getAvailabilityFromMarc){
+		//if (getAvailabilityFromMarc){
 			if (ilsRecord.getStatus() != null) {
 				available = isItemAvailable(ilsRecord);
 			}
-		}else{
+		/*}else{
 			if (ilsRecord.getBarcode() != null){
 				available = availableItemBarcodes.contains(ilsRecord.getBarcode());
 			}
-		}
+		}*/
 		ilsRecord.setAvailable(available);
 
 		if (ilsRecord.getiType() != null && ilsRecord.getLocation() != null) {

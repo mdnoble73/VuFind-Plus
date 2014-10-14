@@ -438,6 +438,8 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 			printFormats.remove("Book");
 		}else if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
 			printFormats.remove("Book");
+		}else if (printFormats.contains("Book") && printFormats.contains("GraphicNovel")){
+			printFormats.remove("Book");
 		}/*else if (printFormats.size() > 1){
 			return;
 		}*/
@@ -615,6 +617,42 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		List<DataField> topicalTerm = getDataFields(record, "650");
 		if (topicalTerm != null) {
 			Iterator<DataField> fieldsIter = topicalTerm.iterator();
+			DataField field;
+			while (fieldsIter.hasNext()) {
+				field = fieldsIter.next();
+				@SuppressWarnings("unchecked")
+				List<Subfield> subfields = field.getSubfields();
+				for (Subfield subfield : subfields) {
+					if (subfield.getCode() == 'a'){
+						String subfieldData = subfield.getData().toLowerCase();
+						if (subfieldData.contains("large type")) {
+							result.add("LargePrint");
+						}else if (subfieldData.contains("playaway")) {
+							result.add("Playaway");
+						}else if (subfieldData.contains("graphic novel")) {
+							boolean okToAdd = false;
+							if (field.getSubfield('v') != null){
+								String subfieldVData = field.getSubfield('v').getData().toLowerCase();
+								if (!subfieldVData.contains("Television adaptation")){
+									okToAdd = true;
+								}else{
+									System.out.println("Not including graphic novel format");
+								}
+							}else{
+								okToAdd = true;
+							}
+							if (okToAdd){
+								result.add("GraphicNovel");
+							}
+						}
+					}
+				}
+			}
+		}
+
+		List<DataField> genreFormTerm = getDataFields(record, "655");
+		if (genreFormTerm != null) {
+			Iterator<DataField> fieldsIter = genreFormTerm.iterator();
 			DataField field;
 			while (fieldsIter.hasNext()) {
 				field = fieldsIter.next();
