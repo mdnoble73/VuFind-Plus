@@ -1250,6 +1250,18 @@ class MarcRecord extends IndexRecord
 			}
 		}
 
+		$genreFormTerms = $this->getFieldArray("655");
+		foreach ($genreFormTerms as $term){
+			$term = strtolower($term);
+			if (strpos($term, "large type") !== FALSE){
+				$result[] =  "Large Print";
+			}elseif (strpos($term, "playaway") !== FALSE){
+				$result[] =  "Playaway";
+			}elseif (strpos($term, "graphic novel") !== FALSE){
+				$result[] =  "Graphic Novel";
+			}
+		}
+
 		$localTopicalTerms = $this->getFieldArray("690");
 		foreach ($localTopicalTerms as $topicalTerm){
 			$topicalTerm = strtolower($topicalTerm);
