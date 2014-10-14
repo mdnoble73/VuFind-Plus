@@ -52,8 +52,7 @@ class EmailList extends Action {
 			$formDefinition = array(
 					'title' => 'Email a list',
 					'modalBody' => $interface->fetch('MyAccount/emailListPopup.tpl'),
-					'modalButtons' => "<input type='submit' name='submit' value='Send' class='btn btn-primary' onclick='console.log(\"Send button clicked\");$(\"#emailListForm\").submit();console.log(\"submit activated\");'/>"
-				// DEBUG_REMOVE
+					'modalButtons' => "<input type='submit' name='submit' value='Send' class='btn btn-primary' onclick='$(\"#emailListForm\").submit();'/>"
 			);
 			echo json_encode($formDefinition);
 		}
