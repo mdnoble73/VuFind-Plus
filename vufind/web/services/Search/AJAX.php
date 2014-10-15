@@ -263,7 +263,7 @@ class AJAX extends Action {
 		global $interface;
 
 		$subject = translate('Library Catalog Search Result');
-		$url = $_REQUEST['url'];
+		$url = $_REQUEST['sourceUrl'];
 		$to = $_REQUEST['to'];
 		$from = $_REQUEST['from'];
 		$message = $_REQUEST['message'];
@@ -285,7 +285,7 @@ class AJAX extends Action {
 			}elseif (PEAR_Singleton::isError($emailResult)){
 				$result = array(
 						'result' => false,
-						'message' => "Your e-mail message could not be sent {$emailResult}."
+						'message' => "Your e-mail message could not be sent: {$emailResult->message}."
 				);
 			}else{
 				$result = array(
