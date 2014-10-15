@@ -460,7 +460,7 @@ class AJAX extends Action {
 		$results = array(
 			'title' => 'E-Mail Search',
 			'modalBody' => $interface->fetch('Search/email.tpl'),
-			'modalButtons' => "<span class='tool btn btn-primary' onclick='return VuFind.Searches.sendEmail();'>Send E-Mail</span>"
+			'modalButtons' => "<span class='tool btn btn-primary' onclick='$(\"#emailSearchForm\").submit();'>Send E-Mail</span>"
 		);
 		echo json_encode($results);
 	}

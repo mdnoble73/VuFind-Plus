@@ -65,11 +65,20 @@ VuFind.Searches = (function(){
 				var to = $('#to').val();
 				var message = $('#message').val();
 				var related_record = $('#related_record').val();
-				var sourceUrl = encodeURIComponent(window.location.href);
+				//var sourceUrl = encodeURIComponent(window.location.href);
+				var sourceUrl = window.location.href;
 
 				var url = Globals.path + "/Search/AJAX";
-				var params = "method=sendEmail&from=" + encodeURIComponent(from) + "&to=" + encodeURIComponent(to) + "&message=" + encodeURIComponent(message) + "&url=" + sourceUrl;
-				$.getJSON(url + '?' + params,
+				//var params = "method=sendEmail&from=" + encodeURIComponent(from) + "&to=" + encodeURIComponent(to) + "&message=" + encodeURIComponent(message) + "&url=" + sourceUrl;
+				//passing through getJSON() data array instead
+				$.getJSON(url,
+						{ // pass parameters as data
+							method     : 'sendEmail'
+							,from      : from
+							,to        : to
+							,message   : message
+							,sourceUrl : sourceUrl
+						},
 						function(data) {
 							if (data.result) {
 								VuFind.showMessage("Success", data.message);
