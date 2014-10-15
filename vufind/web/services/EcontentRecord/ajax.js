@@ -1,11 +1,3 @@
-function saveEContentRecord(id, formElem, strings) {
-	var successCallback = function() {
-		// Highlight the save link to indicate that the content is saved:
-		$('#saveLink').addClass('savedFavorite');
-	};
-	performSaveRecord(id, formElem, strings, 'eContent', successCallback);
-}
-
 function SendEContentEmail(id, to, from, message, strings) {
 	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=SendEmail&" + "from=" + encodeURIComponent(from) + "&" + "to=" + encodeURIComponent(to) + "&" + "message=" + encodeURIComponent(message);

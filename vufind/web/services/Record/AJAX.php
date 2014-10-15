@@ -31,12 +31,12 @@ class Record_AJAX extends Action {
 		$analytics->disableTracking();
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'SaveComment', 'SaveTag', 'SaveRecord', 'GetEnrichmentInfoJSON', 'getPlaceHoldForm', 'placeHold'))){
+		if (in_array($method, array('getPlaceHoldForm', 'placeHold'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('GetGoDeeperData', 'getPurchaseOptions', 'getDescription'))){
+		}else if (in_array($method, array('GetGoDeeperData', 'getPurchaseOptions'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -196,74 +196,6 @@ class Record_AJAX extends Action {
 		(UserAccount::isLoggedIn() ? "True" : "False") . "</result>";
 	}
 
-	// Saves a Record to User's Account
-	function SaveRecord()
-	{
-		require_once ROOT_DIR . '/services/Record/Save.php';
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
-
-		$result = array();
-		if (UserAccount::isLoggedIn()) {
-			$saveService = new Record_Save();
-			$result = $saveService->saveRecord();
-			if (!PEAR_Singleton::isError($result)) {
-				$result['result'] = "Done";
-				$result['message'] = "Successfully added title to list";
-			} else {
-				$result['result'] = "Error";
-				$result['message'] = "Unable to add title to list: " . $result->getMessage();
-			}
-		} else {
-			$result['result'] = "Unauthorized";
-			$result['message'] = "Unable to add title to list, you must be logged in to save to a list.";
-		}
-		return json_encode($result);
-	}
-
-	// Email Record
-	function SendEmail()
-	{
-		require_once ROOT_DIR . '/services/Record/Email.php';
-
-		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->init();
-
-		$emailService = new Record_Email();
-		$result = $emailService->sendEmail($_GET['to'], $_GET['from'], $_GET['message']);
-
-		if (PEAR_Singleton::isError($result)) {
-			return '<result>Error</result><details>' .
-			htmlspecialchars($result->getMessage()) . '</details>';
-		} else {
-			if ($result === true){
-				return '<result>Done</result>';
-			}else{
-				return '<result><![CDATA[' . $result . ']]></result>';
-			}
-		}
-	}
-
-	// SMS Record
-	function SendSMS()
-	{
-		require_once ROOT_DIR . '/services/Record/SMS.php';
-		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->init();
-
-		$sms = new Record_SMS();
-		$result = $sms->sendSMS();
-
-		if (PEAR_Singleton::isError($result)) {
-			return '<result>Error</result>';
-		} else {
-			if ($result === true){
-				return '<result>Done</result>';
-			}else{
-				return '<result><![CDATA[' . $result . ']]></result>';
-			}
-		}
-	}
-
 	function GetGoDeeperData(){
 		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
 		$dataType = $_REQUEST['dataType'];
@@ -275,310 +207,13 @@ class Record_AJAX extends Action {
 
 	}
 
-	function GetEnrichmentInfoJSON(){
-		require_once ROOT_DIR . '/services/Record/Enrichment.php';
-		global $configArray;
-		global $library;
-		global $interface;
-
-		$enrichmentResult = array();
-		$isbn = $_REQUEST['isbn'];
-		$upc = $_REQUEST['upc'];
-		$id = $_REQUEST['id'];
-		$enrichmentData = Record_Enrichment::loadEnrichment($isbn, $upc);
-
-		//Process series data
-		$titles = array();
-		if (!isset($enrichmentData['novelist']['series']) || count($enrichmentData['novelist']['series']) == 0){
-			$enrichmentResult['seriesInfo'] = array('titles'=>$titles, 'currentIndex'=>0);
-		}else{
-			foreach ($enrichmentData['novelist']['series'] as $record){
-				$isbn = $record['isbn'];
-				if (strpos($isbn, ' ') > 0){
-					$isbn = substr($isbn, 0, strpos($isbn, ' '));
-				}
-				$cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn;
-				if (isset($record['id'])){
-					$cover .= "&id=" . $record['id'];
-				}
-				if (isset($record['upc'])){
-					$cover .= "&upc=" . $record['upc'];
-				}
-				if (isset($record['issn'])){
-					$cover .= "&issn=" . $record['issn'];
-				}
-				if (isset($record['format_category'])){
-					$cover .= "&category=" . $record['format_category'][0];
-				}
-				$title = $record['title'];
-				if (isset($record['series'])){
-					$title .= ' (' . $record['series'] ;
-					if (isset($record['volume'])){
-						$title .= ' Volume ' . $record['volume'];
-					}
-					$title .= ')';
-				}
-				$titles[] = array(
-					'id' => isset($record['id']) ? $record['id'] : '',
-					'image' => $cover,
-					'title' => $title,
-					'author' => $record['author']
-				);
-			}
-
-			foreach ($titles as $key => $rawData){
-				if ($rawData['id']){
-					if (strpos($rawData['id'], 'econtentRecord') === 0){
-						$fullId = $rawData['id'];
-						$shortId = str_replace('econtentRecord', '', $rawData['id']);
-						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-								'<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $shortId . '" id="descriptionTrigger' . $fullId . '">' .
-								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-								"</a></div>" .
-								"<div id='descriptionPlaceholder{$fullId}' style='display:none'></div>";
-					}else{
-						$shortId = str_replace('.', '', $rawData['id']);
-						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-								'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $shortId . '">' .
-								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-								"</a></div>" .
-								"<div id='descriptionPlaceholder{$shortId}' style='display:none'></div>";
-					}
-				}else{
-					$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-							"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-							"</div>";
-				}
-				$rawData['formattedTitle'] = $formattedTitle;
-				$titles[$key] = $rawData;
-			}
-			$seriesInfo = array('titles' => $titles, 'currentIndex' => $enrichmentData['novelist']['seriesDefaultIndex']);
-			$enrichmentResult['seriesInfo'] = $seriesInfo;
-		}
-
-		//Load go deeper options
-		if (isset($library) && $library->showGoDeeper == 0){
-			$enrichmentResult['showGoDeeper'] = false;
-		}else{
-			require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
-			$goDeeperOptions = GoDeeperData::getGoDeeperOptions($isbn, $upc);
-			if (count($goDeeperOptions['options']) == 0){
-				$enrichmentResult['showGoDeeper'] = false;
-			}else{
-				$enrichmentResult['showGoDeeper'] = true;
-				$enrichmentResult['goDeeperOptions'] = $goDeeperOptions['options'];
-			}
-		}
-
-		//Related data
-		$enrichmentResult['relatedContent'] = $interface->fetch('Record/relatedContent.tpl');
-
-		return json_encode($enrichmentResult);
-	}
-
-	function GetEnrichmentInfo(){
-		require_once ROOT_DIR . '/services/Record/Enrichment.php';
-		global $configArray;
-		global $library;
-		$isbn = $_REQUEST['isbn'];
-		$upc = $_REQUEST['upc'];
-		$id = $_REQUEST['id'];
-		$enrichmentData = Record_Enrichment::loadEnrichment($isbn);
-		global $interface;
-		$interface->assign('id', $id);
-		$interface->assign('enrichment', $enrichmentData);
-		$showSimilarTitles = false;
-		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']['similarTitles']) && is_array($enrichmentData['novelist']['similarTitles']) && count($enrichmentData['novelist']['similarTitles']) > 0){
-			foreach ($enrichmentData['novelist']['similarTitles'] as $title){
-				if ($title['recordId'] != -1){
-					$showSimilarTitles = true;
-					break;
-				}
-			}
-		}
-		if (isset($library) && $library->showSimilarTitles == 0){
-			$interface->assign('showSimilarTitles', false);
-		}else{
-			$interface->assign('showSimilarTitles', $showSimilarTitles);
-		}
-		if (isset($library) && $library->showSimilarAuthors == 0){
-			$interface->assign('showSimilarAuthors', false);
-		}else{
-			$interface->assign('showSimilarAuthors', true);
-		}
-
-		//Process series data
-		$titles = array();
-		if (!isset($enrichmentData['novelist']['series']) || count($enrichmentData['novelist']['series']) == 0){
-			$interface->assign('seriesInfo', json_encode(array('titles'=>$titles, 'currentIndex'=>0)));
-		}else{
-			foreach ($enrichmentData['novelist']['series'] as $record){
-				$isbn = $record['isbn'];
-				if (strpos($isbn, ' ') > 0){
-					$isbn = substr($isbn, 0, strpos($isbn, ' '));
-				}
-				$cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn;
-				if (isset($record['id'])){
-					$cover .= "&id=" . $record['id'];
-				}
-				if (isset($record['upc'])){
-					$cover .= "&upc=" . $record['upc'];
-				}
-				if (isset($record['issn'])){
-					$cover .= "&issn=" . $record['issn'];
-				}
-				if (isset($record['format_category'])){
-					$cover .= "&category=" . $record['format_category'][0];
-				}
-				$title = $record['title'];
-				if (isset($record['series'])){
-					$title .= ' (' . $record['series'] ;
-					if (isset($record['volume'])){
-						$title .= ' Volume ' . $record['volume'];
-					}
-					$title .= ')';
-				}
-				$titles[] = array(
-	        	  'id' => isset($record['id']) ? $record['id'] : '',
-			    		'image' => $cover,
-			    		'title' => $title,
-			    		'author' => $record['author']
-				);
-			}
-
-			foreach ($titles as $key => $rawData){
-				if ($rawData['id']){
-					if (strpos($rawData['id'], 'econtentRecord') === 0){
-						$fullId = $rawData['id'];
-						$shortId = str_replace('econtentRecord', '', $rawData['id']);
-						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-								'<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $shortId . '" id="descriptionTrigger' . $fullId . '">' .
-								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-								"</a></div>" .
-								"<div id='descriptionPlaceholder{$fullId}' style='display:none'></div>";
-					}else{
-						$shortId = str_replace('.', '', $rawData['id']);
-						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-							'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $shortId . '">' .
-							"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-							"</a></div>" .
-							"<div id='descriptionPlaceholder{$shortId}' style='display:none'></div>";
-					}
-				}else{
-					$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-						"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-						"</div>";
-				}
-				$rawData['formattedTitle'] = $formattedTitle;
-				$titles[$key] = $rawData;
-			}
-			$seriesInfo = array('titles' => $titles, 'currentIndex' => $enrichmentData['novelist']['seriesDefaultIndex']);
-			$interface->assign('seriesInfo', json_encode($seriesInfo));
-		}
-
-		//Process similar titles for widget
-		$titles = array();
-		if (!isset($enrichmentData['novelist']['similarTitles']) || count($enrichmentData['novelist']['similarTitles']) == 0){
-			$interface->assign('similarTitleInfo', json_encode(array('titles'=>$titles, 'currentIndex'=>0)));
-		}else{
-			foreach ($enrichmentData['novelist']['similarTitles'] as $record){
-				$isbn = $record['isbn'];
-				if (strpos($isbn, ' ') > 0){
-					$isbn = substr($isbn, 0, strpos($isbn, ' '));
-				}
-				$cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn;
-				if (isset($record['id'])){
-					$cover .= "&id=" . $record['id'];
-				}
-				if (isset($record['upc'])){
-					$cover .= "&upc=" . $record['upc'];
-				}
-				if (isset($record['issn'])){
-					$cover .= "&issn=" . $record['issn'];
-				}
-				if (isset($record['format_category'])){
-					$cover .= "&category=" . $record['format_category'][0];
-				}
-				$title = $record['title'];
-				if (isset($record['series'])){
-					$title .= ' (' . $record['series'] ;
-					if (isset($record['volume'])){
-						$title .= ' Volume ' . $record['volume'];
-					}
-					$title .= ')';
-				}
-				$titles[] = array(
-					'id' => isset($record['id']) ? $record['id'] : '',
-					'image' => $cover,
-					'title' => $title,
-					'author' => $record['author']
-				);
-			}
-
-			foreach ($titles as $key => $rawData){
-				if ($rawData['id']){
-					if (strpos($rawData['id'], 'econtentRecord') === 0){
-						$fullId = $rawData['id'];
-						$shortId = str_replace('econtentRecord', '', $rawData['id']);
-						$formattedTitle = "<div id=\"scrollerTitleSimilar{$key}\" class=\"scrollerTitle\">" .
-								'<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $shortId . '" id="descriptionTrigger' . $fullId . '">' .
-								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-								"</a></div>" .
-								"<div id='descriptionPlaceholder{$fullId}' style='display:none'></div>";
-					}else{
-						$shortId = str_replace('.', '', $rawData['id']);
-						$formattedTitle = "<div id=\"scrollerTitleSimilar{$key}\" class=\"scrollerTitle\">" .
-								'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $shortId . '">' .
-								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-								"</a></div>" .
-								"<div id='descriptionPlaceholder{$shortId}' style='display:none'></div>";
-					}
-				}else{
-					$formattedTitle = "<div id=\"scrollerTitleSimilar{$key}\" class=\"scrollerTitle\">" .
-							"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-							"</div>";
-				}
-				$rawData['formattedTitle'] = $formattedTitle;
-				$titles[$key] = $rawData;
-			}
-			$seriesInfo = array('titles' => $titles, 'currentIndex' => 0);
-			$interface->assign('similarTitleInfo', json_encode($seriesInfo));
-		}
-
-		//Load go deeper options
-		if (isset($library) && $library->showGoDeeper == 0){
-			$interface->assign('showGoDeeper', false);
-		}else{
-			require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
-			$goDeeperOptions = GoDeeperData::getGoDeeperOptions($isbn, $upc);
-			if (count($goDeeperOptions['options']) == 0){
-				$interface->assign('showGoDeeper', false);
-			}else{
-				$interface->assign('showGoDeeper', true);
-				$interface->assign('goDeeperOptions', $goDeeperOptions['options']);
-			}
-		}
-
-		return $interface->fetch('Record/ajax-enrichment.tpl');
-	}
-
-	function GetSeriesTitles(){
-		//Get other titles within a series for display within the title scroller
-		require_once 'Enrichment.php';
-		$isbn = $_REQUEST['isbn'];
-		$id = $_REQUEST['id'];
-		$enrichmentData = Record_Enrichment::loadEnrichment($isbn);
-		global $interface;
-		$interface->assign('id', $id);
-		$interface->assign('enrichment', $enrichmentData);
-
-
-	}
-
 	function GetHoldingsInfo(){
 		require_once 'Holdings.php';
 		global $interface;
 		global $configArray;
+		global $library;
+		global $timer;
+		$timer->logTime("Starting GetHoldingsInfo");
 		if ($configArray['Catalog']['offline']){
 			$interface->assign('offline', true);
 		}else{
@@ -586,7 +221,85 @@ class Record_AJAX extends Action {
 		}
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
-		Record_Holdings::loadHoldings($id);
+
+		$showCopiesLineInHoldingsSummary = true;
+		$showCheckInGrid = true;
+		if ($library && $library->showCopiesLineInHoldingsSummary == 0){
+			$showCopiesLineInHoldingsSummary = false;
+		}
+		$interface->assign('showCopiesLineInHoldingsSummary', $showCopiesLineInHoldingsSummary);
+		if ($library && $library->showCheckInGrid == 0){
+			$showCheckInGrid = false;
+		}
+		$interface->assign('showCheckInGrid', $showCheckInGrid);
+
+		try {
+			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$timer->logTime("Connected to catalog");
+		} catch (PDOException $e) {
+			// What should we do with this error?
+			if ($configArray['System']['debug']) {
+				echo '<pre>';
+				echo 'DEBUG: ' . $e->getMessage();
+				echo '</pre>';
+			}
+			return null;
+		}
+
+		$holdingData = new stdClass();
+		// Get Holdings Data
+		if ($catalog->status) {
+			$result = $catalog->getHolding($id);
+			$timer->logTime("Loaded Holding Data from catalog");
+			if (PEAR_Singleton::isError($result)) {
+				PEAR_Singleton::raiseError($result);
+			}
+			if (count($result)) {
+				$holdings = array();
+				$issueSummaries = array();
+				foreach ($result as $copy) {
+					if (isset($copy['type']) && $copy['type'] == 'issueSummary'){
+						$issueSummaries = $result;
+						break;
+					}else{
+						$key = $copy['location'];
+						$key = preg_replace('~\W~', '_', $key);
+						$holdings[$key][] = $copy;
+					}
+				}
+				if (isset($issueSummaries) && count($issueSummaries) > 0){
+					$interface->assign('issueSummaries', $issueSummaries);
+					$holdingData->issueSummaries = $issueSummaries;
+				}else{
+					$interface->assign('holdings', $holdings);
+					$holdingData->holdings = $holdings;
+				}
+			}else{
+				$interface->assign('holdings', array());
+				$holdingData->holdings = array();
+			}
+
+			// Get Acquisitions Data
+			$result = $catalog->getPurchaseHistory($id);
+			if (PEAR_Singleton::isError($result)) {
+				PEAR_Singleton::raiseError($result);
+			}
+			$interface->assign('history', $result);
+			$holdingData->history = $result;
+			$timer->logTime("Loaded purchase history");
+
+			//Holdings summary
+			$result = $catalog->getStatusSummary($id, false);
+			if (PEAR_Singleton::isError($result)) {
+				PEAR_Singleton::raiseError($result);
+			}
+			$holdingData->holdingsSummary = $result;
+			$interface->assign('holdingsSummary', $result);
+			$timer->logTime("Loaded holdings summary");
+
+			$interface->assign('formattedHoldingsSummary', $interface->fetch('Record/holdingsSummary.tpl'));
+		}
+
 		return $interface->fetch('Record/ajax-holdings.tpl');
 	}
 
@@ -641,31 +354,6 @@ class Record_AJAX extends Action {
 		$interface->assign('id', $id);
 		$interface->assign('enrichment', $enrichmentData);
 		return $interface->fetch('Record/ajax-reviews.tpl');
-	}
-
-	function getDescription(){
-		/** @var Memcache $memCache */
-		global $memCache;
-		global $configArray;
-		global $interface;
-		$id = $_REQUEST['id'];
-		//Bypass loading solr, etc if we already have loaded the descriptive info before
-		$descriptionArray = $memCache->get("record_description_{$id}");
-		if (!$descriptionArray){
-			require_once 'Description.php';
-			$searchObject = SearchObjectFactory::initSearchObject();
-			$searchObject->init();
-
-			$description = new Record_Description(true, $id);
-			$descriptionArray = $description->loadData();
-			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
-		}
-		$interface->assign('title', isset($descriptionArray['title']) ? $descriptionArray['title'] : 'Description');
-		$interface->assign('description', $descriptionArray['description']);
-		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');
-		$interface->assign('publisher', isset($descriptionArray['publisher']) ? $descriptionArray['publisher'] : '');
-
-		return $interface->fetch('Record/ajax-description-popup.tpl');
 	}
 
 	function getPlaceHoldForm(){

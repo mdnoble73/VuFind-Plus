@@ -772,19 +772,6 @@ function showReviewForm(id, source){
 	return false;
 }
 
-
-function saveRecord(id, source, formElem, strings) {
-	successCallback = function() {
-		// Highlight the save link to indicate that the content is saved:
-		$('#saveLink').addClass('savedFavorite');
-
-		// Redraw tag list:
-		GetTags(id, source, 'tagList', strings);
-	};
-	performSaveRecord(id, source, formElem, strings, 'VuFind', successCallback);
-	return false;
-}
-
 function getQuerystringParameters(){
 	var vars = [];
 	var q = document.URL.split('?')[1];

@@ -615,20 +615,6 @@ function processFollowup(){
 	global $configArray;
 
 	switch($_REQUEST['followup']) {
-		case 'SaveRecord':
-			file_get_contents($configArray['Site']['path'] .
-                    "/Record/AJAX?method=SaveRecord&id=" . urlencode($_REQUEST['id']));
-			break;
-		case 'SaveTag':
-			file_get_contents($configArray['Site']['path'] .
-                    "/Record/AJAX?method=SaveTag&id=" . urlencode($_REQUEST['id']) .
-                    "&tag=" . urlencode($_REQUEST['tag']));
-			break;
-		case 'SaveComment':
-			file_get_contents($configArray['Site']['path'] .
-                    "/Record/AJAX?method=SaveComment&id=" . urlencode($_REQUEST['id']) .
-                    "&comment=" . urlencode($_REQUEST['comment']));
-			break;
 		case 'SaveSearch':
 			header("Location: {$configArray['Site']['path']}/".$_REQUEST['followupModule']."/".$_REQUEST['followupAction']."?".$_REQUEST['recordId']);
 			die();

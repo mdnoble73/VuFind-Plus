@@ -104,14 +104,5 @@
 			{include file='GroupedWork/result-tools-horizontal.tpl' id=$summId shortId=$shortId summTitle=$summTitle ratingData=$summRating recordUrl=$summUrl}
 		</div>
 	</div>
-
-	{*
-	<script type="text/javascript">
-		/* VuFind.ResultsList.addIdToStatusList('{$summId|escape}', 'VuFind', '{$useUnscopedHoldingsSummary}'); */
-		{if $summISBN}
-		VuFind.ResultsList.addGroupedIdToSeriesList('{$summId}');
-		{/if}
-	</script>
-	*}
 </div>
 {/strip}
