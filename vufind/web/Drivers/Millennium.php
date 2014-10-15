@@ -380,6 +380,9 @@ class MillenniumDriver implements DriverInterface
 					'isLibraryItem' => $isLibraryItem,
 					'locationLabel' => $locationLabel,
 					'shelfLocation' => $shelfLocation,
+					'status' => $status,
+					'dueDate' => $dueDate,
+					'iType' => $iType,
 				);
 				$items[] = $item;
 			}

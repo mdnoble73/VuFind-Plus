@@ -158,6 +158,40 @@ class Sierra extends MillenniumDriver{
 		return null;
 	}
 
+	var $statuses = array();
+	public function getStatus($id){
+		global $timer;
 
+		if (isset($this->statuses[$id])){
+			return $this->statuses[$id];
+		}
+		require_once ROOT_DIR . '/Drivers/marmot_inc/SierraStatusLoader.php';
+		$statusLoader = new SierraStatusLoader($this);
+		$timer->logTime('initialized Sierra Status Loader');
 
+		$this->statuses[$id] = $statusLoader->getStatus($id);
+
+		$timer->logTime('Got status from Sierra');
+		return $this->statuses[$id];
+	}
+
+	/**
+	 * Returns a summary of the holdings information for a single id. Used to display
+	 * within the search results and at the top of a full record display to ensure
+	 * the holding information makes sense to all users.
+	 *
+	 * @param string $id the id of the bid to load holdings for
+	 * @param boolean $forSearch whether or not the summary will be shown in search results
+	 * @return array an associative array with a summary of the holdings.
+	 */
+	public function getStatusSummary($id, $forSearch = false){
+		global $timer;
+		require_once ROOT_DIR . '/Drivers/marmot_inc/SierraStatusLoader.php';
+		$timer->logTime('Starting to load status summary');
+		$statusLoader = new SierraStatusLoader($this);
+		$statusSummary = $statusLoader->getStatusSummary($id, $forSearch);
+
+		$timer->logTime('Got status summary from Sierra');
+		return $statusSummary;
+	}
 }

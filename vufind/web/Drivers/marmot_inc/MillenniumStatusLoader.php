@@ -12,13 +12,41 @@ class MillenniumStatusLoader{
 		$this->driver = $driver;
 	}
 
+	private static $loadedStatus = array();
 	/**
 	 * Load status (holdings) for a record and filter them based on the logged in user information.
+	 *
+	 * Format of return array is:
+	 * key = {section#}{location}-### where ### is the holding iteration
+	 *
+	 * value = array (
+	 *  id = The id of the bib
+	 *  number = The position of the holding within the original list of holdings
+	 *  section = A description of the section
+	 *  sectionId = a numeric id of the section for sorting
+	 *  type = holding
+	 *  status
+	 *  statusfull
+	 *  reserve
+	 *  holdQueueLength
+	 *  duedate
+	 *  location
+	 *  locationLink
+	 *  callnumber
+	 *  link = array
+	 *  linkText
+	 *  isDownload
+	 * )
+	 *
+	 * Includes both physical titles as well as titles on order
 	 *
 	 * @param string            $id     the id of the record
 	 * @return array A list of holdings for the record
 	 */
 	public function getStatus($id){
+		if (array_key_exists($id, MillenniumStatusLoader::$loadedStatus)){
+			return MillenniumStatusLoader::$loadedStatus[$id];
+		}
 		global $library;
 		global $user;
 		global $timer;
@@ -512,47 +540,15 @@ class MillenniumStatusLoader{
 				}
 			}
 			ksort($issueSummaries);
-			return $issueSummaries;
+			$status = $issueSummaries;
 		}else{
-			return $sorted_array;
+			$status = $sorted_array;
 		}
+		MillenniumStatusLoader::$loadedStatus[$id] = $status;
+		return $status;
 	}
 
-	private function translateStatusCode($status, $dueDate){
-		$statuses = array(
-			'-' => 'On Shelf',
-			'm' => 'Missing',
-			'n' => 'Billed',
-			'z' => 'Claims Returned',
-			't' => 'In Transit',
-			's' => 'On Search',
-			'o' => 'Library Use Only',
-			'$' => 'Lost and Paid',
-			'!' => 'On Hold Shelf',
-			'r' => 'Repair',
-			'b' => 'Bindery',
-			'd' => 'Display',
-			'g' => 'Damaged',
-			'w' => 'New Book Shelf',
-			'h' => 'On Reserve',
-			'p' => 'In Process',
-			'l' => 'Gone',
-			'u' => 'Restricted Use',
-			'q' => 'On Order',
-			'c' => 'School Closed',
-			'f' => 'Collections',
-			'j' => 'Online',
-			'a' => 'Storage',
-			'#' => 'Prospector Received',
-			'%' => 'Prospector Returned',
-			'*' => 'Prospector Missing',
-			'@' => 'Prospector Off Campus',
-			'(' => 'Prospector Paged',
-			')' => 'Prospector Cancelled',
-			'_' => 'Prospector Re-request',
-			'&' => 'Prospector Requested',
-			'i' => 'Missing from Inventory'
-		);
+	protected function translateStatusCode($status, $dueDate){
 		if ($status == '-'){
 			if (!is_null($dueDate) && strlen($dueDate) > 0){
 				//Reformat the date
@@ -562,7 +558,7 @@ class MillenniumStatusLoader{
 				return 'On Shelf';
 			}
 		}else{
-			return $statuses{$status};
+			return mapValue('item_status', $status);
 		}
 	}
 

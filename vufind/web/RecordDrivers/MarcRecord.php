@@ -1660,8 +1660,7 @@ class MarcRecord extends IndexRecord
 			if ($totalCopies == 0){
 				return $relatedRecords;
 			}
-			//TODO: Load the number of holds on the record
-			$numHolds = 0;
+			$numHolds = $this->getNumHolds();
 			$relatedRecord = array(
 					'id' => $recordId,
 					'url' => $url,
@@ -1921,6 +1920,7 @@ class MarcRecord extends IndexRecord
 
 	private $fastItems = null;
 	public function getItemsFast(){
+		global $timer;
 		if ($this->fastItems == null){
 			$searchLibrary = Library::getSearchLibrary();
 			if ($searchLibrary){
@@ -1978,9 +1978,11 @@ class MarcRecord extends IndexRecord
 						'groupedStatus' => $groupedStatus,
 					);
 				}
+				$timer->logTime("Finished getItemsFast for marc record based on data in index");
 			}else{
 				$driver = MarcRecord::getCatalogDriver();
 				$this->fastItems = $driver->getItemsFast($this->getUniqueID(), $this->scopingEnabled, $this->getMarcRecord());
+				$timer->logTime("Finished getItemsFast for marc record based on data in driver");
 			}
 		}
 		return $this->fastItems;
@@ -2305,5 +2307,23 @@ class MarcRecord extends IndexRecord
 			}
 		}
 		return $notes;
+	}
+
+	private $numHolds = -1;
+	function getNumHolds() {
+		if ($this->numHolds != -1){
+			return $this->numHolds;
+		}
+		global $timer;
+		require_once ROOT_DIR . '/Drivers/marmot_inc/IlsHoldSummary.php';
+		$holdSummary = new IlsHoldSummary();
+		$holdSummary->ilsId = $this->getUniqueID();
+		if ($holdSummary->find(true)){
+			$this->numHolds = $holdSummary->numHolds;
+		}else{
+			$this->numHolds = 0;
+		}
+		$timer->logTime("Loaded number of holds");
+		return $this->numHolds;
 	}
 }

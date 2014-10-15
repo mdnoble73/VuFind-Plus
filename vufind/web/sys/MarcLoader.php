@@ -45,8 +45,12 @@ class MarcLoader{
 	 * @param string $recordType  The type of the record in the system
 	 * @return File_MARC_Record
 	 */
+	private static $loadedMarcRecords = array();
 	public static function loadMarcRecordByILSId($ilsId, $recordType = 'marc'){
 		global $configArray;
+		if (array_key_exists($ilsId, MarcLoader::$loadedMarcRecords)){
+			return MarcLoader::$loadedMarcRecords[$ilsId];
+		}
 		$shortId = str_replace('.', '', $ilsId);
 		if (strlen($shortId) < 9){
 			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
@@ -63,6 +67,7 @@ class MarcLoader{
 				}
 			}
 		}
+		MarcLoader::$loadedMarcRecords[$ilsId] = $marcRecord;
 		return $marcRecord;
 	}
 

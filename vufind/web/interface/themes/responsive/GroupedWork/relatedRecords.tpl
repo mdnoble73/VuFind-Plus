@@ -78,6 +78,17 @@
 						<div class="related-manifestation-shelf-status checked_out">{$relatedRecord.groupedStatus}</div>
 					{/if}
 
+					{if $relatedRecord.numHolds > 0 || $relatedRecord.onOrderCopies > 0}
+						<div class="smallText">
+							{if $relatedRecord.numHolds > 0}
+								{$relatedRecord.numHolds} {if $relatedRecord.numHolds == 1}person is{else}people are{/if} on the wait list
+								{if $relatedRecord.onOrderCopies > 0}, {else}.{/if}
+							{/if}
+							{if $relatedRecord.onOrderCopies > 0}
+								{$relatedRecord.onOrderCopies} {if $relatedRecord.onOrderCopies == 1}copy{else}copies{/if} on order.
+							{/if}
+						</div>
+					{/if}
 					{include file='GroupedWork/copySummary.tpl' summary=$relatedRecord.itemSummary totalCopies=$relatedRecord.copies itemSummaryId=$relatedRecord.id}
 
 					{if $relatedRecord.usageRestrictions}

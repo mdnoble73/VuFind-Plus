@@ -451,10 +451,12 @@ class GroupedWorkDriver extends RecordInterface{
 		}
 		$relatedManifestations = $this->getRelatedManifestations();
 		$interface->assign('relatedManifestations', $relatedManifestations);
+		$timer->logTime("Loaded related manifestations");
 
 		//Build the link URL.
 		//If there is only one record for the work we will link straight to that.
 		$relatedRecords = $this->getRelatedRecords();
+		$timer->logTime("Loaded related records");
 		if (count($relatedRecords) == 1){
 			$firstRecord = reset($relatedRecords);
 			/** @var IndexRecord|OverDriveRecordDriver|BaseEContentDriver $driver */
@@ -476,8 +478,8 @@ class GroupedWorkDriver extends RecordInterface{
 		$isbn = $this->getCleanISBN();
 		$interface->assign('summISBN', $isbn);
 		$interface->assign('summFormats', $this->getFormats());
-
 		$interface->assign('numRelatedRecords', count($relatedRecords));
+		$timer->logTime("Finished assignment of main data");
 
 		$summPublisher = null;
 		$summPubDate = null;
@@ -516,21 +518,24 @@ class GroupedWorkDriver extends RecordInterface{
 		$interface->assign('summPhysicalDesc', $summPhysicalDesc);
 		$interface->assign('summEdition', $summEdition);
 		$interface->assign('summLanguage', $summLanguage);
+		$timer->logTime("Finished assignment of data based on related records");
 
 		if ($configArray['System']['debugSolr']){
 			$interface->assign('summScore', $this->getScore());
 			$interface->assign('summExplain', $this->getExplain());
 		}
+		$timer->logTime("Finished assignment of data based on solr debug info");
 
 		//Get Rating
 		$interface->assign('summRating', $this->getRatingData());
+		$timer->logTime("Finished loading rating data");
 
 		//Description
 		$interface->assign('summDescription', $this->getDescriptionFast());
 		$timer->logTime('Finished Loading Description');
 		if ($this->hasCachedSeries()){
 			$interface->assign('ajaxSeries', false);
-			$interface->assign('summSeries', $this->getSeries());
+			$interface->assign('summSeries', $this->getSeries(false));
 		}else{
 			$interface->assign('ajaxSeries', true);
 		}
@@ -1117,6 +1122,8 @@ class GroupedWorkDriver extends RecordInterface{
 					'availableCopies' => 0,
 					'localCopies' => 0,
 					'localAvailableCopies' => 0,
+					'onOrderCopies' => 0,
+					'numHolds' => 0,
 					'available' => false,
 					'hasLocalItem' => false,
 					'relatedRecords' => array(),
@@ -1172,6 +1179,12 @@ class GroupedWorkDriver extends RecordInterface{
 			}
 			if (isset($curRecord['itemSummary'])){
 				$relatedManifestations[$curRecord['format']]['itemSummary'] = $this->mergeItemSummary($relatedManifestations[$curRecord['format']]['itemSummary'], $curRecord['itemSummary']);
+			}
+			if ($curRecord['numHolds']){
+				$relatedManifestations[$curRecord['format']]['numHolds'] += $curRecord['numHolds'];
+			}
+			if (isset($curRecord['onOrderCopies'])){
+				$relatedManifestations[$curRecord['format']]['onOrderCopies'] += $curRecord['onOrderCopies'];
 			}
 			$statusRankings = array(
 				'On Order' => 1,
@@ -1406,11 +1419,11 @@ class GroupedWorkDriver extends RecordInterface{
 		return $novelist->doesGroupedWorkHaveCachedSeries($this->getPermanentId());
 	}
 
-	public function getSeries(){
+	public function getSeries($allowReload = true){
 		//Get a list of isbns from the record
 		$relatedIsbns = $this->getISBNs();
 		$novelist = NovelistFactory::getNovelist();
-		$novelistData = $novelist->loadBasicEnrichment($this->getPermanentId(), $relatedIsbns);
+		$novelistData = $novelist->loadBasicEnrichment($this->getPermanentId(), $relatedIsbns, $allowReload);
 		if ($novelistData != null && isset($novelistData->seriesTitle)){
 			return array(
 				'seriesTitle' => $novelistData->seriesTitle,

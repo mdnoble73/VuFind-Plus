@@ -55,7 +55,20 @@
 							{elseif $relatedManifestation.available}
 								<div class="related-manifestation-shelf-status availableOther">Available from another library</div>
 							{else}
-								<div class="related-manifestation-shelf-status checked_out">{if $relatedManifestation.groupedStatus}{$relatedManifestation.groupedStatus}{else}Checked Out{/if}</div>
+								<div class="related-manifestation-shelf-status checked_out">
+									{if $relatedManifestation.groupedStatus}{$relatedManifestation.groupedStatus}{else}Checked Out{/if}
+								</div>
+							{/if}
+							{if $relatedManifestation.numHolds > 0 || $relatedManifestation.onOrderCopies > 0}
+								<div class="smallText">
+									{if $relatedManifestation.numHolds > 0}
+										{$relatedManifestation.numHolds} {if $relatedManifestation.numHolds == 1}person is{else}people are{/if} on the wait list
+										{if $relatedManifestation.onOrderCopies > 0}, {else}.{/if}
+									{/if}
+									{if $relatedManifestation.onOrderCopies > 0}
+										{$relatedManifestation.onOrderCopies} {if $relatedManifestation.onOrderCopies == 1}copy{else}copies{/if} on order.
+									{/if}
+								</div>
 							{/if}
 
 							{include file='GroupedWork/copySummary.tpl' summary=$relatedManifestation.itemSummary totalCopies=$relatedManifestation.copies itemSummaryId=$id}

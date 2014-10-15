@@ -16,7 +16,7 @@ class Novelist3{
 			return false;
 		}
 	}
-	function loadBasicEnrichment($groupedRecordId, $isbns){
+	function loadBasicEnrichment($groupedRecordId, $isbns, $allowReload = true){
 		global $timer;
 		global $configArray;
 
@@ -56,11 +56,13 @@ class Novelist3{
 				//We do have at least one ISBN
 				//If it's been more than 30 days since we updated, update 20% of the time
 				//We do it randomly to spread out the updates.
-				$now = time();
-				if ($novelistData->lastUpdate < $now - (30 * 24 * 60 * 60)){
-					$random = rand(1, 100);
-					if ($random <= 20){
-						$doUpdate = true;
+				if ($allowReload){
+					$now = time();
+					if ($novelistData->lastUpdate < $now - (30 * 24 * 60 * 60)){
+						$random = rand(1, 100);
+						if ($random <= 20){
+							$doUpdate = true;
+						}
 					}
 				}
 			}//else, no ISBNs, don't update

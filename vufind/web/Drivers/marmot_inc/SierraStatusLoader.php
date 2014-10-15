@@ -4,7 +4,9 @@
  *
  * Processes status information from Sierra to load holdings.
  */
-class SierraStatusLoader{
+require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumStatusLoader.php';
+require_once ROOT_DIR . '/RecordDrivers/Factory.php';
+class SierraStatusLoader extends MillenniumStatusLoader{
 	/** @var  Sierra $driver */
 	private $driver;
 
@@ -12,47 +14,49 @@ class SierraStatusLoader{
 		$this->driver = $driver;
 	}
 
+	private static $loadedStatus = array();
 	/**
-	 * Load status (holdings) for a record and filter them based on the logged in user information.
+	 * In Sierra, all status information is up to date within the MARC record
+	 * due to the export so we don't need to screen scrape!
+	 *
+	 * Format of return array is:
+	 * key = {section#}{location}-### where ### is the holding iteration
+	 *
+	 * value = array (
+	 *  id = The id of the bib
+	 *  number = The position of the holding within the original list of holdings
+	 *  section = A description of the section
+	 *  sectionId = a numeric id of the section for sorting
+	 *  type = holding
+	 *  status
+	 *  statusfull
+	 *  reserve
+	 *  holdQueueLength
+	 *  duedate
+	 *  location
+	 *  locationLink
+	 *  callnumber
+	 *  link = array
+	 *  linkText
+	 *  isDownload
+	 * )
+	 *
+	 * Includes both physical titles as well as titles on order
 	 *
 	 * @param string            $id     the id of the record
 	 * @return array A list of holdings for the record
 	 */
 	public function getStatus($id){
+		if (array_key_exists($id, SierraStatusLoader::$loadedStatus)){
+			return SierraStatusLoader::$loadedStatus[$id];
+		}
+		$recordDriver = RecordDriverFactory::initRecordDriverById('ils:' . $id);
+
+		//Load local information
 		global $library;
-		global $user;
-		global $timer;
-		global $logger;
-		global $configArray;
-
-		if (!$configArray['Catalog']['offline']){
-			//Get information about holdings, order information, and issue information
-			$this->driver->getDbConnection();
-		}
-
-		// Load the full marc record so we can get the iType for each record.
-		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
-		$itemFields = $marcRecord->getFields("989");
-		$marcItemData = array();
-		$pType = $this->driver->getPType();
-		$scope = $this->driver->getMillenniumScope();
-
-		//Load item information from marc record
-		foreach ($itemFields as $itemField){
-			/** @var $itemField File_MARC_Data_Field */
-			$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
-			$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
-			$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
-			$itemData['callnumber'] = $fullCallNumber;
-			$itemData['location'] = $itemField->getSubfield('d') != null ? trim($itemField->getSubfield('d')->getData()) : ($itemField->getSubfield('p') != null ? trim($itemField->getSubfield('p')->getData()) : '?????');
-			$itemData['iType'] = $itemField->getSubfield('j') != null ? $itemField->getSubfield('j')->getData() : '0';
-			$itemData['matched'] = false;
-			$itemData['status'] = $itemField->getSubfield('g') != null ? $itemField->getSubfield('g')->getData() : '-';
-			$itemData['dueDate'] = $itemField->getSubfield('m') != null ? trim($itemField->getSubfield('m')->getData()) : null;
-			$marcItemData[] = $itemData;
-		}
-
 		global $locationSingleton; /** @var $locationSingleton Location */
+		global $user;
+
 		$physicalLocation = $locationSingleton->getPhysicalLocation();
 		if ($physicalLocation != null){
 			$physicalBranch = $physicalLocation->holdingBranchLabel;
@@ -111,7 +115,6 @@ class SierraStatusLoader{
 			$nearbyLocation2->fetch();
 			$nearbyBranch2 = $nearbyLocation2->holdingBranchLabel;
 		}
-		$sorted_array = array();
 
 		//Get a list of the display names for all locations based on holding label.
 		$locationLabels = array();
@@ -140,513 +143,69 @@ class SierraStatusLoader{
 			$libraryLocationLabels = '';
 		}
 
-		//Get the current Ptype for later usage.
-		$timer->logTime('setup for additional holdings processing.');
-
-		//Now that we have the holdings, we need to filter and sort them according to scoping rules.
-		$bibNumberShort = substr($id, 2, 7);
-		if (!$configArray['Catalog']['offline']){
-			$dbConn = $this->driver->getDbConnection();
-			$loadItemsSQL = "SELECT item_view.record_num, barcode, icode1, icode2, location_code, item_status_code from sierra_view.item_view inner join sierra_view.bib_record_item_record_link on item_record_id = item_view.id inner join sierra_view.bib_view on bib_view.id = bib_record_id where bib_view.record_num = {$bibNumberShort} order by items_display_order";
-			$holdingsRS = pg_query($dbConn, $loadItemsSQL);
-
-			$i = 0;
-			while ($holding = pg_fetch_assoc($holdingsRS)){
-				$holdingKey = $holding['barcode'];
-				$holding['type'] = 'holding';
-				//Process holdings without call numbers - Need to show items without call numbers
-				//because they may have links, etc.  Also show if there is a status.  Since some
-				//In process items may not have a call number yet.
-				if ( (!isset($holding['callnumber']) || strlen($holding['callnumber']) == 0) &&
-				(!isset($holding['link']) || count($holding['link']) == 0) && !isset($holding['status'])){
-					continue;
-				}
-
-				//Determine if the holding is available or not.
-				//First check the status
-				if (preg_match('/^(' . $this->driver->availableStatiRegex . ')$/', $holding['status'])){
-					$holding['availability'] = 1;
-				}else{
-					$holding['availability'] = 0;
-				}
-				if (preg_match('/^(' . $this->driver->holdableStatiRegex . ')$/', $holding['status'])){
-					$holding['holdable'] = 1;
-				}else{
-					$holding['holdable'] = 0;
-					$holding['nonHoldableReason'] = "This item is not currently available for Patron Holds";
-				}
-
-				if (!isset($holding['libraryDisplayName'])){
-					$holding['libraryDisplayName'] = $holding['location'];
-				}
-
-				//Get the location id for this holding
-				$holding['locationCode'] = '?????';
-				foreach ($locationCodes as $locationCode => $holdingLabel){
-					if (strlen($locationCode) > 0 && preg_match("~$holdingLabel~i", $holding['location'])){
-						$holding['locationCode'] = $locationCode;
-					}
-				}
-				if ($holding['locationCode'] == '?????'){
-					$logger->log("Did not find location code for " . $holding['location'] , PEAR_LOG_DEBUG);
-				}
-				if (array_key_exists($holding['locationCode'], $suppressedLocationCodes)){
-					$logger->log("Location " . $holding['locationCode'] . " is suppressed", PEAR_LOG_DEBUG);
-					continue;
-				}
-
-				//Now that we have the location code, try to match with the marc record
-				$holding['iType'] = 0;
-				foreach ($marcItemData as $itemData){
-					if (!$itemData['matched']){
-						$locationMatched = (strpos($itemData['location'], $holding['locationCode']) === 0);
-						if (strlen($itemData['callnumber']) == 0 || strlen($holding['callnumber']) == 0){
-							$callNumberMatched = (strlen($holding['callnumber']) == strlen($holding['callnumber']));
-						}else{
-							$callNumberMatched = (strpos($itemData['callnumber'], $holding['callnumber']) >= 0);
-						}
-						if ($locationMatched && $callNumberMatched){
-							$holding['iType'] = $itemData['iType'];
-							$itemData['matched'] = true;
-						}
-					}
-				}
-
-				//Check to see if this item can be held by the current patron.  Only important when
-				//we know what pType is in use and we are showing all items.
-				if ($scope == 93 && $pType > 0){
-					//Never remove the title if it is owned by the current library (could be in library use only)
-					if (isset($library) && strlen($library->ilsCode) > 0 && strpos($holding['locationCode'], $library->ilsCode) === 0){
-						$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
-					}else{
-						if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
-							$logger->log("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
-							//echo("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}");
-							continue;
-						}
-					}
-				}
-
-				//Set the hold queue length
-				$holding['holdQueueLength'] = isset($holdQueueLength) ? $holdQueueLength : null;
-
-				//Add the holding to the sorted array to determine
-				$sortString = $holding['location'] . '-'. $i;
-				//$sortString = $holding['location'] . $holding['callnumber']. $i;
-				if (strlen($physicalBranch) > 0 && stripos($holding['location'], $physicalBranch) !== false){
-					//If the user is in a branch, those holdings come first.
-					$holding['section'] = 'In this library';
-					$holding['sectionId'] = 1;
-					$sorted_array['1' . $sortString] = $holding;
-				} else if (strlen($homeBranch) > 0 && stripos($holding['location'], $homeBranch) !== false){
-					//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
-					$holding['section'] = 'Your library';
-					$holding['sectionId'] = 2;
-					$sorted_array['2' . $sortString] = $holding;
-				} else if ((strlen($nearbyBranch1) > 0 && stripos($holding['location'], $nearbyBranch1) !== false)){
-					//Next come nearby locations for the user
-					$holding['section'] = 'Nearby Libraries';
-					$holding['sectionId'] = 3;
-					$sorted_array['3' . $sortString] = $holding;
-				} else if ((strlen($nearbyBranch2) > 0 && stripos($holding['location'], $nearbyBranch2) !== false)){
-					//Next come nearby locations for the user
-					$holding['section'] = 'Nearby Libraries';
-					$holding['sectionId'] = 4;
-					$sorted_array['4' . $sortString] = $holding;
-				} else if (strlen($libraryLocationLabels) > 0 && preg_match($libraryLocationLabels, $holding['location'])){
-					//Next come any locations within the same system we are in.
-					$holding['section'] = $library->displayName;
-					$holding['sectionId'] = 5;
-					$sorted_array['5' . $sortString] = $holding;
-				} else {
-					//Finally, all other holdings are shown sorted alphabetically.
-					$holding['section'] = 'Other Locations';
-					$holding['sectionId'] = 6;
-					$sorted_array['6' . $sortString] = $holding;
-				}
-				$i++;
+		//In Sierra, we can just load data from the MARC Record/Index
+		$items = $recordDriver->getItemsFast();
+		$holdQueueLength = $recordDriver->getNumHolds();
+		$itemStatus = array();
+		$i = 0;
+		foreach ($items as $item){
+			//Determine what section this holding is in
+			$sectionId = 1;
+			$location = $item['shelfLocation'];
+			if (strlen($physicalBranch) > 0 && stripos($location, $physicalBranch) !== false){
+				//If the user is in a branch, those holdings come first.
+				$section = 'In this library';
+				$sectionId = 1;
+			} else if (strlen($homeBranch) > 0 && stripos($location, $homeBranch) !== false){
+				//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
+				$section = 'Your library';
+				$sectionId = 2;
+			} else if ((strlen($nearbyBranch1) > 0 && stripos($location, $nearbyBranch1) !== false)){
+				//Next come nearby locations for the user
+				$section = 'Nearby Libraries';
+				$sectionId = 3;
+			} else if ((strlen($nearbyBranch2) > 0 && stripos($location, $nearbyBranch2) !== false)){
+				//Next come nearby locations for the user
+				$section = 'Nearby Libraries';
+				$sectionId = 4;
+			} else if (strlen($libraryLocationLabels) > 0 && preg_match($libraryLocationLabels, $location)){
+				//Next come any locations within the same system we are in.
+				$section = $library->displayName;
+				$sectionId = 5;
+			} else {
+				//Finally, all other holdings are shown sorted alphabetically.
+				$section = 'Other Locations';
+				$sectionId = 6;
 			}
-		}else{
-			$i = 0;
-			//Offline circ, process each item in the marc record
-			foreach ($marcItemData as $marcData){
-				$i++;
-				$holding = array();
-				$holding['type'] = 'holding';
-				$holding['locationCode'] = $marcData['location'];
-				$holding['callnumber'] = $marcData['callnumber'];
-				$holding['statusfull'] = $this->translateStatusCode($marcData['status'], $marcData['dueDate']);
 
-				//Try to translate the location code at least to location
-				$location = new Location();
-				$location->whereAdd("LOCATE(code, '{$marcData['location']}') = 1");
-				if ($location->find(true)){
-					$holding['location'] = $location->displayName;
-				}else{
-					$holding['location'] = $marcData['location'];
-				}
+			$holding = array(
+				'location' => $item['shelfLocation'],
+				'reserve' => stripos($item['shelfLocation'], 'reserve') !== false ? 'Y' : 'N',
+				'callnumber' => $item['callnumber'],
+				'status' => $item['status'],
+				'duedate' => $item['dueDate'],
+				'statusfull' => $this->translateStatusCode($item['status'], $item['dueDate']),
+				'id' => $id,
+				'number' => $i++,
+				'holdQueueLength' => $holdQueueLength,
+				'type' => 'holding',
+				'availability' => $item['availability'],
+				'holdable' => $item['holdable'] ? 1 : 0,
+				'libraryDisplayName' => $item['shelfLocation'],
+				'locationCode' => $item['location'],
+				'iType' => $item['iType'],
+				'section' => $section,
+				'sectionId' => $sectionId,
+			);
 
-				if (array_key_exists($holding['locationCode'], $suppressedLocationCodes)){
-					$logger->log("Location " . $holding['locationCode'] . " is suppressed", PEAR_LOG_DEBUG);
-					continue;
-				}
-				$holding['iType'] = $marcData['iType'];
-				if ($marcData['status'] == '-' && $marcData['dueDate'] == null){
-					$holding['availability'] = 1;
-				}else{
-					$holding['availability'] = 0;
-				}
-				//Check to see if this item can be held by the current patron.  Only important when
-				//we know what pType is in use and we are showing all items.
-				if ($scope == 93 && $pType > 0){
-					//Never remove the title if it is owned by the current library (could be in library use only)
-					if (isset($library) && strlen($library->ilsCode) > 0 && strpos($holding['locationCode'], $library->ilsCode) === 0){
-						$logger->log("Cannot remove holding because it belongs to the active library", PEAR_LOG_DEBUG);
-					}else{
-						if (!$this->driver->isItemHoldableToPatron($holding['locationCode'], $holding['iType'], $pType)){
-							$logger->log("Removing item because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}", PEAR_LOG_DEBUG);
-							//echo("Removing item $holdingKey because it is not usable by the current patronType $pType, iType is {$holding['iType']}, location is {$holding['locationCode']}");
-							continue;
-						}
-					}
-				}
-				$sortString = $holding['location'] . '-'. $i;
-				if (strlen($physicalBranch) > 0 && stripos($holding['location'], $physicalBranch) !== false){
-					//If the user is in a branch, those holdings come first.
-					$holding['section'] = 'In this library';
-					$holding['sectionId'] = 1;
-					$sorted_array['1' . $sortString] = $holding;
-				} else if (strlen($homeBranch) > 0 && stripos($holding['location'], $homeBranch) !== false){
-					//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
-					$holding['section'] = 'Your library';
-					$holding['sectionId'] = 2;
-					$sorted_array['2' . $sortString] = $holding;
-				} else if ((strlen($nearbyBranch1) > 0 && stripos($holding['location'], $nearbyBranch1) !== false)){
-					//Next come nearby locations for the user
-					$holding['section'] = 'Nearby Libraries';
-					$holding['sectionId'] = 3;
-					$sorted_array['3' . $sortString] = $holding;
-				} else if ((strlen($nearbyBranch2) > 0 && stripos($holding['location'], $nearbyBranch2) !== false)){
-					//Next come nearby locations for the user
-					$holding['section'] = 'Nearby Libraries';
-					$holding['sectionId'] = 4;
-					$sorted_array['4' . $sortString] = $holding;
-				} else if (strlen($libraryLocationLabels) > 0 && preg_match($libraryLocationLabels, $holding['location'])){
-					//Next come any locations within the same system we are in.
-					$holding['section'] = $library->displayName;
-					$holding['sectionId'] = 5;
-					$sorted_array['5' . $sortString] = $holding;
-				} else {
-					//Finally, all other holdings are shown sorted alphabetically.
-					$holding['section'] = 'Other Locations';
-					$holding['sectionId'] = 6;
-					$sorted_array['6' . $sortString] = $holding;
-				}
-			}
-		}
-		$timer->logTime('finished processing holdings');
-
-		//Check to see if the title is holdable
-		$holdable = $this->driver->isRecordHoldable($marcRecord);
-		foreach ($sorted_array as $key => $holding){
-			//Do not override holdability based on status
-			if ($holding['holdable'] == 1){
-				$holding['holdable'] = $holdable ? 1 : 0;
-				$sorted_array[$key] = $holding;
-			}
+			$paddedNumber = str_pad($i, 3, '0', STR_PAD_LEFT);
+			$holdingKey = $sectionId . $holding['location'] . $paddedNumber;
+			$itemStatus[$holdingKey] = $holding;
 		}
 
-		if (!$configArray['Catalog']['offline']){
-			//Load order records, these only show in the full page view, not the item display
-			//TODO: Fix order records
-			if (false){
-				$orderMatches = array();
-				$millenniumInfo = null;
-				if (preg_match_all('/<tr\\s+class="bibOrderEntry">.*?<td\\s*>(.*?)<\/td>/s', $millenniumInfo->framesetInfo, $orderMatches)){
-					for ($i = 0; $i < count($orderMatches[1]); $i++) {
-						$location = trim($orderMatches[1][$i]);
-						$location = preg_replace('/\\sC\\d{3}\\w{0,2}[\\s\\.]/', '', $location);
-						//Remove courier code if any
-						$sorted_array['7' . $location . $i] = array(
-							'location' => $location,
-							'section' => 'On Order',
-							'sectionId' => 7,
-							'holdable' => 1,
-						);
-					}
-				}
-				$timer->logTime('loaded order records');
-			}
-		}
-
-		ksort($sorted_array);
-
-		//Check to see if we can remove the sections.
-		//We can if all section keys are the same.
-		$removeSection = true;
-		$lastKeyIndex = '';
-		foreach ($sorted_array as $key => $holding){
-			$currentKey = substr($key, 0, 1);
-			if ($lastKeyIndex == ''){
-				$lastKeyIndex = $currentKey;
-			}else if ($lastKeyIndex != $currentKey){
-				$removeSection = false;
-				break;
-			}
-		}
-		foreach ($sorted_array as $key => $holding){
-			if ($removeSection == true){
-				$holding['section'] = '';
-				$sorted_array[$key] = $holding;
-			}
-		}
-
-		if (!$configArray['Catalog']['offline']){
-			$issueSummaries = $this->driver->getIssueSummaries($millenniumInfo);
-		}else{
-			$issueSummaries = null;
-		}
-
-		$timer->logTime('loaded issue summaries');
-		if (!is_null($issueSummaries)){
-			krsort($sorted_array);
-			//Group holdings under the issue issue summary that is related.
-			foreach ($sorted_array as $key => $holding){
-				//Have issue summary = false
-				$haveIssueSummary = false;
-				$issueSummaryKey = null;
-				foreach ($issueSummaries as $issueKey => $issueSummary){
-					if ($issueSummary['location'] == $holding['location']){
-						$haveIssueSummary = true;
-						$issueSummaryKey = $issueKey;
-						break;
-					}
-				}
-
-				if ($haveIssueSummary){
-					$issueSummaries[$issueSummaryKey]['holdings'][strtolower($key)] = $holding;
-				}else{
-					//Need to automatically add a summary so we don't lose data
-					$issueSummaries[$holding['location']] = array(
-                        'location' => $holding['location'],
-                        'type' => 'issue',
-                        'holdings' => array(strtolower($key) => $holding),
-					);
-				}
-			}
-			foreach ($issueSummaries as $key => $issueSummary){
-				if (isset($issueSummary['holdings']) && is_array($issueSummary['holdings'])){
-					krsort($issueSummary['holdings']);
-					$issueSummaries[$key] = $issueSummary;
-				}
-			}
-			ksort($issueSummaries);
-			return $issueSummaries;
-		}else{
-			return $sorted_array;
-		}
-	}
-
-	private function translateStatusCode($status, $dueDate){
-		$statuses = array(
-			'-' => 'On Shelf',
-			'm' => 'Missing',
-			'n' => 'Billed',
-			'z' => 'Claims Returned',
-			't' => 'In Transit',
-			's' => 'On Search',
-			'o' => 'Library Use Only',
-			'$' => 'Lost and Paid',
-			'!' => 'On Hold Shelf',
-			'r' => 'Repair',
-			'b' => 'Bindery',
-			'd' => 'Display',
-			'g' => 'Damaged',
-			'w' => 'New Book Shelf',
-			'h' => 'On Reserve',
-			'p' => 'In Process',
-			'l' => 'Gone',
-			'u' => 'Restricted Use',
-			'q' => 'On Order',
-			'c' => 'School Closed',
-			'f' => 'Collections',
-			'j' => 'Online',
-			'a' => 'Storage',
-			'#' => 'Prospector Received',
-			'%' => 'Prospector Returned',
-			'*' => 'Prospector Missing',
-			'@' => 'Prospector Off Campus',
-			'(' => 'Prospector Paged',
-			')' => 'Prospector Cancelled',
-			'_' => 'Prospector Re-request',
-			'&' => 'Prospector Requested',
-			'i' => 'Missing from Inventory'
-		);
-		if ($status == '-'){
-			if (!is_null($dueDate) && strlen($dueDate) > 0){
-				//Reformat the date
-				$dueDateAsDate = DateTime::createFromFormat('ymd', $dueDate);
-				return 'Due ' . $dueDateAsDate->format('m-d-y');
-			}else{
-				return 'On Shelf';
-			}
-		}else{
-			return $statuses{$status};
-		}
-	}
-
-	/**
-	 * @param string            $id       The id of the record in the database
-	 * @param array             $rows     An array of strings for each row in the Millennium holdings table
-	 * @return array
-	 */
-	private function parseHoldingRows($id, $rows){
-		$keys = array_pad(array(),10,"");
-
-		global $configArray;
-		$loc_col_name      = $configArray['OPAC']['location_column'];
-		$call_col_name     = $configArray['OPAC']['call_no_column'];
-		$status_col_name   = $configArray['OPAC']['status_column'];
-		$reserves_col_name = $configArray['OPAC']['location_column'];
-		$reserves_key_name = $configArray['OPAC']['reserves_key_name'];
-		$transit_key_name  = $configArray['OPAC']['transit_key_name'];
-		$stat_due          = $configArray['OPAC']['status_due'];
-
-		$ret = array();
-		$count = 0;
-		$numHoldings = 0;
-		foreach ($rows as $row) {
-			//Skip the first row, it is always blank.
-			if ($count == 0){
-				$count++;
-				continue;
-			}
-			//Break up each row into columns
-			$cols = array();
-			preg_match_all('/<t[dh].*?>\\s*(?:\\s*<!-- .*? -->\\s*)*\\s*(.*?)\\s*<\/t[dh]>/s', $row, $cols, PREG_PATTERN_ORDER);
-
-			$curHolding = array();
-			$addHolding = true;
-			//Process each cell
-			for ($i=0; $i < sizeof($cols[1]); $i++) {
-				//Get the value of the cell
-				$cellValue = str_replace("&nbsp;"," ",$cols[1][$i]);
-				$cellValue = trim(html_entity_decode($cellValue));
-				if ($count == 1) {
-					//Header cell, this will become the key used later.
-					$keys[$i] = $cellValue;
-					$addHolding = false;
-				} else {
-					//We are in the body of the call number field.
-					if (sizeof($cols[1]) == 1){
-						//This is a special case, i.e. a download link.  Process it differently
-						//Get the last holding we processed.
-						if (count($ret) > 0){
-							$lastHolding = $ret[$numHoldings -1];
-							$linkParts = array();
-							if (preg_match_all('/<a href=[\'"](.*?)[\'"]>(.*)(?:<\/a>)*/s', $cellValue, $linkParts)){
-								$linkCtr = 0;
-								foreach ($linkParts[1] as $index => $linkInfo){
-									$linkText = $linkParts[2][$index];
-									$linkText = trim(preg_replace('/Click here (for|to) access\.?\s*/', '', $linkText));
-									$isDownload = preg_match('/(SpringerLink|NetLibrary|digital media|Online version|ebrary|gutenberg|Literature Online)\.?/i', $linkText);
-									$linkUrl = $linkParts[1][$index];
-									if (preg_match('/netlibrary/i', $linkUrl)){
-										$isDownload = true;
-										//$linkText = 'NetLibrary';
-									}elseif (preg_match('/ebscohost/i', $linkUrl)){
-										$isDownload = true;
-										//$linkText = 'Ebsco';
-									}elseif (preg_match('/overdrive/i', $linkUrl)){
-										$isDownload = true;
-										//$linkText = 'OverDrive';
-									}elseif (preg_match('/ebrary/i', $linkUrl)){
-										$isDownload = true;
-										//$linkText = 'ebrary';
-									}elseif (preg_match('/gutenberg/i', $linkUrl)){
-										$isDownload = true;
-										//$linkText = 'Gutenberg Project';
-									}elseif (preg_match('/gale/i', $linkUrl)){
-										$isDownload = true;
-										//$linkText = 'Gale Group';
-									}
-									$lastHolding['link'][] = array('link' => $linkUrl,
-                                                                   'linkText' => $linkText,
-                                                                   'isDownload' => $isDownload);
-									$linkCtr++;
-								}
-								$ret[$numHoldings -1] = $lastHolding;
-							}
-
-							$addHolding = false;
-						}
-					}else{
-						//This is a normal call number row.
-						//should have Location, Call Number, and Status
-						if (stripos($keys[$i],$loc_col_name) > -1) {
-							//If the location has a link in it, it is a link to a map of the library
-							//Process that differently and store independently
-							if (preg_match('/<a href=[\'"](.*?)[\'"]>(.*)/s', $cellValue, $linkParts)){
-								$curHolding['locationLink'] = $linkParts[1];
-								$location = trim($linkParts[2]);
-								if (substr($location, strlen($location) -4, 4) == '</a>'){
-									$location = substr($location, 0, strlen($location) -4);
-								}
-								$curHolding['location'] = $location;
-
-							}else{
-								$curHolding['location'] = strip_tags($cellValue);
-							}
-							//Trim off the courier code if one exists
-							if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $curHolding['location'], $locationParts)){
-								$curHolding['location'] = $locationParts[1];
-							}
-						}
-						if (stripos($keys[$i],$reserves_col_name) > -1) {
-							if (stripos($cellValue,$reserves_key_name) > -1) {  // if the location name has "reserves"
-								$curHolding['reserve'] = 'Y';
-							} else if(stripos($cols[1][$i],$transit_key_name) > -1) {
-								$curHolding['reserve'] = 'Y';
-							} else {
-								$curHolding['reserve'] = 'N';
-							}
-						}
-						if (stripos($keys[$i],$call_col_name) > -1) {
-							$curHolding['callnumber'] = strip_tags($cellValue);
-						}
-						if (stripos($keys[$i],$status_col_name) > -1) {
-							//Load status information
-							$curHolding['status'] = $cellValue;
-							if (stripos($cellValue,$stat_due) > -1) {
-								$p = substr($cellValue,stripos($cellValue,$stat_due));
-								$s = trim($p, $stat_due);
-								$curHolding['duedate'] = $s;
-							}
-
-							$statfull = strip_tags($cellValue);
-							if (isset($this->driver->statusTranslations[$statfull])){
-								$statfull = $this->driver->statusTranslations[$statfull];
-							}else{
-								$statfull = strtolower($statfull);
-								$statfull = ucwords($statfull);
-							}
-							$curHolding['statusfull'] = $statfull;
-						}
-					}
-
-				}
-			} //End looping through columns
-
-			if ($addHolding){
-				$numHoldings++;
-				$curHolding['id'] = $id;
-				$curHolding['number'] = $numHoldings;
-				$curHolding['holdQueueLength'] = isset($holdQueueLength) ? $holdQueueLength : null;
-				$ret[] = $curHolding;
-			}
-			$count++;
-		} //End looping through rows
-		return $ret;
+		ksort($itemStatus);
+		SierraStatusLoader::$loadedStatus[$id] = $itemStatus;
+		return $itemStatus;
 	}
 
 	/**
@@ -660,7 +219,7 @@ class SierraStatusLoader{
 	 */
 	public function getStatusSummary($id, $forSearch = false){
 		global $configArray;
-		$holdings = MillenniumStatusLoader::getStatus($id);
+		$holdings = SierraStatusLoader::getStatus($id);
 		$summaryInformation = array();
 		$summaryInformation['recordId'] = $id;
 		$summaryInformation['shortId'] = substr($id, 1);
@@ -806,6 +365,19 @@ class SierraStatusLoader{
 			}
 			$numCopies++;
 
+			//Check to see if the holding has a download link and if so, set that info.
+			if (isset($holding['link'])){
+				foreach ($holding['link'] as $link){
+					if ($link['isDownload']){
+						$summaryInformation['status'] = "Available for Download";
+						$summaryInformation['class'] = 'here';
+						$summaryInformation['isDownloadable'] = true;
+						$summaryInformation['downloadLink'] = $link['link'];
+						$summaryInformation['downloadText'] = $link['linkText'];
+					}
+				}
+			}
+
 			//Only show a call number if the book is at the user's home library, one of their preferred libraries, or in the library they are in.
 			$showItsHere = ($library == null) ? true : ($library->showItsHere == 1);
 			if (in_array(substr($holdingKey, 0, 1), array('1', '2', '3', '4', '5')) && !isset($summaryInformation['callnumber'])){
@@ -828,8 +400,8 @@ class SierraStatusLoader{
 				$summaryInformation['class'] = 'here';
 				$summaryInformation['location'] = $holding['location'];
 			}elseif ($showItsHere && !isset($summaryInformation['status']) &&
-					substr($holdingKey, 0, 1) >= 2 && (substr($holdingKey, 0, 1) <= 4) &&
-					$holding['availability'] == 1 ){
+				substr($holdingKey, 0, 1) >= 2 && (substr($holdingKey, 0, 1) <= 4) &&
+				$holding['availability'] == 1 ){
 				if (!isset($summaryInformation['class']) || $summaryInformation['class'] != 'here'){
 					//The item is at one of the patron's preferred branches.
 					$summaryInformation['status'] = "It's at " . $holding['location'];
@@ -838,8 +410,8 @@ class SierraStatusLoader{
 					$summaryInformation['location'] = $holding['location'];
 				}
 			}elseif (!isset($summaryInformation['status']) &&
-					((!$showItsHere && substr($holdingKey, 0, 1) <= 5) || substr($holdingKey, 0, 1) == 5 || !isset($library) ) &&
-					(isset($holding['availability']) && $holding['availability'] == 1)){
+				((!$showItsHere && substr($holdingKey, 0, 1) <= 5) || substr($holdingKey, 0, 1) == 5 || !isset($library) ) &&
+				(isset($holding['availability']) && $holding['availability'] == 1)){
 				if (!isset($summaryInformation['class']) || ($summaryInformation['class'] != 'here' && $summaryInformation['class'] = 'nearby')){
 					//The item is at a location either in the same system or another system.
 					$summaryInformation['status'] = "Available At";
@@ -851,8 +423,8 @@ class SierraStatusLoader{
 					}
 				}
 			}elseif (!isset($summaryInformation['status']) &&
-					(substr($holdingKey, 0, 1) == 6 ) &&
-					(isset($holding['availability']) && $holding['availability'] == 1)){
+				(substr($holdingKey, 0, 1) == 6 ) &&
+				(isset($holding['availability']) && $holding['availability'] == 1)){
 				//The item is at a location either in the same system or another system.
 				$summaryInformation['status'] = "Marmot";
 				$summaryInformation['showPlaceHold'] = $canShowHoldButton;
@@ -978,7 +550,7 @@ class SierraStatusLoader{
 			}
 		}else if ($summaryInformation['status'] == 'Marmot'){
 			$summaryInformation['class'] = "nearby";
-			$totalLocations = $summaryInformation['numAvailableOther'] + $summaryInformation['availableAt'];
+			$totalLocations = intval($summaryInformation['numAvailableOther']) + intval($summaryInformation['availableAt']);
 			$summaryInformation['statusText'] = "Available now at " . $totalLocations . " Marmot " . ($totalLocations == 1 ? "Library" : "Libraries");
 		}else{
 			$summaryInformation['statusText'] = translate($summaryInformation['status']);
