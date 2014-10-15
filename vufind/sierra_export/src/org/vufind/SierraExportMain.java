@@ -143,19 +143,20 @@ public class SierraExportMain{
 	}
 
 	private static void exportHolds(Connection sierraConn, Connection vufindConn) {
+		Savepoint startOfHolds = null;
 		try {
 			logger.debug("Starting export of holds");
 
 			//Start a transaction so we can rebuild an entire table
+			startOfHolds = vufindConn.setSavepoint();
 			vufindConn.setAutoCommit(false);
-			Savepoint startOfHolds = vufindConn.setSavepoint();
 			vufindConn.prepareCall("TRUNCATE TABLE ils_hold_summary").executeQuery();
 
 			PreparedStatement addIlsHoldSummary = vufindConn.prepareStatement("INSERT INTO ils_hold_summary (ilsId, numHolds) VALUES (?, ?)");
 
 			HashMap<String, Long> numHoldsByBib = new HashMap<String, Long>();
 			//Export bib level holds
-			PreparedStatement bibHoldsStmt = sierraConn.prepareStatement("select count(hold.id) as numHolds, record_type_code, record_num from sierra_view.hold left join sierra_view.record_metadata on hold.record_id = record_metadata.id where record_type_code = 'b' GROUP BY record_type_code, record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement bibHoldsStmt = sierraConn.prepareStatement("select count(hold.id) as numHolds, record_type_code, record_num from sierra_view.hold left join sierra_view.record_metadata on hold.record_id = record_metadata.id where record_type_code = 'b' and (status = '0' OR status = 't') GROUP BY record_type_code, record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet bibHoldsRS = bibHoldsStmt.executeQuery();
 			while (bibHoldsRS.next()){
 				String bibId = bibHoldsRS.getString("record_num");
@@ -170,6 +171,7 @@ public class SierraExportMain{
 					"from sierra_view.hold \n" +
 					"inner join sierra_view.bib_record_item_record_link ON hold.record_id = item_record_id \n" +
 					"inner join sierra_view.record_metadata on bib_record_item_record_link.bib_record_id = record_metadata.id \n" +
+					"WHERE status = '0' OR status = 't' " +
 					"group by record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet itemHoldsRS = itemHoldsStmt.executeQuery();
 			while (itemHoldsRS.next()){
@@ -198,8 +200,15 @@ public class SierraExportMain{
 				vufindConn.rollback(startOfHolds);
 			}
 
-		} catch (SQLException e) {
+		} catch (Exception e) {
 			logger.error("Unable to export holds from Sierra", e);
+			if (startOfHolds != null) {
+				try {
+					vufindConn.rollback(startOfHolds);
+				}catch (Exception e1){
+					logger.error("Unable to rollback due to exception", e1);
+				}
+			}
 		}
 	}
 
