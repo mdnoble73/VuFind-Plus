@@ -75,7 +75,7 @@ public class SierraExportMain{
 
 		boolean sierraExtractRunning = false;
 		try{
-			PreparedStatement loadSierraExtractRunning = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'sierra_extract_running'");
+			PreparedStatement loadSierraExtractRunning = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'sierra_extract_running'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet loadPartialExtractRunningRS = loadSierraExtractRunning.executeQuery();
 			if (loadPartialExtractRunningRS.next()){
 				sierraExtractRunning = loadPartialExtractRunningRS.getBoolean("value");
@@ -110,7 +110,7 @@ public class SierraExportMain{
 
 			exportActiveOrders(exportPath, conn);
 
-			//exportAvailability(exportPath, conn);
+			exportHolds(conn, vufindConn);
 
 		}catch(Exception e){
 			System.out.println("Error: " + e.toString());
@@ -142,6 +142,67 @@ public class SierraExportMain{
 		logger.info(currentTime.toString() + ": Finished Sierra Extract");
 	}
 
+	private static void exportHolds(Connection sierraConn, Connection vufindConn) {
+		try {
+			logger.debug("Starting export of holds");
+
+			//Start a transaction so we can rebuild an entire table
+			vufindConn.setAutoCommit(false);
+			Savepoint startOfHolds = vufindConn.setSavepoint();
+			vufindConn.prepareCall("TRUNCATE TABLE ils_hold_summary").executeQuery();
+
+			PreparedStatement addIlsHoldSummary = vufindConn.prepareStatement("INSERT INTO ils_hold_summary (ilsId, numHolds) VALUES (?, ?)");
+
+			HashMap<String, Long> numHoldsByBib = new HashMap<String, Long>();
+			//Export bib level holds
+			PreparedStatement bibHoldsStmt = sierraConn.prepareStatement("select count(hold.id) as numHolds, record_type_code, record_num from sierra_view.hold left join sierra_view.record_metadata on hold.record_id = record_metadata.id where record_type_code = 'b' GROUP BY record_type_code, record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet bibHoldsRS = bibHoldsStmt.executeQuery();
+			while (bibHoldsRS.next()){
+				String bibId = bibHoldsRS.getString("record_num");
+				bibId = ".b" + bibId + getCheckDigit(bibId);
+				Long numHolds = bibHoldsRS.getLong("numHolds");
+				numHoldsByBib.put(bibId, numHolds);
+			}
+			bibHoldsRS.close();
+
+			//Export item level holds
+			PreparedStatement itemHoldsStmt = sierraConn.prepareStatement("select count(hold.id) as numHolds, record_num\n" +
+					"from sierra_view.hold \n" +
+					"inner join sierra_view.bib_record_item_record_link ON hold.record_id = item_record_id \n" +
+					"inner join sierra_view.record_metadata on bib_record_item_record_link.bib_record_id = record_metadata.id \n" +
+					"group by record_num", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet itemHoldsRS = itemHoldsStmt.executeQuery();
+			while (itemHoldsRS.next()){
+				String bibId = itemHoldsRS.getString("record_num");
+				bibId = ".b" + bibId + getCheckDigit(bibId);
+				Long numHolds = itemHoldsRS.getLong("numHolds");
+				if (numHoldsByBib.containsKey(bibId)){
+					numHoldsByBib.put(bibId, numHolds + numHoldsByBib.get(bibId));
+				}else{
+					numHoldsByBib.put(bibId, numHolds);
+				}
+			}
+			itemHoldsRS.close();
+
+			for (String bibId : numHoldsByBib.keySet()){
+				addIlsHoldSummary.setString(1, bibId);
+				addIlsHoldSummary.setLong(2, numHoldsByBib.get(bibId));
+				addIlsHoldSummary.executeUpdate();
+			}
+
+			try {
+				vufindConn.commit();
+				vufindConn.setAutoCommit(true);
+			}catch (Exception e){
+				logger.warn("error committing hold updates rolling back", e);
+				vufindConn.rollback(startOfHolds);
+			}
+
+		} catch (SQLException e) {
+			logger.error("Unable to export holds from Sierra", e);
+		}
+	}
+
 	private static void getChangedRecordsFromApi(Ini ini, Connection vufindConn) {
 		//Get the time the last extract was done
 		try{
@@ -156,7 +217,7 @@ public class SierraExportMain{
 			statusSubfield = getSubfieldIndicatorFromConfig(ini, "statusSubfield");
 			dueDateSubfield = getSubfieldIndicatorFromConfig(ini, "dueDateSubfield");
 
-			PreparedStatement loadLastSierraExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_sierra_extract_time'");
+			PreparedStatement loadLastSierraExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_sierra_extract_time'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet lastSierraExtractTimeRS = loadLastSierraExtractTimeStmt.executeQuery();
 			if (lastSierraExtractTimeRS.next()){
 				lastSierraExtractTime = lastSierraExtractTimeRS.getLong("value");
@@ -447,7 +508,7 @@ public class SierraExportMain{
 				"inner join sierra_view.bib_record_order_record_link on bib_record_order_record_link.order_record_id = order_view.record_id " +
 				"inner join sierra_view.bib_view on sierra_view.bib_view.id = bib_record_order_record_link.bib_record_id " +
 				"inner join sierra_view.order_record_cmf on order_record_cmf.order_record_id = order_view.id " +
-				"where (order_status_code = 'o' or order_status_code = '1') and order_view.is_suppressed = 'f'");
+				"where (order_status_code = 'o' or order_status_code = '1') and order_view.is_suppressed = 'f'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 		ResultSet activeOrdersRS = null;
 		boolean loadError = false;
 		try{

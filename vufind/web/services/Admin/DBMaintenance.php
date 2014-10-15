@@ -1917,6 +1917,20 @@ class DBMaintenance extends Admin_Admin {
 						"ALTER TABLE location DROP homePageWidgetId",
 					),
 				),
+
+				'ils_hold_summary' => array(
+					'title' => 'ILS Hold Summary',
+					'description' => 'Create ils hold summary table to store summary information about the available holds',
+					'sql' => array(
+						"CREATE TABLE ils_hold_summary (
+							id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+							ilsId VARCHAR (20) NOT NULL,
+							numHolds INT(11) DEFAULT 0,
+							UNIQUE(ilsId)
+						) ENGINE = INNODB"
+					),
+
+				),
 			));
 	}
 
