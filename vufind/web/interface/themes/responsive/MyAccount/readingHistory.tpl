@@ -170,13 +170,13 @@
 						<div id="readingListActionsBottom" class="btn-group btn-group-sm">
 							{if $historyActive == true}
 								{if $transList}
-									<a class="btn btn-sm btn-default" onclick="return deletedMarkedAction()" href="#">Delete Marked</a>
-									<a class="btn btn-sm btn-default" onclick="return deleteAllAction()" href="#">Delete All</a>
+									<a class="btn btn-sm btn-default" onclick="return VuFind.Account.ReadingHistory.deletedMarkedAction()" href="#">Delete Marked</a>
+									<a class="btn btn-sm btn-default" onclick="return VuFind.Account.ReadingHistory.deleteAllAction()" href="#">Delete All</a>
 								{/if}
 								{* <button value="exportList" class="RLexportList" onclick='return exportListAction()'>Export Reading History</button> *}
-								<a class="btn btn-sm btn-default" onclick='return optOutAction({if $transList}true{else}false{/if})' href="#">Stop Recording My Reading History</a>
+								<a class="btn btn-sm btn-default" onclick='return VuFind.Account.ReadingHistory.optOutAction({if $transList}true{else}false{/if})' href="#">Stop Recording My Reading History</a>
 							{else}
-								<a class="btn btn-sm btn-default" onclick='return optInAction()' href="#">Start Recording My Reading History</a>
+								<a class="btn btn-sm btn-default" onclick='return VuFind.Account.ReadingHistory.optInAction()' href="#">Start Recording My Reading History</a>
 							{/if}
 						</div>
 					</div>
