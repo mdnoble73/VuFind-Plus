@@ -879,7 +879,7 @@ class ListAPI extends Action {
 		$titles = array();
 		if (count($ids) > 0){
 			$searchObject->setQueryIDs($ids);
-			if (isset($_RESULT['page']) && $_RESULT['page'] == false){
+			if (isset($_REQUEST['page']) && $_REQUEST['page'] == "false"){
 				$searchObject->setLimit(count($ids));
 			}
 			$searchObject->processSearch();
