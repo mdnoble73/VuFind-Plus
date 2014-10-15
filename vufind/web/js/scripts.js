@@ -1,3 +1,8 @@
+/*
+  This file is deprecated. Any calls to functions in this script should be replaced.
+  The file is retained for development reference only
+ */
+
 $(document).ready(function(){
 	if($("#searchForm") != null && $("#lookfor") != null){
 		$("#lookfor").focus();
