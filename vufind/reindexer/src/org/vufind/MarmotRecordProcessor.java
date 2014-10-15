@@ -176,7 +176,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		String status = ilsRecord.getStatus();
 		String dueDate = ilsRecord.getDateDue() == null ? "" : ilsRecord.getDateDue();
 		String availableStatus = "-dowju";
-		if (availableStatus.indexOf(status.charAt(0)) >= 0) {
+		if (status.length() > 0 && availableStatus.indexOf(status.charAt(0)) >= 0) {
 			if (dueDate.length() == 0) {
 				available = true;
 			}

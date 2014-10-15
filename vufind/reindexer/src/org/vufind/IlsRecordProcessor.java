@@ -58,6 +58,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private static HashMap<Long, LoanRule> loanRules = new HashMap<Long, LoanRule>();
 	private static ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<LoanRuleDeterminer>();
 
+	private static boolean holdsDataLoaded = false;
+	private static HashMap<String, Integer> numberOfHoldsByIdentifier = new HashMap<String, Integer>();
+
 	/*private static boolean availabilityDataLoaded = false;
 	private static boolean getAvailabilityFromMarc = true;
 	private static TreeSet<String> availableItemBarcodes = new TreeSet<String>();*/
@@ -96,6 +99,22 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		//loadAvailableItemBarcodes(marcRecordPath, logger);
 		loadLoanRuleInformation(vufindConn, logger);
+		loadHoldsByIdentifier(vufindConn, logger);
+	}
+
+	private void loadHoldsByIdentifier(Connection vufindConn, Logger logger) {
+		if (!holdsDataLoaded){
+			try{
+				PreparedStatement loadHoldsStmt = vufindConn.prepareStatement("SELECT ilsId, numHolds from ils_hold_summary", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				ResultSet holdsRS = loadHoldsStmt.executeQuery();
+				while (holdsRS.next()) {
+					numberOfHoldsByIdentifier.put(holdsRS.getString("ilsId"), holdsRS.getInt("numHolds"));
+				}
+
+			} catch (Exception e){
+				logger.error("Unable to load hold data", e);
+			}
+		}
 	}
 
 	private static void loadLoanRuleInformation(Connection vufindConn, Logger logger) {
@@ -262,7 +281,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			loadOwnershipInformation(groupedWork, printItems, econtentItems, onOrderItems);
 			loadAvailability(groupedWork, printItems, econtentItems);
 			loadUsability(groupedWork, printItems, econtentItems);
-			loadPopularity(groupedWork, printItems, econtentItems);
+			loadPopularity(groupedWork, identifier, printItems, econtentItems, onOrderItems);
 			loadDateAdded(groupedWork, printItems, econtentItems);
 			loadITypes(groupedWork, printItems, econtentItems);
 			loadLocalCallNumbers(groupedWork, printItems, econtentItems);
@@ -613,7 +632,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	private void loadPopularity(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
+	protected void loadPopularity(GroupedWorkSolr groupedWork, String recordIdentifier, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, List<OnOrderItem> onOrderItems) {
 		float popularity = 0;
 		for (PrintIlsItem itemField : printItems){
 			//Get number of times the title has been checked out
@@ -636,8 +655,25 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			//logger.debug("Popularity for item " + itemPopularity + " ytdCheckouts=" + ytdCheckouts + " lastYearCheckouts=" + lastYearCheckouts + " totalCheckouts=" + totalCheckouts);
 			popularity += itemPopularity;
 		}
+
+		//Add popularity based on the number of holds
+		//Active holds indicate that a title is more interesting so we will count each hold at double value
+		popularity += 2 * getIlsHoldsForTitle(recordIdentifier);
+
+		//Add popularity based on the number of order records.
+		//Since titles that are on order don't have checkouts (or as many checkouts), give them a boost to improve relevance
+		popularity += 5 * onOrderItems.size();
+
 		//TODO: Load popularity for eContent
 		groupedWork.addPopularity(popularity);
+	}
+
+	private int getIlsHoldsForTitle(String recordIdentifier) {
+		if (numberOfHoldsByIdentifier.containsKey(recordIdentifier)){
+			return numberOfHoldsByIdentifier.get(recordIdentifier);
+		}else {
+			return 0;
+		}
 	}
 
 	protected void loadUsability(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
