@@ -17,6 +17,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
+/* This file is now deprecated. Retaining until it is known it is no longer needed.
+plb 10-15-2014
 
 require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/sys/Mailer.php';
@@ -120,5 +122,5 @@ class EmailList extends Action {
 		return $result;
 	}
 
-}
+} */
 ?>

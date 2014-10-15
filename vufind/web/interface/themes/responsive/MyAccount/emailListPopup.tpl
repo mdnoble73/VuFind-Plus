@@ -1,7 +1,10 @@
 <div align="left">
 	{if $message}<div class="error">{$message|translate}</div>{/if}
 
-	<form id="emailListForm" action="{$path}/MyAccount/EmailList" method="post" class="form form-horizontal">
+	{*<form id="emailListForm" action="{$path}/MyAccount/EmailList" method="post" class="form form-horizontal">
+	REMOVE_DEBUG do we need an action for form? test on many browsers. plb 10-14-2014
+	*}
+	<form id="emailListForm" class="form form-horizontal">
 		<div class="form-group">
 			<input type="hidden" name="listId" value="{$listId|escape}">
 			<label for="to" class="control-label col-xs-2">{translate text='To'}</label>
@@ -25,6 +28,11 @@
 </div>
 
 <script type="text/javascript">
+{* // to debug with validation off
+	$("#emailListForm").submit(function(){
+		VuFind.Lists.SendMyListEmail();
+		return false;
+	}); *}
 	{literal}
 	$("#emailListForm").validate({
 		submitHandler: function(){

@@ -59,17 +59,28 @@ VuFind.Lists = (function(){
 			}
 			return false;
 		},
-		emailListAction: function (id) {
-			VuFind.Account.ajaxLightbox(Globals.path + '/MyAccount/EmailList/' + id);
-			return false;
-		},
-		citeListAction: function (id) {
-			VuFind.showMessage("Citations for List Titles", Globals.path + '/MyAccount/AJAX?method=getCitationFormatsForm&listId=' + id);
-			return false;
-		},
+		emailListAction: function (listId) {
+			var urlToDisplay = Globals.path + '/MyAccount/AJAX';
+			var modalDialog = $("#modalDialog");
+			$('#myModalLabel').html("Loading, please wait");
+			$('.modal-body').html("...");
 
-		SendMyListEmail: function (to, from, message, id, strings) {
-			var url = Globals.path + "/MyAccount/EmailList";
+			$.getJSON(urlToDisplay, {
+					method  : 'getEmailMyListForm'
+					,listId : listId
+				},
+					function(data){
+				$('#myModalLabel').html(data.title);
+				$('.modal-body').html(data.modalBody);
+				$('.modal-buttons').html(data.modalButtons);
+			});
+			
+			modalDialog.load( );
+			modalDialog.modal('show');
+			return false;
+		},
+		SendMyListEmail: function () {
+			var url = Globals.path + "/MyAccount/AJAX";
 
 			$.getJSON(url,
 				{ // form inputs passed as data
@@ -77,7 +88,7 @@ VuFind.Lists = (function(){
 					,to      : $('#emailListForm input[name="to"]').val()
 					,from    : $('#emailListForm input[name="from"]').val()
 					,message : $('#emailListForm textarea[name="message"]').val()
-					//,method  : 'SendEmail' //Doesn't look as if it is used.  plb 10-14-2014
+					,method  : 'sendMyListEmail' // serverside method
 				},
 				function(data) {
 					if (data.result) {
@@ -89,6 +100,11 @@ VuFind.Lists = (function(){
 			);
 
 		},
+		citeListAction: function (id) {
+			VuFind.showMessage("Citations for List Titles", Globals.path + '/MyAccount/AJAX?method=getCitationFormatsForm&listId=' + id);
+			return false;
+		},
+
 
 		batchAddToListAction: function (id){
 			VuFind.Account.ajaxLightbox(Globals.path + '/MyAccount/AJAX/?method=getBulkAddToListForm&listId=' + id);
