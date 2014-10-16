@@ -112,9 +112,7 @@
 			</script>
 		{/if}
 
-		{if file_exists("tracking.tpl")}
-			{include file="tracking.tpl"}
-		{/if}
+		{include file="tracking.tpl"}
 		{/strip}
 	</body>
 </html>
