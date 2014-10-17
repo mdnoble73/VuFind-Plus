@@ -102,14 +102,18 @@ function getTranslationMap($name)
 
 function mapValue($mapName, $value){
 	$map = getTranslationMap($mapName);
-	if ($map == null){
+	if ($map == null || $map == false){
 		return $value;
 	}
 	$value = str_replace(' ', '_', $value);
 	if (isset($map[$value])){
 		return $map[$value];
 	}elseif(isset($map['*'])){
-		return $map['*'];
+		if ($map['*'] == 'nomap'){
+			return $value;
+		}else{
+			return $map['*'];
+		}
 	}else{
 		return '';
 	}

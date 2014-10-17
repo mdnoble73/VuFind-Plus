@@ -144,6 +144,8 @@ public class GroupedWorkIndexer {
 			ilsRecordProcessor = new WCPLRecordProcessor(this, vufindConn, configIni, logger);
 		}else if(ilsIndexingClassString.equals("Anythink")){
 			ilsRecordProcessor = new AnythinkRecordProcessor(this, vufindConn, configIni, logger);
+		}else if(ilsIndexingClassString.equals("Aspencat")){
+			ilsRecordProcessor = new AspencatRecordProcessor(this, vufindConn, configIni, logger);
 		}else{
 			logger.error("Unknown indexing class " + ilsIndexingClassString);
 			okToIndex = false;

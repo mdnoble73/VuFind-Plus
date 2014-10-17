@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * ILS Indexing with customizations specific to Nashville
+ * ILS Indexing with customizations specific to Anythink
  * VuFind-Plus
  * User: Mark Noble
  * Date: 2/21/14
