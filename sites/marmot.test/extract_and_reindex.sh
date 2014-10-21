@@ -1,6 +1,7 @@
 #!/bin/bash
 while true
 do
+	echo "Starting new extract and index - `date`"
 	#export from sierra
 	cd /usr/local/vufind-plus/vufind/sierra_export/; nice -n -10 java -jar sierra_export.jar marmot.test
 	#export from overdrive
