@@ -20,7 +20,7 @@
 {section name=listEntry loop=$listEntries}
 {*If the listEntry has a note see if it is the same work*}
 {if $listEntries[listEntry]->notes && $listEntries[listEntry]->groupedWorkPermanentId == $title.id}
-Notes: {$listEntries[listEntry]->notes}
+{translate text="Notes"}: {$listEntries[listEntry]->notes}
 
 {/if}
 {/section}
