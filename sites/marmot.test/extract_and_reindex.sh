@@ -1,5 +1,6 @@
 #!/bin/bash
-while [true]; do
+while true
+do
 	#export from sierra
 	cd /usr/local/vufind-plus/vufind/sierra_export/; nice -n -10 java -jar sierra_export.jar marmot.test
 	#export from overdrive
