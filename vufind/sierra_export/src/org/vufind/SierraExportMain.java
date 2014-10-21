@@ -145,7 +145,7 @@ public class SierraExportMain{
 	private static void exportHolds(Connection sierraConn, Connection vufindConn) {
 		Savepoint startOfHolds = null;
 		try {
-			logger.debug("Starting export of holds");
+			logger.info("Starting export of holds");
 
 			//Start a transaction so we can rebuild an entire table
 			startOfHolds = vufindConn.setSavepoint();
@@ -210,12 +210,13 @@ public class SierraExportMain{
 				}
 			}
 		}
+		logger.info("Finished exporting holds");
 	}
 
 	private static void getChangedRecordsFromApi(Ini ini, Connection vufindConn) {
 		//Get the time the last extract was done
 		try{
-			logger.debug("Starting to load changed records from Sierra using the API");
+			logger.info("Starting to load changed records from Sierra using the API");
 			Long lastSierraExtractTime = null;
 			Long lastSierraExtractTimeVariableId = null;
 
@@ -369,6 +370,7 @@ public class SierraExportMain{
 			logger.error("Error loading changed records from Sierra API", e);
 			System.exit(1);
 		}
+		logger.info("Finished loading changed records from Sierra API");
 	}
 
 	private static void updateMarc(String individualMarcPath, String curBibId, ArrayList<ItemChangeInfo> itemChangeInfo) {
@@ -533,6 +535,7 @@ public class SierraExportMain{
 			orderRecordWriter.close();
 			activeOrdersRS.close();
 		}
+		logger.info("Finished exporting active orders");
 	}
 
 	private static Ini loadConfigFile(String filename){
