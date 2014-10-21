@@ -367,9 +367,11 @@ public class GroupedWorkIndexer {
 			if (fullReindex) {
 				updateServer.optimize(true, true);
 			}else{
+				//MDN - 10/21 - do not optimize since it causes significant performance hits
 				//Optimize, but don't bother waiting for the searcher to complete
-				updateServer.optimize(false, false);
+				//updateServer.optimize(false, false);
 			}
+			logger.info("Finished Optimizing index");
 		} catch (Exception e) {
 			logger.error("Error optimizing index", e);
 		}
