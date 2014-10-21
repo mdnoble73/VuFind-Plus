@@ -352,7 +352,9 @@ public class GroupedWorkIndexer {
 	}
 
 	public void finishIndexing(){
+		logger.info("Finishing indexing");
 		try {
+			logger.info("Calling commit");
 			updateServer.commit(true, true);
 		} catch (Exception e) {
 			logger.error("Error calling final commit", e);
@@ -361,6 +363,7 @@ public class GroupedWorkIndexer {
 		try {
 			//Optimize to trigger improved performance.  If we're doing a full reindex, need to wait for the searcher since
 			// we are going to swap in a minute.
+			logger.info("Optimizing index");
 			if (fullReindex) {
 				updateServer.optimize(true, true);
 			}else{
@@ -371,6 +374,7 @@ public class GroupedWorkIndexer {
 			logger.error("Error optimizing index", e);
 		}
 		try {
+			logger.info("Shutting down the update server");
 			updateServer.shutdown();
 		} catch (Exception e) {
 			logger.error("Error shutting down update server", e);
@@ -390,6 +394,7 @@ public class GroupedWorkIndexer {
 
 	private void updatePartialReindexRunning(boolean running) {
 		if (!fullReindex) {
+			logger.info("Updating partial reindex running");
 			//Update the last grouping time in the variables table
 			try {
 				if (partialReindexRunningVariableId != null) {
@@ -415,6 +420,7 @@ public class GroupedWorkIndexer {
 	}
 
 	private void writeWorksWithInvalidLiteraryForms() {
+		logger.info("Writing works with invalid literary forms");
 		File worksWithInvalidLiteraryFormsFile = new File ("/var/log/vufind-plus/" + serverName + "/worksWithInvalidLiteraryForms.txt");
 		try{
 			if (worksWithInvalidLiteraryForms.size() > 0){
@@ -827,6 +833,7 @@ public class GroupedWorkIndexer {
 		}catch (Exception e){
 			logger.error("Error processing public lists", e);
 		}
+		logger.info("Finished processing public lists");
 		return numListsProcessed;
 	}
 
