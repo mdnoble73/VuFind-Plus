@@ -1652,7 +1652,7 @@ class MarcRecord extends IndexRecord
 						'Available Online' => 6,
 						'On Shelf' => 7
 					);
-					if ($statusRankings[$item['groupedStatus']] > $statusRankings[$groupedStatus]){
+					if ($item['groupedStatus'] != '' && $statusRankings[$item['groupedStatus']] > $statusRankings[$groupedStatus]){
 						$groupedStatus = $item['groupedStatus'];
 					}
 				}

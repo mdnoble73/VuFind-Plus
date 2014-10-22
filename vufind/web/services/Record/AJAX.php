@@ -31,7 +31,7 @@ class Record_AJAX extends Action {
 		$analytics->disableTracking();
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array('getPlaceHoldForm', 'placeHold'))){
+		if (in_array($method, array('getPlaceHoldForm', 'placeHold', 'reloadCover'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -459,5 +459,39 @@ class Record_AJAX extends Action {
 			}
 		}
 		return json_encode($results);
+	}
+
+	function reloadCover(){
+		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+		$id = $_REQUEST['id'];
+		$recordDriver = new MarcRecord($id);
+
+		//Reload small cover
+		$smallCoverUrl = str_replace('&amp;', '&', $recordDriver->getBookcoverUrl('small')) . '&reload';
+		file_get_contents($smallCoverUrl);
+
+		//Reload medium cover
+		$mediumCoverUrl = str_replace('&amp;', '&', $recordDriver->getBookcoverUrl('medium')) . '&reload';
+		file_get_contents($mediumCoverUrl);
+
+		//Reload large cover
+		$largeCoverUrl = str_replace('&amp;', '&', $recordDriver->getBookcoverUrl('large')) . '&reload';
+		file_get_contents($largeCoverUrl);
+
+		//Also reload covers for the grouped work
+		$groupedWorkDriver = new GroupedWorkDriver($recordDriver->getGroupedWorkId());
+		//Reload small cover
+		$smallCoverUrl = str_replace('&amp;', '&', $groupedWorkDriver->getBookcoverUrl('small')) . '&reload';
+		file_get_contents($smallCoverUrl);
+
+		//Reload medium cover
+		$mediumCoverUrl = str_replace('&amp;', '&', $groupedWorkDriver->getBookcoverUrl('medium')) . '&reload';
+		file_get_contents($mediumCoverUrl);
+
+		//Reload large cover
+		$largeCoverUrl = str_replace('&amp;', '&', $groupedWorkDriver->getBookcoverUrl('large')) . '&reload';
+		file_get_contents($largeCoverUrl);
+
+		return json_encode(array('success' => true, 'message' => 'Covers have been reloaded.  You may need to refresh the page to clear your local cache.'));
 	}
 }
