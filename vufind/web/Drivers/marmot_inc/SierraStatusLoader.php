@@ -11,6 +11,7 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 	private $driver;
 
 	public function __construct($driver){
+		parent::__construct($driver);
 		$this->driver = $driver;
 	}
 
@@ -47,10 +48,14 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 	 * @return array A list of holdings for the record
 	 */
 	public function getStatus($id){
+		$recordDriver = RecordDriverFactory::initRecordDriverById('ils:' . $id);
+		$format = $recordDriver->getFormat();
+		if ($format[0] == 'Journal'){
+			return parent::getStatus($id);
+		}
 		if (array_key_exists($id, SierraStatusLoader::$loadedStatus)){
 			return SierraStatusLoader::$loadedStatus[$id];
 		}
-		$recordDriver = RecordDriverFactory::initRecordDriverById('ils:' . $id);
 
 		//Load local information
 		global $library;
