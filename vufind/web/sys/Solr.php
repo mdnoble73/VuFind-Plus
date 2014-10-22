@@ -1288,6 +1288,9 @@ class Solr implements IndexEngine {
 			// This should be an explicit list
 			$options['fl'] = '*,score';
 		}
+		if ($this->debug){
+			$options['fl'] = $options['fl'] . ',explain';
+		}
 
 		if (is_object($this->searchSource)){
 			$defaultFilters = preg_split('/\r\n/', $this->searchSource->defaultFilter);

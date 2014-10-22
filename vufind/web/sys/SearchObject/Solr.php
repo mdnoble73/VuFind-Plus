@@ -2006,6 +2006,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$fieldsToReturn .= ',days_since_added';
 			$fieldsToReturn .= ',local_callnumber';
 		}
+		$fieldsToReturn .= ',score';
 		return $fieldsToReturn;
 	}
 
