@@ -13,7 +13,7 @@
 				<div>
 					{if (isset($selfRegResult) && !$selfRegResult.success)}
 						<div id='selfRegFailure' class="alert alert-danger">
-							Sorry, we could not create register a library card for you with that information. Please visit your local library to get a card.
+							Sorry, we could not create a library card for you with that information. Please visit your local library to get a card.
 						</div>
 					{/if}
 					<div class='form-group'>
