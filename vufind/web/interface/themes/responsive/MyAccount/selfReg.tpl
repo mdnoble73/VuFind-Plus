@@ -29,7 +29,7 @@
 						</div>
 					</div>
 					<div class='form-group'>
-						<label for='address' class="control-label col-sm-3">Address</label>
+						<label for='address' class="control-label col-sm-3">Mailing Address</label>
 						<div class="col-sm-9">
 							<input id='address' name='address' type='text' maxlength="128" size="40" class='required form-control'/>
 						</div>
