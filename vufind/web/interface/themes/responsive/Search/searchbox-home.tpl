@@ -13,6 +13,7 @@
 					<input type="hidden" name="genealogyType" id="genealogyType" value=""/>
 					<fieldset>
 						<div class="input-group input-group-sm">
+							<div class="input-group-sm">
 							<input class="form-control"{/strip}
 							       id="lookfor"
 							       placeholder=""
@@ -25,6 +26,7 @@
 							       onfocus="$(this).select()"
 							       autocomplete="off"
 											{strip}/>
+							</div>
 							<div class="input-group-btn">
 								<button class="btn btn-default" type="submit">GO</button>
 								<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">

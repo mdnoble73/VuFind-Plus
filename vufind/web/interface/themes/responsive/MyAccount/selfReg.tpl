@@ -13,7 +13,7 @@
 				<div>
 					{if (isset($selfRegResult) && !$selfRegResult.success)}
 						<div id='selfRegFailure' class="alert alert-danger">
-							Sorry, we could not create register a library card for you with that information. Please visit your local library to get a card.
+							Sorry, we could not create a library card for you with that information. Please visit your local library to get a card.
 						</div>
 					{/if}
 					<div class='form-group'>
@@ -29,7 +29,7 @@
 						</div>
 					</div>
 					<div class='form-group'>
-						<label for='address' class="control-label col-sm-3">Address</label>
+						<label for='address' class="control-label col-sm-3">Mailing Address</label>
 						<div class="col-sm-9">
 							<input id='address' name='address' type='text' maxlength="128" size="40" class='required form-control'/>
 						</div>
