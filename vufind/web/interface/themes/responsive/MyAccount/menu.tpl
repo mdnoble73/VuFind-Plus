@@ -180,6 +180,8 @@
 							<div class="adminMenuLink {if $action == "DBMaintenanceEContent"}active{/if}"><a href="{$path}/Admin/DBMaintenanceEContent">DB Maintenance - EContent</a></div>
 							<div class="adminMenuLink {if $module == 'Admin' && $action == "Home"}active{/if}"><a href="{$path}/Admin/Home">Solr Information</a></div>
 							<div class="adminMenuLink {if $action == "PHPInfo"}active{/if}"><a href="{$path}/Admin/PHPInfo">PHP Information</a></div>
+							{*<div class="adminMenuLink {if $action == "MemCacheInfo"}active{/if}"><a href="{$path}/Admin/MemCacheInfo">MemCache Information</a></div> *}
+							<div class="adminMenuLink {if $action == "OpCacheInfo"}active{/if}"><a href="{$path}/Admin/OpCacheInfo">OpCache Information</a></div>
 							<div class="adminMenuLink {if $action == "Variables"}active{/if}"><a href="{$path}/Admin/Variables">System Variables</a></div>
 							<div class="adminMenuLink {if $action == "CronLog"}active{/if}"><a href="{$path}/Admin/CronLog">Cron Log</a></div>
 							<div class="adminMenuLink {if $action == "ReindexLog"}active{/if}"><a href="{$path}/Admin/ReindexLog">Reindex Log</a></div>

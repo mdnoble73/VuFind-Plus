@@ -1,6 +1,6 @@
 {strip}
 	<div id="main-content" class="col-xs-12">
-		<h2>PHP Information</h2>
-		{$phpinfo}
+		<h2>{$title}</h2>
+		{$info}
 	</div>
 {/strip}
