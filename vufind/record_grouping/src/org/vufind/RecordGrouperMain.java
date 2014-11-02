@@ -154,11 +154,14 @@ public class RecordGrouperMain {
 
 	private static void groupEVokeRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor) {
 		if (configIni.containsKey("eVoke")){
-			logger.debug("Grouping eVoke records");
 			int numRecordsProcessed = 0;
 			int numRecordsRead = 0;
 			String marcPath = configIni.get("eVoke", "evokePath");
+			if(marcPath == null){
+				return;
+			}
 
+			logger.debug("Grouping eVoke records");
 			//Loop through each of the files tha have been exported
 			File[] recordPrefixPaths = new File(marcPath).listFiles();
 			if (recordPrefixPaths != null){
@@ -177,7 +180,7 @@ public class RecordGrouperMain {
 										RecordIdentifier primaryIdentifier = new RecordIdentifier();
 										primaryIdentifier.setValue("evoke", recordNumber);
 										try {
-											//TODO: Determine if the record has changed sislnce we last indexed (if doing a partial update).
+											//TODO: Determine if the record has changed since we last indexed (if doing a partial update).
 											recordGroupingProcessor.processEVokeRecord(marcRecord, primaryIdentifier);
 											numRecordsProcessed++;
 											lastRecordProcessed = recordNumber;
