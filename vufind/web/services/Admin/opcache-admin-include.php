@@ -121,14 +121,11 @@ if (!function_exists('opcache_get_status')) {
 	?>
 	<style type="text/css">
 		div#main-content {
-			/*font-family: sans-serif;*/
-			/*font-size: 75%;*/
-			/*line-height: 1.2;*/
 			padding: 2em;
 		}
 
 		.opc-container {
-			overflow: auto;
+			/*overflow: auto;*/
 			width: 100%;
 			position: relative;
 		}
