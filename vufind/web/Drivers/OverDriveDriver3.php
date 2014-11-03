@@ -370,7 +370,7 @@ class OverDriveDriver3 {
 	 *
 	 * @return array
 	 */
-	public function getOverDriveCheckedOutItems($user, $overDriveInfo = null){
+	public function getOverDriveCheckedOutItems($user, $overDriveInfo = null, $forSummary = false){
 		if (isset($this->checkouts[$user->id])){
 			return $this->checkouts[$user->id];
 		}
@@ -396,68 +396,71 @@ class OverDriveDriver3 {
 				$bookshelfItem['overdriveRead'] = false;
 				$bookshelfItem['formatSelected'] = ($curTitle->isFormatLockedIn == 1);
 				$bookshelfItem['formats'] = array();
-				if (isset($curTitle->formats)){
-					foreach ($curTitle->formats as $id => $format){
-						if ($format->formatType == 'ebook-overdrive'){
-							$bookshelfItem['overdriveRead'] = true;
-						}else{
-							$bookshelfItem['selectedFormat'] = array(
-								'name' => $this->format_map[$format->formatType],
-								'format' => $format->formatType,
-							);
-						}
-						$curFormat = array();
-						$curFormat['id'] = $id;
-						$curFormat['format'] = $format;
-						$curFormat['name'] = $format->formatType;
-						if (isset($format->links->self)){
-							$curFormat['downloadUrl'] = $format->links->self->href . '/downloadlink';
-						}
-						if ($format->formatType != 'ebook-overdrive'){
-							$bookshelfItem['formats'][] = $curFormat;
-						}else{
-							if (isset($curFormat['downloadUrl'])){
-								$bookshelfItem['overdriveReadUrl'] = $curFormat['downloadUrl'];
+				if (!$forSummary){
+					if (isset($curTitle->formats)){
+						foreach ($curTitle->formats as $id => $format){
+							if ($format->formatType == 'ebook-overdrive'){
+								$bookshelfItem['overdriveRead'] = true;
+							}else{
+								$bookshelfItem['selectedFormat'] = array(
+									'name' => $this->format_map[$format->formatType],
+									'format' => $format->formatType,
+								);
+							}
+							$curFormat = array();
+							$curFormat['id'] = $id;
+							$curFormat['format'] = $format;
+							$curFormat['name'] = $format->formatType;
+							if (isset($format->links->self)){
+								$curFormat['downloadUrl'] = $format->links->self->href . '/downloadlink';
+							}
+							if ($format->formatType != 'ebook-overdrive'){
+								$bookshelfItem['formats'][] = $curFormat;
+							}else{
+								if (isset($curFormat['downloadUrl'])){
+									$bookshelfItem['overdriveReadUrl'] = $curFormat['downloadUrl'];
+								}
 							}
 						}
 					}
-				}
-				if (isset($curTitle->actions->format) && !$bookshelfItem['formatSelected']){
-					//Get the options for the format which includes the valid formats
-					$formatField = null;
-					foreach ($curTitle->actions->format->fields as $curFieldIndex => $curField){
-						if ($curField->name == 'formatType'){
-							$formatField = $curField;
-							break;
+					if (isset($curTitle->actions->format) && !$bookshelfItem['formatSelected']){
+						//Get the options for the format which includes the valid formats
+						$formatField = null;
+						foreach ($curTitle->actions->format->fields as $curFieldIndex => $curField){
+							if ($curField->name == 'formatType'){
+								$formatField = $curField;
+								break;
+							}
+						}
+						foreach ($formatField->options as $index => $format){
+							$curFormat = array();
+							$curFormat['id'] = $format;
+							$curFormat['name'] = $this->format_map[$format];
+							$bookshelfItem['formats'][] = $curFormat;
 						}
 					}
-					foreach ($formatField->options as $index => $format){
-						$curFormat = array();
-						$curFormat['id'] = $format;
-						$curFormat['name'] = $this->format_map[$format];
-						$bookshelfItem['formats'][] = $curFormat;
+
+					if (isset($curTitle->actions->earlyReturn)){
+						$bookshelfItem['earlyReturn']  = true;
 					}
+					//Figure out which eContent record this is for.
+					require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
+					$overDriveRecord = new OverDriveRecordDriver($bookshelfItem['overDriveId']);
+					$bookshelfItem['recordId'] = $overDriveRecord->getUniqueID();
+					$bookshelfItem['coverUrl'] = $overDriveRecord->getCoverUrl('medium');
+					$bookshelfItem['recordUrl'] = $configArray['Site']['path'] . '/OverDrive/' . $overDriveRecord->getUniqueID() . '/Home';
+					$bookshelfItem['title'] = $overDriveRecord->getTitle();
+					$bookshelfItem['author'] = $overDriveRecord->getAuthor();
+					$bookshelfItem['linkUrl'] = $overDriveRecord->getLinkUrl(false);
+					$bookshelfItem['ratingData'] = $overDriveRecord->getRatingData();
 				}
-
-				if (isset($curTitle->actions->earlyReturn)){
-					$bookshelfItem['earlyReturn']  = true;
-				}
-				//Figure out which eContent record this is for.
-				require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
-				$overDriveRecord = new OverDriveRecordDriver($bookshelfItem['overDriveId']);
-				$bookshelfItem['recordId'] = $overDriveRecord->getUniqueID();
-				$bookshelfItem['coverUrl'] = $overDriveRecord->getCoverUrl('medium');
-				$bookshelfItem['recordUrl'] = $configArray['Site']['path'] . '/OverDrive/' . $overDriveRecord->getUniqueID() . '/Home';
-				$bookshelfItem['title'] = $overDriveRecord->getTitle();
-				$bookshelfItem['author'] = $overDriveRecord->getAuthor();
-				$bookshelfItem['linkUrl'] = $overDriveRecord->getLinkUrl(false);
-				$bookshelfItem['ratingData'] = $overDriveRecord->getRatingData();
-
 				$key = $bookshelfItem['checkoutSource'] . $bookshelfItem['overDriveId'];
 				$checkedOutTitles[$key] = $bookshelfItem;
 			}
 		}
-		$this->checkouts[$user->id] = $checkedOutTitles;
+		if (!$forSummary){
+			$this->checkouts[$user->id] = $checkedOutTitles;
+		}
 		return array(
 			'items' => $checkedOutTitles
 		);
@@ -470,7 +473,7 @@ class OverDriveDriver3 {
 	 * @param null $overDriveInfo
 	 * @return array
 	 */
-	public function getOverDriveHolds($user, $overDriveInfo = null){
+	public function getOverDriveHolds($user, $overDriveInfo = null, $forSummary = false){
 		//Cache holds for the user just for this call.
 		if (isset($this->holds[$user->id])){
 			return $this->holds[$user->id];
@@ -502,15 +505,17 @@ class OverDriveDriver3 {
 
 				//Figure out which eContent record this is for.
 				require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
-				$overDriveRecord = new OverDriveRecordDriver($hold['overDriveId']);
-				$hold['recordId'] = $overDriveRecord->getUniqueID();
-				$hold['coverUrl'] = $overDriveRecord->getCoverUrl('medium');
-				$hold['recordUrl'] = $configArray['Site']['path'] . '/OverDrive/' . $overDriveRecord->getUniqueID() . '/Home';
-				$hold['title'] = $overDriveRecord->getTitle();
-				$hold['author'] = $overDriveRecord->getAuthor();
-				$hold['linkUrl'] = $overDriveRecord->getLinkUrl(false);
-				$hold['format'] = $overDriveRecord->getFormats();
-				$hold['ratingData'] = $overDriveRecord->getRatingData();
+				if (!$forSummary){
+					$overDriveRecord = new OverDriveRecordDriver($hold['overDriveId']);
+					$hold['recordId'] = $overDriveRecord->getUniqueID();
+					$hold['coverUrl'] = $overDriveRecord->getCoverUrl('medium');
+					$hold['recordUrl'] = $configArray['Site']['path'] . '/OverDrive/' . $overDriveRecord->getUniqueID() . '/Home';
+					$hold['title'] = $overDriveRecord->getTitle();
+					$hold['author'] = $overDriveRecord->getAuthor();
+					$hold['linkUrl'] = $overDriveRecord->getLinkUrl(false);
+					$hold['format'] = $overDriveRecord->getFormats();
+					$hold['ratingData'] = $overDriveRecord->getRatingData();
+				}
 
 				$key = $hold['holdSource'] . $hold['overDriveId'];
 				if ($hold['available']){
@@ -520,7 +525,9 @@ class OverDriveDriver3 {
 				}
 			}
 		}
-		$this->holds[$user->id] = $holds;
+		if (!$forSummary){
+			$this->holds[$user->id] = $holds;
+		}
 		return $holds;
 	}
 
@@ -554,10 +561,10 @@ class OverDriveDriver3 {
 
 			//TODO: Optimize so we don't need to load all checkouts and holds
 			$summary = array();
-			$checkedOutItems = $this->getOverDriveCheckedOutItems($user);
+			$checkedOutItems = $this->getOverDriveCheckedOutItems($user, null, true);
 			$summary['numCheckedOut'] = count($checkedOutItems['items']);
 
-			$holds = $this->getOverDriveHolds($user);
+			$holds = $this->getOverDriveHolds($user, null, true);
 			$summary['numAvailableHolds'] = count($holds['holds']['available']);
 			$summary['numUnavailableHolds'] = count($holds['holds']['unavailable']);
 
