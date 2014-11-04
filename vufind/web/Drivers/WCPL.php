@@ -572,7 +572,8 @@ class WCPL extends Horizon
 	}
 
 	private $patronProfiles = array();
-	public function getMyProfile($patron) {
+	public function getMyProfile($patron, $forceReload = false) {
+		//TODO: $forceReload option not implemented yet. plb 11-04-2014
 		global $timer;
 		global $user;
 		if ($this->useDb){
@@ -583,7 +584,9 @@ class WCPL extends Horizon
 			}else{
 				$borrowerNumber= $patron['id'];
 			}
-			if (array_key_exists($borrowerNumber, $this->patronProfiles) && !isset($_REQUEST['reload'])){
+			if (array_key_exists($borrowerNumber, $this->patronProfiles) && !$forceReload){
+// added the above. I think this Driver might need revision. plb 11-04-2014
+//				if (array_key_exists($borrowerNumber, $this->patronProfiles) && !isset($_REQUEST['reload'])){
 				$timer->logTime('Retrieved Cached Profile for Patron');
 				return $this->patronProfiles[$borrowerNumber];
 			}
