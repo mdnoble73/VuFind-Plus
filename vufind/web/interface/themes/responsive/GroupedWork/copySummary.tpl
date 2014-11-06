@@ -12,7 +12,7 @@
 		{assign var=numRemainingCopies value=$totalCopies-$numDefaultItems}
 		{if $numRemainingCopies > 0}
 			<div class="itemSummary">
-				&nbsp;&nbsp;<a href="#" onclick="return VuFind.showElementInPopup('Copy Summary', '#itemSummaryPopup_{$itemSummaryId|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">
+				&nbsp;&nbsp;<a href="#" onclick="return VuFind.showElementInPopup('{if $numDefaultItems > 0}Additional Copies {else}Copy Summary{/if}', '#itemSummaryPopup_{$itemSummaryId|escapeCSS}_{$relatedManifestation.format|escapeCSS}');">
 					View {if $numRemainingCopies > 1}{$totalCopies-$numDefaultItems} {/if}{if $numDefaultItems > 0}additional {/if}{if $numRemainingCopies > 1}copies{else}copy information{/if}
 				</a>
 			</div>
