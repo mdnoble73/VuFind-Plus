@@ -113,7 +113,8 @@ class MyAccount_CheckedOut extends MyAccount{
 		$ils = $configArray['Catalog']['ils'];
 		$showOut = ($ils == 'Horizon' );
 		$showRenewed = ($ils == 'Horizon' || $ils == 'Millennium'  || $ils == 'Sierra');
-		$showWaitList = ($ils == 'Horizon');
+		//Horizon Web API no longer returns wait list for the title
+		$showWaitList = false;
 
 		$interface->assign('showOut', $showOut);
 		$interface->assign('showRenewed', $showRenewed);

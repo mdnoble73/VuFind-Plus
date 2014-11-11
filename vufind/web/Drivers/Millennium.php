@@ -1660,7 +1660,7 @@ class MillenniumDriver implements DriverInterface
 		$fullName = str_replace(",", " ", $patronName);
 		$fullName = str_replace(";", " ", $fullName);
 		$fullName = str_replace(";", "'", $fullName);
-		$fullName = preg_replace("/\s{2,}/", " ", $fullName);
+		$fullName = preg_replace("/\\s{2,}/", " ", $fullName);
 		$allNameComponents = preg_split('^[\s-]^', strtolower($fullName));
 		$nameParts = explode(' ', $fullName);
 		$lastName = strtolower($nameParts[0]);

@@ -74,7 +74,9 @@ class MyAccount_Holds extends MyAccount{
 
 		$allowChangeLocation = ($ils == 'Millennium' || $ils == 'Sierra');
 		$interface->assign('allowChangeLocation', $allowChangeLocation);
-		$showPlacedColumn = ($ils == 'Horizon');
+		//$showPlacedColumn = ($ils == 'Horizon');
+		//Horizon Web Services does not include data placed anymore
+		$showPlacedColumn = false;
 		$interface->assign('showPlacedColumn', $showPlacedColumn);
 		$showDateWhenSuspending = ($ils == 'Horizon');
 		$interface->assign('showDateWhenSuspending', $showDateWhenSuspending);

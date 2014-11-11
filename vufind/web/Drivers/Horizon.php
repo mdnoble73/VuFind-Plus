@@ -21,7 +21,7 @@
 require_once 'Interface.php';
 require_once ROOT_DIR . '/sys/SIP2.php';
 
-class Horizon implements DriverInterface{
+abstract class Horizon implements DriverInterface{
 	protected $db;
 	protected $useDb = true;
 	protected $hipUrl;
@@ -82,13 +82,11 @@ class Horizon implements DriverInterface{
 		return $fastItems;
 	}
 
-	public function getHolding($id, $record = null, $mysip = null, $forSummary = false){
+	public function getHolding($id, $record = null, $mySip = null, $forSummary = false){
 		global $timer;
 		global $configArray;
 
 		$allItems = array();
-
-		$sipInitialized = $mysip != null;
 
 		global $locationSingleton;
 		$homeLocation = $locationSingleton->getUserHomeLocation();
@@ -99,10 +97,11 @@ class Horizon implements DriverInterface{
 
 		require_once ROOT_DIR . '/sys/MarcLoader.php';
 		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
+		$callNumber = '';
 		if ($marcRecord) {
 			$timer->logTime('Loaded MARC record from search object');
 			if (!$configArray['Catalog']['itemLevelCallNumbers']){
-				$callNumber = '';
+				/** @var File_MARC_Data_Field $callNumberField */
 				$callNumberField = $marcRecord->getField('92', true);
 				if ($callNumberField != null){
 					$callNumberA = $callNumberField->getSubfield('a');
@@ -241,10 +240,8 @@ class Horizon implements DriverInterface{
 					}
 				}
 				//Suppress staff items
-				$isStaff = false;
 				$subfieldO = $item->getSubfield('o');
 				if (isset($subfieldO) && is_object($subfieldO) && $subfieldO->getData() == 1){
-					$isStaff = true;
 					$suppressItem = true;
 				}
 
@@ -269,6 +266,7 @@ class Horizon implements DriverInterface{
 
 	public function getHoldings($idList, $record = null, $mysip = null, $forSummary = false)
 	{
+		$holdings = array();
 		foreach ($idList as $id) {
 			$holdings[] = $this->getHolding($id, $record, $mysip, $forSummary);
 		}
@@ -341,40 +339,11 @@ class Horizon implements DriverInterface{
 
 		//Get a list of all record id so we can load supplemental information
 		$recordIds = array();
-		foreach($holds as $section => $holdSections){
+		foreach($holds as $holdSections){
 			foreach($holdSections as $hold){
 				$recordIds[] = "'" . $hold['id'] . "'";
 			}
 		}
-		//Get records from resource table
-		/*$resourceInfo = new Resource();
-		if (count($recordIds) > 0){
-			$recordIdString = implode(",", $recordIds);
-			$resourceSql = "SELECT * FROM resource where source = 'VuFind' AND record_id in ({$recordIdString})";
-			$resourceInfo->query($resourceSql);
-			$timer->logTime('Got records for all titles');
-
-			//Load title author, etc. information
-			while ($resourceInfo->fetch()){
-				foreach($holds as $section => $holdSections){
-					foreach($holdSections as $key => $hold){
-						$hold['recordId'] = $hold['id'];
-						if ($hold['id'] == $resourceInfo->record_id){
-							$hold['shortId'] = $hold['id'];
-							//Load title, author, and format information about the title
-							$hold['title'] = isset($resourceInfo->title) ? $resourceInfo->title : 'Unknown';
-							$hold['sortTitle'] = isset($resourceInfo->title_sort) ? $resourceInfo->title_sort : 'unknown';
-							$hold['author'] = isset($resourceInfo->author) ? $resourceInfo->author : null;
-							$hold['format'] = isset($resourceInfo->format) ?$resourceInfo->format : null;
-							$hold['isbn'] = isset($resourceInfo->isbn) ? $resourceInfo->isbn : '';
-							$hold['upc'] = isset($resourceInfo->upc) ? $resourceInfo->upc : '';
-							$hold['format_category'] = isset($resourceInfo->format_category) ? $resourceInfo->format_category : '';
-							$holds[$section][$key] = $hold;
-						}
-					}
-				}
-			}
-		}*/
 
 		foreach($holds as $section => $holdSections){
 			foreach($holdSections as $key => $hold){
@@ -448,7 +417,7 @@ class Horizon implements DriverInterface{
 		);
 	}
 
-	public function getMyHoldsViaHip($patron){
+	public function getMyHoldsViaHip(){
 		global $user;
 		global $configArray;
 		global $logger;
@@ -483,6 +452,7 @@ class Horizon implements DriverInterface{
 		$logger->log("Loading holds $curl_url", PEAR_LOG_INFO);
 
 		//Extract the session id from the requestcopy javascript on the page
+		$sessionId = null;
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
@@ -502,6 +472,7 @@ class Horizon implements DriverInterface{
       'sec2' => $user->cat_password,
       'session' => $sessionId,
 		);
+		$post_items = array();
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
@@ -570,9 +541,6 @@ class Horizon implements DriverInterface{
 public function getMyHoldsViaDB($patron)
 	{
 		//Load Available Holds from SIP2
-		global $configArray;
-
-		global $user;
 		$holdList = array();
 		if ($this->db == false){
 			//return JSON data from production server to get test information
@@ -3001,4 +2969,10 @@ private function parseSip2Fines($finesData){
 		}
 		return $result;
 	}
+
+	abstract function translateCollection($collection);
+
+	abstract function translateLocation($locationCode);
+
+	abstract function translateStatus($status);
 }
