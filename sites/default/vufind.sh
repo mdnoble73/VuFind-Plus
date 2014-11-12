@@ -435,7 +435,9 @@ case "$ACTION" in
 
         echo "STARTED VuFind `date`" >> $JETTY_CONSOLE
         echo "$RUN_CMD"
-        nohup sh -c "exec $RUN_CMD >>$JETTY_CONSOLE 2>&1" &
+# Mark/James/Sparky Mon Nov  3 15:30:58 CST 2014
+#        nohup sh -c "exec $RUN_CMD >>$JETTY_CONSOLE 2>&1" &
+        nohup sh -c "exec $RUN_CMD >>/dev/null 2>&1" &
         echo $! > $JETTY_PID
         echo "VuFind running pid="`cat $JETTY_PID`
         ;;
