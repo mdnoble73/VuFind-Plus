@@ -121,6 +121,7 @@ public class MarcProcessor {
 	private char                          dateCreatedSubfield = 'k';
 	private char                          barcodeSubfield = 'b';
 	private char                          statusSubfield = 'g';
+	private String                        availableStatusCodes = "";
 	private char                          totalCheckoutSubfield = 'h';
 	private char                          lastYearCheckoutSubfield = 'x';
 	private char                          ytdCheckoutSubfield = 't';
@@ -229,6 +230,8 @@ public class MarcProcessor {
 		dateCreatedSubfield = configIni.get("Reindex", "dateCreatedSubfield").length() > 0 ? configIni.get("Reindex", "dateCreatedSubfield").charAt(0) : 'k' ;
 		barcodeSubfield = configIni.get("Reindex", "barcodeSubfield").length() > 0 ? configIni.get("Reindex", "barcodeSubfield").charAt(0) : 'b';
 		statusSubfield = configIni.get("Reindex", "statusSubfield").length() > 0 ? configIni.get("Reindex", "statusSubfield").charAt(0) : 'g';
+		//Get a list of statuses that should be considered available.
+		availableStatusCodes = (configIni.get("Reindex", "availableStatusCodes") != null || configIni.get("Reindex", "availableStatusCodes").length() > 0) ? configIni.get("Reindex", "availableStatusCodes") : "-dowju";
 		totalCheckoutSubfield = configIni.get("Reindex", "totalCheckoutSubfield").length() > 0 ? configIni.get("Reindex", "totalCheckoutSubfield").charAt(0) : 'h';
 		lastYearCheckoutSubfield = configIni.get("Reindex", "lastYearCheckoutSubfield").length() > 0 ? configIni.get("Reindex", "lastYearCheckoutSubfield").charAt(0) : 'x';
 		ytdCheckoutSubfield = configIni.get("Reindex", "ytdCheckoutSubfield").length() > 0 ? configIni.get("Reindex", "ytdCheckoutSubfield").charAt(0) : 't';
@@ -1435,5 +1438,9 @@ public class MarcProcessor {
 
 	public Integer getOwnedByLocationBoostValue() {
 		return ownedByLocationBoostValue;
+	}
+
+	public String getAvailableStatusCodes() {
+		return availableStatusCodes;
 	}
 }

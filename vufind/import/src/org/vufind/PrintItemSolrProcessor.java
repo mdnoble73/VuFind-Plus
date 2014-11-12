@@ -143,7 +143,8 @@ public class PrintItemSolrProcessor {
 				if (statusSubfield != null) {
 					String status = statusSubfield.getData();
 					String dueDate = dueDateField == null ? "" : dueDateField.getData().replaceAll("\\D", "").trim();
-					String availableStatus = "-dowju";
+
+					String availableStatus = marcProcessor.getAvailableStatusCodes();
 					if (availableStatus.indexOf(status.charAt(0)) >= 0) {
 						if (dueDate.length() == 0) {
 							if (marcProcessor.isUseICode2Suppression()){
