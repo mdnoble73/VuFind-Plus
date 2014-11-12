@@ -61,6 +61,29 @@ class MillenniumReadingHistory {
 			$readingHistoryTitles = array_slice($readingHistoryTitles, $startRecord, $recordsPerPage);
 		}
 
+		foreach ($readingHistoryTitles as $key => $historyEntry){
+			//Get additional information from resources table
+			$historyEntry['ratingData'] = null;
+			$historyEntry['permanentId'] = null;
+			$historyEntry['linkUrl'] = null;
+			$historyEntry['coverUrl'] = null;
+			$historyEntry['format'] = array();
+			if (isset($historyEntry['shortId']) && strlen($historyEntry['shortId']) > 0){
+				$historyEntry['recordId'] = "." . $historyEntry['shortId'] . $this->driver->getCheckDigit($historyEntry['shortId']);
+				require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+				$recordDriver = new MarcRecord($historyEntry['recordId']);
+				if ($recordDriver->isValid()){
+					$historyEntry['ratingData'] = $recordDriver->getRatingData();
+					$historyEntry['permanentId'] = $recordDriver->getPermanentId();
+					$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
+					$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+					$historyEntry['format'] = $recordDriver->getFormats();
+				}
+				$recordDriver = null;
+			}
+			$readingHistoryTitles[$key] = $historyEntry;
+		}
+
 		//The history is active if there is an opt out link.
 		$historyActive = (strpos($pageContents, 'OptOut') > 0);
 		$timer->logTime("Loaded Reading history for patron");
@@ -253,20 +276,6 @@ class MillenniumReadingHistory {
 				$historyEntry['title_sort'] = strtolower($historyEntry['title']);
 
 				//$historyEntry['itemindex'] = $itemindex++;
-				//Get additional information from resources table
-				if (isset($historyEntry['shortId']) && strlen($historyEntry['shortId']) > 0){
-					$historyEntry['recordId'] = "." . $historyEntry['shortId'] . $this->driver->getCheckDigit($historyEntry['shortId']);
-					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($historyEntry['recordId']);
-					if ($recordDriver->isValid()){
-						$historyEntry['ratingData'] = $recordDriver->getRatingData();
-						$historyEntry['permanentId'] = $recordDriver->getPermanentId();
-						$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
-						$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-						$historyEntry['format'] = $recordDriver->getFormats();
-					}
-					$recordDriver = null;
-				}
 				if ($sortOption == "title"){
 					$titleKey = $historyEntry['title_sort'];
 				}elseif ($sortOption == "author"){

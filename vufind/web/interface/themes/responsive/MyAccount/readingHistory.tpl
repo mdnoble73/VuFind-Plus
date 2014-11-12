@@ -92,15 +92,17 @@
 									<input type="checkbox" name="selected[{$record.recordId|escape:"url"}]" class="titleSelect" value="rsh{$record.itemindex}" id="rsh{$record.itemindex}" />
 								</div>
 								<div class="col-sm-2">
-									<a href="{$record.linkUrl}" id="descriptionTrigger{$record.recordId|escape:"url"}">
-										<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
-									</a>
+									{if $record.coverUrl}
+										<a href="{$record.linkUrl}" id="descriptionTrigger{$record.recordId|escape:"url"}">
+											<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
+										</a>
+									{/if}
 								</div>
 								<div class="col-sm-7">
 									<div class="row">
 										<div class="col-xs-12">
 											<strong>
-												{if $record.recordId}
+												{if $record.recordId && $record.linkUrl}
 													<a href="{$record.linkUrl}" class="title">{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}</a>
 												{else}
 													{if !$record.title|removeTrailingPunctuation}{translate text='Title not available'}{else}{$record.title|removeTrailingPunctuation}{/if}
@@ -146,7 +148,7 @@
 									</div>
 
 									{if $showRatings == 1}
-										{if $record.recordId != -1}
+										{if $record.recordId != -1 && $record.ratingData}
 											<div class="row">
 												<div class="result-label col-md-3">Rating&nbsp;</div>
 												<div class="col-md-9 result-value">
