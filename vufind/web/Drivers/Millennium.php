@@ -741,6 +741,7 @@ class MillenniumDriver implements DriverInterface
 
 		$noticeLabels = array(
 			'-' => 'Mail',
+			'a' => 'Print',
 			'p' => 'Telephone',
 			'z' => 'E-mail',
 		);
@@ -778,7 +779,12 @@ class MillenniumDriver implements DriverInterface
 				'notices' => isset($patronDump) ? $patronDump['NOTICE_PREF'] : '-',
 				'web_note' => isset($patronDump) ? (isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '') : '',
 		);
-		$profile['noticePreferenceLabel'] = $noticeLabels[$profile['notices']];
+		if (array_key_exists($profile['notices'], $noticeLabels)){
+			$profile['noticePreferenceLabel'] = $noticeLabels[$profile['notices']];
+		}else{
+			$profile['noticePreferenceLabel'] = 'Unknown';
+		}
+
 
 		//Get eContent info as well
 		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');

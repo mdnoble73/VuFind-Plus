@@ -263,6 +263,7 @@ class MillenniumReadingHistory {
 					$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
 					$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
 					$historyEntry['format'] = $recordDriver->getFormats();
+					$recordDriver = null;
 				}
 				if ($sortOption == "title"){
 					$titleKey = $historyEntry['title_sort'];

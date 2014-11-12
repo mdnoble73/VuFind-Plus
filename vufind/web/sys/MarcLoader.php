@@ -67,6 +67,10 @@ class MarcLoader{
 				}
 			}
 		}
+		//Make sure not to use to much memory
+		if (count(MarcLoader::$loadedMarcRecords) > 50){
+			array_shift(MarcLoader::$loadedMarcRecords);
+		}
 		MarcLoader::$loadedMarcRecords[$ilsId] = $marcRecord;
 		return $marcRecord;
 	}
