@@ -3,7 +3,7 @@ package org.vufind;
 import java.util.HashSet;
 
 /**
- * Description goes here
+ * A representation of an Item defined in the ILS system
  * VuFind-Plus
  * User: Mark Noble
  * Date: 6/16/2014
@@ -22,6 +22,7 @@ public class IlsItem {
 
 	private HashSet<Scope> relatedScopes = new HashSet<Scope>();
 	private String recordIdentifier;
+	private String volume;
 
 	public String getDateCreated() {
 		return dateCreated;
@@ -77,10 +78,22 @@ public class IlsItem {
 			fullCallNumber.append(this.callNumberPreStamp);
 		}
 		if (this.callNumber != null){
+			if (fullCallNumber.length() > 0 && fullCallNumber.charAt(fullCallNumber.length() - 1) != ' '){
+				fullCallNumber.append(' ');
+			}
 			fullCallNumber.append(this.callNumber);
 		}
 		if (this.callNumberCutter != null){
+			if (fullCallNumber.length() > 0 && fullCallNumber.charAt(fullCallNumber.length() - 1) != ' '){
+				fullCallNumber.append(' ');
+			}
 			fullCallNumber.append(this.callNumberCutter);
+		}
+		if (this.volume != null){
+			if (fullCallNumber.length() > 0 && fullCallNumber.charAt(fullCallNumber.length() - 1) != ' '){
+				fullCallNumber.append(' ');
+			}
+			fullCallNumber.append(this.volume);
 		}
 		return fullCallNumber.toString().trim();
 	}
@@ -143,5 +156,9 @@ public class IlsItem {
 
 	public void setCollection(String collection) {
 		this.collection = collection;
+	}
+
+	public void setVolume(String volume) {
+		this.volume = volume;
 	}
 }

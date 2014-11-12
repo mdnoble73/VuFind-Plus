@@ -365,6 +365,7 @@ class MillenniumDriver implements DriverInterface
 				$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
 				$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
 				$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
+				$fullCallNumber .= $itemField->getSubfield('v') != null ? (' ' . $itemField->getSubfield('v')->getData()) : '';
 
 				$shelfLocation = mapValue('shelf_location', $locationCode);
 				if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $shelfLocation, $locationParts)){

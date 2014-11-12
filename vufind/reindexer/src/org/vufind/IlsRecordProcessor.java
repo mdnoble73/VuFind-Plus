@@ -47,6 +47,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char callNumberPrestampSubfield;
 	protected char callNumberSubfield;
 	protected char callNumberCutterSubfield;
+	protected char volumeSubfield;
 	protected char itemRecordNumberSubfieldIndicator;
 	protected char itemUrlSubfieldIndicator;
 
@@ -89,6 +90,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		callNumberPrestampSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberPrestampSubfield");
 		callNumberSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberSubfield");
 		callNumberCutterSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberCutterSubfield");
+		volumeSubfield = getSubfieldIndicatorFromConfig(configIni, "volumeSubfield");
 		itemRecordNumberSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "itemRecordNumberSubfield");
 		itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "itemUrlSubfield");
 
@@ -414,6 +416,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		ilsRecord.setCallNumberPreStamp(getItemSubfieldData(callNumberPrestampSubfield, itemField));
 		ilsRecord.setCallNumber(getItemSubfieldData(callNumberSubfield, itemField));
 		ilsRecord.setCallNumberCutter(getItemSubfieldData(callNumberCutterSubfield, itemField));
+		ilsRecord.setVolume(getItemSubfieldData(volumeSubfield, itemField));
 		ilsRecord.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
 		if (collectionSubfield != ' ') {
 			ilsRecord.setCollection(getItemSubfieldData(collectionSubfield, itemField));
@@ -523,6 +526,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		ilsRecord.setCallNumberPreStamp(getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField));
 		ilsRecord.setCallNumber(getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField));
 		ilsRecord.setCallNumberCutter(getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField));
+		ilsRecord.setVolume(getItemSubfieldData(volumeSubfield, itemField));
 		ilsRecord.setBarcode(getItemSubfieldData(barcodeSubfield, itemField));
 		ilsRecord.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
 		ilsRecord.setCollection(getItemSubfieldData(collectionSubfield, itemField));
