@@ -258,11 +258,13 @@ class MillenniumReadingHistory {
 					$historyEntry['recordId'] = "." . $historyEntry['shortId'] . $this->driver->getCheckDigit($historyEntry['shortId']);
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($historyEntry['recordId']);
-					$historyEntry['ratingData'] = $recordDriver->getRatingData();
-					$historyEntry['permanentId'] = $recordDriver->getPermanentId();
-					$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
-					$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-					$historyEntry['format'] = $recordDriver->getFormats();
+					if ($recordDriver->isValid()){
+						$historyEntry['ratingData'] = $recordDriver->getRatingData();
+						$historyEntry['permanentId'] = $recordDriver->getPermanentId();
+						$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
+						$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+						$historyEntry['format'] = $recordDriver->getFormats();
+					}
 					$recordDriver = null;
 				}
 				if ($sortOption == "title"){
