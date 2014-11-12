@@ -194,8 +194,14 @@ abstract class HorizonAPI extends Horizon{
 
 			if (isset($lookupMyAccountInfoResponse->AddressInfo)){
 				$Address1 = (string)$lookupMyAccountInfoResponse->AddressInfo->line1;
-				$cityState = (string)$lookupMyAccountInfoResponse->AddressInfo->cityState;
-				list($City, $State) = explode(', ', $cityState);
+				if (isset($lookupMyAccountInfoResponse->AddressInfo->cityState)){
+					$cityState = (string)$lookupMyAccountInfoResponse->AddressInfo->cityState;
+					list($City, $State) = explode(', ', $cityState);
+				}else{
+					$City = "";
+					$State = "";
+				}
+
 				$Zip = (string)$lookupMyAccountInfoResponse->AddressInfo->postalCode;
 			}else{
 				$Address1 = "";
@@ -389,6 +395,7 @@ abstract class HorizonAPI extends Horizon{
 				$curHold['id'] = $bibId;
 				$curHold['holdSource'] = 'ILS';
 				$curHold['itemId'] = (string)$hold->itemKey;
+				$curHold['cancelId'] = (string)$hold->holdKey;
 				$curHold['position'] = (string)$hold->queuePosition;
 				$curHold['recordId'] = $bibId;
 				$curHold['shortId'] = $bibId;
@@ -398,10 +405,14 @@ abstract class HorizonAPI extends Horizon{
 				//$curHold['locationId'] = $matches[1];
 				$curHold['locationUpdateable'] = true;
 				$curHold['currentPickupName'] = $curHold['location'];
-				$curHold['status'] = ucfirst((string)$hold->status);
+				$curHold['status'] = ucfirst(strtolower((string)$hold->status));
 				$expireDate = (string)$hold->expireDate;
 				$curHold['expire'] = $expireDate;
 				$curHold['expireTime'] = strtotime($expireDate);
+				$reactivateDate = (string)$hold->reactivateDate;
+				$curHold['reactivate'] = $reactivateDate;
+				$curHold['reactivateTime'] = strtotime($reactivateDate);
+
 				$curHold['cancelable'] = $hold->status == 'Pending' || $hold->status == '';
 				$curHold['frozen'] = $curHold['status'] == 'Suspended';
 				if ($curHold['frozen']){
@@ -433,6 +444,302 @@ abstract class HorizonAPI extends Horizon{
 			'holds' => $holds,
 			'numUnavailableHolds' => count($holds['unavailable']),
 		);
+	}
+
+	/**
+	 * Place Hold
+	 *
+	 * This is responsible for both placing holds as well as placing recalls.
+	 *
+	 * @param   string  $recordId   The id of the bib record
+	 * @param   string  $patronId   The id of the patron
+	 * @param   string  $comment    Any comment regarding the hold or recall
+	 * @param   string  $type       Whether to place a hold or recall
+	 * @return  mixed               True if successful, false if unsuccessful
+	 *                              If an error occures, return a PEAR_Error
+	 * @access  public
+	 */
+	public function placeHold($recordId, $patronId, $comment, $type){
+		$result = $this->placeItemHold($recordId, null, $patronId, $comment, $type);
+		return $result;
+	}
+
+	public function placeItemHold($recordId, $itemId, $patronId, $comment, $type){
+		global $configArray;
+
+		global $user;
+		$userId = $user->id;
+
+		//Get the session token for the user
+		if (isset(HorizonAPI::$sessionIdsForUsers[$userId])){
+			$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
+		}else{
+			//Log the user in
+			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
+			if (!$userValid){
+				return array(
+					'result' => false,
+					'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
+			}
+		}
+
+		// Retrieve Full Marc Record
+		require_once ROOT_DIR . '/RecordDrivers/Factory.php';
+		$record = RecordDriverFactory::initRecordDriverById('ils:' . $recordId);
+		if (!$record) {
+			$title = null;
+		}else{
+			$title = $record->getTitle();
+		}
+
+		if ($configArray['Catalog']['offline']){
+			global $user;
+			require_once ROOT_DIR . '/sys/OfflineHold.php';
+			$offlineHold = new OfflineHold();
+			$offlineHold->bibId = $recordId;
+			$offlineHold->patronBarcode = $patronId;
+			$offlineHold->patronId = $user->id;
+			$offlineHold->timeEntered = time();
+			$offlineHold->status = 'Not Processed';
+			if ($offlineHold->insert()){
+				return array(
+					'title' => $title,
+					'bib' => $recordId,
+					'result' => true,
+					'message' => 'The circulation system is currently offline.  This hold will be entered for you automatically when the circulation system is online.');
+			}else{
+				return array(
+					'title' => $title,
+					'bib' => $recordId,
+					'result' => false,
+					'message' => 'The circulation system is currently offline and we could not place this hold.  Please try again later.');
+			}
+
+		}else{
+			if ($type == 'cancel' || $type == 'recall' || $type == 'update') {
+				$result = $this->updateHold($recordId, $patronId, $type, $title);
+				$result['title'] = $title;
+				$result['bid'] = $recordId;
+				return $result;
+
+			} else {
+				if (isset($_REQUEST['campus'])){
+					$campus=trim($_REQUEST['campus']);
+				}else{
+					global $user;
+					$campus = $user->homeLocationId;
+				}
+				//create the hold using the web service
+				$createHoldUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/createMyHold?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&pickupLocation=' . $campus . '&titleKey=' . $recordId ;
+				if ($itemId){
+					$createHoldUrl .= '&itemKey=' . $itemId;
+				}
+
+				$createHoldResponse = $this->getWebServiceResponse($createHoldUrl);
+
+				$hold_result = array();
+				if ($createHoldResponse && !isset($createHoldResponse->message)){
+					$hold_result['result'] = true;
+					$hold_result['message'] = 'Your hold was placed successfully.';
+				}else{
+					$hold_result['result'] = false;
+					$hold_result['message'] = 'Your hold could not be placed. ' . (string)$createHoldResponse->message;
+				}
+
+				$hold_result['title']  = $title;
+				$hold_result['bid'] = $recordId;
+				global $analytics;
+				if ($analytics){
+					if ($hold_result['result'] == true){
+						$analytics->addEvent('ILS Integration', 'Successful Hold', $title);
+					}else{
+						$analytics->addEvent('ILS Integration', 'Failed Hold', $hold_result['message'] . ' - ' . $title);
+					}
+				}
+				//Clear the patron profile
+				$this->clearPatronProfile();
+				return $hold_result;
+
+			}
+		}
+	}
+
+	public function updateHold($requestId, $patronId, $type, $title){
+		$xnum = "x" . $_REQUEST['x'];
+		//Strip the . off the front of the bib and the last char from the bib
+		if (isset($_REQUEST['cancelId'])){
+			$cancelId = $_REQUEST['cancelId'];
+		}else{
+			$cancelId = substr($requestId, 1, -1);
+		}
+		$locationId = $_REQUEST['location'];
+		$freezeValue = isset($_REQUEST['freeze']) ? 'on' : 'off';
+		return $this->updateHoldDetailed($patronId, $type, $title, $xnum, $cancelId, $locationId, $freezeValue);
+	}
+
+	/**
+	 * Update a hold that was previously placed in the system.
+	 * Can cancel the hold or update pickup locations.
+	 */
+	public function updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
+		global $configArray;
+
+		global $user;
+		$userId = $user->id;
+
+		//Get the session token for the user
+		if (isset(HorizonAPI::$sessionIdsForUsers[$userId])){
+			$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
+		}else{
+			//Log the user in
+			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
+			if (!$userValid){
+				return array(
+					'result' => false,
+					'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
+			}
+		}
+
+		if (!isset($xNum) ){
+			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])){
+				$waitingHolds = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
+				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
+				$holdKeys = array_merge($waitingHolds, $availableHolds);
+			}else{
+				$holdKeys = array($cancelId);
+			}
+		}
+
+		if ($type == 'cancel'){
+			$allCancelsSucceed = true;
+			foreach ($holdKeys as $holdKey){
+				//create the hold using the web service
+				$cancelHoldUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/cancelMyHold?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&holdKey=' . $holdKey;
+
+				$cancelHoldResponse = $this->getWebServiceResponse($cancelHoldUrl);
+
+				global $analytics;
+				if ($cancelHoldResponse){
+					//Clear the patron profile
+					$this->clearPatronProfile();
+					$analytics->addEvent('ILS Integration', 'Hold Cancelled', $title);
+				}else{
+					$allCancelsSucceed = false;
+					$analytics->addEvent('ILS Integration', 'Hold Not Cancelled', $title);
+				}
+			}
+			if ($allCancelsSucceed){
+				return array(
+					'title' => $title,
+					'result' => true,
+					'message' => 'Your hold(s) were cancelled successfully.');
+			}else{
+				return array(
+					'title' => $title,
+					'result' => false,
+					'message' => 'Some holds could not be cancelled.  Please try again later or see your librarian.');
+			}
+
+		}else{
+			if ($locationId){
+				$allLocationChangesSucceed = true;
+
+				foreach ($holdKeys as $holdKey){
+					//create the hold using the web service
+					$changePickupLocationUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/changePickupLocation?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&holdKey=' . $holdKey . '&newLocation=' . $locationId;
+
+					$changePickupLocationResponse = $this->getWebServiceResponse($changePickupLocationUrl);
+
+					global $analytics;
+					if ($changePickupLocationResponse){
+						//Clear the patron profile
+						$this->clearPatronProfile();
+						$analytics->addEvent('ILS Integration', 'Hold Suspended', $title);
+					}else{
+						$allLocationChangesSucceed = false;
+						$analytics->addEvent('ILS Integration', 'Hold Not Suspended', $title);
+					}
+				}
+				if ($allLocationChangesSucceed){
+					return array(
+						'title' => $title,
+						'result' => true,
+						'message' => 'Pickup location for your hold(s) was updated successfully.');
+				}else{
+					return array(
+						'title' => $title,
+						'result' => false,
+						'message' => 'Pickup location for your hold(s) was could not be updated.  Please try again later or see your librarian.');
+				}
+			}else{
+				//Freeze/Thaw the hold
+				if ($freezeValue == 'on'){
+					//Suspend the hold
+					$reactivationDate = strtotime($_REQUEST['reactivationDate']);
+					$reactivationDate = date('Y-m-d', $reactivationDate);
+					$allLocationChangesSucceed = true;
+
+					foreach ($holdKeys as $holdKey){
+						//create the hold using the web service
+						$changePickupLocationUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/suspendMyHold?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&holdKey=' . $holdKey . '&suspendEndDate=' . $reactivationDate;
+
+						$changePickupLocationResponse = $this->getWebServiceResponse($changePickupLocationUrl);
+
+						global $analytics;
+						if ($changePickupLocationResponse){
+							//Clear the patron profile
+							$this->clearPatronProfile();
+							$analytics->addEvent('ILS Integration', 'Hold Suspended', $title);
+						}else{
+							$allLocationChangesSucceed = false;
+							$analytics->addEvent('ILS Integration', 'Hold Not Suspended', $title);
+						}
+					}
+					if ($allLocationChangesSucceed){
+						return array(
+							'title' => $title,
+							'result' => true,
+							'message' => 'Your hold(s) were frozen successfully.');
+					}else{
+						return array(
+							'title' => $title,
+							'result' => false,
+							'message' => 'Some holds could not be frozen.  Please try again later or see your librarian.');
+					}
+				}else{
+					//Reactivate the hold
+					$allUnsuspendsSucceed = true;
+
+					foreach ($holdKeys as $holdKey){
+						//create the hold using the web service
+						$changePickupLocationUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/unsuspendMyHold?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&holdKey=' . $holdKey;
+
+						$changePickupLocationResponse = $this->getWebServiceResponse($changePickupLocationUrl);
+
+						global $analytics;
+						if ($changePickupLocationResponse){
+							//Clear the patron profile
+							$this->clearPatronProfile();
+							$analytics->addEvent('ILS Integration', 'Hold Suspended', $title);
+						}else{
+							$allUnsuspendsSucceed = false;
+							$analytics->addEvent('ILS Integration', 'Hold Not Suspended', $title);
+						}
+					}
+					if ($allUnsuspendsSucceed){
+						return array(
+							'title' => $title,
+							'result' => true,
+							'message' => 'Your hold(s) were thawed successfully.');
+					}else{
+						return array(
+							'title' => $title,
+							'result' => false,
+							'message' => 'Some holds could not be thawed.  Please try again later or see your librarian.');
+					}
+				}
+			}
+		}
 	}
 
 	public function getMyTransactions( $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
@@ -549,9 +856,22 @@ abstract class HorizonAPI extends Horizon{
 		curl_close($ch);
 
 		if ($xml !== false){
-			return simplexml_load_string($xml);
+			if (strpos($xml, '<') !== FALSE){
+				return simplexml_load_string($xml);
+			}else{
+				return $xml;
+			}
 		}else{
 			return false;
 		}
+	}
+
+	public function clearPatronProfile() {
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $user;
+
+		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
+
 	}
 }

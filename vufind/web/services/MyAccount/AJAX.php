@@ -13,7 +13,7 @@ class MyAccount_AJAX
 	function launch()
 	{
 		$method = $_GET['method'];
-		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag', 'saveSearch', 'deleteSavedSearch', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation', 'getEmailMyListForm', 'sendMyListEmail'))) {
+		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag', 'saveSearch', 'deleteSavedSearch', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation', 'getEmailMyListForm', 'sendMyListEmail', 'getReactivationDateForm'))) {
 			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -515,6 +515,20 @@ class MyAccount_AJAX
 			'title' => 'Change Hold Location',
 			'modalBody' => $interface->fetch("MyAccount/changeHoldLocation.tpl"),
 			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.doChangeHoldLocation(); return false;'>Change Location</span>"
+		);
+		return json_encode($results);
+	}
+
+	function getReactivationDateForm(){
+		global $interface;
+		global $user;
+		$id = $_REQUEST['holdId'];
+		$interface->assign('holdId', $id);
+
+		$results = array(
+			'title' => 'Freeze Hold',
+			'modalBody' => $interface->fetch("MyAccount/reactivationDate.tpl"),
+			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.doFreezeHoldWithReactivationDate(); return false;'>Freeze Hold</span>"
 		);
 		return json_encode($results);
 	}

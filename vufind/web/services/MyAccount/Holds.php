@@ -51,6 +51,8 @@ class MyAccount_Holds extends MyAccount{
 		$ils = $configArray['Catalog']['ils'];
 		$showPosition = ($ils == 'Horizon');
 		$showExpireTime = ($ils == 'Horizon');
+		$suspendRequiresReactivationDate = ($ils == 'Horizon');
+		$interface->assign('suspendRequiresReactivationDate', $suspendRequiresReactivationDate);
 		// Define sorting options
 		$sortOptions = array('title' => 'Title',
 			'author' => 'Author',

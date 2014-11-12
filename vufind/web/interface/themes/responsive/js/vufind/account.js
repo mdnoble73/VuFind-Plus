@@ -298,7 +298,7 @@ VuFind.Account = (function(){
 				modalDialog.modal('show');
 			}else{
 				VuFind.Account.ajaxLogin(null, function (){
-					return VuFind.GroupedWork.changeHoldPickupLocation(holdId);
+					return VuFind.Account.changeHoldPickupLocation(holdId);
 				}, false);
 			}
 			return false;
@@ -340,9 +340,36 @@ VuFind.Account = (function(){
 			);
 		},
 
-		freezeHold: function(holdId){
+		freezeHold: function(holdId, promptForReactivationDate){
+			if (promptForReactivationDate){
+				//Prompt the user for the date they want to reactivate the hold
+				var modalDialog = $("#modalDialog");
+				//$(".modal-body").html($('#userreview' + id).html());
+				$.getJSON(Globals.path + "/MyAccount/AJAX?method=getReactivationDateForm&holdId=" + holdId, function(data){
+					$('#myModalLabel').html(data.title);
+					$('.modal-body').html(data.modalBody);
+					$('.modal-buttons').html(data.modalButtons);
+				});
+				modalDialog.load( );
+				modalDialog.modal('show');
+			}else{
+				VuFind.showMessage("Freezing Hold", "Freezing your hold.  This may take a minute.");
+				var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&holdId=' + holdId;
+				$.getJSON(url, function(data){
+					if (data.result) {
+						VuFind.showMessage("Success", data.message, true, true);
+					} else {
+						VuFind.showMessage("Error", data.message);
+					}
+				});
+			}
+		},
+
+		doFreezeHoldWithReactivationDate: function(){
+			var holdId = $("#holdId").val();
+			var reactivationDate = $("#reactivationDate").val();
+			var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&holdId=' + holdId + '&reactivationDate=' + reactivationDate;
 			VuFind.showMessage("Freezing Hold", "Freezing your hold.  This may take a minute.");
-			var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&holdId=' + holdId;
 			$.getJSON(url, function(data){
 				if (data.result) {
 					VuFind.showMessage("Success", data.message, true, true);

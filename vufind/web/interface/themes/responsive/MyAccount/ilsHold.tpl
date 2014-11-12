@@ -111,7 +111,7 @@
 								{if $record.frozen}
 								<span class='frozenHold'>
 									{/if}{$record.status}
-									{if $record.frozen && $showDateWhenSuspending}until {$record.reactivate|date_format}</span>{/if}
+									{if $record.frozen && $showDateWhenSuspending} until {$record.reactivate}</span>{/if}
 								{if strlen($record.freezeMessage) > 0}
 									<div class='{if $record.freezeResult == true}freezePassed{else}freezeFailed{/if}'>
 										{$record.freezeMessage|escape}
@@ -140,7 +140,7 @@
 							{if $record.frozen}
 								<button onclick="return VuFind.Account.thawHold('{$record.cancelId}');" class="btn btn-sm btn-default">Thaw Hold</button>
 							{elseif $record.freezeable}
-								<button onclick="return VuFind.Account.freezeHold('{$record.cancelId}');" class="btn btn-sm btn-default">Freeze Hold</button>
+								<button onclick="return VuFind.Account.freezeHold('{$record.cancelId}', {if $suspendRequiresReactivationDate}true{else}false{/if});" class="btn btn-sm btn-default">Freeze Hold</button>
 							{/if}
 							<button onclick="return VuFind.Account.changeHoldPickupLocation('{$record.cancelId}');" class="btn btn-sm btn-default">Change Pickup Loc.</button>
 						{/if}
