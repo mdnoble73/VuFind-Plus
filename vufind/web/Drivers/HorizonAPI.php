@@ -785,6 +785,7 @@ abstract class HorizonAPI extends Horizon{
 				$curTitle['daysUntilDue'] = $daysUntilDue;
 				$curTitle['renewCount'] = (string)$itemOut->renewals;
 				$curTitle['canrenew'] = true; //TODO: Figure out if the user can renew the title or not
+				$curTitle['renewIndicator'] = (string)$itemOut->itemBarcode;
 				$curTitle['barcode'] = (string)$itemOut->itemBarcode;
 
 				if ($curTitle['shortId'] && strlen($curTitle['shortId']) > 0){
@@ -827,6 +828,76 @@ abstract class HorizonAPI extends Horizon{
 			'numTransactions' => count($checkedOutTitles)
 		);
 	}
+
+	public function renewAll(){
+		//Get all list of all transactions
+		$currentTransactions = $this->getMyTransactions();
+		$renewResult = array();
+		$renewResult['Total'] = $currentTransactions['numTransactions'];
+		$numRenewals = 0;
+		foreach ($currentTransactions['transactions'] as $transaction){
+			$curResult = $this->renewItem($transaction['renewIndicator'], null);
+			if ($curResult['result']){
+				$numRenewals++;
+			}
+		}
+		$renewResult['Renewed'] = $numRenewals;
+		$renewResult['Unrenewed'] = $renewResult['Total'] - $renewResult['Renewed'];
+		if ($renewResult['Unrenewed'] > 0) {
+			$renewResult['result'] = false;
+		}else{
+			$renewResult['result'] = true;
+			$renewResult['message'] = "All items were renewed successfully.";
+		}
+		return $renewResult;
+	}
+
+	public function renewItem($itemId, $itemIndex){
+		global $configArray;
+
+		global $user;
+		$userId = $user->id;
+
+		//Get the session token for the user
+		if (isset(HorizonAPI::$sessionIdsForUsers[$userId])){
+			$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
+		}else{
+			//Log the user in
+			list($userValid, $sessionToken) = $this->loginViaWebService($user->cat_username, $user->cat_password);
+			if (!$userValid){
+				return array(
+					'result' => false,
+					'message' => 'Sorry, it does not look like you are logged in currently.  Please login and try again');
+			}
+		}
+
+		//create the hold using the web service
+		$renewItemUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/renewMyCheckout?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&itemID=' . $itemId;
+
+		$renewItemResponse = $this->getWebServiceResponse($renewItemUrl);
+
+		global $analytics;
+		if ($renewItemResponse && !isset($renewItemResponse->string)){
+			$success = true;
+			$message = 'Your item was successfully renewed.  The title is now due on ' . $renewItemResponse->dueDate;
+			//Clear the patron profile
+			$this->clearPatronProfile();
+			if ($analytics){
+				$analytics->addEvent('ILS Integration', 'Renew Successful');
+			}
+		}else{
+			$success = false;
+			$message = $renewItemResponse->string;
+			if ($analytics){
+				$analytics->addEvent('ILS Integration', 'Renew Failed', $renewItemResponse->string);
+			}
+		}
+		return array(
+			'itemId' => $itemId,
+			'result'  => $success,
+			'message' => $message);
+	}
+
 
 	/**
 	 * Split a name into firstName, lastName, middleName.
