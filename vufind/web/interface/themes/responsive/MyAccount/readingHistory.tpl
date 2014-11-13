@@ -72,7 +72,7 @@
 
 					<div class="row hidden-xs">
 						<div class="col-sm-1">
-							<input id='selectAll' type='checkbox' onclick="toggleCheckboxes('.titleSelect', $(this).attr('checked'));" title="Select All/Deselect All"/>
+							<input id='selectAll' type='checkbox' onclick="VuFind.toggleCheckboxes('.titleSelect', '#selectAll');" title="Select All/Deselect All"/>
 						</div>
 						<div class="col-sm-2">
 							{translate text='Cover'}

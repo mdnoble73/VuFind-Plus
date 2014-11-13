@@ -11,7 +11,7 @@
 				<form action="{$path}/MaterialsRequest/UserReport" method="get">
 					<div>
 					<div>
-						Statuses to Show: <input type="checkbox" name="selectAllStatusFilter" id="selectAllStatusFilter" onclick="toggleCheckboxes('.statusFilter', $('#selectAllStatusFilter').attr('checked'));"/> <label for="selectAllStatusFilter">Select All</label> <br/>
+						Statuses to Show: <input type="checkbox" name="selectAllStatusFilter" id="selectAllStatusFilter" onclick="VuFind.toggleCheckboxes('.statusFilter', '#selectAllStatusFilter');"/> <label for="selectAllStatusFilter">Select All</label> <br/>
 						{foreach from=$availableStatuses item=statusLabel key=status}
 							<input type="checkbox" name="statusFilter[]" value="{$status}" {if in_array($status, $statusFilter)}checked="checked"{/if} class="statusFilter"/>{$statusLabel}<br/>
 						{/foreach}
