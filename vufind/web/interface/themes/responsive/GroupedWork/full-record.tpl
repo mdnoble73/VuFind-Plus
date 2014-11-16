@@ -25,10 +25,11 @@
 
 	{if $error}<p class="error">{$error}</p>{/if}
 
-{assign value=$recordDriver->getRelatedManifestations() var="relatedManifestations"}
+	{assign value=$recordDriver->getRelatedManifestations() var="relatedManifestations"}
 	{include file="GroupedWork/relatedManifestations.tpl"}
 
 	{include file=$moreDetailsTemplate}
+	<span class="Z3988" title="{$recordDriver->getOpenURL()|escape}" style="display:none">&nbsp;</span>
 {/strip}
 <script type="text/javascript">
 	{literal}$(document).ready(function(){{/literal}

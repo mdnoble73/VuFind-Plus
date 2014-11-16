@@ -47,4 +47,5 @@
 			</div>
 		</div>
 	</div>
+	<span class="Z3988" title="{$recordDriver->getOpenURL()|escape}" style="display:none">&nbsp;</span>
 {/strip}
