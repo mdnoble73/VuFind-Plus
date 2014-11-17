@@ -157,7 +157,8 @@ class SearchSources{
 		}
 
 		//Genealogy Search
-		if ($searchGenealogy && !$interface->isMobile()){
+//		if ($searchGenealogy && !$interface->isMobile()){ //allow in mobile views. plb 11-17-2014
+		if ($searchGenealogy){
 			$searchOptions['genealogy'] = array(
         'name' => 'Genealogy Records',
         'description' => 'Genealogy Records from Colorado',
@@ -166,7 +167,8 @@ class SearchSources{
 		}
 
 		//Overdrive
-		if ($repeatInOverdrive && !$interface->isMobile()){
+//		if ($repeatInOverdrive && !$interface->isMobile()){ //allow in mobile views. plb 11-17-2014
+		if ($repeatInOverdrive){
 			$searchOptions['overdrive'] = array(
         'name' => 'OverDrive Digital Catalog',
         'description' => 'Downloadable Books, Videos, Music, and eBooks with free use for library card holders.',
@@ -175,7 +177,8 @@ class SearchSources{
 			);
 		}
 
-		if ($repeatInProspector && !$interface->isMobile()){
+//		if ($repeatInProspector && !$interface->isMobile()){ //allow in mobile views. plb 11-17-2014
+		if ($repeatInProspector){
 			$searchOptions['prospector'] = array(
         'name' => 'Prospector Catalog',
         'description' => 'A shared catalog of academic, public, and special libraries all over Colorado.',
@@ -201,7 +204,8 @@ class SearchSources{
 			);
 		}
 
-		if ($repeatInWorldCat && !$interface->isMobile()){
+//		if ($repeatInWorldCat && !$interface->isMobile()){ //allow in mobile views. plb 11-17-2014
+		if ($repeatInWorldCat){
 			$searchOptions['worldcat'] = array(
         'name' => 'WorldCat',
         'description' => 'A shared catalog of libraries all over the world.',
@@ -211,7 +215,8 @@ class SearchSources{
 		}
 
 		//Check to see if Gold Rush is a valid option
-		if (isset($library) && strlen($library->goldRushCode) > 0 && !$interface->isMobile()){
+//		if (isset($library) && strlen($library->goldRushCode) > 0 && !$interface->isMobile()){ //allow in mobile views. plb 11-17-2014
+		if (isset($library) && strlen($library->goldRushCode) > 0){
 			$searchOptions['goldrush'] = array(
 			//'link' => "http://goldrush.coalliance.org/index.cfm?fuseaction=Search&amp;inst_code={$library->goldRushCode}&amp;search_type={$worldCatSearchType}&amp;search_term=".urlencode($lookfor),
         'name' => 'Gold Rush Magazine Finder',
