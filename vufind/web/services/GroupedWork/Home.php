@@ -9,8 +9,6 @@
  */
 require_once ROOT_DIR  . '/Action.php';
 class GroupedWork_Home extends Action{
-
-
 	function launch() {
 		global $interface;
 		global $timer;
@@ -45,6 +43,8 @@ class GroupedWork_Home extends Action{
 
 		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
 		$interface->setTemplate('full-record.tpl');
+
+		$interface->assign('metadataTemplate', 'GroupedWork/metadata.tpl');
 
 		// Display Page
 		$interface->display('layout.tpl');

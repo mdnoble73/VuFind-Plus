@@ -1331,15 +1331,15 @@ class IndexRecord extends RecordInterface
 	}
 
 	/**
-	 * Get the publishers of the record.
-	 *
-	 * @access  protected
-	 * @return  array
-	 */
+ * Get the publishers of the record.
+ *
+ * @access  protected
+ * @return  array
+ */
 	protected function getPublishers()
 	{
 		return isset($this->fields['publisher']) ?
-		$this->fields['publisher'] : array();
+			$this->fields['publisher'] : array();
 	}
 
 	/**
@@ -1587,6 +1587,119 @@ class IndexRecord extends RecordInterface
 
 	public function getMoreDetailsOptions(){
 		return $this->getBaseMoreDetailsOptions(false);
+	}
+
+	/**
+	 * Get the OpenURL parameters to represent this record (useful for the
+	 * title attribute of a COinS span tag).
+	 *
+	 * @access  public
+	 * @return  string              OpenURL parameters.
+	 */
+	public function getOpenURL()
+	{
+		// Get the COinS ID -- it should be in the OpenURL section of config.ini,
+		// but we'll also check the COinS section for compatibility with legacy
+		// configurations (this moved between the RC2 and 1.0 releases).
+		$coinsID = 'vufind+';
+
+		// Start an array of OpenURL parameters:
+		$params = array(
+			'ctx_ver' => 'Z39.88-2004',
+			'ctx_enc' => 'info:ofi/enc:UTF-8',
+			'rfr_id' => "info:sid/{$coinsID}:generator",
+			'rft.title' => $this->getTitle(),
+		);
+
+		// Get a representative publication date:
+		$pubDate = $this->getPublicationDates();
+		if (count($pubDate) == 1){
+			$params['rft.date'] = $pubDate[0];
+		}elseif (count($pubDate > 1)){
+			$params['rft.date'] = $pubDate;
+		}
+
+		// Add additional parameters based on the format of the record:
+		$formats = $this->getFormats();
+
+		// If we have multiple formats, Book and Journal are most important...
+		if (in_array('Book', $formats)) {
+			$format = 'Book';
+		} else if (in_array('Journal', $formats)) {
+			$format = 'Journal';
+		} else {
+			$format = $formats[0];
+		}
+		switch($format) {
+			case 'Book':
+				$params['rft_val_fmt'] = 'info:ofi/fmt:kev:mtx:book';
+				$params['rft.genre'] = 'book';
+				$params['rft.btitle'] = $params['rft.title'];
+
+				$series = $this->getSeries(false);
+				if ($series != null) {
+					// Handle both possible return formats of getSeries:
+					$params['rft.series'] = $series['seriesTitle'];
+				}
+
+				$params['rft.au'] = $this->getPrimaryAuthor();
+				$publishers = $this->getPublishers();
+				if (count($publishers) == 1) {
+					$params['rft.pub'] = $publishers[0];
+				}elseif (count($publishers) > 1) {
+					$params['rft.pub'] = $publishers;
+				}
+				$params['rft.edition'] = $this->getEdition();
+				$params['rft.isbn'] = $this->getCleanISBN();
+				break;
+			case 'Journal':
+				/* This is probably the most technically correct way to represent
+				 * a journal run as an OpenURL; however, it doesn't work well with
+				 * Zotero, so it is currently commented out -- instead, we just add
+				 * some extra fields and then drop through to the default case.
+				 $params['rft_val_fmt'] = 'info:ofi/fmt:kev:mtx:journal';
+				 $params['rft.genre'] = 'journal';
+				 $params['rft.jtitle'] = $params['rft.title'];
+				 $params['rft.issn'] = $this->getCleanISSN();
+				 $params['rft.au'] = $this->getPrimaryAuthor();
+				 break;
+				 */
+				$issns = $this->getISSNs();
+				if (count($issns) > 0){
+					$params['rft.issn'] = $issns[0];
+				}
+
+				// Including a date in a title-level Journal OpenURL may be too
+				// limiting -- in some link resolvers, it may cause the exclusion
+				// of databases if they do not cover the exact date provided!
+				unset($params['rft.date']);
+			default:
+				$params['rft_val_fmt'] = 'info:ofi/fmt:kev:mtx:dc';
+				$params['rft.creator'] = $this->getPrimaryAuthor();
+				$publishers = $this->getPublishers();
+				if (count($publishers) > 0) {
+					$params['rft.pub'] = $publishers[0];
+				}
+				$params['rft.format'] = $format;
+				$langs = $this->getLanguages();
+				if (count($langs) > 0) {
+					$params['rft.language'] = $langs[0];
+				}
+				break;
+		}
+
+		// Assemble the URL:
+		$parts = array();
+		foreach($params as $key => $value) {
+			if (is_array($value)){
+				foreach($value as $arrVal){
+					$parts[] = $key . '[]=' . urlencode($arrVal);
+				}
+			}else{
+				$parts[] = $key . '=' . urlencode($value);
+			}
+		}
+		return implode('&', $parts);
 	}
 }
 
