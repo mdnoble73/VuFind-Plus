@@ -27,10 +27,14 @@ class MillenniumStatusLoader{
 	 *  type = holding
 	 *  status
 	 *  statusfull
+	 *  availability
+	 *  holdable
+	 *  nonHoldableReason
 	 *  reserve
 	 *  holdQueueLength
 	 *  duedate
 	 *  location
+	 *  libraryDisplayName
 	 *  locationLink
 	 *  callnumber
 	 *  link = array

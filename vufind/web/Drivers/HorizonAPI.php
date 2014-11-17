@@ -184,7 +184,12 @@ abstract class HorizonAPI extends Horizon{
 				$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
 			}else{
 				//Log the user in
-				list($userValid, $sessionToken) = $this->loginViaWebService($patron['cat_username'], $patron['cat_password']);
+				$return = $this->loginViaWebService($patron['cat_username'], $patron['cat_password']);
+				if (count($return) == 1){
+					$userValid = $return[0];
+				}else{
+					list($userValid, $sessionToken) = $return;
+				}
 				if (!$userValid){
 					echo("No session id found for user");
 					return null;
@@ -896,6 +901,178 @@ abstract class HorizonAPI extends Horizon{
 			'itemId' => $itemId,
 			'result'  => $success,
 			'message' => $message);
+	}
+
+	private static $loadedStatus = array();
+	/**
+	 * Load status (holdings) for a record and filter them based on the logged in user information.
+	 *
+	 * Format of return array is:
+	 * key = {section#}{location}-### where ### is the holding iteration
+	 *
+	 * value = array (
+	 *  id = The id of the bib
+	 *  number = The position of the holding within the original list of holdings
+	 *  section = A description of the section
+	 *  sectionId = a numeric id of the section for sorting
+	 *  type = holding
+	 *  status
+	 *  statusfull
+	 *  availability
+	 *  holdable
+	 *  nonHoldableReason
+	 *  reserve
+	 *  holdQueueLength
+	 *  duedate
+	 *  location
+	 *  libraryDisplayName
+	 *  locationCode
+	 *  locationLink
+	 *  callnumber
+	 *  link = array
+	 *  linkText
+	 *  isDownload
+	 * )
+	 *
+	 * Includes both physical titles as well as titles on order
+	 *
+	 * @param string            $id     the id of the record
+	 * @return array A list of holdings for the record
+	 */
+	public function getHolding($id){
+		if (array_key_exists($id, HorizonAPI::$loadedStatus)){
+			return HorizonAPI::$loadedStatus[$id];
+		}
+		global $configArray;
+
+		//Get location information so we can put things into sections
+		global $locationSingleton; /** @var $locationSingleton Location */
+		$physicalLocation = $locationSingleton->getPhysicalLocation();
+		if ($physicalLocation != null){
+			$physicalBranch = $physicalLocation->holdingBranchLabel;
+		}else{
+			$physicalBranch = '';
+		}
+		$homeBranch    = '';
+		$homeBranchId  = 0;
+		$nearbyBranch1 = '';
+		$nearbyBranch1Id = 0;
+		$nearbyBranch2 = '';
+		$nearbyBranch2Id = 0;
+
+		//Set location information based on the user login.  This will override information based
+		if (isset($user) && $user != false){
+			$homeBranchId = $user->homeLocationId;
+			$nearbyBranch1Id = $user->myLocation1Id;
+			$nearbyBranch2Id = $user->myLocation2Id;
+		} else {
+			//Check to see if the cookie for home location is set.
+			if (isset($_COOKIE['home_location']) && is_numeric($_COOKIE['home_location'])) {
+				$cookieLocation = new Location();
+				$locationId = $_COOKIE['home_location'];
+				$cookieLocation->whereAdd("locationId = '$locationId'");
+				$cookieLocation->find();
+				if ($cookieLocation->N == 1) {
+					$cookieLocation->fetch();
+					$homeBranchId = $cookieLocation->locationId;
+					$nearbyBranch1Id = $cookieLocation->nearbyLocation1;
+					$nearbyBranch2Id = $cookieLocation->nearbyLocation2;
+				}
+			}
+		}
+		//Load the holding label for the user's home location.
+		$userLocation = new Location();
+		$userLocation->whereAdd("locationId = '$homeBranchId'");
+		$userLocation->find();
+		if ($userLocation->N == 1) {
+			$userLocation->fetch();
+			$homeBranch = $userLocation->holdingBranchLabel;
+		}
+		//Load nearby branch 1
+		$nearbyLocation1 = new Location();
+		$nearbyLocation1->whereAdd("locationId = '$nearbyBranch1Id'");
+		$nearbyLocation1->find();
+		if ($nearbyLocation1->N == 1) {
+			$nearbyLocation1->fetch();
+			$nearbyBranch1 = $nearbyLocation1->holdingBranchLabel;
+		}
+		//Load nearby branch 2
+		$nearbyLocation2 = new Location();
+		$nearbyLocation2->whereAdd();
+		$nearbyLocation2->whereAdd("locationId = '$nearbyBranch2Id'");
+		$nearbyLocation2->find();
+		if ($nearbyLocation2->N == 1) {
+			$nearbyLocation2->fetch();
+			$nearbyBranch2 = $nearbyLocation2->holdingBranchLabel;
+		}
+
+		//Get a list of items from Horizon
+		$lookupTitleInfoUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/lookupTitleInfo?clientID=' . $configArray['Catalog']['clientId'] . '&titleKey=' . $id . '&includeItemInfo=true&includeHoldCount=true' ;
+
+		$lookupTitleInfoResponse = $this->getWebServiceResponse($lookupTitleInfoUrl);
+		$holdings = array();
+		if ($lookupTitleInfoResponse->titleInfo){
+			$i=0;
+			foreach ($lookupTitleInfoResponse->titleInfo->itemInfo as $itemInfo){
+				$holding = array(
+					'id' => $id,
+					'number' => $i++,
+					'type' => 'holding',
+					'status' => (string)$itemInfo->statusID,
+					'statusfull' => (string)$itemInfo->statusDescription,
+					'availability' => (boolean)$itemInfo->available,
+					'holdable' => true,
+					'reserve' => 'N',
+					'holdQueueLength' => (int)$lookupTitleInfoResponse->titleInfo->holdCount,
+					'dueDate' => (string)$itemInfo->dueDate,
+					'locationCode' => (string)$itemInfo->locationID,
+					'location' => (string)$itemInfo->locationDescription,
+					'callnumber' => (string)$itemInfo->callNumber,
+					'isDownload' => false,
+					'barcode' => (string)$itemInfo->barcode,
+				);
+
+				$paddedNumber = str_pad($i, 3, '0', STR_PAD_LEFT);
+				$sortString = $holding['location'] . '-'. $paddedNumber;
+				//$sortString = $holding['location'] . $holding['callnumber']. $i;
+				if (strlen($physicalBranch) > 0 && stripos($holding['location'], $physicalBranch) !== false){
+					//If the user is in a branch, those holdings come first.
+					$holding['section'] = 'In this library';
+					$holding['sectionId'] = 1;
+					$sorted_array['1' . $sortString] = $holding;
+				} else if (strlen($homeBranch) > 0 && stripos($holding['location'], $homeBranch) !== false){
+					//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
+					$holding['section'] = 'Your library';
+					$holding['sectionId'] = 2;
+					$sorted_array['2' . $sortString] = $holding;
+				} else if ((strlen($nearbyBranch1) > 0 && stripos($holding['location'], $nearbyBranch1) !== false)){
+					//Next come nearby locations for the user
+					$holding['section'] = 'Nearby Libraries';
+					$holding['sectionId'] = 3;
+					$sorted_array['3' . $sortString] = $holding;
+				} else if ((strlen($nearbyBranch2) > 0 && stripos($holding['location'], $nearbyBranch2) !== false)){
+					//Next come nearby locations for the user
+					$holding['section'] = 'Nearby Libraries';
+					$holding['sectionId'] = 4;
+					$sorted_array['4' . $sortString] = $holding;
+				//MDN 11/17 - taken out because all Horizon libraries are single institution (so far)
+				/*} else if (strlen($libraryLocationLabels) > 0 && preg_match($libraryLocationLabels, $holding['location'])){
+					//Next come any locations within the same system we are in.
+					$holding['section'] = $library->displayName;
+					$holding['sectionId'] = 5;
+					$sorted_array['5' . $sortString] = $holding;
+				*/} else {
+					//Finally, all other holdings are shown sorted alphabetically.
+					$holding['section'] = 'Other Locations';
+					$holding['sectionId'] = 6;
+					$sorted_array['6' . $sortString] = $holding;
+				}
+
+				$holdings[] = $holding;
+			}
+
+		}
+		return $holdings;
 	}
 
 
