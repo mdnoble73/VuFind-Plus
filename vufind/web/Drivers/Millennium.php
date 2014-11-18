@@ -494,7 +494,7 @@ class MillenniumDriver implements DriverInterface
 		//Can't do this any longer since some libraries do have characters in their barcode:
 		//$password = preg_replace('/[a-or-zA-OR-Z\W]/', '', $password);
 		//Remove any spaces from the barcode
-		$password = preg_replace('/[^a-zA-Z\d]/', '', $password);
+		$password = preg_replace('/[^a-zA-Z\d\s]/', '', trim($password));
 
 		if ($configArray['Catalog']['offline'] == true){
 			//The catalog is offline, check the database to see if the user is valid

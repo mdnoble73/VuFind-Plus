@@ -37,12 +37,14 @@ class MyAccount_Profile extends MyAccount
 			$showWorkPhoneInProfile = false;
 			$showNoticeTypeInProfile = true;
 			$showPickupLocationInProfile = false;
+			$allowPinReset = false;
 		}else{
 			$canUpdateContactInfo = ($activeLibrary->allowProfileUpdates == 1);
 			$canUpdateAddress = ($activeLibrary->allowPatronAddressUpdates == 1);
 			$showWorkPhoneInProfile = ($activeLibrary->showWorkPhoneInProfile == 1);
 			$showNoticeTypeInProfile = ($activeLibrary->showNoticeTypeInProfile == 1);
 			$showPickupLocationInProfile = ($activeLibrary->showPickupLocationInProfile == 1);
+			$allowPinReset = ($activeLibrary->allowPinReset == 1);
 		}
 		global $locationSingleton;
 		//Get the list of pickup branch locations for display in the user interface.
@@ -54,8 +56,11 @@ class MyAccount_Profile extends MyAccount
 		$interface->assign('showWorkPhoneInProfile', $showWorkPhoneInProfile);
 		$interface->assign('showPickupLocationInProfile', $showPickupLocationInProfile);
 		$interface->assign('showNoticeTypeInProfile', $showNoticeTypeInProfile);
+		$interface->assign('allowPinReset', $allowPinReset);
 
 
+		$ils = $configArray['Catalog']['ils'];
+		$interface->assign('showSMSNoticesInProfile', $ils == 'Sierra');
 		if ($configArray['Catalog']['offline']){
 			$interface->assign('offline', true);
 		}else{
@@ -75,14 +80,14 @@ class MyAccount_Profile extends MyAccount
 				$result = $overDriveDriver->updateLendingOptions();
 
 				$user->updateOverDriveOptions();*/
-			}
+			}elseif ($updateScope == 'pin') {
+				$result = $this->catalog->updatePin();
+				$_SESSION['profileUpdateErrors'] = $result;
 
-			session_write_close();
-			header("Location: " . $configArray['Site']['path'] . '/MyAccount/Profile');
-			exit();
-		}elseif (isset($_POST['updatePin']) && !$configArray['Catalog']['offline']) {
-			$result = $this->catalog->updatePin();
-			$_SESSION['profileUpdateErrors'] = $result;
+				session_write_close();
+				header("Location: " . $configArray['Site']['path'] . '/MyAccount/Profile');
+				exit();
+			}
 
 			session_write_close();
 			header("Location: " . $configArray['Site']['path'] . '/MyAccount/Profile');

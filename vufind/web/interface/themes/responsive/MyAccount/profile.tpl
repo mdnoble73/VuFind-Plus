@@ -122,7 +122,7 @@
 										</div>
 									</div>
 								{/if}
-								{if $showSMSNoticesInProfile || true}
+								{if $showSMSNoticesInProfile}
 									<div class="form-group">
 										<div class="col-xs-4"><label for="smsNotices">{translate text='Receive SMS Messages'}:</label></div>
 										<div class="col-xs-8">
@@ -171,6 +171,51 @@
 						</div>
 					</div>
 				</div>
+
+				{if $allowPinReset}
+					<div class="panel active">
+						<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#pinPanel">
+							<div class="panel-heading">
+								<div class="panel-title">
+									Personal Identification Number (PIN)
+								</div>
+							</div>
+						</a>
+						<div id="pinPanel" class="panel-collapse collapse in">
+							<div class="panel-body">
+								{if $profileUpdateErrors}
+									<div class="alert alert-danger">{$profileUpdateErrors}</div>
+								{/if}
+								<form action="{$path}/MyAccount/Profile" method="post" class="form-horizontal">
+									<input type="hidden" name="updateScope" value="pin"/>
+									<div class="form-group">
+										<div class="col-xs-4"><label for="pin" class="control-label">{translate text='Old PIN'}:</label></div>
+										<div class="col-xs-8">
+											<input type='password' name='pin' id="pin" value='' size='4' maxlength='4' class="form-control" />
+										</div>
+									</div>
+									<div class="form-group">
+										<div class="col-xs-4"><label for="pin1" class="control-label">{translate text='New PIN'}:</label></div>
+										<div class="col-xs-8">
+											<input type='password' name='pin1' id='pin1' value='' size='4' maxlength='4' class="form-control" />
+										</div>
+									</div>
+									<div class="form-group">
+										<div class="col-xs-4"><label for="pin2" class="control-label">{translate text='Re-enter New PIN'}:</label></div>
+										<div class="col-xs-8">
+												<input type='password' name='pin2' id='pin2' value='' size='4' maxlength='4' class="form-control" />
+										</div>
+									</div>
+									<div class="form-group">
+										<div class="col-xs-8 col-xs-offset-4">
+											<input type='submit' value='Update' name='update' class="btn btn-primary"/>
+										</div>
+									</div>
+								</form>
+							</div>
+						</div>
+					</div>
+				{/if}
 
 				{*OverDrive Options*}
 				<div class="panel active">
