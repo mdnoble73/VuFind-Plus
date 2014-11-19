@@ -534,6 +534,14 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_prompt_birth_date' => array(
+			'title' => 'Library Prompt For Birth Date In Self Registration',
+			'description' => 'Library Prompt For Birth Date In Self Registration',
+			'sql' => array(
+				"ALTER TABLE library ADD promptForBirthDateInSelfReg TINYINT DEFAULT 0",
+			),
+		),
+
 		'library_facets' => array(
 			'title' => 'Library Facets',
 			'description' => 'Create Library Facets table to allow library admins to customize their own facets. ',

@@ -1605,11 +1605,14 @@ class MillenniumDriver implements DriverInterface
 		$post_data['nfirst'] = $firstName;
 		$post_data['nlast'] = $lastName;
 		$post_data['stre_aaddress'] = $address;
-		$post_data['city_aaddress'] = $city;
-		$post_data['stat_aaddress'] = $state;
-		$post_data['post_aaddress'] = $zip;
+		$post_data['city_aaddress'] = "$city $state, $zip";
+		//$post_data['stat_aaddress'] = $state;
+		//$post_data['post_aaddress'] = $zip;
 		$post_data['zemailaddr'] = $email;
 		$post_data['tphone1'] = $phone;
+		if (isset($_REQUEST['birthDate'])){
+			$post_data['F051birthdate'] = $_REQUEST['birthDate'];
+		}
 		$post_items = array();
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
@@ -1890,5 +1893,23 @@ class MillenniumDriver implements DriverInterface
 
 		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
 
+	}
+
+	public function getSelfRegistrationFields(){
+		global $library;
+		$fields = array();
+		$fields[] = array('property'=>'firstName', 'type'=>'text', 'label'=>'First Name', 'description'=>'Your first name', 'maxLength' => 40, 'required' => true);
+		$fields[] = array('property'=>'lastName', 'type'=>'text', 'label'=>'Last Name', 'description'=>'Your last name', 'maxLength' => 40, 'required' => true);
+		if ($library && $library->promptForBirthDateInSelfReg){
+			$fields[] = array('property'=>'birthDate', 'type'=>'text', 'label'=>'Date of Birth (MM-DD-YYYY)', 'description'=>'Date of birth', 'maxLength' => 10, 'required' => true);
+		}
+		$fields[] = array('property'=>'address', 'type'=>'text', 'label'=>'Mailing Address', 'description'=>'Mailing Address', 'maxLength' => 128, 'required' => true);
+		$fields[] = array('property'=>'city', 'type'=>'text', 'label'=>'City', 'description'=>'City', 'maxLength' => 48, 'required' => true);
+		$fields[] = array('property'=>'state', 'type'=>'text', 'label'=>'State', 'description'=>'State', 'maxLength' => 32, 'required' => true);
+		$fields[] = array('property'=>'zip', 'type'=>'text', 'label'=>'Zip Code', 'description'=>'Zip Code', 'maxLength' => 32, 'required' => true);
+		$fields[] = array('property'=>'email', 'type'=>'email', 'label'=>'E-Mail', 'description'=>'E-Mail', 'maxLength' => 128, 'required' => false);
+		$fields[] = array('property'=>'phone', 'type'=>'text', 'label'=>'Phone', 'description'=>'Phone', 'maxLength' => 128, 'required' => false);
+
+		return $fields;
 	}
 }

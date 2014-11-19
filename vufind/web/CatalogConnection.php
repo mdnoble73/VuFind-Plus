@@ -548,6 +548,10 @@ class CatalogConnection
 		}
 		return false;
 	}
+
+	public function getSelfRegistrationFields() {
+		return $this->driver->getSelfRegistrationFields();
+	}
 }
 
 ?>

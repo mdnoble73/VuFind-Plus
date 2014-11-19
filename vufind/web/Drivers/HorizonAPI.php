@@ -1134,6 +1134,57 @@ abstract class HorizonAPI extends Horizon{
 		}
 	}
 
+	public function getSelfRegistrationFields() {
+		global $configArray;
+		$lookupSelfRegistrationFieldsUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/lookupSelfRegistrationFields?clientID=' . $configArray['Catalog']['clientId'];
+
+		$lookupSelfRegistrationFieldsResponse = $this->getWebServiceResponse($lookupSelfRegistrationFieldsUrl);
+		$fields = array();
+		if ($lookupSelfRegistrationFieldsResponse){
+			foreach($lookupSelfRegistrationFieldsResponse->registrationField as $registrationField){
+				$newField = array(
+					'property' => (string)$registrationField->column,
+					'label' => (string)$registrationField->label,
+					'maxLength' => (int)$registrationField->length,
+					'type' => 'text',
+					'required' => (string)$registrationField->required == 'true',
+				);
+				if ((string)$registrationField->masked == 'true'){
+					$newField['type'] = 'password';
+				}
+				if (isset($registrationField->values)){
+					$newField['type'] = 'enum';
+					$values = array();
+					foreach($registrationField->values->value as $value){
+						$values[(string)$value->code] = (string)$value->description;
+					}
+					$newField['values'] = $values;
+				}
+				$fields[] = $newField;
+			}
+		}
+		return $fields;
+	}
+
+	//This function does not currently work due to posting of the self registration data.  Using HIP for now in individual drivers.
+	/*function selfRegister(){
+		global $configArray;
+		$fields = $this->getSelfRegistrationFields();
+
+		$createSelfRegisteredPatronUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/createSelfRegisteredPatron?clientID=' . $configArray['Catalog']['clientId'] . '&secret=' . $configArray['Catalog']['clientSecret'];
+		foreach ($fields as $field){
+			if (isset($_REQUEST[$field['property']])){
+				$createSelfRegisteredPatronUrl .= '&' . $field['property'] . '=' . urlencode($_REQUEST[$field['property']]);
+			}
+		}
+		$createSelfRegisteredPatronResponse = $this->getWebServiceResponse($createSelfRegisteredPatronUrl);
+		if ($createSelfRegisteredPatronResponse){
+			return array('success' => true, 'barcode' => (string)$createSelfRegisteredPatronResponse);
+		}else{
+			return array('success' => false, 'barcode' => '');
+		}
+	}*/
+
 	/**
 	 * Split a name into firstName, lastName, middleName.
 	 *a

@@ -3,7 +3,7 @@
 	<div class="navbar-inner">
 		<div class="row">
 			<div class="col-sm-6 text-left" id="install-info">
-				{if $debug}
+				{if !$productionServer}
 					<small class='location_info'>{$physicalLocation} ({$activeIp}) - {$deviceName}</small>
 				{/if}
 				<small class='version_info'>{if $debug} / {/if}v. {$gitBranch}</small>

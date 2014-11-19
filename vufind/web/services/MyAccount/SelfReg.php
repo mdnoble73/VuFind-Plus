@@ -31,12 +31,23 @@ class SelfReg extends Action {
 
 	function launch($msg = null) {
 		global $interface;
+		global $configArray;
 
 		if (isset($_REQUEST['submit'])) {
 			//Submit the form to classic millennium
 			$result = $this->catalog->selfRegister();
 			$interface->assign('selfRegResult', $result);
 		}
+
+		/** @var  CatalogConnection $catalog */
+		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+		$selfRegFields = $catalog->getSelfRegistrationFields();
+		$interface->assign('submitUrl', $configArray['Site']['path'] . '/MyAccount/SelfReg');
+		$interface->assign('structure', $selfRegFields);
+		$interface->assign('saveButtonText', 'Submit');
+
+		$fieldsForm = $interface->fetch('DataObjectUtil/objectEditForm.tpl');
+		$interface->assign('selfRegForm', $fieldsForm);
 
 		$interface->setTemplate('selfReg.tpl');
 		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
