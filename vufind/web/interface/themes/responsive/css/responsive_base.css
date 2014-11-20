@@ -3358,7 +3358,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
 }
 .input-group-btn > .btn:hover,
 .input-group-btn > .btn:active {
-  z-index: 2;
+  z-index: 20;
 }
 .nav {
   margin-bottom: 0;
@@ -6898,6 +6898,41 @@ div#system-message-header {
 #home-page-advanced-search-link {
   color: white;
 }
+#lookfor::placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
+#lookfor::-moz-placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
+#lookfor:-moz-placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
+#lookfor::-webkit-input-placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
+#lookfor:-ms-input-placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
 #searchSource {
   padding: 5px 0;
   color: white;
@@ -7020,6 +7055,12 @@ div#system-message-header {
   background-color: #9e9fa3;
   color: #d4d4d4;
   font-size: 50px;
+}
+#browse-category-picker a.jcarousel-control-next:after {
+  content: "›";
+}
+#browse-category-picker a.jcarousel-control-prev:before {
+  content: "‹";
 }
 .browse-category {
   color: white;
@@ -7377,9 +7418,6 @@ div#system-message-header {
   height: 140px;
   position: relative;
 }
-.scrollerWithRatings .scrollerBody {
-  height: 155px;
-}
 .scrollerLoadingContainer {
   width: 100%;
   padding-top: 40px;
@@ -7471,59 +7509,6 @@ div#system-message-header {
   cursor: pointer;
   z-index: 100;
   text-align: center;
-}
-.singleTitleWithNextWidget {
-  width: 200px;
-}
-.singleTitleWithNextWidget .scrollerTitle img {
-  display: inline-block;
-  opacity: 1;
-}
-.singleTitleWithNextWidget .scrollerTitle.selected img {
-  display: inline-block;
-}
-.singleTitleWithNextWidget .scrollerTitle.selected {
-  border: 0 solid black;
-  border-radius: 3px;
-  padding: 0;
-}
-.singleTitleWithNextWidget .scrollerBodyContainer {
-  margin: 5px 0;
-  text-align: center;
-  width: 100%;
-}
-.singleTitleWithNextWidget .rightScrollerButton {
-  float: none;
-  position: absolute;
-  right: 5px;
-}
-.mediumScroller.singleTitleWithNextWidget,
-.mediumScroller.singleTitleWidget {
-  width: 275px;
-}
-.mediumScroller.verticalTitleScroller {
-  width: 225px;
-}
-.mediumScroller .scrollerTitleCover {
-  max-height: 200px;
-  max-width: 200px;
-}
-.mediumScroller .scrollerTitle {
-  max-width: 204px;
-}
-.mediumScroller .scrollerBody {
-  height: 215px;
-}
-.mediumScroller.scrollerWithRatings .scrollerBody {
-  height: 230px;
-}
-.mediumScroller .leftScrollerButton,
-.mediumScroller .rightScrollerButton {
-  margin-top: 85px;
-}
-.mediumScroller .scrollerButtonUp,
-.mediumScroller .scrollerButtonDown {
-  width: 223px;
 }
 /**
  * Additional Styling specific to the display of full records.

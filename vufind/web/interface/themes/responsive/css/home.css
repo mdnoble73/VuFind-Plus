@@ -30,6 +30,41 @@ Sidebar font data
 #home-page-advanced-search-link {
   color: white;
 }
+#lookfor::placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
+#lookfor::-moz-placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
+#lookfor:-moz-placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
+#lookfor::-webkit-input-placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
+#lookfor:-ms-input-placeholder {
+  font-size: 0;
+  color: transparent;
+  text-shadow: none;
+  background-color: transparent;
+  border: 0;
+}
 #searchSource {
   padding: 5px 0;
   color: white;
@@ -152,6 +187,12 @@ Sidebar font data
   background-color: #9e9fa3;
   color: #d4d4d4;
   font-size: 50px;
+}
+#browse-category-picker a.jcarousel-control-next:after {
+  content: "›";
+}
+#browse-category-picker a.jcarousel-control-prev:before {
+  content: "‹";
 }
 .browse-category {
   color: white;

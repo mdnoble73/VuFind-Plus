@@ -12,7 +12,7 @@
 			*}
 			{if $showComments == 1}
 				<div class="btn-group btn-group-sm">
-					<button id="userreviewlink{$summShortId}" class="userreviewlink resultAction btn btn-sm" title="Add a Review" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}')">
+					<button id="userreviewlink{$summShortId}" class="{*userreviewlink //this class shouldn't be needed here. plb 11-19-2014 *} resultAction btn btn-sm" title="Add a Review" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}')">
 						Add a Review
 					</button>
 				</div>
