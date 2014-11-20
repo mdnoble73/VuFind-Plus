@@ -1373,6 +1373,7 @@ class Solr implements IndexEngine {
 					foreach($options['facet.field'] as $key => $facetName){
 						if (strpos($facetName, 'availability_toggle') === 0){
 							$options['facet.field'][$key] = '{!ex=avail}' . $facetName;
+							$options["f.{$facetName}.facet.missing"] = 'true';
 						}
 						//Update facets for grouped core
 					}

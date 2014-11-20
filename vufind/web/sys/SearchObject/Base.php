@@ -335,6 +335,9 @@ abstract class SearchObject_Base
 					}elseif ($field == 'available_at' && $value == '*') {
 						$anyLocationLabel = $this->getFacetSetting("Availability", "anyLocationLabel");
 						$display = $anyLocationLabel == '' ? "Any Marmot Location" : $anyLocationLabel;
+					}elseif ($field == 'available_at' && $value == '*') {
+						$anyLocationLabel = $this->getFacetSetting("Availability", "anyLocationLabel");
+						$display = $anyLocationLabel == '' ? "Any Marmot Location" : $anyLocationLabel;
 					}else{
 						$display = $translate ? translate($value) : $value;
 					}

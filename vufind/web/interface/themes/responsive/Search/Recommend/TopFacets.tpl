@@ -43,12 +43,13 @@
 			{/if}
 		{elseif preg_match('/available/i', $cluster.label)}
 			<div id="availabilityControlContainer" class="row text-center top-facet">
+				<label for="availabilityControl">Include:&nbsp;&nbsp;</label>
 				<div id="availabilityControl" class='btn-group' data-toggle="buttons-radio">
 					{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 						{if $thisFacet.isApplied}
-							<button type="button" id="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}" class="btn btn-primary" name="availabilityControls">{$thisFacet.value|escape} ({$thisFacet.count})</button>
+							<button type="button" id="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}" class="btn btn-primary" name="availabilityControls">{$thisFacet.value|escape}{if $thisFacet.count > 0} ({$thisFacet.count}){/if}</button>
 						{else}
-							<button type="button" id="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}" class="btn" name="availabilityControls" data-url="{$thisFacet.url|escape}" onclick="window.location = $(this).data('url')" >{$thisFacet.value|escape} ({$thisFacet.count})</button>
+							<button type="button" id="{$thisFacet.value|escape|regex_replace:'/[()\s]/':''}" class="btn btn-default" name="availabilityControls" data-url="{$thisFacet.url|escape}" onclick="window.location = $(this).data('url')" >{$thisFacet.value|escape}{if $thisFacet.count > 0} ({$thisFacet.count}){/if}</button>
 						{/if}
 					{/foreach}
 				</div>

@@ -165,16 +165,24 @@ class TopFacets implements RecommendationInterface
 					}
 				}
 
-				if ($numSelected == 0){
-					//If nothing is selected, select entire collection by default
-					foreach ($facetSet['list'] as $facetKey => $facet){
-						if ($facet['value'] == 'Entire Collection'){
-							$facet['isApplied'] = true;
-							$facetSet['list'][$facetKey] = $facet;
-							break;
-						}
+				//If nothing is selected, select entire collection by default
+				$sortedFacetList = array();
+				foreach ($facetSet['list'] as $facetKey => $facet){
+					if ($facet['value'] == 'Entire Collection'){
+						$facet['value'] = 'Local Collection';
+						$sortedFacetList[1] = $facet;
+					}elseif ($facet['value'] == ''){
+						$facet['isApplied'] = $facet['isApplied'] || ($numSelected == 0);
+						$facet['value'] = 'Everything';
+						$facet['count'] = 0;
+						$sortedFacetList[0] = $facet;
+						break;
+					}else{
+						$sortedFacetList[2] = $facet;
 					}
 				}
+				ksort($sortedFacetList);
+				$facetSet['list'] = $sortedFacetList;
 				$facetList[$facetSetkey] = $facetSet;
 			}
 		}
