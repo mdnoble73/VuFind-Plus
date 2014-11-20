@@ -1,45 +1,64 @@
-//Variables Customizations for Anythink theme
-@primary-yellow: #ff7000;
-@primary-red: #9e1b32;
-@primary-gray: #998f86;
+///Variables Customizations for Anythink theme
+//
+/// Preliminary Colors
+///
+//@primary-yellow: #ff7000;
+//@primary-red: #9e1b32;
+//@primary-gray: #998f86;
+//
+//@secondary-yellow: #ffc82e;
+//@secondary-gray: #685c53;
+//@secondary-green: #6b6f2a;
+//@secondary-brown: #532c1b;
+//@secondary-blue: #2a6ebb;
+//
+//@scribble-color: #FEF0E3;
+//
+//@body-bg-resp: lighten(@secondary-blue, 5%);
+//
 
-@secondary-yellow: #ffc82e;
-@secondary-gray: #685c53;
-@secondary-green: #6b6f2a;
-@secondary-brown: #532c1b;
-@secondary-blue: #2a6ebb;
+@font-family-sans-serif-resp:  Helvetica,"Trebuchet MS",Tahoma,Verdana,Arial,Helvetica,"Bitstream Vera Sans",sans-serif;
 
-@scribble-color: #FEF0E3;
+// New Colors From Mock-up
 
-@body-bg-resp: lighten(@secondary-blue, 5%);
-@font-family-sans-serif-resp:  "Trebuchet MS",Tahoma,Verdana,Arial,Helvetica,"Bitstream Vera Sans",sans-serif;
+@sidebar-gray: #e3e1dd;
+//@font-red: #981533;
+//@font-red: @primary-red; the primary red may do the trick
+@font-red: #9e1b32;
+
+//@browse-font-gray: #b1a89d; //i think these two are meant to be the same //
+@browse-selected-gray: #a1988c;
+
+//@font-gray: @browse-selected-gray; // try this for gray text for now. plb 11-18-2014
+@font-gray: darken(#998f86, .2);
 
 @header-top-color: white; //Top color for background gradient in header
 @header-middle-color: white; //middle color for background gradient in header @80% of header height from bottom
 @header-bottom-color: white; //Bottom color for background gradient in header
-@header-bottom-border-color: darken(@scribble-color, 5%);
-@footer-top-border-color: darken(@scribble-color, 5%);
+@header-bottom-border-color: @font-red;
+@footer-top-border-color: @font-red;
 
 @header-button-border-vertical: white;
 
-@home-search-top-color: @secondary-blue;
-@home-search-bottom-color: @secondary-blue;
+@home-search-top-color: @sidebar-gray;
+@home-search-bottom-color: @sidebar-gray;
 
-@browse-label-text-color: @secondary-blue;
-@browse-label-line-color: lighten(@secondary-blue, 15%);
+@browse-label-text-color: @font-gray;
+@browse-label-line-color: white;
 
-/*
-@category1MainColor: @vail_dark_blue;
-@categoryLineColor: @vail_logo_green;
-@categoryLineShadow: darken(@vail_logo_green,20%);
+@browse-header-background-color: white;
 
-//@selectedCategoryBorderColor: #63B200;
-@selectedCategoryBorderColor: @categoryLineColor; // makes outline more subtle
+@category1MainColor: white;
+@categoryLineColor: white;
+@categoryLineShadow: white;
 
-// Selected Category color to give a highlighted appearance
-@selectedCategoryColor: lighten(@category1MainColor, 14%); //softer touch
+//@selectedCategoryBorderColor: #63B200;*/
+@selectedCategoryBorderColor: @browse-selected-gray; // makes outline more subtle*/
 
-// set all browse category colors to the first color to remove lightening of successive categories. plv 9-17-2014
+// Selected Category color to give a highlighted appearance */
+@selectedCategoryColor: @browse-selected-gray;
+
+// set all browse category colors to the first color to remove lightening of successive categories. plb 9-17-2014*/
 @category2MainColor: @category1MainColor;
 @category3MainColor: @category1MainColor;
 @category4MainColor: @category1MainColor;
@@ -47,4 +66,10 @@
 @category6MainColor: @category1MainColor;
 @category7MainColor: @category1MainColor;
 @category8MainColor: @category1MainColor;
-@category9MainColor: @category1MainColor;*/
+@category9MainColor: @category1MainColor;
+
+@browse-label-text-color: @font-gray;
+@browse-category-font-size: 30px;
+
+// set opened accordions to Basalt copper-rust color
+@accordion-active-header-color : @font-red;

@@ -5,10 +5,12 @@
 // Always include the base .less file
 @import "../../responsive/css/responsive_base.less";
 
+// Header Styling */
+
 #header-container{
-  background-image: url('/interface/themes/anythink/images/squiggle.png');
-  background-position: -70px -154px;
+  background-image: url('/interface/themes/anythink/images/headerbg.png');
   background-repeat: no-repeat;
+  border-bottom: none;
 }
 .header-button > a {
   color: #998f86 !important;
@@ -27,12 +29,222 @@
   border-bottom: 0px;
 }
 
-.btn-primary, .userreviewlink, .addtolistlink{
+// hide header login, account & log out buttons */
+#header-container div.loginOptions,
+#header-container div.logoutOptions {
+  display: none;
+}
+
+// Button Styling
+.btn-primary,
+.userreviewlink,
+.addtolistlink
+{
   background: linear-gradient(#ffffff, #dddddd) repeat-x scroll 0 0 #dddddd;
   border-color: #dddddd #bbbbbb #999999 !important;
   color: #000000 !important;
 }
 
-.btn-primary:hover, .userreviewlink:hover, .addtolistlink:hover{
-  background-image: linear-gradient(#ffffff, #eeeeee 1px, #cccccc);
+.result-tools-horizontal .btn:hover,
+.btn-primary:hover, .userreviewlink:hover, .addtolistlink:hover // replacing original below for these. plb 11-20-2014
+{
+  #gradient > .vertical(#eee; #ccc);
+  color: black;
+}
+
+//.btn-primary:hover, .userreviewlink:hover, .addtolistlink:hover{
+//  background-image: linear-gradient(#ffffff, #eeeeee 1px, #cccccc);
+//}
+
+// Side Bar Styling
+.sidebar-text-mixin() {
+  background: none @sidebar-gray;
+  color: @font-gray;
+  text-transform: lowercase;
+  text-shadow: none;
+  font-size: 20px;
+  .text-left;
+}
+
+//sets equal left & right padding. default 30px
+.sidebar-padding-mixin(@pad: 30px) {
+  padding-left: @pad;
+  padding-right: @pad;
+}
+//#home-page-login a.loginLink, //double checked
+#home-page-login a, // try with out class specifier for all login links
+  //#home-page-hours-locations,
+  //#home-page-home-button
+#home-page-library-section
+{
+  .sidebar-padding-mixin;
+}
+
+.sidebar-mixin() {
+  border-bottom: dotted @font-gray;
+}
+
+//#home-page-login div.logoutOptions
+div.sidebar-button {
+  .sidebar-mixin;
+}
+div.bottom-border-line {
+  .sidebar-mixin;
+  margin-left: 30px;
+  margin-right: 30px;
+}
+
+
+#side-bar {
+  background-color: @sidebar-gray;
+}
+#home-page-search-label {
+  display: none; // hide search label - goes into search input
+}
+
+// Overwrite default styling for the searchbox placeholder text to implement displaying it
+.placeholder-mixin() {
+  color: @font-gray; // match background
+  font-size: initial; // zero out the text as a fail safe
+}
+
+// placeholder selectors are not standardized yet
+#lookfor::placeholder {.placeholder-mixin;}
+#lookfor::-moz-placeholder{.placeholder-mixin;}
+#lookfor:-moz-placeholder{.placeholder-mixin;}
+#lookfor::-webkit-input-placeholder{.placeholder-mixin;}
+#lookfor:-ms-input-placeholder{.placeholder-mixin;}
+
+//// placeholder selectors are not standardized yet
+//// use this mixin to capture them all: selector { @placeholder-selector(properties-mixin)
+//.placeholder-selector(@mixin) {
+//  &::placeholder {@mixin();}
+//  &::-moz-placeholder{@mixin();}
+//  &:-moz-placeholder{@mixin();}
+//  &::-webkit-input-placeholder{@mixin();}
+//  &:-ms-input-placeholder{@mixin();}
+//}
+//
+//
+//#lookfor {
+//  .placeholder-selector(.placeholder-mixin);
+//}
+
+
+#home-page-search{
+  margin-bottom: 0;
+  padding-bottom: 20px; //evens out with the top
+}
+#home-page-login {
+  margin-bottom: 0;
+  .sidebar-padding-mixin(0);
+
+  background-color: @sidebar-gray;
+  .text-left; // over-rides text-center class
+  a {
+    .sidebar-text-mixin;
+    color: @font-red;
+  }
+}
+#home-page-library-section{
+  background-color: @sidebar-gray;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.sidebar-button {
+  .sidebar-text-mixin;
+//  .sidebar-mixin;
+  margin-bottom: 0;
+}
+
+// Browse Category styling modifications
+#browse-label {
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, white, white 95%, @browse-label-text-color 96%);
+  margin: 25px 0 15px;
+  height: auto;
+  padding-bottom: 20px;
+}
+#browse-label .browse-label-text{
+ font-weight: 600;
+}
+
+#selected-browse-label {
+  color: @browse-selected-gray;
+}
+
+// the category text */
+.browse-category a {
+  color: @browse-label-text-color;
+  text-shadow: none;
+  font-size: large;
+  font-weight: 500;
+}
+
+.browse-category {
+  padding-top: 20px; /* extra padding on top to center text */
+}
+
+// Selected Category needs to give a highlighted appearance */
+.browse-category.selected {
+  background-color: @selectedCategoryColor;
+  background: @selectedCategoryColor;
+  a {
+    color: white;
+  }
+}
+
+// Left/Right Arrows on browse category carousel */
+#browse-category-picker .jcarousel-control-prev,
+#browse-category-picker .jcarousel-control-next {
+  background-color: white;
+  color: @font-red;
+//  box-shadow: none;
+  .box-shadow(none);
+  font-size: 20px;
+}
+
+#browse-category-picker a.jcarousel-control-next:after {
+   content: "▶";
+ }
+#browse-category-picker a.jcarousel-control-prev:before {
+  content: "◀";
+}
+// indicator dots at bottom of browse category carousel */
+#browse-category-picker .jcarousel-pagination a.active {
+  background: @font-red;
+
+  // keep shadowing in place on active item
+  .box-shadow(0 0 2px #4E443C); // try boot strap mixin
+//  -webkit-box-shadow: 0 0 2px #4E443C;
+//  -moz-box-shadow: 0 0 2px #4E443C;
+//  box-shadow: 0 0 2px #4E443C;
+}
+
+.top-gray-line-mixin() {
+  background: linear-gradient(to bottom, white, @browse-label-text-color 0%, @browse-label-text-color 2%, white 3%);
+}
+#selected-browse-label {
+  .top-gray-line-mixin;
+  padding: 20px 0;
+}
+
+.selected-browse-label-search a {
+  color: @browse-label-text-color;
+}
+
+.selected-browse-label-search {
+  background: none;
+}
+
+
+// Availability Status Styling
+.related-manifestation-shelf-status.available{
+  color: green;
+}
+.related-manifestation-shelf-status.checked_out{
+  color: red;
+}
+.related-manifestation-shelf-status.availableOther{
+  color: black;
 }
