@@ -19,9 +19,12 @@
 							{/foreach}
 						</ul>
 					</div>
-
-					<a href="#" class="jcarousel-control-prev">&lsaquo;</a>
-					<a href="#" class="jcarousel-control-next">&rsaquo;</a>
+{* indicators arrows moved to css:
+ #browse-category-picker a.jcarousel-control-next:after and
+  #browse-category-picker a.jcarousel-control-prev:before
+  plb 11-18-2014 *}
+					<a href="#" class="jcarousel-control-prev">{*&lsaquo;*}</a>
+					<a href="#" class="jcarousel-control-next">{*&rsaquo;*}</a>
 
 					<p class="jcarousel-pagination"></p>
 				</div>

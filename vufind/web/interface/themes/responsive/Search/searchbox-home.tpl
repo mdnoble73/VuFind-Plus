@@ -16,7 +16,7 @@
 							<div class="input-group-sm">
 							<input class="form-control"{/strip}
 							       id="lookfor"
-							       placeholder=""
+							       placeholder="&#128269; SEARCH" {*experimental for anythink. disabled in css by default, as of now. plb 11-19-2014 *}
 							       type="search"
 							       name="lookfor"
 							       size="30"
@@ -66,18 +66,20 @@
 			</div>
 			<div class="row text-center">
 				<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">
+					{if $searchSources|@count == 1}
+						<input type="hidden" name="searchSource" value="{$searchSource}">
+					{else}
 					<select name="searchSource" id="searchSource" title="Select what to search.	Items marked with a * will redirect you to one of our partner sites." onchange='VuFind.Searches.enableSearchTypes();' class="form-control">
-						{*{/strip} commented out 11-17-2014 plb*}
 						{foreach from=$searchSources item=searchOption key=searchKey}
-							<option data-catalog_type="{$searchOption.catalogType}"
-								value="{$searchKey}"{if $searchKey == $searchSource && !$filterList} selected="selected"{/if}
+							<option data-catalog_type="{$searchOption.catalogType}" value="{$searchKey}"
+								{if $searchKey == $searchSource && !$filterList} selected="selected"{/if}
 								{if $searchKey == $searchSource} id="default_search_type"{/if}
 								title="{$searchOption.description}">
 								{translate text="in"} {$searchOption.name}{if $searchOption.external} *{/if}
 							</option>
 						{/foreach}
-						{*{strip}*}
 					</select>
+					{/if}
 				</div>
 			</div>
 			<div class="row text-center">
