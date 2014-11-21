@@ -395,14 +395,14 @@ class BookCoverProcessor{
 						//Can use either subfield f or subfield u
 						if ($marcField->getSubfield('f')){
 							//Just references the file, add the original directory
-							$filename = $this->bookCoverPath . '/original/' . $marcField->getSubfield('f')->getData();
+							$filename = $this->bookCoverPath . '/original/' . trim($marcField->getSubfield('f')->getData());
 							if ($this->processImageURL($filename, true)){
 								//We got a successful match
 								return true;
 							}
 						}elseif ($marcField->getSubfield('u')){
 							//Full url to the image
-							if ($this->processImageURL($marcField->getSubfield('u')->getData(), true)){
+							if ($this->processImageURL(trim($marcField->getSubfield('u')->getData()), true)){
 								//We got a successful match
 								return true;
 							}
