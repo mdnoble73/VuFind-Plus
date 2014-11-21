@@ -19,7 +19,7 @@
  */
 
 require_once ROOT_DIR . '/services/Search/AdvancedBase.php';
-class Advanced extends Search_AdvancedBase {
+class Search_Advanced extends Search_AdvancedBase {
 
 	function launch()
 	{
@@ -78,6 +78,7 @@ class Advanced extends Search_AdvancedBase {
 
 		$interface->setPageTitle('Advanced Search');
 		$interface->setTemplate('advanced.tpl');
+		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
 		$interface->display('layout.tpl');
 	}
 
