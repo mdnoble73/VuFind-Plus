@@ -124,6 +124,11 @@ class Library extends DB_DataObject
 	public $maxBarcodeLength;
 	public $econtentLocationsToInclude;
 	public $showExpirationWarnings;
+	public $availabilityToggleLabelSuperScope;
+	public $availabilityToggleLabelLocal;
+	public $availabilityToggleLabelAvailable;
+	public $loginFormUsernameLabel;
+	public $loginFormPasswordLabel;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
@@ -242,7 +247,8 @@ class Library extends DB_DataObject
 				'showWorkPhoneInProfile' => array('property' => 'showWorkPhoneInProfile', 'type'=>'checkbox', 'label'=>'Show Work Phone in Profile', 'description'=>'Whether or not patrons should be able to change a secondary/work phone number in their profile.', 'hideInLists' => true, 'default' => 0),
 				'showNoticeTypeInProfile' => array('property' => 'showNoticeTypeInProfile', 'type'=>'checkbox', 'label'=>'Show Notice Type in Profile', 'description'=>'Whether or not patrons should be able to change how they receive notices in their profile.', 'hideInLists' => true, 'default' => 0),
 				'showPickupLocationInProfile' => array('property' => 'showPickupLocationInProfile', 'type'=>'checkbox', 'label'=>'Allow Patrons to Update Their Pickup Location', 'description'=>'Whether or not patrons should be able to update their preferred pickup location in their profile.', 'hideInLists' => true, 'default' => 0),
-
+				'loginFormUsernameLabel'  => array('property'=>'loginFormUsernameLabel', 'type'=>'text', 'label'=>'Login Form Username Label', 'description'=>'The label to show for the username when logging in', 'size'=>'50', 'hideInLists' => true, 'default'=>'Your Name'),
+				'loginFormPasswordLabel'  => array('property'=>'loginFormPasswordLabel', 'type'=>'text', 'label'=>'Login Form Password Label', 'description'=>'The label to show for the password when logging in', 'size'=>'50', 'hideInLists' => true, 'default'=>'Library Card Number'),
 			)),
 			array('property'=>'ecommerceSection', 'type' => 'section', 'label' =>'Fines/e-commerce', 'hideInLists' => true, 'properties' => array(
 				'showEcommerceLink' => array('property'=>'showEcommerceLink', 'type'=>'checkbox', 'label'=>'Show E-Commerce Link', 'description'=>'Whether or not users should be given a link to classic opac to pay fines', 'hideInLists' => true,),
@@ -262,6 +268,9 @@ class Library extends DB_DataObject
 				'showAvailableAtAnyLocation' => array('property'=>'showAvailableAtAnyLocation', 'type'=>'checkbox', 'label'=>'Show Available At Any Location?', 'description'=>'Whether or not to show any Marmot Location within the Available At facet', 'hideInLists' => true),
 				'repeatSearchOption'  => array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Marmot'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all'),
 				'systemsToRepeatIn'  => array('property'=>'systemsToRepeatIn', 'type'=>'text', 'label'=>'Systems To Repeat In', 'description'=>'A list of library codes that you would like to repeat search in separated by pipes |.', 'size'=>'20', 'hideInLists' => true,),
+				'availabilityToggleLabelSuperScope' => array('property' => 'availabilityToggleLabelSuperScope', 'type' => 'text', 'label' => 'SuperScope Toggle Label', 'description' => 'The label to show when viewing super scope i.e. Consortium Name / Entire Collection / Everything.  Does not show if superscope is not enabled.', 'default' => 'Entire Collection'),
+				'availabilityToggleLabelLocal' => array('property' => 'availabilityToggleLabelLocal', 'type' => 'text', 'label' => 'Local Collection Toggle Label', 'description' => 'The label to show when viewing the local collection i.e. Library Name / Local Collection.  Leave blank to hide the button.', 'default' => 'Entire Collection'),
+				'availabilityToggleLabelAvailable' => array('property' => 'availabilityToggleLabelAvailable', 'type' => 'text', 'label' => 'Available Toggle Label', 'description' => 'The label to show when viewing available items i.e. Available Now / Available Locally / Available Here.', 'default' => 'Entire Collection'),
 				'repeatInOnlineCollection' => array('property'=>'repeatInOnlineCollection', 'type'=>'checkbox', 'label'=>'Repeat In Online Collection', 'description'=>'Turn on to allow repeat search in the Online Collection.', 'hideInLists' => true, 'default'=>false),
 				'showMarmotResultsAtEndOfSearch' => array('property'=>'showMarmotResultsAtEndOfSearch', 'type'=>'checkbox', 'label'=>'Show Marmot Results in Scoped Search', 'description'=>'Whether or not the VuFind should show search results from Marmot at the end of scoped searches.', 'hideInLists' => true, 'default' => 1),
 				'showAdvancedSearchbox'  => array('property'=>'showAdvancedSearchbox', 'type'=>'checkbox', 'label'=>'Show Advanced Search Link', 'description'=>'Whether or not users should see the advanced search link next to the search box.  It will still appear in the footer.', 'hideInLists' => true, 'default' => 1),

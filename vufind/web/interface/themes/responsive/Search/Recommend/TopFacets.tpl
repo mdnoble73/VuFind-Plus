@@ -43,7 +43,6 @@
 			{/if}
 		{elseif preg_match('/available/i', $cluster.label)}
 			<div id="availabilityControlContainer" class="row text-center top-facet">
-				<label for="availabilityControl">Include:&nbsp;&nbsp;</label>
 				<div id="availabilityControl" class='btn-group' data-toggle="buttons-radio">
 					{foreach from=$cluster.list item=thisFacet name="narrowLoop"}
 						{if $thisFacet.isApplied}

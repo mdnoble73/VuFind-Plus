@@ -792,5 +792,27 @@ function getLibraryLocationUpdates(){
 				)"
 			),
 		),
+
+		'availability_toggle_customization' => array(
+			'title' => 'Availability Toggle Customization',
+			'description' => 'Add the ability to customize the labels for the availability toggles',
+			'sql' => array(
+				"ALTER TABLE library ADD COLUMN availabilityToggleLabelSuperScope VARCHAR(50) DEFAULT 'Entire Collection'",
+				"ALTER TABLE library ADD COLUMN availabilityToggleLabelLocal VARCHAR(50) DEFAULT '{display name}'",
+				"ALTER TABLE library ADD COLUMN availabilityToggleLabelAvailable VARCHAR(50) DEFAULT 'Available Now'",
+				"ALTER TABLE location ADD COLUMN availabilityToggleLabelSuperScope VARCHAR(50) DEFAULT 'Entire Collection'",
+				"ALTER TABLE location ADD COLUMN availabilityToggleLabelLocal VARCHAR(50) DEFAULT '{display name}'",
+				"ALTER TABLE location ADD COLUMN availabilityToggleLabelAvailable VARCHAR(50) DEFAULT 'Available Now'",
+			),
+		),
+
+		'login_form_labels' => array(
+			'title' => 'Login Form Labels',
+			'description' => 'Add the ability to customize the labels for the login form',
+			'sql' => array(
+				"ALTER TABLE library ADD COLUMN loginFormUsernameLabel VARCHAR(50) DEFAULT 'Your Name'",
+				"ALTER TABLE library ADD COLUMN loginFormPasswordLabel VARCHAR(50) DEFAULT 'Library Card Number'",
+			),
+		),
 	);
 }

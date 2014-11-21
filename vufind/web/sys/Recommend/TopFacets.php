@@ -158,6 +158,7 @@ class TopFacets implements RecommendationInterface
 
 				$facetList[$facetSetkey] = $facetSet;
 			}elseif (preg_match('/available/i', $facetSet['label'])){
+
 				$numSelected = 0;
 				foreach ($facetSet['list'] as $facetKey => $facet){
 					if ($facet['isApplied']){
@@ -167,35 +168,58 @@ class TopFacets implements RecommendationInterface
 
 				//If nothing is selected, select entire collection by default
 				$sortedFacetList = array();
-				foreach ($facetSet['list'] as $facetKey => $facet){
+				$numTitlesWithNoValue = 0;
+				$numTitlesWithEntireCollection = 0;
+				$searchLibrary = Library::getSearchLibrary(null);
+				$searchLocation = Location::getSearchLocation(null);
+
+				if ($searchLocation){
+					$superScopeLabel = $searchLocation->availabilityToggleLabelSuperScope;
+					$localLabel = $searchLocation->availabilityToggleLabelLocal;
+					$localLabel = str_ireplace('{display name}', $searchLocation->displayName, $localLabel);
+					$availableLabel = $searchLocation->availabilityToggleLabelAvailable;
+					$availableLabel = str_ireplace('{display name}', $searchLocation->displayName, $availableLabel);
+				}else{
+					$superScopeLabel = $searchLibrary->availabilityToggleLabelSuperScope;
+					$localLabel = $searchLibrary->availabilityToggleLabelLocal;
+					$localLabel = str_ireplace('{display name}', $searchLibrary->displayName, $localLabel);
+					$availableLabel = $searchLibrary->availabilityToggleLabelAvailable;
+					$availableLabel = str_ireplace('{display name}', $searchLibrary->displayName, $availableLabel);
+				}
+
+				foreach ($facetSet['list'] as $facet){
 					if ($facet['value'] == 'Entire Collection'){
-						$searchLibrary = Library::getSearchLibrary(null);
-						$searchLocation = Location::getSearchLocation(null);
-						if ($searchLocation){
-							$facet['value'] = $searchLocation->displayName. ' Collection';
-						}elseif ($searchLibrary){
-							$facet['value'] = $searchLibrary->displayName. ' Collection';
+
+						$includeButton = true;
+						$facet['value'] = $localLabel;
+						if (trim($localLabel) == ''){
+							$includeButton = false;
 						}else{
-							$facet['value'] = 'Entire Collection';
+							if ($searchLocation){
+								$includeButton = !$searchLocation->restrictSearchByLocation;
+							}elseif ($searchLibrary){
+								$includeButton = !$searchLibrary->restrictSearchByLibrary;
+							}
 						}
 
-						$sortedFacetList[1] = $facet;
+						$numTitlesWithEntireCollection = $facet['count'];
+
+						if ($includeButton){
+							$sortedFacetList[1] = $facet;
+						}
 					}elseif ($facet['value'] == ''){
 						$facet['isApplied'] = $facet['isApplied'] || ($numSelected == 0);
-						$facet['value'] = 'Everything';
-						//$facet['count'] = 0;
+						$facet['value'] = $superScopeLabel;
 						$sortedFacetList[0] = $facet;
+						$numTitlesWithNoValue = $facet['count'];
 						break;
 					}else{
+						$facet['value'] = $availableLabel;
 						$sortedFacetList[2] = $facet;
 					}
 				}
-				if (isset($sortedFacetList[0]) && isset($sortedFacetList[1])){
-					$sortedFacetList[0]['count'] += $sortedFacetList[1]['count'];
-
-					if ($sortedFacetList[0]['count'] == $sortedFacetList[1]['count']){
-						unset($sortedFacetList[1]);
-					}
+				if (isset($sortedFacetList[0])){
+					$sortedFacetList[0]['count'] = $numTitlesWithEntireCollection + $numTitlesWithNoValue;
 				}
 
 				ksort($sortedFacetList);

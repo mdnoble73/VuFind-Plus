@@ -196,6 +196,7 @@ $solrScope = trim($solrScope);
 if (strlen($solrScope) == 0){
 	$solrScope = false;
 }
+$interface->assign('solrScope', $solrScope);
 
 $searchLibrary = Library::getSearchLibrary($searchSource);
 $searchLocation = Location::getSearchLocation($searchSource);

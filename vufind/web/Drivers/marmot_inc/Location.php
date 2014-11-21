@@ -57,6 +57,9 @@ class Location extends DB_DataObject
 	public $showStaffView;
 	public $showGoodReadsReviews;
 	public $econtentLocationsToInclude;
+	public $availabilityToggleLabelSuperScope;
+	public $availabilityToggleLabelLocal;
+	public $availabilityToggleLabelAvailable;
 
 	/** @var  array $data */
 	protected $data;
@@ -155,6 +158,9 @@ class Location extends DB_DataObject
 				array('property'=>'boostByLocation', 'type'=>'checkbox', 'label'=>'Boost By Location', 'description'=>'Whether or not boosting of titles owned by this location should be applied', 'hideInLists' => true, 'default'=>true),
 				array('property'=>'additionalLocalBoostFactor', 'type'=>'integer', 'label'=>'Additional Local Boost Factor', 'description'=>'An additional numeric boost to apply to any locally owned and locally available titles', 'hideInLists' => true, 'default'=>1),
 				array('property'=>'recordsToBlackList', 'type'=>'textarea', 'label'=>'Records to deaccession', 'description'=>'A list of records to deaccession (hide) in search results.  Enter one record per line.', 'hideInLists' => true,),
+				array('property'=>'availabilityToggleLabelSuperScope', 'type' => 'text', 'label' => 'SuperScope Toggle Label', 'description' => 'The label to show when viewing super scope i.e. Consortium Name / Entire Collection / Everything.  Does not show if superscope is not enabled.', 'default' => 'Entire Collection'),
+				array('property'=>'availabilityToggleLabelLocal', 'type' => 'text', 'label' => 'Local Collection Toggle Label', 'description' => 'The label to show when viewing the local collection i.e. Library Name / Local Collection.  Leave blank to hide the button.', 'default' => 'Entire Collection'),
+				array('property'=>'availabilityToggleLabelAvailable', 'type' => 'text', 'label' => 'Available Toggle Label', 'description' => 'The label to show when viewing available items i.e. Available Now / Available Locally / Available Here.', 'default' => 'Entire Collection'),
 				array('property'=>'repeatSearchOption', 'type'=>'enum', 'values'=>array('none'=>'None', 'librarySystem'=>'Library System','marmot'=>'Marmot'), 'label'=>'Repeat Search Options', 'description'=>'Where to allow repeating search. Valid options are: none, librarySystem, marmot, all', 'default'=>'marmot'),
 				array('property'=>'repeatInOnlineCollection', 'type'=>'checkbox', 'label'=>'Repeat In Online Collection', 'description'=>'Turn on to allow repeat search in the Online Collection.', 'hideInLists' => true, 'default'=>false),
 				array('property'=>'repeatInProspector', 'type'=>'checkbox', 'label'=>'Repeat In Prospector', 'description'=>'Turn on to allow repeat search in Prospector functionality.', 'hideInLists' => true, 'default'=>false),

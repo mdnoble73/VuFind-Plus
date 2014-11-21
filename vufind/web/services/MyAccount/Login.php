@@ -97,8 +97,12 @@ class MyAccount_Login extends Action
 		}
 		if (isset($library)){
 			$interface->assign('enableSelfRegistration', $library->enableSelfRegistration);
+			$interface->assign('usernameLabel', $library->loginFormUsernameLabel ? $library->loginFormUsernameLabel : 'Your Name');
+			$interface->assign('passwordLabel', $library->loginFormPasswordLabel ? $library->loginFormPasswordLabel : 'Library Card Number');
 		}else{
 			$interface->assign('enableSelfRegistration', 0);
+			$interface->assign('usernameLabel', 'Your Name');
+			$interface->assign('passwordLabel', 'Library Card Number');
 		}
 		
 		//set focus to the username field by default.
