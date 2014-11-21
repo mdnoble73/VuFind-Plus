@@ -454,6 +454,11 @@ class Location extends DB_DataObject
 	}
 
 	static $searchLocation  = array();
+
+	/**
+	 * @param null $searchSource
+	 * @return Location|null
+	 */
 	static function getSearchLocation($searchSource = null){
 		if (is_null($searchSource)){
 			global $searchSource;

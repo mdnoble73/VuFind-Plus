@@ -169,18 +169,35 @@ class TopFacets implements RecommendationInterface
 				$sortedFacetList = array();
 				foreach ($facetSet['list'] as $facetKey => $facet){
 					if ($facet['value'] == 'Entire Collection'){
-						$facet['value'] = 'Local Collection';
+						$searchLibrary = Library::getSearchLibrary(null);
+						$searchLocation = Location::getSearchLocation(null);
+						if ($searchLocation){
+							$facet['value'] = $searchLocation->displayName. ' Collection';
+						}elseif ($searchLibrary){
+							$facet['value'] = $searchLibrary->displayName. ' Collection';
+						}else{
+							$facet['value'] = 'Entire Collection';
+						}
+
 						$sortedFacetList[1] = $facet;
 					}elseif ($facet['value'] == ''){
 						$facet['isApplied'] = $facet['isApplied'] || ($numSelected == 0);
 						$facet['value'] = 'Everything';
-						$facet['count'] = 0;
+						//$facet['count'] = 0;
 						$sortedFacetList[0] = $facet;
 						break;
 					}else{
 						$sortedFacetList[2] = $facet;
 					}
 				}
+				if (isset($sortedFacetList[0]) && isset($sortedFacetList[1])){
+					$sortedFacetList[0]['count'] += $sortedFacetList[1]['count'];
+
+					if ($sortedFacetList[0]['count'] == $sortedFacetList[1]['count']){
+						unset($sortedFacetList[1]);
+					}
+				}
+
 				ksort($sortedFacetList);
 				$facetSet['list'] = $sortedFacetList;
 				$facetList[$facetSetkey] = $facetSet;
