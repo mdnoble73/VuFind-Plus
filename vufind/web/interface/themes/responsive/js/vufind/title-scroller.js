@@ -17,6 +17,7 @@ function TitleScroller(scrollerId, scrollerShortName, container,
 	this.scrollerShortName = scrollerShortName;
 	this.container = container;
 	this.scrollInterval = 0;
+	this.swipeInterval = 5;
 
 	if (typeof autoScroll == "undefined") {
 		this.autoScroll = false;
@@ -164,6 +165,20 @@ TitleScroller.prototype.scrollToRight = function() {
 
 TitleScroller.prototype.scrollToLeft = function() {
 	this.currentScrollerIndex--;
+	if (this.currentScrollerIndex < 0)
+		this.currentScrollerIndex = this.numScrollerTitles - 1;
+	TitleScroller.prototype.activateCurrentTitle.call(this);
+};
+
+TitleScroller.prototype.swipeToRight = function() {
+	this.currentScrollerIndex += this.swipeInterval;
+	if (this.currentScrollerIndex > this.numScrollerTitles - 1)
+		this.currentScrollerIndex = 0;
+	TitleScroller.prototype.activateCurrentTitle.call(this);
+};
+
+TitleScroller.prototype.swipeToLeft = function() {
+	this.currentScrollerIndex -= this.swipeInterval;
 	if (this.currentScrollerIndex < 0)
 		this.currentScrollerIndex = this.numScrollerTitles - 1;
 	TitleScroller.prototype.activateCurrentTitle.call(this);
