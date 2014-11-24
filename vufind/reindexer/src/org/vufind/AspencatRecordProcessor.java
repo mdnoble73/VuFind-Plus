@@ -40,20 +40,26 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 		}
 
 		HashSet<String> translatedFormats = indexer.translateCollection("format", printFormats);
-		HashSet<String> translatedFormatCategories = indexer.translateCollection("format_category", printFormats);
-		ilsRecord.addFormats(translatedFormats);
-		ilsRecord.addFormatCategories(translatedFormatCategories);
-		Long formatBoost = 0L;
-		HashSet<String> formatBoosts = indexer.translateCollection("format_boost", printFormats);
-		for (String tmpFormatBoost : formatBoosts){
-			if (Util.isNumeric(tmpFormatBoost)) {
-				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
-				if (tmpFormatBoostLong > formatBoost) {
-					formatBoost = tmpFormatBoostLong;
+
+		if (translatedFormats.size() == 0){
+			//We didn't get any formats from the collections, get formats from the base method (007, 008, etc).
+			super.loadPrintFormatInformation(ilsRecord, record);
+		} else{
+			HashSet<String> translatedFormatCategories = indexer.translateCollection("format_category", printFormats);
+			ilsRecord.addFormats(translatedFormats);
+			ilsRecord.addFormatCategories(translatedFormatCategories);
+			Long formatBoost = 0L;
+			HashSet<String> formatBoosts = indexer.translateCollection("format_boost", printFormats);
+			for (String tmpFormatBoost : formatBoosts){
+				if (Util.isNumeric(tmpFormatBoost)) {
+					Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
+					if (tmpFormatBoostLong > formatBoost) {
+						formatBoost = tmpFormatBoostLong;
+					}
 				}
 			}
+			ilsRecord.setFormatBoost(formatBoost);
 		}
-		ilsRecord.setFormatBoost(formatBoost);
 	}
 
 	private HashSet<String> additionalStatuses = new HashSet<String>();

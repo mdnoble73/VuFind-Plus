@@ -700,7 +700,10 @@ public class GroupedWorkIndexer {
 	public LinkedHashSet<String> translateCollection(String mapName, Set<String> values) {
 		LinkedHashSet<String> translatedCollection = new LinkedHashSet<String>();
 		for (String value : values){
-			translatedCollection.add(translateValue(mapName, value));
+			String translatedValue = translateValue(mapName, value);
+			if (translatedValue != null) {
+				translatedCollection.add(translatedValue);
+			}
 		}
 		return  translatedCollection;
 	}
