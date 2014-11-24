@@ -65,12 +65,13 @@ TitleScroller.prototype.loadTitlesFromJsonData = function(data) {
 				$("#" + scroller.container).fadeIn();
 			}
 			scroller.numScrollerTitles = data.titles.length;
-			if (this.style == 'horizontal'){
+			if (this.style == 'horizontal' || this.style == 'vertical'){
+				// vertical or horizontal widgets should start in the middle of the data. plb 11-24-2014
 				scroller.currentScrollerIndex = data.currentIndex;
 			}else{
 				scroller.currentScrollerIndex = 0;
 			}
-
+			//console.log('current index is : '+scroller.currentScrollerIndex);
 			TitleScroller.prototype.updateScroller.call(scroller);
 		}
 	} catch (err) {
@@ -202,6 +203,7 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 				});
 		}
 	}else if (this.style == 'vertical'){
+		// Scroll Upwards/Downwards
 		if ($(scrollerTitleId).length != 0) {
 			//Move top of the current title to the top of the scroller.
 			var relativeTopOfElement = $(scrollerTitleId).position().top;
