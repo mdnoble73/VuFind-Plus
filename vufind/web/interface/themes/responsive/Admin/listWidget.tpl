@@ -39,10 +39,12 @@
 			To integrate this widget into another site, insert an iFrame into your site with a source of: <br/> <b>{$url}/API/SearchAPI?method=getListWidget&amp;id={$object->id}</b>.
 			</p>
 			<p>
-			&lt;iframe src=&quot;{$url}/API/SearchAPI?method=getListWidget&amp;id={$object->id}&quot; width=&quot;100%&quot; height=&quot;250&quot;&gt;&lt;/iframe&gt;
+			&lt;iframe src=&quot;{$url}/API/SearchAPI?method=getListWidget&amp;id={$object->id}&quot; width=&quot;650&quot; height=&quot;250&quot; scrolling=&quot;no&quot;&gt;&lt;/iframe&gt;
 			</p>
 			<p>
-			Width and height can be adjusted as needed to fit within your site. 
+			Width and height can be adjusted as needed to fit within your site.<br/>
+			<span style="font-weight: bold"> Note: Please avoid using percentages for the iframe width &amp; height as these values are not respected on iPads.</span>
+				{* Note added by plb after fixing a display issue. 11-24-2014 *}
 			</p>
 		</div>
 		
