@@ -1083,20 +1083,21 @@ class GroupedWorkDriver extends RecordInterface{
 					}
 					require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 					$recordDriver = RecordDriverFactory::initRecordDriverById($relatedRecordId);
-					if ($itemsFromIndex != null){
-						$filteredItemsFromIndex = array();
-						foreach ($itemsFromIndex as $item){
-							if ($item[0] == $relatedRecordId){
-								$filteredItemsFromIndex[] = $item;
-							}
-						}
-						$recordDriver->setItemsFromIndex($filteredItemsFromIndex);
-					}
-					if ($hasDetailedRecordInfo){
-						$recordDriver->setDetailedRecordInfoFromIndex($relatedRecordInfo);
-					}
-					$timer->logTime("Initialized Record Driver for $relatedRecordId");
 					if ($recordDriver != null && $recordDriver->isValid()){
+						if ($itemsFromIndex != null){
+							$filteredItemsFromIndex = array();
+							foreach ($itemsFromIndex as $item){
+								if ($item[0] == $relatedRecordId){
+									$filteredItemsFromIndex[] = $item;
+								}
+							}
+							$recordDriver->setItemsFromIndex($filteredItemsFromIndex);
+						}
+						if ($hasDetailedRecordInfo){
+							$recordDriver->setDetailedRecordInfoFromIndex($relatedRecordInfo);
+						}
+						$timer->logTime("Initialized Record Driver for $relatedRecordId");
+
 						$recordDriver->setScopingEnabled($this->scopingEnabled);
 						$relatedRecordsForBib = $recordDriver->getRelatedRecords();
 						foreach ($relatedRecordsForBib as $relatedRecord){
