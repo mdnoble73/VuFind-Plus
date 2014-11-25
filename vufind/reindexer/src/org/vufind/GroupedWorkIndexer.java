@@ -252,6 +252,7 @@ public class GroupedWorkIndexer {
 					//Determine if we need to build a scope for this location
 					Long libraryId = locationInformationRS.getLong("libraryId");
 					String pTypes = locationInformationRS.getString("pTypes");
+					if (pTypes == null) pTypes = "";
 					boolean restrictSearchByLibrary = locationInformationRS.getBoolean("restrictSearchByLibrary");
 					boolean restrictSearchByLocation = locationInformationRS.getBoolean("restrictSearchByLocation");
 					boolean includeOverDriveCollectionLibrary = locationInformationRS.getBoolean("includeDigitalCollectionLibrary");
