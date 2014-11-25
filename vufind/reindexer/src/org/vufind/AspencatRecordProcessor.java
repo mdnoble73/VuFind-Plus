@@ -124,10 +124,13 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 	}
 
 	protected boolean isItemSuppressed(DataField curItem) {
-		if (curItem.getSubfield('i') != null){
-			return curItem.getSubfield('i').getData().equals("1");
-		}else{
-			return false;
+		boolean suppressed = false;
+		if (curItem.getSubfield('i') != null) {
+			suppressed = curItem.getSubfield('i').getData().equals("1");
 		}
+		if (!suppressed && curItem.getSubfield(collectionSubfield) != null){
+			suppressed = curItem.getSubfield(collectionSubfield).getData().equalsIgnoreCase("ill");
+		}
+		return suppressed;
 	}
 }

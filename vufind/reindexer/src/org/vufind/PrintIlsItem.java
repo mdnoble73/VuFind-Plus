@@ -12,7 +12,6 @@ import java.util.LinkedHashSet;
 public class PrintIlsItem extends IlsItem {
 	private String status;
 	private String dateDue;
-	private String dateCreated;
 	private String lastYearCheckouts;
 	private String ytdCheckouts;
 	private String totalCheckouts;
@@ -36,14 +35,6 @@ public class PrintIlsItem extends IlsItem {
 
 	public void setDateDue(String dateDue) {
 		this.dateDue = dateDue;
-	}
-
-	public String getDateCreated() {
-		return dateCreated;
-	}
-
-	public void setDateCreated(String dateCreated) {
-		this.dateCreated = dateCreated;
 	}
 
 	public String getLastYearCheckouts() {

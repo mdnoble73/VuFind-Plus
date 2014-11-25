@@ -34,6 +34,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char collectionSubfield;
 	protected char dueDateSubfield;
 	protected char dateCreatedSubfield;
+	protected String dateAddedFormat;
 	protected char locationSubfieldIndicator;
 	protected char iTypeSubfield;
 	protected boolean useEContentSubfield = false;
@@ -82,6 +83,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		locationSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "locationSubfield");
 		iTypeSubfield = getSubfieldIndicatorFromConfig(configIni, "iTypeSubfield");
 		dateCreatedSubfield = getSubfieldIndicatorFromConfig(configIni, "dateCreatedSubfield");
+		dateAddedFormat = Util.cleanIniValue(configIni.get("Reindex", "dateAddedFormat"));
 		lastYearCheckoutSubfield = getSubfieldIndicatorFromConfig(configIni, "lastYearCheckoutSubfield");
 		ytdCheckoutSubfield = getSubfieldIndicatorFromConfig(configIni, "ytdCheckoutSubfield");
 		totalCheckoutSubfield = getSubfieldIndicatorFromConfig(configIni, "totalCheckoutSubfield");
@@ -609,8 +611,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 	}
 
-	private static SimpleDateFormat dateAddedFormatter = new SimpleDateFormat("yyMMdd");
+	private static SimpleDateFormat dateAddedFormatter = null;
 	private void loadDateAdded(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
+		if (dateAddedFormatter == null){
+			dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
+		}
 		for (PrintIlsItem curItem : printItems){
 			String locationCode = curItem.getLocation();
 			String dateAddedStr = curItem.getDateCreated();
@@ -757,7 +762,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	private HashSet<String> locationsWithoutLibraryFacets = new HashSet<String>();
 	protected ArrayList<String> getLibraryFacetsForLocationCode(String locationCode) {
-		locationCode = locationCode.toLowerCase();
+		locationCode = locationCode.trim().toLowerCase();
 		ArrayList<String> libraryFacets = new ArrayList<String>();
 		for(String libraryCode : indexer.getLibraryFacetMap().keySet()){
 			Pattern libraryCodePattern = Pattern.compile(libraryCode);
