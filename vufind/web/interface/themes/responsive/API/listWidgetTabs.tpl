@@ -1,4 +1,4 @@
-{strip}
+{*{strip}*}
 <div id="listWidget{$widget->id}" class="ui-tabs listWidget {$widget->style}">
 	{if count($widget->lists) > 1}
 		{if !isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs'}
@@ -97,31 +97,63 @@
 				{/if}
 			{/foreach}
 
-			{literal}
+
 			// if mobile device, add swipe event
 
 			// Widget Specific Events
-			$('#listWidget{/literal}{$widget->id}{literal} .scrollerBodyContainer')
-							.css('border','2px solid blue')
-							.touchwipe({
-				// Horizontal style
-				wipeLeft : function(){
-					console.log('Swipe Left Event triggered'); // debugging
-//					alert('Swipe Left!');
-					{/literal}{$scrollerVariable}{literal}.swipeToLeft();
-				},
-				wipeRight: function() {
-					console.log('Swipe Right Event triggered'); // debugging
-//					alert('Swipe Right!');
-					{/literal}{$scrollerVariable}{literal}.swipeToRight();
-				}
-			});
-//			alert('swipe events loaded');
-			// end of if mobile device
-		});
 
-		$(window).bind('beforeunload', function(e) {
-			{/literal}
+			$('#listWidget{$widget->id} .scrollerBodyContainer')
+				.css('border','2px solid blue')
+				.touchwipe({ldelim}
+
+
+			{if $widget->style == 'horizontal'}
+					// Horizontal style
+					wipeLeft : function(dx){ldelim}
+						console.log('Swipe Left Event triggered'); // debugging
+						alert('Swipe Left! dx ='+dx);
+						{$scrollerVariable}.swipeToLeft();
+					{rdelim},
+					wipeRight: function(dx) {ldelim}
+						console.log('Swipe Right Event triggered'); // debugging
+						alert('Swipe Right! dx ='+dx);
+						{$scrollerVariable}.swipeToRight();
+					{rdelim}
+
+			{elseif $widget->style == 'vertical'}
+
+					// Vertical style
+					wipeUp : function(dx){ldelim}
+						console.log('Swipe Left Event triggered'); // debugging
+						alert('Swipe Left! dx ='+dx);
+						{$scrollerVariable}.swipeToLeft();
+						{rdelim},
+					wipeDown: function(dx) {ldelim}
+						console.log('Swipe Right Event triggered'); // debugging
+						alert('Swipe Right! dx ='+dx);
+						{$scrollerVariable}.swipeToRight();
+						{rdelim}
+
+			{*elseif $widget->style == 'single-with-next'*}
+				// For both Single Title versions swipe a single title left or right.
+			{else}
+//				Horizontal style
+					wipeLeft : function(dx){ldelim}
+						console.log('Swipe Left Event triggered'); // debugging
+						alert('Swipe Left! dx ='+dx);
+						{$scrollerVariable}.swipeToLeft(1);
+						{rdelim},
+					wipeRight: function(dx) {ldelim}
+						console.log('Swipe Right Event triggered'); // debugging
+						alert('Swipe Right! dx ='+dx);
+						{$scrollerVariable}.swipeToRight(1);
+						{rdelim}				// single Title Widget
+			{/if}
+			{rdelim});
+			// end of if mobile device
+		{rdelim});
+
+		$(window).bind('beforeunload', function(e) {ldelim}
 			{if !isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs'}
 				$('#listWidget{$widget->id}').tabs({literal}{ selected: 0 }{/literal});
 			{else}
@@ -174,4 +206,4 @@
 		{/literal}
 	</script>
 </div>
-{/strip}
+{*{/strip}*}

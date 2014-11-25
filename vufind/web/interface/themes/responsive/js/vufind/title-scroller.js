@@ -173,16 +173,16 @@ TitleScroller.prototype.scrollToLeft = function() {
 TitleScroller.prototype.swipeToRight = function(customSwipeInterval) {
 	customSwipeInterval  = (typeof customSwipeInterval === 'undefined') ? this.swipeInterval : customSwipeInterval;
 	this.currentScrollerIndex -= customSwipeInterval; // swipes progress the opposite of scroll buttons
-	if (this.currentScrollerIndex > this.numScrollerTitles - 1)
-		this.currentScrollerIndex = 0;
+	if (this.currentScrollerIndex < 0)
+		this.currentScrollerIndex = this.numScrollerTitles - 1;
 	TitleScroller.prototype.activateCurrentTitle.call(this);
 };
 
 TitleScroller.prototype.swipeToLeft = function(customSwipeInterval) {
 	customSwipeInterval  = (typeof customSwipeInterval === 'undefined') ? this.swipeInterval : customSwipeInterval;
 	this.currentScrollerIndex += customSwipeInterval; // swipes progress the opposite of scroll buttons
-	if (this.currentScrollerIndex < 0)
-		this.currentScrollerIndex = this.numScrollerTitles - 1;
+	if (this.currentScrollerIndex > this.numScrollerTitles - 1)
+		this.currentScrollerIndex = 0;
 	TitleScroller.prototype.activateCurrentTitle.call(this);
 };
 

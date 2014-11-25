@@ -11,6 +11,7 @@
  * @version 1.0 (15th July 2010)
  *
  *  Tested on android tablet. plb 11-25-2014
+ *  Modified to pass dx or dy value to the functions
  */
 
 (function($) {
@@ -50,19 +51,19 @@
 					if(Math.abs(dx) >= config.min_move_x) {
 						cancelTouch();
 						if(dx > 0) {
-							config.wipeLeft();
+							config.wipeLeft(Math.abs(dx));
 						}
 						else {
-							config.wipeRight();
+							config.wipeRight(Math.abs(dx));
 						}
 					}
 					else if(Math.abs(dy) >= config.min_move_y) {
 						cancelTouch();
 						if(dy > 0) {
-							config.wipeDown();
+							config.wipeDown(Math.abs(dy));
 						}
 						else {
-							config.wipeUp();
+							config.wipeUp(Math.abs(dy));
 						}
 					}
 				}
