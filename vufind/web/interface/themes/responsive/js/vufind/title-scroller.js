@@ -170,15 +170,17 @@ TitleScroller.prototype.scrollToLeft = function() {
 	TitleScroller.prototype.activateCurrentTitle.call(this);
 };
 
-TitleScroller.prototype.swipeToRight = function() {
-	this.currentScrollerIndex += this.swipeInterval;
+TitleScroller.prototype.swipeToRight = function(customSwipeInterval) {
+	customSwipeInterval  = (typeof customSwipeInterval === 'undefined') ? this.swipeInterval : customSwipeInterval;
+	this.currentScrollerIndex -= customswipeInterval; // swipes progress the opposite of scroll buttons
 	if (this.currentScrollerIndex > this.numScrollerTitles - 1)
 		this.currentScrollerIndex = 0;
 	TitleScroller.prototype.activateCurrentTitle.call(this);
 };
 
-TitleScroller.prototype.swipeToLeft = function() {
-	this.currentScrollerIndex -= this.swipeInterval;
+TitleScroller.prototype.swipeToLeft = function(customSwipeInterval) {
+	customSwipeInterval  = (typeof customSwipeInterval === 'undefined') ? this.swipeInterval : customSwipeInterval;
+	this.currentScrollerIndex += customswipeInterval; // swipes progress the opposite of scroll buttons
 	if (this.currentScrollerIndex < 0)
 		this.currentScrollerIndex = this.numScrollerTitles - 1;
 	TitleScroller.prototype.activateCurrentTitle.call(this);
