@@ -186,6 +186,22 @@ TitleScroller.prototype.swipeToLeft = function(customSwipeInterval) {
 	TitleScroller.prototype.activateCurrentTitle.call(this);
 };
 
+TitleScroller.prototype.swipeUp = function(customSwipeInterval) {
+	customSwipeInterval  = (typeof customSwipeInterval === 'undefined') ? this.swipeInterval : customSwipeInterval;
+	this.currentScrollerIndex -= customSwipeInterval;
+	if (this.currentScrollerIndex < 0)
+		this.currentScrollerIndex = this.numScrollerTitles - 1;
+	TitleScroller.prototype.activateCurrentTitle.call(this);
+};
+
+TitleScroller.prototype.swipeDown = function(customSwipeInterval) {
+	customSwipeInterval  = (typeof customSwipeInterval === 'undefined') ? this.swipeInterval : customSwipeInterval;
+	this.currentScrollerIndex += customSwipeInterval;
+	if (this.currentScrollerIndex > this.numScrollerTitles - 1)
+		this.currentScrollerIndex = 0;
+	TitleScroller.prototype.activateCurrentTitle.call(this);
+};
+
 TitleScroller.prototype.activateCurrentTitle = function() {
 	if (this.numScrollerTitles == 0) {
 		return;

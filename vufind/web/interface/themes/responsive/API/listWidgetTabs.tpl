@@ -97,60 +97,53 @@
 				{/if}
 			{/foreach}
 
-
-			// if mobile device, add swipe event
-
 			// Widget Specific Events
 
 			$('#listWidget{$widget->id} .scrollerBodyContainer')
-				.css('border','2px solid blue')
+				//.css('border','2px solid blue') //debugging only
 				.touchwipe({ldelim}
 
 
 			{if $widget->style == 'horizontal'}
-					// Horizontal style
+					{* Horizontal style *}
 					wipeLeft : function(dx){ldelim}
 						console.log('Swipe Left Event triggered'); // debugging
-						alert('Swipe Left! dx ='+dx);
-						{$scrollerVariable}.swipeToLeft();
-					{rdelim},
+						var scrollInterval = Math.round(dx / 10); // vary scroll interval based on wipe length
+						{$scrollerVariable}.swipeToLeft(scrollInterval);
+						alert('Swipe Left! scrolling '+scrollInterval);
+						{rdelim},
 					wipeRight: function(dx) {ldelim}
 						console.log('Swipe Right Event triggered'); // debugging
-						alert('Swipe Right! dx ='+dx);
-						{$scrollerVariable}.swipeToRight();
-					{rdelim}
-
-			{elseif $widget->style == 'vertical'}
-
-					// Vertical style
-					wipeUp : function(dx){ldelim}
-						console.log('Swipe Left Event triggered'); // debugging
-						alert('Swipe Left! dx ='+dx);
-						{$scrollerVariable}.swipeToLeft();
-						{rdelim},
-					wipeDown: function(dx) {ldelim}
-						console.log('Swipe Right Event triggered'); // debugging
-						alert('Swipe Right! dx ='+dx);
-						{$scrollerVariable}.swipeToRight();
+						var scrollInterval = Math.round(dx / 10); // vary scroll interval based on wipe length
+						{$scrollerVariable}.swipeToRight(scrollInterval);
+						alert('Swipe Right! scrolling ='+scrollInterval);
 						{rdelim}
 
-			{*elseif $widget->style == 'single-with-next'*}
-				// For both Single Title versions swipe a single title left or right.
+			{elseif $widget->style == 'vertical'}
+					{* Vertical style *}
+					wipeUp : function(dy){ldelim}
+						console.log('Swipe Up Event triggered'); // debugging
+						alert('Swipe UP! dy ='+dy);
+						var scrollInterval = Math.round(dy / 20); // vary scroll interval based on wipe length
+						{$scrollerVariable}.swipeUp(scrollInterval);
+						{rdelim},
+					wipeDown: function(dy) {ldelim}
+						console.log('Swipe Up Event triggered'); // debugging
+						alert('Swipe Down! dy ='+dy);
+						var scrollInterval = Math.round(dy / 20); // vary scroll interval based on wipe length
+						{$scrollerVariable}.swipeDown(scrollInterval);
+						{rdelim}
+
 			{else}
-//				Horizontal style
+					{* For both Single Title versions swipe a single title left or right. *}
 					wipeLeft : function(dx){ldelim}
-						console.log('Swipe Left Event triggered'); // debugging
-						alert('Swipe Left! dx ='+dx);
-						{$scrollerVariable}.swipeToLeft(1);
+						{$scrollerVariable}.swipeToLeft(1); // scroll single item
 						{rdelim},
 					wipeRight: function(dx) {ldelim}
-						console.log('Swipe Right Event triggered'); // debugging
-						alert('Swipe Right! dx ='+dx);
-						{$scrollerVariable}.swipeToRight(1);
-						{rdelim}				// single Title Widget
+						{$scrollerVariable}.swipeToRight(1); // scroll single item
+						{rdelim}
 			{/if}
 			{rdelim});
-			// end of if mobile device
 		{rdelim});
 
 		$(window).bind('beforeunload', function(e) {ldelim}
