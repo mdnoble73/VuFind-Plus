@@ -65,7 +65,6 @@
 		{/if}
 	{/foreach}
 	</div>
-
 	<script type="text/javascript">
 		{* Load title scrollers *}
 
@@ -104,8 +103,8 @@
 				{assign var="scrollerVariable" value="listScroller$listName"}
 
 
-			$('{* #listWidget{$widget->id} *}#titleScroller{$listName} .scrollerBodyContainer')
-{*				//.css('border','2px solid blue') //debugging only *}
+			$('#titleScroller{$listName} .scrollerBodyContainer')
+						{*/.css('border','2px solid blue') //debugging only *}
 							.touchwipe({ldelim}
 								{if $widget->style == 'horizontal'}
 								{* Horizontal style *}
