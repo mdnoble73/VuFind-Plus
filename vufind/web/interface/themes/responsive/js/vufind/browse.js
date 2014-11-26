@@ -83,15 +83,17 @@ $(document).ready(function(){
 	// Incorporate swiping gestures into the jcarousel. pascal 11-26-2014
 	$('.jcarousel').touchwipe({
 		wipeLeft : function(dx){
-			var scrollInterval = Math.round(dx / 10); // vary scroll interval based on wipe length *}
-			$('.jcarousel').jcarousel('scroll', '-='+scrollInterval);
-			alert('swipe left - scroll  :'+scrollInterval)
+			//var scrollInterval = Math.round(dx / 10); // vary scroll interval based on wipe length *}
+			//$('.jcarousel').jcarousel('scroll', '-='+scrollInterval);
+			//alert('swipe left - scroll  :'+scrollInterval);
+			$('.jcarousel').jcarousel('scroll', '-=1');
+
 		},
 		wipeRight: function(dx) {
-			var scrollInterval = Math.round(dx / 10); // vary scroll interval based on wipe length *}
-			$('.jcarousel').jcarousel('scroll', '+='+scrollInterval);
-			alert('swipe right - scroll  :'+scrollInterval)
-
+			//var scrollInterval = Math.round(dx / 10); // vary scroll interval based on wipe length *}
+			//$('.jcarousel').jcarousel('scroll', '+='+scrollInterval);
+			//alert('swipe right - scroll  :'+scrollInterval);
+			$('.jcarousel').jcarousel('scroll', '-=1');
 		}
 	});
 });
