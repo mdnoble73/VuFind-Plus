@@ -71,7 +71,6 @@ $(document).ready(function(){
 			width = width / 2;
 		}
 
-
 		element.jcarousel('items').css('width', width + 'px');
 	});
 	browseCategoryCarousel.on('jcarousel:targetin', 'li', function(){
@@ -81,19 +80,19 @@ $(document).ready(function(){
 
 
 	// Incorporate swiping gestures into the jcarousel. pascal 11-26-2014
+	var scrollFactor = 15; // swipe size per item to scroll.
 	$('.jcarousel').touchwipe({
 		wipeLeft : function(dx){
-			//var scrollInterval = Math.round(dx / 10); // vary scroll interval based on wipe length *}
-			//$('.jcarousel').jcarousel('scroll', '-='+scrollInterval);
+			var scrollInterval = Math.round(dx / scrollFactor); // vary scroll interval based on wipe length
+			$('.jcarousel').jcarousel('scroll', '-='+scrollInterval);
 			//alert('swipe left - scroll  :'+scrollInterval);
-			$('.jcarousel').jcarousel('scroll', '-=1');
-
+			//$('.jcarousel').jcarousel('scroll', '-=1'); // just scroll one item
 		},
 		wipeRight: function(dx) {
-			//var scrollInterval = Math.round(dx / 10); // vary scroll interval based on wipe length *}
+			var scrollInterval = Math.round(dx / scrollFactor); // vary scroll interval based on wipe length
 			//$('.jcarousel').jcarousel('scroll', '+='+scrollInterval);
 			//alert('swipe right - scroll  :'+scrollInterval);
-			$('.jcarousel').jcarousel('scroll', '-=1');
+			//$('.jcarousel').jcarousel('scroll', '-=1');
 		}
 	});
 });
