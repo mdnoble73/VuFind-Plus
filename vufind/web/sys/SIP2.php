@@ -180,7 +180,7 @@ class sip2
 
 	function msgSCStatus($status = 0, $width = 80, $version = 2)
 	{
-		/* selfcheck status message, this should be sent immediatly after login  - untested */
+		/* self check status message, this should be sent immediately after login  - untested */
 		/* status codes, from the spec:
 		 * 0 SC unit is OK
 		 * 1 SC printer is out of paper
@@ -698,12 +698,12 @@ class sip2
 				return false;
 			}
 		}
-		return $result;
+		//remove extraneous characters - typically carriage returns and line feeds from the beginning and end.
+		return trim($result);
 	}
 
 	function connect()
 	{
-
 		/* Socket Communications  */
 		$this->_debugmsg( "SIP2: --- BEGIN SIP communication ---");
 
@@ -732,6 +732,36 @@ class sip2
 			$this->_debugmsg("SIP2: socket_connect() failed.\nReason: ($result) " . socket_strerror($result));
 		} else {
 			$this->_debugmsg( "SIP2: --- SOCKET READY ---" );
+		}
+
+		global $configArray;
+		if ($configArray['SIP2']['sipLogin'] && $configArray['SIP2']['sipPassword']){
+			//Send login
+			//Read the login prompt
+			$prompt = socket_read($this->socket, 7);
+			socket_write($this->socket, $configArray['SIP2']['sipLogin'] . "\r\n");
+
+			$prompt = socket_read($this->socket, 10);
+			socket_write($this->socket, $configArray['SIP2']['sipPassword'] . "\r\n");
+
+			//Have to read three times to clear the carriage return and new line
+			$initialLoginResponse = socket_read($this->socket, 25, PHP_NORMAL_READ);
+			$initialLoginResponse .= socket_read($this->socket, 25, PHP_NORMAL_READ);
+			$initialLoginResponse .= socket_read($this->socket, 25, PHP_NORMAL_READ);
+			//Send password
+
+			$loginMessage = $this->msgLogin($configArray['SIP2']['sipLogin'], $configArray['SIP2']['sipPassword']);
+			$loginResponse = $this->get_message($loginMessage);
+
+			$loginData = $this->parseLoginResponse($loginResponse);
+			if ($loginResponse && $loginData['fixed']['Ok'] == 1){
+				$this->_debugmsg( "SIP2: --- LOGIN TO SIP SUCCEEDED ---" );
+			}else{
+				$this->_debugmsg( "SIP2: --- LOGIN TO SIP FAILED ---" );
+				$this->_debugmsg( $loginResponse);
+				$result = false;
+			}
+
 		}
 		/* return the result from the socket connect */
 		return $result;
@@ -823,7 +853,7 @@ class sip2
 
 	function _check_crc($message)
 	{
-		/* test the recieved message's CRC by generating our own CRC from the message */
+		/* test the received message's CRC by generating our own CRC from the message */
 		$test = preg_split('/(.{4})$/',trim($message),2,PREG_SPLIT_DELIM_CAPTURE);
 
 		if ($this->_crc($test[0]) == $test[1]) {

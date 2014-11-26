@@ -108,6 +108,8 @@ function mapValue($mapName, $value){
 	$value = str_replace(' ', '_', $value);
 	if (isset($map[$value])){
 		return $map[$value];
+	}elseif (isset($map[strtolower($value)])){
+		return $map[strtolower($value)];
 	}elseif(isset($map['*'])){
 		if ($map['*'] == 'nomap'){
 			return $value;
