@@ -84,11 +84,14 @@ $(document).ready(function(){
 	$('.jcarousel').touchwipe({
 		wipeLeft : function(dx){
 			var scrollInterval = Math.round(dx / 10); // vary scroll interval based on wipe length *}
-			$(this).jcarousel('scroll', '-='+scrollInterval);
+			$('.jcarousel').jcarousel('scroll', '-='+scrollInterval);
+			alert('swipe left - scroll  :'+scrollInterval)
 		},
 		wipeRight: function(dx) {
 			var scrollInterval = Math.round(dx / 10); // vary scroll interval based on wipe length *}
-			$(this).jcarousel('scroll', '+='+scrollInterval);
+			$('.jcarousel').jcarousel('scroll', '+='+scrollInterval);
+			alert('swipe right - scroll  :'+scrollInterval)
+
 		}
 	});
 });
