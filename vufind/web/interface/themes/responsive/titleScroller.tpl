@@ -38,10 +38,8 @@
 			{/if}
 		</div>
 		<script type="text/javascript">
-			{/strip}
 			$(document).ready(function(){ldelim}
 				$('#titleScroller{$scrollerName} .scrollerBodyContainer')
-					 .css('border','2px solid blue'){* //debugging only *}
 					.touchwipe({ldelim}
 						wipeLeft : function(dx){ldelim}
 							var scrollInterval = Math.round(dx / 10); {*// vary scroll interval based on wipe length *}
@@ -53,7 +51,6 @@
 							{rdelim}
 					{rdelim});
 			{rdelim});
-			{strip}
 		</script>
 	</div>
 </div>
