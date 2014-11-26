@@ -85,14 +85,10 @@ $(document).ready(function(){
 		wipeLeft : function(dx){
 			var scrollInterval = Math.round(dx / scrollFactor); // vary scroll interval based on wipe length
 			$('.jcarousel').jcarousel('scroll', '-='+scrollInterval);
-			//alert('swipe left - scroll  :'+scrollInterval);
-			//$('.jcarousel').jcarousel('scroll', '-=1'); // just scroll one item
 		},
 		wipeRight: function(dx) {
 			var scrollInterval = Math.round(dx / scrollFactor); // vary scroll interval based on wipe length
-			//$('.jcarousel').jcarousel('scroll', '+='+scrollInterval);
-			//alert('swipe right - scroll  :'+scrollInterval);
-			//$('.jcarousel').jcarousel('scroll', '-=1');
+			$('.jcarousel').jcarousel('scroll', '+='+scrollInterval);
 		}
 	});
 });
