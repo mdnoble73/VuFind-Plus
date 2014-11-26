@@ -1,4 +1,4 @@
-{*{strip}*}
+{strip}
 <div id="listWidget{$widget->id}" class="ui-tabs listWidget {$widget->style}">
 	{if count($widget->lists) > 1}
 		{if !isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs'}
@@ -74,16 +74,16 @@
 				var listScroller{$list->name|regex_replace:'/\W/':''|escape:url};
 			{/if}
 		{/foreach}
-		{literal}
 
-		$(document).ready(function(){
-			{/literal}{if count($widget->lists) > 1 && (!isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs')}{literal}
-			$('#listWidget{/literal}{$widget->id}{literal} a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
-				//alert(e.target); // activated tab
-				//alert(e.relatedTarget); // previous tab
+
+		$(document).ready(function(){ldelim}
+			{if count($widget->lists) > 1 && (!isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs')}
+			$('#listWidget{$widget->id} a[data-toggle="tab"]').on('shown.bs.tab', function (e) {ldelim}
+{*				alert(e.target); // activated tab
+				//alert(e.relatedTarget); // previous tab *}
 				showList($(e.target).data('index'));
-			});
-			{/literal}
+			{rdelim});
+
 			{/if}
 			{assign var=index value=0}
 			{foreach from=$widget->lists item=list name=listLoop}
@@ -97,53 +97,51 @@
 				{/if}
 			{/foreach}
 
-			// Widget Specific Events
+			{* Widget Specific Swipe Events *}
+			{foreach from=$widget->lists item=list}
+			{if $list->displayFor == 'all' || ($list->displayFor == 'loggedIn' && $user) || ($list->displayFor == 'notLoggedIn' && !$user)}
+				{assign var="listName" value=$list->name|regex_replace:'/\W/':''|escape:url}
+				{assign var="scrollerVariable" value="listScroller$listName"}
 
-			$('#listWidget{$widget->id} .scrollerBodyContainer')
-				//.css('border','2px solid blue') //debugging only
-				.touchwipe({ldelim}
 
+			$('{* #listWidget{$widget->id} *}#titleScroller{$listName} .scrollerBodyContainer')
+{*				//.css('border','2px solid blue') //debugging only *}
+							.touchwipe({ldelim}
+								{if $widget->style == 'horizontal'}
+								{* Horizontal style *}
+								wipeLeft : function(dx){ldelim}
+									var scrollInterval = Math.round(dx / 10); {*// vary scroll interval based on wipe length *}
+									{$scrollerVariable}.swipeToLeft(scrollInterval);
+									{rdelim},
+								wipeRight: function(dx) {ldelim}
+									var scrollInterval = Math.round(dx / 10); {*// vary scroll interval based on wipe length *}
+									{$scrollerVariable}.swipeToRight(scrollInterval);
+									{rdelim}
 
-			{if $widget->style == 'horizontal'}
-					{* Horizontal style *}
-					wipeLeft : function(dx){ldelim}
-						console.log('Swipe Left Event triggered'); // debugging
-						var scrollInterval = Math.round(dx / 10); // vary scroll interval based on wipe length
-						{$scrollerVariable}.swipeToLeft(scrollInterval);
-						alert('Swipe Left! scrolling '+scrollInterval);
-						{rdelim},
-					wipeRight: function(dx) {ldelim}
-						console.log('Swipe Right Event triggered'); // debugging
-						var scrollInterval = Math.round(dx / 10); // vary scroll interval based on wipe length
-						{$scrollerVariable}.swipeToRight(scrollInterval);
-						alert('Swipe Right! scrolling ='+scrollInterval);
-						{rdelim}
+								{elseif $widget->style == 'vertical'}
+								{* Vertical style *}
+								wipeUp : function(dy){ldelim}
+									var scrollInterval = Math.round(dy / 10); {*// vary scroll interval based on wipe length*}
+									{$scrollerVariable}.swipeUp(scrollInterval);
+									{rdelim},
+								wipeDown: function(dy) {ldelim}
+									var scrollInterval = Math.round(dy / 10); {*// vary scroll interval based on wipe length*}
+									{$scrollerVariable}.swipeDown(scrollInterval);
+									{rdelim}
 
-			{elseif $widget->style == 'vertical'}
-					{* Vertical style *}
-					wipeUp : function(dy){ldelim}
-						console.log('Swipe Up Event triggered'); // debugging
-						alert('Swipe UP! dy ='+dy);
-						var scrollInterval = Math.round(dy / 20); // vary scroll interval based on wipe length
-						{$scrollerVariable}.swipeUp(scrollInterval);
-						{rdelim},
-					wipeDown: function(dy) {ldelim}
-						console.log('Swipe Up Event triggered'); // debugging
-						alert('Swipe Down! dy ='+dy);
-						var scrollInterval = Math.round(dy / 20); // vary scroll interval based on wipe length
-						{$scrollerVariable}.swipeDown(scrollInterval);
-						{rdelim}
-
-			{else}
-					{* For both Single Title versions swipe a single title left or right. *}
-					wipeLeft : function(dx){ldelim}
-						{$scrollerVariable}.swipeToLeft(1); // scroll single item
-						{rdelim},
-					wipeRight: function(dx) {ldelim}
-						{$scrollerVariable}.swipeToRight(1); // scroll single item
-						{rdelim}
+								{else}
+								{* For both Single Title versions swipe a single title left or right. *}
+								wipeLeft : function(dx){ldelim}
+									{$scrollerVariable}.swipeToLeft(1); {*// scroll single item*}
+									{rdelim},
+								wipeRight: function(dx) {ldelim}
+									{$scrollerVariable}.swipeToRight(1); {*// scroll single item*}
+									{rdelim}
+								{/if}
+								{rdelim});
 			{/if}
-			{rdelim});
+			{/foreach}
+
 		{rdelim});
 
 		$(window).bind('beforeunload', function(e) {ldelim}
@@ -156,47 +154,43 @@
 				var selectedValue = selectedOption.value;
 				$('#availableLists{$widget->id}').val(selectedValue);
 			{/if}
-			{literal}
-		});
+		{rdelim});
 
-		function changeSelectedList(){
-			//Show the correct list
-			var availableListsSelector = $("#availableLists{/literal}{$widget->id}{literal}");
+		function changeSelectedList(){ldelim}
+			{*//Show the correct list*}
+			var availableListsSelector = $("#availableLists{$widget->id}");
 			var availableLists = availableListsSelector[0];
 			var selectedOption = availableLists.options[availableLists.selectedIndex];
 
 			var selectedList = selectedOption.value;
-			$("#listWidget{/literal}{$widget->id}{literal} > .titleScroller").hide();
+			$("#listWidget{$widget->id} > .titleScroller").hide();
 			$("#" + selectedList).show();
 			showList(availableLists.selectedIndex);
-		}
+		{rdelim}
 
-		function showList(listIndex){
-			{/literal}
+		function showList(listIndex){ldelim}
 			{assign var=index value=0}
 			{foreach from=$widget->lists item=list name=listLoop}
 				{assign var="listName" value=$list->name|regex_replace:'/\W/':''|escape:url}
 				{if $list->displayFor == 'all' || ($list->displayFor == 'loggedIn' && $user) || ($list->displayFor == 'notLoggedIn' && !$user)}
 					{if $index == 0}
-						if (listIndex == {$index}){literal}{{/literal}
+						if (listIndex == {$index}){ldelim}
 							listScroller{$listName}.activateCurrentTitle();
-						{literal}}{/literal}
+						{rdelim}
 					{else}
-						else if (listIndex == {$index}){literal}{{/literal}
-							if (listScroller{$listName} == null){literal}{{/literal}
+						else if (listIndex == {$index}){ldelim}
+							if (listScroller{$listName} == null){ldelim}
 								listScroller{$listName} = new TitleScroller('titleScroller{$listName}', '{$listName}', 'list{$listName}', {if $widget->autoRotate==1}true{else}false{/if}, '{$widget->style}');
 								listScroller{$listName}.loadTitlesFrom('{$path}/Search/AJAX?method=GetListTitles%26id={$list->source|escape:url}%26scrollerName={$listName}%26coverSize={$widget->coverSize}%26showRatings={$widget->showRatings}', false);
-							{literal}}else{{/literal}
+							{rdelim}else{ldelim}
 								listScroller{$listName}.activateCurrentTitle();
-							{literal}}{/literal}
-						{literal}}{/literal}
+							{rdelim}
+						{rdelim}
 					{/if}
 					{assign var=index value=$index+1}
 				{/if}
 			{/foreach}
-			{literal}
-		}
-		{/literal}
+		{rdelim}
 	</script>
 </div>
-{*{/strip}*}
+{/strip}
