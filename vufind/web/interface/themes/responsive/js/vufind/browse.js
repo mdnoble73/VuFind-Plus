@@ -79,4 +79,16 @@ $(document).ready(function(){
 		VuFind.Browse.changeBrowseCategory(categoryId);
 	});
 
+
+	// Incorporate swiping gestures into the jcarousel. pascal 11-26-2014
+	$('.jcarousel').touchwipe({
+		wipeLeft : function(dx){
+			var scrollInterval = Math.round(dx / 10); // vary scroll interval based on wipe length *}
+			$(this).jcarousel('scroll', '-='+scrollInterval);
+		},
+		wipeRight: function(dx) {
+			var scrollInterval = Math.round(dx / 10); // vary scroll interval based on wipe length *}
+			$(this).jcarousel('scroll', '+='+scrollInterval);
+		}
+	});
 });
