@@ -183,7 +183,7 @@
 		<field name="format_boost" type="integer" indexed="true" stored="true" multiValued="false" omitNorms="true" default="1"/>
 		<field name="format_category" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<dynamicField name="format_category_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
-		<dynamicField name="availability_by_format_category_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
+		<!-- Link availability and format for better FRBR display -->
 		<dynamicField name="availability_by_format_*" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>
 		<!-- Language Related Fields -->
 		<field name="language" type="string" indexed="true" stored="true" multiValued="true" omitNorms="true"/>

@@ -933,6 +933,9 @@ public abstract class MarcRecordProcessor {
 		// Loop through Data and Control Fields
 		// int iTag = new Integer(fldTag).intValue();
 		List<VariableField> varFlds = record.getVariableFields(fldTag);
+		if (varFlds == null){
+			return resultSet;
+		}
 		for (VariableField vf : varFlds) {
 			if (!isControlField(fldTag) && subfieldsStr != null) {
 				// DataField

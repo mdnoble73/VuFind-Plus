@@ -541,10 +541,16 @@ class OverDriveRecordDriver extends RecordInterface {
 		$url = $configArray['Site']['path'] . '/OverDrive/' . $recordId;
 		$this->getOverDriveMetaData();
 		$timer->logTime("Finished loading metadata");
+		$format = $this->overDriveProduct->mediaType;
+		if ($format == 'Audiobook'){
+			$format = 'eAudiobook';
+		}elseif ($format == 'Music'){
+			$format = 'eMusic';
+		}
 		$relatedRecord = array(
 			'id' => $recordId,
 			'url' => $url,
-			'format' => ($this->overDriveProduct->mediaType == 'Audiobook' ? 'eAudiobook' : $this->overDriveProduct->mediaType),
+			'format' => $format,
 			'edition' => '',
 			'language' => $this->getLanguage(),
 			'title' => $this->overDriveProduct->title,

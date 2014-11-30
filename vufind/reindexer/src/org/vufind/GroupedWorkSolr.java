@@ -34,6 +34,7 @@ public class GroupedWorkSolr {
 	private HashSet<String> awards = new HashSet<String>();
 	private HashSet<String> availableAt = new HashSet<String>();
 	private HashMap<String, HashSet<String>> availabilityToggleByLibrarySystem = new HashMap<String, HashSet<String>>();
+	private HashMap<String, HashSet<String>> availabilityByFormatByLibrarySystem = new HashMap<String, HashSet<String>>();
 	private HashSet<String> barcodes = new HashSet<String>();
 	private HashSet<String> bisacSubjects = new HashSet<String>();
 	private String callNumberA;
@@ -311,6 +312,9 @@ public class GroupedWorkSolr {
 			}else{
 				doc.addField("lib_boost_" + subdomain, ownedByBoostValue);
 			}
+		}
+		for (String subdomain: availabilityByFormatByLibrarySystem.keySet()){
+			doc.addField("availability_by_format_" + subdomain, availabilityByFormatByLibrarySystem.get(subdomain));
 		}
 		for (String subdomain: localTimeSinceAdded.keySet()){
 			doc.addField("local_time_since_added_" + subdomain, Util.getTimeSinceAddedForDate(localTimeSinceAdded.get(subdomain)));
@@ -639,6 +643,28 @@ public class GroupedWorkSolr {
 		for (String curLocationCode : availableLocationCodes){
 			availabilityToggleByLibrarySystem.put(curLocationCode, availableToggle);
 		}
+	}
+
+	public void addAvailabilityByFormatForLocation(HashSet<String> scopes, HashSet<String> formats, String availability){
+		for (String scope : scopes) {
+			addAvailabilityByFormatForLocation(scope, formats, availability);
+		}
+	}
+
+	public void addAvailabilityByFormatForLocation(String scope, HashSet<String> formats, String availability){
+		if (!availabilityByFormatByLibrarySystem.containsKey(scope)) {
+			availabilityByFormatByLibrarySystem.put(scope, new HashSet<String>());
+		}
+		for (String format : formats) {
+			availabilityByFormatByLibrarySystem.get(scope).add(format + "_" + availability);
+		}
+	}
+
+	public void addAvailabilityByFormatForLocation(String scope, String format, String availability){
+		if (!availabilityByFormatByLibrarySystem.containsKey(scope)) {
+			availabilityByFormatByLibrarySystem.put(scope, new HashSet<String>());
+		}
+		availabilityByFormatByLibrarySystem.get(scope).add(format + "_" + availability);
 	}
 
 	public void addOwningLocationCodesAndSubdomains(HashSet<String> owningLocationCodes){

@@ -61,7 +61,7 @@ function getTranslationMap($name)
 	/** @var Memcache $memCache */
 	global $memCache;
 	$mapValues = $memCache->get('translation_map_' . $name);
-	if ($mapValues != false && $mapValues != null){
+	if ($mapValues != false && $mapValues != null && !isset($_REQUEST['reload'])){
 		return $mapValues;
 	}
 

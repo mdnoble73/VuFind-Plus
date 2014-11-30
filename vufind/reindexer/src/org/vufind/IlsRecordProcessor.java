@@ -63,10 +63,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private static boolean holdsDataLoaded = false;
 	private static HashMap<String, Integer> numberOfHoldsByIdentifier = new HashMap<String, Integer>();
 
-	/*private static boolean availabilityDataLoaded = false;
-	private static boolean getAvailabilityFromMarc = true;
-	private static TreeSet<String> availableItemBarcodes = new TreeSet<String>();*/
-
 	public IlsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
 		super(indexer, logger);
 		//String marcRecordPath = configIni.get("Reindex", "marcPath");
@@ -283,7 +279,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			//Do updates based on items
 			loadOwnershipInformation(groupedWork, printItems, econtentItems, onOrderItems);
-			loadAvailability(groupedWork, printItems, econtentItems);
+			loadAvailability(groupedWork, printItems, econtentItems, ilsRecords);
 			loadUsability(groupedWork, printItems, econtentItems);
 			loadPopularity(groupedWork, identifier, printItems, econtentItems, onOrderItems);
 			loadDateAdded(groupedWork, printItems, econtentItems);
@@ -705,18 +701,31 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return false;
 	}
 
-	protected void loadAvailability(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
+	protected void loadAvailability(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, HashSet<IlsRecord> ilsRecords) {
 		//Calculate availability based on the record
 		HashSet<String> availableAt = new HashSet<String>();
 		HashSet<String> availableLocationCodes = new HashSet<String>();
 
+		HashSet<String> relatedFormats = new HashSet<String>();
+		for (IlsRecord curRecord : ilsRecords){
+			relatedFormats.addAll(curRecord.getFormats());
+			relatedFormats.addAll(curRecord.getFormatCategories());
+		}
+
 		for (PrintIlsItem curItem : printItems){
 			if (curItem.getLocation() != null){
+				HashSet<String> relatedLocations = new HashSet<String>();
+				relatedLocations.addAll(getLocationFacetsForLocationCode(curItem.getLocation()));
+				HashSet<String> relatedScopes = new HashSet<String>();
+				relatedScopes.addAll(getRelatedLocationCodesForLocationCode(curItem.getLocation()));
+				relatedScopes.addAll(getRelatedSubdomainsForLocationCode(curItem.getLocation()));
 				if (curItem.isAvailable()){
-					availableAt.addAll(getLocationFacetsForLocationCode(curItem.getLocation()));
-					availableLocationCodes.addAll(getRelatedLocationCodesForLocationCode(curItem.getLocation()));
-					availableLocationCodes.addAll(getRelatedSubdomainsForLocationCode(curItem.getLocation()));
+					availableAt.addAll(relatedLocations);
+					availableLocationCodes.addAll(relatedScopes);
+					//Add subdomains to get related scopes
+					groupedWork.addAvailabilityByFormatForLocation(relatedScopes, relatedFormats, "available");
 				}
+				groupedWork.addAvailabilityByFormatForLocation(relatedScopes, relatedFormats, "local");
 			}
 		}
 		groupedWork.addAvailableLocations(availableAt, availableLocationCodes);

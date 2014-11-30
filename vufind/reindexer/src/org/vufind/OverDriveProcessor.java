@@ -219,7 +219,7 @@ public class OverDriveProcessor {
 						groupedWork.getScopedWorkDetails().get(validScope.getScopeName()).getRelatedRecords().add("overdrive:" + identifier);
 					}
 
-					loadOverDriveFormats(groupedWork, productId, formatCategory, owningSubdomains, owningLocations, validScopes);
+					loadOverDriveFormats(groupedWork, productId, formatCategory, owningSubdomains, owningLocations, availableSubdomainsAndLocations, validScopes);
 				}
 			}
 			productRS.close();
@@ -333,7 +333,7 @@ public class OverDriveProcessor {
 		return primaryLanguage;
 	}
 
-	private void loadOverDriveFormats(GroupedWorkSolr groupedWork, Long productId, String formatCategory, HashSet<String> owningSubdomains, HashSet<String> owningLocations, HashSet<Scope> validScopes) throws SQLException {
+	private void loadOverDriveFormats(GroupedWorkSolr groupedWork, Long productId, String formatCategory, HashSet<String> owningSubdomains, HashSet<String> owningLocations, HashSet<String> availableSubdomainsAndLocations, HashSet<Scope> validScopes) throws SQLException {
 		//Load formats
 		getProductFormatsStmt.setLong(1, productId);
 		ResultSet formatsRS = getProductFormatsStmt.executeQuery();
@@ -368,6 +368,18 @@ public class OverDriveProcessor {
 		}
 		groupedWork.setFormatBoost(formatBoost);
 		groupedWork.addEContentDevices(eContentDevices);
+
+		HashSet<String> owningScopes = new HashSet<String>();
+		owningScopes.addAll(owningLocations);
+		owningScopes.addAll(owningSubdomains);
+		for (String owningScope : owningScopes) {
+			groupedWork.addAvailabilityByFormatForLocation(owningScope, formats, "local");
+			groupedWork.addAvailabilityByFormatForLocation(owningScope, formatCategory, "local");
+			if (availableSubdomainsAndLocations.contains(owningScope)){
+				groupedWork.addAvailabilityByFormatForLocation(owningScope, formats, "available");
+				groupedWork.addAvailabilityByFormatForLocation(owningScope, formatCategory, "available");
+			}
+		}
 		formatsRS.close();
 	}
 

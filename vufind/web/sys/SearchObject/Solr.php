@@ -1209,9 +1209,20 @@ class SearchObject_Solr extends SearchObject_Base
 				unset($this->filterList[$field]);
 			}
 		}
+
+		$availabilityToggleValue = null;
+		$formatValue = null;
+		$formatCategoryValue = null;
 		foreach ($this->filterList as $field => $filter) {
 			foreach ($filter as $value) {
 				$analytics->addEvent('Apply Facet', $field, $value);
+				if (substr($field, 0, strlen('availability_toggle')) == 'availability_toggle'){
+					$availabilityToggleValue = $value;
+				}elseif (substr($field, 0, strlen('format_category')) == 'format_category'){
+					$formatCategoryValue = $value;
+				}elseif (substr($field, 0, strlen('format')) == 'format'){
+					$formatValue = $value;
+				}
 				// Special case -- allow trailing wildcards:
 				if (substr($value, -1) == '*') {
 					$filterQuery[] = "$field:$value";
@@ -1224,6 +1235,23 @@ class SearchObject_Solr extends SearchObject_Base
 				}
 			}
 		}
+
+		//Check to see if we have both a format and availability facet applied.
+		if ($availabilityToggleValue != null && ($formatCategoryValue != null || $formatValue != null)){
+			global $solrScope;
+			if ($availabilityToggleValue == 'Available Now'){
+				$available = 'available';
+			}else{
+				$available = 'local';
+			}
+			//Make sure to process the more specific format first
+			if ($formatValue != null){
+				$filterQuery[] = 'availability_by_format_' . $solrScope . ':"' . $formatValue . '_' . $available . '"';
+			}else{
+				$filterQuery[] = 'availability_by_format_' . $solrScope . ':"' . $formatCategoryValue . '_' . $available . '"';
+			}
+		}
+
 
 		// If we are only searching one field use the DisMax handler
 		//    for that field. If left at null let solr take care of it

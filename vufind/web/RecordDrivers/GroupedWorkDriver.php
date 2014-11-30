@@ -1247,14 +1247,21 @@ class GroupedWorkDriver extends RecordInterface{
 				$manifestation['actions'] = $bestRecord['actions'];
 			}
 			if ($selectedFormat && $selectedFormat != $manifestation['format']){
-				$manifestation['hideByDefault'] = true;
+				//Do a secondary check to see if we have a more detailed format in the facet
+				$detailedFormat = mapValue('format_by_detailed_format', $selectedFormat);
+				if ($manifestation['format'] != $detailedFormat){
+					$manifestation['hideByDefault'] = true;
+				}
 			}
 			if ($selectedFormatCategory && $selectedFormatCategory != $manifestation['formatCategory']){
 				$manifestation['hideByDefault'] = true;
 			}
 			if ($selectedAvailability == 'Available Now' && !($manifestation['availableLocally'] || $manifestation['availableOnline'])){
 				$manifestation['hideByDefault'] = true;
+			}elseif($selectedAvailability == 'Entire Collection' && !($manifestation['hasLocalItem'])){
+				$manifestation['hideByDefault'] = true;
 			}
+
 			$relatedManifestations[$key] = $manifestation;
 		}
 		$timer->logTime("Finished loading related manifestations");
