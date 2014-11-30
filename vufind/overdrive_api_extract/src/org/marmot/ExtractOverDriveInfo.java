@@ -137,8 +137,8 @@ public class ExtractOverDriveInfo {
 
 					if (partialExtractRunning){
 						//Oops, a reindex is already running.
-						logger.error("A partial overdrive extract is already running, not starting another for better performance");
-						return;
+						logger.warn("A partial overdrive extract is already running, verify that multiple extracts are not running for best performance.");
+						//return;
 					}else{
 						updatePartialExtractRunning(true);
 					}
@@ -207,6 +207,7 @@ public class ExtractOverDriveInfo {
 			overDriveFormatMap.put("ebook-pdf-open", 450L);
 			overDriveFormatMap.put("ebook-epub-open", 810L);
 			overDriveFormatMap.put("ebook-overdrive", 610L);
+			overDriveFormatMap.put("video-streaming", 635L);
 			
 			if (clientSecret == null || clientKey == null || accountId == null || clientSecret.length() == 0 || clientKey.length() == 0 || accountId.length() == 0){
 				logEntry.addNote("Did not find correct configuration in config.ini, not loading overdrive titles");
@@ -454,17 +455,19 @@ public class ExtractOverDriveInfo {
 						JSONObject curAdvantageAccount = advantageAccounts.getJSONObject(i);
 						String advantageSelfUrl = curAdvantageAccount.getJSONObject("links").getJSONObject("self").getString("href");
 						JSONObject advantageSelfInfo = callOverDriveURL(advantageSelfUrl);
-						String advantageName = curAdvantageAccount.getString("name");
-						String productUrl = advantageSelfInfo.getJSONObject("links").getJSONObject("products").getString("href");
-						if (lastUpdateTimeParam.length() > 0){
-							if (productUrl.contains("?")){
-								productUrl += "&" + lastUpdateTimeParam;
-							}else{
-								productUrl += "?" + lastUpdateTimeParam;
+						if (advantageSelfInfo != null) {
+							String advantageName = curAdvantageAccount.getString("name");
+							String productUrl = advantageSelfInfo.getJSONObject("links").getJSONObject("products").getString("href");
+							if (lastUpdateTimeParam.length() > 0) {
+								if (productUrl.contains("?")) {
+									productUrl += "&" + lastUpdateTimeParam;
+								} else {
+									productUrl += "?" + lastUpdateTimeParam;
+								}
 							}
-						}
 
-						loadProductsFromUrl(advantageName, productUrl);
+							loadProductsFromUrl(advantageName, productUrl);
+						}
 					}
 				}else{
 					results.addNote("The API indicate that the library has advantage accounts, but none were returned from " + libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
@@ -962,6 +965,7 @@ public class ExtractOverDriveInfo {
 				}
 				//Connect to the API to get our token
 				HttpURLConnection conn;
+				StringBuilder response = new StringBuilder();
 				try {
 					URL emptyIndexURL = new URL(overdriveUrl);
 					conn = (HttpURLConnection) emptyIndexURL.openConnection();
@@ -979,7 +983,6 @@ public class ExtractOverDriveInfo {
 					conn.setRequestMethod("GET");
 					conn.setRequestProperty("Authorization", overDriveAPITokenType + " " + overDriveAPIToken);
 					
-					StringBuilder response = new StringBuilder();
 					if (conn.getResponseCode() == 200) {
 						// Get the response
 						BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -989,7 +992,12 @@ public class ExtractOverDriveInfo {
 						}
 						//logger.debug("  Finished reading response");
 						rd.close();
-						return new JSONObject(response.toString());
+						String responseString = response.toString();
+						if (responseString.equals("null")){
+							return null;
+						}else {
+							return new JSONObject(response.toString());
+						}
 					} else {
 						logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive API try " + connectTry );
 						// Get any errors
