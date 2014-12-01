@@ -109,22 +109,22 @@
 								{if $widget->style == 'horizontal'}
 								{* Horizontal style *}
 								wipeLeft : function(dx){ldelim}
-									var scrollInterval = Math.round(dx / 10); {*// vary scroll interval based on wipe length *}
+									var scrollInterval = Math.round(dx / 7); {*// vary scroll interval based on wipe length *}
 									{$scrollerVariable}.swipeToLeft(scrollInterval);
 									{rdelim},
 								wipeRight: function(dx) {ldelim}
-									var scrollInterval = Math.round(dx / 10); {*// vary scroll interval based on wipe length *}
+									var scrollInterval = Math.round(dx / 7); {*// vary scroll interval based on wipe length *}
 									{$scrollerVariable}.swipeToRight(scrollInterval);
 									{rdelim}
 
 								{elseif $widget->style == 'vertical'}
 								{* Vertical style *}
 								wipeUp : function(dy){ldelim}
-									var scrollInterval = Math.round(dy / 10); {*// vary scroll interval based on wipe length*}
+									var scrollInterval = Math.round(dy / 7); {*// vary scroll interval based on wipe length*}
 									{$scrollerVariable}.swipeUp(scrollInterval);
 									{rdelim},
 								wipeDown: function(dy) {ldelim}
-									var scrollInterval = Math.round(dy / 10); {*// vary scroll interval based on wipe length*}
+									var scrollInterval = Math.round(dy / 7); {*// vary scroll interval based on wipe length*}
 									{$scrollerVariable}.swipeDown(scrollInterval);
 									{rdelim}
 

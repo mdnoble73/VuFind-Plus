@@ -39,14 +39,15 @@
 		</div>
 		<script type="text/javascript">
 			$(document).ready(function(){ldelim}
+				var scrollFactor = 7; {*// swipe size per item to scroll.*}
 				$('#titleScroller{$scrollerName} .scrollerBodyContainer')
 					.touchwipe({ldelim}
 						wipeLeft : function(dx){ldelim}
-							var scrollInterval = Math.round(dx / 10); {*// vary scroll interval based on wipe length *}
+							var scrollInterval = Math.round(dx / scrollFactor); {*// vary scroll interval based on wipe length *}
 							{$scrollerVariable}.swipeToLeft(scrollInterval);
 							{rdelim},
 						wipeRight: function(dx) {ldelim}
-							var scrollInterval = Math.round(dx / 10); {*// vary scroll interval based on wipe length *}
+							var scrollInterval = Math.round(dx / scrollFactor); {*// vary scroll interval based on wipe length *}
 							{$scrollerVariable}.swipeToRight(scrollInterval);
 							{rdelim}
 					{rdelim});
