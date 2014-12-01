@@ -79,16 +79,16 @@ $(document).ready(function(){
 	});
 
 
-	// Incorporate swiping gestures into the jcarousel. pascal 11-26-2014
-	var scrollFactor = 15; // swipe size per item to scroll.
+	// Incorporate swiping gestures into the browse category selector. pascal 11-26-2014
+	var scrollFactor = 12; // swipe size per item to scroll.
 	$('.jcarousel').touchwipe({
 		wipeLeft : function(dx){
 			var scrollInterval = Math.round(dx / scrollFactor); // vary scroll interval based on wipe length
-			$('.jcarousel').jcarousel('scroll', '-='+scrollInterval);
+			$('.jcarousel').jcarousel('scroll', '+='+scrollInterval);
 		},
 		wipeRight: function(dx) {
 			var scrollInterval = Math.round(dx / scrollFactor); // vary scroll interval based on wipe length
-			$('.jcarousel').jcarousel('scroll', '+='+scrollInterval);
+			$('.jcarousel').jcarousel('scroll', '-='+scrollInterval);
 		}
 	});
 });
