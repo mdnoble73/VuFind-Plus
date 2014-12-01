@@ -429,7 +429,9 @@ class AJAX extends Action {
 							$interface->assign('id', $rawData['id']);
 							$interface->assign('ratingData', $rawData['ratingData']);
 							$interface->assign('showNotInterested', false);
-							$formattedTitle .= $interface->fetch('Record/title-rating.tpl');
+//							$formattedTitle .= $interface->fetch('Record/title-rating.tpl'); // as best I can tell Record/title-rating.tpl doesn't exist any more. plb 12-1-2014
+							$formattedTitle .= $interface->fetch('GroupedWork/title-rating.tpl');
+
 						}
 						$formattedTitle .= "</div>" .
 								"<div id='descriptionPlaceholder{$shortId}' style='display:none' class='loaded'>" .
