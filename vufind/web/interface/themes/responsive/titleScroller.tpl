@@ -37,22 +37,23 @@
 				<div id="titleScrollerSelectedAuthor{$scrollerName}" class="titleScrollerSelectedAuthor notranslate"></div>
 			{/if}
 		</div>
-		<script type="text/javascript">
-			$(document).ready(function(){ldelim}
-				var scrollFactor = 7; {*// swipe size per item to scroll.*}
-				$('#titleScroller{$scrollerName} .scrollerBodyContainer')
-					.touchwipe({ldelim}
-						wipeLeft : function(dx){ldelim}
-							var scrollInterval = Math.round(dx / scrollFactor); {*// vary scroll interval based on wipe length *}
-							{$scrollerVariable}.swipeToLeft(scrollInterval);
-							{rdelim},
-						wipeRight: function(dx) {ldelim}
-							var scrollInterval = Math.round(dx / scrollFactor); {*// vary scroll interval based on wipe length *}
-							{$scrollerVariable}.swipeToRight(scrollInterval);
-							{rdelim}
-					{rdelim});
-			{rdelim});
-		</script>
 	</div>
 </div>
+<script type="text/javascript">
+	{* touch swiping controls *}
+	$(document).ready(function(){ldelim}
+		var scrollFactor = 10; {*// swipe size per item to scroll.*}
+		$('#titleScroller{$scrollerName} .scrollerBodyContainer')
+			.touchwipe({ldelim}
+				wipeLeft : function(dx){ldelim}
+					var scrollInterval = Math.round(dx / scrollFactor); {*// vary scroll interval based on wipe length *}
+					{$scrollerVariable}.swipeToLeft(scrollInterval);
+				{rdelim},
+				wipeRight: function(dx) {ldelim}
+					var scrollInterval = Math.round(dx / scrollFactor); {*// vary scroll interval based on wipe length *}
+					{$scrollerVariable}.swipeToRight(scrollInterval);
+				{rdelim}
+		{rdelim});
+	{rdelim});
+</script>
 {/strip}

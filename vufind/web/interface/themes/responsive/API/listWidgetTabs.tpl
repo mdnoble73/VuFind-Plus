@@ -96,51 +96,6 @@
 				{/if}
 			{/foreach}
 
-			{* Widget Specific Swipe Events *}
-			{foreach from=$widget->lists item=list}
-			{if $list->displayFor == 'all' || ($list->displayFor == 'loggedIn' && $user) || ($list->displayFor == 'notLoggedIn' && !$user)}
-				{assign var="listName" value=$list->name|regex_replace:'/\W/':''|escape:url}
-				{assign var="scrollerVariable" value="listScroller$listName"}
-
-
-			$('#titleScroller{$listName} .scrollerBodyContainer')
-						{*/.css('border','2px solid blue') //debugging only *}
-							.touchwipe({ldelim}
-								{if $widget->style == 'horizontal'}
-								{* Horizontal style *}
-								wipeLeft : function(dx){ldelim}
-									var scrollInterval = Math.round(dx / 7); {*// vary scroll interval based on wipe length *}
-									{$scrollerVariable}.swipeToLeft(scrollInterval);
-									{rdelim},
-								wipeRight: function(dx) {ldelim}
-									var scrollInterval = Math.round(dx / 7); {*// vary scroll interval based on wipe length *}
-									{$scrollerVariable}.swipeToRight(scrollInterval);
-									{rdelim}
-
-								{elseif $widget->style == 'vertical'}
-								{* Vertical style *}
-								wipeUp : function(dy){ldelim}
-									var scrollInterval = Math.round(dy / 7); {*// vary scroll interval based on wipe length*}
-									{$scrollerVariable}.swipeUp(scrollInterval);
-									{rdelim},
-								wipeDown: function(dy) {ldelim}
-									var scrollInterval = Math.round(dy / 7); {*// vary scroll interval based on wipe length*}
-									{$scrollerVariable}.swipeDown(scrollInterval);
-									{rdelim}
-
-								{else}
-								{* For both Single Title versions swipe a single title left or right. *}
-								wipeLeft : function(dx){ldelim}
-									{$scrollerVariable}.swipeToLeft(1); {*// scroll single item*}
-									{rdelim},
-								wipeRight: function(dx) {ldelim}
-									{$scrollerVariable}.swipeToRight(1); {*// scroll single item*}
-									{rdelim}
-								{/if}
-								{rdelim});
-			{/if}
-			{/foreach}
-
 		{rdelim});
 
 		$(window).bind('beforeunload', function(e) {ldelim}
@@ -151,7 +106,8 @@
 				var availableLists = availableListsSelector[0];
 				var selectedOption = availableLists.options[0];
 				var selectedValue = selectedOption.value;
-				$('#availableLists{$widget->id}').val(selectedValue);
+				{* $('#availableLists{$widget->id}').val(selectedValue); // this is replaced w/ below. should be the same. plb 12-1-2014 *}
+			availableListsSelector.val(selectedValue)
 			{/if}
 		{rdelim});
 
