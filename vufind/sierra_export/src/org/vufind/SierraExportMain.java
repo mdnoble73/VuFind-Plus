@@ -86,8 +86,8 @@ public class SierraExportMain{
 
 			if (sierraExtractRunning){
 				//Oops, a reindex is already running.
-				logger.error("A sierra extract is already running, not starting another for better performance");
-				return;
+				logger.warn("A sierra extract is already running, verify that multiple extracts are not running currently");
+				//return;
 			}else{
 				updateSierraExtractRunning(vufindConn, true);
 			}
