@@ -741,8 +741,9 @@ class MillenniumDriver implements DriverInterface
 		}
 
 		$noticeLabels = array(
-			'-' => 'Mail',
-			'a' => 'Print',
+			//'-' => 'Mail',  // officially None in Sierra, as in No Preference Selected.
+			'-' => '',  // notification will generally be based on what information is available so can't determine here. plb 12-02-2014
+			'a' => 'Mail', // officially Print in Sierra
 			'p' => 'Telephone',
 			'z' => 'E-mail',
 		);
