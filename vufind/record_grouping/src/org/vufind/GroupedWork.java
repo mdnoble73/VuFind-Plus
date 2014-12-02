@@ -65,7 +65,7 @@ public class GroupedWork implements Cloneable{
 	static Pattern distributedByRemoval = Pattern.compile("^distributed (?:in.*\\s)?by\\s(.+)$");
 	static Pattern initialsFix = Pattern.compile("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))");
 	static Pattern apostropheStrip = Pattern.compile("'s");
-	static Pattern specialCharacterStrip = Pattern.compile("[^\\w\\s]");
+	static Pattern specialCharacterStrip = Pattern.compile("[^\\p{L}\\s]");
 	static Pattern consecutiveCharacterStrip = Pattern.compile("\\s{2,}");
 	static Pattern bracketedCharacterStrip = Pattern.compile("\\[(.*?)\\]");
 	static Pattern commonAuthorSuffixPattern = Pattern.compile("^(.+?)\\s(?:general editor|editor|editor in chief|etc|inc|inc\\setc|co|corporation|llc|partners|company|home entertainment)$");
