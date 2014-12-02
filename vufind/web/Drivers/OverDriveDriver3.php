@@ -67,23 +67,28 @@ class OverDriveDriver3 {
 		$tokenData = $memCache->get('overdrive_token');
 		if ($forceNewConnection || $tokenData == false){
 			global $configArray;
-			$ch = curl_init("https://oauth.overdrive.com/token");
-			curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
-			curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-			curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded;charset=UTF-8'));
-			curl_setopt($ch, CURLOPT_USERPWD, $configArray['OverDrive']['clientKey'] . ":" . $configArray['OverDrive']['clientSecret']);
-			curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-			curl_setopt($ch, CURLOPT_POST, 1);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-			$return = curl_exec($ch);
-			curl_close($ch);
-			$tokenData = json_decode($return);
-			if ($tokenData){
-				$memCache->set('overdrive_token', $tokenData, 0, $tokenData->expires_in - 10);
+			if (isset($configArray['OverDrive']['clientKey']) && $configArray['OverDrive']['clientKey'] != '' && isset($configArray['OverDrive']['clientSecret']) && $configArray['OverDrive']['clientSecret'] != ''){
+				$ch = curl_init("https://oauth.overdrive.com/token");
+				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
+				curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+				curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+				curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+				curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type: application/x-www-form-urlencoded;charset=UTF-8'));
+				curl_setopt($ch, CURLOPT_USERPWD, $configArray['OverDrive']['clientKey'] . ":" . $configArray['OverDrive']['clientSecret']);
+				curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+				curl_setopt($ch, CURLOPT_POST, 1);
+				curl_setopt($ch, CURLOPT_POSTFIELDS, "grant_type=client_credentials");
+				curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
+				$return = curl_exec($ch);
+				curl_close($ch);
+				$tokenData = json_decode($return);
+				if ($tokenData){
+					$memCache->set('overdrive_token', $tokenData, 0, $tokenData->expires_in - 10);
+				}
+			}else{
+				//OverDrive is not configured
+				return false;
 			}
 		}
 		return $tokenData;
