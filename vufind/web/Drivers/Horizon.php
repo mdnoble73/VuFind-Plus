@@ -1500,7 +1500,7 @@ public function getMyHoldsViaDB($patron)
 		return $profile;
 	}
 
-private $transactions = array();
+	private $transactions = array();
 	public function getMyTransactions($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		global $configArray;
 		global $timer;
