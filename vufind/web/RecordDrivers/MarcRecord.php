@@ -1568,6 +1568,8 @@ class MarcRecord extends IndexRecord
 	function filterFormats($allFormats){
 		if (in_array('Video', $allFormats) && in_array('DVD', $allFormats)){
 			$allFormats = array_remove_by_value($allFormats, 'Video');
+		}elseif (in_array('Musical Score', $allFormats) && in_array('Book', $allFormats)){
+			$allFormats = array_remove_by_value($allFormats, 'Book');
 		}
 		return $allFormats;
 	}
