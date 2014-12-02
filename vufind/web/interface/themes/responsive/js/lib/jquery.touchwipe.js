@@ -36,6 +36,7 @@
 			function cancelTouch() {
 				this.removeEventListener('touchmove', onTouchMove);
 				startX = null;
+				startY = null; // not in original code. might be an oversight. plb 12-1-2014
 				isMoving = false;
 			}
 

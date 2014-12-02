@@ -80,15 +80,24 @@ $(document).ready(function(){
 
 
 	// Incorporate swiping gestures into the browse category selector. pascal 11-26-2014
-	var scrollFactor = 12; // swipe size per item to scroll.
-	$('.jcarousel').touchwipe({
-		wipeLeft : function(dx){
-			var scrollInterval = Math.round(dx / scrollFactor); // vary scroll interval based on wipe length
-			$('.jcarousel').jcarousel('scroll', '+='+scrollInterval);
-		},
-		wipeRight: function(dx) {
-			var scrollInterval = Math.round(dx / scrollFactor); // vary scroll interval based on wipe length
-			$('.jcarousel').jcarousel('scroll', '-='+scrollInterval);
-		}
-	});
+
+	if ($('#browse-category-picker .jcarousel-control-prev').css('display') != 'none') {
+		// only enable if the carousel features are being used.
+		// as of now, basalt & vail are not. plb 12-1-2014
+		// TODO: when disabling the carousel feature is turned into an option, change this code to check that setting.
+
+		var scrollFactor = 15; // swipe size per item to scroll.
+		$('.jcarousel').touchwipe({
+			wipeLeft: function (dx) {
+				var scrollInterval = Math.round(dx / scrollFactor); // vary scroll interval based on wipe length
+				$('.jcarousel').jcarousel('scroll', '+=' + scrollInterval);
+			},
+			wipeRight: function (dx) {
+				var scrollInterval = Math.round(dx / scrollFactor); // vary scroll interval based on wipe length
+				$('.jcarousel').jcarousel('scroll', '-=' + scrollInterval);
+			}
+		});
+	}
+
+
 });
