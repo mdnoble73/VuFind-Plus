@@ -435,11 +435,35 @@ class Record_AJAX extends Action {
 						'message' => $interface->fetch('Record/item-hold-popup.tpl'),
 						'title' => $return['title'],
 				);
-			}else{
-				$message = $return['message'];
+			}else{ // Completed Hold Attempt
+				$interface->assign('message', $return['message']);
+				$success = $return['result'];
+				$interface->assign('success', $success);
+
+				global $librarySingleton;
+				$canUpdateContactInfo = ($activeLibrary = $librarySingleton->getActiveLibrary()) ? ($activeLibrary->allowProfileUpdates == 1) : true;
+				// set update permission based on active library's settings. Or allow by default.
+				$canChangeNoticePreference = ($activeLibrary) ? ($activeLibrary->showNoticeTypeInProfile == 1) : true;
+				// when user preference isn't set, they will be shown a link to account profile. this link isn't needed if the user can not change notification preference.
+				$interface->assign('canUpdate', $canUpdateContactInfo);
+				$interface->assign('canChangeNoticePreference', $canChangeNoticePreference);
+
+/* Above based on code below, taken from Profile.php  plb 12-3-2014 (Is this most direct way to the information?)
+				global $librarySingleton;
+				$activeLibrary = $librarySingleton->getActiveLibrary();
+				if ($activeLibrary == null){
+					$canUpdateContactInfo = true;
+					$canUpdateAddress = true;
+					$showNoticeTypeInProfile = true;
+				}else{
+					$canUpdateContactInfo = ($activeLibrary->allowProfileUpdates == 1);
+					$canUpdateAddress = ($activeLibrary->allowPatronAddressUpdates == 1);
+					$showNoticeTypeInProfile = ($activeLibrary->showNoticeTypeInProfile == 1);
+				}
+*/
 				$results = array(
-						'success' => $return['result'],
-						'message' => $message,
+						'success' => $success,
+						'message' => $interface->fetch('Record/hold-success-popup.tpl'),
 						'title' => $return['title'],
 				);
 				if (isset($_REQUEST['autologout'])){

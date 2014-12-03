@@ -10,11 +10,23 @@
 			{if $holdDisclaimer}
 				<div id="holdDisclaimer">{$holdDisclaimer}</div>
 			{/if}
+
 			<p class="alert alert-info">
 				Holds allow you to request that a title be delivered to your home library.
-				Once the title arrives at your library you will be sent an e-mail, receive a phone call, or receive a postcard informing you that the title is ready for you.
-				You will then have 8 days to pickup the title from your home library.
+				Once the title arrives at your library you will
+				{if $profile.noticePreferenceLabel eq 'Mail'}
+					be mailed a notification
+				{elseif $profile.noticePreferenceLabel eq 'Telephone'}
+					be called
+				{elseif $profile.noticePreferenceLabel eq 'E-mail'}
+					be emailed
+				{else}
+					receive a notification
+				{/if}
+				 informing you that the title is ready for you.
+				You will then have 8 days to pick up the title from your home library.
 			</p>
+
 			{* Responsive theme enforces that the user is always logged in before getting here*}
 			<div id='holdOptions'>
 				<div id='pickupLocationOptions' class="form-group">

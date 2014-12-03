@@ -384,7 +384,8 @@ VuFind.Record = (function(){
 					if (data.needsItemLevelHold){
 						$('.modal-body').html(data.message);
 					}else{
-						VuFind.showMessage('Hold Placed Successfully', data.message, true, data.autologout);
+						var closePopup = data.autologout; // only auto close the pop-up if auto log out was chosen. plb 12-03-2014
+						VuFind.showMessage('Hold Placed Successfully', data.message, closePopup, data.autologout);
 					}
 				}else{
 					VuFind.showMessage('Hold Failed', data.message);

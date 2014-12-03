@@ -1,5 +1,5 @@
 {strip}
-<div class="contents">
+<div class="content">
 	<form action='{$path}/MyAccount/HoldItems' method="POST" class="form">
 		<input type='hidden' name='id' id='id' value='{$id}' />
 		<input type='hidden' name='campus' id='campus' value='{$campus}' />
