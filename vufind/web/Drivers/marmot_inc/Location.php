@@ -7,7 +7,6 @@ require_once 'DB/DataObject/Cast.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LocationHours.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/LocationFacetSetting.php';
 require_once ROOT_DIR . '/sys/Browse/LocationBrowseCategory.php';
-require_once ROOT_DIR . '/sys/Browse/LocationBrowseCategory.php';
 
 class Location extends DB_DataObject
 {
