@@ -348,6 +348,7 @@ class Aspencat implements DriverInterface{
 	private function initSipConnection() {
 		if ($this->sipConnection == null){
 			global $configArray;
+			require_once ROOT_DIR . '/sys/SIP2.php';
 			$this->sipConnection = new sip2();
 			$this->sipConnection->hostname = $configArray['SIP2']['host'];
 			$this->sipConnection->port = $configArray['SIP2']['port'];
