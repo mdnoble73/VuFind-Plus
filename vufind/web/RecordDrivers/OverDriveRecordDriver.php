@@ -783,7 +783,7 @@ class OverDriveRecordDriver extends RecordInterface {
 		if ($this->items == null){
 			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductFormats.php';
 			$overDriveFormats = new OverDriveAPIProductFormats();
-			$overDriveFormats->productId = $this->id;
+			$overDriveFormats->productId = $this->overDriveProduct->id;
 			$overDriveFormats->find();
 			$this->items = array();
 			while ($overDriveFormats->fetch()){
