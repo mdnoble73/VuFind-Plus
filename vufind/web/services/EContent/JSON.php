@@ -22,6 +22,7 @@ require_once ROOT_DIR . '/Action.php';
 
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
+require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
 
 class EContent_JSON extends Action
 {
@@ -34,11 +35,12 @@ class EContent_JSON extends Action
 
 		//Check the database to see if there is an existing title
 		$recordDriver = new PublicEContentDriver($id);
-		if (!$recordDriver->isValid()){
+		$restrictedDriver = new RestrictedEContentDriver($id);
+		if (!$recordDriver->isValid() && !$restrictedDriver->isValid()){
 			$output = json_encode(array('error'=>'Invalid Record.  The specified title does not exist.'));
 		}else{
 			$itemId = $_REQUEST['item'];
-			if (!$recordDriver->isCheckedOut($itemId)){
+			if (!$recordDriver->isCheckedOut($itemId) && !$restrictedDriver->isCheckedOut($itemId)){
 				$output = json_encode(array('error'=>'This title is not checked out to you.  Please checkout the title.'));
 			}else{
 				//TODO: Validate that this file belongs to the checked out record
