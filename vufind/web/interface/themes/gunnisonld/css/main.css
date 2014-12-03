@@ -8048,8 +8048,7 @@ div#system-message-header {
 }
 @media (min-width: 768px) {
   #header-logo {
-    border-radius: 0.5em;
-    margin-top: 7px;
+    margin-top: 20px;
     padding: 5px;
   }
 }

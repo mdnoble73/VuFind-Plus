@@ -87,7 +87,7 @@ $(document).ready(function(){
 		// TODO: when disabling the carousel feature is turned into an option, change this code to check that setting.
 
 		var scrollFactor = 15; // swipe size per item to scroll.
-		$('.jcarousel').touchwipe({
+		$('#browse-category-picker .jcarousel').touchwipe({
 			wipeLeft: function (dx) {
 				var scrollInterval = Math.round(dx / scrollFactor); // vary scroll interval based on wipe length
 				$('.jcarousel').jcarousel('scroll', '+=' + scrollInterval);
