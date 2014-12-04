@@ -351,6 +351,7 @@ VuFind.Record = (function(){
 
 		showPlaceHold: function(id){
 			if (Globals.loggedIn){
+				$('.modal-body').html("Loading..."); // clear out any previous modal content.
 				var modalDialog = $("#modalDialog");
 				//$(".modal-body").html($('#userreview' + id).html());
 				$.getJSON(Globals.path + "/Record/" + id + "/AJAX?method=getPlaceHoldForm", function(data){
