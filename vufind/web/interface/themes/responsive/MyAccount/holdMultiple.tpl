@@ -1,3 +1,4 @@
+{* This template should no longer be in use. plb 12-04-2014 *}
 <div id="page-content" class="content">
 	<form name='placeHoldForm' id='placeHoldForm' action="{$path}/MyAccount/HoldMultiple" method="post">
 		<div>

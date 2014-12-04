@@ -34,13 +34,13 @@ VuFind.Lists = (function(){
 			$('#myListFormHead').submit();
 			return false;
 		},
-
+/* Multiple Holds deprecated. plb 12-04-2014
 		requestMarkedAction: function (){
 			var myListFormItem = $('#myListFormItem');
 			myListFormItem.attr('action', Globals.path + "/MyAccount/HoldMultiple");
 			myListFormItem.submit();
 			return false;
-		},
+		}, */
 		deletedMarkedListItemsAction: function (){
 			if (confirm("Are you sure you want to delete the selected titles from this list?  This cannot be undone.")){
 				$('#myListActionItem').val('deleteMarked');

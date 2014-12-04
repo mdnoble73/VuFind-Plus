@@ -60,4 +60,3 @@
 	});
 	{/literal}
 </script>
-
