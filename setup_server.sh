@@ -10,6 +10,7 @@
 #
 #-------------------------------------------------------------------------
 # 22 Jul 14 - v0.0.1 - sml - create initial script based on dos batch file
+# 05 Dec 14 - v0.1.0 - plb - added permission setting for web user of data & logs
 #-------------------------------------------------------------------------
 #-------------------------------------------------------------------------
 # declare variables
@@ -35,6 +36,12 @@ if [ $# = 1 ];then
   cd $HOST
   cp -rp $WD/data_dir_setup/* .
   #-----------------
+  echo "setting group permissions to data directory for user apache"
+  chgrp apache qrcodes
+  chgrp apache covers/*
+  chmod g+w qrcodes
+  chmod g+w covers/*
+  #-----------------
   echo "setting up logs directory"
   cd /var/log
   mkdir vufind-plus
@@ -42,6 +49,11 @@ if [ $# = 1 ];then
   mkdir $HOST
   cd $HOST
   mkdir jetty
+  #-----------------
+  echo "setting group permissions to logs for user apache"
+  touch error.log messages.log access.log
+  chgrp apache error.log messages.log access.log
+  chmod g+w error.log messages.log access.log
   #-----------------
   echo ""
   cd $WD
