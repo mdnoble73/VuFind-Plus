@@ -402,9 +402,14 @@ public class OverDriveProcessor {
 
 			//Decode JSON data to get a little more information
 			try {
-				JSONObject jsonData = new JSONObject(metadataRS.getString("rawData"));
-				if (jsonData.has("ATOS")){
-					groupedWork.setAcceleratedReaderReadingLevel(jsonData.getString("ATOS"));
+				String rawMetadata = metadataRS.getString("rawData");
+				if (rawMetadata != null) {
+					JSONObject jsonData = new JSONObject(rawMetadata);
+					if (jsonData.has("ATOS")) {
+						groupedWork.setAcceleratedReaderReadingLevel(jsonData.getString("ATOS"));
+					}
+				}else{
+					logger.error("Overdrive product " + productId + " did not have raw metadata");
 				}
 			} catch (JSONException e) {
 				logger.error("Error loading raw data for OverDrive MetaData");

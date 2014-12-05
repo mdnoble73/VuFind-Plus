@@ -120,10 +120,10 @@ public class GroupedWorkIndexer {
 					GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, but it's been an hour or more since the last one started.  Indexing anyway.");
 				} else{*/
 					//Oops, a reindex is already running.
-					logger.error("A partial reindex is already running, not starting another for better performance");
-					GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, not starting another for better performance");
-					okToIndex = false;
-					return;
+					logger.warn("A partial reindex is already running, check to make sure that reindexes don't overlap since that can cause poor performance");
+					GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, check to make sure that reindexes don't overlap since that can cause poor performance");
+					//okToIndex = false;
+					//return;
 				//}
 			}else{
 				updatePartialReindexRunning(true);

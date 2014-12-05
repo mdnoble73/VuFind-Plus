@@ -23,9 +23,27 @@ public class NashvilleRecordProcessor extends IlsRecordProcessor {
 
 	@Override
 	public void loadPrintFormatInformation(IlsRecord ilsRecord, Record record) {
-		String format = getFirstFieldVal(record, "998d");
-		Set<String> formats = new HashSet<String>();
-		formats.add(format);
+		Set<String> printFormatsRaw = getFieldList(record, "998d");
+		Set<String> printFormats = new HashSet<String>();
+		for (String curFormat : printFormatsRaw){
+			printFormats.add(curFormat.toLowerCase());
+		}
+
+		HashSet<String> translatedFormats = indexer.translateCollection("format", printFormats);
+		HashSet<String> translatedFormatCategories = indexer.translateCollection("format_category", printFormats);
+		ilsRecord.addFormats(translatedFormats);
+		ilsRecord.addFormatCategories(translatedFormatCategories);
+		Long formatBoost = 0L;
+		HashSet<String> formatBoosts = indexer.translateCollection("format_boost", printFormats);
+		for (String tmpFormatBoost : formatBoosts){
+			if (Util.isNumeric(tmpFormatBoost)) {
+				Long tmpFormatBoostLong = Long.parseLong(tmpFormatBoost);
+				if (tmpFormatBoostLong > formatBoost) {
+					formatBoost = tmpFormatBoostLong;
+				}
+			}
+		}
+		ilsRecord.setFormatBoost(formatBoost);
 	}
 
 	@Override
