@@ -6902,35 +6902,30 @@ div#system-message-header {
   font-size: 0;
   color: transparent;
   text-shadow: none;
-  background-color: transparent;
   border: 0;
 }
 #lookfor::-moz-placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
-  background-color: transparent;
   border: 0;
 }
 #lookfor:-moz-placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
-  background-color: transparent;
   border: 0;
 }
 #lookfor::-webkit-input-placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
-  background-color: transparent;
   border: 0;
 }
 #lookfor:-ms-input-placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
-  background-color: transparent;
   border: 0;
 }
 #searchSource {
@@ -8048,8 +8043,7 @@ div#system-message-header {
 }
 @media (min-width: 768px) {
   #header-logo {
-    border-radius: 0.5em;
-    margin-top: 7px;
+    margin-top: 20px;
     padding: 5px;
   }
 }
