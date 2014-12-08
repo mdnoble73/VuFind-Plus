@@ -171,7 +171,7 @@ public class RecordGrouperMain {
 						File[] catalogBibFiles = curPrefixPath.listFiles();
 						if (catalogBibFiles != null) {
 							for (File curBibFile : catalogBibFiles) {
-								if (curBibFile.getName().endsWith(".mrc")) {
+								if (curBibFile.getName().toLowerCase().endsWith(".mrc")) {
 									try {
 										Record marcRecord = EVokeMarcReader.readMarc(curBibFile);
 										//Record number is based on the filename. It isn't actually in the MARC record at all.
@@ -425,7 +425,7 @@ public class RecordGrouperMain {
 		if (catalogBibFiles != null){
 			String lastRecordProcessed = "";
 			for (File curBibFile : catalogBibFiles){
-				if (curBibFile.getName().endsWith(".mrc") || curBibFile.getName().endsWith(".marc")){
+				if (curBibFile.getName().toLowerCase().endsWith(".mrc") || curBibFile.getName().toLowerCase().endsWith(".marc")){
 					try{
 						FileInputStream marcFileStream = new FileInputStream(curBibFile);
 						MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
