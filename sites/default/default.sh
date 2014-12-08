@@ -31,7 +31,7 @@ JETTY_RUN=`findDirectory -w /var/run /usr/var/run /tmp`
 export JETTY_RUN
 export JETTY_PID=$JETTY_RUN/{servername}.pid
 
-#Max memory should be at least he size of all solr indexes combined. 
+#Max memory should be at least the size of all solr indexes combined. 
 export JAVA_OPTIONS="-server -Xms1024m -Xmx6144m -XX:+UseParallelGC -XX:NewRatio=5"
 export JETTY_LOG=/usr/local/VuFind-Plus/sites/{servername}/logs/jetty
 
