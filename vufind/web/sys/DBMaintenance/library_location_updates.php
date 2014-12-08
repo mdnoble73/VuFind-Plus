@@ -814,5 +814,14 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE library ADD COLUMN loginFormPasswordLabel VARCHAR(50) DEFAULT 'Library Card Number'",
 			),
 		),
+
+		'detailed_hold_notice_configuration' => array(
+			'title' => 'Detailed Hold Notice Configuration',
+			'description' => 'Additional configuration over how detailed hold notices are displayed to the user',
+			'sql' => array(
+				"ALTER TABLE library ADD COLUMN showDetailedHoldNoticeInformation TINYINT DEFAULT 1",
+				"ALTER TABLE library ADD COLUMN treatPrintNoticesAsPhoneNotices TINYINT DEFAULT 0",
+			),
+		),
 	);
 }

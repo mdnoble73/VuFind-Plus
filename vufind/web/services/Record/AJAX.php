@@ -387,6 +387,10 @@ class Record_AJAX extends Action {
 			$locations = $locationSingleton->getPickupBranches($profile, $profile['homeLocationId']);
 			$interface->assign('pickupLocations', $locations);
 
+			global $library;
+			$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
+			$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
+
 			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 			$marcRecord = new MarcRecord($id);
 			$interface->assign('id', $id);
@@ -428,6 +432,11 @@ class Record_AJAX extends Action {
 				$interface->assign('campus', $campus);
 				$interface->assign('items', $return['items']);
 				$interface->assign('id', $recordId);
+
+				global $library;
+				$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
+				$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
+
 				//Need to place item level holds.
 				$results = array(
 						'success' => true,
@@ -440,27 +449,19 @@ class Record_AJAX extends Action {
 				$success = $return['result'];
 				$interface->assign('success', $success);
 
-				global $librarySingleton;
-				$canUpdateContactInfo = ($activeLibrary = $librarySingleton->getActiveLibrary()) ? ($activeLibrary->allowProfileUpdates == 1) : true;
+				//Get library based on patron home library since that is what controls their notifications rather than the active interface.
+				//$library = Library::getPatronHomeLibrary();
+				global $library;
+				$canUpdateContactInfo = $library->allowProfileUpdates == 1;
 				// set update permission based on active library's settings. Or allow by default.
-				$canChangeNoticePreference = ($activeLibrary) ? ($activeLibrary->showNoticeTypeInProfile == 1) : true;
+				$canChangeNoticePreference = $library->showNoticeTypeInProfile == 1;
 				// when user preference isn't set, they will be shown a link to account profile. this link isn't needed if the user can not change notification preference.
 				$interface->assign('canUpdate', $canUpdateContactInfo);
 				$interface->assign('canChangeNoticePreference', $canChangeNoticePreference);
 
-/* Above based on code below, taken from Profile.php  plb 12-3-2014 (Is this most direct way to the information?)
-				global $librarySingleton;
-				$activeLibrary = $librarySingleton->getActiveLibrary();
-				if ($activeLibrary == null){
-					$canUpdateContactInfo = true;
-					$canUpdateAddress = true;
-					$showNoticeTypeInProfile = true;
-				}else{
-					$canUpdateContactInfo = ($activeLibrary->allowProfileUpdates == 1);
-					$canUpdateAddress = ($activeLibrary->allowPatronAddressUpdates == 1);
-					$showNoticeTypeInProfile = ($activeLibrary->showNoticeTypeInProfile == 1);
-				}
-*/
+				$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
+				$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
+
 				$results = array(
 						'success' => $success,
 						'message' => $interface->fetch('Record/hold-success-popup.tpl'),
