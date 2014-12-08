@@ -186,9 +186,17 @@ class MyAccount_Holds extends MyAccount{
 
 		$interface->setPageTitle('My Holds');
 		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-//		$notification_method = 'via e-mail, phone, print, or occasionally Vulcan mind-meld';
-		$notification_method = ($profile['noticePreferenceLabel'] != 'Unknown') ? $profile['noticePreferenceLabel'] : '';
-		$interface->assign('notification_method', $notification_method);
+		global $library;
+		if (!$library->showDetailedHoldNoticeInformation){
+			$notification_method = '';
+		}else{
+			//$notification_method = 'via e-mail, phone, print, or occasionally Vulcan mind-meld';
+			$notification_method = ($profile['noticePreferenceLabel'] != 'Unknown') ? $profile['noticePreferenceLabel'] : '';
+			if ($notification_method == 'Mail' && $library->treatPrintNoticesAsPhoneNotices){
+				$notification_method = 'Telephone';
+			}
+		}
+		$interface->assign('notification_method', strtolower($notification_method));
 		$interface->setTemplate('holds.tpl');
 
 		//print_r($patron);

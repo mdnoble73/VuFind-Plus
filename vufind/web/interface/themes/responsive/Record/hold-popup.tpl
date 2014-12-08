@@ -13,17 +13,21 @@
 
 			<p class="alert alert-info">
 				Holds allow you to request that a title be delivered to your home library.
-				Once the title arrives at your library you will
-				{if $profile.noticePreferenceLabel eq 'Mail'}
-					be mailed a notification
-				{elseif $profile.noticePreferenceLabel eq 'Telephone'}
-					be called
-				{elseif $profile.noticePreferenceLabel eq 'E-mail'}
-					be emailed
+				{if $showDetailedHoldNoticeInformation}
+					Once the title arrives at your library you will
+					{if $profile.noticePreferenceLabel eq 'Mail' && !$treatPrintNoticesAsPhoneNotices}
+						be mailed a notification
+					{elseif $profile.noticePreferenceLabel eq 'Telephone' || ($profile.noticePreferenceLabel eq 'Mail' && $treatPrintNoticesAsPhoneNotices)}
+						receive a phone call
+					{elseif $profile.noticePreferenceLabel eq 'E-mail'}
+						be emailed a notification
+					{else}
+						receive a notification
+					{/if}
+					 informing you that the title is ready for you.
 				{else}
-					receive a notification
+					Once the title arrives at your library you will receive a notification informing you that the title is ready for you.
 				{/if}
-				 informing you that the title is ready for you.
 				You will then have 8 days to pick up the title from your home library.
 			</p>
 
