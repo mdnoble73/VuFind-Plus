@@ -2,14 +2,14 @@ var suggestionScroller;
 function getSuggestions(){
 	suggestionScroller = new TitleScroller('titleScrollerSuggestion', 'Suggestion', 'suggestionList');
 	
-	var url = path + "/MyResearch/AJAX";
+	var url = path + "/MyAccount/AJAX";
 	var params = "method=GetSuggestions";
 	var fullUrl = url + "?" + params;
 	suggestionScroller.loadTitlesFrom(fullUrl);
 }
 
 function getListTitles(listId){
-	var url = path + "/MyResearch/AJAX";
+	var url = path + "/MyAccount/AJAX";
 	var params = "method=GetListTitles&listId=" + listId;
 	var fullUrl = url + "?" + params;
     $.ajax({
@@ -93,7 +93,7 @@ function resetPinReset(){
 	if (barcode.length == 0){
 		alert("Please enter your library card number");
 	}else{
-		var url = path + '/MyResearch/AJAX?method=requestPinReset&barcode=' + barcode;
+		var url = path + '/MyAccount/AJAX?method=requestPinReset&barcode=' + barcode;
 		$.getJSON(url, function(data){
 			if (data.error == false){
 				alert(data.message);

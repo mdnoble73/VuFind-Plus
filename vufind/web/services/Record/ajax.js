@@ -105,7 +105,7 @@ function GetPreferredBranches() {
 		return false;
 	}
 
-	var url = path + "/MyResearch/AJAX";
+	var url = path + "/MyAccount/AJAX";
 	var params = "method=GetPreferredBranches&username="
 	    + encodeURIComponent(username) + "&barcode="
 	    + encodeURIComponent(barcode) + "&holdCount="

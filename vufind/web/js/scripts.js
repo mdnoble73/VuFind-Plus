@@ -416,7 +416,7 @@ function reactivateEContentHold(reactivateUrl){
 }
 
 function getOverDriveSummary(){
-	$.getJSON(path + '/MyResearch/AJAX?method=getOverDriveSummary', function (data){
+	$.getJSON(path + '/MyAccount/AJAX?method=getOverDriveSummary', function (data){
 		if (data.error){
 			// Unable to load overdrive summary
 		}else{
@@ -435,7 +435,7 @@ function getOverDriveSummary(){
 var ajaxCallback = null;
 function ajaxLogin(callback){
 	ajaxCallback = callback;
-	return ajaxLightbox(path + '/MyResearch/AJAX?method=LoginForm');
+	return ajaxLightbox(path + '/MyAccount/AJAX?method=LoginForm');
 }
 
 function processAjaxLogin(){
