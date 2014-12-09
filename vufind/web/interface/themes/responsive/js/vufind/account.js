@@ -74,7 +74,7 @@ VuFind.Account = (function(){
 				if (trigger != undefined && trigger != null) {
 					var dialogTitle = trigger.attr("title") ? trigger.attr("title") : trigger.data("title");
 				}
-				var dialogDestination = Globals.path + '/MyResearch/AJAX?method=LoginForm';
+				var dialogDestination = Globals.path + '/MyAccount/AJAX?method=LoginForm';
 				if (multistep){
 					dialogDestination += "&multistep=true";
 				}
