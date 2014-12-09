@@ -148,10 +148,10 @@ VuFind.Account = (function(){
 				success: function (response) {
 					if (response.result.success == true) {
 						// Hide "log in" options and show "log out" options:
-						$('.loginOptions').hide();
-						$('.logoutOptions').show();
-						$('#loginOptions').hide();
-						$('#logoutOptions').show();
+						$('.loginOptions, #loginOptions').hide();
+						$('.logoutOptions, #logoutOptions').show();
+						//$('#loginOptions').hide();
+						//$('#logoutOptions').show();
 						$('#myAccountNameLink').html(response.result.name);
 						if (VuFind.Account.closeModalOnAjaxSuccess) {
 							VuFind.closeLightbox();
