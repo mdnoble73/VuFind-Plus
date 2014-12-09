@@ -115,9 +115,9 @@ abstract class HorizonAPI extends Horizon{
 		$loginUserUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/loginUser?clientID=' . $configArray['Catalog']['clientId'] . '&login=' . urlencode($username) . '&password=' . urlencode($password);
 		$loginUserResponse = $this->getWebServiceResponse($loginUserUrl);
 		if (!$loginUserResponse){
-			return array(false);
+			return array(false, false, false);
 		}else if (isset($loginUserResponse->Fault)){
-			return array(false);
+			return array(false, false, false);
 		}else{
 			//We got at valid user, next call lookupMyAccountInfo
 			if (isset($loginUserResponse->sessionToken)){
@@ -126,7 +126,7 @@ abstract class HorizonAPI extends Horizon{
 				HorizonAPI::$sessionIdsForUsers[$userID] = $sessionToken;
 				return array(true, $sessionToken, $userID);
 			}else{
-				return array(false);
+				return array(false, false, false);
 			}
 		}
 	}

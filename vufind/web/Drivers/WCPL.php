@@ -19,10 +19,9 @@
  */
 
 require_once 'Interface.php';
-require_once ROOT_DIR . '/sys/SIP2.php';
-require_once ROOT_DIR . '/Drivers/Horizon.php';
+require_once ROOT_DIR . '/Drivers/HorizonAPI.php';
 
-class WCPL extends Horizon
+class WCPL extends HorizonAPI
 {
 
 	function __construct(){
@@ -489,7 +488,7 @@ class WCPL extends Horizon
 		);
 
 	}
-
+/*
 	public function patronLogin($username, $password){
 		global $logger;
 		if ($this->useDb){
@@ -742,5 +741,5 @@ class WCPL extends Horizon
 		}else{
 			return parent::getMyProfile($patron);
 		}
-	}
+	}*/
 }
