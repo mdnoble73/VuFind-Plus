@@ -60,7 +60,7 @@ function getTranslationMap($name)
 	global $serverName;
 	/** @var Memcache $memCache */
 	global $memCache;
-	$mapValues = $memCache->get('translation_map_' . $name);
+	$mapValues = $memCache->get('translation_map_'. $serverName.'_'. $name);
 	if ($mapValues != false && $mapValues != null && !isset($_REQUEST['reload'])){
 		return $mapValues;
 	}
@@ -96,7 +96,7 @@ function getTranslationMap($name)
 	fclose($fHnd);
 
 	global $configArray;
-	$memCache->set('translation_map_' . $name, $mapValues, 0, $configArray['Caching']['translation_map']);
+	$memCache->set('translation_map_'. $serverName.'_' . $name, $mapValues, 0, $configArray['Caching']['translation_map']);
 	return $mapValues;
 }
 
