@@ -18,7 +18,7 @@
 
 /**
  *  2008.04.11
- *  Encorported a bug fix submitted by Bob Wicksall
+ *  Incorporate a bug fix submitted by Bob Wicksall
  *
  *  TODO
  *   - Clean up variable names, check for consistancy
@@ -406,9 +406,9 @@ class sip2
 		$this->_addFixedOption($thirdParty, 1);
 		$this->_addFixedOption($noBlock, 1);
 		$this->_addFixedOption($this->_datestamp(), 18);
-		if ($nbDateDue != '') {
+		if ($nbDueDate != '') {
 			/* override defualt date due */
-			$this->_addFixedOption($this->_datestamp($nbDateDue), 18);
+			$this->_addFixedOption($this->_datestamp($nbDueDate), 18);
 		} else {
 			/* send a blank date due to allow ACS to use default date due computed for item */
 			$this->_addFixedOption('', 18);
@@ -738,16 +738,18 @@ class sip2
 		if ($configArray['SIP2']['sipLogin'] && $configArray['SIP2']['sipPassword']){
 			//Send login
 			//Read the login prompt
-			$prompt = socket_read($this->socket, 7);
+			$prompt = $this->getResponse();
 			socket_write($this->socket, $configArray['SIP2']['sipLogin'] . "\r\n");
 
-			$prompt = socket_read($this->socket, 10);
+			$prompt = $this->getResponse();
 			socket_write($this->socket, $configArray['SIP2']['sipPassword'] . "\r\n");
 
+			//May need to wait briefly?
+			$initialLoginResponse = $this->getResponse();
 			//Have to read three times to clear the carriage return and new line
-			$initialLoginResponse = socket_read($this->socket, 25, PHP_NORMAL_READ);
-			$initialLoginResponse .= socket_read($this->socket, 25, PHP_NORMAL_READ);
-			$initialLoginResponse .= socket_read($this->socket, 25, PHP_NORMAL_READ);
+			//$initialLoginResponse = socket_read($this->socket, 25, PHP_NORMAL_READ);
+			//$initialLoginResponse .= socket_read($this->socket, 25, PHP_NORMAL_READ);
+			//$initialLoginResponse .= socket_read($this->socket, 25, PHP_NORMAL_READ);
 			//Send password
 
 			$loginMessage = $this->msgLogin($configArray['SIP2']['sipLogin'], $configArray['SIP2']['sipPassword']);
@@ -766,6 +768,10 @@ class sip2
 		/* return the result from the socket connect */
 		return $result;
 
+	}
+
+	function getResponse() {
+		return socket_read($this->socket,2500);
 	}
 
 	function disconnect ()
