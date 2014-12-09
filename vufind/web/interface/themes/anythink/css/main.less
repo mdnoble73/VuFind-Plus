@@ -32,6 +32,13 @@
 // hide header login, account & log out buttons */
 #header-container div.loginOptions,
 #header-container div.logoutOptions {
+  .header-primary, .header-button {
+    border-color: transparent; // hide bordering in the case display turned on. see below
+  }
+  a {
+    color: transparent !important; // hide login buttons at the top. (ajax login function seems to turn on the display before reload.) plb 12-9-2014
+    text-shadow: none;
+  }
   display: none;
 }
 
@@ -149,7 +156,9 @@ div.bottom-border-line {
 #home-page-library-section{
   background-color: @sidebar-gray;
   padding-top: 0;
-  padding-bottom: 0;
+  padding-bottom: 30px; // added to give space between bottom dotted line and end of brown background column. plb 12-08-2014
+//  padding-bottom: 100%; //trying 100% for now. I think there are times this doesn't work, but I haven't found it yet. plb 12-08-2014
+  // like the 30px better so far. plb 12-08
 }
 .sidebar-button {
   .sidebar-text-mixin;
