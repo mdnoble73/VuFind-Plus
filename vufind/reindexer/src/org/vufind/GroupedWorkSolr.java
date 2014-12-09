@@ -354,7 +354,13 @@ public class GroupedWorkSolr {
 			if (literaryForm.size() >= 2){
 				//Hmm, we got both fiction and non-fiction
 				Integer numFictionIndicators = literaryForm.get("Fiction");
+				if (numFictionIndicators == null){
+					numFictionIndicators = 0;
+				}
 				Integer numNonFictionIndicators = literaryForm.get("Non Fiction");
+				if (numNonFictionIndicators == null){
+					numNonFictionIndicators = 0;
+				}
 				if (numFictionIndicators.equals(numNonFictionIndicators)){
 					//Houston we have a problem.
 					//logger.warn("Found inconsistent literary forms for grouped work " + id + " both fiction and non fiction had the same amount of usage.  Defaulting to neither.");
