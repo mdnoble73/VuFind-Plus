@@ -363,7 +363,7 @@ class Anythink extends HorizonAPI {
 		$phoneType = strip_tags($_REQUEST['phone_type']); // option 'z' has a label of 't', rather than 'telephone'. (also pager options needed?)
 		$language = strip_tags($_REQUEST['language']);
 		$location = strip_tags($_REQUEST['location']); // not in form. plb 12-10-2014
-		$borrowerNote = strip_tags($_REQUEST['borrowerNote']); // used as a BirthDate Field. plb 12-10-2014
+		$borrowerNote = strip_tags($_REQUEST['borrower_note']); // used as a BirthDate Field. plb 12-10-2014
 
 
 
