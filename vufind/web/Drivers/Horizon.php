@@ -1262,7 +1262,8 @@ public function getMyHoldsViaDB($patron)
 
 	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "dueDate"){
 		require_once(ROOT_DIR . '/sys/ReadingHistoryEntry.php');
-		require_once(ROOT_DIR . '/services/MyResearch/lib/Resource.php');
+		//require_once(ROOT_DIR . '/services/MyResearch/lib/Resource.php');
+		// File no longer exists. turned off to see what is effected. pascal 12-10-2014
 		//Reading History is stored within VuFind for each patron.
 		global $user;
 		$historyActive = $user->trackReadingHistory == 1;
