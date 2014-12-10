@@ -189,7 +189,8 @@ class OverDriveDriver3 {
 		if ($requirePin){
 			$tokenData = $this->_connectToPatronAPI($user->cat_username, $user->cat_password, false);
 		}else{
-			$tokenData = $this->_connectToPatronAPI($user->cat_password, null, false);
+			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+			$tokenData = $this->_connectToPatronAPI($user->$barcodeProperty, null, false);
 		}
 		if ($tokenData){
 			$ch = curl_init($url);
