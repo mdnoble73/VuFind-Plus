@@ -49,7 +49,7 @@ VuFind.OverDrive = (function(){
 					async: false,
 					error: function(){
 						alert("An error occurred processing your request in OverDrive.  Please try again in a few minutes.");
-						alert("ajaxUrl = " + ajaxUrl);
+						//alert("ajaxUrl = " + ajaxUrl);
 						hideLightbox();
 					}
 				});

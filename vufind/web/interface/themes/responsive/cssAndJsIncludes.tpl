@@ -46,7 +46,7 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind.min.js"></script>
 	{/if}
 
-	<script type="text/javascript">
+	{/strip}<script type="text/javascript">
 		{* Override variables as needed *}
 		{literal}
 		$(document).ready(function(){
@@ -63,7 +63,7 @@
 			{literal}
 		});
 		{/literal}
-	</script>
+	</script>{strip}
 
 	{if $includeAutoLogoutCode == true}
 		{if $debugJs}

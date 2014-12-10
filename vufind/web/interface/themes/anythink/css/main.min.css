@@ -8065,6 +8065,17 @@ div#system-message-header {
 #header-container div.logoutOptions {
   display: none;
 }
+#header-container div.loginOptions .header-primary,
+#header-container div.logoutOptions .header-primary,
+#header-container div.loginOptions .header-button,
+#header-container div.logoutOptions .header-button {
+  border-color: transparent;
+}
+#header-container div.loginOptions a,
+#header-container div.logoutOptions a {
+  color: transparent !important;
+  text-shadow: none;
+}
 .btn-primary,
 .userreviewlink,
 .addtolistlink {
@@ -8164,7 +8175,7 @@ div.bottom-border-line {
 #home-page-library-section {
   background-color: #e3e1dd;
   padding-top: 0;
-  padding-bottom: 0;
+  padding-bottom: 30px;
 }
 .sidebar-button {
   background: none #e3e1dd;
