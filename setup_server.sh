@@ -37,10 +37,10 @@ if [ $# = 1 ];then
   cp -rp $WD/data_dir_setup/* .
   #-----------------
   echo "setting group permissions to data directory for user apache"
-  chgrp apache qrcodes
-  chgrp apache covers/*
-  chmod g+w qrcodes
-  chmod g+w covers/*
+  chgrp -v apache qrcodes
+  chgrp -v apache covers/*
+  chmod -v g+w qrcodes
+  chmod -v g+w covers/*
   #-----------------
   echo "setting up logs directory"
   cd /var/log
