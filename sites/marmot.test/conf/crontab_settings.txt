@@ -1,0 +1,120 @@
+###################
+## Crontab setting from a 'configuration' file
+## 
+## to save current crontab to file: crontab -l > crontab_settings.txt
+##
+## to set the current crontab from a file : crontab < crontab_settings.txt
+##
+## added by pascal. 12-11-2014
+##################
+
+# !! Please make all changes to the crontab within the git repository system and apply through the above method.
+#
+# ie :
+# git pull origin {current branch}
+# crontab < /usr/local/vufind-plus/sites/marmot.test/conf/crontab_settings.txt
+
+
+
+# backup important bits at 2:10am daily
+10 2 * * * /root/cron/backup 2>&1 >/dev/null
+
+#############
+# On Reboot #
+#############
+# Continuous Re-Indexing
+@reboot cd /usr/local/vufind-plus/sites/marmot.test; ./extract_and_reindex.sh
+
+
+################
+# Pika Cleanup #
+################
+# Solr Restart
+7 1 * * * cd /usr/local/vufind-plus/sites/marmot.test; ./marmot.test.sh restart
+14 1 * * * cd /usr/local/vufind-plus/sites/marmot.training; ./marmot.training.sh restart
+21 1 * * * cd /usr/local/vufind-plus/sites/anythink.test; ./anythink.test.sh restart
+28 1 * * * cd /usr/local/vufind-plus/sites/aspencat.test; ./aspencat.test.sh restart
+# Additional Restarts added 12-9-2014 plb
+
+# Memcached restart
+#2 1 * * * /etc/rc.d/init.d/memcached restart
+
+# MySQL Restart once a week should be enough
+#6 1 * * 0 /etc/rc.d/init.d/mysqld restart
+
+# Temp Files
+26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
+27 */2 * * * cd /tmp; /bin/rm -rf epb*
+
+###################################
+# Data Extract from other systems #
+###################################
+# Library supplied covers
+*/10 * * * * /root/cron/copyCovers.sh
+# Every 10 minutes. fixed 11-14-2014 plb. (previously every hour 10 past the hour)
+
+# Sierra Records - just twice a day after the export from sierra runs
+01 0,13 * * * /root/cron/copySierraExport.sh
+#Everday midnight and 1pm
+# adjusted to 1 min later to avoid conflict with nfs mount point in script - sml 24 Nov 14
+
+###############################
+# Data Extract TO ftp server  #
+###############################
+# sd51 export copy 3.01am on Friday
+# added 01 Dec 14 - sml
+01 3 * * 5 /root/cron/copySD51Export
+
+########################
+# Update Grouped Works #
+########################
+# Marmot - Do a partial update in the middle of the day after the records are copied
+10 13 * * * cd /usr/local/vufind-plus/vufind/record_grouping; nice -n -10 java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar marmot.test
+#1:10pm everyday
+
+# Marmot - Do a full regrouping once a day in the middle the night, but not during the day
+10 0 * * * cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar marmot.test fullRegroupingNoClear
+# 12:10am everyday
+
+# AspenCat - Full Record Grouping
+#50 1 * * * cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar aspencat.test fullRegroupingNoClear
+# 1:50am everyday
+
+# Marmot-Training - Do a partial update in the middle of the day after the records are copied
+#50 13 * * * cd /usr/local/vufind-plus/vufind/record_grouping; nice -n -10 java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar marmot.training
+
+# Marmot-Training - Do a full regrouping once a day in the middle the night, but not during the day
+50 2 * * * cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar marmot.training fullRegroupingNoClear
+#2:50am everyday, after aspencat has finished regrouping & re-indexing
+
+###########
+# Reindex #
+###########
+# Marmot - Do a full reindex at night after the works have been updated
+10 1 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar marmot.test fullReindex
+# 1:10am everyday
+
+# AspenCat export copy
+# adjust to 2.31a to avoid conflict with nfs mount point - sml 24 Nov 14
+31 2 * * * /root/cron/copyAspencatExport.sh
+
+# AspenCat
+#40 2 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar aspencat.test fullReindex
+#2:20 am everyday, after full regrouping
+
+# Marmot-Training - Do a full reindex at night after the works have been updated
+40 3 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar marmot.training fullReindex
+#3:40am everyday, after marmot-training full record grouping
+
+##########
+# Cron   #
+##########
+5 0,3,6,9,12,15,18,21 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.test
+20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.test DatabaseCleanup
+
+# Write reports for schools
+00 6,11 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.test SierraReports
+
+# Split Marc Records for export to other systems
+00 1 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.test SplitMarcExport
+
