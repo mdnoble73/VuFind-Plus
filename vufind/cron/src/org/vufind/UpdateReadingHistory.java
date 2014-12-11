@@ -1,4 +1,4 @@
-package org.douglascountylibraries;
+package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
@@ -6,19 +6,12 @@ import org.ini4j.Profile.Section;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.vufind.CronLogEntry;
-import org.vufind.CronProcessLogEntry;
-import org.vufind.IProcessHandler;
-import org.vufind.Util;
 
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -31,7 +24,6 @@ import java.util.Iterator;
 
 public class UpdateReadingHistory implements IProcessHandler {
 	private CronProcessLogEntry processLog;
-	private PreparedStatement getUsersStmt;
 	private PreparedStatement getResourceStmt;
 	private PreparedStatement readingHistoryStatement;
 	private PreparedStatement insertResourceStmt;
@@ -76,7 +68,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 		// Connect to the VuFind MySQL database
 		try {
 			// Get a list of all patrons that have reading history turned on.
-			getUsersStmt = vufindConn.prepareStatement("SELECT * FROM user where trackReadingHistory=1");
+			PreparedStatement getUsersStmt = vufindConn.prepareStatement("SELECT * FROM user where trackReadingHistory=1");
 			getResourceStmt = vufindConn.prepareStatement("SELECT * from resource WHERE record_id = ? and source = ?");
 			readingHistoryStatement = vufindConn.prepareStatement("SELECT * FROM user_reading_history WHERE userId=? AND resourceId = ?");
 			insertResourceStmt = vufindConn.prepareStatement("INSERT into resource (record_id, source) values (?, ?)", Statement.RETURN_GENERATED_KEYS);
