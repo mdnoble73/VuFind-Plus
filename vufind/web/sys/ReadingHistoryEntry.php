@@ -13,7 +13,7 @@ class ReadingHistoryEntry extends DB_DataObject
 	public $resourceId;			//int(11)
 	public $firstCheckoutDate;  //date
 	public $lastCheckoutDate;   //date
-  	public $daysCheckedOut;		//int(11)
+ 	public $daysCheckedOut;		//int(11)
 	
 	/* Static get */
     function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('ReadingHistoryEntry',$k,$v); }

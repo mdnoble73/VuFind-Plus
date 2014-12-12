@@ -1,4 +1,5 @@
 #!/bin/bash
+# Script executes continuous re-indexing.
 while true
 do
 	echo "Starting new extract and index - `date`"
