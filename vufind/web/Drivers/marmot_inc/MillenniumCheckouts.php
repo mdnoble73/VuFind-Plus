@@ -160,8 +160,18 @@ class MillenniumCheckouts {
 					$recordDriver = new MarcRecord($curTitle['recordId']);
 					if ($recordDriver->isValid()){
 						$curTitle['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
+						$formats = $recordDriver->getFormats();
+						$curTitle['format'] = reset($formats);
+						$curTitle['author'] = $recordDriver->getPrimaryAuthor();
+						if (!isset($curTitle['title']) || empty($curTitle['title'])){
+							$curTitle['title'] = $recordDriver->getTitle();
+						}
 					}else{
 						$curTitle['coverUrl'] = "";
+						$curTitle['groupedWorkId'] = "";
+						$curTitle['format'] = "Unknown";
+						$curTitle['author'] = "";
 					}
 				}
 				$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
