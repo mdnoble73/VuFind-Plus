@@ -321,7 +321,7 @@ class MillenniumHolds{
 		}
 	}
 
-	public function parseHoldsPage($sResult){
+	public function parseHoldsPage($pageContents){
 		//global $logger;
 		$availableHolds = array();
 		$unavailableHolds = array();
@@ -330,9 +330,25 @@ class MillenniumHolds{
 			'unavailable' => $unavailableHolds
 		);
 
+		//Get the headers from the table
+		preg_match_all('/<th\\s+class="patFuncHeaders">\\s*([\\w\\s]*?)\\s*<\/th>/si', $pageContents, $result, PREG_SET_ORDER);
+		$sKeys = array();
+		for ($matchi = 0; $matchi < count($result); $matchi++) {
+			$sKeys[] = $result[$matchi][1];
+		}
+
+		//Get the rows for the table
+		preg_match_all('/<tr\\s+class="patFuncEntry">(.*?)<\/tr>/si', $pageContents, $result, PREG_SET_ORDER);
+		$sRows = array();
+		for ($matchi = 0; $matchi < count($result); $matchi++) {
+			$sRows[] = $result[$matchi][1];
+		}
+
 		/*$sResult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* HOLD.?\W<[^<]+?>\W<[^<]+?>/", "", $sResult);*/
 
-		$s = substr($sResult, stripos($sResult, 'patFunc'));
+		//$sResult = substr($sResult,strpos($sResult,"HOLD"));
+
+		/*$s = substr($pageContents, stripos($pageContents, 'patFunc'));
 
 		$s = substr($s,strpos($s,">")+1);
 
@@ -340,14 +356,18 @@ class MillenniumHolds{
 
 		$s = preg_replace ("/<br \/>/","", $s);
 
-		$sRows = preg_split("/<tr([^>]*)>/",$s);
+		$sRows = preg_split("/<tr([^>]*)>/",$s);*/
 		$sCount = 0;
-		$sKeys = array_pad(array(),10,"");
+
 		foreach ($sRows as $sRow) {
-			if (strlen(trim($sRow)) == 0){
-				continue;
+			preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $sRow, $result, PREG_SET_ORDER);
+			$sCols = array();
+			for ($matchi = 0; $matchi < count($result); $matchi++) {
+				$sCols[] = $result[$matchi][1];
 			}
-			$sCols = preg_split("/<t(h|d)([^>]*)>/",$sRow);
+
+
+			//$sCols = preg_split("/<t(h|d)([^>]*)>/",$sRow);
 			$curHold= array();
 			$curHold['create'] = null;
 			$curHold['reqnum'] = null;
@@ -357,11 +377,12 @@ class MillenniumHolds{
 			for ($i=0; $i < sizeof($sCols); $i++) {
 				$sCols[$i] = str_replace("&nbsp;"," ",$sCols[$i]);
 				$sCols[$i] = preg_replace ("/<br+?>/"," ", $sCols[$i]);
-				$sCols[$i] = html_entity_decode(trim(substr($sCols[$i],0,stripos($sCols[$i],"</t"))));
+				$sCols[$i] = html_entity_decode(trim($sCols[$i]));
 				//print_r($scols[$i]);
-				if ($sCount <= 1) {
+				/*if ($sCount <= 1) {
 					$sKeys[$i] = $sCols[$i];
-				} else if ($sCount > 1) {
+				} else if ($sCount > 1) {*/
+
 					if ($sKeys[$i] == "CANCEL") { //Only check Cancel key, not Cancel if not filled by
 						//Extract the id from the checkbox
 						$matches = array();
@@ -390,6 +411,10 @@ class MillenniumHolds{
 							$bibid = '';
 							$shortId = '';
 							$title = trim($sCols[$i]);
+							global $configArray;
+							if ($configArray['Site']['debug']){
+								echo("Unexpected format in title column.  Got {$sCols[$i]}.<br/>");
+							}
 						}
 
 						$curHold['id'] = $bibid;
@@ -487,16 +512,16 @@ class MillenniumHolds{
 							$curHold['freezeable'] = false;
 						}
 					}
-				}
+				//}
 			} //End of columns
 
-			if ($sCount > 1) {
+			//if ($sCount > 1) {
 				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "ready") != 0){
 					$holds['unavailable'][] = $curHold;
 				}else{
 					$holds['available'][] = $curHold;
 				}
-			}
+			//}
 
 			$sCount++;
 
