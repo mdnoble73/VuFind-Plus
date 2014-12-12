@@ -322,6 +322,7 @@ class MillenniumHolds{
 	}
 
 	public function parseHoldsPage($sResult){
+		//global $logger;
 		$availableHolds = array();
 		$unavailableHolds = array();
 		$holds = array(
@@ -329,7 +330,7 @@ class MillenniumHolds{
 			'unavailable' => $unavailableHolds
 		);
 
-		$sResult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* HOLD.?\W<[^<]+?>\W<[^<]+?>/", "", $sResult);
+		//$sResult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* HOLD.?\W<[^<]+?>\W<[^<]+?>/", "", $sResult);
 
 		$s = substr($sResult, stripos($sResult, 'patFunc'));
 
