@@ -1706,7 +1706,7 @@ class MillenniumDriver implements DriverInterface
 			preg_match_all('/<tr class="patFuncFinesEntryTitle">(.*?)<\/tr>.*?<tr class="patFuncFinesEntryDetail">.*?<td class="patFuncFinesDetailType">(.*?)<\/td>.*?<td align="right" class="patFuncFinesDetailAmt">(.*?)<\/td>.*?<\/tr>/si', $finesTable, $fineDetails, PREG_SET_ORDER);
 			for ($matchi = 0; $matchi < count($fineDetails); $matchi++) {
 				$reason = $fineDetails[$matchi][2];
-				if ($reason == '&nbsp'){
+				if ($reason == '&nbsp' || $reason == '&nbsp;'){
 					$reason = 'Fee';
 				}
 				$messages[] = array(
