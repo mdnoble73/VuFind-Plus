@@ -14,4 +14,5 @@
 
 # Solr Engine for {servername} instance
 cd /usr/local/vufind-plus/sites/{servername}
-./{servername}.sh start
+./{servername}.sh $*
+# this script is passed a "start" or "stop" argument which is passed on to the pika script
