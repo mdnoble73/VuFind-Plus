@@ -78,6 +78,7 @@ class Fines extends MyAccount
 			}
 		}
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('fines.tpl');
 		$interface->setPageTitle('My Fines');
 		$interface->display('layout.tpl');
