@@ -8,7 +8,7 @@ OUTPUT_FILE="/var/log/vufind-plus/marmot.test/extract_and_reindex_output.log"
 while true
 do
 	#truncate the file
-	> OUTPUT_FILE;
+	: > $OUTPUT_FILE;
 
 	#echo "Starting new extract and index - `date`" > ${OUTPUT_FILE}
 	# reset the output file each round
