@@ -7,6 +7,8 @@ EMAIL=root@venus
 OUTPUT_FILE="/var/log/vufind-plus/marmot.test/extract_and_reindex_output.log"
 while true
 do
+	#truncate the file
+	> OUTPUT_FILE;
 
 	#echo "Starting new extract and index - `date`" > ${OUTPUT_FILE}
 	# reset the output file each round
@@ -28,7 +30,7 @@ do
 
 	# add any logic wanted for when to send the emails here. (eg errors only)
 	FILESIZE=$(stat -c%s ${OUTPUT_FILE})
-	if [$FILESIZE -gt 0]
+	if [[ ${FILESIZE} > 0 ]]
 	then
 		# send mail
 		mail -s "Extract and Reindexing - marmot.test" $EMAIL < ${OUTPUT_FILE}
