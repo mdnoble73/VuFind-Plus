@@ -52,5 +52,6 @@ interface DriverInterface
 	public function getPurchaseHistory($id);
 	public function getMyProfile($patron, $forceReload = false);
 	public function patronLogin($username, $password);
+	public function hasNativeReadingHistory();
 }
 ?>

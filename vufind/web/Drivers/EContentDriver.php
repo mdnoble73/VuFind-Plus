@@ -582,11 +582,13 @@ class EContentDriver implements DriverInterface{
 				//Get Ratings
 				$return['transactions'][] = array(
 					'id' => $eContentCheckout->recordId,
+					'groupedWorkId' => $recordDriver->getGroupedWorkId(),
 					'recordId' => $recordDriver->getUniqueID(),
 					'recordType' => $eContentCheckout->protectionType == 'free' ? 'PublicEContent' : 'RestrictedEContent',
 					'checkoutSource' => 'eContent',
 					'title' => $recordDriver->getTitle(),
 					'author' => $recordDriver->getPrimaryAuthor(),
+					'format' => $recordDriver->getFormatCategory(),
 					'duedate' => $eContentCheckout->dateDue,
 					'checkoutdate' => $eContentCheckout->dateCheckedOut,
 					'daysUntilDue' => $daysUntilDue,

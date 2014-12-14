@@ -400,7 +400,11 @@ class OverDriveDriver3 {
 				$bookshelfItem['overDriveId'] = $curTitle->reserveId;
 				$bookshelfItem['expiresOn'] = $curTitle->expires;
 				$bookshelfItem['overdriveRead'] = false;
-				$bookshelfItem['formatSelected'] = ($curTitle->isFormatLockedIn == 1);
+				if (isset($curTitle->isFormatLockedIn) && $curTitle->isFormatLockedIn == 1){
+					$bookshelfItem['formatSelected'] = true;
+				}else{
+					$bookshelfItem['formatSelected'] = false;
+				}
 				$bookshelfItem['formats'] = array();
 				if (!$forSummary){
 					if (isset($curTitle->formats)){
@@ -453,6 +457,9 @@ class OverDriveDriver3 {
 					require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
 					$overDriveRecord = new OverDriveRecordDriver($bookshelfItem['overDriveId']);
 					$bookshelfItem['recordId'] = $overDriveRecord->getUniqueID();
+					$bookshelfItem['groupedWorkId'] = $overDriveRecord->getGroupedWorkId();
+					$formats = $overDriveRecord->getFormats();
+					$bookshelfItem['format'] = reset($formats);
 					$bookshelfItem['coverUrl'] = $overDriveRecord->getCoverUrl('medium');
 					$bookshelfItem['recordUrl'] = $configArray['Site']['path'] . '/OverDrive/' . $overDriveRecord->getUniqueID() . '/Home';
 					$bookshelfItem['title'] = $overDriveRecord->getTitle();

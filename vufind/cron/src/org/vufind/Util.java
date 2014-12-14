@@ -394,4 +394,14 @@ public class Util {
 		}
 		return true;
 	}
+
+	public static String trimTo(int maxCharacters, String stringToTrim) {
+		if (stringToTrim == null) {
+			return null;
+		}
+		if (stringToTrim.length() > maxCharacters) {
+			stringToTrim = stringToTrim.substring(0, maxCharacters);
+		}
+		return stringToTrim.trim();
+	}
 }

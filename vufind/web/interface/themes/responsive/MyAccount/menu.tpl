@@ -26,7 +26,9 @@
 							<div id="myAccountFines">
 								{if $profile.finesval > 0}
 									{if $showEcommerceLink && $profile.finesval > $minimumFineAmount}
-										<div class="myAccountLink" style="color:red; font-weight:bold;">Your account has {$profile.fines} in fines.</div>
+										<div class="myAccountLink" style="color:red; font-weight:bold;">
+											Your account has {$profile.fines} in fines.
+										</div>
 										<div class="myAccountLink"><a href='{$ecommerceLink}' >{if $payFinesLinkText}{$payFinesLinkText}{else}Click to Pay Fines Online{/if}</a></div>
 									{else}
 										<div class="myAccountLink" title="Please Contact your local library to pay fines or Charges." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to pay fines or Charges.')">Your account has {$profile.fines} in fines.</div>
@@ -40,7 +42,7 @@
 
 						<div class="myAccountLink{if $pageTemplate=="checkedout.tpl"} active{/if}"><a href="{$path}/MyAccount/CheckedOut" id="checkedOut">Checked Out Titles ({$profile.numCheckedOutTotal})</a></div>
 						<div class="myAccountLink{if $pageTemplate=="holds.tpl"} active{/if}"><a href="{$path}/MyAccount/Holds" id="holds">Titles On Hold ({$profile.numHoldsTotal})</a></div>
-						<div class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyAccount/ReadingHistory">Reading History</a></div>
+						<div class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyAccount/ReadingHistory">Reading History{if $profile.readingHistorySize} ({$profile.readingHistorySize}){/if}</a></div>
 
 						{if $showFines}
 						<div class="myAccountLink{if $pageTemplate=="fines.tpl"} active{/if}" title="Fines and account messages"><a href="{$path}/MyAccount/Fines">{translate text='Fines and Messages'}</a></div>

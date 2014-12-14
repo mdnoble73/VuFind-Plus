@@ -1231,4 +1231,8 @@ abstract class HorizonAPI extends Horizon{
 		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
 
 	}
+
+	public function hasNativeReadingHistory() {
+		return false;
+	}
 }

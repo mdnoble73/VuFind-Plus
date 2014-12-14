@@ -406,6 +406,31 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'readingHistory_work' => array(
+					'title' => 'Reading History For Grouped Works',
+					'description' => 'Update reading History to remove resources and work with works',
+					'sql' => array(
+						"CREATE TABLE IF NOT EXISTS	user_reading_history_work(
+						id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+						userId INT NOT NULL COMMENT 'The id of the user who checked out the item',
+						groupedWorkPermanentId CHAR(36) NOT NULL,
+						source VARCHAR(25) NOT NULL COMMENT 'The source of the record being checked out',
+						sourceId VARCHAR(50) NOT NULL COMMENT 'The id of the item that item that was checked out within the source',
+						title VARCHAR(150) NULL COMMENT 'The title of the item in case this is ever deleted',
+						author VARCHAR(75) NULL COMMENT 'The author of the item in case this is ever deleted',
+						format VARCHAR(50) NULL COMMENT 'The format of the item in case this is ever deleted',
+						checkOutDate INT NOT NULL COMMENT 'The first day we detected that the item was checked out to the patron',
+						checkInDate INT NULL COMMENT 'The last day we detected that the item was checked out to the patron.',
+						INDEX ( userId, checkOutDate ),
+						INDEX ( userId, checkInDate ),
+						INDEX ( userId, title ),
+						INDEX ( userId, author )
+						) ENGINE = INNODB DEFAULT CHARSET=utf8 COMMENT = 'The reading history for patrons';",
+						"DROP TABLE user_reading_history"
+					),
+
+				),
+
 				'coverArt_suppress' => array(
 					'title' => 'Cover Art Suppress',
 					'description' => 'Add tracking for whether the user wants to suppress cover art',

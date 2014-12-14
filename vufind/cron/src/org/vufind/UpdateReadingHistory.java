@@ -12,21 +12,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 
 public class UpdateReadingHistory implements IProcessHandler {
 	private CronProcessLogEntry processLog;
-	private PreparedStatement getResourceStmt;
-	private PreparedStatement readingHistoryStatement;
-	private PreparedStatement insertResourceStmt;
 	private PreparedStatement updateReadingHistoryStmt;
 	private PreparedStatement insertReadingHistoryStmt;
 	private String vufindUrl;
@@ -35,7 +33,8 @@ public class UpdateReadingHistory implements IProcessHandler {
 	private boolean loadPrintHistory = true;
 	private boolean loadEcontentHistory = true;
 	private boolean loadOverdriveHistory = false;
-	
+	private PreparedStatement getCheckedOutTitlesForUser;
+
 	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Update Reading History");
 		processLog.saveToDatabase(vufindConn, logger);
@@ -68,12 +67,12 @@ public class UpdateReadingHistory implements IProcessHandler {
 		// Connect to the VuFind MySQL database
 		try {
 			// Get a list of all patrons that have reading history turned on.
-			PreparedStatement getUsersStmt = vufindConn.prepareStatement("SELECT * FROM user where trackReadingHistory=1");
-			getResourceStmt = vufindConn.prepareStatement("SELECT * from resource WHERE record_id = ? and source = ?");
-			readingHistoryStatement = vufindConn.prepareStatement("SELECT * FROM user_reading_history WHERE userId=? AND resourceId = ?");
-			insertResourceStmt = vufindConn.prepareStatement("INSERT into resource (record_id, source) values (?, ?)", Statement.RETURN_GENERATED_KEYS);
-			updateReadingHistoryStmt = vufindConn.prepareStatement("UPDATE user_reading_history SET daysCheckedOut=?, lastCheckoutDate=? WHERE userId=? AND resourceId = ?");
-			insertReadingHistoryStmt = vufindConn.prepareStatement("INSERT INTO user_reading_history (userId, resourceId, lastCheckoutDate, firstCheckoutDate, daysCheckedOut) VALUES (?, ?, ?, ?, 1)");
+			PreparedStatement getUsersStmt = vufindConn.prepareStatement("SELECT id, cat_username, cat_password, initialReadingHistoryLoaded FROM user where trackReadingHistory=1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement updateInitialReadingHistoryLoaded = vufindConn.prepareStatement("UPDATE user SET initialReadingHistoryLoaded = 1 WHERE id = ?");
+
+			getCheckedOutTitlesForUser = vufindConn.prepareStatement("SELECT id, groupedWorkPermanentId, source, sourceId FROM user_reading_history_work WHERE userId=? and checkInDate is null", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			updateReadingHistoryStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET checkInDate=? WHERE id = ?");
+			insertReadingHistoryStmt = vufindConn.prepareStatement("INSERT INTO user_reading_history_work (userId, groupedWorkPermanentId, source, sourceId, title, author, format, checkOutDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 			
 			ResultSet userResults = getUsersStmt.executeQuery();
 			while (userResults.next()) {
@@ -81,16 +80,43 @@ public class UpdateReadingHistory implements IProcessHandler {
 				Long userId = userResults.getLong("id");
 				String cat_username = userResults.getString("cat_username");
 				String cat_password = userResults.getString("cat_password");
+
+				boolean initialReadingHistoryLoaded = userResults.getBoolean("initialReadingHistoryLoaded");
+				if (!initialReadingHistoryLoaded){
+					//Get the initial reading history from the ILS
+					try {
+						loadInitialReadingHistoryForUser(userId, cat_username, cat_password);
+						updateInitialReadingHistoryLoaded.setLong(1, userId);
+						updateInitialReadingHistoryLoaded.executeUpdate();
+					}catch (SQLException e){
+						logger.error("Error loading initial reading history", e);
+					}
+				}
+
+				//Get a list of titles that were previously checked out
+				getCheckedOutTitlesForUser.setLong(1, userId);
+				ResultSet checkedOutTitlesRS = getCheckedOutTitlesForUser.executeQuery();
+				ArrayList<CheckedOutTitle> checkedOutTitles = new ArrayList<CheckedOutTitle>();
+				while (checkedOutTitlesRS.next()){
+					CheckedOutTitle curCheckout = new CheckedOutTitle();
+					curCheckout.setId(checkedOutTitlesRS.getLong("id"));
+					curCheckout.setGroupedWorkPermanentId(checkedOutTitlesRS.getString("groupedWorkPermanentId"));
+					curCheckout.setSource(checkedOutTitlesRS.getString("source"));
+					curCheckout.setSourceId(checkedOutTitlesRS.getString("sourceId"));
+					checkedOutTitles.add(curCheckout);
+				}
+
 				logger.info("Loading Reading History for patron " + cat_username);
-				if (loadPrintHistory){
-					processPrintTitles(userId, cat_username, cat_password);
+				processTitlesForUser(userId, cat_username, cat_password, checkedOutTitles, loadPrintHistory, loadEcontentHistory, loadOverdriveHistory);
+
+				//Any titles that are left in checkedOutTitles were checked out previously and are no longer checked out.
+				Long curTime = new Date().getTime() / 1000;
+				for (CheckedOutTitle curTitle: checkedOutTitles){
+					updateReadingHistoryStmt.setLong(1, curTime);
+					updateReadingHistoryStmt.setLong(2, curTitle.getId());
+					updateReadingHistoryStmt.executeUpdate();
 				}
-				if (loadEcontentHistory){
-					processEContentTitles(userId, cat_username, cat_password);
-				}
-				if (loadOverdriveHistory){
-					processOverDriveTitles(userId, cat_username, cat_password);
-				}
+
 				processLog.incUpdated();
 				processLog.saveToDatabase(vufindConn, logger);
 			}
@@ -104,16 +130,106 @@ public class UpdateReadingHistory implements IProcessHandler {
 		processLog.setFinished();
 		processLog.saveToDatabase(vufindConn, logger);
 	}
-	
-	private void processPrintTitles(Long userId, String cat_username, String cat_password) throws SQLException{
+
+	private void loadInitialReadingHistoryForUser(Long userId, String cat_username, String cat_password) throws SQLException {
 		try {
 			// Call the patron API to get their checked out items
-			URL patronApiUrl = new URL(vufindUrl + "/API/UserAPI?method=getPatronCheckedOutItems&username=" + cat_username + "&password=" + cat_password + "&includeEContent=false");
+			URL patronApiUrl = new URL(vufindUrl + "/API/UserAPI?method=getPatronReadingHistory&username=" + URLEncoder.encode(cat_username) + "&password=" + URLEncoder.encode(cat_password));
 			Object patronDataRaw = patronApiUrl.getContent();
 			if (patronDataRaw instanceof InputStream) {
 				String patronDataJson = Util.convertStreamToString((InputStream) patronDataRaw);
-				logger.info(patronApiUrl.toString());
-				logger.info("Json for patron checked out items " + patronDataJson);
+				logger.debug(patronApiUrl.toString());
+				logger.debug("Json for patron reading history " + patronDataJson);
+				try {
+					JSONObject patronData = new JSONObject(patronDataJson);
+					JSONObject result = patronData.getJSONObject("result");
+					if (result.getBoolean("success") && result.has("readingHistory")) {
+						if (result.get("readingHistory").getClass() == JSONObject.class){
+							JSONObject readingHistoryItems = result.getJSONObject("readingHistory");
+							@SuppressWarnings("unchecked")
+							Iterator<String> keys = (Iterator<String>) readingHistoryItems.keys();
+							while (keys.hasNext()) {
+								String curKey = keys.next();
+								JSONObject readingHistoryItem = readingHistoryItems.getJSONObject(curKey);
+								processReadingHistoryTitle(readingHistoryItem, userId);
+
+							}
+						}else if (result.get("checkedOutItems").getClass() == JSONArray.class){
+							JSONArray readingHistoryItems = result.getJSONArray("readingHistory");
+							for (int i = 0; i < readingHistoryItems.length(); i++){
+								processReadingHistoryTitle(readingHistoryItems.getJSONObject(i), userId);
+							}
+						}else{
+							processLog.incErrors();
+							processLog.addNote("Unexpected JSON for patron checked out items received " + result.get("checkedOutItems").getClass());
+						}
+					} else {
+						logger.info("Call to getPatronCheckedOutItems returned a success code of false for " + cat_username);
+					}
+				} catch (JSONException e) {
+					logger.error("Unable to load patron information from for " + cat_username + " exception loading response ", e);
+					processLog.incErrors();
+					processLog.addNote("Unable to load patron information from for " + cat_username + " exception loading response " + e.toString());
+				}
+			} else {
+				logger.error("Unable to load patron information from for " + cat_username + ": expected to get back an input stream, received a "
+						+ patronDataRaw.getClass().getName());
+				processLog.incErrors();
+			}
+		} catch (MalformedURLException e) {
+			logger.error("Bad url for patron API " + e.toString());
+			processLog.incErrors();
+		} catch (IOException e) {
+			logger.error("Unable to retrieve information from patron API for " + cat_username + ": " + e.toString());
+			processLog.incErrors();
+		}
+	}
+
+	private boolean processReadingHistoryTitle(JSONObject readingHistoryTitle, Long userId) throws JSONException {
+		String source = "ILS";
+		String sourceId = "";
+		if (readingHistoryTitle.has("recordId")) {
+			sourceId = readingHistoryTitle.getString("recordId");
+		}
+		SimpleDateFormat checkoutDateFormat = new SimpleDateFormat("MM-dd-yyyy");
+
+		//This is a newly checked out title
+		try {
+			insertReadingHistoryStmt.setLong(1, userId);
+			insertReadingHistoryStmt.setString(2, readingHistoryTitle.getString("permanentId") == null ? "" : readingHistoryTitle.getString("permanentId"));
+			insertReadingHistoryStmt.setString(3, source);
+			insertReadingHistoryStmt.setString(4, sourceId);
+			insertReadingHistoryStmt.setString(5, Util.trimTo(150, readingHistoryTitle.getString("title")));
+			insertReadingHistoryStmt.setString(6, Util.trimTo(75, readingHistoryTitle.getString("author")));
+			insertReadingHistoryStmt.setString(7, Util.trimTo(50, readingHistoryTitle.getString("format")));
+			String checkoutDate = readingHistoryTitle.getString("checkout");
+			long checkoutTime = new Date().getTime();
+			try {
+				checkoutTime = checkoutDateFormat.parse(checkoutDate).getTime() / 1000;
+			} catch (ParseException e) {
+				logger.error("Error loading checkout date " + checkoutDate + " was not the expected format");
+			}
+
+			insertReadingHistoryStmt.setLong(8, checkoutTime);
+			insertReadingHistoryStmt.executeUpdate();
+			processLog.incUpdated();
+			return true;
+		}catch (SQLException e){
+			logger.error("Error adding title for user " + userId + " " + readingHistoryTitle.getString("title"), e);
+			processLog.incErrors();
+			return false;
+		}
+	}
+
+	private void processTitlesForUser(Long userId, String cat_username, String cat_password, ArrayList<CheckedOutTitle> checkedOutTitles, boolean loadPrintHistory, boolean loadEcontentHistory, boolean loadOverdriveHistory) throws SQLException{
+		try {
+			// Call the patron API to get their checked out items
+			URL patronApiUrl = new URL(vufindUrl + "/API/UserAPI?method=getPatronCheckedOutItems&username=" + URLEncoder.encode(cat_username) + "&password=" + URLEncoder.encode(cat_password));
+			Object patronDataRaw = patronApiUrl.getContent();
+			if (patronDataRaw instanceof InputStream) {
+				String patronDataJson = Util.convertStreamToString((InputStream) patronDataRaw);
+				logger.debug(patronApiUrl.toString());
+				logger.debug("Json for patron checked out items " + patronDataJson);
 				try {
 					JSONObject patronData = new JSONObject(patronDataJson);
 					JSONObject result = patronData.getJSONObject("result");
@@ -125,13 +241,13 @@ public class UpdateReadingHistory implements IProcessHandler {
 							while (keys.hasNext()) {
 								String curKey = keys.next();
 								JSONObject checkedOutItem = checkedOutItems.getJSONObject(curKey);
-								processCheckedOutTitle(checkedOutItem, userId);
+								processCheckedOutTitle(checkedOutItem, userId, checkedOutTitles);
 								
 							}
 						}else if (result.get("checkedOutItems").getClass() == JSONArray.class){
 							JSONArray checkedOutItems = result.getJSONArray("checkedOutItems");
 							for (int i = 0; i < checkedOutItems.length(); i++){
-								processCheckedOutTitle(checkedOutItems.getJSONObject(i), userId);
+								processCheckedOutTitle(checkedOutItems.getJSONObject(i), userId, checkedOutTitles);
 							}
 						}else{
 							processLog.incErrors();
@@ -159,203 +275,47 @@ public class UpdateReadingHistory implements IProcessHandler {
 		}
 	}
 	
-	private boolean processCheckedOutTitle(JSONObject checkedOutItem, long userId) throws JSONException, SQLException, IOException{
+	private boolean processCheckedOutTitle(JSONObject checkedOutItem, long userId, ArrayList<CheckedOutTitle> checkedOutTitles) throws JSONException, SQLException, IOException{
 		// System.out.println(checkedOutItem.toString());
-		String bibId = checkedOutItem.getString("id");
-		String checkoutDateStr = checkedOutItem.getString("checkoutdate");
-		logger.debug(bibId + " : " + checkoutDateStr);
+		String source = checkedOutItem.getString("checkoutSource");
+		String sourceId = "?";
+		if (source.equals("OverDrive")){
+			sourceId = checkedOutItem.getString("overDriveId");
+		}else if (source.equals("ILS")){
+			sourceId = checkedOutItem.getString("id");
+		}else if (source.equals("eContent")){
+			source = checkedOutItem.getString("recordType");
+			sourceId = checkedOutItem.getString("id");
+		}
 
-		// Get the resource for this bibId
-		long resourceId = getResourceForBib(bibId, "VuFind");
-		if (resourceId == -1){
-			logger.error("Could not retrieve or create resource for bib Id " + bibId);
-			processLog.incErrors();
-			processLog.addNote("Could not retrieve or create resource for bib Id " + bibId);
-			return false;
-		}else{
-			// Update the reading history
-			try {
-				Date checkoutDate = checkoutDateFormat.parse(checkoutDateStr);
-				updateReadingHistory(userId, bibId, resourceId, checkoutDate);
-				processLog.incUpdated();
-				return true;
-			} catch (ParseException e) {
-				logger.error("Could not parse checkout date " + e.toString());
-				processLog.incErrors();
-				processLog.addNote("Could not parse checkout date " + e.toString());
-				return false;
+		//Check to see if this is an existing checkout.  If it is, skipp inserting
+		if (checkedOutTitles != null) {
+			for (CheckedOutTitle curTitle : checkedOutTitles) {
+				if (curTitle.getSource().equals(source) && curTitle.getSourceId().equals(sourceId)) {
+					checkedOutTitles.remove(curTitle);
+					return true;
+				}
 			}
 		}
-	}
 
-	private void processEContentTitles(Long userId, String cat_username, String cat_password) throws SQLException{
+		//This is a newly checked out title
 		try {
-			// Call the patron API to get their checked out items
-			URL patronApiUrl;
-			patronApiUrl = new URL(vufindUrl + "/API/UserAPI?method=getPatronCheckedOutEContent&username=" + cat_username + "&password=" + cat_password);
-			Object patronDataRaw = patronApiUrl.getContent();
-			if (patronDataRaw instanceof InputStream) {
-				String patronDataJson = Util.convertStreamToString((InputStream) patronDataRaw);
-				logger.info(patronApiUrl.toString());
-				logger.info("Json for patron checked out econtent " + patronDataJson);
-				try {
-					JSONObject patronData = new JSONObject(patronDataJson);
-					JSONObject result = patronData.getJSONObject("result");
-					if (result.getBoolean("success")) {
-						JSONArray checkedOutItems = result.getJSONArray("checkedOutItems");
-						for (int i = 0; i < checkedOutItems.length(); i++){
-							JSONObject checkedOutItem = checkedOutItems.getJSONObject(i);
-							// System.out.println(checkedOutItem.toString());
-							String bibId = checkedOutItem.getString("id");
-							String checkoutDateStr = checkedOutItem.getString("checkoutdate");
-							logger.debug(bibId + " : " + checkoutDateStr);
-
-							// Get the resource for this bibId
-							long resourceId = getResourceForBib(bibId, "eContent");
-							if (resourceId == -1){
-								logger.error("Could not retrieve or create resource for bib Id " + bibId);
-								continue;
-							}else{
-								// Update the reading history
-								Date checkoutDate = new Date(new Long(checkoutDateStr));
-								updateReadingHistory(userId, "econtentRecord" + bibId, resourceId, checkoutDate);
-							}
-						}
-					} else {
-						logger.warn("Call to getPatronCheckedOutEContent returned a success code of false for " + cat_username);
-					}
-				} catch (JSONException e) {
-					logger.error("Unable to load patron information from for " + cat_username + " exception loading response " + e.toString(), e);
-				}
-			} else {
-				logger.error("Unable to load patron information from for " + cat_username + ": expected to get back an input stream, received a "
-						+ patronDataRaw.getClass().getName());
-			}
-		} catch (MalformedURLException e) {
-			logger.error("Bad url for patron API ", e);
-		} catch (IOException e) {
-			logger.error("Unable to retrieve information from patron API for " + cat_username, e);
-		}
-	}
-	
-	private void processOverDriveTitles(Long userId, String cat_username, String cat_password) throws SQLException{
-		try {
-			// Call the patron API to get their checked out items
-			URL patronApiUrl;
-			patronApiUrl = new URL(vufindUrl + "/API/UserAPI?method=getPatronCheckedOutItemsOverDrive&username=" + cat_username + "&password=" + cat_password);
-			Object patronDataRaw = patronApiUrl.getContent();
-			if (patronDataRaw instanceof InputStream) {
-				String patronDataJson = Util.convertStreamToString((InputStream) patronDataRaw);
-				logger.info(patronApiUrl.toString());
-				logger.info("Json for patron checked out OverDrive items " + patronDataJson);
-				try {
-					JSONObject patronData = new JSONObject(patronDataJson);
-					JSONObject result = patronData.getJSONObject("result");
-					if (result.getBoolean("success")) {
-						JSONArray checkedOutItems = result.getJSONArray("items");
-						for (int i = 0; i < checkedOutItems.length(); i++){
-							JSONObject checkedOutItem = checkedOutItems.getJSONObject(i);
-							// System.out.println(checkedOutItem.toString());
-							String bibId = checkedOutItem.getString("recordId");
-							String checkoutDateStr = checkedOutItem.getString("checkoutdate");
-							logger.debug(bibId + " : " + checkoutDateStr);
-
-							// Get the resource for this bibId
-							long resourceId = getResourceForBib(bibId, "eContent");
-							if (resourceId == -1){
-								logger.error("Could not retrieve or create resource for bib Id " + bibId);
-								continue;
-							}else{
-								// Update the reading history
-								Date checkoutDate = new Date(new Long(checkoutDateStr));
-								updateReadingHistory(userId, "econtentRecord" + bibId, resourceId, checkoutDate);
-							}
-						}
-					} else {
-						logger.warn("Call to getPatronCheckedOutEContent returned a success code of false for " + cat_username);
-					}
-				} catch (JSONException e) {
-					logger.error("Unable to load patron information from for " + cat_username + " exception loading response " , e);
-				}
-			} else {
-				logger.error("Unable to load patron information from for " + cat_username + ": expected to get back an input stream, received a "
-						+ patronDataRaw.getClass().getName());
-			}
-		} catch (MalformedURLException e) {
-			logger.error("Bad url for patron API ", e);
-		} catch (IOException e) {
-			logger.error("Unable to retrieve information from patron API for " + cat_username, e);
-		}
-	}
-	
-	private void updateReadingHistory(Long userId, String bibId, long resourceId, Date checkoutDate) throws SQLException, IOException {
-		readingHistoryStatement.setLong(1, userId);
-		readingHistoryStatement.setLong(2, resourceId);
-		ResultSet readingHistoryResult = readingHistoryStatement.executeQuery();
-		Date currentDate = new Date();
-			
-		if (readingHistoryResult.next()) {
-			// Set the lastCheckoutDate
-			Date lastCheckoutDate = readingHistoryResult.getDate("lastCheckoutDate");
-			if (currentDate.getTime() - lastCheckoutDate.getTime() > 24 * 60 * 60 * 1000) {
-				long daysCheckedOut = readingHistoryResult.getLong("daysCheckedOut");
-				// We have rolled to a new date, increase the
-				// daysCheckedOut and set the lastCheckOutDate to
-				// today.
-				daysCheckedOut++;
-				updateReadingHistoryStmt.setLong(1, daysCheckedOut);
-				updateReadingHistoryStmt.setDate(2, new java.sql.Date(currentDate.getTime()));
-				updateReadingHistoryStmt.setLong(3, userId);
-				updateReadingHistoryStmt.setLong(4, resourceId);
-				int updateOk = updateReadingHistoryStmt.executeUpdate();
-				if (updateOk != 1) {
-					logger.error("Failed to add item to reading history");
-					
-				}
-			}
-
-			// Increment the number of days the item has been
-			// checked out if a day has elapsed
-		} else {
-			// This is a new item in the reading history, record it.
 			insertReadingHistoryStmt.setLong(1, userId);
-			insertReadingHistoryStmt.setLong(2, resourceId);
-			insertReadingHistoryStmt.setDate(3, new java.sql.Date(currentDate.getTime()));
-			insertReadingHistoryStmt.setDate(4, new java.sql.Date(checkoutDate.getTime()));
-			int updateOk = insertReadingHistoryStmt.executeUpdate();
-			if (updateOk != 1) {
-				logger.error("Failed to add item to reading history");
-			}
+			insertReadingHistoryStmt.setString(2, checkedOutItem.getString("groupedWorkId") == null ? "" : checkedOutItem.getString("groupedWorkId"));
+			insertReadingHistoryStmt.setString(3, source);
+			insertReadingHistoryStmt.setString(4, sourceId);
+			insertReadingHistoryStmt.setString(5, Util.trimTo(150, checkedOutItem.getString("title")));
+			insertReadingHistoryStmt.setString(6, Util.trimTo(75, checkedOutItem.getString("author")));
+			insertReadingHistoryStmt.setString(7, Util.trimTo(50, checkedOutItem.getString("format")));
+			long checkoutTime = new Date().getTime() / 1000;
+			insertReadingHistoryStmt.setLong(8, checkoutTime);
+			insertReadingHistoryStmt.executeUpdate();
+			processLog.incUpdated();
+			return true;
+		}catch (SQLException e){
+			logger.error("Error adding title for user " + userId + " " + checkedOutItem.getString("title"), e);
+			processLog.incErrors();
+			return false;
 		}
-
 	}
-
-	private long getResourceForBib(String bibId, String source) throws SQLException {
-		long resourceId = -1;
-		getResourceStmt.setString(1, bibId);
-		getResourceStmt.setString(2, source);
-		ResultSet resourceResult = getResourceStmt.executeQuery();
-		if (resourceResult.next()) {
-			// Get the resource id
-			resourceId = resourceResult.getLong("id");
-		} else {
-			// add the resource to the database
-			insertResourceStmt.setString(1, bibId);
-			insertResourceStmt.setString(2, "VuFind");
-			int updateOk = insertResourceStmt.executeUpdate();
-			if (updateOk == 1){
-				resourceResult = insertResourceStmt.getGeneratedKeys();
-				if (resourceResult.next()) {
-					resourceId = resourceResult.getInt(1);
-				} else {
-					resourceId = -1;
-				}
-			}else{
-				resourceId = -1;
-			}
-			resourceResult.close();
-		}
-		return resourceId;
-	}
-
 }
