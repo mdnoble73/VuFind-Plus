@@ -293,7 +293,7 @@ class CatalogConnection
 	function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut"){
 		//Get reading history from the database unless we specifically want to load from the driver.
 		global $user;
-		if ($user->trackReadingHistory && $user->initialReadingHistoryLoaded){
+		if (($user->trackReadingHistory && $user->initialReadingHistoryLoaded) || !$this->driver->hasNativeReadingHistory()){
 			require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 			$readingHistoryDB = new ReadingHistoryEntry();
 			$readingHistoryDB->userId = $user->id;
