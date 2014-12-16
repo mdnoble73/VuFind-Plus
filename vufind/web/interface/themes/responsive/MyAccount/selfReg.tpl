@@ -7,7 +7,7 @@
 				Congratulations, you have successfully registered for a new library card.
 				Your library card number is <strong>{$selfRegResult.barcode}</strong>.
 				You will have limited privileges.<br>
-				Please bring a valid ID to the library to receive physical library card.
+				Please bring a valid ID to the library to receive a physical library card.
 			</div>
 		{else}
 			{if (isset($selfRegResult))}
