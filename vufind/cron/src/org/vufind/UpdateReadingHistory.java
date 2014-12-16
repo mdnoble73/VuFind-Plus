@@ -154,14 +154,14 @@ public class UpdateReadingHistory implements IProcessHandler {
 								processReadingHistoryTitle(readingHistoryItem, userId);
 
 							}
-						}else if (result.get("checkedOutItems").getClass() == JSONArray.class){
+						}else if (result.get("readingHistory").getClass() == JSONArray.class){
 							JSONArray readingHistoryItems = result.getJSONArray("readingHistory");
 							for (int i = 0; i < readingHistoryItems.length(); i++){
 								processReadingHistoryTitle(readingHistoryItems.getJSONObject(i), userId);
 							}
 						}else{
 							processLog.incErrors();
-							processLog.addNote("Unexpected JSON for patron checked out items received " + result.get("checkedOutItems").getClass());
+							processLog.addNote("Unexpected JSON for patron reading history " + result.get("readingHistory").getClass());
 						}
 					} else {
 						logger.info("Call to getPatronCheckedOutItems returned a success code of false for " + cat_username);
