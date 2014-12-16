@@ -6,13 +6,14 @@
 			<div id='selfRegSuccess' class="alert alert-success">
 				Congratulations, you have successfully registered for a new library card.
 				Your library card number is <strong>{$selfRegResult.barcode}</strong>.
-				You will have limited privileges.
+				You will have limited privileges.<br>
+				Please bring a valid ID to the library to receive physical library card.
 			</div>
 		{else}
 			{if (isset($selfRegResult))}
 				<div id="selfRegFail" class="alert alert-warning">
 					Sorry, we were unable to create a library card for you.  You may already have an account or there may be an error with the information you entered.
-					Please try again or visit the library in person so we can create a card for you.
+					Please try again or visit the library in person (with a valid ID) so we can create a card for you.
 				</div>
 			{/if}
 			{$selfRegForm}
