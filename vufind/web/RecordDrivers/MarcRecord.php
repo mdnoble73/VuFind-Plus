@@ -1926,9 +1926,9 @@ class MarcRecord extends IndexRecord
 		global $timer;
 		if ($this->fastItems == null){
 			$searchLibrary = Library::getSearchLibrary();
+			$extraLocations = '';
 			if ($searchLibrary){
 				$libraryLocationCode = $searchLibrary->ilsCode;
-				$extraLocations = '';
 			}
 			$searchLocation = Location::getSearchLocation();
 			if ($searchLocation){
