@@ -40,6 +40,7 @@
 #2 1 * * * /etc/rc.d/init.d/memcached restart
 
 # MySQL Restart once a week should be enough
+# Don't do this because if it doesn't come back up, the server is dead Sunday morning.
 #6 1 * * 0 /etc/rc.d/init.d/mysqld restart
 
 # Temp Files
@@ -77,8 +78,12 @@
 # 12:10am everyday
 
 # AspenCat - Full Record Grouping
-#50 1 * * * cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar aspencat.test fullRegroupingNoClear
-# 1:50am everyday
+50 3 * * * cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar aspencat.test fullRegroupingNoClear
+# 3:50am everyday
+
+# Anythink - Full Record Grouping
+50 4 * * * cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar anythink.test fullRegroupingNoClear
+# 4:50am everyday
 
 # Marmot-Training - Do a partial update in the middle of the day after the records are copied
 #50 13 * * * cd /usr/local/vufind-plus/vufind/record_grouping; nice -n -10 java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar marmot.training
@@ -99,8 +104,12 @@
 31 2 * * * /root/cron/copyAspencatExport.sh
 
 # AspenCat
-#40 2 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar aspencat.test fullReindex
-#2:20 am everyday, after full regrouping
+20 4 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar aspencat.test fullReindex
+#4:20 am everyday, after full regrouping
+
+# Anythink
+20 5 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar anythink.test fullReindex
+#5:20 am everyday, after full regrouping
 
 # Marmot-Training - Do a full reindex at night after the works have been updated
 40 3 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar marmot.training fullReindex
@@ -109,8 +118,17 @@
 ##########
 # Cron   #
 ##########
-5 0,3,6,9,12,15,18,21 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.test
+# Marmot
+5 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.test
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.test DatabaseCleanup
+
+# AspenCat
+7 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test
+25 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.test DatabaseCleanup
+
+# Anythink
+9 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.test
+30 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.test DatabaseCleanup
 
 # Write reports for schools
 00 6,11 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.test SierraReports
