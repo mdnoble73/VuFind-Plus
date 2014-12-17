@@ -282,12 +282,88 @@ class CatalogConnection
 	 * This is responsible for retrieving a history of checked out items for the patron.
 	 *
 	 * @param   array   $patron     The patron array
+	 * @param   int     $page
+	 * @param   int     $recordsPerPage
+	 * @param   string  $sortOption
+	 *
 	 * @return  array               Array of the patron's reading list
-	 *                              If an error occures, return a PEAR_Error
+	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
 	function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut"){
-		return $this->driver->getReadingHistory($patron, $page, $recordsPerPage, $sortOption);
+		//Get reading history from the database unless we specifically want to load from the driver.
+		global $user;
+		if (($user->trackReadingHistory && $user->initialReadingHistoryLoaded) || !$this->driver->hasNativeReadingHistory()){
+			require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
+			$readingHistoryDB = new ReadingHistoryEntry();
+			$readingHistoryDB->userId = $user->id;
+			if ($sortOption == "checkedOut"){
+				$readingHistoryDB->orderBy('checkOutDate DESC, title ASC');
+			}else if ($sortOption == "returned"){
+				$readingHistoryDB->orderBy('checkInDate DESC, title ASC');
+			}else if ($sortOption == "title"){
+				$readingHistoryDB->orderBy('title ASC');
+			}else if ($sortOption == "author"){
+				$readingHistoryDB->orderBy('author ASC, title ASC');
+			}else if ($sortOption == "format"){
+				$readingHistoryDB->orderBy('format ASC, title ASC');
+			}
+			if ($recordsPerPage != -1){
+				$readingHistoryDB->limit(($page - 1) * $recordsPerPage, $recordsPerPage);
+			}
+			$readingHistoryDB->find();
+			$readingHistoryTitles = array();
+			while ($readingHistoryDB->fetch()){
+				$historyEntry = array();
+				$historyEntry['itemindex'] = $readingHistoryDB->id;
+				$historyEntry['deletable'] = true;
+				$historyEntry['source'] = $readingHistoryDB->source;
+				$historyEntry['id'] = $readingHistoryDB->sourceId;
+				$historyEntry['recordId'] = $readingHistoryDB->sourceId;
+				$historyEntry['shortId'] = $readingHistoryDB->sourceId;
+				$historyEntry['title'] = $readingHistoryDB->title;
+				$historyEntry['author'] = $readingHistoryDB->author;
+				$historyEntry['format'] = array($readingHistoryDB->format);
+				$historyEntry['checkout'] = $readingHistoryDB->checkOutDate;
+				$historyEntry['checkin'] = $readingHistoryDB->checkInDate;
+				$historyEntry['ratingData'] = null;
+				$historyEntry['permanentId'] = null;
+				$historyEntry['linkUrl'] = null;
+				$historyEntry['coverUrl'] = null;
+				$recordDriver = null;
+				if ($readingHistoryDB->source == 'ILS'){
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($historyEntry['id']);
+				}elseif ($readingHistoryDB->source == 'OverDrive'){
+					require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
+					$recordDriver = new OverDriveRecordDriver($historyEntry['id']);
+				}elseif ($readingHistoryDB->source == 'PublicEContent'){
+					require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
+					$recordDriver = new PublicEContentDriver($historyEntry['id']);
+				}elseif ($readingHistoryDB->source == 'RestrictedEContent'){
+					require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
+					$recordDriver = new RestrictedEContentDriver($historyEntry['id']);
+				}
+				if ($recordDriver != null && $recordDriver->isValid()){
+					$historyEntry['ratingData'] = $recordDriver->getRatingData();
+					$historyEntry['permanentId'] = $recordDriver->getPermanentId();
+					$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
+					$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+					$historyEntry['format'] = $recordDriver->getFormats();
+				}
+				$recordDriver = null;
+
+				$readingHistoryTitles[] = $historyEntry;
+			}
+
+			$readingHistoryDB = new ReadingHistoryEntry();
+			$readingHistoryDB->userId = $user->id;
+			$numTitles = $readingHistoryDB->count();
+			return array('historyActive'=>true, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
+		}else{
+			//Don't know enough to load internally, check the ILS.
+			return $this->driver->getReadingHistory($patron, $page, $recordsPerPage, $sortOption);
+		}
 	}
 
 	/**
@@ -297,12 +373,54 @@ class CatalogConnection
 	 * exportList
 	 * optOut
 	 *
-	 * @param   array   $patron         The patron array
 	 * @param   string  $action         The action to perform
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
 	function doReadingHistoryAction($action, $selectedTitles){
-		return $this->driver->doReadingHistoryAction($action, $selectedTitles);
+		global $user;
+		if ($user->trackReadingHistory && $user->initialReadingHistoryLoaded){
+			if ($action == 'deleteMarked'){
+				//Remove titles from database (do not remove from ILS)
+				foreach ($selectedTitles as $titleId){
+					list($source, $sourceId) = split('_', $titleId);
+					$readingHistoryDB = new ReadingHistoryEntry();
+					$readingHistoryDB->userId = $user->id;
+					$readingHistoryDB->id = str_replace('rsh', '', $titleId);
+					$readingHistoryDB->delete();
+				}
+			}elseif ($action == 'deleteAll'){
+				//Remove all titles from database (do not remove from ILS)
+				$readingHistoryDB = new ReadingHistoryEntry();
+				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->delete();
+			}elseif ($action == 'exportList'){
+				//Leave this unimplemented for now.
+			}elseif ($action == 'optOut'){
+				$driverHasReadingHistory = $this->driver->hasNativeReadingHistory();
+				if ($driverHasReadingHistory){
+					$result = $this->driver->doReadingHistoryAction($action, $selectedTitles);
+				}
+				if (!$driverHasReadingHistory || $result['historyActive']){
+					//Opt out within Pika since the ILS does not seem to implement this functionality
+					$user->trackReadingHistory = false;
+					$user->update();
+					$_SESSION['userinfo'] = serialize($user);
+				}
+			}elseif ($action == 'optIn'){
+				$driverHasReadingHistory = $this->driver->hasNativeReadingHistory();
+				if ($driverHasReadingHistory){
+					$result = $this->driver->doReadingHistoryAction($action, $selectedTitles);
+				}
+				if (!$driverHasReadingHistory || !$result['historyActive']){
+					//Opt in within Pika since the ILS does not seem to implement this functionality
+					$user->trackReadingHistory = true;
+					$user->update();
+					$_SESSION['userinfo'] = serialize($user);
+				}
+			}
+		}else{
+			return $this->driver->doReadingHistoryAction($action, $selectedTitles);
+		}
 	}
 
 
@@ -335,7 +453,16 @@ class CatalogConnection
 	 */
 	public function getMyProfile($patron)
 	{
-		return $this->driver->getMyProfile($patron);
+		$profile = $this->driver->getMyProfile($patron);
+		$profile['readingHistorySize'] = '';
+		global $user;
+		if ($user && $user->trackReadingHistory && $user->initialReadingHistoryLoaded){
+			require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
+			$readingHistoryDB = new ReadingHistoryEntry();
+			$readingHistoryDB->userId = $user->id;
+			$profile['readingHistorySize'] = $readingHistoryDB->count();
+		}
+		return $profile;
 	}
 
 	/**

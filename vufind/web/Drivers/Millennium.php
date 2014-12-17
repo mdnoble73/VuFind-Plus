@@ -1913,4 +1913,8 @@ class MillenniumDriver implements DriverInterface
 
 		return $fields;
 	}
+
+	public function hasNativeReadingHistory() {
+		return true;
+	}
 }

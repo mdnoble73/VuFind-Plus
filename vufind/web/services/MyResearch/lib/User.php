@@ -29,6 +29,7 @@ class User extends DB_DataObject
 	public $myLocation1Id;					 // int(11)
 	public $myLocation2Id;					 // int(11)
 	public $trackReadingHistory; 			 // tinyint
+	public $initialReadingHistoryLoaded;
 	public $bypassAutoLogout;        //tinyint
 	public $disableRecommendations;     //tinyint
 	public $disableCoverArt;     //tinyint
@@ -46,7 +47,7 @@ class User extends DB_DataObject
 
 	function __sleep()
 	{
-		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType', 'overdriveEmail', 'promptForOverdriveEmail', 'preferredLibraryInterface');
+		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType', 'overdriveEmail', 'promptForOverdriveEmail', 'preferredLibraryInterface', 'initialReadingHistoryLoaded');
 	}
 
 	function __wakeup()
@@ -78,11 +79,8 @@ class User extends DB_DataObject
 
 		$lists = array();
 
-		$sql = "SELECT user_list.*, COUNT(user_resource.id) AS cnt FROM user_list " .
-               "LEFT JOIN user_resource ON user_list.id = user_resource.list_id " .
+		$sql = "SELECT user_list.* FROM user_list " .
                "WHERE user_list.user_id = '$this->id' " .
-               "GROUP BY user_list.id, user_list.user_id, user_list.title, " .
-               "user_list.description, user_list.created, user_list.public " .
                "ORDER BY user_list.title";
 		$list = new UserList();
 		$list->query($sql);

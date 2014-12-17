@@ -908,24 +908,41 @@ class UserAPI extends Action {
 		$username = $_REQUEST['username'];
 		$password = $_REQUEST['password'];
 		$includeEContent = true;
+		$includeOverDrive = true;
 		if (isset($_REQUEST['includeEContent'])){
 			$includeEContent = $_REQUEST['includeEContent'];
+		}
+		if (isset($_REQUEST['includeOverDrive'])){
+			$includeOverDrive = $_REQUEST['includeOverDrive'];
 		}
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$checkedOutItems = $this->catalog->getMyTransactions($user);
+			$catalogTransactions = $this->catalog->getMyTransactions($user);
 
 			if ($includeEContent === true || $includeEContent === 'true'){
 				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 				$eContentDriver = new EContentDriver();
-				$eContentTransactions = $eContentDriver->getMyTransactions($user);
-
-				$allTransactions = array_merge($eContentTransactions['transactions'], $checkedOutItems['transactions']);
+				$eContentCheckedOut = $eContentDriver->getMyTransactions($user);
 			}else{
-				$allTransactions = $checkedOutItems['transactions'];
+				$eContentCheckedOut = array(
+					'transactions' => array()
+				);
 			}
-			return array('success'=>true, 'checkedOutItems'=>$allTransactions);
+
+			if ($includeOverDrive === true || $includeOverDrive === 'true'){
+				require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+				$overDriveDriver = OverDriveDriverFactory::getDriver();
+				$overDriveCheckedOutItems = $overDriveDriver->getOverDriveCheckedOutItems($user);
+			}else{
+				$overDriveCheckedOutItems = array(
+					'items' => array()
+				);
+			}
+
+			$allCheckedOut = array_merge($catalogTransactions['transactions'], $overDriveCheckedOutItems['items'], $eContentCheckedOut['transactions']);
+
+			return array('success'=>true, 'checkedOutItems'=>$allCheckedOut);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}

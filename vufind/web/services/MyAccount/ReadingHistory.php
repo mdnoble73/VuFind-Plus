@@ -48,18 +48,13 @@ class ReadingHistory extends MyAccount
 					if (PEAR_Singleton::isError($patron))
 					PEAR_Singleton::raiseError($patron);
 
-					$patronResult = $this->catalog->getMyProfile($patron);
-					if (!PEAR_Singleton::isError($patronResult)) {
-						$interface->assign('profile', $patronResult);
-					}
-
 					//Check to see if there is an action to perform.
 					if (isset($_REQUEST['readingHistoryAction']) && strlen($_REQUEST['readingHistoryAction']) > 0 && $_REQUEST['readingHistoryAction'] != 'exportToExcel'){
 						//Perform the requested action
 						$selectedTitles = isset($_REQUEST['selected']) ? $_REQUEST['selected'] : array();
 						$readingHistoryAction = $_REQUEST['readingHistoryAction'];
 						$this->catalog->doReadingHistoryAction($readingHistoryAction, $selectedTitles);
-						//redirect back to ourself without the action.
+						//redirect back to the current location without the action.
 						header("Location: {$configArray['Site']['path']}/MyAccount/ReadingHistory");
 						die();
 					}

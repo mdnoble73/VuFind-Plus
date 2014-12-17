@@ -160,7 +160,15 @@
 								</div>
 
 								<div class="col-sm-2">
-									{$record.checkout|escape}{if $record.lastCheckout} to {$record.lastCheckout|escape}{/if}
+									{if is_numeric($record.checkout)}
+										{$record.checkout|date_format}
+									{else}
+										{$record.checkout|escape}
+									{/if}
+									{if $record.lastCheckout} to {$record.lastCheckout|escape}{/if}
+									{* Do not show checkin date since historical data from initial import is not correct.
+									{if $record.checkin} to {$record.checkin|date_format}{/if}
+									*}
 								</div>
 							</div>
 						{/foreach}

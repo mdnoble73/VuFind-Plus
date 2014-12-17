@@ -298,7 +298,7 @@ class Aspencat implements DriverInterface{
 		//The catalog is offline, check the database to see if the user is valid
 		global $timer;
 		$user = new User();
-		$user->cat_password = $password;
+		$user->cat_username = $username;
 		if ($user->find(true)){
 			$userValid = false;
 			if ($user->cat_username){

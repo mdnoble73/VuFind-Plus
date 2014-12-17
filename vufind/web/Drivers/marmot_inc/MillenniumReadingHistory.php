@@ -61,6 +61,7 @@ class MillenniumReadingHistory {
 			$readingHistoryTitles = array_slice($readingHistoryTitles, $startRecord, $recordsPerPage);
 		}
 
+		set_time_limit(20 * count($readingHistoryTitles));
 		foreach ($readingHistoryTitles as $key => $historyEntry){
 			//Get additional information from resources table
 			$historyEntry['ratingData'] = null;
@@ -87,6 +88,19 @@ class MillenniumReadingHistory {
 		//The history is active if there is an opt out link.
 		$historyActive = (strpos($pageContents, 'OptOut') > 0);
 		$timer->logTime("Loaded Reading history for patron");
+		global $user;
+		if ($historyActive && !$user->trackReadingHistory){
+			//The user does have reading history even though we hadn't detected it before.
+			$user->trackReadingHistory = true;
+			$user->update();
+			$_SESSION['userinfo'] = serialize($user);
+		}if (!$historyActive && $user->trackReadingHistory){
+			//The user does have reading history even though we hadn't detected it before.
+			$user->trackReadingHistory = false;
+			$user->update();
+			$_SESSION['userinfo'] = serialize($user);
+		}
+
 		return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
 	}
 
@@ -199,6 +213,7 @@ class MillenniumReadingHistory {
 	}
 
 	private function parseReadingHistoryPage($pageContents, $patron, $sortOption, $recordsRead) {
+		set_time_limit(60);
 		$sResult = preg_replace("/<[^<]+?><[^<]+?>Reading History.\(.\d*.\)<[^<]+?>\W<[^<]+?>/", "", $pageContents);
 
 		$s = substr($sResult, stripos($sResult, 'patFunc'));
@@ -268,12 +283,18 @@ class MillenniumReadingHistory {
 						$historyEntry['details'] = strip_tags($sCols[$i]);
 					}
 
-					$historyEntry['borrower_num'] = $patron['id'];
+					if (is_array($patron)){
+						$historyEntry['borrower_num'] = $patron['id'];
+					}else{
+						$historyEntry['borrower_num'] = $patron->id;
+					}
+
 				} //Done processing column
 			} //Done processing row
 
 			if ($sCount > 1){
-				$historyEntry['title_sort'] = strtolower($historyEntry['title']);
+				$titleKey = '';
+				$historyEntry['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($historyEntry['title']));
 
 				//$historyEntry['itemindex'] = $itemindex++;
 				if ($sortOption == "title"){

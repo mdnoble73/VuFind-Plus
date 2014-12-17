@@ -1260,141 +1260,6 @@ public function getMyHoldsViaDB($patron)
 
 	}
 
-	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "dueDate"){
-		require_once(ROOT_DIR . '/sys/ReadingHistoryEntry.php');
-		//require_once(ROOT_DIR . '/services/MyResearch/lib/Resource.php');
-		// File no longer exists. turned off to see what is effected. pascal 12-10-2014
-		//Reading History is stored within VuFind for each patron.
-		global $user;
-		$historyActive = $user->trackReadingHistory == 1;
-
-		//Get a list of titles for the user.
-		$titles = array();
-		$readingHistory = new ReadingHistoryEntry();
-		$readingHistorySql = "SELECT * FROM user_reading_history INNER JOIN resource ON user_reading_history.resourceId = resource.id where userId = {$user->id}";
-		if ($sortOption == "title"){
-			$readingHistorySql .= " order by title_sort ASC, title ASC";
-		}elseif ($sortOption == "author"){
-			$readingHistorySql .= " order by author ASC, title ASC";
-		}elseif ($sortOption == "checkedOut"){
-			$readingHistorySql .= " order by firstCheckoutDate DESC, title ASC";
-		}elseif ($sortOption == "returned"){
-			$readingHistorySql .= " order by lastCheckoutDate DESC, title ASC";
-		}elseif ($sortOption == "format"){
-			$readingHistorySql .= " order by format DESC, title ASC";
-		}
-
-		//Get count of reading history
-		$readingHistoryCount = new ReadingHistoryEntry();
-		$readingHistoryCount->query($readingHistorySql);
-		$numTitles = $readingHistoryCount->N;
-
-		//Get individual titles to display
-		if ($recordsPerPage > 0){
-			$startRecord = ($page - 1) * $recordsPerPage;
-			$readingHistorySql .= " LIMIT $startRecord, $recordsPerPage";
-		}
-		$readingHistory->query($readingHistorySql);
-		if ($readingHistory->N > 0){
-			//Load additional details for each title
-			global $configArray;
-			// Setup Search Engine Connection
-
-			$i = 0;
-			$titles = array();
-			while ($readingHistory->fetch()){
-				$firstCheckoutDate = $readingHistory->firstCheckoutDate;
-				$firstCheckoutTime = strtotime($firstCheckoutDate);
-				$lastCheckoutDate = $readingHistory->lastCheckoutDate;
-				$lastCheckoutTime = strtotime($lastCheckoutDate);
-				$titles[] = array(
-					'recordId' => $readingHistory->record_id,
-					'source' => $readingHistory->source,
-					'checkout' => $firstCheckoutDate,
-					'checkoutTime' => $firstCheckoutTime,
-					'lastCheckout' => $lastCheckoutDate,
-					'lastCheckoutTime' => $lastCheckoutTime,
-					'title' => $readingHistory->title,
-					'title_sort' => $readingHistory->title_sort,
-					'author' => $readingHistory->author,
-					'format' => $readingHistory->format,
-					'format_category' => $readingHistory->format_category,
-					'isbn' => $readingHistory->isbn,
-					'upc' => $readingHistory->upc,
-				);
-			}
-		}
-
-		return array(
-		  'historyActive' => $historyActive,
-		  'titles' => array_values($titles),
-		  'numTitles' => $numTitles,
-		);
-	}
-
-	/**
-	 * Do an update or edit of reading history information.  Current actions are:
-	 * deleteMarked
-	 * deleteAll
-	 * exportList
-	 * optOut
-	 * optIn
-	 *
-	 * @param   array   $patron         The patron array
-	 * @param   string  $action         The action to perform
-	 * @param   array   $selectedTitles The titles to do the action on if applicable
-	 */
-	function doReadingHistoryAction($patron, $action, $selectedTitles){
-		require_once(ROOT_DIR . '/sys/ReadingHistoryEntry.php');
-		global $user;
-		//Reading History Information is stored in the VuFind database
-		if ($action == 'deleteMarked'){
-			//Remove selected titles from the database
-			foreach ($selectedTitles as $selectedId => $selectValue){
-				//Get the resourceid for the bib
-				$resource = new Resource();
-				$resource->source = 'VuFind';
-				if (is_numeric($selectValue)){
-					$resource->record_id = $selectValue;
-				}else{
-					$resource->record_id = $selectedId;
-				}
-				$resource->find();
-				if ($resource->N){
-					$resource->fetch();
-					$resourceId = $resource->id;
-					$readingHistory = new ReadingHistoryEntry();
-					$readingHistory->userId = $user->id;
-					$readingHistory->resourceId = $resourceId;
-					$readingHistory->delete();
-				}
-			}
-		}elseif ($action == 'deleteAll'){
-			//remove all titles from the database
-			$readingHistory = new ReadingHistoryEntry();
-			$readingHistory->userId = $user->id;
-			$readingHistory->delete();
-		}elseif ($action == 'exportList'){
-			//Export the list (not currently implemented)
-		}elseif ($action == 'optOut'){
-			//remove all titles from the database
-			$readingHistory = new ReadingHistoryEntry();
-			$readingHistory->userId = $user->id;
-			$readingHistory->delete();
-
-			//Stop recording reading history and remove all titles from the database
-			$user->trackReadingHistory = 0;
-			$user->update();
-			UserAccount::updateSession($user);
-
-		}elseif ($action == 'optIn'){
-			//Start recording reading history
-			$user->trackReadingHistory = 1;
-			$user->update();
-			UserAccount::updateSession($user);
-		}
-	}
-
 	private $patronProfiles = array();
 	public function getMyProfile($patron, $forceReload = false) {
 		global $timer;
@@ -2976,4 +2841,8 @@ private function parseSip2Fines($finesData){
 	abstract function translateLocation($locationCode);
 
 	abstract function translateStatus($status);
+
+	public function hasNativeReadingHistory() {
+		return false;
+	}
 }

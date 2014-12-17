@@ -162,6 +162,10 @@ class Innovative implements DriverInterface
 	public function patronLogin($username, $password) {
 		// TODO: Implement patronLogin() method.
 	}
+
+	public function hasNativeReadingHistory() {
+		return true;
+	}
 }
 
 ?>

@@ -37,7 +37,7 @@ abstract class HorizonAPI extends Horizon{
 		if ($configArray['Catalog']['offline'] == true){
 			//The catalog is offline, check the database to see if the user is valid
 			$user = new User();
-			$user->cat_password = $password;
+			$user->cat_username = $username;
 			if ($user->find(true)){
 				$userValid = false;
 				if ($user->cat_username){
@@ -46,7 +46,7 @@ abstract class HorizonAPI extends Horizon{
 				if ($userValid){
 					$returnVal = array(
 						'id'        => $password,
-						'username'  => $user->username,
+						'username'  => $password, //To match previous implementation, the user name needs to be patron barcode
 						'firstname' => isset($firstName) ? $firstName : '',
 						'lastname'  => isset($lastName) ? $lastName : '',
 						'fullname'  => isset($fullName) ? $fullName : '',     //Added to array for possible display later.
@@ -87,7 +87,7 @@ abstract class HorizonAPI extends Horizon{
 
 					$returnVal = array(
 						'id'        => $userID,
-						'username'  => $fullName,
+						'username'  => $username, //Must be catalog barcode to match the old system.  //TODO: Switch to use patron ID from Horizon
 						'firstname' => isset($firstName) ? $firstName : '',
 						'lastname'  => isset($lastName) ? $lastName : '',
 						'fullname'  => isset($fullName) ? $fullName : '',     //Added to array for possible display later.
@@ -793,11 +793,16 @@ abstract class HorizonAPI extends Horizon{
 				$curTitle['renewIndicator'] = (string)$itemOut->itemBarcode;
 				$curTitle['barcode'] = (string)$itemOut->itemBarcode;
 
+				$curTitle['groupedWorkId'] = '';
+				$curTitle['format'] = 'Unknown';
 				if ($curTitle['shortId'] && strlen($curTitle['shortId']) > 0){
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($curTitle['id']);
 					if ($recordDriver->isValid()){
 						$curTitle['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+						$curTitle['groupedWorkId'] = $recordDriver->getGroupedWorkId();
+						$formats = $recordDriver->getFormats();
+						$curTitle['format'] = reset($formats);
 					}else{
 						$curTitle['coverUrl'] = "";
 					}
@@ -1230,5 +1235,9 @@ abstract class HorizonAPI extends Horizon{
 
 		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
 
+	}
+
+	public function hasNativeReadingHistory() {
+		return false;
 	}
 }

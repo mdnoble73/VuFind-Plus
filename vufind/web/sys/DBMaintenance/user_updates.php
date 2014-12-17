@@ -71,5 +71,15 @@ function getUserUpdates(){
 				"ALTER TABLE user ADD preferredLibraryInterface INT(11) DEFAULT NULL",
 			),
 		),
+
+		'user_track_reading_history' => array(
+			'title' => 'User Track Reading History',
+			'description' => 'Add Track Reading History ',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE user ADD trackReadingHistory TINYINT DEFAULT 0",
+				"ALTER TABLE user ADD initialReadingHistoryLoaded TINYINT DEFAULT 0",
+			),
+		),
 	);
 }

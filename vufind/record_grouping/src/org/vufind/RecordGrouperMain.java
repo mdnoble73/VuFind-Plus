@@ -66,7 +66,7 @@ public class RecordGrouperMain {
 			System.exit(1);
 		}
 
-		logger.warn("Starting grouping of records " + new Date().toString());
+		logger.info("Starting grouping of records " + new Date().toString());
 
 		// Parse the configuration file
 		Ini configIni = loadConfigFile();
@@ -146,10 +146,10 @@ public class RecordGrouperMain {
 			logger.error("Error closing database ", e);
 			System.exit(1);
 		}
-		logger.warn("Finished grouping records " + new Date().toString());
+		logger.info("Finished grouping records " + new Date().toString());
 		long endTime = new Date().getTime();
 		long elapsedTime = endTime - processStartTime;
-		logger.warn("Elapsed Minutes " + (elapsedTime / 60000));
+		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
 	}
 
 	private static void groupEVokeRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor) {
@@ -195,7 +195,7 @@ public class RecordGrouperMain {
 										logger.error("Error loading eVoke records " + numRecordsRead + " the last record processed was " + lastRecordProcessed, e);
 									}
 								}
-								logger.warn("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the eVoke file " + curBibFile.getName());
+								logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the eVoke file " + curBibFile.getName());
 							}
 						}
 					}
@@ -449,7 +449,7 @@ public class RecordGrouperMain {
 					}catch(Exception e){
 						logger.error("Error loading catalog bibs on record " + numRecordsRead + " the last record processed was " + lastRecordProcessed, e);
 					}
-					logger.warn("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the ils file " + curBibFile.getName());
+					logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the ils file " + curBibFile.getName());
 				}
 			}
 
@@ -595,7 +595,7 @@ public class RecordGrouperMain {
 					recordGroupingProcessor.deletePrimaryIdentifier(primaryIdentifier);
 				}
 			}
-			logger.warn("Finished grouping " + numRecordsProcessed + " records from overdrive ");
+			logger.info("Finished grouping " + numRecordsProcessed + " records from overdrive ");
 		}catch (Exception e){
 			System.out.println("Error loading OverDrive records: " + e.toString());
 			e.printStackTrace();
