@@ -1147,13 +1147,17 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					result.add("XboxOne");
 				} else if (sysDetailsValue.contains("xbox")) {
 					result.add("Xbox360");
+				} else if (sysDetailsValue.contains("playstation 4")) {
+					result.add("PlayStation4");
 				} else if (sysDetailsValue.contains("playstation 3")) {
 					result.add("PlayStation3");
 				} else if (sysDetailsValue.contains("playstation")) {
 					result.add("PlayStation");
+				} else if (sysDetailsValue.contains("nintendo wii u")) {
+					result.add("WiiU");
 				} else if (sysDetailsValue.contains("nintendo wii")) {
 					result.add("Wii");
-				} else if (sysDetailsValue.contains("nintendo 3DS")) {
+				} else if (sysDetailsValue.contains("nintendo 3ds")) {
 					result.add("3DS");
 				} else if (sysDetailsValue.contains("directx")) {
 					result.add("WindowsGame");
