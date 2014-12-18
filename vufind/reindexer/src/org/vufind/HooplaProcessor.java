@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Extracts data from Hoopla Marc records to fill out information within the work to be indexed.
@@ -148,7 +149,16 @@ public class HooplaProcessor extends MarcRecordProcessor {
 		//TODO: Date added, could this be done based of date first detected in Pika
 
 		//Related Record
-		groupedWork.addRelatedRecord("hoopla:" + identifier, format, primaryEdition, primaryLanguage, publisher, publicationDate, physicalDescription);
+		//TODO: add url? or add url within an item record
+		String recordIdentifier = groupedWork.addRelatedRecord("hoopla:" + identifier, format, primaryEdition, primaryLanguage, publisher, publicationDate, physicalDescription);
 
+		//Setup information based on the scopes
+		//Start by giving everyone access to Hoopla
+		//TODO: Limit this later
+		TreeSet<Scope> validScopes = indexer.getScopes();
+		for (Scope validScope : validScopes) {
+			groupedWork.addCompatiblePTypes(validScope.getRelatedPTypes());
+			groupedWork.getScopedWorkDetails().get(validScope.getScopeName()).getRelatedRecords().add(recordIdentifier);
+		}
 	}
 }

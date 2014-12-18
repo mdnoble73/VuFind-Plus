@@ -562,15 +562,16 @@ public class GroupedWorkSolr {
 		keywords.add(author);
 	}
 
-	public void addRelatedRecord(String recordIdentifier, String format, String edition, String language, String publisher, String publicationDate, String physicalDescription) {
-		relatedRecordIds.add(recordIdentifier
+	public String addRelatedRecord(String recordIdentifier, String format, String edition, String language, String publisher, String publicationDate, String physicalDescription) {
+		String relatedRecordDetails = recordIdentifier
 				+ "|" + (format == null ? "" : Util.trimTrailingPunctuation(format.replace('|', ' ')))
 				+ "|" + (edition == null ? "" : Util.trimTrailingPunctuation(edition.replace('|', ' ')))
 				+ "|" + (language == null ? "" : Util.trimTrailingPunctuation(language.replace('|', ' ')))
 				+ "|" + (publisher == null ? "" : Util.trimTrailingPunctuation(publisher.replace('|', ' ')))
 				+ "|" + (publicationDate == null ? "" : Util.trimTrailingPunctuation(publicationDate.replace('|', ' ')))
-				+ "|" + (physicalDescription == null ? "" : Util.trimTrailingPunctuation(physicalDescription.replace('|', ' ')))
-		);
+				+ "|" + (physicalDescription == null ? "" : Util.trimTrailingPunctuation(physicalDescription.replace('|', ' ')));
+		relatedRecordIds.add(relatedRecordDetails);
+		return relatedRecordDetails;
 	}
 
 	public void addLccn(String lccn) {
