@@ -177,8 +177,11 @@ class ExternalEContentDriver extends BaseEContentDriver{
 		$actions = array();
 		$title = 'Access Online';
 		if (strlen($fileOrUrl) > 0){
-			if (substr_compare($fileOrUrl, 'pdf', strlen($fileOrUrl)-3, strlen(3)) === 0){
-				$title = 'Access PDF';
+			if (strlen($fileOrUrl) >= 3){
+				$extension =strtolower(substr($fileOrUrl, strlen($fileOrUrl), 3));
+				if ($extension == 'pdf'){
+					$title = 'Access PDF';
+				}
 			}
 			$actions[] = array(
 				'url' => $fileOrUrl,
