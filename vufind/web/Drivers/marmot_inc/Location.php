@@ -1088,4 +1088,10 @@ class Location extends DB_DataObject
 	function getHours(){
 		return $this->hours;
 	}
+
+	public function getNumHours() {
+		$hours = new LocationHours();
+		$hours->locationId = $this->locationId;
+		return $hours->count();
+	}
 }

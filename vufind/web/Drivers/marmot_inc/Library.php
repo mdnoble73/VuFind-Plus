@@ -1098,4 +1098,10 @@ class Library extends DB_DataObject
 
 		return $defaultFacets;
 	}
+
+	public function getNumLocationsForLibrary(){
+		$location = new Location;
+		$location->libraryId = $this->libraryId;
+		return $location->count();
+	}
 }
