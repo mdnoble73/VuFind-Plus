@@ -66,6 +66,24 @@ class GroupedWork_AJAX {
 		return json_encode($result);
 	}
 
+	function forceReindex(){
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		$id = $_REQUEST['id'];
+		$groupedWork = new GroupedWork();
+		$groupedWork->permanent_id = $id;
+		if ($groupedWork->find(true)){
+			$groupedWork->date_updated = null;
+			$numRows = $groupedWork->query("UPDATE grouped_work set date_updated = null where id = " . $groupedWork->id);
+			if ($numRows == 1){
+				return json_encode(array('success' => true, 'message' => 'This title will be indexed again next time the index is run.'));
+			}else{
+				return json_encode(array('success' => false, 'message' => 'Unable to mark the title for indexing. Could not update the title.'));
+			}
+		}else{
+			return json_encode(array('success' => false, 'message' => 'Unable to mark the title for indexing. Could not find the title.'));
+		}
+	}
+
 	function getEnrichmentInfo(){
 		global $configArray;
 		global $interface;
