@@ -225,7 +225,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					}
 				}
 				if (!isOverDrive && isEContent){
-					unsuppressedEcontentRecords.add(getEContentIlsRecord(identifier, itemField));
+					unsuppressedEcontentRecords.add(getEContentIlsRecord(record, identifier, itemField));
 				}
 			}
 		}

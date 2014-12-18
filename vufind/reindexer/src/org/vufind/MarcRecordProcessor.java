@@ -28,6 +28,13 @@ public abstract class MarcRecordProcessor {
 		this.logger = logger;
 	}
 
+	/**
+	 * Load MARC record from disk based on identifier
+	 * Then call updateGroupedWorkSolrDataBasedOnMarc to do the actual update of the work
+	 *
+	 * @param groupedWork the work to be updated
+	 * @param identifier the identifier to load information for
+	 */
 	public abstract void processRecord(GroupedWorkSolr groupedWork, String identifier);
 
 	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record) {
@@ -112,8 +119,8 @@ public abstract class MarcRecordProcessor {
 	protected void loadEditions(GroupedWorkSolr groupedWork, Record record, HashSet<IlsRecord> ilsRecords) {
 		Set<String> editions = getFieldList(record, "250a");
 		if (editions.size() > 0) {
+			String edition = editions.iterator().next();
 			for (IlsRecord ilsRecord : ilsRecords) {
-				String edition = editions.iterator().next();
 				ilsRecord.setEdition(edition);
 			}
 		}

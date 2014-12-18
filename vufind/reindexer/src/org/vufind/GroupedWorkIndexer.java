@@ -37,6 +37,7 @@ public class GroupedWorkIndexer {
 	private IlsRecordProcessor ilsRecordProcessor;
 	private OverDriveProcessor overDriveProcessor;
 	private EVokeProcessor evokeProcessor;
+	private HooplaProcessor hooplaProcessor;
 	private HashMap<String, HashMap<String, String>> translationMaps = new HashMap<String, HashMap<String, String>>();
 	private HashMap<String, LexileTitle> lexileInformation = new HashMap<String, LexileTitle>();
 	private Long maxWorksToProcess = -1L;
@@ -153,6 +154,7 @@ public class GroupedWorkIndexer {
 		}
 		overDriveProcessor = new OverDriveProcessor(this, vufindConn, econtentConn, logger);
 		evokeProcessor = new EVokeProcessor(this, vufindConn, configIni, logger);
+		hooplaProcessor = new HooplaProcessor(this, configIni, logger);
 		//Load translation maps
 		loadTranslationMaps();
 
@@ -600,8 +602,10 @@ public class GroupedWorkIndexer {
 			ilsRecordProcessor.processRecord(groupedWork, identifier);
 		}else if (type.equals("overdrive")){
 			overDriveProcessor.processRecord(groupedWork, identifier);
-		}else if (type.equals("evoke")){
+		}else if (type.equals("evoke")) {
 			evokeProcessor.processRecord(groupedWork, identifier);
+		}else if (type.equals("hoopla")){
+			hooplaProcessor.processRecord(groupedWork, identifier);
 		}else{
 			logger.warn("Unknown identifier type " + type);
 		}
