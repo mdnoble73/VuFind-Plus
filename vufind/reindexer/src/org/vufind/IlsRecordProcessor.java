@@ -405,7 +405,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return unsuppressedItemRecords;
 	}
 
-	protected EContentIlsItem getEContentIlsRecord(String identifier, DataField itemField){
+	protected EContentIlsItem getEContentIlsRecord(Record record, String identifier, DataField itemField){
 		EContentIlsItem ilsRecord = new EContentIlsItem();
 
 		ilsRecord.setDateCreated(getItemSubfieldData(dateCreatedSubfield, itemField));
@@ -479,6 +479,16 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		Subfield urlSubfield = itemField.getSubfield(itemUrlSubfieldIndicator);
 		if (urlSubfield != null){
 			ilsRecord.setUrl(urlSubfield.getData().trim());
+		}else if (protectionType.equals("external")){
+			//Check the 856 tag to see if there is a link there
+			List<DataField> urlFields = getDataFields(record, "856");
+			for (DataField urlField : urlFields){
+				//load url into the item
+				if (urlField.getSubfield('u') != null){
+					ilsRecord.setUrl(urlField.getSubfield('u').getData().trim());
+				}
+			}
+
 		}
 
 		//Determine availability
@@ -728,6 +738,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				groupedWork.addAvailabilityByFormatForLocation(relatedScopes, relatedFormats, "local");
 			}
 		}
+
+		//TODO: Process eContent as well?
+
 		groupedWork.addAvailableLocations(availableAt, availableLocationCodes);
 	}
 
@@ -755,6 +768,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				}
 			}
 		}
+		//TODO: set ownership information for eContent
+
 		for (OnOrderItem curOrderItem: onOrderItems){
 			for (Scope curScope : curOrderItem.getRelatedScopes()){
 				owningLocations.add(curScope.getFacetLabel() + " On Order");
@@ -1128,6 +1143,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					result.add("Playaway");
 				} else if (sysDetailsValue.contains("kinect sensor")) {
 					result.add("Kinect");
+				} else if (sysDetailsValue.contains("xbox one")) {
+					result.add("XboxOne");
 				} else if (sysDetailsValue.contains("xbox")) {
 					result.add("Xbox360");
 				} else if (sysDetailsValue.contains("playstation 3")) {
@@ -1136,6 +1153,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					result.add("PlayStation");
 				} else if (sysDetailsValue.contains("nintendo wii")) {
 					result.add("Wii");
+				} else if (sysDetailsValue.contains("nintendo 3DS")) {
+					result.add("3DS");
 				} else if (sysDetailsValue.contains("directx")) {
 					result.add("WindowsGame");
 				} else if (sysDetailsValue.contains("bluray") || sysDetailsValue.contains("blu-ray")) {
