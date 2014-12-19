@@ -131,6 +131,7 @@ class Library extends DB_DataObject
 	public $loginFormPasswordLabel;
 	public $showDetailedHoldNoticeInformation;
 	public $treatPrintNoticesAsPhoneNotices;
+	public $includeHoopla;
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
@@ -355,6 +356,9 @@ class Library extends DB_DataObject
 				'repeatInOverdrive' => array('property'=>'repeatInOverdrive', 'type'=>'checkbox', 'label'=>'Repeat In Overdrive', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true, 'default' => 0),
 				'overdriveAdvantageName' => array('property'=>'overdriveAdvantageName', 'type'=>'text', 'label'=>'Overdrive Advantage Name', 'description'=>'The name of the OverDrive Advantage account if any.', 'size'=>'80', 'hideInLists' => true,),
 				'overdriveAdvantageProductsKey' => array('property'=>'overdriveAdvantageProductsKey', 'type'=>'text', 'label'=>'Overdrive Advantage Products Key', 'description'=>'The products key for use when building urls to the API from the advantageAccounts call.', 'size'=>'80', 'hideInLists' => false,),
+			)),
+			array('property'=>'hooplaSection', 'type' => 'section', 'label' =>'Hoopla', 'hideInLists' => true, 'properties' => array(
+				'includeHoopla' => array('property'=>'includeHoopla', 'type'=>'checkbox', 'label'=>'Include Hoopla content in search results', 'description'=>'Whether or not Hoopla data should be included for this library.', 'hideInLists' => true, 'default' => 0),
 			)),
 
 			'holidays' => array(

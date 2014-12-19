@@ -1614,7 +1614,7 @@ class MarcRecord extends IndexRecord
 				$publisher = count($publishers) >= 1 ? $publishers[0] : '';
 				$publicationDates = $this->getPublicationDates();
 				$publicationDate = count($publicationDates) >= 1 ? $publicationDates[0] : '';
-				$physicalDescriptions = $this->getPhysicalDescriptions();
+				$physicalDescriptions = $this->getPhyicalDescriptions();
 				$physicalDescription = count($physicalDescriptions) >= 1 ? $physicalDescriptions[0] : '';
 				$format = reset($this->getFormat());
 				$edition = $this->getEdition(true);
@@ -2038,7 +2038,7 @@ class MarcRecord extends IndexRecord
 	 * @access  protected
 	 * @return  array
 	 */
-	protected function getPhysicalDescriptions()
+	public function getPhysicalDescriptions()
 	{
 		$physicalDescription1 = $this->getFieldArray("300", array('a', 'b', 'c', 'e', 'f', 'g'));
 		$physicalDescription2 = $this->getFieldArray("530", array('a', 'b', 'c', 'd'));
@@ -2089,6 +2089,7 @@ class MarcRecord extends IndexRecord
 		return $publishers;
 	}
 
+	private $isbns = null;
 	/**
 	 * Get an array of all ISBNs associated with the record (may be empty).
 	 *
@@ -2097,25 +2098,28 @@ class MarcRecord extends IndexRecord
 	 */
 	public function getISBNs()
 	{
-		// If ISBN is in the index, it should automatically be an array... but if
-		// it's not set at all, we should normalize the value to an empty array.
-		if (isset($this->fields['isbn'])){
-			if (is_array($this->fields['isbn'])){
-				return $this->fields['isbn'];
-			}else{
-				return array($this->fields['isbn']);
-			}
-		}else{
-			$isbns = array();
-			/** @var File_MARC_Data_Field[] $isbnFields */
-			$isbnFields = $this->getMarcRecord()->getFields('020');
-			foreach($isbnFields as $isbnField){
-				if ($isbnField->getSubfield('a') != null){
-					$isbns[] = $isbnField->getSubfield('a')->getData();
+		if ($this->isbns == null){
+			// If ISBN is in the index, it should automatically be an array... but if
+			// it's not set at all, we should normalize the value to an empty array.
+			if (isset($this->fields['isbn'])){
+				if (is_array($this->fields['isbn'])){
+					$this->isbns = $this->fields['isbn'];
+				}else{
+					$this->isbns = array($this->fields['isbn']);
 				}
+			}else{
+				$isbns = array();
+				/** @var File_MARC_Data_Field[] $isbnFields */
+				$isbnFields = $this->getMarcRecord()->getFields('020');
+				foreach($isbnFields as $isbnField){
+					if ($isbnField->getSubfield('a') != null){
+						$isbns[] = $isbnField->getSubfield('a')->getData();
+					}
+				}
+				$this->isbns = $isbns;
 			}
-			return $isbns;
 		}
+		return $this->isbns;
 	}
 
 	/**
@@ -2336,5 +2340,66 @@ class MarcRecord extends IndexRecord
 		}
 		$timer->logTime("Loaded number of holds");
 		return $this->numHolds;
+	}
+
+	function getNotes(){
+		$additionalNotesFields = array(
+			'520' => 'Description',
+			'500' => 'General Note',
+			'504' => 'Bibliography',
+			'511' => 'Participants/Performers',
+			'518' => 'Date/Time and Place of Event',
+			'310' => 'Current Publication Frequency',
+			'321' => 'Former Publication Frequency',
+			'351' => 'Organization & arrangement of materials',
+			'362' => 'Dates of publication and/or sequential designation',
+			'501' => '"With"',
+			'502' => 'Dissertation',
+			'506' => 'Restrictions on Access',
+			'507' => 'Scale for Graphic Material',
+			'508' => 'Creation/Production Credits',
+			'510' => 'Citation/References',
+			'513' => 'Type of Report an Period Covered',
+			'515' => 'Numbering Peculiarities',
+			'521' => 'Target Audience',
+			'522' => 'Geographic Coverage',
+			'525' => 'Supplement',
+			'526' => 'Study Program Information',
+			'530' => 'Additional Physical Form',
+			'533' => 'Reproduction',
+			'534' => 'Original Version',
+			'536' => 'Funding Information',
+			'538' => 'System Details',
+			'545' => 'Biographical or Historical Data',
+			'546' => 'Language',
+			'547' => 'Former Title Complexity',
+			'550' => 'Issuing Body',
+			'555' => 'Cumulative Index/Finding Aids',
+			'556' => 'Information About Documentation',
+			'561' => 'Ownership and Custodial History',
+			'563' => 'Binding Information',
+			'580' => 'Linking Entry Complexity',
+			'581' => 'Publications About Described Materials',
+			'586' => 'Awards',
+			'590' => 'Local note',
+			'599' => 'Differentiable Local note',
+		);
+
+		foreach ($additionalNotesFields as $tag => $label){
+			/** @var File_MARC_Data_Field[] $marcFields */
+			$marcFields = $this->marcRecord->getFields($tag);
+			foreach ($marcFields as $marcField){
+				$noteText = array();
+				foreach ($marcField->getSubFields() as $subfield){
+					/** @var File_MARC_Subfield $subfield */
+					$noteText[] = $subfield->getData();
+				}
+				$note = implode(',', $noteText);
+				if (strlen($note) > 0){
+					$notes[] = array('label' => $label, 'note' => $note);
+				}
+			}
+		}
+		return $notes;
 	}
 }

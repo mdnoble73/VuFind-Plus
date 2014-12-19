@@ -562,15 +562,16 @@ public class GroupedWorkSolr {
 		keywords.add(author);
 	}
 
-	public void addRelatedRecord(String recordIdentifier, String format, String edition, String language, String publisher, String publicationDate, String physicalDescription) {
-		relatedRecordIds.add(recordIdentifier
+	public String addRelatedRecord(String recordIdentifier, String format, String edition, String language, String publisher, String publicationDate, String physicalDescription) {
+		String relatedRecordDetails = recordIdentifier
 				+ "|" + (format == null ? "" : Util.trimTrailingPunctuation(format.replace('|', ' ')))
 				+ "|" + (edition == null ? "" : Util.trimTrailingPunctuation(edition.replace('|', ' ')))
 				+ "|" + (language == null ? "" : Util.trimTrailingPunctuation(language.replace('|', ' ')))
 				+ "|" + (publisher == null ? "" : Util.trimTrailingPunctuation(publisher.replace('|', ' ')))
 				+ "|" + (publicationDate == null ? "" : Util.trimTrailingPunctuation(publicationDate.replace('|', ' ')))
-				+ "|" + (physicalDescription == null ? "" : Util.trimTrailingPunctuation(physicalDescription.replace('|', ' ')))
-		);
+				+ "|" + (physicalDescription == null ? "" : Util.trimTrailingPunctuation(physicalDescription.replace('|', ' ')));
+		relatedRecordIds.add(relatedRecordDetails);
+		return relatedRecordDetails;
 	}
 
 	public void addLccn(String lccn) {
@@ -612,11 +613,11 @@ public class GroupedWorkSolr {
 	public void addOwningLibrary(String owningLibrary) {
 		this.owningLibraries.add(owningLibrary);
 	}
-	public void addOwningLibraries(HashSet<String> owningLibraries) {
+	public void addOwningLibraries(Collection<String> owningLibraries) {
 		this.owningLibraries.addAll(owningLibraries);
 	}
 
-	public void addOwningLocations(HashSet<String> owningLocations) {
+	public void addOwningLocations(Collection<String> owningLocations) {
 		this.owningLocations.addAll(owningLocations);
 	}
 
@@ -640,7 +641,7 @@ public class GroupedWorkSolr {
 	}
 
 
-	public void addAvailableLocations(HashSet<String> availableLocations, HashSet<String> availableLocationCodes){
+	public void addAvailableLocations(Collection<String> availableLocations, Collection<String> availableLocationCodes){
 		availableAt.addAll(availableLocations);
 		//By doing it when we add locations, we can simplify the code that determines base availability
 		HashSet<String> availableToggle = new HashSet<String>();
@@ -657,6 +658,11 @@ public class GroupedWorkSolr {
 		}
 	}
 
+	public void addAvailabilityByFormatForLocation(HashSet<String> scopes, String format, String availability){
+		for (String scope : scopes) {
+			addAvailabilityByFormatForLocation(scope, format, availability);
+		}
+	}
 	public void addAvailabilityByFormatForLocation(String scope, HashSet<String> formats, String availability){
 		if (!availabilityByFormatByLibrarySystem.containsKey(scope)) {
 			availabilityByFormatByLibrarySystem.put(scope, new HashSet<String>());
@@ -673,7 +679,7 @@ public class GroupedWorkSolr {
 		availabilityByFormatByLibrarySystem.get(scope).add(format + "_" + availability);
 	}
 
-	public void addOwningLocationCodesAndSubdomains(HashSet<String> owningLocationCodes){
+	public void addOwningLocationCodesAndSubdomains(Collection<String> owningLocationCodes){
 		HashSet<String> availabilityToggle = new HashSet<String>();
 		availabilityToggle.add("Entire Collection");
 		for (String curLocationCode : owningLocationCodes){

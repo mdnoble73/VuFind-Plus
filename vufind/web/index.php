@@ -806,14 +806,19 @@ function loadModuleActionId(){
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
 		$_REQUEST['id'] = '';
-	}elseif (preg_match("/([^\/?]+)\/((?:\.b)?[\da-fA-F-]+x?)\/([^\/?]+)/", $requestURI, $matches)){
+
+	//Redirect things /Record/.b3246786/Home to the proper action
+	//Also things like /OverDrive/84876507-043b-b3ce-2930-91af93d2a4f0/Home
+	}elseif (preg_match("/([^\/?]+)\/((?:\.b|MWT)?[\da-fA-F-]+x?)\/([^\/?]+)/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[2];
 		$_GET['action'] = $matches[3];
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['id'] = $matches[2];
 		$_REQUEST['action'] = $matches[3];
-	}elseif (preg_match("/([^\/?]+)\/((?:\.b)?[\da-fA-F-]+x?)(?:\?|\/?$)/", $requestURI, $matches)){
+
+	//Redirect things /Record/.b3246786 to the proper action
+	}elseif (preg_match("/([^\/?]+)\/((?:\.b|MWT)?[\da-fA-F-]+x?)(?:\?|\/?$)/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[2];
 		$_GET['action'] = 'Home';

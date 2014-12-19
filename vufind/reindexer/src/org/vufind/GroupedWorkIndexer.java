@@ -37,6 +37,7 @@ public class GroupedWorkIndexer {
 	private IlsRecordProcessor ilsRecordProcessor;
 	private OverDriveProcessor overDriveProcessor;
 	private EVokeProcessor evokeProcessor;
+	private HooplaProcessor hooplaProcessor;
 	private HashMap<String, HashMap<String, String>> translationMaps = new HashMap<String, HashMap<String, String>>();
 	private HashMap<String, LexileTitle> lexileInformation = new HashMap<String, LexileTitle>();
 	private Long maxWorksToProcess = -1L;
@@ -153,6 +154,7 @@ public class GroupedWorkIndexer {
 		}
 		overDriveProcessor = new OverDriveProcessor(this, vufindConn, econtentConn, logger);
 		evokeProcessor = new EVokeProcessor(this, vufindConn, configIni, logger);
+		hooplaProcessor = new HooplaProcessor(this, configIni, logger);
 		//Load translation maps
 		loadTranslationMaps();
 
@@ -185,7 +187,10 @@ public class GroupedWorkIndexer {
 		if (!libraryAndLocationDataLoaded){
 			//Setup translation maps for system and location
 			try {
-				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, displayName, facetLabel, pTypes, restrictSearchByLibrary, econtentLocationsToInclude, includeDigitalCollection, includeOutOfSystemExternalLinks, useScope, orderAccountingUnit FROM library ORDER BY ilsCode ASC", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, " +
+						"displayName, facetLabel, pTypes, restrictSearchByLibrary, econtentLocationsToInclude, includeDigitalCollection, " +
+						"includeOutOfSystemExternalLinks, useScope, orderAccountingUnit, includeHoopla FROM library ORDER BY ilsCode ASC",
+						ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
 				while (libraryInformationRS.next()){
 					String code = libraryInformationRS.getString("ilsCode").toLowerCase();
@@ -211,32 +216,39 @@ public class GroupedWorkIndexer {
 					boolean includeOutOfSystemExternalLinks = libraryInformationRS.getBoolean("includeOutOfSystemExternalLinks");
 					boolean useScope = libraryInformationRS.getBoolean("useScope");
 					boolean includeOverdrive = libraryInformationRS.getBoolean("includeDigitalCollection");
+					boolean includeHoopla = libraryInformationRS.getBoolean("includeHoopla");
+
 					Long accountingUnit = libraryInformationRS.getLong("orderAccountingUnit");
 					//Determine if we need to build a scope for this library
 					//MDN 10/1/2014 always build scopes because it makes coding more consistent elsewhere.
-					/*if ((pTypes.length() == 0 || pTypes.equals("-1")) && !restrictSearchByLibrary && econtentLocationsToInclude.equalsIgnoreCase("all") && includeOutOfSystemExternalLinks && !useScope){
-						logger.debug("Not creating a scope for library because there are no restrictions for library " + subdomain);
-					}else{*/
-						//We need to build a scope
-						Scope newScope = new Scope();
-						newScope.setIsLibraryScope(true);
-						newScope.setIsLocationScope(false);
-						newScope.setScopeName(subdomain);
-						newScope.setAccountingUnit(accountingUnit);
-						newScope.setLibraryId(libraryId);
-						newScope.setFacetLabel(facetLabel);
-						newScope.setLibraryLocationCodePrefix(code);
-						newScope.setIncludeOutOfSystemExternalLinks(includeOutOfSystemExternalLinks);
-						newScope.setRelatedPTypes(pTypes.split(","));
-						newScope.setIncludeBibsOwnedByTheLibraryOnly(restrictSearchByLibrary);
-						newScope.setIncludeItemsOwnedByTheLibraryOnly(useScope);
-						newScope.setEContentLocationCodesToInclude(econtentLocationsToInclude.split(","));
-						newScope.setIncludeOverDriveCollection(includeOverdrive);
-						scopes.add(newScope);
-					//}
+					//We need to build a scope
+					Scope newScope = new Scope();
+					newScope.setIsLibraryScope(true);
+					newScope.setIsLocationScope(false);
+					newScope.setScopeName(subdomain);
+					newScope.setAccountingUnit(accountingUnit);
+					newScope.setLibraryId(libraryId);
+					newScope.setFacetLabel(facetLabel);
+					newScope.setLibraryLocationCodePrefix(code);
+					newScope.setIncludeOutOfSystemExternalLinks(includeOutOfSystemExternalLinks);
+					newScope.setRelatedPTypes(pTypes.split(","));
+					newScope.setIncludeBibsOwnedByTheLibraryOnly(restrictSearchByLibrary);
+					newScope.setIncludeItemsOwnedByTheLibraryOnly(useScope);
+					newScope.setEContentLocationCodesToInclude(econtentLocationsToInclude.split(","));
+					newScope.setIncludeOverDriveCollection(includeOverdrive);
+					newScope.setIncludeHoopla(includeHoopla);
+					scopes.add(newScope);
 				}
 
-				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, code, ilsCode, library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.useScope as useScopeLibrary, location.useScope as useScopeLocation, library.scope AS libraryScope, location.scope AS locationScope, restrictSearchByLocation, restrictSearchByLibrary, library.econtentLocationsToInclude as econtentLocationsToIncludeLibrary, location.econtentLocationsToInclude as econtentLocationsToIncludeLocation, library.includeDigitalCollection as includeDigitalCollectionLibrary, location.includeDigitalCollection as includeDigitalCollectionLocation, includeOutOfSystemExternalLinks, extraLocationCodesToInclude FROM location INNER JOIN library on library.libraryId = location.libraryid ORDER BY code ASC", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, code, ilsCode, " +
+						"library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.useScope as useScopeLibrary, " +
+						"location.useScope as useScopeLocation, library.scope AS libraryScope, location.scope AS locationScope, " +
+						"restrictSearchByLocation, restrictSearchByLibrary, library.econtentLocationsToInclude as econtentLocationsToIncludeLibrary, " +
+						"location.econtentLocationsToInclude as econtentLocationsToIncludeLocation, library.includeDigitalCollection as includeDigitalCollectionLibrary, " +
+						"location.includeDigitalCollection as includeDigitalCollectionLocation, includeOutOfSystemExternalLinks, " +
+						"extraLocationCodesToInclude, includeHoopla " +
+						"FROM location INNER JOIN library on library.libraryId = location.libraryid ORDER BY code ASC",
+						ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				ResultSet locationInformationRS = locationInformationStmt.executeQuery();
 				while (locationInformationRS.next()){
 					String code = locationInformationRS.getString("code").toLowerCase();
@@ -270,6 +282,7 @@ public class GroupedWorkIndexer {
 					Integer libraryScope = locationInformationRS.getInt("libraryScope");
 					boolean useScopeLocation = locationInformationRS.getBoolean("useScopeLocation");
 					Integer locationScope = locationInformationRS.getInt("locationScope");
+					boolean includeHoopla = locationInformationRS.getBoolean("includeHoopla");
 					if (pTypes.length() == 0 && !restrictSearchByLocation && econtentLocationsToIncludeLocation.equalsIgnoreCase("all") && includeOutOfSystemExternalLinks && !useScopeLocation){
 						logger.debug("Not creating a scope for locations because there are no restrictions for the location " + code);
 					}else{
@@ -297,6 +310,7 @@ public class GroupedWorkIndexer {
 							locationScopeInfo.setEContentLocationCodesToInclude(econtentLocationsToIncludeLocation.split(","));
 							locationScopeInfo.setIncludeOutOfSystemExternalLinks(includeOutOfSystemExternalLinks);
 							locationScopeInfo.setIncludeOverDriveCollection(includeOverDriveCollectionLibrary && includeOverDriveCollectionLocation);
+							locationScopeInfo.setIncludeHoopla(includeHoopla);
 							locationScopeInfo.setExtraLocationCodes(extraLocationCodesToInclude);
 
 							scopes.add(locationScopeInfo);
@@ -600,8 +614,10 @@ public class GroupedWorkIndexer {
 			ilsRecordProcessor.processRecord(groupedWork, identifier);
 		}else if (type.equals("overdrive")){
 			overDriveProcessor.processRecord(groupedWork, identifier);
-		}else if (type.equals("evoke")){
+		}else if (type.equals("evoke")) {
 			evokeProcessor.processRecord(groupedWork, identifier);
+		}else if (type.equals("hoopla")){
+			hooplaProcessor.processRecord(groupedWork, identifier);
 		}else{
 			logger.warn("Unknown identifier type " + type);
 		}

@@ -65,6 +65,7 @@ public class GroupedWork implements Cloneable{
 	static Pattern distributedByRemoval = Pattern.compile("^distributed (?:in.*\\s)?by\\s(.+)$");
 	static Pattern initialsFix = Pattern.compile("(?<=[A-Z])\\.(?=(\\s|[A-Z]|$))");
 	static Pattern apostropheStrip = Pattern.compile("'s");
+	static Pattern specialCharacterWhitespace = Pattern.compile("'");
 	static Pattern specialCharacterStrip = Pattern.compile("[^\\p{L}\\d\\s]");
 	static Pattern consecutiveCharacterStrip = Pattern.compile("\\s{2,}");
 	static Pattern bracketedCharacterStrip = Pattern.compile("\\[(.*?)\\]");
@@ -75,6 +76,7 @@ public class GroupedWork implements Cloneable{
 	private String normalizeAuthor(String author) {
 		String groupingAuthor = initialsFix.matcher(author).replaceAll(" ");
 		groupingAuthor = bracketedCharacterStrip.matcher(groupingAuthor).replaceAll("");
+
 		groupingAuthor = specialCharacterStrip.matcher(groupingAuthor).replaceAll(" ").trim().toLowerCase();
 		groupingAuthor = consecutiveCharacterStrip.matcher(groupingAuthor).replaceAll(" ");
 		//extract common additional info (especially for movie studios)
@@ -113,7 +115,7 @@ public class GroupedWork implements Cloneable{
 		return groupingAuthor;
 	}
 
-	static Pattern commonSubtitlesPattern = Pattern.compile("^(.*?)((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+.*ed(ition)?|\\d+.*update|1st\\s+ed.*|an? .* story|a .*\\s?book|poems|the movie|[\\w\\s]+series book \\d+|[\\w\\s]+trilogy book \\d+|large print|graphic novel|magazine|audio cd)$");
+	static Pattern commonSubtitlesPattern = Pattern.compile("^(.*?)((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s(.+)|a novel of .*|stories|an autobiography|a biography|a memoir in books|\\d+\\S*\\sed(ition)?|\\d+\\S*\\supdate|1st\\s+ed.*|an? .* story|a .*\\s?book|poems|the movie|[\\w\\s]+series book \\d+|[\\w\\s]+trilogy book \\d+|large print|graphic novel|magazine|audio cd)$");
 	static Pattern firstPattern = Pattern.compile("1st");
 	static Pattern secondPattern = Pattern.compile("2nd");
 	static Pattern thirdPattern = Pattern.compile("3rd");

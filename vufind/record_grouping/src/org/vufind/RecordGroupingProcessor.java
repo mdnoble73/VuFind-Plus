@@ -296,14 +296,13 @@ public class RecordGroupingProcessor {
 				//get format from item
 				groupingFormat = getFormatFromItems(marcRecord, formatSubfield);
 			}
+			workForTitle.groupingCategory = groupingFormat;
 
 			//Author
 			setWorkAuthorBasedOnMarcRecord(marcRecord, workForTitle, field245, groupingFormat);
 
 			//Identifiers
 			HashSet<RecordIdentifier> identifiers = getIdentifiersFromMarcRecord(marcRecord);
-
-			workForTitle.groupingCategory = groupingFormat;
 			workForTitle.identifiers = identifiers;
 
 			addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
@@ -1170,5 +1169,45 @@ public class RecordGroupingProcessor {
 			}
 		}
 		return translatedValue;
+	}
+
+	public void processHooplaRecord(Record marcRecord, String recordNumber) {
+		//Create primary identifier so we can get back to the record later
+		RecordIdentifier primaryIdentifier = new RecordIdentifier();
+		primaryIdentifier.setValue("hoopla", recordNumber);
+
+		//Create Grouped Work
+		GroupedWork workForTitle = new GroupedWork();
+
+		//Extract title so that we can group with other records
+		DataField field245 = setWorkTitleBasedOnMarcRecord(marcRecord, workForTitle);
+
+		//Load the format (broad format for grouping book, music, movie) we can get these from the 099
+		List<DataField> fields099 = getDataFields(marcRecord, "099");
+		String groupingFormat = "";
+		for (DataField cur099 : fields099){
+			String format = cur099.getSubfield('a').getData();
+			if (format.equalsIgnoreCase("eAudiobook hoopla")){
+				groupingFormat = "book";
+				break;
+			}else if (format.equalsIgnoreCase("eVideo hoopla")){
+				groupingFormat = "movie";
+				break;
+			}else if (format.equalsIgnoreCase("eMusic hoopla")){
+				groupingFormat = "music";
+				break;
+			}else{
+				logger.warn("Unknown Hoopla format " + format);
+			}
+		}
+		workForTitle.groupingCategory = groupingFormat;
+
+		//Extract author
+		setWorkAuthorBasedOnMarcRecord(marcRecord, workForTitle, field245, groupingFormat);
+
+		//Get isbns and upcs for cover images, etc.
+		workForTitle.identifiers = getIdentifiersFromMarcRecord(marcRecord);
+
+		addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
 	}
 }

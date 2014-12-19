@@ -93,5 +93,45 @@ class MarcLoader{
 			return false;
 		}
 	}
+
+	/**
+	 * @param string $hooplaId       The id of the record within Hoopla
+	 * @return boolean
+	 */
+	public static function marcExistsForHooplaId($hooplaId){
+		global $configArray;
+		$firstChars = substr($hooplaId, 0, 7);
+		$individualName = $configArray['Hoopla']['individualMarcPath'] . "/{$firstChars}/{$hooplaId}.mrc";
+		if (isset($configArray['Hoopla']['individualMarcPath'])){
+			return file_exists($individualName);
+		}else{
+			return false;
+		}
+	}
+
+	public static function loadMarcRecordByHooplaId($id) {
+		global $configArray;
+		if (array_key_exists($id, MarcLoader::$loadedMarcRecords)){
+			return MarcLoader::$loadedMarcRecords[$id];
+		}
+		$firstChars = substr($id, 0, 7);
+		$individualName = $configArray['Hoopla']['individualMarcPath'] . "/{$firstChars}/{$id}.mrc";
+		$marcRecord = false;
+		if (isset($configArray['Hoopla']['individualMarcPath'])){
+			if (file_exists($individualName)){
+				//$rawMarc = file_get_contents($individualName);
+				$marc = new File_MARC($individualName, File_MARC::SOURCE_FILE);
+				if (!($marcRecord = $marc->next())) {
+					PEAR_Singleton::raiseError(new PEAR_Error('Could not load marc record for hoopla record ' . $id));
+				}
+			}
+		}
+		//Make sure not to use to much memory
+		if (count(MarcLoader::$loadedMarcRecords) > 50){
+			array_shift(MarcLoader::$loadedMarcRecords);
+		}
+		MarcLoader::$loadedMarcRecords[$id] = $marcRecord;
+		return $marcRecord;
+	}
 }
 ?>

@@ -823,5 +823,13 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE library ADD COLUMN treatPrintNoticesAsPhoneNotices TINYINT DEFAULT 0",
 			),
 		),
+
+		'hoopla_library_options' => array(
+			'title' => 'Updates to determine configuration for Hoopla inclusion/exclusion by library',
+			'description' => 'Additional configuration over how Hoopla information is included by library',
+			'sql' => array(
+				"ALTER TABLE library ADD COLUMN includeHoopla TINYINT DEFAULT 0",
+			),
+		)
 	);
 }

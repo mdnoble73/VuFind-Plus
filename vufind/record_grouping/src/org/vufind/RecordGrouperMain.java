@@ -116,6 +116,7 @@ public class RecordGrouperMain {
 		loadIlsChecksums(vufindConn);
 
 		boolean errorAddingGroupedWorks = false;
+		groupHooplaRecords(configIni, recordGroupingProcessor);
 		groupEVokeRecords(configIni, recordGroupingProcessor);
 		groupOverDriveRecords(econtentConnection, recordGroupingProcessor);
 		groupIlsRecords(configIni, recordGroupingProcessor);
@@ -150,6 +151,134 @@ public class RecordGrouperMain {
 		long endTime = new Date().getTime();
 		long elapsedTime = endTime - processStartTime;
 		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
+	}
+
+	private static void groupHooplaRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor) {
+		if (configIni.containsKey("Hoopla")){
+			int numRecordsProcessed = 0;
+			int numRecordsRead = 0;
+			Profile.Section hooplaSection = configIni.get("Hoopla");
+			String marcPath = hooplaSection.get("marcPath");
+			if(marcPath == null){
+				return;
+			}
+			String marcEncoding = configIni.get("Hoopla", "marcEncoding");
+			String individualMarcPath = configIni.get("Hoopla", "individualMarcPath");
+
+			logger.debug("Grouping Hoopla Records");
+
+			//Figure out what we need to process
+			ArrayList<File> marcRecordFilesToProcess = loadHooplaFilesToProcess(hooplaSection, marcPath);
+
+			//Load all files in the individual marc path.  This allows us to list directories rather than doing millions of
+			//individual look ups
+			HashSet<String> existingMarcFiles = new HashSet<String>();
+			File individualMarcFile = new File(individualMarcPath);
+			logger.debug("Starting to read existing marc files for Hoopla from disc");
+			loadExistingMarcFiles(individualMarcFile, existingMarcFiles);
+			logger.debug("Finished reading existing marc files for Hoopla from disc");
+
+			//Process each file in turn
+			for (File marcFile : marcRecordFilesToProcess){
+				String lastRecordProcessed = "";
+				numRecordsProcessed = 0;
+				numRecordsRead = 0;
+				try {
+					FileInputStream marcFileStream = new FileInputStream(marcFile);
+					MarcReader catalogReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
+
+					//File has been opened, process each record within the file
+					while (catalogReader.hasNext()) {
+						Record curBib = catalogReader.next();
+						//Get the unique record number for the Hoopla record (in this case we will use 001)
+						String recordNumber = curBib.getControlNumber();
+						boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, 7);
+						if (!marcUpToDate || fullRegroupingNoClear){
+							recordGroupingProcessor.processHooplaRecord(curBib, recordNumber);
+							numRecordsProcessed++;
+						}
+						//Mark that the record was processed
+						marcRecordIdsInDatabase.remove(recordNumber);
+						lastRecordProcessed = recordNumber;
+						numRecordsRead++;
+						if (numRecordsRead % 100000 == 0){
+							recordGroupingProcessor.dumpStats();
+						}
+					}
+
+					marcFileStream.close();
+				} catch (Exception e) {
+					logger.error("Error loading hoopla bibs on record " + numRecordsRead + " the last record processed was " + lastRecordProcessed, e);
+				}
+				logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the hoopla file " + marcFile.getName());
+			}
+		}
+
+		//TODO: Don't forget to process deletions
+	}
+
+	private static ArrayList<File> loadHooplaFilesToProcess(Profile.Section hooplaSection, String marcPath) {
+		ArrayList<File> marcRecordFilesToProcess = new ArrayList<File>();
+		boolean includeAudioBooks = cleanIniValue(hooplaSection.get("includeAudioBooks")).equalsIgnoreCase("true");
+		boolean includeNoPAMusic = cleanIniValue(hooplaSection.get("includeNoPAMusic")).equalsIgnoreCase("true");
+		boolean includePAMusic = cleanIniValue(hooplaSection.get("includePAMusic")).equalsIgnoreCase("true");
+		boolean includeAllMusic = cleanIniValue(hooplaSection.get("includeAllMusic")).equalsIgnoreCase("true");
+		boolean includeTV = cleanIniValue(hooplaSection.get("includeTV")).equalsIgnoreCase("true");
+		boolean includeMovies = cleanIniValue(hooplaSection.get("includeMovies")).equalsIgnoreCase("true");
+
+		if (includeAudioBooks){
+			File marcFile = new File(marcPath + "/USA_AB.mrc");
+			if (marcFile.exists()){
+				marcRecordFilesToProcess.add(marcFile);
+			}else{
+				logger.warn("Configuration states that Hoopla Audiobooks should be processed, but file was not found. " + marcFile.toString());
+			}
+		}
+
+		if (includeAllMusic){
+			File marcFile = new File(marcPath + "/USA_ALL_Music.mrc");
+			if (marcFile.exists()) {
+				marcRecordFilesToProcess.add(marcFile);
+			} else {
+				logger.warn("Configuration states that ALL Hoopla Music should be processed, but file was not found. " + marcFile.toString());
+			}
+		} else {
+			if (includeNoPAMusic) {
+				File marcFile = new File(marcPath + "/USA_No_PA_Music.mrc");
+				if (marcFile.exists()) {
+					marcRecordFilesToProcess.add(marcFile);
+				} else {
+					logger.warn("Configuration states that Hoopla Music with no Parental Advisories should be processed, but file was not found. " + marcFile.toString());
+				}
+			}
+			if (includePAMusic) {
+				File marcFile = new File(marcPath + "/USA_Only_PA_Music_.mrc");
+				if (marcFile.exists()) {
+					marcRecordFilesToProcess.add(marcFile);
+				} else {
+					logger.warn("Configuration states that Hoopla Music with Parental Advisories should be processed, but file was not found. " + marcFile.toString());
+				}
+			}
+		}
+
+		if (includeTV){
+			File marcFile = new File(marcPath + "/USA_TV_Video.mrc");
+			if (marcFile.exists()){
+				marcRecordFilesToProcess.add(marcFile);
+			}else{
+				logger.warn("Configuration states that Hoopla TV Video should be processed, but file was not found. " + marcFile.toString());
+			}
+		}
+
+		if (includeMovies){
+			File marcFile = new File(marcPath + "/USA_Video.mrc");
+			if (marcFile.exists()){
+				marcRecordFilesToProcess.add(marcFile);
+			}else{
+				logger.warn("Configuration states that Hoopla Movies should be processed, but file was not found. " + marcFile.toString());
+			}
+		}
+		return marcRecordFilesToProcess;
 	}
 
 	private static void groupEVokeRecords(Ini configIni, RecordGroupingProcessor recordGroupingProcessor) {
@@ -432,7 +561,7 @@ public class RecordGrouperMain {
 						while (catalogReader.hasNext()){
 							Record curBib = catalogReader.next();
 							String recordNumber = getRecordNumberForBib(curBib);
-							boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber);
+							boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, 4);
 							if (!marcUpToDate || fullRegroupingNoClear){
 								recordGroupingProcessor.processMarcRecord(curBib, loadFormatFrom, formatSubfield);
 								numRecordsProcessed++;
@@ -603,13 +732,13 @@ public class RecordGrouperMain {
 		return numRecordsProcessed;
 	}
 
-	private static boolean writeIndividualMarc(HashSet<String> existingMarcFiles, String individualMarcPath, Record marcRecord, String recordNumber) {
+	private static boolean writeIndividualMarc(HashSet<String> existingMarcFiles, String individualMarcPath, Record marcRecord, String recordNumber, int numCharsInPrefix) {
 		Boolean marcRecordUpToDate = false;
 		//Copy the record to the individual marc path
 		if (recordNumber != null){
 			Boolean marcRecordExistsInDb = false;
 			Long checksum = getChecksum(marcRecord);
-			File individualFile = getFileForIlsRecord(individualMarcPath, recordNumber);
+			File individualFile = getFileForIlsRecord(individualMarcPath, recordNumber, numCharsInPrefix);
 
 			if (!fullRegrouping){
 				Long existingChecksum = getExistingChecksum(recordNumber);
@@ -645,9 +774,9 @@ public class RecordGrouperMain {
 		return marcRecordChecksums.get(recordNumber);
 	}
 
-	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber) {
+	private static File getFileForIlsRecord(String individualMarcPath, String recordNumber, int numCharsInPrefix) {
 		String shortId = getFileIdForRecordNumber(recordNumber);
-		String firstChars = shortId.substring(0, 4);
+		String firstChars = shortId.substring(0, numCharsInPrefix);
 		String basePath = individualMarcPath + "/" + firstChars;
 		String individualFilename = basePath + "/" + shortId + ".mrc";
 		File individualFile = new File(individualFilename);
