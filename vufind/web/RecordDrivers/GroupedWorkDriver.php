@@ -623,8 +623,6 @@ class GroupedWorkDriver extends RecordInterface{
 		if ($groupedWork->find(true)){
 			$groupedWorkDetails = array();
 			$groupedWorkDetails['full_title'] = $groupedWork->full_title;
-			$groupedWorkDetails['title'] = $groupedWork->title;
-			$groupedWorkDetails['subtitle'] = $groupedWork->subtitle;
 			$groupedWorkDetails['author'] = $groupedWork->author;
 			$groupedWorkDetails['grouping_category'] = $groupedWork->grouping_category;
 			$interface->assign('groupedWorkDetails', $groupedWorkDetails);

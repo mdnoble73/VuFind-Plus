@@ -244,7 +244,7 @@ abstract class Record_Record extends Action
 			$interface->assign('notesTabName', 'Notes');
 		}
 
-		$notes = $marcRecord->getNotes();
+		$notes = $this->recordDriver->getNotes();
 		if (count($notes) > 0){
 			$interface->assign('notes', $notes);
 		}
