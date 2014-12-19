@@ -130,7 +130,7 @@
 					<a href="#vufindMenuGroup" data-toggle="collapse" data-parent="#adminMenuAccordion">
 						<div class="panel-heading">
 							<div class="panel-title">
-								VuFind Configuration
+								Pika Configuration
 							</div>
 						</div>
 					</a>
