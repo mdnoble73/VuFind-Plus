@@ -433,6 +433,26 @@ class BookCoverProcessor{
 			}
 		}
 
+		$marcFields = $marcRecord->getFields('590');
+		if ($marcFields){
+			$this->log("Found 590 field", PEAR_LOG_INFO);
+			foreach ($marcFields as $marcField){
+				if ($marcField->getSubfield('a')){
+					$this->log("Found 590a subfield", PEAR_LOG_INFO);
+					$subfield_a = $marcField->getSubfield('a')->getData();
+					if (preg_match('/Colorado State Government Documents online.*/i', $subfield_a, $matches)){
+						$this->log("Title is a Colorado state gov doc", PEAR_LOG_INFO);
+						$filename = "interface/themes/responsive/images/state_flag_of_colorado.png";
+						if ($this->processImageURL($filename, true)){
+							return true;
+						}
+					}
+				}else{
+					//no image link available on this link
+				}
+			}
+		}
+
 		return false;
 	}
 

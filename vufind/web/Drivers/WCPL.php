@@ -423,17 +423,17 @@ class WCPL extends HorizonAPI
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$sresult = curl_exec($curl_connection);
 
-		$firstName = strip_tags($_REQUEST['firstName']);
-		$lastName = strip_tags($_REQUEST['lastName']);
-		$streetAddress = strip_tags($_REQUEST['streetAddress']);
-		$apartment = strip_tags($_REQUEST['apartment']);
-		$citySt = strip_tags($_REQUEST['citySt']);
-		$zip = strip_tags($_REQUEST['zip']);
-		$email = strip_tags($_REQUEST['email']);
-		$sendNoticeBy = strip_tags($_REQUEST['sendNoticeBy']);
-		$pin = strip_tags($_REQUEST['pin']);
-		$confirmPin = strip_tags($_REQUEST['confirmPin']);
-		$phone = strip_tags($_REQUEST['phone']);
+		$firstName = strip_tags($_REQUEST['firstname']);
+		$lastName = strip_tags($_REQUEST['lastname']);
+		$streetAddress = strip_tags($_REQUEST['address1']);
+		$apartment = strip_tags($_REQUEST['address2']);
+		$citySt = strip_tags($_REQUEST['city_st']);
+		$zip = strip_tags($_REQUEST['postal_code']);
+		$email = strip_tags($_REQUEST['email_address']);
+		$sendNoticeBy = strip_tags($_REQUEST['send_notice_by']);
+		$pin = strip_tags($_REQUEST['pin#']);
+		$confirmPin = strip_tags($_REQUEST['confirmpin#']);
+		$phone = strip_tags($_REQUEST['phone_no']);
 
 		//Register the patron
 		$post_data = array(
@@ -483,8 +483,8 @@ class WCPL extends HorizonAPI
 		unlink($cookie);
 
 		return array(
-		  'tempBarcode' => $tempBarcode,
-		  'result'  => $success
+		  'barcode' => $tempBarcode,
+		  'success'  => $success
 		);
 
 	}
