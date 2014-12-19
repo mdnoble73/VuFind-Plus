@@ -22,6 +22,11 @@ class SearchStatNew extends DB_DataObject
 
 	function getSearchSuggestions($phrase, $type){
 		$searchStat = new SearchStatNew();
+		$phrase = trim($phrase);
+		//Don't bother getting suggestions for numeric phrases
+		if (is_numeric($phrase)){
+			return array();
+		}
 		//Don't suggest things to users that will result in them not getting any results
 		$searchStat->whereAdd("MATCH(phrase) AGAINST ('" . $searchStat->escape($phrase) ."')");
 		//$searchStat->orderBy("numSearches DESC");
@@ -67,6 +72,11 @@ class SearchStatNew extends DB_DataObject
 
 		//Only save basic searches
 		if (strpos($phrase, '(') !== FALSE || strpos($phrase, ')') !== FALSE){
+			return;
+		}
+
+		//Don't save searches that are numeric (if someone has a number they won't need suggestions).
+		if (is_numeric($phrase)){
 			return;
 		}
 

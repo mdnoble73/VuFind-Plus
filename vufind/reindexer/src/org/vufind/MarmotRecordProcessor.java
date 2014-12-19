@@ -225,7 +225,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					}
 				}
 				if (!isOverDrive && isEContent){
-					unsuppressedEcontentRecords.add(getEContentIlsRecord(identifier, itemField));
+					unsuppressedEcontentRecords.add(getEContentIlsRecord(record, identifier, itemField));
 				}
 			}
 		}
@@ -391,6 +391,11 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				}
 			}else if (filename.indexOf('.') > 0) {
 				String fileExtension = filename.substring(filename.lastIndexOf('.') + 1);
+				if (fileExtension.equalsIgnoreCase("noimages")){
+					//Try again, this wasn't the true extension
+					String tmpFilename = filename.replace(".noimages", "");
+					fileExtension = tmpFilename.substring(tmpFilename.lastIndexOf('.') + 1);
+				}
 				String translatedFormat = indexer.translateValue("format", fileExtension);
 				String translatedFormatCategory = indexer.translateValue("format_category", fileExtension);
 				String translatedFormatBoost = indexer.translateValue("format_boost", fileExtension);

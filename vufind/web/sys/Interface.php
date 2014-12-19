@@ -342,6 +342,16 @@ class UInterface extends Smarty
 			$this->assign('allowPinReset', $library->allowPinReset);
 			$this->assign('librarySystemName', $library->displayName);
 			$this->assign('showLibraryHoursAndLocationsLink', $library->showLibraryHoursAndLocationsLink);
+			//Check to see if we should just call it library location
+			$numLocations = $library->getNumLocationsForLibrary();
+			$this->assign('numLocations', $numLocations);
+			if ($numLocations == 1){
+				$locationForLibrary = new Location();
+				$locationForLibrary->libraryId = $library->libraryId;
+				$locationForLibrary->find(true);
+				$numHours = $locationForLibrary->getNumHours();
+				$this->assign('numHours', $numHours);
+			}
 			$this->assign('showDisplayNameInHeader', $library->showDisplayNameInHeader);
 		}else{
 			$this->assign('showLibraryHoursAndLocationsLink', 1);

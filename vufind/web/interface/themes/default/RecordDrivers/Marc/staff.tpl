@@ -9,11 +9,13 @@
 	<div class="col-xs-12">
 		<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}" class="btn btn-sm btn-default">Go To Grouped Work</a>
 		<button onclick="return VuFind.Record.reloadCover('{$id}')" class="btn btn-sm btn-default">Reload Cover</button>
+		<button onclick="return VuFind.GroupedWork.reloadEnrichment('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default" >Reload Enrichment</button>
 		{if $classicUrl && $classicId}
 			<a href="{$classicUrl}/record={$classicId|escape:"url"}&amp;searchscope={$millenniumScope}" class="btn btn-sm btn-info">View in Classic</a>
 		{/if}
 		{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('catalogging'))}
-			<a href="{$path}/Record/{$id|escape:"url"}/AJAX?method=downloadMarc" class="btn btn-sm btn-info">{translate text="Download Marc"}</a>
+			<button onclick="return VuFind.GroupedWork.forceReindex('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default">Force Reindex</button>
+			<a href="{$path}/Record/{$id|escape:"url"}/AJAX?method=downloadMarc" class="btn btn-sm btn-default">{translate text="Download Marc"}</a>
 		{/if}
 	</div>
 </div>

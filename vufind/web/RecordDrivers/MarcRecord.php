@@ -1182,14 +1182,22 @@ class MarcRecord extends IndexRecord
 		if ($sysDetailsValue != null) {
 			if (strpos($sysDetailsValue, "playaway") !== FALSE) {
 				$result[] =  "Playaway";
+			} else if (strpos($sysDetailsValue, "xbox one") !== FALSE) {
+				$result[] =  "Xbox One";
 			} else if (strpos($sysDetailsValue, "kinect sensor") !== FALSE) {
 				$result[] =  "Xbox 360 Kinect";
 			} else if (strpos($sysDetailsValue, "xbox") !== FALSE) {
 				$result[] =  "Xbox 360";
+			} else if (strpos($sysDetailsValue, "playstation 4") !== FALSE) {
+				$result[] =  "PlayStation 3";
 			} else if (strpos($sysDetailsValue, "playstation 3") !== FALSE) {
 				$result[] =  "PlayStation 3";
 			} else if (strpos($sysDetailsValue, "playstation") !== FALSE) {
 				$result[] =  "PlayStation";
+			} else if (strpos($sysDetailsValue, "nintendo wii u") !== FALSE) {
+				$result[] =  "Nintendo Wii U";
+			} else if (strpos($sysDetailsValue, "nintendo 3ds") !== FALSE) {
+				$result[] =  "Nintendo 3DS";
 			} else if (strpos($sysDetailsValue, "nintendo wii") !== FALSE) {
 				$result[] =  "Nintendo Wii";
 			} else if (strpos($sysDetailsValue, "directx") !== FALSE) {

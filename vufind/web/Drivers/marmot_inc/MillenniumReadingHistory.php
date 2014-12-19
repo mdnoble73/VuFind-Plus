@@ -214,109 +214,104 @@ class MillenniumReadingHistory {
 
 	private function parseReadingHistoryPage($pageContents, $patron, $sortOption, $recordsRead) {
 		set_time_limit(60);
-		$sResult = preg_replace("/<[^<]+?><[^<]+?>Reading History.\(.\d*.\)<[^<]+?>\W<[^<]+?>/", "", $pageContents);
 
-		$s = substr($sResult, stripos($sResult, 'patFunc'));
-		$s = substr($s,strpos($s,">")+1);
-		$s = substr($s,0,stripos($s,"</table"));
+		//Get the headers from the table
+		preg_match_all('/<th\\s+class="patFuncHeaders">\\s*(.*?)\\s*<\/th>/si', $pageContents, $result, PREG_SET_ORDER);
+		$sKeys = array();
+		for ($matchi = 0; $matchi < count($result); $matchi++) {
+			$sKeys[] = strip_tags($result[$matchi][1]);
+		}
 
-		$s = preg_replace ("/<br \/>/","", $s);
-
-		$sRows = preg_split("/<tr([^>]*)>/",$s);
+		//Get the rows for the table
+		preg_match_all('/<tr\\s+class="patFuncEntry">(.*?)<\/tr>/si', $pageContents, $result, PREG_SET_ORDER);
+		$sRows = array();
+		for ($matchi = 0; $matchi < count($result); $matchi++) {
+			$sRows[] = $result[$matchi][1];
+		}
 
 		$sCount = 1;
-		$sKeys = array_pad(array(),10,"");
 		$readingHistoryTitles = array();
-		foreach ($sRows as $srow) {
-			$tmpRow = preg_replace('/\r\n|\n|\r/', "", strip_tags($srow));
-			if (strlen(trim($tmpRow)) == 0){
-				continue;
-			}elseif(preg_match('/Result Page|Records \d+-\d+ of \d+/', $tmpRow)){
-				continue;
+		foreach ($sRows as $sRow) {
+			preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $sRow, $result, PREG_SET_ORDER);
+			$sCols = array();
+			for ($matchi = 0; $matchi < count($result); $matchi++) {
+				$sCols[] = $result[$matchi][1];
 			}
-			$sCols = preg_split("/<t(h|d)([^>]*)>/",$srow);
 			$historyEntry = array();
 			for ($i=0; $i < sizeof($sCols); $i++) {
 				$sCols[$i] = str_replace("&nbsp;"," ",$sCols[$i]);
 				$sCols[$i] = preg_replace ("/<br+?>/"," ", $sCols[$i]);
-				$sCols[$i] = html_entity_decode(trim(substr($sCols[$i],0,stripos($sCols[$i],"</t"))));
-				if ($sCount == 1) {
-					$sKeys[$i] = strip_tags($sCols[$i]);
-				} else if ($sCount > 1) {
-					if (stripos($sKeys[$i],"Mark") > -1) {
-						if (preg_match('/id="rsh(\\d+)"/', $sCols[$i], $matches)){
-							$itemIndex = $matches[1];
-							$historyEntry['itemindex'] = $itemIndex;
-						}
-						$historyEntry['deletable'] = "BOX";
+				$sCols[$i] = html_entity_decode(trim($sCols[$i]));
+				if (stripos($sKeys[$i],"Mark") > -1) {
+					if (preg_match('/id="rsh(\\d+)"/', $sCols[$i], $matches)){
+						$itemIndex = $matches[1];
+						$historyEntry['itemindex'] = $itemIndex;
 					}
+					$historyEntry['deletable'] = "BOX";
+				}
 
-					if (stripos($sKeys[$i],"Title") > -1) {
-						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $sCols[$i], $matches)) {
-							$shortId = $matches[1];
-							$bibId = '.' . $matches[2];
-							$title = strip_tags($matches[2]);
+				if (stripos($sKeys[$i],"Title") > -1) {
+					if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $sCols[$i], $matches)) {
+						$shortId = $matches[1];
+						$bibId = '.' . $matches[2];
+						$title = strip_tags($matches[2]);
 
-							$historyEntry['id'] = $bibId;
-							$historyEntry['shortId'] = $shortId;
-						}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $sCols[$i], $matches)){
-							$shortId = $matches[1];
-							$bibId = '.' . $matches[1] . $this->driver->getCheckDigit($shortId);
-							$title = $matches[2];
-							$historyEntry['id'] = $bibId;
-							$historyEntry['shortId'] = $shortId;
-						}else{
-							$title = strip_tags($sCols[$i]);
-						}
-
-						$historyEntry['title'] = $title;
-					}
-
-					if (stripos($sKeys[$i],"Author") > -1) {
-						$historyEntry['author'] = strip_tags($sCols[$i]);
-					}
-
-					if (stripos($sKeys[$i],"Checked Out") > -1) {
-						$historyEntry['checkout'] = strip_tags($sCols[$i]);
-					}
-					if (stripos($sKeys[$i],"Details") > -1) {
-						$historyEntry['details'] = strip_tags($sCols[$i]);
-					}
-
-					if (is_array($patron)){
-						$historyEntry['borrower_num'] = $patron['id'];
+						$historyEntry['id'] = $bibId;
+						$historyEntry['shortId'] = $shortId;
+					}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $sCols[$i], $matches)){
+						$shortId = $matches[1];
+						$bibId = '.' . $matches[1] . $this->driver->getCheckDigit($shortId);
+						$title = $matches[2];
+						$historyEntry['id'] = $bibId;
+						$historyEntry['shortId'] = $shortId;
 					}else{
-						$historyEntry['borrower_num'] = $patron->id;
+						$title = strip_tags($sCols[$i]);
 					}
 
-				} //Done processing column
+					$historyEntry['title'] = $title;
+				}
+
+				if (stripos($sKeys[$i],"Author") > -1) {
+					$historyEntry['author'] = strip_tags($sCols[$i]);
+				}
+
+				if (stripos($sKeys[$i],"Checked Out") > -1) {
+					$historyEntry['checkout'] = strip_tags($sCols[$i]);
+				}
+				if (stripos($sKeys[$i],"Details") > -1) {
+					$historyEntry['details'] = strip_tags($sCols[$i]);
+				}
+
+				if (is_array($patron)){
+					$historyEntry['borrower_num'] = $patron['id'];
+				}else{
+					$historyEntry['borrower_num'] = $patron->id;
+				}
 			} //Done processing row
 
-			if ($sCount > 1){
-				$titleKey = '';
-				$historyEntry['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($historyEntry['title']));
+			$historyEntry['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($historyEntry['title']));
 
-				//$historyEntry['itemindex'] = $itemindex++;
-				if ($sortOption == "title"){
-					$titleKey = $historyEntry['title_sort'];
-				}elseif ($sortOption == "author"){
-					$titleKey = $historyEntry['author'] . "_" . $historyEntry['title_sort'];
-				}elseif ($sortOption == "checkedOut" || $sortOption == "returned"){
-					$checkoutTime = DateTime::createFromFormat('m-d-Y', $historyEntry['checkout']) ;
-					if ($checkoutTime){
-						$titleKey = $checkoutTime->getTimestamp() . "_" . $historyEntry['title_sort'];
-					}else{
-						//print_r($historyEntry);
-						$titleKey = $historyEntry['title_sort'];
-					}
-				}elseif ($sortOption == "format"){
-					$titleKey = $historyEntry['format'] . "_" . $historyEntry['title_sort'];
+			//$historyEntry['itemindex'] = $itemindex++;
+			if ($sortOption == "title"){
+				$titleKey = $historyEntry['title_sort'];
+			}elseif ($sortOption == "author"){
+				$titleKey = $historyEntry['author'] . "_" . $historyEntry['title_sort'];
+			}elseif ($sortOption == "checkedOut" || $sortOption == "returned"){
+				$checkoutTime = DateTime::createFromFormat('m-d-Y', $historyEntry['checkout']) ;
+				if ($checkoutTime){
+					$titleKey = $checkoutTime->getTimestamp() . "_" . $historyEntry['title_sort'];
 				}else{
+					//print_r($historyEntry);
 					$titleKey = $historyEntry['title_sort'];
 				}
-				$titleKey .= '_' . ($sCount + $recordsRead);
-				$readingHistoryTitles[$titleKey] = $historyEntry;
+			}elseif ($sortOption == "format"){
+				$titleKey = $historyEntry['format'] . "_" . $historyEntry['title_sort'];
+			}else{
+				$titleKey = $historyEntry['title_sort'];
 			}
+			$titleKey .= '_' . ($sCount + $recordsRead);
+			$readingHistoryTitles[$titleKey] = $historyEntry;
+
 			$sCount++;
 		}//processed all rows in the table
 		return $readingHistoryTitles;
