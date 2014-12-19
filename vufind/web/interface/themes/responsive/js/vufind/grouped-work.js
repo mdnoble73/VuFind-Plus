@@ -47,6 +47,16 @@ VuFind.GroupedWork = (function(){
 			return false;
 		},
 
+		forceReindex: function (id){
+			var url = Globals.path + '/GroupedWork/' + id + '/AJAX?method=forceReindex';
+			$.getJSON(url, function (data){
+						VuFind.showMessage("Success", data.message, true, true);
+						setTimeout("VuFind.closeLightbox();", 3000);
+					}
+			);
+			return false;
+		},
+
 		getGoDeeperData: function (id, dataType){
 			var placeholder;
 			if (dataType == 'excerpt'){
@@ -67,9 +77,12 @@ VuFind.GroupedWork = (function(){
 			});
 		},
 
-		loadEnrichmentInfo: function (id) {
+		loadEnrichmentInfo: function (id, forceReload) {
 			var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
 			var params = "method=getEnrichmentInfo";
+			if (forceReload != undefined){
+				params = params + "&reload=true";
+			}
 			var fullUrl = url + "?" + params;
 			$.getJSON( fullUrl, function(data) {
 					try{
@@ -200,6 +213,10 @@ VuFind.GroupedWork = (function(){
 					}
 			);
 			return false;
+		},
+
+		reloadEnrichment: function (id){
+			VuFind.GroupedWork.loadEnrichmentInfo(id, true);
 		},
 
 		removeTag:function(id, tag){

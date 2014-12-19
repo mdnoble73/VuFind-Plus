@@ -1047,6 +1047,13 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			printFormats.remove("Book");
 		}else if (printFormats.contains("Book") && printFormats.contains("Musical Score")){
 			printFormats.remove("Book");
+		}else if (printFormats.contains("Kinect") || printFormats.contains("XBox360")
+				|| printFormats.contains("XBoxOne") || printFormats.contains("PlayStation")
+				|| printFormats.contains("PlayStation3") || printFormats.contains("PlayStation4")
+				|| printFormats.contains("Wii") || printFormats.contains("WiiU")
+				|| printFormats.contains("3DS") || printFormats.contains("WindowsGame")){
+			printFormats.remove("Software");
+			printFormats.remove("Electronic");
 		}/*else if (printFormats.size() > 1){
 			return;
 		}*/
@@ -1153,7 +1160,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					result.add("PlayStation3");
 				} else if (sysDetailsValue.contains("playstation")) {
 					result.add("PlayStation");
-				} else if (sysDetailsValue.contains("nintendo wii u")) {
+				} else if (sysDetailsValue.contains("wii u")) {
 					result.add("WiiU");
 				} else if (sysDetailsValue.contains("nintendo wii")) {
 					result.add("Wii");

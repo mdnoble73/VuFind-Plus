@@ -346,9 +346,7 @@ class Anythink extends HorizonAPI {
 
 		/*
 		Form variables are built using horizonAPI class, getSelfRegistrationFields() which uses the API to get fields from ILS.
-
 	*/
-
 		$firstName = strip_tags($_REQUEST['firstname']);
 		$lastName = strip_tags($_REQUEST['lastname']);
 		$address1 = strip_tags($_REQUEST['address1']);
@@ -362,29 +360,7 @@ class Anythink extends HorizonAPI {
 		$phone = strip_tags($_REQUEST['phone_no']);
 		$phoneType = strip_tags($_REQUEST['phone_type']); // option 'z' has a label of 't', rather than 'telephone'. (also pager options needed?)
 		$language = strip_tags($_REQUEST['language']);
-		$location = strip_tags($_REQUEST['location']); // not in form. plb 12-10-2014
 		$borrowerNote = strip_tags($_REQUEST['borrower_note']); // used as a BirthDate Field. plb 12-10-2014
-
-
-
-
-/* Request indexes don't match form-passed names as above. code kept in case the form should be changed instead. plb 12-10-2014
-		$firstName = strip_tags($_REQUEST['firstName']);
-		$lastName = strip_tags($_REQUEST['lastName']);
-		$address1 = strip_tags($_REQUEST['address1']);
-		$address2 = strip_tags($_REQUEST['address2']);
-		$citySt = strip_tags($_REQUEST['citySt']);
-		$zip = strip_tags($_REQUEST['zip']);
-		$email = strip_tags($_REQUEST['email']);
-		$sendNoticeBy = strip_tags($_REQUEST['sendNoticeBy']);
-		$pin = strip_tags($_REQUEST['pin']);
-		$confirmPin = strip_tags($_REQUEST['confirmPin']);
-		$phone = strip_tags($_REQUEST['phone']);
-		$phoneType = strip_tags($_REQUEST['phoneType']);
-		$language = strip_tags($_REQUEST['language']);
-		$location = strip_tags($_REQUEST['location']);
-		$borrowerNote = strip_tags($_REQUEST['borrowerNote']);
-*/
 
 		//Register the patron
 		$post_data = array(
@@ -440,8 +416,8 @@ class Anythink extends HorizonAPI {
 		unlink($cookie);
 
 		return array(
-		  'tempBarcode' => $tempBarcode,
-		  'result'  => $success
+		  'barcode' => $tempBarcode,
+		  'success'  => $success
 		);
 
 	}

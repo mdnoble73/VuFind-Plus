@@ -202,8 +202,10 @@ class Novelist3{
 				$now = time();
 				if ($novelistData->lastUpdate < $now - (30 * 24 * 60 * 60)){
 					$random = rand(1, 100);
-					if ($random <= 20){
-						$doUpdate = true;
+					if ($random <= 80  && !isset($_REQUEST['reload'])){
+						return $novelistData;
+					}else{
+						//$doUpdate = true;
 					}
 				}
 			}//else, no ISBNs, don't update

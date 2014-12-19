@@ -344,19 +344,6 @@ class MillenniumHolds{
 			$sRows[] = $result[$matchi][1];
 		}
 
-		/*$sResult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* HOLD.?\W<[^<]+?>\W<[^<]+?>/", "", $sResult);*/
-
-		//$sResult = substr($sResult,strpos($sResult,"HOLD"));
-
-		/*$s = substr($pageContents, stripos($pageContents, 'patFunc'));
-
-		$s = substr($s,strpos($s,">")+1);
-
-		$s = substr($s,0,stripos($s,"</table"));
-
-		$s = preg_replace ("/<br \/>/","", $s);
-
-		$sRows = preg_split("/<tr([^>]*)>/",$s);*/
 		$sCount = 0;
 
 		foreach ($sRows as $sRow) {

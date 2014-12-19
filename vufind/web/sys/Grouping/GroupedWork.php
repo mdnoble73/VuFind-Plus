@@ -13,8 +13,7 @@ class GroupedWork extends DB_DataObject {
 	public $id;
 	public $permanent_id;
 	public $full_title;
-	public $title;
 	public $author;
-	public $subtitle;
 	public $grouping_category;
+	public $date_updated;
 } 

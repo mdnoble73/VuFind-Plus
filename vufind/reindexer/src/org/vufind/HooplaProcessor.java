@@ -129,34 +129,47 @@ public class HooplaProcessor extends MarcRecordProcessor {
 		groupedWork.setFormatBoost(formatBoost);
 
 		//Figure out ownership information
-		//TODO: Add a configuration switch for each library so they can opt out of Hoopla at the library level
-		//TODO: Add a configuration switch for which collections they subscribe to
-		groupedWork.addOwningLibraries(indexer.getLibraryOnlineFacetMap().values());
-		groupedWork.addOwningLocations(indexer.getLocationMap().values());
-		HashSet<String> relatedScopes = new HashSet<String>();
-		relatedScopes.addAll(indexer.getSubdomainMap().values());
-		relatedScopes.addAll(indexer.getLocationMap().values());
-		groupedWork.addOwningLocationCodesAndSubdomains(relatedScopes);
+		HashSet<Scope> relatedScopes = new HashSet<Scope>();
+		HashSet<String> owningLibraries = new HashSet<String>();
+		HashSet<String> owningLibraryCodes = new HashSet<String>();
+		HashSet<String> owningLocationCodes = new HashSet<String>();
+		HashSet<String> owningLocations = new HashSet<String>();
+		HashSet<String> owningLocationCodesAndSubdomains = new HashSet<String>();
+		for (Scope curScope: indexer.getScopes()){
+			if (curScope.isIncludeHoopla()){
+				relatedScopes.add(curScope);
+				if (curScope.isLibraryScope()){
+					owningLibraries.add(curScope.getFacetLabel());
+					owningLibraryCodes.add(curScope.getScopeName());
+				}else{
+					owningLocations.add(curScope.getFacetLabel());
+					owningLocationCodes.add(curScope.getScopeName());
+				}
+				owningLocationCodesAndSubdomains.add(curScope.getScopeName());
+			}
+		}
+		groupedWork.addOwningLibraries(owningLibraries);
+		groupedWork.addOwningLocations(owningLocations);
+		groupedWork.addOwningLocationCodesAndSubdomains(owningLocationCodesAndSubdomains);
+
+		groupedWork.addEContentSource("Hoopla", owningLibraryCodes, owningLocationCodes);
 
 		//Load availability
 		//For hoopla, everything is always available
 		groupedWork.addAvailableLocations(indexer.getSubdomainMap().values(), indexer.getLocationMap().values());
-		groupedWork.addAvailabilityByFormatForLocation(relatedScopes, format, "available");
+		groupedWork.addAvailabilityByFormatForLocation(owningLocationCodesAndSubdomains, format, "available");
 
-		//TODO: Popularity
+		//TODO: Popularity - Hoopla
 		groupedWork.addPopularity(1);
 
-		//TODO: Date added, could this be done based of date first detected in Pika
+		//TODO: Date added, could this be done based of date first detected in Pika?
 
 		//Related Record
 		//TODO: add url? or add url within an item record
 		String recordIdentifier = groupedWork.addRelatedRecord("hoopla:" + identifier, format, primaryEdition, primaryLanguage, publisher, publicationDate, physicalDescription);
 
 		//Setup information based on the scopes
-		//Start by giving everyone access to Hoopla
-		//TODO: Limit this later
-		TreeSet<Scope> validScopes = indexer.getScopes();
-		for (Scope validScope : validScopes) {
+		for (Scope validScope : relatedScopes) {
 			groupedWork.addCompatiblePTypes(validScope.getRelatedPTypes());
 			groupedWork.getScopedWorkDetails().get(validScope.getScopeName()).getRelatedRecords().add(recordIdentifier);
 		}

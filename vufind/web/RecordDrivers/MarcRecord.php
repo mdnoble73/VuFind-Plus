@@ -1194,7 +1194,7 @@ class MarcRecord extends IndexRecord
 				$result[] =  "PlayStation 3";
 			} else if (strpos($sysDetailsValue, "playstation") !== FALSE) {
 				$result[] =  "PlayStation";
-			} else if (strpos($sysDetailsValue, "nintendo wii u") !== FALSE) {
+			} else if (strpos($sysDetailsValue, "wii u") !== FALSE) {
 				$result[] =  "Nintendo Wii U";
 			} else if (strpos($sysDetailsValue, "nintendo 3ds") !== FALSE) {
 				$result[] =  "Nintendo 3DS";

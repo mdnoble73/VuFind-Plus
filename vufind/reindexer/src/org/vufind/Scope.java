@@ -16,7 +16,7 @@ public class Scope implements Comparable<Scope>{
 	private String scopeName;
 	private String facetLabel;
 	private HashSet<String> relatedPTypes = new HashSet<String>();
-private boolean includeBibsOwnedByTheLibraryOnly;
+	private boolean includeBibsOwnedByTheLibraryOnly;
 	private boolean includeItemsOwnedByTheLibraryOnly;
 	private HashSet<String> eContentLocationCodesToInclude = new HashSet<String>();
 	private boolean includeOutOfSystemExternalLinks;
@@ -30,6 +30,7 @@ private boolean includeBibsOwnedByTheLibraryOnly;
 	private Long accountingUnit;
 	private boolean isLibraryScope;
 	private boolean isLocationScope;
+	private boolean includeHoopla;
 
 	public String getScopeName() {
 		return scopeName;
@@ -283,5 +284,13 @@ private boolean includeBibsOwnedByTheLibraryOnly;
 
 	public boolean isIncludeItemsOwnedByTheLocationOnly() {
 		return includeItemsOwnedByTheLocationOnly;
+	}
+
+	public boolean isIncludeHoopla() {
+		return includeHoopla;
+	}
+
+	public void setIncludeHoopla(boolean includeHoopla) {
+		this.includeHoopla = includeHoopla;
 	}
 }
