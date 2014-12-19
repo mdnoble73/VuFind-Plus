@@ -255,20 +255,15 @@ class MillenniumReadingHistory {
 					if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $sCols[$i], $matches)) {
 						$shortId = $matches[1];
 						$bibId = '.' . $matches[2];
-						$title = strip_tags($matches[2]);
-
 						$historyEntry['id'] = $bibId;
 						$historyEntry['shortId'] = $shortId;
 					}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $sCols[$i], $matches)){
 						$shortId = $matches[1];
 						$bibId = '.' . $matches[1] . $this->driver->getCheckDigit($shortId);
-						$title = strip_tags($matches[2]);
 						$historyEntry['id'] = $bibId;
 						$historyEntry['shortId'] = $shortId;
-					}else{
-						$title = strip_tags($sCols[$i]);
 					}
-
+					$title = strip_tags($sCols[$i]);
 					$historyEntry['title'] = $title;
 				}
 
