@@ -7153,6 +7153,23 @@ div#system-message-header {
 .selected-browse-label-search a {
   color: #0072bc;
 }
+#selected-browse-search-link .icon-before {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+#selected-browse-search-link .icon-before:empty {
+  width: 1em;
+}
+#selected-browse-search-link .icon-before:before {
+  content: "\e003";
+}
 .browse-category:hover {
   background-color: lightskyblue;
   color: darkblue;
@@ -8041,7 +8058,6 @@ div#system-message-header {
   font-weight: bold;
 }
 #header-container {
-  background-color: #B5192B;
   background-image: url('/interface/themes/western_resp/images/header_background.png');
   background-position: right bottom;
   background-repeat: no-repeat;
@@ -8049,15 +8065,14 @@ div#system-message-header {
   padding: 0;
 }
 #header-wrapper {
-  background-color: #B5192B;
-  background: linear-gradient(to bottom, #b5192b 0%, #d82538 100%);
+  background: linear-gradient(to bottom, #b5192b 0%, #d82538 100%) repeat scroll 0 0 rgba(0, 0, 0, 0);
 }
 .facetTitle {
   background: #f8f8f8;
 }
 .facetTitle:hover {
   background-color: #9d162b;
-  background: linear-gradient(left center, #9d162b 0%, #d81f3c 100%);
+  background: -moz-linear-gradient(left center, #9d162b 0%, #d81f3c 100%);
   color: white;
   text-shadow: none;
 }
