@@ -1,6 +1,6 @@
 ###################
 ## Crontab setting from a 'configuration' file
-## 
+##
 ## to save current crontab to file: crontab -l > crontab_settings.txt
 ##
 ## to set the current crontab from a file : crontab < crontab_settings.txt
@@ -59,6 +59,15 @@
 #Everday midnight and 1pm
 # adjusted to 1 min later to avoid conflict with nfs mount point in script - sml 24 Nov 14
 
+# AspenCat export copy
+# adjust to 2.31a to avoid conflict with nfs mount point - sml 24 Nov 14
+# adjust to 4.31a to run after ftp server collects data from aspencat - sml 19 Dec 14
+31 4 * * * /root/cron/copyAspencatExport.sh
+
+# Anythink export copy
+# added at 1.01a to avoid conflict with nfs mount point - sml 19 Dec 14
+01 1 * * * /root/cron/copyAnythinkExport
+
 ###############################
 # Data Extract TO ftp server  #
 ###############################
@@ -99,10 +108,6 @@
 10 1 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar marmot.test fullReindex
 # 1:10am everyday
 
-# AspenCat export copy
-# adjust to 2.31a to avoid conflict with nfs mount point - sml 24 Nov 14
-31 2 * * * /root/cron/copyAspencatExport.sh
-
 # AspenCat
 20 4 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar aspencat.test fullReindex
 #4:20 am everyday, after full regrouping
@@ -135,4 +140,3 @@
 
 # Split Marc Records for export to other systems
 00 1 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.test SplitMarcExport
-
