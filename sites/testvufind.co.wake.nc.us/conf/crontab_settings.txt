@@ -38,6 +38,10 @@
 # git pull origin {current branch}
 # crontab < /usr/local/vufind-plus/sites/testvufind.co.wake.nc.us/conf/crontab_settings.txt
 
+###############
+# On Reboot
+###############
+@reboot cd /usr/local/vufind-plus/sites/testvufind.co.wake.nc.us; ./testvufind.co.wake.nc.us.sh start
 
 #######################
 # VuFind-Plus Cleanup #
