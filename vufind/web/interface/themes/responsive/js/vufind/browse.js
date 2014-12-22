@@ -17,7 +17,7 @@ VuFind.Browse = (function(){
 					$('.selected-browse-label-text').html(label);
 					$('.selected-browse-label-search-text').html(label);
 					$('#home-page-browse-thumbnails').html(data.records);
-					console.log(data.records);
+					//console.log(data.records);
 					$('#selected-browse-search-link').attr('href', data.searchUrl);
 					$('.browse-category').removeClass('selected');
 					VuFind.Browse.curPage = 1;
@@ -60,6 +60,8 @@ VuFind.Browse = (function(){
 
 $(document).ready(function(){
 	var browseCategoryCarousel = $("#browse-category-carousel");
+
+	// resize the browse category carousel for different screen sizes
 	browseCategoryCarousel.on('jcarousel:create jcarousel:reload', function() {
 		var element = $(this), width = element.innerWidth();
 
@@ -72,30 +74,42 @@ $(document).ready(function(){
 		}
 
 		element.jcarousel('items').css('width', width + 'px');
-	});
-	browseCategoryCarousel.on('jcarousel:targetin', 'li', function(){
+	})
+
+	// connect the browse catalog functions to the jcarousel controls
+	.on('jcarousel:targetin', 'li', function(){
 		var categoryId = $(this).data('category-id');
 		VuFind.Browse.changeBrowseCategory(categoryId);
 	});
-
-
-	// Incorporate swiping gestures into the browse category selector. pascal 11-26-2014
 
 	if ($('#browse-category-picker .jcarousel-control-prev').css('display') != 'none') {
 		// only enable if the carousel features are being used.
 		// as of now, basalt & vail are not. plb 12-1-2014
 		// TODO: when disabling the carousel feature is turned into an option, change this code to check that setting.
 
+		// attach jcarousel navigation to clicking on a category
+		browseCategoryCarousel.find('li').click(function(){
+			browseCategoryCarousel.jcarousel('scroll', $(this));
+		});
+
+		// Incorporate swiping gestures into the browse category selector. pascal 11-26-2014
 		var scrollFactor = 15; // swipe size per item to scroll.
-		$('#browse-category-picker .jcarousel').touchwipe({
+		browseCategoryCarousel.touchwipe({
 			wipeLeft: function (dx) {
 				var scrollInterval = Math.round(dx / scrollFactor); // vary scroll interval based on wipe length
-				$('.jcarousel').jcarousel('scroll', '+=' + scrollInterval);
+				browseCategoryCarousel.jcarousel('scroll', '+=' + scrollInterval);
 			},
 			wipeRight: function (dx) {
 				var scrollInterval = Math.round(dx / scrollFactor); // vary scroll interval based on wipe length
-				$('.jcarousel').jcarousel('scroll', '-=' + scrollInterval);
+				browseCategoryCarousel.jcarousel('scroll', '-=' + scrollInterval);
 			}
+		});
+
+	// implements functions for libraries not using the carousel functionality
+	} else {
+		// bypass jcarousel navigation on a category click
+		browseCategoryCarousel.find('li').click(function(){
+			$(this).trigger('jcarousel:targetin');
 		});
 	}
 

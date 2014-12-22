@@ -10,7 +10,7 @@
 						<ul>
 							{foreach from=$browseCategories item=browseCategory name="browseCategoryLoop"}
 								<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9} {if $smarty.foreach.browseCategoryLoop.index == 0}selected{/if}" data-category-id="{$browseCategory->textId}" id="browse-category-{$browseCategory->textId}">
-									<a href="#" onclick="return VuFind.Browse.changeBrowseCategory('{$browseCategory->textId}');">
+									<a href="#" {* onclick="return VuFind.Browse.changeBrowseCategory('{$browseCategory->textId}');"*}>{* js now implemented throught browse.js. These links can be removed once styling referencing it is adjusted. plb 12-22-2014 *}
 										<div >
 											{$browseCategory->label}
 										</div>
@@ -36,7 +36,7 @@
 			<div class="row text-center" id="selected-browse-label">
 				<div class="selected-browse-label-search">
 					<a id="selected-browse-search-link" href="{$browseResults.searchUrl}">
-						<span class="icon-before"></span>
+						<span class="icon-before"></span> {*space needed for good padding between text and icon *}
 						<span class="selected-browse-label-search-text"> {$browseResults.label}</span>
 						<span class="icon-after"></span>
 					</a>
