@@ -37,12 +37,14 @@ class MyAccount_Profile extends MyAccount
 			$showWorkPhoneInProfile = false;
 			$showNoticeTypeInProfile = true;
 			$showPickupLocationInProfile = false;
+			$treatPrintNoticesAsPhoneNotices = false;
 			$allowPinReset = false;
 		}else{
 			$canUpdateContactInfo = ($activeLibrary->allowProfileUpdates == 1);
 			$canUpdateAddress = ($activeLibrary->allowPatronAddressUpdates == 1);
 			$showWorkPhoneInProfile = ($activeLibrary->showWorkPhoneInProfile == 1);
 			$showNoticeTypeInProfile = ($activeLibrary->showNoticeTypeInProfile == 1);
+			$treatPrintNoticesAsPhoneNotices = ($activeLibrary->treatPrintNoticesAsPhoneNotices == 1);
 			$showPickupLocationInProfile = ($activeLibrary->showPickupLocationInProfile == 1);
 			$allowPinReset = ($activeLibrary->allowPinReset == 1);
 		}
@@ -56,6 +58,7 @@ class MyAccount_Profile extends MyAccount
 		$interface->assign('showWorkPhoneInProfile', $showWorkPhoneInProfile);
 		$interface->assign('showPickupLocationInProfile', $showPickupLocationInProfile);
 		$interface->assign('showNoticeTypeInProfile', $showNoticeTypeInProfile);
+		$interface->assign('treatPrintNoticesAsPhoneNotices', $treatPrintNoticesAsPhoneNotices);
 		$interface->assign('allowPinReset', $allowPinReset);
 
 
