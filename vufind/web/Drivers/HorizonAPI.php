@@ -1019,17 +1019,21 @@ abstract class HorizonAPI extends Horizon{
 		if ($lookupTitleInfoResponse->titleInfo){
 			$i=0;
 			foreach ($lookupTitleInfoResponse->titleInfo->itemInfo as $itemInfo){
+				if (!isset($itemInfo->locationID)){
+					//Suppress anything without a location code
+					continue;
+				}
 				$holding = array(
 					'id' => $id,
 					'number' => $i++,
 					'type' => 'holding',
-					'status' => (string)$itemInfo->statusID,
-					'statusfull' => (string)$itemInfo->statusDescription,
-					'availability' => (boolean)$itemInfo->available,
+					'status' => isset($itemInfo->statusID) ? (string)$itemInfo->statusID : 'Unknown',
+					'statusfull' => isset($itemInfo->statusDescription) ? (string)$itemInfo->statusDescription : 'Unknown',
+					'availability' => isset($itemInfo->available) ? (boolean)$itemInfo->available : false,
 					'holdable' => true,
 					'reserve' => 'N',
 					'holdQueueLength' => (int)$lookupTitleInfoResponse->titleInfo->holdCount,
-					'dueDate' => (string)$itemInfo->dueDate,
+					'dueDate' => isset($itemInfo->dueDate) ? (string)$itemInfo->dueDate : 'Unknown',
 					'locationCode' => (string)$itemInfo->locationID,
 					'location' => (string)$itemInfo->locationDescription,
 					'callnumber' => (string)$itemInfo->callNumber,

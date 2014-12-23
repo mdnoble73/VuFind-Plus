@@ -1614,7 +1614,7 @@ class MarcRecord extends IndexRecord
 				$publisher = count($publishers) >= 1 ? $publishers[0] : '';
 				$publicationDates = $this->getPublicationDates();
 				$publicationDate = count($publicationDates) >= 1 ? $publicationDates[0] : '';
-				$physicalDescriptions = $this->getPhyicalDescriptions();
+				$physicalDescriptions = $this->getPhysicalDescriptions();
 				$physicalDescription = count($physicalDescriptions) >= 1 ? $physicalDescriptions[0] : '';
 				$format = reset($this->getFormat());
 				$edition = $this->getEdition(true);
@@ -2011,7 +2011,7 @@ class MarcRecord extends IndexRecord
 	static $catalogDriver = null;
 
 	/**
-	 * @return MillenniumDriver|Sierra|Marmot|DriverInterface
+	 * @return MillenniumDriver|Sierra|Marmot|DriverInterface|HorizonAPI
 	 */
 	protected static function getCatalogDriver(){
 		if (MarcRecord::$catalogDriver == null){
