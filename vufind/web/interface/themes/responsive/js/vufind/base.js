@@ -174,6 +174,8 @@ var VuFind = (function(){
 		},
 
 		showMessage: function(title, body, autoClose, refreshAfterClose){
+			// if autoclose is set as number greater than 1 autoClose will be the custom timeout interval in milliseconds, otherwise
+			//     autoclose is treated as an on/off switch. Default timeout interval of 3 seconds.
 			if (autoClose == undefined){
 				autoClose = false;
 			}
@@ -189,12 +191,12 @@ var VuFind = (function(){
 				setTimeout(function(){
 					location.reload(true);
 				}
-				, 3000);
+				, autoClose > 1 ? autoClose : 3000);
 			}else if (autoClose) {
 				setTimeout(function(){
 					VuFind.closeLightbox();
 				}
-				, 3000);
+				, autoClose > 1 ? autoClose : 3000);
 			}
 		},
 

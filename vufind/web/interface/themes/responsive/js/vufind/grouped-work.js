@@ -297,7 +297,7 @@ VuFind.GroupedWork = (function(){
 				$.getJSON(url + '?' + params,
 						function(data) {
 							if (data.result) {
-								VuFind.showMessage("Added Successfully", data.message);
+								VuFind.showMessage("Added Successfully", data.message, 2000); // auto-close after 2 seconds.
 							} else {
 								VuFind.showMessage("Error", data.message);
 							}
