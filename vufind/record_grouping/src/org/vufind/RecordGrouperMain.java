@@ -546,9 +546,9 @@ public class RecordGrouperMain {
 		//individual look ups
 		HashSet<String> existingMarcFiles = new HashSet<String>();
 		File individualMarcFile = new File(individualMarcPath);
-		logger.debug("Starting to read existing marc files from disc");
+		logger.debug("Starting to read existing marc files for ILS from disc");
 		loadExistingMarcFiles(individualMarcFile, existingMarcFiles);
-		logger.debug("Finished reading existing marc files from disc");
+		logger.debug("Finished reading existing marc files for ILS from disc");
 
 		File[] catalogBibFiles = new File(marcPath).listFiles();
 		if (catalogBibFiles != null){
