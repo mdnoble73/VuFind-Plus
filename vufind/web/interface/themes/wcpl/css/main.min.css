@@ -7143,6 +7143,23 @@ div#system-message-header {
 .selected-browse-label-search a {
   color: #0072bc;
 }
+#selected-browse-search-link .icon-before {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+#selected-browse-search-link .icon-before:empty {
+  width: 1em;
+}
+#selected-browse-search-link .icon-before:before {
+  content: "\e003";
+}
 .browse-category:hover {
   background-color: lightskyblue;
   color: darkblue;
@@ -8029,4 +8046,24 @@ div#system-message-header {
 .obituaryTitle,
 .marriageTitle {
   font-weight: bold;
+}
+#selected-browse-search-link .icon-before {
+  display: none;
+}
+#selected-browse-search-link .icon-after {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+#selected-browse-search-link .icon-after:empty {
+  width: 1em;
+}
+#selected-browse-search-link .icon-after:before {
+  content: "\e080";
 }
