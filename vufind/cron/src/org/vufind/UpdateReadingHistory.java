@@ -89,6 +89,8 @@ public class UpdateReadingHistory implements IProcessHandler {
 						if (loadInitialReadingHistoryForUser(userId, cat_username, cat_password)) {
 							updateInitialReadingHistoryLoaded.setLong(1, userId);
 							updateInitialReadingHistoryLoaded.executeUpdate();
+						}else{
+							errorLoadingInitialReadingHistory = true;
 						}
 					}catch (SQLException e){
 						logger.error("Error loading initial reading history", e);
