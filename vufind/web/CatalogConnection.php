@@ -427,31 +427,32 @@ class CatalogConnection
 				//Leave this unimplemented for now.
 			}elseif ($action == 'optOut'){
 				$driverHasReadingHistory = $this->driver->hasNativeReadingHistory();
+
+				//Opt out within the ILS if possible
 				if ($driverHasReadingHistory){
 					$result = $this->driver->doReadingHistoryAction($action, $selectedTitles);
 				}
-				if (!$driverHasReadingHistory || $result['historyActive']){
-					//Delete the reading history
-					$readingHistoryDB = new ReadingHistoryEntry();
-					$readingHistoryDB->userId = $user->id;
-					$readingHistoryDB->delete();
 
-					//Opt out within Pika since the ILS does not seem to implement this functionality
-					$user->trackReadingHistory = false;
-					$user->update();
-					$_SESSION['userinfo'] = serialize($user);
-				}
+				//Delete the reading history
+				$readingHistoryDB = new ReadingHistoryEntry();
+				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->delete();
+
+				//Opt out within Pika since the ILS does not seem to implement this functionality
+				$user->trackReadingHistory = false;
+				$user->update();
+				$_SESSION['userinfo'] = serialize($user);
 			}elseif ($action == 'optIn'){
 				$driverHasReadingHistory = $this->driver->hasNativeReadingHistory();
+				//Opt in within the ILS if possible
 				if ($driverHasReadingHistory){
 					$result = $this->driver->doReadingHistoryAction($action, $selectedTitles);
 				}
-				if (!$driverHasReadingHistory || !$result['historyActive']){
-					//Opt in within Pika since the ILS does not seem to implement this functionality
-					$user->trackReadingHistory = true;
-					$user->update();
-					$_SESSION['userinfo'] = serialize($user);
-				}
+
+				//Opt in within Pika since the ILS does not seem to implement this functionality
+				$user->trackReadingHistory = true;
+				$user->update();
+				$_SESSION['userinfo'] = serialize($user);
 			}
 		}else{
 			return $this->driver->doReadingHistoryAction($action, $selectedTitles);
