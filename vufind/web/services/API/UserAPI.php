@@ -56,7 +56,7 @@ class UserAPI extends Action {
 				$error = json_last_error();
 				if ($error != JSON_ERROR_NONE || $output === FALSE){
 					$output = json_encode(array('error'=>'error_encoding_data', 'message' => json_last_error_msg()));
-					if ($configArray['Site']['debug']){
+					if ($configArray['System']['debug']){
 						print_r($result);
 					}
 				}
