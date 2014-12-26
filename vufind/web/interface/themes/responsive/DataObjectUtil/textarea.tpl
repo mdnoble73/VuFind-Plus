@@ -5,7 +5,17 @@
 	$(document).ready(function(){
 		CKEDITOR.replace( '{/literal}{$propName}{literal}',
 		{
-			toolbar : 'Full'
+		toolbar : [
+			['Source','-','Save'],
+			['Cut','Copy','Paste','PasteText','PasteFromWord','-','SpellChecker','Scayt'],
+			['Undo','Redo','-','Find','Replace','-','SelectAll','RemoveFormat'],
+			'/',
+			['Bold','Italic','Underline','Strike','-','Subscript','Superscript'],
+			['Styles','Font','FontSize'],
+			['TextColor','BGColor'],
+			['Link','Unlink','Anchor'],
+			['Maximize', 'ShowBlocks','-','About']
+		]
 		});
 	});
 	{/literal}
