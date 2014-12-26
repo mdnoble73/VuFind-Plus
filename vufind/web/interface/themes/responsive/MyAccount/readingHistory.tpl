@@ -34,7 +34,7 @@
 								<a class="btn btn-sm btn-danger" onclick='return VuFind.Account.ReadingHistory.deleteAllAction()' href="#">Delete All</a>
 							{/if}
 							<a class="btn btn-sm btn-info" onclick="return VuFind.Account.ReadingHistory.exportListAction();">Export To Excel</a>
-							<a class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.optOutAction({if $transList}true{else}false{/if})" href="#">Stop Recording My Reading History</a>
+							<a class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.optOutAction()" href="#">Stop Recording My Reading History</a>
 						{else}
 							<a class="btn btn-sm btn-primary" onclick='return VuFind.Account.ReadingHistory.optInAction()' href="#">Start Recording My Reading History</a>
 						{/if}
@@ -184,7 +184,7 @@
 									<a class="btn btn-sm btn-default" onclick="return VuFind.Account.ReadingHistory.deleteAllAction()" href="#">Delete All</a>
 								{/if}
 								{* <button value="exportList" class="RLexportList" onclick='return exportListAction()'>Export Reading History</button> *}
-								<a class="btn btn-sm btn-default" onclick='return VuFind.Account.ReadingHistory.optOutAction({if $transList}true{else}false{/if})' href="#">Stop Recording My Reading History</a>
+								<a class="btn btn-sm btn-default" onclick='return VuFind.Account.ReadingHistory.optOutAction()' href="#">Stop Recording My Reading History</a>
 							{else}
 								<a class="btn btn-sm btn-default" onclick='return VuFind.Account.ReadingHistory.optInAction()' href="#">Start Recording My Reading History</a>
 							{/if}

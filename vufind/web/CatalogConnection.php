@@ -412,7 +412,7 @@ class CatalogConnection
 			if ($action == 'deleteMarked'){
 				//Remove titles from database (do not remove from ILS)
 				foreach ($selectedTitles as $titleId){
-					list($source, $sourceId) = split('_', $titleId);
+					list($source, $sourceId) = explode('_', $titleId);
 					$readingHistoryDB = new ReadingHistoryEntry();
 					$readingHistoryDB->userId = $user->id;
 					$readingHistoryDB->id = str_replace('rsh', '', $titleId);
@@ -431,6 +431,11 @@ class CatalogConnection
 					$result = $this->driver->doReadingHistoryAction($action, $selectedTitles);
 				}
 				if (!$driverHasReadingHistory || $result['historyActive']){
+					//Delete the reading history
+					$readingHistoryDB = new ReadingHistoryEntry();
+					$readingHistoryDB->userId = $user->id;
+					$readingHistoryDB->delete();
+
 					//Opt out within Pika since the ILS does not seem to implement this functionality
 					$user->trackReadingHistory = false;
 					$user->update();

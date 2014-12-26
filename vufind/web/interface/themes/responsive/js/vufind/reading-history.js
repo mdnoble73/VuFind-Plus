@@ -16,13 +16,11 @@ VuFind.Account.ReadingHistory = (function(){
 			return false;
 		},
 
-		optOutAction: function (showError){
-			if (showError){
-				alert('Your reading history must be deleted before you can Opt Out.');
-				return false;
+		optOutAction: function (){
+			if (confirm('Your entire reading history will be irreversibly deleted.  Proceed?')){
+				$('#readingHistoryAction').val('optOut');
+				$('#readingListForm').submit();
 			}
-			$('#readingHistoryAction').val('optOut');
-			$('#readingListForm').submit();
 			return false;
 		},
 
