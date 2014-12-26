@@ -1553,10 +1553,16 @@ class IndexRecord extends RecordInterface
 		$this->scopingEnabled = $enabled;
 	}
 
+	function getRecordUrl(){
+		global $configArray;
+		$recordId = $this->getUniqueID();
+
+		return $configArray['Site']['path'] . '/Record/' . $recordId;
+	}
+
 	public function getLinkUrl($useUnscopedHoldingsSummary = false) {
 		global $interface;
-		$id = $this->getUniqueID();
-		$linkUrl = '/Record/' . $id . '/Home';
+		$linkUrl = $this->getRecordUrl();
 		$extraParams = array();
 		if (strlen($interface->get_template_vars('searchId')) > 0){
 			$extraParams[] = 'searchId=' . $interface->get_template_vars('searchId');
