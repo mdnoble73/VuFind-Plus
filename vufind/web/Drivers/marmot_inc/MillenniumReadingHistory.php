@@ -254,7 +254,7 @@ class MillenniumReadingHistory {
 					//echo("Title value is <br/>$sCols[$i]<br/>");
 					if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $sCols[$i], $matches)) {
 						$shortId = $matches[1];
-						$bibId = '.' . $matches[2];
+						$bibId = '.' . $matches[1];
 						$historyEntry['id'] = $bibId;
 						$historyEntry['shortId'] = $shortId;
 					}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $sCols[$i], $matches)){

@@ -55,7 +55,11 @@ class UserAPI extends Action {
 				$output = json_encode(array('result'=>$result));
 				$error = json_last_error();
 				if ($error != JSON_ERROR_NONE || $output === FALSE){
-					$output = json_encode(array('error'=>'error_encoding_data', 'message' => json_last_error_msg()));
+					if (function_exists('json_last_error_msg')){
+						$output = json_encode(array('error'=>'error_encoding_data', 'message' => json_last_error_msg()));
+					}else{
+						$output = json_encode(array('error'=>'error_encoding_data', 'message' => json_last_error()));
+					}
 					if ($configArray['System']['debug']){
 						print_r($result);
 					}
