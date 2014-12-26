@@ -295,6 +295,17 @@ class CatalogConnection
 		global $user;
 		if (($user->trackReadingHistory && $user->initialReadingHistoryLoaded) || !$this->driver->hasNativeReadingHistory()){
 			if ($user->trackReadingHistory){
+				//Make sure initial reading history loaded is set to true if we are here since
+				//The only way it wouldn't be here is if the user has elected to start tracking reading history
+				//And they don't have reading history currently specified.  We get what is checked out below though
+				//So that takes care of the initial load
+				if (!$user->initialReadingHistoryLoaded){
+					//Load the initial reading history
+					$user->initialReadingHistoryLoaded = 1;
+					$user->update();
+					$_SESSION['userinfo'] = serialize($user);
+				}
+
 				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $user->id;
