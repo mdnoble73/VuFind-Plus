@@ -1,7 +1,7 @@
 VuFind.Account.ReadingHistory = (function(){
 	return {
 		deletedMarkedAction: function (){
-			if (confirm('The marked items will be irreversibly deleted.  Proceed?')){
+			if (confirm('The marked items will be irreversibly deleted from your reading history.  Proceed?')){
 				$('#readingHistoryAction').val('deleteMarked');
 				$('#readingListForm').submit();
 			}
@@ -16,11 +16,13 @@ VuFind.Account.ReadingHistory = (function(){
 			return false;
 		},
 
-		optOutAction: function (){
-			if (confirm('Your entire reading history will be irreversibly deleted.  Proceed?')){
-				$('#readingHistoryAction').val('optOut');
-				$('#readingListForm').submit();
+		optOutAction: function (showError){
+			if (showError){
+				alert('Your reading history must be deleted before you can Opt Out.');
+				return false;
 			}
+			$('#readingHistoryAction').val('optOut');
+			$('#readingListForm').submit();
 			return false;
 		},
 
