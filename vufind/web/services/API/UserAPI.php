@@ -50,7 +50,18 @@ class UserAPI extends Action {
 		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
 		if (is_callable(array($this, $_GET['method']))) {
-			$output = json_encode(array('result'=>$this->$_GET['method']()));
+			try{
+				$output = json_encode(array('result'=>$this->$_GET['method']()));
+				$error = json_last_error();
+				if ($error != JSON_ERROR_NONE){
+					$output = json_encode(array('error'=>'error_encoding_data', 'message' => json_last_error_msg()));
+				}
+			}catch (Exception $e){
+				$output = json_encode(array('error'=>'error_encoding_data', 'message' => $e));
+				global $logger;
+				$logger->log("Error encoding json data $e", PEAR_LOG_ERR);
+			}
+
 		} else {
 			$output = json_encode(array('error'=>'invalid_method'));
 		}
