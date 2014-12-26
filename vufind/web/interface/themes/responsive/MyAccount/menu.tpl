@@ -11,7 +11,7 @@
 			{else}
 				{assign var="curSection" value=false}
 			{/if}
-			<div class="panel {if $module == 'MyAccount' || $module == 'MyResearch' || ($module == 'Search' && $action == 'Home') || ($module == 'MaterialsRequests' && $action == 'MyRequests')}active{/if}">
+			<div class="panel {if $module == 'MyAccount' || $module == 'MyResearch' || ($module == 'Search' && $action == 'Home') || ($module == 'MaterialsRequest' && $action == 'MyRequests')}active{/if}">
 				{* Clickable header for my account section *}
 				<a data-toggle="collapse" data-parent="#account-link-accordion" href="#myAccountPanel">
 					<div class="panel-heading">
