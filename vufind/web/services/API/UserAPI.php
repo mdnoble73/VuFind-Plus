@@ -53,7 +53,7 @@ class UserAPI extends Action {
 			try{
 				$output = json_encode(array('result'=>$this->$_GET['method']()));
 				$error = json_last_error();
-				if ($error != JSON_ERROR_NONE){
+				if ($error != JSON_ERROR_NONE || $output === FALSE){
 					$output = json_encode(array('error'=>'error_encoding_data', 'message' => json_last_error_msg()));
 				}
 			}catch (Exception $e){
