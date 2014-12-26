@@ -313,53 +313,66 @@ class CatalogConnection
 			}
 			$readingHistoryDB->find();
 			$readingHistoryTitles = array();
+			$activeHistoryTitles = array();
 			while ($readingHistoryDB->fetch()){
-				$historyEntry = array();
-				$historyEntry['itemindex'] = $readingHistoryDB->id;
-				$historyEntry['deletable'] = true;
-				$historyEntry['source'] = $readingHistoryDB->source;
-				$historyEntry['id'] = $readingHistoryDB->sourceId;
-				$historyEntry['recordId'] = $readingHistoryDB->sourceId;
-				$historyEntry['shortId'] = $readingHistoryDB->sourceId;
-				$historyEntry['title'] = $readingHistoryDB->title;
-				$historyEntry['author'] = $readingHistoryDB->author;
-				$historyEntry['format'] = array($readingHistoryDB->format);
-				$historyEntry['checkout'] = $readingHistoryDB->checkOutDate;
-				$historyEntry['checkin'] = $readingHistoryDB->checkInDate;
-				$historyEntry['ratingData'] = null;
-				$historyEntry['permanentId'] = null;
-				$historyEntry['linkUrl'] = null;
-				$historyEntry['coverUrl'] = null;
-				$recordDriver = null;
-				if ($readingHistoryDB->source == 'ILS'){
-					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($historyEntry['id']);
-				}elseif ($readingHistoryDB->source == 'OverDrive'){
-					require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
-					$recordDriver = new OverDriveRecordDriver($historyEntry['id']);
-				}elseif ($readingHistoryDB->source == 'PublicEContent'){
-					require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
-					$recordDriver = new PublicEContentDriver($historyEntry['id']);
-				}elseif ($readingHistoryDB->source == 'RestrictedEContent'){
-					require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
-					$recordDriver = new RestrictedEContentDriver($historyEntry['id']);
+				$historyEntry = $this->getHistoryEntryForDatabaseEntry($readingHistoryDB);
+
+				if ($historyEntry['checkin'] == null){
+					$activeHistoryTitles[$historyEntry['source'] . ':' . $historyEntry['id']] = $historyEntry;
 				}
-				if ($recordDriver != null && $recordDriver->isValid()){
-					$historyEntry['ratingData'] = $recordDriver->getRatingData();
-					$historyEntry['permanentId'] = $recordDriver->getPermanentId();
-					$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
-					$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-					$historyEntry['format'] = $recordDriver->getFormats();
-				}
-				$recordDriver = null;
 
 				$readingHistoryTitles[] = $historyEntry;
+			}
+
+			//Update reading history based on current checkouts.  That way it never looks out of date
+			require_once ROOT_DIR . '/services/API/UserAPI.php';
+			$userAPI = new UserAPI();
+			$checkouts = $userAPI->getPatronCheckedOutItems();
+			foreach ($checkouts['checkedOutItems'] as $checkout){
+				$sourceId = '?';
+				$source = $checkout['checkoutSource'];
+				if ($source == 'OverDrive'){
+					$sourceId = $checkout['overDriveId'];
+				}elseif ($source == 'ILS'){
+					$sourceId = $checkout['id'];
+				}elseif ($source == 'eContent'){
+					$source = $checkout['recordType'];
+					$sourceId = $checkout['id'];
+				}
+				$key = $source . ':' . $sourceId;
+				if (array_key_exists($key, $activeHistoryTitles)){
+					unset($activeHistoryTitles[$key]);
+				}else{
+					$historyEntryDB = new ReadingHistoryEntry();
+					$historyEntryDB->userId = $user->id;
+					$historyEntryDB->groupedWorkPermanentId = $checkout['groupedWorkId'] == null ? '' : $checkout['groupedWorkId'];
+					$historyEntryDB->source = $source;
+					$historyEntryDB->sourceId = $sourceId;
+					$historyEntryDB->title = substr($checkout['title'], 0, 150);
+					$historyEntryDB->author = substr($checkout['author'], 0, 75);
+					$historyEntryDB->format = substr($checkout['format'], 0, 50);
+					$historyEntryDB->checkOutDate = time();
+					$historyEntryDB->insert();
+
+					$historyEntry = $this->getHistoryEntryForDatabaseEntry($historyEntryDB);
+					$readingHistoryTitles[] = $historyEntry;
+				}
+			}
+
+			//Anything that was still active is now checked in
+			foreach ($activeHistoryTitles as $historyEntry){
+				$historyEntryDB = new ReadingHistoryEntry();
+				$historyEntryDB->source = $historyEntry['source'];
+				$readingHistoryDB->sourceId = $historyEntry['id'];
+				$readingHistoryDB->checkInDate = time();
+				$readingHistoryDB->update();
 			}
 
 			$readingHistoryDB = new ReadingHistoryEntry();
 			$readingHistoryDB->userId = $user->id;
 			$numTitles = $readingHistoryDB->count();
-			return array('historyActive'=>true, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
+
+			return array('historyActive'=>$user->trackReadingHistory, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
 		}else{
 			//Don't know enough to load internally, check the ILS.
 			return $this->driver->getReadingHistory($patron, $page, $recordsPerPage, $sortOption);
@@ -378,7 +391,7 @@ class CatalogConnection
 	 */
 	function doReadingHistoryAction($action, $selectedTitles){
 		global $user;
-		if ($user->trackReadingHistory && $user->initialReadingHistoryLoaded){
+		if (($user->trackReadingHistory && $user->initialReadingHistoryLoaded) || ! $this->driver->hasNativeReadingHistory()){
 			if ($action == 'deleteMarked'){
 				//Remove titles from database (do not remove from ILS)
 				foreach ($selectedTitles as $titleId){
@@ -678,6 +691,53 @@ class CatalogConnection
 
 	public function getSelfRegistrationFields() {
 		return $this->driver->getSelfRegistrationFields();
+	}
+
+	/**
+	 * @param ReadingHistoryEntry $readingHistoryDB
+	 * @return mixed
+	 */
+	public function getHistoryEntryForDatabaseEntry($readingHistoryDB) {
+		$historyEntry = array();
+
+		$historyEntry['itemindex'] = $readingHistoryDB->id;
+		$historyEntry['deletable'] = true;
+		$historyEntry['source'] = $readingHistoryDB->source;
+		$historyEntry['id'] = $readingHistoryDB->sourceId;
+		$historyEntry['recordId'] = $readingHistoryDB->sourceId;
+		$historyEntry['shortId'] = $readingHistoryDB->sourceId;
+		$historyEntry['title'] = $readingHistoryDB->title;
+		$historyEntry['author'] = $readingHistoryDB->author;
+		$historyEntry['format'] = array($readingHistoryDB->format);
+		$historyEntry['checkout'] = $readingHistoryDB->checkOutDate;
+		$historyEntry['checkin'] = $readingHistoryDB->checkInDate;
+		$historyEntry['ratingData'] = null;
+		$historyEntry['permanentId'] = null;
+		$historyEntry['linkUrl'] = null;
+		$historyEntry['coverUrl'] = null;
+		$recordDriver = null;
+		if ($readingHistoryDB->source == 'ILS') {
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			$recordDriver = new MarcRecord($historyEntry['id']);
+		} elseif ($readingHistoryDB->source == 'OverDrive') {
+			require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
+			$recordDriver = new OverDriveRecordDriver($historyEntry['id']);
+		} elseif ($readingHistoryDB->source == 'PublicEContent') {
+			require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
+			$recordDriver = new PublicEContentDriver($historyEntry['id']);
+		} elseif ($readingHistoryDB->source == 'RestrictedEContent') {
+			require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
+			$recordDriver = new RestrictedEContentDriver($historyEntry['id']);
+		}
+		if ($recordDriver != null && $recordDriver->isValid()) {
+			$historyEntry['ratingData'] = $recordDriver->getRatingData();
+			$historyEntry['permanentId'] = $recordDriver->getPermanentId();
+			$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
+			$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+			$historyEntry['format'] = $recordDriver->getFormats();
+		}
+		$recordDriver = null;
+		return $historyEntry;
 	}
 }
 
