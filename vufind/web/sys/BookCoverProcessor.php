@@ -51,6 +51,11 @@ class BookCoverProcessor{
 			if ($this->getOverDriveCover()){
 				return;
 			}
+		}else if ($this->type == 'hoopla'){
+			//Will exit if we find a cover
+			if ($this->getHooplaCover($this->id)){
+				return;
+			}
 		}
 		if ($this->isEContent){
 			$this->initDatabaseConnection();
@@ -74,6 +79,20 @@ class BookCoverProcessor{
 		$this->log("No image found, using die image", PEAR_LOG_INFO);
 		$this->getDefaultCover();
 
+	}
+
+	private function getHooplaCover($id){
+		require_once ROOT_DIR . '/RecordDrivers/HooplaDriver.php';
+		$driver = new HooplaRecordDriver($id);
+		/** @var File_MARC_Data_Field[] $linkFields */
+		$linkFields = $driver->getMarcRecord()->getFields('856');
+		foreach($linkFields as $linkField){
+			if ($linkField->getIndicator(1) == 4 && $linkField->getIndicator(2) == 2){
+				$coverUrl = $linkField->getSubfield('u')->getData();
+				return $this->processImageURL($coverUrl, true);
+			}
+		}
+		return false;
 	}
 
 	private function getOverDriveCover($id = null){
@@ -939,6 +958,10 @@ class BookCoverProcessor{
 			foreach ($relatedRecords as $relatedRecord){
 				if ($relatedRecord['source'] == 'OverDrive'){
 					if ($this->getOverDriveCover($relatedRecord['id'])){
+						return true;
+					}
+				}elseif ($relatedRecord['source'] == 'Hoopla'){
+					if ($this->getHooplaCover($relatedRecord['id'])){
 						return true;
 					}
 				}else{

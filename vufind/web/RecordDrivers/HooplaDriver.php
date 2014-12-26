@@ -71,10 +71,7 @@ class HooplaRecordDriver extends MarcRecord {
 	private $relatedRecords = null;
 	function getRelatedRecords(){
 		if ($this->relatedRecords == null){
-			global $configArray;
 			global $timer;
-			global $interface;
-			$relatedRecords = array();
 			$recordId = $this->getUniqueID();
 
 			$url = $this->getRecordUrl();
@@ -227,5 +224,30 @@ class HooplaRecordDriver extends MarcRecord {
 		}
 
 		return $this->filterAndSortMoreDetailsOptions($moreDetailsOptions);
+	}
+
+	function getBookcoverUrl($size = 'small'){
+		$id = $this->getUniqueID();
+		$formatCategory = $this->getFormatCategory();
+		if (is_array($formatCategory)){
+			$formatCategory = reset($formatCategory);
+		}
+		$formats = $this->getFormat();
+		$format = reset($formats);
+		global $configArray;
+		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;size={$size}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format) . "&amp;type=hoopla";
+		$isbn = $this->getCleanISBN();
+		if ($isbn){
+			$bookCoverUrl .= "&amp;isn={$isbn}";
+		}
+		$upc = $this->getCleanUPC();
+		if ($upc){
+			$bookCoverUrl .= "&amp;upc={$upc}";
+		}
+		$issn = $this->getCleanISSN();
+		if ($issn){
+			$bookCoverUrl .= "&amp;issn={$issn}";
+		}
+		return $bookCoverUrl;
 	}
 }
