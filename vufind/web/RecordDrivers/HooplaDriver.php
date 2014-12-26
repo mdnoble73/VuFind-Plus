@@ -149,7 +149,7 @@ class HooplaRecordDriver extends MarcRecord {
 		return $configArray['Site']['path'] . '/Hoopla/' . $recordId;
 	}
 
-	private function getActions() {
+	function getActions() {
 		//TODO: If this is added to the related record, pass in the value
 		$actions = array();
 		$title = 'Access Online';

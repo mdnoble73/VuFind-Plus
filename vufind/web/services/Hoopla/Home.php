@@ -48,6 +48,9 @@ class Hoopla_Home extends Action{
 		}else{
 			$interface->assign('recordDriver', $recordDriver);
 
+			$summaryActions = $recordDriver->getActions();
+			$interface->assign('summaryActions', $summaryActions);
+
 			//Load the citations
 			$this->loadCitations($recordDriver);
 
