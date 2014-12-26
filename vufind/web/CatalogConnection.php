@@ -294,85 +294,91 @@ class CatalogConnection
 		//Get reading history from the database unless we specifically want to load from the driver.
 		global $user;
 		if (($user->trackReadingHistory && $user->initialReadingHistoryLoaded) || !$this->driver->hasNativeReadingHistory()){
-			require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
-			$readingHistoryDB = new ReadingHistoryEntry();
-			$readingHistoryDB->userId = $user->id;
-			if ($sortOption == "checkedOut"){
-				$readingHistoryDB->orderBy('checkOutDate DESC, title ASC');
-			}else if ($sortOption == "returned"){
-				$readingHistoryDB->orderBy('checkInDate DESC, title ASC');
-			}else if ($sortOption == "title"){
-				$readingHistoryDB->orderBy('title ASC');
-			}else if ($sortOption == "author"){
-				$readingHistoryDB->orderBy('author ASC, title ASC');
-			}else if ($sortOption == "format"){
-				$readingHistoryDB->orderBy('format ASC, title ASC');
-			}
-			if ($recordsPerPage != -1){
-				$readingHistoryDB->limit(($page - 1) * $recordsPerPage, $recordsPerPage);
-			}
-			$readingHistoryDB->find();
-			$readingHistoryTitles = array();
-			$activeHistoryTitles = array();
-			while ($readingHistoryDB->fetch()){
-				$historyEntry = $this->getHistoryEntryForDatabaseEntry($readingHistoryDB);
-
-				if ($historyEntry['checkin'] == null){
-					$activeHistoryTitles[$historyEntry['source'] . ':' . $historyEntry['id']] = $historyEntry;
+			if ($user->trackReadingHistory){
+				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
+				$readingHistoryDB = new ReadingHistoryEntry();
+				$readingHistoryDB->userId = $user->id;
+				if ($sortOption == "checkedOut"){
+					$readingHistoryDB->orderBy('checkOutDate DESC, title ASC');
+				}else if ($sortOption == "returned"){
+					$readingHistoryDB->orderBy('checkInDate DESC, title ASC');
+				}else if ($sortOption == "title"){
+					$readingHistoryDB->orderBy('title ASC');
+				}else if ($sortOption == "author"){
+					$readingHistoryDB->orderBy('author ASC, title ASC');
+				}else if ($sortOption == "format"){
+					$readingHistoryDB->orderBy('format ASC, title ASC');
 				}
-
-				$readingHistoryTitles[] = $historyEntry;
-			}
-
-			//Update reading history based on current checkouts.  That way it never looks out of date
-			require_once ROOT_DIR . '/services/API/UserAPI.php';
-			$userAPI = new UserAPI();
-			$checkouts = $userAPI->getPatronCheckedOutItems();
-			foreach ($checkouts['checkedOutItems'] as $checkout){
-				$sourceId = '?';
-				$source = $checkout['checkoutSource'];
-				if ($source == 'OverDrive'){
-					$sourceId = $checkout['overDriveId'];
-				}elseif ($source == 'ILS'){
-					$sourceId = $checkout['id'];
-				}elseif ($source == 'eContent'){
-					$source = $checkout['recordType'];
-					$sourceId = $checkout['id'];
+				if ($recordsPerPage != -1){
+					$readingHistoryDB->limit(($page - 1) * $recordsPerPage, $recordsPerPage);
 				}
-				$key = $source . ':' . $sourceId;
-				if (array_key_exists($key, $activeHistoryTitles)){
-					unset($activeHistoryTitles[$key]);
-				}else{
-					$historyEntryDB = new ReadingHistoryEntry();
-					$historyEntryDB->userId = $user->id;
-					$historyEntryDB->groupedWorkPermanentId = $checkout['groupedWorkId'] == null ? '' : $checkout['groupedWorkId'];
-					$historyEntryDB->source = $source;
-					$historyEntryDB->sourceId = $sourceId;
-					$historyEntryDB->title = substr($checkout['title'], 0, 150);
-					$historyEntryDB->author = substr($checkout['author'], 0, 75);
-					$historyEntryDB->format = substr($checkout['format'], 0, 50);
-					$historyEntryDB->checkOutDate = time();
-					$historyEntryDB->insert();
+				$readingHistoryDB->find();
+				$readingHistoryTitles = array();
+				$activeHistoryTitles = array();
+				while ($readingHistoryDB->fetch()){
+					$historyEntry = $this->getHistoryEntryForDatabaseEntry($readingHistoryDB);
 
-					$historyEntry = $this->getHistoryEntryForDatabaseEntry($historyEntryDB);
+					if ($historyEntry['checkin'] == null){
+						$activeHistoryTitles[$historyEntry['source'] . ':' . $historyEntry['id']] = $historyEntry;
+					}
+
 					$readingHistoryTitles[] = $historyEntry;
 				}
+
+				//Update reading history based on current checkouts.  That way it never looks out of date
+				require_once ROOT_DIR . '/services/API/UserAPI.php';
+				$userAPI = new UserAPI();
+				$checkouts = $userAPI->getPatronCheckedOutItems();
+				foreach ($checkouts['checkedOutItems'] as $checkout){
+					$sourceId = '?';
+					$source = $checkout['checkoutSource'];
+					if ($source == 'OverDrive'){
+						$sourceId = $checkout['overDriveId'];
+					}elseif ($source == 'ILS'){
+						$sourceId = $checkout['id'];
+					}elseif ($source == 'eContent'){
+						$source = $checkout['recordType'];
+						$sourceId = $checkout['id'];
+					}
+					$key = $source . ':' . $sourceId;
+					if (array_key_exists($key, $activeHistoryTitles)){
+						unset($activeHistoryTitles[$key]);
+					}else{
+						$historyEntryDB = new ReadingHistoryEntry();
+						$historyEntryDB->userId = $user->id;
+						$historyEntryDB->groupedWorkPermanentId = $checkout['groupedWorkId'] == null ? '' : $checkout['groupedWorkId'];
+						$historyEntryDB->source = $source;
+						$historyEntryDB->sourceId = $sourceId;
+						$historyEntryDB->title = substr($checkout['title'], 0, 150);
+						$historyEntryDB->author = substr($checkout['author'], 0, 75);
+						$historyEntryDB->format = substr($checkout['format'], 0, 50);
+						$historyEntryDB->checkOutDate = time();
+						$historyEntryDB->insert();
+
+						$historyEntry = $this->getHistoryEntryForDatabaseEntry($historyEntryDB);
+						$readingHistoryTitles[] = $historyEntry;
+					}
+				}
+
+				//Anything that was still active is now checked in
+				foreach ($activeHistoryTitles as $historyEntry){
+					$historyEntryDB = new ReadingHistoryEntry();
+					$historyEntryDB->source = $historyEntry['source'];
+					$readingHistoryDB->sourceId = $historyEntry['id'];
+					$readingHistoryDB->checkInDate = time();
+					$readingHistoryDB->update();
+				}
+
+				$readingHistoryDB = new ReadingHistoryEntry();
+				$readingHistoryDB->userId = $user->id;
+				$numTitles = $readingHistoryDB->count();
+
+				return array('historyActive'=>$user->trackReadingHistory, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
+			}else{
+				//Reading history disabled
+				return array('historyActive'=>$user->trackReadingHistory, 'titles'=>array(), 'numTitles'=> 0);
 			}
 
-			//Anything that was still active is now checked in
-			foreach ($activeHistoryTitles as $historyEntry){
-				$historyEntryDB = new ReadingHistoryEntry();
-				$historyEntryDB->source = $historyEntry['source'];
-				$readingHistoryDB->sourceId = $historyEntry['id'];
-				$readingHistoryDB->checkInDate = time();
-				$readingHistoryDB->update();
-			}
-
-			$readingHistoryDB = new ReadingHistoryEntry();
-			$readingHistoryDB->userId = $user->id;
-			$numTitles = $readingHistoryDB->count();
-
-			return array('historyActive'=>$user->trackReadingHistory, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
 		}else{
 			//Don't know enough to load internally, check the ILS.
 			return $this->driver->getReadingHistory($patron, $page, $recordsPerPage, $sortOption);
