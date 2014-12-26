@@ -51,10 +51,14 @@ class UserAPI extends Action {
 
 		if (is_callable(array($this, $_GET['method']))) {
 			try{
-				$output = json_encode(array('result'=>$this->$_GET['method']()));
+				$result = $this->$_GET['method']();
+				$output = json_encode(array('result'=>$result));
 				$error = json_last_error();
 				if ($error != JSON_ERROR_NONE || $output === FALSE){
 					$output = json_encode(array('error'=>'error_encoding_data', 'message' => json_last_error_msg()));
+					if ($configArray['Site']['debug']){
+						print_r($result);
+					}
 				}
 			}catch (Exception $e){
 				$output = json_encode(array('error'=>'error_encoding_data', 'message' => $e));
