@@ -264,11 +264,11 @@ class MillenniumReadingHistory {
 						$historyEntry['shortId'] = $shortId;
 					}
 					$title = strip_tags($sCols[$i]);
-					$historyEntry['title'] = $title;
+					$historyEntry['title'] = utf8_encode($title);
 				}
 
 				if (stripos($sKeys[$i],"Author") > -1) {
-					$historyEntry['author'] = strip_tags($sCols[$i]);
+					$historyEntry['author'] = utf8_encode(strip_tags($sCols[$i]));
 				}
 
 				if (stripos($sKeys[$i],"Checked Out") > -1) {
