@@ -398,8 +398,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
 				PrintIlsItem ilsRecord = getPrintIlsRecord(itemField);
-				ilsRecord.setRecordIdentifier(identifier);
-				unsuppressedItemRecords.add(ilsRecord);
+				//Can return null if the record does not have status and location
+				//This happens with secondary call numbers sometimes.
+				if (ilsRecord != null) {
+					ilsRecord.setRecordIdentifier(identifier);
+					unsuppressedItemRecords.add(ilsRecord);
+				}
 			}
 		}
 		return unsuppressedItemRecords;
@@ -1009,7 +1013,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			getFormatFromLeader(printFormats, leader, fixedField);
 
 			if (printFormats.size() == 0){
-				logger.debug("Did not get any formats for print record " + ilsRecord.getRecordId());
+				logger.debug("Did not get any formats for print record " + ilsRecord.getRecordId() + ", assuming it is a book ");
+				printFormats.add("Book");
 			}
 
 			filterPrintFormats(printFormats);
