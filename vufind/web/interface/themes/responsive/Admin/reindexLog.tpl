@@ -10,7 +10,7 @@
 				<tbody>
 					{foreach from=$logEntries item=logEntry}
 						<tr>
-							<td><a href="#" class="collapsed" id="reindexEntry{$logEntry->id}" onclick="VuFind.Admin.toggleReindexProcessInfo('{$logEntry->id}');return false;">{$logEntry->id}</a></td>
+							<td>{$logEntry->id}</td>
 							<td>{$logEntry->startTime|date_format:"%D %T"}</td>
 							<td>{$logEntry->lastUpdate|date_format:"%D %T"}</td>
 							<td>{$logEntry->endTime|date_format:"%D %T"}</td>
