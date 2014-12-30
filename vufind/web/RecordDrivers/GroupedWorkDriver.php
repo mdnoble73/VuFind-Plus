@@ -1450,21 +1450,29 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	public function getFormats() {
-		$formats = $this->fields['format'];
-		if (is_array($formats)){
-			natcasesort($formats);
-			return implode(", ", $formats);
+		if (isset($this->fields['format'])){
+			$formats = $this->fields['format'];
+			if (is_array($formats)){
+				natcasesort($formats);
+				return implode(", ", $formats);
+			}else{
+				return $formats;
+			}
 		}else{
-			return $formats;
+			return "Unknown";
 		}
 	}
 
 	public function getFormatsArray() {
-		$formats = $this->fields['format'];
-		if (is_array($formats)){
-			return $formats;
+		if (isset($this->fields['format'])){
+			$formats = $this->fields['format'];
+			if (is_array($formats)){
+				return $formats;
+			}else{
+				return array($formats);
+			}
 		}else{
-			return array($formats);
+			return array();
 		}
 	}
 
@@ -1670,7 +1678,11 @@ class GroupedWorkDriver extends RecordInterface{
 		} else if (in_array('Journal', $formats)) {
 			$format = 'Journal';
 		} else {
-			$format = $formats[0];
+			if (count($formats) > 0){
+				$format = $formats[0];
+			}else{
+				$format = "";
+			}
 		}
 		switch($format) {
 			case 'Book':
