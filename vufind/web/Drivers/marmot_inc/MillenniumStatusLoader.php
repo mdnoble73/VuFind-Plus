@@ -99,13 +99,18 @@ class MillenniumStatusLoader{
 				$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
 				$locationSubfield = $configArray['Reindex']['locationSubfield'];
 				$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
-				$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
-				$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
-				$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
-				$fullCallNumber .= $itemField->getSubfield('v') != null ? (' ' . $itemField->getSubfield('v')->getData()) : '';
+				$callNumberPrestampSubfield = $configArray['Reindex']['callNumberPrestampSubfield'];
+				$callNumberSubfield = $configArray['Reindex']['callNumberSubfield'];
+				$callNumberCutterSubfield = $configArray['Reindex']['callNumberCutterSubfield'];
+				$volumeSubfield = $configArray['Reindex']['volumeSubfield'];
+				$fullCallNumber = $itemField->getSubfield($callNumberPrestampSubfield) != null ? ($itemField->getSubfield($callNumberPrestampSubfield)->getData() . ' '): '';
+				$fullCallNumber .= $itemField->getSubfield($callNumberSubfield) != null ? $itemField->getSubfield($callNumberSubfield)->getData() : '';
+				$fullCallNumber .= $itemField->getSubfield($callNumberCutterSubfield) != null ? (' ' . $itemField->getSubfield($callNumberCutterSubfield)->getData()) : '';
+				$fullCallNumber .= $itemField->getSubfield($volumeSubfield) != null ? (' ' . $itemField->getSubfield($volumeSubfield)->getData()) : '';
+				$fullCallNumber = str_replace('  ', ' ', $fullCallNumber);
 				$itemData['callnumber'] = $fullCallNumber;
 				$itemData['location'] = $itemField->getSubfield($locationSubfield) != null ? trim($itemField->getSubfield($locationSubfield)->getData()) : '?????';
-				$itemData['iType'] = $itemField->getSubfield($iTypeSubfield) != null ? $itemField->getSubfield($iTypeSubfield)->getData() : '0';
+				$itemData['iType'] = $itemField->getSubfield($iTypeSubfield) != null ? $itemField->getSubfield($iTypeSubfield)->getData() : '-1';
 				$itemData['matched'] = false;
 				$itemData['status'] = $itemField->getSubfield($statusSubfield) != null ? $itemField->getSubfield($statusSubfield)->getData() : '-';
 				$itemData['dueDate'] = $itemField->getSubfield($dueDateSubfield) != null ? trim($itemField->getSubfield($dueDateSubfield)->getData()) : null;
@@ -304,6 +309,11 @@ class MillenniumStatusLoader{
 							}
 							if ($locationMatched && $callNumberMatched){
 								$holding['iType'] = $itemData['iType'];
+
+								//Get the more specific location code
+								if (strlen($holding['locationCode']) < strlen($itemData['location'])){
+									$holding['locationCode'] = $itemData['location'];
+								}
 								$itemData['matched'] = true;
 								$marcItemData[$itemKey] = $itemData;
 								break;
@@ -688,7 +698,7 @@ class MillenniumStatusLoader{
 						}
 						if (stripos($keys[$i],$status_col_name) > -1) {
 							//Load status information
-							$curHolding['status'] = $cellValue;
+							$curHolding['status'] = trim(strip_tags($cellValue));
 							if (stripos($cellValue,$stat_due) > -1) {
 								$p = substr($cellValue,stripos($cellValue,$stat_due));
 								$s = trim($p, $stat_due);
