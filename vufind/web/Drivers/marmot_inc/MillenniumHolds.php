@@ -23,7 +23,7 @@ class MillenniumHolds{
 		$numMatches = preg_match('/<td.*?class="pageMainArea">(.*)?<\/td>/s', $holdResultPage, $matches);
 		//For Encore theme, try with some divs
 		if ($numMatches == 0){
-			$numMatches = preg_match('/<div class="pageContentInner">(.*?)<div id="footerArea">/s', $holdResultPage, $matches);
+			$numMatches = preg_match('/<div class="requestResult">(.*?)<\/div>/s', $holdResultPage, $matches);
 		}
 		$itemMatches = preg_match('/Choose one item from the list below/', $holdResultPage);
 
