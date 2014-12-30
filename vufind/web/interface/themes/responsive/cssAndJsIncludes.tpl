@@ -1,6 +1,6 @@
 {strip}
 	{* Include css as appropriate *}
-	{css filename="main.css"}
+	{css filename="main.min.css"}
 
 	{* Include correct all javascript *}
 	{if $debugJs}
