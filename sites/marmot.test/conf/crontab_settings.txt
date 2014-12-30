@@ -124,16 +124,20 @@
 # Cron   #
 ##########
 # Marmot
-5 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.test
+7 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.test
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.test DatabaseCleanup
 
 # AspenCat
-7 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test
-25 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.test DatabaseCleanup
+14 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test
+25 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jara aspencat.test DatabaseCleanup
 
 # Anythink
-9 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.test
-30 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar marmot.test DatabaseCleanup
+21 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.test
+30 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.test DatabaseCleanup
+
+# Flatirons
+28 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.test
+35 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.test DatabaseCleanup
 
 # Write reports for schools
 00 6,11 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.test SierraReports
