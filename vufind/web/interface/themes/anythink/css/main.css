@@ -8157,7 +8157,7 @@ div.bottom-border-line {
   color: #998e85;
   text-transform: lowercase;
   text-shadow: none;
-  font-size: 20px;
+  font-size: 14px;
   text-align: left;
   color: #9e1b32;
 }
@@ -8171,13 +8171,13 @@ div.bottom-border-line {
   color: #998e85;
   text-transform: lowercase;
   text-shadow: none;
-  font-size: 20px;
+  font-size: 14px;
   text-align: left;
   margin-bottom: 0;
 }
 #browse-label {
   background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 95%, #998e85 96%);
+  background: linear-gradient(to bottom, #ffffff, #ffffff 98%, #998e85 99%);
   margin: 25px 0 15px;
   height: auto;
   padding-bottom: 20px;
@@ -8185,12 +8185,10 @@ div.bottom-border-line {
 #browse-label .browse-label-text {
   font-weight: 600;
 }
-#selected-browse-label {
-  color: #a1988c;
-}
 .browse-category a {
   color: #998e85;
   text-shadow: none;
+  text-transform: uppercase;
   font-size: large;
   font-weight: 500;
 }
@@ -8208,10 +8206,17 @@ div.bottom-border-line {
 #browse-category-picker .jcarousel-control-prev,
 #browse-category-picker .jcarousel-control-next {
   background-color: white;
-  color: #9e1b32;
+  color: #a1988c;
   -webkit-box-shadow: none;
   box-shadow: none;
   font-size: 20px;
+}
+#browse-category-picker .jcarousel-control-prev:active,
+#browse-category-picker .jcarousel-control-next:active,
+#browse-category-picker .jcarousel-control-prev:hover,
+#browse-category-picker .jcarousel-control-next:hover {
+  color: #9e1b32;
+  text-decoration: none;
 }
 #browse-category-picker a.jcarousel-control-next:after {
   content: "▶";
@@ -8225,7 +8230,8 @@ div.bottom-border-line {
   box-shadow: 0 0 2px #4e443c;
 }
 #selected-browse-label {
-  background: linear-gradient(to bottom, #ffffff, #998e85 0%, #998e85 2%, #ffffff 3%);
+  color: #a1988c;
+  background: linear-gradient(to bottom, #ffffff, #998e85 0%, #998e85 1%, #ffffff 2%);
   padding: 20px 0;
 }
 .selected-browse-label-search a {
@@ -8233,6 +8239,9 @@ div.bottom-border-line {
 }
 .selected-browse-label-search {
   background: none;
+}
+#formatCategories {
+  padding-bottom: 20px;
 }
 .related-manifestation-shelf-status.available {
   color: green;

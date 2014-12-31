@@ -69,7 +69,7 @@
   color: @font-gray;
   text-transform: lowercase;
   text-shadow: none;
-  font-size: 20px;
+  font-size: 14px;
   .text-left;
 }
 
@@ -169,7 +169,7 @@ div.bottom-border-line {
 // Browse Category styling modifications
 #browse-label {
   background-color: #ffffff;
-  background: linear-gradient(to bottom, white, white 95%, @browse-label-text-color 96%);
+  background: linear-gradient(to bottom, white, white 98%, @browse-label-text-color 99%);
   margin: 25px 0 15px;
   height: auto;
   padding-bottom: 20px;
@@ -178,14 +178,11 @@ div.bottom-border-line {
  font-weight: 600;
 }
 
-#selected-browse-label {
-  color: @browse-selected-gray;
-}
-
 // the category text */
 .browse-category a {
   color: @browse-label-text-color;
   text-shadow: none;
+  text-transform: uppercase;
   font-size: large;
   font-weight: 500;
 }
@@ -207,7 +204,11 @@ div.bottom-border-line {
 #browse-category-picker .jcarousel-control-prev,
 #browse-category-picker .jcarousel-control-next {
   background-color: white;
-  color: @font-red;
+  color: @selectedCategoryColor;;
+  &:active, &:hover {
+    color: @font-red;
+    text-decoration: none;
+  }
 //  box-shadow: none;
   .box-shadow(none);
   font-size: 20px;
@@ -231,9 +232,11 @@ div.bottom-border-line {
 }
 
 .top-gray-line-mixin() {
-  background: linear-gradient(to bottom, white, @browse-label-text-color 0%, @browse-label-text-color 2%, white 3%);
+  background: linear-gradient(to bottom, white, @browse-label-text-color 0%, @browse-label-text-color 1%, white 2%);
 }
+
 #selected-browse-label {
+  color: @browse-selected-gray;
   .top-gray-line-mixin;
   padding: 20px 0;
 }
@@ -242,10 +245,18 @@ div.bottom-border-line {
   color: @browse-label-text-color;
 }
 
+#selected-browse-search-link{
+ // text-transform: uppercase;
+}
+
 .selected-browse-label-search {
   background: none;
 }
 
+// Format Category icons on search results
+#formatCategories{
+  padding-bottom: 20px;
+}
 
 // Availability Status Styling
 .related-manifestation-shelf-status.available{
