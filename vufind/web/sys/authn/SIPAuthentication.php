@@ -14,7 +14,7 @@ class SIPAuthentication implements Authentication {
 				return self::$processedUsers[$username];
 			}
 			
-			if ($username != '' && $password != '') {
+			if (trim($username) != '' && trim($password) != '') {
 				// Attempt SIP2 Authentication
 
 				$mysip = new sip2;
@@ -50,6 +50,7 @@ class SIPAuthentication implements Authentication {
 								$msg_result = $mysip->get_message($in);
 				
 								// Make sure the response is 24 as expected
+								$patronInfoResponse = null;
 								if (preg_match("/^64/", $msg_result)) {
 									$patronInfoResponse = $mysip->parsePatronInfoResponse( $msg_result );
 								}
@@ -174,8 +175,10 @@ class SIPAuthentication implements Authentication {
 	 * Process SIP2 User Account
 	 *
 	 * @param   array   $info           An array of user information
-	 * @param   array   $username       The user's ILS username
-	 * @param   array   $password       The user's ILS password
+	 * @param   string   $username       The user's ILS username
+	 * @param   string   $password       The user's ILS password
+	 * @param   array   $patronInfoResponse       The user's ILS password
+	 * @return  User
 	 * @access  public
 	 * @author  Bob Wicksall <bwicksall@pls-net.org>
 	 */
