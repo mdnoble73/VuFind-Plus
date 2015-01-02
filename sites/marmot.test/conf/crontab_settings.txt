@@ -17,7 +17,8 @@
 ###################
 # * * * * *  command to execute
 # │ │ │ │ │
-# │ │ │ │ └───── day of week (0 - 6) (0 to 6 are Sunday to Saturday, or use names; 7 is Sunday, the same as 0)
+# │ │ │ │ └───── day of week (0 - 6)
+# │ │ │ │        (0 to 6 are Sunday to Saturday, or use names (Sun,Mon,Tue,Wed,Thu,Fri,Sat); 7 is Sunday, the same as 0)
 # │ │ │ └────────── month (1 - 12)
 # │ │ └─────────────── day of month (1 - 31)
 # │ └──────────────────── hour (0 - 23)
@@ -80,7 +81,7 @@
 01 1 * * * /root/cron/copyAnythinkExport
 
 # Sierra-Training Record Export 
-01 6 * * Thursday /root/cron/copySierraTrainingExport.sh
+01 6 * * Thu /root/cron/copySierraTrainingExport.sh
 # On Thursdays at 6:01am 
 # ( 1 min after the hour to avoid conflict with nfs mount point)
 # new script made, cron set 1-2-2015 plb
@@ -116,7 +117,7 @@
 # only turn on as a need comes up. plb 1-2-2015
 
 # Marmot-Training - Full Record Grouping -  Thursdays, 8:33am
-33 6 * * Thursday cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar marmot.training fullRegroupingNoClear
+33 6 * * Thu cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar marmot.training fullRegroupingNoClear
 
 
 ###########
@@ -135,7 +136,7 @@
 #5:20 am everyday, after full regrouping
 
 # Marmot-Training - Full Reindex 
-33 10 * * Thursday cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar marmot.training fullReindex
+33 10 * * Thu cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar marmot.training fullReindex
 # Thursdays 10:33am  4hrs after full recocord grouping.  set by plb 1-2-2015
 
 ##########
