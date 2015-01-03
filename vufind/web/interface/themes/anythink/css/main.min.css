@@ -1,19 +1,4 @@
 /**
-Variables for VuFind customization.  These can be overridden at the local theme level
-*/
-/**
-Header Variables
-**/
-/**
-Footer Variables
-*/
-/**
-Search Box color
-*/
-/**
-Sidebar font data
-*/
-/**
  * Main responsive theme css
  */
 /*! normalize.css v2.1.3 | MIT License | git.io/normalize */
@@ -6720,10 +6705,6 @@ table.tablesorter thead tr .headerSortUp {
   background-color: #8dbdd8;
 }
 /** Imports of functionality related to VuFind **/
-/**
-Functionality related to the overall layout
-Headers, Footer, columns, etc.
- */
 body {
   color: #6b6b6b;
 }
@@ -8110,16 +8091,25 @@ div#system-message-header {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffeeeeee', endColorstr='#ffcccccc', GradientType=0);
   color: black;
 }
-#home-page-login a,
-#home-page-library-section {
+#home-page-login a {
   padding-left: 30px;
   padding-right: 30px;
 }
+#home-page-library-section {
+  background-color: #e3e1dd;
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-top: 0;
+  padding-bottom: 30px;
+}
 div.sidebar-button {
   border-bottom: dotted #998e85;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 div.bottom-border-line {
   border-bottom: dotted #998e85;
+  margin-top: 5px;
   margin-left: 30px;
   margin-right: 30px;
 }
@@ -8177,6 +8167,8 @@ div.bottom-border-line {
   margin-bottom: 0;
   padding-left: 0;
   padding-right: 0;
+  padding-top: 0;
+  padding-bottom: 0;
   background-color: #e3e1dd;
   text-align: left;
 }
@@ -8185,27 +8177,22 @@ div.bottom-border-line {
   color: #998e85;
   text-transform: lowercase;
   text-shadow: none;
-  font-size: 20px;
+  font-size: 14px;
   text-align: left;
   color: #9e1b32;
-}
-#home-page-library-section {
-  background-color: #e3e1dd;
-  padding-top: 0;
-  padding-bottom: 30px;
 }
 .sidebar-button {
   background: none #e3e1dd;
   color: #998e85;
   text-transform: lowercase;
   text-shadow: none;
-  font-size: 20px;
+  font-size: 14px;
   text-align: left;
   margin-bottom: 0;
 }
 #browse-label {
   background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 95%, #998e85 96%);
+  background: linear-gradient(to bottom, #ffffff, #ffffff 98%, #998e85 99%);
   margin: 25px 0 15px;
   height: auto;
   padding-bottom: 20px;
@@ -8213,12 +8200,10 @@ div.bottom-border-line {
 #browse-label .browse-label-text {
   font-weight: 600;
 }
-#selected-browse-label {
-  color: #a1988c;
-}
 .browse-category a {
   color: #998e85;
   text-shadow: none;
+  text-transform: uppercase;
   font-size: large;
   font-weight: 500;
 }
@@ -8236,10 +8221,17 @@ div.bottom-border-line {
 #browse-category-picker .jcarousel-control-prev,
 #browse-category-picker .jcarousel-control-next {
   background-color: white;
-  color: #9e1b32;
+  color: #a1988c;
   -webkit-box-shadow: none;
   box-shadow: none;
   font-size: 20px;
+}
+#browse-category-picker .jcarousel-control-prev:active,
+#browse-category-picker .jcarousel-control-next:active,
+#browse-category-picker .jcarousel-control-prev:hover,
+#browse-category-picker .jcarousel-control-next:hover {
+  color: #9e1b32;
+  text-decoration: none;
 }
 #browse-category-picker a.jcarousel-control-next:after {
   content: "▶";
@@ -8253,7 +8245,8 @@ div.bottom-border-line {
   box-shadow: 0 0 2px #4e443c;
 }
 #selected-browse-label {
-  background: linear-gradient(to bottom, #ffffff, #998e85 0%, #998e85 2%, #ffffff 3%);
+  color: #a1988c;
+  background: linear-gradient(to bottom, #ffffff, #998e85 0%, #998e85 1%, #ffffff 2%);
   padding: 20px 0;
 }
 .selected-browse-label-search a {
@@ -8261,6 +8254,9 @@ div.bottom-border-line {
 }
 .selected-browse-label-search {
   background: none;
+}
+#formatCategories {
+  padding-bottom: 20px;
 }
 .related-manifestation-shelf-status.available {
   color: green;
