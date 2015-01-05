@@ -14,7 +14,7 @@ VuFind.Browse = (function(){
 					newLabel = $('#browse-category-'+categoryTextId+' div').text(); // get label from corresponding li div
 
 			$('.browse-category').removeClass('selected');
-			$('#browse-category-' + categoryTextId).addClass('selected', 4000);
+			$('#browse-category-' + categoryTextId).addClass('selected');
 
 			$('.selected-browse-label-text, .selected-browse-label-search-text').html(newLabel);
 
@@ -88,7 +88,7 @@ $(document).ready(function() {
 
 	// connect the browse catalog functions to the jcarousel controls
 	.on('jcarousel:targetin', 'li', function(){
-				//console.log('targetin called')
+				console.log('targetin called')
 		var categoryId = $(this).data('category-id');
 		VuFind.Browse.selectedCategory = $(this).data('category-id');
 		VuFind.Browse.changeBrowseCategory(categoryId);

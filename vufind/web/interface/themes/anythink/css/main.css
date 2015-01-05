@@ -8236,7 +8236,6 @@ div.bottom-border-line {
 #browse-category-picker .jcarousel-control-prev:focus,
 #browse-category-picker .jcarousel-control-next:focus {
   text-decoration: none;
-  outline: none;
 }
 #browse-category-picker a.jcarousel-control-next:after {
   content: "▶";
