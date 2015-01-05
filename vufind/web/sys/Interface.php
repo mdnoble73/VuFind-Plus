@@ -140,7 +140,7 @@ class UInterface extends Smarty
 		if ($configArray['System']['debugJs']){
 			$this->assign('debugJs', true);
 		}
-		if ($configArray['System']['debugCss']){
+		if (isset($configArray['System']['debugCss']) && $configArray['System']['debugCss']){
 			$this->assign('debugCss', true);
 		}
 
