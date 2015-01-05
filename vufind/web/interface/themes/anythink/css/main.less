@@ -134,20 +134,6 @@ div.bottom-border-line {
 #lookfor::-webkit-input-placeholder{.placeholder-mixin;}
 #lookfor:-ms-input-placeholder{.placeholder-mixin;}
 
-//// placeholder selectors are not standardized yet
-//// use this mixin to capture them all: selector { @placeholder-selector(properties-mixin)
-//.placeholder-selector(@mixin) {
-//  &::placeholder {@mixin();}
-//  &::-moz-placeholder{@mixin();}
-//  &:-moz-placeholder{@mixin();}
-//  &::-webkit-input-placeholder{@mixin();}
-//  &:-ms-input-placeholder{@mixin();}
-//}
-//
-//
-//#lookfor {
-//  .placeholder-selector(.placeholder-mixin);
-//}
 
 
 #home-page-search{
@@ -215,6 +201,10 @@ div.bottom-border-line {
   &:active, &:hover {
     color: @font-red;
     text-decoration: none;
+  }
+  &:focus {
+    text-decoration: none;
+    outline: none;
   }
 //  box-shadow: none;
   .box-shadow(none);

@@ -104,10 +104,19 @@ class OverDriveDriver3 {
 			if ($tokenData){
 				global $configArray;
 				$ch = curl_init("https://oauth-patron.overdrive.com/patrontoken");
+				if (!isset($configArray['OverDrive']['patronWebsiteId'])){
+					return false;
+				}
 				$websiteId = $configArray['OverDrive']['patronWebsiteId'];
 				//$websiteId = 100300;
+				if (!isset($configArray['OverDrive']['LibraryCardILS'])){
+					return false;
+				}
 				$ilsname = $configArray['OverDrive']['LibraryCardILS'];
 				//$ilsname = "default";
+				if (!isset($configArray['OverDrive']['clientSecret'])){
+					return false;
+				}
 				$clientSecret = $configArray['OverDrive']['clientSecret'];
 				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 				curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");

@@ -8233,6 +8233,11 @@ div.bottom-border-line {
   color: #9e1b32;
   text-decoration: none;
 }
+#browse-category-picker .jcarousel-control-prev:focus,
+#browse-category-picker .jcarousel-control-next:focus {
+  text-decoration: none;
+  outline: none;
+}
 #browse-category-picker a.jcarousel-control-next:after {
   content: "▶";
 }

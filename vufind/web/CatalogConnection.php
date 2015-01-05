@@ -468,7 +468,10 @@ class CatalogConnection
 	 *
 	 * This is responsible for retrieving all holds by a specific patron.
 	 *
-	 * @param array $patron The patron array from patronLogin
+	 * @param array|User $patron      The patron array from patronLogin
+	 * @param integer $page           The current page of holds
+	 * @param integer $recordsPerPage The number of records to show per page
+	 * @param string $sortOption      How the records should be sorted
 	 *
 	 * @return mixed        Array of the patron's holds on success, PEAR_Error
 	 * otherwise.

@@ -33,7 +33,7 @@
 # On Reboot #
 #############
 # Continuous Re-Indexing
-@reboot cd /usr/local/vufind-plus/sites/marmot.test; ./extract_and_reindex.sh
+@reboot cd /usr/local/vufind-plus/sites/marmot.test; ./extract_and_reindex_then_email.sh
 
 
 ################
@@ -74,7 +74,8 @@
 # AspenCat export copy
 # adjust to 2.31a to avoid conflict with nfs mount point - sml 24 Nov 14
 # adjust to 4.31a to run after ftp server collects data from aspencat - sml 19 Dec 14
-31 4 * * * /root/cron/copyAspencatExport.sh
+# add calling cron to merge files together after the export is copied
+31 4 * * * /root/cron/copyAspencatExport.sh;cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test MergeMarcUpdatesAndDeletes
 
 # Anythink export copy
 # added at 1.01a to avoid conflict with nfs mount point - sml 19 Dec 14
@@ -148,7 +149,7 @@
 
 # AspenCat
 14 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test
-25 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jara aspencat.test DatabaseCleanup
+25 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test DatabaseCleanup
 
 # Anythink
 21 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.test
