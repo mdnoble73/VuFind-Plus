@@ -2,36 +2,29 @@ VuFind.Browse = (function(){
 	return {
 		curPage: 1,
 		curCategory: '',
-		selectedCategory: '',
+		//selectedCategory: '',
 		addToHomePage: function(searchId){
 			VuFind.Account.ajaxLightbox(Globals.path + '/Browse/AJAX?method=getAddBrowseCategoryForm&searchId=' + searchId, true);
 			return false;
 		},
 
 		changeBrowseCategory: function(categoryTextId){
-			//console.log('Text Id :' +categoryTextId);
 			var url = Globals.path + '/Browse/AJAX?method=getBrowseCategoryInfo&textId=' + categoryTextId,
 					newLabel = $('#browse-category-'+categoryTextId+' div').text(); // get label from corresponding li div
 
 			$('.browse-category').removeClass('selected');
 			$('#browse-category-' + categoryTextId).addClass('selected');
-
 			$('.selected-browse-label-text, .selected-browse-label-search-text').html(newLabel);
 
 			$.getJSON(url, function(data){
 				if (data.result == false){
 					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
-
 				}else{
 					$('.selected-browse-label-text, .selected-browse-label-search-text').html(data.label);
-					//$('.browse-category').removeClass('selected');
 					VuFind.Browse.curPage = 1;
 					VuFind.Browse.curCategory = data.textId;
-					//$('#browse-category-' + VuFind.Browse.curCategory).addClass('selected');
 					$('#home-page-browse-thumbnails').html(data.records);
-					//console.log(data.records);
 					$('#selected-browse-search-link').attr('href', data.searchUrl);
-
 				}
 			});
 			return false;
@@ -88,9 +81,9 @@ $(document).ready(function() {
 
 	// connect the browse catalog functions to the jcarousel controls
 	.on('jcarousel:targetin', 'li', function(){
-				console.log('targetin called')
+				console.log('targetin called');
 		var categoryId = $(this).data('category-id');
-		VuFind.Browse.selectedCategory = $(this).data('category-id');
+		//VuFind.Browse.selectedCategory = $(this).data('category-id');
 		VuFind.Browse.changeBrowseCategory(categoryId);
 	})
 	//.on('jcarousel:scroll', 'li', function(){

@@ -171,7 +171,7 @@ div.bottom-border-line {
  font-weight: 600;
 }
 
-// the category text */
+// the category text 
 .browse-category a {
   color: @browse-label-text-color;
   text-shadow: none;
@@ -181,20 +181,24 @@ div.bottom-border-line {
 }
 
 .browse-category {
-  padding-top: 20px; /* extra padding on top to center text */
+//  padding-top: 20px; // extra padding on top to center text 
+  height: 120px;
 }
 
-// Selected Category needs to give a highlighted appearance */
+@selectedShadowColor: #DBD4CB;
+
+// Selected Category needs to give a highlighted appearance 
 .browse-category.selected {
+  border: none;
   background-color: @selectedCategoryColor;
   background: @selectedCategoryColor;
+  background: linear-gradient(to bottom, @selectedCategoryColor 0%,@selectedCategoryColor 75%, white 75%, white 80%, lighten(@selectedCategoryColor, 30%) 80%, white 100%);
   a {
     color: white;
   }
 }
 
-// Left/Right Arrows on browse category carousel */    outline: none;
-
+// Left/Right Arrows on browse category carousel
 #browse-category-picker .jcarousel-control-prev,
 #browse-category-picker .jcarousel-control-next {
   background-color: white;
@@ -205,6 +209,7 @@ div.bottom-border-line {
   }
   &:focus {
     text-decoration: none;
+    outline: none;
   }
 //  box-shadow: none;
   .box-shadow(none);
@@ -265,3 +270,8 @@ div.bottom-border-line {
 .related-manifestation-shelf-status.availableOther{
   color: black;
 }
+
+// attempt to seperate image & labels.
+//.categoryValue .col-xs-6 {
+//  padding-left: 0;
+//}
