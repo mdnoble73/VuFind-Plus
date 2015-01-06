@@ -30,19 +30,441 @@ class Aspencat implements DriverInterface{
 	 * @return mixed
 	 */
 	public function getItemsFast($id, $scopingEnabled) {
-		// TODO: Implement getItemsFast() method.
+		$fastItems = $this->getHolding($id);
+		return $fastItems;
 	}
 
 	public function getStatus($id) {
-		// TODO: Implement getStatus() method.
+		return $this->getHolding($id);
 	}
 
 	public function getStatuses($ids) {
-		// TODO: Implement getStatuses() method.
+		return $this->getHoldings($ids);
 	}
 
 	public function getHolding($id) {
-		// TODO: Implement getHolding() method.
+		global $timer;
+		global $configArray;
+
+		$allItems = array();
+
+		global $locationSingleton;
+		$homeLocation = $locationSingleton->getUserHomeLocation();
+		$physicalLocation = $locationSingleton->getPhysicalLocation();
+
+		// Retrieve Full Marc Record
+		$recordURL = null;
+
+		require_once ROOT_DIR . '/sys/MarcLoader.php';
+		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
+		$callNumber = '';
+		if ($marcRecord) {
+			$timer->logTime('Loaded MARC record from search object');
+			if (!$configArray['Reindex']['useItemBasedCallNumbers']){
+				/** @var File_MARC_Data_Field $callNumberField */
+				$callNumberField = $marcRecord->getField('92', true);
+				if ($callNumberField != null){
+					$callNumberA = $callNumberField->getSubfield('a');
+					$callNumberB = $callNumberField->getSubfield('b');
+					if ($callNumberA != null){
+						$callNumber = $callNumberA->getData();
+					}
+					if ($callNumberB != null){
+						if (strlen($callNumber) > 0){
+							$callNumber .= ' ';
+						}
+						$callNumber .= $callNumberB->getData();
+					}
+				}
+				$timer->logTime('Got call number');
+			}
+
+			//Get the item records from the 949 tag
+			$items = $marcRecord->getFields($configArray['Reindex']['itemTag']);
+			$barcodeSubfield    = $configArray['Reindex']['barcodeSubfield'];
+			$locationSubfield   = $configArray['Reindex']['locationSubfield'];
+			$itemSubfield       = $configArray['Reindex']['itemRecordNumberSubfield'];
+			$callnumberSubfield = $configArray['Reindex']['callNumberSubfield'];
+			$statusSubfield     = $configArray['Reindex']['statusSubfield'];
+			$collectionSubfield     = $configArray['Reindex']['collectionSubfield'];
+			$firstItemWithSIPdata = null;
+			/** @var File_MARC_Data_Field[] $items */
+			foreach ($items as $itemIndex => $item){
+				$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
+				//Check to see if we already have data for this barcode
+				/** @var Memcache $memCache */
+				global $memCache;
+				if (isset($barcode) && strlen($barcode) > 0 && !isset($_REQUEST['reload'])){
+					$itemData = $memCache->get("item_data_{$barcode}");
+				}else{
+					$itemData = false;
+				}
+				if ($itemData == false){
+					//No data exists
+
+					$itemData = array();
+					$itemId = trim($item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '');
+
+					//Get the barcode from the horizon database
+					$itemData['isLocalItem'] = true;
+					$itemData['isLibraryItem'] = true;
+					$itemData['locationCode'] = trim(strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' ));
+					$itemData['location'] = mapValue('location', $itemData['locationCode']);
+					$itemData['locationLabel'] = $itemData['location'];
+					$collection = trim($item->getSubfield($collectionSubfield) != null ? $item->getSubfield($collectionSubfield)->getData() : '');
+					$itemData['shelfLocation'] = mapValue('collection', $collection);
+
+					if (!$configArray['Reindex']['useItemBasedCallNumbers'] && $callNumber != ''){
+						$itemData['callnumber'] = $callNumber;
+					}else{
+						$itemData['callnumber'] = trim($item->getSubfield($callnumberSubfield) != null ? $item->getSubfield($callnumberSubfield)->getData() : '');
+					}
+					$itemData['callnumber'] = str_replace("~", " ", $itemData['callnumber']);
+					//Set default status
+					$status = trim($item->getSubfield($statusSubfield) != null ? $item->getSubfield($statusSubfield)->getData() : '');
+					$itemData['status'] = mapValue('item_status', $status);
+
+					$groupedStatus = mapValue('item_grouped_status', $status);
+					if ($groupedStatus == 'On Shelf' || $groupedStatus == 'Available Online'){
+						$itemData['availability'] = true;
+					}else{
+						$itemData['availability'] = false;
+					}
+
+					//Make the item holdable by default.  Then check rules to make it non-holdable.
+					$itemData['holdable'] = true;
+					//Make lucky day items not holdable
+					$itemData['luckyDay'] = ($item->getSubfield('t') != null ? preg_match('/^yld.*$/i', $item->getSubfield('t')->getData()) == 1 : false);
+
+					$subfield_t = $item->getSubfield('t');
+					if ($subfield_t != null){
+						$subfield_t = strtolower($subfield_t->getData());
+						if (in_array($groupedStatus, array('Currently Unavailable', 'Library Use Only', 'Available Online'))){
+							$itemData['holdable'] = false;
+						}
+					}
+
+					$itemData['barcode'] = $barcode;
+					$itemData['copy'] = $item->getSubfield('e') != null ? $item->getSubfield('e')->getData() : '';
+					$itemData['holdQueueLength'] = 0;
+					if (strlen($itemData['barcode']) > 0){
+						if (false && $firstItemWithSIPdata != null ){
+							$itemData = array_merge($firstItemWithSIPdata, $itemData);
+						}else{
+							$itemSip2Data = $this->_loadItemSIP2Data($itemData['barcode'], $itemData['status']);
+							if ($firstItemWithSIPdata == null){
+								$firstItemWithSIPdata = $itemSip2Data;
+							}
+							$itemData = array_merge($itemData, $itemSip2Data);
+						}
+					}
+
+					$itemData['collection'] = mapValue('collection', $item->getSubfield('c') != null ? $item->getSubfield('c')->getData() : '');
+
+					$itemData['statusfull'] = mapValue('item_status', $itemData['status']);
+					//Suppress items based on status
+					if (isset($barcode) && strlen($barcode) > 0){
+						$memCache->set("item_data_{$barcode}", $itemData, 0, $configArray['Caching']['item_data']);
+					}
+				}
+
+
+				$sortString = $itemData['location'] . $itemData['callnumber'] . (count($allItems) + 1);
+				if ($physicalLocation != null && strcasecmp($physicalLocation->code, $itemData['locationCode']) == 0){
+					$sortString = "1" . $sortString;
+				}elseif ($homeLocation != null && strcasecmp($homeLocation->code, $itemData['locationCode']) == 0){
+					$sortString = "2" . $sortString;
+				}
+				$allItems[$sortString] = $itemData;
+			}
+		}
+		$timer->logTime("Finished loading status information");
+
+		return $allItems;
+	}
+
+	/**
+	 * Returns a summary of the holdings information for a single id. Used to display
+	 * within the search results and at the top of a full record display to ensure
+	 * the holding information makes sense to all users.
+	 *
+	 * @param string $id the id of the bid to load holdings for
+	 * @return array an associative array with a summary of the holdings.
+	 */
+	public function getStatusSummary($id, $record = null, $mysip = null){
+		global $timer;
+		global $library;
+		global $locationSingleton;
+		global $configArray;
+		global $memCache;
+		//Holdings summaries need to be cached based on the actual location since part of the information
+		//includes local call numbers and statuses.
+		$ipLocation = $locationSingleton->getPhysicalLocation();
+		$location = $ipLocation;
+		if (!isset($location) && $location == null){
+			$location = $locationSingleton->getUserHomeLocation();
+		}
+		$ipLibrary = null;
+		if (isset($ipLocation)){
+			$ipLibrary = new Library();
+			$ipLibrary->libraryId = $ipLocation->getLibraryId;
+			if (!$ipLibrary->find(true)){
+				$ipLibrary = null;
+			}
+		}
+		if (!isset($location) && $location == null){
+			$locationId = -1;
+		}else{
+			$locationId = $location->locationId;
+		}
+		$summaryInformation = $memCache->get("holdings_summary_{$id}_{$locationId}" );
+		if ($summaryInformation == false){
+
+			$canShowHoldButton = true;
+			if ($library && $library->showHoldButton == 0){
+				$canShowHoldButton = false;
+			}
+			if ($location != null && $location->showHoldButton == 0){
+				$canShowHoldButton = false;
+			}
+
+			$holdings = $this->getStatus($id, $record, $mysip, true);
+			$timer->logTime('Retrieved Status of holding');
+
+			$counter = 0;
+			$summaryInformation = array();
+			$summaryInformation['recordId'] = $id;
+			$summaryInformation['shortId'] = $id;
+			$summaryInformation['isDownloadable'] = false; //Default value, reset later if needed.
+			$summaryInformation['holdQueueLength'] = 0;
+
+			//Check to see if we are getting issue summaries or actual holdings
+			$isIssueSummary = false;
+			$numSubscriptions = 0;
+			if (count($holdings) > 0){
+				$lastHolding = end($holdings);
+				if (isset($lastHolding['type']) && ($lastHolding['type'] == 'issueSummary' || $lastHolding['type'] == 'issue')){
+					$isIssueSummary = true;
+					$issueSummaries = $holdings;
+					$numSubscriptions = count($issueSummaries);
+					$holdings = array();
+					foreach ($issueSummaries as $issueSummary){
+						if (isset($issueSummary['holdings'])){
+							$holdings = array_merge($holdings, $issueSummary['holdings']);
+						}else{
+							//Create a fake holding for subscriptions so something
+							//will be displayed in the holdings summary.
+							$holdings[$issueSummary['location']] = array(
+								'availability' => '1',
+								'location' => $issueSummary['location'],
+								'libraryDisplayName' => $issueSummary['location'],
+								'callnumber' => $issueSummary['cALL'],
+								'status' => 'Lib Use Only',
+								'statusfull' => 'In Library Use Only',
+							);
+						}
+					}
+				}
+			}
+			$timer->logTime('Processed for subscriptions');
+
+			//Valid statuses are:
+			//Available by Request
+			//  - not at the user's home branch or preferred location, but at least one copy is not checked out
+			//  - do not show the call number
+			//  - show place hold button
+			//Checked Out
+			//  - all copies are checked out
+			//  - show the call number for the local library if any
+			//  - show place hold button
+			//Downloadable
+			//  - there is at least one download link for the record.
+			$numAvailableCopies = 0;
+			$numHoldableCopies = 0;
+			$numCopies = 0;
+			$numCopiesOnOrder = 0;
+			$availableLocations = array();
+			$unavailableStatus = null;
+			//The status of all items.  Will be set to an actual status if all are the same
+			//or null if the item statuses are inconsistent
+			$allItemStatus = '';
+			$firstAvailableBarcode = '';
+			$availableHere = false;
+			foreach ($holdings as $holdingKey => $holding){
+				if (is_null($allItemStatus)){
+					//Do nothing, the status is not distinct
+				}else if ($allItemStatus == ''){
+					$allItemStatus = $holding['statusfull'];
+				}elseif($allItemStatus != $holding['statusfull']){
+					$allItemStatus = null;
+				}
+				if ($holding['availability'] == true){
+					if ($ipLocation && strcasecmp($holding['locationCode'], $ipLocation->code) == 0){
+						$availableHere = true;
+					}
+					$numAvailableCopies++;
+					$addToAvailableLocation = false;
+					$addToAdditionalAvailableLocation = false;
+					//Check to see if the location should be listed in the list of locations that the title is available at.
+					//Can only be in this system if there is a system active.
+					if (!in_array($holding['locationCode'], array_keys($availableLocations))){
+						$availableLocations[$holding['locationCode']] =  $holding['location'];
+					}
+				}else{
+					if ($unavailableStatus == null){
+						$unavailableStatus = $holding['statusfull'];
+					}
+				}
+
+				if (isset($holding['holdable']) && $holding['holdable'] == 1){
+					$numHoldableCopies++;
+				}
+				$numCopies++;
+				//Check to see if the holding has a download link and if so, set that info.
+				if (isset($holding['link'])){
+					foreach ($holding['link'] as $link){
+						if ($link['isDownload']){
+							$summaryInformation['status'] = "Available for Download";
+							$summaryInformation['class'] = 'here';
+							$summaryInformation['isDownloadable'] = true;
+							$summaryInformation['downloadLink'] = $link['link'];
+							$summaryInformation['downloadText'] = $link['linkText'];
+						}
+					}
+				}
+				//Only show a call number if the book is at the user's home library, one of their preferred libraries, or in the library they are in.
+				if (!isset($summaryInformation['callnumber'])){
+					$summaryInformation['callnumber'] = $holding['callnumber'];
+				}
+				if ($holding['availability'] == 1){
+					//The item is available within the physical library.  Patron should go get it off the shelf
+					$summaryInformation['status'] = "Available At";
+					if ($numHoldableCopies > 0){
+						$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+					}else{
+						$summaryInformation['showPlaceHold'] = 0;
+					}
+					$summaryInformation['class'] = 'available';
+				}
+				if ($holding['holdQueueLength'] > $summaryInformation['holdQueueLength']){
+					$summaryInformation['holdQueueLength'] = $holding['holdQueueLength'];
+				}
+				if ($firstAvailableBarcode == '' && $holding['availability'] == true){
+					$firstAvailableBarcode = $holding['barcode'];
+				}
+			}
+			$timer->logTime('Processed copies');
+
+			//If all items are checked out the status will still be blank
+			$summaryInformation['availableCopies'] = $numAvailableCopies;
+			$summaryInformation['holdableCopies'] = $numHoldableCopies;
+
+			$summaryInformation['numCopiesOnOrder'] = $numCopiesOnOrder;
+			//Do some basic sanity checking to make sure that we show the total copies
+			//With at least as many copies as the number of copies on order.
+			if ($numCopies < $numCopiesOnOrder){
+				$summaryInformation['numCopies'] = $numCopiesOnOrder;
+			}else{
+				$summaryInformation['numCopies'] = $numCopies;
+			}
+
+			if ($unavailableStatus != 'ONLINE'){
+				$summaryInformation['unavailableStatus'] = $unavailableStatus;
+			}
+
+			//Status is not set, check to see if the item is downloadable
+			if (!isset($summaryInformation['status']) && !isset($summaryInformation['downloadLink'])){
+				// Retrieve Full Marc Record
+				$recordURL = null;
+				// Process MARC Data
+				require_once ROOT_DIR . '/sys/MarcLoader.php';
+				$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
+				if ($marcRecord) {
+					//Check the 856 tag to see if there is a URL
+					if ($linkField = $marcRecord->getField('856')) {
+						if ($linkURLField = $linkField->getSubfield('u')) {
+							$linkURL = $linkURLField->getData();
+						}
+						if ($linkTextField = $linkField->getSubfield('3')) {
+							$linkText = $linkTextField->getData();
+						}else if ($linkTextField = $linkField->getSubfield('y')) {
+							$linkText = $linkTextField->getData();
+						}else if ($linkTextField = $linkField->getSubfield('z')) {
+							$linkText = $linkTextField->getData();
+						}
+					}
+				} else {
+					//Can't process the marc record, ignore it.
+				}
+			}
+
+			$showItsHere = ($ipLibrary == null) ? true : ($ipLibrary->showItsHere == 1);
+			if ($availableHere && $showItsHere){
+				$summaryInformation['status'] = "It's Here";
+				$summaryInformation['class'] = 'here';
+				unset($availableLocations[$location->code]);
+				$summaryInformation['currentLocation'] = $location->displayName;
+				$summaryInformation['availableAt'] = join(', ', $availableLocations);
+				$summaryInformation['numAvailableOther'] = count($availableLocations);
+			}else{
+				//Replace all spaces in the name of a location with no break spaces
+				$summaryInformation['availableAt'] = join(', ', $availableLocations);
+				$summaryInformation['numAvailableOther'] = count($availableLocations);
+			}
+
+			//If Status is still not set, apply some logic based on number of copies
+			if (!isset($summaryInformation['status'])){
+				if ($numCopies == 0){
+					if ($numCopiesOnOrder > 0){
+						//No copies are currently available, but we do have some that are on order.
+						//show the status as on order and make it available.
+						$summaryInformation['status'] = "On Order";
+						$summaryInformation['class'] = 'available';
+						$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+					}else{
+						//Deal with weird cases where there are no items by saying it is unavailable
+						$summaryInformation['status'] = "Unavailable";
+						$summaryInformation['showPlaceHold'] = false;
+						$summaryInformation['class'] = 'unavailable';
+					}
+				}else{
+					if ($numHoldableCopies == 0 && $canShowHoldButton && (isset($summaryInformation['showPlaceHold']) && $summaryInformation['showPlaceHold'] != true)){
+						$summaryInformation['status'] = "Not Available For Checkout";
+						$summaryInformation['showPlaceHold'] = false;
+						$summaryInformation['class'] = 'reserve';
+					}else{
+						$summaryInformation['status'] = "Checked Out";
+						$summaryInformation['showPlaceHold'] = $canShowHoldButton;
+						$summaryInformation['class'] = 'checkedOut';
+					}
+				}
+			}
+
+			//Reset status if the status for all items is consistent.
+			//That way it will jive with the actual full record display.
+			if ($allItemStatus != null && $allItemStatus != ''){
+				//Only override this for statuses that don't have special meaning
+				if ($summaryInformation['status'] != 'Marmot' && $summaryInformation['status'] != 'Available At' && $summaryInformation['status'] != "It's Here"){
+					$summaryInformation['status'] = $allItemStatus;
+				}
+			}
+			if ($allItemStatus == 'In Library Use Only'){
+				$summaryInformation['inLibraryUseOnly'] = true;
+			}else{
+				$summaryInformation['inLibraryUseOnly'] = false;
+			}
+
+
+			if ($summaryInformation['availableCopies'] == 0 && $summaryInformation['isDownloadable'] == true){
+				$summaryInformation['showAvailabilityLine'] = false;
+			}else{
+				$summaryInformation['showAvailabilityLine'] = true;
+			}
+			$timer->logTime('Finished building summary');
+
+			$memCache->set("holdings_summary_{$id}_{$locationId}", $summaryInformation, 0, $configArray['Caching']['holdings_summary']);
+		}
+		return $summaryInformation;
 	}
 
 	public function getPurchaseHistory($id) {
@@ -118,6 +540,7 @@ class Aspencat implements DriverInterface{
 					'numCheckedOut' => $result['fixed']['ChargedCount'] ,
 					'bypassAutoLogout' => ($user ? $user->bypassAutoLogout : false),
 				);
+				$profile['noticePreferenceLabel'] = 'Unknown';
 
 				//Get eContent info as well
 				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
@@ -245,6 +668,7 @@ class Aspencat implements DriverInterface{
 					}elseif ($headerLabels[$col] == 'renew'){
 						if (preg_match('/item=(\\d+).*?\\((\\d+) of (\\d+) renewals/si', $tableCell, $renewalData)) {
 							$transaction['itemid'] = $renewalData[1];
+							$transaction['renewIndicator'] = $renewalData[1];
 							$numRenewalsRemaining = $renewalData[2];
 							$numRenewalsAllowed = $renewalData[3];
 							$transaction['renewCount'] = $numRenewalsAllowed - $numRenewalsRemaining;
@@ -319,13 +743,77 @@ class Aspencat implements DriverInterface{
 		);
 	}
 
+
+	protected function getKohaPage($kohaUrl){
+		if ($this->cookieFile == null) {
+			$this->cookieFile = tempnam("/tmp", "KOHACURL");
+		}
+
+		//Setup the connection to the url
+		if ($this->curl_connection == null){
+			$this->curl_connection = curl_init($kohaUrl);
+			curl_setopt($this->curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+			curl_setopt($this->curl_connection, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+			curl_setopt($this->curl_connection, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($this->curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($this->curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+			curl_setopt($this->curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+			curl_setopt($this->curl_connection, CURLOPT_COOKIEJAR, $this->cookieFile);
+			curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, is_null($this->cookieFile) ? true : false);
+		}else{
+			curl_setopt($this->curl_connection, CURLOPT_URL, $kohaUrl);
+		}
+
+		curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
+
+		//Get the response from the page
+		$sResult = curl_exec($this->curl_connection);
+		return $sResult;
+	}
+
+	/**
+	 * @param $kohaUrl
+	 * @param $postParams
+	 * @return mixed
+	 */
+	protected function postToKohaPage($kohaUrl, $postParams) {
+		//Post parameters to the login url using curl
+		//If we haven't created a file to store cookies, create one
+		if ($this->cookieFile == null) {
+			$this->cookieFile = tempnam("/tmp", "KOHACURL");
+		}
+
+		//Setup the connection to the url
+		if ($this->curl_connection == null){
+			$this->curl_connection = curl_init($kohaUrl);
+			curl_setopt($this->curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+			curl_setopt($this->curl_connection, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+			curl_setopt($this->curl_connection, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($this->curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($this->curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+			curl_setopt($this->curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+			curl_setopt($this->curl_connection, CURLOPT_COOKIEJAR, $this->cookieFile);
+			curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, is_null($this->cookieFile) ? true : false);
+		}else{
+			curl_setopt($this->curl_connection, CURLOPT_URL, $kohaUrl);
+		}
+
+		//Set post parameters
+		curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, http_build_query($postParams));
+		curl_setopt($this->curl_connection, CURLOPT_POST, true);
+
+		//Get the response from the page
+		$sResult = curl_exec($this->curl_connection);
+		return $sResult;
+	}
+
 	private function _loadItemSIP2Data($barcode, $itemStatus){
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
 		global $timer;
 		$itemSip2Data = $memCache->get("item_sip2_data_{$barcode}");
-		if ($itemSip2Data == false){
+		if ($itemSip2Data == false || isset($_REQUEST['reload'])){
 			//Check to see if the SIP2 information is already cached
 			if ($this->initSipConnection()){
 				$in = $this->sipConnection->msgItemInformation($barcode);
@@ -356,9 +844,10 @@ class Aspencat implements DriverInterface{
 						$itemSip2Data['location'] = mapValue('shelf_location', $itemSip2Data['locationCode']);
 					}
 					//Override circulation status based on SIP
-					if ($result['fixed']['CirculationStatus'] == 4){
-						$itemSip2Data['status'] = 'o';
-						$itemSip2Data['availability'] = false;
+					if (isset($result['fixed']['CirculationStatus'])){
+						$itemSip2Data['status'] = $result['fixed']['CirculationStatus'];
+						$itemSip2Data['status_full'] = mapValue('item_status', $result['fixed']['CirculationStatus']);
+						$itemSip2Data['availability'] = $result['fixed']['CirculationStatus'] == 3;
 					}
 				}
 				$memCache->set("item_sip2_data_{$barcode}", $itemSip2Data, 0, $configArray['Caching']['item_sip2_data']);
@@ -478,6 +967,104 @@ class Aspencat implements DriverInterface{
 		return true;
 	}
 
+	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
+		global $user;
+		global $configArray;
+		global $logger;
+		if (!$this->loginToKoha($user)){
+			return array('historyActive'=>false, 'titles'=>array(), 'numTitles'=> 0);
+		}else{
+			//Get the reading history page
+			$catalogUrl = $configArray['Catalog']['url'];
+			$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-readingrecord.pl?limit=full";
+			$readingHistoryPage = $this->getKohaPage($kohaUrl);
+			if (strpos($readingHistoryPage, '<input type="radio" name="disable_reading_history" value="0" checked>') !== 0){
+				$historyActive = true;
+			}else{
+				$historyActive = false;
+			}
+			$readingHistoryTitles = array();
+
+			//Get the table
+			if (preg_match_all('/<table id="readingrec">(.*?)<\/table>/si', $readingHistoryPage, $tableData, PREG_SET_ORDER)){
+				$table = $tableData[0][0];
+
+				//Get the header row labels
+				$headerLabels = array();
+				preg_match_all('/<th[^>]*>(.*?)<\/th>/si', $table, $tableHeaders, PREG_PATTERN_ORDER);
+				foreach ($tableHeaders[1] as $col => $tableHeader){
+					$headerLabels[$col] = trim(strip_tags(strtolower($tableHeader)));
+				}
+
+				//Get each row within the table
+				preg_match_all('/<tr>\s+(<td.*?)<\/tr>/si', $table, $tableData, PREG_PATTERN_ORDER);
+
+				foreach ($tableData[1] as $tableRow){
+					//Each row in the table represents a title in the reading history
+					$curTitle = array();
+					preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
+					foreach ($tableCells[1] as $col => $tableCell){
+						//The first column in the headers is merged.  Adjust appropriately.
+						$col -= 1;
+						if ($col < 0){
+							continue;
+						}
+						if ($headerLabels[$col] == 'title'){
+							if (preg_match('/biblionumber=(\\d+)".*?>(.*?)<\/a>/si', $tableCell, $cellDetails)) {
+								$curTitle['id'] = $cellDetails[1];
+								$curTitle['shortId'] = $cellDetails[1];
+								$curTitle['recordId'] = $cellDetails[1];
+								$curTitle['title'] = $cellDetails[2];
+							}else{
+								$logger->log("Could not parse title for reading history entry", PEAR_LOG_WARNING);
+								$curTitle['title'] = strip_tags($tableCell);
+							}
+						}elseif ($headerLabels[$col] == 'call no.'){
+							//Ignore this for now
+						}elseif ($headerLabels[$col] == 'date'){
+							$curTitle['checkout'] = strip_tags($tableCell);
+						}
+					}
+					$readingHistoryTitles[] = $curTitle;
+				}
+			}
+
+			$numTitles = count($readingHistoryTitles);
+
+			//process pagination
+			if ($recordsPerPage != -1){
+				$startRecord = ($page - 1) * $recordsPerPage;
+				$readingHistoryTitles = array_slice($readingHistoryTitles, $startRecord, $recordsPerPage);
+			}
+
+			set_time_limit(20 * count($readingHistoryTitles));
+			foreach ($readingHistoryTitles as $key => $historyEntry){
+				//Get additional information from resources table
+				$historyEntry['ratingData'] = null;
+				$historyEntry['permanentId'] = null;
+				$historyEntry['linkUrl'] = null;
+				$historyEntry['coverUrl'] = null;
+				$historyEntry['format'] = array();
+				if (isset($historyEntry['recordId']) && strlen($historyEntry['recordId']) > 0){
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($historyEntry['recordId']);
+					if ($recordDriver->isValid()){
+						$historyEntry['ratingData'] = $recordDriver->getRatingData();
+						$historyEntry['permanentId'] = $recordDriver->getPermanentId();
+						$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
+						$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+						$historyEntry['format'] = $recordDriver->getFormats();
+						$historyEntry['author'] = $recordDriver->getPrimaryAuthor();
+					}
+					$recordDriver = null;
+				}
+				$readingHistoryTitles[$key] = $historyEntry;
+			}
+
+			return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
+		}
+	}
+
 	private function loginToKoha($user) {
 		global $configArray;
 		$catalogUrl = $configArray['Catalog']['url'];
@@ -491,30 +1078,7 @@ class Aspencat implements DriverInterface{
 			'password' => $user->cat_password,
 			'userid'=> $user->cat_username
 		);
-
-		//Post parameters to the login url using curl
-		//If we haven't created a file to store cookies, create one
-		if ($this->cookieFile == null){
-			$this->cookieFile = tempnam ("/tmp", "KOHACURL");
-		}
-		
-		//Setup the connection to the url
-		$this->curl_connection = curl_init($loginUrl);
-
-		curl_setopt($this->curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($this->curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($this->curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($this->curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($this->curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-		curl_setopt($this->curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($this->curl_connection, CURLOPT_COOKIEJAR, $this->cookieFile );
-		curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, is_null($this->cookieFile) ? true : false);
-
-		//Set post parameters
-		curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, http_build_query($postParams));
-		
-		//Get the response from the page
-		$sResult = curl_exec($this->curl_connection);
+		$sResult = $this->postToKohaPage($loginUrl, $postParams);
 
 		//Parse the response to make sure the login went ok
 		//If we can see the logout link, it means that we logged in successfully.
@@ -595,21 +1159,34 @@ class Aspencat implements DriverInterface{
 
 		$hold_result['title'] = $recordDriver->getTitle();
 
-		$in = $this->sipConnection->msgHold($mode, '', '2', $barcodeToHold, $recordId, '', $campus);
+		$in = $this->sipConnection->msgHold($mode, '', '2', $barcodeToHold, $recordId, '', strtoupper($campus));
 		$msg_result = $this->sipConnection->get_message($in);
+
+		//TODO: Do we need to handle required item level holds?
 
 		$hold_result['id'] = $recordId;
 		if (preg_match("/^16/", $msg_result)) {
 			$result = $this->sipConnection->parseHoldResponse($msg_result );
 			$hold_result['result'] = ($result['fixed']['Ok'] == 1);
-			$hold_result['message'] = $result['variable']['AF'][0];
+			if (isset($result['variable']['AF'])){
+				$hold_result['message'] = $result['variable']['AF'][0];
+			}else{
+				if ($result['fixed']['Ok'] == 1){
+					$hold_result['message'] = 'Your hold was successful';
+				}else{
+					$hold_result['message'] = 'Your could not be placed';
+				}
+			}
+
 			//Get the hold position.
 			if ($result['fixed']['Ok'] == 1){
 				$holds = $this->getMyHolds($user);
 				//Find the correct hold (will be unavailable)
 				foreach ($holds['holds']['unavailable'] as $key => $holdInfo){
 					if ($holdInfo['id'] == $recordId){
-						$hold_result['message'] .= "  You are number <b>" . $holdInfo['position'] . "</b> in the queue.";
+						if (isset($holdInfo['position'])){
+							$hold_result['message'] .= "  You are number <b>" . $holdInfo['position'] . "</b> in the queue.";
+						}
 						break;
 					}
 				}
@@ -708,6 +1285,94 @@ class Aspencat implements DriverInterface{
 						$curHold['status'] = $tableCell;
 					}elseif ($headerLabels[$col] == 'cancel'){
 						$curHold['cancelable'] = strlen($tableCell) > 0;
+						if (preg_match('/<input type="hidden" name="reservenumber" value="(.*?)" \/>/', $tableCell, $matches)) {
+							$curHold['cancelId'] = $matches[1];
+						}
+					}elseif ($headerLabels[$col] == 'suspend'){
+						$curHold['freezeable'] = true;
+					}
+				}
+				if ($bibId){
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($bibId);
+					if ($recordDriver->isValid()){
+						$curHold['sortTitle'] = $recordDriver->getSortableTitle();
+						$curHold['format'] = $recordDriver->getFormat();
+						$curHold['isbn'] = $recordDriver->getCleanISBN();
+						$curHold['upc'] = $recordDriver->getCleanUPC();
+						$curHold['format_category'] = $recordDriver->getFormatCategory();
+
+						//Load rating information
+						$curHold['ratingData'] = $recordDriver->getRatingData();
+					}
+				}
+
+
+				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "filled") != 0){
+					$holds['unavailable'][] = $curHold;
+				}else{
+					$holds['available'][] = $curHold;
+				}
+			}
+		}
+
+		//Get the suspended holds table
+		if (preg_match_all('/<table id="sholdst">(.*?)<\/table>/si', $summaryPage, $holdsTableData, PREG_SET_ORDER)){
+			$holdsTable = $holdsTableData[0][0];
+
+			//Get the header row labels
+			$headerLabels = array();
+			preg_match_all('/<th[^>]*>(.*?)<\/th>/si', $holdsTable, $tableHeaders, PREG_PATTERN_ORDER);
+			foreach ($tableHeaders[1] as $col => $tableHeader){
+				$headerLabels[$col] = trim(strip_tags(strtolower($tableHeader)));
+			}
+
+			//Get each row within the table
+			//Grab the table body
+			preg_match('/<tbody>(.*?)<\/tbody>/si', $holdsTable, $tableBody);
+			$tableBody = $tableBody[1];
+			preg_match_all('/<tr>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
+
+			foreach ($tableData[1] as $tableRow){
+				//Each row in the table represents a hold
+				$curHold= array();
+				$curHold['holdSource'] = 'ILS';
+				$curHold['frozen'] = true;
+				//Go through each cell in the row
+				preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
+				$bibId = "";
+				foreach ($tableCells[1] as $col => $tableCell){
+					//Based off which column we are in, fill out the transaction
+					if ($headerLabels[$col] == 'title'){
+						//Title column contains title, author, and id link
+						if (preg_match('/biblionumber=(\\d+)".*?>(.*?)<\/a>/si', $tableCell, $cellDetails)) {
+							$curHold['id'] = $cellDetails[1];
+							$curHold['shortId'] = $cellDetails[1];
+							$curHold['recordId'] = $cellDetails[1];
+							$bibId = $cellDetails[1];
+							$curHold['title'] = $cellDetails[2];
+						}else{
+							$logger->log("Could not parse title for checkout", PEAR_LOG_WARNING);
+							$curHold['title'] = strip_tags($tableCell);
+						}
+					}elseif ($headerLabels[$col] == 'placed on'){
+						$curHold['create'] = date_parse_from_format('m/d/Y', $tableCell);
+					}elseif ($headerLabels[$col] == 'expires on'){
+						if (strlen($tableCell) != 0){
+							$curHold['expire'] = date_parse_from_format('m/d/Y', $tableCell);
+						}
+					}elseif ($headerLabels[$col] == 'pick up location'){
+						if (strlen($tableCell) != 0){
+							$curHold['location'] = $tableCell;
+							$curHold['locationUpdateable'] = false;
+							$curHold['currentPickupName'] = $curHold['location'];
+						}
+					}elseif ($headerLabels[$col] == 'resume now'){
+						$curHold['cancelable'] = false;
+						$curHold['freezeable'] = false;
+						if (preg_match('/<input type="hidden" name="reservenumber" value="(.*?)" \/>/', $tableCell, $matches)) {
+							$curHold['cancelId'] = $matches[1];
+						}
 					}
 				}
 				if ($bibId){
@@ -738,5 +1403,254 @@ class Aspencat implements DriverInterface{
 			'holds' => $holds,
 			'numUnavailableHolds' => count($holds['unavailable']),
 		);
+	}
+
+	public function updateHold($requestId, $patronId, $type, $title){
+		$xnum = "x" . $_REQUEST['x'];
+		//Strip the . off the front of the bib and the last char from the bib
+		if (isset($_REQUEST['cancelId'])){
+			$cancelId = $_REQUEST['cancelId'];
+		}else{
+			$cancelId = substr($requestId, 1, -1);
+		}
+		$locationId = $_REQUEST['location'];
+		$freezeValue = isset($_REQUEST['freeze']) ? 'on' : 'off';
+		return $this->updateHoldDetailed($patronId, $type, $title, $xnum, $cancelId, $locationId, $freezeValue);
+	}
+
+	/**
+	 * Update a hold that was previously placed in the system.
+	 * Can cancel the hold or update pickup locations.
+	 */
+	public function updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
+		global $configArray;
+
+		global $user;
+		$userId = $user->id;
+
+		if (!isset($xNum) ){
+			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])){
+				$waitingHolds = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
+				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
+				$holdKeys = array_merge($waitingHolds, $availableHolds);
+			}else{
+				$holdKeys = array($cancelId);
+			}
+		}
+
+		if ($type == 'cancel'){
+			$allCancelsSucceed = true;
+			$loginResult = $this->loginToKoha($user);
+			$originalHolds = $this->getMyHolds($user);
+			//Post a request to koha
+			foreach ($holdKeys as $holdKey){
+				//Get the record Id for the hold
+				if (isset($_REQUEST['recordId'][$holdKey])){
+					$recordId = $_REQUEST['recordId'][$holdKey];
+					$postParams = array(
+						'biblionumber' => $recordId,
+						'reservenumber' => $holdKey,
+						'submit' => 'Cancel'
+					);
+					$catalogUrl = $configArray['Catalog']['url'];
+					$cancelUrl = "$catalogUrl/cgi-bin/koha/opac-modrequest.pl";
+					$result = $this->postToKohaPage($cancelUrl, $postParams);
+
+					//Parse the result
+					$updatedHolds = $this->getMyHolds($user);
+					if ((count($updatedHolds['holds']['available']) + count($updatedHolds['holds']['unavailable'])) < (count($originalHolds['holds']['available']) + count($originalHolds['holds']['unavailable']))){
+						//We cancelled the hold
+					}else{
+						$allCancelsSucceed = false;
+					}
+				}
+			}
+			if ($allCancelsSucceed){
+				return array(
+					'title' => $title,
+					'result' => true,
+					'message' => 'Your hold(s) were cancelled successfully.');
+			}else{
+				return array(
+					'title' => $title,
+					'result' => false,
+					'message' => 'Some holds could not be cancelled.  Please try again later or see your librarian.');
+			}
+		}else{
+			$loginResult = $this->loginToKoha($user);
+			if ($locationId){
+				$allLocationChangesSucceed = true;
+
+				foreach ($holdKeys as $holdKey){
+					//create the hold using the web service
+					$changePickupLocationUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/changePickupLocation?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&holdKey=' . $holdKey . '&newLocation=' . $locationId;
+
+					$changePickupLocationResponse = $this->getWebServiceResponse($changePickupLocationUrl);
+
+					global $analytics;
+					if ($changePickupLocationResponse){
+						//Clear the patron profile
+						$this->clearPatronProfile();
+						$analytics->addEvent('ILS Integration', 'Hold Suspended', $title);
+					}else{
+						$allLocationChangesSucceed = false;
+						$analytics->addEvent('ILS Integration', 'Hold Not Suspended', $title);
+					}
+				}
+				if ($allLocationChangesSucceed){
+					return array(
+						'title' => $title,
+						'result' => true,
+						'message' => 'Pickup location for your hold(s) was updated successfully.');
+				}else{
+					return array(
+						'title' => $title,
+						'result' => false,
+						'message' => 'Pickup location for your hold(s) was could not be updated.  Please try again later or see your librarian.');
+				}
+			}else{
+				//Freeze/Thaw the hold
+				if ($freezeValue == 'on'){
+					//Suspend the hold
+
+					$allLocationChangesSucceed = true;
+
+					foreach ($holdKeys as $holdKey){
+						$postParams = array(
+							'suspend' => 1,
+							'reservenumber' => $holdKey,
+							'submit' => 'Suspend'
+						);
+						if (isset($_REQUEST['reactivationDate'])){
+							$reactivationDate = strtotime($_REQUEST['reactivationDate']);
+							$reactivationDate = date('m-d-Y', $reactivationDate);
+							$postParams['resumedate_' . $holdKey] = $reactivationDate;
+						}else{
+							$postParams['resumedate_' . $holdKey] = '';
+						}
+						$catalogUrl = $configArray['Catalog']['url'];
+						$updateUrl = "$catalogUrl/cgi-bin/koha/opac-modrequest.pl";
+						$result = $this->postToKohaPage($updateUrl, $postParams);
+					}
+					if ($allLocationChangesSucceed){
+						$this->clearPatronProfile();
+						return array(
+							'title' => $title,
+							'result' => true,
+							'message' => 'Your hold(s) were frozen successfully.');
+					}else{
+						return array(
+							'title' => $title,
+							'result' => false,
+							'message' => 'Some holds could not be frozen.  Please try again later or see your librarian.');
+					}
+				}else{
+					//Reactivate the hold
+					$allUnsuspendsSucceed = true;
+
+					foreach ($holdKeys as $holdKey){
+						$postParams = array(
+							'resume' => 1,
+							'reservenumber' => $holdKey,
+							'submit' => 'Resume'
+						);
+						$catalogUrl = $configArray['Catalog']['url'];
+						$updateUrl = "$catalogUrl/cgi-bin/koha/opac-modrequest.pl";
+						$result = $this->postToKohaPage($updateUrl, $postParams);
+						$this->clearPatronProfile();
+					}
+					if ($allUnsuspendsSucceed){
+						return array(
+							'title' => $title,
+							'result' => true,
+							'message' => 'Your hold(s) were thawed successfully.');
+					}else{
+						return array(
+							'title' => $title,
+							'result' => false,
+							'message' => 'Some holds could not be thawed.  Please try again later or see your librarian.');
+					}
+				}
+			}
+		}
+	}
+
+	public function renewAll(){
+		//Get all list of all transactions
+		$currentTransactions = $this->getMyTransactions();
+		$renewResult = array();
+		$renewResult['Total'] = $currentTransactions['numTransactions'];
+		$numRenewals = 0;
+		foreach ($currentTransactions['transactions'] as $transaction){
+			$curResult = $this->renewItem($transaction['renewIndicator'], null);
+			if ($curResult['result']){
+				$numRenewals++;
+			}
+		}
+		$renewResult['Renewed'] = $numRenewals;
+		$renewResult['Unrenewed'] = $renewResult['Total'] - $renewResult['Renewed'];
+		if ($renewResult['Unrenewed'] > 0) {
+			$renewResult['result'] = false;
+		}else{
+			$renewResult['result'] = true;
+			$renewResult['message'] = "All items were renewed successfully.";
+		}
+		return $renewResult;
+	}
+
+	public function renewItem($itemId, $itemIndex){
+		global $analytics;
+		global $user;
+		global $configArray;
+
+		//Get the session token for the user
+		$loginResult = $this->loginToKoha($user);
+		if ($loginResult['success']){
+			global $analytics;
+			$postParams = array(
+				'from' => 'opac_user',
+				'item' => $itemId,
+				'borrowernumber' => $user->username,
+			);
+			$catalogUrl = $configArray['Catalog']['url'];
+			$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-renew.pl";
+			$kohaUrl .= "?" . http_build_query($postParams);
+
+			$result = $this->getKohaPage($kohaUrl);
+
+			if (true) {
+				$success = true;
+				$message = 'Your item was successfully renewed.';
+				//Clear the patron profile
+				$this->clearPatronProfile();
+				if ($analytics){
+					$analytics->addEvent('ILS Integration', 'Renew Successful');
+				}
+			}else{
+				$success = false;
+				$message = 'Invalid Response from SIP 2';
+				if ($analytics){
+					$analytics->addEvent('ILS Integration', 'Renew Failed', $message);
+				}
+			}
+		}else{
+			$success = false;
+			$message = 'Unable to login2';
+			if ($analytics){
+				$analytics->addEvent('ILS Integration', 'Renew Failed', $message);
+			}
+		}
+
+		return array(
+			'itemId' => $itemId,
+			'result'  => $success,
+			'message' => $message);
+	}
+
+	public function clearPatronProfile() {
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $user;
+		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
 	}
 }

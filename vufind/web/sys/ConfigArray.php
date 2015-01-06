@@ -89,7 +89,7 @@ function getTranslationMap($name)
 		}else{
 			$lineData = explode('=', $line, 2);
 			if (count($lineData) == 2){
-				$mapValues[trim($lineData[0])] = trim($lineData[1]);
+				$mapValues[strtolower(trim($lineData[0]))] = trim($lineData[1]);
 			}
 		}
 	}

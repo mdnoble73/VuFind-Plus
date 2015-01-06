@@ -230,8 +230,12 @@ VuFind.Account = (function(){
 			return false;
 		},
 
-		cancelPendingHold: function(holdIdToCancel){
+		cancelPendingHold: function(holdIdToCancel, recordId){
+			if (!confirm("Are you sure you want to cancel this hold?")){
+				return false;
+			}
 			var url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&waitingholdselected[]=' + holdIdToCancel;
+			url += '&recordId[' + holdIdToCancel + ']=' + recordId;
 			var queryParams = VuFind.getQuerystringParameters();
 			if ($.inArray('section', queryParams) && queryParams['section'] != 'undefined'){
 				url += '&section=' + queryParams['section'];
@@ -240,8 +244,12 @@ VuFind.Account = (function(){
 			return false;
 		},
 
-		cancelAvailableHold: function(holdIdToCancel){
+		cancelAvailableHold: function(holdIdToCancel, recordId){
+			if (!confirm("Are you sure you want to cancel this hold?")){
+				return false;
+			}
 			var url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&availableholdselected[]=' + holdIdToCancel;
+			url += '&recordId[' + holdIdToCancel + ']=' + recordId;
 			var queryParams = VuFind.getQuerystringParameters();
 			if ($.inArray('section', queryParams) && queryParams['section'] != 'undefined'){
 				url += '&section=' + queryParams['section'];
