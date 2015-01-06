@@ -234,6 +234,12 @@ public class SierraExportMain{
 				lastSierraExtractTimeVariableId = lastSierraExtractTimeRS.getLong("id");
 			}
 
+			String maxRecordsToUpdateDuringExtractStr = ini.get("Sierra", "maxRecordsToUpdateDuringExtract");
+			int maxRecordsToUpdateDuringExtract = 100000;
+			if (maxRecordsToUpdateDuringExtractStr != null){
+				maxRecordsToUpdateDuringExtract = Integer.parseInt(maxRecordsToUpdateDuringExtractStr);
+			}
+
 			//Only mark records as changed
 			boolean errorUpdatingDatabase = false;
 			if (lastSierraExtractTime != null){
@@ -267,8 +273,13 @@ public class SierraExportMain{
 					int numChangedIds = 0;
 					if (changedRecords != null && changedRecords.has("entries")){
 						if (firstLoad){
-							logger.info("A total of " + changedRecords.getInt("total") + " items have been updated since " + dateUpdated);
+							int numUpdates = changedRecords.getInt("total");
+							logger.info("A total of " + numUpdates + " items have been updated since " + dateUpdated);
 							firstLoad = false;
+							if (numUpdates > maxRecordsToUpdateDuringExtract){
+								logger.warn("Too many records to extract from Sierra, aborting extract until next full record load");
+								break;
+							}
 						}
 						JSONArray changedIds = changedRecords.getJSONArray("entries");
 						numChangedIds = changedIds.length();
