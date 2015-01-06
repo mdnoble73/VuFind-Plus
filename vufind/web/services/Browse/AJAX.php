@@ -146,7 +146,8 @@ class Browse_AJAX extends Action {
 			$result['result'] = true;
 			$result['textId'] = $browseCategory->textId;
 			$result['label'] = $browseCategory->label;
-			$result['description'] = $browseCategory->description;
+			//$result['description'] = $browseCategory->description;
+			// believe the description is not used anywhere on front end. plb 1-2-2015
 
 			if ($browseCategory->sourceListId != null && $browseCategory->sourceListId > 0){
 				require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
