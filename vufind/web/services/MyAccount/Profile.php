@@ -77,12 +77,13 @@ class MyAccount_Profile extends MyAccount
 				$_SESSION['profileUpdateErrors'] = $result;
 			}elseif($updateScope == 'catalog'){
 				$user->updateCatalogOptions();
-			/*}elseif($updateScope == 'overdrive'){
-				require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+				// overdrive setting keep changing
+			}elseif($updateScope == 'overdrive'){
+			/*	require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 				$overDriveDriver = OverDriveDriverFactory::getDriver();
 				$result = $overDriveDriver->updateLendingOptions();
-
-				$user->updateOverDriveOptions();*/
+*/
+				$user->updateOverDriveOptions();
 			}elseif ($updateScope == 'pin') {
 				$result = $this->catalog->updatePin();
 				$_SESSION['profileUpdateErrors'] = $result;
