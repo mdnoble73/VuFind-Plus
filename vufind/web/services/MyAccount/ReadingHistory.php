@@ -60,22 +60,12 @@ class ReadingHistory extends MyAccount
 					}
 
 					// Define sorting options
-					if (strcasecmp($configArray['Catalog']['ils'], 'Millennium') == 0 ||  $configArray['Catalog']['ils'] == 'Sierra'){
-						$sortOptions = array('title' => 'Title',
-						                     'author' => 'Author',
-						                     'checkedOut' => 'Checkout Date',
-						                     'format' => 'Format',
-						);
-						$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'checkedOut';
-					}else{
-						$sortOptions = array('title' => 'Title',
-						                     'author' => 'Author',
-						                     'checkedOut' => 'Checkout Date',
-						                     'returned' => 'Return Date',
-						                     'format' => 'Format',
-						);
-						$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'returned';
-					}
+					$sortOptions = array('title' => 'Title',
+					                     'author' => 'Author',
+					                     'checkedOut' => 'Checkout Date',
+					                     'format' => 'Format',
+					);
+					$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'returned';
 					$interface->assign('sortOptions', $sortOptions);
 
 					$interface->assign('defaultSortOption', $selectedSortOption);
