@@ -93,6 +93,10 @@ var VuFind = (function(){
 							return '<a href="#' + page + '">' + page + '</a>';
 						}
 					});
+
+			// If Browse Category js is set, initialize those functions
+			if (typeof VuFind.Browse.initializeBrowseCategory == 'function') {
+				VuFind.Browse.initializeBrowseCategory(); }
 		},
 
 		initializeModalDialogs: function() {
