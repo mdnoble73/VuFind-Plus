@@ -270,6 +270,13 @@ div.bottom-border-line {
 
 // Keep Format Category images & labels apart from each other
 .categoryValue img {
-  max-width: 72px;
+  max-width: 60px;
   height: 72px;
+}
+
+// Put Labels beneath icons on small screens
+@media screen and (max-width: 1000px) {
+  .formatCategoryLabel {
+    float: none;
+  }
 }

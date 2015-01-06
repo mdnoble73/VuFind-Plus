@@ -8275,6 +8275,11 @@ div.bottom-border-line {
   color: black;
 }
 .categoryValue img {
-  max-width: 72px;
+  max-width: 60px;
   height: 72px;
+}
+@media screen and (max-width: 1000px) {
+  .formatCategoryLabel {
+    float: none;
+  }
 }
