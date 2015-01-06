@@ -8209,11 +8209,13 @@ div.bottom-border-line {
 }
 .browse-category {
   padding-top: 20px;
-  /* extra padding on top to center text */
+  height: 120px;
 }
 .browse-category.selected {
+  border: none;
   background-color: #a1988c;
   background: #a1988c;
+  background: linear-gradient(to bottom, #a1988c 0%, #a1988c 75%, #ffffff 75%, #ffffff 80%, #e6e3e0 80%, #ffffff 100%);
 }
 .browse-category.selected a {
   color: white;
@@ -8232,6 +8234,11 @@ div.bottom-border-line {
 #browse-category-picker .jcarousel-control-next:hover {
   color: #9e1b32;
   text-decoration: none;
+}
+#browse-category-picker .jcarousel-control-prev:focus,
+#browse-category-picker .jcarousel-control-next:focus {
+  text-decoration: none;
+  outline: none;
 }
 #browse-category-picker a.jcarousel-control-next:after {
   content: "▶";

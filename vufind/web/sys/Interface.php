@@ -140,6 +140,9 @@ class UInterface extends Smarty
 		if ($configArray['System']['debugJs']){
 			$this->assign('debugJs', true);
 		}
+		if (isset($configArray['System']['debugCss']) && $configArray['System']['debugCss']){
+			$this->assign('debugCss', true);
+		}
 
 		$session = new Session();
 		$session->session_id = session_id();

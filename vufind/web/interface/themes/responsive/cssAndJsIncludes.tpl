@@ -1,7 +1,9 @@
 {strip}
-	{* Include css as appropriate *}
-	{css filename="main.min.css"}
-
+	{if $debugCss}
+    {css filename="main.css"}
+	{else}
+		{css filename="main.min.css"}
+	{/if}
 	{* Include correct all javascript *}
 	{if $debugJs}
 		<script src="{$path}/js/jquery-1.9.1.min.js"></script>
