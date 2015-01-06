@@ -8274,3 +8274,7 @@ div.bottom-border-line {
 .related-manifestation-shelf-status.availableOther {
   color: black;
 }
+.categoryValue img {
+  max-width: 72px;
+  height: 72px;
+}
