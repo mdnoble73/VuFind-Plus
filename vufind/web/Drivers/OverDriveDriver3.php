@@ -390,6 +390,11 @@ class OverDriveDriver3 {
 			return $this->checkouts[$user->id];
 		}
 		global $configArray;
+		if (!$this->isUserValidForOverDrive($user)){
+			return array(
+				'items' => array()
+			);
+		}
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
 		$response = $this->_callPatronUrl($user, $url);
 		if ($response == false){
@@ -501,13 +506,16 @@ class OverDriveDriver3 {
 			return $this->holds[$user->id];
 		}
 		global $configArray;
-		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds';
-		$response = $this->_callPatronUrl($user, $url);
 		$holds = array();
 		$holds['holds'] = array(
 			'available' => array(),
 			'unavailable' => array()
 		);
+		if (!$this->isUserValidForOverDrive($user)){
+			return $holds;
+		}
+		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds';
+		$response = $this->_callPatronUrl($user, $url);
 		if (isset($response->holds)){
 			foreach ($response->holds as $curTitle){
 				$hold = array();
