@@ -65,7 +65,7 @@ class ReadingHistory extends MyAccount
 					                     'checkedOut' => 'Checkout Date',
 					                     'format' => 'Format',
 					);
-					$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'returned';
+					$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'checkedOut';
 					$interface->assign('sortOptions', $sortOptions);
 
 					$interface->assign('defaultSortOption', $selectedSortOption);
