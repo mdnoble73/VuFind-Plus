@@ -8208,6 +8208,7 @@ div.bottom-border-line {
   font-weight: 500;
 }
 .browse-category {
+  padding-top: 20px;
   height: 120px;
 }
 .browse-category.selected {
@@ -8272,4 +8273,13 @@ div.bottom-border-line {
 }
 .related-manifestation-shelf-status.availableOther {
   color: black;
+}
+.categoryValue img {
+  max-width: 60px;
+  height: 72px;
+}
+@media screen and (max-width: 1000px) {
+  .formatCategoryLabel {
+    float: none;
+  }
 }

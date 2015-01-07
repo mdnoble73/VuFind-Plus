@@ -181,7 +181,7 @@ div.bottom-border-line {
 }
 
 .browse-category {
-//  padding-top: 20px; // extra padding on top to center text 
+  padding-top: 20px; // extra padding on top to center text
   height: 120px;
 }
 
@@ -266,4 +266,17 @@ div.bottom-border-line {
 }
 .related-manifestation-shelf-status.availableOther{
   color: black;
+}
+
+// Keep Format Category images & labels apart from each other
+.categoryValue img {
+  max-width: 60px;
+  height: 72px;
+}
+
+// Put Labels beneath icons on small screens
+@media screen and (max-width: 1000px) {
+  .formatCategoryLabel {
+    float: none;
+  }
 }
