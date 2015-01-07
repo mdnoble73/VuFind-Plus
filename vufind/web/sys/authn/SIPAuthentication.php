@@ -85,14 +85,16 @@ class SIPAuthentication implements Authentication {
 			$username = $_POST['username'];
 			$password = $_POST['password'];
 			$barcodePrefix = $configArray['Catalog']['barcodePrefix'];
-			if (strlen($username) == 9){
-				$username = substr($barcodePrefix, 0, 5) . $username;
-			}elseif (strlen($username) == 8){
-				$username = substr($barcodePrefix, 0, 6) . $username;
-			}elseif (strlen($username) == 7){
-				$username = $barcodePrefix . $username;
+			if (strlen($barcodePrefix) > 0){
+				if (strlen($username) == 9){
+					$username = substr($barcodePrefix, 0, 5) . $username;
+				}elseif (strlen($username) == 8){
+					$username = substr($barcodePrefix, 0, 6) . $username;
+				}elseif (strlen($username) == 7){
+					$username = $barcodePrefix . $username;
+				}
 			}
-			
+
 		  //Check to see if we have already processed this user
       if (array_key_exists($username, self::$processedUsers)){
         return self::$processedUsers[$username];
