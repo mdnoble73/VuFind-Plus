@@ -830,6 +830,18 @@ function getLibraryLocationUpdates(){
 			'sql' => array(
 				"ALTER TABLE library ADD COLUMN includeHoopla TINYINT DEFAULT 0",
 			),
-		)
+		),
+
+		'additional_library_contact_links' => array(
+			'title' => 'Additional Library Contact Links',
+			'description' => 'Add additional contact links for Youtube and Instagram to library config.',
+			'dependencies' => array(),
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD `youtubeLink` VARCHAR(255) DEFAULT NULL AFTER twitterLink;",
+				"ALTER TABLE `library` ADD `instagramLink` VARCHAR(255) DEFAULT NULL AFTER youtubeLink;",
+			),
+		),
+
 	);
 }
