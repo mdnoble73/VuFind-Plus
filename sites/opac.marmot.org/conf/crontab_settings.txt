@@ -21,7 +21,7 @@
 # On Reboot #
 #############
 # Continuous Re-Indexing
-@reboot cd /usr/local/vufind-plus/sites/opac.marmot.org; ./extract_and_reindex.sh
+@reboot cd /usr/local/vufind-plus/sites/opac.marmot.org; ./extract_and_reindex_then_email.sh
 
 ################
 # Pika Cleanup #
@@ -30,7 +30,7 @@
 7 1 * * * cd /usr/local/vufind-plus/sites/opac.marmot.org; ./opac.marmot.org.sh restart
 
 # Memcached restart 
-2 1 * * * /etc/rc.d/init.d/memcached restart
+#2 1 * * * /etc/rc.d/init.d/memcached restart
 
 # MySQL Restart once a week should be enough
 # MDN 10/5 Don't restart MySQL since it doesn't seem to restart cleanly under load. 
