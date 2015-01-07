@@ -306,6 +306,8 @@ class CatalogConnection
 					$_SESSION['userinfo'] = serialize($user);
 				}
 
+				$this->updateReadingHistoryBasedOnCurrentCheckouts();
+
 				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $user->id;
@@ -325,59 +327,11 @@ class CatalogConnection
 				}
 				$readingHistoryDB->find();
 				$readingHistoryTitles = array();
-				$activeHistoryTitles = array();
+
 				while ($readingHistoryDB->fetch()){
 					$historyEntry = $this->getHistoryEntryForDatabaseEntry($readingHistoryDB);
 
-					if ($historyEntry['checkin'] == null){
-						$activeHistoryTitles[$historyEntry['source'] . ':' . $historyEntry['id']] = $historyEntry;
-					}
-
 					$readingHistoryTitles[] = $historyEntry;
-				}
-
-				//Update reading history based on current checkouts.  That way it never looks out of date
-				require_once ROOT_DIR . '/services/API/UserAPI.php';
-				$userAPI = new UserAPI();
-				$checkouts = $userAPI->getPatronCheckedOutItems();
-				foreach ($checkouts['checkedOutItems'] as $checkout){
-					$sourceId = '?';
-					$source = $checkout['checkoutSource'];
-					if ($source == 'OverDrive'){
-						$sourceId = $checkout['overDriveId'];
-					}elseif ($source == 'ILS'){
-						$sourceId = $checkout['id'];
-					}elseif ($source == 'eContent'){
-						$source = $checkout['recordType'];
-						$sourceId = $checkout['id'];
-					}
-					$key = $source . ':' . $sourceId;
-					if (array_key_exists($key, $activeHistoryTitles)){
-						unset($activeHistoryTitles[$key]);
-					}else{
-						$historyEntryDB = new ReadingHistoryEntry();
-						$historyEntryDB->userId = $user->id;
-						$historyEntryDB->groupedWorkPermanentId = $checkout['groupedWorkId'] == null ? '' : $checkout['groupedWorkId'];
-						$historyEntryDB->source = $source;
-						$historyEntryDB->sourceId = $sourceId;
-						$historyEntryDB->title = substr($checkout['title'], 0, 150);
-						$historyEntryDB->author = substr($checkout['author'], 0, 75);
-						$historyEntryDB->format = substr($checkout['format'], 0, 50);
-						$historyEntryDB->checkOutDate = time();
-						$historyEntryDB->insert();
-
-						$historyEntry = $this->getHistoryEntryForDatabaseEntry($historyEntryDB);
-						$readingHistoryTitles[] = $historyEntry;
-					}
-				}
-
-				//Anything that was still active is now checked in
-				foreach ($activeHistoryTitles as $historyEntry){
-					$historyEntryDB = new ReadingHistoryEntry();
-					$historyEntryDB->source = $historyEntry['source'];
-					$readingHistoryDB->sourceId = $historyEntry['id'];
-					$readingHistoryDB->checkInDate = time();
-					$readingHistoryDB->update();
 				}
 
 				$readingHistoryDB = new ReadingHistoryEntry();
@@ -768,6 +722,74 @@ class CatalogConnection
 		$recordDriver = null;
 		return $historyEntry;
 	}
-}
 
-?>
+	private function updateReadingHistoryBasedOnCurrentCheckouts() {
+		global $user;
+
+		require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
+		$readingHistoryDB = new ReadingHistoryEntry();
+		$readingHistoryDB->userId = $user->id;
+		$readingHistoryDB->whereAdd('checkInDate IS NULL');
+		$readingHistoryDB->find();
+
+		$activeHistoryTitles = array();
+		while ($readingHistoryDB->fetch()){
+			$historyEntry = $this->getHistoryEntryForDatabaseEntry($readingHistoryDB);
+
+			$key = $historyEntry['source'] . ':' . $historyEntry['id'];
+			$activeHistoryTitles[$key] = $historyEntry;
+		}
+
+		//Update reading history based on current checkouts.  That way it never looks out of date
+		require_once ROOT_DIR . '/services/API/UserAPI.php';
+		$userAPI = new UserAPI();
+		$checkouts = $userAPI->getPatronCheckedOutItems();
+		foreach ($checkouts['checkedOutItems'] as $checkout){
+			$sourceId = '?';
+			$source = $checkout['checkoutSource'];
+			if ($source == 'OverDrive'){
+				$sourceId = $checkout['overDriveId'];
+			}elseif ($source == 'ILS'){
+				$sourceId = $checkout['id'];
+			}elseif ($source == 'eContent'){
+				$source = $checkout['recordType'];
+				$sourceId = $checkout['id'];
+			}
+			$key = $source . ':' . $sourceId;
+			if (array_key_exists($key, $activeHistoryTitles)){
+				unset($activeHistoryTitles[$key]);
+			}else{
+				$historyEntryDB = new ReadingHistoryEntry();
+				$historyEntryDB->userId = $user->id;
+				$historyEntryDB->groupedWorkPermanentId = $checkout['groupedWorkId'] == null ? '' : $checkout['groupedWorkId'];
+				$historyEntryDB->source = $source;
+				$historyEntryDB->sourceId = $sourceId;
+				$historyEntryDB->title = substr($checkout['title'], 0, 150);
+				$historyEntryDB->author = substr($checkout['author'], 0, 75);
+				$historyEntryDB->format = substr($checkout['format'], 0, 50);
+				$historyEntryDB->checkOutDate = time();
+				if (!$historyEntryDB->insert()){
+					global $logger;
+					$logger->log("Could not insert new reading history entry", PEAR_LOG_ERR);
+				}
+			}
+		}
+
+		//Anything that was still active is now checked in
+		foreach ($activeHistoryTitles as $historyEntry){
+			$historyEntryDB = new ReadingHistoryEntry();
+			$historyEntryDB->source = $historyEntry['source'];
+			$historyEntryDB->sourceId = $historyEntry['id'];
+			$historyEntryDB->checkInDate = null;
+			if ($historyEntryDB->find(true)){
+				$historyEntryDB->checkInDate = time();
+				$numUpdates = $historyEntryDB->update();
+				if ($numUpdates != 1){
+					global $logger;
+					$key = $historyEntry['source'] . ':' . $historyEntry['id'];
+					$logger->log("Could not update reading history entry $key", PEAR_LOG_ERR);
+				}
+			}
+		}
+	}
+}
