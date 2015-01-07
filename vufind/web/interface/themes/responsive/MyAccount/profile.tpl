@@ -241,7 +241,7 @@
 									<div class="col-xs-4"><label for="promptForOverdriveEmail" class="control-label">{translate text='Prompt for OverDrive e-mail'}:</label></div>
 									<div class="col-xs-8">
 										{if $edit == true}
-											<input type="radio" name="promptForOverdriveEmail" id="promptForOverdriveEmail" {if $profile.promptForOverdriveEmail==1}checked='checked'{/if}/>
+											<input type="checkbox" name="promptForOverdriveEmail" id="promptForOverdriveEmail" {if $profile.promptForOverdriveEmail==1}checked='checked'{/if}/>
 											<script type="text/javascript">
 												{literal}
 												$(document).ready(function(){
