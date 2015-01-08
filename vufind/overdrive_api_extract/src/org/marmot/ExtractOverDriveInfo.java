@@ -182,9 +182,9 @@ public class ExtractOverDriveInfo {
 			}
 			
 			//Load products from API 
-			clientSecret = configIni.get("OverDrive", "clientSecret");
-			clientKey = configIni.get("OverDrive", "clientKey");
-			accountId = configIni.get("OverDrive", "accountId");
+			clientSecret = Util.cleanIniValue(configIni.get("OverDrive", "clientSecret"));
+			clientKey = Util.cleanIniValue(configIni.get("OverDrive", "clientKey"));
+			accountId = Util.cleanIniValue(configIni.get("OverDrive", "accountId"));
 			
 			overDriveProductsKey = configIni.get("OverDrive", "productsKey");
 			if (overDriveProductsKey == null){
