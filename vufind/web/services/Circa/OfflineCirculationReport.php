@@ -17,14 +17,14 @@ class Circa_OfflineCirculationReport extends Admin_Admin{
 			$startDate = new DateTime($_REQUEST['startDate']);
 		}else{
 			$startDate = new DateTime();
-			date_sub($startDate, new DateInterval('P1M'));
+			date_sub($startDate, new DateInterval('P1M')); // 1 month ago
 		}
 		if (isset($_REQUEST['endDate'])){
 			$endDate = new DateTime($_REQUEST['endDate']);
 		}else{
 			$endDate = new DateTime();
 		}
-		$endDate->setTime(23,59,59);
+		$endDate->setTime(23,59,59); //second before midnight
 		$typesToInclude = isset($_REQUEST['typesToInclude']) ? $_REQUEST['typesToInclude'] : 'everything';
 		$loginsToInclude = isset($_REQUEST['loginsToInclude']) ? $_REQUEST['loginsToInclude'] : '';
 		$hideNotProcessed = isset($_REQUEST['hideNotProcessed']);
