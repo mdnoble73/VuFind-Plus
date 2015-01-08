@@ -8,6 +8,7 @@ class SIPAuthentication implements Authentication {
 	public function validateAccount($username, $password) {
 		global $configArray;
 		global $timer;
+		global $logger;
 		if (isset($username) && isset($password)) {
 			//Check to see if we have already processed this user
 			if (array_key_exists($username, self::$processedUsers)){
@@ -64,6 +65,8 @@ class SIPAuthentication implements Authentication {
 						}
 					}
 					$mysip->disconnect();
+				}else{
+					$logger->log("Unable to connect to SIP server", PEAR_LOG_ERR);
 				}
 			}
 		}
@@ -159,6 +162,8 @@ class SIPAuthentication implements Authentication {
 
 				} else {
 					$user = new PEAR_Error('authentication_error_technical');
+					global $logger;
+					$logger->log("Unable to connect to SIP server", PEAR_LOG_ERR);
 				}
 			} else {
 				$user = new PEAR_Error('authentication_error_blank');
