@@ -5,8 +5,7 @@
 // Always include the base .less file
 @import "../../responsive/css/responsive_base.less";
 
-// Header Styling */
-
+// Header Styling
 #header-container{
   background-image: url('/interface/themes/anythink/images/headerbg.png');
   background-repeat: no-repeat;
@@ -29,7 +28,7 @@
   border-bottom: 0px;
 }
 
-// hide header login, account & log out buttons */
+// hide header login, account & log out buttons
 #header-container div.loginOptions,
 #header-container div.logoutOptions {
   .header-primary, .header-button {
@@ -41,6 +40,7 @@
   }
   display: none;
 }
+
 
 // Button Styling
 .btn-primary,
@@ -59,9 +59,6 @@
   color: black;
 }
 
-//.btn-primary:hover, .userreviewlink:hover, .addtolistlink:hover{
-//  background-image: linear-gradient(#ffffff, #eeeeee 1px, #cccccc);
-//}
 
 // Side Bar Styling
 .sidebar-text-mixin() {
@@ -69,7 +66,7 @@
   color: @font-gray;
   text-transform: lowercase;
   text-shadow: none;
-  font-size: 14px;
+  font-size: @sidebar-font-size;
   .text-left;
 }
 
@@ -79,7 +76,7 @@
   padding-bottom: @vpad;
 }
 
-////sets equal left & right padding. default 30px
+// sets equal left & right padding. default 30px
 .sidebar-padding-mixin(@pad: 30px) {
   padding-left: @pad;
   padding-right: @pad;
@@ -97,7 +94,7 @@
   // like the 30px better so far. plb 12-08
 }
 .sidebar-mixin() {
-  border-bottom: dotted @font-gray;
+  border-bottom: @anythink-dotted-border-size dotted @anythink-dotted-border-color;
 }
 
 div.sidebar-button {
@@ -123,7 +120,7 @@ div.bottom-border-line {
 
 // Overwrite default styling for the searchbox placeholder text to implement displaying it
 .placeholder-mixin() {
-  color: @font-gray; // match background
+  color: @font-gray; //
   font-size: initial; // zero out the text as a fail safe
 }
 
@@ -134,7 +131,16 @@ div.bottom-border-line {
 #lookfor::-webkit-input-placeholder{.placeholder-mixin;}
 #lookfor:-ms-input-placeholder{.placeholder-mixin;}
 
+.placeholder-focus-mixin() {
+  color: transparent;
+}
 
+// hide placeholder text on focus
+#lookfor:focus::placeholder {.placeholder-focus-mixin;}
+#lookfor:focus::-moz-placeholder{.placeholder-focus-mixin;}
+#lookfor:focus:-moz-placeholder{.placeholder-focus-mixin;}
+#lookfor:focus::-webkit-input-placeholder{.placeholder-focus-mixin;}
+#lookfor:focus:-ms-input-placeholder{.placeholder-focus-mixin;}
 
 #home-page-search{
   margin-bottom: 0;
@@ -159,10 +165,16 @@ div.bottom-border-line {
   margin-bottom: 0;
 }
 
+// Sidebar Accordion
+.sidebar-links .panel-body {
+  background-color: @sidebar-gray;
+}
+
 // Browse Category styling modifications
 #browse-label {
   background-color: #ffffff;
-  background: linear-gradient(to bottom, white, white 98%, @browse-label-text-color 99%);
+//  background: linear-gradient(to bottom, white, white 98%, @browse-label-text-color 99%);
+  border-bottom: 1px solid @browse-label-text-color;
   margin: 25px 0 15px;
   height: auto;
   padding-bottom: 20px;
@@ -178,6 +190,9 @@ div.bottom-border-line {
   text-transform: uppercase;
   font-size: large;
   font-weight: 500;
+  div:focus {
+    outline: none; // hide outlining of clicked category
+  }
 }
 
 .browse-category {
@@ -185,7 +200,7 @@ div.bottom-border-line {
   height: 120px;
 }
 
-@selectedShadowColor: #DBD4CB;
+//@selectedShadowColor: #DBD4CB;
 
 // Selected Category needs to give a highlighted appearance 
 .browse-category.selected {
@@ -222,7 +237,7 @@ div.bottom-border-line {
 #browse-category-picker a.jcarousel-control-prev:before {
   content: "◀";
 }
-// indicator dots at bottom of browse category carousel */
+// indicator dots at bottom of browse category carousel
 #browse-category-picker .jcarousel-pagination a.active {
   background: @font-red;
 
@@ -230,14 +245,12 @@ div.bottom-border-line {
   .box-shadow(0 0 2px #4E443C); // try boot strap mixin
 }
 
-.top-gray-line-mixin() {
-  background: linear-gradient(to bottom, white, @browse-label-text-color 0%, @browse-label-text-color 1%, white 2%);
-}
 
 #selected-browse-label {
   color: @browse-selected-gray;
-  .top-gray-line-mixin;
+  background: none; //override line through label
   padding: 20px 0;
+  border-top: 1px solid @browse-label-text-color;
 }
 
 .selected-browse-label-search a {
@@ -245,7 +258,7 @@ div.bottom-border-line {
 }
 
 #selected-browse-search-link{
- // text-transform: uppercase;
+  text-transform: uppercase;
 }
 
 .selected-browse-label-search {
