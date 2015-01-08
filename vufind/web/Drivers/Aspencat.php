@@ -1246,7 +1246,7 @@ class Aspencat implements DriverInterface{
 			//Grab the table body
 			preg_match('/<tbody>(.*?)<\/tbody>/si', $holdsTable, $tableBody);
 			$tableBody = $tableBody[1];
-			preg_match_all('/<tr>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
+			preg_match_all('/<tr[^>]*>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
 
 			foreach ($tableData[1] as $tableRow){
 				//Each row in the table represents a hold
@@ -1273,16 +1273,17 @@ class Aspencat implements DriverInterface{
 						$curHold['create'] = date_parse_from_format('m/d/Y', $tableCell);
 					}elseif ($headerLabels[$col] == 'expires on'){
 						if (strlen($tableCell) != 0){
-							$curHold['expire'] = date_parse_from_format('m/d/Y', $tableCell);
+							$expireDate = DateTime::createFromFormat('m/d/Y', $tableCell);
+							$curHold['expire'] = $expireDate->getTimestamp();
 						}
 					}elseif ($headerLabels[$col] == 'pick up location'){
 						if (strlen($tableCell) != 0){
-							$curHold['location'] = $tableCell;
+							$curHold['location'] = trim($tableCell);
 							$curHold['locationUpdateable'] = false;
 							$curHold['currentPickupName'] = $curHold['location'];
 						}
 					}elseif ($headerLabels[$col] == 'status'){
-						$curHold['status'] = $tableCell;
+						$curHold['status'] = trim($tableCell);
 					}elseif ($headerLabels[$col] == 'cancel'){
 						$curHold['cancelable'] = strlen($tableCell) > 0;
 						if (preg_match('/<input type="hidden" name="reservenumber" value="(.*?)" \/>/', $tableCell, $matches)) {
@@ -1308,7 +1309,7 @@ class Aspencat implements DriverInterface{
 				}
 
 
-				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "filled") != 0){
+				if (!isset($curHold['status']) || !preg_match('/^Item waiting.*/i', $curHold['status'])){
 					$holds['unavailable'][] = $curHold;
 				}else{
 					$holds['available'][] = $curHold;
@@ -1331,7 +1332,7 @@ class Aspencat implements DriverInterface{
 			//Grab the table body
 			preg_match('/<tbody>(.*?)<\/tbody>/si', $holdsTable, $tableBody);
 			$tableBody = $tableBody[1];
-			preg_match_all('/<tr>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
+			preg_match_all('/<tr[^>]*>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
 
 			foreach ($tableData[1] as $tableRow){
 				//Each row in the table represents a hold
@@ -1436,7 +1437,10 @@ class Aspencat implements DriverInterface{
 			}else{
 				$holdKeys = array($cancelId);
 			}
+		}else{
+			$holdKeys = $xNum;
 		}
+
 
 		if ($type == 'cancel'){
 			$allCancelsSucceed = true;
@@ -1477,37 +1481,11 @@ class Aspencat implements DriverInterface{
 					'message' => 'Some holds could not be cancelled.  Please try again later or see your librarian.');
 			}
 		}else{
-			$loginResult = $this->loginToKoha($user);
 			if ($locationId){
-				$allLocationChangesSucceed = true;
-
-				foreach ($holdKeys as $holdKey){
-					//create the hold using the web service
-					$changePickupLocationUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/changePickupLocation?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&holdKey=' . $holdKey . '&newLocation=' . $locationId;
-
-					$changePickupLocationResponse = $this->getWebServiceResponse($changePickupLocationUrl);
-
-					global $analytics;
-					if ($changePickupLocationResponse){
-						//Clear the patron profile
-						$this->clearPatronProfile();
-						$analytics->addEvent('ILS Integration', 'Hold Suspended', $title);
-					}else{
-						$allLocationChangesSucceed = false;
-						$analytics->addEvent('ILS Integration', 'Hold Not Suspended', $title);
-					}
-				}
-				if ($allLocationChangesSucceed){
-					return array(
-						'title' => $title,
-						'result' => true,
-						'message' => 'Pickup location for your hold(s) was updated successfully.');
-				}else{
-					return array(
-						'title' => $title,
-						'result' => false,
-						'message' => 'Pickup location for your hold(s) was could not be updated.  Please try again later or see your librarian.');
-				}
+				return array(
+					'title' => $title,
+					'result' => false,
+					'message' => 'Changing location for a hold is not supported.');
 			}else{
 				//Freeze/Thaw the hold
 				if ($freezeValue == 'on'){
@@ -1645,6 +1623,66 @@ class Aspencat implements DriverInterface{
 			'itemId' => $itemId,
 			'result'  => $success,
 			'message' => $message);
+	}
+
+	public function getMyFines($patron = null, $includeMessages = false){
+		$messages = array();
+		global $user;
+		if ($this->loginToKoha($user)){
+			//Load the information from millennium using CURL
+			global $configArray;
+			$catalogUrl = $configArray['Catalog']['url'];
+			$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-account.pl";
+			$pageContents = $this->getKohaPage($kohaUrl);
+
+			//Get the fines table data
+			if (preg_match('/<table>(.*?)<\/table>/si', $pageContents, $regs)) {
+				$table = $regs[1];
+
+				//Get the header row labels
+				$headerLabels = array();
+				preg_match_all('/<th[^>]*>(.*?)<\/th>/si', $table, $tableHeaders, PREG_PATTERN_ORDER);
+				foreach ($tableHeaders[1] as $col => $tableHeader){
+					$headerLabels[$col] = trim(strip_tags(strtolower($tableHeader)));
+				}
+
+				//Get each row within the table
+				//Grab the table body
+				preg_match('/<tbody>(.*?)<\/tbody>/si', $table, $tableBody);
+				$tableBody = $tableBody[1];
+				preg_match_all('/<tr[^>]*>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
+
+				foreach ($tableData[1] as $tableRow){
+					//Each row in the table represents a hold
+					$curHold= array();
+					$curHold['holdSource'] = 'ILS';
+					//Go through each cell in the row
+					preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
+					$message = array(
+						'reason' => '',
+					);
+					foreach ($tableCells[1] as $col => $tableCell){
+						//Based off which column we are in, fill out the transaction
+						if ($headerLabels[$col] == 'date'){
+							$message['date'] = strip_tags($tableCell);
+						}elseif ($headerLabels[$col] == 'description'){
+							$message['message'] = strip_tags($tableCell);
+						}elseif ($headerLabels[$col] == 'fine amount'){
+							$message['amount'] = strip_tags($tableCell);
+						}elseif ($headerLabels[$col] == 'amount outstanding'){
+							$message['amount_outstanding'] = strip_tags($tableCell);
+						}
+					}
+					if ($message['reason'] == '&nbsp' || $message['reason'] == '&nbsp;'){
+						$message['reason'] = 'Fee';
+					}
+
+					$messages[] = $message;
+				}
+			}
+		}
+
+		return $messages;
 	}
 
 	public function clearPatronProfile() {
