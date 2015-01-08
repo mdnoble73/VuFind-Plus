@@ -498,8 +498,13 @@ class Aspencat implements DriverInterface{
 
 			if (preg_match("/^64/", $msg_result)) {
 				$result = $this->sipConnection->parsePatronInfoResponse( $msg_result );
-				$address = $result['variable']['BD'][0];
-				$addressParts = explode(',', $address);
+				if (isset($result['variable']['BD'])){
+					$address = $result['variable']['BD'][0];
+					$addressParts = explode(',', $address);
+				}else{
+					$addressParts = array(4);
+				}
+
 				if (isset($result['variable']['PE'])){
 					$expirationDate = $result['variable']['PE'][0];
 					$formattedExpiration = substr($expirationDate, 4,2) . '/' . substr($expirationDate, 6,2) . '/' . substr($expirationDate, 0,4);
