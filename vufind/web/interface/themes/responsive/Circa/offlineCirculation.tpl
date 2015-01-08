@@ -12,11 +12,11 @@
 
 			<div id="sidebar" class="row">
 				<div class="form-group col-sm-6">
-					<div class="sidebarLabel"><label for="login">Login</label>:</div>
+					<div class="sidebarLabel"><label for="login">{$ILSname} Username</label>:</div>
 					<div class="sidebarValue"><input type="text" name="login" id="login" value="{$lastLogin}"/> </div>
 				</div>
 				<div class="form-group col-sm-6">
-					<div class="sidebarLabel"><label for="password1">Password</label>:</div>
+					<div class="sidebarLabel"><label for="password1">{$ILSname} Password</label>:</div>
 					<div class="sidebarValue"><input type="password" name="password1" id="password1" value="{$lastPassword1}"/></div>
 				</div>
 				{*

@@ -23,6 +23,12 @@
 					{if $facebookLink}
 						<a href="{$facebookLink}" class="connect-icon"><img src="{img filename='facebook.png'}" class="img-rounded"></a>
 					{/if}
+					{if $youtubeLink}
+						<a href="{$youtubeLink}" class="connect-icon"><img src="{img filename='youtube.png'}" class="img-rounded"></a>
+					{/if}
+					{if $instagramLink}
+						<a href="{$instagramLink}" class="connect-icon"><img src="{img filename='instagram.png'}" class="img-rounded"></a>
+					{/if}
 					{if $generalContactLink}
 						<a href="{$generalContactLink}" class="connect-icon"><img src="{img filename='email-contact.png'}" class="img-rounded"></a>
 					{/if}
