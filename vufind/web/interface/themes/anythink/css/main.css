@@ -8276,7 +8276,7 @@ div.bottom-border-line {
   color: #a1988c;
   background: none;
   padding: 20px 0;
-  border-top: b 1px solid #998e85;
+  border-top: 1px solid #998e85;
 }
 .selected-browse-label-search a {
   color: #998e85;
