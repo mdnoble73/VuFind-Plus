@@ -182,6 +182,8 @@ public class GroupedWorkIndexer {
 	private boolean libraryAndLocationDataLoaded = false;
 	protected HashMap<String, String> libraryFacetMap = new HashMap<String, String>();
 	protected HashMap<String, String> libraryOnlineFacetMap = new HashMap<String, String>();
+	protected HashSet<String> hooplaLocationFacets = new HashSet<String>();
+	protected HashSet<String> hooplaLocationCodes = new HashSet<String>();
 	protected HashMap<String, String> locationMap = new HashMap<String, String>();
 	protected HashMap<String, String> subdomainMap = new HashMap<String, String>();
 
@@ -199,6 +201,7 @@ public class GroupedWorkIndexer {
 					String facetLabel = libraryInformationRS.getString("facetLabel");
 					String subdomain = libraryInformationRS.getString("subdomain");
 					String displayName = libraryInformationRS.getString("displayName");
+					boolean includeHoopla = libraryInformationRS.getBoolean("includeHoopla");
 					if (facetLabel.length() == 0){
 						facetLabel = displayName;
 					}
@@ -206,6 +209,9 @@ public class GroupedWorkIndexer {
 						String onlineFacetLabel = facetLabel + " Online";
 						libraryFacetMap.put(code, facetLabel);
 						libraryOnlineFacetMap.put(code, onlineFacetLabel);
+						if (includeHoopla){
+							hooplaLocationFacets.add(onlineFacetLabel);
+						}
 					}
 					subdomainMap.put(code, subdomain);
 					//These options determine how scoping is done
@@ -218,7 +224,7 @@ public class GroupedWorkIndexer {
 					boolean includeOutOfSystemExternalLinks = libraryInformationRS.getBoolean("includeOutOfSystemExternalLinks");
 					boolean useScope = libraryInformationRS.getBoolean("useScope");
 					boolean includeOverdrive = libraryInformationRS.getBoolean("includeDigitalCollection");
-					boolean includeHoopla = libraryInformationRS.getBoolean("includeHoopla");
+
 
 					Long accountingUnit = libraryInformationRS.getLong("orderAccountingUnit");
 					//Determine if we need to build a scope for this library
@@ -285,6 +291,9 @@ public class GroupedWorkIndexer {
 					boolean useScopeLocation = locationInformationRS.getBoolean("useScopeLocation");
 					Integer locationScope = locationInformationRS.getInt("locationScope");
 					boolean includeHoopla = locationInformationRS.getBoolean("includeHoopla");
+					if (includeHoopla){
+						hooplaLocationCodes.add(code);
+					}
 					if (pTypes.length() == 0 && !restrictSearchByLocation && econtentLocationsToIncludeLocation.equalsIgnoreCase("all") && includeOutOfSystemExternalLinks && !useScopeLocation){
 						logger.debug("Not creating a scope for locations because there are no restrictions for the location " + code);
 					}else{
@@ -935,5 +944,22 @@ public class GroupedWorkIndexer {
 
 	public TreeSet<Scope> getScopes() {
 		return this.scopes;
+	}
+
+	/**
+	 * A list of facets (library system display name + Online) which have access to Hoopla
+	 *
+	 * @return A list of facets
+	 */
+	public HashSet<String> getHooplaLocationFacets() {
+		return hooplaLocationFacets;
+	}
+	/**
+	 * A list of location codes where their parent library system has access to Hoopla
+	 *
+	 * @return A list of location codes
+	 */
+	public HashSet<String> getHooplaLocationCodes() {
+		return hooplaLocationCodes;
 	}
 }
