@@ -843,5 +843,14 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'goodreads_library_contact_link' => array(
+			'title' => 'Goodreads Library Contact Link',
+			'description' => 'Add additional contact link for Goodreads to library config.',
+			'dependencies' => array(),
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD `goodreadsLink` VARCHAR(255) DEFAULT NULL AFTER instagramLink;",
+			),
+		),
 	);
 }
