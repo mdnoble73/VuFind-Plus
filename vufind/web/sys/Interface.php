@@ -140,6 +140,9 @@ class UInterface extends Smarty
 		if ($configArray['System']['debugJs']){
 			$this->assign('debugJs', true);
 		}
+		if (isset($configArray['System']['debugCss']) && $configArray['System']['debugCss']){
+			$this->assign('debugCss', true);
+		}
 
 		$session = new Session();
 		$session->session_id = session_id();
@@ -250,6 +253,9 @@ class UInterface extends Smarty
 		if (isset($library)){
 			$this->assign('facebookLink', $library->facebookLink);
 			$this->assign('twitterLink', $library->twitterLink);
+			$this->assign('youtubeLink', $library->youtubeLink);
+			$this->assign('instagramLink', $library->instagramLink);
+			$this->assign('goodreadsLink', $library->goodreadsLink);
 			$this->assign('generalContactLink', $library->generalContactLink);
 			$this->assign('showLoginButton', $library->showLoginButton);
 			$this->assign('showAdvancedSearchbox', $library->showAdvancedSearchbox);

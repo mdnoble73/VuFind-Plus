@@ -25,7 +25,7 @@
 					&nbsp;-&nbsp;{$summTitleStatement|removeTrailingPunctuation|truncate:180:"..."|highlight:$lookfor}
 				{/if}
 				{if isset($summScore)}
-					(<a href="#" onclick="return VuFind.showElementInPopup('Score Explanation', '#scoreExplanationValue{$summId|escape}');">{$summScore}</a>)
+					&nbsp;(<a href="#" onclick="return VuFind.showElementInPopup('Score Explanation', '#scoreExplanationValue{$summId|escape}');">{$summScore}</a>)
 				{/if}
 			</div>
 		</div>
@@ -85,7 +85,11 @@
 			<div class="row">
 				<div class="result-label col-xs-3">Language: </div>
 				<div class="col-xs-9 result-value">
-					{$summLanguage}
+					{if is_array($summLanguage)}
+						{', '|implode:$summLanguage}
+					{else}
+						{$summLanguage}
+					{/if}
 				</div>
 			</div>
 		{/if}

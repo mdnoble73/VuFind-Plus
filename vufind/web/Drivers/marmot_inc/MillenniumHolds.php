@@ -395,13 +395,14 @@ class MillenniumHolds{
 							$bibid = '.' . $matches[1] . $this->driver->getCheckDigit($shortId);
 							$title = strip_tags($matches[2]);
 						}else{
+							//This happens for prospector titles
 							$bibid = '';
 							$shortId = '';
 							$title = trim($sCols[$i]);
-							global $configArray;
-							if ($configArray['Site']['debug']){
-								echo("Unexpected format in title column.  Got {$sCols[$i]}.<br/>");
-							}
+							/*global $configArray;
+							if ($configArray['System']['debug']){
+								echo("Unexpected format in title column.  Got " . htmlentities($sCols[$i]) . "<br/>");
+							}*/
 						}
 
 						$curHold['id'] = $bibid;

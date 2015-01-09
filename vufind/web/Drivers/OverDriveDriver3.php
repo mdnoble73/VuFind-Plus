@@ -104,10 +104,19 @@ class OverDriveDriver3 {
 			if ($tokenData){
 				global $configArray;
 				$ch = curl_init("https://oauth-patron.overdrive.com/patrontoken");
+				if (!isset($configArray['OverDrive']['patronWebsiteId'])){
+					return false;
+				}
 				$websiteId = $configArray['OverDrive']['patronWebsiteId'];
 				//$websiteId = 100300;
+				if (!isset($configArray['OverDrive']['LibraryCardILS'])){
+					return false;
+				}
 				$ilsname = $configArray['OverDrive']['LibraryCardILS'];
 				//$ilsname = "default";
+				if (!isset($configArray['OverDrive']['clientSecret'])){
+					return false;
+				}
 				$clientSecret = $configArray['OverDrive']['clientSecret'];
 				curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
 				curl_setopt($ch, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
@@ -381,6 +390,11 @@ class OverDriveDriver3 {
 			return $this->checkouts[$user->id];
 		}
 		global $configArray;
+		if (!$this->isUserValidForOverDrive($user)){
+			return array(
+				'items' => array()
+			);
+		}
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts';
 		$response = $this->_callPatronUrl($user, $url);
 		if ($response == false){
@@ -492,13 +506,16 @@ class OverDriveDriver3 {
 			return $this->holds[$user->id];
 		}
 		global $configArray;
-		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds';
-		$response = $this->_callPatronUrl($user, $url);
 		$holds = array();
 		$holds['holds'] = array(
 			'available' => array(),
 			'unavailable' => array()
 		);
+		if (!$this->isUserValidForOverDrive($user)){
+			return $holds;
+		}
+		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds';
+		$response = $this->_callPatronUrl($user, $url);
 		if (isset($response->holds)){
 			foreach ($response->holds as $curTitle){
 				$hold = array();
@@ -707,7 +724,8 @@ class OverDriveDriver3 {
 			$result['message'] = 'Your title was checked out successfully. You may now download the title from your Account.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Checkout Item', 'succeeded');
 		}else{
-			$result['message'] = 'Sorry, we could not checkout this title to you.  ' . $response->message;
+			$result['message'] = 'Sorry, we could not checkout this title to you.';
+			if (isset($response->message)) $result['message'] .= "  {$response->message}";
 			if ($analytics) $analytics->addEvent('OverDrive', 'Checkout Item', 'failed');
 		}
 

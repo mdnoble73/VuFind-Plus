@@ -1,3 +1,6 @@
+/**
+ * Main responsive theme css
+ */
 /*! normalize.css v2.1.3 | MIT License | git.io/normalize */
 article,
 aside,
@@ -5954,6 +5957,9 @@ td.visible-print {
     display: none !important;
   }
 }
+/**
+ * Basic Style overrides
+ */
 a,
 a:visited {
   color: #428bca;
@@ -6098,6 +6104,7 @@ div.striped > div:nth-child(odd),
 div.striped > div:nth-child(odd) {
   background-color: #f9f9f9;
 }
+/** Google translate */
 #google_translate_element {
   font-size: smaller;
   padding-left: 5px;
@@ -6105,6 +6112,7 @@ div.striped > div:nth-child(odd) {
 .goog-te-gadget {
   display: inline-block;
 }
+/** Third party imports **/
 .ui-rater > span {
   vertical-align: top;
 }
@@ -6696,6 +6704,7 @@ table.tablesorter thead tr .headerSortDown,
 table.tablesorter thead tr .headerSortUp {
   background-color: #8dbdd8;
 }
+/** Imports of functionality related to VuFind **/
 body {
   color: #6b6b6b;
 }
@@ -6857,8 +6866,8 @@ div#system-message-header {
  Styling for home page elements
 */
 #home-page-search {
-  background-color: #e3e1dd;
-  background: linear-gradient(to bottom, #e3e1dd, #e3e1dd);
+  background-color: #e1dedb;
+  background: linear-gradient(to bottom, #e1dedb, #e1dedb);
   padding: 20px 0 10px;
   margin-bottom: 5px;
 }
@@ -6913,7 +6922,7 @@ div#system-message-header {
 #searchSource {
   padding: 5px 0;
   color: white;
-  background-color: #e3e1dd;
+  background-color: #e1dedb;
   border: none;
   width: 90%;
 }
@@ -6990,7 +6999,7 @@ div#system-message-header {
 .sidebar-links .panel-body a,
 .sidebar-links .panel-body a:visited,
 .sidebar-links .panel-body a:hover {
-  color: #428bca;
+  color: #9e1b32;
 }
 /** Browse Formatting */
 #home-page-browse-header {
@@ -8082,21 +8091,30 @@ div#system-message-header {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffeeeeee', endColorstr='#ffcccccc', GradientType=0);
   color: black;
 }
-#home-page-login a,
-#home-page-library-section {
+#home-page-login a {
   padding-left: 30px;
   padding-right: 30px;
 }
+#home-page-library-section {
+  background-color: #e1dedb;
+  padding-left: 30px;
+  padding-right: 30px;
+  padding-top: 0;
+  padding-bottom: 30px;
+}
 div.sidebar-button {
-  border-bottom: dotted #998e85;
+  border-bottom: 2px dotted #998f86;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 div.bottom-border-line {
-  border-bottom: dotted #998e85;
+  border-bottom: 2px dotted #998f86;
+  margin-top: 5px;
   margin-left: 30px;
   margin-right: 30px;
 }
 #side-bar {
-  background-color: #e3e1dd;
+  background-color: #e1dedb;
 }
 #home-page-search-label {
   display: none;
@@ -8141,6 +8159,21 @@ div.bottom-border-line {
   color: #998e85;
   font-size: initial;
 }
+#lookfor:focus::placeholder {
+  color: transparent;
+}
+#lookfor:focus::-moz-placeholder {
+  color: transparent;
+}
+#lookfor:focus:-moz-placeholder {
+  color: transparent;
+}
+#lookfor:focus::-webkit-input-placeholder {
+  color: transparent;
+}
+#lookfor:focus:-ms-input-placeholder {
+  color: transparent;
+}
 #home-page-search {
   margin-bottom: 0;
   padding-bottom: 20px;
@@ -8149,35 +8182,35 @@ div.bottom-border-line {
   margin-bottom: 0;
   padding-left: 0;
   padding-right: 0;
-  background-color: #e3e1dd;
+  padding-top: 0;
+  padding-bottom: 0;
+  background-color: #e1dedb;
   text-align: left;
 }
 #home-page-login a {
-  background: none #e3e1dd;
+  background: none #e1dedb;
   color: #998e85;
   text-transform: lowercase;
   text-shadow: none;
-  font-size: 20px;
+  font-size: 14px;
   text-align: left;
   color: #9e1b32;
 }
-#home-page-library-section {
-  background-color: #e3e1dd;
-  padding-top: 0;
-  padding-bottom: 30px;
-}
 .sidebar-button {
-  background: none #e3e1dd;
+  background: none #e1dedb;
   color: #998e85;
   text-transform: lowercase;
   text-shadow: none;
-  font-size: 20px;
+  font-size: 14px;
   text-align: left;
   margin-bottom: 0;
 }
+.sidebar-links .panel-body {
+  background-color: #e1dedb;
+}
 #browse-label {
   background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 95%, #998e85 96%);
+  border-bottom: 1px solid #998e85;
   margin: 25px 0 15px;
   height: auto;
   padding-bottom: 20px;
@@ -8185,22 +8218,25 @@ div.bottom-border-line {
 #browse-label .browse-label-text {
   font-weight: 600;
 }
-#selected-browse-label {
-  color: #a1988c;
-}
 .browse-category a {
   color: #998e85;
   text-shadow: none;
+  text-transform: uppercase;
   font-size: large;
   font-weight: 500;
 }
+.browse-category a div:focus {
+  outline: none;
+}
 .browse-category {
   padding-top: 20px;
-  /* extra padding on top to center text */
+  height: 120px;
 }
 .browse-category.selected {
+  border: none;
   background-color: #a1988c;
   background: #a1988c;
+  background: linear-gradient(to bottom, #a1988c 0%, #a1988c 75%, #ffffff 75%, #ffffff 80%, #e6e3e0 80%, #ffffff 100%);
 }
 .browse-category.selected a {
   color: white;
@@ -8208,10 +8244,22 @@ div.bottom-border-line {
 #browse-category-picker .jcarousel-control-prev,
 #browse-category-picker .jcarousel-control-next {
   background-color: white;
-  color: #9e1b32;
+  color: #a1988c;
   -webkit-box-shadow: none;
   box-shadow: none;
   font-size: 20px;
+}
+#browse-category-picker .jcarousel-control-prev:active,
+#browse-category-picker .jcarousel-control-next:active,
+#browse-category-picker .jcarousel-control-prev:hover,
+#browse-category-picker .jcarousel-control-next:hover {
+  color: #9e1b32;
+  text-decoration: none;
+}
+#browse-category-picker .jcarousel-control-prev:focus,
+#browse-category-picker .jcarousel-control-next:focus {
+  text-decoration: none;
+  outline: none;
 }
 #browse-category-picker a.jcarousel-control-next:after {
   content: "▶";
@@ -8225,14 +8273,22 @@ div.bottom-border-line {
   box-shadow: 0 0 2px #4e443c;
 }
 #selected-browse-label {
-  background: linear-gradient(to bottom, #ffffff, #998e85 0%, #998e85 2%, #ffffff 3%);
+  color: #a1988c;
+  background: none;
   padding: 20px 0;
+  border-top: 1px solid #998e85;
 }
 .selected-browse-label-search a {
   color: #998e85;
 }
+#selected-browse-search-link {
+  text-transform: uppercase;
+}
 .selected-browse-label-search {
   background: none;
+}
+#formatCategories {
+  padding-bottom: 20px;
 }
 .related-manifestation-shelf-status.available {
   color: green;
@@ -8242,4 +8298,13 @@ div.bottom-border-line {
 }
 .related-manifestation-shelf-status.availableOther {
   color: black;
+}
+.categoryValue img {
+  max-width: 60px;
+  height: 72px;
+}
+@media screen and (max-width: 1000px) {
+  .formatCategoryLabel {
+    float: none;
+  }
 }

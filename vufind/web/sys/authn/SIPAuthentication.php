@@ -8,13 +8,14 @@ class SIPAuthentication implements Authentication {
 	public function validateAccount($username, $password) {
 		global $configArray;
 		global $timer;
+		global $logger;
 		if (isset($username) && isset($password)) {
 			//Check to see if we have already processed this user
 			if (array_key_exists($username, self::$processedUsers)){
 				return self::$processedUsers[$username];
 			}
 			
-			if ($username != '' && $password != '') {
+			if (trim($username) != '' && trim($password) != '') {
 				// Attempt SIP2 Authentication
 
 				$mysip = new sip2;
@@ -50,6 +51,7 @@ class SIPAuthentication implements Authentication {
 								$msg_result = $mysip->get_message($in);
 				
 								// Make sure the response is 24 as expected
+								$patronInfoResponse = null;
 								if (preg_match("/^64/", $msg_result)) {
 									$patronInfoResponse = $mysip->parsePatronInfoResponse( $msg_result );
 								}
@@ -63,6 +65,8 @@ class SIPAuthentication implements Authentication {
 						}
 					}
 					$mysip->disconnect();
+				}else{
+					$logger->log("Unable to connect to SIP server", PEAR_LOG_ERR);
 				}
 			}
 		}
@@ -84,14 +88,16 @@ class SIPAuthentication implements Authentication {
 			$username = $_POST['username'];
 			$password = $_POST['password'];
 			$barcodePrefix = $configArray['Catalog']['barcodePrefix'];
-			if (strlen($username) == 9){
-				$username = substr($barcodePrefix, 0, 5) . $username;
-			}elseif (strlen($username) == 8){
-				$username = substr($barcodePrefix, 0, 6) . $username;
-			}elseif (strlen($username) == 7){
-				$username = $barcodePrefix . $username;
+			if (strlen($barcodePrefix) > 0){
+				if (strlen($username) == 9){
+					$username = substr($barcodePrefix, 0, 5) . $username;
+				}elseif (strlen($username) == 8){
+					$username = substr($barcodePrefix, 0, 6) . $username;
+				}elseif (strlen($username) == 7){
+					$username = $barcodePrefix . $username;
+				}
 			}
-			
+
 		  //Check to see if we have already processed this user
       if (array_key_exists($username, self::$processedUsers)){
         return self::$processedUsers[$username];
@@ -156,6 +162,8 @@ class SIPAuthentication implements Authentication {
 
 				} else {
 					$user = new PEAR_Error('authentication_error_technical');
+					global $logger;
+					$logger->log("Unable to connect to SIP server", PEAR_LOG_ERR);
 				}
 			} else {
 				$user = new PEAR_Error('authentication_error_blank');
@@ -174,8 +182,10 @@ class SIPAuthentication implements Authentication {
 	 * Process SIP2 User Account
 	 *
 	 * @param   array   $info           An array of user information
-	 * @param   array   $username       The user's ILS username
-	 * @param   array   $password       The user's ILS password
+	 * @param   string   $username       The user's ILS username
+	 * @param   string   $password       The user's ILS password
+	 * @param   array   $patronInfoResponse       The user's ILS password
+	 * @return  User
 	 * @access  public
 	 * @author  Bob Wicksall <bwicksall@pls-net.org>
 	 */

@@ -704,6 +704,7 @@ class sip2
 
 	function connect()
 	{
+		global $logger;
 		/* Socket Communications  */
 		$this->_debugmsg( "SIP2: --- BEGIN SIP communication ---");
 
@@ -715,6 +716,7 @@ class sip2
 
 		/* check for actual truly false result using ===*/
 		if ($this->socket === false) {
+			$logger->log("Unable to create socket to SIP server at $this->hostname", PEAR_LOG_ERR);
 			$this->_debugmsg( "SIP2: socket_create() failed: reason: " . socket_strerror($this->socket));
 			return false;
 		} else {
@@ -729,6 +731,7 @@ class sip2
 		/* open a connection to the host */
 		$result = socket_connect($this->socket, $address, $this->port);
 		if (!$result) {
+			$logger->log("Unable to connect to $address $this->port", PEAR_LOG_ERR);
 			$this->_debugmsg("SIP2: socket_connect() failed.\nReason: ($result) " . socket_strerror($result));
 		} else {
 			$this->_debugmsg( "SIP2: --- SOCKET READY ---" );
@@ -759,6 +762,7 @@ class sip2
 			if ($loginResponse && $loginData['fixed']['Ok'] == 1){
 				$this->_debugmsg( "SIP2: --- LOGIN TO SIP SUCCEEDED ---" );
 			}else{
+				$logger->log("Unable to connect to login to SIP server using telnet credentials", PEAR_LOG_ERR);
 				$this->_debugmsg( "SIP2: --- LOGIN TO SIP FAILED ---" );
 				$this->_debugmsg( $loginResponse);
 				$result = false;

@@ -8,6 +8,9 @@ Black
 Light Western Slate - #858A91
 Western Slate - #565A5C
 */
+/**
+ * Main responsive theme css
+ */
 /*! normalize.css v2.1.3 | MIT License | git.io/normalize */
 article,
 aside,
@@ -5964,6 +5967,9 @@ td.visible-print {
     display: none !important;
   }
 }
+/**
+ * Basic Style overrides
+ */
 a,
 a:visited {
   color: #e00034;
@@ -6108,6 +6114,7 @@ div.striped > div:nth-child(odd),
 div.striped > div:nth-child(odd) {
   background-color: #f9f9f9;
 }
+/** Google translate */
 #google_translate_element {
   font-size: smaller;
   padding-left: 5px;
@@ -6115,6 +6122,7 @@ div.striped > div:nth-child(odd) {
 .goog-te-gadget {
   display: inline-block;
 }
+/** Third party imports **/
 .ui-rater > span {
   vertical-align: top;
 }
@@ -6706,6 +6714,7 @@ table.tablesorter thead tr .headerSortDown,
 table.tablesorter thead tr .headerSortUp {
   background-color: #8dbdd8;
 }
+/** Imports of functionality related to VuFind **/
 body {
   color: #6b6b6b;
 }
@@ -8030,6 +8039,7 @@ div#system-message-header {
   font-weight: bold;
 }
 #header-container {
+  background-color: #B5192B;
   background-image: url('/interface/themes/western_resp/images/header_background.png');
   background-position: right bottom;
   background-repeat: no-repeat;
@@ -8037,14 +8047,15 @@ div#system-message-header {
   padding: 0;
 }
 #header-wrapper {
-  background: linear-gradient(to bottom, #b5192b 0%, #d82538 100%) repeat scroll 0 0 rgba(0, 0, 0, 0);
+  background-color: #B5192B;
+  background: linear-gradient(to bottom, #b5192b 0%, #d82538 100%);
 }
 .facetTitle {
   background: #f8f8f8;
 }
 .facetTitle:hover {
   background-color: #9d162b;
-  background: -moz-linear-gradient(left center, #9d162b 0%, #d81f3c 100%);
+  background: linear-gradient(left center, #9d162b 0%, #d81f3c 100%);
   color: white;
   text-shadow: none;
 }

@@ -2000,7 +2000,7 @@ class MarcRecord extends IndexRecord
 	}
 
 	private $items = null;
-	private function getItems(){
+	public function getItems(){
 		if ($this->items == null){
 			$driver = MarcRecord::getCatalogDriver();
 			$this->items = $driver->getStatus($this->getUniqueID(), true);
@@ -2385,6 +2385,7 @@ class MarcRecord extends IndexRecord
 			'599' => 'Differentiable Local note',
 		);
 
+		$notes = array();
 		foreach ($additionalNotesFields as $tag => $label){
 			/** @var File_MARC_Data_Field[] $marcFields */
 			$marcFields = $this->marcRecord->getFields($tag);

@@ -1,7 +1,9 @@
 {strip}
-	{* Include css as appropriate *}
-	{css filename="main.min.css"}
-
+	{if $debugCss}
+    {css filename="main.css"}
+	{else}
+		{css filename="main.min.css"}
+	{/if}
 	{* Include correct all javascript *}
 	{if $debugJs}
 		<script src="{$path}/js/jquery-1.9.1.min.js"></script>
@@ -18,6 +20,7 @@
 		<script src="{$path}/interface/themes/responsive/js/lib/bootstrap-datepicker.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery-ui-1.10.4.custom.min.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/lib/bootstrap-switch.min.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/lib/jquery.touchwipe.min.js"></script>
 
 		{* Load application specific Javascript *}
 		<script src="{$path}/interface/themes/responsive/js/vufind/globals.js"></script>
@@ -46,11 +49,11 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind.min.js"></script>
 	{/if}
 
-	{/strip}<script type="text/javascript">
+	{/strip}
+  <script type="text/javascript">
 		{* Override variables as needed *}
 		{literal}
-		$(document).ready(function(){
-			{/literal}
+		$(document).ready(function(){{/literal}
 			Globals.path = '{$path}';
 			Globals.url = '{$url}';
 			Globals.loggedIn = {$loggedIn};

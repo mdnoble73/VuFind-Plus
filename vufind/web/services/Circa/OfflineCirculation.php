@@ -11,7 +11,7 @@
 class Circa_OfflineCirculation extends Action{
 	function launch()
 	{
-		global $interface;
+		global $interface, $configArray;
 		$results = '';
 
 		if (isset($_POST['submit'])){
@@ -106,7 +106,12 @@ class Circa_OfflineCirculation extends Action{
 
 		$interface->assign('results', $results);
 
+		$ils_name = $configArray['Catalog']['ils'] ? $configArray['Catalog']['ils'] : 'ILS';
+		$interface->assign('ILSname', $ils_name);
+
 		//Get view & load template
+		$interface->setPageTitle('Offline Circulation');
+
 		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('offlineCirculation.tpl');
 		$interface->display('layout.tpl', 'Circa');

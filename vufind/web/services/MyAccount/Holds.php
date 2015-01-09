@@ -53,6 +53,8 @@ class MyAccount_Holds extends MyAccount{
 		$showExpireTime = ($ils == 'Horizon');
 		$suspendRequiresReactivationDate = ($ils == 'Horizon');
 		$interface->assign('suspendRequiresReactivationDate', $suspendRequiresReactivationDate);
+		$canChangePickupLocation = ($ils != 'Koha');
+		$interface->assign('canChangePickupLocation', $canChangePickupLocation);
 		// Define sorting options
 		$sortOptions = array('title' => 'Title',
 			'author' => 'Author',

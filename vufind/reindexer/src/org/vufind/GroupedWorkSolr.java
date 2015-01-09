@@ -32,6 +32,9 @@ public class GroupedWorkSolr {
 	private HashSet<String> authAuthor2 = new HashSet<String>();
 	private HashSet<String> author2Role = new HashSet<String>();
 	private HashSet<String> awards = new HashSet<String>();
+	//Available At is a list of all branches where the title is available.
+	//It is filtered in PHP according to what scope is being displayed.
+	//Different from other fields that use a dynamic field to handle scoping
 	private HashSet<String> availableAt = new HashSet<String>();
 	private HashMap<String, HashSet<String>> availabilityToggleByLibrarySystem = new HashMap<String, HashSet<String>>();
 	private HashMap<String, HashSet<String>> availabilityByFormatByLibrarySystem = new HashMap<String, HashSet<String>>();
@@ -640,7 +643,12 @@ public class GroupedWorkSolr {
 		detailedLocation.add(location);
 	}
 
-
+	/**
+	 * Setup available_at and availability toggle for locations
+	 *
+	 * @param availableLocations   - A list of locations where the title is available with the location name spelled out
+	 * @param availableLocationCodes - a list of location codes where the title is available, just the location code
+	 */
 	public void addAvailableLocations(Collection<String> availableLocations, Collection<String> availableLocationCodes){
 		availableAt.addAll(availableLocations);
 		//By doing it when we add locations, we can simplify the code that determines base availability

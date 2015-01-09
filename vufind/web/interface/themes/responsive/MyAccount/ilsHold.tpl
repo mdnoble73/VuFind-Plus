@@ -134,15 +134,21 @@
 				<div class="col-xs-12 col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
 						{if $section == 'available'}
-							<button onclick="return VuFind.Account.cancelAvailableHold('{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
+							{if $record.cancelable}
+								<button onclick="return VuFind.Account.cancelAvailableHold('{$record.cancelId}', '{$record.shortId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
+							{/if}
 						{else}
-							<button onclick="return VuFind.Account.cancelPendingHold('{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
+							{if $record.cancelable}
+								<button onclick="return VuFind.Account.cancelPendingHold('{$record.cancelId}', '{$record.shortId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
+							{/if}
 							{if $record.frozen}
 								<button onclick="return VuFind.Account.thawHold('{$record.cancelId}');" class="btn btn-sm btn-default">Thaw Hold</button>
 							{elseif $record.freezeable}
 								<button onclick="return VuFind.Account.freezeHold('{$record.cancelId}', {if $suspendRequiresReactivationDate}true{else}false{/if});" class="btn btn-sm btn-default">Freeze Hold</button>
 							{/if}
-							<button onclick="return VuFind.Account.changeHoldPickupLocation('{$record.cancelId}');" class="btn btn-sm btn-default">Change Pickup Loc.</button>
+							{if $canChangePickupLocation}
+								<button onclick="return VuFind.Account.changeHoldPickupLocation('{$record.cancelId}');" class="btn btn-sm btn-default">Change Pickup Loc.</button>
+							{/if}
 						{/if}
 					</div>
 

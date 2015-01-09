@@ -5,8 +5,7 @@
 // Always include the base .less file
 @import "../../responsive/css/responsive_base.less";
 
-// Header Styling */
-
+// Header Styling
 #header-container{
   background-image: url('/interface/themes/anythink/images/headerbg.png');
   background-repeat: no-repeat;
@@ -29,7 +28,7 @@
   border-bottom: 0px;
 }
 
-// hide header login, account & log out buttons */
+// hide header login, account & log out buttons
 #header-container div.loginOptions,
 #header-container div.logoutOptions {
   .header-primary, .header-button {
@@ -41,6 +40,7 @@
   }
   display: none;
 }
+
 
 // Button Styling
 .btn-primary,
@@ -59,9 +59,6 @@
   color: black;
 }
 
-//.btn-primary:hover, .userreviewlink:hover, .addtolistlink:hover{
-//  background-image: linear-gradient(#ffffff, #eeeeee 1px, #cccccc);
-//}
 
 // Side Bar Styling
 .sidebar-text-mixin() {
@@ -69,34 +66,46 @@
   color: @font-gray;
   text-transform: lowercase;
   text-shadow: none;
-  font-size: 20px;
+  font-size: @sidebar-font-size;
   .text-left;
 }
 
-//sets equal left & right padding. default 30px
+// sets equal vertical padding & equal horizontal padding
+.sidebar-padding-vertical-mixin(@vpad: 15px) {
+  padding-top: @vpad;
+  padding-bottom: @vpad;
+}
+
+// sets equal left & right padding. default 30px
 .sidebar-padding-mixin(@pad: 30px) {
   padding-left: @pad;
   padding-right: @pad;
 }
-//#home-page-login a.loginLink, //double checked
-#home-page-login a, // try with out class specifier for all login links
-  //#home-page-hours-locations,
-  //#home-page-home-button
-#home-page-library-section
-{
+
+#home-page-login a{
   .sidebar-padding-mixin;
 }
-
+#home-page-library-section{
+  background-color: @sidebar-gray;
+  .sidebar-padding-mixin;
+  padding-top: 0;
+  padding-bottom: 30px; // added to give space between bottom dotted line and end of brown background column. plb 12-08-2014
+  //  padding-bottom: 100%; //trying 100% for now. I think there are times this doesn't work, but I haven't found it yet. plb 12-08-2014
+  // like the 30px better so far. plb 12-08
+}
 .sidebar-mixin() {
-  border-bottom: dotted @font-gray;
+  border-bottom: @anythink-dotted-border-size dotted @anythink-dotted-border-color;
 }
 
-//#home-page-login div.logoutOptions
 div.sidebar-button {
   .sidebar-mixin;
+  .sidebar-padding-vertical-mixin(5px);
 }
+
+// special divs to replicate the dotted line effect
 div.bottom-border-line {
   .sidebar-mixin;
+  margin-top: 5px; // create space between text & dotted line. must work logged in & not logged in
   margin-left: 30px;
   margin-right: 30px;
 }
@@ -111,7 +120,7 @@ div.bottom-border-line {
 
 // Overwrite default styling for the searchbox placeholder text to implement displaying it
 .placeholder-mixin() {
-  color: @font-gray; // match background
+  color: @font-gray; //
   font-size: initial; // zero out the text as a fail safe
 }
 
@@ -122,21 +131,16 @@ div.bottom-border-line {
 #lookfor::-webkit-input-placeholder{.placeholder-mixin;}
 #lookfor:-ms-input-placeholder{.placeholder-mixin;}
 
-//// placeholder selectors are not standardized yet
-//// use this mixin to capture them all: selector { @placeholder-selector(properties-mixin)
-//.placeholder-selector(@mixin) {
-//  &::placeholder {@mixin();}
-//  &::-moz-placeholder{@mixin();}
-//  &:-moz-placeholder{@mixin();}
-//  &::-webkit-input-placeholder{@mixin();}
-//  &:-ms-input-placeholder{@mixin();}
-//}
-//
-//
-//#lookfor {
-//  .placeholder-selector(.placeholder-mixin);
-//}
+.placeholder-focus-mixin() {
+  color: transparent;
+}
 
+// hide placeholder text on focus
+#lookfor:focus::placeholder {.placeholder-focus-mixin;}
+#lookfor:focus::-moz-placeholder{.placeholder-focus-mixin;}
+#lookfor:focus:-moz-placeholder{.placeholder-focus-mixin;}
+#lookfor:focus::-webkit-input-placeholder{.placeholder-focus-mixin;}
+#lookfor:focus:-ms-input-placeholder{.placeholder-focus-mixin;}
 
 #home-page-search{
   margin-bottom: 0;
@@ -145,6 +149,7 @@ div.bottom-border-line {
 #home-page-login {
   margin-bottom: 0;
   .sidebar-padding-mixin(0);
+  .sidebar-padding-vertical-mixin(0); // remove unneeded margin to keep spacing on logout & login for dotted lines
 
   background-color: @sidebar-gray;
   .text-left; // over-rides text-center class
@@ -153,23 +158,23 @@ div.bottom-border-line {
     color: @font-red;
   }
 }
-#home-page-library-section{
-  background-color: @sidebar-gray;
-  padding-top: 0;
-  padding-bottom: 30px; // added to give space between bottom dotted line and end of brown background column. plb 12-08-2014
-//  padding-bottom: 100%; //trying 100% for now. I think there are times this doesn't work, but I haven't found it yet. plb 12-08-2014
-  // like the 30px better so far. plb 12-08
-}
+
 .sidebar-button {
   .sidebar-text-mixin;
 //  .sidebar-mixin;
   margin-bottom: 0;
 }
 
+// Sidebar Accordion
+.sidebar-links .panel-body {
+  background-color: @sidebar-gray;
+}
+
 // Browse Category styling modifications
 #browse-label {
   background-color: #ffffff;
-  background: linear-gradient(to bottom, white, white 95%, @browse-label-text-color 96%);
+//  background: linear-gradient(to bottom, white, white 98%, @browse-label-text-color 99%);
+  border-bottom: 1px solid @browse-label-text-color;
   margin: 25px 0 15px;
   height: auto;
   padding-bottom: 20px;
@@ -178,36 +183,49 @@ div.bottom-border-line {
  font-weight: 600;
 }
 
-#selected-browse-label {
-  color: @browse-selected-gray;
-}
-
-// the category text */
+// the category text 
 .browse-category a {
   color: @browse-label-text-color;
   text-shadow: none;
+  text-transform: uppercase;
   font-size: large;
   font-weight: 500;
+  &:focus {
+    outline: none; // hide outlining of clicked category
+  }
 }
 
 .browse-category {
-  padding-top: 20px; /* extra padding on top to center text */
+  padding-top: 20px; // extra padding on top to center text
+  height: 120px;
 }
 
-// Selected Category needs to give a highlighted appearance */
+//@selectedShadowColor: #DBD4CB;
+
+// Selected Category needs to give a highlighted appearance 
 .browse-category.selected {
+  border: none;
   background-color: @selectedCategoryColor;
   background: @selectedCategoryColor;
+  background: linear-gradient(to bottom, @selectedCategoryColor 0%,@selectedCategoryColor 75%, white 75%, white 80%, lighten(@selectedCategoryColor, 30%) 80%, white 100%);
   a {
     color: white;
   }
 }
 
-// Left/Right Arrows on browse category carousel */
+// Left/Right Arrows on browse category carousel
 #browse-category-picker .jcarousel-control-prev,
 #browse-category-picker .jcarousel-control-next {
   background-color: white;
-  color: @font-red;
+  color: @selectedCategoryColor;
+  &:active, &:hover {
+    color: @font-red;
+    text-decoration: none;
+  }
+  &:focus {
+    text-decoration: none;
+    outline: none;
+  }
 //  box-shadow: none;
   .box-shadow(none);
   font-size: 20px;
@@ -219,33 +237,38 @@ div.bottom-border-line {
 #browse-category-picker a.jcarousel-control-prev:before {
   content: "◀";
 }
-// indicator dots at bottom of browse category carousel */
+// indicator dots at bottom of browse category carousel
 #browse-category-picker .jcarousel-pagination a.active {
   background: @font-red;
 
   // keep shadowing in place on active item
   .box-shadow(0 0 2px #4E443C); // try boot strap mixin
-//  -webkit-box-shadow: 0 0 2px #4E443C;
-//  -moz-box-shadow: 0 0 2px #4E443C;
-//  box-shadow: 0 0 2px #4E443C;
 }
 
-.top-gray-line-mixin() {
-  background: linear-gradient(to bottom, white, @browse-label-text-color 0%, @browse-label-text-color 2%, white 3%);
-}
+
 #selected-browse-label {
-  .top-gray-line-mixin;
+  color: @browse-selected-gray;
+  background: none; //override line through label
   padding: 20px 0;
+  border-top: 1px solid @browse-label-text-color;
 }
 
 .selected-browse-label-search a {
   color: @browse-label-text-color;
 }
 
+#selected-browse-search-link{
+  text-transform: uppercase;
+}
+
 .selected-browse-label-search {
   background: none;
 }
 
+// Format Category icons on search results
+#formatCategories{
+  padding-bottom: 20px;
+}
 
 // Availability Status Styling
 .related-manifestation-shelf-status.available{
@@ -256,4 +279,17 @@ div.bottom-border-line {
 }
 .related-manifestation-shelf-status.availableOther{
   color: black;
+}
+
+// Keep Format Category images & labels apart from each other
+.categoryValue img {
+  max-width: 60px;
+  height: 72px;
+}
+
+// Put Labels beneath icons on small screens
+@media screen and (max-width: 1000px) {
+  .formatCategoryLabel {
+    float: none;
+  }
 }

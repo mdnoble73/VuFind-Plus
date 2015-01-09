@@ -51,9 +51,9 @@ public class NashvilleRecordProcessor extends IlsRecordProcessor {
 		boolean available = false;
 		String status = ilsRecord.getStatus();
 		String dueDate = ilsRecord.getDateDue() == null ? "" : ilsRecord.getDateDue();
-		String availableStatus = "-dowju";
+		String availableStatus = "-do";
 		if (availableStatus.indexOf(status.charAt(0)) >= 0) {
-			if (dueDate.length() == 0) {
+			if (dueDate.length() == 0 || dueDate.equals("-  -")) {
 				available = true;
 			}
 		}

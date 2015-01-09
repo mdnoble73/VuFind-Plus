@@ -1,35 +1,12 @@
 ///Variables Customizations for Anythink theme
-//
-/// Preliminary Colors
-///
-//@primary-yellow: #ff7000;
-//@primary-red: #9e1b32;
-//@primary-gray: #998f86;
-//
-//@secondary-yellow: #ffc82e;
-//@secondary-gray: #685c53;
-//@secondary-green: #6b6f2a;
-//@secondary-brown: #532c1b;
-//@secondary-blue: #2a6ebb;
-//
-//@scribble-color: #FEF0E3;
-//
-//@body-bg-resp: lighten(@secondary-blue, 5%);
-//
 
 @font-family-sans-serif-resp:  Helvetica,"Trebuchet MS",Tahoma,Verdana,Arial,Helvetica,"Bitstream Vera Sans",sans-serif;
 
 // New Colors From Mock-up
-
-@sidebar-gray: #e3e1dd;
-//@font-red: #981533;
-//@font-red: @primary-red; the primary red may do the trick
+//@sidebar-gray: #e3e1dd;
+@sidebar-gray: #E1DEDB; // hexcode from anythink. 1-8-2015
 @font-red: #9e1b32;
-
-//@browse-font-gray: #b1a89d; //i think these two are meant to be the same //
 @browse-selected-gray: #a1988c;
-
-//@font-gray: @browse-selected-gray; // try this for gray text for now. plb 11-18-2014
 @font-gray: darken(#998f86, .2);
 
 @header-top-color: white; //Top color for background gradient in header
@@ -52,10 +29,10 @@
 @categoryLineColor: white;
 @categoryLineShadow: white;
 
-//@selectedCategoryBorderColor: #63B200;*/
+//@selectedCategoryBorderColor: #63B200;
 @selectedCategoryBorderColor: @browse-selected-gray; // makes outline more subtle*/
 
-// Selected Category color to give a highlighted appearance */
+// Selected Category color to give a highlighted appearance
 @selectedCategoryColor: @browse-selected-gray;
 
 // set all browse category colors to the first color to remove lightening of successive categories. plb 9-17-2014*/
@@ -71,5 +48,12 @@
 @browse-label-text-color: @font-gray;
 @browse-category-font-size: 30px;
 
-// set opened accordions to Basalt copper-rust color
+// set opened accordions color
 @accordion-active-header-color : @font-red;
+
+@sidebar-link-color: @font-red;
+//@link-color-resp: @font-red; //default coloring for all links in responsive theme
+@sidebar-font-size: 14px;
+
+@anythink-dotted-border-color: #998f86;
+@anythink-dotted-border-size: 2px;
