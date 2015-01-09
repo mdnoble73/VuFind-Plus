@@ -338,7 +338,7 @@ class MillenniumHolds{
 		}
 
 		//Get the rows for the table
-		preg_match_all('/<tr\\s+class="patFuncEntry">(.*?)<\/tr>/si', $pageContents, $result, PREG_SET_ORDER);
+		preg_match_all('/<tr\\s+class="patFuncEntry(?: on_ice)?">(.*?)<\/tr>/si', $pageContents, $result, PREG_SET_ORDER);
 		$sRows = array();
 		for ($matchi = 0; $matchi < count($result); $matchi++) {
 			$sRows[] = $result[$matchi][1];

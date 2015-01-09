@@ -1,18 +1,3 @@
-/**
-Variables for VuFind customization.  These can be overridden at the local theme level
-*/
-/**
-Header Variables
-**/
-/**
-Footer Variables
-*/
-/**
-Search Box color
-*/
-/**
-Sidebar font data
-*/
 /*
 Red – #a71930
 Bright Red - #E00034
@@ -6730,10 +6715,6 @@ table.tablesorter thead tr .headerSortUp {
   background-color: #8dbdd8;
 }
 /** Imports of functionality related to VuFind **/
-/**
-Functionality related to the overall layout
-Headers, Footer, columns, etc.
- */
 body {
   color: #6b6b6b;
 }
