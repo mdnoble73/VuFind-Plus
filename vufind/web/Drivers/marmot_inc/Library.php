@@ -113,6 +113,7 @@ class Library extends DB_DataObject
 	public $facebookLink;
 	public $youtubeLink;
 	public $instagramLink;
+	public $goodreadsLink;
 	public $generalContactLink;
 	public $allowPinReset;
 	public $showLibraryHoursAndLocationsLink;
@@ -222,6 +223,7 @@ class Library extends DB_DataObject
 				'twitterLink' => array('property'=>'twitterLink', 'type'=>'text', 'label'=>'Twitter Link Url', 'description'=>'The url to Twitter (leave blank if the library does not have a Twitter account', 'size'=>'40', 'maxLength' => 255, 'hideInLists' => true, 'default' => 'Home'),
 				'youtubeLink' => array('property'=>'youtubeLink', 'type'=>'text', 'label'=>'Youtube Link Url', 'description'=>'The url to Youtube (leave blank if the library does not have a Youtube account', 'size'=>'40', 'maxLength' => 255, 'hideInLists' => true, 'default' => 'Home'),
 				'instagramLink' => array('property'=>'instagramLink', 'type'=>'text', 'label'=>'Instagram Link Url', 'description'=>'The url to Instagram (leave blank if the library does not have a Instagram account', 'size'=>'40', 'maxLength' => 255, 'hideInLists' => true, 'default' => 'Home'),
+				'goodreadsLink' => array('property'=>'goodreadsLink', 'type'=>'text', 'label'=>'GoodReads Link Url', 'description'=>'The url to GoodReads (leave blank if the library does not have a GoodReads account', 'size'=>'40', 'maxLength' => 255, 'hideInLists' => true, 'default' => 'Home'),
 				'generalContactLink' => array('property'=>'generalContactLink', 'type'=>'text', 'label'=>'General Contact Link Url', 'description'=>'The url to a General Contact Page, i.e webform or mailto link', 'size'=>'40', 'maxLength' => 255, 'hideInLists' => true, 'default' => 'Home'),
 			)),
 

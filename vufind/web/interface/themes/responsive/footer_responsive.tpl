@@ -29,6 +29,9 @@
 					{if $instagramLink}
 						<a href="{$instagramLink}" class="connect-icon"><img src="{img filename='instagram.png'}" class="img-rounded"></a>
 					{/if}
+					{if $goodreadsLink}
+						<a href="{$goodreadsLink}" class="connect-icon"><img src="{img filename='goodreads.png'}" class="img-rounded"></a>
+					{/if}
 					{if $generalContactLink}
 						<a href="{$generalContactLink}" class="connect-icon"><img src="{img filename='email-contact.png'}" class="img-rounded"></a>
 					{/if}
