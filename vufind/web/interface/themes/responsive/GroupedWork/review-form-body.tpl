@@ -4,12 +4,12 @@
 			<label for="rating" class="col-sm-3">Rate the Title</label>
 			<div class="col-sm-9">
 				<select name="rating" id="rating{$id}" class="form-control">
-					<option value="-1">Select a rating</option>
-					<option value="1">1 - Hated It</option>
-					<option value="2">2 - Didn't Like It</option>
-					<option value="3">3 - Liked It</option>
-					<option value="4">4 - Really Liked It</option>
-					<option value="5">5 - Loved It</option>
+					<option value="-1">{translate text="Select a Rating"}</option>
+					<option value="1">{translate text="rating1"}</option>
+					<option value="2">{translate text="rating2"}</option>
+					<option value="3">{translate text="rating3"}</option>
+					<option value="4">{translate text="rating4"}</option>
+					<option value="5">{translate text="rating5"}</option>
 				</select>
 			</div>
 		</div>
