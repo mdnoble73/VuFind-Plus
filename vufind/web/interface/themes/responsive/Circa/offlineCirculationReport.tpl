@@ -29,6 +29,7 @@
 							*}
 							<div>
 								<label for="loginsToInclude">Logins To Show</label> <input type="text" name="loginsToInclude" id="startDate" size="10" value="{$loginsToInclude}" title="Separate multiple logins with commas, leave blank to include all"/>
+								<p>(Separate multiple logins with commas, leave blank to include all)</p>
 							</div>
 							<div>
 								<label for="hideNotProcessed"><input type="checkbox" name="hideNotProcessed" id="hideNotProcessed" {if $hideNotProcessed}checked="checked"{/if}/> Hide Not Processed</label>
@@ -49,7 +50,7 @@
 				</div>
 			</div>
 
-			{include file="Admin/menu.tpl"}
+			{* include file="Admin/menu.tpl" File appears to no longer exist. plb 1-8-2015 *}
 		</div>
 
 		<div id="main-content">
