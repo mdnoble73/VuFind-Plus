@@ -296,9 +296,9 @@ public class OfflineCirculation implements IProcessHandler {
 							result.setSuccess(false);
 							result.setNote("Could not process check out because the item response was not successfull");
 						}
-					} else if (patronBarcodeResponse.isSuccess() && patronBarcodeResponse.getMessage().contains("<h2 class=\"error\">")){
+					} else if (patronBarcodeResponse.isSuccess() && patronBarcodeResponse.getMessage().contains("<h[123] class=\"error\">")){
 						lastPatronHadError = true;
-						Pattern regex = Pattern.compile("<h2 class=\"error\">(.*?)</h2>");
+						Pattern regex = Pattern.compile("<h[123] class=\"error\">(.*?)</h[123]>");
 						Matcher matcher = regex.matcher(patronBarcodeResponse.getMessage());
 						if (matcher.find()) {
 							String error = matcher.group(1);
