@@ -28,7 +28,9 @@
 				<span class='{if $title_data.result == true}hold_result_title_ok{else}hold_result_title_failed{/if}'>{$title_data.message}</span>
 				{if $title_data.items}
 					<select name="title[{$title_data.bid}]">
-						<option class='hold_item' value="-1">Select an item</option>
+						{if !array_key_exists($title_data.items, -1)}
+							<option class='hold_item' value="-1">Select an item</option>
+						{/if}
 						{foreach from=$title_data.items item=item_data}
 							<option class='hold_item' value="{$item_data.itemNumber}">{$item_data.location}- {$item_data.callNumber} - {$item_data.status}</option>
 						{/foreach}

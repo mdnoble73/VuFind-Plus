@@ -430,7 +430,8 @@ class Record_AJAX extends Action {
 			if (isset($return['items'])){
 				$campus = $_REQUEST['campus'];
 				$interface->assign('campus', $campus);
-				$interface->assign('items', $return['items']);
+				$items = $return['items'];
+				$interface->assign('items', $items);
 				$interface->assign('id', $recordId);
 
 				global $library;
