@@ -152,7 +152,7 @@ class OverDriveDriver3 {
 				$patronTokenData = json_decode($return);
 				if ($patronTokenData){
 					if (isset($patronTokenData->error)){
-						if ($patronTokenData->error == 'unauthorized_client'){
+						if ($patronTokenData->error == 'unauthorized_client'){ // login failure
 							return false;
 						}else{
 							echo("Error connecting to overdrive apis ". $patronTokenData->error);
@@ -666,13 +666,15 @@ class OverDriveDriver3 {
 		global $memCache;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
-                $requirePin = $configArray['OverDrive']['requirePin'];
-                if ($requirePin){
+
+		$requirePin = $configArray['OverDrive']['requirePin'];
+		if ($requirePin){
 			$response = $this->_callPatronDeleteUrl($user->cat_username, $user->cat_password, $url);
-                }else{
-			$response = $this->_callPatronDeleteUrl($user->cat_password, null, $url);
-                }
- 
+		}else{
+			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+			$response = $this->_callPatronDeleteUrl($user->$barcodeProperty, null, $url);
+		}
+
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
 		$cancelHoldResult['message'] = '';
@@ -749,12 +751,13 @@ class OverDriveDriver3 {
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts/' . $overDriveId;
 
-                $requirePin = $configArray['OverDrive']['requirePin'];
-                if ($requirePin){
-                        $response = $this->_callPatronDeleteUrl($user->cat_username, $user->cat_password, $url);
-                }else{
-                        $response = $this->_callPatronDeleteUrl($user->cat_password, null, $url);
-                }
+		$requirePin = $configArray['OverDrive']['requirePin'];
+		if ($requirePin){
+			$response = $this->_callPatronDeleteUrl($user->cat_username, $user->cat_password, $url);
+		}else{
+			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+			$response = $this->_callPatronDeleteUrl($user->$barcodeProperty, null, $url);
+		}
 
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
@@ -811,7 +814,8 @@ class OverDriveDriver3 {
 		if ($requirePin){
 			$tokenData = $this->_connectToPatronAPI($user->cat_username, $user->cat_password, false);
 		}else{
-			$tokenData = $this->_connectToPatronAPI($user->cat_password, null, false);
+			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+			$tokenData = $this->_connectToPatronAPI($user->$barcodeProperty, null, false);
 		}
 		return $tokenData !== false;
 	}
