@@ -1,7 +1,7 @@
 VuFind.Prospector = (function(){
 	return {
 		getProspectorResults: function(prospectorNumTitlesToLoad, prospectorSavedSearchId){
-			var url = Globals.path + "Search/AJAX";
+			var url = Globals.path + "/Search/AJAX";
 			var params = "method=getProspectorResults&prospectorNumTitlesToLoad=" + encodeURIComponent(prospectorNumTitlesToLoad) + "&prospectorSavedSearchId=" + encodeURIComponent(prospectorSavedSearchId);
 			var fullUrl = url + "?" + params;
 			$.ajax({
