@@ -24,7 +24,7 @@ class Prospector{
 		$prospectorTitles = array();
 		for ($matchi = 0; $matchi < count($titleInfo); $matchi++) {
 			$curTitleInfo = array();
-			//Extract the titld and bid from the titleTitleInfo
+			//Extract the title and bid from the titleTitleInfo
 			$titleTitleInfo = $titleInfo[$matchi][1];
 
 			if (preg_match('/<span class="title">.*?<a.*?href.*?__R(.*?)__.*?>\\s*(.*?)\\s*<\/a>.*?<\/span>/s', $titleTitleInfo, $titleMatches)) {
