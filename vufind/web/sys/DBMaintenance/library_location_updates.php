@@ -852,5 +852,15 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE `library` ADD `goodreadsLink` VARCHAR(255) DEFAULT NULL AFTER instagramLink;",
 			),
 		),
+
+		'additional_locations_for_availability' => array(
+			'title' => 'Additional Locations to Show Availability',
+			'description' => 'Add additional additional locations to show availability to library config.',
+			'dependencies' => array(),
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD `additionalLocationsToShowAvailabilityFor` VARCHAR(255) DEFAULT '' NOT NULL;",
+			),
+		),
 	);
 }
