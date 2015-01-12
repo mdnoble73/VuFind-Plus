@@ -8225,7 +8225,7 @@ div.bottom-border-line {
   font-size: large;
   font-weight: 500;
 }
-.browse-category a div:focus {
+.browse-category a:focus {
   outline: none;
 }
 .browse-category {

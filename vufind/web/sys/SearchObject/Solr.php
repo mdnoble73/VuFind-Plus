@@ -2015,26 +2015,32 @@ class SearchObject_Solr extends SearchObject_Base
 	}
 
 	private function getFieldsToReturn() {
-		$fieldsToReturn = $this->fields;
-		global $solrScope;
-		if ($solrScope != false){
-			$fieldsToReturn .= ',related_record_ids_' . $solrScope;
-			$fieldsToReturn .= ',related_items_' . $solrScope;
-			$fieldsToReturn .= ',format_' . $solrScope;
-			$fieldsToReturn .= ',format_category_' . $solrScope;
-			$fieldsToReturn .= ',collection_' . $solrScope;
-			$fieldsToReturn .= ',local_time_since_added_' . $solrScope;
-
+		if (isset($_REQUEST['allFields'])){
+			$fieldsToReturn = '*,score';
 		}else{
-			$fieldsToReturn .= ',related_record_ids';
-			$fieldsToReturn .= ',related_record_items';
-			$fieldsToReturn .= ',related_items_related_record_ids';
-			$fieldsToReturn .= ',format';
-			$fieldsToReturn .= ',format_category';
-			$fieldsToReturn .= ',days_since_added';
-			$fieldsToReturn .= ',local_callnumber';
+			$fieldsToReturn = $this->fields;
+			global $solrScope;
+			if ($solrScope != false){
+				$fieldsToReturn .= ',related_record_ids_' . $solrScope;
+				$fieldsToReturn .= ',related_items_' . $solrScope;
+				$fieldsToReturn .= ',format_' . $solrScope;
+				$fieldsToReturn .= ',format_category_' . $solrScope;
+				$fieldsToReturn .= ',collection_' . $solrScope;
+				$fieldsToReturn .= ',local_time_since_added_' . $solrScope;
+				$fieldsToReturn .= ',detailed_location_' . $solrScope;
+
+			}else{
+				$fieldsToReturn .= ',related_record_ids';
+				$fieldsToReturn .= ',related_record_items';
+				$fieldsToReturn .= ',related_items_related_record_ids';
+				$fieldsToReturn .= ',format';
+				$fieldsToReturn .= ',format_category';
+				$fieldsToReturn .= ',days_since_added';
+				$fieldsToReturn .= ',local_callnumber';
+				$fieldsToReturn .= ',detailed_location';
+			}
+			$fieldsToReturn .= ',score';
 		}
-		$fieldsToReturn .= ',score';
 		return $fieldsToReturn;
 	}
 
