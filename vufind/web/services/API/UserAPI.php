@@ -48,7 +48,9 @@ class UserAPI extends Action {
 		if (is_callable(array($this, $_GET['method']))) {
 			try{
 				$result = $this->$_GET['method']();
-				$output = json_encode(array('result'=>$result));
+				require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';
+				$utf8EncodedValue = ArrayUtils::utf8EncodeArray(array('result'=>$result));
+				$output = json_encode($utf8EncodedValue);
 				$error = json_last_error();
 				if ($error != JSON_ERROR_NONE || $output === FALSE){
 					if (function_exists('json_last_error_msg')){
@@ -58,7 +60,7 @@ class UserAPI extends Action {
 					}
 					global $configArray;
 					if ($configArray['System']['debug']){
-						print_r($result);
+						print_r($utf8EncodedValue);
 					}
 				}
 			}catch (Exception $e){
