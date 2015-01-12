@@ -948,10 +948,7 @@ class UserAPI extends Action {
 		if (isset($_REQUEST['includeOverDrive'])){
 			$includeOverDrive = $_REQUEST['includeOverDrive'];
 		}
-		global $user;
-		if (!$user){
-			$user = UserAccount::validateAccount($username, $password);
-		}
+		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
 			$catalogTransactions = $this->getCatalogConnection()->getMyTransactions($user);
 
