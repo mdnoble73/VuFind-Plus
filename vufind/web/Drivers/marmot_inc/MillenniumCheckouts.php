@@ -88,7 +88,7 @@ class MillenniumCheckouts {
 						$curTitle['checkoutSource'] = 'ILS';
 						$curTitle['shortId'] = $shortId;
 						$curTitle['id'] = $bibid;
-						$curTitle['title'] = $title;
+						$curTitle['title'] = utf8_encode($title);
 					}
 
 					if (stripos($sKeys[$i],"STATUS") > -1) {
@@ -196,7 +196,7 @@ class MillenniumCheckouts {
 					$sortKey = (isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0) . '-' . $sortTitle;
 				}
 				$sortKey .= "_$sCount";
-				$checkedOutTitles[$sortKey] = $curTitle;
+				$checkedOutTitles[utf8_encode($sortKey)] = $curTitle;
 
 			}
 

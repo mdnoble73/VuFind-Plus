@@ -292,7 +292,13 @@ public class SierraExportMain{
 							}else{
 								location = "";
 							}
-							String status = curItem.getJSONObject("status").getString("code");
+							String status;
+							if (curItem.has("status")){
+								status = curItem.getJSONObject("status").getString("code");
+							}else{
+								status = "";
+							}
+
 							String dueDateMarc = null;
 							if (curItem.getJSONObject("fixedFields").has("65")){
 								String dueDateStr = curItem.getJSONObject("fixedFields").getJSONObject("65").getString("value");
