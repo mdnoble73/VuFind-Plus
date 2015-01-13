@@ -731,16 +731,28 @@ class sip2
 		socket_set_block($this->socket);
 
 		/* open a connection to the host */
-		$result = socket_connect($this->socket, $address, $this->port);
-		if ($result === false) {
-			$logger->log("Unable to connect to $address $this->port", PEAR_LOG_ERR);
+		$connectionTimeout = 10;
+		$connectStart = time();
+		while (!@socket_connect($this->socket, $address, $this->port)){
 			$error = socket_last_error($this->socket);
-			$logger->log("SIP2: socket_connect() failed.\nReason: ($error) " . socket_strerror($error), PEAR_LOG_ERR);
-			$this->_debugmsg("SIP2: socket_connect() failed.\nReason: ($error) " . socket_strerror($error));
-			return false;
-		} else {
-			$this->_debugmsg( "SIP2: --- SOCKET READY ---" );
+			if ($error == SOCKET_EINPROGRESS || $error == SOCKET_EALREADY){
+				if ((time() - $connectStart) >= $connectionTimeout)
+				{
+					socket_close($this->socket);
+					$logger->log("Connection to $address $this->port timed out", PEAR_LOG_ERR);
+					return false;
+				}
+				sleep(1);
+				continue;
+			}else{
+				$logger->log("Unable to connect to $address $this->port", PEAR_LOG_ERR);
+				$logger->log("SIP2: socket_connect() failed.\nReason: ($error) " . socket_strerror($error), PEAR_LOG_ERR);
+				$this->_debugmsg("SIP2: socket_connect() failed.\nReason: ($error) " . socket_strerror($error));
+				return false;
+			}
 		}
+
+		$this->_debugmsg( "SIP2: --- SOCKET READY ---" );
 
 		global $configArray;
 		if ($configArray['SIP2']['sipLogin'] && $configArray['SIP2']['sipPassword']){
@@ -775,7 +787,7 @@ class sip2
 
 		}
 		/* return the result from the socket connect */
-		return $result;
+		return true;
 
 	}
 
