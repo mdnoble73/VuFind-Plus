@@ -646,7 +646,8 @@ class OverDriveDriver3 {
 			$holdResult['message'] = 'Your hold was placed successfully.  You are number ' . $response->holdListPosition . ' on the wait list.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Place Hold', 'succeeded');
 		}else{
-			$holdResult['message'] = 'Sorry, but we could not place a hold for you on this title.  ' . $response->message;
+			$holdResult['message'] = 'Sorry, but we could not place a hold for you on this title.';
+			if (isset($response->message)) $holdResult['message'] .= "  {$response->message}";
 			if ($analytics) $analytics->addEvent('OverDrive', 'Place Hold', 'failed');
 		}
 		$memCache->delete('overdrive_summary_' . $user->id);
@@ -683,7 +684,8 @@ class OverDriveDriver3 {
 			$cancelHoldResult['message'] = 'Your hold was cancelled successfully.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Cancel Hold', 'succeeded');
 		}else{
-			$cancelHoldResult['message'] = 'There was an error cancelling your hold.  ' . $response->message;
+			$cancelHoldResult['message'] = 'There was an error cancelling your hold.';
+		 if (isset($response->message)) $cancelHoldResult['message'] .= "  {$response->message}";
 			if ($analytics) $analytics->addEvent('OverDrive', 'Cancel Hold', 'failed');
 		}
 		$memCache->delete('overdrive_summary_' . $user->id);
@@ -767,7 +769,8 @@ class OverDriveDriver3 {
 			$cancelHoldResult['message'] = 'Your item was returned successfully.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Return Item', 'succeeded');
 		}else{
-			$cancelHoldResult['message'] = 'There was an error returning this item. ' . $response->message;
+			$cancelHoldResult['message'] = 'There was an error returning this item.';
+			if (isset($response->message)) $cancelHoldResult['message'] .= "  {$response->message}";
 			if ($analytics) $analytics->addEvent('OverDrive', 'Return Item', 'failed');
 		}
 
@@ -800,7 +803,8 @@ class OverDriveDriver3 {
 			$downloadLink = $this->getDownloadLink($overDriveId, $formatId, $user);
 			$result = $downloadLink;
 		}else{
-			$result['message'] = 'Sorry, but we could not select a format for you. '  .$response->message;
+			$result['message'] = 'Sorry, but we could not select a format for you.';
+			if (isset($response->message)) $result['message'] .= "  {$response->message}";
 			if ($analytics) $analytics->addEvent('OverDrive', 'Select Download Format', 'failed');
 		}
 		$memCache->delete('overdrive_summary_' . $user->id);
@@ -850,7 +854,8 @@ class OverDriveDriver3 {
 			$result['downloadUrl'] = $response->links->contentlink->href;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Get Download Link', 'succeeded');
 		}else{
-			$result['message'] = 'Sorry, but we could not get a download link for you. ' . $response->message;
+			$result['message'] = 'Sorry, but we could not get a download link for you.';
+			if (isset($response->message)) $result['message'] .= "  {$response->message}";
 			if ($analytics) $analytics->addEvent('OverDrive', 'Get Download Link', 'failed');
 		}
 
