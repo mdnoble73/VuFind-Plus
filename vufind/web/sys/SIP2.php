@@ -730,10 +730,11 @@ class sip2
 
 		/* open a connection to the host */
 		$result = socket_connect($this->socket, $address, $this->port);
-		if (!$result) {
+		if ($result === false) {
 			$logger->log("Unable to connect to $address $this->port", PEAR_LOG_ERR);
-			$logger->log("SIP2: socket_connect() failed.\nReason: ($result) " . socket_strerror($result), PEAR_LOG_ERR);
-			$this->_debugmsg("SIP2: socket_connect() failed.\nReason: ($result) " . socket_strerror($result));
+			$error = socket_last_error($this->socket);
+			$logger->log("SIP2: socket_connect() failed.\nReason: ($error) " . socket_strerror($error), PEAR_LOG_ERR);
+			$this->_debugmsg("SIP2: socket_connect() failed.\nReason: ($error) " . socket_strerror($error));
 			return false;
 		} else {
 			$this->_debugmsg( "SIP2: --- SOCKET READY ---" );
