@@ -762,24 +762,23 @@ class sip2
 
 		global $configArray;
 		if ($configArray['SIP2']['sipLogin'] && $configArray['SIP2']['sipPassword']){
-			$lineEnding = "\n";
-			if ($configArray['System']['operatingSystem'] == 'windows'){
-				$lineEnding = "\r\n";
-			}
+			$lineEnding = "\r\n";
 
 			//Send login
 			//Read the login prompt
 			$prompt = $this->getResponse();
 			$logger->log("Login Prompt Received was " . $prompt, PEAR_LOG_ERR);
-			$login = $configArray['SIP2']['sipLogin'] . $lineEnding;
+			$login = $configArray['SIP2']['sipLogin'];
 			$ret = socket_write($this->socket, $login, strlen($login));
+			$ret = socket_write($this->socket, $lineEnding, strlen($lineEnding));
 			$logger->log("Wrote $ret bytes for login", PEAR_LOG_ERR);
 			$this->Sleep();
 
 			$prompt = $this->getResponse();
 			$logger->log("Password Prompt Received was " . $prompt, PEAR_LOG_ERR);
-			$password = $configArray['SIP2']['sipPassword'] . $lineEnding;
+			$password = $configArray['SIP2']['sipPassword'];
 			$ret = socket_write($this->socket, $password, strlen($password));
+			$ret = socket_write($this->socket, $lineEnding, strlen($lineEnding));
 			$logger->log("Wrote $ret bytes for password", PEAR_LOG_ERR);
 			$this->Sleep();
 
