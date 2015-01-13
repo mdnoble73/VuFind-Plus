@@ -735,13 +735,14 @@ class sip2
 		$connectStart = time();
 		while (!@socket_connect($this->socket, $address, $this->port)){
 			$error = socket_last_error($this->socket);
-			if ($error == SOCKET_EINPROGRESS || $error == SOCKET_EALREADY){
+			if ($error == 114 || $error == 115){
 				if ((time() - $connectStart) >= $connectionTimeout)
 				{
 					socket_close($this->socket);
 					$logger->log("Connection to $address $this->port timed out", PEAR_LOG_ERR);
 					return false;
 				}
+				$logger->log("Waiting for connection", PEAR_LOG_DEBUG);
 				sleep(1);
 				continue;
 			}else{
@@ -756,16 +757,28 @@ class sip2
 
 		global $configArray;
 		if ($configArray['SIP2']['sipLogin'] && $configArray['SIP2']['sipPassword']){
+			$lineEnding = "\n";
+			if ($configArray['System']['operatingSystem'] == 'windows'){
+				$lineEnding = "\r\n";
+			}
+
 			//Send login
 			//Read the login prompt
 			$prompt = $this->getResponse();
-			socket_write($this->socket, $configArray['SIP2']['sipLogin'] . "\r\n");
+			$logger->log("Login Prompt Received was " . $prompt, PEAR_LOG_ERR);
+			$login = $configArray['SIP2']['sipLogin'] . $lineEnding;
+			$ret = socket_write($this->socket, $login, strlen($login));
+			$logger->log("Wrote $ret bytes for login" . $prompt, PEAR_LOG_ERR);
 
 			$prompt = $this->getResponse();
-			socket_write($this->socket, $configArray['SIP2']['sipPassword'] . "\r\n");
+			$logger->log("Password Prompt Received was " . $prompt, PEAR_LOG_ERR);
+			$password = $configArray['SIP2']['sipPassword'] . $lineEnding;
+			$ret = socket_write($this->socket, $password, strlen($password));
+			$logger->log("Wrote $ret bytes for password" . $prompt, PEAR_LOG_ERR);
 
 			//May need to wait briefly?
 			$initialLoginResponse = $this->getResponse();
+			$logger->log("Login response is " . $initialLoginResponse, PEAR_LOG_ERR);
 			//Have to read three times to clear the carriage return and new line
 			//$initialLoginResponse = socket_read($this->socket, 25, PHP_NORMAL_READ);
 			//$initialLoginResponse .= socket_read($this->socket, 25, PHP_NORMAL_READ);
@@ -792,7 +805,7 @@ class sip2
 	}
 
 	function getResponse() {
-		return socket_read($this->socket,2500);
+		return socket_read($this->socket,2048);
 	}
 
 	function disconnect ()
