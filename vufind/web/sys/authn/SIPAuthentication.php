@@ -218,7 +218,7 @@ class SIPAuthentication implements Authentication {
 		$user->patronType = $patronInfoResponse['variable']['PC'][0];
 		
 		//Get home location
-		if (!isset($user->homeLocationId) || $user->homeLocationId == 0 && isset($patronInfoResponse['variable']['AQ'])){
+		if ((!isset($user->homeLocationId) || $user->homeLocationId == 0) && isset($patronInfoResponse['variable']['AQ'])){
 			$location = new Location();
 			$location->code = $patronInfoResponse['variable']['AQ'][0];
 			$location->find();
