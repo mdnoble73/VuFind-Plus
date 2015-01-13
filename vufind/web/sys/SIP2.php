@@ -768,19 +768,19 @@ class sip2
 			//Send login
 			//Read the login prompt
 			$prompt = $this->getResponse();
-			$logger->log("Login Prompt Received was " . $prompt, PEAR_LOG_ERR);
+			$logger->log("Login Prompt Received was " . $prompt, PEAR_LOG_DEBUG);
 			$login = $configArray['SIP2']['sipLogin'];
 			$ret = socket_write($this->socket, $login, strlen($login));
 			$ret = socket_write($this->socket, $lineEnding, strlen($lineEnding));
-			$logger->log("Wrote $ret bytes for login", PEAR_LOG_ERR);
+			$logger->log("Wrote $ret bytes for login", PEAR_LOG_DEBUG);
 			$this->Sleep();
 
 			$prompt = $this->getResponse();
-			$logger->log("Password Prompt Received was " . $prompt, PEAR_LOG_ERR);
+			$logger->log("Password Prompt Received was " . $prompt, PEAR_LOG_DEBUG);
 			$password = $configArray['SIP2']['sipPassword'];
 			$ret = socket_write($this->socket, $password, strlen($password));
 			$ret = socket_write($this->socket, $lineEnding, strlen($lineEnding));
-			$logger->log("Wrote $ret bytes for password", PEAR_LOG_ERR);
+			$logger->log("Wrote $ret bytes for password", PEAR_LOG_DEBUG);
 			$this->Sleep();
 
 			if ($this->use_usleep){
@@ -790,7 +790,7 @@ class sip2
 			}
 			//May need to wait briefly?
 			$initialLoginResponse = $this->getResponse();
-			$logger->log("Login response is " . $initialLoginResponse, PEAR_LOG_ERR);
+			$logger->log("Login response is " . $initialLoginResponse, PEAR_LOG_DEBUG);
 			$this->Sleep();
 
 			//$loginMessage = $this->msgLogin($configArray['SIP2']['sipLogin'], $configArray['SIP2']['sipPassword']);
@@ -798,7 +798,7 @@ class sip2
 
 			//$loginData = $this->parseLoginResponse($loginResponse);
 			if (strpos($initialLoginResponse, 'Login OK.  Initiating SIP') === 0){
-				$logger->log("Logged into SIP client with telnet credentials", PEAR_LOG_ERR);
+				$logger->log("Logged into SIP client with telnet credentials", PEAR_LOG_DEBUG);
 				$this->_debugmsg( "SIP2: --- LOGIN TO SIP SUCCEEDED ---" );
 			}else{
 				$logger->log("Unable to login to SIP server using telnet credentials", PEAR_LOG_ERR);
