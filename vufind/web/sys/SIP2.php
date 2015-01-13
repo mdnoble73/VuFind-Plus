@@ -674,6 +674,7 @@ class sip2
 
 		$this->_debugmsg('SIP2: Sending SIP2 request...');
 		socket_write($this->socket, $message, strlen($message));
+		$this->Sleep();
 
 		$this->_debugmsg('SIP2: Request Sent, Reading response');
 
@@ -961,5 +962,3 @@ class sip2
 		else sleep(1);
 	}
 }
-
-?>
