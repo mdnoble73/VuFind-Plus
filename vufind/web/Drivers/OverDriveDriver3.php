@@ -195,11 +195,16 @@ class OverDriveDriver3 {
 	public function _callPatronUrl($user, $url, $postParams = null){
 		global $configArray;
 		$requirePin = $configArray['OverDrive']['requirePin'];
+		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+		$userBarcode = $user->$barcodeProperty;
 		if ($requirePin){
-			$tokenData = $this->_connectToPatronAPI($user->cat_username, $user->cat_password, false);
+			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
+				// determine which column is the pin by using the opposing field to the barcode. (between pin & username)
+			$tokenData = $this->_connectToPatronAPI($userBarcode, $userPin, false);
+			// this worked for flatirons checkout.  plb 1-13-2015
+//			$tokenData = $this->_connectToPatronAPI($user->cat_username, $user->cat_password, false);
 		}else{
-			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-			$tokenData = $this->_connectToPatronAPI($user->$barcodeProperty, null, false);
+			$tokenData = $this->_connectToPatronAPI($userBarcode, null, false);
 		}
 		if ($tokenData){
 			$ch = curl_init($url);
@@ -667,14 +672,16 @@ class OverDriveDriver3 {
 		global $memCache;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
-
 		$requirePin = $configArray['OverDrive']['requirePin'];
+		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+		$userBarcode = $user->$barcodeProperty;
 		if ($requirePin){
-			$response = $this->_callPatronDeleteUrl($user->cat_username, $user->cat_password, $url);
+			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
+			$response = $this->_callPatronDeleteUrl($userBarcode, $userPin, $url);
 		}else{
-			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-			$response = $this->_callPatronDeleteUrl($user->$barcodeProperty, null, $url);
+			$response = $this->_callPatronDeleteUrl($userBarcode, null, $url);
 		}
+
 
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
@@ -752,13 +759,14 @@ class OverDriveDriver3 {
 		global $memCache;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts/' . $overDriveId;
-
 		$requirePin = $configArray['OverDrive']['requirePin'];
+		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+		$userBarcode = $user->$barcodeProperty;
 		if ($requirePin){
-			$response = $this->_callPatronDeleteUrl($user->cat_username, $user->cat_password, $url);
+			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
+			$response = $this->_callPatronDeleteUrl($userBarcode, $userPin, $url);
 		}else{
-			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-			$response = $this->_callPatronDeleteUrl($user->$barcodeProperty, null, $url);
+			$response = $this->_callPatronDeleteUrl($userBarcode, null, $url);
 		}
 
 		$cancelHoldResult = array();
@@ -813,13 +821,18 @@ class OverDriveDriver3 {
 	}
 
 	public function isUserValidForOverDrive($user){
+		// TODO:  store as valid once test is successful, so that multiple calls here do much less work.
 		global $configArray;
 		$requirePin = $configArray['OverDrive']['requirePin'];
+		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+		$userBarcode = $user->$barcodeProperty;
 		if ($requirePin){
-			$tokenData = $this->_connectToPatronAPI($user->cat_username, $user->cat_password, false);
+			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
+			// determine which column is the pin by using the opposing field to the barcode. (between catelog & username)
+			$tokenData = $this->_connectToPatronAPI($userBarcode, $userPin, false);
+			// this worked for flatirons checkout.  plb 1-13-2015
 		}else{
-			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-			$tokenData = $this->_connectToPatronAPI($user->$barcodeProperty, null, false);
+			$tokenData = $this->_connectToPatronAPI($userBarcode, null, false);
 		}
 		return $tokenData !== false;
 	}
