@@ -121,7 +121,9 @@ class SIPAuthentication implements Authentication {
 
 						//  Use result to populate SIP2 setings
 						$mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
-						$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+						if (isset($result['variable']['AN'])){
+							$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+						}
 
 						$mysip->patron = $username;
 						$mysip->patronpwd = $password;
@@ -210,7 +212,7 @@ class SIPAuthentication implements Authentication {
 		$user->cat_username = $username;
 		$user->cat_password = $password;
 		$user->email = isset($patronInfoResponse['variable']['BE'][0]) ? $patronInfoResponse['variable']['BE'][0] : '';
-		$user->phone = $patronInfoResponse['variable']['BF'][0];
+		$user->phone = isset($patronInfoResponse['variable']['BF'][0]) ? $patronInfoResponse['variable']['BF'][0] : '';
 		$user->major = 'null';
 		$user->college = 'null';
 		$user->patronType = $patronInfoResponse['variable']['PC'][0];

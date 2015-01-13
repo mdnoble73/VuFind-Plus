@@ -727,6 +727,8 @@ class sip2
 		//Set SIP timeouts
 		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 0, 'usec' => 250));
 		socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 0, 'usec' => 250));
+		//Make the socket blocking so we can ensure we get responses without rewriting everything.
+		socket_set_block($this->socket);
 
 		/* open a connection to the host */
 		$result = socket_connect($this->socket, $address, $this->port);
