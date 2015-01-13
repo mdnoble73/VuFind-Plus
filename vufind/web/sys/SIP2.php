@@ -21,7 +21,7 @@
  *  Incorporate a bug fix submitted by Bob Wicksall
  *
  *  TODO
- *   - Clean up variable names, check for consistancy
+ *   - Clean up variable names, check for consistency
  *   - Add better i18n support, including functions to handle the SIP2 language definitions
  *
  */
@@ -732,7 +732,9 @@ class sip2
 		$result = socket_connect($this->socket, $address, $this->port);
 		if (!$result) {
 			$logger->log("Unable to connect to $address $this->port", PEAR_LOG_ERR);
+			$logger->log("SIP2: socket_connect() failed.\nReason: ($result) " . socket_strerror($result), PEAR_LOG_ERR);
 			$this->_debugmsg("SIP2: socket_connect() failed.\nReason: ($result) " . socket_strerror($result));
+			return false;
 		} else {
 			$this->_debugmsg( "SIP2: --- SOCKET READY ---" );
 		}
