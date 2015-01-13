@@ -62,6 +62,9 @@ class UserAccount
 		// If we authenticated, store the user in the session:
 		if (!PEAR_Singleton::isError($user)) {
 			self::updateSession($user);
+		}else{
+			global $logger;
+			$logger->log("Error authenticating patron", PEAR_LOG_ERR);
 		}
 
 		// Send back the user object (which may be a PEAR error):
