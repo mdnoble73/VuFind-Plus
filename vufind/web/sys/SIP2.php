@@ -64,6 +64,11 @@ class sip2
 	public $library      = '';
 	public $language     = '001'; /* 001= english */
 
+	var $use_usleep=1;	// change to 1 for faster execution
+	// don't change to 1 on Windows servers unless you have PHP 5
+	var $sleeptime=125000;
+	var $loginsleeptime=1000000;
+
 	/* Patron ID */
 	public $patron       = ''; /* AA */
 	public $patronpwd    = ''; /* AD */
@@ -669,6 +674,7 @@ class sip2
 
 		$this->_debugmsg('SIP2: Sending SIP2 request...');
 		socket_write($this->socket, $message, strlen($message));
+		$this->Sleep();
 
 		$this->_debugmsg('SIP2: Request Sent, Reading response');
 
@@ -735,13 +741,14 @@ class sip2
 		$connectStart = time();
 		while (!@socket_connect($this->socket, $address, $this->port)){
 			$error = socket_last_error($this->socket);
-			if ($error == SOCKET_EINPROGRESS || $error == SOCKET_EALREADY){
+			if ($error == 114 || $error == 115){
 				if ((time() - $connectStart) >= $connectionTimeout)
 				{
 					socket_close($this->socket);
 					$logger->log("Connection to $address $this->port timed out", PEAR_LOG_ERR);
 					return false;
 				}
+				$logger->log("Waiting for connection", PEAR_LOG_DEBUG);
 				sleep(1);
 				continue;
 			}else{
@@ -756,35 +763,49 @@ class sip2
 
 		global $configArray;
 		if ($configArray['SIP2']['sipLogin'] && $configArray['SIP2']['sipPassword']){
+			$lineEnding = "\r\n";
+
 			//Send login
 			//Read the login prompt
 			$prompt = $this->getResponse();
-			socket_write($this->socket, $configArray['SIP2']['sipLogin'] . "\r\n");
+			$logger->log("Login Prompt Received was " . $prompt, PEAR_LOG_ERR);
+			$login = $configArray['SIP2']['sipLogin'];
+			$ret = socket_write($this->socket, $login, strlen($login));
+			$ret = socket_write($this->socket, $lineEnding, strlen($lineEnding));
+			$logger->log("Wrote $ret bytes for login", PEAR_LOG_ERR);
+			$this->Sleep();
 
 			$prompt = $this->getResponse();
-			socket_write($this->socket, $configArray['SIP2']['sipPassword'] . "\r\n");
+			$logger->log("Password Prompt Received was " . $prompt, PEAR_LOG_ERR);
+			$password = $configArray['SIP2']['sipPassword'];
+			$ret = socket_write($this->socket, $password, strlen($password));
+			$ret = socket_write($this->socket, $lineEnding, strlen($lineEnding));
+			$logger->log("Wrote $ret bytes for password", PEAR_LOG_ERR);
+			$this->Sleep();
 
+			if ($this->use_usleep){
+				usleep($this->loginsleeptime);
+			}else{
+				sleep(1);
+			}
 			//May need to wait briefly?
 			$initialLoginResponse = $this->getResponse();
-			//Have to read three times to clear the carriage return and new line
-			//$initialLoginResponse = socket_read($this->socket, 25, PHP_NORMAL_READ);
-			//$initialLoginResponse .= socket_read($this->socket, 25, PHP_NORMAL_READ);
-			//$initialLoginResponse .= socket_read($this->socket, 25, PHP_NORMAL_READ);
-			//Send password
+			$logger->log("Login response is " . $initialLoginResponse, PEAR_LOG_ERR);
+			$this->Sleep();
 
-			$loginMessage = $this->msgLogin($configArray['SIP2']['sipLogin'], $configArray['SIP2']['sipPassword']);
-			$loginResponse = $this->get_message($loginMessage);
+			//$loginMessage = $this->msgLogin($configArray['SIP2']['sipLogin'], $configArray['SIP2']['sipPassword']);
+			//$loginResponse = $this->get_message($loginMessage);
 
-			$loginData = $this->parseLoginResponse($loginResponse);
-			if ($loginResponse && $loginData['fixed']['Ok'] == 1){
+			//$loginData = $this->parseLoginResponse($loginResponse);
+			if (strpos($initialLoginResponse, 'Login OK.  Initiating SIP') === 0){
+				$logger->log("Logged into SIP client with telnet credentials", PEAR_LOG_ERR);
 				$this->_debugmsg( "SIP2: --- LOGIN TO SIP SUCCEEDED ---" );
 			}else{
-				$logger->log("Unable to connect to login to SIP server using telnet credentials", PEAR_LOG_ERR);
+				$logger->log("Unable to login to SIP server using telnet credentials", PEAR_LOG_ERR);
 				$this->_debugmsg( "SIP2: --- LOGIN TO SIP FAILED ---" );
-				$this->_debugmsg( $loginResponse);
-				$result = false;
+				$this->_debugmsg( $initialLoginResponse);
+				return false;
 			}
-
 		}
 		/* return the result from the socket connect */
 		return true;
@@ -792,7 +813,7 @@ class sip2
 	}
 
 	function getResponse() {
-		return socket_read($this->socket,2500);
+		return socket_read($this->socket,2048);
 	}
 
 	function disconnect ()
@@ -936,6 +957,8 @@ class sip2
 		return $this->msgBuild;
 	}
 
+	function Sleep() {
+		if ($this->use_usleep) usleep($this->sleeptime);
+		else sleep(1);
+	}
 }
-
-?>
