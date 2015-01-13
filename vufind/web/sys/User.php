@@ -64,7 +64,7 @@ class UserAccount
 			self::updateSession($user);
 		}else{
 			global $logger;
-			$logger->log("Error authenticating patron", PEAR_LOG_ERR);
+			$logger->log("Error authenticating patron\r\n" . print_r($user, true), PEAR_LOG_ERR);
 		}
 
 		// Send back the user object (which may be a PEAR error):
