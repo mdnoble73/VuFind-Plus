@@ -64,6 +64,11 @@ class sip2
 	public $library      = '';
 	public $language     = '001'; /* 001= english */
 
+	var $use_usleep=0;	// change to 1 for faster execution
+	// don't change to 1 on Windows servers unless you have PHP 5
+	var $sleeptime=125000;
+	var $loginsleeptime=1000000;
+
 	/* Patron ID */
 	public $patron       = ''; /* AA */
 	public $patronpwd    = ''; /* AD */
@@ -768,14 +773,18 @@ class sip2
 			$logger->log("Login Prompt Received was " . $prompt, PEAR_LOG_ERR);
 			$login = $configArray['SIP2']['sipLogin'] . $lineEnding;
 			$ret = socket_write($this->socket, $login, strlen($login));
-			$logger->log("Wrote $ret bytes for login" . $prompt, PEAR_LOG_ERR);
+			$logger->log("Wrote $ret bytes for login", PEAR_LOG_ERR);
+			$this->Sleep();
 
 			$prompt = $this->getResponse();
 			$logger->log("Password Prompt Received was " . $prompt, PEAR_LOG_ERR);
 			$password = $configArray['SIP2']['sipPassword'] . $lineEnding;
 			$ret = socket_write($this->socket, $password, strlen($password));
-			$logger->log("Wrote $ret bytes for password" . $prompt, PEAR_LOG_ERR);
+			$logger->log("Wrote $ret bytes for password", PEAR_LOG_ERR);
+			$this->Sleep();
 
+			if ($this->use_usleep) usleep($this->loginsleeptime);
+			else sleep(1);
 			//May need to wait briefly?
 			$initialLoginResponse = $this->getResponse();
 			$logger->log("Login response is " . $initialLoginResponse, PEAR_LOG_ERR);
@@ -949,6 +958,10 @@ class sip2
 		return $this->msgBuild;
 	}
 
+	function Sleep() {
+		if ($this->use_usleep) usleep($this->sleeptime);
+		else sleep(1);
+	}
 }
 
 ?>
