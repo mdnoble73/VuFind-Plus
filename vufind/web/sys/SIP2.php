@@ -64,7 +64,7 @@ class sip2
 	public $library      = '';
 	public $language     = '001'; /* 001= english */
 
-	var $use_usleep=0;	// change to 1 for faster execution
+	var $use_usleep=1;	// change to 1 for faster execution
 	// don't change to 1 on Windows servers unless you have PHP 5
 	var $sleeptime=125000;
 	var $loginsleeptime=1000000;
@@ -782,30 +782,28 @@ class sip2
 			$logger->log("Wrote $ret bytes for password", PEAR_LOG_ERR);
 			$this->Sleep();
 
-			if ($this->use_usleep) usleep($this->loginsleeptime);
-			else sleep(1);
+			if ($this->use_usleep){
+				usleep($this->loginsleeptime);
+			}else{
+				sleep(1);
+			}
 			//May need to wait briefly?
 			$initialLoginResponse = $this->getResponse();
 			$logger->log("Login response is " . $initialLoginResponse, PEAR_LOG_ERR);
-			//Have to read three times to clear the carriage return and new line
-			//$initialLoginResponse = socket_read($this->socket, 25, PHP_NORMAL_READ);
-			//$initialLoginResponse .= socket_read($this->socket, 25, PHP_NORMAL_READ);
-			//$initialLoginResponse .= socket_read($this->socket, 25, PHP_NORMAL_READ);
-			//Send password
+			$this->Sleep();
 
-			$loginMessage = $this->msgLogin($configArray['SIP2']['sipLogin'], $configArray['SIP2']['sipPassword']);
-			$loginResponse = $this->get_message($loginMessage);
+			//$loginMessage = $this->msgLogin($configArray['SIP2']['sipLogin'], $configArray['SIP2']['sipPassword']);
+			//$loginResponse = $this->get_message($loginMessage);
 
-			$loginData = $this->parseLoginResponse($loginResponse);
-			if ($loginResponse && $loginData['fixed']['Ok'] == 1){
+			//$loginData = $this->parseLoginResponse($loginResponse);
+			if (strpos($initialLoginResponse, 'Login OK.  Initiating SIP') === 0){
 				$this->_debugmsg( "SIP2: --- LOGIN TO SIP SUCCEEDED ---" );
 			}else{
-				$logger->log("Unable to connect to login to SIP server using telnet credentials", PEAR_LOG_ERR);
+				$logger->log("Unable to login to SIP server using telnet credentials", PEAR_LOG_ERR);
 				$this->_debugmsg( "SIP2: --- LOGIN TO SIP FAILED ---" );
-				$this->_debugmsg( $loginResponse);
-				$result = false;
+				$this->_debugmsg( $initialLoginResponse);
+				return false;
 			}
-
 		}
 		/* return the result from the socket connect */
 		return true;
