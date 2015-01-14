@@ -962,9 +962,9 @@ class Aspencat implements DriverInterface{
 		$fullName = str_replace(";", "'", $fullName);
 		$fullName = preg_replace("/\\s{2,}/", " ", $fullName);
 		$nameParts = explode(' ', $fullName);
-		$lastName = strtolower($nameParts[0]);
-		$middleName = isset($nameParts[2]) ? strtolower($nameParts[2]) : '';
-		$firstName = isset($nameParts[1]) ? strtolower($nameParts[1]) : $middleName;
+		$firstName = strtolower($nameParts[0]);
+		$middleName = isset($nameParts[2]) ? strtolower($nameParts[1]) : '';
+		$lastName = isset($nameParts[2]) ? strtolower($nameParts[2]) : strtolower($nameParts[1]);
 		return array($fullName, $lastName, $firstName);
 	}
 

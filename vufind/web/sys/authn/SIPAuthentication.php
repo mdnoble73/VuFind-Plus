@@ -205,8 +205,14 @@ class SIPAuthentication implements Authentication {
 		
 		// This could potentially be different depending on the ILS.  Name could be Bob Wicksall or Wicksall, Bob.
 		// This is currently assuming Wicksall, Bob
-		$user->firstname = trim(substr($info['variable']['AE'][0], 1 + strripos($info['variable']['AE'][0], ',')));
-		$user->lastname = trim(substr($info['variable']['AE'][0], 0, strripos($info['variable']['AE'][0], ',')));
+		if (strpos($info['variable']['AE'][0], ',') !== false){
+			$user->firstname = trim(substr($info['variable']['AE'][0], 1 + strripos($info['variable']['AE'][0], ',')));
+			$user->lastname = trim(substr($info['variable']['AE'][0], 0, strripos($info['variable']['AE'][0], ',')));
+		}else{
+			$user->lastname = trim(substr($info['variable']['AE'][0], 1 + strripos($info['variable']['AE'][0], ' ')));
+			$user->firstname = trim(substr($info['variable']['AE'][0], 0, strripos($info['variable']['AE'][0], ' ')));
+		}
+
 		// I'm inserting the sip username and password since the ILS is the source.
 		// Should revisit this.
 		$user->cat_username = $username;
