@@ -450,6 +450,10 @@ class CatalogConnection
 	public function getMyProfile($patron)
 	{
 		$profile = $this->driver->getMyProfile($patron);
+		if (PEAR_Singleton::isError($profile)){
+			echo("Error loading profile " . print_r($profile, true));
+			return $profile;
+		}
 		$profile['readingHistorySize'] = '';
 		global $user;
 		if ($user && $user->trackReadingHistory && $user->initialReadingHistoryLoaded){
