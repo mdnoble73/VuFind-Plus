@@ -78,7 +78,12 @@ class Report_StudentReport extends Admin_Admin {
 					if ($index != 0){
 						echo(",");
 					}
-					echo($cell);
+					if (strpos($cell, ',') != false){
+						echo('"' . $cell . '"');
+					}else{
+						echo($cell);
+					}
+
 				}
 				echo("\r\n");
 			}
