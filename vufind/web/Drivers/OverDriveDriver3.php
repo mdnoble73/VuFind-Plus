@@ -155,7 +155,7 @@ class OverDriveDriver3 {
 						if ($patronTokenData->error == 'unauthorized_client'){ // login failure
 							return false;
 						}else{
-							echo("Error connecting to overdrive apis ". $patronTokenData->error);
+							echo("Error connecting to Overdrive APIs ". $patronTokenData->error);
 						}
 					}else{
 						$memCache->set('overdrive_patron_token_' . $patronBarcode, $patronTokenData, 0, $patronTokenData->expires_in - 10);
@@ -821,14 +821,14 @@ class OverDriveDriver3 {
 	}
 
 	public function isUserValidForOverDrive($user){
-		// TODO:  store as valid once test is successful, so that multiple calls here do much less work.
+		// positive results are cached by _connectToPatronAPI
 		global $configArray;
 		$requirePin = $configArray['OverDrive']['requirePin'];
 		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
 		$userBarcode = $user->$barcodeProperty;
 		if ($requirePin){
 			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
-			// determine which column is the pin by using the opposing field to the barcode. (between catelog & username)
+			// determine which column is the pin by using the opposing field to the barcode. (between password & username)
 			$tokenData = $this->_connectToPatronAPI($userBarcode, $userPin, false);
 			// this worked for flatirons checkout.  plb 1-13-2015
 		}else{
