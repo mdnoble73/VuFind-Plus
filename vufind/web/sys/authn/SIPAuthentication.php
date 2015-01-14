@@ -224,9 +224,15 @@ class SIPAuthentication implements Authentication {
 		$user->patronType = $patronInfoResponse['variable']['PC'][0];
 		
 		//Get home location
-		if ((!isset($user->homeLocationId) || $user->homeLocationId == 0) && isset($patronInfoResponse['variable']['AQ'])){
+		//Check AO?
+		if ((!isset($user->homeLocationId) || $user->homeLocationId == 0) && (isset($patronInfoResponse['variable']['AQ']) || isset($patronInfoResponse['variable']['AO']))){
 			$location = new Location();
-			$location->code = $patronInfoResponse['variable']['AQ'][0];
+			if (isset($patronInfoResponse['variable']['AQ'])){
+				$location->code = $patronInfoResponse['variable']['AQ'][0];
+			}else{
+				$location->code = $patronInfoResponse['variable']['AO'][0];
+			}
+
 			$location->find();
 			if ($location->N > 0){
 				$location->fetch();

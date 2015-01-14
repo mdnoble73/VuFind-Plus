@@ -575,15 +575,19 @@ class Aspencat implements DriverInterface{
 
 				//Get a count of the materials requests for the user
 				if ($user){
-					$materialsRequest = new MaterialsRequest();
-					$materialsRequest->createdBy = $user->id;
 					$homeLibrary = Library::getPatronHomeLibrary();
-					$statusQuery = new MaterialsRequestStatus();
-					$statusQuery->isOpen = 1;
-					$statusQuery->libraryId = $homeLibrary->libraryId;
-					$materialsRequest->joinAdd($statusQuery);
-					$materialsRequest->find();
-					$profile['numMaterialsRequests'] = $materialsRequest->N;
+					if ($homeLibrary){
+						$materialsRequest = new MaterialsRequest();
+						$materialsRequest->createdBy = $user->id;
+						$statusQuery = new MaterialsRequestStatus();
+						$statusQuery->isOpen = 1;
+						$statusQuery->libraryId = $homeLibrary->libraryId;
+						$materialsRequest->joinAdd($statusQuery);
+						$materialsRequest->find();
+						$profile['numMaterialsRequests'] = $materialsRequest->N;
+					}else{
+						$profile['numMaterialsRequests'] = 0;
+					}
 				}
 			} else {
 				$profile = new PEAR_Error('patron_info_error_technical');
