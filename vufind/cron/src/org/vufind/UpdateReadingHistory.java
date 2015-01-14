@@ -317,12 +317,12 @@ public class UpdateReadingHistory implements IProcessHandler {
 		//This is a newly checked out title
 		try {
 			insertReadingHistoryStmt.setLong(1, userId);
-			insertReadingHistoryStmt.setString(2, checkedOutItem.getString("groupedWorkId") == null ? "" : checkedOutItem.getString("groupedWorkId"));
+			insertReadingHistoryStmt.setString(2, checkedOutItem.has("groupedWorkId") ? checkedOutItem.getString("groupedWorkId") : "");
 			insertReadingHistoryStmt.setString(3, source);
 			insertReadingHistoryStmt.setString(4, sourceId);
 			insertReadingHistoryStmt.setString(5, Util.trimTo(150, checkedOutItem.getString("title")));
-			insertReadingHistoryStmt.setString(6, Util.trimTo(75, checkedOutItem.getString("author")));
-			insertReadingHistoryStmt.setString(7, Util.trimTo(50, checkedOutItem.getString("format")));
+			insertReadingHistoryStmt.setString(6, checkedOutItem.has("author") ? Util.trimTo(75, checkedOutItem.getString("author")) : "");
+			insertReadingHistoryStmt.setString(7, checkedOutItem.has("format") ? Util.trimTo(50, checkedOutItem.getString("format")) : "");
 			long checkoutTime = new Date().getTime() / 1000;
 			insertReadingHistoryStmt.setLong(8, checkoutTime);
 			insertReadingHistoryStmt.executeUpdate();
