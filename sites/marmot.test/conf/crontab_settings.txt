@@ -81,9 +81,9 @@
 # added at 1.01a to avoid conflict with nfs mount point - sml 19 Dec 14
 01 1 * * * /root/cron/copyAnythinkExport
 
-# Sierra-Training Record Export 
+# Sierra-Training Record Export
 01 6 * * Thu /root/cron/copySierraTrainingExport.sh
-# On Thursdays at 6:01am 
+# On Thursdays at 6:01am
 # ( 1 min after the hour to avoid conflict with nfs mount point)
 # new script made, cron set 1-2-2015 plb
 
@@ -120,6 +120,9 @@
 # Marmot-Training - Full Record Grouping -  Thursdays, 8:33am
 33 6 * * Thu cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar marmot.training fullRegroupingNoClear
 
+# Flatirons - Full Record Grouping
+#50 5 * * * cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar flatirons.test fullRegroupingNoClear
+#5:50am everyday
 
 ###########
 # Reindex #
@@ -136,9 +139,13 @@
 20 5 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar anythink.test fullReindex
 #5:20 am everyday, after full regrouping
 
-# Marmot-Training - Full Reindex 
+# Marmot-Training - Full Reindex
 33 10 * * Thu cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar marmot.training fullReindex
 # Thursdays 10:33am  4hrs after full recocord grouping.  set by plb 1-2-2015
+
+# Flatirons
+#50 6 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar flatirons.test fullReindex
+#6:50am everyday, after full record grouping
 
 ##########
 # Cron   #
