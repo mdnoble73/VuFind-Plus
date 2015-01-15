@@ -13,10 +13,6 @@
 @category8MainColor: #83c1db;
 @category9MainColor: #99c8db;
 */
-/**
- * Main responsive theme css
- */
-/*! normalize.css v2.1.3 | MIT License | git.io/normalize */
 article,
 aside,
 details,
@@ -5972,9 +5968,6 @@ td.visible-print {
     display: none !important;
   }
 }
-/**
- * Basic Style overrides
- */
 a,
 a:visited {
   color: #428bca;
@@ -6070,9 +6063,6 @@ body > .container {
 .nav-tabs {
   margin-bottom: 0;
 }
-#search_box_group {
-  /* Append input to search box when larger than phone */
-}
 @media (max-width: 480px) {
   #search_box_group {
     padding-top: 5px;
@@ -6119,7 +6109,6 @@ div.striped > div:nth-child(odd),
 div.striped > div:nth-child(odd) {
   background-color: #f9f9f9;
 }
-/** Google translate */
 #google_translate_element {
   font-size: smaller;
   padding-left: 5px;
@@ -6127,7 +6116,6 @@ div.striped > div:nth-child(odd) {
 .goog-te-gadget {
   display: inline-block;
 }
-/** Third party imports **/
 .ui-rater > span {
   vertical-align: top;
 }
@@ -6719,7 +6707,6 @@ table.tablesorter thead tr .headerSortDown,
 table.tablesorter thead tr .headerSortUp {
   background-color: #8dbdd8;
 }
-/** Imports of functionality related to VuFind **/
 body {
   color: #6b6b6b;
 }

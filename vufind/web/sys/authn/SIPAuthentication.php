@@ -87,6 +87,7 @@ class SIPAuthentication implements Authentication {
 		if (isset($_POST['username']) && isset($_POST['password'])) {
 			$username = $_POST['username'];
 			$password = $_POST['password'];
+			//Set this up to use library prefix
 			$barcodePrefix = $configArray['Catalog']['barcodePrefix'];
 			if (strlen($barcodePrefix) > 0){
 				if (strlen($username) == 9){
@@ -121,7 +122,9 @@ class SIPAuthentication implements Authentication {
 
 						//  Use result to populate SIP2 setings
 						$mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
-						$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+						if (isset($result['variable']['AN'])){
+							$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+						}
 
 						$mysip->patron = $username;
 						$mysip->patronpwd = $password;
@@ -203,22 +206,34 @@ class SIPAuthentication implements Authentication {
 		
 		// This could potentially be different depending on the ILS.  Name could be Bob Wicksall or Wicksall, Bob.
 		// This is currently assuming Wicksall, Bob
-		$user->firstname = trim(substr($info['variable']['AE'][0], 1 + strripos($info['variable']['AE'][0], ',')));
-		$user->lastname = trim(substr($info['variable']['AE'][0], 0, strripos($info['variable']['AE'][0], ',')));
+		if (strpos($info['variable']['AE'][0], ',') !== false){
+			$user->firstname = trim(substr($info['variable']['AE'][0], 1 + strripos($info['variable']['AE'][0], ',')));
+			$user->lastname = trim(substr($info['variable']['AE'][0], 0, strripos($info['variable']['AE'][0], ',')));
+		}else{
+			$user->lastname = trim(substr($info['variable']['AE'][0], 1 + strripos($info['variable']['AE'][0], ' ')));
+			$user->firstname = trim(substr($info['variable']['AE'][0], 0, strripos($info['variable']['AE'][0], ' ')));
+		}
+
 		// I'm inserting the sip username and password since the ILS is the source.
 		// Should revisit this.
 		$user->cat_username = $username;
 		$user->cat_password = $password;
 		$user->email = isset($patronInfoResponse['variable']['BE'][0]) ? $patronInfoResponse['variable']['BE'][0] : '';
-		$user->phone = $patronInfoResponse['variable']['BF'][0];
+		$user->phone = isset($patronInfoResponse['variable']['BF'][0]) ? $patronInfoResponse['variable']['BF'][0] : '';
 		$user->major = 'null';
 		$user->college = 'null';
 		$user->patronType = $patronInfoResponse['variable']['PC'][0];
 		
 		//Get home location
-		if (!isset($user->homeLocationId) || $user->homeLocationId == 0){
+		//Check AO?
+		if ((!isset($user->homeLocationId) || $user->homeLocationId == 0) && (isset($patronInfoResponse['variable']['AQ']) || isset($patronInfoResponse['variable']['AO']))){
 			$location = new Location();
-			$location->code = $patronInfoResponse['variable']['AQ'][0];
+			if (isset($patronInfoResponse['variable']['AQ'])){
+				$location->code = $patronInfoResponse['variable']['AQ'][0];
+			}else{
+				$location->code = $patronInfoResponse['variable']['AO'][0];
+			}
+
 			$location->find();
 			if ($location->N > 0){
 				$location->fetch();

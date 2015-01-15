@@ -1,6 +1,6 @@
-/**
- * Main responsive theme css
- */
+//
+// Main responsive theme css
+//
 //Default values for variables
 @navbarCollapseWidth: 480px;
 @navbarCollapseDesktopWidth: 481px;
@@ -9,9 +9,9 @@
 
 @import "bootstrap/less/bootstrap.less";
 
-/**
- * Basic Style overrides
- */
+//
+//  Basic Style overrides
+//
 a, a:visited{
   color: @link-color-resp;
 }
@@ -106,7 +106,7 @@ body > .container{
 }
 
 #search_box_group{
-  /* Append input to search box when larger than phone */
+  // Append input to search box when larger than phone
   @media (max-width: 480px) {
     #search_button{
       padding-top: 5px;
@@ -164,7 +164,7 @@ div.striped {
   }
 }
 
-/** Google translate */
+// Google translate
 #google_translate_element{
   font-size: smaller;
   padding-left: 5px;
@@ -173,14 +173,14 @@ div.striped {
   display: inline-block;
 }
 
-/** Third party imports **/
+// Third party imports
 @import "ratings.less";
 @import "datepicker.less";
 @import "jcarousel.responsive.less";
 @import "lib/bootstrap-switch.less";
 @import "lib/tablesorter/tablesorter.less";
 
-/** Imports of functionality related to VuFind **/
+// Imports of functionality related to Pika
 @import "layout.less";
 @import "home.less";
 @import "account.less";

@@ -2393,6 +2393,9 @@ class Solr implements IndexEngine {
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $solrScope;
+		if (isset($_REQUEST['allFields'])){
+			return array('*');
+		}
 		$fields = $memCache->get("schema_fields_$solrScope");
 		if (!$fields || isset($_REQUEST['reload'])){
 			global $configArray;

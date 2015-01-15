@@ -152,10 +152,10 @@ class OverDriveDriver3 {
 				$patronTokenData = json_decode($return);
 				if ($patronTokenData){
 					if (isset($patronTokenData->error)){
-						if ($patronTokenData->error == 'unauthorized_client'){
+						if ($patronTokenData->error == 'unauthorized_client'){ // login failure
 							return false;
 						}else{
-							echo("Error connecting to overdrive apis ". $patronTokenData->error);
+							echo("Error connecting to Overdrive APIs ". $patronTokenData->error);
 						}
 					}else{
 						$memCache->set('overdrive_patron_token_' . $patronBarcode, $patronTokenData, 0, $patronTokenData->expires_in - 10);
@@ -195,11 +195,16 @@ class OverDriveDriver3 {
 	public function _callPatronUrl($user, $url, $postParams = null){
 		global $configArray;
 		$requirePin = $configArray['OverDrive']['requirePin'];
+		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+		$userBarcode = $user->$barcodeProperty;
 		if ($requirePin){
-			$tokenData = $this->_connectToPatronAPI($user->cat_username, $user->cat_password, false);
+			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
+				// determine which column is the pin by using the opposing field to the barcode. (between pin & username)
+			$tokenData = $this->_connectToPatronAPI($userBarcode, $userPin, false);
+			// this worked for flatirons checkout.  plb 1-13-2015
+//			$tokenData = $this->_connectToPatronAPI($user->cat_username, $user->cat_password, false);
 		}else{
-			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-			$tokenData = $this->_connectToPatronAPI($user->$barcodeProperty, null, false);
+			$tokenData = $this->_connectToPatronAPI($userBarcode, null, false);
 		}
 		if ($tokenData){
 			$ch = curl_init($url);
@@ -646,7 +651,8 @@ class OverDriveDriver3 {
 			$holdResult['message'] = 'Your hold was placed successfully.  You are number ' . $response->holdListPosition . ' on the wait list.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Place Hold', 'succeeded');
 		}else{
-			$holdResult['message'] = 'Sorry, but we could not place a hold for you on this title.  ' . $response->message;
+			$holdResult['message'] = 'Sorry, but we could not place a hold for you on this title.';
+			if (isset($response->message)) $holdResult['message'] .= "  {$response->message}";
 			if ($analytics) $analytics->addEvent('OverDrive', 'Place Hold', 'failed');
 		}
 		$memCache->delete('overdrive_summary_' . $user->id);
@@ -666,13 +672,17 @@ class OverDriveDriver3 {
 		global $memCache;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/holds/' . $overDriveId;
-                $requirePin = $configArray['OverDrive']['requirePin'];
-                if ($requirePin){
-			$response = $this->_callPatronDeleteUrl($user->cat_username, $user->cat_password, $url);
-                }else{
-			$response = $this->_callPatronDeleteUrl($user->cat_password, null, $url);
-                }
- 
+		$requirePin = $configArray['OverDrive']['requirePin'];
+		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+		$userBarcode = $user->$barcodeProperty;
+		if ($requirePin){
+			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
+			$response = $this->_callPatronDeleteUrl($userBarcode, $userPin, $url);
+		}else{
+			$response = $this->_callPatronDeleteUrl($userBarcode, null, $url);
+		}
+
+
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
 		$cancelHoldResult['message'] = '';
@@ -681,7 +691,8 @@ class OverDriveDriver3 {
 			$cancelHoldResult['message'] = 'Your hold was cancelled successfully.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Cancel Hold', 'succeeded');
 		}else{
-			$cancelHoldResult['message'] = 'There was an error cancelling your hold.  ' . $response->message;
+			$cancelHoldResult['message'] = 'There was an error cancelling your hold.';
+		 if (isset($response->message)) $cancelHoldResult['message'] .= "  {$response->message}";
 			if ($analytics) $analytics->addEvent('OverDrive', 'Cancel Hold', 'failed');
 		}
 		$memCache->delete('overdrive_summary_' . $user->id);
@@ -748,13 +759,15 @@ class OverDriveDriver3 {
 		global $memCache;
 
 		$url = $configArray['OverDrive']['patronApiUrl'] . '/v1/patrons/me/checkouts/' . $overDriveId;
-
-                $requirePin = $configArray['OverDrive']['requirePin'];
-                if ($requirePin){
-                        $response = $this->_callPatronDeleteUrl($user->cat_username, $user->cat_password, $url);
-                }else{
-                        $response = $this->_callPatronDeleteUrl($user->cat_password, null, $url);
-                }
+		$requirePin = $configArray['OverDrive']['requirePin'];
+		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+		$userBarcode = $user->$barcodeProperty;
+		if ($requirePin){
+			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
+			$response = $this->_callPatronDeleteUrl($userBarcode, $userPin, $url);
+		}else{
+			$response = $this->_callPatronDeleteUrl($userBarcode, null, $url);
+		}
 
 		$cancelHoldResult = array();
 		$cancelHoldResult['result'] = false;
@@ -764,7 +777,8 @@ class OverDriveDriver3 {
 			$cancelHoldResult['message'] = 'Your item was returned successfully.';
 			if ($analytics) $analytics->addEvent('OverDrive', 'Return Item', 'succeeded');
 		}else{
-			$cancelHoldResult['message'] = 'There was an error returning this item. ' . $response->message;
+			$cancelHoldResult['message'] = 'There was an error returning this item.';
+			if (isset($response->message)) $cancelHoldResult['message'] .= "  {$response->message}";
 			if ($analytics) $analytics->addEvent('OverDrive', 'Return Item', 'failed');
 		}
 
@@ -797,7 +811,8 @@ class OverDriveDriver3 {
 			$downloadLink = $this->getDownloadLink($overDriveId, $formatId, $user);
 			$result = $downloadLink;
 		}else{
-			$result['message'] = 'Sorry, but we could not select a format for you. '  .$response->message;
+			$result['message'] = 'Sorry, but we could not select a format for you.';
+			if (isset($response->message)) $result['message'] .= "  {$response->message}";
 			if ($analytics) $analytics->addEvent('OverDrive', 'Select Download Format', 'failed');
 		}
 		$memCache->delete('overdrive_summary_' . $user->id);
@@ -806,12 +821,18 @@ class OverDriveDriver3 {
 	}
 
 	public function isUserValidForOverDrive($user){
+		// positive results are cached by _connectToPatronAPI
 		global $configArray;
 		$requirePin = $configArray['OverDrive']['requirePin'];
+		$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+		$userBarcode = $user->$barcodeProperty;
 		if ($requirePin){
-			$tokenData = $this->_connectToPatronAPI($user->cat_username, $user->cat_password, false);
+			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
+			// determine which column is the pin by using the opposing field to the barcode. (between password & username)
+			$tokenData = $this->_connectToPatronAPI($userBarcode, $userPin, false);
+			// this worked for flatirons checkout.  plb 1-13-2015
 		}else{
-			$tokenData = $this->_connectToPatronAPI($user->cat_password, null, false);
+			$tokenData = $this->_connectToPatronAPI($userBarcode, null, false);
 		}
 		return $tokenData !== false;
 	}
@@ -846,7 +867,8 @@ class OverDriveDriver3 {
 			$result['downloadUrl'] = $response->links->contentlink->href;
 			if ($analytics) $analytics->addEvent('OverDrive', 'Get Download Link', 'succeeded');
 		}else{
-			$result['message'] = 'Sorry, but we could not get a download link for you. ' . $response->message;
+			$result['message'] = 'Sorry, but we could not get a download link for you.';
+			if (isset($response->message)) $result['message'] .= "  {$response->message}";
 			if ($analytics) $analytics->addEvent('OverDrive', 'Get Download Link', 'failed');
 		}
 

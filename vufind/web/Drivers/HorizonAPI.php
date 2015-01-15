@@ -196,6 +196,11 @@ abstract class HorizonAPI extends Horizon{
 				}
 			}
 			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true');
+			if ($lookupMyAccountInfoResponse == false){
+				global $logger;
+				$logger->log("Unable to login", PEAR_LOG_WARNING);
+				return null;
+			}
 
 			if (isset($lookupMyAccountInfoResponse->AddressInfo)){
 				$Address1 = (string)$lookupMyAccountInfoResponse->AddressInfo->line1;
@@ -1216,6 +1221,7 @@ abstract class HorizonAPI extends Horizon{
 	public function getWebServiceResponse($url){
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
+		//curl_setopt($ch, CURLOPT_HTTPHEADER, array('Accept-Charset: utf-8'));
 		curl_setopt($ch, CURLOPT_HEADER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		$xml = curl_exec($ch);
@@ -1223,7 +1229,23 @@ abstract class HorizonAPI extends Horizon{
 
 		if ($xml !== false){
 			if (strpos($xml, '<') !== FALSE){
-				return simplexml_load_string($xml);
+				//Strip any non-UTF-8 characters
+				$xml = preg_replace('/[^(\x20-\x7F)]*/','', $xml);
+
+				libxml_use_internal_errors(true);
+				$parsedXml = simplexml_load_string($xml);
+				if ($parsedXml === false){
+					//Failed to load xml
+					global $logger;
+					$logger->log("Error parsing xml", PEAR_LOG_ERR);
+					$logger->log($xml, PEAR_LOG_DEBUG);
+					foreach(libxml_get_errors() as $error) {
+						$logger->log("\t {$error->message}", PEAR_LOG_ERR);
+					}
+					return false;
+				}else{
+					return $parsedXml;
+				}
 			}else{
 				return $xml;
 			}

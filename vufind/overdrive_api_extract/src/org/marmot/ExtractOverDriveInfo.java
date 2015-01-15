@@ -895,7 +895,13 @@ public class ExtractOverDriveInfo {
 					try {
 						boolean available = availability.has("available") && availability.getString("available").equals("true");
 						int copiesOwned = availability.getInt("copiesOwned");
-						int copiesAvailable = availability.getInt("copiesAvailable");
+						int copiesAvailable;
+						if (availability.has("copiesAvailable")){
+							copiesAvailable = availability.getInt("copiesAvailable");
+						}else{
+							logger.warn("copiesAvailable was not provided for collection " + apiKey + " title " + overDriveInfo.getId());
+							copiesAvailable = 0;
+						}
 						int numberOfHolds = availability.getInt("numberOfHolds");
 						if (hasExistingAvailability){
 							//Check to see if the availability has changed

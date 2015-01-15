@@ -487,7 +487,7 @@ class Aspencat implements DriverInterface{
 		}
 
 		if (!$this->initSipConnection()){
-			$profile = new PEAR_Error('patron_info_error_technical');
+			$profile = new PEAR_Error('patron_info_error_technical - Unable to initialize connection');
 		}else{
 
 			$this->sipConnection->patron = $patron['username'];
@@ -575,18 +575,22 @@ class Aspencat implements DriverInterface{
 
 				//Get a count of the materials requests for the user
 				if ($user){
-					$materialsRequest = new MaterialsRequest();
-					$materialsRequest->createdBy = $user->id;
 					$homeLibrary = Library::getPatronHomeLibrary();
-					$statusQuery = new MaterialsRequestStatus();
-					$statusQuery->isOpen = 1;
-					$statusQuery->libraryId = $homeLibrary->libraryId;
-					$materialsRequest->joinAdd($statusQuery);
-					$materialsRequest->find();
-					$profile['numMaterialsRequests'] = $materialsRequest->N;
+					if ($homeLibrary){
+						$materialsRequest = new MaterialsRequest();
+						$materialsRequest->createdBy = $user->id;
+						$statusQuery = new MaterialsRequestStatus();
+						$statusQuery->isOpen = 1;
+						$statusQuery->libraryId = $homeLibrary->libraryId;
+						$materialsRequest->joinAdd($statusQuery);
+						$materialsRequest->find();
+						$profile['numMaterialsRequests'] = $materialsRequest->N;
+					}else{
+						$profile['numMaterialsRequests'] = 0;
+					}
 				}
 			} else {
-				$profile = new PEAR_Error('patron_info_error_technical');
+				$profile = new PEAR_Error('patron_info_error_technical - invalid patron information response');
 			}
 		}
 
@@ -962,9 +966,9 @@ class Aspencat implements DriverInterface{
 		$fullName = str_replace(";", "'", $fullName);
 		$fullName = preg_replace("/\\s{2,}/", " ", $fullName);
 		$nameParts = explode(' ', $fullName);
-		$lastName = strtolower($nameParts[0]);
-		$middleName = isset($nameParts[2]) ? strtolower($nameParts[2]) : '';
-		$firstName = isset($nameParts[1]) ? strtolower($nameParts[1]) : $middleName;
+		$firstName = strtolower($nameParts[0]);
+		$middleName = isset($nameParts[2]) ? strtolower($nameParts[1]) : '';
+		$lastName = isset($nameParts[2]) ? strtolower($nameParts[2]) : strtolower($nameParts[1]);
 		return array($fullName, $lastName, $firstName);
 	}
 
@@ -1150,24 +1154,226 @@ class Aspencat implements DriverInterface{
 		}
 		global $configArray;
 		$marcRecord = $recordDriver->getMarcRecord();
-		$itemTag = $configArray['Reindex']['itemTag'];
-		$barcodeSubfield = $configArray['Reindex']['barcodeSubfield'];
-		/** @var File_MARC_Data_Field[] $itemFields */
-		$itemFields = $marcRecord->getFields($itemTag);
-		$barcodeToHold = null;
-		foreach ($itemFields as $itemField){
-			if ($itemField->getSubfield($barcodeSubfield) != null){
-				$barcodeToHold = $itemField->getSubfield($barcodeSubfield)->getData();
-				break;
+
+		//Check to see if the title requires item level holds
+		/** @var File_MARC_Data_Field[] $holdTypeFields */
+		$itemLevelHoldAllowed = false;
+		$holdTypeFields = $marcRecord->getFields('942');
+		foreach ($holdTypeFields as $holdTypeField){
+			if ($holdTypeField->getSubfield('r') != null){
+				if ($holdTypeField->getSubfield('r')->getData() == 'itemtitle'){
+					$itemLevelHoldAllowed = true;
+				}
 			}
+		}
+		if ($itemLevelHoldAllowed){
+			$items = array();
+			//Add a first title returned
+			$items[-1] = array(
+				'itemNumber' => -1,
+				'location' => 'Next available copy',
+				'callNumber' => '',
+				'status' => '',
+			);
+
+			//Get the items the user can place a hold on
+			$this->loginToKoha($user);
+			$placeHoldPage = $this->getKohaPage($configArray['Catalog']['url'] . '/cgi-bin/koha/opac-reserve.pl?biblionumber=' . $recordId);
+			//Get the item table from the page
+			if (preg_match('/<table>\\s+<caption>Select a specific copy:<\/caption>\\s+(.*?)<\/table>/s', $placeHoldPage, $matches)) {
+				$itemTable = $matches[1];
+				//Get the header row labels
+				$headerLabels = array();
+				preg_match_all('/<th[^>]*>(.*?)<\/th>/si', $itemTable, $tableHeaders, PREG_PATTERN_ORDER);
+				foreach ($tableHeaders[1] as $col => $tableHeader){
+					$headerLabels[$col] = trim(strip_tags(strtolower($tableHeader)));
+				}
+
+				//Grab each row within the table
+				preg_match_all('/<tr[^>]*>\\s+(<td.*?)<\/tr>/si', $itemTable, $tableData, PREG_PATTERN_ORDER);
+				foreach ($tableData[1] as $tableRow){
+					//Each row in the table represents a hold
+
+					$curItem = array();
+					$validItem = false;
+					//Go through each cell in the row
+					preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
+					foreach ($tableCells[1] as $col => $tableCell){
+						if ($headerLabels[$col] == 'copy'){
+							if (strpos($tableCell, 'disabled') === false){
+								$validItem = true;
+							}
+						}else if ($headerLabels[$col] == 'item type'){
+							$curItem['itemType'] = trim($tableCell);
+						}else if ($headerLabels[$col] == 'barcode'){
+							$curItem['itemNumber'] = trim($tableCell);
+						}else if ($headerLabels[$col] == 'home library'){
+							$curItem['location'] = trim($tableCell);
+						}else if ($headerLabels[$col] == 'call number'){
+							$curItem['callNumber'] = trim($tableCell);
+						}else if ($headerLabels[$col] == 'vol info'){
+							$curItem['volInfo'] = trim($tableCell);
+						}else if ($headerLabels[$col] == 'information'){
+							$curItem['status'] = trim($tableCell);
+						}
+					}
+					if ($validItem){
+						$items[$curItem['itemNumber']] = $curItem;
+					}
+				}
+			}
+
+			$hold_result['title'] = $recordDriver->getTitle();
+			$hold_result['items'] = $items;
+			if (count($items) > 0){
+				$message = 'This title allows item level holds, please select an item to place a hold on.';
+			}else{
+				$message = 'There are no holdable items for this title.';
+			}
+			$hold_result['result'] = false;
+			$hold_result['message'] = $message;
+			return $hold_result;
+		}else{
+			$itemTag = $configArray['Reindex']['itemTag'];
+			$barcodeSubfield = $configArray['Reindex']['barcodeSubfield'];
+			/** @var File_MARC_Data_Field[] $itemFields */
+			$itemFields = $marcRecord->getFields($itemTag);
+			$barcodeToHold = null;
+			foreach ($itemFields as $itemField){
+				if ($itemField->getSubfield($barcodeSubfield) != null){
+					$barcodeToHold = $itemField->getSubfield($barcodeSubfield)->getData();
+					break;
+				}
+			}
+
+			$hold_result['title'] = $recordDriver->getTitle();
+
+			$in = $this->sipConnection->msgHold($mode, '', '2', $barcodeToHold, $recordId, '', strtoupper($campus));
+			$msg_result = $this->sipConnection->get_message($in);
+
+			//TODO: Do we need to handle required item level holds?
+
+			$hold_result['id'] = $recordId;
+			if (preg_match("/^16/", $msg_result)) {
+				$result = $this->sipConnection->parseHoldResponse($msg_result );
+				$hold_result['result'] = ($result['fixed']['Ok'] == 1);
+				if (isset($result['variable']['AF'])){
+					$hold_result['message'] = $result['variable']['AF'][0];
+				}else{
+					if ($result['fixed']['Ok'] == 1){
+						$hold_result['message'] = 'Your hold was successful';
+					}else{
+						$hold_result['message'] = 'Your could not be placed';
+					}
+				}
+
+				//Get the hold position.
+				if ($result['fixed']['Ok'] == 1){
+					$holds = $this->getMyHolds($user);
+					//Find the correct hold (will be unavailable)
+					foreach ($holds['holds']['unavailable'] as $key => $holdInfo){
+						if ($holdInfo['id'] == $recordId){
+							if (isset($holdInfo['position'])){
+								$hold_result['message'] .= "  You are number <b>" . $holdInfo['position'] . "</b> in the queue.";
+							}
+							break;
+						}
+					}
+				}
+			}
+			return $hold_result;
+		}
+	}
+
+	/**
+	 * Place Item Hold
+	 *
+	 * This is responsible for both placing item level holds.
+	 *
+	 * @param   string  $recordId   The id of the bib record
+	 * @param   string  $itemId     The id of the item to hold
+	 * @param   string  $patronId   The id of the patron
+	 * @param   string  $comment    Any comment regarding the hold or recall
+	 * @param   string  $type       Whether to place a hold or recall
+	 * @param   string  $type       The date when the hold should be cancelled if any
+	 * @return  mixed               True if successful, false if unsuccessful
+	 *                              If an error occurs, return a PEAR_Error
+	 * @access  public
+	 */
+	public function placeItemHold($recordId, $itemId, $patronId, $comment, $type){
+		global $user;
+		//Place the hold via SIP 2
+		if (!$this->initSipConnection()){
+			return array(
+				'result' => false,
+				'message' => 'Could not connect to SIP'
+			);
+		}
+
+		$hold_result = array();
+		$hold_result['result'] = false;
+
+		$this->sipConnection->patron = $user->cat_username;
+		$this->sipConnection->patronpwd = $user->cat_password;
+
+		//Set pickup location
+		if (isset($_REQUEST['campus'])){
+			$campus=trim($_REQUEST['campus']);
+		}else{
+			$campus = $user->homeLocationId;
+			//Get the code for the location
+			$locationLookup = new Location();
+			$locationLookup->locationId = $campus;
+			$locationLookup->find();
+			if ($locationLookup->N > 0){
+				$locationLookup->fetch();
+				$campus = $locationLookup->code;
+			}
+		}
+
+		//place the hold
+		if ($type == 'cancel' || $type == 'recall'){
+			$mode = '-';
+		}elseif ($type == 'update'){
+			$mode = '*';
+		}else{
+			$mode = '+';
+		}
+
+		//Get a specific item number to place a hold on even though we are placing a title level hold.
+		//because.... Koha
+		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+		$recordDriver = new MarcRecord($recordId);
+		if (!$recordDriver->isValid()){
+			$hold_result['message'] = 'Unable to find a valid record for this title.  Please try your search again.';
+			return $hold_result;
+		}
+		global $configArray;
+		$marcRecord = $recordDriver->getMarcRecord();
+		if ($itemId == -1){
+			$itemTag = $configArray['Reindex']['itemTag'];
+			$barcodeSubfield = $configArray['Reindex']['barcodeSubfield'];
+			/** @var File_MARC_Data_Field[] $itemFields */
+			$itemFields = $marcRecord->getFields($itemTag);
+			$barcodeToHold = null;
+			foreach ($itemFields as $itemField){
+				if ($itemField->getSubfield($barcodeSubfield) != null){
+					$barcodeToHold = $itemField->getSubfield($barcodeSubfield)->getData();
+					break;
+				}
+			}
+		}else{
+			$barcodeToHold = $itemId;
 		}
 
 		$hold_result['title'] = $recordDriver->getTitle();
 
-		$in = $this->sipConnection->msgHold($mode, '', '2', $barcodeToHold, $recordId, '', strtoupper($campus));
+		$holdType = 3;
+		if ($itemId == -1){
+			$holdType = 2;
+		}
+		$in = $this->sipConnection->msgHold($mode, '', $holdType, $barcodeToHold, $recordId, '', strtoupper($campus));
 		$msg_result = $this->sipConnection->get_message($in);
-
-		//TODO: Do we need to handle required item level holds?
 
 		$hold_result['id'] = $recordId;
 		if (preg_match("/^16/", $msg_result)) {

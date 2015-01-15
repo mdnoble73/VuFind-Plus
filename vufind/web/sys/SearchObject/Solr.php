@@ -1585,14 +1585,24 @@ class SearchObject_Solr extends SearchObject_Base
 		}
 		$relatedLocationFacets = null;
 		$relatedHomeLocationFacets = null;
+		$additionalAvailableAtLocations = null;
 		if (!is_null($currentLibrary)){
 			$relatedLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($currentLibrary->libraryId);
+			if (strlen($currentLibrary->additionalLocationsToShowAvailabilityFor) > 0){
+				$locationsToLookfor = explode('|', $currentLibrary->additionalLocationsToShowAvailabilityFor);
+				$location = new Location();
+				$location->whereAddIn('code', $locationsToLookfor, 'string');
+				$location->find();
+				$additionalAvailableAtLocations = array();
+				while ($location->fetch()){
+					$additionalAvailableAtLocations[] = $location->facetLabel;
+				}
+			}
 		}
 		$homeLibrary = Library::getPatronHomeLibrary();
 		if (!is_null($homeLibrary)){
 			$relatedHomeLocationFacets = $locationSingleton->getLocationsFacetsForLibrary($homeLibrary->libraryId);
 		}
-
 
 		$allFacets = array_merge($this->indexResult['facet_counts']['facet_fields'], $this->indexResult['facet_counts']['facet_dates']);
 		foreach ($allFacets as $field => $data) {
@@ -1637,8 +1647,7 @@ class SearchObject_Solr extends SearchObject_Base
 				// in addition to limiting links (filter current search with facet),
 				// do some extra work:
 				if ($expandingLinks) {
-					$currentSettings['expandUrl'] =
-					$this->getExpandingFacetLink($field, $facet[0]);
+					$currentSettings['expandUrl'] = $this->getExpandingFacetLink($field, $facet[0]);
 				}
 				// Is this field a current filter?
 				if (in_array($field, array_keys($this->filterList))) {
@@ -1697,8 +1706,11 @@ class SearchObject_Solr extends SearchObject_Base
 						}elseif (!is_null($currentLibrary) && $facet[0] == $currentLibrary->facetLabel . ' Online'){
 							$valueKey = '3' . $valueKey;
 							$numValidRelatedLocations++;
-						}elseif ($facet[0] == 'Marmot Digital Library' || $facet[0] == 'Digital Collection' || $facet[0] == 'OverDrive' || $facet[0] == 'Online'){
+						}else if ($field == 'available_at' && !is_null($additionalAvailableAtLocations) && in_array($facet[0], $additionalAvailableAtLocations)){
 							$valueKey = '4' . $valueKey;
+							$numValidRelatedLocations++;
+						}elseif ($facet[0] == 'Marmot Digital Library' || $facet[0] == 'Digital Collection' || $facet[0] == 'OverDrive' || $facet[0] == 'Online'){
+							$valueKey = '5' . $valueKey;
 							$numValidRelatedLocations++;
 						}else if (!is_null($currentLibrary) && $currentLibrary->restrictOwningBranchesAndSystems == 1){
 							$okToAdd = false;
@@ -2015,26 +2027,32 @@ class SearchObject_Solr extends SearchObject_Base
 	}
 
 	private function getFieldsToReturn() {
-		$fieldsToReturn = $this->fields;
-		global $solrScope;
-		if ($solrScope != false){
-			$fieldsToReturn .= ',related_record_ids_' . $solrScope;
-			$fieldsToReturn .= ',related_items_' . $solrScope;
-			$fieldsToReturn .= ',format_' . $solrScope;
-			$fieldsToReturn .= ',format_category_' . $solrScope;
-			$fieldsToReturn .= ',collection_' . $solrScope;
-			$fieldsToReturn .= ',local_time_since_added_' . $solrScope;
-
+		if (isset($_REQUEST['allFields'])){
+			$fieldsToReturn = '*,score';
 		}else{
-			$fieldsToReturn .= ',related_record_ids';
-			$fieldsToReturn .= ',related_record_items';
-			$fieldsToReturn .= ',related_items_related_record_ids';
-			$fieldsToReturn .= ',format';
-			$fieldsToReturn .= ',format_category';
-			$fieldsToReturn .= ',days_since_added';
-			$fieldsToReturn .= ',local_callnumber';
+			$fieldsToReturn = $this->fields;
+			global $solrScope;
+			if ($solrScope != false){
+				$fieldsToReturn .= ',related_record_ids_' . $solrScope;
+				$fieldsToReturn .= ',related_items_' . $solrScope;
+				$fieldsToReturn .= ',format_' . $solrScope;
+				$fieldsToReturn .= ',format_category_' . $solrScope;
+				$fieldsToReturn .= ',collection_' . $solrScope;
+				$fieldsToReturn .= ',local_time_since_added_' . $solrScope;
+				$fieldsToReturn .= ',detailed_location_' . $solrScope;
+
+			}else{
+				$fieldsToReturn .= ',related_record_ids';
+				$fieldsToReturn .= ',related_record_items';
+				$fieldsToReturn .= ',related_items_related_record_ids';
+				$fieldsToReturn .= ',format';
+				$fieldsToReturn .= ',format_category';
+				$fieldsToReturn .= ',days_since_added';
+				$fieldsToReturn .= ',local_callnumber';
+				$fieldsToReturn .= ',detailed_location';
+			}
+			$fieldsToReturn .= ',score';
 		}
-		$fieldsToReturn .= ',score';
 		return $fieldsToReturn;
 	}
 
