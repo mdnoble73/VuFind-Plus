@@ -7,15 +7,28 @@ require_once 'bootstrap.php';
 require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 $driver = OverDriveDriverFactory::getDriver();
 
+function easy_printr(&$var) {
+	echo '<pre>';
+	print_r($var);
+	echo '</pre>';
+}
 
 $libraryInfo = $driver->getLibraryAccountInformation();
-print_r($libraryInfo);
+echo '<pre>';
 
-echo("<h1>Advantage Accounts</h1>");
+print_r($libraryInfo);
+echo '</pre>';
+
+easy_printr($libraryInfo);
+
+echo "<h1>Advantage Accounts</h1>",
+	'<pre>';
+
 $advantageAccounts = $driver->getAdvantageAccountInformation();
 foreach($advantageAccounts->advantageAccounts as $accountInfo){
 	print_r($accountInfo->name . ' - ' . $accountInfo->collectionToken . '<br/>');
 }
+echo '</pre>';
 
 
 echo("<h1>{$libraryInfo->name}</h1>");
@@ -29,7 +42,10 @@ echo("<h2>First Product Details</h2>");
 $firstProduct = reset($productInfo->products);
 echo("{$firstProduct->title}: {$firstProduct->subtitle}<br/>");
 echo("By {$firstProduct->primaryCreator->name}<br/>");
+echo '<pre>';
+
 print_r($firstProduct);
+echo '</pre>';
 
 //echo("<h2>Advantage Product Details</h2>");
 //$productInfo = $driver->_callUrl("http://api.overdrive.com/v1/libraries/1201/advantageAccounts/50");
@@ -43,8 +59,11 @@ echo("<h3>Metadata</h3>");
 echo($firstProduct->links->metadata->href);
 //$metadata = $driver->getProductMetadata($firstProduct->links->metadata->href);
 $metadata = $driver->getProductMetadata("cda4632c-0593-46e7-94a4-1e4c4451da09", "L1BMAEAAA2k");
+echo '<pre>';
+
 print_r($metadata);
 
+echo '</pre>';
 
 
 /*echo("<h3>Availability - MDL</h3>");
