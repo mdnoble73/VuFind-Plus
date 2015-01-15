@@ -3,7 +3,7 @@
 #
 # this version emails script output as a round finishes
 EMAIL=root@venus
-PIKASERVER = marmot.test
+PIKASERVER = aspencat.test
 
 OUTPUT_FILE="/var/log/vufind-plus/$PIKASERVER/extract_and_reindex_output.log"
 while true
@@ -13,17 +13,17 @@ do
 
 	#echo "Starting new extract and index - `date`" > ${OUTPUT_FILE}
 	# reset the output file each round
-	
+
 	#export from sierra
 	#echo "Starting Sierra Export - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/sierra_export/;
 	nice -n -10 java -jar sierra_export.jar $PIKASERVER >> ${OUTPUT_FILE}
-	
+
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/;
 	nice -n -10 java -jar overdrive_extract.jar $PIKASERVER >> ${OUTPUT_FILE}
-	
+
 	#run reindex
 	#echo "Starting Reindexing - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/reindexer;
