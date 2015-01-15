@@ -87,6 +87,7 @@ class SIPAuthentication implements Authentication {
 		if (isset($_POST['username']) && isset($_POST['password'])) {
 			$username = $_POST['username'];
 			$password = $_POST['password'];
+			//Set this up to use library prefix
 			$barcodePrefix = $configArray['Catalog']['barcodePrefix'];
 			if (strlen($barcodePrefix) > 0){
 				if (strlen($username) == 9){

@@ -66,7 +66,7 @@ class sip2
 
 	var $use_usleep=1;	// change to 1 for faster execution
 	// don't change to 1 on Windows servers unless you have PHP 5
-	var $sleeptime=125000;
+	var $sleeptime=175000;
 	var $loginsleeptime=1000000;
 
 	/* Patron ID */

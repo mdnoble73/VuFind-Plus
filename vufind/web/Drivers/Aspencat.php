@@ -487,7 +487,7 @@ class Aspencat implements DriverInterface{
 		}
 
 		if (!$this->initSipConnection()){
-			$profile = new PEAR_Error('patron_info_error_technical');
+			$profile = new PEAR_Error('patron_info_error_technical - Unable to initialize connection');
 		}else{
 
 			$this->sipConnection->patron = $patron['username'];
@@ -590,7 +590,7 @@ class Aspencat implements DriverInterface{
 					}
 				}
 			} else {
-				$profile = new PEAR_Error('patron_info_error_technical');
+				$profile = new PEAR_Error('patron_info_error_technical - invalid patron information response');
 			}
 		}
 
