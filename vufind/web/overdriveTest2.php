@@ -16,17 +16,25 @@ function easy_printr(&$var) {
 $libraryInfo = $driver->getLibraryAccountInformation();
 easy_printr($libraryInfo);
 
-echo "<h1>Advantage Accounts</h1>",
+echo "<h1>Advantage Accounts</h1>";
 
-$advantageAccounts = $driver->getAdvantageAccountInformation();
-foreach($advantageAccounts->advantageAccounts as $accountInfo){
-	echo $accountInfo->name . ' - ' . $accountInfo->collectionToken . '<br/>';
+try {
+	$advantageAccounts = $driver->getAdvantageAccountInformation();
+	if ($advantageAccounts) {
+		foreach ($advantageAccounts->advantageAccounts as $accountInfo) {
+			echo $accountInfo->name . ' - ' . $accountInfo->collectionToken . '<br/>';
+		}
+	}
+} catch (Exception $e) {
+	echo 'Error retrieving Advantage Info';
 }
 
+$productKey = $libraryInfo->collectionToken;
 
 echo"<h1>{$libraryInfo->name}</h1>",
 	"<h2>Products</h2>",
-	"Products link {$libraryInfo->links->products->href}<br/>";
+	"Products link {$libraryInfo->links->products->href}<br/>",
+	"Product Key $productKey<br/>";
 //showProductInfo($driver, $libraryInfo->links->products->href);
 
 $productInfo = $driver->getProductsInAccount($libraryInfo->links->products->href);
@@ -50,7 +58,9 @@ echo "<h3>Metadata</h3>",
 	$firstProduct->links->metadata->href;
 
 //$metadata = $driver->getProductMetadata($firstProduct->links->metadata->href);
-$metadata = $driver->getProductMetadata("cda4632c-0593-46e7-94a4-1e4c4451da09", "L1BMAEAAA2k");
+
+//$metadata = $driver->getProductMetadata("cda4632c-0593-46e7-94a4-1e4c4451da09", "L1BMAEAAA2k");
+$metadata = $driver->getProductMetadata("cda4632c-0593-46e7-94a4-1e4c4451da09", $productKey);
 
 easy_printr($metadata);
 
