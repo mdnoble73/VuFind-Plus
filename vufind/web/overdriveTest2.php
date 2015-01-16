@@ -7,29 +7,44 @@ require_once 'bootstrap.php';
 require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 $driver = OverDriveDriverFactory::getDriver();
 
-
-$libraryInfo = $driver->getLibraryAccountInformation();
-print_r($libraryInfo);
-
-echo("<h1>Advantage Accounts</h1>");
-$advantageAccounts = $driver->getAdvantageAccountInformation();
-foreach($advantageAccounts->advantageAccounts as $accountInfo){
-	print_r($accountInfo->name . ' - ' . $accountInfo->collectionToken . '<br/>');
+function easy_printr(&$var) {
+	echo '<pre>';
+	print_r($var);
+	echo '</pre>';
 }
 
+$libraryInfo = $driver->getLibraryAccountInformation();
+easy_printr($libraryInfo);
 
-echo("<h1>{$libraryInfo->name}</h1>");
+echo "<h1>Advantage Accounts</h1>";
 
-echo("<h2>Products</h2>");
-echo("Products link {$libraryInfo->links->products->href}<br/>");
+try {
+	$advantageAccounts = $driver->getAdvantageAccountInformation();
+	if ($advantageAccounts) {
+		foreach ($advantageAccounts->advantageAccounts as $accountInfo) {
+			echo $accountInfo->name . ' - ' . $accountInfo->collectionToken . '<br/>';
+		}
+	}
+} catch (Exception $e) {
+	echo 'Error retrieving Advantage Info';
+}
+
+$productKey = $libraryInfo->collectionToken;
+
+echo"<h1>{$libraryInfo->name}</h1>",
+	"<h2>Products</h2>",
+	"Products link {$libraryInfo->links->products->href}<br/>",
+	"Product Key $productKey<br/>";
 //showProductInfo($driver, $libraryInfo->links->products->href);
 
 $productInfo = $driver->getProductsInAccount($libraryInfo->links->products->href);
-echo("<h2>First Product Details</h2>");
 $firstProduct = reset($productInfo->products);
-echo("{$firstProduct->title}: {$firstProduct->subtitle}<br/>");
-echo("By {$firstProduct->primaryCreator->name}<br/>");
-print_r($firstProduct);
+
+echo "<h2>First Product Details</h2>",
+	"{$firstProduct->title}: {$firstProduct->subtitle}<br/>",
+	"By {$firstProduct->primaryCreator->name}<br/>";
+
+easy_printr($firstProduct);
 
 //echo("<h2>Advantage Product Details</h2>");
 //$productInfo = $driver->_callUrl("http://api.overdrive.com/v1/libraries/1201/advantageAccounts/50");
@@ -39,11 +54,15 @@ print_r($firstProduct);
 //$productInfo = $driver->_callUrl("http://api.overdrive.com/v1/collections/L1BUwYAAA2r/products");
 //print_r($productInfo);
 
-echo("<h3>Metadata</h3>");
-echo($firstProduct->links->metadata->href);
+echo "<h3>Metadata</h3>",
+	$firstProduct->links->metadata->href;
+
 //$metadata = $driver->getProductMetadata($firstProduct->links->metadata->href);
-$metadata = $driver->getProductMetadata("cda4632c-0593-46e7-94a4-1e4c4451da09", "L1BMAEAAA2k");
-print_r($metadata);
+
+//$metadata = $driver->getProductMetadata("cda4632c-0593-46e7-94a4-1e4c4451da09", "L1BMAEAAA2k");
+$metadata = $driver->getProductMetadata("cda4632c-0593-46e7-94a4-1e4c4451da09", $productKey);
+
+easy_printr($metadata);
 
 
 

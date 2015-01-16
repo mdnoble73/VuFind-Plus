@@ -6849,9 +6849,6 @@ div#system-message-header {
   margin-left: 3px;
   margin-right: 3px;
 }
-/**
- Styling for home page elements
-*/
 #home-page-search {
   background-color: #00703c;
   background: linear-gradient(to bottom, #00703c, #006234);
@@ -6945,7 +6942,6 @@ div#system-message-header {
 .sidebar-button a {
   color: white;
 }
-/** Library Link Formatting */
 .sidebar-links .panel-group .panel + .panel {
   margin-top: 0px;
 }
@@ -6978,7 +6974,6 @@ div#system-message-header {
 .sidebar-links .panel-body a:hover {
   color: #428bca;
 }
-/** Browse Formatting */
 #home-page-browse-header {
   background-color: #d7dce3;
   padding-bottom: 15px;
@@ -7019,6 +7014,15 @@ div#system-message-header {
   color: #d4d4d4;
   font-size: 50px;
 }
+#browse-category-picker .jcarousel-control-prev:focus,
+#browse-category-picker .jcarousel-control-next:focus {
+  text-decoration: none;
+  outline: none;
+}
+#browse-category-picker .jcarousel-control-prev:hover,
+#browse-category-picker .jcarousel-control-next:hover {
+  text-decoration: none;
+}
 #browse-category-picker a.jcarousel-control-next:after {
   content: "›";
 }
@@ -7037,6 +7041,9 @@ div#system-message-header {
 }
 .browse-category a {
   color: white;
+}
+.browse-category a:focus {
+  outline: none;
 }
 .browse-category a div {
   height: 80px;
@@ -7173,18 +7180,6 @@ div#system-message-header {
   -webkit-column-break-inside: avoid;
   display: inline-block;
 }
-/*.browse-thumbnail{
-  @media(max-width: @screen-md-min){
-    height: 140px;
-  }
-  @media(min-width: @screen-sm-min){
-    height: 240px;
-  }
-  @media(min-width: @screen-md-min){
-    height: 240px;
-  }
-  position: relative;
-}*/
 .browse-thumbnail {
   text-align: center;
 }
@@ -7199,7 +7194,6 @@ div#system-message-header {
   font-size: 16px;
   padding: 2px;
 }
-/** Theming for auto-complete widget */
 .ui-helper-hidden {
   display: none;
 }
@@ -7260,6 +7254,15 @@ div#system-message-header {
   -webkit-border-radius: 0px;
   -moz-border-radius: 0px;
   background-image: none;
+}
+.categoryValue img {
+  max-width: 50px;
+  height: 50px;
+}
+@media screen and (max-width: 540px) {
+  .formatCategoryLabel {
+    float: none;
+  }
 }
 /** Account Settings formatting */
 #account-settings-accordion .panel-group .panel + .panel {

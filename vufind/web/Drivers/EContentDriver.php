@@ -574,10 +574,17 @@ class EContentDriver implements DriverInterface{
 
 				$items = $recordDriver->getItems();
 
-				$links['return'] = array(
+				if ($eContentCheckout->protectionType == 'free'){
+					$links['return'] = array(
+							'text' => 'Return&nbsp;Now',
+							'onclick' => "if (confirm('Are you sure you want to cancel this hold?')){VuFind.LocalEContent.returnPublicEContent('$eContentCheckout->recordId', '$eContentCheckout->itemId')};return false;",
+							'typeReturn' => 0);
+				}else{
+					$links['return'] = array(
 						'text' => 'Return&nbsp;Now',
-						'onclick' => "if (confirm('Are you sure you want to cancel this hold?')){VuFind.LocalEContent.cancelHold('$eContentCheckout->recordId', '$eContentCheckout->itemId')};return false;",
+						'onclick' => "if (confirm('Are you sure you want to cancel this hold?')){VuFind.LocalEContent.returnRestrictedEContent('$eContentCheckout->recordId', '$eContentCheckout->itemId')};return false;",
 						'typeReturn' => 0);
+				}
 
 				//Get Ratings
 				$return['transactions'][] = array(

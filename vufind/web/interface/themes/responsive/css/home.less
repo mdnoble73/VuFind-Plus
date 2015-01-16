@@ -1,9 +1,9 @@
 @import "bootstrap/less/variables.less";
-@import "bootstrap/less/glyphicons.less";
+//@import "bootstrap/less/glyphicons.less";
 @import "variables.less";
-/**
- Styling for home page elements
-*/
+//
+// Styling for home page elements
+//
 
 #home-page-search{
   background-color: @home-search-top-color;
@@ -84,7 +84,7 @@
   color: white;
 }
 
-/** Library Link Formatting */
+// Library Link Formatting
 .sidebar-links .panel-group .panel + .panel{
   margin-top: 0px;
 }
@@ -117,7 +117,7 @@
   color: @sidebar-link-color;
 }
 
-/** Browse Formatting */
+// Browse Formatting
 #home-page-browse-header{
   background-color: @browse-header-background-color;
   padding-bottom: 15px;
@@ -159,6 +159,13 @@
   background-color: #9e9fa3;
   color: #d4d4d4;
   font-size: 50px;
+  &:focus {
+    text-decoration: none;
+    outline: none;
+  }
+  &:hover {
+    text-decoration: none;
+  }
 }
 #browse-category-picker a.jcarousel-control-next:after {
   content: "›";
@@ -178,6 +185,9 @@
 }
 .browse-category a{
   color: white;
+  &:focus {
+    outline: none; // hide outlining of clicked category
+  }
 }
 .browse-category a div{
   height:80px;
@@ -304,18 +314,18 @@
   -webkit-column-break-inside: avoid;
   display: inline-block;
 }
-/*.browse-thumbnail{
-  @media(max-width: @screen-md-min){
-    height: 140px;
-  }
-  @media(min-width: @screen-sm-min){
-    height: 240px;
-  }
-  @media(min-width: @screen-md-min){
-    height: 240px;
-  }
-  position: relative;
-}*/
+//.browse-thumbnail{
+//  @media(max-width: @screen-md-min){
+//    height: 140px;
+//  }
+//  @media(min-width: @screen-sm-min){
+//    height: 240px;
+//  }
+//  @media(min-width: @screen-md-min){
+//    height: 240px;
+//  }
+//  position: relative;
+//}
 .browse-thumbnail{
   text-align: center;
 }
@@ -331,7 +341,7 @@
   padding: 2px;
 }
 
-/** Theming for auto-complete widget */
+// Theming for auto-complete widget //
 .ui-helper-hidden {
   display: none;
 }
@@ -394,3 +404,17 @@
     }
   }
 }
+
+// Keep Format Category images & labels apart from each other
+.categoryValue img {
+  max-width: 50px;
+  height: 50px;
+}
+
+// Put Labels beneath icons on small screens
+@media screen and (max-width: 540px) {
+  .formatCategoryLabel {
+    float: none;
+  }
+}
+
