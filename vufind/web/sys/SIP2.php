@@ -678,9 +678,17 @@ class sip2
 
 		$this->_debugmsg('SIP2: Request Sent, Reading response');
 
+		//Read from the socket one byte at a time until we read a carriage return
+		//Or until the connection receives an error ($nr === false).
 		while ($terminator != "\x0D" && $nr !== FALSE) {
 			$nr = socket_recv($this->socket,$terminator,1,0);
 			$result = $result . $terminator;
+		}
+		if ($nr === false){
+			//Whoops, we got an error
+			global $logger;
+			$lastError = socket_last_error($this->socket);
+			$logger->log("Error reading data from socket ($lastError)" . socket_strerror($lastError), PEAR_LOG_ERR);
 		}
 
 		$this->_debugmsg("SIP2: {$result}");

@@ -385,6 +385,7 @@ public class RecordGrouperMain {
 				String identifier = invalidIdentifiersRS.getString("identifier");
 				String titles = invalidIdentifiersRS.getString("titles");
 				String[] titlesBroken = titles.split(",");
+				boolean allTitlesSimilar = true;
 				if (titlesBroken.length >= 2){
 					String firstTitle = titlesBroken[0];
 					for (int i = 1; i < titlesBroken.length; i++){
@@ -392,12 +393,15 @@ public class RecordGrouperMain {
 						if (!curTitle.equals(firstTitle)){
 							if (curTitle.startsWith(firstTitle) || firstTitle.startsWith(curTitle)){
 								logger.info(type + " " + identifier + " did not match on titles '" + titles + "', but the titles are similar");
+							}else{
+								allTitlesSimilar = false;
 							}
 						}
 					}
 				}
 				String authors = invalidIdentifiersRS.getString("authors");
 				String[] authorsBroken = authors.split(",");
+				boolean allAuthorsSimilar = true;
 				if (authorsBroken.length >= 2){
 					String firstAuthor = authorsBroken[0];
 					for (int i = 1; i < authorsBroken.length; i++){
@@ -405,12 +409,15 @@ public class RecordGrouperMain {
 						if (!curAuthor.equals(firstAuthor)){
 							if (curAuthor.startsWith(firstAuthor) || firstAuthor.startsWith(curAuthor)){
 								logger.info(type + " " + identifier + " did not match on authors '" + authors + "', but the authors are similar");
+							}else{
+								allAuthorsSimilar = false;
 							}
 						}
 					}
 				}
 				String categories = invalidIdentifiersRS.getString("categories");
 				String[] categoriesBroken = categories.split(",");
+				boolean allCategoriesSimilar = true;
 				if (categoriesBroken.length >= 2){
 					String firstCategory = categoriesBroken[0];
 					for (int i = 1; i < categoriesBroken.length; i++){
@@ -418,14 +425,20 @@ public class RecordGrouperMain {
 						if (!curCategory.equals(firstCategory)){
 							if (curCategory.startsWith(firstCategory) || firstCategory.startsWith(curCategory)){
 								logger.info(type + " " + identifier + " did not match on categories '" + categories + "', but the categories are similar");
+							}else{
+								allCategoriesSimilar = false;
 							}
 						}
 					}
 				}
 
-				updateInvalidIdentifierStmt.setLong(1, invalidIdentifiersRS.getLong("secondary_identifier_id"));
-				updateInvalidIdentifierStmt.executeUpdate();
-				numIdentifiersUpdated++;
+				if (!(allTitlesSimilar && allAuthorsSimilar && allCategoriesSimilar)) {
+					updateInvalidIdentifierStmt.setLong(1, invalidIdentifiersRS.getLong("secondary_identifier_id"));
+					updateInvalidIdentifierStmt.executeUpdate();
+					numIdentifiersUpdated++;
+				}else{
+					logger.info("Leaving secondary identifier as valid because the titles are similar enough");
+				}
 			}
 			logger.info("Marked " + numIdentifiersUpdated + " secondaryIdentifiers as invalid for enrichment because they link to multiple grouped records");
 			invalidIdentifiersRS.close();
