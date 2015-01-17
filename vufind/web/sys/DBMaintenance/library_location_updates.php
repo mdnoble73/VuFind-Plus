@@ -862,5 +862,18 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE `library` ADD `additionalLocationsToShowAvailabilityFor` VARCHAR(255) DEFAULT '' NOT NULL;",
 			),
 		),
+
+
+		'overdrive_integration' => array(
+			'title' => 'Add Library Settings for Overdrive integration',
+			'description' => 'Add log-in information (Authentication ILS-Name & require Pin) so that we can utilize Overdrive\'s APIs.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `overdriveAuthenticationILSName` VARCHAR(45) NULL AFTER `repeatInOverdrive`;",
+				"ALTER TABLE `library` ADD COLUMN `overdriveRequirePin` TINYINT(1) NOT NULL DEFAULT 0 AFTER `overdriveAuthenticationILSName`;",
+			),
+		),
+
+
 	);
 }

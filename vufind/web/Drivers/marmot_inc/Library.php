@@ -64,6 +64,8 @@ class Library extends DB_DataObject
 	public $repeatInProspector;
 	public $repeatInWorldCat;
 	public $repeatInOverdrive;
+	public $overdriveAuthenticationILSName;
+	public $overdriveRequirePin;
 	public $overdriveAdvantageName;
 	public $overdriveAdvantageProductsKey;
 	public $systemsToRepeatIn;
@@ -362,6 +364,8 @@ class Library extends DB_DataObject
 
 			array('property'=>'overdriveSection', 'type' => 'section', 'label' =>'OverDrive', 'hideInLists' => true, 'properties' => array(
 				'repeatInOverdrive' => array('property'=>'repeatInOverdrive', 'type'=>'checkbox', 'label'=>'Repeat In Overdrive', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true, 'default' => 0),
+				'overdriveAuthenticationILSName' => array('property'=>'overdriveAuthenticationILSName', 'type'=>'text', 'label'=>'The ILS Name Overdrive uses for user Authentication', 'description'=>'The name of the ILS that OverDrive uses to authenticate users logging into the Overdrive website.', 'size'=>'20', 'hideInLists' => true),
+				'overdriveRequirePin' => array('property'=>'overdriveRequirePin', 'type'=>'checkbox', 'label'=>'Is a Pin Required to log into Overdrive website?', 'description'=>'Turn on to allow repeat search in Overdrive functionality.', 'hideInLists' => true, 'default' => 0),
 				'overdriveAdvantageName' => array('property'=>'overdriveAdvantageName', 'type'=>'text', 'label'=>'Overdrive Advantage Name', 'description'=>'The name of the OverDrive Advantage account if any.', 'size'=>'80', 'hideInLists' => true,),
 				'overdriveAdvantageProductsKey' => array('property'=>'overdriveAdvantageProductsKey', 'type'=>'text', 'label'=>'Overdrive Advantage Products Key', 'description'=>'The products key for use when building urls to the API from the advantageAccounts call.', 'size'=>'80', 'hideInLists' => false,),
 			)),
