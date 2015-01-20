@@ -159,7 +159,7 @@ class OverDriveDriver3 {
 				if ($patronTokenData){
 					if (isset($patronTokenData->error)){
 						if ($patronTokenData->error == 'unauthorized_client'){ // login failure
-							// patrons with to high a fine amount will get this result.
+							// patrons with too high a fine amount will get this result.
 							return false;
 						}else{
 							echo("Error connecting to overdrive apis ". $patronTokenData->error);
