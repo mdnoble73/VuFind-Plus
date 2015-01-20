@@ -1052,6 +1052,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			printFormats.remove("Book");
 		}else if (printFormats.contains("Book") && printFormats.contains("MusicalScore")){
 			printFormats.remove("Book");
+		}else if (printFormats.contains("Book") && printFormats.contains("BookClubKit")){
+			printFormats.remove("Book");
 		}else if (printFormats.contains("Kinect") || printFormats.contains("XBox360")
 				|| printFormats.contains("XBoxOne") || printFormats.contains("PlayStation")
 				|| printFormats.contains("PlayStation3") || printFormats.contains("PlayStation4")
@@ -1081,6 +1083,13 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				printFormats.add("SoundCassette");
 			}else if (titlePart.contains("large print")){
 				printFormats.add("LargePrint");
+			}
+		}
+		String title = getFirstFieldVal(record, "245a");
+		if (title != null){
+			title = title.toLowerCase();
+			if (title.contains("book club kit")){
+				printFormats.add("BookClubKit");
 			}
 		}
 	}

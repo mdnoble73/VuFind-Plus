@@ -1230,7 +1230,7 @@ class MarcRecord extends IndexRecord
 			}
 		}
 
-		$physicalDescriptions = $this->getFieldArray("300");
+		$physicalDescriptions = $this->getFieldArray("300", array('a', 'b', 'c'));
 		foreach($physicalDescriptions as $physicalDescription){
 			$physicalDescription = strtolower($physicalDescription);
 			if (strpos($physicalDescription, "large type") !== FALSE) {
@@ -1285,6 +1285,11 @@ class MarcRecord extends IndexRecord
 			if (strpos($addedAuthor, "playaway digital audio") !== FALSE || strpos($addedAuthor, "findaway world") !== FALSE){
 				$result[] =  "Playaway";
 			}
+		}
+
+		$title = strtolower($this->getTitle());
+		if (strpos($title, 'book club kit') !== false){
+			$result[] = "Book Club Kit";
 		}
 
 		// check the 007 - this is a repeating field
@@ -1571,12 +1576,18 @@ class MarcRecord extends IndexRecord
 	/**
 	 * Remove formats that are less specific
 	 *
-	 * @param $allFormats
+	 * @param string[] $allFormats
+	 *
+	 * @return string[]
 	 */
 	function filterFormats($allFormats){
 		if (in_array('Video', $allFormats) && in_array('DVD', $allFormats)){
 			$allFormats = array_remove_by_value($allFormats, 'Video');
 		}elseif (in_array('Musical Score', $allFormats) && in_array('Book', $allFormats)){
+			$allFormats = array_remove_by_value($allFormats, 'Book');
+		}elseif (in_array('Audio CD', $allFormats) && in_array('Sound Recording', $allFormats)){
+			$allFormats = array_remove_by_value($allFormats, 'Sound Recording');
+		}elseif (in_array('Book Club Kit', $allFormats) && in_array('Book', $allFormats)){
 			$allFormats = array_remove_by_value($allFormats, 'Book');
 		}
 		return $allFormats;
