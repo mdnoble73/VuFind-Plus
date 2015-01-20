@@ -91,6 +91,7 @@ VuFind.GroupedWork = (function(){
 							seriesScroller = new TitleScroller('titleScrollerSeries', 'Series', 'seriesList');
 							$('#seriesInfo').show();
 							seriesScroller.loadTitlesFromJsonData(seriesData);
+							$('#seriesPanel').show();
 						}else{
 							$('#seriesPanel').hide();
 						}
