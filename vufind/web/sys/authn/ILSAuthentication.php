@@ -9,6 +9,13 @@ class ILSAuthentication implements Authentication {
 		global $configArray;
 		global $user;
 
+		//Check to see if the username and password are provided
+		if (!array_key_exists('username', $_REQUEST) && !array_key_exists('password', $_REQUEST)){
+			//If not, check to see if we have a valid user already authenticated
+			if ($user){
+				return $user;
+			}
+		}
 		$this->username = $_REQUEST['username'];
 		$this->password = $_REQUEST['password'];
 
