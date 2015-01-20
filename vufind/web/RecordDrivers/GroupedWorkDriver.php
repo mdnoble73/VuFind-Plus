@@ -541,6 +541,7 @@ class GroupedWorkDriver extends RecordInterface{
 			$interface->assign('summSeries', $this->getSeries(false));
 		}else{
 			$interface->assign('ajaxSeries', true);
+			$interface->assign('summSeries', null);
 		}
 		$timer->logTime('Finished Loading Series');
 
