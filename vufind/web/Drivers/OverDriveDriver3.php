@@ -215,7 +215,7 @@ class OverDriveDriver3 {
 		if (!isset($this->requirePin)) {
 			// use library setting if it has a value. if no library setting, use the configuration setting.
 			global $library, $configArray;
-			if (!empty($library->overdriveRequirePin)) {
+			if (!isset($library->overdriveRequirePin)) {
 				$this->requirePin = $library->overdriveRequirePin;
 			} elseif (isset($configArray['OverDrive']['requirePin'])){
 				$this->requirePin = $configArray['OverDrive']['requirePin'];
