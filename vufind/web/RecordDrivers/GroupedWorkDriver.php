@@ -397,7 +397,7 @@ class GroupedWorkDriver extends RecordInterface{
 
 	public function getLinkUrl(){
 		global $configArray;
-		return $configArray['Site']['url'] . '/GroupedWork/' . $this->getPermanentId() . '/Home';
+		return $configArray['Site']['path'] . '/GroupedWork/' . $this->getPermanentId() . '/Home';
 	}
 
 	/**
