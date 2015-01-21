@@ -15,7 +15,7 @@
 				{/if}
 			</div>
 			<div class="col-sm-5 text-right" id="connect-with-us-info">
-				{if $twitterLink || $facebookLink || $generalContactLink}
+				{if $twitterLink || $facebookLink || $generalContactLink || $youtubeLink || $instagramLink || $goodreadsLink}
 					<span id="connect-with-us-label" class="large">CONNECT WITH US</span>
 					{if $twitterLink}
 						<a href="{$twitterLink}" class="connect-icon"><img src="{img filename='twitter.png'}" class="img-rounded"></a>
