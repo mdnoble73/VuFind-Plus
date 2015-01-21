@@ -168,7 +168,7 @@ public class RecordGroupingProcessor {
 
 		//Check to see if the record is an overdrive record
 		if (useEContentSubfield){
-			boolean allItemsOverDrive = true;
+			boolean allItemsSuppressed = true;
 
 			List<DataField> itemFields = getDataFields(marcRecord, itemTag);
 			int numItems = itemFields.size();
@@ -179,20 +179,20 @@ public class RecordGroupingProcessor {
 					if (eContentData.indexOf(':') >= 0){
 						String[] eContentFields = eContentData.split(":");
 						String sourceType = eContentFields[0].toLowerCase().trim();
-						if (!sourceType.equals("overdrive")){
-							allItemsOverDrive = false;
+						if (!sourceType.equals("overdrive") && !sourceType.equals("hoopla")){
+							allItemsSuppressed = false;
 						}
 					}else{
-						allItemsOverDrive = false;
+						allItemsSuppressed = false;
 					}
 				}else{
-					allItemsOverDrive = false;
+					allItemsSuppressed = false;
 				}
 			}
 			if (numItems == 0){
-				allItemsOverDrive = false;
+				allItemsSuppressed = false;
 			}
-			if (allItemsOverDrive){
+			if (allItemsSuppressed){
 				//Don't return a primary identifier for this record (we will suppress the bib and just use OverDrive APIs)
 				return null;
 			}
@@ -201,9 +201,11 @@ public class RecordGroupingProcessor {
 			List<DataField> linkFields = getDataFields(marcRecord, "856");
 			for (DataField linkField : linkFields){
 				if (linkField.getSubfield('u') != null){
-					//Check the url to see if it is from OverDrive
+					//Check the url to see if it is from OverDrive or Hoopla
 					String linkData = linkField.getSubfield('u').getData().trim();
 					if (linkData.matches("(?i)^http://.*?lib\\.overdrive\\.com/ContentDetails\\.htm\\?id=[\\da-f]{8}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{4}-[\\da-f]{12}$")){
+						return null;
+					}else if (linkData.matches("(?i)^https://www\\.hoopladigital\\.com/title/\\d+$")){
 						return null;
 					}
 				}
