@@ -138,7 +138,7 @@
 			<input type="hidden" name="MAX_FILE_SIZE" value="100000" />
 			<input type="hidden" name='objectAction' value='import' />
 			<label for="uploadedFileImport">Choose a file to import: </label><input name="uploadedfile" id="uploadedFileImport" type="file" /> <input type="submit" value="Import File" class="btn btn-small btn-default"/>
-			<p>This should be a file that was exported from the VuFind Admin console. Trying to import another file could result in having a very long day of trying to put things back together.	In short, don't do it!</p>
+			<p>This should be a file that was exported from the Pika Admin console. Trying to import another file could result in having a very long day of trying to put things back together.	In short, don't do it!</p>
 		</div>
 	</form>
 {/if}
