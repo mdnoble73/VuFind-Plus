@@ -172,6 +172,23 @@ function getGroupedWorkUpdates(){
 			'sql' => array(
 				"ALTER TABLE grouped_work_primary_identifiers CHANGE `type` `type` ENUM('ils', 'external', 'drm', 'free', 'overdrive', 'evoke', 'hoopla' ) NOT NULL",
 			),
+		),
+
+		'grouped_work_index_cleanup' => array(
+			'title' => 'Cleanup Grouped Work Indexes',
+			'description' => 'Cleanup Indexes for better performance',
+			'continueOnError' => true,
+			'sql' => array(
+				"DROP INDEX title on grouped_work",
+				"DROP INDEX full_title on grouped_work",
+				"DROP INDEX grouped_work_id on grouped_work_identifiers",
+				"DROP INDEX type_2 on grouped_work_identifiers",
+				"DROP INDEX type_3 on grouped_work_identifiers",
+				"DROP INDEX identifier_id_2 on grouped_work_identifiers_ref",
+				"DROP INDEX grouped_work_id on grouped_work_identifiers_ref",
+				"DROP INDEX grouped_work_id_2 on grouped_work_identifiers_ref",
+				"DROP INDEX primary_identifier_id_2 on grouped_work_primary_to_secondary_id_ref",
+			),
 		)
 	);
 }
