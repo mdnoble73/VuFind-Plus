@@ -217,13 +217,26 @@ public class UpdateReadingHistory implements IProcessHandler {
 			insertReadingHistoryStmt.setString(4, sourceId);
 			insertReadingHistoryStmt.setString(5, Util.trimTo(150, readingHistoryTitle.getString("title")));
 			insertReadingHistoryStmt.setString(6, Util.trimTo(75, readingHistoryTitle.getString("author")));
-			insertReadingHistoryStmt.setString(7, Util.trimTo(50, readingHistoryTitle.getString("format")));
+			String format = readingHistoryTitle.getString("format");
+			if (format.startsWith("[")){
+				//This is an array of formats, just grab one
+				format = format.replace("[", "");
+				format = format.replace("]", "");
+				format = format.replace("\"", "");
+				String[] formats = format.split(",");
+				format = formats[0];
+			}
+			insertReadingHistoryStmt.setString(7, Util.trimTo(50, format));
 			String checkoutDate = readingHistoryTitle.getString("checkout");
 			long checkoutTime = new Date().getTime();
-			try {
-				checkoutTime = checkoutDateFormat.parse(checkoutDate).getTime() / 1000;
-			} catch (ParseException e) {
-				logger.error("Error loading checkout date " + checkoutDate + " was not the expected format");
+			if (checkoutDate.matches("^\\d+$")){
+				checkoutTime = Long.parseLong(checkoutDate);
+			}else{
+				try {
+					checkoutTime = checkoutDateFormat.parse(checkoutDate).getTime() / 1000;
+				} catch (ParseException e) {
+					logger.error("Error loading checkout date " + checkoutDate + " was not the expected format");
+				}
 			}
 
 			insertReadingHistoryStmt.setLong(8, checkoutTime);
