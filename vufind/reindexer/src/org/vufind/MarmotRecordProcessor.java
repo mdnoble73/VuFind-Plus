@@ -207,6 +207,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				//Check to see if the item has an eContent indicator
 				boolean isEContent = false;
 				boolean isOverDrive = false;
+				boolean isHoopla = false;
 				if (useEContentSubfield){
 					if (itemField.getSubfield(eContentSubfieldIndicator) != null){
 						String eContentData = itemField.getSubfield(eContentSubfieldIndicator).getData();
@@ -216,15 +217,20 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 							String sourceType = eContentFields[0].toLowerCase().trim();
 							if (sourceType.equals("overdrive")){
 								isOverDrive = true;
+							}else if (sourceType.equals("hoopla")){
+								isHoopla = true;
 							}
 						}else{
-							if (itemField.getSubfield(eContentSubfieldIndicator).getData().trim().equalsIgnoreCase("overdrive")){
+							String source = itemField.getSubfield(eContentSubfieldIndicator).getData().trim();
+							if (source.equalsIgnoreCase("overdrive")){
 								isOverDrive = true;
+							}else if (source.equalsIgnoreCase("hoopla")){
+								isHoopla = true;
 							}
 						}
 					}
 				}
-				if (!isOverDrive && isEContent){
+				if (!isOverDrive && !isHoopla && isEContent){
 					unsuppressedEcontentRecords.add(getEContentIlsRecord(record, identifier, itemField));
 				}
 			}
