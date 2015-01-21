@@ -1511,21 +1511,47 @@ class Solr implements IndexEngine {
 		//who is using the catalog. This enables "super scope" even if the user is doing a repeat search.
 		if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
 			$usableFilter = 'usable_by:('.$pType . ' OR all)';
+			$owningBranchFilter = "";
+			$usableEContentFilter = "";
+			$onOrderFilter = "";
 			if (strlen($owningLibrary) > 0){
-				$usableFilter .= " OR $buildingFacetName:\"$owningLibrary\" OR $buildingFacetName:\"$owningLibrary Online\" OR $buildingFacetName:\"$owningLibrary On Order\"";
+				$owningBranchFilter .= " $buildingFacetName:\"$owningLibrary\"";
+				$usableEContentFilter .= "$buildingFacetName:\"$owningLibrary Online\"";
+				$onOrderFilter .= "$buildingFacetName:\"$owningLibrary On Order\"";
 			}
 			if (strlen($owningSystem) > 0){
-				$usableFilter .= " OR $institutionFacetName:\"$owningSystem\" OR $buildingFacetName:\"$owningSystem Online\" OR $buildingFacetName:\"$owningSystem On Order\"";
+				if (strlen($owningBranchFilter) > 0) $owningBranchFilter .= " OR ";
+				if (strlen($usableEContentFilter) > 0) $usableEContentFilter .= " OR ";
+				if (strlen($onOrderFilter) > 0) $onOrderFilter .= " OR ";
+				$owningBranchFilter .= "$institutionFacetName:\"$owningSystem\"";
+				$usableEContentFilter .= "$buildingFacetName:\"$owningSystem Online\"";
+				$onOrderFilter .= "$buildingFacetName:\"$owningSystem On Order\"";
 			}
 			$homeLibrary = Library::getPatronHomeLibrary();
 			if ($homeLibrary && $homeLibrary != $searchLibrary){
+				if (strlen($owningBranchFilter) > 0) $owningBranchFilter .= " OR ";
+				if (strlen($usableEContentFilter) > 0) $usableEContentFilter .= " OR ";
+				if (strlen($onOrderFilter) > 0) $onOrderFilter .= " OR ";
 				$homeLibraryFacet = $homeLibrary->facetLabel;
-				$usableFilter .= " OR $buildingFacetName:\"$homeLibraryFacet\" OR $buildingFacetName:\"$homeLibraryFacet Online\" OR $buildingFacetName:\"$homeLibraryFacet On Order\"";
+				$owningBranchFilter .= "$buildingFacetName:\"$homeLibraryFacet\"";
+				$usableEContentFilter .= "$buildingFacetName:\"$homeLibraryFacet Online\"";
+				$onOrderFilter .= "$buildingFacetName:\"$homeLibraryFacet On Order\"";
 			}
 			if (isset($searchLibrary) && $searchLibrary->includeDigitalCollection){
-				$usableFilter .= " OR $institutionFacetName:\"Shared Digital Collection\"";
+				if (strlen($usableEContentFilter) > 0) $usableEContentFilter .= " OR ";
+				$usableEContentFilter .= " $institutionFacetName:\"Shared Digital Collection\"";
 			}
-			$filter[] = '(' . $usableFilter . ')';
+			if (strlen($usableEContentFilter)){
+				$usableFilter .= " AND $usableEContentFilter";
+			}
+			$fullFilter = $usableFilter;
+			if (strlen($owningBranchFilter)){
+				$fullFilter = "($usableFilter OR $owningBranchFilter)";
+			}
+			if (strlen($onOrderFilter)){
+				$fullFilter .= " OR $onOrderFilter";
+			}
+			$filter[] = '(' . $fullFilter . ')';
 		}
 
 		//This block checks whether or not the title is owned by
