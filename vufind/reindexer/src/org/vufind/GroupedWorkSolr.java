@@ -504,7 +504,7 @@ public class GroupedWorkSolr {
 			newTitle = tmpTitle;
 		}
 		//Remove common formats
-		tmpTitle = newTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd)$", "").trim();
+		tmpTitle = newTitle.replaceAll("(?i)((?:a )?graphic novel|audio cd|book club kit)$", "").trim();
 		if (tmpTitle.length() > 0){
 			newTitle = tmpTitle;
 		}
