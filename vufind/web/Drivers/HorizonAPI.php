@@ -798,9 +798,8 @@ abstract class HorizonAPI extends Horizon{
 				$curTitle['renewIndicator'] = (string)$itemOut->itemBarcode;
 				$curTitle['barcode'] = (string)$itemOut->itemBarcode;
 
-				$curTitle['groupedWorkId'] = '';
 				$curTitle['format'] = 'Unknown';
-				if ($curTitle['shortId'] && strlen($curTitle['shortId']) > 0){
+				if ($curTitle['id'] && strlen($curTitle['id']) > 0){
 					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
 					$recordDriver = new MarcRecord($curTitle['id']);
 					if ($recordDriver->isValid()){

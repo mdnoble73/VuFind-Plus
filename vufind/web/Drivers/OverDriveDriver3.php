@@ -511,7 +511,10 @@ class OverDriveDriver3 {
 					require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
 					$overDriveRecord = new OverDriveRecordDriver($bookshelfItem['overDriveId']);
 					$bookshelfItem['recordId'] = $overDriveRecord->getUniqueID();
-					$bookshelfItem['groupedWorkId'] = $overDriveRecord->getGroupedWorkId();
+					$groupedWorkId = $overDriveRecord->getGroupedWorkId();
+					if ($groupedWorkId != null){
+						$bookshelfItem['groupedWorkId'] = $overDriveRecord->getGroupedWorkId();
+					}
 					$formats = $overDriveRecord->getFormats();
 					$bookshelfItem['format'] = reset($formats);
 					$bookshelfItem['coverUrl'] = $overDriveRecord->getCoverUrl('medium');
