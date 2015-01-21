@@ -7279,6 +7279,9 @@ div#system-message-header {
     float: none;
   }
 }
+#lookfor {
+  border-radius: 3px 0 0 3px;
+}
 /** Account Settings formatting */
 #account-settings-accordion .panel-group .panel + .panel {
   margin-top: 0px;
