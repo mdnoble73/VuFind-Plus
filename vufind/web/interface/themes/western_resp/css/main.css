@@ -7274,6 +7274,11 @@ div#system-message-header {
     float: none;
   }
 }
+@media screen and (min-width: 768px) and (max-width: 999px) {
+  .categoryValue img {
+    max-width: 40px;
+  }
+}
 #lookfor {
   border-radius: 3px 0 0 3px;
 }

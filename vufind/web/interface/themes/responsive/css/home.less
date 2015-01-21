@@ -417,7 +417,14 @@
     float: none;
   }
 }
+// shrink icons for a range where the labels slightly overlap & the sidebar still acts as a sidebar
+// the upper limit looks to be the width at which the #availabilityControlContainer div wraps
+@media screen and (min-width: 768px) and (max-width:999px) {
+  .categoryValue img {
+    max-width: 40px;
+  }
 
+}
 // Fix searchbox border radius
 #lookfor {
   border-radius: @border-radius-small 0 0 @border-radius-small;
