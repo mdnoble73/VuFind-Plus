@@ -7259,14 +7259,14 @@ div#system-message-header {
   max-width: 50px;
   height: 50px;
 }
-@media screen and (max-width: 540px) {
+@media (max-width: 540px) {
   .formatCategoryLabel {
     float: none;
   }
 }
-@media screen and (min-width: 768px) and (max-width: 999px) {
-  .categoryValue img {
-    max-width: 40px;
+@media (min-width: 768px) and (max-width: 999px) {
+  .formatCategoryLabel {
+    float: none;
   }
 }
 #lookfor {
