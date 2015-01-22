@@ -291,7 +291,8 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				//When we share with everyone, we only really want to share with people that want it
 				groupedWork.addEContentSources(sources, curItem.getValidSubdomains() , curItem.getValidLocations());
 				groupedWork.addEContentProtectionTypes(protectionTypes, curItem.getValidSubdomains() , curItem.getValidLocations());
-				groupedWork.addCompatiblePTypes(curItem.getCompatiblePTypes());
+				//Do not set compatible ptypes for eContent since they are just determined by owning library/location
+				//groupedWork.addCompatiblePTypes(curItem.getCompatiblePTypes());
 				//owningLibraries.add("Shared Digital Collection");
 				owningLibraries.addAll(curItem.getValidLibraryFacets());
 				owningSubdomainsAndLocations.addAll(indexer.getSubdomainMap().values());
@@ -306,12 +307,13 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				ArrayList<String> validLocationCodes = getRelatedLocationCodesForLocationCode(locationCode);
 				groupedWork.addEContentSources(sources, validSubdomains, validLocationCodes);
 				groupedWork.addEContentProtectionTypes(protectionTypes, validSubdomains, validLocationCodes);
-				for (String curLocation : pTypesByLibrary.keySet()){
+				//Do not set compatible ptypes for eContent since they are just determined by owning library/location
+				/*for (String curLocation : pTypesByLibrary.keySet()){
 					Pattern libraryCodePattern = Pattern.compile(curLocation);
 					if (locationCode != null && libraryCodePattern.matcher(locationCode).lookingAt()){
 						groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
 					}
-				}
+				}*/
 				owningLibraries.addAll(getLibraryOnlineFacetsForLocationCode(locationCode));
 				if (available){
 					availableLibraries.addAll(getLibraryOnlineFacetsForLocationCode(locationCode));
@@ -322,12 +324,13 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				//Share with just the individual location
 				groupedWork.addEContentSources(sources, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
 				groupedWork.addEContentProtectionTypes(protectionTypes, new HashSet<String>(), getRelatedLocationCodesForLocationCode(locationCode));
-				//TODO: Add correct owning and available locations
-				for (String curLocation : pTypesByLibrary.keySet()){
+				//Do not set compatible ptypes for eContent since they are just determined by owning library/location
+				/*for (String curLocation : pTypesByLibrary.keySet()){
 					if (locationCode != null && locationCode.startsWith(curLocation)){
 						groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
 					}
-				}
+				}*/
+				//TODO: Add correct owning and available locations
 			}
 			groupedWork.addOwningLibraries(owningLibraries);
 			groupedWork.addOwningLocationCodesAndSubdomains(owningSubdomainsAndLocations);
@@ -338,7 +341,10 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 	protected void loadUsability(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
 		super.loadUsability(groupedWork, printItems, econtentItems);
 
-		for (EContentIlsItem itemField : econtentItems){
+		//Do not set compatible pTypes for eContent since that is not how it is really controlled.
+		//It is really set based on owning library or location code.
+
+		/*for (EContentIlsItem itemField : econtentItems){
 			String locationCode = itemField.getLocation();
 			boolean shareWithAll = false;
 			boolean shareWithLibrary = false;
@@ -375,7 +381,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 			} else{
 				logger.warn("Could not determine usability, was not shared with library or everyone");
 			}
-		}
+		}*/
 	}
 
 
