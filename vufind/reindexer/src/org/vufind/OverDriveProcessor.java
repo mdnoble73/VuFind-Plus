@@ -215,7 +215,8 @@ public class OverDriveProcessor {
 					groupedWork.addEContentProtectionType("Limited Access", owningSubdomainsAndLocations, new ArrayList<String>());
 					//Setup information based on the scopes
 					for (Scope validScope : validScopes) {
-						groupedWork.addCompatiblePTypes(validScope.getRelatedPTypes());
+						//Do not set ptypes for OverDrive since that is not how OverDrive separates content
+						//groupedWork.addCompatiblePTypes(validScope.getRelatedPTypes());
 						groupedWork.getScopedWorkDetails().get(validScope.getScopeName()).getRelatedRecords().add("overdrive:" + identifier);
 					}
 
