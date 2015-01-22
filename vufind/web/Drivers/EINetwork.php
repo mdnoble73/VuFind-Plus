@@ -20,7 +20,7 @@
 require_once ROOT_DIR . '/Drivers/Millennium.php';
 
 /**
- * VuFind Connector for Marmot's Innovative catalog (millenium)
+ * VuFind Connector for EI Network's Innovative catalog (millennium)
  *
  * This class uses screen scraping techniques to gather record holdings written
  * by Adam Bryn of the Tri-College consortium.
