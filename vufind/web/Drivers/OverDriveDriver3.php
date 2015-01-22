@@ -496,11 +496,15 @@ class OverDriveDriver3 {
 								break;
 							}
 						}
-						foreach ($formatField->options as $index => $format){
-							$curFormat = array();
-							$curFormat['id'] = $format;
-							$curFormat['name'] = $this->format_map[$format];
-							$bookshelfItem['formats'][] = $curFormat;
+						if (isset($formatField->options)){
+							foreach ($formatField->options as $index => $format){
+								$curFormat = array();
+								$curFormat['id'] = $format;
+								$curFormat['name'] = $this->format_map[$format];
+								$bookshelfItem['formats'][] = $curFormat;
+							}
+						}else{
+							//No formats found for the title, do we need to do anything special?
 						}
 					}
 
