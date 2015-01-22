@@ -118,29 +118,45 @@ div.bottom-border-line {
   display: none; // hide search label - goes into search input
 }
 
-// Overwrite default styling for the searchbox placeholder text to implement displaying it
+//// placeholder selectors are not standardized yet
+//#lookfor::placeholder {.placeholder-mixin;}
+//#lookfor::-moz-placeholder{.placeholder-mixin;}
+//#lookfor:-moz-placeholder{.placeholder-mixin;}
+//#lookfor::-webkit-input-placeholder{.placeholder-mixin;}
+//#lookfor:-ms-input-placeholder{.placeholder-mixin;}
+
+//// hide placeholder text on focus
+//#lookfor:focus::placeholder {.placeholder-focus-mixin;}
+//#lookfor:focus::-moz-placeholder{.placeholder-focus-mixin;}
+//#lookfor:focus:-moz-placeholder{.placeholder-focus-mixin;}
+//#lookfor:focus::-webkit-input-placeholder{.placeholder-focus-mixin;}
+//#lookfor:focus:-ms-input-placeholder{.placeholder-focus-mixin;}
+
 .placeholder-mixin() {
   color: @font-gray; //
   font-size: initial; // zero out the text as a fail safe
 }
-
-// placeholder selectors are not standardized yet
-#lookfor::placeholder {.placeholder-mixin;}
-#lookfor::-moz-placeholder{.placeholder-mixin;}
-#lookfor:-moz-placeholder{.placeholder-mixin;}
-#lookfor::-webkit-input-placeholder{.placeholder-mixin;}
-#lookfor:-ms-input-placeholder{.placeholder-mixin;}
-
 .placeholder-focus-mixin() {
   color: transparent;
 }
 
-// hide placeholder text on focus
-#lookfor:focus::placeholder {.placeholder-focus-mixin;}
-#lookfor:focus::-moz-placeholder{.placeholder-focus-mixin;}
-#lookfor:focus:-moz-placeholder{.placeholder-focus-mixin;}
-#lookfor:focus::-webkit-input-placeholder{.placeholder-focus-mixin;}
-#lookfor:focus:-ms-input-placeholder{.placeholder-focus-mixin;}
+#lookfor {
+  // Overwrite default styling for the searchbox placeholder text to implement displaying it
+  ::placeholder {.placeholder-mixin;}
+  ::-moz-placeholder{.placeholder-mixin;}
+  :-moz-placeholder{.placeholder-mixin;}
+  ::-webkit-input-placeholder{.placeholder-mixin;}
+  :-ms-input-placeholder{.placeholder-mixin;}
+
+  // hide placeholder text on focus
+  &:focus{
+    &::placeholder {.placeholder-focus-mixin;}
+    &::-moz-placeholder{.placeholder-focus-mixin;}
+    &:-moz-placeholder{.placeholder-focus-mixin;}
+    &::-webkit-input-placeholder{.placeholder-focus-mixin;}
+    &:-ms-input-placeholder{.placeholder-focus-mixin;}
+  }
+}
 
 #home-page-search{
   margin-bottom: 0;
@@ -295,9 +311,3 @@ div.bottom-border-line {
     float: none;
   }
 }
-//
-//@media (max-width: 540px) {
-//  .formatCategoryLabel {
-//    float: none;
-//  }
-//}
