@@ -123,8 +123,17 @@ class UInterface extends Smarty
 		$this->assign('fullPath', str_replace('&', '&amp;', $_SERVER['REQUEST_URI']));
 		$this->assign('requestHasParams', strpos($_SERVER['REQUEST_URI'], '?') > 0);
 		$this->assign('supportEmail', $configArray['Site']['email']);
+		if (isset($configArray['Site']['libraryName'])){
+			$this->assign('consortiumName', $configArray['Site']['libraryName']);
+		}
 		$this->assign('libraryName', $configArray['Site']['title']);
 		$this->assign('ils', $configArray['Catalog']['ils']);
+		if (isset($configArray['Catalog']['url'])){
+			$this->assign('classicCatalogUrl', $configArray['Catalog']['url']);
+		}else if (isset($configArray['Catalog']['hipUrl'])){
+			$this->assign('classicCatalogUrl', $configArray['Catalog']['hipUrl']);
+		}
+
 		$this->assign('theme', $this->vufindTheme);
 		$this->assign('primaryTheme', reset($themeArray));
 		$this->assign('device', get_device_name());

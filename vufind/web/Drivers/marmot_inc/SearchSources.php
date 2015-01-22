@@ -23,7 +23,7 @@ class SearchSources{
 		$searchOptions = array();
 		//Check to see if marmot catalog is a valid option
 		global $library;
-		global $interface;
+		global $configArray;
 		$repeatSearchSetting = '';
 		$repeatInWorldCat = false;
 		$repeatInProspector = true;
@@ -74,9 +74,10 @@ class SearchSources{
 			);
 		}else{
 			$marmotAdded = true;
+			$consortiumName = $configArray['Site']['libraryName'];
 			$searchOptions['local'] = array(
-              'name' => 'Marmot Catalog',
-              'description' => "The entire Marmot catalog.",
+              'name' => "Entire $consortiumName Catalog",
+              'description' => "The entire $consortiumName catalog.",
 							'catalogType' => 'catalog'
 			);
 		}
@@ -148,10 +149,10 @@ class SearchSources{
 		$library->restrictSearchByLibrary
 		&& $marmotAdded == false
 		){
-
+			$consortiumName = $configArray['Site']['libraryName'];
 			$searchOptions['marmot'] = array(
-        'name' => 'Marmot Catalog',
-        'description' => 'A shared catalog of public, academic, and school libraries on the Western Slope.',
+				'name' => "$consortiumName Catalog",
+        'description' => 'A consortium of libraries who share resources with your library.',
 				'catalogType' => 'catalog'
 			);
 		}
@@ -276,6 +277,7 @@ class SearchSources{
 			$searchSource = $searchSource->searchWhat;
 		}
 		global $library;
+		global $configArray;
 		if ($searchSource =='goldrush'){
 			$goldRushType = $this->getGoldRushSearchType($type);
 			return "http://goldrush.coalliance.org/index.cfm?fuseaction=Search&inst_code={$library->goldRushCode}&search_type={$goldRushType}&search_term=".urlencode($lookFor);
@@ -294,7 +296,6 @@ class SearchSources{
 			}
 			return $worldCatLink;
 		}else if ($searchSource == 'overdrive'){
-			global $configArray;
 			$overDriveUrl = $configArray['OverDrive']['url'];
 			return "$overDriveUrl/BangSearch.dll?Type=FullText&FullTextField=All&FullTextCriteria=" . urlencode($lookFor);
 		}else if ($searchSource == 'prospector'){

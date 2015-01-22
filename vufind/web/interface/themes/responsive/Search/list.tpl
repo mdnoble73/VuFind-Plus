@@ -26,7 +26,7 @@
 
 		{if $numUnscopedResults && $numUnscopedResults != $recordCount}
 			<div class="unscopedResultCount">
-				There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
+				There are <b>{$numUnscopedResults}</b> results in the entire {$consortiumName} collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
 			</div>
 		{/if}
 
@@ -51,9 +51,9 @@
 	{if $pageLinks.all}<div class="text-center">{$pageLinks.all}</div>{/if}
 
 	{if $unscopedResults > 0}
-		<h2>More results from the Marmot Catalog</h2>
+		<h2>More results from the {$consortiumName} Catalog</h2>
 		<div class="unscopedResultCount">
-			There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
+			There are <b>{$numUnscopedResults}</b> results in the entire {$consortiumName} collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
 		</div>
 		{foreach from=$unscopedResults item=record name="recordLoop"}
 			<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">

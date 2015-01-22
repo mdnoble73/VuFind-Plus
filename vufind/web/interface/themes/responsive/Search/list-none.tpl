@@ -15,7 +15,7 @@
 
 {if $numUnscopedResults && $numUnscopedResults != $recordCount}
 	<div class="unscopedResultCount">
-		There are <b>{$numUnscopedResults}</b> results in the entire Marmot collection. <span style="font-size:15px"><a href="{$unscopedSearchUrl}">Search the entire collection.</a></span>
+		There are <b>{$numUnscopedResults}</b> results in the entire {$consortiumName} collection. <span style="font-size:15px"><a href="{$unscopedSearchUrl}">Search the entire collection.</a></span>
 	</div>
 {/if}
 <div>
@@ -45,7 +45,7 @@
 	{/if}
 
 	{if $unscopedResults}
-		<h2>Results from the entire Marmot Catalog</h2>
+		<h2>Results from the entire {$consortiumName} Catalog</h2>
 		{foreach from=$unscopedResults item=record name="recordLoop"}
 			<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
 				{* This is raw HTML -- do not escape it: *}
