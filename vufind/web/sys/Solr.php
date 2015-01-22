@@ -1510,6 +1510,8 @@ class Solr implements IndexEngine {
 		//This block makes sure that titles are usable by the current user.  It is always run if we have a reasonable idea
 		//who is using the catalog. This enables "super scope" even if the user is doing a repeat search.
 		if ($pType > 0 && $configArray['Index']['enableUsableByFilter'] == true){
+			//First check usability.
+			//It is usable if the title is usable by the ptypes in question OR it is owned by the current branch/ system
 			$usableFilter = 'usable_by:('.$pType . ' OR all)';
 			$owningBranchFilter = "";
 			$usableEContentFilter = "";
@@ -1541,17 +1543,18 @@ class Solr implements IndexEngine {
 				if (strlen($usableEContentFilter) > 0) $usableEContentFilter .= " OR ";
 				$usableEContentFilter .= " $institutionFacetName:\"Shared Digital Collection\"";
 			}
-			if (strlen($usableEContentFilter)){
-				$usableFilter .= " AND $usableEContentFilter";
-			}
-			$fullFilter = $usableFilter;
 			if (strlen($owningBranchFilter)){
 				$fullFilter = "($usableFilter OR $owningBranchFilter)";
+			}else{
+				$fullFilter = "($usableFilter)";
+			}
+			if (strlen($usableEContentFilter)){
+				$fullFilter .= " OR $usableEContentFilter";
 			}
 			if (strlen($onOrderFilter)){
 				$fullFilter .= " OR $onOrderFilter";
 			}
-			$filter[] = '(' . $fullFilter . ')';
+			$filter[] = $fullFilter;
 		}
 
 		//This block checks whether or not the title is owned by
