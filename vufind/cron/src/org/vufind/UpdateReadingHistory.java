@@ -179,6 +179,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 					}
 				} catch (JSONException e) {
 					logger.error("Unable to load patron information from for " + cat_username + " exception loading response ", e);
+					logger.error(patronDataJson);
 					processLog.incErrors();
 					processLog.addNote("Unable to load patron information from for " + cat_username + " exception loading response " + e.toString());
 					hadError = true;
@@ -287,6 +288,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 					}
 				} catch (JSONException e) {
 					logger.error("Unable to load patron information from for " + cat_username + " exception loading response ", e);
+					logger.error(patronDataJson);
 					processLog.incErrors();
 					processLog.addNote("Unable to load patron information from for " + cat_username + " exception loading response " + e.toString());
 				}

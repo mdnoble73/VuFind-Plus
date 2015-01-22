@@ -765,7 +765,12 @@ class CatalogConnection
 			}else{
 				$historyEntryDB = new ReadingHistoryEntry();
 				$historyEntryDB->userId = $user->id;
-				$historyEntryDB->groupedWorkPermanentId = $checkout['groupedWorkId'] == null ? '' : $checkout['groupedWorkId'];
+				if (isset($checkout['groupedWorkId'])){
+					$historyEntryDB->groupedWorkPermanentId = $checkout['groupedWorkId'] == null ? '' : $checkout['groupedWorkId'];
+				}else{
+					$historyEntryDB->groupedWorkPermanentId = "";
+				}
+
 				$historyEntryDB->source = $source;
 				$historyEntryDB->sourceId = $sourceId;
 				$historyEntryDB->title = substr($checkout['title'], 0, 150);
