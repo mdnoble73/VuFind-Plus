@@ -412,18 +412,21 @@
 }
 
 // Put Labels beneath icons on small screens when the sidebar has moved across the top
-@media screen and (max-width: 540px) {
+@media (max-width: 540px) {
   .formatCategoryLabel {
     float: none;
   }
 }
 // shrink icons for a range where the labels slightly overlap & the sidebar still acts as a sidebar
 // the upper limit looks to be the width at which the #availabilityControlContainer div wraps
-@media screen and (min-width: @screen-sm-min) and (max-width:999px) {
-  .categoryValue img {
-    max-width: 40px;
+@media (min-width: @screen-sm-min) and (max-width:999px) {
+//  .categoryValue img {
+//    max-width: 40px;
+//  }
+  // this is probably a better fix for this than shrinking the icons.
+  .formatCategoryLabel {
+    float: none;
   }
-
 }
 // Fix searchbox border radius
 #lookfor {
