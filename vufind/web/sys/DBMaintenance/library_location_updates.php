@@ -744,6 +744,14 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'location_increase_code_column_size' => array(
+			'title' => 'Increase code column-size',
+			'description' => 'Increase the maximum length an ILS code can be to 50 characters',
+			'sql' => array(
+				"ALTER TABLE `location` CHANGE `code` `code` varchar(50)",
+			),
+		),
+
 		'search_sources' => array(
 			'title' => 'Search Sources',
 			'description' => 'Setup Library and Location Search Source Table',
