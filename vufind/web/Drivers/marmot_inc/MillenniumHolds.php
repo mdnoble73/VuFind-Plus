@@ -201,11 +201,7 @@ class MillenniumHolds{
 			}
 		}
 
-		$get_items = array();
-		foreach ($extraGetInfo as $key => $value) {
-			$get_items[] = $key . '=' . urlencode($value);
-		}
-		$holdUpdateParams = implode ('&', $get_items);
+		$holdUpdateParams = http_build_query($extraGetInfo);
 
 		//Login to the patron's account
 		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
@@ -233,11 +229,7 @@ class MillenniumHolds{
 		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		$post_data = $this->driver->_getLoginFormValues();
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		//Load the page, but we don't need to do anything with the results.
 		$loginResult = curl_exec($curl_connection);
@@ -249,11 +241,8 @@ class MillenniumHolds{
 			//Login again
 			$post_data['lt'] = $lt;
 			$post_data['_eventId'] = 'submit';
-			$post_items = array();
-			foreach ($post_data as $key => $value) {
-				$post_items[] = $key . '=' . $value;
-			}
-			$post_string = implode ('&', $post_items);
+
+			$post_string = http_build_query($post_data);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 			$loginResult = curl_exec($curl_connection);
 			$curlInfo = curl_getinfo($curl_connection);
