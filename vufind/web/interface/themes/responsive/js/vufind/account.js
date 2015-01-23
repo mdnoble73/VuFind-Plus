@@ -152,7 +152,12 @@ VuFind.Account = (function(){
 						$('.logoutOptions, #logoutOptions').show();
 						//$('#loginOptions').hide();
 						//$('#logoutOptions').show();
-						$('#myAccountNameLink').html(response.result.name);
+
+						var name = response.result.name.trim();
+						$('#header-container #myAccountNameLink').html(name);
+						name = 'Logged In As '+ name.slice(0, name.lastIndexOf(' ')+2)+'.';
+						$('#side-bar #myAccountNameLink').html(name);
+
 						if (VuFind.Account.closeModalOnAjaxSuccess) {
 							VuFind.closeLightbox();
 						}
@@ -259,18 +264,22 @@ VuFind.Account = (function(){
 		},
 
 		cancelSelectedHolds: function(){
-			var selectedTitles = this.getSelectedTitles(false);
-			if (selectedTitles.length == 0){
+			var numHolds = $("input.titleSelect:checked ").length;
+			if (numHolds == 0){
 				alert('Please select one or more titles to cancel.');
 				return false;
+			} else if (!confirm('Cancel '+numHolds +' selected hold'+(numHolds > 1?'s':'') +'?')) {
+					return false;
 			}
-			var url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&' + selectedTitles;
-			var queryParams = VuFind.getQuerystringParameters();
+			var selectedTitles = this.getSelectedTitles(false),
+					url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&' + selectedTitles,
+					queryParams = VuFind.getQuerystringParameters();
 			if ($.inArray('section', queryParams) && queryParams['section'] != 'undefined'){
 				url += '&section=' + queryParams['section'];
 			}
 			window.location = url;
 			return false;
+
 		},
 
 		/* update the sort parameter and redirect the user back to the same page */
