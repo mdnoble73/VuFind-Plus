@@ -1,4 +1,5 @@
 {strip}
+	{* this doesn't look to be part of an implemented action any more. plb 1-26-2015 *}
 	<form class="form" role="form">
 		<input type="hidden" name="holdId" value="{$holdId}" id="holdId"/>
 		<div class="form-group">

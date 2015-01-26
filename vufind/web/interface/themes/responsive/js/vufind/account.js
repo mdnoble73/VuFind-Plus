@@ -357,7 +357,7 @@ VuFind.Account = (function(){
 			);
 		},
 
-		freezeHold: function(holdId, promptForReactivationDate){
+		freezeHold: function(holdId, promptForReactivationDate, caller){
 			if (promptForReactivationDate){
 				//Prompt the user for the date they want to reactivate the hold
 				var modalDialog = $("#modalDialog");
@@ -370,7 +370,8 @@ VuFind.Account = (function(){
 				modalDialog.load( );
 				modalDialog.modal('show');
 			}else{
-				VuFind.showMessage("Freezing Hold", "Freezing your hold.  This may take a minute.");
+				popUpBoxTitle = $(caller).text() || "Freezing Hold"; // freezing terminology can be customized, so grab text from click button: caller
+				VuFind.showMessage(popUpBoxTitle, "Updating your hold.  This may take a minute.");
 				var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&holdId=' + holdId;
 				$.getJSON(url, function(data){
 					if (data.result) {
@@ -382,6 +383,7 @@ VuFind.Account = (function(){
 			}
 		},
 
+/* not part of implemented action as of 1-26-2015. plb
 		doFreezeHoldWithReactivationDate: function(){
 			var holdId = $("#holdId").val();
 			var reactivationDate = $("#reactivationDate").val();
@@ -395,7 +397,7 @@ VuFind.Account = (function(){
 				}
 			});
 		},
-
+*/
 		freezeSelectedHolds: function (){
 			var selectedTitles = this.getSelectedTitles();
 			if (selectedTitles.length == 0){
@@ -498,8 +500,9 @@ VuFind.Account = (function(){
 			return false;
 		},
 
-		thawHold: function(holdId){
-			VuFind.showMessage("Thawing Hold", "Thawing your hold.  This may take a minute.");
+		thawHold: function(holdId, caller){
+			$popUpBoxTitle = $(caller).text() || "Thawing Hold";  // freezing terminology can be customized, so grab text from click button: caller
+			VuFind.showMessage($popUpBoxTitle, "Updating your hold.  This may take a minute.");
 			var url = Globals.path + '/MyAccount/AJAX?method=thawHold&holdId=' + holdId;
 			$.getJSON(url, function(data){
 				if (data.result) {

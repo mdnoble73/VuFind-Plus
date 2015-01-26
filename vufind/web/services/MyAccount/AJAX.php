@@ -13,7 +13,8 @@ class MyAccount_AJAX
 	function launch()
 	{
 		$method = $_GET['method'];
-		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag', 'saveSearch', 'deleteSavedSearch', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation', 'getEmailMyListForm', 'sendMyListEmail', 'getReactivationDateForm'))) {
+		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag', 'saveSearch', 'deleteSavedSearch', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation', 'getEmailMyListForm', 'sendMyListEmail'))) {
+			// , 'getReactivationDateForm' method taken out of above check 1-26-2015 plb
 			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -523,6 +524,7 @@ class MyAccount_AJAX
 		return json_encode($results);
 	}
 
+	/* this function does not look to implemented any where at this time.  plb 1-26-2015
 	function getReactivationDateForm(){
 		global $interface;
 		global $user;
@@ -536,6 +538,7 @@ class MyAccount_AJAX
 		);
 		return json_encode($results);
 	}
+*/
 
 	function changeHoldLocation()
 	{
