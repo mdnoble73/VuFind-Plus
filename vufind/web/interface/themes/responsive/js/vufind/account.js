@@ -305,7 +305,8 @@ VuFind.Account = (function(){
 		changeHoldPickupLocation: function (holdId){
 			if (Globals.loggedIn){
 				var modalDialog = $("#modalDialog");
-				//$(".modal-body").html($('#userreview' + id).html());
+				$('#myModalLabel').html('Loading');
+				$('.modal-body').html('');
 				$.getJSON(Globals.path + "/MyAccount/AJAX?method=getChangeHoldLocationForm&holdId=" + holdId, function(data){
 					$('#myModalLabel').html(data.title);
 					$('.modal-body').html(data.modalBody);
@@ -370,7 +371,7 @@ VuFind.Account = (function(){
 				modalDialog.load( );
 				modalDialog.modal('show');
 			}else{
-				popUpBoxTitle = $(caller).text() || "Freezing Hold"; // freezing terminology can be customized, so grab text from click button: caller
+				var popUpBoxTitle = $(caller).text() || "Freezing Hold"; // freezing terminology can be customized, so grab text from click button: caller
 				VuFind.showMessage(popUpBoxTitle, "Updating your hold.  This may take a minute.");
 				var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&holdId=' + holdId;
 				$.getJSON(url, function(data){
@@ -383,12 +384,12 @@ VuFind.Account = (function(){
 			}
 		},
 
-/* not part of implemented action as of 1-26-2015. plb
-		doFreezeHoldWithReactivationDate: function(){
-			var holdId = $("#holdId").val();
+// called by ReactivationDateForm when fn freezeHold above has promptForReactivationDate is set
+		doFreezeHoldWithReactivationDate: function(caller){
+			var popUpBoxTitle = $(caller).text() || "Freezing Hold"; // freezing terminology can be customized, so grab text from click button: caller
+			VuFind.showMessage(popUpBoxTitle, "Updating your hold.  This may take a minute.");			var holdId = $("#holdId").val();
 			var reactivationDate = $("#reactivationDate").val();
 			var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&holdId=' + holdId + '&reactivationDate=' + reactivationDate;
-			VuFind.showMessage("Freezing Hold", "Freezing your hold.  This may take a minute.");
 			$.getJSON(url, function(data){
 				if (data.result) {
 					VuFind.showMessage("Success", data.message, true, true);
@@ -397,7 +398,7 @@ VuFind.Account = (function(){
 				}
 			});
 		},
-*/
+
 		freezeSelectedHolds: function (){
 			var selectedTitles = this.getSelectedTitles();
 			if (selectedTitles.length == 0){

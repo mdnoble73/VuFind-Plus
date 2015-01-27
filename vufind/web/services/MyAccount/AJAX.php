@@ -13,8 +13,7 @@ class MyAccount_AJAX
 	function launch()
 	{
 		$method = $_GET['method'];
-		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag', 'saveSearch', 'deleteSavedSearch', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation', 'getEmailMyListForm', 'sendMyListEmail'))) {
-			// , 'getReactivationDateForm' method taken out of above check 1-26-2015 plb
+		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag', 'saveSearch', 'deleteSavedSearch', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation', 'getEmailMyListForm', 'sendMyListEmail' , 'getReactivationDateForm'))) {
 			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -504,6 +503,8 @@ class MyAccount_AJAX
 	function getChangeHoldLocationForm()
 	{
 		global $interface;
+		/** @var $interface UInterface
+		 * @var $user User */
 		global $user;
 		$id = $_REQUEST['holdId'];
 		$interface->assign('holdId', $id);
@@ -524,21 +525,22 @@ class MyAccount_AJAX
 		return json_encode($results);
 	}
 
-	/* this function does not look to implemented any where at this time.  plb 1-26-2015
+	// called by js function Account.freezeHold
 	function getReactivationDateForm(){
 		global $interface;
 		global $user;
 		$id = $_REQUEST['holdId'];
 		$interface->assign('holdId', $id);
 
+		$title = translate('Freeze Hold'); // language customization
 		$results = array(
-			'title' => 'Freeze Hold',
+			'title' => $title,
 			'modalBody' => $interface->fetch("MyAccount/reactivationDate.tpl"),
-			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.doFreezeHoldWithReactivationDate(); return false;'>Freeze Hold</span>"
+			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.doFreezeHoldWithReactivationDate(this); return false;'>$title</span>"
 		);
 		return json_encode($results);
 	}
-*/
+
 
 	function changeHoldLocation()
 	{
