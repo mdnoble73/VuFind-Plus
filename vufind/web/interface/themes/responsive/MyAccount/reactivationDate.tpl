@@ -9,7 +9,9 @@
 	<script	type="text/javascript">
 		{literal}
 		$(function() {
-			$( "#reactivationDate" ).datepicker();
+			$( "#reactivationDate" ).datepicker({
+				minDate: 0
+			});
 		});
 		{/literal}
 	</script>
