@@ -48,10 +48,12 @@ class MyAccount_Profile extends MyAccount
 			$showPickupLocationInProfile = ($activeLibrary->showPickupLocationInProfile == 1);
 			$allowPinReset = ($activeLibrary->allowPinReset == 1);
 		}
-		global $locationSingleton;
-		//Get the list of pickup branch locations for display in the user interface.
-		$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
-		$interface->assign('pickupLocations', $locations);
+		if ($showPickupLocationInProfile) { // only grab pickup locations if needed.
+			global $locationSingleton;
+			//Get the list of pickup branch locations for display in the user interface.
+			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
+			$interface->assign('pickupLocations', $locations);
+		}
 
 		$interface->assign('canUpdateContactInfo', $canUpdateContactInfo);
 		$interface->assign('canUpdateAddress', $canUpdateAddress);

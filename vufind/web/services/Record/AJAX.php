@@ -384,7 +384,9 @@ class Record_AJAX extends Action {
 
 			global $locationSingleton;
 			//Get the list of pickup branch locations for display in the user interface.
-			$locations = $locationSingleton->getPickupBranches($profile, $profile['homeLocationId']);
+			// using $user to be consistent with other code use of getPickupBranches()
+//			$locations = $locationSingleton->getPickupBranches($profile, $profile['homeLocationId']);
+			$locations = $locationSingleton->getPickupBranches($user, $user['homeLocationId']);
 			$interface->assign('pickupLocations', $locations);
 
 			global $library;

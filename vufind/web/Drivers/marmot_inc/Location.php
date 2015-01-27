@@ -252,7 +252,7 @@ class Location extends DB_DataObject
 	 * @param int $selectedBranchId
 	 * @return Location[]
 	 */
-	function getPickupBranches($patronProfile, $selectedBranchId) {
+	function getPickupBranches($patronProfile, $selectedBranchId = null) {
 		//Get the library for the patron's home branch.
 		/** @var Library $librarySingleton */
 		global $librarySingleton;
@@ -301,12 +301,13 @@ class Location extends DB_DataObject
 		$physicalLocation = $this->getPhysicalLocation();
 		$locationList = array();
 		while ($this->fetch()) {
-			if ($this->locationId == $selectedBranchId){
+			if (!empty($selectedBranchId) && $this->locationId == $selectedBranchId){
 				$selected = 'selected';
 			}else{
 				$selected = '';
 			}
 			$this->selected = $selected;
+			// Each location is prepended with a number to keep precedence for given locations when sorted by ksort below
 			if (isset($physicalLocation) && $physicalLocation->locationId == $this->locationId){
 				//If the user is in a branch, those holdings come first.
 				$locationList['1' . $this->displayName] = clone $this;
