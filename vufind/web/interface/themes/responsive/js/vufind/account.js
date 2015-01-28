@@ -200,6 +200,40 @@ VuFind.Account = (function(){
 			return false;
 		},
 
+		renewTitle: function(renewIndicator) {
+			//VuFind.Account.ajaxLightbox("/MyAccount/AJAX?method=renewItem&renewIndicator="+renewIndicator, true);
+			//// this should cover all needed for renewing a single item
+			//// should always be logged in, but just in case requireLogin
+
+			if (!Globals.loggedIn) {
+				VuFind.Account.ajaxLogin(null, function () {
+					VuFind.Account.renewTitle(renewIndicator);
+				}, false);
+			} else {
+				var modalDialog = $("#modalDialog");
+				$('#myModalLabel').html("Loading, please wait");
+				$('.modal-body').html("...");
+				modalDialog.load( )
+						.modal('show');
+				$.getJSON("/MyAccount/AJAX?method=renewItem&renewIndicator="+renewIndicator, function(data){
+					if (data.result){
+						data = data.result;
+					}
+					$('#myModalLabel').html(data.title);
+					$('.modal-body').html(data.modalBody);
+					$('.modal-buttons').html(data.modalButtons);
+
+					// on success reload page sorted by due date.
+					if (data.success) {
+						console.log(this);
+						VuFind.Account.changeAccountSort('dueDate');
+					}
+				});
+			}
+			return false;
+		},
+
+		// old form submission method. Replacing with ajax calls.
 		renewSelectedTitles: function () {
 			var selectedTitles = VuFind.getSelectedTitles();
 			if (selectedTitles.length == 0) {

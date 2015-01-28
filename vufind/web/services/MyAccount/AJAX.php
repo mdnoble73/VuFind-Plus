@@ -13,7 +13,7 @@ class MyAccount_AJAX
 	function launch()
 	{
 		$method = $_GET['method'];
-		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag', 'saveSearch', 'deleteSavedSearch', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation', 'getEmailMyListForm', 'sendMyListEmail' , 'getReactivationDateForm'))) {
+		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag', 'saveSearch', 'deleteSavedSearch', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation', 'getEmailMyListForm', 'sendMyListEmail' , 'getReactivationDateForm', 'renewItem'))) {
 			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -701,4 +701,54 @@ class MyAccount_AJAX
 		echo json_encode($formDefinition);
 	}
 
+	function renewItem() {
+		global $interface;
+
+		if (isset($_REQUEST['renewIndicator'])) {
+			list($itemId, $itemIndex) = explode('|', $_REQUEST['renewIndicator']);
+
+			try {
+				global $configArray;
+				$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			} catch (PDOException $e) {
+				// What should we do with this error?
+				if ($configArray['System']['debug']) {
+					echo '<pre>';
+					echo 'DEBUG: ' . $e->getMessage();
+					echo '</pre>';
+				}
+			}
+
+			if (method_exists($this->catalog->driver, 'renewItem')) {
+				$tmpResult = $this->catalog->driver->renewItem($itemId, $itemIndex);
+//				returns array(
+//					'itemId' => $itemId,
+//					'result'  => $success,
+//					'message' => $message
+				$renewResults = array(
+					'success' => $tmpResult['result'],
+				  'message' => $tmpResult['message']
+				);
+			} else {
+				PEAR_Singleton::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));
+				$renewResults = array(
+					'success' => false,
+					'message' => 'Cannot Renew Item - ILS Not Supported'
+				);
+			}
+		} else {
+			//error message
+			$renewResults = array(
+				'success' => false,
+				'message' => 'Item to renew not specified'
+			);
+		}
+		$interface->assign('renewResults', $renewResults);
+		$result = array(
+			'title' => translate('Renew').' Item',
+			'modalBody' => $interface->fetch('MyAccount/renew-item-results.tpl'),
+		  'success' => $renewResults['success']
+		);
+		return json_encode($result);
+	}
 }
