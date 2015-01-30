@@ -6,6 +6,7 @@ VuFind.Account = (function(){
 	return {
 		ajaxCallback: null,
 		closeModalOnAjaxSuccess: false,
+		//haslocalStorage: null, // disable by default
 
 		/**
 		 * Creates a new list in the system for the active user.
@@ -102,86 +103,98 @@ VuFind.Account = (function(){
 			return false;
 		},
 
+		hasLocalStorage: function () {
+			// arguments.callee.haslocalStorage is the function's "static" variable for whether or not we have tested the
+			// that the localStorage system is available to us.
+
+			//console.log(typeof arguments.callee.haslocalStorage);
+			if(typeof arguments.callee.haslocalStorage == "undefined") {
+				if ("localStorage" in window) {
+					try {
+						window.localStorage.setItem('_tmptest', 'temp');
+						arguments.callee.haslocalStorage = (window.localStorage.getItem('_tmptest') == 'temp');
+						// if we get the same info back, we are good. Otherwise, we don't have localStorage.
+						window.localStorage.removeItem('_tmptest');
+					} catch(error) { // something failed, so we don't have localStorage available.
+						arguments.callee.haslocalStorage = false;
+					}
+				} else arguments.callee.haslocalStorage = false;
+			}
+			return arguments.callee.haslocalStorage;
+		},
+
 		preProcessLogin: function (){
 			var username = $("#username").val();
 			var password = $("#password").val();
-			var rememberMeCtl = $("#rememberMe");
-			var rememberMe = rememberMeCtl.prop('checked');
 			var loginErrorElem = $('#loginError');
 			if (!username || !password) {
 				loginErrorElem.text("Please enter both your name and library card number");
 				loginErrorElem.show();
 				return false;
 			}
-			if (rememberMe){
-				localStorage.lastUserName = username;
-				localStorage.lastPwd = password;
-			}else{
-				localStorage.lastUserName = "";
-				localStorage.lastPwd = "";
+			if (VuFind.Account.hasLocalStorage()){
+				var rememberMeCtl = $("#rememberMe");
+				var rememberMe = rememberMeCtl.prop('checked');
+				if (rememberMe){
+					window.localStorage.setItem('lastUserName', username);
+					window.localStorage.setItem('lastPwd', password);
+				}else{
+					window.localStorage.setItem('lastUserName', '');
+					window.localStorage.setItem('lastPwd', '');
+				}
 			}
 			return true;
 		},
 
 		processAjaxLogin: function (ajaxCallback) {
-			var username = $("#username").val();
-			var password = $("#password").val();
-			var rememberMeCtl = $("#rememberMe");
-			var rememberMe = rememberMeCtl.prop('checked');
-			var loginErrorElem = $('#loginError');
-			if (!username || !password) {
-				loginErrorElem.text("Please enter both your name and library card number");
-				loginErrorElem.show();
-				return false;
-			}
-			if (rememberMe){
-				localStorage.lastUserName = username;
-				localStorage.lastPwd = password;
-			}else{
-				localStorage.lastUserName = "";
-				localStorage.lastPwd = "";
-			}
-			loginErrorElem.hide();
-			var url = Globals.path + "/AJAX/JSON?method=loginUser";
-			$.ajax({url: url,
-				data: {username: username, password: password, rememberMe: rememberMe},
-				success: function (response) {
-					if (response.result.success == true) {
-						// Hide "log in" options and show "log out" options:
-						$('.loginOptions, #loginOptions').hide();
-						$('.logoutOptions, #logoutOptions').show();
-						//$('#loginOptions').hide();
-						//$('#logoutOptions').show();
+			if(VuFind.Account.preProcessLogin()) {
+				var username = $("#username").val(),
+						password = $("#password").val(),
+						rememberMe = $("#rememberMe").prop('checked'),
+						loginErrorElem = $('#loginError'),
+						url = Globals.path + "/AJAX/JSON?method=loginUser";
+				loginErrorElem.hide();
+				$.ajax({
+					url: url,
+					// TODO: is rememberMe needed serverside?
+					data: {username: username, password: password, rememberMe: rememberMe},
+					success: function (response) {
+						if (response.result.success == true) {
+							// Hide "log in" options and show "log out" options:
+							$('.loginOptions, #loginOptions').hide();
+							$('.logoutOptions, #logoutOptions').show();
+							//$('#loginOptions').hide();
+							//$('#logoutOptions').show();
 
-						var name = response.result.name.trim();
-						$('#header-container #myAccountNameLink').html(name);
-						name = 'Logged In As '+ name.slice(0, name.lastIndexOf(' ')+2)+'.';
-						$('#side-bar #myAccountNameLink').html(name);
+							var name = response.result.name.trim();
+							$('#header-container #myAccountNameLink').html(name);
+							name = 'Logged In As ' + name.slice(0, name.lastIndexOf(' ') + 2) + '.';
+							$('#side-bar #myAccountNameLink').html(name);
 
-						if (VuFind.Account.closeModalOnAjaxSuccess) {
-							VuFind.closeLightbox();
+							if (VuFind.Account.closeModalOnAjaxSuccess) {
+								VuFind.closeLightbox();
+							}
+
+							Globals.loggedIn = true;
+							if (ajaxCallback != undefined && typeof(ajaxCallback) === "function") {
+								ajaxCallback();
+							} else if (VuFind.Account.ajaxCallback != undefined && typeof(VuFind.Account.ajaxCallback) === "function") {
+								VuFind.Account.ajaxCallback();
+								VuFind.Account.ajaxCallback = null;
+							}
+						} else {
+							loginErrorElem.text(response.result.message);
+							loginErrorElem.show();
 						}
-
-						Globals.loggedIn = true;
-						if (ajaxCallback != undefined && typeof(ajaxCallback) === "function") {
-							ajaxCallback();
-						} else if (VuFind.Account.ajaxCallback != undefined && typeof(VuFind.Account.ajaxCallback) === "function") {
-							VuFind.Account.ajaxCallback();
-							VuFind.Account.ajaxCallback = null;
-						}
-					} else {
-						loginErrorElem.text(response.result.message);
+					},
+					error: function () {
+						loginErrorElem.text("There was an error processing your login, please try again.");
 						loginErrorElem.show();
-					}
-				},
-				error: function () {
-					loginErrorElem.text("There was an error processing your login, please try again.");
-					loginErrorElem.show();
-				},
-				dataType: 'json',
-				type: 'post'
-			});
-
+					},
+					dataType: 'json',
+					type: 'post'
+				});
+			}
 			return false;
 		},
 
@@ -201,46 +214,79 @@ VuFind.Account = (function(){
 		},
 
 		renewTitle: function(renewIndicator) {
-			//VuFind.Account.ajaxLightbox("/MyAccount/AJAX?method=renewItem&renewIndicator="+renewIndicator, true);
-			//// this should cover all needed for renewing a single item
-			//// should always be logged in, but just in case requireLogin
-
 			if (!Globals.loggedIn) {
 				VuFind.Account.ajaxLogin(null, function () {
 					VuFind.Account.renewTitle(renewIndicator);
 				}, false);
 			} else {
-				var modalDialog = $("#modalDialog");
-				$('#myModalLabel').html("Loading, please wait");
-				$('.modal-body').html("...");
-				modalDialog.load( )
-						.modal('show');
+				VuFind.showMessage('Loading', 'Loading, please wait');
 				$.getJSON("/MyAccount/AJAX?method=renewItem&renewIndicator="+renewIndicator, function(data){
-					if (data.result){
-						data = data.result;
-					}
-					$('#myModalLabel').html(data.title);
-					$('.modal-body').html(data.modalBody);
-					$('.modal-buttons').html(data.modalButtons);
-
-					// on success reload page sorted by due date.
-					if (data.success) {
-						console.log(this);
-						VuFind.Account.changeAccountSort('dueDate');
-					}
+					VuFind.showMessage(data.title, data.modalBody, data.success, data.success); // autoclose when successful
+				}).fail(function(){
+					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 				});
 			}
 			return false;
 		},
 
-		// old form submission method. Replacing with ajax calls.
+		renewAll: function() {
+			if (confirm('Renew All Items?')) {
+				if (!Globals.loggedIn) {
+					VuFind.Account.ajaxLogin(null, function () {
+						VuFind.Account.renewAll();
+					}, false);
+				} else {
+					VuFind.showMessage('Loading', 'Loading, please wait');
+					$.getJSON("/MyAccount/AJAX?method=renewAll", function (data) {
+						VuFind.showMessage(data.title, data.modalBody, data.success);
+						// autoclose when all successful
+						$("#modalDialog").on('hidden.bs.modal', function (e) {
+							// Refresh page on close.
+							location.reload(true);
+						});
+					}).fail(function(){
+						VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+					});
+				}
+			}
+			return false;
+		},
+
+		//// old form submission method. Replacing with ajax calls.
+		//renewSelectedTitles: function () {
+		//	var selectedTitles = VuFind.getSelectedTitles();
+		//	if (selectedTitles.length == 0) {
+		//		return false;
+		//	}
+		//	$('#renewForm').submit();
+		//	return false;
+		//},
+		//
 		renewSelectedTitles: function () {
 			var selectedTitles = VuFind.getSelectedTitles();
-			if (selectedTitles.length == 0) {
-				return false;
+			if (selectedTitles) {
+				console.log(selectedTitles);
+				if (confirm('Renew selected Items?')) {
+					if (!Globals.loggedIn) {
+						VuFind.Account.ajaxLogin(null, function () {
+							VuFind.Account.renewSelectedTitles();
+						}, false);
+					} else {
+						VuFind.showMessage('Loading', 'Loading, please wait');
+						//$.getJSON("/MyAccount/AJAX?method=renewAll", function (data) {
+						//	VuFind.showMessage(data.title, data.modalBody, data.success);
+						//	// autoclose when all successful
+						//	$("#modalDialog").on('hidden.bs.modal', function (e) {
+						//		// Refresh page on close.
+						//		location.reload(true);
+						//	});
+						//}).fail(function(){
+						//	VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+						//});
+					}
+				}
 			}
-			$('#renewForm').submit();
-			return false;
+			return false
 		},
 
 		ajaxLightbox: function (urlToDisplay, requireLogin) {
