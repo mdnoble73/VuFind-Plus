@@ -171,8 +171,9 @@ public class HooplaProcessor extends MarcRecordProcessor {
 		String recordIdentifier = groupedWork.addRelatedRecord("hoopla:" + identifier, format, primaryEdition, primaryLanguage, publisher, publicationDate, physicalDescription);
 
 		//Setup information based on the scopes
+		//Do not set compatible ptypes for eContent since they are just determined by owning library/location
 		for (Scope validScope : relatedScopes) {
-			groupedWork.addCompatiblePTypes(validScope.getRelatedPTypes());
+			//groupedWork.addCompatiblePTypes(validScope.getRelatedPTypes());
 			groupedWork.getScopedWorkDetails().get(validScope.getScopeName()).getRelatedRecords().add(recordIdentifier);
 		}
 	}

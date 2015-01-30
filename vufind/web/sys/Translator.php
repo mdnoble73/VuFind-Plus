@@ -182,7 +182,7 @@ class I18N_Translator
 				$translation = $phrase;
 			}
 		}
-		global $timer;
+		//global $timer;
 		//$timer->logTime('Translated phrase' . $phrase);
 		return $translation;
 	}

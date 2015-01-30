@@ -39,9 +39,6 @@
 			</div>
 		</div>
 	</form>
-
-
-	<script type="text/javascript">$('#username').focus().select();</script>
 </div>
 <div class="modal-footer">
 	<button class="btn" data-dismiss="modal" id="modalClose">Close</button>
@@ -51,22 +48,41 @@
 </div>
 {literal}
 <script type="text/javascript">
+	$('#username').focus().select();
 	$(document).ready(
 		function (){
-			var rememberMe = true;
-			if (localStorage.lastUserName && localStorage.lastUserName != ""){
-				$("#username").val(localStorage.lastUserName);
-			}else{
-				rememberMe = false;
+			var haslocalStorage = false;
+			if ("localStorage" in window) {
+				try {
+					window.localStorage.setItem('_tmptest', 'temp');
+					haslocalStorage = (window.localStorage.getItem('_tmptest') == 'temp');
+					// if we get the same info back, we are good. Otherwise, we don't have localStorage.
+					window.localStorage.removeItem('_tmptest');
+				} catch(error) {} // something failed, so we don't have localStorage available.
 			}
-			if (localStorage.lastPwd && localStorage.lastPwd != ""){
-				$("#password").val(localStorage.lastPwd);
-			}else{
-				rememberMe = false;
+			if (haslocalStorage) {
+				var rememberMe = true,
+						lastUserName = window.localStorage.getItem('lastUserName'),
+						lastPwd = window.localStorage.getItem('lastPwd');
+				if (lastUserName != "") {
+					$("#username").val(localStorage.lastUserName);
+				} else {
+					rememberMe = false;
+				}
+				if (lastPwd != "") {
+					$("#password").val(localStorage.lastPwd);
+				} else {
+					rememberMe = false;
+				}
+				$("#rememberMe").prop("checked", rememberMe ? "checked" : '');
+			} else {
+				// disable, uncheck & hide RememberMe checkbox if localStorage isn't available.
+				$("#rememberMe").prop({checked : '', disabled: true}).parent().hide();
 			}
-			if (rememberMe){
-				$("#rememberMe").prop("checked", "checked");
-			}
+			// Once Box is shown, focus on username input and Select the text;
+			$("#modalDialog").on('shown.bs.modal', function(){
+				$('#username').focus().select();
+			})
 		}
 	);
 </script>

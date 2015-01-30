@@ -630,6 +630,16 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'collapse_facets' => array(
+			'title' => 'Collapse Facets',
+			'description' => 'Collapse all facets by default. To match new Pika style.',
+			'continueOnError' => true,
+			'sql' => array(
+				"UPDATE location_facet_setting SET collapseByDefault = '1'",
+				"UPDATE library_facet_setting SET collapseByDefault = '1'",
+			),
+		),
+
 		'location_1' => array(
 			'title' => 'Location 1',
 			'description' => 'Add fields orginally defined for Marmot',
@@ -731,6 +741,14 @@ function getLibraryLocationUpdates(){
 			'description' => 'Add option to allow display name to be shown in the header',
 			'sql' => array(
 				"ALTER TABLE location ADD showDisplayNameInHeader TINYINT DEFAULT 0",
+			),
+		),
+
+		'location_increase_code_column_size' => array(
+			'title' => 'Increase code column-size',
+			'description' => 'Increase the maximum length an ILS code can be to 50 characters',
+			'sql' => array(
+				"ALTER TABLE `location` CHANGE `code` `code` varchar(50)",
 			),
 		),
 
