@@ -124,23 +124,28 @@ VuFind.Account = (function(){
 		},
 
 		preProcessLogin: function (){
-			var username = $("#username").val();
-			var password = $("#password").val();
-			var loginErrorElem = $('#loginError');
+			var username = $("#username").val(),
+				password = $("#password").val(),
+				loginErrorElem = $('#loginError');
 			if (!username || !password) {
-				loginErrorElem.text("Please enter both your name and library card number");
-				loginErrorElem.show();
+				loginErrorElem.text("Please enter both your name and library card number")
+					.show();
 				return false;
 			}
 			if (VuFind.Account.hasLocalStorage()){
-				var rememberMeCtl = $("#rememberMe");
-				var rememberMe = rememberMeCtl.prop('checked');
+				//var rememberMeCtl = $("#rememberMe");
+				var rememberMe = $("#rememberMe").prop('checked'),
+						showPwd = $('#showPwd').prop('checked');
 				if (rememberMe){
 					window.localStorage.setItem('lastUserName', username);
 					window.localStorage.setItem('lastPwd', password);
+					window.localStorage.setItem('showPwd', showPwd);
+					window.localStorage.setItem('rememberMe', rememberMe);
 				}else{
-					window.localStorage.setItem('lastUserName', '');
-					window.localStorage.setItem('lastPwd', '');
+					window.localStorage.removeItem('lastUserName');
+					window.localStorage.removeItem('lastPwd');
+					window.localStorage.removeItem('showPwd');
+					window.localStorage.removeItem('rememberMe');
 				}
 			}
 			return true;
@@ -156,7 +161,6 @@ VuFind.Account = (function(){
 				loginErrorElem.hide();
 				$.ajax({
 					url: url,
-					// TODO: is rememberMe needed serverside?
 					data: {username: username, password: password, rememberMe: rememberMe},
 					success: function (response) {
 						if (response.result.success == true) {
@@ -166,6 +170,7 @@ VuFind.Account = (function(){
 							//$('#loginOptions').hide();
 							//$('#logoutOptions').show();
 
+							// Show user name on page in case page doesn't reload
 							var name = response.result.name.trim();
 							$('#header-container #myAccountNameLink').html(name);
 							name = 'Logged In As ' + name.slice(0, name.lastIndexOf(' ') + 2) + '.';
@@ -188,8 +193,8 @@ VuFind.Account = (function(){
 						}
 					},
 					error: function () {
-						loginErrorElem.text("There was an error processing your login, please try again.");
-						loginErrorElem.show();
+						loginErrorElem.text("There was an error processing your login, please try again.")
+								.show();
 					},
 					dataType: 'json',
 					type: 'post'
