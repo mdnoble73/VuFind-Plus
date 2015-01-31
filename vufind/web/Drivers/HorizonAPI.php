@@ -851,16 +851,20 @@ abstract class HorizonAPI extends Horizon{
 		$renewResult = array();
 		$renewResult['Total'] = $currentTransactions['numTransactions'];
 		$numRenewals = 0;
+		$failure_messages = array();
 		foreach ($currentTransactions['transactions'] as $transaction){
 			$curResult = $this->renewItem($transaction['renewIndicator'], null);
 			if ($curResult['result']){
 				$numRenewals++;
+			} else {
+				$failure_messages[] = $curResult['message'];
 			}
 		}
 		$renewResult['Renewed'] = $numRenewals;
 		$renewResult['Unrenewed'] = $renewResult['Total'] - $renewResult['Renewed'];
 		if ($renewResult['Unrenewed'] > 0) {
 			$renewResult['result'] = false;
+			$renewResult['message'] = $failure_messages;
 		}else{
 			$renewResult['result'] = true;
 			$renewResult['message'] = "All items were renewed successfully.";
@@ -902,6 +906,7 @@ abstract class HorizonAPI extends Horizon{
 				$analytics->addEvent('ILS Integration', 'Renew Successful');
 			}
 		}else{
+			//TODO: check that title is included in the message
 			$success = false;
 			$message = $renewItemResponse->string;
 			if ($analytics){

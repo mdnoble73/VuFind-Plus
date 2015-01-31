@@ -391,11 +391,12 @@ class Anythink extends HorizonAPI {
 			'spp' => 20
 		);
 
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+//		$post_items = array();
+//		foreach ($post_data as $key => $value) {
+//			$post_items[] = $key . '=' . urlencode($value);
+//		}
+//		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url . '#focus');
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);

@@ -27,7 +27,8 @@
 
 				<div class="btn-group">
 					<a href="#" onclick="return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-default">Renew Selected Items</a>
-					<a href="{$path}/MyAccount/RenewAll" class="btn btn-sm btn-default">Renew All</a>
+					{*<a href="{$path}/MyAccount/RenewAll" class="btn btn-sm btn-default">Renew All</a>*}
+					<a href="#" onclick="VuFind.Account.renewAll()" class="btn btn-sm btn-default">Renew All</a>
 					<a href="{$path}/MyAccount/CheckedOut?exportToExcel" class="btn btn-sm btn-default" id="exportToExcelTop" >Export to Excel</a>
 				</div>
 
@@ -55,7 +56,8 @@
 
 				<div class="btn-group">
 					<a href="#" onclick="return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-default">Renew Selected Items</a>
-					<a href="{$path}/MyAccount/RenewAll" class="btn btn-sm btn-default">Renew All</a>
+					{*<a href="{$path}/MyAccount/RenewAll" class="btn btn-sm btn-default">Renew All</a>*}
+					<a href="#" onclick="VuFind.Account.renewAll()" class="btn btn-sm btn-default">Renew All</a>
 					<a href="{$path}/MyAccount/CheckedOut?exportToExcel" class="btn btn-sm btn-default" id="exportToExcelBottom" >Export to Excel</a>
 				</div>
 			</form>

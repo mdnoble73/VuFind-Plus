@@ -13,7 +13,7 @@ class MyAccount_AJAX
 	function launch()
 	{
 		$method = $_GET['method'];
-		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag', 'saveSearch', 'deleteSavedSearch', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation', 'getEmailMyListForm', 'sendMyListEmail' , 'getReactivationDateForm', 'renewItem'))) {
+		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag', 'saveSearch', 'deleteSavedSearch', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation', 'getEmailMyListForm', 'sendMyListEmail' , 'getReactivationDateForm', 'renewItem', 'renewAll', 'renewSelectedItems'))) {
 			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -702,8 +702,6 @@ class MyAccount_AJAX
 	}
 
 	function renewItem() {
-		global $interface;
-
 		if (isset($_REQUEST['renewIndicator'])) {
 			list($itemId, $itemIndex) = explode('|', $_REQUEST['renewIndicator']);
 
@@ -743,6 +741,7 @@ class MyAccount_AJAX
 				'message' => 'Item to renew not specified'
 			);
 		}
+		global $interface;
 		$interface->assign('renewResults', $renewResults);
 		$result = array(
 			'title' => translate('Renew').' Item',
@@ -751,4 +750,101 @@ class MyAccount_AJAX
 		);
 		return json_encode($result);
 	}
+
+	function renewSelectedItems() {
+		if (isset($_REQUEST['selected'])) {
+
+			try {
+				global $configArray;
+				$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			} catch (PDOException $e) {
+				// What should we do with this error?
+				if ($configArray['System']['debug']) {
+					echo '<pre>';
+					echo 'DEBUG: ' . $e->getMessage();
+					echo '</pre>';
+				}
+			}
+
+			if (method_exists($this->catalog->driver, 'renewItem')) {
+
+				$failure_messages = array();
+				$renewResults = array();
+				foreach ($_REQUEST['selected'] as $selected => $ignore) {
+					list($itemId, $itemIndex) = explode('|', $selected);
+
+					$tmpResult = $this->catalog->driver->renewItem($itemId, $itemIndex);
+					if (!$tmpResult['result']) {
+						$failure_messages[] = $tmpResult['message'];
+					}
+				}
+				if ($failure_messages) {
+					$renewResults['result'] = false;
+					$renewResults['message'] = $failure_messages;
+				} else {
+					$renewResults['result'] = true;
+					$renewResults['message'] = "All items were renewed successfully.";
+				}
+				$renewResults['Total'] = count($_REQUEST['selected']);
+				$renewResults['Unrenewed'] = count($failure_messages);
+				$renewResults['Renewed'] = $renewResults['Total'] - $renewResults['Unrenewed'];
+			} else {
+				PEAR_Singleton::raiseError(new PEAR_Error('Cannot Renew Item - ILS Not Supported'));
+				$renewResults = array(
+					'success' => false,
+					'message' => 'Cannot Renew Items - ILS Not Supported.'
+				);
+			}
+
+
+		} else {
+			//error message
+			$renewResults = array(
+				'success' => false,
+				'message' => 'Items to renew not specified.'
+			);
+		}
+		global $interface;
+		$interface->assign('renew_message_data', $renewResults);
+		$result = array(
+			'title' => translate('Renew').' Selected Items',
+			'modalBody' => $interface->fetch('Record/renew-results.tpl'),
+			'success' => $renewResults['result'],
+		  'renewed' => $renewResults['Renewed']
+		);
+		return json_encode($result);
+	}
+
+	function renewAll() {
+//	global $user;
+
+		try {
+			global $configArray;
+			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+		} catch (PDOException $e) {
+			// What should we do with this error?
+			if ($configArray['System']['debug']) {
+				echo '<pre>';
+				echo 'DEBUG: ' . $e->getMessage();
+				echo '</pre>';
+			}
+		}
+
+		//Renew the hold
+		if (method_exists($this->catalog->driver, 'renewAll')) {
+			$renewResults = $this->catalog->driver->renewAll();
+		} else {
+			PEAR_Singleton::raiseError(new PEAR_Error('Cannot Renew All - ILS Not Supported'));
+		}
+		global $interface;
+		$interface->assign('renew_message_data', $renewResults);
+		$result = array(
+			'title' => translate('Renew').' All',
+			'modalBody' => $interface->fetch('Record/renew-results.tpl'),
+			'success' => $renewResults['result'],
+			'renewed' => $renewResults['Renewed']
+		);
+		return json_encode($result);
+	}
+
 }

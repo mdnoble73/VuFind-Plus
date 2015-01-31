@@ -1770,10 +1770,13 @@ class Aspencat implements DriverInterface{
 		$renewResult = array();
 		$renewResult['Total'] = $currentTransactions['numTransactions'];
 		$numRenewals = 0;
+		$failure_messages = array();
 		foreach ($currentTransactions['transactions'] as $transaction){
 			$curResult = $this->renewItem($transaction['renewIndicator'], null);
 			if ($curResult['result']){
 				$numRenewals++;
+			} else {
+				$failure_messages[] = $curResult['message'];
 			}
 		}
 		$renewResult['Renewed'] = $numRenewals;
@@ -1807,6 +1810,7 @@ class Aspencat implements DriverInterface{
 
 			$result = $this->getKohaPage($kohaUrl);
 
+			//TODO: these rountines needs completed. Renewal Failure Messages needed
 			if (true) {
 				$success = true;
 				$message = 'Your item was successfully renewed.';
