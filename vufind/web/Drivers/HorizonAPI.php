@@ -705,16 +705,18 @@ abstract class HorizonAPI extends Horizon{
 							$analytics->addEvent('ILS Integration', 'Hold Not Suspended', $title);
 						}
 					}
+
+					$frozen = translate('frozen');
 					if ($allLocationChangesSucceed){
 						return array(
 							'title' => $title,
 							'result' => true,
-							'message' => 'Your hold(s) were frozen successfully.');
+							'message' => "Your hold(s) were $frozen successfully.");
 					}else{
 						return array(
 							'title' => $title,
 							'result' => false,
-							'message' => 'Some holds could not be frozen.  Please try again later or see your librarian.');
+							'message' => "Some holds could not be $frozen.  Please try again later or see your librarian.");
 					}
 				}else{
 					//Reactivate the hold

@@ -111,7 +111,8 @@
 
 				<div class="col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
-						<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-primary">Renew</a>
+						{*<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-primary">Renew</a>*}
+						<a href="#" onclick="return VuFind.Account.renewTitle('{$record.renewIndicator}');" class="btn btn-sm btn-primary">{translate text='Renew'}</a>
 					</div>
 
 					{* Include standard tools *}

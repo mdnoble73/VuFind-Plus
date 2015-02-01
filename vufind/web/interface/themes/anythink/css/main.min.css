@@ -8117,7 +8117,7 @@ div.bottom-border-line {
 #home-page-search-label {
   display: none;
 }
-#lookfor::placeholder {
+#lookfor ::placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
@@ -8125,7 +8125,7 @@ div.bottom-border-line {
   color: #998e85;
   font-size: initial;
 }
-#lookfor::-moz-placeholder {
+#lookfor ::-moz-placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
@@ -8133,7 +8133,7 @@ div.bottom-border-line {
   color: #998e85;
   font-size: initial;
 }
-#lookfor:-moz-placeholder {
+#lookfor :-moz-placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
@@ -8141,7 +8141,7 @@ div.bottom-border-line {
   color: #998e85;
   font-size: initial;
 }
-#lookfor::-webkit-input-placeholder {
+#lookfor ::-webkit-input-placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;
@@ -8149,7 +8149,7 @@ div.bottom-border-line {
   color: #998e85;
   font-size: initial;
 }
-#lookfor:-ms-input-placeholder {
+#lookfor :-ms-input-placeholder {
   font-size: 0;
   color: transparent;
   text-shadow: none;

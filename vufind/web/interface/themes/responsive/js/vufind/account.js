@@ -6,6 +6,7 @@ VuFind.Account = (function(){
 	return {
 		ajaxCallback: null,
 		closeModalOnAjaxSuccess: false,
+		//haslocalStorage: null, // disable by default
 
 		/**
 		 * Creates a new list in the system for the active user.
@@ -102,81 +103,103 @@ VuFind.Account = (function(){
 			return false;
 		},
 
+		hasLocalStorage: function () {
+			// arguments.callee.haslocalStorage is the function's "static" variable for whether or not we have tested the
+			// that the localStorage system is available to us.
+
+			//console.log(typeof arguments.callee.haslocalStorage);
+			if(typeof arguments.callee.haslocalStorage == "undefined") {
+				if ("localStorage" in window) {
+					try {
+						window.localStorage.setItem('_tmptest', 'temp');
+						arguments.callee.haslocalStorage = (window.localStorage.getItem('_tmptest') == 'temp');
+						// if we get the same info back, we are good. Otherwise, we don't have localStorage.
+						window.localStorage.removeItem('_tmptest');
+					} catch(error) { // something failed, so we don't have localStorage available.
+						arguments.callee.haslocalStorage = false;
+					}
+				} else arguments.callee.haslocalStorage = false;
+			}
+			return arguments.callee.haslocalStorage;
+		},
+
 		preProcessLogin: function (){
-			var username = $("#username").val();
-			var password = $("#password").val();
-			var rememberMeCtl = $("#rememberMe");
-			var rememberMe = rememberMeCtl.prop('checked');
-			var loginErrorElem = $('#loginError');
+			var username = $("#username").val(),
+				password = $("#password").val(),
+				loginErrorElem = $('#loginError');
 			if (!username || !password) {
-				loginErrorElem.text("Please enter both your name and library card number");
-				loginErrorElem.show();
+				loginErrorElem.text("Please enter both your name and library card number")
+					.show();
 				return false;
 			}
-			if (rememberMe){
-				localStorage.lastUserName = username;
-				localStorage.lastPwd = password;
-			}else{
-				localStorage.lastUserName = "";
-				localStorage.lastPwd = "";
+			if (VuFind.Account.hasLocalStorage()){
+				//var rememberMeCtl = $("#rememberMe");
+				var rememberMe = $("#rememberMe").prop('checked'),
+						showPwd = $('#showPwd').prop('checked');
+				if (rememberMe){
+					window.localStorage.setItem('lastUserName', username);
+					window.localStorage.setItem('lastPwd', password);
+					window.localStorage.setItem('showPwd', showPwd);
+					window.localStorage.setItem('rememberMe', rememberMe);
+				}else{
+					window.localStorage.removeItem('lastUserName');
+					window.localStorage.removeItem('lastPwd');
+					window.localStorage.removeItem('showPwd');
+					window.localStorage.removeItem('rememberMe');
+				}
 			}
 			return true;
 		},
 
 		processAjaxLogin: function (ajaxCallback) {
-			var username = $("#username").val();
-			var password = $("#password").val();
-			var rememberMeCtl = $("#rememberMe");
-			var rememberMe = rememberMeCtl.prop('checked');
-			var loginErrorElem = $('#loginError');
-			if (!username || !password) {
-				loginErrorElem.text("Please enter both your name and library card number");
-				loginErrorElem.show();
-				return false;
-			}
-			if (rememberMe){
-				localStorage.lastUserName = username;
-				localStorage.lastPwd = password;
-			}else{
-				localStorage.lastUserName = "";
-				localStorage.lastPwd = "";
-			}
-			loginErrorElem.hide();
-			var url = Globals.path + "/AJAX/JSON?method=loginUser";
-			$.ajax({url: url,
-				data: {username: username, password: password, rememberMe: rememberMe},
-				success: function (response) {
-					if (response.result.success == true) {
-						// Hide "log in" options and show "log out" options:
-						$('.loginOptions, #loginOptions').hide();
-						$('.logoutOptions, #logoutOptions').show();
-						//$('#loginOptions').hide();
-						//$('#logoutOptions').show();
-						$('#myAccountNameLink').html(response.result.name);
-						if (VuFind.Account.closeModalOnAjaxSuccess) {
-							VuFind.closeLightbox();
-						}
+			if(VuFind.Account.preProcessLogin()) {
+				var username = $("#username").val(),
+						password = $("#password").val(),
+						rememberMe = $("#rememberMe").prop('checked'),
+						loginErrorElem = $('#loginError'),
+						url = Globals.path + "/AJAX/JSON?method=loginUser";
+				loginErrorElem.hide();
+				$.ajax({
+					url: url,
+					data: {username: username, password: password, rememberMe: rememberMe},
+					success: function (response) {
+						if (response.result.success == true) {
+							// Hide "log in" options and show "log out" options:
+							$('.loginOptions, #loginOptions').hide();
+							$('.logoutOptions, #logoutOptions').show();
+							//$('#loginOptions').hide();
+							//$('#logoutOptions').show();
 
-						Globals.loggedIn = true;
-						if (ajaxCallback != undefined && typeof(ajaxCallback) === "function") {
-							ajaxCallback();
-						} else if (VuFind.Account.ajaxCallback != undefined && typeof(VuFind.Account.ajaxCallback) === "function") {
-							VuFind.Account.ajaxCallback();
-							VuFind.Account.ajaxCallback = null;
-						}
-					} else {
-						loginErrorElem.text(response.result.message);
-						loginErrorElem.show();
-					}
-				},
-				error: function () {
-					loginErrorElem.text("There was an error processing your login, please try again.");
-					loginErrorElem.show();
-				},
-				dataType: 'json',
-				type: 'post'
-			});
+							// Show user name on page in case page doesn't reload
+							var name = response.result.name.trim();
+							$('#header-container #myAccountNameLink').html(name);
+							name = 'Logged In As ' + name.slice(0, name.lastIndexOf(' ') + 2) + '.';
+							$('#side-bar #myAccountNameLink').html(name);
 
+							if (VuFind.Account.closeModalOnAjaxSuccess) {
+								VuFind.closeLightbox();
+							}
+
+							Globals.loggedIn = true;
+							if (ajaxCallback != undefined && typeof(ajaxCallback) === "function") {
+								ajaxCallback();
+							} else if (VuFind.Account.ajaxCallback != undefined && typeof(VuFind.Account.ajaxCallback) === "function") {
+								VuFind.Account.ajaxCallback();
+								VuFind.Account.ajaxCallback = null;
+							}
+						} else {
+							loginErrorElem.text(response.result.message);
+							loginErrorElem.show();
+						}
+					},
+					error: function () {
+						loginErrorElem.text("There was an error processing your login, please try again.")
+								.show();
+					},
+					dataType: 'json',
+					type: 'post'
+				});
+			}
 			return false;
 		},
 
@@ -195,13 +218,80 @@ VuFind.Account = (function(){
 			return false;
 		},
 
+		renewTitle: function(renewIndicator) {
+			if (!Globals.loggedIn) {
+				VuFind.Account.ajaxLogin(null, function () {
+					VuFind.Account.renewTitle(renewIndicator);
+				}, false);
+			} else {
+				VuFind.showMessage('Loading', 'Loading, please wait');
+				$.getJSON("/MyAccount/AJAX?method=renewItem&renewIndicator="+renewIndicator, function(data){
+					VuFind.showMessage(data.title, data.modalBody, data.success, data.success); // autoclose when successful
+				}).fail(function(){
+					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+				});
+			}
+			return false;
+		},
+
+		renewAll: function() {
+			if (confirm('Renew All Items?')) {
+				if (!Globals.loggedIn) {
+					VuFind.Account.ajaxLogin(null, function () {
+						VuFind.Account.renewAll();
+					}, false);
+				} else {
+					VuFind.showMessage('Loading', 'Loading, please wait');
+					$.getJSON("/MyAccount/AJAX?method=renewAll", function (data) {
+						VuFind.showMessage(data.title, data.modalBody, data.success);
+						// autoclose when all successful
+						$("#modalDialog").on('hidden.bs.modal', function (e) {
+							// Refresh page on close.
+							location.reload(true);
+						});
+					}).fail(function(){
+						VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+					});
+				}
+			}
+			return false;
+		},
+
+		//// old form submission method. Replacing with ajax calls.
+		//renewSelectedTitles: function () {
+		//	var selectedTitles = VuFind.getSelectedTitles();
+		//	if (selectedTitles.length == 0) {
+		//		return false;
+		//	}
+		//	$('#renewForm').submit();
+		//	return false;
+		//},
+		//
 		renewSelectedTitles: function () {
 			var selectedTitles = VuFind.getSelectedTitles();
-			if (selectedTitles.length == 0) {
-				return false;
+			if (selectedTitles) {
+				console.log(selectedTitles);
+				if (confirm('Renew selected Items?')) {
+					if (!Globals.loggedIn) {
+						VuFind.Account.ajaxLogin(null, function () {
+							VuFind.Account.renewSelectedTitles();
+						}, false);
+					} else {
+						VuFind.showMessage('Loading', 'Loading, please wait');
+						//$.getJSON("/MyAccount/AJAX?method=renewAll", function (data) {
+						//	VuFind.showMessage(data.title, data.modalBody, data.success);
+						//	// autoclose when all successful
+						//	$("#modalDialog").on('hidden.bs.modal', function (e) {
+						//		// Refresh page on close.
+						//		location.reload(true);
+						//	});
+						//}).fail(function(){
+						//	VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+						//});
+					}
+				}
 			}
-			$('#renewForm').submit();
-			return false;
+			return false
 		},
 
 		ajaxLightbox: function (urlToDisplay, requireLogin) {
@@ -259,18 +349,22 @@ VuFind.Account = (function(){
 		},
 
 		cancelSelectedHolds: function(){
-			var selectedTitles = this.getSelectedTitles(false);
-			if (selectedTitles.length == 0){
+			var numHolds = $("input.titleSelect:checked ").length;
+			if (numHolds == 0){
 				alert('Please select one or more titles to cancel.');
 				return false;
+			} else if (!confirm('Cancel '+numHolds +' selected hold'+(numHolds > 1?'s':'') +'?')) {
+					return false;
 			}
-			var url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&' + selectedTitles;
-			var queryParams = VuFind.getQuerystringParameters();
+			var selectedTitles = this.getSelectedTitles(false),
+					url = Globals.path + '/MyAccount/Holds?multiAction=cancelSelected&' + selectedTitles,
+					queryParams = VuFind.getQuerystringParameters();
 			if ($.inArray('section', queryParams) && queryParams['section'] != 'undefined'){
 				url += '&section=' + queryParams['section'];
 			}
 			window.location = url;
 			return false;
+
 		},
 
 		/* update the sort parameter and redirect the user back to the same page */
@@ -296,7 +390,8 @@ VuFind.Account = (function(){
 		changeHoldPickupLocation: function (holdId){
 			if (Globals.loggedIn){
 				var modalDialog = $("#modalDialog");
-				//$(".modal-body").html($('#userreview' + id).html());
+				$('#myModalLabel').html('Loading');
+				$('.modal-body').html('');
 				$.getJSON(Globals.path + "/MyAccount/AJAX?method=getChangeHoldLocationForm&holdId=" + holdId, function(data){
 					$('#myModalLabel').html(data.title);
 					$('.modal-body').html(data.modalBody);
@@ -348,7 +443,7 @@ VuFind.Account = (function(){
 			);
 		},
 
-		freezeHold: function(holdId, promptForReactivationDate){
+		freezeHold: function(holdId, promptForReactivationDate, caller){
 			if (promptForReactivationDate){
 				//Prompt the user for the date they want to reactivate the hold
 				var modalDialog = $("#modalDialog");
@@ -361,7 +456,8 @@ VuFind.Account = (function(){
 				modalDialog.load( );
 				modalDialog.modal('show');
 			}else{
-				VuFind.showMessage("Freezing Hold", "Freezing your hold.  This may take a minute.");
+				var popUpBoxTitle = $(caller).text() || "Freezing Hold"; // freezing terminology can be customized, so grab text from click button: caller
+				VuFind.showMessage(popUpBoxTitle, "Updating your hold.  This may take a minute.");
 				var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&holdId=' + holdId;
 				$.getJSON(url, function(data){
 					if (data.result) {
@@ -373,11 +469,12 @@ VuFind.Account = (function(){
 			}
 		},
 
-		doFreezeHoldWithReactivationDate: function(){
-			var holdId = $("#holdId").val();
+// called by ReactivationDateForm when fn freezeHold above has promptForReactivationDate is set
+		doFreezeHoldWithReactivationDate: function(caller){
+			var popUpBoxTitle = $(caller).text() || "Freezing Hold"; // freezing terminology can be customized, so grab text from click button: caller
+			VuFind.showMessage(popUpBoxTitle, "Updating your hold.  This may take a minute.");			var holdId = $("#holdId").val();
 			var reactivationDate = $("#reactivationDate").val();
 			var url = Globals.path + '/MyAccount/AJAX?method=freezeHold&holdId=' + holdId + '&reactivationDate=' + reactivationDate;
-			VuFind.showMessage("Freezing Hold", "Freezing your hold.  This may take a minute.");
 			$.getJSON(url, function(data){
 				if (data.result) {
 					VuFind.showMessage("Success", data.message, true, true);
@@ -489,8 +586,9 @@ VuFind.Account = (function(){
 			return false;
 		},
 
-		thawHold: function(holdId){
-			VuFind.showMessage("Thawing Hold", "Thawing your hold.  This may take a minute.");
+		thawHold: function(holdId, caller){
+			$popUpBoxTitle = $(caller).text() || "Thawing Hold";  // freezing terminology can be customized, so grab text from click button: caller
+			VuFind.showMessage($popUpBoxTitle, "Updating your hold.  This may take a minute.");
 			var url = Globals.path + '/MyAccount/AJAX?method=thawHold&holdId=' + holdId;
 			$.getJSON(url, function(data){
 				if (data.result) {

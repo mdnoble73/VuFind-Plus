@@ -2,7 +2,7 @@
 /**
  * Shows all titles that are on hold for a user (combines all sources)
  *
- * @category VuFind-Plus 
+ * @category Pika
  * @author Mark Noble <mark@marmot.org>
  * Date: 10/10/13
  * Time: 1:11 PM
@@ -20,25 +20,27 @@ class MyAccount_Holds extends MyAccount{
 			$multiAction = $_REQUEST['multiAction'];
 			$locationId = isset($_REQUEST['location']) ? $_REQUEST['location'] : null;
 			$cancelId = array();
-			$freeze = '';
 			$type = 'update';
+			$freeze = '';
 			if ($multiAction == 'cancelSelected'){
 				$type = 'cancel';
-				$freeze = '';
+//				$freeze = ''; // same as default setting.
 			}elseif ($multiAction == 'freezeSelected'){
-				$type = 'update';
+//				$type = 'update'; // same as default setting.
 				$freeze = 'on';
-
 			}elseif ($multiAction == 'thawSelected'){
-				$type = 'update';
+//				$type = 'update'; // same as default setting.
 				$freeze = 'off';
-
-			}elseif ($multiAction == 'updateSelected'){
-				$type = 'update';
-				$freeze = '';
 			}
+//			elseif ($multiAction == 'updateSelected'){ // same as default settings.
+
+//				$type = 'update';
+//				$freeze = '';
+//			}
 			$result = $this->catalog->driver->updateHoldDetailed($user->password, $type, '', null, $cancelId, $locationId, $freeze);
 			$interface->assign('holdResult', $result);
+
+			// TODO: success messages here
 
 			//Redirect back here without the extra parameters.
 			$redirectUrl = $configArray['Site']['path'] . '/MyAccount/Holds?accountSort=' . ($selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'title');
@@ -56,7 +58,8 @@ class MyAccount_Holds extends MyAccount{
 		$canChangePickupLocation = ($ils != 'Koha');
 		$interface->assign('canChangePickupLocation', $canChangePickupLocation);
 		// Define sorting options
-		$sortOptions = array('title' => 'Title',
+		$sortOptions = array(
+			'title' => 'Title',
 			'author' => 'Author',
 			'format' => 'Format',
 			'placed' => 'Date Placed',
@@ -132,13 +135,15 @@ class MyAccount_Holds extends MyAccount{
 
 					$allHolds = array_merge_recursive($ilsHolds, $overDriveHolds, $eContentHolds);
 
+
+					/* pickUpLocations doesn't seem to be used by the Holds summary page. plb 1-26-2015
 					$location = new Location();
 					$pickupBranches = $location->getPickupBranches($patronResult, null);
 					$locationList = array();
 					foreach ($pickupBranches as $curLocation) {
 						$locationList[$curLocation->locationId] = $curLocation->displayName;
 					}
-					$interface->assign('pickupLocations', $locationList);
+					$interface->assign('pickupLocations', $locationList); */
 
 					//Make sure available holds come before unavailable
 					$interface->assign('recordList', $allHolds['holds']);
@@ -165,7 +170,8 @@ class MyAccount_Holds extends MyAccount{
 			$twoWeeksAgo = time() - 14 * 24 * 60 * 60;
 			$offlineHoldsObj = new OfflineHold();
 			$offlineHoldsObj->patronId = $user->id;
-			$offlineHoldsObj->whereAdd("status = 'Not Processed' OR (status = 'Hold Placed' AND timeEntered >= $twoDaysAgo)  OR (status = 'Hold Failed' AND timeEntered >= $twoWeeksAgo)");
+			$offlineHoldsObj->whereAdd("status = 'Not Processed' OR (status = 'Hold Placed' AND timeEntered >= $twoDaysAgo) OR (status = 'Hold Failed' AND timeEntered >= $twoWeeksAgo)");
+			// mysql has these functions as well: "status = 'Not Processed' OR (status = 'Hold Placed' AND timeEntered >= DATE_SUB(NOW(), INTERVAL 2 DAYS)) OR (status = 'Hold Failed' AND timeEntered >= DATE_SUB(NOW(), INTERVAL 2 WEEKS))");
 			$offlineHolds = array();
 			if ($offlineHoldsObj->find()){
 				while ($offlineHoldsObj->fetch()){
@@ -192,7 +198,6 @@ class MyAccount_Holds extends MyAccount{
 		if (!$library->showDetailedHoldNoticeInformation){
 			$notification_method = '';
 		}else{
-			//$notification_method = 'via e-mail, phone, print, or occasionally Vulcan mind-meld';
 			$notification_method = ($profile['noticePreferenceLabel'] != 'Unknown') ? $profile['noticePreferenceLabel'] : '';
 			if ($notification_method == 'Mail' && $library->treatPrintNoticesAsPhoneNotices){
 				$notification_method = 'Telephone';
