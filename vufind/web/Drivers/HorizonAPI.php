@@ -960,7 +960,7 @@ abstract class HorizonAPI extends Horizon{
 			return HorizonAPI::$loadedStatus[$id];
 		}
 		global $configArray;
-
+		global $library;
 		//Get location information so we can put things into sections
 		global $locationSingleton; /** @var $locationSingleton Location */
 		$physicalLocation = $locationSingleton->getPhysicalLocation();
@@ -1083,9 +1083,9 @@ abstract class HorizonAPI extends Horizon{
 					$sorted_array['5' . $sortString] = $holding;
 				*/} else {
 					//Finally, all other holdings are shown sorted alphabetically.
-					$holding['section'] = 'Other Locations';
-					$holding['sectionId'] = 6;
-					$sorted_array['6' . $sortString] = $holding;
+					$holding['section'] = $library->displayName;
+					$holding['sectionId'] = 5;
+					$sorted_array['5' . $sortString] = $holding;
 				}
 
 				$holdings[] = $holding;
