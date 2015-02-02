@@ -65,12 +65,12 @@
 				var rememberMe = (window.localStorage.getItem('rememberMe') == 'true'); // localStorage saves everything as strings
 				if (rememberMe) {
 					var lastUserName = window.localStorage.getItem('lastUserName'),
-							lastPwd = window.localStorage.getItem('lastPwd'),
-							showPwd = (window.localStorage.getItem('showPwd') == 'true'); // localStorage saves everything as strings
+							lastPwd = window.localStorage.getItem('lastPwd');
+//							showPwd = (window.localStorage.getItem('showPwd') == 'true'); // localStorage saves everything as strings
 					$("#username").val(lastUserName);
 					$("#password").val(lastPwd);
-					$("#showPwd").prop("checked", showPwd  ? "checked" : '');
-					if (showPwd) VuFind.pwdToText('password');
+//					$("#showPwd").prop("checked", showPwd  ? "checked" : '');
+//					if (showPwd) VuFind.pwdToText('password');
 				}
 				$("#rememberMe").prop("checked", rememberMe ? "checked" : '');
 			} else {

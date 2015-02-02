@@ -84,3 +84,6 @@ Thumbs.db
 #####################
 [_]notes/
 
+# File-watcher mishaps #
+########################
+*.min.min.js

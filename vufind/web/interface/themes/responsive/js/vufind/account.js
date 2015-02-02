@@ -245,10 +245,12 @@ VuFind.Account = (function(){
 					$.getJSON("/MyAccount/AJAX?method=renewAll", function (data) {
 						VuFind.showMessage(data.title, data.modalBody, data.success);
 						// autoclose when all successful
-						$("#modalDialog").on('hidden.bs.modal', function (e) {
-							// Refresh page on close.
-							location.reload(true);
-						});
+						if (data.success || data.renewed > 0) {
+							// Refresh page on close when a item has been successfully renewed, otherwise stay
+							$("#modalDialog").on('hidden.bs.modal', function (e) {
+								location.reload(true);
+							});
+						}
 					}).fail(function(){
 						VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 					});
@@ -270,7 +272,6 @@ VuFind.Account = (function(){
 		renewSelectedTitles: function () {
 			var selectedTitles = VuFind.getSelectedTitles();
 			if (selectedTitles) {
-				console.log(selectedTitles);
 				if (confirm('Renew selected Items?')) {
 					if (!Globals.loggedIn) {
 						VuFind.Account.ajaxLogin(null, function () {
@@ -278,16 +279,18 @@ VuFind.Account = (function(){
 						}, false);
 					} else {
 						VuFind.showMessage('Loading', 'Loading, please wait');
-						//$.getJSON("/MyAccount/AJAX?method=renewAll", function (data) {
-						//	VuFind.showMessage(data.title, data.modalBody, data.success);
-						//	// autoclose when all successful
-						//	$("#modalDialog").on('hidden.bs.modal', function (e) {
-						//		// Refresh page on close.
-						//		location.reload(true);
-						//	});
-						//}).fail(function(){
-						//	VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
-						//});
+						$.getJSON("/MyAccount/AJAX?method=renewSelectedItems&"+selectedTitles, function (data) {
+							VuFind.showMessage(data.title, data.modalBody, data.success);
+							// autoclose when all successful
+							if (data.success || data.renewed > 0) {
+								// Refresh page on close when a item has been successfully renewed, otherwise stay
+								$("#modalDialog").on('hidden.bs.modal', function (e) {
+									location.reload(true);
+								});
+							}
+						}).fail(function(){
+							VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+						});
 					}
 				}
 			}
