@@ -7,16 +7,15 @@ import org.marc4j.*;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
+import sun.java2d.pipe.SpanShapeRenderer;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Merge a main marc export file with records from a delete and updates file
@@ -107,7 +106,8 @@ public class MergeMarcUpdatesAndDeletes implements IProcessHandler{
 					}
 				}
 
-				File mergedFile = new File(mainFile.getPath() + ".merged");
+				String today = new SimpleDateFormat("yyyyMMdd").format(new Date());
+				File mergedFile = new File(mainFile.getPath() + "." + today + ".merged");
 				try {
 					FileInputStream marcFileStream = new FileInputStream(mainFile);
 					MarcReader mainReader = new MarcPermissiveStreamReader(marcFileStream, true, true, marcEncoding);
@@ -150,7 +150,7 @@ public class MergeMarcUpdatesAndDeletes implements IProcessHandler{
 					if (!updatesFile.renameTo(new File(backupPath + "/" + updatesFile.getName()))) {
 						processLog.incErrors();
 						processLog.addNote("Unable to move updates file to backup directory.");
-						logger.error("Unable to move updates file to backup directory");
+						logger.error("Unable to move updates file " + updatesFile.getAbsolutePath() + " to backup directory " + backupPath + "/" + updatesFile.getName());
 						processLog.saveToDatabase(vufindConn, logger);
 						errorOccurred = true;
 					}
@@ -171,8 +171,8 @@ public class MergeMarcUpdatesAndDeletes implements IProcessHandler{
 					String mainFilePath = mainFile.getPath();
 					if (!mainFile.renameTo(new File(backupPath + "/" + mainFile.getName()))) {
 						processLog.incErrors();
-						processLog.addNote("Unable to move main file to backup directory.");
-						logger.error("Unable to move main file to backup directory");
+						processLog.addNote("Unable to move main file " + mainFile.getAbsolutePath() + " to backup directory " + backupPath + "/" + mainFile.getName());
+						logger.error("Unable to move main file " + mainFile.getAbsolutePath() + " to backup directory " + backupPath + "/" + mainFile.getName());
 						processLog.saveToDatabase(vufindConn, logger);
 					} else {
 						//Move the merged file to the main file
