@@ -323,6 +323,25 @@ VuFind.Account = (function(){
 			return false;
 		},
 
+		cancelHold: function(holdIdToCancel){
+			if (confirm("Are you sure you want to cancel this hold?")){
+				if (!Globals.loggedIn) {
+					VuFind.Account.ajaxLogin(null, function () {
+						VuFind.Account.cancelHold(holdIdToCancel);
+					}, false);
+				} else {
+					VuFind.showMessage('Loading', 'Loading, please wait');
+					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelHold&cancelId="+holdIdToCancel, function(data){
+						VuFind.showMessage(data.title, data.modalBody, data.success, data.success); // autoclose when successful
+					}).fail(function(){
+						VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+					});
+				}
+			}
+
+			return false;
+		},
+/*
 		cancelPendingHold: function(holdIdToCancel, recordId){
 			if (!confirm("Are you sure you want to cancel this hold?")){
 				return false;
@@ -369,7 +388,7 @@ VuFind.Account = (function(){
 			return false;
 
 		},
-
+*/
 		/* update the sort parameter and redirect the user back to the same page */
 		changeAccountSort: function (newSort){
 			// Get the current url
