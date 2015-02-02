@@ -55,6 +55,16 @@ public class RecordGroupingProcessor {
 	//A list of grouped works that have been manually merged.
 	private HashMap<String, String> mergedGroupedWorks = new HashMap<String, String>();
 
+	/**
+	 * Creates a record grouping processor that saves results to the database.
+	 *
+	 * @param dbConnection   - The Connection to the Pika database
+	 * @param serverName     - The server we are grouping data for
+	 * @param configIni      - The configuration information for the server we are grouping
+	 * @param logger         - A logger to store debug and error messages to.
+	 * @param fullRegrouping - Whether or not we are doing full regrouping or if we are only grouping changes.
+	 *                         Determines if old works are loaded at the beginning.
+	 */
 	public RecordGroupingProcessor(Connection dbConnection, String serverName, Ini configIni, Logger logger, boolean fullRegrouping) {
 		this.logger = logger;
 		this.fullRegrouping = fullRegrouping;
@@ -75,7 +85,6 @@ public class RecordGroupingProcessor {
 			removeIdentifiersForPrimaryIdentifierStmt = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_to_secondary_id_ref where primary_identifier_id = ?");
 			removePrimaryIdentifiersForWorkStmt = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_identifiers where grouped_work_id = ?");
 			addPrimaryIdentifierToSecondaryIdentifierRefStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_primary_to_secondary_id_ref (primary_identifier_id, secondary_identifier_id) VALUES (?, ?) ");
-			loadAuthorities();
 			if (!fullRegrouping){
 				PreparedStatement loadExistingGroupedWorksStmt = dbConnection.prepareStatement("SELECT id, permanent_id from grouped_work");
 				ResultSet loadExistingGroupedWorksRS = loadExistingGroupedWorksStmt.executeQuery();
@@ -120,33 +129,6 @@ public class RecordGroupingProcessor {
 			return titleAuthorities.get(originalTitle);
 		}else{
 			return originalTitle;
-		}
-	}
-
-	private void loadAuthorities() {
-		try {
-			CSVReader csvReader = new CSVReader(new FileReader(new File("./author_authorities.properties")));
-			String[] curLine = csvReader.readNext();
-			while (curLine != null){
-				if (curLine.length >= 2){
-					authorAuthorities.put(curLine[0], curLine[1]);
-				}
-				curLine = csvReader.readNext();
-			}
-		} catch (IOException e) {
-			logger.error("Unable to load author authorities", e);
-		}
-		try {
-			CSVReader csvReader = new CSVReader(new FileReader(new File("./title_authorities.properties")));
-			String[] curLine = csvReader.readNext();
-			while (curLine != null){
-				if (curLine.length >= 2){
-					titleAuthorities.put(curLine[0], curLine[1]);
-				}
-				curLine = csvReader.readNext();
-			}
-		} catch (IOException e) {
-			logger.error("Unable to load title authorities", e);
 		}
 	}
 
@@ -284,59 +266,70 @@ public class RecordGroupingProcessor {
 	public void processMarcRecord(Record marcRecord, RecordIdentifier primaryIdentifier, String loadFormatFrom, char formatSubfield){
 		if (primaryIdentifier != null){
 			//Get data for the grouped record
-			GroupedWork workForTitle = new GroupedWork();
-
-			//Title
-			DataField field245 = setWorkTitleBasedOnMarcRecord(marcRecord, workForTitle);
-
-			//Format
-			String groupingFormat;
-			if (loadFormatFrom.equals("bib")){
-				String format = getFormatFromBib(marcRecord);
-				groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
-			}else {
-				//get format from item
-				groupingFormat = getFormatFromItems(marcRecord, formatSubfield);
-			}
-			workForTitle.groupingCategory = groupingFormat;
-
-			//Author
-			setWorkAuthorBasedOnMarcRecord(marcRecord, workForTitle, field245, groupingFormat);
+			GroupedWorkBase workForTitle = setupBasicWorkForIlsRecord(marcRecord, loadFormatFrom, formatSubfield);
 
 			//Identifiers
 			HashSet<RecordIdentifier> identifiers = getIdentifiersFromMarcRecord(marcRecord);
-			workForTitle.identifiers = identifiers;
+			workForTitle.setIdentifiers(identifiers);
 
 			addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
 		}
+	}
+
+	public GroupedWorkBase setupBasicWorkForIlsRecord(Record marcRecord, String loadFormatFrom, char formatSubfield) {
+		GroupedWorkBase workForTitle = GroupedWorkFactory.getInstance(-1);
+
+		//Title
+		DataField field245 = setWorkTitleBasedOnMarcRecord(marcRecord, workForTitle);
+
+		//Format
+		String groupingFormat;
+		if (loadFormatFrom.equals("bib")){
+			String format = getFormatFromBib(marcRecord);
+			groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
+		}else {
+			//get format from item
+			groupingFormat = getFormatFromItems(marcRecord, formatSubfield);
+		}
+		workForTitle.setGroupingCategory(groupingFormat);
+
+		//Author
+		setWorkAuthorBasedOnMarcRecord(marcRecord, workForTitle, field245, groupingFormat);
+		return workForTitle;
 	}
 
 	public void processEVokeRecord(Record marcRecord, RecordIdentifier primaryIdentifier){
 		if (primaryIdentifier != null){
-			//Get data for the grouped record
-			GroupedWork workForTitle = new GroupedWork();
-
-			//Title
-			DataField field245 = setWorkTitleBasedOnMarcRecord(marcRecord, workForTitle);
-
-			//Format - right now
-			String format = "eBook";
-			String groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
-
-			//Author
-			setWorkAuthorBasedOnMarcRecord(marcRecord, workForTitle, field245, groupingFormat);
+			GroupedWorkBase workForTitle = setupBasicWorkForEVokeRecord(marcRecord);
 
 			//Identifiers
 			HashSet<RecordIdentifier> identifiers = getIdentifiersFromMarcRecord(marcRecord);
 
-			workForTitle.groupingCategory = groupingFormat;
-			workForTitle.identifiers = identifiers;
+			workForTitle.setIdentifiers(identifiers);
 
 			addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
 		}
 	}
 
-	private void setWorkAuthorBasedOnMarcRecord(Record marcRecord, GroupedWork workForTitle, DataField field245, String groupingFormat) {
+	public GroupedWorkBase setupBasicWorkForEVokeRecord(Record marcRecord) {
+		//Get data for the grouped record
+		GroupedWorkBase workForTitle = new GroupedWorkFactory().getInstance(-1);
+
+		//Title
+		DataField field245 = setWorkTitleBasedOnMarcRecord(marcRecord, workForTitle);
+
+		//Format - right now
+		String format = "eBook";
+		String groupingFormat = categoryMap.get(formatsToGroupingCategory.get(format));
+
+		//Author
+		setWorkAuthorBasedOnMarcRecord(marcRecord, workForTitle, field245, groupingFormat);
+
+		workForTitle.setGroupingCategory(groupingFormat);
+		return workForTitle;
+	}
+
+	public void setWorkAuthorBasedOnMarcRecord(Record marcRecord, GroupedWorkBase workForTitle, DataField field245, String groupingFormat) {
 		String author = null;
 		DataField field100 = (DataField)marcRecord.getVariableField("100");
 		DataField field110 = (DataField)marcRecord.getVariableField("110");
@@ -368,7 +361,7 @@ public class RecordGroupingProcessor {
 		}
 	}
 
-	private DataField setWorkTitleBasedOnMarcRecord(Record marcRecord, GroupedWork workForTitle) {
+	private DataField setWorkTitleBasedOnMarcRecord(Record marcRecord, GroupedWorkBase workForTitle) {
 		DataField field245 = (DataField)marcRecord.getVariableField("245");
 		if (field245 != null && field245.getSubfield('a') != null){
 			String fullTitle = field245.getSubfield('a').getData();
@@ -401,7 +394,7 @@ public class RecordGroupingProcessor {
 		return field245;
 	}
 
-	private void addGroupedWorkToDatabase(RecordIdentifier primaryIdentifier, GroupedWork groupedWork) {
+	private void addGroupedWorkToDatabase(RecordIdentifier primaryIdentifier, GroupedWorkBase groupedWork) {
 		String groupedWorkPermanentId = groupedWork.getPermanentId();
 		if (mergedGroupedWorks.containsKey(groupedWorkPermanentId)){
 			String originalGroupedWorkPermanentId = groupedWorkPermanentId;
@@ -440,7 +433,7 @@ public class RecordGroupingProcessor {
 				//Need to insert a new grouped record
 				insertGroupedWorkStmt.setString(1, groupedWork.getTitle());
 				insertGroupedWorkStmt.setString(2, groupedWork.getAuthor());
-				insertGroupedWorkStmt.setString(3, groupedWork.groupingCategory);
+				insertGroupedWorkStmt.setString(3, groupedWork.getGroupingCategory());
 				insertGroupedWorkStmt.setString(4, groupedWorkPermanentId);
 				insertGroupedWorkStmt.setLong(5, new Date().getTime() / 1000);
 
@@ -456,7 +449,7 @@ public class RecordGroupingProcessor {
 
 			//Update identifiers
 			addPrimaryIdentifierForWorkToDB(groupedWorkId, primaryIdentifier);
-			addIdentifiersForRecordToDB(groupedWorkId, groupedWork.identifiers, primaryIdentifier);
+			addIdentifiersForRecordToDB(groupedWorkId, groupedWork.getIdentifiers(), primaryIdentifier);
 		}catch (Exception e){
 			logger.error("Error adding grouped record to grouped work ", e);
 		}
@@ -568,7 +561,7 @@ public class RecordGroupingProcessor {
 	}
 
 	public void processRecord(RecordIdentifier primaryIdentifier, String title, String subtitle, String author, String format, HashSet<RecordIdentifier>identifiers){
-		GroupedWork groupedWork = new GroupedWork();
+		GroupedWorkBase groupedWork = GroupedWorkFactory.getInstance(-1);
 
 		//Replace & with and for better matching
 		groupedWork.setTitle(title, 0, subtitle);
@@ -578,16 +571,16 @@ public class RecordGroupingProcessor {
 		}
 
 		if (format.equalsIgnoreCase("audiobook")){
-			groupedWork.groupingCategory = "book";
+			groupedWork.setGroupingCategory("book");
 		}else if (format.equalsIgnoreCase("ebook")){
-			groupedWork.groupingCategory = "book";
+			groupedWork.setGroupingCategory("book");
 		}else if (format.equalsIgnoreCase("music")){
-			groupedWork.groupingCategory = "music";
+			groupedWork.setGroupingCategory("music");
 		}else if (format.equalsIgnoreCase("video")){
-			groupedWork.groupingCategory = "movie";
+			groupedWork.setGroupingCategory("movie");
 		}
 
-		groupedWork.identifiers = identifiers;
+		groupedWork.setIdentifiers(identifiers);
 
 		addGroupedWorkToDatabase(primaryIdentifier, groupedWork);
 	}
@@ -1177,9 +1170,17 @@ public class RecordGroupingProcessor {
 		//Create primary identifier so we can get back to the record later
 		RecordIdentifier primaryIdentifier = new RecordIdentifier();
 		primaryIdentifier.setValue("hoopla", recordNumber);
+		GroupedWorkBase workForTitle = setupBasicWorkForHooplaRecord(marcRecord);
 
+		//Get isbns and upcs for cover images, etc.
+		workForTitle.setIdentifiers(getIdentifiersFromMarcRecord(marcRecord));
+
+		addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
+	}
+
+	public GroupedWorkBase setupBasicWorkForHooplaRecord(Record marcRecord) {
 		//Create Grouped Work
-		GroupedWork workForTitle = new GroupedWork();
+		GroupedWorkBase workForTitle = new GroupedWorkFactory().getInstance(-1);
 
 		//Extract title so that we can group with other records
 		DataField field245 = setWorkTitleBasedOnMarcRecord(marcRecord, workForTitle);
@@ -1202,14 +1203,10 @@ public class RecordGroupingProcessor {
 				logger.warn("Unknown Hoopla format " + format);
 			}
 		}
-		workForTitle.groupingCategory = groupingFormat;
+		workForTitle.setGroupingCategory(groupingFormat);
 
 		//Extract author
 		setWorkAuthorBasedOnMarcRecord(marcRecord, workForTitle, field245, groupingFormat);
-
-		//Get isbns and upcs for cover images, etc.
-		workForTitle.identifiers = getIdentifiersFromMarcRecord(marcRecord);
-
-		addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
+		return workForTitle;
 	}
 }

@@ -19,6 +19,8 @@ tests/conf/config.ini
 data-import
 config.pwd.ini
 *.csv
+author_authorities.properties.temp
+author_authorities.v1.properties
 
 # Compiled source #                                                                                   
 ###################
