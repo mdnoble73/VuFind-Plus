@@ -935,7 +935,7 @@ class Location extends DB_DataObject
 
 		if ($configArray['Index']['enableDetailedAvailability']){
 			$facet = new LocationFacetSetting();
-			$facet->setupTopFacet('availability_toggle', 'Available?', false);
+			$facet->setupTopFacet('availability_toggle', 'Available?', true);
 			$facet->locationId = $locationId;
 			$facet->weight = count($defaultFacets) + 1;
 			$defaultFacets[] = $facet;
@@ -943,39 +943,39 @@ class Location extends DB_DataObject
 
 		if ($configArray['Index']['enableDetailedAvailability']){
 			$facet = new LocationFacetSetting();
-			$facet->setupSideFacet('available_at', 'Available Now At', false);
+			$facet->setupSideFacet('available_at', 'Available Now At', true);
 			$facet->locationId = $locationId;
 			$facet->weight = count($defaultFacets) + 1;
 			$defaultFacets[] = $facet;
 		}
 
 		$facet = new LocationFacetSetting();
-		$facet->setupSideFacet('format', 'Format', false);
+		$facet->setupSideFacet('format', 'Format', true);
 		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
-		$facet->setupSideFacet('literary_form_full', 'Literary Form', false);
+		$facet->setupSideFacet('literary_form_full', 'Literary Form', true);
 		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
-		$facet->setupSideFacet('target_audience_full', 'Reading Level', false);
+		$facet->setupSideFacet('target_audience_full', 'Reading Level', true);
 		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$facet->numEntriesToShowByDefault = 8;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
-		$facet->setupSideFacet('topic_facet', 'Subject', false);
+		$facet->setupSideFacet('topic_facet', 'Subject', true);
 		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LocationFacetSetting();
-		$facet->setupSideFacet('time_since_added', 'Added in the Last', false);
+		$facet->setupSideFacet('time_since_added', 'Added in the Last', true);
 		$facet->locationId = $locationId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;

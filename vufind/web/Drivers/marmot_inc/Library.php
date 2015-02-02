@@ -965,7 +965,7 @@ class Library extends DB_DataObject
 
 		if ($configArray['Index']['enableDetailedAvailability']){
 			$facet = new LibraryFacetSetting();
-			$facet->setupTopFacet('availability_toggle', 'Available?', false);
+			$facet->setupTopFacet('availability_toggle', 'Available?', true);
 			$facet->libraryId = $libraryId;
 			$facet->weight = count($defaultFacets) + 1;
 			$defaultFacets[] = $facet;
@@ -974,39 +974,39 @@ class Library extends DB_DataObject
 
 		if (!$configArray['Index']['enableDetailedAvailability']){
 			$facet = new LibraryFacetSetting();
-			$facet->setupSideFacet('available_at', 'Available Now At', false);
+			$facet->setupSideFacet('available_at', 'Available Now At', true);
 			$facet->libraryId = $libraryId;
 			$facet->weight = count($defaultFacets) + 1;
 			$defaultFacets[] = $facet;
 		}
 
 		$facet = new LibraryFacetSetting();
-		$facet->setupSideFacet('format', 'Format', false);
+		$facet->setupSideFacet('format', 'Format', true);
 		$facet->libraryId = $libraryId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LibraryFacetSetting();
-		$facet->setupSideFacet('literary_form_full', 'Literary Form', false);
+		$facet->setupSideFacet('literary_form_full', 'Literary Form', true);
 		$facet->libraryId = $libraryId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LibraryFacetSetting();
-		$facet->setupSideFacet('target_audience_full', 'Reading Level', false);
+		$facet->setupSideFacet('target_audience_full', 'Reading Level', true);
 		$facet->libraryId = $libraryId;
 		$facet->weight = count($defaultFacets) + 1;
 		$facet->numEntriesToShowByDefault = 8;
 		$defaultFacets[] = $facet;
 
 		$facet = new LibraryFacetSetting();
-		$facet->setupSideFacet('topic_facet', 'Subject', false);
+		$facet->setupSideFacet('topic_facet', 'Subject', true);
 		$facet->libraryId = $libraryId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
 
 		$facet = new LibraryFacetSetting();
-		$facet->setupSideFacet('time_since_added', 'Added in the Last', false);
+		$facet->setupSideFacet('time_since_added', 'Added in the Last', true);
 		$facet->libraryId = $libraryId;
 		$facet->weight = count($defaultFacets) + 1;
 		$defaultFacets[] = $facet;
