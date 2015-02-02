@@ -192,11 +192,11 @@ abstract class HorizonAPI extends Horizon{
 				}
 				if (!$userValid){
 					echo("No session id found for user");
-					return null;
+					return PEAR_Singleton::raiseError("Could not login to web service " . $return);
 				}
 			}
 			$lookupMyAccountInfoResponse = $this->getWebServiceResponse($configArray['Catalog']['webServiceUrl'] . '/standard/lookupMyAccountInfo?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&includeAddressInfo=true&includeHoldInfo=true&includeBlockInfo=true&includeItemsOutInfo=true');
-			if ($lookupMyAccountInfoResponse == false){
+			if ($lookupMyAccountInfoResponse === false){
 				global $logger;
 				$logger->log("Unable to login", PEAR_LOG_WARNING);
 				return null;
