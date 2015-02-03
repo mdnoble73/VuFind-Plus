@@ -770,7 +770,10 @@ class sip2
 		$this->_debugmsg( "SIP2: --- SOCKET READY ---" );
 
 		global $configArray;
-		if ($configArray['SIP2']['sipLogin'] && $configArray['SIP2']['sipPassword']){
+		if (isset($configArray['SIP2']['sipLogin']) && isset($configArray['SIP2']['sipPassword']) &&
+				$configArray['SIP2']['sipLogin'] != '' && $configArray['SIP2']['sipPassword'] != ''
+			){
+
 			$lineEnding = "\r\n";
 
 			//Send login
