@@ -469,6 +469,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'library_ils_code_expansion_2' => array(
+			'title' => 'Library Expand ILS Code 2',
+			'description' => 'Expand ILS Code to allow regular expressions to be used',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE library CHANGE ilsCode ilsCode VARCHAR(50) NOT NULL",
+			),
+		),
+
 		'econtent_locations_to_include' => array(
 			'title' => 'eContent Locations To Include',
 			'description' => 'Adds the ability to define which shared location codes should be included in the search scope',
