@@ -56,6 +56,9 @@
 */10 * * * * /root/cron/copyCovers.sh
 # every 10 minutes
 
+# Hoopla extract - once a week for the entire server
+50 22 * * 0 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh marmot.test
+
 ########################
 # Update Grouped Works #
 ########################
