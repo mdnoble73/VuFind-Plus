@@ -542,11 +542,24 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			ilsRecord.setCallNumber(getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField));
 			ilsRecord.setCallNumberCutter(getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField));
 		}else{
-			String callNumber = getFirstFieldVal(record, "099a");
-			if (callNumber == null){
-				callNumber = getFirstFieldVal(record, "092ab");
+			String callNumber = null;
+			DataField localCallNumberField = (DataField)record.getVariableField("099");
+			if (localCallNumberField != null){
+				callNumber = "";
+				for (Subfield curSubfield : localCallNumberField.getSubfields()){
+					callNumber += " " + curSubfield.getData().trim();
+				}
 			}
-			ilsRecord.setCallNumber(callNumber);
+			if (callNumber == null){
+				DataField deweyCallNumberField = (DataField)record.getVariableField("092");
+				if (deweyCallNumberField != null){
+					callNumber = "";
+					for (Subfield curSubfield : deweyCallNumberField.getSubfields()){
+						callNumber += " " + curSubfield.getData().trim();
+					}
+				}
+			}
+			ilsRecord.setCallNumber(callNumber.trim());
 		}
 		ilsRecord.setVolume(getItemSubfieldData(volumeSubfield, itemField));
 		ilsRecord.setBarcode(getItemSubfieldData(barcodeSubfield, itemField));
