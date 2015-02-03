@@ -45,6 +45,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected boolean useICode2Suppression;
 	protected char iCode2Subfield;
 	protected String[] additionalCollections;
+	protected boolean useItemBasedCallNumbers;
 	protected char callNumberPrestampSubfield;
 	protected char callNumberSubfield;
 	protected char callNumberCutterSubfield;
@@ -88,6 +89,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		callNumberPrestampSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberPrestampSubfield");
 		callNumberSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberSubfield");
 		callNumberCutterSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberCutterSubfield");
+		useItemBasedCallNumbers = Boolean.parseBoolean(configIni.get("Reindex", "useItemBasedCallNumbers"));
 		volumeSubfield = getSubfieldIndicatorFromConfig(configIni, "volumeSubfield");
 		itemRecordNumberSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "itemRecordNumberSubfield");
 		itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "itemUrlSubfield");
@@ -397,7 +399,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		List<PrintIlsItem> unsuppressedItemRecords = new ArrayList<PrintIlsItem>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
-				PrintIlsItem ilsRecord = getPrintIlsRecord(itemField);
+				PrintIlsItem ilsRecord = getPrintIlsRecord(record, itemField);
 				//Can return null if the record does not have status and location
 				//This happens with secondary call numbers sometimes.
 				if (ilsRecord != null) {
@@ -518,7 +520,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return ilsRecord;
 	}
 
-	protected PrintIlsItem getPrintIlsRecord(DataField itemField) {
+	protected PrintIlsItem getPrintIlsRecord(Record record, DataField itemField) {
 		PrintIlsItem ilsRecord = new PrintIlsItem();
 
 		//Load base information from the Marc Record
@@ -535,9 +537,17 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		ilsRecord.setLastYearCheckouts(getItemSubfieldData(lastYearCheckoutSubfield, itemField));
 		ilsRecord.setYtdCheckouts(getItemSubfieldData(ytdCheckoutSubfield, itemField));
 		ilsRecord.setTotalCheckouts(getItemSubfieldData(totalCheckoutSubfield, itemField));
-		ilsRecord.setCallNumberPreStamp(getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField));
-		ilsRecord.setCallNumber(getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField));
-		ilsRecord.setCallNumberCutter(getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField));
+		if (useItemBasedCallNumbers) {
+			ilsRecord.setCallNumberPreStamp(getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField));
+			ilsRecord.setCallNumber(getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField));
+			ilsRecord.setCallNumberCutter(getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField));
+		}else{
+			String callNumber = getFirstFieldVal(record, "099a");
+			if (callNumber == null){
+				callNumber = getFirstFieldVal(record, "092ab");
+			}
+			ilsRecord.setCallNumber(callNumber);
+		}
 		ilsRecord.setVolume(getItemSubfieldData(volumeSubfield, itemField));
 		ilsRecord.setBarcode(getItemSubfieldData(barcodeSubfield, itemField));
 		ilsRecord.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));

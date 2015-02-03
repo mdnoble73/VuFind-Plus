@@ -517,7 +517,7 @@ public abstract class MarcRecordProcessor {
 		//auth_author = 100abcd, first
 		groupedWork.setAuthAuthor(this.getFirstFieldVal(record, "100abcd"));
 		//author = a, first
-		groupedWork.setAuthor(this.getFirstFieldVal(record, "100abcdq:110a:710a"));
+		groupedWork.setAuthor(this.getFirstFieldVal(record, "100abcdq:110ab:710a"));
 		//author-letter = 100a, first
 		groupedWork.setAuthorLetter(this.getFirstFieldVal(record, "100a"));
 		//auth_author2 = 700abcd
@@ -529,7 +529,7 @@ public abstract class MarcRecordProcessor {
 		//author_additional = 505r:245c
 		groupedWork.addAuthorAdditional(this.getFieldList(record, "505r:245c"));
 		//author_display = 100a:110a:260b:710a:245c, first
-		String displayAuthor = this.getFirstFieldVal(record, "100a:110a:260b:710a:245c");
+		String displayAuthor = this.getFirstFieldVal(record, "100a:110ab:260b:710a:245c");
 		if (displayAuthor != null && displayAuthor.indexOf(';') > 0){
 			displayAuthor = displayAuthor.substring(0, displayAuthor.indexOf(';') -1);
 		}

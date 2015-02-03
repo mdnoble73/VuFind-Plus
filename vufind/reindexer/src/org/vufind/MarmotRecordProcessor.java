@@ -3,7 +3,6 @@ package org.vufind;
 import au.com.bytecode.opencsv.CSVReader;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
-import org.marc4j.marc.ControlField;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 import org.marc4j.marc.Subfield;
@@ -13,7 +12,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * ILS Indexing with customizations specific to Marmot
@@ -160,7 +158,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					}
 				}
 				if (!isOverDrive && !isEContent){
-					PrintIlsItem printIlsRecord = getPrintIlsRecord(itemField);
+					PrintIlsItem printIlsRecord = getPrintIlsRecord(record, itemField);
 					if (printIlsRecord != null) {
 						unsuppressedItemRecords.add(printIlsRecord);
 					}
