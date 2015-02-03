@@ -1957,7 +1957,18 @@ class MarcRecord extends IndexRecord
 			if ($this->itemsFromIndex){
 				$this->fastItems = array();
 				foreach ($this->itemsFromIndex as $itemData){
-					$shelfLocation = mapValue('shelf_location', $itemData[2]);
+					$shelfLocation = $itemData[2];
+					$locationCode = $itemData[2];
+					if (strpos($shelfLocation, ':') === false){
+						$shelfLocation = mapValue('shelf_location', $itemData[2]);
+					}else{
+						$shelfLocationParts = explode(":", $shelfLocation);
+						$locationCode = $shelfLocationParts[0];
+						$branch = mapValue('location', $locationCode);
+						$shelfLocationTmp = mapValue('shelf_location', $shelfLocationParts[1]);
+						$shelfLocation = $branch . ' ' . $shelfLocationTmp;
+					}
+
 					//Try to trim the courier code if any
 					if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $shelfLocation, $locationParts)){
 						$shelfLocation = $locationParts[1];
@@ -1973,7 +1984,7 @@ class MarcRecord extends IndexRecord
 						if (isset($itemData[7])){
 							$status = mapValue('item_status', $itemData[7]);
 							$groupedStatus = mapValue('item_grouped_status', $itemData[7]);
-							if ($status == 'On Shelf' && $itemData[4] != 'true'){
+							if (($status == 'On Shelf') && $itemData[4] != 'true'){
 								$status = 'Checked Out';
 								$groupedStatus = "Checked Out";
 							}
@@ -1985,14 +1996,20 @@ class MarcRecord extends IndexRecord
 							$groupedStatus = "Checked Out";
 						}
 					}
+					if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
+						$isLibraryItem = true;
+					}else{
+						$isLibraryItem = strpos($locationCode, $libraryLocationCode) === 0;
+					}
+
 					$this->fastItems[] = array(
-						'location' => $itemData[2],
+						'location' => $locationCode,
 						'callnumber' => $callNumber,
 						'availability' => $itemData[4] == 'true',
 						'holdable' => true,
 						'inLibraryUseOnly' => $itemData[5] == 'true',
-						'isLibraryItem' => isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && strpos($itemData[2], $libraryLocationCode) === 0,
-						'isLocalItem' => (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($itemData[2], $homeLocationCode) === 0) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/", $itemData[2])),
+						'isLibraryItem' => $isLibraryItem,
+						'isLocalItem' => (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/", $locationCode)),
 						'locationLabel' => true,
 						'shelfLocation' => $shelfLocation,
 						'onOrderCopies' => $onOrderCopies,

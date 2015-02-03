@@ -2,6 +2,7 @@ package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
+import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 
 import java.sql.Connection;
@@ -23,7 +24,13 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 
 	@Override
 	protected boolean isItemAvailable(PrintIlsItem ilsRecord) {
-		return false;
+		boolean available = false;
+		String status = ilsRecord.getStatus();
+		String availableStatus = "is";
+		if (availableStatus.indexOf(status.charAt(0)) >= 0) {
+			available = true;
+		}
+		return available;
 	}
 
 	@Override
@@ -50,4 +57,5 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 		}
 		ilsRecord.setFormatBoost(formatBoost);
 	}
+
 }
