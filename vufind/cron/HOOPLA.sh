@@ -21,8 +21,12 @@ site=$1
 confpwd=/usr/local/VuFind-Plus/sites/$site/conf/config.pwd.ini
 #echo $confpwd
 if [ ! -f $confpwd ]; then
-	echo "Please check spelling of site $site; conf.pwd.ini not found at $confpwd"
-	exit
+	confpwd=/usr/local/vufind-plus/sites/$site/conf/config.pwd.ini
+	#echo $confpwd
+	if [ ! -f $confpwd ]; then
+		echo "Please check spelling of site $site; conf.pwd.ini not found at $confpwd"
+		exit
+	fi
 fi
 
 function trim()
