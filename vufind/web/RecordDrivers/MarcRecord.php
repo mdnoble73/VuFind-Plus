@@ -912,7 +912,7 @@ class MarcRecord extends IndexRecord
 		}else{
 			$author = $this->getFirstFieldValue('100', array('a'));
 			if (empty($author )){
-				$author = $this->getFirstFieldValue('110', array('a'));
+				$author = $this->getFirstFieldValue('110', array('a', 'b'));
 			}
 			return $author;
 		}
