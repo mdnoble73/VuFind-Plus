@@ -67,7 +67,7 @@ class sip2
 	var $use_usleep=1;	// change to 1 for faster execution
 	// don't change to 1 on Windows servers unless you have PHP 5
 	var $sleeptime=175000;
-	//var $loginsleeptime=1500000;
+	var $loginsleeptime=1500000;
 
 	/* Patron ID */
 	public $patron       = ''; /* AA */
@@ -790,7 +790,7 @@ class sip2
 			$ret = socket_write($this->socket, $lineEnding, strlen($lineEnding));
 			$logger->log("Wrote $ret bytes for password", PEAR_LOG_DEBUG);
 
-			$this->Sleep();
+			usleep($this->loginsleeptime);
 
 			//Wait for a response
 			$initialLoginResponse = $this->getResponse();
