@@ -789,22 +789,11 @@ class sip2
 			$ret = socket_write($this->socket, $password, strlen($password));
 			$ret = socket_write($this->socket, $lineEnding, strlen($lineEnding));
 			$logger->log("Wrote $ret bytes for password", PEAR_LOG_DEBUG);
+
 			$this->Sleep();
 
-			$numTries = 0;
-			while ($numTries <10){
-				$this->Sleep();
-				//Wait for a response
-				$initialLoginResponse = $this->getResponse();
-				$logger->log("Login response is " . $initialLoginResponse, PEAR_LOG_DEBUG);
-				if (strpos($initialLoginResponse, 'Login OK.  Initiating SIP') === 0){
-					break;
-				}
-				$numTries++;
-			}
-
-			//$loginMessage = $this->msgLogin($configArray['SIP2']['sipLogin'], $configArray['SIP2']['sipPassword']);
-			//$loginResponse = $this->get_message($loginMessage);
+			//Wait for a response
+			$initialLoginResponse = $this->getResponse();
 
 			//$loginData = $this->parseLoginResponse($loginResponse);
 			if (strpos($initialLoginResponse, 'Login OK.  Initiating SIP') === 0){
@@ -823,7 +812,10 @@ class sip2
 	}
 
 	function getResponse() {
-		return socket_read($this->socket,2048);
+		$buffer = '';
+		$bytesRead = socket_recv($this->socket, $buffer, 2048, MSG_WAITALL);
+		return $buffer;
+		//return socket_read($this->socket,2048);
 	}
 
 	function disconnect ()
