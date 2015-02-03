@@ -61,6 +61,9 @@
 
 30 4 * * * /data/vufind-plus/testvufind.co.wake.nc.us/move_export.sh
 
+# Hoopla extract - once a week for the entire server
+30 23 * * 0 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh marmot.test
+
 ########################
 # Update Grouped Works #
 ########################

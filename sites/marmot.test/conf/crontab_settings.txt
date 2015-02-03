@@ -87,6 +87,9 @@
 # ( 1 min after the hour to avoid conflict with nfs mount point)
 # new script made, cron set 1-2-2015 plb
 
+# Hoopla extract - once a week for the entire server
+30 22 * * 0 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh marmot.test
+
 ###############################
 # Data Extract TO ftp server  #
 ###############################

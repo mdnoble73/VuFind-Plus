@@ -20,6 +20,9 @@
 # OverDrive Data - every 15 minutes throughout the day for near runtime availability
 2-59/15 0,3-23 * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract/; nice -n -10 java -jar overdrive_extract.jar anythink.test
 
+# Hoopla extract - once a week for the entire server
+5 23 * * 0 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh marmot.test
+
 ########################
 # Update Grouped Works #
 ########################
