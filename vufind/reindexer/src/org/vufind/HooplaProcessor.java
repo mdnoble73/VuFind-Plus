@@ -174,7 +174,12 @@ public class HooplaProcessor extends MarcRecordProcessor {
 		//Do not set compatible ptypes for eContent since they are just determined by owning library/location
 		for (Scope validScope : relatedScopes) {
 			//groupedWork.addCompatiblePTypes(validScope.getRelatedPTypes());
-			groupedWork.getScopedWorkDetails().get(validScope.getScopeName()).getRelatedRecords().add(recordIdentifier);
+			ScopedWorkDetails workDetails = groupedWork.getScopedWorkDetails().get(validScope.getScopeName());
+			workDetails.getRelatedRecords().add(recordIdentifier);
+
+			workDetails.addFormat(format);
+			workDetails.addFormatCategory(formatCategory);
+			workDetails.setFormatBoost(formatBoost);
 		}
 	}
 }

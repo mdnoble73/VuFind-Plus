@@ -255,49 +255,68 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	@Override
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
+		String step = "start";
 		try{
 			//First load a list of print items and econtent items from the MARC record since they are needed to handle
 			//Scoping and availability of records.
+			step = "load print items";
 			List<PrintIlsItem> printItems = getUnsuppressedPrintItems(identifier, record);
+			step = "load eContent items";
 			List<EContentIlsItem> econtentItems = getUnsuppressedEContentItems(identifier, record);
+			step = "load order items";
 			List<OnOrderItem> onOrderItems = getOnOrderItems(identifier, record);
 
 			//Break the MARC record up based on item information and load data that is scoped
 			//i.e. formats, iTypes, date added to catalog, etc
+			step = "load scoped data";
 			HashSet<IlsRecord> ilsRecords = loadScopedDataForMarcRecord(groupedWork, record, printItems, econtentItems, onOrderItems);
 
 			//Do updates based on the overall bib (shared regardless of scoping)
+			step = "update work based on standard data";
 			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record);
 
 			//Special processing for ILS Records
+			step = "load description";
 			String fullDescription = Util.getCRSeparatedString(getFieldList(record, "520a"));
 			for (IlsRecord ilsRecord : ilsRecords) {
 				groupedWork.addDescription(fullDescription, ilsRecord.getPrimaryFormat());
 			}
+			step = "editions, physical description, etc";
 			loadEditions(groupedWork, record, ilsRecords);
 			loadPhysicalDescription(groupedWork, record, ilsRecords);
 			loadLanguageDetails(groupedWork, record, ilsRecords);
 			loadPublicationDetails(groupedWork, record, ilsRecords);
 
 			//Do updates based on items
+			step = "load ownership info";
 			loadOwnershipInformation(groupedWork, printItems, econtentItems, onOrderItems);
+			step = "load availability";
 			loadAvailability(groupedWork, printItems, econtentItems, ilsRecords);
+			step = "load usability";
 			loadUsability(groupedWork, printItems, econtentItems);
+			step = "load popularity";
 			loadPopularity(groupedWork, identifier, printItems, econtentItems, onOrderItems);
+			step = "load date added";
 			loadDateAdded(groupedWork, printItems, econtentItems);
+			step = "load iTypes";
 			loadITypes(groupedWork, printItems, econtentItems);
+			step = "load call numbers";
 			loadLocalCallNumbers(groupedWork, printItems, econtentItems);
 			groupedWork.addBarcodes(getFieldList(record, itemTag + barcodeSubfield));
 			groupedWork.setRelatedRecords(ilsRecords);
+			step = "set formats";
 			groupedWork.setFormatInformation(ilsRecords);
 
+			step = "load econtent sources";
 			loadEContentSourcesAndProtectionTypes(groupedWork, econtentItems);
 
+			step = "load order ids";
 			loadOrderIds(groupedWork, record);
 
+			step = "add holdings";
 			groupedWork.addHoldings(printItems.size());
 		}catch (Exception e){
-			logger.error("Error updating grouped work for MARC record with identifier " + identifier, e);
+			logger.error("Error updating grouped work for MARC record with identifier " + identifier + " on step " + step, e);
 		}
 	}
 
