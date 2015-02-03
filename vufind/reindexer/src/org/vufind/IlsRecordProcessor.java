@@ -559,7 +559,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					}
 				}
 			}
-			ilsRecord.setCallNumber(callNumber.trim());
+			if (callNumber == null) {
+				ilsRecord.setCallNumber(callNumber.trim());
+			}
 		}
 		ilsRecord.setVolume(getItemSubfieldData(volumeSubfield, itemField));
 		ilsRecord.setBarcode(getItemSubfieldData(barcodeSubfield, itemField));
