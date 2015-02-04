@@ -174,7 +174,7 @@ class MyAccount_AJAX
 		}
 		global $interface;
 		// if title come back a single item array, set as the title instead.
-		if (is_array($result['title']) && count($result['title']) == 1) $result['title'] = $result['title'][0];
+		if (is_array($result['title']) && count($result['title']) == 1) $result['title'] = current($result['title']);
 		$result['success'] = $result['result']; // makes template easier to understand
 
 		$interface->assign('cancelResults', $result);
