@@ -1526,8 +1526,8 @@ class Solr implements IndexEngine {
 				if (strlen($usableEContentFilter) > 0) $usableEContentFilter .= " OR ";
 				if (strlen($onOrderFilter) > 0) $onOrderFilter .= " OR ";
 				$owningBranchFilter .= "$institutionFacetName:\"$owningSystem\"";
-				$usableEContentFilter .= "$buildingFacetName:\"$owningSystem Online\"";
-				$onOrderFilter .= "$buildingFacetName:\"$owningSystem On Order\"";
+				$usableEContentFilter .= "$institutionFacetName:\"$owningSystem Online\"";
+				$onOrderFilter .= "$institutionFacetName:\"$owningSystem On Order\"";
 			}
 			$homeLibrary = Library::getPatronHomeLibrary();
 			if ($homeLibrary && $homeLibrary != $searchLibrary){
