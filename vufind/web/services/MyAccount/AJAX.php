@@ -12,8 +12,16 @@ class MyAccount_AJAX
 {
 	function launch()
 	{
+		$valid_methods = array(
+			'GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating',
+			'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag',
+			'saveSearch', 'deleteSavedSearch',
+			'cancelHold', 'cancelHolds', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation',
+			'getEmailMyListForm', 'sendMyListEmail' , 'getReactivationDateForm',
+			'renewItem', 'renewAll', 'renewSelectedItems'
+		);
 		$method = $_GET['method'];
-		if (in_array($method, array('GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating', 'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag', 'saveSearch', 'deleteSavedSearch', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation', 'getEmailMyListForm', 'sendMyListEmail' , 'getReactivationDateForm', 'renewItem', 'renewAll', 'renewSelectedItems'))) {
+		if (in_array($method, $valid_methods)) {
 			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -137,16 +145,102 @@ class MyAccount_AJAX
 		return json_encode($result);
 	}
 
-	function freezeHold()
-	{
-		global $configArray;
-		global $user;
+	function cancelHold() {
+		try {
+			global $configArray,
+			       $user;
+			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
 
+			// ids grabbed in MillenniumHolds.php in $_REQUEST['waitingholdselected'] & $_REQUEST['availableholdselected']
+			// but we will pass ids here instead.
+			$cancelId = array();
+			if (!empty($_REQUEST['cancelId'])) {
+					$cancelId = $_REQUEST['cancelId'];
+			}
+//			$locationId = isset($_REQUEST['location']) ? $_REQUEST['location'] : null; //not passed via ajax. don't think it's needed
+			$result = $catalog->driver->updateHoldDetailed($user->password, 'cancel', '', null, $cancelId, null/*, ''//shouldn't be needed*/);
+
+		} catch (PDOException $e) {
+			// What should we do with this error?
+			if ($configArray['System']['debug']) {
+				echo '<pre>';
+				echo 'DEBUG: ' . $e->getMessage();
+				echo '</pre>';
+			}
+			$result = array(
+				'success' => false,
+				'message' => 'We could not connect to the circulation system, please try again later.'
+			);
+		}
+		global $interface;
+		// if title come back a single item array, set as the title instead.
+		if (is_array($result['title']) && count($result['title']) == 1) $result['title'] = $result['title'][0];
+		$result['success'] = $result['result']; // makes template easier to understand
+
+		$interface->assign('cancelResults', $result);
+
+		$cancelResult = array(
+			'title' => 'Cancel Hold',
+			'modalBody' => $interface->fetch('MyAccount\cancelhold.tpl'),
+			'success' => $result['result']
+		);
+		return json_encode($cancelResult);
+	}
+
+	function cancelHolds() { // for cancelling multiple holds
+		try {
+			global $configArray,
+			       $user;
+			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+
+			// ids grabbed in MillenniumHolds.php in $_REQUEST['waitingholdselected'] & $_REQUEST['availableholdselected']
+			// but we will pass ids here instead.
+			$cancelId = array();
+			if (!empty($_REQUEST['holdselected'])) {
+				$cancelId = $_REQUEST['holdselected'];
+			}
+//			$locationId = isset($_REQUEST['location']) ? $_REQUEST['location'] : null; //not passed via ajax. don't think it's needed
+			$result = $catalog->driver->updateHoldDetailed($user->password, 'cancel', '', null, $cancelId, null/*, ''//shouldn't be needed*/);
+
+		} catch (PDOException $e) {
+			// What should we do with this error?
+			if ($configArray['System']['debug']) {
+				echo '<pre>';
+				echo 'DEBUG: ' . $e->getMessage();
+				echo '</pre>';
+			}
+			$result = array(
+				'result' => false,
+				'message' => 'We could not connect to the circulation system, please try again later.'
+			);
+		}
+		if (is_array($result['title'])) { // avoid some naming confusion
+			$result['titles'] = $result['title'];
+			unset($result['title']);
+		}
+		global $interface;
+		$result['success'] = $result['result']; // makes template easier to understand
+		$failed = (is_array($result['message']) && !empty($result['message'])) ? array_keys($result['message']) : null; //returns failed id for javascript function
+		$result['numCancelled'] = count($result['titles']) - count($failed);
+		$interface->assign('cancelResults', $result);
+
+		$cancelResult = array(
+			'title' => 'Cancel Hold',
+			'modalBody' => $interface->fetch('MyAccount\cancelhold.tpl'),
+			'success' => $result['result'],
+		  'failed' => $failed
+		);
+		return json_encode($cancelResult);
+	}
+
+	function freezeHold() {
+		global $configArray;
 
 		try {
 			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
-
 			$holdId = $_REQUEST['holdId'];
+			global $user;
+
 			$result = $catalog->driver->updateHoldDetailed($user->password, 'update', '', null, $holdId, null, 'on');
 			return json_encode($result);
 		} catch (PDOException $e) {
@@ -163,16 +257,14 @@ class MyAccount_AJAX
 		));
 	}
 
-	function thawHold()
-	{
+	function thawHold() {
 		global $configArray;
-		global $user;
-
 
 		try {
 			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
-
 			$holdId = $_REQUEST['holdId'];
+			global $user;
+
 			$result = $catalog->driver->updateHoldDetailed($user->password, 'update', '', null, $holdId, null, 'off');
 			return json_encode($result);
 		} catch (PDOException $e) {
@@ -545,14 +637,13 @@ class MyAccount_AJAX
 	function changeHoldLocation()
 	{
 		global $configArray;
-		global $user;
-
 
 		try {
 			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
-
 			$holdId = $_REQUEST['holdId'];
 			$newPickupLocation = $_REQUEST['newLocation'];
+			global $user;
+
 			$result = $catalog->driver->updateHoldDetailed($user->password, 'update', '', null, $holdId, $newPickupLocation, null);
 			return json_encode($result);
 		} catch (PDOException $e) {
@@ -704,9 +795,8 @@ class MyAccount_AJAX
 	function renewItem() {
 		if (isset($_REQUEST['renewIndicator'])) {
 			list($itemId, $itemIndex) = explode('|', $_REQUEST['renewIndicator']);
-
+			global $configArray;
 			try {
-				global $configArray;
 				$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
 			} catch (PDOException $e) {
 				// What should we do with this error?
@@ -754,8 +844,8 @@ class MyAccount_AJAX
 	function renewSelectedItems() {
 		if (isset($_REQUEST['selected'])) {
 
+			global $configArray;
 			try {
-				global $configArray;
 				$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
 			} catch (PDOException $e) {
 				// What should we do with this error?
@@ -816,10 +906,8 @@ class MyAccount_AJAX
 	}
 
 	function renewAll() {
-//	global $user;
-
+		global $configArray;
 		try {
-			global $configArray;
 			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
 		} catch (PDOException $e) {
 			// What should we do with this error?

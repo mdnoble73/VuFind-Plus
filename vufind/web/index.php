@@ -570,7 +570,7 @@ if (isset($_REQUEST['followup'])) {
 if (isset($_SESSION['hold_message'])) {
 	$interface->assign('hold_message', formatHoldMessage($_SESSION['hold_message']));
 	unset($_SESSION['hold_message']);
-}elseif (isset($_SESSION['renew_message'])){
+}elseif (isset($_SESSION['renew_message'])){ // this routine should be deprecated now. plb 2-2-2015
 	$interface->assign('renew_message', formatRenewMessage($_SESSION['renew_message']));
 }elseif (isset($_SESSION['checkout_message'])){
 	global $logger;
@@ -728,12 +728,14 @@ function formatHoldMessage($hold_message_data){
 	$hold_message = $interface->fetch('Record/hold-results.tpl');
 	return $hold_message;
 }
+
+// this function should be deprecated now. plb 2-2-2015
 function formatRenewMessage($renew_message_data){
 	global $interface;
 	$interface->assign('renew_message_data', $renew_message_data);
 	$renew_message = $interface->fetch('Record/renew-results.tpl');
 	global $logger;
-	$logger->log("Renew Message $renew_message", PEAR_LOG_INFO);
+	$logger->log("Call to deprecated function in index.php. Renew Message $renew_message", PEAR_LOG_INFO);
 
 	return $renew_message;
 }

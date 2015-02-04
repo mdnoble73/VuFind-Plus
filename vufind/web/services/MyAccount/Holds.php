@@ -16,6 +16,7 @@ class MyAccount_Holds extends MyAccount{
 		global $interface;
 		global $user;
 
+		//these actions are being moved to MyAccount/AJAX.php
 		if (isset($_REQUEST['multiAction'])){
 			$multiAction = $_REQUEST['multiAction'];
 			$locationId = isset($_REQUEST['location']) ? $_REQUEST['location'] : null;
@@ -38,13 +39,14 @@ class MyAccount_Holds extends MyAccount{
 //				$freeze = '';
 //			}
 			$result = $this->catalog->driver->updateHoldDetailed($user->password, $type, '', null, $cancelId, $locationId, $freeze);
-			$interface->assign('holdResult', $result);
+//			$interface->assign('holdResult', $result);
 
-			// TODO: success messages here
 
 			//Redirect back here without the extra parameters.
 			$redirectUrl = $configArray['Site']['path'] . '/MyAccount/Holds?accountSort=' . ($selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'title');
 			header("Location: " . $redirectUrl);
+
+
 			die();
 		}
 
