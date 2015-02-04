@@ -578,7 +578,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					}
 				}
 			}
-			if (callNumber == null) {
+			if (callNumber != null) {
 				ilsRecord.setCallNumber(callNumber.trim());
 			}
 		}
