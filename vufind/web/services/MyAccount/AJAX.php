@@ -181,7 +181,7 @@ class MyAccount_AJAX
 
 		$cancelResult = array(
 			'title' => 'Cancel Hold',
-			'modalBody' => $interface->fetch('MyAccount\cancelhold.tpl'),
+			'modalBody' => $interface->fetch('MyAccount/cancelhold.tpl'),
 			'success' => $result['result']
 		);
 		return json_encode($cancelResult);
@@ -226,7 +226,7 @@ class MyAccount_AJAX
 
 		$cancelResult = array(
 			'title' => 'Cancel Hold',
-			'modalBody' => $interface->fetch('MyAccount\cancelhold.tpl'),
+			'modalBody' => $interface->fetch('MyAccount/cancelhold.tpl'),
 			'success' => $result['result'],
 		  'failed' => $failed
 		);
