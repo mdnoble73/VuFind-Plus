@@ -647,15 +647,15 @@ public class GroupedWorkSolr {
 	 * Setup available_at and availability toggle for locations
 	 *
 	 * @param availableLocations   - A list of locations where the title is available with the location name spelled out
-	 * @param availableLocationCodes - a list of location codes where the title is available, just the location code
+	 * @param availableLocationCodesAndSubdomains - a list of location codes and subdomains where the title is available, just the location code
 	 */
-	public void addAvailableLocations(Collection<String> availableLocations, Collection<String> availableLocationCodes){
+	public void addAvailableLocations(Collection<String> availableLocations, Collection<String> availableLocationCodesAndSubdomains){
 		availableAt.addAll(availableLocations);
 		//By doing it when we add locations, we can simplify the code that determines base availability
 		HashSet<String> availableToggle = new HashSet<String>();
 		availableToggle.add("Entire Collection");
 		availableToggle.add("Available Now");
-		for (String curLocationCode : availableLocationCodes){
+		for (String curLocationCode : availableLocationCodesAndSubdomains){
 			availabilityToggleByLibrarySystem.put(curLocationCode, availableToggle);
 		}
 	}

@@ -158,7 +158,7 @@ public class HooplaProcessor extends MarcRecordProcessor {
 		//For hoopla, everything is always available
 		//Availability should be any libraries that can access hoopla
 
-		groupedWork.addAvailableLocations(indexer.getHooplaLocationFacets(), indexer.getHooplaLocationCodes());
+		groupedWork.addAvailableLocations(indexer.getHooplaLocationFacets(), owningLocationCodesAndSubdomains);
 		groupedWork.addAvailabilityByFormatForLocation(owningLocationCodesAndSubdomains, format, "available");
 
 		//TODO: Popularity - Hoopla
