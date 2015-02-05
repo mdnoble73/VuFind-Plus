@@ -697,6 +697,7 @@ class OverDriveDriver3 {
 			if (isset($response->message)) $holdResult['message'] .= "  {$response->message}";
 			if ($analytics) $analytics->addEvent('OverDrive', 'Place Hold', 'failed');
 		}
+		$this->clearPatronProfile();
 		$memCache->delete('overdrive_summary_' . $user->id);
 
 		return $holdResult;
@@ -737,6 +738,7 @@ class OverDriveDriver3 {
 			if ($analytics) $analytics->addEvent('OverDrive', 'Cancel Hold', 'failed');
 		}
 		$memCache->delete('overdrive_summary_' . $user->id);
+		$this->clearPatronProfile();
 		return $cancelHoldResult;
 	}
 
@@ -782,6 +784,7 @@ class OverDriveDriver3 {
 		}
 
 		$memCache->delete('overdrive_summary_' . $user->id);
+		$this->clearPatronProfile();
 		return $result;
 	}
 
@@ -823,6 +826,7 @@ class OverDriveDriver3 {
 		}
 
 		$memCache->delete('overdrive_summary_' . $user->id);
+		$this->clearPatronProfile();
 		return $cancelHoldResult;
 	}
 
@@ -866,7 +870,7 @@ class OverDriveDriver3 {
 		$userBarcode = $user->$barcodeProperty;
 		if ($this->getRequirePin()){
 			$userPin = ($barcodeProperty == 'cat_username') ? $user->cat_password : $user->cat_username;
-			// determine which column is the pin by using the opposing field to the barcode. (between catelog & username)
+			// determine which column is the pin by using the opposing field to the barcode. (between catalog password & username)
 			$tokenData = $this->_connectToPatronAPI($userBarcode, $userPin, false);
 			// this worked for flatirons checkout.  plb 1-13-2015
 		}else{
@@ -1086,5 +1090,14 @@ class OverDriveDriver3 {
 		$statusSummary['wishListSize'] = $wishListSize;
 
 		return $statusSummary;
+	}
+
+	public function clearPatronProfile() {
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $user;
+
+		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
+
 	}
 }
