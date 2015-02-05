@@ -899,7 +899,7 @@ public class ExtractOverDriveInfo {
 						if (availability.has("copiesAvailable")){
 							copiesAvailable = availability.getInt("copiesAvailable");
 						}else{
-							logger.warn("copiesAvailable was not provided for collection " + apiKey + " title " + overDriveInfo.getId());
+							logger.info("copiesAvailable was not provided for collection " + apiKey + " title " + overDriveInfo.getId());
 							copiesAvailable = 0;
 						}
 						int numberOfHolds = availability.getInt("numberOfHolds");
