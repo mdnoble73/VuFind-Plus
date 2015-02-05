@@ -4,6 +4,7 @@
 			<div class="row">
 				<div class="selectTitle col-xs-2">
 					{if $section == 'available'}
+						{* TODO: Determine is difference between availableholdselected & waitingholdselected is necessary *}
 						<input type="checkbox" name="availableholdselected[]" value="{$record.cancelId}" id="selected{$record.cancelId|escape:"url"}" class="titleSelect{$sectionKey} titleSelect"/>&nbsp;
 					{else}
 						<input type="checkbox" name="waitingholdselected[]" value="{$record.cancelId}" id="selected{$record.cancelId|escape:"url"}" class="titleSelect{$sectionKey} titleSelect"/>&nbsp;
@@ -135,11 +136,13 @@
 					<div class="btn-group btn-group-vertical btn-block">
 						{if $section == 'available'}
 							{if $record.cancelable}
-								<button onclick="return VuFind.Account.cancelAvailableHold('{$record.cancelId}', '{$record.shortId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
+								{*<button onclick="return VuFind.Account.cancelAvailableHold('{$record.cancelId}', '{$record.shortId}');" class="btn btn-sm btn-warning">Cancel Hold</button>*}
+								<button onclick="return VuFind.Account.cancelHold('{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
 							{/if}
 						{else}
 							{if $record.cancelable}
-								<button onclick="return VuFind.Account.cancelPendingHold('{$record.cancelId}', '{$record.shortId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
+								{*<button onclick="return VuFind.Account.cancelPendingHold('{$record.cancelId}', '{$record.shortId}');" class="btn btn-sm btn-warning">Cancel Hold</button>*}
+								<button onclick="return VuFind.Account.cancelHold('{$record.cancelId}');" class="btn btn-sm btn-warning">Cancel Hold</button>
 							{/if}
 							{if $record.frozen}
 								<button onclick="return VuFind.Account.thawHold('{$record.cancelId}', this);" class="btn btn-sm btn-default">{translate text="Thaw Hold"}</button>

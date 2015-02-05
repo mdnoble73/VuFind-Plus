@@ -1001,11 +1001,11 @@ class MillenniumDriver implements DriverInterface
 			//Login again
 			$post_data['lt'] = $lt;
 			$post_data['_eventId'] = 'submit';
-			$post_items = array();
-			foreach ($post_data as $key => $value) {
-				$post_items[] = $key . '=' . $value;
-			}
-			$post_string = implode ('&', $post_items);
+//			$post_items = array();
+//			foreach ($post_data as $key => $value) {
+//				$post_items[] = $key . '=' . $value;
+//			}
+			$post_string = http_build_query($post_data);
 			$accountPageInfo = curl_getinfo($this->curl_connection);
 			curl_setopt($this->curl_connection, CURLOPT_URL, $accountPageInfo['url']);
 			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
