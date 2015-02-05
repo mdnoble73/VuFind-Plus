@@ -28,7 +28,7 @@
 				{else}
 					Once the title arrives at your library you will receive a notification informing you that the title is ready for you.
 				{/if}
-				You will then have 8 days to pick up the title from your home library.
+				You will then have 7 days to pick up the title from your home library.
 			</p>
 
 			{* Responsive theme enforces that the user is always logged in before getting here*}

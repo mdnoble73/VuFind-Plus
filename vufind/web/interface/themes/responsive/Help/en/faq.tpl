@@ -1,7 +1,7 @@
 <div class='faqQuestion'>Q. What are holds?</div>
 <div class='faqAnswer'>A. Holds allow you to request that a title be delivered to your home library.
 	Once the title arrives at your library you will be sent an e-mail, receive a phone call, or receive a postcard informing you that the title is ready for you.
-	You will then have 8 days to pickup the title from your home library.</div>
+	You will then have 7 days to pickup the title from your home library.</div>
 
 <div class='faqQuestion'>Q. I placed a hold, how long will it take to get here?</div>
 <div class='faqAnswer'>A. Holds are filled in the order they were placed as people return copies of the title.
