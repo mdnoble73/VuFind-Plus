@@ -1,25 +1,27 @@
 VuFind.OverDrive = (function(){
 	return {
 		cancelOverDriveHold: function(overdriveId){
-			var ajaxUrl = Globals.path + "/EcontentRecord/AJAX?method=CancelOverDriveHold&overDriveId=" + overdriveId;
-			$.ajax({
-				url: ajaxUrl,
-				cache: false,
-				success: function(data){
-					if (data.result){
-						VuFind.showMessage("Hold Cancelled", data.message, true);
-						//remove the row from the holds list
-						$("#overDriveHold_" + overdriveId).hide();
-					}else{
-						VuFind.showMessage("Error Cancelling Hold", data.message, false);
+			if (confirm("Are you sure you want to cancel this hold?")){
+				var ajaxUrl = Globals.path + "/EcontentRecord/AJAX?method=CancelOverDriveHold&overDriveId=" + overdriveId;
+				$.ajax({
+					url: ajaxUrl,
+					cache: false,
+					success: function(data){
+						if (data.result){
+							VuFind.showMessage("Hold Cancelled", data.message, true);
+							//remove the row from the holds list
+							$("#overDriveHold_" + overdriveId).hide();
+						}else{
+							VuFind.showMessage("Error Cancelling Hold", data.message, false);
+						}
+					},
+					dataType: 'json',
+					async: false,
+					error: function(){
+						VuFind.showMessage("Error Cancelling Hold", "An error occurred processing your request in OverDrive.  Please try again in a few minutes.", false);
 					}
-				},
-				dataType: 'json',
-				async: false,
-				error: function(){
-					VuFind.showMessage("Error Cancelling Hold", "An error occurred processing your request in OverDrive.  Please try again in a few minutes.", false);
-				}
-			});
+				});
+			}
 			return false;
 		},
 

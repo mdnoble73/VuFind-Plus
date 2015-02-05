@@ -113,19 +113,21 @@ VuFind.ExternalEContentRecord = (function(){
 VuFind.LocalEContent = (function(){
 	return {
 		cancelHold: function(recordId, itemId){
-			if (Globals.loggedIn){
-				var returnUrl = Globals.path + '/RestrictedEContent/' + recordId + '/AJAX?method=cancelHold&itemId=' + itemId;
-				$.getJSON(returnUrl, function(data){
-					if (data.result) {
-						VuFind.showMessage("Success", data.message, true, true);
-					} else {
-						VuFind.showMessage("Error", data.message);
-					}
-				});
-			}else{
-				VuFind.Account.ajaxLogin(null, function(){
-					VuFind.LocalEContent.cancelHold(recordId, itemId);
-				});
+			if (confirm("Are you sure you want to cancel this hold?")){
+				if (Globals.loggedIn){
+					var returnUrl = Globals.path + '/RestrictedEContent/' + recordId + '/AJAX?method=cancelHold&itemId=' + itemId;
+					$.getJSON(returnUrl, function(data){
+						if (data.result) {
+							VuFind.showMessage("Success", data.message, true, true);
+						} else {
+							VuFind.showMessage("Error", data.message);
+						}
+					});
+				}else{
+					VuFind.Account.ajaxLogin(null, function(){
+						VuFind.LocalEContent.cancelHold(recordId, itemId);
+					});
+				}
 			}
 		},
 
