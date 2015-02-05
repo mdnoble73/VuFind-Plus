@@ -129,8 +129,6 @@ class WorkAPI {
 		$commandToRun = "java -jar $recordGroupingPath/record_grouping.jar generateWorkId $title $author $format";
 		$result = shell_exec($commandToRun);
 		//TODO: Return normalized title and normalized author as well.
-		return array(
-			"workId" => $result,
-		);
+		return json_decode($result);
 	}
 } 

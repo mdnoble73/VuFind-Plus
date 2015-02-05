@@ -7,6 +7,8 @@ import org.apache.log4j.PropertyConfigurator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
 import org.marc4j.MarcStreamWriter;
@@ -101,7 +103,15 @@ public class RecordGrouperMain {
 			work.setTitle(title, 0, null);
 			work.setAuthor(author);
 			work.setGroupingCategory(format);
-			System.out.print(work.getPermanentId());
+			JSONObject result = new JSONObject();
+			try {
+				result.put("normalizedAuthor", work.getAuthor());
+				result.put("normalizedTitle", work.getTitle());
+				result.put("workId", work.getPermanentId());
+			}catch (Exception e){
+				logger.error("Error generating response", e);
+			}
+			System.out.print(result.toString());
 		}else if (serverName.equals("generateAuthorAuthorities")) {
 			generateAuthorAuthorities(args);
 		}else {
