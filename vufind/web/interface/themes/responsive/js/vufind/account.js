@@ -22,27 +22,42 @@ VuFind.Account = (function(){
 			var title = form.find("input[name=title]").val();
 			var desc = $("#listDesc").val();
 
-			var url = Globals.path + "/MyResearch/AJAX";
-			var params = "method=AddList&" +
-					"title=" + encodeURIComponent(title) + "&" +
-					"public=" + isPublic + "&" +
-					"desc=" + encodeURIComponent(desc) + "&" +
-					"recordId=" + encodeURIComponent(recordId) ;
-
-			$.ajax({
-				url: url + '?' + params,
-				dataType: "json",
-				success: function (data) {
+			var url = Globals.path + "/MyAccount/AJAX";
+			//var params = "method=AddList&" +
+			//		"title=" + encodeURIComponent(title) + "&" +
+			//		"public=" + isPublic + "&" +
+			//		"desc=" + encodeURIComponent(desc) + "&" +
+			//		"recordId=" + encodeURIComponent(recordId) ;
+			var params = {
+					'method':'AddList',
+					title: title,
+					public: isPublic,
+					desc: desc,
+					recordId: recordId
+				}
+			$.getJSON(url, params,function (data) {
 					if (data.result) {
-						VuFind.showMessage("Added Successfully", data.message);
+						VuFind.showMessage("Added Successfully", data.message, true);
 					} else {
 						VuFind.showMessage("Error", data.message);
 					}
-				},
-				error: function () {
-					VuFind.showMessage("Error creating list", "There was an unexpected error creating your list");
-				}
+			}).fail(function(){
+					VuFind.showMessage("Error creating list", "There was an unexpected error creating your list")
 			});
+			//$.ajax({
+			//	url: url + '?' + params,
+			//	dataType: "json",
+			//	success: function (data) {
+			//		if (data.result) {
+			//			VuFind.showMessage("Added Successfully", data.message);
+			//		} else {
+			//			VuFind.showMessage("Error", data.message);
+			//		}
+			//	},
+			//	error: function () {
+			//		VuFind.showMessage("Error creating list", "There was an unexpected error creating your list");
+			//	}
+			//});
 
 			return false;
 		},
@@ -205,11 +220,14 @@ VuFind.Account = (function(){
 
 		removeTag: function(tag){
 			if (confirm("Are you sure you want to remove the tag \"" + tag + "\" from all titles?")){
-				var url = Globals.path + "/MyAccount/AJAX?method=removeTag&tag=" + encodeURI(tag);
-				$.getJSON(url, function(data){
+				//var url = Globals.path + "/MyAccount/AJAX?method=removeTag&tag=" + encodeURI(tag);
+				var url = Globals.path + "/MyAccount/AJAX",
+						params = {method:'removeTag', tag: tag};
+				//$.getJSON(url, function(data){
+				$.getJSON(url, params, function(data){
 					if (data.result == true){
-						VuFind.showMessage('Tag Deleted', data.message);
-						setTimeout(function(){window.location.reload()}, 3000);
+						VuFind.showMessage('Tag Deleted', data.message, true, true);
+						//setTimeout(function(){window.location.reload()}, 3000);
 					}else{
 						VuFind.showMessage('Tag Not Deleted', data.message);
 					}
@@ -456,7 +474,7 @@ VuFind.Account = (function(){
 					$('.modal-body').html(data.modalBody);
 					$('.modal-buttons').html(data.modalButtons);
 				});
-				modalDialog.load( );
+				//modalDialog.load( );
 				modalDialog.modal('show');
 			}else{
 				VuFind.Account.ajaxLogin(null, function (){
@@ -491,6 +509,7 @@ VuFind.Account = (function(){
 			var holdId = $('#holdId').val();
 			var newLocation = $('#newPickupLocation').val();
 			var url = Globals.path + "/MyAccount/AJAX?method=changeHoldLocation&holdId=" + encodeURIComponent(holdId) + "&newLocation=" + encodeURIComponent(newLocation);
+			// TODO: use getJSON data parameter for query string, does encoding
 			$.getJSON(url,
 					function(data) {
 						if (data.result) {
@@ -625,8 +644,9 @@ VuFind.Account = (function(){
 				}, false);
 			}else{
 				var url = Globals.path + "/MyAccount/AJAX";
-				var params = "method=saveSearch&searchId=" + encodeURIComponent(searchId);
-				$.getJSON(url + '?' + params,
+				var params = {method :'saveSearch', searchId :searchId};
+				//$.getJSON(url + '?' + params,
+				$.getJSON(url, params,
 						function(data) {
 							if (data.result) {
 								VuFind.showMessage("Success", data.message);
@@ -643,16 +663,21 @@ VuFind.Account = (function(){
 			if (Globals.loggedIn){
 				var modalDialog = $("#modalDialog");
 				//$(".modal-body").html($('#userreview' + id).html());
-				var url = Globals.path + "/MyResearch/AJAX?method=getCreateListForm";
+				//var url = Globals.path + "/MyAccount/AJAX?method=getCreateListForm";
+				//if (id != undefined){
+				//	url += '&recordId=' + encodeURIComponent(id);
+				//}
+				var url = Globals.path + "/MyAccount/AJAX",
+						params = {method:"getCreateListForm"};
 				if (id != undefined){
-					url += '&recordId=' + encodeURIComponent(id);
+					params.recordId= id;
 				}
-				$.getJSON(url, function(data){
+				$.getJSON(url, params, function(data){
 					$('#myModalLabel').html(data.title);
 					$('.modal-body').html(data.modalBody);
 					$('.modal-buttons').html(data.modalButtons);
 				});
-				modalDialog.load( );
+				//modalDialog.load( );
 				modalDialog.modal('show');
 			}else{
 				VuFind.Account.ajaxLogin($trigger, function (){
