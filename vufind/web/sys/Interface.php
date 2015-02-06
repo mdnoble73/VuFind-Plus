@@ -122,7 +122,9 @@ class UInterface extends Smarty
 		$this->assign('coverUrl', $configArray['Site']['coverUrl']);
 		$this->assign('fullPath', str_replace('&', '&amp;', $_SERVER['REQUEST_URI']));
 		$this->assign('requestHasParams', strpos($_SERVER['REQUEST_URI'], '?') > 0);
-		$this->assign('supportEmail', $configArray['Site']['email']);
+		if (isset($configArray['Site']['email'])) {
+			$this->assign('supportEmail', $configArray['Site']['email']);
+		}
 		if (isset($configArray['Site']['libraryName'])){
 			$this->assign('consortiumName', $configArray['Site']['libraryName']);
 		}
