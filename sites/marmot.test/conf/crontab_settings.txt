@@ -74,8 +74,9 @@
 # AspenCat export copy
 # adjust to 2.31a to avoid conflict with nfs mount point - sml 24 Nov 14
 # adjust to 4.31a to run after ftp server collects data from aspencat - sml 19 Dec 14
+# adjust to 11:31p to run in time for regrouping to be done - mdn 5 Feb 15
 # add calling cron to merge files together after the export is copied
-31 4 * * * /root/cron/copyAspencatExport.sh;cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test MergeMarcUpdatesAndDeletes
+31 23 * * * /root/cron/copyAspencatExport.sh;cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test MergeMarcUpdatesAndDeletes
 
 # Anythink export copy
 # added at 1.01a to avoid conflict with nfs mount point - sml 19 Dec 14
@@ -108,7 +109,7 @@
 10 0 * * * cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar marmot.test fullRegroupingNoClear
 # 12:10am everyday
 
-# AspenCat - Full Record Grouping
+# AspenCat - Full Record Grouping - must happen after the files are merged
 50 3 * * * cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar aspencat.test fullRegroupingNoClear
 # 3:50am everyday
 
@@ -134,8 +135,8 @@
 10 1 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar marmot.test fullReindex
 # 1:10am everyday
 
-# AspenCat
-20 4 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar aspencat.test fullReindex
+# AspenCat - Must happen after grouping
+40 4 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar aspencat.test fullReindex
 #4:20 am everyday, after full regrouping
 
 # Anythink
