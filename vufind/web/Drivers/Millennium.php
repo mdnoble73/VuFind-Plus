@@ -659,6 +659,7 @@ class MillenniumDriver implements DriverInterface
 			$fullName = $patronDump['PATRN_NAME'];
 
 			//Get additional information about the patron's home branch for display.
+			$location = null;
 			if (isset($patronDump['HOME_LIBR']) || isset($patronDump['HOLD_LIBR'])){
 				$homeBranchCode = isset($patronDump['HOME_LIBR']) ? $patronDump['HOME_LIBR'] : $patronDump['HOLD_LIBR'];
 				$homeBranchCode = str_replace('+', '', $homeBranchCode);
@@ -669,19 +670,28 @@ class MillenniumDriver implements DriverInterface
 			}
 
 			if ($user) {
-				if ($user->homeLocationId == 0 && isset($location)) {
-					$user->homeLocationId = $location->locationId;
-					if ($location->nearbyLocation1 > 0){
-						$user->myLocation1Id = $location->nearbyLocation1;
-					}else{
-						$user->myLocation1Id = $location->locationId;
-					}
-					if ($location->nearbyLocation2 > 0){
-						$user->myLocation2Id = $location->nearbyLocation2;
-					}else{
-						$user->myLocation2Id = $location->locationId;
-					}
-					if ($user instanceof User) {
+				if (isset($location)){
+					if ($user->homeLocationId == 0) {
+						$user->homeLocationId = $location->locationId;
+						if ($location->nearbyLocation1 > 0){
+							$user->myLocation1Id = $location->nearbyLocation1;
+						}else{
+							$user->myLocation1Id = $location->locationId;
+						}
+						if ($location->nearbyLocation2 > 0){
+							$user->myLocation2Id = $location->nearbyLocation2;
+						}else{
+							$user->myLocation2Id = $location->locationId;
+						}
+						if ($user instanceof User) {
+							//Update the database
+							$user->update();
+							//Update the serialized instance stored in the session
+							$_SESSION['userinfo'] = serialize($user);
+						}
+					}else if ($location->locationId != $user->homeLocationId){
+						$user->homeLocationId = $location->locationId;
+
 						//Update the database
 						$user->update();
 						//Update the serialized instance stored in the session
