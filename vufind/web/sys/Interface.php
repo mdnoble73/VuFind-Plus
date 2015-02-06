@@ -153,6 +153,12 @@ class UInterface extends Smarty
 			$this->assign('debugCss', true);
 		}
 
+// Detect Internet Explorer 8 to include respond.js for responsive css support
+		if (isset($_SERVER['HTTP_USER_AGENT'])) {
+			$ie8 = stristr($_SERVER['HTTP_USER_AGENT'], 'msie 8');
+			$this->assign('ie8', $ie8);
+		}
+
 		$session = new Session();
 		$session->session_id = session_id();
 		if ($session->find(true)){

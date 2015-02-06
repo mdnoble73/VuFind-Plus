@@ -5,7 +5,12 @@
 		{css filename="main.min.css"}
 	{/if}
 	{* Include correct all javascript *}
+	{if $ie8}
+		{* include to give responsive capability to ie8 browsers, but only on successful detection of those browsers. For that reason, don't include in vufind.min.js *}
+		<script src="{$path}/interface/themes/responsive/js/lib/respond.min.js"></script>
+	{/if}
 	{if $debugJs}
+
 		<script src="{$path}/js/jquery-1.9.1.min.js"></script>
 		{* Load Libraries*}
 		<script src="{$path}/interface/themes/responsive/js/lib/jquery.tablesorter.min.js"></script>
