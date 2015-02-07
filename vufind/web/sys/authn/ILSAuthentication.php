@@ -57,7 +57,19 @@ class ILSAuthentication implements Authentication {
 		if ($user->find(true)) {
 			$insert = false;
 		} else {
-			$insert = true;
+			//Do one more check based on the patron barcode in case we are converting
+			//Clear username temporarily
+			$user->username = null;
+			global $configArray;
+			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+			$user->$barcodeProperty = $info[$barcodeProperty];
+			if ($user->find(true)){
+				$insert = false;
+			}else{
+				$insert = true;
+			}
+			//Restore username
+			$user->username = $info['username'];
 		}
 
 		$user->password = $info['cat_password'];
