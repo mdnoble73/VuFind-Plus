@@ -12,21 +12,53 @@ class MyAccount_AJAX
 {
 	function launch()
 	{
-		$valid_methods = array(
-			'GetSuggestions', 'GetListTitles', 'getOverDriveSummary', 'AddList', 'GetPreferredBranches', 'clearUserRating',
-			'requestPinReset', 'getCreateListForm', 'getBulkAddToListForm', 'removeTag',
-			'saveSearch', 'deleteSavedSearch',
+		// not checked below refer to testing returning results through utf8 encoding. plb 2-6-2015
+		$valid_json_methods = array(
+			'GetSuggestions', // not checked
+			'GetListTitles', // only used by MyAccount/ImportListsFromClassic.php && ajax.js //not checked
+			'getOverDriveSummary', //called by getOverDriveSummary() is scripts.js // not checked
+			'GetPreferredBranches', //not checked
+//			'clearUserRating', //no function found.
+			'requestPinReset', //not checked
+			'getCreateListForm', 'getBulkAddToListForm', 'AddList',
+			'getEmailMyListForm', 'sendMyListEmail' ,
+			'removeTag',
+			'saveSearch', 'deleteSavedSearch', // deleteSavedSearch not checked
 			'cancelHold', 'cancelHolds', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation',
-			'getEmailMyListForm', 'sendMyListEmail' , 'getReactivationDateForm',
+				'getReactivationDateForm', //not checked
 			'renewItem', 'renewAll', 'renewSelectedItems'
 		);
 		$method = $_GET['method'];
-		if (in_array($method, $valid_methods)) {
+		if (in_array($method, $valid_json_methods)) {
 			header('Content-type: application/json');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
-			echo $this->$method();
-		} else if (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm', 'getCitationFormatsForm', 'getPinResetForm'))) {
+			$result = $this->$method();
+			try {
+				require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';
+				$utf8EncodedValue = ArrayUtils::utf8EncodeArray($result);
+				$output           = json_encode($utf8EncodedValue);
+				$error            = json_last_error();
+				if ($error != JSON_ERROR_NONE || $output === FALSE) {
+					if (function_exists('json_last_error_msg')) {
+						$output = json_encode(array('error' => 'error_encoding_data', 'message' => json_last_error_msg()));
+					} else {
+						$output = json_encode(array('error' => 'error_encoding_data', 'message' => json_last_error()));
+					}
+					global $configArray;
+					if ($configArray['System']['debug']) {
+						print_r($utf8EncodedValue);
+					}
+				}
+			}
+			catch (Exception $e){
+				$output = json_encode(array('error'=>'error_encoding_data', 'message' => $e));
+				global $logger;
+				$logger->log("Error encoding json data $e", PEAR_LOG_ERR);
+			}
+			echo $output;
+
+		} elseif (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm', 'getCitationFormatsForm', 'getPinResetForm'))) {
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -59,7 +91,7 @@ class MyAccount_AJAX
 			'modalBody' => $interface->fetch('MyResearch/bulkAddToListPopup.tpl'),
 			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Lists.processBulkAddForm(); return false;'>Add To List</span>"
 		);
-		return json_encode($formDefinition);
+		return $formDefinition;
 	}
 
 	function removeTag()
@@ -76,7 +108,7 @@ class MyAccount_AJAX
 			'result' => true,
 			'message' => "Removed tag '{$tagToRemove}' from $numDeleted titles."
 		);
-		return json_encode($result);
+		return $result;
 	}
 
 	function saveSearch()
@@ -110,7 +142,7 @@ class MyAccount_AJAX
 			'result' => $saveOk,
 			'message' => $message,
 		);
-		return json_encode($result);
+		return $result;
 	}
 
 	function deleteSavedSearch()
@@ -142,7 +174,7 @@ class MyAccount_AJAX
 			'result' => $saveOk,
 			'message' => $message,
 		);
-		return json_encode($result);
+		return $result;
 	}
 
 	function cancelHold() {
@@ -184,7 +216,7 @@ class MyAccount_AJAX
 			'modalBody' => $interface->fetch('MyAccount/cancelhold.tpl'),
 			'success' => $result['result']
 		);
-		return json_encode($cancelResult);
+		return $cancelResult;
 	}
 
 	function cancelHolds() { // for cancelling multiple holds
@@ -230,7 +262,7 @@ class MyAccount_AJAX
 			'success' => $result['result'],
 		  'failed' => $failed
 		);
-		return json_encode($cancelResult);
+		return $cancelResult;
 	}
 
 	function freezeHold() {
@@ -242,7 +274,7 @@ class MyAccount_AJAX
 			global $user;
 
 			$result = $catalog->driver->updateHoldDetailed($user->password, 'update', '', null, $holdId, null, 'on');
-			return json_encode($result);
+			return $result;
 		} catch (PDOException $e) {
 			// What should we do with this error?
 			if ($configArray['System']['debug']) {
@@ -251,10 +283,10 @@ class MyAccount_AJAX
 				echo '</pre>';
 			}
 		}
-		return json_encode(array(
+		return array(
 			'result' => false,
 			'message' => 'We could not connect to the circulation system, please try again later.'
-		));
+		);
 	}
 
 	function thawHold() {
@@ -266,7 +298,7 @@ class MyAccount_AJAX
 			global $user;
 
 			$result = $catalog->driver->updateHoldDetailed($user->password, 'update', '', null, $holdId, null, 'off');
-			return json_encode($result);
+			return $result;
 		} catch (PDOException $e) {
 			// What should we do with this error?
 			if ($configArray['System']['debug']) {
@@ -275,10 +307,10 @@ class MyAccount_AJAX
 				echo '</pre>';
 			}
 		}
-		return json_encode(array(
+		return array(
 			'result' => false,
 			'message' => 'We could not connect to the circulation system, please try again later.'
-		));
+		);
 	}
 
 	//TODO: Review these methods to see what can be deleted
@@ -336,7 +368,7 @@ class MyAccount_AJAX
 			$return['message'] = "You must be logged in to create a list";
 		}
 
-		return json_encode($return);
+		return $return;
 	}
 
 	function getCreateListForm()
@@ -351,7 +383,7 @@ class MyAccount_AJAX
 			'modalBody' => $interface->fetch("MyResearch/list-form.tpl"),
 			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.addList(\"{$id}\"); return false;'>Create List</span>"
 		);
-		return json_encode($results);
+		return $results;
 	}
 
 	/**
@@ -429,7 +461,7 @@ class MyAccount_AJAX
 				'currentHolds' => $currentHolds
 			);
 		}
-		return json_encode($result);
+		return $result;
 	}
 
 	function GetSuggestions()
@@ -474,7 +506,7 @@ class MyAccount_AJAX
 		}
 
 		$return = array('titles' => $titles, 'currentIndex' => 0);
-		return json_encode($return);
+		return $return;
 		//return $interface->fetch('MyResearch/ajax-suggestionsList.tpl');
 	}
 
@@ -548,7 +580,7 @@ class MyAccount_AJAX
 
 		}
 
-		return $listData;
+		return $return;
 	}
 
 	function getOverDriveSummary()
@@ -558,7 +590,7 @@ class MyAccount_AJAX
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$overDriveDriver = OverDriveDriverFactory::getDriver();
 			$summary = $overDriveDriver->getOverDriveSummary($user);
-			return json_encode($summary);
+			return $summary;
 		} else {
 			return array('error' => 'There is no user currently logged in.');
 		}
@@ -614,7 +646,7 @@ class MyAccount_AJAX
 			'modalBody' => $interface->fetch("MyAccount/changeHoldLocation.tpl"),
 			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.doChangeHoldLocation(); return false;'>Change Location</span>"
 		);
-		return json_encode($results);
+		return $results;
 	}
 
 	// called by js function Account.freezeHold
@@ -630,7 +662,7 @@ class MyAccount_AJAX
 			'modalBody' => $interface->fetch("MyAccount/reactivationDate.tpl"),
 			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.doFreezeHoldWithReactivationDate(this); return false;'>$title</span>"
 		);
-		return json_encode($results);
+		return $results;
 	}
 
 
@@ -645,7 +677,7 @@ class MyAccount_AJAX
 			global $user;
 
 			$result = $catalog->driver->updateHoldDetailed($user->password, 'update', '', null, $holdId, $newPickupLocation, null);
-			return json_encode($result);
+			return $result;
 		} catch (PDOException $e) {
 			// What should we do with this error?
 			if ($configArray['System']['debug']) {
@@ -654,10 +686,10 @@ class MyAccount_AJAX
 				echo '</pre>';
 			}
 		}
-		return json_encode(array(
+		return array(
 			'result' => false,
 			'message' => 'We could not connect to the circulation system, please try again later.'
-		));
+		);
 	}
 
 	function requestPinReset()
@@ -672,7 +704,7 @@ class MyAccount_AJAX
 
 			//Get the list of pickup branch locations for display in the user interface.
 			$result = $catalog->requestPinReset($barcode);
-			return json_encode($result);
+			return $result;
 
 		} catch (PDOException $e) {
 			// What should we do with this error?
@@ -775,7 +807,7 @@ class MyAccount_AJAX
 			);
 		}
 
-		echo json_encode($result); // send results to browser
+		return $result;
 	}
 
 	function getEmailMyListForm(){
@@ -789,7 +821,7 @@ class MyAccount_AJAX
 //			'modalButtons' => '<input type="submit" name="submit" value="Send" class="btn btn-primary" onclick="$(\'#emailListForm\').submit();" />'
 			'modalButtons' => '<span class="tool btn btn-primary" onclick="$(\'#emailListForm\').submit();">Send E-Mail</span>'
 		);
-		echo json_encode($formDefinition);
+		return $formDefinition;
 	}
 
 	function renewItem() {
@@ -838,7 +870,7 @@ class MyAccount_AJAX
 			'modalBody' => $interface->fetch('MyAccount/renew-item-results.tpl'),
 		  'success' => $renewResults['success']
 		);
-		return json_encode($result);
+		return $result;
 	}
 
 	function renewSelectedItems() {
@@ -902,7 +934,7 @@ class MyAccount_AJAX
 			'success' => $renewResults['result'],
 		  'renewed' => $renewResults['Renewed']
 		);
-		return json_encode($result);
+		return $result;
 	}
 
 	function renewAll() {
@@ -932,7 +964,7 @@ class MyAccount_AJAX
 			'success' => $renewResults['result'],
 			'renewed' => $renewResults['Renewed']
 		);
-		return json_encode($result);
+		return $result;
 	}
 
 }

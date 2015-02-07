@@ -122,7 +122,9 @@ class UInterface extends Smarty
 		$this->assign('coverUrl', $configArray['Site']['coverUrl']);
 		$this->assign('fullPath', str_replace('&', '&amp;', $_SERVER['REQUEST_URI']));
 		$this->assign('requestHasParams', strpos($_SERVER['REQUEST_URI'], '?') > 0);
-		$this->assign('supportEmail', $configArray['Site']['email']);
+		if (isset($configArray['Site']['email'])) {
+			$this->assign('supportEmail', $configArray['Site']['email']);
+		}
 		if (isset($configArray['Site']['libraryName'])){
 			$this->assign('consortiumName', $configArray['Site']['libraryName']);
 		}
@@ -151,6 +153,12 @@ class UInterface extends Smarty
 		}
 		if (isset($configArray['System']['debugCss']) && $configArray['System']['debugCss']){
 			$this->assign('debugCss', true);
+		}
+
+// Detect Internet Explorer 8 to include respond.js for responsive css support
+		if (isset($_SERVER['HTTP_USER_AGENT'])) {
+			$ie8 = stristr($_SERVER['HTTP_USER_AGENT'], 'msie 8');
+			$this->assign('ie8', $ie8);
 		}
 
 		$session = new Session();
