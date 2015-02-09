@@ -112,8 +112,8 @@ class MillenniumHolds{
 		global $logger;
 		global $configArray;
 
-		$patronDump = $this->driver->_getPatronDump($this->driver->_getBarcode());
-		$patronId = $patronDump['P_BARCODE']; // this removes the need for $patronId in parameters
+		$patronId = $this->driver->_getBarcode();
+		$patronDump = $this->driver->_getPatronDump($patronId);
 
 		// Millennium has a "quirk" where you can still freeze and thaw a hold even if it is in the wrong status.
 		// therefore we need to check the current status before we freeze or unfreeze.
@@ -124,6 +124,7 @@ class MillenniumHolds{
 //		$numHoldsStart = count($holds['holds']['available'] + $holds['holds']['unavailable']);
 
 		if (!isset($xNum)) {
+			// below requests variables should be deprecated as of now. plb 2-9-2015
 			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])) {
 				$waitingHolds   = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
 				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
@@ -313,9 +314,9 @@ class MillenniumHolds{
 		global $memCache;
 		$memCache->delete("patron_dump_{$this->driver->_getBarcode()}");
 		usleep(250);
-		//Clear holds for the patron
-		unset($this->holds[$patronId]); // the only use of $patronId.
 
+		//Clear holds for the patron
+		unset($this->holds[$patronId]);
 		$this->driver->clearPatronProfile();
 
 		// Return Results
