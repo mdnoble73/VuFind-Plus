@@ -64,6 +64,9 @@
 				<div >
 				{if $recordCount}
 					{translate text="Showing"} <b>{$recordStart}</b> - <b>{$recordEnd}</b> {translate text='of'} <b>{$recordCount}</b>
+					{if $debug}
+						&nbsp;There are {$favList->num_titles()} titles that are valid.
+					{/if}
 				{/if}
 				</div>
 			</div>

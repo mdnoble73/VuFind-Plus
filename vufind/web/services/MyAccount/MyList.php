@@ -58,10 +58,15 @@ class MyAccount_MyList extends MyAccount {
 			exit();
 		}
 		if (!$list->public && $list->user_id != $user->id) {
-			$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-			$interface->setTemplate('invalidList.tpl');
-			$interface->display('layout.tpl');
-			return;
+			//Allow the user to view if they are admin
+			if ($user && $user->hasRole('opacAdmin')){
+				//Allow the user to view
+			}else{
+				$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
+				$interface->setTemplate('invalidList.tpl');
+				$interface->display('layout.tpl');
+				return;
+			}
 		}
 
 		if (isset($_SESSION['listNotes'])){

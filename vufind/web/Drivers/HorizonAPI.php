@@ -45,8 +45,9 @@ abstract class HorizonAPI extends Horizon{
 				}
 				if ($userValid){
 					$returnVal = array(
-						'id'        => $password,
-						'username'  => $password, //To match previous implementation, the user name needs to be patron barcode
+						//Don't change the user id and username, was setting to password
+						'id'        => $user->id,
+						'username'  => $user->username,
 						'firstname' => isset($firstName) ? $firstName : '',
 						'lastname'  => isset($lastName) ? $lastName : '',
 						'fullname'  => isset($fullName) ? $fullName : '',     //Added to array for possible display later.
@@ -87,7 +88,9 @@ abstract class HorizonAPI extends Horizon{
 
 					$returnVal = array(
 						'id'        => $userID,
-						'username'  => $username, //Must be catalog barcode to match the old system.  //TODO: Switch to use patron ID from Horizon
+						//Switch to use patron ID from Horizon
+						//'username'  => $username, //Must be catalog barcode to match the old system.
+						'username'  => $userID, //Must be catalog barcode to match the old system.
 						'firstname' => isset($firstName) ? $firstName : '',
 						'lastname'  => isset($lastName) ? $lastName : '',
 						'fullname'  => isset($fullName) ? $fullName : '',     //Added to array for possible display later.

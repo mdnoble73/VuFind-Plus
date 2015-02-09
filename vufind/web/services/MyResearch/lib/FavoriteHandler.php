@@ -99,8 +99,9 @@ class FavoriteHandler
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 		$searchObject->disableScoping();
-		$searchObject->setLimit($recordsPerPage);
+		$searchObject->setLimit(200);
 		$searchObject->setPage($page);
+		$searchObject->setSort('title asc');
 		$interface->assign('sortList', $searchObject->getSortList());
 
 		// Retrieve records from index (currently, only Solr IDs supported):
@@ -108,6 +109,12 @@ class FavoriteHandler
 			$searchObject->setQueryIDs($this->favorites);
 			$result = $searchObject->processSearch();
 			$resourceList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
+
+			$pageInfo['resultTotal'] = $result['response']['numFound'];
+			if ($endRecord > $pageInfo['resultTotal']){
+				$endRecord = $pageInfo['resultTotal'];
+			}
+			$pageInfo['endRecord'] = $endRecord;
 		}else{
 			$resourceList = array();
 		}

@@ -14,6 +14,7 @@ vufind/web/files/medium/*
 vufind/web/files/thumbnail/*
 vufind/web/files/original/*
 vufind/web/google*.html
+vufind/web/getWorkIdUpdates.php
 tests/selenium/*
 tests/conf/config.ini
 data-import
