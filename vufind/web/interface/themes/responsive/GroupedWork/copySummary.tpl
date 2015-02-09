@@ -4,7 +4,7 @@
 		{assign var=numRowsShown value="0"}
 		{foreach from=$summary item="item"}
 			{if $item.displayByDefault && $numRowsShown<6}
-				<div class="itemSummary">{$item.availableCopies} of {$item.totalCopies} @ <strong><span class="noBreak notranslate">{$item.shelfLocation}</span>: <span class="noBreak notranslate">{$item.callNumber}</span></strong></div>
+				<div class="itemSummary">{$item.availableCopies} of {$item.totalCopies} {translate text='at'} <strong><span class="noBreak notranslate">{$item.shelfLocation}</span>: <span class="noBreak notranslate">{$item.callNumber}</span></strong></div>
 				{assign var=numDefaultItems value=$numDefaultItems+$item.totalCopies}
 				{assign var=numRowsShown value=$numRowsShown+1}
 			{/if}
