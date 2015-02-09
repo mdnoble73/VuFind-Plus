@@ -610,7 +610,7 @@ abstract class HorizonAPI extends Horizon{
 			}
 		}
 
-		if (!isset($xNum) ){
+		if (!isset($xNum) ){ //AJAX function passes IDs through $cancelID below shouldn't be needed anymore. plb 2-4-2015
 			if (isset($_REQUEST['waitingholdselected']) || isset($_REQUEST['availableholdselected'])){
 				$waitingHolds = isset($_REQUEST['waitingholdselected']) ? $_REQUEST['waitingholdselected'] : array();
 				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
@@ -627,6 +627,8 @@ abstract class HorizonAPI extends Horizon{
 				$cancelHoldUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/cancelMyHold?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&holdKey=' . $holdKey;
 
 				$cancelHoldResponse = $this->getWebServiceResponse($cancelHoldUrl);
+
+				// TODO: Extract Failure Messages
 
 				global $analytics;
 				if ($cancelHoldResponse){
@@ -738,16 +740,18 @@ abstract class HorizonAPI extends Horizon{
 							$analytics->addEvent('ILS Integration', 'Hold Not Suspended', $title);
 						}
 					}
+
+					$thawed = translate('thawed');
 					if ($allUnsuspendsSucceed){
 						return array(
 							'title' => $title,
 							'result' => true,
-							'message' => 'Your hold(s) were thawed successfully.');
+							'message' => "Your hold(s) were $thawed successfully.");
 					}else{
 						return array(
 							'title' => $title,
 							'result' => false,
-							'message' => 'Some holds could not be thawed.  Please try again later or see your librarian.');
+							'message' => "Some holds could not be $thawed.  Please try again later or see your librarian.");
 					}
 				}
 			}
