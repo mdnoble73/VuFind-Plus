@@ -157,7 +157,7 @@ class UInterface extends Smarty
 
 // Detect Internet Explorer 8 to include respond.js for responsive css support
 		if (isset($_SERVER['HTTP_USER_AGENT'])) {
-			$ie8 = stristr($_SERVER['HTTP_USER_AGENT'], 'msie 8');
+			$ie8 = stristr($_SERVER['HTTP_USER_AGENT'], 'msie 8') || stristr($_SERVER['HTTP_USER_AGENT'], 'trident/5'); //trident/5 should catch ie9 compability modes
 			$this->assign('ie8', $ie8);
 		}
 
