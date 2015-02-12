@@ -18,7 +18,6 @@
 							<th>{translate text='Date'}</th>
 							<th>{translate text='Title'}</th>
 							<th>{translate text='Author'}</th>
-							<th>{translate text='Format'}</th>
 							<th>{translate text='Rating'}</th>
 							<th>&nbsp;</th>
 						</tr>
@@ -38,9 +37,6 @@
 								</td>
 								<td class="myAccountCell">
 									{$rating.author}
-								</td>
-								<td class="myAccountCell">
-									{$rating.format}
 								</td>
 								<td class="myAccountCell">
 									{include file='GroupedWork/title-rating.tpl' shortId=$rating.shortId recordId=$rating.fullId ratingData=$rating.ratingData}
