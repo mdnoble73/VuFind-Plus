@@ -31,12 +31,14 @@
 		{if $saveButtonText}
 			<input type="submit" name="submit" value="{$saveButtonText}" class="btn btn-primary"/>
 		{else}
+			<div id="objectEditorSaveButtons">
 			<input type="submit" name="submitReturnToList" value="Save Changes and Return" class="btn btn-primary"/>
 			{if $id}
 				<input type="submit" name="submitStay" value="Save Changes and Stay Here" class="btn"/>
 			{else}
 				<input type="submit" name="submitAddAnother" value="Save Changes and Add Another" class="btn"/>
 			{/if}
+			</div>
 		{/if}
 	</div>
 </form>

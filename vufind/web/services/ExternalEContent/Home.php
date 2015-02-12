@@ -60,6 +60,13 @@ class ExternalEContent_Home extends Action{
 			$searchObject->init($searchSource);
 			$searchObject->getNextPrevLinks();
 
+			// Set Show in Main Details Section options for templates
+			// (needs to be set before moreDetailsOptions)
+			global $library;
+			foreach ($library->showInMainDetails as $detailoption) {
+				$interface->assign($detailoption, true);
+			}
+
 			$interface->assign('moreDetailsOptions', $recordDriver->getMoreDetailsOptions());
 
 			//Build the actual view

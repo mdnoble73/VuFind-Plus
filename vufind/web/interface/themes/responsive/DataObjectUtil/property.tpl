@@ -7,9 +7,9 @@
 	<div class='form-group' id="propertyRow{$propName}">
 		{* Output the label *}
 		{if $property.type == 'enum'}
-			<label for='{$propName}Select'>{$property.label}</label>
+			<label for='{$propName}Select'{if $property.description} title="{$property.description}"{/if}>{$property.label}</label>
 		{elseif $property.type != 'section' && $property.type != 'checkbox'}
-			<label for='{$propName}'>{$property.label}</label>
+			<label for='{$propName}'{if $property.description} title="{$property.description}"{/if}>{$property.label}</label>
 		{/if}
 		{* Output the editing control*}
 		{if $property.type == 'section'}
@@ -84,7 +84,7 @@
 			<input type="file" name='{$propName}' id='{$propName}' size="80"/>
 		{elseif $property.type == 'checkbox'}
 			<div class="checkbox">
-				<label for='{$propName}'>
+				<label for='{$propName}'{if $property.description} title="{$property.description}"{/if}>
 					<input type='checkbox' name='{$propName}' id='{$propName}' {if ($propValue == 1)}checked='checked'{/if}/> {$property.label}
 				</label>
 			</div>

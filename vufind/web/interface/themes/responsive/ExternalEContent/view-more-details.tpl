@@ -31,15 +31,6 @@
 		{/if}
 	{/if}
 
-	{if $recordDriver->getStreetDate()}
-		<div class="row">
-			<div class="result-label col-md-3">{translate text='Street Date'}:</div>
-			<div class="col-md-9 result-value">
-				{$recordDriver->getStreetDate()|escape}
-			</div>
-		</div>
-	{/if}
-
 	<div class="row">
 		<div class="result-label col-md-3">{translate text='Language'}:</div>
 		<div class="col-md-9 result-value">
@@ -61,15 +52,6 @@
 			<div class="result-label col-md-3">{translate text='UPC'}:</div>
 			<div class="col-md-9 result-value">
 				{implode subject=$recordDriver->getUPCs() glue=", "}
-			</div>
-		</div>
-	{/if}
-
-	{if count($recordDriver->getASINs()) > 0}
-		<div class="row">
-			<div class="result-label col-md-3">{translate text='ASIN'}:</div>
-			<div class="col-md-9 result-value">
-				{implode subject=$recordDriver->getASINs() glue=", "}
 			</div>
 		</div>
 	{/if}
@@ -101,19 +83,6 @@
 			<div class="result-label col-md-3">{translate text='Lexile Score'}:</div>
 			<div class="col-md-9 result-value">
 				{$recordDriver->getLexileScore()|escape}
-			</div>
-		</div>
-	{/if}
-
-	{if $recordDriver->getSubjects()}
-		<div class="row">
-			<div class="result-label col-md-3">{translate text='Subjects'}</div>
-			<div class="col-md-9 result-value">
-				{assign var="subjects" value=$recordDriver->getSubjects()}
-				{foreach from=$subjects item=subject name=loop}
-					<a href="{$path}/Search/Results?lookfor=%22{$subject->value|escape:"url"}%22&amp;basicType=Subject">{$subject->value|escape}</a>
-					<br/>
-			{/foreach}
 			</div>
 		</div>
 	{/if}

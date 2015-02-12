@@ -1,4 +1,47 @@
 {strip}
+	{* Details not shown in the Top/Main Section of the Record view should be shown here *}
+	{if !$showPublicationDetails}
+		{if $recordDriver->getPublicationDetails()}
+			<div class="row">
+				<div class="result-label col-xs-3">{translate text='Published'}:</div>
+				<div class="col-xs-9 result-value">
+					{implode subject=$recordDriver->getPublicationDetails() glue=", "}
+				</div>
+			</div>
+		{/if}
+	{/if}
+
+	{if !$showFormats}
+		<div class="row">
+			<div class="result-label col-xs-3">{translate text='Format'}:</div>
+			<div class="col-xs-9 result-value">
+				{implode subject=$recordFormat glue=", "}
+			</div>
+		</div>
+	{/if}
+
+	{if !$showEditions}
+		{if $recordDriver->getEdition()}
+			<div class="row">
+				<div class="result-label col-xs-3">{translate text='Edition'}:</div>
+				<div class="col-xs-9 result-value">
+					{implode subject=$recordDriver->getEdition() glue=", "}
+				</div>
+			</div>
+		{/if}
+	{/if}
+
+	{if !$showPhysicalDescriptions}
+		{if $physicalDescriptions}
+			<div class="row">
+				<div class="result-label col-xs-3">{translate text='Physical Desc'}:</div>
+				<div class="col-xs-9 result-value">
+					{implode subject=$physicalDescriptions glue="<br/>"}
+				</div>
+			</div>
+		{/if}
+	{/if}
+
 	{if $streetDate}
 		<div class="row">
 			<div class="result-label col-xs-3">{translate text='Street Date'}:</div>

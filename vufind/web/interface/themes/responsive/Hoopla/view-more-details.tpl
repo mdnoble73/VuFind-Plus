@@ -1,4 +1,48 @@
 {strip}
+	{* Details not shown in the Top/Main Section of the Record view should be shown here *}
+	{if !$showPublicationDetails}
+		{if $recordDriver->getPublicationDetails()}
+			<div class="row">
+				<div class="result-label col-md-3">{translate text='Published'}:</div>
+				<div class="col-md-9 result-value">
+					{implode subject=$recordDriver->getPublicationDetails() glue=", "}
+				</div>
+			</div>
+		{/if}
+	{/if}
+
+
+	{if !$showPhysicalDespriptions}
+		{if $recordDriver->getPhysicalDescriptions()}
+			<div class="row">
+				<div class="result-label col-md-3">{translate text='Physical Description'}:</div>
+				<div class="col-md-9 result-value">
+					{implode subject=$recordDriver->getPhysicalDescriptions() glue=", "}
+				</div>
+			</div>
+		{/if}
+	{/if}
+
+	{if !$showFormats}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Format'}:</div>
+			<div class="col-md-9 result-value">
+				{implode subject=$recordDriver->getFormats() glue=", "}
+			</div>
+		</div>
+	{/if}
+
+	{if !$showEditions}
+		{if $recordDriver->getEdition()}
+			<div class="row">
+				<div class="result-label col-md-3">{translate text='Edition'}:</div>
+				<div class="col-md-9 result-value">
+					{implode subject=$recordDriver->getEdition() glue=", "}
+				</div>
+			</div>
+		{/if}
+	{/if}
+
 	{if $recordDriver->getLanguage()}
 		<div class="row">
 			<div class="result-label col-xs-3">{translate text='Language'}:</div>

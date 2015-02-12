@@ -39,7 +39,14 @@ class Record_Home extends Record_Record{
 
 		$interface->assign('recordId', $recordId);
 
-		$publicationDetails = $this->recordDriver->getPublicationDetails();
+		// Set Show in Main Details Section options for templates
+		// (needs to be set before moreDetailsOptions)
+		global $library;
+		foreach ($library->showInMainDetails as $detailoption) {
+			$interface->assign($detailoption, true);
+		}
+
+//		$publicationDetails = $this->recordDriver->getPublicationDetails();
 		$interface->assign('moreDetailsOptions', $this->recordDriver->getMoreDetailsOptions());
 
 		//Build the actual view

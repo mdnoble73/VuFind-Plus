@@ -23,6 +23,7 @@
 		</div>
 	{/if}
 
+	{if $showPublicationDetails}
 	{if $recordDriver->getPublicationDetails()}
 		<div class="row">
 			<div class="result-label col-md-3">{translate text='Published'}:</div>
@@ -31,14 +32,18 @@
 			</div>
 		</div>
 	{/if}
+	{/if}
 
+	{if $showFormats}
 	<div class="row">
 		<div class="result-label col-md-3">{translate text='Format'}:</div>
 		<div class="col-md-9 result-value">
 			{implode subject=$recordDriver->getFormats() glue=", "}
 		</div>
 	</div>
+	{/if}
 
+	{if $showEditions}
 	{if $recordDriver->getEdition()}
 		<div class="row">
 			<div class="result-label col-md-3">{translate text='Edition'}:</div>
@@ -46,6 +51,7 @@
 				{implode subject=$recordDriver->getEdition() glue=", "}
 			</div>
 		</div>
+	{/if}
 	{/if}
 
 	<div class="row">

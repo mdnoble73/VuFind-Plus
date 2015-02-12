@@ -138,6 +138,18 @@ class Library extends DB_DataObject
 	public $showDetailedHoldNoticeInformation;
 	public $treatPrintNoticesAsPhoneNotices;
 	public $includeHoopla;
+	public $showInMainDetails;
+
+	// Use this to set which details will be shown in the the Main Details section of the record view.
+	// You should be able to add options here without needing to change the database.
+	// set the key to the desired SMARTY template variable name, set the value to the label to show in the library configuration page
+	static $showInMainDetailsOptions = array(
+		'showPublicationDetails' => 'Published',
+		'showFormats' => 'Formats',
+		'showEditions' => 'Editions',
+		'showPhysicalDescriptions' => 'Physical Descriptions',
+		'showLocations' => 'Locations',
+	);
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('Library',$k,$v); }
@@ -321,6 +333,10 @@ class Library extends DB_DataObject
 				'showProspectorTitlesAsTab' => array('property'=>'showProspectorTitlesAsTab', 'type'=>'checkbox', 'label'=>'Show Prospector Titles as Tab', 'description'=>'Whether or not Prospector TItles links will be shown in their own tab or in the sidebar in full record view.', 'default' => 1, 'hideInLists' => true,),
 				'showCheckInGrid' => array('property'=>'showCheckInGrid', 'type'=>'checkbox', 'label'=>'Show Check-in Grid', 'description'=>'Whether or not the check-in grid is shown for periodicals.', 'default' => 1, 'hideInLists' => true,),
 				'showStaffView' => array('property'=>'showStaffView', 'type'=>'checkbox', 'label'=>'Show Staff View', 'description'=>'Whether or not the staff view is displayed in full record view.', 'hideInLists' => true, 'default'=>true),
+				'showInMainDetails' => array('property' => 'showInMainDetails', 'type' => 'multiSelect', 'label'=>'Which details to show in the main/top details section : ', 'description'=> 'Selected details will be shown in the top/main section of the full record view. Details not selected are moved to the More Details accordion.',
+					'listStyle'=> 'checkbox',
+				  'values' => self::$showInMainDetailsOptions,
+				),
 				'moreDetailsOptions' => array(
 						'property'=>'moreDetailsOptions',
 						'type'=>'oneToMany',
@@ -649,7 +665,7 @@ class Library extends DB_DataObject
 				$libraryLink->libraryId = $this->libraryId;
 				$libraryLink->orderBy('weight');
 				$libraryLink->find();
-				while($libraryLink->fetch()){
+				while ($libraryLink->fetch()){
 					$this->libraryLinks[$libraryLink->id] = clone($libraryLink);
 				}
 			}
@@ -666,14 +682,14 @@ class Library extends DB_DataObject
 				}
 			}
 			return $this->libraryTopLinks;
-		}elseif  ($name == 'browseCategories'){
-			if (!isset($this->browseCategories) && $this->libraryId){
-				$this->browseCategories = array();
-				$browseCategory = new LibraryBrowseCategory();
+		}elseif  ($name == 'browseCategories') {
+			if (!isset($this->browseCategories) && $this->libraryId) {
+				$this->browseCategories    = array();
+				$browseCategory            = new LibraryBrowseCategory();
 				$browseCategory->libraryId = $this->libraryId;
 				$browseCategory->orderBy('weight');
 				$browseCategory->find();
-				while($browseCategory->fetch()){
+				while ($browseCategory->fetch()) {
 					$this->browseCategories[$browseCategory->id] = clone($browseCategory);
 				}
 			}
@@ -698,19 +714,43 @@ class Library extends DB_DataObject
 			$this->libraryLinks = $value;
 		}elseif ($name == 'libraryTopLinks'){
 			$this->libraryTopLinks = $value;
-		}elseif ($name == 'browseCategories'){
+		}elseif ($name == 'browseCategories') {
 			$this->browseCategories = $value;
 		}else{
 			$this->data[$name] = $value;
 		}
 	}
-
+	/**
+	 * Override the fetch functionality to save related objects
+	 *
+	 * @see DB/DB_DataObject::fetch()
+	 */
+	public function fetch(){
+		$return = parent::fetch();
+		if ($return) {
+			if (isset($this->showInMainDetails) && is_string($this->showInMainDetails) && !empty($this->showInMainDetails)) {
+				// convert to array retrieving from database
+				$this->showInMainDetails = unserialize($this->showInMainDetails);
+				if (!$this->showInMainDetails) $this->showInMainDetails = array();
+				// Maybe set to all on error.
+			}
+			elseif (empty($this->showInMainDetails)) {
+				// when a value is not set, assume set to show all options, eg null = all
+				$this->showInMainDetails = array_keys(self::$showInMainDetailsOptions);
+			}
+		}
+		return $return;
+	}
 	/**
 	 * Override the update functionality to save related objects
 	 *
 	 * @see DB/DB_DataObject::update()
 	 */
 	public function update(){
+		if (isset($this->showInMainDetails) && is_array($this->showInMainDetails)) {
+			// convert array to string before storing in database
+			$this->showInMainDetails = serialize($this->showInMainDetails);
+		}
 		$ret = parent::update();
 		if ($ret === FALSE ){
 			return $ret;
@@ -733,6 +773,10 @@ class Library extends DB_DataObject
 	 * @see DB/DB_DataObject::insert()
 	 */
 	public function insert(){
+		if (isset($this->showInMainDetails) && is_array($this->showInMainDetails)) {
+			// convert array to string before storing in database
+			$this->showInMainDetails = serialize($this->showInMainDetails);
+		}
 		$ret = parent::insert();
 		if ($ret === FALSE ){
 			return $ret;

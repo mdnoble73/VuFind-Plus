@@ -163,6 +163,10 @@ class PublicEContentDriver extends BaseEContentDriver{
 				'label' => 'Citations',
 				'body' => $interface->fetch('Record/cite.tpl'),
 		);
+		$moreDetailsOptions['moreDetails'] = array(
+			'label' => 'More Details',
+			'body' => $interface->fetch('PublicEContent/view-more-details.tpl'),
+		);
 		if ($interface->getVariable('showStaffView')){
 			$moreDetailsOptions['staff'] = array(
 					'label' => 'Staff View',

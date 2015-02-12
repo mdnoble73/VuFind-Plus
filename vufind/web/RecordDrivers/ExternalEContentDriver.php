@@ -110,8 +110,10 @@ class ExternalEContentDriver extends BaseEContentDriver{
 
 		$moreDetailsOptions['moreDetails'] = array(
 			'label' => 'More Details',
-			'body' => $interface->fetch('EcontentRecord/view-title-details.tpl'),
+//			'body' => $interface->fetch('EcontentRecord/view-title-details.tpl'),
+			'body' => $interface->fetch('ExternalEContent/view-more-details.tpl'),
 		);
+
 		$this->loadSubjects();
 		$moreDetailsOptions['subjects'] = array(
 				'label' => 'Subjects',

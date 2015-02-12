@@ -62,6 +62,7 @@
 		</div>
 	{/if}
 
+	{if $showPublicationDetails}
 	{if $recordDriver->getPublicationDetails()}
 		<div class="row">
 			<div class="result-label col-xs-4">{translate text='Published'}:</div>
@@ -70,14 +71,18 @@
 			</div>
 		</div>
 	{/if}
+	{/if}
 
+	{if $showFormats}
 	<div class="row">
 		<div class="result-label col-xs-4">{translate text='Format'}:</div>
 		<div class="col-xs-8 result-value">
 			{implode subject=$recordFormat glue=", "}
 		</div>
 	</div>
+	{/if}
 
+	{if $showEditions}
 	{if $recordDriver->getEdition()}
 		<div class="row">
 			<div class="result-label col-xs-4">{translate text='Edition'}:</div>
@@ -86,7 +91,9 @@
 			</div>
 		</div>
 	{/if}
+	{/if}
 
+	{if $showPhysicalDescriptions}
 	{if $physicalDescriptions}
 		<div class="row">
 			<div class="result-label col-xs-4">{translate text='Physical Desc'}:</div>
@@ -95,6 +102,8 @@
 			</div>
 		</div>
 	{/if}
+	{/if}
+
 
 	{if $mpaaRating}
 		<div class="row">
@@ -103,10 +112,12 @@
 		</div>
 	{/if}
 
+	{if $showLocations}
 	<div class="row" id="locationRow">
 		<div class="result-label col-xs-4">{translate text='Location'}:</div>
 		<div class="col-xs-8 result-value result-value-bold" id="locationValue">Loading...</div>
 	</div>
+	{/if}
 
 	<div class="row" id="callNumberRow">
 		<div class="result-label col-xs-4">{translate text='Call Number'}:</div>

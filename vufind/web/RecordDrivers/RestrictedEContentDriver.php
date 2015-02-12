@@ -291,6 +291,10 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 				'body' => $interface->fetch('RestrictedEContent/view-formats.tpl'),
 				'openByDefault' => true
 		);
+		$moreDetailsOptions['moreDetails'] = array(
+			'label' => 'More Details',
+			'body' => $interface->fetch('RestrictedEContent/view-more-details.tpl'),
+		);
 		$moreDetailsOptions['citations'] = array(
 				'label' => 'Citations',
 				'body' => $interface->fetch('Record/cite.tpl'),
