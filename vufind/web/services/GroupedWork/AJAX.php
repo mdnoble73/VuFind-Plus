@@ -381,6 +381,7 @@ class GroupedWork_AJAX {
 			$groupedWorkReview->rating = $rating;
 			$groupedWorkReview->review = $comment;
 			if ($newReview){
+				$groupedWorkReview->dateRated = time();
 				$groupedWorkReview->insert();
 			}else{
 				$groupedWorkReview->update();
