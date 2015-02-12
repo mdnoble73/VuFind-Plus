@@ -8040,21 +8040,30 @@ div#system-message-header {
 .header-button {
   border-radius: 0.5em;
   background-color: rgba(230, 230, 230, 0.3);
-  margin-top: 42px;
+  margin-top: 20px;
   height: 60px !important;
   border: 0px;
 }
 .header-button > a {
-  color: #000000 !important;
+  color: white !important;
   line-height: 60px !important;
   text-shadow: none;
 }
 .header-button > a:visited {
-  color: #000000 !important;
+  color: white !important;
 }
 .header-button:hover {
   border-bottom: 0px;
   box-shadow: 2px 2px 5px white;
+}
+.header-button {
+  margin-top: 42px;
+}
+.header-button > a {
+  color: #000000 !important;
+}
+.header-button > a:visited {
+  color: #000000 !important;
 }
 #browse-category-carousel {
   overflow: visible;

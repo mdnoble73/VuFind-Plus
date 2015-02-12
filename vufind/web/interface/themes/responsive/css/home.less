@@ -432,3 +432,27 @@
 #lookfor {
   border-radius: @border-radius-small 0 0 @border-radius-small;
 }
+
+// Styles Header Login Links as buttons
+.header-login-button-mixin(@background-color: rgba(51,51,51,0.6)) {
+
+  .header-button{
+    border-radius:  0.5em;
+    background-color: @background-color;
+    margin-top: 20px;
+    height: 60px !important;
+    border: 0px;
+  }
+  .header-button > a{
+    color: white !important;
+    line-height: 60px !important;
+    text-shadow: none;
+  }
+  .header-button > a:visited{
+    color: white !important;
+  }
+  .header-button:hover {
+    border-bottom: 0px;
+    box-shadow: 2px 2px 5px white;
+  }
+}

@@ -9,20 +9,11 @@
   background-image: url('/interface/themes/englewood/images/header_background.png');
   background-repeat: no-repeat;
 }
-#header-logo{
 
-}
-.header-button{
-  border-radius:  0.5em;
-  background-color: rgba(255,255,255,0.75);
-  margin-top: 20px;
-  height: 60px !important;
-  border: 0px;
-}
+.header-login-button-mixin(rgba(255,255,255,0.75));
+
 .header-button > a{
   color: black !important;
-  line-height: 60px !important;
-  text-shadow: none;
   font-weight: bolder;
   font-size: 15px;
 }
@@ -30,6 +21,5 @@
   color: black !important;
 }
 .header-button:hover{
-  border-bottom: 0px;
   box-shadow: 2px 2px 5px darkgrey;
 }

@@ -8088,3 +8088,46 @@ div#system-message-header {
   background: linear-gradient(to bottom, #a4c8c1, #a4c8c1 82%, #607261 83%, #5f7465 84%, #5f7465 88%, #607261 89%, #a4c8c1 90%, #a4c8c1);
   font-size: 22px;
 }
+#objectEditorSaveButtons {
+  position: relative;
+  min-height: 50px;
+  margin-bottom: 20px;
+  border: 1px solid transparent;
+  position: fixed;
+  right: 0;
+  left: 0;
+  z-index: 1030;
+  bottom: 0;
+  margin-bottom: 0;
+  border-width: 1px 0 0;
+  left: auto;
+  right: auto;
+  width: 100%;
+  background: #ffffff;
+}
+#objectEditorSaveButtons:before,
+#objectEditorSaveButtons:after {
+  content: " ";
+  display: table;
+}
+#objectEditorSaveButtons:after {
+  clear: both;
+}
+#objectEditorSaveButtons:before,
+#objectEditorSaveButtons:after {
+  content: " ";
+  display: table;
+}
+#objectEditorSaveButtons:after {
+  clear: both;
+}
+@media (min-width: 768px) {
+  #objectEditorSaveButtons {
+    border-radius: 4px;
+  }
+}
+@media (min-width: 768px) {
+  #objectEditorSaveButtons {
+    border-radius: 0;
+  }
+}

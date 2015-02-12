@@ -11,27 +11,12 @@
 #header-logo{
   margin-top: 20px;
 }
-.header-button{
-  border-radius:  0.5em;
-//  background-color: rgba(51,51,51,0.6); // regular login button colors
-//  background-color: rgba(242, 113, 2, 0.44); // another orange-ish
-  background-color: rgba(250, 148, 1, 0.5);  // best orange-ish buttons. plb 9-17-2014
-  margin-top: 20px;
-  height: 60px !important;
-  border: 0px;
-}
-.header-button > a{
-  color: white !important;
-  line-height: 60px !important;
-  text-shadow: none;
-}
-.header-button > a:visited{
-  color: white !important;
-}
-.header-button:hover{
-  border-bottom: 0px;
-  box-shadow: 2px 2px 5px white;
-}
+
+.header-login-button-mixin(rgba(250, 148, 1, 0.5));  // best orange-ish buttons. plb 9-17-2014
+//.header-button {
+//  background-color: rgba(250, 148, 1, 0.5);
+//}
+
 #home-page-login {
 //  background-color: @home-search-bottom-color; // match color on bottom of search page
   background-color: lighten(@home-search-bottom-color, 5%); // match color on bottom of search page
@@ -75,10 +60,15 @@
   font-size: @browse-category-font-size + 2;
 }
 
-//#browse-category-picker .browse-category.category1,
-//#browse-category-picker .browse-category.category1,#browse-category-picker .browse-category.category2,#browse-category-picker .browse-category.category3,#browse-category-picker .browse-category.category4,
-//#browse-category-picker .browse-category.category5,#browse-category-picker .browse-category.category6,#browse-category-picker .browse-category.category7,#browse-category-picker .browse-category.category8 {
-//  background-color: @category1MainColor;
-//  background: linear-gradient(to bottom, @category1MainColor, @category1MainColor 82%, @categoryLineShadow 83%, @categoryLineColor 84%, @categoryLineColor 88%, @categoryLineShadow 89%, @category1MainColor 90%, @category1MainColor);
-//  // set each category as one color, removing the fading of color for successive categories
-//}
+
+// experimental for personal use. plb 1-23-2015
+#objectEditorSaveButtons {
+  // .row;
+  .navbar;
+  .navbar-fixed-bottom;
+  left: auto;
+  right: auto;
+
+  width: 100%;
+  background: @body-bg-resp;
+}

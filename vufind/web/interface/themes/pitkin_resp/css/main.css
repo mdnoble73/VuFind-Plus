@@ -8029,12 +8029,6 @@ div#system-message-header {
 #header-container {
   background-image: url('/interface/themes/pitkin_resp/images/header_background.png');
 }
-#header-logo {
-  border-radius: 0.5em;
-  margin-top: 7px;
-  padding: 5px;
-  background-color: rgba(51, 51, 51, 0.6);
-}
 .header-button {
   border-radius: 0.5em;
   background-color: rgba(51, 51, 51, 0.6);

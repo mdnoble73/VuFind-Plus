@@ -8053,9 +8053,19 @@ div#system-message-header {
   border: 0px;
 }
 .header-button > a {
-  color: black !important;
+  color: white !important;
   line-height: 60px !important;
   text-shadow: none;
+}
+.header-button > a:visited {
+  color: white !important;
+}
+.header-button:hover {
+  border-bottom: 0px;
+  box-shadow: 2px 2px 5px white;
+}
+.header-button > a {
+  color: black !important;
   font-weight: bolder;
   font-size: 15px;
 }
@@ -8063,6 +8073,5 @@ div#system-message-header {
   color: black !important;
 }
 .header-button:hover {
-  border-bottom: 0px;
   box-shadow: 2px 2px 5px darkgrey;
 }
