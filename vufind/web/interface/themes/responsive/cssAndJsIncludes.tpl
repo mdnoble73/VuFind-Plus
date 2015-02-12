@@ -33,6 +33,7 @@
 		<script src="{$path}/interface/themes/responsive/js/vufind/account.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/admin.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/browse.js"></script>
+		<script src="{$path}/interface/themes/responsive/js/vufind/dpla.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/econtent-record.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/grouped-work.js"></script>
 		<script src="{$path}/interface/themes/responsive/js/vufind/lists.js"></script>

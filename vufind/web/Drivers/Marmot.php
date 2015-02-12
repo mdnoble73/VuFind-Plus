@@ -17,7 +17,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once ROOT_DIR . '/Drivers/Millennium.php';
+require_once ROOT_DIR . '/Drivers/Sierra.php';
 
 /**
  * VuFind Connector for Marmot's Innovative catalog (millenium)
@@ -33,6 +33,6 @@ require_once ROOT_DIR . '/Drivers/Millennium.php';
  * @author Mark Noble <mnoble@turningleaftech.com>
  * @author CJ O'Hara <cj@marmot.org>
  */
-class Marmot extends MillenniumDriver{
+class Marmot extends Sierra{
 
 }

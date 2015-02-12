@@ -138,6 +138,7 @@ class Library extends DB_DataObject
 	public $showDetailedHoldNoticeInformation;
 	public $treatPrintNoticesAsPhoneNotices;
 	public $includeHoopla;
+	public $includeDplaResults;
 	public $showInMainDetails;
 
 	// Use this to set which details will be shown in the the Main Details section of the record view.
@@ -388,6 +389,9 @@ class Library extends DB_DataObject
 			)),
 			array('property'=>'hooplaSection', 'type' => 'section', 'label' =>'Hoopla', 'hideInLists' => true, 'properties' => array(
 				'includeHoopla' => array('property'=>'includeHoopla', 'type'=>'checkbox', 'label'=>'Include Hoopla content in search results', 'description'=>'Whether or not Hoopla data should be included for this library.', 'hideInLists' => true, 'default' => 0),
+			)),
+			array('property'=>'dplaSection', 'type' => 'section', 'label' =>'DPLA', 'hideInLists' => true, 'properties' => array(
+				'includeDplaResults' => array('property'=>'includeDplaResults', 'type'=>'checkbox', 'label'=>'Include DPLA content in search results', 'description'=>'Whether or not DPLA data should be included for this library.', 'hideInLists' => true, 'default' => 0),
 			)),
 
 			'holidays' => array(

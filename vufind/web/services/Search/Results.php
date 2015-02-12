@@ -32,6 +32,7 @@ class Search_Results extends Action {
 		global $configArray;
 		global $timer;
 		global $analytics;
+		global $library;
 
 		/** @var string|LibrarySearchSource|LocationSearchSource $searchSource */
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
@@ -55,6 +56,14 @@ class Search_Results extends Action {
 			$oldSearchUrl = str_replace('replacementTerm=' . urlencode($replacementTerm), 'disallowReplacements', $oldSearchUrl);
 			$interface->assign('oldSearchUrl', $oldSearchUrl);
 		}
+
+		$interface->assign('showDplaLink', false);
+		if ($configArray['DPLA']['enabled']){
+			if ($library->includeDplaResults){
+				$interface->assign('showDplaLink', true);
+			}
+		}
+
 
 		// Include Search Engine Class
 		require_once ROOT_DIR . '/sys/Solr.php';
@@ -251,7 +260,6 @@ class Search_Results extends Action {
 		$enableProspectorIntegration = isset($configArray['Content']['Prospector']) ? $configArray['Content']['Prospector'] : false;
 		$showRatings = 1;
 		$showProspectorResultsAtEndOfSearch = true;
-		global $library;
 		if (isset($library)){
 			$enableProspectorIntegration = ($library->enablePospectorIntegration == 1);
 			$showRatings = $library->showRatings;
