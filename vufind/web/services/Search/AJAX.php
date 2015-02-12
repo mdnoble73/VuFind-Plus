@@ -27,7 +27,7 @@ class AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_REQUEST['method'];
-		if (in_array($method, array('GetAutoSuggestList', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries', 'getEmailForm', 'sendEmail'))){
+		if (in_array($method, array('GetAutoSuggestList', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries', 'getEmailForm', 'sendEmail', 'getDplaResults'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -465,6 +465,22 @@ class AJAX extends Action {
 			'modalButtons' => "<span class='tool btn btn-primary' onclick='$(\"#emailSearchForm\").submit();'>Send E-Mail</span>"
 		);
 		echo json_encode($results);
+	}
+
+	function getDplaResults(){
+		require_once ROOT_DIR . '/sys/SearchObject/DPLA.php';
+		$dpla = new DPLA();
+		$searchTerm = $_REQUEST['searchTerm'];
+		$results = $dpla->getDPLAResults($searchTerm);
+		$formattedResults = $dpla->formatResults($results);
+
+		$returnVal = array(
+			'rawResults' => $results,
+			'formattedResults' => $formattedResults,
+		);
+
+		//Format the results
+		echo(json_encode($returnVal));
 	}
 
 }

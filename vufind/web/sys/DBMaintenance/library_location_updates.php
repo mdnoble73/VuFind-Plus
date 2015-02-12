@@ -910,5 +910,13 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'dpla_integration' => array(
+			'title' => 'DPLA Integration',
+			'description' => 'Add a switch to determine whether or not we should include DPLA information within an interface',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `includeDplaResults` TINYINT(1) NULL DEFAULT '0' ;"
+			),
+		),
 	);
 }

@@ -69,6 +69,12 @@
 		<div id='prospectorSearchResultsPlaceholder'></div>
 	{/if}
 
+	{if $showDplaLink}
+		<script type="text/javascript">VuFind.DPLA.getDPLAResults('{$lookfor}');</script>
+		{* Prospector Results *}
+		<div id='dplaSearchResultsPlaceholder'></div>
+	{/if}
+
 	{if $enableMaterialsRequest}
 		<h2>Didn't find it?</h2>
 		<p>Can't find what you are looking for? <a href="{$path}/MaterialsRequest/NewRequest?lookfor={$lookfor}&basicType={$searchIndex}">Suggest a purchase</a>.</p>
