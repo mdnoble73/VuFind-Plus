@@ -118,6 +118,7 @@ public class GroupedWorkSolr {
 
 	private Logger logger;
 	private GroupedWorkIndexer groupedWorkIndexer;
+	private HashSet<String> systemLists = new HashSet<String>();
 
 	public GroupedWorkSolr(GroupedWorkIndexer groupedWorkIndexer, Logger logger) {
 		this.logger = logger;
@@ -224,6 +225,7 @@ public class GroupedWorkSolr {
 		doc.addField("target_audience_full", targetAudienceFull);
 		checkDefaultValue(targetAudience, "Unknown");
 		doc.addField("target_audience", targetAudience);
+		doc.addField("system_list", systemLists);
 		//Date added to catalog
 		doc.addField("date_added", dateAdded);
 		if (dateAdded == null){
@@ -1232,5 +1234,9 @@ public class GroupedWorkSolr {
 
 	public void addBisacSubjects(Set<String> bisacSubjects) {
 		this.bisacSubjects.addAll(bisacSubjects);
+	}
+
+	public void addSystemLists(Set<String> systemLists) {
+		this.systemLists.addAll(systemLists);
 	}
 }

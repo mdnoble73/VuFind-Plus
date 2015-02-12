@@ -286,6 +286,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			loadPhysicalDescription(groupedWork, record, ilsRecords);
 			loadLanguageDetails(groupedWork, record, ilsRecords);
 			loadPublicationDetails(groupedWork, record, ilsRecords);
+			loadSystemLists(groupedWork, record);
 
 			//Do updates based on items
 			step = "load ownership info";
@@ -318,6 +319,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}catch (Exception e){
 			logger.error("Error updating grouped work for MARC record with identifier " + identifier + " on step " + step, e);
 		}
+	}
+
+	protected void loadSystemLists(GroupedWorkSolr groupedWork, Record record) {
+		//By default, do nothing
 	}
 
 	protected List<OnOrderItem> getOnOrderItems(String identifier, Record record){

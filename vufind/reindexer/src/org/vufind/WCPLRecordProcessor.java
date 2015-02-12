@@ -58,4 +58,8 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 		ilsRecord.setFormatBoost(formatBoost);
 	}
 
+	@Override
+	protected void loadSystemLists(GroupedWorkSolr groupedWork, Record record) {
+		groupedWork.addSystemLists(this.getFieldList(record, "449a"));
+	}
 }
