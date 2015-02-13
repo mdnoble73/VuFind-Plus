@@ -5,13 +5,13 @@
 		{include file=$userNoticeFile}
 	{/if}
 
-	{if $profile.fines}
-		<div class="alert alert-info">
-			Your account has <strong>{$profile.fines}</strong> in fines.
-		</div>
-	{/if}
-
 	{if count($fines) > 0}
+		{if $profile.fines}
+			<div class="alert alert-info">
+				Your account has <strong>{$profile.fines}</strong> in fines.
+			</div>
+		{/if}
+
 		<table id="finesTable" class="table table-striped">
 			<thead>
 				<tr>
