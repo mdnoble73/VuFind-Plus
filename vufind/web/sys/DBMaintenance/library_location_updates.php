@@ -902,11 +902,20 @@ function getLibraryLocationUpdates(){
 		),
 
 		'overdrive_integration_2' => array(
-			'title' => 'Rename includeDigitalCollection to enableOverdriveCollection',
-			'description' => 'Rename includeDigitalCollection column to enableOverdriveCollection',
+			'title' => 'Rename includeDigitalCollection to enableOverdriveCollection for libraries.',
+			'description' => 'Rename includeDigitalCollection column to enableOverdriveCollection for libraries.',
 			'continueOnError' => true,
 			'sql' => array(
 				"ALTER TABLE `library` CHANGE COLUMN `includeDigitalCollection` `enableOverdriveCollection` TINYINT(1) NULL DEFAULT '1' ;"
+			),
+		),
+
+		'overdrive_integration_3' => array(
+			'title' => 'Rename includeDigitalCollection to enableOverdriveCollection for locations.',
+			'description' => 'Rename includeDigitalCollection column to enableOverdriveCollection for locations.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `location` CHANGE COLUMN `includeDigitalCollection` `enableOverdriveCollection` TINYINT(1) NULL DEFAULT '1' ;"
 			),
 		),
 
