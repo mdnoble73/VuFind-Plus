@@ -192,7 +192,7 @@ public class GroupedWorkIndexer {
 			//Setup translation maps for system and location
 			try {
 				PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, " +
-						"displayName, facetLabel, pTypes, restrictSearchByLibrary, econtentLocationsToInclude, includeDigitalCollection, " +
+						"displayName, facetLabel, pTypes, restrictSearchByLibrary, econtentLocationsToInclude, enableOverdriveCollection, " +
 						"includeOutOfSystemExternalLinks, useScope, orderAccountingUnit, includeHoopla FROM library ORDER BY ilsCode ASC",
 						ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
@@ -223,7 +223,7 @@ public class GroupedWorkIndexer {
 					if (econtentLocationsToInclude == null) {econtentLocationsToInclude = "all";}
 					boolean includeOutOfSystemExternalLinks = libraryInformationRS.getBoolean("includeOutOfSystemExternalLinks");
 					boolean useScope = libraryInformationRS.getBoolean("useScope");
-					boolean includeOverdrive = libraryInformationRS.getBoolean("includeDigitalCollection");
+					boolean includeOverdrive = libraryInformationRS.getBoolean("enableOverdriveCollection");
 
 
 					Long accountingUnit = libraryInformationRS.getLong("orderAccountingUnit");
@@ -252,8 +252,8 @@ public class GroupedWorkIndexer {
 						"library.subdomain, location.facetLabel, location.displayName, library.pTypes, library.useScope as useScopeLibrary, " +
 						"location.useScope as useScopeLocation, library.scope AS libraryScope, location.scope AS locationScope, " +
 						"restrictSearchByLocation, restrictSearchByLibrary, library.econtentLocationsToInclude as econtentLocationsToIncludeLibrary, " +
-						"location.econtentLocationsToInclude as econtentLocationsToIncludeLocation, library.includeDigitalCollection as includeDigitalCollectionLibrary, " +
-						"location.includeDigitalCollection as includeDigitalCollectionLocation, includeOutOfSystemExternalLinks, " +
+						"location.econtentLocationsToInclude as econtentLocationsToIncludeLocation, library.enableOverdriveCollection as enableOverdriveCollectionLibrary, " +
+						"location.enableOverdriveCollection as enableOverdriveCollectionLocation, includeOutOfSystemExternalLinks, " +
 						"extraLocationCodesToInclude, includeHoopla " +
 						"FROM location INNER JOIN library on library.libraryId = location.libraryid ORDER BY code ASC",
 						ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
@@ -275,8 +275,8 @@ public class GroupedWorkIndexer {
 					if (pTypes == null) pTypes = "";
 					boolean restrictSearchByLibrary = locationInformationRS.getBoolean("restrictSearchByLibrary");
 					boolean restrictSearchByLocation = locationInformationRS.getBoolean("restrictSearchByLocation");
-					boolean includeOverDriveCollectionLibrary = locationInformationRS.getBoolean("includeDigitalCollectionLibrary");
-					boolean includeOverDriveCollectionLocation = locationInformationRS.getBoolean("includeDigitalCollectionLocation");
+					boolean includeOverDriveCollectionLibrary = locationInformationRS.getBoolean("enableOverdriveCollectionLibrary");
+					boolean includeOverDriveCollectionLocation = locationInformationRS.getBoolean("enableOverdriveCollectionLocation");
 					String econtentLocationsToIncludeLibrary = locationInformationRS.getString("econtentLocationsToIncludeLibrary");
 					if (econtentLocationsToIncludeLibrary == null){
 						econtentLocationsToIncludeLibrary = "all";
