@@ -180,6 +180,7 @@ var VuFind = (function(){
 		showMessage: function(title, body, autoClose, refreshAfterClose){
 			// if autoclose is set as number greater than 1 autoClose will be the custom timeout interval in milliseconds, otherwise
 			//     autoclose is treated as an on/off switch. Default timeout interval of 3 seconds.
+			// if refreshAfterClose is set but not autoClose, the page will reload when the box is closed by the user.
 			if (autoClose == undefined){
 				autoClose = false;
 			}
@@ -191,17 +192,29 @@ var VuFind = (function(){
 			$('.modal-buttons').html('');
 			var modalDialog = $("#modalDialog");
 			modalDialog.modal('show');
-			if (autoClose && refreshAfterClose){
+			if (autoClose) {
 				setTimeout(function(){
-					location.reload(true);
-				}
-				, autoClose > 1 ? autoClose : 3000);
-			}else if (autoClose) {
-				setTimeout(function(){
-					VuFind.closeLightbox();
-				}
-				, autoClose > 1 ? autoClose : 3000);
+							if (refreshAfterClose) location.reload(true);
+							else VuFind.closeLightbox();
+						}
+						, autoClose > 1 ? autoClose : 3000);
+			}else if (refreshAfterClose) {
+				modalDialog.on('hide.bs.modal', function(){
+					location.reload(true)
+				})
 			}
+			//
+			//if (autoClose && refreshAfterClose){
+			//	setTimeout(function(){
+			//		location.reload(true);
+			//	}
+			//	, autoClose > 1 ? autoClose : 3000);
+			//}else if (autoClose) {
+			//	setTimeout(function(){
+			//		VuFind.closeLightbox();
+			//	}
+			//	, autoClose > 1 ? autoClose : 3000);
+			//}
 		},
 
 		showMessageWithButtons: function(title, body, buttons){

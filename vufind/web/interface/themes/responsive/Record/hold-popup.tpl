@@ -69,6 +69,7 @@
 		</fieldset>
 	</form>
 </div>
+{if $showHoldCancelDate == 1}
 <script	type="text/javascript">
 	{literal}
 	$(function() {
@@ -76,4 +77,5 @@
 	});
 	{/literal}
 </script>
+{/if}
 

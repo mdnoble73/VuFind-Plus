@@ -351,16 +351,10 @@ VuFind.Record = (function(){
 
 		showPlaceHold: function(id){
 			if (Globals.loggedIn){
-				$('.modal-body').html("Loading..."); // clear out any previous modal content.
-				var modalDialog = $("#modalDialog");
-				//$(".modal-body").html($('#userreview' + id).html());
+				//VuFind.showMessage('Loading...', 'Loading, please wait.');
 				$.getJSON(Globals.path + "/Record/" + id + "/AJAX?method=getPlaceHoldForm", function(data){
-					$('#myModalLabel').html(data.title);
-					$('.modal-body').html(data.modalBody);
-					$('.modal-buttons').html(data.modalButtons);
+					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
 				});
-				modalDialog.load( );
-				modalDialog.modal('show');
 			}else{
 				VuFind.Account.ajaxLogin(null, function(){
 					VuFind.Record.showPlaceHold(id);
@@ -370,26 +364,38 @@ VuFind.Record = (function(){
 		},
 
 		submitHoldForm: function(){
-			var id = $('#id').val();
-			var params = '&campus=' + $('#campus').val();
-			params += '&cancelHoldDate=' + $('#cancelHoldDate').text();
-			if ($('#autologout').prop('checked')){
-				params += '&autologout=true';
+			var id = $('#id').val()
+					,autoLogOut = $('#autologout').prop('checked')
+					,selectedItem = $('#selectedItem');
+			//var params = '&campus=' + $('#campus').val();
+			//params += '&cancelHoldDate=' + $('#cancelHoldDate').text();
+			//if ($('#autologout').prop('checked')){
+			//	params += '&autologout=true';
+			//}
+			//var selectedItem = $('#selectedItem');
+			//if (selectedItem.length > 0){
+			//	params += '&selectedItem=' + selectedItem.val();
+			//}
+			var params = {
+				'method': 'placeHold'
+				,campus: $('#campus').val()
+				,cancelHoldDate: $('#cancelHoldDate').text()
 			}
-			var selectedItem = $('#selectedItem');
+			if (autoLogOut){
+				params['autologout'] = true;
+			}
 			if (selectedItem.length > 0){
-				params += '&selectedItem=' + selectedItem.val();
+				params['selectedItem'] = selectedItem.val();
 			}
-			$.getJSON(Globals.path + "/Record/" + id + "/AJAX?method=placeHold" + params, function(data){
+			$.getJSON(Globals.path + "/Record/" + id + "/AJAX", params, function(data){
 				if (data.success){
 					if (data.needsItemLevelHold){
 						$('.modal-body').html(data.message);
 					}else{
-						var closePopup = data.autologout; // only auto close the pop-up if auto log out was chosen. plb 12-03-2014
-						VuFind.showMessage('Hold Placed Successfully', data.message, closePopup, data.autologout);
+						VuFind.showMessage('Hold Placed Successfully', data.message, false, autoLogOut);
 					}
 				}else{
-					VuFind.showMessage('Hold Failed', data.message);
+					VuFind.showMessage('Hold Failed', data.message, false, autoLogOut);
 				}
 			});
 		},
