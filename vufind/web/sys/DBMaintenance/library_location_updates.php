@@ -920,7 +920,7 @@ function getLibraryLocationUpdates(){
 		),
 
 		'full_record_view_configuration_options' => array(
-			'title' => 'Add the "Show in Mail Details" section configuration options',
+			'title' => 'Add the "Show in Main Details" section configuration options',
 			'description' => 'Allows a library to choose which details to display at the top of the record view.',
 			'continueOnError' => true,
 			'sql' => array(

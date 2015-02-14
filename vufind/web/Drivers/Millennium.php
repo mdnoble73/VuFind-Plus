@@ -1715,14 +1715,14 @@ class MillenniumDriver implements DriverInterface
 			//Get the title and, type, and fine detail from the page
 			preg_match_all('/<tr class="patFuncFinesEntryTitle">(.*?)<\/tr>.*?<tr class="patFuncFinesEntryDetail">.*?<td class="patFuncFinesDetailType">(.*?)<\/td>.*?<td align="right" class="patFuncFinesDetailAmt">(.*?)<\/td>.*?<\/tr>/si', $finesTable, $fineDetails, PREG_SET_ORDER);
 			for ($matchi = 0; $matchi < count($fineDetails); $matchi++) {
-				$reason = $fineDetails[$matchi][2];
+				$reason = ucfirst(strtolower(trim($fineDetails[$matchi][2])));
 				if ($reason == '&nbsp' || $reason == '&nbsp;'){
 					$reason = 'Fee';
 				}
 				$messages[] = array(
 					'reason' => $reason,
-					'message' => strip_tags($fineDetails[$matchi][1]),
-					'amount' => $fineDetails[$matchi][3],
+					'message' => trim(strip_tags($fineDetails[$matchi][1])),
+					'amount' => trim($fineDetails[$matchi][3]),
 				);
 			}
 		}
