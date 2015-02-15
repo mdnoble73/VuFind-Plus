@@ -6,10 +6,7 @@ import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile.Section;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -28,6 +25,7 @@ public class GroupedReindexProcess {
 	//General configuration
 	private static String serverName;
 	private static boolean fullReindex = false;
+	private static String individualWorkToProcess;
 	private static Ini configIni;
 	private static String solrPort;
 	private static String solrDir;
@@ -60,6 +58,22 @@ public class GroupedReindexProcess {
 		
 		if (args.length >= 2 && args[1].equalsIgnoreCase("fullReindex")){
 			fullReindex = true;
+		}else if (args.length >= 2 && args[1].equalsIgnoreCase("singleWork")){
+			//Process a specific work
+			//Prompt for the work to process
+			System.out.print("Enter the id of the work to process: ");
+
+			//  open up standard input
+			BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+			//  read the work from the command-line; need to use try/catch with the
+			//  readLine() method
+			try {
+				individualWorkToProcess = br.readLine().trim();
+			} catch (IOException ioe) {
+				System.out.println("IO error trying to read the work to process!");
+				System.exit(1);
+			}
 		}
 		
 		initializeReindex();
@@ -78,8 +92,25 @@ public class GroupedReindexProcess {
 		try {
 			GroupedWorkIndexer groupedWorkIndexer = new GroupedWorkIndexer(serverName, vufindConn, econtentConn, configIni, fullReindex, logger);
 			if (groupedWorkIndexer.isOkToIndex()) {
-				numWorksProcessed = groupedWorkIndexer.processGroupedWorks();
-				numListsProcessed = groupedWorkIndexer.processPublicUserLists();
+				if (individualWorkToProcess != null) {
+					//Get more information about the work
+					try {
+						PreparedStatement getInfoAboutWorkStmt = vufindConn.prepareStatement("SELECT * from grouped_work where permanent_id = ?");
+						getInfoAboutWorkStmt.setString(1, individualWorkToProcess);
+						ResultSet infoAboutWork = getInfoAboutWorkStmt.executeQuery();
+						if (infoAboutWork.next()) {
+							groupedWorkIndexer.processGroupedWork(infoAboutWork.getLong("id"), individualWorkToProcess, infoAboutWork.getString("grouping_category"));
+						}else{
+							logger.error("Could not find a work with id " + individualWorkToProcess);
+						}
+						getInfoAboutWorkStmt.close();
+					}catch (Exception e){
+						logger.error("Unable to process individual work " + individualWorkToProcess, e);
+					}
+				}else{
+					numWorksProcessed = groupedWorkIndexer.processGroupedWorks();
+					numListsProcessed = groupedWorkIndexer.processPublicUserLists();
+				}
 				groupedWorkIndexer.finishIndexing();
 			}
 		} catch (Error e) {

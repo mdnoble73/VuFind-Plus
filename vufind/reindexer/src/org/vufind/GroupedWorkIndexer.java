@@ -59,6 +59,9 @@ public class GroupedWorkIndexer {
 	private HashSet<String> worksWithInvalidLiteraryForms = new HashSet<String>();
 	private TreeSet<Scope> scopes = new TreeSet<Scope>();
 
+	PreparedStatement getGroupedWorkPrimaryIdentifiers;
+	PreparedStatement getGroupedWorkIdentifiers;
+
 	public GroupedWorkIndexer(String serverName, Connection vufindConn, Connection econtentConn, Ini configIni, boolean fullReindex, Logger logger) {
 		this.serverName = serverName;
 		this.logger = logger;
@@ -105,6 +108,14 @@ public class GroupedWorkIndexer {
 			loadPartialReindexRunning.close();
 		} catch (Exception e){
 			logger.error("Could not load last index time from variables table ", e);
+		}
+
+		//Load a few statements we will need later
+		try{
+			getGroupedWorkPrimaryIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_primary_identifiers where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ? and valid_for_enrichment = 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+		} catch (Exception e){
+			logger.error("Could not load statements to get identifiers ", e);
 		}
 
 		//Initialize the updateServer and solr server
@@ -501,8 +512,7 @@ public class GroupedWorkIndexer {
 				getNumWorksToIndex = vufindConn.prepareStatement("SELECT count(id) FROM grouped_work WHERE date_updated IS NULL OR date_updated >= ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				getNumWorksToIndex.setLong(1, lastReindexTime);
 			}
-			PreparedStatement getGroupedWorkPrimaryIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_primary_identifiers where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			PreparedStatement getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ? and valid_for_enrichment = 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+
 			//Get the number of works we will be processing
 			ResultSet numWorksToIndexRS = getNumWorksToIndex.executeQuery();
 			numWorksToIndexRS.next();
@@ -514,48 +524,8 @@ public class GroupedWorkIndexer {
 				Long id = groupedWorks.getLong("id");
 				String permanentId = groupedWorks.getString("permanent_id");
 				String grouping_category = groupedWorks.getString("grouping_category");
+				processGroupedWork(id, permanentId, grouping_category);
 
-				//Create a solr record for the grouped work
-				GroupedWorkSolr groupedWork = new GroupedWorkSolr(this, logger);
-				groupedWork.setId(permanentId);
-				groupedWork.setGroupingCategory(grouping_category);
-
-				getGroupedWorkPrimaryIdentifiers.setLong(1, id);
-				ResultSet groupedWorkPrimaryIdentifiers = getGroupedWorkPrimaryIdentifiers.executeQuery();
-				int numPrimaryIdentifiers = 0;
-				while (groupedWorkPrimaryIdentifiers.next()){
-					String type = groupedWorkPrimaryIdentifiers.getString("type");
-					String identifier = groupedWorkPrimaryIdentifiers.getString("identifier");
-					//This does the bulk of the work building fields for the solr document
-					updateGroupedWorkForPrimaryIdentifier(groupedWork, type, identifier);
-					numPrimaryIdentifiers++;
-				}
-
-				if (numPrimaryIdentifiers == 0){
-					continue;
-				}
-
-				//Update the grouped record based on data for each work
-				getGroupedWorkIdentifiers.setLong(1, id);
-				ResultSet groupedWorkIdentifiers = getGroupedWorkIdentifiers.executeQuery();
-				//This just adds isbns, issns, upcs, and oclc numbers to the index
-				while (groupedWorkIdentifiers.next()){
-					String type = groupedWorkIdentifiers.getString("type");
-					String identifier = groupedWorkIdentifiers.getString("identifier");
-					updateGroupedWorkForSecondaryIdentifier(groupedWork, type, identifier);
-				}
-
-				//Load local (VuFind) enrichment for the work
-				loadLocalEnrichment(groupedWork);
-				//Load lexile data for the work
-				loadLexileDataForWork(groupedWork);
-
-				//Write the record to Solr.
-				try{
-					updateServer.add(groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
-				}catch (Exception e){
-					logger.error("Error adding record to solr", e);
-				}
 				numWorksProcessed++;
 				if (numWorksProcessed % 5000 == 0){
 					//commitChanges();
@@ -571,6 +541,48 @@ public class GroupedWorkIndexer {
 		}
 		logger.info("Finished processing grouped works.  Processed a total of " + numWorksProcessed + " grouped works");
 		return numWorksProcessed;
+	}
+
+	public void processGroupedWork(Long id, String permanentId, String grouping_category) throws SQLException {
+		//Create a solr record for the grouped work
+		GroupedWorkSolr groupedWork = new GroupedWorkSolr(this, logger);
+		groupedWork.setId(permanentId);
+		groupedWork.setGroupingCategory(grouping_category);
+
+		getGroupedWorkPrimaryIdentifiers.setLong(1, id);
+		ResultSet groupedWorkPrimaryIdentifiers = getGroupedWorkPrimaryIdentifiers.executeQuery();
+		int numPrimaryIdentifiers = 0;
+		while (groupedWorkPrimaryIdentifiers.next()){
+			String type = groupedWorkPrimaryIdentifiers.getString("type");
+			String identifier = groupedWorkPrimaryIdentifiers.getString("identifier");
+			//This does the bulk of the work building fields for the solr document
+			updateGroupedWorkForPrimaryIdentifier(groupedWork, type, identifier);
+			numPrimaryIdentifiers++;
+		}
+
+		if (numPrimaryIdentifiers > 0) {
+			//Update the grouped record based on data for each work
+			getGroupedWorkIdentifiers.setLong(1, id);
+			ResultSet groupedWorkIdentifiers = getGroupedWorkIdentifiers.executeQuery();
+			//This just adds isbns, issns, upcs, and oclc numbers to the index
+			while (groupedWorkIdentifiers.next()) {
+				String type = groupedWorkIdentifiers.getString("type");
+				String identifier = groupedWorkIdentifiers.getString("identifier");
+				updateGroupedWorkForSecondaryIdentifier(groupedWork, type, identifier);
+			}
+
+			//Load local (VuFind) enrichment for the work
+			loadLocalEnrichment(groupedWork);
+			//Load lexile data for the work
+			loadLexileDataForWork(groupedWork);
+
+			//Write the record to Solr.
+			try {
+				updateServer.add(groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
+			} catch (Exception e) {
+				logger.error("Error adding record to solr", e);
+			}
+		}
 	}
 
 	private void loadLexileDataForWork(GroupedWorkSolr groupedWork) {

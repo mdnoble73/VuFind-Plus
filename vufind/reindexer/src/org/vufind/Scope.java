@@ -103,12 +103,29 @@ public class Scope implements Comparable<Scope>{
 		this.includeItemsOwnedByTheLocationOnly = includeItemsOwnedByTheLocationOnly;
 	}
 
+	/**
+	 * Determine if the item is part of the current scope based on location code and pType
+	 *
+	 * @param locationCode
+	 * @param compatiblePTypes
+	 * @return
+	 */
 	public boolean isItemPartOfScope(String locationCode, HashSet<String> compatiblePTypes){
+		//If we're in the global scope, always include the record
+		if (isGlobalScope){
+			return true;
+		}
+
+		//First check based on location code
+		//If the item is part of the extra location codes, we want to process that first.
+		//Since it may not be included normally.
 		if (extraLocationCodesPattern != null){
 			if (extraLocationCodesPattern.matcher(locationCode).matches()) {
 				return true;
 			}
 		}
+
+		//Next look for exclusions if the library is using tight scoping.
 		Pattern libraryCodePattern = Pattern.compile(libraryLocationCodePrefix);
 		if (includeBibsOwnedByTheLibraryOnly && !libraryCodePattern.matcher(locationCode).lookingAt()){
 			return false;
@@ -116,16 +133,15 @@ public class Scope implements Comparable<Scope>{
 		if (includeBibsOwnedByTheLocationOnly && !locationCode.startsWith(locationLocationCodePrefix)){
 			return false;
 		}
-		if (isGlobalScope){
-			return true;
-		}
 
 		//Make sure to include all items for the location regardless of holdability
-		if (includeBibsOwnedByTheLocationOnly){
+		//Do need to make sure that the filter is active
+		if (locationLocationCodePrefix != null){
 			if (locationCode.startsWith(locationLocationCodePrefix)){
 				return true;
 			}
-		}else if (includeBibsOwnedByTheLibraryOnly){
+		}
+		if (libraryLocationCodePrefix != null){
 			if (locationCode.startsWith(libraryLocationCodePrefix)){
 				return true;
 			}
