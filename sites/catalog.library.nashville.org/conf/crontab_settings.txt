@@ -1,0 +1,105 @@
+###################
+## Crontab setting from a 'configuration' file
+##
+## to save current crontab to file: crontab -l > crontab_settings.txt
+##
+## to set the current crontab from a file : crontab < crontab_settings.txt
+##
+## added by pascal. 12-11-2014
+##################
+
+# !! Please make all changes to the crontab within the git repository system and apply through the above method.
+#
+# ie :
+# git pull origin {current branch}
+# crontab < /usr/local/vufind-plus/sites/marmot.test/conf/crontab_settings.txt
+
+###################
+# * * * * *  command to execute
+# │ │ │ │ │
+# │ │ │ │ └───── day of week (0 - 6)
+# │ │ │ │        (0 to 6 are Sunday to Saturday, or use names (Sun,Mon,Tue,Wed,Thu,Fri,Sat); 7 is Sunday, the same as 0)
+# │ │ │ └────────── month (1 - 12)
+# │ │ └─────────────── day of month (1 - 31)
+# │ └──────────────────── hour (0 - 23)
+# └───────────────────────── min (0 - 59)
+## taken from https://en.wikipedia.org/wiki/Cron
+##############
+
+# backup important bits at 2:10am daily
+# JAMES should look at marmot backup scripts 20150216
+#10 2 * * * /root/cron/backup 2>&1 >/dev/null
+
+#############
+# On Reboot #
+#############
+# Continuous Re-Indexing
+# JAMES should determine whether this continuous reindexing is appropriate for Nashville 20150216
+#@reboot cd /usr/local/vufind-plus/sites/marmot.test; ./extract_and_reindex_then_email.sh
+
+
+################
+# Pika Cleanup #
+################
+# Solr Restart
+18 0 * * * cd /usr/local/VuFind-Plus/sites/catalog.library.nashville.org; ./catalog.library.nashville.org.sh restart
+
+# Memcached restart
+# JAMES should ask why the memcached restart is commented out 20150216
+#2 1 * * * /etc/rc.d/init.d/memcached restart
+
+# MySQL Restart once a week should be enough
+# Don't do this because if it doesn't come back up, the server is dead Sunday morning.
+# JAMES should ask whether a mysql restart is necessary 20150216
+#6 1 * * 0 /etc/rc.d/init.d/mysqld restart
+
+# Temp files
+26 0 * * * cd /tmp; rm -rf CURLCOOKIE*
+27 0 * * * cd /tmp; rm -rf epb*
+
+###################################
+# Data Extract from other systems #
+###################################
+# Library supplied covers
+# JAMES should institute library-supplied covers workflow for Nashville 20150216
+*/10 * * * * /root/cron/copyCovers.sh
+# Every 10 minutes. fixed 11-14-2014 plb. (previously every hour 10 past the hour)
+
+# HOOPLA extract : as of 2014 12 19, Hoopla updates MARC files monthly; Nashville checks for new files daily
+0 13 * * * cd /usr/local/VuFind-Plus/vufind/cron; ./HOOPLA.sh catalog.library.nashville.org
+
+# LEXILE : download file from Marmot
+00 4 1 * * cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt
+
+# OVERDRIVE extract
+# JAMES should ask why overdrive does not appear in sites/marmot.test/conf/crontab_settings.txt
+50 * * * * cd /usr/local/VuFind-Plus/vufind/overdrive_api_extract; java -jar overdrive_extract.jar catalog.library.nashville.org
+
+###########################
+# RECORD GROUPING/REINDEX #
+###########################
+# Back up previous run's Millennium extract
+35 5,9,13,17,21 * * * cd /data/vufind-plus/catalog.library.nashville.org/marc/; mv BIB_EXTRACT_VUFIND.MRC BIB_EXTRACT_VUFIND.SAV
+
+# PLAN B for getting Extracts to catalog while Millennium Scheduler is f*cked up. HOLDS takes 5 minutes to complete; EXTRACT takes 15 minutes to complete
+# JAMES should rewrite expect scripts to be independent of Scheduler creating the review file 20150216
+45 5,9,13,17,21 * * * cd /data/vufind-plus/catalog.library.nashville.org/marc/; expect BIB_HOLDS_EXTRACT_VUFIND.exp
+55 5,9,13,17,21 * * * cd /data/vufind-plus/catalog.library.nashville.org/marc/; expect BIB_EXTRACT_VUFIND.exp
+
+# RECORDGROUPING
+# JAMES should ask about the java arguments nice -n -10 java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 20150216
+15 0 * * * test -e /data/vufind-plus/catalog.library.nashville.org/marc/BIB_EXTRACT_VUFIND.MRC && ( cd /usr/local/VuFind-Plus/vufind/record_grouping; java -jar record_grouping.jar catalog.library.nashville.org fullRegroupingNoClear )
+
+# REINDEXER
+15 6,10,14,18,22 * * * test -e /data/vufind-plus/catalog.library.nashville.org/marc/BIB_EXTRACT_VUFIND.MRC && ( cd /usr/local/VuFind-Plus/vufind/reindexer; java -jar reindexer.jar catalog.library.nashville.org fullReindex )
+
+# ITEM STATUS UPDATE : MILLENNIUM
+# JAMES should uncomment ITEM STATUS UPDATE when script is complete 20150216
+#*/10 * * * * cd /data/vufind-plus/catalog.library.nashville.org/marc; expect ITEM_UPDATE_EXTRACT_PIKA.exp
+# ITEM STATUS UPDATE : DELETE YESTERDAY'S DATA FILES
+#0 8 * * * find /data/vufind-plus/catalog.library.nashville.org/marc -mtime +1 -name '*updates' -delete 
+
+# CRON for VuFind-Plus (book cover cache cleanup etc.)
+# JAMES should ask about cron.jar argument DatabaseCleanup
+00 */3 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org
+
