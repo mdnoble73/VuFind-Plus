@@ -35,7 +35,7 @@
 #############
 # Continuous Re-Indexing
 # JAMES should determine whether this continuous reindexing is appropriate for Nashville 20150216
-#@reboot cd /usr/local/vufind-plus/sites/marmot.test; ./extract_and_reindex_then_email.sh
+@reboot cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./extract_and_reindex_then_email.sh
 
 
 ################
@@ -73,7 +73,8 @@
 
 # OVERDRIVE extract
 # JAMES should ask why overdrive does not appear in sites/marmot.test/conf/crontab_settings.txt
-50 * * * * cd /usr/local/VuFind-Plus/vufind/overdrive_api_extract; java -jar overdrive_extract.jar catalog.library.nashville.org
+# MARK responds because it happens as part of continuous indexing
+#50 * * * * cd /usr/local/VuFind-Plus/vufind/overdrive_api_extract; java -jar overdrive_extract.jar catalog.library.nashville.org
 
 ###########################
 # RECORD GROUPING/REINDEX #
