@@ -37,7 +37,7 @@ public class MillenniumExportMain{
 		serverName = args[0];
 
 		Date startTime = new Date();
-		File log4jFile = new File("../../sites/" + serverName + "/conf/log4j.millennium_extract.properties");
+		File log4jFile = new File("../../sites/" + serverName + "/conf/log4j.millennium_export.properties");
 		if (log4jFile.exists()){
 			PropertyConfigurator.configure(log4jFile.getAbsolutePath());
 		}else{
