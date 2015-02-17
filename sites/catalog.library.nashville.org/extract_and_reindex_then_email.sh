@@ -16,8 +16,9 @@ do
         # reset the output file each round
 
         #run expect script to extract from Millennium
+        #do not log to the output file since it has lots of data in it.
         cd /usr/local/vufind-plus/vufind/millennium_export/
-        ./ITEM_UPDATE_EXTRACT_PIKA.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
+        ./ITEM_UPDATE_EXTRACT_PIKA.exp ${PIKASERVER} ${ILSSERVER}
 
         #process the export from Millennium to give Pika what it needs
         #echo "Starting Millennium Export - `date`" >> ${OUTPUT_FILE}
