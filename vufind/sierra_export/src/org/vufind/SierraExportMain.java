@@ -37,7 +37,6 @@ import org.marc4j.marc.impl.SubfieldImpl;
 public class SierraExportMain{
 	private static Logger logger = Logger.getLogger(SierraExportMain.class);
 	private static String serverName;
-	private static Long sierraExtractRunningVariableId = null;
 	private static String itemTag;
 	private static char itemRecordNumberSubfield;
 	private static char locationSubfield;
@@ -73,28 +72,6 @@ public class SierraExportMain{
 			System.exit(1);
 		}
 
-		boolean sierraExtractRunning = false;
-		try{
-			PreparedStatement loadSierraExtractRunning = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'sierra_extract_running'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-			ResultSet loadPartialExtractRunningRS = loadSierraExtractRunning.executeQuery();
-			if (loadPartialExtractRunningRS.next()){
-				sierraExtractRunning = loadPartialExtractRunningRS.getBoolean("value");
-				sierraExtractRunningVariableId = loadPartialExtractRunningRS.getLong("id");
-			}
-			loadPartialExtractRunningRS.close();
-			loadSierraExtractRunning.close();
-
-			if (sierraExtractRunning){
-				//Oops, a reindex is already running.
-				logger.warn("A sierra extract is already running, verify that multiple extracts are not running currently");
-				//return;
-			}else{
-				updateSierraExtractRunning(vufindConn, true);
-			}
-		} catch (Exception e){
-			logger.error("Could not load last index time from variables table ", e);
-		}
-
 		//Get a list of works that have changed since the last index
 		getChangedRecordsFromApi(ini, vufindConn);
 
@@ -116,8 +93,6 @@ public class SierraExportMain{
 			System.out.println("Error: " + e.toString());
 			e.printStackTrace();
 		}
-
-		updateSierraExtractRunning(vufindConn, false);
 
 		if (conn != null){
 			try{
@@ -449,8 +424,7 @@ public class SierraExportMain{
 		String firstChars = shortId.substring(0, 4);
 		String basePath = individualMarcPath + "/" + firstChars;
 		String individualFilename = basePath + "/" + shortId + ".mrc";
-		File individualFile = new File(individualFilename);
-		return individualFile;
+		return new File(individualFilename);
 	}
 
 	private static String getFileIdForRecordNumber(String recordNumber) {
@@ -797,27 +771,4 @@ public class SierraExportMain{
 
 	}
 
-	private static void updateSierraExtractRunning(Connection vufindConn, boolean running) {
-		//Update the last grouping time in the variables table
-		try {
-			if (sierraExtractRunningVariableId != null) {
-				PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
-				updateVariableStmt.setString(1, Boolean.toString(running));
-				updateVariableStmt.setLong(2, sierraExtractRunningVariableId);
-				updateVariableStmt.executeUpdate();
-				updateVariableStmt.close();
-			} else {
-				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('sierra_extract_running', ?)", Statement.RETURN_GENERATED_KEYS);
-				insertVariableStmt.setString(1, Boolean.toString(running));
-				insertVariableStmt.executeUpdate();
-				ResultSet generatedKeys = insertVariableStmt.getGeneratedKeys();
-				if (generatedKeys.next()){
-					sierraExtractRunningVariableId = generatedKeys.getLong(1);
-				}
-				insertVariableStmt.close();
-			}
-		} catch (Exception e) {
-			logger.error("Error setting partial extract running", e);
-		}
-	}
 }

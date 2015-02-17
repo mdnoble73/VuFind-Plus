@@ -11,7 +11,7 @@ public class ItemChangeInfo {
 	private String itemId;
 	private String location;
 	private String status;
-private String dueDate;
+	private String dueDate;
 
 	public String getItemId() {
 		return itemId;
