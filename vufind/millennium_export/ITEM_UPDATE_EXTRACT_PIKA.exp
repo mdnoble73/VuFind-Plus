@@ -45,7 +45,7 @@ set testing false
 proc conflictingProcesses {} {
 	set nConflictingProcesses 0
 	# Conflicting Processes count - production, launched from cron
-	set nConflictingProcesses [expr [exec ps aux | grep -v grep | grep -v sudo | grep -c ITEM_UPDATE_EXTRACT_PIKA.exp] - 1 + [exec ps aux | grep -v grep | grep -c record_grouping.jar] + [exec ps aux | grep -v grep | grep -c reindexer.jar] ]
+	set nConflictingProcesses [expr [exec ps aux | grep -v sudo | grep -c ITEM_UPDATE_EXTRACT_PIKA.exp] - 2 + [exec ps aux | grep -c record_grouping.jar] - 1 + [exec ps aux | grep -c reindexer.jar] - 1 ]
 	#puts $nConflictingProcesses
 	if [expr $nConflictingProcesses > 0] {
 		puts "ITEM_UPDATE_EXTRACT_PIKA.exp cannot run at this time, there are currently conflicting processes running."
