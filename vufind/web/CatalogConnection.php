@@ -801,4 +801,8 @@ class CatalogConnection
 			}
 		}
 	}
+
+	public function getNumHolds($id) {
+		return $this->driver->getNumHolds($id);
+	}
 }

@@ -2357,15 +2357,23 @@ class MarcRecord extends IndexRecord
 		if ($this->numHolds != -1){
 			return $this->numHolds;
 		}
+		global $configArray;
 		global $timer;
-		require_once ROOT_DIR . '/Drivers/marmot_inc/IlsHoldSummary.php';
-		$holdSummary = new IlsHoldSummary();
-		$holdSummary->ilsId = $this->getUniqueID();
-		if ($holdSummary->find(true)){
-			$this->numHolds = $holdSummary->numHolds;
+		if ($configArray['Catalog']['ils'] == 'Horizon'){
+			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$this->numHolds = $catalog->getNumHolds($this->getUniqueID());
 		}else{
-			$this->numHolds = 0;
+
+			require_once ROOT_DIR . '/Drivers/marmot_inc/IlsHoldSummary.php';
+			$holdSummary = new IlsHoldSummary();
+			$holdSummary->ilsId = $this->getUniqueID();
+			if ($holdSummary->find(true)){
+				$this->numHolds = $holdSummary->numHolds;
+			}else{
+				$this->numHolds = 0;
+			}
 		}
+
 		$timer->logTime("Loaded number of holds");
 		return $this->numHolds;
 	}

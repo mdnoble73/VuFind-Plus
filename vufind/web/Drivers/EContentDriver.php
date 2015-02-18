@@ -1405,4 +1405,12 @@ class EContentDriver implements DriverInterface{
 	public function hasNativeReadingHistory() {
 		return false;
 	}
+
+	public function getNumHolds($id) {
+		$holds = new EContentHold();
+		$holds->recordId = $id;
+		$holds->whereAdd("(status = 'active' or status = 'suspended')");
+		$holds->find();
+		return $holds->N;
+	}
 }
