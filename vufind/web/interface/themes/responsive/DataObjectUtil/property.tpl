@@ -91,7 +91,6 @@
 
 		{elseif $property.type == 'oneToMany'}
 			{include file="DataObjectUtil/oneToMany.tpl"}
-
 		{/if}
 
 	</div>

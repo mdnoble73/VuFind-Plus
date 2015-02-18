@@ -44,7 +44,7 @@ class SelfReg extends Action {
 		$selfRegFields = $catalog->getSelfRegistrationFields();
 		$interface->assign('submitUrl', $configArray['Site']['path'] . '/MyAccount/SelfReg');
 		$interface->assign('structure', $selfRegFields);
-		$interface->assign('saveButtonText', 'Submit');
+		$interface->assign('saveButtonText', 'Register');
 
 		$fieldsForm = $interface->fetch('DataObjectUtil/objectEditForm.tpl');
 		$interface->assign('selfRegForm', $fieldsForm);
