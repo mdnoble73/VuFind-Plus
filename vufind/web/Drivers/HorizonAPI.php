@@ -43,14 +43,17 @@ abstract class HorizonAPI extends Horizon{
 				if ($user->cat_username){
 					list($fullName, $lastName, $firstName) = $this->splitFullName($user->username);
 				}
+				if ($user->cat_password == $password){
+					$userValid = true;
+				}
 				if ($userValid){
 					$returnVal = array(
 						//Don't change the user id and username, was setting to password
 						'id'        => $user->id,
 						'username'  => $user->username,
-						'firstname' => isset($firstName) ? $firstName : '',
-						'lastname'  => isset($lastName) ? $lastName : '',
-						'fullname'  => isset($fullName) ? $fullName : '',     //Added to array for possible display later.
+						'firstname' => $user->firstname,
+						'lastname'  => $user->lastname,
+						'fullname'  =>$user->lastname . ', ' . $user->firstname,     //Added to array for possible display later.
 						'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
 						'cat_password' => $password,
 
@@ -261,6 +264,11 @@ abstract class HorizonAPI extends Horizon{
 
 			//TODO: Calculate total fines
 			$finesVal = 0;
+			if (isset($lookupMyAccountInfoResponse->BlockInfo)){
+				foreach ($lookupMyAccountInfoResponse->BlockInfo as $block){
+					$finesVal += $block->balance;
+				}
+			}
 
 			$numHoldsAvailable = 0;
 			$numHoldsRequested = 0;
@@ -302,7 +310,7 @@ abstract class HorizonAPI extends Horizon{
 			'phone' => isset($lookupMyAccountInfoResponse->phone) ? (string)$lookupMyAccountInfoResponse->phone : '',
 			'workPhone' => '',
 			'mobileNumber' => '',
-			'fines' => $finesVal,
+			'fines' => sprintf('$%01.2f', $finesVal),
 			'finesval' => $finesVal,
 			'expires' => '', //TODO: Determine if we can get this
 			'expireclose' => $expireClose,
@@ -426,8 +434,8 @@ abstract class HorizonAPI extends Horizon{
 				$curHold['reactivate'] = $reactivateDate;
 				$curHold['reactivateTime'] = strtotime($reactivateDate);
 
-				$curHold['cancelable'] = $hold->status == 'Pending' || $hold->status == '';
-				$curHold['frozen'] = $curHold['status'] == 'Suspended';
+				$curHold['cancelable'] = strcasecmp($hold->status, 'Pending') == 0 || strcasecmp($curHold['status'], 'Suspended') == 0 || $hold->status == '';
+				$curHold['frozen'] = strcasecmp($curHold['status'], 'Suspended') == 0;
 				if ($curHold['frozen']){
 					$curHold['reactivateTime'] = (int)$hold->reactivateDate;
 				}
