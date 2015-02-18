@@ -226,8 +226,9 @@ class BookCoverProcessor{
 		if (strlen($this->isn) == 0){
 			$this->isn = null;
 		}
-		$this->upc = isset($_GET['upc']) ? preg_replace('/[^0-9xX]/', '', $_GET['upc']) : null;
+		$this->upc = isset($_GET['upc']) ? ltrim(preg_replace('/[^0-9xX]/', '', $_GET['upc']), '0') : null;
 		if (strlen($this->upc) == 0){
+			//Strip any leading zeroes
 			$this->upc = null;
 		}
 		$this->issn = isset($_GET['issn']) ? preg_replace('/[^0-9xX]/', '', $_GET['issn']) : null;
@@ -965,6 +966,7 @@ class BookCoverProcessor{
 						return true;
 					}
 				}else{
+					/** @var GroupedWorkDriver $driver */
 					$driver = $relatedRecord['driver'];
 					if (method_exists($driver, 'getMarcRecord') && $this->getCoverFromMarc($driver->getMarcRecord())){
 						return true;
@@ -980,7 +982,7 @@ class BookCoverProcessor{
 						$upc = $driver->getCleanUPC();
 						$this->isn = null;
 						if ($upc){
-							$this->upc = $upc;
+							$this->upc = ltrim($upc, '0');
 							if ($this->getCoverFromProvider()){
 								return true;
 							}
