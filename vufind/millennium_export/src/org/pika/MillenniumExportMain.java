@@ -79,13 +79,13 @@ public class MillenniumExportMain{
 			}
 		});
 
+		//Sort the potential files alphabetically
+		Arrays.sort(potentialFiles);
 		if (potentialFiles.length == 0){
 			logger.error("Could not find updates file to process");
-		}else if (potentialFiles.length > 1){
-			logger.error("Found too many updates files to process");
 		}else{
-			//Just the right number of files
-			File itemUpdateDataFile = potentialFiles[0];
+			//Grab the last file
+			File itemUpdateDataFile = potentialFiles[potentialFiles.length - 1];
 			if (itemUpdateDataFile.exists()){
 				//Yay, we got a file, process it.
 				processItemUpdates(ini, itemUpdateDataFile);
