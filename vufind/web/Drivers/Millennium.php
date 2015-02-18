@@ -1592,14 +1592,15 @@ class MillenniumDriver implements DriverInterface
 		global $logger;
 		global $configArray;
 
-		$firstName = $_REQUEST['firstName'];
-		$lastName = $_REQUEST['lastName'];
-		$address = $_REQUEST['address'];
-		$city = $_REQUEST['city'];
-		$state = $_REQUEST['state'];
-		$zip = $_REQUEST['zip'];
-		$email = $_REQUEST['email'];
-		$phone = $_REQUEST['phone'];
+		$firstName = trim($_REQUEST['firstName']);
+		$middleName = trim($_REQUEST['middleName']);
+		$lastName = trim($_REQUEST['lastName']);
+		$address = trim($_REQUEST['address']);
+		$city = trim($_REQUEST['city']);
+		$state = trim($_REQUEST['state']);
+		$zip = trim($_REQUEST['zip']);
+		$email = trim($_REQUEST['email']);
+		$phone = trim($_REQUEST['phone']);
 
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 		$curl_url = $configArray['Catalog']['url'] . "/selfreg~S" . $this->getLibraryScope();
@@ -1613,7 +1614,7 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
 		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
 
-		$post_data['nfirst'] = $firstName;
+		$post_data['nfirst'] = $firstName.' '.$middleName; // add middle name onto first name;
 		$post_data['nlast'] = $lastName;
 		$post_data['stre_aaddress'] = $address;
 		$post_data['city_aaddress'] = "$city $state, $zip";
@@ -1624,11 +1625,12 @@ class MillenniumDriver implements DriverInterface
 		if (isset($_REQUEST['birthDate'])){
 			$post_data['F051birthdate'] = $_REQUEST['birthDate'];
 		}
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+//		$post_items = array();
+//		foreach ($post_data as $key => $value) {
+//			$post_items[] = $key . '=' . urlencode($value);
+//		}
+//		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$sresult = curl_exec($curl_connection);
 
@@ -1910,6 +1912,8 @@ class MillenniumDriver implements DriverInterface
 		global $library;
 		$fields = array();
 		$fields[] = array('property'=>'firstName', 'type'=>'text', 'label'=>'First Name', 'description'=>'Your first name', 'maxLength' => 40, 'required' => true);
+		$fields[] = array('property'=>'middleName', 'type'=>'text', 'label'=>'Middle Name', 'description'=>'Your middle name', 'maxLength' => 40, 'required' => true);
+		// gets added to the first name separated by a space
 		$fields[] = array('property'=>'lastName', 'type'=>'text', 'label'=>'Last Name', 'description'=>'Your last name', 'maxLength' => 40, 'required' => true);
 		if ($library && $library->promptForBirthDateInSelfReg){
 			$fields[] = array('property'=>'birthDate', 'type'=>'text', 'label'=>'Date of Birth (MM-DD-YYYY)', 'description'=>'Date of birth', 'maxLength' => 10, 'required' => true);
