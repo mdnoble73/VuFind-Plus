@@ -53,5 +53,6 @@ interface DriverInterface
 	public function getMyProfile($patron, $forceReload = false);
 	public function patronLogin($username, $password);
 	public function hasNativeReadingHistory();
+	public function getNumHolds($id);
 }
 ?>
