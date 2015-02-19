@@ -2,12 +2,12 @@ package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
-import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.marc.Record;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.sql.Connection;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * Description goes here
@@ -42,11 +42,12 @@ public class EVokeProcessor extends MarcRecordProcessor{
 		}
 	}
 
+	@Override
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		//Get a list of items for the record
 
 		//Do updates based on the overall bib (shared regardless of scoping)
-		updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record);
+		updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, null);
 
 		//Do special processing for eVoke
 		String fullDescription = Util.getCRSeparatedString(getFieldList(record, "520a"));

@@ -273,7 +273,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			//Do updates based on the overall bib (shared regardless of scoping)
 			step = "update work based on standard data";
-			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record);
+			updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, printItems);
 
 			//Special processing for ILS Records
 			step = "load description";

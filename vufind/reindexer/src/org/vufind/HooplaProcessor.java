@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * Extracts data from Hoopla Marc records to fill out information within the work to be indexed.
@@ -54,7 +53,7 @@ public class HooplaProcessor extends MarcRecordProcessor {
 	@Override
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		//Do updates based on the overall bib (shared regardless of scoping)
-		updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record);
+		updateGroupedWorkSolrDataBasedOnStandardMarcData(groupedWork, record, null);
 
 		//Do special processing for Hoopla which does not have individual items within the record
 		//Instead, each record has essentially unlimited items that can be used at one time.

@@ -79,4 +79,17 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 		return getFieldList(record, "690a");
 	}
 
+	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, List<PrintIlsItem> printItems) {
+		//For Anythink, load audiences based on collection code rather than based on the 008 and 006 fields
+		HashSet<String> targetAudiences = new HashSet<String>();
+		for (PrintIlsItem printItem : printItems){
+			String collection = printItem.getCollection();
+			if (collection != null) {
+				targetAudiences.add(collection.toLowerCase());
+			}
+		}
+
+		groupedWork.addTargetAudiences(indexer.translateCollection("target_audience", targetAudiences));
+		groupedWork.addTargetAudiencesFull(indexer.translateCollection("target_audience", targetAudiences));
+	}
 }

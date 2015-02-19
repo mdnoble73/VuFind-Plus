@@ -3,6 +3,7 @@ package org.vufind;
 import org.apache.log4j.Logger;
 import org.marc4j.marc.*;
 import org.solrmarc.tools.Utils;
+import sun.plugin2.main.client.ClientPrintHelper;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -37,7 +38,7 @@ public abstract class MarcRecordProcessor {
 	 */
 	public abstract void processRecord(GroupedWorkSolr groupedWork, String identifier);
 
-	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record) {
+	protected void updateGroupedWorkSolrDataBasedOnStandardMarcData(GroupedWorkSolr groupedWork, Record record, List<PrintIlsItem> printItems) {
 		loadTitles(groupedWork, record);
 		loadAuthors(groupedWork, record);
 		groupedWork.addTopic(getFieldList(record, "600abcdefghjklmnopqrstuvxyz:610abcdefghjklmnopqrstuvxyz:611acdefghklnpqstuvxyz:630abfghklmnoprstvxyz:650abcdevxyz:651abcdevxyz:690a"));
@@ -60,7 +61,7 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addOclcNumbers(getFieldList(record, "035a"));
 		loadBibCallNumbers(groupedWork, record);
 		loadLiteraryForms(groupedWork, record);
-		loadTargetAudiences(groupedWork, record);
+		loadTargetAudiences(groupedWork, record, printItems);
 		groupedWork.addMpaaRating(groupedWork, getMpaaRating(record));
 		groupedWork.setAcceleratedReaderInterestLevel(getAcceleratedReaderInterestLevel(record));
 		groupedWork.setAcceleratedReaderReadingLevel(getAcceleratedReaderReadingLevel(record));
@@ -190,7 +191,7 @@ public abstract class MarcRecordProcessor {
 		}
 	}
 
-	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record) {
+	protected void loadTargetAudiences(GroupedWorkSolr groupedWork, Record record, List<PrintIlsItem> printItems) {
 		Set<String> targetAudiences = new LinkedHashSet<String>();
 		try {
 			String leader = record.getLeader().toString();

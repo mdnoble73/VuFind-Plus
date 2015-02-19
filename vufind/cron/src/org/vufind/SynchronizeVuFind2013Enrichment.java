@@ -4,10 +4,8 @@ import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
 import org.marc4j.MarcPermissiveStreamReader;
-import org.marc4j.MarcReader;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
-import org.marc4j.marc.Subfield;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,7 +14,6 @@ import java.sql.Date;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.DataFormatException;
 
 /**
  * Synchronizes any changes made to a VuFind 2013 installation to the current installation.
@@ -78,7 +75,6 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 
 				getGroupedWorkStmt = vufindConn.prepareStatement("SELECT permanent_id FROM grouped_work inner join grouped_work_primary_identifiers on grouped_work_id = grouped_work.id WHERE type = 'ils' and identifier = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				getGroupedWorkForOverDriveStmt = vufindConn.prepareStatement("SELECT permanent_id FROM grouped_work inner join grouped_work_primary_identifiers on grouped_work_id = grouped_work.id WHERE type = 'overdrive' and identifier = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				getIlsIdForEContentRecordStmt = econtent2013connection.prepareStatement("SELECT ilsId, source, externalId from econtent_record where id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 
 				getExistingTagStmt = vufindConn.prepareStatement("SELECT * FROM user_tags WHERE groupedRecordPermanentId = ? AND userId = ? and tag = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				addTagStmt = vufindConn.prepareStatement("INSERT INTO user_tags (groupedRecordPermanentId, userId, tag, dateTagged) VALUES (?, ?, ?, ?)");
@@ -102,6 +98,9 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 				addMaterialsRequestStmt = vufindConn.prepareStatement("INSERT INTO materials_request (title, author, format, ageLevel, isbn, oclcNumber, publisher, publicationYear, articleInfo, abridged, about, comments, status, dateCreated, createdBy, dateUpdated, emailSent, holdsCreated, email, phone, season, magazineTitle, upc, issn, bookType, subFormat, magazineDate, magazineVolume, magazinePageNumbers, placeHoldWhenAvailable, holdPickupLocation, bookmobileStop, illItem, magazineNumber) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 				updateMaterialsRequestStmt = vufindConn.prepareStatement("UPDATE materials_request SET title = ?, author = ?, format = ?, ageLevel = ?, isbn = ?, oclcNumber = ?, publisher = ?, publicationYear = ?, articleInfo = ?, abridged = ?, about = ?, comments = ?, status = ?, dateUpdated = ?, emailSent = ?, holdsCreated = ?, email = ?, phone = ?, season = ?, magazineTitle = ?, upc = ?, issn = ?, bookType = ?, subFormat = ?, magazineDate = ?, magazineVolume = ?, magazinePageNumbers = ?, placeHoldWhenAvailable = ?, holdPickupLocation = ?, bookmobileStop = ?, illItem = ?, magazineNumber = ? WHERE dateCreated = ? AND createdBy = ?");
 
+				if (econtent2013connection != null){
+					getIlsIdForEContentRecordStmt = econtent2013connection.prepareStatement("SELECT ilsId, source, externalId from econtent_record where id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				}
 				synchronizeMaterialsRequests();
 				//TODO:  Editorial Reviews
 				//synchronizeEditorialReviews();
@@ -497,12 +496,16 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 							ResultSet existingListTitleRS = getExistingListTitleStmt.executeQuery();
 							if (!existingListTitleRS.next()){
 								//Add the title to the list
-								addTitleToListStmt.setLong(1, listId);
-								addTitleToListStmt.setString(2, groupedWorkId);
-								addTitleToListStmt.setString(3, vuFind2013ListTitlesRS.getString("notes"));
-								Date dateAdded = vuFind2013ListTitlesRS.getDate("saved");
-								addTitleToListStmt.setLong(4, dateAdded.getTime() / 1000);
-								addTitleToListStmt.executeUpdate();
+								try {
+									addTitleToListStmt.setLong(1, listId);
+									addTitleToListStmt.setString(2, groupedWorkId);
+									addTitleToListStmt.setString(3, vuFind2013ListTitlesRS.getString("notes"));
+									Date dateAdded = vuFind2013ListTitlesRS.getDate("saved");
+									addTitleToListStmt.setLong(4, dateAdded.getTime() / 1000);
+									addTitleToListStmt.executeUpdate();
+								}catch (Exception e){
+									logger.error("Error adding grouped work " + groupedWorkId + " to list " + listId);
+								}
 							}
 						}
 					}
@@ -519,9 +522,9 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 			//TODO: limit to only loading tags added after the last synchronization
 			String vufind2013Tags;
 			if (librariesToSynchronize == null){
-				vufind2013Tags = "SELECT tag, record_id, source, username, password, title, author, posted from resource_tags inner join tags on tags.id = resource_tags.tag_id inner join resource on resource_id = resource.id inner join user on user_id = user.id";
+				vufind2013Tags = "SELECT tag, record_id, source, username, password, posted from resource_tags inner join tags on tags.id = resource_tags.tag_id inner join resource on resource_id = resource.id inner join user on user_id = user.id";
 			} else{
-				vufind2013Tags = "SELECT tag, record_id, source, username, password, title, author, posted from resource_tags inner join tags on tags.id = resource_tags.tag_id inner join resource on resource_id = resource.id inner join user on user_id = user.id\n" +
+				vufind2013Tags = "SELECT tag, record_id, source, username, password, posted from resource_tags inner join tags on tags.id = resource_tags.tag_id inner join resource on resource_id = resource.id inner join user on user_id = user.id\n" +
 						"INNER JOIN location on location.locationId = user.homeLocationId\n" +
 						"INNER JOIN library on location.libraryId = library.libraryId\n" +
 						"WHERE subdomain in (" + librariesToSynchronize + ")";
@@ -585,66 +588,68 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 					logger.debug("Could not find grouped work for ILS record " + resourceRecordId);
 				}
 			}else{
-				//Get the ils id for the econtent record
-				getIlsIdForEContentRecordStmt.setLong(1, Long.parseLong(resourceRecordId));
-				ResultSet getIlsIdForEContentRecordRS = getIlsIdForEContentRecordStmt.executeQuery();
-				if (getIlsIdForEContentRecordRS.next()){
-					String ilsId = getIlsIdForEContentRecordRS.getString("ilsId");
-					if (ilsId == null){
-						String econtentSource = getIlsIdForEContentRecordRS.getString("source");
-						String externalId = getIlsIdForEContentRecordRS.getString("externalId");
-						if (econtentSource.equalsIgnoreCase("overdrive")){
-							getGroupedWorkForOverDriveStmt.setString(1, externalId);
-							ResultSet groupedWorkRS = getGroupedWorkForOverDriveStmt.executeQuery();
-							if (groupedWorkRS.next()){
-								permanentId = groupedWorkRS.getString("permanent_id");
-							} else{
-								logger.debug("Could not find grouped work for overdrive record " + externalId);
+				if (getIlsIdForEContentRecordStmt != null) {
+					//Get the ils id for the econtent record
+					getIlsIdForEContentRecordStmt.setLong(1, Long.parseLong(resourceRecordId));
+					ResultSet getIlsIdForEContentRecordRS = getIlsIdForEContentRecordStmt.executeQuery();
+					if (getIlsIdForEContentRecordRS.next()) {
+						String ilsId = getIlsIdForEContentRecordRS.getString("ilsId");
+						if (ilsId == null) {
+							String econtentSource = getIlsIdForEContentRecordRS.getString("source");
+							String externalId = getIlsIdForEContentRecordRS.getString("externalId");
+							if (econtentSource.equalsIgnoreCase("overdrive")) {
+								getGroupedWorkForOverDriveStmt.setString(1, externalId);
+								ResultSet groupedWorkRS = getGroupedWorkForOverDriveStmt.executeQuery();
+								if (groupedWorkRS.next()) {
+									permanentId = groupedWorkRS.getString("permanent_id");
+								} else {
+									logger.debug("Could not find grouped work for overdrive record " + externalId);
+								}
+							} else {
+								logger.debug("Could not handle getting grouped work for " + econtentSource + " " + resourceRecordId);
 							}
-						}else{
-							logger.debug("Could not handle getting grouped work for " + econtentSource + " " + resourceRecordId);
-						}
-					}else{
-						getGroupedWorkStmt.setString(1, ilsId);
-						ResultSet groupedWorkRS = getGroupedWorkStmt.executeQuery();
-						if (groupedWorkRS.next()){
-							permanentId = groupedWorkRS.getString("permanent_id");
-						}else{
-							//Some of these are because the marc record refers to an OverDrive record that we are suppressing in VuFind 2014
-							Record marcRecord = getMarcRecordForIlsId(ilsId);
-							if (marcRecord != null){
-								List urlFields = marcRecord.getVariableFields("856");
-								for (Object urlFieldObj : urlFields){
-									if (urlFieldObj instanceof DataField){
-										DataField urlField = (DataField)urlFieldObj;
-										if (urlField.getSubfield('u') != null){
-											String url = urlField.getSubfield('u').getData();
+						} else {
+							getGroupedWorkStmt.setString(1, ilsId);
+							ResultSet groupedWorkRS = getGroupedWorkStmt.executeQuery();
+							if (groupedWorkRS.next()) {
+								permanentId = groupedWorkRS.getString("permanent_id");
+							} else {
+								//Some of these are because the marc record refers to an OverDrive record that we are suppressing in VuFind 2014
+								Record marcRecord = getMarcRecordForIlsId(ilsId);
+								if (marcRecord != null) {
+									List urlFields = marcRecord.getVariableFields("856");
+									for (Object urlFieldObj : urlFields) {
+										if (urlFieldObj instanceof DataField) {
+											DataField urlField = (DataField) urlFieldObj;
+											if (urlField.getSubfield('u') != null) {
+												String url = urlField.getSubfield('u').getData();
 
-											Matcher overdriveUrlMatcher = overdriveUrlPattern.matcher(url);
-											if (overdriveUrlMatcher.find()) {
-												String overdriveId = overdriveUrlMatcher.group(1);
-												getGroupedWorkForOverDriveStmt.setString(1, overdriveId);
-												ResultSet groupedWorkRS2 = getGroupedWorkForOverDriveStmt.executeQuery();
-												if (groupedWorkRS2.next()){
-													permanentId = groupedWorkRS2.getString("permanent_id");
-													break;
-												} else{
-													logger.debug("Could not find grouped work for overdrive record " + overdriveId);
+												Matcher overdriveUrlMatcher = overdriveUrlPattern.matcher(url);
+												if (overdriveUrlMatcher.find()) {
+													String overdriveId = overdriveUrlMatcher.group(1);
+													getGroupedWorkForOverDriveStmt.setString(1, overdriveId);
+													ResultSet groupedWorkRS2 = getGroupedWorkForOverDriveStmt.executeQuery();
+													if (groupedWorkRS2.next()) {
+														permanentId = groupedWorkRS2.getString("permanent_id");
+														break;
+													} else {
+														logger.debug("Could not find grouped work for overdrive record " + overdriveId);
+													}
 												}
 											}
 										}
 									}
+									if (permanentId == null) {
+										logger.debug("Could not find grouped work for ils record " + ilsId + " referenced from econtent record " + resourceRecordId + " even after checking marc record");
+									}
+								} else {
+									logger.debug("Could not find grouped work for ils record " + ilsId + " referenced from econtent record " + resourceRecordId);
 								}
-								if (permanentId == null){
-									logger.debug("Could not find grouped work for ils record " + ilsId + " referenced from econtent record " + resourceRecordId + " even after checking marc record");
-								}
-							} else {
-								logger.debug("Could not find grouped work for ils record " + ilsId + " referenced from econtent record " + resourceRecordId);
 							}
 						}
+					} else {
+						logger.debug("Could not find econtent record for econtent record id " + resourceRecordId);
 					}
-				}else{
-					logger.debug("Could not find econtent record for econtent record id " + resourceRecordId);
 				}
 			}
 		}catch (Exception e){
@@ -717,14 +722,29 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 					addUserToVuFind2014Stmt.setLong(9, vufind2013User.getLong("homeLocationId"));
 					addUserToVuFind2014Stmt.setLong(10, vufind2013User.getLong("myLocation1Id"));
 					addUserToVuFind2014Stmt.setLong(11, vufind2013User.getLong("myLocation2Id"));
-					addUserToVuFind2014Stmt.setLong(12, vufind2013User.getLong("bypassAutoLogout"));
+					try {
+						addUserToVuFind2014Stmt.setLong(12, vufind2013User.getLong("bypassAutoLogout"));
+					}catch(SQLException e){
+						//Old version without bypass auto logout column
+						addUserToVuFind2014Stmt.setLong(12, 0);
+					}
 					addUserToVuFind2014Stmt.setString(13, vufind2013User.getString("displayName"));
-					addUserToVuFind2014Stmt.setString(14, vufind2013User.getString("phone"));
-					addUserToVuFind2014Stmt.setLong(15, vufind2013User.getLong("patronType"));
-					addUserToVuFind2014Stmt.setLong(16, vufind2013User.getLong("disableRecommendations"));
-					addUserToVuFind2014Stmt.setLong(17, vufind2013User.getLong("disableCoverArt"));
-					addUserToVuFind2014Stmt.setString(18, vufind2013User.getString("overdriveEmail"));
-					addUserToVuFind2014Stmt.setLong(19, vufind2013User.getLong("promptForOverdriveEmail"));
+					try {
+						addUserToVuFind2014Stmt.setString(14, vufind2013User.getString("phone"));
+						addUserToVuFind2014Stmt.setString(15, vufind2013User.getString("patronType"));
+						addUserToVuFind2014Stmt.setLong(16, vufind2013User.getLong("disableRecommendations"));
+						addUserToVuFind2014Stmt.setLong(17, vufind2013User.getLong("disableCoverArt"));
+						addUserToVuFind2014Stmt.setString(18, vufind2013User.getString("overdriveEmail"));
+						addUserToVuFind2014Stmt.setLong(19, vufind2013User.getLong("promptForOverdriveEmail"));
+					}catch(SQLException e){
+						//Old version without these columns
+						addUserToVuFind2014Stmt.setString(14, "");
+						addUserToVuFind2014Stmt.setString(15, "");;
+						addUserToVuFind2014Stmt.setLong(16, 0);
+						addUserToVuFind2014Stmt.setLong(17, 0);
+						addUserToVuFind2014Stmt.setString(18, "");
+						addUserToVuFind2014Stmt.setLong(19, 1);
+					}
 					addUserToVuFind2014Stmt.executeUpdate();
 					ResultSet generatedKeys = addUserToVuFind2014Stmt.getGeneratedKeys();
 					while (generatedKeys.next()){
