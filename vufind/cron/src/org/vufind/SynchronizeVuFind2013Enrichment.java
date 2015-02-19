@@ -718,14 +718,29 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 					addUserToVuFind2014Stmt.setLong(9, vufind2013User.getLong("homeLocationId"));
 					addUserToVuFind2014Stmt.setLong(10, vufind2013User.getLong("myLocation1Id"));
 					addUserToVuFind2014Stmt.setLong(11, vufind2013User.getLong("myLocation2Id"));
-					addUserToVuFind2014Stmt.setLong(12, vufind2013User.getLong("bypassAutoLogout"));
+					try {
+						addUserToVuFind2014Stmt.setLong(12, vufind2013User.getLong("bypassAutoLogout"));
+					}catch(SQLException e){
+						//Old version without bypass auto logout column
+						addUserToVuFind2014Stmt.setLong(12, 0);
+					}
 					addUserToVuFind2014Stmt.setString(13, vufind2013User.getString("displayName"));
-					addUserToVuFind2014Stmt.setString(14, vufind2013User.getString("phone"));
-					addUserToVuFind2014Stmt.setLong(15, vufind2013User.getLong("patronType"));
-					addUserToVuFind2014Stmt.setLong(16, vufind2013User.getLong("disableRecommendations"));
-					addUserToVuFind2014Stmt.setLong(17, vufind2013User.getLong("disableCoverArt"));
-					addUserToVuFind2014Stmt.setString(18, vufind2013User.getString("overdriveEmail"));
-					addUserToVuFind2014Stmt.setLong(19, vufind2013User.getLong("promptForOverdriveEmail"));
+					try {
+						addUserToVuFind2014Stmt.setString(14, vufind2013User.getString("phone"));
+						addUserToVuFind2014Stmt.setString(15, vufind2013User.getString("patronType"));
+						addUserToVuFind2014Stmt.setLong(16, vufind2013User.getLong("disableRecommendations"));
+						addUserToVuFind2014Stmt.setLong(17, vufind2013User.getLong("disableCoverArt"));
+						addUserToVuFind2014Stmt.setString(18, vufind2013User.getString("overdriveEmail"));
+						addUserToVuFind2014Stmt.setLong(19, vufind2013User.getLong("promptForOverdriveEmail"));
+					}catch(SQLException e){
+						//Old version without these columns
+						addUserToVuFind2014Stmt.setString(14, "");
+						addUserToVuFind2014Stmt.setString(15, "");;
+						addUserToVuFind2014Stmt.setLong(16, 0);
+						addUserToVuFind2014Stmt.setLong(17, 0);
+						addUserToVuFind2014Stmt.setString(18, "");
+						addUserToVuFind2014Stmt.setLong(19, 1);
+					}
 					addUserToVuFind2014Stmt.executeUpdate();
 					ResultSet generatedKeys = addUserToVuFind2014Stmt.getGeneratedKeys();
 					while (generatedKeys.next()){
