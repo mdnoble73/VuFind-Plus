@@ -3,13 +3,29 @@
 # James Staub, Nashville Public Library
 # 20150218
 # Script executes continuous re-indexing.
-#
+# Millennium 1.6_3
 
+# CONFIGURATION
+# PLEASE SET CONFLICTING PROCESSES AND PROHIBITED TIMES IN FUNCTION CALLS IN SCRIPT MAIN DO LOOP
 # this version emails script output as a round finishes
 EMAIL=James.Staub@nashville.gov,mark@marmot.org,pascal@marmot.org
 PIKASERVER=catalog.library.nashville.org
 ILSSERVER=waldo.library.nashville.org
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/continuous_partial_reindex_output.log"
+
+# Check for conflicting processes currently runnin
+function checkConflictingProcesses() {
+	#echo $1
+	countConflictingProcesses=$(ps aux | grep -c $1)
+	countConflictingProcesses=$((countConflictingProcesses-1))
+	#echo "Count of conflicting process" $1 $countConflictingProcesses
+	until ((countConflictingProcesses == 0)); do
+		countConflictingProcesses=$(ps aux | grep -c $1)
+		countConflictingProcesses=$((countConflictingProcesses-1))
+		#echo "Count of conflicting process" $1 $countConflictingProcesses
+		sleep 300
+	done
+}
 
 # Prohibited time ranges - for, e.g., ILS backup
 # JAMES is currently giving all Nashville prohibited times a ten minute buffer
@@ -23,6 +39,7 @@ function checkProhibitedTimes() {
 	then
 		if (( $NOW > $start && $NOW < $stop ))
 		then
+			#echo "Sleeping:" $(($stop - $NOW))
 			sleep $(($stop - $NOW))
 		fi
 	elif (( $start > $stop ))
@@ -39,10 +56,12 @@ function checkProhibitedTimes() {
 
 while true 
 do
-	# Nashville Millennium backup
-	checkProhibitedTimes(22:55 02:30)
 	# Nashville Full Record Group/Reindex
-	checkProhibitedTimes(00:15 07:00)
+	checkConflictingProcesses "full_update.sh"
+	checkConflictingProcesses "jar"
+
+	# Nashville Millennium backup
+	checkProhibitedTimes "22:55" "02:30"
 
         #truncate the file
         : > $OUTPUT_FILE;
