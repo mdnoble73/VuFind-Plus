@@ -31,8 +31,9 @@ class SelfReg extends Action {
 	}
 
 	function launch($msg = null) {
-		global $interface;
-		global $configArray;
+		global $interface,
+			$library,
+			$configArray;
 
 		if (isset($_REQUEST['submit'])) {
 
@@ -61,13 +62,16 @@ class SelfReg extends Action {
 
 		// Set up captcha to limit spam self registrations
 		if (isset($configArray['ReCaptcha']['publicKey'])) {
-			$recaptchaPublicKey = $configArray['ReCaptcha']['publicKey']; // you got this from the signup page
+			$recaptchaPublicKey = $configArray['ReCaptcha']['publicKey'];
 			$captchaCode        = recaptcha_get_html($recaptchaPublicKey);
 			$interface->assign('captcha', $captchaCode);
 		}
 
 		$fieldsForm = $interface->fetch('DataObjectUtil/objectEditForm.tpl');
 		$interface->assign('selfRegForm', $fieldsForm);
+
+		$interface->assign('selfRegistrationFormMessage', $library->selfRegistrationFormMessage);
+		$interface->assign('selfRegistrationSuccessMessage', $library->selfRegistrationSuccessMessage);
 
 		$interface->setTemplate('selfReg.tpl');
 		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');

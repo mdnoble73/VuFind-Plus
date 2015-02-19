@@ -1614,7 +1614,7 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
 		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
 
-		$post_data['nfirst'] = $firstName.' '.$middleName; // add middle name onto first name;
+		$post_data['nfirst'] = $middleName ? $firstName.' '.$middleName : $firstName; // add middle name onto first name;
 		$post_data['nlast'] = $lastName;
 		$post_data['stre_aaddress'] = $address;
 		$post_data['city_aaddress'] = "$city $state, $zip";
