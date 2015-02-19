@@ -496,12 +496,16 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 							ResultSet existingListTitleRS = getExistingListTitleStmt.executeQuery();
 							if (!existingListTitleRS.next()){
 								//Add the title to the list
-								addTitleToListStmt.setLong(1, listId);
-								addTitleToListStmt.setString(2, groupedWorkId);
-								addTitleToListStmt.setString(3, vuFind2013ListTitlesRS.getString("notes"));
-								Date dateAdded = vuFind2013ListTitlesRS.getDate("saved");
-								addTitleToListStmt.setLong(4, dateAdded.getTime() / 1000);
-								addTitleToListStmt.executeUpdate();
+								try {
+									addTitleToListStmt.setLong(1, listId);
+									addTitleToListStmt.setString(2, groupedWorkId);
+									addTitleToListStmt.setString(3, vuFind2013ListTitlesRS.getString("notes"));
+									Date dateAdded = vuFind2013ListTitlesRS.getDate("saved");
+									addTitleToListStmt.setLong(4, dateAdded.getTime() / 1000);
+									addTitleToListStmt.executeUpdate();
+								}catch (Exception e){
+									logger.error("Error adding grouped work " + groupedWorkId + " to list " + listId);
+								}
 							}
 						}
 					}
@@ -518,9 +522,9 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 			//TODO: limit to only loading tags added after the last synchronization
 			String vufind2013Tags;
 			if (librariesToSynchronize == null){
-				vufind2013Tags = "SELECT tag, record_id, source, username, password, title, author, posted from resource_tags inner join tags on tags.id = resource_tags.tag_id inner join resource on resource_id = resource.id inner join user on user_id = user.id";
+				vufind2013Tags = "SELECT tag, record_id, source, username, password, posted from resource_tags inner join tags on tags.id = resource_tags.tag_id inner join resource on resource_id = resource.id inner join user on user_id = user.id";
 			} else{
-				vufind2013Tags = "SELECT tag, record_id, source, username, password, title, author, posted from resource_tags inner join tags on tags.id = resource_tags.tag_id inner join resource on resource_id = resource.id inner join user on user_id = user.id\n" +
+				vufind2013Tags = "SELECT tag, record_id, source, username, password, posted from resource_tags inner join tags on tags.id = resource_tags.tag_id inner join resource on resource_id = resource.id inner join user on user_id = user.id\n" +
 						"INNER JOIN location on location.locationId = user.homeLocationId\n" +
 						"INNER JOIN library on location.libraryId = library.libraryId\n" +
 						"WHERE subdomain in (" + librariesToSynchronize + ")";
