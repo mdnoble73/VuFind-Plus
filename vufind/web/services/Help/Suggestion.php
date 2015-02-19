@@ -50,7 +50,7 @@ class Suggestion extends Action
 			}
 			if ($isValid){
 				//Process the submission
-				$privatekey = "6LeZ8roSAAAAALZTc7Xe-GN5YG1VMeRKAZNscHmb";
+				$privatekey = $configArray['ReCaptcha']['privateKey'];
 				$resp = recaptcha_check_answer ($privatekey,
 									$_SERVER["REMOTE_ADDR"],
 									$_POST["recaptcha_challenge_field"],
@@ -90,7 +90,7 @@ class Suggestion extends Action
 
 		}
 		//Display the form asking for input
-		$publickey = "6LeZ8roSAAAAAN0V9pSDie9Z9d-3bhNjsDLBjt1q"; // you got this from the signup page
+		$publickey = $configArray['ReCaptcha']['publicKey'];
 
 		$captchaCode = recaptcha_get_html($publickey);
 		$interface->assign('captcha', $captchaCode);

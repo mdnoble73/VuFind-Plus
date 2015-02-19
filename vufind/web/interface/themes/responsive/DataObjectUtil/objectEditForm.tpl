@@ -25,8 +25,14 @@
 		
 		{foreach from=$structure item=property}
 			{include file="DataObjectUtil/property.tpl"}
-			
 		{/foreach}
+
+		{* Show Recaptcha spam control if set. *}
+		{if $captcha}
+		<div class="form-group">
+			{$captcha}
+		</div>
+		{/if}
 
 		{if $saveButtonText}
 			<input type="submit" name="submit" value="{$saveButtonText}" class="btn btn-primary"/>
