@@ -16,6 +16,11 @@
 					Please try again or visit the library in person (with a valid ID) so we can create a card for you.
 				</div>
 			{/if}
+			{if $captchaMessage}
+				<div id="selfRegFail" class="alert alert-warning">
+				{$captchaMessage}
+				</div>
+			{/if}
 			{$selfRegForm}
 		{/if}
 	</div>

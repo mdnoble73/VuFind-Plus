@@ -19,6 +19,7 @@
  */
 
 require_once ROOT_DIR . "/Action.php";
+require_once ROOT_DIR . '/recaptcha/recaptchalib.php';
 
 class SelfReg extends Action {
 	protected $catalog;
@@ -34,9 +35,21 @@ class SelfReg extends Action {
 		global $configArray;
 
 		if (isset($_REQUEST['submit'])) {
-			//Submit the form to classic millennium
-			$result = $this->catalog->selfRegister();
-			$interface->assign('selfRegResult', $result);
+
+			$privatekey = $configArray['ReCaptcha']['privateKey'];
+			$resp = recaptcha_check_answer ($privatekey,
+				$_SERVER["REMOTE_ADDR"],
+				$_POST["recaptcha_challenge_field"],
+				$_POST["recaptcha_response_field"]);
+
+			if (!$resp->is_valid) {
+				$interface->assign('captchaMessage', 'The CAPTCHA response was incorrect, please try again.');
+			} else {
+
+				//Submit the form to ILS
+				$result = $this->catalog->selfRegister();
+				$interface->assign('selfRegResult', $result);
+			}
 		}
 
 		/** @var  CatalogConnection $catalog */
@@ -46,11 +59,19 @@ class SelfReg extends Action {
 		$interface->assign('structure', $selfRegFields);
 		$interface->assign('saveButtonText', 'Register');
 
+		// Set up captcha to limit spam self registrations
+		if (isset($configArray['ReCaptcha']['publicKey'])) {
+			$recaptchaPublicKey = $configArray['ReCaptcha']['publicKey']; // you got this from the signup page
+			$captchaCode        = recaptcha_get_html($recaptchaPublicKey);
+			$interface->assign('captcha', $captchaCode);
+		}
+
 		$fieldsForm = $interface->fetch('DataObjectUtil/objectEditForm.tpl');
 		$interface->assign('selfRegForm', $fieldsForm);
 
 		$interface->setTemplate('selfReg.tpl');
 		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->display('layout.tpl');
+
 	}
 }
