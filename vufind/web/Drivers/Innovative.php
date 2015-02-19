@@ -166,6 +166,10 @@ class Innovative implements DriverInterface
 	public function hasNativeReadingHistory() {
 		return true;
 	}
+
+	public function getNumHolds($id) {
+		return 0;
+	}
 }
 
 ?>

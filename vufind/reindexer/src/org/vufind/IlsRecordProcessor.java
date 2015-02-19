@@ -1009,7 +1009,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						if (curDeterminer.matchesLocation(locationCode)){
 							LoanRule loanRule = loanRules.get(curDeterminer.getLoanRuleId());
 							if (loanRule.getHoldable().equals(Boolean.TRUE)){
-								if (curDeterminer.getPatronTypes().equals("999")){
+								if (curDeterminer.getPatronType().equals("999")){
 									result.add("all");
 									return result;
 								}else{

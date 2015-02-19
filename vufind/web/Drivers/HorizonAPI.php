@@ -1110,6 +1110,16 @@ abstract class HorizonAPI extends Horizon{
 		return $holdings;
 	}
 
+	public function getNumHolds($id) {
+		global $configArray;
+		$lookupTitleInfoUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/lookupTitleInfo?clientID=' . $configArray['Catalog']['clientId'] . '&titleKey=' . $id . '&includeItemInfo=false&includeHoldCount=true' ;
+		$lookupTitleInfoResponse = $this->getWebServiceResponse($lookupTitleInfoUrl);
+		if ($lookupTitleInfoResponse->titleInfo){
+			return (int)$lookupTitleInfoResponse->titleInfo->holdCount;
+		}
+		return 0;
+	}
+
 	function updatePin(){
 		global $user;
 		global $configArray;

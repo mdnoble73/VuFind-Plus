@@ -1958,4 +1958,8 @@ class Aspencat implements DriverInterface{
 		global $user;
 		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
 	}
+
+	public function getNumHolds($id) {
+		return 0;
+	}
 }
