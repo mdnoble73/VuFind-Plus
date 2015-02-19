@@ -936,5 +936,17 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE `library` ADD COLUMN `includeDplaResults` TINYINT(1) NULL DEFAULT '0' ;"
 			),
 		),
+
+		'selfreg_customization' => array(
+			'title' => 'Self Registration Customization',
+			'description' => 'Add text fields so that libraries may customize messages accompanying self registration process.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `selfRegistrationFormMessage` TEXT;",
+				"ALTER TABLE `library` ADD COLUMN `selfRegistrationSuccessMessage` TEXT;",
+			),
+		),
+
+
 	);
 }
