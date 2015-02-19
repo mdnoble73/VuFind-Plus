@@ -267,7 +267,7 @@ public class OverDriveProcessor {
 				targetAudience = "Juvenile";
 				targetAudienceFull = "Juvenile";
 			}else if (curSubject.contains("Young Adult")){
-				targetAudience = "Juvenile";
+				targetAudience = "Young Adult";
 				targetAudienceFull = "Adolescent (14-17)";
 			}else if (curSubject.contains("Picture Book")){
 				targetAudience = "Juvenile";
