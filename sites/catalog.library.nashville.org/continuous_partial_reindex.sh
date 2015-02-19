@@ -1,6 +1,6 @@
 #!/bin/bash
-# Mark Noble
-# on behalf of Nashville Public Library
+# Mark Noble, Marmot Library Network
+# James Staub, Nashville Public Library
 # 20150218
 # Script executes continuous re-indexing.
 #
@@ -13,46 +13,36 @@ OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/continuous_partial_reindex_outpu
 
 # Prohibited time ranges - for, e.g., ILS backup
 # JAMES is currently giving all Nashville prohibited times a ten minute buffer
-
-# Nashville Millennium backup
-backupStart=22:55:00
-backupStop=02:30:00
-
-# Nashville Full Record Group/Reindex
-fullReindexStart=22:35:00
-fullReindexStop=05:30:00
-
-
-while true 
-do
-
+function checkProhibitedTimes() {
+	start=$(date --date=$1 +%s)
+	stop=$(date --date=$2 +%s)
 	NOW=$(date +%H:%M:%S)
 	NOW=$(date --date=$NOW +%s)
 
-	backupStart=$(date --date=$backupStart +%s)
-	backupStop=$(date --date=$backupStop +%s)
+	if (( $start < $stop ))
+	then
+		if (( $NOW > $start && $NOW < $stop ))
+		then
+			sleep $(($stop - $NOW))
+		fi
+	elif (( $start > $stop ))
+	then
+		if (( $NOW < $stop ))
+		then
+			sleep $(($stop - $NOW))
+		elif (( $NOW > $start ))
+		then
+			sleep $(($stop + 86400 - $NOW))
+		fi
+	fi
+}	
 
-	if (( $backupStart > $backupStop ))
-	then
-		overMidnight=true
-		backupStop=$backupStop+86400
-	fi
-
-	if (( $NOW > $backupStart && $NOW < $backupStop ))
-	then
-		sleep $(($backupStop - $NOW))
-	fi
-
-	fullReindexStart=$(date --date=$fullReindexStart +%s)
-	fullReindexStop=$(date --date=$fullReindexStop +%s)
-	if (( $fullReindexStart > $fullReindexStop ))
-	then
-		fullReindexStop=$fullReindexStop+86400
-	fi
-	if (( $NOW > $fullReindexStart && $NOW < $fullReindexStop ))
-	then
-		sleep $(($fullReindexStop - $NOW))
-	fi
+while true 
+do
+	# Nashville Millennium backup
+	checkProhibitedTimes(22:55 02:30)
+	# Nashville Full Record Group/Reindex
+	checkProhibitedTimes(00:15 07:00)
 
         #truncate the file
         : > $OUTPUT_FILE;
