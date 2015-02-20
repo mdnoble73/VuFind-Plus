@@ -18,7 +18,7 @@ function checkConflictingProcesses() {
 	countConflictingProcesses=$(ps aux | grep -v sudo | grep -c $1)
 	countConflictingProcesses=$((countConflictingProcesses-1))
 
-	numInitialConflicts = ${countConflictingProcesses}
+	let numInitialConflicts=countConflictingProcesses
 	#Wait until the conflict is gone.
 	until ((${countConflictingProcesses} == 0)); do
 		countConflictingProcesses=$(ps aux | grep -c $1)
@@ -38,7 +38,7 @@ function checkProhibitedTimes() {
 	NOW=$(date +%H:%M:%S)
 	NOW=$(date --date=$NOW +%s)
 
-	hasConflicts = 0
+	let hasConflicts=0
 	if (( $start < $stop ))
 	then
 		if (( $NOW > $start && $NOW < $stop ))
@@ -69,7 +69,7 @@ do
 	#####
 
 	# Make sure we are not running a Full Record Group/Reindex process
-	hasConflicts = $(checkConflictingProcesses "full_update_marmot_test.sh")
+	hasConflicts=$(checkConflictingProcesses "full_update_marmot_test.sh")
 	#If we did get a conflict, restart the loop to make sure that all tests run
 	if (($? != 0)); then
 		continue
@@ -77,7 +77,7 @@ do
 
 	# Do not run while the export from Sierra is running to prevent inconsistencies with MARC records
 	# export starts at 10 pm and ends by 11 pm
-	hasConflicts = $(checkProhibitedTimes "19:50" "21:00")
+	hasConflicts=$(checkProhibitedTimes "19:50" "21:00")
 	#If we did get a conflict, restart the loop to make sure that all tests run
 	if (($? != 0)); then
 		continue
