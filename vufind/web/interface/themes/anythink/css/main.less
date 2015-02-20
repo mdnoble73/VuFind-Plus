@@ -11,36 +11,40 @@
   background-repeat: no-repeat;
   border-bottom: none;
 }
-.header-button > a {
-  color: #998f86 !important;
-  font-size: 125%;
-  line-height: 30px !important;
-  padding: 0;
-  text-align: right;
-  text-decoration: underline;
-  text-shadow: 1px 1px #ffffff;
-  vertical-align: middle;
-}
-.header-button > a:hover {
-  color: #2a6ebb !important;
-}
-.header-button:hover {
-  border-bottom: 0px;
-}
+
+// doesn't appear to be needed. holding onto just in case. plb 2-20-2015
+//.header-button {
+//  > a {
+//    color: #998f86 !important;
+//    font-size: 125%;
+//    line-height: 30px !important;
+//    padding: 0;
+//    text-align: right;
+//    text-decoration: underline;
+//    text-shadow: 1px 1px #ffffff;
+//    vertical-align: middle;
+//    &:hover {
+//      color: #2a6ebb !important;
+//    }
+//  }
+//  &:hover {
+//    border-bottom: 0px;
+//  }
+//}
 
 // hide header login, account & log out buttons
-#header-container div.loginOptions,
-#header-container div.logoutOptions {
-  .header-primary, .header-button {
-    border-color: transparent; // hide bordering in the case display turned on. see below
+#header-container {
+  div.loginOptions, div.logoutOptions {
+    display: none;
+    .header-primary, .header-button {
+      border-color: transparent; // hide bordering in the case display turned on. see below
+    }
+    a {
+      color: transparent !important; // hide login buttons at the top. (ajax login function seems to turn on the display before reload.) plb 12-9-2014
+      text-shadow: none;
+    }
   }
-  a {
-    color: transparent !important; // hide login buttons at the top. (ajax login function seems to turn on the display before reload.) plb 12-9-2014
-    text-shadow: none;
-  }
-  display: none;
 }
-
 
 // Button Styling
 .btn-primary,
@@ -118,28 +122,33 @@ div.bottom-border-line {
   display: none; // hide search label - goes into search input
 }
 
-//// placeholder selectors are not standardized yet
-//#lookfor::placeholder {.placeholder-mixin;}
-//#lookfor::-moz-placeholder{.placeholder-mixin;}
-//#lookfor:-moz-placeholder{.placeholder-mixin;}
-//#lookfor::-webkit-input-placeholder{.placeholder-mixin;}
-//#lookfor:-ms-input-placeholder{.placeholder-mixin;}
-
-//// hide placeholder text on focus
-//#lookfor:focus::placeholder {.placeholder-focus-mixin;}
-//#lookfor:focus::-moz-placeholder{.placeholder-focus-mixin;}
-//#lookfor:focus:-moz-placeholder{.placeholder-focus-mixin;}
-//#lookfor:focus::-webkit-input-placeholder{.placeholder-focus-mixin;}
-//#lookfor:focus:-ms-input-placeholder{.placeholder-focus-mixin;}
-
 .placeholder-mixin() {
   color: @font-gray; //
-  font-size: initial; // zero out the text as a fail safe
+  font-size: initial; // restore text size
 }
 .placeholder-focus-mixin() {
   color: transparent;
 }
+// new method
+//#lookfor {
+//  .placeholderselectors({
+//    color: @font-gray; //
+//    font-size: initial; // restore text size
+//  &:focus{
+//    color: transparent;
+//  }
+//  })
+//}
+//
+//.placeholderselectors(@ruleset) {
+//  &::placeholder {@ruleset();}
+//  &::-moz-placeholder{@ruleset();}
+//  &:-moz-placeholder{@ruleset();}
+//  &::-webkit-input-placeholder{@ruleset()}
+//  &:-ms-input-placeholder{@ruleset()}
+//}
 
+// old method
 #lookfor {
   // Overwrite default styling for the searchbox placeholder text to implement displaying it
   ::placeholder {.placeholder-mixin;}
@@ -199,7 +208,7 @@ div.bottom-border-line {
  font-weight: 600;
 }
 
-// the category text 
+// the category text
 .browse-category a {
   color: @browse-label-text-color;
   text-shadow: none;
@@ -218,7 +227,7 @@ div.bottom-border-line {
 
 //@selectedShadowColor: #DBD4CB;
 
-// Selected Category needs to give a highlighted appearance 
+// Selected Category needs to give a highlighted appearance
 .browse-category.selected {
   border: none;
   background-color: @selectedCategoryColor;
@@ -230,36 +239,36 @@ div.bottom-border-line {
 }
 
 // Left/Right Arrows on browse category carousel
-#browse-category-picker .jcarousel-control-prev,
-#browse-category-picker .jcarousel-control-next {
-  background-color: white;
-  color: @selectedCategoryColor;
-  &:active, &:hover {
-    color: @font-red;
-    text-decoration: none;
+#browse-category-picker {
+  .jcarousel-control-prev, .jcarousel-control-next {
+    background-color: white;
+    color: @selectedCategoryColor;
+    &:active, &:hover {
+      color: @font-red;
+      text-decoration: none;
+    }
+    .box-shadow(none);
+    font-size: 20px;
   }
-  &:focus {
-    // moved to responsive/home.less to apply to all styles. can be removed once it's tested. plb 1-15-2015
-    text-decoration: none;
-    outline: none;
+  a {
+    &.jcarousel-control-next:after {
+      content: "▶";
+    }
+    &.jcarousel-control-prev:before {
+      content: "◀";
+    }
   }
-//  box-shadow: none;
-  .box-shadow(none);
-  font-size: 20px;
-}
-
-#browse-category-picker a.jcarousel-control-next:after {
-   content: "▶";
- }
-#browse-category-picker a.jcarousel-control-prev:before {
-  content: "◀";
-}
-// indicator dots at bottom of browse category carousel
-#browse-category-picker .jcarousel-pagination a.active {
-  background: @font-red;
-
-  // keep shadowing in place on active item
-  .box-shadow(0 0 2px #4E443C); // try boot strap mixin
+  // indicator dots at bottom of browse category carousel
+  .jcarousel-pagination a {
+    &.active {
+      background: @font-red;
+      // keep shadowing in place on active item
+      .box-shadow(0 0 2px #4E443C);
+    }
+    .allLinkstates({
+      outline: none;
+    })
+  }
 }
 
 
@@ -270,17 +279,17 @@ div.bottom-border-line {
   border-top: 1px solid @browse-label-text-color;
 }
 
-.selected-browse-label-search a {
-  color: @browse-label-text-color;
+.selected-browse-label-search {
+  background: none;
+  a {
+    color: @browse-label-text-color;
+  }
 }
 
 #selected-browse-search-link{
   text-transform: uppercase;
 }
 
-.selected-browse-label-search {
-  background: none;
-}
 
 // Format Category icons on search results
 #formatCategories{
@@ -288,19 +297,20 @@ div.bottom-border-line {
 }
 
 // Availability Status Styling
-.related-manifestation-shelf-status.available{
-  color: green;
-}
-.related-manifestation-shelf-status.checked_out{
-  color: red;
-}
-.related-manifestation-shelf-status.availableOther{
-  color: black;
+.related-manifestation-shelf-status {
+  &.available {
+    color: green;
+  }
+  &.checked_out {
+    color: red;
+  }
+  &.availableOther {
+    color: black;
+  }
 }
 
 // Keep Format Category images & labels apart from each other
 .categoryValue img {
-//  max-width: 60px;
   max-width: 72px;
   height: 72px;
 }
@@ -311,3 +321,78 @@ div.bottom-border-line {
     float: none;
   }
 }
+
+// mixin to select all the typical states of <a> like tags
+.allLinkstates(@rules) {
+  &, &:hover, &:active, &:visited {
+    @rules();
+  }
+}
+
+.disguiseLinkTag() {
+  &, &:hover, &:active, &:visited {
+    color: @font-gray;
+    background-color: #ffffff;
+    text-decoration: none;
+    font-weight: normal;
+    outline: none;
+    cursor: auto;
+  };
+}
+
+// accordion styling for materials request section
+#home-library-links {
+  margin-top: 30px;
+
+  div.panel>a:first-child{ // Main Accordion Header
+    .disguiseLinkTag;
+    .allLinkstates({
+      cursor: pointer;
+    });
+  }
+
+ .panel-heading {
+   border-bottom: none;
+   background: none #ffffff;
+ }
+
+ .panel-body {
+   background: none #ffffff;
+   padding-top: 0;
+   div {
+     background-color: @selectedCategoryColor;
+     padding: 8px 0;
+     text-align: center;
+     a {
+       background-color: @selectedCategoryColor;
+       text-decoration: none;
+       color: #ffffff;
+       font-weight: bolder;
+     }
+   }
+
+   // explanatory text for Materials Request link (which is below this link) stuffed in an <a>. Takes off all link styling
+  div:first-child {
+    background-color: #ffffff;
+    color: @font-gray;
+    text-align: left;
+
+    a {
+      .disguiseLinkTag;
+    }
+  }
+ } //end of .panel-body
+
+  .panel, .panel.active {
+    .panel-title{
+      color: @font-gray;
+      font-weight: bold;
+      text-shadow: none;
+      text-decoration: none;
+
+      &:before {
+        content: " ";
+      }
+    }
+  }
+} // end of #home-library-links
