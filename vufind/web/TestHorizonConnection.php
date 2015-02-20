@@ -10,11 +10,11 @@ global $logger;
 try{
 	if (strcasecmp($configArray['System']['operatingSystem'], 'windows') == 0 ){
 		sybase_min_client_severity(11);
-		$this->db = @sybase_connect($configArray['Catalog']['database'] ,
+		$db = @sybase_connect($configArray['Catalog']['database'] ,
 		$configArray['Catalog']['username'],
 		$configArray['Catalog']['password']);
 	}else{
-		$this->db = mssql_connect($configArray['Catalog']['host'] . ':' . $configArray['Catalog']['port'],
+		$db = mssql_connect($configArray['Catalog']['host'] . ':' . $configArray['Catalog']['port'],
 		$configArray['Catalog']['username'],
 		$configArray['Catalog']['password']);
 
