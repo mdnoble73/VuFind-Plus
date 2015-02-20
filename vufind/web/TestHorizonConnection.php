@@ -1,6 +1,6 @@
 <?php
 ini_set('display_errors', true);
-error_reporting(E_ALL & ~E_DEPRECATED);
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
 
 require_once 'bootstrap.php';
 
