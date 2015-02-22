@@ -28,7 +28,6 @@ class Location extends DB_DataObject
 	public $useScope;
 	public $facetLabel;
 	public $restrictSearchByLocation;
-//	public $includeDigitalCollection;
 	public $enableOverdriveCollection;
 	public $showHoldButton;
 	public $showStandardReviews;

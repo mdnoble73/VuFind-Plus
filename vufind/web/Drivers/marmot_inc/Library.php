@@ -27,7 +27,6 @@ class Library extends DB_DataObject
 	public $ilsCode;
 	public $themeName; 				//varchar(15)
 	public $restrictSearchByLibrary;
-	public $includeDigitalCollection;
 	public $includeOutOfSystemExternalLinks;
 	public $allowProfileUpdates;   //tinyint(4)
 	public $allowFreezeHolds;   //tinyint(4)
@@ -63,6 +62,7 @@ class Library extends DB_DataObject
 	public $repeatInOnlineCollection;
 	public $repeatInProspector;
 	public $repeatInWorldCat;
+	public $enableOverdriveCollection;
 	public $repeatInOverdrive;
 	public $overdriveAuthenticationILSName;
 	public $overdriveRequirePin;

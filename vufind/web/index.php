@@ -165,7 +165,7 @@ if ($searchSource == 'local' || $searchSource == 'econtent'){
 			($searchLocation->restrictSearchByLocation ||
 					$searchLocation->econtentLocationsToInclude != 'all' ||
 					$searchLocation->useScope ||
-					!$searchLocation->includeDigitalCollection ||
+					!$searchLocation->enableOverdriveCollection ||
 					strlen($searchLocation->extraLocationCodesToInclude) > 0);
 
 	$libraryIsScoped = $searchLibrary != null &&
@@ -173,7 +173,7 @@ if ($searchSource == 'local' || $searchSource == 'econtent'){
 					$searchLibrary->econtentLocationsToInclude != 'all' ||
 					(strlen($searchLibrary->pTypes) > 0 && $searchLibrary->pTypes != -1) ||
 					$searchLibrary->useScope ||
-					!$searchLibrary->includeDigitalCollection);
+					!$searchLibrary->enableOverdriveCollection);
 
 	if ($locationIsScoped &&
 			(

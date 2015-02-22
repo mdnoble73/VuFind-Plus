@@ -490,9 +490,9 @@ class OverDriveRecordDriver extends RecordInterface {
 			$searchLocation = Location::getSearchLocation();
 			$includeSharedTitles = true;
 			if($searchLocation != null){
-				$includeSharedTitles = $searchLocation->includeDigitalCollection != 0;
+				$includeSharedTitles = $searchLocation->enableOverdriveCollection != 0;
 			}elseif ($searchLibrary != null){
-				$includeSharedTitles = $searchLibrary->includeDigitalCollection != 0;
+				$includeSharedTitles = $searchLibrary->enableOverdriveCollection != 0;
 			}
 			$libraryScopingId = $this->getLibraryScopingId();
 			if ($includeSharedTitles){

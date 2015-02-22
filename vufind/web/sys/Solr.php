@@ -1539,7 +1539,7 @@ class Solr implements IndexEngine {
 				$usableEContentFilter .= "$buildingFacetName:\"$homeLibraryFacet Online\"";
 				$onOrderFilter .= "$buildingFacetName:\"$homeLibraryFacet On Order\"";
 			}
-			if (isset($searchLibrary) && $searchLibrary->includeDigitalCollection){
+			if (isset($searchLibrary) && $searchLibrary->enableOverdriveCollection){
 				if (strlen($usableEContentFilter) > 0) $usableEContentFilter .= " OR ";
 				$usableEContentFilter .= " $institutionFacetName:\"Shared Digital Collection\"";
 			}
@@ -1560,21 +1560,21 @@ class Solr implements IndexEngine {
 		//This block checks whether or not the title is owned by
 		if ($this->scopingDisabled == false){
 			if (isset($searchLibrary)){
-				if ($searchLibrary->restrictSearchByLibrary && $searchLibrary->includeDigitalCollection){
+				if ($searchLibrary->restrictSearchByLibrary && $searchLibrary->enableOverdriveCollection){
 					$filter[] = "($institutionFacetName:\"{$searchLibrary->facetLabel}\" OR $institutionFacetName:\"Shared Digital Collection\" OR $institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
 				}else if ($searchLibrary->restrictSearchByLibrary){
 					$filter[] = "$institutionFacetName:\"{$searchLibrary->facetLabel}\"";
-				}else if (!$searchLibrary->includeDigitalCollection){
+				}else if (!$searchLibrary->enableOverdriveCollection){
 					$filter[] = "!($institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
 				}
 			}
 
 			if ($searchLocation != null){
-				if ($searchLocation->restrictSearchByLocation && $searchLocation->includeDigitalCollection){
+				if ($searchLocation->restrictSearchByLocation && $searchLocation->enableOverdriveCollection){
 					$filter[] = "($buildingFacetName:\"{$searchLocation->facetLabel}\" OR $buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLocation->facetLabel} Online\")";
 				}else if ($searchLocation->restrictSearchByLocation){
 					$filter[] = "($buildingFacetName:\"{$searchLocation->facetLabel}\")";
-				}else if (!$searchLocation->includeDigitalCollection){
+				}else if (!$searchLocation->enableOverdriveCollection){
 					$filter[] = "!($buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLibrary->facetLabel} Online\")";
 				}
 			}
