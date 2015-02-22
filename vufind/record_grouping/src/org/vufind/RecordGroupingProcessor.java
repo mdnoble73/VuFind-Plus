@@ -1,6 +1,5 @@
 package org.vufind;
 
-import au.com.bytecode.opencsv.CSVReader;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.marc4j.marc.*;
@@ -45,11 +44,11 @@ public class RecordGroupingProcessor {
 	private long startTime = new Date().getTime();
 
 	private HashMap<String, RecordIdentifier> recordIdentifiers = new HashMap<String, RecordIdentifier>();
-	private static HashMap<String, String> authorAuthorities = new HashMap<String, String>();
-	private static HashMap<String, String> titleAuthorities = new HashMap<String, String>();
 
 	private HashMap<String, HashMap<String, String>> translationMaps = new HashMap<String, HashMap<String, String>>();
 
+	//TODO: Determine if we can avoid this by simply using the ON DUPLICATE KEY UPDATE FUNCTIONALITY
+	//Would also want to mark merged works as changed (at least once) to make sure they get reindexed.
 	private HashMap<String, Long> existingGroupedWorks = new HashMap<String, Long>();
 
 	//A list of grouped works that have been manually merged.
@@ -80,7 +79,7 @@ public class RecordGroupingProcessor {
 			getExistingIdentifierStmt = dbConnection.prepareStatement("SELECT id FROM " + RecordGrouperMain.groupedWorkIdentifiersTableName + " where type = ? and identifier = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			insertIdentifierStmt = dbConnection.prepareStatement("INSERT INTO " + RecordGrouperMain.groupedWorkIdentifiersTableName + " (type, identifier) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
 			addIdentifierToGroupedWorkStmt = dbConnection.prepareStatement("INSERT IGNORE INTO " + RecordGrouperMain.groupedWorkIdentifiersRefTableName + " (grouped_work_id, identifier_id) VALUES (?, ?)");
-			addPrimaryIdentifierForWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_primary_identifiers (grouped_work_id, type, identifier) VALUES (?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+			addPrimaryIdentifierForWorkStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_primary_identifiers (grouped_work_id, type, identifier) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE id=LAST_INSERT_ID(id), grouped_work_id = VALUES(grouped_work_id)", Statement.RETURN_GENERATED_KEYS);
 			removePrimaryIdentifierStmt = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_identifiers WHERE type = ? and identifier = ?");
 			removeIdentifiersForPrimaryIdentifierStmt = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_to_secondary_id_ref where primary_identifier_id = ?");
 			removePrimaryIdentifiersForWorkStmt = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_identifiers where grouped_work_id = ?");
@@ -105,6 +104,7 @@ public class RecordGroupingProcessor {
 		}
 
 		loadTranslationMaps(serverName);
+
 	}
 
 	private char getSubfieldIndicatorFromConfig(Ini configIni, String subfieldName) {
@@ -114,22 +114,6 @@ public class RecordGroupingProcessor {
 			subfield = subfieldString.charAt(0);
 		}
 		return subfield;
-	}
-
-	public static String mapAuthorAuthority(String originalAuthor){
-		if (authorAuthorities.containsKey(originalAuthor)){
-			return authorAuthorities.get(originalAuthor);
-		}else{
-			return originalAuthor;
-		}
-	}
-
-	public static String mapTitleAuthority(String originalTitle){
-		if (titleAuthorities.containsKey(originalTitle)){
-			return titleAuthorities.get(originalTitle);
-		}else{
-			return originalTitle;
-		}
 	}
 
 	private RecordIdentifier getPrimaryIdentifierFromMarcRecord(Record marcRecord){
@@ -258,12 +242,12 @@ public class RecordGroupingProcessor {
 		return variableFieldsReturn;
 	}
 
-	public void processMarcRecord(Record marcRecord, String loadFormatFrom, char formatSubfield){
+	public void processMarcRecord(Record marcRecord, String loadFormatFrom, char formatSubfield, boolean primaryDataChanged){
 		RecordIdentifier primaryIdentifier = getPrimaryIdentifierFromMarcRecord(marcRecord);
-		processMarcRecord(marcRecord, primaryIdentifier, loadFormatFrom, formatSubfield);
+		processMarcRecord(marcRecord, primaryIdentifier, loadFormatFrom, formatSubfield, primaryDataChanged);
 	}
 
-	public void processMarcRecord(Record marcRecord, RecordIdentifier primaryIdentifier, String loadFormatFrom, char formatSubfield){
+	public void processMarcRecord(Record marcRecord, RecordIdentifier primaryIdentifier, String loadFormatFrom, char formatSubfield, boolean primaryDataChanged){
 		if (primaryIdentifier != null){
 			//Get data for the grouped record
 			GroupedWorkBase workForTitle = setupBasicWorkForIlsRecord(marcRecord, loadFormatFrom, formatSubfield);
@@ -272,7 +256,7 @@ public class RecordGroupingProcessor {
 			HashSet<RecordIdentifier> identifiers = getIdentifiersFromMarcRecord(marcRecord);
 			workForTitle.setIdentifiers(identifiers);
 
-			addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
+			addGroupedWorkToDatabase(primaryIdentifier, workForTitle, primaryDataChanged);
 		}
 	}
 
@@ -298,7 +282,7 @@ public class RecordGroupingProcessor {
 		return workForTitle;
 	}
 
-	public void processEVokeRecord(Record marcRecord, RecordIdentifier primaryIdentifier){
+	public void processEVokeRecord(Record marcRecord, RecordIdentifier primaryIdentifier, boolean primaryDataChanged){
 		if (primaryIdentifier != null){
 			GroupedWorkBase workForTitle = setupBasicWorkForEVokeRecord(marcRecord);
 
@@ -307,13 +291,13 @@ public class RecordGroupingProcessor {
 
 			workForTitle.setIdentifiers(identifiers);
 
-			addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
+			addGroupedWorkToDatabase(primaryIdentifier, workForTitle, primaryDataChanged);
 		}
 	}
 
 	public GroupedWorkBase setupBasicWorkForEVokeRecord(Record marcRecord) {
 		//Get data for the grouped record
-		GroupedWorkBase workForTitle = new GroupedWorkFactory().getInstance(-1);
+		GroupedWorkBase workForTitle = GroupedWorkFactory.getInstance(-1);
 
 		//Title
 		DataField field245 = setWorkTitleBasedOnMarcRecord(marcRecord, workForTitle);
@@ -397,42 +381,35 @@ public class RecordGroupingProcessor {
 		return field245;
 	}
 
-	private void addGroupedWorkToDatabase(RecordIdentifier primaryIdentifier, GroupedWorkBase groupedWork) {
+	/**
+	 * Add a work to the database
+	 *
+	 * @param primaryIdentifier The primary identifier we are updating the work for
+	 * @param groupedWork       Information about the work itself
+	 */
+	private void addGroupedWorkToDatabase(RecordIdentifier primaryIdentifier, GroupedWorkBase groupedWork, boolean primaryDataChanged) {
 		String groupedWorkPermanentId = groupedWork.getPermanentId();
+
+		//Check to see if we are doing a manual merge of the work
 		if (mergedGroupedWorks.containsKey(groupedWorkPermanentId)){
-			String originalGroupedWorkPermanentId = groupedWorkPermanentId;
-			groupedWorkPermanentId = mergedGroupedWorks.get(groupedWorkPermanentId);
-			groupedWork.overridePermanentId(groupedWorkPermanentId);
-
-			logger.debug("Overriding grouped work " + originalGroupedWorkPermanentId + " with " + groupedWorkPermanentId);
-
-			//Mark that the original was updated
-			if (existingGroupedWorks.containsKey(originalGroupedWorkPermanentId)) {
-				//There is an existing grouped record
-				long originalGroupedWorkId = existingGroupedWorks.get(originalGroupedWorkPermanentId);
-				markWorkUpdated(originalGroupedWorkId);
-				try {
-					removePrimaryIdentifiersForWorkStmt.setLong(1, originalGroupedWorkId);
-					removePrimaryIdentifiersForWorkStmt.executeUpdate();
-				} catch (SQLException e) {
-					logger.error("Error removing primary identifiers for merged work " + originalGroupedWorkPermanentId + "(" + originalGroupedWorkId + ")");
-				}
-			}
+			groupedWorkPermanentId = handleMergedWork(groupedWork, groupedWorkPermanentId);
 		}
+
+		//Add the work to the database
 		numRecordsProcessed++;
 		long groupedWorkId = -1;
 		try{
-			boolean groupedWorkFound = false;
 			if (existingGroupedWorks.containsKey(groupedWorkPermanentId)){
 				//There is an existing grouped record
 				groupedWorkId = existingGroupedWorks.get(groupedWorkPermanentId);
 
 				//Mark that the work has been updated
-				markWorkUpdated(groupedWorkId);
-				groupedWorkFound = true;
-			}
+				//Only mark it as updated if the data for the primary identifier has changed
+				if (primaryDataChanged) {
+					markWorkUpdated(groupedWorkId);
+				}
 
-			if (!groupedWorkFound){
+			} else {
 				//Need to insert a new grouped record
 				insertGroupedWorkStmt.setString(1, groupedWork.getTitle());
 				insertGroupedWorkStmt.setString(2, groupedWork.getAuthor());
@@ -447,32 +424,72 @@ public class RecordGroupingProcessor {
 				}
 				generatedKeysRS.close();
 				numGroupedWorksAdded++;
+
+				//Add to the existing works so we can optimize performance later
 				existingGroupedWorks.put(groupedWorkPermanentId, groupedWorkId);
+				updatedAndInsertedWorksThisRun.add(groupedWorkId);
 			}
 
 			//Update identifiers
-			addPrimaryIdentifierForWorkToDB(groupedWorkId, primaryIdentifier);
-			addIdentifiersForRecordToDB(groupedWorkId, groupedWork.getIdentifiers(), primaryIdentifier);
+			if (fullRegrouping || primaryDataChanged) {
+				addPrimaryIdentifierForWorkToDB(groupedWorkId, primaryIdentifier);
+				addIdentifiersForRecordToDB(groupedWorkId, groupedWork.getIdentifiers(), primaryIdentifier);
+			}
 		}catch (Exception e){
 			logger.error("Error adding grouped record to grouped work ", e);
 		}
 
 	}
 
+	private String handleMergedWork(GroupedWorkBase groupedWork, String groupedWorkPermanentId) {
+		//Handle the merge
+		String originalGroupedWorkPermanentId = groupedWorkPermanentId;
+		//Override the work id
+		groupedWorkPermanentId = mergedGroupedWorks.get(groupedWorkPermanentId);
+		groupedWork.overridePermanentId(groupedWorkPermanentId);
+
+		logger.debug("Overriding grouped work " + originalGroupedWorkPermanentId + " with " + groupedWorkPermanentId);
+
+		//Mark that the original was updated
+		if (existingGroupedWorks.containsKey(originalGroupedWorkPermanentId)) {
+			//There is an existing grouped record
+			long originalGroupedWorkId = existingGroupedWorks.get(originalGroupedWorkPermanentId);
+
+			//Make sure we mark the original work as updated so it can be removed from the index next time around
+			markWorkUpdated(originalGroupedWorkId);
+
+			//Remove the identifiers for the work.
+			//TODO: If we have multiple identifiers for this work, we'll call the delete once for each work.
+			//Should we optimize to just call it once and remember that we removed it already?
+			try {
+				removePrimaryIdentifiersForWorkStmt.setLong(1, originalGroupedWorkId);
+				removePrimaryIdentifiersForWorkStmt.executeUpdate();
+			} catch (SQLException e) {
+				logger.error("Error removing primary identifiers for merged work " + originalGroupedWorkPermanentId + "(" + originalGroupedWorkId + ")");
+			}
+		}
+		return groupedWorkPermanentId;
+	}
+
+	private HashSet<Long> updatedAndInsertedWorksThisRun = new HashSet<Long>();
 	private void markWorkUpdated(long groupedWorkId) {
-		try{
-			updateDateUpdatedForGroupedWorkStmt.setLong(1, new Date().getTime() / 1000);
-			updateDateUpdatedForGroupedWorkStmt.setLong(2, groupedWorkId);
-			updateDateUpdatedForGroupedWorkStmt.executeUpdate();
-		}catch (Exception e){
-			logger.error("Error updating date updated for grouped work ", e);
+		//Optimize to not continually mark the same works as updateed
+		if (!updatedAndInsertedWorksThisRun.contains(groupedWorkId)) {
+			try {
+				updateDateUpdatedForGroupedWorkStmt.setLong(1, new Date().getTime() / 1000);
+				updateDateUpdatedForGroupedWorkStmt.setLong(2, groupedWorkId);
+				updateDateUpdatedForGroupedWorkStmt.executeUpdate();
+				updatedAndInsertedWorksThisRun.add(groupedWorkId);
+			} catch (Exception e) {
+				logger.error("Error updating date updated for grouped work ", e);
+			}
 		}
 	}
 
 	private void addPrimaryIdentifierForWorkToDB(long groupedWorkId, RecordIdentifier primaryIdentifier) {
-		deletePrimaryIdentifier(primaryIdentifier);
-
+		//Optimized to not delete and remove the primary identifier if it hasn't changed.  Just updates the grouped_work_id.
 		try {
+			//This statement will either add the primary key or update the work id if it already exits
 			addPrimaryIdentifierForWorkStmt.setLong(1, groupedWorkId);
 			addPrimaryIdentifierForWorkStmt.setString(2, primaryIdentifier.getType());
 			addPrimaryIdentifierForWorkStmt.setString(3, primaryIdentifier.getIdentifier());
@@ -487,21 +504,32 @@ public class RecordGroupingProcessor {
 	}
 
 	private void addIdentifiersForRecordToDB(long groupedWorkId, HashSet<RecordIdentifier> identifiers, RecordIdentifier primaryIdentifier) throws SQLException {
-		//Remove any references to old identifiers
+		//Remove any identifiers that were linked to the primary identifier in the last pass
+		//Need to be careful since secondary identifiers can be linked to multiple records.
 		removeIdentifiersForPrimaryIdentifier(primaryIdentifier);
 
-		//Cleanup identifiers that no longer have any primary identifiers at the end.
+		//Loop through each identifier to process it.
 		for (RecordIdentifier curIdentifier :  identifiers){
+			//Check to see if the identifier has already been loaded into the database
 			if (recordIdentifiers.containsKey(curIdentifier.toString())){
 				curIdentifier = recordIdentifiers.get(curIdentifier.toString());
 			} else {
 				insertNewSecondaryIdentifier(curIdentifier);
 			}
+			//Check to see if this identifier has already been linked to the grouped work.  If not, link it.
 			if (!curIdentifier.isLinkedToGroupedWork(groupedWorkId)){
 				addSecondaryIdentifierToGroupedWork(groupedWorkId, curIdentifier);
 			}
+			//Store that the secondary identifier is linked to the primary identifier.
 			addPrimaryToSecondaryReferences(primaryIdentifier, curIdentifier);
 		}
+
+		//Alternate implementation to try:
+		//Get a list of all secondary identifiers for the primary identifier
+		//Get a list of all secondary identifiers for the grouped work
+		//Loop through currently detected secondary identifiers
+			//If the identifier is not in the list of identifiers for the primary identifier add it
+			//
 	}
 
 	private void addPrimaryToSecondaryReferences(RecordIdentifier primaryIdentifier, RecordIdentifier curIdentifier) throws SQLException {
@@ -563,7 +591,7 @@ public class RecordGroupingProcessor {
 		}
 	}
 
-	public void processRecord(RecordIdentifier primaryIdentifier, String title, String subtitle, String author, String format, HashSet<RecordIdentifier>identifiers){
+	public void processRecord(RecordIdentifier primaryIdentifier, String title, String subtitle, String author, String format, HashSet<RecordIdentifier>identifiers, boolean primaryDataChanged){
 		GroupedWorkBase groupedWork = GroupedWorkFactory.getInstance(-1);
 
 		//Replace & with and for better matching
@@ -585,7 +613,7 @@ public class RecordGroupingProcessor {
 
 		groupedWork.setIdentifiers(identifiers);
 
-		addGroupedWorkToDatabase(primaryIdentifier, groupedWork);
+		addGroupedWorkToDatabase(primaryIdentifier, groupedWork, primaryDataChanged);
 	}
 
 	private String getFormatFromItems(Record record, char formatSubfield) {
@@ -1169,7 +1197,7 @@ public class RecordGroupingProcessor {
 		return translatedValue;
 	}
 
-	public void processHooplaRecord(Record marcRecord, String recordNumber) {
+	public void processHooplaRecord(Record marcRecord, String recordNumber, boolean primaryDataChanged) {
 		//Create primary identifier so we can get back to the record later
 		RecordIdentifier primaryIdentifier = new RecordIdentifier();
 		primaryIdentifier.setValue("hoopla", recordNumber);
@@ -1178,12 +1206,12 @@ public class RecordGroupingProcessor {
 		//Get isbns and upcs for cover images, etc.
 		workForTitle.setIdentifiers(getIdentifiersFromMarcRecord(marcRecord));
 
-		addGroupedWorkToDatabase(primaryIdentifier, workForTitle);
+		addGroupedWorkToDatabase(primaryIdentifier, workForTitle, primaryDataChanged);
 	}
 
 	public GroupedWorkBase setupBasicWorkForHooplaRecord(Record marcRecord) {
 		//Create Grouped Work
-		GroupedWorkBase workForTitle = new GroupedWorkFactory().getInstance(-1);
+		GroupedWorkBase workForTitle = GroupedWorkFactory.getInstance(-1);
 
 		//Extract title so that we can group with other records
 		DataField field245 = setWorkTitleBasedOnMarcRecord(marcRecord, workForTitle);

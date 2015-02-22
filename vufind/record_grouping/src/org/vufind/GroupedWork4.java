@@ -31,7 +31,6 @@ public class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 	static Logger logger = Logger.getLogger(GroupedWork4.class);
 	private String normalizeAuthor(String author) {
 		String groupingAuthor = AuthorNormalizer.getNormalizedName(author);
-		groupingAuthor = RecordGroupingProcessor.mapAuthorAuthority(groupingAuthor);
 
 		return groupingAuthor;
 	}
@@ -164,7 +163,7 @@ public class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 			title = normalizeSubtitleWithinMainTitle(title);
 		}
 		title = normalizeTitle(title, numNonFilingCharacters);
-		this.fullTitle = RecordGroupingProcessor.mapTitleAuthority(title.trim());
+		this.fullTitle = title.trim();
 	}
 
 	public String normalizePassedInSubtitle(String title, String subtitle) {
@@ -175,8 +174,8 @@ public class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 				newSubtitle = removeComplexSubtitles(newSubtitle);
 				if (newSubtitle.length() > 0) {
 					title += " " + newSubtitle;
-				} else {
-					logger.debug("Removed subtitle " + subtitle);
+				//} else {
+				//	logger.debug("Removed subtitle " + subtitle);
 				}
 			}
 		}else{
@@ -202,8 +201,8 @@ public class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 			newSubtitle = removeComplexSubtitles(newSubtitle);
 			if (newSubtitle.length() > 0) {
 				title =  mainTitle + " " + newSubtitle;
-			} else{
-				logger.debug("Removed subtitle " + subtitleFromTitle);
+			//} else{
+			//	logger.debug("Removed subtitle " + subtitleFromTitle);
 			}
 		}
 		return title;

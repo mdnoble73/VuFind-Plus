@@ -64,7 +64,7 @@ public class AuthorNormalizer {
 			groupingAuthor = groupingAuthor.substring(0, 50);
 		}
 		groupingAuthor = groupingAuthor.trim();
-		groupingAuthor = RecordGroupingProcessor.mapAuthorAuthority(groupingAuthor);
+		groupingAuthor = groupingAuthor;
 
 		return groupingAuthor;
 	}

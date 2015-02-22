@@ -7,7 +7,6 @@ import org.apache.log4j.PropertyConfigurator;
 import org.ini4j.Ini;
 import org.ini4j.InvalidFileFormatException;
 import org.ini4j.Profile;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.marc4j.MarcPermissiveStreamReader;
 import org.marc4j.MarcReader;
@@ -85,7 +84,13 @@ public class RecordGrouperMain {
 		serverName = args[0];
 
 		if (serverName.equals("benchmark")) {
-			doBenchmarking();
+			boolean validateNYPL = false;
+			if (args.length > 1){
+				if (args[1].equals("nypl")){
+					validateNYPL = true;
+				}
+			}
+			doBenchmarking(validateNYPL);
 		}else if (serverName.equals("loadAuthoritiesFromVIAF")){
 			File log4jFile = new File("./log4j.grouping.properties");
 			if (log4jFile.exists()) {
@@ -123,7 +128,7 @@ public class RecordGrouperMain {
 		serverName = args[1];
 		long processStartTime = new Date().getTime();
 
-		CSVWriter authoritiesWriter = null;
+		CSVWriter authoritiesWriter;
 		try{
 			authoritiesWriter = new CSVWriter(new FileWriter(new File("./author_authorities.properties.temp")));
 		}catch (Exception e){
@@ -164,7 +169,7 @@ public class RecordGrouperMain {
 		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, serverName, configIni, logger, true);
 		generateAuthorAuthoritiesForHooplaRecords(configIni, currentAuthorities, manualAuthorities, authoritiesWriter, recordGroupingProcessor);
 		generateAuthorAuthoritiesForIlsRecords(configIni, currentAuthorities, manualAuthorities, authoritiesWriter, recordGroupingProcessor);
-		generateAuthorAuthoritiesForOverDriveRecords(econtentConnection, currentAuthorities, manualAuthorities, authoritiesWriter, recordGroupingProcessor);
+		generateAuthorAuthoritiesForOverDriveRecords(econtentConnection, currentAuthorities, manualAuthorities, authoritiesWriter);
 		generateAuthorAuthoritiesForEVokeRecords(configIni, currentAuthorities, manualAuthorities, authoritiesWriter, recordGroupingProcessor);
 
 		try {
@@ -252,7 +257,7 @@ public class RecordGrouperMain {
 		}
 	}
 
-	private static void generateAuthorAuthoritiesForOverDriveRecords(Connection econtentConnection, HashMap<String, String> currentAuthorities, HashMap<String, String> manualAuthorities, CSVWriter authoritiesWriter, RecordGroupingProcessor recordGroupingProcessor) {
+	private static void generateAuthorAuthoritiesForOverDriveRecords(Connection econtentConnection, HashMap<String, String> currentAuthorities, HashMap<String, String> manualAuthorities, CSVWriter authoritiesWriter) {
 		int numRecordsProcessed = 0;
 		try{
 			PreparedStatement overDriveRecordsStmt;
@@ -456,7 +461,7 @@ public class RecordGrouperMain {
 		return authorAuthorities;
 	}
 
-	private static void doBenchmarking() {
+	private static void doBenchmarking(boolean validateNYPL) {
 		long processStartTime = new Date().getTime();
 		File log4jFile = new File("./log4j.grouping.properties");
 		if (log4jFile.exists()) {
@@ -471,8 +476,6 @@ public class RecordGrouperMain {
 			//Load the input file to test
 			File benchmarkFile = new File("./benchmark_input.csv");
 			CSVReader benchmarkInputReader = new CSVReader(new FileReader(benchmarkFile));
-
-			boolean validateNYPL = false;
 
 			//Create a file to store the results within
 			SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss");
@@ -495,12 +498,14 @@ public class RecordGrouperMain {
 			CSVReader validationReader = new CSVReader(new FileReader(validationFile));
 
 			//Read the header from input
-			String[] csvData = benchmarkInputReader.readNext();
+			String[] csvData;
+			benchmarkInputReader.readNext();
 
 			int numErrors = 0;
 			int numTestsRun = 0;
 			//Read validation file
-			String[] validationData = validationReader.readNext();
+			String[] validationData;
+			validationReader.readNext();
 			while ((csvData = benchmarkInputReader.readNext()) != null){
 				if (csvData.length >= 3) {
 					numTestsRun++;
@@ -647,25 +652,27 @@ public class RecordGrouperMain {
 		clearDatabase(vufindConn, clearDatabasePriorToGrouping);
 		loadIlsChecksums(vufindConn);
 
-		boolean errorAddingGroupedWorks = false;
 		groupHooplaRecords(configIni, recordGroupingProcessor);
 		groupEVokeRecords(configIni, recordGroupingProcessor);
 		groupOverDriveRecords(econtentConnection, recordGroupingProcessor);
 		groupIlsRecords(configIni, recordGroupingProcessor);
 
 		try{
+			logger.info("Doing post processing of record grouping");
 			vufindConn.setAutoCommit(false);
-			if (!errorAddingGroupedWorks){
-				removeGroupedWorksWithoutPrimaryIdentifiers(vufindConn);
-				vufindConn.commit();
-				removeUnlinkedIdentifiers(vufindConn);
-				vufindConn.commit();
-				makeIdentifiersLinkingToMultipleWorksInvalidForEnrichment(vufindConn);
-				vufindConn.commit();
-				updateLastGroupingTime(vufindConn);
-				vufindConn.commit();
-			}
+
+			//Cleanup the data
+			removeGroupedWorksWithoutPrimaryIdentifiers(vufindConn);
+			vufindConn.commit();
+			removeUnlinkedIdentifiers(vufindConn);
+			vufindConn.commit();
+			makeIdentifiersLinkingToMultipleWorksInvalidForEnrichment(vufindConn);
+			vufindConn.commit();
+			updateLastGroupingTime(vufindConn);
+			vufindConn.commit();
+
 			vufindConn.setAutoCommit(true);
+			logger.info("Finished doing post processing of record grouping");
 		}catch (SQLException e){
 			logger.error("Error in grouped work post processing", e);
 		}
@@ -725,7 +732,7 @@ public class RecordGrouperMain {
 						String recordNumber = curBib.getControlNumber();
 						boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, 7);
 						if (!marcUpToDate || fullRegroupingNoClear){
-							recordGroupingProcessor.processHooplaRecord(curBib, recordNumber);
+							recordGroupingProcessor.processHooplaRecord(curBib, recordNumber, !marcUpToDate);
 							numRecordsProcessed++;
 						}
 						//Mark that the record was processed
@@ -752,10 +759,10 @@ public class RecordGrouperMain {
 	 * If we are generating authorities, we will skip the music because hoopla has some
 	 * "strange" formatting in the records.
 	 *
-	 * @param hooplaSection
-	 * @param marcPath
-	 * @param forAuthorities
-	 * @return
+	 * @param hooplaSection   The hoopla section of config ini
+	 * @param marcPath        The path to hoopla data
+	 * @param forAuthorities  Whether or not we are loading for authority information
+	 * @return a list of files to be processed.
 	 */
 	private static ArrayList<File> loadHooplaFilesToProcess(Profile.Section hooplaSection, String marcPath, boolean forAuthorities) {
 		ArrayList<File> marcRecordFilesToProcess = new ArrayList<File>();
@@ -850,7 +857,7 @@ public class RecordGrouperMain {
 										primaryIdentifier.setValue("evoke", recordNumber);
 										try {
 											//TODO: Determine if the record has changed since we last indexed (if doing a partial update).
-											recordGroupingProcessor.processEVokeRecord(marcRecord, primaryIdentifier);
+											recordGroupingProcessor.processEVokeRecord(marcRecord, primaryIdentifier, true);
 											numRecordsProcessed++;
 											lastRecordProcessed = recordNumber;
 											numRecordsRead++;
@@ -1114,7 +1121,7 @@ public class RecordGrouperMain {
 							String recordNumber = getRecordNumberForBib(curBib);
 							boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, 4);
 							if (!marcUpToDate || fullRegroupingNoClear){
-								recordGroupingProcessor.processMarcRecord(curBib, loadFormatFrom, formatSubfield);
+								recordGroupingProcessor.processMarcRecord(curBib, loadFormatFrom, formatSubfield, !marcUpToDate);
 								numRecordsProcessed++;
 							}
 							//Mark that the record was processed
@@ -1254,7 +1261,7 @@ public class RecordGrouperMain {
 					}
 				}
 
-				recordGroupingProcessor.processRecord(primaryIdentifier, title, subtitle, author, mediaType, overDriveIdentifiers);
+				recordGroupingProcessor.processRecord(primaryIdentifier, title, subtitle, author, mediaType, overDriveIdentifiers, true);
 				numRecordsProcessed++;
 			}
 			overDriveRecordRS.close();

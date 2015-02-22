@@ -69,7 +69,6 @@ public class GroupedWork1 extends GroupedWorkBase implements Cloneable {
 			groupingAuthor = groupingAuthor.substring(0, 50);
 		}
 		groupingAuthor = groupingAuthor.trim();
-		groupingAuthor = RecordGroupingProcessor.mapAuthorAuthority(groupingAuthor);
 
 		return groupingAuthor;
 	}
@@ -212,7 +211,7 @@ public class GroupedWork1 extends GroupedWorkBase implements Cloneable {
 				title += " " + subtitle;
 			}
 		}
-		this.fullTitle = RecordGroupingProcessor.mapTitleAuthority(title.trim());
+		this.fullTitle = title.trim();
 	}
 
 	public String getAuthor() {
