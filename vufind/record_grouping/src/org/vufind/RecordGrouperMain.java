@@ -915,26 +915,59 @@ public class RecordGrouperMain {
 			//Get a list of any secondaryIdentifiers that are used to load enrichment (isbn, issn, upc) that are attached to more than one grouped work
 			vufindConn.setAutoCommit(false);
 			PreparedStatement invalidIdentifiersStmt = vufindConn.prepareStatement(
-					"SELECT grouped_work_identifiers.id as secondary_identifier_id, type, identifier, GROUP_CONCAT(permanent_id), GROUP_CONCAT(full_title) as titles, GROUP_CONCAT(author) as authors, GROUP_CONCAT(grouping_category) as categories, COUNT(grouped_work_id) as num_related_works\n" +
-							"FROM grouped_work_identifiers \n" +
+					"SELECT grouped_work_identifiers.id as secondary_identifier_id, type, identifier, COUNT(grouped_work_id) as num_related_works\n" +
+							"FROM grouped_work_identifiers\n" +
 							"INNER JOIN grouped_work_identifiers_ref ON grouped_work_identifiers.id = identifier_id\n" +
-							"INNER JOIN grouped_work ON grouped_work_id = grouped_work.id\n" +
 							"WHERE type IN ('isbn', 'issn', 'upc')\n" +
 							"GROUP BY grouped_work_identifiers.id\n" +
 							"HAVING num_related_works > 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			ResultSet invalidIdentifiersRS = invalidIdentifiersStmt.executeQuery();
+			PreparedStatement getRelatedWorksForIdentifierStmt = vufindConn.prepareStatement("SELECT full_title, author, grouping_category\n" +
+					"FROM grouped_work_identifiers_ref\n" +
+					"INNER JOIN grouped_work ON grouped_work_id = grouped_work.id\n" +
+					"WHERE identifier_id = ?");
 			PreparedStatement updateInvalidIdentifierStmt = vufindConn.prepareStatement("UPDATE grouped_work_identifiers SET valid_for_enrichment = 0 where id = ?");
 			int numIdentifiersUpdated = 0;
 			while (invalidIdentifiersRS.next()){
 				String type = invalidIdentifiersRS.getString("type");
 				String identifier = invalidIdentifiersRS.getString("identifier");
-				String titles = invalidIdentifiersRS.getString("titles");
-				String[] titlesBroken = titles.split(",");
+				Long secondaryIdentifierId = invalidIdentifiersRS.getLong("secondary_identifier_id");
+				//Get the related works for the identifier
+				getRelatedWorksForIdentifierStmt.setLong(1, secondaryIdentifierId);
+				ResultSet relatedWorksForIdentifier = getRelatedWorksForIdentifierStmt.executeQuery();
+				StringBuilder titles = new StringBuilder();
+				ArrayList<String> titlesBroken = new ArrayList<String>();
+				StringBuilder authors = new StringBuilder();
+				ArrayList<String> authorsBroken = new ArrayList<String>();
+				StringBuilder categories = new StringBuilder();
+				ArrayList<String> categoriesBroken = new ArrayList<String>();
+
+				while (relatedWorksForIdentifier.next()){
+					titlesBroken.add(relatedWorksForIdentifier.getString("full_title"));
+					if (titles.length() > 0){
+						titles.append(", ");
+					}
+					titles.append(relatedWorksForIdentifier.getString("full_title"));
+
+					authorsBroken.add(relatedWorksForIdentifier.getString("author"));
+					if (authors.length() > 0){
+						authors.append(", ");
+					}
+					authors.append(relatedWorksForIdentifier.getString("author"));
+
+					categoriesBroken.add(relatedWorksForIdentifier.getString("grouping_category"));
+					if (categories.length() > 0){
+						categories.append(", ");
+					}
+					categories.append(relatedWorksForIdentifier.getString("grouping_category"));
+				}
+
 				boolean allTitlesSimilar = true;
-				if (titlesBroken.length >= 2){
-					String firstTitle = titlesBroken[0];
-					for (int i = 1; i < titlesBroken.length; i++){
-						String curTitle = titlesBroken[i];
+				if (titlesBroken.size() >= 2){
+					String firstTitle = titlesBroken.get(0);
+
+					for (int i = 1; i < titlesBroken.size(); i++){
+						String curTitle = titlesBroken.get(i);
 						if (!curTitle.equals(firstTitle)){
 							if (curTitle.startsWith(firstTitle) || firstTitle.startsWith(curTitle)){
 								logger.info(type + " " + identifier + " did not match on titles '" + titles + "', but the titles are similar");
@@ -944,13 +977,12 @@ public class RecordGrouperMain {
 						}
 					}
 				}
-				String authors = invalidIdentifiersRS.getString("authors");
-				String[] authorsBroken = authors.split(",");
+
 				boolean allAuthorsSimilar = true;
-				if (authorsBroken.length >= 2){
-					String firstAuthor = authorsBroken[0];
-					for (int i = 1; i < authorsBroken.length; i++){
-						String curAuthor = authorsBroken[i];
+				if (authorsBroken.size() >= 2){
+					String firstAuthor = authorsBroken.get(0);
+					for (int i = 1; i < authorsBroken.size(); i++){
+						String curAuthor = authorsBroken.get(i);
 						if (!curAuthor.equals(firstAuthor)){
 							if (curAuthor.startsWith(firstAuthor) || firstAuthor.startsWith(curAuthor)){
 								logger.info(type + " " + identifier + " did not match on authors '" + authors + "', but the authors are similar");
@@ -960,19 +992,14 @@ public class RecordGrouperMain {
 						}
 					}
 				}
-				String categories = invalidIdentifiersRS.getString("categories");
-				String[] categoriesBroken = categories.split(",");
+
 				boolean allCategoriesSimilar = true;
-				if (categoriesBroken.length >= 2){
-					String firstCategory = categoriesBroken[0];
-					for (int i = 1; i < categoriesBroken.length; i++){
-						String curCategory = categoriesBroken[i];
+				if (categoriesBroken.size() >= 2){
+					String firstCategory = categoriesBroken.get(0);
+					for (int i = 1; i < categoriesBroken.size(); i++){
+						String curCategory = categoriesBroken.get(i);
 						if (!curCategory.equals(firstCategory)){
-							if (curCategory.startsWith(firstCategory) || firstCategory.startsWith(curCategory)){
-								logger.info(type + " " + identifier + " did not match on categories '" + categories + "', but the categories are similar");
-							}else{
-								allCategoriesSimilar = false;
-							}
+							allCategoriesSimilar = false;
 						}
 					}
 				}
