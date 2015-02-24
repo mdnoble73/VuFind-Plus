@@ -36,14 +36,15 @@ public class RecordGroupingProcessor {
 	private PreparedStatement removeIdentifiersForPrimaryIdentifierStmt;
 	private PreparedStatement removePrimaryIdentifiersForWorkStmt;
 	private PreparedStatement addPrimaryIdentifierToSecondaryIdentifierRefStmt;
+	private PreparedStatement getSecondaryIdentifiersForPrimaryIdentifier;
+	private PreparedStatement getSecondaryIdentifiersForGroupedWork;
+	private PreparedStatement removeSecondaryIdentifierFromPrimaryIdentifier;
 
 	private int numRecordsProcessed = 0;
 	private int numGroupedWorksAdded = 0;
 
 	private boolean fullRegrouping;
 	private long startTime = new Date().getTime();
-
-	private HashMap<String, RecordIdentifier> recordIdentifiers = new HashMap<String, RecordIdentifier>();
 
 	private HashMap<String, HashMap<String, String>> translationMaps = new HashMap<String, HashMap<String, String>>();
 
@@ -84,6 +85,10 @@ public class RecordGroupingProcessor {
 			removeIdentifiersForPrimaryIdentifierStmt = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_to_secondary_id_ref where primary_identifier_id = ?");
 			removePrimaryIdentifiersForWorkStmt = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_identifiers where grouped_work_id = ?");
 			addPrimaryIdentifierToSecondaryIdentifierRefStmt = dbConnection.prepareStatement("INSERT INTO grouped_work_primary_to_secondary_id_ref (primary_identifier_id, secondary_identifier_id) VALUES (?, ?) ");
+
+			getSecondaryIdentifiersForPrimaryIdentifier = dbConnection.prepareStatement("SELECT grouped_work_identifiers.id, type, identifier from grouped_work_identifiers inner join grouped_work_primary_to_secondary_id_ref on grouped_work_identifiers.id = secondary_identifier_id where primary_identifier_id = ?",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			getSecondaryIdentifiersForGroupedWork = dbConnection.prepareStatement("SELECT identifier_id from grouped_work_identifiers_ref WHERE grouped_work_id = ?");
+			removeSecondaryIdentifierFromPrimaryIdentifier = dbConnection.prepareStatement("DELETE FROM grouped_work_primary_to_secondary_id_ref WHERE secondary_identifier_id = ? and primary_identifier_id = ?");
 			if (!fullRegrouping){
 				PreparedStatement loadExistingGroupedWorksStmt = dbConnection.prepareStatement("SELECT id, permanent_id from grouped_work");
 				ResultSet loadExistingGroupedWorksRS = loadExistingGroupedWorksStmt.executeQuery();
@@ -504,32 +509,46 @@ public class RecordGroupingProcessor {
 	}
 
 	private void addIdentifiersForRecordToDB(long groupedWorkId, HashSet<RecordIdentifier> identifiers, RecordIdentifier primaryIdentifier) throws SQLException {
-		//Remove any identifiers that were linked to the primary identifier in the last pass
-		//Need to be careful since secondary identifiers can be linked to multiple records.
-		removeIdentifiersForPrimaryIdentifier(primaryIdentifier);
-
-		//Loop through each identifier to process it.
-		for (RecordIdentifier curIdentifier :  identifiers){
-			//Check to see if the identifier has already been loaded into the database
-			if (recordIdentifiers.containsKey(curIdentifier.toString())){
-				curIdentifier = recordIdentifiers.get(curIdentifier.toString());
-			} else {
-				insertNewSecondaryIdentifier(curIdentifier);
-			}
-			//Check to see if this identifier has already been linked to the grouped work.  If not, link it.
-			if (!curIdentifier.isLinkedToGroupedWork(groupedWorkId)){
-				addSecondaryIdentifierToGroupedWork(groupedWorkId, curIdentifier);
-			}
-			//Store that the secondary identifier is linked to the primary identifier.
-			addPrimaryToSecondaryReferences(primaryIdentifier, curIdentifier);
+		//Get a list of all secondary identifiers for the primary identifier
+		getSecondaryIdentifiersForPrimaryIdentifier.setLong(1, primaryIdentifier.getIdentifierId());
+		ResultSet secondaryIdentifiersForPrimaryIdentifier = getSecondaryIdentifiersForPrimaryIdentifier.executeQuery();
+		HashMap<String, Long> existingSecondaryIdentifiers = new HashMap<String, Long>();
+		while (secondaryIdentifiersForPrimaryIdentifier.next()){
+			existingSecondaryIdentifiers.put(secondaryIdentifiersForPrimaryIdentifier.getString("type") + ":" + secondaryIdentifiersForPrimaryIdentifier.getString("identifier").toUpperCase(), secondaryIdentifiersForPrimaryIdentifier.getLong("id"));
 		}
 
-		//Alternate implementation to try:
-		//Get a list of all secondary identifiers for the primary identifier
 		//Get a list of all secondary identifiers for the grouped work
+		getSecondaryIdentifiersForGroupedWork.setLong(1, groupedWorkId);
+		ResultSet secondaryIdentifiersForGroupedWork = getSecondaryIdentifiersForGroupedWork.executeQuery();
+		ArrayList<Long> existingSecondaryIdentifiersForWork = new ArrayList<Long>();
+		while (secondaryIdentifiersForGroupedWork.next()){
+			existingSecondaryIdentifiersForWork.add(secondaryIdentifiersForGroupedWork.getLong("identifier_id"));
+		}
+
 		//Loop through currently detected secondary identifiers
-			//If the identifier is not in the list of identifiers for the primary identifier add it
-			//
+		for (RecordIdentifier secondaryIdentifier : identifiers) {
+			String key = secondaryIdentifier.toString();
+			if (!existingSecondaryIdentifiers.containsKey(key)){
+				//If the identifier is not in the list of identifiers for the primary identifier add it to the database
+				insertNewSecondaryIdentifier(secondaryIdentifier);
+				addPrimaryToSecondaryReferences(primaryIdentifier, secondaryIdentifier);
+			}else{
+				//If the identifier is in the list of identifiers, remove it.
+				secondaryIdentifier.setIdentifierId(existingSecondaryIdentifiers.get(key));
+				existingSecondaryIdentifiers.remove(key);
+			}
+			//If the secondary identifier is not attached to the work, do so now.
+			if (!existingSecondaryIdentifiersForWork.contains(secondaryIdentifier.getIdentifierId())){
+				addSecondaryIdentifierToGroupedWork(groupedWorkId, secondaryIdentifier);
+			}
+		}
+		//After processing all identifiers, delete any remaining in the list loaded from the database for this primary id
+		//Do not delete from grouped works because it could be valid based on another primary id
+		for (Long curIdentifierId : existingSecondaryIdentifiers.values()){
+			removeSecondaryIdentifierFromPrimaryIdentifier.setLong(1, curIdentifierId);
+			removeSecondaryIdentifierFromPrimaryIdentifier.setLong(2, primaryIdentifier.getIdentifierId());
+			removeSecondaryIdentifierFromPrimaryIdentifier.executeUpdate();
+		}
 	}
 
 	private void addPrimaryToSecondaryReferences(RecordIdentifier primaryIdentifier, RecordIdentifier curIdentifier) throws SQLException {
@@ -562,9 +581,6 @@ public class RecordGroupingProcessor {
 			long identifierId = generatedKeys.getLong(1);
 			generatedKeys.close();
 			curIdentifier.setIdentifierId(identifierId);
-			if (curIdentifier.isSharedIdentifier()){
-				recordIdentifiers.put(curIdentifier.toString(), curIdentifier);
-			}
 		}catch (SQLException e){
 			if (fullRegrouping){
 				logger.warn("Tried to insert a duplicate identifier " + curIdentifier.toString());
@@ -577,17 +593,6 @@ public class RecordGroupingProcessor {
 				curIdentifier.setIdentifierId(identifierIdRs.getLong(1));
 			}
 			identifierIdRs.close();
-		}
-	}
-
-	private void removeIdentifiersForPrimaryIdentifier(RecordIdentifier primaryIdentifier) {
-		if (!fullRegrouping){
-			try{
-				removeIdentifiersForPrimaryIdentifierStmt.setLong(1, primaryIdentifier.getIdentifierId());
-				removeIdentifiersForPrimaryIdentifierStmt.executeUpdate();
-			} catch (SQLException e) {
-				logger.error("Unable to remove secondary identifiers from primary identifier " + primaryIdentifier.toString() + " id " + primaryIdentifier.getIdentifierId(), e);
-			}
 		}
 	}
 
