@@ -113,7 +113,7 @@ do
 	if [[ ${FILESIZE} > 0 ]]
 	then
 			# send mail
-			mail -s "Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
+			mail -s "Continuous Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
 	fi
 
 		#end block
