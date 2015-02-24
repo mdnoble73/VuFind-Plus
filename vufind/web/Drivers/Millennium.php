@@ -1923,7 +1923,7 @@ class MillenniumDriver implements DriverInterface
 		$fields[] = array('property'=>'state', 'type'=>'text', 'label'=>'State', 'description'=>'State', 'maxLength' => 32, 'required' => true);
 		$fields[] = array('property'=>'zip', 'type'=>'text', 'label'=>'Zip Code', 'description'=>'Zip Code', 'maxLength' => 32, 'required' => true);
 		$fields[] = array('property'=>'email', 'type'=>'email', 'label'=>'E-Mail', 'description'=>'E-Mail', 'maxLength' => 128, 'required' => false);
-		$fields[] = array('property'=>'phone', 'type'=>'text', 'label'=>'Phone', 'description'=>'Phone', 'maxLength' => 128, 'required' => false);
+		$fields[] = array('property'=>'phone', 'type'=>'text', 'label'=>'Phone (xxx-xxx-xxxx)', 'description'=>'Phone', 'maxLength' => 128, 'required' => false);
 
 		return $fields;
 	}
