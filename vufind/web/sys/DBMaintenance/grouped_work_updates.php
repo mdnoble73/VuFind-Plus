@@ -189,6 +189,19 @@ function getGroupedWorkUpdates(){
 				"DROP INDEX grouped_work_id_2 on grouped_work_identifiers_ref",
 				"DROP INDEX primary_identifier_id_2 on grouped_work_primary_to_secondary_id_ref",
 			),
-		)
+		),
+
+		'grouped_work_duplicate_identifiers' => array(
+			'title' => 'Cleanup Grouped Duplicate Identifiers within ',
+			'description' => 'Cleanup Duplicate Identifiers that were added mistakenly',
+			'continueOnError' => true,
+			'sql' => array(
+				"TRUNCATE table grouped_work_identifiers",
+				"TRUNCATE table grouped_work_identifiers_ref",
+				"TRUNCATE table grouped_work_primary_to_secondary_id_ref",
+				"ALTER TABLE grouped_work_identifiers DROP INDEX type",
+				"ALTER TABLE grouped_work_identifiers ADD UNIQUE (`type`, `identifier`)",
+			),
+		),
 	);
 }

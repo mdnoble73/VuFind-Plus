@@ -1026,19 +1026,21 @@ public class RecordGrouperMain {
 		try{
 			boolean autoCommit = vufindConn.getAutoCommit();
 			vufindConn.setAutoCommit(false);
-			//PreparedStatement unlinkedIdentifiersStmt = vufindConn.prepareStatement("SELECT id FROM grouped_work_identifiers where id NOT IN (SELECT DISTINCT secondary_identifier_id from grouped_work_primary_to_secondary_id_ref);", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			//ResultSet unlinkedIdentifiersRS = unlinkedIdentifiersStmt.executeQuery();
-			PreparedStatement removeIdentifierStmt = vufindConn.prepareStatement("DELETE FROM grouped_work_identifiers where id IN (SELECT id FROM grouped_work_identifiers where id NOT IN (SELECT DISTINCT secondary_identifier_id from grouped_work_primary_to_secondary_id_ref))");
-			/*int numUnlinkedIdentifiersRemoved = 0;
+			PreparedStatement unlinkedIdentifiersStmt = vufindConn.prepareStatement("SELECT id FROM grouped_work_identifiers where id NOT IN (SELECT DISTINCT secondary_identifier_id from grouped_work_primary_to_secondary_id_ref)", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			ResultSet unlinkedIdentifiersRS = unlinkedIdentifiersStmt.executeQuery();
+			PreparedStatement removeIdentifierStmt = vufindConn.prepareStatement("DELETE FROM grouped_work_identifiers where id = ?");
+			int numUnlinkedIdentifiersRemoved = 0;
 			while (unlinkedIdentifiersRS.next()){
 				removeIdentifierStmt.setLong(1, unlinkedIdentifiersRS.getLong(1));
 				removeIdentifierStmt.executeUpdate();
 				numUnlinkedIdentifiersRemoved++;
-			}*/
-			long numUnlinkedIdentifiersRemoved= removeIdentifierStmt.executeUpdate();
+				if (numUnlinkedIdentifiersRemoved % 500 == 0){
+					vufindConn.commit();
+				}
+			}
 			logger.info("Removed " + numUnlinkedIdentifiersRemoved + " identifiers that were not linked to primary identifiers");
-			//unlinkedIdentifiersRS.close();
-			//unlinkedIdentifiersStmt.close();
+			unlinkedIdentifiersRS.close();
+			unlinkedIdentifiersStmt.close();
 			vufindConn.commit();
 			vufindConn.setAutoCommit(autoCommit);
 		}catch(Exception e){
