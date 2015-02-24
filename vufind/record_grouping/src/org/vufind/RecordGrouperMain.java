@@ -1022,11 +1022,11 @@ public class RecordGrouperMain {
 	}
 
 	private static void removeUnlinkedIdentifiers(Connection vufindConn) {
-		//Remove any identifiers that are no longer linked to a primary identifier
+		//Remove any secondary identifiers that are no longer linked to a primary identifier
 		try{
 			boolean autoCommit = vufindConn.getAutoCommit();
 			vufindConn.setAutoCommit(false);
-			PreparedStatement unlinkedIdentifiersStmt = vufindConn.prepareStatement("SELECT grouped_work_identifiers.id, count(primary_identifier_id) as num_primary_identifiers from grouped_work_identifiers left join grouped_work_primary_to_secondary_id_ref on grouped_work_identifiers.id = secondary_identifier_id GROUP BY secondary_identifier_id having num_primary_identifiers = 0", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement unlinkedIdentifiersStmt = vufindConn.prepareStatement("SELECT id FROM grouped_work_identifiers where id NOT IN (SELECT DISTINCT secondary_identifier_id from grouped_work_primary_to_secondary_id_ref);", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			ResultSet unlinkedIdentifiersRS = unlinkedIdentifiersStmt.executeQuery();
 			PreparedStatement removeIdentifierStmt = vufindConn.prepareStatement("DELETE FROM grouped_work_identifiers where id = ?");
 			int numUnlinkedIdentifiersRemoved = 0;
@@ -1050,7 +1050,7 @@ public class RecordGrouperMain {
 		try{
 			boolean autoCommit = vufindConn.getAutoCommit();
 			vufindConn.setAutoCommit(false);
-			PreparedStatement groupedWorksWithoutIdentifiersStmt = vufindConn.prepareStatement("SELECT grouped_work.id, count(identifier) as num_related_records from grouped_work left join grouped_work_primary_identifiers on grouped_work.id = grouped_work_primary_identifiers.grouped_work_id GROUP BY grouped_work.id HAVING num_related_records = 0", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement groupedWorksWithoutIdentifiersStmt = vufindConn.prepareStatement("SELECT grouped_work.id from grouped_work where id NOT IN (SELECT DISTINCT grouped_work_id from grouped_work_primary_identifiers)", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			ResultSet groupedWorksWithoutIdentifiersRS = groupedWorksWithoutIdentifiersStmt.executeQuery();
 			PreparedStatement deleteWorkStmt = vufindConn.prepareStatement("DELETE from grouped_work WHERE id = ?");
 			PreparedStatement deleteRelatedIdentifiersStmt = vufindConn.prepareStatement("DELETE from grouped_work_identifiers_ref WHERE grouped_work_id = ?");
