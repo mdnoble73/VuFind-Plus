@@ -41,7 +41,6 @@ public class RecordGrouperMain {
 	private static HashMap<String, Long> marcRecordChecksums = new HashMap<String, Long>();
 	private static HashSet<String> marcRecordIdsInDatabase = new HashSet<String>();
 	private static PreparedStatement insertMarcRecordChecksum;
-	private static PreparedStatement updateMarcRecordChecksum;
 	private static PreparedStatement removeMarcRecordChecksum;
 
 	private static String recordNumberTag = "";
@@ -1076,18 +1075,17 @@ public class RecordGrouperMain {
 	private static void loadIlsChecksums(Connection vufindConn) {
 		//Load MARC Existing MARC Record checksums from VuFind
 		try{
-			insertMarcRecordChecksum = vufindConn.prepareStatement("INSERT INTO ils_marc_checksums (ilsId, checksum) VALUES (?, ?)");
-			updateMarcRecordChecksum = vufindConn.prepareStatement("UPDATE ils_marc_checksums SET checksum = ? WHERE ilsId = ?");
+			insertMarcRecordChecksum = vufindConn.prepareStatement("INSERT INTO ils_marc_checksums (ilsId, checksum) VALUES (?, ?) ON DUPLICATE KEY UPDATE checksum = VALUES(checksum)");
 			removeMarcRecordChecksum = vufindConn.prepareStatement("DELETE FROM ils_marc_checksums WHERE ilsId = ?");
-			if (!fullRegrouping){
-				PreparedStatement loadIlsMarcChecksums = vufindConn.prepareStatement("SELECT * from ils_marc_checksums",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				ResultSet ilsMarcChecksumRS = loadIlsMarcChecksums.executeQuery();
-				while (ilsMarcChecksumRS.next()){
-					marcRecordChecksums.put(ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("checksum"));
-					marcRecordIdsInDatabase.add(ilsMarcChecksumRS.getString("ilsId"));
-				}
-				ilsMarcChecksumRS.close();
+
+			//MDN 2/23/2015 - Always load checksums so we can optimize writing to the database
+			PreparedStatement loadIlsMarcChecksums = vufindConn.prepareStatement("SELECT * from ils_marc_checksums",  ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet ilsMarcChecksumRS = loadIlsMarcChecksums.executeQuery();
+			while (ilsMarcChecksumRS.next()){
+				marcRecordChecksums.put(ilsMarcChecksumRS.getString("ilsId"), ilsMarcChecksumRS.getLong("checksum"));
+				marcRecordIdsInDatabase.add(ilsMarcChecksumRS.getString("ilsId"));
 			}
+			ilsMarcChecksumRS.close();
 		}catch (Exception e){
 			logger.error("Error loading marc checksums for ILS records", e);
 			System.exit(1);
@@ -1318,16 +1316,16 @@ public class RecordGrouperMain {
 	}
 
 	private static boolean writeIndividualMarc(HashSet<String> existingMarcFiles, String individualMarcPath, Record marcRecord, String recordNumber, int numCharsInPrefix) {
-		Boolean marcRecordUpToDate = false;
+		boolean marcRecordUpToDate = false;
 		//Copy the record to the individual marc path
 		if (recordNumber != null){
-			Boolean marcRecordExistsInDb = false;
 			Long checksum = getChecksum(marcRecord);
 			File individualFile = getFileForIlsRecord(individualMarcPath, recordNumber, numCharsInPrefix);
 
+			Long existingChecksum = getExistingChecksum(recordNumber);
+			//If we are doing partial regrouping or full regrouping without clearing the previous results,
+			//Check to see if the record needs to be written before writing it.
 			if (!fullRegrouping){
-				Long existingChecksum = getExistingChecksum(recordNumber);
-				marcRecordExistsInDb = existingChecksum != null;
 				marcRecordUpToDate = existingChecksum != null && existingChecksum.equals(checksum);
 				marcRecordUpToDate = checkIfIndividualMarcFileExists(existingMarcFiles, marcRecordUpToDate, individualFile);
 			}
@@ -1335,8 +1333,8 @@ public class RecordGrouperMain {
 			if (!marcRecordUpToDate){
 				try {
 					outputMarcRecord(marcRecord, individualFile);
-
-					updateMarcRecordChecksum(recordNumber, marcRecordExistsInDb, checksum);
+					updateMarcRecordChecksum(recordNumber, checksum);
+					//logger.debug("checksum changed for " + recordNumber + " was " + existingChecksum + " now its " + checksum);
 				} catch (IOException e) {
 					logger.error("Error writing marc", e);
 				}
@@ -1348,10 +1346,12 @@ public class RecordGrouperMain {
 		return marcRecordUpToDate;
 	}
 
-	private static Boolean checkIfIndividualMarcFileExists(HashSet<String> existingMarcFiles, Boolean marcRecordUpToDate, File individualFile) {
-		if (!existingMarcFiles.contains(individualFile.getName())){
+	private static boolean checkIfIndividualMarcFileExists(HashSet<String> existingMarcFiles, Boolean marcRecordUpToDate, File individualFile) {
+		String filename = individualFile.getName();
+		if (!existingMarcFiles.contains(filename)){
 			marcRecordUpToDate = false;
 		}
+		existingMarcFiles.remove(filename);
 		return marcRecordUpToDate;
 	}
 
@@ -1391,17 +1391,11 @@ public class RecordGrouperMain {
 		return shortId;
 	}
 
-	private static void updateMarcRecordChecksum(String recordNumber, boolean marcRecordExists, long checksum) {
+	private static void updateMarcRecordChecksum(String recordNumber, long checksum) {
 		try{
-			if (!marcRecordExists){
-				insertMarcRecordChecksum.setString(1, recordNumber);
-				insertMarcRecordChecksum.setLong(2, checksum);
-				insertMarcRecordChecksum.executeUpdate();
-			}else{
-				updateMarcRecordChecksum.setLong(1, checksum);
-				updateMarcRecordChecksum.setString(2, recordNumber);
-				updateMarcRecordChecksum.executeUpdate();
-			}
+			insertMarcRecordChecksum.setString(1, recordNumber);
+			insertMarcRecordChecksum.setLong(2, checksum);
+			insertMarcRecordChecksum.executeUpdate();
 		}catch (SQLException e){
 			logger.error("Unable to update checksum for ils marc record", e);
 		}
