@@ -1029,6 +1029,7 @@ class GroupedWorkDriver extends RecordInterface{
 	private $relatedRecords = null;
 	public function getRelatedRecords() {
 		global $timer;
+		global $configArray;
 		if ($this->relatedRecords == null){
 			$timer->logTime("Starting to load related records for {$this->getUniqueID()}");
 			$relatedRecords = array();

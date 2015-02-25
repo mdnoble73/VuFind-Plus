@@ -70,12 +70,18 @@ class MarcRecord extends IndexRecord
 
 	protected $itemsFromIndex;
 	public function setItemsFromIndex($itemsFromIndex){
-		$this->itemsFromIndex = $itemsFromIndex;
+		global $configArray;
+		if ($configArray['Catalog']['supportsRealtimeIndexing']){
+			$this->itemsFromIndex = $itemsFromIndex;
+		}
 	}
 
 	protected $detailedRecordInfoFromIndex;
 	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex){
-		$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
+		global $configArray;
+		if ($configArray['Catalog']['supportsRealtimeIndexing']){
+			$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
+		}
 	}
 
 	public function isValid(){

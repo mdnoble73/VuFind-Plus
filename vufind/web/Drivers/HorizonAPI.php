@@ -1065,6 +1065,10 @@ abstract class HorizonAPI extends Horizon{
 					'callnumber' => (string)$itemInfo->callNumber,
 					'isDownload' => false,
 					'barcode' => (string)$itemInfo->barcode,
+					'isLocalItem' => false,
+					'isLibraryItem' => true,
+					'locationLabel' => (string)$itemInfo->locationDescription,
+					'shelfLocation' => (string)$itemInfo->locationDescription,
 				);
 
 				$paddedNumber = str_pad($i, 3, '0', STR_PAD_LEFT);
@@ -1074,11 +1078,13 @@ abstract class HorizonAPI extends Horizon{
 					//If the user is in a branch, those holdings come first.
 					$holding['section'] = 'In this library';
 					$holding['sectionId'] = 1;
+					$holding['isLocalItem'] = true;
 					$sorted_array['1' . $sortString] = $holding;
 				} else if (strlen($homeBranch) > 0 && stripos($holding['location'], $homeBranch) !== false){
 					//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
 					$holding['section'] = 'Your library';
 					$holding['sectionId'] = 2;
+					$holding['isLocalItem'] = true;
 					$sorted_array['2' . $sortString] = $holding;
 				} else if ((strlen($nearbyBranch1) > 0 && stripos($holding['location'], $nearbyBranch1) !== false)){
 					//Next come nearby locations for the user
