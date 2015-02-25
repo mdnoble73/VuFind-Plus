@@ -12,7 +12,7 @@ EMAIL=root@venus
 PIKASERVER=marmot.test
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/extract_and_reindex_output.log"
 
-# Check for conflicting processes currently runnin
+# Check for conflicting processes currently running
 function checkConflictingProcesses() {
 	#Check to see if the conflict exists.
 	countConflictingProcesses=$(ps aux | grep -v sudo | grep -c $1)
