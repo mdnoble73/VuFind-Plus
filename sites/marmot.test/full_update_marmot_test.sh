@@ -7,6 +7,11 @@ EMAIL=root@venus
 PIKASERVER=marmot.test
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
+#Check for any conflicting processes that we shouldn't do a full index during.
+checkConflictingProcesses "sierra_extract.jar ${PIKASERVER}"
+checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
+checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
+
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
@@ -34,3 +39,21 @@ then
 	# send mail
 	mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
 fi
+
+# Check for conflicting processes currently running
+function checkConflictingProcesses() {
+	#Check to see if the conflict exists.
+	countConflictingProcesses=$(ps aux | grep -v sudo | grep -c $1)
+	countConflictingProcesses=$((countConflictingProcesses-1))
+
+	let numInitialConflicts=countConflictingProcesses
+	#Wait until the conflict is gone.
+	until ((${countConflictingProcesses} == 0)); do
+		countConflictingProcesses=$(ps aux | grep -c $1)
+		countConflictingProcesses=$((countConflictingProcesses-1))
+		#echo "Count of conflicting process" $1 $countConflictingProcesses
+		sleep 300
+	done
+	#Return the number of conflicts we found initially.
+	echo ${numInitialConflicts};
+}
