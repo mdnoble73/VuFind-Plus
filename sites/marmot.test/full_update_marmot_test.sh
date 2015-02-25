@@ -10,7 +10,7 @@ OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
 	#Check to see if the conflict exists.
-	countConflictingProcesses=$(ps aux | grep -v sudo | grep -c $1)
+	countConflictingProcesses=$(ps aux | grep -v sudo | grep -c "$1")
 	countConflictingProcesses=$((countConflictingProcesses-1))
 
 	let numInitialConflicts=countConflictingProcesses
