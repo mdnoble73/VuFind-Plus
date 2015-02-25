@@ -25,6 +25,9 @@ function checkConflictingProcesses() {
 	echo ${numInitialConflicts};
 }
 
+#truncate the output file so you don't spend a week debugging an error from a week ago!
+: > $OUTPUT_FILE;
+
 #Check for any conflicting processes that we shouldn't do a full index during.
 checkConflictingProcesses "sierra_extract.jar ${PIKASERVER}"
 checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
