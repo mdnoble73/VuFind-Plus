@@ -15,16 +15,20 @@ OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/continuous_partial_reindex_outpu
 
 # Check for conflicting processes currently runnin
 function checkConflictingProcesses() {
-	#echo $1
-	countConflictingProcesses=$(ps aux | grep -c $1)
+	#Check to see if the conflict exists.
+	countConflictingProcesses=$(ps aux | grep -v sudo | grep -c "$1")
 	countConflictingProcesses=$((countConflictingProcesses-1))
-	#echo "Count of conflicting process" $1 $countConflictingProcesses
-	until ((countConflictingProcesses == 0)); do
-		countConflictingProcesses=$(ps aux | grep -c $1)
+
+	let numInitialConflicts=countConflictingProcesses
+	#Wait until the conflict is gone.
+	until ((${countConflictingProcesses} == 0)); do
+		countConflictingProcesses=$(ps aux | grep -v sudo | grep -c "$1")
 		countConflictingProcesses=$((countConflictingProcesses-1))
 		#echo "Count of conflicting process" $1 $countConflictingProcesses
 		sleep 300
 	done
+	#Return the number of conflicts we found initially.
+	echo ${numInitialConflicts};
 }
 
 # Prohibited time ranges - for, e.g., ILS backup
