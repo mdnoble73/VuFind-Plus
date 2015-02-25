@@ -1055,7 +1055,7 @@ abstract class HorizonAPI extends Horizon{
 					'type' => 'holding',
 					'status' => isset($itemInfo->statusID) ? (string)$itemInfo->statusID : 'Unknown',
 					'statusfull' => isset($itemInfo->statusDescription) ? (string)$itemInfo->statusDescription : 'Unknown',
-					'availability' => isset($itemInfo->available) ? (boolean)$itemInfo->available : false,
+					'availability' => isset($itemInfo->available) ? ((string)$itemInfo->available == "true") : false,
 					'holdable' => true,
 					'reserve' => 'N',
 					'holdQueueLength' => (int)$lookupTitleInfoResponse->titleInfo->holdCount,
@@ -1070,6 +1070,8 @@ abstract class HorizonAPI extends Horizon{
 					'locationLabel' => (string)$itemInfo->locationDescription,
 					'shelfLocation' => (string)$itemInfo->locationDescription,
 				);
+
+				$holding['groupedStatus'] = mapValue('item_grouped_status', $holding['status']);
 
 				$paddedNumber = str_pad($i, 3, '0', STR_PAD_LEFT);
 				$sortString = $holding['location'] . '-'. $paddedNumber;
