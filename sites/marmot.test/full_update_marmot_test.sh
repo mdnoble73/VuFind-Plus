@@ -29,7 +29,7 @@ function checkConflictingProcesses() {
 : > $OUTPUT_FILE;
 
 #Check for any conflicting processes that we shouldn't do a full index during.
-checkConflictingProcesses "sierra_extract.jar ${PIKASERVER}"
+checkConflictingProcesses "sierra_export.jar ${PIKASERVER}"
 checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
 checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
 
