@@ -920,6 +920,7 @@ public class RecordGrouperMain {
 							"WHERE type IN ('isbn', 'issn', 'upc')\n" +
 							"GROUP BY grouped_work_identifiers.id\n" +
 							"HAVING num_related_works > 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+
 			ResultSet invalidIdentifiersRS = invalidIdentifiersStmt.executeQuery();
 			PreparedStatement getRelatedWorksForIdentifierStmt = vufindConn.prepareStatement("SELECT full_title, author, grouping_category\n" +
 					"FROM grouped_work_identifiers_ref\n" +
