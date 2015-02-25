@@ -230,11 +230,14 @@ abstract class HorizonAPI extends Horizon{
 
 			//Get additional information about the patron's home branch for display.
 			if (isset($lookupMyAccountInfoResponse->locationID)){
-				$homeBranchCode = (string)$lookupMyAccountInfoResponse->locationID;
+				$homeBranchCode = trim((string)$lookupMyAccountInfoResponse->locationID);
 				//Translate home branch to plain text
 				$location = new Location();
 				$location->whereAdd("code = '$homeBranchCode'");
 				$location->find(1);
+				if ($location->N == 0){
+					unset($location);
+				}
 			}
 
 			if ($user) {
@@ -256,6 +259,13 @@ abstract class HorizonAPI extends Horizon{
 						//Update the serialized instance stored in the session
 						$_SESSION['userinfo'] = serialize($user);
 					}
+				}else if (isset($location) && $location->locationId != $user->homeLocationId){
+					$user->homeLocationId = $location->locationId;
+
+					//Update the database
+					$user->update();
+					//Update the serialized instance stored in the session
+					$_SESSION['userinfo'] = serialize($user);
 				}
 			}
 
