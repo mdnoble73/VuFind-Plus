@@ -4,6 +4,7 @@ import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
+import org.marc4j.marc.Subfield;
 
 import java.sql.Connection;
 import java.util.HashSet;
@@ -18,8 +19,12 @@ import java.util.Set;
  * Time: 11:02 AM
  */
 public class WCPLRecordProcessor extends IlsRecordProcessor {
+	private String statusesToSuppress;
+	private String locationsToSuppress;
 	public WCPLRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
 		super(indexer, vufindConn, configIni, logger);
+		this.statusesToSuppress = configIni.get("Catalog", "statusesToSuppress");
+		this.locationsToSuppress = configIni.get("Catalog", "locationsToSuppress");
 	}
 
 	@Override
@@ -61,5 +66,32 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 	@Override
 	protected void loadSystemLists(GroupedWorkSolr groupedWork, Record record) {
 		groupedWork.addSystemLists(this.getFieldList(record, "449a"));
+	}
+
+	protected boolean isItemSuppressed(DataField curItem) {
+		Subfield statusSubfield = curItem.getSubfield(statusSubfieldIndicator);
+		if (statusSubfield == null){
+			return true;
+		}else{
+			if (statusSubfield.getData().matches(statusesToSuppress)){
+				return true;
+			}
+		}
+		Subfield locationSubfield = curItem.getSubfield(locationSubfieldIndicator);
+		if (locationSubfield == null){
+			return true;
+		}else{
+			if (locationSubfield.getData().matches(locationsToSuppress)){
+				return true;
+			}
+		}
+		//Finally suppress staff items
+		Subfield staffSubfield = curItem.getSubfield('o');
+		if (staffSubfield != null){
+			if (staffSubfield.getData().trim().equals("1")){
+				return true;
+			}
+		}
+		return false;
 	}
 }
