@@ -42,6 +42,10 @@ if [ $# = 1 ];then
   chmod -v g+w qrcodes
   chmod -v g+w covers/*
   #-----------------
+  echo "adding hoopla data directory"
+  cd /data/vufind-plus
+  mkdir hoopla hoopla/marc hoopla/marc_recs
+  #-----------------
   echo "setting up logs directory"
   cd /var/log
   mkdir vufind-plus
