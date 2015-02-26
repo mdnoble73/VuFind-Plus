@@ -374,7 +374,8 @@ VuFind.Account = (function(){
 				var selectedTitles = this.getSelectedTitles()
 								.replace(/waiting|available/g, ''),// strip out of name for now.
 						numHolds = $("input.titleSelect:checked").length;
-				if (confirm('Cancel ' + numHolds + ' selected hold' + (numHolds > 1 ? 's' : '') + '?')) {
+				// if numHolds equals 0, quit because user has canceled in getSelectedTitles()
+				if (numHolds > 0 && confirm('Cancel ' + numHolds + ' selected hold' + (numHolds > 1 ? 's' : '') + '?')) {
 					VuFind.showMessage('Loading', 'Loading, please wait');
 					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelHolds&"+selectedTitles, function(data){
 						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful
