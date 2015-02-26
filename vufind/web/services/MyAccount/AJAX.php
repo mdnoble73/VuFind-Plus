@@ -253,7 +253,9 @@ class MyAccount_AJAX
 		global $interface;
 		$result['success'] = $result['result']; // makes template easier to understand
 		$failed = (is_array($result['message']) && !empty($result['message'])) ? array_keys($result['message']) : null; //returns failed id for javascript function
-		$result['numCancelled'] = count($result['titles']) - count($failed);
+		if (isset($result['titles'])) {
+			$result['numCancelled'] = count($result['titles']) - count($failed);
+		}
 		$interface->assign('cancelResults', $result);
 
 		$cancelResult = array(

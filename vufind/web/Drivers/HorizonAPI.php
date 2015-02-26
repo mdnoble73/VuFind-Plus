@@ -386,15 +386,19 @@ abstract class HorizonAPI extends Horizon{
 		return $profile;
 	}
 
-	public function getMyHolds($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
+	public function getMyHolds($patron= null, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
 		global $configArray;
 
-		if (is_object($patron)){
-			$patron = get_object_vars($patron);
+		if ($patron){
+			if (is_object($patron)) $patron = get_object_vars($patron);
 			$userId = $patron['id'];
+			$userName = $patron['cat_username'];
+			$userPassword = $patron['cat_password'];
 		}else{
 			global $user;
 			$userId = $user->id;
+			$userName = $user->cat_username;
+			$userPassword = $user->cat_password;
 		}
 
 		$availableHolds = array();
@@ -409,9 +413,9 @@ abstract class HorizonAPI extends Horizon{
 			$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
 		}else{
 			//Log the user in
-			list($userValid, $sessionToken) = $this->loginViaWebService($patron['cat_username'], $patron['cat_password']);
+			list($userValid, $sessionToken) = $this->loginViaWebService($userName, $userPassword);
 			if (!$userValid){
-				echo("No session id found for user");
+//				echo("No session id found for user"); //should log this instead
 				return $holds;
 			}
 		}
@@ -612,7 +616,7 @@ abstract class HorizonAPI extends Horizon{
 	 * Update a hold that was previously placed in the system.
 	 * Can cancel the hold or update pickup locations.
 	 */
-	public function updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
+	public function updateHoldDetailed($patronId, $type, $titles, $xNum, $cancelId, $locationId, $freezeValue='off'){
 		global $configArray;
 
 		global $user;
@@ -637,19 +641,41 @@ abstract class HorizonAPI extends Horizon{
 				$availableHolds = isset($_REQUEST['availableholdselected']) ? $_REQUEST['availableholdselected'] : array();
 				$holdKeys = array_merge($waitingHolds, $availableHolds);
 			}else{
-				$holdKeys = array($cancelId);
+				$holdKeys = is_array($cancelId) ? $cancelId : array($cancelId);
 			}
 		}
 
+		$loadTitles = empty($titles);
+		if ($loadTitles) {
+			$holds = $this->getMyHolds();
+			$combined_holds = array_merge($holds['holds']['unavailable'], $holds['holds']['available']);
+		}
+//		$logger->log("Load titles = $loadTitles", PEAR_LOG_DEBUG); // move out of foreach loop
+
+
+
 		if ($type == 'cancel'){
 			$allCancelsSucceed = true;
+			$failure_messages = array();
+
 			foreach ($holdKeys as $holdKey){
+				$title = 'an item';  // default in case title name isn't found.
+
+				if ($loadTitles) { // get title for this hold
+					foreach ($combined_holds as $hold){
+						if ($hold['cancelId'] == $holdKey) {
+							$title = $hold['title'];
+							break;
+						}
+					}
+				} // else {} // Get from parameter $titles
+				$titles[] = $title; // build array of all titles
+
+
 				//create the hold using the web service
 				$cancelHoldUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/cancelMyHold?clientID=' . $configArray['Catalog']['clientId'] . '&sessionToken=' . $sessionToken . '&holdKey=' . $holdKey;
 
 				$cancelHoldResponse = $this->getWebServiceResponse($cancelHoldUrl);
-
-				// TODO: Extract Failure Messages
 
 				global $analytics;
 				if ($cancelHoldResponse){
@@ -658,19 +684,24 @@ abstract class HorizonAPI extends Horizon{
 					$analytics->addEvent('ILS Integration', 'Hold Cancelled', $title);
 				}else{
 					$allCancelsSucceed = false;
+					$failure_messages[$holdKey] = "The hold for $title could not be cancelled.  Please try again later or see your librarian.";
 					$analytics->addEvent('ILS Integration', 'Hold Not Cancelled', $title);
 				}
 			}
 			if ($allCancelsSucceed){
+				$plural = count($holdKeys) > 1;
+
 				return array(
-					'title' => $title,
+					'title' => $titles,
 					'result' => true,
-					'message' => 'Your hold(s) were cancelled successfully.');
+					'message' => 'Your hold'.($plural ? 's were' : ' was' ).' cancelled successfully.');
 			}else{
 				return array(
-					'title' => $title,
+					'title' => $titles,
 					'result' => false,
-					'message' => 'Some holds could not be cancelled.  Please try again later or see your librarian.');
+//					'message' => 'Some holds could not be cancelled.  Please try again later or see your librarian.'
+					'message' => $failure_messages
+				);
 			}
 
 		}else{
@@ -687,20 +718,20 @@ abstract class HorizonAPI extends Horizon{
 					if ($changePickupLocationResponse){
 						//Clear the patron profile
 						$this->clearPatronProfile();
-						$analytics->addEvent('ILS Integration', 'Hold Suspended', $title);
+						$analytics->addEvent('ILS Integration', 'Hold Suspended', $titles);
 					}else{
 						$allLocationChangesSucceed = false;
-						$analytics->addEvent('ILS Integration', 'Hold Not Suspended', $title);
+						$analytics->addEvent('ILS Integration', 'Hold Not Suspended', $titles);
 					}
 				}
 				if ($allLocationChangesSucceed){
 					return array(
-						'title' => $title,
+						'title' => $titles,
 						'result' => true,
 						'message' => 'Pickup location for your hold(s) was updated successfully.');
 				}else{
 					return array(
-						'title' => $title,
+						'title' => $titles,
 						'result' => false,
 						'message' => 'Pickup location for your hold(s) was could not be updated.  Please try again later or see your librarian.');
 				}
@@ -722,22 +753,22 @@ abstract class HorizonAPI extends Horizon{
 						if ($changePickupLocationResponse){
 							//Clear the patron profile
 							$this->clearPatronProfile();
-							$analytics->addEvent('ILS Integration', 'Hold Suspended', $title);
+							$analytics->addEvent('ILS Integration', 'Hold Suspended', $titles);
 						}else{
 							$allLocationChangesSucceed = false;
-							$analytics->addEvent('ILS Integration', 'Hold Not Suspended', $title);
+							$analytics->addEvent('ILS Integration', 'Hold Not Suspended', $titles);
 						}
 					}
 
 					$frozen = translate('frozen');
 					if ($allLocationChangesSucceed){
 						return array(
-							'title' => $title,
+							'title' => $titles,
 							'result' => true,
 							'message' => "Your hold(s) were $frozen successfully.");
 					}else{
 						return array(
-							'title' => $title,
+							'title' => $titles,
 							'result' => false,
 							'message' => "Some holds could not be $frozen.  Please try again later or see your librarian.");
 					}
@@ -755,22 +786,22 @@ abstract class HorizonAPI extends Horizon{
 						if ($changePickupLocationResponse){
 							//Clear the patron profile
 							$this->clearPatronProfile();
-							$analytics->addEvent('ILS Integration', 'Hold Suspended', $title);
+							$analytics->addEvent('ILS Integration', 'Hold Suspended', $titles);
 						}else{
 							$allUnsuspendsSucceed = false;
-							$analytics->addEvent('ILS Integration', 'Hold Not Suspended', $title);
+							$analytics->addEvent('ILS Integration', 'Hold Not Suspended', $titles);
 						}
 					}
 
 					$thawed = translate('thawed');
 					if ($allUnsuspendsSucceed){
 						return array(
-							'title' => $title,
+							'title' => $titles,
 							'result' => true,
 							'message' => "Your hold(s) were $thawed successfully.");
 					}else{
 						return array(
-							'title' => $title,
+							'title' => $titles,
 							'result' => false,
 							'message' => "Some holds could not be $thawed.  Please try again later or see your librarian.");
 					}
@@ -1276,7 +1307,7 @@ abstract class HorizonAPI extends Horizon{
 		$xml = curl_exec($ch);
 		curl_close($ch);
 
-		if ($xml !== false){
+		if ($xml !== false && $xml !== 'false'){
 			if (strpos($xml, '<') !== FALSE){
 				//Strip any non-UTF-8 characters
 				$xml = preg_replace('/[^(\x20-\x7F)]*/','', $xml);
