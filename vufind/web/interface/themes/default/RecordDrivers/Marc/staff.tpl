@@ -10,8 +10,11 @@
 		<a href="{$path}/GroupedWork/{$recordDriver->getPermanentId()}" class="btn btn-sm btn-default">Go To Grouped Work</a>
 		<button onclick="return VuFind.Record.reloadCover('{$id}')" class="btn btn-sm btn-default">Reload Cover</button>
 		<button onclick="return VuFind.GroupedWork.reloadEnrichment('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default" >Reload Enrichment</button>
-		{if $classicUrl && $classicId}
-			<a href="{$classicUrl}/record={$classicId|escape:"url"}&amp;searchscope={$millenniumScope}" class="btn btn-sm btn-info">View in Classic</a>
+		{if $classicUrl}
+			<a href="{$classicUrl}" class="btn btn-sm btn-info">View in Classic</a>
+		{/if}
+		{if $staffClientUrl}
+			<a href="{$staffClientUrl}" class="btn btn-sm btn-info">View in Staff Client</a>
 		{/if}
 		{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('catalogging'))}
 			<button onclick="return VuFind.GroupedWork.forceReindex('{$recordDriver->getPermanentId()}')" class="btn btn-sm btn-default">Force Reindex</button>

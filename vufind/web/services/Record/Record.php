@@ -85,8 +85,15 @@ abstract class Record_Record extends Action
 		}
 
 		if ($configArray['Catalog']['ils'] == 'Millennium' || $configArray['Catalog']['ils'] == 'Sierra'){
-			$interface->assign('classicId', substr($this->id, 1, strlen($this->id) -2));
-			$interface->assign('classicUrl', $configArray['Catalog']['linking_url']);
+			$classicId = substr($this->id, 1, strlen($this->id) -2);
+			$interface->assign('classicId', $classicId);
+			$millenniumScope = $interface->getVariable('millenniumScope');
+			$interface->assign('classicUrl', $configArray['Catalog']['linking_url'] . "/record=$classicId&amp;searchscope={$millenniumScope}");
+
+		}elseif ($configArray['Catalog']['ils'] == 'Koha'){
+			$interface->assign('classicId', $this->id);
+			$interface->assign('classicUrl', $configArray['Catalog']['url'] . '/cgi-bin/koha/opac-detail.pl?biblionumber=' . $this->id);
+			$interface->assign('staffClientUrl', $configArray['Catalog']['staffClientUrl'] . '/cgi-bin/koha/catalogue/detail.pl?biblionumber=' . $this->id);
 		}
 
 		// Process MARC Data
