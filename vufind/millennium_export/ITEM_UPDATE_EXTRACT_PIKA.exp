@@ -13,12 +13,14 @@ set testing false
 
 # TO DO
 # + Provide details on INNOPAC user privileges necessary
+# + DELETE UPDATES FILES
+# + LOGGING!!!
+
+# 20150218 : Mark Noble scripted continuous_partial_reindex.sh etc to use the data this script provides
 # + UPDATE MRC FILES IN /data/vufind-plus/$site/marc_recs/
 # + FLAG FILES THAT NEED TO BE REINDEXED
 # + RUN REINDEXER, PARTIAL:
-# exec java -jar reindexer.jar $site partialReindex
-# + DELETE UPDATES FILES
-# + LOGGING!!!
+# 	exec java -jar reindexer.jar $site partialReindex
 
 # 20150209 : changes to make script usable by other discovery partners with Millennium
 # + launch java -jar reindexer.jar {site} partialReindex, unless record_grouping.jar or reindexer.jar are running
@@ -45,13 +47,13 @@ set testing false
 proc conflictingProcesses {} {
 	set nConflictingProcesses 0
 	# Conflicting Processes count - production, launched from cron
-	set nConflictingProcesses [expr [exec ps aux | grep -v sudo | grep -c ITEM_UPDATE_EXTRACT_PIKA.exp] - 2 + [exec ps aux | grep -c record_grouping.jar] - 1 + [exec ps aux | grep -c reindexer.jar] - 1 ]
+	set nConflictingProcesses [expr [exec ps aux | grep -c ITEM_UPDATE_EXTRACT_PIKA.exp] - 2 + [exec ps aux | grep -c record_grouping.jar] - 1 + [exec ps aux | grep -c reindexer.jar] - 1 ]
 	#puts $nConflictingProcesses
 	if [expr $nConflictingProcesses > 0] {
 		puts "ITEM_UPDATE_EXTRACT_PIKA.exp cannot run at this time, there are currently conflicting processes running."
-		puts [exec ps aux | grep -v grep | grep -v sudo | grep ITEM_UPDATE_EXTRACT_PIKA.exp]
-		puts [exec ps aux | grep -v grep | grep record_grouping.jar]
-		puts [exec ps aux | grep -v grep | grep reindexer.jar]
+		puts [exec ps aux | grep ITEM_UPDATE_EXTRACT_PIKA.exp]
+		puts [exec ps aux | grep record_grouping.jar]
+		puts [exec ps aux | grep reindexer.jar]
 		exit
 	}
 }
@@ -147,7 +149,9 @@ send "33"
 expect "Enter boolean condition (=, ~, >, <, G, L, W, N)"
 send "="
 expect "UPDATED ="
-send "[clock format [clock seconds] -format %m%d%y]"
+# format is %Y instead of %y because Nashville INNOPAC System Options >
+# Database maintenance > Date prompt: Format of year prompt = year
+send "[clock format [clock seconds] -format %m%d%Y]"
 expect "Enter action ( A for AND, O for OR, S to START search )"
 send "S"
 expect "What name would you like to give this file of records?"
@@ -277,10 +281,6 @@ if {[llength [glob -nocomplain -directory $localPath ${name}*-new]] > 0} {
 }
 
 # TO DO
-# + UPDATE MRC FILES IN /data/vufind-plus/$site/marc_recs/
-# + FLAG FILES THAT NEED TO BE REINDEXED
-# + RUN REINDEXER, PARTIAL:
-# exec java -jar reindexer.jar $site partialReindex
 # + DELETE UPDATES FILES
 
 #if {[llength {glob -directory -nocomplain $localPath ${name}*-UPDATES}] > 0} {
