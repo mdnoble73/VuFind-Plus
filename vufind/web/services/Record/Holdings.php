@@ -69,7 +69,7 @@ class Record_Holdings extends Record_Record
 		$interface->assign('showCheckInGrid', $showCheckInGrid);
 
 		try {
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 		} catch (PDOException $e) {
 			// What should we do with this error?
 			if ($configArray['System']['debug']) {

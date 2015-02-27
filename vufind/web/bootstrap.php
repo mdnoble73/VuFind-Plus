@@ -80,8 +80,6 @@ function requireSystemLibraries(){
 	$timer->logTime("Include Translator");
 	require_once ROOT_DIR . '/sys/SearchObject/Factory.php';
 	$timer->logTime("Include Search Object Factory");
-	require_once ROOT_DIR . '/sys/ConnectionManager.php';
-	$timer->logTime("Include ConnectionManager");
 	require_once ROOT_DIR . '/Drivers/marmot_inc/Library.php';
 	require_once ROOT_DIR . '/Drivers/marmot_inc/Location.php';
 	$timer->logTime("Include Library and Location");

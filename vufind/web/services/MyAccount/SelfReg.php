@@ -27,7 +27,7 @@ class SelfReg extends Action {
 	function __construct() {
 		global $configArray;
 		// Connect to Catalog
-		$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+		$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 	}
 
 	function launch($msg = null) {
@@ -54,7 +54,7 @@ class SelfReg extends Action {
 		}
 
 		/** @var  CatalogConnection $catalog */
-		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+		$catalog = CatalogFactory::getCatalogConnectionInstance();;
 		$selfRegFields = $catalog->getSelfRegistrationFields();
 		$interface->assign('submitUrl', $configArray['Site']['path'] . '/MyAccount/SelfReg');
 		$interface->assign('structure', $selfRegFields);

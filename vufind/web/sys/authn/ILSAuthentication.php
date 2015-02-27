@@ -23,7 +23,7 @@ class ILSAuthentication implements Authentication {
 			$user = new PEAR_Error('authentication_error_blank');
 		} else {
 			// Connect to Database
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 
 			if ($catalog->status) {
 				$patron = $catalog->patronLogin($this->username, $this->password);
@@ -31,7 +31,7 @@ class ILSAuthentication implements Authentication {
 					$user = $this->processILSUser($patron);
 
 					//Also call getPatronProfile to update extra fields
-					$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+					$catalog = CatalogFactory::getCatalogConnectionInstance();;
 					$catalog->getMyProfile($user);
 				} else {
 					$user = new PEAR_Error('authentication_error_invalid');

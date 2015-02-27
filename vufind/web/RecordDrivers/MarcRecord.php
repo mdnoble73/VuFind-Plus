@@ -171,6 +171,7 @@ class MarcRecord extends IndexRecord
 			default:
 				return null;
 		}
+		return null;
 	}
 
 	/**
@@ -374,6 +375,7 @@ class MarcRecord extends IndexRecord
 		// Try each MARC field one at a time:
 		foreach($fields as $field) {
 			// Do we have any results for the current field?  If not, try the next.
+			/** @var File_MARC_Data_Field[] $results */
 			$results = $this->getMarcRecord()->getFields($field);
 			if (!$results) {
 				continue;
@@ -385,6 +387,7 @@ class MarcRecord extends IndexRecord
 				$current = array();
 
 				// Get all the chunks and collect them together:
+				/** @var File_MARC_Subfield[] $subfields */
 				$subfields = $result->getSubfields();
 				if ($subfields) {
 					foreach($subfields as $subfield) {
@@ -607,12 +610,9 @@ class MarcRecord extends IndexRecord
 	 * @access  public
 	 * @return  array
 	 */
-	public function getSeries()
-	{
+	public function getSeries()	{
 		$seriesInfo = $this->getGroupedWorkDriver()->getSeries();
 		if (count($seriesInfo) == 0){
-			$matches = array();
-
 			// First check the 440, 800 and 830 fields for series information:
 			$primaryFields = array(
 					'440' => array('a', 'p'),
@@ -642,8 +642,7 @@ class MarcRecord extends IndexRecord
 	 *                                      information (used to find series name)
 	 * @return  array                       Series data (may be empty)
 	 */
-	private function getSeriesFromMARC($fieldInfo)
-	{
+	private function getSeriesFromMARC($fieldInfo){
 		$matches = array();
 
 		// Loop through the field specification....
@@ -697,6 +696,7 @@ class MarcRecord extends IndexRecord
 
 		// Loop through all specified subfields, collecting results:
 		foreach($subfields as $subfield) {
+			/** @var File_MARC_Subfield[] $subfieldsResult */
 			$subfieldsResult = $currentField->getSubfields($subfield);
 			if (is_array($subfieldsResult)) {
 				foreach($subfieldsResult as $currentSubfield) {
@@ -862,15 +862,18 @@ class MarcRecord extends IndexRecord
 	{
 		$retVal = array();
 
+		/** @var File_MARC_Data_Field[] $urls */
 		$urls = $this->getMarcRecord()->getFields('856');
 		if ($urls) {
 			foreach($urls as $url) {
 				// Is there an address in the current field?
+				/** @var File_MARC_Subfield $address */
 				$address = $url->getSubfield('u');
 				if ($address) {
-					$address = $address->getData();
+					$addressStr = $address->getData();
 
 					// Is there a description?  If not, just use the URL itself.
+					/** @var File_MARC_Subfield $desc */
 					$desc = $url->getSubfield('z');
 					if ($desc) {
 						$desc = $desc->getData();
@@ -878,7 +881,7 @@ class MarcRecord extends IndexRecord
 						$desc = $address;
 					}
 
-					$retVal[$address] = $desc;
+					$retVal[$addressStr] = $desc;
 				}
 			}
 		}
@@ -957,11 +960,10 @@ class MarcRecord extends IndexRecord
 	public function getEmail()
 	{
 		global $configArray;
-		global $interface;
 
 		// Get Holdings
 		try {
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 		} catch (PDOException $e) {
 			return new PEAR_Error('Cannot connect to ILS');
 		}
@@ -997,7 +999,6 @@ class MarcRecord extends IndexRecord
 	function getDescription(){
 		global $interface;
 		global $library;
-		$id = $this->getUniqueID();
 
 		$useMarcSummary = true;
 		$summary = '';
@@ -1034,6 +1035,11 @@ class MarcRecord extends IndexRecord
 		return $summary;
 	}
 
+	/**
+	 * @param File_MARC_Record $marcRecord
+	 * @param bool $allowExternalDescription
+	 * @return array|string
+	 */
 	function loadDescriptionFromMarc($marcRecord, $allowExternalDescription = true){
 		/** @var Memcache $memCache */
 		global $memCache;
@@ -1083,7 +1089,6 @@ class MarcRecord extends IndexRecord
 		$descriptionArray = $memCache->get("record_description_{$isbn}_{$upc}_{$allowExternalDescription}");
 		if (!$descriptionArray){
 			$marcDescription = null;
-			$description = '';
 			/** @var File_MARC_Data_Field $descriptionField */
 			if ($descriptionField = $marcRecord->getField('520')) {
 				if ($descriptionSubfield = $descriptionField->getSubfield('a')) {
@@ -1109,7 +1114,6 @@ class MarcRecord extends IndexRecord
 			if ($useMarcSummary){
 				if ($marcDescription != null){
 					$descriptionArray['description'] = $marcDescription;
-					$description = $marcDescription;
 				}else{
 					$description = "Description Not Provided";
 					$descriptionArray['description'] = $description;
@@ -1751,22 +1755,6 @@ class MarcRecord extends IndexRecord
 		return false;
 	}
 
-	private function getAvailableCopies($realTime){
-		if ($realTime){
-			$items = $this->getItems();
-		}else{
-			$items = $this->getItemsFast();
-		}
-		$numAvailableCopies = 0;
-		foreach ($items as $item){
-			//Try to get an available non reserve call number
-			if ($item['availability'] == true){
-				$numAvailableCopies++;
-			}
-		}
-		return $numAvailableCopies;
-	}
-
 	private function getLocationLabel(){
 		$items = $this->getItemsFast();
 		$locationLabel = null;
@@ -1892,16 +1880,6 @@ class MarcRecord extends IndexRecord
 		return $allLibraryUseOnly;
 	}
 
-	private function hasLocalItem() {
-		$items = $this->getItemsFast();
-		foreach ($items as $item){
-			if ($item['isLocalItem'] || $item['isLibraryItem']){
-				return true;
-			}
-		}
-		return false;
-	}
-
 	protected function getAllActions() {
 		$items = $this->getItemsFast();
 		$allActions = array();
@@ -1940,10 +1918,6 @@ class MarcRecord extends IndexRecord
 			return '';
 		}
 
-	}
-
-	private function getNumCopies() {
-		return count($this->getItemsFast());
 	}
 
 	private $fastItems = null;
@@ -2051,8 +2025,8 @@ class MarcRecord extends IndexRecord
 		if (MarcRecord::$catalogDriver == null){
 			global $configArray;
 			try {
-				require_once ROOT_DIR . '/CatalogConnection.php';
-				MarcRecord::$catalogDriver = new CatalogConnection($configArray['Catalog']['driver']);
+				require_once ROOT_DIR . '/CatalogFactory.php';
+				MarcRecord::$catalogDriver = CatalogFactory::getCatalogConnectionInstance();
 			} catch (PDOException $e) {
 				// What should we do with this error?
 				if ($configArray['System']['debug']) {
@@ -2367,7 +2341,7 @@ class MarcRecord extends IndexRecord
 		global $timer;
 		if ($configArray['Catalog']['ils'] == 'Horizon'){
 			require_once ROOT_DIR . '/CatalogConnection.php';
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$this->numHolds = $catalog->getNumHolds($this->getUniqueID());
 		}else{
 

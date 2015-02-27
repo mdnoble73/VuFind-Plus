@@ -31,7 +31,7 @@ class Renew extends Action
 		$logger->log("Starting renew action", PEAR_LOG_INFO);
 
 		try {
-			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 		} catch (PDOException $e) {
 			// What should we do with this error?
 			if ($configArray['System']['debug']) {

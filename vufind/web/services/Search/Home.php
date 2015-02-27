@@ -38,7 +38,7 @@ class Search_Home extends Action {
 		$interface->assign('showBreadcrumbs', 0);
 
 		if ($user){
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$patron = $catalog->patronLogin($user->cat_username, $user->cat_password);
 			$profile = $catalog->getMyProfile($patron);
 			if (!PEAR_Singleton::isError($profile)) {
