@@ -13,26 +13,17 @@ PIKASERVER=catalog.library.nashville.org
 ILSSERVER=waldo.library.nashville.org
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/continuous_partial_reindex_output.log"
 
-# Check for conflicting processes currently runnin
+# Check for conflicting processes currently running
 function checkConflictingProcesses() {
 	#Check to see if the conflict exists.
-<<<<<<< HEAD
-	countConflictingProcesses=$(ps aux | grep -c $1)
-	countConflictingProcesses=$((countConflictingProcesses-1))
-	let numInitialConflicts=countConflictingProcesses
-	#echo "Count of conflicting process" $1 $countConflictingProcesses
-	#Wait until the conflict is gone.
-	until ((countConflictingProcesses == 0)); do
-		countConflictingProcesses=$(ps aux | grep -c $1)
-=======
 	countConflictingProcesses=$(ps aux | grep -v sudo | grep -c "$1")
 	countConflictingProcesses=$((countConflictingProcesses-1))
 
 	let numInitialConflicts=countConflictingProcesses
+	#echo "Count of conflicting process" $1 $countConflictingProcesses
 	#Wait until the conflict is gone.
 	until ((${countConflictingProcesses} == 0)); do
 		countConflictingProcesses=$(ps aux | grep -v sudo | grep -c "$1")
->>>>>>> edc353669e6d1506f92a7049a0a3817a36ddc09d
 		countConflictingProcesses=$((countConflictingProcesses-1))
 		#echo "Count of conflicting process" $1 $countConflictingProcesses
 		sleep 300
