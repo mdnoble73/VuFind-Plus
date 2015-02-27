@@ -12,16 +12,18 @@ EMAIL=root@venus
 PIKASERVER=marmot.test
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/extract_and_reindex_output.log"
 
-# Check for conflicting processes currently runnin
+# Check for conflicting processes currently running
 function checkConflictingProcesses() {
 	#Check to see if the conflict exists.
-	countConflictingProcesses=$(ps aux | grep -v sudo | grep -c $1)
+	countConflictingProcesses=$(ps aux | grep -v sudo | grep -c "$1")
+	#subtract one to get rid of our grep command
 	countConflictingProcesses=$((countConflictingProcesses-1))
 
 	let numInitialConflicts=countConflictingProcesses
 	#Wait until the conflict is gone.
 	until ((${countConflictingProcesses} == 0)); do
-		countConflictingProcesses=$(ps aux | grep -c $1)
+		countConflictingProcesses=$(ps aux | grep -v sudo | grep -c "$1")
+		#subtract one to get rid of our grep command
 		countConflictingProcesses=$((countConflictingProcesses-1))
 		#echo "Count of conflicting process" $1 $countConflictingProcesses
 		sleep 300

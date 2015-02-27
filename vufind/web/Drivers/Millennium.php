@@ -667,6 +667,9 @@ class MillenniumDriver implements DriverInterface
 				$location = new Location();
 				$location->whereAdd("code = '$homeBranchCode'");
 				$location->find(1);
+				if ($location->N == 0){
+					unset($location);
+				}
 			}
 
 			if ($user) {

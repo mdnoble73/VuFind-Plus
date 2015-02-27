@@ -377,7 +377,8 @@ if ($user) {
 }
 $timer->logTime('User authentication');
 
-if ($user){
+//Load user data for the user as long as we aren't in the act of logging out.
+if ($user && (!isset($_REQUEST['action']) || $_REQUEST['action'] != 'Logout')){
 	loadUserData();
 
 	$interface->assign('pType', $user->patronType);

@@ -147,7 +147,7 @@ VuFind.Account = (function(){
 					.show();
 				return false;
 			}
-			if (VuFind.Account.hasLocalStorage()){
+			if (this.hasLocalStorage()){
 				//var rememberMeCtl = $("#rememberMe");
 				var rememberMe = $("#rememberMe").prop('checked'),
 						showPwd = $('#showPwd').prop('checked');
@@ -167,7 +167,7 @@ VuFind.Account = (function(){
 		},
 
 		processAjaxLogin: function (ajaxCallback) {
-			if(VuFind.Account.preProcessLogin()) {
+			if(this.preProcessLogin()) {
 				var username = $("#username").val(),
 						password = $("#password").val(),
 						rememberMe = $("#rememberMe").prop('checked'),
@@ -238,12 +238,12 @@ VuFind.Account = (function(){
 
 		renewTitle: function(renewIndicator) {
 			if (!Globals.loggedIn) {
-				VuFind.Account.ajaxLogin(null, function () {
-					VuFind.Account.renewTitle(renewIndicator);
+				this.ajaxLogin(null, function () {
+					this.renewTitle(renewIndicator);
 				}, false);
 			} else {
 				VuFind.showMessage('Loading', 'Loading, please wait');
-				$.getJSON("/MyAccount/AJAX?method=renewItem&renewIndicator="+renewIndicator, function(data){
+				$.getJSON(Globals.path + "/MyAccount/AJAX?method=renewItem&renewIndicator="+renewIndicator, function(data){
 					VuFind.showMessage(data.title, data.modalBody, data.success, data.success); // autoclose when successful
 				}).fail(function(){
 					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
@@ -253,14 +253,13 @@ VuFind.Account = (function(){
 		},
 
 		renewAll: function() {
-			if (confirm('Renew All Items?')) {
-				if (!Globals.loggedIn) {
-					VuFind.Account.ajaxLogin(null, function () {
-						VuFind.Account.renewAll();
-					}, false);
-				} else {
+			if (!Globals.loggedIn) {
+				this.ajaxLogin(null, function () {
+					this.renewAll();
+				}, false);
+			} else if (confirm('Renew All Items?')) {
 					VuFind.showMessage('Loading', 'Loading, please wait');
-					$.getJSON("/MyAccount/AJAX?method=renewAll", function (data) {
+					$.getJSON(Globals.path + "/MyAccount/AJAX?method=renewAll", function (data) {
 						VuFind.showMessage(data.title, data.modalBody, data.success);
 						// autoclose when all successful
 						if (data.success || data.renewed > 0) {
@@ -273,7 +272,6 @@ VuFind.Account = (function(){
 						VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 					});
 				}
-			}
 			return false;
 		},
 
@@ -288,24 +286,25 @@ VuFind.Account = (function(){
 		//},
 		//
 		renewSelectedTitles: function () {
-			var selectedTitles = VuFind.getSelectedTitles();
-			if (selectedTitles) {
-				if (confirm('Renew selected Items?')) {
-					if (!Globals.loggedIn) {
-						VuFind.Account.ajaxLogin(null, function () {
-							VuFind.Account.renewSelectedTitles();
-						}, false);
-					} else {
+			if (!Globals.loggedIn) {
+				this.ajaxLogin(null, function () {
+					this.renewSelectedTitles();
+				}, false);
+			} else {
+				var selectedTitles = VuFind.getSelectedTitles();
+				if (selectedTitles) {
+					if (confirm('Renew selected Items?')) {
 						VuFind.showMessage('Loading', 'Loading, please wait');
-						$.getJSON("/MyAccount/AJAX?method=renewSelectedItems&"+selectedTitles, function (data) {
-							VuFind.showMessage(data.title, data.modalBody, data.success);
+						$.getJSON(Globals.path + "/MyAccount/AJAX?method=renewSelectedItems&"+selectedTitles, function (data) {
+							var reload = data.success || data.renewed > 0;
+							VuFind.showMessage(data.title, data.modalBody, data.success, reload);
 							// autoclose when all successful
-							if (data.success || data.renewed > 0) {
-								// Refresh page on close when a item has been successfully renewed, otherwise stay
-								$("#modalDialog").on('hidden.bs.modal', function (e) {
-									location.reload(true);
-								});
-							}
+							//if (data.success || data.renewed > 0) {
+							//	// Refresh page on close when a item has been successfully renewed, otherwise stay
+							//	$("#modalDialog").on('hidden.bs.modal', function (e) {
+							//		location.reload(true);
+							//	});
+							//}
 						}).fail(function(){
 							VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 						});
@@ -335,7 +334,7 @@ VuFind.Account = (function(){
 					$('.modal-body').html(data.modalBody);
 					$('.modal-buttons').html(data.modalButtons);
 				});
-				modalDialog.load( );
+				//modalDialog.load( );
 				modalDialog.modal('show');
 			}
 			return false;
@@ -344,7 +343,7 @@ VuFind.Account = (function(){
 		cancelHold: function(holdIdToCancel){
 			if (confirm("Are you sure you want to cancel this hold?")){
 				if (!Globals.loggedIn) {
-					VuFind.Account.ajaxLogin(null, function () {
+					this.ajaxLogin(null, function () {
 						VuFind.Account.cancelHold(holdIdToCancel);
 					}, false);
 				} else {
@@ -368,14 +367,15 @@ VuFind.Account = (function(){
 
 		cancelSelectedHolds: function() {
 			if (!Globals.loggedIn) {
-				VuFind.Account.ajaxLogin(null, function () {
+				this.ajaxLogin(null, function () {
 					VuFind.Account.cancelSelectedHolds();
 				}, false);
 			} else {
 				var selectedTitles = this.getSelectedTitles()
 								.replace(/waiting|available/g, ''),// strip out of name for now.
 						numHolds = $("input.titleSelect:checked").length;
-				if (confirm('Cancel ' + numHolds + ' selected hold' + (numHolds > 1 ? 's' : '') + '?')) {
+				// if numHolds equals 0, quit because user has canceled in getSelectedTitles()
+				if (numHolds > 0 && confirm('Cancel ' + numHolds + ' selected hold' + (numHolds > 1 ? 's' : '') + '?')) {
 					VuFind.showMessage('Loading', 'Loading, please wait');
 					$.getJSON(Globals.path + "/MyAccount/AJAX?method=cancelHolds&"+selectedTitles, function(data){
 						VuFind.showMessage(data.title, data.modalBody, data.success); // autoclose when successful
@@ -383,9 +383,12 @@ VuFind.Account = (function(){
 								// remove canceled items from page
 								$("input.titleSelect:checked").closest('div.result').remove();
 							} else if (data.failed) { // remove items that didn't fail
+								var searchArray = data.failed.map(function(ele){return ele.toString()});
+								 // convert any number values to string, this is needed bcs inArray() below does strict comparisons
+								 // & id will be a string. (sometimes the id values are of type number )
 								$("input.titleSelect:checked").each(function(){
 									var id = $(this).attr('id').replace(/selected/g, ''); //strip down to just the id part
-									if ($.inArray(id, data.failed) == -1) // if the item isn't one of the failed cancels, get rid of its containing div.
+									if ($.inArray(id, searchArray) == -1) // if the item isn't one of the failed cancels, get rid of its containing div.
 										$(this).closest('div.result').remove();
 								});
 							}

@@ -293,7 +293,7 @@ class MillenniumHolds{
 				foreach ($combined_holds as $hold) {
 					if ($tmpBib == $hold['shortId']) { // this hold failed (item still on hold)
 						$title = (array_key_exists($tmpBib, $titles) && $titles[$tmpBib] != '') ? $titles[$tmpBib] : 'an item';
-							$failure_messages[$tmpXnumInfo] = "The hold for $title could not be cancelled.  Please try again later or see your librarian.'";
+							$failure_messages[$tmpXnumInfo] = "The hold for $title could not be cancelled.  Please try again later or see your librarian.";
 							// use original id as index so that javascript functions can pick out failed cancels
 
 //						$failed = true;

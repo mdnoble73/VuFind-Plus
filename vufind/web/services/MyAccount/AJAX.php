@@ -205,8 +205,9 @@ class MyAccount_AJAX
 			);
 		}
 		global $interface;
-		// if title come back a single item array, set as the title instead.
+		// if title come back a single item array, set as the title instead. likewise for message
 		if (is_array($result['title']) && count($result['title']) == 1) $result['title'] = current($result['title']);
+		if (is_array($result['message']) && count($result['message']) == 1) $result['message'] = current($result['message']);
 		$result['success'] = $result['result']; // makes template easier to understand
 
 		$interface->assign('cancelResults', $result);
@@ -253,7 +254,9 @@ class MyAccount_AJAX
 		global $interface;
 		$result['success'] = $result['result']; // makes template easier to understand
 		$failed = (is_array($result['message']) && !empty($result['message'])) ? array_keys($result['message']) : null; //returns failed id for javascript function
-		$result['numCancelled'] = count($result['titles']) - count($failed);
+		if (isset($result['titles'])) {
+			$result['numCancelled'] = count($result['titles']) - count($failed);
+		}
 		$interface->assign('cancelResults', $result);
 
 		$cancelResult = array(
