@@ -177,8 +177,6 @@ class Aspencat implements DriverInterface{
 			$barcodeSubfield    = $configArray['Reindex']['barcodeSubfield'];
 			$locationSubfield   = $configArray['Reindex']['locationSubfield'];
 			$callnumberSubfield = $configArray['Reindex']['callNumberSubfield'];
-			$statusSubfield     = $configArray['Reindex']['statusSubfield'];
-			$collectionSubfield     = $configArray['Reindex']['collectionSubfield'];
 
 			//Get the holdings from aspencat
 			$catalogUrl = $configArray['Catalog']['url'];
@@ -215,8 +213,6 @@ class Aspencat implements DriverInterface{
 						$itemData['location'] = $itemData['locationCode'];
 					}
 					$itemData['locationLabel'] = $itemData['location'];
-					$collection = trim($item->getSubfield($collectionSubfield) != null ? $item->getSubfield($collectionSubfield)->getData() : '');
-					$itemData['shelfLocation'] = mapValue('collection', $collection);
 
 					if (!$configArray['Reindex']['useItemBasedCallNumbers'] && $callNumber != ''){
 						$itemData['callnumber'] = $callNumber;
@@ -225,15 +221,8 @@ class Aspencat implements DriverInterface{
 					}
 					$itemData['callnumber'] = str_replace("~", " ", $itemData['callnumber']);
 					//Set default status
-					$status = trim($item->getSubfield($statusSubfield) != null ? $item->getSubfield($statusSubfield)->getData() : '');
-					$itemData['status'] = mapValue('item_status', $status);
-					if ($itemData['status'] == ''){
-						if ($status == ''){
-							$itemData['status'] = 'Available';
-						}else{
-							$itemData['status'] = $status;
-						}
-					}
+					$status = $this->getItemStatus($item);
+					$itemData['status'] = $status;
 
 					$groupedStatus = mapValue('item_grouped_status', $status);
 					if ($groupedStatus == 'On Shelf' || $groupedStatus == 'Available Online'){
@@ -258,7 +247,7 @@ class Aspencat implements DriverInterface{
 
 					$itemData['collection'] = mapValue('collection', $item->getSubfield('c') != null ? $item->getSubfield('c')->getData() : '');
 
-					$itemData['statusfull'] = mapValue('item_status', $itemData['status']);
+					$itemData['statusfull'] = $itemData['status'];
 
 					//Match the record to the data loaded from koha
 					foreach ($holdingsFromKoha as $kohaItem){
@@ -283,6 +272,7 @@ class Aspencat implements DriverInterface{
 							}
 						}
 					}
+					$itemData['shelfLocation'] = $itemData['location'];
 					$itemData['groupedStatus'] = mapValue('item_grouped_status', $itemData['statusfull']);
 
 					//Suppress items based on status
@@ -2227,5 +2217,69 @@ class Aspencat implements DriverInterface{
 		}
 
 		return $holdingsFromKoha;
+	}
+
+	/**
+	 * @param File_MARC_Data_Field $item The item to load data for
+	 */
+	private function getItemStatus($itemField) {
+		//Determining status for Koha relies on a number of different fields
+		$status = $this->getStatusFromSubfield($itemField, '0', "Withdrawn");
+		if ($status != null) return $status;
+
+		$status = $this->getStatusFromSubfield($itemField, '1', "Lost");
+		if ($status != null) return $status;
+
+		$status = $this->getStatusFromSubfield($itemField, '4', "Damaged");
+		if ($status != null) return $status;
+
+		$status = $this->getStatusFromSubfield($itemField, 'q', "Checked Out");
+		if ($status != null) return $status;
+
+		$status = $this->getStatusFromSubfield($itemField, '7', "Library Use Only");
+		if ($status != null) return $status;
+
+		$status = $this->getStatusFromSubfield($itemField, 'k', null);
+		if ($status != null) return $status;
+
+		return "On Shelf";
+	}
+
+	/**
+	 * @param File_MARC_Data_Field $itemField
+	 * @param string $subfield
+	 * @param string $defaultStatus
+	 * @return null|string
+	 */
+	private function getStatusFromSubfield($itemField, $subfield, $defaultStatus) {
+		if ($itemField->getSubfield($subfield) != null){
+			$fieldData = $itemField->getSubfield($subfield)->getData();
+			if (!$fieldData == "0") {
+				if ($fieldData == "1") {
+					return $defaultStatus;
+				}else{
+					if ($subfield == 'q'){
+						if (preg_match('/\d{4}-\d{2}-\d{2}/', $fieldData)){
+							return "Checked Out";
+						}
+					}else if ($subfield == '1'){
+						if ($fieldData == "lost"){
+							return "Lost";
+						}else if ($fieldData == "missing"){
+							return "Missing";
+						}
+					}else if ($subfield == 'k') {
+						if ($fieldData == "CATALOGED" || $fieldData == "READY") {
+							return null;
+						}else if ($fieldData == "BINDERY"){
+							return "Bindery";
+						}else if ($fieldData == "IN REPAIRS"){
+							return "Repair";
+						}
+					}
+				}
+			}
+		}
+		return null;
 	}
 }
