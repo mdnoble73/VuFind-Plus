@@ -1136,10 +1136,6 @@ class Aspencat implements DriverInterface{
 
 	function __destruct(){
 		//Cleanup any connections we have to other systems
-		if ($this->sipConnection != null){
-			$this->sipConnection->disconnect();
-			$this->sipConnection = null;
-		}
 		if ($this->curl_connection != null){
 			curl_close($this->curl_connection);
 		}
@@ -1393,11 +1389,14 @@ class Aspencat implements DriverInterface{
 						if ($headerLabels[$col] == 'copy'){
 							if (strpos($tableCell, 'disabled') === false){
 								$validItem = true;
+								if (preg_match('/value="(\d+)"/', $tableCell, $valueMatches)){
+									$curItem['itemNumber'] = $valueMatches[1];
+								}
 							}
 						}else if ($headerLabels[$col] == 'item type'){
 							$curItem['itemType'] = trim($tableCell);
 						}else if ($headerLabels[$col] == 'barcode'){
-							$curItem['itemNumber'] = trim($tableCell);
+							$curItem['barcode'] = trim($tableCell);
 						}else if ($headerLabels[$col] == 'home library'){
 							$curItem['location'] = trim($tableCell);
 						}else if ($headerLabels[$col] == 'call number'){
@@ -1412,6 +1411,9 @@ class Aspencat implements DriverInterface{
 						$items[$curItem['itemNumber']] = $curItem;
 					}
 				}
+			}elseif (preg_match('/<div class="dialog alert">(.*?)<\/div>/s', $placeHoldPage, $matches)){
+				$items = array();
+				$message = trim($matches[1]);
 			}
 
 			$hold_result['title'] = $recordDriver->getTitle();
@@ -1419,7 +1421,9 @@ class Aspencat implements DriverInterface{
 			if (count($items) > 0){
 				$message = 'This title allows item level holds, please select an item to place a hold on.';
 			}else{
-				$message = 'There are no holdable items for this title.';
+				if (!isset($message)){
+					$message = 'There are no holdable items for this title.';
+				}
 			}
 			$hold_result['result'] = false;
 			$hold_result['message'] = $message;
@@ -1460,7 +1464,13 @@ class Aspencat implements DriverInterface{
 				}
 			}else{
 				$hold_result['result'] = false;
-				$hold_result['message'] = 'Your hold could not be placed. ' ;
+				//Look for an alert message
+				if (preg_match('/<div class="dialog alert">(.*?)<\/div>/', $kohaHoldResult, $matches)){
+					$hold_result['message'] = 'Your hold could not be placed. ' . $matches[1] ;
+				}else{
+					$hold_result['message'] = 'Your hold could not be placed. ' ;
+				}
+
 			}
 			return $hold_result;
 		}
@@ -1484,20 +1494,20 @@ class Aspencat implements DriverInterface{
 	public function placeItemHold(
 		/** @noinspection PhpUnusedParameterInspection */
 		$recordId, $itemId, $patronId, $comment, $type){
+
 		global $user;
-		//Place the hold via SIP 2
-		if (!$this->initSipConnection()){
-			return array(
-				'result' => false,
-				'message' => 'Could not connect to SIP'
-			);
-		}
+		global $configArray;
 
 		$hold_result = array();
 		$hold_result['result'] = false;
 
-		$this->sipConnection->patron = $user->cat_username;
-		$this->sipConnection->patronpwd = $user->cat_password;
+		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+		$recordDriver = new MarcRecord($recordId);
+		if (!$recordDriver->isValid()){
+			$hold_result['message'] = 'Unable to find a valid record for this title.  Please try your search again.';
+			return $hold_result;
+		}
+		$hold_result['title'] = $recordDriver->getTitle();
 
 		//Set pickup location
 		if (isset($_REQUEST['campus'])){
@@ -1514,77 +1524,44 @@ class Aspencat implements DriverInterface{
 			}
 		}
 
-		//place the hold
-		if ($type == 'cancel' || $type == 'recall'){
-			$mode = '-';
-		}elseif ($type == 'update'){
-			$mode = '*';
-		}else{
-			$mode = '+';
-		}
+		//Post the hold to koha
+		$placeHoldPage = $configArray['Catalog']['url'] . '/cgi-bin/koha/opac-reserve.pl';
+		$holdParams = array(
+			'biblionumbers' => $recordId . '/',
+			'branch' => $campus,
+			"checkitem_$recordId" => $itemId,
+			'place_reserve' => 1,
+			"reqtype_$recordId" => 'Specific',
+			'reserve_mode' => 'multi',
+			'selecteditems' => "$recordId/$itemId/$campus/",
+			'single_bib' => $recordId,
+		);
+		$kohaHoldResult = $this->postToKohaPage($placeHoldPage, $holdParams);
 
-		//Get a specific item number to place a hold on even though we are placing a title level hold.
-		//because.... Koha
-		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-		$recordDriver = new MarcRecord($recordId);
-		if (!$recordDriver->isValid()){
-			$hold_result['message'] = 'Unable to find a valid record for this title.  Please try your search again.';
-			return $hold_result;
-		}
-		global $configArray;
-		$marcRecord = $recordDriver->getMarcRecord();
-		if ($itemId == -1){
-			$itemTag = $configArray['Reindex']['itemTag'];
-			$barcodeSubfield = $configArray['Reindex']['barcodeSubfield'];
-			/** @var File_MARC_Data_Field[] $itemFields */
-			$itemFields = $marcRecord->getFields($itemTag);
-			$barcodeToHold = null;
-			foreach ($itemFields as $itemField){
-				if ($itemField->getSubfield($barcodeSubfield) != null){
-					$barcodeToHold = $itemField->getSubfield($barcodeSubfield)->getData();
+		$hold_result['id'] = $recordId;
+		if (preg_match('/<a href="#opac-user-holds">Holds<\/a>/si', $kohaHoldResult)) {
+			//We redirected to the holds page, everything seems to be good
+			$holds = $this->getMyHolds($user, 1, -1, 'title', $kohaHoldResult);
+			$hold_result['result'] = true;
+			$hold_result['message'] = "Your hold was placed successfully.";
+			//Find the correct hold (will be unavailable)
+			foreach ($holds['holds']['unavailable'] as $holdInfo){
+				if ($holdInfo['id'] == $recordId){
+					if (isset($holdInfo['position'])){
+						$hold_result['message'] .= "  You are number <b>" . $holdInfo['position'] . "</b> in the queue.";
+					}
 					break;
 				}
 			}
 		}else{
-			$barcodeToHold = $itemId;
-		}
-
-		$hold_result['title'] = $recordDriver->getTitle();
-
-		$holdType = 3;
-		if ($itemId == -1){
-			$holdType = 2;
-		}
-		$in = $this->sipConnection->msgHold($mode, '', $holdType, $barcodeToHold, $recordId, '', strtoupper($campus));
-		$msg_result = $this->sipConnection->get_message($in);
-
-		$hold_result['id'] = $recordId;
-		if (preg_match("/^16/", $msg_result)) {
-			$result = $this->sipConnection->parseHoldResponse($msg_result );
-			$hold_result['result'] = ($result['fixed']['Ok'] == 1);
-			if (isset($result['variable']['AF'])){
-				$hold_result['message'] = $result['variable']['AF'][0];
+			$hold_result['result'] = false;
+			//Look for an alert message
+			if (preg_match('/<div class="dialog alert">(.*?)<\/div>/', $kohaHoldResult, $matches)){
+				$hold_result['message'] = 'Your hold could not be placed. ' . $matches[1] ;
 			}else{
-				if ($result['fixed']['Ok'] == 1){
-					$hold_result['message'] = 'Your hold was successful';
-				}else{
-					$hold_result['message'] = 'Your could not be placed';
-				}
+				$hold_result['message'] = 'Your hold could not be placed. ' ;
 			}
 
-			//Get the hold position.
-			if ($result['fixed']['Ok'] == 1){
-				$holds = $this->getMyHolds($user);
-				//Find the correct hold (will be unavailable)
-				foreach ($holds['holds']['unavailable'] as $holdInfo){
-					if ($holdInfo['id'] == $recordId){
-						if (isset($holdInfo['position'])){
-							$hold_result['message'] .= "  You are number <b>" . $holdInfo['position'] . "</b> in the queue.";
-						}
-						break;
-					}
-				}
-			}
 		}
 		return $hold_result;
 	}

@@ -359,7 +359,6 @@ class Record_AJAX extends Action {
 	function getPlaceHoldForm(){
 		global $interface;
 		global $user;
-		global $configArray;
 		if ($user){
 			$id = $_REQUEST['id'];
 			$catalog = CatalogFactory::getCatalogConnectionInstance();;
@@ -434,6 +433,7 @@ class Record_AJAX extends Action {
 				$interface->assign('campus', $campus);
 				$items = $return['items'];
 				$interface->assign('items', $items);
+				$interface->assign('message', $return['message']);
 				$interface->assign('id', $recordId);
 
 				global $library;
