@@ -57,7 +57,7 @@ abstract class Admin_Admin extends Action
 		//This code is also in Search/History since that page displays in the My Account menu as well.
 		//It is also in MyList.php
 		if ($user !== false){
-			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 
 			//Figure out if we should show a link to classic opac to pay holds.
 			$ecommerceLink = $configArray['Site']['ecommerceLink'];

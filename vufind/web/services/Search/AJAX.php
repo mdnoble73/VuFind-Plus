@@ -71,7 +71,7 @@ class AJAX extends Action {
 		require_once ROOT_DIR . '/CatalogConnection.php';
 
 		// Try to find a copy that is available
-		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+		$catalog = CatalogFactory::getCatalogConnectionInstance();;
 
 		$result = $catalog->getStatuses($_GET['id']);
 
@@ -169,7 +169,7 @@ class AJAX extends Action {
 
 		// Try to find a copy that is available
 		/** @var $catalog CatalogConnection */
-		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+		$catalog = CatalogFactory::getCatalogConnectionInstance();;
 		$timer->logTime("Initialized Catalog Connection");
 
 		$summaries = $catalog->getStatusSummaries($_GET['id'], true);

@@ -534,7 +534,7 @@ if (!is_null($ipLocation) && $ipLocation != false && !$configArray['Catalog']['o
 		$includeAutoLogoutCode = true;
 		//Get the PType for the user
 		/** @var MillenniumDriver|CatalogConnection $catalog */
-		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+		$catalog = CatalogFactory::getCatalogConnectionInstance();
 		if ($user && $catalog->checkFunction('isUserStaff')){
 			$userIsStaff = $catalog->isUserStaff();
 			$interface->assign('userIsStaff', $userIsStaff);
@@ -857,10 +857,9 @@ function initializeSession(){
 function loadUserData(){
 	global $user;
 	global $interface;
-	global $configArray;
 
 	//Load profile information
-	$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+	$catalog = CatalogFactory::getCatalogConnectionInstance();
 	$profile = $catalog->getMyProfile($user);
 	if (!PEAR_Singleton::isError($profile)) {
 		$interface->assign('profile', $profile);

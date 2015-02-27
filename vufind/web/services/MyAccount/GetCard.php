@@ -35,7 +35,7 @@ class GetCard extends Action
 		global $configArray;
 		
 		if (isset($_REQUEST['submit'])){
-			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$driver = $this->catalog->driver;
 			
 			$registrationResult = $driver->selfRegister();
