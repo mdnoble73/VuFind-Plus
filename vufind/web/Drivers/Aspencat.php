@@ -252,9 +252,14 @@ class Aspencat implements DriverInterface{
 					//Match the record to the data loaded from koha
 					foreach ($holdingsFromKoha as $kohaItem){
 						if ($kohaItem['matched'] == false){
-							if ($itemData['location'] && $kohaItem['callnumber']){
+							if ($itemData['location']){
 								$locationMatched = strpos($kohaItem['library'], $itemData['location']) === 0;
-								$callNumberMatched = strpos($kohaItem['callnumber'], $itemData['callnumber']) === 0;
+								if (strlen($itemData['callnumber']) == 0){
+									$callNumberMatched = strlen($kohaItem['callnumber']) == 0;
+								}else{
+									$callNumberMatched = strpos($kohaItem['callnumber'], $itemData['callnumber']) === 0;
+								}
+
 								if ($locationMatched && $callNumberMatched){
 									//TODO: Do a reverse mapping to get status code
 									$itemData['statusfull'] = $kohaItem['status'];
