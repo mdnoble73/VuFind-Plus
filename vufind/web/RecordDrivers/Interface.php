@@ -266,7 +266,7 @@ abstract class RecordInterface {
 		if (strlen($description) == 0){
 			$description = 'Description not provided';
 		}
-		$description = strip_tags($description, '<b><p><i><em><strong><ul><li><ol>');
+		$description = strip_tags($description, '<a><b><p><i><em><strong><ul><li><ol>');
 		$interface->assign('description', $description);
 		$moreDetailsOptions['description'] = array(
 				'label' => 'Description',
