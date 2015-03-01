@@ -6806,14 +6806,8 @@ div#system-message-header {
 #install-info {
   padding-left: 20px;
 }
-@media (max-width: 767px) {
-  #install-info {
-    overflow-y: hidden;
-  }
-}
 #connect-with-us-info {
   padding-right: 20px;
-  float: right;
 }
 #connect-with-us-label {
   margin-right: 15px;
