@@ -61,7 +61,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	private static HashMap<Long, LoanRule> loanRules = new HashMap<Long, LoanRule>();
 	private static ArrayList<LoanRuleDeterminer> loanRuleDeterminers = new ArrayList<LoanRuleDeterminer>();
 
-	private static boolean holdsDataLoaded = false;
 	private static HashMap<String, Integer> numberOfHoldsByIdentifier = new HashMap<String, Integer>();
 
 	public IlsRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
@@ -105,17 +104,15 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	private void loadHoldsByIdentifier(Connection vufindConn, Logger logger) {
-		if (!holdsDataLoaded){
-			try{
-				PreparedStatement loadHoldsStmt = vufindConn.prepareStatement("SELECT ilsId, numHolds from ils_hold_summary", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				ResultSet holdsRS = loadHoldsStmt.executeQuery();
-				while (holdsRS.next()) {
-					numberOfHoldsByIdentifier.put(holdsRS.getString("ilsId"), holdsRS.getInt("numHolds"));
-				}
-
-			} catch (Exception e){
-				logger.error("Unable to load hold data", e);
+		try{
+			PreparedStatement loadHoldsStmt = vufindConn.prepareStatement("SELECT ilsId, numHolds from ils_hold_summary", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			ResultSet holdsRS = loadHoldsStmt.executeQuery();
+			while (holdsRS.next()) {
+				numberOfHoldsByIdentifier.put(holdsRS.getString("ilsId"), holdsRS.getInt("numHolds"));
 			}
+
+		} catch (Exception e){
+			logger.error("Unable to load hold data", e);
 		}
 	}
 
@@ -436,18 +433,18 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	protected EContentIlsItem getEContentIlsRecord(Record record, String identifier, DataField itemField){
-		EContentIlsItem ilsRecord = new EContentIlsItem();
+		EContentIlsItem ilsEContentItem = new EContentIlsItem();
 
-		ilsRecord.setDateCreated(getItemSubfieldData(dateCreatedSubfield, itemField));
-		ilsRecord.setLocation(getItemSubfieldData(locationSubfieldIndicator, itemField));
-		ilsRecord.setiType(getItemSubfieldData(iTypeSubfield, itemField));
-		ilsRecord.setCallNumberPreStamp(getItemSubfieldData(callNumberPrestampSubfield, itemField));
-		ilsRecord.setCallNumber(getItemSubfieldData(callNumberSubfield, itemField));
-		ilsRecord.setCallNumberCutter(getItemSubfieldData(callNumberCutterSubfield, itemField));
-		ilsRecord.setVolume(getItemSubfieldData(volumeSubfield, itemField));
-		ilsRecord.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
+		ilsEContentItem.setDateCreated(getItemSubfieldData(dateCreatedSubfield, itemField));
+		ilsEContentItem.setLocation(getItemSubfieldData(locationSubfieldIndicator, itemField));
+		ilsEContentItem.setiType(getItemSubfieldData(iTypeSubfield, itemField));
+		ilsEContentItem.setCallNumberPreStamp(getItemSubfieldData(callNumberPrestampSubfield, itemField));
+		ilsEContentItem.setCallNumber(getItemSubfieldData(callNumberSubfield, itemField));
+		ilsEContentItem.setCallNumberCutter(getItemSubfieldData(callNumberCutterSubfield, itemField));
+		ilsEContentItem.setVolume(getItemSubfieldData(volumeSubfield, itemField));
+		ilsEContentItem.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
 		if (collectionSubfield != ' ') {
-			ilsRecord.setCollection(getItemSubfieldData(collectionSubfield, itemField));
+			ilsEContentItem.setCollection(getItemSubfieldData(collectionSubfield, itemField));
 		}
 
 		Subfield eContentSubfield = itemField.getSubfield(eContentSubfieldIndicator);
@@ -456,16 +453,16 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			if (eContentData.indexOf(':') > 0) {
 				String[] eContentFields = eContentData.split(":");
 				//First element is the source, and we will always have at least the source and protection type
-				ilsRecord.setSource(eContentFields[0].trim());
-				ilsRecord.setProtectionType(eContentFields[1].trim().toLowerCase());
+				ilsEContentItem.setSource(eContentFields[0].trim());
+				ilsEContentItem.setProtectionType(eContentFields[1].trim().toLowerCase());
 				if (eContentFields.length >= 3){
-					ilsRecord.setSharing(eContentFields[2].trim().toLowerCase());
+					ilsEContentItem.setSharing(eContentFields[2].trim().toLowerCase());
 				}else{
 					//Sharing depends on the location code
-					if (ilsRecord.getLocation().startsWith("mdl")){
-						ilsRecord.setSharing("shared");
+					if (ilsEContentItem.getLocation().startsWith("mdl")){
+						ilsEContentItem.setSharing("shared");
 					}else{
-						ilsRecord.setSharing("library");
+						ilsEContentItem.setSharing("library");
 					}
 				}
 
@@ -473,34 +470,40 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				if (eContentFields.length >= 4){
 					//If the 4th field is numeric, it is the number of copies that can be checked out.
 					if (Util.isNumeric(eContentFields[3].trim())){
-						ilsRecord.setNumberOfCopies(eContentFields[3].trim());
+						ilsEContentItem.setNumberOfCopies(eContentFields[3].trim());
 						if (eContentFields.length >= 5){
-							ilsRecord.setFilename(eContentFields[4].trim());
+							ilsEContentItem.setFilename(eContentFields[4].trim());
 						}else{
 							logger.warn("Filename for local econtent not specified " + eContentData + " " + identifier);
 						}
 						if (eContentFields.length >= 6){
-							ilsRecord.setAcsId(eContentFields[5].trim());
+							ilsEContentItem.setAcsId(eContentFields[5].trim());
 						}
 					}else{
 						//Field 4 is the filename
-						ilsRecord.setFilename(eContentFields[3].trim());
+						ilsEContentItem.setFilename(eContentFields[3].trim());
 						if (eContentFields.length >= 5){
-							ilsRecord.setAcsId(eContentFields[4].trim());
+							ilsEContentItem.setAcsId(eContentFields[4].trim());
 						}
 					}
 				}
 			}
+		}else{
+			//This is for a "less advanced" catalog, set some basic info
+			ilsEContentItem.setSource("External eContent");
+			ilsEContentItem.setProtectionType("external");
+			ilsEContentItem.setSharing(getEContentSharing(ilsEContentItem, itemField));
+			ilsEContentItem.setSource(getSourceType(record, itemField));
 		}
 
 		//Set record type
-		String protectionType = ilsRecord.getProtectionType();
+		String protectionType = ilsEContentItem.getProtectionType();
 		if (protectionType.equals("acs") || protectionType.equals("drm")){
-			ilsRecord.setRecordIdentifier("restricted_econtent:" + identifier);
+			ilsEContentItem.setRecordIdentifier("restricted_econtent:" + identifier);
 		}else if (protectionType.equals("public domain") || protectionType.equals("free")){
-			ilsRecord.setRecordIdentifier("public_domain_econtent:" + identifier);
+			ilsEContentItem.setRecordIdentifier("public_domain_econtent:" + identifier);
 		}else if (protectionType.equals("external")){
-			ilsRecord.setRecordIdentifier("external_econtent:" + identifier);
+			ilsEContentItem.setRecordIdentifier("external_econtent:" + identifier);
 		}else{
 			logger.warn("Unknown protection type " + protectionType);
 		}
@@ -508,14 +511,21 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//Get the url if any
 		Subfield urlSubfield = itemField.getSubfield(itemUrlSubfieldIndicator);
 		if (urlSubfield != null){
-			ilsRecord.setUrl(urlSubfield.getData().trim());
+			ilsEContentItem.setUrl(urlSubfield.getData().trim());
 		}else if (protectionType.equals("external")){
 			//Check the 856 tag to see if there is a link there
 			List<DataField> urlFields = getDataFields(record, "856");
 			for (DataField urlField : urlFields){
 				//load url into the item
 				if (urlField.getSubfield('u') != null){
-					ilsRecord.setUrl(urlField.getSubfield('u').getData().trim());
+					//Try to determine if this is a resource or not.
+					if (urlField.getIndicator1() == '4' || urlField.getIndicator1() == ' '){
+						if (urlField.getIndicator2() == ' ' || urlField.getIndicator2() == '0' || urlField.getIndicator2() == '1') {
+							ilsEContentItem.setUrl(urlField.getSubfield('u').getData().trim());
+							break;
+						}
+					}
+
 				}
 			}
 
@@ -531,17 +541,25 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			//TODO: Determine availability based on if it is checked out in the database
 			available = true;
 		}
-		ilsRecord.setAvailable(available);
+		ilsEContentItem.setAvailable(available);
 
 		//Determine which scopes this title belongs to
 		for (Scope curScope : indexer.getScopes()){
-			if (curScope.isEContentLocationPartOfScope(ilsRecord)){
-				ilsRecord.addRelatedScope(curScope);
+			if (curScope.isEContentLocationPartOfScope(ilsEContentItem)){
+				ilsEContentItem.addRelatedScope(curScope);
 			}
 		}
 
 		//TODO: Determine the format, format category, and boost factor for this title
-		return ilsRecord;
+		return ilsEContentItem;
+	}
+
+	protected String getEContentSharing(EContentIlsItem ilsEContentItem, DataField itemField) {
+		return "shared";
+	}
+
+	protected String getSourceType(Record record, DataField itemField) {
+		return "Unknown Source";
 	}
 
 	protected PrintIlsItem getPrintIlsRecord(Record record, DataField itemField) {

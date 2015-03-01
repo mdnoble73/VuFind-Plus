@@ -68,6 +68,7 @@ class GroupedWork_AJAX {
 
 	function forceReindex(){
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 		$id = $_REQUEST['id'];
 		$groupedWork = new GroupedWork();
 		$groupedWork->permanent_id = $id;

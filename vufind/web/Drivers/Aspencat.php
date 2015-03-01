@@ -177,6 +177,7 @@ class Aspencat implements DriverInterface{
 			$barcodeSubfield    = $configArray['Reindex']['barcodeSubfield'];
 			$locationSubfield   = $configArray['Reindex']['locationSubfield'];
 			$callnumberSubfield = $configArray['Reindex']['callNumberSubfield'];
+			$collectionSubfield = $configArray['Reindex']['collectionSubfield'];
 
 			//Get the holdings from aspencat
 			$catalogUrl = $configArray['Catalog']['url'];
@@ -188,6 +189,11 @@ class Aspencat implements DriverInterface{
 			/** @var File_MARC_Data_Field[] $items */
 			$i=0;
 			foreach ($items as $item){
+				//Ignore anything that is eContent
+				$collection = trim($item->getSubfield($collectionSubfield) != null ? $item->getSubfield($collectionSubfield)->getData() : '');
+				if (preg_match('/EAUDIO|EBOOK|ONLINE/i', $collection)){
+					continue;
+				}
 				$i++;
 				$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
 				//Check to see if we already have data for this barcode
