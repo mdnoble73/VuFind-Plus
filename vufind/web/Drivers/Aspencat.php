@@ -2179,6 +2179,8 @@ class Aspencat implements DriverInterface{
 						$curItem['library'] = $library;
 					}else if ($headerLabels[$col] == 'location'){
 						$curItem['location'] = trim($tableCell);
+					}else if ($headerLabels[$col] == 'collection'){
+						$curItem['collection'] = trim($tableCell);
 					}else if ($headerLabels[$col] == 'call number'){
 						$curItem['callnumber'] = trim($tableCell);
 					}else if ($headerLabels[$col] == 'vol info'){
