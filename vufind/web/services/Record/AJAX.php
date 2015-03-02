@@ -234,7 +234,7 @@ class Record_AJAX extends Action {
 		$interface->assign('showCheckInGrid', $showCheckInGrid);
 
 		try {
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$timer->logTime("Connected to catalog");
 		} catch (PDOException $e) {
 			// What should we do with this error?
@@ -359,10 +359,9 @@ class Record_AJAX extends Action {
 	function getPlaceHoldForm(){
 		global $interface;
 		global $user;
-		global $configArray;
 		if ($user){
 			$id = $_REQUEST['id'];
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$profile = $catalog->getMyProfile($user);
 			$interface->assign('profile', $profile);
 
@@ -422,7 +421,7 @@ class Record_AJAX extends Action {
 		if ($user){
 			//The user is already logged in
 			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			if (isset($_REQUEST['selectedItem'])){
 				$return = $catalog->placeItemHold($recordId, $_REQUEST['selectedItem'], $user->$barcodeProperty, '', '');
 			}else{
@@ -434,6 +433,7 @@ class Record_AJAX extends Action {
 				$interface->assign('campus', $campus);
 				$items = $return['items'];
 				$interface->assign('items', $items);
+				$interface->assign('message', $return['message']);
 				$interface->assign('id', $recordId);
 
 				global $library;

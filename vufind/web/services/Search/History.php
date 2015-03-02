@@ -108,7 +108,7 @@ class History extends Action {
 		//This code is also in MyResearch.php
 		if ($user !== false){
 			global $configArray;
-			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 			// Get My Profile
 			if ($this->catalog->status) {
 				if ($user->cat_username) {

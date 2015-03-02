@@ -53,7 +53,7 @@ abstract class MyAccount extends Action
 		$this->db = new $class($configArray['Index']['url']);
 
 		// Connect to Database
-		$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+		$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 
 		// Register Library Catalog Account
 		if (isset($_POST['submit']) && !empty($_POST['submit'])) {

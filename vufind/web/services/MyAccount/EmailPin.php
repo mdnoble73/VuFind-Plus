@@ -34,7 +34,7 @@ class EmailPin extends Action{
 		global $configArray;
 		
 		if (isset($_REQUEST['submit'])){
-			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$driver = $this->catalog->driver;
 			if ($this->catalog->checkFunction('emailPin')){
 				$barcode = strip_tags($_REQUEST['barcode']);

@@ -1090,6 +1090,7 @@ abstract class HorizonAPI extends Horizon{
 					//Suppress anything without a location code
 					continue;
 				}
+				$i++;
 				$holding = array(
 					'id' => $id,
 					'number' => $i++,

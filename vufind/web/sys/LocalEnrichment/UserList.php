@@ -357,7 +357,7 @@ class UserList extends DB_DataObject
 		global $user;
 
 		// Connect to Database
-		$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+		$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 
 		//Filter list information for bad words as needed.
 		if ($user == false || $this->user_id != $user->id){

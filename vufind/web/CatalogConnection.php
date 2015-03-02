@@ -74,7 +74,6 @@ class CatalogConnection
 	 */
 	public function __construct($driver)
 	{
-		global $configArray;
 		$path = ROOT_DIR . "/Drivers/{$driver}.php";
 		if (is_readable($path)) {
 			require_once $path;
@@ -475,7 +474,7 @@ class CatalogConnection
 	 * @param   string  $comment    Any comment regarding the hold or recall
 	 * @param   string  $type       Whether to place a hold or recall
 	 * @return  mixed               True if successful, false if unsuccessful
-	 *                              If an error occures, return a PEAR_Error
+	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
 	function placeHold($recordId, $patronId, $comment, $type)

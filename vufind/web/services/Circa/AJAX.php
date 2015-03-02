@@ -35,7 +35,7 @@ class Circa_AJAX extends Action{
 		);
 
 		try {
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$results = $catalog->doInventory($login, $password1, $initials, $password2, $barcode, $updateIncorrectStatuses);
 			if ($results['success'] == false){
 				$result['success'] = false;

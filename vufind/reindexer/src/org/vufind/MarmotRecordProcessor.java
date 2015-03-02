@@ -336,54 +336,6 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 		}//Has subfield w
 	}
 
-	protected void loadUsability(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
-		super.loadUsability(groupedWork, printItems, econtentItems);
-
-		//Do not set compatible pTypes for eContent since that is not how it is really controlled.
-		//It is really set based on owning library or location code.
-
-		/*for (EContentIlsItem itemField : econtentItems){
-			String locationCode = itemField.getLocation();
-			boolean shareWithAll = false;
-			boolean shareWithLibrary = false;
-			boolean shareWithSome = false;
-			String sharing = itemField.getSharing();
-			if (sharing.equals("shared")){
-				if (locationCode.startsWith("mdl")){
-					shareWithSome = true;
-				}else{
-					shareWithAll = true;
-				}
-			}else if (sharing.equalsIgnoreCase("library")){
-				shareWithLibrary = true;
-			}
-
-			if (shareWithAll){
-				groupedWork.addCompatiblePTypes(allPTypes);
-				break;
-			}else if (shareWithLibrary) {
-				if (locationCode == null) {
-					logger.error("Location code was null for item, skipping to next");
-				} else {
-					for (String curLocation : pTypesByLibrary.keySet()) {
-						Pattern libraryCodePattern = Pattern.compile(curLocation);
-						if (libraryCodePattern.matcher(locationCode).lookingAt()){
-							groupedWork.addCompatiblePTypes(pTypesByLibrary.get(curLocation));
-						}
-					}
-				}
-			}else if (shareWithSome){
-				if (pTypesForSpecialLocationCodes.containsKey(locationCode)) {
-					groupedWork.addCompatiblePTypes(pTypesForSpecialLocationCodes.get(locationCode));
-				}
-			} else{
-				logger.warn("Could not determine usability, was not shared with library or everyone");
-			}
-		}*/
-	}
-
-
-
 	protected void loadEContentFormatInformation(IlsRecord econtentRecord, EContentIlsItem econtentItem) {
 		String protectionType = econtentItem.getProtectionType();
 		if (protectionType.equals("acs") || protectionType.equals("drm") || protectionType.equals("public domain") || protectionType.equals("free")){

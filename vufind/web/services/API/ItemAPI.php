@@ -76,7 +76,7 @@ class ItemAPI extends Action {
 		$method = $_REQUEST['method'];
 		// Connect to Catalog
 		if ($method != 'getBookcoverById' && $method != 'getBookCover'){
-			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 			//header('Content-type: application/json');
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1

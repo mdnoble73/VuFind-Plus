@@ -181,7 +181,7 @@ class MyAccount_AJAX
 		try {
 			global $configArray,
 			       $user;
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 
 			// ids grabbed in MillenniumHolds.php in $_REQUEST['waitingholdselected'] & $_REQUEST['availableholdselected']
 			// but we will pass ids here instead.
@@ -224,7 +224,7 @@ class MyAccount_AJAX
 		try {
 			global $configArray,
 			       $user;
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 
 			// ids grabbed in MillenniumHolds.php in $_REQUEST['waitingholdselected'] & $_REQUEST['availableholdselected']
 			// but we will pass ids here instead.
@@ -272,7 +272,7 @@ class MyAccount_AJAX
 		global $configArray;
 
 		try {
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$holdId = $_REQUEST['holdId'];
 			global $user;
 
@@ -296,7 +296,7 @@ class MyAccount_AJAX
 		global $configArray;
 
 		try {
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$holdId = $_REQUEST['holdId'];
 			global $user;
 
@@ -400,7 +400,7 @@ class MyAccount_AJAX
 		global $configArray;
 
 		try {
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 		} catch (PDOException $e) {
 			// What should we do with this error?
 			if ($configArray['System']['debug']) {
@@ -674,7 +674,7 @@ class MyAccount_AJAX
 		global $configArray;
 
 		try {
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$holdId = $_REQUEST['holdId'];
 			$newPickupLocation = $_REQUEST['newLocation'];
 			global $user;
@@ -701,7 +701,7 @@ class MyAccount_AJAX
 
 		try {
 			/** @var DriverInterface|MillenniumDriver|Nashville|Marmot|Sierra|Horizon $catalog */
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 
 			$barcode = $_REQUEST['barcode'];
 
@@ -832,7 +832,7 @@ class MyAccount_AJAX
 			list($itemId, $itemIndex) = explode('|', $_REQUEST['renewIndicator']);
 			global $configArray;
 			try {
-				$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+				$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 			} catch (PDOException $e) {
 				// What should we do with this error?
 				if ($configArray['System']['debug']) {
@@ -881,7 +881,7 @@ class MyAccount_AJAX
 
 			global $configArray;
 			try {
-				$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+				$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 			} catch (PDOException $e) {
 				// What should we do with this error?
 				if ($configArray['System']['debug']) {
@@ -943,7 +943,7 @@ class MyAccount_AJAX
 	function renewAll() {
 		global $configArray;
 		try {
-			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 		} catch (PDOException $e) {
 			// What should we do with this error?
 			if ($configArray['System']['debug']) {
