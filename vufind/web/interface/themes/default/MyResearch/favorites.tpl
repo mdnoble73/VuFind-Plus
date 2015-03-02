@@ -78,7 +78,7 @@
 							list{/literal}{$list->id}{literal}Scroller = new TitleScroller('titleScrollerList{/literal}{$list->id}{literal}', 'List{/literal}{$list->id}{literal}', 'list{/literal}{$list->id}{literal}');
 								
 							var url = path + "/MyAccount/AJAX";
-							var params = "method=GetListTitles&listId=" + {/literal}{$list->id}{literal};;
+							var params = "method=GetListTitles&listId=" + {/literal}{$list->id}{literal};
 							var fullUrl = url + "?" + params;
 							list{/literal}{$list->id}{literal}Scroller.loadTitlesFrom(fullUrl);
 							});
