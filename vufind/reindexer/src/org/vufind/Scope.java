@@ -116,6 +116,11 @@ public class Scope implements Comparable<Scope>{
 			return true;
 		}
 
+		if (locationCode == null){
+			//No location code, skip this item
+			return false;
+		}
+
 		//First check based on location code
 		//If the item is part of the extra location codes, we want to process that first.
 		//Since it may not be included normally.
