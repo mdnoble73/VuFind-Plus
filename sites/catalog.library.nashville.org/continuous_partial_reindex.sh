@@ -72,13 +72,25 @@ do
 	#####
 
 	# Make sure we are not running a Full Record Group/Reindex process
-	hasConflicts = $(checkConflictingProcesses "full_update.sh")
+	hasConflicts=$(checkConflictingProcesses "full_update.sh")
 	#If we did get a conflict, restart the loop to make sure that all tests run
 	if (($? != 0)); then
 		continue
 	fi
 
-	hasConflicts = $(checkConflictingProcesses "BIB_EXTRACT_PIKA.exp")
+	hasConflicts=$(checkConflictingProcesses "BIB_EXTRACT_PIKA.exp")
+	#If we did get a conflict, restart the loop to make sure that all tests run
+	if (($? != 0)); then
+		continue
+	fi
+
+	hasConflicts=$(checkConflictingProcesses "reindexer.jar")
+	#If we did get a conflict, restart the loop to make sure that all tests run
+	if (($? != 0)); then
+		continue
+	fi
+
+	hasConflicts=$(checkConflictingProcesses "overdrive_extract.jar")
 	#If we did get a conflict, restart the loop to make sure that all tests run
 	if (($? != 0)); then
 		continue
@@ -87,7 +99,7 @@ do
 	# Do not run while the Millennium backup is running to prevent inconsistencies with MARC records
 	# backup starts at 11 pm and ends by 2:30 am
 	# JAMES COMMENTED OUT 20150226 thinking backup might be irrelevant
-	#hasConflicts = $(checkProhibitedTimes "23:00" "02:30")
+	#hasConflicts=$(checkProhibitedTimes "23:00" "02:30")
 	#If we did get a conflict, restart the loop to make sure that all tests run
 	#if (($? != 0)); then
 	#	continue
@@ -104,7 +116,6 @@ do
 	# reset the output file each round
 
 	#run expect script to extract from Millennium
-	#do not log to the output file since it has lots of data in it.
 	cd /usr/local/vufind-plus/vufind/millennium_export/
 	./ITEM_UPDATE_EXTRACT_PIKA.exp ${PIKASERVER} ${ILSSERVER}
 
@@ -115,8 +126,8 @@ do
 
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}
-	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
-	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+#	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
+#	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	#run reindex
 	#echo "Starting Reindexing - `date`" >> ${OUTPUT_FILE}
