@@ -231,8 +231,9 @@ public class MillenniumExportMain{
 							for (ItemChangeInfo curItem : itemChangeInfo) {
 								//Find the correct item
 								if (itemRecordNumber.equals(curItem.getItemId())) {
-									itemField.getSubfield(locationSubfield).setData(curItem.getLocation());
-									itemField.getSubfield(statusSubfield).setData(curItem.getStatus());
+									setSubfield(itemField, locationSubfield, curItem.getLocation());
+									setSubfield(itemField, statusSubfield, curItem.getStatus());
+
 									if (curItem.getDueDate() == null) {
 										if (itemField.getSubfield(dueDateSubfield) != null) {
 											itemField.getSubfield(dueDateSubfield).setData("      ");
@@ -261,6 +262,19 @@ public class MillenniumExportMain{
 			}
 		}catch (Exception e){
 			logger.error("Error updating marc record for bib " + curBibId, e);
+		}
+	}
+
+	private static void setSubfield(DataField itemField, char subfield, String value) {
+		if (value == null){
+			value = "";
+		}
+		if (itemField.getSubfield(subfield) == null){
+			if (value.length() > 0){
+				itemField.addSubfield(new SubfieldImpl(subfield, value));
+			}
+		}else{
+			itemField.getSubfield(subfield).setData(value);
 		}
 	}
 
