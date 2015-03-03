@@ -78,32 +78,6 @@ do
 		continue
 	fi
 
-	hasConflicts=$(checkConflictingProcesses "BIB_EXTRACT_PIKA.exp")
-	#If we did get a conflict, restart the loop to make sure that all tests run
-	if (($? != 0)); then
-		continue
-	fi
-
-	hasConflicts=$(checkConflictingProcesses "reindexer.jar")
-	#If we did get a conflict, restart the loop to make sure that all tests run
-	if (($? != 0)); then
-		continue
-	fi
-
-	hasConflicts=$(checkConflictingProcesses "overdrive_extract.jar")
-	#If we did get a conflict, restart the loop to make sure that all tests run
-	if (($? != 0)); then
-		continue
-	fi
-
-	# Do not run while the Millennium backup is running to prevent inconsistencies with MARC records
-	# backup starts at 11 pm and ends by 2:30 am
-	# JAMES COMMENTED OUT 20150226 thinking backup might be irrelevant
-	#hasConflicts=$(checkProhibitedTimes "23:00" "02:30")
-	#If we did get a conflict, restart the loop to make sure that all tests run
-	#if (($? != 0)); then
-	#	continue
-	#fi
 
 	#####
 	# Start of the actual indexing code
@@ -126,8 +100,8 @@ do
 
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}
-#	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
-#	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
+	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} >> ${OUTPUT_FILE}
 
 	#run reindex
 	#echo "Starting Reindexing - `date`" >> ${OUTPUT_FILE}

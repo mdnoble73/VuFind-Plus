@@ -32,12 +32,60 @@ function checkConflictingProcesses() {
 	echo ${numInitialConflicts};
 }
 
+# Prohibited time ranges - for, e.g., ILS backup
+# JAMES is currently giving all Nashville prohibited times a ten minute buffer
+function checkProhibitedTimes() {
+	start=$(date --date=$1 +%s)
+	stop=$(date --date=$2 +%s)
+	NOW=$(date +%H:%M:%S)
+	NOW=$(date --date=$NOW +%s)
+
+	hasConflicts=0
+	if (( $start < $stop ))
+	then
+		if (( $NOW > $start && $NOW < $stop ))
+		then
+			#echo "Sleeping:" $(($stop - $NOW))
+			sleep $(($stop - $NOW))
+			hasConflicts = 1
+		fi
+	elif (( $start > $stop ))
+	then
+		if (( $NOW < $stop ))
+		then
+			sleep $(($stop - $NOW))
+			hasConflicts = 1
+		elif (( $NOW > $start ))
+		then
+			sleep $(($stop + 86400 - $NOW))
+			hasConflicts = 1
+		fi
+	fi
+	echo ${hasConflicts};
+}
+
+#First make sure that we aren't running at a bad time.  This is really here in case we run manually.
+# since the run in cron is timed to avoid sensitive times.
+
+# Bib Extract for Galacto
+checkProhibitedTimes "04:15" "04:50"
+# Millennium Extract for Catalog
+checkProhibitedTimes "05:15" "06:00"
+# Millennium Extract for Catalog
+checkProhibitedTimes "09:15" "10:00"
+# Millennium Extract for Catalog
+checkProhibitedTimes "13:15" "14:00"
+# Millennium Extract for Catalog
+checkProhibitedTimes "17:15" "18:00"
+# Millennium Extract for Catalog
+checkProhibitedTimes "21:15" "22:00"
+
 #Check for any conflicting processes that we shouldn't do a full index during.
+#Since we aren't running in a loop, check in the order they run.
 checkConflictingProcesses "ITEM_UPDATE_EXTRACT_PIKA.exp ${PIKASERVER}"
 checkConflictingProcesses "millennium_export.jar ${PIKASERVER}"
 checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
 checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
-
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
@@ -48,6 +96,9 @@ cd /usr/local/VuFind-Plus/vufind/millennium_export/; expect BIB_EXTRACT_PIKA.exp
 
 #Extract from Hoopla
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
+
+#Extract Lexile Data
+cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt
 
 #Note: should not need OverDrive call, since it happens in continuous_partial_reindex.sh and a full overdrive pull can take 6 hours or more
 #Note, no need to extract from Lexile for this server since it is the master
