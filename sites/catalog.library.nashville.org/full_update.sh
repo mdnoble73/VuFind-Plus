@@ -82,10 +82,13 @@ checkProhibitedTimes "21:15" "22:00"
 
 #Check for any conflicting processes that we shouldn't do a full index during.
 #Since we aren't running in a loop, check in the order they run.
-checkConflictingProcesses "ITEM_UPDATE_EXTRACT_PIKA.exp ${PIKASERVER}"
-checkConflictingProcesses "millennium_export.jar ${PIKASERVER}"
-checkConflictingProcesses "overdrive_extract.jar ${PIKASERVER}"
-checkConflictingProcesses "reindexer.jar ${PIKASERVER}"
+checkConflictingProcesses "ITEM_UPDATE_EXTRACT_PIKA.exp"
+checkConflictingProcesses "millennium_export.jar"
+checkConflictingProcesses "overdrive_extract.jar"
+checkConflictingProcesses "reindexer.jar"
+
+#truncate the output file so you don't spend a week debugging an error from a week ago!
+: > $OUTPUT_FILE;
 
 #Restart Solr
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
@@ -101,7 +104,6 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt
 
 #Note: should not need OverDrive call, since it happens in continuous_partial_reindex.sh and a full overdrive pull can take 6 hours or more
-#Note, no need to extract from Lexile for this server since it is the master
 
 # should test for new bib extract file
 # should copy old bib extract file
