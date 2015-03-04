@@ -395,9 +395,14 @@ class GroupedWorkDriver extends RecordInterface{
 		);
 	}
 
-	public function getLinkUrl(){
+	public function getLinkUrl($absolutePath = false){
 		global $configArray;
-		return $configArray['Site']['path'] . '/GroupedWork/' . $this->getPermanentId() . '/Home';
+		if ($absolutePath){
+			return $configArray['Site']['url'] . '/GroupedWork/' . $this->getPermanentId() . '/Home';
+		}else{
+			return $configArray['Site']['path'] . '/GroupedWork/' . $this->getPermanentId() . '/Home';
+		}
+
 	}
 
 	/**
