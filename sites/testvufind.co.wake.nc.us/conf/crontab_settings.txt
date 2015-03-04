@@ -48,7 +48,6 @@
 #######################
 # VuFind-Plus Cleanup #
 #######################
-26 0 * * * cd /usr/local/vufind-plus/sites/testvufind.co.wake.nc.us; ./testvufind.co.wake.nc.us.sh restart
 27 0 * * * cd /tmp; rm -rf CURLCOOKIE*
 28 0 * * * cd /tmp; rm -rf epb*
 
@@ -59,21 +58,10 @@
 */5 * * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract/; java -jar overdrive_extract.jar testvufind.co.wake.nc.us
 # extract every five minutes
 
-30 4 * * * /data/vufind-plus/testvufind.co.wake.nc.us/move_export.sh
-
-# Hoopla extract - once a week for the entire server
-# No hoopla for Wake County yet
-#30 23 * * 0 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh marmot.test
-
 ########################
-# Update Grouped Works #
+# Full Update #
 ########################
-00 5 * * * cd /usr/local/vufind-plus/vufind/record_grouping; java -jar record_grouping.jar testvufind.co.wake.nc.us fullRegrouping
-
-###########
-# Reindex #
-###########
-00 6 * * * cd /usr/local/vufind-plus/vufind/reindexer; java -jar reindexer.jar testvufind.co.wake.nc.us fullReindex
+30 4 * * * cd /usr/local/vufind-plus/sites/testvufind.co.wake.nc.us; ./full_update.sh
 
 ##########
 # Cron   #
