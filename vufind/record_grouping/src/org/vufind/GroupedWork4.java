@@ -47,7 +47,7 @@ public class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 
 		groupingTitle = normalizeDiacritics(groupingTitle);
 		groupingTitle = makeValueSortable(groupingTitle);
-		groupingTitle = removeBracketedPartOfTItle(groupingTitle);
+		groupingTitle = removeBracketedPartOfTitle(groupingTitle);
 
 		//Remove any bracketed parts of the title
 		groupingTitle = bracketedCharacterStrip.matcher(groupingTitle).replaceAll("");
@@ -109,15 +109,22 @@ public class GroupedWork4 extends GroupedWorkBase implements Cloneable {
 		return groupingTitle;
 	}
 
-	static Pattern commonSubtitlesSimplePattern = Pattern.compile("(by\\s\\w+\\s\\w+|a novel of .*|stories|an autobiography|a biography|a memoir in books|poems|the movie|large print|graphic novel|magazine|audio cd|book club kit|with illustrations|book \\d+|the original classic edition|classic edition)$");
-	static Pattern commonSubtitlesComplexPattern = Pattern.compile("((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s\\w+\\s\\w+|an? .* story|a .*\\s?book|[\\w\\s]+series book \\d+|[\\w\\s]+trilogy book \\d+)$");
+	static Pattern commonSubtitlesSimplePattern = Pattern.compile("(by\\s\\w+\\s\\w+|a novel of .*|stories|an autobiography|a biography|a memoir in books|poems|the movie|large print|graphic novel|magazine|audio cd|book club kit|with illustrations|book \\d+|the original classic edition|classic edition|a novel)$");
+	static Pattern commonSubtitlesComplexPattern = Pattern.compile("((a|una)\\s(.*)novel(a|la)?|a(.*)memoir|a(.*)mystery|a(.*)thriller|by\\s\\w+\\s\\w+|an? .* story|a .*\\s?book|[\\w\\s]+series book \\d+|the[\\w\\s]+chronicles book \\d+|[\\w\\s]+trilogy book \\d+)$");
 	private String removeCommonSubtitles(String groupingTitle) {
-		Matcher commonSubtitleMatcher = commonSubtitlesSimplePattern.matcher(groupingTitle);
-		commonSubtitleMatcher.replaceAll("");
+		boolean changeMade = true;
+		while (changeMade){
+			changeMade = false;
+			Matcher commonSubtitleMatcher = commonSubtitlesSimplePattern.matcher(groupingTitle);
+			if (commonSubtitleMatcher.find()) {
+				groupingTitle = commonSubtitleMatcher.replaceAll("").trim();
+				changeMade = true;
+			}
+		}
 		return groupingTitle;
 	}
 
-	private String removeBracketedPartOfTItle(String groupingTitle) {
+	private String removeBracketedPartOfTitle(String groupingTitle) {
 		//Remove any bracketed parts of the title
 		String tmpTitle = bracketedCharacterStrip.matcher(groupingTitle).replaceAll("");
 		//Make sure we don't strip the entire title

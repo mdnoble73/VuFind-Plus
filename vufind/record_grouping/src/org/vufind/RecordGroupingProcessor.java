@@ -247,12 +247,12 @@ public class RecordGroupingProcessor {
 		return variableFieldsReturn;
 	}
 
-	public void processMarcRecord(Record marcRecord, String loadFormatFrom, char formatSubfield, boolean primaryDataChanged){
+	public boolean processMarcRecord(Record marcRecord, String loadFormatFrom, char formatSubfield, boolean primaryDataChanged){
 		RecordIdentifier primaryIdentifier = getPrimaryIdentifierFromMarcRecord(marcRecord);
-		processMarcRecord(marcRecord, primaryIdentifier, loadFormatFrom, formatSubfield, primaryDataChanged);
+		return processMarcRecord(marcRecord, primaryIdentifier, loadFormatFrom, formatSubfield, primaryDataChanged);
 	}
 
-	public void processMarcRecord(Record marcRecord, RecordIdentifier primaryIdentifier, String loadFormatFrom, char formatSubfield, boolean primaryDataChanged){
+	public boolean processMarcRecord(Record marcRecord, RecordIdentifier primaryIdentifier, String loadFormatFrom, char formatSubfield, boolean primaryDataChanged){
 		if (primaryIdentifier != null){
 			//Get data for the grouped record
 			GroupedWorkBase workForTitle = setupBasicWorkForIlsRecord(marcRecord, loadFormatFrom, formatSubfield);
@@ -262,6 +262,10 @@ public class RecordGroupingProcessor {
 			workForTitle.setIdentifiers(identifiers);
 
 			addGroupedWorkToDatabase(primaryIdentifier, workForTitle, primaryDataChanged);
+			return true;
+		}else{
+			//The record is suppressed
+			return false;
 		}
 	}
 

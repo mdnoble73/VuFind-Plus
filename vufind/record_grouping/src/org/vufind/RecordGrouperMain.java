@@ -63,7 +63,7 @@ public class RecordGrouperMain {
 					"\n" +
 					"This application can be used in several distinct ways based on the command line parameters\n" +
 					"1) Generate a work id for an individual title/author/format\n" +
-					"   record_grouping.jar generateWorkId <title> <author> <format>\n" +
+					"   record_grouping.jar generateWorkId <title> <author> <format> <subtitle (optional)>\n" +
 					"   \n" +
 					"   format should be one of: \n" +
 					"   - book\n" +
@@ -75,7 +75,7 @@ public class RecordGrouperMain {
 					"   \n" +
 					"3) benchmark the record generation and test the functionality\n" +
 					"   record_grouping.jar benchmark" +
-					"4) Generate author authorities based on data in teh exports" +
+					"4) Generate author authorities based on data in the exports" +
 					"   record_grouping.jar generateAuthorAuthorities <pika_site_name>");
 			System.exit(1);
 		}
@@ -100,17 +100,31 @@ public class RecordGrouperMain {
 			}
 			VIAF.loadAuthoritiesFromVIAF();
 		}else if (serverName.equals("generateWorkId")){
-			String title = args[1];
-			String author = args[2];
-			String format = args[3];
+			String title;
+			String author;
+			String format;
+			String subtitle = null;
+			if (args.length >= 4) {
+				title = args[1];
+				author = args[2];
+				format = args[3];
+				if (args.length >= 5) {
+					subtitle = args[4];
+				}
+			}else{
+				title = getInputFromCommandLine("Enter the title");
+				subtitle = getInputFromCommandLine("Enter the subtitle");
+				author = getInputFromCommandLine("Enter the author");
+				format = getInputFromCommandLine("Enter the format");
+			}
 			GroupedWorkBase work = GroupedWorkFactory.getInstance(-1);
-			work.setTitle(title, 0, null);
+			work.setTitle(title, 0, subtitle);
 			work.setAuthor(author);
 			work.setGroupingCategory(format);
 			JSONObject result = new JSONObject();
 			try {
-				result.put("normalizedAuthor", work.getAuthor());
-				result.put("normalizedTitle", work.getTitle());
+				result.put("normalizedAuthor", work.getAuthoritativeAuthor());
+				result.put("normalizedTitle", work.getAuthoritativeTitle());
 				result.put("workId", work.getPermanentId());
 			}catch (Exception e){
 				logger.error("Error generating response", e);
@@ -121,6 +135,25 @@ public class RecordGrouperMain {
 		}else {
 			doStandardRecordGrouping(args);
 		}
+	}
+
+	private static String getInputFromCommandLine(String prompt) {
+		//Prompt for the work to process
+		System.out.print(prompt + ": ");
+
+		//  open up standard input
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+		//  read the work from the command-line; need to use try/catch with the
+		//  readLine() method
+		String value = null;
+		try {
+			value = br.readLine().trim();
+		} catch (IOException ioe) {
+			System.out.println("IO error trying to read " + prompt);
+			System.exit(1);
+		}
+		return value;
 	}
 
 	private static void generateAuthorAuthorities(String[] args) {
@@ -653,7 +686,7 @@ public class RecordGrouperMain {
 
 		groupHooplaRecords(configIni, recordGroupingProcessor);
 		groupEVokeRecords(configIni, recordGroupingProcessor);
-		groupOverDriveRecords(econtentConnection, recordGroupingProcessor);
+		groupOverDriveRecords(configIni, econtentConnection, recordGroupingProcessor);
 		groupIlsRecords(configIni, recordGroupingProcessor);
 
 		try{
@@ -703,6 +736,10 @@ public class RecordGrouperMain {
 			String marcEncoding = configIni.get("Hoopla", "marcEncoding");
 			String individualMarcPath = configIni.get("Hoopla", "individualMarcPath");
 
+			//Setup to write record numbers to file so we can do validation to make sure that
+			//all records are accounted for when we index.
+			TreeSet<String> recordNumbersInExport = new TreeSet<String>();
+
 			logger.debug("Grouping Hoopla Records");
 
 			//Figure out what we need to process
@@ -729,6 +766,7 @@ public class RecordGrouperMain {
 						Record curBib = catalogReader.next();
 						//Get the unique record number for the Hoopla record (in this case we will use 001)
 						String recordNumber = curBib.getControlNumber();
+						recordNumbersInExport.add(recordNumber);
 						boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, 7);
 						if (!marcUpToDate || fullRegroupingNoClear){
 							recordGroupingProcessor.processHooplaRecord(curBib, recordNumber, !marcUpToDate);
@@ -748,9 +786,31 @@ public class RecordGrouperMain {
 				}
 				logger.info("Finished grouping " + numRecordsRead + " records with " + numRecordsProcessed + " actual changes from the hoopla file " + marcFile.getName());
 			}
+
+			writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_hoopla_bibs_in_export");
 		}
 
 		//TODO: Don't forget to process deletions
+	}
+
+	private static SimpleDateFormat dayFormatter = new SimpleDateFormat("yyyy-MM-dd");
+	private static void writeExistingRecordsFile(Ini configIni, TreeSet<String> recordNumbersInExport, String filePrefix) {
+		try {
+			File dataDir = new File(configIni.get("Reindex", "marcPath"));
+			dataDir = dataDir.getParentFile();
+			//write the records in CSV format to the data directory
+			Date curDate = new Date();
+			String curDateFormatted = dayFormatter.format(curDate);
+			File recordsFile = new File(dataDir.getAbsolutePath() + "/" + filePrefix + "_" + curDateFormatted + ".csv");
+			CSVWriter recordWriter = new CSVWriter(new FileWriter(recordsFile));
+			for (String curRecord: recordNumbersInExport){
+				recordWriter.writeNext(new String[]{curRecord});
+			}
+			recordWriter.flush();
+			recordWriter.close();
+		} catch (IOException e) {
+			logger.error("Unable to write existing records to " + filePrefix, e);
+		}
 	}
 
 	/**
@@ -1140,6 +1200,10 @@ public class RecordGrouperMain {
 		loadExistingMarcFiles(individualMarcFile, existingMarcFiles);
 		logger.debug("Finished reading existing marc files for ILS from disc");
 
+		TreeSet<String> recordNumbersInExport = new TreeSet<String>();
+		TreeSet<String> suppressedRecordNumbersInExport = new TreeSet<String>();
+		TreeSet<String> recordNumbersToIndex = new TreeSet<String>();
+
 		File[] catalogBibFiles = new File(marcPath).listFiles();
 		if (catalogBibFiles != null){
 			String lastRecordProcessed = "";
@@ -1152,8 +1216,13 @@ public class RecordGrouperMain {
 							Record curBib = catalogReader.next();
 							String recordNumber = getRecordNumberForBib(curBib);
 							boolean marcUpToDate = writeIndividualMarc(existingMarcFiles, individualMarcPath, curBib, recordNumber, 4);
+							recordNumbersInExport.add(recordNumber);
 							if (!marcUpToDate || fullRegroupingNoClear){
-								recordGroupingProcessor.processMarcRecord(curBib, loadFormatFrom, formatSubfield, !marcUpToDate);
+								if (recordGroupingProcessor.processMarcRecord(curBib, loadFormatFrom, formatSubfield, !marcUpToDate)){
+									recordNumbersToIndex.add(recordNumber);
+								}else{
+									suppressedRecordNumbersInExport.add(recordNumber);
+								}
 								numRecordsProcessed++;
 							}
 							//Mark that the record was processed
@@ -1189,6 +1258,10 @@ public class RecordGrouperMain {
 				}
 			}
 		}
+
+		writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_ils_bibs_in_export");
+		writeExistingRecordsFile(configIni, suppressedRecordNumbersInExport, "record_grouping_ils_bibs_to_ignore");
+		writeExistingRecordsFile(configIni, recordNumbersToIndex, "record_grouping_ils_bibs_to_index");
 	}
 
 	private static void loadExistingMarcFiles(File individualMarcPath, HashSet<String> existingFiles) {
@@ -1226,7 +1299,7 @@ public class RecordGrouperMain {
 		return recordNumber;
 	}
 
-	private static int groupOverDriveRecords(Connection econtentConnection, RecordGroupingProcessor recordGroupingProcessor) {
+	private static int groupOverDriveRecords(Ini configIni, Connection econtentConnection, RecordGroupingProcessor recordGroupingProcessor) {
 		int numRecordsProcessed = 0;
 		try{
 			PreparedStatement overDriveRecordsStmt;
@@ -1241,10 +1314,12 @@ public class RecordGrouperMain {
 			PreparedStatement overDriveIdentifiersStmt = econtentConnection.prepareStatement("SELECT * FROM overdrive_api_product_identifiers WHERE id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			PreparedStatement overDriveCreatorStmt = econtentConnection.prepareStatement("SELECT fileAs FROM overdrive_api_product_creators WHERE productId = ? AND role like ? ORDER BY id", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet overDriveRecordRS = overDriveRecordsStmt.executeQuery();
+			TreeSet<String> recordNumbersInExport = new TreeSet<String>();
 			while (overDriveRecordRS.next()){
 				Long id = overDriveRecordRS.getLong("id");
 
 				String overdriveId = overDriveRecordRS.getString("overdriveId");
+				recordNumbersInExport.add(overdriveId);
 				String mediaType = overDriveRecordRS.getString("mediaType");
 				String title = overDriveRecordRS.getString("title");
 				String subtitle = overDriveRecordRS.getString("subtitle");
@@ -1313,6 +1388,8 @@ public class RecordGrouperMain {
 					primaryIdentifier.setValue("overdrive", overdriveId);
 					recordGroupingProcessor.deletePrimaryIdentifier(primaryIdentifier);
 				}
+			}else{
+				writeExistingRecordsFile(configIni, recordNumbersInExport, "record_grouping_overdrive_records_in_export");
 			}
 			logger.info("Finished grouping " + numRecordsProcessed + " records from overdrive ");
 		}catch (Exception e){
