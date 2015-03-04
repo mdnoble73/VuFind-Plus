@@ -708,7 +708,7 @@ public class GroupedWorkIndexer {
 
 			//Write the record to Solr.
 			try {
-				pendingDocuments.equals(groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
+				pendingDocuments.add(groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
 
 				//Add documents in a batch rather than one at a time.
 				if (pendingDocuments.size() == 25000) {
