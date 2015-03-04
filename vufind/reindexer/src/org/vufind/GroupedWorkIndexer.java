@@ -1,5 +1,6 @@
 package org.vufind;
 
+import au.com.bytecode.opencsv.CSVWriter;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.ConcurrentUpdateSolrServer;
@@ -8,6 +9,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrInputDocument;
 import org.ini4j.Ini;
 
 import java.io.*;
@@ -29,10 +31,12 @@ import org.apache.log4j.Logger;
  * Time: 2:26 PM
  */
 public class GroupedWorkIndexer {
+	private Ini configIni;
 	private String serverName;
 	private String solrPort;
 	private Logger logger;
 	private SolrServer solrServer;
+	private Collection<SolrInputDocument> pendingDocuments = new ArrayList<SolrInputDocument>();
 	private ConcurrentUpdateSolrServer updateServer;
 	private IlsRecordProcessor ilsRecordProcessor;
 	private OverDriveProcessor overDriveProcessor;
@@ -67,13 +71,14 @@ public class GroupedWorkIndexer {
 		this.logger = logger;
 		this.vufindConn = vufindConn;
 		this.fullReindex = fullReindex;
+		this.configIni = configIni;
 		solrPort = configIni.get("Reindex", "solrPort");
 
 		availableAtLocationBoostValue = Integer.parseInt(configIni.get("Reindex", "availableAtLocationBoostValue"));
 		ownedByLocationBoostValue = Integer.parseInt(configIni.get("Reindex", "ownedByLocationBoostValue"));
 
 		String maxWorksToProcessStr = Util.cleanIniValue(configIni.get("Reindex", "maxWorksToProcess"));
-		if (maxWorksToProcessStr.length() > 0){
+		if (maxWorksToProcessStr != null && maxWorksToProcessStr.length() > 0){
 			try{
 				maxWorksToProcess = Long.parseLong(maxWorksToProcessStr);
 				logger.warn("Processing a maximum of " + maxWorksToProcess + " works");
@@ -198,7 +203,17 @@ public class GroupedWorkIndexer {
 	protected HashMap<String, String> locationMap = new HashMap<String, String>();
 	protected HashMap<String, String> subdomainMap = new HashMap<String, String>();
 
+	//Keep track of what we are indexing for validation purposes
+	public TreeSet<String> ilsRecordsIndexed = new TreeSet<String>();
+	public TreeSet<String> hooplaRecordsIndexed = new TreeSet<String>();
+	public TreeSet<String> overDriveRecordsIndexed = new TreeSet<String>();
+	public TreeSet<String> ilsRecordsSkipped = new TreeSet<String>();
+	public TreeSet<String> hooplaRecordsSkipped = new TreeSet<String>();
+	public TreeSet<String> overDriveRecordsSkipped = new TreeSet<String>();
+	public TreeMap<String, ScopedIndexingStats> indexingStats = new TreeMap<String, ScopedIndexingStats>();
+
 	private void loadSystemAndLocationData() {
+		indexingStats.put("global", new ScopedIndexingStats("global"));
 		if (!libraryAndLocationDataLoaded){
 			//Setup translation maps for system and location
 			try {
@@ -237,7 +252,6 @@ public class GroupedWorkIndexer {
 					boolean includeOverdrive = libraryInformationRS.getBoolean("enableOverdriveCollection");
 
 
-					Long accountingUnit = libraryInformationRS.getLong("orderAccountingUnit");
 					//Determine if we need to build a scope for this library
 					//MDN 10/1/2014 always build scopes because it makes coding more consistent elsewhere.
 					//We need to build a scope
@@ -245,7 +259,6 @@ public class GroupedWorkIndexer {
 					newScope.setIsLibraryScope(true);
 					newScope.setIsLocationScope(false);
 					newScope.setScopeName(subdomain);
-					newScope.setAccountingUnit(accountingUnit);
 					newScope.setLibraryId(libraryId);
 					newScope.setFacetLabel(facetLabel);
 					newScope.setLibraryLocationCodePrefix(code);
@@ -257,6 +270,7 @@ public class GroupedWorkIndexer {
 					newScope.setIncludeOverDriveCollection(includeOverdrive);
 					newScope.setIncludeHoopla(includeHoopla);
 					scopes.add(newScope);
+					indexingStats.put(newScope.getScopeName(), new ScopedIndexingStats(newScope.getScopeName()));
 				}
 
 				PreparedStatement locationInformationStmt = vufindConn.prepareStatement("SELECT library.libraryId, code, ilsCode, " +
@@ -336,6 +350,7 @@ public class GroupedWorkIndexer {
 							locationScopeInfo.setExtraLocationCodes(extraLocationCodesToInclude);
 
 							scopes.add(locationScopeInfo);
+							indexingStats.put(locationScopeInfo.getScopeName(), new ScopedIndexingStats(locationScopeInfo.getScopeName()));
 						}else{
 							logger.debug("No scope needed for " + code + " because the library scope works just fine");
 						}
@@ -389,6 +404,15 @@ public class GroupedWorkIndexer {
 	}
 
 	public void finishIndexing(){
+		try {
+			if (pendingDocuments.size() > 0) {
+				updateServer.add(pendingDocuments);
+				pendingDocuments.clear();
+			}
+		}catch (Exception e){
+			logger.error("Error adding the final batch of documents to the index", e);
+		}
+
 		logger.info("Finishing indexing");
 		try {
 			logger.info("Calling commit");
@@ -403,10 +427,6 @@ public class GroupedWorkIndexer {
 			logger.info("Optimizing index");
 			if (fullReindex) {
 				updateServer.optimize(true, true);
-			}else{
-				//MDN - 10/21 - do not optimize since it causes significant performance hits
-				//Optimize, but don't bother waiting for the searcher to complete
-				//updateServer.optimize(false, false);
 			}
 			logger.info("Finished Optimizing index");
 		} catch (Exception e) {
@@ -429,6 +449,114 @@ public class GroupedWorkIndexer {
 		writeWorksWithInvalidLiteraryForms();
 		updateLastReindexTime();
 		updatePartialReindexRunning(false);
+		//Write validation information
+		if (fullReindex) {
+			writeValidationInformation();
+			writeStats();
+		}
+	}
+
+	private void writeStats() {
+		try {
+			File dataDir = new File(configIni.get("Reindex", "marcPath"));
+			dataDir = dataDir.getParentFile();
+			//write the records in CSV format to the data directory
+			Date curDate = new Date();
+			String curDateFormatted = dayFormatter.format(curDate);
+			File recordsFile = new File(dataDir.getAbsolutePath() + "/reindex_stats_" + curDateFormatted + ".csv");
+			CSVWriter recordWriter = new CSVWriter(new FileWriter(recordsFile));
+			recordWriter.writeNext(new String[]{
+					"Scope Name",
+					"Num local works",
+					"Num super scope works",
+					"Num local ils records",
+					"Num super scope ils records",
+					"Num local ils items",
+					"Num super scope ils items",
+					"Num local ils econtent items",
+					"Num super scope ils econtent items",
+					"Num local order items",
+					"Num super scope order items",
+					"Num local overdrive records",
+					"Num super scope overdrive records",
+					"Num hoopla records",
+			});
+
+			//Write global scope
+			ScopedIndexingStats stats = indexingStats.get("global");
+			recordWriter.writeNext(new String[]{
+					stats.getScopeName(),
+					Integer.toString(stats.numLocalWorks),
+					Integer.toString(stats.numSuperScopeWorks),
+					Integer.toString(stats.numLocalIlsRecords),
+					Integer.toString(stats.numSuperScopeIlsRecords),
+					Integer.toString(stats.numLocalIlsItems),
+					Integer.toString(stats.numSuperScopeIlsItems),
+					Integer.toString(stats.numLocalEContentItems),
+					Integer.toString(stats.numSuperScopeEContentItems),
+					Integer.toString(stats.numLocalOrderItems),
+					Integer.toString(stats.numSuperScopeOrderItems),
+					Integer.toString(stats.numLocalOverDriveRecords),
+					Integer.toString(stats.numSuperScopeOverDriveRecords),
+					Integer.toString(stats.numHooplaRecords),
+			});
+
+			//Write custom scopes
+			for (String curScope: indexingStats.keySet()){
+				stats = indexingStats.get(curScope);
+				if (!curScope.equals("global")) {
+					recordWriter.writeNext(new String[]{
+							stats.getScopeName(),
+							Integer.toString(stats.numLocalWorks),
+							Integer.toString(stats.numSuperScopeWorks),
+							Integer.toString(stats.numLocalIlsRecords),
+							Integer.toString(stats.numSuperScopeIlsRecords),
+							Integer.toString(stats.numLocalIlsItems),
+							Integer.toString(stats.numSuperScopeIlsItems),
+							Integer.toString(stats.numLocalEContentItems),
+							Integer.toString(stats.numSuperScopeEContentItems),
+							Integer.toString(stats.numLocalOrderItems),
+							Integer.toString(stats.numSuperScopeOrderItems),
+							Integer.toString(stats.numLocalOverDriveRecords),
+							Integer.toString(stats.numSuperScopeOverDriveRecords),
+							Integer.toString(stats.numHooplaRecords),
+					});
+				}
+			}
+			recordWriter.flush();
+			recordWriter.close();
+		} catch (IOException e) {
+			logger.error("Unable to write statistics", e);
+		}
+	}
+
+	private void writeValidationInformation() {
+		writeExistingRecordsFile(hooplaRecordsIndexed, "reindexer_hoopla_records_processed");
+		writeExistingRecordsFile(hooplaRecordsSkipped, "reindexer_hoopla_records_skipped");
+		writeExistingRecordsFile(overDriveRecordsIndexed, "reindexer_overdrive_records_processed");
+		writeExistingRecordsFile(overDriveRecordsSkipped, "reindexer_overdrive_records_skipped");
+		writeExistingRecordsFile(ilsRecordsIndexed, "reindexer_ils_records_processed");
+		writeExistingRecordsFile(ilsRecordsSkipped, "reindexer_ils_records_skipped");
+	}
+
+	private static SimpleDateFormat dayFormatter = new SimpleDateFormat("yyyy-MM-dd");
+	private void writeExistingRecordsFile(TreeSet<String> recordNumbersInExport, String filePrefix) {
+		try {
+			File dataDir = new File(configIni.get("Reindex", "marcPath"));
+			dataDir = dataDir.getParentFile();
+			//write the records in CSV format to the data directory
+			Date curDate = new Date();
+			String curDateFormatted = dayFormatter.format(curDate);
+			File recordsFile = new File(dataDir.getAbsolutePath() + "/" + filePrefix + "_" + curDateFormatted + ".csv");
+			CSVWriter recordWriter = new CSVWriter(new FileWriter(recordsFile));
+			for (String curRecord: recordNumbersInExport){
+				recordWriter.writeNext(new String[]{curRecord});
+			}
+			recordWriter.flush();
+			recordWriter.close();
+		} catch (IOException e) {
+			logger.error("Unable to write existing records to " + filePrefix, e);
+		}
 	}
 
 	private void updatePartialReindexRunning(boolean running) {
@@ -461,8 +589,8 @@ public class GroupedWorkIndexer {
 	private void writeWorksWithInvalidLiteraryForms() {
 		logger.info("Writing works with invalid literary forms");
 		File worksWithInvalidLiteraryFormsFile = new File ("/var/log/vufind-plus/" + serverName + "/worksWithInvalidLiteraryForms.txt");
-		try{
-			if (worksWithInvalidLiteraryForms.size() > 0){
+		try {
+			if (worksWithInvalidLiteraryForms.size() > 0) {
 				FileWriter writer = new FileWriter(worksWithInvalidLiteraryFormsFile, false);
 				logger.debug("Found " + worksWithInvalidLiteraryForms.size() + " grouped works with invalid literary forms\r\n");
 				writer.write("Found " + worksWithInvalidLiteraryForms.size() + " grouped works with invalid literary forms\r\n");
@@ -561,6 +689,8 @@ public class GroupedWorkIndexer {
 		}
 
 		if (numPrimaryIdentifiers > 0) {
+			indexingStats.get("global").numSuperScopeWorks++;
+			indexingStats.get("global").numLocalWorks++;
 			//Update the grouped record based on data for each work
 			getGroupedWorkIdentifiers.setLong(1, id);
 			ResultSet groupedWorkIdentifiers = getGroupedWorkIdentifiers.executeQuery();
@@ -578,10 +708,23 @@ public class GroupedWorkIndexer {
 
 			//Write the record to Solr.
 			try {
-				updateServer.add(groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
+				pendingDocuments.equals(groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
+
+				//Add documents in a batch rather than one at a time.
+				if (pendingDocuments.size() == 25000) {
+					updateServer.add(pendingDocuments);
+					pendingDocuments.clear();
+				}
+
+				for (String scope: groupedWork.getScopedWorkDetails().keySet()){
+					indexingStats.get(scope).numLocalWorks++;
+					indexingStats.get(scope).numSuperScopeWorks++;
+				}
 			} catch (Exception e) {
 				logger.error("Error adding record to solr", e);
 			}
+		}else{
+			//Log that this record did not have primary identifiers after
 		}
 	}
 
@@ -600,16 +743,6 @@ public class GroupedWorkIndexer {
 				}
 				break;
 			}
-		}
-	}
-
-	private void commitChanges() {
-		try {
-			updateServer.commit(false, false);
-		} catch (SolrServerException e) {
-			logger.error("Error updating solr", e);
-		} catch (IOException e) {
-			logger.error("Error updating solr", e);
 		}
 	}
 
@@ -916,7 +1049,6 @@ public class GroupedWorkIndexer {
 			ResultSet allTitlesRS = getTitlesForListStmt.executeQuery();
 			while (allTitlesRS.next()){
 				String groupedWorkId = allTitlesRS.getString("groupedWorkPermanentId");
-				String notes = allTitlesRS.getString("notes");
 				SolrQuery query = new SolrQuery();
 				query.setQuery("id:" + groupedWorkId + " AND recordtype:grouped_work");
 				query.setFields("title", "author");
@@ -966,12 +1098,5 @@ public class GroupedWorkIndexer {
 	public HashSet<String> getHooplaLocationFacets() {
 		return hooplaLocationFacets;
 	}
-	/**
-	 * A list of location codes where their parent library system has access to Hoopla
-	 *
-	 * @return A list of location codes
-	 */
-	public HashSet<String> getHooplaLocationCodes() {
-		return hooplaLocationCodes;
-	}
+
 }

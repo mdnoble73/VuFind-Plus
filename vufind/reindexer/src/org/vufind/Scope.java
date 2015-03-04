@@ -27,7 +27,6 @@ public class Scope implements Comparable<Scope>{
 	private boolean includeOverDriveCollection;
 	private Pattern extraLocationCodesPattern;
 	private Long libraryId;
-	private Long accountingUnit;
 	private boolean isLibraryScope;
 	private boolean isLocationScope;
 	private boolean includeHoopla;
@@ -218,14 +217,6 @@ public class Scope implements Comparable<Scope>{
 		return scopeName.compareTo(o.scopeName);
 	}
 
-	public Long getAccountingUnit() {
-		return accountingUnit;
-	}
-
-	public void setAccountingUnit(Long accountingUnit) {
-		this.accountingUnit = accountingUnit;
-	}
-
 	HashMap<String, Boolean> locationCodeIncludedDirectly = new HashMap<String, Boolean>();
 	public boolean isLocationCodeIncludedDirectly(String locationCode) {
 		if (locationCodeIncludedDirectly.containsKey(locationCode)){
@@ -275,28 +266,12 @@ public class Scope implements Comparable<Scope>{
 		return isLibraryScope;
 	}
 
-	public void setLibraryScope(boolean isLibraryScope) {
-		this.isLibraryScope = isLibraryScope;
-	}
-
 	public void setIsLocationScope(boolean isLocationScope) {
 		this.isLocationScope = isLocationScope;
 	}
 
 	public boolean isLocationScope() {
 		return isLocationScope;
-	}
-
-	public void setLocationScope(boolean isLocationScope) {
-		this.isLocationScope = isLocationScope;
-	}
-
-	public boolean isIncludeBibsOwnedByTheLibraryOnly() {
-		return includeBibsOwnedByTheLibraryOnly;
-	}
-
-	public boolean isIncludeBibsOwnedByTheLocationOnly() {
-		return includeBibsOwnedByTheLocationOnly;
 	}
 
 	public boolean isIncludeItemsOwnedByTheLibraryOnly() {
@@ -313,5 +288,19 @@ public class Scope implements Comparable<Scope>{
 
 	public void setIncludeHoopla(boolean includeHoopla) {
 		this.includeHoopla = includeHoopla;
+	}
+
+	public boolean isEContentDirectlyOwned(EContentIlsItem ilsEContentItem) {
+		String sharing = ilsEContentItem.getSharing();
+		String locationCode = ilsEContentItem.getLocation();
+
+		if ((sharing.equals("shared") || sharing.equals("library")) && libraryLocationCodePrefix.length() >0 && locationCode.startsWith(libraryLocationCodePrefix)){
+			return true;
+		}else if (locationLocationCodePrefix != null && locationLocationCodePrefix.length() > 0 && locationCode.startsWith(locationLocationCodePrefix)){
+			return true;
+		}else if (this.eContentLocationCodesToInclude.contains(locationCode)){
+			return true;
+		}
+		return false;
 	}
 }

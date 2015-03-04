@@ -21,6 +21,7 @@ public class IlsItem {
 	private String collection;
 
 	private HashSet<Scope> relatedScopes = new HashSet<Scope>();
+	private HashSet<String> directScopeNames = new HashSet<String>();
 	private String recordIdentifier;
 	private String volume;
 
@@ -110,12 +111,16 @@ public class IlsItem {
 		return relatedScopes;
 	}
 
-	public void setRelatedScopes(HashSet<Scope> relatedScopes) {
-		this.relatedScopes = relatedScopes;
-	}
-
 	public void addRelatedScope(Scope scope){
 		relatedScopes.add(scope);
+	}
+
+	public HashSet<String> getScopesThisItemIsDirectlyIncludedIn() {
+		return directScopeNames;
+	}
+
+	public void addScopeThisItemIsDirectlyIncludedIn(String scopeName){
+		directScopeNames.add(scopeName);
 	}
 
 	public String getRecordIdentifier() {

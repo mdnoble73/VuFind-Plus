@@ -140,7 +140,7 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 					}
 				}
 				if (!isEContent){
-					PrintIlsItem printIlsRecord = getPrintIlsRecord(record, itemField);
+					PrintIlsItem printIlsRecord = getPrintIlsItem(record, itemField);
 					if (printIlsRecord != null) {
 						unsuppressedItemRecords.add(printIlsRecord);
 					}

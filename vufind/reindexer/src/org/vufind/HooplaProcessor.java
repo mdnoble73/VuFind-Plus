@@ -33,13 +33,16 @@ public class HooplaProcessor extends MarcRecordProcessor {
 		String basePath = individualMarcPath + "/" + firstChars;
 		String individualFilename = basePath + "/" + identifier + ".mrc";
 		File individualFile = new File(individualFilename);
+		boolean hadError = true;
 		try {
 			FileInputStream inputStream = new FileInputStream(individualFile);
 			MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
 			if (marcReader.hasNext()){
 				try{
 					Record record = marcReader.next();
+					indexer.hooplaRecordsIndexed.add(identifier);
 					updateGroupedWorkSolrDataBasedOnMarc(groupedWork, record, identifier);
+					hadError = false;
 				}catch (Exception e) {
 					logger.error("Error updating solr based on hoopla marc record", e);
 				}
@@ -47,6 +50,9 @@ public class HooplaProcessor extends MarcRecordProcessor {
 			inputStream.close();
 		} catch (Exception e) {
 			logger.error("Error reading data from hoopla file " + individualFile.toString(), e);
+		}
+		if (hadError){
+			indexer.hooplaRecordsSkipped.add(identifier);
 		}
 	}
 
@@ -76,9 +82,7 @@ public class HooplaProcessor extends MarcRecordProcessor {
 
 		//Load Languages
 		Set <String> languages = getFieldList(record, "008[35-37]:041a:041d:041j");
-		HashSet<String> translatedLanguages = new HashSet<String>();
-		boolean isFirstLanguage = true;
-		translatedLanguages = indexer.translateCollection("language", languages);
+		HashSet<String> translatedLanguages = indexer.translateCollection("language", languages);
 		String primaryLanguage = null;
 		for (String language : languages){
 			if (primaryLanguage == null){
@@ -91,7 +95,7 @@ public class HooplaProcessor extends MarcRecordProcessor {
 			}
 			String languageBoostEs = indexer.translateValue("language_boost_es", language);
 			if (languageBoostEs != null){
-				Long languageBoostVal = Long.parseLong(languageBoost);
+				Long languageBoostVal = Long.parseLong(languageBoostEs);
 				groupedWork.setLanguageBoostSpanish(languageBoostVal);
 			}
 		}
@@ -172,6 +176,8 @@ public class HooplaProcessor extends MarcRecordProcessor {
 		//Setup information based on the scopes
 		//Do not set compatible ptypes for eContent since they are just determined by owning library/location
 		for (Scope validScope : relatedScopes) {
+			indexer.indexingStats.get(validScope.getScopeName()).numHooplaRecords++;
+
 			//groupedWork.addCompatiblePTypes(validScope.getRelatedPTypes());
 			ScopedWorkDetails workDetails = groupedWork.getScopedWorkDetails().get(validScope.getScopeName());
 			workDetails.getRelatedRecords().add(recordIdentifier);

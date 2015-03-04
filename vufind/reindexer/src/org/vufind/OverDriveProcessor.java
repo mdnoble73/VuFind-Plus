@@ -85,6 +85,7 @@ public class OverDriveProcessor {
 
 	public void processRecord(GroupedWorkSolr groupedWork, String identifier) {
 		try {
+			indexer.overDriveRecordsIndexed.add(identifier);
 			getProductInfoStmt.setString(1, identifier);
 			ResultSet productRS = getProductInfoStmt.executeQuery();
 			if (productRS.next()){
@@ -93,6 +94,7 @@ public class OverDriveProcessor {
 				String title = productRS.getString("title");
 				if (productRS.getInt("deleted") == 1){
 					logger.warn("Not processing deleted overdrive product " + title + " - " + identifier);
+					indexer.overDriveRecordsSkipped.add(identifier);
 				}else {
 					String subtitle = productRS.getString("subtitle");
 					if (subtitle == null) {
@@ -187,6 +189,7 @@ public class OverDriveProcessor {
 								changeMade = false;
 								for (Scope curScope : invalidScopes) {
 									if (curScope.isIncludeOverDriveCollection() && curScope.getLibraryId().equals(libraryId) || curScope.isIncludeOutOfSystemExternalLinks()) {
+										indexer.indexingStats.get(curScope.getScopeName()).numLocalOverDriveRecords++;
 										validScopes.add(curScope);
 										invalidScopes.remove(curScope);
 										changeMade = true;
@@ -209,15 +212,21 @@ public class OverDriveProcessor {
 					groupedWork.addOwningLibraries(owningLibraries);
 					groupedWork.addOwningLocationCodesAndSubdomains(owningSubdomainsAndLocations);
 
-
 					groupedWork.addAvailableLocations(availableLibraries, availableSubdomainsAndLocations);
 					groupedWork.addEContentSource("OverDrive", owningSubdomainsAndLocations, new ArrayList<String>());
 					groupedWork.addEContentProtectionType("Limited Access", owningSubdomainsAndLocations, new ArrayList<String>());
+
+					if (partOfSharedCollection){
+						indexer.indexingStats.get("global").numSuperScopeOverDriveRecords++;
+					}
+
 					//Setup information based on the scopes
 					for (Scope validScope : validScopes) {
 						//Do not set ptypes for OverDrive since that is not how OverDrive separates content
 						//groupedWork.addCompatiblePTypes(validScope.getRelatedPTypes());
 						groupedWork.getScopedWorkDetails().get(validScope.getScopeName()).getRelatedRecords().add("overdrive:" + identifier);
+
+						indexer.indexingStats.get(validScope.getScopeName()).numSuperScopeOverDriveRecords++;
 					}
 
 					loadOverDriveFormats(groupedWork, productId, formatCategory, owningSubdomains, owningLocations, availableSubdomainsAndLocations, validScopes);

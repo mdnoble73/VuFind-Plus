@@ -13,6 +13,7 @@ public class OnOrderItem {
 	private String orderNumber;
 	private String bibNumber;
 	private HashSet<Scope> relatedScopes = new HashSet<Scope>();
+	private HashSet<String> directScopeNames = new HashSet<String>();
 	private String status;
 	private int copies;
 	private String locationCode;
@@ -39,6 +40,14 @@ public class OnOrderItem {
 
 	public HashSet<Scope> getRelatedScopes(){
 		return relatedScopes;
+	}
+
+	public HashSet<String> getScopesThisItemIsDirectlyIncludedIn() {
+		return directScopeNames;
+	}
+
+	public void addScopeThisItemIsDirectlyIncludedIn(String scopeName){
+		directScopeNames.add(scopeName);
 	}
 
 	public String getRelatedItemInfo() {

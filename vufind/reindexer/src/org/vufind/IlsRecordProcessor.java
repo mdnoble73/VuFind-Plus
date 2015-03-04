@@ -225,6 +225,19 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	@Override
 	public void processRecord(GroupedWorkSolr groupedWork, String identifier){
+		Record record = loadMarcRecordFromDisk(identifier);
+
+		if (record != null){
+			try{
+				updateGroupedWorkSolrDataBasedOnMarc(groupedWork, record, identifier);
+			}catch (Exception e) {
+				logger.error("Error updating solr based on marc record", e);
+			}
+		}
+	}
+
+	public Record loadMarcRecordFromDisk(String identifier) {
+		Record record = null;
 		String shortId = identifier.replace(".", "");
 		while (shortId.length() < 9){
 			shortId = "0" + shortId;
@@ -237,23 +250,20 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			FileInputStream inputStream = new FileInputStream(individualFile);
 			MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
 			if (marcReader.hasNext()){
-				try{
-					Record record = marcReader.next();
-					updateGroupedWorkSolrDataBasedOnMarc(groupedWork, record, identifier);
-				}catch (Exception e) {
-					logger.error("Error updating solr based on marc record", e);
-				}
+				record = marcReader.next();
 			}
 			inputStream.close();
 		} catch (Exception e) {
 			logger.error("Error reading data from ils file " + individualFile.toString(), e);
 		}
+		return record;
 	}
 
 	@Override
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		String step = "start";
 		try{
+			indexer.ilsRecordsIndexed.add(identifier);
 			//First load a list of print items and econtent items from the MARC record since they are needed to handle
 			//Scoping and availability of records.
 			step = "load print items";
@@ -266,7 +276,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			//Break the MARC record up based on item information and load data that is scoped
 			//i.e. formats, iTypes, date added to catalog, etc
 			step = "load scoped data";
-			HashSet<IlsRecord> ilsRecords = loadScopedDataForMarcRecord(groupedWork, record, printItems, econtentItems, onOrderItems);
+			HashSet<IlsRecord> ilsRecords = addRecordAndItemsToAppropriateScopesAndLoadFormats(groupedWork, record, printItems, econtentItems, onOrderItems);
 
 			//Do updates based on the overall bib (shared regardless of scoping)
 			step = "update work based on standard data";
@@ -356,10 +366,21 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	 * @param onOrderItems a list of items that are on order
 	 * @return A list of Ils Records that relate to the original marc
 	 */
-	protected HashSet<IlsRecord> loadScopedDataForMarcRecord(GroupedWorkSolr groupedWork, Record record, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, List<OnOrderItem> onOrderItems) {
+	protected HashSet<IlsRecord> addRecordAndItemsToAppropriateScopesAndLoadFormats(GroupedWorkSolr groupedWork, Record record, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems, List<OnOrderItem> onOrderItems) {
 		HashSet<IlsRecord> ilsRecords = new HashSet<IlsRecord>();
 		String recordId = getFirstFieldVal(record, recordNumberTag + "a");
 		String recordIdentifier = "ils:" + recordId;
+
+		HashSet<String> scopesThatContainRecord = new HashSet<String>();
+		HashSet<String> scopesThatContainRecordDirectly = new HashSet<String>();
+		//Add stats to indicate that the record is part of the global scope
+		if (printItems.size() > 0 || onOrderItems.size() > 0 || econtentItems.size() > 0) {
+			indexer.indexingStats.get("global").numLocalIlsRecords++;
+			indexer.indexingStats.get("global").numSuperScopeIlsRecords++;
+		}else{
+			indexer.ilsRecordsSkipped.add(recordId);
+		}
+
 		if (printItems.size() > 0 || onOrderItems.size() > 0) {
 			IlsRecord printRecord = new IlsRecord();
 			printRecord.setRecordId(recordIdentifier);
@@ -373,11 +394,27 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			ilsRecords.add(printRecord);
 			for (PrintIlsItem printItem : printItems) {
 				if (printItem != null) {
+					indexer.indexingStats.get("global").numLocalIlsItems++;
+					indexer.indexingStats.get("global").numSuperScopeIlsItems++;
+
 					String itemInfo = recordIdentifier + "|" + printItem.getRelatedItemInfo();
 					groupedWork.addRelatedItem(itemInfo);
 					for (Scope scope : printItem.getRelatedScopes()) {
 						ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
 						scopedWorkDetails.addRelatedItem(itemInfo);
+						indexer.indexingStats.get(scope.getScopeName()).numSuperScopeIlsItems++;
+						if (!scopesThatContainRecord.contains(scope.getScopeName())){
+							scopesThatContainRecord.add(scope.getScopeName());
+							indexer.indexingStats.get(scope.getScopeName()).numSuperScopeIlsRecords++;
+						}
+					}
+
+					for (String scope: printItem.getScopesThisItemIsDirectlyIncludedIn()){
+						indexer.indexingStats.get(scope).numLocalIlsItems++;
+						if (!scopesThatContainRecordDirectly.contains(scope)){
+							scopesThatContainRecordDirectly.add(scope);
+							indexer.indexingStats.get(scope).numLocalIlsRecords++;
+						}
 					}
 				}else{
 					logger.warn("Got an invalid print item in loadScopedDataForMarcRecord for " + recordId);
@@ -386,11 +423,25 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 			for (OnOrderItem orderItem : onOrderItems) {
 				if (orderItem != null) {
+					indexer.indexingStats.get("global").numLocalOrderItems++;
+					indexer.indexingStats.get("global").numSuperScopeOrderItems++;
 					String itemInfo = orderItem.getRecordIdentifier() + "|" + orderItem.getRelatedItemInfo();
 					groupedWork.addRelatedItem(itemInfo);
 					for (Scope scope : orderItem.getRelatedScopes()) {
 						ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
 						scopedWorkDetails.addRelatedItem(itemInfo);
+						indexer.indexingStats.get(scope.getScopeName()).numSuperScopeOrderItems++;
+						if (!scopesThatContainRecord.contains(scope.getScopeName())){
+							scopesThatContainRecord.add(scope.getScopeName());
+							indexer.indexingStats.get(scope.getScopeName()).numSuperScopeIlsRecords++;
+						}
+					}
+					for (String scope: orderItem.getScopesThisItemIsDirectlyIncludedIn()){
+						indexer.indexingStats.get(scope).numLocalIlsItems++;
+						if (!scopesThatContainRecordDirectly.contains(scope)){
+							scopesThatContainRecordDirectly.add(scope);
+							indexer.indexingStats.get(scope).numLocalIlsRecords++;
+						}
 					}
 				} else {
 					logger.warn("Got an invalid order item in loadScopedDataForMarcRecord for " + recordId);
@@ -399,6 +450,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 
 		for (EContentIlsItem econtentItem : econtentItems) {
+			indexer.indexingStats.get("global").numLocalEContentItems++;
+			indexer.indexingStats.get("global").numSuperScopeEContentItems++;
 			//TODO: Check to see if there is already a record we want to use.
 			IlsRecord econtentRecord = new IlsRecord();
 			econtentRecord.setRecordId(econtentItem.getRecordIdentifier());
@@ -410,6 +463,18 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			for (Scope scope : econtentItem.getRelatedScopes()) {
 				ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
 				scopedWorkDetails.addRelatedItem(itemInfo);
+				indexer.indexingStats.get(scope.getScopeName()).numSuperScopeEContentItems++;
+				if (!scopesThatContainRecord.contains(scope.getScopeName())){
+					scopesThatContainRecord.add(scope.getScopeName());
+					indexer.indexingStats.get(scope.getScopeName()).numSuperScopeIlsRecords++;
+				}
+			}
+			for (String scope: econtentItem.getScopesThisItemIsDirectlyIncludedIn()){
+				indexer.indexingStats.get(scope).numLocalEContentItems++;
+				if (!scopesThatContainRecordDirectly.contains(scope)){
+					scopesThatContainRecordDirectly.add(scope);
+					indexer.indexingStats.get(scope).numLocalIlsRecords++;
+				}
 			}
 		}
 		return ilsRecords;
@@ -420,7 +485,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		List<PrintIlsItem> unsuppressedItemRecords = new ArrayList<PrintIlsItem>();
 		for (DataField itemField : itemRecords){
 			if (!isItemSuppressed(itemField)){
-				PrintIlsItem ilsRecord = getPrintIlsRecord(record, itemField);
+				PrintIlsItem ilsRecord = getPrintIlsItem(record, itemField);
 				//Can return null if the record does not have status and location
 				//This happens with secondary call numbers sometimes.
 				if (ilsRecord != null) {
@@ -545,8 +610,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 		//Determine which scopes this title belongs to
 		for (Scope curScope : indexer.getScopes()){
+			boolean includedDirectly = curScope.isEContentDirectlyOwned(ilsEContentItem);
 			if (curScope.isEContentLocationPartOfScope(ilsEContentItem)){
 				ilsEContentItem.addRelatedScope(curScope);
+				if (includedDirectly){
+					ilsEContentItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
+				}
 			}
 		}
 
@@ -562,27 +631,27 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return "Unknown Source";
 	}
 
-	protected PrintIlsItem getPrintIlsRecord(Record record, DataField itemField) {
-		PrintIlsItem ilsRecord = new PrintIlsItem();
+	protected PrintIlsItem getPrintIlsItem(Record record, DataField itemField) {
+		PrintIlsItem ilsItem = new PrintIlsItem();
 
 		//Load base information from the Marc Record
 		String itemStatus = getItemStatus(itemField);
-		ilsRecord.setStatus(itemStatus);
-		ilsRecord.setLocation(getItemSubfieldData(locationSubfieldIndicator, itemField));
+		ilsItem.setStatus(itemStatus);
+		ilsItem.setLocation(getItemSubfieldData(locationSubfieldIndicator, itemField));
 		//if the status and location are null, we can assume this is not a valid item
-		if (ilsRecord.getStatus() == null && ilsRecord.getLocation() == null){
+		if (ilsItem.getStatus() == null && ilsItem.getLocation() == null){
 			return null;
 		}
-		ilsRecord.setDateDue(getItemSubfieldData(dueDateSubfield, itemField));
-		ilsRecord.setDateCreated(getItemSubfieldData(dateCreatedSubfield, itemField));
-		ilsRecord.setiType(getItemSubfieldData(iTypeSubfield, itemField));
-		ilsRecord.setLastYearCheckouts(getItemSubfieldData(lastYearCheckoutSubfield, itemField));
-		ilsRecord.setYtdCheckouts(getItemSubfieldData(ytdCheckoutSubfield, itemField));
-		ilsRecord.setTotalCheckouts(getItemSubfieldData(totalCheckoutSubfield, itemField));
+		ilsItem.setDateDue(getItemSubfieldData(dueDateSubfield, itemField));
+		ilsItem.setDateCreated(getItemSubfieldData(dateCreatedSubfield, itemField));
+		ilsItem.setiType(getItemSubfieldData(iTypeSubfield, itemField));
+		ilsItem.setLastYearCheckouts(getItemSubfieldData(lastYearCheckoutSubfield, itemField));
+		ilsItem.setYtdCheckouts(getItemSubfieldData(ytdCheckoutSubfield, itemField));
+		ilsItem.setTotalCheckouts(getItemSubfieldData(totalCheckoutSubfield, itemField));
 		if (useItemBasedCallNumbers) {
-			ilsRecord.setCallNumberPreStamp(getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField));
-			ilsRecord.setCallNumber(getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField));
-			ilsRecord.setCallNumberCutter(getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField));
+			ilsItem.setCallNumberPreStamp(getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField));
+			ilsItem.setCallNumber(getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField));
+			ilsItem.setCallNumberCutter(getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField));
 		}else{
 			String callNumber = null;
 			DataField localCallNumberField = (DataField)record.getVariableField("099");
@@ -602,39 +671,43 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				}
 			}
 			if (callNumber != null) {
-				ilsRecord.setCallNumber(callNumber.trim());
+				ilsItem.setCallNumber(callNumber.trim());
 			}
 		}
-		ilsRecord.setVolume(getItemSubfieldData(volumeSubfield, itemField));
-		ilsRecord.setBarcode(getItemSubfieldData(barcodeSubfield, itemField));
-		ilsRecord.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
-		ilsRecord.setCollection(getItemSubfieldData(collectionSubfield, itemField));
+		ilsItem.setVolume(getItemSubfieldData(volumeSubfield, itemField));
+		ilsItem.setBarcode(getItemSubfieldData(barcodeSubfield, itemField));
+		ilsItem.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
+		ilsItem.setCollection(getItemSubfieldData(collectionSubfield, itemField));
 
 		//Determine Availability
 		boolean available = false;
 		//if (getAvailabilityFromMarc){
-			if (ilsRecord.getStatus() != null) {
-				available = isItemAvailable(ilsRecord);
+			if (ilsItem.getStatus() != null) {
+				available = isItemAvailable(ilsItem);
 			}
 		/*}else{
 			if (ilsRecord.getBarcode() != null){
 				available = availableItemBarcodes.contains(ilsRecord.getBarcode());
 			}
 		}*/
-		ilsRecord.setAvailable(available);
+		ilsItem.setAvailable(available);
 
-		if (ilsRecord.getiType() != null && ilsRecord.getLocation() != null) {
+		if (ilsItem.getiType() != null && ilsItem.getLocation() != null) {
 			//Figure out which ptypes are compatible with this itype
-			ilsRecord.setCompatiblePTypes(getCompatiblePTypes(ilsRecord.getiType(), ilsRecord.getLocation()));
+			ilsItem.setCompatiblePTypes(getCompatiblePTypes(ilsItem.getiType(), ilsItem.getLocation()));
 		}
 		//Determine which scopes have access to this record
 		for (Scope curScope : indexer.getScopes()) {
-			if (curScope.isItemPartOfScope(ilsRecord.getLocation(), ilsRecord.getCompatiblePTypes())) {
-				ilsRecord.addRelatedScope(curScope);
+			boolean includedDirectly = curScope.isLocationCodeIncludedDirectly(ilsItem.getLocation());
+			if (curScope.isItemPartOfScope(ilsItem.getLocation(), ilsItem.getCompatiblePTypes())) {
+				if (includedDirectly){
+					ilsItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
+				}
+				ilsItem.addRelatedScope(curScope);
 			}
 		}
 
-		return ilsRecord;
+		return ilsItem;
 	}
 
 	protected String getItemStatus(DataField itemField){
