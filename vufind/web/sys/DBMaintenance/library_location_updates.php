@@ -947,6 +947,13 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
-
+		'logo_linking' => array(
+			'title' => 'Logo Linking',
+			'description' => 'Allow Linking of Logo to the library home page.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `useHomeLinkForLogo` TINYINT(1) NULL DEFAULT '0';",
+			),
+		),
 	);
 }

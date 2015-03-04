@@ -74,6 +74,7 @@ class Library extends DB_DataObject
 	public $homeLink;
 	public $homeLinkText;
 	public $useHomeLinkInBreadcrumbs;
+	public $useHomeLinkForLogo;
 	public $showAdvancedSearchbox;
 	public $enablePospectorIntegration;
 	public $showProspectorResultsAtEndOfSearch;
@@ -229,6 +230,7 @@ class Library extends DB_DataObject
 				'homeLink' => array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'size'=>'40', 'hideInLists' => true,),
 				'additionalCss' => array('property'=>'additionalCss', 'type'=>'textarea', 'label'=>'Additional CSS', 'description'=>'Extra CSS to apply to the site.  Will apply to all pages.', 'hideInLists' => true),
 				'useHomeLinkInBreadcrumbs' => array('property'=>'useHomeLinkInBreadcrumbs', 'type'=>'checkbox', 'label'=>'Use Home Link in Breadcrumbs', 'description'=>'Whether or not the home link should be used in the breadcumbs.', 'hideInLists' => true,),
+				'useHomeLinkForLogo' => array('property'=>'useHomeLinkForLogo', 'type'=>'checkbox', 'label'=>'Use Home Link for Logo', 'description'=>'Whether or not the home link should be used as the link for the main logo.', 'hideInLists' => true,),
 				'homeLinkText' => array('property'=>'homeLinkText', 'type'=>'text', 'label'=>'Home Link Text', 'description'=>'The text to show for the Home breadcrumb link', 'size'=>'40', 'hideInLists' => true, 'default' => 'Home'),
 				'showLibraryHoursAndLocationsLink' => array('property'=>'showLibraryHoursAndLocationsLink', 'type'=>'checkbox', 'label'=>'Show Library Hours and Locations Link', 'description'=>'Whether or not the library hours and locations link is shown on the home page.', 'hideInLists' => true, 'default' => true),
 				'eContentSupportAddress'  => array('property'=>'eContentSupportAddress', 'type'=>'multiemail', 'label'=>'E-Content Support Address', 'description'=>'An e-mail address to receive support requests for patrons with eContent problems.', 'size'=>'80', 'hideInLists' => true, 'default'=>'askmarmot@marmot.org'),
