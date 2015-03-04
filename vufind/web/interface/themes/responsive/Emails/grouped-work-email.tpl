@@ -14,7 +14,7 @@
 	{translate text="Shelf Location"}: {$availableAt}
 {/if}
 
-{translate text="email_link"}: {$recordDriver->getLinkUrl()}
+{translate text="email_link"}: {$recordDriver->getLinkUrl(true)}
 ------------------------------------------------------------
 
 {if !empty($message)}
