@@ -116,7 +116,7 @@
 	</form>
 {/foreach}
 
-{if $showExportAndCompare}
+{if $showExportAndCompare && false}
 	<br/>
 	<form action="" method="get" class="form-horizontal">
 		<div>
