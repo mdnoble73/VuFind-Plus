@@ -955,5 +955,14 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE `library` ADD COLUMN `useHomeLinkForLogo` TINYINT(1) NULL DEFAULT '0';",
 			),
 		),
+
+		'add_sms_indicator_to_phone' => array(
+			'title' => 'Add SMS Indicator to Phone flag',
+			'description' => 'Allow libraries to determine if a flag should be added to the primary phone number when someone subscribes to SMS messaging.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `addSMSIndicatorToPhone` TINYINT(1) NULL DEFAULT '0';",
+			),
+		),
 	);
 }

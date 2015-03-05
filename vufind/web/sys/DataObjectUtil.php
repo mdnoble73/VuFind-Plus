@@ -27,12 +27,11 @@ class DataObjectUtil
 	/**
 	 * Get the edit form for a data object based on the structure of the object
 	 *
-	 * @param $objectStructure array representing the structrue of the object.
+	 * @param $objectStructure array representing the structure of the object.
 	 *
-	 * @return HTML Snippet representing the form for display.
+	 * @return string and HTML Snippet representing the form for display.
 	 */
 	static function getEditForm($objectStructure){
-		global $configArray;
 		global $interface;
 
 		//Define the structure of the object.

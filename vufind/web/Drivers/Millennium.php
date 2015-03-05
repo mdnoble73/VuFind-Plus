@@ -1174,11 +1174,26 @@ class MillenniumDriver implements DriverInterface
 			}
 
 			if (isset($_REQUEST['mobileNumber'])){
+				$ils = $configArray['Catalog']['ils'];
 				$extraPostInfo['mobile'] = preg_replace('/\D/', '', $_REQUEST['mobileNumber']);
 				if (strlen($_REQUEST['mobileNumber']) > 0 && $_REQUEST['smsNotices'] == 'on'){
 					$extraPostInfo['optin'] = 'on';
+					global $library;
+					if ($library->addSMSIndicatorToPhone){
+						//If the user is using SMS notices append TEXT ONLY to the primary phone number
+						if (strpos($extraPostInfo['tele1'], 'TEXT ONLY') !== 0){
+							$extraPostInfo['tele1'] = 'TEXT ONLY ' . $extraPostInfo['tele1'];
+						}
+					}
 				}else{
 					$extraPostInfo['optin'] = 'off';
+					$extraPostInfo['mobile'] = "";
+					global $library;
+					if ($library->addSMSIndicatorToPhone){
+						if (strpos($extraPostInfo['tele1'], 'TEXT ONLY') === 0){
+							$extraPostInfo['tele1'] = str_replace('TEXT ONLY ', '', $extraPostInfo['tele1']);
+						}
+					}
 				}
 			}
 
