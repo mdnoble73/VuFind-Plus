@@ -474,7 +474,7 @@ class WCPL extends HorizonAPI
 		if (preg_match('/Here is your temporary barcode\\. Use it for future authentication:&nbsp;([\\d-]+)/s', $sresult, $regs)) {
 			$tempBarcode = $regs[1];
 			//Append the library prefix to the card number
-			$tempBarcode = '220460' . $tempBarcode;
+			$tempBarcode = '22046' . $tempBarcode;
 			$success = true;
 		}else{
 			$success = false;
