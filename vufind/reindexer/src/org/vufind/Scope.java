@@ -222,6 +222,9 @@ public class Scope implements Comparable<Scope>{
 		if (locationCodeIncludedDirectly.containsKey(locationCode)){
 			return locationCodeIncludedDirectly.get(locationCode);
 		}
+		if (locationCode == null){
+			return false;
+		}
 		if (locationLocationCodePrefix != null && locationCode.startsWith(locationLocationCodePrefix)){
 			locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
 			return true;
