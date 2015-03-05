@@ -40,7 +40,7 @@
 #####################
 # Export lands about 11:40pm.  Set the start for right after that.
 # Set the start for just before midnight
-56 23 * * * cd /usr/local/vufind-plus/sites/marmot.test; ./full_update_marmot_test.sh
+56 23 * * * cd /usr/local/vufind-plus/sites/opac.marmot.org; ./full_update_marmot_prod.sh
 
 ################
 # Pika Cleanup #
