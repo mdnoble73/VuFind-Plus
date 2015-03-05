@@ -11,14 +11,16 @@
 
 		<div class="checkbox">
 			{* Original Behavior *}
-{*		{foreach from=$property.values item=propertyName key=propertyValue}
+		{foreach from=$property.values item=propertyName key=propertyValue}
 			<input name='{$propName}[{$propertyValue}]' type="checkbox" value='{$propertyValue}' {if is_array($propValue) && in_array($propertyValue, array_keys($propValue))}checked='checked'{/if}> {$propertyName}<br>
-		{/foreach}*}
+		{/foreach}
 
 			{* Modified Behavior: $propertyValue is used only as a display name to the user *}
+			{*
 			{foreach from=$property.values item=propertyName key=propertyValue}
 				<input name='{$propName}[]' type="checkbox" value='{$propertyValue}' {if is_array($propValue) && in_array($propertyValue, $propValue)}checked='checked'{/if}> {$propertyName}<br>
 			{/foreach}
+			*}
 
 			{* this assumes a simple array, eg list *}
 			{*{foreach from=$property.values item=propertyName}
