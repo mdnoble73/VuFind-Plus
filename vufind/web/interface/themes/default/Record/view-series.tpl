@@ -35,7 +35,7 @@
 	{* End Listing Options *}
 	
 		{* Display series information *}
-		<form id="addForm" action="{$path}/MyResearch/HoldMultiple">
+		<form id="addForm" action="{$path}/MyAccount/HoldMultiple">
 			<div id="seriesTitles">
 				{foreach from=$resourceList item=resource name="recordLoop"}
 					<div class="result{if ($smarty.foreach.recordLoop.iteration % 2) == 0} alt{/if}">
@@ -44,16 +44,12 @@
 					</div>
 
 				{/foreach}
-				{if !$enableBookCart}
-				<input type="submit" name="placeHolds" value="Request Selected Items" class="requestSelectedItems"/>
-				{/if}
 			</div>
 		</form>
 	
 	<script type="text/javascript">
 	$(document).ready(function() {literal} { {/literal}
 		doGetStatusSummaries();
-		doGetSaveStatuses();
 	{literal} }); {/literal}
 	</script>
 	

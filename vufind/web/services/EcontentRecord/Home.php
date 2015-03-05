@@ -18,10 +18,8 @@
  *
  */
 
-require_once ROOT_DIR . '/services/Record/UserComments.php';
 require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/RecordDrivers/EcontentRecordDriver.php';
-require_once ROOT_DIR . '/sys/SolrStats.php';
 
 class EcontentRecord_Home extends Action{
 	/** @var  SearchObject_Solr $db */
@@ -45,9 +43,6 @@ class EcontentRecord_Home extends Action{
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 
 		if (isset($_REQUEST['searchId'])){
 			$_SESSION['searchId'] = $_REQUEST['searchId'];
@@ -57,52 +52,7 @@ class EcontentRecord_Home extends Action{
 		}
 
 		$location = $locationSingleton->getActiveLocation();
-		if (isset($library)){
-			$interface->assign('showTextThis', $library->showTextThis);
-			$interface->assign('showEmailThis', $library->showEmailThis);
-			$interface->assign('showFavorites', $library->showFavorites);
-			$interface->assign('linkToAmazon', $library->linkToAmazon);
-			$interface->assign('enablePurchaseLinks', $library->linkToAmazon);
-			$interface->assign('enablePospectorIntegration', $library->enablePospectorIntegration);
-			if ($location != null){
-				$interface->assign('showAmazonReviews', (($location->showAmazonReviews == 1) && ($library->showAmazonReviews == 1)) ? 1 : 0);
-				$interface->assign('showStandardReviews', (($location->showStandardReviews == 1) && ($library->showStandardReviews == 1)) ? 1 : 0);
-				$interface->assign('showHoldButton', (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0);
-			}else{
-				$interface->assign('showAmazonReviews', $library->showAmazonReviews);
-				$interface->assign('showStandardReviews', $library->showStandardReviews);
-				$interface->assign('showHoldButton', $library->showHoldButton);
-			}
-			$interface->assign('showTagging', $library->showTagging);
-			$interface->assign('showRatings', $library->showRatings);
-			$interface->assign('showComments', $library->showComments);
-			$interface->assign('tabbedDetails', $library->tabbedDetails);
-			$interface->assign('showOtherEditionsPopup', $library->showOtherEditionsPopup == 1 ? true : false);
-			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
-		}else{
-			$interface->assign('showTextThis', 1);
-			$interface->assign('showEmailThis', 1);
-			$interface->assign('showFavorites', 1);
-			$interface->assign('linkToAmazon', 1);
-			$interface->assign('enablePurchaseLinks', 1);
-			$interface->assign('enablePospectorIntegration', 0);
-			if ($location != null){
-				$interface->assign('showAmazonReviews', $location->showAmazonReviews);
-				$interface->assign('showStandardReviews', $location->showStandardReviews);
-				$interface->assign('showHoldButton', $location->showHoldButton);
-			}else{
-				$interface->assign('showAmazonReviews', 1);
-				$interface->assign('showStandardReviews', 1);
-				$interface->assign('showHoldButton', 1);
-			}
-			$interface->assign('showTagging', 1);
-			$interface->assign('showRatings', 1);
-			$interface->assign('showComments', 1);
-			$interface->assign('tabbedDetails', 1);
-			$interface->assign('showProspectorTitlesAsTab', 0);
-		}
-		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
-		$interface->assign('chiliFreshAccount', $configArray['Content']['chiliFreshAccount']);
+
 		$showCopiesLineInHoldingsSummary = true;
 		if ($library && $library->showCopiesLineInHoldingsSummary == 0){
 			$showCopiesLineInHoldingsSummary = false;
@@ -111,7 +61,6 @@ class EcontentRecord_Home extends Action{
 		$timer->logTime('Configure UI for library and location');
 
 		$interface->assign('overDriveVersion', isset($configArray['OverDrive']['interfaceVersion']) ? $configArray['OverDrive']['interfaceVersion'] : 1);
-		Record_UserComments::loadEContentComments();
 		$timer->logTime('Loaded Comments');
 
 		$eContentRecord = new EContentRecord();
@@ -123,7 +72,7 @@ class EcontentRecord_Home extends Action{
 			$this->recordDriver = new EcontentRecordDriver();
 			$this->recordDriver->setDataObject($eContentRecord);
 
-			if ($configArray['Catalog']['ils'] == 'Millennium'){
+			if ($configArray['Catalog']['ils'] == 'Millennium' || $configArray['Catalog']['ils'] == 'Sierra'){
 				if (isset($eContentRecord->ilsId) && strlen($eContentRecord->ilsId) > 0){
 					$interface->assign('classicId', substr($eContentRecord->ilsId, 1, strlen($eContentRecord->ilsId) -2));
 					$interface->assign('classicUrl', $configArray['Catalog']['linking_url']);
@@ -137,8 +86,6 @@ class EcontentRecord_Home extends Action{
 				}else{
 					$this->isbn = "";
 				}
-			}elseif ($this->isbn == null || strlen($this->isbn) == 0){
-				$interface->assign('showOtherEditionsPopup', false);
 			}
 			$this->issn = $eContentRecord->getPropertyArray('issn');
 			if (is_array($this->issn)){
@@ -149,22 +96,7 @@ class EcontentRecord_Home extends Action{
 				}
 			}
 			$interface->assign('additionalAuthorsList', $eContentRecord->getPropertyArray('author2'));
-			$rawSubjects = $eContentRecord->getPropertyArray('subject');
-			$subjects = array();
-			foreach ($rawSubjects as $subject){
-				$explodedSubjects = explode(' -- ', $subject);
-				$searchSubject = "";
-				$subject = array();
-				foreach ($explodedSubjects as $tmpSubject){
-					$searchSubject .= $tmpSubject . ' ';
-					$subject[] = array(
-		        'search' => trim($searchSubject),
-		        'title'  => $tmpSubject,
-					);
-				}
-				$subjects[] = $subject;
-			}
-			$interface->assign('subjects', $subjects);
+
 			$interface->assign('lccnList', $eContentRecord->getPropertyArray('lccn'));
 			$interface->assign('isbnList', $eContentRecord->getPropertyArray('isbn'));
 			$interface->assign('isbn', $eContentRecord->getIsbn());
@@ -200,15 +132,6 @@ class EcontentRecord_Home extends Action{
 			$similar = $this->db->getMoreLikeThis('econtentRecord' . $eContentRecord->id);
 			$timer->logTime('Got More Like This');
 
-			// Find Other Editions
-			if ($configArray['Content']['showOtherEditionsPopup'] == false){
-				$editions = OtherEditionHandler::getEditions($eContentRecord->solrId(), $eContentRecord->getIsbn(), null);
-				if (!PEAR_Singleton::isError($editions)) {
-					$interface->assign('editions', $editions);
-				}
-				$timer->logTime('Got Other editions');
-			}
-
 			//Load the citations
 			$this->loadCitation($eContentRecord);
 
@@ -222,16 +145,6 @@ class EcontentRecord_Home extends Action{
 			$searchObject->init($searchSource);
 			$searchObject->getNextPrevLinks();
 
-			// Retrieve tags associated with the record
-			$limit = 5;
-			$resource = new Resource();
-			$resource->record_id = $_GET['id'];
-			$resource->source = 'eContent';
-			$resource->find(true);
-			$tags = $resource->getTags($limit);
-			$interface->assign('tagList', $tags);
-			$timer->logTime('Got tag list');
-
 			//Load notes if any
 			$marcRecord = MarcLoader::loadEContentMarcRecord($eContentRecord);
 			if ($marcRecord){
@@ -242,7 +155,7 @@ class EcontentRecord_Home extends Action{
 				}
 
 				$notes = array();
-				$marcFields500 = $marcRecord->getFields('500');
+				/*$marcFields500 = $marcRecord->getFields('500');
 				$marcFields504 = $marcRecord->getFields('504');
 				$marcFields511 = $marcRecord->getFields('511');
 				$marcFields518 = $marcRecord->getFields('518');
@@ -250,7 +163,7 @@ class EcontentRecord_Home extends Action{
 				if ($marcFields500 || $marcFields504 || $marcFields505 || $marcFields511 || $marcFields518 || $marcFields520){
 					$allFields = array_merge($marcFields500, $marcFields504, $marcFields511, $marcFields518, $marcFields520);
 					$notes = $this->processNoteFields($allFields);
-				}
+				}*/
 
 				if ((isset($library) && $library->showTableOfContentsTab == 0) || count($tableOfContents) == 0) {
 					$notes = array_merge($notes, $tableOfContents);
@@ -263,44 +176,47 @@ class EcontentRecord_Home extends Action{
 					$interface->assign('notesTabName', 'Notes');
 				}
 
-                $additionalNotesFields = array(
-                    '310' => 'Current Publication Frequency',
-                    '321' => 'Former Publication Frequency',
-                    '351' => 'Organization & arrangement of materials',
-                    '362' => 'Dates of publication and/or sequential designation',
-                    '501' => '"With"',
-                    '502' => 'Dissertation',
-                    '506' => 'Restrictions on Access',
-                    '507' => 'Scale for Graphic Material',
-                    '508' => 'Creation/Production Credits',
-                    '510' => 'Citation/References',
-                    '511' => 'Participant or Performer',
-                    '513' => 'Type of Report an Period Covered',
-                    '515' => 'Numbering Peculiarities',
-                    '518' => 'Date/Time and Place of Event',
-                    '521' => 'Target Audience',
-                    '522' => 'Geographic Coverage',
-                    '525' => 'Supplement',
-                    '526' => 'Study Program Information',
-                    '530' => 'Additional Physical Form',
-                    '533' => 'Reproduction',
-                    '534' => 'Original Version',
-                    '536' => 'Funding Information',
-                    '538' => 'System Details',
-                    '545' => 'Biographical or Historical Data',
-                    '546' => 'Language',
-                    '547' => 'Former Title Complexity',
-                    '550' => 'Issuing Body',
-                    '555' => 'Cumulative Index/Finding Aids',
-                    '556' => 'Information About Documentation',
-                    '561' => 'Ownership and Custodial History',
-                    '563' => 'Binding Information',
-                    '580' => 'Linking Entry Complexity',
-                    '581' => 'Publications About Described Materials',
-                    '586' => 'Awards',
-                    '590' => 'Local note',
-                    '599' => 'Differentiable Local note',
-                );
+        $additionalNotesFields = array(
+	                '520' => 'Description',
+	                '500' => 'General Note',
+	                '504' => 'Bibliography',
+	                '511' => 'Participants/Performers',
+	                '518' => 'Date/Time and Place of Event',
+                  '310' => 'Current Publication Frequency',
+                  '321' => 'Former Publication Frequency',
+                  '351' => 'Organization & arrangement of materials',
+                  '362' => 'Dates of publication and/or sequential designation',
+                  '501' => '"With"',
+                  '502' => 'Dissertation',
+                  '506' => 'Restrictions on Access',
+                  '507' => 'Scale for Graphic Material',
+                  '508' => 'Creation/Production Credits',
+                  '510' => 'Citation/References',
+                  '513' => 'Type of Report an Period Covered',
+                  '515' => 'Numbering Peculiarities',
+                  '521' => 'Target Audience',
+                  '522' => 'Geographic Coverage',
+                  '525' => 'Supplement',
+                  '526' => 'Study Program Information',
+                  '530' => 'Additional Physical Form',
+                  '533' => 'Reproduction',
+                  '534' => 'Original Version',
+                  '536' => 'Funding Information',
+                  '538' => 'System Details',
+                  '545' => 'Biographical or Historical Data',
+                  '546' => 'Language',
+                  '547' => 'Former Title Complexity',
+                  '550' => 'Issuing Body',
+                  '555' => 'Cumulative Index/Finding Aids',
+                  '556' => 'Information About Documentation',
+                  '561' => 'Ownership and Custodial History',
+                  '563' => 'Binding Information',
+                  '580' => 'Linking Entry Complexity',
+                  '581' => 'Publications About Described Materials',
+                  '586' => 'Awards',
+                  '590' => 'Local note',
+                  '599' => 'Differentiable Local note',
+        );
 
 				foreach ($additionalNotesFields as $tag => $label){
 					$marcFields = $marcRecord->getFields($tag);
@@ -311,7 +227,7 @@ class EcontentRecord_Home extends Action{
 						}
 						$note = implode(',', $noteText);
 						if (strlen($note) > 0){
-							$notes[] = "<b>$label</b>: " . $note;
+							$notes[] = "<dt>$label</dt><dd>" . $note . '</dd>';
 						}
 					}
 				}
@@ -319,6 +235,86 @@ class EcontentRecord_Home extends Action{
 				if (count($notes) > 0){
 					$interface->assign('notes', $notes);
 				}
+			}
+
+			//Load subjects
+			if ($marcRecord){
+				if (isset($configArray['Content']['subjectFieldsToShow'])){
+					$subjectFieldsToShow = $configArray['Content']['subjectFieldsToShow'];
+					$subjectFields = explode(',', $subjectFieldsToShow);
+
+					$subjects = array();
+					$standardSubjects = array();
+					$bisacSubjects = array();
+					$oclcFastSubjects = array();
+					foreach ($subjectFields as $subjectField){
+						/** @var File_MARC_Data_Field[] $marcFields */
+						$marcFields = $marcRecord->getFields($subjectField);
+						if ($marcFields){
+							foreach ($marcFields as $marcField){
+								$searchSubject = "";
+								$subject = array();
+								//Determine the type of the subject
+								$type = 'standard';
+								$subjectSource = $marcField->getSubfield('2');
+								if ($subjectSource != null){
+									if (preg_match('/bisac/i', $subjectSource->getData())){
+										$type = 'bisac';
+									}elseif (preg_match('/fast/i', $subjectSource->getData())){
+										$type = 'fast';
+									}
+								}
+
+								foreach ($marcField->getSubFields() as $subField){
+									/** @var File_MARC_Subfield $subField */
+									if ($subField->getCode() != '2' && $subField->getCode() != '0'){
+										$subFieldData = $subField->getData();
+										if ($type == 'bisac' && $subField->getCode() == 'a'){
+											$subFieldData = ucwords(strtolower($subFieldData));
+										}
+										$searchSubject .= " " . $subFieldData;
+										$subject[] = array(
+											'search' => trim($searchSubject),
+											'title'  => $subFieldData,
+										);
+									}
+								}
+								if ($type == 'bisac'){
+									$bisacSubjects[] = $subject;
+									$subjects[] = $subject;
+								}elseif ($type == 'fast'){
+									//Suppress fast subjects by default
+									$oclcFastSubjects[] = $subject;
+								}else{
+									$subjects[] = $subject;
+									$standardSubjects[] = $subject;
+								}
+
+							}
+						}
+						$interface->assign('subjects', $subjects);
+						$interface->assign('standardSubjects', $standardSubjects);
+						$interface->assign('bisacSubjects', $bisacSubjects);
+						$interface->assign('oclcFastSubjects', $oclcFastSubjects);
+					}
+				}
+			}else{
+				$rawSubjects = $eContentRecord->getPropertyArray('subject');
+				$subjects = array();
+				foreach ($rawSubjects as $subject){
+					$explodedSubjects = explode(' -- ', $subject);
+					$searchSubject = "";
+					$subject = array();
+					foreach ($explodedSubjects as $tmpSubject){
+						$searchSubject .= $tmpSubject . ' ';
+						$subject[] = array(
+							'search' => trim($searchSubject),
+							'title'  => $tmpSubject,
+						);
+					}
+					$subjects[] = $subject;
+				}
+				$interface->assign('subjects', $subjects);
 			}
 
 			$this->loadReviews($eContentRecord);
@@ -337,28 +333,12 @@ class EcontentRecord_Home extends Action{
 
 			$interface->setPageTitle($eContentRecord->title);
 
-			//Var for the IDCLREADER TEMPLATE
-			$interface->assign('ButtonBack',true);
-			$interface->assign('ButtonHome',true);
-			$interface->assign('MobileTitle','&nbsp;');
-
 			//Load Staff Details
-			$interface->assign('staffDetails', $this->getStaffView($eContentRecord));
+			$interface->assign('staffDetails', $this->recordDriver->getStaffView($eContentRecord));
 
 			// Display Page
 			$interface->display('layout.tpl');
 
-		}
-	}
-
-	public function getStaffView($eContentRecord){
-		global $interface;
-		$marcRecord = MarcLoader::loadEContentMarcRecord($eContentRecord);
-		if ($marcRecord != null){
-			$interface->assign('marcRecord', $marcRecord);
-			return 'RecordDrivers/Marc/staff.tpl';
-		}else{
-			return null;
 		}
 	}
 
@@ -367,6 +347,7 @@ class EcontentRecord_Home extends Action{
 
 		//Load the Editorial Reviews
 		//Populate an array of editorialReviewIds that match up with the recordId
+		require_once ROOT_DIR . '/sys/LocalEnrichment/EditorialReview.php';
 		$editorialReview = new EditorialReview();
 		$editorialReviewResults = array();
 		$editorialReview->recordId = 'econtentRecord' . $eContentRecord->id;

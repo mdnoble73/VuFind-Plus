@@ -19,14 +19,11 @@ abstract class FacetSetting extends DB_DataObject {
 
 	public function getAvailableFacets(){
 		$availableFacets = array(
-			"institution" => "Library System",
-			"building" => "Branch",
+			"owning_library" => "Library System",
+			"owning_location" => "Branch",
 			"available_at" => "Available At",
 			"availability_toggle" => "Available?",
 			"collection_group" => "Collection",
-			"collection_adams" => "Collection (ASU)",
-			"collection_msc" => "Collection (CMU)",
-			"collection_western" => "Collection (Western)",
 			"rating_facet" => "Rating",
 			"publishDate" => "Publication Year",
 			"format" => "Format",
@@ -52,8 +49,22 @@ abstract class FacetSetting extends DB_DataObject {
 			"callnumber-first" => "LC Call Number",
 			"awards_facet" => "Awards",
 			"detailed_location" => "Detailed Location",
+			"lc_subject" => "LC Subject",
+			"bisac_subject" => "Bisac Subject",
 		);
-		asort($availableFacets);
+
+		//Add additional facets by library
+		global $configArray;
+		if ($configArray['Catalog']['driver'] == 'Marmot'){
+			$availableFacets["collection_adams"] = "Collection (ASU)";
+			$availableFacets["collection_msc"] = "Collection (CMU)";
+			$availableFacets["collection_western"] = "Collection (Western)";
+		}else if ($configArray['Catalog']['driver'] == 'WCPL'){
+			$availableFacets["system_list"] = "System List";
+		}
+
+
+			asort($availableFacets);
 		return $availableFacets;
 	}
 

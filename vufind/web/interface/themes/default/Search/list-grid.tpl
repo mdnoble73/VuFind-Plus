@@ -16,7 +16,4 @@
     unknown: '<span class="unknown">{translate text='Unknown'}<\/span>',
     reserve: '{translate text='on_reserve'}'
   {literal}}{/literal});
-  {if $user}
-  doGetSaveStatuses();
-  {/if}
 </script>

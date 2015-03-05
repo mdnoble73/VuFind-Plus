@@ -1,0 +1,81 @@
+// Core variables and mixins
+// initial styling code taken from basalt\css\main.less plb 9-2-2014
+
+@import "../../responsive/css/variables.less";
+@import "variables.less";
+
+// Always include the base .less file
+@import "../../responsive/css/responsive_base.less";
+
+#header-container{
+  background-image: @header_image;
+  background-position: center;
+  border-bottom: 4px solid @vail_logo_green;
+}
+// padding adds light-colored space for the logo to be displayed against a black background
+#header-logo{
+  background-color: @header-buttons-background-color;
+  border-radius:  0.5em;
+  margin-top: 15px;
+  padding: 20px 60px;
+//  margin-top: 20px;
+//  padding: 8px 25px;
+}
+.header-login-button-mixin(@header-buttons-background-color);
+.header-button{
+  margin-top: 42px;
+}
+.header-button > a{
+  color: @vail_logo_black !important;
+}
+.header-button > a:visited{
+  color: @vail_logo_black !important;
+}
+
+//// for white browse category option
+//.browse-category a{
+////  color: lighten(@vail_logo_black, 20%);
+//  color: @vail_dark_blue;
+//}
+//#home-page-search-label{
+//  color: @vail_dark_blue;
+//}
+//#searchSource {
+//  color: black;
+//}
+
+// custom styling of main browse category carousel
+#browse-category-carousel {
+  overflow: visible; // allow all list items to be seen
+  left: 0;
+  width: 95%;
+  margin-left: 5%;
+}
+#browse-category-carousel ul {
+  position: static; // restore positioning behavior
+  width: 100%;
+}
+
+#browse-category-carousel li {
+  // set number items to display in a row based on screen size
+  // default 4 per row, smallest 2 per row, small 3 per row
+  width: 23% !important;
+  @media (max-width: @screen-sm-max) {
+    width: 31% !important;
+  }
+  @media (max-width: @screen-xs-max) {
+    width: 48% !important;
+  }
+  float: left; // retains float left; ul positional is more critical. plb 9-16-2014
+}
+// hide scrolling controls
+#browse-category-picker .jcarousel-control-prev, #browse-category-picker .jcarousel-control-next, #browse-category-picker .jcarousel-pagination {
+  display: none;
+}
+
+// Selected Category needs to give a highlighted appearance
+.browse-category.selected {
+  background-color: @selectedCategoryColor;
+  background: linear-gradient(to bottom, @selectedCategoryColor, @selectedCategoryColor 82%, @categoryLineShadow 83%, @categoryLineColor 84%, @categoryLineColor 88%, @categoryLineShadow 89%, @selectedCategoryColor 90%, @selectedCategoryColor);
+  font-size: @browse-category-font-size + 2;
+}

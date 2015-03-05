@@ -35,7 +35,7 @@ class Analytics_Session extends DB_DataObject
 				$analyticsTheme->insert();
 			}
 			$analyticsThemeId = $analyticsTheme->id;
-			$memCache->add('analytics_theme_' . $theme,$analyticsThemeId, $configArray['Caching']['analytics_references']);
+			$memCache->add('analytics_theme_' . $theme,$analyticsThemeId, 0, $configArray['Caching']['analytics_references']);
 		}
 		$this->themeId = $analyticsThemeId;
 	}
@@ -53,7 +53,7 @@ class Analytics_Session extends DB_DataObject
 				$analyticsDevice->insert();
 			}
 			$analyticsDeviceId = $analyticsDevice->id;
-			$memCache->add('analytics_device_' . $device, $analyticsDeviceId, $configArray['Caching']['analytics_references']);
+			$memCache->add('analytics_device_' . $device, $analyticsDeviceId, 0, $configArray['Caching']['analytics_references']);
 		}
 		$this->deviceId = $analyticsDeviceId;
 	}
@@ -71,7 +71,7 @@ class Analytics_Session extends DB_DataObject
 				$analyticsPhysicalLocation->insert();
 			}
 			$analyticsPhysicalLocationId = $analyticsPhysicalLocation->id;
-			$memCache->add('analytics_physicalLocation_' . $physicalLocation, $analyticsPhysicalLocationId, $configArray['Caching']['analytics_references']);
+			$memCache->add('analytics_physicalLocation_' . $physicalLocation, $analyticsPhysicalLocationId, 0, $configArray['Caching']['analytics_references']);
 		}
 		$this->physicalLocationId = $analyticsPhysicalLocationId;
 	}
@@ -89,7 +89,7 @@ class Analytics_Session extends DB_DataObject
 				$analyticsPatronType->insert();
 			}
 			$analyticsPatronTypeId = $analyticsPatronType->id;
-			$memCache->add('analytics_patronType_' . $patronType, $analyticsPatronTypeId, $configArray['Caching']['analytics_references']);
+			$memCache->add('analytics_patronType_' . $patronType, $analyticsPatronTypeId, 0, $configArray['Caching']['analytics_references']);
 		}
 		$this->patronTypeId = $analyticsPatronTypeId;
 	}
@@ -107,7 +107,7 @@ class Analytics_Session extends DB_DataObject
 				$analyticsCountry->insert();
 			}
 			$analyticsCountryId = $analyticsCountry->id;
-			$memCache->add('analytics_country_' . $country, $analyticsCountryId, $configArray['Caching']['analytics_references']);
+			$memCache->add('analytics_country_' . $country, $analyticsCountryId, 0, $configArray['Caching']['analytics_references']);
 		}
 		$this->countryId = $analyticsCountryId;
 	}
@@ -125,7 +125,7 @@ class Analytics_Session extends DB_DataObject
 				$analyticsState->insert();
 			}
 			$analyticsStateId = $analyticsState->id;
-			$memCache->add('analytics_state_' . $state, $analyticsStateId, $configArray['Caching']['analytics_references']);
+			$memCache->add('analytics_state_' . $state, $analyticsStateId, 0, $configArray['Caching']['analytics_references']);
 		}
 		$this->stateId = $analyticsStateId;
 	}
@@ -143,7 +143,7 @@ class Analytics_Session extends DB_DataObject
 				$analyticsCity->insert();
 			}
 			$analyticsCityId = $analyticsCity->id;
-			$memCache->add('analytics_city_' . $city, $analyticsCityId, $configArray['Caching']['analytics_references']);
+			$memCache->add('analytics_city_' . $city, $analyticsCityId, 0, $configArray['Caching']['analytics_references']);
 		}
 		$this->cityId = $analyticsCityId;
 	}

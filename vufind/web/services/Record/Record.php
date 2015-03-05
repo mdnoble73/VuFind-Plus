@@ -25,12 +25,10 @@ require_once 'File/MARC.php';
 require_once ROOT_DIR  . '/sys/Language.php';
 
 require_once ROOT_DIR  . '/services/MyResearch/lib/User.php';
-require_once ROOT_DIR  . '/services/MyResearch/lib/Resource.php';
-require_once ROOT_DIR  . '/services/MyResearch/lib/Resource_tags.php';
-require_once ROOT_DIR  . '/services/MyResearch/lib/Tags.php';
 require_once ROOT_DIR  . '/RecordDrivers/Factory.php';
+require_once ROOT_DIR  . '/RecordDrivers/MarcRecord.php';
 
-class Record_Record extends Action
+abstract class Record_Record extends Action
 {
 	public $id;
 
@@ -53,6 +51,7 @@ class Record_Record extends Action
 	public $db;
 
 	public $description;
+	protected $mergedRecords = array();
 
 	function __construct($subAction = false, $record_id = null)
 	{
@@ -60,13 +59,8 @@ class Record_Record extends Action
 		global $configArray;
 		global $library;
 		global $timer;
-		global $logger;
 
 		$interface->assign('page_body_style', 'sidebar_left');
-		$interface->assign('libraryThingUrl', $configArray['LibraryThing']['url']);
-
-		//Determine whether or not materials request functionality should be enabled
-		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
 
 		//Load basic information needed in subclasses
 		if ($record_id == null || !isset($record_id)){
@@ -74,61 +68,44 @@ class Record_Record extends Action
 		}else{
 			$this->id = $record_id;
 		}
+		$interface->assign('id', $this->id);
+
+		if (preg_match('/^[\da-fA-F-]{36}$/', $this->id)){
+			header('Location:' . $configArray['Site']['path'] . '/GroupedWork/'. $this->id);
+			die();
+		}
 
 		//Check to see if the record exists within the resources table
-		$resource = new Resource();
-		$resource->record_id = $this->id;
-		$resource->source = 'VuFind';
-		$resource->deleted = 0;
-		if (!$resource->find()){
-			//Check to see if the record has been converted to an eContent record
-			require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
-			$econtentRecord = new EContentRecord();
-			$econtentRecord->ilsId = $this->id;
-			$econtentRecord->status = 'active';
-			if ($econtentRecord->find(true)){
-				header("Location: /EcontentRecord/{$econtentRecord->id}/Home");
-				die();
-			}
-			$logger->log("Did not find a record for id {$this->id} in resources table." , PEAR_LOG_DEBUG);
+		$this->recordDriver = new MarcRecord($this->id);
+		if (!$this->recordDriver->isValid()){
+			$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');
 			$interface->setTemplate('invalidRecord.tpl');
 			$interface->display('layout.tpl');
 			die();
 		}
 
-		if ($configArray['Catalog']['ils'] == 'Millennium'){
-			$interface->assign('classicId', substr($this->id, 1, strlen($this->id) -2));
-			$interface->assign('classicUrl', $configArray['Catalog']['linking_url']);
+		if ($configArray['Catalog']['ils'] == 'Millennium' || $configArray['Catalog']['ils'] == 'Sierra'){
+			$classicId = substr($this->id, 1, strlen($this->id) -2);
+			$interface->assign('classicId', $classicId);
+			$millenniumScope = $interface->getVariable('millenniumScope');
+			$interface->assign('classicUrl', $configArray['Catalog']['linking_url'] . "/record=$classicId&amp;searchscope={$millenniumScope}");
+
+		}elseif ($configArray['Catalog']['ils'] == 'Koha'){
+			$interface->assign('classicId', $this->id);
+			$interface->assign('classicUrl', $configArray['Catalog']['url'] . '/cgi-bin/koha/opac-detail.pl?biblionumber=' . $this->id);
+			$interface->assign('staffClientUrl', $configArray['Catalog']['staffClientUrl'] . '/cgi-bin/koha/catalogue/detail.pl?biblionumber=' . $this->id);
 		}
-
-		// Setup Search Engine Connection
-		$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		$this->db = new $class($url);
-		$this->db->disableScoping();
-
-		// Retrieve Full Marc Record
-		if (!($record = $this->db->getRecord($this->id))) {
-			$logger->log("Did not find a record for id {$this->id} in solr." , PEAR_LOG_DEBUG);
-			$interface->setTemplate('invalidRecord.tpl');
-			$interface->display('layout.tpl');
-			die();
-		}
-		$this->db->enableScoping();
-
-		$this->record = $record;
-		$interface->assign('record', $record);
-		$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
-		$timer->logTime('Initialized the Record Driver');
-
-		$interface->assign('coreMetadata', $this->recordDriver->getCoreMetadata());
 
 		// Process MARC Data
 		require_once ROOT_DIR  . '/sys/MarcLoader.php';
-		$marcRecord = MarcLoader::loadMarcRecordFromRecord($record);
+		$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
 		if ($marcRecord) {
 			$this->marcRecord = $marcRecord;
 			$interface->assign('marc', $marcRecord);
+
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			$this->recordDriver = new MarcRecord($marcRecord);
+			$interface->assign('recordDriver', $this->recordDriver);
 		} else {
 			$interface->assign('error', 'Cannot Process MARC Record');
 		}
@@ -149,24 +126,6 @@ class Record_Record extends Action
 			$mainAuthor = $this->concatenateSubfieldData($marcField, array('a', 'b', 'c', 'd'));
 			$interface->assign('mainAuthor', $mainAuthor);
 		}
-
-		$marcField = $marcRecord->getField('110');
-		if ($marcField){
-			$corporateAuthor = $this->getSubfieldData($marcField, 'a');
-			$interface->assign('corporateAuthor', $corporateAuthor);
-		}
-
-		$marcFields = $marcRecord->getFields('700');
-		if ($marcFields){
-			$contributors = array();
-			foreach ($marcFields as $marcField){
-				$contributors[] = $this->concatenateSubfieldData($marcField, array('a', 'b', 'c', 'd'));
-			}
-			$interface->assign('contributors', $contributors);
-		}
-
-		$published = $this->recordDriver->getPublicationDetails();
-		$interface->assign('published', $published);
 
 		$marcFields = $marcRecord->getFields('250');
 		if ($marcFields){
@@ -272,185 +231,33 @@ class Record_Record extends Action
 			}
 		}
 
-		/** @var File_MARC_Data_Field[] $marcField440 */
-		$marcField440 = $marcRecord->getFields('440');
-		/** @var File_MARC_Data_Field[] $marcField490 */
-		$marcField490 = $marcRecord->getFields('490');
-		/** @var File_MARC_Data_Field[] $marcField830 */
-		$marcField830 = $marcRecord->getFields('830');
-		if ($marcField440 || $marcField490 || $marcField830){
-			$series = array();
-			foreach ($marcField440 as $field){
-				$series[] = $this->getSubfieldData($field, 'a');
-			}
-			foreach ($marcField490 as $field){
-				if ($field->getIndicator(1) == 0){
-					$series[] = $this->getSubfieldData($field, 'a');
-				}
-			}
-			foreach ($marcField830 as $field){
-				$series[] = $this->getSubfieldData($field, 'a');
-			}
-			$interface->assign('series', $series);
-		}
-
-		//Load description from Syndetics
-		$useMarcSummary = true;
-		if ($this->isbn || $this->upc){
-			if ($library && $library->preferSyndeticsSummary == 1){
-				require_once ROOT_DIR  . '/Drivers/marmot_inc/GoDeeperData.php';
-				$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
-				if (isset($summaryInfo['summary'])){
-					$interface->assign('summaryTeaser', $summaryInfo['summary']);
-					$interface->assign('summary', $summaryInfo['summary']);
-					$useMarcSummary = false;
-				}
-			}
-		}
-		if ($useMarcSummary){
-			if ($summaryField = $this->marcRecord->getField('520')) {
-				$interface->assign('summary', $this->getSubfieldData($summaryField, 'a'));
-				$interface->assign('summaryTeaser', $this->getSubfieldData($summaryField, 'a'));
-			}elseif ($library && $library->preferSyndeticsSummary == 0){
-				require_once ROOT_DIR  . '/Drivers/marmot_inc/GoDeeperData.php';
-				$summaryInfo = GoDeeperData::getSummary($this->isbn, $this->upc);
-				if (isset($summaryInfo['summary'])){
-					$interface->assign('summaryTeaser', $summaryInfo['summary']);
-					$interface->assign('summary', $summaryInfo['summary']);
-					$useMarcSummary = false;
-				}
-			}
-
-		}
-
 		if ($mpaaField = $this->marcRecord->getField('521')) {
 			$interface->assign('mpaaRating', $this->getSubfieldData($mpaaField, 'a'));
 		}
 
-		if (isset($configArray['Content']['subjectFieldsToShow'])){
-			$subjectFieldsToShow = $configArray['Content']['subjectFieldsToShow'];
-			$subjectFields = explode(',', $subjectFieldsToShow);
-			$subjects = array();
-			foreach ($subjectFields as $subjectField){
-				/** @var File_MARC_Data_Field[] $marcFields */
-				$marcFields = $marcRecord->getFields($subjectField);
-				if ($marcFields){
-					foreach ($marcFields as $marcField){
-						$searchSubject = "";
-						$subject = array();
-						foreach ($marcField->getSubFields() as $subField){
-							/** @var File_MARC_Subfield $subField */
-							if ($subField->getCode() != 2){
-								$searchSubject .= " " . $subField->getData();
-								$subject[] = array(
-		                            'search' => trim($searchSubject),
-		                            'title'  => $subField->getData(),
-								);
-							}
-						}
-						$subjects[] = $subject;
-					}
-				}
-				$interface->assign('subjects', $subjects);
-			}
-		}
-
-		$format = $record['format'];
-		$interface->assign('recordFormat', $record['format']);
-		$format_category = isset($record['format_category'][0]) ? $record['format_category'][0] : '';
+		$format = $this->recordDriver->getFormat();
+		$interface->assign('recordFormat', $format);
+		$format_category = $format = $this->recordDriver->getFormatCategory();
 		$interface->assign('format_category', $format_category);
-		$interface->assign('recordLanguage', isset($record['language']) ? $record['language'] : null);
+		$interface->assign('recordLanguage', $this->recordDriver->getLanguage());
 
 		$timer->logTime('Got detailed data from Marc Record');
 
-		$tableOfContents = array();
-		$marcFields505 = $marcRecord->getFields('505');
-		if ($marcFields505){
-			$tableOfContents = $this->processTableOfContentsFields($marcFields505);
-		}
-
 		$notes = array();
-		$marcFields500 = $marcRecord->getFields('500');
-		$marcFields504 = $marcRecord->getFields('504');
-		$marcFields511 = $marcRecord->getFields('511');
-		$marcFields518 = $marcRecord->getFields('518');
-		$marcFields520 = $marcRecord->getFields('520');
-		if ($marcFields500 || $marcFields504 || $marcFields505 || $marcFields511 || $marcFields518 || $marcFields520){
-			$allFields = array_merge($marcFields500, $marcFields504, $marcFields511, $marcFields518, $marcFields520);
-			$notes = $this->processNoteFields($allFields);
-		}
 
-		if ((isset($library) && $library->showTableOfContentsTab == 0) || count($tableOfContents) == 0) {
-			$notes = array_merge($notes, $tableOfContents);
-		}else{
-			$interface->assign('tableOfContents', $tableOfContents);
-		}
 		if (isset($library) && strlen($library->notesTabName) > 0){
 			$interface->assign('notesTabName', $library->notesTabName);
 		}else{
 			$interface->assign('notesTabName', 'Notes');
 		}
 
-		$additionalNotesFields = array(
-            '310' => 'Current Publication Frequency',
-            '321' => 'Former Publication Frequency',
-            '351' => 'Organization & arrangement of materials',
-            '362' => 'Dates of publication and/or sequential designation',
-            '501' => '"With"',
-            '502' => 'Dissertation',
-            '506' => 'Restrictions on Access',
-            '507' => 'Scale for Graphic Material',
-            '508' => 'Creation/Production Credits',
-            '510' => 'Citation/References',
-            '511' => 'Participant or Performer',
-            '513' => 'Type of Report an Period Covered',
-            '515' => 'Numbering Peculiarities',
-            '518' => 'Date/Time and Place of Event',
-            '521' => 'Target Audience',
-            '522' => 'Geographic Coverage',
-            '525' => 'Supplement',
-            '526' => 'Study Program Information',
-            '530' => 'Additional Physical Form',
-            '533' => 'Reproduction',
-            '534' => 'Original Version',
-            '536' => 'Funding Information',
-            '538' => 'System Details',
-            '545' => 'Biographical or Historical Data',
-            '546' => 'Language',
-            '547' => 'Former Title Complexity',
-            '550' => 'Issuing Body',
-            '555' => 'Cumulative Index/Finding Aids',
-            '556' => 'Information About Documentation',
-            '561' => 'Ownership and Custodial History',
-            '563' => 'Binding Information',
-            '580' => 'Linking Entry Complexity',
-            '581' => 'Publications About Described Materials',
-            '586' => 'Awards',
-            '590' => 'Local note',
-            '599' => 'Differentiable Local note',
-		);
-
-		foreach ($additionalNotesFields as $tag => $label){
-			$marcFields = $marcRecord->getFields($tag);
-			foreach ($marcFields as $marcField){
-				$noteText = array();
-				foreach ($marcField->getSubFields() as $subfield){
-					/** @var File_MARC_Subfield $subfield */
-					$noteText[] = $subfield->getData();
-				}
-				$note = implode(',', $noteText);
-				if (strlen($note) > 0){
-					$notes[] = "<b>$label</b>: " . $note;
-				}
-			}
-		}
-
+		$notes = $this->recordDriver->getNotes();
 		if (count($notes) > 0){
 			$interface->assign('notes', $notes);
 		}
 
 		/** @var File_MARC_Data_Field[] $linkFields */
-		$linkFields =$marcRecord->getFields('856') ;
+		$linkFields = $marcRecord->getFields('856') ;
 		if ($linkFields){
 			$internetLinks = array();
 			$purchaseLinks = array();
@@ -501,8 +308,7 @@ class Record_Record extends Action
 		}
 
 		//Determine the cover to use
-		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$this->id}&amp;isn={$this->isbn}&amp;issn={$this->issn}&amp;size=large&amp;upc={$this->upc}&amp;category=" . urlencode($format_category) . "&amp;format=" . urlencode(isset($format[0]) ? $format[0] : '');
-		$interface->assign('bookCoverUrl', $bookCoverUrl);
+		$interface->assign('bookCoverUrl', $this->recordDriver->getBookcoverUrl('large'));
 
 		//Load accelerated reader data
 		if (isset($record['accelerated_reader_interest_level'])){
@@ -558,56 +364,10 @@ class Record_Record extends Action
 		$interface->assign('lastsearch', isset($_SESSION['lastSearchURL']) ?
 		$_SESSION['lastSearchURL'] : false);
 
-		// Retrieve tags associated with the record
-		$limit = 5;
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		$resource->source = 'VuFind';
-		$resource->find(true);
-		$tags = $resource->getTags($limit);
-		$interface->assign('tagList', $tags);
-		$timer->logTime('Got tag list');
-
 		$this->cacheId = 'Record|' . $_GET['id'] . '|' . get_class($this);
-
-		// Find Similar Records
-		/** @var Memcache $memCache */
-		global $memCache;
-		$similar = $memCache->get('similar_titles_' . $this->id);
-		if ($similar == false){
-			$similar = $this->db->getMoreLikeThis($this->id);
-			// Send the similar items to the template; if there is only one, we need
-			// to force it to be an array or things will not display correctly.
-			if (isset($similar) && count($similar['response']['docs']) > 0) {
-				$similar = $similar['response']['docs'];
-			}else{
-				$similar = array();
-				$timer->logTime("Did not find any similar records");
-			}
-			$memCache->set('similar_titles_' . $this->id, $similar, 0, $configArray['Caching']['similar_titles']);
-		}
-		$this->similarTitles = $similar;
-		$interface->assign('similarRecords', $similar);
-		$timer->logTime('Loaded similar titles');
-
-		// Find Other Editions
-		if ($configArray['Content']['showOtherEditionsPopup'] == false){
-			$editions = OtherEditionHandler::getEditions($this->id, $this->isbn, isset($this->record['issn']) ? $this->record['issn'] : null);
-			if (!PEAR_Singleton::isError($editions)) {
-				$interface->assign('editions', $editions);
-			}else{
-				$timer->logTime("Did not find any other editions");
-			}
-			$timer->logTime('Got Other editions');
-		}
-
-		$interface->assign('showStrands', isset($configArray['Strands']['APID']) && strlen($configArray['Strands']['APID']) > 0);
 
 		// Send down text for inclusion in breadcrumbs
 		$interface->assign('breadcrumbText', $this->recordDriver->getBreadcrumb());
-
-		// Send down OpenURL for COinS use:
-		$interface->assign('openURL', $this->recordDriver->getOpenURL());
 
 		// Send down legal export formats (if any):
 		$interface->assign('exportFormats', $this->recordDriver->getExportFormats());
@@ -615,17 +375,6 @@ class Record_Record extends Action
 		// Set AddThis User
 		$interface->assign('addThis', isset($configArray['AddThis']['key']) ?
 		$configArray['AddThis']['key'] : false);
-
-		// Set Proxy URL
-		if (isset($configArray['EZproxy']['host'])) {
-			$interface->assign('proxy', $configArray['EZproxy']['host']);
-		}
-
-		//setup 5 star ratings
-		global $user;
-		$ratingData = $resource->getRatingData($user);
-		$interface->assign('ratingData', $ratingData);
-		$timer->logTime('Got 5 star data');
 
 		//Get Next/Previous Links
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
@@ -661,47 +410,10 @@ class Record_Record extends Action
 	}
 
 	/**
-	 * @param File_MARC_Data_Field[] $allFields
-	 * @return array
-	 */
-	function processTableOfContentsFields($allFields){
-		$notes = array();
-		foreach ($allFields as $marcField){
-			$curNote = '';
-			/** @var File_MARC_Subfield $subfield */
-			foreach ($marcField->getSubfields() as $subfield){
-				$note = $subfield->getData();
-				$curNote .= " " . $note;
-				$curNote = trim($curNote);
-				if (strlen($curNote) > 0 && in_array($subfield->getCode(), array('t', 'a'))){
-					$notes[] = $curNote;
-					$curNote = '';
-				}
-			}
-		}
-		return $notes;
-	}
-
-	/**
 	 * Record a record hit to the statistics index when stat tracking is enabled;
 	 * this is called by the Home action.
 	 */
-	public function recordHit()
-	{
-		//Don't do this since we implemented stats in MySQL rather than Solr
-		/*global $configArray;
-
-		if ($configArray['Statistics']['enabled']) {
-		// Setup Statistics Index Connection
-		$solrStats = new SolrStats($configArray['Statistics']['solr']);
-		if ($configArray['System']['debugSolr']) {
-		$solrStats->debug = true;
-		}
-
-		// Save Record View
-		$solrStats->saveRecordView($this->recordDriver->getUniqueID());
-		unset($solrStats);
-		}*/
+	public function recordHit(){
 	}
 
 	/**

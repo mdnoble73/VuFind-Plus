@@ -103,8 +103,15 @@ class ListWidgetList extends DB_DataObject
 			}
 			return $this->links;
 		}
+		return null;
 	}
 
+	function fullListLink(){
+		require_once ROOT_DIR . '/services/API/ListAPI.php';
+		$listAPI = new ListAPI();
+		$cacheInfo = $listAPI->getCacheInfoForListId($this->source);
+		return $cacheInfo['fullListLink'];
+	}
 
 
 	function validateName(){

@@ -93,7 +93,7 @@ class EcontentRecordDriver extends IndexRecord
 		$interface->assign('useUnscopedHoldingsSummary', $useUnscopedHoldingsSummary);
 		parent::getSearchResult();
 
-		$linkUrl = '/EcontentRecord/' . $this->getUniqueID() . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
+		$linkUrl = '/EcontentRecord/' . $this->getUniqueID() . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex=' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
 		if ($useUnscopedHoldingsSummary){
 			$linkUrl .= '&amp;searchSource=marmot';
 		}else{
@@ -476,4 +476,89 @@ class EcontentRecordDriver extends IndexRecord
 		return 'RecordDrivers/Econtent/supplementalResult.tpl';
 	}
 
+	function getDescription(){
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $configArray;
+		global $interface;
+		global $timer;
+		$id = $this->getUniqueID();
+		//Bypass loading solr, etc if we already have loaded the descriptive info before
+		$descriptionArray = $memCache->get("record_description_{$id}");
+		if (!$descriptionArray){
+			require_once ROOT_DIR . '/services/EcontentRecord/Description.php';
+			$description = new EcontentRecord_Description(true, $id);
+			$descriptionArray = $description->loadDescription($this->eContentRecord, true);
+			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
+			$timer->logTime("Retrieved description for econtent record");
+		}
+		$interface->assign('description', $descriptionArray['description']);
+		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');
+		$interface->assign('publisher', isset($descriptionArray['publisher']) ? $descriptionArray['publisher'] : '');
+
+		return $interface->fetch('Record/ajax-description-popup.tpl');
+	}
+
+	/**
+	 * Assign necessary Smarty variables and return a template name to
+	 * load in order to display the full record information on the Staff
+	 * View tab of the record view page.
+	 *
+	 * @access  public
+	 * @return  string              Name of Smarty template file to display.
+	 */
+	public function getStaffView()
+	{
+		global $interface;
+
+		if ($this->marcRecord){
+			$interface->assign('marcRecord', $this->marcRecord);
+		}
+
+		if ($this->eContentRecord->source == 'OverDrive'){
+			//Load MetaData
+			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
+			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductMetaData.php';
+			$overDriveAPIProduct = new OverDriveAPIProduct();
+			$overDriveAPIProduct->overdriveId = strtolower($this->eContentRecord->externalId);
+			$overDriveAPIProductMetaData = new OverDriveAPIProductMetaData();
+			$overDriveAPIProduct->joinAdd($overDriveAPIProductMetaData, 'INNER');
+			$overDriveAPIProduct->selectAdd(null);
+			$overDriveAPIProduct->selectAdd("overdrive_api_products.rawData as productRaw");
+			$overDriveAPIProduct->selectAdd("overdrive_api_product_metadata.rawData as metaDataRaw");
+			if ($overDriveAPIProduct->find(true)){
+				$productRaw = json_decode($overDriveAPIProduct->productRaw);
+				//Remove links to overdrive that could be used to get semi-sensitive data
+				unset($productRaw->links);
+				if (isset($productRaw->contentDetails) && isset($productRaw->contentDetails->account)){
+					unset($productRaw->contentDetails->account);
+				}
+				
+				$interface->assign('overDriveProductRaw', $productRaw);
+				$interface->assign('overDriveMetaDataRaw', json_decode($overDriveAPIProduct->metaDataRaw));
+			}
+		}
+
+		if (isset($this->fields)){
+			$solrRecord = $this->fields;
+			ksort($solrRecord);
+			$interface->assign('solrRecord', $solrRecord);
+		}
+		return 'RecordDrivers/Marc/staff.tpl';
+	}
+
+	function getRelatedRecords(){
+		global $configArray;
+		$recordId = $this->getUniqueID();
+		$url = $configArray['Site']['path'] . '/EcontentRecord/' . $recordId;
+		$relatedRecord = array(
+			'id' => $recordId,
+			'url' => $url,
+			'format' => $this->getFormat(),
+			'edition' => $this->getEdition(),
+			'language' => $this->getLanguage(),
+			'title' => $this->getTitle(),
+		);
+		return array($relatedRecord);
+	}
 }

@@ -33,6 +33,7 @@ class Report_Dashboard extends Report_AnalyticsReport{
 		$interface->setPageTitle('Report - Dashboard');
 
 		$interface->assign('showDateFilters', false);
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('dashboard.tpl');
 		$interface->display('layout.tpl');
 	}

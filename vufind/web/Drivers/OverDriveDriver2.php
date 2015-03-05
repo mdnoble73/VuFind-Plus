@@ -273,13 +273,19 @@ class OverDriveDriver2 {
 						echo($notificationInformation);
 					}
 					$hold['notifyEmail'] = $holdDetailInfo[2];
-					$holds['unavailable'][] = $hold;
-				}elseif (preg_match('/<div[^>]*?id="borrowingPeriodHold"[^>]*?><div>(.*?)<\/div>.*?new Date \("(.*?)"\)/si', $holdDetails, $holdDetailInfo)){
+					$hold['available'] = false;
+				}
+				if (preg_match('/This title can be borrowed(.*?)<\/div>.*?new Date \("(.*?)"\)/si', $holdDetails, $holdDetailInfo)){
 					///print_r($holdDetails);
 					$hold['emailSent'] = $holdDetailInfo[2];
 					$hold['notificationDate'] = strtotime($hold['emailSent']);
 					$hold['expirationDate'] = $hold['notificationDate'] + 3 * 24 * 60 * 60;
+					$hold['available'] = true;
+				}
+				if ($hold['available']){
 					$holds['available'][] = $hold;
+				}else{
+					$holds['unavailable'][] = $hold;
 				}
 			}
 		}
@@ -341,7 +347,12 @@ class OverDriveDriver2 {
 	 * @return array
 	 */
 	public function getOverDriveSummary($user){
-		$apiURL = "https://temp-patron.api.overdrive.com/Marmot/Marmot/" . $user->cat_password;
+		global $configArray;
+		$libraryILS = $configArray['OverDrive']['LibraryCardILS'];
+		/** @var MillenniumDriver|DriverInterface $catalog */
+		$catalog = CatalogFactory::getCatalogConnectionInstance();;
+		$patronBarcode = $catalog->_getBarcode();
+		$apiURL = "https://temp-patron.api.overdrive.com/{$libraryILS}/{$libraryILS}/" . $patronBarcode;
 		$summaryResultRaw = file_get_contents($apiURL);
 		$summary = array(
 			'numCheckedOut' => 0,
@@ -423,6 +434,46 @@ class OverDriveDriver2 {
 		}
 
 		return $summary;
+	}
+
+	public function getLendingPeriods($user){
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $configArray;
+		global $timer;
+		global $logger;
+
+		$lendingOptions = $memCache->get('overdrive_lending_periods_' . $user->id);
+		if ($lendingOptions == false || isset($_REQUEST['reload'])){
+			$ch = curl_init();
+
+			$overDriveInfo = $this->_loginToOverDrive($ch, $user);
+			//Navigate to the account page
+			//Load the My Holds page
+			//print_r("Account url: " . $overDriveInfo['accountUrl']);
+			curl_setopt($overDriveInfo['ch'], CURLOPT_URL, $overDriveInfo['accountUrl']);
+			$accountPage = curl_exec($overDriveInfo['ch']);
+
+			//Get lending options
+			if (preg_match('/<li id="myAccount4Tab">(.*?)<!-- myAccountContent -->/s', $accountPage, $matches)) {
+				$lendingOptionsSection = $matches[1];
+				$lendingOptions = $this->_parseLendingOptions($lendingOptionsSection);
+			}else{
+				$start = strpos($accountPage, '<li id="myAccount4Tab">') + strlen('<li id="myAccount4Tab">');
+				$end = strpos($accountPage, '<!-- myAccountContent -->');
+				$logger->log("Lending options from $start to $end", PEAR_LOG_DEBUG);
+
+				$lendingOptionsSection = substr($accountPage, $start, $end);
+				$lendingOptions = $this->_parseLendingOptions($lendingOptionsSection);
+			}
+
+			curl_close($ch);
+
+			$timer->logTime("Finished loading titles from overdrive summary");
+			$memCache->set('overdrive_lending_periods_' . $user->id, $lendingOptions, 0, $configArray['Caching']['overdrive_summary']);
+		}
+
+		return $lendingOptions;
 	}
 
 	/**
@@ -560,26 +611,11 @@ class OverDriveDriver2 {
 					}elseif (preg_match('/Unfortunately this title is not available to your library at this time./', $waitingListConfirm)){
 						$holdResult['result'] = false;
 						$holdResult['message'] = 'This title is not available to your library at this time.';
-					}elseif (preg_match('/You will receive an email when the title becomes available./', $waitingListConfirm)){
+					}elseif (preg_match('/You will receive an email from/', $waitingListConfirm)){
 						$holdResult['result'] = true;
 						$holdResult['message'] = 'Your hold was placed successfully.';
 
 						$memCache->delete('overdrive_summary_' . $user->id);
-
-						//Record that the entry was checked out in strands
-						global $configArray;
-						if (isset($configArray['Strands']['APID']) && $user->disableRecommendations == 0){
-							//Get the record for the item
-							$eContentRecord = new EContentRecord();
-							$eContentRecord->whereAdd("sourceUrl like '%$overDriveId'");
-							if ($eContentRecord->find(true)){
-								$orderId = $user->id . '_' . time() ;
-								$strandsUrl = "http://bizsolutions.strands.com/api2/event/addshoppingcart.sbs?needresult=true&apid={$configArray['Strands']['APID']}&item=econtentRecord{$eContentRecord->id}::0.00::1&user={$user->id}&orderid={$orderId}";
-								$ret = file_get_contents($strandsUrl);
-								/*global $logger;
-								$logger->log("Strands Hold\r\n$ret", PEAR_LOG_INFO);*/
-							}
-						}
 
 						//Delete the cache for the record
 						$memCache->delete('overdrive_record_' . $overDriveId);
@@ -710,6 +746,7 @@ class OverDriveDriver2 {
 	private function _loginToOverDrive($ch, $user){
 		global $configArray;
 		global $analytics;
+		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
 		$overdriveUrl = $configArray['OverDrive']['url'];
 		curl_setopt_array($ch, array(
 			CURLOPT_FOLLOWLOCATION => true,
@@ -719,6 +756,8 @@ class OverDriveDriver2 {
 			CURLOPT_USERAGENT => "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:8.0.1) Gecko/20100101 Firefox/8.0.1",
 			CURLOPT_AUTOREFERER => true,
 			CURLOPT_SSL_VERIFYPEER => false,
+			CURLOPT_COOKIEJAR => $cookieJar ,
+			CURLOPT_COOKIESESSION => (is_null($cookieJar) ? true : false)
 		));
 		$initialPage = curl_exec($ch);
 		$pageInfo = curl_getinfo($ch);
@@ -749,7 +788,11 @@ class OverDriveDriver2 {
 		$postParams = array(
 			'LibraryCardNumber' => $barcode,
 			'URL' => 'Default.htm',
+			'RememberMe' => 'on'
 		);
+		if ($configArray['OverDrive']['requirePin']){
+			$postParams['LibraryCardPin'] = $user->cat_password;
+		}
 		if (isset($configArray['OverDrive']['LibraryCardILS']) && strlen($configArray['OverDrive']['LibraryCardILS']) > 0){
 			$postParams['LibraryCardILS'] = $configArray['OverDrive']['LibraryCardILS'];
 		}
@@ -759,7 +802,9 @@ class OverDriveDriver2 {
 		}
 		$post_string = implode ('&', $post_items);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $post_string);
-		$loginUrl = str_replace('SignIn.htm?URL=MyAccount%2ehtm', 'BANGAuthenticate.dll',  $loginFormUrl);
+		//$loginUrl = str_replace('SignIn.htm?URL=MyAccount%2ehtm', 'BANGAuthenticate.dll',  $loginFormUrl);
+		$loginUrl = str_replace('lib.overdrive.com', 'libraryreserve.com', $overdriveUrl . '/10/50/en/BANGAuthenticate.dll');
+		$loginUrl = str_replace('http://', 'https://', $loginUrl);
 		curl_setopt($ch, CURLOPT_URL, $loginUrl);
 		$myAccountMenuContent = curl_exec($ch);
 		$accountPageInfo = curl_getinfo($ch);
@@ -913,6 +958,7 @@ class OverDriveDriver2 {
 		//$logger->log($lendingOptionsPage, PEAR_LOG_DEBUG);
 
 		$memCache->delete('overdrive_summary_' . $user->id);
+		$memCache->delete('overdrive_lending_periods_' . $user->id);
 
 		$analytics->addEvent('OverDrive', 'Update Lending Periods');
 		return true;

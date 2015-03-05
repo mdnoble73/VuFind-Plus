@@ -1,18 +1,3 @@
-function getSaveStatus(id, elemId) {
-	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=GetSaveStatus";
-	$.ajax( {
-		url : url + '?' + params,
-		success : function(data) {
-			var response = $(data);
-			var result = response.find('result');
-			if (result.text() == 'Saved') {
-				$('#' + elemId).addClass('savedFavorite');
-			}
-		}
-	});
-}
-
 function SendEmail(id, to, from, message, strings) {
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=SendEmail&" + "from=" + encodeURIComponent(from) + "&" + "to=" + encodeURIComponent(to) + "&" + "message=" + encodeURIComponent(message);
@@ -120,7 +105,7 @@ function GetPreferredBranches() {
 		return false;
 	}
 
-	var url = path + "/MyResearch/AJAX";
+	var url = path + "/MyAccount/AJAX";
 	var params = "method=GetPreferredBranches&username="
 	    + encodeURIComponent(username) + "&barcode="
 	    + encodeURIComponent(barcode) + "&holdCount="
@@ -176,6 +161,7 @@ function getGoDeeperData(dataType, recordType, id, isbn, upc) {
 }
 
 var seriesScroller;
+var similarScroller;
 
 function GetEnrichmentInfo(id, isbn, upc, econtent) {
 	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
@@ -197,6 +183,19 @@ function GetEnrichmentInfo(id, isbn, upc, econtent) {
 						seriesScroller.loadTitlesFromJsonData(seriesData);
 					}
 				}
+
+				var similarTitlesData = $(data).find("SimilarTitleInfo").text();
+				if (similarTitlesData && similarTitlesData.length > 0) {
+
+					similarScroller = new TitleScroller('titleScrollerSimilar', 'Similar', 'similarList');
+
+					similarTitlesData = $.parseJSON(similarTitlesData);
+					if (similarTitlesData.titles.length > 0){
+						$('#similarTitleInfo').show();
+						similarScroller.loadTitlesFromJsonData(similarTitlesData);
+					}
+				}
+
 				var showGoDeeperData = $(data).find("ShowGoDeeperData").text();
 				if (showGoDeeperData) {
 					$('#goDeeperLink').show();
@@ -407,5 +406,5 @@ libraryThingWidgetsLoaded = function(){
 
 function showPurchaseOptions(id){
 	var url = path + "/Record/" + id + "/AJAX?method=getPurchaseOptions";
-	ajaxLightbox(url)
+	VuFind.Account.ajaxLightbox(url, false)
 }

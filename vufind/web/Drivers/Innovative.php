@@ -138,6 +138,38 @@ class Innovative implements DriverInterface
         return array();
     }
 
+	/**
+	 * Loads items information as quickly as possible (no direct calls to the ILS)
+	 *
+	 * return is an array of items with the following information:
+	 *  callnumber
+	 *  available
+	 *  holdable
+	 *  lastStatusCheck (time)
+	 *
+	 * @param $id
+	 * @param $scopingEnabled
+	 * @return mixed
+	 */
+	public function getItemsFast($id, $scopingEnabled){
+		return array();
+	}
+
+	public function getMyProfile($patron, $forceReload = false) {
+		// TODO: Implement getMyProfile() method.
+	}
+
+	public function patronLogin($username, $password) {
+		// TODO: Implement patronLogin() method.
+	}
+
+	public function hasNativeReadingHistory() {
+		return true;
+	}
+
+	public function getNumHolds($id) {
+		return 0;
+	}
 }
 
 ?>

@@ -111,7 +111,8 @@ class EContentCollection extends Admin_Admin
 		}else{
 			$this->getItemsPerPageList();
 		}
-		
+
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->display('layout.tpl');
 	}
 

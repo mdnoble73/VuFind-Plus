@@ -40,12 +40,67 @@ require_once ROOT_DIR . '/Drivers/Innovative.php';
  */
 class MillenniumDriver implements DriverInterface
 {
+	public $fixShortBarcodes = true;
 
 	var $statusTranslations = null;
 	var $holdableStatiRegex = null;
 	var $availableStatiRegex = null;
 	/** @var  Solr */
 	public $db;
+
+	private static function loadLibraryLocationInformation() {
+		if (MillenniumDriver::$libraryLocationInformationLoaded == false){
+			//Get a list of all locations for the active library
+			global $library;
+			global $timer;
+			$userLibrary = Library::getPatronHomeLibrary();
+			MillenniumDriver::$libraryLocations = array();
+			MillenniumDriver::$libraryLocationLabels = array();
+			$libraryLocation = new Location();
+			if ($userLibrary){
+				$libraryLocation->libraryId = $userLibrary->libraryId;
+				$libraryLocation->find();
+				while ($libraryLocation->fetch()){
+					MillenniumDriver::$libraryLocations[] = $libraryLocation->code;
+					MillenniumDriver::$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
+				}
+			}else{
+				$libraryLocation->libraryId = $library->libraryId;
+				$libraryLocation->find();
+				while ($libraryLocation->fetch()){
+					MillenniumDriver::$libraryLocations[] = $libraryLocation->code;
+					MillenniumDriver::$libraryLocationLabels[$libraryLocation->code] = $libraryLocation->facetLabel;
+				}
+			}
+			MillenniumDriver::$homeLocationCode = null;
+			MillenniumDriver::$homeLocationLabel = null;
+			$searchLocation = Location::getSearchLocation();
+			if ($searchLocation){
+				MillenniumDriver::$homeLocationCode = $searchLocation->code;
+				MillenniumDriver::$homeLocationLabel = $searchLocation->facetLabel;
+			}else{
+				$homeLocation = Location::getUserHomeLocation();
+				if ($homeLocation){
+					MillenniumDriver::$homeLocationCode = $homeLocation->code;
+					MillenniumDriver::$homeLocationLabel = $homeLocation->facetLabel;
+				}
+			}
+
+			$timer->logTime("Finished loading location data");
+
+			MillenniumDriver::$scopingLocationCode = '';
+
+			$searchLibrary = Library::getSearchLibrary();
+			$searchLocation = Location::getSearchLocation();
+			if (isset($searchLibrary)){
+				MillenniumDriver::$scopingLocationCode = $searchLibrary->ilsCode;
+			}
+			if (isset($searchLocation)){
+				MillenniumDriver::$scopingLocationCode = $searchLocation->code;
+			}
+			MillenniumDriver::$libraryLocationInformationLoaded = true;
+		}
+	}
 
 	/**
 	 * Load information about circulation statuses from the database
@@ -54,7 +109,7 @@ class MillenniumDriver implements DriverInterface
 	 *
 	 * @return void
 	 */
-	private function loadCircStatusInfo(){
+	protected function loadCircStatusInfo(){
 		if (is_null($this->holdableStatiRegex)){
 			$circStatus = new CirculationStatus();
 			$circStatus->find();
@@ -84,13 +139,14 @@ class MillenniumDriver implements DriverInterface
 	var $loanRules = null;
 	/** @var LoanRuleDeterminer[] $loanRuleDeterminers */
 	var $loanRuleDeterminers = null;
-	private function loadLoanRules(){
+	protected function loadLoanRules(){
 		if (is_null($this->loanRules)){
 			/** @var Memcache $memCache */
 			global $memCache;
 			global $configArray;
-			$this->loanRules = $memCache->get('loan_rules');
-			if (!$this->loanRules){
+			global $serverName;
+			$this->loanRules = $memCache->get($serverName . '_loan_rules');
+			if (!$this->loanRules || isset($_REQUEST['reload'])){
 				$this->loanRules = array();
 				$loanRule = new LoanRule();
 				$loanRule->find();
@@ -98,20 +154,20 @@ class MillenniumDriver implements DriverInterface
 					$this->loanRules[$loanRule->loanRuleId] = clone($loanRule);
 				}
 			}
-			$memCache->set('loan_rules', $this->loanRules, $configArray['Caching']['loan_rules']);
+			$memCache->set($serverName . '_loan_rules', $this->loanRules, 0, $configArray['Caching']['loan_rules']);
 
-			$this->loanRuleDeterminers = $memCache->get('loan_rule_determiners');
-			if (!$this->loanRuleDeterminers){
+			$this->loanRuleDeterminers = $memCache->get($serverName . '_loan_rule_determiners');
+			if (!$this->loanRuleDeterminers || isset($_REQUEST['reload'])){
 				$this->loanRuleDeterminers = array();
 				$loanRuleDeterminer = new LoanRuleDeterminer();
-				//$loanRuleDeterminer->active = 1;
+				$loanRuleDeterminer->active = 1;
 				$loanRuleDeterminer->orderBy('rowNumber DESC');
 				$loanRuleDeterminer->find();
 				while ($loanRuleDeterminer->fetch()){
 					$this->loanRuleDeterminers[$loanRuleDeterminer->rowNumber] = clone($loanRuleDeterminer);
 				}
 			}
-			$memCache->set('loan_rule_determiners', $this->loanRuleDeterminers, $configArray['Caching']['loan_rules']);
+			$memCache->set($serverName . '_loan_rule_determiners', $this->loanRuleDeterminers, 0, $configArray['Caching']['loan_rules']);
 		}
 	}
 
@@ -156,6 +212,29 @@ class MillenniumDriver implements DriverInterface
 		}
 	}
 
+	public function getLibraryScope(){
+		if (isset($_REQUEST['useUnscopedHoldingsSummary'])){
+			return $this->getDefaultScope();
+		}
+		$searchLibrary = Library::getSearchLibrary();
+		$searchLocation = Location::getSearchLocation();
+
+		$branchScope = '';
+		//Load the holding label for the branch where the user is physically.
+		if (!is_null($searchLocation)){
+			if (isset($searchLocation->scope) && $searchLocation->scope > 0){
+				$branchScope = $searchLocation->scope;
+			}
+		}
+		if (strlen($branchScope)){
+			return $branchScope;
+		}else if (isset($searchLibrary) && isset($searchLibrary->scope) && $searchLibrary->scope > 0) {
+			return $searchLibrary->scope;
+		}else{
+			return $this->getDefaultScope();
+		}
+	}
+
 	public function getDefaultScope(){
 		global $configArray;
 		return isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
@@ -168,36 +247,6 @@ class MillenniumDriver implements DriverInterface
 		/** @var Memcache $memCache */
 		global $memCache;
 		$scope = $this->getMillenniumScope();
-		//Clear millennium cache once per minute
-		$lastCacheClear = $memCache->get('millennium_cache_interval');
-		//echo ("lastCacheClear = $lastCacheClear, cache_interval = {$configArray['Caching']['millennium_cache_interval']}");
-		if ($lastCacheClear == false || isset($_REQUEST['reload'])){
-			//Get rid of anything in the cache older than 5 minutes
-			$millenniumCache = new MillenniumCache();
-			//First clean out any records that are more than 5 minutes old
-			if (isset($_REQUEST['reload'])){
-				$cacheExpirationTime = time() ;
-			}else{
-				$cacheExpirationTime = time() - 5 * 60;
-			}
-			//$logger->log("Clearing millennium cache before $cacheExpirationTime", PEAR_LOG_INFO);
-			//Update memcache before clearing the database so we don't have tons of threads trying to clear the cache
-			$memCache->set('millennium_cache_interval', $cacheExpirationTime, 0, $configArray['Caching']['millennium_cache_interval']);
-			$millenniumCache->whereAdd("cacheDate < $cacheExpirationTime");
-			$millenniumCache->delete(true);
-		}
-		//Now see if the record already exists in our cache.
-		$millenniumCache = new MillenniumCache();
-		$millenniumCache->recordId = $id;
-		$millenniumCache->scope = $scope;
-		$millenniumCache->find();
-		if ($millenniumCache->N > 0){
-			//Found a cache entry
-			$millenniumCache->fetch();
-			//We already deleted old cache entries so we don't need to check to see if the entry is stale.
-			//Just return the entry
-			return $millenniumCache;
-		}
 		//Load the pages for holdings, order information, and items
 		$millenniumCache = new MillenniumCache();
 		$millenniumCache->recordId = $id;
@@ -223,14 +272,128 @@ class MillenniumDriver implements DriverInterface
 		$timer->logTime('got frameset info from millennium');
 
 		$millenniumCache->cacheDate = time();
-		//Temporarily ignore errors
-		disableErrorHandler();
-		$millenniumCache->insert();
-		enableErrorHandler();
 
 		return $millenniumCache;
 
 	}
+
+	static $libraryLocationInformationLoaded = false;
+	static $libraryLocations = null;
+	static $libraryLocationLabels = null;
+	static $homeLocationCode = null;
+	static $homeLocationLabel = null;
+	static $scopingLocationCode = null;
+
+	/**
+	 * Loads items information as quickly as possible (no direct calls to the ILS).  Does do filtering by loan rules
+	 *
+	 * return is an array of items with the following information:
+	 *  location
+	 *  callnumber
+	 *  available
+	 *  holdable
+	 *  lastStatusCheck (time)
+	 *
+	 * @param $id
+	 * @param $scopingEnabled
+	 * @param $marcRecord
+	 * @return mixed
+	 */
+	public function getItemsFast($id, $scopingEnabled, $marcRecord = null){
+		if ($marcRecord == null){
+			$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
+			global $timer;
+			$timer->logTime("Finished loading MARC Record for getItemsFast");
+		}
+
+		MillenniumDriver::loadLibraryLocationInformation();
+
+		//Get the items Fields from the record
+		/** @var File_MARC_Data_Field[] $itemFields */
+		$itemFields = $marcRecord->getFields('989');
+		global $timer;
+		$timer->logTime("Finished loading item fields for $id, found " . count($itemFields));
+		$items = array();
+		$pType = $this->getPType();
+		//$timer->logTime("Finished loading pType");
+
+		global $configArray;
+		$statusSubfield = $configArray['Reindex']['statusSubfield'];
+		$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
+		$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
+
+		foreach ($itemFields as $itemField){
+			//Ignore eContent items
+			$eContentData = trim($itemField->getSubfield('w') != null ? $itemField->getSubfield('w')->getData() : '');
+			if ($eContentData && strpos($eContentData, ':') > 0){
+				continue;
+			}
+
+			$locationCode = $itemField->getSubfield('d') != null ? trim($itemField->getSubfield('d')->getData()) : '';
+			//Do a quick check of location code so we can remove this quickly when scoping is enabled
+			if ($scopingEnabled && strlen(MillenniumDriver::$scopingLocationCode) > 0 && strpos($locationCode, MillenniumDriver::$scopingLocationCode) !== 0){
+				global $logger;
+				$logger->log("Removed item because scoping is enabled and the location code $locationCode did not start with " . MillenniumDriver::$scopingLocationCode, PEAR_LOG_DEBUG);
+				continue;
+			}
+			$iType = $itemField->getSubfield($iTypeSubfield) != null ? trim($itemField->getSubfield($iTypeSubfield)->getData()) : '';
+			$holdable = $this->isItemHoldableToPatron($locationCode, $iType, $pType);
+
+			$isLibraryItem = false;
+			$locationLabel = '';
+			foreach (MillenniumDriver::$libraryLocations as $tmpLocation){
+				if (strpos($locationCode, $tmpLocation) === 0){
+					$isLibraryItem = true;
+					$locationLabel = MillenniumDriver::$libraryLocationLabels[$tmpLocation];
+					break;
+				}
+			}
+			$timer->logTime("Finished checking if item is holdable");
+
+			//Check to make sure the user has access to this item
+			if ($holdable || $isLibraryItem){
+				$isLocalItem = false;
+				if (MillenniumDriver::$homeLocationCode != null && strpos($locationCode, MillenniumDriver::$homeLocationCode) === 0){
+					$isLocalItem = true;
+					$locationLabel = MillenniumDriver::$homeLocationLabel;
+				}
+
+				$status = trim($itemField->getSubfield($statusSubfield) != null ? trim($itemField->getSubfield($statusSubfield)->getData()) : '');
+				$dueDate = $itemField->getSubfield($dueDateSubfield) != null ? trim($itemField->getSubfield($dueDateSubfield)->getData()) : null;
+				$available = (in_array($status, array('-', 'o', 'd', 'w', ')', 'u')) && ($dueDate == null || strlen($dueDate) == 0));
+				$inLibraryUseOnly = $status == 'o';
+				$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
+				$fullCallNumber .= $itemField->getSubfield('a') != null ? $itemField->getSubfield('a')->getData() : '';
+				$fullCallNumber .= $itemField->getSubfield('r') != null ? (' ' . $itemField->getSubfield('r')->getData()) : '';
+				$fullCallNumber .= $itemField->getSubfield('v') != null ? (' ' . $itemField->getSubfield('v')->getData()) : '';
+
+				$shelfLocation = mapValue('shelf_location', $locationCode);
+				if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $shelfLocation, $locationParts)){
+					$shelfLocation = $locationParts[1];
+				}
+				$item = array(
+					'location' => $locationCode,
+					'callnumber' => $fullCallNumber,
+					'availability' => $available,
+					'holdable' => $holdable,
+					'inLibraryUseOnly' => $inLibraryUseOnly,
+					'isLocalItem' => $isLocalItem,
+					'isLibraryItem' => $isLibraryItem,
+					'locationLabel' => $locationLabel,
+					'shelfLocation' => $shelfLocation,
+					'status' => $status,
+					'dueDate' => $dueDate,
+					'iType' => $iType,
+				);
+				$items[] = $item;
+			}
+			//$timer->logTime("Finished processing item");
+		}
+		global $timer;
+		$timer->logTime("Finished load items fast for Millennium record $id there were " . count($itemFields) . " item fields originally, filtered to " . count($items));
+		return $items;
+	}
+
 
 	var $statuses = array();
 	public function getStatus($id){
@@ -319,73 +482,90 @@ class MillenniumDriver implements DriverInterface
 	 * @param   string  $username   The patron username
 	 * @param   string  $password   The patron password
 	 * @return  mixed               A string of the user's ID number
-	 *                              If an error occures, return a PEAR_Error
+	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
 	public function patronLogin($username, $password)
 	{
 		global $timer;
+		global $configArray;
 
 		//Strip any non digit characters from the password
-		$password = preg_replace('/[a-or-zA-OR-Z\W]/', '', $password);
-		if (strlen($password) == 5){
-			$password = '41000000' . $password;
-		}elseif (strlen($password) == 6){
-			$password = '4100000' . $password;
-		}
+		//Can't do this any longer since some libraries do have characters in their barcode:
+		//$password = preg_replace('/[a-or-zA-OR-Z\W]/', '', $password);
+		//Remove any spaces from the barcode
+		$password = preg_replace('/[^a-zA-Z\d\s]/', '', trim($password));
 
-		//Load the raw information about the patron
-		$patronDump = $this->_getPatronDump($password);
-
-		//Create a variety of possible name combinations for testing purposes.
-		$userValid = false;
-		if (isset($patronDump['PATRN_NAME'])){
-			$Fullname = str_replace(","," ",$patronDump['PATRN_NAME']);
-			$Fullname = str_replace(";"," ",$Fullname);
-			$Fullname = str_replace(";","'",$Fullname);
-			$allNameComponents = preg_split('^[\s-]^', strtolower($Fullname));
-			$nameParts = explode(' ',$Fullname);
-			$lastname = strtolower($nameParts[0]);
-			$middlename = isset($nameParts[2]) ? strtolower($nameParts[2]) : '';
-			$firstname = isset($nameParts[1]) ? strtolower($nameParts[1]) : $middlename;
-
-			//Get the first name that the user supplies.
-			//This expects the user to enter one or two names and only
-			//Validates the first name that was entered.
-			$enteredNames=preg_split('^[\s-]^', strtolower($username));
-			foreach ($enteredNames as $name){
-				if (in_array($name, $allNameComponents, false)){
-					$userValid = true;
-					break;
+		if ($configArray['Catalog']['offline'] == true){
+			//The catalog is offline, check the database to see if the user is valid
+			$user = new User();
+			$user->cat_password = $password;
+			if ($user->find(true)){
+				$userValid = false;
+				if ($user->cat_username){
+					list($fullName, $lastName, $firstName, $userValid) = $this->validatePatronName($username, $user->cat_username);
 				}
+				if ($userValid){
+					$returnVal = array(
+						'id'        => $password,
+						'username'  => $user->username,
+						'firstname' => isset($firstName) ? $firstName : '',
+						'lastname'  => isset($lastName) ? $lastName : '',
+						'fullname'  => isset($fullName) ? $fullName : '',     //Added to array for possible display later.
+						'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
+						'cat_password' => $password,
+
+						'email' => $user->email,
+						'major' => null,
+						'college' => null,
+						'patronType' => $user->patronType,
+						'web_note' => translate('The catalog is currently down.  You will have limited access to circulation information.'));
+					$timer->logTime("patron logged in successfully");
+					return $returnVal;
+				} else {
+					$timer->logTime("patron login failed");
+					return null;
+				}
+			} else {
+				$timer->logTime("patron login failed");
+				return null;
+			}
+		}else{
+			//Load the raw information about the patron
+			$patronDump = $this->_getPatronDump($password);
+
+			//Create a variety of possible name combinations for testing purposes.
+			$userValid = false;
+			if (isset($patronDump['PATRN_NAME'])){
+				$patronName = $patronDump['PATRN_NAME'];
+				list($fullName, $lastName, $firstName, $userValid) = $this->validatePatronName($username, $patronName);
+			}
+
+			if ($userValid){
+				$user = array(
+					'id'        => $password,
+					'username'  => $patronDump['RECORD_#'],
+					'firstname' => isset($firstName) ? $firstName : '',
+					'lastname'  => isset($lastName) ? $lastName : '',
+					'fullname'  => isset($fullName) ? $fullName : '',     //Added to array for possible display later.
+					'cat_username' => $patronDump['PATRN_NAME'],
+					'cat_password' => $password,
+
+					'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
+					'major' => null,
+					'college' => null,
+					'patronType' => $patronDump['P_TYPE'],
+					'web_note' => isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '');
+				$timer->logTime("patron logged in successfully");
+				return $user;
+
+			} else {
+				$timer->logTime("patron login failed");
+				return null;
 			}
 		}
-		if ($userValid){
-			$user = array(
-                'id'        => $password,
-                'username'  => $patronDump['RECORD_#'],
-                'firstname' => isset($firstname) ? $firstname : '',
-                'lastname'  => isset($lastname) ? $lastname : '',
-                'fullname'  => isset($Fullname) ? $Fullname : '',     //Added to array for possible display later.
-                'cat_username' => $username, //Should this be $Fullname or $patronDump['PATRN_NAME']
-                'cat_password' => $password,
-
-                'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
-                'major' => null,
-                'college' => null,
-								'patronType' => $patronDump['P_TYPE'],
-								'web_note' => isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '');
-			$timer->logTime("patron logged in successfully");
-			return $user;
-
-		} else {
-			$timer->logTime("patron login failed");
-			return null;
-		}
-
 	}
 
-	private $patronProfiles = array();
 	/**
 	 * Get Patron Profile
 	 *
@@ -393,51 +573,162 @@ class MillenniumDriver implements DriverInterface
 	 * Interface defined in CatalogConnection.php
 	 *
 	 * @param   array   $patron     The patron array
+	 * @param   boolean $forceReload Whether or not we should force a reload of the data
 	 * @return  array               Array of the patron's profile data
-	 *                              If an error occures, return a PEAR_Error
+	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
-	public function getMyProfile($patron)
+	public function getMyProfile($patron, $forceReload = false)
 	{
 		global $timer;
 		global $configArray;
+		/** @var Memcache $memCache */
+		global $memCache;
 
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
-			$id2 = $this->_getBarcode();
+			$userId = $patron['id'];
+			$id2 = $this->_getBarcode($patron);
 		}else{
-			$id2= $patron['id'];
+			global $user;
+			$userId = $user->id;
+			$id2= $patron['cat_password'];
 		}
 
-		if (array_key_exists($patron['id'], $this->patronProfiles)){
+		$patronProfile = $memCache->get('patronProfile_' . $userId);
+		if ($patronProfile && !isset($_REQUEST['reload']) && !$forceReload){
+			//echo("Using cached profile for patron " . $userId);
 			$timer->logTime('Retrieved Cached Profile for Patron');
-			return $this->patronProfiles[$patron['id']];
+			return $patronProfile;
 		}
 
-		//Load the raw information about the patron
-		$patronDump = $this->_getPatronDump($id2);
+		global $user;
+		if ($configArray['Catalog']['offline'] == true){
+			$fullName = $patron['cat_username'];
 
-		if (isset($patronDump['ADDRESS'])){
-			$Fulladdress = $patronDump['ADDRESS'];
-			$addressParts =explode('$',$Fulladdress);
-			$Address1 = $addressParts[0];
-			$City = isset($addressParts[1]) ? $addressParts[1] : '';
-			$State = isset($addressParts[2]) ? $addressParts[2] : '';
-			$Zip = isset($addressParts[3]) ? $addressParts[3] : '';
-
-			if (preg_match('/(.*?),\\s+(.*)\\s+(\\d*(?:-\\d*)?)/', $City, $matches)) {
-				$City = $matches[1];
-				$State = $matches[2];
-				$Zip = $matches[3];
-			}
-		}else{
 			$Address1 = "";
 			$City = "";
 			$State = "";
 			$Zip = "";
-		}
+			$finesVal = 0;
+			$expireClose = false;
+			$homeBranchCode = '';
+			$numHoldsAvailable = '?';
+			$numHoldsRequested = '?';
 
-		$fullName = $patronDump['PATRN_NAME'];
+			if (!$user){
+				$user = new User();
+				$user->cat_password = $id2;
+				if ($user->find(true)){
+					$location = new Location();
+					$location->locationId = $user->homeLocationId;
+					$location->find(1);
+					$homeBranchCode = $location->code;
+				}
+			}
+
+
+		}else{
+			//Load the raw information about the patron
+			$patronDump = $this->_getPatronDump($id2);
+
+			if (isset($patronDump['ADDRESS'])){
+				$fullAddress = $patronDump['ADDRESS'];
+				$addressParts =explode('$',$fullAddress);
+				$Address1 = $addressParts[0];
+				$City = isset($addressParts[1]) ? $addressParts[1] : '';
+				$State = isset($addressParts[2]) ? $addressParts[2] : '';
+				$Zip = isset($addressParts[3]) ? $addressParts[3] : '';
+
+				if (preg_match('/(.*?),\\s+(.*)\\s+(\\d*(?:-\\d*)?)/', $City, $matches)) {
+					$City = $matches[1];
+					$State = $matches[2];
+					$Zip = $matches[3];
+				}else if (preg_match('/(.*?)\\s+(\\w{2})\\s+(\\d*(?:-\\d*)?)/', $City, $matches)) {
+					$City = $matches[1];
+					$State = $matches[2];
+					$Zip = $matches[3];
+				}
+			}else{
+				$Address1 = "";
+				$City = "";
+				$State = "";
+				$Zip = "";
+			}
+
+			$fullName = $patronDump['PATRN_NAME'];
+
+			//Get additional information about the patron's home branch for display.
+			$location = null;
+			if (isset($patronDump['HOME_LIBR']) || isset($patronDump['HOLD_LIBR'])){
+				$homeBranchCode = isset($patronDump['HOME_LIBR']) ? $patronDump['HOME_LIBR'] : $patronDump['HOLD_LIBR'];
+				$homeBranchCode = str_replace('+', '', $homeBranchCode);
+				//Translate home branch to plain text
+				$location = new Location();
+				$location->whereAdd("code = '$homeBranchCode'");
+				$location->find(1);
+				if ($location->N == 0){
+					unset($location);
+				}
+			}
+
+			if ($user) {
+				if (isset($location)){
+					if ($user->homeLocationId == 0) {
+						$user->homeLocationId = $location->locationId;
+						if ($location->nearbyLocation1 > 0){
+							$user->myLocation1Id = $location->nearbyLocation1;
+						}else{
+							$user->myLocation1Id = $location->locationId;
+						}
+						if ($location->nearbyLocation2 > 0){
+							$user->myLocation2Id = $location->nearbyLocation2;
+						}else{
+							$user->myLocation2Id = $location->locationId;
+						}
+						if ($user instanceof User) {
+							//Update the database
+							$user->update();
+							//Update the serialized instance stored in the session
+							$_SESSION['userinfo'] = serialize($user);
+						}
+					}else if ($location->locationId != $user->homeLocationId){
+						$user->homeLocationId = $location->locationId;
+
+						//Update the database
+						$user->update();
+						//Update the serialized instance stored in the session
+						$_SESSION['userinfo'] = serialize($user);
+					}
+				}
+			}
+
+			//see if expiration date is close
+			list ($monthExp, $dayExp, $yearExp) = explode("-",$patronDump['EXP_DATE']);
+			$timeExpire = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
+			$timeNow = time();
+			$timeToExpire = $timeExpire - $timeNow;
+			if ($timeToExpire <= 30 * 24 * 60 * 60){
+				$expireClose = 1;
+			}else{
+				$expireClose = 0;
+			}
+
+			$finesVal = floatval(preg_replace('/[^\\d.]/', '', $patronDump['MONEY_OWED']));
+
+			$numHoldsAvailable = 0;
+			$numHoldsRequested = 0;
+			$availableStatusRegex = isset($configArray['Catalog']['patronApiAvailableHoldsRegex']) ? $configArray['Catalog']['patronApiAvailableHoldsRegex'] : "/ST=(105|98),/";
+			if (isset($patronDump) && isset($patronDump['HOLD']) && count($patronDump['HOLD']) > 0){
+				foreach ($patronDump['HOLD'] as $hold){
+					if (preg_match("$availableStatusRegex", $hold)){
+						$numHoldsAvailable++;
+					}else{
+						$numHoldsRequested++;
+					}
+				}
+			}
+		}
 
 		$nameParts = explode(', ',$fullName);
 		$lastName = $nameParts[0];
@@ -449,36 +740,8 @@ class MillenniumDriver implements DriverInterface
 			$firstName = $secondName;
 		}
 
-		//Get additional information about the patron's home branch for display.
-		$homeBranchCode = $patronDump['HOME_LIBR'];
-		//Translate home branch to plain text
-		global $user;
-
-		$location = new Location();
-		$location->whereAdd("code = '$homeBranchCode'");
-		$location->find(1);
 
 		if ($user) {
-			if ($user->homeLocationId == 0) {
-				$user->homeLocationId = $location->locationId;
-				if ($location->nearbyLocation1 > 0){
-					$user->myLocation1Id = $location->nearbyLocation1;
-				}else{
-					$user->myLocation1Id = $location->locationId;
-				}
-				if ($location->nearbyLocation2 > 0){
-					$user->myLocation2Id = $location->nearbyLocation2;
-				}else{
-					$user->myLocation2Id = $location->locationId;
-				}
-				if ($user instanceof User) {
-					//Update the database
-					$user->update();
-					//Update the serialized instance stored in the session
-					$_SESSION['userinfo'] = serialize($user);
-				}
-			}
-
 			//Get display name for preferred location 1
 			$myLocation1 = new Location();
 			$myLocation1->whereAdd("locationId = '$user->myLocation1Id'");
@@ -490,31 +753,13 @@ class MillenniumDriver implements DriverInterface
 			$myLocation2->find(1);
 		}
 
-		//see if expiration date is close
-		list ($monthExp, $dayExp, $yearExp) = explode("-",$patronDump['EXP_DATE']);
-		$timeExpire = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
-		$timeNow = time();
-		$timeToExpire = $timeExpire - $timeNow;
-		if ($timeToExpire <= 30 * 24 * 60 * 60){
-			$expireClose = 1;
-		}else{
-			$expireClose = 0;
-		}
-
-		$finesVal = floatval(preg_replace('/[^\\d.]/', '', $patronDump['MONEY_OWED']));
-
-		$numHoldsAvailable = 0;
-		$numHoldsRequested = 0;
-		$availableStatusRegex = isset($configArray['Catalog']['patronApiAvailableHoldsRegex']) ? $configArray['Catalog']['patronApiAvailableHoldsRegex'] : "/ST=(105|98),/";
-		if (isset($patronDump['HOLD']) && count($patronDump['HOLD']) > 0){
-			foreach ($patronDump['HOLD'] as $hold){
-				if (preg_match("$availableStatusRegex", $hold)){
-					$numHoldsAvailable++;
-				}else{
-					$numHoldsRequested++;
-				}
-			}
-		}
+		$noticeLabels = array(
+			//'-' => 'Mail',  // officially None in Sierra, as in No Preference Selected.
+			'-' => '',  // notification will generally be based on what information is available so can't determine here. plb 12-02-2014
+			'a' => 'Mail', // officially Print in Sierra
+			'p' => 'Telephone',
+			'z' => 'E-mail',
+		);
 		$profile = array('lastname' => $lastName,
 				'firstname' => $firstName,
 				'fullname' => $fullName,
@@ -523,36 +768,64 @@ class MillenniumDriver implements DriverInterface
 				'city' => $City,
 				'state' => $State,
 				'zip'=> $Zip,
-				'email' => isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '',
-				'overdriveEmail' => ($user) ? $user->overdriveEmail : (isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : ''),
+				'email' => ($user && $user->email) ? $user->email : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '') ,
+				'overdriveEmail' => ($user) ? $user->overdriveEmail : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : ''),
 				'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
-				'phone' => isset($patronDump['TELEPHONE']) ? $patronDump['TELEPHONE'] : '',
-				'fines' => $patronDump['MONEY_OWED'],
-				'finesval' =>$finesVal,
-				'expires' =>$patronDump['EXP_DATE'],
-				'expireclose' =>$expireClose,
-				'homeLocationCode' => trim($homeBranchCode),
-				'homeLocationId' => $location->locationId,
-				'homeLocation' => $location->displayName,
+				'phone' => (isset($patronDump) && isset($patronDump['TELEPHONE'])) ? $patronDump['TELEPHONE'] : (isset($patronDump['HOME_PHONE']) ? $patronDump['HOME_PHONE'] : ''),
+				'workPhone' => (isset($patronDump) && isset($patronDump['G/WK_PHONE'])) ? $patronDump['G/WK_PHONE'] : '',
+				'mobileNumber' => (isset($patronDump) && isset($patronDump['MOBILE_NO'])) ? $patronDump['MOBILE_NO'] : '',
+				'fines' => isset($patronDump) ? $patronDump['MONEY_OWED'] : '0',
+				'finesval' => $finesVal,
+				'expires' => isset($patronDump) ? $patronDump['EXP_DATE'] : '',
+				'expireclose' => $expireClose,
+				'homeLocationCode' => isset($homeBranchCode) ? trim($homeBranchCode) : '',
+				'homeLocationId' => isset($location) ? $location->locationId : 0,
+				'homeLocation' => isset($location) ? $location->displayName : '',
 				'myLocation1Id' => ($user) ? $user->myLocation1Id : -1,
 				'myLocation1' => isset($myLocation1) ? $myLocation1->displayName : '',
 				'myLocation2Id' => ($user) ? $user->myLocation2Id : -1,
 				'myLocation2' => isset($myLocation2) ? $myLocation2->displayName : '',
-				'numCheckedOut' => $patronDump['CUR_CHKOUT'],
-				'numHolds' => isset($patronDump['HOLD']) ? count($patronDump['HOLD']) : 0,
+				'numCheckedOut' => isset($patronDump) ? $patronDump['CUR_CHKOUT'] : '?',
+				'numHolds' => isset($patronDump) ? (isset($patronDump['HOLD']) ? count($patronDump['HOLD']) : 0) : '?',
 				'numHoldsAvailable' => $numHoldsAvailable,
 				'numHoldsRequested' => $numHoldsRequested,
 				'bypassAutoLogout' => ($user) ? $user->bypassAutoLogout : 0,
-				'ptype' => $patronDump['P_TYPE'],
-				'notices' => $patronDump['NOTICE_PREF'],
-				'web_note' => isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '',
+				'ptype' => ($user && $user->patronType) ? $user->patronType : (isset($patronDump) ? $patronDump['P_TYPE'] : 0),
+				'notices' => isset($patronDump) ? $patronDump['NOTICE_PREF'] : '-',
+				'web_note' => isset($patronDump) ? (isset($patronDump['WEB_NOTE']) ? $patronDump['WEB_NOTE'] : '') : '',
 		);
+		if (array_key_exists($profile['notices'], $noticeLabels)){
+			$profile['noticePreferenceLabel'] = $noticeLabels[$profile['notices']];
+		}else{
+			$profile['noticePreferenceLabel'] = 'Unknown';
+		}
+
 
 		//Get eContent info as well
 		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 		$eContentDriver = new EContentDriver();
 		$eContentAccountSummary = $eContentDriver->getAccountSummary();
 		$profile = array_merge($profile, $eContentAccountSummary);
+
+		require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
+		$overDriveDriver = OverDriveDriverFactory::getDriver();
+		if ($overDriveDriver->isUserValidForOverDrive($user)){
+			$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
+			$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
+			$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
+			$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
+			$profile['canUseOverDrive'] = true;
+		}else{
+			$profile['numOverDriveCheckedOut'] = 0;
+			$profile['numOverDriveHoldsAvailable'] = 0;
+			$profile['numOverDriveHoldsRequested'] = 0;
+			$profile['canUseOverDrive'] = false;
+		}
+
+		$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $profile['numOverDriveCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
+		$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $profile['numOverDriveHoldsAvailable'] + $eContentAccountSummary['numEContentAvailableHolds'];
+		$profile['numHoldsRequestedTotal'] = $profile['numHoldsRequested'] + $profile['numOverDriveHoldsRequested'] + $eContentAccountSummary['numEContentUnavailableHolds'];
+		$profile['numHoldsTotal'] = $profile['numHoldsAvailableTotal'] + $profile['numHoldsRequestedTotal'];
 
 		//Get a count of the materials requests for the user
 		if ($user){
@@ -568,7 +841,7 @@ class MillenniumDriver implements DriverInterface
 		}
 
 		$timer->logTime("Got Patron Profile");
-		$this->patronProfiles[$patron['id']] = $profile;
+		$memCache->set('patronProfile_' . $patron['id'], $profile, 0, $configArray['Caching']['patron_profile']) ;
 		return $profile;
 	}
 
@@ -580,78 +853,110 @@ class MillenniumDriver implements DriverInterface
 	 * @param boolean $forceReload whether or not cached data can be used.
 	 * @return array
 	 */
-	public function _getPatronDump($barcode, $forceReload = false)
+	public function _getPatronDump(&$barcode, $forceReload = false)
 	{
 		global $configArray;
 		/** @var Memcache $memCache */
 		global $memCache;
+		global $library;
+
 		global $timer;
+
 		$patronDump = $memCache->get("patron_dump_$barcode");
 		if (!$patronDump || $forceReload){
 			$host=$configArray['OPAC']['patron_host'];
-			//Special processing to allow MCVSD Students to login
-			//with their student id.
-			if (strlen($barcode)== 5){
-				$barcode = "41000000" . $barcode;
-			}elseif (strlen($barcode)== 6){
-				$barcode = "4100000" . $barcode;
-			}
+			$barcodesToTest = array();
+			$barcodesToTest[] = $barcode;
 
-			// Load Record Page.  This page has a dump of all patron information
-			//as a simple name value pair list within the body of the webpage.
-			//Sample format of a row is as follows:
-			//P TYPE[p47]=100<BR>
-			$req =  $host . "/PATRONAPI/" . $barcode ."/dump" ;
-			$req = new Proxy_Request($req);
-			//$result = file_get_contents($req);
-			if (PEAR_Singleton::isError($req->sendRequest())) {
-				return null;
-			}
-			$result = $req->getResponseBody();
-
-			//Strip the actual contents out of the body of the page.
-			$r = substr($result, stripos($result, 'BODY'));
-			$r = substr($r,strpos($r,">")+1);
-			$r = substr($r,0,stripos($r,"</BODY"));
-
-			//Remove the bracketed information from each row
-			$r = preg_replace("/\[.+?]=/","=",$r);
-
-			//Split the rows on each BR tag.
-			//This could also be done with a regex similar to the following:
-			//(.*)<BR\s*>
-			//And then get all matches of group 1.
-			//Or a regex similar to
-			//(.*?)\[.*?\]=(.*?)<BR\s*>
-			//Group1 would be the keys and group 2 the values.
-			$rows = preg_replace("/<BR.*?>/","*",$r);
-			$rows = explode("*",$rows);
-			//Add the key and value from each row into an associative array.
-			$patronDump = array();
-			foreach ($rows as $row) {
-				if (strlen(trim($row)) > 0){
-					$ret = explode("=",$row, 2);
-					//$patronDump[str_replace(" ", "_", trim($ret[0]))] = str_replace("$", " ",$ret[1]);
-					$patronDumpKey = str_replace(" ", "_", trim($ret[0]));
-					//Holds can be an array, treat them differently.
-					if ($patronDumpKey == 'HOLD'){
-						$patronDump[$patronDumpKey][] = isset($ret[1]) ? $ret[1] : '';
-					}else{
-						$patronDump[$patronDumpKey] = isset($ret[1]) ? $ret[1] : '';
+			//Special processing to allow users to login with short barcodes
+			if ($library){
+				if ($library->barcodePrefix){
+					if (strpos($barcode, $library->barcodePrefix) !== 0){
+						//Add the barcode prefix to the barcode
+						$barcodesToTest[] = $library->barcodePrefix . $barcode;
 					}
 				}
 			}
-			$timer->logTime("Got patron information from Patron API");
 
-			if (isset($configArray['ERRNUM'])){
-				return null;
+			//Special processing to allow MCVSD Students to login
+			//with their student id.
+			if (strlen($barcode)== 5){
+				$barcodesToTest[] = "41000000" . $barcode;
+				$barcodesToTest[] = "mv" . $barcode;
+			}elseif (strlen($barcode)== 6){
+				$barcodesToTest[] = "4100000" . $barcode;
+				$barcodesToTest[] = "mv" . $barcode;
+			}
+
+			foreach ($barcodesToTest as $i=>$barcode){
+				$patronDump = $this->_parsePatronApiPage($host, $barcode);
+
+				if (is_null($patronDump)){
+					return $patronDump;
+				}else if ((isset($patronDump['ERRNUM']) || count($patronDump) == 0) && $i != count($barcodesToTest) - 1){
+					//check the next barcode
+				}else{
+
+					$memCache->set("patron_dump_$barcode", $patronDump, 0, $configArray['Caching']['patron_dump']);
+					//Need to wait a little bit since getting the patron api locks the record in the DB
+					usleep(250);
+					break;
+				}
+			}
+
+		}
+		return $patronDump;
+	}
+
+	private function _parsePatronApiPage($host, $barcode){
+		global $timer;
+		// Load Record Page.  This page has a dump of all patron information
+		//as a simple name value pair list within the body of the webpage.
+		//Sample format of a row is as follows:
+		//P TYPE[p47]=100<BR>
+		$patronApiUrl =  $host . "/PATRONAPI/" . $barcode ."/dump" ;
+		$curlConnection = curl_init($patronApiUrl);
+
+		curl_setopt($curlConnection, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($curlConnection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+		curl_setopt($curlConnection, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curlConnection, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curlConnection, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($curlConnection, CURLOPT_UNRESTRICTED_AUTH, true);
+
+		//Setup encoding to ignore SSL errors for self signed certs
+		$result = curl_exec($curlConnection);
+		curl_close($curlConnection);
+
+		//Strip the actual contents out of the body of the page.
+		$cleanPatronData = strip_tags($result);
+
+		//Add the key and value from each row into an associative array.
+		$patronDump = array();
+		preg_match_all('/(.*?)\\[.*?\\]=(.*)/', $cleanPatronData, $patronData, PREG_SET_ORDER);
+		for ($curRow = 0; $curRow < count($patronData); $curRow++) {
+			$patronDumpKey = str_replace(" ", "_", trim($patronData[$curRow][1]));
+			if ($patronDumpKey == 'HOLD'){
+				$patronDump[$patronDumpKey][] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
 			}else{
-
-				$memCache->set("patron_dump_$barcode", $patronDump, 0, $configArray['Caching']['patron_dump']);
-				//Need to wait a little bit since getting the patron api locks the record in the DB
-				usleep(250);
+				$patronDump[$patronDumpKey] = isset($patronData[$curRow][2]) ? $patronData[$curRow][2] : '';
 			}
 		}
+
+		/*foreach ($rows as $row) {
+			if (strlen(trim($row)) > 0){
+				$ret = explode("=",$row, 2);
+				//$patronDump[str_replace(" ", "_", trim($ret[0]))] = str_replace("$", " ",$ret[1]);
+				$patronDumpKey = str_replace(" ", "_", trim($ret[0]));
+				//Holds can be an array, treat them differently.
+				if ($patronDumpKey == 'HOLD'){
+					$patronDump[$patronDumpKey][] = isset($ret[1]) ? $ret[1] : '';
+				}else{
+					$patronDump[$patronDumpKey] = isset($ret[1]) ? $ret[1] : '';
+				}
+			}
+		}*/
+		$timer->logTime("Got patron information from Patron API");
 		return $patronDump;
 	}
 
@@ -702,6 +1007,23 @@ class MillenniumDriver implements DriverInterface
 		$post_string = implode ('&', $post_items);
 		curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$sResult = curl_exec($this->curl_connection);
+		//When a library uses Encore, the initial login does a redirect and requires additonal parameters.
+		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $sResult, $loginMatches)) {
+			//Get the lt value
+			$lt = $loginMatches[1];
+			//Login again
+			$post_data['lt'] = $lt;
+			$post_data['_eventId'] = 'submit';
+//			$post_items = array();
+//			foreach ($post_data as $key => $value) {
+//				$post_items[] = $key . '=' . $value;
+//			}
+			$post_string = http_build_query($post_data);
+			$accountPageInfo = curl_getinfo($this->curl_connection);
+			curl_setopt($this->curl_connection, CURLOPT_URL, $accountPageInfo['url']);
+			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
+			$sResult = curl_exec($this->curl_connection);
+		}
 
 		if (true){
 			curl_close($this->curl_connection);
@@ -801,7 +1123,7 @@ class MillenniumDriver implements DriverInterface
 	public function updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue='off'){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumHolds.php';
 		$millenniumHolds = new MillenniumHolds($this);
-		$millenniumHolds->updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue);
+		return $millenniumHolds->updateHoldDetailed($patronId, $type, $title, $xNum, $cancelId, $locationId, $freezeValue);
 	}
 
 	public function renewAll(){
@@ -824,10 +1146,7 @@ class MillenniumDriver implements DriverInterface
 		//Setup the call to Millennium
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
-		$this->_updateVuFindPatronInfo();
-
 		if ($canUpdateContactInfo){
-			$scope = $this->getMillenniumScope();
 			//Update profile information
 			$extraPostInfo = array();
 			if (isset($_REQUEST['address1'])){
@@ -837,16 +1156,52 @@ class MillenniumDriver implements DriverInterface
 				$extraPostInfo['addr1d'] = '';
 			}
 			$extraPostInfo['tele1'] = $_REQUEST['phone'];
+			if (isset($_REQUEST['workPhone'])){
+				$extraPostInfo['tele2'] = $_REQUEST['workPhone'];
+			}
 			$extraPostInfo['email'] = $_REQUEST['email'];
+
+			if (isset($_REQUEST['pickupLocation'])){
+				$pickupLocation = $_REQUEST['pickupLocation'];
+				if (strlen($pickupLocation) < 5){
+					$pickupLocation = $pickupLocation . str_repeat(' ', 5 - strlen($pickupLocation));
+				}
+				$extraPostInfo['locx00'] = $pickupLocation;
+			}
 
 			if (isset($_REQUEST['notices'])){
 				$extraPostInfo['notices'] = $_REQUEST['notices'];
 			}
 
+			if (isset($_REQUEST['mobileNumber'])){
+				$ils = $configArray['Catalog']['ils'];
+				$extraPostInfo['mobile'] = preg_replace('/\D/', '', $_REQUEST['mobileNumber']);
+				if (strlen($_REQUEST['mobileNumber']) > 0 && $_REQUEST['smsNotices'] == 'on'){
+					$extraPostInfo['optin'] = 'on';
+					global $library;
+					if ($library->addSMSIndicatorToPhone){
+						//If the user is using SMS notices append TEXT ONLY to the primary phone number
+						if (strpos($extraPostInfo['tele1'], 'TEXT ONLY') !== 0){
+							$extraPostInfo['tele1'] = 'TEXT ONLY ' . $extraPostInfo['tele1'];
+						}
+					}
+				}else{
+					$extraPostInfo['optin'] = 'off';
+					$extraPostInfo['mobile'] = "";
+					global $library;
+					if ($library->addSMSIndicatorToPhone){
+						if (strpos($extraPostInfo['tele1'], 'TEXT ONLY') === 0){
+							$extraPostInfo['tele1'] = str_replace('TEXT ONLY ', '', $extraPostInfo['tele1']);
+						}
+					}
+				}
+			}
+
 			//Login to the patron's account
 			$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
 
-			$curl_url = $configArray['Catalog']['url'] . "/patroninfo";
+			$scope = $this->getMillenniumScope();
+			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~" . $scope;
 
 			$curl_connection = curl_init($curl_url);
 			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
@@ -865,7 +1220,23 @@ class MillenniumDriver implements DriverInterface
 			}
 			$post_string = implode ('&', $post_items);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			curl_exec($curl_connection);
+			$loginResult = curl_exec($curl_connection);
+			//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+			if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+				//Get the lt value
+				$lt = $loginMatches[1];
+				//Login again
+				$post_data['lt'] = $lt;
+				$post_data['_eventId'] = 'submit';
+				$post_items = array();
+				foreach ($post_data as $key => $value) {
+					$post_items[] = $key . '=' . $value;
+				}
+				$post_string = implode ('&', $post_items);
+				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+				$loginResult = curl_exec($curl_connection);
+				$curlInfo = curl_getinfo($curl_connection);
+			}
 
 			//Issue a post request to update the patron information
 			$post_items = array();
@@ -885,7 +1256,7 @@ class MillenniumDriver implements DriverInterface
 			/** @var Memcache $memCache */
 			global $memCache;
 			$memCache->delete("patron_dump_{$this->_getBarcode()}");
-			usleep(250);
+			$memCache->delete('patronProfile_' . $user->id);
 		}
 
 		//Should get Patron Information Updated on success
@@ -907,59 +1278,6 @@ class MillenniumDriver implements DriverInterface
 			}
 			return false;
 		}
-
-	}
-
-	protected function _updateVuFindPatronInfo(){
-		global $user;
-
-		//Validate that the input data is correct
-		if (isset($_POST['myLocation1']) && preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
-			PEAR_Singleton::raiseError('The 1st location had an incorrect format.');
-		}
-		if (isset($_POST['myLocation2']) && preg_match('/^\d{1,3}$/', $_POST['myLocation2']) == 0){
-			PEAR_Singleton::raiseError('The 2nd location had an incorrect format.');
-		}
-		if (isset($_REQUEST['bypassAutoLogout'])){
-			if ($_REQUEST['bypassAutoLogout'] == 'yes'){
-				$user->bypassAutoLogout = 1;
-			}else{
-				$user->bypassAutoLogout = 0;
-			}
-		}
-		if (isset($_REQUEST['promptForOverdriveEmail'])){
-			if ($_REQUEST['promptForOverdriveEmail'] == 'yes'){
-				$user->promptForOverdriveEmail = 1;
-			}else{
-				$user->promptForOverdriveEmail = 0;
-			}
-		}
-		if (isset($_REQUEST['overdriveEmail'])){
-			$user->overdriveEmail = strip_tags($_REQUEST['overdriveEmail']);
-		}
-		//Make sure the selected location codes are in the database.
-		if (isset($_POST['myLocation1'])){
-			$location = new Location();
-			$location->whereAdd("locationId = '{$_POST['myLocation1']}'");
-			$location->find();
-			if ($location->N != 1) {
-				PEAR_Singleton::raiseError('The 1st location could not be found in the database.');
-			}
-			$user->myLocation1Id = $_POST['myLocation1'];
-		}
-		if (isset($_POST['myLocation2'])){
-			$location = new Location();
-			$location->whereAdd();
-			$location->whereAdd("locationId = '{$_POST['myLocation2']}'");
-			$location->find();
-			if ($location->N != 1) {
-				PEAR_Singleton::raiseError('The 2nd location could not be found in the database.');
-			}
-			$user->myLocation2Id = $_POST['myLocation2'];
-		}
-		$user->update();
-		//Update the serialized instance stored in the session
-		$_SESSION['userinfo'] = serialize($user);
 	}
 
 	var $pType;
@@ -981,9 +1299,9 @@ class MillenniumDriver implements DriverInterface
 			if (isset($user) && $user != false){
 				$patronDump = $this->_getPatronDump($this->_getBarcode());
 				$this->pType = $patronDump['P_TYPE'];
-			}else if (isset($searchLocation) && $searchLocation->defaultPType > 0){
+			}else if (isset($searchLocation) && $searchLocation->defaultPType >= 0){
 				$this->pType = $searchLocation->defaultPType;
-			}else if (isset($searchLibrary) && $searchLibrary->defaultPType > 0){
+			}else if (isset($searchLibrary) && $searchLibrary->defaultPType >= 0){
 				$this->pType = $searchLibrary->defaultPType;
 			}else{
 				$this->pType = -1;
@@ -992,14 +1310,16 @@ class MillenniumDriver implements DriverInterface
 		return $this->pType;
 	}
 
-	public function _getBarcode(){
+	/**
+	 * @param null|User $patron
+	 * @return mixed
+	 */
+	public function _getBarcode($patron = null){
 		global $user;
-		if (strlen($user->cat_password) == 5){
-			$user->cat_password = '41000000' . $user->cat_password;
-		}elseif (strlen($user->cat_password) == 6){
-			$user->cat_password = '4100000' . $user->cat_password;
+		if ($user){
+			//Don't rewrite patron barcodes since some use long and some use short.
+			return $user->cat_password;
 		}
-		return $user->cat_password;
 	}
 
 	/**
@@ -1078,29 +1398,28 @@ class MillenniumDriver implements DriverInterface
 	 * @return bool
 	 */
 	function isRecordHoldable($marcRecord){
+		global $configArray;
 		$pType = $this->getPType();
 		/** @var File_MARC_Data_Field[] $items */
-		$items = $marcRecord->getFields('989');
+		$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
+		$iTypeSubfield = isset($configArray['Reindex']['iTypeSubfield']) ? $configArray['Reindex']['iTypeSubfield'] : 'j';
+		$locationSubfield = isset($configArray['Reindex']['locationSubfield']) ? $configArray['Reindex']['locationSubfield'] : 'j';
+		$items = $marcRecord->getFields($marcItemField);
 		$holdable = false;
 		$itemNumber = 0;
 		foreach ($items as $item){
 			$itemNumber++;
-			$subfield_j = $item->getSubfield('j');
+			$subfield_j = $item->getSubfield($iTypeSubfield);
 			if (is_object($subfield_j) && !$subfield_j->isEmpty()){
 				$iType = $subfield_j->getData();
 			}else{
 				$iType = '0';
 			}
-			$subfield_d = $item->getSubfield('d');
+			$subfield_d = $item->getSubfield($locationSubfield);
 			if (is_object($subfield_d) && !$subfield_d->isEmpty()){
 				$locationCode = $subfield_d->getData();
 			}else{
-				$subfield_p = $item->getSubfield('p');
-				if (is_object($subfield_p) && !$subfield_p->isEmpty()){
-					$locationCode = $subfield_p->getData();
-				}else{
-					$locationCode = '?????';
-				}
+				$locationCode = '?????';
 			}
 			//$logger->log("$itemNumber) iType = $iType, locationCode = $locationCode", PEAR_LOG_DEBUG);
 
@@ -1115,32 +1434,54 @@ class MillenniumDriver implements DriverInterface
 	}
 
 	function isItemHoldableToPatron($locationCode, $iType, $pType){
-		$holdable = false;
-		//global $logger;
-		//$logger->log("Checking loan rule for $locationCode, $iType, $pType", PEAR_LOG_DEBUG);
-		foreach ($this->loanRuleDeterminers as $loanRuleDeterminer){
-			//Check the location to be sure the determiner applies to this item
-			if ($loanRuleDeterminer->matchesLocation($locationCode) ){
-				//$logger->log("{$loanRuleDeterminer->rowNumber}) Location correct $locationCode, {$loanRuleDeterminer->location} ({$loanRuleDeterminer->trimmedLocation()})", PEAR_LOG_DEBUG);
-				//Check that the iType is correct
-				if ($loanRuleDeterminer->itemType == '999' || in_array($iType, $loanRuleDeterminer->iTypeArray())){
-					//$logger->log("{$loanRuleDeterminer->rowNumber}) iType correct $iType, {$loanRuleDeterminer->itemType}", PEAR_LOG_DEBUG);
-					if ($loanRuleDeterminer->patronType == '999' || in_array($pType, $loanRuleDeterminer->pTypeArray())){
-						//$logger->log("{$loanRuleDeterminer->rowNumber}) pType correct $pType, {$loanRuleDeterminer->patronType}", PEAR_LOG_DEBUG);
-						$loanRule = $this->loanRules[$loanRuleDeterminer->loanRuleId];
-						//$logger->log("Determiner {$loanRuleDeterminer->rowNumber} indicates Loan Rule {$loanRule->loanRuleId} applies, holdable {$loanRule->holdable}", PEAR_LOG_DEBUG);
-						$holdable = ($loanRule->holdable == 1);
-						break;
+		/** @var Memcache $memCache*/
+		global $memCache;
+		global $configArray;
+		global $timer;
+		$memcacheKey = "loan_rule_result_{$locationCode}_{$iType}_{$pType}";
+		$cachedValue = $memCache->get($memcacheKey);
+		if ($cachedValue !== false && !isset($_REQUEST['reload'])){
+			return $cachedValue == 'true';
+		}else{
+			$timer->logTime("Start checking if item is holdable $locationCode, $iType, $pType");
+			$this->loadLoanRules();
+			if (count($this->loanRuleDeterminers) == 0){
+				//If we don't have any loan rules determiners, assume that the item is holdable.
+				return true;
+			}
+			$holdable = false;
+			//global $logger;
+			//$logger->log("Checking loan rules for $locationCode, $iType, $pType", PEAR_LOG_DEBUG);
+			foreach ($this->loanRuleDeterminers as $loanRuleDeterminer){
+				//$logger->log("Determiner {$loanRuleDeterminer->rowNumber}", PEAR_LOG_DEBUG);
+				//Check the location to be sure the determiner applies to this item
+				if ($loanRuleDeterminer->matchesLocation($locationCode) ){
+					//$logger->log("{$loanRuleDeterminer->rowNumber}) Location correct $locationCode, {$loanRuleDeterminer->location} ({$loanRuleDeterminer->trimmedLocation()})", PEAR_LOG_DEBUG);
+					//Check that the iType is correct
+					if ($loanRuleDeterminer->itemType == '999' || in_array($iType, $loanRuleDeterminer->iTypeArray())){
+						//$logger->log("{$loanRuleDeterminer->rowNumber}) iType correct $iType, {$loanRuleDeterminer->itemType}", PEAR_LOG_DEBUG);
+						if ($pType == -1 || $loanRuleDeterminer->patronType == '999' || in_array($pType, $loanRuleDeterminer->pTypeArray())){
+							//$logger->log("{$loanRuleDeterminer->rowNumber}) pType correct $pType, {$loanRuleDeterminer->patronType}", PEAR_LOG_DEBUG);
+							$loanRule = $this->loanRules[$loanRuleDeterminer->loanRuleId];
+							//$logger->log("Determiner {$loanRuleDeterminer->rowNumber} indicates Loan Rule {$loanRule->loanRuleId} applies, holdable {$loanRule->holdable}", PEAR_LOG_DEBUG);
+							$holdable = ($loanRule->holdable == 1);
+							if ($holdable || $pType != -1){
+								break;
+							}
+						}else{
+							//$logger->log("PType incorrect", PEAR_LOG_DEBUG);
+						}
 					}else{
-						//$logger->log("PType incorrect", PEAR_LOG_DEBUG);
+						//$logger->log("IType incorrect", PEAR_LOG_DEBUG);
 					}
 				}else{
-					//$logger->log("IType incorrect", PEAR_LOG_DEBUG);
+					//$logger->log("Location incorrect {$loanRuleDeterminer->location} != {$locationCode}", PEAR_LOG_DEBUG);
 				}
-			}else{
-				//$logger->log("Location incorrect {$loanRuleDeterminer->location} != {$location}", PEAR_LOG_DEBUG);
 			}
+			$memCache->set($memcacheKey, ($holdable ? 'true' : 'false'), 0 , $configArray['Caching']['loan_rule_result']);
+			$timer->logTime("Finished checking if item is holdable $locationCode, $iType, $pType");
 		}
+
 		return $holdable;
 	}
 
@@ -1220,7 +1561,7 @@ class MillenniumDriver implements DriverInterface
 
 		foreach ($holdings as $itemNumber => $holding){
 			//Get the staff page for the record
-			//$curl_url = "https://www.millennium.marmot.org/search~S93?/Ypig&searchscope=93&SORT=D/Ypig&searchscope=93&SORT=D&SUBKEY=pig/1,383,383,B/staffi1~$shortId&FF=Ypig&2,2,";
+			//$curl_url = "https://sierra.marmot.org/search~S93?/Ypig&searchscope=93&SORT=D/Ypig&searchscope=93&SORT=D&SUBKEY=pig/1,383,383,B/staffi1~$shortId&FF=Ypig&2,2,";
 			$curl_url = $configArray['Catalog']['url'] . "/search~S{$scope}?/Ypig&searchscope={$scope}&SORT=D/Ypig&searchscope={$scope}&SORT=D&SUBKEY=pig/1,383,383,B/staffi$itemNumber~$shortId&FF=Ypig&2,2,";
 			$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
 			//echo "$curl_url";
@@ -1269,16 +1610,18 @@ class MillenniumDriver implements DriverInterface
 		global $logger;
 		global $configArray;
 
-		$firstName = $_REQUEST['firstName'];
-		$lastName = $_REQUEST['lastName'];
-		$address = $_REQUEST['address'];
-		$city = $_REQUEST['city'];
-		$state = $_REQUEST['state'];
-		$zip = $_REQUEST['zip'];
-		$email = $_REQUEST['email'];
+		$firstName = trim($_REQUEST['firstName']);
+		$middleName = trim($_REQUEST['middleName']);
+		$lastName = trim($_REQUEST['lastName']);
+		$address = trim($_REQUEST['address']);
+		$city = trim($_REQUEST['city']);
+		$state = trim($_REQUEST['state']);
+		$zip = trim($_REQUEST['zip']);
+		$email = trim($_REQUEST['email']);
+		$phone = trim($_REQUEST['phone']);
 
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
-		$curl_url = $configArray['Catalog']['url'] . "/selfreg~S" . $this->getMillenniumScope();
+		$curl_url = $configArray['Catalog']['url'] . "/selfreg~S" . $this->getLibraryScope();
 		$logger->log('Loading page ' . $curl_url, PEAR_LOG_INFO);
 		//echo "$curl_url";
 		$curl_connection = curl_init($curl_url);
@@ -1289,18 +1632,23 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
 		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
 
-		$post_data['nfirst'] = $firstName;
+		$post_data['nfirst'] = $middleName ? $firstName.' '.$middleName : $firstName; // add middle name onto first name;
 		$post_data['nlast'] = $lastName;
 		$post_data['stre_aaddress'] = $address;
-		$post_data['city_aaddress'] = $city;
-		$post_data['stat_aaddress'] = $state;
-		$post_data['post_aaddress'] = $zip;
+		$post_data['city_aaddress'] = "$city $state, $zip";
+		//$post_data['stat_aaddress'] = $state;
+		//$post_data['post_aaddress'] = $zip;
 		$post_data['zemailaddr'] = $email;
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
+		$post_data['tphone1'] = $phone;
+		if (isset($_REQUEST['birthDate'])){
+			$post_data['F051birthdate'] = $_REQUEST['birthDate'];
 		}
-		$post_string = implode ('&', $post_items);
+//		$post_items = array();
+//		foreach ($post_data as $key => $value) {
+//			$post_items[] = $key . '=' . urlencode($value);
+//		}
+//		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$sresult = curl_exec($curl_connection);
 
@@ -1309,7 +1657,7 @@ class MillenniumDriver implements DriverInterface
 
 		//Parse the library card number from the response
 		if (preg_match('/Your barcode is:.*?(\\d+)<\/(b|strong)>/s', $sresult, $matches)) {
-			$barcode = $matches[0];
+			$barcode = $matches[1];
 			return array('success' => true, 'barcode' => $barcode);
 		} else {
 			return array('success' => false, 'barcode' => '');
@@ -1326,9 +1674,283 @@ class MillenniumDriver implements DriverInterface
 		return $loginData;
 	}
 
+	/**
+	 * Process inventory for a particular item in the catalog
+	 *
+	 * @param string $login     Login for the user doing the inventory
+	 * @param string $password1 Password for the user doing the inventory
+	 * @param string $initials
+	 * @param string $password2
+	 * @param string[] $barcodes
+	 * @param boolean $updateIncorrectStatuses
+	 *
+	 * @return array
+	 */
 	function doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses){
 		require_once ROOT_DIR . '/Drivers/marmot_inc/MillenniumInventory.php';
 		$millenniumInventory = new MillenniumInventory($this);
 		return $millenniumInventory->doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses);
+	}
+
+	/**
+	 * @param $username
+	 * @param $patronName
+	 * @return array
+	 */
+	public function validatePatronName($username, $patronName) {
+		$fullName = str_replace(",", " ", $patronName);
+		$fullName = str_replace(";", " ", $fullName);
+		$fullName = str_replace(";", "'", $fullName);
+		$fullName = preg_replace("/\\s{2,}/", " ", $fullName);
+		$allNameComponents = preg_split('^[\s-]^', strtolower($fullName));
+		$nameParts = explode(' ', $fullName);
+		$lastName = strtolower($nameParts[0]);
+		$middleName = isset($nameParts[2]) ? strtolower($nameParts[2]) : '';
+		$firstName = isset($nameParts[1]) ? strtolower($nameParts[1]) : $middleName;
+
+		//Get the first name that the user supplies.
+		//This expects the user to enter one or two names and only
+		//Validates the first name that was entered.
+		$enteredNames = preg_split('^[\s-]^', strtolower($username));
+		$userValid = false;
+		foreach ($enteredNames as $name) {
+			if (in_array($name, $allNameComponents, false)) {
+				$userValid = true;
+				break;
+			}
+		}
+		return array($fullName, $lastName, $firstName, $userValid);
+	}
+
+	public function getMyFines($patron = null, $includeMessages = false){
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
+
+		//Load the information from millennium using CURL
+		$pageContents = $this->_fetchPatronInfoPage($patronDump, 'overdues');
+
+		//Get the fines table data
+		$messages = array();
+		if (preg_match('/<table border="0" class="patFunc">(.*?)<\/table>/si', $pageContents, $regs)) {
+			$finesTable = $regs[1];
+			//Get the title and, type, and fine detail from the page
+			preg_match_all('/<tr class="patFuncFinesEntryTitle">(.*?)<\/tr>.*?<tr class="patFuncFinesEntryDetail">.*?<td class="patFuncFinesDetailType">(.*?)<\/td>.*?<td align="right" class="patFuncFinesDetailAmt">(.*?)<\/td>.*?<\/tr>/si', $finesTable, $fineDetails, PREG_SET_ORDER);
+			for ($matchi = 0; $matchi < count($fineDetails); $matchi++) {
+				$reason = ucfirst(strtolower(trim($fineDetails[$matchi][2])));
+				if ($reason == '&nbsp' || $reason == '&nbsp;'){
+					$reason = 'Fee';
+				}
+				$messages[] = array(
+					'reason' => $reason,
+					'message' => trim(strip_tags($fineDetails[$matchi][1])),
+					'amount' => trim($fineDetails[$matchi][3]),
+				);
+			}
+		}
+
+		return $messages;
+	}
+
+	public function requestPinReset($barcode){
+		//Go to the pinreset page
+		global $configArray;
+		$pinResetUrl = $configArray['Catalog']['url'] . '/pinreset';
+		$cookieJar = tempnam ("/tmp", "CURLCOOKIE");
+		$curl_connection = curl_init();
+		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookieJar );
+		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, is_null($cookieJar) ? true : false);
+		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+
+		curl_setopt($curl_connection, CURLOPT_URL, $pinResetUrl);
+		$pinResetPageHtml = curl_exec($curl_connection);
+
+		//Now submit the request
+		$post_data['code'] = $barcode;
+		$post_data['pat_submit'] = 'xxx';
+		$post_items = array();
+		foreach ($post_data as $key => $value) {
+			$post_items[] = $key . '=' . $value;
+		}
+		$post_string = implode ('&', $post_items);
+		curl_setopt($curl_connection, CURLOPT_POST, true);
+		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+		$pinResetResultPageHtml = curl_exec($curl_connection);
+
+		//Parse the response
+		$result = array(
+			'result' => false,
+			'error' => true,
+			'message' => 'Unknown error resetting pin'
+		);
+
+		if (preg_match('/<div class="errormessage">(.*?)<\/div>/is', $pinResetResultPageHtml, $matches)){
+			$result['error'] = false;
+			$result['message'] = trim($matches[1]);
+		}elseif (preg_match('/<div class="pageContent">.*?<strong>(.*?)<\/strong>/si', $pinResetResultPageHtml, $matches)){
+			$result['error'] = false;
+			$result['result'] = true;
+			$result['message'] = trim($matches[1]);
+		}
+		return $result;
+	}
+
+	/**
+	 * Import Lists from the ILS
+	 *
+	 * @return array - an array of results including the names of the lists that were imported as well as number of titles.
+	 */
+	function importListsFromIls(){
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+		global $user;
+		$results = array(
+			'totalTitles' => 0,
+			'totalLists' => 0
+		);
+
+		$patronDump = $this->_getPatronDump($this->_getBarcode());
+
+		//Get the page which contains a table with all lists in them.
+		$listsPage = $this->_fetchPatronInfoPage($patronDump, 'mylists');
+		//Get the actual table
+		if (preg_match('/<table[^>]*?class="patFunc"[^>]*?>(.*?)<\/table>/si', $listsPage, $listsPageMatches)) {
+			$allListTable = $listsPageMatches[1];
+			//Now that we have the table, get the actual list names and ids
+			preg_match_all('/<tr[^>]*?class="patFuncEntry"[^>]*?>.*?<input type="checkbox" id ="(\\d+)".*?<a.*?>(.*?)<\/a>.*?<td[^>]*class="patFuncDetails">(.*?)<\/td>.*?<\/tr>/si', $allListTable, $listDetails, PREG_SET_ORDER);
+			for ($listIndex = 0; $listIndex < count($listDetails); $listIndex++ ){
+				$listId = $listDetails[$listIndex][1];
+				$title = $listDetails[$listIndex][2];
+				$description = str_replace('&nbsp;', '', $listDetails[$listIndex][3]);
+
+				//Create the list (or find one that already exists)
+				$newList = new UserList();
+				$newList->user_id = $user->id;
+				$newList->title = $title;
+				if (!$newList->find(true)){
+					$newList->description = $description;
+					$newList->insert();
+				}
+
+				$currentListTitles = $newList->getListTitles();
+
+				//Get a list of all titles within the list to be imported
+				$listDetailsPage = $this->_fetchPatronInfoPage($patronDump, 'mylists?listNum='. $listId);
+				//Get the table for the details
+				if (preg_match('/<table[^>]*?class="patFunc"[^>]*?>(.*?)<\/table>/si', $listDetailsPage, $listsDetailsMatches)) {
+					$listTitlesTable = $listsDetailsMatches[1];
+					//Get the bib numbers for the title
+					preg_match_all('/<input type="checkbox" name="(b\\d{1,7})".*?<td[^>]*class="patFuncTitle">(.*?)<\/td>/si', $listTitlesTable, $bibNumberMatches, PREG_SET_ORDER);
+					for ($bibCtr = 0; $bibCtr < count($bibNumberMatches); $bibCtr++){
+						$bibNumber = $bibNumberMatches[$bibCtr][1];
+						$bibTitle = strip_tags($bibNumberMatches[$bibCtr][2]);
+
+						//Get the grouped work for the resource
+						require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
+						require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+						$primaryIdentifier = new GroupedWorkPrimaryIdentifier();
+						$groupedWork = new GroupedWork();
+						$primaryIdentifier->identifier = '.' + $bibNumber + $this->getCheckDigit($bibNumber);
+						$primaryIdentifier->type = 'ils';
+						$primaryIdentifier->joinAdd($groupedWork);
+						if ($primaryIdentifier->find(true)){
+							//Check to see if this title is already on the list.
+							$resourceOnList = false;
+							foreach ($currentListTitles as $currentTitle){
+								if ($currentTitle->groupedWorkPermanentId == $primaryIdentifier->permanent_id){
+									$resourceOnList = true;
+									break;
+								}
+							}
+
+							if (!$resourceOnList){
+								$listEntry = new UserListEntry();
+								$listEntry->groupedWorkPermanentId = $primaryIdentifier->permanent_id;
+								$listEntry->listId = $newList->id;
+								$listEntry->notes = '';
+								$listEntry->dateAdded = time();
+								$listEntry->insert();
+							}
+						}else{
+							//The title is not in the resources, add an error to the results
+							if (!isset($results['errors'])){
+								$results['errors'] = array();
+							}
+							$results['errors'][] = "\"$bibTitle\" on list $title could not be found in the catalog and was not imported.";
+						}
+
+						$results['totalTitles']++;
+					}
+				}
+
+				$results['totalLists'] += 1;
+			}
+		}
+
+		return $results;
+	}
+
+	/**
+	 * Calculates a check digit for a III identifier
+	 * @param basedId String the base id without checksum
+	 * @return String the check digit
+	 */
+	function getCheckDigit($baseId){
+		$baseId = str_replace('b', '', $baseId);
+		if (strlen($baseId) != 7){
+			return "a";
+		}else{
+			$sumOfDigits = 0;
+			for ($i = 0; $i < 7; $i++){
+				$curDigit = substr($baseId, $i, 1);
+				$sumOfDigits += (8 - $i) * $curDigit;
+			}
+			$modValue = $sumOfDigits % 11;
+			if ($modValue == 10){
+				return "x";
+			}else{
+				return $modValue;
+			}
+		}
+	}
+
+	public function clearPatronProfile() {
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $user;
+
+		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
+
+	}
+
+	public function getSelfRegistrationFields(){
+		global $library;
+		$fields = array();
+		$fields[] = array('property'=>'firstName', 'type'=>'text', 'label'=>'First Name', 'description'=>'Your first name', 'maxLength' => 40, 'required' => true);
+		$fields[] = array('property'=>'middleName', 'type'=>'text', 'label'=>'Middle Name', 'description'=>'Your middle name', 'maxLength' => 40, 'required' => true);
+		// gets added to the first name separated by a space
+		$fields[] = array('property'=>'lastName', 'type'=>'text', 'label'=>'Last Name', 'description'=>'Your last name', 'maxLength' => 40, 'required' => true);
+		if ($library && $library->promptForBirthDateInSelfReg){
+			$fields[] = array('property'=>'birthDate', 'type'=>'date', 'label'=>'Date of Birth (MM-DD-YYYY)', 'description'=>'Date of birth', 'maxLength' => 10, 'required' => true);
+		}
+		$fields[] = array('property'=>'address', 'type'=>'text', 'label'=>'Mailing Address', 'description'=>'Mailing Address', 'maxLength' => 128, 'required' => true);
+		$fields[] = array('property'=>'city', 'type'=>'text', 'label'=>'City', 'description'=>'City', 'maxLength' => 48, 'required' => true);
+		$fields[] = array('property'=>'state', 'type'=>'text', 'label'=>'State', 'description'=>'State', 'maxLength' => 32, 'required' => true);
+		$fields[] = array('property'=>'zip', 'type'=>'text', 'label'=>'Zip Code', 'description'=>'Zip Code', 'maxLength' => 32, 'required' => true);
+		$fields[] = array('property'=>'email', 'type'=>'email', 'label'=>'E-Mail', 'description'=>'E-Mail', 'maxLength' => 128, 'required' => false);
+		$fields[] = array('property'=>'phone', 'type'=>'text', 'label'=>'Phone (xxx-xxx-xxxx)', 'description'=>'Phone', 'maxLength' => 128, 'required' => false);
+
+		return $fields;
+	}
+
+	public function hasNativeReadingHistory() {
+		return true;
+	}
+
+	public function getNumHolds($id) {
+		return 0;
 	}
 }

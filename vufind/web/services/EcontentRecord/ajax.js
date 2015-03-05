@@ -1,11 +1,3 @@
-function saveEContentRecord(id, formElem, strings) {
-	var successCallback = function() {
-		// Highlight the save link to indicate that the content is saved:
-		$('#saveLink').addClass('savedFavorite');
-	};
-	performSaveRecord(id, formElem, strings, 'eContent', successCallback);
-}
-
 function SendEContentEmail(id, to, from, message, strings) {
 	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=SendEmail&" + "from=" + encodeURIComponent(from) + "&" + "to=" + encodeURIComponent(to) + "&" + "message=" + encodeURIComponent(message);
@@ -37,6 +29,19 @@ function GetEContentEnrichmentInfo(id, isbn, upc, econtent) {
 					seriesScroller.loadTitlesFromJsonData(seriesData);
 				}
 			}
+
+			var similarTitlesData = $(data).find("SimilarTitleInfo").text();
+			if (similarTitlesData && similarTitlesData.length > 0) {
+
+				similarScroller = new TitleScroller('titleScrollerSimilar', 'Similar', 'similarList');
+
+				similarTitlesData = $.parseJSON(similarTitlesData);
+				if (similarTitlesData.titles.length > 0){
+					$('#similarTitleInfo').show();
+					similarScroller.loadTitlesFromJsonData(similarTitlesData);
+				}
+			}
+
 			var showGoDeeperData = $(data).find("ShowGoDeeperData").text();
 			if (showGoDeeperData) {
 				$('#goDeeperLink').show();
@@ -246,16 +251,16 @@ function deleteItem(id, itemId){
 function addItem(id){
 	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=AddItem";
-	ajaxLightbox(url+ "?" + params);
+	VuFind.Account.ajaxLightbox(url+ "?" + params, true);
 	return false;
 }
 function editItem(id, itemId){
 	var url = path + "/EcontentRecord/" + encodeURIComponent(id) + "/AJAX";
 	var params = "method=EditItem&itemId=" + encodeURIComponent(itemId);
-	ajaxLightbox(url+ "?" + params);
+	VuFind.Account.ajaxLightbox(url+ "?" + params, true);
 	return false;
 }
 function showEcontentPurchaseOptions(id){
 	var url = path + "/EcontentRecord/" + id + "/AJAX?method=getPurchaseOptions";
-	ajaxLightbox(url)
+	VuFind.Account.ajaxLightbox(url, false)
 }

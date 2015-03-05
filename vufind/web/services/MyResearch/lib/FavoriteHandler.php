@@ -17,7 +17,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
 /**
@@ -32,7 +31,9 @@ require_once ROOT_DIR . '/sys/Pager.php';
  */
 class FavoriteHandler
 {
+	/** @var UserListEntry[] */
 	private $favorites;
+	/** @var User */
 	private $user;
 	private $listId;
 	private $allowEdit;
@@ -42,8 +43,8 @@ class FavoriteHandler
 	 * Constructor.
 	 *
 	 * @access  public
-	 * @param   array   $favorites  Array of Resource objects.
-	 * @param   object  $user       User object owning tag/note metadata.
+	 * @param   UserListEntry[]   $favorites  Array of grouped work ids.
+	 * @param   User  $user       User object owning tag/note metadata.
 	 * @param   int     $listId     ID of list containing desired tags/notes (or
 	 *                              null to show tags/notes from all user's lists).
 	 * @param   bool    $allowEdit  Should we display edit controls?
@@ -56,16 +57,11 @@ class FavoriteHandler
 		$this->allowEdit = $allowEdit;
 
 		// Process the IDs found in the favorites (sort by source):
-		if (is_array($favorites)) {
-			foreach($favorites as $current) {
-				$id = $current->record_id;
-				if (!empty($id)) {
-					$source = strtolower($current->source);
-					if (!isset($this->ids[$source])) {
-						$this->ids[$source] = array();
-					}
-					$this->ids[$source][] = $id;
-				}
+		foreach ($favorites as $favorite){
+			if (is_object($favorite)){
+				$this->ids[] = $favorite->groupedWorkPermanentId;
+			}else{
+				$this->ids[] = $favorite;
 			}
 		}
 	}
@@ -79,7 +75,7 @@ class FavoriteHandler
 	{
 		global $interface;
 
-		$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
+		$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 20;
 		$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
 		$startRecord = ($page - 1) * $recordsPerPage + 1;
 		if ($startRecord < 0){
@@ -95,46 +91,35 @@ class FavoriteHandler
 			'endRecord' => $endRecord,
 			'perPage' => $recordsPerPage
 		);
-		$this->favorites = array_slice($this->favorites, $startRecord -1, $recordsPerPage);
+		//Don't slice here since it is done in the search object
+		//$this->favorites = array_slice($this->favorites, $startRecord -1, $recordsPerPage);
+
 		// Initialise from the current search globals
+		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
-		$interface->assign('sortList', $searchObject->getSortList());
-
-		$resourceList = array();
-		if (is_array($this->favorites)) {
-			foreach($this->favorites as $currentResource) {
-				$interface->assign('resource', $currentResource);
-				$resourceEntry = $interface->fetch('RecordDrivers/Resource/listentry.tpl');
-				$resourceList[] = $resourceEntry;
-			}
-		}
-		$interface->assign('resourceList', $resourceList);
-
-		// Initialise from the current search globals
-		$searchObject = SearchObjectFactory::initSearchObject();
-		/*$searchObject->init();
+		$searchObject->disableScoping();
+		$searchObject->setLimit(200);
+		$searchObject->setPage($page);
+		$searchObject->setSort('title asc');
 		$interface->assign('sortList', $searchObject->getSortList());
 
 		// Retrieve records from index (currently, only Solr IDs supported):
-		$vuFindList = array();
-		if (array_key_exists('vufind', $this->ids) && count($this->ids['vufind']) > 0) {
-			$searchObject->setQueryIDs($this->ids['vufind']);
+		if (count($this->favorites) > 0){
+			$searchObject->setQueryIDs($this->favorites);
 			$result = $searchObject->processSearch();
-			$vuFindList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
-		}
-		$eContentList = array();
-		if (array_key_exists('econtent', $this->ids) && count($this->ids['econtent']) > 0) {
-			$eContentIds = array();
-			foreach ($this->ids['econtent'] as $eContentId){
-				$eContentIds[] = 'econtentRecord' . $eContentId;
+			$resourceList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
+
+			$pageInfo['resultTotal'] = $result['response']['numFound'];
+			if ($endRecord > $pageInfo['resultTotal']){
+				$endRecord = $pageInfo['resultTotal'];
 			}
-			$searchObject->setQueryIDs($eContentIds);
-			$result = $searchObject->processSearch();
-			$eContentList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
+			$pageInfo['endRecord'] = $endRecord;
+		}else{
+			$resourceList = array();
 		}
-		$resourceList = array_merge($vuFindList, $eContentList);
-		$interface->assign('resourceList', $resourceList);*/
+
+		$interface->assign('resourceList', $resourceList);
 
 		// Set up paging of list contents:
 		$interface->assign('recordCount', $pageInfo['resultTotal']);
@@ -157,15 +142,19 @@ class FavoriteHandler
 		$interface->assign('pageLinks', $pager->getLinks());
 	}
 
-	function getTitles(){
+	function getTitles($numListEntries){
 		// Initialise from the current search globals
+		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
+		// these are added for emailing list  plb 10-8-2014
+		$searchObject->disableScoping(); // get title data regardless of scope
+		$searchObject->setLimit($numListEntries); // only get results for each item
 
 		// Retrieve records from index (currently, only Solr IDs supported):
-		if (array_key_exists('vufind', $this->ids) && count($this->ids['vufind']) > 0) {
-			$searchObject->setQueryIDs($this->ids['vufind']);
-			$result = $searchObject->processSearch();
+		if (count($this->ids) > 0) {
+			$searchObject->setQueryIDs($this->ids);
+			$searchObject->processSearch();
 			return $searchObject->getResultRecordSet();
 		}else{
 			return array();
@@ -178,9 +167,9 @@ class FavoriteHandler
 		$searchObject->init();
 
 		// Retrieve records from index (currently, only Solr IDs supported):
-		if (array_key_exists('vufind', $this->ids) && count($this->ids['vufind']) > 0) {
-			$searchObject->setQueryIDs($this->ids['vufind']);
-			$result = $searchObject->processSearch();
+		if (count($this->ids) > 0) {
+			$searchObject->setQueryIDs($this->ids);
+			$searchObject->processSearch();
 			return $searchObject->getCitations($citationFormat);
 		}else{
 			return array();

@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -102,7 +100,6 @@ public class Cron {
 		// INI file has a main section for processes to be run
 		// The processes are in the format:
 		// name = handler class
-		boolean updateConfig = false;
 		Section processes = cronIni.get("Processes");
 		if (args.length >= 1){
 			logger.info("Found " + args.length + " arguments ");
@@ -116,11 +113,11 @@ public class Cron {
 			if (args.length > 0){
 				process.setArguments(args);
 			}
+			loadLastRunTimeForProcess(process);
 			processesToRun.add(process);
 		}else{
 			//Load processes to run
 			processesToRun = loadProcessesToRun(cronIni, processes);
-			updateConfig = true;
 		}
 		
 		for (ProcessToRun processToRun: processesToRun){
@@ -154,18 +151,9 @@ public class Cron {
 					IProcessHandler processHandlerInstance = (IProcessHandler) processHandlerClassObject;
 					cronEntry.addNote("Starting cron process " + processToRun.getProcessName());
 					
-					if (updateConfig){
-						//Mark the time the run was started rather than finished so really long running processes 
-						//can go on while faster processes execute multiple times in other threads. 
-						cronIni.put(processToRun.getProcessName(), "lastRun", currentTime.getTime());
-						cronIni.put(processToRun.getProcessName(), "lastRunFormatted", currentTime.toString());
-						try {
-							cronIni.store(cronConfigFile);
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							logger.error("Unable to update configuration file.");
-						}
-					}
+					//Mark the time the run was started rather than finished so really long running processes
+					//can go on while faster processes execute multiple times in other threads.
+					markProcessStarted(processToRun);
 					processHandlerInstance.doCronProcess(serverName, ini, processSettings, vufindConn, econtentConn, cronEntry, logger);
 					//Log how long the process took
 					Date endTime = new Date();
@@ -173,9 +161,7 @@ public class Cron {
 					float elapsedMinutes = (elapsedMillis) / 60000;
 					logger.info("Finished process " + processToRun.getProcessName() + " in " + elapsedMinutes + " minutes (" + elapsedMillis + " milliseconds)");
 					cronEntry.addNote("Finished process " + processToRun.getProcessName() + " in " + elapsedMinutes + " minutes (" + elapsedMillis + " milliseconds)");
-					// Update that the process was run.
-					currentTime = new Date();
-					
+
 				} catch (InstantiationException e) {
 					logger.error("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " could not be be instantiated.");
 					cronEntry.addNote("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " could not be be instantiated.");
@@ -189,19 +175,34 @@ public class Cron {
 				cronEntry.addNote("Could not run process " + processToRun.getProcessName() + " because the handler class " + processToRun.getProcessClass() + " could not be be found.");
 			}
 		}
-			
-		if (updateConfig){
-			try {
-				cronIni.store(cronConfigFile);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				logger.error("Unable to update configuration file.");
-			}
-		}
-		
+
 		cronEntry.setFinished();
 		cronEntry.addNote("Cron run finished");
 		cronEntry.saveToDatabase(vufindConn, logger);
+	}
+
+	private static void markProcessStarted(ProcessToRun processToRun) {
+		try{
+			Long finishTime = new Date().getTime() / 1000;
+			if (processToRun.getLastRunVariableId() != null) {
+				PreparedStatement updateVariableStmt = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
+				updateVariableStmt.setLong(1, finishTime);
+				updateVariableStmt.setLong(2, processToRun.getLastRunVariableId());
+				updateVariableStmt.executeUpdate();
+				updateVariableStmt.close();
+			} else {
+				String processVariableId = "last_" + processToRun.getProcessName().toLowerCase().replace(' ', '_') + "_time";
+				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES (?, ?)");
+				insertVariableStmt.setString(1, processVariableId);
+				insertVariableStmt.setString(2, Long.toString(finishTime));
+				insertVariableStmt.executeUpdate();
+				insertVariableStmt.close();
+			}
+		}catch (Exception e){
+			logger.error("Error updating last run time", e);
+			System.exit(1);
+		}
+
 	}
 
 	private static ArrayList<ProcessToRun> loadProcessesToRun(Ini cronIni, Section processes) {
@@ -214,9 +215,9 @@ public class Cron {
 			// - interval to run the process
 			// - additional configuration information for the process
 			// Check to see when the process was last run
-			String lastRun = cronIni.get(processName, "lastRun");
 			boolean runProcess = false;
 			String frequencyHours = cronIni.get(processName, "frequencyHours");
+			ProcessToRun newProcess = new ProcessToRun(processName, processHandler);
 			if (frequencyHours == null || frequencyHours.length() == 0){
 				//If the frequency isn't set, automatically run the process 
 				runProcess = true;
@@ -225,19 +226,21 @@ public class Cron {
 				runProcess = false;
 				logger.info("Skipping Process " + processName + " because it must be run manually.");
 			}else{
-				//Frequency is a number of hours.  See if we should run based on the last run. 
-				if (lastRun == null || lastRun.length() == 0) {
+				loadLastRunTimeForProcess(newProcess);
+				String lastRun = cronIni.get(processName, "lastRun");
+
+				//Frequency is a number of hours.  See if we should run based on the last run.
+				if (newProcess.getLastRunTime() == null) {
 					runProcess = true;
 				} else {
 					// Check the interval to see if the process should be run
 					try {
-						long lastRunTime = Long.parseLong(lastRun);
 						if (frequencyHours.trim().compareTo("0") == 0) {
 							// There should not be a delay between cron runs
 							runProcess = true;
 						} else {
 							int frequencyHoursInt = Integer.parseInt(frequencyHours);
-							if ((double) (currentTime.getTime() - lastRunTime) / (double) (1000 * 60 * 60) >= frequencyHoursInt) {
+							if ((double) (currentTime.getTime() / 1000 - newProcess.getLastRunTime()) / (double) (60 * 60) >= frequencyHoursInt) {
 								// The elapsed time is greater than the frequency to run
 								runProcess = true;
 							}else{
@@ -252,12 +255,27 @@ public class Cron {
 			}
 			if (runProcess) {
 				logger.info("Running process " + processName);
-				processesToRun.add(new ProcessToRun(processName, processHandler));
+				processesToRun.add(newProcess);
 			}
 		}
 		return processesToRun;
 	}
-	
+
+	private static void loadLastRunTimeForProcess(ProcessToRun newProcess) {
+		try{
+			String processVariableId = "last_" + newProcess.getProcessName().toLowerCase().replace(' ', '_') + "_time";
+			PreparedStatement loadLastRunTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = '" + processVariableId + "'");
+			ResultSet lastRunTimeRS = loadLastRunTimeStmt.executeQuery();
+			if (lastRunTimeRS.next()){
+				newProcess.setLastRunTime(lastRunTimeRS.getLong("value"));
+				newProcess.setLastRunVariableId(lastRunTimeRS.getLong("id"));
+			}
+		}catch (Exception e){
+			logger.error("Error loading last run time for " + newProcess, e);
+			System.exit(1);
+		}
+	}
+
 	private static Ini loadConfigFile(String filename){
 		//First load the default config file 
 		String configName = "../../sites/default/conf/" + filename;
@@ -291,6 +309,30 @@ public class Cron {
 		try {
 			Ini siteSpecificIni = new Ini();
 			siteSpecificIni.load(new FileReader(siteSpecificFile));
+			for (Section curSection : siteSpecificIni.values()){
+				for (String curKey : curSection.keySet()){
+					//logger.debug("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+					//System.out.println("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));
+					ini.put(curSection.getName(), curKey, curSection.get(curKey));
+				}
+			}
+		} catch (InvalidFileFormatException e) {
+			logger.error("Site Specific config file is not valid.  Please check the syntax of the file.", e);
+		} catch (IOException e) {
+			logger.error("Site Specific config file could not be read.", e);
+		}
+
+		//Now override with the site specific configuration
+		String passwordFilename = "../../sites/" + serverName + "/conf/config.pwd.ini";
+		logger.info("Loading site specific config from " + siteSpecificFilename);
+		File siteSpecificPasswordFile = new File(passwordFilename);
+		if (!siteSpecificPasswordFile.exists()) {
+			logger.error("Could not find server specific config password file");
+			System.exit(1);
+		}
+		try {
+			Ini siteSpecificIni = new Ini();
+			siteSpecificIni.load(new FileReader(siteSpecificPasswordFile));
 			for (Section curSection : siteSpecificIni.values()){
 				for (String curKey : curSection.keySet()){
 					//logger.debug("Overriding " + curSection.getName() + " " + curKey + " " + curSection.get(curKey));

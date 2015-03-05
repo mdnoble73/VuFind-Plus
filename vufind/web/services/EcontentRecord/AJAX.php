@@ -5,7 +5,7 @@ require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 
 global $configArray;
 
-class AJAX extends Action {
+class EContentRecord_AJAX extends Action {
 
 	function AJAX() {
 	}
@@ -14,7 +14,7 @@ class AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_GET['method'];
-		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'DeleteItem', 'SaveComment', 'CheckoutOverDriveItem', 'PlaceOverDriveHold', 'CancelOverDriveHold', 'GetOverDriveHoldPrompts', 'ReturnOverDriveItem', 'SelectOverDriveDownloadFormat'))){
+		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'DeleteItem', 'SaveComment', 'CheckoutOverDriveItem', 'PlaceOverDriveHold', 'CancelOverDriveHold', 'GetOverDriveHoldPrompts', 'ReturnOverDriveItem', 'SelectOverDriveDownloadFormat', 'GetDownloadLink'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -162,6 +162,75 @@ class AJAX extends Action {
 			$interface->assign('seriesInfo', json_encode($seriesInfo));
 		}
 
+		//Process similar titles for widget
+		$titles = array();
+		if (!isset($enrichmentData['novelist']['similarTitles']) || count($enrichmentData['novelist']['similarTitles']) == 0){
+			$interface->assign('similarTitleInfo', json_encode(array('titles'=>$titles, 'currentIndex'=>0)));
+		}else{
+			foreach ($enrichmentData['novelist']['similarTitles'] as $record){
+				$isbn = $record['isbn'];
+				if (strpos($isbn, ' ') > 0){
+					$isbn = substr($isbn, 0, strpos($isbn, ' '));
+				}
+				$cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn;
+				if (isset($record['id'])){
+					$cover .= "&id=" . $record['id'];
+				}
+				if (isset($record['upc'])){
+					$cover .= "&upc=" . $record['upc'];
+				}
+				if (isset($record['issn'])){
+					$cover .= "&issn=" . $record['issn'];
+				}
+				if (isset($record['format_category'])){
+					$cover .= "&category=" . $record['format_category'][0];
+				}
+				$title = $record['title'];
+				if (isset($record['series'])){
+					$title .= ' (' . $record['series'] ;
+					if (isset($record['volume'])){
+						$title .= ' Volume ' . $record['volume'];
+					}
+					$title .= ')';
+				}
+				$titles[] = array(
+					'id' => isset($record['id']) ? $record['id'] : '',
+					'image' => $cover,
+					'title' => $title,
+					'author' => $record['author']
+				);
+			}
+
+			foreach ($titles as $key => $rawData){
+				if ($rawData['id']){
+					if (strpos($rawData['id'], 'econtentRecord') === 0){
+						$fullId = $rawData['id'];
+						$shortId = str_replace('econtentRecord', '', $rawData['id']);
+						$formattedTitle = "<div id=\"scrollerTitleSimilar{$key}\" class=\"scrollerTitle\">" .
+								'<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $shortId . '" id="descriptionTrigger' . $fullId . '">' .
+								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+								"</a></div>" .
+								"<div id='descriptionPlaceholder{$fullId}' style='display:none'></div>";
+					}else{
+						$shortId = str_replace('.', '', $rawData['id']);
+						$formattedTitle = "<div id=\"scrollerTitleSimilar{$key}\" class=\"scrollerTitle\">" .
+								'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $shortId . '">' .
+								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+								"</a></div>" .
+								"<div id='descriptionPlaceholder{$shortId}' style='display:none'></div>";
+					}
+				}else{
+					$formattedTitle = "<div id=\"scrollerTitleSimilar{$key}\" class=\"scrollerTitle\">" .
+							"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
+							"</div>";
+				}
+				$rawData['formattedTitle'] = $formattedTitle;
+				$titles[$key] = $rawData;
+			}
+			$seriesInfo = array('titles' => $titles, 'currentIndex' => 0);
+			$interface->assign('similarTitleInfo', json_encode($seriesInfo));
+		}
+
 		//Load go deeper options
 		if (isset($library) && $library->showGoDeeper == 0){
 			$interface->assign('showGoDeeper', false);
@@ -192,7 +261,6 @@ class AJAX extends Action {
 	function GetHoldingsInfo(){
 		global $interface;
 		global $configArray;
-		$interface->assign('showOtherEditionsPopup', $configArray['Content']['showOtherEditionsPopup']);
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
 		//Load holdings information from the driver
@@ -227,9 +295,6 @@ class AJAX extends Action {
 		$interface->assign('source', $eContentRecord->source);
 		$interface->assign('accessType', $eContentRecord->accessType);
 		$interface->assign('showEContentNotes', $showEContentNotes);
-		if ($eContentRecord->getIsbn() == null || strlen($eContentRecord->getIsbn()) == 0){
-			$interface->assign('showOtherEditionsPopup', false);
-		}
 		$showOverDriveConsole = false;
 		$showAdobeDigitalEditions = false;
 		foreach ($holdings as $item){
@@ -272,9 +337,6 @@ class AJAX extends Action {
 		$url = $configArray['Index']['url'];
 		/** @var SearchObject_Solr $db */
 		$db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$db->debug = true;
-		}
 
 		// Retrieve Full record from Solr
 		if (!($record = $db->getRecord($id))) {
@@ -303,153 +365,6 @@ class AJAX extends Action {
 		return $interface->fetch('Record/ajax-prospector.tpl');
 	}
 
-	// Email Record
-	function SendEmail()
-	{
-		require_once ROOT_DIR . '/services/EcontentRecord/Email.php';
-
-		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->init();
-
-		$emailService = new EcontentRecord_Email();
-		$result = $emailService->sendEmail($_GET['to'], $_GET['from'], $_GET['message']);
-
-		if (PEAR_Singleton::isError($result)) {
-			return '<result>Error</result><details>' .
-			htmlspecialchars($result->getMessage()) . '</details>';
-		} else {
-			return '<result>Done</result>';
-		}
-	}
-
-	// SMS Record
-	function SendSMS()
-	{
-		require_once ROOT_DIR . '/services/EcontentRecord/SMS.php';
-		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->init();
-
-		$sms = new SMS();
-		$result = $sms->sendSMS();
-
-		if (PEAR_Singleton::isError($result)) {
-			return '<result>Error</result>';
-		} else {
-			if ($result === true){
-				return '<result>Done</result>';
-			}else{
-				return '<result><![CDATA[' . $result . ']]></result>';
-			}
-		}
-	}
-
-	function SaveTag()
-	{
-		$user = UserAccount::isLoggedIn();
-		if ($user === false) {
-			return "<result>Unauthorized</result>";
-		}
-
-		require_once 'AddTag.php';
-		AddTag::save('eContent');
-
-		return '<result>Done</result>';
-	}
-
-	function SaveComment()
-	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-
-		$user = UserAccount::isLoggedIn();
-		if ($user === false) {
-			return json_encode(array('result' => 'Unauthorized'));
-		}
-
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		$resource->source = 'eContent';
-		if (!$resource->find(true)) {
-			$resource->insert();
-		}
-		$resource->addComment($_REQUEST['comment'], $user, 'eContent');
-
-		return json_encode(array('result' => 'true'));
-	}
-
-	function DeleteComment()
-	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
-		global $user;
-		global $configArray;
-
-		// Process Delete Comment
-		if (is_object($user)) {
-			$comment = new Comments();
-			$comment->id = $_GET['commentId'];
-			$comment->source = 'eContent';
-			if ($comment->find(true)) {
-				if ($user->id == $comment->user_id) {
-					$comment->delete();
-				}
-			}
-		}
-		return '<result>true</result>';
-	}
-
-	function GetComments()
-	{
-		global $interface;
-
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
-
-		$interface->assign('id', $_GET['id']);
-
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		$resource->source = 'eContent';
-		$commentList = array();
-		if ($resource->find(true)) {
-			$commentList = $resource->getComments();
-		}
-
-		$interface->assign('commentList', $commentList['user']);
-		$userComments = $interface->fetch('Record/view-comments-list.tpl');
-		$interface->assign('staffCommentList', $commentList['staff']);
-		$staffComments = $interface->fetch('Record/view-staff-reviews-list.tpl');
-
-		return json_encode(array(
-			'staffComments' => $staffComments,
-			'userComments' => $userComments,
-		));
-	}
-
-	function RateTitle(){
-		require_once(ROOT_DIR . '/sys/eContent/EContentRating.php');
-		global $user;
-		if (!isset($user) || $user == false){
-			header('HTTP/1.0 500 Internal server error');
-			return 'Please login to rate this title.';
-		}
-		$ratingValue = $_REQUEST['rating'];
-		//Save the rating
-		$rating = new EContentRating();
-		$rating->recordId = $_REQUEST['id'];
-		$rating->userId = $user->id;
-		$existingRating = false;
-		if ($rating->find(true) >= 1) {
-			$existingRating = true;
-		}
-		$rating->rating = $ratingValue;
-		$rating->dateRated = time();
-		if ($existingRating){
-			$rating->update();
-		}else{
-			$rating->insert();
-		}
-
-		return $ratingValue;
-	}
 	function getDescription(){
 		global $interface;
 		require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
@@ -471,7 +386,6 @@ class AJAX extends Action {
 	function AddItem(){
 		require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 		require_once ROOT_DIR . '/sys/DataObjectUtil.php';
-		global $user;
 		global $interface;
 		global $configArray;
 		$structure = EContentItem::getObjectStructure();
@@ -487,12 +401,10 @@ class AJAX extends Action {
 	function EditItem(){
 		require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 		require_once ROOT_DIR . '/sys/DataObjectUtil.php';
-		global $user;
 		global $interface;
 		global $configArray;
 		$structure = EContentItem::getObjectStructure();
 		$object = new EContentItem();
-		$recordId = strip_tags($_REQUEST['id']);
 		$itemId = strip_tags($_REQUEST['itemId']);
 		$object->id = $itemId;
 		if ($object->find(true)){
@@ -509,7 +421,6 @@ class AJAX extends Action {
 		global $user;
 		require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 		if ($user->hasRole('epubAdmin')){
-			$recordId = strip_tags($_REQUEST['id']);
 			$itemId = strip_tags($_REQUEST['itemId']);
 			$econtentItem = new EContentItem();
 			$econtentItem->id = $itemId;
@@ -536,7 +447,7 @@ class AJAX extends Action {
 		$overdriveEmail = isset($_REQUEST['overdriveEmail']) ? $_REQUEST['overdriveEmail'] : $user->overdriveEmail;
 		if (isset($_REQUEST['overdriveEmail'])){
 			if ($_REQUEST['overdriveEmail'] != $user->overdriveEmail){
-				$user->overdriveEmail = $_REQUEST['overdriveEmail'];
+				$user->overdriveEmail = $overdriveEmail;
 				$user->update();
 				//Update the serialized instance stored in the session
 				$_SESSION['userinfo'] = serialize($user);
@@ -606,6 +517,21 @@ class AJAX extends Action {
 		}
 	}
 
+	function GetDownloadLink(){
+		global $user;
+		$overDriveId = $_REQUEST['overDriveId'];
+		$formatId = $_REQUEST['formatId'];
+		if ($user && !PEAR_Singleton::isError($user)){
+			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+			$driver = OverDriveDriverFactory::getDriver();
+			$result = $driver->getDownloadLink($overDriveId, $formatId, $user);
+			//$logger->log("Checkout result = $result", PEAR_LOG_INFO);
+			return json_encode($result);
+		}else{
+			return json_encode(array('result'=>false, 'message'=>'You must be logged in to download a title.'));
+		}
+	}
+
 	/**
 	 * Return a form where the user can select the loan period when checking out a title
 	 */
@@ -620,10 +546,6 @@ class AJAX extends Action {
 		$overDriveDriver = OverDriveDriverFactory::getDriver();
 		$loanPeriods = $overDriveDriver->getLoanPeriodsForFormat($formatId);
 		$interface->assign('loanPeriods', $loanPeriods);
-
-		//Var for the IDCLREADER TEMPLATE
-		$interface->assign('ButtonHome',true);
-		$interface->assign('MobileTitle','{translate text="Loan Period"}');
 
 		return $interface->fetch('EcontentRecord/ajax-loan-period.tpl');
 	}
@@ -702,10 +624,6 @@ class AJAX extends Action {
 			$interface->assign('items', $items);
 		}
 
-		//Var for the IDCLREADER TEMPLATE
-		$interface->assign('ButtonHome',true);
-		$interface->assign('MobileTitle','{translate text="Select a Format"}');
-
 		return $interface->fetch('EcontentRecord/ajax-select-format.tpl');
 	}
 
@@ -725,7 +643,11 @@ class AJAX extends Action {
 	function CancelOverDriveHold(){
 		global $user;
 		$overDriveId = $_REQUEST['overDriveId'];
-		$format = $_REQUEST['formatId'];
+		if (isset($_REQUEST['formatId'])){
+			$format = $_REQUEST['formatId'];
+		}else{
+			$format = null;
+		}
 		if ($user && !PEAR_Singleton::isError($user)){
 			require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 			$driver = OverDriveDriverFactory::getDriver();
@@ -760,7 +682,7 @@ class AJAX extends Action {
 					$title = $eContentRecord->title;
 					$author = $eContentRecord->author;
 					require_once ROOT_DIR . '/services/Record/Purchase.php';
-					$purchaseLinks = Purchase::getStoresForTitle($title, $author);
+					$purchaseLinks = Record_Purchase::getStoresForTitle($title, $author);
 
 					if (count($purchaseLinks) > 0){
 						$interface->assign('purchaseLinks', $purchaseLinks);

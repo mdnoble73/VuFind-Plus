@@ -1,5 +1,3 @@
-<script type="text/javascript" src="{$path}/js/lists.js"></script>
-
 <div id="page-content" class="content">
 	<div id="sidebar">
 		{include file="MyResearch/menu.tpl"}

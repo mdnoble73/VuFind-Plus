@@ -1,30 +1,27 @@
-# Specific locations within VuFind #
-####################################
-sites/*
-!sites/default
-!sites/packaging_default
-vufind/documentation/
-vufind/admin/sql/
-vufind/packaging_app/config.ini
-vufind/web/images/fiveStar/*.png
-vufind/web/images/charts/*.png
-vufind/web/interface/cache/
-vufind/web/interface/compile/
-vufind/web/files/medium/*.jpg
-vufind/web/files/thumbnail/*.jpg
-vufind/web/*_strandsCatalog.csv
-vufind/web/*Strands.csv
+# Specific locations within VuFind to exclude from git #
+# Files are excluded either because                    #
+#  - they contain sensitive data (i.e. passwords)      #
+#  - they can change at runtime                        #
+########################################################
+sites/*/backup
+!sites/default/backup
+vufind/web/interface/cache/*
+vufind/web/interface/compile/*
 vufind/web/phpinfo.php
-vufind/import/src_backup
-vufind/web/images/covers/medium/*
-vufind/web/images/covers/small/*
-vufind/web/images/covers/large/*
+vufind/web/images/fiveStar/*
+vufind/web/images/charts/*
+vufind/web/files/medium/*
+vufind/web/files/thumbnail/*
 vufind/web/files/original/*
-vufind/web/*.csv
-tests/*
-.idea/
-.settings/
+vufind/web/google*.html
+vufind/web/getWorkIdUpdates.php
+tests/selenium/*
+tests/conf/config.ini
 data-import
+config.pwd.ini
+*.csv
+author_authorities.properties.temp
+author_authorities.v1.properties
 
 # Compiled source #                                                                                   
 ###################
@@ -32,6 +29,11 @@ data-import
 *.class
 *.o
 *.so
+
+# Unneeded files that are large or built at runtime #
+#####################################################
+III_Telnet_Extract.pl
+LexileTitles.txt
 
 # Packages #
 ############
@@ -55,6 +57,11 @@ data-import
 *.log.5
 *.sqlite
 
+# MARC records #
+################
+*.mrc
+*.marc
+
 # IDE Files #
 #################
 .buildpath
@@ -62,6 +69,9 @@ data-import
 .classpath
 org.eclipse.*.prefs
 *.iml
+.idea/
+.settings/
+out/
 
 # OS generated files #
 ######################
@@ -69,3 +79,12 @@ org.eclipse.*.prefs
 ehthumbs.db
 Icon?
 Thumbs.db
+~$*.docx
+
+# Dreamweaver Files #
+#####################
+[_]notes/
+
+# File-watcher mishaps #
+########################
+*.min.min.js

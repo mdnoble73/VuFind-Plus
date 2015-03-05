@@ -2,14 +2,14 @@ var suggestionScroller;
 function getSuggestions(){
 	suggestionScroller = new TitleScroller('titleScrollerSuggestion', 'Suggestion', 'suggestionList');
 	
-	var url = path + "/MyResearch/AJAX";
+	var url = path + "/MyAccount/AJAX";
 	var params = "method=GetSuggestions";
 	var fullUrl = url + "?" + params;
 	suggestionScroller.loadTitlesFrom(fullUrl);
 }
 
 function getListTitles(listId){
-	var url = path + "/MyResearch/AJAX";
+	var url = path + "/MyAccount/AJAX";
 	var params = "method=GetListTitles&listId=" + listId;
 	var fullUrl = url + "?" + params;
     $.ajax({
@@ -68,7 +68,7 @@ function suspendSelectedEContentHolds(){
 		alert("Please select the date when the hold should be reactivated.");
 		return false;
 	}
-	var url = path + '/MyResearch/EContentHolds?multiAction=suspendSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
+	var url = path + '/MyAccount/Holds?multiAction=suspendSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
 	window.location = url;
 	return false;
 }
@@ -88,18 +88,22 @@ function getSelectedUnavailableHolds(){
 	return selectedTitles;
 }
 
-function clearUserRating(source, recordId, shortId){
-	var url = path + '/MyResearch/AJAX?method=clearUserRating&source=' + source + '&recordId=' + recordId;
-	$.getJSON(url, function(data){
-		if (data.result == true){
-			if (source == 'VuFind'){
-				$('.rate' + shortId).find('.ui-rater-starsOn').width(0);
+function resetPinReset(){
+	var barcode = $('#card_number').val();
+	if (barcode.length == 0){
+		alert("Please enter your library card number");
+	}else{
+		var url = path + '/MyAccount/AJAX?method=requestPinReset&barcode=' + barcode;
+		$.getJSON(url, function(data){
+			if (data.error == false){
+				alert(data.message);
+				if (data.result == true){
+					hideLightbox();
+				}
 			}else{
-				$('.rateEContent' + recordId).find('.ui-rater-starsOn').width(0);
+				alert("There was an error requesting your pin reset information.  Please contact the library for additional information.");
 			}
-		}else{
-			alert("Unable to remove the rating.");
-		}
-	});
+		});
+	}
 	return false;
 }

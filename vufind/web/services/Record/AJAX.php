@@ -31,12 +31,12 @@ class Record_AJAX extends Action {
 		$analytics->disableTracking();
 		$method = $_GET['method'];
 		$timer->logTime("Starting method $method");
-		if (in_array($method, array('RateTitle', 'GetSeriesTitles', 'GetComments', 'SaveComment', 'SaveTag', 'SaveRecord'))){
+		if (in_array($method, array('getPlaceHoldForm', 'placeHold', 'reloadCover'))){
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			echo $this->$method();
-		}else if (in_array($method, array('GetGoDeeperData', 'getPurchaseOptions', 'getDescription'))){
+		}else if (in_array($method, array('GetGoDeeperData', 'getPurchaseOptions'))){
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -77,6 +77,7 @@ class Record_AJAX extends Action {
 		flush();
 		echo($marcData->toRaw());
 	}
+
 	function getPurchaseOptions(){
 		global $interface;
 		if (isset($_REQUEST['id'])){
@@ -157,13 +158,12 @@ class Record_AJAX extends Action {
 				if (count($purchaseLinks) > 0){
 					$interface->assign('purchaseLinks', $purchaseLinks);
 				}else{
-					$resource = new Resource();
-					$resource->record_id = $id;
-					$resource->source = 'VuFind';
-					if ($resource->find(true)){
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($id);
+					if ($recordDriver->isValid()){
+						$title = $recordDriver->getTitle();
+						$author = $recordDriver->getAuthor();
 
-						$title = $resource->title;
-						$author = $resource->author;
 						require_once ROOT_DIR . '/services/Record/Purchase.php';
 						$purchaseLinks = Record_Purchase::getStoresForTitle($title, $author);
 
@@ -196,189 +196,6 @@ class Record_AJAX extends Action {
 		(UserAccount::isLoggedIn() ? "True" : "False") . "</result>";
 	}
 
-	// Saves a Record to User's Account
-	function SaveRecord()
-	{
-		require_once ROOT_DIR . '/services/Record/Save.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/User_list.php';
-
-		$result = array();
-		if (UserAccount::isLoggedIn()) {
-			$saveService = new Record_Save();
-			$result = $saveService->saveRecord();
-			if (!PEAR_Singleton::isError($result)) {
-				$result['result'] = "Done";
-			} else {
-				$result['result'] = "Error";
-			}
-		} else {
-			$result['result'] = "Unauthorized";
-		}
-		return json_encode($result);
-	}
-
-	function GetSaveStatus()
-	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-
-		// check if user is logged in
-		if ((!$user = UserAccount::isLoggedIn())) {
-			return "<result>Unauthorized</result>";
-		}
-
-		// Check if resource is saved to favorites
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		$resource->source = 'VuFind';
-		if ($resource->find(true)) {
-			if ($user->hasResource($resource)) {
-				return '<result>Saved</result>';
-			} else {
-				return '<result>Not Saved</result>';
-			}
-		} else {
-			return '<result>Not Saved</result>';
-		}
-	}
-
-	// Email Record
-	function SendEmail()
-	{
-		require_once ROOT_DIR . '/services/Record/Email.php';
-
-		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->init();
-
-		$emailService = new Record_Email();
-		$result = $emailService->sendEmail($_GET['to'], $_GET['from'], $_GET['message']);
-
-		if (PEAR_Singleton::isError($result)) {
-			return '<result>Error</result><details>' .
-			htmlspecialchars($result->getMessage()) . '</details>';
-		} else {
-			if ($result === true){
-				return '<result>Done</result>';
-			}else{
-				return '<result><![CDATA[' . $result . ']]></result>';
-			}
-		}
-	}
-
-	// SMS Record
-	function SendSMS()
-	{
-		require_once ROOT_DIR . '/services/Record/SMS.php';
-		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->init();
-
-		$sms = new SMS();
-		$result = $sms->sendSMS();
-
-		if (PEAR_Singleton::isError($result)) {
-			return '<result>Error</result>';
-		} else {
-			if ($result === true){
-				return '<result>Done</result>';
-			}else{
-				return '<result><![CDATA[' . $result . ']]></result>';
-			}
-		}
-	}
-
-	function SaveComment()
-	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-
-		$user = UserAccount::isLoggedIn();
-		if ($user === false) {
-			return "<result>Unauthorized</result>";
-		}
-
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		$resource->source = 'VuFind';
-		if (!$resource->find(true)) {
-			$resource->insert();
-		}
-		$resource->addComment($_REQUEST['comment'], $user);
-
-		return json_encode(array('result' => 'Done'));
-	}
-
-	function DeleteComment()
-	{
-		require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
-		global $user;
-
-		// Process Delete Comment
-		if (is_object($user)) {
-			$comment = new Comments();
-			$comment->id = $_GET['commentId'];
-			if ($comment->find(true)) {
-				if ($user->id == $comment->user_id || $user->hasRole('opacAdmin')) {
-					$comment->delete();
-				}
-			}
-		}
-		return '<result>true</result>';
-	}
-
-	function GetComments()
-	{
-		global $interface;
-
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-		require_once ROOT_DIR . '/services/MyResearch/lib/Comments.php';
-
-		$interface->assign('id', $_GET['id']);
-
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		$resource->source = 'VuFind';
-		$commentList = array('user'=>array(), 'staff'=> array());
-		if ($resource->find(true)) {
-			$commentList = $resource->getComments();
-		}
-
-		$interface->assign('commentList', $commentList['user']);
-		$userComments = $interface->fetch('Record/view-comments-list.tpl');
-		$interface->assign('staffCommentList', $commentList['staff']);
-		$staffComments = $interface->fetch('Record/view-staff-reviews-list.tpl');
-
-		return json_encode(array(
-			'staffComments' => $staffComments,
-			'userComments' => $userComments,
-		));
-	}
-
-	function RateTitle(){
-		require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-		require_once(ROOT_DIR . '/Drivers/marmot_inc/UserRating.php');
-		global $user;
-		global $analytics;
-		if (!isset($user) || $user == false){
-			header('HTTP/1.0 500 Internal server error');
-			return 'Please login to rate this title.';
-		}
-		$rating = $_REQUEST['rating'];
-		//Save the rating
-		$resource = new Resource();
-		$resource->record_id = $_GET['id'];
-		$resource->source = 'VuFind';
-		if (!$resource->find(true)) {
-			$resource->insert();
-		}
-		$resource->addRating($rating, $user);
-		$analytics->addEvent('User Enrichment', 'Rate Title', $resource->title);
-
-		/** @var Memcache $memCache */
-		global $memCache;
-		$memCache->delete('rating_' . $_GET['id']);
-
-		return $rating;
-	}
-
 	function GetGoDeeperData(){
 		require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
 		$dataType = $_REQUEST['dataType'];
@@ -390,143 +207,99 @@ class Record_AJAX extends Action {
 
 	}
 
-	function GetEnrichmentInfo(){
-		require_once ROOT_DIR . '/services/Record/Enrichment.php';
-		global $configArray;
-		global $library;
-		$isbn = $_REQUEST['isbn'];
-		$upc = $_REQUEST['upc'];
-		$id = $_REQUEST['id'];
-		$enrichmentData = Record_Enrichment::loadEnrichment($isbn);
-		global $interface;
-		$interface->assign('id', $id);
-		$interface->assign('enrichment', $enrichmentData);
-		$showSimilarTitles = false;
-		if (isset($enrichmentData['novelist']) && isset($enrichmentData['novelist']['similarTitles']) && is_array($enrichmentData['novelist']['similarTitles']) && count($enrichmentData['novelist']['similarTitles']) > 0){
-			foreach ($enrichmentData['novelist']['similarTitles'] as $title){
-				if ($title['recordId'] != -1){
-					$showSimilarTitles = true;
-					break;
-				}
-			}
-		}
-		if (isset($library) && $library->showSimilarTitles == 0){
-			$interface->assign('showSimilarTitles', false);
-		}else{
-			$interface->assign('showSimilarTitles', $showSimilarTitles);
-		}
-		if (isset($library) && $library->showSimilarAuthors == 0){
-			$interface->assign('showSimilarAuthors', false);
-		}else{
-			$interface->assign('showSimilarAuthors', true);
-		}
-
-		//Process series data
-		$titles = array();
-		if (!isset($enrichmentData['novelist']['series']) || count($enrichmentData['novelist']['series']) == 0){
-			$interface->assign('seriesInfo', json_encode(array('titles'=>$titles, 'currentIndex'=>0)));
-		}else{
-			foreach ($enrichmentData['novelist']['series'] as $record){
-				$isbn = $record['isbn'];
-				if (strpos($isbn, ' ') > 0){
-					$isbn = substr($isbn, 0, strpos($isbn, ' '));
-				}
-				$cover = $configArray['Site']['coverUrl'] . "/bookcover.php?size=medium&isn=" . $isbn;
-				if (isset($record['id'])){
-					$cover .= "&id=" . $record['id'];
-				}
-				if (isset($record['upc'])){
-					$cover .= "&upc=" . $record['upc'];
-				}
-				if (isset($record['issn'])){
-					$cover .= "&issn=" . $record['issn'];
-				}
-				if (isset($record['format_category'])){
-					$cover .= "&category=" . $record['format_category'][0];
-				}
-				$title = $record['title'];
-				if (isset($record['series'])){
-					$title .= ' (' . $record['series'] ;
-					if (isset($record['volume'])){
-						$title .= ' Volume ' . $record['volume'];
-					}
-					$title .= ')';
-				}
-				$titles[] = array(
-	        	  'id' => isset($record['id']) ? $record['id'] : '',
-			    		'image' => $cover,
-			    		'title' => $title,
-			    		'author' => $record['author']
-				);
-			}
-
-			foreach ($titles as $key => $rawData){
-				if ($rawData['id']){
-					if (strpos($rawData['id'], 'econtentRecord') === 0){
-						$fullId = $rawData['id'];
-						$shortId = str_replace('econtentRecord', '', $rawData['id']);
-						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-								'<a href="' . $configArray['Site']['path'] . "/EcontentRecord/" . $shortId . '" id="descriptionTrigger' . $fullId . '">' .
-								"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-								"</a></div>" .
-								"<div id='descriptionPlaceholder{$fullId}' style='display:none'></div>";
-					}else{
-						$shortId = str_replace('.', '', $rawData['id']);
-						$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-							'<a href="' . $configArray['Site']['path'] . "/Record/" . $rawData['id'] . '" id="descriptionTrigger' . $shortId . '">' .
-							"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-							"</a></div>" .
-							"<div id='descriptionPlaceholder{$shortId}' style='display:none'></div>";
-					}
-				}else{
-					$formattedTitle = "<div id=\"scrollerTitleSeries{$key}\" class=\"scrollerTitle\">" .
-						"<img src=\"{$rawData['image']}\" class=\"scrollerTitleCover\" alt=\"{$rawData['title']} Cover\"/>" .
-						"</div>";
-				}
-				$rawData['formattedTitle'] = $formattedTitle;
-				$titles[$key] = $rawData;
-			}
-			$seriesInfo = array('titles' => $titles, 'currentIndex' => $enrichmentData['novelist']['seriesDefaultIndex']);
-			$interface->assign('seriesInfo', json_encode($seriesInfo));
-		}
-
-		//Load go deeper options
-		if (isset($library) && $library->showGoDeeper == 0){
-			$interface->assign('showGoDeeper', false);
-		}else{
-			require_once(ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php');
-			$goDeeperOptions = GoDeeperData::getGoDeeperOptions($isbn, $upc);
-			if (count($goDeeperOptions['options']) == 0){
-				$interface->assign('showGoDeeper', false);
-			}else{
-				$interface->assign('showGoDeeper', true);
-			}
-		}
-
-		return $interface->fetch('Record/ajax-enrichment.tpl');
-	}
-
-	function GetSeriesTitles(){
-		//Get other titles within a series for display within the title scroller
-		require_once 'Enrichment.php';
-		$isbn = $_REQUEST['isbn'];
-		$id = $_REQUEST['id'];
-		$enrichmentData = Record_Enrichment::loadEnrichment($isbn);
-		global $interface;
-		$interface->assign('id', $id);
-		$interface->assign('enrichment', $enrichmentData);
-
-
-	}
-
 	function GetHoldingsInfo(){
 		require_once 'Holdings.php';
 		global $interface;
 		global $configArray;
-		$interface->assign('showOtherEditionsPopup', 0);
+		global $library;
+		global $timer;
+		$timer->logTime("Starting GetHoldingsInfo");
+		if ($configArray['Catalog']['offline']){
+			$interface->assign('offline', true);
+		}else{
+			$interface->assign('offline', false);
+		}
 		$id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $id);
-		Record_Holdings::loadHoldings($id);
+
+		$showCopiesLineInHoldingsSummary = true;
+		$showCheckInGrid = true;
+		if ($library && $library->showCopiesLineInHoldingsSummary == 0){
+			$showCopiesLineInHoldingsSummary = false;
+		}
+		$interface->assign('showCopiesLineInHoldingsSummary', $showCopiesLineInHoldingsSummary);
+		if ($library && $library->showCheckInGrid == 0){
+			$showCheckInGrid = false;
+		}
+		$interface->assign('showCheckInGrid', $showCheckInGrid);
+
+		try {
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$timer->logTime("Connected to catalog");
+		} catch (PDOException $e) {
+			// What should we do with this error?
+			if ($configArray['System']['debug']) {
+				echo '<pre>';
+				echo 'DEBUG: ' . $e->getMessage();
+				echo '</pre>';
+			}
+			return null;
+		}
+
+		$holdingData = new stdClass();
+		// Get Holdings Data
+		if ($catalog->status) {
+			$result = $catalog->getHolding($id);
+			$timer->logTime("Loaded Holding Data from catalog");
+			if (PEAR_Singleton::isError($result)) {
+				PEAR_Singleton::raiseError($result);
+			}
+			if (count($result)) {
+				$holdings = array();
+				$issueSummaries = array();
+				foreach ($result as $copy) {
+					if (isset($copy['type']) && $copy['type'] == 'issueSummary'){
+						$issueSummaries = $result;
+						break;
+					}else{
+						$key = $copy['location'];
+						$key = preg_replace('~\W~', '_', $key);
+						$holdings[$key][] = $copy;
+					}
+				}
+				if (isset($issueSummaries) && count($issueSummaries) > 0){
+					$interface->assign('issueSummaries', $issueSummaries);
+					$holdingData->issueSummaries = $issueSummaries;
+				}else{
+					$interface->assign('holdings', $holdings);
+					$holdingData->holdings = $holdings;
+				}
+			}else{
+				$interface->assign('holdings', array());
+				$holdingData->holdings = array();
+			}
+
+			// Get Acquisitions Data
+			$result = $catalog->getPurchaseHistory($id);
+			if (PEAR_Singleton::isError($result)) {
+				PEAR_Singleton::raiseError($result);
+			}
+			$interface->assign('history', $result);
+			$holdingData->history = $result;
+			$timer->logTime("Loaded purchase history");
+
+			//Holdings summary
+			$result = $catalog->getStatusSummary($id, false);
+			if (PEAR_Singleton::isError($result)) {
+				PEAR_Singleton::raiseError($result);
+			}
+			$holdingData->holdingsSummary = $result;
+			$interface->assign('holdingsSummary', $result);
+			$timer->logTime("Loaded holdings summary");
+
+			$interface->assign('formattedHoldingsSummary', $interface->fetch('Record/holdingsSummary.tpl'));
+		}
+
 		return $interface->fetch('Record/ajax-holdings.tpl');
 	}
 
@@ -537,12 +310,6 @@ class Record_AJAX extends Action {
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
 
-		global $library;
-		if (isset($library)){
-			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
-		}else{
-			$interface->assign('showProspectorTitlesAsTab', 1);
-		}
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 		// Setup Search Engine Connection
@@ -550,9 +317,6 @@ class Record_AJAX extends Action {
 		$url = $configArray['Index']['url'];
 		/** @var SearchObject_Solr $db */
 		$db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$db->debug = true;
-		}
 
 		// Retrieve Full record from Solr
 		if (!($record = $db->getRecord($id))) {
@@ -592,27 +356,172 @@ class Record_AJAX extends Action {
 		return $interface->fetch('Record/ajax-reviews.tpl');
 	}
 
-	function getDescription(){
-		/** @var Memcache $memCache */
-		global $memCache;
+	function getPlaceHoldForm(){
+		global $interface;
+		global $user;
+		if ($user){
+			$id = $_REQUEST['id'];
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$profile = $catalog->getMyProfile($user);
+			$interface->assign('profile', $profile);
+
+			//Get information to show a warning if the user does not have sufficient holds
+			require_once ROOT_DIR . '/Drivers/marmot_inc/PType.php';
+			$maxHolds = -1;
+			//Determine if we should show a warning
+			$ptype = new PType();
+			$ptype->pType = $user->patronType;
+			if ($ptype->find(true)){
+				$maxHolds = $ptype->maxHolds;
+			}
+			$currentHolds = $profile['numHolds'];
+			if ($maxHolds != -1 && ($currentHolds + 1 > $maxHolds)){
+				$interface->assign('showOverHoldLimit', true);
+				$interface->assign('maxHolds', $maxHolds);
+				$interface->assign('currentHolds', $currentHolds);
+			}
+
+			global $locationSingleton;
+			//Get the list of pickup branch locations for display in the user interface.
+			// using $user to be consistent with other code use of getPickupBranches()
+//			$locations = $locationSingleton->getPickupBranches($profile, $profile['homeLocationId']);
+			$locations = $locationSingleton->getPickupBranches($user, $user->homeLocationId);
+			$interface->assign('pickupLocations', $locations);
+
+			global $library;
+			$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
+			$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
+
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			$marcRecord = new MarcRecord($id);
+			$interface->assign('id', $id);
+			$title = $marcRecord->getTitle();
+			$interface->assign('title', $title);
+			$results = array(
+					'title' => 'Place Hold on ' . $title,
+					'modalBody' => $interface->fetch("Record/hold-popup.tpl"),
+					'modalButtons' => "<input type='submit' name='submit' id='requestTitleButton' value='Submit Hold Request' class='btn btn-primary' onclick='return VuFind.Record.submitHoldForm();'/>"
+			);
+		}else{
+			$results = array(
+					'title' => 'Please login',
+					'modalBody' => "You must be logged in.  Please close this dialog and login before placing your hold.",
+					'modalButtons' => ""
+			);
+		}
+
+		return json_encode($results);
+	}
+
+	function placeHold(){
+		global $user;
 		global $configArray;
 		global $interface;
-		$id = $_REQUEST['id'];
-		//Bypass loading solr, etc if we already have loaded the descriptive info before
-		$descriptionArray = $memCache->get("record_description_{$id}");
-		if (!$descriptionArray){
-			require_once 'Description.php';
-			$searchObject = SearchObjectFactory::initSearchObject();
-			$searchObject->init();
+		$recordId = $_REQUEST['id'];
+		if ($user){
+			//The user is already logged in
+			$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
+			if (isset($_REQUEST['selectedItem'])){
+				$return = $catalog->placeItemHold($recordId, $_REQUEST['selectedItem'], $user->$barcodeProperty, '', '');
+			}else{
+				$return = $catalog->placeHold($recordId, $user->$barcodeProperty, '', '');
+			}
 
-			$description = new Record_Description(true, $id);
-			$descriptionArray = $description->loadData();
-			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
+			if (isset($return['items'])){
+				$campus = $_REQUEST['campus'];
+				$interface->assign('campus', $campus);
+				$items = $return['items'];
+				$interface->assign('items', $items);
+				$interface->assign('message', $return['message']);
+				$interface->assign('id', $recordId);
+
+				global $library;
+				$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
+				$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
+
+				//Need to place item level holds.
+				$results = array(
+						'success' => true,
+						'needsItemLevelHold' => true,
+						'message' => $interface->fetch('Record/item-hold-popup.tpl'),
+						'title' => $return['title'],
+				);
+			}else{ // Completed Hold Attempt
+				$interface->assign('message', $return['message']);
+				$success = $return['result'];
+				$interface->assign('success', $success);
+
+				//Get library based on patron home library since that is what controls their notifications rather than the active interface.
+				//$library = Library::getPatronHomeLibrary();
+				global $library;
+				$canUpdateContactInfo = $library->allowProfileUpdates == 1;
+				// set update permission based on active library's settings. Or allow by default.
+				$canChangeNoticePreference = $library->showNoticeTypeInProfile == 1;
+				// when user preference isn't set, they will be shown a link to account profile. this link isn't needed if the user can not change notification preference.
+				$interface->assign('canUpdate', $canUpdateContactInfo);
+				$interface->assign('canChangeNoticePreference', $canChangeNoticePreference);
+
+				$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
+				$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
+
+				$results = array(
+						'success' => $success,
+						'message' => $interface->fetch('Record/hold-success-popup.tpl'),
+						'title' => $return['title'],
+				);
+				if (isset($_REQUEST['autologout'])){
+					UserAccount::softLogout();
+					$results['autologout'] = true;
+				}
+			}
+		} else {
+			$results = array(
+				'success' => false,
+				'message' => 'You must be logged in to place a hold.  Please close this dialog and login.',
+				'title' => 'Please login',
+			);
+			if (isset($_REQUEST['autologout'])){
+				UserAccount::softLogout();
+				$results['autologout'] = true;
+			}
 		}
-		$interface->assign('description', $descriptionArray['description']);
-		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');
-		$interface->assign('publisher', isset($descriptionArray['publisher']) ? $descriptionArray['publisher'] : '');
+		return json_encode($results);
+	}
 
-		return $interface->fetch('Record/ajax-description-popup.tpl');
+	function reloadCover(){
+		require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+		$id = $_REQUEST['id'];
+		$recordDriver = new MarcRecord($id);
+
+		//Reload small cover
+		$smallCoverUrl = str_replace('&amp;', '&', $recordDriver->getBookcoverUrl('small')) . '&reload';
+		file_get_contents($smallCoverUrl);
+
+		//Reload medium cover
+		$mediumCoverUrl = str_replace('&amp;', '&', $recordDriver->getBookcoverUrl('medium')) . '&reload';
+		file_get_contents($mediumCoverUrl);
+
+		//Reload large cover
+		$largeCoverUrl = str_replace('&amp;', '&', $recordDriver->getBookcoverUrl('large')) . '&reload';
+		file_get_contents($largeCoverUrl);
+
+		//Also reload covers for the grouped work
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		$groupedWorkDriver = new GroupedWorkDriver($recordDriver->getGroupedWorkId());
+		global $configArray;
+		//Reload small cover
+		$smallCoverUrl = $configArray['Site']['coverUrl'] . str_replace('&amp;', '&', $groupedWorkDriver->getBookcoverUrl('small')) . '&reload';
+		file_get_contents($smallCoverUrl);
+
+		//Reload medium cover
+		$mediumCoverUrl = $configArray['Site']['coverUrl'] . str_replace('&amp;', '&', $groupedWorkDriver->getBookcoverUrl('medium')) . '&reload';
+		file_get_contents($mediumCoverUrl);
+
+		//Reload large cover
+		$largeCoverUrl = $configArray['Site']['coverUrl'] . str_replace('&amp;', '&', $groupedWorkDriver->getBookcoverUrl('large')) . '&reload';
+		file_get_contents($largeCoverUrl);
+
+		return json_encode(array('success' => true, 'message' => 'Covers have been reloaded.  You may need to refresh the page to clear your local cache.'));
 	}
 }

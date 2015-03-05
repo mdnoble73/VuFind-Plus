@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
@@ -15,7 +16,28 @@ public class DatabaseCleanup implements IProcessHandler {
 	public void doCronProcess(String servername, Ini configIni, Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
 		CronProcessLogEntry processLog = new CronProcessLogEntry(cronEntry.getLogEntryId(), "Database Cleanup");
 		processLog.saveToDatabase(vufindConn, logger);
-		
+
+		//Remove expired sessions
+		try{
+			//Make sure to normalize the time based to be milliseconds, not microseconds
+			long now = new Date().getTime() / 1000;
+			long defaultTimeout = Long.parseLong(Util.cleanIniValue(configIni.get("Session", "lifetime")));
+			long earliestDefaultSessionToKeep = now - defaultTimeout;
+			long numStandardSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where last_used < " + earliestDefaultSessionToKeep + " and remember_me = 0").executeUpdate();
+			processLog.addNote("Deleted " + numStandardSessionsDeleted + " expired Standard Sessions");
+			processLog.saveToDatabase(vufindConn, logger);
+			long rememberMeTimeout = Long.parseLong(Util.cleanIniValue(configIni.get("Session", "rememberMeLifetime")));
+			long earliestRememberMeSessionToKeep = now - rememberMeTimeout;
+			long numRememberMeSessionsDeleted = vufindConn.prepareStatement("DELETE FROM session where last_used < " + earliestRememberMeSessionToKeep + " and remember_me = 1").executeUpdate();
+			processLog.addNote("Deleted " + numRememberMeSessionsDeleted + " expired Remember Me Sessions");
+			processLog.saveToDatabase(vufindConn, logger);
+		}catch (SQLException e) {
+			processLog.incErrors();
+			processLog.addNote("Unable to delete expired sessions. " + e.toString());
+			logger.error("Error deleting expired sessions", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
+
 		//Remove old searches 
 		try {
 			int rowsRemoved = 0;
@@ -49,7 +71,7 @@ public class DatabaseCleanup implements IProcessHandler {
 		}
 		
 		//Remove econtent records and related data that was created incorrectly. 
-		try {
+		/*try {
 			//Anything where the ILS id matches the ID is wrong.   
 			ResultSet eContentToCleanup = econtentConn.prepareStatement("SELECT id from econtent_record WHERE ilsId = id OR ilsId like 'econtentRecord%'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY).executeQuery();
 			PreparedStatement removeResourceStmt = vufindConn.prepareStatement("DELETE FROM resource where record_id = ? and source = 'eContent'");
@@ -99,7 +121,7 @@ public class DatabaseCleanup implements IProcessHandler {
 			processLog.addNote("Unable to remove incorrectly created econtent. " + e.toString());
 			logger.error("Error removing incorrectly created econtent", e);
 			processLog.saveToDatabase(vufindConn, logger);
-		}
+		}*/
 		processLog.setFinished();
 		processLog.saveToDatabase(vufindConn, logger);
 	}

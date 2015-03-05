@@ -26,7 +26,6 @@ class PersonRecord extends IndexRecord
 	 */
 	public function getSearchResult()
 	{
-		global $configArray;
 		global $interface;
 
 		$id = $this->getUniqueID();
@@ -39,7 +38,6 @@ class PersonRecord extends IndexRecord
 		$person->find();
 		if ($person->N > 0){
 			$person->fetch();
-			$person = Person::staticGet('personId', $shortId);
 			$interface->assign('summPicture', $person->picture);
 		}
 

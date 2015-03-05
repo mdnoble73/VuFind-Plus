@@ -100,9 +100,11 @@ class MaterialsRequest_UserReport extends Admin_Admin {
 				$userData[$materialsRequest->userId]['lastName'] = $materialsRequest->lastName;
 				$barcodeProperty = $configArray['Catalog']['barcodeProperty'];
 				$userData[$materialsRequest->userId]['barcode'] = $materialsRequest->$barcodeProperty;
+				$userData[$materialsRequest->userId]['totalRequests'] = 0;
 				$userData[$materialsRequest->userId]['requestsByStatus'] = array();
 			}
 			$userData[$materialsRequest->userId]['requestsByStatus'][$materialsRequest->description] = $materialsRequest->numRequests;
+			$userData[$materialsRequest->userId]['totalRequests'] += $materialsRequest->numRequests;
 		}
 		$interface->assign('userData', $userData);
 
@@ -122,6 +124,7 @@ class MaterialsRequest_UserReport extends Admin_Admin {
 
 		$interface->setTemplate('userReport.tpl');
 		$interface->setPageTitle('Materials Request User Report');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->display('layout.tpl');
 	}
 
@@ -151,6 +154,7 @@ class MaterialsRequest_UserReport extends Admin_Admin {
 		foreach ($statuses as $statusLabel){
 			$activeSheet->setCellValueByColumnAndRow($column++, 3, $statusLabel);
 		}
+		$activeSheet->setCellValueByColumnAndRow($column, 3, 'Total');
 
 		$row = 4;
 		$column = 0;
@@ -162,6 +166,7 @@ class MaterialsRequest_UserReport extends Admin_Admin {
 			foreach ($statuses as $status => $statusLabel){
 				$activeSheet->setCellValueByColumnAndRow($column++, $row, isset($userInfo['requestsByStatus'][$status]) ? $userInfo['requestsByStatus'][$status] : 0);
 			}
+			$activeSheet->setCellValueByColumnAndRow($column, $row, $userInfo['totalRequests']);
 			$row++;
 			$column = 0;
 		}

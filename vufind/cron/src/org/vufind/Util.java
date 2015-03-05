@@ -22,6 +22,10 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.vufind.CopyNoOverwriteResult.CopyResult;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
+
 public class Util {
 	
 
@@ -201,6 +205,9 @@ public class Util {
 		if (value == null) {
 			return null;
 		}
+		if (value.contains(";")){
+			value = value.substring(0, value.indexOf(";"));
+		}
 		value = value.trim();
 		if (value.startsWith("\"")) {
 			value = value.substring(1);
@@ -246,6 +253,18 @@ public class Util {
 		try {
 			URL emptyIndexURL = new URL(url);
 			HttpURLConnection conn = (HttpURLConnection) emptyIndexURL.openConnection();
+			logger.debug("Getting From URL " + url);
+			if (conn instanceof HttpsURLConnection){
+				HttpsURLConnection sslConn = (HttpsURLConnection)conn;
+				sslConn.setHostnameVerifier(new HostnameVerifier() {
+
+					@Override
+					public boolean verify(String hostname, SSLSession session) {
+						//Do not verify host names
+						return true;
+					}
+				});
+			}
 			
 			StringBuffer response = new StringBuffer();
 			if (conn.getResponseCode() == 200) {
@@ -253,7 +272,7 @@ public class Util {
 				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
 				String line;
 				while ((line = rd.readLine()) != null) {
-					response.append(line);
+					response.append(line + "\r\n");
 				}
 
 				rd.close();
@@ -281,16 +300,36 @@ public class Util {
 		return retVal;
 	}
 
-	public static URLPostResponse postToURL(String url, String postData, Logger logger) {
+	public static URLPostResponse postToURL(String url, String postData, String contentType, String referer, Logger logger) {
 		URLPostResponse retVal;
+		HttpURLConnection conn = null;
 		try {
 			URL emptyIndexURL = new URL(url);
-			HttpURLConnection conn = (HttpURLConnection) emptyIndexURL.openConnection();
+			conn = (HttpURLConnection) emptyIndexURL.openConnection();
+			conn.setConnectTimeout(1000);
+			conn.setReadTimeout(300000);
+			logger.debug("Posting To URL " + url + (postData != null && postData.length() > 0 ? "?" + postData : ""));
+
+			if (conn instanceof HttpsURLConnection){
+				HttpsURLConnection sslConn = (HttpsURLConnection)conn;
+				sslConn.setHostnameVerifier(new HostnameVerifier() {
+
+					@Override
+					public boolean verify(String hostname, SSLSession session) {
+						//Do not verify host names
+						return true;
+					}
+				});
+			}
 			conn.setDoInput(true);
+			if (referer != null){
+				conn.setRequestProperty("Referer", referer);
+			}
+			conn.setRequestMethod("POST");
 			if (postData != null && postData.length() > 0) {
-				conn.setRequestMethod("POST");
-				conn.setRequestProperty("Content-Type", "text/xml; charset=utf-8");
+				conn.setRequestProperty("Content-Type", contentType + "; charset=utf-8");
 				conn.setRequestProperty("Content-Language", "en-US");
+				conn.setRequestProperty("Connection", "keep-alive");
 
 				conn.setDoOutput(true);
 				OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream(), "UTF8");
@@ -341,7 +380,28 @@ public class Util {
 		} catch (IOException e) {
 			logger.error("Error posting to url \r\n" + url, e);
 			retVal = new URLPostResponse(false, -1, "Error posting to url \r\n" + url + "\r\n" + e.toString());
+		}finally{
+			if (conn != null) conn.disconnect();
 		}
 		return retVal;
+	}
+
+	public static boolean isNumeric(String str)
+	{
+		for (char c : str.toCharArray())
+		{
+			if (!Character.isDigit(c)) return false;
+		}
+		return true;
+	}
+
+	public static String trimTo(int maxCharacters, String stringToTrim) {
+		if (stringToTrim == null) {
+			return null;
+		}
+		if (stringToTrim.length() > maxCharacters) {
+			stringToTrim = stringToTrim.substring(0, maxCharacters);
+		}
+		return stringToTrim.trim();
 	}
 }

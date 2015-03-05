@@ -24,109 +24,30 @@ class MillenniumReadingHistory {
 		//Load the information from millennium using CURL
 		$pageContents = $this->driver->_fetchPatronInfoPage($patronDump, 'readinghistory');
 
-		$sResult = preg_replace("/<[^<]+?><[^<]+?>Reading History.\(.\d*.\)<[^<]+?>\W<[^<]+?>/", "", $pageContents);
-
-		$s = substr($sResult, stripos($sResult, 'patFunc'));
-		$s = substr($s,strpos($s,">")+1);
-		$s = substr($s,0,stripos($s,"</table"));
-
-		$s = preg_replace ("/<br \/>/","", $s);
-
-		$srows = preg_split("/<tr([^>]*)>/",$s);
-
-		$scount = 0;
-		$skeys = array_pad(array(),10,"");
-		$readingHistoryTitles = array();
-		$itemindex = 0;
-		foreach ($srows as $srow) {
-			$scols = preg_split("/<t(h|d)([^>]*)>/",$srow);
-			$historyEntry = array();
-			for ($i=0; $i < sizeof($scols); $i++) {
-				$scols[$i] = str_replace("&nbsp;"," ",$scols[$i]);
-				$scols[$i] = preg_replace ("/<br+?>/"," ", $scols[$i]);
-				$scols[$i] = html_entity_decode(trim(substr($scols[$i],0,stripos($scols[$i],"</t"))));
-				//print_r($scols[$i]);
-				if ($scount == 1) {
-					$skeys[$i] = $scols[$i];
-				} else if ($scount > 1) {
-					if (stripos($skeys[$i],"Mark") > -1) {
-						if (preg_match('/id="rsh(\\d+)"/', $scols[$i], $matches)){
-							$itemIndex = $matches[1];
-							$historyEntry['itemindex'] = $itemIndex;
-						}
-						$historyEntry['deletable'] = "BOX";
-					}
-
-					if (stripos($skeys[$i],"Title") > -1) {
-						if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $scols[$i], $matches)) {
-							$shortId = $matches[1];
-							$bibId = '.' . $matches[2];
-							$title = $matches[2];
-
-							$historyEntry['id'] = $bibId;
-							$historyEntry['shortId'] = $shortId;
-						}else{
-							$title = strip_tags($scols[$i]);
-						}
-
-						$historyEntry['title'] = $title;
-					}
-
-					if (stripos($skeys[$i],"Author") > -1) {
-						$historyEntry['author'] = strip_tags($scols[$i]);
-					}
-
-					if (stripos($skeys[$i],"Checked Out") > -1) {
-						$historyEntry['checkout'] = strip_tags($scols[$i]);
-					}
-					if (stripos($skeys[$i],"Details") > -1) {
-						$historyEntry['details'] = strip_tags($scols[$i]);
-					}
-
-					$historyEntry['borrower_num'] = $patron['id'];
-				} //Done processing column
-			} //Done processing row
-
-			if ($scount > 1){
-				$historyEntry['title_sort'] = strtolower($historyEntry['title']);
-
-				//$historyEntry['itemindex'] = $itemindex++;
-				//Get additional information from resources table
-				if (isset($historyEntry['shortId']) && strlen($historyEntry['shortId']) > 0){
-					/** @var Resource|Object $resource */
-					$resource = new Resource();
-					$resource->shortId = $historyEntry['shortId'];
-					if ($resource->find(true)){
-						$historyEntry = array_merge($historyEntry, get_object_vars($resource));
-						$historyEntry['recordId'] = $resource->record_id;
-						$historyEntry['shortId'] = str_replace('.b', 'b', $resource->record_id);
-						$historyEntry['ratingData'] = $resource->getRatingData();
-					}else{
-						//echo("Warning did not find resource for {$historyEntry['shortId']}");
-					}
+		//Check to see if there are multiple pages of reading history
+		$hasPagination = preg_match('/<td[^>]*class="browsePager"/', $pageContents);
+		if ($hasPagination){
+			//Load a list of extra pages to load.  The pagination links display multiple times, so load into an associative array to make them unique
+			preg_match_all('/<a href="readinghistory&page=(\\d+)">/', $pageContents, $additionalPageMatches);
+			$maxPageNum = 0;
+			foreach ($additionalPageMatches[1] as $additionalPageMatch){
+				if ($additionalPageMatch > $maxPageNum){
+					$maxPageNum = $additionalPageMatch;
 				}
-				if ($sortOption == "title"){
-					$titleKey = $historyEntry['title_sort'];
-				}elseif ($sortOption == "author"){
-					$titleKey = $historyEntry['author'] . "_" . $historyEntry['title_sort'];
-				}elseif ($sortOption == "checkedOut" || $sortOption == "returned"){
-					$checkoutTime = DateTime::createFromFormat('m-d-Y', $historyEntry['checkout']) ;
-					if ($checkoutTime){
-						$titleKey = $checkoutTime->getTimestamp() . "_" . $historyEntry['title_sort'];
-					}else{
-						//print_r($historyEntry);
-						$titleKey = $historyEntry['title_sort'];
-					}
-				}elseif ($sortOption == "format"){
-					$titleKey = $historyEntry['format'] . "_" . $historyEntry['title_sort'];
-				}else{
-					$titleKey = $historyEntry['title_sort'];
-				}
-				$titleKey .= '_' . $scount;
-				$readingHistoryTitles[$titleKey] = $historyEntry;
 			}
-			$scount++;
-		}//processed all rows in the table
+		}
+
+		$recordsRead = 0;
+		$readingHistoryTitles = $this->parseReadingHistoryPage($pageContents, $patron, $sortOption, $recordsRead);
+		$recordsRead += count($readingHistoryTitles);
+		if (isset($maxPageNum)){
+			for ($pageNum = 2; $pageNum <= $maxPageNum; $pageNum++){
+				$pageContents = $this->driver->_fetchPatronInfoPage($patronDump, 'readinghistory&page=' . $pageNum);
+				$additionalTitles = $this->parseReadingHistoryPage($pageContents, $patron, $sortOption, $recordsRead);
+				$recordsRead += count($additionalTitles);
+				$readingHistoryTitles = array_merge($readingHistoryTitles, $additionalTitles);
+			}
+		}
 
 		if ($sortOption == "checkedOut" || $sortOption == "returned"){
 			krsort($readingHistoryTitles);
@@ -140,9 +61,46 @@ class MillenniumReadingHistory {
 			$readingHistoryTitles = array_slice($readingHistoryTitles, $startRecord, $recordsPerPage);
 		}
 
+		set_time_limit(20 * count($readingHistoryTitles));
+		foreach ($readingHistoryTitles as $key => $historyEntry){
+			//Get additional information from resources table
+			$historyEntry['ratingData'] = null;
+			$historyEntry['permanentId'] = null;
+			$historyEntry['linkUrl'] = null;
+			$historyEntry['coverUrl'] = null;
+			$historyEntry['format'] = array();
+			if (isset($historyEntry['shortId']) && strlen($historyEntry['shortId']) > 0){
+				$historyEntry['recordId'] = "." . $historyEntry['shortId'] . $this->driver->getCheckDigit($historyEntry['shortId']);
+				require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+				$recordDriver = new MarcRecord($historyEntry['recordId']);
+				if ($recordDriver->isValid()){
+					$historyEntry['ratingData'] = $recordDriver->getRatingData();
+					$historyEntry['permanentId'] = $recordDriver->getPermanentId();
+					$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
+					$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+					$historyEntry['format'] = $recordDriver->getFormats();
+				}
+				$recordDriver = null;
+			}
+			$readingHistoryTitles[$key] = $historyEntry;
+		}
+
 		//The history is active if there is an opt out link.
 		$historyActive = (strpos($pageContents, 'OptOut') > 0);
 		$timer->logTime("Loaded Reading history for patron");
+		global $user;
+		if ($historyActive && !$user->trackReadingHistory){
+			//The user does have reading history even though we hadn't detected it before.
+			$user->trackReadingHistory = true;
+			$user->update();
+			$_SESSION['userinfo'] = serialize($user);
+		}if (!$historyActive && $user->trackReadingHistory){
+			//The user does have reading history even though we hadn't detected it before.
+			$user->trackReadingHistory = false;
+			$user->update();
+			$_SESSION['userinfo'] = serialize($user);
+		}
+
 		return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
 	}
 
@@ -182,7 +140,23 @@ class MillenniumReadingHistory {
 		}
 		$post_string = implode ('&', $post_items);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$sResult = curl_exec($curl_connection);
+		$loginResult = curl_exec($curl_connection);
+
+		//When a library uses Encore, the initial login does a redirect and requires additional parameters.
+		if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
+			//Get the lt value
+			$lt = $loginMatches[1];
+			//Login again
+			$post_data['lt'] = $lt;
+			$post_data['_eventId'] = 'submit';
+			$post_items = array();
+			foreach ($post_data as $key => $value) {
+				$post_items[] = $key . '=' . $value;
+			}
+			$post_string = implode ('&', $post_items);
+			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+			curl_exec($curl_connection);
+		}
 
 		if ($action == 'deleteMarked'){
 			//Load patron page readinghistory/rsh with selected titles marked
@@ -200,7 +174,7 @@ class MillenniumReadingHistory {
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/readinghistory/rsh&" . $title_string;
 			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-			$sResult = curl_exec($curl_connection);
+			curl_exec($curl_connection);
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Delete Marked Reading History Titles');
 			}
@@ -236,5 +210,106 @@ class MillenniumReadingHistory {
 		}
 		curl_close($curl_connection);
 		unlink($cookie);
+	}
+
+	private function parseReadingHistoryPage($pageContents, $patron, $sortOption, $recordsRead) {
+		set_time_limit(60);
+
+		//Get the headers from the table
+		preg_match_all('/<th\\s+class="patFuncHeaders">\\s*(.*?)\\s*<\/th>/si', $pageContents, $result, PREG_SET_ORDER);
+		$sKeys = array();
+		for ($matchi = 0; $matchi < count($result); $matchi++) {
+			$sKeys[] = strip_tags($result[$matchi][1]);
+		}
+
+		//Get the rows for the table
+		preg_match_all('/<tr\\s+class="patFuncEntry">(.*?)<\/tr>/si', $pageContents, $result, PREG_SET_ORDER);
+		$sRows = array();
+		for ($matchi = 0; $matchi < count($result); $matchi++) {
+			$sRows[] = $result[$matchi][1];
+		}
+
+		$sCount = 1;
+		$readingHistoryTitles = array();
+		foreach ($sRows as $sRow) {
+			preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $sRow, $result, PREG_SET_ORDER);
+			$sCols = array();
+			for ($matchi = 0; $matchi < count($result); $matchi++) {
+				$sCols[] = $result[$matchi][1];
+			}
+			$historyEntry = array();
+			for ($i=0; $i < sizeof($sCols); $i++) {
+				$sCols[$i] = str_replace("&nbsp;"," ",$sCols[$i]);
+				$sCols[$i] = preg_replace ("/<br+?>/"," ", $sCols[$i]);
+				$sCols[$i] = html_entity_decode(trim($sCols[$i]));
+				if (stripos($sKeys[$i],"Mark") > -1) {
+					if (preg_match('/id="rsh(\\d+)"/', $sCols[$i], $matches)){
+						$itemIndex = $matches[1];
+						$historyEntry['itemindex'] = $itemIndex;
+					}
+					$historyEntry['deletable'] = "BOX";
+				}
+
+				if (stripos($sKeys[$i],"Title") > -1) {
+					//echo("Title value is <br/>$sCols[$i]<br/>");
+					if (preg_match('/.*?<a href=\\"\/record=(.*?)(?:~S\\d{1,2})\\">(.*?)<\/a>.*/', $sCols[$i], $matches)) {
+						$shortId = $matches[1];
+						$bibId = '.' . $matches[1];
+						$historyEntry['id'] = $bibId;
+						$historyEntry['shortId'] = $shortId;
+					}elseif (preg_match('/.*<a href=".*?\/record\/C__R(.*?)\\?.*?">(.*?)<\/a>.*/si', $sCols[$i], $matches)){
+						$shortId = $matches[1];
+						$bibId = '.' . $matches[1] . $this->driver->getCheckDigit($shortId);
+						$historyEntry['id'] = $bibId;
+						$historyEntry['shortId'] = $shortId;
+					}
+					$title = strip_tags($sCols[$i]);
+					$historyEntry['title'] = utf8_encode($title);
+				}
+
+				if (stripos($sKeys[$i],"Author") > -1) {
+					$historyEntry['author'] = utf8_encode(strip_tags($sCols[$i]));
+				}
+
+				if (stripos($sKeys[$i],"Checked Out") > -1) {
+					$historyEntry['checkout'] = strip_tags($sCols[$i]);
+				}
+				if (stripos($sKeys[$i],"Details") > -1) {
+					$historyEntry['details'] = strip_tags($sCols[$i]);
+				}
+
+				if (is_array($patron)){
+					$historyEntry['borrower_num'] = $patron['id'];
+				}else{
+					$historyEntry['borrower_num'] = $patron->id;
+				}
+			} //Done processing row
+
+			$historyEntry['title_sort'] = preg_replace('/[^a-z\s]/', '', strtolower($historyEntry['title']));
+
+			//$historyEntry['itemindex'] = $itemindex++;
+			if ($sortOption == "title"){
+				$titleKey = $historyEntry['title_sort'];
+			}elseif ($sortOption == "author"){
+				$titleKey = $historyEntry['author'] . "_" . $historyEntry['title_sort'];
+			}elseif ($sortOption == "checkedOut" || $sortOption == "returned"){
+				$checkoutTime = DateTime::createFromFormat('m-d-Y', $historyEntry['checkout']) ;
+				if ($checkoutTime){
+					$titleKey = $checkoutTime->getTimestamp() . "_" . $historyEntry['title_sort'];
+				}else{
+					//print_r($historyEntry);
+					$titleKey = $historyEntry['title_sort'];
+				}
+			}elseif ($sortOption == "format"){
+				$titleKey = $historyEntry['format'] . "_" . $historyEntry['title_sort'];
+			}else{
+				$titleKey = $historyEntry['title_sort'];
+			}
+			$titleKey .= '_' . ($sCount + $recordsRead);
+			$readingHistoryTitles[$titleKey] = $historyEntry;
+
+			$sCount++;
+		}//processed all rows in the table
+		return $readingHistoryTitles;
 	}
 }

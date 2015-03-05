@@ -1,5 +1,6 @@
 <?php
-define ('ROOT_DIR', __DIR__);
+require_once 'bootstrap.php';
+//define ('ROOT_DIR', __DIR__);
 /**
  *
  * Copyright (C) Villanova University 2007.
@@ -19,45 +20,8 @@ define ('ROOT_DIR', __DIR__);
  *
  */
 
-require_once ROOT_DIR . '/sys/PEAR_Singleton.php';
-PEAR_Singleton::init();
-require_once ROOT_DIR . '/sys/Timer.php';
-require_once ROOT_DIR . '/sys/Logger.php';
+
 require_once ROOT_DIR . '/sys/BookCoverProcessor.php';
-require_once ROOT_DIR . '/sys/Proxy_Request.php';
-//Bootstrap the process
-if (!function_exists('vufind_autoloader')){
-	// Set up autoloader (needed for YAML)
-	function vufind_autoloader($class) {
-		$fullClassName = str_replace('_', '/', $class) . '.php';
-		require $fullClassName;
-	}
-	spl_autoload_register('vufind_autoloader');
-}
-global $timer;
-if (empty($timer)){
-	$timer = new Timer(microtime(false));
-}
-
-// Retrieve values from configuration file
-require_once ROOT_DIR . '/sys/ConfigArray.php';
-$configArray = readConfig();
-$timer->logTime("Read config");
-if (isset($configArray['System']['timings'])){
-	$timer->enableTimings($configArray['System']['timings']);
-}
-
-//Start a logger
-$logger = new Logger();
-
-//Update error handling
-if ($configArray['System']['debug']) {
-	ini_set('display_errors', true);
-	error_reporting(E_ALL & ~E_DEPRECATED);
-}
-
-date_default_timezone_set($configArray['Site']['timezone']);
-$timer->logTime("bootstrap");
 
 //Create class to handle processing of covers
 $processor = new BookCoverProcessor();
@@ -67,4 +31,3 @@ if ($processor->error){
 	$logger->log("Error processing cover " . $processor->error, PEAR_LOG_ERR);
 	echo($processor->error);
 }
-$timer->writeTimings();

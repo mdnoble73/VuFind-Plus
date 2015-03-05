@@ -79,10 +79,10 @@ class UserSuggestions extends Admin_Admin
 		}
 		$interface->assign('suggestions', $suggestionList);
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('userSuggestions.tpl');
 		$interface->setPageTitle('User Suggestions');
 		$interface->display('layout.tpl');
-
 	}
 
 	function getAllowableRoles()

@@ -20,12 +20,10 @@
 require_once 'PEAR.php';
 
 // Abstract Base Class for Actions
-class Action extends PEAR
+abstract class Action extends PEAR
 {
 
-    function launch()
-    {
-    }
+    abstract function launch();
         
 }
 

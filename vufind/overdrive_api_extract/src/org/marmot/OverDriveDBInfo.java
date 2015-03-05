@@ -1,22 +1,29 @@
 package org.marmot;
 
 public class OverDriveDBInfo {
-	private String overDriveId;
 	private long dbId;
 	private String mediaType;
 	private String title;
+	private String subtitle;
 	private String series;
 	private String primaryCreatorRole;
 	private String primaryCreatorName;
 	private String cover;
-	private long dateAdded;
-	private long dateUpdated;
 	private long lastMetadataCheck;
 	private long lastMetadataChange;
 	private long lastAvailabilityCheck;
 	private long lastAvailabilityChange;
 	private boolean deleted;
-	
+	private boolean hasRawData;
+
+	public boolean hasRawData() {
+		return hasRawData;
+	}
+
+	public void setHasRawData(boolean hasRawData) {
+		this.hasRawData = hasRawData;
+	}
+
 	public boolean isDeleted() {
 		return deleted;
 	}
@@ -55,29 +62,11 @@ public class OverDriveDBInfo {
 	}
 	
 	
-	public String getOverDriveId() {
-		return overDriveId;
-	}
-	public void setOverDriveId(String overDriveId) {
-		this.overDriveId = overDriveId;
-	}
 	public long getDbId() {
 		return dbId;
 	}
 	public void setDbId(long dbId) {
 		this.dbId = dbId;
-	}
-	public long getDateAdded() {
-		return dateAdded;
-	}
-	public void setDateAdded(long dateAdded) {
-		this.dateAdded = dateAdded;
-	}
-	public long getDateUpdated() {
-		return dateUpdated;
-	}
-	public void setDateUpdated(long dateUpdated) {
-		this.dateUpdated = dateUpdated;
 	}
 	public long getLastMetadataCheck() {
 		return lastMetadataCheck;
@@ -108,5 +97,13 @@ public class OverDriveDBInfo {
 	}
 	public void setCover(String cover) {
 		this.cover = cover;
+	}
+
+	public String getSubtitle() {
+		return subtitle;
+	}
+
+	public void setSubtitle(String subtitle) {
+		this.subtitle = subtitle;
 	}
 }

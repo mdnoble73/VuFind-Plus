@@ -1,3 +1,8 @@
+/*
+  This file is deprecated. Any calls to functions in this script should be replaced.
+  The file is retained for development reference only
+ */
+
 $(document).ready(function(){
 	if($("#searchForm") != null && $("#lookfor") != null){
 		$("#lookfor").focus();
@@ -46,128 +51,6 @@ function collapseFieldsets(){
 			collapsible.addClass('fieldset-collapsed');
 		});
 	}
-}
-
-function getLightbox(module, action, id, lookfor, message, followupModule,
-		followupAction, followupId, left, width, top, height) {
-	// Optional parameters
-	if (followupModule === undefined) {
-		followupModule = '';
-	}
-	if (followupAction === undefined) {
-		followupAction = '';
-	}
-	if (followupId === undefined) {
-		followupId = '';
-	}
-
-	if ((module == '') || (action == '')) {
-		hideLightbox();
-		return 0;
-	}
-
-	// Popup Lightbox
-	lightbox(left, width, top, height);
-
-	// Load Popup Box Content from AJAX Server
-	var url = path + "/AJAX/Home";
-	var params = 'method=GetLightbox' + '&lightbox=true' + '&submodule='
-			+ encodeURIComponent(module) + '&subaction=' + encodeURIComponent(action)
-			+ '&id=' + encodeURIComponent(id) + '&lookfor='
-			+ encodeURIComponent(lookfor) + '&message=' + encodeURIComponent(message)
-			+ '&followupModule=' + encodeURIComponent(followupModule)
-			+ '&followupAction=' + encodeURIComponent(followupAction)
-			+ '&followupId=' + encodeURIComponent(followupId);
-	
-	$.ajax({
-		url: url + '?' + params,
-		success : function(data) {
-			if (data && data.result) {
-				if (data.redirect && data.redirect.length() > 0) {
-					window.location = data.redirect;
-				} else {
-					$('$popupbox').innerHTML = data.result;
-
-					// set focus to the default location
-					if (document.loginForm != null) {
-						document.loginForm.username.focus();
-					}
-				}
-			} else {
-				document.getElementById('popupbox').innerHTML = document.getElementById('lightboxError').innerHTML;
-			}
-
-			// Check to see if an element within the lightbox needs to be given focus.
-			// Note that we need to introduce a slight delay before taking focus due
-			// to IE sensitivity.
-			var focusIt = function() {
-				var o = document.getElementById('mainFocus');
-				if (o) {
-					o.focus();
-				}
-			}
-			setTimeout(focusIt, 250);
-
-		},
-		error : function() {
-			document.getElementById('popupbox').innerHTML = document
-					.getElementById('lightboxError').innerHTML;
-		}
-	});
-}
-
-function SaltedLogin(elems, module, action, id, lookfor, message) {
-	// Load Popup Box Content from AJAX Server
-	var url = path + "/AJAX/Home";
-	var params = 'method=GetSalt';
-	$.ajax({
-		url: url + '?' + params,
-		success : function(transaction) {
-			var response = transaction.responseXML.documentElement;
-			if (response.getElementsByTagName('result')) {
-				Login(
-						elems,
-						response.getElementsByTagName('result').item(0).firstChild.nodeValue,
-						module, action, id, lookfor, message);
-
-			}
-		}
-	})
-}
-
-function Login(elems, salt, module, action, id, lookfor, message) {
-	var url = path + "/AJAX/JSON?method=loginUser"
-	$.ajax( {
-		url : url,
-		data : {
-			username : $('#username').val(),
-			password : $('#password').val()
-		},
-		success : function(response) {
-			if (response.result.success == true) {
-				// Update the main display to show the user is logged in
-				// Hide "log in" options and show "log out" options:
-				$('.loginOptions').hide();
-				$('.logoutOptions').show();
-				$('#myAccountNameLink').html(response.result.name);
-				// Update user save statuses if the current context calls for it:
-				if (typeof (doGetSaveStatuses) == 'function') {
-					doGetSaveStatuses();
-				} else if (typeof (redrawSaveStatus) == 'function') {
-					redrawSaveStatus();
-				}
-
-				// Load the post-login action:
-				getLightbox(module, action, id, lookfor, message);
-
-			} else {
-				alert("That login was not recognized.  Please try again.");
-			}
-		},
-		dataType : 'json',
-		type : 'post'
-	});
-
 }
 
 function lightbox(left, width, top, height){
@@ -533,7 +416,7 @@ function reactivateEContentHold(reactivateUrl){
 }
 
 function getOverDriveSummary(){
-	$.getJSON(path + '/MyResearch/AJAX?method=getOverDriveSummary', function (data){
+	$.getJSON(path + '/MyAccount/AJAX?method=getOverDriveSummary', function (data){
 		if (data.error){
 			// Unable to load overdrive summary
 		}else{
@@ -552,19 +435,20 @@ function getOverDriveSummary(){
 var ajaxCallback = null;
 function ajaxLogin(callback){
 	ajaxCallback = callback;
-	return ajaxLightbox(path + '/MyResearch/AJAX?method=LoginForm');
+	return ajaxLightbox(path + '/MyAccount/AJAX?method=LoginForm');
 }
 
 function processAjaxLogin(){
 	var username = $("#username").val();
 	var password = $("#password").val();
+	var rememberMe = $("#rememberMe").val();
 	if (!username || !password){
 		alert("Please enter both the username and password");
 		return false;
 	}
-	var url = path + "/AJAX/JSON?method=loginUser"
+	var url = path + "/AJAX/JSON?method=loginUser";
 	$.ajax({url: url,
-			data: {username: username, password: password},
+			data: {username: username, password: password, rememberMe: rememberMe},
 			success: function(response){
 				if (response.result.success == true){
 					loggedIn = true;
@@ -607,19 +491,7 @@ function searchSubmit(){
 	document.forms.searchForm.submit();
 }
 
-function setupFieldsetToggles(){
-	$('legend.collapsible').each(function(index){
-		$(this).siblings().hide();
-		$(this).addClass("collapsed");
-		$(this).click(function() {
-			$(this).toggleClass("expanded");
-			$(this).toggleClass("collapsed");
-			$(this).siblings().slideToggle();
-			return false;
-		});
-	});
 
-}
 
 function pwdToText(fieldId){
 	var elem = document.getElementById(fieldId);
@@ -776,54 +648,6 @@ $(divId).tooltip({
  */
 
 /*
- * Create a new list for storing favorites:
- */
-function addList(form, failMsg)
-{
-	for (var i = 0; i < form.public.length; i++) {
-		if (form.public[i].checked) {
-			var isPublic = form.public[i].value;
-		}
-	}
-
-	var url = path + "/MyResearch/AJAX";
-	var recordId = form.recordId.value;
-	var source = form.source.value;
-	var params = "method=AddList&" +
-							 "title=" + encodeURIComponent(form.title.value) + "&" +
-							 "public=" + isPublic + "&" +
-							 "desc=" + encodeURIComponent(form.desc.value) + "&" +
-							 "followupModule=" + form.followupModule.value + "&" +
-							 "followupAction=" + form.followupAction.value + "&" +
-							 "followupId=" + form.followupId.value;
-
-	$.ajax({
-		url: url+'?'+params,
-		dataType: "json",
-		success: function(data) {
-			var value = data.result;
-			if (value) {
-				if (value == "Done") {
-					var newId = data.newId;
-					//Save the record to the list
-					var url = path + "/Resource/Save?lightbox=true&selectedList=" + newId + "&id=" + recordId + "&source=" + source;
-					ajaxLightbox(url);
-				} else {
-					alert(value.length > 0 ? value : failMsg);
-				}
-			} else {
-				$('#popupbox').html(failMsg);
-				setTimeout("hideLightbox();", 3000);
-			}
-		},
-		error: function() {
-			$('#popupbox').html(failMsg);
-			setTimeout("hideLightbox();", 3000);
-		}
-	});
-}
-
-/*
  * Given a base URL and a set of parameters, use AJAX to send an email; this
  * assumes that a lightbox is already open.
  */
@@ -947,147 +771,6 @@ function showReviewForm(id, source){
 	}
 	return false;
 }
-function getSaveToListForm(id, source){
-	if (loggedIn){
-		var url = path + "/Resource/Save?lightbox=true&id=" + id + "&source=" + source;
-		ajaxLightbox(url);
-	}else{
-		ajaxLogin(function (){
-			getSaveToListForm(id, source);
-		});
-	}
-	return false;
-}
-
-function saveRecord(id, source, formElem, strings) {
-	successCallback = function() {
-		// Highlight the save link to indicate that the content is saved:
-		$('#saveLink').addClass('savedFavorite');
-
-		// Redraw tag list:
-		GetTags(id, source, 'tagList', strings);
-	};
-	performSaveRecord(id, source, formElem, strings, 'VuFind', successCallback);
-	return false;
-}
-function performSaveRecord(id, source, formElem, strings, service, successCallback)
-{
-	document.body.style.cursor = 'wait';
-	var tags = formElem.elements['mytags'].value;
-	var notes = formElem.elements['notes'].value;
-	var list = formElem.elements['list'].options[formElem.elements['list'].selectedIndex].value;
-
-	var url = path + "/Resource/AJAX";
-	var params = "method=SaveRecord&" +
-							 "mytags=" + encodeURIComponent(tags) + "&" +
-							 "list=" + list + "&" +
-							 "notes=" + encodeURIComponent(notes) + "&" +
-							 "id=" + id + "&" +
-							 "source=" + source;
-	$.ajax({
-		url: url+'?'+params,
-		dataType: "json",
-		success: function(data) {
-			if (data.result) {
-					var value = data.result;
-					if (value == "Done") {
-							successCallback();
-							hideLightbox();
-					} else {
-							getLightbox('Record', 'Save', id, null, strings.add);
-					}
-			} else {
-					document.getElementById('popupbox').innerHTML = strings.error;
-					setTimeout("hideLightbox();", 3000);
-			}
-			document.body.style.cursor = 'default';
-			
-	},
-	error: function() {
-			document.getElementById('popupbox').innerHTML = strings.error;
-			setTimeout("hideLightbox();", 3000);
-			document.body.style.cursor = 'default';
-	}
-	});
-}
-
-function GetAddTagForm(id, source){
-	if (loggedIn){
-		var url = path + "/Resource/AJAX?method=GetAddTagForm&id=" + id + "&source=" + source;
-		ajaxLightbox(url);
-	}else{
-		ajaxLogin(function(){
-			GetAddTagForm(id, source);
-		});
-	}
-}
-
-function SaveTag(id, source, formElem, strings) {
-	if (loggedIn){
-		var tags = formElem.elements['tag'].value;
-	
-		var url = path + "/Resource/AJAX";
-		var params = "method=SaveTag&tag=" + encodeURIComponent(tags) + "&id=" + id + "&source=" + source ;
-	
-		$.ajax({
-			url: url + '?' + params,
-			dataType: 'json',
-			success : function(data) {
-				var result = data ? data.result : false;
-				if (result && result.length > 0) {
-					if (result == "Unauthorized") {
-						alert("You must be logged in to add tags");
-					} else {
-						GetTags(id, source, 'tagList', strings);
-						document.getElementById('popupbox').innerHTML = '<h3>' + strings.success + '</h3>';
-						setTimeout("hideLightbox();", 3000);
-					}
-				} else {
-					document.getElementById('popupbox').innerHTML = strings.save_error;
-				}
-			},
-			error : function() {
-				document.getElementById('popupbox').innerHTML = strings.save_error;
-			}
-		});
-	}else{
-		ajaxLogin(function(){
-			SaveTag(id, formElem, strings);
-		});
-	}
-}
-
-function GetTags(id, elemId, strings) {
-	var url = path + "/Record/" + encodeURIComponent(id) + "/AJAX";
-	var params = "method=GetTags";
-	$.ajax({
-		url: url + '?' + params,
-		dataType: 'json',
-		success : function(data) {
-			if (data.result) {
-				var tags = data.result.tags;
-				var output = "";
-				if (tags && tags.length > 0) {
-					for (i = 0; i < tags.length; i++) {
-						output = output + '<div class="sidebarValue"><a href="' + path + '/Search/Results?tag=' + encodeURIComponent(tags[i].tag) + '">'
-								+ jsEntityEncode(tags[i].tag) + '</a> (' + tags[i].count + ")</div>";
-					}
-				}
-				$("#" + elemId).html(output);
-			} else {
-				$("#" + elemId).html(strings.load_error);
-			}
-		},
-		error : function() {
-			$("#" + elemId).html(strings.load_error);
-		}
-	});
-}
-
-function loadOtherEditionSummaries(id, isEcontent){
-	var url = path + "/Search/AJAX?method=getOtherEditions&id=" + id + "&isEContent=" + isEcontent;
-	ajaxLightbox(url);
-}
 
 function getQuerystringParameters(){
 	var vars = [];
@@ -1132,56 +815,11 @@ function toggleSection(sectionName){
 	$("." + sectionName).toggle();
 	$("#holdings-section-" + sectionName).toggleClass('collapsed expanded');
 }
-function showEContentSupportForm(){
-	if (loggedIn){
-		return ajaxLightbox(path + '/Help/eContentSupport?lightbox=true');
-	}else{
-		return ajaxLogin(function (){showEContentSupportForm()});
-	}
-}
-function loadEContentHelpTopic(){
-	var selectedDevice = $("#device :selected").val();
-	var selectedFormat = $("#format :selected").val();
-	
-	if (selectedDevice != "selectone" && selectedFormat != "selectone"){
-		$.getJSON(
-			path + '/Help/AJAX?method=getHelpTopic&device=' + selectedDevice + '&format=' +selectedFormat,
-			function (data){
-				$("#stepByStepInstructions").show()
-				$("#helpInstructions").html(data.helpText);
-			}
-		);
-	}
-}
 
-function markNotInterested(source, recordId){
-	if (loggedIn){
-		var url = path + '/Resource/AJAX?method=MarkNotInterested&source=' + source + '&recordId=' + recordId;
-		$.getJSON(
-				url, function(data){
-					if (data.result == true){
-						alert("You won't be shown this title again.");
-					}else{
-						alert("There was an error updating the title.");
-					}
-				}
-		);
-		return false;
-	}else{
-		return ajaxLogin(function(){markNotInterested(source, recordId)});
-	}
+function getWikipediaArticle(articleName){
+	var url = path + "/Author/AJAX?method=getWikipediaData&articleName=" + articleName;
+	$.getJSON(url, function(data){
+		if (data.success)
+			$("#wikipedia_placeholder").html(data.formatted_article);
+	});
 }
-
-function clearNotInterested(notInterestedId){
-	var url = path + '/Resource/AJAX?method=ClearNotInterested&id=' + notInterestedId;
-	$.getJSON(
-			url, function(data){
-				if (data.result == false){
-					alert("There was an error updating the title.");
-				}else{
-					$("#notInterested" + notInterestedId).hide();
-				}
-			}
-	);
-}
-

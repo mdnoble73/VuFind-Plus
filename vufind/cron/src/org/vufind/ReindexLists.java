@@ -82,7 +82,7 @@ public class ReindexLists implements IProcessHandler {
 	}
 
 	private void clearLists(String coreName) {
-		URLPostResponse response = Util.postToURL(baseSolrUrl + "/solr/" + coreName + "/update/?commit=true", "<delete><query>recordtype:list</query></delete>", logger);
+		URLPostResponse response = Util.postToURL(baseSolrUrl + "/solr/" + coreName + "/update/?commit=true", "<delete><query>recordtype:list</query></delete>", "text/xml", null, logger);
 		if (!response.isSuccess()){
 			processLog.addNote("Error clearing existing marc records " + response.getMessage());
 			processLog.incErrors();

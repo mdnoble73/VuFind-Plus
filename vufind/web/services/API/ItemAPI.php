@@ -19,10 +19,8 @@
  */
 
 require_once ROOT_DIR . '/Action.php';
-require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 require_once ROOT_DIR . '/sys/ISBN.php';
-require_once ROOT_DIR . '/services/Record/UserComments.php';
 require_once ROOT_DIR . '/services/Record/Holdings.php';
 require_once ROOT_DIR . '/CatalogConnection.php';
 
@@ -55,6 +53,7 @@ class ItemAPI extends Action {
 	public $id;
 
 	/**
+	 * @var MarcRecord|IndexRecord
 	 * marc record in File_Marc object
 	 */
 	protected $recordDriver;
@@ -77,7 +76,7 @@ class ItemAPI extends Action {
 		$method = $_REQUEST['method'];
 		// Connect to Catalog
 		if ($method != 'getBookcoverById' && $method != 'getBookCover'){
-			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 			//header('Content-type: application/json');
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -86,7 +85,11 @@ class ItemAPI extends Action {
 		}
 
 		if (is_callable(array($this, $method))) {
-			$output = json_encode(array('result'=>$this->$method()));
+			if (in_array($method, array('getDescriptionByRecordId', 'getDescriptionByTitleAndAuthor'))){
+				$output = json_encode($this->$method());
+			}else{
+				$output = json_encode(array('result'=>$this->$method()));
+			}
 		} else {
 			$output = json_encode(array('error'=>"invalid_method '$method'"));
 		}
@@ -114,6 +117,122 @@ class ItemAPI extends Action {
 		return $ret;
 	}
 
+	function getDescriptionByTitleAndAuthor(){
+		global $configArray;
+
+		//Load the title and author from the data passed in
+		$title = trim($_REQUEST['title']);
+		$author = trim($_REQUEST['author']);
+
+		// Setup Search Engine Connection
+		$class = $configArray['Index']['engine'];
+		$url = $configArray['Index']['url'];
+		/** @var SearchObject_Solr db */
+		$this->db = new $class($url);
+
+		//Setup the results to return from the API method
+		$results = array();
+
+		//Search the database by title and author
+		if ($title && $author){
+			$searchResults = $this->db->search("$title $author");
+		}elseif ($title){
+			$searchResults = $this->db->search("title:$title");
+		}elseif ($author){
+			$searchResults = $this->db->search("author:$author");
+		}else{
+			$results = array(
+				'result' => false,
+				'message' => 'Please enter a title and/or author'
+			);
+			return $results;
+		}
+
+		if ($searchResults['response']['numFound'] == 0){
+			$results = array(
+				'result' => false,
+				'message' => 'Sorry, we could not find a description for that title and author'
+			);
+		} else{
+			$firstRecord = $searchResults['response']['docs'][0];
+			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+			$groupedWork = new GroupedWorkDriver($firstRecord);
+
+			$results = array(
+				'result' => true,
+				'message' => 'Found a summary for record ' . $firstRecord['title_display'] . ' by ' . $firstRecord['author_display'],
+				'recordsFound' => $searchResults['response']['numFound'],
+				'description' => $groupedWork->getDescription()
+			);
+		}
+		return $results;
+	}
+
+	function getDescriptionByRecordId(){
+		global $configArray;
+
+		//Load the record id that the user wants to search for
+		$recordId = trim($_REQUEST['recordId']);
+
+		// Setup Search Engine Connection
+		$class = $configArray['Index']['engine'];
+		$url = $configArray['Index']['url'];
+		/** @var SearchObject_Solr db */
+		$this->db = new $class($url);
+
+		//Setup the results to return from the API method
+		$results = array();
+
+		//Search the database by title and author
+		if ($recordId){
+			if (preg_match('/^b\d{7}[\dx]$/', $recordId)){
+				$recordId = '.' . $recordId;
+			}
+			$searchResults = $this->db->search("$recordId", 'Id');
+		}else{
+			$results = array(
+				'result' => false,
+				'message' => 'Please enter the record Id to look for'
+			);
+			return $results;
+		}
+
+		if ($searchResults['response']['numFound'] == 0){
+			$results = array(
+				'result' => false,
+				'message' => 'Sorry, we could not find a description for that record id'
+			);
+		} else{
+			$firstRecord = $searchResults['response']['docs'][0];
+			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+			$groupedWork = new GroupedWorkDriver($firstRecord);
+
+			$results = array(
+				'result' => true,
+				'message' => 'Found a summary for record ' . $firstRecord['title_display'] . ' by ' . $firstRecord['author_display'],
+				'recordsFound' => $searchResults['response']['numFound'],
+				'description' => $groupedWork->getDescription()
+			);
+		}
+		return $results;
+	}
+
+	/**
+	 * Load a marc record for a particular id from the server
+	 */
+	function getMarcRecord(){
+		global $configArray;
+		$id = $_REQUEST['id'];
+		$shortId = str_replace('.', '', $id);
+		$firstChars = substr($shortId, 0, 4);
+		header('Content-Type: application/octet-stream');
+		header("Content-Transfer-Encoding: Binary");
+		header("Content-disposition: attachment; filename=\"".$id.".mrc\"");
+		$individualName = $configArray['Reindex']['individualMarcPath'] . "/{$firstChars}/{$shortId}.mrc";
+		readfile($individualName);
+		die();
+	}
+
 	/**
 	 * Get information about a particular item and return it as JSON
 	 */
@@ -130,9 +249,6 @@ class ItemAPI extends Action {
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {
@@ -166,19 +282,6 @@ class ItemAPI extends Action {
 				$eContentRating = new EContentRating();
 				$eContentRating->recordId = $eContentRecord->id;
 				$itemData['ratingData'] = $eContentRating->getRatingData(false, false);
-
-				// Retrieve tags associated with the record
-				$limit = 5;
-				$resource = new Resource();
-				$resource->record_id = $eContentRecord->id;
-				$resource->source = 'eContent';
-				if ($tags = $resource->getTags()) {
-					array_slice($tags, 0, $limit);
-				}
-				$itemData['tagList'] = $tags;
-				$timer->logTime('Got tag list');
-
-				$itemData['userComments'] = $resource->getComments();
 
 				require_once ROOT_DIR . '/Drivers/EContentDriver.php';
 				$driver = new EContentDriver();
@@ -265,26 +368,9 @@ class ItemAPI extends Action {
 			}
 			$itemData['description'] = $description;
 
-			// Retrieve tags associated with the record
-			$limit = 5;
-			$resource = new Resource();
-			$resource->record_id = $this->id;
-			$resource->source = 'VuFind';
-			if ($tags = $resource->getTags()) {
-				array_slice($tags, 0, $limit);
-			}
-			$itemData['tagList'] = $tags;
-			$timer->logTime('Got tag list');
-
 			//setup 5 star ratings
-			global $user;
-			$ratingData = $resource->getRatingData($user);
+			$ratingData = $this->recordDriver->getRatingData();
 			$itemData['ratingData'] = $ratingData;
-			$timer->logTime('Got 5 star data');
-
-			// Load User comments
-			$itemData['userComments'] =  Record_UserComments::getComments($this->id);
-			$timer->logTime('Loaded Comments');
 
 			//Load Holdings
 			$itemData['holdings'] = Record_Holdings::loadHoldings($this->id);
@@ -312,9 +398,6 @@ class ItemAPI extends Action {
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {
@@ -426,12 +509,7 @@ class ItemAPI extends Action {
 			$itemData['description'] = $description;
 
 			//setup 5 star ratings
-			global $user;
-			$resource = new Resource();
-			$resource->record_id = $this->id;
-			$resource->source = 'VuFind';
-			$ratingData = $resource->getRatingData($user);
-			$itemData['ratingData'] = $ratingData;
+			$itemData['ratingData'] = $this->recordDriver->getRatingData();
 			$timer->logTime('Got 5 star data');
 		}
 
@@ -451,9 +529,6 @@ class ItemAPI extends Action {
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {
@@ -589,9 +664,6 @@ class ItemAPI extends Action {
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 
 		// Retrieve Full Marc Record
 		if (!($record = $this->db->getRecord($this->id))) {

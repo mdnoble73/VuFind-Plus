@@ -13,8 +13,9 @@ function updateSelectedHolds(){
 	return false;
 }
 function cancelSelectedHolds(){
-	var selectedTitles = getSelectedTitles();
+	var selectedTitles = getSelectedTitles(false);
 	if (selectedTitles.length == 0){
+		alert('Please select one or more titles to cancel.');
 		return false;
 	}
 	var url = path + '/MyResearch/Holds?multiAction=cancelSelected&' + selectedTitles;
@@ -72,11 +73,14 @@ function thawSelectedHolds(){
 	window.location = url;
 	return false;
 }
-function getSelectedTitles(){
+function getSelectedTitles(promptForSelectAll){
+	if (promptForSelectAll == undefined){
+		promptForSelectAll = true;
+	}
 	var selectedTitles = $("input.titleSelect:checked ").map(function() {
 		return $(this).attr('name') + "=" + $(this).val();
 	}).get().join("&");
-	if (selectedTitles.length == 0){
+	if (selectedTitles.length == 0 && promptForSelectAll){
 		var ret = confirm('You have not selected any items, process all items?');
 		if (ret == true){
 			$("input.titleSelect").attr('checked', 'checked');

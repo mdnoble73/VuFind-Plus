@@ -38,6 +38,9 @@ if (isset($_REQUEST['test_role'])){
 $interface = new UInterface();
 global $timer;
 $timer->logTime('Create interface');
+if (isset($configArray['Site']['responsiveLogo'])){
+	$interface->assign('responsiveLogo', $configArray['Site']['responsiveLogo']);
+}
 if (isset($configArray['Site']['smallLogo'])){
 	$interface->assign('smallLogo', $configArray['Site']['smallLogo']);
 }
@@ -50,12 +53,9 @@ $interface->assign('focusElementId', 'lookfor');
 //Set footer information
 /** @var Location $locationSingleton */
 global $locationSingleton;
-$location = $locationSingleton->getActiveLocation();
-$interface->assign('footerTemplate', 'footer.tpl');
-if (isset($location) && $location->footerTemplate != 'default'){
-	$interface->assign('footerTemplate', $location->footerTemplate);
-}
 getGitBranch();
+
+$interface->loadDisplayOptions();
 
 require_once ROOT_DIR . '/sys/Analytics.php';
 //Define tracking to be done
@@ -71,6 +71,8 @@ global $library;
 //Set System Message
 if ($configArray['System']['systemMessage']){
 	$interface->assign('systemMessage', $configArray['System']['systemMessage']);
+}else if ($configArray['Catalog']['offline']){
+	$interface->assign('systemMessage', "The circulation system is currently offline.  Access to account information and availability is limited.");
 }else{
 	if ($library && strlen($library->systemMessage) > 0){
 		$interface->assign('systemMessage', $library->systemMessage);
@@ -78,13 +80,6 @@ if ($configArray['System']['systemMessage']){
 }
 
 //Get the name of the active instance
-if ($locationSingleton->getActiveLocation() != null && $locationSingleton->getActiveLocation()->restrictSearchByLocation){
-	$interface->assign('librarySystemName', $locationSingleton->getActiveLocation()->displayName);
-}elseif (isset($library)){
-	$interface->assign('librarySystemName', $library->displayName);
-}else{
-	$interface->assign('librarySystemName', 'Marmot');
-}
 if ($locationSingleton->getIPLocation() != null){
 	$interface->assign('inLibrary', true);
 	$physicalLocation = $locationSingleton->getIPLocation()->displayName;
@@ -97,61 +92,132 @@ $interface->assign('physicalLocation', $physicalLocation);
 $productionServer = $configArray['Site']['isProduction'];
 $interface->assign('productionServer', $productionServer);
 
-//Set default Ask a Librarian link
-if (isset($library) && strlen($library->askALibrarianLink) > 0){
-	$interface->assign('askALibrarianLink', $library->askALibrarianLink);
-}else{
-	$interface->assign('askALibrarianLink', 'http://www.askcolorado.org/');
-}
-if (isset($library) && strlen($library->illLink) > 0){
-	$interface->assign('illLink', $library->illLink);
-}
-if (isset($library) && strlen($library->suggestAPurchase) > 0){
-	$interface->assign('suggestAPurchaseLink', $library->suggestAPurchase);
-}
-
-if (isset($library) && strlen($library->boopsieLink) > 0){
-	$interface->assign('boopsieLink', $library->boopsieLink);
-}
-
 $location = $locationSingleton->getActiveLocation();
-if (isset($location) && strlen($location->homeLink) > 0 && $location->homeLink != 'default'){
-	$interface->assign('homeLink', $location->homeLink);
-}elseif (isset($library) && strlen($library->homeLink) > 0 && $library->homeLink != 'default'){
-	$interface->assign('homeLink', $library->homeLink);
-}
+
 if (isset($library)){
-	$interface->assign('showLoginButton', $library->showLoginButton);
-	$interface->assign('showAdvancedSearchbox', $library->showAdvancedSearchbox);
-	$interface->assign('enableBookCart', $library->enableBookCart);
+
+	if ($location != null){
+		$interface->assign('showStandardReviews', (($location->showStandardReviews == 1) && ($library->showStandardReviews == 1)) ? 1 : 0);
+		$interface->assign('showHoldButton', (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0);
+	}else{
+		$interface->assign('showStandardReviews', $library->showStandardReviews);
+		$interface->assign('showHoldButton', $library->showHoldButton);
+	}
 }else{
-	$interface->assign('showLoginButton', 1);
-	$interface->assign('showAdvancedSearchbox', 1);
-	$interface->assign('enableBookCart', 1);
+
+	if ($location != null){
+		$interface->assign('showStandardReviews', $location->showStandardReviews);
+		$interface->assign('showHoldButton', $location->showHoldButton);
+	}else{
+		$interface->assign('showStandardReviews', 1);
+		$interface->assign('showHoldButton', 1);
+	}
 }
 $timer->logTime('Interface checks for library and location');
 
-if ($library){
-	$searchLibrary = $library->getSearchLibrary();
-	if ($searchLibrary){
-		$interface->assign('millenniumScope', $searchLibrary->scope);
-	}else{
-		$interface->assign('millenniumScope', '93');
-	}
+// Determine Module and Action
+$module = (isset($_GET['module'])) ? $_GET['module'] : null;
+$module = preg_replace('/[^\w]/', '', $module);
+$action = (isset($_GET['action'])) ? $_GET['action'] : null;
+$action = preg_replace('/[^\w]/', '', $action);
+
+//Redirect some common spam components so they go to a valid place, and redirect old actions to new
+if ($action == 'trackback'){
+	$action = null;
+}
+if ($action == 'SimilarTitles'){
+	$action = 'Home';
+}
+//Set these initially in case user login fails, we will need the module to be set.
+$interface->assign('module', $module);
+$interface->assign('action', $action);
+
+//Determine the Search Source, need to do this always.
+global $searchSource;
+$searchSource = 'global';
+if (isset($_GET['searchSource'])){
+	$searchSource = $_GET['searchSource'];
+	$_REQUEST['searchSource'] = $searchSource; //Update request since other check for it here
+	$_SESSION['searchSource'] = $searchSource; //Update the session so we can remember what the user was doing last.
 }else{
-	$interface->assign('millenniumScope', '93');
+	if ( isset($_SESSION['searchSource'])){ //Didn't get a source, use what the user was doing last
+		$searchSource = $_SESSION['searchSource'];
+		$_REQUEST['searchSource'] = $searchSource;
+	}else{
+		//Use a default search source
+		if ($module == 'Person'){
+			$searchSource = 'genealogy';
+		}else{
+			$searchSource = 'local';
+		}
+		$_REQUEST['searchSource'] = $searchSource;
+	}
 }
 
+$searchLibrary = Library::getSearchLibrary(null);
+$searchLocation = Location::getSearchLocation(null);
+
+//Based on the search source, determine the search scope and set a global variable
+global $solrScope;
+$solrScope = false;
+if ($searchSource == 'local' || $searchSource == 'econtent'){
+	$locationIsScoped = $searchLocation != null &&
+			($searchLocation->restrictSearchByLocation ||
+					$searchLocation->econtentLocationsToInclude != 'all' ||
+					$searchLocation->useScope ||
+					!$searchLocation->enableOverdriveCollection ||
+					strlen($searchLocation->extraLocationCodesToInclude) > 0);
+
+	$libraryIsScoped = $searchLibrary != null &&
+			($searchLibrary->restrictSearchByLibrary ||
+					$searchLibrary->econtentLocationsToInclude != 'all' ||
+					(strlen($searchLibrary->pTypes) > 0 && $searchLibrary->pTypes != -1) ||
+					$searchLibrary->useScope ||
+					!$searchLibrary->enableOverdriveCollection);
+
+	if ($locationIsScoped &&
+			(
+					(
+							$searchLocation->econtentLocationsToInclude != $searchLibrary->econtentLocationsToInclude
+							&& strlen($searchLocation->econtentLocationsToInclude) > 0
+							&& $searchLocation->econtentLocationsToInclude != 'all'
+					) || (
+							$searchLocation->useScope && $searchLibrary->scope != $searchLocation->scope
+					)
+			)){
+		$solrScope = $searchLocation->code;
+	}else{
+		$solrScope = $searchLibrary->subdomain;
+	}
+}elseif($searchSource != 'marmot' && $searchSource != 'global'){
+	$solrScope = $searchSource;
+}
+$solrScope = trim($solrScope);
+if (strlen($solrScope) == 0){
+	$solrScope = false;
+}
+$interface->assign('solrScope', $solrScope);
+
+$searchLibrary = Library::getSearchLibrary($searchSource);
+$searchLocation = Location::getSearchLocation($searchSource);
+
+global $millenniumScope;
+if ($library){
+	if ($searchLibrary){
+		$millenniumScope = $searchLibrary->scope;
+	}elseif (isset($searchLocation)){
+		MillenniumDriver::$scopingLocationCode = $searchLocation->code;
+	}else{
+		$millenniumScope = isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
+	}
+}else{
+	$millenniumScope = isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
+}
+$interface->assign('millenniumScope', $millenniumScope);
 
 //Set that the interface is a single column by default
 $interface->assign('page_body_style', 'one_column');
 
-if (isset($configArray['Strands']) && isset($configArray['Strands']['APID']) && strlen($configArray['Strands']['APID']) > 0){
-	$interface->assign('strandsAPID', $configArray['Strands']['APID']);
-	$interface->assign('showStrands', true);
-}else{
-	$interface->assign('showStrands', false);
-}
 $interface->assign('showPackagingDetailsReport', isset($configArray['EContent']['showPackagingDetailsReport']) && $configArray['EContent']['showPackagingDetailsReport']);
 $interface->assign('showFines', $configArray['Catalog']['showFines']);
 
@@ -218,7 +284,7 @@ if (isset($_REQUEST['mylang'])) {
 }
 /** @var Memcache $memCache */
 $translator = $memCache->get("translator_{$serverName}_{$language}");
-if ($translator == false){
+if ($translator == false || isset($_REQUEST['reloadTranslator'])){
 	// Make sure language code is valid, reset to default if bad:
 	$validLanguages = array_keys($configArray['Languages']);
 	if (!in_array($language, $validLanguages)) {
@@ -230,18 +296,10 @@ if ($translator == false){
 }
 $interface->setLanguage($language);
 
-// Determine Module and Action
+/** @var User */
 global $user;
 $user = UserAccount::isLoggedIn();
-
 $timer->logTime('Check if user is logged in');
-$module = (isset($_GET['module'])) ? $_GET['module'] : null;
-$module = preg_replace('/[^\w]/', '', $module);
-$action = (isset($_GET['action'])) ? $_GET['action'] : null;
-$action = preg_replace('/[^\w]/', '', $action);
-//Set these initially in case user login fails, we will need the module to be set.
-$interface->assign('module', $module);
-$interface->assign('action', $action);
 
 $deviceName = get_device_name();
 $interface->assign('deviceName', $deviceName);
@@ -265,28 +323,24 @@ if (!$analytics->isTrackingDisabled()){
 	}
 }
 
-//Determine whether or not materials request functionality should be enabled
-require_once ROOT_DIR . '/sys/MaterialsRequest.php';
-$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
-
 // Process Authentication, must be done here so we can redirect based on user information
 // immediately after logging in.
+$interface->assign('loggedIn', $user == false ? 'false' : 'true');
 if ($user) {
 	$interface->assign('user', $user);
 	//Create a cookie for the user's home branch so we can sort holdings even if they logout.
 	//Cookie expires in 1 week.
 	setcookie('home_location', $user->homeLocationId, time()+60*60*24*7, '/');
-} else if (// Special case for Shibboleth:
-($configArray['Authentication']['method'] == 'Shibboleth' && $module == 'MyResearch') ||
-// Default case for all other authentication methods:
-((isset($_POST['username']) && isset($_POST['password'])) && ($action != 'Account' && $module != 'AJAX'))) {
+} else if (isset($_POST['username']) && isset($_POST['password']) && ($action != 'Account' && $module != 'AJAX')) {
 	$user = UserAccount::login();
 	if (PEAR_Singleton::isError($user)) {
-		require_once ROOT_DIR . '/services/MyResearch/Login.php';
-		Login::launch($user->getMessage());
+		require_once ROOT_DIR . '/services/MyAccount/Login.php';
+		$launchAction = new MyAccount_Login();
+		$launchAction->launch($user->getMessage());
 		exit();
 	}
 	$interface->assign('user', $user);
+	$interface->assign('loggedIn', $user == false ? 'false' : 'true');
 	//Check to see if there is a followup module and if so, use that module and action for the next page load
 	if (isset($_REQUEST['returnUrl'])) {
 		$followupUrl =  $_REQUEST['returnUrl'];
@@ -323,7 +377,10 @@ if ($user) {
 }
 $timer->logTime('User authentication');
 
-if ($user){
+//Load user data for the user as long as we aren't in the act of logging out.
+if ($user && (!isset($_REQUEST['action']) || $_REQUEST['action'] != 'Logout')){
+	loadUserData();
+
 	$interface->assign('pType', $user->patronType);
 	$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);
 	if (isset($homeLibrary)){
@@ -339,34 +396,26 @@ if ($module == null && $action == null){
 	//We have no information about where to go, go to the default location from config
 	$module = $configArray['Site']['defaultModule'];
 	$action = 'Home';
-
 }elseif ($action == null){
 	$action = 'Home';
+}
+//Override MyAccount Home as needed
+if ($module == 'MyAccount' && $action == 'Home' && $user){
+	$profile = $interface->getVariable('profile');
+	if ($profile['numCheckedOutTotal'] > 0){
+		$action ='CheckedOut';
+		header('Location:/MyAccount/CheckedOut');
+		exit();
+	}elseif ($profile['numHoldsTotal'] > 0){
+		header('Location:/MyAccount/Holds');
+		exit();
+	}
 }
 
 $interface->assign('module', $module);
 $interface->assign('action', $action);
 $timer->logTime('Load module and action');
 
-//Determine the Search Source, need to do this always.
-if (isset($_GET['searchSource'])){
-	$searchSource = $_GET['searchSource'];
-	$_REQUEST['searchSource'] = $searchSource; //Update request since other check for it here
-	$_SESSION['searchSource'] = $searchSource; //Update the session so we can remember what the user was doing last.
-}else{
-	if ( isset($_SESSION['searchSource'])){ //Didn't get a source, use what the user was doing last
-		$searchSource = $_SESSION['searchSource'];
-		$_REQUEST['searchSource'] = $searchSource;
-	}else{
-		//Use a default search source
-		if ($module == 'Person'){
-			$searchSource = 'genealogy';
-		}else{
-			$searchSource = 'local';
-		}
-		$_REQUEST['searchSource'] = $searchSource;
-	}
-}
 if (isset($_REQUEST['basicType'])){
 	$interface->assign('basicSearchIndex', $_REQUEST['basicType']);
 }else{
@@ -410,18 +459,7 @@ if ($action == "AJAX" || $action == "JSON"){
 	$searchObject = SearchObjectFactory::initSearchObject();
 	$searchObject->init();
 	$timer->logTime('Create Search Object');
-	//Add browse types as well.
-	$includeAlphaBrowse = true;
-	if (isset($library) && $library->enableAlphaBrowse == false){
-		$includeAlphaBrowse = false;
-	}
-	if ($interface->isMobile()){
-		$includeAlphaBrowse = false;
-	}
 	$basicSearchTypes = is_object($searchObject) ?    $searchObject->getBasicTypes() : array();
-	if ($includeAlphaBrowse){
-		$basicSearchTypes = array_merge($basicSearchTypes, $searchObject->getBrowseTypes());
-	}
 	$interface->assign('basicSearchTypes', $basicSearchTypes);
 
 	//Load repeat search options
@@ -444,6 +482,7 @@ if ($action == "AJAX" || $action == "JSON"){
 			$interface->assign('searchType',          $savedSearch->getSearchType());
 			$interface->assign('searchIndex',         $savedSearch->getSearchIndex());
 			$interface->assign('filterList', $savedSearch->getFilterList());
+			$interface->assign('savedSearch', $savedSearch->isSavedSearch());
 		}
 		$timer->logTime('Load last search for redisplay');
 	}
@@ -486,7 +525,8 @@ $ipId = $locationSingleton->getIPid();
 
 $interface->assign('automaticTimeoutLength', 0);
 $interface->assign('automaticTimeoutLengthLoggedOut', 0);
-if (!is_null($ipLocation) && $ipLocation != false){
+//Make sure we don't have timeouts if we are offline (because it's super annoying when doing offline checkouts and holds)
+if (!is_null($ipLocation) && $ipLocation != false && !$configArray['Catalog']['offline']){
 	$interface->assign('onInternalIP', true);
 	if ((isset($user->bypassAutoLogout) && $user->bypassAutoLogout == 1)){
 		$interface->assign('includeAutoLogoutCode', false);
@@ -494,7 +534,7 @@ if (!is_null($ipLocation) && $ipLocation != false){
 		$includeAutoLogoutCode = true;
 		//Get the PType for the user
 		/** @var MillenniumDriver|CatalogConnection $catalog */
-		$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+		$catalog = CatalogFactory::getCatalogConnectionInstance();
 		if ($user && $catalog->checkFunction('isUserStaff')){
 			$userIsStaff = $catalog->isUserStaff();
 			$interface->assign('userIsStaff', $userIsStaff);
@@ -531,7 +571,7 @@ if (isset($_REQUEST['followup'])) {
 if (isset($_SESSION['hold_message'])) {
 	$interface->assign('hold_message', formatHoldMessage($_SESSION['hold_message']));
 	unset($_SESSION['hold_message']);
-}elseif (isset($_SESSION['renew_message'])){
+}elseif (isset($_SESSION['renew_message'])){ // this routine should be deprecated now. plb 2-2-2015
 	$interface->assign('renew_message', formatRenewMessage($_SESSION['renew_message']));
 }elseif (isset($_SESSION['checkout_message'])){
 	global $logger;
@@ -577,20 +617,6 @@ function processFollowup(){
 	global $configArray;
 
 	switch($_REQUEST['followup']) {
-		case 'SaveRecord':
-			file_get_contents($configArray['Site']['path'] .
-                    "/Record/AJAX?method=SaveRecord&id=" . urlencode($_REQUEST['id']));
-			break;
-		case 'SaveTag':
-			file_get_contents($configArray['Site']['path'] .
-                    "/Record/AJAX?method=SaveTag&id=" . urlencode($_REQUEST['id']) .
-                    "&tag=" . urlencode($_REQUEST['tag']));
-			break;
-		case 'SaveComment':
-			file_get_contents($configArray['Site']['path'] .
-                    "/Record/AJAX?method=SaveComment&id=" . urlencode($_REQUEST['id']) .
-                    "&comment=" . urlencode($_REQUEST['comment']));
-			break;
 		case 'SaveSearch':
 			header("Location: {$configArray['Site']['path']}/".$_REQUEST['followupModule']."/".$_REQUEST['followupAction']."?".$_REQUEST['recordId']);
 			die();
@@ -703,12 +729,14 @@ function formatHoldMessage($hold_message_data){
 	$hold_message = $interface->fetch('Record/hold-results.tpl');
 	return $hold_message;
 }
+
+// this function should be deprecated now. plb 2-2-2015
 function formatRenewMessage($renew_message_data){
 	global $interface;
 	$interface->assign('renew_message_data', $renew_message_data);
 	$renew_message = $interface->fetch('Record/renew-results.tpl');
 	global $logger;
-	$logger->log("Renew Message $renew_message", PEAR_LOG_INFO);
+	$logger->log("Call to deprecated function in index.php. Renew Message $renew_message", PEAR_LOG_INFO);
 
 	return $renew_message;
 }
@@ -723,6 +751,7 @@ function getGitBranch(){
 	global $configArray;
 
 	$gitName = $configArray['System']['gitVersionFile'];
+	$branchName = 'Unknown';
 	if ($gitName == 'HEAD'){
 		$stringFromFile = file('../../.git/HEAD', FILE_USE_INCLUDE_PATH);
 		$stringFromFile = $stringFromFile[0]; //get the string from the array
@@ -747,8 +776,8 @@ function vufind_autoloader($class) {
 		if (file_exists('sys/' . $class . '.php')){
 			$className = ROOT_DIR . '/sys/' . $class . '.php';
 			require_once $className;
-		}elseif (file_exists('services/MyResearch/lib/' . $class . '.php')){
-			$className = ROOT_DIR . '/services/MyResearch/lib/' . $class . '.php';
+		}elseif (file_exists('services/MyAccount/lib/' . $class . '.php')){
+			$className = ROOT_DIR . '/services/MyAccount/lib/' . $class . '.php';
 			require_once $className;
 		}else{
 			require_once $nameSpaceClass;
@@ -766,28 +795,33 @@ function loadModuleActionId(){
 	//Deal with old path based urls by removing the leading path.
 	$requestURI = $_SERVER['REQUEST_URI'];
 	$requestURI = preg_replace("/^\/?vufind\//", "", $requestURI);
-	if (preg_match("/(MyResearch|MyAccount)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
+	if (preg_match("/(MyAccount)\/([^\/?]+)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[3];
 		$_GET['action'] = $matches[2];
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['id'] = $matches[3];
 		$_REQUEST['action'] = $matches[2];
-	}elseif (preg_match("/(MyResearch|MyAccount)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
+	}elseif (preg_match("/(MyAccount)\/([^\/?]+)(\?.+)?/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['action'] = $matches[2];
 		$_REQUEST['id'] = '';
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
 		$_REQUEST['id'] = '';
-	}elseif (preg_match("/([^\/?]+)\/((?:\.b)?\d+x?)\/([^\/?]+)/", $requestURI, $matches)){
+
+	//Redirect things /Record/.b3246786/Home to the proper action
+	//Also things like /OverDrive/84876507-043b-b3ce-2930-91af93d2a4f0/Home
+	}elseif (preg_match("/([^\/?]+)\/((?:\.b|MWT)?[\da-fA-F-]+x?)\/([^\/?]+)/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[2];
 		$_GET['action'] = $matches[3];
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['id'] = $matches[2];
 		$_REQUEST['action'] = $matches[3];
-	}elseif (preg_match("/([^\/?]+)\/((?:\.b)?\d+x?)/", $requestURI, $matches)){
+
+	//Redirect things /Record/.b3246786 to the proper action
+	}elseif (preg_match("/([^\/?]+)\/((?:\.b|MWT)?[\da-fA-F-]+x?)(?:\?|\/?$)/", $requestURI, $matches)){
 		$_GET['module'] = $matches[1];
 		$_GET['id'] = $matches[2];
 		$_GET['action'] = 'Home';
@@ -800,10 +834,6 @@ function loadModuleActionId(){
 		$_REQUEST['module'] = $matches[1];
 		$_REQUEST['action'] = $matches[2];
 	}
-	if (isset($_GET['module']) && $_GET['module'] == 'MyAccount'){
-		$_GET['module'] = 'MyResearch';
-		$_REQUEST['module'] = 'MyResearch';
-	}
 }
 
 function initializeSession(){
@@ -814,9 +844,6 @@ function initializeSession(){
 	$session_lifetime = $configArray['Session']['lifetime'];
 	$session_rememberMeLifetime = $configArray['Session']['rememberMeLifetime'];
 	register_shutdown_function('session_write_close');
-	if (isset($configArray['Site']['cookie_domain'])){
-		session_set_cookie_params(0, '/', $configArray['Site']['cookie_domain']);
-	}
 	$sessionClass = ROOT_DIR . '/sys/' . $session_type . '.php';
 	require_once $sessionClass;
 	if (class_exists($session_type)) {
@@ -825,4 +852,40 @@ function initializeSession(){
 		$session->init($session_lifetime, $session_rememberMeLifetime);
 	}
 	$timer->logTime('Session initialization ' . $session_type);
+}
+
+function loadUserData(){
+	global $user;
+	global $interface;
+
+	//Load profile information
+	$catalog = CatalogFactory::getCatalogConnectionInstance();
+	$profile = $catalog->getMyProfile($user);
+	if (!PEAR_Singleton::isError($profile)) {
+		$interface->assign('profile', $profile);
+	}
+
+	//Load a list of lists
+	$lists = array();
+	require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+	$tmpList = new UserList();
+	$tmpList->user_id = $user->id;
+	$tmpList->deleted = 0;
+	$tmpList->orderBy("title ASC");
+	$tmpList->find();
+	if ($tmpList->N > 0){
+		while ($tmpList->fetch()){
+			$lists[$tmpList->id] = array(
+					'name' => $tmpList->title,
+					'url' => '/MyAccount/MyList/' .$tmpList->id ,
+					'id' => $tmpList->id,
+					'numTitles' => $tmpList->num_titles()
+			);
+		}
+	}
+	$interface->assign('lists', $lists);
+
+	// Get My Tags
+	$tagList = $user->getTags();
+	$interface->assign('tagList', $tagList);
 }

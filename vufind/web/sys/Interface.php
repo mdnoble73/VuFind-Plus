@@ -38,31 +38,22 @@ class UInterface extends Smarty
 		$local = $configArray['Site']['local'];
 		$this->vufindTheme = $configArray['Site']['theme'];
 
-		$isMobile = mobile_device_detect();
-
-		// Use mobile theme for mobile devices (if enabled in config.ini)
-		if (isset($configArray['Site']['mobile_theme'])) {
-			// If the user is overriding the UI setting, store that:
-			if (isset($_GET['ui'])) {
-				$_COOKIE['ui'] = $_GET['ui'];
-				setcookie('ui', $_GET['ui'], null, '/');
-				// If we don't already have a UI setting, detect if we're on a mobile
-				// and store the result in a cookie so we don't waste time doing the
-				// detection routine on every page:
-			} else if (!isset($_COOKIE['ui'])) {
-				$_COOKIE['ui'] = $isMobile ? 'mobile' : 'standard';
-				setcookie('ui', $_COOKIE['ui'], null, '/');
-			}
-			// If we're mobile, override the standard theme with the mobile one:
-			if ($_COOKIE['ui'] == 'mobile') {
-				//Add library specific themes after the mobile theme so we can get images
-				$this->vufindTheme = $configArray['Site']['mobile_theme'] . "," . $this->vufindTheme;
-
-				$this->isMobile = true;
-			}
-		}
+		$this->isMobile = mobile_device_detect();
 		$this->assign('isMobile', $this->isMobile ? 'true' : 'false');
 		$this->assign('device', get_device_name());
+
+		//Figure out google translate id
+		if (isset($configArray['Translation']['google_translate_key']) && strlen($configArray['Translation']['google_translate_key']) > 0){
+			$this->assign('google_translate_key', $configArray['Translation']['google_translate_key']);
+			$this->assign('google_included_languages', $configArray['Translation']['includedLanguages']);
+		}
+
+		$thisYear = new Date();
+		$this->assign('lastYear', $thisYear->getYear() -1);
+
+		if (isset($_REQUEST['print'])) {
+			$this->assign('print', true);
+		}
 
 		// Check to see if multiple themes were requested; if so, build an array,
 		// otherwise, store a single string.
@@ -108,6 +99,8 @@ class UInterface extends Smarty
 
 		unset($local);
 
+		$this->register_block('display_if_inconsistent', 'display_if_inconsistent');
+		$this->register_block('display_if_set', 'display_if_set');
 		$this->register_function('translate', 'translate');
 		$this->register_function('char', 'char');
 
@@ -127,57 +120,53 @@ class UInterface extends Smarty
 		$this->assign('template_dir',$this->template_dir);
 		$this->assign('url', $url);
 		$this->assign('coverUrl', $configArray['Site']['coverUrl']);
-		$this->assign('consolidateCss', isset($configArray['Site']['consolidateCss']) ? $configArray['Site']['consolidateCss'] : false);
-		$this->assign('consolidateJs', isset($configArray['Site']['consolidateJs']) ? $configArray['Site']['consolidateJs'] : false);
 		$this->assign('fullPath', str_replace('&', '&amp;', $_SERVER['REQUEST_URI']));
 		$this->assign('requestHasParams', strpos($_SERVER['REQUEST_URI'], '?') > 0);
-		$this->assign('supportEmail', $configArray['Site']['email']);
+		if (isset($configArray['Site']['email'])) {
+			$this->assign('supportEmail', $configArray['Site']['email']);
+		}
+		if (isset($configArray['Site']['libraryName'])){
+			$this->assign('consortiumName', $configArray['Site']['libraryName']);
+		}
 		$this->assign('libraryName', $configArray['Site']['title']);
+		$this->assign('ils', $configArray['Catalog']['ils']);
+		if (isset($configArray['Catalog']['url'])){
+			$this->assign('classicCatalogUrl', $configArray['Catalog']['url']);
+		}else if (isset($configArray['Catalog']['hipUrl'])){
+			$this->assign('classicCatalogUrl', $configArray['Catalog']['hipUrl']);
+		}
+
 		$this->assign('theme', $this->vufindTheme);
 		$this->assign('primaryTheme', reset($themeArray));
 		$this->assign('device', get_device_name());
 		$timer->logTime('Basic configuration');
 
-		if (isset($configArray['OpenURL']) && isset($configArray['OpenURL']['url'])) {
-			// Trim off any parameters (for legacy compatibility -- default config
-			// used to include extraneous parameters):
-			list($base) = explode('?', $configArray['OpenURL']['url']);
-		} else {
-			$base = false;
-		}
-		$this->assign('openUrlBase', empty($base) ? false : $base);
-
-		// Other OpenURL settings:
-		$this->assign('openUrlWindow',
-		empty($configArray['OpenURL']['window_settings']) ?
-		false : $configArray['OpenURL']['window_settings']);
-		$this->assign('openUrlGraphic', empty($configArray['OpenURL']['graphic']) ?
-		false : $configArray['OpenURL']['graphic']);
-		$this->assign('openUrlGraphicWidth',
-		empty($configArray['OpenURL']['graphic_width']) ?
-		false : $configArray['OpenURL']['graphic_width']);
-		$this->assign('openUrlGraphicHeight',
-		empty($configArray['OpenURL']['graphic_height']) ?
-		false : $configArray['OpenURL']['graphic_height']);
-
 		$this->assign('currentTab', 'Search');
 
 		$this->assign('authMethod', $configArray['Authentication']['method']);
 
-		if ($configArray['Authentication']['method'] == 'Shibboleth') {
-			if(!isset($configArray['Shibboleth']['login']) || !isset($configArray['Shibboleth']['target'])){
-				throw new Exception('Missing parameter in the config.ini. Check if ' .
-                                       'the parameters login and target are set.' );
-			}
+		if ($configArray['System']['debug']){
+			$this->assign('debug', true);
+		}
+		if ($configArray['System']['debugJs']){
+			$this->assign('debugJs', true);
+		}
+		if (isset($configArray['System']['debugCss']) && $configArray['System']['debugCss']){
+			$this->assign('debugCss', true);
+		}
 
-			$sessionInitiator = $configArray['Shibboleth']['login'] . '?target=' . $configArray['Shibboleth']['target'];
+// Detect Internet Explorer 8 to include respond.js for responsive css support
+		if (isset($_SERVER['HTTP_USER_AGENT'])) {
+			$ie8 = stristr($_SERVER['HTTP_USER_AGENT'], 'msie 8') || stristr($_SERVER['HTTP_USER_AGENT'], 'trident/5'); //trident/5 should catch ie9 compability modes
+			$this->assign('ie8', $ie8);
+		}
 
-			if(isset($configArray['Shibboleth']['provider_id'])) {
-				$sessionInitiator = $sessionInitiator . '&providerId=' . $configArray['Shibboleth']['provider_id'];
-			}
-
-			$this->assign('sessionInitiator', $sessionInitiator);
-
+		$session = new Session();
+		$session->session_id = session_id();
+		if ($session->find(true)){
+			$this->assign('session', session_id() . ', remember me ' . $session->remember_me);
+		}else{
+			$this->assign('session', session_id() . ' - not saved');
 		}
 	}
 
@@ -213,16 +202,10 @@ class UInterface extends Smarty
 	function setPageTitle($title)
 	{
 		//Marmot override, add the name of the site to the title unless we are using the mobile interface.
-		global $configArray;
-		global $owa;
-		$this->assign('shortPageTitle', translate($title));
-		if ($owa){
-			$owa->setPageTitle($title);
-		}
 		if ($this->isMobile){
 			$this->assign('pageTitle', translate($title));
 		}else{
-			$this->assign('pageTitle', $configArray['Site']['title'] . ' | ' . translate($title));
+			$this->assign('pageTitle', translate($title) . ' | ' . $this->get_template_vars('librarySystemName'));
 		}
 	}
 
@@ -250,6 +233,8 @@ class UInterface extends Smarty
 	 * @param string $cache_id
 	 * @param string $compile_id
 	 * @param boolean $display
+	 *
+	 * @return string
 	 */
 	function fetch($resource_name, $cache_id = null, $compile_id = null, $display = false)
 	{
@@ -269,6 +254,172 @@ class UInterface extends Smarty
 		}else{
 			return $this->themes;
 		}
+	}
+
+	function loadDisplayOptions(){
+		global $library;
+		global $locationSingleton;
+		global $configArray;
+		$location = $locationSingleton->getActiveLocation();
+		$showHoldButton = 1;
+		$showHoldButtonInSearchResults = 1;
+		$this->assign('logoLink', $configArray['Site']['path']);
+		if (isset($library) && strlen($library->useHomeLinkForLogo)){
+			if (isset($location) && strlen($location->homeLink) > 0 && $location->homeLink != 'default'){
+				$this->assign('logoLink', $location->homeLink);
+			}elseif (isset($library) && strlen($library->homeLink) > 0 && $library->homeLink != 'default'){
+				$this->assign('logoLink', $library->homeLink);
+			}
+		}
+
+		if (isset($location) && strlen($location->homeLink) > 0 && $location->homeLink != 'default'){
+			$this->assign('homeLink', $location->homeLink);
+		}elseif (isset($library) && strlen($library->homeLink) > 0 && $library->homeLink != 'default'){
+			$this->assign('homeLink', $library->homeLink);
+		}
+		if (isset($library)){
+			$this->assign('facebookLink', $library->facebookLink);
+			$this->assign('twitterLink', $library->twitterLink);
+			$this->assign('youtubeLink', $library->youtubeLink);
+			$this->assign('instagramLink', $library->instagramLink);
+			$this->assign('goodreadsLink', $library->goodreadsLink);
+			$this->assign('generalContactLink', $library->generalContactLink);
+			$this->assign('showLoginButton', $library->showLoginButton);
+			$this->assign('showAdvancedSearchbox', $library->showAdvancedSearchbox);
+			$this->assign('enablePurchaseLinks', count($library->getBookStores()) > 0);
+			$this->assign('enablePospectorIntegration', $library->enablePospectorIntegration);
+			$this->assign('showTagging', $library->showTagging);
+			$this->assign('showRatings', $library->showRatings);
+			$this->assign('show856LinksAsTab', $library->show856LinksAsTab);
+			$this->assign('showSearchTools', $library->showSearchTools);
+			$this->assign('showExpirationWarnings', $library->showExpirationWarnings);
+			$this->assign('showSimilarTitles', $library->showSimilarTitles);
+			$this->assign('showSimilarAuthors', $library->showSimilarAuthors);
+			$this->assign('showItsHere', $library->showItsHere);
+		}else{
+			$this->assign('showLoginButton', 1);
+			$this->assign('showAdvancedSearchbox', 1);
+			$this->assign('enablePurchaseLinks', 1);
+			$this->assign('enablePospectorIntegration', isset($configArray['Content']['Prospector']) && $configArray['Content']['Prospector'] == true ? 1 : 0);
+			$this->assign('showTagging', 1);
+			$this->assign('showRatings', 1);
+			$this->assign('show856LinksAsTab', 1);
+			$this->assign('showSearchTools', 1);
+			$this->assign('showExpirationWarnings', 1);
+			$this->assign('showSimilarTitles', 1);
+			$this->assign('showSimilarAuthors', 1);
+			$this->assign('showItsHere', 0);
+		}
+		if (isset($library) && $location != null){
+			$this->assign('showFavorites', $location->showFavorites && $library->showFavorites);
+			$this->assign('showComments', $location->showComments && $library->showComments);
+			$this->assign('showTextThis', $location->showTextThis && $library->showTextThis);
+			$this->assign('showEmailThis', $location->showEmailThis && $library->showEmailThis);
+			$this->assign('showStaffView', $location->showStaffView && $library->showStaffView);
+			$this->assign('showShareOnExternalSites', $location->showShareOnExternalSites && $library->showShareOnExternalSites);
+			$this->assign('showQRCode', $location->showQRCode && $library->showQRCode);
+			$this->assign('showStaffView', $location->showStaffView && $library->showStaffView);
+			$this->assign('showGoodReadsReviews', $location->showGoodReadsReviews && $library->showGoodReadsReviews);
+			$showHoldButton = (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0;
+			$showHoldButtonInSearchResults = (($location->showHoldButton == 1) && ($library->showHoldButtonInSearchResults == 1)) ? 1 : 0;
+			$this->assign('showSimilarTitles', $library->showSimilarTitles);
+			$this->assign('showSimilarAuthors', $library->showSimilarAuthors);
+		}else if ($location != null){
+			$this->assign('showFavorites', $location->showFavorites);
+			$this->assign('showComments', $location->showComments);
+			$this->assign('showTextThis', $location->showTextThis);
+			$this->assign('showEmailThis', $location->showEmailThis);
+			$this->assign('showShareOnExternalSites', $location->showShareOnExternalSites);
+			$this->assign('showStaffView', $location->showStaffView);
+			$this->assign('showQRCode', $location->showQRCode);
+			$this->assign('showStaffView', $location->showStaffView);
+			$this->assign('showGoodReadsReviews', $location->showGoodReadsReviews);
+			$showHoldButton = $location->showHoldButton;
+		}else if (isset($library)){
+			$this->assign('showFavorites', $library->showFavorites);
+			$showHoldButton = $library->showHoldButton;
+			$showHoldButtonInSearchResults = $library->showHoldButtonInSearchResults;
+			$this->assign('showComments', $library->showComments);
+			$this->assign('showTextThis', $library->showTextThis);
+			$this->assign('showEmailThis', $library->showEmailThis);
+			$this->assign('showShareOnExternalSites', $library->showShareOnExternalSites);
+			$this->assign('showStaffView', $library->showStaffView);
+			$this->assign('showQRCode', $library->showQRCode);
+			$this->assign('showStaffView', $library->showStaffView);
+			$this->assign('showGoodReadsReviews', $library->showGoodReadsReviews);
+		}else{
+			$this->assign('showFavorites', 1);
+			$this->assign('showComments', 1);
+			$this->assign('showTextThis', 1);
+			$this->assign('showEmailThis', 1);
+			$this->assign('showShareOnExternalSites', 1);
+			$this->assign('showQRCode', 1);
+			$this->assign('showStaffView', 1);
+			$this->assign('showGoodReadsReviews', 1);
+		}
+		if ($showHoldButton == 0){
+			$showHoldButtonInSearchResults = 0;
+		}
+		if ($library && $library->additionalCss){
+			$this->assign('additionalCss', $library->additionalCss);
+		}
+		if ($location != null && $location->additionalCss){
+			$this->assign('additionalCss', $location->additionalCss);
+		}
+		$this->assign('showHoldButton', $showHoldButton);
+		$this->assign('showHoldButtonInSearchResults', $showHoldButtonInSearchResults);
+		$this->assign('showNotInterested', true);
+		$this->assign('librarySystemName', 'Marmot');
+		if (isset($library)){
+			$this->assign('showRatings', $library->showRatings);
+			$this->assign('allowPinReset', $library->allowPinReset);
+			$this->assign('librarySystemName', $library->displayName);
+			$this->assign('showLibraryHoursAndLocationsLink', $library->showLibraryHoursAndLocationsLink);
+			//Check to see if we should just call it library location
+			$numLocations = $library->getNumLocationsForLibrary();
+			$this->assign('numLocations', $numLocations);
+			if ($numLocations == 1){
+				$locationForLibrary = new Location();
+				$locationForLibrary->libraryId = $library->libraryId;
+				$locationForLibrary->find(true);
+				$numHours = $locationForLibrary->getNumHours();
+				$this->assign('numHours', $numHours);
+			}
+			$this->assign('showDisplayNameInHeader', $library->showDisplayNameInHeader);
+		}else{
+			$this->assign('showLibraryHoursAndLocationsLink', 1);
+			$this->assign('showRatings', 1);
+			$this->assign('allowPinReset', 0);
+			$this->assign('showDisplayNameInHeader', 0);
+		}
+		if ($location != null){
+			$this->assign('showDisplayNameInHeader', $location->showDisplayNameInHeader);
+			$this->assign('librarySystemName', $location->displayName);
+		}
+
+		//Determine whether or not materials request functionality should be enabled
+		require_once ROOT_DIR . '/sys/MaterialsRequest.php';
+		$this->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
+
+		//Load library links
+		if (isset($library)){
+			$links = $library->libraryLinks;
+			$libraryLinks = array();
+			foreach ($links as $libraryLink){
+				if (!array_key_exists($libraryLink->category, $libraryLinks)){
+					$libraryLinks[$libraryLink->category] = array();
+				}
+				$libraryLinks[$libraryLink->category][$libraryLink->linkText] = $libraryLink->url;
+			}
+			$this->assign('libraryLinks', $libraryLinks);
+
+			$topLinks = $library->libraryTopLinks;
+			$this->assign('topLinks', $topLinks);
+		}
+	}
+
+	public function getVariable($variableName) {
+		return $this->get_template_vars($variableName);
 	}
 }
 
@@ -291,7 +442,53 @@ function translate($params) {
 	}
 }
 
-function char($params) {
-	extract($params);
-	return chr($int);
+function display_if_inconsistent($params, $content, &$smarty, &$repeat){
+	//This function is called twice, once for the opening tag and once for the
+	//closing tag.  Content is only set if
+	if (isset($content)) {
+		$consistent = true;
+		$firstValue = null;
+		$array = $params['array'];
+		$key = $params['key'];
+		$iterationNumber = 0;
+		foreach ($array as $arrayValue){
+			if ($iterationNumber == 0){
+				$firstValue = $arrayValue[$key];
+			}else{
+				if ($firstValue != $arrayValue[$key]){
+					$consistent = false;
+					break;
+				}
+			}
+			$iterationNumber++;
+		}
+		if ($consistent == false){
+			return $content;
+		}else{
+			return "";
+		}
+	}
+	return null;
+}
+
+function display_if_set($params, $content, &$smarty, &$repeat){
+	//This function is called twice, once for the opening tag and once for the
+	//closing tag.  Content is only set if
+	if (isset($content)) {
+		$hasData = false;
+		$firstValue = null;
+		$array = $params['array'];
+		$key = $params['key'];
+		foreach ($array as $arrayValue){
+			if (isset($arrayValue[$key]) && !empty($arrayValue[$key])){
+				$hasData = true;
+			}
+		}
+		if ($hasData){
+			return $content;
+		}else{
+			return "";
+		}
+	}
+	return null;
 }

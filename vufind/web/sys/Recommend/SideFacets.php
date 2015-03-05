@@ -71,30 +71,35 @@ class SideFacets implements RecommendationInterface
 			}
 			$this->facetSettings = array();
 			$this->mainFacets = array();
+			global $solrScope;
 			foreach ($facets as $facet){
 				$facetName = $facet->facetName;
 				//Adjust facet name for local scoping
+				if ($solrScope){
+					if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+						$facetName = 'availability_toggle_' . $solrScope;
+					}elseif ($facet->facetName == 'format' && $configArray['Index']['enableDetailedFormats']){
+						$facetName = 'format_' . $solrScope;
+					}elseif ($facet->facetName == 'format_category' && $configArray['Index']['enableDetailedFormats']){
+						$facetName = 'format_category_' . $solrScope;
+					}elseif ($facet->facetName == 'econtent_source' && $configArray['Index']['enableDetailedEContentSources']){
+						$facetName = 'econtent_source_' . $solrScope;
+					}elseif ($facet->facetName == 'econtent_protection_type' && $configArray['Index']['enableDetailedEContentSources']){
+						$facetName = 'econtent_protection_type_' . $solrScope;
+					}elseif ($facet->facetName == 'detailed_location'){
+						$facetName = 'detailed_location_' . $solrScope;
+					}
+				}
 				if (isset($searchLibrary)){
 					if ($facet->facetName == 'time_since_added'){
 						$facetName = 'local_time_since_added_' . $searchLibrary->subdomain;
 					}elseif ($facet->facetName == 'itype'){
 						$facetName = 'itype_' . $searchLibrary->subdomain;
-					}elseif ($facet->facetName == 'detailed_location'){
-						$facetName = 'detailed_location_' . $searchLibrary->subdomain;
-					}elseif ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
-						$facetName = 'availability_toggle_' . $searchLibrary->subdomain;
-					}
-				}
-				if (isset($userLocation)){
-					if ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
-						$facetName = 'availability_toggle_' . $userLocation->code;
 					}
 				}
 				if (isset($searchLocation)){
 					if ($facet->facetName == 'time_since_added' && $searchLocation->restrictSearchByLocation){
 						$facetName = 'local_time_since_added_' . $searchLocation->code;
-					}elseif ($facet->facetName == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
-						$facetName = 'availability_toggle_' . $searchLocation->code;
 					}
 				}
 
@@ -248,6 +253,21 @@ class SideFacets implements RecommendationInterface
 					}
 				}
 				$sideFacets[$facetKey]['collapseByDefault'] = $facetSetting->collapseByDefault;
+			}
+		}else{
+			//Process genealogy to add more facet popup
+			foreach ($sideFacets as $facetKey => $facet){
+				if (count($sideFacets[$facetKey]['list']) > 12){
+					$sideFacets[$facetKey]['showMoreFacetPopup'] = true;
+					$facetsList = $sideFacets[$facetKey]['list'];
+					$sideFacets[$facetKey]['list'] = array_slice($facetsList, 0, 5);
+					$sortedList = array();
+					foreach ($facetsList as $key => $value){
+						$sortedList[strtolower($key)] = $value;
+					}
+					ksort($sortedList);
+					$sideFacets[$facetKey]['sortedList'] = $sortedList;
+				}
 			}
 		}
 

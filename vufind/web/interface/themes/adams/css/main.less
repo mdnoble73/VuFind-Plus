@@ -1,0 +1,14 @@
+// Core variables and mixins
+@import "../../responsive/css/variables.less";
+@import "variables.less";
+
+// Always include the base .less file
+@import "../../responsive/css/responsive_base.less";
+
+#header-container{
+  @media (min-width: @screen-sm-min){
+    background-image: url('/interface/themes/adams/images/header_background.jpg');
+  }
+}
+
+.header-login-button-mixin;

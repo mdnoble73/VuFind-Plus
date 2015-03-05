@@ -75,6 +75,7 @@ class ItemlessEContent extends Admin_Admin
 			$this->exportToExcel($itemlessRecords);
 		}
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('itemlessEContent.tpl');
 		$interface->display('layout.tpl');
 	}

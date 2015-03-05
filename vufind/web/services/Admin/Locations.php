@@ -80,19 +80,19 @@ class Locations extends ObjectEditor
 		return $user->hasRole('opacAdmin');
 	}
 	function getAdditionalObjectActions($existingObject){
-		$objectActions = array();
+ 		$objectActions = array();
 		if ($existingObject != null){
-			$objectActions[] = array(
-				'text' => 'Edit Facets',
-				'url' => '/Admin/LocationFacetSettings?locationId=' . $existingObject->locationId,
-			);
 			$objectActions[] = array(
 				'text' => 'Reset Facets To Default',
 				'url' => '/Admin/Locations?objectAction=resetFacetsToDefault&amp;id=' . $existingObject->locationId,
 			);
 			$objectActions[] = array(
-				'text' => 'Copy Location Facets',
-				'url' => '/Admin/Locations?id=' . $existingObject->locationId . '&amp;objectAction=copyFacetsFromLocation',
+				'text' => 'Reset More Details To Default',
+				'url' => '/Admin/Locations?id=' . $existingObject->locationId . '&amp;objectAction=resetMoreDetailsToDefault',
+			);
+			$objectActions[] = array(
+				'text' => 'Copy Location Data',
+				'url' => '/Admin/Locations?id=' . $existingObject->locationId . '&amp;objectAction=copyDataFromLocation',
 			);
 		}else{
 			echo("Existing object is null");
@@ -100,26 +100,40 @@ class Locations extends ObjectEditor
 		return $objectActions;
 	}
 
-	function copyFacetsFromLocation(){
+	function copyDataFromLocation(){
 		$locationId = $_REQUEST['id'];
 		if (isset($_REQUEST['submit'])){
 			$location = new Location();
 			$location->locationId = $locationId;
 			$location->find(true);
-			$location->clearFacets();
 
 			$locationToCopyFromId = $_REQUEST['locationToCopyFrom'];
 			$locationToCopyFrom = new Location();
 			$locationToCopyFrom->locationId = $locationToCopyFromId;
 			$location->find(true);
 
-			$facetsToCopy = $locationToCopyFrom->facets;
-			foreach ($facetsToCopy as $facetKey => $facet){
-				$facet->locationId = $locationId;
-				$facet->id = null;
-				$facetsToCopy[$facetKey] = $facet;
+			if (isset($_REQUEST['copyFacets'])){
+				$location->clearFacets();
+
+				$facetsToCopy = $locationToCopyFrom->facets;
+				foreach ($facetsToCopy as $facetKey => $facet){
+					$facet->locationId = $locationId;
+					$facet->id = null;
+					$facetsToCopy[$facetKey] = $facet;
+				}
+				$location->facets = $facetsToCopy;
 			}
-			$location->facets = $facetsToCopy;
+			if (isset($_REQUEST['copyBrowseCategories'])){
+				$location->clearBrowseCategories();
+
+				$browseCategoriesToCopy = $locationToCopyFrom->browseCategories;
+				foreach ($browseCategoriesToCopy as $key => $category){
+					$category->locationId = $locationId;
+					$category->id = null;
+					$browseCategoriesToCopy[$key] = $category;
+				}
+				$location->browseCategories = $browseCategoriesToCopy;
+			}
 			$location->update();
 			header("Location: /Admin/Locations?objectAction=edit&id=" . $locationId);
 		}else{
@@ -128,7 +142,7 @@ class Locations extends ObjectEditor
 
 			unset($allLocations[$locationId]);
 			foreach ($allLocations as $key => $location){
-				if (count($location->facets) == 0){
+				if (count($location->facets) == 0 && count($location->browseCategories) == 0){
 					unset($allLocations[$key]);
 				}
 			}
@@ -154,6 +168,35 @@ class Locations extends ObjectEditor
 			$_REQUEST['objectAction'] = 'edit';
 		}
 		$structure = $this->getObjectStructure();
-		header("Location: /Admin/Locations?objectAction=edit&id=" . $libraryId);
+		header("Location: /Admin/Locations?objectAction=edit&id=" . $locationId);
+	}
+
+	function resetMoreDetailsToDefault(){
+		$location = new Location();
+		$locationId = $_REQUEST['id'];
+		$location->locationId = $locationId;
+		if ($location->find(true)){
+			$location->clearMoreDetailsOptions();
+
+			$defaultOptions = array();
+			require_once ROOT_DIR . '/RecordDrivers/Interface.php';
+			$defaultMoreDetailsOptions = RecordInterface::getDefaultMoreDetailsOptions();
+			$i = 0;
+			foreach ($defaultMoreDetailsOptions as $source => $defaultState){
+				$optionObj = new LocationMoreDetails();
+				$optionObj->locationId = $locationId;
+				$optionObj->collapseByDefault = $defaultState == 'closed';
+				$optionObj->source = $source;
+				$optionObj->weight = $i++;
+				$defaultOptions[] = $optionObj;
+			}
+
+			$location->moreDetailsOptions = $defaultOptions;
+			$location->update();
+
+			$_REQUEST['objectAction'] = 'edit';
+		}
+		$structure = $this->getObjectStructure();
+		header("Location: /Admin/Locations?objectAction=edit&id=" . $locationId);
 	}
 }

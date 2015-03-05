@@ -23,7 +23,6 @@ require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/Prospector.php';
 
-require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
 class Search_Results extends Action {
@@ -33,6 +32,7 @@ class Search_Results extends Action {
 		global $configArray;
 		global $timer;
 		global $analytics;
+		global $library;
 
 		/** @var string|LibrarySearchSource|LocationSearchSource $searchSource */
 		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
@@ -57,6 +57,14 @@ class Search_Results extends Action {
 			$interface->assign('oldSearchUrl', $oldSearchUrl);
 		}
 
+		$interface->assign('showDplaLink', false);
+		if ($configArray['DPLA']['enabled']){
+			if ($library->includeDplaResults){
+				$interface->assign('showDplaLink', true);
+			}
+		}
+
+
 		// Include Search Engine Class
 		require_once ROOT_DIR . '/sys/Solr.php';
 		$timer->logTime('Include search engine');
@@ -64,7 +72,7 @@ class Search_Results extends Action {
 		//Check to see if the year has been set and if so, convert to a filter and resend.
 		$dateFilters = array('publishDate');
 		foreach ($dateFilters as $dateFilter){
-			if (isset($_REQUEST[$dateFilter . 'yearfrom']) || isset($_REQUEST[$dateFilter . 'yearto'])){
+			if ((isset($_REQUEST[$dateFilter . 'yearfrom']) && !empty($_REQUEST[$dateFilter . 'yearfrom'])) || (isset($_REQUEST[$dateFilter . 'yearto']) && !empty($_REQUEST[$dateFilter . 'yearto']))){
 				$queryParams = $_GET;
 				$yearFrom = preg_match('/^\d{2,4}$/', $_REQUEST[$dateFilter . 'yearfrom']) ? $_REQUEST[$dateFilter . 'yearfrom'] : '*';
 				$yearTo = preg_match('/^\d{2,4}$/', $_REQUEST[$dateFilter . 'yearto']) ? $_REQUEST[$dateFilter . 'yearto'] : '*';
@@ -171,15 +179,15 @@ class Search_Results extends Action {
 			exit();
 		}
 
-		// TODO : Investigate this... do we still need
-		// If user wants to print record show directly print-dialog box
-		if (isset($_GET['print'])) {
-			$interface->assign('print', true);
-		}
-
 		// Set Interface Variables
 		//   Those we can construct BEFORE the search is executed
-		$interface->setPageTitle('Search Results');
+		$displayQuery = $searchObject->displayQuery();
+		$pageTitle = $displayQuery;
+		if (strlen($pageTitle) > 20){
+			$pageTitle = substr($pageTitle, 0, 20) . '...';
+		}
+		$pageTitle .= ' | Search Results';
+		$interface->setPageTitle($pageTitle );
 		$interface->assign('sortList',   $searchObject->getSortList());
 		$interface->assign('rssLink',    $searchObject->getRSSUrl());
 		$interface->assign('excelLink',  $searchObject->getExcelUrl());
@@ -198,7 +206,7 @@ class Search_Results extends Action {
 		//   no matter whether there were any results
 		$interface->assign('qtime',               round($searchObject->getQuerySpeed(), 2));
 		$interface->assign('spellingSuggestions', $searchObject->getSpellingSuggestions());
-		$interface->assign('lookfor',             $searchObject->displayQuery());
+		$interface->assign('lookfor',             $displayQuery);
 		$interface->assign('searchType',          $searchObject->getSearchType());
 		// Will assign null for an advanced search
 		$interface->assign('searchIndex',         $searchObject->getSearchIndex());
@@ -223,52 +231,30 @@ class Search_Results extends Action {
 
 		//Enable and disable functionality based on library settings
 		//This must be done before we process each result
-		global $library;
-		/** @var Location $locationSingleton */
-		global $locationSingleton;
-		$location = $locationSingleton->getActiveLocation();
-		$showHoldButton = 1;
-		$showHoldButtonInSearchResults = 1;
 		$interface->assign('showNotInterested', false);
-		if (isset($library) && $location != null){
-			$interface->assign('showFavorites', $library->showFavorites);
-			$interface->assign('showComments', $library->showComments);
-			$showHoldButton = (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0;
-			$showHoldButtonInSearchResults = (($location->showHoldButton == 1) && ($library->showHoldButtonInSearchResults == 1)) ? 1 : 0;
-		}else if ($location != null){
-			$interface->assign('showFavorites', 1);
-			$showHoldButton = $location->showHoldButton;
-		}else if (isset($library)){
-			$interface->assign('showFavorites', $library->showFavorites);
-			$showHoldButton = $library->showHoldButton;
-			$showHoldButtonInSearchResults = $library->showHoldButtonInSearchResults;
-			$interface->assign('showComments', $library->showComments);
-		}else{
-			$interface->assign('showFavorites', 1);
-			$interface->assign('showComments', 1);
-		}
-		if ($showHoldButton == 0){
-			$showHoldButtonInSearchResults = 0;
-		}
-		$interface->assign('showHoldButton', $showHoldButtonInSearchResults);
 		$interface->assign('page_body_style', 'sidebar_left');
 		$interface->assign('overDriveVersion', isset($configArray['OverDrive']['interfaceVersion']) ? $configArray['OverDrive']['interfaceVersion'] : 1);
 
 		//Check to see if we should show unscoped results
-		$enableUnscopedSearch = false;
-		$searchLibrary = Library::getSearchLibrary();
-		if ($searchLibrary != null && $searchLibrary->showMarmotResultsAtEndOfSearch){
-			if (is_object($searchSource)){
-				$enableUnscopedSearch = $searchSource->catalogScoping != 'unscoped';
-				$unscopedSearch = clone($searchObject);
-			}else{
-				$searchSources = new SearchSources();
-				$searchOptions = $searchSources->getSearchSources();
-				if (isset($searchOptions['marmot'])){
+		global $solrScope;
+		if ($solrScope){
+			$enableUnscopedSearch = false;
+			$searchLibrary = Library::getSearchLibrary();
+			if ($searchLibrary != null && $searchLibrary->showMarmotResultsAtEndOfSearch){
+				if (is_object($searchSource)){
+					$enableUnscopedSearch = $searchSource->catalogScoping != 'unscoped';
 					$unscopedSearch = clone($searchObject);
-					$enableUnscopedSearch = true;
+				}else{
+					$searchSources = new SearchSources();
+					$searchOptions = $searchSources->getSearchSources();
+					if (isset($searchOptions['marmot'])){
+						$unscopedSearch = clone($searchObject);
+						$enableUnscopedSearch = true;
+					}
 				}
 			}
+		}else{
+			$enableUnscopedSearch = false;
 		}
 
 		$enableProspectorIntegration = isset($configArray['Content']['Prospector']) ? $configArray['Content']['Prospector'] : false;
@@ -281,7 +267,6 @@ class Search_Results extends Action {
 		}
 		$interface->assign('showRatings', $showRatings);
 
-		$numProspectorTitlesToLoad = 0;
 		$numUnscopedTitlesToLoad = 0;
 
 		// Save the ID of this search to the session so we can return to it easily:
@@ -335,11 +320,6 @@ class Search_Results extends Action {
 				$interface->assign('searchSuggestions', $commonSearches);
 			}
 
-			//Var for the IDCLREADER TEMPLATE
-			$interface->assign('ButtonBack',true);
-			$interface->assign('ButtonHome',true);
-			$interface->assign('MobileTitle','No Results Found');
-
 			// No record found
 			$interface->setTemplate('list-none.tpl');
 			$interface->assign('recordCount', 0);
@@ -349,9 +329,8 @@ class Search_Results extends Action {
 			if ($error !== false) {
 				// If it's a parse error or the user specified an invalid field, we
 				// should display an appropriate message:
-				if (stristr($error, 'org.apache.lucene.queryParser.ParseException') ||
-				preg_match('/^undefined field/', $error)) {
-					$interface->assign('parseError', true);
+				if (stristr($error['msg'], 'org.apache.lucene.queryParser.ParseException') || preg_match('/^undefined field/', $error['msg'])) {
+					$interface->assign('parseError', $error['msg']);
 
 					// Unexpected error -- let's treat this as a fatal condition.
 				} else {
@@ -360,7 +339,6 @@ class Search_Results extends Action {
 				}
 			}
 
-			$numProspectorTitlesToLoad = 10;
 			$numUnscopedTitlesToLoad = 10;
 			$timer->logTime('no hits processing');
 
@@ -420,11 +398,6 @@ class Search_Results extends Action {
 			$interface->assign('subpage', 'Search/list-list.tpl');
 			$interface->setTemplate('list.tpl');
 
-			//Var for the IDCLREADER TEMPLATE
-			$interface->assign('ButtonBack',true);
-			$interface->assign('ButtonHome',true);
-			$interface->assign('MobileTitle','Search Results');
-
 			// Process Paging
 			$link = $searchObject->renderLinkPageTemplate();
 			$options = array('totalItems' => $summary['resultTotal'],
@@ -433,17 +406,16 @@ class Search_Results extends Action {
 			$pager = new VuFindPager($options);
 			$interface->assign('pageLinks', $pager->getLinks());
 			if ($pager->isLastPage()){
-				$numProspectorTitlesToLoad = 5;
 				$numUnscopedTitlesToLoad = 5;
 			}
 			$timer->logTime('finish hits processing');
 		}
 
-		if ($numProspectorTitlesToLoad > 0 && $enableProspectorIntegration && $showProspectorResultsAtEndOfSearch){
-			$interface->assign('prospectorNumTitlesToLoad', $numProspectorTitlesToLoad);
+		if ($enableProspectorIntegration){
+			$interface->assign('showProspectorLink', true);
 			$interface->assign('prospectorSavedSearchId', $searchObject->getSearchId());
 		}else{
-			$interface->assign('prospectorNumTitlesToLoad', 0);
+			$interface->assign('showProspectorLink', false);
 		}
 
 		if ($enableUnscopedSearch && isset($unscopedSearch)){
@@ -467,16 +439,14 @@ class Search_Results extends Action {
 			}
 		}
 
-		//Determine whether or not materials request functionality should be enabled
-		$interface->assign('enableMaterialsRequest', MaterialsRequest::enableMaterialsRequest());
-
-		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
-			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
-			$searchStat = new SearchStat();
+		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor']) && !is_array($_GET['lookfor'])) {
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');
+			$searchStat = new SearchStatNew();
 			$searchStat->saveSearch( strip_tags($_GET['lookfor']),  strip_tags(isset($_GET['type']) ? $_GET['type'] : (isset($_GET['basicType']) ? $_GET['basicType'] : 'Keyword')), $searchObject->getResultTotal());
 		}
 
 		// Done, display the page
+		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
 		$interface->display('layout.tpl');
 	} // End launch()
 }

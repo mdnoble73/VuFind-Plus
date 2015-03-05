@@ -20,7 +20,7 @@
 
 require_once ROOT_DIR . '/Action.php';
 
-class Home extends Action {
+class Search_Home extends Action {
 
 	function launch()
 	{
@@ -32,13 +32,13 @@ class Home extends Action {
 		global $user;
 
 		// Include Search Engine Class
-		require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
+		require_once ROOT_DIR . "/sys/{$configArray['Index']['engine']}.php";
 		$timer->logTime('Include search engine');
 
 		$interface->assign('showBreadcrumbs', 0);
 
 		if ($user){
-			$catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$patron = $catalog->patronLogin($user->cat_username, $user->cat_password);
 			$profile = $catalog->getMyProfile($patron);
 			if (!PEAR_Singleton::isError($profile)) {
@@ -46,35 +46,55 @@ class Home extends Action {
 			}
 		}
 
-		//Get the lists to show on the home page
-		require_once ROOT_DIR . '/sys/ListWidget.php';
-		$widgetId = 1;
 		$activeLocation = $locationSingleton->getActiveLocation();
-		if ($activeLocation != null && $activeLocation->homePageWidgetId > 0){
-			$widgetId = $activeLocation->homePageWidgetId;
-			$widget = new ListWidget();
-			$widget->id = $widgetId;
-			if ($widget->find(true)){
-				$interface->assign('widget', $widget);
+
+		//Load browse categories
+		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
+		/** @var BrowseCategory[] $browseCategories */
+		$browseCategories = array();
+		if ($activeLocation != null){
+			$localBrowseCategories = $activeLocation->browseCategories;
+			foreach ($localBrowseCategories as $localBrowseCategory){
+				$browseCategory = new BrowseCategory();
+				$browseCategory->textId = $localBrowseCategory->browseCategoryTextId;
+				if($browseCategory->find(true)){
+					$browseCategories[] = clone($browseCategory);
+				}
 			}
-		}else if (isset($library) && $library->homePageWidgetId > 0){
-			$widgetId = $library->homePageWidgetId;
-			$widget = new ListWidget();
-			$widget->id = $widgetId;
-			if ($widget->find(true)){
-				$interface->assign('widget', $widget);
+		}
+		if (isset($library) && count($browseCategories) == 0){
+			$localBrowseCategories = $library->browseCategories;
+			foreach ($localBrowseCategories as $localBrowseCategory){
+				$browseCategory = new BrowseCategory();
+				$browseCategory->textId = $localBrowseCategory->browseCategoryTextId;
+				if($browseCategory->find(true)){
+					$browseCategories[] = clone($browseCategory);
+				}
+			}
+		}
+		if (count($browseCategories) == 0){
+			$browseCategory = new BrowseCategory();
+			$browseCategory->find();
+			while($browseCategory->fetch()){
+				$browseCategories[] = clone($browseCategory);
 			}
 		}
 
-		// Cache homepage
-		$interface->caching = 0;
-		$cacheId = 'homepage|' . $interface->lang;
-		//Disable Home page caching for now.
-		if (!$interface->is_cached('layout.tpl', $cacheId)) {
-			$interface->setPageTitle('Catalog Home');
-			$interface->setTemplate('home.tpl');
+		$interface->assign('browseCategories', $browseCategories);
+
+		//Get the Browse Results for the first list
+		if (count($browseCategories) > 0){
+			require_once ROOT_DIR . '/services/Browse/AJAX.php';
+			$browseAJAX = new Browse_AJAX();
+			$browseResults = $browseAJAX->getBrowseCategoryInfo(reset($browseCategories)->textId);
+
+			$interface->assign('browseResults', $browseResults);
 		}
-		$interface->display('layout.tpl', $cacheId);
+
+		$interface->setPageTitle('Catalog Home');
+		$interface->assign('sidebar', 'Search/home-sidebar.tpl');
+		$interface->setTemplate('home.tpl');
+		$interface->display('layout.tpl');
 	}
 
 }

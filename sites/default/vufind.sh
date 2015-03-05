@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Startup script for the VuFind Jetty Server under *nix systems
+# Startup script for the Pika Jetty Server under *nix systems
 # (it works under NT/cygwin too).
 #
 # Configuration files
@@ -11,8 +11,8 @@
 #
 # Configuration variables
 #
-# VUFIND_HOME
-#   Home of the VuFind installation.
+# PIKA_HOME
+#   Home of the Pika installation.
 #
 # SOLR_HOME
 #   Home of the Solr installation.
@@ -113,11 +113,11 @@ then
 fi
 
 ##################################################
-# Set VUFIND_HOME
+# Set PIKA_HOME
 ##################################################
-if [ -z "$VUFIND_HOME" ]
+if [ -z "$PIKA_HOME" ]
 then
-  VUFIND_HOME="/usr/local/vufind"
+  PIKA_HOME="/usr/local/vufind"
 fi
 
 
@@ -126,7 +126,7 @@ fi
 ##################################################
 if [ -z "$SOLR_HOME" ]
 then
-  SOLR_HOME="$VUFIND_HOME/solr"
+  SOLR_HOME="$PIKA_HOME/solr"
 fi
 
 
@@ -422,7 +422,7 @@ RUN_CMD="$JAVA $JAVA_OPTIONS -jar $JETTY_HOME/start.jar $JETTY_ARGS $CONFIGS"
 ##################################################
 case "$ACTION" in
   start)
-        echo "Starting VuFind ... "
+        echo "Starting Pika ... "
 
         if [ -f $JETTY_PID ]
         then
@@ -431,18 +431,18 @@ case "$ACTION" in
         fi
 
         # Export variables for Import Tool
-        export VUFIND_HOME
+        export PIKA_HOME
 
-        echo "STARTED VuFind `date`" >> $JETTY_CONSOLE
+        echo "STARTED Pika `date`" >> $JETTY_CONSOLE
         echo "$RUN_CMD"
-        nohup sh -c "exec $RUN_CMD >>$JETTY_CONSOLE 2>&1" &
+        nohup sh -c "exec $RUN_CMD >>/dev/null" &
         echo $! > $JETTY_PID
-        echo "VuFind running pid="`cat $JETTY_PID`
+        echo "Pika running pid="`cat $JETTY_PID`
         ;;
 
   stop)
         PID=`cat $JETTY_PID 2>/dev/null`
-        echo "Shutting down VuFind ... "
+        echo "Shutting down Pika ... "
         kill $PID 2>/dev/null
         sleep 2
         kill -9 $PID 2>/dev/null
@@ -471,7 +471,7 @@ case "$ACTION" in
          ;;
 
   run|demo)
-        echo "Running VuFind ... "
+        echo "Running Pika ... "
 
         if [ -f $JETTY_PID ]
         then
@@ -483,8 +483,8 @@ case "$ACTION" in
         ;;
 
   check)
-        echo "Checking arguments to VuFind: "
-        echo "VUFIND_HOME    =  $VUFIND_HOME"
+        echo "Checking arguments to Pika: "
+        echo "PIKA_HOME      =  $PIKA_HOME"
         echo "SOLR_HOME      =  $SOLR_HOME"
         echo "JETTY_HOME     =  $JETTY_HOME"
         echo "JETTY_LOG      =  $JETTY_LOG"
@@ -502,7 +502,7 @@ case "$ACTION" in
 
         if [ -f $JETTY_RUN/vufind.pid ]
         then
-            echo "VuFind running pid="`cat $JETTY_RUN/vufind.pid`
+            echo "Pika running pid="`cat $JETTY_RUN/vufind.pid`
             exit 0
         fi
         exit 1

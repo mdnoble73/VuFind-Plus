@@ -80,21 +80,16 @@ class Admin_Libraries extends ObjectEditor
 		$objectActions = array();
 		if ($existingObject != null){
 			$objectActions[] = array(
-				'text' => 'Edit Facets',
-				'url' => '/Admin/LibraryFacetSettings?libraryId=' . $existingObject->libraryId,
-			);
-			$objectActions[] = array(
 				'text' => 'Reset Facets To Default',
 				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=resetFacetsToDefault',
 			);
 			$objectActions[] = array(
+					'text' => 'Reset More Details To Default',
+					'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=resetMoreDetailsToDefault',
+			);
+			$objectActions[] = array(
 				'text' => 'Copy Library Facets',
 				'url' => '/Admin/Libraries?id=' . $existingObject->libraryId . '&amp;objectAction=copyFacetsFromLibrary',
-			);
-
-			$objectActions[] = array(
-				'text' => 'Edit Search Sources',
-				'url' => '/Admin/LibrarySearchSources?libraryId=' . $existingObject->libraryId,
 			);
 			$objectActions[] = array(
 				'text' => 'Copy Library Search Sources',
@@ -155,6 +150,35 @@ class Admin_Libraries extends ObjectEditor
 			$defaultFacets = Library::getDefaultFacets($libraryId);
 
 			$library->facets = $defaultFacets;
+			$library->update();
+
+			$_REQUEST['objectAction'] = 'edit';
+		}
+		$structure = $this->getObjectStructure();
+		header("Location: /Admin/Libraries?objectAction=edit&id=" . $libraryId);
+	}
+
+	function resetMoreDetailsToDefault(){
+		$library = new Library();
+		$libraryId = $_REQUEST['id'];
+		$library->libraryId = $libraryId;
+		if ($library->find(true)){
+			$library->clearMoreDetailsOptions();
+
+			$defaultOptions = array();
+			require_once ROOT_DIR . '/RecordDrivers/Interface.php';
+			$defaultMoreDetailsOptions = RecordInterface::getDefaultMoreDetailsOptions();
+			$i = 0;
+			foreach ($defaultMoreDetailsOptions as $source => $defaultState){
+				$optionObj = new LibraryMoreDetails();
+				$optionObj->libraryId = $libraryId;
+				$optionObj->collapseByDefault = $defaultState == 'closed';
+				$optionObj->source = $source;
+				$optionObj->weight = $i++;
+				$defaultOptions[] = $optionObj;
+			}
+
+			$library->moreDetailsOptions = $defaultOptions;
 			$library->update();
 
 			$_REQUEST['objectAction'] = 'edit';

@@ -179,6 +179,7 @@ class EContentImportSummary extends Admin_Admin {
 		}
 
 		$interface->setTemplate('eContentImportSummary.tpl');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setPageTitle('eContent Import Summary Report');
 		$interface->display('layout.tpl');
 	}

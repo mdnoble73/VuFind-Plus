@@ -19,7 +19,6 @@
  */
 
 require_once ROOT_DIR . '/Action.php';
-require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
 class SearchAPI extends Action {
@@ -32,7 +31,7 @@ class SearchAPI extends Action {
 		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
 		if (is_callable(array($this, $_GET['method']))) {
-			if (in_array($_GET['method'] , array('getSearchBar', 'getHomePageWidget', 'getListWidget'))){
+			if (in_array($_GET['method'] , array('getSearchBar', 'getListWidget'))){
 				$output = $this->$_GET['method']();
 			}else{
 				$output = json_encode(array('result'=>$this->$_GET['method']()));
@@ -151,7 +150,7 @@ class SearchAPI extends Action {
 				}
 			}
 			$jsonResults['categorySelected'] = $categorySelected;
-			$timer->logTime('load selected category');
+			$timer->logTime('finish checking to see if a format category has been loaded already');
 
 			// Process Paging
 			$link = $searchObject->renderLinkPageTemplate();
@@ -188,8 +187,8 @@ class SearchAPI extends Action {
 
 
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
-			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
-			$searchStat = new SearchStat();
+			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');
+			$searchStat = new SearchStatNew();
 			$searchStat->saveSearch( strip_tags($_GET['lookfor']), strip_tags($_GET['type']), $searchObject->getResultTotal());
 		}
 
@@ -206,12 +205,6 @@ class SearchAPI extends Action {
 	function getSearchBar(){
 		global $interface;
 		return $interface->fetch('API/searchbar.tpl');
-	}
-
-	function getHomePageWidget(){
-		global $interface;
-		$interface->caching = 1;
-		return $interface->fetch('API/homePageWidget.tpl');
 	}
 
 	function getListWidget(){
@@ -239,14 +232,14 @@ class SearchAPI extends Action {
 	}
 
 	/**
-	 * Retreive the top 20 search terms by popularity from the search_stats table
+	 * Retrieve the top 20 search terms by popularity from the search_stats table
 	 * Enter description here ...
 	 */
 	function getTopSearches(){
-		require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
+		require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');
 		$numSearchesToReturn = isset($_REQUEST['numResults']) ? $_REQUEST['numResults'] : 20;
-		$searchStats = new SearchStat();
-		$searchStats->query("SELECT phrase, sum(numSearches) as numTotalSearches FROM `search_stats` where phrase != '' group by phrase order by numTotalSearches DESC LIMIT " . $numSearchesToReturn);
+		$searchStats = new SearchStatNew();
+		$searchStats->query("SELECT phrase, numSearches as numTotalSearches FROM `search_stats_new` where phrase != '' order by numTotalSearches DESC LIMIT " . $numSearchesToReturn);
 		$searches = array();
 		while ($searchStats->fetch()){
 			$searches[] = $searchStats->phrase;
@@ -264,13 +257,60 @@ class SearchAPI extends Action {
 		global $timer;
 
 		// Include Search Engine Class
-		require_once ROOT_DIR . 'sys/' . $configArray['Index']['engine'] . '.php';
+		require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
 		$timer->logTime('Include search engine');
 
 		//setup the results array.
 		$jsonResults = array();
 
 		// Initialise from the current search globals
+		/** @var SearchObject_Solr $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$searchObject->init();
+
+		// Set Interface Variables
+		//   Those we can construct BEFORE the search is executed
+		$interface->setPageTitle('Search Results');
+		$interface->assign('sortList',   $searchObject->getSortList());
+		$interface->assign('rssLink',    $searchObject->getRSSUrl());
+
+		$timer->logTime('Setup Search');
+
+		// Process Search
+		$result = $searchObject->processSearch(true, true);
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result->getMessage());
+		}
+
+		if ($searchObject->getResultTotal() < 1){
+			return "";
+		}else{
+			//Return the first result
+			$recordSet = $searchObject->getResultRecordSet();
+			foreach($recordSet as $recordKey => $record){
+				return $record['id'];
+			}
+		}
+	}
+
+	function getRecordIdForItemBarcode(){
+		$barcode = strip_tags($_REQUEST['barcode']);
+		$_REQUEST['lookfor'] = $barcode;
+		$_REQUEST['type'] = 'barcode';
+
+		global $interface;
+		global $configArray;
+		global $timer;
+
+		// Include Search Engine Class
+		require_once ROOT_DIR . '/sys/' . $configArray['Index']['engine'] . '.php';
+		$timer->logTime('Include search engine');
+
+		//setup the results array.
+		$jsonResults = array();
+
+		// Initialise from the current search globals
+		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 

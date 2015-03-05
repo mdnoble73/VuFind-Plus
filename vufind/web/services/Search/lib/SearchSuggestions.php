@@ -17,14 +17,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-//require_once ROOT_DIR . '/sys/SolrStats.php';
-//require_once ROOT_DIR . '/Drivers/marmot_inc/BadWord.php';
 require_once ROOT_DIR . '/Drivers/marmot_inc/SpellingWord.php';
 
 class SearchSuggestions{
 	function getCommonSearchesMySql($searchTerm, $searchType){
-		require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
-		$searchStat = new SearchStat();
+		require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');
+		$searchStat = new SearchStatNew();
 		$suggestions = $searchStat->getSearchSuggestions( $searchTerm, $searchType);
 		if (count ($suggestions) > 10){
 			$suggestions = array_slice($suggestions, 0, 10);

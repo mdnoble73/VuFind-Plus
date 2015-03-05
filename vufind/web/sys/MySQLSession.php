@@ -8,31 +8,46 @@ class MySQLSession extends SessionInterface {
 		$s = new Session();
 		$s->session_id = $sess_id;
 
+		$cookieData = '';
+		$saveNewSession = false;
 		if ($s->find(true)) {
-			// enforce lifetime of this session data
-			if ($s->remember_me == 0 && $s->last_used + self::$lifetime > time()) {
-				$s->last_used = time();
-				$s->update();
-				return $s->data;
-			} else if ($s->remember_me == 1 && $s->last_used + self::$rememberMeLifetime > time()) {
-				$s->last_used = time();
-				$s->update();
-				return $s->data;
-			} else {
+			//First check to see if the session expired
+			$curTime = time();
+			if ($s->remember_me == 1){
+				$sessionExpirationTime = $s->last_used + self::$rememberMeLifetime;
+			}else{
+				$sessionExpirationTime = $s->last_used + self::$lifetime;
+			}
+			if ($curTime > $sessionExpirationTime){
 				$s->delete();
-				return '';
+				session_start();
+				session_regenerate_id(true);
+				$sess_id = session_id();
+				$_SESSION = array();
+				$saveNewSession = true;
+			}else{
+				// updated the session in the database to show that we just used it
+				$s->last_used = $curTime;
+				$s->update();
+				$cookieData = $s->data;
 			}
 		} else {
-			// in seconds - easier for calcuating duration
+			$saveNewSession = true;
+		}
+		if ($saveNewSession){
+			$s->session_id = $sess_id;
+			//There is no active session, we need to create a new one.
 			$s->last_used = time();
 			// in date format - easier to read
 			$s->created = date('Y-m-d h:i:s');
 			if (isset($_SESSION['rememberMe']) && $_SESSION['rememberMe'] == true){
 				$s->remember_me = 1;
+			}else{
+				$s->remember_me = 0;
 			}
 			$s->insert();
-			return '';
 		}
+		return $cookieData;
 	}
 
 	static public function write($sess_id, $data) {
@@ -40,11 +55,17 @@ class MySQLSession extends SessionInterface {
 		$s->session_id = $sess_id;
 		if ($s->find(true)) {
 			$s->data = $data;
-			if (isset($_SESSION['rememberMe']) && $_SESSION['rememberMe'] == true){
+			if (isset($_SESSION['rememberMe']) && ($_SESSION['rememberMe'] == true || $_SESSION['rememberMe'] === "true")){
 				$s->remember_me = 1;
+				setcookie(session_name(),session_id(),time()+self::$rememberMeLifetime,'/');
+			}else{
+				$s->remember_me = 0;
+				session_set_cookie_params(0);
 			}
+			parent::write($sess_id, $data);
 			return $s->update();
 		} else {
+			//No session active
 			return false;
 		}
 	}
@@ -60,7 +81,8 @@ class MySQLSession extends SessionInterface {
 	}
 
 	static public function gc($sess_maxlifetime) {
-		$s = new Session();
+		//Doing this in PHP  at random times, causes problems for VuFind, do it as part of cron in Java
+		/*$s = new Session();
 		$s->whereAdd('last_used + ' . $sess_maxlifetime . ' < ' . time());
 		$s->whereAdd('remember_me = 0');
 		$s->delete(true);
@@ -68,7 +90,7 @@ class MySQLSession extends SessionInterface {
 		$s = new Session();
 		$s->whereAdd('last_used + ' . SessionInterface::$rememberMeLifetime . ' < ' . time());
 		$s->whereAdd('remember_me = 1');
-		$s->delete(true);
+		$s->delete(true);*/
 	}
 
 }

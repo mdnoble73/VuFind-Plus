@@ -1,0 +1,167 @@
+@import "bootstrap/less/variables.less";
+@import "variables.less";
+///
+//Functionality related to the overall layout
+//Headers, Footer, columns, etc.
+//
+//Body
+body{
+  color: @body-text-color;
+}
+#content-container{
+  @media(max-width: @screen-sm-min){
+    width: auto;
+  }
+  @media(min-width: @screen-sm-min){
+    width: 100%;
+  }
+  padding: 0px;
+}
+
+hr.menu{
+  margin-top: 3px;
+  margin-bottom: 3px;
+  height: 0px;
+  border-top: 1px solid #d3d3d3;
+}
+
+//Breadcrumbs (above header)
+.breadcrumbs{
+  background-color: @breadcrumb-bg;
+  padding: 3px;
+}
+.breadcrumb{
+  padding: 0px;
+  margin-bottom: 0px;
+  > li {
+    display: inline-block;
+    + li:before {
+      content: ""; // Override default separator since we add wone in code
+      padding: 0 5px;
+      color: @breadcrumb-color;
+    }
+  }
+}
+//System message
+div#system-message-header{
+  background-color: @header-top-color;
+  color: black;
+  text-align: center;
+  padding: 3px;
+}
+//Define the header elements
+#header-container{
+  padding-top: 0px;
+  height: @header-height;
+  background-color: @header-top-color;
+  background: linear-gradient(to bottom, @header-top-color, @header-middle-color 85%, @header-bottom-color);
+  border-bottom: 8px solid @header-bottom-border-color;
+  margin-bottom: 0px;
+  min-height: 110px;
+}
+#header-logo{
+  padding: 10px 10px 0 0;
+  @media(max-width: @screen-xs-max){
+    max-width: 100%;
+    height:auto;
+  }
+}
+
+.header-button{
+  text-align: center;
+  height: @header-height - 8px !important;
+  border-bottom: 4px solid @header-bottom-color;
+}
+.header-button > a{
+  line-height: @header-height - 8px !important;
+  text-align: center;
+  vertical-align: middle;
+  padding:0px;
+  color: @header-link-color !important;
+  text-shadow: 1px 1px white;
+}
+.header-button > a:visited{
+  color: @header-link-color !important;
+}
+.header-button:hover{
+  border-bottom: 4px solid @link-hover-color;
+}
+.header-primary{
+  border-left: 2px solid @header-button-border-vertical;
+  border-right: 2px solid @header-button-border-vertical;
+}
+#library-name-header{
+  font-size: @library-display-name-font-size;
+  color: @library-display-name-color;
+  font-family: @library-display-name-font;
+  font-weight: bold;
+  white-space: normal;
+  padding-top: 5px;
+}
+#header-links{
+  text-align: center;
+}
+.header-link-wrapper{
+  display: inline-block;
+  padding: 2px 15px;
+  border-right: 1px solid #0078ae;
+}
+#header-links .header-link-wrapper:last-of-type{
+  border-right: 0px solid black;
+}
+.header-link-wrapper a{
+  font-size: 16px;
+}
+//Footer
+#footer-container{
+  border-top: 8px solid @footer-top-border-color;
+  padding-top: 3px;
+}
+#install-info{
+  padding-left: 20px;
+}
+#connect-with-us-info{
+  padding-right: 20px;
+}
+#connect-with-us-label{
+  margin-right: 15px;
+}
+.connect-icon{
+  padding: 0px 3px 0px 3px;
+}
+
+//Fixed navigation in footer
+#navigation-controls{
+  border-top: 8px solid @footer-top-border-color;
+  background: white;
+  @media print {
+    display: none !important;
+  }
+}
+//Sidebar & Main content
+#side-bar{
+  // padding-left: 0px;
+  @media print {
+    display: none;
+  }
+}
+#main-content-with-sidebar{
+  padding-right: 0px;
+  padding-bottom: 15px;
+  @media print{
+    width:100%;
+    display: block !important;
+  }
+}
+#main-content-with-sidebar > .row{
+  margin-right: -30px;
+}
+
+//Modal
+.modal{
+  overflow-y: auto;
+}
+.modal-buttons{
+  margin-left: 3px;
+  margin-right: 3px;
+}

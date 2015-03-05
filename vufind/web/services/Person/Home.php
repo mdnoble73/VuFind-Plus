@@ -19,7 +19,6 @@
  */
 
 require_once ROOT_DIR . '/Action.php';
-require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once ROOT_DIR . '/RecordDrivers/Factory.php';
 require_once ROOT_DIR . '/sys/Genealogy/Person.php';
 
@@ -65,6 +64,7 @@ class Home extends Action
 		$this->record = $record;
 
 		//Load person from the database to get additional information
+		/* @var Person $person */
 		$person = Person::staticGet('personId', $this->id);
 		$record['picture'] = $person->picture;
 
@@ -203,6 +203,7 @@ class Home extends Action
 		}
 
 		// Display Page
+		$interface->assign('sidebar', 'Person/full-record-sidebar.tpl');
 		$interface->display('layout.tpl');
 	}
 }

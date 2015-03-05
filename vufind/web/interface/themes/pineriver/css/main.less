@@ -1,0 +1,70 @@
+// Core variables and mixins
+@import "../../responsive/css/variables.less";
+@import "variables.less";
+
+// Always include the base .less file
+@import "../../responsive/css/responsive_base.less";
+
+// Main Styling for Pine River Library
+
+.header-login-button-mixin;
+
+//#header-container {
+////  background: linear-gradient(to bottom, @header-top-color, @header-middle-color 85%, @header-bottom-color);
+////  original styling above
+////  background: linear-gradient(to bottom, @header-top-color, @header-middle-color 20%, @header-bottom-color 10%, @header-bottom-color);
+//    background: linear-gradient(to bottom, @header-top-color, @header-middle-color 40%, @header-bottom-color 55%,@header-bottom-color);
+//
+//}
+
+
+#header-logo{
+  padding-top: 0;
+}
+
+
+// mixin to select all the typical states of <a> like tags
+.allLinkstates(@rules) {
+  &, &:hover, &:active, &:visited {
+    @rules();
+  }
+}
+
+// Browse Category Arrows
+#browse-category-picker {
+  .jcarousel-control-prev, .jcarousel-control-next {
+    background-color: white;
+    color: @pineriverbrown;
+    &:active, &:hover {
+      color: @pineriverlightblue;
+//      text-decoration: none;
+    }
+    .box-shadow(none);
+  }
+//  a {
+//    &.jcarousel-control-next:after {
+//      content: "▶";
+//    }
+//    &.jcarousel-control-prev:before {
+//      content: "◀";
+//    }
+//  }
+  // indicator dots at bottom of browse category carousel
+  .jcarousel-pagination a {
+    &.active {
+      background: @pineriverbrown;
+      // keep shadowing in place on active item
+      .box-shadow(0 0 2px #4E443C);
+    }
+    &:hover, &:active{
+      background: @pineriverlightblue;
+    }
+    .allLinkstates({
+      outline: none;
+    })
+  }
+}
+
+.selected-browse-label-search a{
+  color: @browse-label-text-color;
+}

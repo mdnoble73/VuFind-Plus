@@ -68,7 +68,7 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 		$interface->assign('statusFilter', $statusesToShow);
 
 		//Process status change if needed
-		if (isset($_REQUEST['updateStatus']) && isset($_REQUEST['select'])){
+		if (isset($_REQUEST['newStatus']) && isset($_REQUEST['select']) && $_REQUEST['newStatus'] != 'unselected'){
 			//Look for which titles should be modified
 			$selectedRequests = $_REQUEST['select'];
 			$statusToSet = $_REQUEST['newStatus'];
@@ -191,13 +191,14 @@ class MaterialsRequest_ManageRequests extends Admin_Admin {
 		}else{
 			$interface->setTemplate('manageRequests.tpl');
 			$interface->setPageTitle('Manage Materials Requests');
+			$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 			$interface->display('layout.tpl');
 		}
 	}
 
 	function exportToExcel($selectedRequestIds, $allRequests){
 		global $configArray;
-		//May ned more time to exort all records
+		//May need more time to export all records
 		set_time_limit(600);
 		//PHPEXCEL
 		// Create new PHPExcel object

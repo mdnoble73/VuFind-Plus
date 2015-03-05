@@ -50,7 +50,7 @@ class Suggestion extends Action
 			}
 			if ($isValid){
 				//Process the submission
-				$privatekey = "6LeZ8roSAAAAALZTc7Xe-GN5YG1VMeRKAZNscHmb";
+				$privatekey = $configArray['ReCaptcha']['privateKey'];
 				$resp = recaptcha_check_answer ($privatekey,
 									$_SERVER["REMOTE_ADDR"],
 									$_POST["recaptcha_challenge_field"],
@@ -90,7 +90,7 @@ class Suggestion extends Action
 
 		}
 		//Display the form asking for input
-		$publickey = "6LeZ8roSAAAAAN0V9pSDie9Z9d-3bhNjsDLBjt1q"; // you got this from the signup page
+		$publickey = $configArray['ReCaptcha']['publicKey'];
 
 		$captchaCode = recaptcha_get_html($publickey);
 		$interface->assign('captcha', $captchaCode);
@@ -98,10 +98,18 @@ class Suggestion extends Action
 		$interface->assign('email', $email);
 		$interface->assign('suggestion', $suggestion);
 
-		$interface->setPageTitle('Make a Suggestion');
-		$interface->assign('subTemplate', 'suggestion.tpl');
-		$interface->setTemplate('view-alt.tpl');
-		$interface->display('layout.tpl', 'Suggestion');
+		if (isset($_REQUEST['lightbox'])){
+			$interface->assign('popupTitle', 'Make a Suggestion');
+			$interface->assign('lightbox', true);
+			$popupContent = $interface->fetch('Help/suggestion.tpl');
+			$interface->assign('popupContent', $popupContent);
+			$interface->display('popup-wrapper.tpl');
+		}else{
+			$interface->assign('lightbox', false);
+			$interface->setPageTitle('Make a Suggestion');
+			$interface->setTemplate('suggestion.tpl');
+			$interface->display('layout.tpl');
+		}
 
 	}
 }

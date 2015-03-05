@@ -20,14 +20,14 @@ class Prospector{
 		$prospectorInfo = $req->getResponseBody();
 
 		//Parse the information to get the titles from the page
-		preg_match_all('/<table class="browseBibTable" cellspacing="2" border="0">(.*?)<\/table>/s', $prospectorInfo, $titleInfo, PREG_SET_ORDER);
+		preg_match_all('/dpBibTitle(.*?)bibLocations/si', $prospectorInfo, $titleInfo, PREG_SET_ORDER);
 		$prospectorTitles = array();
 		for ($matchi = 0; $matchi < count($titleInfo); $matchi++) {
 			$curTitleInfo = array();
-			//Extract the titld and bid from the titleTitleInfo
+			//Extract the title and bid from the titleTitleInfo
 			$titleTitleInfo = $titleInfo[$matchi][1];
 
-			if (preg_match('/<div class="dpBibTitle">.*?<a.*?href.*?__R(.*?)__.*?>\\s*(.*?)\\s*<\/a>.*?<\/div>/s', $titleTitleInfo, $titleMatches)) {
+			if (preg_match('/<span class="title">.*?<a.*?href.*?__R(.*?)__.*?>\\s*(.*?)\\s*<\/a>.*?<\/span>/s', $titleTitleInfo, $titleMatches)) {
 				$curTitleInfo['id'] = $titleMatches[1];
 				//Create the link to the title in Encore
 				$curTitleInfo['link'] = "http://encore.coalliance.org/iii/encore/record/C__R" . urlencode($curTitleInfo['id']) ."__Orightresult?lang=eng&amp;suite=def";
@@ -48,13 +48,23 @@ class Prospector{
 
 			//Extract the publication date from the titlePubDateInfo
 			$titlePubDateInfo = $titleInfo[$matchi][1];
-			if (preg_match('/<td align="right">.*?<div class="dpImageExtras">(.*?)<br \/>.*?<\/td>/s', $titlePubDateInfo, $pubMatches)) {
+			if (preg_match('/"itemMediaYear".*?>(.*?)<\/span>/s', $titlePubDateInfo, $pubMatches)) {
 				//Make sure we are not getting scripts and copy counts
 				if (!preg_match('/img/', $pubMatches[1]) && !preg_match('/script/', $pubMatches[1])){
 					$publicationInfo = trim(strip_tags($pubMatches[1]));
 					if (strlen($publicationInfo) > 0){
 						$curTitleInfo['pubDate'] =$publicationInfo;
 					}
+				}
+			}
+
+			//Extract format titlePubDateInfo
+			$titleFormatInfo = $titleInfo[$matchi][1];
+			if (preg_match('/"itemMediaDescription".*?>(.*?)<\/span>/s', $titleFormatInfo, $formatMatches)) {
+				//Make sure we are not getting scripts and copy counts
+				$formatInfo = trim(strip_tags($formatMatches[1]));
+				if (strlen($formatInfo) > 0){
+					$curTitleInfo['format'] =$formatInfo;
 				}
 			}
 
@@ -76,11 +86,11 @@ class Prospector{
 			//If we didn't get the titl in the search results, add it in.
 			if (!$foundCurrentTitle){
 				$title = array(
-                  'id' => $prospectorRecordDetails['recordId'],
-                  'title' => $prospectorRecordDetails['title'],
-                  'author' => $prospectorRecordDetails['author'],
-                  'link' => $prospectorRecordDetails['prospectorEncoreUrl'],
-                  'isCurrent' => true,
+						'id' => $prospectorRecordDetails['recordId'],
+						'title' => $prospectorRecordDetails['title'],
+						'author' => $prospectorRecordDetails['author'],
+						'link' => $prospectorRecordDetails['prospectorEncoreUrl'],
+						'isCurrent' => true,
 				);
 				array_unshift($prospectorTitles, $title);
 			}
@@ -149,7 +159,7 @@ class Prospector{
 	 * Retrieve details about a record within prospector
 	 *
 	 * @param $record - The full record information from Prospector
-	 * @return Associative array with the record number in prospector and the list of libraries that own the title in prospector
+	 * @return array with the record number in prospector and the list of libraries that own the title in prospector
 	 */
 	function getProspectorDetailsForLocalRecord($record){
 		//Disable prospector details for now.
@@ -171,13 +181,13 @@ class Prospector{
 		$library->whereAdd("prospectorCode != ''");
 		$library->find();
 		$results = array(
-          'recordId' => '',
-          'title' => $record['title'],
-          'author' => isset($record['author']) ? $record['author'] : null,
-          'numLibraries' => 0,
-          'owningLibraries' => array(),
-          'prospectorClassicUrl' => '',
-          'prospectorEncoreUrl' => '',
+				'recordId' => '',
+				'title' => $record['title'],
+				'author' => isset($record['author']) ? $record['author'] : null,
+				'numLibraries' => 0,
+				'owningLibraries' => array(),
+				'prospectorClassicUrl' => '',
+				'prospectorEncoreUrl' => '',
 		);
 
 		if ($library->N > 0){

@@ -58,7 +58,7 @@ class CatalogConnection
 	 * The object of the appropriate driver.
 	 *
 	 * @access private
-	 * @var    MillenniumDriver|object
+	 * @var    MillenniumDriver|DriverInterface
 	 */
 	public $driver;
 
@@ -74,8 +74,7 @@ class CatalogConnection
 	 */
 	public function __construct($driver)
 	{
-		global $configArray;
-		$path = "{$configArray['Site']['local']}/Drivers/{$driver}.php";
+		$path = ROOT_DIR . "/Drivers/{$driver}.php";
 		if (is_readable($path)) {
 			require_once $path;
 
@@ -118,116 +117,6 @@ class CatalogConnection
 	}
 
 	/**
-	 * Check Holds
-	 *
-	 * A support method for checkFunction(). This is responsible for checking
-	 * the driver configuration to determine if the system supports Holds.
-	 *
-	 * @param string $functionConfig The Hold configuration values
-	 *
-	 * @return mixed On success, an associative array with specific function keys
-	 * and values either for placing holds via a form or a URL; on failure, false.
-	 * @access private
-	 */
-	private function _checkMethodHolds($functionConfig)
-	{
-		global $configArray;
-		$response = false;
-
-		if ($this->getHoldsMode() != "none"
-		&& method_exists($this->driver, 'placeHold')
-		&& isset($functionConfig['HMACKeys'])
-		) {
-			$response = array('function' => "placeHold");
-			$response['HMACKeys'] = explode(":", $functionConfig['HMACKeys']);
-			if (isset($functionConfig['defaultRequiredDate'])) {
-				$response['defaultRequiredDate']
-				= $functionConfig['defaultRequiredDate'];
-			}
-			if (isset($functionConfig['extraHoldFields'])) {
-				$response['extraHoldFields'] = $functionConfig['extraHoldFields'];
-			}
-		} else if (method_exists($this->driver, 'getHoldLink')) {
-			$response = array('function' => "getHoldLink");
-		}
-		return $response;
-	}
-
-	/**
-	 * Check Cancel Holds
-	 *
-	 * A support method for checkFunction(). This is responsible for checking
-	 * the driver configuration to determine if the system supports Cancelling Holds.
-	 *
-	 * @param string $functionConfig The Cancel Hold configuration values
-	 *
-	 * @return mixed On success, an associative array with specific function keys
-	 * and values either for cancelling holds via a form or a URL;
-	 * on failure, false.
-	 * @access private
-	 */
-	private function _checkMethodcancelHolds($functionConfig)
-	{
-		global $configArray;
-		$response = false;
-
-		if ($configArray['Catalog']['cancel_holds_enabled'] == true
-		&& method_exists($this->driver, 'cancelHolds')
-		) {
-			$response = array('function' => "cancelHolds");
-		} else if ($configArray['Catalog']['cancel_holds_enabled'] == true
-		&& method_exists($this->driver, 'getCancelHoldLink')
-		) {
-			$response = array('function' => "getCancelHoldLink");
-		}
-		return $response;
-	}
-
-	/**
-	 * Check Renewals
-	 *
-	 * A support method for checkFunction(). This is responsible for checking
-	 * the driver configuration to determine if the system supports Renewing Items.
-	 *
-	 * @param string $functionConfig The Renewal configuration values
-	 *
-	 * @return mixed On success, an associative array with specific function keys
-	 * and values either for renewing items via a form or a URL; on failure, false.
-	 * @access private
-	 */
-	private function _checkMethodRenewals($functionConfig)
-	{
-		global $configArray;
-		$response = false;
-
-		if ($configArray['Catalog']['renewals_enabled'] == true
-		&& method_exists($this->driver, 'renewMyItems')
-		) {
-			$response = array('function' => "renewMyItems");
-		} else if ($configArray['Catalog']['renewals_enabled'] == true
-		&& method_exists($this->driver, 'renewMyItemsLink')
-		) {
-			$response = array('function' => "renewMyItemsLink");
-		}
-		return $response;
-	}
-
-	/**
-	 * Get Holds Mode
-	 *
-	 * This is responsible for returning the holds mode
-	 *
-	 * @return string The Holds mode
-	 * @access public
-	 */
-	public static function getHoldsMode()
-	{
-		global $configArray;
-		return isset($configArray['Catalog']['holds_mode'])
-		? $configArray['Catalog']['holds_mode'] : 'all';
-	}
-
-	/**
 	 * Get Status
 	 *
 	 * This is responsible for retrieving the status information of a certain
@@ -262,6 +151,19 @@ class CatalogConnection
 	public function getStatuses($recordIds, $forSearch = false)
 	{
 		return $this->driver->getStatuses($recordIds, $forSearch);
+	}
+
+	/**
+	 * Returns a summary of the holdings information for a single id. Used to display
+	 * within the search results and at the top of a full record display to ensure
+	 * the holding information makes sense to all users.
+	 *
+	 * @param string $id the id of the bid to load holdings for
+	 * @param boolean $forSearch whether or not the summary will be shown in search results
+	 * @return array an associative array with a summary of the holdings.
+	 */
+	public function getStatusSummary($id, $forSearch = false){
+		return $this->driver->getStatusSummary($id, $forSearch);
 	}
 
 	/**
@@ -379,12 +281,72 @@ class CatalogConnection
 	 * This is responsible for retrieving a history of checked out items for the patron.
 	 *
 	 * @param   array   $patron     The patron array
+	 * @param   int     $page
+	 * @param   int     $recordsPerPage
+	 * @param   string  $sortOption
+	 *
 	 * @return  array               Array of the patron's reading list
-	 *                              If an error occures, return a PEAR_Error
+	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
 	function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut"){
-		return $this->driver->getReadingHistory($patron, $page, $recordsPerPage, $sortOption);
+		//Get reading history from the database unless we specifically want to load from the driver.
+		global $user;
+		if (($user->trackReadingHistory && $user->initialReadingHistoryLoaded) || !$this->driver->hasNativeReadingHistory()){
+			if ($user->trackReadingHistory){
+				//Make sure initial reading history loaded is set to true if we are here since
+				//The only way it wouldn't be here is if the user has elected to start tracking reading history
+				//And they don't have reading history currently specified.  We get what is checked out below though
+				//So that takes care of the initial load
+				if (!$user->initialReadingHistoryLoaded){
+					//Load the initial reading history
+					$user->initialReadingHistoryLoaded = 1;
+					$user->update();
+					$_SESSION['userinfo'] = serialize($user);
+				}
+
+				$this->updateReadingHistoryBasedOnCurrentCheckouts();
+
+				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
+				$readingHistoryDB = new ReadingHistoryEntry();
+				$readingHistoryDB->userId = $user->id;
+				if ($sortOption == "checkedOut"){
+					$readingHistoryDB->orderBy('checkOutDate DESC, title ASC');
+				}else if ($sortOption == "returned"){
+					$readingHistoryDB->orderBy('checkInDate DESC, title ASC');
+				}else if ($sortOption == "title"){
+					$readingHistoryDB->orderBy('title ASC');
+				}else if ($sortOption == "author"){
+					$readingHistoryDB->orderBy('author ASC, title ASC');
+				}else if ($sortOption == "format"){
+					$readingHistoryDB->orderBy('format ASC, title ASC');
+				}
+				if ($recordsPerPage != -1){
+					$readingHistoryDB->limit(($page - 1) * $recordsPerPage, $recordsPerPage);
+				}
+				$readingHistoryDB->find();
+				$readingHistoryTitles = array();
+
+				while ($readingHistoryDB->fetch()){
+					$historyEntry = $this->getHistoryEntryForDatabaseEntry($readingHistoryDB);
+
+					$readingHistoryTitles[] = $historyEntry;
+				}
+
+				$readingHistoryDB = new ReadingHistoryEntry();
+				$readingHistoryDB->userId = $user->id;
+				$numTitles = $readingHistoryDB->count();
+
+				return array('historyActive'=>$user->trackReadingHistory, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
+			}else{
+				//Reading history disabled
+				return array('historyActive'=>$user->trackReadingHistory, 'titles'=>array(), 'numTitles'=> 0);
+			}
+
+		}else{
+			//Don't know enough to load internally, check the ILS.
+			return $this->driver->getReadingHistory($patron, $page, $recordsPerPage, $sortOption);
+		}
 	}
 
 	/**
@@ -394,12 +356,63 @@ class CatalogConnection
 	 * exportList
 	 * optOut
 	 *
-	 * @param   array   $patron         The patron array
 	 * @param   string  $action         The action to perform
 	 * @param   array   $selectedTitles The titles to do the action on if applicable
 	 */
 	function doReadingHistoryAction($action, $selectedTitles){
-		return $this->driver->doReadingHistoryAction($action, $selectedTitles);
+		global $user;
+		if (($user->trackReadingHistory && $user->initialReadingHistoryLoaded) || ! $this->driver->hasNativeReadingHistory()){
+			if ($action == 'deleteMarked'){
+				//Remove titles from database (do not remove from ILS)
+				foreach ($selectedTitles as $titleId){
+					list($source, $sourceId) = explode('_', $titleId);
+					$readingHistoryDB = new ReadingHistoryEntry();
+					$readingHistoryDB->userId = $user->id;
+					$readingHistoryDB->id = str_replace('rsh', '', $titleId);
+					$readingHistoryDB->delete();
+				}
+			}elseif ($action == 'deleteAll'){
+				//Remove all titles from database (do not remove from ILS)
+				$readingHistoryDB = new ReadingHistoryEntry();
+				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->delete();
+			}elseif ($action == 'exportList'){
+				//Leave this unimplemented for now.
+			}elseif ($action == 'optOut'){
+				$driverHasReadingHistory = $this->driver->hasNativeReadingHistory();
+
+				//Opt out within the ILS if possible
+				if ($driverHasReadingHistory){
+					//First run delete all
+					$result = $this->driver->doReadingHistoryAction('deleteAll', $selectedTitles);
+
+					$result = $this->driver->doReadingHistoryAction($action, $selectedTitles);
+				}
+
+				//Delete the reading history
+				$readingHistoryDB = new ReadingHistoryEntry();
+				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->delete();
+
+				//Opt out within Pika since the ILS does not seem to implement this functionality
+				$user->trackReadingHistory = false;
+				$user->update();
+				$_SESSION['userinfo'] = serialize($user);
+			}elseif ($action == 'optIn'){
+				$driverHasReadingHistory = $this->driver->hasNativeReadingHistory();
+				//Opt in within the ILS if possible
+				if ($driverHasReadingHistory){
+					$result = $this->driver->doReadingHistoryAction($action, $selectedTitles);
+				}
+
+				//Opt in within Pika since the ILS does not seem to implement this functionality
+				$user->trackReadingHistory = true;
+				$user->update();
+				$_SESSION['userinfo'] = serialize($user);
+			}
+		}else{
+			return $this->driver->doReadingHistoryAction($action, $selectedTitles);
+		}
 	}
 
 
@@ -408,7 +421,10 @@ class CatalogConnection
 	 *
 	 * This is responsible for retrieving all holds by a specific patron.
 	 *
-	 * @param array $patron The patron array from patronLogin
+	 * @param array|User $patron      The patron array from patronLogin
+	 * @param integer $page           The current page of holds
+	 * @param integer $recordsPerPage The number of records to show per page
+	 * @param string $sortOption      How the records should be sorted
 	 *
 	 * @return mixed        Array of the patron's holds on success, PEAR_Error
 	 * otherwise.
@@ -424,7 +440,7 @@ class CatalogConnection
 	 *
 	 * This is responsible for retrieving the profile for a specific patron.
 	 *
-	 * @param array $patron The patron array
+	 * @param array|User $patron The patron array
 	 *
 	 * @return mixed        Array of the patron's profile data on success,
 	 * PEAR_Error otherwise.
@@ -432,7 +448,20 @@ class CatalogConnection
 	 */
 	public function getMyProfile($patron)
 	{
-		return $this->driver->getMyProfile($patron);
+		$profile = $this->driver->getMyProfile($patron);
+		if (PEAR_Singleton::isError($profile)){
+			echo("Error loading profile " . print_r($profile, true));
+			return $profile;
+		}
+		$profile['readingHistorySize'] = '';
+		global $user;
+		if ($user && $user->trackReadingHistory && $user->initialReadingHistoryLoaded){
+			require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
+			$readingHistoryDB = new ReadingHistoryEntry();
+			$readingHistoryDB->userId = $user->id;
+			$profile['readingHistorySize'] = $readingHistoryDB->count();
+		}
+		return $profile;
 	}
 
 	/**
@@ -445,7 +474,7 @@ class CatalogConnection
 	 * @param   string  $comment    Any comment regarding the hold or recall
 	 * @param   string  $type       Whether to place a hold or recall
 	 * @return  mixed               True if successful, false if unsuccessful
-	 *                              If an error occures, return a PEAR_Error
+	 *                              If an error occurs, return a PEAR_Error
 	 * @access  public
 	 */
 	function placeHold($recordId, $patronId, $comment, $type)
@@ -600,6 +629,22 @@ class CatalogConnection
 	}
 
 	/**
+	 * Process inventory for a particular item in the catalog
+	 *
+	 * @param string $login     Login for the user doing the inventory
+	 * @param string $password1 Password for the user doing the inventory
+	 * @param string $initials
+	 * @param string $password2
+	 * @param string[] $barcodes
+	 * @param boolean $updateIncorrectStatuses
+	 *
+	 * @return array
+	 */
+	function doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses){
+		return $this->driver->doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses);
+	}
+
+	/**
 	 * Get suppressed records.
 	 *
 	 * @return array ID numbers of suppressed records in the system.
@@ -629,6 +674,134 @@ class CatalogConnection
 		}
 		return false;
 	}
-}
 
-?>
+	public function getSelfRegistrationFields() {
+		return $this->driver->getSelfRegistrationFields();
+	}
+
+	/**
+	 * @param ReadingHistoryEntry $readingHistoryDB
+	 * @return mixed
+	 */
+	public function getHistoryEntryForDatabaseEntry($readingHistoryDB) {
+		$historyEntry = array();
+
+		$historyEntry['itemindex'] = $readingHistoryDB->id;
+		$historyEntry['deletable'] = true;
+		$historyEntry['source'] = $readingHistoryDB->source;
+		$historyEntry['id'] = $readingHistoryDB->sourceId;
+		$historyEntry['recordId'] = $readingHistoryDB->sourceId;
+		$historyEntry['shortId'] = $readingHistoryDB->sourceId;
+		$historyEntry['title'] = $readingHistoryDB->title;
+		$historyEntry['author'] = $readingHistoryDB->author;
+		$historyEntry['format'] = array($readingHistoryDB->format);
+		$historyEntry['checkout'] = $readingHistoryDB->checkOutDate;
+		$historyEntry['checkin'] = $readingHistoryDB->checkInDate;
+		$historyEntry['ratingData'] = null;
+		$historyEntry['permanentId'] = null;
+		$historyEntry['linkUrl'] = null;
+		$historyEntry['coverUrl'] = null;
+		$recordDriver = null;
+		if ($readingHistoryDB->source == 'ILS') {
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			$recordDriver = new MarcRecord($historyEntry['id']);
+		} elseif ($readingHistoryDB->source == 'OverDrive') {
+			require_once ROOT_DIR . '/RecordDrivers/OverDriveRecordDriver.php';
+			$recordDriver = new OverDriveRecordDriver($historyEntry['id']);
+		} elseif ($readingHistoryDB->source == 'PublicEContent') {
+			require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
+			$recordDriver = new PublicEContentDriver($historyEntry['id']);
+		} elseif ($readingHistoryDB->source == 'RestrictedEContent') {
+			require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
+			$recordDriver = new RestrictedEContentDriver($historyEntry['id']);
+		}
+		if ($recordDriver != null && $recordDriver->isValid()) {
+			$historyEntry['ratingData'] = $recordDriver->getRatingData();
+			$historyEntry['permanentId'] = $recordDriver->getPermanentId();
+			$historyEntry['linkUrl'] = $recordDriver->getLinkUrl();
+			$historyEntry['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+			$historyEntry['format'] = $recordDriver->getFormats();
+		}
+		$recordDriver = null;
+		return $historyEntry;
+	}
+
+	private function updateReadingHistoryBasedOnCurrentCheckouts() {
+		global $user;
+
+		require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
+		$readingHistoryDB = new ReadingHistoryEntry();
+		$readingHistoryDB->userId = $user->id;
+		$readingHistoryDB->whereAdd('checkInDate IS NULL');
+		$readingHistoryDB->find();
+
+		$activeHistoryTitles = array();
+		while ($readingHistoryDB->fetch()){
+			$historyEntry = $this->getHistoryEntryForDatabaseEntry($readingHistoryDB);
+
+			$key = $historyEntry['source'] . ':' . $historyEntry['id'];
+			$activeHistoryTitles[$key] = $historyEntry;
+		}
+
+		//Update reading history based on current checkouts.  That way it never looks out of date
+		require_once ROOT_DIR . '/services/API/UserAPI.php';
+		$userAPI = new UserAPI();
+		$checkouts = $userAPI->getPatronCheckedOutItems();
+		foreach ($checkouts['checkedOutItems'] as $checkout){
+			$sourceId = '?';
+			$source = $checkout['checkoutSource'];
+			if ($source == 'OverDrive'){
+				$sourceId = $checkout['overDriveId'];
+			}elseif ($source == 'ILS'){
+				$sourceId = $checkout['id'];
+			}elseif ($source == 'eContent'){
+				$source = $checkout['recordType'];
+				$sourceId = $checkout['id'];
+			}
+			$key = $source . ':' . $sourceId;
+			if (array_key_exists($key, $activeHistoryTitles)){
+				unset($activeHistoryTitles[$key]);
+			}else{
+				$historyEntryDB = new ReadingHistoryEntry();
+				$historyEntryDB->userId = $user->id;
+				if (isset($checkout['groupedWorkId'])){
+					$historyEntryDB->groupedWorkPermanentId = $checkout['groupedWorkId'] == null ? '' : $checkout['groupedWorkId'];
+				}else{
+					$historyEntryDB->groupedWorkPermanentId = "";
+				}
+
+				$historyEntryDB->source = $source;
+				$historyEntryDB->sourceId = $sourceId;
+				$historyEntryDB->title = substr($checkout['title'], 0, 150);
+				$historyEntryDB->author = substr($checkout['author'], 0, 75);
+				$historyEntryDB->format = substr($checkout['format'], 0, 50);
+				$historyEntryDB->checkOutDate = time();
+				if (!$historyEntryDB->insert()){
+					global $logger;
+					$logger->log("Could not insert new reading history entry", PEAR_LOG_ERR);
+				}
+			}
+		}
+
+		//Anything that was still active is now checked in
+		foreach ($activeHistoryTitles as $historyEntry){
+			$historyEntryDB = new ReadingHistoryEntry();
+			$historyEntryDB->source = $historyEntry['source'];
+			$historyEntryDB->sourceId = $historyEntry['id'];
+			$historyEntryDB->checkInDate = null;
+			if ($historyEntryDB->find(true)){
+				$historyEntryDB->checkInDate = time();
+				$numUpdates = $historyEntryDB->update();
+				if ($numUpdates != 1){
+					global $logger;
+					$key = $historyEntry['source'] . ':' . $historyEntry['id'];
+					$logger->log("Could not update reading history entry $key", PEAR_LOG_ERR);
+				}
+			}
+		}
+	}
+
+	public function getNumHolds($id) {
+		return $this->driver->getNumHolds($id);
+	}
+}

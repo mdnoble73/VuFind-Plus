@@ -388,6 +388,7 @@ class Report_ReportPurchase extends Report_Report{
 		}
 
 		$interface->setPageTitle('Report - Purchase Tracking');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('reportPurchase.tpl');
 		$interface->display('layout.tpl');
 

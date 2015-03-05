@@ -7,9 +7,9 @@ function addSearch(group, term, field)
     if (field == undefined) {field = '';}
 
     // Keep form content
-    protectForm();
+    //protectForm();
 
-    var searchHolder = getElem('group' + group + 'SearchHolder');
+    var searchHolder = $('#group' + group + 'SearchHolder');
     var newSearch = "";
 
     newSearch += "<div class='advRow'>";
@@ -53,7 +53,7 @@ function addGroup(firstTerm, firstField, join)
     if (join       == undefined) {join       = '';}
 
     // Keep form content
-    protectForm();
+    //protectForm();
 
     var newGroup = "";
     newGroup += "<div id='group" + nextGroupNumber + "' class='group group" + (nextGroupNumber % 2) + "'>";
@@ -87,7 +87,7 @@ function addGroup(firstTerm, firstField, join)
     groupSearches[nextGroupNumber] = 0;
 
     // Add the new group into the page
-    var search = getElem('searchHolder');
+    var search = $('#searchHolder');
     search.innerHTML += newGroup;
     // Add the first search field
     addSearch(nextGroupNumber, firstTerm, firstField);
@@ -101,7 +101,7 @@ function addGroup(firstTerm, firstField, join)
 function deleteGroup(group)
 {
     // Find the group
-    var group = getElem('group' + group);
+    var group = $('#group' + group);
     // And it's parent node
     var parent = group.parentNode;
     // Remove it from the DOM
@@ -129,9 +129,9 @@ function addSearchJS(group)
 function reSortGroups()
 {
     // Top level holder
-    var searchHolder = getElem('searchHolder');
+    var searchHolder = $('#searchHolder');
     // Loop through all groups
-    var len = searchHolder.childNodes.length;
+    var len = searchHolder.childElementCount;
     var groups = 0;
     for (var i = 0; i < len; i++) {
         // We only want nodes with an ID
@@ -148,11 +148,16 @@ function reSortGroups()
     nextGroupNumber = groups;
 
     // Hide some group-related controls if there is only one group:
-    var groupJoin = getElem('groupJoin');
+    var groupJoin = $('#groupJoin');
     if (groupJoin) {
-        groupJoin.style.display = nextGroupNumber == 1 ? 'none' : 'block';
+	      if (nextGroupNumber == 1){
+		      groupJoin.show();
+	      }else{
+		      groupJoin.hide();
+	      }
+
     }
-    var firstGroup = getElem('delete_link_0');
+    var firstGroup = $('#delete_link_0');
     if (firstGroup) {
         firstGroup.style.display = nextGroupNumber == 1 ? 'none' : 'inline';
     }
@@ -229,7 +234,7 @@ function getChildByClass(node, childClass)
 // after modifying innerHTML unless you run this
 function protectForm()
 {
-    var e = getElem(searchFormId).elements;
+    var e = $('#advSearchForm').elements;
     var len = e.length;
     var j, jlen;
 
@@ -254,7 +259,7 @@ function protectForm()
 function filterAll(element)
 {
     // Go through all elements
-    var e = getElem(searchFormId).elements;
+    var e = $('#advSearchForm').elements;
     var len = e.length;
     for (var i = 0; i < len; i++) {
         // Look for filters (specifically checkbox filters)
@@ -262,4 +267,10 @@ function filterAll(element)
             e[i].checked = element.checked;
         }
     }
+}
+
+function jsEntityEncode(str)
+{
+	var new_str = str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+	return new_str;
 }

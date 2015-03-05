@@ -40,22 +40,49 @@ class UserAPI extends Action {
 	 */
 	function launch()
 	{
-		global $configArray;
-		// Connect to Catalog
-		$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
-
 		//header('Content-type: application/json');
 		header('Content-type: text/html');
 		header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 
 		if (is_callable(array($this, $_GET['method']))) {
-			$output = json_encode(array('result'=>$this->$_GET['method']()));
+			try{
+				$result = $this->$_GET['method']();
+				require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';
+				$utf8EncodedValue = ArrayUtils::utf8EncodeArray(array('result'=>$result));
+				$output = json_encode($utf8EncodedValue);
+				$error = json_last_error();
+				if ($error != JSON_ERROR_NONE || $output === FALSE){
+					if (function_exists('json_last_error_msg')){
+						$output = json_encode(array('error'=>'error_encoding_data', 'message' => json_last_error_msg()));
+					}else{
+						$output = json_encode(array('error'=>'error_encoding_data', 'message' => json_last_error()));
+					}
+					global $configArray;
+					if ($configArray['System']['debug']){
+						print_r($utf8EncodedValue);
+					}
+				}
+			}catch (Exception $e){
+				$output = json_encode(array('error'=>'error_encoding_data', 'message' => $e));
+				global $logger;
+				$logger->log("Error encoding json data $e", PEAR_LOG_ERR);
+			}
+
 		} else {
 			$output = json_encode(array('error'=>'invalid_method'));
 		}
 
 		echo $output;
+	}
+
+	function getCatalogConnection(){
+		global $configArray;
+		if ($this->catalog == null){
+			// Connect to Catalog
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
+		}
+		return $this->catalog;
 	}
 
 	/**
@@ -338,7 +365,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$profile = $this->catalog->getMyProfile($user);
+			$profile = $this->getCatalogConnection()->getMyProfile($user);
 			return array('success'=>true, 'profile'=>$profile);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -457,7 +484,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$patronHolds = $this->catalog->getMyHolds($user);
+			$patronHolds = $this->getCatalogConnection()->getMyHolds($user);
 			if ($includeEContent === true || $includeEContent === 'true'){
 				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 				$eContentDriver = new EContentDriver();
@@ -811,7 +838,7 @@ class UserAPI extends Action {
 		$includeMessages = isset($_REQUEST['includeMessages']) ? $_REQUEST['includeMessages'] : false;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$fines = $this->catalog->getMyFines($user, $includeMessages);
+			$fines = $this->getCatalogConnection()->getMyFines($user, $includeMessages);
 			return array('success'=>true, 'fines'=>$fines);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -905,27 +932,51 @@ class UserAPI extends Action {
 	 * @author Mark Noble <mnoble@turningleaftech.com>
 	 */
 	function getPatronCheckedOutItems(){
-		$username = $_REQUEST['username'];
-		$password = $_REQUEST['password'];
+		if (isset($_REQUEST['username'])){
+			$username = $_REQUEST['username'];
+		}else{
+			$username = '';
+		}
+		if (isset($_REQUEST['password'])){
+			$password = $_REQUEST['password'];
+		}else{
+			$password = '';
+		}
 		$includeEContent = true;
+		$includeOverDrive = true;
 		if (isset($_REQUEST['includeEContent'])){
 			$includeEContent = $_REQUEST['includeEContent'];
 		}
-		global $user;
+		if (isset($_REQUEST['includeOverDrive'])){
+			$includeOverDrive = $_REQUEST['includeOverDrive'];
+		}
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$checkedOutItems = $this->catalog->getMyTransactions($user);
+			$catalogTransactions = $this->getCatalogConnection()->getMyTransactions($user);
 
 			if ($includeEContent === true || $includeEContent === 'true'){
 				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
 				$eContentDriver = new EContentDriver();
-				$eContentTransactions = $eContentDriver->getMyTransactions($user);
-
-				$allTransactions = array_merge($eContentTransactions['transactions'], $checkedOutItems['transactions']);
+				$eContentCheckedOut = $eContentDriver->getMyTransactions($user);
 			}else{
-				$allTransactions = $checkedOutItems['transactions'];
+				$eContentCheckedOut = array(
+					'transactions' => array()
+				);
 			}
-			return array('success'=>true, 'checkedOutItems'=>$allTransactions);
+
+			if ($includeOverDrive === true || $includeOverDrive === 'true'){
+				require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
+				$overDriveDriver = OverDriveDriverFactory::getDriver();
+				$overDriveCheckedOutItems = $overDriveDriver->getOverDriveCheckedOutItems($user);
+			}else{
+				$overDriveCheckedOutItems = array(
+					'items' => array()
+				);
+			}
+
+			$allCheckedOut = array_merge($catalogTransactions['transactions'], $overDriveCheckedOutItems['items'], $eContentCheckedOut['transactions']);
+
+			return array('success'=>true, 'checkedOutItems'=>$allCheckedOut);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
 		}
@@ -1040,7 +1091,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$renewalMessage = $this->catalog->renewItem($user->cat_username, $itemBarcode);
+			$renewalMessage = $this->getCatalogConnection()->renewItem($user->cat_username, $itemBarcode);
 			return array('success'=>true, 'renewalMessage'=>$renewalMessage);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -1078,7 +1129,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$renewalMessage = $this->catalog->renewAll($user->cat_username);
+			$renewalMessage = $this->getCatalogConnection()->renewAll($user->cat_username);
 			return array('success'=> $renewalMessage['result'], 'renewalMessage'=>$renewalMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -1133,7 +1184,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$holdMessage = $this->catalog->placeHold($bibId, $user->cat_username, '', 'request');
+			$holdMessage = $this->getCatalogConnection()->placeHold($bibId, $user->cat_username, '', 'request');
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -1697,7 +1748,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$holdMessage = $this->catalog->updateHoldDetailed('', $user->cat_username, 'cancel');
+			$holdMessage = $this->getCatalogConnection()->updateHoldDetailed('', $user->cat_username, 'cancel');
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -1791,7 +1842,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$holdMessage = $this->catalog->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'on');
+			$holdMessage = $this->getCatalogConnection()->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'on');
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -1903,7 +1954,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$holdMessage = $this->catalog->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'off');
+			$holdMessage = $this->getCatalogConnection()->updateHoldDetailed('', $user->cat_username, 'update', '', null, null, 'off');
 			return array('success'=> $holdMessage['result'], 'holdMessage'=>$holdMessage['message']);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -2070,7 +2121,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$readingHistory = $this->catalog->getReadingHistory($user);
+			$readingHistory = $this->getCatalogConnection()->getReadingHistory($user);
 
 			return array('success'=>true, 'readingHistory'=>$readingHistory['titles']);
 		}else{
@@ -2111,7 +2162,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$this->catalog->doReadingHistoryAction('optIn', array());
+			$this->getCatalogConnection()->doReadingHistoryAction('optIn', array());
 			return array('success'=>true);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -2150,7 +2201,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$this->catalog->doReadingHistoryAction('optOut', array());
+			$this->getCatalogConnection()->doReadingHistoryAction('optOut', array());
 			return array('success'=>true);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -2189,7 +2240,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$this->catalog->doReadingHistoryAction('deleteAll', array());
+			$this->getCatalogConnection()->doReadingHistoryAction('deleteAll', array());
 			return array('success'=>true);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');
@@ -2230,7 +2281,7 @@ class UserAPI extends Action {
 		global $user;
 		$user = UserAccount::validateAccount($username, $password);
 		if ($user && !PEAR_Singleton::isError($user)){
-			$this->catalog->doReadingHistoryAction('deleteMarked', $selectedTitles);
+			$this->getCatalogConnection()->doReadingHistoryAction('deleteMarked', $selectedTitles);
 			return array('success'=>true);
 		}else{
 			return array('success'=>false, 'message'=>'Login unsuccessful');

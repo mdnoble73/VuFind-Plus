@@ -1,0 +1,194 @@
+//
+// Main responsive theme css
+//
+//Default values for variables
+@navbarCollapseWidth: 480px;
+@navbarCollapseDesktopWidth: 481px;
+@horizontalComponentOffsetNarrow:       80px;
+@icon-font-path: '/fonts/';
+
+@import "bootstrap/less/bootstrap.less";
+
+//
+//  Basic Style overrides
+//
+a, a:visited{
+  color: @link-color-resp;
+}
+a:hover{
+  color: darken(@link-color-resp, 10%);
+}
+a.btn-primary, a.btn-warning, a.btn-info{
+  color: #ffffff;
+}
+@media print {
+  a:link:after,
+  a:visited:after {
+    content: "" !important;
+  }
+}
+
+body {
+  font-family: @font-family-sans-serif-resp;
+  background-color: @body-bg-resp;
+}
+body > .container{
+  background-color: @content-bg;
+}
+.noBreak{
+  white-space: nowrap;
+}
+.expanded, .collapsed {
+  cursor: pointer;
+}
+
+.accordion .panel-title.collapsed:before {
+  content: "► ";
+  @media print{
+    content: "";
+  }
+}
+.accordion .panel-title.expanded:before {
+  content: "▼ ";
+  @media print{
+    content: "";
+  }
+}
+
+.panel .panel-title:before {
+  content: "► ";
+  @media print{
+    content: "";
+  }
+}
+.panel.active .panel-title:before {
+  content: "▼ ";
+  @media print{
+    content: "";
+  }
+}
+
+.panel-title{
+  font-size: 14px;
+}
+
+.modal {
+  position: fixed;
+  left: 50%;
+  width: 80%;
+  margin-left: -40%;
+}
+
+.btn:active, .btn.active{
+  font-weight: bold;
+}
+
+.btn-toolbar{
+  @media print{
+    display: none;
+  }
+}
+
+.btn-group{
+  @media print{
+    display: none;
+  }
+}
+
+.tab-content {
+  border-left: 1px solid #ddd;
+  border-right: 1px solid #ddd;
+  padding: 10px;
+}
+
+.nav-tabs {
+  margin-bottom: 0;
+}
+
+#search_box_group{
+  // Append input to search box when larger than phone
+  @media (max-width: 480px) {
+    #search_button{
+      padding-top: 5px;
+      width: 100%;
+    }
+    padding-top: 5px;
+  }
+}
+
+@media print{
+  #header-wrapper{
+    display: none;
+  }
+  #side-bar{
+    display: none;
+  }
+}
+
+.footer-column{
+  @media (max-width: 767px) {
+    h4:before{
+      content: "▼ ";
+    }
+    h4.collapsed:before{
+      content: "► ";
+    }
+
+  }
+}
+.footerContents{
+  @media (min-width: 767px) {
+    .collapse.in;
+  }
+}
+
+#largeLogo{
+  padding: 20px 0 15px;
+}
+
+.bold{
+  font-weight: bold;
+}
+
+ul.list-striped, ol.list-striped {
+  > li:nth-child(odd),
+  > li:nth-child(odd) {
+    background-color: @table-bg-accent;
+  }
+}
+
+div.striped {
+  > div:nth-child(odd),
+  > div:nth-child(odd) {
+    background-color: @table-bg-accent;
+  }
+}
+
+// Google translate
+#google_translate_element{
+  font-size: smaller;
+  padding-left: 5px;
+}
+.goog-te-gadget {
+  display: inline-block;
+}
+
+// Third party imports
+@import "ratings.less";
+@import "datepicker.less";
+@import "jcarousel.responsive.less";
+@import "lib/bootstrap-switch.less";
+@import "lib/tablesorter/tablesorter.less";
+
+// Imports of functionality related to Pika
+@import "layout.less";
+@import "home.less";
+@import "account.less";
+@import "help.less";
+@import "author.less";
+@import "title-scroller.less";
+@import "record.less";
+@import "results-list.less";
+@import "grouped_work.less";
+@import "prospector.less";
+@import "genealogy.less";

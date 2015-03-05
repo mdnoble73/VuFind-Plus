@@ -4,7 +4,6 @@ require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
 require_once ROOT_DIR . '/sys/eContent/EContentItem.php';
 require_once ROOT_DIR . '/sys/eContent/EContentHold.php';
 require_once ROOT_DIR . '/sys/eContent/EContentCheckout.php';
-require_once ROOT_DIR . '/sys/eContent/EContentWishList.php';
 require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';
 
 /**
@@ -100,7 +99,7 @@ class EContentDriver implements DriverInterface{
 		global $user;
 		global $configArray;
 
-		$libaryScopeId = $this->getLibraryScopingId();
+		$libraryScopeId = $this->getLibraryScopingId();
 		//Get any items that are stored for the record
 		$eContentRecord = new EContentRecord();
 		$eContentRecord->id = $id;
@@ -136,8 +135,8 @@ class EContentDriver implements DriverInterface{
 
 			$eContentItem = new EContentItem();
 			$eContentItem->recordId = $id;
-			if ($libaryScopeId != -1){
-				$eContentItem->whereAdd("libraryId = -1 or libraryId = $libaryScopeId");
+			if ($libraryScopeId != -1){
+				$eContentItem->whereAdd("libraryId = -1 or libraryId = $libraryScopeId");
 			}
 			$items = array();
 			$eContentItem->find();
@@ -177,7 +176,7 @@ class EContentDriver implements DriverInterface{
 						}
 					}else{
 						//Non shared item, check to see if we are in the correct scope to show it
-						if ($libaryScopeId == -1 || $availableFrom->libraryId == $libaryScopeId){
+						if ($libraryScopeId == -1 || $availableFrom->libraryId == $libraryScopeId){
 							if ($availableFrom->availableCopies > 0){
 								$addCheckoutLink = true;
 							}else{
@@ -190,9 +189,9 @@ class EContentDriver implements DriverInterface{
 					$item->links = array();
 					if ($addCheckoutLink){
 						if ($configArray['OverDrive']['interfaceVersion'] == 1){
-							$checkoutLink = "return checkoutOverDriveItem('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
+							$checkoutLink = "return VuFind.OverDrive.checkoutOverDriveItem('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
 						}else{
-							$checkoutLink = "return checkoutOverDriveItemOneClick('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
+							$checkoutLink = "return VuFind.OverDrive.checkoutOverDriveItemOneClick('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');";
 						}
 						$item->links[] = array(
 								'onclick' => $checkoutLink,
@@ -203,7 +202,7 @@ class EContentDriver implements DriverInterface{
 						);
 					}else if ($addPlaceHoldLink){
 						$item->links[] = array(
-								'onclick' => "return placeOverDriveHold('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');",
+								'onclick' => "return VuFind.OverDrive.placeOverDriveHold('{$eContentRecord->externalId}', '{$item->externalFormatNumeric}');",
 								'text' => 'Place Hold',
 								'overDriveId' => $eContentRecord->externalId,
 								'formatId' => $item->externalFormatNumeric,
@@ -218,9 +217,9 @@ class EContentDriver implements DriverInterface{
 					$items[$key] = $item;
 				}
 			}
-			if ($libaryScopeId != -1){
+			if ($libraryScopeId != -1){
 				foreach ($items as $key => $item){
-					if ($item->libraryId != -1 && $item->libraryId != $libaryScopeId ){
+					if ($item->libraryId != -1 && $item->libraryId != $libraryScopeId ){
 						unset($items[$key]);
 					}
 				}
@@ -258,6 +257,10 @@ class EContentDriver implements DriverInterface{
 		}
 	}
 
+	/**
+	 * @param EContentRecord $eContentRecord
+	 * @return array
+	 */
 	public function getScopedAvailability($eContentRecord){
 		$availability = array();
 		$availability['mine'] = $eContentRecord->getAvailability();
@@ -361,18 +364,6 @@ class EContentDriver implements DriverInterface{
 			$holds->find();
 			$statusSummary['numAvailableHolds'] = $holds->N;
 
-			//Check to see if the record is on the user's wishlist
-			if ($user){
-				$eContentWishList = new EContentWishList();
-				$eContentWishList->userId = $user->id;
-				$eContentWishList->recordId = $id;
-				$eContentWishList->status = 'active';
-				$eContentWishList->find();
-				if ($eContentWishList->N > 0){
-					$addedToWishList = true;
-				}
-			}
-
 			if (count($holdings) == 0){
 				$statusSummary['availableCopies'] = 0;
 			}else{
@@ -409,11 +400,6 @@ class EContentDriver implements DriverInterface{
 				$statusSummary['class'] = 'checkedOut';
 			}
 
-			$wishList = new EContentWishList();
-			$wishList->recordId = $id;
-			$wishList->status = 'active';
-			$wishList->find();
-			$wishListSize = $wishList->N;
 		}
 
 		//Determine which buttons to show
@@ -500,21 +486,25 @@ class EContentDriver implements DriverInterface{
 		$availableHolds->status ='available';
 		$availableHolds->find();
 		while ($availableHolds->fetch()){
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $availableHolds->recordId;
-			if ($eContentRecord->find(true)){
+			require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
+			$recordDriver = new RestrictedEContentDriver($availableHolds->recordId);
+
+			if ($recordDriver->isValid()){
 				$expirationDate = $availableHolds->dateUpdated + 5 * 24 * 60 * 60;
 				$holds['holds']['available'][] = array(
-					'id' => $eContentRecord->id,
-					'recordId' => 'econtentRecord' . $eContentRecord->id,
-					'source' => $eContentRecord->source,
-					'title' => $eContentRecord->title,
-					'author' => $eContentRecord->author,
+					'id' => $availableHolds->recordId,
+					'recordId' => $recordDriver->getUniqueID(),
+					'source' => $recordDriver->getSources(),
+					'title' => $recordDriver->getTitle(),
+					'author' => $recordDriver->getPrimaryAuthor(),
 					'available' => true,
 					'create' => $availableHolds->datePlaced,
 					'expire' => $expirationDate,
 					'status' => $availableHolds->status,
-					'links' => $this->getOnHoldEContentLinks($availableHolds)
+					'links' => $this->getOnHoldEContentLinks($availableHolds),
+					'recordUrl' => $recordDriver->getLinkUrl(),
+					'bookcoverUrl' => $recordDriver->getBookcoverUrl('medium'),
+					'holdSource' => 'eContent'
 				);
 			}
 		}
@@ -523,15 +513,16 @@ class EContentDriver implements DriverInterface{
 		$unavailableHolds->whereAdd("(status = 'active' or status = 'suspended')");
 		$unavailableHolds->find();
 		while ($unavailableHolds->fetch()){
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $unavailableHolds->recordId;
-			if ($eContentRecord->find(true)){
+			require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
+			$recordDriver = new RestrictedEContentDriver($unavailableHolds->recordId);
+
+			if ($recordDriver->isValid()){
 				$holds['holds']['unavailable'][] = array(
-					'id' => $eContentRecord->id,
-					'recordId' => 'econtentRecord' . $eContentRecord->id,
-					'source' => $eContentRecord->source,
-					'title' => $eContentRecord->title,
-					'author' => $eContentRecord->author,
+					'id' => $unavailableHolds->recordId,
+					'recordId' => $recordDriver->getUniqueID(),
+					'source' => $recordDriver->getSources(),
+					'title' => $recordDriver->getTitle(),
+					'author' => $recordDriver->getPrimaryAuthor(),
 					'available' => true,
 					'createTime' => $unavailableHolds->datePlaced,
 					'status' => $unavailableHolds->status,
@@ -539,6 +530,10 @@ class EContentDriver implements DriverInterface{
 					'links' => $this->getOnHoldEContentLinks($unavailableHolds),
 					'frozen' => $unavailableHolds->status == 'suspended',
 					'reactivateDate' => $unavailableHolds->reactivateDate,
+					'recordUrl' => $recordDriver->getLinkUrl(),
+					'bookcoverUrl' => $recordDriver->getBookcoverUrl('medium'),
+					'holdSource' => 'eContent',
+					'format' => $recordDriver->getFormats(),
 				);
 			}
 		}
@@ -565,30 +560,52 @@ class EContentDriver implements DriverInterface{
 		$return['transactions'] = array();
 		$return['numTransactions'] = $eContentCheckout->find();
 		while ($eContentCheckout->fetch()){
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = $eContentCheckout->recordId;
-			if ($eContentRecord->find(true)){
+			if ($eContentCheckout->protectionType == 'free'){
+				require_once ROOT_DIR . '/RecordDrivers/PublicEContentDriver.php';
+				$recordDriver = new PublicEContentDriver($eContentCheckout->recordId);
+			}else{
+				require_once ROOT_DIR . '/RecordDrivers/RestrictedEContentDriver.php';
+				$recordDriver = new RestrictedEContentDriver($eContentCheckout->recordId);
+			}
+
+			if ($recordDriver->isValid()){
 				$daysUntilDue = ceil(($eContentCheckout->dateDue - time()) / (24 * 60 * 60));
 				$overdue = $daysUntilDue < 0;
-				$waitList = $this->getWaitList($eContentRecord->id);
-				$links = $this->_getCheckedOutEContentLinks($eContentRecord, null, $eContentCheckout);
+
+				$items = $recordDriver->getItems();
+
+				if ($eContentCheckout->protectionType == 'free'){
+					$links['return'] = array(
+							'text' => 'Return&nbsp;Now',
+							'onclick' => "if (confirm('Are you sure you want to cancel this hold?')){VuFind.LocalEContent.returnPublicEContent('$eContentCheckout->recordId', '$eContentCheckout->itemId')};return false;",
+							'typeReturn' => 0);
+				}else{
+					$links['return'] = array(
+						'text' => 'Return&nbsp;Now',
+						'onclick' => "if (confirm('Are you sure you want to cancel this hold?')){VuFind.LocalEContent.returnRestrictedEContent('$eContentCheckout->recordId', '$eContentCheckout->itemId')};return false;",
+						'typeReturn' => 0);
+				}
+
 				//Get Ratings
-				require_once ROOT_DIR . '/sys/eContent/EContentRating.php';
-				$econtentRating = new EContentRating();
-				$econtentRating->recordId = $eContentRecord->id;
-				$ratingData = $econtentRating->getRatingData($user, false);
 				$return['transactions'][] = array(
-					'id' => $eContentRecord->id,
-					'recordId' => 'econtentRecord' . $eContentRecord->id,
-					'source' => $eContentRecord->source,
-					'title' => $eContentRecord->title,
-					'author' => $eContentRecord->author,
+					'id' => $eContentCheckout->recordId,
+					'groupedWorkId' => $recordDriver->getGroupedWorkId(),
+					'recordId' => $recordDriver->getUniqueID(),
+					'recordType' => $eContentCheckout->protectionType == 'free' ? 'PublicEContent' : 'RestrictedEContent',
+					'checkoutSource' => 'eContent',
+					'title' => $recordDriver->getTitle(),
+					'author' => $recordDriver->getPrimaryAuthor(),
+					'format' => $recordDriver->getFormatCategory(),
 					'duedate' => $eContentCheckout->dateDue,
 					'checkoutdate' => $eContentCheckout->dateCheckedOut,
 					'daysUntilDue' => $daysUntilDue,
-					'holdQueueLength' => $waitList,
+					//'holdQueueLength' => $waitList,
 					'links' => $links,
-					'ratingData' => $ratingData,
+					'items' => $items,
+					'ratingData' => $recordDriver->getRatingData(),
+					'overdue' => $overdue,
+					'recordUrl' => $recordDriver->getLinkUrl(),
+					'bookcoverUrl' => $recordDriver->getBookcoverUrl('medium'),
 				);
 			}
 		}
@@ -738,15 +755,6 @@ class EContentDriver implements DriverInterface{
 						}
 					}
 				}
-			}
-		}
-		if ($return['result'] == true){
-			//Make a call to strands to update that the item was placed on hold
-			global $configArray;
-			global $user;
-			if (isset($configArray['Strands']['APID']) && $user->disableRecommendations == 0){
-				$strandsUrl = "http://bizsolutions.strands.com/api2/event/addshoppingcart.sbs?needresult=true&apid={$configArray['Strands']['APID']}&item=econtentRecord{$id}&user={$user->id}";
-				$ret = file_get_contents($strandsUrl);
 			}
 		}
 		return $return;
@@ -1140,7 +1148,7 @@ class EContentDriver implements DriverInterface{
 					);
 				}else{
 					$links[] = array(
-									'url' => $configArray['Site']['path'] . "/MyResearch/Login",
+									'url' => $configArray['Site']['path'] . "/MyAccount/Login",
 									'text' => 'Login&nbsp;to&nbsp;download&nbsp;from&nbsp;Freegal',
 					);
 				}
@@ -1176,7 +1184,7 @@ class EContentDriver implements DriverInterface{
 		//Link to cancel hold
 		$links[] = array(
 			'text' => 'Cancel&nbsp;Hold',
-			'onclick' => "if (confirm('Are you sure you want to cancel this title?')){cancelEContentHold('{$configArray['Site']['path']}/EcontentRecord/{$eContentHold->recordId}/CancelHold')};return false;",
+			'onclick' => "if (confirm('Are you sure you want to cancel this title?')){VuFind.LocalEContent.cancelHold('{$eContentHold->recordId}', '{$eContentHold->itemId}')};return false;",
 
 		);
 		//Link to suspend hold
@@ -1324,20 +1332,6 @@ class EContentDriver implements DriverInterface{
 
 		require_once(ROOT_DIR . '/sys/eContent/EContentHistoryEntry.php');
 
-		global $configArray;
-		if (isset($configArray['Strands']['APID']) && $user->disableRecommendations == 0 && $action == "Checked Out"){
-			//Check to see if this is the first time the user has read the title and if so record the entry in strands
-			$entry = new EContentHistoryEntry();
-			$entry->userId = $user->id;
-			$entry->recordId = $id;
-			$entry->find();
-			if ($entry->N == 0){
-				$orderId = $user->id . '_' . time() ;
-				$strandsUrl = "http://bizsolutions.strands.com/api2/event/purchased.sbs?needresult=true&apid={$configArray['Strands']['APID']}&item=econtentRecord{$id}::0.00::1&user={$user->id}&orderid={$orderId}";
-				$ret = file_get_contents($strandsUrl);
-			}
-		}
-
 		$entry = new EContentHistoryEntry();
 		$entry->userId = $user->id;
 		$entry->recordId = $id;
@@ -1371,31 +1365,52 @@ class EContentDriver implements DriverInterface{
 			$eContentHolds->userId = $user->id;
 			$eContentHolds->find();
 			$accountSummary['numEContentUnavailableHolds'] = $eContentHolds->N;
-
-			//Get a count of items on the wishlist
-			$eContentWishList = new EContentWishList();
-			$eContentWishList->status = 'active';
-			$eContentWishList->userId = $user->id;
-			$eContentWishList->find();
-			$accountSummary['numEContentWishList'] = $eContentWishList->N;
+		}else{
+			return array(
+				'numEContentCheckedOut' => 0,
+				'numEContentAvailableHolds' => 0,
+				'numEContentUnavailableHolds' => 0,
+				'numEContentWishList' => 0,
+			);
 		}
 
 		return $accountSummary;
 	}
 
-	function addToWishList($id, $user){
-		$wishlistEntry = new EContentWishList();
-		$wishlistEntry->userId = $user->id;
-		$wishlistEntry->recordId = $id;
-		$wishlistEntry->status = 'active';
+	/**
+	 * Loads items information as quickly as possible (no direct calls to the ILS)
+	 *
+	 * return is an array of items with the following information:
+	 *  callnumber
+	 *  available
+	 *  holdable
+	 *  lastStatusCheck (time)
+	 *
+	 * @param $id
+	 * @param $scopingEnabled
+	 * @return mixed
+	 */
+	public function getItemsFast($id, $scopingEnabled) {
+		return $this->getStatus($id);
+	}
 
-		if ($wishlistEntry->find(true)){
-			//The record was already added to the database
-		}else{
-			//Add to the database
-			$wishlistEntry->dateAdded = time();
-			$wishlistEntry->insert();
-		}
-		return true;
+	public function getMyProfile($patron, $forceReload = false) {
+		// TODO: Implement getMyProfile() method.
+	}
+
+	public function patronLogin($username, $password) {
+		// TODO: Implement patronLogin() method.
+	}
+
+	public function hasNativeReadingHistory() {
+		return false;
+	}
+
+	public function getNumHolds($id) {
+		$holds = new EContentHold();
+		$holds->recordId = $id;
+		$holds->whereAdd("(status = 'active' or status = 'suspended')");
+		$holds->find();
+		return $holds->N;
 	}
 }

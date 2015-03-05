@@ -30,8 +30,6 @@ class CronLog extends Admin_Admin
 	{
 		global $interface;
 
-		global $interface;
-
 		$interface->setPageTitle('Cron Log');
 		
 		$logEntries = array();
@@ -43,6 +41,8 @@ class CronLog extends Admin_Admin
 			$logEntries[] = clone($cronLogEntry);
 		}
 		$interface->assign('logEntries', $logEntries);
+
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('cronLog.tpl');
 		$interface->display('layout.tpl');
 	}

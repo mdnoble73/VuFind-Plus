@@ -20,9 +20,9 @@
 
 require_once 'Interface.php';
 require_once ROOT_DIR . '/sys/SIP2.php';
-require_once ROOT_DIR . '/Drivers/Horizon.php';
+require_once ROOT_DIR . '/Drivers/HorizonAPI.php';
 
-class Anythink extends Horizon {
+class Anythink extends HorizonAPI {
 	function __construct(){
 		parent::__construct();
 	}
@@ -266,49 +266,7 @@ class Anythink extends Horizon {
 	}
 
 	public function translateStatus($statusCode){
-		$statusCode = trim(strtolower($statusCode));
-		$statusMap = array(
-        'a' => 'Archived',        
-'b' => 'Bindery',          
- 'c' => 'Claimed Returned',        
-'ckod' => 'Checked out on Dynix',        
-'csa' => 'Closed Stacks',       
- 'dmg' => 'Damaged',       
- 'e' => 'Item hold expired',       
- 'ebook' => 'Online only',       
- 'fc' => 'On Order',       
- 'h' => 'Item being held',       
- 'i' => 'Checked In',       
- 'ini' => 'Incomplete Item',       
- 'l' => 'Lost',       
- 'lr' => 'Lost Recall',       
- 'm' => 'Item missing',       
- 'me' => 'Mending',       
- 'mi' => 'Missing Inventory',       
- 'n' => 'Newly Acquired',       
- 'o' => 'Checked out',        
-'ov' => 'Overload',        
-'r' => 'On Order',       
- 'rb' => 'Reserve Bookroom',       
- 'recall' => 'Recall',       
- 'rw' => 'Reserve withdrawal',       
- 's' => 'Recently Returned',       
- 'sr' => 'Stored Reference',       
- 't' => 'In Cataloging',        
-'tc' => 'Transit Recall',       
- 'th' => 'Transit Request',      
-  'tr' => 'Transit',      
-  'trace' => 'Trace',     
-   'trace_r' => 'Trace Reported', 
-'trace_x' => 'Trace Reported',
-       'ts' => 'Transit Stock Rotation',       
- 'u' => 'Unusual',       
- 'ufa' => 'Fast Add',       
- 'wfh' => 'Wright Farms Holding',       
- 'y' => 'On Display',
-        );
-
-		return isset($statusMap[$statusCode]) ? $statusMap[$statusCode] : 'Unknown ';
+		return mapValue('item_status', $statusCode);
 	}
 
 	public function getLocationMapLink($locationCode){
@@ -386,21 +344,23 @@ class Anythink extends Horizon {
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$sresult = curl_exec($curl_connection);
 
-		$firstName = strip_tags($_REQUEST['firstName']);
-		$lastName = strip_tags($_REQUEST['lastName']);
+		/*
+		Form variables are built using horizonAPI class, getSelfRegistrationFields() which uses the API to get fields from ILS.
+	*/
+		$firstName = strip_tags($_REQUEST['firstname']);
+		$lastName = strip_tags($_REQUEST['lastname']);
 		$address1 = strip_tags($_REQUEST['address1']);
 		$address2 = strip_tags($_REQUEST['address2']);
-		$citySt = strip_tags($_REQUEST['citySt']);
-		$zip = strip_tags($_REQUEST['zip']);
-		$email = strip_tags($_REQUEST['email']);
-		$sendNoticeBy = strip_tags($_REQUEST['sendNoticeBy']);
-		$pin = strip_tags($_REQUEST['pin']);
-		$confirmPin = strip_tags($_REQUEST['confirmPin']);
-		$phone = strip_tags($_REQUEST['phone']);
-		$phoneType = strip_tags($_REQUEST['phoneType']);
+		$citySt = strip_tags($_REQUEST['city_st']);
+		$zip = strip_tags($_REQUEST['postal_code']);
+		$email = strip_tags($_REQUEST['email_address']);
+		$sendNoticeBy = strip_tags($_REQUEST['send_notice_by']);
+		$pin = strip_tags($_REQUEST['pin#']);
+		$confirmPin = strip_tags($_REQUEST['confirmpin#']);
+		$phone = strip_tags($_REQUEST['phone_no']);
+		$phoneType = strip_tags($_REQUEST['phone_type']); // option 'z' has a label of 't', rather than 'telephone'. (also pager options needed?)
 		$language = strip_tags($_REQUEST['language']);
-		$location = strip_tags($_REQUEST['location']);
-		$borrowerNote = strip_tags($_REQUEST['borrowerNote']);
+		$borrowerNote = strip_tags($_REQUEST['borrower_note']); // used as a BirthDate Field. plb 12-10-2014
 
 		//Register the patron
 		$post_data = array(
@@ -431,11 +391,12 @@ class Anythink extends Horizon {
 			'spp' => 20
 		);
 
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+//		$post_items = array();
+//		foreach ($post_data as $key => $value) {
+//			$post_items[] = $key . '=' . urlencode($value);
+//		}
+//		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url . '#focus');
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
@@ -450,13 +411,14 @@ class Anythink extends Horizon {
 			$success = true;
 		}else{
 			$success = false;
+			$tempBarcode = null;
 		}
 
 		unlink($cookie);
 
 		return array(
-		  'tempBarcode' => $tempBarcode,
-		  'result'  => $success
+		  'barcode' => $tempBarcode,
+		  'success'  => $success
 		);
 
 	}

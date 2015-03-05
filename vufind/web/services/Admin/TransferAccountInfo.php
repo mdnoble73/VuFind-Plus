@@ -106,6 +106,7 @@ class TransferAccountInfo extends Admin_Admin
 			$interface->assign('message', $message);
 		}
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('transferAccountInfo.tpl');
 		$interface->display('layout.tpl');
 	}

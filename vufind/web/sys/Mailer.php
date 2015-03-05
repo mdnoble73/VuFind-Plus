@@ -74,9 +74,14 @@ class VuFindMailer {
 		global $logger;
 		// Validate sender and recipient
 		$validator = new Mail_RFC822();
-		if (!$validator->isValidInetAddress($to)) {
-			return new PEAR_Error('Invalid Recipient Email Address');
+		//Allow the to address to be split
+		$validator->_splitAddresses($to);
+		foreach($validator->addresses as $tmpAddress){
+			if (!$validator->isValidInetAddress($tmpAddress['address'])) {
+				return new PEAR_Error('Invalid Recipient Email Address ' . $tmpAddress);
+			}
 		}
+
 		if (!$validator->isValidInetAddress($from)) {
 			return new PEAR_Error('Invalid Sender Email Address');
 		}
@@ -201,7 +206,6 @@ class SMSMailer extends VuFindMailer {
 		//Remove any invalid characters from the to address.  We expect only numbers
 		$to = preg_replace('/\D/', '', $to);
 		$to = $to . '@' . $this->carriers[$provider]['domain'];
-		$mail = new VuFindMailer();
 		$subject = '';
 		return $this->send($to, $from, $subject, $message);
 	}

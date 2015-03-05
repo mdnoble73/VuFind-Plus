@@ -45,67 +45,92 @@ class MarcLoader{
 	 * @param string $recordType  The type of the record in the system
 	 * @return File_MARC_Record
 	 */
+	private static $loadedMarcRecords = array();
 	public static function loadMarcRecordByILSId($ilsId, $recordType = 'marc'){
-		/** @var Memcache $memCache */
-		global $memCache;
 		global $configArray;
-		$shortId = str_replace('.', '', $ilsId);
-		$firstChars = substr($shortId, 0, 4);
-		if ($memCache && !isset($_REQUEST['reload'])){
-			$marcRecord = $memCache->get('marc_record_' . $shortId);
-		}else{
-			$marcRecord = false;
+		if (array_key_exists($ilsId, MarcLoader::$loadedMarcRecords)){
+			return MarcLoader::$loadedMarcRecords[$ilsId];
 		}
-		if ($marcRecord == false){
-			//First check the file system
-
-			$individualName = $configArray['Reindex']['individualMarcPath'] . "/{$firstChars}/{$shortId}.mrc";
-			//echo ($individualName);
-			if (isset($configArray['Reindex']['individualMarcPath']) && file_exists($individualName)){
+		$shortId = str_replace('.', '', $ilsId);
+		if (strlen($shortId) < 9){
+			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
+		}
+		$firstChars = substr($shortId, 0, 4);
+		$individualName = $configArray['Reindex']['individualMarcPath'] . "/{$firstChars}/{$shortId}.mrc";
+		$marcRecord = false;
+		if (isset($configArray['Reindex']['individualMarcPath'])){
+			if (file_exists($individualName)){
 				//$rawMarc = file_get_contents($individualName);
 				$marc = new File_MARC($individualName, File_MARC::SOURCE_FILE);
 				if (!($marcRecord = $marc->next())) {
 					PEAR_Singleton::raiseError(new PEAR_Error('Could not load marc record for record ' . $shortId));
-				}else{
-					if ($memCache){
-						$memCache->set('marc_record_' . $shortId, $marcRecord, 0, $configArray['Caching']['marc_record']);
-					}
-				}
-			}else{
-				require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-				$resource = new Resource;
-				$resource->record_id = $ilsId;
-				if ($recordType == 'marc'){
-					$resource->source = 'VuFind';
-				}elseif ($recordType == 'econtentRecord'){
-					$resource->source = 'eContent';
-				}
-				//$resource->deleted = 0;
-				$resource->selectAdd("marc");
-				$resource->whereAdd('marc is not null');
-				if ($resource->find(true)){
-					$marc = trim($resource->marc);
-					$marc = preg_replace('/#29;/', "\x1D", $marc);
-					$marc = preg_replace('/#30;/', "\x1E", $marc);
-					$marc = preg_replace('/#31;/', "\x1F", $marc);
-					$marc = preg_replace('/#163;/', "\xA3", $marc);
-					$marc = preg_replace('/#169;/', "\xA9", $marc);
-					$marc = preg_replace('/#174;/', "\xAE", $marc);
-					$marc = preg_replace('/#230;/', "\xE6", $marc);
-					$marc = new File_MARC($marc, File_MARC::SOURCE_STRING);
-
-					if (!($marcRecord = $marc->next())) {
-						PEAR_Singleton::raiseError(new PEAR_Error('Could not load marc record for record ' . $shortId));
-					}else{
-						if ($memCache){
-							$memCache->set('marc_record_' . $shortId, $marcRecord, 0, $configArray['Caching']['marc_record']);
-						}
-					}
-				}else{
-					return null;
 				}
 			}
 		}
+		//Make sure not to use to much memory
+		if (count(MarcLoader::$loadedMarcRecords) > 50){
+			array_shift(MarcLoader::$loadedMarcRecords);
+		}
+		MarcLoader::$loadedMarcRecords[$ilsId] = $marcRecord;
+		return $marcRecord;
+	}
+
+	/**
+	 * @param string $ilsId       The id of the record within the ils
+	 * @return boolean
+	 */
+	public static function marcExistsForILSId($ilsId){
+		global $configArray;
+		$shortId = str_replace('.', '', $ilsId);
+		if (strlen($shortId) < 9){
+			$shortId = str_pad($shortId, 9, "0", STR_PAD_LEFT);
+		}
+		$firstChars = substr($shortId, 0, 4);
+		$individualName = $configArray['Reindex']['individualMarcPath'] . "/{$firstChars}/{$shortId}.mrc";
+		if (isset($configArray['Reindex']['individualMarcPath'])){
+			return file_exists($individualName);
+		}else{
+			return false;
+		}
+	}
+
+	/**
+	 * @param string $hooplaId       The id of the record within Hoopla
+	 * @return boolean
+	 */
+	public static function marcExistsForHooplaId($hooplaId){
+		global $configArray;
+		$firstChars = substr($hooplaId, 0, 7);
+		$individualName = $configArray['Hoopla']['individualMarcPath'] . "/{$firstChars}/{$hooplaId}.mrc";
+		if (isset($configArray['Hoopla']['individualMarcPath'])){
+			return file_exists($individualName);
+		}else{
+			return false;
+		}
+	}
+
+	public static function loadMarcRecordByHooplaId($id) {
+		global $configArray;
+		if (array_key_exists($id, MarcLoader::$loadedMarcRecords)){
+			return MarcLoader::$loadedMarcRecords[$id];
+		}
+		$firstChars = substr($id, 0, 7);
+		$individualName = $configArray['Hoopla']['individualMarcPath'] . "/{$firstChars}/{$id}.mrc";
+		$marcRecord = false;
+		if (isset($configArray['Hoopla']['individualMarcPath'])){
+			if (file_exists($individualName)){
+				//$rawMarc = file_get_contents($individualName);
+				$marc = new File_MARC($individualName, File_MARC::SOURCE_FILE);
+				if (!($marcRecord = $marc->next())) {
+					PEAR_Singleton::raiseError(new PEAR_Error('Could not load marc record for hoopla record ' . $id));
+				}
+			}
+		}
+		//Make sure not to use to much memory
+		if (count(MarcLoader::$loadedMarcRecords) > 50){
+			array_shift(MarcLoader::$loadedMarcRecords);
+		}
+		MarcLoader::$loadedMarcRecords[$id] = $marcRecord;
 		return $marcRecord;
 	}
 }

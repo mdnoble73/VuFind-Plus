@@ -1,0 +1,5 @@
+NameError: .clearfix is undefined in C:\web\VuFind-Plus\vufind\web\interface\themes\responsive\css\narrowform.less on line 5, column 5:
+4     margin-bottom: 0px;
+5     .clearfix();
+6   }
+

@@ -1,0 +1,42 @@
+// Core variables and mixins
+@import "../../responsive/css/variables.less";
+@import "variables.less";
+
+// Always include the base .less file
+@import "../../responsive/css/responsive_base.less";
+
+#header-container{
+  @media (min-width: @screen-sm-min){
+    background-image: url('/interface/themes/gunnisonld/images/header_background.png');
+  }
+}
+#header-logo{
+  @media (max-width: @screen-xs-max){
+    padding: 10px 0 0 0;
+    margin-left: -15px;
+  }
+  @media (min-width: @screen-sm-min){
+ //   border-radius:  0.5em; // not needed while background of logo is transparent. plb 12-2-2014
+    margin-top:20px;
+    padding: 5px;
+  }
+}
+.header-button{
+  border-radius:  0.5em;
+  background-color: rgba(31,31,31,0.7);
+  margin-top: 20px;
+  height: 60px !important;
+  border: 0px;
+}
+.header-button > a{
+  color: ghostwhite !important;
+  line-height: 60px !important;
+  text-shadow: none;
+}
+.header-button > a:visited{
+  color: ghostwhite !important;
+}
+.header-button:hover{
+  border-bottom: 0px;
+  box-shadow: 2px 2px 5px #DCE0D7;
+}

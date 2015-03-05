@@ -77,7 +77,8 @@ abstract class SearchObject_Base
 	// Flag for logging/search history
 	protected $disableLogging = false;
 	// Debugging flag
-	public $debug;
+	protected $debug = false;
+	protected $debugSolrQuery = false;
 	// Search options for the user
 	protected $advancedTypes = array();
 	protected $basicTypes = array();
@@ -114,7 +115,30 @@ abstract class SearchObject_Base
 		$this->serverUrl = $configArray['Site']['path'];
 
 		// Set appropriate debug mode:
-		$this->debug = $configArray['System']['debugSolr'];
+		// Debugging
+		if ($configArray['System']['debugSolr']) {
+			//Verify that the ip is ok
+			global $locationSingleton;
+			$activeIp = $locationSingleton->getActiveIp();
+			$maintenanceIps = $configArray['System']['maintainenceIps'];
+			$debug = true;
+			if (strlen($maintenanceIps) > 0){
+				$debug = false;
+				$allowableIps = explode(',', $maintenanceIps);
+				if (in_array($activeIp, $allowableIps)){
+					$debug = true;
+					if ($configArray['System']['debugSolrQuery'] == true) {
+						$this->debugSolrQuery = true;
+					}
+				}
+			}
+			if ($debug && $configArray['System']['debugSolrQuery'] == true) {
+				$this->debugSolrQuery = true;
+			}
+			$this->debug = $debug;
+		} else {
+			$this->debug = false;
+		}
 		$timer->logTime('Setup Base Search Object');
 	}
 
@@ -170,8 +194,15 @@ abstract class SearchObject_Base
 	 */
 	public function addFilter($newFilter)
 	{
+		global $configArray;
 		// Extract field and value from URL string:
 		list($field, $value) = $this->parseFilter($newFilter);
+
+		$searchLibrary = Library::getActiveLibrary();
+		global $locationSingleton;
+		$searchLocation = $locationSingleton->getActiveLocation();
+		$userLocation = Location::getUserHomeLocation();
+		global $solrScope;
 
 		// Check for duplicates -- if it's not in the array, we can add it
 		if (!$this->hasFilter($newFilter)) {
@@ -184,6 +215,45 @@ abstract class SearchObject_Base
 			}else if ($field == 'target-audience-full'){
 				$field = 'target_audience_full';
 			}
+
+			//See if the filter should be localized
+			if (isset($searchLibrary)){
+				if ($field == 'time_since_added'){
+					$field = 'local_time_since_added_' . $searchLibrary->subdomain;
+				}elseif ($field == 'itype'){
+					$field = 'itype_' . $searchLibrary->subdomain;
+				}elseif ($field == 'detailed_location'){
+					$field = 'detailed_location_' . $searchLibrary->subdomain;
+				}
+			}
+
+			if ($solrScope){
+				if ($field == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					$field = 'availability_toggle_' . $solrScope;
+				}elseif ($field == 'format' && $configArray['Index']['enableDetailedFormats']){
+					$field = 'format_' . $solrScope;
+				}elseif ($field == 'format_category' && $configArray['Index']['enableDetailedFormats']){
+					$field = 'format_category_' . $solrScope;
+				}elseif ($field == 'econtent_source' && $configArray['Index']['enableDetailedEContentSources']){
+					$field = 'econtent_source_' . $solrScope;
+				}elseif ($field == 'econtent_protection_type' && $configArray['Index']['enableDetailedEContentSources']){
+					$field = 'econtent_protection_type_' . $solrScope;
+				}
+			}
+
+			if (isset($userLocation)){
+				if ($field == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					$field = 'availability_toggle_' . $userLocation->code;
+				}
+			}
+			if (isset($searchLocation)){
+				if ($field == 'time_since_added' && $searchLocation->restrictSearchByLocation){
+					$field = 'local_time_since_added_' . $searchLocation->code;
+				}elseif ($field == 'availability_toggle' && $configArray['Index']['enableDetailedAvailability']){
+					$field = 'availability_toggle_' . $searchLocation->code;
+				}
+			}
+
 			$this->filterList[$field][] = $value;
 		}
 	}
@@ -265,6 +335,9 @@ abstract class SearchObject_Base
 					}elseif ($field == 'available_at' && $value == '*') {
 						$anyLocationLabel = $this->getFacetSetting("Availability", "anyLocationLabel");
 						$display = $anyLocationLabel == '' ? "Any Marmot Location" : $anyLocationLabel;
+					}elseif ($field == 'available_at' && $value == '*') {
+						$anyLocationLabel = $this->getFacetSetting("Availability", "anyLocationLabel");
+						$display = $anyLocationLabel == '' ? "Any Marmot Location" : $anyLocationLabel;
 					}else{
 						$display = $translate ? translate($value) : $value;
 					}
@@ -318,7 +391,7 @@ abstract class SearchObject_Base
 	 * Return a url for the current search without one of the current filters
 	 *
 	 * @access  public
-	 * @param   string   $old_filter   A filter to remove from the search url
+	 * @param   string   $oldFilter   A filter to remove from the search url
 	 * @return  string   URL of a new search
 	 */
 	public function renderLinkWithoutFilter($oldFilter)
@@ -368,6 +441,7 @@ abstract class SearchObject_Base
 	 * Get the URL to load a saved search from the current module.
 	 *
 	 * @access  public
+	 * @param string $id The Id of the saved search
 	 * @return  string   Saved search URL.
 	 */
 	public function getSavedUrl($id)
@@ -388,12 +462,27 @@ abstract class SearchObject_Base
 		switch ($this->searchType) {
 			// Advanced search
 			case $this->advancedSearchType:
-				$params[] = "join=" . urlencode($this->searchTerms[0]['join']);
-				for ($i = 0; $i < count($this->searchTerms); $i++) {
-					$params[] = "bool".$i."[]=" . urlencode($this->searchTerms[$i]['group'][0]['bool']);
-					for ($j = 0; $j < count($this->searchTerms[$i]['group']); $j++) {
-						$params[] = "lookfor".$i."[]=" . urlencode($this->searchTerms[$i]['group'][$j]['lookfor']);
-						$params[] = "type".$i."[]="    . urlencode($this->searchTerms[$i]['group'][$j]['field']);
+				if (true){
+					$paramIndex = 0;
+					for ($i = 0; $i < count($this->searchTerms); $i++) {
+						for ($j = 0; $j < count($this->searchTerms[$i]['group']); $j++) {
+							$paramIndex++;
+							$params[] = "lookfor[$paramIndex]=" . urlencode($this->searchTerms[$i]['group'][$j]['lookfor']);
+							$params[] = "searchType[$paramIndex]="    . urlencode($this->searchTerms[$i]['group'][$j]['field']);
+							$params[] = "join[$paramIndex]=" . urlencode($this->searchTerms[$i]['group'][$j]['bool']);
+						}
+						if ($i > 0){
+							$params[] = "groupEnd[$paramIndex]=1";
+						}
+					}
+				}else{
+					$params[] = "join=" . urlencode($this->searchTerms[0]['join']);
+					for ($i = 0; $i < count($this->searchTerms); $i++) {
+						$params[] = "bool".$i."[]=" . urlencode($this->searchTerms[$i]['group'][0]['bool']);
+						for ($j = 0; $j < count($this->searchTerms[$i]['group']); $j++) {
+							$params[] = "lookfor".$i."[]=" . urlencode($this->searchTerms[$i]['group'][$j]['lookfor']);
+							$params[] = "type".$i."[]="    . urlencode($this->searchTerms[$i]['group'][$j]['field']);
+						}
 					}
 				}
 				break;
@@ -415,26 +504,32 @@ abstract class SearchObject_Base
 	 * $_REQUEST superglobal.
 	 *
 	 * @access  protected
+	 * @param String|String[] $searchTerm
 	 * @return  boolean  True if search settings were found, false if not.
 	 */
-	protected function initBasicSearch()
+	protected function initBasicSearch($searchTerm = null)
 	{
-		// If no lookfor parameter was found, we have no search terms to
-		// add to our array!
-		if (!isset($_REQUEST['lookfor'])) {
-			return false;
+		if ($searchTerm == null){
+			// If no lookfor parameter was found, we have no search terms to
+			// add to our array!
+			if (!isset($_REQUEST['lookfor'])) {
+				return false;
+			}else{
+				$searchTerm = $_REQUEST['lookfor'];
+			}
 		}
+
 
 		// If lookfor is an array, we may be dealing with a legacy Advanced
 		// Search URL.  If there's only one parameter, we can flatten it,
 		// but otherwise we should treat it as an error -- no point in going
 		// to great lengths for compatibility.
-		if (is_array($_REQUEST['lookfor'])) {
-			if (count($_REQUEST['lookfor']) == 1) {
-				$_REQUEST['lookfor'] = strip_tags($_REQUEST['lookfor'][0]);
+		if (is_array($searchTerm)) {
+			if (count($searchTerm) == 1) {
+				$searchTerm = strip_tags(reset($searchTerm));
+				$_REQUEST['type'] = strip_tags(reset($_REQUEST['searchType']));
 			} else {
-				PEAR_Singleton::RaiseError(new PEAR_Error("Unsupported search URL."));
-				die();
+				return false;
 			}
 		}
 
@@ -454,7 +549,7 @@ abstract class SearchObject_Base
 
 		$this->searchTerms[] = array(
             'index'   => $type,
-            'lookfor' => $_REQUEST['lookfor']
+            'lookfor' => $searchTerm
 		);
 		return true;
 	}
@@ -474,67 +569,102 @@ abstract class SearchObject_Base
 	protected function initAdvancedSearch()
 	{
 		$this->isAdvanced = true;
-		//********************
-		// Advanced Search logic
-		//  'lookfor0[]' 'type0[]'
-		//  'lookfor1[]' 'type1[]' ...
-		$this->searchType = $this->advancedSearchType;
-		$groupCount = 0;
-		// Loop through each search group
-		while (isset($_REQUEST['lookfor'.$groupCount])) {
-			$group = array();
-			// Loop through each term inside the group
-			for ($i = 0; $i < count($_REQUEST['lookfor'.$groupCount]); $i++) {
-				// Ignore advanced search fields with no lookup
-				if ($_REQUEST['lookfor'.$groupCount][$i] != '') {
-					// Use default fields if not set
-					if (isset($_REQUEST['type'.$groupCount][$i]) && $_REQUEST['type'.$groupCount][$i] != '') {
-						$type = strip_tags($_REQUEST['type'.$groupCount][$i]);
-					} else {
-						$type = $this->defaultIndex;
-					}
-
-					//Marmot - search both ISBN-10 and ISBN-13
-					//Check to see if the search term looks like an ISBN10 or ISBN13
-					$lookfor = strip_tags($_REQUEST['lookfor'.$groupCount][$i]);
-					if (($type == 'ISN' || $type == 'Keyword' || $type == 'AllFields') &&
-							(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/',$lookfor) ||
-							preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $lookfor))) {
-						require_once(ROOT_DIR . '/sys/ISBN.php');
-						$isbn = new ISBN($lookfor);
-						$lookfor = $isbn->get10() . ' OR ' . $isbn->get13();
-					}
-
-					// Add term to this group
+		if (isset($_REQUEST['lookfor'])){
+			if (is_array($_REQUEST['lookfor'])){
+				//Advanced search from popup form
+				$this->searchType = $this->advancedSearchType;
+				$group = array();
+				foreach ($_REQUEST['lookfor'] as $index => $lookfor){
 					$group[] = array(
-                        'field'   => $type,
-                        'lookfor' => $lookfor,
-                        'bool'    => strip_tags($_REQUEST['bool'.$groupCount][0])
+						'field'   => $_REQUEST['searchType'][$index],
+						'lookfor' => $lookfor,
+						'bool'    => $_REQUEST['join'][$index]
+					);
+
+//var_dump($_REQUEST);
+
+					if ($_REQUEST['groupEnd'][$index] == 1){
+						// Add the completed group to the list
+						$this->searchTerms[] = array(
+							'group' => $group,
+							'join'  => $_REQUEST['join'][$index]
+						);
+						$group = array();
+					}
+				}
+				if (count($group) > 0){
+					// Add the completed group to the list
+					$this->searchTerms[] = array(
+						'group' => $group,
+						'join'  => $_REQUEST['join'][$index]
 					);
 				}
+			}else{
+
+			}
+		}else{
+			//********************
+			// Advanced Search logic
+			//  'lookfor0[]' 'type0[]'
+			//  'lookfor1[]' 'type1[]' ...
+			$this->searchType = $this->advancedSearchType;
+			$groupCount = 0;
+			// Loop through each search group
+			while (isset($_REQUEST['lookfor'.$groupCount])) {
+				$group = array();
+				// Loop through each term inside the group
+				for ($i = 0; $i < count($_REQUEST['lookfor'.$groupCount]); $i++) {
+					// Ignore advanced search fields with no lookup
+					if ($_REQUEST['lookfor'.$groupCount][$i] != '') {
+						// Use default fields if not set
+						if (isset($_REQUEST['type'.$groupCount][$i]) && $_REQUEST['type'.$groupCount][$i] != '') {
+							$type = strip_tags($_REQUEST['type'.$groupCount][$i]);
+						} else {
+							$type = $this->defaultIndex;
+						}
+
+						//Marmot - search both ISBN-10 and ISBN-13
+						//Check to see if the search term looks like an ISBN10 or ISBN13
+						$lookfor = strip_tags($_REQUEST['lookfor'.$groupCount][$i]);
+						if (($type == 'ISN' || $type == 'Keyword' || $type == 'AllFields') &&
+								(preg_match('/^\\d-?\\d{3}-?\\d{5}-?\\d$/',$lookfor) ||
+								preg_match('/^\\d{3}-?\\d-?\\d{3}-?\\d{5}-?\\d$/', $lookfor))) {
+							require_once(ROOT_DIR . '/sys/ISBN.php');
+							$isbn = new ISBN($lookfor);
+							$lookfor = $isbn->get10() . ' OR ' . $isbn->get13();
+						}
+
+						// Add term to this group
+						$group[] = array(
+	                        'field'   => $type,
+	                        'lookfor' => $lookfor,
+	                        'bool'    => strip_tags($_REQUEST['bool'.$groupCount][0])
+						);
+					}
+				}
+
+				// Make sure we aren't adding groups that had no terms
+				if (count($group) > 0) {
+					// Add the completed group to the list
+					$this->searchTerms[] = array(
+	                    'group' => $group,
+	                    'join'  => strip_tags($_REQUEST['join'])
+					);
+				}
+
+				// Increment
+				$groupCount++;
 			}
 
-			// Make sure we aren't adding groups that had no terms
-			if (count($group) > 0) {
-				// Add the completed group to the list
+			// Finally, if every advanced row was empty
+			if (count($this->searchTerms) == 0) {
+				// Treat it as an empty basic search
+				$this->searchType = $this->basicSearchType;
 				$this->searchTerms[] = array(
-                    'group' => $group,
-                    'join'  => strip_tags($_REQUEST['join'])
-				);
+	                'index'   => $this->defaultIndex,
+	                'lookfor' => ''
+	                );
 			}
-
-			// Increment
-			$groupCount++;
-		}
-
-		// Finally, if every advanced row was empty
-		if (count($this->searchTerms) == 0) {
-			// Treat it as an empty basic search
-			$this->searchType = $this->basicSearchType;
-			$this->searchTerms[] = array(
-                'index'   => $this->defaultIndex,
-                'lookfor' => ''
-                );
 		}
 	}
 
@@ -743,7 +873,7 @@ abstract class SearchObject_Base
 	 * Return a url for the current search with a new sort
 	 *
 	 * @access  public
-	 * @param   string   $new_sort   A field to sort by
+	 * @param   string   $newSort   A field to sort by
 	 * @return  string   URL of a new search
 	 */
 	public function renderLinkWithSort($newSort)
@@ -884,7 +1014,6 @@ abstract class SearchObject_Base
 	 */
 	public function getAdvancedTypes()  {return $this->advancedTypes;}
 	public function getBasicTypes()     {return $this->basicTypes;}
-	public function getBrowseTypes()    {return $this->browseTypes;}
 	public function getFilters()        {return $this->filterList;}
 	public function getPage()           {return $this->page;}
 	public function getLimit()          {return $this->limit;}
@@ -1301,6 +1430,7 @@ abstract class SearchObject_Base
 				return null;
 			}
 		}
+		return null;
 	}
 
 	/**
@@ -1508,7 +1638,7 @@ abstract class SearchObject_Base
 	 * Find a word amongst the current search terms
 	 *
 	 * @access  protected
-	 * @param   string   Search term to find
+	 * @param   string   $needle  Search term to find
 	 * @return  bool     True/False if the word was found
 	 */
 	protected function findSearchTerm($needle) {
@@ -1603,6 +1733,7 @@ abstract class SearchObject_Base
 	 * such as joins and groups, simply because they don't need to be
 	 * spellchecked.
 	 *
+	 * @param string $input
 	 * @return  array               Tokenized array
 	 * @access  public
 	 */
@@ -1917,7 +2048,7 @@ public function getNextPrevLinks(){
 		global $interface;
 		global $timer;
 		//Setup next and previous links based on the search results.
-		if (isset($_REQUEST['searchId'])){
+		if (isset($_REQUEST['searchId']) && isset($_REQUEST['recordIndex'])){
 			//rerun the search
 			$s = new SearchEntry();
 			$s->id = $_REQUEST['searchId'];
@@ -1974,17 +2105,22 @@ public function getNextPrevLinks(){
 							}
 
 							//Convert back to 1 based index
-							$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
-							$interface->assign('previousTitle', $previousRecord['title']);
-							if (strpos($previousRecord['id'], 'econtentRecord') === 0){
-								$interface->assign('previousType', 'EcontentRecord');
-								$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
-							}elseif (strpos($previousRecord['id'], 'list') === 0){
-								$interface->assign('previousType', 'MyResearch/MyList');
-								$interface->assign('previousId', str_replace('list', '', $previousRecord['id']));
-							}else{
-								$interface->assign('previousType', 'Record');
-								$interface->assign('previousId', $previousRecord['id']);
+							if (isset($previousRecord)){
+								$interface->assign('previousIndex', $currentResultIndex - 1 + 1);
+								$interface->assign('previousTitle', $previousRecord['title_display']);
+								if (strpos($previousRecord['id'], 'econtentRecord') === 0){
+									$interface->assign('previousType', 'EcontentRecord');
+									$interface->assign('previousId', str_replace('econtentRecord', '', $previousRecord['id']));
+								}elseif (strpos($previousRecord['id'], 'list') === 0){
+									$interface->assign('previousType', 'MyAccount/MyList');
+									$interface->assign('previousId', str_replace('list', '', $previousRecord['id']));
+								}else if ($previousRecord['recordtype'] == 'grouped_work'){
+									$interface->assign('previousType', 'GroupedWork');
+									$interface->assign('previousId', $previousRecord['id']);
+								}else{
+									$interface->assign('previousType', 'Record');
+									$interface->assign('previousId', $previousRecord['id']);
+								}
 							}
 						}
 						if ($currentResultIndex + 1 < $searchObject->getResultTotal()){
@@ -1999,16 +2135,21 @@ public function getNextPrevLinks(){
 							}
 							//Convert back to 1 based index
 							$interface->assign('nextIndex', $currentResultIndex + 1 + 1);
-							$interface->assign('nextTitle', $nextRecord['title']);
-							if (strpos($nextRecord['id'], 'econtentRecord') === 0){
-								$interface->assign('nextType', 'EcontentRecord');
-								$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
-							}elseif (strpos($nextRecord['id'], 'list') === 0){
-								$interface->assign('nextType', 'MyResearch/MyList');
-								$interface->assign('nextId', str_replace('list', '', $nextRecord['id']));
-							}else{
-								$interface->assign('nextType', 'Record');
-								$interface->assign('nextId', $nextRecord['id']);
+							if (isset($nextRecord)){
+								$interface->assign('nextTitle', $nextRecord['title_display']);
+								if (strpos($nextRecord['id'], 'econtentRecord') === 0){
+									$interface->assign('nextType', 'EcontentRecord');
+									$interface->assign('nextId', str_replace('econtentRecord', '', $nextRecord['id']));
+								}elseif (strpos($nextRecord['id'], 'list') === 0){
+									$interface->assign('nextType', 'MyAccount/MyList');
+									$interface->assign('nextId', str_replace('list', '', $nextRecord['id']));
+								}else if ($nextRecord['recordtype'] == 'grouped_work'){
+									$interface->assign('nextType', 'GroupedWork');
+									$interface->assign('nextId', $nextRecord['id']);
+								}else{
+									$interface->assign('nextType', 'Record');
+									$interface->assign('nextId', $nextRecord['id']);
+								}
 							}
 						}
 

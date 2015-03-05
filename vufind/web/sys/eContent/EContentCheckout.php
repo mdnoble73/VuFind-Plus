@@ -14,12 +14,16 @@ class EContentCheckout extends DB_DataObject {
 	public $dateReturned;
 	public $dateFulfilled;
 	public $recordId;
+	public $itemId;
 	public $userId;
 	public $status; //Out, Returned
 	public $acsDownloadLink;
 	public $downloadedToReader;
 	public $acsTransactionId;
 	public $userAcsId;
+	public $protectionType;
+	public $title;
+	public $author;
 	
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('econtent_checkout',$k,$v); }

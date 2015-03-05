@@ -1,1 +1,0 @@
-This folder contains dynamically generated ratings graphs

@@ -13,13 +13,18 @@ class ListWidget extends DB_DataObject
 	public $name;                    //varchar(255)
 	public $description;                    //varchar(255)
 	public $showTitleDescriptions;
+	public $showTitle;
+	public $showAuthor;
 	public $onSelectCallback;
 	public $customCss;
 	public $listDisplayType;
 	public $showMultipleTitles;
-	public $style; //'vertical', 'horizontal', 'single'
+	public $style; //'vertical', 'horizontal', 'single', 'single-with-next'
 	public $autoRotate;
 	public $libraryId;
+	public $showRatings;
+	public $coverSize; //'small', 'medium'
+
 
 	/** @var  ListWidgetList[] */
 	private $lists;
@@ -78,27 +83,51 @@ class ListWidget extends DB_DataObject
         'storeDb' => true,
         'hideInLists' => true,
       ),
-      'showTitleDescriptions' => array(
+      /*'showTitleDescriptions' => array(
         'property' => 'showTitleDescriptions',
         'type' => 'checkbox',
         'label' => 'Should the description pop-up be shown when hovering over titles?',
         'storeDb' => true,
         'default' => true,
         'hideInLists' => true,
-      ),
-      'showMultipleTitles' => array(
+      ),*/
+			'showTitle' => array(
+				'property' => 'showTitle',
+				'type' => 'checkbox',
+				'label' => 'Should the title for the currently selected title be shown?',
+				'storeDb' => true,
+				'default' => true,
+				'hideInLists' => true,
+			),
+			'showAuthor' => array(
+				'property' => 'showAuthor',
+				'type' => 'checkbox',
+				'label' => 'Should the author for the currently selected title be shown?',
+				'storeDb' => true,
+				'default' => true,
+				'hideInLists' => true,
+			),
+			'showRatings' => array(
+				'property' => 'showRatings',
+				'type' => 'checkbox',
+				'label' => 'Should ratings widgets be shown under each cover?',
+				'storeDb' => true,
+				'default' => false,
+				'hideInLists' => true,
+			),
+      /*'showMultipleTitles' => array(
         'property' => 'showMultipleTitles',
         'type' => 'checkbox',
         'label' => 'Should multiple titles by shown in in the widget or should only one title be shown at a time?',
         'storeDb' => true,
         'default' => true,
         'hideInLists' => true,
-      ),
+      ),*/
 			'style' => array(
 				'property' => 'style',
 				'type' => 'enum',
 				'label' => 'The style to use when displaying the list widget',
-				'values' => array('horizontal' => 'Horizontal', 'vertical'=> 'Vertical', 'single'=>'Single Title'),
+				'values' => array('horizontal' => 'Horizontal', 'vertical'=> 'Vertical', 'single'=>'Single Title', 'single-with-next' => 'Single Title with a Next Button'),
 				'storeDb' => true,
 				'default' => 'horizontal',
 				'hideInLists' => true,
@@ -110,14 +139,23 @@ class ListWidget extends DB_DataObject
         'storeDb' => true,
         'hideInLists' => true,
       ),
-      'onSelectCallback' => array(
+			'coverSize' => array(
+				'property' => 'coverSize',
+				'type' => 'enum',
+				'label' => 'The Cover Size to use when showing a Widget',
+				'values' => array('small' => 'Small', 'medium'=> 'Medium'),
+				'storeDb' => true,
+				'default' => 'small',
+				'hideInLists' => true,
+			),
+      /*'onSelectCallback' => array(
         'property'=>'onSelectCallback',
         'type'=>'text',
         'label'=>'On Select Callback',
         'description'=>'A javascript callback to invoke when a title is selected to override the default behavior.',
         'storeDb' => true,
         'hideInLists' => true,
-      ),
+      ),*/
       'customCss' => array(
         'property'=>'customCss',
         'type'=>'url',
@@ -288,22 +326,30 @@ class ListWidget extends DB_DataObject
 		$allListIds = $listAPI->getAllListIds();
 
 		foreach ($this->lists as $list){
-			//Check to make sure that all list names are unique
-			if (in_array($list->name, $listNames)){
-				$validationResults['errors'][] = "This name {$list->name} was used mulitple times.  Please make sure that each name is unique.";
-			}
-			$listNames[] = $list->name;
-
-			//Check to make sure that each list source is valid
-			$source = $list->source;
-			//The source is valid if it is in the all lists array or if it starts with strands: or review:
-			if (preg_match('/^(strands:|review:|search:).*/', $source)){
-				//source is valid
-			}elseif (in_array($source, $allListIds)){
-				//source is valid
+			if (isset($list->deleteOnSave) && $list->deleteOnSave == true){
+				//Don't validate
 			}else{
-				//source is not valid
-				$validationResults['errors'][] = "This source {$list->source} is not valid.  Please enter a valid list source.";
+				//Check to make sure that all list names are unique
+				if (in_array($list->name, $listNames)){
+					$validationResults['errors'][] = "This name {$list->name} was used multiple times.  Please make sure that each name is unique.";
+				}
+				$listNames[] = $list->name;
+
+				//Check to make sure that each list source is valid
+				$source = $list->source;
+				//The source is valid if it is in the all lists array or if it starts with strands: or review:
+				if (preg_match('/^(strands:|review:|search:).*/', $source)){
+					//source is valid
+				}elseif (in_array($source, $allListIds)){
+					//source is valid
+				}else{
+					//source is not valid
+					if (preg_match('/^(list:).*/', $source)){
+						$validationResults['errors'][] = "This source {$list->source} is not valid.  Please make sure that the list id exists and is public.";
+					}else{
+						$validationResults['errors'][] = "This source {$list->source} is not valid.  Please enter a valid list source.";
+					}
+				}
 			}
 		}
 

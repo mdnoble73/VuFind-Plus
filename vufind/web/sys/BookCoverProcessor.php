@@ -12,19 +12,27 @@ class BookCoverProcessor{
 	private $isbn13;
 	private $upc;
 	private $isEContent;
+	private $type;
 	private $cacheName;
 	private $cacheFile;
 	public $error;
+	/** @var null|GroupedWorkDriver */
+	private $groupedWork = null;
 	private $reload;
 	/** @var  Logger $logger */
 	private $logger;
+	private $doCoverLogging;
 	private $configArray;
 	/** @var  Timer $timer */
 	private $timer;
+	private $doTimings;
 	public function loadCover($configArray, $timer, $logger){
 		$this->configArray = $configArray;
 		$this->timer = $timer;
+		$this->doTimings = $this->configArray['System']['coverTimings'];
 		$this->logger = $logger;
+		$this->doCoverLogging = $this->configArray['Logging']['coverLogging'];
+
 		$this->log("Starting to load cover", PEAR_LOG_INFO);
 		$this->bookCoverPath = $configArray['Site']['coverPath'];
 		if (!$this->loadParameters()){
@@ -37,6 +45,18 @@ class BookCoverProcessor{
 			}
 		}
 
+		if ($this->type == 'overdrive'){
+			$this->initDatabaseConnection();
+			//Will exit if we find a cover
+			if ($this->getOverDriveCover()){
+				return;
+			}
+		}else if ($this->type == 'hoopla'){
+			//Will exit if we find a cover
+			if ($this->getHooplaCover($this->id)){
+				return;
+			}
+		}
 		if ($this->isEContent){
 			$this->initDatabaseConnection();
 			//Will exit if we find a cover
@@ -52,9 +72,47 @@ class BookCoverProcessor{
 			return;
 		}
 
+		if ($this->getGroupedWorkCover()){
+			return;
+		}
+
 		$this->log("No image found, using die image", PEAR_LOG_INFO);
 		$this->getDefaultCover();
 
+	}
+
+	private function getHooplaCover($id){
+		require_once ROOT_DIR . '/RecordDrivers/HooplaDriver.php';
+		$driver = new HooplaRecordDriver($id);
+		/** @var File_MARC_Data_Field[] $linkFields */
+		$linkFields = $driver->getMarcRecord()->getFields('856');
+		foreach($linkFields as $linkField){
+			if ($linkField->getIndicator(1) == 4 && $linkField->getIndicator(2) == 2){
+				$coverUrl = $linkField->getSubfield('u')->getData();
+				return $this->processImageURL($coverUrl, true);
+			}
+		}
+		return false;
+	}
+
+	private function getOverDriveCover($id = null){
+		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProduct.php';
+		require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductMetaData.php';
+		$overDriveProduct = new OverDriveAPIProduct();
+		$overDriveProduct->overdriveId = $id == null ? $this->id : $id;
+		if ($overDriveProduct->find(true)){
+			$overDriveMetadata = new OverDriveAPIProductMetaData();
+			$overDriveMetadata->productId = $overDriveProduct->id;
+			$overDriveMetadata->find(true);
+			$filename = $overDriveMetadata->cover;
+			if ($filename != null){
+				return $this->processImageURL($filename);
+			}else{
+				return false;
+			}
+		}else{
+			return false;
+		}
 	}
 
 	private function getCoverFromEContent(){
@@ -128,23 +186,25 @@ class BookCoverProcessor{
 		}
 		$options =& PEAR_Singleton::getStaticProperty('DB_DataObject', 'options');
 		$options = $this->configArray['Database'];
-		$this->logTime("Connect to databse");
+		$this->logTime("Connect to database");
 		require_once ROOT_DIR . '/Drivers/marmot_inc/Library.php';
 	}
 
 	private function initMemcache(){
 		global $memCache;
-		// Set defaults if nothing set in config file.
-		$host = isset($configArray['Caching']['memcache_host']) ? $configArray['Caching']['memcache_host'] : 'localhost';
-		$port = isset($configArray['Caching']['memcache_port']) ? $configArray['Caching']['memcache_port'] : 11211;
-		$timeout = isset($configArray['Caching']['memcache_connection_timeout']) ? $configArray['Caching']['memcache_connection_timeout'] : 1;
+		if (!isset($memCache)){
+			// Set defaults if nothing set in config file.
+			$host = isset($configArray['Caching']['memcache_host']) ? $configArray['Caching']['memcache_host'] : 'localhost';
+			$port = isset($configArray['Caching']['memcache_port']) ? $configArray['Caching']['memcache_port'] : 11211;
+			$timeout = isset($configArray['Caching']['memcache_connection_timeout']) ? $configArray['Caching']['memcache_connection_timeout'] : 1;
 
-		// Connect to Memcache:
-		$memCache = new Memcache();
-		if (!$memCache->pconnect($host, $port, $timeout)) {
-			PEAR_Singleton::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
+			// Connect to Memcache:
+			$memCache = new Memcache();
+			if (!$memCache->pconnect($host, $port, $timeout)) {
+				PEAR_Singleton::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
+			}
+			$this->logTime("Initialize Memcache");
 		}
-		$this->logTime("Initialize Memcache");
 	}
 
 	private function loadParameters(){
@@ -166,8 +226,9 @@ class BookCoverProcessor{
 		if (strlen($this->isn) == 0){
 			$this->isn = null;
 		}
-		$this->upc = isset($_GET['upc']) ? preg_replace('/[^0-9xX]/', '', $_GET['upc']) : null;
+		$this->upc = isset($_GET['upc']) ? ltrim(preg_replace('/[^0-9xX]/', '', $_GET['upc']), '0') : null;
 		if (strlen($this->upc) == 0){
+			//Strip any leading zeroes
 			$this->upc = null;
 		}
 		$this->issn = isset($_GET['issn']) ? preg_replace('/[^0-9xX]/', '', $_GET['issn']) : null;
@@ -176,6 +237,8 @@ class BookCoverProcessor{
 		}
 		$this->id = isset($_GET['id']) ? $_GET['id'] : null;
 		$this->isEContent = isset($_GET['econtent']);
+		$this->type = isset($_GET['type']) ? $_GET['type'] : 'ils';
+
 		$this->category = isset($_GET['category']) ? strtolower($_GET['category']) : null;
 		$this->format = isset($_GET['format']) ? strtolower($_GET['format']) : null;
 		//First check to see if this has a custom cover due to being an e-book
@@ -285,18 +348,16 @@ class BookCoverProcessor{
 						$this->logTime("Checked $func");
 					}
 				}
+			}
 
-				//Have not found an image yet, check files uploaded by publisher
-				if ($this->configArray['Content']['loadPublisherCovers'] && isset($this->isn) ){
-					$this->log("Looking for image from publisher isbn10: $this->isbn10 isbn13: $this->isbn13 in $this->bookCoverPath/original/.", PEAR_LOG_INFO);
-					$this->makeIsbn10And13();
-					if ($this->getCoverFromPublisher($this->bookCoverPath . '/original/')){
-						return true;
-					}
-					$this->log("Did not find a file in publisher folder.", PEAR_LOG_INFO);
+			//Have not found an image yet, check files uploaded by publisher
+			if ($this->configArray['Content']['loadPublisherCovers'] && isset($this->isn) ){
+				$this->log("Looking for image from publisher isbn10: $this->isbn10 isbn13: $this->isbn13 in $this->bookCoverPath/original/.", PEAR_LOG_INFO);
+				$this->makeIsbn10And13();
+				if ($this->getCoverFromPublisher($this->bookCoverPath . '/original/')){
+					return true;
 				}
-
-				$this->log("Could not find a cover, using default based on category $this->category.", PEAR_LOG_INFO);
+				$this->log("Did not find a file in publisher folder.", PEAR_LOG_INFO);
 			}
 		}
 		return false;
@@ -319,36 +380,58 @@ class BookCoverProcessor{
 		}
 	}
 
-	private function getCoverFromMarc(){
+	private function getCoverFromMarc($marcRecord = null){
 		$this->log("Looking for picture as part of 856 tag.", PEAR_LOG_INFO);
 
-		$this->initDatabaseConnection();
-		//Process the marc record
-		require_once ROOT_DIR . '/sys/MarcLoader.php';
-		$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
+		if ($marcRecord == null){
+			$this->initDatabaseConnection();
+			//Process the marc record
+			require_once ROOT_DIR . '/sys/MarcLoader.php';
+			if ($this->isEContent){
+				$epubFile = new EContentRecord();
+				$epubFile->id = $this->id;
+				if ($epubFile->find(true)){
+					$marcRecord = MarcLoader::loadEContentMarcRecord($epubFile);
+				}else{
+					$marcRecord = false;
+				}
+			}elseif ($this->type == 'ils'){
+				$marcRecord = MarcLoader::loadMarcRecordByILSId($this->id);
+			}
+		}
+
 		if (!$marcRecord) {
 			return false;
 		}
-		if ($this->configArray['Content']['loadCoversFrom856'] && $this->category && strtolower($this->category) == 'other'){
-			//Get the 856 tags
-			$marcFields = $marcRecord->getFields('856');
-			if ($marcFields){
-				/** @var File_MARC_Data_Field $marcField */
-				foreach ($marcFields as $marcField){
-					if ($marcField->getSubfield('y')){
-						$subfield_y = $marcField->getSubfield('y')->getData();
-						if (preg_match('/.*<img.*src=[\'"](.*?)[\'"].*>.*/i', $subfield_y, $matches)){
-							if ($this->processImageURL($matches[1], true)){
+
+		//Get the 856 tags
+		$marcFields = $marcRecord->getFields('856');
+		if ($marcFields){
+			/** @var File_MARC_Data_Field $marcField */
+			foreach ($marcFields as $marcField){
+				//Check to see if this is a cover to use for VuFind
+				if ($marcField->getSubfield('2') && strcasecmp(trim($marcField->getSubfield('2')->getData()), 'Vufind_Image') == 0){
+					if ($marcField->getSubfield('3') && (strcasecmp(trim($marcField->getSubfield('3')->getData()), 'Cover Image') == 0 || strcasecmp(trim($marcField->getSubfield('3')->getData()), 'CoverImage') == 0)){
+						//Can use either subfield f or subfield u
+						if ($marcField->getSubfield('f')){
+							//Just references the file, add the original directory
+							$filename = $this->bookCoverPath . '/original/' . trim($marcField->getSubfield('f')->getData());
+							if ($this->processImageURL($filename, true)){
+								//We got a successful match
+								return true;
+							}
+						}elseif ($marcField->getSubfield('u')){
+							//Full url to the image
+							if ($this->processImageURL(trim($marcField->getSubfield('u')->getData()), true)){
 								//We got a successful match
 								return true;
 							}
 						}
-					}else{
-						//no image link available on this link
 					}
 				}
 			}
 		}
+
 		//Check the 690 field to see if this is a seed catalog entry
 		$marcFields = $marcRecord->getFields('690');
 		if ($marcFields){
@@ -359,8 +442,7 @@ class BookCoverProcessor{
 					$subfield_a = $marcField->getSubfield('a')->getData();
 					if (preg_match('/seed library.*/i', $subfield_a, $matches)){
 						$this->log("Title is a seed library title", PEAR_LOG_INFO);
-						$themeName = $this->configArray['Site']['theme'];
-						$filename = "interface/themes/{$themeName}/images/seed_library_logo.jpg";
+						$filename = "interface/themes/responsive/images/seed_library_logo.jpg";
 						if ($this->processImageURL($filename, true)){
 							return true;
 						}
@@ -370,6 +452,27 @@ class BookCoverProcessor{
 				}
 			}
 		}
+
+		$marcFields = $marcRecord->getFields('590');
+		if ($marcFields){
+			$this->log("Found 590 field", PEAR_LOG_INFO);
+			foreach ($marcFields as $marcField){
+				if ($marcField->getSubfield('a')){
+					$this->log("Found 590a subfield", PEAR_LOG_INFO);
+					$subfield_a = $marcField->getSubfield('a')->getData();
+					if (preg_match('/Colorado State Government Documents online.*/i', $subfield_a, $matches)){
+						$this->log("Title is a Colorado state gov doc", PEAR_LOG_INFO);
+						$filename = "interface/themes/responsive/images/state_flag_of_colorado.png";
+						if ($this->processImageURL($filename, true)){
+							return true;
+						}
+					}
+				}else{
+					//no image link available on this link
+				}
+			}
+		}
+
 		return false;
 	}
 
@@ -403,65 +506,98 @@ class BookCoverProcessor{
 	function getDefaultCover(){
 		$useDefaultNoCover = true;
 
-		$this->log("Looking for default cover, format is {$this->format} category is {$this->category}", PEAR_LOG_DEBUG);
-		$themeName = $this->configArray['Site']['theme'];
-		$noCoverUrl = "interface/themes/default/images/noCover2.png";
-		if (isset($this->format) && strlen($this->format) > 0){
-
-			if (is_readable("interface/themes/{$themeName}/images/{$this->format}_{$this->size}.png")){
-				$this->log("Found format image {$this->format}_{$this->size} .", PEAR_LOG_INFO);
-				$noCoverUrl = "interface/themes/{$themeName}/images/{$this->format}_{$this->size}.png";
-				$useDefaultNoCover = false;
-			}elseif (is_readable("interface/themes/{$themeName}/images/{$this->format}.png")){
-				$noCoverUrl = "interface/themes/{$themeName}/images/{$this->format}.png";
-				header('Content-type: image/png');
-				$useDefaultNoCover = false;
-			}elseif (is_readable("interface/themes/default/images/{$this->format}_{$this->size}.png")){
-				$this->log("Found format image {$this->format}_{$this->size} .", PEAR_LOG_INFO);
-				$noCoverUrl = "interface/themes/default/images/{$this->format}_{$this->size}.png";
-				header('Content-type: image/png');
-				$useDefaultNoCover = false;
-			}elseif (is_readable("interface/themes/default/images/$this->format.png")){
-				$noCoverUrl = "interface/themes/default/images/$this->format.png";
-				header('Content-type: image/png');
-				$useDefaultNoCover = false;
+		//Get the resource for the cover so we can load the title and author
+		$title = '';
+		$author = '';
+		if($this->type == 'grouped_work'){
+			$this->loadGroupedWork();
+			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+			if ($this->groupedWork){
+				$title = ucwords($this->groupedWork->getTitle());
+				$author = ucwords($this->groupedWork->getPrimaryAuthor());
+				$this->category = 'blank';
 			}
-		}
-		if ($useDefaultNoCover && isset($this->category) && strlen($this->category) > 0){
-			if (is_readable("interface/themes/{$themeName}/images/{$this->category}_{$this->size}.png")){
-				$this->log("Found category image {$this->category}_{$this->size} .", PEAR_LOG_INFO);
-				$noCoverUrl = "interface/themes/{$themeName}/images/{$this->category}_{$this->size}.png";
-				$useDefaultNoCover = false;
-			}elseif (is_readable("interface/themes/{$themeName}/images/{$this->category}.png")){
-				$noCoverUrl = "interface/themes/{$themeName}/images/{$this->category}.png";
-				header('Content-type: image/png');
-				$useDefaultNoCover = false;
-			}elseif (is_readable("interface/themes/default/images/{$this->category}_{$this->size}.png")){
-				$this->log("Found category image {$this->category}_{$this->size} .", PEAR_LOG_INFO);
-				$noCoverUrl = "interface/themes/default/images/{$this->category}_{$this->size}.png";
-				header('Content-type: image/png');
-				$useDefaultNoCover = false;
-			}elseif (is_readable("interface/themes/default/images/$this->category.png")){
-				$noCoverUrl = "interface/themes/default/images/$this->category.png";
-				header('Content-type: image/png');
-				$useDefaultNoCover = false;
+		}elseif ($this->isEContent){
+			require_once ROOT_DIR . '/sys/eContent/EContentRecord.php';
+			$econtentRecord = new EContentRecord();
+			$econtentRecord->id = $this->id;
+			if ($econtentRecord->find(true)){
+				$title = $econtentRecord->title;
+				$author = $econtentRecord->author;
 			}
-		}
-
-		if ($useDefaultNoCover){
-			header('Content-type: image/png');
-		}
-
-		$ret = $this->processImageURL($noCoverUrl, true);
-		//$ret = copy($nocoverurl, $this->cacheFile);
-		if (!$ret){
-			$this->error = "Unable to copy file $noCoverUrl to $this->cacheFile";
-			return false;
 		}else{
-			return true;
+			require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+			$recordDriver = new MarcRecord($this->id);
+			if ($recordDriver->isValid()){
+				$title = $recordDriver->getTitle();
+				$author = $recordDriver->getAuthor();
+			}
 		}
 
+		require_once ROOT_DIR . '/sys/DefaultCoverImageBuilder.php';
+		$coverBuilder = new DefaultCoverImageBuilder();
+		if (strlen($title) > 0 && $coverBuilder->blankCoverExists($this->format, $this->category)){
+			$this->log("Looking for default cover, format is {$this->format} category is {$this->category}", PEAR_LOG_DEBUG);
+			$coverBuilder->getCover($title, $author, $this->format, $this->category, $this->cacheFile);
+			return $this->processImageURL($this->cacheFile);
+		}else{
+			$themeName = $this->configArray['Site']['theme'];
+			$noCoverUrl = "interface/themes/default/images/noCover2.png";
+			if (isset($this->format) && strlen($this->format) > 0){
 
+				if (is_readable("interface/themes/{$themeName}/images/{$this->format}_{$this->size}.png")){
+					$this->log("Found format image {$this->format}_{$this->size} .", PEAR_LOG_INFO);
+					$noCoverUrl = "interface/themes/{$themeName}/images/{$this->format}_{$this->size}.png";
+					$useDefaultNoCover = false;
+				}elseif (is_readable("interface/themes/{$themeName}/images/{$this->format}.png")){
+					$noCoverUrl = "interface/themes/{$themeName}/images/{$this->format}.png";
+					header('Content-type: image/png');
+					$useDefaultNoCover = false;
+				}elseif (is_readable("interface/themes/default/images/{$this->format}_{$this->size}.png")){
+					$this->log("Found format image {$this->format}_{$this->size} .", PEAR_LOG_INFO);
+					$noCoverUrl = "interface/themes/default/images/{$this->format}_{$this->size}.png";
+					header('Content-type: image/png');
+					$useDefaultNoCover = false;
+				}elseif (is_readable("interface/themes/default/images/$this->format.png")){
+					$noCoverUrl = "interface/themes/default/images/$this->format.png";
+					header('Content-type: image/png');
+					$useDefaultNoCover = false;
+				}
+			}
+			if ($useDefaultNoCover && isset($this->category) && strlen($this->category) > 0){
+				if (is_readable("interface/themes/{$themeName}/images/{$this->category}_{$this->size}.png")){
+					$this->log("Found category image {$this->category}_{$this->size} .", PEAR_LOG_INFO);
+					$noCoverUrl = "interface/themes/{$themeName}/images/{$this->category}_{$this->size}.png";
+					$useDefaultNoCover = false;
+				}elseif (is_readable("interface/themes/{$themeName}/images/{$this->category}.png")){
+					$noCoverUrl = "interface/themes/{$themeName}/images/{$this->category}.png";
+					header('Content-type: image/png');
+					$useDefaultNoCover = false;
+				}elseif (is_readable("interface/themes/default/images/{$this->category}_{$this->size}.png")){
+					$this->log("Found category image {$this->category}_{$this->size} .", PEAR_LOG_INFO);
+					$noCoverUrl = "interface/themes/default/images/{$this->category}_{$this->size}.png";
+					header('Content-type: image/png');
+					$useDefaultNoCover = false;
+				}elseif (is_readable("interface/themes/default/images/$this->category.png")){
+					$noCoverUrl = "interface/themes/default/images/$this->category.png";
+					header('Content-type: image/png');
+					$useDefaultNoCover = false;
+				}
+			}
+
+			if ($useDefaultNoCover){
+				header('Content-type: image/png');
+			}
+
+			$ret = $this->processImageURL($noCoverUrl, true);
+			//$ret = copy($nocoverurl, $this->cacheFile);
+			if (!$ret){
+				$this->error = "Unable to copy file $noCoverUrl to $this->cacheFile";
+				return false;
+			}else{
+				return true;
+			}
+		}
 	}
 
 	function processImageURL($url, $cache = true) {
@@ -597,6 +733,8 @@ class BookCoverProcessor{
 			case 'large':
 				$size = 'LC.JPG';
 				break;
+			default:
+				$size = 'SC.GIF';
 		}
 
 		$url = isset($this->configArray['Syndetics']['url']) ? $this->configArray['Syndetics']['url'] : 'http://syndetics.com';
@@ -651,8 +789,8 @@ class BookCoverProcessor{
 			return false;
 		}
 		if (is_callable('json_decode')) {
-			$url = 'http://books.google.com/books?jscmd=viewapi&' .
-	               'bibkeys=ISBN:' . $this->isn . '&callback=addTheCover';
+			$url = 'http://books.google.com/books?jscmd=viewapi&bibkeys=ISBN:' . $this->isn . '&callback=addTheCover';
+			require_once ROOT_DIR . '/sys/Proxy_Request.php';
 			$client = new Proxy_Request();
 			$client->setMethod(HTTP_REQUEST_METHOD_GET);
 			$client->setURL($url);
@@ -780,14 +918,94 @@ class BookCoverProcessor{
 	}
 
 	function log($message, $level = PEAR_LOG_DEBUG){
-		if (true){
+		if ($this->doCoverLogging){
 			$this->logger->log($message, $level);
 		}
 	}
 
 	function logTime($message){
-		if (false){
+		if ($this->doTimings){
 			$this->timer->logTime($message);
 		}
+	}
+
+	private function getGroupedWorkCover() {
+		if ($this->loadGroupedWork()){
+			//First check the permanent id
+			/*$this->isn = $this->groupedWork->getCleanISBN();
+			if ($this->getCoverFromProvider()){
+				return true;
+			}
+
+			$this->upc = null;
+			$isbns = $this->groupedWork->getISBNs();
+			foreach ($isbns as $isbn){
+				$this->isn = $isbn;
+				if ($this->getCoverFromProvider()){
+					return true;
+				}
+			}
+			$upcs = $this->groupedWork->getUPCs();
+			$this->isn = null;
+			foreach ($upcs as $upc){
+				$this->upc = $upc;
+				if ($this->getCoverFromProvider()){
+					return true;
+				}
+			}*/
+
+			//Have not found a grouped work based on isbn or upc, check based on related records
+			$relatedRecords = $this->groupedWork->getRelatedRecords();
+			foreach ($relatedRecords as $relatedRecord){
+				if ($relatedRecord['source'] == 'OverDrive'){
+					if ($this->getOverDriveCover($relatedRecord['id'])){
+						return true;
+					}
+				}elseif ($relatedRecord['source'] == 'Hoopla'){
+					if ($this->getHooplaCover($relatedRecord['id'])){
+						return true;
+					}
+				}else{
+					/** @var GroupedWorkDriver $driver */
+					$driver = $relatedRecord['driver'];
+					if (method_exists($driver, 'getMarcRecord') && $this->getCoverFromMarc($driver->getMarcRecord())){
+						return true;
+					}else{
+						//Finally, check the isbns if we don't have an override
+						$isbn = $driver->getCleanISBN();
+						if ($isbn){
+							$this->isn = $isbn;
+							if ($this->getCoverFromProvider()){
+								return true;
+							}
+						}
+						$upc = $driver->getCleanUPC();
+						$this->isn = null;
+						if ($upc){
+							$this->upc = ltrim($upc, '0');
+							if ($this->getCoverFromProvider()){
+								return true;
+							}
+						}
+					}
+				}
+			}
+		}
+		return false;
+	}
+
+	private function loadGroupedWork(){
+		if ($this->groupedWork == null){
+			// Include Search Engine Class
+			require_once ROOT_DIR . '/sys/Solr.php';
+			$this->initMemcache();
+
+			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+			$this->groupedWork = new GroupedWorkDriver($this->id);
+			if (!$this->groupedWork->isValid){
+				$this->groupedWork = false;
+			}
+		}
+		return $this->groupedWork;
 	}
 }

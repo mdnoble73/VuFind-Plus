@@ -51,7 +51,7 @@ class ExternalReviews
 
 		// We can't proceed without an ISBN:
 		if (empty($this->isbn)) {
-			return $this->results;
+			return;
 		}
 
 		// Fetch from provider

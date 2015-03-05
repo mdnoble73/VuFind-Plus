@@ -124,31 +124,8 @@ abstract class SolrDataObject extends DB_DataObject{
 		$objectStructure = $this->getObjectStructure();
 		$doc = array();
 		foreach ($objectStructure as $property){
-			if ($property['storeSolr']){
-				$propertyName = $property['property'];
-				if ($property['type'] == 'method'){
-					$methodName = isset($property['methodName']) ? $property['methodName'] : $property['property'];
-					$doc[$propertyName] = $this->$methodName();
-				}elseif ($property['type'] == 'crSeparated'){
-					if (strlen($this->$propertyName)){
-						$propertyValues = explode("\r\n", $this->$propertyName);
-						$doc[$propertyName] = $propertyValues;
-					}
-				}elseif ($property['type'] == 'date' || $property['type'] == 'partialDate'){
-					if ($this->$propertyName != null && strlen($this->$propertyName) > 0){
-						//get the date array and reformat for solr
-						$dateParts = date_parse($this->$propertyName);
-						if ($dateParts['year'] != false && $dateParts['month'] != false && $dateParts['day'] != false){
-							$time = $dateParts['year'] . '-' . $dateParts['month'] . '-' . $dateParts['day'] . 'T00:00:00Z';
-							$doc[$propertyName] = $time;
-						}
-					}
-				}else{
-					if (isset($this->$propertyName)){
-						$doc[$propertyName] = $this->$propertyName;
-					}
-				}
-
+			if ((isset($property['storeSolr']) && $property['storeSolr']) || (isset($property['properties']) && count($property['properties']) > 0)){
+				$doc = $this->updateSolrDocumentForProperty($doc, $property);
 			}
 		}
 		$timer->logTime('Built Contents to save to Solr');
@@ -173,6 +150,40 @@ abstract class SolrDataObject extends DB_DataObject{
 		}
 		$this->saveStarted = false;
 		return true;
+	}
+
+	function updateSolrDocumentForProperty($doc, $property){
+		if (isset($property['storeSolr']) && $property['storeSolr']){
+			$propertyName = $property['property'];
+			if ($property['type'] == 'method'){
+				$methodName = isset($property['methodName']) ? $property['methodName'] : $property['property'];
+				$doc[$propertyName] = $this->$methodName();
+			}elseif ($property['type'] == 'crSeparated'){
+				if (strlen($this->$propertyName)){
+					$propertyValues = explode("\r\n", $this->$propertyName);
+					$doc[$propertyName] = $propertyValues;
+				}
+			}elseif ($property['type'] == 'date' || $property['type'] == 'partialDate'){
+				if ($this->$propertyName != null && strlen($this->$propertyName) > 0){
+					//get the date array and reformat for solr
+					$dateParts = date_parse($this->$propertyName);
+					if ($dateParts['year'] != false && $dateParts['month'] != false && $dateParts['day'] != false){
+						$time = $dateParts['year'] . '-' . $dateParts['month'] . '-' . $dateParts['day'] . 'T00:00:00Z';
+						$doc[$propertyName] = $time;
+					}
+				}
+			}else{
+				if (isset($this->$propertyName)){
+					$doc[$propertyName] = $this->$propertyName;
+				}
+			}
+		}elseif (isset($property['properties']) && count($property['properties']) > 0){
+			$properties = $property['properties'];
+			foreach ($properties as $subProperty){
+				$doc = $this->updateSolrDocumentForProperty($doc, $subProperty);
+			}
+		}
+		return $doc;
 	}
 
 	function optimize(){

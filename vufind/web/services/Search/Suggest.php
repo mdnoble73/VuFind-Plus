@@ -32,9 +32,6 @@ class Suggest extends Action {
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];
 		$db = new $class($configArray['Index']['url']);
-		if ($configArray['System']['debugSolr']) {
-			$db->debug = true;
-		}
 
 		$results = $db->getSuggestion(strtolower(strip_tags($_GET['lookfor'])), 'title_sort', 10);
 		echo json_encode($results);

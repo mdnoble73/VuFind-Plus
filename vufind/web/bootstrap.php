@@ -22,8 +22,12 @@ $timer->logTime("Read Config");
 
 if ($configArray['System']['debug']) {
 	ini_set('display_errors', true);
-	error_reporting(E_ALL & ~E_DEPRECATED);
+	error_reporting(E_ALL & ~E_DEPRECATED & ~E_STRICT);
 }
+
+//Use output buffering to allow session cookies to have different values
+// this can't be determined before session_start is called
+ob_start();
 
 initMemcache();
 initDatabase();
@@ -48,7 +52,7 @@ function initMemcache(){
 
 	// Connect to Memcache:
 	$memCache = new Memcache();
-	if (!$memCache->pconnect($host, $port, $timeout)) {
+	if (!@$memCache->pconnect($host, $port, $timeout)) {
 		//Try again with a non-persistent connection
 		if (!$memCache->connect($host, $port, $timeout)) {
 			PEAR_Singleton::raiseError(new PEAR_Error("Could not connect to Memcache (host = {$host}, port = {$port})."));
@@ -76,8 +80,6 @@ function requireSystemLibraries(){
 	$timer->logTime("Include Translator");
 	require_once ROOT_DIR . '/sys/SearchObject/Factory.php';
 	$timer->logTime("Include Search Object Factory");
-	require_once ROOT_DIR . '/sys/ConnectionManager.php';
-	$timer->logTime("Include ConnectionManager");
 	require_once ROOT_DIR . '/Drivers/marmot_inc/Library.php';
 	require_once ROOT_DIR . '/Drivers/marmot_inc/Location.php';
 	$timer->logTime("Include Library and Location");
@@ -138,7 +140,8 @@ function handlePEARError($error, $method = null){
 
 	$interface->assign('error', $error);
 	$interface->assign('debug', $configArray['System']['debug']);
-	$interface->display('error.tpl');
+	$interface->setTemplate('../error.tpl');
+	$interface->display('layout.tpl');
 
 	// Exceptions we don't want to log
 	$doLog = true;
@@ -222,4 +225,8 @@ function disableErrorHandler(){
 function enableErrorHandler(){
 	global $errorHandlingEnabled;
 	$errorHandlingEnabled = true;
+}
+
+function array_remove_by_value($array, $value){
+	return array_values(array_diff($array, array($value)));
 }

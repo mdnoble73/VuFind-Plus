@@ -22,7 +22,7 @@
  * Support function -- get the file path to one of the ini files specified in the
  * [Extra_Config] section of config.ini.
  *
- * @param   name        The ini's name from the [Extra_Config] section of config.ini
+ * @param   string $name        The ini's name from the [Extra_Config] section of config.ini
  * @return  string      The file path
  */
 function getExtraConfigArrayFile($name)
@@ -49,6 +49,79 @@ function getExtraConfigArrayFile($name)
 }
 
 /**
+ * Load a translation map from the translation_maps directory
+ *
+ * @param   string $name        The name of the translation map should not include _map.properties
+ * @return  string      The file path
+ */
+function getTranslationMap($name)
+{
+	//Check to see if there is a domain name based subfolder for he configuration
+	global $serverName;
+	/** @var Memcache $memCache */
+	global $memCache;
+	$mapValues = $memCache->get('translation_map_'. $serverName.'_'. $name);
+	if ($mapValues != false && $mapValues != null && !isset($_REQUEST['reload'])){
+		return $mapValues;
+	}
+
+	// If the requested settings aren't loaded yet, pull them in:
+	$mapNameFull = $name . '_map.properties';
+	if (file_exists("../../sites/$serverName/translation_maps/$mapNameFull")){
+		// Return the file path (note that all ini files are in the conf/ directory)
+		$mapFilename = "../../sites/$serverName/translation_maps/$mapNameFull";
+	}elseif (file_exists("../../sites/default/translation_maps/$mapNameFull")){
+		// Return the file path (note that all ini files are in the conf/ directory)
+		$mapFilename = "../../sites/default/translation_maps/$mapNameFull";
+	} else{
+		// Return the file path (note that all ini files are in the conf/ directory)
+		$mapFilename = '../../sites/' . $mapNameFull;
+	}
+
+
+	// Try to load the .ini file; if loading fails, the file probably doesn't
+	// exist, so we can treat it as an empty array.
+	$mapValues = array();
+	$fHnd = fopen($mapFilename, 'r');
+	while (($line = fgets($fHnd)) !== false){
+		if (substr($line, 0, 1) == '#'){
+			//skip the line, it's a comment
+		}else{
+			$lineData = explode('=', $line, 2);
+			if (count($lineData) == 2){
+				$mapValues[strtolower(trim($lineData[0]))] = trim($lineData[1]);
+			}
+		}
+	}
+	fclose($fHnd);
+
+	global $configArray;
+	$memCache->set('translation_map_'. $serverName.'_' . $name, $mapValues, 0, $configArray['Caching']['translation_map']);
+	return $mapValues;
+}
+
+function mapValue($mapName, $value){
+	$map = getTranslationMap($mapName);
+	if ($map == null || $map == false){
+		return $value;
+	}
+	$value = str_replace(' ', '_', $value);
+	if (isset($map[$value])){
+		return $map[$value];
+	}elseif (isset($map[strtolower($value)])){
+		return $map[strtolower($value)];
+	}elseif(isset($map['*'])){
+		if ($map['*'] == 'nomap'){
+			return $value;
+		}else{
+			return $map['*'];
+		}
+	}else{
+		return '';
+	}
+}
+
+/**
  * Support function -- get the contents of one of the ini files specified in the
  * [Extra_Config] section of config.ini.
  *
@@ -71,22 +144,23 @@ function getExtraConfigArray($name)
 		if ($name == 'facets'){
 			//*************************
 			//Marmot overrides for controlling facets based on library system.
+			/** @var $librarySingleton Library */
 			global $librarySingleton;
 			$library = $librarySingleton->getActiveLibrary();
 			if (isset($library)){
 				if ($library->restrictSearchByLibrary && $library->useScope){
-					unset($extraConfigs[$name]['Results']['institution']);
-					unset($extraConfigs[$name]['Author']['institution']);
+					unset($extraConfigs[$name]['Results']['owning_library']);
+					unset($extraConfigs[$name]['Author']['owning_library']);
 				}
 			}
 			global $locationSingleton;
 			$activeLocation = $locationSingleton->getActiveLocation();
 			if (!is_null($activeLocation)){
 				if ($activeLocation->restrictSearchByLocation && $activeLocation->useScope){
-					unset($extraConfigs[$name]['Results']['institution']);
-					unset($extraConfigs[$name]['Results']['building']);
-					unset($extraConfigs[$name]['Author']['institution']);
-					unset($extraConfigs[$name]['Author']['building']);
+					unset($extraConfigs[$name]['Results']['owning_library']);
+					unset($extraConfigs[$name]['Results']['owning_location']);
+					unset($extraConfigs[$name]['Author']['owning_library']);
+					unset($extraConfigs[$name]['Author']['owning_location']);
 				}
 			}
 		}
@@ -98,8 +172,8 @@ function getExtraConfigArray($name)
 /**
  * Support function -- merge the contents of two arrays parsed from ini files.
  *
- * @param   config_ini  The base config array.
- * @param   custom_ini  Overrides to apply on top of the base array.
+ * @param   array $config_ini  The base config array.
+ * @param   array $custom_ini  Overrides to apply on top of the base array.
  * @return  array       The merged results.
  */
 function ini_merge($config_ini, $custom_ini)
@@ -138,7 +212,14 @@ function readConfig()
 			$serverArray = parse_ini_file($configFile, true);
 			$mainArray = ini_merge($mainArray, $serverArray);
 			$serverName = $tmpServername;
+
+			$passwordFile = "../../sites/$tmpServername/conf/config.pwd.ini";
+			if (file_exists($passwordFile)){
+				$serverArray = parse_ini_file($passwordFile, true);
+				$mainArray = ini_merge($mainArray, $serverArray);
+			}
 		}
+
 		array_shift($serverParts);
 	}
 
@@ -194,6 +275,10 @@ function updateConfigForScoping($configArray) {
 				$subdomain = $serverComponents[0];
 			}
 		}
+		//Trim off test indicator when doing lookups for library/location
+		if (substr($subdomain, -1) == '2' || substr($subdomain, -1) == '3'){
+			$subdomain = substr($subdomain, 0, -1);
+		}
 	}
 
 	$timer->logTime('got subdomain');
@@ -212,7 +297,7 @@ function updateConfigForScoping($configArray) {
 
 		if ($Library->N == 1) {
 			$Library->fetch();
-			//Make the library infroamtion global so we can work with it later.
+			//Make the library information global so we can work with it later.
 			$library = $Library;
 		}else{
 			//The subdomain can also indicate a location.
@@ -222,9 +307,18 @@ function updateConfigForScoping($configArray) {
 			if ($Location->N == 1){
 				$Location->fetch();
 				//We found a location for the subdomain, get the library.
+				/** @var Library $librarySingleton */
 				global $librarySingleton;
 				$library = $librarySingleton->getLibraryForLocation($Location->locationId);
 				$locationSingleton->setActiveLocation(clone $Location);
+			}else{
+				//Check to see if there is only one library in the system
+				$Library = new Library();
+				$Library->find();
+				if ($Library->N == 1){
+					$Library->fetch();
+					$library = $Library;
+				}
 			}
 		}
 	}
@@ -233,20 +327,14 @@ function updateConfigForScoping($configArray) {
 		$configArray['Site']['theme'] = $library->themeName . ',' . $configArray['Site']['theme'] . ',default';
 		$configArray['Site']['title'] = $library->displayName;
 
-		//Update the searches file
-		if (strlen($library->searchesFile) > 0 && $library->searchesFile != 'default'){
-			$file = trim("../../sites/$serverName/conf/searches/" . $library->searchesFile . '.ini');
-			if (file_exists($file)) {
-				$configArray['Extra_Config']['searches'] = 'searches/' . $library->searchesFile . '.ini';
-			}
-		}
-
-
 		$location = $locationSingleton->getActiveLocation();
 
 		//Add an extra css file for the location if it exists.
 		$themes = explode(',', $library->themeName);
 		foreach ($themes as $themeName){
+			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_responsive.png')) {
+				$configArray['Site']['responsiveLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_responsive.png';
+			}
 			if ($location != null && file_exists('./interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png')) {
 				$configArray['Site']['smallLogo'] = '/interface/themes/' . $themeName . '/images/'. $location->code .'_logo_small.png';
 			}

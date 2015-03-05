@@ -37,7 +37,7 @@ public class BookcoverCleanup implements IProcessHandler {
 				});
 				for (File curFile : filesToCheck) {
 					//Remove any files created more than 2 weeks ago. 
-					if (curFile.lastModified() < (currentTime - 2 * 7 * 24 * 3600)) {
+					if (curFile.lastModified() < (currentTime - 2 * 7 * 24 * 3600 * 1000)) {
 						if (curFile.delete()){
 							numFilesDeleted++;
 							processLog.incUpdated();

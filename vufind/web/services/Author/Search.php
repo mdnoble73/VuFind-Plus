@@ -22,7 +22,7 @@ require_once ROOT_DIR . '/Action.php';
 
 require_once ROOT_DIR . '/sys/Pager.php';
 
-class Search extends Action
+class Author_Search extends Action
 {
 	function launch()
 	{

@@ -28,8 +28,6 @@ class ReindexLog extends Admin_Admin
 	{
 		global $interface;
 
-		global $interface;
-
 		$interface->setPageTitle('Reindex Log');
 		
 		$logEntries = array();
@@ -41,6 +39,8 @@ class ReindexLog extends Admin_Admin
 			$logEntries[] = clone($logEntry);
 		}
 		$interface->assign('logEntries', $logEntries);
+
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('reindexLog.tpl');
 		$interface->display('layout.tpl');
 	}

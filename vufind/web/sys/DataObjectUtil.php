@@ -27,12 +27,11 @@ class DataObjectUtil
 	/**
 	 * Get the edit form for a data object based on the structure of the object
 	 *
-	 * @param $objectStructure array representing the structrue of the object.
+	 * @param $objectStructure array representing the structure of the object.
 	 *
-	 * @return HTML Snippet representing the form for display.
+	 * @return string and HTML Snippet representing the form for display.
 	 */
 	static function getEditForm($objectStructure){
-		global $configArray;
 		global $interface;
 
 		//Define the structure of the object.
@@ -167,7 +166,7 @@ class DataObjectUtil
 			foreach ($property['properties'] as $subProperty){
 				DataObjectUtil::processProperty($object, $subProperty);
 			}
-		}else if (in_array($property['type'], array('text', 'enum', 'hidden', 'url', 'email'))){
+		}else if (in_array($property['type'], array('text', 'enum', 'hidden', 'url', 'email', 'multiemail'))){
 			$object->$propertyName = strip_tags(trim($_REQUEST[$propertyName]));
 
 		}else if (in_array( $property['type'], array('textarea', 'html', 'folder', 'crSeparated'))){
@@ -351,10 +350,11 @@ class DataObjectUtil
 				$existingValues = $object->$propertyName;
 				$subObjectType = $property['subObjectType'];
 				$subStructure = $property['structure'];
-				foreach ($idsToSave as $id){
+				foreach ($idsToSave as $key => $id){
 					//Create the subObject
-					if ($id < 0){
+					if ($id < 0 || $id == ""){
 						$subObject = new $subObjectType();
+						$id = $key;
 					}else{
 						$subObject = $existingValues[$id];
 					}
@@ -366,14 +366,25 @@ class DataObjectUtil
 						//Update properties of each associated object
 						foreach ($subStructure as $subProperty){
 							$requestKey = $propertyName . '_' . $subProperty['property'];
-							if (in_array($subProperty['type'], array('text', 'enum', 'date', 'integer') )){
-								$subObject->$subProperty['property'] = $_REQUEST[$requestKey][$id];
+							$subPropertyName = $subProperty['property'];
+							if (in_array($subProperty['type'], array('text', 'enum', 'integer', 'numeric') )){
+								$subObject->$subPropertyName = $_REQUEST[$requestKey][$id];
 							}elseif (in_array($subProperty['type'], array('checkbox') )){
-								$subObject->$subProperty['property'] = isset($_REQUEST[$requestKey][$id]) ? 1 : 0;
+								$subObject->$subPropertyName = isset($_REQUEST[$requestKey][$id]) ? 1 : 0;
+							}elseif ($subProperty['type'] == 'date'){
+								if (strlen($_REQUEST[$requestKey][$id]) == 0 || $_REQUEST[$requestKey][$id] == '0000-00-00'){
+									$subObject->$subPropertyName = null;
+								}else{
+									$dateParts = date_parse($_REQUEST[$requestKey][$id]);
+									$time = $dateParts['year'] . '-' . $dateParts['month'] . '-' . $dateParts['day'];
+									$subObject->$subPropertyName = $time;
+								}
+							}elseif (!in_array($subProperty['type'], array('label', 'foreignKey', 'oneToMany') )){
+								//echo("Invalid Property Type " . $subProperty['type']);
 							}
 						}
 					}
-					if ($property['sortable'] == true){
+					if ($property['sortable'] == true && isset($weights)){
 						$subObject->weight = $weights[$id];
 					}
 

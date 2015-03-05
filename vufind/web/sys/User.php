@@ -41,11 +41,12 @@ class UserAccount
 	public static function updateSession($user)
 	{
 		$_SESSION['userinfo'] = serialize($user);
-		if (isset($_REQUEST['rememberMe'])){
+		if (isset($_REQUEST['rememberMe']) && ($_REQUEST['rememberMe'] === "true" || $_REQUEST['rememberMe'] === "on")){
 			$_SESSION['rememberMe'] = true;
 		}else{
 			$_SESSION['rememberMe'] = false;
 		}
+		session_commit();
 	}
 
 	// Try to log in the user using current query parameters; return User object
@@ -61,6 +62,9 @@ class UserAccount
 		// If we authenticated, store the user in the session:
 		if (!PEAR_Singleton::isError($user)) {
 			self::updateSession($user);
+		}else{
+			global $logger;
+			$logger->log("Error authenticating patron\r\n" . print_r($user, true), PEAR_LOG_ERR);
 		}
 
 		// Send back the user object (which may be a PEAR error):
@@ -81,24 +85,13 @@ class UserAccount
 	}
 
 	/**
-	 * Completely logout the user anhilating their entire session.
+	 * Completely logout the user annihilating their entire session.
 	 */
 	public static function logout()
 	{
-		if(!isset($_SESSION)){
-			session_start();
-		}
-
-		$_SESSION = array();
-
-		if (isset($_COOKIE[session_name()])) {
-			setcookie(session_name(), '', time()-42000, '/');
-		}
-		if (isset($_COOKIE['book_BAG_COOKIE_vufind'])) {
-			setcookie('book_BAG_COOKIE_vufind', '', time()-42000, '/');
-		}
-
 		session_destroy();
+		session_regenerate_id(true);
+		$_SESSION = array();
 	}
 
 	/**
@@ -108,9 +101,6 @@ class UserAccount
 	public static function softLogout(){
 		if (isset($_SESSION['userinfo'])){
 			unset($_SESSION['userinfo']);
-		}
-		if (isset($_COOKIE['book_BAG_COOKIE_vufind'])) {
-			setcookie('book_BAG_COOKIE_vufind', '', time()-42000, '/');
 		}
 	}
 }

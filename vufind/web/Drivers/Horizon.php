@@ -21,7 +21,7 @@
 require_once 'Interface.php';
 require_once ROOT_DIR . '/sys/SIP2.php';
 
-class Horizon implements DriverInterface{
+abstract class Horizon implements DriverInterface{
 	protected $db;
 	protected $useDb = true;
 	protected $hipUrl;
@@ -50,7 +50,7 @@ class Horizon implements DriverInterface{
 					$configArray['Catalog']['username'],
 					$configArray['Catalog']['password']);
 
-					// Select the databse
+					// Select the database
 					mssql_select_db($configArray['Catalog']['database']);
 				}
 			}catch (Exception $e){
@@ -62,13 +62,31 @@ class Horizon implements DriverInterface{
 		}
 	}
 
-	public function getHolding($id, $record = null, $mysip = null, $forSummary = false){
+	/**
+	 * Loads items information as quickly as possible (no direct calls to the ILS).  Does do filtering by loan rules
+	 *
+	 * return is an array of items with the following information:
+	 *  location
+	 *  callnumber
+	 *  available
+	 *  holdable
+	 *  lastStatusCheck (time)
+	 *
+	 * @param $id
+	 * @param $scopingEnabled
+	 * @param $marcRecord
+	 * @return mixed
+	 */
+	public function getItemsFast($id, $scopingEnabled, $marcRecord = null){
+		$fastItems = $this->getHolding($id);
+		return $fastItems;
+	}
+
+	public function getHolding($id, $record = null, $mySip = null, $forSummary = false){
 		global $timer;
 		global $configArray;
 
 		$allItems = array();
-
-		$sipInitialized = $mysip != null;
 
 		global $locationSingleton;
 		$homeLocation = $locationSingleton->getUserHomeLocation();
@@ -79,10 +97,11 @@ class Horizon implements DriverInterface{
 
 		require_once ROOT_DIR . '/sys/MarcLoader.php';
 		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
+		$callNumber = '';
 		if ($marcRecord) {
 			$timer->logTime('Loaded MARC record from search object');
 			if (!$configArray['Catalog']['itemLevelCallNumbers']){
-				$callNumber = '';
+				/** @var File_MARC_Data_Field $callNumberField */
 				$callNumberField = $marcRecord->getField('92', true);
 				if ($callNumberField != null){
 					$callNumberA = $callNumberField->getSubfield('a');
@@ -107,12 +126,15 @@ class Horizon implements DriverInterface{
 			$itemSubfield       = $configArray['Catalog']['itemSubfield'];
 			$callnumberSubfield = $configArray['Catalog']['callnumberSubfield'];
 			$statusSubfield     = $configArray['Catalog']['statusSubfield'];
+			$collectionSubfield     = $configArray['Catalog']['collectionSubfield'];
 			$firstItemWithSIPdata = null;
+			/** @var File_MARC_Data_Field[] $items */
 			foreach ($items as $itemIndex => $item){
 				$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
 				//Check to see if we already have data for this barcode
+				/** @var Memcache $memCache */
 				global $memCache;
-				if (isset($barcode) && strlen($barcode) > 0){
+				if (isset($barcode) && strlen($barcode) > 0 && !isset($_REQUEST['reload'])){
 					$itemData = $memCache->get("item_data_{$barcode}_{$forSummary}");
 				}else{
 					$itemData = false;
@@ -124,8 +146,13 @@ class Horizon implements DriverInterface{
 					$itemId = trim($item->getSubfield($itemSubfield) != null ? $item->getSubfield($itemSubfield)->getData() : '');
 
 					//Get the barcode from the horizon database
+					$itemData['isLocalItem'] = true;
+					$itemData['isLibraryItem'] = true;
 					$itemData['locationCode'] = trim(strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' ));
 					$itemData['location'] = $this->translateLocation($itemData['locationCode']);
+					$itemData['locationLabel'] = $itemData['location'];
+					$collection = trim($item->getSubfield($collectionSubfield) != null ? $item->getSubfield($collectionSubfield)->getData() : '');
+					$itemData['shelfLocation'] = $this->translateCollection($collection);
 
 					if (!$configArray['Catalog']['itemLevelCallNumbers'] && $callNumber != ''){
 						$itemData['callnumber'] = $callNumber;
@@ -146,7 +173,8 @@ class Horizon implements DriverInterface{
 							$timer->logTime("Got status from database item $itemIndex");
 						}
 					}
-					$availableRegex = "/^({$configArray['Catalog']['availableStatuses']})$/i";
+					$availableStatuses = $configArray['Catalog']['availableStatuses'];
+					$availableRegex = "/^({$availableStatuses})$/i";
 					if (preg_match($availableRegex, $itemData['status']) == 0){
 						$itemData['availability'] = false;
 					}else{
@@ -167,7 +195,8 @@ class Horizon implements DriverInterface{
 						}
 					}
 					//Online items are not holdable.
-					if (preg_match("/^({$configArray['Catalog']['nonHoldableStatuses']})$/i", $itemData['status'])){
+					$nonHoldableStatuses = $configArray['Catalog']['nonHoldableStatuses'];
+					if (preg_match("/^({$nonHoldableStatuses})$/i", $itemData['status'])){
 						$itemData['holdable'] = false;
 					}
 
@@ -211,10 +240,8 @@ class Horizon implements DriverInterface{
 					}
 				}
 				//Suppress staff items
-				$isStaff = false;
 				$subfieldO = $item->getSubfield('o');
 				if (isset($subfieldO) && is_object($subfieldO) && $subfieldO->getData() == 1){
-					$isStaff = true;
 					$suppressItem = true;
 				}
 
@@ -239,6 +266,7 @@ class Horizon implements DriverInterface{
 
 	public function getHoldings($idList, $record = null, $mysip = null, $forSummary = false)
 	{
+		$holdings = array();
 		foreach ($idList as $id) {
 			$holdings[] = $this->getHolding($id, $record, $mysip, $forSummary);
 		}
@@ -311,38 +339,9 @@ class Horizon implements DriverInterface{
 
 		//Get a list of all record id so we can load supplemental information
 		$recordIds = array();
-		foreach($holds as $section => $holdSections){
+		foreach($holds as $holdSections){
 			foreach($holdSections as $hold){
 				$recordIds[] = "'" . $hold['id'] . "'";
-			}
-		}
-		//Get records from resource table
-		$resourceInfo = new Resource();
-		if (count($recordIds) > 0){
-			$recordIdString = implode(",", $recordIds);
-			$resourceSql = "SELECT * FROM resource where source = 'VuFind' AND record_id in ({$recordIdString})";
-			$resourceInfo->query($resourceSql);
-			$timer->logTime('Got records for all titles');
-
-			//Load title author, etc. information
-			while ($resourceInfo->fetch()){
-				foreach($holds as $section => $holdSections){
-					foreach($holdSections as $key => $hold){
-						$hold['recordId'] = $hold['id'];
-						if ($hold['id'] == $resourceInfo->record_id){
-							$hold['shortId'] = $hold['id'];
-							//Load title, author, and format information about the title
-							$hold['title'] = isset($resourceInfo->title) ? $resourceInfo->title : 'Unknown';
-							$hold['sortTitle'] = isset($resourceInfo->title_sort) ? $resourceInfo->title_sort : 'unknown';
-							$hold['author'] = isset($resourceInfo->author) ? $resourceInfo->author : null;
-							$hold['format'] = isset($resourceInfo->format) ?$resourceInfo->format : null;
-							$hold['isbn'] = isset($resourceInfo->isbn) ? $resourceInfo->isbn : '';
-							$hold['upc'] = isset($resourceInfo->upc) ? $resourceInfo->upc : '';
-							$hold['format_category'] = isset($resourceInfo->format_category) ? $resourceInfo->format_category : '';
-							$holds[$section][$key] = $hold;
-						}
-					}
-				}
 			}
 		}
 
@@ -418,7 +417,7 @@ class Horizon implements DriverInterface{
 		);
 	}
 
-	public function getMyHoldsViaHip($patron){
+	public function getMyHoldsViaHip(){
 		global $user;
 		global $configArray;
 		global $logger;
@@ -453,6 +452,7 @@ class Horizon implements DriverInterface{
 		$logger->log("Loading holds $curl_url", PEAR_LOG_INFO);
 
 		//Extract the session id from the requestcopy javascript on the page
+		$sessionId = null;
 		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
 			$sessionId = $matches[1];
 		} else {
@@ -472,6 +472,7 @@ class Horizon implements DriverInterface{
       'sec2' => $user->cat_password,
       'session' => $sessionId,
 		);
+		$post_items = array();
 		foreach ($post_data as $key => $value) {
 			$post_items[] = $key . '=' . urlencode($value);
 		}
@@ -540,9 +541,6 @@ class Horizon implements DriverInterface{
 public function getMyHoldsViaDB($patron)
 	{
 		//Load Available Holds from SIP2
-		global $configArray;
-
-		global $user;
 		$holdList = array();
 		if ($this->db == false){
 			//return JSON data from production server to get test information
@@ -1262,148 +1260,14 @@ public function getMyHoldsViaDB($patron)
 
 	}
 
-	public function getReadingHistory($patron, $page = 1, $recordsPerPage = -1, $sortOption = "dueDate"){
-		require_once(ROOT_DIR . '/sys/ReadingHistoryEntry.php');
-		require_once(ROOT_DIR . '/services/MyResearch/lib/Resource.php');
-		//Reading History is stored within VuFind for each patron.
-		global $user;
-		$historyActive = $user->trackReadingHistory == 1;
-
-		//Get a list of titles for the user.
-		$titles = array();
-		$readingHistory = new ReadingHistoryEntry();
-		$readingHistorySql = "SELECT * FROM user_reading_history INNER JOIN resource ON user_reading_history.resourceId = resource.id where userId = {$user->id}";
-		if ($sortOption == "title"){
-			$readingHistorySql .= " order by title_sort ASC, title ASC";
-		}elseif ($sortOption == "author"){
-			$readingHistorySql .= " order by author ASC, title ASC";
-		}elseif ($sortOption == "checkedOut"){
-			$readingHistorySql .= " order by firstCheckoutDate DESC, title ASC";
-		}elseif ($sortOption == "returned"){
-			$readingHistorySql .= " order by lastCheckoutDate DESC, title ASC";
-		}elseif ($sortOption == "format"){
-			$readingHistorySql .= " order by format DESC, title ASC";
-		}
-
-		//Get count of reading history
-		$readingHistoryCount = new ReadingHistoryEntry();
-		$readingHistoryCount->query($readingHistorySql);
-		$numTitles = $readingHistoryCount->N;
-
-		//Get individual titles to display
-		if ($recordsPerPage > 0){
-			$startRecord = ($page - 1) * $recordsPerPage;
-			$readingHistorySql .= " LIMIT $startRecord, $recordsPerPage";
-		}
-		$readingHistory->query($readingHistorySql);
-		if ($readingHistory->N > 0){
-			//Load additional details for each title
-			global $configArray;
-			// Setup Search Engine Connection
-
-			$i = 0;
-			$titles = array();
-			while ($readingHistory->fetch()){
-				$firstCheckoutDate = $readingHistory->firstCheckoutDate;
-				$firstCheckoutTime = strtotime($firstCheckoutDate);
-				$lastCheckoutDate = $readingHistory->lastCheckoutDate;
-				$lastCheckoutTime = strtotime($lastCheckoutDate);
-				$titles[] = array(
-					'recordId' => $readingHistory->record_id,
-					'source' => $readingHistory->source,
-					'checkout' => $firstCheckoutDate,
-					'checkoutTime' => $firstCheckoutTime,
-					'lastCheckout' => $lastCheckoutDate,
-					'lastCheckoutTime' => $lastCheckoutTime,
-					'title' => $readingHistory->title,
-					'title_sort' => $readingHistory->title_sort,
-					'author' => $readingHistory->author,
-					'format' => $readingHistory->format,
-					'format_category' => $readingHistory->format_category,
-					'isbn' => $readingHistory->isbn,
-					'upc' => $readingHistory->upc,
-				);
-			}
-		}
-
-		return array(
-		  'historyActive' => $historyActive,
-		  'titles' => array_values($titles),
-		  'numTitles' => $numTitles,
-		);
-	}
-
-	/**
-	 * Do an update or edit of reading history information.  Current actions are:
-	 * deleteMarked
-	 * deleteAll
-	 * exportList
-	 * optOut
-	 * optIn
-	 *
-	 * @param   array   $patron         The patron array
-	 * @param   string  $action         The action to perform
-	 * @param   array   $selectedTitles The titles to do the action on if applicable
-	 */
-	function doReadingHistoryAction($patron, $action, $selectedTitles){
-		require_once(ROOT_DIR . '/sys/ReadingHistoryEntry.php');
-		global $user;
-		//Reading History Information is stored in the VuFind database
-		if ($action == 'deleteMarked'){
-			//Remove selected titles from the database
-			foreach ($selectedTitles as $selectedId => $selectValue){
-				//Get the resourceid for the bib
-				$resource = new Resource();
-				$resource->source = 'VuFind';
-				if (is_numeric($selectValue)){
-					$resource->record_id = $selectValue;
-				}else{
-					$resource->record_id = $selectedId;
-				}
-				$resource->find();
-				if ($resource->N){
-					$resource->fetch();
-					$resourceId = $resource->id;
-					$readingHistory = new ReadingHistoryEntry();
-					$readingHistory->userId = $user->id;
-					$readingHistory->resourceId = $resourceId;
-					$readingHistory->delete();
-				}
-			}
-		}elseif ($action == 'deleteAll'){
-			//remove all titles from the database
-			$readingHistory = new ReadingHistoryEntry();
-			$readingHistory->userId = $user->id;
-			$readingHistory->delete();
-		}elseif ($action == 'exportList'){
-			//Export the list (not currently implemented)
-		}elseif ($action == 'optOut'){
-			//remove all titles from the database
-			$readingHistory = new ReadingHistoryEntry();
-			$readingHistory->userId = $user->id;
-			$readingHistory->delete();
-
-			//Stop recording reading history and remove all titles from the database
-			$user->trackReadingHistory = 0;
-			$user->update();
-			UserAccount::updateSession($user);
-
-		}elseif ($action == 'optIn'){
-			//Start recording reading history
-			$user->trackReadingHistory = 1;
-			$user->update();
-			UserAccount::updateSession($user);
-		}
-	}
-
-private $patronProfiles = array();
-	public function getMyProfile($patron) {
+	private $patronProfiles = array();
+	public function getMyProfile($patron, $forceReload = false) {
 		global $timer;
 		global $configArray;
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
 		}
-		if (array_key_exists($patron['username'], $this->patronProfiles)){
+		if (array_key_exists($patron['username'], $this->patronProfiles) && !$forceReload){
 			$timer->logTime('Retrieved Cached Profile for Patron');
 			return $this->patronProfiles[$patron['username']];
 		}
@@ -1502,7 +1366,7 @@ private $patronProfiles = array();
 		return $profile;
 	}
 
-private $transactions = array();
+	private $transactions = array();
 	public function getMyTransactions($patron, $page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		global $configArray;
 		global $timer;
@@ -1531,8 +1395,7 @@ private $transactions = array();
 				$recordIds[] = "'" . $data['id'] . "'";
 			}
 			//Get records from resource table
-			$resourceInfo = new Resource();
-			if (count($recordIds) > 0){
+			/*if (count($recordIds) > 0){
 				$recordIdString = implode(",", $recordIds);
 				$resourceSql = "SELECT * FROM resource where source = 'VuFind' AND record_id in ({$recordIdString})";
 				$resourceInfo->query($resourceSql);
@@ -1558,7 +1421,7 @@ private $transactions = array();
 						}
 					}
 				}
-			}
+			}*/
 
 			//Get econtent info and hold queue length
 			foreach ($transactions as $key => $transaction){
@@ -1983,14 +1846,7 @@ public function renewItem($patronId, $itemId){
 
 						//Get the id for the item
 						$searchObject = SearchObjectFactory::initSearchObject();
-						$class = $configArray['Index']['engine'];
-						$url = $configArray['Index']['url'];
-						$index = new $class($url);
-						if ($configArray['System']['debugSolr']) {
-							$index->debug = true;
-						}
-
-						$record = $index->getRecordByBarcode($itemId);
+						$record = $searchObject->getRecordByBarcode($itemId);
 
 						if ($record){
 							//Get holdings summary
@@ -2261,16 +2117,6 @@ public function renewItem($patronId, $itemId){
 			$result = $this->placeHoldViaSIP($recordId, $patronId, $comment, $type);
 		}
 
-		if ($result['result'] == true){
-			//Make a call to strands to update that the item was added to the list
-			global $configArray;
-			global $user;
-			if (isset($configArray['Strands']['APID']) && $user->disableRecommendations == 0){
-				$strandsUrl = "http://bizsolutions.strands.com/api2/event/addshoppingcart.sbs?needresult=true&apid={$configArray['Strands']['APID']}&item={$recordId}&user={$user->id}";
-				$ret = file_get_contents($strandsUrl);
-			}
-
-		}
 		return $result;
 	}
 
@@ -2434,16 +2280,10 @@ public function renewItem($patronId, $itemId){
 
 	public function getRecordTitle($recordId){
 		//Get the title of the book.
-		global $configArray;
-		$class = $configArray['Index']['engine'];
-		$url = $configArray['Index']['url'];
-		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
+		$searchObject = SearchObjectFactory::initSearchObject();
 
 		// Retrieve Full Marc Record
-		if (!($record = $this->db->getRecord($recordId))) {
+		if (!($record = $searchObject->getRecord($recordId))) {
 			$title = null;
 		}else{
 			if (isset($record['title_full'][0])){
@@ -2892,7 +2732,7 @@ private function parseSip2Fines($finesData){
 	private function parseSip2ChargedItems($chargedData){
 		$chargedItems = array();
 		$chargedItems['count'] = count($chargedData);
-		return $chargeedItems;
+		return $chargedItems;
 	}
 
 	function addDays($givendate,$day) {
@@ -2935,6 +2775,15 @@ private function parseSip2Fines($finesData){
 			return sybase_fetch_array($result_id);
 		}else{
 			return mssql_fetch_array($result_id);
+		}
+	}
+
+	protected function _num_rows($result_id){
+		global $configArray;
+		if (strcasecmp($configArray['System']['operatingSystem'], 'windows') == 0){
+			return sybase_num_rows($result_id);
+		}else{
+			return mssql_num_rows($result_id);
 		}
 	}
 
@@ -2985,5 +2834,15 @@ private function parseSip2Fines($finesData){
 			);
 		}
 		return $result;
+	}
+
+	abstract function translateCollection($collection);
+
+	abstract function translateLocation($locationCode);
+
+	abstract function translateStatus($status);
+
+	public function hasNativeReadingHistory() {
+		return false;
 	}
 }

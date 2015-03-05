@@ -18,10 +18,10 @@
 
 /**
  *  2008.04.11
- *  Encorported a bug fix submitted by Bob Wicksall
+ *  Incorporate a bug fix submitted by Bob Wicksall
  *
  *  TODO
- *   - Clean up variable names, check for consistancy
+ *   - Clean up variable names, check for consistency
  *   - Add better i18n support, including functions to handle the SIP2 language definitions
  *
  */
@@ -63,6 +63,11 @@ class sip2
 	public $port         = 6002; /* default sip2 port for Sirsi */
 	public $library      = '';
 	public $language     = '001'; /* 001= english */
+
+	var $use_usleep=1;	// change to 1 for faster execution
+	// don't change to 1 on Windows servers unless you have PHP 5
+	var $sleeptime=175000;
+	var $loginsleeptime=1000000;
 
 	/* Patron ID */
 	public $patron       = ''; /* AA */
@@ -180,7 +185,7 @@ class sip2
 
 	function msgSCStatus($status = 0, $width = 80, $version = 2)
 	{
-		/* selfcheck status message, this should be sent immediatly after login  - untested */
+		/* self check status message, this should be sent immediately after login  - untested */
 		/* status codes, from the spec:
 		 * 0 SC unit is OK
 		 * 1 SC printer is out of paper
@@ -406,9 +411,9 @@ class sip2
 		$this->_addFixedOption($thirdParty, 1);
 		$this->_addFixedOption($noBlock, 1);
 		$this->_addFixedOption($this->_datestamp(), 18);
-		if ($nbDateDue != '') {
+		if ($nbDueDate != '') {
 			/* override defualt date due */
-			$this->_addFixedOption($this->_datestamp($nbDateDue), 18);
+			$this->_addFixedOption($this->_datestamp($nbDueDate), 18);
 		} else {
 			/* send a blank date due to allow ACS to use default date due computed for item */
 			$this->_addFixedOption('', 18);
@@ -669,12 +674,21 @@ class sip2
 
 		$this->_debugmsg('SIP2: Sending SIP2 request...');
 		socket_write($this->socket, $message, strlen($message));
+		$this->Sleep();
 
 		$this->_debugmsg('SIP2: Request Sent, Reading response');
 
+		//Read from the socket one byte at a time until we read a carriage return
+		//Or until the connection receives an error ($nr === false).
 		while ($terminator != "\x0D" && $nr !== FALSE) {
 			$nr = socket_recv($this->socket,$terminator,1,0);
 			$result = $result . $terminator;
+		}
+		if ($nr === false){
+			//Whoops, we got an error
+			global $logger;
+			$lastError = socket_last_error($this->socket);
+			$logger->log("Error reading data from socket ($lastError)" . socket_strerror($lastError), PEAR_LOG_ERR);
 		}
 
 		$this->_debugmsg("SIP2: {$result}");
@@ -698,12 +712,13 @@ class sip2
 				return false;
 			}
 		}
-		return $result;
+		//remove extraneous characters - typically carriage returns and line feeds from the beginning and end.
+		return trim($result);
 	}
 
 	function connect()
 	{
-
+		global $logger;
 		/* Socket Communications  */
 		$this->_debugmsg( "SIP2: --- BEGIN SIP communication ---");
 
@@ -715,6 +730,7 @@ class sip2
 
 		/* check for actual truly false result using ===*/
 		if ($this->socket === false) {
+			$logger->log("Unable to create socket to SIP server at $this->hostname", PEAR_LOG_ERR);
 			$this->_debugmsg( "SIP2: socket_create() failed: reason: " . socket_strerror($this->socket));
 			return false;
 		} else {
@@ -722,16 +738,93 @@ class sip2
 		}
 		$this->_debugmsg( "SIP2: Attempting to connect to '$address' on port '{$this->port}'...");
 
+		//Set SIP timeouts
+		socket_set_option($this->socket, SOL_SOCKET, SO_RCVTIMEO, array('sec' => 0, 'usec' => 250));
+		socket_set_option($this->socket, SOL_SOCKET, SO_SNDTIMEO, array('sec' => 0, 'usec' => 250));
+		//Make the socket blocking so we can ensure we get responses without rewriting everything.
+		socket_set_block($this->socket);
+
 		/* open a connection to the host */
-		$result = socket_connect($this->socket, $address, $this->port);
-		if (!$result) {
-			$this->_debugmsg("SIP2: socket_connect() failed.\nReason: ($result) " . socket_strerror($result));
-		} else {
-			$this->_debugmsg( "SIP2: --- SOCKET READY ---" );
+		$connectionTimeout = 10;
+		$connectStart = time();
+		while (!@socket_connect($this->socket, $address, $this->port)){
+			$error = socket_last_error($this->socket);
+			if ($error == 114 || $error == 115){
+				if ((time() - $connectStart) >= $connectionTimeout)
+				{
+					socket_close($this->socket);
+					$logger->log("Connection to $address $this->port timed out", PEAR_LOG_ERR);
+					return false;
+				}
+				$logger->log("Waiting for connection", PEAR_LOG_DEBUG);
+				sleep(1);
+				continue;
+			}else{
+				$logger->log("Unable to connect to $address $this->port", PEAR_LOG_ERR);
+				$logger->log("SIP2: socket_connect() failed.\nReason: ($error) " . socket_strerror($error), PEAR_LOG_ERR);
+				$this->_debugmsg("SIP2: socket_connect() failed.\nReason: ($error) " . socket_strerror($error));
+				return false;
+			}
+		}
+
+		$this->_debugmsg( "SIP2: --- SOCKET READY ---" );
+
+		global $configArray;
+		if (isset($configArray['SIP2']['sipLogin']) && isset($configArray['SIP2']['sipPassword']) &&
+				$configArray['SIP2']['sipLogin'] != '' && $configArray['SIP2']['sipPassword'] != ''
+			){
+
+			$lineEnding = "\r\n";
+
+			//Send login
+			//Read the login prompt
+			$prompt = $this->getResponse();
+			$logger->log("Login Prompt Received was " . $prompt, PEAR_LOG_DEBUG);
+			$login = $configArray['SIP2']['sipLogin'];
+			$ret = socket_write($this->socket, $login, strlen($login));
+			$ret = socket_write($this->socket, $lineEnding, strlen($lineEnding));
+			$logger->log("Wrote $ret bytes for login", PEAR_LOG_DEBUG);
+			$this->Sleep();
+
+			$prompt = $this->getResponse();
+			$logger->log("Password Prompt Received was " . $prompt, PEAR_LOG_DEBUG);
+			$password = $configArray['SIP2']['sipPassword'];
+			$ret = socket_write($this->socket, $password, strlen($password));
+			$ret = socket_write($this->socket, $lineEnding, strlen($lineEnding));
+			$logger->log("Wrote $ret bytes for password", PEAR_LOG_DEBUG);
+
+			if ($this->use_usleep){
+				usleep($this->loginsleeptime);
+			}else{
+				sleep(1);
+			}
+
+			//Wait for a response
+			$initialLoginResponse = $this->getResponse();
+			$logger->log("Login response is " . $initialLoginResponse, PEAR_LOG_DEBUG);
+			$this->Sleep();
+
+			//$loginData = $this->parseLoginResponse($loginResponse);
+			if (strpos($initialLoginResponse, 'Login OK.  Initiating SIP') === 0){
+				$logger->log("Logged into SIP client with telnet credentials", PEAR_LOG_DEBUG);
+				$this->_debugmsg( "SIP2: --- LOGIN TO SIP SUCCEEDED ---" );
+			}else{
+				$logger->log("Unable to login to SIP server using telnet credentials", PEAR_LOG_ERR);
+				$this->_debugmsg( "SIP2: --- LOGIN TO SIP FAILED ---" );
+				$this->_debugmsg( $initialLoginResponse);
+				return false;
+			}
 		}
 		/* return the result from the socket connect */
-		return $result;
+		return true;
 
+	}
+
+	function getResponse() {
+		$buffer = '';
+		$bytesRead = socket_recv($this->socket, $buffer, 2048, MSG_WAITALL);
+		return $buffer;
+		//return socket_read($this->socket,2048);
 	}
 
 	function disconnect ()
@@ -819,10 +912,10 @@ class sip2
 
 	function _check_crc($message)
 	{
-		/* test the recieved message's CRC by generating our own CRC from the message */
+		/* test the received message's CRC by generating our own CRC from the message */
 		$test = preg_split('/(.{4})$/',trim($message),2,PREG_SPLIT_DELIM_CAPTURE);
 
-		if ($this->_crc($test[0]) == $test[1]) {
+		if (isset($test[1]) && $this->_crc($test[0]) == $test[1]) {
 			return true;
 		} else {
 			return false;
@@ -875,6 +968,8 @@ class sip2
 		return $this->msgBuild;
 	}
 
+	function Sleep() {
+		if ($this->use_usleep) usleep($this->sleeptime);
+		else sleep(1);
+	}
 }
-
-?>

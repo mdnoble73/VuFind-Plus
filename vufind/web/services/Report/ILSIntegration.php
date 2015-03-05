@@ -31,6 +31,7 @@ class Report_ILSIntegration extends Report_AnalyticsReport{
 		$this->setupFilters();
 
 		$interface->setPageTitle('Report - ILS Integration');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('ilsintegration.tpl');
 		$interface->display('layout.tpl');
 	}

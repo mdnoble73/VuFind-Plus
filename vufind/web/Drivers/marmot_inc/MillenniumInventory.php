@@ -19,6 +19,18 @@ class MillenniumInventory {
 		$this->driver = $driver;
 	}
 
+	/**
+	 * Process inventory for a particular item in the catalog
+	 *
+	 * @param string $login     Login for the user doing the inventory
+	 * @param string $password1 Password for the user doing the inventory
+	 * @param string $initials
+	 * @param string $password2
+	 * @param string[] $barcodes
+	 * @param boolean $updateIncorrectStatuses
+	 *
+	 * @return array
+	 */
 	function doInventory($login, $password1, $initials, $password2, $barcodes, $updateIncorrectStatuses){
 		global $configArray;
 		global $logger;
@@ -29,20 +41,32 @@ class MillenniumInventory {
 				'message' => 'There is not a url to millennium set in the config.ini file.  Please update the configuration',
 			);
 		}
-		if ($login == '' || $password1 == '' || $initials == '' || $password2 == ''){
+
+		$ils = $configArray['Catalog']['ils'];
+		if ($login == '' || $password1 == ''){
 			return array(
-				'success' => false,
-				'message' => 'Login information not provided correctly.  Please fill out all login fields',
+					'success' => false,
+					'message' => 'Login information not provided correctly.  Please fill out all login fields',
 			);
 		}
+		if ($ils != 'Sierra'){
+			if ($initials == '' || $password2 == ''){
+				return array(
+						'success' => false,
+						'message' => 'Login information not provided correctly.  Please fill out all login fields',
+				);
+			}
+		}
 
-		if (strlen($barcodes) == 0){
+		if (is_string($barcodes) && strlen($barcodes) == 0){
 			return array(
 				'success' => false,
 				'message' => 'Please enter at least one barcode to inventory.',
 			);
 		}else{
-			$barcodes = preg_split('/[\\s\\r\\n]+/', $barcodes);
+			if (!is_array($barcodes)){
+				$barcodes = preg_split('/[\\s\\r\\n]+/', $barcodes);
+			}
 			if (count($barcodes) == 0){
 				return array(
 					'success' => false,
@@ -56,10 +80,8 @@ class MillenniumInventory {
 		$class = $configArray['Index']['engine'];
 		$url = $configArray['Index']['url'];
 		$this->db = new $class($url);
-		if ($configArray['System']['debugSolr']) {
-			$this->db->debug = true;
-		}
 
+		$baseUrl = $configArray['Catalog']['url'];
 		$circaUrl = $configArray['Catalog']['url'] . '/iii/airwkst/airwkstcore';
 		//Setup curl
 		$curl_url = $circaUrl;
@@ -79,6 +101,7 @@ class MillenniumInventory {
 
 		//First get the login page
 		curl_exec($this->curl_connection);
+		sleep(1);
 
 		//Login to circa
 		$post_data = array(
@@ -102,37 +125,49 @@ class MillenniumInventory {
 		$sresult = curl_exec($this->curl_connection);
 		$logger->log("Calling {$curl_url}?{$post_string}", PEAR_LOG_DEBUG);
 		//$logger->log("result of circa login $sresult", PEAR_LOG_DEBUG);
+		sleep(1);
 
 		//Check that we logged in successfully
-		if (!preg_match('/Invalid login\/password/i', $sresult) && preg_match('/initials/i', $sresult)){
-			//we logged in successfully.
-			//enter initials
-			$post_data = array(
-				'action' => 'ValidateAirWkstUserAction',
-				'initials' => $initials,
-				'initialspassword' => $password2,
-				'nextaction' => 'null',
-				'purpose' => 'null',
-				'submit.x' => 30,
-				'submit.y' => 10,
-				'subpurpose' => 'null',
-				'validationstatus' => 'needinitials',
-			);
-			$post_items = array();
-			foreach ($post_data as $key => $value) {
-				$post_items[] = $key . '=' . urlencode($value);
+		$loginSuccess = false;
+		if (!preg_match('/Invalid login\/password/i', $sresult)){
+			if ($ils == 'Sierra'){
+				$loginSuccess = true;
+			}else{
+				$loginSuccess = preg_match('/initials/i', $sresult);
 			}
-			$post_string = implode ('&', $post_items);
-			curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$sresult = curl_exec($this->curl_connection);
-			$logger->log("Calling {$curl_url}?{$post_string}", PEAR_LOG_DEBUG);
-			//$logger->log("result of circa initials $sresult", PEAR_LOG_DEBUG);
+		}
+		if ($loginSuccess){
+			if ($ils != 'Sierra'){
+				//we logged in successfully.
+				//enter initials
+				$post_data = array(
+					'action' => 'ValidateAirWkstUserAction',
+					'initials' => $initials,
+					'initialspassword' => $password2,
+					'nextaction' => 'null',
+					'purpose' => 'null',
+					'submit.x' => 30,
+					'submit.y' => 10,
+					'subpurpose' => 'null',
+					'validationstatus' => 'needinitials',
+				);
+				$post_items = array();
+				foreach ($post_data as $key => $value) {
+					$post_items[] = $key . '=' . urlencode($value);
+				}
+				$post_string = implode ('&', $post_items);
+				curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
+				$sresult = curl_exec($this->curl_connection);
+				sleep(1);
+				$logger->log("Calling {$curl_url}?{$post_string}", PEAR_LOG_DEBUG);
+				//$logger->log("result of circa initials $sresult", PEAR_LOG_DEBUG);
+			}
 
 			if (!preg_match('/You are not authorized to use Circa/i', $sresult) && preg_match('/inventory control/i', $sresult)){
 				//Logged in and authorized, check in each barcode
 				//Go to the Inventory page
 				curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
-				curl_setopt($this->curl_connection, CURLOPT_URL, $circaUrl . '/iii/airwkst/?action=GetAirWkstUserInfoAction&purpose=updinvdt');
+				curl_setopt($this->curl_connection, CURLOPT_URL, $baseUrl . '/iii/airwkst/?action=GetAirWkstUserInfoAction&purpose=updinvdt');
 				curl_exec($this->curl_connection);
 
 				curl_setopt($this->curl_connection, CURLOPT_POST, true);
@@ -158,23 +193,28 @@ class MillenniumInventory {
 					$sresult = curl_exec($this->curl_connection);
 					$titleInfo = $this->db->getRecordByBarcode($barcode);
 
-					$marcInfo = MarcLoader::loadMarcRecordFromRecord($titleInfo);
-					//Get the matching item from the item records
-					$itemFields = $marcInfo->getFields('989');
 					$itemInfo = null;
-					if ($itemFields){
-						/** @var File_MARC_Data_Field $fieldInfo */
-						foreach ($itemFields as $fieldInfo){
-							if ($fieldInfo->getSubfield('b')->getData() == $barcode){
-								$itemInfo = $fieldInfo;
+					if ($titleInfo != null){
+						$marcInfo = MarcLoader::loadMarcRecordFromRecord($titleInfo);
+						//Get the matching item from the item records
+						$marcItemField = isset($configArray['Reindex']['itemTag']) ? $configArray['Reindex']['itemTag'] : '989';
+						$itemFields = $marcInfo->getFields($marcItemField);
+						$itemInfo = null;
+						if ($itemFields){
+							/** @var File_MARC_Data_Field $fieldInfo */
+							foreach ($itemFields as $fieldInfo){
+								if ($fieldInfo->getSubfield('b')->getData() == $barcode){
+									$itemInfo = $fieldInfo;
+								}
 							}
+						}else{
+							$logger->log("Did not find item records $barcode", PEAR_LOG_ERR);
 						}
-					}else{
-						$logger->log("Did not find item records $barcode", PEAR_LOG_ERR);
 					}
 					if ($itemInfo == null){
 						$logger->log("Did not find an item for barcode $barcode", PEAR_LOG_ERR);
 					}
+
 
 					if (preg_match("/$barcode updated successfully/i", $sresult)){
 						$results['barcodes'][$barcode] = array(
@@ -220,6 +260,7 @@ class MillenniumInventory {
 									$results['barcodes'][$barcode]['inventoryResult'] = "Could not automatically fix status, old status is $lastStatus";
 									$results['barcodes'][$barcode]['needsAdditionalProcessing'] = true;
 								}
+
 							}else{
 								$results['barcodes'][$barcode]['inventoryResult'] = "Unexpected Status, Needs Update";
 								$results['barcodes'][$barcode]['needsAdditionalProcessing'] = true;
@@ -230,6 +271,7 @@ class MillenniumInventory {
 						}else{
 							$results['barcodes'][$barcode]['needsAdditionalProcessing'] = false;
 						}
+						sleep(1);
 					}else{
 						$results['barcodes'][$barcode] = array(
 							'inventoryResult' => 'Not updated',
@@ -243,7 +285,10 @@ class MillenniumInventory {
 			}else{
 				//Did not log in correctly.
 				$results['success'] = false;
-				$results['message'] = "The initals or password were incorrect or you are not authorized to use circa.";
+				$results['message'] = "The initials or password were incorrect or you are not authorized to use circa.";
+				if (preg_match('/class="error">(.*?)<\/h2>/i', $sresult, $matches)){
+					$results['message'] = $matches[1];
+				}
 			}
 
 		}else{
@@ -251,6 +296,11 @@ class MillenniumInventory {
 			$results['success'] = false;
 			$results['message'] = "The login or password were incorrect.  Please reenter.";
 		}
+
+		//Logout of the system
+		curl_setopt($this->curl_connection, CURLOPT_HTTPGET, true);
+		curl_setopt($this->curl_connection, CURLOPT_URL, $circaUrl . '/iii/airwkst/airwkstcore?action=AirWkstReturnToWelcomeAction');
+		$sresult = curl_exec($this->curl_connection);
 
 		//Cleanup
 		curl_close($this->curl_connection);

@@ -22,8 +22,9 @@ require_once ROOT_DIR . '/CatalogConnection.php';
 
 require_once ROOT_DIR . '/Action.php';
 
-class MyResearch_HoldMultiple extends Action
+class MyAccount_HoldMultiple extends Action
 {
+	/** @var  CatalogConnection */
 	var $catalog;
 
 	function launch()
@@ -31,7 +32,7 @@ class MyResearch_HoldMultiple extends Action
 		global $configArray;
 
 		try {
-			$this->catalog = new CatalogConnection($configArray['Catalog']['driver']);
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 		} catch (PDOException $e) {
 			// What should we do with this error?
 			if ($configArray['System']['debug']) {
@@ -189,8 +190,8 @@ class MyResearch_HoldMultiple extends Action
 					$interface->assign('focusElementId', 'username');
 				}
 
-				global $librarySingleton;
-				$patronHomeBranch = $librarySingleton->getPatronHomeLibrary();
+				global $library;
+				$patronHomeBranch = Library::getPatronHomeLibrary();
 				if ($patronHomeBranch != null){
 					if ($patronHomeBranch->defaultNotNeededAfterDays > 0){
 						$interface->assign('defaultNotNeededAfterDays', date('m/d/Y', time() + $patronHomeBranch->defaultNotNeededAfterDays * 60 * 60 * 24));
@@ -199,11 +200,21 @@ class MyResearch_HoldMultiple extends Action
 					}
 					$interface->assign('showHoldCancelDate', $patronHomeBranch->showHoldCancelDate);
 				}else{
-					//Show the hold cancellation date for now.  It may be hidden later when the user logs in.
-					$interface->assign('showHoldCancelDate', 1);
-					$interface->assign('defaultNotNeededAfterDays', '');
+					if ($library){
+						//Show the hold cancellation date for now.  It may be hidden later when the user logs in.
+						if ($library->defaultNotNeededAfterDays > 0){
+							$interface->assign('defaultNotNeededAfterDays', date('m/d/Y', time() + $library->defaultNotNeededAfterDays * 60 * 60 * 24));
+						}else{
+							$interface->assign('defaultNotNeededAfterDays', '');
+						}
+						$interface->assign('showHoldCancelDate', $library->showHoldCancelDate);
+					}else{
+						//Show the hold cancellation date for now.  It may be hidden later when the user logs in.
+						$interface->assign('showHoldCancelDate', 1);
+						$interface->assign('defaultNotNeededAfterDays', '');
+					}
 				}
-				$activeLibrary = $librarySingleton->getActiveLibrary();
+				$activeLibrary = Library::getActiveLibrary();
 				if ($activeLibrary != null){
 					$interface->assign('holdDisclaimer', $activeLibrary->holdDisclaimer);
 				}else{

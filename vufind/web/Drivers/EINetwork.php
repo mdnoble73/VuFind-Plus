@@ -20,7 +20,7 @@
 require_once ROOT_DIR . '/Drivers/Millennium.php';
 
 /**
- * VuFind Connector for Marmot's Innovative catalog (millenium)
+ * VuFind Connector for EI Network's Innovative catalog (millennium)
  *
  * This class uses screen scraping techniques to gather record holdings written
  * by Adam Bryn of the Tri-College consortium.
@@ -238,8 +238,6 @@ class EINetwork extends MillenniumDriver{
 		$id2= $patronId;
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
 		//$logger->log("Before updating patron info phone number = " . $patronDump['TELEPHONE'], PEAR_LOG_INFO);
-
-		$this->_updateVuFindPatronInfo();
 
 		//Update profile information
 		$extraPostInfo = array();

@@ -32,13 +32,22 @@ class ListRecord extends IndexRecord
 		$interface->assign('summId', $id);
 		$interface->assign('summShortId', substr($id, 4)); //Trim the list prefix for the short id
 		$interface->assign('summTitle', $this->getTitle());
+		$interface->assign('summAuthor', $this->getPrimaryAuthor());
 		if (isset($this->fields['description'])){
 			$interface->assign('summDescription', $this->fields['description']);
+		}else{
+			$interface->assign('summDescription', '');
 		}
 		if (isset($this->fields['num_titles'])){
 			$interface->assign('summNumTitles', $this->fields['num_titles']);
+		}else{
+			$interface->assign('summNumTitles', 0);
 		}
 
 		return 'RecordDrivers/List/result.tpl';
+	}
+
+	public function getMoreDetailsOptions(){
+		return array();
 	}
 }

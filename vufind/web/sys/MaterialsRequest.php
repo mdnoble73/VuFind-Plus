@@ -106,7 +106,7 @@ class MaterialsRequest extends DB_DataObject
 						$enableMaterialsRequest = false;
 					}else if ($homeLibrary->enableMaterialsRequest == 0){
 						$enableMaterialsRequest = false;
-					}else if ($homeLibrary->libraryId != $library->libraryId){
+					}else if (isset($library) && $homeLibrary->libraryId != $library->libraryId){
 						$enableMaterialsRequest = false;
 					}else if (isset($configArray['MaterialsRequest']['allowablePatronTypes'])){
 						//Check to see if we need to do additional restrictions by patron type

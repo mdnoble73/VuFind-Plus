@@ -22,4 +22,14 @@ class Session extends DB_DataObject
 
 	/* the code above is auto generated do not remove the tag below */
 	###END_AUTOCODE
+
+ function update($dataObject = false)
+ {
+	 parent::update($dataObject);
+	 global $interface;
+	 if (isset($interface)){
+		 $interface->assign('session', $this->session_id . ', remember me ' . $this->remember_me);
+	 }
+
+ }
 }

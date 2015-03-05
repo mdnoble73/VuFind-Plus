@@ -24,12 +24,12 @@
 require_once ROOT_DIR . "/Action.php";
 require_once ROOT_DIR . '/sys/MaterialsRequest.php';
 require_once ROOT_DIR . '/sys/MaterialsRequestStatus.php';
-require_once ROOT_DIR . '/services/MyResearch/MyResearch.php';
+require_once ROOT_DIR . '/services/MyAccount/MyAccount.php';
 
 /**
  * MaterialsRequest MyRequests Page, displays materials request information for the active user.
  */
-class MaterialsRequest_MyRequests extends MyResearch
+class MaterialsRequest_MyRequests extends MyAccount
 {
 
 	function launch()
@@ -75,6 +75,7 @@ class MaterialsRequest_MyRequests extends MyResearch
 		}
 		$interface->assign('allRequests', $allRequests);
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('myMaterialRequests.tpl');
 		$interface->setPageTitle('My Materials Requests');
 		$interface->display('layout.tpl');

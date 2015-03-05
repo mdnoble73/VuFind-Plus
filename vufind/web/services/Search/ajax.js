@@ -1,4 +1,3 @@
-var GetSaveStatusList =[];
 var GetStatusList = [];
 var GetEContentStatusList = [];
 var GetOverDriveStatusList = [];
@@ -283,82 +282,12 @@ function doGetStatusSummaries()
 	}
 	
 	//Clear the status lists so we don't reprocess later if we need more status summaries.. 
-	GetStatusList = new Array();
 	GetEContentStatusList = new Array();
 	GetOverDriveStatusList = new Array();
 }
 
 function getSeriesInfo(isbn){
 	GetSeriesList[GetSeriesList.length] = isbn;
-}
-
-function doGetSeriesInfo(){
-	var now = new Date();
-	var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
-
-	var url = path + "/Search/AJAX?method=GetSeriesInfo";
-	for (var i=0; i<GetSeriesList.length; i++) {
-		url += "&isbn[]=" + encodeURIComponent(GetSeriesList[i]);
-	}
-	url += "&time="+ts;
-	$.getJSON(url,function(data){
-		if (data.success){
-			$.each(data.series, function(key, val){
-				$(".series" + key).html(val);
-			});
-		}
-	});
-
-}
-
-function getSaveStatuses(id)
-{
-		GetSaveStatusList[GetSaveStatusList.length] = id;
-}
-
-function doGetSaveStatuses()
-{
-		if (GetSaveStatusList.length < 1) return;
-
-		var http = createRequestObject();
-		var now = new Date();
-		var ts = Date.UTC(now.getFullYear(),now.getMonth(),now.getDay(),now.getHours(),now.getMinutes(),now.getSeconds(),now.getMilliseconds());
-
-		var url = path + "/Search/AJAX?method=GetSaveStatuses";
-		for (var i=0; i<GetSaveStatusList.length; i++) {
-				url += "&id" + i + "=" + encodeURIComponent(GetSaveStatusList[i]);
-		}
-		url += "&time="+ts;
-
-		http.open("GET", url, true);
-		http.onreadystatechange = function()
-		{
-				if ((http.readyState == 4) && (http.status == 200)) {
-
-						var response = http.responseXML.documentElement;
-						var items = response.getElementsByTagName('item');
-
-						for (var i=0; i<items.length; i++) {
-								var elemId = items[i].getAttribute('id');
-
-								var result = items[i].getElementsByTagName('result').item(0).firstChild.data;
-								if (result != 'False') {
-										var lists = eval('(' + result + ')');
-										var listNames = 'Part of these lists:';
-										for (var j=0; j<lists.length;j++) {
-												listNames += '<br/>';
-												if (lists[j].link.length > 0){
-													listNames += "<a href='" + lists[j].link + "'>" + jsEntityEncode(lists[j].title) + "</a>";
-												}else{
-													listNames += jsEntityEncode(lists[j].title);
-												}
-										}
-										$('#lists' + elemId).innerHTML = '<li>' + listNames + '</li>';
-								}
-						}
-				}
-		};
-		http.send(null);
 }
 
 function getSubjects(phrase)

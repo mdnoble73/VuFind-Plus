@@ -22,7 +22,6 @@ require_once ROOT_DIR . '/Action.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
 require_once ROOT_DIR . '/services/MyResearch/lib/Search.php';
 
-require_once ROOT_DIR . '/sys/SolrStats.php';
 require_once ROOT_DIR . '/sys/Pager.php';
 
 class Results extends Action {
@@ -243,12 +242,6 @@ class Results extends Action {
 			$timer->logTime('finish hits processing');
 		}
 
-		/*if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor'])) {
-		 require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStat.php');
-		 $searchStat = new SearchStat();
-		 $searchStat->saveSearch( $_GET['lookfor'], $_GET['type'], $searchObject->getResultTotal());
-		 }*/
-
 		// Save the ID of this search to the session so we can return to it easily:
 		$_SESSION['lastSearchId'] = $searchObject->getSearchId();
 
@@ -256,6 +249,7 @@ class Results extends Action {
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 
 		// Done, display the page
+		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
 		$interface->display('layout.tpl');
 	} // End launch()
 }

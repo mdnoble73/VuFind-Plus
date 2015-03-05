@@ -21,7 +21,7 @@
 
 require_once ROOT_DIR . '/Action.php';
 
-class Home extends Action
+class Help_Home extends Action
 {
 	function launch()
 	{

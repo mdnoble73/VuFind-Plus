@@ -20,7 +20,7 @@
  
 
 require_once ROOT_DIR . '/Action.php';
-require_once('recaptcha/recaptchalib.php');
+require_once ROOT_DIR . '/recaptcha/recaptchalib.php';
 
 
 class SuggestionConfirm extends Action
@@ -28,7 +28,6 @@ class SuggestionConfirm extends Action
     function launch()
     {
         global $interface;
-        global $configArray;
         $interface->setPageTitle('Thank You');
         $interface->assign('subTemplate', 'suggestion-confirm.tpl');
         $interface->setTemplate('view-alt.tpl');

@@ -48,6 +48,9 @@
                 <xsl:text> 00:00:00 GMT</xsl:text>
               </pubDate>
             </xsl:if>
+            <description>
+                <xsl:value-of select="./description"/>
+            </description>
           </item>
         </xsl:for-each>
       </channel>

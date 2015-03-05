@@ -89,6 +89,7 @@ class DeletedEContent extends Admin_Admin
 			$this->exportToExcel($deletedRecords);
 		}
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('deletedEContent.tpl');
 		$interface->display('layout.tpl');
 	}

@@ -1,0 +1,70 @@
+###################
+## Crontab setting from a 'configuration' file
+##
+## to save current crontab to file: crontab -l > crontab_settings.txt
+##
+## to set the current crontab from a file : crontab < crontab_settings.txt
+##
+## added by pascal. 12-11-2014
+##################
+
+# !! Please make all changes to the crontab within the git repository system and apply through the above method.
+#
+# ie :
+# git pull origin {current branch}
+# sudo crontab < /usr/local/vufind-plus/sites/catalog.library.nashville.org/conf/crontab_settings.txt
+
+###################
+# * * * * *  command to execute
+# │ │ │ │ │
+# │ │ │ │ └───── day of week (0 - 6)
+# │ │ │ │        (0 to 6 are Sunday to Saturday, or use names (Sun,Mon,Tue,Wed,Thu,Fri,Sat); 7 is Sunday, the same as 0)
+# │ │ │ └────────── month (1 - 12)
+# │ │ └─────────────── day of month (1 - 31)
+# │ └──────────────────── hour (0 - 23)
+# └───────────────────────── min (0 - 59)
+## taken from https://en.wikipedia.org/wiki/Cron
+##############
+
+# backup important bits at 2:10am daily
+# JAMES should look at marmot backup scripts 20150216
+#10 2 * * * /root/cron/backup 2>&1 >/dev/null
+
+#############
+# On Reboot #
+#############
+# Continuous Re-Indexing
+@reboot cd /usr/local/VuFind-Plus/sites/catalog.library.nashville.org; ./continuous_partial_reindex.sh
+
+#####################
+# Daily full update #
+#####################
+# Set the start for 11:55
+55 23 * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./full_update.sh
+
+#####################
+# CRON for Pika     #
+#####################
+00 */3 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org
+20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar catalog.library.nashville.org DatabaseCleanup
+
+################
+# Pika Cleanup #
+################
+# Solr Restart
+# MDN Do not restart Solr because full update does it
+18 0 * * * cd /usr/local/VuFind-Plus/sites/catalog.library.nashville.org; ./catalog.library.nashville.org.sh restart
+
+# Memcached restart
+# JAMES should ask why the memcached restart is commented out 20150216
+#2 1 * * * /etc/rc.d/init.d/memcached restart
+
+# MySQL Restart once a week should be enough
+# Don't do this because if it doesn't come back up, the server is dead Sunday morning.
+# JAMES should ask whether a mysql restart is necessary 20150216
+#6 1 * * 0 /etc/rc.d/init.d/mysqld restart
+
+# Temp files
+26 0 * * * cd /tmp; rm -rf CURLCOOKIE*
+27 0 * * * cd /tmp; rm -rf epb*
+

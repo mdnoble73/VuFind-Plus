@@ -29,6 +29,7 @@ class User extends DB_DataObject
 	public $myLocation1Id;					 // int(11)
 	public $myLocation2Id;					 // int(11)
 	public $trackReadingHistory; 			 // tinyint
+	public $initialReadingHistoryLoaded;
 	public $bypassAutoLogout;        //tinyint
 	public $disableRecommendations;     //tinyint
 	public $disableCoverArt;     //tinyint
@@ -46,190 +47,22 @@ class User extends DB_DataObject
 
 	function __sleep()
 	{
-		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType', 'overdriveEmail', 'promptForOverdriveEmail', 'preferredLibraryInterface');
+		return array('id', 'username', 'password', 'cat_username', 'cat_password', 'firstname', 'lastname', 'email', 'phone', 'college', 'major', 'homeLocationId', 'myLocation1Id', 'myLocation2Id', 'trackReadingHistory', 'roles', 'bypassAutoLogout', 'displayName', 'disableRecommendations', 'disableCoverArt', 'patronType', 'overdriveEmail', 'promptForOverdriveEmail', 'preferredLibraryInterface', 'initialReadingHistoryLoaded');
 	}
 
 	function __wakeup()
 	{
 	}
 
-	function hasResource($resource) {
-		require_once 'User_resource.php';
-		$join = new User_resource();
-		$join->user_id = $this->id;
-		$join->resource_id = $resource->id;
-		if ($join->find()) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * @param Resource $resource
-	 * @param User_list $list
-	 * @param string[] $tagArray
-	 * @param string $notes
-	 * @param bool $updateSolr
-	 * @return bool
-	 */
-	function addResource($resource, $list, $tagArray, $notes, $updateSolr = true){
-		require_once 'User_resource.php';
-		require_once 'Tags.php';
-		$join = new User_resource();
-		$join->user_id = $this->id;
-		$join->resource_id = $resource->id;
-		$join->list_id = $list->id;
-		if ($join->find(true)) {
-			if ($notes) {
-				$join->notes = $notes;
-				$join->update();
-			}
-			$result = true;
-		} else {
-			if ($notes) {
-				$join->notes = $notes;
-			}
-			$result = $join->insert();
-		}
-		if ($result) {
-			if (is_array($tagArray) && count($tagArray)) {
-				require_once 'Resource_tags.php';
-				$join = new Resource_tags();
-				$join->resource_id = $resource->id;
-				$join->user_id = $this->id;
-				$join->list_id = $list->id;
-				$join->delete();
-				foreach ($tagArray as $value) {
-					$value = trim(strtolower(str_replace('"', '', $value)));
-					$tag = new Tags();
-					$tag->tag = $value;
-					if (!$tag->find(true)) {
-						$tag->insert();
-					}
-					$join->tag_id = $tag->id;
-					$join->insert();
-				}
-			}
-
-			if ($updateSolr){
-				$list->updateDetailed(true);
-			}
-
-			//Make a call to strands to update that the item was added to the list
-			global $configArray;
-			if (isset($configArray['Strands']['APID'])){
-				if ($resource->source == 'eContent'){
-					$strandsUrl = "http://bizsolutions.strands.com/api2/event/addtofavorites.sbs?apid={$configArray['Strands']['APID']}&item={$resource->record_id}&user={$this->id}";
-				}else{
-					$strandsUrl = "http://bizsolutions.strands.com/api2/event/addtofavorites.sbs?apid={$configArray['Strands']['APID']}&item=econtentRecord{$resource->record_id}&user={$this->id}";
-				}
-				file_get_contents($strandsUrl);
-			}
-
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	/**
-	 * @todo: delete any unused tags
-	 */
-	function removeResource($resource){
-		require_once 'User_resource.php';
-		// Remove the Saved Resource
-		$join = new User_resource();
-		$join->user_id = $this->id;
-		$join->resource_id = $resource->id;
-		$join->delete();
-
-		// Remove the Tags from the resource
-		require_once 'Resource_tags.php';
-		$join = new Resource_tags();
-		$join->user_id = $this->id;
-		$join->resource_id = $resource->id;
-		$join->delete();
-	}
-
-	/**
-	 * Return all resources that the user has saved
-	 *
-	 * @param string[] $tags Tags to filter the resources by
-	 * @return Resource[]
-	 */
-	function getResources($tags = null) {
-		require_once 'User_resource.php';
-		$resourceList = array();
-
-		$sql = "SELECT DISTINCT resource.* FROM resource, user_resource " .
-               "WHERE resource.id = user_resource.resource_id " .
-               "AND user_resource.user_id = '$this->id'";
-
-		if ($tags) {
-			for ($i=0; $i<count($tags); $i++) {
-				$sql .= " AND resource.id IN (SELECT DISTINCT resource_tags.resource_id " .
-                    "FROM resource_tags, tags " .
-                    "WHERE resource_tags.tag_id=tags.id AND tags.tag = '" .
-				addslashes($tags[$i]) . "' AND resource_tags.user_id = '$this->id')";
-			}
-		}
-
-		/** @var Resource|object $resource */
-		$resource = new Resource();
-		$resource->query($sql);
-		if ($resource->N) {
-			while ($resource->fetch()) {
-				$resourceList[] = clone($resource);
-			}
-		}
-
-		return $resourceList;
-	}
-
-	function getSavedData($resourceId, $source, $listId = null) {
-		require_once 'User_resource.php';
-		$savedList = array();
-
-		$sql = "SELECT user_resource.*, user_list.title as list_title, user_list.id as list_id " .
-               "FROM user_resource, resource, user_list " .
-               "WHERE resource.id = user_resource.resource_id " .
-               "AND user_resource.list_id = user_list.id " .
-               "AND user_resource.user_id = '$this->id' " .
-               "AND resource.source = '$source' " .
-               "AND resource.record_id = '$resourceId'";
-		if (!is_null($listId)) {
-			$sql .= " AND user_resource.list_id='$listId'";
-		}
-		$saved = new User_resource();
-		$saved->query($sql);
-		if ($saved->N) {
-			while ($saved->fetch()) {
-				$savedList[] = clone($saved);
-			}
-		}
-
-		return $savedList;
-	}
-
-
-	function getTags($resourceId = null, $listId = null){
-		require_once 'Resource_tags.php';
-		require_once 'Tags.php';
+	function getTags($id = null){
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserTag.php';
 		$tagList = array();
 
-		$sql = "SELECT tags.id, tags.tag, COUNT(resource_tags.id) AS cnt " .
-               "FROM tags INNER JOIN resource_tags on tags.id = resource_tags.tag_id " .
-               "INNER JOIN resource on resource_tags.resource_id = resource.id WHERE " .
-               "resource_tags.user_id = '{$this->id}' ";
-		if (!is_null($resourceId)) {
-			$sql .= "AND resource.record_id = '$resourceId' ";
-		}
-		if (!is_null($listId)) {
-			$sql .= "AND resource_tags.list_id = '$listId' ";
-		}
-		$sql .= "GROUP BY tags.tag ORDER BY cnt DESC, tags.tag ASC";
-		$tag = new Tags();
+		$sql = "SELECT id, groupedRecordPermanentId, tag, COUNT(groupedRecordPermanentId) AS cnt " .
+               "FROM user_tags WHERE " .
+               "userId = '{$this->id}' ";
+		$sql .= "GROUP BY tag ORDER BY tag ASC";
+		$tag = new UserTag();
 		$tag->query($sql);
 		if ($tag->N) {
 			while ($tag->fetch()) {
@@ -242,17 +75,14 @@ class User extends DB_DataObject
 
 
 	function getLists() {
-		require_once 'User_list.php';
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 
 		$lists = array();
 
-		$sql = "SELECT user_list.*, COUNT(user_resource.id) AS cnt FROM user_list " .
-               "LEFT JOIN user_resource ON user_list.id = user_resource.list_id " .
+		$sql = "SELECT user_list.* FROM user_list " .
                "WHERE user_list.user_id = '$this->id' " .
-               "GROUP BY user_list.id, user_list.user_id, user_list.title, " .
-               "user_list.description, user_list.created, user_list.public " .
                "ORDER BY user_list.title";
-		$list = new User_list();
+		$list = new UserList();
 		$list->query($sql);
 		if ($list->N) {
 			while ($list->fetch()) {
@@ -415,5 +245,66 @@ class User extends DB_DataObject
 		}else{
 			return false;
 		}
+	}
+
+	function updateOverDriveOptions(){
+		if (isset($_REQUEST['promptForOverdriveEmail']) && ($_REQUEST['promptForOverdriveEmail'] == 'yes' || $_REQUEST['promptForOverdriveEmail'] == 'on')){
+			// if set check & on check must be combined because checkboxes/radios don't report 'offs'
+				$this->promptForOverdriveEmail = 1;
+			}else{
+				$this->promptForOverdriveEmail = 0;
+			}
+		if (isset($_REQUEST['overdriveEmail'])){
+			$this->overdriveEmail = strip_tags($_REQUEST['overdriveEmail']);
+		}
+		$this->update();
+		//Update the serialized instance stored in the session
+		$_SESSION['userinfo'] = serialize($this);
+		/** @var Memcache $memCache */
+		global $memCache;
+		$memCache->delete('patronProfile_' . $this->id);
+	}
+
+	function updateCatalogOptions(){
+		//Validate that the input data is correct
+		if (isset($_POST['myLocation1']) && preg_match('/^\d{1,3}$/', $_POST['myLocation1']) == 0){
+			PEAR_Singleton::raiseError('The 1st location had an incorrect format.');
+		}
+		if (isset($_POST['myLocation2']) && preg_match('/^\d{1,3}$/', $_POST['myLocation2']) == 0){
+			PEAR_Singleton::raiseError('The 2nd location had an incorrect format.');
+		}
+		if (isset($_REQUEST['bypassAutoLogout']) && ($_REQUEST['bypassAutoLogout'] == 'yes' || $_REQUEST['bypassAutoLogout'] == 'on')){
+			$this->bypassAutoLogout = 1;
+		}else{
+			$this->bypassAutoLogout = 0;
+		}
+
+		//Make sure the selected location codes are in the database.
+		if (isset($_POST['myLocation1'])){
+			$location = new Location();
+			$location->whereAdd("locationId = '{$_POST['myLocation1']}'");
+			$location->find();
+			if ($location->N != 1) {
+				PEAR_Singleton::raiseError('The 1st location could not be found in the database.');
+			}
+			$this->myLocation1Id = $_POST['myLocation1'];
+		}
+		if (isset($_POST['myLocation2'])){
+			$location = new Location();
+			$location->whereAdd();
+			$location->whereAdd("locationId = '{$_POST['myLocation2']}'");
+			$location->find();
+			if ($location->N != 1) {
+				PEAR_Singleton::raiseError('The 2nd location could not be found in the database.');
+			}
+			$this->myLocation2Id = $_POST['myLocation2'];
+		}
+		$this->update();
+		//Update the serialized instance stored in the session
+		$_SESSION['userinfo'] = serialize($this);
+
+		/** @var Memcache $memCache */
+		global $memCache;
+		$memCache->delete('patronProfile_' . $this->id);
 	}
 }

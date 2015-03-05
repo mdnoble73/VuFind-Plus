@@ -20,9 +20,6 @@
 require_once ROOT_DIR . '/RecordDrivers/Interface.php';
 
 require_once ROOT_DIR . '/services/MyResearch/lib/User.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/Resource.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/Resource_tags.php';
-require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
 
 /**
  * Index Record Driver
@@ -31,10 +28,11 @@ require_once ROOT_DIR . '/services/MyResearch/lib/Tags.php';
  * fields from the index.  It is invoked when a record-format-specific
  * driver cannot be found.
  */
-class IndexRecord implements RecordInterface
+class IndexRecord extends RecordInterface
 {
 	protected $fields;
 	protected $index = false;
+	protected $scopingEnabled = false;
 	/**
 	 * These Solr fields should be used for snippets if available (listed in order
 	 * of preference).
@@ -57,7 +55,7 @@ class IndexRecord implements RecordInterface
 	'author', 'author-letter', 'title', 'title_short', 'title_full',
 	'title_full_unstemmed', 'title_auth', 'title_sub', 'spelling', 'id',
 	'allfields', 'allfields_proper', 'fulltext_unstemmed', 'econtentText_unstemmed', 'keywords_proper',
-	'spellingShingle', 'collection', 'building', 'institution', 'title_proper',
+	'spellingShingle', 'collection', 'owning_library', 'owning_location', 'title_proper',
 	'contents_proper', 'genre_proper', 'geographic_proper'
 	);
 
@@ -85,6 +83,12 @@ class IndexRecord implements RecordInterface
 	 * @access protected
 	 */
 	protected $snippet = false;
+
+	/**
+	 * The Grouped Work that this record is connected to
+	 * @var  GroupedWork */
+	protected $groupedWork;
+	protected $groupedWorkDriver = null;
 
 	/**
 	 * Constructor.  We build the object using all the data retrieved
@@ -174,6 +178,7 @@ class IndexRecord implements RecordInterface
 			case 'MLA':
 				return $citation->getMLA();
 		}
+		return '';
 	}
 
 	/**
@@ -186,84 +191,6 @@ class IndexRecord implements RecordInterface
 	public function getCitationFormats()
 	{
 		return array('AMA', 'APA', 'ChicagoHumanities', 'ChicagoAuthDate', 'MLA');
-	}
-
-	/**
-	 * Assign necessary Smarty variables and return a template name to
-	 * load in order to display core metadata (the details shown in the
-	 * top portion of the record view pages, above the tabs).
-	 *
-	 * @access  public
-	 * @return  string              Name of Smarty template file to display.
-	 */
-	public function getCoreMetadata()
-	{
-		global $configArray;
-		global $interface;
-
-		// Assign required variables (some of these are also used by templates for
-		// tabs, since every tab can assume that the core data is already assigned):
-		$this->assignTagList();
-		$interface->assign('isbn', $this->getCleanISBN());  // needed for covers
-		$interface->assign('recordFormat', $this->getFormats());
-		$interface->assign('recordLanguage', $this->getLanguages());
-
-		// These variables are only used by the core template, and they are prefixed
-		// with "core" to prevent conflicts with other variable names.
-		$interface->assign('coreShortTitle', $this->getShortTitle());
-		$interface->assign('coreSubtitle', $this->getSubtitle());
-		$interface->assign('coreTitleStatement', $this->getTitleStatement());
-		$interface->assign('coreTitleSection', $this->getTitleSection());
-		$interface->assign('coreNextTitles', $this->getNewerTitles());
-		$interface->assign('corePrevTitles', $this->getPreviousTitles());
-		$interface->assign('corePublications', $this->getPublicationDetails());
-		$interface->assign('coreEdition', $this->getEdition());
-		$interface->assign('coreSeries', $this->getSeries());
-		$interface->assign('coreSubjects', $this->getAllSubjectHeadings());
-
-		// Only display OpenURL link if the option is turned on and we have
-		// an ISSN.  We may eventually want to make this rule more flexible,
-		// but for now the ISSN restriction is designed to be consistent with
-		// the way we display items on the search results list.
-		$hasOpenURL = ($this->openURLActive('record') && $this->getCleanISSN());
-		if ($hasOpenURL) {
-			$interface->assign('coreOpenURL', $this->getOpenURL());
-		}
-
-		// Only load URLs if we have no OpenURL or we are configured to allow
-		// URLs and OpenURLs to coexist:
-		if (!isset($configArray['OpenURL']['replace_other_urls']) ||
-		!$configArray['OpenURL']['replace_other_urls'] || !$hasOpenURL) {
-			$interface->assign('coreURLs', $this->getURLs());
-		}
-
-		// The secondary author array may contain a corporate or primary author;
-		// let's be sure we filter out duplicate values.
-		$mainAuthor = $this->getPrimaryAuthor();
-		$corpAuthor = $this->getCorporateAuthor();
-		$secondaryAuthors = $this->getSecondaryAuthors();
-		$duplicates = array();
-		if (!empty($mainAuthor)) {
-			$duplicates[] = $mainAuthor;
-		}
-		if (!empty($corpAuthor)) {
-			$duplicates[] = $corpAuthor;
-		}
-		if (!empty($duplicates)) {
-			$secondaryAuthors = array_diff($secondaryAuthors, $duplicates);
-		}
-		$interface->assign('coreMainAuthor', $mainAuthor);
-		$interface->assign('coreCorporateAuthor', $corpAuthor);
-		$interface->assign('coreContributors', $secondaryAuthors);
-
-		// Assign only the first piece of summary data for the core; we'll get the
-		// rest as part of the extended data.
-		$summary = $this->getSummary();
-		$summary = count($summary) > 0 ? $summary[0] : null;
-		$interface->assign('coreSummary', $summary);
-
-		// Send back the template name:
-		return 'RecordDrivers/Index/core.tpl';
 	}
 
 	/**
@@ -414,40 +341,6 @@ class IndexRecord implements RecordInterface
 
 	/**
 	 * Assign necessary Smarty variables and return a template name to
-	 * load in order to display holdings extracted from the base record
-	 * (i.e. URLs in MARC 856 fields).  This is designed to supplement,
-	 * not replace, holdings information extracted through the ILS driver
-	 * and displayed in the Holdings tab of the record view page.  Returns
-	 * null if no data is available.
-	 *
-	 * @access  public
-	 * @return  string              Name of Smarty template file to display.
-	 */
-	public function getHoldings()
-	{
-		global $interface;
-		global $configArray;
-
-		// Only display OpenURL link if the option is turned on and we have
-		// an ISSN.  We may eventually want to make this rule more flexible,
-		// but for now the ISSN restriction is designed to be consistent with
-		// the way we display items on the search results list.
-		$hasOpenURL = ($this->openURLActive('holdings') && $this->getCleanISSN());
-		if ($hasOpenURL) {
-			$interface->assign('holdingsOpenURL', $this->getOpenURL());
-		}
-
-		// Display regular URLs unless OpenURL is present and configured to
-		// replace them:
-		if (!isset($configArray['OpenURL']['replace_other_urls']) ||
-		!$configArray['OpenURL']['replace_other_urls'] || !$hasOpenURL) {
-			$interface->assign('holdingURLs', $this->getURLs());
-		}
-		return 'RecordDrivers/Index/holdings.tpl';
-	}
-
-	/**
-	 * Assign necessary Smarty variables and return a template name to
 	 * load in order to display a summary of the item suitable for use in
 	 * user's favorites list.
 	 *
@@ -487,7 +380,6 @@ class IndexRecord implements RecordInterface
 				}
 			}
 			$interface->assign('listNotes', $notes);
-			$interface->assign('listTags', $user->getTags($id, $listId));
 		}
 
 		// Pass some parameters along to the template to influence edit controls:
@@ -495,133 +387,9 @@ class IndexRecord implements RecordInterface
 		$interface->assign('listEditAllowed', $allowEdit);
 
 		//Get Rating
-		$resource = new Resource();
-		$resource->source = 'VuFind';
-		$resource->record_id = $id;
-		$resource->find(true);
-		$ratingData = $resource->getRatingData($user);
-		//print_r($ratingData);
-		$interface->assign('ratingData', $ratingData);
+		$interface->assign('ratingData', $this->getRatingData());
 
 		return 'RecordDrivers/Index/listentry.tpl';
-	}
-
-	/**
-	 * Get the OpenURL parameters to represent this record (useful for the
-	 * title attribute of a COinS span tag).
-	 *
-	 * @access  public
-	 * @return  string              OpenURL parameters.
-	 */
-	public function getOpenURL()
-	{
-		// Get the COinS ID -- it should be in the OpenURL section of config.ini,
-		// but we'll also check the COinS section for compatibility with legacy
-		// configurations (this moved between the RC2 and 1.0 releases).
-		global $configArray;
-		$coinsID = isset($configArray['OpenURL']['rfr_id']) ?
-		$configArray['OpenURL']['rfr_id'] :
-		$configArray['COinS']['identifier'];
-		if (empty($coinsID)) {
-			$coinsID = 'vufind.svn.sourceforge.net';
-		}
-
-		// Get a representative publication date:
-		$pubDate = $this->getPublicationDates();
-		$pubDate = empty($pubDate) ? '' : $pubDate[0];
-
-		// Start an array of OpenURL parameters:
-		$params = array(
-            'ctx_ver' => 'Z39.88-2004',
-            'ctx_enc' => 'info:ofi/enc:UTF-8',
-            'rfr_id' => "info:sid/{$coinsID}:generator",
-            'rft.title' => $this->getTitle(),
-            'rft.date' => $pubDate
-		);
-
-		// Add additional parameters based on the format of the record:
-		$formats = $this->getFormats();
-
-		// If we have multiple formats, Book and Journal are most important...
-		if (in_array('Book', $formats)) {
-			$format = 'Book';
-		} else if (in_array('Journal', $formats)) {
-			$format = 'Journal';
-		} else {
-			$format = $formats[0];
-		}
-		switch($format) {
-			case 'Book':
-				$params['rft_val_fmt'] = 'info:ofi/fmt:kev:mtx:book';
-				$params['rft.genre'] = 'book';
-				$params['rft.btitle'] = $params['rft.title'];
-				$series = $this->getSeries();
-				if (count($series) > 0) {
-					// Handle both possible return formats of getSeries:
-					$params['rft.series'] = is_array($series[0]) ?
-					$series[0]['name'] : $series[0];
-				}
-				$params['rft.au'] = $this->getPrimaryAuthor();
-				$publishers = $this->getPublishers();
-				if (count($publishers) > 0) {
-					$params['rft.pub'] = $publishers[0];
-				}
-				$params['rft.edition'] = $this->getEdition();
-				$params['rft.isbn'] = $this->getCleanISBN();
-				break;
-			case 'Journal':
-				/* This is probably the most technically correct way to represent
-				 * a journal run as an OpenURL; however, it doesn't work well with
-				 * Zotero, so it is currently commented out -- instead, we just add
-				 * some extra fields and then drop through to the default case.
-				 $params['rft_val_fmt'] = 'info:ofi/fmt:kev:mtx:journal';
-				 $params['rft.genre'] = 'journal';
-				 $params['rft.jtitle'] = $params['rft.title'];
-				 $params['rft.issn'] = $this->getCleanISSN();
-				 $params['rft.au'] = $this->getPrimaryAuthor();
-				 break;
-				 */
-				$params['rft.issn'] = $this->getCleanISSN();
-
-				// Including a date in a title-level Journal OpenURL may be too
-				// limiting -- in some link resolvers, it may cause the exclusion
-				// of databases if they do not cover the exact date provided!
-				unset($params['rft.date']);
-
-				// If we're working with the SFX resolver, we should add a
-				// special parameter to ensure that electronic holdings links
-				// are shown even though no specific date or issue is specified:
-				if (isset($configArray['OpenURL']['resolver']) &&
-				strtolower($configArray['OpenURL']['resolver']) == 'sfx') {
-					$params['sfx.ignore_date_threshold'] = 1;
-				}
-			default:
-				$params['rft_val_fmt'] = 'info:ofi/fmt:kev:mtx:dc';
-				$params['rft.creator'] = $this->getPrimaryAuthor();
-				$publishers = $this->getPublishers();
-				if (count($publishers) > 0) {
-					$params['rft.pub'] = $publishers[0];
-				}
-				$params['rft.format'] = $format;
-				$langs = $this->getLanguages();
-				if (count($langs) > 0) {
-					$params['rft.language'] = $langs[0];
-				}
-				break;
-		}
-
-		// Assemble the URL:
-		$parts = array();
-		foreach($params as $key => $value) {
-			if (is_array($value)){
-				foreach($value as $arrVal){
-					$parts[] = $key . '[]=' . urlencode($arrVal);
-				}
-			}else{
-				$parts[] = $key . '=' . urlencode($value);
-			}
-		}
-		return implode('&', $parts);
 	}
 
 	/**
@@ -677,13 +445,8 @@ class IndexRecord implements RecordInterface
 		}else{
 			$interface->assign('summShortId', $id);
 		}
-		$linkUrl = '/Record/' . $id . '/Home?searchId=' . $interface->get_template_vars('searchId') . '&amp;recordIndex' . $interface->get_template_vars('recordIndex') . '&amp;page='  . $interface->get_template_vars('page');
-		if ($useUnscopedHoldingsSummary){
-			$linkUrl .= '&amp;searchSource=marmot';
-		}else{
-			$linkUrl .= '&amp;searchSource=' . $interface->get_template_vars('searchSource');
-		}
-		$interface->assign('summUrl', $linkUrl);
+
+		$interface->assign('summUrl', $this->getLinkUrl($useUnscopedHoldingsSummary));
 		$formats = $this->getFormats();
 		$interface->assign('summFormats', $formats);
 		$formatCategories = $this->getFormatCategory();
@@ -716,37 +479,17 @@ class IndexRecord implements RecordInterface
 		$interface->assign('summSnippetCaption', $snippet ? $snippet['caption'] : false);
 		$interface->assign('summSnippet', $snippet ? $snippet['snippet'] : false);
 
-		// Only display OpenURL link if the option is turned on and we have
-		// an ISSN.  We may eventually want to make this rule more flexible,
-		// but for now the ISSN restriction is designed to be consistent with
-		// the way we display items on the search results list.
-		$hasOpenURL = ($this->openURLActive('results') && $issn);
-		$interface->assign('summOpenUrl', $hasOpenURL ? $this->getOpenURL() : false);
-
-		// Display regular URLs unless OpenURL is present and configured to
-		// replace them:
-		if (!isset($configArray['OpenURL']['replace_other_urls']) ||
-		!$configArray['OpenURL']['replace_other_urls'] || !$hasOpenURL) {
-			$interface->assign('summURLs', $this->getURLs());
-		} else {
-			$interface->assign('summURLs', array());
-		}
+		$interface->assign('summURLs', $this->getURLs());
 
 		//Get Rating
-		$resource = new Resource();
-		$resource->source = 'VuFind';
-		$resource->record_id = $id;
-		$resource->find(true);
-		$ratingData = $resource->getRatingData($user);
-		//print_r($ratingData);
-		$interface->assign('summRating', $ratingData);
+		$interface->assign('summRating', $this->getRatingData());
+
+		//Description
+		$interface->assign('summDescription', $this->getDescription());
 
 		//Determine the cover to use
-		$isbn = $this->getCleanISBN();
-		$formatCategory = isset($formatCategories[0]) ? $formatCategories[0] : '';
-		$format = isset($formats[0]) ? $formats[0] : '';
-
-		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $upc, $formatCategory, $format));
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
 
 		// By default, do not display AJAX status; we won't assume that all
 		// records exist in the ILS.  Child classes can override this setting
@@ -754,6 +497,32 @@ class IndexRecord implements RecordInterface
 		$interface->assign('summAjaxStatus', false);
 
 		return 'RecordDrivers/Index/result.tpl';
+	}
+
+	function getDescription(){
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $configArray;
+		global $interface;
+		global $timer;
+		$id = $this->getUniqueID();
+		//Bypass loading solr, etc if we already have loaded the descriptive info before
+		$descriptionArray = $memCache->get("record_description_{$id}");
+		if (!$descriptionArray){
+			require_once ROOT_DIR . '/services/Record/Description.php';
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$searchObject->init();
+
+			$description = new Record_Description(true, $id);
+			$descriptionArray = $description->loadData();
+			$memCache->set("record_description_{$id}", $descriptionArray, 0, $configArray['Caching']['record_description']);
+			$timer->logTime("Retrieved description for index record");
+		}
+		$interface->assign('description', $descriptionArray['description']);
+		$interface->assign('length', isset($descriptionArray['length']) ? $descriptionArray['length'] : '');
+		$interface->assign('publisher', isset($descriptionArray['publisher']) ? $descriptionArray['publisher'] : '');
+
+		return $interface->fetch('Record/ajax-description-popup.tpl');
 	}
 
 	public function getSupplementalSearchResult(){
@@ -801,20 +570,11 @@ class IndexRecord implements RecordInterface
 		$interface->assign('summSnippet', $snippet ? $snippet['snippet'] : false);
 
 		//Get Rating
-		$resource = new Resource();
-		$resource->source = 'VuFind';
-		$resource->record_id = $id;
-		$resource->find(true);
-		$ratingData = $resource->getRatingData($user);
-		//print_r($ratingData);
-		$interface->assign('summRating', $ratingData);
+		$interface->assign('summRating', $this->getRatingData());
 
 		//Determine the cover to use
-		$isbn = $this->getCleanISBN();
-		$formatCategory = isset($formatCategories[0]) ? $formatCategories[0] : '';
-		$format = isset($formats[0]) ? $formats[0] : '';
-
-		$interface->assign('bookCoverUrl', $this->getBookcoverUrl($id, $upc, $formatCategory, $format));
+		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
 
 		// By default, do not display AJAX status; we won't assume that all
 		// records exist in the ILS.  Child classes can override this setting
@@ -824,13 +584,21 @@ class IndexRecord implements RecordInterface
 		return 'RecordDrivers/Index/supplementalResult.tpl';
 	}
 
-	function getBookcoverUrl($id, $upc, $formatCategory, $format){
+	function getBookcoverUrl($size = 'small'){
+		$id = $this->getUniqueID();
+		$formatCategory = $this->getFormatCategory();
+		if (is_array($formatCategory)){
+			$formatCategory = reset($formatCategory);
+		}
+		$formats = $this->getFormat();
+		$format = reset($formats);
 		global $configArray;
-		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;size=small&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
+		$bookCoverUrl = $configArray['Site']['coverUrl'] . "/bookcover.php?id={$id}&amp;size={$size}&amp;category=" . urlencode($formatCategory) . "&amp;format=" . urlencode($format);
 		$isbn = $this->getCleanISBN();
 		if ($isbn){
 			$bookCoverUrl .= "&amp;isn={$isbn}";
 		}
+		$upc = $this->getCleanUPC();
 		if ($upc){
 			$bookCoverUrl .= "&amp;upc={$upc}";
 		}
@@ -853,6 +621,7 @@ class IndexRecord implements RecordInterface
 	{
 		global $interface;
 		$interface->assign('details', $this->fields);
+
 		return 'RecordDrivers/Index/staff.tpl';
 	}
 
@@ -992,23 +761,6 @@ class IndexRecord implements RecordInterface
 		/* Video is not supported yet.
 		 */
 		return false;
-	}
-
-	/**
-	 * Assign a tag list to the interface based on the current unique ID.
-	 *
-	 * @access  protected
-	 */
-	protected function assignTagList()
-	{
-		global $interface;
-
-		// Retrieve tags associated with the record
-		$resource = new Resource();
-		$resource->record_id = $this->getUniqueID();
-		$resource->source = 'VuFind';
-		$tags = $resource->getTags();
-		$interface->assign('tagList', is_array($tags) ? $tags : array());
 	}
 
 	/**
@@ -1197,10 +949,10 @@ class IndexRecord implements RecordInterface
 	/**
 	 * Get an array of all the formats associated with the record.
 	 *
-	 * @access  protected
+	 * @access  public
 	 * @return  array
 	 */
-	protected function getFormats()
+	public function getFormats()
 	{
 		return isset($this->fields['format']) ? $this->fields['format'] : array();
 	}
@@ -1212,7 +964,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getFormatCategory()
 	{
-		return isset($this->fields['format_category']) ? $this->fields['format_category'] : array();
+		return isset($this->fields['format_category']) ? $this->fields['format_category'] : '';
 	}
 	/**
 	 * Get general notes on the record.
@@ -1225,6 +977,44 @@ class IndexRecord implements RecordInterface
 		// Not currently stored in the Solr index
 		return array();
 	}
+
+	/**
+	 * Load the grouped work that this record is connected to.
+	 */
+	public function loadGroupedWork() {
+		if ($this->groupedWork == null){
+			require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
+			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
+			$groupedWork = new GroupedWork();
+			$query = "SELECT grouped_work.* FROM grouped_work INNER JOIN grouped_work_primary_identifiers ON grouped_work.id = grouped_work_id WHERE type='{$this->getRecordType()}' AND identifier = '" . $this->getUniqueID() . "'";
+			$groupedWork->query($query);
+
+			if ($groupedWork->N == 1){
+				$groupedWork->fetch();
+				$this->groupedWork = clone $groupedWork;
+			}
+		}
+	}
+
+	public function getPermanentId(){
+		return $this->getGroupedWorkId();
+	}
+	public function getGroupedWorkId(){
+		if ($this->groupedWork == null){
+			return null;
+		}else{
+			return $this->groupedWork->permanent_id;
+		}
+	}
+
+	public function getGroupedWorkDriver(){
+		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
+		if ($this->groupedWorkDriver == null){
+			$this->groupedWorkDriver = new GroupedWorkDriver($this->getPermanentId());
+		}
+		return $this->groupedWorkDriver;
+	}
+
 
 	/**
 	 * Get a highlighted author string, if available.
@@ -1322,12 +1112,8 @@ class IndexRecord implements RecordInterface
 
 		// Build the index engine if we don't already have one:
 		if (!$this->index) {
-			$class = $configArray['Index']['engine'];
-			$url = $configArray['Index']['url'];
-			$this->index = new $class($url);
-			if ($configArray['System']['debugSolr']) {
-				$this->index->debug = true;
-			}
+			$searchObject = SearchObjectFactory::initSearchObject();
+			$this->index = new $searchObject;
 		}
 
 		return $this->index;
@@ -1339,7 +1125,7 @@ class IndexRecord implements RecordInterface
 	 * @access  protected
 	 * @return  array
 	 */
-	protected function getISBNs()
+	public function getISBNs()
 	{
 		// If ISBN is in the index, it should automatically be an array... but if
 		// it's not set at all, we should normalize the value to an empty array.
@@ -1384,10 +1170,10 @@ class IndexRecord implements RecordInterface
 	/**
 	 * Get an array of all ISSNs associated with the record (may be empty).
 	 *
-	 * @access  protected
+	 * @access  public
 	 * @return  array
 	 */
-	protected function getISSNs()
+	public function getISSNs()
 	{
 		// If ISSN is in the index, it should automatically be an array... but if
 		// it's not set at all, we should normalize the value to an empty array.
@@ -1401,7 +1187,7 @@ class IndexRecord implements RecordInterface
 	 * @access  protected
 	 * @return  array
 	 */
-	protected function getLanguages()
+	public function getLanguages()
 	{
 		return isset($this->fields['language']) ?
 		$this->fields['language'] : array();
@@ -1521,8 +1307,11 @@ class IndexRecord implements RecordInterface
 			// unwanted whitespace.
 			$publicationInfo = (isset($places[$i]) ? $places[$i] . ' ' : '') .
 					(isset($names[$i]) ? $names[$i] . ' ' : '') .
-					(isset($dates[$i]) ? $dates[$i] : '');
-			$returnVal[] = trim(str_replace('  ', ' ', $publicationInfo));
+					(isset($dates[$i]) ? (', ' . $dates[$i] . '.') : '');
+			$publicationInfo = trim(str_replace('  ', ' ', $publicationInfo));
+			$publicationInfo = str_replace(' ,', ',', $publicationInfo);
+			$publicationInfo = htmlentities($publicationInfo);
+			$returnVal[] = $publicationInfo;
 			$i++;
 		}
 
@@ -1542,15 +1331,15 @@ class IndexRecord implements RecordInterface
 	}
 
 	/**
-	 * Get the publishers of the record.
-	 *
-	 * @access  protected
-	 * @return  array
-	 */
+ * Get the publishers of the record.
+ *
+ * @access  protected
+ * @return  array
+ */
 	protected function getPublishers()
 	{
 		return isset($this->fields['publisher']) ?
-		$this->fields['publisher'] : array();
+			$this->fields['publisher'] : array();
 	}
 
 	/**
@@ -1662,8 +1451,7 @@ class IndexRecord implements RecordInterface
 	 */
 	public function getTitle()
 	{
-		return isset($this->fields['title']) ?
-		$this->fields['title'] : '';
+		return isset($this->fields['title']) ? $this->fields['title'] : (isset($this->fields['title_display']) ? $this->fields['title_display'] : '');
 	}
 
 	/**
@@ -1710,49 +1498,214 @@ class IndexRecord implements RecordInterface
 		return $urls;
 	}
 
-	/**
-	 * Does the OpenURL configuration indicate that we should display OpenURLs in
-	 * the specified context?
-	 *
-	 * @access  protected
-	 * @param   string      $area           'results', 'record' or 'holdings'
-	 * @return  bool
-	 */
-	protected function openURLActive($area)
-	{
-		global $configArray;
-
-		// Doesn't matter the target area if no OpenURL resolver is specified:
-		if (!isset($configArray['OpenURL']['url'])) {
-			return false;
-		}
-
-		// If a setting exists, return that:
-		if (isset($configArray['OpenURL']['show_in_' . $area])) {
-			return $configArray['OpenURL']['show_in_' . $area];
-		}
-
-		// If we got this far, use the defaults -- true for results, false for
-		// everywhere else.
-		return ($area == 'results');
-	}
-
 	public function getScore(){
 		if (isset($this->fields['score'])){
 			return $this->fields['score'];
 		}
+		return null;
 	}
 
 	public function getExplain(){
 		if (isset($this->fields['explain'])){
 			return nl2br(str_replace(' ', '&nbsp;', $this->fields['explain']));
 		}
+		return null;
 	}
 
 	public function getId(){
 		if (isset($this->fields['id'])){
 			return $this->fields['id'];
 		}
+		return null;
+	}
+
+	public function getFormat(){
+		if (isset($this->fields['format'])){
+			if (is_array($this->fields['format'])){
+				return reset($this->fields['format']);
+			}else{
+				return $this->fields['format'];
+			}
+		}else{
+			return "Implement this when not backed by Solr data";
+		}
+	}
+
+	public function getLanguage(){
+		if (isset($this->fields['language'])){
+			return $this->fields['language'];
+		}else{
+			return "Implement this when not backed by Solr data";
+		}
+	}
+
+	public function getRatingData() {
+		require_once ROOT_DIR . '/services/API/WorkAPI.php';
+		$workAPI = new WorkAPI();
+		return $workAPI->getRatingData($this->getGroupedWorkId());
+	}
+
+	protected function getRecordType(){
+		return 'unknown';
+	}
+
+	public function setScopingEnabled($enabled){
+		$this->scopingEnabled = $enabled;
+	}
+
+	function getRecordUrl(){
+		global $configArray;
+		$recordId = $this->getUniqueID();
+
+		return $configArray['Site']['path'] . '/Record/' . $recordId;
+	}
+
+	public function getLinkUrl($useUnscopedHoldingsSummary = false) {
+		global $interface;
+		$linkUrl = $this->getRecordUrl();
+		$extraParams = array();
+		if (strlen($interface->get_template_vars('searchId')) > 0){
+			$extraParams[] = 'searchId=' . $interface->get_template_vars('searchId');
+			$extraParams[] = 'recordIndex=' . $interface->get_template_vars('recordIndex');
+			$extraParams[] = 'page='  . $interface->get_template_vars('page');
+
+		}
+
+		if ($useUnscopedHoldingsSummary){
+			$extraParams[] = 'searchSource=marmot';
+		}else{
+			$extraParams[] = 'searchSource=' . $interface->get_template_vars('searchSource');
+		}
+		if (count($extraParams) > 0){
+			$linkUrl .= '?' . implode('&', $extraParams);
+		}
+		return $linkUrl;
+	}
+
+	function getQRCodeUrl(){
+		global $configArray;
+		return $configArray['Site']['url'] . '/qrcode.php?type=Record&id=' . $this->getPermanentId();
+	}
+
+	public function getTags(){
+		return $this->getGroupedWorkDriver()->getTags();
+	}
+
+	public function getMoreDetailsOptions(){
+		return $this->getBaseMoreDetailsOptions(false);
+	}
+
+	/**
+	 * Get the OpenURL parameters to represent this record (useful for the
+	 * title attribute of a COinS span tag).
+	 *
+	 * @access  public
+	 * @return  string              OpenURL parameters.
+	 */
+	public function getOpenURL()
+	{
+		// Get the COinS ID -- it should be in the OpenURL section of config.ini,
+		// but we'll also check the COinS section for compatibility with legacy
+		// configurations (this moved between the RC2 and 1.0 releases).
+		$coinsID = 'vufind+';
+
+		// Start an array of OpenURL parameters:
+		$params = array(
+			'ctx_ver' => 'Z39.88-2004',
+			'ctx_enc' => 'info:ofi/enc:UTF-8',
+			'rfr_id' => "info:sid/{$coinsID}:generator",
+			'rft.title' => $this->getTitle(),
+		);
+
+		// Get a representative publication date:
+		$pubDate = $this->getPublicationDates();
+		if (count($pubDate) == 1){
+			$params['rft.date'] = $pubDate[0];
+		}elseif (count($pubDate > 1)){
+			$params['rft.date'] = $pubDate;
+		}
+
+		// Add additional parameters based on the format of the record:
+		$formats = $this->getFormats();
+
+		// If we have multiple formats, Book and Journal are most important...
+		if (in_array('Book', $formats)) {
+			$format = 'Book';
+		} else if (in_array('Journal', $formats)) {
+			$format = 'Journal';
+		} else {
+			$format = $formats[0];
+		}
+		switch($format) {
+			case 'Book':
+				$params['rft_val_fmt'] = 'info:ofi/fmt:kev:mtx:book';
+				$params['rft.genre'] = 'book';
+				$params['rft.btitle'] = $params['rft.title'];
+
+				$series = $this->getSeries(false);
+				if ($series != null) {
+					// Handle both possible return formats of getSeries:
+					$params['rft.series'] = $series['seriesTitle'];
+				}
+
+				$params['rft.au'] = $this->getPrimaryAuthor();
+				$publishers = $this->getPublishers();
+				if (count($publishers) == 1) {
+					$params['rft.pub'] = $publishers[0];
+				}elseif (count($publishers) > 1) {
+					$params['rft.pub'] = $publishers;
+				}
+				$params['rft.edition'] = $this->getEdition();
+				$params['rft.isbn'] = $this->getCleanISBN();
+				break;
+			case 'Journal':
+				/* This is probably the most technically correct way to represent
+				 * a journal run as an OpenURL; however, it doesn't work well with
+				 * Zotero, so it is currently commented out -- instead, we just add
+				 * some extra fields and then drop through to the default case.
+				 $params['rft_val_fmt'] = 'info:ofi/fmt:kev:mtx:journal';
+				 $params['rft.genre'] = 'journal';
+				 $params['rft.jtitle'] = $params['rft.title'];
+				 $params['rft.issn'] = $this->getCleanISSN();
+				 $params['rft.au'] = $this->getPrimaryAuthor();
+				 break;
+				 */
+				$issns = $this->getISSNs();
+				if (count($issns) > 0){
+					$params['rft.issn'] = $issns[0];
+				}
+
+				// Including a date in a title-level Journal OpenURL may be too
+				// limiting -- in some link resolvers, it may cause the exclusion
+				// of databases if they do not cover the exact date provided!
+				unset($params['rft.date']);
+			default:
+				$params['rft_val_fmt'] = 'info:ofi/fmt:kev:mtx:dc';
+				$params['rft.creator'] = $this->getPrimaryAuthor();
+				$publishers = $this->getPublishers();
+				if (count($publishers) > 0) {
+					$params['rft.pub'] = $publishers[0];
+				}
+				$params['rft.format'] = $format;
+				$langs = $this->getLanguages();
+				if (count($langs) > 0) {
+					$params['rft.language'] = $langs[0];
+				}
+				break;
+		}
+
+		// Assemble the URL:
+		$parts = array();
+		foreach($params as $key => $value) {
+			if (is_array($value)){
+				foreach($value as $arrVal){
+					$parts[] = $key . '[]=' . urlencode($arrVal);
+				}
+			}else{
+				$parts[] = $key . '=' . urlencode($value);
+			}
+		}
+		return implode('&', $parts);
 	}
 }
 

@@ -19,34 +19,16 @@
  */
 
 require_once 'Record.php';
-require_once ROOT_DIR . '/sys/SolrStats.php';
-require_once 'Reviews.php';
-require_once 'UserComments.php';
-require_once 'Cite.php';
-require_once 'Holdings.php';
-require_once(ROOT_DIR . '/sys/EditorialReview.php');
 
 class Record_Home extends Record_Record{
 	function launch(){
 		global $interface;
 		global $timer;
-		global $configArray;
-		global $user;
 
-		// Load Supplemental Information
-		Record_UserComments::loadComments();
-		$timer->logTime('Loaded Comments');
-		Record_Cite::loadCitation();
+		$recordId = $this->id;
+
+		$this->loadCitations();
 		$timer->logTime('Loaded Citations');
-
-		if (isset($_REQUEST['id'])){
-			$recordId = $_REQUEST['id'];
-		}
-
-		if (isset($_REQUEST['strandsReqId']) && isset($configArray['Strands']['APID'])){
-			$url = "http://bizsolutions.strands.com/api2/event/clickedrecommendation.sbs?apid={$configArray['Strands']['APID']}&item={$recordId}&user={$user->id}&rrq={$_REQUEST['strandsReqId']}&tpl={$_REQUEST['strandsTpl']}";
-			$response = file_get_contents($url);
-		}
 
 		if (isset($_REQUEST['searchId'])){
 			$_SESSION['searchId'] = $_REQUEST['searchId'];
@@ -55,176 +37,40 @@ class Record_Home extends Record_Record{
 			$interface->assign('searchId', $_SESSION['searchId']);
 		}
 
-		//Load the Editorial Reviews
-		//Populate an array of editorialReviewIds that match up with the recordId
-		$editorialReview = new EditorialReview();
-		$editorialReviewResults = array();
-		$editorialReview->recordId = $recordId;
-		$editorialReview->find();
-		$editorialReviewResults['reviews'] = array(
-			'tabName' => 'Reviews',
-			'reviews' => array()
-		);
-		if ($editorialReview->N > 0){
-			$ctr = 0;
-			while ($editorialReview->fetch()){
-				$reviewKey = preg_replace('/\W/', '_', strtolower($editorialReview->tabName));
-				if (!array_key_exists($reviewKey, $editorialReviewResults)){
-					$editorialReviewResults[$reviewKey] = array(
-						'tabName' => $editorialReview->tabName,
-						'reviews' => array()
-					);
-				}
-				$editorialReviewResults[$reviewKey]['reviews'][$ctr++] = get_object_vars($editorialReview);
-			}
-		}
-		$interface->assign('editorialReviews', $editorialReviewResults);
 		$interface->assign('recordId', $recordId);
 
-		//Enable and disable functionality based on library settings
+		// Set Show in Main Details Section options for templates
+		// (needs to be set before moreDetailsOptions)
 		global $library;
-		global $locationSingleton;
-		$location = $locationSingleton->getActiveLocation();
-		if (isset($library)){
-			$interface->assign('showTextThis', $library->showTextThis);
-			$interface->assign('showEmailThis', $library->showEmailThis);
-			$interface->assign('showFavorites', $library->showFavorites);
-			$interface->assign('linkToAmazon', $library->linkToAmazon);
-			$interface->assign('enablePurchaseLinks', $library->linkToAmazon);
-			$interface->assign('enablePospectorIntegration', $library->enablePospectorIntegration);
-			if ($location != null){
-				$interface->assign('showAmazonReviews', (($location->showAmazonReviews == 1) && ($library->showAmazonReviews == 1)) ? 1 : 0);
-				$interface->assign('showStandardReviews', (($location->showStandardReviews == 1) && ($library->showStandardReviews == 1)) ? 1 : 0);
-				$interface->assign('showHoldButton', (($location->showHoldButton == 1) && ($library->showHoldButton == 1)) ? 1 : 0);
-			}else{
-				$interface->assign('showAmazonReviews', $library->showAmazonReviews);
-				$interface->assign('showStandardReviews', $library->showStandardReviews);
-				$interface->assign('showHoldButton', $library->showHoldButton);
-			}
-			$interface->assign('showTagging', $library->showTagging);
-			$interface->assign('showRatings', $library->showRatings);
-			$interface->assign('showComments', $library->showComments);
-			$interface->assign('tabbedDetails', $library->tabbedDetails);
-			$interface->assign('showSeriesAsTab', $library->showSeriesAsTab);
-			$interface->assign('showOtherEditionsPopup', 0);
-			$interface->assign('show856LinksAsTab', $library->show856LinksAsTab);
-			$interface->assign('showProspectorTitlesAsTab', $library->showProspectorTitlesAsTab);
-		}else{
-			$interface->assign('showTextThis', 1);
-			$interface->assign('showEmailThis', 1);
-			$interface->assign('showFavorites', 1);
-			$interface->assign('linkToAmazon', 1);
-			$interface->assign('enablePospectorIntegration', isset($configArray['Content']['Prospector']) && $configArray['Content']['Prospector'] == true ? 1 : 0);
-			$interface->assign('enablePurchaseLinks', 1);
-			if ($location != null){
-				$interface->assign('showAmazonReviews', $location->showAmazonReviews);
-				$interface->assign('showStandardReviews', $location->showStandardReviews);
-				$interface->assign('showHoldButton', $location->showHoldButton);
-			}else{
-				$interface->assign('showAmazonReviews', 1);
-				$interface->assign('showStandardReviews', 1);
-				$interface->assign('showHoldButton', 1);
-			}
-			$interface->assign('showTagging', 1);
-			$interface->assign('showRatings', 1);
-			$interface->assign('showComments', 1);
-			$interface->assign('tabbedDetails', !isset($configArray['Content']['tabbedDetails']) || $configArray['Content']['tabbedDetails'] == false ? 0 : 1);
-			$interface->assign('showSeriesAsTab', 0);
-			$interface->assign('showOtherEditionsPopup', 0);
-			$interface->assign('show856LinksAsTab', 1);
-			$interface->assign('showProspectorTitlesAsTab', 0);
-		}
-		if (!isset($this->isbn)){
-			$interface->assign('showOtherEditionsPopup', false);
+		foreach ($library->showInMainDetails as $detailoption) {
+			$interface->assign($detailoption, true);
 		}
 
-		$resource = new Resource();
-		$resource->record_id = $this->id;
-		$resource->source = 'VuFind';
-		$solrId = $this->id;
-		if ($resource->find(true)){
-			$otherEditions = OtherEditionHandler::getEditions($solrId, $resource->isbn , null, 10);
-			if (is_array($otherEditions)){
-				foreach ($otherEditions as $edition){
-					/** @var Resource $editionResource */
-					$editionResource = new Resource();
-					if (preg_match('/econtentRecord(\d+)/', $edition['id'], $matches)){
-						$editionResource->source = 'eContent';
-						$editionResource->record_id = trim($matches[1]);
-					}else{
-						$editionResource->record_id = $edition['id'];
-						$editionResource->source = 'VuFind';
-					}
-
-					if ($editionResource->find(true)){
-						$editionResources[] = $editionResource;
-					}else{
-						$logger= new Logger();
-						$logger->log("Could not find resource {$editionResource->source} {$editionResource->record_id} - {$edition['id']}", PEAR_LOG_DEBUG);
-					}
-				}
-			}else{
-				$editionResources = null;
-			}
-		}else{
-			$otherEditions = null;
-			$editionResources = null;
-		}
-		$interface->assign('otherEditions', $otherEditions);
-		$interface->assign('editionResources', $editionResources);
-
-		$interface->assign('chiliFreshAccount', $configArray['Content']['chiliFreshAccount']);
-		$timer->logTime('Configure UI for library and location');
+//		$publicationDetails = $this->recordDriver->getPublicationDetails();
+		$interface->assign('moreDetailsOptions', $this->recordDriver->getMoreDetailsOptions());
 
 		//Build the actual view
+		$interface->assign('sidebar', 'Record/full-record-sidebar.tpl');
+		$interface->assign('moreDetailsTemplate', 'GroupedWork/moredetails-accordion.tpl');
 		$interface->setTemplate('view.tpl');
 
-		$titleField = $this->marcRecord->getField('245');
-		if ($titleField){
-			if ($titleField->getSubfield('a')){
-				$mainTitle = $titleField->getSubfield('a')->getData();
-			}else{
-				$mainTitle = 'Title not available';
-			}
-			$interface->setPageTitle($mainTitle);
-		}
+		$interface->setPageTitle($this->recordDriver->getTitle());
 
 		// Display Page
 		$interface->display('layout.tpl');
 
 	}
 
-
-	/**
-	 * Load information from the review provider and update the interface with the data.
-	 *
-	 * @return array       Returns array with review data, otherwise a
-	 *                      PEAR_Error.
-	 */
-	function loadEnrichment(){
+	function loadCitations(){
 		global $interface;
-		global $configArray;
 
-		// Fetch from provider
-		if (isset($configArray['Content']['enrichment'])) {
-			$providers = explode(',', $configArray['Content']['enrichment']);
-			foreach ($providers as $provider) {
-				$provider = explode(':', trim($provider));
-				$func = strtolower($provider[0]);
-				$enrichment[$func] = $this->$func();
-
-				// If the current provider had no valid reviews, store nothing:
-				if (empty($enrichment[$func]) || PEAR_Singleton::isError($enrichment[$func])) {
-					unset($enrichment[$func]);
-				}
-			}
+		$citationCount = 0;
+		$formats = $this->recordDriver->getCitationFormats();
+		foreach($formats as $current) {
+			$interface->assign(strtolower($current),
+					$this->recordDriver->getCitation($current));
+			$citationCount++;
 		}
-
-		if ($enrichment) {
-			$interface->assign('enrichment', $enrichment);
-		}
-
-		return $enrichment;
+		$interface->assign('citationCount', $citationCount);
 	}
-
 }

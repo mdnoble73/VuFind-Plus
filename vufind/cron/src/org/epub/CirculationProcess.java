@@ -55,9 +55,6 @@ public class CirculationProcess implements IProcessHandler{
 		//Cancel holds that have not been picked up after 5 days
 		abandonHolds();
 		
-		//Place holds for wishlist records that were purchased
-		processWishlist();
-		
 		//Send notices for items that are available that haven't had notices printed for them yet
 		sendNotices();
 		
@@ -65,63 +62,6 @@ public class CirculationProcess implements IProcessHandler{
 		processLog.saveToDatabase(vufindConn, logger);
 	}
 	
-	private void processWishlist() {
-		logger.info("Processing the wishlist.");
-		processLog.addNote("Processing the wishlist.");
-		try {
-			//Get a list of all eContent Records that have a wishlist and that also have items
-			PreparedStatement recordsToProcess = econtentConn.prepareStatement("SELECT econtent_record.id, title, author, source, count(DISTINCT econtent_wishlist.userId) as numWishList, count(DISTINCT econtent_item.id) as numItems, availableCopies FROM econtent_record INNER JOIN econtent_wishlist on econtent_record.id = econtent_wishlist.recordId INNER JOIN econtent_item on econtent_record.id = econtent_item.recordId WHERE econtent_wishlist.status = 'active' GROUP BY econtent_record.id");
-			PreparedStatement wishListEntries = econtentConn.prepareStatement("SELECT econtent_wishlist.userId, econtent_wishlist.id FROM econtent_wishlist WHERE recordId = ? ORDER BY dateAdded ASC");
-			PreparedStatement insertHold = econtentConn.prepareStatement("INSERT INTO econtent_hold (recordId, datePlaced, dateUpdated, userId, status) VALUES (?, ?, ?, ?, ?)");
-			PreparedStatement markWishlistFilled = econtentConn.prepareStatement("UPDATE econtent_wishlist SET status = 'filled' WHERE id = ?");
-			
-			ResultSet recordsToProcessRs = recordsToProcess.executeQuery();
-			
-			while (recordsToProcessRs.next()){
-				long recordId = recordsToProcessRs.getLong("id");
-				long numAvailableRecords = recordsToProcessRs.getLong("availableCopies");
-				logger.info("Record " + recordId + " has items added to it.  Processing the wishlist.");
-				//Get a list of all users that had the record on their wishlist
-				wishListEntries.setLong(1, recordId);
-				ResultSet usersToProcess = wishListEntries.executeQuery();
-				long curUser = 0;
-				while (usersToProcess.next()){
-					long userId = usersToProcess.getLong("userId");
-					long wishlistId = usersToProcess.getLong("id");
-					logger.info("Adding holds for user " + userId);
-					//Create a hold for the user
-					String holdStatus;
-					if (curUser < numAvailableRecords){
-						//hold is available
-						holdStatus = "available";
-					}else{
-						//hold is active
-						holdStatus = "active";
-					}
-					long curDate = new Date().getTime() / 1000;
-					insertHold.setLong(1, recordId);
-					insertHold.setLong(2, curDate);
-					insertHold.setLong(3, curDate);
-					insertHold.setLong(4, userId);
-					insertHold.setString(5, holdStatus);
-					insertHold.executeUpdate();
-					
-					//Update the wishlist to show that the wishlist was filled
-					logger.info("Adding holds for user " + userId);
-					markWishlistFilled.setLong(1, wishlistId);
-					markWishlistFilled.executeUpdate();
-					processLog.incUpdated();
-					
-				}
-				
-			}
-		} catch (SQLException e) {
-			logger.error("Error processing wish list.", e);
-			processLog.incErrors();
-			processLog.addNote("Error processing wish list. " + e.toString());
-		}
-	}
-
 	private void activateSuspendedHolds() {
 		processLog.addNote("Activating suspended eContent holds");
 		long curTime = new Date().getTime() ;
@@ -157,7 +97,7 @@ public class CirculationProcess implements IProcessHandler{
 		try{
 			PreparedStatement usersToSendReturnReminderNoticesTo = econtentConn.prepareStatement("SELECT DISTINCT userId FROM econtent_checkout WHERE status ='out' AND returnReminderNoticeSent = 0 AND dateDue < ?");
 			PreparedStatement getUserEmailStmt = vufindConn.prepareStatement("SELECT email, firstname, lastname, displayName FROM user where id = ?");
-			PreparedStatement getExpiringCheckoutsForUser = econtentConn.prepareStatement("SELECT dateCheckedOut, dateDue, title, author, econtent_record.id, econtent_checkout.id as checkoutId FROM econtent_checkout INNER JOIN econtent_record on econtent_record.id = econtent_checkout.recordId WHERE userId = ? AND econtent_checkout.status ='out' AND returnReminderNoticeSent = 0 AND dateDue < ?");
+			PreparedStatement getExpiringCheckoutsForUser = econtentConn.prepareStatement("SELECT dateCheckedOut, dateDue, title, author, econtent_checkout.id as checkoutId FROM econtent_checkout WHERE userId = ? AND econtent_checkout.status ='out' AND returnReminderNoticeSent = 0 AND dateDue < ?");
 			PreparedStatement updateNoticeSent = econtentConn.prepareStatement("UPDATE econtent_checkout SET returnReminderNoticeSent = 1 WHERE id = ?");
 			SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMMM d, yyyy");
 			
@@ -176,15 +116,15 @@ public class CirculationProcess implements IProcessHandler{
 				ResultSet userInfo = getUserEmailStmt.executeQuery();
 				while (userInfo.next()){
 					String emailSubject = noticeLibraryName + " Notice";
-					StringBuffer emailBody = new StringBuffer();
+					StringBuilder emailBody = new StringBuilder();
 					String email = userInfo.getString("email");
 					String firstname = userInfo.getString("firstname");
 					String lastname = userInfo.getString("lastname");
 					
 					if (!email.equals("email")){
 						logger.info("Sending notification to " + firstname + " " + lastname);
-						emailBody.append(firstname + " " + lastname + "\r\n\r\n\r\n");
-						emailBody.append("This is a courtesy reminder from the library that the following items will be due on " + dateFormat.format(new Date(lastDueDateToSendNotice * 1000)) + ". ");
+						emailBody.append(firstname).append(" ").append(lastname).append("\r\n\r\n\r\n");
+						emailBody.append("This is a courtesy reminder from the library that the following items will be due on ").append(dateFormat.format(new Date(lastDueDateToSendNotice * 1000))).append(". ");
 						emailBody.append("Your access to the items will be automatically removed.  If you have downloaded any items to a portable reader, please delete the items from your device by ths date. \r\n\r\n");
 						
 						//Get a list of records that are available where notices have not been sent
@@ -194,15 +134,15 @@ public class CirculationProcess implements IProcessHandler{
 						while (expiringCheckouts.next()){
 							String title = expiringCheckouts.getString("title");
 							String author = expiringCheckouts.getString("author");
-							emailBody.append("    " + title + " by " + author + "\r\n");
+							emailBody.append("    ").append(title).append(" by ").append(author).append("\r\n");
 							long dateCheckedOut = expiringCheckouts.getLong("dateCheckedOut");
 							Date dateCheckedOutDate = new Date(dateCheckedOut * 1000);
-							emailBody.append("    Checked Out: " + dateFormat.format(dateCheckedOutDate) + "\r\n");
+							emailBody.append("    Checked Out: ").append(dateFormat.format(dateCheckedOutDate)).append("\r\n");
 						}
 						
 						emailBody.append("Thank you,\r\n\r\n");
-						emailBody.append(noticeLibraryName + "\r\n");
-						emailBody.append(siteUrl + "\r\n");
+						emailBody.append(noticeLibraryName).append("\r\n");
+						emailBody.append(siteUrl).append("\r\n");
 						
 						sendNotice(email, emailSubject, emailBody.toString(), logger);
 						
@@ -237,7 +177,7 @@ public class CirculationProcess implements IProcessHandler{
 			PreparedStatement usersToSendAbandonedNoticesTo = econtentConn.prepareStatement("SELECT DISTINCT userId FROM econtent_hold WHERE status ='abandoned' AND holdAbandonedNoticeSent = 0");
 			ResultSet usersToSendNoticesTo = usersToSendAbandonedNoticesTo.executeQuery();
 			PreparedStatement getUserEmailStmt = vufindConn.prepareStatement("SELECT email, firstname, lastname, displayName FROM user where id = ?");
-			PreparedStatement getAbandonedHoldsForUser = econtentConn.prepareStatement("SELECT datePlaced, dateUpdated, econtent_hold.status, title, author, econtent_record.id, econtent_hold.id as holdId FROM econtent_hold INNER JOIN econtent_record on econtent_record.id = econtent_hold.recordId WHERE userId = ? AND econtent_hold.status ='abandoned' AND holdAbandonedNoticeSent = 0");
+			PreparedStatement getAbandonedHoldsForUser = econtentConn.prepareStatement("SELECT datePlaced, dateUpdated, econtent_hold.status, title, author, econtent_hold.id as holdId FROM econtent_hold WHERE userId = ? AND econtent_hold.status ='abandoned' AND holdAbandonedNoticeSent = 0");
 			PreparedStatement updateNoticeSent = econtentConn.prepareStatement("UPDATE econtent_hold SET holdAbandonedNoticeSent = 1 WHERE id = ?");
 			SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMMM d, yyyy");
 			
@@ -247,14 +187,14 @@ public class CirculationProcess implements IProcessHandler{
 				ResultSet userInfo = getUserEmailStmt.executeQuery();
 				while (userInfo.next()){
 					String emailSubject = noticeLibraryName + " - Hold Abandoned Notice";
-					StringBuffer emailBody = new StringBuffer();
+					StringBuilder emailBody = new StringBuilder();
 					String email = userInfo.getString("email");
 					String firstname = userInfo.getString("firstname");
 					String lastname = userInfo.getString("lastname");
 					
 					if (!email.equals("email")){
 						logger.info("Sending notification to " + firstname + " " + lastname);
-						emailBody.append(firstname + " " + lastname + "\r\n\r\n\r\n");
+						emailBody.append(firstname).append(" ").append(lastname).append("\r\n\r\n\r\n");
 						emailBody.append("We wanted to let you know that the following items were held for you at the library.  Since you were unable to pick these holds up they have now expired.\r\n\r\n");
 						
 						//Get a list of records that are available where notices have not been sent
@@ -263,17 +203,17 @@ public class CirculationProcess implements IProcessHandler{
 						while (availableHolds.next()){
 							String title = availableHolds.getString("title");
 							String author = availableHolds.getString("author");
-							emailBody.append("    " + title + " by " + author + "\r\n");
+							emailBody.append("    ").append(title).append(" by ").append(author).append("\r\n");
 							long datePlaced = availableHolds.getLong("datePlaced");
 							Date datePlacedDate = new Date(datePlaced * 1000);
 							long dateHoldExpires = datePlaced * 1000 + 1000 * 60 * 60 * 24 * 5; // Add 5 days
 							Date dateHoldExpiresDate = new Date(dateHoldExpires);
-							emailBody.append("    Placed on hold: " + dateFormat.format(datePlacedDate) + "    Expired: " + dateFormat.format(dateHoldExpiresDate) + "\r\n");
+							emailBody.append("    Placed on hold: ").append(dateFormat.format(datePlacedDate)).append("    Expired: ").append(dateFormat.format(dateHoldExpiresDate)).append("\r\n");
 						}
 						
 						emailBody.append("Thank you,\r\n\r\n");
-						emailBody.append(noticeLibraryName + "\r\n");
-						emailBody.append(siteUrl + "\r\n");
+						emailBody.append(noticeLibraryName).append("\r\n");
+						emailBody.append(siteUrl).append("\r\n");
 						
 						sendNotice(email, emailSubject, emailBody.toString(), logger);
 						
@@ -313,7 +253,7 @@ public class CirculationProcess implements IProcessHandler{
 			//Get a list of records to send notices for
 			PreparedStatement usersToSendReminderNoticesTo = econtentConn.prepareStatement("SELECT DISTINCT userId FROM econtent_hold WHERE dateUpdated < ? AND status ='available' AND holdReminderNoticeSent = 0");
 			PreparedStatement getUserEmailStmt = vufindConn.prepareStatement("SELECT email, firstname, lastname, displayName FROM user where id = ?");
-			PreparedStatement getAvailableHoldsForUser = econtentConn.prepareStatement("SELECT datePlaced, dateUpdated, econtent_hold.status, title, author, econtent_record.id, econtent_hold.id as holdId FROM econtent_hold INNER JOIN econtent_record on econtent_record.id = econtent_hold.recordId WHERE holdReminderNoticeSent = 0 AND userId = ? and econtent_hold.status = 'available' AND dateUpdated < ?");
+			PreparedStatement getAvailableHoldsForUser = econtentConn.prepareStatement("SELECT datePlaced, dateUpdated, econtent_hold.status, title, author, econtent_hold.id as holdId FROM econtent_hold WHERE holdReminderNoticeSent = 0 AND userId = ? and econtent_hold.status = 'available' AND dateUpdated < ?");
 			PreparedStatement updateNoticeSent = econtentConn.prepareStatement("UPDATE econtent_hold SET holdReminderNoticeSent = 1 WHERE id = ?");
 			SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMMM d, yyyy");
 			
@@ -325,14 +265,14 @@ public class CirculationProcess implements IProcessHandler{
 				ResultSet userInfo = getUserEmailStmt.executeQuery();
 				while (userInfo.next()){
 					String emailSubject = noticeLibraryName + " - Hold Reminder Notice";
-					StringBuffer emailBody = new StringBuffer();
+					StringBuilder emailBody = new StringBuilder();
 					String email = userInfo.getString("email");
 					String firstname = userInfo.getString("firstname");
 					String lastname = userInfo.getString("lastname");
 					
 					if (!email.equals("email")){
 						logger.info("Sending notification to " + firstname + " " + lastname);
-						emailBody.append(firstname + " " + lastname + "\r\n\r\n\r\n");
+						emailBody.append(firstname).append(" ").append(lastname).append("\r\n\r\n\r\n");
 						emailBody.append("This is a reminder that the following items that you requested are now available for online usage. ");
 						emailBody.append("You can checkout the items by accessing your eContent at {$siteUrl}/MyResearch/MyEContent.\r\n\r\n");
 						emailBody.append("***Please Note***\r\n");
@@ -345,17 +285,17 @@ public class CirculationProcess implements IProcessHandler{
 						while (availableHolds.next()){
 							String title = availableHolds.getString("title");
 							String author = availableHolds.getString("author");
-							emailBody.append("    " + title + " by " + author + "\r\n");
+							emailBody.append("    ").append(title).append(" by ").append(author).append("\r\n");
 							long datePlaced = availableHolds.getLong("datePlaced");
 							Date datePlacedDate = new Date(datePlaced * 1000);
 							long dateHoldExpires = datePlaced * 1000 + 1000 * 60 * 60 * 24 * 5; // Add 5 days
 							Date dateHoldExpiresDate = new Date(dateHoldExpires);
-							emailBody.append("    Placed on hold: " + dateFormat.format(datePlacedDate) + "    Expires: " + dateFormat.format(dateHoldExpiresDate) + "\r\n");
+							emailBody.append("    Placed on hold: ").append(dateFormat.format(datePlacedDate)).append("    Expires: ").append(dateFormat.format(dateHoldExpiresDate)).append("\r\n");
 						}
 						
 						emailBody.append("Thank you,\r\n\r\n");
-						emailBody.append(noticeLibraryName + "\r\n");
-						emailBody.append(siteUrl + "\r\n");
+						emailBody.append(noticeLibraryName).append("\r\n");
+						emailBody.append(siteUrl).append("\r\n");
 						
 						sendNotice(email, emailSubject, emailBody.toString(), logger);
 						
@@ -393,7 +333,7 @@ public class CirculationProcess implements IProcessHandler{
 			//Get a list of records to send notices for
 			PreparedStatement usersToSendNoticesToStmt = econtentConn.prepareStatement("SELECT DISTINCT userId FROM econtent_hold WHERE status = 'available' and holdAvailableNoticeSent = 0");
 			PreparedStatement getUserEmailStmt = vufindConn.prepareStatement("SELECT email, firstname, lastname, displayName FROM user where id = ?");
-			PreparedStatement getAvailableHoldsForUser = econtentConn.prepareStatement("SELECT datePlaced, dateUpdated, econtent_hold.status, title, author, econtent_record.id, econtent_hold.id as holdId FROM econtent_hold INNER JOIN econtent_record on econtent_record.id = econtent_hold.recordId WHERE holdAvailableNoticeSent = 0 AND userId = ? and econtent_hold.status = 'available'");
+			PreparedStatement getAvailableHoldsForUser = econtentConn.prepareStatement("SELECT datePlaced, dateUpdated, econtent_hold.status, title, author, econtent_hold.id as holdId FROM econtent_hold WHERE holdAvailableNoticeSent = 0 AND userId = ? and econtent_hold.status = 'available'");
 			PreparedStatement updateNoticeSent = econtentConn.prepareStatement("UPDATE econtent_hold SET holdAvailableNoticeSent = 1 WHERE id = ?");
 			SimpleDateFormat dateFormat = new SimpleDateFormat("E, MMMM d, yyyy");
 			
@@ -404,14 +344,14 @@ public class CirculationProcess implements IProcessHandler{
 				ResultSet userInfo = getUserEmailStmt.executeQuery();
 				while (userInfo.next()){
 					String emailSubject = noticeLibraryName + " - Hold Notice";
-					StringBuffer emailBody = new StringBuffer();
+					StringBuilder emailBody = new StringBuilder();
 					String email = userInfo.getString("email");
 					String firstname = userInfo.getString("firstname");
 					String lastname = userInfo.getString("lastname");
 					
 					if (!email.equals("email")){
 						logger.info("Sending notification to " + firstname + " " + lastname);
-						emailBody.append(firstname + " " + lastname + "\r\n\r\n\r\n");
+						emailBody.append(firstname).append(" ").append(lastname).append("\r\n\r\n\r\n");
 						emailBody.append("The following items that you requested are now available for online usage. ");
 						emailBody.append("You can checkout the items by accessing your eContent at {$siteUrl}/MyResearch/MyEContent.\r\n\r\n");
 						emailBody.append("***Please Note***\r\n");
@@ -423,18 +363,18 @@ public class CirculationProcess implements IProcessHandler{
 						while (availableHolds.next()){
 							String title = availableHolds.getString("title");
 							String author = availableHolds.getString("author");
-							emailBody.append("    " + title + " by " + author + "\r\n");
+							emailBody.append("    ").append(title).append(" by ").append(author).append("\r\n");
 							long datePlaced = availableHolds.getLong("datePlaced");
 							Date datePlacedDate = new Date(datePlaced * 1000);
 							long dateHoldExpires = new Date().getTime() + 1000 * 60 * 60 * 24 * 5; // Add 5 days
 							Date dateHoldExpiresDate = new Date(dateHoldExpires);
 							
-							emailBody.append("    Placed on hold: " + dateFormat.format(datePlacedDate) + "    Expires: " + dateFormat.format(dateHoldExpiresDate) + "\r\n");
+							emailBody.append("    Placed on hold: ").append(dateFormat.format(datePlacedDate)).append("    Expires: ").append(dateFormat.format(dateHoldExpiresDate)).append("\r\n");
 						}
 						
 						emailBody.append("Thank you,\r\n\r\n");
-						emailBody.append(noticeLibraryName + "\r\n");
-						emailBody.append(siteUrl + "\r\n");
+						emailBody.append(noticeLibraryName).append("\r\n");
+						emailBody.append(siteUrl).append("\r\n");
 						
 						sendNotice(email, emailSubject, emailBody.toString(), logger);
 						
@@ -503,13 +443,14 @@ public class CirculationProcess implements IProcessHandler{
 		long curTimeSeconds = curTime/ 1000;
 		long latestDateToRemainActive = curTimeSeconds - (5 * 24 * 60 * 60);
 		try {
-			PreparedStatement getAbandonedHolds = econtentConn.prepareStatement("SELECT id, recordId FROM econtent_hold WHERE dateUpdated < ? AND status ='available'");
+			PreparedStatement getAbandonedHolds = econtentConn.prepareStatement("SELECT id, recordId, itemId FROM econtent_hold WHERE dateUpdated < ? AND status ='available'");
 			PreparedStatement abandonHold = econtentConn.prepareStatement("UPDATE econtent_hold SET status = 'abandoned', dateUpdated = ? WHERE id = ?");
 			getAbandonedHolds.setLong(1, latestDateToRemainActive);
 			ResultSet abandonedHolds = getAbandonedHolds.executeQuery();
 			while (abandonedHolds.next()){
 				long id = abandonedHolds.getLong("id");
-				long recordId = abandonedHolds.getLong("recordId");
+				String recordId = abandonedHolds.getString("recordId");
+				String itemId = abandonedHolds.getString("itemId");
 				logger.info("Hold " + id + " has been abandoned");
 				abandonHold.setLong(1, curTimeSeconds);
 				abandonHold.setLong(2, id);
@@ -521,7 +462,7 @@ public class CirculationProcess implements IProcessHandler{
 					processLog.incErrors();
 				}else{
 					processLog.incUpdated();
-					processHoldQueue(recordId, curTimeSeconds, logger);
+					processHoldQueue(recordId, itemId, curTimeSeconds, logger);
 				}
 			}
 		} catch (SQLException e) {
@@ -533,15 +474,16 @@ public class CirculationProcess implements IProcessHandler{
 
 	PreparedStatement getNextAvailableHold;
 	PreparedStatement markHoldAvailable;
-	private void processHoldQueue(long recordId, long curTimeSeconds, Logger logger) throws SQLException {
+	private void processHoldQueue(String recordId, String itemId, long curTimeSeconds, Logger logger) throws SQLException {
 		if (getNextAvailableHold == null){
-			getNextAvailableHold = econtentConn.prepareStatement("SELECT id FROM econtent_hold WHERE recordId = ? AND status='active' ORDER BY datePlaced ASC LIMIT 0, 1");
+			getNextAvailableHold = econtentConn.prepareStatement("SELECT id FROM econtent_hold WHERE recordId = ? AND itemId = ? AND status='active' ORDER BY datePlaced ASC LIMIT 0, 1");
 		}
 		if (markHoldAvailable == null){
 			markHoldAvailable = econtentConn.prepareStatement("UPDATE econtent_hold SET status='available', dateUpdated=? WHERE id = ?");
 		}
 		//Check to see if there are holds and return the item to the next user
-		getNextAvailableHold.setLong(1, recordId);
+		getNextAvailableHold.setString(1, recordId);
+		getNextAvailableHold.setString(2, itemId);
 		ResultSet nextHold = getNextAvailableHold.executeQuery();
 		if (nextHold.next()){
 			long holdId = nextHold.getLong("id");
@@ -563,12 +505,13 @@ public class CirculationProcess implements IProcessHandler{
 		long curTimeSeconds = curTime/ 1000;
 		//Get a list of all items that are overdue from the database
 		try {
-			PreparedStatement getOverdueItems = econtentConn.prepareStatement("SELECT id, recordId, userId, dateDue FROM econtent_checkout WHERE status='out' AND dateDue < " + curTimeSeconds);
+			PreparedStatement getOverdueItems = econtentConn.prepareStatement("SELECT id, recordId, itemId, userId, dateDue FROM econtent_checkout WHERE status='out' AND dateDue < " + curTimeSeconds);
 			PreparedStatement returnOverdueItem = econtentConn.prepareStatement("UPDATE econtent_checkout SET status = 'returned', dateReturned = ? WHERE id=?");
 			ResultSet overdueItems = getOverdueItems.executeQuery();
 			while (overdueItems.next()){
 				long id = overdueItems.getLong("id");
-				long recordId = overdueItems.getLong("recordId");
+				String recordId = overdueItems.getString("recordId");
+				String itemId = overdueItems.getString("itemId");
 				long userId = overdueItems.getLong("userId");
 				long dueDate = overdueItems.getLong("dateDue");
 				logger.info("Record " + recordId + " is checked out to " + userId + " and is overdue was due at " + dueDate + " it is now " + curTimeSeconds);
@@ -581,7 +524,7 @@ public class CirculationProcess implements IProcessHandler{
 					processLog.incErrors();
 					processLog.addNote("Unable to return record " + recordId + " checked out to " + userId);
 				}else{
-					processHoldQueue(recordId, curTimeSeconds, logger);
+					processHoldQueue(recordId, itemId, curTimeSeconds, logger);
 					processLog.incUpdated();
 				}
 			}

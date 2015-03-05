@@ -1,0 +1,74 @@
+// Core variables and mixins
+@import "../../responsive/css/variables.less";
+@import "variables.less";
+
+// Always include the base .less file
+@import "../../responsive/css/responsive_base.less";
+
+#header-container{
+  background-image: url('/interface/themes/basalt/images/header_background.png');
+}
+#header-logo{
+  margin-top: 20px;
+}
+
+.header-login-button-mixin(rgba(250, 148, 1, 0.5));  // best orange-ish buttons. plb 9-17-2014
+//.header-button {
+//  background-color: rgba(250, 148, 1, 0.5);
+//}
+
+#home-page-login {
+//  background-color: @home-search-bottom-color; // match color on bottom of search page
+  background-color: lighten(@home-search-bottom-color, 5%); // match color on bottom of search page
+
+}
+
+// custom styling of main browse category carousel
+
+#browse-category-carousel {
+  overflow: visible; // allow all list items to be seen
+  left: 0;
+  width: 95%;
+  margin-left: 5%;
+}
+#browse-category-carousel ul {
+  position: static; // restore positioning behavior
+  width: 100%;
+}
+
+#browse-category-carousel li {
+  // set number items to display in a row based on screen size
+  // default 4 per row, smallest 2 per row, small 3 per row
+  width: 23% !important;
+  @media (max-width: @screen-sm-max) {
+    width: 31% !important;
+  }
+  @media (max-width: @screen-xs-max) {
+    width: 48% !important;
+  }
+ float: left; // retains float left; ul positional is more critical. plb 9-16-2014
+}
+// hide scrolling controls
+#browse-category-picker .jcarousel-control-prev, #browse-category-picker .jcarousel-control-next, #browse-category-picker .jcarousel-pagination {
+  display: none;
+}
+
+// Selected Category needs to give a highlighted appearance
+.browse-category.selected {
+  background-color: @selectedCategoryColor;
+  background: linear-gradient(to bottom, @selectedCategoryColor, @selectedCategoryColor 82%, @categoryLineShadow 83%, @categoryLineColor 84%, @categoryLineColor 88%, @categoryLineShadow 89%, @selectedCategoryColor 90%, @selectedCategoryColor);
+  font-size: @browse-category-font-size + 2;
+}
+
+
+// experimental for personal use. plb 1-23-2015
+#objectEditorSaveButtons {
+  // .row;
+  .navbar;
+  .navbar-fixed-bottom;
+  left: auto;
+  right: auto;
+
+  width: 100%;
+  background: @body-bg-resp;
+}

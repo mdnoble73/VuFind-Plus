@@ -40,38 +40,6 @@ class Home extends Action {
 		echo $output;
 	}
 
-	function getLightbox()
-	{
-		global $configArray;
-		global $interface;
-
-		// Assign our followup
-		$interface->assign('followupModule', $_GET['followupModule']);
-		$interface->assign('followupAction', $_GET['followupAction']);
-		$interface->assign('followupId',     $_GET['followupId']);
-
-		// Sanitize incoming parameters
-		$module = preg_replace('/[^\w]/', '', $_GET['submodule']);
-		$action = preg_replace('/[^\w]/', '', $_GET['subaction']);
-
-		// Call Action
-		$path = 'services/' . $module . '/' . $action. '.php';
-		if (is_readable($path)) {
-			require_once $path;
-			if (class_exists($action)) {
-				$service = new $action();
-				$page = $service->launch();
-				$interface->assign('page', $page);
-			} else {
-				PEAR_Singleton::raiseError(new PEAR_Error('Unknown Action'));
-			}
-		} else {
-			PEAR_Singleton::raiseError(new PEAR_Error("Cannot Load Action '$action' for Module '$module'"));
-		}
-
-		return $interface->fetch('AJAX/lightbox.tpl');
-	}
-
 	function Login()
 	{
 		global $configArray;

@@ -85,6 +85,7 @@ class DBMaintenanceEContent extends Admin_Admin {
 
 		$interface->assign('sqlUpdates', $availableUpdates);
 
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('dbMaintenance.tpl');
 		$interface->setPageTitle('Database Maintenance - EContent');
 		$interface->display('layout.tpl');
@@ -211,6 +212,48 @@ class DBMaintenanceEContent extends Admin_Admin {
 					"ALTER TABLE econtent_checkout ADD acsTransactionId VARCHAR(50) NULL",
 					"ALTER TABLE econtent_checkout ADD userAcsId VARCHAR(50) NULL",
 				),
+			),
+
+			'eContentCheckout_protectionType'	=> array(
+				'title' => 'eContent Checkout Protection Type',
+				'description' => 'Add protection type to eContent Checkout',
+				'dependencies' => array(),
+				'sql' => array(
+						"ALTER TABLE econtent_checkout ADD protectionType ENUM('acs', 'free')",
+				),
+			),
+
+			'econtentUpdates2014' => array(
+				'title' => 'VuFind 2014 eContent Updates',
+				'description' => 'Update eContent Checkouts for VuFind 20124',
+				'sql' => array(
+					'DROP TABLE IF EXISTS econtent_record',
+					'DROP TABLE IF EXISTS econtent_item',
+					'DROP TABLE IF EXISTS econtent_availability',
+					'DROP TABLE IF EXISTS econtent_rating',
+					'DROP TABLE IF EXISTS econtent_wishlist',
+					'DROP TABLE IF EXISTS econtent_marc_import',
+					'TRUNCATE TABLE econtent_checkout',
+					'ALTER TABLE econtent_checkout CHANGE recordId recordId VARCHAR(20)',
+					'ALTER TABLE econtent_checkout ADD itemId VARCHAR(20)',
+					'TRUNCATE TABLE econtent_hold',
+					'ALTER TABLE econtent_hold CHANGE recordId recordId VARCHAR(20)',
+					'ALTER TABLE econtent_hold ADD itemId VARCHAR(20)',
+					'TRUNCATE TABLE econtent_history',
+					'ALTER TABLE econtent_history CHANGE recordId recordId VARCHAR(20)',
+					'ALTER TABLE econtent_history ADD itemId VARCHAR(20)',
+				)
+			),
+
+			'econtentHoldCheckoutTitles' => array(
+				'title' => 'Add Title Information for Holds and Checkouts',
+				'description' => 'Add title and author to econtent hold and checkout tables to allow sending notices',
+				'sql' => array(
+					'ALTER TABLE econtent_checkout ADD title VARCHAR(276)',
+					'ALTER TABLE econtent_checkout ADD author VARCHAR(100)',
+					'ALTER TABLE econtent_hold ADD title VARCHAR(276)',
+					'ALTER TABLE econtent_hold ADD author VARCHAR(100)',
+				)
 			),
 
 			'eContentHistory'	=> array(
@@ -778,6 +821,25 @@ class DBMaintenanceEContent extends Admin_Admin {
 						`notes` TEXT
 					)",
 				)
+			),
+
+			'overdrive_api_data_update_1' => array(
+				'title' => 'OverDrive API Data Update 1',
+				'description' => 'Update MetaData tables to store thumbnail, cover, and raw metadata.  Also update product to store raw metadata',
+				'sql' => array(
+					"ALTER TABLE overdrive_api_products ADD COLUMN rawData MEDIUMTEXT",
+					"ALTER TABLE overdrive_api_product_metadata ADD COLUMN rawData MEDIUMTEXT",
+					"ALTER TABLE overdrive_api_product_metadata ADD COLUMN thumbnail VARCHAR(255)",
+					"ALTER TABLE overdrive_api_product_metadata ADD COLUMN cover VARCHAR(255)",
+				),
+			),
+
+			'overdrive_api_data_update_2' => array(
+				'title' => 'OverDrive API Data Update 2',
+				'description' => 'Update Product table to add subtitle',
+				'sql' => array(
+					"ALTER TABLE overdrive_api_products ADD COLUMN subtitle VARCHAR(255)",
+				),
 			),
 
 			'add_indexes' => array(

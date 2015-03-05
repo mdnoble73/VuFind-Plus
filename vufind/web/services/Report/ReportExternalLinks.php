@@ -183,11 +183,9 @@ class Report_ReportExternalLinks extends Report_Report{
 					$recordId = $econtentRecord->ilsId;
 					$title = $econtentRecord->title;
 				}else{
-					$resource = new Resource();
-					$resource->record_id = $recordId;
-					$resource->source = 'VuFind';
-					$resource->find(true);
-					$title = $resource->title;
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($recordId);
+					$title = $recordDriver->getTitle();
 				}
 
 				$tmp = array(
@@ -379,6 +377,7 @@ class Report_ReportExternalLinks extends Report_Report{
 		}
 
 		$interface->setPageTitle('Report - External Link Tracking');
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('reportExternalLinks.tpl');
 		$interface->display('layout.tpl');
 

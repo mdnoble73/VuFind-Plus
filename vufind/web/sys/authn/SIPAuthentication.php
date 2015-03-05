@@ -8,24 +8,14 @@ class SIPAuthentication implements Authentication {
 	public function validateAccount($username, $password) {
 		global $configArray;
 		global $timer;
-		$result = false;
-
+		global $logger;
 		if (isset($username) && isset($password)) {
-			$barcodePrefix = $configArray['Catalog']['barcodePrefix'];
-			if (strlen($username) == 9){
-				$username = substr($barcodePrefix, 0, 5) . $username;
-			}elseif (strlen($username) == 8){
-				$username = substr($barcodePrefix, 0, 6) . $username;
-			}elseif (strlen($username) == 7){
-				$username = $barcodePrefix . $username;
-			}
-			
 			//Check to see if we have already processed this user
 			if (array_key_exists($username, self::$processedUsers)){
 				return self::$processedUsers[$username];
 			}
 			
-			if ($username != '' && $password != '') {
+			if (trim($username) != '' && trim($password) != '') {
 				// Attempt SIP2 Authentication
 
 				$mysip = new sip2;
@@ -61,6 +51,7 @@ class SIPAuthentication implements Authentication {
 								$msg_result = $mysip->get_message($in);
 				
 								// Make sure the response is 24 as expected
+								$patronInfoResponse = null;
 								if (preg_match("/^64/", $msg_result)) {
 									$patronInfoResponse = $mysip->parsePatronInfoResponse( $msg_result );
 								}
@@ -74,6 +65,8 @@ class SIPAuthentication implements Authentication {
 						}
 					}
 					$mysip->disconnect();
+				}else{
+					$logger->log("Unable to connect to SIP server", PEAR_LOG_ERR);
 				}
 			}
 		}
@@ -94,15 +87,18 @@ class SIPAuthentication implements Authentication {
 		if (isset($_POST['username']) && isset($_POST['password'])) {
 			$username = $_POST['username'];
 			$password = $_POST['password'];
+			//Set this up to use library prefix
 			$barcodePrefix = $configArray['Catalog']['barcodePrefix'];
-			if (strlen($username) == 9){
-				$username = substr($barcodePrefix, 0, 5) . $username;
-			}elseif (strlen($username) == 8){
-				$username = substr($barcodePrefix, 0, 6) . $username;
-			}elseif (strlen($username) == 7){
-				$username = $barcodePrefix . $username;
+			if (strlen($barcodePrefix) > 0){
+				if (strlen($username) == 9){
+					$username = substr($barcodePrefix, 0, 5) . $username;
+				}elseif (strlen($username) == 8){
+					$username = substr($barcodePrefix, 0, 6) . $username;
+				}elseif (strlen($username) == 7){
+					$username = $barcodePrefix . $username;
+				}
 			}
-			
+
 		  //Check to see if we have already processed this user
       if (array_key_exists($username, self::$processedUsers)){
         return self::$processedUsers[$username];
@@ -126,7 +122,9 @@ class SIPAuthentication implements Authentication {
 
 						//  Use result to populate SIP2 setings
 						$mysip->AO = $result['variable']['AO'][0]; /* set AO to value returned */
-						$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+						if (isset($result['variable']['AN'])){
+							$mysip->AN = $result['variable']['AN'][0]; /* set AN to value returned */
+						}
 
 						$mysip->patron = $username;
 						$mysip->patronpwd = $password;
@@ -167,6 +165,8 @@ class SIPAuthentication implements Authentication {
 
 				} else {
 					$user = new PEAR_Error('authentication_error_technical');
+					global $logger;
+					$logger->log("Unable to connect to SIP server", PEAR_LOG_ERR);
 				}
 			} else {
 				$user = new PEAR_Error('authentication_error_blank');
@@ -185,14 +185,16 @@ class SIPAuthentication implements Authentication {
 	 * Process SIP2 User Account
 	 *
 	 * @param   array   $info           An array of user information
-	 * @param   array   $username       The user's ILS username
-	 * @param   array   $password       The user's ILS password
+	 * @param   string   $username       The user's ILS username
+	 * @param   string   $password       The user's ILS password
+	 * @param   array   $patronInfoResponse       The user's ILS password
+	 * @return  User
 	 * @access  public
 	 * @author  Bob Wicksall <bwicksall@pls-net.org>
 	 */
 	private function processSIP2User($info, $username, $password, $patronInfoResponse){
 		global $timer;
-		require_once "services/MyResearch/lib/User.php";
+		require_once ROOT_DIR . "/services/MyResearch/lib/User.php";
 
 		$user = new User();
 		$user->username = $info['variable']['AA'][0];
@@ -204,22 +206,34 @@ class SIPAuthentication implements Authentication {
 		
 		// This could potentially be different depending on the ILS.  Name could be Bob Wicksall or Wicksall, Bob.
 		// This is currently assuming Wicksall, Bob
-		$user->firstname = trim(substr($info['variable']['AE'][0], 1 + strripos($info['variable']['AE'][0], ',')));
-		$user->lastname = trim(substr($info['variable']['AE'][0], 0, strripos($info['variable']['AE'][0], ',')));
+		if (strpos($info['variable']['AE'][0], ',') !== false){
+			$user->firstname = trim(substr($info['variable']['AE'][0], 1 + strripos($info['variable']['AE'][0], ',')));
+			$user->lastname = trim(substr($info['variable']['AE'][0], 0, strripos($info['variable']['AE'][0], ',')));
+		}else{
+			$user->lastname = trim(substr($info['variable']['AE'][0], 1 + strripos($info['variable']['AE'][0], ' ')));
+			$user->firstname = trim(substr($info['variable']['AE'][0], 0, strripos($info['variable']['AE'][0], ' ')));
+		}
+
 		// I'm inserting the sip username and password since the ILS is the source.
 		// Should revisit this.
 		$user->cat_username = $username;
 		$user->cat_password = $password;
 		$user->email = isset($patronInfoResponse['variable']['BE'][0]) ? $patronInfoResponse['variable']['BE'][0] : '';
-		$user->phone = $patronInfoResponse['variable']['BF'][0];
+		$user->phone = isset($patronInfoResponse['variable']['BF'][0]) ? $patronInfoResponse['variable']['BF'][0] : '';
 		$user->major = 'null';
 		$user->college = 'null';
 		$user->patronType = $patronInfoResponse['variable']['PC'][0];
 		
 		//Get home location
-		if (!isset($user->homeLocationId) || $user->homeLocationId == 0){
+		//Check AO?
+		if ((!isset($user->homeLocationId) || $user->homeLocationId == 0) && (isset($patronInfoResponse['variable']['AQ']) || isset($patronInfoResponse['variable']['AO']))){
 			$location = new Location();
-			$location->code = $patronInfoResponse['variable']['AQ'][0];
+			if (isset($patronInfoResponse['variable']['AQ'])){
+				$location->code = $patronInfoResponse['variable']['AQ'][0];
+			}else{
+				$location->code = $patronInfoResponse['variable']['AO'][0];
+			}
+
 			$location->find();
 			if ($location->N > 0){
 				$location->fetch();

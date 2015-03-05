@@ -30,6 +30,7 @@ function launch(){
 		if ($objectAction == 'reloadFromCsv'){
 			global $interface;
 			$interface->setTemplate('../Admin/importLoanRuleDeterminerData.tpl');
+			$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 			$interface->setPageTitle("Reload Loan Rule Determiners");
 			$interface->display('layout.tpl');
 			exit();
@@ -98,5 +99,10 @@ function launch(){
 		);
 		return $actions;
 	}
-
+	public function canAddNew(){
+		return false;
+	}
+	public function showExportAndCompare(){
+		return false;
+	}
 }
