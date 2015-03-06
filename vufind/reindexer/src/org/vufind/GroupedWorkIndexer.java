@@ -36,7 +36,6 @@ public class GroupedWorkIndexer {
 	private String solrPort;
 	private Logger logger;
 	private SolrServer solrServer;
-	private Collection<SolrInputDocument> pendingDocuments = new ArrayList<SolrInputDocument>();
 	private ConcurrentUpdateSolrServer updateServer;
 	private IlsRecordProcessor ilsRecordProcessor;
 	private OverDriveProcessor overDriveProcessor;
@@ -404,15 +403,6 @@ public class GroupedWorkIndexer {
 	}
 
 	public void finishIndexing(){
-		try {
-			if (pendingDocuments.size() > 0) {
-				updateServer.add(pendingDocuments);
-				pendingDocuments.clear();
-			}
-		}catch (Exception e){
-			logger.error("Error adding the final batch of documents to the index", e);
-		}
-
 		logger.info("Finishing indexing");
 		try {
 			logger.info("Calling commit");
@@ -708,13 +698,8 @@ public class GroupedWorkIndexer {
 
 			//Write the record to Solr.
 			try {
-				pendingDocuments.add(groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
-
-				//Add documents in a batch rather than one at a time.
-				if (pendingDocuments.size() >= 1000) {
-					updateServer.add(pendingDocuments);
-					pendingDocuments.clear();
-				}
+				SolrInputDocument inputDocument = groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue);
+				updateServer.add(inputDocument);
 
 				for (String scope: groupedWork.getScopedWorkDetails().keySet()){
 					indexingStats.get(scope).numLocalWorks++;
