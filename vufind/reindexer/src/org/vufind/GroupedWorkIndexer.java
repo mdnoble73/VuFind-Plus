@@ -711,7 +711,7 @@ public class GroupedWorkIndexer {
 				pendingDocuments.add(groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
 
 				//Add documents in a batch rather than one at a time.
-				if (pendingDocuments.size() == 25000) {
+				if (pendingDocuments.size() == 5000) {
 					updateServer.add(pendingDocuments);
 					pendingDocuments.clear();
 				}
