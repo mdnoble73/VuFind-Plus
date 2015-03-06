@@ -12,7 +12,7 @@
 #
 # ie :
 # git pull origin {current branch}
-# sudo crontab < /usr/local/vufind-plus/sites/catalog.library.nashville.org/conf/crontab_settings.txt
+# crontab < /usr/local/vufind-plus/sites/marmot.test/conf/crontab_settings.txt
 
 ###################
 # * * * * *  command to execute
@@ -34,7 +34,7 @@
 # On Reboot #
 #############
 # Continuous Re-Indexing
-@reboot cd /usr/local/VuFind-Plus/sites/catalog.library.nashville.org; ./continuous_partial_reindex.sh
+@reboot cd /usr/local/VuFind-Plus/sites/catalog.library.nashville.org; ./continuous_partial_reindex.sh 
 
 #####################
 # Daily full update #
@@ -42,29 +42,32 @@
 # Set the start for 11:55
 55 23 * * * cd /usr/local/vufind-plus/sites/catalog.library.nashville.org; ./full_update.sh
 
-#####################
-# CRON for Pika     #
-#####################
-00 */3 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org
-20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar catalog.library.nashville.org DatabaseCleanup
-
 ################
 # Pika Cleanup #
 ################
-# Solr Restart
-# MDN Do not restart Solr because full update does it
-18 0 * * * cd /usr/local/VuFind-Plus/sites/catalog.library.nashville.org; ./catalog.library.nashville.org.sh restart
-
-# Memcached restart
-# JAMES should ask why the memcached restart is commented out 20150216
-#2 1 * * * /etc/rc.d/init.d/memcached restart
-
-# MySQL Restart once a week should be enough
-# Don't do this because if it doesn't come back up, the server is dead Sunday morning.
-# JAMES should ask whether a mysql restart is necessary 20150216
-#6 1 * * 0 /etc/rc.d/init.d/mysqld restart
 
 # Temp files
 26 0 * * * cd /tmp; rm -rf CURLCOOKIE*
 27 0 * * * cd /tmp; rm -rf epb*
+
+# CRON for VuFind-Plus (book cover cache cleanup etc.)
+# JAMES should ask about cron.jar argument DatabaseCleanup
+00 */3 * * * cd /usr/local/VuFind-Plus/vufind/cron; java -jar cron.jar catalog.library.nashville.org
+
+###################################
+# Data Extract from other systems #
+###################################
+
+# Library supplied covers
+# JAMES should institute library-supplied covers workflow for Nashville 20150216
+# sparky - I could not find this script.  Thu Feb 26 11:19:47 CST 2015
+#*/10 * * * * /root/cron/copyCovers.sh
+# Every 10 minutes. fixed 11-14-2014 plb. (previously every hour 10 past the hour)
+
+# HOOPLA extract : as of 2014 12 19, Hoopla updates MARC files monthly; Nashville checks for new files daily
+0 13 * * * cd /usr/local/VuFind-Plus/vufind/cron; ./HOOPLA.sh catalog.library.nashville.org  
+
+# LEXILE : download file from Marmot
+00 4 1 * * cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt  
+
 

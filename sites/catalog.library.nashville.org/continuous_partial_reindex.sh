@@ -74,7 +74,7 @@ do
 	# Make sure we are not running a Full Record Group/Reindex process
 	hasConflicts=$(checkConflictingProcesses "full_update.sh")
 	#If we did get a conflict, restart the loop to make sure that all tests run
-	if (($? != 0)); then
+	if (($hasConflicts != 0)); then
 		continue
 	fi
 
@@ -113,6 +113,6 @@ do
 	if [[ ${FILESIZE} > 0 ]]
 	then
 			# send mail
-			mail -s "Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
+			mail -s "Continuous Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
 	fi
 done
