@@ -1,11 +1,11 @@
 #!/usr/bin/expect -f
 
+log_user 0 ; # do NOT send screens to stdout
 set testing false
 
 # ITEM_UPDATE_EXTRACT_PIKA.exp 
 # James Staub
 # Nashville Public Library
-# 20150204
 # 1. Create a review file of Item records updated today, export the file, 
 # 2. create a diff file form the last export (5 minutes ago),
 # 3. finally, exec java -jar reindexer.jar $site partialReindex
@@ -13,7 +13,12 @@ set testing false
 
 # TO DO
 # + Provide details on INNOPAC user privileges necessary
-# + DELETE UPDATES FILES
+
+# 20150302
+# + removed conflictingProcesses because continuous_partial_reindex.sh includes a similar function
+
+# 20150227
+# + DELETE UPDATES FILES - in crontab
 # + LOGGING!!!
 
 # 20150218 : Mark Noble scripted continuous_partial_reindex.sh etc to use the data this script provides
@@ -44,25 +49,6 @@ set testing false
 # scp library data from Millennium server
 # compare this export with the previous	export (or perhaps log)	to determine which records to reindex
 
-proc conflictingProcesses {} {
-	set nConflictingProcesses 0
-	# Conflicting Processes count - production, launched from cron
-	set nConflictingProcesses [expr [exec ps aux | grep -c ITEM_UPDATE_EXTRACT_PIKA.exp] - 2 + [exec ps aux | grep -c record_grouping.jar] - 1 + [exec ps aux | grep -c reindexer.jar] - 1 ]
-	#puts $nConflictingProcesses
-	if [expr $nConflictingProcesses > 0] {
-		puts "ITEM_UPDATE_EXTRACT_PIKA.exp cannot run at this time, there are currently conflicting processes running."
-		puts [exec ps aux | grep ITEM_UPDATE_EXTRACT_PIKA.exp]
-		puts [exec ps aux | grep record_grouping.jar]
-		puts [exec ps aux | grep reindexer.jar]
-		exit
-	}
-}
-
-# CHECK FOR CONFLICTING PROCESSES
-if {$testing == false } {
-	conflictingProcesses
-}
-
 set wait "2" ; # timeout
 
 set name "ITEM_UPDATE_EXTRACT_PIKA"
@@ -70,6 +56,7 @@ set nameWithTime "${name}-[clock format [clock seconds] -format %Y%m%d%H%M]"
 set newFileName "${nameWithTime}-new"
 set updatesFileName "${nameWithTime}-UPDATES"
 
+# READ ARGUMENTS
 if {$argc != 2} {
 	puts "Please provide a Pika site URL and a Millennium server/INNOPAC URL, e.g., $ expect ITEM_UPDATE_EXTRACT_PIKA.exp catalog.library.nashville.org waldo.library.nashville.org"
 	exit
@@ -87,6 +74,18 @@ if {[file exists $localPath] != 1} {
         exit
 }
 
+# LOG FILE : write to it with 
+# puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> log entry"
+set logFilePath "/var/log/vufind-plus/$site/$name.log"
+if { [catch {open $logFilePath "a+"} logFile ] } {
+  puts "Error open $logFilePath"
+}
+set logTimeStart [clock seconds]
+puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> Start $name for $site on $host"
+puts "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> Start $name for $site on $host"
+
+
+# READ CONFIG.PWD.INI
 set fd [open $confpwd r]
 while {![eof $fd]} {
 	set line [string trim [gets $fd] " "]
@@ -160,6 +159,8 @@ set timeout -1
 expect "BOOLEAN SEARCH COMPLETE"
 set timeout $wait
 send " "
+puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> $name for $site on $host: Create list complete"
+puts "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> $name for $site on $host: Create list complete"
 
 # CREATE EXPORT FILE
 expect "U > Output USER-selected format"
@@ -216,6 +217,8 @@ expect "Output the file now?"
 send "n"
 sleep 5; # Allows INNOPAC to complete writing, otherwise data could be truncated
 close
+puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> $name for $site on $host: Export file prepared"
+puts "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> $name for $site on $host: Export file prepared"
 
 } ; # end testing block
 
@@ -228,7 +231,8 @@ expect "100%"
 sleep 1
 close
 set timeout $wait
-
+puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> $name for $site on $host: Export file retrieved"
+puts "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> $name for $site on $host: Export file retrieved"
 
 # COMPARE THIS EXTRACT TO THE LAST ONE
 set newFile [open $localPath$newFileName]
@@ -241,7 +245,7 @@ if {[llength [glob -nocomplain -directory $localPath ${name}*-old]] > 0} {
 	set data [read $oldFile]
 	close $oldFile
 } else {
-	set data
+	set data ""
 }
 set oldData [lsort -unique [split $data \n]]
 
@@ -264,11 +268,8 @@ foreach update $updates {
 	puts $updatesFile "$update"
 }
 close $updatesFile
-
-# CHECK AGAIN FOR CONFLICTING PROCESSES BEFORE DELETING old FILES
-if {$testing == false } {
-	conflictingProcesses
-}
+puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> $name for $site on $host: Wrote [llength $updates] records to $updatesFileName"
+puts "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> $name for $site on $host: Wrote [llength $updates] records to $updatesFileName"
 
 if {[llength [glob -nocomplain -directory $localPath ${name}*-old]] > 0} {
 	eval file delete [glob -directory $localPath ${name}*-old]
@@ -286,5 +287,12 @@ if {[llength [glob -nocomplain -directory $localPath ${name}*-new]] > 0} {
 #if {[llength {glob -directory -nocomplain $localPath ${name}*-UPDATES}] > 0} {
 #	eval file delete [glob -directory $localPath ${name}*-UPDATES]
 #}
+
+set logTimeStop [clock seconds]
+set logTime [expr {$logTimeStop - $logTimeStart}]
+set logTime [clock format $logTime -format "%M:%S"]
+puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> $name for $site on $host: Completed in $logTime"
+puts "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> $name for $site on $host: Completed in $logTime"
+close $logFile
 
 exit
