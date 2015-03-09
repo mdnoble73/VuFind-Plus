@@ -1,6 +1,6 @@
 #!/bin/sh
 # set local configuration for starting Solr and then start solr
-#Replace {servername} with your server name and save in sites/{servername} as {servername.sh} 
+#Replace {servername} with your server name and save in sites/{servername} as {servername.sh}
 
 # needed for cases where multiple solr engines are running at the same time
 # (eg. for several Pika instances)
@@ -20,21 +20,20 @@ done
 
 #################################################
 # Setup the call to start solr
-##################################################
-export VUFIND_HOME=/usr/local/vufind-plus/sites/marmot.test
+################################################## 
+export VUFIND_HOME=/usr/local/vufind-plus/sites/flatirons.production
 export JETTY_HOME=/usr/local/vufind-plus/sites/default/solr/jetty
 
-#pika instance of solr engine
-export SOLR_HOME=/data/vufind-plus/marmot.test/solr
+export SOLR_HOME=/data/vufind-plus/flatirons.production/solr
 export JETTY_PORT=8080
 
 # check the right instances
 JETTY_RUN=`findDirectory -w /var/run /usr/var/run /tmp`
 export JETTY_RUN
-export JETTY_PID=$JETTY_RUN/marmot.test.pid
+export JETTY_PID=$JETTY_RUN/flatirons.production.pid
 
-#Max memory should be at least the size of all solr indexes combined.
-export JAVA_OPTIONS="-server -Xms2g -Xmx22g -XX:+UseParallelGC -XX:NewRatio=5"
-export JETTY_LOG=/var/log/vufind-plus/marmot.test/jetty
+#Max memory should be at least the size of all solr indexes combined. 
+export JAVA_OPTIONS="-server -Xms1024m -Xmx6144m -XX:+UseParallelGC -XX:NewRatio=5"
+export JETTY_LOG=/var/log/flatirons.production/logs/jetty
 
 exec /usr/local/vufind-plus/sites/default/vufind.sh $1 $2

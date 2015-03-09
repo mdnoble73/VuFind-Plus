@@ -29,6 +29,7 @@ if [ $# = 1 ];then
   echo ""
   #-----------------
   echo "setting up data directory"
+  mkdir /data
   cd /data
   mkdir vufind-plus
   cd vufind-plus
