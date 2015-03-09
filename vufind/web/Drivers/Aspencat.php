@@ -10,12 +10,12 @@
 require_once ROOT_DIR . '/Drivers/Interface.php';
 
 class Aspencat implements DriverInterface{
-	/** @var sip2 $sipConnection  */
-	private $sipConnection = null;
 	/** @var string $cookieFile A temporary file to store cookies  */
 	private $cookieFile = null;
 	/** @var resource connection to AspenCat  */
 	private $curl_connection = null;
+
+	private $dbConnection = null;
 	/**
 	 * Loads items information as quickly as possible (no direct calls to the ILS)
 	 *
@@ -178,17 +178,20 @@ class Aspencat implements DriverInterface{
 			$locationSubfield   = $configArray['Reindex']['locationSubfield'];
 			$callnumberSubfield = $configArray['Reindex']['callNumberSubfield'];
 			$collectionSubfield = $configArray['Reindex']['collectionSubfield'];
+			$suppressionSubfield = "i";
 
-			//Get the holdings from aspencat
-			$catalogUrl = $configArray['Catalog']['url'];
-			$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-detail.pl?biblionumber=$id";
-			$holdingsPage = $this->getKohaPage($kohaUrl);
-			$holdingsFromKoha = $this->getHoldingsFromKoha($holdingsPage);
+			//Get the holdings from the database
+			$this->initDatabaseConnection();
 
-			$firstItemWithSIPdata = null;
+			$holdingsFromKoha  = $this->getHoldingsFromKohaDB($id);
+
 			/** @var File_MARC_Data_Field[] $items */
 			$i=0;
 			foreach ($items as $item){
+				$suppression = trim($item->getSubfield($suppressionSubfield) != null ? $item->getSubfield($suppressionSubfield)->getData() : 0);
+				if ($suppression == 1){
+					continue;
+				}
 				//Ignore anything that is eContent
 				$collection = trim($item->getSubfield($collectionSubfield) != null ? $item->getSubfield($collectionSubfield)->getData() : '');
 				if (preg_match('/EAUDIO|EBOOK|ONLINE/i', $collection)){
@@ -204,7 +207,7 @@ class Aspencat implements DriverInterface{
 				}else{
 					$itemData = false;
 				}
-				if ($itemData == false){
+				if (true || $itemData == false){
 					//No data exists
 					$itemData = array();
 
@@ -247,9 +250,10 @@ class Aspencat implements DriverInterface{
 					$itemData['copy'] = $item->getSubfield('e') != null ? $item->getSubfield('e')->getData() : '';
 
 					$itemData['holdQueueLength'] = 0;
-					if (preg_match('/<span class="HoldsLabel">holds<\/span>: (\\d+)/i', $holdingsPage, $matches)) {
+					//TODO: Load hold queue length
+					/*if (preg_match('/<span class="HoldsLabel">holds<\/span>: (\\d+)/i', $holdingsPage, $matches)) {
 						$itemData['holdQueueLength'] = $matches[1];
-					}
+					}*/
 
 					$itemData['collection'] = mapValue('collection', $item->getSubfield('c') != null ? $item->getSubfield('c')->getData() : '');
 
@@ -258,28 +262,20 @@ class Aspencat implements DriverInterface{
 					//Match the record to the data loaded from koha
 					foreach ($holdingsFromKoha as $kohaItem){
 						if ($kohaItem['matched'] == false){
-							if ($itemData['location']){
-								$locationMatched = strpos($kohaItem['library'], $itemData['location']) === 0;
-								if (strlen($itemData['callnumber']) == 0){
-									$callNumberMatched = strlen($kohaItem['callnumber']) == 0;
-								}else{
-									$callNumberMatched = strpos($kohaItem['callnumber'], $itemData['callnumber']) === 0;
+							if ($itemData['id'] == $kohaItem['itemnumber']){
+								//TODO: Do a reverse mapping to get status code
+								$itemData['status'] = $kohaItem['status'];
+								$itemData['statusfull'] = $kohaItem['status'];
+								$itemData['dueDate'] = $kohaItem['dueDate'];
+								$kohaItem['matched'] = true;
+								if (isset($kohaItem['location']) && $kohaItem['location'] != ''){
+									$itemData['location'] .= ' - ' . $kohaItem['location'];
 								}
-
-								if ($locationMatched && $callNumberMatched){
-									//TODO: Do a reverse mapping to get status code
-									$itemData['statusfull'] = $kohaItem['status'];
-									$itemData['dueDate'] = $kohaItem['dueDate'];
-									$kohaItem['matched'] = true;
-									if (isset($kohaItem['location']) && $kohaItem['location'] != ''){
-										$itemData['location'] .= ' - ' . $kohaItem['location'];
-									}
-									if (isset($kohaItem['collection']) && $kohaItem['collection'] != ''){
-										$itemData['location'] .= ' - ' . $kohaItem['collection'];
-									}
-									//Only need to match against one record
-									break;
+								if (isset($kohaItem['collection']) && $kohaItem['collection'] != ''){
+									$itemData['location'] .= ' - ' . $kohaItem['collection'];
 								}
+								//Only need to match against one record
+								break;
 							}
 						}
 					}
@@ -777,7 +773,7 @@ class Aspencat implements DriverInterface{
 				}
 			}
 		} else {
-			$profile = new PEAR_Error('patron_info_error_technical - invalid patron information response');
+			$profile = PEAR_Singleton::raiseError('patron_info_error_technical - invalid patron information response');
 		}
 
 		$this->patronProfiles[$patron->username] = $profile;
@@ -1107,36 +1103,14 @@ class Aspencat implements DriverInterface{
 
 	}
 
-	private function initSipConnection() {
-		if ($this->sipConnection == null){
-			global $configArray;
-			require_once ROOT_DIR . '/sys/SIP2.php';
-			$this->sipConnection = new sip2();
-			$this->sipConnection->hostname = $configArray['SIP2']['host'];
-			$this->sipConnection->port = $configArray['SIP2']['port'];
+	function initDatabaseConnection(){
+		global $configArray;
+		$this->dbConnection = mysqli_connect($configArray['Catalog']['db_host'], $configArray['Catalog']['db_user'], $configArray['Catalog']['db_pwd'], $configArray['Catalog']['db_name']);
 
-			if ($this->sipConnection->connect()) {
-				//send selfcheck status message
-				$in = $this->sipConnection->msgSCStatus();
-				$msg_result = $this->sipConnection->get_message($in);
-
-				// Make sure the response is 98 as expected
-				if (preg_match("/^98/", $msg_result)) {
-					$result = $this->sipConnection->parseACSStatusResponse($msg_result);
-
-					//  Use result to populate SIP2 settings
-					$this->sipConnection->AO = $result['variable']['AO'][0]; /* set AO to value returned */
-					if (isset($result['variable']['AN'])){
-						$this->sipConnection->AN = $result['variable']['AN'][0]; /* set AN to value returned */
-					}
-					return true;
-				}
-				$this->sipConnection->disconnect();
-			}
-			$this->sipConnection = null;
-			return false;
-		}else{
-			return true;
+		if (mysqli_errno($this->dbConnection) != 0){
+			global $logger;
+			$logger->log("Error connecting to Koha database " . mysqli_error($this->dbConnection), PEAR_LOG_ERR);
+			$this->dbConnection = null;
 		}
 	}
 
@@ -1149,6 +1123,9 @@ class Aspencat implements DriverInterface{
 		//Cleanup any connections we have to other systems
 		if ($this->curl_connection != null){
 			curl_close($this->curl_connection);
+		}
+		if ($this->dbConnection != null){
+			mysqli_close($this->dbConnection);
 		}
 		if ($this->cookieFile != null){
 			unlink($this->cookieFile);
@@ -2151,66 +2128,74 @@ class Aspencat implements DriverInterface{
 		return 0;
 	}
 
-	private function getHoldingsFromKoha($holdingsPage) {
+	private function getHoldingsFromKohaDB($recordId){
 		$holdingsFromKoha = array();
 
-		//Get the table
-		if (preg_match_all('/<div id="holdings">.*?<table.*?>(.*?)<\/table>/si', $holdingsPage, $tableData, PREG_SET_ORDER)){
-			$table = $tableData[0][1];
-			//Get the header row labels
-			$headerLabels = array();
-			preg_match_all('/<th[^>]*>(.*?)<\/th>/si', $table, $tableHeaders, PREG_PATTERN_ORDER);
-			foreach ($tableHeaders[1] as $col => $tableHeader){
-				$headerLabels[$col] = trim(strip_tags(strtolower($tableHeader)));
-			}
+		$sql = "SELECT itemnumber, barcode, itype, holdingbranch, location, itemcallnumber, onloan, ccode, itemnotes, enumchron, damaged, itemlost, wthdrawn, restricted FROM items where biblionumber = ? AND suppress = 0";
+		$stmt = mysqli_prepare($this->dbConnection, $sql);
+		$stmt->bind_param("i", $recordId);
 
-			//Get each row within the table
-			//Grab the table body
-			preg_match('/<tbody>(.*?)<\/tbody>/si', $table, $tableBody);
-			$tableBody = $tableBody[1];
-			preg_match_all('/<tr[^>]*>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
-
-			foreach ($tableData[1] as $tableRow){
+		if (!$stmt->execute()){
+			global $logger;
+			$logger->log("Unable to load holdings from Koha ({$stmt->errno}) {$stmt->error}", PEAR_LOG_ERR);
+		}else{
+			//Read the information
+			$results = $stmt->get_result();
+			while ($curRow = $results->fetch_assoc()){
 				$curItem = array();
 				$curItem['matched'] = false;
+				$curItem['itemnumber'] = $curRow['itemnumber'];
+				$curItem['itemType'] = mapValue('itype', $curRow['itype']);
+				$curItem['library'] = mapValue('location', $curRow['holdingbranch']);
+				$curItem['location'] = $curRow['location'];
+				//TODO: Collection
+				$curItem['collection'] = mapValue('ccode', $curRow['ccode']);
+				$curItem['callnumber'] = $curRow['itemcallnumber'];
+				$curItem['volInfo'] = $curRow['enumchron'];
+				$curItem['copy'] = $curRow['itemcallnumber'];
 
-				//Go through each cell in the row
-				preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
-				foreach ($tableCells[1] as $col => $tableCell){
-					if ($headerLabels[$col] == 'item type'){
-						$curItem['itemType'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'library'){
-						//Remove courier code
-						$library = trim($tableCell);
-						$curItem['library'] = $library;
-					}else if ($headerLabels[$col] == 'location'){
-						$curItem['location'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'collection'){
-						$curItem['collection'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'call number'){
-						$curItem['callnumber'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'vol info'){
-						$curItem['volInfo'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'copy'){
-						$curItem['copy'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'status'){
-						$curItem['status'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'notes'){
-						$curItem['notes'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'date due'){
-						$curItem['dueDate'] = trim($tableCell);
+				$curItem['notes'] = $curRow['itemnotes'];
+				$curItem['dueDate'] = $curRow['onloan'];
+
+				//Figure out status based on all of the fields that make up the status
+				if ($curRow['damaged'] == 1){
+					$curItem['status'] = "Damaged";
+				}else if ($curRow['itemlost'] != null){
+					if ($curRow['itemlost'] == 'longoverdue'){
+						$curItem['status'] = "Long Overdue";
+					}elseif ($curRow['itemlost'] == 'missing'){
+						$curItem['status'] = "Missing";
+					}elseif ($curRow['itemlost'] == 'lost'){
+						$curItem['status'] = "Lost";
+					} elseif ($curRow['itemlost'] == 'trace'){
+						$curItem['status'] = "Trace";
+					}
+				}else if ($curRow['restricted'] == 1 ){
+					$curItem['status'] = "Not For Loan";
+				}else if ($curRow['wthdrawn'] == 1){
+					$curItem['status'] = "Withdrawn";
+				}else{
+					if ($curItem['dueDate'] == null){
+						$curItem['status'] = "On Shelf";
+					}else{
+						$curItem['status'] = "Due {$curItem['dueDate']}";
 					}
 				}
+
 				$holdingsFromKoha[] = $curItem;
 			}
-
+			$results->close();
 		}
 
+		$stmt->close();
 		return $holdingsFromKoha;
 	}
 
 	/**
+	 * Get status from an item in the MARC record
+	 *
 	 * @param File_MARC_Data_Field $item The item to load data for
+	 * @return string
 	 */
 	private function getItemStatus($itemField) {
 		//Determining status for Koha relies on a number of different fields
