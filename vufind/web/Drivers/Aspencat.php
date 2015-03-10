@@ -544,6 +544,7 @@ class Aspencat implements DriverInterface{
 		}
 
 		$this->initDatabaseConnection();
+		$this->getUserInfoStmt->bind_param('ss', $patron->cat_username, $patron->cat_username);
 		if ($this->getUserInfoStmt->execute()){
 			if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()){
 				$userFromDb = $userFromDbResultSet->fetch_assoc();
@@ -570,7 +571,7 @@ class Aspencat implements DriverInterface{
 				$fines = "";
 
 				//Get number of items checked out
-				$checkedOutItemsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numCheckouts FROM issues WHERE borrowernumber = ' . $patron['username']);
+				$checkedOutItemsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numCheckouts FROM issues WHERE borrowernumber = ' . $patron->username);
 				$numCheckouts = 0;
 				if ($checkedOutItemsRS){
 					$checkedOutItems = $checkedOutItemsRS->fetch_assoc();
@@ -579,7 +580,7 @@ class Aspencat implements DriverInterface{
 				}
 
 				//Get number of available holds
-				$availableHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM issues WHERE waitingdate != null and borrowernumber = ' . $patron['username']);
+				$availableHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM issues WHERE waitingdate != null and borrowernumber = ' . $patron->username);
 				$numAvailableHolds = 0;
 				if ($availableHoldsRS){
 					$availableHolds = $availableHoldsRS->fetch_assoc();
@@ -588,7 +589,7 @@ class Aspencat implements DriverInterface{
 				}
 
 				//Get number of unavailable
-				$waitingHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM issues WHERE waitingdate = null and borrowernumber = ' . $patron['username']);
+				$waitingHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM issues WHERE waitingdate = null and borrowernumber = ' . $patron->username);
 				$numWaitingHolds = 0;
 				if ($waitingHoldsRS){
 					$waitingHolds = $waitingHoldsRS->fetch_assoc();
@@ -992,8 +993,8 @@ class Aspencat implements DriverInterface{
 						$returnVal = array(
 							'username'  => $userFromDb['borrowernumber'], //The unique id of the patron in the ILS
 							'firstname' => $userFromDb['firstname'],
-							'lastname'  => $userFromDb['lastname'],
-							'fullname'  => $userFromDb['firstname'] . ' ' . $userFromDb['lastname'],     //Added to array for possible display later.
+							'lastname'  => $userFromDb['surname'],
+							'fullname'  => $userFromDb['firstname'] . ' ' . $userFromDb['surname'],     //Added to array for possible display later.
 							'cat_username' => $username,
 							'cat_password' => $password,
 
