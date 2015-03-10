@@ -233,7 +233,7 @@ abstract class HorizonAPI extends Horizon{
 				$homeBranchCode = trim((string)$lookupMyAccountInfoResponse->locationID);
 				//Translate home branch to plain text
 				$location = new Location();
-				$location->whereAdd("code = '$homeBranchCode'");
+				$location->code = $homeBranchCode;
 				$location->find(1);
 				if ($location->N == 0){
 					unset($location);

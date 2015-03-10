@@ -525,7 +525,6 @@ class Aspencat implements DriverInterface{
 	public function getMyProfile($patron, $forceReload = false) {
 		//Update to not use SIP, just screen scrape for performance (sigh)
 		global $timer;
-		global $configArray;
 
 		if (!is_object($patron)){
 			$tmpPatron = new User();
@@ -544,32 +543,13 @@ class Aspencat implements DriverInterface{
 			return $this->patronProfiles[$patron->username];
 		}
 
-		$result = $this->loginToKoha($patron);
-		if ($result['success']) {
-			//Get the my personal details page
-			$catalogUrl = $configArray['Catalog']['url'];
-			$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-userupdate.pl";
-			$personalDetailsPage = $this->getKohaPage($kohaUrl);
-			$summaryPage = $result['summaryPage'];
+		$this->initDatabaseConnection();
+		if ($this->getUserInfoStmt->execute()){
+			if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()){
+				$userFromDb = $userFromDbResultSet->fetch_assoc();
+				$userFromDbResultSet->close();
 
-			if (preg_match('/<input [^>]*id="streetnumber"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$streetnumber = $matches[1];
-			} else {
-				$streetnumber = "";
-			}
-			if (preg_match('/<input [^>]*id="address"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$address = $matches[1];
-			} else {
-				$address = "";
-			}
-			if (preg_match('/<input [^>]*id="address2"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$address2 = $matches[1];
-			} else {
-				$address2 = "";
-			}
-
-			if (preg_match('/<input [^>]*id="city"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$city = $matches[1];
+				$city = $userFromDb['city'];
 				$state = "";
 				$commaPos = strpos($city, ',');
 				if ($commaPos !== false){
@@ -577,131 +557,156 @@ class Aspencat implements DriverInterface{
 					$city = substr($cityState, 0, $commaPos);
 					$state = substr($cityState, $commaPos);
 				}
-			} else {
-				$city = "";
-				$state = "";
-			}
-			if (preg_match('/<input [^>]*id="zipcode"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$zipcode = $matches[1];
-			} else {
-				$zipcode = "";
-			}
-			if (preg_match('/<input [^>]*id="phone"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$phone = $matches[1];
-			} else {
-				$phone = "";
-			}
-			if (preg_match('/<input [^>]*id="email"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$email = $matches[1];
-			} else {
-				$email = "";
-			}
-			if (preg_match('/<input [^>]*id="dateexpiry"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$formattedExpiration = $matches[1];
-			} else {
-				$formattedExpiration = "";
-			}
 
-			//Get fines
-			$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-account.pl";
-			$finesPage = $this->getKohaPage($kohaUrl);
-			if (preg_match('/<span class="debit">(.*?)<\/span>/', $finesPage, $matches)) {
-				$fines = $matches[1];
-			} else {
+				//Get fines
+				//TODO: Load fines from database
+				/*$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-account.pl";
+				$finesPage = $this->getKohaPage($kohaUrl);
+				if (preg_match('/<span class="debit">(.*?)<\/span>/', $finesPage, $matches)) {
+					$fines = $matches[1];
+				} else {
+					$fines = "";
+				}*/
 				$fines = "";
-			}
 
-			//Get number of items checked out
-			if (preg_match('/<caption>(\d) Items Checked Out<\/caption>/', $summaryPage, $matches)) {
-				$numItemsOut = $matches[1];
-			} else {
-				$numItemsOut = 0;
-			}
-			$numAvailableHolds = preg_match('/Item waiting/', $summaryPage);
-			if (preg_match('/<caption><span class="HoldsLabel">Holds <\/span><span class="count">\((\d+) total\)<\/span><\/caption>/', $summaryPage, $matches)) {
-				$numHoldsTotal = $matches[1];
-			} else {
-				$numHoldsTotal = 0;
-			}
-			if (preg_match('/<caption>Suspended <span class="HoldsLabel">Holds <\/span><span class="count">\((\d+) total\)<\/span><\/caption>/', $summaryPage, $matches)) {
-				$numHoldsTotal += $matches[1];
-			}
-
-			//TODO: Determine if there is some way of getting the location for the user.  So far, there does not seem to be.
-
-			global $user;
-			$profile = array(
-				'lastname' => $patron->lastname,
-				'firstname' => $patron->firstname,
-				'displayName' => isset($patron->displayName) ? $patron->displayName : '',
-				'fullname' => $user->lastname . ', ' . $user->firstname,
-				'address1' => trim($streetnumber . ' ' . $address . ' ' . $address2),
-				'city' => $city,
-				'state' => $state,
-				'zip' => $zipcode,
-				'phone' => $phone,
-				'email' => $email,
-				'homeLocationId' => -1,
-				'homeLocationName' => '',
-				'expires' => $formattedExpiration,
-				'fines' => $fines,
-				'finesval' => floatval($fines),
-				'numHolds' => $numHoldsTotal,
-				'numHoldsAvailable' => $numAvailableHolds,
-				'numHoldsRequested' => $numHoldsTotal - $numAvailableHolds,
-				'numCheckedOut' => $numItemsOut ,
-				'bypassAutoLogout' => ($user ? $user->bypassAutoLogout : false),
-			);
-			$profile['noticePreferenceLabel'] = 'Unknown';
-
-			//Get eContent info as well
-			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-			$eContentDriver = new EContentDriver();
-			$eContentAccountSummary = $eContentDriver->getAccountSummary();
-			$profile = array_merge($profile, $eContentAccountSummary);
-
-			require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
-			$overDriveDriver = OverDriveDriverFactory::getDriver();
-			if ($overDriveDriver->isUserValidForOverDrive($user)){
-				$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
-				$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
-				$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
-				$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
-				$profile['canUseOverDrive'] = true;
-			}else{
-				$profile['numOverDriveCheckedOut'] = 0;
-				$profile['numOverDriveHoldsAvailable'] = 0;
-				$profile['numOverDriveHoldsRequested'] = 0;
-				$profile['canUseOverDrive'] = false;
-			}
-
-			$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $profile['numOverDriveCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
-			$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $profile['numOverDriveHoldsAvailable'] + $eContentAccountSummary['numEContentAvailableHolds'];
-			$profile['numHoldsRequestedTotal'] = $profile['numHoldsRequested'] + $profile['numOverDriveHoldsRequested'] + $eContentAccountSummary['numEContentUnavailableHolds'];
-			$profile['numHoldsTotal'] = $profile['numHoldsAvailableTotal'] + $profile['numHoldsRequestedTotal'];
-
-			//Get a count of the materials requests for the user
-			if ($user){
-				$homeLibrary = Library::getPatronHomeLibrary();
-				if ($homeLibrary){
-					$materialsRequest = new MaterialsRequest();
-					$materialsRequest->createdBy = $user->id;
-					$statusQuery = new MaterialsRequestStatus();
-					$statusQuery->isOpen = 1;
-					$statusQuery->libraryId = $homeLibrary->libraryId;
-					$materialsRequest->joinAdd($statusQuery);
-					$materialsRequest->find();
-					$profile['numMaterialsRequests'] = $materialsRequest->N;
-				}else{
-					$profile['numMaterialsRequests'] = 0;
+				//Get number of items checked out
+				$checkedOutItemsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numCheckouts FROM issues WHERE borrowernumber = ' . $patron['username']);
+				$numCheckouts = 0;
+				if ($checkedOutItemsRS){
+					$checkedOutItems = $checkedOutItemsRS->fetch_assoc();
+					$numCheckouts = $checkedOutItems['numCheckouts'];
+					$checkedOutItemsRS->close();
 				}
+
+				//Get number of available holds
+				$availableHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM issues WHERE waitingdate != null and borrowernumber = ' . $patron['username']);
+				$numAvailableHolds = 0;
+				if ($availableHoldsRS){
+					$availableHolds = $availableHoldsRS->fetch_assoc();
+					$numAvailableHolds = $availableHolds['numCheckouts'];
+					$availableHoldsRS->close();
+				}
+
+				//Get number of unavailable
+				$waitingHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM issues WHERE waitingdate = null and borrowernumber = ' . $patron['username']);
+				$numWaitingHolds = 0;
+				if ($waitingHoldsRS){
+					$waitingHolds = $waitingHoldsRS->fetch_assoc();
+					$numWaitingHolds = $waitingHolds['numCheckouts'];
+					$waitingHoldsRS->close();
+				}
+
+				$homeBranchCode = $userFromDb['branchcode'];
+				$location = new Location();
+				$location->code = $homeBranchCode;
+				$location->find(1);
+				if ($location->N == 0){
+					unset($location);
+				}
+
+				global $user;
+				$profile = array(
+					'lastname' => $patron->lastname,
+					'firstname' => $patron->firstname,
+					'displayName' => isset($patron->displayName) ? $patron->displayName : '',
+					'fullname' => $user->lastname . ', ' . $user->firstname,
+					'address1' => trim($userFromDb['streetnumber'] . ' ' . $userFromDb['address'] . ' ' . $userFromDb['address2']),
+					'city' => $city,
+					'state' => $state,
+					'zip' => $userFromDb['zipcode'],
+					'phone' => $userFromDb['phone'],
+					'email' => $userFromDb['email'],
+					'homeLocationId' => -1,
+					'homeLocationName' => '',
+					'expires' => $userFromDb['dateexpiry'],
+					'fines' => $fines,
+					'finesval' => floatval($fines),
+					'numHolds' => $numWaitingHolds + $numAvailableHolds,
+					'numHoldsAvailable' => $numAvailableHolds,
+					'numHoldsRequested' => $numWaitingHolds,
+					'numCheckedOut' => $numCheckouts ,
+					'bypassAutoLogout' => ($user ? $user->bypassAutoLogout : false),
+				);
+				$profile['noticePreferenceLabel'] = 'Unknown';
+
+				//Get eContent info as well
+				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
+				$eContentDriver = new EContentDriver();
+				$eContentAccountSummary = $eContentDriver->getAccountSummary();
+				$profile = array_merge($profile, $eContentAccountSummary);
+
+				require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
+				$overDriveDriver = OverDriveDriverFactory::getDriver();
+				if ($overDriveDriver->isUserValidForOverDrive($user)){
+					$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
+					$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
+					$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
+					$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
+					$profile['canUseOverDrive'] = true;
+				}else{
+					$profile['numOverDriveCheckedOut'] = 0;
+					$profile['numOverDriveHoldsAvailable'] = 0;
+					$profile['numOverDriveHoldsRequested'] = 0;
+					$profile['canUseOverDrive'] = false;
+				}
+
+				$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $profile['numOverDriveCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
+				$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $profile['numOverDriveHoldsAvailable'] + $eContentAccountSummary['numEContentAvailableHolds'];
+				$profile['numHoldsRequestedTotal'] = $profile['numHoldsRequested'] + $profile['numOverDriveHoldsRequested'] + $eContentAccountSummary['numEContentUnavailableHolds'];
+				$profile['numHoldsTotal'] = $profile['numHoldsAvailableTotal'] + $profile['numHoldsRequestedTotal'];
+
+				//Get a count of the materials requests for the user
+				if ($user){
+					$homeLibrary = Library::getPatronHomeLibrary();
+					if ($homeLibrary){
+						$materialsRequest = new MaterialsRequest();
+						$materialsRequest->createdBy = $user->id;
+						$statusQuery = new MaterialsRequestStatus();
+						$statusQuery->isOpen = 1;
+						$statusQuery->libraryId = $homeLibrary->libraryId;
+						$materialsRequest->joinAdd($statusQuery);
+						$materialsRequest->find();
+						$profile['numMaterialsRequests'] = $materialsRequest->N;
+					}else{
+						$profile['numMaterialsRequests'] = 0;
+					}
+
+					if ($user->homeLocationId == 0 && isset($location)) {
+						$user->homeLocationId = $location->locationId;
+						if ($location->nearbyLocation1 > 0){
+							$user->myLocation1Id = $location->nearbyLocation1;
+						}else{
+							$user->myLocation1Id = $location->locationId;
+						}
+						if ($location->nearbyLocation2 > 0){
+							$user->myLocation2Id = $location->nearbyLocation2;
+						}else{
+							$user->myLocation2Id = $location->locationId;
+						}
+						if ($user instanceof User) {
+							//Update the database
+							$user->update();
+							//Update the serialized instance stored in the session
+							$_SESSION['userinfo'] = serialize($user);
+						}
+					}else if (isset($location) && $location->locationId != $user->homeLocationId){
+						$user->homeLocationId = $location->locationId;
+
+						//Update the database
+						$user->update();
+						//Update the serialized instance stored in the session
+						$_SESSION['userinfo'] = serialize($user);
+					}
+				}
+			}else{
+				$profile = PEAR_Singleton::raiseError('patron_info_error_technical - could not load from database');
 			}
 		} else {
-			$profile = PEAR_Singleton::raiseError('patron_info_error_technical - invalid patron information response');
+			$profile = PEAR_Singleton::raiseError('patron_info_error_technical - could not execute user info statement');
 		}
 
 		$this->patronProfiles[$patron->username] = $profile;
-		$timer->logTime('Retrieved Profile for Patron from SIP 2');
+		$timer->logTime('Retrieved Profile for Patron from Database');
 		return $profile;
 	}
 
@@ -923,15 +928,21 @@ class Aspencat implements DriverInterface{
 		return $sResult;
 	}
 
+	/** @var mysqli_stmt  */
+	private $getUserInfoStmt = null;
+	private $loadedUsers = array();
 	public function patronLogin($username, $password) {
-		//Koha uses SIP2 authentication for login.  See
-
-		global $timer;
-		global $configArray;
-
 		//Remove any spaces from the barcode
 		$username = trim($username);
 		$password = trim($password);
+
+		if (array_key_exists($username, $this->loadedUsers)){
+			return $this->loadedUsers[$username];
+		}
+		global $timer;
+		global $configArray;
+
+		$this->loadedUsers[$username] = null;
 
 		if ($configArray['Catalog']['offline'] == true){
 			//The catalog is offline, check the database to see if the user is valid
@@ -968,58 +979,38 @@ class Aspencat implements DriverInterface{
 				return null;
 			}
 		}else{
-			//Login through SIP is proving unreliable (works maybe 1/5 of the time).
-			//Therefore, change to scraping the login process of classic.
-			$tmpUser = new User();
-			$tmpUser->cat_username = $username;
-			$tmpUser->cat_password = $password;
-			$loginResult = $this->loginToKoha($tmpUser);
-			if ($loginResult['success']){
-				//Get the my personal details page
-				$catalogUrl = $configArray['Catalog']['url'];
-				$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-userupdate.pl";
-				$personalDetailsPage = $this->getKohaPage($kohaUrl);
-				if (preg_match('/<input [^>]*id="borrowernumber"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-					$patronNumber = $matches[1];
-				} else {
-					$patronNumber = "";
-				}
-				if (preg_match('/<input [^>]*id="firstname"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-					$firstname = $matches[1];
-				} else {
-					$firstname = "";
-				}
-				if (preg_match('/<input [^>]*id="surname"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-					$lastname = $matches[1];
-				} else {
-					$lastname = "";
-				}
-				if (preg_match('/<input [^>]*id="email"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-					$email = $matches[1];
-				} else {
-					$email = "";
-				}
-				if (preg_match('/<input [^>]*id="categorycode"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-					$categorycode = $matches[1];
-				} else {
-					$categorycode = "";
-				}
+			//Use MySQL connection to load data
+			$this->initDatabaseConnection();
 
-				$returnVal = array(
-					'username'  => $patronNumber, //The unique id of the patron in the ILS
-					'firstname' => $firstname,
-					'lastname'  => $lastname,
-					'fullname'  => $firstname . ' ' . $lastname,     //Added to array for possible display later.
-					'cat_username' => $username,
-					'cat_password' => $password,
+			$this->getUserInfoStmt->bind_param('ss', $username, $username);
+			$encodedPassword = rtrim (base64_encode (pack ('H*', md5 ($password))), '=');
 
-					'email' => $email,
-					'major' => null,
-					'college' => null,
-					'patronType' => $categorycode,
-					'web_note' => ''
-				);
-				return $returnVal;
+			if ($this->getUserInfoStmt->execute()){
+				if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()){
+					$userFromDb = $userFromDbResultSet->fetch_assoc();
+					if ($userFromDb['password'] == $encodedPassword){
+						$returnVal = array(
+							'username'  => $userFromDb['borrowernumber'], //The unique id of the patron in the ILS
+							'firstname' => $userFromDb['firstname'],
+							'lastname'  => $userFromDb['lastname'],
+							'fullname'  => $userFromDb['firstname'] . ' ' . $userFromDb['lastname'],     //Added to array for possible display later.
+							'cat_username' => $username,
+							'cat_password' => $password,
+
+							'email' => $userFromDb['email'],
+							'major' => null,
+							'college' => null,
+							'patronType' => $userFromDb['categorycode'],
+							'web_note' => ''
+						);
+						$this->loadedUsers[$username] = $returnVal;
+						$timer->logTime("patron logged in successfully");
+						return $returnVal;
+					}else{
+						return null;
+					}
+				}
+				return null;
 			}else{
 				return null;
 			}
@@ -1036,6 +1027,9 @@ class Aspencat implements DriverInterface{
 				global $logger;
 				$logger->log("Error connecting to Koha database " . mysqli_error($this->dbConnection), PEAR_LOG_ERR);
 				$this->dbConnection = null;
+			}else{
+				$sql = "SELECT borrowernumber, cardnumber, surname, firstname, streetnumber, streettype, address, address2, city, zipcode, country, email, phone, mobile, categorycode, dateexpiry, password, userid, branchcode from borrowers where cardnumber = ? OR userid = ?";
+				$this->getUserInfoStmt = mysqli_prepare($this->dbConnection, $sql);
 			}
 			global $timer;
 			$timer->logTime("Initialized connection to Koha");
@@ -1064,9 +1058,6 @@ class Aspencat implements DriverInterface{
 		if ($this->cookieFile != null){
 			unlink($this->cookieFile);
 		}
-
-		global $timer;
-		$timer->logTime("Closed resources opened in AspenCat Driver");
 	}
 
 	public function hasNativeReadingHistory() {
