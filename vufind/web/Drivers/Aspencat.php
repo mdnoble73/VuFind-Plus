@@ -16,6 +16,112 @@ class Aspencat implements DriverInterface{
 	private $curl_connection = null;
 
 	private $dbConnection = null;
+
+	/**
+	 * @return array
+	 */
+	private static $holdingSortingData = null;
+	protected static function getSortingDataForHoldings() {
+		if (self::$holdingSortingData == null){
+			global $user;
+			global $library;
+			global $locationSingleton; /** @var $locationSingleton Location */
+
+			$holdingSortingData = array();
+
+			//Get location information so we can put things into sections
+			$physicalLocation = $locationSingleton->getPhysicalLocation();
+			if ($physicalLocation != null) {
+				$holdingSortingData['physicalBranch'] = $physicalLocation->holdingBranchLabel;
+			} else {
+				$holdingSortingData['physicalBranch'] = '';
+			}
+			$holdingSortingData['homeBranch'] = '';
+			$homeBranchId = 0;
+			$holdingSortingData['nearbyBranch1'] = '';
+			$nearbyBranch1Id = 0;
+			$holdingSortingData['nearbyBranch2'] = '';
+			$nearbyBranch2Id = 0;
+
+			//Set location information based on the user login.  This will override information based
+			if (isset($user) && $user != false) {
+				$homeBranchId = $user->homeLocationId;
+				$nearbyBranch1Id = $user->myLocation1Id;
+				$nearbyBranch2Id = $user->myLocation2Id;
+			} else {
+				//Check to see if the cookie for home location is set.
+				if (isset($_COOKIE['home_location']) && is_numeric($_COOKIE['home_location'])) {
+					$cookieLocation = new Location();
+					$locationId = $_COOKIE['home_location'];
+					$cookieLocation->whereAdd("locationId = '$locationId'");
+					$cookieLocation->find();
+					if ($cookieLocation->N == 1) {
+						$cookieLocation->fetch();
+						$homeBranchId = $cookieLocation->locationId;
+						$nearbyBranch1Id = $cookieLocation->nearbyLocation1;
+						$nearbyBranch2Id = $cookieLocation->nearbyLocation2;
+					}
+				}
+			}
+			//Load the holding label for the user's home location.
+			$userLocation = new Location();
+			$userLocation->whereAdd("locationId = '$homeBranchId'");
+			$userLocation->find();
+			if ($userLocation->N == 1) {
+				$userLocation->fetch();
+				$holdingSortingData['homeBranch'] = $userLocation->holdingBranchLabel;
+			}
+			//Load nearby branch 1
+			$nearbyLocation1 = new Location();
+			$nearbyLocation1->whereAdd("locationId = '$nearbyBranch1Id'");
+			$nearbyLocation1->find();
+			if ($nearbyLocation1->N == 1) {
+				$nearbyLocation1->fetch();
+				$holdingSortingData['nearbyBranch1'] = $nearbyLocation1->holdingBranchLabel;
+			}
+			//Load nearby branch 2
+			$nearbyLocation2 = new Location();
+			$nearbyLocation2->whereAdd();
+			$nearbyLocation2->whereAdd("locationId = '$nearbyBranch2Id'");
+			$nearbyLocation2->find();
+			if ($nearbyLocation2->N == 1) {
+				$nearbyLocation2->fetch();
+				$holdingSortingData['nearbyBranch2'] = $nearbyLocation2->holdingBranchLabel;
+			}
+
+			//Get a list of the display names for all locations based on holding label.
+			$locationLabels = array();
+			$location = new Location();
+			$location->find();
+			$holdingSortingData['libraryLocationLabels'] = array();
+			$locationCodes = array();
+			$suppressedLocationCodes = array();
+			while ($location->fetch()) {
+				if (strlen($location->holdingBranchLabel) > 0 && $location->holdingBranchLabel != '???') {
+					if ($library && $library->libraryId == $location->libraryId) {
+						$cleanLabel = str_replace('/', '\/', $location->holdingBranchLabel);
+						$libraryLocationLabels[] = str_replace('.', '\.', $cleanLabel);
+					}
+
+					$locationLabels[$location->holdingBranchLabel] = $location->displayName;
+					$locationCodes[$location->code] = $location->holdingBranchLabel;
+					if ($location->suppressHoldings == 1) {
+						$suppressedLocationCodes[$location->code] = $location->code;
+					}
+				}
+			}
+			if (count($holdingSortingData['libraryLocationLabels']) > 0) {
+				$holdingSortingData['libraryLocationLabels'] = '/^(' . join('|', $holdingSortingData['libraryLocationLabels']) . ').*/i';
+			} else {
+				$holdingSortingData['libraryLocationLabels'] = '';
+			}
+			self::$holdingSortingData = $holdingSortingData;
+			global $timer;
+			$timer->logTime("Finished loading sorting information for holdings");
+		}
+		return self::$holdingSortingData;
+	}
+
 	/**
 	 * Loads items information as quickly as possible (no direct calls to the ILS)
 	 *
@@ -48,290 +154,108 @@ class Aspencat implements DriverInterface{
 		return $items;
 	}
 
+	private $holdings = array();
 	public function getHolding($id) {
+		if (isset($this->holdings[$id])){
+			return $this->holdings[$id];
+		}
 		global $timer;
-		global $configArray;
+		global $library;
 
 		$allItems = array();
 
-		//Get location information so we can put things into sections
-		global $library;
-		global $locationSingleton; /** @var $locationSingleton Location */
-		$physicalLocation = $locationSingleton->getPhysicalLocation();
-		if ($physicalLocation != null){
-			$physicalBranch = $physicalLocation->holdingBranchLabel;
-		}else{
-			$physicalBranch = '';
-		}
-		$homeBranch    = '';
-		$homeBranchId  = 0;
-		$nearbyBranch1 = '';
-		$nearbyBranch1Id = 0;
-		$nearbyBranch2 = '';
-		$nearbyBranch2Id = 0;
-
-		//Set location information based on the user login.  This will override information based
-		if (isset($user) && $user != false){
-			$homeBranchId = $user->homeLocationId;
-			$nearbyBranch1Id = $user->myLocation1Id;
-			$nearbyBranch2Id = $user->myLocation2Id;
-		} else {
-			//Check to see if the cookie for home location is set.
-			if (isset($_COOKIE['home_location']) && is_numeric($_COOKIE['home_location'])) {
-				$cookieLocation = new Location();
-				$locationId = $_COOKIE['home_location'];
-				$cookieLocation->whereAdd("locationId = '$locationId'");
-				$cookieLocation->find();
-				if ($cookieLocation->N == 1) {
-					$cookieLocation->fetch();
-					$homeBranchId = $cookieLocation->locationId;
-					$nearbyBranch1Id = $cookieLocation->nearbyLocation1;
-					$nearbyBranch2Id = $cookieLocation->nearbyLocation2;
-				}
-			}
-		}
-		//Load the holding label for the user's home location.
-		$userLocation = new Location();
-		$userLocation->whereAdd("locationId = '$homeBranchId'");
-		$userLocation->find();
-		if ($userLocation->N == 1) {
-			$userLocation->fetch();
-			$homeBranch = $userLocation->holdingBranchLabel;
-		}
-		//Load nearby branch 1
-		$nearbyLocation1 = new Location();
-		$nearbyLocation1->whereAdd("locationId = '$nearbyBranch1Id'");
-		$nearbyLocation1->find();
-		if ($nearbyLocation1->N == 1) {
-			$nearbyLocation1->fetch();
-			$nearbyBranch1 = $nearbyLocation1->holdingBranchLabel;
-		}
-		//Load nearby branch 2
-		$nearbyLocation2 = new Location();
-		$nearbyLocation2->whereAdd();
-		$nearbyLocation2->whereAdd("locationId = '$nearbyBranch2Id'");
-		$nearbyLocation2->find();
-		if ($nearbyLocation2->N == 1) {
-			$nearbyLocation2->fetch();
-			$nearbyBranch2 = $nearbyLocation2->holdingBranchLabel;
-		}
-
-		//Get a list of the display names for all locations based on holding label.
-		$locationLabels = array();
-		$location = new Location();
-		$location->find();
-		$libraryLocationLabels = array();
-		$locationCodes = array();
-		$suppressedLocationCodes = array();
-		while ($location->fetch()){
-			if (strlen($location->holdingBranchLabel) > 0 && $location->holdingBranchLabel != '???'){
-				if ($library && $library->libraryId == $location->libraryId){
-					$cleanLabel =  str_replace('/', '\/', $location->holdingBranchLabel);
-					$libraryLocationLabels[] = str_replace('.', '\.', $cleanLabel);
-				}
-
-				$locationLabels[$location->holdingBranchLabel] = $location->displayName;
-				$locationCodes[$location->code] = $location->holdingBranchLabel;
-				if ($location->suppressHoldings == 1){
-					$suppressedLocationCodes[$location->code] = $location->code;
-				}
-			}
-		}
-		if (count($libraryLocationLabels) > 0){
-			$libraryLocationLabels = '/^(' . join('|', $libraryLocationLabels) . ').*/i';
-		}else{
-			$libraryLocationLabels = '';
-		}
+		$holdingSortingData = self::getSortingDataForHoldings();
 
 		// Retrieve Full Marc Record
 		$recordURL = null;
 
 		$sorted_array = array();
-		require_once ROOT_DIR . '/sys/MarcLoader.php';
-		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
-		$callNumber = '';
-		if ($marcRecord) {
-			$timer->logTime('Loaded MARC record from search object');
-			if (!$configArray['Reindex']['useItemBasedCallNumbers']){
-				/** @var File_MARC_Data_Field $callNumberField */
-				$callNumberField = $marcRecord->getField('92', true);
-				if ($callNumberField != null){
-					$callNumberA = $callNumberField->getSubfield('a');
-					$callNumberB = $callNumberField->getSubfield('b');
-					if ($callNumberA != null){
-						$callNumber = $callNumberA->getData();
-					}
-					if ($callNumberB != null){
-						if (strlen($callNumber) > 0){
-							$callNumber .= ' ';
-						}
-						$callNumber .= $callNumberB->getData();
-					}
-				}
-				$timer->logTime('Got call number');
+
+		$holdingsFromKoha  = $this->getHoldingsFromKohaDB($id);
+		$timer->logTime("Finished loading holdings from Koha");
+
+		/** @var array $items */
+		$i=0;
+		foreach ($holdingsFromKoha as $item){
+			$i++;
+
+			//No data exists
+			$itemData = $item;
+
+			//Get the barcode from the horizon database
+			$itemData['isLocalItem'] = false;
+			$itemData['isLibraryItem'] = false;
+			$itemData['locationLabel'] = $item['library'];
+
+			$groupedStatus = mapValue('item_grouped_status', $item['status']);
+			if ($groupedStatus == 'On Shelf' || $groupedStatus == 'Available Online'){
+				$itemData['availability'] = true;
+			}else{
+				$itemData['availability'] = false;
 			}
 
-			//Get the item records from the 949 tag
-			$items = $marcRecord->getFields($configArray['Reindex']['itemTag']);
-			$itemRecordNumberSubfield = $configArray['Reindex']['itemRecordNumberSubfield'];
-			$barcodeSubfield    = $configArray['Reindex']['barcodeSubfield'];
-			$locationSubfield   = $configArray['Reindex']['locationSubfield'];
-			$callnumberSubfield = $configArray['Reindex']['callNumberSubfield'];
-			$collectionSubfield = $configArray['Reindex']['collectionSubfield'];
-			$suppressionSubfield = "i";
+			//Make the item holdable by default.  Then check rules to make it non-holdable.
+			$itemData['holdable'] = true;
+			$itemData['reserve'] = 'N';
 
-			//Get the holdings from the database
-			$this->initDatabaseConnection();
+			$itemData['isDownload'] = false;
 
-			$holdingsFromKoha  = $this->getHoldingsFromKohaDB($id);
+			$itemData['holdQueueLength'] = $this->getNumHolds($id);
 
-			/** @var File_MARC_Data_Field[] $items */
-			$i=0;
-			foreach ($items as $item){
-				$suppression = trim($item->getSubfield($suppressionSubfield) != null ? $item->getSubfield($suppressionSubfield)->getData() : 0);
-				if ($suppression == 1){
-					continue;
-				}
-				//Ignore anything that is eContent
-				$collection = trim($item->getSubfield($collectionSubfield) != null ? $item->getSubfield($collectionSubfield)->getData() : '');
-				if (preg_match('/EAUDIO|EBOOK|ONLINE/i', $collection)){
-					continue;
-				}
-				$i++;
-				$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
-				//Check to see if we already have data for this barcode
-				/** @var Memcache $memCache */
-				global $memCache;
-				if (isset($barcode) && strlen($barcode) > 0 && !isset($_REQUEST['reload'])){
-					$itemData = $memCache->get("item_data_{$barcode}");
-				}else{
-					$itemData = false;
-				}
-				if (true || $itemData == false){
-					//No data exists
-					$itemData = array();
+			$itemData['statusfull'] = $itemData['status'];
 
-					$itemData['id'] = trim($item->getSubfield($itemRecordNumberSubfield) != null ? $item->getSubfield($itemRecordNumberSubfield)->getData() : '');
-					$itemData['type'] = 'holding';
-					//Get the barcode from the horizon database
-					$itemData['isLocalItem'] = false;
-					$itemData['isLibraryItem'] = false;
-					$itemData['locationCode'] = trim(strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' ));
-					$itemData['location'] = mapValue('location', $itemData['locationCode']);
-					if ($itemData['location'] == ''){
-						$itemData['location'] = $itemData['locationCode'];
-					}
-					$itemData['locationLabel'] = $itemData['location'];
+			if (isset($kohaItem['location']) && $kohaItem['location'] != ''){
+				$itemData['location'] .= ' - ' . $kohaItem['location'];
+			}
+			if (isset($kohaItem['collection']) && $kohaItem['collection'] != ''){
+				$itemData['location'] .= ' - ' . $kohaItem['collection'];
+			}
 
-					if (!$configArray['Reindex']['useItemBasedCallNumbers'] && $callNumber != ''){
-						$itemData['callnumber'] = $callNumber;
-					}else{
-						$itemData['callnumber'] = trim($item->getSubfield($callnumberSubfield) != null ? $item->getSubfield($callnumberSubfield)->getData() : '');
-					}
-					$itemData['callnumber'] = str_replace("~", " ", $itemData['callnumber']);
-					//Set default status
-					$status = $this->getItemStatus($item);
-					$itemData['status'] = $status;
+			$itemData['shelfLocation'] = $itemData['location'];
+			$itemData['groupedStatus'] = mapValue('item_grouped_status', $itemData['statusfull']);
 
-					$groupedStatus = mapValue('item_grouped_status', $status);
-					if ($groupedStatus == 'On Shelf' || $groupedStatus == 'Available Online'){
-						$itemData['availability'] = true;
-					}else{
-						$itemData['availability'] = false;
-					}
-
-					//Make the item holdable by default.  Then check rules to make it non-holdable.
-					$itemData['holdable'] = true;
-					$itemData['reserve'] = 'N';
-
-					$itemData['isDownload'] = false;
-
-					$itemData['barcode'] = $barcode;
-					$itemData['copy'] = $item->getSubfield('e') != null ? $item->getSubfield('e')->getData() : '';
-
-					$itemData['holdQueueLength'] = 0;
-					//TODO: Load hold queue length
-					/*if (preg_match('/<span class="HoldsLabel">holds<\/span>: (\\d+)/i', $holdingsPage, $matches)) {
-						$itemData['holdQueueLength'] = $matches[1];
-					}*/
-
-					$itemData['collection'] = mapValue('collection', $item->getSubfield('c') != null ? $item->getSubfield('c')->getData() : '');
-
-					$itemData['statusfull'] = $itemData['status'];
-
-					//Match the record to the data loaded from koha
-					foreach ($holdingsFromKoha as $kohaItem){
-						if ($kohaItem['matched'] == false){
-							if ($itemData['id'] == $kohaItem['itemnumber']){
-								//TODO: Do a reverse mapping to get status code
-								$itemData['status'] = $kohaItem['status'];
-								$itemData['statusfull'] = $kohaItem['status'];
-								$itemData['dueDate'] = $kohaItem['dueDate'];
-								$kohaItem['matched'] = true;
-								if (isset($kohaItem['location']) && $kohaItem['location'] != ''){
-									$itemData['location'] .= ' - ' . $kohaItem['location'];
-								}
-								if (isset($kohaItem['collection']) && $kohaItem['collection'] != ''){
-									$itemData['location'] .= ' - ' . $kohaItem['collection'];
-								}
-								//Only need to match against one record
-								break;
-							}
-						}
-					}
-					$itemData['shelfLocation'] = $itemData['location'];
-					$itemData['groupedStatus'] = mapValue('item_grouped_status', $itemData['statusfull']);
-
-					//Suppress items based on status
-					if (isset($barcode) && strlen($barcode) > 0){
-						$memCache->set("item_data_{$barcode}", $itemData, 0, $configArray['Caching']['item_data']);
-					}
-				}
-
-
-				$paddedNumber = str_pad(count($allItems) + 1, 3, '0', STR_PAD_LEFT);
-				$sortString = $itemData['location'] . $itemData['callnumber'] . $paddedNumber;
-				//$sortString = $holding['location'] . $holding['callnumber']. $i;
-				if (strlen($physicalBranch) > 0 && stripos($itemData['location'], $physicalBranch) !== false){
-					//If the user is in a branch, those holdings come first.
-					$itemData['section'] = 'In this library';
-					$itemData['sectionId'] = 1;
-					$itemData['isLocalItem'] = true;
-					$sorted_array['1' . $sortString] = $itemData;
-				} else if (strlen($homeBranch) > 0 && stripos($itemData['location'], $homeBranch) !== false){
-					//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
-					$itemData['section'] = 'Your library';
-					$itemData['sectionId'] = 2;
-					$itemData['isLocalItem'] = true;
-					$sorted_array['2' . $sortString] = $itemData;
-				} else if ((strlen($nearbyBranch1) > 0 && stripos($itemData['location'], $nearbyBranch1) !== false)){
-					//Next come nearby locations for the user
-					$itemData['section'] = 'Nearby Libraries';
-					$itemData['sectionId'] = 3;
-					$sorted_array['3' . $sortString] = $itemData;
-				} else if ((strlen($nearbyBranch2) > 0 && stripos($itemData['location'], $nearbyBranch2) !== false)){
-					//Next come nearby locations for the user
-					$itemData['section'] = 'Nearby Libraries';
-					$itemData['sectionId'] = 4;
-					$sorted_array['4' . $sortString] = $itemData;
-					//MDN 11/17 - taken out because all Horizon libraries are single institution (so far)
-				} else if (strlen($libraryLocationLabels) > 0 && preg_match($libraryLocationLabels, $itemData['location'])){
-						//Next come any locations within the same system we are in.
-						$holding['section'] = $library->displayName;
-						$holding['sectionId'] = 5;
-						$sorted_array['5' . $sortString] = $itemData;
-				} else {
-					//Finally, all other holdings are shown sorted alphabetically.
-					$itemData['section'] = $library->displayName;
-					$holding['sectionId'] = 5;
-					$sorted_array['5' . $sortString] = $itemData;
-				}
+			$paddedNumber = str_pad(count($allItems) + 1, 3, '0', STR_PAD_LEFT);
+			$sortString = $itemData['location'] . $itemData['callnumber'] . $paddedNumber;
+			//$sortString = $holding['location'] . $holding['callnumber']. $i;
+			if (strlen($holdingSortingData['physicalBranch']) > 0 && stripos($itemData['location'], $holdingSortingData['physicalBranch']) !== false){
+				//If the user is in a branch, those holdings come first.
+				$itemData['section'] = 'In this library';
+				$itemData['sectionId'] = 1;
+				$itemData['isLocalItem'] = true;
+				$sorted_array['1' . $sortString] = $itemData;
+			} else if (strlen($holdingSortingData['homeBranch']) > 0 && stripos($itemData['location'], $holdingSortingData['homeBranch']) !== false){
+				//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
+				$itemData['section'] = 'Your library';
+				$itemData['sectionId'] = 2;
+				$itemData['isLocalItem'] = true;
+				$sorted_array['2' . $sortString] = $itemData;
+			} else if ((strlen($holdingSortingData['nearbyBranch1']) > 0 && stripos($itemData['location'], $holdingSortingData['nearbyBranch1']) !== false)){
+				//Next come nearby locations for the user
+				$itemData['section'] = 'Nearby Libraries';
+				$itemData['sectionId'] = 3;
+				$sorted_array['3' . $sortString] = $itemData;
+			} else if ((strlen($holdingSortingData['nearbyBranch2']) > 0 && stripos($itemData['location'], $holdingSortingData['nearbyBranch2']) !== false)){
+				//Next come nearby locations for the user
+				$itemData['section'] = 'Nearby Libraries';
+				$itemData['sectionId'] = 4;
+				$sorted_array['4' . $sortString] = $itemData;
+			} else if (strlen($holdingSortingData['libraryLocationLabels']) > 0 && preg_match($holdingSortingData['libraryLocationLabels'], $itemData['location'])){
+				//Next come any locations within the same system we are in.
+				$holding['section'] = $library->displayName;
+				$holding['sectionId'] = 5;
+				$sorted_array['5' . $sortString] = $itemData;
+			} else {
+				//Finally, all other holdings are shown sorted alphabetically.
+				$itemData['section'] = $library->displayName;
+				$holding['sectionId'] = 5;
+				$sorted_array['5' . $sortString] = $itemData;
 			}
 		}
-		$timer->logTime("Finished loading status information");
 
 		ksort($sorted_array);
-		return $sorted_array;
+		$this->holdings[$id] = $sorted_array;
+		$timer->logTime("Finished loading status information");
+		return $this->holdings[$id];
 	}
 
 	/**
@@ -1105,12 +1029,16 @@ class Aspencat implements DriverInterface{
 
 	function initDatabaseConnection(){
 		global $configArray;
-		$this->dbConnection = mysqli_connect($configArray['Catalog']['db_host'], $configArray['Catalog']['db_user'], $configArray['Catalog']['db_pwd'], $configArray['Catalog']['db_name']);
+		if ($this->dbConnection == null){
+			$this->dbConnection = mysqli_connect($configArray['Catalog']['db_host'], $configArray['Catalog']['db_user'], $configArray['Catalog']['db_pwd'], $configArray['Catalog']['db_name']);
 
-		if (mysqli_errno($this->dbConnection) != 0){
-			global $logger;
-			$logger->log("Error connecting to Koha database " . mysqli_error($this->dbConnection), PEAR_LOG_ERR);
-			$this->dbConnection = null;
+			if (mysqli_errno($this->dbConnection) != 0){
+				global $logger;
+				$logger->log("Error connecting to Koha database " . mysqli_error($this->dbConnection), PEAR_LOG_ERR);
+				$this->dbConnection = null;
+			}
+			global $timer;
+			$timer->logTime("Initialized connection to Koha");
 		}
 	}
 
@@ -1125,11 +1053,20 @@ class Aspencat implements DriverInterface{
 			curl_close($this->curl_connection);
 		}
 		if ($this->dbConnection != null){
+			if ($this->getNumHoldsStmt != null){
+				$this->getNumHoldsStmt->close();
+			}
+			if ($this->getHoldingsStmt != null){
+				$this->getHoldingsStmt->close();
+			}
 			mysqli_close($this->dbConnection);
 		}
 		if ($this->cookieFile != null){
 			unlink($this->cookieFile);
 		}
+
+		global $timer;
+		$timer->logTime("Closed resources opened in AspenCat Driver");
 	}
 
 	public function hasNativeReadingHistory() {
@@ -2124,31 +2061,71 @@ class Aspencat implements DriverInterface{
 		$memCache->delete('patronProfile_' . $user->id);
 	}
 
+	private $holdsByBib = array();
+	/** @var mysqli_stmt  */
+	private $getNumHoldsStmt = null;
 	public function getNumHolds($id) {
-		return 0;
+		if (isset($this->holdsByBib[$id])){
+			return $this->holdsByBib[$id];
+		}
+		$numHolds = 0;
+
+		$this->initDatabaseConnection();
+		if ($this->getNumHoldsStmt == null){
+			$sql = "SELECT count(*) from reserves where biblionumber = ?";
+			$this->getNumHoldsStmt = mysqli_prepare($this->dbConnection, $sql);
+		}
+		$this->getNumHoldsStmt->bind_param("i", $recordId);
+		if (!$this->getNumHoldsStmt->execute()){
+			global $logger;
+			$logger->log("Unable to load hold count from Koha ({$this->getNumHoldsStmt->errno}) {$this->getNumHoldsStmt->error}", PEAR_LOG_ERR);
+
+		}else{
+			$results = $this->getNumHoldsStmt->get_result();
+			$curRow = $results->fetch_row();
+			$numHolds = $curRow[0];
+			$results->close();
+		}
+
+		$this->holdsByBib[$id] = $numHolds;
+
+		global $timer;
+		$timer->logTime("Finished loading num holds for record ");
+
+		return $numHolds;
 	}
 
+	/** @var mysqli_stmt  */
+	private $getHoldingsStmt = null;
 	private function getHoldingsFromKohaDB($recordId){
 		$holdingsFromKoha = array();
 
-		$sql = "SELECT itemnumber, barcode, itype, holdingbranch, location, itemcallnumber, onloan, ccode, itemnotes, enumchron, damaged, itemlost, wthdrawn, restricted FROM items where biblionumber = ? AND suppress = 0";
-		$stmt = mysqli_prepare($this->dbConnection, $sql);
-		$stmt->bind_param("i", $recordId);
+		$this->initDatabaseConnection();
 
-		if (!$stmt->execute()){
+		if ($this->getHoldingsStmt == null){
+			$sql = "SELECT itemnumber, barcode, itype, holdingbranch, location, itemcallnumber, onloan, ccode, itemnotes, enumchron, damaged, itemlost, wthdrawn, restricted FROM items where biblionumber = ? AND suppress = 0";
+			$this->getHoldingsStmt = mysqli_prepare($this->dbConnection, $sql);
+		}
+		$this->getHoldingsStmt->bind_param("i", $recordId);
+
+		if (!$this->getHoldingsStmt->execute()){
 			global $logger;
-			$logger->log("Unable to load holdings from Koha ({$stmt->errno}) {$stmt->error}", PEAR_LOG_ERR);
+			$logger->log("Unable to load holdings from Koha ({$this->getHoldingsStmt->errno}) {$this->getHoldingsStmt->error}", PEAR_LOG_ERR);
 		}else{
 			//Read the information
-			$results = $stmt->get_result();
+			$results = $this->getHoldingsStmt->get_result();
 			while ($curRow = $results->fetch_assoc()){
+				if ($curRow['itype'] == 'EAUDIO' || $curRow['itype'] == 'EBOOK' || $curRow['itype'] == 'ONLINE'){
+					continue;
+				}
 				$curItem = array();
-				$curItem['matched'] = false;
-				$curItem['itemnumber'] = $curRow['itemnumber'];
+				$curItem['type'] = 'holding';
+				$curItem['id'] = $curRow['itemnumber'];
+				$curItem['barcode'] = $curRow['barcode'];
 				$curItem['itemType'] = mapValue('itype', $curRow['itype']);
+				$curItem['locationCode'] = $curRow['location'];
 				$curItem['library'] = mapValue('location', $curRow['holdingbranch']);
 				$curItem['location'] = $curRow['location'];
-				//TODO: Collection
 				$curItem['collection'] = mapValue('ccode', $curRow['ccode']);
 				$curItem['callnumber'] = $curRow['itemcallnumber'];
 				$curItem['volInfo'] = $curRow['enumchron'];
@@ -2187,14 +2164,13 @@ class Aspencat implements DriverInterface{
 			$results->close();
 		}
 
-		$stmt->close();
 		return $holdingsFromKoha;
 	}
 
 	/**
 	 * Get status from an item in the MARC record
 	 *
-	 * @param File_MARC_Data_Field $item The item to load data for
+	 * @param File_MARC_Data_Field $itemField The item to load data for
 	 * @return string
 	 */
 	private function getItemStatus($itemField) {
