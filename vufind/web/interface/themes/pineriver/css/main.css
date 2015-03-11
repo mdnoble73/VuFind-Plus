@@ -6989,7 +6989,7 @@ div#system-message-header {
 }
 #browse-label {
   height: 5px;
-  background-color: #bbd4e3;
+  background-color: rgba(111, 68, 0, 0.5);
   margin-top: 15px;
   margin-bottom: 15px;
   margin-right: -15px;
@@ -8032,6 +8032,10 @@ div#system-message-header {
 .marriageTitle {
   font-weight: bold;
 }
+#header-container {
+  background-image: url('/interface/themes/pineriver/images/header_background.png');
+  background-repeat: no-repeat;
+}
 .header-button {
   border-radius: 0.5em;
   background-color: rgba(51, 51, 51, 0.6);
@@ -8052,7 +8056,7 @@ div#system-message-header {
   box-shadow: 2px 2px 5px white;
 }
 #header-logo {
-  padding-top: 0;
+  display: none;
 }
 #browse-category-picker .jcarousel-control-prev,
 #browse-category-picker .jcarousel-control-next {
@@ -8084,4 +8088,7 @@ div#system-message-header {
 }
 .selected-browse-label-search a {
   color: #6f4400;
+}
+#selected-browse-label {
+  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, rgba(111, 68, 0, 0.5) 45%, rgba(111, 68, 0, 0.5) 55%, #ffffff 56%);
 }
