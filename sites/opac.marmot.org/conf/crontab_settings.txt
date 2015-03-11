@@ -57,3 +57,8 @@
 # Write reports for schools
 00 6,11 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar opac.marmot.org SierraReports
 
+###################################
+# Data Extract from other systems #
+###################################
+# Library supplied covers
+*/10 * * * * /root/cron/copyCovers.sh
