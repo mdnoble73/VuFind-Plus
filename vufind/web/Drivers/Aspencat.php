@@ -560,15 +560,8 @@ class Aspencat implements DriverInterface{
 				}
 
 				//Get fines
-				//TODO: Load fines from database
-				/*$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-account.pl";
-				$finesPage = $this->getKohaPage($kohaUrl);
-				if (preg_match('/<span class="debit">(.*?)<\/span>/', $finesPage, $matches)) {
-					$fines = $matches[1];
-				} else {
-					$fines = "";
-				}*/
-				$fines = "";
+				//Load fines from database
+				$outstandingFines = $this->getOutstandingFineTotal();
 
 				//Get number of items checked out
 				$checkedOutItemsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numCheckouts FROM issues WHERE borrowernumber = ' . $patron->username);
@@ -620,8 +613,8 @@ class Aspencat implements DriverInterface{
 					'homeLocationId' => -1,
 					'homeLocationName' => '',
 					'expires' => $userFromDb['dateexpiry'],
-					'fines' => $fines,
-					'finesval' => floatval($fines),
+					'fines' => sprintf('$%0.2f', $outstandingFines),
+					'finesval' => floatval($outstandingFines),
 					'numHolds' => $numWaitingHolds + $numAvailableHolds,
 					'numHoldsAvailable' => $numAvailableHolds,
 					'numHoldsRequested' => $numWaitingHolds,
@@ -2224,5 +2217,36 @@ class Aspencat implements DriverInterface{
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Get Total Outstanding fines for a user.  Lifted from Koha:
+	 * C4::Accounts.pm gettotalowed method
+	 *
+	 * @return mixed
+	 */
+	private function getOutstandingFineTotal() {
+		global $user;
+		//Since borrowernumber is stored in fees and payments, not fee_transactions,
+		//this is done with two queries: the first gets all outstanding charges, the second
+		//picks up any unallocated credits.
+		$this->initDatabaseConnection();
+		$stmt = mysqli_prepare($this->dbConnection, "SELECT SUM(amount) FROM fees LEFT JOIN fee_transactions on(fees.id = fee_transactions.fee_id) where fees.borrowernumber = ?");
+		$stmt->bind_param('i', $user->username);
+		/** @var mysqli_result $result */
+		$stmt->execute( );
+		$amountOutstanding = $stmt->get_result()->fetch_array();
+		$amountOutstanding = $amountOutstanding[0];
+
+		$creditStmt = mysqli_prepare($this->dbConnection, "SELECT SUM(amount) FROM payments LEFT JOIN fee_transactions on(payments.id = fee_transactions.payment_id) where payments.borrowernumber = ? and fee_id is null" );
+		$creditStmt->bind_param('i', $user->username);
+		$creditStmt->execute();
+		$credit = $creditStmt->get_result()->fetch_array();
+		$credit = $credit[0];
+		if ($credit != null){
+			$amountOutstanding += $credit;
+		}
+
+		return $amountOutstanding ;
 	}
 }
