@@ -162,8 +162,6 @@ class Aspencat implements DriverInterface{
 		global $timer;
 		global $library;
 
-		$allItems = array();
-
 		$holdingSortingData = self::getSortingDataForHoldings();
 
 		// Retrieve Full Marc Record
@@ -204,17 +202,18 @@ class Aspencat implements DriverInterface{
 
 			$itemData['statusfull'] = $itemData['status'];
 
+			$itemData['shelfLocation'] = $itemData['library'];
 			if (isset($kohaItem['location']) && $kohaItem['location'] != ''){
-				$itemData['location'] .= ' - ' . $kohaItem['location'];
+				$itemData['shelfLocation'] .= ' - ' . $kohaItem['location'];
 			}
 			if (isset($kohaItem['collection']) && $kohaItem['collection'] != ''){
-				$itemData['location'] .= ' - ' . $kohaItem['collection'];
+				$itemData['shelfLocation'] .= ' - ' . $kohaItem['collection'];
 			}
+			$itemData['location'] = $itemData['shelfLocation'];
 
-			$itemData['shelfLocation'] = $itemData['location'];
 			$itemData['groupedStatus'] = mapValue('item_grouped_status', $itemData['statusfull']);
 
-			$paddedNumber = str_pad(count($allItems) + 1, 3, '0', STR_PAD_LEFT);
+			$paddedNumber = str_pad(count($sorted_array) + 1, 3, '0', STR_PAD_LEFT);
 			$sortString = $itemData['location'] . $itemData['callnumber'] . $paddedNumber;
 			//$sortString = $holding['location'] . $holding['callnumber']. $i;
 			if (strlen($holdingSortingData['physicalBranch']) > 0 && stripos($itemData['location'], $holdingSortingData['physicalBranch']) !== false){
