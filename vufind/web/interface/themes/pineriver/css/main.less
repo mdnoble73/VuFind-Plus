@@ -7,19 +7,18 @@
 
 // Main Styling for Pine River Library
 
-.header-login-button-mixin;
+#header-container{
+  background-image: url('/interface/themes/pineriver/images/header_background.png');
+  background-repeat: no-repeat;
+}
 
-//#header-container {
-////  background: linear-gradient(to bottom, @header-top-color, @header-middle-color 85%, @header-bottom-color);
-////  original styling above
-////  background: linear-gradient(to bottom, @header-top-color, @header-middle-color 20%, @header-bottom-color 10%, @header-bottom-color);
-//    background: linear-gradient(to bottom, @header-top-color, @header-middle-color 40%, @header-bottom-color 55%,@header-bottom-color);
-//
-//}
+//.header-login-button-mixin(fade(@pineriverlightblue, 40%));
+.header-login-button-mixin;
 
 
 #header-logo{
-  padding-top: 0;
+//  padding-top: 0;
+  display: none;
 }
 
 
@@ -35,20 +34,13 @@
   .jcarousel-control-prev, .jcarousel-control-next {
     background-color: white;
     color: @pineriverbrown;
+    .box-shadow(none);
+
     &:active, &:hover {
       color: @pineriverlightblue;
-//      text-decoration: none;
     }
-    .box-shadow(none);
   }
-//  a {
-//    &.jcarousel-control-next:after {
-//      content: "▶";
-//    }
-//    &.jcarousel-control-prev:before {
-//      content: "◀";
-//    }
-//  }
+
   // indicator dots at bottom of browse category carousel
   .jcarousel-pagination a {
     &.active {
@@ -67,4 +59,11 @@
 
 .selected-browse-label-search a{
   color: @browse-label-text-color;
+}
+
+// this should become the rule for all style sheets.
+#selected-browse-label{
+  //  background: linear-gradient(to bottom, white, white 44%, #bbd4e3 45%, #bbd4e3 55%, white 56%); // original
+  background: linear-gradient(to bottom, white, white 44%, @browse-label-line-color 45%, @browse-label-line-color 55%, white 56%);
+  // use the same line color as line with the title above the carousel
 }
