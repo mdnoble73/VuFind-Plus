@@ -714,105 +714,65 @@ class Aspencat implements DriverInterface{
 
 		//Get transactions by screen scraping
 		$transactions = array();
-		//Login to Koha classic interface
-		$result = $this->loginToKoha($user);
-		if (!$result['success']){
-			return $transactions;
-		}
 
-		//Get the checked out titles page
-		$transactionPage = $result['summaryPage'];
+		$this->initDatabaseConnection();
 
-		//Parse the checked out titles page
-		if (preg_match_all('/<table id="checkoutst">(.*?)<\/table>/si', $transactionPage, $transactionTableData, PREG_SET_ORDER)){
-			$transactionTable = $transactionTableData[0][0];
+		$sql = "SELECT issues.*, items.biblionumber, title, author from issues left join items on items.itemnumber = issues.itemnumber left join biblio ON items.biblionumber = biblio.biblionumber where borrowernumber = ?";
+		$checkoutsStmt = mysqli_prepare($this->dbConnection, $sql);
+		$checkoutsStmt->bind_param('i', $user->username);
+		$checkoutsStmt->execute();
 
-			//Get the header row labels in case the columns are ever rearranged?
-			$headerLabels = array();
-			preg_match_all('/<th>([^<]*?)<\/th>/si', $transactionTable, $tableHeaders, PREG_PATTERN_ORDER);
-			foreach ($tableHeaders[1] as $col => $tableHeader){
-				$headerLabels[$col] = trim(strtolower($tableHeader));
+		$results = $checkoutsStmt->get_result();
+		while ($curRow = $results->fetch_assoc()){
+			$transaction = array();
+			$transaction['checkoutSource'] = 'ILS';
+
+			$transaction['id'] = $curRow['biblionumber'];
+			$transaction['recordId'] = $curRow['biblionumber'];
+			$transaction['shortId'] = $curRow['biblionumber'];
+			$transaction['title'] = $curRow['title'];
+			$transaction['author'] = $curRow['author'];
+
+			$dateDue = DateTime::createFromFormat('Y-m-d', $curRow['date_due']);
+			if ($dateDue){
+				$dueTime = $dateDue->getTimestamp();
+			}else{
+				$dueTime = null;
+			}
+			$transaction['duedate'] = $dueTime;
+			if ($dueTime != null){
+				$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
+				$overdue = $daysUntilDue < 0;
+				$transaction['duedate'] = $dueTime;
+				$transaction['overdue'] = $overdue;
+				$transaction['daysUntilDue'] = $daysUntilDue;
+			}
+			$transaction['itemid'] = $curRow['id'];
+			$transaction['renewIndicator'] = $curRow['id'];
+			$transaction['renewCount'] = $curRow['renewals'];
+
+			if ($transaction['id'] && strlen($transaction['id']) > 0){
+				$transaction['recordId'] = $transaction['id'];
+				require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+				$recordDriver = new MarcRecord($transaction['recordId']);
+				if ($recordDriver->isValid()){
+					$transaction['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+					$transaction['groupedWorkId'] = $recordDriver->getGroupedWorkId();
+					$formats = $recordDriver->getFormats();
+					$transaction['format'] = reset($formats);
+					$transaction['author'] = $recordDriver->getPrimaryAuthor();
+					if (!isset($transaction['title']) || empty($transaction['title'])){
+						$transaction['title'] = $recordDriver->getTitle();
+					}
+				}else{
+					$transaction['coverUrl'] = "";
+					$transaction['groupedWorkId'] = "";
+					$transaction['format'] = "Unknown";
+					$transaction['author'] = "";
+				}
 			}
 
-			//Get each row within the table
-			//Grab the table body
-			preg_match('/<tbody>(.*?)<\/tbody>/si', $transactionTable, $tableBody);
-			$tableBody = $tableBody[1];
-			preg_match_all('/<tr>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
-			foreach ($tableData[1] as $tableRow){
-				//Each row represents a transaction
-				$transaction = array();
-				$transaction['checkoutSource'] = 'ILS';
-				//Go through each cell in the row
-				preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
-				foreach ($tableCells[1] as $col => $tableCell){
-					//Based off which column we are in, fill out the transaction
-					if ($headerLabels[$col] == 'title'){
-						//Title column contains title, author, and id link
-						if (preg_match('/biblionumber=(\\d+)">\\s*([^<]*)\\s*<\/a>.*?>\\s*(.*?)\\s*<\/span>/si', $tableCell, $cellDetails)) {
-							$transaction['id'] = $cellDetails[1];
-							$transaction['shortId'] = $cellDetails[1];
-							$transaction['title'] = $cellDetails[2];
-							$transaction['author'] = $cellDetails[3];
-						}else{
-							$logger->log("Could not parse title for checkout", PEAR_LOG_WARNING);
-							$transaction['title'] = strip_tags($tableCell);
-						}
-					}elseif ($headerLabels[$col] == 'call no.'){
-						//Ignore this column for now
-					}elseif ($headerLabels[$col] == 'due'){
-						if (preg_match('/(\d{2}\/\d{2}\/\d{4})/', $tableCell, $dueMatches)){
-							$dateDue = DateTime::createFromFormat('m/d/Y', $dueMatches[1]);
-							if ($dateDue){
-								$dueTime = $dateDue->getTimestamp();
-							}else{
-								$dueTime = null;
-							}
-						}else{
-							$dueTime = strtotime($tableCell);
-						}
-						if ($dueTime != null){
-							$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
-							$overdue = $daysUntilDue < 0;
-							$transaction['duedate'] = $dueTime;
-							$transaction['overdue'] = $overdue;
-							$transaction['daysUntilDue'] = $daysUntilDue;
-						}
-					}elseif ($headerLabels[$col] == 'renew'){
-						if (preg_match('/item=(\\d+).*?\\((\\d+) of (\\d+) renewals/si', $tableCell, $renewalData)) {
-							$transaction['itemid'] = $renewalData[1];
-							$transaction['renewIndicator'] = $renewalData[1];
-							$numRenewalsRemaining = $renewalData[2];
-							$numRenewalsAllowed = $renewalData[3];
-							$transaction['renewCount'] = $numRenewalsAllowed - $numRenewalsRemaining;
-						}
-					}
-					//TODO: Add display of fines on a title?
-				}
-
-				if ($transaction['id'] && strlen($transaction['id']) > 0){
-					$transaction['recordId'] = $transaction['id'];
-					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($transaction['recordId']);
-					if ($recordDriver->isValid()){
-						$transaction['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-						$transaction['groupedWorkId'] = $recordDriver->getGroupedWorkId();
-						$formats = $recordDriver->getFormats();
-						$transaction['format'] = reset($formats);
-						$transaction['author'] = $recordDriver->getPrimaryAuthor();
-						if (!isset($transaction['title']) || empty($transaction['title'])){
-							$transaction['title'] = $recordDriver->getTitle();
-						}
-					}else{
-						$transaction['coverUrl'] = "";
-						$transaction['groupedWorkId'] = "";
-						$transaction['format'] = "Unknown";
-						$transaction['author'] = "";
-					}
-				}
-
-				$transactions[] = $transaction;
-			}
+			$transactions[] = $transaction;
 		}
 
 		//Process sorting
