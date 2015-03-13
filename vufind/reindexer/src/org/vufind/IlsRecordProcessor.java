@@ -265,6 +265,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected void updateGroupedWorkSolrDataBasedOnMarc(GroupedWorkSolr groupedWork, Record record, String identifier) {
 		String step = "start";
 		try{
+			if (isBibSuppressed(record)){
+				indexer.ilsRecordsSkipped.add(identifier);
+				return;
+			}
 			indexer.ilsRecordsIndexed.add(identifier);
 			//First load a list of print items and econtent items from the MARC record since they are needed to handle
 			//Scoping and availability of records.
@@ -332,6 +336,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}catch (Exception e){
 			logger.error("Error updating grouped work for MARC record with identifier " + identifier + " on step " + step, e);
 		}
+	}
+
+	protected boolean isBibSuppressed(Record record) {
+		return false;
 	}
 
 	protected void loadSystemLists(GroupedWorkSolr groupedWork, Record record) {
@@ -458,8 +466,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				for (Scope scope : indexer.getScopes()){
 					ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
 					scopedWorkDetails.addRelatedRecord(
-							recordId,
-							printRecord.getPrimaryFormat(),
+							recordIdentifier,
+							printRecord.getPrimaryFormat() != null ? printRecord.getPrimaryFormat() : "Item On Order",
 							printRecord.getEdition(),
 							printRecord.getLanguage(),
 							printRecord.getPublisher(),

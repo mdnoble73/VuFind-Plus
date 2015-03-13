@@ -37,16 +37,39 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 		return available;
 	}
 
+	protected boolean isBibSuppressed(Record record) {
+		DataField field998 = (DataField)record.getVariableField("998");
+		if (field998 != null){
+			Subfield bcode3Subfield = field998.getSubfield('e');
+			if (bcode3Subfield != null){
+				if (bcode3Subfield.getData().matches("c|d|s|a|m|r|n")){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	protected boolean isItemSuppressed(DataField curItem) {
 		Subfield icode2Subfield = curItem.getSubfield(iCode2Subfield);
-		if (icode2Subfield == null){
-			return false;
-		}
-		String icode2 = icode2Subfield.getData().toLowerCase().trim();
+		if (icode2Subfield != null) {
+			String icode2 = icode2Subfield.getData().toLowerCase().trim();
 
-		//Suppress icode2 of wmsrn
-		//         status = l
-		//         bcode 3 = cdsamrn
-		return icode2.equals("n") || icode2.equals("x");
+			//Suppress icode2 of wmsrn
+			//         status = l
+			//         bcode 3 = cdsamrn
+			if (icode2.matches("w|m|s|r|n")) {
+				return true;
+			}
+		}
+		//Check status
+		Subfield statusSubfield = curItem.getSubfield(statusSubfieldIndicator);
+		if (statusSubfield != null){
+			String status = statusSubfield.getData();
+			if (status.equals("l")){
+				return true;
+			}
+		}
+		return false;
 	}
 }
