@@ -30,6 +30,8 @@ public class NashvilleRecordProcessor extends IlsRecordProcessor {
 			printFormats.add(curFormat.toLowerCase());
 		}
 
+
+
 		HashSet<String> translatedFormats = indexer.translateCollection("format", printFormats);
 		HashSet<String> translatedFormatCategories = indexer.translateCollection("format_category", printFormats);
 		ilsRecord.addFormats(translatedFormats);
