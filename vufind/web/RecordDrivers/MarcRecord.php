@@ -2340,7 +2340,7 @@ class MarcRecord extends IndexRecord
 		global $configArray;
 		global $timer;
 		if ($configArray['Catalog']['ils'] == 'Horizon'){
-			require_once ROOT_DIR . '/CatalogConnection.php';
+			require_once ROOT_DIR . '/CatalogFactory.php';
 			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$this->numHolds = $catalog->getNumHolds($this->getUniqueID());
 		}else{
