@@ -22,6 +22,7 @@ config.pwd.ini
 *.csv
 author_authorities.properties.temp
 author_authorities.v1.properties
+hcl_solr_bib_export.properties
 
 # Compiled source #                                                                                   
 ###################

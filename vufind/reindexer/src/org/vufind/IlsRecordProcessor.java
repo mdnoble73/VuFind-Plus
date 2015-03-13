@@ -472,7 +472,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					}
 					if (!scopesThatContainRecordDirectly.contains(scope.getScopeName())){
 						scopesThatContainRecordDirectly.add(scope.getScopeName());
-						indexer.indexingStats.get(scope).numLocalIlsRecords++;
+						indexer.indexingStats.get(scope.getScopeName()).numLocalIlsRecords++;
 					}
 				}
 			}

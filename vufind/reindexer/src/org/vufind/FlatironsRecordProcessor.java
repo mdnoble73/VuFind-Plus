@@ -2,7 +2,9 @@ package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
+import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
+import org.marc4j.marc.Subfield;
 
 import java.sql.Connection;
 import java.util.HashSet;
@@ -33,5 +35,18 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 			}
 		}
 		return available;
+	}
+
+	protected boolean isItemSuppressed(DataField curItem) {
+		Subfield icode2Subfield = curItem.getSubfield(iCode2Subfield);
+		if (icode2Subfield == null){
+			return false;
+		}
+		String icode2 = icode2Subfield.getData().toLowerCase().trim();
+
+		//Suppress icode2 of wmsrn
+		//         status = l
+		//         bcode 3 = cdsamrn
+		return icode2.equals("n") || icode2.equals("x");
 	}
 }
