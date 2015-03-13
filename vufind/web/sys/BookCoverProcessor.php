@@ -955,7 +955,7 @@ class BookCoverProcessor{
 			}*/
 
 			//Have not found a grouped work based on isbn or upc, check based on related records
-			$relatedRecords = $this->groupedWork->getRelatedRecords();
+			$relatedRecords = $this->groupedWork->getRelatedRecords(false);
 			foreach ($relatedRecords as $relatedRecord){
 				if ($relatedRecord['source'] == 'OverDrive'){
 					if ($this->getOverDriveCover($relatedRecord['id'])){

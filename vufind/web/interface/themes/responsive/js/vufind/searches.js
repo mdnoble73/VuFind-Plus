@@ -93,9 +93,14 @@ VuFind.Searches = (function(){
 
 		enableSearchTypes: function(){
 			var searchTypeElement = $("#searchSource");
-			var selectedSearchType = $(searchTypeElement.find(":selected"));
-			var catalogType = selectedSearchType.data("catalog_type");
-			if (catalogType == "catalog"){
+			var catalogType = "catalog";
+			if (searchTypeElement){
+				var selectedSearchType = $(searchTypeElement.find(":selected"));
+				if (selectedSearchType){
+					catalogType = selectedSearchType.data("catalog_type");
+				}
+			}
+			if (catalogType == "catalog" || catalogType == null){
 				$(".catalogType").show();
 				$(".genealogyType").hide();
 			}else{

@@ -57,7 +57,7 @@ class MarcRecord extends IndexRecord
 				$this->valid = false;
 			}
 		}
-		if (!isset($this->id)){
+		if (!isset($this->id) && $this->valid){
 			/** @var File_MARC_Data_Field $idField */
 			global $configArray;
 			$idField = $this->marcRecord->getField($configArray['Reindex']['recordNumberTag']);
@@ -69,17 +69,17 @@ class MarcRecord extends IndexRecord
 	}
 
 	protected $itemsFromIndex;
-	public function setItemsFromIndex($itemsFromIndex){
+	public function setItemsFromIndex($itemsFromIndex, $realTimeStatusNeeded){
 		global $configArray;
-		if ($configArray['Catalog']['supportsRealtimeIndexing']){
+		if ($configArray['Catalog']['supportsRealtimeIndexing'] || !$realTimeStatusNeeded){
 			$this->itemsFromIndex = $itemsFromIndex;
 		}
 	}
 
 	protected $detailedRecordInfoFromIndex;
-	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex){
+	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex, $realTimeStatusNeeded){
 		global $configArray;
-		if ($configArray['Catalog']['supportsRealtimeIndexing']){
+		if ($configArray['Catalog']['supportsRealtimeIndexing'] || !$realTimeStatusNeeded){
 			$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
 		}
 	}
@@ -1611,7 +1611,7 @@ class MarcRecord extends IndexRecord
 	}
 
 	private $relatedRecords = null;
-	function getRelatedRecords(){
+	function getRelatedRecords($realTimeStatusNeeded = true){
 		if ($this->relatedRecords == null){
 			global $configArray;
 			global $timer;
@@ -2340,7 +2340,7 @@ class MarcRecord extends IndexRecord
 		global $configArray;
 		global $timer;
 		if ($configArray['Catalog']['ils'] == 'Horizon'){
-			require_once ROOT_DIR . '/CatalogConnection.php';
+			require_once ROOT_DIR . '/CatalogFactory.php';
 			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$this->numHolds = $catalog->getNumHolds($this->getUniqueID());
 		}else{

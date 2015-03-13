@@ -52,6 +52,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char volumeSubfield;
 	protected char itemRecordNumberSubfieldIndicator;
 	protected char itemUrlSubfieldIndicator;
+	protected boolean suppressItemlessBibs;
 
 	private static boolean loanRuleDataLoaded = false;
 	protected static ArrayList<Long> pTypes = new ArrayList<Long>();
@@ -92,6 +93,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		volumeSubfield = getSubfieldIndicatorFromConfig(configIni, "volumeSubfield");
 		itemRecordNumberSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "itemRecordNumberSubfield");
 		itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "itemUrlSubfield");
+		suppressItemlessBibs = Boolean.parseBoolean(configIni.get("Reindex", "suppressItemlessBibs"));
 
 		String additionalCollectionsString = configIni.get("Reindex", "additionalCollections");
 		if (additionalCollectionsString != null){
@@ -322,7 +324,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			loadOrderIds(groupedWork, record);
 
 			step = "add holdings";
-			groupedWork.addHoldings(printItems.size());
+			int numPrintItems = printItems.size();
+			if (!suppressItemlessBibs && numPrintItems == 0){
+				numPrintItems = 1;
+			}
+			groupedWork.addHoldings(numPrintItems + onOrderItems.size());
 		}catch (Exception e){
 			logger.error("Error updating grouped work for MARC record with identifier " + identifier + " on step " + step, e);
 		}
@@ -374,14 +380,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		HashSet<String> scopesThatContainRecord = new HashSet<String>();
 		HashSet<String> scopesThatContainRecordDirectly = new HashSet<String>();
 		//Add stats to indicate that the record is part of the global scope
-		if (printItems.size() > 0 || onOrderItems.size() > 0 || econtentItems.size() > 0) {
+		if (printItems.size() > 0 || onOrderItems.size() > 0 || econtentItems.size() > 0 || !suppressItemlessBibs) {
 			indexer.indexingStats.get("global").numLocalIlsRecords++;
 			indexer.indexingStats.get("global").numSuperScopeIlsRecords++;
 		}else{
 			indexer.ilsRecordsSkipped.add(recordId);
 		}
 
-		if (printItems.size() > 0 || onOrderItems.size() > 0) {
+		if ((printItems.size() > 0 || onOrderItems.size() > 0) || !suppressItemlessBibs) {
 			IlsRecord printRecord = new IlsRecord();
 			printRecord.setRecordId(recordIdentifier);
 			printRecord.addItems(printItems);
@@ -445,6 +451,29 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					}
 				} else {
 					logger.warn("Got an invalid order item in loadScopedDataForMarcRecord for " + recordId);
+				}
+			}
+
+			if (!suppressItemlessBibs && printItems.size() == 0 && onOrderItems.size() == 0){
+				for (Scope scope : indexer.getScopes()){
+					ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
+					scopedWorkDetails.addRelatedRecord(
+							recordId,
+							printRecord.getPrimaryFormat(),
+							printRecord.getEdition(),
+							printRecord.getLanguage(),
+							printRecord.getPublisher(),
+							printRecord.getPublicationDate(),
+							printRecord.getPhysicalDescription()
+					);
+					if (!scopesThatContainRecord.contains(scope.getScopeName())){
+						scopesThatContainRecord.add(scope.getScopeName());
+						indexer.indexingStats.get(scope.getScopeName()).numSuperScopeIlsRecords++;
+					}
+					if (!scopesThatContainRecordDirectly.contains(scope.getScopeName())){
+						scopesThatContainRecordDirectly.add(scope.getScopeName());
+						indexer.indexingStats.get(scope).numLocalIlsRecords++;
+					}
 				}
 			}
 		}

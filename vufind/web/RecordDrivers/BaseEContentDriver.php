@@ -15,12 +15,12 @@ abstract class BaseEContentDriver  extends MarcRecord {
 	abstract function getValidProtectionTypes();
 
 	protected $itemsFromIndex;
-	public function setItemsFromIndex($itemsFromIndex){
+	public function setItemsFromIndex($itemsFromIndex, $realTimeStatusNeeded){
 		$this->itemsFromIndex = $itemsFromIndex;
 	}
 
 	protected $detailedRecordInfoFromIndex;
-	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex){
+	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex, $realTimeStatusNeeded){
 		$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
 	}
 
@@ -245,8 +245,8 @@ abstract class BaseEContentDriver  extends MarcRecord {
 		return 'eBook';
 	}
 
-	function getRelatedRecords(){
-		$parentRecords = parent::getRelatedRecords();
+	function getRelatedRecords($realTimeStatusNeeded){
+		$parentRecords = parent::getRelatedRecords($realTimeStatusNeeded);
 		$relatedRecords = array();
 		$sources = $this->getSources();
 		//Add a record per source

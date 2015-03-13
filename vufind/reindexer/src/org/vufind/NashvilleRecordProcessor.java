@@ -5,6 +5,7 @@ import org.ini4j.Ini;
 import org.marc4j.marc.Record;
 
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;

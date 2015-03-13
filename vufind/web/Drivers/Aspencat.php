@@ -10,12 +10,118 @@
 require_once ROOT_DIR . '/Drivers/Interface.php';
 
 class Aspencat implements DriverInterface{
-	/** @var sip2 $sipConnection  */
-	private $sipConnection = null;
 	/** @var string $cookieFile A temporary file to store cookies  */
 	private $cookieFile = null;
 	/** @var resource connection to AspenCat  */
 	private $curl_connection = null;
+
+	private $dbConnection = null;
+
+	/**
+	 * @return array
+	 */
+	private static $holdingSortingData = null;
+	protected static function getSortingDataForHoldings() {
+		if (self::$holdingSortingData == null){
+			global $user;
+			global $library;
+			global $locationSingleton; /** @var $locationSingleton Location */
+
+			$holdingSortingData = array();
+
+			//Get location information so we can put things into sections
+			$physicalLocation = $locationSingleton->getPhysicalLocation();
+			if ($physicalLocation != null) {
+				$holdingSortingData['physicalBranch'] = $physicalLocation->holdingBranchLabel;
+			} else {
+				$holdingSortingData['physicalBranch'] = '';
+			}
+			$holdingSortingData['homeBranch'] = '';
+			$homeBranchId = 0;
+			$holdingSortingData['nearbyBranch1'] = '';
+			$nearbyBranch1Id = 0;
+			$holdingSortingData['nearbyBranch2'] = '';
+			$nearbyBranch2Id = 0;
+
+			//Set location information based on the user login.  This will override information based
+			if (isset($user) && $user != false) {
+				$homeBranchId = $user->homeLocationId;
+				$nearbyBranch1Id = $user->myLocation1Id;
+				$nearbyBranch2Id = $user->myLocation2Id;
+			} else {
+				//Check to see if the cookie for home location is set.
+				if (isset($_COOKIE['home_location']) && is_numeric($_COOKIE['home_location'])) {
+					$cookieLocation = new Location();
+					$locationId = $_COOKIE['home_location'];
+					$cookieLocation->whereAdd("locationId = '$locationId'");
+					$cookieLocation->find();
+					if ($cookieLocation->N == 1) {
+						$cookieLocation->fetch();
+						$homeBranchId = $cookieLocation->locationId;
+						$nearbyBranch1Id = $cookieLocation->nearbyLocation1;
+						$nearbyBranch2Id = $cookieLocation->nearbyLocation2;
+					}
+				}
+			}
+			//Load the holding label for the user's home location.
+			$userLocation = new Location();
+			$userLocation->whereAdd("locationId = '$homeBranchId'");
+			$userLocation->find();
+			if ($userLocation->N == 1) {
+				$userLocation->fetch();
+				$holdingSortingData['homeBranch'] = $userLocation->holdingBranchLabel;
+			}
+			//Load nearby branch 1
+			$nearbyLocation1 = new Location();
+			$nearbyLocation1->whereAdd("locationId = '$nearbyBranch1Id'");
+			$nearbyLocation1->find();
+			if ($nearbyLocation1->N == 1) {
+				$nearbyLocation1->fetch();
+				$holdingSortingData['nearbyBranch1'] = $nearbyLocation1->holdingBranchLabel;
+			}
+			//Load nearby branch 2
+			$nearbyLocation2 = new Location();
+			$nearbyLocation2->whereAdd();
+			$nearbyLocation2->whereAdd("locationId = '$nearbyBranch2Id'");
+			$nearbyLocation2->find();
+			if ($nearbyLocation2->N == 1) {
+				$nearbyLocation2->fetch();
+				$holdingSortingData['nearbyBranch2'] = $nearbyLocation2->holdingBranchLabel;
+			}
+
+			//Get a list of the display names for all locations based on holding label.
+			$locationLabels = array();
+			$location = new Location();
+			$location->find();
+			$holdingSortingData['libraryLocationLabels'] = array();
+			$locationCodes = array();
+			$suppressedLocationCodes = array();
+			while ($location->fetch()) {
+				if (strlen($location->holdingBranchLabel) > 0 && $location->holdingBranchLabel != '???') {
+					if ($library && $library->libraryId == $location->libraryId) {
+						$cleanLabel = str_replace('/', '\/', $location->holdingBranchLabel);
+						$libraryLocationLabels[] = str_replace('.', '\.', $cleanLabel);
+					}
+
+					$locationLabels[$location->holdingBranchLabel] = $location->displayName;
+					$locationCodes[$location->code] = $location->holdingBranchLabel;
+					if ($location->suppressHoldings == 1) {
+						$suppressedLocationCodes[$location->code] = $location->code;
+					}
+				}
+			}
+			if (count($holdingSortingData['libraryLocationLabels']) > 0) {
+				$holdingSortingData['libraryLocationLabels'] = '/^(' . join('|', $holdingSortingData['libraryLocationLabels']) . ').*/i';
+			} else {
+				$holdingSortingData['libraryLocationLabels'] = '';
+			}
+			self::$holdingSortingData = $holdingSortingData;
+			global $timer;
+			$timer->logTime("Finished loading sorting information for holdings");
+		}
+		return self::$holdingSortingData;
+	}
+
 	/**
 	 * Loads items information as quickly as possible (no direct calls to the ILS)
 	 *
@@ -48,294 +154,107 @@ class Aspencat implements DriverInterface{
 		return $items;
 	}
 
+	private $holdings = array();
 	public function getHolding($id) {
+		if (isset($this->holdings[$id])){
+			return $this->holdings[$id];
+		}
 		global $timer;
-		global $configArray;
-
-		$allItems = array();
-
-		//Get location information so we can put things into sections
 		global $library;
-		global $locationSingleton; /** @var $locationSingleton Location */
-		$physicalLocation = $locationSingleton->getPhysicalLocation();
-		if ($physicalLocation != null){
-			$physicalBranch = $physicalLocation->holdingBranchLabel;
-		}else{
-			$physicalBranch = '';
-		}
-		$homeBranch    = '';
-		$homeBranchId  = 0;
-		$nearbyBranch1 = '';
-		$nearbyBranch1Id = 0;
-		$nearbyBranch2 = '';
-		$nearbyBranch2Id = 0;
 
-		//Set location information based on the user login.  This will override information based
-		if (isset($user) && $user != false){
-			$homeBranchId = $user->homeLocationId;
-			$nearbyBranch1Id = $user->myLocation1Id;
-			$nearbyBranch2Id = $user->myLocation2Id;
-		} else {
-			//Check to see if the cookie for home location is set.
-			if (isset($_COOKIE['home_location']) && is_numeric($_COOKIE['home_location'])) {
-				$cookieLocation = new Location();
-				$locationId = $_COOKIE['home_location'];
-				$cookieLocation->whereAdd("locationId = '$locationId'");
-				$cookieLocation->find();
-				if ($cookieLocation->N == 1) {
-					$cookieLocation->fetch();
-					$homeBranchId = $cookieLocation->locationId;
-					$nearbyBranch1Id = $cookieLocation->nearbyLocation1;
-					$nearbyBranch2Id = $cookieLocation->nearbyLocation2;
-				}
-			}
-		}
-		//Load the holding label for the user's home location.
-		$userLocation = new Location();
-		$userLocation->whereAdd("locationId = '$homeBranchId'");
-		$userLocation->find();
-		if ($userLocation->N == 1) {
-			$userLocation->fetch();
-			$homeBranch = $userLocation->holdingBranchLabel;
-		}
-		//Load nearby branch 1
-		$nearbyLocation1 = new Location();
-		$nearbyLocation1->whereAdd("locationId = '$nearbyBranch1Id'");
-		$nearbyLocation1->find();
-		if ($nearbyLocation1->N == 1) {
-			$nearbyLocation1->fetch();
-			$nearbyBranch1 = $nearbyLocation1->holdingBranchLabel;
-		}
-		//Load nearby branch 2
-		$nearbyLocation2 = new Location();
-		$nearbyLocation2->whereAdd();
-		$nearbyLocation2->whereAdd("locationId = '$nearbyBranch2Id'");
-		$nearbyLocation2->find();
-		if ($nearbyLocation2->N == 1) {
-			$nearbyLocation2->fetch();
-			$nearbyBranch2 = $nearbyLocation2->holdingBranchLabel;
-		}
-
-		//Get a list of the display names for all locations based on holding label.
-		$locationLabels = array();
-		$location = new Location();
-		$location->find();
-		$libraryLocationLabels = array();
-		$locationCodes = array();
-		$suppressedLocationCodes = array();
-		while ($location->fetch()){
-			if (strlen($location->holdingBranchLabel) > 0 && $location->holdingBranchLabel != '???'){
-				if ($library && $library->libraryId == $location->libraryId){
-					$cleanLabel =  str_replace('/', '\/', $location->holdingBranchLabel);
-					$libraryLocationLabels[] = str_replace('.', '\.', $cleanLabel);
-				}
-
-				$locationLabels[$location->holdingBranchLabel] = $location->displayName;
-				$locationCodes[$location->code] = $location->holdingBranchLabel;
-				if ($location->suppressHoldings == 1){
-					$suppressedLocationCodes[$location->code] = $location->code;
-				}
-			}
-		}
-		if (count($libraryLocationLabels) > 0){
-			$libraryLocationLabels = '/^(' . join('|', $libraryLocationLabels) . ').*/i';
-		}else{
-			$libraryLocationLabels = '';
-		}
+		$holdingSortingData = self::getSortingDataForHoldings();
 
 		// Retrieve Full Marc Record
 		$recordURL = null;
 
 		$sorted_array = array();
-		require_once ROOT_DIR . '/sys/MarcLoader.php';
-		$marcRecord = MarcLoader::loadMarcRecordByILSId($id);
-		$callNumber = '';
-		if ($marcRecord) {
-			$timer->logTime('Loaded MARC record from search object');
-			if (!$configArray['Reindex']['useItemBasedCallNumbers']){
-				/** @var File_MARC_Data_Field $callNumberField */
-				$callNumberField = $marcRecord->getField('92', true);
-				if ($callNumberField != null){
-					$callNumberA = $callNumberField->getSubfield('a');
-					$callNumberB = $callNumberField->getSubfield('b');
-					if ($callNumberA != null){
-						$callNumber = $callNumberA->getData();
-					}
-					if ($callNumberB != null){
-						if (strlen($callNumber) > 0){
-							$callNumber .= ' ';
-						}
-						$callNumber .= $callNumberB->getData();
-					}
-				}
-				$timer->logTime('Got call number');
+
+		$holdingsFromKoha  = $this->getHoldingsFromKohaDB($id);
+		$timer->logTime("Finished loading holdings from Koha");
+
+		/** @var array $items */
+		$i=0;
+		foreach ($holdingsFromKoha as $item){
+			$i++;
+
+			//No data exists
+			$itemData = $item;
+
+			//Get the barcode from the horizon database
+			$itemData['isLocalItem'] = false;
+			$itemData['isLibraryItem'] = false;
+			$itemData['locationLabel'] = $item['library'];
+
+			$groupedStatus = mapValue('item_grouped_status', $item['status']);
+			if ($groupedStatus == 'On Shelf' || $groupedStatus == 'Available Online'){
+				$itemData['availability'] = true;
+			}else{
+				$itemData['availability'] = false;
 			}
 
-			//Get the item records from the 949 tag
-			$items = $marcRecord->getFields($configArray['Reindex']['itemTag']);
-			$itemRecordNumberSubfield = $configArray['Reindex']['itemRecordNumberSubfield'];
-			$barcodeSubfield    = $configArray['Reindex']['barcodeSubfield'];
-			$locationSubfield   = $configArray['Reindex']['locationSubfield'];
-			$callnumberSubfield = $configArray['Reindex']['callNumberSubfield'];
-			$collectionSubfield = $configArray['Reindex']['collectionSubfield'];
+			//Make the item holdable by default.  Then check rules to make it non-holdable.
+			$itemData['holdable'] = true;
+			$itemData['reserve'] = 'N';
 
-			//Get the holdings from aspencat
-			$catalogUrl = $configArray['Catalog']['url'];
-			$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-detail.pl?biblionumber=$id";
-			$holdingsPage = $this->getKohaPage($kohaUrl);
-			$holdingsFromKoha = $this->getHoldingsFromKoha($holdingsPage);
+			$itemData['isDownload'] = false;
 
-			$firstItemWithSIPdata = null;
-			/** @var File_MARC_Data_Field[] $items */
-			$i=0;
-			foreach ($items as $item){
-				//Ignore anything that is eContent
-				$collection = trim($item->getSubfield($collectionSubfield) != null ? $item->getSubfield($collectionSubfield)->getData() : '');
-				if (preg_match('/EAUDIO|EBOOK|ONLINE/i', $collection)){
-					continue;
-				}
-				$i++;
-				$barcode = trim($item->getSubfield($barcodeSubfield) != null ? $item->getSubfield($barcodeSubfield)->getData() : '');
-				//Check to see if we already have data for this barcode
-				/** @var Memcache $memCache */
-				global $memCache;
-				if (isset($barcode) && strlen($barcode) > 0 && !isset($_REQUEST['reload'])){
-					$itemData = $memCache->get("item_data_{$barcode}");
-				}else{
-					$itemData = false;
-				}
-				if ($itemData == false){
-					//No data exists
-					$itemData = array();
+			$itemData['holdQueueLength'] = $this->getNumHolds($id);
 
-					$itemData['id'] = trim($item->getSubfield($itemRecordNumberSubfield) != null ? $item->getSubfield($itemRecordNumberSubfield)->getData() : '');
-					$itemData['type'] = 'holding';
-					//Get the barcode from the horizon database
-					$itemData['isLocalItem'] = false;
-					$itemData['isLibraryItem'] = false;
-					$itemData['locationCode'] = trim(strtolower( $item->getSubfield($locationSubfield) != null ? $item->getSubfield($locationSubfield)->getData() : '' ));
-					$itemData['location'] = mapValue('location', $itemData['locationCode']);
-					if ($itemData['location'] == ''){
-						$itemData['location'] = $itemData['locationCode'];
-					}
-					$itemData['locationLabel'] = $itemData['location'];
+			$itemData['statusfull'] = $itemData['status'];
 
-					if (!$configArray['Reindex']['useItemBasedCallNumbers'] && $callNumber != ''){
-						$itemData['callnumber'] = $callNumber;
-					}else{
-						$itemData['callnumber'] = trim($item->getSubfield($callnumberSubfield) != null ? $item->getSubfield($callnumberSubfield)->getData() : '');
-					}
-					$itemData['callnumber'] = str_replace("~", " ", $itemData['callnumber']);
-					//Set default status
-					$status = $this->getItemStatus($item);
-					$itemData['status'] = $status;
+			$itemData['shelfLocation'] = $itemData['library'];
+			if (isset($kohaItem['location']) && $kohaItem['location'] != ''){
+				$itemData['shelfLocation'] .= ' - ' . $kohaItem['location'];
+			}
+			if (isset($kohaItem['collection']) && $kohaItem['collection'] != ''){
+				$itemData['shelfLocation'] .= ' - ' . $kohaItem['collection'];
+			}
+			$itemData['location'] = $itemData['shelfLocation'];
 
-					$groupedStatus = mapValue('item_grouped_status', $status);
-					if ($groupedStatus == 'On Shelf' || $groupedStatus == 'Available Online'){
-						$itemData['availability'] = true;
-					}else{
-						$itemData['availability'] = false;
-					}
+			$itemData['groupedStatus'] = mapValue('item_grouped_status', $itemData['statusfull']);
 
-					//Make the item holdable by default.  Then check rules to make it non-holdable.
-					$itemData['holdable'] = true;
-					$itemData['reserve'] = 'N';
-
-					$itemData['isDownload'] = false;
-
-					$itemData['barcode'] = $barcode;
-					$itemData['copy'] = $item->getSubfield('e') != null ? $item->getSubfield('e')->getData() : '';
-
-					$itemData['holdQueueLength'] = 0;
-					if (preg_match('/<span class="HoldsLabel">holds<\/span>: (\\d+)/i', $holdingsPage, $matches)) {
-						$itemData['holdQueueLength'] = $matches[1];
-					}
-
-					$itemData['collection'] = mapValue('collection', $item->getSubfield('c') != null ? $item->getSubfield('c')->getData() : '');
-
-					$itemData['statusfull'] = $itemData['status'];
-
-					//Match the record to the data loaded from koha
-					foreach ($holdingsFromKoha as $kohaItem){
-						if ($kohaItem['matched'] == false){
-							if ($itemData['location']){
-								$locationMatched = strpos($kohaItem['library'], $itemData['location']) === 0;
-								if (strlen($itemData['callnumber']) == 0){
-									$callNumberMatched = strlen($kohaItem['callnumber']) == 0;
-								}else{
-									$callNumberMatched = strpos($kohaItem['callnumber'], $itemData['callnumber']) === 0;
-								}
-
-								if ($locationMatched && $callNumberMatched){
-									//TODO: Do a reverse mapping to get status code
-									$itemData['statusfull'] = $kohaItem['status'];
-									$itemData['dueDate'] = $kohaItem['dueDate'];
-									$kohaItem['matched'] = true;
-									if (isset($kohaItem['location']) && $kohaItem['location'] != ''){
-										$itemData['location'] .= ' - ' . $kohaItem['location'];
-									}
-									if (isset($kohaItem['collection']) && $kohaItem['collection'] != ''){
-										$itemData['location'] .= ' - ' . $kohaItem['collection'];
-									}
-									//Only need to match against one record
-									break;
-								}
-							}
-						}
-					}
-					$itemData['shelfLocation'] = $itemData['location'];
-					$itemData['groupedStatus'] = mapValue('item_grouped_status', $itemData['statusfull']);
-
-					//Suppress items based on status
-					if (isset($barcode) && strlen($barcode) > 0){
-						$memCache->set("item_data_{$barcode}", $itemData, 0, $configArray['Caching']['item_data']);
-					}
-				}
-
-
-				$paddedNumber = str_pad(count($allItems) + 1, 3, '0', STR_PAD_LEFT);
-				$sortString = $itemData['location'] . $itemData['callnumber'] . $paddedNumber;
-				//$sortString = $holding['location'] . $holding['callnumber']. $i;
-				if (strlen($physicalBranch) > 0 && stripos($itemData['location'], $physicalBranch) !== false){
-					//If the user is in a branch, those holdings come first.
-					$itemData['section'] = 'In this library';
-					$itemData['sectionId'] = 1;
-					$itemData['isLocalItem'] = true;
-					$sorted_array['1' . $sortString] = $itemData;
-				} else if (strlen($homeBranch) > 0 && stripos($itemData['location'], $homeBranch) !== false){
-					//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
-					$itemData['section'] = 'Your library';
-					$itemData['sectionId'] = 2;
-					$itemData['isLocalItem'] = true;
-					$sorted_array['2' . $sortString] = $itemData;
-				} else if ((strlen($nearbyBranch1) > 0 && stripos($itemData['location'], $nearbyBranch1) !== false)){
-					//Next come nearby locations for the user
-					$itemData['section'] = 'Nearby Libraries';
-					$itemData['sectionId'] = 3;
-					$sorted_array['3' . $sortString] = $itemData;
-				} else if ((strlen($nearbyBranch2) > 0 && stripos($itemData['location'], $nearbyBranch2) !== false)){
-					//Next come nearby locations for the user
-					$itemData['section'] = 'Nearby Libraries';
-					$itemData['sectionId'] = 4;
-					$sorted_array['4' . $sortString] = $itemData;
-					//MDN 11/17 - taken out because all Horizon libraries are single institution (so far)
-				} else if (strlen($libraryLocationLabels) > 0 && preg_match($libraryLocationLabels, $itemData['location'])){
-						//Next come any locations within the same system we are in.
-						$holding['section'] = $library->displayName;
-						$holding['sectionId'] = 5;
-						$sorted_array['5' . $sortString] = $itemData;
-				} else {
-					//Finally, all other holdings are shown sorted alphabetically.
-					$itemData['section'] = $library->displayName;
-					$holding['sectionId'] = 5;
-					$sorted_array['5' . $sortString] = $itemData;
-				}
+			$paddedNumber = str_pad(count($sorted_array) + 1, 3, '0', STR_PAD_LEFT);
+			$sortString = $itemData['location'] . $itemData['callnumber'] . $paddedNumber;
+			//$sortString = $holding['location'] . $holding['callnumber']. $i;
+			if (strlen($holdingSortingData['physicalBranch']) > 0 && stripos($itemData['location'], $holdingSortingData['physicalBranch']) !== false){
+				//If the user is in a branch, those holdings come first.
+				$itemData['section'] = 'In this library';
+				$itemData['sectionId'] = 1;
+				$itemData['isLocalItem'] = true;
+				$sorted_array['1' . $sortString] = $itemData;
+			} else if (strlen($holdingSortingData['homeBranch']) > 0 && stripos($itemData['location'], $holdingSortingData['homeBranch']) !== false){
+				//Next come the user's home branch if the user is logged in or has the home_branch cookie set.
+				$itemData['section'] = 'Your library';
+				$itemData['sectionId'] = 2;
+				$itemData['isLocalItem'] = true;
+				$sorted_array['2' . $sortString] = $itemData;
+			} else if ((strlen($holdingSortingData['nearbyBranch1']) > 0 && stripos($itemData['location'], $holdingSortingData['nearbyBranch1']) !== false)){
+				//Next come nearby locations for the user
+				$itemData['section'] = 'Nearby Libraries';
+				$itemData['sectionId'] = 3;
+				$sorted_array['3' . $sortString] = $itemData;
+			} else if ((strlen($holdingSortingData['nearbyBranch2']) > 0 && stripos($itemData['location'], $holdingSortingData['nearbyBranch2']) !== false)){
+				//Next come nearby locations for the user
+				$itemData['section'] = 'Nearby Libraries';
+				$itemData['sectionId'] = 4;
+				$sorted_array['4' . $sortString] = $itemData;
+			} else if (strlen($holdingSortingData['libraryLocationLabels']) > 0 && preg_match($holdingSortingData['libraryLocationLabels'], $itemData['location'])){
+				//Next come any locations within the same system we are in.
+				$holding['section'] = $library->displayName;
+				$holding['sectionId'] = 5;
+				$sorted_array['5' . $sortString] = $itemData;
+			} else {
+				//Finally, all other holdings are shown sorted alphabetically.
+				$itemData['section'] = $library->displayName;
+				$holding['sectionId'] = 5;
+				$sorted_array['5' . $sortString] = $itemData;
 			}
 		}
-		$timer->logTime("Finished loading status information");
 
 		ksort($sorted_array);
-		return $sorted_array;
+		$this->holdings[$id] = $sorted_array;
+		$timer->logTime("Finished loading status information");
+		return $this->holdings[$id];
 	}
 
 	/**
@@ -605,7 +524,6 @@ class Aspencat implements DriverInterface{
 	public function getMyProfile($patron, $forceReload = false) {
 		//Update to not use SIP, just screen scrape for performance (sigh)
 		global $timer;
-		global $configArray;
 
 		if (!is_object($patron)){
 			$tmpPatron = new User();
@@ -624,32 +542,14 @@ class Aspencat implements DriverInterface{
 			return $this->patronProfiles[$patron->username];
 		}
 
-		$result = $this->loginToKoha($patron);
-		if ($result['success']) {
-			//Get the my personal details page
-			$catalogUrl = $configArray['Catalog']['url'];
-			$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-userupdate.pl";
-			$personalDetailsPage = $this->getKohaPage($kohaUrl);
-			$summaryPage = $result['summaryPage'];
+		$this->initDatabaseConnection();
+		$this->getUserInfoStmt->bind_param('ss', $patron->cat_username, $patron->cat_username);
+		if ($this->getUserInfoStmt->execute()){
+			if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()){
+				$userFromDb = $userFromDbResultSet->fetch_assoc();
+				$userFromDbResultSet->close();
 
-			if (preg_match('/<input [^>]*id="streetnumber"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$streetnumber = $matches[1];
-			} else {
-				$streetnumber = "";
-			}
-			if (preg_match('/<input [^>]*id="address"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$address = $matches[1];
-			} else {
-				$address = "";
-			}
-			if (preg_match('/<input [^>]*id="address2"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$address2 = $matches[1];
-			} else {
-				$address2 = "";
-			}
-
-			if (preg_match('/<input [^>]*id="city"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$city = $matches[1];
+				$city = $userFromDb['city'];
 				$state = "";
 				$commaPos = strpos($city, ',');
 				if ($commaPos !== false){
@@ -657,131 +557,149 @@ class Aspencat implements DriverInterface{
 					$city = substr($cityState, 0, $commaPos);
 					$state = substr($cityState, $commaPos);
 				}
-			} else {
-				$city = "";
-				$state = "";
-			}
-			if (preg_match('/<input [^>]*id="zipcode"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$zipcode = $matches[1];
-			} else {
-				$zipcode = "";
-			}
-			if (preg_match('/<input [^>]*id="phone"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$phone = $matches[1];
-			} else {
-				$phone = "";
-			}
-			if (preg_match('/<input [^>]*id="email"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$email = $matches[1];
-			} else {
-				$email = "";
-			}
-			if (preg_match('/<input [^>]*id="dateexpiry"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-				$formattedExpiration = $matches[1];
-			} else {
-				$formattedExpiration = "";
-			}
 
-			//Get fines
-			$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-account.pl";
-			$finesPage = $this->getKohaPage($kohaUrl);
-			if (preg_match('/<span class="debit">(.*?)<\/span>/', $finesPage, $matches)) {
-				$fines = $matches[1];
-			} else {
-				$fines = "";
-			}
+				//Get fines
+				//Load fines from database
+				$outstandingFines = $this->getOutstandingFineTotal();
 
-			//Get number of items checked out
-			if (preg_match('/<caption>(\d) Items Checked Out<\/caption>/', $summaryPage, $matches)) {
-				$numItemsOut = $matches[1];
-			} else {
-				$numItemsOut = 0;
-			}
-			$numAvailableHolds = preg_match('/Item waiting/', $summaryPage);
-			if (preg_match('/<caption><span class="HoldsLabel">Holds <\/span><span class="count">\((\d+) total\)<\/span><\/caption>/', $summaryPage, $matches)) {
-				$numHoldsTotal = $matches[1];
-			} else {
-				$numHoldsTotal = 0;
-			}
-			if (preg_match('/<caption>Suspended <span class="HoldsLabel">Holds <\/span><span class="count">\((\d+) total\)<\/span><\/caption>/', $summaryPage, $matches)) {
-				$numHoldsTotal += $matches[1];
-			}
-
-			//TODO: Determine if there is some way of getting the location for the user.  So far, there does not seem to be.
-
-			global $user;
-			$profile = array(
-				'lastname' => $patron->lastname,
-				'firstname' => $patron->firstname,
-				'displayName' => isset($patron->displayName) ? $patron->displayName : '',
-				'fullname' => $user->lastname . ', ' . $user->firstname,
-				'address1' => trim($streetnumber . ' ' . $address . ' ' . $address2),
-				'city' => $city,
-				'state' => $state,
-				'zip' => $zipcode,
-				'phone' => $phone,
-				'email' => $email,
-				'homeLocationId' => -1,
-				'homeLocationName' => '',
-				'expires' => $formattedExpiration,
-				'fines' => $fines,
-				'finesval' => floatval($fines),
-				'numHolds' => $numHoldsTotal,
-				'numHoldsAvailable' => $numAvailableHolds,
-				'numHoldsRequested' => $numHoldsTotal - $numAvailableHolds,
-				'numCheckedOut' => $numItemsOut ,
-				'bypassAutoLogout' => ($user ? $user->bypassAutoLogout : false),
-			);
-			$profile['noticePreferenceLabel'] = 'Unknown';
-
-			//Get eContent info as well
-			require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
-			$eContentDriver = new EContentDriver();
-			$eContentAccountSummary = $eContentDriver->getAccountSummary();
-			$profile = array_merge($profile, $eContentAccountSummary);
-
-			require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
-			$overDriveDriver = OverDriveDriverFactory::getDriver();
-			if ($overDriveDriver->isUserValidForOverDrive($user)){
-				$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
-				$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
-				$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
-				$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
-				$profile['canUseOverDrive'] = true;
-			}else{
-				$profile['numOverDriveCheckedOut'] = 0;
-				$profile['numOverDriveHoldsAvailable'] = 0;
-				$profile['numOverDriveHoldsRequested'] = 0;
-				$profile['canUseOverDrive'] = false;
-			}
-
-			$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $profile['numOverDriveCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
-			$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $profile['numOverDriveHoldsAvailable'] + $eContentAccountSummary['numEContentAvailableHolds'];
-			$profile['numHoldsRequestedTotal'] = $profile['numHoldsRequested'] + $profile['numOverDriveHoldsRequested'] + $eContentAccountSummary['numEContentUnavailableHolds'];
-			$profile['numHoldsTotal'] = $profile['numHoldsAvailableTotal'] + $profile['numHoldsRequestedTotal'];
-
-			//Get a count of the materials requests for the user
-			if ($user){
-				$homeLibrary = Library::getPatronHomeLibrary();
-				if ($homeLibrary){
-					$materialsRequest = new MaterialsRequest();
-					$materialsRequest->createdBy = $user->id;
-					$statusQuery = new MaterialsRequestStatus();
-					$statusQuery->isOpen = 1;
-					$statusQuery->libraryId = $homeLibrary->libraryId;
-					$materialsRequest->joinAdd($statusQuery);
-					$materialsRequest->find();
-					$profile['numMaterialsRequests'] = $materialsRequest->N;
-				}else{
-					$profile['numMaterialsRequests'] = 0;
+				//Get number of items checked out
+				$checkedOutItemsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numCheckouts FROM issues WHERE borrowernumber = ' . $patron->username);
+				$numCheckouts = 0;
+				if ($checkedOutItemsRS){
+					$checkedOutItems = $checkedOutItemsRS->fetch_assoc();
+					$numCheckouts = $checkedOutItems['numCheckouts'];
+					$checkedOutItemsRS->close();
 				}
+
+				//Get number of available holds
+				$availableHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM issues WHERE waitingdate != null and borrowernumber = ' . $patron->username);
+				$numAvailableHolds = 0;
+				if ($availableHoldsRS){
+					$availableHolds = $availableHoldsRS->fetch_assoc();
+					$numAvailableHolds = $availableHolds['numCheckouts'];
+					$availableHoldsRS->close();
+				}
+
+				//Get number of unavailable
+				$waitingHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM issues WHERE waitingdate = null and borrowernumber = ' . $patron->username);
+				$numWaitingHolds = 0;
+				if ($waitingHoldsRS){
+					$waitingHolds = $waitingHoldsRS->fetch_assoc();
+					$numWaitingHolds = $waitingHolds['numCheckouts'];
+					$waitingHoldsRS->close();
+				}
+
+				$homeBranchCode = $userFromDb['branchcode'];
+				$location = new Location();
+				$location->code = $homeBranchCode;
+				$location->find(1);
+				if ($location->N == 0){
+					unset($location);
+				}
+
+				global $user;
+				$profile = array(
+					'lastname' => $patron->lastname,
+					'firstname' => $patron->firstname,
+					'displayName' => isset($patron->displayName) ? $patron->displayName : '',
+					'fullname' => $user->lastname . ', ' . $user->firstname,
+					'address1' => trim($userFromDb['streetnumber'] . ' ' . $userFromDb['address'] . ' ' . $userFromDb['address2']),
+					'city' => $city,
+					'state' => $state,
+					'zip' => $userFromDb['zipcode'],
+					'phone' => $userFromDb['phone'],
+					'email' => $userFromDb['email'],
+					'homeLocationId' => -1,
+					'homeLocationName' => '',
+					'expires' => $userFromDb['dateexpiry'],
+					'fines' => sprintf('$%0.2f', $outstandingFines),
+					'finesval' => floatval($outstandingFines),
+					'numHolds' => $numWaitingHolds + $numAvailableHolds,
+					'numHoldsAvailable' => $numAvailableHolds,
+					'numHoldsRequested' => $numWaitingHolds,
+					'numCheckedOut' => $numCheckouts ,
+					'bypassAutoLogout' => ($user ? $user->bypassAutoLogout : false),
+				);
+				$profile['noticePreferenceLabel'] = 'Unknown';
+
+				//Get eContent info as well
+				require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
+				$eContentDriver = new EContentDriver();
+				$eContentAccountSummary = $eContentDriver->getAccountSummary();
+				$profile = array_merge($profile, $eContentAccountSummary);
+
+				require_once(ROOT_DIR . '/Drivers/OverDriveDriverFactory.php');
+				$overDriveDriver = OverDriveDriverFactory::getDriver();
+				if ($overDriveDriver->isUserValidForOverDrive($user)){
+					$overDriveSummary = $overDriveDriver->getOverDriveSummary($user);
+					$profile['numOverDriveCheckedOut'] = $overDriveSummary['numCheckedOut'];
+					$profile['numOverDriveHoldsAvailable'] = $overDriveSummary['numAvailableHolds'];
+					$profile['numOverDriveHoldsRequested'] = $overDriveSummary['numUnavailableHolds'];
+					$profile['canUseOverDrive'] = true;
+				}else{
+					$profile['numOverDriveCheckedOut'] = 0;
+					$profile['numOverDriveHoldsAvailable'] = 0;
+					$profile['numOverDriveHoldsRequested'] = 0;
+					$profile['canUseOverDrive'] = false;
+				}
+
+				$profile['numCheckedOutTotal'] = $profile['numCheckedOut'] + $profile['numOverDriveCheckedOut'] + $eContentAccountSummary['numEContentCheckedOut'];
+				$profile['numHoldsAvailableTotal'] = $profile['numHoldsAvailable'] + $profile['numOverDriveHoldsAvailable'] + $eContentAccountSummary['numEContentAvailableHolds'];
+				$profile['numHoldsRequestedTotal'] = $profile['numHoldsRequested'] + $profile['numOverDriveHoldsRequested'] + $eContentAccountSummary['numEContentUnavailableHolds'];
+				$profile['numHoldsTotal'] = $profile['numHoldsAvailableTotal'] + $profile['numHoldsRequestedTotal'];
+
+				//Get a count of the materials requests for the user
+				if ($user){
+					$homeLibrary = Library::getPatronHomeLibrary();
+					if ($homeLibrary){
+						$materialsRequest = new MaterialsRequest();
+						$materialsRequest->createdBy = $user->id;
+						$statusQuery = new MaterialsRequestStatus();
+						$statusQuery->isOpen = 1;
+						$statusQuery->libraryId = $homeLibrary->libraryId;
+						$materialsRequest->joinAdd($statusQuery);
+						$materialsRequest->find();
+						$profile['numMaterialsRequests'] = $materialsRequest->N;
+					}else{
+						$profile['numMaterialsRequests'] = 0;
+					}
+
+					if ($user->homeLocationId == 0 && isset($location)) {
+						$user->homeLocationId = $location->locationId;
+						if ($location->nearbyLocation1 > 0){
+							$user->myLocation1Id = $location->nearbyLocation1;
+						}else{
+							$user->myLocation1Id = $location->locationId;
+						}
+						if ($location->nearbyLocation2 > 0){
+							$user->myLocation2Id = $location->nearbyLocation2;
+						}else{
+							$user->myLocation2Id = $location->locationId;
+						}
+						if ($user instanceof User) {
+							//Update the database
+							$user->update();
+							//Update the serialized instance stored in the session
+							$_SESSION['userinfo'] = serialize($user);
+						}
+					}else if (isset($location) && $location->locationId != $user->homeLocationId){
+						$user->homeLocationId = $location->locationId;
+
+						//Update the database
+						$user->update();
+						//Update the serialized instance stored in the session
+						$_SESSION['userinfo'] = serialize($user);
+					}
+				}
+			}else{
+				$profile = PEAR_Singleton::raiseError('patron_info_error_technical - could not load from database');
 			}
 		} else {
-			$profile = new PEAR_Error('patron_info_error_technical - invalid patron information response');
+			$profile = PEAR_Singleton::raiseError('patron_info_error_technical - could not execute user info statement');
 		}
 
 		$this->patronProfiles[$patron->username] = $profile;
-		$timer->logTime('Retrieved Profile for Patron from SIP 2');
+		$timer->logTime('Retrieved Profile for Patron from Database');
 		return $profile;
 	}
 
@@ -796,105 +714,65 @@ class Aspencat implements DriverInterface{
 
 		//Get transactions by screen scraping
 		$transactions = array();
-		//Login to Koha classic interface
-		$result = $this->loginToKoha($user);
-		if (!$result['success']){
-			return $transactions;
-		}
 
-		//Get the checked out titles page
-		$transactionPage = $result['summaryPage'];
+		$this->initDatabaseConnection();
 
-		//Parse the checked out titles page
-		if (preg_match_all('/<table id="checkoutst">(.*?)<\/table>/si', $transactionPage, $transactionTableData, PREG_SET_ORDER)){
-			$transactionTable = $transactionTableData[0][0];
+		$sql = "SELECT issues.*, items.biblionumber, title, author from issues left join items on items.itemnumber = issues.itemnumber left join biblio ON items.biblionumber = biblio.biblionumber where borrowernumber = ?";
+		$checkoutsStmt = mysqli_prepare($this->dbConnection, $sql);
+		$checkoutsStmt->bind_param('i', $user->username);
+		$checkoutsStmt->execute();
 
-			//Get the header row labels in case the columns are ever rearranged?
-			$headerLabels = array();
-			preg_match_all('/<th>([^<]*?)<\/th>/si', $transactionTable, $tableHeaders, PREG_PATTERN_ORDER);
-			foreach ($tableHeaders[1] as $col => $tableHeader){
-				$headerLabels[$col] = trim(strtolower($tableHeader));
+		$results = $checkoutsStmt->get_result();
+		while ($curRow = $results->fetch_assoc()){
+			$transaction = array();
+			$transaction['checkoutSource'] = 'ILS';
+
+			$transaction['id'] = $curRow['biblionumber'];
+			$transaction['recordId'] = $curRow['biblionumber'];
+			$transaction['shortId'] = $curRow['biblionumber'];
+			$transaction['title'] = $curRow['title'];
+			$transaction['author'] = $curRow['author'];
+
+			$dateDue = DateTime::createFromFormat('Y-m-d', $curRow['date_due']);
+			if ($dateDue){
+				$dueTime = $dateDue->getTimestamp();
+			}else{
+				$dueTime = null;
+			}
+			$transaction['duedate'] = $dueTime;
+			if ($dueTime != null){
+				$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
+				$overdue = $daysUntilDue < 0;
+				$transaction['duedate'] = $dueTime;
+				$transaction['overdue'] = $overdue;
+				$transaction['daysUntilDue'] = $daysUntilDue;
+			}
+			$transaction['itemid'] = $curRow['id'];
+			$transaction['renewIndicator'] = $curRow['id'];
+			$transaction['renewCount'] = $curRow['renewals'];
+
+			if ($transaction['id'] && strlen($transaction['id']) > 0){
+				$transaction['recordId'] = $transaction['id'];
+				require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+				$recordDriver = new MarcRecord($transaction['recordId']);
+				if ($recordDriver->isValid()){
+					$transaction['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+					$transaction['groupedWorkId'] = $recordDriver->getGroupedWorkId();
+					$formats = $recordDriver->getFormats();
+					$transaction['format'] = reset($formats);
+					$transaction['author'] = $recordDriver->getPrimaryAuthor();
+					if (!isset($transaction['title']) || empty($transaction['title'])){
+						$transaction['title'] = $recordDriver->getTitle();
+					}
+				}else{
+					$transaction['coverUrl'] = "";
+					$transaction['groupedWorkId'] = "";
+					$transaction['format'] = "Unknown";
+					$transaction['author'] = "";
+				}
 			}
 
-			//Get each row within the table
-			//Grab the table body
-			preg_match('/<tbody>(.*?)<\/tbody>/si', $transactionTable, $tableBody);
-			$tableBody = $tableBody[1];
-			preg_match_all('/<tr>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
-			foreach ($tableData[1] as $tableRow){
-				//Each row represents a transaction
-				$transaction = array();
-				$transaction['checkoutSource'] = 'ILS';
-				//Go through each cell in the row
-				preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
-				foreach ($tableCells[1] as $col => $tableCell){
-					//Based off which column we are in, fill out the transaction
-					if ($headerLabels[$col] == 'title'){
-						//Title column contains title, author, and id link
-						if (preg_match('/biblionumber=(\\d+)">\\s*([^<]*)\\s*<\/a>.*?>\\s*(.*?)\\s*<\/span>/si', $tableCell, $cellDetails)) {
-							$transaction['id'] = $cellDetails[1];
-							$transaction['shortId'] = $cellDetails[1];
-							$transaction['title'] = $cellDetails[2];
-							$transaction['author'] = $cellDetails[3];
-						}else{
-							$logger->log("Could not parse title for checkout", PEAR_LOG_WARNING);
-							$transaction['title'] = strip_tags($tableCell);
-						}
-					}elseif ($headerLabels[$col] == 'call no.'){
-						//Ignore this column for now
-					}elseif ($headerLabels[$col] == 'due'){
-						if (preg_match('/(\d{2}\/\d{2}\/\d{4})/', $tableCell, $dueMatches)){
-							$dateDue = DateTime::createFromFormat('m/d/Y', $dueMatches[1]);
-							if ($dateDue){
-								$dueTime = $dateDue->getTimestamp();
-							}else{
-								$dueTime = null;
-							}
-						}else{
-							$dueTime = strtotime($tableCell);
-						}
-						if ($dueTime != null){
-							$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
-							$overdue = $daysUntilDue < 0;
-							$transaction['duedate'] = $dueTime;
-							$transaction['overdue'] = $overdue;
-							$transaction['daysUntilDue'] = $daysUntilDue;
-						}
-					}elseif ($headerLabels[$col] == 'renew'){
-						if (preg_match('/item=(\\d+).*?\\((\\d+) of (\\d+) renewals/si', $tableCell, $renewalData)) {
-							$transaction['itemid'] = $renewalData[1];
-							$transaction['renewIndicator'] = $renewalData[1];
-							$numRenewalsRemaining = $renewalData[2];
-							$numRenewalsAllowed = $renewalData[3];
-							$transaction['renewCount'] = $numRenewalsAllowed - $numRenewalsRemaining;
-						}
-					}
-					//TODO: Add display of fines on a title?
-				}
-
-				if ($transaction['id'] && strlen($transaction['id']) > 0){
-					$transaction['recordId'] = $transaction['id'];
-					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($transaction['recordId']);
-					if ($recordDriver->isValid()){
-						$transaction['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
-						$transaction['groupedWorkId'] = $recordDriver->getGroupedWorkId();
-						$formats = $recordDriver->getFormats();
-						$transaction['format'] = reset($formats);
-						$transaction['author'] = $recordDriver->getPrimaryAuthor();
-						if (!isset($transaction['title']) || empty($transaction['title'])){
-							$transaction['title'] = $recordDriver->getTitle();
-						}
-					}else{
-						$transaction['coverUrl'] = "";
-						$transaction['groupedWorkId'] = "";
-						$transaction['format'] = "Unknown";
-						$transaction['author'] = "";
-					}
-				}
-
-				$transactions[] = $transaction;
-			}
+			$transactions[] = $transaction;
 		}
 
 		//Process sorting
@@ -1003,15 +881,21 @@ class Aspencat implements DriverInterface{
 		return $sResult;
 	}
 
+	/** @var mysqli_stmt  */
+	private $getUserInfoStmt = null;
+	private $loadedUsers = array();
 	public function patronLogin($username, $password) {
-		//Koha uses SIP2 authentication for login.  See
-
-		global $timer;
-		global $configArray;
-
 		//Remove any spaces from the barcode
 		$username = trim($username);
 		$password = trim($password);
+
+		if (array_key_exists($username, $this->loadedUsers)){
+			return $this->loadedUsers[$username];
+		}
+		global $timer;
+		global $configArray;
+
+		$this->loadedUsers[$username] = null;
 
 		if ($configArray['Catalog']['offline'] == true){
 			//The catalog is offline, check the database to see if the user is valid
@@ -1048,58 +932,38 @@ class Aspencat implements DriverInterface{
 				return null;
 			}
 		}else{
-			//Login through SIP is proving unreliable (works maybe 1/5 of the time).
-			//Therefore, change to scraping the login process of classic.
-			$tmpUser = new User();
-			$tmpUser->cat_username = $username;
-			$tmpUser->cat_password = $password;
-			$loginResult = $this->loginToKoha($tmpUser);
-			if ($loginResult['success']){
-				//Get the my personal details page
-				$catalogUrl = $configArray['Catalog']['url'];
-				$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-userupdate.pl";
-				$personalDetailsPage = $this->getKohaPage($kohaUrl);
-				if (preg_match('/<input [^>]*id="borrowernumber"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-					$patronNumber = $matches[1];
-				} else {
-					$patronNumber = "";
-				}
-				if (preg_match('/<input [^>]*id="firstname"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-					$firstname = $matches[1];
-				} else {
-					$firstname = "";
-				}
-				if (preg_match('/<input [^>]*id="surname"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-					$lastname = $matches[1];
-				} else {
-					$lastname = "";
-				}
-				if (preg_match('/<input [^>]*id="email"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-					$email = $matches[1];
-				} else {
-					$email = "";
-				}
-				if (preg_match('/<input [^>]*id="categorycode"[^>]*value="(.*?)"[^>]*\/>/', $personalDetailsPage, $matches)) {
-					$categorycode = $matches[1];
-				} else {
-					$categorycode = "";
-				}
+			//Use MySQL connection to load data
+			$this->initDatabaseConnection();
 
-				$returnVal = array(
-					'username'  => $patronNumber, //The unique id of the patron in the ILS
-					'firstname' => $firstname,
-					'lastname'  => $lastname,
-					'fullname'  => $firstname . ' ' . $lastname,     //Added to array for possible display later.
-					'cat_username' => $username,
-					'cat_password' => $password,
+			$this->getUserInfoStmt->bind_param('ss', $username, $username);
+			$encodedPassword = rtrim (base64_encode (pack ('H*', md5 ($password))), '=');
 
-					'email' => $email,
-					'major' => null,
-					'college' => null,
-					'patronType' => $categorycode,
-					'web_note' => ''
-				);
-				return $returnVal;
+			if ($this->getUserInfoStmt->execute()){
+				if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()){
+					$userFromDb = $userFromDbResultSet->fetch_assoc();
+					if ($userFromDb['password'] == $encodedPassword){
+						$returnVal = array(
+							'username'  => $userFromDb['borrowernumber'], //The unique id of the patron in the ILS
+							'firstname' => $userFromDb['firstname'],
+							'lastname'  => $userFromDb['surname'],
+							'fullname'  => $userFromDb['firstname'] . ' ' . $userFromDb['surname'],     //Added to array for possible display later.
+							'cat_username' => $username,
+							'cat_password' => $password,
+
+							'email' => $userFromDb['email'],
+							'major' => null,
+							'college' => null,
+							'patronType' => $userFromDb['categorycode'],
+							'web_note' => ''
+						);
+						$this->loadedUsers[$username] = $returnVal;
+						$timer->logTime("patron logged in successfully");
+						return $returnVal;
+					}else{
+						return null;
+					}
+				}
+				return null;
 			}else{
 				return null;
 			}
@@ -1107,36 +971,21 @@ class Aspencat implements DriverInterface{
 
 	}
 
-	private function initSipConnection() {
-		if ($this->sipConnection == null){
-			global $configArray;
-			require_once ROOT_DIR . '/sys/SIP2.php';
-			$this->sipConnection = new sip2();
-			$this->sipConnection->hostname = $configArray['SIP2']['host'];
-			$this->sipConnection->port = $configArray['SIP2']['port'];
+	function initDatabaseConnection(){
+		global $configArray;
+		if ($this->dbConnection == null){
+			$this->dbConnection = mysqli_connect($configArray['Catalog']['db_host'], $configArray['Catalog']['db_user'], $configArray['Catalog']['db_pwd'], $configArray['Catalog']['db_name']);
 
-			if ($this->sipConnection->connect()) {
-				//send selfcheck status message
-				$in = $this->sipConnection->msgSCStatus();
-				$msg_result = $this->sipConnection->get_message($in);
-
-				// Make sure the response is 98 as expected
-				if (preg_match("/^98/", $msg_result)) {
-					$result = $this->sipConnection->parseACSStatusResponse($msg_result);
-
-					//  Use result to populate SIP2 settings
-					$this->sipConnection->AO = $result['variable']['AO'][0]; /* set AO to value returned */
-					if (isset($result['variable']['AN'])){
-						$this->sipConnection->AN = $result['variable']['AN'][0]; /* set AN to value returned */
-					}
-					return true;
-				}
-				$this->sipConnection->disconnect();
+			if (mysqli_errno($this->dbConnection) != 0){
+				global $logger;
+				$logger->log("Error connecting to Koha database " . mysqli_error($this->dbConnection), PEAR_LOG_ERR);
+				$this->dbConnection = null;
+			}else{
+				$sql = "SELECT borrowernumber, cardnumber, surname, firstname, streetnumber, streettype, address, address2, city, zipcode, country, email, phone, mobile, categorycode, dateexpiry, password, userid, branchcode from borrowers where cardnumber = ? OR userid = ?";
+				$this->getUserInfoStmt = mysqli_prepare($this->dbConnection, $sql);
 			}
-			$this->sipConnection = null;
-			return false;
-		}else{
-			return true;
+			global $timer;
+			$timer->logTime("Initialized connection to Koha");
 		}
 	}
 
@@ -1149,6 +998,15 @@ class Aspencat implements DriverInterface{
 		//Cleanup any connections we have to other systems
 		if ($this->curl_connection != null){
 			curl_close($this->curl_connection);
+		}
+		if ($this->dbConnection != null){
+			if ($this->getNumHoldsStmt != null){
+				$this->getNumHoldsStmt->close();
+			}
+			if ($this->getHoldingsStmt != null){
+				$this->getHoldingsStmt->close();
+			}
+			mysqli_close($this->dbConnection);
 		}
 		if ($this->cookieFile != null){
 			unlink($this->cookieFile);
@@ -2147,70 +2005,117 @@ class Aspencat implements DriverInterface{
 		$memCache->delete('patronProfile_' . $user->id);
 	}
 
+	private $holdsByBib = array();
+	/** @var mysqli_stmt  */
+	private $getNumHoldsStmt = null;
 	public function getNumHolds($id) {
-		return 0;
+		if (isset($this->holdsByBib[$id])){
+			return $this->holdsByBib[$id];
+		}
+		$numHolds = 0;
+
+		$this->initDatabaseConnection();
+		if ($this->getNumHoldsStmt == null){
+			$sql = "SELECT count(*) from reserves where biblionumber = ?";
+			$this->getNumHoldsStmt = mysqli_prepare($this->dbConnection, $sql);
+		}
+		$this->getNumHoldsStmt->bind_param("i", $recordId);
+		if (!$this->getNumHoldsStmt->execute()){
+			global $logger;
+			$logger->log("Unable to load hold count from Koha ({$this->getNumHoldsStmt->errno}) {$this->getNumHoldsStmt->error}", PEAR_LOG_ERR);
+
+		}else{
+			$results = $this->getNumHoldsStmt->get_result();
+			$curRow = $results->fetch_row();
+			$numHolds = $curRow[0];
+			$results->close();
+		}
+
+		$this->holdsByBib[$id] = $numHolds;
+
+		global $timer;
+		$timer->logTime("Finished loading num holds for record ");
+
+		return $numHolds;
 	}
 
-	private function getHoldingsFromKoha($holdingsPage) {
+	/** @var mysqli_stmt  */
+	private $getHoldingsStmt = null;
+	private function getHoldingsFromKohaDB($recordId){
 		$holdingsFromKoha = array();
 
-		//Get the table
-		if (preg_match_all('/<div id="holdings">.*?<table.*?>(.*?)<\/table>/si', $holdingsPage, $tableData, PREG_SET_ORDER)){
-			$table = $tableData[0][1];
-			//Get the header row labels
-			$headerLabels = array();
-			preg_match_all('/<th[^>]*>(.*?)<\/th>/si', $table, $tableHeaders, PREG_PATTERN_ORDER);
-			foreach ($tableHeaders[1] as $col => $tableHeader){
-				$headerLabels[$col] = trim(strip_tags(strtolower($tableHeader)));
-			}
+		$this->initDatabaseConnection();
 
-			//Get each row within the table
-			//Grab the table body
-			preg_match('/<tbody>(.*?)<\/tbody>/si', $table, $tableBody);
-			$tableBody = $tableBody[1];
-			preg_match_all('/<tr[^>]*>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
+		if ($this->getHoldingsStmt == null){
+			$sql = "SELECT itemnumber, barcode, itype, holdingbranch, location, itemcallnumber, onloan, ccode, itemnotes, enumchron, damaged, itemlost, wthdrawn, restricted FROM items where biblionumber = ? AND suppress = 0";
+			$this->getHoldingsStmt = mysqli_prepare($this->dbConnection, $sql);
+		}
+		$this->getHoldingsStmt->bind_param("i", $recordId);
 
-			foreach ($tableData[1] as $tableRow){
+		if (!$this->getHoldingsStmt->execute()){
+			global $logger;
+			$logger->log("Unable to load holdings from Koha ({$this->getHoldingsStmt->errno}) {$this->getHoldingsStmt->error}", PEAR_LOG_ERR);
+		}else{
+			//Read the information
+			$results = $this->getHoldingsStmt->get_result();
+			while ($curRow = $results->fetch_assoc()){
+				if ($curRow['itype'] == 'EAUDIO' || $curRow['itype'] == 'EBOOK' || $curRow['itype'] == 'ONLINE'){
+					continue;
+				}
 				$curItem = array();
-				$curItem['matched'] = false;
+				$curItem['type'] = 'holding';
+				$curItem['id'] = $curRow['itemnumber'];
+				$curItem['barcode'] = $curRow['barcode'];
+				$curItem['itemType'] = mapValue('itype', $curRow['itype']);
+				$curItem['locationCode'] = $curRow['location'];
+				$curItem['library'] = mapValue('location', $curRow['holdingbranch']);
+				$curItem['location'] = $curRow['location'];
+				$curItem['collection'] = mapValue('ccode', $curRow['ccode']);
+				$curItem['callnumber'] = $curRow['itemcallnumber'];
+				$curItem['volInfo'] = $curRow['enumchron'];
+				$curItem['copy'] = $curRow['itemcallnumber'];
 
-				//Go through each cell in the row
-				preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
-				foreach ($tableCells[1] as $col => $tableCell){
-					if ($headerLabels[$col] == 'item type'){
-						$curItem['itemType'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'library'){
-						//Remove courier code
-						$library = trim($tableCell);
-						$curItem['library'] = $library;
-					}else if ($headerLabels[$col] == 'location'){
-						$curItem['location'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'collection'){
-						$curItem['collection'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'call number'){
-						$curItem['callnumber'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'vol info'){
-						$curItem['volInfo'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'copy'){
-						$curItem['copy'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'status'){
-						$curItem['status'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'notes'){
-						$curItem['notes'] = trim($tableCell);
-					}else if ($headerLabels[$col] == 'date due'){
-						$curItem['dueDate'] = trim($tableCell);
+				$curItem['notes'] = $curRow['itemnotes'];
+				$curItem['dueDate'] = $curRow['onloan'];
+
+				//Figure out status based on all of the fields that make up the status
+				if ($curRow['damaged'] == 1){
+					$curItem['status'] = "Damaged";
+				}else if ($curRow['itemlost'] != null){
+					if ($curRow['itemlost'] == 'longoverdue'){
+						$curItem['status'] = "Long Overdue";
+					}elseif ($curRow['itemlost'] == 'missing'){
+						$curItem['status'] = "Missing";
+					}elseif ($curRow['itemlost'] == 'lost'){
+						$curItem['status'] = "Lost";
+					} elseif ($curRow['itemlost'] == 'trace'){
+						$curItem['status'] = "Trace";
+					}
+				}else if ($curRow['restricted'] == 1 ){
+					$curItem['status'] = "Not For Loan";
+				}else if ($curRow['wthdrawn'] == 1){
+					$curItem['status'] = "Withdrawn";
+				}else{
+					if ($curItem['dueDate'] == null){
+						$curItem['status'] = "On Shelf";
+					}else{
+						$curItem['status'] = "Due {$curItem['dueDate']}";
 					}
 				}
+
 				$holdingsFromKoha[] = $curItem;
 			}
-
+			$results->close();
 		}
 
 		return $holdingsFromKoha;
 	}
 
 	/**
-	 * @param File_MARC_Data_Field $item The item to load data for
+	 * Get status from an item in the MARC record
+	 *
+	 * @param File_MARC_Data_Field $itemField The item to load data for
+	 * @return string
 	 */
 	private function getItemStatus($itemField) {
 		//Determining status for Koha relies on a number of different fields
@@ -2271,5 +2176,36 @@ class Aspencat implements DriverInterface{
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Get Total Outstanding fines for a user.  Lifted from Koha:
+	 * C4::Accounts.pm gettotalowed method
+	 *
+	 * @return mixed
+	 */
+	private function getOutstandingFineTotal() {
+		global $user;
+		//Since borrowernumber is stored in fees and payments, not fee_transactions,
+		//this is done with two queries: the first gets all outstanding charges, the second
+		//picks up any unallocated credits.
+		$this->initDatabaseConnection();
+		$stmt = mysqli_prepare($this->dbConnection, "SELECT SUM(amount) FROM fees LEFT JOIN fee_transactions on(fees.id = fee_transactions.fee_id) where fees.borrowernumber = ?");
+		$stmt->bind_param('i', $user->username);
+		/** @var mysqli_result $result */
+		$stmt->execute( );
+		$amountOutstanding = $stmt->get_result()->fetch_array();
+		$amountOutstanding = $amountOutstanding[0];
+
+		$creditStmt = mysqli_prepare($this->dbConnection, "SELECT SUM(amount) FROM payments LEFT JOIN fee_transactions on(payments.id = fee_transactions.payment_id) where payments.borrowernumber = ? and fee_id is null" );
+		$creditStmt->bind_param('i', $user->username);
+		$creditStmt->execute();
+		$credit = $creditStmt->get_result()->fetch_array();
+		$credit = $credit[0];
+		if ($credit != null){
+			$amountOutstanding += $credit;
+		}
+
+		return $amountOutstanding ;
 	}
 }

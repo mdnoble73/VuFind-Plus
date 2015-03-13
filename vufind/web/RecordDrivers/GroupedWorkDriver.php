@@ -574,7 +574,7 @@ class GroupedWorkDriver extends RecordInterface{
 
 		if ($numRelatedRecords == 1) {
 			//Now that we know that we need more detailed information, load the related record.
-			$relatedRecords = $this->getRelatedRecords();
+			$relatedRecords = $this->getRelatedRecords(false);
 			$onlyRecord = reset($relatedRecords);
 			$url = $onlyRecord['url'];
 		} else {
@@ -1032,9 +1032,8 @@ class GroupedWorkDriver extends RecordInterface{
 	}
 
 	private $relatedRecords = null;
-	public function getRelatedRecords() {
+	public function getRelatedRecords($realTimeStatusNeeded = true) {
 		global $timer;
-		global $configArray;
 		if ($this->relatedRecords == null){
 			$timer->logTime("Starting to load related records for {$this->getUniqueID()}");
 			$relatedRecords = array();
@@ -1096,15 +1095,15 @@ class GroupedWorkDriver extends RecordInterface{
 									$filteredItemsFromIndex[] = $item;
 								}
 							}
-							$recordDriver->setItemsFromIndex($filteredItemsFromIndex);
+							$recordDriver->setItemsFromIndex($filteredItemsFromIndex, $realTimeStatusNeeded);
 						}
 						if ($hasDetailedRecordInfo){
-							$recordDriver->setDetailedRecordInfoFromIndex($relatedRecordInfo);
+							$recordDriver->setDetailedRecordInfoFromIndex($relatedRecordInfo, $realTimeStatusNeeded);
 						}
 						$timer->logTime("Initialized Record Driver for $relatedRecordId");
 
 						$recordDriver->setScopingEnabled($this->scopingEnabled);
-						$relatedRecordsForBib = $recordDriver->getRelatedRecords();
+						$relatedRecordsForBib = $recordDriver->getRelatedRecords($realTimeStatusNeeded);
 						foreach ($relatedRecordsForBib as $relatedRecord){
 							$relatedRecord['driver'] = $recordDriver;
 							$relatedRecords[] = $relatedRecord;
