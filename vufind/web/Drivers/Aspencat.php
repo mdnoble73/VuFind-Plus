@@ -542,6 +542,15 @@ class Aspencat implements DriverInterface{
 			return $this->patronProfiles[$patron->username];
 		}
 
+		/** @var Memcache $memCache */
+		global $memCache;
+		$patronProfile = $memCache->get('patronProfile_' . $patron->username);
+		if ($patronProfile && !isset($_REQUEST['reload']) && !$forceReload){
+			//echo("Using cached profile for patron " . $userId);
+			$timer->logTime('Retrieved Cached Profile for Patron');
+			return $patronProfile;
+		}
+
 		$this->initDatabaseConnection();
 		$this->getUserInfoStmt->bind_param('ss', $patron->cat_username, $patron->cat_username);
 		if ($this->getUserInfoStmt->execute()){
@@ -572,20 +581,20 @@ class Aspencat implements DriverInterface{
 				}
 
 				//Get number of available holds
-				$availableHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM issues WHERE waitingdate != null and borrowernumber = ' . $patron->username);
+				$availableHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE waitingdate is not null and borrowernumber = ' . $patron->username);
 				$numAvailableHolds = 0;
 				if ($availableHoldsRS){
 					$availableHolds = $availableHoldsRS->fetch_assoc();
-					$numAvailableHolds = $availableHolds['numCheckouts'];
+					$numAvailableHolds = $availableHolds['numHolds'];
 					$availableHoldsRS->close();
 				}
 
 				//Get number of unavailable
-				$waitingHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM issues WHERE waitingdate = null and borrowernumber = ' . $patron->username);
+				$waitingHoldsRS = mysqli_query($this->dbConnection, 'SELECT count(*) as numHolds FROM reserves WHERE waitingdate is null and borrowernumber = ' . $patron->username);
 				$numWaitingHolds = 0;
 				if ($waitingHoldsRS){
 					$waitingHolds = $waitingHoldsRS->fetch_assoc();
-					$numWaitingHolds = $waitingHolds['numCheckouts'];
+					$numWaitingHolds = $waitingHolds['numHolds'];
 					$waitingHoldsRS->close();
 				}
 
@@ -700,6 +709,8 @@ class Aspencat implements DriverInterface{
 
 		$this->patronProfiles[$patron->username] = $profile;
 		$timer->logTime('Retrieved Profile for Patron from Database');
+		global $configArray;
+		$memCache->set('patronProfile_' . $patron->username, $profile, 0, $configArray['Caching']['patron_profile']) ;
 		return $profile;
 	}
 
@@ -1451,7 +1462,7 @@ class Aspencat implements DriverInterface{
 	 * @access public
 	 */
 	public function getMyHolds(/** @noinspection PhpUnusedParameterInspection */
-		$patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title', $summaryPage = null){
+		$patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
 		global $logger;
 		global $user;
 
@@ -1462,186 +1473,66 @@ class Aspencat implements DriverInterface{
 			'unavailable' => $unavailableHolds
 		);
 
-		//Get transactions by screen scraping
-		if ($summaryPage == null){
-			//Login to Koha classic interface
-			$result = $this->loginToKoha($user);
-			if (!$result['success']){
-				return $holds;
-			}
+		$this->initDatabaseConnection();
 
-			//Get the summary page that contains both checked out titles and holds
-			$summaryPage = $result['summaryPage'];
-		}
+		$sql = "SELECT *, title, author FROM reserves inner join biblio on biblio.biblionumber = reserves.biblionumber where borrowernumber = ?";
+		$holdsStmt = mysqli_prepare($this->dbConnection, $sql);
+		$holdsStmt->bind_param('i', $user->username);
+		$holdsStmt->execute();
 
-		//Get the holds table
-		if (preg_match_all('/<table id="aholdst">(.*?)<\/table>/si', $summaryPage, $holdsTableData, PREG_SET_ORDER)){
-			$holdsTable = $holdsTableData[0][0];
-
-			//Get the header row labels
-			$headerLabels = array();
-			preg_match_all('/<th[^>]*>(.*?)<\/th>/si', $holdsTable, $tableHeaders, PREG_PATTERN_ORDER);
-			foreach ($tableHeaders[1] as $col => $tableHeader){
-				$headerLabels[$col] = trim(strip_tags(strtolower($tableHeader)));
-			}
-
-			//Get each row within the table
-			//Grab the table body
-			preg_match('/<tbody>(.*?)<\/tbody>/si', $holdsTable, $tableBody);
-			$tableBody = $tableBody[1];
-			preg_match_all('/<tr[^>]*>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
-
-			foreach ($tableData[1] as $tableRow){
-				//Each row in the table represents a hold
-				$curHold= array();
-				$curHold['holdSource'] = 'ILS';
-				//Go through each cell in the row
-				preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
-				$bibId = "";
-				foreach ($tableCells[1] as $col => $tableCell){
-					//Based off which column we are in, fill out the transaction
-					if ($headerLabels[$col] == 'title'){
-						//Title column contains title, author, and id link
-						if (preg_match('/biblionumber=(\\d+)".*?>(.*?)<\/a>/si', $tableCell, $cellDetails)) {
-							$curHold['id'] = $cellDetails[1];
-							$curHold['shortId'] = $cellDetails[1];
-							$curHold['recordId'] = $cellDetails[1];
-							$bibId = $cellDetails[1];
-							$curHold['title'] = $cellDetails[2];
-						}else{
-							$logger->log("Could not parse title for checkout", PEAR_LOG_WARNING);
-							$curHold['title'] = strip_tags($tableCell);
-						}
-					}elseif ($headerLabels[$col] == 'placed on'){
-						$curHold['create'] = date_parse_from_format('m/d/Y', $tableCell);
-					}elseif ($headerLabels[$col] == 'expires on'){
-						if (strlen($tableCell) != 0){
-							$expireDate = DateTime::createFromFormat('m/d/Y', $tableCell);
-							$curHold['expire'] = $expireDate->getTimestamp();
-						}
-					}elseif ($headerLabels[$col] == 'pick up location'){
-						if (strlen($tableCell) != 0){
-							$curHold['location'] = trim($tableCell);
-							$curHold['locationUpdateable'] = false;
-							$curHold['currentPickupName'] = $curHold['location'];
-						}
-					}elseif ($headerLabels[$col] == 'priority'){
-						$curHold['position'] = trim($tableCell);
-					}elseif ($headerLabels[$col] == 'status'){
-						$curHold['status'] = trim($tableCell);
-					}elseif ($headerLabels[$col] == 'cancel'){
-						$curHold['cancelable'] = strlen($tableCell) > 0;
-						if (preg_match('/<input type="hidden" name="reservenumber" value="(.*?)" \/>/', $tableCell, $matches)) {
-							$curHold['cancelId'] = $matches[1];
-						}
-					}elseif ($headerLabels[$col] == 'suspend'){
-						$curHold['freezeable'] = true;
-					}
-				}
-				if ($bibId){
-					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($bibId);
-					if ($recordDriver->isValid()){
-						$curHold['sortTitle'] = $recordDriver->getSortableTitle();
-						$curHold['format'] = $recordDriver->getFormat();
-						$curHold['isbn'] = $recordDriver->getCleanISBN();
-						$curHold['upc'] = $recordDriver->getCleanUPC();
-						$curHold['format_category'] = $recordDriver->getFormatCategory();
-
-						//Load rating information
-						$curHold['ratingData'] = $recordDriver->getRatingData();
-					}
-				}
-
-
-				if (!isset($curHold['status']) || !preg_match('/^Item waiting.*/i', $curHold['status'])){
-					$holds['unavailable'][] = $curHold;
-				}else{
-					$holds['available'][] = $curHold;
-				}
-			}
-		}
-
-		//Get the suspended holds table
-		if (preg_match_all('/<table id="sholdst">(.*?)<\/table>/si', $summaryPage, $holdsTableData, PREG_SET_ORDER)){
-			$holdsTable = $holdsTableData[0][0];
-
-			//Get the header row labels
-			$headerLabels = array();
-			preg_match_all('/<th[^>]*>(.*?)<\/th>/si', $holdsTable, $tableHeaders, PREG_PATTERN_ORDER);
-			foreach ($tableHeaders[1] as $col => $tableHeader){
-				$headerLabels[$col] = trim(strip_tags(strtolower($tableHeader)));
-			}
-
-			//Get each row within the table
-			//Grab the table body
-			preg_match('/<tbody>(.*?)<\/tbody>/si', $holdsTable, $tableBody);
-			$tableBody = $tableBody[1];
-			preg_match_all('/<tr[^>]*>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
-
-			foreach ($tableData[1] as $tableRow){
-				//Each row in the table represents a hold
-				$curHold= array();
-				$curHold['holdSource'] = 'ILS';
+		$results = $holdsStmt->get_result();
+		while ($curRow = $results->fetch_assoc()){
+			//Each row in the table represents a hold
+			$curHold= array();
+			$curHold['holdSource'] = 'ILS';
+			$bibId = $curRow['biblionumber'];
+			$curHold['id'] = $curRow['biblionumber'];
+			$curHold['shortId'] = $curRow['biblionumber'];
+			$curHold['recordId'] = $curRow['biblionumber'];
+			$curHold['title'] = $curRow['title'];
+			$curHold['create'] = date_parse_from_format('Y-M-d H:m:s', $curRow['reservedate']);
+			$curHold['expire'] = date_parse_from_format('Y-M-d', $curRow['expirationdate']);
+			$curHold['location'] = $curRow['branchcode'];
+			$curHold['locationUpdateable'] = false;
+			$curHold['currentPickupName'] = $curHold['location'];
+			$curHold['position'] = $curRow['priority'];
+			$curHold['frozen'] = false;
+			$curHold['freezeable'] = false;
+			$curHold['cancelable'] = true;
+			if ($curRow['found'] == 'S'){
 				$curHold['frozen'] = true;
-				//Go through each cell in the row
-				preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
-				$bibId = "";
-				foreach ($tableCells[1] as $col => $tableCell){
-					//Based off which column we are in, fill out the transaction
-					if ($headerLabels[$col] == 'title'){
-						//Title column contains title, author, and id link
-						if (preg_match('/biblionumber=(\\d+)".*?>(.*?)<\/a>/si', $tableCell, $cellDetails)) {
-							$curHold['id'] = $cellDetails[1];
-							$curHold['shortId'] = $cellDetails[1];
-							$curHold['recordId'] = $cellDetails[1];
-							$bibId = $cellDetails[1];
-							$curHold['title'] = $cellDetails[2];
-						}else{
-							$logger->log("Could not parse title for checkout", PEAR_LOG_WARNING);
-							$curHold['title'] = strip_tags($tableCell);
-						}
-					}elseif ($headerLabels[$col] == 'placed on'){
-						$curHold['create'] = date_parse_from_format('m/d/Y', $tableCell);
-					}elseif ($headerLabels[$col] == 'expires on'){
-						if (strlen($tableCell) != 0){
-							$curHold['expire'] = date_parse_from_format('m/d/Y', $tableCell);
-						}
-					}elseif ($headerLabels[$col] == 'pick up location'){
-						if (strlen($tableCell) != 0){
-							$curHold['location'] = $tableCell;
-							$curHold['locationUpdateable'] = false;
-							$curHold['currentPickupName'] = $curHold['location'];
-						}
-					}elseif ($headerLabels[$col] == 'resume now'){
-						$curHold['cancelable'] = false;
-						$curHold['freezeable'] = false;
-						if (preg_match('/<input type="hidden" name="reservenumber" value="(.*?)" \/>/', $tableCell, $matches)) {
-							$curHold['cancelId'] = $matches[1];
-						}
-					}
-				}
-				if ($bibId){
-					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
-					$recordDriver = new MarcRecord($bibId);
-					if ($recordDriver->isValid()){
-						$curHold['sortTitle'] = $recordDriver->getSortableTitle();
-						$curHold['format'] = $recordDriver->getFormat();
-						$curHold['isbn'] = $recordDriver->getCleanISBN();
-						$curHold['upc'] = $recordDriver->getCleanUPC();
-						$curHold['format_category'] = $recordDriver->getFormatCategory();
+				$curHold['status'] = "Suspended";
+				$curHold['cancelable'] = false;
+			}elseif ($curRow['found'] == 'W'){
+				$curHold['status'] = "Ready to Pickup";
+			}elseif ($curRow['found'] == 'T'){
+				$curHold['status'] = "In Transit";
+			}else{
+				$curHold['status'] = "Pending";
+				$curHold['freezeable'] = true;
+			}
+			$curHold['freezeable'] = true;
+			$curHold['cancelId'] = $curRow['reservenumber'];
 
-						//Load rating information
-						$curHold['ratingData'] = $recordDriver->getRatingData();
-					}
-				}
+			if ($bibId){
+				require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+				$recordDriver = new MarcRecord($bibId);
+				if ($recordDriver->isValid()){
+					$curHold['sortTitle'] = $recordDriver->getSortableTitle();
+					$curHold['format'] = $recordDriver->getFormat();
+					$curHold['isbn'] = $recordDriver->getCleanISBN();
+					$curHold['upc'] = $recordDriver->getCleanUPC();
+					$curHold['format_category'] = $recordDriver->getFormatCategory();
 
-
-				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "filled") != 0){
-					$holds['unavailable'][] = $curHold;
-				}else{
-					$holds['available'][] = $curHold;
+					//Load rating information
+					$curHold['ratingData'] = $recordDriver->getRatingData();
 				}
+			}
+
+			if (!isset($curHold['status']) || !preg_match('/^Item waiting.*/i', $curHold['status'])){
+				$holds['unavailable'][] = $curHold;
+			}else{
+				$holds['available'][] = $curHold;
 			}
 		}
 
