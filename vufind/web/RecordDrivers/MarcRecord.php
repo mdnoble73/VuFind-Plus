@@ -69,17 +69,17 @@ class MarcRecord extends IndexRecord
 	}
 
 	protected $itemsFromIndex;
-	public function setItemsFromIndex($itemsFromIndex){
+	public function setItemsFromIndex($itemsFromIndex, $realTimeStatusNeeded){
 		global $configArray;
-		if ($configArray['Catalog']['supportsRealtimeIndexing']){
+		if ($configArray['Catalog']['supportsRealtimeIndexing'] || !$realTimeStatusNeeded){
 			$this->itemsFromIndex = $itemsFromIndex;
 		}
 	}
 
 	protected $detailedRecordInfoFromIndex;
-	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex){
+	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex, $realTimeStatusNeeded){
 		global $configArray;
-		if ($configArray['Catalog']['supportsRealtimeIndexing']){
+		if ($configArray['Catalog']['supportsRealtimeIndexing'] || !$realTimeStatusNeeded){
 			$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
 		}
 	}
@@ -1611,7 +1611,7 @@ class MarcRecord extends IndexRecord
 	}
 
 	private $relatedRecords = null;
-	function getRelatedRecords(){
+	function getRelatedRecords($realTimeStatusNeeded = true){
 		if ($this->relatedRecords == null){
 			global $configArray;
 			global $timer;

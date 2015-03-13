@@ -56,12 +56,12 @@ class OverDriveRecordDriver extends RecordInterface {
 	}
 
 	protected $itemsFromIndex;
-	public function setItemsFromIndex($itemsFromIndex){
+	public function setItemsFromIndex($itemsFromIndex, $realTimeStatusNeeded){
 		$this->itemsFromIndex = $itemsFromIndex;
 	}
 
 	protected $detailedRecordInfoFromIndex;
-	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex){
+	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex, $realTimeStatusNeeded){
 		$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
 	}
 
@@ -512,7 +512,7 @@ class OverDriveRecordDriver extends RecordInterface {
 		return $this->availability;
 	}
 
-	function getRelatedRecords(){
+	function getRelatedRecords($realTimeStatusNeeded){
 		global $configArray;
 		global $timer;
 		$recordId = $this->getUniqueID();

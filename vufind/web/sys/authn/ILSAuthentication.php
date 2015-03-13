@@ -6,7 +6,6 @@ class ILSAuthentication implements Authentication {
 	private $username;
 	private $password;
 	public function authenticate(){
-		global $configArray;
 		global $user;
 
 		//Check to see if the username and password are provided
