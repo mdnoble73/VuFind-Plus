@@ -128,9 +128,10 @@
 ###############################################
 # OverDrive Extract                           #
 # - For systems not doing continuous indexing #
+* - every 3 hours                             #
 ###############################################
-* */1 * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract; java -server -jar overdrive_extract.jar aspencat.test
-* */1 * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract; java -server -jar overdrive_extract.jar flatirons.test
+1 */3 * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract; java -server -jar overdrive_extract.jar aspencat.test
+11 */3 * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract; java -server -jar overdrive_extract.jar flatirons.test
 
 ###########
 # Reindex #
