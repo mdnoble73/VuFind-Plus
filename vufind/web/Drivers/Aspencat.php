@@ -716,7 +716,6 @@ class Aspencat implements DriverInterface{
 
 	private $transactions = array();
 	public function getMyTransactions($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
-		global $logger;
 		global $user;
 
 		if (isset($this->transactions[$user->id])){
