@@ -1047,61 +1047,51 @@ class Aspencat implements DriverInterface{
 		global $user;
 		global $configArray;
 		global $logger;
-		if (!$this->loginToKoha($user)){
-			return array('historyActive'=>false, 'titles'=>array(), 'numTitles'=> 0);
-		}else{
-			//Get the reading history page
-			$catalogUrl = $configArray['Catalog']['url'];
-			$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-readingrecord.pl?limit=full";
-			$readingHistoryPage = $this->getKohaPage($kohaUrl);
-			if (strpos($readingHistoryPage, '<input type="radio" name="disable_reading_history" value="0" checked>') !== false){
-				$historyActive = true;
+
+		$this->initDatabaseConnection();
+
+		//Figure out if the user is opted in to reading history
+
+		$sql = "select disable_reading_history from borrowers where borrowernumber = {$user->username}";
+		$historyEnabledRS = mysqli_query($this->dbConnection, $sql);
+		if ($historyEnabledRS){
+			$historyEnabledRow = $historyEnabledRS->fetch_assoc();
+			$historyEnabled = !$historyEnabledRow['disable_reading_history'];
+
+			if (!$historyEnabled){
+				return array('historyActive'=>false, 'titles'=>array(), 'numTitles'=> 0);
 			}else{
-				$historyActive = false;
-			}
-			$readingHistoryTitles = array();
+				$historyActive = true;
+				$readingHistoryTitles = array();
 
-			//Get the table
-			if (preg_match_all('/<table id="readingrec">(.*?)<\/table>/si', $readingHistoryPage, $tableData, PREG_SET_ORDER)){
-				$table = $tableData[0][0];
+				//Borrowed from C4:Members.pm
+				$readingHistoryTitleSql = "SELECT *,issues.renewals AS renewals,items.renewals AS totalrenewals,items.timestamp AS itemstimestamp
+					FROM issues
+					LEFT JOIN items on items.itemnumber=issues.itemnumber
+					LEFT JOIN biblio ON items.biblionumber=biblio.biblionumber
+					LEFT JOIN biblioitems ON items.biblioitemnumber=biblioitems.biblioitemnumber
+					WHERE borrowernumber=?
+					UNION ALL
+					SELECT *,old_issues.renewals AS renewals,items.renewals AS totalrenewals,items.timestamp AS itemstimestamp
+					FROM old_issues
+					LEFT JOIN items on items.itemnumber=old_issues.itemnumber
+					LEFT JOIN biblio ON items.biblionumber=biblio.biblionumber
+					LEFT JOIN biblioitems ON items.biblioitemnumber=biblioitems.biblioitemnumber
+					WHERE borrowernumber=?";
+				$readingHistoryTitleStmt = mysqli_prepare($this->dbConnection, $readingHistoryTitleSql);
+				$readingHistoryTitleStmt->bind_param('ii', $user->username, $user->username);
+				if ($readingHistoryTitleStmt->execute()){
+					$readingHistoryTitleRS = $readingHistoryTitleStmt->get_result();
+					while ($readingHistoryTitleRow = $readingHistoryTitleRS->fetch_assoc()){
+						$curTitle = array();
+						$curTitle['id'] = $readingHistoryTitleRow['biblionumber'];
+						$curTitle['shortId'] = $readingHistoryTitleRow['biblionumber'];
+						$curTitle['recordId'] = $readingHistoryTitleRow['biblionumber'];
+						$curTitle['title'] = $readingHistoryTitleRow['title'];
+						$curTitle['checkout'] = $readingHistoryTitleRow['itemstimestamp'];
 
-				//Get the header row labels
-				$headerLabels = array();
-				preg_match_all('/<th[^>]*>(.*?)<\/th>/si', $table, $tableHeaders, PREG_PATTERN_ORDER);
-				foreach ($tableHeaders[1] as $col => $tableHeader){
-					$headerLabels[$col] = trim(strip_tags(strtolower($tableHeader)));
-				}
-
-				//Get each row within the table
-				preg_match_all('/<tr>\s+(<td.*?)<\/tr>/si', $table, $tableData, PREG_PATTERN_ORDER);
-
-				foreach ($tableData[1] as $tableRow){
-					//Each row in the table represents a title in the reading history
-					$curTitle = array();
-					preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
-					foreach ($tableCells[1] as $col => $tableCell){
-						//The first column in the headers is merged.  Adjust appropriately.
-						$col -= 1;
-						if ($col < 0){
-							continue;
-						}
-						if ($headerLabels[$col] == 'title'){
-							if (preg_match('/biblionumber=(\\d+)".*?>(.*?)<\/a>/si', $tableCell, $cellDetails)) {
-								$curTitle['id'] = $cellDetails[1];
-								$curTitle['shortId'] = $cellDetails[1];
-								$curTitle['recordId'] = $cellDetails[1];
-								$curTitle['title'] = $cellDetails[2];
-							}else{
-								$logger->log("Could not parse title for reading history entry", PEAR_LOG_WARNING);
-								$curTitle['title'] = strip_tags($tableCell);
-							}
-						}elseif ($headerLabels[$col] == 'call no.'){
-							//Ignore this for now
-						}elseif ($headerLabels[$col] == 'date'){
-							$curTitle['checkout'] = strip_tags($tableCell);
-						}
+						$readingHistoryTitles[] = $curTitle;
 					}
-					$readingHistoryTitles[] = $curTitle;
 				}
 			}
 
