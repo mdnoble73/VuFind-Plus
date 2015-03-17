@@ -189,7 +189,7 @@ expect {
 		send "yes\r"
 		#expect "login as:"
 		send "$INNOPACuser\r"
-		expect "Password:"
+		expect "password:"
 		send "$INNOPACuserPassword\r"
 	}
 	"Password:" {
@@ -208,18 +208,24 @@ expect "Please key your initials :"
 send "$INNOPACinitials\r"
 expect "Please key your password :"
 send "$INNOPACinitialsPassword\r"
-expect "O > OUTPUT MARC records to another system using tape or FTS"
-send "O"
+expect "M > OUTPUT MARC records to another system using FTS"
+send "M"
+# We may get a notice that the total size is too large
+expect {
+	"Your files title more than"{
+		send " "
+	}
+}
 # ? James thinks script must read the screen now for filename, not after X command
 expect -re "(\[0-9]+) > $name"
 set nFileToDelete $expect_out(1,string)
-expect "Choose one (B,C,P,D,R,F,U,V,T,S,X,Y,Q,+)"
+expect "Choose one"
 send "X" ; # Remove file
 expect "Input numbers of files to be removed"
 send "$nFileToDelete\r"
 expect "Remove file $name"
 send "y"
-expect "Choose one (B,C,P,D,R,F,U,V,T,S,X,Y,Q,+)"
+expect "Choose one"
 send "q"
 close
 
