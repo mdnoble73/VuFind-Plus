@@ -1,6 +1,6 @@
 #!/usr/bin/expect -f
 
-exp_internal 1
+exp_internal 0
 
 # BIB_EXTRACT_PIKA.exp
 # James Staub
@@ -38,7 +38,7 @@ if {[file exists $confpwd] != 1} {
         puts "Please check spelling of site $site; config.pwd.ini not found at $confpwd"
         exit
 }
-set localPath "/data/vufind-plus/$site/marc/"
+set localPath "/data/vufind-plus/$site/marc"
 if {[file exists $localPath] != 1} {
         puts "Please check spelling of site $site; /marc/ directory not found at $localPath"
         exit
@@ -156,10 +156,15 @@ expect "C > CREATE file of unblocked MARC records"
 send "C"
 expect "Enter name of file"
 send "$name\r"
-expect "File $name.out already exists!  Overwrite it? (y/n)"
-send "y"
-expect "$name.out exists, overwrite it?  (y/n)"
-send "y"
+# This does not always happen so wrap in a conditional
+expect {
+	"File $name.out already exists!  Overwrite it? (y/n)"{
+		send "y"
+	}
+	"expect "$name.out exists, overwrite it?  (y/n)"{
+		send "y"
+	}
+}
 expect "B > from a BOOLEAN review file"
 send "B"
 expect "Select review file to work on :"
