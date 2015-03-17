@@ -158,10 +158,10 @@ expect "Enter name of file"
 send "$name\r"
 # This does not always happen so wrap in a conditional
 expect {
-	"File $name.out already exists!  Overwrite it? (y/n)"{
+	"Overwrite it? (y/n)"{
 		send "y"
 	}
-	"expect "$name.out exists, overwrite it?  (y/n)"{
+	"overwrite it?  (y/n)"{
 		send "y"
 	}
 }
@@ -184,8 +184,6 @@ expect "100%"
 close
 set timeout $wait
 
-#}
-
 # DELETE OUT FILE FROM MILLENNIUM SERVER
 spawn ssh $INNOPACuser@$host
 expect {
@@ -197,7 +195,7 @@ expect {
 		expect "password:"
 		send "$INNOPACuserPassword\r"
 	}
-	"Password:" {
+	"password:" {
 		send "$INNOPACuserPassword\r"
 	}
 }
