@@ -5,6 +5,7 @@
 <div class="modal-body">
 	<p class="alert alert-danger" id="loginError" style="display: none"></p>
 	<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form-horizontal" role="form" onsubmit="return VuFind.Account.processAjaxLogin()">
+		<div id="missingLoginPrompt" style="display: none">Please enter both {$usernameLabel} and {$passwordLabel}.</div>
 		<div id ='loginUsernameRow' class='form-group'>
 			<label for="username" class='control-label col-xs-12 col-sm-4'>{$usernameLabel}:</label>
 			<div class='col-xs-12 col-sm-8'>
