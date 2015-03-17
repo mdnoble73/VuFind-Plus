@@ -77,6 +77,12 @@ VuFind.GroupedWork = (function(){
 			});
 		},
 
+		getGoodReadsComments: function (isbn){
+			$("#goodReadsPlaceHolder").replaceWith(
+				"<iframe id='goodreads_iframe' class='goodReadsIFrame' src='https://www.goodreads.com/api/reviews_widget_iframe?did=DEVELOPER_ID&format=html&isbn=" + isbn + "&links=660&review_back=fff&stars=000&text=000' width='100%' height='400px' frameborder='0'></iframe>"
+			);
+		},
+
 		loadEnrichmentInfo: function (id, forceReload) {
 			var url = Globals.path + "/GroupedWork/" + encodeURIComponent(id) + "/AJAX";
 			var params = "method=getEnrichmentInfo";

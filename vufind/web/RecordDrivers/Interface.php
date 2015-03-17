@@ -327,7 +327,8 @@ abstract class RecordInterface {
 			if ($interface->getVariable('showGoodReadsReviews')){
 				$moreDetailsOptions['goodreadsReviews'] = array(
 						'label' => 'Reviews from GoodReads',
-						'body' => '<iframe id="goodreads_iframe" class="goodReadsIFrame" src="https://www.goodreads.com/api/reviews_widget_iframe?did=DEVELOPER_ID&format=html&isbn=' . $isbn . '&links=660&review_back=fff&stars=000&text=000" width="100%" height="400px" frameborder="0"></iframe>',
+						'onShow' => "VuFind.GroupedWork.getGoodReadsComments('$isbn');",
+						'body' => '<div id="goodReadsPlaceHolder">Loading GoodReads Reviews.</div>'
 				);
 			}
 			if ($interface->getVariable('showSimilarTitles')){
