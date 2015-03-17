@@ -1030,7 +1030,9 @@ class MarcRecord extends IndexRecord
 				}
 			}
 		}
-
+		if (strlen($summary) == 0){
+			$summary = $this->getGroupedWorkDriver()->getDescriptionFast();
+		}
 
 		return $summary;
 	}

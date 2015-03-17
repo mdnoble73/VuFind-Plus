@@ -835,33 +835,44 @@ class GroupedWorkDriver extends RecordInterface{
 		return '';
 	}
 
+	private $fastDescription = null;
 	function getDescriptionFast(){
-		if (isset($this->fields['display_description'])){
-			return $this->fields['display_description'];
+		if ($this->fastDescription != null){
+			return $this->fastDescription;
+		}
+		if (isset($this->fields['display_description']) && strlen($this->fields['display_description']) > 0){
+			$this->fastDescription = $this->fields['display_description'];
 		}else{
-			$relatedRecords = $this->getRelatedRecords();
+			$relatedRecords = $this->getRelatedRecords(false);
 			//Look for a description from a book in english
 			foreach ($relatedRecords as $relatedRecord){
-				if (($relatedRecord['format'] == 'Book' || $relatedRecord['format'] == 'eBook') && $relatedRecord['language'] == 'English'){
+				$language = is_array($relatedRecord['language']) ? $relatedRecord['language'][0] : $relatedRecord['language'];
+				if (($relatedRecord['format'] == 'Book' || $relatedRecord['format'] == 'eBook') && $language == 'English'){
 					$fastDescription = $relatedRecord['driver']->getDescriptionFast();
 					if ($fastDescription != null && strlen($fastDescription) > 0){
-						return $fastDescription;
+						$this->fastDescription = $fastDescription;
+						return $this->fastDescription;
 					}
 				}
 			}
-			//Didn't get a description, get the description from the first record
+			//Didn't get a description, get the description from the first record that isn't a book or ebook
 			foreach ($relatedRecords as $relatedRecord){
-				$fastDescription = $relatedRecord['driver']->getDescriptionFast();
-				if ($fastDescription != null && strlen($fastDescription) > 0){
-					return $fastDescription;
+				$language = is_array($relatedRecord['language']) ? $relatedRecord['language'][0] : $relatedRecord['language'];
+				if (($relatedRecord['format'] != 'Book' && $relatedRecord['format'] != 'eBook') || !$language == 'English'){
+					$fastDescription = $relatedRecord['driver']->getDescriptionFast();
+					if ($fastDescription != null && strlen($fastDescription) > 0){
+						$this->fastDescription =  $fastDescription;
+					}
 				}
 			}
-			return '';
+			$this->fastDescription =  '';
+			return $this->fastDescription;
 		}
+		return $this->fastDescription;
 	}
 
 	function getDescription(){
-		$description = "Description Not Provided";
+		$description = null;
 		$cleanIsbn = $this->getCleanISBN();
 		if ($cleanIsbn != null && strlen($cleanIsbn) > 0){
 			require_once ROOT_DIR . '/Drivers/marmot_inc/GoDeeperData.php';
@@ -869,8 +880,12 @@ class GroupedWorkDriver extends RecordInterface{
 			if (isset($summaryInfo['summary'])){
 				$description = $summaryInfo['summary'];
 			}
-		}else{
+		}
+		if ($description == null){
 			$description = $this->getDescriptionFast();
+		}
+		if ($description == null || strlen($description) == 0){
+			$description = 'Description Not Provided';
 		}
 		return $description;
 	}
