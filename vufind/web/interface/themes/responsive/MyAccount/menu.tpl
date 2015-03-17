@@ -161,7 +161,7 @@
 			{/if}
 
 			{if $user && ($user->hasRole('userAdmin') || $user->hasRole('opacAdmin'))}
-				{if in_array($action, array('Administrators', 'TransferAccountInfo', 'DBMaintenance', 'DBMaintenanceEContent', 'PHPInfo', 'OpCacheInfo', 'Variables', 'CronLog', 'ReindexLog', 'OverDriveExtractLog'))
+				{if in_array($action, array('Administrators', 'TransferAccountInfo', 'DBMaintenance', 'DBMaintenanceEContent', 'PHPInfo', 'OpCacheInfo', 'Variables', 'CronLog'))
 				|| ($module == 'Admin' && $action == 'Home')}
 					{assign var="curSection" value=true}
 				{else}
@@ -189,6 +189,28 @@
 							<div class="adminMenuLink {if $action == "OpCacheInfo"}active{/if}"><a href="{$path}/Admin/OpCacheInfo">OpCache Information</a></div>
 							<div class="adminMenuLink {if $action == "Variables"}active{/if}"><a href="{$path}/Admin/Variables">System Variables</a></div>
 							<div class="adminMenuLink {if $action == "CronLog"}active{/if}"><a href="{$path}/Admin/CronLog">Cron Log</a></div>
+						</div>
+					</div>
+				</div>
+			{/if}
+
+			{if $user && ($user->hasRole('libraryAdmin') || $user->hasRole('opacAdmin') || $user->hasRole('cataloging'))}
+				{if in_array($action, array('ReindexLog', 'OverDriveExtractLog', 'IndexingStats'))}
+					{assign var="curSection" value=true}
+				{else}
+					{assign var="curSection" value=false}
+				{/if}
+				<div class="panel">
+					<a href="#indexingMenuGroup" data-toggle="collapse" data-parent="#adminMenuAccordion">
+						<div class="panel-heading">
+							<div class="panel-title">
+								Indexing Information
+							</div>
+						</div>
+					</a>
+					<div id="indexingMenuGroup" class="panel-collapse collapse {if $curSection}in{/if}">
+						<div class="panel-body">
+							<div class="adminMenuLink {if $action == "IndexingStats"}active{/if}"><a href="{$path}/Admin/IndexingStats">Indexing Statistics</a></div>
 							<div class="adminMenuLink {if $action == "ReindexLog"}active{/if}"><a href="{$path}/Admin/ReindexLog">Reindex Log</a></div>
 							<div class="adminMenuLink {if $action == "OverDriveExtractLog"}active{/if}"><a href="{$path}/Admin/OverDriveExtractLog">OverDrive Extract Log</a></div>
 						</div>
