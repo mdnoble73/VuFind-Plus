@@ -855,6 +855,7 @@ abstract class HorizonAPI extends Horizon{
 				$curTitle['canrenew'] = true; //TODO: Figure out if the user can renew the title or not
 				$curTitle['renewIndicator'] = (string)$itemOut->itemBarcode;
 				$curTitle['barcode'] = (string)$itemOut->itemBarcode;
+				$curTitle['holdQueueLength'] = $this->getNumHolds($bibId);
 
 				$curTitle['format'] = 'Unknown';
 				if ($curTitle['id'] && strlen($curTitle['id']) > 0){
@@ -1259,6 +1260,12 @@ abstract class HorizonAPI extends Horizon{
 			}
 		}
 		return $fields;
+	}
+
+	public function getStatusSummary($id, $record = null, $mysip = null){
+		$summary = parent::getStatusSummary($id, $record, $mysip);
+		$summary['holdQueueLength'] = $this->getNumHolds($id);
+		return $summary;
 	}
 
 	//This function does not currently work due to posting of the self registration data.  Using HIP for now in individual drivers.
