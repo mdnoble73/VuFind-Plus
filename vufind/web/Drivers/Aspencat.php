@@ -1045,8 +1045,6 @@ class Aspencat implements DriverInterface{
 		/** @noinspection PhpUnusedParameterInspection */
 		$patron = null, $page = 1, $recordsPerPage = -1, $sortOption = "checkedOut") {
 		global $user;
-		global $configArray;
-		global $logger;
 
 		$this->initDatabaseConnection();
 
@@ -1129,6 +1127,7 @@ class Aspencat implements DriverInterface{
 
 			return array('historyActive'=>$historyActive, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
 		}
+		return array('historyActive'=>false, 'titles'=>array(), 'numTitles'=> 0);
 	}
 
 	private function loginToKoha($user) {
@@ -1452,7 +1451,6 @@ class Aspencat implements DriverInterface{
 	 */
 	public function getMyHolds(/** @noinspection PhpUnusedParameterInspection */
 		$patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
-		global $logger;
 		global $user;
 
 		$availableHolds = array();
@@ -1762,67 +1760,54 @@ class Aspencat implements DriverInterface{
 			'message' => $message);
 	}
 
+	/**
+	 * Get a list of fines for the user.
+	 * Code take from C4::Account getcharges method
+	 *
+	 * @param null $patron
+	 * @param bool $includeMessages
+	 * @return array
+	 */
 	public function getMyFines(
 			/** @noinspection PhpUnusedParameterInspection */
 			$patron = null, $includeMessages = false){
 
-		$messages = array();
 		global $user;
-		if ($this->loginToKoha($user)){
-			//Load the information from millennium using CURL
-			global $configArray;
-			$catalogUrl = $configArray['Catalog']['url'];
-			$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-account.pl";
-			$pageContents = $this->getKohaPage($kohaUrl);
 
-			//Get the fines table data
-			if (preg_match('/<table>(.*?)<\/table>/si', $pageContents, $regs)) {
-				$table = $regs[1];
+		$this->initDatabaseConnection();
 
-				//Get the header row labels
-				$headerLabels = array();
-				preg_match_all('/<th[^>]*>(.*?)<\/th>/si', $table, $tableHeaders, PREG_PATTERN_ORDER);
-				foreach ($tableHeaders[1] as $col => $tableHeader){
-					$headerLabels[$col] = trim(strip_tags(strtolower($tableHeader)));
-				}
+		//Get a list of outstanding fees
+		$query = "SELECT * FROM fees JOIN fee_transactions AS ft on(id = fee_id) WHERE borrowernumber = ? and accounttype in (select accounttype from accounttypes where class='fee' or class='invoice') ";
 
-				//Get each row within the table
-				//Grab the table body
-				preg_match('/<tbody>(.*?)<\/tbody>/si', $table, $tableBody);
-				$tableBody = $tableBody[1];
-				preg_match_all('/<tr[^>]*>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
+		$allFeesStmt = mysqli_prepare($this->dbConnection, $query);
+		$allFeesStmt->bind_param('i', $user->username);
+		$allFeesStmt->execute( );
+		$allFeesRS = $allFeesStmt->get_result();
 
-				foreach ($tableData[1] as $tableRow){
-					//Each row in the table represents a hold
-					$curHold= array();
-					$curHold['holdSource'] = 'ILS';
-					//Go through each cell in the row
-					preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
-					$message = array(
-						'reason' => '',
-					);
-					foreach ($tableCells[1] as $col => $tableCell){
-						//Based off which column we are in, fill out the transaction
-						if ($headerLabels[$col] == 'date'){
-							$message['date'] = strip_tags($tableCell);
-						}elseif ($headerLabels[$col] == 'description'){
-							$message['message'] = strip_tags($tableCell);
-						}elseif ($headerLabels[$col] == 'fine amount'){
-							$message['amount'] = strip_tags($tableCell);
-						}elseif ($headerLabels[$col] == 'amount outstanding'){
-							$message['amount_outstanding'] = strip_tags($tableCell);
-						}
-					}
-					if ($message['reason'] == '&nbsp' || $message['reason'] == '&nbsp;'){
-						$message['reason'] = 'Fee';
-					}
+		$query2 = "SELECT sum(amount) as amountOutstanding from fees LEFT JOIN fee_transactions on (fees.id=fee_transactions.fee_id) where fees.id = ?";
+		$outstandingFeesStmt = mysqli_prepare($this->dbConnection, $query2);
 
-					$messages[] = $message;
-				}
+		$fines = array();
+		while ($allFeesRow = $allFeesRS->fetch_assoc()){
+			$feeId = $allFeesRow['id'];
+			$outstandingFeesStmt->bind_param('i', $feeId);
+			$outstandingFeesStmt->execute();
+
+			$outstandingFeesRow = $outstandingFeesStmt->get_result()->fetch_assoc();
+			$amountOutstanding = $outstandingFeesRow['amountOutstanding'];
+			if ($amountOutstanding > 0){
+				$curFine = array(
+					'date' => $allFeesRow['timestamp'],
+					'reason' => $allFeesRow['accounttype'],
+					'message' => $allFeesRow['description'],
+					'amount' => $allFeesRow['amount'],
+					'amount_outstanding' => $amountOutstanding,
+				);
+				$fines[] = $curFine;
 			}
 		}
 
-		return $messages;
+		return $fines;
 	}
 
 	/**
@@ -1921,6 +1906,15 @@ class Aspencat implements DriverInterface{
 
 	/** @var mysqli_stmt  */
 	private $getHoldingsStmt = null;
+
+	/**
+	 * Load all items from the database.
+	 *
+	 * Uses some code based on C4::Items GetItemsInfo in koha
+	 *
+	 * @param $recordId
+	 * @return array
+	 */
 	private function getHoldingsFromKohaDB($recordId){
 		$holdingsFromKoha = array();
 
@@ -1989,73 +1983,6 @@ class Aspencat implements DriverInterface{
 		}
 
 		return $holdingsFromKoha;
-	}
-
-	/**
-	 * Get status from an item in the MARC record
-	 *
-	 * @param File_MARC_Data_Field $itemField The item to load data for
-	 * @return string
-	 */
-	private function getItemStatus($itemField) {
-		//Determining status for Koha relies on a number of different fields
-		$status = $this->getStatusFromSubfield($itemField, '0', "Withdrawn");
-		if ($status != null) return $status;
-
-		$status = $this->getStatusFromSubfield($itemField, '1', "Lost");
-		if ($status != null) return $status;
-
-		$status = $this->getStatusFromSubfield($itemField, '4', "Damaged");
-		if ($status != null) return $status;
-
-		$status = $this->getStatusFromSubfield($itemField, 'q', "Checked Out");
-		if ($status != null) return $status;
-
-		$status = $this->getStatusFromSubfield($itemField, '7', "Library Use Only");
-		if ($status != null) return $status;
-
-		$status = $this->getStatusFromSubfield($itemField, 'k', null);
-		if ($status != null) return $status;
-
-		return "On Shelf";
-	}
-
-	/**
-	 * @param File_MARC_Data_Field $itemField
-	 * @param string $subfield
-	 * @param string $defaultStatus
-	 * @return null|string
-	 */
-	private function getStatusFromSubfield($itemField, $subfield, $defaultStatus) {
-		if ($itemField->getSubfield($subfield) != null){
-			$fieldData = $itemField->getSubfield($subfield)->getData();
-			if (!$fieldData == "0") {
-				if ($fieldData == "1") {
-					return $defaultStatus;
-				}else{
-					if ($subfield == 'q'){
-						if (preg_match('/\d{4}-\d{2}-\d{2}/', $fieldData)){
-							return "Checked Out";
-						}
-					}else if ($subfield == '1'){
-						if ($fieldData == "lost"){
-							return "Lost";
-						}else if ($fieldData == "missing"){
-							return "Missing";
-						}
-					}else if ($subfield == 'k') {
-						if ($fieldData == "CATALOGED" || $fieldData == "READY") {
-							return null;
-						}else if ($fieldData == "BINDERY"){
-							return "Bindery";
-						}else if ($fieldData == "IN REPAIRS"){
-							return "Repair";
-						}
-					}
-				}
-			}
-		}
-		return null;
 	}
 
 	/**
