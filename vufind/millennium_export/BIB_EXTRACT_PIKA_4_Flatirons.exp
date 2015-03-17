@@ -79,7 +79,7 @@ expect {
 		expect "Password:"
 		send "$INNOPACuserPassword\r"
 	}
-	"Password:" {
+	"password:" {
 		send "$INNOPACuserPassword\r"
 	}
 }
