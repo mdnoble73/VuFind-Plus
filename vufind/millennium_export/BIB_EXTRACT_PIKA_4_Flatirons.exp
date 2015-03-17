@@ -163,7 +163,7 @@ send "y"
 expect "B > from a BOOLEAN review file"
 send "B"
 expect "Select review file to work on :"
-send "1"
+send "001"
 expect "S > START sending records"
 send "S"
 expect "RECORD CONVERSION STATISTICS"
@@ -175,8 +175,6 @@ close
 
 spawn scp $osUser@$host:/iiidb/marc/$name.out $localPath/$name.MRC
 set timeout -1
-expect "Password"
-send "$osUserPassword\r"
 expect "100%"
 close
 set timeout $wait
