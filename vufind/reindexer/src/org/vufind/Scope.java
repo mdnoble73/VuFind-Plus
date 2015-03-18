@@ -158,7 +158,9 @@ public class Scope implements Comparable<Scope>{
 			return true;
 		}
 		for (String pType : compatiblePTypes){
-			if (relatedPTypes.contains(pType)){
+			if (pType.equals("all")){
+				return true;
+			}else if (relatedPTypes.contains(pType)){
 				return true;
 			}
 		}
