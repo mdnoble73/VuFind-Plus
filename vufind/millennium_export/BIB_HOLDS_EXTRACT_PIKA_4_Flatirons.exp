@@ -67,16 +67,8 @@ while {![eof $fd]} {
 }
 
 spawn ssh $INNOPACuser@$host
-#expect "Are you sure you want to continue connecting (yes/no)?" ; # if RSA key for host is not yet set
-#send "yes\r"
-#expect "login as:"
-#send "$INNOPACuser\r"
 expect "password:"
 send "$INNOPACuserPassword\r"
-expect "What kind of Terminal are you using?"
-send "v"
-expect "Please confirm: are you using a VT100 or compatible terminal?"
-send "y"
 expect "M > MANAGEMENT information"
 send "M"
 expect "L > Create LISTS of records"

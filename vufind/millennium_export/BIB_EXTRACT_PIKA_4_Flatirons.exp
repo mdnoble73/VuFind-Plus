@@ -83,10 +83,6 @@ expect {
 		send "$INNOPACuserPassword\r"
 	}
 }
-expect "What kind of Terminal are you using?"
-send "v"
-expect "Please confirm: are you using a VT100 or compatible terminal?"
-send "y"
 expect "M > MANAGEMENT information"
 send "M"
 expect "L > Create LISTS of records"
@@ -158,10 +154,13 @@ expect "Enter name of file"
 send "$name\r"
 # This does not always happen so wrap in a conditional
 expect {
-	"Overwrite it? (y/n)"{
+	"Overwrite it" {
 		send "y"
 	}
-	"overwrite it?  (y/n)"{
+}
+#There is a second prompt that happens if the file already exists
+expect {
+	"overwrite it" {
 		send "y"
 	}
 }
@@ -169,6 +168,7 @@ expect "B > from a BOOLEAN review file"
 send "B"
 expect "Select review file to work on :"
 send "001"
+set timeout -1
 expect "S > START sending records"
 send "S"
 expect "RECORD CONVERSION STATISTICS"
