@@ -290,7 +290,7 @@
 				</div>
 
 				{* Catalog Settings *}
-				{if $showCatalogOptions}
+				{if $showAlternateLibraryOptions || $userIsStaff}
 					<div class="panel active">
 					<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#ilsPanel">
 						<div class="panel-heading">
@@ -303,20 +303,23 @@
 						<div class="panel-body">
 							<form action="{$path}/MyAccount/Profile" method="post" class="form-horizontal">
 								<input type="hidden" name="updateScope" value="catalog"/>
-								<div class="form-group">
-									<div class="col-xs-4"><label for="myLocation1" class="control-label">{translate text='My First Alternate Library'}:</label></div>
-									<div class="col-xs-8">
-										{if $edit == true}
-											{html_options name="myLocation1" id="myLocation1" class="form-control" options=$locationList selected=$profile.myLocation1Id}
-										{else}
-											{$profile.myLocation1|escape}
-										{/if}
+								{if $showAlternateLibraryOptions}
+									<div class="form-group">
+										<div class="col-xs-4"><label for="myLocation1" class="control-label">{translate text='My First Alternate Library'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit == true}
+												{html_options name="myLocation1" id="myLocation1" class="form-control" options=$locationList selected=$profile.myLocation1Id}
+											{else}
+												{$profile.myLocation1|escape}
+											{/if}
+										</div>
 									</div>
-								</div>
-								<div class="form-group">
-									<div class="col-xs-4"><label for="myLocation2" class="control-label">{translate text='My Second Alternate Library'}:</label></div>
-									<div class="col-xs-8">{if $edit == true}{html_options name="myLocation2" id="myLocation2" class="form-control" options=$locationList selected=$profile.myLocation2Id}{else}{$profile.myLocation2|escape}{/if}</div>
-								</div>
+									<div class="form-group">
+										<div class="col-xs-4"><label for="myLocation2" class="control-label">{translate text='My Second Alternate Library'}:</label></div>
+										<div class="col-xs-8">{if $edit == true}{html_options name="myLocation2" id="myLocation2" class="form-control" options=$locationList selected=$profile.myLocation2Id}{else}{$profile.myLocation2|escape}{/if}</div>
+									</div>
+								{/if}
+
 								{if $userIsStaff}
 									<div class="form-group">
 										<div class="col-xs-4"><label for="bypassAutoLogout" class="control-label">{translate text='Bypass Automatic Logout'}:</label></div>

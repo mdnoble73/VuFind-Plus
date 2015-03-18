@@ -39,7 +39,7 @@ class MyAccount_Profile extends MyAccount
 			$showPickupLocationInProfile = false;
 			$treatPrintNoticesAsPhoneNotices = false;
 			$allowPinReset = false;
-			$showCatalogOptionsInProfile = true;
+			$showAlternateLibraryOptionsInProfile = true;
 		}else{
 			$canUpdateContactInfo = ($activeLibrary->allowProfileUpdates == 1);
 			$canUpdateAddress = ($activeLibrary->allowPatronAddressUpdates == 1);
@@ -48,7 +48,7 @@ class MyAccount_Profile extends MyAccount
 			$treatPrintNoticesAsPhoneNotices = ($activeLibrary->treatPrintNoticesAsPhoneNotices == 1);
 			$showPickupLocationInProfile = ($activeLibrary->showPickupLocationInProfile == 1);
 			$allowPinReset = ($activeLibrary->allowPinReset == 1);
-			$showCatalogOptionsInProfile = ($activeLibrary->showCatalogOptionsInProfile == 1);
+			$showAlternateLibraryOptionsInProfile = ($activeLibrary->showAlternateLibraryOptionsInProfile == 1);
 		}
 		if ($showPickupLocationInProfile) { // only grab pickup locations if needed.
 			global $locationSingleton;
@@ -64,7 +64,7 @@ class MyAccount_Profile extends MyAccount
 		$interface->assign('showNoticeTypeInProfile', $showNoticeTypeInProfile);
 		$interface->assign('treatPrintNoticesAsPhoneNotices', $treatPrintNoticesAsPhoneNotices);
 		$interface->assign('allowPinReset', $allowPinReset);
-		$interface->assign('showCatalogOptions', $showCatalogOptionsInProfile);
+		$interface->assign('showAlternateLibraryOptions', $showAlternateLibraryOptionsInProfile);
 
 
 		$ils = $configArray['Catalog']['ils'];
