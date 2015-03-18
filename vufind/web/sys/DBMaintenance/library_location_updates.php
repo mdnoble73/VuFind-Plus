@@ -851,6 +851,14 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'show_catalog_options_in_profile' => array(
+			'title' => 'Show Catalog Options Tab in User Profile Configuration',
+			'description' => 'Additional configuration to let libraries set whether or not the Catalog Options tab in the user profile is displayed to the user',
+			'sql' => array(
+				"ALTER TABLE library ADD COLUMN showCatalogOptionsInProfile TINYINT DEFAULT 1",
+			),
+		),
+
 		'hoopla_library_options' => array(
 			'title' => 'Updates to determine configuration for Hoopla inclusion/exclusion by library',
 			'description' => 'Additional configuration over how Hoopla information is included by library',

@@ -290,7 +290,8 @@
 				</div>
 
 				{* Catalog Settings *}
-				<div class="panel active">
+				{if $showCatalogOptions}
+					<div class="panel active">
 					<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#ilsPanel">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -346,6 +347,7 @@
 						</div>
 					</div>
 				</div>
+				{/if}
 
 				{* Display user roles if the user has any roles*}
 				{if count($user->roles) > 0}
