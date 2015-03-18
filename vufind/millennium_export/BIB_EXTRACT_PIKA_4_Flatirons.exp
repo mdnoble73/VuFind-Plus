@@ -215,7 +215,7 @@ expect "M > OUTPUT MARC records to another system using FTS"
 send "M"
 # We may get a notice that the total size is too large
 expect {
-	"Your files title more than"{
+	"Your files total more than"{
 		send " "
 	}
 }
