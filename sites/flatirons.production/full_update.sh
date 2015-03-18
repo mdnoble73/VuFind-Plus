@@ -86,8 +86,8 @@ checkConflictingProcesses "reindexer.jar"
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
-cd /usr/local/VuFind-Plus/vufind/millennium_export/; expect BIB_HOLDS_EXTRACT_PIKA_4_Flatirons.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
-cd /usr/local/VuFind-Plus/vufind/millennium_export/; expect BIB_EXTRACT_PIKA_4_Flatirons.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/vufind/millennium_export/; expect BIB_HOLDS_EXTRACT_PIKA_4_Flatirons.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
+cd /usr/local/vufind-plus/vufind/millennium_export/; expect BIB_EXTRACT_PIKA_4_Flatirons.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
