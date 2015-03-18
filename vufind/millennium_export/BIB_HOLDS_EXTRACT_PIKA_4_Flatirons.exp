@@ -31,7 +31,7 @@ if {$argc != 2} {
 }
 set site [lindex $argv 0]
 set host [lindex $argv 1]
-set confpwd "/usr/local/VuFind-Plus/sites/$site/conf/config.pwd.ini"
+set confpwd "/usr/local/vufind-plus/sites/$site/conf/config.pwd.ini"
 if {[file exists $confpwd] != 1} {
         puts "Please check spelling of site $site; config.pwd.ini not found at $confpwd"
         exit
