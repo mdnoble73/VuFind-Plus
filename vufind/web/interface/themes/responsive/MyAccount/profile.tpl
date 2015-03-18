@@ -125,7 +125,7 @@
 								{/if}
 								{if $showSMSNoticesInProfile}
 									<div class="form-group">
-										<div class="col-xs-4"><label for="smsNotices">{translate text='Receive SMS Messages'}:</label></div>
+										<div class="col-xs-4"><label for="smsNotices">{translate text='Receive SMS/Text Messages'}:</label></div>
 										<div class="col-xs-8">
 											{if $edit == true && $canUpdateContactInfo == true}
 												<input type="checkbox" name="smsNotices" id="smsNotices" {if $profile.mobileNumber}checked='checked'{/if}/>
@@ -137,7 +137,9 @@
 													{/literal}
 												</script>
 												<p class="help-block alert alert-warning">
-													SMS Messages are sent <strong>in addition</strong> to postal mail/e-mail/phone alerts. <strong>Message and data rates may apply.</strong>
+													SMS/Text Messages are sent <strong>in addition</strong> to postal mail/e-mail/phone alerts. <strong>Message and data rates may apply.</strong>
+													<br/><br/>
+													To sign up for SMS/Text messages, you must opt-in above and enter your Mobile (cell phone) number below.
 													<br/><br/>
 													<a href="{$path}/Help/Home?topic=smsTerms" data-title="SMS Notice Terms" class="modalDialogTrigger">View Terms and Conditions</a>
 												</p>
