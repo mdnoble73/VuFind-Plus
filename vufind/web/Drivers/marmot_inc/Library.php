@@ -110,7 +110,7 @@ class Library extends DB_DataObject
 	public $showWorkPhoneInProfile;
 	public $showNoticeTypeInProfile;
 	public $showPickupLocationInProfile;
-	public $showCatalogOptionsInProfile;
+	public $showAlternateLibraryOptionsInProfile;
 	public $additionalCss;
 	public $maxRequestsPerYear;
 	public $maxOpenRequests;
