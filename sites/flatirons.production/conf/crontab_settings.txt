@@ -11,7 +11,7 @@
 #
 # ie :
 # git pull origin {current branch}
-# crontab < /usr/local/vufind-plus/sites/{your_server_name}/conf/crontab_settings.txt
+# sudo crontab -u vufind /usr/local/vufind-plus/sites/flatirons.production/conf/crontab_settings.txt
 
 ###################
 # * * * * *  command to execute
@@ -38,11 +38,6 @@
 ################
 # Pika Cleanup #
 ################
-
-# Solr Restart
-#7 1 * * * cd /usr/local/vufind-plus/sites/flatirons.production; ./flatirons.production.sh restart
-# alternate to above, if pika is setup as a system service
-#7 1 * * * service pika restart
 
 # Clean Up Temporary Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
