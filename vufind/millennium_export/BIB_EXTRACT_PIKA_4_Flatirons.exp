@@ -1,6 +1,6 @@
 #!/usr/bin/expect -f
 
-exp_internal 1
+exp_internal 0
 
 # BIB_EXTRACT_PIKA.exp
 # James Staub
@@ -33,12 +33,12 @@ if {$argc != 2} {
 }
 set site [lindex $argv 0]
 set host [lindex $argv 1]
-set confpwd "/usr/local/VuFind-Plus/sites/$site/conf/config.pwd.ini"
+set confpwd "/usr/local/vufind-plus/sites/$site/conf/config.pwd.ini"
 if {[file exists $confpwd] != 1} {
         puts "Please check spelling of site $site; config.pwd.ini not found at $confpwd"
         exit
 }
-set localPath "/data/vufind-plus/$site/marc/"
+set localPath "/data/vufind-plus/$site/marc"
 if {[file exists $localPath] != 1} {
         puts "Please check spelling of site $site; /marc/ directory not found at $localPath"
         exit
@@ -79,14 +79,10 @@ expect {
 		expect "Password:"
 		send "$INNOPACuserPassword\r"
 	}
-	"Password:" {
+	"password:" {
 		send "$INNOPACuserPassword\r"
 	}
 }
-expect "What kind of Terminal are you using?"
-send "v"
-expect "Please confirm: are you using a VT100 or compatible terminal?"
-send "y"
 expect "M > MANAGEMENT information"
 send "M"
 expect "L > Create LISTS of records"
@@ -156,14 +152,23 @@ expect "C > CREATE file of unblocked MARC records"
 send "C"
 expect "Enter name of file"
 send "$name\r"
-expect "File $name.out already exists!  Overwrite it? (y/n)"
-send "y"
-expect "$name.out exists, overwrite it?  (y/n)"
-send "y"
+# This does not always happen so wrap in a conditional
+expect {
+	"Overwrite it" {
+		send "y"
+	}
+}
+#There is a second prompt that happens if the file already exists
+expect {
+	"overwrite it" {
+		send "y"
+	}
+}
 expect "B > from a BOOLEAN review file"
 send "B"
 expect "Select review file to work on :"
-send "1"
+send "001"
+set timeout -1
 expect "S > START sending records"
 send "S"
 expect "RECORD CONVERSION STATISTICS"
@@ -175,13 +180,9 @@ close
 
 spawn scp $osUser@$host:/iiidb/marc/$name.out $localPath/$name.MRC
 set timeout -1
-expect "Password"
-send "$osUserPassword\r"
 expect "100%"
 close
 set timeout $wait
-
-#}
 
 # DELETE OUT FILE FROM MILLENNIUM SERVER
 spawn ssh $INNOPACuser@$host
@@ -191,10 +192,10 @@ expect {
 		send "yes\r"
 		#expect "login as:"
 		send "$INNOPACuser\r"
-		expect "Password:"
+		expect "password:"
 		send "$INNOPACuserPassword\r"
 	}
-	"Password:" {
+	"password:" {
 		send "$INNOPACuserPassword\r"
 	}
 }
@@ -210,18 +211,24 @@ expect "Please key your initials :"
 send "$INNOPACinitials\r"
 expect "Please key your password :"
 send "$INNOPACinitialsPassword\r"
-expect "O > OUTPUT MARC records to another system using tape or FTS"
-send "O"
+expect "M > OUTPUT MARC records to another system using FTS"
+send "M"
+# We may get a notice that the total size is too large
+expect {
+	"Your files total more than"{
+		send " "
+	}
+}
 # ? James thinks script must read the screen now for filename, not after X command
 expect -re "(\[0-9]+) > $name"
 set nFileToDelete $expect_out(1,string)
-expect "Choose one (B,C,P,D,R,F,U,V,T,S,X,Y,Q,+)"
+expect "Choose one"
 send "X" ; # Remove file
 expect "Input numbers of files to be removed"
 send "$nFileToDelete\r"
 expect "Remove file $name"
 send "y"
-expect "Choose one (B,C,P,D,R,F,U,V,T,S,X,Y,Q,+)"
+expect "Choose one"
 send "q"
 close
 

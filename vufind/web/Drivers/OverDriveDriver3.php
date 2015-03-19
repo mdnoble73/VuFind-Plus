@@ -779,7 +779,12 @@ class OverDriveDriver3 {
 			if ($analytics) $analytics->addEvent('OverDrive', 'Checkout Item', 'succeeded');
 		}else{
 			$result['message'] = 'Sorry, we could not checkout this title to you.';
+
 			if (isset($response->message)) $result['message'] .= "  {$response->message}";
+			if ($response->errorCode == 'NoCopiesAvailable') {
+				$result['noCopies'] = true;
+				$result['message'] .= "\r\n\r\nWould you like to place a hold instead?";
+			}
 			if ($analytics) $analytics->addEvent('OverDrive', 'Checkout Item', 'failed');
 		}
 

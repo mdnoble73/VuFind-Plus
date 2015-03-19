@@ -3,7 +3,7 @@
 # Should be called once per day.  Will interrupt partial reindexing.
 #
 # At the end of the index will email users with the results.
-EMAIL=root@venus
+EMAIL=root@mercury
 PIKASERVER=opac.marmot.org
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 

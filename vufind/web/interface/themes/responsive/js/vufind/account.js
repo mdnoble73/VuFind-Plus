@@ -143,8 +143,9 @@ VuFind.Account = (function(){
 				password = $("#password").val(),
 				loginErrorElem = $('#loginError');
 			if (!username || !password) {
-				loginErrorElem.text("Please enter both your name and library card number")
-					.show();
+				loginErrorElem
+						.text($("#missingLoginPrompt").text())
+						.show();
 				return false;
 			}
 			if (this.hasLocalStorage()){

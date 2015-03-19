@@ -46,6 +46,6 @@ class ReindexLog extends Admin_Admin
 	}
 
 	function getAllowableRoles(){
-		return array('opacAdmin');
+		return array('opacAdmin', 'libraryAdmin', 'cataloging');
 	}
 }

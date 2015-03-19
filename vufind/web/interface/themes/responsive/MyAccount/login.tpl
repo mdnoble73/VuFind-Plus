@@ -5,9 +5,10 @@
 	<div id="loginFormWrapper">
 		<p class="alert alert-danger" id="loginError" style="display: none"></p>
 		<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form-horizontal">
+			<div id="missingLoginPrompt" style="display: none">Please enter both {$usernameLabel} and {$passwordLabel}.</div>
 			<div id='loginFormFields'>
 				<div id ='loginUsernameRow' class='form-group'>
-					<label for="username" class='control-label col-xs-12 col-sm-4'>{$usernameLabel}</label>
+					<label for="username" class='control-label col-xs-12 col-sm-4'>{$usernameLabel}: </label>
 					<div class='col-xs-12 col-sm-8'>
 						<input type="text" name="username" id="username" value="{$username|escape}" size="28" class="form-control"/>
 					</div>

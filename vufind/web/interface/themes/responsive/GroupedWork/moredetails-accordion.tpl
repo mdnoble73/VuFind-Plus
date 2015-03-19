@@ -13,6 +13,15 @@
 					<div class="panel-body">
 						{$moreDetailsOption.body}
 					</div>
+					{if $moreDetailsOption.onShow}
+						<script type="text/javascript">
+							{literal}
+							$('#{/literal}{$moreDetailsKey}Panel'){literal}.on('shown.bs.collapse', function () {
+								{/literal}{$moreDetailsOption.onShow}{literal}
+							});
+							{/literal}
+						</script>
+					{/if}
 				</div>
 			</div>
 		{/foreach}

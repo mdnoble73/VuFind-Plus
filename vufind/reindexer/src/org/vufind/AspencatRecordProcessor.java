@@ -297,7 +297,8 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 						DataField urlDataField = (DataField)urlField;
 						if (urlDataField.getSubfield('3') != null) {
 							if (urlDataField.getIndicator1() == '4' || urlDataField.getIndicator1() == ' ') {
-								if (urlDataField.getIndicator2() == ' ' || urlDataField.getIndicator2() == '0' || urlDataField.getIndicator2() == '1') {
+								//Technically, should not include indicator 2 of 2, but AspenCat has lots of records with an indicator 2 of 2 that are valid.
+								if (urlDataField.getIndicator2() == ' ' || urlDataField.getIndicator2() == '0' || urlDataField.getIndicator2() == '1' || urlDataField.getIndicator2() == '2') {
 									sourceType = urlDataField.getSubfield('3').getData().trim();
 									break;
 								}

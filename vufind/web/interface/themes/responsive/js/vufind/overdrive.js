@@ -40,7 +40,7 @@ VuFind.OverDrive = (function(){
 								VuFind.closeLightbox();
 								ret = confirm(data.message);
 								if (ret == true){
-									VuFind.OverDrive.placeOverDriveHold(overdriveId, formatId);
+									VuFind.OverDrive.placeOverDriveHold(overdriveId, null);
 								}
 							}else{
 								VuFind.showMessage("Error Checking Out Title", data.message, false);

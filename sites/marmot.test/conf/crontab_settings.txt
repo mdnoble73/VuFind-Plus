@@ -125,6 +125,14 @@
 #50 5 * * * cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar flatirons.test fullRegroupingNoClear
 #5:50am everyday
 
+###############################################
+# OverDrive Extract                           #
+# - For systems not doing continuous indexing #
+# - every 3 hours                             #
+###############################################
+1 */3 * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract; java -server -jar overdrive_extract.jar aspencat.test
+11 */3 * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract; java -server -jar overdrive_extract.jar flatirons.test
+
 ###########
 # Reindex #
 ###########
