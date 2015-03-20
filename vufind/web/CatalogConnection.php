@@ -467,20 +467,36 @@ class CatalogConnection
 	 */
 	public function getMyProfile($patron)
 	{
-		$profile = $this->driver->getMyProfile($patron);
-		if (PEAR_Singleton::isError($profile)){
-			echo("Error loading profile " . print_r($profile, true));
-			return $profile;
+		/** @var Memcache $memCache */
+		global $memCache;
+		if (is_object($patron)){
+			$id = $patron->username;
+		}else{
+			$id = $patron['username'];
 		}
-		$profile['readingHistorySize'] = '';
-		global $user;
-		if ($user && $user->trackReadingHistory && $user->initialReadingHistoryLoaded){
-			require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
-			$readingHistoryDB = new ReadingHistoryEntry();
-			$readingHistoryDB->userId = $user->id;
-			$profile['readingHistorySize'] = $readingHistoryDB->count();
+		$key = 'patron_profile_' . $id ;
+		$cachedValue = $memCache->get($key);
+		if ($cachedValue == false || isset($_REQUEST['reload'])){
+			$profile = $this->driver->getMyProfile($patron);
+			if (PEAR_Singleton::isError($profile)){
+				echo("Error loading profile " . print_r($profile, true));
+				return $profile;
+			}
+			$profile['readingHistorySize'] = '';
+			global $user;
+			if ($user && $user->trackReadingHistory && $user->initialReadingHistoryLoaded){
+				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
+				$readingHistoryDB = new ReadingHistoryEntry();
+				$readingHistoryDB->userId = $user->id;
+				$profile['readingHistorySize'] = $readingHistoryDB->count();
+			}
+			$cachedValue= $profile;
+
+			global $configArray;
+			$memCache->add($key, $cachedValue, 0, $configArray['Caching']['patron_profile']);
 		}
-		return $profile;
+
+		return $cachedValue;
 	}
 
 	/**
