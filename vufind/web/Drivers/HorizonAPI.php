@@ -1347,7 +1347,7 @@ abstract class HorizonAPI extends Horizon{
 		global $memCache;
 		global $user;
 
-		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
+		$memCache->delete('patronProfile_' . $user->id);
 
 	}
 
