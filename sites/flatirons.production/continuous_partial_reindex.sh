@@ -8,9 +8,10 @@
 # CONFIGURATION
 # PLEASE SET CONFLICTING PROCESSES AND PROHIBITED TIMES IN FUNCTION CALLS IN SCRIPT MAIN DO LOOP
 # this version emails script output as a round finishes
-EMAIL=root@localhost
+EMAIL=mark@marmot.org,pascal@marmot.org
 PIKASERVER=flatirons.production
-OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/extract_and_reindex_output.log"
+ILSSERVER=nell.boulderlibrary.org
+OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/continuous_partial_reindex_output.log"
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -70,15 +71,7 @@ do
 	#####
 
 	# Make sure we are not running a Full Record Group/Reindex process
-	hasConflicts=$(checkConflictingProcesses "full_update_marmot_test.sh")
-	#If we did get a conflict, restart the loop to make sure that all tests run
-	if (($? != 0)); then
-		continue
-	fi
-
-	# Do not run while the export from Sierra is running to prevent inconsistencies with MARC records
-	# export starts at 10 pm the file is copied to the FTP server at about 11:40
-	hasConflicts=$(checkProhibitedTimes "21:50" "23:40")
+	hasConflicts=$(checkConflictingProcesses "full_update.sh")
 	#If we did get a conflict, restart the loop to make sure that all tests run
 	if (($? != 0)); then
 		continue
@@ -94,10 +87,9 @@ do
 	#echo "Starting new extract and index - `date`" > ${OUTPUT_FILE}
 	# reset the output file each round
 
-	#export from sierra (items, holds, and orders)
-	#echo "Starting Sierra Export - `date`" >> ${OUTPUT_FILE}
-	cd /usr/local/vufind-plus/vufind/sierra_export/
-	nice -n -10 java -jar sierra_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+	#run expect script to extract from Millennium
+	cd /usr/local/vufind-plus/vufind/millennium_export/
+	./ITEM_UPDATE_EXTRACT_PIKA_4_Flatirons.exp ${PIKASERVER} ${ILSSERVER}
 
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}

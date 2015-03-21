@@ -1,0 +1,283 @@
+#!/usr/bin/expect -f
+
+set testing false
+
+# ITEM_UPDATE_EXTRACT_PIKA.exp 
+# James Staub
+# Nashville Public Library
+# 20150204
+# 1. Create a review file of Item records updated today, export the file, 
+# 2. create a diff file form the last export (5 minutes ago),
+# 3. finally, exec java -jar reindexer.jar $site partialReindex
+# Millennium 2011 1.6_3
+
+# TO DO
+# + Provide details on INNOPAC user privileges necessary
+# + DELETE UPDATES FILES
+# + LOGGING!!!
+
+# 20150218 : Mark Noble scripted continuous_partial_reindex.sh etc to use the data this script provides
+# + UPDATE MRC FILES IN /data/vufind-plus/$site/marc_recs/
+# + FLAG FILES THAT NEED TO BE REINDEXED
+# + RUN REINDEXER, PARTIAL:
+# 	exec java -jar reindexer.jar $site partialReindex
+
+# 20150209 : changes to make script usable by other discovery partners with Millennium
+# + launch java -jar reindexer.jar {site} partialReindex, unless record_grouping.jar or reindexer.jar are running
+# + if this script or record_grouping.jar or reindexer.jar is running, do not execute this script
+# + accept argument [Pika site], e.g., catalog.library.nashville.org
+# + accept argument [ILS Millennium URL], e.g., waldo.library.nashville.org
+# + read config.pwd.ini for :
+#	INNOPAC user
+#	INNOPAC user password
+#	INNOPAC initials
+#	INNOPAC initials password
+#	INNOPAC review file number
+#	Millennium server operating system user
+#	Millennium server operating system user password
+#	Millennium server operating system path to export file
+
+# 20141212 : beta : this script :
+# log into INNOPAC
+# create a list of items with UPDATE = today
+# export the list
+# scp library data from Millennium server
+# compare this export with the previous	export (or perhaps log)	to determine which records to reindex
+
+proc conflictingProcesses {} {
+	set nConflictingProcesses 0
+	# Conflicting Processes count - production, launched from cron
+	set nConflictingProcesses [expr [exec ps aux | grep -c ITEM_UPDATE_EXTRACT_PIKA_4_Flatirons.exp] - 2 + [exec ps aux | grep -c record_grouping.jar] - 1 + [exec ps aux | grep -c reindexer.jar] - 1 ]
+	#puts $nConflictingProcesses
+	if [expr $nConflictingProcesses > 0] {
+		puts "ITEM_UPDATE_EXTRACT_PIKA.exp cannot run at this time, there are currently conflicting processes running."
+		puts [exec ps aux | grep ITEM_UPDATE_EXTRACT_PIKA_4_Flatirons.exp]
+		puts [exec ps aux | grep record_grouping.jar]
+		puts [exec ps aux | grep reindexer.jar]
+		exit
+	}
+}
+
+# CHECK FOR CONFLICTING PROCESSES
+if {$testing == false } {
+	conflictingProcesses
+}
+
+set wait "2" ; # timeout
+
+set name "ITEM_UPDATE_EXTRACT_PIKA"
+set nameWithTime "${name}-[clock format [clock seconds] -format %Y%m%d%H%M]"
+set newFileName "${nameWithTime}-new"
+set updatesFileName "${nameWithTime}-UPDATES"
+
+if {$argc != 2} {
+	puts "Please provide a Pika site URL and a Millennium server/INNOPAC URL, e.g., $ expect ITEM_UPDATE_EXTRACT_PIKA.exp catalog.library.nashville.org waldo.library.nashville.org"
+	exit
+}
+set site [lindex $argv 0]
+set host [lindex $argv 1]
+set confpwd "/usr/local/vufind-plus/sites/$site/conf/config.pwd.ini"
+if {[file exists $confpwd] != 1} {
+        puts "Please check spelling of site $site; config.pwd.ini not found at $confpwd"
+        exit
+}
+set localPath "/data/vufind-plus/$site/marc/"
+if {[file exists $localPath] != 1} {
+        puts "Please check spelling of site $site; /marc/ directory not found at $localPath"
+        exit
+}
+
+set fd [open $confpwd r]
+while {![eof $fd]} {
+	set line [string trim [gets $fd] " "]
+        if {$line == ""} continue
+	switch -regexp -nocase -- $line {
+		"^\\[Catalog Extract\\]" {
+			set section true
+		}
+		"^\\[" {
+			set section false
+		}
+		^(INNOPAC|os) {
+			if {$section == true} {
+				set pair [split $line =]
+				set variable [string trim [lindex $pair 0]]
+				set value [string trim [lindex $pair 1]]
+				set $variable $value
+				# puts "$variable  = $value"
+			}
+		} 
+		default {}
+	}
+}
+
+# During testing, use an IF FALSE block to NOT run the INNOPAC commands - and thus save a couple minutes
+if {$testing == false} { 
+
+# CONNECT TO INNOPAC
+spawn ssh $INNOPACuser@$host
+expect "password:"
+send "$INNOPACuserPassword\r"
+
+# CREATE LIST
+expect "M > MANAGEMENT information"
+send "M"
+expect "L > Create LISTS of records"
+send "L"
+expect "Please key your initials :"
+send "$INNOPACinitials\r"
+expect "Please key your password :"
+send "$INNOPACinitialsPassword\r"
+expect "$INNOPACreviewFile >"
+send $INNOPACreviewFile
+expect "N > NEW BOOLEAN search, delete the review file"
+send "N"
+expect "Are you sure you want to delete the current review file?"
+send "Y"
+expect "I > ITEM list"
+send "I"
+expect "34 UPDATED"
+send "34"
+expect "Enter boolean condition (=, ~, >, <, G, L, W, N)"
+send "="
+expect "UPDATED ="
+# Flatirons just prompts for 2 digit year.
+# Database maintenance > Date prompt: Format of year prompt = year
+send "[clock format [clock seconds] -format %m%d%y]"
+expect "Enter action ( A for AND, O for OR, S to START search )"
+send "S"
+expect "What name would you like to give this file of records?"
+send "$name\r"
+set timeout -1
+expect "BOOLEAN SEARCH COMPLETE"
+set timeout $wait
+send " "
+
+# CREATE EXPORT FILE
+expect "U > Output USER-selected format"
+send "U"
+expect "C > CREATE a new file for output"
+send "C"
+expect "Output Item #1 >"
+send "?" ; # OTHER TYPES
+expect "B > BIBLIOGRAPHIC"
+send "B"
+expect "09 RECORD #:"
+send "09" ; # BIB RECORD NUMBER
+expect "Output Item #2 >"
+send "?" ; # OTHER TYPES
+expect "I > ITEM"
+send "I"
+expect "32 RECORD #"
+send "32" ; # ITEM RECORD NUMBER
+expect "Output Item #2 >"
+send "24" ; # ITEM STATUS
+expect "Output Item #3 >"
+send "08" ; # ITEM DUE DATE
+expect "Output Item #4 >"
+send "22" ; # ITEM LOCATION
+expect "Output Item #5 >"
+send "b" ; # ITEM BARCODE
+expect "Output Item #6 >"
+send "\r"
+expect "1 > Field Delimiter"
+send "1"
+expect "1 > Control character"
+send "1"
+expect "Decimal value"
+send "009" ; # tab
+expect "1 > Field Delimiter......................................................... 9"
+expect "2 > Text Qualifier"
+send "2"
+expect "3 > None"
+send "3"
+expect "2 > Text Qualifier....................................................... none"
+expect "3 > Repeated Field Delimiter"
+send "3"
+expect "2 > ASCII character"
+send "2"
+expect "ASCII character"
+send "|"
+expect "C > CREATE a new file for output"
+send "C"
+expect "File name:"
+send "$name\r"
+expect {
+	"already exists. Overwrite it?"{
+		send "y"
+	}
+}
+expect "Output the file now?"
+send "n"
+sleep 5; # Allows INNOPAC to complete writing, otherwise data could be truncated
+close
+
+} ; # end testing block
+
+# RETRIEVE THE FILE FROM MILLENNIUM SERVER
+spawn scp $osUser@$host:$osPath/$name.out $localPath$newFileName
+set timeout -1
+expect "100%"
+sleep 1
+close
+set timeout $wait
+
+
+# COMPARE THIS EXTRACT TO THE LAST ONE
+set newFile [open $localPath$newFileName]
+set data [read $newFile]
+close $newFile
+set newData [lsort -unique [split $data \n]]
+
+if {[llength [glob -nocomplain -directory $localPath ${name}*-old]] > 0} {
+	set oldFile [open [lindex [lsort -decreasing [glob -directory $localPath ${name}*-old]] 0]]
+	set data [read $oldFile]
+	close $oldFile
+} else {
+	set data
+}
+set oldData [lsort -unique [split $data \n]]
+
+# compare list a with b
+#----------------
+proc listcomp {a b} {
+        set diff {}
+        foreach i $a {
+                if {[lsearch -exact $b $i]==-1} {
+                        lappend diff $i
+                }
+        }
+	return $diff
+}
+
+set updates [listcomp $newData $oldData]
+
+set updatesFile [open $localPath$updatesFileName "w"]
+foreach update $updates {
+	puts $updatesFile "$update"
+}
+close $updatesFile
+
+# CHECK AGAIN FOR CONFLICTING PROCESSES BEFORE DELETING old FILES
+if {$testing == false } {
+	conflictingProcesses
+}
+
+if {[llength [glob -nocomplain -directory $localPath ${name}*-old]] > 0} {
+	eval file delete [glob -directory $localPath ${name}*-old]
+}
+
+file rename $localPath$newFileName $localPath${nameWithTime}-old
+if {[llength [glob -nocomplain -directory $localPath ${name}*-new]] > 0} {
+	puts [llength {glob -directory $localPath ${name}*-new}]
+	eval file delete [glob -directory $localPath ${name}*-new]
+}
+
+# TO DO
+# + DELETE UPDATES FILES
+
+#if {[llength {glob -directory -nocomplain $localPath ${name}*-UPDATES}] > 0} {
+#	eval file delete [glob -directory $localPath ${name}*-UPDATES]
+#}
+
+exit

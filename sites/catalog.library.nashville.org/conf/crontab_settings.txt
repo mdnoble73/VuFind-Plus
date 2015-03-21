@@ -53,7 +53,7 @@
 ################
 # Solr Restart
 # MDN Do not restart Solr because full update does it
-18 0 * * * cd /usr/local/VuFind-Plus/sites/catalog.library.nashville.org; ./catalog.library.nashville.org.sh restart
+#18 0 * * * cd /usr/local/VuFind-Plus/sites/catalog.library.nashville.org; ./catalog.library.nashville.org.sh restart
 
 # Memcached restart
 # JAMES should ask why the memcached restart is commented out 20150216

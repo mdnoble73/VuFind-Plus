@@ -9,7 +9,7 @@
 # For Pika discovery partners using Millennium 2011 1.6_3
 
 # this version emails script output as a round finishes
-EMAIL=mark@marmot.org
+EMAIL=mark@marmot.org,pascal@marmot.org
 ILSSERVER=nell.boulderlibrary.org
 PIKASERVER=flatirons.production
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
@@ -66,15 +66,12 @@ function checkProhibitedTimes() {
 
 #First make sure that we aren't running at a bad time.  This is really here in case we run manually.
 # since the run in cron is timed to avoid sensitive times.
-
-# Bib Extract for Galacto
-# Backup runs from midnight to about 12:25
-# Millennium Extract for Catalog
-checkProhibitedTimes "23:50" "00:40"
+# Flatirons has no prohibited times (yet)
+#checkProhibitedTimes "23:50" "00:40"
 
 #Check for any conflicting processes that we shouldn't do a full index during.
 #Since we aren't running in a loop, check in the order they run.
-checkConflictingProcesses "ITEM_UPDATE_EXTRACT_PIKA.exp"
+checkConflictingProcesses "ITEM_UPDATE_EXTRACT_PIKA_4_Flatirons.exp"
 checkConflictingProcesses "millennium_export.jar"
 checkConflictingProcesses "overdrive_extract.jar"
 checkConflictingProcesses "reindexer.jar"

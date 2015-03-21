@@ -17,13 +17,14 @@ OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/continuous_partial_reindex_outpu
 function checkConflictingProcesses() {
 	#Check to see if the conflict exists.
 	countConflictingProcesses=$(ps aux | grep -v sudo | grep -c "$1")
+	#subtract one to get rid of our grep command
 	countConflictingProcesses=$((countConflictingProcesses-1))
 
 	let numInitialConflicts=countConflictingProcesses
-	#echo "Count of conflicting process" $1 $countConflictingProcesses
 	#Wait until the conflict is gone.
 	until ((${countConflictingProcesses} == 0)); do
 		countConflictingProcesses=$(ps aux | grep -v sudo | grep -c "$1")
+		#subtract one to get rid of our grep command
 		countConflictingProcesses=$((countConflictingProcesses-1))
 		#echo "Count of conflicting process" $1 $countConflictingProcesses
 		sleep 300
@@ -33,7 +34,6 @@ function checkConflictingProcesses() {
 }
 
 # Prohibited time ranges - for, e.g., ILS backup
-# JAMES is currently giving all Nashville prohibited times a ten minute buffer
 function checkProhibitedTimes() {
 	start=$(date --date=$1 +%s)
 	stop=$(date --date=$2 +%s)
