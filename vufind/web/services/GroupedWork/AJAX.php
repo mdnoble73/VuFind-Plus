@@ -493,7 +493,7 @@ class GroupedWork_AJAX {
 			}elseif (PEAR_Singleton::isError($emailResult)){
 				$result = array(
 						'result' => false,
-						'message' => "Your e-mail message could not be sent {$emailResult}."
+						'message' => "Your e-mail message could not be sent: {$emailResult}."
 				);
 			}else{
 				$result = array(
