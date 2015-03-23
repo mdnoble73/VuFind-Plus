@@ -105,7 +105,14 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 							return "Lost";
 						}else if (fieldData.equals("missing")){
 							return "Missing";
+						}else if (fieldData.equals("longoverdue")){
+							return "Long Overdue";
+						}else if (fieldData.equals("trace")){
+							return "Trace";
 						}
+					}else if (subfield == '7') {
+						//There are several library use only statuses that we do not care about right now.
+						return null;
 					}else if (subfield == 'k') {
 						if (fieldData.equals("CATALOGED") || fieldData.equals("READY")) {
 							return null;
@@ -113,6 +120,11 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 							return "Bindery";
 						}else if (fieldData.equals("IN REPAIRS")){
 							return "Repair";
+						}else if (fieldData.equals("trace")){
+							return "Trace";
+						}else{
+							//There are several reserve statuses that we don't care about, just ignore silently.
+							return null;
 						}
 					}
 					String status = "|" + subfield + "-" + fieldData;
@@ -303,6 +315,14 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 									break;
 								}
 							}
+						}
+					}
+
+					//If the source type is still null, try the location of the item
+					if (sourceType == null){
+						//Try the location for the item
+						if (itemField.getSubfield('a') != null){
+							sourceType = itemField.getSubfield('a').getData();
 						}
 					}
 				}
