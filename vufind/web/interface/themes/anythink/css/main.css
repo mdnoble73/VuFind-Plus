@@ -8079,10 +8079,6 @@ div#system-message-header {
   filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffeeeeee', endColorstr='#ffcccccc', GradientType=0);
   color: black;
 }
-#home-page-login a {
-  padding-left: 30px;
-  padding-right: 30px;
-}
 #home-page-library-section {
   background-color: #e1dedb;
   padding-left: 30px;
@@ -8100,6 +8096,35 @@ div.bottom-border-line {
   margin-top: 5px;
   margin-left: 30px;
   margin-right: 30px;
+}
+#home-page-login {
+  margin-bottom: 0;
+  padding-left: 0;
+  padding-right: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  background-color: #e1dedb;
+  text-align: left;
+}
+#home-page-login a {
+  padding-left: 30px;
+  padding-right: 30px;
+  background: none #e1dedb;
+  color: #998e85;
+  text-transform: lowercase;
+  text-shadow: none;
+  font-size: 14px;
+  text-align: left;
+  color: #9e1b32;
+}
+.sidebar-button {
+  background: none #e1dedb;
+  color: #998e85;
+  text-transform: lowercase;
+  text-shadow: none;
+  font-size: 14px;
+  text-align: left;
+  margin-bottom: 0;
 }
 #side-bar {
   background-color: #e1dedb;
@@ -8165,33 +8190,6 @@ div.bottom-border-line {
 #home-page-search {
   margin-bottom: 0;
   padding-bottom: 20px;
-}
-#home-page-login {
-  margin-bottom: 0;
-  padding-left: 0;
-  padding-right: 0;
-  padding-top: 0;
-  padding-bottom: 0;
-  background-color: #e1dedb;
-  text-align: left;
-}
-#home-page-login a {
-  background: none #e1dedb;
-  color: #998e85;
-  text-transform: lowercase;
-  text-shadow: none;
-  font-size: 14px;
-  text-align: left;
-  color: #9e1b32;
-}
-.sidebar-button {
-  background: none #e1dedb;
-  color: #998e85;
-  text-transform: lowercase;
-  text-shadow: none;
-  font-size: 14px;
-  text-align: left;
-  margin-bottom: 0;
 }
 .sidebar-links .panel-body {
   background-color: #e1dedb;
