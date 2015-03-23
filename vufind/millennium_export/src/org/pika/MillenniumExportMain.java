@@ -43,7 +43,7 @@ public class MillenniumExportMain{
 		}
 		logger.info(startTime.toString() + ": Starting Millennium Extract");
 
-		// Read the base INI file to get information about the server (current directory/cron/config.ini)
+		// Read the base INI file to get information about the server (current directory/conf/config.ini)
 		Ini ini = loadConfigFile("config.ini");
 		String exportPath = ini.get("Reindex", "marcPath");
 		if (exportPath.startsWith("\"")){
