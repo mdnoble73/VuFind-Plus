@@ -144,8 +144,14 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 						Date lastCheckoutDate = vufind2013ReadingHistoryRS.getDate("lastCheckoutDate");
 						Date firstCheckoutDate = vufind2013ReadingHistoryRS.getDate("firstCheckoutDate");
 						String title = trimValue(vufind2013ReadingHistoryRS.getString("title"), 150);
-						String author = trimValue(vufind2013ReadingHistoryRS.getString("author"), 75);
-						String format = trimValue(vufind2013ReadingHistoryRS.getString("format"), 50);
+						String author = "";
+						String format = "";
+						try {
+							author = trimValue(vufind2013ReadingHistoryRS.getString("author"), 75);
+							format = trimValue(vufind2013ReadingHistoryRS.getString("format"), 50);
+						}catch (SQLException e){
+							//Some old databases don't have the author or format
+						}
 						String sourceId = vufind2013ReadingHistoryRS.getString("record_id");
 						addReadingHistoryEntry(groupedWorkId, userId, sourceId, title, author, format, firstCheckoutDate, lastCheckoutDate);
 					}
