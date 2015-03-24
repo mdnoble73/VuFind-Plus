@@ -1560,17 +1560,19 @@ class MarcRecord extends IndexRecord
 				// Serial
 				case 'S':
 					// Look in 008 to determine what type of Continuing Resource
-					$formatCode = substr(strtoupper($fixedField->getData()), 21, 1);
-					switch ($formatCode) {
-						case 'N':
-							$result[] =  "Newspaper";
-							break;
-						case 'P':
-							$result[] =  "Journal";
-							break;
-						default:
-							$result[] =  "Serial";
-							break;
+					if ($fixedField != null){
+						$formatCode = substr(strtoupper($fixedField->getData()), 21, 1);
+						switch ($formatCode) {
+							case 'N':
+								$result[] =  "Newspaper";
+								break;
+							case 'P':
+								$result[] =  "Journal";
+								break;
+							default:
+								$result[] =  "Serial";
+								break;
+						}
 					}
 			}
 		}
