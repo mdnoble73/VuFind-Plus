@@ -1,5 +1,6 @@
 package org.vufind;
 
+import com.mysql.jdbc.SQLError;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
@@ -141,7 +142,13 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 			ResultSet materialsRequestStatusesVuFind2013 = getMaterialsRequestStatusesVuFind2013.executeQuery();
 			while (materialsRequestStatusesVuFind2013.next()){
 				String description = materialsRequestStatusesVuFind2013.getString("description");
-				Long libraryId = materialsRequestStatusesVuFind2013.getLong("libraryId");
+				Long libraryId = 1L;
+				try {
+					libraryId = materialsRequestStatusesVuFind2013.getLong("libraryId");
+				}catch (SQLException e){
+					//The library id does not exist, we will just use the default library id.
+					//This only happens with quite old installs.
+				}
 				//Check to see if the status exists already
 				getExistingMaterialsRequestStatusStmt.setString(1, description);
 				getExistingMaterialsRequestStatusStmt.setLong(2, libraryId);
