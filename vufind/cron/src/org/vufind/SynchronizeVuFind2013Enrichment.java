@@ -1,5 +1,6 @@
 package org.vufind;
 
+import com.mysql.jdbc.SQLError;
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
 import org.ini4j.Profile;
@@ -116,7 +117,7 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 			}
 
 		} catch (Exception e) {
-			logger.error("Error synchronizing VuFind 2013 data to VuFind 2014");
+			logger.error("Error synchronizing VuFind 2013 data to VuFind 2014", e);
 		}finally{
 			processLog.setFinished();
 			processLog.saveToDatabase(vufindConn, logger);
@@ -141,7 +142,13 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 			ResultSet materialsRequestStatusesVuFind2013 = getMaterialsRequestStatusesVuFind2013.executeQuery();
 			while (materialsRequestStatusesVuFind2013.next()){
 				String description = materialsRequestStatusesVuFind2013.getString("description");
-				Long libraryId = materialsRequestStatusesVuFind2013.getLong("libraryId");
+				Long libraryId = 1L;
+				try {
+					libraryId = materialsRequestStatusesVuFind2013.getLong("libraryId");
+				}catch (SQLException e){
+					//The library id does not exist, we will just use the default library id.
+					//This only happens with quite old installs.
+				}
 				//Check to see if the status exists already
 				getExistingMaterialsRequestStatusStmt.setString(1, description);
 				getExistingMaterialsRequestStatusStmt.setLong(2, libraryId);
@@ -177,9 +184,9 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 			//Synchronize requests
 			PreparedStatement getMaterialsRequestsVuFind2013;
 			if (librariesToSynchronize == null) {
-				getMaterialsRequestsVuFind2013 = vufind2013connection.prepareStatement("SELECT username, materials_request.*, materials_request_status.description as statusName, materials_request_status.libraryId  FROM materials_request INNER JOIN user on createdBy = user.id INNER JOIN materials_request_status ON status = materials_request_status.id");
+				getMaterialsRequestsVuFind2013 = vufind2013connection.prepareStatement("SELECT username, materials_request.*, materials_request_status.description as statusName, materials_request_status.*  FROM materials_request INNER JOIN user on createdBy = user.id INNER JOIN materials_request_status ON status = materials_request_status.id");
 			}else{
-				getMaterialsRequestsVuFind2013 = vufind2013connection.prepareStatement("SELECT username, materials_request.*, materials_request_status.description as statusName, materials_request_status.libraryId  FROM materials_request \n" +
+				getMaterialsRequestsVuFind2013 = vufind2013connection.prepareStatement("SELECT username, materials_request.*, materials_request_status.description as statusName, materials_request_status.* FROM materials_request \n" +
 						"INNER JOIN user on createdBy = user.id \n" +
 						"INNER JOIN materials_request_status ON status = materials_request_status.id\n" +
 						"INNER JOIN location on location.locationId = user.homeLocationId\n" +
@@ -196,7 +203,13 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 				Long vufind2014User = synchronizeUser(createdByUser);
 				//Get the status for the request
 				String oldStatusName = materialsRequestsVuFind2013.getString("statusName");
-				Long oldLibraryId = materialsRequestsVuFind2013.getLong("libraryId");
+				Long oldLibraryId =1L;
+				try {
+					oldLibraryId = materialsRequestsVuFind2013.getLong("libraryId");
+				}catch (SQLException e){
+					//The library id does not exist, we will just use the default library id.
+					//This only happens with quite old installs.
+				}
 				getExistingMaterialsRequestStatusStmt.setString(1, oldStatusName);
 				getExistingMaterialsRequestStatusStmt.setLong(2, oldLibraryId);
 				ResultSet materialsRequestStatus = getExistingMaterialsRequestStatusStmt.executeQuery();
@@ -301,7 +314,7 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 			}
 			materialsRequestsVuFind2013.close();
 		} catch (Exception e){
-			logger.error("Error synchronizing materials requests information");
+			logger.error("Error synchronizing materials requests information", e);
 		}
 	}
 
@@ -336,7 +349,7 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 				}
 			}
 		} catch (Exception e){
-			logger.error("Error synchronizing not interested information");
+			logger.error("Error synchronizing not interested information", e);
 		}
 	}
 
