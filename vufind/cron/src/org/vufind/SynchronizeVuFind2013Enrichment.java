@@ -51,6 +51,8 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 	private PreparedStatement getExistingMaterialsRequestStmt;
 	private PreparedStatement addMaterialsRequestStmt;
 	private PreparedStatement updateMaterialsRequestStmt;
+	private PreparedStatement getExistingReadingHistoryEntryStmt;
+	private PreparedStatement addReadingHistoryEntryStmt;
 
 	@Override
 	public void doCronProcess(String servername, Ini configIni, Profile.Section processSettings, Connection vufindConn, Connection econtentConn, CronLogEntry cronEntry, Logger logger) {
@@ -99,6 +101,9 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 				addMaterialsRequestStmt = vufindConn.prepareStatement("INSERT INTO materials_request (title, author, format, ageLevel, isbn, oclcNumber, publisher, publicationYear, articleInfo, abridged, about, comments, status, dateCreated, createdBy, dateUpdated, emailSent, holdsCreated, email, phone, season, magazineTitle, upc, issn, bookType, subFormat, magazineDate, magazineVolume, magazinePageNumbers, placeHoldWhenAvailable, holdPickupLocation, bookmobileStop, illItem, magazineNumber) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 				updateMaterialsRequestStmt = vufindConn.prepareStatement("UPDATE materials_request SET title = ?, author = ?, format = ?, ageLevel = ?, isbn = ?, oclcNumber = ?, publisher = ?, publicationYear = ?, articleInfo = ?, abridged = ?, about = ?, comments = ?, status = ?, dateUpdated = ?, emailSent = ?, holdsCreated = ?, email = ?, phone = ?, season = ?, magazineTitle = ?, upc = ?, issn = ?, bookType = ?, subFormat = ?, magazineDate = ?, magazineVolume = ?, magazinePageNumbers = ?, placeHoldWhenAvailable = ?, holdPickupLocation = ?, bookmobileStop = ?, illItem = ?, magazineNumber = ? WHERE dateCreated = ? AND createdBy = ?");
 
+				getExistingReadingHistoryEntryStmt = vufindConn.prepareStatement("SELECT * FROM user_reading_history_work WHERE userId = ? AND groupedWorkPermanentId = ?");
+				addReadingHistoryEntryStmt = vufindConn.prepareStatement("INSERT INTO user_reading_history_work (userId, groupedWorkPermanentId, source, sourceId, title, author, format, checkOutDate, checkInDate) VALUES (?, ?, 'ILS', ?, ?, ?, ?, ?, ?)");
+
 				if (econtent2013connection != null){
 					getIlsIdForEContentRecordStmt = econtent2013connection.prepareStatement("SELECT ilsId, source, externalId from econtent_record where id = ?", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				}
@@ -111,6 +116,7 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 				synchronizeRatingsAndReviews();
 				synchronizeLists();
 				synchronizeTags();
+				synchronizeReadingHistory();
 
 			} else{
 				logger.error("Could not connect to VuFind 2013");
@@ -121,6 +127,65 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 		}finally{
 			processLog.setFinished();
 			processLog.saveToDatabase(vufindConn, logger);
+		}
+	}
+
+	private void synchronizeReadingHistory() {
+		try{
+			PreparedStatement getReadingHistoryStmt = vufind2013connection.prepareStatement("SELECT * from user_reading_history inner join user on userId = user.id INNER JOIN resource on resourceid = resource.id WHERE source = 'VuFind'");
+			ResultSet vufind2013ReadingHistoryRS = getReadingHistoryStmt.executeQuery();
+			while (vufind2013ReadingHistoryRS.next()){
+				//Check to see if we have a user with the given username (unique id in Sierra)
+				String username = vufind2013ReadingHistoryRS.getString("username");
+				Long userId = synchronizeUser(username);
+				if (userId != null){
+					String groupedWorkId = getWorkForResource(vufind2013ReadingHistoryRS.getString("source"), vufind2013ReadingHistoryRS.getString("record_id"));
+					if (groupedWorkId != null){
+						Date lastCheckoutDate = vufind2013ReadingHistoryRS.getDate("lastCheckoutDate");
+						Date firstCheckoutDate = vufind2013ReadingHistoryRS.getDate("firstCheckoutDate");
+						String title = trimValue(vufind2013ReadingHistoryRS.getString("title"), 150);
+						String author = trimValue(vufind2013ReadingHistoryRS.getString("author"), 75);
+						String format = trimValue(vufind2013ReadingHistoryRS.getString("format"), 50);
+						String sourceId = vufind2013ReadingHistoryRS.getString("record_id");
+						addReadingHistoryEntry(groupedWorkId, userId, sourceId, title, author, format, firstCheckoutDate, lastCheckoutDate);
+					}
+				}
+			}
+		} catch (Exception e){
+			logger.error("Error synchronizing reading history", e);
+		}
+	}
+
+	private String trimValue(String value, int length) {
+		if (value == null){
+			return value;
+		}
+		if (value.length() > length){
+			value = value.substring(0, length);
+		}
+		return value;
+	}
+
+	private void addReadingHistoryEntry(String groupedWorkId, Long userId, String sourceId, String title, String author, String format, Date firstCheckoutDate, Date lastCheckoutDate) {
+		try{
+			//Check to see if there is already a reading history entry for the user
+			getExistingReadingHistoryEntryStmt.setLong(1, userId);
+			getExistingReadingHistoryEntryStmt.setString(2, groupedWorkId);
+			ResultSet exitingReadingHistoryEntryRS = getExistingReadingHistoryEntryStmt.executeQuery();
+			if (!exitingReadingHistoryEntryRS.next()){
+				addReadingHistoryEntryStmt.setLong(1, userId);
+				addReadingHistoryEntryStmt.setString(2, groupedWorkId);
+				addReadingHistoryEntryStmt.setString(3, sourceId);
+				addReadingHistoryEntryStmt.setString(4, title);
+				addReadingHistoryEntryStmt.setString(5, author);
+				addReadingHistoryEntryStmt.setString(6, format);
+				addReadingHistoryEntryStmt.setLong(7, firstCheckoutDate.getTime() / 1000);
+				addReadingHistoryEntryStmt.setLong(8, lastCheckoutDate.getTime() / 1000);
+				addReadingHistoryEntryStmt.executeUpdate();
+			}
+
+		}catch (Exception e){
+			logger.error("Error adding reading history entry", e);
 		}
 	}
 
