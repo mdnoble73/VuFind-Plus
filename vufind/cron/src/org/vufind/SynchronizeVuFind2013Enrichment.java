@@ -184,9 +184,9 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 			//Synchronize requests
 			PreparedStatement getMaterialsRequestsVuFind2013;
 			if (librariesToSynchronize == null) {
-				getMaterialsRequestsVuFind2013 = vufind2013connection.prepareStatement("SELECT username, materials_request.*, materials_request_status.*  FROM materials_request INNER JOIN user on createdBy = user.id INNER JOIN materials_request_status ON status = materials_request_status.id");
+				getMaterialsRequestsVuFind2013 = vufind2013connection.prepareStatement("SELECT username, materials_request.*, materials_request_status.description as statusName, materials_request_status.*  FROM materials_request INNER JOIN user on createdBy = user.id INNER JOIN materials_request_status ON status = materials_request_status.id");
 			}else{
-				getMaterialsRequestsVuFind2013 = vufind2013connection.prepareStatement("SELECT username, materials_request.*, materials_request_status.*  FROM materials_request \n" +
+				getMaterialsRequestsVuFind2013 = vufind2013connection.prepareStatement("SELECT username, materials_request.*, materials_request_status.description as statusName, materials_request_status.* FROM materials_request \n" +
 						"INNER JOIN user on createdBy = user.id \n" +
 						"INNER JOIN materials_request_status ON status = materials_request_status.id\n" +
 						"INNER JOIN location on location.locationId = user.homeLocationId\n" +
