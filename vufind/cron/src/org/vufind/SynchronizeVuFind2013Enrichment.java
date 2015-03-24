@@ -116,7 +116,7 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 			}
 
 		} catch (Exception e) {
-			logger.error("Error synchronizing VuFind 2013 data to VuFind 2014");
+			logger.error("Error synchronizing VuFind 2013 data to VuFind 2014", e);
 		}finally{
 			processLog.setFinished();
 			processLog.saveToDatabase(vufindConn, logger);
@@ -301,7 +301,7 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 			}
 			materialsRequestsVuFind2013.close();
 		} catch (Exception e){
-			logger.error("Error synchronizing materials requests information");
+			logger.error("Error synchronizing materials requests information", e);
 		}
 	}
 
@@ -336,7 +336,7 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 				}
 			}
 		} catch (Exception e){
-			logger.error("Error synchronizing not interested information");
+			logger.error("Error synchronizing not interested information", e);
 		}
 	}
 
