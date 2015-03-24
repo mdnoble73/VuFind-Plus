@@ -189,6 +189,7 @@ class SierraStatusLoader extends MillenniumStatusLoader{
 				'callnumber' => $item['callnumber'],
 				'status' => $item['status'],
 				'duedate' => $item['dueDate'],
+				'lastCheckinDate' => $item['lastCheckinDate'],
 				'statusfull' => $this->translateStatusCode($item['status'], $item['dueDate']),
 				'id' => $id,
 				'number' => $i++,

@@ -1,3 +1,4 @@
+{strip}
 <div id = "holdingsSummary{$holdingsSummary.shortId}" class="holdingsSummary {$holdingsSummary.class}">
 	{if $offline}
 		<div class="holdingsSummaryStatusLine">
@@ -65,4 +66,5 @@
 			{/if}
 		{/if}
 	{/if}
- </div>
+</div>
+{/strip}

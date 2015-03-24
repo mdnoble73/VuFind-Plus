@@ -93,16 +93,20 @@ class MillenniumStatusLoader{
 			$marcItemData = array();
 
 			//TODO: Don't hardcode item subfields
+
+
+			$statusSubfield = $configArray['Reindex']['statusSubfield'];
+			$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
+			$locationSubfield = $configArray['Reindex']['locationSubfield'];
+			$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
+			$callNumberPrestampSubfield = $configArray['Reindex']['callNumberPrestampSubfield'];
+			$callNumberSubfield = $configArray['Reindex']['callNumberSubfield'];
+			$callNumberCutterSubfield = $configArray['Reindex']['callNumberCutterSubfield'];
+			$volumeSubfield = $configArray['Reindex']['volumeSubfield'];
+			$lastCheckinDateSubfield = $configArray['Reindex']['lastCheckinDateSubfield']; // added plb 3-24-2015
 			foreach ($itemFields as $itemField){
 				/** @var $itemField File_MARC_Data_Field */
-				$statusSubfield = $configArray['Reindex']['statusSubfield'];
-				$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
-				$locationSubfield = $configArray['Reindex']['locationSubfield'];
-				$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
-				$callNumberPrestampSubfield = $configArray['Reindex']['callNumberPrestampSubfield'];
-				$callNumberSubfield = $configArray['Reindex']['callNumberSubfield'];
-				$callNumberCutterSubfield = $configArray['Reindex']['callNumberCutterSubfield'];
-				$volumeSubfield = $configArray['Reindex']['volumeSubfield'];
+
 				$fullCallNumber = $itemField->getSubfield($callNumberPrestampSubfield) != null ? ($itemField->getSubfield($callNumberPrestampSubfield)->getData() . ' '): '';
 				$fullCallNumber .= $itemField->getSubfield($callNumberSubfield) != null ? $itemField->getSubfield($callNumberSubfield)->getData() : '';
 				$fullCallNumber .= $itemField->getSubfield($callNumberCutterSubfield) != null ? (' ' . $itemField->getSubfield($callNumberCutterSubfield)->getData()) : '';
@@ -114,6 +118,9 @@ class MillenniumStatusLoader{
 				$itemData['matched'] = false;
 				$itemData['status'] = $itemField->getSubfield($statusSubfield) != null ? $itemField->getSubfield($statusSubfield)->getData() : '-';
 				$itemData['dueDate'] = $itemField->getSubfield($dueDateSubfield) != null ? trim($itemField->getSubfield($dueDateSubfield)->getData()) : null;
+				$itemData['lastCheckinDate'] = $itemField->getSubfield($lastCheckinDateSubfield) != null ? trim($itemField->getSubfield($lastCheckinDateSubfield)->getData()) : null; // added plb 3-24-2015
+				if ($itemData['lastCheckinDate']) $itemData['lastCheckinDate'] = strtotime($itemData['lastCheckinDate']); // convert to timestamp for ease of display in template
+
 				$marcItemData[] = $itemData;
 			}
 		}else{
