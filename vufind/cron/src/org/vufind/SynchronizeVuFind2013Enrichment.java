@@ -203,7 +203,13 @@ public class SynchronizeVuFind2013Enrichment implements IProcessHandler {
 				Long vufind2014User = synchronizeUser(createdByUser);
 				//Get the status for the request
 				String oldStatusName = materialsRequestsVuFind2013.getString("statusName");
-				Long oldLibraryId = materialsRequestsVuFind2013.getLong("libraryId");
+				Long oldLibraryId =1L;
+				try {
+					oldLibraryId = materialsRequestsVuFind2013.getLong("libraryId");
+				}catch (SQLException e){
+					//The library id does not exist, we will just use the default library id.
+					//This only happens with quite old installs.
+				}
 				getExistingMaterialsRequestStatusStmt.setString(1, oldStatusName);
 				getExistingMaterialsRequestStatusStmt.setLong(2, oldLibraryId);
 				ResultSet materialsRequestStatus = getExistingMaterialsRequestStatusStmt.executeQuery();
