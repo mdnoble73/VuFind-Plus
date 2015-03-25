@@ -6094,6 +6094,22 @@ div.striped > div:nth-child(odd),
 div.striped > div:nth-child(odd) {
   background-color: #f9f9f9;
 }
+.unsortedHeader {
+  background-image: url(/images/unsorted_icon.gif);
+  cursor: pointer;
+  font-weight: bold;
+  background-repeat: no-repeat;
+  background-position: center right;
+  padding-right: 20px;
+}
+.sortDescHeader {
+  background-image: url(/images/sort_desc_icon.gif);
+  background-color: #3399FF;
+}
+.sortAscHeader {
+  background-image: url(/images/sort_asc_icon.gif);
+  background-color: #3399FF;
+}
 #google_translate_element {
   font-size: smaller;
   padding-left: 5px;
@@ -6730,7 +6746,7 @@ hr.menu {
   padding: 0 5px;
   color: #cccccc;
 }
-div#system-message-header {
+#system-message-header {
   background-color: #ffffff;
   color: black;
   text-align: center;
