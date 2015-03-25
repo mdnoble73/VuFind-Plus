@@ -131,7 +131,17 @@ class CatalogConnection
 	 */
 	public function getStatus($recordId, $forSearch = false)
 	{
-		return $this->driver->getStatus($recordId, $forSearch);
+		/** @var Memcache $memCache */
+		global $memCache;
+		$key = 'record_status_' . $recordId . '_' . $forSearch;
+		$cachedValue = $memCache->get($key);
+		if ($cachedValue == false || isset($_REQUEST['reload'])){
+			global $configArray;
+			$cachedValue = $this->driver->getStatus($recordId, $forSearch);
+			$memCache->add($key, $cachedValue, 0, $configArray['Caching']['item_data']);
+		}
+
+		return $cachedValue;
 	}
 
 	/**
@@ -163,7 +173,16 @@ class CatalogConnection
 	 * @return array an associative array with a summary of the holdings.
 	 */
 	public function getStatusSummary($id, $forSearch = false){
-		return $this->driver->getStatusSummary($id, $forSearch);
+		global $memCache;
+		$key = 'status_summary_' . $id . '_' . $forSearch;
+		$cachedValue = $memCache->get($key);
+		if ($cachedValue == false || isset($_REQUEST['reload'])){
+			global $configArray;
+			$cachedValue = $this->driver->getStatusSummary($id, $forSearch);
+			$memCache->add($key, $cachedValue, 0, $configArray['Caching']['item_data']);
+		}
+
+		return $cachedValue;
 	}
 
 	/**
@@ -448,20 +467,36 @@ class CatalogConnection
 	 */
 	public function getMyProfile($patron)
 	{
-		$profile = $this->driver->getMyProfile($patron);
-		if (PEAR_Singleton::isError($profile)){
-			echo("Error loading profile " . print_r($profile, true));
-			return $profile;
+		/** @var Memcache $memCache */
+		global $memCache;
+		if (is_object($patron)){
+			$id = $patron->username;
+		}else{
+			$id = $patron['username'];
 		}
-		$profile['readingHistorySize'] = '';
-		global $user;
-		if ($user && $user->trackReadingHistory && $user->initialReadingHistoryLoaded){
-			require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
-			$readingHistoryDB = new ReadingHistoryEntry();
-			$readingHistoryDB->userId = $user->id;
-			$profile['readingHistorySize'] = $readingHistoryDB->count();
+		$key = 'patron_profile_' . $id ;
+		$cachedValue = $memCache->get($key);
+		if ($cachedValue == false || isset($_REQUEST['reload'])){
+			$profile = $this->driver->getMyProfile($patron);
+			if (PEAR_Singleton::isError($profile)){
+				echo("Error loading profile " . print_r($profile, true));
+				return $profile;
+			}
+			$profile['readingHistorySize'] = '';
+			global $user;
+			if ($user && $user->trackReadingHistory && $user->initialReadingHistoryLoaded){
+				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
+				$readingHistoryDB = new ReadingHistoryEntry();
+				$readingHistoryDB->userId = $user->id;
+				$profile['readingHistorySize'] = $readingHistoryDB->count();
+			}
+			$cachedValue= $profile;
+
+			global $configArray;
+			$memCache->add($key, $cachedValue, 0, $configArray['Caching']['patron_profile']);
 		}
-		return $profile;
+
+		return $cachedValue;
 	}
 
 	/**
@@ -802,6 +837,45 @@ class CatalogConnection
 	}
 
 	public function getNumHolds($id) {
-		return $this->driver->getNumHolds($id);
+		/** @var Memcache $memCache */
+		global $memCache;
+		$key = 'num_holds_' . $id ;
+		$cachedValue = $memCache->get($key);
+		if ($cachedValue == false || isset($_REQUEST['reload'])){
+			$cachedValue = $this->driver->getNumHolds($id);
+			global $configArray;
+			$memCache->add($key, $cachedValue, 0, $configArray['Caching']['item_data']);
+		}
+
+		return $cachedValue;
+	}
+
+	/**
+	 * Loads items information as quickly as possible (no direct calls to the ILS).  Does do filtering by loan rules
+	 *
+	 * return is an array of items with the following information:
+	 *  location
+	 *  callnumber
+	 *  available
+	 *  holdable
+	 *  lastStatusCheck (time)
+	 *
+	 * @param $id
+	 * @param $scopingEnabled
+	 * @param $marcRecord
+	 * @return mixed
+	 */
+	public function getItemsFast($id, $scopingEnabled, $marcRecord = null){
+		/** @var Memcache $memCache */
+		global $memCache;
+		$key = 'items_fast_' . $id . '_' . $scopingEnabled;
+		$cachedValue = $memCache->get($key);
+		if ($cachedValue == false || isset($_REQUEST['reload'])){
+			global $configArray;
+			$cachedValue = $this->driver->getItemsFast($id, $scopingEnabled, $marcRecord);
+			$memCache->add($key, $cachedValue, 0, $configArray['Caching']['item_data']);
+		}
+
+		return $cachedValue;
 	}
 }

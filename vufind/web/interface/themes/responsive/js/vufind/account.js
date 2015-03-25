@@ -315,6 +315,26 @@ VuFind.Account = (function(){
 			return false
 		},
 
+		resetPin: function(){
+			var barcode = $('#card_number').val();
+			if (barcode.length == 0){
+				alert("Please enter your library card number");
+			}else{
+				var url = path + '/MyAccount/AJAX?method=requestPinReset&barcode=' + barcode;
+				$.getJSON(url, function(data){
+					if (data.error == false){
+						alert(data.message);
+						if (data.result == true){
+							hideLightbox();
+						}
+					}else{
+						alert("There was an error requesting your pin reset information.  Please contact the library for additional information.");
+					}
+				});
+			}
+			return false;
+		},
+
 		ajaxLightbox: function (urlToDisplay, requireLogin) {
 			if (requireLogin == undefined) {
 				requireLogin = false;

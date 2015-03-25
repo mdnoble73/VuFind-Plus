@@ -32,6 +32,7 @@ class MyAccount_Login extends Action
 		global $module;
 		global $action;
 		global $library;
+		global $configArray;
 
 		// We should never access this module directly -- this is called by other
 		// actions as a support function.  If accessed directly, just redirect to
@@ -104,7 +105,10 @@ class MyAccount_Login extends Action
 			$interface->assign('usernameLabel', 'Your Name');
 			$interface->assign('passwordLabel', 'Library Card Number');
 		}
-		
+		if ($configArray['Catalog']['ils'] == 'Horizon'){
+			$interface->assign('showForgotPinLink', true);
+		}
+
 		//set focus to the username field by default.
 		$interface->assign('focusElementId', 'username');
 		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');

@@ -65,7 +65,11 @@ $analytics = new Analytics($active_ip, $startTime);
 
 $googleAnalyticsId = isset($configArray['Analytics']['googleAnalyticsId']) ? $configArray['Analytics']['googleAnalyticsId'] : false;
 $interface->assign('googleAnalyticsId', $googleAnalyticsId);
-
+if ($googleAnalyticsId) {
+	$googleAnalyticsDomainName = isset($configArray['Analytics']['domainName']) ? $configArray['Analytics']['domainName'] : strstr($_SERVER['SERVER_NAME'], '.');
+	// check for a config setting, use that if found, otherwise grab domain name  but remove the first subdomain
+	$interface->assign('googleAnalyticsDomainName', $googleAnalyticsDomainName);
+}
 global $library;
 
 //Set System Message

@@ -130,6 +130,10 @@ class Browse_AJAX extends Action {
 
 	function getBrowseCategoryInfo($textId = null){
 		global $interface;
+		/** @var Memcache $memCache */
+		global $memCache;
+		global $solrScope;
+
 		$this->searchObject = SearchObjectFactory::initSearchObject();
 		$result = array('result' => false);
 		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
@@ -140,6 +144,13 @@ class Browse_AJAX extends Action {
 		if ($textId == null){
 			return $result;
 		}
+
+		$key = 'browse_category_' . $textId . '_' . $solrScope;
+		$browseCategoryInfo = $memCache->get($key);
+		if ($browseCategoryInfo != false){
+			return $browseCategoryInfo;
+		}
+
 		$browseCategory->textId = $textId;
 		if ($browseCategory->find(true)){
 			$interface->assign('browseCategoryId', $textId);
@@ -194,6 +205,9 @@ class Browse_AJAX extends Action {
 		}
 		// Shutdown the search object
 		$this->searchObject->close();
+
+		global $configArray;
+		$memCache->add($key, $result, 0, $configArray['Caching']['browse_category_info']);
 		return $result;
 	}
 

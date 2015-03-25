@@ -15,13 +15,11 @@ import org.marc4j.marc.VariableField;
 import org.marc4j.marc.impl.SubfieldImpl;
 
 import java.io.*;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 
 public class MillenniumExportMain{
 	private static Logger logger = Logger.getLogger(MillenniumExportMain.class);
@@ -45,7 +43,7 @@ public class MillenniumExportMain{
 		}
 		logger.info(startTime.toString() + ": Starting Millennium Extract");
 
-		// Read the base INI file to get information about the server (current directory/cron/config.ini)
+		// Read the base INI file to get information about the server (current directory/conf/config.ini)
 		Ini ini = loadConfigFile("config.ini");
 		String exportPath = ini.get("Reindex", "marcPath");
 		if (exportPath.startsWith("\"")){
@@ -94,8 +92,11 @@ public class MillenniumExportMain{
 			}
 		}
 
-		//Merge item changes with the individual marc records and
-		//indicate that the work needs to be reindexed
+		//Load holds into the database from BIB_HOLDS _EXTRACT
+		File holdsExport = new File(exportPath + "/BIB_HOLDS_EXTRACT_VUFIND.TXT");
+		if (holdsExport.exists()){
+			loadHolds(holdsExport);
+		}
 
 		//Cleanup
 		if (vufindConn != null) {
@@ -105,6 +106,60 @@ public class MillenniumExportMain{
 				logger.error("error closing connection", e);
 			}
 		}
+	}
+
+	private static void loadHolds(File holdsExport) {
+		Savepoint startOfHolds = null;
+		try {
+			logger.info("Starting export of holds");
+
+			//Start a transaction so we can rebuild an entire table
+			startOfHolds = vufindConn.setSavepoint();
+			vufindConn.setAutoCommit(false);
+			vufindConn.prepareCall("TRUNCATE TABLE ils_hold_summary").executeQuery();
+
+			PreparedStatement addIlsHoldSummary = vufindConn.prepareStatement("INSERT INTO ils_hold_summary (ilsId, numHolds) VALUES (?, ?)");
+			HashMap<String, Long> numHoldsByBib = new HashMap<String, Long>();
+
+			CSVReader holdsReader = new CSVReader(new FileReader(holdsExport), '\t');
+			//Read the header
+			holdsReader.readNext();
+			String[] holdsRow = holdsReader.readNext();
+			while (holdsRow != null){
+				String bibId = holdsRow[0];
+				bibId = "." + bibId;
+				if (numHoldsByBib.containsKey(bibId)){
+					numHoldsByBib.put(bibId, 1 + numHoldsByBib.get(bibId));
+				}else{
+					numHoldsByBib.put(bibId, 1L);
+				}
+				holdsRow = holdsReader.readNext();
+			}
+
+			for (String bibId : numHoldsByBib.keySet()){
+				addIlsHoldSummary.setString(1, bibId);
+				addIlsHoldSummary.setLong(2, numHoldsByBib.get(bibId));
+				addIlsHoldSummary.executeUpdate();
+			}
+
+			try {
+				vufindConn.commit();
+				vufindConn.setAutoCommit(true);
+			}catch (Exception e){
+				logger.warn("error committing hold updates rolling back", e);
+				vufindConn.rollback(startOfHolds);
+			}
+		} catch (Exception e) {
+			logger.error("Unable to export holds from Millennium", e);
+			if (startOfHolds != null) {
+				try {
+					vufindConn.rollback(startOfHolds);
+				}catch (Exception e1){
+					logger.error("Unable to rollback due to exception", e1);
+				}
+			}
+		}
+		logger.info("Finished exporting holds");
 	}
 
 	public static void processItemUpdates(Ini ini, File itemUpdateDataFile) {
@@ -122,6 +177,7 @@ public class MillenniumExportMain{
 		SimpleDateFormat csvDateFormat = new SimpleDateFormat("MM-dd-yyyy");
 		SimpleDateFormat marcDateFormat = new SimpleDateFormat("MM-dd-yy");
 
+		//Merge item changes with the individual marc records and
 		HashMap<String, ArrayList<ItemChangeInfo>> changedBibs = new HashMap<String, ArrayList<ItemChangeInfo>>();
 		try {
 			CSVReader updateReader = new CSVReader(new FileReader(itemUpdateDataFile), '\t');
@@ -170,6 +226,7 @@ public class MillenniumExportMain{
 			logger.error("Unable to read from " + itemUpdateDataFile.getAbsolutePath(), e);
 		}
 
+		//indicate that the work needs to be reindexed
 		try {
 			vufindConn.setAutoCommit(false);
 			PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;

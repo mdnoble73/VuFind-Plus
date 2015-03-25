@@ -788,9 +788,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 		for (EContentIlsItem curItem : econtentItems){
 			String iType = curItem.getiType();
-			String translatedIType = indexer.translateValue("itype", iType);
 			String location = curItem.getLocation();
 			if (iType != null && location != null){
+				String translatedIType = indexer.translateValue("itype", iType);
 				ArrayList<String> relatedSubdomains = getLibrarySubdomainsForLocationCode(location);
 				ArrayList<String> relatedLocations = getRelatedLocationCodesForLocationCode(location);
 				groupedWork.setIType(translatedIType, relatedSubdomains, relatedLocations);

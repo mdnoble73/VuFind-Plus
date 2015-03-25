@@ -86,9 +86,8 @@
   padding-right: @pad;
 }
 
-#home-page-login a{
-  .sidebar-padding-mixin;
-}
+// library hours link & library home page
+
 #home-page-library-section{
   background-color: @sidebar-gray;
   .sidebar-padding-mixin;
@@ -112,6 +111,25 @@ div.bottom-border-line {
   margin-top: 5px; // create space between text & dotted line. must work logged in & not logged in
   margin-left: 30px;
   margin-right: 30px;
+}
+#home-page-login {
+  margin-bottom: 0;
+  .sidebar-padding-mixin(0);
+  .sidebar-padding-vertical-mixin(0); // remove unneeded margin to keep spacing on logout & login for dotted lines
+
+  background-color: @sidebar-gray;
+  .text-left; // over-rides text-center class
+  a {
+    .sidebar-padding-mixin;
+    .sidebar-text-mixin;
+    color: @font-red;
+  }
+}
+
+.sidebar-button {
+  .sidebar-text-mixin;
+  //  .sidebar-mixin;
+  margin-bottom: 0;
 }
 
 
@@ -170,24 +188,6 @@ div.bottom-border-line {
 #home-page-search{
   margin-bottom: 0;
   padding-bottom: 20px; //evens out with the top
-}
-#home-page-login {
-  margin-bottom: 0;
-  .sidebar-padding-mixin(0);
-  .sidebar-padding-vertical-mixin(0); // remove unneeded margin to keep spacing on logout & login for dotted lines
-
-  background-color: @sidebar-gray;
-  .text-left; // over-rides text-center class
-  a {
-    .sidebar-text-mixin;
-    color: @font-red;
-  }
-}
-
-.sidebar-button {
-  .sidebar-text-mixin;
-//  .sidebar-mixin;
-  margin-bottom: 0;
 }
 
 // Sidebar Accordion
@@ -265,9 +265,8 @@ div.bottom-border-line {
       // keep shadowing in place on active item
       .box-shadow(0 0 2px #4E443C);
     }
-    .allLinkstates({
-      outline: none;
-    })
+    @detached-outline-ruleset: {outline: none};
+    .allLinkStates(@detached-outline-ruleset)
   }
 }
 
@@ -323,7 +322,7 @@ div.bottom-border-line {
 }
 
 // mixin to select all the typical states of <a> like tags
-.allLinkstates(@rules) {
+.allLinkStates(@rules) {
   &, &:hover, &:active, &:visited {
     @rules();
   }
@@ -340,15 +339,15 @@ div.bottom-border-line {
   };
 }
 
+@detached-link-ruleset: { cursor: pointer; };
+
 // accordion styling for materials request section
 #home-library-links {
   margin-top: 30px;
 
   div.panel>a:first-child{ // Main Accordion Header
     .disguiseLinkTag;
-    .allLinkstates({
-      cursor: pointer;
-    });
+    .allLinkStates(@detached-link-ruleset);
   }
 
  .panel-heading {

@@ -46,6 +46,9 @@ public class IlsItem {
 	}
 
 	public void setiType(String iType) {
+		if (iType != null && iType.equals("null")){
+			iType = null;
+		}
 		this.iType = iType;
 	}
 
