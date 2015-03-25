@@ -263,7 +263,7 @@ class Record_AJAX extends Action {
 						$issueSummaries = $result;
 						break;
 					}else{
-						$hasLastCheckinData = ($copy['lastCheckinDate'] != null) || $hasLastCheckinData; // if $hasLastCheckinData was true keep that value even when first check is false.
+						$hasLastCheckinData = (isset($copy['lastCheckinDate']) && $copy['lastCheckinDate'] != null) || $hasLastCheckinData; // if $hasLastCheckinData was true keep that value even when first check is false.
 						// flag for at least 1 lastCheckinDate
 
 						$key = $copy['location'];
