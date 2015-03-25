@@ -1224,9 +1224,33 @@ abstract class HorizonAPI extends Horizon{
 			$user->cat_password = $pin1;
 			$user->update();
 			UserAccount::updateSession($user);
-			return "Your pin number was updated sucessfully.";
+			return "Your pin number was updated successfully.";
 		}else{
 			return "Sorry, we could not update your pin number. Please try again later.";
+		}
+	}
+
+	public function emailPin($barcode){
+		global $configArray;
+		$barcode = $_REQUEST['barcode'];
+
+		//email the pin to the user
+		$updatePinUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/emailMyPin?clientID=' . $configArray['Catalog']['clientId'] . '&login=' . $barcode;
+
+		$updatePinResponse = $this->getWebServiceResponse($updatePinUrl);
+
+		if ($updatePinResponse == true && !isset($updatePinResponse['code'])){
+			return array(
+				'success' => true,
+			);
+		}else{
+			$result = array(
+				'error' => "Sorry, we could not e-mail your pin to you.  Please visit the library to reset your pin."
+			);
+			if (isset($updatePinResponse['code'])){
+				$result['error'] .= '  ' . $updatePinResponse['code'];
+			}
+			return $result;
 		}
 	}
 

@@ -31,8 +31,7 @@ class EmailPin extends Action{
 	function launch($msg = null)
 	{
 		global $interface;
-		global $configArray;
-		
+
 		if (isset($_REQUEST['submit'])){
 			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$driver = $this->catalog->driver;
@@ -49,6 +48,8 @@ class EmailPin extends Action{
 		}else{
 			$interface->setTemplate('emailPin.tpl');
 		}
+		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
+
 		$interface->display('layout.tpl');
 	}
 }
