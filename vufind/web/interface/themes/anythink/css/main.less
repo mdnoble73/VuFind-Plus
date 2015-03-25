@@ -265,9 +265,8 @@ div.bottom-border-line {
       // keep shadowing in place on active item
       .box-shadow(0 0 2px #4E443C);
     }
-    .allLinkstates({
-      outline: none;
-    })
+    @detached-outline-ruleset: {outline: none};
+    .allLinkStates(@detached-outline-ruleset)
   }
 }
 
@@ -323,7 +322,7 @@ div.bottom-border-line {
 }
 
 // mixin to select all the typical states of <a> like tags
-.allLinkstates(@rules) {
+.allLinkStates(@rules) {
   &, &:hover, &:active, &:visited {
     @rules();
   }
@@ -340,15 +339,15 @@ div.bottom-border-line {
   };
 }
 
+@detached-link-ruleset: { cursor: pointer; };
+
 // accordion styling for materials request section
 #home-library-links {
   margin-top: 30px;
 
   div.panel>a:first-child{ // Main Accordion Header
     .disguiseLinkTag;
-    .allLinkstates({
-      cursor: pointer;
-    });
+    .allLinkStates(@detached-link-ruleset);
   }
 
  .panel-heading {

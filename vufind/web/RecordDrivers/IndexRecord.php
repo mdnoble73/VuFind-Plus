@@ -986,7 +986,7 @@ class IndexRecord extends RecordInterface
 			require_once ROOT_DIR . '/sys/Grouping/GroupedWorkPrimaryIdentifier.php';
 			require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 			$groupedWork = new GroupedWork();
-			$query = "SELECT grouped_work.* FROM grouped_work INNER JOIN grouped_work_primary_identifiers ON grouped_work.id = grouped_work_id WHERE type='{$this->getRecordType()}' AND identifier = '" . $this->getUniqueID() . "'";
+			$query = "SELECT grouped_work.* FROM grouped_work INNER JOIN grouped_work_primary_identifiers ON grouped_work.id = grouped_work_id WHERE type='{$this->getRecordType()}' AND identifier = '{$this->getUniqueID()}'";
 			$groupedWork->query($query);
 
 			if ($groupedWork->N == 1){

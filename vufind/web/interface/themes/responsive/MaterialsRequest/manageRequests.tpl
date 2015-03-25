@@ -38,6 +38,7 @@
 					<thead>
 						<tr>
 							<th><input type="checkbox" name="selectAll" id="selectAll" onchange="VuFind.toggleCheckboxes('.select', '#selectAll');"/></th>
+							<th>Id</th>
 							<th>Title</th>
 							<th>Author</th>
 							<th>Format</th>
@@ -53,6 +54,7 @@
 						{foreach from=$allRequests item=request}
 							<tr>
 								<td><input type="checkbox" name="select[{$request->id}]" class="select"/></td>
+								<td>{$request->id}</td>
 								<td>{$request->title}</td>
 								<td>{$request->author}</td>
 								<td>{$request->format}</td>
@@ -105,6 +107,6 @@
 {literal}
 	$("#startDate").datepicker();
 	$("#endDate").datepicker();
-	$("#requestedMaterials").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: false}, 5: {sorter : 'date'}, 6: { sorter: false} } });
+	$("#requestedMaterials").tablesorter({cssAsc: 'sortAscHeader', cssDesc: 'sortDescHeader', cssHeader: 'unsortedHeader', headers: { 0: { sorter: false}, 65: {sorter : 'date'}, 6: { sorter: false} } });
 {/literal}
 </script>

@@ -16,7 +16,11 @@
 			<label for="password" class='control-label col-xs-12 col-sm-4'>{$passwordLabel}: </label>
 			<div class='col-xs-12 col-sm-8'>
 				<input type="password" name="password" id="password" size="28" onkeypress="return VuFind.submitOnEnter(event, '#loginForm');" class="form-control"/>
-
+				{if $showForgotPinLink}
+					<p class="text-muted help-block">
+						<strong>Forgot PIN?</strong> <a href="{$path}/MyAccount/EmailPin">E-mail PIN</a>
+					</p>
+				{/if}
 				{if $enableSelfRegistration == 1}
 					<p class="help-block">
 						Don't have a library card?  <a href='{$path}/MyAccount/SelfReg'>Register for a new Library Card</a>.
