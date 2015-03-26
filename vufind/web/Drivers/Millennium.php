@@ -321,6 +321,7 @@ class MillenniumDriver implements DriverInterface
 		$statusSubfield = $configArray['Reindex']['statusSubfield'];
 		$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
 		$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
+		$lastCheckinDateSubfield = $configArray['Reindex']['lastCheckinDateSubfield'];
 
 		foreach ($itemFields as $itemField){
 			//Ignore eContent items
@@ -360,6 +361,15 @@ class MillenniumDriver implements DriverInterface
 
 				$status = trim($itemField->getSubfield($statusSubfield) != null ? trim($itemField->getSubfield($statusSubfield)->getData()) : '');
 				$dueDate = $itemField->getSubfield($dueDateSubfield) != null ? trim($itemField->getSubfield($dueDateSubfield)->getData()) : null;
+
+				$lastCheckinDate = $itemField->getSubfield($lastCheckinDateSubfield);
+				if ($lastCheckinDate){ // convert to timestamp for ease of display in template
+					$lastCheckinDate = trim($lastCheckinDate->getData());
+					$lastCheckinDate = DateTime::createFromFormat('m-d-Y G:i', $lastCheckinDate);
+					if ($lastCheckinDate) $lastCheckinDate = $lastCheckinDate->getTimestamp();
+				}
+				if (!$lastCheckinDate) $lastCheckinDate = null;
+
 				$available = (in_array($status, array('-', 'o', 'd', 'w', ')', 'u')) && ($dueDate == null || strlen($dueDate) == 0));
 				$inLibraryUseOnly = $status == 'o';
 				$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
@@ -384,6 +394,7 @@ class MillenniumDriver implements DriverInterface
 					'status' => $status,
 					'dueDate' => $dueDate,
 					'iType' => $iType,
+					'lastCheckinDate' => $lastCheckinDate,
 				);
 				$items[] = $item;
 			}

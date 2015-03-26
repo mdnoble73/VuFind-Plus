@@ -25,14 +25,28 @@
 				{assign var=lastSection value=$holding.section}
 			{/if}
 
+				{* ils check & last checkin date *}
+			{if ($ils == 'Sierra' || $ils == 'Millennium') && $hasLastCheckinData}
+				{assign var=showLastCheckIn value=true}
+			{else}
+				{assign var=showLastCheckIn value=false}
+			{/if}
+
+				{* resize the columns when  including the lastcheckin box
+				 xs-5 : 41.6667%
+				 xs-4 : 33.3333%  (1/3)
+				 xs-3 : 25%       (1/4)
+				 xs-2 : 16.6667% (1/6)
+				 *}
+
 			<div class="row">
-				<div class="col-xs-5">
+				<div class="col-xs-{if $showLastCheckIn}4{else}5{/if}">
 					<strong>
 					{$holding.location|escape}
 					{if $holding.locationLink} (<a href='{$holding.locationLink}' target='_blank'>Map</a>){/if}
 					</strong>
 				</div>
-				<div class="holdingsCallNumber col-xs-4">
+				<div class="holdingsCallNumber col-xs-{if $showLastCheckIn}3{else}4{/if}">
 					{$holding.callnumber|escape}
 					{if $holding.link}
 						{foreach from=$holding.link item=link}
@@ -40,8 +54,7 @@
 						{/foreach}
 					{/if}
 				</div>
-
-				<div class="col-xs-3">
+				<div class="col-xs-{if $showLastCheckIn}3{else}3{/if}">
 					{if $holding.reserve == "Y"}
 						{translate text="On Reserve - Ask at Circulation Desk"}
 					{else}
@@ -52,6 +65,17 @@
 						{/if}
 					{/if}
 				</div>
+				{if $showLastCheckIn}
+					<div class="col-xs-2">
+						{if $holding.lastCheckinDate}
+							{* for debugging: *}
+							{*{$holding.lastCheckinDate}<br>*}
+							{*{$holding.lastCheckinDate|date_format}<br>*}
+
+						<span title="Last Check-in Date">{$holding.lastCheckinDate|date_format}</span>
+						{/if}
+					</div>
+				{/if}
 			</div>
 			{/foreach}
 		{/foreach}

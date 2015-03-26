@@ -99,6 +99,7 @@
 
 		{include file="modal_dialog.tpl"}
 
+			{* hold messages shouldn't be needed any longer. plb 2-13-2015 *}
 		{if $hold_message}
 			<script type="text/javascript">
 				VuFind.showMessage('Hold Results', "{$hold_message|escape:'javascript'}");

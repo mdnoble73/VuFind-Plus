@@ -1979,6 +1979,10 @@ class MarcRecord extends IndexRecord
 							$status = "Checked Out";
 							$groupedStatus = "Checked Out";
 						}
+
+//						// TODO: implement lastCheckinDate from index??
+//							$lastCheckinDate = null;
+						// think may not be needed. plb 3-24-2015
 					}
 					if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
 						$isLibraryItem = true;
@@ -1999,6 +2003,7 @@ class MarcRecord extends IndexRecord
 						'onOrderCopies' => $onOrderCopies,
 						'status' => $status,
 						'groupedStatus' => $groupedStatus,
+//						'lastCheckinDate' => $lastCheckinDate, // think may not be needed. plb 3-24-2015
 					);
 				}
 				$timer->logTime("Finished getItemsFast for marc record based on data in index");

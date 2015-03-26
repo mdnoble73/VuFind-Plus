@@ -93,16 +93,21 @@ class MillenniumStatusLoader{
 			$marcItemData = array();
 
 			//TODO: Don't hardcode item subfields
+
+
+			$statusSubfield = $configArray['Reindex']['statusSubfield'];
+			$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
+			$locationSubfield = $configArray['Reindex']['locationSubfield'];
+			$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
+			$callNumberPrestampSubfield = $configArray['Reindex']['callNumberPrestampSubfield'];
+			$callNumberSubfield = $configArray['Reindex']['callNumberSubfield'];
+			$callNumberCutterSubfield = $configArray['Reindex']['callNumberCutterSubfield'];
+			$volumeSubfield = $configArray['Reindex']['volumeSubfield'];
+			$lastCheckinDateSubfield = $configArray['Reindex']['lastCheckinDateSubfield']; // added plb 3-24-2015
+
 			foreach ($itemFields as $itemField){
 				/** @var $itemField File_MARC_Data_Field */
-				$statusSubfield = $configArray['Reindex']['statusSubfield'];
-				$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
-				$locationSubfield = $configArray['Reindex']['locationSubfield'];
-				$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
-				$callNumberPrestampSubfield = $configArray['Reindex']['callNumberPrestampSubfield'];
-				$callNumberSubfield = $configArray['Reindex']['callNumberSubfield'];
-				$callNumberCutterSubfield = $configArray['Reindex']['callNumberCutterSubfield'];
-				$volumeSubfield = $configArray['Reindex']['volumeSubfield'];
+
 				$fullCallNumber = $itemField->getSubfield($callNumberPrestampSubfield) != null ? ($itemField->getSubfield($callNumberPrestampSubfield)->getData() . ' '): '';
 				$fullCallNumber .= $itemField->getSubfield($callNumberSubfield) != null ? $itemField->getSubfield($callNumberSubfield)->getData() : '';
 				$fullCallNumber .= $itemField->getSubfield($callNumberCutterSubfield) != null ? (' ' . $itemField->getSubfield($callNumberCutterSubfield)->getData()) : '';
@@ -114,6 +119,16 @@ class MillenniumStatusLoader{
 				$itemData['matched'] = false;
 				$itemData['status'] = $itemField->getSubfield($statusSubfield) != null ? $itemField->getSubfield($statusSubfield)->getData() : '-';
 				$itemData['dueDate'] = $itemField->getSubfield($dueDateSubfield) != null ? trim($itemField->getSubfield($dueDateSubfield)->getData()) : null;
+
+				$lastCheckinDate = $itemField->getSubfield($lastCheckinDateSubfield); // added plb 3-24-2015
+				if ($lastCheckinDate){ // convert to timestamp for ease of display in template
+					$lastCheckinDate = trim($lastCheckinDate->getData());
+					$lastCheckinDate = DateTime::createFromFormat('m-d-Y G:i', $lastCheckinDate);
+					if ($lastCheckinDate) $lastCheckinDate = $lastCheckinDate->getTimestamp();
+				}
+				$itemData['lastCheckinDate'] = $lastCheckinDate ? $lastCheckinDate : null;
+
+
 				$marcItemData[] = $itemData;
 			}
 		}else{
@@ -298,7 +313,7 @@ class MillenniumStatusLoader{
 				$holding['iType'] = 0;
 				if ($matchItemsWithMarcItems){
 					foreach ($marcItemData as $itemKey => $itemData){
-						if ($itemData['matched'] === false){
+						if ($itemData['matched'] === false){ // ensure not checked already
 							$locationMatched = (strpos($itemData['location'], $holding['locationCode']) === 0);
 							$itemCallNumber = isset($itemData['callnumber']) ? $itemData['callnumber'] : '';
 							$holdingCallNumber = isset($holding['callnumber']) ? $holding['callnumber'] : '';
@@ -310,12 +325,15 @@ class MillenniumStatusLoader{
 							if ($locationMatched && $callNumberMatched){
 								$holding['iType'] = $itemData['iType'];
 
+								$holding['lastCheckinDate'] = $itemData['lastCheckinDate'];
+								// if the marc record matches up, include the last checkin date in the holding info.
+
 								//Get the more specific location code
 								if (strlen($holding['locationCode']) < strlen($itemData['location'])){
 									$holding['locationCode'] = $itemData['location'];
 								}
 								$itemData['matched'] = true;
-								$marcItemData[$itemKey] = $itemData;
+								$marcItemData[$itemKey] = $itemData; // add matched sub-array element back to original array being looped over.
 								break;
 							}
 						}
@@ -393,6 +411,7 @@ class MillenniumStatusLoader{
 				$holding['locationCode'] = $marcData['location'];
 				$holding['callnumber'] = $marcData['callnumber'];
 				$holding['statusfull'] = $this->translateStatusCode($marcData['status'], $marcData['dueDate']);
+				$holding['lastCheckinDate'] = $marcData['lastCheckinDate'];
 
 				//Try to translate the location code at least to location
 				$location = new Location();
