@@ -14,6 +14,7 @@
 		{include file=$userNoticeFile}
 	{/if}
 		<div id='readingListDisclaimer' {if $historyActive == true}style='display: none'{/if} class="alert alert-info">
+			{* some necessary white space in notice was previously stripped out when needed. *}
 		{/strip}
 			{translate text="ReadingHistoryNotice"}
 		{strip}
