@@ -12,7 +12,7 @@
 				<div id="{$moreDetailsKey}PanelBody" class="panel-collapse collapse {if $moreDetailsOption.openByDefault}in{/if}">
 					<div class="panel-body">
 						{if $moreDetailsKey == 'description'}
-							{$moreDetailsOption.body|replace:"\n":"\n<br />\n<br />\n"}
+							{$moreDetailsOption.body|replace:"\n":"<br />\n"}
 						{else}
 							{$moreDetailsOption.body}
 						{/if}
