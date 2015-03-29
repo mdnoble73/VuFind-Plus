@@ -1,10 +1,17 @@
 #!/usr/bin/expect -f
 
-exp_internal 1
+#exp_internal 1 ; # verbose debugging to stdout
+log_user 0 ; # do NOT send screens to stdout
 
 # BIB_EXTRACT_PIKA.exp
 # James Staub
 # Nashville Public Library
+
+# 20150311 :
+# + exclude bibs with no obtainable items and order records with cdate = "  -  -  " AND status = z [cancelled]
+
+# 20150309 : 
+# + exclude Hoopla records from Millennium extract [BCODE3=h]
 
 # 20150222 : JAMES decides to scrap scheduler altogether to support Pika continuous reindexing
 # This script is intended to be run once a day in preparation for a full index job
@@ -27,6 +34,7 @@ set env(TERM) xterm
 set wait "2" ; # timeout
 set timeout $wait
 
+# READ ARGUMENTS
 if {$argc != 2} {
         puts "Please provide a Pika site URL and a Millennium server/INNOPAC URL, e.g., $ expect BIB_HOLDS_EXTRACT_PIKA.exp catalog.library.nashville.org waldo.library.nashville.org"
         exit
@@ -44,6 +52,17 @@ if {[file exists $localPath] != 1} {
         exit
 }
 
+# LOG FILE : write to it with
+# puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> log entry"
+set logFilePath "/var/log/vufind-plus/$site/$name.log"
+if { [catch {open $logFilePath "a+"} logFile ] } {
+  puts "Error could not open $logFilePath"
+}
+set logTimeStart [clock seconds]
+puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> Start $name for $site on $host"
+#puts "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> Start $name for $site on $host"
+
+# READ CONFIG.PWD.INI
 set fd [open $confpwd r]
 while {![eof $fd]} {
         set line [string trim [gets $fd] " "]
@@ -68,7 +87,9 @@ while {![eof $fd]} {
         }
 }
 
-#if 0 {
+# if 0 {
+
+# INNOPAC : CONNECT
 spawn ssh $INNOPACuser@$host
 expect {
 	# if RSA key for host is not yet set
@@ -87,6 +108,8 @@ expect "What kind of Terminal are you using?"
 send "v"
 expect "Please confirm: are you using a VT100 or compatible terminal?"
 send "y"
+
+# INNOPAC : CREATE LIST
 expect "M > MANAGEMENT information"
 send "M"
 expect "L > Create LISTS of records"
@@ -235,6 +258,7 @@ send "O"
 # In lieu of searching a blank value, we change INNOPAC System Options > Database 
 # Maintenance > Date prompt: Format of year prompt = year AND search for 
 # ORDER CDATE < 01-01-1901
+# AND ORDER STATUS != Z [CANCELLED]
 
 expect "? Other Types"
 send "?"
@@ -247,6 +271,14 @@ send "<"
 #expect "CDATE = mo-dy-year"
 send "01011901"
 #expect "CDATE < 01-01-01"
+#expect "Enter action ( A for AND, O for OR, S to START search )"
+send "A"
+#expect "20 STATUS:"
+send "20"
+#expect "Enter boolean condition"
+send "~"
+#expect "STATUS" ; #[JAMES should see what the response is... ~ or does not equal or...
+send "z"
 #expect "Enter action ( A for AND, O for OR, S to START search )"
 send "O"
 
@@ -266,7 +298,7 @@ send "12312037"
 #expect "Enter action ( A for AND, O for OR, S to START search )"
 send "O"
 
-# 4. BIBLIOGRAPHIC  MARC Tag 856|u  not equal to  ""
+# 4. BIBLIOGRAPHIC  MARC Tag 856|u  not equal to  "" AND BCODE3 not equal to "h" [HOOPLA]
 expect "? Other Types"
 send "?"
 expect "B > BIBLIOGRAPHIC"
@@ -281,6 +313,13 @@ send "~"
 #expect "856|u <>"
 #expect "Enter string ( limit of 50 characters )"
 send "\r"
+#expect "Enter action ( A for AND, O for OR, S to START search )"
+send "A"
+#expect "07 BCODE3:"
+send "07"
+#expect "Enter boolean condition"
+send "="
+send "h"
 #expect "Enter action ( A for AND, O for OR, S to START search )"
 send "O"
 
@@ -490,6 +529,7 @@ send "Q"
 expect "*** MANAGEMENT INFORMATION ***"
 expect "Q > QUIT"
 send "Q"
+puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> Create List completed"
 
 # EXPORT MARC RECORDS
 expect "A > ADDITIONAL system functions"
@@ -532,6 +572,14 @@ send "Q"
 expect "Press <SPACE> to continue"
 send " "
 close
+puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> MARC extract prepared on $host"
+
+#}
+
+# MOVE OLD MRC TO SAV
+if {[file exists "$localPath$name.MRC"] == 1} {
+	file rename -force $localPath$name.MRC $localPath$name.SAV
+}
 
 spawn scp $osUser@$host:/iiidb/marc/$name.out $localPath/$name.MRC
 set timeout -1
@@ -540,8 +588,7 @@ send "$osUserPassword\r"
 expect "100%"
 close
 set timeout $wait
-
-#}
+puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> MARC extract retrieved from $host"
 
 # DELETE OUT FILE FROM MILLENNIUM SERVER
 spawn ssh $INNOPACuser@$host
@@ -584,5 +631,13 @@ send "y"
 expect "Choose one (B,C,P,D,R,F,U,V,T,S,X,Y,Q,+)"
 send "q"
 close
+puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> MARC extract deleted from Millennium server"
+
+set logTimeStop [clock seconds]
+set logTime [expr {$logTimeStop - $logTimeStart}]
+set logTime [clock format $logTime -format "%M:%S"]
+puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> Completed $name for $site on $host in $logTime"
+#puts "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> Completed $name for $site on $host in $logTime"
+close $logFile
 
 exit 0

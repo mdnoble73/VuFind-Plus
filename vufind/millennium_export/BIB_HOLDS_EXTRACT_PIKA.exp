@@ -4,6 +4,8 @@
 # James Staub
 # Nashville Public Library
 
+log_user 0 ; # do NOT send screens to stdout
+
 # 20150218 : JAMES decides to scrap scheduler altogether to support Pika continuous reindexing
 # This script is intended to be run once a day in preparation for a full index job
 # The holds extract helps calculate popularity by determining the length of the holds queue

@@ -272,11 +272,14 @@ abstract class HorizonAPI extends Horizon{
 			//TODO: See if we can get information about card expiration date
 			$expireClose = 0;
 
-			//TODO: Calculate total fines
 			$finesVal = 0;
 			if (isset($lookupMyAccountInfoResponse->BlockInfo)){
 				foreach ($lookupMyAccountInfoResponse->BlockInfo as $block){
-					$finesVal += $block->balance;
+					// $block is a simplexml object with attribute info about currency, type casting as below seems to work for adding up. plb 3-27-2015
+					$fineAmount = (float) $block->balance;
+					$finesVal += $fineAmount;
+
+
 				}
 			}
 
