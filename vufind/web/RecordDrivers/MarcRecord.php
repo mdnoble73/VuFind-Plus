@@ -1696,6 +1696,7 @@ class MarcRecord extends IndexRecord
 			if ($totalCopies == 0){
 				return $relatedRecords;
 			}
+			$numHolds = 0;
 			if ($realTimeStatusNeeded){
 				$numHolds = $this->getNumHolds();
 			}
