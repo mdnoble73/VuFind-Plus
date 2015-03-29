@@ -61,6 +61,7 @@ public class GroupedWorkIndexer {
 
 	private HashSet<String> worksWithInvalidLiteraryForms = new HashSet<String>();
 	private TreeSet<Scope> scopes = new TreeSet<Scope>();
+	private ArrayList<String> scopeNames = new ArrayList<String>();
 
 	PreparedStatement getGroupedWorkPrimaryIdentifiers;
 	PreparedStatement getGroupedWorkIdentifiers;
@@ -269,6 +270,7 @@ public class GroupedWorkIndexer {
 					newScope.setIncludeOverDriveCollection(includeOverdrive);
 					newScope.setIncludeHoopla(includeHoopla);
 					scopes.add(newScope);
+					scopeNames.add(newScope.getScopeName());
 					indexingStats.put(newScope.getScopeName(), new ScopedIndexingStats(newScope.getScopeName()));
 				}
 
@@ -349,6 +351,7 @@ public class GroupedWorkIndexer {
 							locationScopeInfo.setExtraLocationCodes(extraLocationCodesToInclude);
 
 							scopes.add(locationScopeInfo);
+							scopeNames.add(locationScopeInfo.getScopeName());
 							indexingStats.put(locationScopeInfo.getScopeName(), new ScopedIndexingStats(locationScopeInfo.getScopeName()));
 						}else{
 							logger.debug("No scope needed for " + code + " because the library scope works just fine");
@@ -1073,6 +1076,10 @@ public class GroupedWorkIndexer {
 
 	public TreeSet<Scope> getScopes() {
 		return this.scopes;
+	}
+
+	public ArrayList<String> getAllScopeNames(){
+		return scopeNames;
 	}
 
 	/**

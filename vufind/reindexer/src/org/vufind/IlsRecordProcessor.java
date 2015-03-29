@@ -311,7 +311,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			step = "load popularity";
 			loadPopularity(groupedWork, identifier, printItems, econtentItems, onOrderItems);
 			step = "load date added";
-			loadDateAdded(groupedWork, printItems, econtentItems);
+			loadDateAdded(groupedWork, identifier, printItems, econtentItems);
 			step = "load iTypes";
 			loadITypes(groupedWork, printItems, econtentItems);
 			step = "load call numbers";
@@ -799,7 +799,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	private static SimpleDateFormat dateAddedFormatter = null;
-	private void loadDateAdded(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
+	protected void loadDateAdded(GroupedWorkSolr groupedWork, String identifier, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
 		if (dateAddedFormatter == null){
 			dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
 		}
