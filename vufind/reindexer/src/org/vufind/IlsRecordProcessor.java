@@ -1750,17 +1750,19 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				// Serial
 				case 'S':
 					// Look in 008 to determine what type of Continuing Resource
-					formatCode = fixedField.getData().toUpperCase().charAt(21);
-					switch (formatCode) {
-						case 'N':
-							result.add("Newspaper");
-							break;
-						case 'P':
-							result.add("Journal");
-							break;
-						default:
-							result.add("Serial");
-							break;
+					if (fixedField != null) {
+						formatCode = fixedField.getData().toUpperCase().charAt(21);
+						switch (formatCode) {
+							case 'N':
+								result.add("Newspaper");
+								break;
+							case 'P':
+								result.add("Journal");
+								break;
+							default:
+								result.add("Serial");
+								break;
+						}
 					}
 			}
 		}
