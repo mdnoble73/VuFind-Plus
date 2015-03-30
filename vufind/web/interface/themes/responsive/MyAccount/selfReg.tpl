@@ -45,7 +45,7 @@
 	{* this is bootstrap datepicker, not jquery ui *}
 	{literal}
 	$(document).ready(function(){
-		$('input.date').datepicker({
+		$('input.datePika').datepicker({
 			format: "mm-dd-yyyy"
 			,endDate: '+0d'
 			,startView: 2
