@@ -18,9 +18,10 @@
 				<h3>{if $sectionKey == 'available'}Holds Ready For Pickup{else}Pending Holds{/if}</h3>
 				<p class="alert alert-info">
 					{if $sectionKey == 'available'}
-						These titles have arrived at the library or are available online for you to use.
+						{translate text="available hold summary"}
+						{*These titles have arrived at the library or are available online for you to use.*}
 					{else}
-						These titles are currently checked out to other patrons.  We will notify you{if not $notification_method or $notification_method eq 'Unknown'}{else} via {$notification_method}{/if} when a title is available.
+						{translate text="These titles are currently checked out to other patrons."}  We will notify you{if not $notification_method or $notification_method eq 'Unknown'}{else} via {$notification_method}{/if} when a title is available.
 						{* Only show the notification method when it is known and set *}
 					{/if}
 				</p>
