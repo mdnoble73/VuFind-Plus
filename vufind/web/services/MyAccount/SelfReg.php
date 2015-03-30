@@ -27,7 +27,7 @@ class SelfReg extends Action {
 	function __construct() {
 		global $configArray;
 		// Connect to Catalog
-		$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
+		$this->catalog = CatalogFactory::getCatalogConnectionInstance();
 	}
 
 	function launch($msg = null) {
@@ -45,6 +45,9 @@ class SelfReg extends Action {
 
 			if (!$resp->is_valid) {
 				$interface->assign('captchaMessage', 'The CAPTCHA response was incorrect, please try again.');
+				// TODO: pass user data back to form
+
+
 			} else {
 
 				//Submit the form to ILS
@@ -54,7 +57,7 @@ class SelfReg extends Action {
 		}
 
 		/** @var  CatalogConnection $catalog */
-		$catalog = CatalogFactory::getCatalogConnectionInstance();;
+		$catalog = CatalogFactory::getCatalogConnectionInstance();
 		$selfRegFields = $catalog->getSelfRegistrationFields();
 		$interface->assign('submitUrl', $configArray['Site']['path'] . '/MyAccount/SelfReg');
 		$interface->assign('structure', $selfRegFields);
@@ -62,6 +65,7 @@ class SelfReg extends Action {
 
 		// Set up captcha to limit spam self registrations
 		if (isset($configArray['ReCaptcha']['publicKey'])) {
+//			TODO: and not inside library
 			$recaptchaPublicKey = $configArray['ReCaptcha']['publicKey'];
 			$captchaCode        = recaptcha_get_html($recaptchaPublicKey);
 			$interface->assign('captcha', $captchaCode);
