@@ -6746,7 +6746,7 @@ hr.menu {
   padding: 0 5px;
   color: #cccccc;
 }
-div#system-message-header {
+#system-message-header {
   background-color: #817c81;
   color: black;
   text-align: center;
@@ -6822,8 +6822,14 @@ div#system-message-header {
 #install-info {
   padding-left: 20px;
 }
+@media (max-width: 767px) {
+  #install-info {
+    overflow-y: hidden;
+  }
+}
 #connect-with-us-info {
   padding-right: 20px;
+  float: right;
 }
 #connect-with-us-label {
   margin-right: 15px;
@@ -7110,7 +7116,7 @@ div#system-message-header {
 }
 #selected-browse-label {
   background-color: white;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #bbd4e3 45%, #bbd4e3 55%, #ffffff 56%);
+  background: linear-gradient(to bottom, white, white 44%, #bbd4e3 45%, #bbd4e3 55%, white 56%);
   margin-bottom: 5px;
 }
 .selected-browse-label-text {
@@ -8044,10 +8050,17 @@ div#system-message-header {
 }
 #header-container {
   background-image: url('/interface/themes/pitkin_resp/images/header_background.png');
+  height: 140px;
+}
+#header-logo {
+  background-color: rgba(51, 51, 51, 0.4);
+  border-radius: 0.5em;
+  padding: 10px 10px 0px;
+  margin-top: 10px;
 }
 .header-button {
   border-radius: 0.5em;
-  background-color: rgba(51, 51, 51, 0.6);
+  background-color: rgba(51, 51, 51, 0.4);
   margin-top: 20px;
   height: 60px !important;
   border: 0px;
