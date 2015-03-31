@@ -44,7 +44,7 @@ class SearchObject_Solr extends SearchObject_Base
 	// Index
 	private $index = null;
 	// Field List
-	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,format_category,isbn,upc,issn,related_record_ids,related_record_items,series,format,recordtype,display_description,literary_form,literary_form_full';
+	private $fields = 'auth_author2,id,mpaaRating,title_display,title_full,title_sub,author,author_display,format_category,isbn,upc,issn,related_record_ids,related_record_items,series,format,recordtype,display_description,literary_form,literary_form_full,num_titles';
 	private $fieldsFull = '*,score';
 	// HTTP Method
 	//    private $method = HTTP_REQUEST_METHOD_GET;

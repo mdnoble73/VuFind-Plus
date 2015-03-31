@@ -99,7 +99,7 @@ class FavoriteHandler
 		$searchObject = SearchObjectFactory::initSearchObject();
 		$searchObject->init();
 		$searchObject->disableScoping();
-		$searchObject->setLimit(200);
+		$searchObject->setLimit($recordsPerPage); //MDN 3/30 this was set to 200, but should be based off the page size
 		$searchObject->setPage($page);
 		$searchObject->setSort('title asc');
 		$interface->assign('sortList', $searchObject->getSortList());

@@ -25,7 +25,6 @@ class ListRecord extends IndexRecord
 	 */
 	public function getSearchResult()
 	{
-		global $configArray;
 		global $interface;
 
 		$id = $this->getUniqueID();
