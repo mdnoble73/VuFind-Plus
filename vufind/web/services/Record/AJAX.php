@@ -365,7 +365,7 @@ class Record_AJAX extends Action {
 		global $user;
 		if ($user){
 			$id = $_REQUEST['id'];
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
 			$profile = $catalog->getMyProfile($user);
 			$interface->assign('profile', $profile);
 
@@ -393,6 +393,8 @@ class Record_AJAX extends Action {
 			$interface->assign('pickupLocations', $locations);
 
 			global $library;
+			$interface->assign('showHoldCancelDate', $library->showHoldCancelDate);
+			$interface->assign('defaultNotNeededAfterDays', $library->defaultNotNeededAfterDays);
 			$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
 			$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
 
