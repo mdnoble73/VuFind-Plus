@@ -1617,9 +1617,13 @@ class MillenniumDriver implements DriverInterface
 		curl_close($curl_connection);
 	}
 
+	function combineCityStateZipInSelfRegistration(){
+		return true;
+	}
 	function selfRegister(){
 		global $logger;
 		global $configArray;
+		global $library;
 
 		$firstName = trim($_REQUEST['firstName']);
 		$middleName = trim($_REQUEST['middleName']);
@@ -1629,7 +1633,6 @@ class MillenniumDriver implements DriverInterface
 		$state = trim($_REQUEST['state']);
 		$zip = trim($_REQUEST['zip']);
 		$email = trim($_REQUEST['email']);
-		$phone = trim($_REQUEST['phone']);
 
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 		$curl_url = $configArray['Catalog']['url'] . "/selfreg~S" . $this->getLibraryScope();
@@ -1646,14 +1649,31 @@ class MillenniumDriver implements DriverInterface
 		$post_data['nfirst'] = $middleName ? $firstName.' '.$middleName : $firstName; // add middle name onto first name;
 		$post_data['nlast'] = $lastName;
 		$post_data['stre_aaddress'] = $address;
-		$post_data['city_aaddress'] = "$city $state, $zip";
-		//$post_data['stat_aaddress'] = $state;
-		//$post_data['post_aaddress'] = $zip;
+		if ($this->combineCityStateZipInSelfRegistration()){
+			$post_data['city_aaddress'] = "$city $state, $zip";
+		}else{
+			$post_data['city_aaddress'] = "$city";
+			$post_data['stat_aaddress'] = "$state";
+			$post_data['post_aaddress'] = "$zip";
+		}
+
 		$post_data['zemailaddr'] = $email;
-		$post_data['tphone1'] = $phone;
+		if (isset($_REQUEST['phone'])){
+			$phone = trim($_REQUEST['phone']);
+			$post_data['tphone1'] = $phone;
+		}
 		if (isset($_REQUEST['birthDate'])){
 			$post_data['F051birthdate'] = $_REQUEST['birthDate'];
 		}
+		if (isset($_REQUEST['universityID'])){
+			$post_data['universityID'] = $_REQUEST['universityID'];
+		}
+
+		if ($library->selfRegistrationTemplate && $library->selfRegistrationTemplate != 'default'){
+			$post_data['TemplateName'] = $library->selfRegistrationTemplate;
+		}
+
+
 //		$post_items = array();
 //		foreach ($post_data as $key => $value) {
 //			$post_items[] = $key . '=' . urlencode($value);
