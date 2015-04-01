@@ -37,13 +37,20 @@ class SelfReg extends Action {
 
 		if (isset($_REQUEST['submit'])) {
 
-			$privatekey = $configArray['ReCaptcha']['privateKey'];
-			$resp = recaptcha_check_answer ($privatekey,
-				$_SERVER["REMOTE_ADDR"],
-				$_POST["recaptcha_challenge_field"],
-				$_POST["recaptcha_response_field"]);
+			$recaptchaValid = false;
+			if (isset($configArray['ReCaptcha']['privateKey'])){
+				$privatekey = $configArray['ReCaptcha']['privateKey'];
+				$resp = recaptcha_check_answer ($privatekey,
+					$_SERVER["REMOTE_ADDR"],
+					$_POST["recaptcha_challenge_field"],
+					$_POST["recaptcha_response_field"]);
+				$recaptchaValid = $resp->is_valid;
+			}else{
+				$recaptchaValid = true;
+			}
 
-			if (!$resp->is_valid) {
+
+			if (!$recaptchaValid) {
 				$interface->assign('captchaMessage', 'The CAPTCHA response was incorrect, please try again.');
 				// TODO: pass user data back to form
 
