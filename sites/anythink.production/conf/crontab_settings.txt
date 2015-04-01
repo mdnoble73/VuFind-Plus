@@ -25,39 +25,31 @@
 ## taken from https://en.wikipedia.org/wiki/Cron
 ##############
 
+# Below are common cron tasks used in Pika setups.
+# Uncomment (& adjust timing/settings) to implement the cron tasks your installation needs
+#
+
+#############
+# On Reboot #
+#############
+# Continuous Re-Indexing
+@reboot cd /usr/local/vufind-plus/sites/anythink.production; ./continuous_partial_reindex.sh
+
+#####################
+# Daily full update #
+#####################
+# Set the start for 1:30 am
+30 01 * * * cd /usr/local/vufind-plus/sites/flatirons.production; ./full_update.sh
+
+###################
+# Pika Cron Jobs  #
+###################
+4 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.production
+20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar anythink.production DatabaseCleanup
+
 ################
 # Pika Cleanup #
 ################
-
 # Clean Up Temporary Files
 26 * * * * cd /tmp; /bin/rm -rf CURLCOOKIE*
 27 */2 * * * cd /tmp; /bin/rm -rf epb*
-
-# Solr Restart
-57 23 * * * service pika restart
-
-###################################
-# Data Extract from other systems #
-###################################
-# OverDrive Data - every 15 minutes throughout the day for near runtime availability
-2-59/15 0,3-23 * * * cd /usr/local/vufind-plus/vufind/overdrive_api_extract/; nice -n -10 java -jar overdrive_extract.jar anythink.production
-
-# Hoopla extract - once a week for the entire server
-5 23 * * 0 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh anythink.production
-
-########################
-# Update Grouped Works #
-########################
-# Do a full regrouping once a day in the middle the night, but not during the day
-10 0 * * * cd /usr/local/vufind-plus/vufind/record_grouping; java -server -Xmx6G -XX:+UseParallelGC -XX:ParallelGCThreads=2 -jar record_grouping.jar anythink.production fullRegroupingNoClear
-
-###########
-# Reindex #
-###########
-# Do a full reindex at night after the works have been updated
-10 1 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -3 java -jar reindexer.jar anythink.production fullReindex
-
-# Do a partial reindex every 15 minutes during the day after extract for near runtime availability
-# Skip doing updates from 1-3 though since we are doing a full reindex
-7-59/15 0,3-23 * * * cd /usr/local/vufind-plus/vufind/reindexer; nice -n -5 java -jar reindexer.jar anythink.production
-
