@@ -955,6 +955,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'selfreg_template' => array(
+			'title' => 'Self Registration Template',
+			'description' => 'Add self registration template for Millennium and Sierra.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `selfRegistrationTemplate` VARCHAR(25) default 'default';",
+			),
+		),
+
 		'logo_linking' => array(
 			'title' => 'Logo Linking',
 			'description' => 'Allow Linking of Logo to the library home page.',
