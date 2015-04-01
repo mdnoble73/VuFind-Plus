@@ -128,8 +128,9 @@ expect "Please key your initials :"
 send "$INNOPACinitials\r"
 expect "Please key your password :"
 send "$INNOPACinitialsPassword\r"
-expect "$INNOPACreviewFile >"
-send $INNOPACreviewFile
+# USE REVIEW FILE 12 which is a bit smaller since we don't need as much for real time indexing
+expect "12 >"
+send "12"
 expect "N > NEW BOOLEAN search, delete the review file"
 send "N"
 expect "Are you sure you want to delete the current review file?"
