@@ -18,26 +18,16 @@ import java.util.Set;
 public class ScopedWorkDetails {
 	private Scope scope;
 
+	private boolean isLocallyOwned = false;
 	private HashSet<String> formats = new HashSet<String>();
 	private HashSet<String> formatCategories = new HashSet<String>();
 	private Long formatBoost = 0L;
 	private HashSet<String> relatedRecords = new HashSet<String>();
 	private HashSet<String> relatedItems = new HashSet<String>();
-	private HashSet<String> iTypes = new HashSet<String>();
-	private Integer libraryBoost = 1;
-	private Integer numLocalHoldings = 0;
-	private HashSet<Date> localTimeSinceAdded = new HashSet<Date>();
-	private HashSet<String> eContentSource = new HashSet<String>();
-	private HashSet<String> eContentProtectionType = new HashSet<String>();
-	private long accountingUnit;
 	private HashSet<String> detailedLocations = new HashSet<String>();
 
 	public HashSet<String> getRelatedRecords() {
 		return relatedRecords;
-	}
-
-	public void setRelatedRecords(HashSet<String> relatedRecords) {
-		this.relatedRecords = relatedRecords;
 	}
 
 	public HashSet<String> getRelatedItems() {
@@ -46,54 +36,6 @@ public class ScopedWorkDetails {
 
 	public void addRelatedItem(String relatedItem) {
 		this.relatedItems.add(relatedItem);
-	}
-
-	public HashSet<String> getiTypes() {
-		return iTypes;
-	}
-
-	public void setiTypes(HashSet<String> iTypes) {
-		this.iTypes = iTypes;
-	}
-
-	public Integer getLibraryBoost() {
-		return libraryBoost;
-	}
-
-	public void setLibraryBoost(Integer libraryBoost) {
-		this.libraryBoost = libraryBoost;
-	}
-
-	public Integer getNumLocalHoldings() {
-		return numLocalHoldings;
-	}
-
-	public void setNumLocalHoldings(Integer numLocalHoldings) {
-		this.numLocalHoldings = numLocalHoldings;
-	}
-
-	public HashSet<Date> getLocalTimeSinceAdded() {
-		return localTimeSinceAdded;
-	}
-
-	public void setLocalTimeSinceAdded(HashSet<Date> localTimeSinceAdded) {
-		this.localTimeSinceAdded = localTimeSinceAdded;
-	}
-
-	public HashSet<String> geteContentSource() {
-		return eContentSource;
-	}
-
-	public void seteContentSource(HashSet<String> eContentSource) {
-		this.eContentSource = eContentSource;
-	}
-
-	public HashSet<String> geteContentProtectionType() {
-		return eContentProtectionType;
-	}
-
-	public void seteContentProtectionType(HashSet<String> eContentProtectionType) {
-		this.eContentProtectionType = eContentProtectionType;
 	}
 
 	public ScopedWorkDetails(Scope curScope) {
@@ -106,10 +48,6 @@ public class ScopedWorkDetails {
 
 	public HashSet<String> getFormatCategories() {
 		return formatCategories;
-	}
-
-	public Long getFormatBoost() {
-		return formatBoost;
 	}
 
 	public void addFormat(String format){
@@ -126,9 +64,6 @@ public class ScopedWorkDetails {
 		return scope;
 	}
 
-	public void addFormats(Set<String> formats) {
-		this.formats.addAll(formats);
-	}
 	public void addFormat(Set<String> formats) {
 		this.formats.addAll(formats);
 	}
@@ -159,5 +94,13 @@ public class ScopedWorkDetails {
 
 	public HashSet<String> getDetailedLocations(){
 		return this.detailedLocations;
+	}
+
+	public boolean isLocallyOwned() {
+		return isLocallyOwned;
+	}
+
+	public void setLocallyOwned(boolean isLocallyOwned) {
+		this.isLocallyOwned = isLocallyOwned;
 	}
 }
