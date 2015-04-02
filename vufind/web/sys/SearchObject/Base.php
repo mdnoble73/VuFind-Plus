@@ -582,14 +582,15 @@ abstract class SearchObject_Base
 					);
 
 //var_dump($_REQUEST);
-
-					if ($_REQUEST['groupEnd'][$index] == 1){
-						// Add the completed group to the list
-						$this->searchTerms[] = array(
-							'group' => $group,
-							'join'  => $_REQUEST['join'][$index]
-						);
-						$group = array();
+					if (isset($_REQUEST['groupEnd'])){
+						if ($_REQUEST['groupEnd'][$index] == 1){
+							// Add the completed group to the list
+							$this->searchTerms[] = array(
+								'group' => $group,
+								'join'  => $_REQUEST['join'][$index]
+							);
+							$group = array();
+						}
 					}
 				}
 				if (count($group) > 0){

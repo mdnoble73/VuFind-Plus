@@ -953,7 +953,12 @@ class SearchObject_Solr extends SearchObject_Base
 	{
 		// Maybe this is a restored object...
 		if ($this->query == null) {
-			$this->query = $this->indexEngine->buildQuery($this->searchTerms);
+			$fullQuery = $this->indexEngine->buildQuery($this->searchTerms, false);
+			$displayQuery = $this->indexEngine->buildQuery($this->searchTerms, true);
+			$this->query = $fullQuery;
+			if ($fullQuery != $displayQuery){
+				$this->publicQuery = $displayQuery;
+			}
 		}
 
 		// Do we need the complex answer? Advanced searches
