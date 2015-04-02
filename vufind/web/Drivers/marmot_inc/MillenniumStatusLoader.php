@@ -584,7 +584,7 @@ class MillenniumStatusLoader{
 
 	protected function translateStatusCode($status, $dueDate){
 		if ($status == '-'){
-			if (!is_null($dueDate) && strlen($dueDate) > 0 && $dueDate != '- -'){
+			if (!is_null($dueDate) && strlen($dueDate) > 0 && $dueDate != '-  -'){
 				//Reformat the date
 				global $configArray;
 				$dueDateAsDate = DateTime::createFromFormat("ymd", $dueDate);
