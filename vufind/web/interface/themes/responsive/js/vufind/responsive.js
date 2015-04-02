@@ -4,6 +4,17 @@ VuFind.Responsive = (function(){
 			VuFind.Responsive.adjustLayout();
 		});
 		$(window).trigger('resize');
+
+		// auto adjust the height of the search box
+		$('#lookfor').on( 'keyup', function (){
+			$(this).height( 0 );
+			if (this.scrollHeight < 32){
+				$(this).height( 18 );
+			}else{
+				$(this).height( this.scrollHeight );
+			}
+		});
+		$('#lookfor').keyup();
 	});
 
 	try{
