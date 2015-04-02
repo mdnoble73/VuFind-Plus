@@ -2,6 +2,12 @@
 {if $offline}
 	<div class="warning">The circulation system is currently offline.  Holdings information is based on information from before the system went offline.</div>
 {/if}
+{* ils check & last checkin date *}
+{if ($ils == 'Sierra' || $ils == 'Millennium') && $hasLastCheckinData}
+	{assign var=showLastCheckIn value=true}
+{else}
+	{assign var=showLastCheckIn value=false}
+{/if}
 {assign var=lastSection value=''}
 {if isset($holdings) && count($holdings) > 0}
 	{foreach from=$holdings item=holding1}
@@ -21,16 +27,27 @@
 						<div id="holdings-section-{$holding.section|replace:' ':'_'}" class="accordion-body collapse {if $holding.sectionId <=5}in{/if}">
 							<div class="accordion-inner">
 								<div class="striped">
+									<div class="row">
+										<div class="col-xs-{if $showLastCheckIn}4{else}5{/if} ">
+											<strong><u>Location</u></strong>
+										</div>
+										<div class="holdingsCallNumber col-xs-{if $showLastCheckIn}3{else}4{/if}">
+											<strong><u>Call Number</u></strong>
+										</div>
+										<div class="col-xs-{if $showLastCheckIn}3{else}3{/if}">
+											<strong><u>Status</u></strong>
+										</div>
+										{if $showLastCheckIn}
+											<div class="col-xs-2">
+												<strong><u>Last Check-In</u></strong>
+											</div>
+										{/if}
+									</div>
 				{/if}
 				{assign var=lastSection value=$holding.section}
 			{/if}
 
-				{* ils check & last checkin date *}
-			{if ($ils == 'Sierra' || $ils == 'Millennium') && $hasLastCheckinData}
-				{assign var=showLastCheckIn value=true}
-			{else}
-				{assign var=showLastCheckIn value=false}
-			{/if}
+
 
 				{* resize the columns when  including the lastcheckin box
 				 xs-5 : 41.6667%
