@@ -55,6 +55,7 @@ class Browse_AJAX extends Action {
 
 		//Get the text id for the category
 		$textId = str_replace(' ', '_', strtolower(trim($categoryName)));
+		$textId = preg_replace('/[^\w\d_]/', '', $textId);
 		if (strlen($textId) == 0){
 			return array(
 				'result' => false,
@@ -147,7 +148,7 @@ class Browse_AJAX extends Action {
 
 		$key = 'browse_category_' . $textId . '_' . $solrScope;
 		$browseCategoryInfo = $memCache->get($key);
-		if ($browseCategoryInfo != false){
+		if ($browseCategoryInfo != false && !isset($_REQUEST['reload'])){
 			return $browseCategoryInfo;
 		}
 
