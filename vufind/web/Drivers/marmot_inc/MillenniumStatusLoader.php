@@ -487,7 +487,7 @@ class MillenniumStatusLoader{
 		$holdable = $this->driver->isRecordHoldable($marcRecord);
 		foreach ($sorted_array as $key => $holding){
 			//Do not override holdability based on status
-			if ($holding['holdable'] == 1){
+			if (isset($holding['holdable']) && $holding['holdable'] == 1){
 				$holding['holdable'] = $holdable ? 1 : 0;
 				$sorted_array[$key] = $holding;
 			}
@@ -584,10 +584,16 @@ class MillenniumStatusLoader{
 
 	protected function translateStatusCode($status, $dueDate){
 		if ($status == '-'){
-			if (!is_null($dueDate) && strlen($dueDate) > 0){
+			if (!is_null($dueDate) && strlen($dueDate) > 0 && $dueDate != '- -'){
 				//Reformat the date
-				$dueDateAsDate = DateTime::createFromFormat('ymd', $dueDate);
-				return 'Due ' . $dueDateAsDate->format('m-d-y');
+				global $configArray;
+				$dueDateAsDate = DateTime::createFromFormat("ymd", $dueDate);
+				if ($dueDateAsDate){
+					return 'Due ' . $dueDateAsDate->format('m-d-y');
+				}else{
+					return 'Due ' . $dueDate;
+				}
+
 			}else{
 				return 'On Shelf';
 			}
