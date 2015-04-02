@@ -48,11 +48,14 @@
 					</div>
 				</div>
 				{if $showHoldCancelDate == 1}
-					<div id='cancelHoldDate' class='form-group"'>
+					<div id='cancelHoldDate' class='form-group'>
 						<label class='control-label' for="canceldate">{translate text="Automatically cancel this hold if not filled by"}:</label>
-						<div class="input-append date controls" id="cancelDatePicker" data-date-format="mm/dd/yyyy" {if $defaultNotNeededAfterDays}data-date="{$defaultNotNeededAfterDays}"{/if}>
-							<input type="text" name="canceldate" id="canceldate" size="10" {if $defaultNotNeededAfterDays}value="{$defaultNotNeededAfterDays}"{/if}>
-							<span class="add-on"><i class="icon-calendar"></i></span>
+						<div class="input-append date controls" id="cancelDatePicker" data-provide="datepicker" data-date-format="mm/dd/yyyy" data-date-start-date="0d"{*if $defaultNotNeededAfterDays} data-date="+{$defaultNotNeededAfterDays}d"{/if*}>
+							{* data-provide attribute loads the datepicker through bootstrap data api *}
+							{* TODO: defaultNotNeeded not implemented yet. plb 4-1-2015 *}
+							{* start date sets minimum. date sets initial value: days from today, eg +8d is 8 days from now. *}
+							<input type="text" name="canceldate" id="canceldate" size="10" {*if $defaultNotNeededAfterDays}value="{$defaultNotNeededAfterDays}"{/if*}>
+							<span class="add-on"><i class="icon-calendar"></i></span> {* TODO: also not showing *}
 						</div>
 						<div class='loginFormRow'>
 							<i>If this date is reached, the hold will automatically be cancelled for you.	This is a great way to handle time sensitive materials for term papers, etc. If not set, the cancel date will automatically be set 6 months from today.</i>
@@ -69,13 +72,14 @@
 		</fieldset>
 	</form>
 </div>
-{if $showHoldCancelDate == 1}
-<script	type="text/javascript">
-	{literal}
-	$(function() {
-		$( "#cancelDatePicker" ).datepicker();
-	});
-	{/literal}
-</script>
-{/if}
+{* data-provide attribute loads the datepicker *}
+{*{if $showHoldCancelDate == 1}*}
+{*<script	type="text/javascript">*}
+	{*{literal}*}
+	{*$(function() {*}
+		{*$( "#cancelDatePicker" ).datepicker();*}
+	{*});*}
+	{*{/literal}*}
+{*</script>*}
+{*{/if}*}
 

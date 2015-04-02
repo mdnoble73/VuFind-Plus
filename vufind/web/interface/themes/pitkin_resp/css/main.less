@@ -7,6 +7,25 @@
 
 #header-container{
   background-image: url('/interface/themes/pitkin_resp/images/header_background.png');
+  height: 140px; // increased height from standard 130px for spring 2015 background. plb 3-31-2015
 }
 
-.header-login-button-mixin;
+// modifications to logo for the spring 2015 header image plb 3-31-2015
+#header-logo{
+  background-color: @header-buttons-background-color; // added background shading
+  border-radius: 0.5em;
+  padding: 4px 0;
+  margin-top: 12px;
+}
+
+//.header-login-button-mixin;
+
+.header-login-button-mixin(@header-buttons-background-color); // to match logo. plb 3-31-2015
+
+//// make login button text dark against light background
+//.header-button > a {
+//  &, &:visited {
+////    color: lighten(black, 20%) !important;
+//    color: darken(@pitkin-logo-gray, 15%) !important;
+//  }
+//}

@@ -47,14 +47,9 @@
 	$(document).ready(function(){
 		$('input.datePika').datepicker({
 			format: "mm-dd-yyyy"
-			,endDate: '+0d'
+			,endDate: "+0d"
 			,startView: 2
 		});
-//		$('input.date').datepicker({
-//			dateFormat: "mm-dd-yy"
-//			,maxDate: 0
-//		});
-//		console.log($('input.date').datepicker("option", "dateFormat"));
 	});
 	{/literal}
 </script>
