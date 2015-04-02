@@ -62,15 +62,13 @@
 		</div>
 	{/if}
 
-	{if $showPublicationDetails}
-	{if $recordDriver->getPublicationDetails()}
+	{if $showPublicationDetails && $recordDriver->getPublicationDetails()}
 		<div class="row">
 			<div class="result-label col-xs-4">{translate text='Published'}:</div>
 			<div class="col-xs-8 result-value">
 				{implode subject=$recordDriver->getPublicationDetails() glue=", "}
 			</div>
 		</div>
-	{/if}
 	{/if}
 
 	{if $showFormats}
@@ -82,8 +80,7 @@
 	</div>
 	{/if}
 
-	{if $showEditions}
-	{if $recordDriver->getEdition()}
+	{if $showEditions && $recordDriver->getEdition()}
 		<div class="row">
 			<div class="result-label col-xs-4">{translate text='Edition'}:</div>
 			<div class="col-xs-8 result-value">
@@ -91,17 +88,23 @@
 			</div>
 		</div>
 	{/if}
+
+	{if $showISBNs && count($recordDriver->getISBNs()) > 0}
+		<div class="row">
+			<div class="result-label col-xs-4">{translate text='ISBN'}:</div>
+			<div class="col-xs-8 result-value">
+				{implode subject=$recordDriver->getISBNs() glue=", "}
+			</div>
+		</div>
 	{/if}
 
-	{if $showPhysicalDescriptions}
-	{if $physicalDescriptions}
+	{if $showPhysicalDescriptions && $physicalDescriptions}
 		<div class="row">
 			<div class="result-label col-xs-4">{translate text='Physical Desc'}:</div>
 			<div class="col-xs-8 result-value">
 				{implode subject=$physicalDescriptions glue="<br/>"}
 			</div>
 		</div>
-	{/if}
 	{/if}
 
 

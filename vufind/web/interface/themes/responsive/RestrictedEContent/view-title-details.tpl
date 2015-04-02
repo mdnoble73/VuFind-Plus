@@ -54,6 +54,16 @@
 	{/if}
 	{/if}
 
+	{if $showISBNs && count($recordDriver->getISBNs()) > 0}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='ISBN'}:</div>
+			<div class="col-md-9 result-value">
+				{implode subject=$recordDriver->getISBNs() glue=", "}
+			</div>
+		</div>
+	{/if}
+
+
 	<div class="row">
 		<div class="result-label col-md-3">{translate text='Status'}:</div>
 
@@ -69,10 +79,11 @@
 
 	</div>
 
-	{if $recordDriver->getDescription()}
-		<div class="row">
-			<div class="result-label col-md-3">{translate text='Description'}:</div>
-			<div class="col-md-9 result-value">{$recordDriver->getDescription()}</div>
-		</div>
-	{/if}
+	{* Discription Tab used instead. plb 4-2-2015 *}
+	{*{if $recordDriver->getDescription()}*}
+		{*<div class="row">*}
+			{*<div class="result-label col-md-3">{translate text='Description'}:</div>*}
+			{*<div class="col-md-9 result-value">{$recordDriver->getDescription()}</div>*}
+		{*</div>*}
+	{*{/if}*}
 {/strip}

@@ -38,7 +38,7 @@
 		</div>
 	</div>
 
-	{if count($recordDriver->getISBNs()) > 0}
+	{if !$showISBNs && count($recordDriver->getISBNs()) > 0}
 		<div class="row">
 			<div class="result-label col-md-3">{translate text='ISBN'}:</div>
 			<div class="col-md-9 result-value">
