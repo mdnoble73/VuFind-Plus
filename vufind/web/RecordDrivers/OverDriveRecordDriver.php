@@ -561,6 +561,7 @@ class OverDriveRecordDriver extends RecordInterface {
 			'physical' => '',
 			'callNumber' => '',
 			'shelfLocation' => '',
+			'availableOnline' => $available,
 			'available' => $available,
 			'hasLocalItem' => $hasLocalItem,
 			'copies' => $totalCopies,
