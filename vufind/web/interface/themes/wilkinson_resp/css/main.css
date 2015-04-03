@@ -7552,7 +7552,7 @@ hr.menu {
 .sidebar-links .panel-body a,
 .sidebar-links .panel-body a:visited,
 .sidebar-links .panel-body a:hover {
-  color: black;
+  color: #000000;
 }
 #home-page-browse-header {
   background-color: #d7dce3;
@@ -7674,7 +7674,7 @@ hr.menu {
 }
 #selected-browse-label {
   background-color: white;
-  background: linear-gradient(to bottom, white, white 44%, #bbd4e3 45%, #bbd4e3 55%, white 56%);
+  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #bbd4e3 45%, #bbd4e3 55%, #ffffff 56%);
   margin-bottom: 5px;
 }
 .selected-browse-label-text {
@@ -7851,6 +7851,14 @@ hr.menu {
 }
 #lookfor {
   border-radius: 3px 0 0 3px;
+  overflow-y: hidden;
+  padding-top: 0.4m;
+  height: 18px;
+  line-height: 20px;
+  min-height: 18px;
+}
+#search-actions.input-group-btn {
+  vertical-align: top;
 }
 /** Account Settings formatting */
 #account-settings-accordion .panel-group .panel + .panel {

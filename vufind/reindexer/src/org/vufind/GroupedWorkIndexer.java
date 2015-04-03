@@ -705,7 +705,9 @@ public class GroupedWorkIndexer {
 				updateServer.add(inputDocument);
 
 				for (String scope: groupedWork.getScopedWorkDetails().keySet()){
-					indexingStats.get(scope).numLocalWorks++;
+					if (groupedWork.getScopedWorkDetails().get(scope).isLocallyOwned()) {
+						indexingStats.get(scope).numLocalWorks++;
+					}
 					indexingStats.get(scope).numSuperScopeWorks++;
 				}
 			} catch (Exception e) {

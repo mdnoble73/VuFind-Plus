@@ -7311,7 +7311,7 @@ hr.menu {
   color: #cccccc;
 }
 #system-message-header {
-  background-color: white;
+  background-color: #ffffff;
   color: black;
   text-align: center;
   padding: 3px;
@@ -7319,8 +7319,8 @@ hr.menu {
 #header-container {
   padding-top: 0px;
   height: 90px;
-  background-color: white;
-  background: linear-gradient(to bottom, white, white 85%, white);
+  background-color: #ffffff;
+  background: linear-gradient(to bottom, #ffffff, #ffffff 85%, #ffffff);
   border-bottom: 8px solid #868c8f;
   margin-bottom: 0px;
   min-height: 110px;
@@ -7337,7 +7337,7 @@ hr.menu {
 .header-button {
   text-align: center;
   height: 82px !important;
-  border-bottom: 4px solid white;
+  border-bottom: 4px solid #ffffff;
 }
 .header-button > a {
   line-height: 82px !important;
@@ -7674,7 +7674,7 @@ hr.menu {
 }
 #selected-browse-label {
   background-color: white;
-  background: linear-gradient(to bottom, white, white 44%, #bbd4e3 45%, #bbd4e3 55%, white 56%);
+  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #bbd4e3 45%, #bbd4e3 55%, #ffffff 56%);
   margin-bottom: 5px;
 }
 .selected-browse-label-text {
@@ -7851,6 +7851,14 @@ hr.menu {
 }
 #lookfor {
   border-radius: 3px 0 0 3px;
+  overflow-y: hidden;
+  padding-top: 0.4m;
+  height: 18px;
+  line-height: 20px;
+  min-height: 18px;
+}
+#search-actions.input-group-btn {
+  vertical-align: top;
 }
 /** Account Settings formatting */
 #account-settings-accordion .panel-group .panel + .panel {

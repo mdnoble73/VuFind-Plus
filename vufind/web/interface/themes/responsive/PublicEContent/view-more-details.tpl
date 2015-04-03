@@ -1,14 +1,12 @@
 {strip}
 	{* Details not shown in the Top/Main Section of the Record view should be shown here *}
-	{if !$showPublicationDetails}
-		{if $recordDriver->getPublicationDetails()}
-			<div class="row">
-				<div class="result-label col-md-3">{translate text='Published'}:</div>
-				<div class="col-md-9 result-value">
-					{implode subject=$recordDriver->getPublicationDetails() glue=", "}
-				</div>
+	{if !$showPublicationDetails && $recordDriver->getPublicationDetails()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Published'}:</div>
+			<div class="col-md-9 result-value">
+				{implode subject=$recordDriver->getPublicationDetails() glue=", "}
 			</div>
-		{/if}
+		</div>
 	{/if}
 
 	{if !$showFormats}
@@ -20,71 +18,69 @@
 		</div>
 	{/if}
 
-	{if !$showEditions}
-		{if $recordDriver->getEdition()}
-			<div class="row">
-				<div class="result-label col-md-3">{translate text='Edition'}:</div>
-				<div class="col-md-9 result-value">
-					{implode subject=$recordDriver->getEdition() glue=", "}
-				</div>
+	{if !$showEditions && $recordDriver->getEdition()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Edition'}:</div>
+			<div class="col-md-9 result-value">
+				{implode subject=$recordDriver->getEdition() glue=", "}
 			</div>
-		{/if}
+		</div>
 	{/if}
 
-<div class="row">
-	<div class="result-label col-md-3">{translate text='Language'}:</div>
-	<div class="col-md-9 result-value">
-		{implode subject=$recordDriver->getLanguage() glue=", "}
-	</div>
-</div>
-
-{if count($recordDriver->getISBNs()) > 0}
 	<div class="row">
-		<div class="result-label col-md-3">{translate text='ISBN'}:</div>
+		<div class="result-label col-md-3">{translate text='Language'}:</div>
 		<div class="col-md-9 result-value">
-			{implode subject=$recordDriver->getISBNs() glue=", "}
+			{implode subject=$recordDriver->getLanguage() glue=", "}
 		</div>
 	</div>
-{/if}
 
-{if count($recordDriver->getUPCs()) > 0}
-	<div class="row">
-		<div class="result-label col-md-3">{translate text='UPC'}:</div>
-		<div class="col-md-9 result-value">
-			{implode subject=$recordDriver->getUPCs() glue=", "}
+	{if !$showISBNs && count($recordDriver->getISBNs()) > 0}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='ISBN'}:</div>
+			<div class="col-md-9 result-value">
+				{implode subject=$recordDriver->getISBNs() glue=", "}
+			</div>
 		</div>
-	</div>
-{/if}
+	{/if}
 
-{if $recordDriver->getAcceleratedReaderData() != null}
-	{assign var="arData" value=$recordDriver->getAcceleratedReaderData()}
-	<div class="row">
-		<div class="result-label col-md-3">{translate text='Accelerated Reader'}:</div>
-		<div class="col-md-9 result-value">
-			{if $arData.interestLevel}
-				{$arData.interestLevel|escape}<br/>
-			{/if}
-			Level {$arData.readingLevel|escape}, {$arData.pointValue|escape} Points
+	{if count($recordDriver->getUPCs()) > 0}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='UPC'}:</div>
+			<div class="col-md-9 result-value">
+				{implode subject=$recordDriver->getUPCs() glue=", "}
+			</div>
 		</div>
-	</div>
-{/if}
+	{/if}
 
-{if $recordDriver->getLexileCode()}
-	<div class="row">
-		<div class="result-label col-md-3">{translate text='Lexile Code'}:</div>
-		<div class="col-md-9 result-value">
-			{$recordDriver->getLexileCode()|escape}
+	{if $recordDriver->getAcceleratedReaderData() != null}
+		{assign var="arData" value=$recordDriver->getAcceleratedReaderData()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Accelerated Reader'}:</div>
+			<div class="col-md-9 result-value">
+				{if $arData.interestLevel}
+					{$arData.interestLevel|escape}<br/>
+				{/if}
+				Level {$arData.readingLevel|escape}, {$arData.pointValue|escape} Points
+			</div>
 		</div>
-	</div>
-{/if}
+	{/if}
 
-{if $recordDriver->getLexileScore()}
-	<div class="row">
-		<div class="result-label col-md-3">{translate text='Lexile Score'}:</div>
-		<div class="col-md-9 result-value">
-			{$recordDriver->getLexileScore()|escape}
+	{if $recordDriver->getLexileCode()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Lexile Code'}:</div>
+			<div class="col-md-9 result-value">
+				{$recordDriver->getLexileCode()|escape}
+			</div>
 		</div>
-	</div>
-{/if}
+	{/if}
+
+	{if $recordDriver->getLexileScore()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Lexile Score'}:</div>
+			<div class="col-md-9 result-value">
+				{$recordDriver->getLexileScore()|escape}
+			</div>
+		</div>
+	{/if}
 
 {/strip}

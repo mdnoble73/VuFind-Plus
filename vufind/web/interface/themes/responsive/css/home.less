@@ -1,5 +1,5 @@
 @import "bootstrap/less/variables.less";
-//@import "bootstrap/less/glyphicons.less";
+@import "bootstrap/less/glyphicons.less";
 @import "variables.less";
 //
 // Styling for home page elements
@@ -431,6 +431,14 @@
 // Fix searchbox border radius
 #lookfor {
   border-radius: @border-radius-small 0 0 @border-radius-small;
+  overflow-y: hidden;
+  padding-top: 0.4m;
+  height: 18px;
+  line-height: 20px;
+  min-height: 18px;
+}
+#search-actions.input-group-btn{
+  vertical-align: top;
 }
 
 // Styles Header Login Links as buttons

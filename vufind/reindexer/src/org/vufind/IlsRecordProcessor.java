@@ -54,6 +54,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char itemUrlSubfieldIndicator;
 	protected boolean suppressItemlessBibs;
 
+	//Fields for loading order information
+	protected String orderTag;
+	protected char orderLocationSubfield;
+	protected char orderCopiesSubfield;
+	protected char orderStatusSubfield;
+
 	private static boolean loanRuleDataLoaded = false;
 	protected static ArrayList<Long> pTypes = new ArrayList<Long>();
 	protected static HashMap<String, HashSet<String>> pTypesByLibrary = new HashMap<String, HashSet<String>>();
@@ -94,6 +100,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		itemRecordNumberSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "itemRecordNumberSubfield");
 		itemUrlSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "itemUrlSubfield");
 		suppressItemlessBibs = Boolean.parseBoolean(configIni.get("Reindex", "suppressItemlessBibs"));
+
+		orderTag = configIni.get("Reindex", "orderTag");
+		orderLocationSubfield = getSubfieldIndicatorFromConfig(configIni, "orderLocationSubfield");
+		orderCopiesSubfield = getSubfieldIndicatorFromConfig(configIni, "orderCopiesSubfield");
+		orderStatusSubfield = getSubfieldIndicatorFromConfig(configIni, "orderStatusSubfield");
 
 		String additionalCollectionsString = configIni.get("Reindex", "additionalCollections");
 		if (additionalCollectionsString != null){
@@ -347,7 +358,44 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	protected List<OnOrderItem> getOnOrderItems(String identifier, Record record){
-		return new ArrayList<OnOrderItem>();
+		if (orderTag == null){
+			return new ArrayList<OnOrderItem>();
+		}else{
+			ArrayList<OnOrderItem> orderItems = new ArrayList<OnOrderItem>();
+
+			List<DataField> orderFields = getDataFields(record, orderTag);
+			for (DataField curOrderField : orderFields){
+				OnOrderItem orderItem = new OnOrderItem();
+				orderItem.setBibNumber(identifier);
+				String orderNumber = curOrderField.getSubfield('a').getData();
+				orderItem.setOrderNumber(orderNumber);
+				orderItem.setCopies(Integer.parseInt(curOrderField.getSubfield(orderCopiesSubfield).getData()));
+				String status = curOrderField.getSubfield(orderStatusSubfield).getData();
+				//TODO: DO we need to allow customization of active order statuses?
+				if (status.equals("o") || status.equals("1")){
+					orderItem.setStatus(status);
+					String location = curOrderField.getSubfield(orderLocationSubfield).getData();
+					if (!location.equals("multi")) {
+						orderItem.setLocationCode(location.trim());
+						for (Scope curScope : indexer.getScopes()) {
+							//Part of scope if the location code is included directly
+							//or if the scope is not limited to only including library/location codes.
+							boolean includedDirectly = curScope.isLocationCodeIncludedDirectly(location);
+							if ((!curScope.isIncludeItemsOwnedByTheLibraryOnly() && !curScope.isIncludeItemsOwnedByTheLocationOnly()) ||
+									includedDirectly) {
+								if (includedDirectly) {
+									orderItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
+								}
+								orderItem.addRelatedScope(curScope);
+							}
+						}
+						orderItems.add(orderItem);
+					}
+				}
+			}
+
+			return orderItems;
+		}
 	}
 
 	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<EContentIlsItem> econtentItems) {
@@ -400,9 +448,6 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			printRecord.setRecordId(recordIdentifier);
 			printRecord.addItems(printItems);
 			printRecord.addRelatedOrderItems(onOrderItems);
-			/*if (onOrderItems.size() > 0) {
-				logger.warn("Record " + recordId + " " + groupedWork.getDisplayTitle() + " has " + onOrderItems.size() + " order records");
-			}*/
 			//Load formats for the print record
 			loadPrintFormatInformation(printRecord, record);
 			ilsRecords.add(printRecord);
@@ -428,6 +473,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						if (!scopesThatContainRecordDirectly.contains(scope)){
 							scopesThatContainRecordDirectly.add(scope);
 							indexer.indexingStats.get(scope).numLocalIlsRecords++;
+							groupedWork.getScopedWorkDetails().get(scope).setLocallyOwned(true);
 						}
 					}
 				}else{
@@ -442,6 +488,16 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					String itemInfo = orderItem.getRecordIdentifier() + "|" + orderItem.getRelatedItemInfo();
 					groupedWork.addRelatedItem(itemInfo);
 					for (Scope scope : orderItem.getRelatedScopes()) {
+						//Add the record to the scope
+						groupedWork.getScopedWorkDetails().get(scope.getScopeName()).addRelatedRecord(
+								recordIdentifier,
+								printRecord.getPrimaryFormat() != null ? printRecord.getPrimaryFormat() : "Item On Order",
+								printRecord.getEdition(),
+								printRecord.getLanguage(),
+								printRecord.getPublisher(),
+								printRecord.getPublicationDate(),
+								printRecord.getPhysicalDescription()
+						);
 						ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
 						scopedWorkDetails.addRelatedItem(itemInfo);
 						indexer.indexingStats.get(scope.getScopeName()).numSuperScopeOrderItems++;
@@ -451,7 +507,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						}
 					}
 					for (String scope: orderItem.getScopesThisItemIsDirectlyIncludedIn()){
-						indexer.indexingStats.get(scope).numLocalIlsItems++;
+						indexer.indexingStats.get(scope).numLocalOrderItems++;
 						if (!scopesThatContainRecordDirectly.contains(scope)){
 							scopesThatContainRecordDirectly.add(scope);
 							indexer.indexingStats.get(scope).numLocalIlsRecords++;

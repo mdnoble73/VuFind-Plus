@@ -1,14 +1,12 @@
 {strip}
 	{* Details not shown in the Top/Main Section of the Record view should be shown here *}
-	{if !$showPublicationDetails}
-		{if $recordDriver->getPublicationDetails()}
-			<div class="row">
-				<div class="result-label col-xs-3">{translate text='Published'}:</div>
-				<div class="col-xs-9 result-value">
-					{implode subject=$recordDriver->getPublicationDetails() glue=", "}
-				</div>
+	{if !$showPublicationDetails && $recordDriver->getPublicationDetails()}
+		<div class="row">
+			<div class="result-label col-xs-3">{translate text='Published'}:</div>
+			<div class="col-xs-9 result-value">
+				{implode subject=$recordDriver->getPublicationDetails() glue=", "}
 			</div>
-		{/if}
+		</div>
 	{/if}
 
 	{if !$showFormats}
@@ -20,26 +18,22 @@
 		</div>
 	{/if}
 
-	{if !$showEditions}
-		{if $recordDriver->getEdition()}
-			<div class="row">
-				<div class="result-label col-xs-3">{translate text='Edition'}:</div>
-				<div class="col-xs-9 result-value">
-					{implode subject=$recordDriver->getEdition() glue=", "}
-				</div>
+	{if !$showEditions && $recordDriver->getEdition()}
+		<div class="row">
+			<div class="result-label col-xs-3">{translate text='Edition'}:</div>
+			<div class="col-xs-9 result-value">
+				{implode subject=$recordDriver->getEdition() glue=", "}
 			</div>
-		{/if}
+		</div>
 	{/if}
 
-	{if !$showPhysicalDescriptions}
-		{if $physicalDescriptions}
-			<div class="row">
-				<div class="result-label col-xs-3">{translate text='Physical Desc'}:</div>
-				<div class="col-xs-9 result-value">
-					{implode subject=$physicalDescriptions glue="<br/>"}
-				</div>
+	{if !$showPhysicalDescriptions && $physicalDescriptions}
+		<div class="row">
+			<div class="result-label col-xs-3">{translate text='Physical Desc'}:</div>
+			<div class="col-xs-9 result-value">
+				{implode subject=$physicalDescriptions glue="<br/>"}
 			</div>
-		{/if}
+		</div>
 	{/if}
 
 	{if $streetDate}
@@ -58,7 +52,7 @@
 		</div>
 	</div>
 
-	{if count($recordDriver->getISBNs()) > 0}
+	{if !$showISBNs && count($recordDriver->getISBNs()) > 0}
 		<div class="row">
 			<div class="result-label col-xs-3">{translate text='ISBN'}:</div>
 			<div class="col-xs-9 result-value">
