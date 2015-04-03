@@ -156,6 +156,7 @@ class Library extends DB_DataObject
 		'showEditions' => 'Editions',
 		'showPhysicalDescriptions' => 'Physical Descriptions',
 		'showLocations' => 'Locations',
+		'showISBNs' => 'ISBNs',
 	);
 
 	/* Static get */
@@ -396,7 +397,7 @@ class Library extends DB_DataObject
 				'showCheckInGrid' => array('property'=>'showCheckInGrid', 'type'=>'checkbox', 'label'=>'Show Check-in Grid', 'description'=>'Whether or not the check-in grid is shown for periodicals.', 'default' => 1, 'hideInLists' => true,),
 				'showStaffView' => array('property'=>'showStaffView', 'type'=>'checkbox', 'label'=>'Show Staff View', 'description'=>'Whether or not the staff view is displayed in full record view.', 'hideInLists' => true, 'default'=>true),
 				'showInMainDetails' => array('property' => 'showInMainDetails', 'type' => 'multiSelect', 'label'=>'Which details to show in the main/top details section : ', 'description'=> 'Selected details will be shown in the top/main section of the full record view. Details not selected are moved to the More Details accordion.',
-					'listStyle'=> 'checkbox',
+					'listStyle'=> 'checkboxSimple',
 				  'values' => self::$showInMainDetailsOptions,
 				),
 				'moreDetailsOptions' => array(
@@ -797,11 +798,14 @@ class Library extends DB_DataObject
 				// convert to array retrieving from database
 				$this->showInMainDetails = unserialize($this->showInMainDetails);
 				if (!$this->showInMainDetails) $this->showInMainDetails = array();
-				// Maybe set to all on error.
 			}
 			elseif (empty($this->showInMainDetails)) {
 				// when a value is not set, assume set to show all options, eg null = all
-				$this->showInMainDetails = array_keys(self::$showInMainDetailsOptions);
+				$default = self::$showInMainDetailsOptions;
+				// remove options below that aren't to be part of the default
+				unset($default['showISBNs']);
+				$default = array_keys($default);
+				$this->showInMainDetails = $default;
 			}
 		}
 		return $return;
