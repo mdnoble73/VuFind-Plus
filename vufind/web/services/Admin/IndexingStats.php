@@ -17,7 +17,7 @@ class IndexingStats extends Admin_Admin{
 		global $user;
 		global $configArray;
 
-		$interface->setPageTitle('Indexing Status');
+		$interface->setPageTitle('Indexing Statistics');
 
 		//Load the latest indexing stats
 		$baseDir = dirname($configArray['Reindex']['marcPath']);
