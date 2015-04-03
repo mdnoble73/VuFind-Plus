@@ -36,8 +36,8 @@
 # On Reboot #
 #############
 # Continuous Re-Indexing for marmot test
-@reboot cd /usr/local/vufind-plus/sites/aspencat.test; ./continuous_partial_reindex.sh
-@reboot cd /usr/local/vufind-plus/sites/marmot.test; ./continuous_partial_reindex.sh
+@reboot /usr/local/vufind-plus/sites/aspencat.test/continuous_partial_reindex.sh
+@reboot /usr/local/vufind-plus/sites/marmot.test/continuous_partial_reindex.sh
 
 #####################
 # Daily full update #
