@@ -54,6 +54,7 @@ class IndexingStats extends Admin_Admin{
 
 			$interface->assign('indexingStatHeader', $indexingStatHeader);
 			$interface->assign('indexingStats', $indexingStats);
+			$interface->assign('indexingStatsDate', $dateToRetrieve);
 		}else{
 			$interface->assign('noStatsFound', true);
 		}
