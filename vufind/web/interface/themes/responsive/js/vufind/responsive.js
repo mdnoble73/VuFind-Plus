@@ -6,12 +6,18 @@ VuFind.Responsive = (function(){
 		$(window).trigger('resize');
 
 		// auto adjust the height of the search box
-		$('#lookfor').on( 'keyup', function (){
+		$('#lookfor').on( 'keyup', function (event ){
 			$(this).height( 0 );
 			if (this.scrollHeight < 32){
 				$(this).height( 18 );
 			}else{
 				$(this).height( this.scrollHeight );
+			}
+		});
+		$('#lookfor').on( 'keydown', function (event ){
+			if (event.which == 13){
+				event.preventDefault();
+				$("#searchForm").submit();
 			}
 		});
 		$('#lookfor').keyup();
