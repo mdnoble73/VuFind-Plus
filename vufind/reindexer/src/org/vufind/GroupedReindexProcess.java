@@ -110,7 +110,7 @@ public class GroupedReindexProcess {
 						logger.error("Unable to process individual work " + individualWorkToProcess, e);
 					}
 				}else{
-					logger.error("Runnning Reindex version " + version);
+					logger.info("Runnning Reindex version " + version);
 					numWorksProcessed = groupedWorkIndexer.processGroupedWorks();
 					numListsProcessed = groupedWorkIndexer.processPublicUserLists();
 				}
