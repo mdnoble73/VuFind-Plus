@@ -41,6 +41,8 @@ public class GroupedReindexProcess {
 	
 	private static PreparedStatement addNoteToReindexLogStmt;
 
+	private static String version = "1.0";
+
 	/**
 	 * Starts the re-indexing process
 	 * 
@@ -108,6 +110,7 @@ public class GroupedReindexProcess {
 						logger.error("Unable to process individual work " + individualWorkToProcess, e);
 					}
 				}else{
+					logger.error("Runnning Reindex version " + version);
 					numWorksProcessed = groupedWorkIndexer.processGroupedWorks();
 					numListsProcessed = groupedWorkIndexer.processPublicUserLists();
 				}
