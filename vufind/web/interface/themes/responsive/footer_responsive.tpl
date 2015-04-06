@@ -38,6 +38,13 @@
 				{/if}
 			</div>
 		</div>
+		{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('cataloging'))}
+			<div class="row">
+				<div class="col-sm-7 text-left" id="indexing-info">
+					<small>Last Full Index {$lastFullReindexFinish}, Last Partial Index {$lastPartialReindexFinish}</small>
+				</div>
+			</div>
+		{/if}
 	</div>
 
 </div>

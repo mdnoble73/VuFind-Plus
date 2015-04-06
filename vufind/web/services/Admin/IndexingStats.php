@@ -17,31 +17,31 @@ class IndexingStats extends Admin_Admin{
 		global $user;
 		global $configArray;
 
-		$interface->setPageTitle('Indexing Status');
+		$interface->setPageTitle('Indexing Statistics');
 
 		//Load the latest indexing stats
 		$baseDir = dirname($configArray['Reindex']['marcPath']);
 
-		$indsxingStatFiles = array();
+		$indexingStatFiles = array();
 		$allFilesInDir = scandir($baseDir);
 		foreach ($allFilesInDir as $curFile){
-			if (preg_match('/reindex_stats_([\d-])+\.csv/', $curFile, $matches)){
-				$indsxingStatFiles[$matches[1]] = $baseDir . '/' . $curFile;
+			if (preg_match('/reindex_stats_([\\d-]+)\\.csv/', $curFile, $matches)){
+				$indexingStatFiles[$matches[1]] = $baseDir . '/' . $curFile;
 			}
 		}
-		krsort($indsxingStatFiles);
+		krsort($indexingStatFiles);
 
-		if (count($indsxingStatFiles) != 0){
+		if (count($indexingStatFiles) != 0){
 			//Get the specified file, the file for today, or the most recent file
 			$dateToRetrieve = date('Y-m-d');
 			if (isset($_REQUEST['day'])){
 				$dateToRetrieve = $_REQUEST['day'];
 			}
 			$fileToLoad = null;
-			if (isset($indsxingStatFiles[$dateToRetrieve])){
-				$fileToLoad = $indsxingStatFiles[$dateToRetrieve];
+			if (isset($indexingStatFiles[$dateToRetrieve])){
+				$fileToLoad = $indexingStatFiles[$dateToRetrieve];
 			}else{
-				$fileToLoad = reset($indsxingStatFiles);
+				$fileToLoad = reset($indexingStatFiles);
 			}
 
 			$indexingStatFhnd = fopen($fileToLoad, 'r');
@@ -54,6 +54,7 @@ class IndexingStats extends Admin_Admin{
 
 			$interface->assign('indexingStatHeader', $indexingStatHeader);
 			$interface->assign('indexingStats', $indexingStats);
+			$interface->assign('indexingStatsDate', $dateToRetrieve);
 		}else{
 			$interface->assign('noStatsFound', true);
 		}

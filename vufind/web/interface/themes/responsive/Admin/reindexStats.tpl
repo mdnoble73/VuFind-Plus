@@ -1,6 +1,6 @@
 {strip}
 	<div id="main-content" class="col-md-12">
-		<h3>Reindex Stats</h3>
+		<h3>Indexing Statistics ({$indexingStatsDate})</h3>
 		
 		<div id="reindexingStatsContainer">
 			{if $noStatsFound}

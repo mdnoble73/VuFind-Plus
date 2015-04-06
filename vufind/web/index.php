@@ -892,4 +892,21 @@ function loadUserData(){
 	// Get My Tags
 	$tagList = $user->getTags();
 	$interface->assign('tagList', $tagList);
+
+	if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('cataloging')){
+		$variable = new Variable();
+		$variable->name= 'lastFullReindexFinish';
+		if ($variable->find(true)){
+			$interface->assign('lastFullReindexFinish', date('m-d-Y H:i:s', $variable->value));
+		}else{
+			$interface->assign('lastFullReindexFinish', 'Unknown');
+		}
+		$variable = new Variable();
+		$variable->name= 'lastPartialReindexFinish';
+		if ($variable->find(true)){
+			$interface->assign('lastPartialReindexFinish', date('m-d-Y H:i:s', $variable->value));
+		}else{
+			$interface->assign('lastPartialReindexFinish', 'Unknown');
+		}
+	}
 }

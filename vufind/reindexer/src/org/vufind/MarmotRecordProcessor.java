@@ -14,7 +14,11 @@ import java.sql.Connection;
 import java.util.*;
 
 /**
- * ILS Indexing with customizations specific to Marmot
+ * ILS Indexing with customizations specific to Marmot.  Handles processing
+ * - print items
+ * - econtent items stored within Sierra
+ * - order items
+ *
  * VuFind-Plus
  * User: Mark Noble
  * Date: 2/21/14
