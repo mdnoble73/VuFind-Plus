@@ -451,7 +451,7 @@ abstract class HorizonAPI extends Horizon{
 				$curHold['reactivate'] = $reactivateDate;
 				$curHold['reactivateTime'] = strtotime($reactivateDate);
 
-				$curHold['cancelable'] = strcasecmp($hold->status, 'Pending') == 0 || strcasecmp($curHold['status'], 'Suspended') == 0 || $hold->status == '';
+				$curHold['cancelable'] = strcasecmp($curHold['status'], 'Suspended') == 0 || $hold->status == '';
 				$curHold['frozen'] = strcasecmp($curHold['status'], 'Suspended') == 0;
 				if ($curHold['frozen']){
 					$curHold['reactivateTime'] = (int)$hold->reactivateDate;
