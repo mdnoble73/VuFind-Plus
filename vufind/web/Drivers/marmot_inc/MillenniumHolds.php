@@ -814,7 +814,8 @@ class MillenniumHolds{
 				}else{
 					$post_data = $this->driver->_getLoginFormValues();
 				}
-				$curl_url = $configArray['Catalog']['url'] . "/search/." . $bib . "/." . $bib ."/1,1,1,B/request~" . $bib;
+				$scope = $this->driver->getLibraryScope();
+				$curl_url = $configArray['Catalog']['url'] . "/search~S$scope/.$bib/.$bib/1,1,1,B/request~$bib";
 				//echo "$curl_url";
 				curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 

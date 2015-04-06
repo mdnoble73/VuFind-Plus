@@ -42,6 +42,8 @@ class IndexingStats extends Admin_Admin{
 				$fileToLoad = $indexingStatFiles[$dateToRetrieve];
 			}else{
 				$fileToLoad = reset($indexingStatFiles);
+				preg_match('/reindex_stats_([\\d-]+)\\.csv/', $fileToLoad, $matches);
+				$dateToRetrieve = $matches[1];
 			}
 
 			$indexingStatFhnd = fopen($fileToLoad, 'r');
