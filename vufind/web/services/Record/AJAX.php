@@ -423,6 +423,8 @@ class Record_AJAX extends Action {
 		global $user;
 		global $configArray;
 		global $interface;
+		global $analytics;
+		$analytics->enableTracking();
 		$recordId = $_REQUEST['id'];
 		if ($user){
 			//The user is already logged in
