@@ -74,7 +74,7 @@ class SelfReg extends Action {
 		if (isset($configArray['ReCaptcha']['publicKey'])) {
 //			TODO: and not inside library
 			$recaptchaPublicKey = $configArray['ReCaptcha']['publicKey'];
-			$secureConnection = ($_SERVER['HTTPS'] == "on"); // check that this request is using https
+			$secureConnection = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on"); // check that this request is using https
 			$captchaCode        = recaptcha_get_html($recaptchaPublicKey, null, $secureConnection);
 			$interface->assign('captcha', $captchaCode);
 		}
