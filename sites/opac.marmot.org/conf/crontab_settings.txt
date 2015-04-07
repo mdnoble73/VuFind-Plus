@@ -5,7 +5,6 @@
 ##
 ## to set the current crontab from a file : crontab < crontab_settings.txt
 ##
-## added by pascal. 12-11-2014
 ##################
 
 # !! Please make all changes to the crontab within the git repository system and apply through the above method.
@@ -34,6 +33,7 @@
 #############
 # Continuous Re-Indexing
 @reboot cd /usr/local/vufind-plus/sites/opac.marmot.org; ./continuous_partial_reindex.sh
+@reboot /usr/local/vufind-plus/sites/aspencat.production/continuous_partial_reindex.sh
 
 #####################
 # Daily full update #
@@ -41,6 +41,7 @@
 # Export lands about 11:40pm.  Set the start for right after that.
 # Set the start for just before midnight
 56 23 * * * cd /usr/local/vufind-plus/sites/opac.marmot.org; ./full_update_marmot_prod.sh
+10 00 * * * cd /usr/local/vufind-plus/sites/aspencat.production; ./full_update_aspencat_production.sh
 
 ################
 # Pika Cleanup #
@@ -52,10 +53,14 @@
 ##########
 # Cron   #
 ##########
-5 0,3,6,9,12,15,18,21 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar opac.marmot.org
+5 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar opac.marmot.org
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar opac.marmot.org DatabaseCleanup 
 # Write reports for schools
 00 6,11 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar opac.marmot.org SierraReports
+
+# AspenCat
+14 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production
+25 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production DatabaseCleanup
 
 ###################################
 # Data Extract from other systems #
