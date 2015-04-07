@@ -41,6 +41,8 @@
 # Export lands about 11:40pm.  Set the start for right after that.
 # Set the start for just before midnight
 56 23 * * * cd /usr/local/vufind-plus/sites/opac.marmot.org; ./full_update_marmot_prod.sh
+
+#Aspencat
 10 00 * * * cd /usr/local/vufind-plus/sites/aspencat.production; ./full_update_aspencat_production.sh
 
 ################
@@ -60,7 +62,8 @@
 
 # AspenCat
 14 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production
-25 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production DatabaseCleanup
+44 23 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production DatabaseCleanup
+# DB clean-up at end of the day, 11:44pm
 
 ###################################
 # Data Extract from other systems #
