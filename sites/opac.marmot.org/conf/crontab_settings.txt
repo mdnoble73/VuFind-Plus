@@ -70,3 +70,5 @@
 ###################################
 # Library supplied covers
 */10 * * * * /root/cron/copyCovers.sh
+
+#final end of line character needed for crontab to be read
