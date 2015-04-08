@@ -33,7 +33,7 @@ class GoDeeperData{
 						'timeout' => 5
 					)
 					));
-					$response =file_get_contents($requestUrl, 0, $ctx);
+					$response = @file_get_contents($requestUrl, 0, $ctx);
 					$timer->logTime("Got options from syndetics");
 					//echo($response);
 
