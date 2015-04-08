@@ -203,7 +203,10 @@ class OverDriveDriver3 {
 		if (!isset($this->ILSName)) {
 			// use library setting if it has a value. if no library setting, use the configuration setting.
 			global $library, $configArray;
-			if (!empty($library->overdriveAuthenticationILSName)) {
+			$patronHomeLibrary = Library::getPatronHomeLibrary();
+			if (!empty($patronHomeLibrary->overdriveAuthenticationILSName)) {
+				$this->ILSName = $patronHomeLibrary->overdriveAuthenticationILSName;
+			}elseif (!empty($library->overdriveAuthenticationILSName)) {
 				$this->ILSName = $library->overdriveAuthenticationILSName;
 			} elseif (isset($configArray['OverDrive']['LibraryCardILS'])){
 				$this->ILSName = $configArray['OverDrive']['LibraryCardILS'];
@@ -216,7 +219,10 @@ class OverDriveDriver3 {
 		if (!isset($this->requirePin)) {
 			// use library setting if it has a value. if no library setting, use the configuration setting.
 			global $library, $configArray;
-			if (isset($library->overdriveRequirePin)) {
+			$patronHomeLibrary = Library::getPatronHomeLibrary();
+			if (!empty($patronHomeLibrary->overdriveRequirePin)) {
+				$this->requirePin = $patronHomeLibrary->overdriveRequirePin;
+			}elseif (isset($library->overdriveRequirePin)) {
 				$this->requirePin = $library->overdriveRequirePin;
 			} elseif (isset($configArray['OverDrive']['requirePin'])){
 				$this->requirePin = $configArray['OverDrive']['requirePin'];
