@@ -203,11 +203,11 @@ class Aspencat implements DriverInterface{
 			$itemData['statusfull'] = $itemData['status'];
 
 			$itemData['shelfLocation'] = $itemData['library'];
-			if (isset($kohaItem['location']) && $kohaItem['location'] != ''){
-				$itemData['shelfLocation'] .= ' - ' . $kohaItem['location'];
+			if (isset($item['location']) && $item['location'] != ''){
+				$itemData['shelfLocation'] .= ' - ' . $item['location'];
 			}
-			if (isset($kohaItem['collection']) && $kohaItem['collection'] != ''){
-				$itemData['shelfLocation'] .= ' - ' . $kohaItem['collection'];
+			if (isset($item['collection']) && $item['collection'] != ''){
+				$itemData['shelfLocation'] .= ' - ' . $item['collection'];
 			}
 			$itemData['location'] = $itemData['shelfLocation'];
 
