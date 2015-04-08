@@ -715,7 +715,156 @@ class Aspencat implements DriverInterface{
 	}
 
 	private $transactions = array();
+
 	public function getMyTransactions($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+		if (true){
+			return $this->getMyTransactionsFromOpac($page, $recordsPerPage, $sortOption);
+		}else{
+			return $this->getMyTransactionsFromDB($page, $recordsPerPage, $sortOption);
+		}
+	}
+
+	public function getMyTransactionsFromOpac($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
+		global $logger;
+		global $user;
+		if (isset($this->transactions[$user->id])){
+			return $this->transactions[$user->id];
+		}
+		//Get transactions by screen scraping
+		$transactions = array();
+		//Login to Koha classic interface
+		$result = $this->loginToKoha($user);
+		if (!$result['success']){
+			return $transactions;
+		}
+		//Get the checked out titles page
+		$transactionPage = $result['summaryPage'];
+		//Parse the checked out titles page
+		if (preg_match_all('/<table id="checkoutst">(.*?)<\/table>/si', $transactionPage, $transactionTableData, PREG_SET_ORDER)){
+			$transactionTable = $transactionTableData[0][0];
+			//Get the header row labels in case the columns are ever rearranged?
+			$headerLabels = array();
+			preg_match_all('/<th>([^<]*?)<\/th>/si', $transactionTable, $tableHeaders, PREG_PATTERN_ORDER);
+			foreach ($tableHeaders[1] as $col => $tableHeader){
+				$headerLabels[$col] = trim(strtolower($tableHeader));
+			}
+			//Get each row within the table
+			//Grab the table body
+			preg_match('/<tbody>(.*?)<\/tbody>/si', $transactionTable, $tableBody);
+			$tableBody = $tableBody[1];
+			preg_match_all('/<tr>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
+			foreach ($tableData[1] as $tableRow){
+				//Each row represents a transaction
+				$transaction = array();
+				$transaction['checkoutSource'] = 'ILS';
+				//Go through each cell in the row
+				preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
+				foreach ($tableCells[1] as $col => $tableCell){
+					//Based off which column we are in, fill out the transaction
+					if ($headerLabels[$col] == 'title'){
+						//Title column contains title, author, and id link
+						if (preg_match('/biblionumber=(\\d+)">\\s*([^<]*)\\s*<\/a>.*?>\\s*(.*?)\\s*<\/span>/si', $tableCell, $cellDetails)) {
+							$transaction['id'] = $cellDetails[1];
+							$transaction['shortId'] = $cellDetails[1];
+							$transaction['title'] = $cellDetails[2];
+							$transaction['author'] = $cellDetails[3];
+						}else{
+							$logger->log("Could not parse title for checkout", PEAR_LOG_WARNING);
+							$transaction['title'] = strip_tags($tableCell);
+						}
+					}elseif ($headerLabels[$col] == 'call no.'){
+						//Ignore this column for now
+					}elseif ($headerLabels[$col] == 'due'){
+						if (preg_match('/(\d{2}\/\d{2}\/\d{4})/', $tableCell, $dueMatches)){
+							$dateDue = DateTime::createFromFormat('m/d/Y', $dueMatches[1]);
+							if ($dateDue){
+								$dueTime = $dateDue->getTimestamp();
+							}else{
+								$dueTime = null;
+							}
+						}else{
+							$dueTime = strtotime($tableCell);
+						}
+						if ($dueTime != null){
+							$daysUntilDue = ceil(($dueTime - time()) / (24 * 60 * 60));
+							$overdue = $daysUntilDue < 0;
+							$transaction['duedate'] = $dueTime;
+							$transaction['overdue'] = $overdue;
+							$transaction['daysUntilDue'] = $daysUntilDue;
+						}
+					}elseif ($headerLabels[$col] == 'renew'){
+						if (preg_match('/item=(\\d+).*?\\((\\d+) of (\\d+) renewals/si', $tableCell, $renewalData)) {
+							$transaction['itemid'] = $renewalData[1];
+							$transaction['renewIndicator'] = $renewalData[1];
+							$numRenewalsRemaining = $renewalData[2];
+							$numRenewalsAllowed = $renewalData[3];
+							$transaction['renewCount'] = $numRenewalsAllowed - $numRenewalsRemaining;
+						}
+					}
+					//TODO: Add display of fines on a title?
+				}
+				if ($transaction['id'] && strlen($transaction['id']) > 0){
+					$transaction['recordId'] = $transaction['id'];
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($transaction['recordId']);
+					if ($recordDriver->isValid()){
+						$transaction['coverUrl'] = $recordDriver->getBookcoverUrl('medium');
+						$transaction['groupedWorkId'] = $recordDriver->getGroupedWorkId();
+						$formats = $recordDriver->getFormats();
+						$transaction['format'] = reset($formats);
+						$transaction['author'] = $recordDriver->getPrimaryAuthor();
+						if (!isset($transaction['title']) || empty($transaction['title'])){
+							$transaction['title'] = $recordDriver->getTitle();
+						}
+					}else{
+						$transaction['coverUrl'] = "";
+						$transaction['groupedWorkId'] = "";
+						$transaction['format'] = "Unknown";
+						$transaction['author'] = "";
+					}
+				}
+				$transactions[] = $transaction;
+			}
+		}
+		//Process sorting
+		$sortKeys = array();
+		$i = 0;
+		foreach ($transactions as $key => $transaction){
+			$sortTitle = isset($transaction['sortTitle']) ? $transaction['sortTitle'] : "Unknown";
+			if ($sortOption == 'title'){
+				$sortKeys[$key] = $sortTitle;
+			}elseif ($sortOption == 'author'){
+				$sortKeys[$key] = (isset($transaction['author']) ? $transaction['author'] : "Unknown") . '-' . $sortTitle;
+			}elseif ($sortOption == 'dueDate'){
+				if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $transaction['duedate'], $matches)) {
+					$sortKeys[$key] = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
+				} else {
+					$sortKeys[$key] = $transaction['duedate'] . '-' . $sortTitle;
+				}
+			}elseif ($sortOption == 'format'){
+				$sortKeys[$key] = (isset($transaction['format']) ? $transaction['format'] : "Unknown") . '-' . $sortTitle;
+			}elseif ($sortOption == 'renewed'){
+				$sortKeys[$key] = (isset($transaction['renewCount']) ? $transaction['renewCount'] : 0) . '-' . $sortTitle;
+			}elseif ($sortOption == 'holdQueueLength'){
+				$sortKeys[$key] = (isset($transaction['holdQueueLength']) ? $transaction['holdQueueLength'] : 0) . '-' . $sortTitle;
+			}
+			$sortKeys[$key] = $sortKeys[$key] . '-' . $i++;
+		}
+		array_multisort($sortKeys, $transactions);
+		//Limit to a specific number of records
+		$totalTransactions = count($transactions);
+		if ($recordsPerPage != -1){
+			$startRecord = ($page - 1) * $recordsPerPage;
+			$transactions = array_slice($transactions, $startRecord, $recordsPerPage);
+		}
+		$this->transactions[$user->id] = $transactions;
+		return array(
+			'transactions' => $transactions,
+			'numTransactions' => $totalTransactions
+		);
+	}
+
+	public function getMyTransactionsFromDB($page = 1, $recordsPerPage = -1, $sortOption = 'dueDate') {
 		global $user;
 
 		if (isset($this->transactions[$user->id])){
@@ -1223,7 +1372,7 @@ class Aspencat implements DriverInterface{
 		$this->loginToKoha($user);
 		$placeHoldPage = $this->getKohaPage($configArray['Catalog']['url'] . '/cgi-bin/koha/opac-reserve.pl?biblionumber=' . $recordId);
 		preg_match_all('/<div class="dialog alert">(.*?)<\/div>/s', $placeHoldPage, $matches);
-		if (count($matches) > 0){
+		if (count($matches) > 0 && count($matches[1]) > 0){
 			$hold_result['title'] = $recordDriver->getTitle();
 			$hold_result['result'] = false;
 			$hold_result['message'] = '';
@@ -1460,6 +1609,228 @@ class Aspencat implements DriverInterface{
 	 * @access public
 	 */
 	public function getMyHolds(/** @noinspection PhpUnusedParameterInspection */
+		$patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
+		if (true){
+			return $this->getMyHoldsFromOpac($patron, $page, $sortOption);
+		}else{
+			return $this->getMyHoldsFromDB($patron, $page, $sortOption);
+		}
+	}
+
+	/**
+	 * Get Patron Holds
+	 *
+	 * This is responsible for retrieving all holds by a specific patron.
+	 *
+	 * @param array|User $patron      The patron array from patronLogin
+	 * @param integer $page           The current page of holds
+	 * @param integer $recordsPerPage The number of records to show per page
+	 * @param string $sortOption      How the records should be sorted
+	 * @param string $summaryPage     If the summary page has already been loaded, it can be passed in for performance reasons.
+	 *
+	 * @return mixed        Array of the patron's holds on success, PEAR_Error
+	 * otherwise.
+	 * @access public
+	 */
+	public function getMyHoldsFromOpac(/** @noinspection PhpUnusedParameterInspection */
+		$patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title', $summaryPage = null){
+		global $logger;
+		global $user;
+		$availableHolds = array();
+		$unavailableHolds = array();
+		$holds = array(
+			'available'=> $availableHolds,
+			'unavailable' => $unavailableHolds
+		);
+		//Get transactions by screen scraping
+		if ($summaryPage == null){
+			//Login to Koha classic interface
+			$result = $this->loginToKoha($user);
+			if (!$result['success']){
+				return $holds;
+			}
+			//Get the summary page that contains both checked out titles and holds
+			$summaryPage = $result['summaryPage'];
+		}
+		//Get the holds table
+		if (preg_match_all('/<table id="aholdst">(.*?)<\/table>/si', $summaryPage, $holdsTableData, PREG_SET_ORDER)){
+			$holdsTable = $holdsTableData[0][0];
+			//Get the header row labels
+			$headerLabels = array();
+			preg_match_all('/<th[^>]*>(.*?)<\/th>/si', $holdsTable, $tableHeaders, PREG_PATTERN_ORDER);
+			foreach ($tableHeaders[1] as $col => $tableHeader){
+				$headerLabels[$col] = trim(strip_tags(strtolower($tableHeader)));
+			}
+			//Get each row within the table
+			//Grab the table body
+			preg_match('/<tbody>(.*?)<\/tbody>/si', $holdsTable, $tableBody);
+			$tableBody = $tableBody[1];
+			preg_match_all('/<tr[^>]*>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
+			foreach ($tableData[1] as $tableRow){
+				//Each row in the table represents a hold
+				$curHold= array();
+				$curHold['holdSource'] = 'ILS';
+				//Go through each cell in the row
+				preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
+				$bibId = "";
+				foreach ($tableCells[1] as $col => $tableCell){
+					//Based off which column we are in, fill out the transaction
+					if ($headerLabels[$col] == 'title'){
+						//Title column contains title, author, and id link
+						if (preg_match('/biblionumber=(\\d+)".*?>(.*?)<\/a>/si', $tableCell, $cellDetails)) {
+							$curHold['id'] = $cellDetails[1];
+							$curHold['shortId'] = $cellDetails[1];
+							$curHold['recordId'] = $cellDetails[1];
+							$bibId = $cellDetails[1];
+							$curHold['title'] = $cellDetails[2];
+						}else{
+							$logger->log("Could not parse title for checkout", PEAR_LOG_WARNING);
+							$curHold['title'] = strip_tags($tableCell);
+						}
+					}elseif ($headerLabels[$col] == 'placed on'){
+						$curHold['create'] = date_parse_from_format('m/d/Y', $tableCell);
+					}elseif ($headerLabels[$col] == 'expires on'){
+						if (strlen($tableCell) != 0){
+							$expireDate = DateTime::createFromFormat('m/d/Y', $tableCell);
+							$curHold['expire'] = $expireDate->getTimestamp();
+						}
+					}elseif ($headerLabels[$col] == 'pick up location'){
+						if (strlen($tableCell) != 0){
+							$curHold['location'] = trim($tableCell);
+							$curHold['locationUpdateable'] = false;
+							$curHold['currentPickupName'] = $curHold['location'];
+						}
+					}elseif ($headerLabels[$col] == 'priority'){
+						$curHold['position'] = trim($tableCell);
+					}elseif ($headerLabels[$col] == 'status'){
+						$curHold['status'] = trim($tableCell);
+					}elseif ($headerLabels[$col] == 'cancel'){
+						$curHold['cancelable'] = strlen($tableCell) > 0;
+						if (preg_match('/<input type="hidden" name="reservenumber" value="(.*?)" \/>/', $tableCell, $matches)) {
+							$curHold['cancelId'] = $matches[1];
+						}
+					}elseif ($headerLabels[$col] == 'suspend'){
+						$curHold['freezeable'] = true;
+					}
+				}
+				if ($bibId){
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($bibId);
+					if ($recordDriver->isValid()){
+						$curHold['sortTitle'] = $recordDriver->getSortableTitle();
+						$curHold['format'] = $recordDriver->getFormat();
+						$curHold['isbn'] = $recordDriver->getCleanISBN();
+						$curHold['upc'] = $recordDriver->getCleanUPC();
+						$curHold['format_category'] = $recordDriver->getFormatCategory();
+						//Load rating information
+						$curHold['ratingData'] = $recordDriver->getRatingData();
+					}
+				}
+				if (!isset($curHold['status']) || !preg_match('/^Item waiting.*/i', $curHold['status'])){
+					$holds['unavailable'][] = $curHold;
+				}else{
+					$holds['available'][] = $curHold;
+				}
+			}
+		}
+		//Get the suspended holds table
+		if (preg_match_all('/<table id="sholdst">(.*?)<\/table>/si', $summaryPage, $holdsTableData, PREG_SET_ORDER)){
+			$holdsTable = $holdsTableData[0][0];
+			//Get the header row labels
+			$headerLabels = array();
+			preg_match_all('/<th[^>]*>(.*?)<\/th>/si', $holdsTable, $tableHeaders, PREG_PATTERN_ORDER);
+			foreach ($tableHeaders[1] as $col => $tableHeader){
+				$headerLabels[$col] = trim(strip_tags(strtolower($tableHeader)));
+			}
+			//Get each row within the table
+			//Grab the table body
+			preg_match('/<tbody>(.*?)<\/tbody>/si', $holdsTable, $tableBody);
+			$tableBody = $tableBody[1];
+			preg_match_all('/<tr[^>]*>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
+			foreach ($tableData[1] as $tableRow){
+				//Each row in the table represents a hold
+				$curHold= array();
+				$curHold['holdSource'] = 'ILS';
+				$curHold['frozen'] = true;
+				//Go through each cell in the row
+				preg_match_all('/<td[^>]*>(.*?)<\/td>/si', $tableRow, $tableCells, PREG_PATTERN_ORDER);
+				$bibId = "";
+				foreach ($tableCells[1] as $col => $tableCell){
+					//Based off which column we are in, fill out the transaction
+					if ($headerLabels[$col] == 'title'){
+						//Title column contains title, author, and id link
+						if (preg_match('/biblionumber=(\\d+)".*?>(.*?)<\/a>/si', $tableCell, $cellDetails)) {
+							$curHold['id'] = $cellDetails[1];
+							$curHold['shortId'] = $cellDetails[1];
+							$curHold['recordId'] = $cellDetails[1];
+							$bibId = $cellDetails[1];
+							$curHold['title'] = $cellDetails[2];
+						}else{
+							$logger->log("Could not parse title for checkout", PEAR_LOG_WARNING);
+							$curHold['title'] = strip_tags($tableCell);
+						}
+					}elseif ($headerLabels[$col] == 'placed on'){
+						$curHold['create'] = date_parse_from_format('m/d/Y', $tableCell);
+					}elseif ($headerLabels[$col] == 'expires on'){
+						if (strlen($tableCell) != 0){
+							$curHold['expire'] = date_parse_from_format('m/d/Y', $tableCell);
+						}
+					}elseif ($headerLabels[$col] == 'pick up location'){
+						if (strlen($tableCell) != 0){
+							$curHold['location'] = $tableCell;
+							$curHold['locationUpdateable'] = false;
+							$curHold['currentPickupName'] = $curHold['location'];
+						}
+					}elseif ($headerLabels[$col] == 'resume now'){
+						$curHold['cancelable'] = false;
+						$curHold['freezeable'] = false;
+						if (preg_match('/<input type="hidden" name="reservenumber" value="(.*?)" \/>/', $tableCell, $matches)) {
+							$curHold['cancelId'] = $matches[1];
+						}
+					}
+				}
+				if ($bibId){
+					require_once ROOT_DIR . '/RecordDrivers/MarcRecord.php';
+					$recordDriver = new MarcRecord($bibId);
+					if ($recordDriver->isValid()){
+						$curHold['sortTitle'] = $recordDriver->getSortableTitle();
+						$curHold['format'] = $recordDriver->getFormat();
+						$curHold['isbn'] = $recordDriver->getCleanISBN();
+						$curHold['upc'] = $recordDriver->getCleanUPC();
+						$curHold['format_category'] = $recordDriver->getFormatCategory();
+						//Load rating information
+						$curHold['ratingData'] = $recordDriver->getRatingData();
+					}
+				}
+				if (!isset($curHold['status']) || strcasecmp($curHold['status'], "filled") != 0){
+					$holds['unavailable'][] = $curHold;
+				}else{
+					$holds['available'][] = $curHold;
+				}
+			}
+		}
+		return array(
+			'holds' => $holds,
+			'numUnavailableHolds' => count($holds['unavailable']),
+		);
+	}
+
+	/**
+	 * Get Patron Holds
+	 *
+	 * This is responsible for retrieving all holds by a specific patron.
+	 *
+	 * @param array|User $patron      The patron array from patronLogin
+	 * @param integer $page           The current page of holds
+	 * @param integer $recordsPerPage The number of records to show per page
+	 * @param string $sortOption      How the records should be sorted
+	 * @param string $summaryPage     If the summary page has already been loaded, it can be passed in for performance reasons.
+	 *
+	 * @return mixed        Array of the patron's holds on success, PEAR_Error
+	 * otherwise.
+	 * @access public
+	 */
+	public function getMyHoldsFromDB(/** @noinspection PhpUnusedParameterInspection */
 		$patron, $page = 1, $recordsPerPage = -1, $sortOption = 'title'){
 		global $user;
 
