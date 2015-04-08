@@ -451,7 +451,7 @@ abstract class HorizonAPI extends Horizon{
 				$curHold['reactivate'] = $reactivateDate;
 				$curHold['reactivateTime'] = strtotime($reactivateDate);
 
-				$curHold['cancelable'] = strcasecmp($hold->status, 'Pending') == 0 || strcasecmp($curHold['status'], 'Suspended') == 0 || $hold->status == '';
+				$curHold['cancelable'] = strcasecmp($curHold['status'], 'Suspended') != 0;
 				$curHold['frozen'] = strcasecmp($curHold['status'], 'Suspended') == 0;
 				if ($curHold['frozen']){
 					$curHold['reactivateTime'] = (int)$hold->reactivateDate;
@@ -576,12 +576,18 @@ abstract class HorizonAPI extends Horizon{
 				$createHoldResponse = $this->getWebServiceResponse($createHoldUrl);
 
 				$hold_result = array();
-				if ($createHoldResponse && !isset($createHoldResponse->message)){
+				if ($createHoldResponse == true){
 					$hold_result['result'] = true;
 					$hold_result['message'] = 'Your hold was placed successfully.';
 				}else{
 					$hold_result['result'] = false;
-					$hold_result['message'] = 'Your hold could not be placed. ' . (string)$createHoldResponse->message;
+					$hold_result['message'] = 'Your hold could not be placed. ';
+					if (isset($createHoldResponse->message)){
+						$hold_result['message'] .= (string)$createHoldResponse->message;
+					}else if (isset($createHoldResponse->string)){
+						$hold_result['message'] .= (string)$createHoldResponse->string;
+					}
+
 				}
 
 				$hold_result['title']  = $title;

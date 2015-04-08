@@ -379,6 +379,12 @@ class Analytics
 			$data['parentName'] = 'ILS Integration';
 			$data['columns'] = array('# Holds Failed', 'Number of Sessions', '% Result');
 			$data['data'] = $this->getHoldsCancelledPerSession($forGraph);
+		}elseif ($source == 'renewalsByResult'){
+			$data['name'] = "Renewals By Result";
+			$data['parentLink'] = '/Report/ILSIntegration';
+			$data['parentName'] = 'ILS Integration';
+			$data['columns'] = array('Rewnewal Result', 'Times', '% Result');
+			$data['data'] = $this->getRenewalsByResult($forGraph);
 		}
 		return $data;
 	}
@@ -732,6 +738,50 @@ class Analytics
 		}
 
 		return $pageViewsByModuleRaw;
+	}
+
+	function getRenewalsByResult($forGraph){
+		//load searches by type
+		$events = new Analytics_Event();
+		$events->addDateFilters();
+		$events->selectAdd('data');
+		$events->selectAdd('count(analytics_event.id) as numEvents');
+		$events->category = 'ILS Integration';
+		$events->whereAdd("action in ('Renew Successful', 'Renew Failed')");
+		$session = $this->getSessionFilters();
+		if ($session != null){
+			$events->joinAdd($session);
+		}
+		$events->groupBy('action');
+		$events->orderBy('numEvents DESC');
+		$events->find();
+		$eventsInfoRaw = array();
+		$totalEvents = 0;
+		while ($events->fetch()){
+			$eventsInfoRaw[$events->action] = (int)$events->numEvents;
+			$totalEvents += $events->numEvents;
+		}
+		$numReported = 0;
+		$eventInfo = array();
+		foreach ($eventsInfoRaw as $name => $count){
+			if ($forGraph && (float)($count / $totalEvents) < .02){
+				break;
+			}
+			$numReported += $count;
+			if ($forGraph){
+				$eventInfo[] = array($name, (float)sprintf('%01.2f', ($count / $totalEvents) * 100));
+			}else{
+				$eventInfo[] = array($name, $count, (float)sprintf('%01.2f', ($count / $totalEvents) * 100));
+			}
+			if ($forGraph && count($eventInfo) >= 10){
+				break;
+			}
+		}
+		if ($forGraph && ($totalEvents - $numReported > 0)){
+			$eventInfo[] = array('Other', (float)sprintf('%01.2f', (($totalEvents - $numReported) / $totalEvents) * 100));
+		}
+
+		return $eventInfo;
 	}
 
 	function getHoldsByResult($forGraph){

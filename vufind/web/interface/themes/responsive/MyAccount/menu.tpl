@@ -333,7 +333,10 @@
 								<div class="adminMenuLink{if $action == "Dashboard"}active{/if}"><a href="{$path}/Report/Dashboard">Dashboard</a></div>
 								<div class="adminMenuLink{if $action == "Searches"}active{/if}"><a href="{$path}/Report/Searches">Searches</a></div>
 								<div class="adminMenuLink{if $action == "PageViews"}active{/if}"><a href="{$path}/Report/PageViews">Page Views</a></div>
+								<div class="adminMenuLink">&nbsp;&nbsp;<a href="{$path}/Report/DetailedReport?source=pageViewsByTheme">Page Views by Theme</a></div>
 								<div class="adminMenuLink{if $action == "ILSIntegration"}active{/if}"><a href="{$path}/Report/ILSIntegration">ILS Integration</a></div>
+								<div class="adminMenuLink">&nbsp;&nbsp;<a href="{$path}/Report/DetailedReport?source=holdsByResult">Holds Placed</a></div>
+								<div class="adminMenuLink">&nbsp;&nbsp;<a href="{$path}/Report/DetailedReport?source=renewalsByResult">Renewals</a></div>
 								<div class="adminMenuLink{if $action == "ReportPurchase"}active{/if}"><a href="{$path}/Report/ReportPurchase">Purchase Tracking</a></div>
 								<div class="adminMenuLink{if $action == "ReportExternalLinks"}active{/if}"><a href="{$path}/Report/ReportExternalLinks">External Link Tracking</a></div>
 								<div class="adminMenuLink{if $action == "PatronStatus"}active{/if}"><a href="{$path}/Report/PatronStatus">Patron Status</a></div>

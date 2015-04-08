@@ -214,8 +214,8 @@ class Novelist3{
 
 		$novelistData->groupedRecordHasISBN = count($isbns) > 0;
 
-		//When loading full data, we aways need to load the data since we can't cache due to terms of sevice
-		if ($recordExists && $novelistData->primaryISBN != null && strlen($novelistData->primaryISBN) > 0){
+		//When loading full data, we always need to load the data since we can't cache due to terms of service
+		if ($recordExists && $novelistData->primaryISBN != null && strlen($novelistData->primaryISBN) > 0 && !isset($_REQUEST['reload'])){
 			//Just check the primary ISBN since we know that was good.
 			$isbns = array($novelistData->primaryISBN);
 		}
@@ -291,7 +291,11 @@ class Novelist3{
 
 						//print_r($data);
 						//We got good data, quit looking at ISBNs
-						break;
+						//If we get series data, stop.
+						//Sometimes we get data for an audiobook that is less complete.
+						if (isset($data->FeatureContent->SeriesInfo)) {
+							break;
+						}
 					}
 				}catch (Exception $e) {
 					global $logger;
