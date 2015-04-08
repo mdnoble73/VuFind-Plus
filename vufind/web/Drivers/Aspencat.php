@@ -1222,6 +1222,16 @@ class Aspencat implements DriverInterface{
 		//Get the items the user can place a hold on
 		$this->loginToKoha($user);
 		$placeHoldPage = $this->getKohaPage($configArray['Catalog']['url'] . '/cgi-bin/koha/opac-reserve.pl?biblionumber=' . $recordId);
+		preg_match_all('/<div class="dialog alert">(.*?)<\/div>/s', $placeHoldPage, $matches);
+		if (count($matches) > 0){
+			$hold_result['title'] = $recordDriver->getTitle();
+			$hold_result['result'] = false;
+			$hold_result['message'] = '';
+			foreach ($matches[1] as $errorMsg){
+				$hold_result['message'] .= $errorMsg . '<br/>';
+			}
+			return $hold_result;
+		}
 
 		if ($itemLevelHoldAllowed){
 			//Need to prompt for an item level hold
