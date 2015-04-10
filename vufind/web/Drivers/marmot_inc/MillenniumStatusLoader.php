@@ -102,6 +102,7 @@ class MillenniumStatusLoader{
 			$callNumberPrestampSubfield = $configArray['Reindex']['callNumberPrestampSubfield'];
 			$callNumberSubfield = $configArray['Reindex']['callNumberSubfield'];
 			$callNumberCutterSubfield = $configArray['Reindex']['callNumberCutterSubfield'];
+			$callNumberPoststampSubfield = $configArray['Reindex']['callNumberPoststampSubfield'];
 			$volumeSubfield = $configArray['Reindex']['volumeSubfield'];
 			$lastCheckinDateSubfield = $configArray['Reindex']['lastCheckinDateSubfield']; // added plb 3-24-2015
 
@@ -111,6 +112,7 @@ class MillenniumStatusLoader{
 				$fullCallNumber = $itemField->getSubfield($callNumberPrestampSubfield) != null ? ($itemField->getSubfield($callNumberPrestampSubfield)->getData() . ' '): '';
 				$fullCallNumber .= $itemField->getSubfield($callNumberSubfield) != null ? $itemField->getSubfield($callNumberSubfield)->getData() : '';
 				$fullCallNumber .= $itemField->getSubfield($callNumberCutterSubfield) != null ? (' ' . $itemField->getSubfield($callNumberCutterSubfield)->getData()) : '';
+				$fullCallNumber .= $itemField->getSubfield($callNumberPoststampSubfield) != null ? (' ' . $itemField->getSubfield($callNumberPoststampSubfield)->getData()) : '';
 				$fullCallNumber .= $itemField->getSubfield($volumeSubfield) != null ? (' ' . $itemField->getSubfield($volumeSubfield)->getData()) : '';
 				$fullCallNumber = str_replace('  ', ' ', $fullCallNumber);
 				$itemData['callnumber'] = $fullCallNumber;

@@ -49,6 +49,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char callNumberPrestampSubfield;
 	protected char callNumberSubfield;
 	protected char callNumberCutterSubfield;
+	protected char callNumberPoststampSubfield;
 	protected char volumeSubfield;
 	protected char itemRecordNumberSubfieldIndicator;
 	protected char itemUrlSubfieldIndicator;
@@ -95,6 +96,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		callNumberPrestampSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberPrestampSubfield");
 		callNumberSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberSubfield");
 		callNumberCutterSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberCutterSubfield");
+		callNumberPoststampSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberPoststampSubfield");
 		useItemBasedCallNumbers = Boolean.parseBoolean(configIni.get("Reindex", "useItemBasedCallNumbers"));
 		volumeSubfield = getSubfieldIndicatorFromConfig(configIni, "volumeSubfield");
 		itemRecordNumberSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "itemRecordNumberSubfield");
@@ -599,6 +601,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		ilsEContentItem.setCallNumberPreStamp(getItemSubfieldData(callNumberPrestampSubfield, itemField));
 		ilsEContentItem.setCallNumber(getItemSubfieldData(callNumberSubfield, itemField));
 		ilsEContentItem.setCallNumberCutter(getItemSubfieldData(callNumberCutterSubfield, itemField));
+		ilsEContentItem.setCallNumberPostStamp(getItemSubfieldData(callNumberPoststampSubfield, itemField));
 		ilsEContentItem.setVolume(getItemSubfieldData(volumeSubfield, itemField));
 		ilsEContentItem.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
 		if (collectionSubfield != ' ') {
@@ -745,6 +748,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			ilsItem.setCallNumberPreStamp(getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField));
 			ilsItem.setCallNumber(getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField));
 			ilsItem.setCallNumberCutter(getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField));
+			ilsItem.setCallNumberPostStamp(getItemSubfieldData(callNumberPoststampSubfield, itemField));
 		}else{
 			String callNumber = null;
 			DataField localCallNumberField = (DataField)record.getVariableField("099");

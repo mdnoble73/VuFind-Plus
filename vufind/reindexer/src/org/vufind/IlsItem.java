@@ -17,6 +17,7 @@ public class IlsItem {
 	protected String callNumberPreStamp;
 	protected String callNumber;
 	protected String callNumberCutter;
+	protected String callNumberPostStamp;
 	protected String itemRecordNumber;
 	protected String collection;
 
@@ -57,7 +58,9 @@ public class IlsItem {
 	}
 
 	public void setCallNumberPreStamp(String callNumberPreStamp) {
-		this.callNumberPreStamp = callNumberPreStamp;
+		if (callNumberPreStamp != null && !callNumberPreStamp.matches("\\d{2}-\\d{2}-\\d{4}\\s\\d{2}:\\d{2}")) {
+			this.callNumberPreStamp = callNumberPreStamp;
+		}
 	}
 
 	public String getCallNumber() {
@@ -73,7 +76,19 @@ public class IlsItem {
 	}
 
 	public void setCallNumberCutter(String callNumberCutter) {
-		this.callNumberCutter = callNumberCutter;
+		if (callNumberCutter != null && !callNumberCutter.matches("\\d{2}-\\d{2}-\\d{4}\\s\\d{2}:\\d{2}")) {
+			this.callNumberCutter = callNumberCutter;
+		}
+	}
+
+	public String getCallNumberPostStamp() {
+		return callNumberPostStamp;
+	}
+
+	public void setCallNumberPostStamp(String callNumberPostStamp) {
+		if (callNumberPostStamp != null && !callNumberPostStamp.matches("\\d{2}-\\d{2}-\\d{4}\\s\\d{2}:\\d{2}")) {
+			this.callNumberPostStamp = callNumberPostStamp;
+		}
 	}
 
 	public String getFullCallNumber() {
@@ -92,6 +107,12 @@ public class IlsItem {
 				fullCallNumber.append(' ');
 			}
 			fullCallNumber.append(this.callNumberCutter);
+		}
+		if (this.callNumberPostStamp != null){
+			if (fullCallNumber.length() > 0 && fullCallNumber.charAt(fullCallNumber.length() - 1) != ' '){
+				fullCallNumber.append(' ');
+			}
+			fullCallNumber.append(this.callNumberPostStamp);
 		}
 		if (this.volume != null){
 			if (fullCallNumber.length() > 0 && fullCallNumber.charAt(fullCallNumber.length() - 1) != ' '){
