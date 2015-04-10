@@ -1955,7 +1955,7 @@ class MarcRecord extends IndexRecord
 						$locationCode = $shelfLocationParts[0];
 						$branch = mapValue('shelf_location', $locationCode);
 						$shelfLocationTmp = mapValue('collection', $shelfLocationParts[1]);
-						$shelfLocation = $branch . ' - ' . $shelfLocationTmp;
+						$shelfLocation = $branch . ' ' . $shelfLocationTmp;
 					}
 
 					//Try to trim the courier code if any
