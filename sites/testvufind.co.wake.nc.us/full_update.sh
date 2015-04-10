@@ -3,7 +3,7 @@
 # Should be called once per day.  Will interrupt partial reindexing.
 #
 # At the end of the index will email users with the results.
-EMAIL=diglib@wakegov.com
+EMAIL=diglib@wakegov.com,mark@marmot.org,pascal@marmot.org
 PIKASERVER=testvufind.co.wake.nc.us
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
 
