@@ -11,19 +11,19 @@ import java.util.HashSet;
  */
 public class IlsItem {
 	protected String location;
-	private String iType;
+	protected String iType;
 
-	private String dateCreated;
-	private String callNumberPreStamp;
-	private String callNumber;
-	private String callNumberCutter;
-	private String itemRecordNumber;
-	private String collection;
+	protected String dateCreated;
+	protected String callNumberPreStamp;
+	protected String callNumber;
+	protected String callNumberCutter;
+	protected String itemRecordNumber;
+	protected String collection;
 
 	private HashSet<Scope> relatedScopes = new HashSet<Scope>();
 	private HashSet<String> directScopeNames = new HashSet<String>();
-	private String recordIdentifier;
-	private String volume;
+	protected String recordIdentifier;
+	protected String volume;
 
 	public String getDateCreated() {
 		return dateCreated;

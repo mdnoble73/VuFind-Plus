@@ -823,7 +823,7 @@ public class GroupedWorkIndexer {
 		HashMap<String, String> translationMap = new HashMap<String, String>();
 		for (Object keyObj : props.keySet()){
 			String key = (String)keyObj;
-			translationMap.put(key, props.getProperty(key));
+			translationMap.put(key.toLowerCase(), props.getProperty(key));
 		}
 		return translationMap;
 	}
@@ -836,8 +836,9 @@ public class GroupedWorkIndexer {
 			logger.error("Unable to find translation map for " + mapName);
 			translatedValue = value;
 		}else{
-			if (translationMap.containsKey(value)){
-				translatedValue = translationMap.get(value);
+			String lowerCaseValue = value.toLowerCase();
+			if (translationMap.containsKey(lowerCaseValue)){
+				translatedValue = translationMap.get(lowerCaseValue);
 			}else{
 				if (translationMap.containsKey("*")){
 					translatedValue = translationMap.get("*");

@@ -804,7 +804,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	protected String getItemStatus(DataField itemField){
-		return getItemSubfieldData(statusSubfieldIndicator, itemField)    ;
+		return getItemSubfieldData(statusSubfieldIndicator, itemField);
 	}
 
 	protected abstract boolean isItemAvailable(PrintIlsItem ilsRecord);
@@ -1162,6 +1162,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	private HashMap<String, LinkedHashSet<String>> ptypesByItypeAndLocation = new HashMap<String, LinkedHashSet<String>>();
 	public LinkedHashSet<String> getCompatiblePTypes(String iType, String locationCode) {
+		if (loanRuleDeterminers.size() == 0){
+			return new LinkedHashSet<String>();
+		}
 		String cacheKey = iType + ":" + locationCode;
 		if (ptypesByItypeAndLocation.containsKey(cacheKey)){
 			return ptypesByItypeAndLocation.get(cacheKey);
@@ -1291,6 +1294,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			printFormats.remove("Book");
 		}else if (printFormats.contains("Book") && printFormats.contains("BookClubKit")){
 			printFormats.remove("Book");
+		}else if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
+			printFormats.remove("Manuscript");
 		}else if (printFormats.contains("Kinect") || printFormats.contains("XBox360")
 				|| printFormats.contains("XBoxOne") || printFormats.contains("PlayStation")
 				|| printFormats.contains("PlayStation3") || printFormats.contains("PlayStation4")
