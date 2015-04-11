@@ -662,12 +662,11 @@ class Novelist3{
 						$novelistData->primaryISBN = $data->TitleInfo->primary_isbn;
 
 						//Series Information
-						if (isset($data->FeatureContent->SeriesInfo)){
+						if (isset($data->FeatureContent->SeriesInfo) && count($data->FeatureContent->SeriesInfo->series_titles) > 0){
 							$this->loadSeriesInfo($groupedRecordId, $data->FeatureContent->SeriesInfo, $novelistData);
-						}
 
-						//We got good data, quit looking at ISBNs
-						break;
+							break;
+						}
 					}
 				}catch (Exception $e) {
 					global $logger;
