@@ -126,10 +126,12 @@ class Novelist3{
 							if (isset($data->FeatureContent->SeriesInfo)){
 								$this->loadSeriesInfoFast($data->FeatureContent->SeriesInfo, $novelistData);
 								$timer->logTime("loaded series data");
-							}
 
-							//We got good data, quit looking at ISBNs
-							break;
+								if (count($data->FeatureContent->SeriesInfo->series_titles) > 0){
+									//We got good data, quit looking at ISBNs
+									break;
+								}
+							}
 						}
 					}catch (Exception $e) {
 						global $logger;
@@ -293,7 +295,7 @@ class Novelist3{
 						//We got good data, quit looking at ISBNs
 						//If we get series data, stop.
 						//Sometimes we get data for an audiobook that is less complete.
-						if (isset($data->FeatureContent->SeriesInfo)) {
+						if (isset($data->FeatureContent->SeriesInfo) && count($data->FeatureContent->SeriesInfo->series_titles) > 0) {
 							break;
 						}
 					}
