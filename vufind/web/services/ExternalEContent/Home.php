@@ -39,7 +39,9 @@ class ExternalEContent_Home extends Action{
 
 		$this->id = strip_tags($_REQUEST['id']);
 		$interface->assign('id', $this->id);
-		$recordDriver = new ExternalEContentDriver($this->id);
+		//$recordDriver = new ExternalEContentDriver($this->id);
+		/** @var ExternalEContentDriver $recordDriver */
+		$recordDriver = RecordDriverFactory::initRecordDriverById('external_econtent:' . $this->id);
 
 		if (!$recordDriver->isValid()){
 			$interface->setTemplate('../Record/invalidRecord.tpl');

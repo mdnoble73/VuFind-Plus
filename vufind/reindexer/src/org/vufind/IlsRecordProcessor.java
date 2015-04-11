@@ -392,6 +392,15 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 							}
 						}
 						orderItems.add(orderItem);
+					}else{
+						orderItem.setLocationCode(location.trim());
+						for (Scope curScope : indexer.getScopes()) {
+							//Part of scope if the location code is included directly
+							//or if the scope is not limited to only including library/location codes.
+							orderItem.addRelatedScope(curScope);
+							orderItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
+						}
+						orderItems.add(orderItem);
 					}
 				}
 			}
@@ -680,7 +689,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				//load url into the item
 				if (urlField.getSubfield('u') != null){
 					//Try to determine if this is a resource or not.
-					if (urlField.getIndicator1() == '4' || urlField.getIndicator1() == ' '){
+					if (urlField.getIndicator1() == '4' || urlField.getIndicator1() == ' ' || urlField.getIndicator1() == '0'){
 						if (urlField.getIndicator2() == ' ' || urlField.getIndicator2() == '0' || urlField.getIndicator2() == '1') {
 							ilsEContentItem.setUrl(urlField.getSubfield('u').getData().trim());
 							break;

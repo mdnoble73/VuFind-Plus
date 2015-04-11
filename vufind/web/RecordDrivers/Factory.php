@@ -81,11 +81,15 @@ class RecordDriverFactory {
 		return new PEAR_Error("Problem loading record driver: {$driver}");
 	}
 
+	static $recordDrivers = array();
 	/**
 	 * @param $id
 	 * @return ExternalEContentDriver|MarcRecord|null|OverDriveRecordDriver|PublicEContentDriver|RestrictedEContentDriver
 	 */
 	static function initRecordDriverById($id){
+		if (isset(RecordDriverFactory::$recordDrivers[$id])){
+			return RecordDriverFactory::$recordDrivers[$id];
+		}
 		$recordInfo = explode(':', $id);
 		$recordType = $recordInfo[0];
 		$recordId = $recordInfo[1];
@@ -125,6 +129,7 @@ class RecordDriverFactory {
 			$recordDriver = null;
 		}
 		enableErrorHandler();
+		RecordDriverFactory::$recordDrivers[$id] = $recordDriver;
 		return $recordDriver;
 	}
 }
