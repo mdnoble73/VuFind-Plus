@@ -95,6 +95,8 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 						}
 					}
 					onOrderItems.add(orderItem);
+				}else{
+					//TODO: Process works for multiple locations
 				}
 			}
 		}
