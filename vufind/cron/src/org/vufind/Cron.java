@@ -192,7 +192,7 @@ public class Cron {
 				updateVariableStmt.close();
 			} else {
 				String processVariableId = "last_" + processToRun.getProcessName().toLowerCase().replace(' ', '_') + "_time";
-				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES (?, ?)");
+				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)");
 				insertVariableStmt.setString(1, processVariableId);
 				insertVariableStmt.setString(2, Long.toString(finishTime));
 				insertVariableStmt.executeUpdate();

@@ -43,7 +43,8 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
 #Extract Lexile Data
-cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt
+cd /data/vufind-plus/; rm lexileTitles.txt*; wget --no-verbose http://venus.marmot.org/lexileTitles.txt
+# hoping --no-verbose will remove download status indicator text from logs but keep errors
 
 #Note: should not need OverDrive call, since it happens in continuous_partial_reindex.sh and a full overdrive pull can take 6 hours or more
 

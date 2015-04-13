@@ -849,7 +849,13 @@ class MyAccount_AJAX
 
 	function renewItem() {
 		if (isset($_REQUEST['renewIndicator'])) {
-			list($itemId, $itemIndex) = explode('|', $_REQUEST['renewIndicator']);
+			if (strpos($_REQUEST['renewIndicator'], '|') > 0){
+				list($itemId, $itemIndex) = explode('|', $_REQUEST['renewIndicator']);
+			}else{
+				$itemId = $_REQUEST['renewIndicator'];
+				$itemIndex = null;
+			}
+
 			global $configArray;
 			try {
 				$this->catalog = CatalogFactory::getCatalogConnectionInstance();;

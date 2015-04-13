@@ -45,7 +45,7 @@ class GroupedWork_Series extends Action
 		$timer->logTime('Initialized the Record Driver');
 
 		$novelist = NovelistFactory::getNovelist();
-		$seriesData = $novelist->getSeriesTitles($id, $recordDriver->getCleanISBN());
+		$seriesData = $novelist->getSeriesTitles($id, $recordDriver->getISBNs());
 
 		//Loading the series title is not reliable.  Do not try to load it.
 		$seriesTitle = null;

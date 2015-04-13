@@ -95,8 +95,8 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 						//load url into the item
 						if (urlField.getSubfield('u') != null){
 							//Try to determine if this is a resource or not.
-							if (urlField.getIndicator1() == '4' || urlField.getIndicator1() == ' '){
-								if (urlField.getIndicator2() == ' ' || urlField.getIndicator2() == '0' || urlField.getIndicator2() == '1') {
+							if (urlField.getIndicator1() == '4' || urlField.getIndicator1() == ' ' || urlField.getIndicator1() == '0'){
+								if (urlField.getIndicator2() == ' ' || urlField.getIndicator2() == '0' || urlField.getIndicator2() == '1' || urlField.getIndicator2() == '4') {
 									ilsEContentItem.setUrl(urlField.getSubfield('u').getData().trim());
 									break;
 								}

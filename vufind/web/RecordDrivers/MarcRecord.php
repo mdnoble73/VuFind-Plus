@@ -1603,6 +1603,8 @@ class MarcRecord extends IndexRecord
 			$allFormats = array_remove_by_value($allFormats, 'Sound Recording');
 		}elseif (in_array('Book Club Kit', $allFormats) && in_array('Book', $allFormats)){
 			$allFormats = array_remove_by_value($allFormats, 'Book');
+		}elseif (in_array('Book', $allFormats) && in_array('Manuscript', $allFormats)){
+			$allFormats = array_remove_by_value($allFormats, 'Manuscript');
 		}
 		return $allFormats;
 	}
@@ -1951,8 +1953,8 @@ class MarcRecord extends IndexRecord
 					}else{
 						$shelfLocationParts = explode(":", $shelfLocation);
 						$locationCode = $shelfLocationParts[0];
-						$branch = mapValue('location', $locationCode);
-						$shelfLocationTmp = mapValue('shelf_location', $shelfLocationParts[1]);
+						$branch = mapValue('shelf_location', $locationCode);
+						$shelfLocationTmp = mapValue('collection', $shelfLocationParts[1]);
 						$shelfLocation = $branch . ' ' . $shelfLocationTmp;
 					}
 
@@ -1982,6 +1984,7 @@ class MarcRecord extends IndexRecord
 							$status = "Checked Out";
 							$groupedStatus = "Checked Out";
 						}
+
 					}
 					if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
 						$isLibraryItem = true;

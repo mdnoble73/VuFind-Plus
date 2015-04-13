@@ -49,6 +49,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	protected char callNumberPrestampSubfield;
 	protected char callNumberSubfield;
 	protected char callNumberCutterSubfield;
+	protected char callNumberPoststampSubfield;
 	protected char volumeSubfield;
 	protected char itemRecordNumberSubfieldIndicator;
 	protected char itemUrlSubfieldIndicator;
@@ -95,6 +96,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		callNumberPrestampSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberPrestampSubfield");
 		callNumberSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberSubfield");
 		callNumberCutterSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberCutterSubfield");
+		callNumberPoststampSubfield = getSubfieldIndicatorFromConfig(configIni, "callNumberPoststampSubfield");
 		useItemBasedCallNumbers = Boolean.parseBoolean(configIni.get("Reindex", "useItemBasedCallNumbers"));
 		volumeSubfield = getSubfieldIndicatorFromConfig(configIni, "volumeSubfield");
 		itemRecordNumberSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "itemRecordNumberSubfield");
@@ -390,6 +392,15 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 							}
 						}
 						orderItems.add(orderItem);
+					}else{
+						orderItem.setLocationCode(location.trim());
+						for (Scope curScope : indexer.getScopes()) {
+							//Part of scope if the location code is included directly
+							//or if the scope is not limited to only including library/location codes.
+							orderItem.addRelatedScope(curScope);
+							orderItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
+						}
+						orderItems.add(orderItem);
 					}
 				}
 			}
@@ -599,6 +610,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		ilsEContentItem.setCallNumberPreStamp(getItemSubfieldData(callNumberPrestampSubfield, itemField));
 		ilsEContentItem.setCallNumber(getItemSubfieldData(callNumberSubfield, itemField));
 		ilsEContentItem.setCallNumberCutter(getItemSubfieldData(callNumberCutterSubfield, itemField));
+		ilsEContentItem.setCallNumberPostStamp(getItemSubfieldData(callNumberPoststampSubfield, itemField));
 		ilsEContentItem.setVolume(getItemSubfieldData(volumeSubfield, itemField));
 		ilsEContentItem.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
 		if (collectionSubfield != ' ') {
@@ -677,7 +689,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				//load url into the item
 				if (urlField.getSubfield('u') != null){
 					//Try to determine if this is a resource or not.
-					if (urlField.getIndicator1() == '4' || urlField.getIndicator1() == ' '){
+					if (urlField.getIndicator1() == '4' || urlField.getIndicator1() == ' ' || urlField.getIndicator1() == '0'){
 						if (urlField.getIndicator2() == ' ' || urlField.getIndicator2() == '0' || urlField.getIndicator2() == '1') {
 							ilsEContentItem.setUrl(urlField.getSubfield('u').getData().trim());
 							break;
@@ -745,6 +757,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			ilsItem.setCallNumberPreStamp(getItemSubfieldDataWithoutTrimming(callNumberPrestampSubfield, itemField));
 			ilsItem.setCallNumber(getItemSubfieldDataWithoutTrimming(callNumberSubfield, itemField));
 			ilsItem.setCallNumberCutter(getItemSubfieldDataWithoutTrimming(callNumberCutterSubfield, itemField));
+			ilsItem.setCallNumberPostStamp(getItemSubfieldData(callNumberPoststampSubfield, itemField));
 		}else{
 			String callNumber = null;
 			DataField localCallNumberField = (DataField)record.getVariableField("099");
@@ -804,7 +817,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	protected String getItemStatus(DataField itemField){
-		return getItemSubfieldData(statusSubfieldIndicator, itemField)    ;
+		return getItemSubfieldData(statusSubfieldIndicator, itemField);
 	}
 
 	protected abstract boolean isItemAvailable(PrintIlsItem ilsRecord);
@@ -1162,6 +1175,9 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	private HashMap<String, LinkedHashSet<String>> ptypesByItypeAndLocation = new HashMap<String, LinkedHashSet<String>>();
 	public LinkedHashSet<String> getCompatiblePTypes(String iType, String locationCode) {
+		if (loanRuleDeterminers.size() == 0){
+			return new LinkedHashSet<String>();
+		}
 		String cacheKey = iType + ":" + locationCode;
 		if (ptypesByItypeAndLocation.containsKey(cacheKey)){
 			return ptypesByItypeAndLocation.get(cacheKey);
@@ -1291,6 +1307,8 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			printFormats.remove("Book");
 		}else if (printFormats.contains("Book") && printFormats.contains("BookClubKit")){
 			printFormats.remove("Book");
+		}else if (printFormats.contains("Book") && printFormats.contains("Manuscript")){
+			printFormats.remove("Manuscript");
 		}else if (printFormats.contains("Kinect") || printFormats.contains("XBox360")
 				|| printFormats.contains("XBoxOne") || printFormats.contains("PlayStation")
 				|| printFormats.contains("PlayStation3") || printFormats.contains("PlayStation4")

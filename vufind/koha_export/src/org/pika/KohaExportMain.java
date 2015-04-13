@@ -169,6 +169,7 @@ public class KohaExportMain {
 
 			long updateTime = new Date().getTime() / 1000;
 
+
 			PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
 			PreparedStatement loadLastKohaExtractTimeStmt = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'last_koha_extract_time'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet lastKohaExtractTimeRS = loadLastKohaExtractTimeStmt.executeQuery();
@@ -179,6 +180,9 @@ public class KohaExportMain {
 				//Get the last 5 minutes for the initial setup
 				lastKohaExtractTime = new Date().getTime() / 1000 - 5 * 60 * 60;
 			}
+
+			//Since we are on a replica of the database, go back 20 minutes to make sure that we cover changes that haven't been replicated
+			lastKohaExtractTime -= 20 * 60;
 
 			String maxRecordsToUpdateDuringExtractStr = ini.get("Catalog", "maxRecordsToUpdateDuringExtract");
 			int maxRecordsToUpdateDuringExtract = 100000;

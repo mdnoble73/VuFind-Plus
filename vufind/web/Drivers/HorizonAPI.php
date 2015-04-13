@@ -1244,7 +1244,7 @@ abstract class HorizonAPI extends Horizon{
 		$barcode = $_REQUEST['barcode'];
 
 		//email the pin to the user
-		$updatePinUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/emailMyPin?clientID=' . $configArray['Catalog']['clientId'] . '&login=' . $barcode;
+		$updatePinUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/emailMyPin?clientID=' . $configArray['Catalog']['clientId'] . '&login=' . $barcode . '&profile=' . $this->hipProfile;
 
 		$updatePinResponse = $this->getWebServiceResponse($updatePinUrl);
 
