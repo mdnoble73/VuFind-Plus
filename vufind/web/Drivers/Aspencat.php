@@ -618,7 +618,7 @@ class Aspencat implements DriverInterface{
 					'zip' => $userFromDb['zipcode'],
 					'phone' => $userFromDb['phone'],
 					'email' => $userFromDb['email'],
-					'homeLocationId' => -1,
+					'homeLocationId' => isset($location) ? $location->locationId : -1,
 					'homeLocationName' => '',
 					'expires' => $userFromDb['dateexpiry'],
 					'fines' => sprintf('$%0.2f', $outstandingFines),
