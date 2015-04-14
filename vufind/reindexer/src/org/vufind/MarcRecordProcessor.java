@@ -59,6 +59,7 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addContents(getFieldList(record, "505a:505t"));
 		groupedWork.addIssns(getFieldList(record, "022a"));
 		groupedWork.addOclcNumbers(getFieldList(record, "035a"));
+		loadAwards(groupedWork, record);
 		loadBibCallNumbers(groupedWork, record);
 		loadLiteraryForms(groupedWork, record);
 		loadTargetAudiences(groupedWork, record, printItems);
@@ -69,6 +70,33 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addAllFields(getAllFields(record));
 		groupedWork.addKeywords(getAllSearchableFields(record, 100, 900));
 	}
+
+	protected void loadAwards(GroupedWorkSolr groupedWork, Record record){
+		Set<String> awardFields = getFieldList(record, "586a");
+		HashSet<String> awards = new HashSet<String>();
+		for (String award : awardFields){
+			//Normalize the award name
+			if (award.contains("Caldecott")) {
+				award = "Caldecott Medal";
+			}else if (award.contains("Pulitzer") || award.contains("Puliter")){
+				award = "Pulitzer Prize";
+			}else if (award.contains("Newbery")){
+				award = "Newbery Medal";
+			}else {
+				if (award.contains(":")) {
+					String[] awardParts = award.split(":");
+					award = awardParts[0].trim();
+				}
+				//Remove dates
+				award = award.replaceAll("\\d{2,4}", "");
+				//Remove punctuation
+				award = award.replaceAll("[^\\w\\s]", "");
+			}
+			awards.add(award.trim());
+		}
+		groupedWork.addAwards(awards);
+	}
+
 
 	protected Set<String> getBisacSubjects(Record record){
 		HashSet<String> bisacSubjects = new HashSet<String>();

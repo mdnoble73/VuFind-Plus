@@ -1086,7 +1086,7 @@ public class GroupedWorkSolr {
 		this.lexileCode = lexileCode;
 	}
 
-	public void addAwards(HashSet<String> awards) {
+	public void addAwards(Set<String> awards) {
 		this.awards.addAll(awards);
 	}
 
