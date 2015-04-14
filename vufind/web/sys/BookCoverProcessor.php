@@ -972,19 +972,30 @@ class BookCoverProcessor{
 						return true;
 					}else{
 						//Finally, check the isbns if we don't have an override
-						$isbn = $driver->getCleanISBN();
-						if ($isbn){
-							$this->isn = $isbn;
-							if ($this->getCoverFromProvider()){
-								return true;
+						$isbns = $driver->getISBNs();
+						if ($isbns){
+							foreach ($isbns as $isbn){
+								$this->isn = $isbn;
+								if ($this->getCoverFromProvider()){
+									return true;
+								}
 							}
 						}
-						$upc = $driver->getCleanUPC();
+						$upcs = $driver->getUPCs();
 						$this->isn = null;
-						if ($upc){
-							$this->upc = ltrim($upc, '0');
-							if ($this->getCoverFromProvider()){
-								return true;
+						if ($upcs){
+							foreach ($upcs as $upc){
+								$this->upc = ltrim($upc, '0');
+								if ($this->getCoverFromProvider()){
+									return true;
+								}
+								//If we tried trimming the leading zeroes, also try without.
+								if ($this->upc !== $upc){
+									$this->upc = $upc;
+									if ($this->getCoverFromProvider()){
+										return true;
+									}
+								}
 							}
 						}
 					}
@@ -1001,10 +1012,24 @@ class BookCoverProcessor{
 			$this->initMemcache();
 
 			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
-			$this->groupedWork = new GroupedWorkDriver($this->id);
-			if (!$this->groupedWork->isValid){
-				$this->groupedWork = false;
+			if ($this->type == 'grouped_work'){
+				$this->groupedWork = new GroupedWorkDriver($this->id);
+				if (!$this->groupedWork->isValid){
+					$this->groupedWork = false;
+				}
+			}else{
+				require_once ROOT_DIR . '/RecordDrivers/Factory.php';
+				$recordDriver = RecordDriverFactory::initRecordDriverById($this->type . ':' . $this->id);
+				if ($recordDriver->isValid()){
+					$this->groupedWork = $recordDriver->getGroupedWorkDriver();
+					if (!$this->groupedWork->isValid){
+						$this->groupedWork = false;
+					}
+				}
+
 			}
+
+
 		}
 		return $this->groupedWork;
 	}
