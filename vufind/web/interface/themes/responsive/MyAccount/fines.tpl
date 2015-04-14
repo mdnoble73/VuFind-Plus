@@ -1,9 +1,16 @@
 {if $user->cat_username}
-	<h2>{translate text='Fines'}</h2>
-	{* believe $userNoticeFile is deprecated functionality. plb 2-13-15 *}
-	{if $userNoticeFile}
-		{include file=$userNoticeFile}
+	{if $profile.web_note}
+		<div class="row">
+			<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
+		</div>
 	{/if}
+
+	{*{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}*}
+	{if 1}
+		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds">You have <span style="font-weight: bold">{$profile.numHoldsAvailableTotal}</span> holds ready for pick up.</a></div>
+	{/if}
+
+	<h2>{translate text='Fines'}</h2>
 
 	{if count($fines) > 0}
 		{if $profile.fines}

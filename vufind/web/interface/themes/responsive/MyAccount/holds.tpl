@@ -1,11 +1,12 @@
 {strip}
 	{if $user->cat_username}
 		{if $profile.web_note}
-			<div id="web_note" class="text-info text-center well well-small">{$profile.web_note}</div>
+			<div class="row">
+				<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
+			</div>
 		{/if}
-
-		{if $userNoticeFile}
-			{include file=$userNoticeFile}
+		{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
+			<div class="text-info text-center alert alert-info">You have <span style="font-weight: bold">{$profile.numHoldsAvailableTotal}</span> holds ready for pick up.</div>
 		{/if}
 
 		{* Check to see if there is data for the section *}

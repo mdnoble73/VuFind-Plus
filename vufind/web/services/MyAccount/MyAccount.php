@@ -46,7 +46,6 @@ abstract class MyAccount extends Action
 			$myAccountAction->launch();
 			exit();
 		}
-		//$interface->assign('userNoticeFile', 'MyResearch/listNotice.tpl');
 
 		// Setup Search Engine Connection
 		$class = $configArray['Index']['engine'];

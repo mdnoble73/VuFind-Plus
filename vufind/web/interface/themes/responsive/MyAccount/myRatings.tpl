@@ -1,14 +1,22 @@
-{if (isset($title)) }
-	<script type="text/javascript">
-		alert("{$title}");
-	</script>
-{/if}
+{*{if (isset($title)) }*}
+	{*<script type="text/javascript">*}
+		{*alert("{$title}");*}
+	{*</script>*}
+{*{/if}*}
 {if $user->cat_username}
+
+	{if $profile.web_note}
+		<div class="row">
+			<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
+		</div>
+	{/if}
+
+	{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
+		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds">You have <span style="font-weight: bold">{$profile.numHoldsAvailableTotal}</span> holds ready for pick up.</a></div>
+	{/if}
+
 	<div class="resulthead">
 		<h3>{translate text='My Ratings'}</h3>
-		{if $userNoticeFile}
-			{include file=$userNoticeFile}
-		{/if}
 
 		<div class="page">
 			{if $ratings}
