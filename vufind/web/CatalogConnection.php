@@ -474,7 +474,8 @@ class CatalogConnection
 		}else{
 			$id = $patron['username'];
 		}
-		$key = 'patron_profile_' . $id ;
+
+		$key = 'patronProfile_' . $id ;
 		$cachedValue = $memCache->get($key);
 		if ($cachedValue == false || isset($_REQUEST['reload'])){
 			$profile = $this->driver->getMyProfile($patron);
@@ -490,7 +491,7 @@ class CatalogConnection
 				$readingHistoryDB->userId = $user->id;
 				$profile['readingHistorySize'] = $readingHistoryDB->count();
 			}
-			$cachedValue= $profile;
+			$cachedValue = $profile;
 
 			global $configArray;
 			$memCache->add($key, $cachedValue, 0, $configArray['Caching']['patron_profile']);

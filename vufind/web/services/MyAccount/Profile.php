@@ -101,7 +101,7 @@ class MyAccount_Profile extends MyAccount
 			session_write_close();
 			header("Location: " . $configArray['Site']['path'] . '/MyAccount/Profile');
 			exit();
-		}else if (!$configArray['Catalog']['offline']){
+		}elseif (!$configArray['Catalog']['offline']){
 			$interface->assign('edit', true);
 		}else{
 			$interface->assign('edit', false);
