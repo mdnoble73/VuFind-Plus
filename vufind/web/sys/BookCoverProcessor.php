@@ -1012,10 +1012,24 @@ class BookCoverProcessor{
 			$this->initMemcache();
 
 			require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
-			$this->groupedWork = new GroupedWorkDriver($this->id);
-			if (!$this->groupedWork->isValid){
-				$this->groupedWork = false;
+			if ($this->type == 'grouped_work'){
+				$this->groupedWork = new GroupedWorkDriver($this->id);
+				if (!$this->groupedWork->isValid){
+					$this->groupedWork = false;
+				}
+			}else{
+				require_once ROOT_DIR . '/RecordDrivers/Factory.php';
+				$recordDriver = RecordDriverFactory::initRecordDriverById($this->type . ':' . $this->id);
+				if ($recordDriver->isValid()){
+					$this->groupedWork = $recordDriver->getGroupedWorkDriver();
+					if (!$this->groupedWork->isValid){
+						$this->groupedWork = false;
+					}
+				}
+
 			}
+
+
 		}
 		return $this->groupedWork;
 	}
