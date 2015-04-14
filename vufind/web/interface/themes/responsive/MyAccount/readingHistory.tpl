@@ -7,12 +7,13 @@
 			<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
 		</div>
 	{/if}
+	{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
+		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds">You have <span style="font-weight: bold">{$profile.numHoldsAvailableTotal}</span> holds ready for pick up.</a></div>
+	{/if}
+
 	<h2>{translate text='My Reading History'} {if $historyActive == true}<small><a id='readingListWhatsThis' href="#" onclick="$('#readingListDisclaimer').toggle();return false;">(What's This?)</a></small>{/if}</h2>
 
 	<div class="row">
-	{if $userNoticeFile}
-		{include file=$userNoticeFile}
-	{/if}
 		<div id='readingListDisclaimer' {if $historyActive == true}style='display: none'{/if} class="alert alert-info">
 			{* some necessary white space in notice was previously stripped out when needed. *}
 		{/strip}

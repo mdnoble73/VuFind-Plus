@@ -1,11 +1,18 @@
 
 	<div class="page">
 		{if $profile.web_note}
-			<div id="web_note" class="text-info text-center well well-small">{$profile.web_note}</div>
+			<div class="row">
+				<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
+			</div>
 		{/if}
+
+		{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
+			<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds">You have <span style="font-weight: bold">{$profile.numHoldsAvailableTotal}</span> holds ready for pick up.</a></div>
+		{/if}
+
 		{if !$noHistory}
 			{if $saved}
-				<div class="myAccountTitle">{translate text="history_saved_searches"}</div>
+				<h2>{translate text="history_saved_searches"}</h2>
 				<table class="table table-bordered table-striped" width="100%">
 					<tr>
 						<th width="4%">{translate text="history_id"}</th>

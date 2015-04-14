@@ -1,13 +1,17 @@
 {strip}
 	<div id="main-content">
 		{if $user->cat_username}
-			<div class="resulthead">
-				{if $profile.web_note}
-					<div id="web_note" class="alert alert-info text-center">{$profile.web_note}</div>
-				{/if}
+			{if $profile.web_note}
+				<div class="row">
+					<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
+				</div>
+			{/if}
+
+			{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
+				<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds">You have <span style="font-weight: bold">{$profile.numHoldsAvailableTotal}</span> holds ready for pick up.</a></div>
+			{/if}
 
 				<h2>{translate text='Account Settings'}</h2>
-			</div>
 
 			<div class="panel-group" id="account-settings-accordion">
 				{* ILS Settings *}

@@ -1,9 +1,9 @@
 <script type="text/javascript" src="{$path}/services/MyResearch/ajax.js"></script>
-{if (isset($title)) }
-<script type="text/javascript">
-		alert("{$title}");
-</script>
-{/if}
+{*{if (isset($title)) }*}
+{*<script type="text/javascript">*}
+		{*alert("{$title}");*}
+{*</script>*}
+{*{/if}*}
 <div id="page-content" class="content">
 	<div id="sidebar">
 		{include file="MyResearch/menu.tpl"}
@@ -18,10 +18,7 @@
 			{/if}
 		
 			<div class="myAccountTitle">{translate text='Your eContent Wish List'}</div>
-			{if $userNoticeFile}
-				{include file=$userNoticeFile}
-			{/if}
-			
+
 		{if count($wishList) > 0}
 			<table class="myAccountTable">
 				<thead>
