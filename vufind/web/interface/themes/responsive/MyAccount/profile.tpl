@@ -127,6 +127,7 @@
 										</div>
 									</div>
 								{/if}
+
 								{if $showSMSNoticesInProfile}
 									<div class="form-group">
 										<div class="col-xs-4"><label for="smsNotices">{translate text='Receive SMS/Text Messages'}:</label></div>

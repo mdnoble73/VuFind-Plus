@@ -472,11 +472,7 @@ abstract class Horizon implements DriverInterface{
       'sec2' => $user->cat_password,
       'session' => $sessionId,
 		);
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
@@ -1159,10 +1155,8 @@ public function getMyHoldsViaDB($patron)
       'sec2' => $user->cat_password,
       'session' => $sessionId,
 		);
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
+
 		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
@@ -1599,10 +1593,8 @@ public function getMyHoldsViaDB($patron)
       'sec2' => $user->cat_password,
       'session' => $sessionId,
 		);
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
+
 		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
@@ -1746,10 +1738,7 @@ public function renewItem($patronId, $itemId){
       'sec2' => $user->cat_password,
       'session' => $sessionId,
 		);
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
@@ -1765,10 +1754,8 @@ public function renewItem($patronId, $itemId){
       'submenu' => 'itemsout',
 		);
 
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
+
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$sresult = curl_exec($curl_connection);
 
@@ -1924,7 +1911,6 @@ public function renewItem($patronId, $itemId){
 	function updatePatronInfo($password){
 		global $configArray;
 		global $user;
-		require_once ROOT_DIR . '/Drivers/marmot_inc/BadWord.php';
 
 		$updateErrors = array();
 		//Check to make sure the patron alias is valid if provided
@@ -1935,6 +1921,7 @@ public function renewItem($patronId, $itemId){
 				return $updateErrors;
 			}else{
 				//Make sure that we are not using bad words
+				require_once ROOT_DIR . '/Drivers/marmot_inc/BadWord.php';
 				$badWords = new BadWord();
 				$badWordsList = $badWords->getBadWordExpressions();
 				$okToAdd = true;
@@ -2013,11 +2000,7 @@ public function renewItem($patronId, $itemId){
       'session' => $sessionId,
 		//'spp' => '20'
 		);
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
@@ -2036,11 +2019,7 @@ public function renewItem($patronId, $itemId){
         'submenu' => 'info',
         'updateemail' => 'Update',
 			);
-			$post_items = array();
-			foreach ($post_data as $key => $value) {
-				$post_items[] = $key . '=' . urlencode($value);
-			}
-			$post_string = implode ('&', $post_items);
+			$post_string = http_build_query($post_data);
 			$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
@@ -2050,7 +2029,7 @@ public function renewItem($patronId, $itemId){
 			if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/si', $sresult, $matches)) {
 				$updateErrors[] = $matches[1];
 			}else{
-				//Update the users cat_password in the VuFind database
+				//Update the users cat_password in the Pika database
 				$user->email = $_REQUEST['email'];
 				$user->update();
 				UserAccount::updateSession($user);
@@ -2069,11 +2048,7 @@ public function renewItem($patronId, $itemId){
         'submenu' => 'info',
         'updatepin' => 'Update',
 			);
-			$post_items = array();
-			foreach ($post_data as $key => $value) {
-				$post_items[] = $key . '=' . urlencode($value);
-			}
-			$post_string = implode ('&', $post_items);
+			$post_string = http_build_query($post_data);
 			$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
@@ -2089,6 +2064,53 @@ public function renewItem($patronId, $itemId){
 				UserAccount::updateSession($user);
 			}
 		}
+
+		if (isset($_REQUEST['notices'])){
+			//TODO: Implement Setting Notification Methods
+			$updateErrors[] = 'Notice Method can not be updated.';
+//			$post_data = array(
+//
+//			);
+//			$post_string = http_build_query($post_data);
+//			$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
+//			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+//			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+//			$sresult = curl_exec($curl_connection);
+//
+//			//check for errors in boldRedFont1
+/*			if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/si', $sresult, $matches)) { */
+//				$updateErrors[] = $matches[1];
+//			}else{
+//				//Update the users cat_password in the Pika database
+//				$user->email = $_REQUEST['email'];
+//				$user->update();
+//				UserAccount::updateSession($user);
+//			}
+		}
+
+		if (isset($_REQUEST['pickuplocation'])){
+			//TODO: Implement Setting Pick-up Locations
+			$updateErrors[] = 'Pickup Locations can not be updated.';
+//			$post_data = array(
+//
+//			);
+//			$post_string = http_build_query($post_data);
+//			$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
+//			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
+//			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+//			$sresult = curl_exec($curl_connection);
+//
+//			//check for errors in boldRedFont1
+			/*			if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/si', $sresult, $matches)) { */
+//				$updateErrors[] = $matches[1];
+//			}else{
+//				//Update the users cat_password in the Pika database
+//				$user->email = $_REQUEST['email'];
+//				$user->update();
+//				UserAccount::updateSession($user);
+//			}
+		}
+
 		//check to see if the user has provided an alias
 		if ((isset($_REQUEST['displayName']) && $_REQUEST['displayName'] != $user->displayName) ||
 		(isset($_REQUEST['disableRecommendations']) && $_REQUEST['disableRecommendations'] != $user->disableRecommendations) ||
@@ -2198,10 +2220,7 @@ public function renewItem($patronId, $itemId){
 		$post_data['sec1'] = $user->cat_username;
 		$post_data['sec2'] = $user->cat_password;
 		$post_data['uri'] = 'link=direct';
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
@@ -2247,11 +2266,8 @@ public function renewItem($patronId, $itemId){
 			$post_data['profile'] = $this->selfRegProfile;
 			$post_data['session'] = $sessionId;
 			$post_data['request_finish'] = 'Request';
-			$post_items = array();
-			foreach ($post_data as $key => $value) {
-				$post_items[] = $key . '=' . urlencode($value);
-			}
-			$post_string = implode ('&', $post_items);
+			$post_string = http_build_query($post_data);
+
 			$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
 			curl_setopt($curl_connection, CURLOPT_POST, true);
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
@@ -2486,11 +2502,7 @@ public function renewItem($patronId, $itemId){
       'sec2' => $user->cat_password,
       'session' => $sessionId,
 		);
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
 		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
@@ -2569,6 +2581,7 @@ public function renewItem($patronId, $itemId){
 					$post_items[] = 'waitingholdselected=' . urlencode($_REQUEST['waitingholdselected']);
 				}
 			}
+//			$post_string_alt = http_build_query(array_merge());
 			$post_string = implode ('&', $post_items);
 			$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
