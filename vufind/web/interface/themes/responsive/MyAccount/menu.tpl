@@ -41,7 +41,13 @@
 						{/if}
 
 						<div class="myAccountLink{if $pageTemplate=="checkedout.tpl"} active{/if}"><a href="{$path}/MyAccount/CheckedOut" id="checkedOut">Checked Out Titles ({$profile.numCheckedOutTotal})</a></div>
-						<div class="myAccountLink{if $pageTemplate=="holds.tpl"} active{/if}"><a href="{$path}/MyAccount/Holds" id="holds">Titles On Hold ({$profile.numHoldsTotal})</a></div>
+						<div class="myAccountLink{if $pageTemplate=="holds.tpl"} active{/if}"><a href="{$path}/MyAccount/Holds" id="holds">
+								Titles On Hold ({$profile.numHoldsTotal}
+								{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
+									, <span style="font-weight: bold;color:red">{$profile.numHoldsAvailableTotal} ready for pick up</span>
+								{/if}
+							  )</a>
+						</div>
 						<div class="myAccountLink{if $pageTemplate=="readingHistory.tpl"} active{/if}"><a href="{$path}/MyAccount/ReadingHistory">Reading History{if $profile.readingHistorySize} ({$profile.readingHistorySize}){/if}</a></div>
 
 						{if $showFines}
