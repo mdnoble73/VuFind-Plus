@@ -14,7 +14,11 @@ import java.sql.Connection;
 import java.util.*;
 
 /**
- * ILS Indexing with customizations specific to Marmot
+ * ILS Indexing with customizations specific to Marmot.  Handles processing
+ * - print items
+ * - econtent items stored within Sierra
+ * - order items
+ *
  * VuFind-Plus
  * User: Mark Noble
  * Date: 2/21/14
@@ -91,6 +95,8 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 						}
 					}
 					onOrderItems.add(orderItem);
+				}else{
+					//TODO: Process works for multiple locations
 				}
 			}
 		}
@@ -128,7 +134,8 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 				String callNumberPrestamp = curItem.getCallNumberPreStamp() == null ? "" : curItem.getCallNumberPreStamp();
 				String callNumber = curItem.getCallNumber() == null ? "" : curItem.getCallNumber();
 				String callNumberCutter = curItem.getCallNumberCutter() == null ? "" : curItem.getCallNumberCutter();
-				String fullCallNumber = callNumberPrestamp + callNumber + callNumberCutter;
+				String callNumberPostStamp = curItem.getCallNumberPostStamp() == null ? "" : curItem.getCallNumberPostStamp();
+				String fullCallNumber = callNumberPrestamp + callNumber + callNumberCutter + callNumberPostStamp;
 				String sortableCallNumber = callNumber + callNumberCutter;
 				if (fullCallNumber.length() > 0){
 					ArrayList<String> subdomainsForLocation = getLibrarySubdomainsForLocationCode(locationCode);

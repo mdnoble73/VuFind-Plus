@@ -5,6 +5,7 @@ import org.ini4j.Ini;
 import org.marc4j.marc.Record;
 
 import java.sql.Connection;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,6 +29,8 @@ public class NashvilleRecordProcessor extends IlsRecordProcessor {
 		for (String curFormat : printFormatsRaw){
 			printFormats.add(curFormat.toLowerCase());
 		}
+
+
 
 		HashSet<String> translatedFormats = indexer.translateCollection("format", printFormats);
 		HashSet<String> translatedFormatCategories = indexer.translateCollection("format_category", printFormats);

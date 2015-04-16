@@ -36,7 +36,7 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 
 	@Override
 	public void loadPrintFormatInformation(IlsRecord ilsRecord, Record record) {
-		Set<String> printFormatsRaw = getFieldList(record, itemTag + collectionSubfield);
+		Set<String> printFormatsRaw = getFieldList(record, itemTag + iTypeSubfield);
 		Set<String> printFormats = new HashSet<String>();
 		for (String curFormat : printFormatsRaw){
 			printFormats.add(curFormat.toLowerCase());
@@ -105,7 +105,14 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 							return "Lost";
 						}else if (fieldData.equals("missing")){
 							return "Missing";
+						}else if (fieldData.equals("longoverdue")){
+							return "Long Overdue";
+						}else if (fieldData.equals("trace")){
+							return "Trace";
 						}
+					}else if (subfield == '7') {
+						//There are several library use only statuses that we do not care about right now.
+						return null;
 					}else if (subfield == 'k') {
 						if (fieldData.equals("CATALOGED") || fieldData.equals("READY")) {
 							return null;
@@ -113,6 +120,11 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 							return "Bindery";
 						}else if (fieldData.equals("IN REPAIRS")){
 							return "Repair";
+						}else if (fieldData.equals("trace")){
+							return "Trace";
+						}else{
+							//There are several reserve statuses that we don't care about, just ignore silently.
+							return null;
 						}
 					}
 					String status = "|" + subfield + "-" + fieldData;
@@ -133,9 +145,9 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 			if (!isItemSuppressed(itemField)){
 				//Check to see if the item has an eContent indicator
 				boolean isEContent = false;
-				if (itemField.getSubfield(collectionSubfield) != null){
-					String collection = itemField.getSubfield(collectionSubfield).getData().toLowerCase();
-					if (collection.equals("ebook") || collection.equals("eaudio") || collection.equals("online")){
+				if (itemField.getSubfield(iTypeSubfield) != null){
+					String iType = itemField.getSubfield(iTypeSubfield).getData().toLowerCase();
+					if (iType.equals("ebook") || iType.equals("eaudio") || iType.equals("online") || iType.equals("oneclick")){
 						isEContent = true;
 					}
 				}
@@ -159,9 +171,9 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 				boolean isEContent = false;
 				boolean isOverDrive = false;
 				boolean isHoopla = false;
-				if (itemField.getSubfield(collectionSubfield) != null){
-					String collection = itemField.getSubfield(collectionSubfield).getData().toLowerCase();
-					if (collection.equals("ebook") || collection.equals("eaudio") || collection.equals("online")){
+				if (itemField.getSubfield(iTypeSubfield) != null){
+					String iType = itemField.getSubfield(iTypeSubfield).getData().toLowerCase();
+					if (iType.equals("ebook") || iType.equals("eaudio") || iType.equals("online") || iType.equals("oneclick")){
 						isEContent = true;
 						String sourceType = getSourceType(record, itemField);
 						if (sourceType != null){
@@ -196,11 +208,11 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 	}
 
 	protected void loadEContentFormatInformation(IlsRecord econtentRecord, EContentIlsItem econtentItem) {
-		if (econtentItem.getCollection() != null) {
-			String collection = econtentItem.getCollection().toLowerCase();
-			String translatedFormat = indexer.translateValue("format", collection);
-			String translatedFormatCategory = indexer.translateValue("format_category", collection);
-			String translatedFormatBoost = indexer.translateValue("format_boost", collection);
+		if (econtentItem.getiType() != null) {
+			String iType = econtentItem.getiType().toLowerCase();
+			String translatedFormat = indexer.translateValue("format", iType);
+			String translatedFormatCategory = indexer.translateValue("format_category", iType);
+			String translatedFormatBoost = indexer.translateValue("format_boost", iType);
 			econtentRecord.setFormatInformation(translatedFormat, translatedFormatCategory, translatedFormatBoost);
 		}
 	}
@@ -297,11 +309,20 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 						DataField urlDataField = (DataField)urlField;
 						if (urlDataField.getSubfield('3') != null) {
 							if (urlDataField.getIndicator1() == '4' || urlDataField.getIndicator1() == ' ') {
-								if (urlDataField.getIndicator2() == ' ' || urlDataField.getIndicator2() == '0' || urlDataField.getIndicator2() == '1') {
+								//Technically, should not include indicator 2 of 2, but AspenCat has lots of records with an indicator 2 of 2 that are valid.
+								if (urlDataField.getIndicator2() == ' ' || urlDataField.getIndicator2() == '0' || urlDataField.getIndicator2() == '1' || urlDataField.getIndicator2() == '2') {
 									sourceType = urlDataField.getSubfield('3').getData().trim();
 									break;
 								}
 							}
+						}
+					}
+
+					//If the source type is still null, try the location of the item
+					if (sourceType == null){
+						//Try the location for the item
+						if (itemField.getSubfield('a') != null){
+							sourceType = itemField.getSubfield('a').getData();
 						}
 					}
 				}
@@ -315,8 +336,8 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 		if (curItem.getSubfield('i') != null) {
 			suppressed = curItem.getSubfield('i').getData().equals("1");
 		}
-		if (!suppressed && curItem.getSubfield(collectionSubfield) != null){
-			suppressed = curItem.getSubfield(collectionSubfield).getData().equalsIgnoreCase("ill");
+		if (!suppressed && curItem.getSubfield(iTypeSubfield) != null){
+			suppressed = curItem.getSubfield(iTypeSubfield).getData().equalsIgnoreCase("ill");
 		}
 		return suppressed;
 	}

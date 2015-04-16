@@ -42,11 +42,13 @@
 {if $promptForBirthDateInSelfReg}
 <script type="text/javascript">
 	{* #borrower_note is birthdate for anythink *}
+	{* this is bootstrap datepicker, not jquery ui *}
 	{literal}
 	$(document).ready(function(){
-		$('#birthDate, #borrower_note').datepicker({
-			dateFormat: "mm-dd-yy"
-			,maxDate: 0
+		$('input.datePika').datepicker({
+			format: "mm-dd-yyyy"
+			,endDate: "+0d"
+			,startView: 2
 		});
 	});
 	{/literal}

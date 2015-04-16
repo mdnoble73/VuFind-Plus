@@ -57,7 +57,7 @@ class MarcRecord extends IndexRecord
 				$this->valid = false;
 			}
 		}
-		if (!isset($this->id)){
+		if (!isset($this->id) && $this->valid){
 			/** @var File_MARC_Data_Field $idField */
 			global $configArray;
 			$idField = $this->marcRecord->getField($configArray['Reindex']['recordNumberTag']);
@@ -69,17 +69,17 @@ class MarcRecord extends IndexRecord
 	}
 
 	protected $itemsFromIndex;
-	public function setItemsFromIndex($itemsFromIndex){
+	public function setItemsFromIndex($itemsFromIndex, $realTimeStatusNeeded){
 		global $configArray;
-		if ($configArray['Catalog']['supportsRealtimeIndexing']){
+		if ($configArray['Catalog']['supportsRealtimeIndexing'] || !$realTimeStatusNeeded){
 			$this->itemsFromIndex = $itemsFromIndex;
 		}
 	}
 
 	protected $detailedRecordInfoFromIndex;
-	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex){
+	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex, $realTimeStatusNeeded){
 		global $configArray;
-		if ($configArray['Catalog']['supportsRealtimeIndexing']){
+		if ($configArray['Catalog']['supportsRealtimeIndexing'] || !$realTimeStatusNeeded){
 			$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
 		}
 	}
@@ -1030,7 +1030,9 @@ class MarcRecord extends IndexRecord
 				}
 			}
 		}
-
+		if (strlen($summary) == 0){
+			$summary = $this->getGroupedWorkDriver()->getDescriptionFast();
+		}
 
 		return $summary;
 	}
@@ -1558,17 +1560,19 @@ class MarcRecord extends IndexRecord
 				// Serial
 				case 'S':
 					// Look in 008 to determine what type of Continuing Resource
-					$formatCode = substr(strtoupper($fixedField->getData()), 21, 1);
-					switch ($formatCode) {
-						case 'N':
-							$result[] =  "Newspaper";
-							break;
-						case 'P':
-							$result[] =  "Journal";
-							break;
-						default:
-							$result[] =  "Serial";
-							break;
+					if ($fixedField != null){
+						$formatCode = substr(strtoupper($fixedField->getData()), 21, 1);
+						switch ($formatCode) {
+							case 'N':
+								$result[] =  "Newspaper";
+								break;
+							case 'P':
+								$result[] =  "Journal";
+								break;
+							default:
+								$result[] =  "Serial";
+								break;
+						}
 					}
 			}
 		}
@@ -1599,6 +1603,8 @@ class MarcRecord extends IndexRecord
 			$allFormats = array_remove_by_value($allFormats, 'Sound Recording');
 		}elseif (in_array('Book Club Kit', $allFormats) && in_array('Book', $allFormats)){
 			$allFormats = array_remove_by_value($allFormats, 'Book');
+		}elseif (in_array('Book', $allFormats) && in_array('Manuscript', $allFormats)){
+			$allFormats = array_remove_by_value($allFormats, 'Manuscript');
 		}
 		return $allFormats;
 	}
@@ -1611,7 +1617,7 @@ class MarcRecord extends IndexRecord
 	}
 
 	private $relatedRecords = null;
-	function getRelatedRecords(){
+	function getRelatedRecords($realTimeStatusNeeded = true){
 		if ($this->relatedRecords == null){
 			global $configArray;
 			global $timer;
@@ -1692,7 +1698,10 @@ class MarcRecord extends IndexRecord
 			if ($totalCopies == 0){
 				return $relatedRecords;
 			}
-			$numHolds = $this->getNumHolds();
+			$numHolds = 0;
+			if ($realTimeStatusNeeded){
+				$numHolds = $this->getNumHolds();
+			}
 			$relatedRecord = array(
 					'id' => $recordId,
 					'url' => $url,
@@ -1944,8 +1953,8 @@ class MarcRecord extends IndexRecord
 					}else{
 						$shelfLocationParts = explode(":", $shelfLocation);
 						$locationCode = $shelfLocationParts[0];
-						$branch = mapValue('location', $locationCode);
-						$shelfLocationTmp = mapValue('shelf_location', $shelfLocationParts[1]);
+						$branch = mapValue('shelf_location', $locationCode);
+						$shelfLocationTmp = mapValue('collection', $shelfLocationParts[1]);
 						$shelfLocation = $branch . ' ' . $shelfLocationTmp;
 					}
 
@@ -1975,6 +1984,7 @@ class MarcRecord extends IndexRecord
 							$status = "Checked Out";
 							$groupedStatus = "Checked Out";
 						}
+
 					}
 					if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
 						$isLibraryItem = true;
@@ -2340,7 +2350,7 @@ class MarcRecord extends IndexRecord
 		global $configArray;
 		global $timer;
 		if ($configArray['Catalog']['ils'] == 'Horizon'){
-			require_once ROOT_DIR . '/CatalogConnection.php';
+			require_once ROOT_DIR . '/CatalogFactory.php';
 			$catalog = CatalogFactory::getCatalogConnectionInstance();;
 			$this->numHolds = $catalog->getNumHolds($this->getUniqueID());
 		}else{

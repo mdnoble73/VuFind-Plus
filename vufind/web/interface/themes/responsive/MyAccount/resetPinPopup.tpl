@@ -5,9 +5,6 @@
 			<div>
 				<label for="card_number" class='loginLabel'>Library card number:</label><input type="text" name="card_number" id="card_number" size="20" maxlength="40" />
 			</div>
-			<div class="note">
-				Use your full library card number, starting with 25192 or 190.
-			</div>
 			<div>
 				<input type="submit" value="Request PIN" />
 			</div>

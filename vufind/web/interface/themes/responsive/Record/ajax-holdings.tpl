@@ -10,7 +10,7 @@
 <ShowAddToWishlist>{$holdingsSummary.showAddToWishlist}</ShowAddToWishlist>
 {/if}
 <SummaryDetails>
-	<status>{$holdingsSummary.status|escape}</status>
+	<status>{$holdingsSummary.status|escape}{if $holdingsSummary.holdQueueLength > 0} ({$holdingsSummary.holdQueueLength} people are on the wait list){/if}</status>
 	<callnumber>{$holdingsSummary.callnumber|escape}</callnumber>
 	<showplacehold>{$holdingsSummary.showPlaceHold|escape}</showplacehold>
 	<availablecopies>{$holdingsSummary.availableCopies|escape}</availablecopies>

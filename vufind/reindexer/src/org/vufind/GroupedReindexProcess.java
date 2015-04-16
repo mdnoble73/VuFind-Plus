@@ -41,6 +41,8 @@ public class GroupedReindexProcess {
 	
 	private static PreparedStatement addNoteToReindexLogStmt;
 
+	private static String version = "1.0";
+
 	/**
 	 * Starts the re-indexing process
 	 * 
@@ -108,6 +110,7 @@ public class GroupedReindexProcess {
 						logger.error("Unable to process individual work " + individualWorkToProcess, e);
 					}
 				}else{
+					logger.info("Runnning Reindex version " + version);
 					numWorksProcessed = groupedWorkIndexer.processGroupedWorks();
 					numListsProcessed = groupedWorkIndexer.processPublicUserLists();
 				}
@@ -120,6 +123,7 @@ public class GroupedReindexProcess {
 
 		// Send completion information
 		endTime = new Date().getTime();
+		cleanupOldStatisticReports();
 		sendCompletionMessage(numWorksProcessed, numListsProcessed);
 		
 		addNoteToReindexLog("Finished Reindex for " + serverName);
@@ -128,7 +132,11 @@ public class GroupedReindexProcess {
 		long elapsedTime = endTime - startTime;
 		logger.info("Elapsed Minutes " + (elapsedTime / 60000));
 	}
-	
+
+	private static void cleanupOldStatisticReports() {
+
+	}
+
 	private static void reloadDefaultSchemas() {
 		logger.info("Reloading schemas from default");
 		try {
@@ -374,6 +382,23 @@ public class GroupedReindexProcess {
 		} catch (SQLException e) {
 			logger.error("Unable to update reindex log with completion time.", e);
 		}
+
+		//Update variables table to mark the index as complete
+		if (individualWorkToProcess == null){
+			try {
+				PreparedStatement finishedStatement = vufindConn.prepareStatement("INSERT INTO variables (name, value) VALUES(?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)");
+				if (fullReindex){
+					finishedStatement.setString(1, "lastFullReindexFinish");
+				} else{
+					finishedStatement.setString(1, "lastPartialReindexFinish");
+				}
+				finishedStatement.setLong(2, new Date().getTime() / 1000);
+				finishedStatement.executeUpdate();
+			} catch (SQLException e) {
+				logger.error("Unable to update variables with completion time.", e);
+			}
+		}
+
 	}
 	
 	private static Ini loadConfigFile(){

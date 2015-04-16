@@ -17,13 +17,14 @@ OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/continuous_partial_reindex_outpu
 function checkConflictingProcesses() {
 	#Check to see if the conflict exists.
 	countConflictingProcesses=$(ps aux | grep -v sudo | grep -c "$1")
+	#subtract one to get rid of our grep command
 	countConflictingProcesses=$((countConflictingProcesses-1))
 
 	let numInitialConflicts=countConflictingProcesses
-	#echo "Count of conflicting process" $1 $countConflictingProcesses
 	#Wait until the conflict is gone.
 	until ((${countConflictingProcesses} == 0)); do
 		countConflictingProcesses=$(ps aux | grep -v sudo | grep -c "$1")
+		#subtract one to get rid of our grep command
 		countConflictingProcesses=$((countConflictingProcesses-1))
 		#echo "Count of conflicting process" $1 $countConflictingProcesses
 		sleep 300
@@ -33,7 +34,6 @@ function checkConflictingProcesses() {
 }
 
 # Prohibited time ranges - for, e.g., ILS backup
-# JAMES is currently giving all Nashville prohibited times a ten minute buffer
 function checkProhibitedTimes() {
 	start=$(date --date=$1 +%s)
 	stop=$(date --date=$2 +%s)
@@ -74,7 +74,7 @@ do
 	# Make sure we are not running a Full Record Group/Reindex process
 	hasConflicts=$(checkConflictingProcesses "full_update.sh")
 	#If we did get a conflict, restart the loop to make sure that all tests run
-	if (($? != 0)); then
+	if (($hasConflicts != 0)); then
 		continue
 	fi
 
@@ -113,6 +113,10 @@ do
 	if [[ ${FILESIZE} > 0 ]]
 	then
 			# send mail
-			mail -s "Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
+			mail -s "Continuous Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
 	fi
+
+	#MDN 3-6-2015 
+	#Wait at 2 minutes between runs to make sure we don't run too often. 
+	sleep 120
 done

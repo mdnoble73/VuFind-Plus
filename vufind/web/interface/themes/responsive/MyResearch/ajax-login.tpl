@@ -5,6 +5,7 @@
 <div class="modal-body">
 	<p class="alert alert-danger" id="loginError" style="display: none"></p>
 	<form method="post" action="{$path}/MyAccount/Home" id="loginForm" class="form-horizontal" role="form" onsubmit="return VuFind.Account.processAjaxLogin()">
+		<div id="missingLoginPrompt" style="display: none">Please enter both {$usernameLabel} and {$passwordLabel}.</div>
 		<div id ='loginUsernameRow' class='form-group'>
 			<label for="username" class='control-label col-xs-12 col-sm-4'>{$usernameLabel}:</label>
 			<div class='col-xs-12 col-sm-8'>
@@ -15,7 +16,11 @@
 			<label for="password" class='control-label col-xs-12 col-sm-4'>{$passwordLabel}: </label>
 			<div class='col-xs-12 col-sm-8'>
 				<input type="password" name="password" id="password" size="28" onkeypress="return VuFind.submitOnEnter(event, '#loginForm');" class="form-control"/>
-
+				{if $showForgotPinLink}
+					<p class="text-muted help-block">
+						<strong>Forgot PIN?</strong> <a href="{$path}/MyAccount/EmailPin">E-mail PIN</a>
+					</p>
+				{/if}
 				{if $enableSelfRegistration == 1}
 					<p class="help-block">
 						Don't have a library card?  <a href='{$path}/MyAccount/SelfReg'>Register for a new Library Card</a>.

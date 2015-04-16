@@ -126,10 +126,12 @@ class Novelist3{
 							if (isset($data->FeatureContent->SeriesInfo)){
 								$this->loadSeriesInfoFast($data->FeatureContent->SeriesInfo, $novelistData);
 								$timer->logTime("loaded series data");
-							}
 
-							//We got good data, quit looking at ISBNs
-							break;
+								if (count($data->FeatureContent->SeriesInfo->series_titles) > 0){
+									//We got good data, quit looking at ISBNs
+									break;
+								}
+							}
 						}
 					}catch (Exception $e) {
 						global $logger;
@@ -214,8 +216,8 @@ class Novelist3{
 
 		$novelistData->groupedRecordHasISBN = count($isbns) > 0;
 
-		//When loading full data, we aways need to load the data since we can't cache due to terms of sevice
-		if ($recordExists && $novelistData->primaryISBN != null && strlen($novelistData->primaryISBN) > 0){
+		//When loading full data, we always need to load the data since we can't cache due to terms of service
+		if ($recordExists && $novelistData->primaryISBN != null && strlen($novelistData->primaryISBN) > 0 && !isset($_REQUEST['reload'])){
 			//Just check the primary ISBN since we know that was good.
 			$isbns = array($novelistData->primaryISBN);
 		}
@@ -291,7 +293,11 @@ class Novelist3{
 
 						//print_r($data);
 						//We got good data, quit looking at ISBNs
-						break;
+						//If we get series data, stop.
+						//Sometimes we get data for an audiobook that is less complete.
+						if (isset($data->FeatureContent->SeriesInfo) && count($data->FeatureContent->SeriesInfo->series_titles) > 0) {
+							break;
+						}
 					}
 				}catch (Exception $e) {
 					global $logger;
@@ -656,12 +662,11 @@ class Novelist3{
 						$novelistData->primaryISBN = $data->TitleInfo->primary_isbn;
 
 						//Series Information
-						if (isset($data->FeatureContent->SeriesInfo)){
+						if (isset($data->FeatureContent->SeriesInfo) && count($data->FeatureContent->SeriesInfo->series_titles) > 0){
 							$this->loadSeriesInfo($groupedRecordId, $data->FeatureContent->SeriesInfo, $novelistData);
-						}
 
-						//We got good data, quit looking at ISBNs
-						break;
+							break;
+						}
 					}
 				}catch (Exception $e) {
 					global $logger;

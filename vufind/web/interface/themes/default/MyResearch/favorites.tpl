@@ -15,10 +15,6 @@
 		
 		{* Internal Grid *}
 		<div class="myAccountTitle">{translate text='Your Lists and Suggestions'}</div>
-			
-		{if $userNoticeFile}
-			{include file=$userNoticeFile}
-		{/if}
 
 		<div class="yui-u">
 		

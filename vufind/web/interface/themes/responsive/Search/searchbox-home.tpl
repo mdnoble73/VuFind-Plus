@@ -14,20 +14,23 @@
 					<fieldset>
 						<div class="input-group input-group-sm">
 							<div class="input-group-sm">
-							<input class="form-control"{/strip}
+							<textarea class="form-control"{/strip}
 							       id="lookfor"
 							       placeholder="&#128269; SEARCH" {*experimental for anythink. disabled in css by default, as of now. plb 11-19-2014 *}
 							       type="search"
 							       name="lookfor"
 							       size="30"
-							       value="{$lookfor|escape:"html"}"
+							       value=""
 							       title="Enter one or more terms to search for.	Surrounding a term with quotes will limit result to only those that exactly match the term."
 							       onkeyup="return VuFind.Searches.resetSearchType()"
 							       onfocus="$(this).select()"
 							       autocomplete="off"
-											{strip}/>
+							       rows="1"
+											{strip}>
+								{$lookfor|escape:"html"}
+								</textarea>
 							</div>
-							<div class="input-group-btn">
+							<div class="input-group-btn" id="search-actions">
 								<button class="btn btn-default" type="submit">GO</button>
 								<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
 									<span class="caret"></span>

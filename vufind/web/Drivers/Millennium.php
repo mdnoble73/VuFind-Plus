@@ -321,6 +321,7 @@ class MillenniumDriver implements DriverInterface
 		$statusSubfield = $configArray['Reindex']['statusSubfield'];
 		$iTypeSubfield = $configArray['Reindex']['iTypeSubfield'];
 		$dueDateSubfield = $configArray['Reindex']['dueDateSubfield'];
+		$lastCheckinDateSubfield = $configArray['Reindex']['lastCheckinDateSubfield'];
 
 		foreach ($itemFields as $itemField){
 			//Ignore eContent items
@@ -360,6 +361,15 @@ class MillenniumDriver implements DriverInterface
 
 				$status = trim($itemField->getSubfield($statusSubfield) != null ? trim($itemField->getSubfield($statusSubfield)->getData()) : '');
 				$dueDate = $itemField->getSubfield($dueDateSubfield) != null ? trim($itemField->getSubfield($dueDateSubfield)->getData()) : null;
+
+				$lastCheckinDate = $itemField->getSubfield($lastCheckinDateSubfield);
+				if ($lastCheckinDate){ // convert to timestamp for ease of display in template
+					$lastCheckinDate = trim($lastCheckinDate->getData());
+					$lastCheckinDate = DateTime::createFromFormat('m-d-Y G:i', $lastCheckinDate);
+					if ($lastCheckinDate) $lastCheckinDate = $lastCheckinDate->getTimestamp();
+				}
+				if (!$lastCheckinDate) $lastCheckinDate = null;
+
 				$available = (in_array($status, array('-', 'o', 'd', 'w', ')', 'u')) && ($dueDate == null || strlen($dueDate) == 0));
 				$inLibraryUseOnly = $status == 'o';
 				$fullCallNumber = $itemField->getSubfield('s') != null ? ($itemField->getSubfield('s')->getData() . ' '): '';
@@ -384,6 +394,7 @@ class MillenniumDriver implements DriverInterface
 					'status' => $status,
 					'dueDate' => $dueDate,
 					'iType' => $iType,
+					'lastCheckinDate' => $lastCheckinDate,
 				);
 				$items[] = $item;
 			}
@@ -1606,9 +1617,13 @@ class MillenniumDriver implements DriverInterface
 		curl_close($curl_connection);
 	}
 
+	function combineCityStateZipInSelfRegistration(){
+		return true;
+	}
 	function selfRegister(){
 		global $logger;
 		global $configArray;
+		global $library;
 
 		$firstName = trim($_REQUEST['firstName']);
 		$middleName = trim($_REQUEST['middleName']);
@@ -1618,7 +1633,6 @@ class MillenniumDriver implements DriverInterface
 		$state = trim($_REQUEST['state']);
 		$zip = trim($_REQUEST['zip']);
 		$email = trim($_REQUEST['email']);
-		$phone = trim($_REQUEST['phone']);
 
 		$cookie = tempnam ("/tmp", "CURLCOOKIE");
 		$curl_url = $configArray['Catalog']['url'] . "/selfreg~S" . $this->getLibraryScope();
@@ -1635,14 +1649,31 @@ class MillenniumDriver implements DriverInterface
 		$post_data['nfirst'] = $middleName ? $firstName.' '.$middleName : $firstName; // add middle name onto first name;
 		$post_data['nlast'] = $lastName;
 		$post_data['stre_aaddress'] = $address;
-		$post_data['city_aaddress'] = "$city $state, $zip";
-		//$post_data['stat_aaddress'] = $state;
-		//$post_data['post_aaddress'] = $zip;
+		if ($this->combineCityStateZipInSelfRegistration()){
+			$post_data['city_aaddress'] = "$city $state, $zip";
+		}else{
+			$post_data['city_aaddress'] = "$city";
+			$post_data['stat_aaddress'] = "$state";
+			$post_data['post_aaddress'] = "$zip";
+		}
+
 		$post_data['zemailaddr'] = $email;
-		$post_data['tphone1'] = $phone;
+		if (isset($_REQUEST['phone'])){
+			$phone = trim($_REQUEST['phone']);
+			$post_data['tphone1'] = $phone;
+		}
 		if (isset($_REQUEST['birthDate'])){
 			$post_data['F051birthdate'] = $_REQUEST['birthDate'];
 		}
+		if (isset($_REQUEST['universityID'])){
+			$post_data['universityID'] = $_REQUEST['universityID'];
+		}
+
+		if ($library->selfRegistrationTemplate && $library->selfRegistrationTemplate != 'default'){
+			$post_data['TemplateName'] = $library->selfRegistrationTemplate;
+		}
+
+
 //		$post_items = array();
 //		foreach ($post_data as $key => $value) {
 //			$post_items[] = $key . '=' . urlencode($value);
@@ -1930,7 +1961,7 @@ class MillenniumDriver implements DriverInterface
 		global $library;
 		$fields = array();
 		$fields[] = array('property'=>'firstName', 'type'=>'text', 'label'=>'First Name', 'description'=>'Your first name', 'maxLength' => 40, 'required' => true);
-		$fields[] = array('property'=>'middleName', 'type'=>'text', 'label'=>'Middle Name', 'description'=>'Your middle name', 'maxLength' => 40, 'required' => true);
+		$fields[] = array('property'=>'middleName', 'type'=>'text', 'label'=>'Middle Name', 'description'=>'Your middle name', 'maxLength' => 40, 'required' => false);
 		// gets added to the first name separated by a space
 		$fields[] = array('property'=>'lastName', 'type'=>'text', 'label'=>'Last Name', 'description'=>'Your last name', 'maxLength' => 40, 'required' => true);
 		if ($library && $library->promptForBirthDateInSelfReg){

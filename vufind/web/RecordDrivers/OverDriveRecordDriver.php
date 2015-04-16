@@ -56,12 +56,12 @@ class OverDriveRecordDriver extends RecordInterface {
 	}
 
 	protected $itemsFromIndex;
-	public function setItemsFromIndex($itemsFromIndex){
+	public function setItemsFromIndex($itemsFromIndex, $realTimeStatusNeeded){
 		$this->itemsFromIndex = $itemsFromIndex;
 	}
 
 	protected $detailedRecordInfoFromIndex;
-	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex){
+	public function setDetailedRecordInfoFromIndex($detailedRecordInfoFromIndex, $realTimeStatusNeeded){
 		$this->detailedRecordInfoFromIndex = $detailedRecordInfoFromIndex;
 	}
 
@@ -512,7 +512,7 @@ class OverDriveRecordDriver extends RecordInterface {
 		return $this->availability;
 	}
 
-	function getRelatedRecords(){
+	function getRelatedRecords($realTimeStatusNeeded){
 		global $configArray;
 		global $timer;
 		$recordId = $this->getUniqueID();
@@ -561,6 +561,7 @@ class OverDriveRecordDriver extends RecordInterface {
 			'physical' => '',
 			'callNumber' => '',
 			'shelfLocation' => '',
+			'availableOnline' => $available,
 			'available' => $available,
 			'hasLocalItem' => $hasLocalItem,
 			'copies' => $totalCopies,
@@ -783,12 +784,15 @@ class OverDriveRecordDriver extends RecordInterface {
 		if ($this->items == null){
 			require_once ROOT_DIR . '/sys/OverDrive/OverDriveAPIProductFormats.php';
 			$overDriveFormats = new OverDriveAPIProductFormats();
-			$overDriveFormats->productId = $this->overDriveProduct->id;
-			$overDriveFormats->find();
 			$this->items = array();
-			while ($overDriveFormats->fetch()){
-				$this->items[] = clone $overDriveFormats;
+			if ($this->valid){
+				$overDriveFormats->productId = $this->overDriveProduct->id;
+				$overDriveFormats->find();
+				while ($overDriveFormats->fetch()){
+					$this->items[] = clone $overDriveFormats;
+				}
 			}
+
 			global $timer;
 			$timer->logTime("Finished getItems for OverDrive record {$this->overDriveProduct->id}");
 		}

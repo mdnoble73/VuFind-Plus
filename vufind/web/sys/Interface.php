@@ -264,7 +264,7 @@ class UInterface extends Smarty
 		$showHoldButton = 1;
 		$showHoldButtonInSearchResults = 1;
 		$this->assign('logoLink', $configArray['Site']['path']);
-		if (isset($library) && strlen($library->useHomeLinkForLogo)){
+		if (isset($library) && $library->useHomeLinkForLogo){
 			if (isset($location) && strlen($location->homeLink) > 0 && $location->homeLink != 'default'){
 				$this->assign('logoLink', $location->homeLink);
 			}elseif (isset($library) && strlen($library->homeLink) > 0 && $library->homeLink != 'default'){

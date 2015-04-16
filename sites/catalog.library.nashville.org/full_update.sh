@@ -9,7 +9,7 @@
 # For Pika discovery partners using Millennium 2011 1.6_3
 
 # this version emails script output as a round finishes
-EMAIL=james.staub@nashville.gov
+EMAIL=james.staub@nashville.gov,mark@marmot.org,pascal@marmot.org
 ILSSERVER=waldo.library.nashville.org
 PIKASERVER=catalog.library.nashville.org
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
@@ -94,8 +94,8 @@ checkConflictingProcesses "reindexer.jar"
 cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 
 #Extract from ILS
-cd /usr/local/VuFind-Plus/vufind/millennium_export/; expect BIB_HOLDS_EXTRACT_PIKA.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
-cd /usr/local/VuFind-Plus/vufind/millennium_export/; expect BIB_EXTRACT_PIKA.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
+cd /usr/local/VuFind-Plus/vufind/millennium_export/; expect -f BIB_HOLDS_EXTRACT_PIKA.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
+cd /usr/local/VuFind-Plus/vufind/millennium_export/; expect -f BIB_EXTRACT_PIKA.exp ${PIKASERVER} ${ILSSERVER} >> ${OUTPUT_FILE}
 
 #Extract from Hoopla
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
@@ -121,7 +121,7 @@ find /data/vufind-plus/catalog.library.nashville.org/marc -name 'ITEM_UPDATE_EXT
 FILESIZE=$(stat -c%s ${OUTPUT_FILE})
 if [[ ${FILESIZE} > 0 ]]
 then
-# send mail
-mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
+	# send mail
+	mail -s "Full Extract and Reindexing - ${PIKASERVER}" $EMAIL < ${OUTPUT_FILE}
 fi
 

@@ -26,7 +26,7 @@ class MyAccount_AJAX
 			'saveSearch', 'deleteSavedSearch', // deleteSavedSearch not checked
 			'cancelHold', 'cancelHolds', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation',
 				'getReactivationDateForm', //not checked
-			'renewItem', 'renewAll', 'renewSelectedItems'
+			'renewItem', 'renewAll', 'renewSelectedItems', 'getPinResetForm'
 		);
 		$method = $_GET['method'];
 		if (in_array($method, $valid_json_methods)) {
@@ -58,7 +58,7 @@ class MyAccount_AJAX
 			}
 			echo $output;
 
-		} elseif (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm', 'getCitationFormatsForm', 'getPinResetForm'))) {
+		} elseif (in_array($method, array('LoginForm', 'getBulkAddToListForm', 'getPinUpdateForm', 'getCitationFormatsForm'))) {
 			header('Content-type: text/html');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
@@ -92,6 +92,21 @@ class MyAccount_AJAX
 			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Lists.processBulkAddForm(); return false;'>Add To List</span>"
 		);
 		return $formDefinition;
+	}
+
+	function getPinResetForm(){
+		global $interface;
+		$interface->assign('popupTitle', 'Reset PIN Request');
+
+		$formDefinition = array(
+			'title' => 'Reset PIN',
+			'modalBody' => $interface->fetch('MyAccount/resetPinPopup.tpl'),
+			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.Account.resetPinReset(); return false;'>Add To List</span>"
+		);
+		return $formDefinition;
+		$pageContent = $interface->fetch('MyResearch/resetPinPopup.tpl');
+		$interface->assign('popupContent', $pageContent);
+		return $interface->fetch('popup-wrapper.tpl');
 	}
 
 	function removeTag()
@@ -603,6 +618,8 @@ class MyAccount_AJAX
 	{
 		global $interface;
 		global $library;
+		global $configArray;
+
 		if (isset($library)){
 			$interface->assign('enableSelfRegistration', $library->enableSelfRegistration);
 			$interface->assign('usernameLabel', $library->loginFormUsernameLabel ? $library->loginFormUsernameLabel : 'Your Name');
@@ -611,6 +628,9 @@ class MyAccount_AJAX
 			$interface->assign('enableSelfRegistration', 0);
 			$interface->assign('usernameLabel', 'Your Name');
 			$interface->assign('passwordLabel', 'Library Card Number');
+		}
+		if ($configArray['Catalog']['ils'] == 'Horizon'){
+			$interface->assign('showForgotPinLink', true);
 		}
 		if (isset($_REQUEST['multistep'])) {
 			$interface->assign('multistep', true);
@@ -829,7 +849,13 @@ class MyAccount_AJAX
 
 	function renewItem() {
 		if (isset($_REQUEST['renewIndicator'])) {
-			list($itemId, $itemIndex) = explode('|', $_REQUEST['renewIndicator']);
+			if (strpos($_REQUEST['renewIndicator'], '|') > 0){
+				list($itemId, $itemIndex) = explode('|', $_REQUEST['renewIndicator']);
+			}else{
+				$itemId = $_REQUEST['renewIndicator'];
+				$itemIndex = null;
+			}
+
 			global $configArray;
 			try {
 				$this->catalog = CatalogFactory::getCatalogConnectionInstance();;

@@ -11,8 +11,21 @@
 				</a>
 				<div id="{$moreDetailsKey}PanelBody" class="panel-collapse collapse {if $moreDetailsOption.openByDefault}in{/if}">
 					<div class="panel-body">
-						{$moreDetailsOption.body}
+						{if $moreDetailsKey == 'description'}
+							{$moreDetailsOption.body|replace:"\n":"<br />\n"}
+						{else}
+							{$moreDetailsOption.body}
+						{/if}
 					</div>
+					{if $moreDetailsOption.onShow}
+						<script type="text/javascript">
+							{literal}
+							$('#{/literal}{$moreDetailsKey}Panel'){literal}.on('shown.bs.collapse', function () {
+								{/literal}{$moreDetailsOption.onShow}{literal}
+							});
+							{/literal}
+						</script>
+					{/if}
 				</div>
 			</div>
 		{/foreach}

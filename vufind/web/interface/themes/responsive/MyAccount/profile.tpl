@@ -1,13 +1,17 @@
 {strip}
 	<div id="main-content">
 		{if $user->cat_username}
-			<div class="resulthead">
-				{if $profile.web_note}
-					<div id="web_note" class="alert alert-info text-center">{$profile.web_note}</div>
-				{/if}
+			{if $profile.web_note}
+				<div class="row">
+					<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
+				</div>
+			{/if}
+
+			{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
+				<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds">You have <span style="font-weight: bold">{$profile.numHoldsAvailableTotal}</span> holds ready for pick up.</a></div>
+			{/if}
 
 				<h2>{translate text='Account Settings'}</h2>
-			</div>
 
 			<div class="panel-group" id="account-settings-accordion">
 				{* ILS Settings *}
@@ -123,9 +127,10 @@
 										</div>
 									</div>
 								{/if}
+
 								{if $showSMSNoticesInProfile}
 									<div class="form-group">
-										<div class="col-xs-4"><label for="smsNotices">{translate text='Receive SMS Messages'}:</label></div>
+										<div class="col-xs-4"><label for="smsNotices">{translate text='Receive SMS/Text Messages'}:</label></div>
 										<div class="col-xs-8">
 											{if $edit == true && $canUpdateContactInfo == true}
 												<input type="checkbox" name="smsNotices" id="smsNotices" {if $profile.mobileNumber}checked='checked'{/if}/>
@@ -137,7 +142,9 @@
 													{/literal}
 												</script>
 												<p class="help-block alert alert-warning">
-													SMS Messages are sent <strong>in addition</strong> to postal mail/e-mail/phone alerts. <strong>Message and data rates may apply.</strong>
+													SMS/Text Messages are sent <strong>in addition</strong> to postal mail/e-mail/phone alerts. <strong>Message and data rates may apply.</strong>
+													<br/><br/>
+													To sign up for SMS/Text messages, you must opt-in above and enter your Mobile (cell phone) number below.
 													<br/><br/>
 													<a href="{$path}/Help/Home?topic=smsTerms" data-title="SMS Notice Terms" class="modalDialogTrigger">View Terms and Conditions</a>
 												</p>
@@ -290,7 +297,8 @@
 				</div>
 
 				{* Catalog Settings *}
-				<div class="panel active">
+				{if $showAlternateLibraryOptions || $userIsStaff}
+					<div class="panel active">
 					<a data-toggle="collapse" data-parent="#account-settings-accordion" href="#ilsPanel">
 						<div class="panel-heading">
 							<div class="panel-title">
@@ -302,20 +310,23 @@
 						<div class="panel-body">
 							<form action="{$path}/MyAccount/Profile" method="post" class="form-horizontal">
 								<input type="hidden" name="updateScope" value="catalog"/>
-								<div class="form-group">
-									<div class="col-xs-4"><label for="myLocation1" class="control-label">{translate text='My First Alternate Library'}:</label></div>
-									<div class="col-xs-8">
-										{if $edit == true}
-											{html_options name="myLocation1" id="myLocation1" class="form-control" options=$locationList selected=$profile.myLocation1Id}
-										{else}
-											{$profile.myLocation1|escape}
-										{/if}
+								{if $showAlternateLibraryOptions}
+									<div class="form-group">
+										<div class="col-xs-4"><label for="myLocation1" class="control-label">{translate text='My First Alternate Library'}:</label></div>
+										<div class="col-xs-8">
+											{if $edit == true}
+												{html_options name="myLocation1" id="myLocation1" class="form-control" options=$locationList selected=$profile.myLocation1Id}
+											{else}
+												{$profile.myLocation1|escape}
+											{/if}
+										</div>
 									</div>
-								</div>
-								<div class="form-group">
-									<div class="col-xs-4"><label for="myLocation2" class="control-label">{translate text='My Second Alternate Library'}:</label></div>
-									<div class="col-xs-8">{if $edit == true}{html_options name="myLocation2" id="myLocation2" class="form-control" options=$locationList selected=$profile.myLocation2Id}{else}{$profile.myLocation2|escape}{/if}</div>
-								</div>
+									<div class="form-group">
+										<div class="col-xs-4"><label for="myLocation2" class="control-label">{translate text='My Second Alternate Library'}:</label></div>
+										<div class="col-xs-8">{if $edit == true}{html_options name="myLocation2" id="myLocation2" class="form-control" options=$locationList selected=$profile.myLocation2Id}{else}{$profile.myLocation2|escape}{/if}</div>
+									</div>
+								{/if}
+
 								{if $userIsStaff}
 									<div class="form-group">
 										<div class="col-xs-4"><label for="bypassAutoLogout" class="control-label">{translate text='Bypass Automatic Logout'}:</label></div>
@@ -346,6 +357,7 @@
 						</div>
 					</div>
 				</div>
+				{/if}
 
 				{* Display user roles if the user has any roles*}
 				{if count($user->roles) > 0}

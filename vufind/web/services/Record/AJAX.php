@@ -246,6 +246,7 @@ class Record_AJAX extends Action {
 			return null;
 		}
 
+		$hasLastCheckinData = false;
 		$holdingData = new stdClass();
 		// Get Holdings Data
 		if ($catalog->status) {
@@ -262,6 +263,9 @@ class Record_AJAX extends Action {
 						$issueSummaries = $result;
 						break;
 					}else{
+						$hasLastCheckinData = (isset($copy['lastCheckinDate']) && $copy['lastCheckinDate'] != null) || $hasLastCheckinData; // if $hasLastCheckinData was true keep that value even when first check is false.
+						// flag for at least 1 lastCheckinDate
+
 						$key = $copy['location'];
 						$key = preg_replace('~\W~', '_', $key);
 						$holdings[$key][] = $copy;
@@ -271,6 +275,7 @@ class Record_AJAX extends Action {
 					$interface->assign('issueSummaries', $issueSummaries);
 					$holdingData->issueSummaries = $issueSummaries;
 				}else{
+					$interface->assign('hasLastCheckinData', $hasLastCheckinData);
 					$interface->assign('holdings', $holdings);
 					$holdingData->holdings = $holdings;
 				}
@@ -296,7 +301,6 @@ class Record_AJAX extends Action {
 			$holdingData->holdingsSummary = $result;
 			$interface->assign('holdingsSummary', $result);
 			$timer->logTime("Loaded holdings summary");
-
 			$interface->assign('formattedHoldingsSummary', $interface->fetch('Record/holdingsSummary.tpl'));
 		}
 
@@ -361,7 +365,7 @@ class Record_AJAX extends Action {
 		global $user;
 		if ($user){
 			$id = $_REQUEST['id'];
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
 			$profile = $catalog->getMyProfile($user);
 			$interface->assign('profile', $profile);
 
@@ -389,6 +393,8 @@ class Record_AJAX extends Action {
 			$interface->assign('pickupLocations', $locations);
 
 			global $library;
+			$interface->assign('showHoldCancelDate', $library->showHoldCancelDate);
+			$interface->assign('defaultNotNeededAfterDays', $library->defaultNotNeededAfterDays);
 			$interface->assign('showDetailedHoldNoticeInformation', $library->showDetailedHoldNoticeInformation);
 			$interface->assign('treatPrintNoticesAsPhoneNotices', $library->treatPrintNoticesAsPhoneNotices);
 
@@ -417,6 +423,8 @@ class Record_AJAX extends Action {
 		global $user;
 		global $configArray;
 		global $interface;
+		global $analytics;
+		$analytics->enableTracking();
 		$recordId = $_REQUEST['id'];
 		if ($user){
 			//The user is already logged in

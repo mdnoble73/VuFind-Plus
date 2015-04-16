@@ -27,7 +27,7 @@ class SelfReg extends Action {
 	function __construct() {
 		global $configArray;
 		// Connect to Catalog
-		$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
+		$this->catalog = CatalogFactory::getCatalogConnectionInstance();
 	}
 
 	function launch($msg = null) {
@@ -37,14 +37,24 @@ class SelfReg extends Action {
 
 		if (isset($_REQUEST['submit'])) {
 
-			$privatekey = $configArray['ReCaptcha']['privateKey'];
-			$resp = recaptcha_check_answer ($privatekey,
-				$_SERVER["REMOTE_ADDR"],
-				$_POST["recaptcha_challenge_field"],
-				$_POST["recaptcha_response_field"]);
+			$recaptchaValid = false;
+			if (isset($configArray['ReCaptcha']['privateKey'])){
+				$privatekey = $configArray['ReCaptcha']['privateKey'];
+				$resp = recaptcha_check_answer ($privatekey,
+					$_SERVER["REMOTE_ADDR"],
+					$_POST["recaptcha_challenge_field"],
+					$_POST["recaptcha_response_field"]);
+				$recaptchaValid = $resp->is_valid;
+			}else{
+				$recaptchaValid = true;
+			}
 
-			if (!$resp->is_valid) {
+
+			if (!$recaptchaValid) {
 				$interface->assign('captchaMessage', 'The CAPTCHA response was incorrect, please try again.');
+				// TODO: pass user data back to form
+
+
 			} else {
 
 				//Submit the form to ILS
@@ -54,7 +64,7 @@ class SelfReg extends Action {
 		}
 
 		/** @var  CatalogConnection $catalog */
-		$catalog = CatalogFactory::getCatalogConnectionInstance();;
+		$catalog = CatalogFactory::getCatalogConnectionInstance();
 		$selfRegFields = $catalog->getSelfRegistrationFields();
 		$interface->assign('submitUrl', $configArray['Site']['path'] . '/MyAccount/SelfReg');
 		$interface->assign('structure', $selfRegFields);
@@ -62,8 +72,10 @@ class SelfReg extends Action {
 
 		// Set up captcha to limit spam self registrations
 		if (isset($configArray['ReCaptcha']['publicKey'])) {
+//			TODO: and not inside library
 			$recaptchaPublicKey = $configArray['ReCaptcha']['publicKey'];
-			$captchaCode        = recaptcha_get_html($recaptchaPublicKey);
+			$secureConnection = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == "on"); // check that this request is using https
+			$captchaCode        = recaptcha_get_html($recaptchaPublicKey, null, $secureConnection);
 			$interface->assign('captcha', $captchaCode);
 		}
 

@@ -851,11 +851,19 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'show_catalog_options_in_profile' => array(
+			'title' => 'Show Catalog Options Tab in User Profile Configuration',
+			'description' => 'Additional configuration to let libraries set whether or not the Catalog Options tab in the user profile is displayed to the user',
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `showAlternateLibraryOptionsInProfile` TINYINT(1) DEFAULT 1",
+			),
+		),
+
 		'hoopla_library_options' => array(
 			'title' => 'Updates to determine configuration for Hoopla inclusion/exclusion by library',
 			'description' => 'Additional configuration over how Hoopla information is included by library',
 			'sql' => array(
-				"ALTER TABLE library ADD COLUMN includeHoopla TINYINT DEFAULT 0",
+				"ALTER TABLE `library` ADD COLUMN `includeHoopla` TINYINT(1) DEFAULT 0",
 			),
 		),
 
@@ -944,6 +952,15 @@ function getLibraryLocationUpdates(){
 			'sql' => array(
 				"ALTER TABLE `library` ADD COLUMN `selfRegistrationFormMessage` TEXT;",
 				"ALTER TABLE `library` ADD COLUMN `selfRegistrationSuccessMessage` TEXT;",
+			),
+		),
+
+		'selfreg_template' => array(
+			'title' => 'Self Registration Template',
+			'description' => 'Add self registration template for Millennium and Sierra.',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `selfRegistrationTemplate` VARCHAR(25) default 'default';",
 			),
 		),
 

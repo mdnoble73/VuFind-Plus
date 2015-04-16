@@ -80,7 +80,7 @@ class UserAPI extends Action {
 		global $configArray;
 		if ($this->catalog == null){
 			// Connect to Catalog
-			$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$this->catalog = CatalogFactory::getCatalogConnectionInstance();
 		}
 		return $this->catalog;
 	}

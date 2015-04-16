@@ -158,7 +158,9 @@ public class Scope implements Comparable<Scope>{
 			return true;
 		}
 		for (String pType : compatiblePTypes){
-			if (relatedPTypes.contains(pType)){
+			if (pType.equals("all")){
+				return true;
+			}else if (relatedPTypes.contains(pType)){
 				return true;
 			}
 		}
@@ -208,7 +210,7 @@ public class Scope implements Comparable<Scope>{
 
 	public void setExtraLocationCodes(String extraLocationCodesToInclude) {
 		if (extraLocationCodesToInclude != null && extraLocationCodesToInclude.length() > 0) {
-			this.extraLocationCodesPattern = Pattern.compile(extraLocationCodesToInclude);
+			this.extraLocationCodesPattern = Pattern.compile(extraLocationCodesToInclude, Pattern.CASE_INSENSITIVE);
 		}
 	}
 
@@ -232,7 +234,7 @@ public class Scope implements Comparable<Scope>{
 
 		if (isLibraryScope) {
 			if (libraryLocationCodePrefix != null){
-				Pattern libraryCodePattern = Pattern.compile(libraryLocationCodePrefix);
+				Pattern libraryCodePattern = Pattern.compile(libraryLocationCodePrefix, Pattern.CASE_INSENSITIVE);
 				if (libraryCodePattern.matcher(locationCode).lookingAt()) {
 					locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
 					return true;
@@ -240,7 +242,7 @@ public class Scope implements Comparable<Scope>{
 			}
 		}else{
 			if (locationLocationCodePrefix != null) {
-				Pattern locationCodePattern = Pattern.compile(locationLocationCodePrefix);
+				Pattern locationCodePattern = Pattern.compile(locationLocationCodePrefix, Pattern.CASE_INSENSITIVE);
 				if (locationCodePattern.matcher(locationCode).lookingAt()) {
 					locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
 					return true;

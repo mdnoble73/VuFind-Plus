@@ -915,13 +915,13 @@ class Solr implements IndexEngine {
 	 * Given a field name and search string, expand this into the necessary Lucene
 	 * query to perform the specified search on the specified field(s).
 	 *
-	 * @access	private
+	 * @access	public            Has to be public since it can be called as part of a preg replace statement
 	 * @param	 string	$field			The YAML search spec field name to search
 	 * @param	 string	$lookfor		The string to search for in the field
-	 * @param	 bool		$tokenize	 Should we tokenize $lookfor or pass it through?
+	 * @param	 bool		$tokenize	  Should we tokenize $lookfor or pass it through?
 	 * @return	string							The query
 	 */
-	private function _buildQueryComponent($field, $lookfor, $tokenize = true)
+	public function _buildQueryComponent($field, $lookfor, $tokenize = true)
 	{
 		// Load the YAML search specifications:
 		$ss = $this->_getSearchSpecs($field);
@@ -995,16 +995,16 @@ class Solr implements IndexEngine {
 		return $this->_buildQueryComponent($handler, $query, false);
 	}
 
-	/**
-	 * Build Query string from search parameters
+	/* Build Query string from search parameters
 	 *
 	 * @access	public
-	 * @param	 array	 $search		 An array of search parameters
+	 * @param	 array	 $search		  An array of search parameters
+	 * @param	 boolean $forDisplay  Whether or not the query is being built for display purposes
 	 * @throws	object							PEAR Error
 	 * @static
 	 * @return	string							The query
 	 */
-	function buildQuery($search)
+	function buildQuery($search, $forDisplay = false)
 	{
 		$groups	 = array();
 		$excludes = array();
@@ -1012,42 +1012,62 @@ class Solr implements IndexEngine {
 		if (is_array($search)) {
 
 			foreach ($search as $params) {
-
-				// Advanced Search
-				if (isset($params['group'])) {
-					$thisGroup = array();
-					// Process each search group
-					foreach ($params['group'] as $group) {
-						// Build this group individually as a basic search
-						$thisGroup[] = $this->buildQuery(array($group));
-					}
-					// Is this an exclusion (NOT) group or a normal group?
-					if ($params['group'][0]['bool'] == 'NOT') {
-						$excludes[] = join(" OR ", $thisGroup);
-					} else {
-						$groups[] = join(" ".$params['group'][0]['bool']." ", $thisGroup);
-					}
+				//Check to see if need to break up a basic search into an advanced search
+				$modifiedQuery = false;
+				$that = $this;
+				if (isset($params['lookfor']) && !$forDisplay){
+					$lookfor = preg_replace_callback(
+						'/(\\w+):([\\w\\d\\s]+?)(\\sAND|OR|AND NOT|OR NOT|\\))/',
+						function ($matches) use($that){
+							$field = $matches[1];
+							$lookfor = $matches[2];
+							$newQuery = $that->_buildQueryComponent($field, $lookfor);
+							return $newQuery . $matches[3];
+						},
+						$params['lookfor']
+					);
+					$modifiedQuery = $lookfor != $params['lookfor'];
 				}
-
-				// Basic Search
-				if (isset($params['lookfor']) && $params['lookfor'] != '') {
-					// Clean and validate input
-					$lookfor = $this->validateInput($params['lookfor']);
-
-					// Force boolean operators to uppercase if we are in a case-insensitive
-					// mode:
-					if (!$this->caseSensitiveBooleans) {
-						$lookfor = SolrUtils::capitalizeBooleans($lookfor);
+				if ($modifiedQuery){
+					//This is an advanced search
+					$query = $lookfor;
+				}else{
+					// Advanced Search
+					if (isset($params['group'])) {
+						$thisGroup = array();
+						// Process each search group
+						foreach ($params['group'] as $group) {
+							// Build this group individually as a basic search
+							$thisGroup[] = $this->buildQuery(array($group));
+						}
+						// Is this an exclusion (NOT) group or a normal group?
+						if ($params['group'][0]['bool'] == 'NOT') {
+							$excludes[] = join(" OR ", $thisGroup);
+						} else {
+							$groups[] = join(" ".$params['group'][0]['bool']." ", $thisGroup);
+						}
 					}
 
-					if (isset($params['field']) && ($params['field'] != '')) {
-						if ($this->isAdvanced($lookfor)) {
-							$query .= $this->_buildAdvancedQuery($params['field'], $lookfor);
-						} else {
-							$query .= $this->_buildQueryComponent($params['field'], $lookfor);
+					// Basic Search
+					if (isset($params['lookfor']) && $params['lookfor'] != '') {
+						// Clean and validate input
+						$lookfor = $this->validateInput($params['lookfor']);
+
+						// Force boolean operators to uppercase if we are in a case-insensitive
+						// mode:
+						if (!$this->caseSensitiveBooleans) {
+							$lookfor = SolrUtils::capitalizeBooleans($lookfor);
 						}
-					} else {
-						$query .= $lookfor;
+
+						if (isset($params['field']) && ($params['field'] != '')) {
+							if ($this->isAdvanced($lookfor)) {
+								$query .= $this->_buildAdvancedQuery($params['field'], $lookfor);
+							} else {
+								$query .= $this->_buildQueryComponent($params['field'], $lookfor);
+							}
+						} else {
+							$query .= $lookfor;
+						}
 					}
 				}
 			}
@@ -1197,9 +1217,6 @@ class Solr implements IndexEngine {
 		global $timer;
 		// Query String Parameters
 		$options = array('q' => $query, 'rows' => $limit, 'start' => $start, 'indent' => 'yes');
-		//For FRBR, enable this and then update display
-		//$options['group'] = 'true';
-		//$options['group.field'] = 'grouping_term';
 
 		// Add Sorting
 		if ($sort && !empty($sort)) {
@@ -2251,7 +2268,7 @@ class Solr implements IndexEngine {
 		$query = preg_replace('/"[^"]*"/', 'quoted', $query);
 
 		// Check for field specifiers:
-		if (preg_match("/([^\s\:]+)\s?\:[^\s]/", $query, $matches)) {
+		if (preg_match("/([^\(\s\:]+)\s?\:[^\s]/", $query, $matches)) {
 			//Make sure the field is actually one of our fields
 			$fieldName = $matches[1];
 			$fields = $this->_loadValidFields();

@@ -36,7 +36,6 @@ public class GroupedWorkIndexer {
 	private String solrPort;
 	private Logger logger;
 	private SolrServer solrServer;
-	private Collection<SolrInputDocument> pendingDocuments = new ArrayList<SolrInputDocument>();
 	private ConcurrentUpdateSolrServer updateServer;
 	private IlsRecordProcessor ilsRecordProcessor;
 	private OverDriveProcessor overDriveProcessor;
@@ -62,6 +61,7 @@ public class GroupedWorkIndexer {
 
 	private HashSet<String> worksWithInvalidLiteraryForms = new HashSet<String>();
 	private TreeSet<Scope> scopes = new TreeSet<Scope>();
+	private ArrayList<String> scopeNames = new ArrayList<String>();
 
 	PreparedStatement getGroupedWorkPrimaryIdentifiers;
 	PreparedStatement getGroupedWorkIdentifiers;
@@ -118,7 +118,11 @@ public class GroupedWorkIndexer {
 		//Load a few statements we will need later
 		try{
 			getGroupedWorkPrimaryIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_primary_identifiers where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ? and valid_for_enrichment = 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			//MDN 4/14 - Do not restrict by valid for enrichment since many popular titles
+			//Wind up with different work id's due to differences in cataloging.
+			getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			//TODO: Restore this functionality
+			//getGroupedWorkIdentifiers = vufindConn.prepareStatement("SELECT * FROM grouped_work_identifiers inner join grouped_work_identifiers_ref on identifier_id = grouped_work_identifiers.id where grouped_work_id = ? and valid_for_enrichment = 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 		} catch (Exception e){
 			logger.error("Could not load statements to get identifiers ", e);
 		}
@@ -270,6 +274,7 @@ public class GroupedWorkIndexer {
 					newScope.setIncludeOverDriveCollection(includeOverdrive);
 					newScope.setIncludeHoopla(includeHoopla);
 					scopes.add(newScope);
+					scopeNames.add(newScope.getScopeName());
 					indexingStats.put(newScope.getScopeName(), new ScopedIndexingStats(newScope.getScopeName()));
 				}
 
@@ -350,6 +355,7 @@ public class GroupedWorkIndexer {
 							locationScopeInfo.setExtraLocationCodes(extraLocationCodesToInclude);
 
 							scopes.add(locationScopeInfo);
+							scopeNames.add(locationScopeInfo.getScopeName());
 							indexingStats.put(locationScopeInfo.getScopeName(), new ScopedIndexingStats(locationScopeInfo.getScopeName()));
 						}else{
 							logger.debug("No scope needed for " + code + " because the library scope works just fine");
@@ -404,15 +410,6 @@ public class GroupedWorkIndexer {
 	}
 
 	public void finishIndexing(){
-		try {
-			if (pendingDocuments.size() > 0) {
-				updateServer.add(pendingDocuments);
-				pendingDocuments.clear();
-			}
-		}catch (Exception e){
-			logger.error("Error adding the final batch of documents to the index", e);
-		}
-
 		logger.info("Finishing indexing");
 		try {
 			logger.info("Calling commit");
@@ -708,16 +705,13 @@ public class GroupedWorkIndexer {
 
 			//Write the record to Solr.
 			try {
-				pendingDocuments.add(groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue));
-
-				//Add documents in a batch rather than one at a time.
-				if (pendingDocuments.size() == 25000) {
-					updateServer.add(pendingDocuments);
-					pendingDocuments.clear();
-				}
+				SolrInputDocument inputDocument = groupedWork.getSolrDocument(availableAtLocationBoostValue, ownedByLocationBoostValue);
+				updateServer.add(inputDocument);
 
 				for (String scope: groupedWork.getScopedWorkDetails().keySet()){
-					indexingStats.get(scope).numLocalWorks++;
+					if (groupedWork.getScopedWorkDetails().get(scope).isLocallyOwned()) {
+						indexingStats.get(scope).numLocalWorks++;
+					}
 					indexingStats.get(scope).numSuperScopeWorks++;
 				}
 			} catch (Exception e) {
@@ -833,7 +827,7 @@ public class GroupedWorkIndexer {
 		HashMap<String, String> translationMap = new HashMap<String, String>();
 		for (Object keyObj : props.keySet()){
 			String key = (String)keyObj;
-			translationMap.put(key, props.getProperty(key));
+			translationMap.put(key.toLowerCase(), props.getProperty(key));
 		}
 		return translationMap;
 	}
@@ -846,8 +840,9 @@ public class GroupedWorkIndexer {
 			logger.error("Unable to find translation map for " + mapName);
 			translatedValue = value;
 		}else{
-			if (translationMap.containsKey(value)){
-				translatedValue = translationMap.get(value);
+			String lowerCaseValue = value.toLowerCase();
+			if (translationMap.containsKey(lowerCaseValue)){
+				translatedValue = translationMap.get(lowerCaseValue);
 			}else{
 				if (translationMap.containsKey("*")){
 					translatedValue = translationMap.get("*");
@@ -1088,6 +1083,10 @@ public class GroupedWorkIndexer {
 
 	public TreeSet<Scope> getScopes() {
 		return this.scopes;
+	}
+
+	public ArrayList<String> getAllScopeNames(){
+		return scopeNames;
 	}
 
 	/**

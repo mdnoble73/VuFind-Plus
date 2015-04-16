@@ -1,26 +1,22 @@
 {strip}
 	{* Details not shown in the Top/Main Section of the Record view should be shown here *}
-	{if !$showPublicationDetails}
-		{if $recordDriver->getPublicationDetails()}
-			<div class="row">
-				<div class="result-label col-md-3">{translate text='Published'}:</div>
-				<div class="col-md-9 result-value">
-					{implode subject=$recordDriver->getPublicationDetails() glue=", "}
-				</div>
+	{if !$showPublicationDetails && $recordDriver->getPublicationDetails()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Published'}:</div>
+			<div class="col-md-9 result-value">
+				{implode subject=$recordDriver->getPublicationDetails() glue=", "}
 			</div>
-		{/if}
+		</div>
 	{/if}
 
 
-	{if !$showPhysicalDespriptions}
-		{if $recordDriver->getPhysicalDescriptions()}
-			<div class="row">
-				<div class="result-label col-md-3">{translate text='Physical Description'}:</div>
-				<div class="col-md-9 result-value">
-					{implode subject=$recordDriver->getPhysicalDescriptions() glue=", "}
-				</div>
+	{if !$showPhysicalDespriptions && $recordDriver->getPhysicalDescriptions()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Physical Description'}:</div>
+			<div class="col-md-9 result-value">
+				{implode subject=$recordDriver->getPhysicalDescriptions() glue=", "}
 			</div>
-		{/if}
+		</div>
 	{/if}
 
 	{if !$showFormats}
@@ -32,15 +28,13 @@
 		</div>
 	{/if}
 
-	{if !$showEditions}
-		{if $recordDriver->getEdition()}
-			<div class="row">
-				<div class="result-label col-md-3">{translate text='Edition'}:</div>
-				<div class="col-md-9 result-value">
-					{implode subject=$recordDriver->getEdition() glue=", "}
-				</div>
+	{if !$showEditions && $recordDriver->getEdition()}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Edition'}:</div>
+			<div class="col-md-9 result-value">
+				{implode subject=$recordDriver->getEdition() glue=", "}
 			</div>
-		{/if}
+		</div>
 	{/if}
 
 	{if $recordDriver->getLanguage()}
@@ -52,7 +46,7 @@
 		</div>
 	{/if}
 
-	{if count($recordDriver->getISBNs()) > 0}
+	{if !$showISBNs && count($recordDriver->getISBNs()) > 0}
 		<div class="row">
 			<div class="result-label col-xs-3">{translate text='ISBN'}:</div>
 			<div class="col-xs-9 result-value">

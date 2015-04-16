@@ -741,6 +741,16 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'variables_table_uniqueness' => array(
+					'title' => 'Variables Table Uniqueness',
+					'description' => 'Create Variables Table for storing basic variables for use in programs (system writable config)',
+					'sql' => array(
+						"DELETE FROM variables where name = 'lastPartialReindexFinish'",
+						"ALTER TABLE variables ADD UNIQUE (name)",
+					),
+				),
+
+
 				'utf8_update' => array(
 					'title' => 'Update to UTF-8',
 					'description' => 'Update database to use UTF-8 encoding',

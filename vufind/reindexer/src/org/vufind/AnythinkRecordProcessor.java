@@ -6,9 +6,10 @@ import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
 
 import java.sql.Connection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * ILS Indexing with customizations specific to Anythink
@@ -18,8 +19,19 @@ import java.util.Set;
  * Time: 3:00 PM
  */
 public class AnythinkRecordProcessor extends IlsRecordProcessor {
+	private long maxBibNumber = 1;
 	public AnythinkRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
 		super(indexer, vufindConn, configIni, logger);
+
+		try {
+			PreparedStatement getMaxBibNumberStmt = vufindConn.prepareStatement("SELECT MAX(CAST(ilsId AS UNSIGNED)) FROM ils_marc_checksums");
+			ResultSet maxBibNumberRS = getMaxBibNumberStmt.executeQuery();
+			if (maxBibNumberRS.next()){
+				maxBibNumber = maxBibNumberRS.getLong(1);
+			}
+		}catch(Exception e){
+			logger.error("Error loading max bib number for Horizon");
+		}
 	}
 
 	@Override
@@ -91,5 +103,22 @@ public class AnythinkRecordProcessor extends IlsRecordProcessor {
 
 		groupedWork.addTargetAudiences(indexer.translateCollection("target_audience", targetAudiences));
 		groupedWork.addTargetAudiencesFull(indexer.translateCollection("target_audience", targetAudiences));
+	}
+
+	private static SimpleDateFormat dateAddedFormatter = null;
+	private Integer currentYear = null;
+	Calendar curDate;
+	protected void loadDateAdded(GroupedWorkSolr groupedWork, String identfier, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
+		//Since date added cannot be extracted from Horizon, we will approximate using the bib number
+		//Formula is:  (bib number / max bib number - 1)  * 365 * (current year - 1950)
+		if (currentYear == null){
+			curDate = GregorianCalendar.getInstance();
+			currentYear = curDate.get(Calendar.YEAR);
+		}
+		Long identifierNumber = Long.parseLong(identfier);
+		Integer daysSinceAdded = (int)(((float)identifierNumber / (float)maxBibNumber - 1) * 375 * (currentYear - 1950));
+		curDate.setTime(new Date());
+		curDate.add(Calendar.DATE, daysSinceAdded);
+		groupedWork.setDateAdded(curDate.getTime(), indexer.getAllScopeNames());
 	}
 }

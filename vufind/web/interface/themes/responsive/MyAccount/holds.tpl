@@ -1,11 +1,12 @@
 {strip}
 	{if $user->cat_username}
 		{if $profile.web_note}
-			<div id="web_note" class="text-info text-center well well-small">{$profile.web_note}</div>
+			<div class="row">
+				<div id="web_note" class="alert alert-info text-center col-xs-12">{$profile.web_note}</div>
+			</div>
 		{/if}
-
-		{if $userNoticeFile}
-			{include file=$userNoticeFile}
+		{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
+			<div class="text-info text-center alert alert-info">You have <span style="font-weight: bold">{$profile.numHoldsAvailableTotal}</span> holds ready for pick up.</div>
 		{/if}
 
 		{* Check to see if there is data for the section *}
@@ -18,9 +19,10 @@
 				<h3>{if $sectionKey == 'available'}Holds Ready For Pickup{else}Pending Holds{/if}</h3>
 				<p class="alert alert-info">
 					{if $sectionKey == 'available'}
-						These titles have arrived at the library or are available online for you to use.
+						{translate text="available hold summary"}
+						{*These titles have arrived at the library or are available online for you to use.*}
 					{else}
-						These titles are currently checked out to other patrons.  We will notify you{if not $notification_method or $notification_method eq 'Unknown'}{else} via {$notification_method}{/if} when a title is available.
+						{translate text="These titles are currently checked out to other patrons."}  We will notify you{if not $notification_method or $notification_method eq 'Unknown'}{else} via {$notification_method}{/if} when a title is available.
 						{* Only show the notification method when it is known and set *}
 					{/if}
 				</p>

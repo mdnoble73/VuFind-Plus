@@ -65,7 +65,11 @@ $analytics = new Analytics($active_ip, $startTime);
 
 $googleAnalyticsId = isset($configArray['Analytics']['googleAnalyticsId']) ? $configArray['Analytics']['googleAnalyticsId'] : false;
 $interface->assign('googleAnalyticsId', $googleAnalyticsId);
-
+if ($googleAnalyticsId) {
+	$googleAnalyticsDomainName = isset($configArray['Analytics']['domainName']) ? $configArray['Analytics']['domainName'] : strstr($_SERVER['SERVER_NAME'], '.');
+	// check for a config setting, use that if found, otherwise grab domain name  but remove the first subdomain
+	$interface->assign('googleAnalyticsDomainName', $googleAnalyticsDomainName);
+}
 global $library;
 
 //Set System Message
@@ -888,4 +892,21 @@ function loadUserData(){
 	// Get My Tags
 	$tagList = $user->getTags();
 	$interface->assign('tagList', $tagList);
+
+	if ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin') || $user->hasRole('cataloging')){
+		$variable = new Variable();
+		$variable->name= 'lastFullReindexFinish';
+		if ($variable->find(true)){
+			$interface->assign('lastFullReindexFinish', date('m-d-Y H:i:s', $variable->value));
+		}else{
+			$interface->assign('lastFullReindexFinish', 'Unknown');
+		}
+		$variable = new Variable();
+		$variable->name= 'lastPartialReindexFinish';
+		if ($variable->find(true)){
+			$interface->assign('lastPartialReindexFinish', date('m-d-Y H:i:s', $variable->value));
+		}else{
+			$interface->assign('lastPartialReindexFinish', 'Unknown');
+		}
+	}
 }

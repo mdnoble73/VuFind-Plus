@@ -23,8 +23,7 @@
 		</div>
 	{/if}
 
-	{if $showPublicationDetails}
-	{if $recordDriver->getPublicationDetails()}
+	{if $showPublicationDetails && $recordDriver->getPublicationDetails()}
 		<div class="row">
 			<div class="result-label col-md-3">{translate text='Published'}:</div>
 			<div class="col-md-9 result-value">
@@ -32,19 +31,17 @@
 			</div>
 		</div>
 	{/if}
-	{/if}
 
 	{if $showFormats}
-	<div class="row">
-		<div class="result-label col-md-3">{translate text='Format'}:</div>
-		<div class="col-md-9 result-value">
-			{implode subject=$recordDriver->getFormats() glue=", "}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='Format'}:</div>
+			<div class="col-md-9 result-value">
+				{implode subject=$recordDriver->getFormats() glue=", "}
+			</div>
 		</div>
-	</div>
 	{/if}
 
-	{if $showEditions}
-	{if $recordDriver->getEdition()}
+	{if $showEditions && $recordDriver->getEdition()}
 		<div class="row">
 			<div class="result-label col-md-3">{translate text='Edition'}:</div>
 			<div class="col-md-9 result-value">
@@ -52,6 +49,14 @@
 			</div>
 		</div>
 	{/if}
+
+	{if $showISBNs && count($recordDriver->getISBNs()) > 0}
+		<div class="row">
+			<div class="result-label col-md-3">{translate text='ISBN'}:</div>
+			<div class="col-md-9 result-value">
+				{implode subject=$recordDriver->getISBNs() glue=", "}
+			</div>
+		</div>
 	{/if}
 
 	<div class="row">
@@ -59,10 +64,11 @@
 		<div class="col-md-9 result-value result-value-bold statusValue here" id="statusValue">Available Online</div>
 	</div>
 
-	{if $recordDriver->getDescription()}
-		<div class="row">
-			<div class="result-label col-md-3">{translate text='Description'}:</div>
-			<div class="col-md-9 result-value">{$recordDriver->getDescription()}</div>
-		</div>
-	{/if}
+	{* use Description Tab instead *}
+	{*{if $recordDriver->getDescription()}*}
+	{*<div class="row">*}
+	{*<div class="result-label col-md-3">{translate text='Description'}:</div>*}
+	{*<div class="col-md-9 result-value">{$recordDriver->getDescription()}</div>*}
+	{*</div>*}
+	{*{/if}*}
 {/strip}

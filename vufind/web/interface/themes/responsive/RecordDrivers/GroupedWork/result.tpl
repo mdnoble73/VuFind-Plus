@@ -76,7 +76,7 @@
 			<div class="row">
 				<div class="result-label col-xs-3">Pub. Date: </div>
 				<div class="col-xs-9 result-value">
-					{$summPubDate}
+					{$summPubDate|escape}
 				</div>
 			</div>
 		{/if}

@@ -233,7 +233,7 @@ abstract class HorizonAPI extends Horizon{
 				$homeBranchCode = trim((string)$lookupMyAccountInfoResponse->locationID);
 				//Translate home branch to plain text
 				$location = new Location();
-				$location->whereAdd("code = '$homeBranchCode'");
+				$location->code = $homeBranchCode;
 				$location->find(1);
 				if ($location->N == 0){
 					unset($location);
@@ -272,11 +272,14 @@ abstract class HorizonAPI extends Horizon{
 			//TODO: See if we can get information about card expiration date
 			$expireClose = 0;
 
-			//TODO: Calculate total fines
 			$finesVal = 0;
 			if (isset($lookupMyAccountInfoResponse->BlockInfo)){
 				foreach ($lookupMyAccountInfoResponse->BlockInfo as $block){
-					$finesVal += $block->balance;
+					// $block is a simplexml object with attribute info about currency, type casting as below seems to work for adding up. plb 3-27-2015
+					$fineAmount = (float) $block->balance;
+					$finesVal += $fineAmount;
+
+
 				}
 			}
 
@@ -448,7 +451,7 @@ abstract class HorizonAPI extends Horizon{
 				$curHold['reactivate'] = $reactivateDate;
 				$curHold['reactivateTime'] = strtotime($reactivateDate);
 
-				$curHold['cancelable'] = strcasecmp($hold->status, 'Pending') == 0 || strcasecmp($curHold['status'], 'Suspended') == 0 || $hold->status == '';
+				$curHold['cancelable'] = strcasecmp($curHold['status'], 'Suspended') != 0;
 				$curHold['frozen'] = strcasecmp($curHold['status'], 'Suspended') == 0;
 				if ($curHold['frozen']){
 					$curHold['reactivateTime'] = (int)$hold->reactivateDate;
@@ -573,12 +576,18 @@ abstract class HorizonAPI extends Horizon{
 				$createHoldResponse = $this->getWebServiceResponse($createHoldUrl);
 
 				$hold_result = array();
-				if ($createHoldResponse && !isset($createHoldResponse->message)){
+				if ($createHoldResponse == true){
 					$hold_result['result'] = true;
 					$hold_result['message'] = 'Your hold was placed successfully.';
 				}else{
 					$hold_result['result'] = false;
-					$hold_result['message'] = 'Your hold could not be placed. ' . (string)$createHoldResponse->message;
+					$hold_result['message'] = 'Your hold could not be placed. ';
+					if (isset($createHoldResponse->message)){
+						$hold_result['message'] .= (string)$createHoldResponse->message;
+					}else if (isset($createHoldResponse->string)){
+						$hold_result['message'] .= (string)$createHoldResponse->string;
+					}
+
 				}
 
 				$hold_result['title']  = $title;
@@ -855,6 +864,7 @@ abstract class HorizonAPI extends Horizon{
 				$curTitle['canrenew'] = true; //TODO: Figure out if the user can renew the title or not
 				$curTitle['renewIndicator'] = (string)$itemOut->itemBarcode;
 				$curTitle['barcode'] = (string)$itemOut->itemBarcode;
+				$curTitle['holdQueueLength'] = $this->getNumHolds($bibId);
 
 				$curTitle['format'] = 'Unknown';
 				if ($curTitle['id'] && strlen($curTitle['id']) > 0){
@@ -1223,9 +1233,33 @@ abstract class HorizonAPI extends Horizon{
 			$user->cat_password = $pin1;
 			$user->update();
 			UserAccount::updateSession($user);
-			return "Your pin number was updated sucessfully.";
+			return "Your pin number was updated successfully.";
 		}else{
 			return "Sorry, we could not update your pin number. Please try again later.";
+		}
+	}
+
+	public function emailPin($barcode){
+		global $configArray;
+		$barcode = $_REQUEST['barcode'];
+
+		//email the pin to the user
+		$updatePinUrl = $configArray['Catalog']['webServiceUrl'] . '/standard/emailMyPin?clientID=' . $configArray['Catalog']['clientId'] . '&login=' . $barcode . '&profile=' . $this->hipProfile;
+
+		$updatePinResponse = $this->getWebServiceResponse($updatePinUrl);
+
+		if ($updatePinResponse == true && !isset($updatePinResponse['code'])){
+			return array(
+				'success' => true,
+			);
+		}else{
+			$result = array(
+				'error' => "Sorry, we could not e-mail your pin to you.  Please visit the library to reset your pin."
+			);
+			if (isset($updatePinResponse['code'])){
+				$result['error'] .= '  ' . $updatePinResponse['code'];
+			}
+			return $result;
 		}
 	}
 
@@ -1259,6 +1293,12 @@ abstract class HorizonAPI extends Horizon{
 			}
 		}
 		return $fields;
+	}
+
+	public function getStatusSummary($id, $record = null, $mysip = null){
+		$summary = parent::getStatusSummary($id, $record, $mysip);
+		$summary['holdQueueLength'] = $this->getNumHolds($id);
+		return $summary;
 	}
 
 	//This function does not currently work due to posting of the self registration data.  Using HIP for now in individual drivers.
@@ -1340,7 +1380,7 @@ abstract class HorizonAPI extends Horizon{
 		global $memCache;
 		global $user;
 
-		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
+		$memCache->delete('patronProfile_' . $user->id);
 
 	}
 

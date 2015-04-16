@@ -433,98 +433,133 @@ public class ExtractOverDriveInfo {
 		
 	}
 	private boolean loadProductsFromAPI() {
-		JSONObject libraryInfo = callOverDriveURL("http://api.overdrive.com/v1/libraries/" + accountId);
-		try {
-			String libraryName = libraryInfo.getString("name");
-			String mainProductUrl = libraryInfo.getJSONObject("links").getJSONObject("products").getString("href");
-			if (lastUpdateTimeParam.length() > 0){
-				if (mainProductUrl.contains("?")){
-					mainProductUrl += "&" + lastUpdateTimeParam;
-				}else{
-					mainProductUrl += "?" + lastUpdateTimeParam;
+		WebServiceResponse libraryInfoResponse = callOverDriveURL("http://api.overdrive.com/v1/libraries/" + accountId);
+		if (libraryInfoResponse.getResponseCode() == 200 && libraryInfoResponse.getResponse() != null){
+			JSONObject libraryInfo = libraryInfoResponse.getResponse();
+			try {
+				String libraryName = libraryInfo.getString("name");
+				String mainProductUrl = libraryInfo.getJSONObject("links").getJSONObject("products").getString("href");
+				if (lastUpdateTimeParam.length() > 0){
+					if (mainProductUrl.contains("?")){
+						mainProductUrl += "&" + lastUpdateTimeParam;
+					}else{
+						mainProductUrl += "?" + lastUpdateTimeParam;
+					}
 				}
-			}
-			loadProductsFromUrl(libraryName, mainProductUrl);
-			logger.info("loaded " + overDriveTitles.size() + " overdrive titles in shared collection");
-			//Get a list of advantage collections
-			if (libraryInfo.getJSONObject("links").has("advantageAccounts")){
-				JSONObject advantageInfo = callOverDriveURL(libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
-				if (advantageInfo.has("advantageAccounts")){
-					JSONArray advantageAccounts = advantageInfo.getJSONArray("advantageAccounts");
-					for (int i = 0; i < advantageAccounts.length(); i++){
-						JSONObject curAdvantageAccount = advantageAccounts.getJSONObject(i);
-						String advantageSelfUrl = curAdvantageAccount.getJSONObject("links").getJSONObject("self").getString("href");
-						JSONObject advantageSelfInfo = callOverDriveURL(advantageSelfUrl);
-						if (advantageSelfInfo != null) {
-							String advantageName = curAdvantageAccount.getString("name");
-							String productUrl = advantageSelfInfo.getJSONObject("links").getJSONObject("products").getString("href");
-							if (lastUpdateTimeParam.length() > 0) {
-								if (productUrl.contains("?")) {
-									productUrl += "&" + lastUpdateTimeParam;
-								} else {
-									productUrl += "?" + lastUpdateTimeParam;
+				loadProductsFromUrl(libraryName, mainProductUrl);
+				logger.info("loaded " + overDriveTitles.size() + " overdrive titles in shared collection");
+				//Get a list of advantage collections
+				if (libraryInfo.getJSONObject("links").has("advantageAccounts")){
+					WebServiceResponse webServiceResponse = callOverDriveURL(libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
+					if (webServiceResponse.getResponseCode() == 200){
+						JSONObject advantageInfo = webServiceResponse.getResponse();
+						if (advantageInfo.has("advantageAccounts")) {
+							JSONArray advantageAccounts = advantageInfo.getJSONArray("advantageAccounts");
+							for (int i = 0; i < advantageAccounts.length(); i++) {
+								JSONObject curAdvantageAccount = advantageAccounts.getJSONObject(i);
+								String advantageSelfUrl = curAdvantageAccount.getJSONObject("links").getJSONObject("self").getString("href");
+								WebServiceResponse advantageWebServiceResponse = callOverDriveURL(advantageSelfUrl);
+								if (advantageWebServiceResponse.getResponseCode() == 200) {
+									JSONObject advantageSelfInfo = advantageWebServiceResponse.getResponse();
+									if (advantageSelfInfo != null) {
+										String advantageName = curAdvantageAccount.getString("name");
+										String productUrl = advantageSelfInfo.getJSONObject("links").getJSONObject("products").getString("href");
+										if (lastUpdateTimeParam.length() > 0) {
+											if (productUrl.contains("?")) {
+												productUrl += "&" + lastUpdateTimeParam;
+											} else {
+												productUrl += "?" + lastUpdateTimeParam;
+											}
+										}
+
+										loadProductsFromUrl(advantageName, productUrl);
+									}
+								}else{
+									results.addNote("Unable to load advantage information for " + advantageSelfUrl);
+									if (advantageWebServiceResponse.getError() != null) {
+										results.addNote(advantageWebServiceResponse.getError());
+									}
 								}
 							}
-
-							loadProductsFromUrl(advantageName, productUrl);
 						}
+					}else{
+						results.addNote("The API indicate that the library has advantage accounts, but none were returned from " + libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
+						if (webServiceResponse.getError() != null) {
+							results.addNote(webServiceResponse.getError());
+						}
+						results.incErrors();
 					}
-				}else{
-					results.addNote("The API indicate that the library has advantage accounts, but none were returned from " + libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
-					results.incErrors();
+					logger.info("loaded " + overDriveTitles.size() + " overdrive titles in shared collection and advantage collections");
 				}
-				logger.info("loaded " + overDriveTitles.size() + " overdrive titles in shared collection and advantage collections");
+				results.setNumProducts(overDriveTitles.size());
+				return true;
+			} catch (Exception e) {
+				results.addNote("error loading information from OverDrive API " + e.toString());
+				results.incErrors();
+				logger.error("Error loading overdrive titles", e);
+				return false;
 			}
-			results.setNumProducts(overDriveTitles.size());
-			return true;
-		} catch (Exception e) {
-			results.addNote("error loading information from OverDrive API " + e.toString());
+		}else{
+			results.addNote("Unable to load library information for library " + accountId);
+			if (libraryInfoResponse.getError() != null){
+				results.addNote(libraryInfoResponse.getError());
+			}
 			results.incErrors();
-			logger.error("Error loading overdrive titles", e);
+			logger.error("Error loading overdrive titles " + libraryInfoResponse.getError());
 			return false;
 		}
+
 	}
 	
 	private void loadProductsFromUrl(String libraryName, String mainProductUrl) throws JSONException {
-		JSONObject productInfo = callOverDriveURL(mainProductUrl);
-		if (errorOnLastOverDriveCall){
-			errorsWhileLoadingProducts = true;
-		}
-		if (productInfo == null){
-			return;
-		}
-		long numProducts = productInfo.getLong("totalItems");
-		Long libraryId = getLibraryIdForOverDriveAccount(libraryName);
-		//if (numProducts > 50) numProducts = 50;
-		logger.info(libraryName + " collection has " + numProducts + " products in it.  The libraryId for the collection is " + libraryId);
-		results.addNote("Loading OverDrive information for " + libraryName);
-		results.saveResults();
-		long batchSize = 300;
-		for (int i = 0; i < numProducts; i += batchSize){
-			logger.debug("Processing " + libraryName + " batch from " + i + " to " + (i + batchSize));
-			String batchUrl = mainProductUrl;
-			if (mainProductUrl.contains("?")){
-				batchUrl += "&";
-			} else{
-				batchUrl += "?";
+		WebServiceResponse productsResponse = callOverDriveURL(mainProductUrl);
+		if (productsResponse.getResponseCode() == 200) {
+			JSONObject productInfo = productsResponse.getResponse();
+			if (productInfo == null) {
+				return;
 			}
-			batchUrl += "offset=" + i + "&limit=" + batchSize;
-			JSONObject productBatchInfo = callOverDriveURL(batchUrl);
-			if (productBatchInfo != null && productBatchInfo.has("products")){
-				JSONArray products = productBatchInfo.getJSONArray("products");
-				logger.debug(" Found " + products.length() + " products");
-				for(int j = 0; j <products.length(); j++ ){
-					JSONObject curProduct = products.getJSONObject(j);
-					OverDriveRecordInfo curRecord = loadOverDriveRecordFromJSON(libraryName, curProduct);
-					if (overDriveTitles.containsKey(curRecord.getId().toLowerCase())){
-						OverDriveRecordInfo oldRecord = overDriveTitles.get(curRecord.getId().toLowerCase());
-						oldRecord.getCollections().add(libraryId);
-					}else{
-						//logger.debug("Loading record " + curRecord.getId());
-						overDriveTitles.put(curRecord.getId().toLowerCase(), curRecord);
-					}
+			long numProducts = productInfo.getLong("totalItems");
+			Long libraryId = getLibraryIdForOverDriveAccount(libraryName);
+			//if (numProducts > 50) numProducts = 50;
+			logger.info(libraryName + " collection has " + numProducts + " products in it.  The libraryId for the collection is " + libraryId);
+			results.addNote("Loading OverDrive information for " + libraryName);
+			results.saveResults();
+			long batchSize = 300;
+			for (int i = 0; i < numProducts; i += batchSize) {
+				logger.debug("Processing " + libraryName + " batch from " + i + " to " + (i + batchSize));
+				String batchUrl = mainProductUrl;
+				if (mainProductUrl.contains("?")) {
+					batchUrl += "&";
+				} else {
+					batchUrl += "?";
 				}
+				batchUrl += "offset=" + i + "&limit=" + batchSize;
+				WebServiceResponse productBatchInfoResponse = callOverDriveURL(batchUrl);
+				if (productBatchInfoResponse.getResponseCode() == 200){
+					JSONObject productBatchInfo = productBatchInfoResponse.getResponse();
+					if (productBatchInfo != null && productBatchInfo.has("products")) {
+						JSONArray products = productBatchInfo.getJSONArray("products");
+						logger.debug(" Found " + products.length() + " products");
+						for (int j = 0; j < products.length(); j++) {
+							JSONObject curProduct = products.getJSONObject(j);
+							OverDriveRecordInfo curRecord = loadOverDriveRecordFromJSON(libraryName, curProduct);
+							if (overDriveTitles.containsKey(curRecord.getId().toLowerCase())) {
+								OverDriveRecordInfo oldRecord = overDriveTitles.get(curRecord.getId().toLowerCase());
+								oldRecord.getCollections().add(libraryId);
+							} else {
+								//logger.debug("Loading record " + curRecord.getId());
+								overDriveTitles.put(curRecord.getId().toLowerCase(), curRecord);
+							}
+						}
+					}
+				}else{
+					logger.warn("Could not load product batch " + productBatchInfoResponse.getResponseCode() + " - " + productBatchInfoResponse.getError());
+				}
+
 			}
+		}else{
+			errorsWhileLoadingProducts = true;
+
 		}
 	}
 	
@@ -588,11 +623,13 @@ public class ExtractOverDriveInfo {
 			logger.error("Unable to get api key for collection " + firstCollection);
 		}
 		String url = "http://api.overdrive.com/v1/collections/" + apiKey + "/products/" + overDriveInfo.getId() + "/metadata";
-		JSONObject metaData = callOverDriveURL(url);
-		if (metaData == null){
-			logger.error("Could not load metadata from " + url);
+		WebServiceResponse metaDataResponse = callOverDriveURL(url);
+		if (metaDataResponse.getResponseCode() != 200){
+			logger.error("Could not load metadata from " + url );
+			logger.error(metaDataResponse.getResponseCode() + ":" + metaDataResponse.getError());
 			return false;
 		}else{
+			JSONObject metaData = metaDataResponse.getResponse();
 			checksumCalculator.reset();
 			checksumCalculator.update(metaData.toString().getBytes());
 			long metadataChecksum = checksumCalculator.getValue();
@@ -880,17 +917,20 @@ public class ExtractOverDriveInfo {
 					continue;
 				}
 				String url = "http://api.overdrive.com/v1/collections/" + apiKey + "/products/" + overDriveInfo.getId() + "/availability";
-				JSONObject availability = callOverDriveURL(url);
-				if (errorOnLastOverDriveCall){
+				WebServiceResponse availabilityResponse = callOverDriveURL(url);
+				//404 is a message that availability has been deleted.
+				if (availabilityResponse.getResponseCode() != 200 && availabilityResponse.getResponseCode() != 404){
 					//We got an error calling the OverDrive API, do nothing.
 					logger.error("Error loading API for product " + overDriveInfo.getId());
-				}else if (availability == null){
+					logger.error(availabilityResponse.getResponseCode() + ":" + availabilityResponse.getError());
+				}else if (availabilityResponse.getResponse() == null){
 					if (hasExistingAvailability){
 						deleteAvailabilityStmt.setLong(1, existingAvailabilityRS.getLong("id"));
 						deleteAvailabilityStmt.executeUpdate();
 						availabilityChanged = true;
 					}
 				}else{
+					JSONObject availability = availabilityResponse.getResponse();
 					//If availability is null, it isn't available for this collection
 					try {
 						boolean available = availability.has("available") && availability.getString("available").equals("true");
@@ -960,82 +1000,72 @@ public class ExtractOverDriveInfo {
 		return availabilityChanged;
 	}
 	
-	private JSONObject callOverDriveURL(String overdriveUrl) {
+	private WebServiceResponse callOverDriveURL(String overdriveUrl) {
+		WebServiceResponse webServiceResponse = new WebServiceResponse();
 		errorOnLastOverDriveCall = false;
-		int maxConnectTries = 1; //OverDrive states that calling multiple times won't improve responses, but will take longer
-		//logger.debug("Calling overdrive URL " + overdriveUrl);
-		for (int connectTry = 0 ; connectTry < maxConnectTries; connectTry++){
-			if (connectToOverDriveAPI(connectTry != 0)){
-				if (connectTry != 0){
-					logger.debug("Connecting to " + overdriveUrl + " try " + (connectTry + 1));
+
+		if (connectToOverDriveAPI(false)) {
+			//Connect to the API to get our token
+			HttpURLConnection conn;
+			StringBuilder response = new StringBuilder();
+			try {
+				URL emptyIndexURL = new URL(overdriveUrl);
+				conn = (HttpURLConnection) emptyIndexURL.openConnection();
+				if (conn instanceof HttpsURLConnection) {
+					HttpsURLConnection sslConn = (HttpsURLConnection) conn;
+					sslConn.setHostnameVerifier(new HostnameVerifier() {
+
+						@Override
+						public boolean verify(String hostname, SSLSession session) {
+							//Do not verify host names
+							return true;
+						}
+					});
 				}
-				//Connect to the API to get our token
-				HttpURLConnection conn;
-				StringBuilder response = new StringBuilder();
-				try {
-					URL emptyIndexURL = new URL(overdriveUrl);
-					conn = (HttpURLConnection) emptyIndexURL.openConnection();
-					if (conn instanceof HttpsURLConnection){
-						HttpsURLConnection sslConn = (HttpsURLConnection)conn;
-						sslConn.setHostnameVerifier(new HostnameVerifier() {
-							
-							@Override
-							public boolean verify(String hostname, SSLSession session) {
-								//Do not verify host names
-								return true;
-							}
-						});
+				conn.setRequestMethod("GET");
+				conn.setRequestProperty("Authorization", overDriveAPITokenType + " " + overDriveAPIToken);
+				webServiceResponse.setResponseCode(conn.getResponseCode());
+
+				if (conn.getResponseCode() == 200) {
+					// Get the response
+					BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+					String line;
+					while ((line = rd.readLine()) != null) {
+						response.append(line);
 					}
-					conn.setRequestMethod("GET");
-					conn.setRequestProperty("Authorization", overDriveAPITokenType + " " + overDriveAPIToken);
-					
-					if (conn.getResponseCode() == 200) {
-						// Get the response
-						BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-						String line;
-						while ((line = rd.readLine()) != null) {
-							response.append(line);
-						}
-						//logger.debug("  Finished reading response");
-						rd.close();
-						String responseString = response.toString();
-						if (responseString.equals("null")){
-							return null;
-						}else {
-							return new JSONObject(response.toString());
-						}
+					//logger.debug("  Finished reading response");
+					rd.close();
+					String responseString = response.toString();
+					if (responseString.equals("null")) {
+						webServiceResponse.setResponse(null);
 					} else {
-						logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive API try " + connectTry );
-						// Get any errors
-						BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-						String line;
-						while ((line = rd.readLine()) != null) {
-							response.append(line);
-						}
-						logger.debug("  Finished reading response");
-						logger.debug(response.toString());
-	
-						rd.close();
-						hadTimeoutsFromOverDrive = true;
+						webServiceResponse.setResponse(new JSONObject(response.toString()));
 					}
-	
-				} catch (Exception e) {
-					logger.debug("Error loading data from overdrive API try " + connectTry, e );
+				} else {
+					// Get any errors
+					BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
+					String line;
+					while ((line = rd.readLine()) != null) {
+						response.append(line);
+					}
+					logger.info("Received error " + conn.getResponseCode() + " connecting to overdrive API " + response.toString());
+					logger.debug("  Finished reading response");
+					logger.debug(response.toString());
+					webServiceResponse.setError(response.toString());
+
+					rd.close();
 					hadTimeoutsFromOverDrive = true;
 				}
+
+			} catch (Exception e) {
+				logger.debug("Error loading data from overdrive API ", e);
+				hadTimeoutsFromOverDrive = true;
 			}
-			//Something went wrong, try to wait a second to see if the OverDrive API will catch up.
-			/*try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				logger.debug("Could not pause between tries " + connectTry);
-			}*/
+		}else{
+			logger.error("Unable to connect to API");
 		}
-		logger.error("Failed to call overdrive url " +overdriveUrl + " in " + maxConnectTries + " calls");
-		results.addNote("Failed to call overdrive url " +overdriveUrl + " in " + maxConnectTries + " calls");
-		results.saveResults();
-		errorOnLastOverDriveCall = true;
-		return null;
+
+		return webServiceResponse;
 	}
 
 	private boolean connectToOverDriveAPI(boolean getNewToken){
