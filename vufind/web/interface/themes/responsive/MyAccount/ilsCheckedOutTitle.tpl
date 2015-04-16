@@ -3,11 +3,13 @@
 		<div class="col-xs-12 col-sm-3 col-md-3">
 			<div class="row">
 				<div class="selectTitle col-xs-2">
+					{if !isset($record.renewable) || $record.renewable == true}
 					<input type="checkbox" name="selected[{$record.renewIndicator}]" class="titleSelect" id="selected{$record.itemid}"/>
+					{/if}
 				</div>
 				<div class="col-xs-10 text-center coverColumn">
 					{if $user->disableCoverArt != 1}
-						{if $record.id}
+						{if $record.id && $record.coverUrl}
 							<a href="{$path}/Record/{$record.id|escape:"url"}">
 								<img src="{$record.coverUrl}" class="listResultImage img-thumbnail img-responsive" alt="{translate text='Cover Image'}"/>
 							</a>
@@ -84,7 +86,7 @@
 						</div>
 					</div>
 
-					{if $showRenewed}
+					{if $showRenewed && $record.renewCount}
 						<div class="row">
 							<div class="result-label col-md-3">{translate text='Renewed'}</div>
 							<div class="col-md-9 result-value">
@@ -111,8 +113,12 @@
 
 				<div class="col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
-						{*<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-primary">Renew</a>*}
-						<a href="#" onclick="return VuFind.Account.renewTitle('{$record.renewIndicator}');" class="btn btn-sm btn-primary">{translate text='Renew'}</a>
+						{if !isset($record.renewable) || $record.renewable == true}
+							{*<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-primary">Renew</a>*}
+							<a href="#" onclick="return VuFind.Account.renewTitle('{$record.renewIndicator}');" class="btn btn-sm btn-primary">{translate text='Renew'}</a>
+						{else}
+							Sorry, this title cannot be renewed
+						{/if}
 					</div>
 
 					{* Include standard tools *}

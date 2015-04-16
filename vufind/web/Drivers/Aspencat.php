@@ -799,6 +799,13 @@ class Aspencat implements DriverInterface{
 							$numRenewalsRemaining = $renewalData[2];
 							$numRenewalsAllowed = $renewalData[3];
 							$transaction['renewCount'] = $numRenewalsAllowed - $numRenewalsRemaining;
+						}elseif(preg_match('/not renewable.*?\\((\\d+) of (\\d+) renewals/si', $tableCell, $renewalData)){
+							$transaction['renewable'] = false;
+							$numRenewalsRemaining = $renewalData[1];
+							$numRenewalsAllowed = $renewalData[2];
+							$transaction['renewCount'] = $numRenewalsAllowed - $numRenewalsRemaining;
+						}elseif(preg_match('/not renewable/si', $tableCell, $renewalData)){
+							$transaction['renewable'] = false;
 						}
 					}
 					//TODO: Add display of fines on a title?
@@ -2109,7 +2116,7 @@ class Aspencat implements DriverInterface{
 			$kohaUrl = "$catalogUrl/cgi-bin/koha/opac-renew.pl";
 			$kohaUrl .= "?" . http_build_query($postParams);
 
-			$this->getKohaPage($kohaUrl);
+			$kohaResponse = $this->getKohaPage($kohaUrl);
 
 			//TODO: Renewal Failure Messages needed
 			if (true) {
