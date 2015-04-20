@@ -1594,7 +1594,8 @@ class Solr implements IndexEngine {
 				}else if ($searchLibrary->restrictSearchByLibrary){
 					$filter[] = "$institutionFacetName:\"{$owningLibrary}\"";
 				}else if (!$searchLibrary->enableOverdriveCollection){
-					$filter[] = "!($institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
+					//This doesn't work because it effectively removes anything with both OverDrive and Print titles
+					//$filter[] = "!($institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
 				}
 			}
 
@@ -1604,7 +1605,8 @@ class Solr implements IndexEngine {
 				}else if ($searchLocation->restrictSearchByLocation){
 					$filter[] = "($buildingFacetName:\"{$searchLocation->facetLabel}\")";
 				}else if (!$searchLocation->enableOverdriveCollection){
-					$filter[] = "!($buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLibrary->facetLabel} Online\")";
+					//This doesn't work because it effectively removes anything with both OverDrive and Print titles
+					//$filter[] = "!($buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLibrary->facetLabel} Online\")";
 				}
 			}
 
