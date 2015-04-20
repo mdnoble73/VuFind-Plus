@@ -582,6 +582,9 @@ class Solr implements IndexEngine {
 
 		$searchLibrary = Library::getSearchLibrary();
 		$searchLocation = Location::getSearchLocation();
+		if ($searchLibrary->ilsCode == $searchLocation->code){
+			$searchLocation = null;
+		}
 		$scopingFilters = $this->getScopingFilters($searchLibrary, $searchLocation);
 		foreach ($scopingFilters as $filter){
 			$options['fq'][] = $filter;
