@@ -164,6 +164,7 @@ $searchLocation = Location::getSearchLocation(null);
 //Based on the search source, determine the search scope and set a global variable
 global $solrScope;
 $solrScope = false;
+$scopeType = '';
 if ($searchSource == 'local' || $searchSource == 'econtent'){
 	$locationIsScoped = $searchLocation != null &&
 			($searchLocation->restrictSearchByLocation ||
@@ -190,17 +191,21 @@ if ($searchSource == 'local' || $searchSource == 'econtent'){
 					)
 			)){
 		$solrScope = $searchLocation->code;
+		$scopeType = 'Location';
 	}else{
 		$solrScope = $searchLibrary->subdomain;
+		$scopeType = 'Library';
 	}
 }elseif($searchSource != 'marmot' && $searchSource != 'global'){
 	$solrScope = $searchSource;
+	$scopeType = 'Search Source';
 }
 $solrScope = trim($solrScope);
 if (strlen($solrScope) == 0){
 	$solrScope = false;
+	$scopeType = 'Unscoped';
 }
-$interface->assign('solrScope', $solrScope);
+$interface->assign('solrScope', "$solrScope - $scopeType");
 
 $searchLibrary = Library::getSearchLibrary($searchSource);
 $searchLocation = Location::getSearchLocation($searchSource);
