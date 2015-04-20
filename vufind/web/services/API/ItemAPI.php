@@ -180,9 +180,6 @@ class ItemAPI extends Action {
 		/** @var SearchObject_Solr db */
 		$this->db = new $class($url);
 
-		//Setup the results to return from the API method
-		$results = array();
-
 		//Search the database by title and author
 		if ($recordId){
 			if (preg_match('/^b\d{7}[\dx]$/', $recordId)){

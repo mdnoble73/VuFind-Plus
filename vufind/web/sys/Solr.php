@@ -1453,20 +1453,21 @@ class Solr implements IndexEngine {
 		}
 
 		if ($this->debugSolrQuery) {
-			echo '<pre>Search options: ' . print_r($options, true) . "\n";
+			$solrSearchDebug = print_r($options, true) . "\n";
 
 			if ($filters) {
-				echo "\nFilterQuery: ";
+				$solrSearchDebug .= "\nFilterQuery: ";
 				foreach ($filters as $filterItem) {
-					echo " $filterItem";
+					$solrSearchDebug .= " $filterItem";
 				}
 			}
 
 			if ($sort) {
-				echo "\nSort: " . $options['sort'];
+				$solrSearchDebug .= "\nSort: " . $options['sort'];
 			}
 
-			echo "</pre>\n";
+			global $interface;
+			$interface->assign('solrSearchDebug', $solrSearchDebug);
 		}
 		if ($this->debugSolrQuery || $this->debug){
 			$options['debugQuery'] = 'on';
@@ -1589,9 +1590,9 @@ class Solr implements IndexEngine {
 		if ($this->scopingDisabled == false){
 			if (isset($searchLibrary)){
 				if ($searchLibrary->restrictSearchByLibrary && $searchLibrary->enableOverdriveCollection){
-					$filter[] = "($institutionFacetName:\"{$searchLibrary->facetLabel}\" OR $institutionFacetName:\"Shared Digital Collection\" OR $institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
+					$filter[] = "($institutionFacetName:\"{$owningLibrary}\" OR $institutionFacetName:\"Shared Digital Collection\" OR $institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$owningLibrary} Online\")";
 				}else if ($searchLibrary->restrictSearchByLibrary){
-					$filter[] = "$institutionFacetName:\"{$searchLibrary->facetLabel}\"";
+					$filter[] = "$institutionFacetName:\"{$owningLibrary}\"";
 				}else if (!$searchLibrary->enableOverdriveCollection){
 					$filter[] = "!($institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
 				}
@@ -1975,17 +1976,19 @@ class Solr implements IndexEngine {
 		$queryString = implode('&', $query);
 
 		if ($this->debug || $this->debugSolrQuery) {
+			$solrQueryDebug = "";
 			if ($this->debugSolrQuery) {
-				echo "<pre>$method: ";
+				$solrQueryDebug .= "$method: ";
 			}
 			$fullSearchUrl = print_r($this->host . "/select/?" . $queryString, true);
 			//Add debug parameter so we can see the explain section at the bottom.
 			$debugSearchUrl = print_r($this->host . "/select/?debugQuery=on&" . $queryString, true);
 
 			if ($this->debugSolrQuery) {
-				echo "<a href='" . $debugSearchUrl . "' target='_blank'>$fullSearchUrl</a>";
-				echo "</pre>\n";
+				$solrQueryDebug .=  "<a href='" . $debugSearchUrl . "' target='_blank'>$fullSearchUrl</a>";
 			}
+			global $interface;
+			$interface->assign('solrLinkDebug', $solrQueryDebug);
 		}
 
 		if ($method == 'GET') {

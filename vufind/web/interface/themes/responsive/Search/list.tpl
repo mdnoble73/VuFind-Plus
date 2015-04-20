@@ -24,6 +24,20 @@
 			</div>
 		{/if}
 
+		{if $solrSearchDebug}
+			<div id="solrSearchOptionsToggle" onclick="$('#solrSearchOptions').toggle();">Show Search Options</div>
+			<div id="solrSearchOptions" style="display:none">
+				<pre>Search options: {$solrSearchDebug}</pre>
+			</div>
+		{/if}
+
+		{if $solrLinkDebug}
+			<div id='solrLinkToggle' onclick='$("#solrLink").toggle()'>Show Solr Link</div>
+			<div id='solrLink' style='display:none'>
+				<pre>{$solrLinkDebug}</pre>
+			</div>
+		{/if}
+
 		{if $numUnscopedResults && $numUnscopedResults != $recordCount}
 			<div class="unscopedResultCount">
 				There are <b>{$numUnscopedResults}</b> results in the entire {$consortiumName} collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
