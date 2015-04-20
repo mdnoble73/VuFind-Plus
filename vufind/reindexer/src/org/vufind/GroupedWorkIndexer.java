@@ -360,6 +360,12 @@ public class GroupedWorkIndexer {
 								indexingStats.put(locationScopeInfo.getScopeName(), new ScopedIndexingStats(locationScopeInfo.getScopeName()));
 							}else{
 								logger.debug("Not adding location scope because a library scope with the name " + locationScopeInfo.getScopeName() + " exists already.");
+								for (Scope existingLibraryScope : scopes){
+									if (existingLibraryScope.equals(locationScopeInfo)){
+										existingLibraryScope.setIsLocationScope(true);
+										break;
+									}
+								}
 							}
 						}else{
 							logger.debug("No scope needed for " + code + " because the library scope works just fine");
