@@ -71,7 +71,7 @@ public class Scope implements Comparable<Scope>{
 
 	public void setEContentLocationCodesToInclude(String[] eContentLocationCodesToInclude) {
 		for (String eContentLocationCodeToInclude : eContentLocationCodesToInclude) {
-			this.eContentLocationCodesToInclude.add(eContentLocationCodeToInclude.trim());
+			this.eContentLocationCodesToInclude.add(eContentLocationCodeToInclude.toLowerCase().trim());
 		}
 		if (eContentLocationCodesToInclude.length > 0){
 			isGlobalScope = false;
@@ -170,7 +170,7 @@ public class Scope implements Comparable<Scope>{
 
 	public boolean isEContentLocationPartOfScope(EContentIlsItem ilsRecord) {
 		String sharing = ilsRecord.getSharing();
-		String locationCode = ilsRecord.getLocation();
+		String locationCode = ilsRecord.getLocation().toLowerCase();
 		if (ilsRecord.getProtectionType().endsWith("external") && includeOutOfSystemExternalLinks){
 			return true;
 		}else if ((sharing.equals("shared") || sharing.equals("library")) && libraryLocationCodePrefix.length() >0 && locationCode.startsWith(libraryLocationCodePrefix)){
@@ -297,7 +297,7 @@ public class Scope implements Comparable<Scope>{
 
 	public boolean isEContentDirectlyOwned(EContentIlsItem ilsEContentItem) {
 		String sharing = ilsEContentItem.getSharing();
-		String locationCode = ilsEContentItem.getLocation();
+		String locationCode = ilsEContentItem.getLocation().toLowerCase();
 
 		if ((sharing.equals("shared") || sharing.equals("library")) && libraryLocationCodePrefix.length() >0 && locationCode.startsWith(libraryLocationCodePrefix)){
 			return true;

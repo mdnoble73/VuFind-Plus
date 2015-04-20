@@ -354,9 +354,13 @@ public class GroupedWorkIndexer {
 							locationScopeInfo.setIncludeHoopla(includeHoopla);
 							locationScopeInfo.setExtraLocationCodes(extraLocationCodesToInclude);
 
-							scopes.add(locationScopeInfo);
-							scopeNames.add(locationScopeInfo.getScopeName());
-							indexingStats.put(locationScopeInfo.getScopeName(), new ScopedIndexingStats(locationScopeInfo.getScopeName()));
+							if (!scopes.contains(locationScopeInfo)){
+								scopes.add(locationScopeInfo);
+								scopeNames.add(locationScopeInfo.getScopeName());
+								indexingStats.put(locationScopeInfo.getScopeName(), new ScopedIndexingStats(locationScopeInfo.getScopeName()));
+							}else{
+								logger.debug("Not adding location scope because a library scope with the name " + locationScopeInfo.getScopeName() + " exists already.");
+							}
 						}else{
 							logger.debug("No scope needed for " + code + " because the library scope works just fine");
 						}
