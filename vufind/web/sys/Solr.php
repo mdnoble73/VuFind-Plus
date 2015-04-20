@@ -1519,10 +1519,18 @@ class Solr implements IndexEngine {
 		}
 
 		if (isset($searchLocation)){
-			$owningLibrary = $searchLocation->facetLabel;
+			if (strlen($searchLocation->facetLabel) == 0){
+				$owningLibrary = $searchLocation->displayName;
+			}else{
+				$owningLibrary = $searchLocation->facetLabel;
+			}
 		}
 		if (isset($searchLibrary)){
-			$owningSystem = $searchLibrary->facetLabel;
+			if (strlen($searchLibrary->facetLabel) == 0){
+				$owningSystem = $searchLibrary->displayName;
+			}else{
+				$owningSystem = $searchLibrary->facetLabel;
+			}
 		}
 		$buildingFacetName = 'owning_location';
 		$institutionFacetName = 'owning_library';
