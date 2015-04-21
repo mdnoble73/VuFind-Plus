@@ -469,19 +469,18 @@ class CatalogConnection
 	{
 		/** @var Memcache $memCache */
 		global $memCache;
+		global $serverName;
+		$memCacheProfileKey = "patronProfile_{$serverName}_";
 		if (is_object($patron)){
-			$memCacheProfileKey = $patron->username;
-//			$memCacheProfileKey = $patron->id;
-			// Looks like all drivers but aspencat use id rather than username.
-			// plb 4-16-2014
+			$memCacheProfileKey .= $patron->username;
+
 		}else{
-			$memCacheProfileKey = $patron['username'];
-//			$memCacheProfileKey = $patron['id'];
+			$memCacheProfileKey .= $patron['username'];
 		}
 
 		$forceReload = isset($_REQUEST['reload']);
 		if (!$forceReload && $memCacheProfileKey) {
-			$cachedValue = $memCache->get('patronProfile_' . $memCacheProfileKey);
+			$cachedValue = $memCache->get($memCacheProfileKey);
 			if (!$cachedValue) $forceReload = true;
 			// when not found in memcache turn on reload to short-circuit redundant memcache checks in each of the ILS drivers for getMyProfile()
 		}
@@ -503,7 +502,7 @@ class CatalogConnection
 			$cachedValue = $profile;
 
 			global $configArray;
-			$memCacheResult = $memCache->replace('patronProfile_' . $memCacheProfileKey, $cachedValue, 0, $configArray['Caching']['patron_profile']);
+			$memCacheResult = $memCache->replace($memCacheProfileKey, $cachedValue, 0, $configArray['Caching']['patron_profile']);
 			// Update the existing key
 		}
 

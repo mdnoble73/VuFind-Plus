@@ -2819,10 +2819,8 @@ private function parseSip2Fines($finesData){
 
 	public function clearPatronProfile() {
 		/** @var Memcache $memCache */
-		global $memCache, $user;
-
-//		$memCache->delete('patronProfile_' . $user->id);
-		$memCache->delete('patronProfile_' . $user->username);
+		global $memCache, $user, $serverName;
+		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
 	}
 
 	abstract function translateCollection($collection);

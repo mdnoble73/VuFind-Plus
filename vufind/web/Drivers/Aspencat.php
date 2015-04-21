@@ -556,22 +556,23 @@ class Aspencat implements DriverInterface{
 		}
 
 			// Determine memcache key
+		global $serverName;
+		$memCacheProfileKey = "patronProfile_{$serverName}_";
 			if (is_object($patron) && !isset($tmpPatron)) {
 				// exclude the new patron object $tmpPatron created above. It won't have an id or be stored in memcache
 //				$patron         = get_object_vars($patron);
-////				$memCacheProfileKey = $patron['id'];
 //			$memCacheProfileKey = $patron['username'];
 				// $patron needs to remain an object for initial loading below
-				$memCacheProfileKey = $patron->username;
+				$memCacheProfileKey .= $patron->username;
 			} else {
 				global $user;
 //				$memCacheProfileKey = $user->id;
-				$memCacheProfileKey = $user->username;
+				$memCacheProfileKey .= $user->username;
 			}
 
 		// Check MemCache for profile
 		if (!$forceReload && !isset($_REQUEST['reload'])) {
-			$patronProfile = $memCache->get('patronProfile_' . $memCacheProfileKey);
+			$patronProfile = $memCache->get($memCacheProfileKey);
 			if ($patronProfile){
 				//echo("Using cached profile for patron " . $userId);
 				$timer->logTime('Retrieved Cached Profile for Patron');
@@ -741,8 +742,8 @@ class Aspencat implements DriverInterface{
 
 		$this->patronProfiles[$patron->username] = $profile;
 		$timer->logTime('Retrieved Profile for Patron from Database');
-		global $configArray;
-		$memCache->set('patronProfile_' . $memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
+		global $configArray, $serverName;
+		$memCache->set($memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
 		// Looks like all drivers but aspencat use id rather than username.
 		// plb 4-16-2014
 		return $profile;
@@ -2287,10 +2288,8 @@ class Aspencat implements DriverInterface{
 
 	public function clearPatronProfile() {
 		/** @var Memcache $memCache */
-		global $memCache;
-		global $user;
-//		$memCache->delete('patronProfile_' . $user->id);
-		$memCache->delete('patronProfile_' . $user->username);
+		global $memCache, $user, $serverName;
+		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
 	}
 
 	private $holdsByBib = array();

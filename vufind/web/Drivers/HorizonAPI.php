@@ -143,19 +143,22 @@ abstract class HorizonAPI extends Horizon{
 		/** @var Memcache $memCache */
 		global $memCache;
 
-
+		global $serverName;
+		$memCacheProfileKey = "patronProfile_{$serverName}_";
 		if (is_object($patron)) {
 			$patron = get_object_vars($patron);
-//			$memCacheProfileKey = $patron['id'];
-			$memCacheProfileKey = $patron['username'];
+			$userId = $patron['id'];
+			$patronUserName = $patron['username'];
+			$memCacheProfileKey .= $patron['username'];
 		} else {
 			global $user;
-//			$memCacheProfileKey = $user->id;
-			$memCacheProfileKey = $user->username;
+			$userId = $user->id;
+			$patronUserName = $user->username;
+			$memCacheProfileKey .= $user->username;
 		}
 
 		if (!$forceReload && !isset($_REQUEST['reload'])) {
-			$patronProfile = $memCache->get('patronProfile_' . $memCacheProfileKey);
+			$patronProfile = $memCache->get($memCacheProfileKey);
 			if ($patronProfile){
 				$timer->logTime('Retrieved Cached Profile for Patron');
 				return $patronProfile;
@@ -179,8 +182,7 @@ abstract class HorizonAPI extends Horizon{
 
 			if (!$user){
 				$user = new User();
-//				$user->id = $memCacheProfileKey;
-				$user->username = $memCacheProfileKey;
+				$user->username = $patronUserName;
 
 				if ($user->find(true)){
 					$location = new Location();
@@ -193,8 +195,8 @@ abstract class HorizonAPI extends Horizon{
 
 		}else{
 			//Load the raw information about the patron from web services
-			if (isset(HorizonAPI::$sessionIdsForUsers[$memCacheProfileKey])){
-				$sessionToken = HorizonAPI::$sessionIdsForUsers[$memCacheProfileKey];
+			if (isset(HorizonAPI::$sessionIdsForUsers[$userId])){
+				$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
 				// keys off username
 			}else{
 				//Log the user in
@@ -399,7 +401,7 @@ abstract class HorizonAPI extends Horizon{
 		}
 
 		$timer->logTime("Got Patron Profile");
-		$memCache->set('patronProfile_' . $memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
+		$memCache->set($memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
 		return $profile;
 	}
 
