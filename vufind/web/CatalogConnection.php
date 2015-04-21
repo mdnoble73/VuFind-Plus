@@ -565,7 +565,7 @@ class CatalogConnection
 
 	function updatePatronInfo($canUpdateContactInfo)
 	{
-		return $this->driver->updatePatronInfo($canUpdateContactInfo);
+		return $errors = $this->driver->updatePatronInfo($canUpdateContactInfo);
 	}
 
 	function selfRegister(){

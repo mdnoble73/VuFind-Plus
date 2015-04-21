@@ -79,7 +79,8 @@ class MyAccount_Profile extends MyAccount
 			$updateScope = $_REQUEST['updateScope'];
 			if ($updateScope == 'contact'){
 				$errors = $this->catalog->updatePatronInfo($canUpdateContactInfo);
-				$_SESSION['profileUpdateErrors'] = serialize($errors);
+				session_start(); // any writes to the session storage also closes session. Happens in updatePatronInfo. plb 4-21-2015
+				$_SESSION['profileUpdateErrors'] = $errors;
 
 			}elseif($updateScope == 'catalog'){
 				$user->updateCatalogOptions();
@@ -92,7 +93,8 @@ class MyAccount_Profile extends MyAccount
 				$user->updateOverDriveOptions();
 			}elseif ($updateScope == 'pin') {
 				$errors = $this->catalog->updatePin();
-				$_SESSION['profileUpdateErrors'] = serialize($errors);
+				session_start(); // any writes to the session storage also closes session. possibly happens in updatePin. plb 4-21-2015
+				$_SESSION['profileUpdateErrors'] = $errors;
 			}
 
 			session_write_close();
@@ -114,7 +116,7 @@ class MyAccount_Profile extends MyAccount
 
 		// TODO: bug error messages not surviving reload in session.
 		if (isset($_SESSION['profileUpdateErrors'])){
-			$interface->assign('profileUpdateErrors', unserialize($_SESSION['profileUpdateErrors']));
+			$interface->assign('profileUpdateErrors', $_SESSION['profileUpdateErrors']);
 			unset($_SESSION['profileUpdateErrors']);
 		}
 
