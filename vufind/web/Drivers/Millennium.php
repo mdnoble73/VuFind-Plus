@@ -598,12 +598,12 @@ class MillenniumDriver implements DriverInterface
 
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
-			$memCacheProfileKey = $patron['id'];
+//			$memCacheProfileKey = $patron['id'];
 			$memCacheProfileKey = $patron['username'];
 			$id2 = $this->_getBarcode($patron);
 		}else{
 			global $user;
-			$memCacheProfileKey = $user->id;
+//			$memCacheProfileKey = $user->id;
 			$memCacheProfileKey = $user->username;
 			$id2= $patron['cat_password'];
 		}

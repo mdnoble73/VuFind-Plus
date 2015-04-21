@@ -79,7 +79,7 @@ class MyAccount_Profile extends MyAccount
 			$updateScope = $_REQUEST['updateScope'];
 			if ($updateScope == 'contact'){
 				$errors = $this->catalog->updatePatronInfo($canUpdateContactInfo);
-				session_start(); // any writes to the session storage also closes session. Happens in updatePatronInfo. plb 4-21-2015
+				session_start(); // any writes to the session storage also closes session. Happens in updatePatronInfo (for Horizon). plb 4-21-2015
 				$_SESSION['profileUpdateErrors'] = $errors;
 
 			}elseif($updateScope == 'catalog'){
