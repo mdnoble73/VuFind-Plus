@@ -13,6 +13,12 @@
 
 				<h2>{translate text='Account Settings'}</h2>
 
+			{if $profileUpdateErrors}
+				{foreach from=$profileUpdateErrors item=errorMsg}
+					<div class='alert alert-danger'>{$errorMsg}</div>
+				{/foreach}
+			{/if}
+
 			<div class="panel-group" id="account-settings-accordion">
 				{* ILS Settings *}
 				<div class="panel active">

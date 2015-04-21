@@ -78,24 +78,21 @@ class MyAccount_Profile extends MyAccount
 		if (isset($_POST['updateScope']) && !$configArray['Catalog']['offline']) {
 			$updateScope = $_REQUEST['updateScope'];
 			if ($updateScope == 'contact'){
-				$result = $this->catalog->updatePatronInfo($canUpdateContactInfo);
-				$_SESSION['profileUpdateErrors'] = $result;
+				$errors = $this->catalog->updatePatronInfo($canUpdateContactInfo);
+				$_SESSION['profileUpdateErrors'] = serialize($errors);
+
 			}elseif($updateScope == 'catalog'){
 				$user->updateCatalogOptions();
-				// overdrive setting keep changing
 			}elseif($updateScope == 'overdrive'){
+				// overdrive setting keep changing
 			/*	require_once ROOT_DIR . '/Drivers/OverDriveDriverFactory.php';
 				$overDriveDriver = OverDriveDriverFactory::getDriver();
 				$result = $overDriveDriver->updateLendingOptions();
 */
 				$user->updateOverDriveOptions();
 			}elseif ($updateScope == 'pin') {
-				$result = $this->catalog->updatePin();
-				$_SESSION['profileUpdateErrors'] = $result;
-
-				session_write_close();
-				header("Location: " . $configArray['Site']['path'] . '/MyAccount/Profile');
-				exit();
+				$errors = $this->catalog->updatePin();
+				$_SESSION['profileUpdateErrors'] = serialize($errors);
 			}
 
 			session_write_close();
@@ -115,8 +112,9 @@ class MyAccount_Profile extends MyAccount
 		}*/
 		$interface->assign('overDriveUrl', $configArray['OverDrive']['url']);
 
+		// TODO: bug error messages not surviving reload in session.
 		if (isset($_SESSION['profileUpdateErrors'])){
-			$interface->assign('profileUpdateErrors', $_SESSION['profileUpdateErrors']);
+			$interface->assign('profileUpdateErrors', unserialize($_SESSION['profileUpdateErrors']));
 			unset($_SESSION['profileUpdateErrors']);
 		}
 

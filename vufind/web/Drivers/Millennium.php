@@ -598,19 +598,21 @@ class MillenniumDriver implements DriverInterface
 
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
-			$userId = $patron['id'];
+			$memCacheProfileKey = $patron['id'];
+			$memCacheProfileKey = $patron['username'];
 			$id2 = $this->_getBarcode($patron);
 		}else{
 			global $user;
-			$userId = $user->id;
+			$memCacheProfileKey = $user->id;
+			$memCacheProfileKey = $user->username;
 			$id2= $patron['cat_password'];
 		}
-
-		$patronProfile = $memCache->get('patronProfile_' . $userId);
-		if ($patronProfile && !isset($_REQUEST['reload']) && !$forceReload){
-			//echo("Using cached profile for patron " . $userId);
-			$timer->logTime('Retrieved Cached Profile for Patron');
-			return $patronProfile;
+		if (!$forceReload && !isset($_REQUEST['reload'])) {
+			$patronProfile = $memCache->get('patronProfile_' . $memCacheProfileKey);
+			if ($patronProfile) {
+				$timer->logTime('Retrieved Cached Profile for Patron');
+				return $patronProfile;
+			}
 		}
 
 		global $user;
@@ -852,7 +854,7 @@ class MillenniumDriver implements DriverInterface
 		}
 
 		$timer->logTime("Got Patron Profile");
-		$memCache->set('patronProfile_' . $patron['id'], $profile, 0, $configArray['Caching']['patron_profile']) ;
+		$memCache->set('patronProfile_' . $memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
 		return $profile;
 	}
 
@@ -1011,11 +1013,12 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, is_null($cookieJar) ? true : false);
 
 		$post_data = $this->_getLoginFormValues();
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+//		$post_items = array();
+//		foreach ($post_data as $key => $value) {
+//			$post_items[] = $key . '=' . urlencode($value);
+//		}
+//		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$sResult = curl_exec($this->curl_connection);
 		//When a library uses Encore, the initial login does a redirect and requires additonal parameters.
@@ -1153,6 +1156,9 @@ class MillenniumDriver implements DriverInterface
 		global $user;
 		global $configArray;
 		global $analytics;
+		$updateErrors = array();
+
+		//TODO: Implement returning Update Errors
 
 		//Setup the call to Millennium
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
@@ -1225,11 +1231,7 @@ class MillenniumDriver implements DriverInterface
 			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 			curl_setopt($curl_connection, CURLOPT_POST, true);
 			$post_data = $this->_getLoginFormValues();
-			$post_items = array();
-			foreach ($post_data as $key => $value) {
-				$post_items[] = $key . '=' . urlencode($value);
-			}
-			$post_string = implode ('&', $post_items);
+			$post_string = http_build_query($post_data);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 			$loginResult = curl_exec($curl_connection);
 			//When a library uses Encore, the initial login does a redirect and requires additional parameters.
@@ -1239,22 +1241,15 @@ class MillenniumDriver implements DriverInterface
 				//Login again
 				$post_data['lt'] = $lt;
 				$post_data['_eventId'] = 'submit';
-				$post_items = array();
-				foreach ($post_data as $key => $value) {
-					$post_items[] = $key . '=' . $value;
-				}
-				$post_string = implode ('&', $post_items);
+				$post_string = http_build_query($post_data);
 				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 				$loginResult = curl_exec($curl_connection);
 				$curlInfo = curl_getinfo($curl_connection);
 			}
 
 			//Issue a post request to update the patron information
-			$post_items = array();
-			foreach ($extraPostInfo as $key => $value) {
-				$post_items[] = $key . '=' . urlencode($value);
-			}
-			$patronUpdateParams = implode ('&', $post_items);
+
+			$patronUpdateParams = http_build_query($extraPostInfo);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/modpinfo";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
@@ -1267,7 +1262,9 @@ class MillenniumDriver implements DriverInterface
 			/** @var Memcache $memCache */
 			global $memCache;
 			$memCache->delete("patron_dump_{$this->_getBarcode()}");
-			$memCache->delete('patronProfile_' . $user->id);
+			$this->clearPatronProfile();
+
+			return $updateErrors;
 		}
 
 		//Should get Patron Information Updated on success
@@ -1562,11 +1559,12 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
 		$post_data['name'] = $configArray['Catalog']['ils_admin_user'];
 		$post_data['code'] = $configArray['Catalog']['ils_admin_pwd'];
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+//		$post_items = array();
+//		foreach ($post_data as $key => $value) {
+//			$post_items[] = $key . '=' . urlencode($value);
+//		}
+//		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		curl_exec($curl_connection);
 
@@ -1803,11 +1801,12 @@ class MillenniumDriver implements DriverInterface
 		//Now submit the request
 		$post_data['code'] = $barcode;
 		$post_data['pat_submit'] = 'xxx';
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . $value;
-		}
-		$post_string = implode ('&', $post_items);
+//		$post_items = array();
+//		foreach ($post_data as $key => $value) {
+//			$post_items[] = $key . '=' . $value;
+//		}
+//		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$pinResetResultPageHtml = curl_exec($curl_connection);
@@ -1953,7 +1952,8 @@ class MillenniumDriver implements DriverInterface
 		global $memCache;
 		global $user;
 
-		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
+//		$memCache->delete('patronProfile_' . $user->id);
+		$memCache->delete('patronProfile_' . $user->username);
 
 	}
 

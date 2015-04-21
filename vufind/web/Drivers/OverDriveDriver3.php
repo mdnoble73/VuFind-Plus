@@ -1108,7 +1108,9 @@ class OverDriveDriver3 {
 		global $memCache;
 		global $user;
 
-		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
+//		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
+		$patronProfile = $memCache->delete('patronProfile_' . $user->username);
+		// TODO: test the functionality of this change
 
 	}
 }
