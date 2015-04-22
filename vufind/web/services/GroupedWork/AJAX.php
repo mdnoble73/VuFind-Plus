@@ -259,7 +259,7 @@ class GroupedWork_AJAX {
 		$url = (count($relatedRecords) == 1) ? $relatedRecords[0]['url'] : $recordDriver->getLinkUrl();
 
 		$results = array(
-				'title' => $recordDriver->getTitle(),
+				'title' => "<a href='$url'>{$recordDriver->getTitle()}</a>",
 				'modalBody' => $interface->fetch("GroupedWork/work-details.tpl"),
 				'modalButtons' => "<a href='$url'><span class='tool btn btn-primary'>More Info</span></a>"
 		);
