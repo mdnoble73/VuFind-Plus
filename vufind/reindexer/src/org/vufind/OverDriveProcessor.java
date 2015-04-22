@@ -199,13 +199,19 @@ public class OverDriveProcessor {
 							}
 							owningLibraries.add(libraryMap.get(libraryId));
 							owningSubdomainsAndLocations.add(subdomainMap.get(libraryId));
-							owningSubdomainsAndLocations.addAll(locationsForLibrary.get(libraryId));
+							HashSet<String> thisLocationsForLibrary = locationsForLibrary.get(libraryId);
+							if (thisLocationsForLibrary != null) {
+								owningSubdomainsAndLocations.addAll(thisLocationsForLibrary);
+								owningLocations.addAll(thisLocationsForLibrary);
+							}
 							owningSubdomains.add(subdomainMap.get(libraryId));
-							owningLocations.addAll(locationsForLibrary.get(libraryId));
+
 							if (available) {
 								availableLibraries.add(libraryMap.get(libraryId));
 								availableSubdomainsAndLocations.add(subdomainMap.get(libraryId));
-								availableSubdomainsAndLocations.addAll(locationsForLibrary.get(libraryId));
+								if (thisLocationsForLibrary != null) {
+									availableSubdomainsAndLocations.addAll(thisLocationsForLibrary);
+								}
 							}
 						}//End processing availability
 					}
