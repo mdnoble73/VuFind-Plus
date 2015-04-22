@@ -1590,9 +1590,9 @@ class Solr implements IndexEngine {
 		if ($this->scopingDisabled == false){
 			if (isset($searchLibrary)){
 				if ($searchLibrary->restrictSearchByLibrary && $searchLibrary->enableOverdriveCollection){
-					$filter[] = "($institutionFacetName:\"{$owningLibrary}\" OR $institutionFacetName:\"Shared Digital Collection\" OR $institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$owningLibrary} Online\")";
+					$filter[] = "($institutionFacetName:\"{$owningSystem}\" OR $institutionFacetName:\"Shared Digital Collection\" OR $institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$owningSystem} Online\")";
 				}else if ($searchLibrary->restrictSearchByLibrary){
-					$filter[] = "$institutionFacetName:\"{$owningLibrary}\"";
+					$filter[] = "$institutionFacetName:\"{$owningSystem}\"";
 				}else if (!$searchLibrary->enableOverdriveCollection){
 					//This doesn't work because it effectively removes anything with both OverDrive and Print titles
 					//$filter[] = "!($institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
@@ -1601,9 +1601,9 @@ class Solr implements IndexEngine {
 
 			if ($searchLocation != null){
 				if ($searchLocation->restrictSearchByLocation && $searchLocation->enableOverdriveCollection){
-					$filter[] = "($buildingFacetName:\"{$searchLocation->facetLabel}\" OR $buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLocation->facetLabel} Online\")";
+					$filter[] = "($buildingFacetName:\"{$owningLibrary}\" OR $buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$owningLibrary} Online\")";
 				}else if ($searchLocation->restrictSearchByLocation){
-					$filter[] = "($buildingFacetName:\"{$searchLocation->facetLabel}\")";
+					$filter[] = "($buildingFacetName:\"{$owningLibrary}\")";
 				}else if (!$searchLocation->enableOverdriveCollection){
 					//This doesn't work because it effectively removes anything with both OverDrive and Print titles
 					//$filter[] = "!($buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLibrary->facetLabel} Online\")";
