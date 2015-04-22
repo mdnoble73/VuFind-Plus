@@ -1049,7 +1049,7 @@ class GroupedWorkDriver extends RecordInterface{
 	private $relatedRecords = null;
 	public function getRelatedRecords($realTimeStatusNeeded = true) {
 		global $timer;
-		if ($this->relatedRecords == null){
+		if ($this->relatedRecords == null || isset($_REQUEST['reload'])){
 			$timer->logTime("Starting to load related records for {$this->getUniqueID()}");
 			$relatedRecords = array();
 

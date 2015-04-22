@@ -1618,7 +1618,7 @@ class MarcRecord extends IndexRecord
 
 	private $relatedRecords = null;
 	function getRelatedRecords($realTimeStatusNeeded = true){
-		if ($this->relatedRecords == null){
+		if ($this->relatedRecords == null || isset($_REQUEST['reload'])){
 			global $configArray;
 			global $timer;
 			global $interface;
@@ -1932,7 +1932,7 @@ class MarcRecord extends IndexRecord
 	private $fastItems = null;
 	public function getItemsFast(){
 		global $timer;
-		if ($this->fastItems == null){
+		if ($this->fastItems == null || isset($_REQUEST['reload'])){
 			$searchLibrary = Library::getSearchLibrary();
 			$extraLocations = '';
 			if ($searchLibrary){
