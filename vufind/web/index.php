@@ -529,7 +529,7 @@ if ($action == "AJAX" || $action == "JSON"){
 }
 
 //Determine if we should include autoLogout Code
-$ipLocation = $locationSingleton->getIPLocation();
+$ipLocation = $locationSingleton->getPhysicalLocation();
 $ipId = $locationSingleton->getIPid();
 
 $interface->assign('automaticTimeoutLength', 0);
