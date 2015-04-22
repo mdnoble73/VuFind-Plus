@@ -595,20 +595,19 @@ class MillenniumDriver implements DriverInterface
 		global $configArray;
 		/** @var Memcache $memCache */
 		global $memCache;
-
+		global $serverName;
+		$memCacheProfileKey = "patronProfile_{$serverName}_";
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
-//			$memCacheProfileKey = $patron['id'];
-			$memCacheProfileKey = $patron['username'];
+			$memCacheProfileKey .= $patron['username'];
 			$id2 = $this->_getBarcode($patron);
 		}else{
 			global $user;
-//			$memCacheProfileKey = $user->id;
-			$memCacheProfileKey = $user->username;
+			$memCacheProfileKey .= $user->username;
 			$id2= $patron['cat_password'];
 		}
 		if (!$forceReload && !isset($_REQUEST['reload'])) {
-			$patronProfile = $memCache->get('patronProfile_' . $memCacheProfileKey);
+			$patronProfile = $memCache->get($memCacheProfileKey);
 			if ($patronProfile) {
 				$timer->logTime('Retrieved Cached Profile for Patron');
 				return $patronProfile;
@@ -854,7 +853,7 @@ class MillenniumDriver implements DriverInterface
 		}
 
 		$timer->logTime("Got Patron Profile");
-		$memCache->set('patronProfile_' . $memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
+		$memCache->set($memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
 		return $profile;
 	}
 
@@ -1257,6 +1256,9 @@ class MillenniumDriver implements DriverInterface
 
 			curl_close($curl_connection);
 			unlink($cookieJar);
+
+			// TODO: success check here
+			// TODO: update $user object?
 
 			//Make sure to clear any cached data
 			/** @var Memcache $memCache */
@@ -1949,12 +1951,8 @@ class MillenniumDriver implements DriverInterface
 
 	public function clearPatronProfile() {
 		/** @var Memcache $memCache */
-		global $memCache;
-		global $user;
-
-//		$memCache->delete('patronProfile_' . $user->id);
-		$memCache->delete('patronProfile_' . $user->username);
-
+		global $memCache, $user, $serverName;
+		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
 	}
 
 	public function getSelfRegistrationFields(){
