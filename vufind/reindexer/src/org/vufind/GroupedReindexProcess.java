@@ -119,6 +119,9 @@ public class GroupedReindexProcess {
 		} catch (Error e) {
 			logger.error("Error processing reindex ", e);
 			addNoteToReindexLog("Error processing reindex " + e.toString());
+		} catch (Exception e) {
+			logger.error("Exception processing reindex ", e);
+			addNoteToReindexLog("Exception processing reindex " + e.toString());
 		}
 
 		// Send completion information
