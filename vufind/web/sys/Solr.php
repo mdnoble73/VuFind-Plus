@@ -1990,7 +1990,9 @@ class Solr implements IndexEngine {
 				$solrQueryDebug .=  "<a href='" . $debugSearchUrl . "' target='_blank'>$fullSearchUrl</a>";
 			}
 			global $interface;
-			$interface->assign('solrLinkDebug', $solrQueryDebug);
+			if ($interface){
+				$interface->assign('solrLinkDebug', $solrQueryDebug);
+			}
 		}
 
 		if ($method == 'GET') {
