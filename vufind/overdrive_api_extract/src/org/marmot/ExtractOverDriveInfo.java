@@ -821,7 +821,8 @@ public class ExtractOverDriveInfo {
 										addFormatStmt.setString(10, sample.getString("source"));
 										addFormatStmt.setString(11, sample.getString("url"));
 									}else{
-										logger.warn("Record " + overDriveInfo.getId() + " had more than 2 samples for format " + format.getString("name"));
+										//Reduce logging level since 2 samples is plenty
+										logger.info("Record " + overDriveInfo.getId() + " had more than 2 samples for format " + format.getString("name"));
 									}
 								}
 							}
