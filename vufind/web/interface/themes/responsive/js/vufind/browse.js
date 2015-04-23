@@ -70,26 +70,35 @@ VuFind.Browse = (function(){
 
 		changeBrowseCategory: function(categoryTextId){
 			var url = Globals.path + '/Browse/AJAX?method=getBrowseCategoryInfo&textId=' + categoryTextId,
-					newLabel = $('#browse-category-'+categoryTextId+' div').text(); // get label from corresponding li div
+					newLabel = $('#browse-category-'+categoryTextId+' div').first().text(); // get label from corresponding li div
+			// the carousel clones these divs sometimes, so grab only the text from the first one.
 
 			$('.browse-category').removeClass('selected');
 			$('#browse-category-' + categoryTextId).addClass('selected');
-			$('.selected-browse-label-search-text').html(newLabel);
-			//$('.selected-browse-label-text, .selected-browse-label-search-text').html(newLabel);
-			// .selected-browse-label-text seems to be a defunct class. plb 1-6-2015
+			//$('.selected-browse-label-search-text').html(newLabel)
+			$('.selected-browse-label-search-text').fadeOut(function(){
+				$(this).html(newLabel).fadeIn()
+			});
+
 
 			$.getJSON(url, function(data){
 				if (data.result == false){
 					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
 				}else{
-					//$('.selected-browse-label-text, .selected-browse-label-search-text').html(data.label);
-					$('.selected-browse-label-search-text').html(data.label);
+					if (data.label != newLabel) $('.selected-browse-label-search-text').html(data.label);
 
 					VuFind.Browse.curPage = 1;
 					VuFind.Browse.curCategory = data.textId;
-					$('#home-page-browse-thumbnails').html(data.records);
+					//$('#home-page-browse-thumbnails').html(data.records); // original
+					$('.home-page-browse-thumbnails, .home-page-browse-thumbnails ~ hr').slice(1).remove();
+					// remove all but the first thumbnail divs, also removes the <hr>s between the thumbnail divs
+
+					//$('.home-page-browse-thumbnails').html(data.records);
+					$('.home-page-browse-thumbnails').hide().html(data.records).fadeIn('slow');
 					$('#selected-browse-search-link').attr('href', data.searchUrl);
 				}
+			}).fail(function(){
+				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 			});
 			return false;
 		},
@@ -109,17 +118,138 @@ VuFind.Browse = (function(){
 		},
 
 
+		//getMoreResults: function(){
+		//	var url = Globals.path + '/Browse/AJAX?method=getMoreBrowseResults&textId=' + this.curCategory + "&pageToLoad=" + (this.curPage + 1);
+		//	$.getJSON(url, function(data){
+		//		if (data.result == false){
+		//			VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
+		//		}else{
+		//			$('#home-page-browse-thumbnails').append(data.records);
+		//			VuFind.Browse.curPage++;
+		//		}
+		//	});
+		//	return false;
+		//},
+
 		getMoreResults: function(){
-			var url = Globals.path + '/Browse/AJAX?method=getMoreBrowseResults&textId=' + this.curCategory + "&pageToLoad=" + (this.curPage + 1);
-			$.getJSON(url, function(data){
+			var url = Globals.path + '/Browse/AJAX',
+					params = {
+						method : 'getMoreBrowseResults'
+						,textId :  this.curCategory
+						,pageToLoad : this.curPage + 1
+					};
+			$.getJSON(url, params, function(data){
 				if (data.result == false){
 					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
 				}else{
-					$('#home-page-browse-thumbnails').append(data.records);
+					var newDiv = $('<div class="home-page-browse-thumbnails row" />').hide().append(data.records);
+					// Below is for when records are returned as an array
+					//var newDiv = $('<div class="home-page-browse-thumbnails row" />').hide();
+					//$.each(data.records, function(i, record){
+					//	newDiv.append(record);
+					//});
+					//newDiv.before('<hr>');
+					$('.home-page-browse-thumbnails').filter(':last').after(newDiv).after('<hr>');
+					newDiv.fadeIn('slow');
 					VuFind.Browse.curPage++;
 				}
+			}).fail(function(){
+				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 			});
 			return false;
 		}
+		//getMoreResults: function(){
+		//	var url = Globals.path + '/Browse/AJAX',
+		//			params = {
+		//				method : 'getMoreBrowseResults'
+		//				,textId :  this.curCategory
+		//				,pageToLoad : this.curPage + 1
+		//			};
+		//	$.getJSON(url, params, function(data){
+		//		if (data.result == false){
+		//			VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
+		//		}else{
+		//			var browseDiv = $('#home-page-browse-thumbnails'),
+		//					columns =  parseInt(browseDiv.css('column-count')) || parseInt(browseDiv.css('-moz-column-count')) || parseInt(browseDiv.css('-webkit-column-count')) || 6,
+		//					tiles, totalTiles, itemsPerCol, // define these variables so that they exist for each iteration of the callback function below
+		//					unevenCols = 0; // (assuming larger columns will be on the left)
+		//			$.each(data.records, function(i, record){
+		//				var colToAddTo = unevenCols + i%columns + 1;
+		//				if (colToAddTo == 1 || tiles == undefined) {
+		//					// recalculate after each row that has been added.
+		//					tiles = browseDiv.children('div.browse-title');
+		//					totalTiles = tiles.length;
+		//					itemsPerCol = totalTiles/columns;
+		//					unevenCols = totalTiles % columns;  //(0 when even)
+		//					if (unevenCols) colToAddTo = unevenCols + i%columns + 1; // offset insert point when the columns are uneven.
+		//				}
+		//				var objectToAddAfter = itemsPerCol*colToAddTo - 1;
+		//				record = $(record).hide();
+		//				tiles.eq(objectToAddAfter).after(record);
+		//			});
+		//			//browseDiv.children('div.browse-title').filter(':hidden').show(2000);
+		//			var temp = browseDiv.children('div.browse-title').filter(':hidden');
+		//
+		//		temp.fadeIn('slow');
+		//			VuFind.Browse.curPage++;
+		//		}
+		//	}).fail(function(){
+		//		VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+		//	});
+		//	return false;
+		//}
+
+		// development version //
+		//getMoreResults: function(){
+		//	var url = Globals.path + '/Browse/AJAX',
+		//			params = {
+		//				method : 'getMoreBrowseResults'
+		//				,textId :  this.curCategory
+		//				,pageToLoad : this.curPage + 1
+		//			};
+		//	$.getJSON(url, params, function(data){
+		//		if (data.result == false){
+		//			VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
+		//		}else{
+		//			var browseDiv = $('#home-page-browse-thumbnails'),
+		//					columns =  parseInt(browseDiv.css('column-count')) || parseInt(browseDiv.css('-moz-column-count')) || parseInt(browseDiv.css('-webkit-column-count')) || 6;
+		//
+		//			// verbose way for the above
+		//			//var columns =  parseInt(browseDiv.css('column-count'));
+		//			//if (!columns) {
+		//			//	columns = parseInt(browseDiv.css('-moz-column-count'));
+		//			//	if (!columns) {
+		//			//		columns = parseInt(browseDiv.css('-webkit-column-count'));
+		//			//		if (!columns) columns = 6;
+		//			//	}
+		//			//}
+		//			console.log('columns : '+columns);
+		//			//console.log(data.records);
+		//
+		//			var tiles, totalTiles, itemsPerCol, // define these variables so that they exist for each iteration of the callback function below
+		//					unevenCols = 0; // (assuming larger columns will be on the left)
+		//			$.each(data.records, function(i, record){
+		//				var colToAddTo = unevenCols + i%columns + 1;
+		//				if (colToAddTo == 1 || tiles == undefined) {
+		//					// recalculate after each row that has been added.
+		//					tiles = browseDiv.children('div.browse-title');
+		//					totalTiles = tiles.length;
+		//					itemsPerCol = totalTiles/columns;
+		//					unevenCols = totalTiles % columns;  //(0 when even)
+		//					if (unevenCols) colToAddTo = unevenCols + i%columns + 1; // // offset insert point when the columns are uneven.
+		//				}
+		//				var objectToAddAfter = itemsPerCol*colToAddTo - 1;
+		//				console.log('object to add to index: '+objectToAddAfter);
+		//				//console.log(tiles.eq(objectToAddAfter));
+		//
+		//				tiles.eq(objectToAddAfter).after(record);
+		//			});
+		//			VuFind.Browse.curPage++;
+		//		}
+		//	}).fail(function(){
+		//		VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+		//	});
+		//	return false;
+		//}
 	}
 }(VuFind.Browse || {}));

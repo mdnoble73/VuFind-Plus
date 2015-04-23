@@ -10,7 +10,7 @@
 						<ul>
 							{foreach from=$browseCategories item=browseCategory name="browseCategoryLoop"}
 								<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9} {if $smarty.foreach.browseCategoryLoop.index == 0}selected{/if}" data-category-id="{$browseCategory->textId}" id="browse-category-{$browseCategory->textId}">
-									<a href="#" {* onclick="return VuFind.Browse.changeBrowseCategory('{$browseCategory->textId}');"*}>{* js now implemented throught browse.js. These links can be removed once styling referencing it is adjusted. plb 12-22-2014 *}
+									<a{* href="#"  causes the page to bounce to the top, and is very jarring. *}{* onclick="return VuFind.Browse.changeBrowseCategory('{$browseCategory->textId}');"*}>{* js now implemented throught browse.js. These links can be removed once styling referencing it is adjusted. plb 12-22-2014 *}
 										<div >
 											{$browseCategory->label}
 										</div>
@@ -44,9 +44,13 @@
 			</div>
 
 
-			<div class="row" id="home-page-browse-thumbnails">
+			<div class="row home-page-browse-thumbnails">
 				{$browseResults.records}
 			</div>
+			{* TODO: original structure, decide which to keep *}
+			{*<div class="row" id="home-page-browse-thumbnails">*}
+				{*{$browseResults.records}*}
+			{*</div>*}
 			<a href="#" onclick = "return VuFind.Browse.getMoreResults();">
 				<div class="row" id="more-browse-results">
 					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Browse Results" title="Load More Browse Results">
