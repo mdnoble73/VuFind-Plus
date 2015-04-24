@@ -10,11 +10,12 @@
 						<ul>
 							{foreach from=$browseCategories item=browseCategory name="browseCategoryLoop"}
 								<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9} {if $smarty.foreach.browseCategoryLoop.index == 0}selected{/if}" data-category-id="{$browseCategory->textId}" id="browse-category-{$browseCategory->textId}">
-									<a{* href="#"  causes the page to bounce to the top, and is very jarring. *}{* onclick="return VuFind.Browse.changeBrowseCategory('{$browseCategory->textId}');"*}>{* js now implemented throught browse.js. These links can be removed once styling referencing it is adjusted. plb 12-22-2014 *}
+									{*<a*}{* href="#"  causes the page to bounce to the top, and is very jarring. *}{*>*}{* js now implemented through browse.js. These links can be removed once styling referencing it is adjusted. plb 12-22-2014 *}
+									{* links removed 4-23-2015 *}
 										<div >
 											{$browseCategory->label}
 										</div>
-									</a>
+									{*</a>*}
 								</li>
 							{/foreach}
 						</ul>

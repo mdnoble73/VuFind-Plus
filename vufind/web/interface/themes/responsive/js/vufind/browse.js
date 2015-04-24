@@ -69,19 +69,24 @@ VuFind.Browse = (function(){
 		},
 
 		changeBrowseCategory: function(categoryTextId){
-			var url = Globals.path + '/Browse/AJAX?method=getBrowseCategoryInfo&textId=' + categoryTextId,
+			var url = Globals.path + '/Browse/AJAX',
+					params = {method : 'getBrowseCategoryInfo',textId: categoryTextId},
 					newLabel = $('#browse-category-'+categoryTextId+' div').first().text(); // get label from corresponding li div
 			// the carousel clones these divs sometimes, so grab only the text from the first one.
 
 			$('.browse-category').removeClass('selected');
 			$('#browse-category-' + categoryTextId).addClass('selected');
-			//$('.selected-browse-label-search-text').html(newLabel)
 			$('.selected-browse-label-search-text').fadeOut(function(){
-				$(this).html(newLabel).fadeIn()
+				$(this).html(newLabel).attr('href', '').fadeIn()
 			});
 
-
-			$.getJSON(url, function(data){
+			// hide current results while fetching new results
+			$('.home-page-browse-thumbnails, .home-page-browse-thumbnails ~ hr').fadeOut(function(){
+				$('.home-page-browse-thumbnails, .home-page-browse-thumbnails ~ hr').slice(1).remove(); // remove all but the first thumbnail divs, also removes the <hr>s between the thumbnail divs
+				//using $(this) doesn't work.
+			});
+			if (VuFind.Browse.reload) params.reload = ''; // Reload browse category
+			$.getJSON(url, params, function(data){
 				if (data.result == false){
 					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
 				}else{
@@ -89,16 +94,13 @@ VuFind.Browse = (function(){
 
 					VuFind.Browse.curPage = 1;
 					VuFind.Browse.curCategory = data.textId;
-					//$('#home-page-browse-thumbnails').html(data.records); // original
-					$('.home-page-browse-thumbnails, .home-page-browse-thumbnails ~ hr').slice(1).remove();
-					// remove all but the first thumbnail divs, also removes the <hr>s between the thumbnail divs
-
-					//$('.home-page-browse-thumbnails').html(data.records);
-					$('.home-page-browse-thumbnails').hide().html(data.records).fadeIn('slow');
+					$('.home-page-browse-thumbnails') //.hide()
+							.html(data.records).fadeIn('slow');
 					$('#selected-browse-search-link').attr('href', data.searchUrl);
 				}
 			}).fail(function(){
 				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+				$('.home-page-browse-thumbnails').html('').show();
 			});
 			return false;
 		},
