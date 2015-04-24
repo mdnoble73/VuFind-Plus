@@ -7872,6 +7872,9 @@ hr.menu {
 #search-actions.input-group-btn {
   vertical-align: top;
 }
+#descriptionPanelBody > .panel-body {
+  white-space: pre-line;
+}
 /** Account Settings formatting */
 #account-settings-accordion .panel-group .panel + .panel {
   margin-top: 0px;
