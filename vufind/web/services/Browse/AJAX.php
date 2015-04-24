@@ -133,7 +133,7 @@ class Browse_AJAX extends Action {
 
 	private function getBrowseCategoryResults($textId, $pageToLoad = 1){
 
-		$this->searchObject = SearchObjectFactory::initSearchObject();
+//		$this->searchObject = SearchObjectFactory::initSearchObject();
 		$result = array('result' => false);
 		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
 		$browseCategory = new BrowseCategory();
@@ -174,6 +174,7 @@ class Browse_AJAX extends Action {
 
 			// Search Browse Category //
 			}else{
+				$this->searchObject = SearchObjectFactory::initSearchObject();
 				$defaultFilterInfo = $browseCategory->defaultFilter;
 				$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
 				foreach ($defaultFilters as $filter){
@@ -196,6 +197,9 @@ class Browse_AJAX extends Action {
 				$records = $this->searchObject->getBrowseRecordHTML();
 
 				$result['searchUrl'] = $this->searchObject->renderSearchUrl();
+
+				// Shutdown the search object
+				$this->searchObject->close();
 			}
 			if (count($records) == 0){
 				$records[] = $interface->fetch('Browse/noResults.tpl');
@@ -207,8 +211,6 @@ class Browse_AJAX extends Action {
 			$browseCategory->numTimesShown += 1;
 			$browseCategory->update();
 		}
-		// Shutdown the search object
-		$this->searchObject->close();
 
 		if ($pageToLoad == 1) {
 			global $memCache, $configArray, $solrScope;
