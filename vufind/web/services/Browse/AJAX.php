@@ -134,16 +134,16 @@ class Browse_AJAX extends Action {
 	private function getBrowseCategoryResults($textId, $pageToLoad = 1){
 		$browseMode = $this->setBrowseMode();
 
-//		if ($pageToLoad == 1 && !isset($_REQUEST['reload'])) {
-//			// only first page is cached
-//			global $memCache, $solrScope;
-//			$key = 'browse_category_' . $textId . '_' . $solrScope . '_' . $browseMode;
-//			$browseCategoryInfo = $memCache->get($key);
-//			if ($browseCategoryInfo != false){
-//				//TODO update viewing stats when grabbing from memcache?
-//				return $browseCategoryInfo;
-//			}
-//		}
+		if ($pageToLoad == 1 && !isset($_REQUEST['reload'])) {
+			// only first page is cached
+			global $memCache, $solrScope;
+			$key = 'browse_category_' . $textId . '_' . $solrScope . '_' . $browseMode;
+			$browseCategoryInfo = $memCache->get($key);
+			if ($browseCategoryInfo != false){
+				//TODO update viewing stats when grabbing from memcache?
+				return $browseCategoryInfo;
+			}
+		}
 
 		$result = array('result' => false);
 		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
