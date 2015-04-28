@@ -203,11 +203,10 @@ expect "C > CREATE a new file for output"
 send "C"
 expect "File name:"
 send "$name\r"
-expect {
-	"already exists. Overwrite it?"{
-		send "y"
-	}
-}
+
+expect "already exists. Overwrite it?"
+send "y"
+
 expect "Output the file now?"
 send "n"
 sleep 5; # Allows INNOPAC to complete writing, otherwise data could be truncated
