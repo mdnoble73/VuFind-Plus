@@ -290,13 +290,11 @@ if {[llength [glob -nocomplain -directory $localPath ${name}*-old]] > 0} {
 }
 
 # RENAME THE CURRENT EXTRACT TO old
-#MDN 4/28 - temporarily just copy to allow debugging of file size
-#file copy $localPath$newFileName $localPath${nameWithTime}-old
 file rename $localPath$newFileName $localPath${nameWithTime}-old
-#if {[llength [glob -nocomplain -directory $localPath ${name}*-new]] > 0} {
-#	puts [llength {glob -directory $localPath ${name}*-new}]
-#	eval file delete [glob -directory $localPath ${name}*-new]
-#}
+if {[llength [glob -nocomplain -directory $localPath ${name}*-new]] > 0} {
+	puts [llength {glob -directory $localPath ${name}*-new}]
+	eval file delete [glob -directory $localPath ${name}*-new]
+}
 
 # TO DO
 # + DELETE UPDATES FILES
