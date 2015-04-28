@@ -32,9 +32,20 @@
 			</div>
 		</div>
 	</div>
-	<div id="home-page-browse-results" class="row">
+	<div id="home-page-browse-content" class="row"> {* id renamed *}
 		<div class="col-sm-12">
+
 			<div class="row text-center" id="selected-browse-label">
+
+				<div class="btn-group btn-group-sm" data-toggle="buttons">
+					<label for="covers" title="Covers" class="btn btn-sm btn-default {if 1}active{/if}"><input onchange="VuFind.Browse.toggleBrowseMode(this.id)" type="radio" id="covers" {if 1}checked="checked"{/if}>
+						<span class="thumbnail-icon"></span><span> Covers</span>
+					</label>
+					<label for="lists" title="Lists" class="btn btn-sm btn-default {if 0}active{/if}"><input onchange="VuFind.Browse.toggleBrowseMode(this.id);" type="radio" id="lists" {if 0}checked="checked"{/if}>
+						<span class="list-icon"></span><span> Lists</span>
+					</label>
+				</div>
+
 				<div class="selected-browse-label-search">
 					<a id="selected-browse-search-link" href="{$browseResults.searchUrl}">
 						<span class="icon-before"></span> {*space needed for good padding between text and icon *}
@@ -45,14 +56,15 @@
 			</div>
 
 
-			<div class="row home-page-browse-thumbnails">
-				{$browseResults.records}
+			{* Proposed structure for lists/thumbnails*}
+			{*TODO: implement browsemode *}
+			<div id="home-page-browse-results">
+				<div class="row{if 1} home-page-browse-thumbnails{else} home-page-browse-lists{/if}">
+					{$browseResults.records}
+				</div>
 			</div>
-			{* TODO: original structure, decide which to keep *}
-			{*<div class="row" id="home-page-browse-thumbnails">*}
-				{*{$browseResults.records}*}
-			{*</div>*}
-			<a href="#" onclick = "return VuFind.Browse.getMoreResults();">
+
+			<a href="#" onclick="return VuFind.Browse.getMoreResults()">
 				<div class="row" id="more-browse-results">
 					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Browse Results" title="Load More Browse Results">
 				</div>
@@ -62,7 +74,7 @@
 {/strip}
 <script type="text/javascript">
 	{literal}
-	$(document).ready(function(){
+	$(function(){
 		VuFind.Browse.curCategory = '{/literal}{$browseResults.textId}{literal}';
 	});
 	{/literal}

@@ -132,26 +132,24 @@ class Browse_AJAX extends Action {
 
 
 	private function getBrowseCategoryResults($textId, $pageToLoad = 1){
+		$browseMode = $this->setBrowseMode();
 
-//		$this->searchObject = SearchObjectFactory::initSearchObject();
+//		if ($pageToLoad == 1 && !isset($_REQUEST['reload'])) {
+//			// only first page is cached
+//			global $memCache, $solrScope;
+//			$key = 'browse_category_' . $textId . '_' . $solrScope . '_' . $browseMode;
+//			$browseCategoryInfo = $memCache->get($key);
+//			if ($browseCategoryInfo != false){
+//				//TODO update viewing stats when grabbing from memcache?
+//				return $browseCategoryInfo;
+//			}
+//		}
+
 		$result = array('result' => false);
 		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
 		$browseCategory = new BrowseCategory();
-
-		if ($pageToLoad == 1 && !isset($_REQUEST['reload'])) {
-			// only first page is cached
-			global $memCache, $solrScope;
-			$key = 'browse_category_' . $textId . '_' . $solrScope;
-			$browseCategoryInfo = $memCache->get($key);
-			if ($browseCategoryInfo != false){
-				//TODO update viewing stats here.
-//				$browseCategory->numTimesShown += 1;
-//				$browseCategory->update();
-				return $browseCategoryInfo;
-			}
-		}
-
 		$browseCategory->textId = $textId;
+
 		if ($browseCategory->find(true)){
 			global $interface;
 			$interface->assign('browseCategoryId', $textId);
@@ -214,10 +212,31 @@ class Browse_AJAX extends Action {
 
 		if ($pageToLoad == 1) {
 			global $memCache, $configArray, $solrScope;
-			$key = 'browse_category_' . $textId . '_' . $solrScope;
+			$key = 'browse_category_' . $textId . '_' . $solrScope . '_' . $browseMode;
 			$memCache->add($key, $result, 0, $configArray['Caching']['browse_category_info']);
 		}
 		return $result;
+	}
+
+	public $browseModes = // Valid Browse Modes
+		array(
+			'covers', // default Mode
+			'lists'
+		),
+	$browseMode; // Selected Browse Mode
+
+	function setBrowseMode() {
+		// Set Browse Mode //
+		if (isset($_REQUEST['browseMode'])) {
+			$browseMode = in_array($_REQUEST['browseMode'], $this->browseModes) ? $_REQUEST['browseMode'] : $this->browseModes[0];
+		} else $browseMode = $this->browseModes[0];
+
+		$this->browseMode = $browseMode;
+
+		global $interface;
+		$interface->assign('browseMode', $browseMode); // sets the template switch that is created in GroupedWork object
+
+		return $browseMode;
 	}
 
 	function getBrowseCategoryInfo($textId = null){

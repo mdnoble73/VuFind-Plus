@@ -1,9 +1,9 @@
 VuFind.Responsive = (function(){
 	$(document).ready(function(){
+		// Attach Responsive Actions to window resizing
 		$(window).resize(function(){
 			VuFind.Responsive.adjustLayout();
-		});
-		$(window).trigger('resize');
+		}).trigger('resize');
 
 		// auto adjust the height of the search box
 		$('#lookfor').on( 'keyup', function (event ){
@@ -13,14 +13,12 @@ VuFind.Responsive = (function(){
 			}else{
 				$(this).height( this.scrollHeight );
 			}
-		});
-		$('#lookfor').on( 'keydown', function (event ){
+		}).on( 'keydown', function (event ){
 			if (event.which == 13){
 				event.preventDefault();
 				$("#searchForm").submit();
 			}
-		});
-		$('#lookfor').keyup();
+		}).keyup();
 	});
 
 	try{
