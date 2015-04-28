@@ -341,9 +341,9 @@ class Solr implements IndexEngine {
 	 */
 	function getRecord($id, $fieldsToReturn = null)
 	{
-		if ($this->debugSolrQuery) {
+		/*if ($this->debugSolrQuery) {
 			echo "<pre>Get Record: $id</pre>\n";
-		}
+		}*/
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
@@ -582,9 +582,12 @@ class Solr implements IndexEngine {
 
 		$searchLibrary = Library::getSearchLibrary();
 		$searchLocation = Location::getSearchLocation();
-		if ($searchLibrary->ilsCode == $searchLocation->code){
-			$searchLocation = null;
+		if ($searchLibrary && $searchLocation){
+			if ($searchLibrary->ilsCode == $searchLocation->code){
+				$searchLocation = null;
+			}
 		}
+
 		$scopingFilters = $this->getScopingFilters($searchLibrary, $searchLocation);
 		foreach ($scopingFilters as $filter){
 			$options['fq'][] = $filter;
