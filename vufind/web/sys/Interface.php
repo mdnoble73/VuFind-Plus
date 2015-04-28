@@ -135,6 +135,7 @@ class UInterface extends Smarty
 		}else if (isset($configArray['Catalog']['hipUrl'])){
 			$this->assign('classicCatalogUrl', $configArray['Catalog']['hipUrl']);
 		}
+		$this->assign('showConvertListsFromClassic', $configArray['Catalog']['showConvertListsFromClassic']);
 
 		$this->assign('theme', $this->vufindTheme);
 		$this->assign('primaryTheme', reset($themeArray));

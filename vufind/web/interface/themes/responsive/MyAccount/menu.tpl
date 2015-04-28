@@ -88,6 +88,10 @@
 					</a>
 					<div id="myListsPanel" class="panel-collapse collapse {if $action == 'MyRatings' || $action == 'Suggested Titles' || $action == 'MyList'}in{/if}">
 						<div class="panel-body">
+							{if $showConvertListsFromClassic}
+								<div class="myAccountLink"><a href="{$path}/MyAccount/ImportListsFromClassic">Import Lists from Classic</a></div>
+								<br/>
+							{/if}
 
 							{foreach from=$lists item=list}
 								{if $list.id != -1}

@@ -1874,7 +1874,7 @@ class MillenniumDriver implements DriverInterface
 				if (preg_match('/<table[^>]*?class="patFunc"[^>]*?>(.*?)<\/table>/si', $listDetailsPage, $listsDetailsMatches)) {
 					$listTitlesTable = $listsDetailsMatches[1];
 					//Get the bib numbers for the title
-					preg_match_all('/<input type="checkbox" name="(b\\d{1,7})".*?<td[^>]*class="patFuncTitle">(.*?)<\/td>/si', $listTitlesTable, $bibNumberMatches, PREG_SET_ORDER);
+					preg_match_all('/<input type="checkbox" name="(b\\d{1,7})".*?<span[^>]*class="patFuncTitle(?:Main)?">(.*?)<\/span>/si', $listTitlesTable, $bibNumberMatches, PREG_SET_ORDER);
 					for ($bibCtr = 0; $bibCtr < count($bibNumberMatches); $bibCtr++){
 						$bibNumber = $bibNumberMatches[$bibCtr][1];
 						$bibTitle = strip_tags($bibNumberMatches[$bibCtr][2]);
@@ -1884,7 +1884,7 @@ class MillenniumDriver implements DriverInterface
 						require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 						$primaryIdentifier = new GroupedWorkPrimaryIdentifier();
 						$groupedWork = new GroupedWork();
-						$primaryIdentifier->identifier = '.' + $bibNumber + $this->getCheckDigit($bibNumber);
+						$primaryIdentifier->identifier = '.' . $bibNumber . $this->getCheckDigit($bibNumber);
 						$primaryIdentifier->type = 'ils';
 						$primaryIdentifier->joinAdd($groupedWork);
 						if ($primaryIdentifier->find(true)){
