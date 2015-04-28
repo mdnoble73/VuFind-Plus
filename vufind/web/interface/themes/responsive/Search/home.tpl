@@ -38,10 +38,10 @@
 			<div class="row text-center" id="selected-browse-label">
 
 				<div class="btn-group btn-group-sm" data-toggle="buttons">
-					<label for="covers" title="Covers" class="btn btn-sm btn-default {if 1}active{/if}"><input onchange="VuFind.Browse.toggleBrowseMode(this.id)" type="radio" id="covers" {if 1}checked="checked"{/if}>
+					<label for="covers" title="Covers" class="btn btn-sm btn-default {if $browseMode == 'covers'}active{/if}"><input onchange="VuFind.Browse.toggleBrowseMode(this.id)" type="radio" id="covers" {if 1}checked="checked"{/if}>
 						<span class="thumbnail-icon"></span><span> Covers</span>
 					</label>
-					<label for="lists" title="Lists" class="btn btn-sm btn-default {if 0}active{/if}"><input onchange="VuFind.Browse.toggleBrowseMode(this.id);" type="radio" id="lists" {if 0}checked="checked"{/if}>
+					<label for="lists" title="Lists" class="btn btn-sm btn-default {if $browseMode == 'lists'}active{/if}"><input onchange="VuFind.Browse.toggleBrowseMode(this.id);" type="radio" id="lists" {if 0}checked="checked"{/if}>
 						<span class="list-icon"></span><span> Lists</span>
 					</label>
 				</div>
@@ -55,11 +55,8 @@
 				</div>
 			</div>
 
-
-			{* Proposed structure for lists/thumbnails*}
-			{*TODO: implement browsemode *}
 			<div id="home-page-browse-results">
-				<div class="row{if 1} home-page-browse-thumbnails{else} home-page-browse-lists{/if}">
+				<div class="row{if $browseMode=='covers'} home-page-browse-thumbnails{elseif $browseMode=='lists'} home-page-browse-lists{/if}">
 					{$browseResults.records}
 				</div>
 			</div>
@@ -76,6 +73,7 @@
 	{literal}
 	$(function(){
 		VuFind.Browse.curCategory = '{/literal}{$browseResults.textId}{literal}';
+		VuFind.Browse.browseMode = '{/literal}{$browseMode}{literal}';
 	});
 	{/literal}
 </script>

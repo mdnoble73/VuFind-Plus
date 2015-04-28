@@ -227,9 +227,21 @@ class Browse_AJAX extends Action {
 
 	function setBrowseMode() {
 		// Set Browse Mode //
-		if (isset($_REQUEST['browseMode'])) {
-			$browseMode = in_array($_REQUEST['browseMode'], $this->browseModes) ? $_REQUEST['browseMode'] : $this->browseModes[0];
-		} else $browseMode = $this->browseModes[0];
+		if (isset($_REQUEST['browseMode']) && in_array($_REQUEST['browseMode'], $this->browseModes)) { // user is setting mode (will be in most calls)
+			$browseMode = $_REQUEST['browseMode'];
+		} elseif (!empty($this->browseMode)) { // mode is already set
+			$browseMode = $this->browseMode;
+		} else { // check library & location settings
+			global $location;
+			if (!empty($location->defaultBrowseMode)) { // check location setting
+				$browseMode = $location->defaultBrowseMode;
+			} else {
+				global $library;
+				if (!empty($library->defaultBrowseMode)) { // check location setting
+					$browseMode = $library->defaultBrowseMode;
+				} else $browseMode = $this->browseModes[0]; // default setting
+			}
+		}
 
 		$this->browseMode = $browseMode;
 

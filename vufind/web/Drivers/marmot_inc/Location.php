@@ -59,6 +59,7 @@ class Location extends DB_DataObject
 	public $availabilityToggleLabelSuperScope;
 	public $availabilityToggleLabelLocal;
 	public $availabilityToggleLabelAvailable;
+	public $defaultBrowseMode;
 
 	/** @var  array $data */
 	protected $data;
@@ -136,7 +137,9 @@ class Location extends DB_DataObject
 			array('property'=>'displaySection', 'type' => 'section', 'label' =>'Basic Display', 'hideInLists' => true, 'properties' => array(
 				array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'hideInLists' => true, 'size'=>'40'),
 				array('property'=>'additionalCss', 'type'=>'textarea', 'label'=>'Additional CSS', 'description'=>'Extra CSS to apply to the site.  Will apply to all pages.', 'hideInLists' => true),
-			)),
+				'defaultBrowseMode' => array('property' => 'defaultBrowseMode', 'type' => 'enum', 'label'=>'Default Viewing Mode for Browse Categories', 'description' => 'Sets how browse categories will be displayed when users haven\'t chosen themselves.', 'hideInLists' => true,
+				                             'values'=> array('covers' => 'Show Covers Only', 'lists' => 'Show as Lists'),),
+				)),
 
 			array('property'=>'ilsSection', 'type' => 'section', 'label' =>'ILS/Account Integration', 'hideInLists' => true, 'properties' => array(
 				array('property'=>'holdingBranchLabel', 'type'=>'text', 'label'=>'Holding Branch Label', 'description'=>'The label used within the holdings table in Millennium'),
