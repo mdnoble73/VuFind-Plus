@@ -138,7 +138,8 @@ class Location extends DB_DataObject
 				array('property'=>'homeLink', 'type'=>'text', 'label'=>'Home Link', 'description'=>'The location to send the user when they click on the home button or logo.  Use default or blank to go back to the vufind home location.', 'hideInLists' => true, 'size'=>'40'),
 				array('property'=>'additionalCss', 'type'=>'textarea', 'label'=>'Additional CSS', 'description'=>'Extra CSS to apply to the site.  Will apply to all pages.', 'hideInLists' => true),
 				'defaultBrowseMode' => array('property' => 'defaultBrowseMode', 'type' => 'enum', 'label'=>'Default Viewing Mode for Browse Categories', 'description' => 'Sets how browse categories will be displayed when users haven\'t chosen themselves.', 'hideInLists' => true,
-				                             'values'=> array('covers' => 'Show Covers Only', 'lists' => 'Show as Lists'),),
+				                             'values'=> array('' => null, 'covers' => 'Show Covers Only', 'lists' => 'Show as Lists'),),
+																					// empty value option is needed so that if no option is specifically chosen for location, the library setting will be used instead.
 				)),
 
 			array('property'=>'ilsSection', 'type' => 'section', 'label' =>'ILS/Account Integration', 'hideInLists' => true, 'properties' => array(

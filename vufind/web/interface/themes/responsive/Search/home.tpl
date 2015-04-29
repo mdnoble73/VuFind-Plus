@@ -47,7 +47,7 @@
 				</div>
 
 				<div class="selected-browse-label-search">
-					<a id="selected-browse-search-link" href="{$browseResults.searchUrl}">
+					<a id="selected-browse-search-link" href="{$browseResults.searchUrl}" title="See the search results page for this browse category">
 						<span class="icon-before"></span> {*space needed for good padding between text and icon *}
 						<span class="selected-browse-label-search-text"> {$browseResults.label}</span>
 						<span class="icon-after"></span>
