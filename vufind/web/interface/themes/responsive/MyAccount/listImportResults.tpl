@@ -13,9 +13,6 @@
 				</ul>
 			</div>
 		{/if}
-		<p>
-			<a href="http://www.surveymonkey.com/s/vufindplus_feedback">Please get in touch with us if you need assistance.</a>
-		</p>
 	{/if}
 	</div>
 {/strip}
