@@ -36,6 +36,7 @@ public class GroupedWorkIndexer {
 	private String solrPort;
 	private Logger logger;
 	private SolrServer solrServer;
+	private Long indexStartTime;
 	private ConcurrentUpdateSolrServer updateServer;
 	private IlsRecordProcessor ilsRecordProcessor;
 	private OverDriveProcessor overDriveProcessor;
@@ -67,6 +68,7 @@ public class GroupedWorkIndexer {
 	PreparedStatement getGroupedWorkIdentifiers;
 
 	public GroupedWorkIndexer(String serverName, Connection vufindConn, Connection econtentConn, Ini configIni, boolean fullReindex, Logger logger) {
+		indexStartTime = new Date().getTime() / 1000;
 		this.serverName = serverName;
 		this.logger = logger;
 		this.vufindConn = vufindConn;
@@ -612,18 +614,17 @@ public class GroupedWorkIndexer {
 	}
 
 	private void updateLastReindexTime() {
-		//Update the last grouping time in the variables table
+		//Update the last grouping time in the variables table.  This needs to be the time the index started to catch anything that changes during the index
 		try{
-			Long finishTime = new Date().getTime() / 1000;
 			if (lastReindexTimeVariableId != null){
 				PreparedStatement updateVariableStmt  = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
-				updateVariableStmt.setLong(1, finishTime);
+				updateVariableStmt.setLong(1, indexStartTime);
 				updateVariableStmt.setLong(2, lastReindexTimeVariableId);
 				updateVariableStmt.executeUpdate();
 				updateVariableStmt.close();
 			} else{
 				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_reindex_time', ?)");
-				insertVariableStmt.setString(1, Long.toString(finishTime));
+				insertVariableStmt.setString(1, Long.toString(indexStartTime));
 				insertVariableStmt.executeUpdate();
 				insertVariableStmt.close();
 			}
@@ -633,10 +634,11 @@ public class GroupedWorkIndexer {
 	}
 
 	public Long processGroupedWorks() {
-		Long numWorksProcessed = 0l;
+		Long numWorksProcessed = 0L;
 		try {
 			PreparedStatement getAllGroupedWorks;
 			PreparedStatement getNumWorksToIndex;
+			PreparedStatement setLastUpdatedTime = vufindConn.prepareStatement("UPDATE grouped_work set date_updated = ? where id = ?");
 			if (fullReindex){
 				getAllGroupedWorks = vufindConn.prepareStatement("SELECT * FROM grouped_work", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				getNumWorksToIndex = vufindConn.prepareStatement("SELECT count(id) FROM grouped_work", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
@@ -659,6 +661,10 @@ public class GroupedWorkIndexer {
 				Long id = groupedWorks.getLong("id");
 				String permanentId = groupedWorks.getString("permanent_id");
 				String grouping_category = groupedWorks.getString("grouping_category");
+				Long lastUpdated = groupedWorks.getLong("date_updated");
+				if (groupedWorks.wasNull()){
+					lastUpdated = null;
+				}
 				processGroupedWork(id, permanentId, grouping_category);
 
 				numWorksProcessed++;
@@ -669,6 +675,11 @@ public class GroupedWorkIndexer {
 				if (maxWorksToProcess != -1 && numWorksProcessed >= maxWorksToProcess){
 					logger.warn("Stopping processing now because we've reached the max works to process.");
 					break;
+				}
+				if (lastUpdated == null){
+					setLastUpdatedTime.setLong(1, indexStartTime - 1); //Set just before the index started so we don't index multiple times
+					setLastUpdatedTime.setLong(2, id);
+					setLastUpdatedTime.executeUpdate();
 				}
 			}
 		} catch (SQLException e) {

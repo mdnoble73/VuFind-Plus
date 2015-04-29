@@ -91,6 +91,11 @@ do
 	cd /usr/local/vufind-plus/vufind/millennium_export/
 	./ITEM_UPDATE_EXTRACT_PIKA_4_Flatirons.exp ${PIKASERVER} ${ILSSERVER}
 
+	#process the export from Millennium to give Pika what it needs
+	#echo "Starting Millennium Export - `date`" >> ${OUTPUT_FILE}
+	cd /usr/local/vufind-plus/vufind/millennium_export/
+	java -jar millennium_export.jar ${PIKASERVER} >> ${OUTPUT_FILE}
+
 	#export from overdrive
 	#echo "Starting OverDrive Extract - `date`" >> ${OUTPUT_FILE}
 	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/

@@ -748,9 +748,7 @@ public class GroupedWorkSolr {
 	}
 
 	public void setFormatBoost(Long formatBoost) {
-		if (formatBoost > this.formatBoost){
-			this.formatBoost = formatBoost;
-		}
+		this.formatBoost += formatBoost;
 	}
 
 	public void addHoldings(int recordHoldings) {

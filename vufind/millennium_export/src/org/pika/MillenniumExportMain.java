@@ -20,6 +20,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
+import java.util.zip.CRC32;
 
 public class MillenniumExportMain{
 	private static Logger logger = Logger.getLogger(MillenniumExportMain.class);
@@ -30,6 +31,8 @@ public class MillenniumExportMain{
 	private static char locationSubfield;
 	private static char statusSubfield;
 	private static char dueDateSubfield;
+	private static String defaultDueDate;
+	private static String dueDateFormat;
 
 	public static void main(String[] args){
 		serverName = args[0];
@@ -108,6 +111,12 @@ public class MillenniumExportMain{
 		}
 	}
 
+	public static long getChecksum(Record marcRecord) {
+		CRC32 crc32 = new CRC32();
+		crc32.update(marcRecord.toString().getBytes());
+		return crc32.getValue();
+	}
+
 	private static void loadHolds(File holdsExport) {
 		Savepoint startOfHolds = null;
 		try {
@@ -169,22 +178,22 @@ public class MillenniumExportMain{
 		locationSubfield = getSubfieldIndicatorFromConfig(ini, "locationSubfield");
 		statusSubfield = getSubfieldIndicatorFromConfig(ini, "statusSubfield");
 		dueDateSubfield = getSubfieldIndicatorFromConfig(ini, "dueDateSubfield");
+		dueDateFormat = cleanIniValue(ini.get("Reindex", "dateAddedFormat"));
+		defaultDueDate = dueDateFormat.replaceAll("[Mdy]", " ");
 
 		//Last Update in UTC
 		SimpleDateFormat dateFormatter = new SimpleDateFormat("MM-dd-yyyy");
 		long updateTime = new Date().getTime() / 1000;
 
 		SimpleDateFormat csvDateFormat = new SimpleDateFormat("MM-dd-yyyy");
-		SimpleDateFormat marcDateFormat = new SimpleDateFormat("MM-dd-yy");
+		SimpleDateFormat marcDateFormat = new SimpleDateFormat(dueDateFormat);
 
 		//Merge item changes with the individual marc records and
-		HashMap<String, ArrayList<ItemChangeInfo>> changedBibs = new HashMap<String, ArrayList<ItemChangeInfo>>();
+		HashMap<String, ArrayList<ItemChangeInfo>> changedItemsByBib = new HashMap<String, ArrayList<ItemChangeInfo>>();
 		try {
 			CSVReader updateReader = new CSVReader(new FileReader(itemUpdateDataFile), '\t');
 			//Read each line in the file
 			String[] curItem = updateReader.readNext();
-			//First line is the header, skip that.
-			curItem = updateReader.readNext();
 			while (curItem != null){
 				if (curItem.length >= 5) {
 					ItemChangeInfo changeInfo = new ItemChangeInfo();
@@ -200,6 +209,8 @@ public class MillenniumExportMain{
 							logger.error("Error parsing date " + curItem[3], e);
 							changeInfo.setDueDate(curItem[3]);
 						}
+					}else if (curItem[3].equals("  -  -    ")) {
+						changeInfo.setDueDate(defaultDueDate);
 					} else {
 						changeInfo.setDueDate(curItem[3]);
 					}
@@ -207,11 +218,11 @@ public class MillenniumExportMain{
 
 					String fullId = "." + curId;
 					ArrayList<ItemChangeInfo> itemChanges;
-					if (changedBibs.containsKey(fullId)) {
-						itemChanges = changedBibs.get(fullId);
+					if (changedItemsByBib.containsKey(fullId)) {
+						itemChanges = changedItemsByBib.get(fullId);
 					}else{
 						itemChanges = new ArrayList<ItemChangeInfo>();
-						changedBibs.put(fullId, itemChanges);
+						changedItemsByBib.put(fullId, itemChanges);
 					}
 					itemChanges.add(changeInfo);
 				}else{
@@ -231,11 +242,12 @@ public class MillenniumExportMain{
 			vufindConn.setAutoCommit(false);
 			PreparedStatement markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'ils' and identifier = ?)") ;
 
-			logger.info("A total of " + changedBibs.size() + " bibs were updated");
+			logger.info("A total of " + changedItemsByBib.size() + " bibs were updated");
 			int numUpdates = 0;
-			for (String curBibId : changedBibs.keySet()) {
+			for (String curBibId : changedItemsByBib.keySet()) {
 				//Update the marc record
-				updateMarc(individualMarcPath, curBibId, changedBibs.get(curBibId));
+				long newChecksum = updateMarc(individualMarcPath, curBibId, changedItemsByBib.get(curBibId));
+				//Mark that the checksum has changed within database
 				//Update the database
 				try {
 					markGroupedWorkForBibAsChangedStmt.setLong(1, updateTime);
@@ -267,8 +279,9 @@ public class MillenniumExportMain{
 		return new File(individualFilename);
 	}
 
-	private static void updateMarc(String individualMarcPath, String curBibId, ArrayList<ItemChangeInfo> itemChangeInfo) {
+	private static Long updateMarc(String individualMarcPath, String curBibId, ArrayList<ItemChangeInfo> itemChanges) {
 		//Load the existing marc record from file
+		long newChecksum = -1L;
 		try {
 			File marcFile = getFileForIlsRecord(individualMarcPath, curBibId);
 			if (marcFile.exists()) {
@@ -276,6 +289,7 @@ public class MillenniumExportMain{
 				MarcPermissiveStreamReader marcReader = new MarcPermissiveStreamReader(inputStream, true, true, "UTF-8");
 				if (marcReader.hasNext()) {
 					Record marcRecord = marcReader.next();
+					Long oldChecksum = getChecksum(marcRecord);
 					inputStream.close();
 
 					//Loop through all item fields to see what has changed
@@ -285,7 +299,7 @@ public class MillenniumExportMain{
 						if (itemField.getSubfield(itemRecordNumberSubfield) != null) {
 							String itemRecordNumber = itemField.getSubfield(itemRecordNumberSubfield).getData();
 							//Update the items
-							for (ItemChangeInfo curItem : itemChangeInfo) {
+							for (ItemChangeInfo curItem : itemChanges) {
 								//Find the correct item
 								if (itemRecordNumber.equals(curItem.getItemId())) {
 									setSubfield(itemField, locationSubfield, curItem.getLocation());
@@ -293,7 +307,7 @@ public class MillenniumExportMain{
 
 									if (curItem.getDueDate() == null) {
 										if (itemField.getSubfield(dueDateSubfield) != null) {
-											itemField.getSubfield(dueDateSubfield).setData("      ");
+											itemField.getSubfield(dueDateSubfield).setData(defaultDueDate);
 										}
 									} else {
 										if (itemField.getSubfield(dueDateSubfield) == null) {
@@ -302,15 +316,25 @@ public class MillenniumExportMain{
 											itemField.getSubfield(dueDateSubfield).setData(curItem.getDueDate());
 										}
 									}
+									itemChanges.remove(curItem);
+									break;
 								}
 							}
 						}
+					}
+
+					for (ItemChangeInfo itemChange : itemChanges){
+						logger.warn("Could not find item within bib " + curBibId + " for item " + itemChange.getItemId());
 					}
 
 					//Write the new marc record
 					MarcWriter writer = new MarcStreamWriter(new FileOutputStream(marcFile, false));
 					writer.write(marcRecord);
 					writer.close();
+
+					newChecksum = getChecksum(marcRecord);
+
+
 				} else {
 					logger.warn("Could not read marc record for " + curBibId);
 				}
@@ -320,6 +344,7 @@ public class MillenniumExportMain{
 		}catch (Exception e){
 			logger.error("Error updating marc record for bib " + curBibId, e);
 		}
+		return newChecksum;
 	}
 
 	private static void setSubfield(DataField itemField, char subfield, String value) {

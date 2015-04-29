@@ -71,8 +71,8 @@ public class ScopedWorkDetails {
 	public void setFormatBoost(Long formatBoost) {
 		if (this.formatBoost == null) {
 			this.formatBoost = formatBoost;
-		} else if (formatBoost > this.formatBoost){
-			this.formatBoost = formatBoost;
+		} else {
+			this.formatBoost += formatBoost;
 		}
 	}
 

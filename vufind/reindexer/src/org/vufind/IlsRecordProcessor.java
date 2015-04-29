@@ -1829,7 +1829,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				// Serial
 				case 'S':
 					// Look in 008 to determine what type of Continuing Resource
-					if (fixedField != null) {
+					if (fixedField != null && fixedField.getData().length() >= 22) {
 						formatCode = fixedField.getData().toUpperCase().charAt(21);
 						switch (formatCode) {
 							case 'N':
