@@ -324,7 +324,8 @@ public class MillenniumExportMain{
 					}
 
 					for (ItemChangeInfo itemChange : itemChanges){
-						logger.warn("Could not find item within bib " + curBibId + " for item " + itemChange.getItemId());
+						//Reduce logging level to debug since this happens frequently with new items.
+						logger.debug("Could not find item within bib " + curBibId + " for item " + itemChange.getItemId());
 					}
 
 					//Write the new marc record
