@@ -262,7 +262,8 @@ class User extends DB_DataObject
 		$_SESSION['userinfo'] = serialize($this);
 		/** @var Memcache $memCache */
 		global $memCache;
-		$memCache->delete('patronProfile_' . $this->id);
+		global $serverName;
+		$memCache->delete("patronProfile_{$serverName}_" . $this->username);
 	}
 
 	function updateCatalogOptions(){
@@ -305,6 +306,7 @@ class User extends DB_DataObject
 
 		/** @var Memcache $memCache */
 		global $memCache;
-		$memCache->delete('patronProfile_' . $this->id);
+		global $serverName;
+		$memCache->delete("patronProfile_{$serverName}_" . $this->username);
 	}
 }
