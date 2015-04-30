@@ -160,7 +160,7 @@
 												<input type="checkbox" name="smsNotices" id="smsNotices" {if $profile.mobileNumber}checked='checked'{/if}>
 												<script type="text/javascript">
 													{literal}
-													$(document).ready(function(){
+													$(function(){
 														$("#smsNotices").bootstrapSwitch();
 													});
 													{/literal}
@@ -192,7 +192,7 @@
 								{if !$offline && $edit == true && $canUpdateContactInfo}
 									<div class="form-group">
 										<div class="col-xs-8 col-xs-offset-4">
-											<input type='submit' value='Update Contact Information' name='updateContactInfo' class="btn btn-sm btn-primary"/>
+											<input type='submit' value='Update Contact Information' name='updateContactInfo' class="btn btn-sm btn-primary">
 										</div>
 									</div>
 								{/if}
@@ -224,24 +224,24 @@
 									<div class="form-group">
 										<div class="col-xs-4"><label for="pin" class="control-label">{translate text='Old PIN'}:</label></div>
 										<div class="col-xs-8">
-											<input type='password' name='pin' id="pin" value='' size='4' maxlength='4' class="form-control" />
+											<input type='password' name='pin' id="pin" value='' size='4' maxlength='4' class="form-control">
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="pin1" class="control-label">{translate text='New PIN'}:</label></div>
 										<div class="col-xs-8">
-											<input type='password' name='pin1' id='pin1' value='' size='4' maxlength='4' class="form-control" />
+											<input type='password' name='pin1' id='pin1' value='' size='4' maxlength='4' class="form-control">
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="pin2" class="control-label">{translate text='Re-enter New PIN'}:</label></div>
 										<div class="col-xs-8">
-												<input type='password' name='pin2' id='pin2' value='' size='4' maxlength='4' class="form-control" />
+												<input type='password' name='pin2' id='pin2' value='' size='4' maxlength='4' class="form-control">
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-8 col-xs-offset-4">
-											<input type='submit' value='Update' name='update' class="btn btn-primary"/>
+											<input type='submit' value='Update' name='update' class="btn btn-primary">
 										</div>
 									</div>
 								</form>
@@ -273,10 +273,10 @@
 									<div class="col-xs-4"><label for="promptForOverdriveEmail" class="control-label">{translate text='Prompt for OverDrive e-mail'}:</label></div>
 									<div class="col-xs-8">
 										{if $edit == true}
-											<input type="checkbox" name="promptForOverdriveEmail" id="promptForOverdriveEmail" {if $profile.promptForOverdriveEmail==1}checked='checked'{/if}/>
+											<input type="checkbox" name="promptForOverdriveEmail" id="promptForOverdriveEmail" {if $profile.promptForOverdriveEmail==1}checked='checked'{/if}>
 											<script type="text/javascript">
 												{literal}
-												$(document).ready(function(){
+												$(function(){
 													$("#promptForOverdriveEmail").bootstrapSwitch();
 												});
 												{/literal}
