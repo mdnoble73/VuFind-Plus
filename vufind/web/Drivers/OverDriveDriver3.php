@@ -45,7 +45,8 @@ class OverDriveDriver3 {
 		'audiobook-streaming' => 'Streaming Audiobook',
 		'music-wma' => 'OverDrive Music',
 		'video-wmv' => 'OverDrive Video',
-		'video-wmv-mobile' => 'OverDrive Video (mobile)'
+		'video-wmv-mobile' => 'OverDrive Video (mobile)',
+		'periodicals-nook' => 'NOOK Periodicals'
 	);
 
 	/**

@@ -43,7 +43,9 @@ class OverDriveAPIProductFormats extends DB_DataObject {
 
 		}else if ($this->textId == 'ebook-epub-open'){
 			$notes = "Works on all eReaders (except Kindles), desktop computers and mobile devices with with reading apps installed.";
-		}else if ($this->textId == 'ebook-pdf-open'){
+		}else if ($this->textId == 'ebook-pdf-open') {
+		}else if ($this->textId == 'periodicals-nook'){
+			$notes = "Works on NOOK devices and all devices with a NOOK app installed.";
 
 		}else{
 
