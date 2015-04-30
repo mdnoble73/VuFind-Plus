@@ -72,7 +72,7 @@
 			</div>
 
 			{* My Lists*}
-			{if $lists}
+			{if $lists || $showConvertListsFromClassic}
 				{if $action == 'MyList'}
 					{assign var="curSection" value=true}
 				{else}
