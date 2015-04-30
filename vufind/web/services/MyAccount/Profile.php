@@ -114,7 +114,6 @@ class MyAccount_Profile extends MyAccount
 		}*/
 		$interface->assign('overDriveUrl', $configArray['OverDrive']['url']);
 
-		// TODO: bug error messages not surviving reload in session.
 		if (isset($_SESSION['profileUpdateErrors'])){
 			$interface->assign('profileUpdateErrors', $_SESSION['profileUpdateErrors']);
 			unset($_SESSION['profileUpdateErrors']);
@@ -138,10 +137,23 @@ class MyAccount_Profile extends MyAccount
 			$interface->assign('userIsStaff', false);
 		}
 
-		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
-		$interface->setTemplate('profile.tpl');
+		// switch for hack for Millenium driver profile updating when updating is allowed but address updating is not allowed.
+		$millenniumNoAddress = $canUpdateContactInfo && !$canUpdateAddress && in_array($ils, array('Millennium', 'Sierra'));
+		$interface->assign('millenniumNoAddress', $millenniumNoAddress);
+
+
+		$this->display();
+//		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
+//		$interface->setTemplate('profile.tpl');
+//		$interface->setPageTitle(translate('Account Settings'));
+//		$interface->display('layout.tpl');
+	}
+
+	function display($mainContentTemplate = 'profile.tpl', $sidebar=true) {
+		global $interface;
+		if ($sidebar) $interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
+		$interface->setTemplate($mainContentTemplate);
 		$interface->setPageTitle(translate('Account Settings'));
 		$interface->display('layout.tpl');
 	}
-
 }
