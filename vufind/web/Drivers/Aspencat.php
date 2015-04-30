@@ -515,7 +515,14 @@ class Aspencat implements DriverInterface{
 	}
 
 	private $patronProfiles = array();
+	function updatePatronInfo($canUpdateContactInfo){
+		$updateErrors = array();
+		if ($canUpdateContactInfo) {
+			$updateErrors[] = "Profile Information can not be updated.";
+		}
+		return $updateErrors;
 
+	}
 	/**
 	 * @param User $patron
 	 * @param bool $forceReload
@@ -524,6 +531,8 @@ class Aspencat implements DriverInterface{
 	public function getMyProfile($patron, $forceReload = false) {
 		//Update to not use SIP, just screen scrape for performance (sigh)
 		global $timer;
+		/** @var Memcache $memCache */
+		global $memCache;
 
 		if (!is_object($patron)){
 			$tmpPatron = new User();
@@ -537,18 +546,38 @@ class Aspencat implements DriverInterface{
 			$patron = $tmpPatron;
 		}
 
-		if (array_key_exists($patron->username, $this->patronProfiles) && !$forceReload){
-			$timer->logTime('Retrieved Cached Profile for Patron');
-			return $this->patronProfiles[$patron->username];
+		if (!$forceReload && !isset($_REQUEST['reload'])) {
+
+			// Check the Object for profile
+			if (array_key_exists($patron->username, $this->patronProfiles)) {
+				$timer->logTime('Retrieved Cached Profile for Patron');
+				return $this->patronProfiles[$patron->username];
+			}
 		}
 
-		/** @var Memcache $memCache */
-		global $memCache;
-		$patronProfile = $memCache->get('patronProfile_' . $patron->username);
-		if ($patronProfile && !isset($_REQUEST['reload']) && !$forceReload){
-			//echo("Using cached profile for patron " . $userId);
-			$timer->logTime('Retrieved Cached Profile for Patron');
-			return $patronProfile;
+			// Determine memcache key
+		global $serverName;
+		$memCacheProfileKey = "patronProfile_{$serverName}_";
+			if (is_object($patron) && !isset($tmpPatron)) {
+				// exclude the new patron object $tmpPatron created above. It won't have an id or be stored in memcache
+//				$patron         = get_object_vars($patron);
+//			$memCacheProfileKey = $patron['username'];
+				// $patron needs to remain an object for initial loading below
+				$memCacheProfileKey .= $patron->username;
+			} else {
+				global $user;
+//				$memCacheProfileKey = $user->id;
+				$memCacheProfileKey .= $user->username;
+			}
+
+		// Check MemCache for profile
+		if (!$forceReload && !isset($_REQUEST['reload'])) {
+			$patronProfile = $memCache->get($memCacheProfileKey);
+			if ($patronProfile){
+				//echo("Using cached profile for patron " . $userId);
+				$timer->logTime('Retrieved Cached Profile for Patron');
+				return $patronProfile;
+			}
 		}
 
 		$this->initDatabaseConnection();
@@ -558,14 +587,18 @@ class Aspencat implements DriverInterface{
 				$userFromDb = $userFromDbResultSet->fetch_assoc();
 				$userFromDbResultSet->close();
 
-				$city = $userFromDb['city'];
-				$state = "";
-				$commaPos = strpos($city, ',');
-				if ($commaPos !== false){
-					$cityState = $city;
-					$city = substr($cityState, 0, $commaPos);
-					$state = substr($cityState, $commaPos);
-				}
+//				$city = $userFromDb['city'];
+//				$state = "";
+//				$commaPos = strpos($city, ',');
+//				if ($commaPos !== false){ // fix this
+//					$cityState = $city;
+//					$city = substr($cityState, 0, $commaPos);
+//					$state = substr($cityState, $commaPos);
+//				}
+				$city = strtok($userFromDb['city'], ',');
+				$state = strtok(',');
+				$city = trim($city);
+				$state = trim($state);
 
 				//Get fines
 				//Load fines from database
@@ -709,8 +742,10 @@ class Aspencat implements DriverInterface{
 
 		$this->patronProfiles[$patron->username] = $profile;
 		$timer->logTime('Retrieved Profile for Patron from Database');
-		global $configArray;
-		$memCache->set('patronProfile_' . $patron->username, $profile, 0, $configArray['Caching']['patron_profile']) ;
+		global $configArray, $serverName;
+		$memCache->set($memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
+		// Looks like all drivers but aspencat use id rather than username.
+		// plb 4-16-2014
 		return $profile;
 	}
 
@@ -2253,9 +2288,8 @@ class Aspencat implements DriverInterface{
 
 	public function clearPatronProfile() {
 		/** @var Memcache $memCache */
-		global $memCache;
-		global $user;
-		$memCache->delete('patronProfile_' . $user->id);
+		global $memCache, $user, $serverName;
+		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
 	}
 
 	private $holdsByBib = array();

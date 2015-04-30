@@ -1908,226 +1908,194 @@ public function renewItem($patronId, $itemId){
 		return $hold_result;
 	}
 
-	function updatePatronInfo($password){
-		global $configArray;
-		global $user;
-
+	function updatePatronInfo($canUpdateContactInfo){
 		$updateErrors = array();
-		//Check to make sure the patron alias is valid if provided
-		if (isset($_REQUEST['displayName']) && $_REQUEST['displayName'] != $user->displayName && strlen($_REQUEST['displayName']) > 0){
-			//make sure the display name is less than 15 characters
-			if (strlen($_REQUEST['displayName']) > 15){
-				$updateErrors[] = 'Sorry your display name must be 15 characters or less.';
-				return $updateErrors;
-			}else{
-				//Make sure that we are not using bad words
-				require_once ROOT_DIR . '/Drivers/marmot_inc/BadWord.php';
-				$badWords = new BadWord();
-				$badWordsList = $badWords->getBadWordExpressions();
-				$okToAdd = true;
-				foreach ($badWordsList as $badWord){
-					if (preg_match($badWord,$_REQUEST['displayName'])){
-						$okToAdd = false;
-						break;
+		if ($canUpdateContactInfo) {
+			global $configArray;
+			global $user;
+			//Check to make sure the patron alias is valid if provided
+			if (isset($_REQUEST['displayName']) && $_REQUEST['displayName'] != $user->displayName && strlen($_REQUEST['displayName']) > 0) {
+				//make sure the display name is less than 15 characters
+				if (strlen($_REQUEST['displayName']) > 15) {
+					$updateErrors[] = 'Sorry your display name must be 15 characters or less.';
+					return $updateErrors;
+				} else {
+					//Make sure that we are not using bad words
+					require_once ROOT_DIR . '/Drivers/marmot_inc/BadWord.php';
+					$badWords     = new BadWord();
+					$badWordsList = $badWords->getBadWordExpressions();
+					$okToAdd      = true;
+					foreach ($badWordsList as $badWord) {
+						if (preg_match($badWord, $_REQUEST['displayName'])) {
+							$okToAdd = false;
+							break;
+						}
+					}
+					if (!$okToAdd) {
+						$updateErrors[] = 'Sorry, that name is in use or invalid.';
+						return $updateErrors;
+					}
+					//Make sure no one else is using that
+					$userValidation = new User();
+					$userValidation->query("SELECT * from {$userValidation->__table} WHERE id <> {$user->id} and displayName = '{$_REQUEST['displayName']}'");
+					if ($userValidation->N > 0) {
+						$updateErrors[] = 'Sorry, that name is in use or is invalid.';
+						return $updateErrors;
 					}
 				}
-				if (!$okToAdd){
-					$updateErrors[] = 'Sorry, that name is in use or invalid.';
-					return $updateErrors;
-				}
-				//Make sure no one else is using that
-				$userValidation = new User();
-				$userValidation->query("SELECT * from {$userValidation->__table} WHERE id <> {$user->id} and displayName = '{$_REQUEST['displayName']}'");
-				if ($userValidation->N > 0){
-					$updateErrors[] = 'Sorry, that name is in use or invalid.';
-					return $updateErrors;
-				}
 			}
-		}
 
-		global $logger;
+			//Setup Curl
+			$header    = array();
+			$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
+			$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
+			$header[] = "Cache-Control: max-age=0";
+			$header[] = "Connection: keep-alive";
+			$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
+			$header[] = "Accept-Language: en-us,en;q=0.5";
+			$cookie   = tempnam("/tmp", "CURLCOOKIE");
 
-		//Setup Curl
-		$header=array();
-		$header[0] = "Accept: text/xml,application/xml,application/xhtml+xml,";
-		$header[0] .= "text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
-		$header[] = "Cache-Control: max-age=0";
-		$header[] = "Connection: keep-alive";
-		$header[] = "Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7";
-		$header[] = "Accept-Language: en-us,en;q=0.5";
-		$cookie = tempnam ("/tmp", "CURLCOOKIE");
+			//Start at My Account Page
+			$curl_url        = $this->hipUrl . "/ipac20/ipac.jsp?profile={$configArray['Catalog']['hipProfile']}&menu=account";
+			$curl_connection = curl_init($curl_url);
+			curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
+			curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
+			curl_setopt($curl_connection, CURLOPT_USERAGENT, "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
+			curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
+			curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
+			curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
+			curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
+			curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
+			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
+			curl_setopt($curl_connection, CURLOPT_REFERER, $curl_url);
+			curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
+			curl_setopt($curl_connection, CURLOPT_HEADER, false);
+			curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
+			$sresult = curl_exec($curl_connection);
+			global $logger;
+			$logger->log("Loading Full Record $curl_url", PEAR_LOG_INFO);
 
-		//Start at My Account Page
-		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp?profile={$configArray['Catalog']['hipProfile']}&menu=account";
-		$curl_connection = curl_init($curl_url);
-		curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-		curl_setopt($curl_connection, CURLOPT_HTTPHEADER, $header);
-		curl_setopt($curl_connection, CURLOPT_USERAGENT,"Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1)");
-		curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-		curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, true);
-		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
-		curl_setopt($curl_connection, CURLOPT_COOKIEJAR, $cookie);
-		curl_setopt($curl_connection, CURLOPT_COOKIESESSION, true);
-		curl_setopt($curl_connection, CURLOPT_REFERER,$curl_url);
-		curl_setopt($curl_connection, CURLOPT_FORBID_REUSE, false);
-		curl_setopt($curl_connection, CURLOPT_HEADER, false);
-		curl_setopt($curl_connection, CURLOPT_HTTPGET, true);
-		$sresult = curl_exec($curl_connection);
-		$logger->log("Loading Full Record $curl_url", PEAR_LOG_INFO);
+			//Extract the session id from the requestcopy javascript on the page
+			if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
+				$sessionId = $matches[1];
+			} else {
+				PEAR_Singleton::raiseError('Could not load session information from page.');
+			}
 
-		//Extract the session id from the requestcopy javascript on the page
-		if (preg_match('/\\?session=(.*?)&/s', $sresult, $matches)) {
-			$sessionId = $matches[1];
-		} else {
-			PEAR_Singleton::raiseError('Could not load session information from page.');
-		}
-
-		//Login by posting username and password
-		curl_setopt($curl_connection, CURLOPT_POST, true);
-		$post_data = array(
-      'aspect' => 'overview',
-      'button' => 'Login to Your Account',
-		//'ipp' => '20',
-		//'lastlogin' => '1299616721524',
-      'login_prompt' => 'true',
-      'menu' => 'account',
-		//'npp' => '10',
-      'profile' => $configArray['Catalog']['hipProfile'],
-      'ri' => '',
-      'sec1' => $user->cat_username,
-      'sec2' => $user->cat_password,
-      'session' => $sessionId,
-		//'spp' => '20'
-		);
-		$post_string = http_build_query($post_data);
-		$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
-		curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-		$sresult = curl_exec($curl_connection);
-
-		//update patron information.  Use HIP to update the e-mail to make sure that all business rules are followed.
-		if (isset($_REQUEST['email'])){
-			$post_data = array(
-        'menu' => 'account',
-        'newemailtext' => $_REQUEST['email'],
-        'newpin' => '',
-        'oldpin' => '',
-        'profile' => $configArray['Catalog']['hipProfile'],
-        'renewpin' => '',
-        'session' => $sessionId,
-        'submenu' => 'info',
-        'updateemail' => 'Update',
+			//Login by posting username and password
+			curl_setopt($curl_connection, CURLOPT_POST, true);
+			$post_data   = array(
+				'aspect' => 'overview',
+				'button' => 'Login to Your Account',
+				//'ipp' => '20',
+				//'lastlogin' => '1299616721524',
+				'login_prompt' => 'true',
+				'menu' => 'account',
+				//'npp' => '10',
+				'profile' => $configArray['Catalog']['hipProfile'],
+				'ri' => '',
+				'sec1' => $user->cat_username,
+				'sec2' => $user->cat_password,
+				'session' => $sessionId,
+				//'spp' => '20'
 			);
 			$post_string = http_build_query($post_data);
-			$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
+			$curl_url    = $this->hipUrl . "/ipac20/ipac.jsp";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 			$sresult = curl_exec($curl_connection);
 
-			//check for errors in boldRedFont1
-			if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/si', $sresult, $matches)) {
-				$updateErrors[] = $matches[1];
-			}else{
-				//Update the users cat_password in the Pika database
-				$user->email = $_REQUEST['email'];
-				$user->update();
-				UserAccount::updateSession($user);
+			/** @var Memcache $memCache */
+			global $memCache; // needed here?
+
+			//update patron information.  Use HIP to update the e-mail to make sure that all business rules are followed.
+			if (isset($_REQUEST['email'])) {
+				$post_data   = array(
+					'menu' => 'account',
+					'newemailtext' => $_REQUEST['email'],
+					'newpin' => '',
+					'oldpin' => '',
+					'profile' => $configArray['Catalog']['hipProfile'],
+					'renewpin' => '',
+					'session' => $sessionId,
+					'submenu' => 'info',
+					'updateemail' => 'Update',
+				);
+				$post_string = http_build_query($post_data);
+				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+				$sresult = curl_exec($curl_connection);
+
+				//check for errors in boldRedFont1
+				if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/si', $sresult, $matches)) {
+					$updateErrors[] = $matches[1];
+				} else {
+					// Update the users cat_password in the Pika database
+					$user->email = $_REQUEST['email'];
+				}
 			}
-		}
-		if (isset($_REQUEST['oldPin']) && strlen($_REQUEST['oldPin']) > 0 && isset($_REQUEST['newPin']) && strlen($_REQUEST['newPin']) > 0){
+			if (isset($_REQUEST['oldPin']) && strlen($_REQUEST['oldPin']) > 0 && isset($_REQUEST['newPin']) && strlen($_REQUEST['newPin']) > 0) {
 
-			$post_data = array(
-        'menu' => 'account',
-        'newemailtext' => $_REQUEST['email'],
-        'newpin' => $_REQUEST['newPin'],
-        'oldpin' => $_REQUEST['oldPin'],
-        'profile' => $configArray['Catalog']['hipProfile'],
-        'renewpin' => $_REQUEST['verifyPin'],
-        'session' => $sessionId,
-        'submenu' => 'info',
-        'updatepin' => 'Update',
-			);
-			$post_string = http_build_query($post_data);
-			$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
-			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-			$sresult = curl_exec($curl_connection);
+				$post_data   = array(
+					'menu' => 'account',
+					'newemailtext' => $_REQUEST['email'],
+					'newpin' => $_REQUEST['newPin'],
+					'oldpin' => $_REQUEST['oldPin'],
+					'profile' => $configArray['Catalog']['hipProfile'],
+					'renewpin' => $_REQUEST['verifyPin'],
+					'session' => $sessionId,
+					'submenu' => 'info',
+					'updatepin' => 'Update',
+				);
+				$post_string = http_build_query($post_data);
+				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
+				$sresult = curl_exec($curl_connection);
 
-			//check for errors in boldRedFont1
-			if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/', $sresult, $matches)) {
-				$updateErrors[] = $matches[1];
-			}else{
-				//Update the users cat_password in the VuFind database
-				$user->cat_password = $_REQUEST['newPin'];
-				$user->update();
-				UserAccount::updateSession($user);
+				//check for errors in boldRedFont1
+				if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/', $sresult, $matches)) {
+					$updateErrors[] = $matches[1];
+				} else {
+					//Update the users cat_password in the Pika database
+					$user->cat_password = $_REQUEST['newPin'];
+				}
 			}
-		}
-
-		if (isset($_REQUEST['notices'])){
-			//TODO: Implement Setting Notification Methods
-			$updateErrors[] = 'Notice Method can not be updated.';
-//			$post_data = array(
-//
-//			);
-//			$post_string = http_build_query($post_data);
-//			$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
-//			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-//			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-//			$sresult = curl_exec($curl_connection);
-//
-//			//check for errors in boldRedFont1
-/*			if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/si', $sresult, $matches)) { */
-//				$updateErrors[] = $matches[1];
-//			}else{
-//				//Update the users cat_password in the Pika database
-//				$user->email = $_REQUEST['email'];
-//				$user->update();
-//				UserAccount::updateSession($user);
-//			}
-		}
-
-		if (isset($_REQUEST['pickuplocation'])){
-			//TODO: Implement Setting Pick-up Locations
-			$updateErrors[] = 'Pickup Locations can not be updated.';
-//			$post_data = array(
-//
-//			);
-//			$post_string = http_build_query($post_data);
-//			$curl_url = $this->hipUrl . "/ipac20/ipac.jsp";
-//			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
-//			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
-//			$sresult = curl_exec($curl_connection);
-//
-//			//check for errors in boldRedFont1
-			/*			if (preg_match('/<td.*?class="boldRedFont1".*?>(.*?)(?:<br>)*<\/td>/si', $sresult, $matches)) { */
-//				$updateErrors[] = $matches[1];
-//			}else{
-//				//Update the users cat_password in the Pika database
-//				$user->email = $_REQUEST['email'];
-//				$user->update();
-//				UserAccount::updateSession($user);
-//			}
-		}
-
-		//check to see if the user has provided an alias
-		if ((isset($_REQUEST['displayName']) && $_REQUEST['displayName'] != $user->displayName) ||
-		(isset($_REQUEST['disableRecommendations']) && $_REQUEST['disableRecommendations'] != $user->disableRecommendations) ||
-		(isset($_REQUEST['disableCoverArt']) && $_REQUEST['disableCoverArt'] != $user->disableCoverArt) ||
-		(isset($_REQUEST['bypassAutoLogout']) && $_REQUEST['bypassAutoLogout'] != $user->bypassAutoLogout)){
-			$user->displayName = $_REQUEST['displayName'];
-			$user->disableRecommendations = $_REQUEST['disableRecommendations'];
-			$user->disableCoverArt = $_REQUEST['disableCoverArt'];
-			if (isset($_REQUEST['bypassAutoLogout'])){
-				$user->bypassAutoLogout = $_REQUEST['bypassAutoLogout'] == 'yes' ? 1 : 0;
+			if (isset($_REQUEST['phone'])) {
+				//TODO: Implement Setting Notification Methods
+				$updateErrors[] = 'Phone number can not be updated.';
 			}
+			if (isset($_REQUEST['address1']) || isset($_REQUEST['city']) || isset($_REQUEST['state']) || isset($_REQUEST['zip'])) {
+				//TODO: Implement Setting Notification Methods
+				$updateErrors[] = 'Address Information can not be updated.';
+			}
+			if (isset($_REQUEST['notices'])) {
+				//TODO: Implement Setting Notification Methods
+				$updateErrors[] = 'Notice Method can not be updated.';
+			}
+			if (isset($_REQUEST['pickuplocation'])) {
+				//TODO: Implement Setting Pick-up Locations
+				$updateErrors[] = 'Pickup Locations can not be updated.';
+			}
+
+			//check to see if the user has provided an alias
+			if ((isset($_REQUEST['displayName']) && $_REQUEST['displayName'] != $user->displayName) ||
+				(isset($_REQUEST['disableRecommendations']) && $_REQUEST['disableRecommendations'] != $user->disableRecommendations) ||
+				(isset($_REQUEST['disableCoverArt']) && $_REQUEST['disableCoverArt'] != $user->disableCoverArt) ||
+				(isset($_REQUEST['bypassAutoLogout']) && $_REQUEST['bypassAutoLogout'] != $user->bypassAutoLogout)
+			) {
+				$user->displayName            = $_REQUEST['displayName'];
+				$user->disableRecommendations = $_REQUEST['disableRecommendations'];
+				$user->disableCoverArt        = $_REQUEST['disableCoverArt'];
+				if (isset($_REQUEST['bypassAutoLogout'])) {
+					$user->bypassAutoLogout = $_REQUEST['bypassAutoLogout'] == 'yes' ? 1 : 0;
+				}
+			}
+
+			// update Pika user data & clear cache of patron profile
 			$user->update();
 			UserAccount::updateSession($user);
-		}
+			$this->clearPatronProfile(); // Make sure to clear any cached data
 
-		unlink($cookie);
-
+			unlink($cookie);
+		} else $updateErrors[] = 'You do not have permission to update profile information.';
 		return $updateErrors;
 	}
 
@@ -2847,6 +2815,12 @@ private function parseSip2Fines($finesData){
 			);
 		}
 		return $result;
+	}
+
+	public function clearPatronProfile() {
+		/** @var Memcache $memCache */
+		global $memCache, $user, $serverName;
+		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
 	}
 
 	abstract function translateCollection($collection);

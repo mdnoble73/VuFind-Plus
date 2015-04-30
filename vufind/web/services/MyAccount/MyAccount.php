@@ -52,7 +52,7 @@ abstract class MyAccount extends Action
 		$this->db = new $class($configArray['Index']['url']);
 
 		// Connect to Database
-		$this->catalog = CatalogFactory::getCatalogConnectionInstance();;
+		$this->catalog = CatalogFactory::getCatalogConnectionInstance();
 
 		// Register Library Catalog Account
 		if (isset($_POST['submit']) && !empty($_POST['submit'])) {
@@ -82,22 +82,26 @@ abstract class MyAccount extends Action
 		//It is also in MyList.php and Admin.php
 		if ($user !== false){
 			$interface->assign('user', $user);
-			// Get My Profile
-			if ($this->catalog->status) {
-				if ($user->cat_username) {
-					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
-					if (PEAR_Singleton::isError($patron)){
-						PEAR_Singleton::raiseError($patron);
-					}
 
-					$profile = $this->catalog->getMyProfile($patron);
-					//global $logger;
-					//$logger->log("Patron profile phone number in MyResearch = " . $profile['phone'], PEAR_LOG_INFO);
-					if (!PEAR_Singleton::isError($profile)) {
-						$interface->assign('profile', $profile);
-					}
-				}
-			}
+// Profile is already loaded by index.php. plb 4-17-2015
+// (keeping in case there is a exception )
+			// Get My Profile
+//			if ($this->catalog->status) {
+//				if ($user->cat_username) {
+//					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
+//					if (PEAR_Singleton::isError($patron)){
+//						PEAR_Singleton::raiseError($patron);
+//					}
+//
+//					$profile = $this->catalog->getMyProfile($patron);
+//					//global $logger;
+//					//$logger->log("Patron profile phone number in MyResearch = " . $profile['phone'], PEAR_LOG_INFO);
+//					if (!PEAR_Singleton::isError($profile)) {
+//						$interface->assign('profile', $profile);
+//					}
+//				}
+//			}
+
 			//Figure out if we should show a link to classic opac to pay holds.
 			$ecommerceLink = $configArray['Site']['ecommerceLink'];
 			$homeLibrary = Library::getLibraryForLocation($user->homeLocationId);

@@ -143,19 +143,26 @@ abstract class HorizonAPI extends Horizon{
 		/** @var Memcache $memCache */
 		global $memCache;
 
-		if (is_object($patron)){
+		global $serverName;
+		$memCacheProfileKey = "patronProfile_{$serverName}_";
+		if (is_object($patron)) {
 			$patron = get_object_vars($patron);
 			$userId = $patron['id'];
-		}else{
+			$patronUserName = $patron['username'];
+			$memCacheProfileKey .= $patron['username'];
+		} else {
 			global $user;
 			$userId = $user->id;
+			$patronUserName = $user->username;
+			$memCacheProfileKey .= $user->username;
 		}
 
-		$patronProfile = $memCache->get('patronProfile_' . $userId);
-		if ($patronProfile && !isset($_REQUEST['reload']) && !$forceReload){
-			//echo("Using cached profile for patron " . $userId);
-			$timer->logTime('Retrieved Cached Profile for Patron');
-			return $patronProfile;
+		if (!$forceReload && !isset($_REQUEST['reload'])) {
+			$patronProfile = $memCache->get($memCacheProfileKey);
+			if ($patronProfile){
+				$timer->logTime('Retrieved Cached Profile for Patron');
+				return $patronProfile;
+			}
 		}
 
 		global $user;
@@ -166,6 +173,7 @@ abstract class HorizonAPI extends Horizon{
 			$City = "";
 			$State = "";
 			$Zip = "";
+			$Email = "";
 			$finesVal = 0;
 			$expireClose = false;
 			$homeBranchCode = '';
@@ -174,7 +182,8 @@ abstract class HorizonAPI extends Horizon{
 
 			if (!$user){
 				$user = new User();
-				$user->id = $userId;
+				$user->username = $patronUserName;
+
 				if ($user->find(true)){
 					$location = new Location();
 					$location->locationId = $user->homeLocationId;
@@ -188,6 +197,7 @@ abstract class HorizonAPI extends Horizon{
 			//Load the raw information about the patron from web services
 			if (isset(HorizonAPI::$sessionIdsForUsers[$userId])){
 				$sessionToken = HorizonAPI::$sessionIdsForUsers[$userId];
+				// keys off username
 			}else{
 				//Log the user in
 				$return = $this->loginViaWebService($patron['cat_username'], $patron['cat_password']);
@@ -217,13 +227,17 @@ abstract class HorizonAPI extends Horizon{
 					$City = "";
 					$State = "";
 				}
-
 				$Zip = (string)$lookupMyAccountInfoResponse->AddressInfo->postalCode;
+
+				if (isset($lookupMyAccountInfoResponse->AddressInfo->email)) {
+					$Email = (string) $lookupMyAccountInfoResponse->AddressInfo->email;
+				}
 			}else{
 				$Address1 = "";
 				$City = "";
 				$State = "";
 				$Zip = "";
+				$Email = '';
 			}
 
 			$fullName = $lookupMyAccountInfoResponse->name;
@@ -278,8 +292,6 @@ abstract class HorizonAPI extends Horizon{
 					// $block is a simplexml object with attribute info about currency, type casting as below seems to work for adding up. plb 3-27-2015
 					$fineAmount = (float) $block->balance;
 					$finesVal += $fineAmount;
-
-
 				}
 			}
 
@@ -317,8 +329,12 @@ abstract class HorizonAPI extends Horizon{
 			'city' => $City,
 			'state' => $State,
 			'zip'=> $Zip,
-			'email' => ($user && $user->email) ? $user->email : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '') ,
-			'overdriveEmail' => ($user) ? $user->overdriveEmail : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : ''),
+//			'email' => ($user && $user->email) ? $user->email : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : '') ,
+//			'overdriveEmail' => ($user) ? $user->overdriveEmail : (isset($patronDump) && isset($patronDump['EMAIL_ADDR']) ? $patronDump['EMAIL_ADDR'] : ''),
+			// $patronDump never declared. probably never comes into use.
+			'email' => ($user && $user->email) ? $user->email : $Email,
+			'overdriveEmail' => ($user) ? $user->overdriveEmail : $Email,
+			// good idea to fall back to profile email ?? plb 4-16-2015
 			'promptForOverdriveEmail' => $user ? $user->promptForOverdriveEmail : 1,
 			'phone' => isset($lookupMyAccountInfoResponse->phone) ? (string)$lookupMyAccountInfoResponse->phone : '',
 			'workPhone' => '',
@@ -341,9 +357,9 @@ abstract class HorizonAPI extends Horizon{
 			'bypassAutoLogout' => ($user) ? $user->bypassAutoLogout : 0,
 			'ptype' => 0,
 			'notices' => '-',
+			'noticePreferenceLabel' => 'e-mail',
 			'web_note' => '',
 		);
-		$profile['noticePreferenceLabel'] = 'e-mail';
 
 		//Get eContent info as well
 		require_once(ROOT_DIR . '/Drivers/EContentDriver.php');
@@ -385,7 +401,7 @@ abstract class HorizonAPI extends Horizon{
 		}
 
 		$timer->logTime("Got Patron Profile");
-		$memCache->set('patronProfile_' . $patron['id'], $profile, 0, $configArray['Caching']['patron_profile']) ;
+		$memCache->set($memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
 		return $profile;
 	}
 
@@ -1373,15 +1389,6 @@ abstract class HorizonAPI extends Horizon{
 		}else{
 			return false;
 		}
-	}
-
-	public function clearPatronProfile() {
-		/** @var Memcache $memCache */
-		global $memCache;
-		global $user;
-
-		$memCache->delete('patronProfile_' . $user->id);
-
 	}
 
 	public function hasNativeReadingHistory() {

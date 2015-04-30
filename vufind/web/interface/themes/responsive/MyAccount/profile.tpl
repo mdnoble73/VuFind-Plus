@@ -13,6 +13,12 @@
 
 				<h2>{translate text='Account Settings'}</h2>
 
+			{if $profileUpdateErrors}
+				{foreach from=$profileUpdateErrors item=errorMsg}
+					<div class='alert alert-danger'>{$errorMsg}</div>
+				{/foreach}
+			{/if}
+
 			<div class="panel-group" id="account-settings-accordion">
 				{* ILS Settings *}
 				<div class="panel active">
@@ -191,9 +197,10 @@
 						</a>
 						<div id="pinPanel" class="panel-collapse collapse in">
 							<div class="panel-body">
-								{if $profileUpdateErrors}
-									<div class="alert alert-danger">{$profileUpdateErrors}</div>
-								{/if}
+								{*{if $profileUpdateErrors}*}
+									{*<div class="alert alert-danger">{$profileUpdateErrors}</div>*}
+								{*{/if}*}
+								{* profile update erros moved to top of form. plb 4-21-2015 *}
 								<form action="{$path}/MyAccount/Profile" method="post" class="form-horizontal">
 									<input type="hidden" name="updateScope" value="pin"/>
 									<div class="form-group">

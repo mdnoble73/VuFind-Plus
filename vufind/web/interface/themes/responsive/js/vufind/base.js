@@ -166,12 +166,17 @@ var VuFind = (function(){
 
 		setupFieldSetToggles: function (){
 			$('legend.collapsible').each(function(){
-				$(this).siblings().hide();
-				$(this).addClass("collapsed");
-				$(this).click(function() {
-					$(this).toggleClass("expanded");
-					$(this).toggleClass("collapsed");
-					$(this).siblings().slideToggle();
+				$(this).siblings().hide()
+				.addClass("collapsed")
+				.click(function() {
+					$(this).toggleClass("expanded collapsed")
+					.siblings().slideToggle();
+				//$(this).siblings().hide();
+				//$(this).addClass("collapsed");
+				//$(this).click(function() {
+				//	$(this).toggleClass("expanded");
+				//	$(this).toggleClass("collapsed");
+				//	$(this).siblings().slideToggle();
 					return false;
 				});
 			});
@@ -281,3 +286,47 @@ jQuery.validator.addMethod("multiemail", function (value, element) {
 	}
 	return valid;
 }, "Invalid email format: please use a comma to separate multiple email addresses.");
+
+/**
+ *  Modified from above code, for Pika self registration form.
+ *
+ * Return true, if the value is a valid date, also making this formal check mm-dd-yyyy.
+ *
+ * @example jQuery.validator.methods.date("01-01-1900")
+ * @result true
+ *
+ * @example jQuery.validator.methods.date("01-13-1990")
+ * @result false
+ *
+ * @example jQuery.validator.methods.date("01.01.1900")
+ * @result false
+ *
+ * @example <input name="pippo" class="{datePika:true}" />
+ * @desc Declares an optional input element whose value must be a valid date.
+ *
+ * @name jQuery.validator.methods.datePika
+ * @type Boolean
+ * @cat Plugins/Validate/Methods
+ */
+jQuery.validator.addMethod(
+		"datePika",
+		function(value, element) {
+			var check = false;
+			var re = /^\d{1,2}(-)\d{1,2}(-)\d{4}$/;
+			if( re.test(value)){
+				var adata = value.split('-');
+				var mm = parseInt(adata[0],10);
+				var dd = parseInt(adata[1],10);
+				var aaaa = parseInt(adata[2],10);
+				var xdata = new Date(aaaa,mm-1,dd);
+				if ( ( xdata.getFullYear() == aaaa ) && ( xdata.getMonth () == mm - 1 ) && ( xdata.getDate() == dd ) )
+					check = true;
+				else
+					check = false;
+			} else
+				check = false;
+			return this.optional(element) || check;
+		},
+		"Please enter a correct date"
+);
+

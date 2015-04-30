@@ -22,6 +22,8 @@ require_once ROOT_DIR . '/Action.php';
 
 class Browse_AJAX extends Action {
 
+	const ITEMS_PER_PAGE = 24;
+
 	/** @var SearchObject_Solr|SearchObject_Base $searchObject*/
 	private $searchObject;
 
@@ -129,49 +131,48 @@ class Browse_AJAX extends Action {
 	}
 
 
-	function getBrowseCategoryInfo($textId = null){
-		global $interface;
-		/** @var Memcache $memCache */
-		global $memCache;
-		global $solrScope;
+	private function getBrowseCategoryResults($textId, $pageToLoad = 1){
+		$browseMode = $this->setBrowseMode();
 
-		$this->searchObject = SearchObjectFactory::initSearchObject();
+		if ($pageToLoad == 1 && !isset($_REQUEST['reload'])) {
+			// only first page is cached
+			global $memCache, $solrScope;
+			$key = 'browse_category_' . $textId . '_' . $solrScope . '_' . $browseMode;
+			$browseCategoryInfo = $memCache->get($key);
+			if ($browseCategoryInfo != false){
+				//TODO update viewing stats when grabbing from memcache?
+				return $browseCategoryInfo;
+			}
+		}
+
 		$result = array('result' => false);
 		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
 		$browseCategory = new BrowseCategory();
-		if ($textId == null){
-			$textId = isset($_REQUEST['textId']) ? $_REQUEST['textId'] : null;
-		}
-		if ($textId == null){
-			return $result;
-		}
-
-		$key = 'browse_category_' . $textId . '_' . $solrScope;
-		$browseCategoryInfo = $memCache->get($key);
-		if ($browseCategoryInfo != false && !isset($_REQUEST['reload'])){
-			return $browseCategoryInfo;
-		}
-
 		$browseCategory->textId = $textId;
+
 		if ($browseCategory->find(true)){
+			global $interface;
 			$interface->assign('browseCategoryId', $textId);
 			$result['result'] = true;
 			$result['textId'] = $browseCategory->textId;
 			$result['label'] = $browseCategory->label;
-			//$result['description'] = $browseCategory->description;
-			// believe the description is not used anywhere on front end. plb 1-2-2015
+			//$result['description'] = $browseCategory->description; // the description is not used anywhere on front end. plb 1-2-2015
 
+			// User List Browse Category //
 			if ($browseCategory->sourceListId != null && $browseCategory->sourceListId > 0){
 				require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 				$sourceList = new UserList();
 				$sourceList->id = $browseCategory->sourceListId;
 				if ($sourceList->find(true)){
-					$records = $sourceList->getBrowseRecords(0, 24);
+					$records = $sourceList->getBrowseRecords(($pageToLoad -1) * self::ITEMS_PER_PAGE, self::ITEMS_PER_PAGE);
 				}else{
 					$records = array();
 				}
 				$result['searchUrl'] = '/MyAccount/MyList/' . $browseCategory->sourceListId;
+
+			// Search Browse Category //
 			}else{
+				$this->searchObject = SearchObjectFactory::initSearchObject();
 				$defaultFilterInfo = $browseCategory->defaultFilter;
 				$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
 				foreach ($defaultFilters as $filter){
@@ -183,16 +184,20 @@ class Browse_AJAX extends Action {
 					$this->searchObject->setSearchTerm($browseCategory->searchTerm);
 				}
 
+				//Get titles for the list
 				$this->searchObject->clearFacets();
 				$this->searchObject->disableSpelling();
 				$this->searchObject->disableLogging();
-				$this->searchObject->setLimit(24);
-				//Get titles for the list
+				$this->searchObject->setLimit(self::ITEMS_PER_PAGE);
+				$this->searchObject->setPage($pageToLoad);
 				$this->searchObject->processSearch();
 
 				$records = $this->searchObject->getBrowseRecordHTML();
 
 				$result['searchUrl'] = $this->searchObject->renderSearchUrl();
+
+				// Shutdown the search object
+				$this->searchObject->close();
 			}
 			if (count($records) == 0){
 				$records[] = $interface->fetch('Browse/noResults.tpl');
@@ -204,72 +209,222 @@ class Browse_AJAX extends Action {
 			$browseCategory->numTimesShown += 1;
 			$browseCategory->update();
 		}
-		// Shutdown the search object
-		$this->searchObject->close();
 
-		global $configArray;
-		$memCache->add($key, $result, 0, $configArray['Caching']['browse_category_info']);
+		if ($pageToLoad == 1) {
+			global $memCache, $configArray, $solrScope;
+			$key = 'browse_category_' . $textId . '_' . $solrScope . '_' . $browseMode;
+			$memCache->add($key, $result, 0, $configArray['Caching']['browse_category_info']);
+		}
 		return $result;
 	}
 
-	function getMoreBrowseResults($textId = null, $pageToLoad = null){
+	public $browseModes = // Valid Browse Modes
+		array(
+			'covers', // default Mode
+			'lists'
+		),
+	$browseMode; // Selected Browse Mode
+
+	function setBrowseMode() {
+		// Set Browse Mode //
+		if (isset($_REQUEST['browseMode']) && in_array($_REQUEST['browseMode'], $this->browseModes)) { // user is setting mode (will be in most calls)
+			$browseMode = $_REQUEST['browseMode'];
+		} elseif (!empty($this->browseMode)) { // mode is already set
+			$browseMode = $this->browseMode;
+		} else { // check library & location settings
+			global $location;
+			if (!empty($location->defaultBrowseMode)) { // check location setting
+				$browseMode = $location->defaultBrowseMode;
+			} else {
+				global $library;
+				if (!empty($library->defaultBrowseMode)) { // check location setting
+					$browseMode = $library->defaultBrowseMode;
+				} else $browseMode = $this->browseModes[0]; // default setting
+			}
+		}
+
+		$this->browseMode = $browseMode;
+
 		global $interface;
-		$this->searchObject = SearchObjectFactory::initSearchObject();
-		$result = array('result' => false);
-		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
-		$browseCategory = new BrowseCategory();
+		$interface->assign('browseMode', $browseMode); // sets the template switch that is created in GroupedWork object
+
+		return $browseMode;
+	}
+
+	function getBrowseCategoryInfo($textId = null){
+		// New Version //
 		if ($textId == null){
-			$textId = $_REQUEST['textId'];
-		}
-		if ($pageToLoad == null){
-			$pageToLoad = $_REQUEST['pageToLoad'];
-		}
-		$browseCategory->textId = $textId;
-		if ($browseCategory->find(true)){
-			$interface->assign('browseCategoryId', $textId);
-			$result['result'] = true;
-			$result['textId'] = $browseCategory->textId;
-			$result['label'] = $browseCategory->label;
-			$result['description'] = $browseCategory->description;
-			if ($browseCategory->sourceListId != null && $browseCategory->sourceListId > 0){
-				require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
-				$sourceList = new UserList();
-				$sourceList->id = $browseCategory->sourceListId;
-				if ($sourceList->find(true)){
-					$records = $sourceList->getBrowseRecords(($pageToLoad -1) * 24, 24);
-				}else{
-					$records = array();
-				}
-			}else{
-				$defaultFilterInfo = $browseCategory->defaultFilter;
-				$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
-				foreach ($defaultFilters as $filter){
-					$this->searchObject->addFilter(trim($filter));
-				}
-				//Set Sorting, this is actually slightly mangled from the category to Solr
-				$this->searchObject->setSort($browseCategory->getSolrSort());
-				if ($browseCategory->searchTerm != ''){
-					$this->searchObject->setSearchTerm($browseCategory->searchTerm);
-				}
-
-				//Get titles for the list
-				$this->searchObject->clearFacets();
-				$this->searchObject->disableSpelling();
-				$this->searchObject->disableLogging();
-				$this->searchObject->setLimit(24);
-				$this->searchObject->setPage($pageToLoad);
-				$this->searchObject->processSearch();
-				$records = $this->searchObject->getBrowseRecordHTML();
+			$textId = isset($_REQUEST['textId']) ? $_REQUEST['textId'] : null;
+			if ($textId == null){
+				return array('result' => false);
 			}
-			if (count($records) == 0){
-				$records[] = $interface->fetch('Browse/noResults.tpl');
-			}
-
-			$result['records'] = implode('',$records);
-
 		}
-		// Shutdown the search object
-		$this->searchObject->close();
+		$result = $this->getBrowseCategoryResults($textId);
 		return $result;
 	}
+//	function getBrowseCategoryInfo($textId = null){
+//  // Old Version //
+//		global $interface;
+//		/** @var Memcache $memCache */
+//		global $memCache;
+//		global $solrScope;
+//
+//		$this->searchObject = SearchObjectFactory::initSearchObject();
+//		$result = array('result' => false);
+//		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
+//		$browseCategory = new BrowseCategory();
+//		if ($textId == null){
+//			$textId = isset($_REQUEST['textId']) ? $_REQUEST['textId'] : null;
+//			if ($textId == null){
+//				return $result;
+//			}
+//		}
+//
+//		$key = 'browse_category_' . $textId . '_' . $solrScope;
+//		$browseCategoryInfo = $memCache->get($key);
+//		if ($browseCategoryInfo != false && !isset($_REQUEST['reload'])){
+//			return $browseCategoryInfo;
+//		}
+//
+//		$browseCategory->textId = $textId;
+//		if ($browseCategory->find(true)){
+//			$interface->assign('browseCategoryId', $textId);
+//			$result['result'] = true;
+//			$result['textId'] = $browseCategory->textId;
+//			$result['label'] = $browseCategory->label;
+//			//$result['description'] = $browseCategory->description;
+//			// believe the description is not used anywhere on front end. plb 1-2-2015
+//
+//			if ($browseCategory->sourceListId != null && $browseCategory->sourceListId > 0){
+//				require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+//				$sourceList = new UserList();
+//				$sourceList->id = $browseCategory->sourceListId;
+//				if ($sourceList->find(true)){
+//					$records = $sourceList->getBrowseRecords(0, self::ITEMS_PER_PAGE);
+//				}else{
+//					$records = array();
+//				}
+//				$result['searchUrl'] = '/MyAccount/MyList/' . $browseCategory->sourceListId;
+//			}else{
+//				$defaultFilterInfo = $browseCategory->defaultFilter;
+//				$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
+//				foreach ($defaultFilters as $filter){
+//					$this->searchObject->addFilter(trim($filter));
+//				}
+//				//Set Sorting, this is actually slightly mangled from the category to Solr
+//				$this->searchObject->setSort($browseCategory->getSolrSort());
+//				if ($browseCategory->searchTerm != ''){
+//					$this->searchObject->setSearchTerm($browseCategory->searchTerm);
+//				}
+//
+//				//Get titles for the list
+//				$this->searchObject->clearFacets();
+//				$this->searchObject->disableSpelling();
+//				$this->searchObject->disableLogging();
+//				$this->searchObject->setLimit(self::ITEMS_PER_PAGE);
+//				//Get titles for the list
+//				$this->searchObject->processSearch();
+//
+//				$records = $this->searchObject->getBrowseRecordHTML();
+//
+//				$result['searchUrl'] = $this->searchObject->renderSearchUrl();
+//			}
+//			if (count($records) == 0){
+//				$records[] = $interface->fetch('Browse/noResults.tpl');
+//			}
+//
+//			$result['records'] = implode('',$records);
+//			$result['numRecords'] = count($records);
+//
+//			$browseCategory->numTimesShown += 1;
+//			$browseCategory->update();
+//		}
+//		// Shutdown the search object
+//		$this->searchObject->close();
+//
+//		global $configArray;
+//		$memCache->add($key, $result, 0, $configArray['Caching']['browse_category_info']);
+//		return $result;
+//	}
+
+	function getMoreBrowseResults($textId = null, $pageToLoad = null)
+	{
+		// New Version //
+		if ($textId == null) {
+			$textId = isset($_REQUEST['textId']) ? $_REQUEST['textId'] : null;
+			if ($textId == null) {
+				return array('result' => false);
+			}
+		}
+		// Get More Results requires a defined page to load
+		if ($pageToLoad == null) {
+			$pageToLoad = (int) $_REQUEST['pageToLoad'];
+			if (!is_int($pageToLoad)) return array('result' => false);
+		}
+		$result = $this->getBrowseCategoryResults($textId, $pageToLoad);
+		return $result;
+	}
+
+//	function getMoreBrowseResults($textId = null, $pageToLoad = null){
+// // Old Version //
+//		global $interface;
+//		$this->searchObject = SearchObjectFactory::initSearchObject();
+//		$result = array('result' => false);
+//		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
+//		$browseCategory = new BrowseCategory();
+//		if ($textId == null){
+//			$textId = $_REQUEST['textId'];
+//		}
+//		if ($pageToLoad == null){
+//			$pageToLoad = $_REQUEST['pageToLoad'];
+//		}
+//		$browseCategory->textId = $textId;
+//		if ($browseCategory->find(true)){
+//			$interface->assign('browseCategoryId', $textId);
+//			$result['result'] = true;
+//			$result['textId'] = $browseCategory->textId;
+//			$result['label'] = $browseCategory->label;
+//			//$result['description'] = $browseCategory->description; // not being used client-side at this time.
+//			if ($browseCategory->sourceListId != null && $browseCategory->sourceListId > 0){
+//				require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+//				$sourceList = new UserList();
+//				$sourceList->id = $browseCategory->sourceListId;
+//				if ($sourceList->find(true)){
+//					$records = $sourceList->getBrowseRecords(($pageToLoad -1) * self::ITEMS_PER_PAGE, self::ITEMS_PER_PAGE);
+//				}else{
+//					$records = array();
+//				}
+//			}else{
+//				$defaultFilterInfo = $browseCategory->defaultFilter;
+//				$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
+//				foreach ($defaultFilters as $filter){
+//					$this->searchObject->addFilter(trim($filter));
+//				}
+//				//Set Sorting, this is actually slightly mangled from the category to Solr
+//				$this->searchObject->setSort($browseCategory->getSolrSort());
+//				if ($browseCategory->searchTerm != ''){
+//					$this->searchObject->setSearchTerm($browseCategory->searchTerm);
+//				}
+//
+//				//Get titles for the list
+//				$this->searchObject->clearFacets();
+//				$this->searchObject->disableSpelling();
+//				$this->searchObject->disableLogging();
+//				$this->searchObject->setLimit(self::ITEMS_PER_PAGE);
+//				$this->searchObject->setPage($pageToLoad);
+//				$this->searchObject->processSearch();
+//				$records = $this->searchObject->getBrowseRecordHTML();
+//			}
+//			if (count($records) == 0){
+//				$records[] = $interface->fetch('Browse/noResults.tpl');
+//			}
+//
+////			$result['records'] = implode('',$records); //don't implode so js can parse out on results page
+//			$result['records'] = $records;
+//
+//		}
+//		// Shutdown the search object
+//		$this->searchObject->close();
+//		return $result;
+//	}
 }

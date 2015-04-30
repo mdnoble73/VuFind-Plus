@@ -257,11 +257,14 @@ class GroupedWork_AJAX {
 //		}
 		// short version
 		$url = (count($relatedRecords) == 1) ? $relatedRecords[0]['url'] : $recordDriver->getLinkUrl();
+		$escapedId = htmlentities($recordDriver->getPermanentId()); // escape for html
+		$buttonLabel = translate('Add to favorites');
 
 		$results = array(
-				'title' => $recordDriver->getTitle(),
+				'title' => "<a href='$url'>{$recordDriver->getTitle()}</a>",
 				'modalBody' => $interface->fetch("GroupedWork/work-details.tpl"),
-				'modalButtons' => "<a href='$url'><span class='tool btn btn-primary'>More Info</span></a>"
+				'modalButtons' => "<span onclick=\"return VuFind.GroupedWork.showSaveToListForm(this, '$escapedId');\" class=\"modal-buttons btn btn-primary\" style='float: left'>$buttonLabel</span>"
+					."<a href='$url'><span class='modal-buttons btn btn-primary'>More Info</span></a>"
 		);
 		return json_encode($results);
 

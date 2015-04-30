@@ -209,7 +209,8 @@ div.bottom-border-line {
 }
 
 // the category text
-.browse-category a {
+//.browse-category a, // TODO with a tags removed , delete this line
+.browse-category div{
   color: @browse-label-text-color;
   text-shadow: none;
   text-transform: uppercase;
@@ -233,7 +234,8 @@ div.bottom-border-line {
   background-color: @selectedCategoryColor;
   background: @selectedCategoryColor;
   background: linear-gradient(to bottom, @selectedCategoryColor 0%,@selectedCategoryColor 75%, white 75%, white 80%, lighten(@selectedCategoryColor, 30%) 80%, white 100%);
-  a {
+//  a,  // TODO with a tags removed , delete this line
+  div {
     color: white;
   }
 }

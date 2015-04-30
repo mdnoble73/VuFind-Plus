@@ -469,20 +469,28 @@ class CatalogConnection
 	{
 		/** @var Memcache $memCache */
 		global $memCache;
+		global $serverName;
+		$memCacheProfileKey = "patronProfile_{$serverName}_";
 		if (is_object($patron)){
-			$id = $patron->username;
+			$memCacheProfileKey .= $patron->username;
+
 		}else{
-			$id = $patron['username'];
+			$memCacheProfileKey .= $patron['username'];
 		}
 
-		$key = 'patronProfile_' . $id ;
-		$cachedValue = $memCache->get($key);
-		if ($cachedValue == false || isset($_REQUEST['reload'])){
-			$profile = $this->driver->getMyProfile($patron);
+		$forceReload = isset($_REQUEST['reload']);
+		if (!$forceReload && $memCacheProfileKey) {
+			$cachedValue = $memCache->get($memCacheProfileKey);
+			if (!$cachedValue) $forceReload = true;
+			// when not found in memcache turn on reload to short-circuit redundant memcache checks in each of the ILS drivers for getMyProfile()
+		}
+		if ($forceReload){
+			$profile = $this->driver->getMyProfile($patron, $forceReload);
 			if (PEAR_Singleton::isError($profile)){
-				echo("Error loading profile " . print_r($profile, true));
+//				echo("Error loading profile " . print_r($profile, true));
 				return $profile;
 			}
+
 			$profile['readingHistorySize'] = '';
 			global $user;
 			if ($user && $user->trackReadingHistory && $user->initialReadingHistoryLoaded){
@@ -494,7 +502,8 @@ class CatalogConnection
 			$cachedValue = $profile;
 
 			global $configArray;
-			$memCache->add($key, $cachedValue, 0, $configArray['Caching']['patron_profile']);
+			$memCacheResult = $memCache->replace($memCacheProfileKey, $cachedValue, 0, $configArray['Caching']['patron_profile']);
+			// Update the existing key
 		}
 
 		return $cachedValue;
@@ -555,7 +564,7 @@ class CatalogConnection
 
 	function updatePatronInfo($canUpdateContactInfo)
 	{
-		return $this->driver->updatePatronInfo($canUpdateContactInfo);
+		return $errors = $this->driver->updatePatronInfo($canUpdateContactInfo);
 	}
 
 	function selfRegister(){

@@ -1105,10 +1105,8 @@ class OverDriveDriver3 {
 
 	public function clearPatronProfile() {
 		/** @var Memcache $memCache */
-		global $memCache;
-		global $user;
-
-		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
-
+		global $memCache, $user, $serverName;
+		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
+		// TODO: test the functionality of this change
 	}
 }

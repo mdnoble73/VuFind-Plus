@@ -35,6 +35,10 @@ class SelfReg extends Action {
 			$library,
 			$configArray;
 
+		/** @var  CatalogConnection $catalog */
+		$catalog = CatalogFactory::getCatalogConnectionInstance();
+		$selfRegFields = $catalog->getSelfRegistrationFields();
+
 		if (isset($_REQUEST['submit'])) {
 
 			$recaptchaValid = false;
@@ -52,7 +56,12 @@ class SelfReg extends Action {
 
 			if (!$recaptchaValid) {
 				$interface->assign('captchaMessage', 'The CAPTCHA response was incorrect, please try again.');
-				// TODO: pass user data back to form
+
+				// Pre-fill form with user supplied data
+				foreach ($selfRegFields as &$property) {
+					$uservalue = $_REQUEST[$property['property']];
+					$property['default'] = $uservalue;
+				}
 
 
 			} else {
@@ -63,9 +72,7 @@ class SelfReg extends Action {
 			}
 		}
 
-		/** @var  CatalogConnection $catalog */
-		$catalog = CatalogFactory::getCatalogConnectionInstance();
-		$selfRegFields = $catalog->getSelfRegistrationFields();
+
 		$interface->assign('submitUrl', $configArray['Site']['path'] . '/MyAccount/SelfReg');
 		$interface->assign('structure', $selfRegFields);
 		$interface->assign('saveButtonText', 'Register');

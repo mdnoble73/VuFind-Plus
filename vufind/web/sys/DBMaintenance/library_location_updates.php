@@ -964,6 +964,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'browse_category_default_view_mode' => array(
+			'title' => 'Viewing Mode for Browse Categories',
+			'description' => 'Default Setting for the Viewing Mode of Browse Categories',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `defaultBrowseMode` VARCHAR(25);",
+				"ALTER TABLE `location` ADD COLUMN `defaultBrowseMode` VARCHAR(25);",
+			),
+		),
 		'logo_linking' => array(
 			'title' => 'Logo Linking',
 			'description' => 'Allow Linking of Logo to the library home page.',
