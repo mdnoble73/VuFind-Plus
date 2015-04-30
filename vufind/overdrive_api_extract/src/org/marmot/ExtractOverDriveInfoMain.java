@@ -1,9 +1,6 @@
 package org.marmot;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
@@ -31,11 +28,28 @@ public class ExtractOverDriveInfoMain {
 		serverName = args[0];
 		args = Arrays.copyOfRange(args, 1, args.length);
 		boolean doFullReload = false;
+		String individualIdToProcess = null;
 		if (args.length == 1){
 			//Check to see if we got a full reload parameter
 			String firstArg = args[0].replaceAll("\\s", "");
 			if (firstArg.matches("^fullReload(=true|1)?$")){
 				doFullReload = true;
+			}else if (firstArg.equals("singleWork")){
+				//Process a specific work
+				//Prompt for the work to process
+				System.out.print("Enter the id of the record to update from OverDrive: ");
+
+				//  open up standard input
+				BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+
+				//  read the work from the command-line; need to use try/catch with the
+				//  readLine() method
+				try {
+					individualIdToProcess = br.readLine().trim();
+				} catch (IOException ioe) {
+					System.out.println("IO error trying to read the work to process!");
+					System.exit(1);
+				}
 			}
 		}
 
@@ -100,7 +114,7 @@ public class ExtractOverDriveInfoMain {
 		}
 		
 		ExtractOverDriveInfo extractor = new ExtractOverDriveInfo();
-		extractor.extractOverDriveInfo(configIni, vufindConn, econtentConn, logEntry, doFullReload);
+		extractor.extractOverDriveInfo(configIni, vufindConn, econtentConn, logEntry, doFullReload, individualIdToProcess);
 		
 		logEntry.setFinished();
 		logEntry.addNote("Finished OverDrive extraction");
