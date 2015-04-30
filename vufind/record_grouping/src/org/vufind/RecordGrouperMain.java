@@ -76,7 +76,9 @@ public class RecordGrouperMain {
 					"3) benchmark the record generation and test the functionality\n" +
 					"   record_grouping.jar benchmark" +
 					"4) Generate author authorities based on data in the exports" +
-					"   record_grouping.jar generateAuthorAuthorities <pika_site_name>");
+					"   record_grouping.jar generateAuthorAuthorities <pika_site_name>" +
+					"5) Only run record grouping cleanup" +
+					"   record_grouping.jar <pika_site_name> runPostGroupingCleanup");
 			System.exit(1);
 		}
 
@@ -670,24 +672,32 @@ public class RecordGrouperMain {
 
 		//Check to see if we need to clear the database
 		boolean clearDatabasePriorToGrouping = false;
+		boolean onlyDoCleanup = false;
 		if (args.length >= 2 && args[1].equalsIgnoreCase("fullRegroupingNoClear")) {
 			fullRegroupingNoClear = true;
 		}else if (args.length >= 2 && args[1].equalsIgnoreCase("fullRegrouping")){
 			clearDatabasePriorToGrouping = true;
 			fullRegrouping = true;
+		}else if (args.length >= 2 && args[1].equalsIgnoreCase("runPostGroupingCleanup")){
+			clearDatabasePriorToGrouping = false;
+			fullRegrouping = false;
+			onlyDoCleanup = true;
 		}else{
 			fullRegrouping = false;
 		}
 
-		RecordGroupingProcessor recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, serverName, configIni, logger, fullRegrouping);
+		RecordGroupingProcessor recordGroupingProcessor = null;
+		if (!onlyDoCleanup) {
+			recordGroupingProcessor = new RecordGroupingProcessor(vufindConn, serverName, configIni, logger, fullRegrouping);
 
-		clearDatabase(vufindConn, clearDatabasePriorToGrouping);
-		loadIlsChecksums(vufindConn);
+			clearDatabase(vufindConn, clearDatabasePriorToGrouping);
+			loadIlsChecksums(vufindConn);
 
-		groupHooplaRecords(configIni, recordGroupingProcessor);
-		groupEVokeRecords(configIni, recordGroupingProcessor);
-		groupOverDriveRecords(configIni, econtentConnection, recordGroupingProcessor);
-		groupIlsRecords(configIni, recordGroupingProcessor);
+			groupHooplaRecords(configIni, recordGroupingProcessor);
+			groupEVokeRecords(configIni, recordGroupingProcessor);
+			groupOverDriveRecords(configIni, econtentConnection, recordGroupingProcessor);
+			groupIlsRecords(configIni, recordGroupingProcessor);
+		}
 
 		try{
 			logger.info("Doing post processing of record grouping");
@@ -716,7 +726,9 @@ public class RecordGrouperMain {
 			System.exit(1);
 		}
 
-		recordGroupingProcessor.dumpStats();
+		if (recordGroupingProcessor != null) {
+			recordGroupingProcessor.dumpStats();
+		}
 
 		logger.info("Finished grouping records " + new Date().toString());
 		long endTime = new Date().getTime();
@@ -1087,7 +1099,8 @@ public class RecordGrouperMain {
 		try{
 			boolean autoCommit = vufindConn.getAutoCommit();
 			vufindConn.setAutoCommit(false);
-			PreparedStatement unlinkedIdentifiersStmt = vufindConn.prepareStatement("SELECT id FROM grouped_work_identifiers where id NOT IN (SELECT DISTINCT secondary_identifier_id from grouped_work_primary_to_secondary_id_ref)", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement unlinkedIdentifiersStmt = vufindConn.prepareStatement("SELECT id FROM grouped_work_identifiers where id NOT IN " +
+					"(SELECT DISTINCT secondary_identifier_id from grouped_work_primary_to_secondary_id_ref)", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			ResultSet unlinkedIdentifiersRS = unlinkedIdentifiersStmt.executeQuery();
 			PreparedStatement removeIdentifierStmt = vufindConn.prepareStatement("DELETE FROM grouped_work_identifiers where id = ?");
 			int numUnlinkedIdentifiersRemoved = 0;

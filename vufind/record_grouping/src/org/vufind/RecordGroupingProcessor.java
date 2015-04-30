@@ -1090,6 +1090,7 @@ public class RecordGroupingProcessor {
 		formatsToGroupingCategory.put("Disney_Online_Book", "ebook");
 		formatsToGroupingCategory.put("Open_PDF_eBook", "ebook");
 		formatsToGroupingCategory.put("Open_EPUB_eBook", "ebook");
+		formatsToGroupingCategory.put("Nook_Periodicals", "ebook");
 		formatsToGroupingCategory.put("eContent", "ebook");
 		formatsToGroupingCategory.put("SeedPacket", "other");
 	}
