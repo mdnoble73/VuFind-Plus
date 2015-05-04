@@ -3,6 +3,7 @@ VuFind.Browse = (function(){
 		curPage: 1,
 		curCategory: '',
 		browseMode: 'covers',
+		opac: false, // true to prevent browser storage of browse mode
 		browseModeClasses: { // browse mode to css class correspondence
 			covers:'home-page-browse-thumbnails',
 			lists:'home-page-browse-lists'
@@ -75,14 +76,16 @@ VuFind.Browse = (function(){
 			var mode = this.browseModeClasses.hasOwnProperty(selectedMode) ? selectedMode : this.browseMode, // check that selected mode is a valid option
 					categoryTextId = this.curCategory || $('#browse-category-carousel .selected').data('category-id');
 			this.browseMode = mode; // set the mode officially
-			return this.changeBrowseCategory(categoryTextId); //re-load the browse category
+			if (!this.opac && VuFind.Account.hasLocalStorage() ) { // store setting in browser if not an opac computer
+				window.localStorage.setItem('browseMode', this.browseMode);
+			}
 		},
 
 		changeBrowseCategory: function(categoryTextId){
 			var url = Globals.path + '/Browse/AJAX',
 					params = {
 						method : 'getBrowseCategoryInfo'
-						,textId : categoryTextId
+						,textId : categoryTextId || VuFind.Browse.curCategory
 						,browseMode : this.browseMode
 					},
 					classes = (function(){ // return list of all associated css classes (class list can be expanded without changing this code.)

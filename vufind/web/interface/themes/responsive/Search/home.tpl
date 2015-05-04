@@ -38,28 +38,28 @@
 			<div class="row text-center" id="selected-browse-label">
 
 				<div class="btn-group btn-group-sm" data-toggle="buttons">
-					<label for="covers" title="Covers" class="btn btn-sm btn-default {if $browseMode == 'covers'}active{/if}"><input onchange="VuFind.Browse.toggleBrowseMode(this.id)" type="radio" id="covers" {if 1}checked="checked"{/if}>
+					<label for="covers" title="Covers" class="btn btn-sm btn-default"><input onchange="VuFind.Browse.toggleBrowseMode(this.id)" type="radio" id="covers">
 						<span class="thumbnail-icon"></span><span> Covers</span>
 					</label>
-					<label for="lists" title="Lists" class="btn btn-sm btn-default {if $browseMode == 'lists'}active{/if}"><input onchange="VuFind.Browse.toggleBrowseMode(this.id);" type="radio" id="lists" {if 0}checked="checked"{/if}>
+					<label for="lists" title="Lists" class="btn btn-sm btn-default"><input onchange="VuFind.Browse.toggleBrowseMode(this.id);" type="radio" id="lists">
 						<span class="list-icon"></span><span> Lists</span>
 					</label>
 				</div>
 
 				<div class="selected-browse-label-search">
-					<a id="selected-browse-search-link" href="{$browseResults.searchUrl}" title="See the search results page for this browse category">
+					<a id="selected-browse-search-link" title="See the search results page for this browse category">
 						<span class="icon-before"></span> {*space needed for good padding between text and icon *}
-						<span class="selected-browse-label-search-text"> {$browseResults.label}</span>
+						<span class="selected-browse-label-search-text"></span>
 						<span class="icon-after"></span>
 					</a>
 				</div>
 			</div>
 
 			<div id="home-page-browse-results">
-				<div class="row{if $browseMode=='covers'} home-page-browse-thumbnails{elseif $browseMode=='lists'} home-page-browse-lists{/if}">
-					{$browseResults.records}
+				<div class="row">
 				</div>
 			</div>
+
 
 			<a href="#" onclick="return VuFind.Browse.getMoreResults()">
 				<div class="row" id="more-browse-results">
@@ -70,10 +70,15 @@
 	</div>
 {/strip}
 <script type="text/javascript">
-	{literal}
-	$(function(){
-		VuFind.Browse.curCategory = '{/literal}{$browseResults.textId}{literal}';
-		VuFind.Browse.browseMode = '{/literal}{$browseMode}{literal}';
-	});
-	{/literal}
+	$(function(){ldelim}
+		{*VuFind.Browse.curCategory = '*}{*/literal*}{*{$browseResults.textId}*}{*literal*}{*';*}
+		{if !$onInternalIP}
+		VuFind.Browse.browseMode = VuFind.Account.hasLocalStorage() ? window.localStorage.getItem('browseMode') : '{$browseMode}';
+		{else}
+		VuFind.Browse.browseMode = '{$browseMode}';
+		VuFind.Browse.opac = 1; {* set to true to keep opac browsers from storing browse mode *}
+		{/if}
+		$('#'+VuFind.Browse.browseMode).parent('label').addClass('active'); {* show user which one is selected *}
+		VuFind.Browse.toggleBrowseMode();
+	{rdelim});
 </script>

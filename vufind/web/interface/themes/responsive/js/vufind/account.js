@@ -15,26 +15,20 @@ VuFind.Account = (function(){
 		 * @returns {boolean}
 		 */
 		addList: function () {
-			var form = $("#addListForm");
-			var isPublic = form.find("#public").prop("checked");
-			var recordId = form.find("input[name=recordId]").val();
-			var source = form.find("input[name=source]").val();
-			var title = form.find("input[name=title]").val();
-			var desc = $("#listDesc").val();
-
-			var url = Globals.path + "/MyAccount/AJAX";
-			//var params = "method=AddList&" +
-			//		"title=" + encodeURIComponent(title) + "&" +
-			//		"public=" + isPublic + "&" +
-			//		"desc=" + encodeURIComponent(desc) + "&" +
-			//		"recordId=" + encodeURIComponent(recordId) ;
-			var params = {
-					'method':'AddList',
-					title: title,
-					public: isPublic,
-					desc: desc,
-					recordId: recordId
-				}
+			var form = $("#addListForm"),
+					isPublic = form.find("#public").prop("checked"),
+					recordId = form.find("input[name=recordId]").val(),
+					source = form.find("input[name=source]").val(),
+					title = form.find("input[name=title]").val(),
+					desc = $("#listDesc").val(),
+					url = Globals.path + "/MyAccount/AJAX",
+					params = {
+							'method':'AddList',
+							title: title,
+							public: isPublic,
+							desc: desc,
+							recordId: recordId
+						};
 			$.getJSON(url, params,function (data) {
 					if (data.result) {
 						VuFind.showMessage("Added Successfully", data.message, true);
@@ -44,21 +38,6 @@ VuFind.Account = (function(){
 			}).fail(function(){
 					VuFind.showMessage("Error creating list", "There was an unexpected error creating your list")
 			});
-			//$.ajax({
-			//	url: url + '?' + params,
-			//	dataType: "json",
-			//	success: function (data) {
-			//		if (data.result) {
-			//			VuFind.showMessage("Added Successfully", data.message);
-			//		} else {
-			//			VuFind.showMessage("Error", data.message);
-			//		}
-			//	},
-			//	error: function () {
-			//		VuFind.showMessage("Error creating list", "There was an unexpected error creating your list");
-			//	}
-			//});
-
 			return false;
 		},
 
