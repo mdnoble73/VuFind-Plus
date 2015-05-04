@@ -79,6 +79,7 @@ VuFind.Browse = (function(){
 			if (!this.opac && VuFind.Account.hasLocalStorage() ) { // store setting in browser if not an opac computer
 				window.localStorage.setItem('browseMode', this.browseMode);
 			}
+			return this.changeBrowseCategory(categoryTextId); // re-load the browse category
 		},
 
 		changeBrowseCategory: function(categoryTextId){

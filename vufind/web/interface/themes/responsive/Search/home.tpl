@@ -60,7 +60,6 @@
 				</div>
 			</div>
 
-
 			<a href="#" onclick="return VuFind.Browse.getMoreResults()">
 				<div class="row" id="more-browse-results">
 					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Browse Results" title="Load More Browse Results">
@@ -71,9 +70,13 @@
 {/strip}
 <script type="text/javascript">
 	$(function(){ldelim}
-		{*VuFind.Browse.curCategory = '*}{*/literal*}{*{$browseResults.textId}*}{*literal*}{*';*}
+		{*VuFind.Browse.curCategory = '$browseResults.textId';*}
 		{if !$onInternalIP}
-		VuFind.Browse.browseMode = VuFind.Account.hasLocalStorage() ? window.localStorage.getItem('browseMode') : '{$browseMode}';
+		if (VuFind.Account.hasLocalStorage()){ldelim}
+			var temp = window.localStorage.getItem('browseMode');
+			else VuFind.Browse.browseMode = '{$browseMode}';
+		{rdelim}
+		else VuFind.Browse.browseMode = '{$browseMode}';
 		{else}
 		VuFind.Browse.browseMode = '{$browseMode}';
 		VuFind.Browse.opac = 1; {* set to true to keep opac browsers from storing browse mode *}
