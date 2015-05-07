@@ -39,7 +39,7 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 
 	protected List<PrintIlsItem> getUnsuppressedPrintItems(String identifier, Record record){
 		String bibFormat = getFirstFieldVal(record, "998e");
-		boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u") || bibFormat.equals("n");
+		boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u");
 		String url = getFirstFieldVal(record, "856u");
 		boolean has856 = url != null;
 
@@ -61,7 +61,7 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 
 	protected List<EContentIlsItem> getUnsuppressedEContentItems(String identifier, Record record){
 		String bibFormat = getFirstFieldVal(record, "998e").trim();
-		boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u") || bibFormat.equals("n");
+		boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u");
 		String url = getFirstFieldVal(record, "856u");
 		boolean has856 = url != null;
 
