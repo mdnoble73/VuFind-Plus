@@ -83,10 +83,13 @@ public class DatabaseCleanup implements IProcessHandler {
 				deleteDuplicateRecordStmt.setString(4, duplicateRecordsRS.getString("sourceId"));
 				deleteDuplicateRecordStmt.setLong(5, duplicateRecordsRS.getLong("checkoutDate"));
 				deleteDuplicateRecordStmt.setLong(6, duplicateRecordsRS.getLong("lastCheckIn"));
-				int numDeletions = deleteDuplicateRecordStmt.executeUpdate();
-				if (numDeletions == 0){
-					logger.warn("Warning did not delete any records");
-				}
+				deleteDuplicateRecordStmt.executeUpdate();
+
+				//int numDeletions = deleteDuplicateRecordStmt.executeUpdate();
+				/*if (numDeletions == 0){
+					//This happens if the items have already been marked as deleted
+					logger.debug("Warning did not delete any records for user " + duplicateRecordsRS.getLong("userId"));
+				}*/
 			}
 		} catch (SQLException e) {
 			processLog.incErrors();
