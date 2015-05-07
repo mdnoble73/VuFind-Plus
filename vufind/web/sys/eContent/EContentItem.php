@@ -570,6 +570,8 @@ class EContentItem extends DB_DataObject {
 				$notes = "Works on all eReaders (except Kindles), desktop computers and mobile devices with with reading apps installed.";
 			}else if ($this->externalFormatId == 'ebook-pdf-open'){
 
+			}else if ($this->externalFormatId == 'periodicals-nook'){
+				$notes = "Works on NOOK devices and all devices with a NOOK app installed.";
 			}else{
 
 			}
@@ -639,6 +641,8 @@ class EContentItem extends DB_DataObject {
 				$helpText = "How to use an EPUB eBook";
 			}else if ($this->externalFormatId == 'ebook-pdf-open'){
 				$helpText = "How to use a PDF eBook";
+			}else if ($this->externalFormatId == 'periodicals-nook'){
+				$helpText = "How to use a NOOK Periodical";
 			}else{
 
 			}
