@@ -48,7 +48,10 @@
 										</div>
 										<div class="col-xs-8">
 											{if $edit && $canUpdateContactInfo && $canUpdateAddress}
-												<input name='address1' id="address1" value='{$profile.address1|escape}' size='50' maxlength='75' class="form-control required" />
+												<input name='address1' id="address1" value='{$profile.address1|escape}' size='50' maxlength='75' class="form-control required">
+											{elseif $edit && $millenniumNoAddress}
+												<input name='address1' id="address1" value='{$profile.address1|escape}' type="hidden">
+												{$profile.address1|escape}
 											{else}
 												{$profile.address1|escape}
 											{/if}
@@ -57,34 +60,49 @@
 									<div class="form-group">
 										<div class="col-xs-4"><label for="city">{translate text='City'}:</label></div>
 										<div class="col-xs-8">
-											{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='city' id="city" value='{$profile.city|escape}' size='50' maxlength='75' class="form-control required"/>{else}{$profile.city|escape}{/if}
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='city' id="city" value='{$profile.city|escape}' size='50' maxlength='75' class="form-control required">
+											{elseif $edit && $millenniumNoAddress}
+												<input name='city' id="city" value='{$profile.city|escape}' type="hidden">
+												{$profile.city|escape}
+											{else}{$profile.city|escape}{/if}
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="state">{translate text='State'}:</label></div>
 										<div class="col-xs-8">
-											{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='state' id="state" value='{$profile.state|escape}' size='50' maxlength='75' class="form-control required"/>{else}{$profile.state|escape}{/if}
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='state' id="state" value='{$profile.state|escape}' size='50' maxlength='75' class="form-control required">
+											{elseif $edit && $millenniumNoAddress}
+												<input name='state' id="state" value='{$profile.state|escape}' type="hidden">
+												{$profile.state|escape}
+											{else}{$profile.state|escape}{/if}
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="zip">{translate text='Zip'}:</label></div>
-										<div class="col-xs-8">{if $edit && $canUpdateContactInfo && $canUpdateAddress}<input name='zip' id="zip" value='{$profile.zip|escape}' size='50' maxlength='75' class="form-control required"/>{else}{$profile.zip|escape}{/if}</div>
+										<div class="col-xs-8">
+											{if $edit && $canUpdateContactInfo && $canUpdateAddress}
+												<input name='zip' id="zip" value='{$profile.zip|escape}' size='50' maxlength='75' class="form-control required">
+											{elseif $edit && $millenniumNoAddress}
+												<input name='zip' id="zip" value='{$profile.zip|escape}' type="hidden">
+												{$profile.zip|escape}
+											{else}{$profile.zip|escape}{/if}
+										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="phone">{translate text='Primary Phone Number'}:</label></div>
-										<div class="col-xs-8">{if $edit == true && $canUpdateContactInfo == true}<input type="tel" name='phone' id="phone" value='{$profile.phone|replace:'TEXT ONLY ':''|escape}' size='50' maxlength='75' class="form-control"/>{else}{$profile.phone|escape}{/if}</div>
+										<div class="col-xs-8">{if $edit == true && $canUpdateContactInfo == true}<input type="tel" name='phone' id="phone" value='{$profile.phone|replace:'TEXT ONLY':''|escape}' size='50' maxlength='75' class="form-control">{else}{$profile.phone|escape}{/if}</div>
 									</div>
 									{if $showWorkPhoneInProfile}
 										<div class="form-group">
 											<div class="col-xs-4"><label for="workPhone">{translate text='Work Phone Number'}:</label></div>
-											<div class="col-xs-8">{if $edit == true && $canUpdateContactInfo == true}<input name='workPhone' id="workPhone" value='{$profile.workPhone|escape}' size='50' maxlength='75' class="form-control"/>{else}{$profile.workPhone|escape}{/if}</div>
+											<div class="col-xs-8">{if $edit == true && $canUpdateContactInfo == true}<input name='workPhone' id="workPhone" value='{$profile.workPhone|escape}' size='50' maxlength='75' class="form-control">{else}{$profile.workPhone|escape}{/if}</div>
 										</div>
 									{/if}
 								{/if}
 								<div class="form-group">
 									<div class="col-xs-4"><label for="email">{translate text='E-mail'}:</label></div>
 									<div class="col-xs-8">
-										{if $edit == true && $canUpdateContactInfo == true}<input type='email' name='email' id="email" value='{$profile.email|escape}' size='50' maxlength='75' class="form-control"/>{else}{$profile.email|escape}{/if}
+										{if $edit == true && $canUpdateContactInfo == true}<input type='email' name='email' id="email" value='{$profile.email|escape}' size='50' maxlength='75' class="form-control">{else}{$profile.email|escape}{/if}
 									</div>
 								</div>
 								{if $showPickupLocationInProfile}
@@ -139,10 +157,10 @@
 										<div class="col-xs-4"><label for="smsNotices">{translate text='Receive SMS/Text Messages'}:</label></div>
 										<div class="col-xs-8">
 											{if $edit == true && $canUpdateContactInfo == true}
-												<input type="checkbox" name="smsNotices" id="smsNotices" {if $profile.mobileNumber}checked='checked'{/if}/>
+												<input type="checkbox" name="smsNotices" id="smsNotices" {if $profile.mobileNumber}checked='checked'{/if}>
 												<script type="text/javascript">
 													{literal}
-													$(document).ready(function(){
+													$(function(){
 														$("#smsNotices").bootstrapSwitch();
 													});
 													{/literal}
@@ -163,7 +181,7 @@
 										<div class="col-xs-4"><label for="mobileNumber">{translate text='Mobile Number'}:</label></div>
 										<div class="col-xs-8">
 											{if $edit == true && $canUpdateContactInfo == true}
-												<input type="tel" name="mobileNumber" value="{$profile.mobileNumber}" class="form-control"/>
+												<input type="tel" name="mobileNumber" value="{$profile.mobileNumber}" class="form-control">
 											{else}
 
 											{/if}
@@ -174,7 +192,7 @@
 								{if !$offline && $edit == true && $canUpdateContactInfo}
 									<div class="form-group">
 										<div class="col-xs-8 col-xs-offset-4">
-											<input type='submit' value='Update Contact Information' name='updateContactInfo' class="btn btn-sm btn-primary"/>
+											<input type='submit' value='Update Contact Information' name='updateContactInfo' class="btn btn-sm btn-primary">
 										</div>
 									</div>
 								{/if}
@@ -206,24 +224,24 @@
 									<div class="form-group">
 										<div class="col-xs-4"><label for="pin" class="control-label">{translate text='Old PIN'}:</label></div>
 										<div class="col-xs-8">
-											<input type='password' name='pin' id="pin" value='' size='4' maxlength='4' class="form-control" />
+											<input type='password' name='pin' id="pin" value='' size='4' maxlength='4' class="form-control">
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="pin1" class="control-label">{translate text='New PIN'}:</label></div>
 										<div class="col-xs-8">
-											<input type='password' name='pin1' id='pin1' value='' size='4' maxlength='4' class="form-control" />
+											<input type='password' name='pin1' id='pin1' value='' size='4' maxlength='4' class="form-control">
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-4"><label for="pin2" class="control-label">{translate text='Re-enter New PIN'}:</label></div>
 										<div class="col-xs-8">
-												<input type='password' name='pin2' id='pin2' value='' size='4' maxlength='4' class="form-control" />
+												<input type='password' name='pin2' id='pin2' value='' size='4' maxlength='4' class="form-control">
 										</div>
 									</div>
 									<div class="form-group">
 										<div class="col-xs-8 col-xs-offset-4">
-											<input type='submit' value='Update' name='update' class="btn btn-primary"/>
+											<input type='submit' value='Update' name='update' class="btn btn-primary">
 										</div>
 									</div>
 								</form>
@@ -255,10 +273,10 @@
 									<div class="col-xs-4"><label for="promptForOverdriveEmail" class="control-label">{translate text='Prompt for OverDrive e-mail'}:</label></div>
 									<div class="col-xs-8">
 										{if $edit == true}
-											<input type="checkbox" name="promptForOverdriveEmail" id="promptForOverdriveEmail" {if $profile.promptForOverdriveEmail==1}checked='checked'{/if}/>
+											<input type="checkbox" name="promptForOverdriveEmail" id="promptForOverdriveEmail" {if $profile.promptForOverdriveEmail==1}checked='checked'{/if}>
 											<script type="text/javascript">
 												{literal}
-												$(document).ready(function(){
+												$(function(){
 													$("#promptForOverdriveEmail").bootstrapSwitch();
 												});
 												{/literal}

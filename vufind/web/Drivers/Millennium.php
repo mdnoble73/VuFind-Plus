@@ -1157,8 +1157,6 @@ class MillenniumDriver implements DriverInterface
 		global $analytics;
 		$updateErrors = array();
 
-		//TODO: Implement returning Update Errors
-
 		//Setup the call to Millennium
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
 
@@ -1190,7 +1188,7 @@ class MillenniumDriver implements DriverInterface
 			}
 
 			if (isset($_REQUEST['mobileNumber'])){
-				$ils = $configArray['Catalog']['ils'];
+//				$ils = $configArray['Catalog']['ils']; // code not used anywhere. plb 4-29-2015
 				$extraPostInfo['mobile'] = preg_replace('/\D/', '', $_REQUEST['mobileNumber']);
 				if (strlen($_REQUEST['mobileNumber']) > 0 && $_REQUEST['smsNotices'] == 'on'){
 					$extraPostInfo['optin'] = 'on';
@@ -1233,6 +1231,9 @@ class MillenniumDriver implements DriverInterface
 			$post_string = http_build_query($post_data);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 			$loginResult = curl_exec($curl_connection);
+
+			//TODO: success check for login? Expired cards will be rejected
+
 			//When a library uses Encore, the initial login does a redirect and requires additional parameters.
 			if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
 				//Get the lt value
@@ -1247,7 +1248,6 @@ class MillenniumDriver implements DriverInterface
 			}
 
 			//Issue a post request to update the patron information
-
 			$patronUpdateParams = http_build_query($extraPostInfo);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/modpinfo";
@@ -1257,37 +1257,35 @@ class MillenniumDriver implements DriverInterface
 			curl_close($curl_connection);
 			unlink($cookieJar);
 
-			// TODO: success check here
-			// TODO: update $user object?
 
-			//Make sure to clear any cached data
-			/** @var Memcache $memCache */
-			global $memCache;
-			$memCache->delete("patron_dump_{$this->_getBarcode()}");
-			$this->clearPatronProfile();
+		// Update Patron Information on success
+		if (isset($sresult) && strpos($sresult, 'Patron information updated') !== false){
+			$user->phone = $_REQUEST['phone'];
+			$user->email = $_REQUEST['email'];
+			$user->update();
 
-			return $updateErrors;
-		}
-
-		//Should get Patron Information Updated on success
-		if (isset($sresult) && preg_match('/Patron information updated/', $sresult)){
-			if ($canUpdateContactInfo){
-				$user->phone = $_REQUEST['phone'];
-				$user->email = $_REQUEST['email'];
-				$user->update();
-			}
 			//Update the serialized instance stored in the session
 			$_SESSION['userinfo'] = serialize($user);
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Profile updated successfully');
 			}
-			return true;
 		}else{
+			// Doesn't look like the millennium (actually sierra) server ever provides error messages. plb 4-29-2015
+			$errorMsg = 'There were errors updating your information.'; // generic error message
+			$updateErrors[] = $errorMsg;
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Profile update failed');
 			}
-			return false;
 		}
+
+		//Make sure to clear any cached data
+		/** @var Memcache $memCache */
+		global $memCache;
+		$memCache->delete("patron_dump_{$this->_getBarcode()}");
+		$this->clearPatronProfile();
+
+		} else $updateErrors[] = 'You can not update your information.';
+		return $updateErrors;
 	}
 
 	var $pType;
