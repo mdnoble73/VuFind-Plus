@@ -636,15 +636,20 @@ public class RecordGroupingProcessor {
 				}
 			}
 		}
-		return "book";
+		//We didn't get a format from the items, check the bib as backup
+		String format = getFormatFromBib(record);
+		format = categoryMap.get(formatsToGroupingCategory.get(format));
+		return format;
 	}
 	private String getFormatFromBib(Record record) {
 		//Check to see if the title is eContent based on the 989 field
-		List<DataField> itemFields = getDataFields(record, itemTag);
-		for (DataField itemField : itemFields) {
-			if (itemField.getSubfield('w') != null) {
-				//The record is some type of eContent.  For this purpose, we don't care what type.
-				return "eContent";
+		if (useEContentSubfield) {
+			List<DataField> itemFields = getDataFields(record, itemTag);
+			for (DataField itemField : itemFields) {
+				if (itemField.getSubfield(eContentSubfield) != null) {
+					//The record is some type of eContent.  For this purpose, we don't care what type.
+					return "eContent";
+				}
 			}
 		}
 
@@ -1170,13 +1175,14 @@ public class RecordGroupingProcessor {
 		HashMap<String, String> translationMap = new HashMap<String, String>();
 		for (Object keyObj : props.keySet()){
 			String key = (String)keyObj;
-			translationMap.put(key, props.getProperty(key));
+			translationMap.put(key.toLowerCase(), props.getProperty(key));
 		}
 		return translationMap;
 	}
 
 	HashSet<String> unableToTranslateWarnings = new HashSet<String>();
 	public String translateValue(String mapName, String value){
+		value = value.toLowerCase();
 		HashMap<String, String> translationMap = translationMaps.get(mapName);
 		String translatedValue;
 		if (translationMap == null){
