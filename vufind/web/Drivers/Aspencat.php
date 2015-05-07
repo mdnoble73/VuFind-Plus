@@ -1386,6 +1386,7 @@ class Aspencat implements DriverInterface{
 				$campus = $locationLookup->code;
 			}
 		}
+		$campus = strtoupper($campus);
 
 		//Get a specific item number to place a hold on even though we are placing a title level hold.
 		//because.... Koha
@@ -1592,6 +1593,7 @@ class Aspencat implements DriverInterface{
 				$campus = $locationLookup->code;
 			}
 		}
+		$campus = strtoupper($campus);
 
 		//Post the hold to koha
 		$placeHoldPage = $configArray['Catalog']['url'] . '/cgi-bin/koha/opac-reserve.pl';
