@@ -787,7 +787,7 @@ class Aspencat implements DriverInterface{
 			//Grab the table body
 			preg_match('/<tbody>(.*?)<\/tbody>/si', $transactionTable, $tableBody);
 			$tableBody = $tableBody[1];
-			preg_match_all('/<tr>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
+			preg_match_all('/<tr(?:.*?)>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
 			foreach ($tableData[1] as $tableRow){
 				//Each row represents a transaction
 				$transaction = array();
