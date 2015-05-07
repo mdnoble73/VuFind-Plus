@@ -142,8 +142,8 @@
 28 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.test
 35 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar flatirons.test DatabaseCleanup
 
-# Write reports for schools
-00 6,11 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.test SierraReports
+# Write reports for schools only needs to be done once on test
+00 6 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.test SierraReports
 
 # Split Marc Records for export to other systems
 00 1 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar marmot.test SplitMarcExport
