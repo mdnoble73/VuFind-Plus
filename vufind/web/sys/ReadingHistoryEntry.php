@@ -18,7 +18,7 @@ class ReadingHistoryEntry extends DB_DataObject
 	public $format;
 	public $checkOutDate;
 	public $checkInDate;
-	//TODO: Number of renewals?
+	public $deleted;
 
 	/* Static get */
     function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('ReadingHistoryEntry',$k,$v); }

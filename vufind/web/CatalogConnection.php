@@ -329,6 +329,7 @@ class CatalogConnection
 				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->deleted = 0; //Only show titles that have not been deleted
 				if ($sortOption == "checkedOut"){
 					$readingHistoryDB->orderBy('checkOutDate DESC, title ASC');
 				}else if ($sortOption == "returned"){
@@ -354,6 +355,7 @@ class CatalogConnection
 
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->deleted = 0;
 				$numTitles = $readingHistoryDB->count();
 
 				return array('historyActive'=>$user->trackReadingHistory, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
@@ -388,13 +390,20 @@ class CatalogConnection
 					$readingHistoryDB = new ReadingHistoryEntry();
 					$readingHistoryDB->userId = $user->id;
 					$readingHistoryDB->id = str_replace('rsh', '', $titleId);
-					$readingHistoryDB->delete();
+					if ($readingHistoryDB->find(true)){
+						$readingHistoryDB->deleted = 1;
+						$readingHistoryDB->update();
+					}
 				}
 			}elseif ($action == 'deleteAll'){
 				//Remove all titles from database (do not remove from ILS)
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $user->id;
-				$readingHistoryDB->delete();
+				$readingHistoryDB->find();
+				while ($readingHistoryDB->fetch()){
+					$readingHistoryDB->deleted = 1;
+					$readingHistoryDB->update();
+				}
 			}elseif ($action == 'exportList'){
 				//Leave this unimplemented for now.
 			}elseif ($action == 'optOut'){
@@ -408,7 +417,7 @@ class CatalogConnection
 					$result = $this->driver->doReadingHistoryAction($action, $selectedTitles);
 				}
 
-				//Delete the reading history
+				//Delete the reading history (permanently this time sine we are opting out)
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $user->id;
 				$readingHistoryDB->delete();
@@ -497,6 +506,7 @@ class CatalogConnection
 				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->deleted = 0;
 				$profile['readingHistorySize'] = $readingHistoryDB->count();
 			}
 			$cachedValue = $profile;
@@ -775,6 +785,7 @@ class CatalogConnection
 		global $user;
 
 		require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
+		//Note, include deleted titles here so they are not added multiple times.
 		$readingHistoryDB = new ReadingHistoryEntry();
 		$readingHistoryDB->userId = $user->id;
 		$readingHistoryDB->whereAdd('checkInDate IS NULL');
@@ -830,6 +841,7 @@ class CatalogConnection
 
 		//Anything that was still active is now checked in
 		foreach ($activeHistoryTitles as $historyEntry){
+			//Update even if deleted to make sure code is cleaned up correctly
 			$historyEntryDB = new ReadingHistoryEntry();
 			$historyEntryDB->source = $historyEntry['source'];
 			$historyEntryDB->sourceId = $historyEntry['id'];

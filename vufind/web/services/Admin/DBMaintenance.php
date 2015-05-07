@@ -428,7 +428,14 @@ class DBMaintenance extends Admin_Admin {
 						) ENGINE = INNODB DEFAULT CHARSET=utf8 COMMENT = 'The reading history for patrons';",
 						"DROP TABLE user_reading_history"
 					),
+				),
 
+				'readingHistory_deletion' => array(
+					'title' => 'Update Reading History Deletion so we mark it as deleted rather than permanently deleting',
+					'description' => 'Update Reading History to handle deletions',
+					'sql' => array(
+						"ALTER TABLE user_reading_history_work ADD `deleted` TINYINT NOT NULL DEFAULT '0'"
+					),
 				),
 
 				'coverArt_suppress' => array(
