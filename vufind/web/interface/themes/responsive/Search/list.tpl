@@ -142,6 +142,7 @@
 		VuFind.DPLA.getDPLAResults('{$lookfor}');
 		{/if}
 
+		{*{include file="Search/results-dislpayMode-js.tpl"}*}
 		{if !$onInternalIP}
 		if (!Globals.opac &&VuFind.hasLocalStorage()){ldelim}
 			var temp = window.localStorage.getItem('searchResultsDisplayMode');

@@ -33,23 +33,36 @@
 		{/if}
 
 		{if $spellingSuggestions}
-			<br /><br /><div class="correction"><strong>{translate text='spell_suggest'}</strong>:<br/>
+			<br><br><div class="correction"><strong>{translate text='spell_suggest'}</strong>:<br>
 			{foreach from=$spellingSuggestions item=details key=term name=termLoop}
-				{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="{$path}/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}{if !$smarty.foreach.termLoop.last}<br/>{/if}
+				{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="{$path}/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}{if !$smarty.foreach.termLoop.last}<br>{/if}
 			{/foreach}
 		</div>
 		{/if}
+
+		{* User's viewing mode toggle switch *}
+		{include file="Search/results-displayMode-toggle.tpl"}
+		{*<div class="row" id="selected-browse-label">*}{* browse styling replicated here *}
+			{*<div class="btn-group btn-group-sm" data-toggle="buttons">*}
+				{*<label for="covers" title="Covers" class="btn btn-sm btn-default"><input onchange="alert(this.id)" type="radio" id="covers">*}
+					{*<span class="thumbnail-icon"></span><span> Covers</span>*}
+				{*</label>*}
+				{*<label for="lists" title="Lists" class="btn btn-sm btn-default"><input onchange="alert(this.id);" type="radio" id="lists">*}
+					{*<span class="list-icon"></span><span> Lists</span>*}
+				{*</label>*}
+			{*</div>*}
+		{*</div>*}
 
 		<div class="clearer"></div>
 	</div>
 	{* End Listing Options *}
 
-	{include file='Search/list-list.tpl'}
+	{include file=$resultsTemplate}
 
 	{if $pageLinks.all}<div class="pagination">{$pageLinks.all}</div>{/if}
 
 	{if $showSearchTools}
-		<div class="well well-small">
+		<div class="well small">
 			<strong>{translate text='Search Tools'}:</strong>
 			<a href="{$rssLink|escape}"><span class="silk feed">&nbsp;</span>{translate text='Get RSS Feed'}</a>
 			<a href="#" onclick="return VuFind.Account.ajaxLightbox('{$path}/Search/AJAX?method=getEmailForm', true);"><span class="silk email">&nbsp;</span>{translate text='Email this Search'}</a>
