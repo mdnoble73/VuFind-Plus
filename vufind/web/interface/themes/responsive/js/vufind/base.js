@@ -180,6 +180,21 @@ var VuFind = (function(){
 					return false;
 				});
 			});
+
+			$('fieldset.fieldset-collapsible').each(function() {
+				var collapsible = $(this);
+				var legend = collapsible.find('legend:first');
+				legend.addClass('fieldset-collapsible-label').bind('click', {collapsible: collapsible}, function(event) {
+					var collapsible = event.data.collapsible;
+					if (collapsible.hasClass('fieldset-collapsed')) {
+						collapsible.removeClass('fieldset-collapsed');
+					} else {
+						collapsible.addClass('fieldset-collapsed');
+					}
+				});
+				// Init.
+				collapsible.addClass('fieldset-collapsed');
+			});
 		},
 
 		showMessage: function(title, body, autoClose, refreshAfterClose){

@@ -6,27 +6,27 @@
 			<div class="error">{$error}</div>
 		{else}
 			<div id="materialsRequestFilters">
-				<fieldset>
-				<legend class="collapsible">Filters:</legend>
-				<form action="{$path}/MaterialsRequest/SummaryReport" method="get">
+				<fieldset class="fieldset-collapsible">
+				<legend>Filters:</legend>
 					<div>
-					<div>
-						<label for="period">Period</label> 
-						<select name="period" id="period" onchange="$('#startDate').val('');$('#endDate').val('');";>
-							<option value="day" {if $period == 'day'}selected="selected"{/if}>Day</option>
-							<option value="week" {if $period == 'week'}selected="selected"{/if}>Week</option>
-							<option value="month" {if $period == 'month'}selected="selected"{/if}>Month</option>
-							<option value="year" {if $period == 'year'}selected="selected"{/if}>Year</option>
-						</select>
+						<form action="{$path}/MaterialsRequest/SummaryReport" method="get">
+							<div>
+								<label for="period">Period</label>
+								<select name="period" id="period" onchange="$('#startDate').val('');$('#endDate').val('');";>
+									<option value="day" {if $period == 'day'}selected="selected"{/if}>Day</option>
+									<option value="week" {if $period == 'week'}selected="selected"{/if}>Week</option>
+									<option value="month" {if $period == 'month'}selected="selected"{/if}>Month</option>
+									<option value="year" {if $period == 'year'}selected="selected"{/if}>Year</option>
+								</select>
+							</div>
+							<div>
+								Date:
+								<label for="startDate">From</label> <input type="text" id="startDate" name="startDate" value="{$startDate}" size="8"/>
+								<label for="endDate">To</label> <input type="text" id="endDate" name="endDate" value="{$endDate}" size="8"/>
+							</div>
+							<div><input type="submit" name="submit" value="Update Filters"/></div>
+						</form>
 					</div>
-					<div>
-						Date: 
-						<label for="startDate">From</label> <input type="text" id="startDate" name="startDate" value="{$startDate}" size="8"/>
-						<label for="endDate">To</label> <input type="text" id="endDate" name="endDate" value="{$endDate}" size="8"/>
-					</div>
-					<div><input type="submit" name="submit" value="Update Filters"/></div>
-					</div>
-				</form>
 				</fieldset>
 			</div>
 			
