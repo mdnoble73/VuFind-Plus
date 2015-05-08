@@ -58,7 +58,7 @@
 5 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar opac.marmot.org
 20 0 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar opac.marmot.org DatabaseCleanup 
 # Write reports for schools
-00 6,11 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar opac.marmot.org SierraReports
+00 6,11,13 * * * cd /usr/local/vufind-plus/vufind/cron; java -jar cron.jar opac.marmot.org SierraReports
 
 # AspenCat
 14 */3 * * * cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.production

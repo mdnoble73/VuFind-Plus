@@ -787,7 +787,7 @@ class Aspencat implements DriverInterface{
 			//Grab the table body
 			preg_match('/<tbody>(.*?)<\/tbody>/si', $transactionTable, $tableBody);
 			$tableBody = $tableBody[1];
-			preg_match_all('/<tr>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
+			preg_match_all('/<tr(?:.*?)>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
 			foreach ($tableData[1] as $tableRow){
 				//Each row represents a transaction
 				$transaction = array();
@@ -1386,6 +1386,7 @@ class Aspencat implements DriverInterface{
 				$campus = $locationLookup->code;
 			}
 		}
+		$campus = strtoupper($campus);
 
 		//Get a specific item number to place a hold on even though we are placing a title level hold.
 		//because.... Koha
@@ -1592,6 +1593,7 @@ class Aspencat implements DriverInterface{
 				$campus = $locationLookup->code;
 			}
 		}
+		$campus = strtoupper($campus);
 
 		//Post the hold to koha
 		$placeHoldPage = $configArray['Catalog']['url'] . '/cgi-bin/koha/opac-reserve.pl';

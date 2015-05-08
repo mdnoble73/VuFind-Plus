@@ -5996,9 +5996,39 @@ body > .container {
 .noBreak {
   white-space: nowrap;
 }
-.expanded,
-.collapsed {
+.collapsed,
+.expanded {
   cursor: pointer;
+}
+.collapsed:before {
+  content: "► ";
+}
+.expanded:before {
+  content: "▼ ";
+}
+.fieldset-collapsed {
+  height: 0;
+  overflow: hidden;
+  border-left: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+.fieldset-collapsed div,
+.fieldset-collapsed fieldset {
+  display: none;
+}
+.fieldset-collapsible-label {
+  color: #256292;
+  cursor: pointer;
+}
+.fieldset-collapsible-label:before {
+  content: "▼ ";
+}
+.fieldset-collapsed .fieldset-collapsible-label {
+  background-position: 4px 4px;
+}
+.fieldset-collapsed .fieldset-collapsible-label:before {
+  content: "► ";
 }
 .accordion .panel-title.collapsed:before {
   content: "► ";

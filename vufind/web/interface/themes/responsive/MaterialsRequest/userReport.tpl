@@ -6,19 +6,19 @@
 			<div class="error">{$error}</div>
 		{else}
 			<div id="materialsRequestFilters">
-				<fieldset>
-				<legend class="collapsible">Filters:</legend>
-				<form action="{$path}/MaterialsRequest/UserReport" method="get">
+				<fieldset class="fieldset-collapsible">
+					<legend>Filters:</legend>
 					<div>
-					<div>
-						Statuses to Show: <input type="checkbox" name="selectAllStatusFilter" id="selectAllStatusFilter" onclick="VuFind.toggleCheckboxes('.statusFilter', '#selectAllStatusFilter');"/> <label for="selectAllStatusFilter">Select All</label> <br/>
-						{foreach from=$availableStatuses item=statusLabel key=status}
-							<input type="checkbox" name="statusFilter[]" value="{$status}" {if in_array($status, $statusFilter)}checked="checked"{/if} class="statusFilter"/>{$statusLabel}<br/>
-						{/foreach}
+						<form action="{$path}/MaterialsRequest/UserReport" method="get">
+							<div>
+								Statuses to Show: <input type="checkbox" name="selectAllStatusFilter" id="selectAllStatusFilter" onclick="VuFind.toggleCheckboxes('.statusFilter', '#selectAllStatusFilter');"/> <label for="selectAllStatusFilter">Select All</label> <br/>
+								{foreach from=$availableStatuses item=statusLabel key=status}
+									<input type="checkbox" name="statusFilter[]" value="{$status}" {if in_array($status, $statusFilter)}checked="checked"{/if} class="statusFilter"/>{$statusLabel}<br/>
+								{/foreach}
+							</div>
+							<div><input type="submit" name="submit" value="Update Filters"/></div>
+						</form>
 					</div>
-					<div><input type="submit" name="submit" value="Update Filters"/></div>
-					</div>
-				</form>
 				</fieldset>
 			</div>
 			
