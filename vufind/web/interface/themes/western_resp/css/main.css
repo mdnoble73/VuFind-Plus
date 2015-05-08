@@ -5995,12 +5995,6 @@ body > .container {
 .expanded {
   cursor: pointer;
 }
-.collapsed:before {
-  content: "► ";
-}
-.expanded:before {
-  content: "▼ ";
-}
 .fieldset-collapsed {
   height: 0;
   overflow: hidden;
