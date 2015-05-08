@@ -96,26 +96,26 @@ VuFind.Account = (function(){
 			}, true);
 			return false;
 		},
-
-		hasLocalStorage: function () {
-			// arguments.callee.haslocalStorage is the function's "static" variable for whether or not we have tested the
-			// that the localStorage system is available to us.
-
-			//console.log(typeof arguments.callee.haslocalStorage);
-			if(typeof arguments.callee.haslocalStorage == "undefined") {
-				if ("localStorage" in window) {
-					try {
-						window.localStorage.setItem('_tmptest', 'temp');
-						arguments.callee.haslocalStorage = (window.localStorage.getItem('_tmptest') == 'temp');
-						// if we get the same info back, we are good. Otherwise, we don't have localStorage.
-						window.localStorage.removeItem('_tmptest');
-					} catch(error) { // something failed, so we don't have localStorage available.
-						arguments.callee.haslocalStorage = false;
-					}
-				} else arguments.callee.haslocalStorage = false;
-			}
-			return arguments.callee.haslocalStorage;
-		},
+// Moved to base.js
+		//hasLocalStorage: function () {
+		//	// arguments.callee.haslocalStorage is the function's "static" variable for whether or not we have tested the
+		//	// that the localStorage system is available to us.
+		//
+		//	//console.log(typeof arguments.callee.haslocalStorage);
+		//	if(typeof arguments.callee.haslocalStorage == "undefined") {
+		//		if ("localStorage" in window) {
+		//			try {
+		//				window.localStorage.setItem('_tmptest', 'temp');
+		//				arguments.callee.haslocalStorage = (window.localStorage.getItem('_tmptest') == 'temp');
+		//				// if we get the same info back, we are good. Otherwise, we don't have localStorage.
+		//				window.localStorage.removeItem('_tmptest');
+		//			} catch(error) { // something failed, so we don't have localStorage available.
+		//				arguments.callee.haslocalStorage = false;
+		//			}
+		//		} else arguments.callee.haslocalStorage = false;
+		//	}
+		//	return arguments.callee.haslocalStorage;
+		//},
 
 		preProcessLogin: function (){
 			var username = $("#username").val(),
@@ -127,7 +127,7 @@ VuFind.Account = (function(){
 						.show();
 				return false;
 			}
-			if (this.hasLocalStorage()){
+			if (VuFind.hasLocalStorage()){
 				//var rememberMeCtl = $("#rememberMe");
 				var rememberMe = $("#rememberMe").prop('checked'),
 						showPwd = $('#showPwd').prop('checked');

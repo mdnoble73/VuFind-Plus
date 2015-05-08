@@ -7,6 +7,7 @@ var Globals = (function () {
 		path: '',
 		url:  '',
 		loggedIn:  false,
+		opac:  false, // true prevents browser storage of user viewing settings
 		automaticTimeoutLength: 0,
 		automaticTimeoutLengthLoggedOut: 0
 	}

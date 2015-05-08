@@ -9,8 +9,10 @@
 		<form method="get" action="{$path}/Union/Search" id="searchForm" class="form-inline" onsubmit="VuFind.Searches.processSearchForm();">
 			<div class="row">
 				<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">
-					<input type="hidden" name="basicType" id="basicType" value=""/>
-					<input type="hidden" name="genealogyType" id="genealogyType" value=""/>
+					<input type="hidden" name="basicType" id="basicType" value="">
+					<input type="hidden" name="view" id="view" value="{$displayMode}">
+					{* May be necessary once view toggling becomes fully ajax calls *}
+					<input type="hidden" name="genealogyType" id="genealogyType" value="">
 					<fieldset>
 						<div class="input-group input-group-sm">
 							<div class="input-group-sm">

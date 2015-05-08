@@ -3,10 +3,10 @@ VuFind.Browse = (function(){
 		curPage: 1,
 		curCategory: '',
 		browseMode: 'covers',
-		opac: false, // true to prevent browser storage of browse mode
+		//opac: false, // true prevents browser storage of browse mode // Moved to Globals
 		browseModeClasses: { // browse mode to css class correspondence
 			covers:'home-page-browse-thumbnails',
-			lists:'home-page-browse-lists'
+			grid:'home-page-browse-lists' //TODO Rename class
 		},
 
 		addToHomePage: function(searchId){
@@ -76,7 +76,7 @@ VuFind.Browse = (function(){
 			var mode = this.browseModeClasses.hasOwnProperty(selectedMode) ? selectedMode : this.browseMode, // check that selected mode is a valid option
 					categoryTextId = this.curCategory || $('#browse-category-carousel .selected').data('category-id');
 			this.browseMode = mode; // set the mode officially
-			if (!this.opac && VuFind.Account.hasLocalStorage() ) { // store setting in browser if not an opac computer
+			if (!Globals.opac && VuFind.hasLocalStorage() ) { // store setting in browser if not an opac computer
 				window.localStorage.setItem('browseMode', this.browseMode);
 			}
 			return this.changeBrowseCategory(categoryTextId); // re-load the browse category
@@ -120,7 +120,8 @@ VuFind.Browse = (function(){
 				if (data.result == false){
 					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
 				}else{
-					if (data.label != newLabel) $('.selected-browse-label-search-text').html(data.label);
+					//if (data.label != newLabel)
+						$('.selected-browse-label-search-text').html(data.label);
 
 					VuFind.Browse.curPage = 1;
 					VuFind.Browse.curCategory = data.textId;

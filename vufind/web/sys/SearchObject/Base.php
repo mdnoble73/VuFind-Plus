@@ -676,6 +676,9 @@ abstract class SearchObject_Base
 	 */
 	protected function initView()
 	{
+		if (!empty($this->view)){ //return view if it has already been set.
+			return $this->view;
+		}
 		// Check for a view parameter in the url.
 		if (isset($_REQUEST['view'])) {
 			if ($_REQUEST['view'] == 'rss') {
@@ -1196,10 +1199,10 @@ abstract class SearchObject_Base
 		$summary['startRecord'] = (($this->page - 1) * $this->limit) + 1;
 		// Last record needs more care
 		if ($this->resultsTotal < $this->limit) {
-			// There are less records returned then one page, use total results
+			// There are less records returned than one page, then use total results
 			$summary['endRecord'] = $this->resultsTotal;
-		} else if (($this->page * $this->limit) > $this->resultsTotal) {
-			// The end of the curent page runs past the last record, use total results
+		} elseif (($this->page * $this->limit) > $this->resultsTotal) {
+			// The end of the current page runs past the last record, use total results
 			$summary['endRecord'] = $this->resultsTotal;
 		} else {
 			// Otherwise use the last record on this page
