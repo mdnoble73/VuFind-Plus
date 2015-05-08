@@ -1,6 +1,6 @@
 #!/usr/bin/expect -f
 
-log_user 0 ; # do NOT send screens to stdout
+log_user 1 ; # do NOT send screens to stdout
 set testing false
 
 # ITEM_UPDATE_EXTRACT_PIKA.exp 
