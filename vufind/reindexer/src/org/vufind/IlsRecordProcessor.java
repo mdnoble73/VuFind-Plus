@@ -676,7 +676,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}else if (protectionType.equals("external")){
 			ilsEContentItem.setRecordIdentifier("external_econtent:" + identifier);
 		}else{
-			logger.warn("Unknown protection type " + protectionType);
+			logger.warn("Unknown protection type " + protectionType + " found in record " + identifier);
 		}
 
 		//Get the url if any
