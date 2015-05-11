@@ -7,6 +7,9 @@ Additional features include
 - Reading Recommendations
 - etc
 
+We develop based off branches, the latest branch deployed in production can be seen in the the footer at 
+http://mercury.marmot.org.
+
 Directory structure: 
 conf       - contains configuration information for each server at each library.  
              Library specific customizations should not be checked in to Git. 
