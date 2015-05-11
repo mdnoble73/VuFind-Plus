@@ -105,11 +105,13 @@ public class Scope implements Comparable<Scope>{
 	/**
 	 * Determine if the item is part of the current scope based on location code and pType
 	 *
+	 *
+	 * @param librarySystemCode
 	 * @param locationCode
 	 * @param compatiblePTypes
 	 * @return
 	 */
-	public boolean isItemPartOfScope(String locationCode, HashSet<String> compatiblePTypes){
+	public boolean isItemPartOfScope(String librarySystemCode, String locationCode, HashSet<String> compatiblePTypes){
 		//If we're in the global scope, always include the record
 		if (isGlobalScope){
 			return true;
@@ -170,7 +172,7 @@ public class Scope implements Comparable<Scope>{
 
 	public boolean isEContentLocationPartOfScope(EContentIlsItem ilsRecord) {
 		String sharing = ilsRecord.getSharing();
-		String locationCode = ilsRecord.getLocation().toLowerCase();
+		String locationCode = ilsRecord.getLocationCode().toLowerCase();
 		if (ilsRecord.getProtectionType().endsWith("external") && includeOutOfSystemExternalLinks){
 			return true;
 		}else if ((sharing.equals("shared") || sharing.equals("library")) && libraryLocationCodePrefix.length() >0 && locationCode.startsWith(libraryLocationCodePrefix)){
@@ -220,7 +222,7 @@ public class Scope implements Comparable<Scope>{
 	}
 
 	HashMap<String, Boolean> locationCodeIncludedDirectly = new HashMap<String, Boolean>();
-	public boolean isLocationCodeIncludedDirectly(String locationCode) {
+	public boolean isLocationCodeIncludedDirectly(String librarySystemCode, String locationCode) {
 		if (locationCodeIncludedDirectly.containsKey(locationCode)){
 			return locationCodeIncludedDirectly.get(locationCode);
 		}
@@ -235,8 +237,8 @@ public class Scope implements Comparable<Scope>{
 		if (isLibraryScope) {
 			if (libraryLocationCodePrefix != null){
 				Pattern libraryCodePattern = Pattern.compile(libraryLocationCodePrefix, Pattern.CASE_INSENSITIVE);
-				if (libraryCodePattern.matcher(locationCode).lookingAt()) {
-					locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
+				if (libraryCodePattern.matcher(librarySystemCode).lookingAt()) {
+					locationCodeIncludedDirectly.put(librarySystemCode, Boolean.TRUE);
 					return true;
 				}
 			}
@@ -297,7 +299,7 @@ public class Scope implements Comparable<Scope>{
 
 	public boolean isEContentDirectlyOwned(EContentIlsItem ilsEContentItem) {
 		String sharing = ilsEContentItem.getSharing();
-		String locationCode = ilsEContentItem.getLocation().toLowerCase();
+		String locationCode = ilsEContentItem.getLocationCode().toLowerCase();
 
 		if ((sharing.equals("shared") || sharing.equals("library")) && libraryLocationCodePrefix.length() >0 && locationCode.startsWith(libraryLocationCodePrefix)){
 			return true;

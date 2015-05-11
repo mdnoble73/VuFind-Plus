@@ -10,7 +10,9 @@ import java.util.HashSet;
  * Time: 9:17 AM
  */
 public class IlsItem {
-	protected String location;
+	protected String librarySystemCode;
+	protected String locationCode;
+	protected String shelfLocationCode;
 	protected String iType;
 
 	protected String dateCreated;
@@ -26,6 +28,22 @@ public class IlsItem {
 	protected String recordIdentifier;
 	protected String volume;
 
+	public String getLibrarySystemCode() {
+		return librarySystemCode;
+	}
+
+	public void setLibrarySystemCode(String librarySystemCode) {
+		this.librarySystemCode = librarySystemCode;
+	}
+
+	public String getShelfLocationCode() {
+		return shelfLocationCode;
+	}
+
+	public void setShelfLocationCode(String shelfLocationCode) {
+		this.shelfLocationCode = shelfLocationCode;
+	}
+
 	public String getDateCreated() {
 		return dateCreated;
 	}
@@ -34,12 +52,12 @@ public class IlsItem {
 		this.dateCreated = dateCreated;
 	}
 
-	public String getLocation() {
-		return location;
+	public String getLocationCode() {
+		return locationCode;
 	}
 
-	public void setLocation(String location) {
-		this.location = location;
+	public void setLocationCode(String location) {
+		this.locationCode = location;
 	}
 
 	public String getiType() {

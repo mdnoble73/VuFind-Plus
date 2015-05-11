@@ -1,8 +1,6 @@
 package org.vufind;
 
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 
 /**
  * A specific item record for eContent based on data within the ILS
@@ -93,7 +91,7 @@ public class EContentIlsItem extends IlsItem{
 
 	public String getRelatedItemInfo() {
 		String itemInfo = this.getItemRecordNumber() +
-				"|" + this.location +
+				"|" + this.locationCode +
 				"|" + (this.available ? "true" : "false") +
 				"|" + this.sharing +
 				"|" + this.source;

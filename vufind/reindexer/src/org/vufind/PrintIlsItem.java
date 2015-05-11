@@ -86,7 +86,7 @@ public class PrintIlsItem extends IlsItem {
 	}
 
 	public String getRelatedItemInfo(){
-		String fullLocation = this.location != null ? this.location.toLowerCase() : "";
+		String fullLocation = this.locationCode != null ? this.locationCode.toLowerCase() : "";
 		if (this.collection != null){
 			fullLocation += ":" + this.collection.toLowerCase();
 		}

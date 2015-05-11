@@ -20,8 +20,11 @@ import java.util.Set;
  * Time: 3:00 PM
  */
 public class AspencatRecordProcessor extends IlsRecordProcessor {
+	private char shelfLocationSubfield;
+
 	public AspencatRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
 		super(indexer, vufindConn, configIni, logger);
+		locationSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "locationSubfield");
 	}
 
 	@Override
@@ -200,7 +203,7 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 	}
 
 	protected String getEContentSharing(EContentIlsItem ilsEContentItem, DataField itemField) {
-		if (ilsEContentItem.getLocation().equals("ONLINE")) {
+		if (ilsEContentItem.getLocationCode().equals("ONLINE")) {
 			return "shared";
 		}else{
 			return "library";
@@ -226,7 +229,7 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 	 */
 	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<EContentIlsItem> itemRecords) {
 		for (EContentIlsItem curItem : itemRecords){
-			String locationCode = curItem.getLocation();
+			String locationCode = curItem.getLocationCode();
 			HashSet<String> sources = new HashSet<String>();
 			HashSet<String> protectionTypes = new HashSet<String>();
 
@@ -340,5 +343,25 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 			suppressed = curItem.getSubfield(iTypeSubfield).getData().equalsIgnoreCase("ill");
 		}
 		return suppressed;
+	}
+
+	@Override
+	protected String getLocationForItem(DataField itemField){
+		String collection = getItemSubfieldData(collectionSubfield, itemField);
+		String location = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		if (collection != null){
+			return collection;
+		}else{
+			return location;
+		}
+	}
+
+	protected String getShelfLocationCodeForItem(DataField itemField){
+		return getItemSubfieldData(shelfLocationSubfield, itemField);
+	}
+
+	@Override
+	protected String getCollectionForItem(DataField itemField){
+		return null;
 	}
 }
