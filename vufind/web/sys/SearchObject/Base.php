@@ -684,21 +684,22 @@ abstract class SearchObject_Base
 			if ($_REQUEST['view'] == 'rss') {
 				// we don't want to store rss in the Session variable
 				$this->view = 'rss';
-			}else if ($_REQUEST['view'] == 'excel') {
+			}elseif ($_REQUEST['view'] == 'excel') {
 				// we don't want to store excel in the Session variable
 				$this->view = 'excel';
 			} else {
 				// store non-rss views in Session for persistence
 				$validViews = $this->getViewOptions();
 				// make sure the url parameter is a valid view
-				if (in_array($_REQUEST['view'], array_keys($validViews))) {
+//				if (in_array($_REQUEST['view'], array_keys($validViews))) {
+				if (in_array($_REQUEST['view'], $validViews)) { // currently using a simple array listing the views (not listed in the keys)
 					$this->view = $_REQUEST['view'];
 					$_SESSION['lastView'] = $this->view;
 				} else {
 					$this->view = $this->defaultView;
 				}
 			}
-		} else if (isset($_SESSION['lastView'])) {
+		} elseif (isset($_SESSION['lastView']) && !empty($_SESSION['lastView'])) {
 			// if there is nothing in the URL, check the Session variable
 			$this->view = $_SESSION['lastView'];
 		} else {

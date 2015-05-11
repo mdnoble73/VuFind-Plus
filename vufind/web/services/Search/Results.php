@@ -406,7 +406,6 @@ class Search_Results extends Action {
 			$interface->assign('categorySelected', $categorySelected);
 			$timer->logTime('load selected category');
 
-
 			// Process Paging
 			$link = $searchObject->renderLinkPageTemplate();
 			$options = array('totalItems' => $summary['resultTotal'],
@@ -428,9 +427,8 @@ class Search_Results extends Action {
 			$displayTemplate = 'Search/covers-list.tpl'; // structure for bookcover tiles
 		} else { // default
 			$displayTemplate = 'Search/list-list.tpl'; // structure for regular results
+			$displayMode = 'list'; // In case the view is not explicitly set, do so now for display & clients-side functions
 		}
-//		$subpage =  $subpage ? $subpage : $displayTemplate; // use display template unless there were no results
-//		$interface->assign('subpage', $subpage);
 		$interface->assign('subpage', $displayTemplate);
 		$interface->assign('displayMode', $displayMode); // For user toggle switches
 
