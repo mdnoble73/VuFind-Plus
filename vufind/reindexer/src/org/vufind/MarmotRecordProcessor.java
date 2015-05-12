@@ -85,7 +85,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					for (Scope curScope : indexer.getScopes()) {
 						//Part of scope if the location code is included directly
 						//or if the scope is not limited to only including library/location codes.
-						boolean includedDirectly = curScope.isLocationCodeIncludedDirectly(ilsItem.getLibrarySystemCode(), orderInformation.getLocationCode());
+						boolean includedDirectly = curScope.isLocationCodeIncludedDirectly(orderInformation.getLocationCode(), orderInformation.getLocationCode());
 						if ((!curScope.isIncludeItemsOwnedByTheLibraryOnly() && !curScope.isIncludeItemsOwnedByTheLocationOnly()) ||
 								includedDirectly) {
 							if (includedDirectly){
@@ -115,7 +115,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 			}
 			String translatedDetailedLocation = indexer.translateValue("detailed_location", locationCode);
 			for (ScopedWorkDetails curScope: groupedWork.getScopedWorkDetails().values()){
-				if (curScope.getScope().isLocationCodeIncludedDirectly(ilsItem.getLibrarySystemCode(), locationCode)) {
+				if (curScope.getScope().isLocationCodeIncludedDirectly(printItem.getLibrarySystemCode(), locationCode)) {
 					curScope.addDetailedLocation(translatedDetailedLocation);
 				}
 			}

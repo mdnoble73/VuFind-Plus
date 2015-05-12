@@ -356,6 +356,7 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 		}
 	}
 
+	@Override
 	protected String getShelfLocationCodeForItem(DataField itemField){
 		return getItemSubfieldData(shelfLocationSubfield, itemField);
 	}

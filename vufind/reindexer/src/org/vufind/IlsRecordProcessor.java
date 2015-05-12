@@ -1018,9 +1018,10 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		HashSet<String> owningLocations = new HashSet<String>();
 		HashSet<String> owningLocationCodes = new HashSet<String>();
 		for (PrintIlsItem curItem : printItems){
+			String librarySystemCode = curItem.getLibrarySystemCode();
 			String locationCode = curItem.getLocationCode();
 			if (locationCode != null){
-				ArrayList<String> owningLibrariesForLocationCode = getLibraryFacetsForLocationCode(locationCode);
+				ArrayList<String> owningLibrariesForLocationCode = getLibraryFacetsForLocationCode(librarySystemCode);
 				owningLibraries.addAll(owningLibrariesForLocationCode);
 				ArrayList<String> owningLocationsForLocationCode = getLocationFacetsForLocationCode(locationCode);
 				owningLocations.addAll(owningLocationsForLocationCode);
@@ -1030,7 +1031,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				loadAdditionalOwnershipInformation(groupedWork, curItem);
 			}
 			for (Scope curScope : curItem.getRelatedScopes()){
-				if (curScope.isLocationScope() && curScope.isLocationCodeIncludedDirectly(ilsItem.getLibrarySystemCode(), locationCode)) {
+				if (curScope.isLocationScope() && curScope.isLocationCodeIncludedDirectly(librarySystemCode, locationCode)) {
 					if (!owningLocations.contains(curScope.getFacetLabel())) {
 						owningLocations.add(curScope.getFacetLabel());
 					}
