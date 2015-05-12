@@ -8388,6 +8388,9 @@ a.browse-thumbnail.active {
   padding: 4px;
   width: 150px;
 }
+.citation th {
+  vertical-align: top;
+}
 /**
  * Additional styling specific to the results list.
  *
