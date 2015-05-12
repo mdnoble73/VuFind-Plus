@@ -997,7 +997,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				relatedLocations.addAll(getLocationFacetsForLocationCode(curItem.getLocationCode()));
 				HashSet<String> relatedScopes = new HashSet<String>();
 				relatedScopes.addAll(getRelatedLocationCodesForLocationCode(curItem.getLocationCode()));
-				relatedScopes.addAll(getRelatedSubdomainsForLocationCode(curItem.getLocationCode()));
+				relatedScopes.addAll(getRelatedSubdomainsForLocationCode(curItem.getLibrarySystemCode()));
 				if (curItem.isAvailable()){
 					availableAt.addAll(relatedLocations);
 					availableLocationCodes.addAll(relatedScopes);
@@ -1026,7 +1026,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				ArrayList<String> owningLocationsForLocationCode = getLocationFacetsForLocationCode(locationCode);
 				owningLocations.addAll(owningLocationsForLocationCode);
 				owningLocationCodes.addAll(getRelatedLocationCodesForLocationCode(locationCode));
-				owningLocationCodes.addAll(getRelatedSubdomainsForLocationCode(locationCode));
+				owningLocationCodes.addAll(getRelatedSubdomainsForLocationCode(librarySystemCode));
 
 				loadAdditionalOwnershipInformation(groupedWork, curItem);
 			}
@@ -1059,11 +1059,16 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	private HashSet<String> locationsWithoutLibraryFacets = new HashSet<String>();
+	private HashMap<String, Pattern> libraryCodePatterns = new HashMap<String, Pattern>();
 	protected ArrayList<String> getLibraryFacetsForLocationCode(String locationCode) {
 		locationCode = locationCode.trim().toLowerCase();
 		ArrayList<String> libraryFacets = new ArrayList<String>();
 		for(String libraryCode : indexer.getLibraryFacetMap().keySet()){
-			Pattern libraryCodePattern = Pattern.compile(libraryCode);
+			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
+			if (libraryCodePattern == null){
+				libraryCodePattern = Pattern.compile(libraryCode);
+				libraryCodePatterns.put(libraryCode, libraryCodePattern);
+			}
 			if (libraryCodePattern.matcher(locationCode).lookingAt()){
 				libraryFacets.add(indexer.getLibraryFacetMap().get(libraryCode));
 			}
@@ -1082,7 +1087,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> libraryOnlineFacets = new ArrayList<String>();
 		for(String libraryCode : indexer.getLibraryOnlineFacetMap().keySet()){
-			Pattern libraryCodePattern = Pattern.compile(libraryCode);
+			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
+			if (libraryCodePattern == null){
+				libraryCodePattern = Pattern.compile(libraryCode);
+				libraryCodePatterns.put(libraryCode, libraryCodePattern);
+			}
 			if (libraryCodePattern.matcher(locationCode).lookingAt()){
 				libraryOnlineFacets.add(indexer.getLibraryOnlineFacetMap().get(libraryCode));
 			}
@@ -1100,7 +1109,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> subdomains = new ArrayList<String>();
 		for(String libraryCode : indexer.getSubdomainMap().keySet()){
-			Pattern libraryCodePattern = Pattern.compile(libraryCode);
+			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
+			if (libraryCodePattern == null){
+				libraryCodePattern = Pattern.compile(libraryCode);
+				libraryCodePatterns.put(libraryCode, libraryCodePattern);
+			}
 			if (libraryCodePattern.matcher(locationCode).lookingAt()){
 				subdomains.add(indexer.getSubdomainMap().get(libraryCode));
 			}
@@ -1115,7 +1128,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> librarySubdomains = new ArrayList<String>();
 		for(String libraryCode : indexer.getSubdomainMap().keySet()){
-			Pattern libraryCodePattern = Pattern.compile(libraryCode);
+			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
+			if (libraryCodePattern == null){
+				libraryCodePattern = Pattern.compile(libraryCode);
+				libraryCodePatterns.put(libraryCode, libraryCodePattern);
+			}
 			if (libraryCodePattern.matcher(locationCode).lookingAt()){
 				librarySubdomains.add(indexer.getSubdomainMap().get(libraryCode));
 			}
@@ -1139,10 +1156,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			return locationFacets;
 		}
 		locationCode = locationCode.toLowerCase();
-		for(String ilsCode : indexer.getLocationMap().keySet()){
-			Pattern libraryCodePattern = Pattern.compile(ilsCode);
+		for(String libraryCode : indexer.getLocationMap().keySet()){
+			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
+			if (libraryCodePattern == null){
+				libraryCodePattern = Pattern.compile(libraryCode);
+				libraryCodePatterns.put(libraryCode, libraryCodePattern);
+			}
 			if (libraryCodePattern.matcher(locationCode).lookingAt()){
-				locationFacets.add(indexer.getLocationMap().get(ilsCode));
+				locationFacets.add(indexer.getLocationMap().get(libraryCode));
 			}
 		}
 		if (locationFacets.size() == 0){
@@ -1166,10 +1187,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			relatedLocationCodesForLocationCode.put(locationCode, locationFacets);
 			return locationFacets;
 		}
-		for(String ilsCode : indexer.getLocationMap().keySet()){
-			Pattern libraryCodePattern = Pattern.compile(ilsCode);
+		for(String libraryCode : indexer.getLocationMap().keySet()){
+			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
+			if (libraryCodePattern == null){
+				libraryCodePattern = Pattern.compile(libraryCode);
+				libraryCodePatterns.put(libraryCode, libraryCodePattern);
+			}
 			if (libraryCodePattern.matcher(locationCode).lookingAt()){
-				locationFacets.add(ilsCode);
+				locationFacets.add(libraryCode);
 			}
 		}
 		relatedLocationCodesForLocationCode.put(locationCode, locationFacets);
@@ -1183,10 +1208,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			return ilsCodesForDetailedLocationCode.get(locationCode);
 		}
 		ArrayList<String> locationCodes = new ArrayList<String>();
-		for(String ilsCode : indexer.getLocationMap().keySet()){
-			Pattern locationPattern = Pattern.compile(ilsCode);
-			if (locationPattern.matcher(locationCode).lookingAt()){
-				locationCodes.add(ilsCode);
+		for(String libraryCode : indexer.getLocationMap().keySet()){
+			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
+			if (libraryCodePattern == null){
+				libraryCodePattern = Pattern.compile(libraryCode);
+				libraryCodePatterns.put(libraryCode, libraryCodePattern);
+			}
+			if (libraryCodePattern.matcher(locationCode).lookingAt()){
+				locationCodes.add(libraryCode);
 			}
 		}
 		ilsCodesForDetailedLocationCode.put(locationCode, locationCodes);

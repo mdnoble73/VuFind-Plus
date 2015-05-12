@@ -1964,12 +1964,16 @@ class MarcRecord extends IndexRecord
 					}
 					$callNumber = $itemData[3];
 					$onOrderCopies = 0;
+
+					//Determine the structure of the item data based on if it's an order record or not.
+					//TODO: This needs a better way of handling things because .o will only work for Sierra/Millennium systems
 					if (substr($itemData[1], 0, 2) == '.o'){
 						$groupedStatus = "On Order";
 						$callNumber = "ON ORDER";
 						$status = "On Order";
 						$onOrderCopies = $itemData[8];
 					}else{
+						//This is a regular (physical) item
 						if (isset($itemData[7])){
 							$status = mapValue('item_status', $itemData[7]);
 							$groupedStatus = mapValue('item_grouped_status', $itemData[7]);
@@ -1984,7 +1988,6 @@ class MarcRecord extends IndexRecord
 							$status = "Checked Out";
 							$groupedStatus = "Checked Out";
 						}
-
 					}
 					if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
 						$isLibraryItem = true;
@@ -1992,6 +1995,7 @@ class MarcRecord extends IndexRecord
 						$isLibraryItem = strpos($locationCode, $libraryLocationCode) === 0;
 					}
 
+					$isLocalItem = (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/i", $locationCode));
 					$this->fastItems[] = array(
 						'location' => $locationCode,
 						'callnumber' => $callNumber,
@@ -1999,7 +2003,7 @@ class MarcRecord extends IndexRecord
 						'holdable' => true,
 						'inLibraryUseOnly' => $itemData[5] == 'true',
 						'isLibraryItem' => $isLibraryItem,
-						'isLocalItem' => (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/", $locationCode)),
+						'isLocalItem' => $isLocalItem,
 						'locationLabel' => true,
 						'shelfLocation' => $shelfLocation,
 						'onOrderCopies' => $onOrderCopies,

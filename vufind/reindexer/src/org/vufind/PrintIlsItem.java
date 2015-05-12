@@ -86,17 +86,20 @@ public class PrintIlsItem extends IlsItem {
 	}
 
 	public String getRelatedItemInfo(){
-		String fullLocation = this.locationCode != null ? this.locationCode.toLowerCase() : "";
+		StringBuilder fullLocation = new StringBuilder(this.locationCode != null ? this.locationCode.toLowerCase() : "");
 		if (this.collection != null){
-			fullLocation += ":" + this.collection.toLowerCase();
+			fullLocation.append(":").append(this.collection.toLowerCase());
 		}
-		return this.getItemRecordNumber() +
-				"|" + fullLocation +
-				"|" + this.getFullCallNumber() +
-				"|" + (this.available ? "true" : "false") +
-				"|" + (this.isLibraryUseOnly() ? "true" : "false") +
-				"|" + Util.getCommaSeparatedString(this.compatiblePTypes) +
-				"|" + this.status;
+		//Record number gets prepended to this
+		StringBuilder returnValue = new StringBuilder();
+		returnValue.append(this.getItemRecordNumber())                                //Position 1
+				.append("|").append(fullLocation)                                         //Position 2
+				.append("|").append(this.getFullCallNumber())                             //Position 3
+				.append("|").append((this.available ? "true" : "false"))                  //Position 4
+				.append("|").append((this.isLibraryUseOnly() ? "true" : "false"))         //Position 5
+				.append("|").append(Util.getCommaSeparatedString(this.compatiblePTypes))  //Position 6
+				.append("|").append(this.status);                                         //Position 7
+		return returnValue.toString();
 	}
 
 	private boolean isLibraryUseOnly() {

@@ -225,6 +225,8 @@ public class Scope implements Comparable<Scope>{
 	public boolean isLocationCodeIncludedDirectly(String librarySystemCode, String locationCode) {
 		if (locationCodeIncludedDirectly.containsKey(locationCode)){
 			return locationCodeIncludedDirectly.get(locationCode);
+		}else if (locationCodeIncludedDirectly.containsKey(librarySystemCode)){
+			return locationCodeIncludedDirectly.get(librarySystemCode);
 		}
 		if (locationCode == null){
 			return false;
