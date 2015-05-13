@@ -25,7 +25,7 @@ class ListRecord extends IndexRecord
 	 */
 	public function getSearchResult($view = 'list'){
 		if ($view == 'covers') { // Displaying Results as bookcover tiles
-			return $this->getCoverResult();
+			return $this->getBrowseResult();
 		}
 
 		global $interface;
@@ -54,7 +54,7 @@ class ListRecord extends IndexRecord
 	}
 
 	// initally taken From GroupedWorkDriver.php getBrowseResult();
-	public function getCoverResult(){
+	public function getBrowseResult(){
 		global $interface;
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
@@ -71,9 +71,9 @@ class ListRecord extends IndexRecord
 
 		//Get Rating
 //		$interface->assign('ratingData', $this->getRatingData());
-		//TODO: list image. (list.png added in template
+		//TODO: list image. (list.png added in template)
 //		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
-		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+//		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
 
 
 		return 'RecordDrivers/List/cover_result.tpl';
