@@ -25,6 +25,7 @@ class ListRecord extends IndexRecord
 	 */
 	public function getSearchResult($view = 'list'){
 		if ($view == 'covers') { // Displaying Results as bookcover tiles
+			return $this->getCoverResult();
 		}
 
 		global $interface;
@@ -52,6 +53,8 @@ class ListRecord extends IndexRecord
 		return array();
 	}
 
+	// initally taken From GroupedWorkDriver.php getBrowseResult();
+	public function getCoverResult(){
 		global $interface;
 		$id = $this->getUniqueID();
 		$interface->assign('summId', $id);
