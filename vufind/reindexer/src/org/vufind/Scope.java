@@ -312,4 +312,8 @@ public class Scope implements Comparable<Scope>{
 		}
 		return false;
 	}
+
+	public boolean isGlobalScope() {
+		return isGlobalScope;
+	}
 }

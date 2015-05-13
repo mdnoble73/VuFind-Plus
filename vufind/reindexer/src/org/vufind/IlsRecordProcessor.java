@@ -471,7 +471,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					groupedWork.addRelatedItem(itemInfo);
 					for (Scope scope : printItem.getRelatedScopes()) {
 						ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
-						scopedWorkDetails.addRelatedItem(itemInfo);
+						scopedWorkDetails.addRelatedItem(recordIdentifier, printItem);
 						indexer.indexingStats.get(scope.getScopeName()).numSuperScopeIlsItems++;
 						if (!scopesThatContainRecord.contains(scope.getScopeName())){
 							scopesThatContainRecord.add(scope.getScopeName());
@@ -511,7 +511,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 									printRecord.getPhysicalDescription()
 							);}
 						ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
-						scopedWorkDetails.addRelatedItem(itemInfo);
+						scopedWorkDetails.addRelatedOrderItem(orderItem.getRecordIdentifier(), orderItem);
 						indexer.indexingStats.get(scope.getScopeName()).numSuperScopeOrderItems++;
 						if (!scopesThatContainRecord.contains(scope.getScopeName())){
 							scopesThatContainRecord.add(scope.getScopeName());
@@ -567,7 +567,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			ilsRecords.add(econtentRecord);
 			for (Scope scope : econtentItem.getRelatedScopes()) {
 				ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
-				scopedWorkDetails.addRelatedItem(itemInfo);
+				scopedWorkDetails.addRelatedEContentItem(econtentItem.getRecordIdentifier(), econtentItem);
 				indexer.indexingStats.get(scope.getScopeName()).numSuperScopeEContentItems++;
 				if (!scopesThatContainRecord.contains(scope.getScopeName())){
 					scopesThatContainRecord.add(scope.getScopeName());
@@ -762,6 +762,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		ilsItem.setLocationCode(getLocationForItem(itemField));
 		ilsItem.setLibrarySystemCode(getLibrarySystemCodeForItem(itemField));
 		ilsItem.setShelfLocationCode(getShelfLocationCodeForItem(itemField));
+		ilsItem.setShelfLocation(getShelfLocationForItem(itemField));
 		//if the status and location are null, we can assume this is not a valid item
 		if (ilsItem.getStatus() == null && ilsItem.getLocationCode() == null){
 			return null;
@@ -833,6 +834,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 
 		return ilsItem;
+	}
+
+	protected String getShelfLocationForItem(DataField itemField) {
+		String shelfLocation = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		return indexer.translateValue("shelf_location", shelfLocation);
 	}
 
 	protected String getItemStatus(DataField itemField){

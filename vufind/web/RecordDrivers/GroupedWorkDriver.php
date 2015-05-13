@@ -1083,7 +1083,20 @@ class GroupedWorkDriver extends RecordInterface{
 					}
 					foreach ($itemsFromIndexRaw as $tmpItem){
 						if (strpos($tmpItem, '|') !== FALSE){
-							$itemsFromIndex[] = explode('|', $tmpItem);
+							if (strpos($tmpItem, '~~') !== FALSE){
+								$itemData = explode('~~', $tmpItem);
+								//When broken by ~~, the item data has sections for record info, item info, and scope info
+								$itemDataBySection['record'] = explode('|', $itemData[0]);
+								$itemDataBySection['item'] = explode('|', $itemData[1]);
+								if (array_key_exists(2, $itemData)){
+									$itemDataBySection['scope'] = explode('|', $itemData[2]);
+								}else{
+									$itemDataBySection['scope'] = array();
+								}
+								$itemsFromIndex[] = $itemDataBySection;
+							}else{
+								$itemsFromIndex[] = explode('|', $tmpItem);
+							}
 						}else{
 							$itemsFromIndex[] = array($tmpItem);
 						}
@@ -1106,8 +1119,14 @@ class GroupedWorkDriver extends RecordInterface{
 						if ($itemsFromIndex != null){
 							$filteredItemsFromIndex = array();
 							foreach ($itemsFromIndex as $item){
-								if ($item[0] == $relatedRecordId){
-									$filteredItemsFromIndex[] = $item;
+								if (array_key_exists('record', $item)){
+									if ($item['record'][0] == $relatedRecordId){
+										$filteredItemsFromIndex[] = $item;
+									}
+								}else{
+									if ($item[0] == $relatedRecordId){
+										$filteredItemsFromIndex[] = $item;
+									}
 								}
 							}
 							$recordDriver->setItemsFromIndex($filteredItemsFromIndex, $realTimeStatusNeeded);

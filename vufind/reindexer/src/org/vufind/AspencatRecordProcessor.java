@@ -21,10 +21,11 @@ import java.util.Set;
  */
 public class AspencatRecordProcessor extends IlsRecordProcessor {
 	private char shelfLocationSubfield;
+	private char ccodeSubfield;
 
 	public AspencatRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
 		super(indexer, vufindConn, configIni, logger);
-		locationSubfieldIndicator = getSubfieldIndicatorFromConfig(configIni, "locationSubfield");
+		shelfLocationSubfield = getSubfieldIndicatorFromConfig(configIni, "shelfLocationSubfield");
 	}
 
 	@Override
@@ -378,6 +379,16 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 		}else{
 			return shelfLocation;
 		}
+	}
+
+	protected String getShelfLocationForItem(DataField itemField) {
+		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		String shelfLocation = indexer.translateValue("location", locationCode);
+		String collection = getItemSubfieldData(collectionSubfield, itemField);
+		if (collection != null && !collection.equals(locationCode)){
+			shelfLocation += " - " + indexer.translateValue("ccode", collection);
+		}
+		return shelfLocation;
 	}
 
 	@Override
