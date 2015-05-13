@@ -4,7 +4,7 @@
 		{*<a onclick="return VuFind.GroupedWork.showGroupedWorkInfo('{$summId}', '{$browseCategoryId}')" href="{$summUrl}">*}
 		<a onclick="return alert('{$summId}'" href="{$summUrl}">
 			<div>
-				<img src="{img filename="lists.png"}" alt="{$summTitle} by {$summAuthor}" title="{$summTitle} by {$summAuthor}">
+				<img src="{img filename="lists.png"}{$bookCoverUrlMedium}" alt="{$summTitle} by {$summAuthor}" title="{$summTitle} by {$summAuthor}">
 			</div>
 		</a>
 		{*{if $showComments}*}

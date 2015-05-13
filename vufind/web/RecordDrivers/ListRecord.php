@@ -73,10 +73,15 @@ class ListRecord extends IndexRecord
 //		$interface->assign('ratingData', $this->getRatingData());
 		//TODO: list image. (list.png added in template
 //		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
-//		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
 
 
 		return 'RecordDrivers/List/cover_result.tpl';
 //		return 'RecordDrivers/GroupedWork/browse_result.tpl';
+	}
+
+	function getFormat() {
+		// overwrites class IndexRecord getFormat() so that getBookCoverURL() call will work without warning notices
+		return array('list');
 	}
 }
