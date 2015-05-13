@@ -1,5 +1,5 @@
 {strip}
-	{if $browseMode == 'lists'}
+	{if $browseMode == 'grid'}
 		<div class="{*browse-title *}browse-list">
 			<a onclick="return VuFind.GroupedWork.showGroupedWorkInfo('{$summId}', '{$browseCategoryId}')" href="{$summUrl}">
 				{*<div>*}
