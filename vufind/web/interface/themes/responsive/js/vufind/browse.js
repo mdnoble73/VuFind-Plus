@@ -6,7 +6,7 @@ VuFind.Browse = (function(){
 		//opac: false, // true prevents browser storage of browse mode // Moved to Globals
 		browseModeClasses: { // browse mode to css class correspondence
 			covers:'home-page-browse-thumbnails',
-			grid:'home-page-browse-lists' //TODO Rename class
+			grid:'home-page-browse-grid'
 		},
 
 		addToHomePage: function(searchId){

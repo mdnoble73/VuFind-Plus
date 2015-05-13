@@ -5,34 +5,56 @@ VuFind.Searches = (function(){
 	});
 	return{
 		searchGroups: [],
+		curPage: 1,
 		displayMode: 'list', // default display Mode for results
 		displayModeClasses: { // browse mode to css class correspondence
 			covers:'home-page-browse-thumbnails',
-			list:'home-page-browse-lists' //TODO Verify & set class usage
+			list:''
 		},
 
 		toggleDisplayMode : function(selectedMode){
 			var mode = this.displayModeClasses.hasOwnProperty(selectedMode) ? selectedMode : this.displayMode, // check that selected mode is a valid option
-					categoryTextId = this.curCategory || $('#browse-category-carousel .selected').data('category-id'),
-					searchBoxView = $('#searchForm>input[name="view"]'); // display mode variable associated with the search box
+					searchBoxView = $('input[name="view"]','#searchForm'), // display mode variable associated with the search box
+					paramString = this.replaceQueryParam('page', '', this.replaceQueryParam('view',mode)); // set view in url and unset page variable
 			this.displayMode = mode; // set the mode officially
+			this.curPage = 1; // reset js page counting
 			if (searchBoxView) searchBoxView.val(this.displayMode); // set value in search form, if present
-				// Likely will be needed if displayMode is switched by AJAX
 			if (!Globals.opac && VuFind.hasLocalStorage() ) { // store setting in browser if not an opac computer
 				window.localStorage.setItem('searchResultsDisplayMode', this.displayMode);
 			}
-			this.getSearchResults();
+			location.replace(location.pathname + paramString); // reloads page without adding entry to history
 		},
 
-		getSearchResults : function (url){
-			var regex = new RegExp("([?;&])view[^&;]*[;&]?"),
-					query = location.search.replace(regex, "$1").replace(/&$/, ''),
-					paramString = (query.length > 2 ? query + "&" : "?") + "view=" +this.displayMode,
-					url = location.pathname + paramString;
-			console.log(query);
-			console.log(url);
+		replaceQueryParam : function (param, newValue, search) {
+			if (typeof search == 'undefined') search = location.search;
+			var regex = new RegExp("([?;&])" + param + "[^&;]*[;&]?"),
+					query = search.replace(regex, "$1").replace(/&$/, '');
+			return newValue ? (query.length > 2 ? query + "&" : "?") + param + "=" + newValue : query;
+	},
 
-			location.replace(url); // reloads page without adding entry to history
+		getMoreResults: function(){
+			var url = Globals.path + '/Search/AJAX',
+					params = this.replaceQueryParam('page', this.curPage+1)+'&method=getMoreSearchResults',
+					divClass = this.displayModeClasses[this.displayMode];
+			params = this.replaceQueryParam('view', this.displayMode, params); // set the view url parameter just in case.
+			if (params.search(/[?;&]replacementTerm=/) != -1) {
+				var searchTerm = location.search.split('replacementTerm=')[1].split('&')[0];
+				params = this.replaceQueryParam('lookfor', searchTerm, params);
+			}
+			$.getJSON(url+params, function(data){
+				if (data.success == false){
+					VuFind.showMessage("Error loading search information", "Sorry, we were not able to retrieve additional results.");
+				}else{
+					var newDiv = $(data.records).hide();
+					$('.'+divClass).filter(':last').after(newDiv);
+					newDiv.fadeIn('slow');
+					if (data.lastPage) $('#more-browse-results').hide(); // hide the load more results
+					else VuFind.Searches.curPage++;
+				}
+			}).fail(function(){
+				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+			});
+			return false;
 		},
 
 		initAutoComplete: function(){
