@@ -420,14 +420,16 @@ class Search_Results extends Action {
 			$displayMode = 'list'; // In case the view is not explicitly set, do so now for display & clients-side functions
 
 			// Process Paging (only in list mode)
-			$link = $searchObject->renderLinkPageTemplate();
-			$options = array('totalItems' => $summary['resultTotal'],
-			                 'fileName'   => $link,
-			                 'perPage'    => $summary['perPage']);
-			$pager = new VuFindPager($options);
-			$interface->assign('pageLinks', $pager->getLinks());
-			if ($pager->isLastPage()){
-				$numUnscopedTitlesToLoad = 5;
+			if ($searchObject->getResultTotal() > 1) {
+				$link    = $searchObject->renderLinkPageTemplate();
+				$options = array('totalItems' => $summary['resultTotal'],
+				                 'fileName' => $link,
+				                 'perPage' => $summary['perPage']);
+				$pager   = new VuFindPager($options);
+				$interface->assign('pageLinks', $pager->getLinks());
+				if ($pager->isLastPage()) {
+					$numUnscopedTitlesToLoad = 5;
+				}
 			}
 		}
 		$timer->logTime('finish hits processing');
