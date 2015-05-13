@@ -7864,7 +7864,7 @@ hr.menu {
   margin-top: 5px;
 }
 .home-page-browse-thumbnails,
-.home-page-browse-lists {
+.home-page-browse-grid {
   -webkit-column-gap: 15px;
   -moz-column-gap: 15px;
   column-gap: 15px;
@@ -7898,28 +7898,28 @@ hr.menu {
   }
 }
 @media (min-width: 0) {
-  .home-page-browse-lists {
+  .home-page-browse-grid {
     -webkit-column-count: 1;
     -moz-column-count: 1;
     column-count: 1;
   }
 }
 @media (min-width: 480px) and (max-width: 767px) {
-  .home-page-browse-lists {
+  .home-page-browse-grid {
     -webkit-column-count: 2;
     -moz-column-count: 2;
     column-count: 2;
   }
 }
 @media (min-width: 768px) {
-  .home-page-browse-lists {
+  .home-page-browse-grid {
     -webkit-column-count: 2;
     -moz-column-count: 2;
     column-count: 2;
   }
 }
 @media (min-width: 992px) {
-  .home-page-browse-lists {
+  .home-page-browse-grid {
     -webkit-column-count: 3;
     -moz-column-count: 3;
     column-count: 3;
@@ -7990,6 +7990,7 @@ a.browse-thumbnail.active {
   font-weight: bold;
   font-size: 16px;
   padding: 2px;
+  cursor: pointer;
 }
 /** Account Settings formatting */
 #account-settings-accordion .panel-group .panel + .panel {
@@ -8518,10 +8519,7 @@ a.browse-thumbnail.active {
 .results-covers {
   padding-top: 6px;
   margin-top: 6px;
-  border-bottom: 2px solid #d5d6da;
-}
-.results-covers #selected-browse-label {
-  background: linear-gradient(to bottom, white, white 44%, #d5d6da 45%, #d5d6da 55%, white 56%);
+  border-bottom: 1px solid #d5d6da;
 }
 .related-manifestations {
   margin-top: 3px;
@@ -8761,43 +8759,4 @@ a.browse-thumbnail.active {
 .obituaryTitle,
 .marriageTitle {
   font-weight: bold;
-}
-.modal-buttons.btn.btn-primary span.addToList-icon {
-  position: relative;
-  top: 1px;
-  display: inline-block;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  line-height: 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-.modal-buttons.btn.btn-primary span.addToList-icon:empty {
-  width: 1em;
-}
-.modal-buttons.btn.btn-primary span.addToList-icon:before {
-  content: "\e044";
-}
-.modal-buttons.btn.btn-primary span.moreInfo-icon {
-  position: relative;
-  top: 1px;
-  display: inline-block;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  line-height: 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-.modal-buttons.btn.btn-primary span.moreInfo-icon:empty {
-  width: 1em;
-}
-.modal-buttons.btn.btn-primary span.moreInfo-icon:before {
-  content: "\e086";
-}
-@media (max-width: 767px) {
-  .modal-buttons.btn.btn-primary span {
-    display: none;
-  }
 }
