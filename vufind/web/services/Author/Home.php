@@ -27,7 +27,7 @@ require_once ROOT_DIR . '/sys/NovelistFactory.php';
 class Author_Home extends Action
 {
 	private $lang;
-	protected $viewOptions = array('list', 'covers');
+//	protected $viewOptions = array('list', 'covers');
 
 	function launch()
 	{
@@ -38,7 +38,7 @@ class Author_Home extends Action
 		// Initialise from the current search globals
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->viewOptions = $this->viewOptions; // set valid view options for the search object
+//		$searchObject->viewOptions = $this->viewOptions; // set valid view options for the search object
 		$searchObject->init();
 
 		// Build RSS Feed for Results (if requested)
@@ -234,6 +234,7 @@ class Author_Home extends Action
 		$_SESSION['lastSearchURL'] = $searchObject->renderSearchUrl();
 		//Get view & load template
 		$currentView  = $searchObject->getView();
+		$interface->assign('displayMode', $currentView);
 		$interface->assign('subpage', 'Search/list-' . $currentView .'.tpl');
 		$interface->assign('sidebar', 'Author/sidebar.tpl');
 		$interface->setTemplate('home.tpl');

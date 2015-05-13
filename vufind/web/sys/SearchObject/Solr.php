@@ -70,6 +70,9 @@ class SearchObject_Solr extends SearchObject_Base
 	private $spellSimple   = false;
 	private $spellSkipNumeric = true;
 
+	// Display Modes //
+	public $viewOptions = array('list', 'covers');
+
 	/**
 	 * Constructor. Initialise some details about the server
 	 *
@@ -275,16 +278,18 @@ class SearchObject_Solr extends SearchObject_Base
 
 		//********************
 		// Author screens - handled slightly differently
-		if ($module == 'Author') {
+		$author_ajax_call = (isset($_REQUEST['author']) && $action == 'AJAX' && $module == 'Search');
+		if ($module == 'Author' || $author_ajax_call) {
+			// Author module or ajax call from author results page
 			// *** Things in common to both screens
 			// Log a special type of search
 			$this->searchType = 'author';
 			// We don't spellcheck this screen
-			//   it's not for free user intput anyway
+			//   it's not for free user input anyway
 			$this->spellcheck  = false;
 
 			// *** Author/Home
-			if ($action == 'Home') {
+			if ($action == 'Home' || $author_ajax_call) {
 				$this->searchSubType = 'home';
 				// Remove our empty basic search (default)
 				$this->searchTerms = array();
