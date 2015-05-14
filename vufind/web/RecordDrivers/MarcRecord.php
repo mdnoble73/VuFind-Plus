@@ -1622,7 +1622,7 @@ class MarcRecord extends IndexRecord
 			global $configArray;
 			global $timer;
 			global $interface;
-			$relatedRecords = array();
+			$this->relatedRecords = array();
 			$recordId = $this->getUniqueID();
 
 			$url = $this->getRecordUrl();
@@ -1696,7 +1696,7 @@ class MarcRecord extends IndexRecord
 				}
 			}
 			if ($totalCopies == 0){
-				return $relatedRecords;
+				return $this->relatedRecords;
 			}
 			$numHolds = 0;
 			if ($realTimeStatusNeeded){
@@ -1946,60 +1946,101 @@ class MarcRecord extends IndexRecord
 			if ($this->itemsFromIndex){
 				$this->fastItems = array();
 				foreach ($this->itemsFromIndex as $itemData){
-					$shelfLocation = $itemData[2];
-					$locationCode = $itemData[2];
-					if (strpos($shelfLocation, ':') === false){
-						$shelfLocation = mapValue('shelf_location', $itemData[2]);
+					$isOrderItem = false;
+					$onOrderCopies = 0;
+					$status = null;
+					$groupedStatus = null;
+					$inLibraryUseOnly = false;
+					$isHoldable = true;
+					$isLocalItem = false;
+					$isLibraryItem = false;
+
+					if (array_key_exists('item', $itemData)){
+						//New style with item, record, and scope information separated
+						$shelfLocation = $itemData['item'][7];
+						$locationCode = $itemData['item'][1];
+						$callNumber = $itemData['item'][2];
+						if (substr($itemData['item'][0], 0, 2) == '.o'){
+							$isOrderItem = true;
+							$onOrderCopies = $itemData['item'][7];
+						}else{
+							$status = mapValue('item_status', $itemData['item'][6]);
+							$groupedStatus = mapValue('item_grouped_status', $itemData['item'][6]);
+							$available = $itemData['item'][3] == 'true';
+							$inLibraryUseOnly = $itemData['item'][4] == 'true';
+						}
+						if (array_key_exists('scope', $itemData)){
+							$isHoldable = $itemData['scope'][0] == 'true';
+							$isLocalItem = $itemData['scope'][1] == 'true';
+							$isLibraryItem = $itemData['scope'][2] == 'true';
+						}
 					}else{
-						$shelfLocationParts = explode(":", $shelfLocation);
-						$locationCode = $shelfLocationParts[0];
-						$branch = mapValue('shelf_location', $locationCode);
-						$shelfLocationTmp = mapValue('collection', $shelfLocationParts[1]);
-						$shelfLocation = $branch . ' ' . $shelfLocationTmp;
+						//Old style where record and item information are combined
+						$shelfLocation = $itemData[2];
+						$locationCode = $itemData[2];
+						if (strpos($shelfLocation, ':') === false){
+							$shelfLocation = mapValue('shelf_location', $itemData[2]);
+						}else{
+							$shelfLocationParts = explode(":", $shelfLocation);
+							$locationCode = $shelfLocationParts[0];
+							$branch = mapValue('shelf_location', $locationCode);
+							$shelfLocationTmp = mapValue('collection', $shelfLocationParts[1]);
+							$shelfLocation = $branch . ' ' . $shelfLocationTmp;
+						}
+						$callNumber = $itemData[3];
+						if (substr($itemData[1], 0, 2) == '.o'){
+							$isOrderItem = true;
+							$onOrderCopies = $itemData[8];
+						}else{
+							$status = mapValue('item_status', $itemData[7]);
+							$groupedStatus = mapValue('item_grouped_status', $itemData[7]);
+							$available = $itemData[4] == 'true';
+							$inLibraryUseOnly = $itemData[5] == 'true';
+						}
+						if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
+							$isLibraryItem = true;
+						}else{
+							$isLibraryItem = strpos($locationCode, $libraryLocationCode) === 0;
+						}
+						$isLocalItem = (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/i", $locationCode));
 					}
 
 					//Try to trim the courier code if any
 					if (preg_match('/(.*?)\\sC\\d{3}\\w{0,2}$/', $shelfLocation, $locationParts)){
 						$shelfLocation = $locationParts[1];
 					}
-					$callNumber = $itemData[3];
-					$onOrderCopies = 0;
-					if (substr($itemData[1], 0, 2) == '.o'){
+
+					//Determine the structure of the item data based on if it's an order record or not.
+					//TODO: This needs a better way of handling things because .o will only work for Sierra/Millennium systems
+					if ($isOrderItem){
 						$groupedStatus = "On Order";
 						$callNumber = "ON ORDER";
 						$status = "On Order";
-						$onOrderCopies = $itemData[8];
 					}else{
-						if (isset($itemData[7])){
-							$status = mapValue('item_status', $itemData[7]);
-							$groupedStatus = mapValue('item_grouped_status', $itemData[7]);
-							if (($status == 'On Shelf') && $itemData[4] != 'true'){
+						//This is a regular (physical) item
+						if ($status != null){
+							if (($status == 'On Shelf') && $available != true){
 								$status = 'Checked Out';
 								$groupedStatus = "Checked Out";
 							}
-						}else if ($itemData[4] == 'true'){
+						}else if ($available){
 							$status = "On Shelf";
 							$groupedStatus = "On Shelf";
 						}else{
 							$status = "Checked Out";
 							$groupedStatus = "Checked Out";
 						}
+					}
 
-					}
-					if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
-						$isLibraryItem = true;
-					}else{
-						$isLibraryItem = strpos($locationCode, $libraryLocationCode) === 0;
-					}
 
 					$this->fastItems[] = array(
 						'location' => $locationCode,
 						'callnumber' => $callNumber,
-						'availability' => $itemData[4] == 'true',
-						'holdable' => true,
-						'inLibraryUseOnly' => $itemData[5] == 'true',
+						'availability' => $available,
+						'holdable' => $isHoldable,
+						'inLibraryUseOnly' => $inLibraryUseOnly,
 						'isLibraryItem' => $isLibraryItem,
-						'isLocalItem' => (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/", $locationCode)),
+						'isLocalItem' => $isLocalItem,
 						'locationLabel' => true,
 						'shelfLocation' => $shelfLocation,
 						'onOrderCopies' => $onOrderCopies,

@@ -85,7 +85,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 					for (Scope curScope : indexer.getScopes()) {
 						//Part of scope if the location code is included directly
 						//or if the scope is not limited to only including library/location codes.
-						boolean includedDirectly = curScope.isLocationCodeIncludedDirectly(orderInformation.getLocationCode());
+						boolean includedDirectly = curScope.isLocationCodeIncludedDirectly(orderInformation.getLocationCode(), orderInformation.getLocationCode());
 						if ((!curScope.isIncludeItemsOwnedByTheLibraryOnly() && !curScope.isIncludeItemsOwnedByTheLocationOnly()) ||
 								includedDirectly) {
 							if (includedDirectly){
@@ -105,7 +105,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 	}
 
 	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, PrintIlsItem printItem){
-		String locationCode = printItem.getLocation();
+		String locationCode = printItem.getLocationCode();
 		if (locationCode.length() > 0 && !locationCode.equalsIgnoreCase("none")){
 			groupedWork.addCollectionGroup(indexer.translateValue("collection_group", locationCode));
 			if (additionalCollections != null){
@@ -115,7 +115,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 			}
 			String translatedDetailedLocation = indexer.translateValue("detailed_location", locationCode);
 			for (ScopedWorkDetails curScope: groupedWork.getScopedWorkDetails().values()){
-				if (curScope.getScope().isLocationCodeIncludedDirectly(locationCode)) {
+				if (curScope.getScope().isLocationCodeIncludedDirectly(printItem.getLibrarySystemCode(), locationCode)) {
 					curScope.addDetailedLocation(translatedDetailedLocation);
 				}
 			}
@@ -129,7 +129,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 
 	protected void loadLocalCallNumbers(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
 		for (PrintIlsItem curItem : printItems){
-			String locationCode = curItem.getLocation();
+			String locationCode = curItem.getLocationCode();
 			if (locationCode != null){
 				String callNumberPrestamp = curItem.getCallNumberPreStamp() == null ? "" : curItem.getCallNumberPreStamp();
 				String callNumber = curItem.getCallNumber() == null ? "" : curItem.getCallNumber();
@@ -257,7 +257,7 @@ public class MarmotRecordProcessor extends IlsRecordProcessor {
 	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<EContentIlsItem> itemRecords) {
 		for (EContentIlsItem curItem : itemRecords){
 			//Check subfield w to get the source
-			String locationCode = curItem.getLocation();
+			String locationCode = curItem.getLocationCode();
 			HashSet<String> sources = new HashSet<String>();
 			HashSet<String> protectionTypes = new HashSet<String>();
 

@@ -79,7 +79,7 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 				String eContentLocation = getFirstFieldVal(record, "907b");
 				if (eContentLocation != null) {
 					EContentIlsItem ilsEContentItem = new EContentIlsItem();
-					ilsEContentItem.setLocation(eContentLocation);
+					ilsEContentItem.setLocationCode(eContentLocation);
 					ilsEContentItem.setSource("External eContent");
 					ilsEContentItem.setProtectionType("external");
 					ilsEContentItem.setSharing("library");

@@ -618,6 +618,7 @@ public abstract class MarcRecordProcessor {
 		return variableFieldsReturn;
 	}
 
+	private static Pattern arNumberPattern = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 	public String getAcceleratedReaderReadingLevel(Record marcRecord) {
 		String result;
 		// Get a list of all tags that may contain the lexile score.
@@ -635,9 +636,7 @@ public abstract class MarcRecordProcessor {
 					if (field.getSubfield('c') != null){
 						String rawData = field.getSubfield('c').getData();
 						try {
-							Pattern Regex = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ
-									| Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-							Matcher RegexMatcher = Regex.matcher(rawData);
+							Matcher RegexMatcher = arNumberPattern.matcher(rawData);
 							if (RegexMatcher.find()) {
 								result = RegexMatcher.group(1);
 								// System.out.println("AR Reading Level " + result);
@@ -747,9 +746,7 @@ public abstract class MarcRecordProcessor {
 					if (type.matches("(?i)accelerated reader") && field.getSubfield('d') != null) {
 						String rawData = field.getSubfield('d').getData();
 						try {
-							Pattern Regex = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ
-									| Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-							Matcher RegexMatcher = Regex.matcher(rawData);
+							Matcher RegexMatcher = arNumberPattern.matcher(rawData);
 							if (RegexMatcher.find()) {
 								result = RegexMatcher.group(1);
 								// System.out.println("AR Point Level " + result);

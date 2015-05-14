@@ -10,7 +10,10 @@ import java.util.HashSet;
  * Time: 9:17 AM
  */
 public class IlsItem {
-	protected String location;
+	protected String librarySystemCode;
+	protected String locationCode;
+	protected String shelfLocationCode;
+	protected String shelfLocation;
 	protected String iType;
 
 	protected String dateCreated;
@@ -26,6 +29,30 @@ public class IlsItem {
 	protected String recordIdentifier;
 	protected String volume;
 
+	public String getLibrarySystemCode() {
+		return librarySystemCode;
+	}
+
+	public void setLibrarySystemCode(String librarySystemCode) {
+		this.librarySystemCode = librarySystemCode;
+	}
+
+	public String getShelfLocationCode() {
+		return shelfLocationCode;
+	}
+
+	public void setShelfLocationCode(String shelfLocationCode) {
+		this.shelfLocationCode = shelfLocationCode;
+	}
+
+	public String getShelfLocation() {
+		return shelfLocation;
+	}
+
+	public void setShelfLocation(String shelfLocation) {
+		this.shelfLocation = shelfLocation;
+	}
+
 	public String getDateCreated() {
 		return dateCreated;
 	}
@@ -34,12 +61,12 @@ public class IlsItem {
 		this.dateCreated = dateCreated;
 	}
 
-	public String getLocation() {
-		return location;
+	public String getLocationCode() {
+		return locationCode;
 	}
 
-	public void setLocation(String location) {
-		this.location = location;
+	public void setLocationCode(String location) {
+		this.locationCode = location;
 	}
 
 	public String getiType() {
@@ -189,5 +216,18 @@ public class IlsItem {
 
 	public void setVolume(String volume) {
 		this.volume = volume;
+	}
+
+	public String getRelatedItemInfo(){
+		StringBuilder fullLocation = new StringBuilder(this.locationCode != null ? this.locationCode.toLowerCase() : "");
+		if (this.collection != null){
+			fullLocation.append(":").append(this.collection.toLowerCase());
+		}
+		//Record number gets prepended to this
+		StringBuilder returnValue = new StringBuilder();
+		returnValue.append(this.getItemRecordNumber())                                //Position 1
+				.append("|").append(fullLocation)                                         //Position 2
+				.append("|").append(this.getFullCallNumber());                            //Position 3
+		return returnValue.toString();
 	}
 }

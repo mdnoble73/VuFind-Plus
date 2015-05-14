@@ -382,7 +382,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 						for (Scope curScope : indexer.getScopes()) {
 							//Part of scope if the location code is included directly
 							//or if the scope is not limited to only including library/location codes.
-							boolean includedDirectly = curScope.isLocationCodeIncludedDirectly(location);
+							boolean includedDirectly = curScope.isLocationCodeIncludedDirectly(location, location);
 							if ((!curScope.isIncludeItemsOwnedByTheLibraryOnly() && !curScope.isIncludeItemsOwnedByTheLocationOnly()) ||
 									includedDirectly) {
 								if (includedDirectly) {
@@ -471,7 +471,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					groupedWork.addRelatedItem(itemInfo);
 					for (Scope scope : printItem.getRelatedScopes()) {
 						ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
-						scopedWorkDetails.addRelatedItem(itemInfo);
+						scopedWorkDetails.addRelatedItem(recordIdentifier, printItem);
 						indexer.indexingStats.get(scope.getScopeName()).numSuperScopeIlsItems++;
 						if (!scopesThatContainRecord.contains(scope.getScopeName())){
 							scopesThatContainRecord.add(scope.getScopeName());
@@ -511,7 +511,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 									printRecord.getPhysicalDescription()
 							);}
 						ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
-						scopedWorkDetails.addRelatedItem(itemInfo);
+						scopedWorkDetails.addRelatedOrderItem(orderItem.getRecordIdentifier(), orderItem);
 						indexer.indexingStats.get(scope.getScopeName()).numSuperScopeOrderItems++;
 						if (!scopesThatContainRecord.contains(scope.getScopeName())){
 							scopesThatContainRecord.add(scope.getScopeName());
@@ -567,7 +567,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			ilsRecords.add(econtentRecord);
 			for (Scope scope : econtentItem.getRelatedScopes()) {
 				ScopedWorkDetails scopedWorkDetails = groupedWork.getScopedWorkDetails().get(scope.getScopeName());
-				scopedWorkDetails.addRelatedItem(itemInfo);
+				scopedWorkDetails.addRelatedEContentItem(econtentItem.getRecordIdentifier(), econtentItem);
 				indexer.indexingStats.get(scope.getScopeName()).numSuperScopeEContentItems++;
 				if (!scopesThatContainRecord.contains(scope.getScopeName())){
 					scopesThatContainRecord.add(scope.getScopeName());
@@ -606,7 +606,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		EContentIlsItem ilsEContentItem = new EContentIlsItem();
 
 		ilsEContentItem.setDateCreated(getItemSubfieldData(dateCreatedSubfield, itemField));
-		ilsEContentItem.setLocation(getItemSubfieldData(locationSubfieldIndicator, itemField));
+		ilsEContentItem.setLocationCode(getItemSubfieldData(locationSubfieldIndicator, itemField));
 		ilsEContentItem.setiType(getItemSubfieldData(iTypeSubfield, itemField));
 		ilsEContentItem.setCallNumberPreStamp(getItemSubfieldData(callNumberPrestampSubfield, itemField));
 		ilsEContentItem.setCallNumber(getItemSubfieldData(callNumberSubfield, itemField));
@@ -630,7 +630,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 					ilsEContentItem.setSharing(eContentFields[2].trim().toLowerCase());
 				}else{
 					//Sharing depends on the location code
-					if (ilsEContentItem.getLocation().startsWith("mdl")){
+					if (ilsEContentItem.getLocationCode().startsWith("mdl")){
 						ilsEContentItem.setSharing("shared");
 					}else{
 						ilsEContentItem.setSharing("library");
@@ -737,15 +737,34 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return "Unknown Source";
 	}
 
+	protected String getLocationForItem(DataField itemField){
+		return getItemSubfieldData(locationSubfieldIndicator, itemField);
+	}
+
+	protected String getLibrarySystemCodeForItem(DataField itemField){
+		return getItemSubfieldData(locationSubfieldIndicator, itemField);
+	}
+
+	protected String getShelfLocationCodeForItem(DataField itemField){
+		return getItemSubfieldData(locationSubfieldIndicator, itemField);
+	}
+
+	protected String getCollectionForItem(DataField itemField){
+		return getItemSubfieldData(collectionSubfield, itemField);
+	}
+
 	protected PrintIlsItem getPrintIlsItem(Record record, DataField itemField) {
 		PrintIlsItem ilsItem = new PrintIlsItem();
 
 		//Load base information from the Marc Record
 		String itemStatus = getItemStatus(itemField);
 		ilsItem.setStatus(itemStatus);
-		ilsItem.setLocation(getItemSubfieldData(locationSubfieldIndicator, itemField));
+		ilsItem.setLocationCode(getLocationForItem(itemField));
+		ilsItem.setLibrarySystemCode(getLibrarySystemCodeForItem(itemField));
+		ilsItem.setShelfLocationCode(getShelfLocationCodeForItem(itemField));
+		ilsItem.setShelfLocation(getShelfLocationForItem(itemField));
 		//if the status and location are null, we can assume this is not a valid item
-		if (ilsItem.getStatus() == null && ilsItem.getLocation() == null){
+		if (ilsItem.getStatus() == null && ilsItem.getLocationCode() == null){
 			return null;
 		}
 		ilsItem.setDateDue(getItemSubfieldData(dueDateSubfield, itemField));
@@ -784,7 +803,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		ilsItem.setVolume(getItemSubfieldData(volumeSubfield, itemField));
 		ilsItem.setBarcode(getItemSubfieldData(barcodeSubfield, itemField));
 		ilsItem.setItemRecordNumber(getItemSubfieldData(itemRecordNumberSubfieldIndicator, itemField));
-		ilsItem.setCollection(getItemSubfieldData(collectionSubfield, itemField));
+		ilsItem.setCollection(getCollectionForItem(itemField));
 
 		//Determine Availability
 		boolean available = false;
@@ -799,14 +818,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}*/
 		ilsItem.setAvailable(available);
 
-		if (ilsItem.getiType() != null && ilsItem.getLocation() != null) {
+		if (ilsItem.getiType() != null && ilsItem.getLocationCode() != null) {
 			//Figure out which ptypes are compatible with this itype
-			ilsItem.setCompatiblePTypes(getCompatiblePTypes(ilsItem.getiType(), ilsItem.getLocation()));
+			ilsItem.setCompatiblePTypes(getCompatiblePTypes(ilsItem.getiType(), ilsItem.getLocationCode()));
 		}
 		//Determine which scopes have access to this record
 		for (Scope curScope : indexer.getScopes()) {
-			boolean includedDirectly = curScope.isLocationCodeIncludedDirectly(ilsItem.getLocation());
-			if (curScope.isItemPartOfScope(ilsItem.getLocation(), ilsItem.getCompatiblePTypes())) {
+			boolean includedDirectly = curScope.isLocationCodeIncludedDirectly(ilsItem.getLibrarySystemCode(), ilsItem.getLocationCode());
+			if (curScope.isItemPartOfScope(ilsItem.getLibrarySystemCode(), ilsItem.getLocationCode(), ilsItem.getCompatiblePTypes())) {
 				if (includedDirectly){
 					ilsItem.addScopeThisItemIsDirectlyIncludedIn(curScope.getScopeName());
 				}
@@ -817,13 +836,18 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		return ilsItem;
 	}
 
+	protected String getShelfLocationForItem(DataField itemField) {
+		String shelfLocation = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		return indexer.translateValue("shelf_location", shelfLocation);
+	}
+
 	protected String getItemStatus(DataField itemField){
 		return getItemSubfieldData(statusSubfieldIndicator, itemField);
 	}
 
 	protected abstract boolean isItemAvailable(PrintIlsItem ilsRecord);
 
-	private String getItemSubfieldData(char subfieldIndicator, DataField itemField) {
+	protected String getItemSubfieldData(char subfieldIndicator, DataField itemField) {
 		if (subfieldIndicator == ' '){
 			return null;
 		}else {
@@ -845,7 +869,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	private void loadITypes(GroupedWorkSolr groupedWork, List<PrintIlsItem> printItems, List<EContentIlsItem> econtentItems) {
 		for (PrintIlsItem curItem : printItems){
-			String location = curItem.getLocation();
+			String location = curItem.getLocationCode();
 			String iType = curItem.getiType();
 			if (iType != null && location != null){
 				String translatedIType = indexer.translateValue("itype", iType);
@@ -858,7 +882,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 		for (EContentIlsItem curItem : econtentItems){
 			String iType = curItem.getiType();
-			String location = curItem.getLocation();
+			String location = curItem.getLocationCode();
 			if (iType != null && location != null){
 				String translatedIType = indexer.translateValue("itype", iType);
 				ArrayList<String> relatedSubdomains = getLibrarySubdomainsForLocationCode(location);
@@ -874,7 +898,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			dateAddedFormatter = new SimpleDateFormat(dateAddedFormat);
 		}
 		for (PrintIlsItem curItem : printItems){
-			String locationCode = curItem.getLocation();
+			String locationCode = curItem.getLocationCode();
 			String dateAddedStr = curItem.getDateCreated();
 			if (locationCode != null && dateAddedStr != null){
 				try{
@@ -888,7 +912,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			}
 		}
 		for (EContentIlsItem curItem : econtentItems){
-			String locationCode = curItem.getLocation();
+			String locationCode = curItem.getLocationCode();
 			String dateAddedStr = curItem.getDateCreated();
 			if (locationCode != null && dateAddedStr != null){
 				try{
@@ -951,7 +975,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		//Load a list of pTypes that can use this record based on loan rules
 		for (PrintIlsItem curItem : printItems){
 			String iType = curItem.getiType();
-			String locationCode = curItem.getLocation();
+			String locationCode = curItem.getLocationCode();
 			if (iType != null && locationCode != null){
 				groupedWork.addCompatiblePTypes(getCompatiblePTypes(iType, locationCode));
 			}
@@ -974,12 +998,12 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		}
 
 		for (PrintIlsItem curItem : printItems){
-			if (curItem.getLocation() != null){
+			if (curItem.getLocationCode() != null){
 				HashSet<String> relatedLocations = new HashSet<String>();
-				relatedLocations.addAll(getLocationFacetsForLocationCode(curItem.getLocation()));
+				relatedLocations.addAll(getLocationFacetsForLocationCode(curItem.getLocationCode()));
 				HashSet<String> relatedScopes = new HashSet<String>();
-				relatedScopes.addAll(getRelatedLocationCodesForLocationCode(curItem.getLocation()));
-				relatedScopes.addAll(getRelatedSubdomainsForLocationCode(curItem.getLocation()));
+				relatedScopes.addAll(getRelatedLocationCodesForLocationCode(curItem.getLocationCode()));
+				relatedScopes.addAll(getRelatedSubdomainsForLocationCode(curItem.getLibrarySystemCode()));
 				if (curItem.isAvailable()){
 					availableAt.addAll(relatedLocations);
 					availableLocationCodes.addAll(relatedScopes);
@@ -1000,19 +1024,20 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		HashSet<String> owningLocations = new HashSet<String>();
 		HashSet<String> owningLocationCodes = new HashSet<String>();
 		for (PrintIlsItem curItem : printItems){
-			String locationCode = curItem.getLocation();
+			String librarySystemCode = curItem.getLibrarySystemCode();
+			String locationCode = curItem.getLocationCode();
 			if (locationCode != null){
-				ArrayList<String> owningLibrariesForLocationCode = getLibraryFacetsForLocationCode(locationCode);
+				ArrayList<String> owningLibrariesForLocationCode = getLibraryFacetsForLocationCode(librarySystemCode);
 				owningLibraries.addAll(owningLibrariesForLocationCode);
 				ArrayList<String> owningLocationsForLocationCode = getLocationFacetsForLocationCode(locationCode);
 				owningLocations.addAll(owningLocationsForLocationCode);
 				owningLocationCodes.addAll(getRelatedLocationCodesForLocationCode(locationCode));
-				owningLocationCodes.addAll(getRelatedSubdomainsForLocationCode(locationCode));
+				owningLocationCodes.addAll(getRelatedSubdomainsForLocationCode(librarySystemCode));
 
 				loadAdditionalOwnershipInformation(groupedWork, curItem);
 			}
 			for (Scope curScope : curItem.getRelatedScopes()){
-				if (curScope.isLocationScope() && curScope.isLocationCodeIncludedDirectly(locationCode)) {
+				if (curScope.isLocationScope() && curScope.isLocationCodeIncludedDirectly(librarySystemCode, locationCode)) {
 					if (!owningLocations.contains(curScope.getFacetLabel())) {
 						owningLocations.add(curScope.getFacetLabel());
 					}
@@ -1040,11 +1065,16 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 	}
 
 	private HashSet<String> locationsWithoutLibraryFacets = new HashSet<String>();
+	private HashMap<String, Pattern> libraryCodePatterns = new HashMap<String, Pattern>();
 	protected ArrayList<String> getLibraryFacetsForLocationCode(String locationCode) {
 		locationCode = locationCode.trim().toLowerCase();
 		ArrayList<String> libraryFacets = new ArrayList<String>();
 		for(String libraryCode : indexer.getLibraryFacetMap().keySet()){
-			Pattern libraryCodePattern = Pattern.compile(libraryCode);
+			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
+			if (libraryCodePattern == null){
+				libraryCodePattern = Pattern.compile(libraryCode);
+				libraryCodePatterns.put(libraryCode, libraryCodePattern);
+			}
 			if (libraryCodePattern.matcher(locationCode).lookingAt()){
 				libraryFacets.add(indexer.getLibraryFacetMap().get(libraryCode));
 			}
@@ -1063,7 +1093,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> libraryOnlineFacets = new ArrayList<String>();
 		for(String libraryCode : indexer.getLibraryOnlineFacetMap().keySet()){
-			Pattern libraryCodePattern = Pattern.compile(libraryCode);
+			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
+			if (libraryCodePattern == null){
+				libraryCodePattern = Pattern.compile(libraryCode);
+				libraryCodePatterns.put(libraryCode, libraryCodePattern);
+			}
 			if (libraryCodePattern.matcher(locationCode).lookingAt()){
 				libraryOnlineFacets.add(indexer.getLibraryOnlineFacetMap().get(libraryCode));
 			}
@@ -1081,7 +1115,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> subdomains = new ArrayList<String>();
 		for(String libraryCode : indexer.getSubdomainMap().keySet()){
-			Pattern libraryCodePattern = Pattern.compile(libraryCode);
+			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
+			if (libraryCodePattern == null){
+				libraryCodePattern = Pattern.compile(libraryCode);
+				libraryCodePatterns.put(libraryCode, libraryCodePattern);
+			}
 			if (libraryCodePattern.matcher(locationCode).lookingAt()){
 				subdomains.add(indexer.getSubdomainMap().get(libraryCode));
 			}
@@ -1096,7 +1134,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 		locationCode = locationCode.toLowerCase();
 		ArrayList<String> librarySubdomains = new ArrayList<String>();
 		for(String libraryCode : indexer.getSubdomainMap().keySet()){
-			Pattern libraryCodePattern = Pattern.compile(libraryCode);
+			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
+			if (libraryCodePattern == null){
+				libraryCodePattern = Pattern.compile(libraryCode);
+				libraryCodePatterns.put(libraryCode, libraryCodePattern);
+			}
 			if (libraryCodePattern.matcher(locationCode).lookingAt()){
 				librarySubdomains.add(indexer.getSubdomainMap().get(libraryCode));
 			}
@@ -1120,10 +1162,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			return locationFacets;
 		}
 		locationCode = locationCode.toLowerCase();
-		for(String ilsCode : indexer.getLocationMap().keySet()){
-			Pattern libraryCodePattern = Pattern.compile(ilsCode);
+		for(String libraryCode : indexer.getLocationMap().keySet()){
+			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
+			if (libraryCodePattern == null){
+				libraryCodePattern = Pattern.compile(libraryCode);
+				libraryCodePatterns.put(libraryCode, libraryCodePattern);
+			}
 			if (libraryCodePattern.matcher(locationCode).lookingAt()){
-				locationFacets.add(indexer.getLocationMap().get(ilsCode));
+				locationFacets.add(indexer.getLocationMap().get(libraryCode));
 			}
 		}
 		if (locationFacets.size() == 0){
@@ -1147,10 +1193,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			relatedLocationCodesForLocationCode.put(locationCode, locationFacets);
 			return locationFacets;
 		}
-		for(String ilsCode : indexer.getLocationMap().keySet()){
-			Pattern libraryCodePattern = Pattern.compile(ilsCode);
+		for(String libraryCode : indexer.getLocationMap().keySet()){
+			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
+			if (libraryCodePattern == null){
+				libraryCodePattern = Pattern.compile(libraryCode);
+				libraryCodePatterns.put(libraryCode, libraryCodePattern);
+			}
 			if (libraryCodePattern.matcher(locationCode).lookingAt()){
-				locationFacets.add(ilsCode);
+				locationFacets.add(libraryCode);
 			}
 		}
 		relatedLocationCodesForLocationCode.put(locationCode, locationFacets);
@@ -1164,10 +1214,14 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 			return ilsCodesForDetailedLocationCode.get(locationCode);
 		}
 		ArrayList<String> locationCodes = new ArrayList<String>();
-		for(String ilsCode : indexer.getLocationMap().keySet()){
-			Pattern locationPattern = Pattern.compile(ilsCode);
-			if (locationPattern.matcher(locationCode).lookingAt()){
-				locationCodes.add(ilsCode);
+		for(String libraryCode : indexer.getLocationMap().keySet()){
+			Pattern libraryCodePattern = libraryCodePatterns.get(libraryCode);
+			if (libraryCodePattern == null){
+				libraryCodePattern = Pattern.compile(libraryCode);
+				libraryCodePatterns.put(libraryCode, libraryCodePattern);
+			}
+			if (libraryCodePattern.matcher(locationCode).lookingAt()){
+				locationCodes.add(libraryCode);
 			}
 		}
 		ilsCodesForDetailedLocationCode.put(locationCode, locationCodes);
@@ -1857,7 +1911,7 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	}
 
-	private char getSubfieldIndicatorFromConfig(Ini configIni, String subfieldName) {
+	protected char getSubfieldIndicatorFromConfig(Ini configIni, String subfieldName) {
 		String subfieldString = configIni.get("Reindex", subfieldName);
 		char subfield = ' ';
 		if (subfieldString != null && subfieldString.length() > 0)  {
