@@ -221,7 +221,7 @@ class Browse_AJAX extends Action {
 	public $browseModes = // Valid Browse Modes
 		array(
 			'covers', // default Mode
-			'lists'
+			'grid'
 		),
 	$browseMode; // Selected Browse Mode
 

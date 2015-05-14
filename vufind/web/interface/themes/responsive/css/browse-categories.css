@@ -124,6 +124,68 @@
   background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #bbd4e3 45%, #bbd4e3 55%, #ffffff 56%);
   margin-bottom: 5px;
 }
+#selected-browse-label > div.btn-group {
+  margin-right: 20px;
+  float: right;
+  background-color: #ffffff;
+  padding: 0 8px;
+}
+#selected-browse-label > div.btn-group span.thumbnail-icon {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+#selected-browse-label > div.btn-group span.thumbnail-icon:empty {
+  width: 1em;
+}
+#selected-browse-label > div.btn-group span.thumbnail-icon:before {
+  content: "\e011";
+}
+#selected-browse-label > div.btn-group span.grid-icon {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+#selected-browse-label > div.btn-group span.grid-icon:empty {
+  width: 1em;
+}
+#selected-browse-label > div.btn-group span.grid-icon:before {
+  content: "\e056";
+}
+#selected-browse-label > div.btn-group span.list-icon {
+  position: relative;
+  top: 1px;
+  display: inline-block;
+  font-family: 'Glyphicons Halflings';
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+#selected-browse-label > div.btn-group span.list-icon:empty {
+  width: 1em;
+}
+#selected-browse-label > div.btn-group span.list-icon:before {
+  content: "\e012";
+}
+@media (max-width: 767px) {
+  #selected-browse-label > div.btn-group span {
+    display: none;
+  }
+}
 .selected-browse-label-search {
   font-size: 20px;
   color: #0072bc;
@@ -152,51 +214,6 @@
 }
 #selected-browse-search-link .icon-before:before {
   content: "\e003";
-}
-#selected-browse-label > div.btn-group {
-  margin-right: 20px;
-  float: right;
-  background-color: #ffffff;
-  padding: 0 8px;
-}
-#selected-browse-label > div.btn-group span.thumbnail-icon {
-  position: relative;
-  top: 1px;
-  display: inline-block;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  line-height: 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-#selected-browse-label > div.btn-group span.thumbnail-icon:empty {
-  width: 1em;
-}
-#selected-browse-label > div.btn-group span.thumbnail-icon:before {
-  content: "\e011";
-}
-#selected-browse-label > div.btn-group span.list-icon {
-  position: relative;
-  top: 1px;
-  display: inline-block;
-  font-family: 'Glyphicons Halflings';
-  font-style: normal;
-  font-weight: normal;
-  line-height: 1;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-#selected-browse-label > div.btn-group span.list-icon:empty {
-  width: 1em;
-}
-#selected-browse-label > div.btn-group span.list-icon:before {
-  content: "\e056";
-}
-@media (max-width: 767px) {
-  #selected-browse-label > div.btn-group span {
-    display: none;
-  }
 }
 .browse-rating {
   margin-top: 5px;

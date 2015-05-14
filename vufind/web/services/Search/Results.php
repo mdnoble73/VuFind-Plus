@@ -27,6 +27,9 @@ require_once ROOT_DIR . '/sys/Pager.php';
 
 class Search_Results extends Action {
 
+	protected $viewOptions = array('list', 'covers');
+	// define the valid view modes checked in Base.php
+
 	function launch() {
 		global $interface;
 		global $configArray;
@@ -163,6 +166,7 @@ class Search_Results extends Action {
 		// Initialise from the current search globals
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
+		$searchObject->viewOptions = $this->viewOptions; // set valid view options for the search object
 		$searchObject->init($searchSource);
 		$timer->logTime("Init Search Object");
 
@@ -171,12 +175,12 @@ class Search_Results extends Action {
 			// Throw the XML to screen
 			echo $searchObject->buildRSS();
 			// And we're done
-			exit();
+			exit;
 		}else if ($searchObject->getView() == 'excel'){
 			// Throw the Excel spreadsheet to screen for download
 			echo $searchObject->buildExcel();
 			// And we're done
-			exit();
+			exit;
 		}
 
 		// Set Interface Variables
@@ -237,8 +241,8 @@ class Search_Results extends Action {
 
 		//Check to see if we should show unscoped results
 		global $solrScope;
+		$enableUnscopedSearch = false; // fallback setting
 		if ($solrScope){
-			$enableUnscopedSearch = false;
 			$searchLibrary = Library::getSearchLibrary();
 			if ($searchLibrary != null && $searchLibrary->showMarmotResultsAtEndOfSearch){
 				if (is_object($searchSource)){
@@ -248,22 +252,25 @@ class Search_Results extends Action {
 					$searchSources = new SearchSources();
 					$searchOptions = $searchSources->getSearchSources();
 					if (isset($searchOptions['marmot'])){
+						//TODO: does this work for discovery partners. (flatirons/ aspencat?) plb 5-5-2015
 						$unscopedSearch = clone($searchObject);
 						$enableUnscopedSearch = true;
 					}
 				}
 			}
-		}else{
-			$enableUnscopedSearch = false;
 		}
 
-		$enableProspectorIntegration = isset($configArray['Content']['Prospector']) ? $configArray['Content']['Prospector'] : false;
 		$showRatings = 1;
-		$showProspectorResultsAtEndOfSearch = true;
+		$enableProspectorIntegration = isset($configArray['Content']['Prospector']) ? $configArray['Content']['Prospector'] : false;
 		if (isset($library)){
 			$enableProspectorIntegration = ($library->enablePospectorIntegration == 1);
 			$showRatings = $library->showRatings;
-			$showProspectorResultsAtEndOfSearch = ($library->showProspectorResultsAtEndOfSearch == 1);
+		}
+		if ($enableProspectorIntegration){
+			$interface->assign('showProspectorLink', true);
+			$interface->assign('prospectorSavedSearchId', $searchObject->getSearchId());
+		}else{
+			$interface->assign('showProspectorLink', false);
 		}
 		$interface->assign('showRatings', $showRatings);
 
@@ -284,7 +291,12 @@ class Search_Results extends Action {
 			}
 			$translatedSearch = $allSearchSources[$searchSource]['name'];
 		}
+
+		// Save the search for statistics
 		$analytics->addSearch($translatedSearch, $searchObject->displayQuery(), $searchObject->isAdvanced(), $searchObject->getFullSearchType(), $searchObject->hasAppliedFacets(), $searchObject->getResultTotal());
+
+
+		// No Results Actions //
 		if ($searchObject->getResultTotal() < 1) {
 			//We didn't find anything.  Look for search Suggestions
 			//Don't try to find suggestions if facets were applied
@@ -306,13 +318,14 @@ class Search_Results extends Action {
 					}
 				}
 
-				$interface->assign('autoSwitchSearch', $autoSwitchSearch);
+				// Switch to search with a better search term //
+//				$interface->assign('autoSwitchSearch', $autoSwitchSearch);
 				if ($autoSwitchSearch){
 					//Get search results for the new search
 					$interface->assign('oldTerm', $searchObject->displayQuery());
 					$interface->assign('newTerm', $commonSearches[0]['phrase']);
-					$thisUrl = $_SERVER['REQUEST_URI'];
-					$thisUrl = $thisUrl . "&replacementTerm=" . urlencode($commonSearches[0]['phrase']);
+					//TODO: the above assignments probably do nothing when there is a redirect below
+					$thisUrl = $_SERVER['REQUEST_URI'] . "&replacementTerm=" . urlencode($commonSearches[0]['phrase']);
 					header("Location: " . $thisUrl);
 					exit();
 				}
@@ -321,7 +334,6 @@ class Search_Results extends Action {
 			}
 
 			// No record found
-			$interface->setTemplate('list-none.tpl');
 			$interface->assign('recordCount', 0);
 
 			// Was the empty result set due to an error?
@@ -339,10 +351,13 @@ class Search_Results extends Action {
 				}
 			}
 
+			// Set up to try an Unscoped Search //
 			$numUnscopedTitlesToLoad = 10;
 			$timer->logTime('no hits processing');
 
-		} else if ($searchObject->getResultTotal() == 1 && (strpos($searchObject->displayQuery(), 'id') === 0 || $searchObject->getSearchType() == 'id')){
+		}
+		// Exactly One Result //
+		elseif ($searchObject->getResultTotal() == 1 && (strpos($searchObject->displayQuery(), 'id') === 0 || $searchObject->getSearchType() == 'id')){
 			//Redirect to the home page for the record
 			$recordSet = $searchObject->getResultRecordSet();
 			$record = reset($recordSet);
@@ -360,7 +375,8 @@ class Search_Results extends Action {
 				exit();
 			}
 
-		} else {
+		}
+		else {
 			$timer->logTime('save search');
 
 			// Assign interface variables
@@ -370,7 +386,7 @@ class Search_Results extends Action {
 			$interface->assign('recordEnd',   $summary['endRecord']);
 
 			$facetSet = $searchObject->getFacetList();
-			$interface->assign('facetSet',       $facetSet);
+			$interface->assign('facetSet', $facetSet);
 
 			//Check to see if a format category is already set
 			$categorySelected = false;
@@ -380,45 +396,45 @@ class Search_Results extends Action {
 						foreach ($cluster['list'] as $thisFacet){
 							if ($thisFacet['isApplied']){
 								$categorySelected = true;
+								break;
 							}
 						}
 					}
+					if ($categorySelected) break;
 				}
 			}
 			$interface->assign('categorySelected', $categorySelected);
 			$timer->logTime('load selected category');
 
-			// Big one - our results
-			$recordSet = $searchObject->getResultRecordHTML();
-			$interface->assign('recordSet', $recordSet);
-			$timer->logTime('load result records');
-
-			// Setup Display
-			$interface->assign('sitepath', $configArray['Site']['path']);
-			$interface->assign('subpage', 'Search/list-list.tpl');
-			$interface->setTemplate('list.tpl');
-
 			// Process Paging
 			$link = $searchObject->renderLinkPageTemplate();
 			$options = array('totalItems' => $summary['resultTotal'],
-                             'fileName'   => $link,
-                             'perPage'    => $summary['perPage']);
+                       'fileName'   => $link,
+                       'perPage'    => $summary['perPage']);
 			$pager = new VuFindPager($options);
 			$interface->assign('pageLinks', $pager->getLinks());
+			 // TODO: if result displayMode is switched via ajax, these links will need adjusting
 			if ($pager->isLastPage()){
 				$numUnscopedTitlesToLoad = 5;
 			}
 			$timer->logTime('finish hits processing');
 		}
 
-		if ($enableProspectorIntegration){
-			$interface->assign('showProspectorLink', true);
-			$interface->assign('prospectorSavedSearchId', $searchObject->getSearchId());
-		}else{
-			$interface->assign('showProspectorLink', false);
+		// What Mode will search results be Displayed In //
+		$displayMode = $searchObject->getView();
+//			$displayMode = 'covers'; //TODO: debugging
+		if ($displayMode == 'covers'){
+			$displayTemplate = 'Search/covers-list.tpl'; // structure for bookcover tiles
+		} else { // default
+			$displayTemplate = 'Search/list-list.tpl'; // structure for regular results
+			$displayMode = 'list'; // In case the view is not explicitly set, do so now for display & clients-side functions
 		}
+		$interface->assign('subpage', $displayTemplate);
+		$interface->assign('displayMode', $displayMode); // For user toggle switches
 
-		if ($enableUnscopedSearch && isset($unscopedSearch)){
+		// Suplementary Unscoped Search //
+		if ($enableUnscopedSearch && isset($unscopedSearch) ){
+			// Total & Link will be shown in result header even if none of these results will be shown on this page
 			$unscopedSearch->setLimit($numUnscopedTitlesToLoad * 4);
 			$unscopedSearch->disableScoping();
 			$unscopedSearch->processSearch(false, false);
@@ -427,7 +443,8 @@ class Search_Results extends Action {
 			$unscopedSearchUrl = $unscopedSearch->renderSearchUrl();
 			if (preg_match('/searchSource=(.*?)(?:&|$)/', $unscopedSearchUrl)){
 				$unscopedSearchUrl = preg_replace('/(.*searchSource=)(.*?)(&|$)(.*)/', '$1marmot$3$4', $unscopedSearchUrl);
-				$unscopedSearchUrl = preg_replace('/&/', '&amp;', $unscopedSearchUrl);
+//				$unscopedSearchUrl = preg_replace('/&/', '&amp;', $unscopedSearchUrl);
+				$unscopedSearchUrl = str_replace('&', '&amp;', $unscopedSearchUrl); // faster than preg_replace for simple substitutions
 			}else{
 				$unscopedSearchUrl .= "&amp;searchSource=marmot";
 			}
@@ -435,9 +452,17 @@ class Search_Results extends Action {
 			$interface->assign('unscopedSearchUrl', $unscopedSearchUrl);
 			if ($numUnscopedTitlesToLoad > 0){
 				$unscopedResults = $unscopedSearch->getSupplementalResultRecordHTML($searchObject->getResultRecordSet(), $numUnscopedTitlesToLoad, $searchObject->getResultTotal());
+
+				$interface->assign('recordSet', $unscopedResults);
+				$unscopedResults = $interface->fetch($displayTemplate);
 				$interface->assign('unscopedResults', $unscopedResults);
 			}
 		}
+
+		// Big one - our results //
+		$recordSet = $searchObject->getResultRecordHTML($displayMode);
+		$interface->assign('recordSet', $recordSet);
+		$timer->logTime('load result records');
 
 		if ($configArray['Statistics']['enabled'] && isset( $_GET['lookfor']) && !is_array($_GET['lookfor'])) {
 			require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchStatNew.php');
@@ -446,6 +471,7 @@ class Search_Results extends Action {
 		}
 
 		// Done, display the page
+		$interface->setTemplate($searchObject->getResultTotal() ? 'list.tpl' : 'list-none.tpl'); // main search results content
 		$interface->assign('sidebar', 'Search/results-sidebar.tpl');
 		$interface->display('layout.tpl');
 	} // End launch()

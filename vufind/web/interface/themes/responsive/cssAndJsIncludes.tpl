@@ -64,6 +64,7 @@
 			Globals.path = '{$path}';
 			Globals.url = '{$url}';
 			Globals.loggedIn = {$loggedIn};
+			Globals.opac = {if $onInternalIP}true{else}false{/if};
 			{if $automaticTimeoutLength}
 			Globals.automaticTimeoutLength = {$automaticTimeoutLength};
 			{/if}

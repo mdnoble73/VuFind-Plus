@@ -648,7 +648,7 @@ class SearchObject_Solr extends SearchObject_Base
 	}
 
 	/*
-	 * Get an array of citations for the records within the searc results
+	 * Get an array of citations for the records within the search results
 	 */
 	public function getCitations($citationFormat){
 		global $interface;
@@ -662,7 +662,20 @@ class SearchObject_Solr extends SearchObject_Base
 		}
 		return $html;
 	}
-
+/*
+ *  Get the template to use to display the results returned from getRecordHTML()
+ *  or getSupplementalResultRecordHTML() based on the view mode
+ *
+ * @return string  Template file name
+ */
+	public function getDisplayTemplate() {
+		if ($this->view == 'covers'){
+			$displayTemplate = 'Search/covers-list.tpl'; // structure for bookcover tiles
+		} else { // default
+			$displayTemplate = 'Search/list-list.tpl'; // structure for regular results
+		}
+		return $displayTemplate;
+	}
 	/**
 	 * Use the record driver to build an array of HTML displays from the search
 	 * results.
@@ -686,7 +699,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$record->setScopingEnabled($this->indexEngine->isScopingEnabled());
 			if (!PEAR_Singleton::isError($record)){
 				$interface->assign('recordDriver', $record);
-				$html[] = $interface->fetch($record->getSearchResult());
+				$html[] = $interface->fetch($record->getSearchResult($this->view));
 			}else{
 				$html[] = "Unable to find record";
 			}
@@ -708,15 +721,15 @@ class SearchObject_Solr extends SearchObject_Base
 					break;
 				}
 			}
-			if ($supplementalInMainResults){
+			if ($supplementalInMainResults){ // if record in the original search result, don't add to these results
 				continue;
 			}
-			$interface->assign('recordIndex', $numResultsShown + 1 );
-			$interface->assign('resultIndex', $numResultsShown + 1 + (($this->page - 1) * $this->limit) + $startIndex);
-			/** @var IndexRecord|MarcRecord|EcontentRecordDriver $record */
+			/** @var IndexRecord|MarcRecord|EcontentRecordDriver|GroupedWorkDriver $record */
 			$record = RecordDriverFactory::initRecordDriver($current);
 			$numResultsShown++;
-			$html[] = $interface->fetch($record->getSearchResult('list', true));
+			$interface->assign('recordIndex', $numResultsShown);
+			$interface->assign('resultIndex', $numResultsShown + (($this->page - 1) * $this->limit) + $startIndex);
+			$html[] = $interface->fetch($record->getSearchResult($this->view, true));
 			if ($numResultsShown >= $maxResultsToShow){
 				break;
 			}

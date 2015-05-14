@@ -25,7 +25,7 @@
 		{/if}
 
 		{if $solrSearchDebug}
-			<div id="solrSearchOptionsToggle" onclick="$('#solrSearchOptions').toggle();">Show Search Options</div>
+			<div id="solrSearchOptionsToggle" onclick="$('#solrSearchOptions').toggle()">Show Search Options</div>
 			<div id="solrSearchOptions" style="display:none">
 				<pre>Search options: {$solrSearchDebug}</pre>
 			</div>
@@ -39,18 +39,32 @@
 		{/if}
 
 		{if $numUnscopedResults && $numUnscopedResults != $recordCount}
+		{* avoids when both searches are unscoped *}
 			<div class="unscopedResultCount">
 				There are <b>{$numUnscopedResults}</b> results in the entire {$consortiumName} collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
 			</div>
 		{/if}
 
 		{if $spellingSuggestions}
-			<br /><br /><div class="correction"><strong>{translate text='spell_suggest'}</strong>:<br/>
+			<br><br><div class="correction"><strong>{if $recordCount != 0}{translate text='spell_suggest'}{else}{translate text='nohit_spelling'}{/if}</strong>:<br>
 			{foreach from=$spellingSuggestions item=details key=term name=termLoop}
-				{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="{$path}/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}{if !$smarty.foreach.termLoop.last}<br/>{/if}
+				{$term|escape} &raquo; {foreach from=$details.suggestions item=data key=word name=suggestLoop}<a href="{$data.replace_url|escape}">{$word|escape}</a>{if $data.expand_url} <a href="{$data.expand_url|escape}"><img src="{$path}/images/silk/expand.png" alt="{translate text='spell_expand_alt'}"/></a> {/if}{if !$smarty.foreach.suggestLoop.last}, {/if}{/foreach}{if !$smarty.foreach.termLoop.last}<br>{/if}
 			{/foreach}
 			</div>
 		{/if}
+
+		{* User's viewing mode toggle switch *}
+		{include file="Search/results-displayMode-toggle.tpl"}
+		{*<div class="row" id="selected-browse-label">*}{* browse styling replicated here *}
+			{*<div class="btn-group btn-group-sm" data-toggle="buttons">*}
+				{*<label for="covers" title="Covers" class="btn btn-sm btn-default"><input onchange="alert(this.id)" type="radio" id="covers">*}
+					{*<span class="thumbnail-icon"></span><span> Covers</span>*}
+				{*</label>*}
+				{*<label for="lists" title="Lists" class="btn btn-sm btn-default"><input onchange="alert(this.id);" type="radio" id="lists">*}
+					{*<span class="list-icon"></span><span> Lists</span>*}
+				{*</label>*}
+			{*</div>*}
+		{*</div>*}
 
 		<div class="clearer"></div>
 	</div>
@@ -64,28 +78,28 @@
 
 	{if $pageLinks.all}<div class="text-center">{$pageLinks.all}</div>{/if}
 
-	{if $unscopedResults > 0}
+	{*Additional Suggestions on the last page of search results or no results returned *}
+
+	{if $unscopedResults}
 		<h2>More results from the {$consortiumName} Catalog</h2>
 		<div class="unscopedResultCount">
-			There are <b>{$numUnscopedResults}</b> results in the entire {$consortiumName} collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
+		There are <b>{$numUnscopedResults}</b> results in the entire {$consortiumName} collection. <a href="{$unscopedSearchUrl}">Search the entire collection.</a>
 		</div>
-		{foreach from=$unscopedResults item=record name="recordLoop"}
-			<div class="result {if ($smarty.foreach.recordLoop.iteration % 2) == 0}alt{/if} record{$smarty.foreach.recordLoop.iteration}">
-				{* This is raw HTML -- do not escape it: *}
-				{$record}
-			</div>
-		{/foreach}
+		{$unscopedResults}{* Unscoped Results already set for display *}
 	{/if}
 
-	{if $showProspectorLink > 0}
-		<script type="text/javascript">VuFind.Prospector.getProspectorResults(5, {$prospectorSavedSearchId});</script>
+	{if $showProspectorLink}
+		<script type="text/javascript">
+			$(function(){ldelim}
+				VuFind.Prospector.getProspectorResults(5, {$prospectorSavedSearchId})
+			{rdelim})
+		</script>
 		{* Prospector Results *}
 		<div id='prospectorSearchResultsPlaceholder'></div>
 	{/if}
 
 	{if $showDplaLink}
-		<script type="text/javascript">VuFind.DPLA.getDPLAResults('{$lookfor}');</script>
-		{* Prospector Results *}
+		{* DPLA Results *}
 		<div id='dplaSearchResultsPlaceholder'></div>
 	{/if}
 
@@ -116,3 +130,31 @@
 	</div>
 	{/if}
 </div>
+
+{* Embedded Javascript For this Page *}
+<script type="text/javascript">
+	$(function(){ldelim}
+		{if $showProspectorLink}
+		VuFind.Prospector.getProspectorResults(5, {$prospectorSavedSearchId});
+		{/if}
+
+		{if $showDplaLink}
+		VuFind.DPLA.getDPLAResults('{$lookfor}');
+		{/if}
+
+		{*{include file="Search/results-dislpayMode-js.tpl"}*}
+		{if !$onInternalIP}
+		if (!Globals.opac &&VuFind.hasLocalStorage()){ldelim}
+			var temp = window.localStorage.getItem('searchResultsDisplayMode');
+			if (VuFind.Searches.displayModeClasses.hasOwnProperty(temp)) VuFind.Searches.displayMode = temp; {* if stored value is empty or a bad value, fall back on default setting ("null" returned when not set) *}
+			else VuFind.Searches.displayMode = '{$displayMode}';
+			{rdelim}
+		else VuFind.Searches.displayMode = '{$displayMode}';
+		{else}
+		VuFind.Searches.displayMode = '{$displayMode}';
+		Globals.opac = 1; {* set to true to keep opac browsers from storing browse mode *}
+		{/if}
+		$('#'+VuFind.Searches.displayMode).parent('label').addClass('active'); {* show user which one is selected *}
+
+		{rdelim});
+</script>

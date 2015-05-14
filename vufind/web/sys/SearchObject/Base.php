@@ -676,26 +676,30 @@ abstract class SearchObject_Base
 	 */
 	protected function initView()
 	{
+		if (!empty($this->view)){ //return view if it has already been set.
+			return $this->view;
+		}
 		// Check for a view parameter in the url.
 		if (isset($_REQUEST['view'])) {
 			if ($_REQUEST['view'] == 'rss') {
 				// we don't want to store rss in the Session variable
 				$this->view = 'rss';
-			}else if ($_REQUEST['view'] == 'excel') {
+			}elseif ($_REQUEST['view'] == 'excel') {
 				// we don't want to store excel in the Session variable
 				$this->view = 'excel';
 			} else {
 				// store non-rss views in Session for persistence
 				$validViews = $this->getViewOptions();
 				// make sure the url parameter is a valid view
-				if (in_array($_REQUEST['view'], array_keys($validViews))) {
+//				if (in_array($_REQUEST['view'], array_keys($validViews))) {
+				if (in_array($_REQUEST['view'], $validViews)) { // currently using a simple array listing the views (not listed in the keys)
 					$this->view = $_REQUEST['view'];
 					$_SESSION['lastView'] = $this->view;
 				} else {
 					$this->view = $this->defaultView;
 				}
 			}
-		} else if (isset($_SESSION['lastView'])) {
+		} elseif (isset($_SESSION['lastView']) && !empty($_SESSION['lastView'])) {
 			// if there is nothing in the URL, check the Session variable
 			$this->view = $_SESSION['lastView'];
 		} else {
@@ -1196,10 +1200,10 @@ abstract class SearchObject_Base
 		$summary['startRecord'] = (($this->page - 1) * $this->limit) + 1;
 		// Last record needs more care
 		if ($this->resultsTotal < $this->limit) {
-			// There are less records returned then one page, use total results
+			// There are less records returned than one page, then use total results
 			$summary['endRecord'] = $this->resultsTotal;
-		} else if (($this->page * $this->limit) > $this->resultsTotal) {
-			// The end of the curent page runs past the last record, use total results
+		} elseif (($this->page * $this->limit) > $this->resultsTotal) {
+			// The end of the current page runs past the last record, use total results
 			$summary['endRecord'] = $this->resultsTotal;
 		} else {
 			// Otherwise use the last record on this page

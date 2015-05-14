@@ -20,7 +20,13 @@
 }
 #availabilityControlContainer {
   border-bottom: 3px solid #d5d6da;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
+}
+#wikipedia_placeholder {
+  border-bottom: 3px solid #d5d6da;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  display: none;
 }
 .top-facet {
   margin-bottom: 10px;
@@ -77,7 +83,7 @@
   font-size: smaller;
 }
 .formatCategoryLabel {
-  vertical-align: center;
+  vertical-align: central;
   color: #8d929a;
   margin-top: 3px;
 }
@@ -106,6 +112,9 @@
   font-size: smaller;
   color: #0d8ec6;
 }
+.result-head #selected-browse-label {
+  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #d5d6da 45%, #d5d6da 55%, #ffffff 56%);
+}
 #replacement-search-info {
   font-size: 16px;
   font-style: italic;
@@ -132,6 +141,14 @@
   background-color: #909090;
   background: linear-gradient(to bottom, #909090, #686b6c);
   color: white;
+}
+.results-covers {
+  padding-top: 6px;
+  margin-top: 6px;
+  border-bottom: 2px solid #d5d6da;
+}
+.results-covers #selected-browse-label {
+  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #d5d6da 45%, #d5d6da 55%, #ffffff 56%);
 }
 .related-manifestations {
   margin-top: 3px;

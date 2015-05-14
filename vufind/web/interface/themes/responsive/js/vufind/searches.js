@@ -5,6 +5,35 @@ VuFind.Searches = (function(){
 	});
 	return{
 		searchGroups: [],
+		displayMode: 'list', // default display Mode for results
+		displayModeClasses: { // browse mode to css class correspondence
+			covers:'home-page-browse-thumbnails',
+			list:'home-page-browse-lists' //TODO Verify & set class usage
+		},
+
+		toggleDisplayMode : function(selectedMode){
+			var mode = this.displayModeClasses.hasOwnProperty(selectedMode) ? selectedMode : this.displayMode, // check that selected mode is a valid option
+					categoryTextId = this.curCategory || $('#browse-category-carousel .selected').data('category-id'),
+					searchBoxView = $('#searchForm>input[name="view"]'); // display mode variable associated with the search box
+			this.displayMode = mode; // set the mode officially
+			if (searchBoxView) searchBoxView.val(this.displayMode); // set value in search form, if present
+				// Likely will be needed if displayMode is switched by AJAX
+			if (!Globals.opac && VuFind.hasLocalStorage() ) { // store setting in browser if not an opac computer
+				window.localStorage.setItem('searchResultsDisplayMode', this.displayMode);
+			}
+			this.getSearchResults();
+		},
+
+		getSearchResults : function (url){
+			var regex = new RegExp("([?;&])view[^&;]*[;&]?"),
+					query = location.search.replace(regex, "$1").replace(/&$/, ''),
+					paramString = (query.length > 2 ? query + "&" : "?") + "view=" +this.displayMode,
+					url = location.pathname + paramString;
+			console.log(query);
+			console.log(url);
+
+			location.replace(url); // reloads page without adding entry to history
+		},
 
 		initAutoComplete: function(){
 			try{

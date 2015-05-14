@@ -439,6 +439,11 @@ class GroupedWorkDriver extends RecordInterface{
 	 * @return  string              Name of Smarty template file to display.
 	 */
 	public function getSearchResult($view = 'list', $useUnscopedHoldingsSummary = false) {
+		if ($view == 'covers') { // Displaying Results as bookcover tiles
+			return $this->getBrowseResult();
+		}
+
+		// Displaying results as the default list
 		global $configArray;
 		global $interface;
 		global $timer;

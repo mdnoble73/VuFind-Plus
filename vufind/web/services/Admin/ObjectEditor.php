@@ -135,21 +135,29 @@ abstract class ObjectEditor extends Admin_Admin
 		/** @var DB_DataObject $newObject */
 		$newObject = new $objectType;
 		//Check to see if we are getting default values from the
-		$this->updateFromUI($newObject, $structure);
-		$ret = $newObject->insert();
-		if (!$ret){
-			global $logger;
-			if ($newObject->_lastError){
-				$errorDescription = $newObject->_lastError->getUserInfo();
-			}else{
-				$errorDescription = 'Unknown error';
+		$validationResults = $this->updateFromUI($newObject, $structure);
+		if ($validationResults['validatedOk']) {
+			$ret = $newObject->insert();
+			if (!$ret) {
+				global $logger;
+				if ($newObject->_lastError) {
+					$errorDescription = $newObject->_lastError->getUserInfo();
+				} else {
+					$errorDescription = 'Unknown error';
+				}
+				$logger->log('Could not insert new object ' . $ret . ' ' . $errorDescription, PEAR_LOG_DEBUG);
+				$logger->log(mysql_error(), PEAR_LOG_DEBUG);
+				return false;
 			}
-			$logger->log('Could not insert new object ' . $ret . ' ' . $errorDescription, PEAR_LOG_DEBUG);
-			$logger->log(mysql_error(), PEAR_LOG_DEBUG);
+		} else {
+			global $logger;
+			$errorDescription = implode(', ', $validationResults['errors']);
+			$logger->log('Could not validate new object ' . $objectType . ' ' . $errorDescription, PEAR_LOG_DEBUG);
 			return false;
 		}
 		return $newObject;
 	}
+
 	function setDefaultValues($object, $structure){
 		foreach ($structure as $property){
 			$propertyName = $property['property'];
@@ -161,6 +169,8 @@ abstract class ObjectEditor extends Admin_Admin
 	function updateFromUI($object, $structure){
 		require_once ROOT_DIR . '/sys/DataObjectUtil.php';
 		DataObjectUtil::updateFromUI($object, $structure);
+		$validationResults = DataObjectUtil::validateObject($structure, $object);
+		return $validationResults;
 	}
 	function viewExistingObjects(){
 		global $interface;
@@ -386,16 +396,22 @@ abstract class ObjectEditor extends Admin_Admin
 			if (!is_null($curObject)){
 				if ($objectAction == 'save'){
 					//Update the object
-					$this->updateFromUI($curObject, $structure);
-					$ret = $curObject->update();
-					if ($ret === false){
-						if ($curObject->_lastError){
-							$errorDescription = $curObject->_lastError->getUserInfo();
-						}else{
-							$errorDescription = 'Unknown error';
+					$validationResults = $this->updateFromUI($curObject, $structure);
+					if ($validationResults['validatedOk']) {
+						$ret = $curObject->update();
+						if ($ret === false) {
+							if ($curObject->_lastError) {
+								$errorDescription = $curObject->_lastError->getUserInfo();
+							} else {
+								$errorDescription = 'Unknown error';
+							}
+							$_SESSION['lastError'] = "An error occurred updating {$this->getObjectType()} with id of $id <br/>{$errorDescription}";
+							$errorOccurred         = true;
 						}
-						$_SESSION['lastError'] = "An error occurred updating {$this->getObjectType()} with id of $id <br/>{$errorDescription}";
-						$errorOccurred = true;
+					} else {
+						$errorDescription = implode(', ', $validationResults['errors']);
+						$_SESSION['lastError'] = "An error occurred validating {$this->getObjectType()} with id of $id <br/>{$errorDescription}";
+						$errorOccurred         = true;
 					}
 				}else if ($objectAction =='delete'){
 					//Delete the record
