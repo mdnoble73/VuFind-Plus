@@ -855,6 +855,9 @@ public class GroupedWorkIndexer {
 
 	HashSet<String> unableToTranslateWarnings = new HashSet<String>();
 	public String translateValue(String mapName, String value){
+		if (value == null){
+			return value;
+		}
 		HashMap<String, String> translationMap = translationMaps.get(mapName);
 		String translatedValue;
 		if (translationMap == null){

@@ -838,7 +838,11 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 
 	protected String getShelfLocationForItem(DataField itemField) {
 		String shelfLocation = getItemSubfieldData(locationSubfieldIndicator, itemField);
-		return indexer.translateValue("shelf_location", shelfLocation);
+		if (shelfLocation == null){
+			return "";
+		}else {
+			return indexer.translateValue("shelf_location", shelfLocation);
+		}
 	}
 
 	protected String getItemStatus(DataField itemField){
