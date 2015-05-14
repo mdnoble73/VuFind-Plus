@@ -1041,6 +1041,8 @@ public class ExtractOverDriveInfo {
 				}
 				conn.setRequestMethod("GET");
 				conn.setRequestProperty("Authorization", overDriveAPITokenType + " " + overDriveAPIToken);
+				conn.setReadTimeout(30000);
+				conn.setConnectTimeout(30000);
 				webServiceResponse.setResponseCode(conn.getResponseCode());
 
 				if (conn.getResponseCode() == 200) {
@@ -1115,8 +1117,11 @@ public class ExtractOverDriveInfo {
 			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 			//logger.debug("Client Key is " + clientSecret);
 			String encoded = Base64.encodeBase64String((clientKey + ":" + clientSecret).getBytes());
-			conn.setRequestProperty("Authorization", "Basic "+encoded);
+			conn.setRequestProperty("Authorization", "Basic " + encoded);
+			conn.setReadTimeout(30000);
+			conn.setConnectTimeout(30000);
 			conn.setDoOutput(true);
+
 			OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream(), "UTF8");
 			wr.write("grant_type=client_credentials");
 			wr.flush();
