@@ -1963,6 +1963,7 @@ class MarcRecord extends IndexRecord
 						if (substr($itemData['item'][0], 0, 2) == '.o'){
 							$isOrderItem = true;
 							$onOrderCopies = $itemData['item'][7];
+							$available = true;
 						}else{
 							$status = mapValue('item_status', $itemData['item'][6]);
 							$groupedStatus = mapValue('item_grouped_status', $itemData['item'][6]);
@@ -1991,6 +1992,7 @@ class MarcRecord extends IndexRecord
 						if (substr($itemData[1], 0, 2) == '.o'){
 							$isOrderItem = true;
 							$onOrderCopies = $itemData[8];
+							$available = true;
 						}else{
 							$status = mapValue('item_status', $itemData[7]);
 							$groupedStatus = mapValue('item_grouped_status', $itemData[7]);
