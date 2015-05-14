@@ -60,7 +60,7 @@
 				</div>
 			</div>
 
-			<a href="#" onclick="return VuFind.Browse.getMoreResults()">
+			<a onclick="return VuFind.Browse.getMoreResults()">
 				<div class="row" id="more-browse-results">
 					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Browse Results" title="Load More Browse Results">
 				</div>
@@ -76,7 +76,14 @@
 			var temp = window.localStorage.getItem('browseMode');
 			if (VuFind.Browse.browseModeClasses.hasOwnProperty(temp)) VuFind.Browse.browseMode = temp; {* if stored value is empty or a bad value, fall back on default setting ("null" returned when not set) *}
 			else VuFind.Browse.browseMode = '{$browseMode}';
-		{rdelim}
+
+			// Get Search Display Mode from Browse Storage
+			temp = window.localStorage.getItem('searchResultsDisplayMode');
+			if (VuFind.Searches.displayModeClasses.hasOwnProperty(temp)) {ldelim}
+				VuFind.Searches.displayMode = temp; {* if stored value is empty or a bad value, fall back on default setting ("null" returned when not set) *}
+				$('input[name="view"]','#searchForm').val(VuFind.Searches.displayMode); // set the user's preferred search view mode on the search box.
+				{rdelim}
+			{rdelim}
 		else VuFind.Browse.browseMode = '{$browseMode}';
 		{else}
 		VuFind.Browse.browseMode = '{$browseMode}';

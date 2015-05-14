@@ -115,8 +115,8 @@ var VuFind = (function(){
 		},
 
 		getQuerystringParameters: function(){
-			var vars = [];
-			var q = document.URL.split('?')[1];
+			var vars = [],
+					q = location.search.substr(1);
 			if(q != undefined){
 				q = q.split('&');
 				for(var i = 0; i < q.length; i++){
@@ -126,6 +126,11 @@ var VuFind = (function(){
 			}
 			return vars;
 		},
+
+		//// Quick Way to get a single URL parameter value (parameterName must be in the url query string)
+		//getQueryParameterValue: function (parameterName) {
+		//	return location.search.split(parameterName + '=')[1].split('&')[0]
+		//},
 
 		getSelectedTitles: function(){
 			var selectedTitles = $("input.titleSelect:checked ").map(function() {

@@ -145,10 +145,7 @@
 .results-covers {
   padding-top: 6px;
   margin-top: 6px;
-  border-bottom: 2px solid #d5d6da;
-}
-.results-covers #selected-browse-label {
-  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #d5d6da 45%, #d5d6da 55%, #ffffff 56%);
+  border-bottom: 1px solid #d5d6da;
 }
 .related-manifestations {
   margin-top: 3px;

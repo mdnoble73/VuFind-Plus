@@ -166,7 +166,7 @@ class Search_Results extends Action {
 		// Initialise from the current search globals
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
-		$searchObject->viewOptions = $this->viewOptions; // set valid view options for the search object
+//		$searchObject->viewOptions = $this->viewOptions; // set valid view options for the search object
 		$searchObject->init($searchSource);
 		$timer->logTime("Init Search Object");
 
@@ -182,6 +182,11 @@ class Search_Results extends Action {
 			// And we're done
 			exit;
 		}
+		$displayMode = $searchObject->getView();
+		if ($displayMode == 'covers') {
+			$searchObject->setLimit(24); // a set of 24 covers looks better in display
+		}
+
 
 		// Set Interface Variables
 		//   Those we can construct BEFORE the search is executed
@@ -252,7 +257,7 @@ class Search_Results extends Action {
 					$searchSources = new SearchSources();
 					$searchOptions = $searchSources->getSearchSources();
 					if (isset($searchOptions['marmot'])){
-						//TODO: does this work for discovery partners. (flatirons/ aspencat?) plb 5-5-2015
+						//TODO: change name of search option to 'consortium'
 						$unscopedSearch = clone($searchObject);
 						$enableUnscopedSearch = true;
 					}
@@ -322,9 +327,9 @@ class Search_Results extends Action {
 //				$interface->assign('autoSwitchSearch', $autoSwitchSearch);
 				if ($autoSwitchSearch){
 					//Get search results for the new search
-					$interface->assign('oldTerm', $searchObject->displayQuery());
-					$interface->assign('newTerm', $commonSearches[0]['phrase']);
-					//TODO: the above assignments probably do nothing when there is a redirect below
+//					$interface->assign('oldTerm', $searchObject->displayQuery());
+//					$interface->assign('newTerm', $commonSearches[0]['phrase']);
+					// The above assignments probably do nothing when there is a redirect below
 					$thisUrl = $_SERVER['REQUEST_URI'] . "&replacementTerm=" . urlencode($commonSearches[0]['phrase']);
 					header("Location: " . $thisUrl);
 					exit();
@@ -405,30 +410,30 @@ class Search_Results extends Action {
 			}
 			$interface->assign('categorySelected', $categorySelected);
 			$timer->logTime('load selected category');
-
-			// Process Paging
-			$link = $searchObject->renderLinkPageTemplate();
-			$options = array('totalItems' => $summary['resultTotal'],
-                       'fileName'   => $link,
-                       'perPage'    => $summary['perPage']);
-			$pager = new VuFindPager($options);
-			$interface->assign('pageLinks', $pager->getLinks());
-			 // TODO: if result displayMode is switched via ajax, these links will need adjusting
-			if ($pager->isLastPage()){
-				$numUnscopedTitlesToLoad = 5;
-			}
-			$timer->logTime('finish hits processing');
 		}
 
 		// What Mode will search results be Displayed In //
-		$displayMode = $searchObject->getView();
-//			$displayMode = 'covers'; //TODO: debugging
 		if ($displayMode == 'covers'){
 			$displayTemplate = 'Search/covers-list.tpl'; // structure for bookcover tiles
 		} else { // default
 			$displayTemplate = 'Search/list-list.tpl'; // structure for regular results
 			$displayMode = 'list'; // In case the view is not explicitly set, do so now for display & clients-side functions
+
+			// Process Paging (only in list mode)
+			if ($searchObject->getResultTotal() > 1) {
+				$link    = $searchObject->renderLinkPageTemplate();
+				$options = array('totalItems' => $summary['resultTotal'],
+				                 'fileName' => $link,
+				                 'perPage' => $summary['perPage']);
+				$pager   = new VuFindPager($options);
+				$interface->assign('pageLinks', $pager->getLinks());
+				if ($pager->isLastPage()) {
+					$numUnscopedTitlesToLoad = 5;
+				}
+			}
 		}
+		$timer->logTime('finish hits processing');
+
 		$interface->assign('subpage', $displayTemplate);
 		$interface->assign('displayMode', $displayMode); // For user toggle switches
 

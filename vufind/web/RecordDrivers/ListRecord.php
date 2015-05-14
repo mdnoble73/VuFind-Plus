@@ -23,8 +23,11 @@ class ListRecord extends IndexRecord
 	 * @access  public
 	 * @return  string              Name of Smarty template file to display.
 	 */
-	public function getSearchResult()
-	{
+	public function getSearchResult($view = 'list'){
+		if ($view == 'covers') { // Displaying Results as bookcover tiles
+			return $this->getBrowseResult();
+		}
+
 		global $interface;
 
 		$id = $this->getUniqueID();
@@ -48,5 +51,37 @@ class ListRecord extends IndexRecord
 
 	public function getMoreDetailsOptions(){
 		return array();
+	}
+
+	// initally taken From GroupedWorkDriver.php getBrowseResult();
+	public function getBrowseResult(){
+		global $interface;
+		$id = $this->getUniqueID();
+		$interface->assign('summId', $id);
+		$shortId = substr($id, 4);  // Trim the list prefix for the short id
+//		$interface->assign('summShortId', $shortId);
+
+		$url ='/MyAccount/MyList/'.$shortId;
+//		$test = $this->getURLs();
+
+		$interface->assign('summUrl', $url);
+		$interface->assign('summTitle', $this->getTitle());
+//		$interface->assign('summSubTitle', $this->getSubtitle());
+		$interface->assign('summAuthor', $this->getPrimaryAuthor());
+
+		//Get Rating
+//		$interface->assign('ratingData', $this->getRatingData());
+		//TODO: list image. (list.png added in template)
+//		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
+//		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
+
+
+		return 'RecordDrivers/List/cover_result.tpl';
+//		return 'RecordDrivers/GroupedWork/browse_result.tpl';
+	}
+
+	function getFormat() {
+		// overwrites class IndexRecord getFormat() so that getBookCoverURL() call will work without warning notices
+		return array('list');
 	}
 }

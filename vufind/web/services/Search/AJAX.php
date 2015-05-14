@@ -27,11 +27,55 @@ class AJAX extends Action {
 		global $analytics;
 		$analytics->disableTracking();
 		$method = $_REQUEST['method'];
-		if (in_array($method, array('GetAutoSuggestList', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries', 'getEmailForm', 'sendEmail', 'getDplaResults'))){
+		$text_methods = array('GetAutoSuggestList', 'SysListTitles', 'GetListTitles', 'GetStatusSummaries', 'getEmailForm', 'sendEmail', 'getDplaResults');
+		//TODO reconfig to use the JSON outputting here.
+		$json_methods = array('getMoreSearchResults');
+		// Plain Text Methods //
+		if (in_array($method, $text_methods)) {
 			header('Content-type: text/plain');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
 			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
 			$this->$method();
+		}
+		// JSON Methods //
+		elseif (in_array($method, $json_methods)) {
+//			$response = $this->$method();
+
+//			header ('Content-type: application/json');
+			header('Content-type: text/html');
+			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
+			header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+
+			if (is_callable(array($this, $method))) {
+				try{
+					$result = $this->$method();
+					require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';
+//					$utf8EncodedValue = ArrayUtils::utf8EncodeArray(array('result'=>$result));
+					$utf8EncodedValue = ArrayUtils::utf8EncodeArray($result);
+					$output = json_encode($utf8EncodedValue);
+					$error = json_last_error();
+					if ($error != JSON_ERROR_NONE || $output === FALSE){
+						if (function_exists('json_last_error_msg')){
+							$output = json_encode(array('error'=>'error_encoding_data', 'message' => json_last_error_msg()));
+						}else{
+							$output = json_encode(array('error'=>'error_encoding_data', 'message' => json_last_error()));
+						}
+						global $configArray;
+						if ($configArray['System']['debug']){
+							print_r($utf8EncodedValue);
+						}
+					}
+				}catch (Exception $e){
+					$output = json_encode(array('error'=>'error_encoding_data', 'message' => $e));
+					global $logger;
+					$logger->log("Error encoding json data $e", PEAR_LOG_ERR);
+				}
+
+			} else {
+				$output = json_encode(array('error'=>'invalid_method'));
+			}
+
+			echo $output;
 		}else{
 			header('Content-type: text/xml');
 			header('Cache-Control: no-cache, must-revalidate'); // HTTP/1.1
@@ -481,6 +525,73 @@ class AJAX extends Action {
 
 		//Format the results
 		echo(json_encode($returnVal));
+	}
+
+	function getMoreSearchResults($displayMode = 'covers'){
+		// Called Only for Covers mode //
+		$success = true; // set to false on error
+
+//		$currentPage = isset($_REQUEST['pageToLoad']) ? $_REQUEST['pageToLoad'] : 1;
+//		$query = ltrim($_REQUEST['query'], '?');
+//		parse_str($query, $_REQUEST);
+//		$_REQUEST['page'] = $currentPage;
+		// quick & dirty way to get search parameters
+
+		// More involved method for grabbing variables
+		//		parse_str($query, $searchParams);
+//		$test = array_merge($_REQUEST, $searchParams, array('page' => $currentPage));
+//		$_REQUEST = $test;
+
+		if (isset($_REQUEST['view'])) $_REQUEST['view'] = $displayMode; // overwrite any display setting for now
+
+		/** @var string|LibrarySearchSource|LocationSearchSource $searchSource */
+//		$searchSource = isset($searchParams['searchSource']) ? $searchParams['searchSource'] : 'local';
+		$searchSource = isset($_REQUEST['searchSource']) ? $_REQUEST['searchSource'] : 'local';
+		if (preg_match('/library\d+/', $searchSource)){
+			$trimmedId = str_replace('library', '', $searchSource);
+			$searchSourceObj = new LibrarySearchSource();
+			$searchSourceObj->id = $trimmedId;
+			if ($searchSourceObj->find(true)){
+				$searchSource = $searchSourceObj;
+			}
+		}
+
+		// Initialise from the current search globals
+		/** @var SearchObject_Solr $searchObject */
+		$searchObject = SearchObjectFactory::initSearchObject();
+		$searchObject->init($searchSource);
+
+//		if ($displayMode == 'covers') {
+			$searchObject->setLimit(24); // a set of 24 covers looks better in display
+//		}
+
+		// Process Search
+		$result = $searchObject->processSearch(true, true);
+		if (PEAR_Singleton::isError($result)) {
+			PEAR_Singleton::raiseError($result->getMessage());
+			$success = false;
+		}
+		$searchObject->close();
+
+		// Process for Display //
+		$recordSet = $searchObject->getResultRecordHTML($displayMode);
+
+		if ($displayMode == 'covers'){
+			$displayTemplate = 'Search/covers-list.tpl'; // structure for bookcover tiles
+		}
+//		else { // default
+//			$displayTemplate = 'Search/list-list.tpl'; // structure for regular results
+//		}
+		global $interface;
+		$interface->assign('recordSet', $recordSet);
+		$records = $interface->fetch($displayTemplate);
+		$result = array(
+			'success' => $success,
+			'records' => $records,
+		);
+		// let front end know if we have reached the end of the result set
+		if ($searchObject->getPage() * $searchObject->getLimit() >= $searchObject->getResultTotal()) $result['lastPage'] = true;
+		return $result;
 	}
 
 }

@@ -10,9 +10,13 @@
 	<div class="result-head">
 
 		{if $recordCount}
-			{translate text="Showing"}
-			{$recordStart} - {$recordEnd}
-			{translate text='of'} {$recordCount|number_format}
+			{if $displayMode == 'covers'}
+				There are {$recordCount|number_format} total results.
+			{else}
+				{translate text="Showing"}
+				{$recordStart} - {$recordEnd}
+				{translate text='of'} {$recordCount|number_format}
+			{/if}
 		{/if}
 		<span class="hidden-phone">
 			 {translate text='query time'}: {$qtime}s
@@ -55,16 +59,6 @@
 
 		{* User's viewing mode toggle switch *}
 		{include file="Search/results-displayMode-toggle.tpl"}
-		{*<div class="row" id="selected-browse-label">*}{* browse styling replicated here *}
-			{*<div class="btn-group btn-group-sm" data-toggle="buttons">*}
-				{*<label for="covers" title="Covers" class="btn btn-sm btn-default"><input onchange="alert(this.id)" type="radio" id="covers">*}
-					{*<span class="thumbnail-icon"></span><span> Covers</span>*}
-				{*</label>*}
-				{*<label for="lists" title="Lists" class="btn btn-sm btn-default"><input onchange="alert(this.id);" type="radio" id="lists">*}
-					{*<span class="list-icon"></span><span> Lists</span>*}
-				{*</label>*}
-			{*</div>*}
-		{*</div>*}
 
 		<div class="clearer"></div>
 	</div>
@@ -76,7 +70,17 @@
 		{$pageContent}
 	{/if}
 
-	{if $pageLinks.all}<div class="text-center">{$pageLinks.all}</div>{/if}
+	{if $displayMode == 'covers'}
+		{if $recordEnd < $recordCount}
+			<a onclick="return VuFind.Searches.getMoreResults()">
+				<div class="row" id="more-browse-results">
+					<img src="{img filename="browse_more_arrow.png"}" alt="Load More Search Results" title="Load More Search Results">
+				</div>
+			</a>
+		{/if}
+	{else}
+		{if $pageLinks.all}<div class="text-center">{$pageLinks.all}</div>{/if}
+	{/if}
 
 	{*Additional Suggestions on the last page of search results or no results returned *}
 
@@ -142,14 +146,16 @@
 		VuFind.DPLA.getDPLAResults('{$lookfor}');
 		{/if}
 
-		{*{include file="Search/results-dislpayMode-js.tpl"}*}
+		{*{include file="Search/results-displayMode-js.tpl"}*}
 		{if !$onInternalIP}
-		if (!Globals.opac &&VuFind.hasLocalStorage()){ldelim}
-			var temp = window.localStorage.getItem('searchResultsDisplayMode');
-			if (VuFind.Searches.displayModeClasses.hasOwnProperty(temp)) VuFind.Searches.displayMode = temp; {* if stored value is empty or a bad value, fall back on default setting ("null" returned when not set) *}
-			else VuFind.Searches.displayMode = '{$displayMode}';
-			{rdelim}
-		else VuFind.Searches.displayMode = '{$displayMode}';
+		{*if (!Globals.opac &&VuFind.hasLocalStorage()){ldelim}*}
+			{*var temp = window.localStorage.getItem('searchResultsDisplayMode');*}
+			{*if (VuFind.Searches.displayModeClasses.hasOwnProperty(temp)) VuFind.Searches.displayMode = temp; *}{* if stored value is empty or a bad value, fall back on default setting ("null" returned when not set) *}
+			{*else VuFind.Searches.displayMode = '{$displayMode}';*}
+			{*{rdelim}*}
+		{*else*}
+		{* Because content is served on the page, have to set the mode that was used, even if the user didn't chose the mode. *}
+			VuFind.Searches.displayMode = '{$displayMode}';
 		{else}
 		VuFind.Searches.displayMode = '{$displayMode}';
 		Globals.opac = 1; {* set to true to keep opac browsers from storing browse mode *}

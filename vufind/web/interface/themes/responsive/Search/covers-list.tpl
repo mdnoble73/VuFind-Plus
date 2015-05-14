@@ -1,5 +1,5 @@
 {strip}
-	<div class="results-covers home-page-browse-thumbnails">{* TODO: keep browse class? *}
+	<div class="results-covers home-page-browse-thumbnails">
 		{*<form id="addForm" action="{$path}/MyAccount/HoldMultiple" class="">*}
 		{* multiple hold form taken from list-list.tpl. Needed? *}
 		{foreach from=$recordSet item=record name="recordLoop"}
@@ -7,6 +7,8 @@
 				{* This is raw HTML -- do not escape it: *}
 				{$record}
 			{*</div>*}
+			{foreachelse}
+				{include file="Browse/noResults.tpl"}
 		{/foreach}
 		{*</form>*}
 	</div>
