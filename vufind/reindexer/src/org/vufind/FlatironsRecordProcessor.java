@@ -174,7 +174,7 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 	}
 
 	protected void loadEContentFormatInformation(IlsRecord econtentRecord, EContentIlsItem econtentItem) {
-		String collection = "external_ebook";
+		String collection = "online_resource";
 		String translatedFormat = indexer.translateValue("format", collection);
 		String translatedFormatCategory = indexer.translateValue("format_category", collection);
 		String translatedFormatBoost = indexer.translateValue("format_boost", collection);
