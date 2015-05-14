@@ -102,6 +102,7 @@ public class Scope implements Comparable<Scope>{
 		this.includeItemsOwnedByTheLocationOnly = includeItemsOwnedByTheLocationOnly;
 	}
 
+	private Pattern libraryCodePattern;
 	/**
 	 * Determine if the item is part of the current scope based on location code and pType
 	 *
@@ -132,7 +133,9 @@ public class Scope implements Comparable<Scope>{
 		}
 
 		//Next look for exclusions if the library is using tight scoping.
-		Pattern libraryCodePattern = Pattern.compile(libraryLocationCodePrefix);
+		if (libraryCodePattern == null) {
+			libraryCodePattern = Pattern.compile(libraryLocationCodePrefix);
+		}
 		if (includeBibsOwnedByTheLibraryOnly && !libraryCodePattern.matcher(locationCode).lookingAt()){
 			return false;
 		}
@@ -221,7 +224,8 @@ public class Scope implements Comparable<Scope>{
 		return scopeName.compareTo(o.scopeName);
 	}
 
-	HashMap<String, Boolean> locationCodeIncludedDirectly = new HashMap<String, Boolean>();
+	private Pattern locationCodePattern;
+	private HashMap<String, Boolean> locationCodeIncludedDirectly = new HashMap<String, Boolean>();
 	public boolean isLocationCodeIncludedDirectly(String librarySystemCode, String locationCode) {
 		if (locationCodeIncludedDirectly.containsKey(locationCode)){
 			return locationCodeIncludedDirectly.get(locationCode);
@@ -238,7 +242,9 @@ public class Scope implements Comparable<Scope>{
 
 		if (isLibraryScope) {
 			if (libraryLocationCodePrefix != null){
-				Pattern libraryCodePattern = Pattern.compile(libraryLocationCodePrefix, Pattern.CASE_INSENSITIVE);
+				if (libraryCodePattern == null) {
+					libraryCodePattern = Pattern.compile(libraryLocationCodePrefix, Pattern.CASE_INSENSITIVE);
+				}
 				if (libraryCodePattern.matcher(librarySystemCode).lookingAt()) {
 					locationCodeIncludedDirectly.put(librarySystemCode, Boolean.TRUE);
 					return true;
@@ -246,7 +252,9 @@ public class Scope implements Comparable<Scope>{
 			}
 		}else{
 			if (locationLocationCodePrefix != null) {
-				Pattern locationCodePattern = Pattern.compile(locationLocationCodePrefix, Pattern.CASE_INSENSITIVE);
+				if (locationCodePattern == null) {
+					locationCodePattern = Pattern.compile(locationLocationCodePrefix, Pattern.CASE_INSENSITIVE);
+				}
 				if (locationCodePattern.matcher(locationCode).lookingAt()) {
 					locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
 					return true;
