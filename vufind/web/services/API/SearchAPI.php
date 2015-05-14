@@ -43,6 +43,69 @@ class SearchAPI extends Action {
 		echo $output;
 	}
 
+	function getIndexStatus(){
+		global $serverName;
+		$result = array(
+			'result' => false,
+			'message' => "Unable to load information about indexing for $serverName"
+		);
+
+		$partialIndexUpToDate = false;
+		$fullIndexUpToDate = false;
+		$fullIndexNotes = '';
+		$partialIndexNotes = '';
+
+		$currentTime = time();
+		$lastFullIndexVariable = new Variable();
+		$lastFullIndexVariable->name= 'lastFullReindexFinish';
+		if ($lastFullIndexVariable->find(true)){
+			//Check to see if the last full index finished more than 36 hours ago
+			if ($lastFullIndexVariable->value >= ($currentTime - 36 * 60 * 60)){
+				$fullIndexUpToDate = true;
+			}else{
+				$fullIndexNotes = 'Full Index last finished ' . date('m-d-Y H:i:s', $lastFullIndexVariable->value) . ' - ' . (($currentTime - $lastFullIndexVariable->value) / 3600) . ' hours ago';
+			}
+		}else{
+			$fullIndexNotes = 'Full index has never been run';
+		}
+		$lastPartialIndexVariable = new Variable();
+		$lastPartialIndexVariable->name= 'lastPartialReindexFinish';
+		if ($lastPartialIndexVariable->find(true)){
+			//Check to see if the last partial index finished more than 20 minutes ago
+			if ($lastPartialIndexVariable->value >= ($currentTime - 20 * 60)){
+				$partialIndexUpToDate = true;
+			}else{
+				$partialIndexNotes = 'Partial Index last finished ' . date('m-d-Y H:i:s', $lastPartialIndexVariable->value) . ' - ' . (($currentTime - $lastPartialIndexVariable->value) / 60) . ' minutes ago';
+			}
+		}else{
+			$partialIndexNotes = 'Partial index has never been run';
+		}
+
+		if (!$fullIndexUpToDate && !$partialIndexUpToDate){
+			$result = array(
+				'result' => false,
+				'message' => "Both partial and full index are out of date for $serverName.\r\n$fullIndexNotes\r\n$partialIndexNotes"
+			);
+		}elseif (!$fullIndexUpToDate){
+			$result = array(
+				'result' => false,
+				'message' => "Full index is out of date for $serverName.\r\n$fullIndexNotes"
+			);
+		}elseif (!$fullIndexUpToDate){
+			$result = array(
+				'result' => false,
+				'message' => "Partial index is out of date for $serverName.\r\n$partialIndexNotes"
+			);
+		}else{
+			$result = array(
+				'result' => true,
+				'message' => "Indexes are current"
+			);
+		}
+
+		return $result;
+	}
+
 	/**
 	 * Do a basic search and return results as a JSON array
 	 */
