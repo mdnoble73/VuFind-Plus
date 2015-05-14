@@ -1969,7 +1969,7 @@ class MarcRecord extends IndexRecord
 							$available = $itemData['item'][3] == 'true';
 							$inLibraryUseOnly = $itemData['item'][4] == 'true';
 						}
-						if (array_key_exists('scope', $itemData)){
+						if (array_key_exists('scope', $itemData) && count($itemData['scope']) > 0){
 							$isHoldable = $itemData['scope'][0] == 'true';
 							$isLocalItem = $itemData['scope'][1] == 'true';
 							$isLibraryItem = $itemData['scope'][2] == 'true';
