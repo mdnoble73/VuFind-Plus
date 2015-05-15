@@ -21,7 +21,6 @@ import java.util.Set;
  */
 public class AspencatRecordProcessor extends IlsRecordProcessor {
 	private char shelfLocationSubfield;
-	private char ccodeSubfield;
 
 	public AspencatRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
 		super(indexer, vufindConn, configIni, logger);
