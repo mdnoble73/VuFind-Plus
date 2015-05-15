@@ -12,6 +12,16 @@ VuFind.Searches = (function(){
 			list:''
 		},
 
+		getPreferredDisplayMode: function(){
+			if (!Globals.opac && VuFind.hasLocalStorage()){
+				temp = window.localStorage.getItem('searchResultsDisplayMode');
+				if (VuFind.Searches.displayModeClasses.hasOwnProperty(temp)) {
+					VuFind.Searches.displayMode = temp; // if stored value is empty or a bad value, fall back on default setting ("null" is returned from local storage when not set)
+					$('input[name="view"]','#searchForm').val(VuFind.Searches.displayMode); // set the user's preferred search view mode on the search box.
+				}
+			}
+		},
+
 		toggleDisplayMode : function(selectedMode){
 			var mode = this.displayModeClasses.hasOwnProperty(selectedMode) ? selectedMode : this.displayMode, // check that selected mode is a valid option
 					searchBoxView = $('input[name="view"]','#searchForm'), // display mode variable associated with the search box
@@ -213,6 +223,9 @@ VuFind.Searches = (function(){
 
 
 		processSearchForm: function(){
+		// Check for Set Display Mode
+		//	this.getPreferredDisplayMode();
+
 			//Get the selected search type submit the form
 			var searchSource = $("#searchSource");
 			if (searchSource.val() == 'existing'){

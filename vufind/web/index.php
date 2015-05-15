@@ -464,12 +464,15 @@ if ($action == "AJAX" || $action == "JSON"){
 	}
 
 	//Load basic search types for use in the interface.
-	/** @var SearchObject_Base $searchObject */
+	/** @var SearchObject_Solr|SearchObject_Base $searchObject */
 	$searchObject = SearchObjectFactory::initSearchObject();
 	$searchObject->init();
 	$timer->logTime('Create Search Object');
 	$basicSearchTypes = is_object($searchObject) ?    $searchObject->getBasicTypes() : array();
 	$interface->assign('basicSearchTypes', $basicSearchTypes);
+
+	// Set search results display mode in search-box //
+	if ($searchObject->getView()) $interface->assign('displayMode', $searchObject->getView());
 
 	//Load repeat search options
 	require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchSources.php');
@@ -496,7 +499,7 @@ if ($action == "AJAX" || $action == "JSON"){
 		$timer->logTime('Load last search for redisplay');
 	}
 
-	if ((($module=="Search" || $module=="Summon" || $module=="WorldCat") && $action =="Home") ||
+	if (($action =="Home" && ($module=="Search" || $module=="Summon" || $module=="WorldCat")) ||
 	$action == "AJAX" || $action == "JSON"){
 		$interface->assign('showTopSearchBox', 0);
 		$interface->assign('showBreadcrumbs', 0);
