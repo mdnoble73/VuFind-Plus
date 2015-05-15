@@ -44,7 +44,7 @@
 #####################
 # Full export starts at 10pm.  Want to run the full update right after that finishes.
 # Set the start for 10:55
-55 20 * * * cd /usr/local/vufind-plus/sites/marmot.test; ./full_update_marmot_test.sh
+55 22 * * * cd /usr/local/vufind-plus/sites/marmot.test; ./full_update_marmot_test.sh
 10 01 * * * cd /usr/local/vufind-plus/sites/aspencat.test; ./full_update_aspencat_test.sh
 # saving 12:10am for aspencat production now,
 
