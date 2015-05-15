@@ -51,6 +51,9 @@ class Search_Home extends Action {
 		//Load browse categories
 		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
 		/** @var BrowseCategory[] $browseCategories */
+
+		$specifiedCategory = isset($_REQUEST['browseCategory']); // Do we want to show a specific browse category
+
 		$browseCategories = array();
 		if ($activeLocation != null){
 			$localBrowseCategories = $activeLocation->browseCategories;
@@ -59,6 +62,7 @@ class Search_Home extends Action {
 				$browseCategory->textId = $localBrowseCategory->browseCategoryTextId;
 				if($browseCategory->find(true)){
 					$browseCategories[] = clone($browseCategory);
+					if ($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) $selectedBrowseCategory = $browseCategory->textId;
 				}
 			}
 		}
@@ -69,6 +73,7 @@ class Search_Home extends Action {
 				$browseCategory->textId = $localBrowseCategory->browseCategoryTextId;
 				if($browseCategory->find(true)){
 					$browseCategories[] = clone($browseCategory);
+					if ($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) $selectedBrowseCategory = $browseCategory->textId;
 				}
 			}
 		}
@@ -77,9 +82,11 @@ class Search_Home extends Action {
 			$browseCategory->find();
 			while($browseCategory->fetch()){
 				$browseCategories[] = clone($browseCategory);
+				if ($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) $selectedBrowseCategory = $browseCategory->textId;
 			}
 		}
 
+		if (!empty($selectedBrowseCategory)) $interface->assign('selectedBrowseCategory', $selectedBrowseCategory);
 		$interface->assign('browseCategories', $browseCategories);
 
 		//Get the Browse Results for the first list

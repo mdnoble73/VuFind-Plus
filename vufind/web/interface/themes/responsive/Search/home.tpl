@@ -9,7 +9,8 @@
 					<div class="jcarousel" id="browse-category-carousel">
 						<ul>
 							{foreach from=$browseCategories item=browseCategory name="browseCategoryLoop"}
-								<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9} {if $smarty.foreach.browseCategoryLoop.index == 0}selected{/if}" data-category-id="{$browseCategory->textId}" id="browse-category-{$browseCategory->textId}">
+								{*<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9} {if $smarty.foreach.browseCategoryLoop.index == 0}selected{/if}" data-category-id="{$browseCategory->textId}" id="browse-category-{$browseCategory->textId}">*}
+								<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9} {if (!$selectedBrowseCategory && $smarty.foreach.browseCategoryLoop.index == 0) || $selectedBrowseCategory && $selectedBrowseCategory == $browseCategory->textId}selected{/if}" data-category-id="{$browseCategory->textId}" id="browse-category-{$browseCategory->textId}">
 									{*<a*}{* href="#"  causes the page to bounce to the top, and is very jarring. *}{*>*}{* js now implemented through browse.js. These links can be removed once styling referencing it is adjusted. plb 12-22-2014 *}
 									{* links removed 4-23-2015 *}
 										<div >
@@ -70,7 +71,9 @@
 {/strip}
 <script type="text/javascript">
 	$(function(){ldelim}
-		{*VuFind.Browse.curCategory = '$browseResults.textId';*}
+		{if $selectedBrowseCategory}
+			VuFind.Browse.curCategory = '{$selectedBrowseCategory}';
+		{/if}
 		{if !$onInternalIP}
 		if (!Globals.opac && VuFind.hasLocalStorage()){ldelim}
 			var temp = window.localStorage.getItem('browseMode');
