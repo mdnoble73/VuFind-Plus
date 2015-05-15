@@ -788,7 +788,7 @@ class OverDriveDriver3 {
 			$result['message'] = 'Sorry, we could not checkout this title to you.';
 
 			if (isset($response->message)) $result['message'] .= "  {$response->message}";
-			if ($response->errorCode == 'NoCopiesAvailable') {
+			if (isset($response->errorCode) && $response->errorCode == 'NoCopiesAvailable') {
 				$result['noCopies'] = true;
 				$result['message'] .= "\r\n\r\nWould you like to place a hold instead?";
 			}
