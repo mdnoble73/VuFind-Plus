@@ -115,7 +115,7 @@ public class ExtractOverDriveInfoMain {
 		
 		ExtractOverDriveInfo extractor = new ExtractOverDriveInfo();
 		extractor.extractOverDriveInfo(configIni, vufindConn, econtentConn, logEntry, doFullReload, individualIdToProcess);
-		
+
 		logEntry.setFinished();
 		logEntry.addNote("Finished OverDrive extraction");
 		logEntry.saveResults();
