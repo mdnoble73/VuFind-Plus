@@ -59,7 +59,7 @@ abstract class BaseEContentDriver  extends MarcRecord {
 						$sharing = $itemData['item'][3];
 						$source = $itemData['item'][4];
 						$fileOrUrl = '';
-						if (count($itemData) > 5){
+						if (count($itemData['item']) > 5){
 							$fileOrUrl = $itemData['item'][5];
 						}
 						if (array_key_exists('scope', $itemData)){
