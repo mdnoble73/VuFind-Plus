@@ -1974,6 +1974,13 @@ class MarcRecord extends IndexRecord
 							$isHoldable = $itemData['scope'][0] == 'true';
 							$isLocalItem = $itemData['scope'][1] == 'true';
 							$isLibraryItem = $itemData['scope'][2] == 'true';
+						}else{
+							if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
+								$isLibraryItem = true;
+							}else{
+								$isLibraryItem = strpos($locationCode, $libraryLocationCode) === 0;
+							}
+							$isLocalItem = (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/i", $locationCode));
 						}
 					}else{
 						//Old style where record and item information are combined
