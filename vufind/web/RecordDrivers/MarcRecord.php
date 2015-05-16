@@ -1970,18 +1970,18 @@ class MarcRecord extends IndexRecord
 							$available = $itemData['item'][3] == 'true';
 							$inLibraryUseOnly = $itemData['item'][4] == 'true';
 						}
-						if (array_key_exists('scope', $itemData) && count($itemData['scope']) > 0){
+						//Don't use scoping section yet because it isn't ready for prime time.
+						/*if (array_key_exists('scope', $itemData) && count($itemData['scope']) > 0){
 							$isHoldable = $itemData['scope'][0] == 'true';
 							$isLocalItem = $itemData['scope'][1] == 'true';
 							$isLibraryItem = $itemData['scope'][2] == 'true';
+						}*/
+						if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
+							$isLibraryItem = true;
 						}else{
-							if (!isset($libraryLocationCode) || $libraryLocationCode == ''){
-								$isLibraryItem = true;
-							}else{
-								$isLibraryItem = strpos($locationCode, $libraryLocationCode) === 0;
-							}
-							$isLocalItem = (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/i", $locationCode));
+							$isLibraryItem = strpos($locationCode, $libraryLocationCode) === 0;
 						}
+						$isLocalItem = (isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0) || ($extraLocations != '' && preg_match("/^{$extraLocations}$/i", $locationCode));
 					}else{
 						//Old style where record and item information are combined
 						$shelfLocation = $itemData[2];
