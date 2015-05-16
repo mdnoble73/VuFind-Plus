@@ -1096,7 +1096,7 @@ public class ExtractOverDriveInfo {
 		return webServiceResponse;
 	}
 
-	private boolean connectToOverDriveAPI(boolean getNewToken){
+	private boolean connectToOverDriveAPI(boolean getNewToken) throws SocketTimeoutException {
 		//Check to see if we already have a valid token
 		if (overDriveAPIToken != null && !getNewToken){
 			if (overDriveAPIExpiration - new Date().getTime() > 0){
@@ -1111,10 +1111,10 @@ public class ExtractOverDriveInfo {
 		try {
 			URL emptyIndexURL = new URL("https://oauth.overdrive.com/token");
 			conn = (HttpURLConnection) emptyIndexURL.openConnection();
-			if (conn instanceof HttpsURLConnection){
-				HttpsURLConnection sslConn = (HttpsURLConnection)conn;
+			if (conn instanceof HttpsURLConnection) {
+				HttpsURLConnection sslConn = (HttpsURLConnection) conn;
 				sslConn.setHostnameVerifier(new HostnameVerifier() {
-					
+
 					@Override
 					public boolean verify(String hostname, SSLSession session) {
 						//Do not verify host names
@@ -1135,7 +1135,7 @@ public class ExtractOverDriveInfo {
 			wr.write("grant_type=client_credentials");
 			wr.flush();
 			wr.close();
-			
+
 			StringBuilder response = new StringBuilder();
 			if (conn.getResponseCode() == 200) {
 				// Get the response
@@ -1152,7 +1152,7 @@ public class ExtractOverDriveInfo {
 				overDriveAPIExpiration = new Date().getTime() + (parser.getLong("expires_in") * 1000) - 10000;
 				//logger.debug("OverDrive token is " + overDriveAPIToken);
 			} else {
-				logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive authentication service" );
+				logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive authentication service");
 				// Get any errors
 				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
 				String line;
@@ -1164,7 +1164,8 @@ public class ExtractOverDriveInfo {
 				rd.close();
 				return false;
 			}
-
+		} catch (SocketTimeoutException toe){
+			throw toe;
 		} catch (Exception e) {
 			logger.error("Error connecting to overdrive API", e );
 			return false;
