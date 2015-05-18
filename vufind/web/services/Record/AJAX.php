@@ -402,7 +402,7 @@ class Record_AJAX extends Action {
 			$marcRecord = new MarcRecord($id);
 			$interface->assign('id', $id);
 			$title = $marcRecord->getTitle();
-			$interface->assign('title', $title);
+//			$interface->assign('title', $title); // Title not referred to in hold-popup.tpl
 			$results = array(
 					'title' => 'Place Hold on ' . $title,
 					'modalBody' => $interface->fetch("Record/hold-popup.tpl"),
@@ -415,8 +415,33 @@ class Record_AJAX extends Action {
 					'modalButtons' => ""
 			);
 		}
+		return $this->json_utf8_encode($results);
+	}
 
-		return json_encode($results);
+	function json_utf8_encode($result) { // TODO: add to other ajax.php or make part of a ajax base class
+		try {
+			require_once ROOT_DIR . '/sys/Utils/ArrayUtils.php';
+			$utf8EncodedValue = ArrayUtils::utf8EncodeArray($result);
+			$output           = json_encode($utf8EncodedValue);
+			$error            = json_last_error();
+			if ($error != JSON_ERROR_NONE || $output === FALSE) {
+				if (function_exists('json_last_error_msg')) {
+					$output = json_encode(array('error' => 'error_encoding_data', 'message' => json_last_error_msg()));
+				} else {
+					$output = json_encode(array('error' => 'error_encoding_data', 'message' => json_last_error()));
+				}
+				global $configArray;
+				if ($configArray['System']['debug']) {
+					print_r($utf8EncodedValue);
+				}
+			}
+		}
+		catch (Exception $e){
+			$output = json_encode(array('error'=>'error_encoding_data', 'message' => $e));
+			global $logger;
+			$logger->log("Error encoding json data $e", PEAR_LOG_ERR);
+		}
+		return $output;
 	}
 
 	function placeHold(){
@@ -494,7 +519,7 @@ class Record_AJAX extends Action {
 				$results['autologout'] = true;
 			}
 		}
-		return json_encode($results);
+		return $this->json_utf8_encode($results);
 	}
 
 	function reloadCover(){
@@ -530,6 +555,7 @@ class Record_AJAX extends Action {
 		$largeCoverUrl = $configArray['Site']['coverUrl'] . str_replace('&amp;', '&', $groupedWorkDriver->getBookcoverUrl('large')) . '&reload';
 		file_get_contents($largeCoverUrl);
 
-		return json_encode(array('success' => true, 'message' => 'Covers have been reloaded.  You may need to refresh the page to clear your local cache.'));
+		return $this->json_utf8_encode(array('success' => true, 'message' => 'Covers have been reloaded.  You may need to refresh the page to clear your local cache.'));
 	}
+
 }
