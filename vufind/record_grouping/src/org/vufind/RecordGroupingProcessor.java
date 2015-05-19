@@ -1089,6 +1089,7 @@ public class RecordGroupingProcessor {
 		formatsToGroupingCategory.put("OverDrive_Music", "music");
 		formatsToGroupingCategory.put("OverDrive_Video", "movie");
 		formatsToGroupingCategory.put("OverDrive_Read", "ebook");
+		formatsToGroupingCategory.put("OverDrive_Listen", "audio");
 		formatsToGroupingCategory.put("Adobe_PDF_eBook", "ebook");
 		formatsToGroupingCategory.put("Palm", "ebook");
 		formatsToGroupingCategory.put("Mobipocket_eBook", "ebook");
