@@ -1136,38 +1136,49 @@ class Aspencat implements DriverInterface{
 			//Use MySQL connection to load data
 			$this->initDatabaseConnection();
 
-			$this->getUserInfoStmt->bind_param('ss', $username, $username);
-			$encodedPassword = rtrim (base64_encode (pack ('H*', md5 ($password))), '=');
-
-			if ($this->getUserInfoStmt->execute()){
-				if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()){
-					$userFromDb = $userFromDbResultSet->fetch_assoc();
-					if ($userFromDb['password'] == $encodedPassword){
-						$returnVal = array(
-							'username'  => $userFromDb['borrowernumber'], //The unique id of the patron in the ILS
-							'firstname' => $userFromDb['firstname'],
-							'lastname'  => $userFromDb['surname'],
-							'fullname'  => $userFromDb['firstname'] . ' ' . $userFromDb['surname'],     //Added to array for possible display later.
-							'cat_username' => $username,
-							'cat_password' => $password,
-
-							'email' => $userFromDb['email'],
-							'major' => null,
-							'college' => null,
-							'patronType' => $userFromDb['categorycode'],
-							'web_note' => ''
-						);
-						$this->loadedUsers[$username] = $returnVal;
-						$timer->logTime("patron logged in successfully");
-						return $returnVal;
-					}else{
-						return null;
+			$barcodesToTest = array();
+			$barcodesToTest[] = $username;
+			//Special processing to allow users to login with short barcodes
+			global $library;
+			if ($library){
+				if ($library->barcodePrefix){
+					if (strpos($username, $library->barcodePrefix) !== 0){
+						//Add the barcode prefix to the barcode
+						$barcodesToTest[] = $library->barcodePrefix . $username;
 					}
 				}
-				return null;
-			}else{
-				return null;
 			}
+
+			foreach ($barcodesToTest as $i=>$barcode) {
+				$this->getUserInfoStmt->bind_param('ss', $barcode, $barcode);
+				$encodedPassword = rtrim(base64_encode(pack('H*', md5($password))), '=');
+
+				if ($this->getUserInfoStmt->execute()) {
+					if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()) {
+						$userFromDb = $userFromDbResultSet->fetch_assoc();
+						if ($userFromDb['password'] == $encodedPassword) {
+							$returnVal = array(
+								'username' => $userFromDb['borrowernumber'], //The unique id of the patron in the ILS
+								'firstname' => $userFromDb['firstname'],
+								'lastname' => $userFromDb['surname'],
+								'fullname' => $userFromDb['firstname'] . ' ' . $userFromDb['surname'],     //Added to array for possible display later.
+								'cat_username' => $barcode,
+								'cat_password' => $password,
+
+								'email' => $userFromDb['email'],
+								'major' => null,
+								'college' => null,
+								'patronType' => $userFromDb['categorycode'],
+								'web_note' => ''
+							);
+							$this->loadedUsers[$barcode] = $returnVal;
+							$timer->logTime("patron logged in successfully");
+							return $returnVal;
+						}
+					}
+				}
+			}
+			return null;
 		}
 
 	}
