@@ -371,7 +371,13 @@ public abstract class IlsRecordProcessor extends MarcRecordProcessor {
 				orderItem.setBibNumber(identifier);
 				String orderNumber = curOrderField.getSubfield('a').getData();
 				orderItem.setOrderNumber(orderNumber);
-				orderItem.setCopies(Integer.parseInt(curOrderField.getSubfield(orderCopiesSubfield).getData()));
+				if (curOrderField.getSubfield(orderCopiesSubfield) == null){
+					//Assume one copy
+					orderItem.setCopies(1);
+				}else{
+					orderItem.setCopies(Integer.parseInt(curOrderField.getSubfield(orderCopiesSubfield).getData()));
+				}
+
 				String status = curOrderField.getSubfield(orderStatusSubfield).getData();
 				//TODO: DO we need to allow customization of active order statuses?
 				if (status.equals("o") || status.equals("1")){
