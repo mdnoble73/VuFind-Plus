@@ -228,7 +228,7 @@
 				</div>
 			{/if}
 
-			{if $user && ($user->hasRole('cataloging') || $user->hasRole('library_material_requests'))}
+			{if $user && $enableMaterialsRequest &&($user->hasRole('cataloging') || $user->hasRole('library_material_requests') || $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
 				{if in_array($action, array('ManageRequests', 'SummaryReport', 'UserReport', 'ManageStatuses'))}
 					{assign var="curSection" value=true}
 				{else}
