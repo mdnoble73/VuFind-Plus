@@ -290,6 +290,8 @@ class SearchSources{
 					$worldCatLink .= "?";
 				}
 				$worldCatLink .= "q={$worldCatSearchType}:".urlencode($lookFor);
+				//Repeat the search term with a parameter of queryString since some interfaces use that parameter instead of q
+				$worldCatLink .= "&queryString={$worldCatSearchType}:".urlencode($lookFor);
 				if (strlen($library->worldCatQt) > 0){
 					$worldCatLink .= "&qt=" . $library->worldCatQt;
 				}
