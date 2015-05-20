@@ -720,7 +720,11 @@ class MillenniumDriver implements DriverInterface
 			$timeExpire = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
 			$timeNow = time();
 			$timeToExpire = $timeExpire - $timeNow;
+			$expired = 0;
 			if ($timeToExpire <= 30 * 24 * 60 * 60){
+				if ($timeToExpire <= 0){
+					$expired = 1;
+				}
 				$expireClose = 1;
 			}else{
 				$expireClose = 0;
@@ -790,6 +794,7 @@ class MillenniumDriver implements DriverInterface
 				'finesval' => $finesVal,
 				'expires' => isset($patronDump) ? $patronDump['EXP_DATE'] : '',
 				'expireclose' => $expireClose,
+				'expired' => $expired,
 				'homeLocationCode' => isset($homeBranchCode) ? trim($homeBranchCode) : '',
 				'homeLocationId' => isset($location) ? $location->locationId : 0,
 				'homeLocation' => isset($location) ? $location->displayName : '',

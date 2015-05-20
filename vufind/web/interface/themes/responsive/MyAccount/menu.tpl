@@ -35,7 +35,17 @@
 									{/if}
 								{/if}
 
-								{if $showExpirationWarnings && $profile.expireclose}<div class="myAccountLink"><a class ="alignright" title="Please contact your local library to have your library card renewed." style="color:green; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">Your library card will expire on {$profile.expires}.</a></div>{/if}
+								{if $showExpirationWarnings && $profile.expireclose}
+									<div class="myAccountLink">
+										<a class ="alignright" title="Please contact your local library to have your library card renewed." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">
+											{if $profile.expired}
+												Your library card expired on {$profile.expires}.
+											{else}
+												Your library card will expire on {$profile.expires}.
+											{/if}
+										</a>
+									</div>
+								{/if}
 							</div>
 							<hr class="menu"/>
 						{/if}
