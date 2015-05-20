@@ -716,17 +716,22 @@ class MillenniumDriver implements DriverInterface
 			}
 
 			//see if expiration date is close
-			list ($monthExp, $dayExp, $yearExp) = explode("-",$patronDump['EXP_DATE']);
-			$timeExpire = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
-			$timeNow = time();
-			$timeToExpire = $timeExpire - $timeNow;
-			$expired = 0;
-			if ($timeToExpire <= 30 * 24 * 60 * 60){
-				if ($timeToExpire <= 0){
-					$expired = 1;
+			if (trim($patronDump['EXP_DATE']) != '-  -'){
+				list ($monthExp, $dayExp, $yearExp) = explode("-",$patronDump['EXP_DATE']);
+				$timeExpire = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
+				$timeNow = time();
+				$timeToExpire = $timeExpire - $timeNow;
+				$expired = 0;
+				if ($timeToExpire <= 30 * 24 * 60 * 60){
+					if ($timeToExpire <= 0){
+						$expired = 1;
+					}
+					$expireClose = 1;
+				}else{
+					$expireClose = 0;
 				}
-				$expireClose = 1;
 			}else{
+				$expired = 0;
 				$expireClose = 0;
 			}
 
