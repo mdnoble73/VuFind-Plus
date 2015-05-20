@@ -798,7 +798,11 @@ class OverDriveDriver3 {
 			if (isset($response->errorCode) && $response->errorCode == 'NoCopiesAvailable') {
 				$result['noCopies'] = true;
 				$result['message'] .= "\r\n\r\nWould you like to place a hold instead?";
+			}else{
+				//Give more information about why it might gave failed, ie expired card or too much fines
+				$result['message'] = 'Sorry, we could not checkout this title to you.  Please verify that your card has not expired and that you do not have excessive fines.';
 			}
+
 			if ($analytics) $analytics->addEvent('OverDrive', 'Checkout Item', 'failed');
 		}
 
