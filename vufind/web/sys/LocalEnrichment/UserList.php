@@ -18,6 +18,7 @@ class UserList extends DB_DataObject
 	public $public;													// int(11)	not_null
 	public $deleted;
 	public $dateUpdated;
+	public $defaultSort; // string(20) null
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('UserList',$k,$v); }
@@ -308,10 +309,15 @@ class UserList extends DB_DataObject
 	 */
 	private $listTitles = array();
 
-	function getListEntries(){
+	/**
+	 * @param null $sort  optional SQL for the query's ORDER BY clause
+	 * @return array      of list entries
+	 */
+	function getListEntries($sort = null){
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
 		$listEntry = new UserListEntry();
 		$listEntry->listId = $this->id;
+		if ($sort) $listEntry->orderBy($sort);
 		$listEntries = array();
 		$listEntry->find();
 		while ($listEntry->fetch()){

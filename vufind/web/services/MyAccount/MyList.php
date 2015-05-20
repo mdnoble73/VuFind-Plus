@@ -105,6 +105,7 @@ class MyAccount_MyList extends MyAccount {
 				}elseif ($actionToPerform == 'saveList'){
 					$list->title = $_REQUEST['newTitle'];
 					$list->description = $_REQUEST['newDescription'];
+					$list->defaultSort = $_REQUEST['defaultSort'];
 					$list->update();
 				}elseif ($actionToPerform == 'deleteList'){
 					$list->delete();
@@ -133,7 +134,6 @@ class MyAccount_MyList extends MyAccount {
 				$list->removeListEntry($recordToDelete);
 				$list->update();
 			}
-
 			//Redirect back to avoid having the parameters stay in the URL.
 			header("Location: {$configArray['Site']['path']}/MyAccount/MyList/{$list->id}");
 			die();
@@ -147,7 +147,7 @@ class MyAccount_MyList extends MyAccount {
 		// Load the User object for the owner of the list (if necessary):
 		if ($user && ($user->id == $list->user_id)) {
 			$listUser = $user;
-		} else if ($list->user_id != 0){
+		} elseif ($list->user_id != 0){
 			$listUser = new User();
 			$listUser->id = $list->user_id;
 			if (!$listUser->fetch(true)){
@@ -160,7 +160,9 @@ class MyAccount_MyList extends MyAccount {
 		// Create a handler for displaying favorites and use it to assign
 		// appropriate template variables:
 		$interface->assign('allowEdit', $userCanEdit);
-		$favList = new FavoriteHandler($list->getListEntries(), $listUser, $list->id, $userCanEdit);
+//		$favList = new FavoriteHandler($list->getListEntries($sort), $listUser, $list->id, $userCanEdit, $list->defaultSort);
+		// signature change to below
+		$favList = new FavoriteHandler($list, $listUser, $userCanEdit);
 		$favList->assign();
 
 		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');

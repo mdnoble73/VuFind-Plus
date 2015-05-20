@@ -777,7 +777,8 @@ class MyAccount_AJAX
 			if ($list->public == true || ($user && $user->id == $list->user_id)) {
 				//The user can access the list
 				require_once ROOT_DIR . '/services/MyResearch/lib/FavoriteHandler.php';
-				$favoriteHandler = new FavoriteHandler($titles, $user, $list->id, false);
+//				$favoriteHandler = new FavoriteHandler($titles, $user, $list->id, false);
+				$favoriteHandler = new FavoriteHandler($list, $user, false);
 				$titleDetails = $favoriteHandler->getTitles(count($titles));
 				 // get all titles for email list, not just a page's worth
 				$interface->assign('titles', $titleDetails);

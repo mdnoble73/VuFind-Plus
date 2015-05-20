@@ -330,6 +330,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$this->spellcheck = false;
 			$this->searchType = strtolower($action);
 		} else if ($module == 'MyAccount') {
+			// Users Lists
 			$this->spellcheck = false;
 			$this->searchType = ($action == 'Home') ? 'favorites' : 'list';
 		}
@@ -532,15 +533,28 @@ class SearchObject_Solr extends SearchObject_Base
 	 * @param   int     $listId     ID of list containing desired tags/notes (or
 	 *                              null to show tags/notes from all user's lists).
 	 * @param   bool    $allowEdit  Should we display edit controls?
+	 * @param   array   $IDList     optional list of IDs to re-order the records by (ie User List sorts)
 	 * @return  array   Array of HTML chunks for individual records.
 	 */
-	public function getResultListHTML($user, $listId = null, $allowEdit = true)
+	public function getResultListHTML($user, $listId = null, $allowEdit = true, $IDList = null)
 	{
 		global $interface;
 
 		$html = array();
 		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
-			$current = & $this->indexResult['response']['docs'][$x];
+			if ($IDList) {
+				// use $IDList as the order guide for the html
+				$current = null; // empty out in case we don't find the matching record
+				$id = $IDList[$x]; // the ID to look for.
+				foreach ($this->indexResult['response']['docs'] as $index => $doc) {
+					if ($doc['id'] == $id) {
+						$current = & $this->indexResult['response']['docs'][$index];
+						break;
+					}
+				}
+				if (empty($current)) continue; // In the case the record wasn't found, move on to the next record
+			} else $current = & $this->indexResult['response']['docs'][$x];
+
 			$interface->assign('recordIndex', $x + 1);
 			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
 			if (!$this->debug){
