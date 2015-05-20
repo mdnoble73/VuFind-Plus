@@ -51,6 +51,9 @@ abstract class FacetSetting extends DB_DataObject {
 			"detailed_location" => "Detailed Location",
 			"lc_subject" => "LC Subject",
 			"bisac_subject" => "Bisac Subject",
+			"accelerated_reader_interest_level" => "AR Interest Level",
+			"accelerated_reader_reading_level" => "AR Reading Level",
+			"accelerated_reader_point_value" => "AR Point Value",
 		);
 
 		//Add additional facets by library
