@@ -202,6 +202,7 @@ public class ExtractOverDriveInfo {
 			overDriveFormatMap.put("Microsoft eBook", 1L);
 			overDriveFormatMap.put("audiobook-wma", 25L);
 			overDriveFormatMap.put("audiobook-mp3", 425L);
+			overDriveFormatMap.put("audiobook-overdrive", 625L);
 			overDriveFormatMap.put("music-wma", 30L);
 			overDriveFormatMap.put("video-wmv", 35L);
 			overDriveFormatMap.put("ebook-pdf-adobe", 50L);
