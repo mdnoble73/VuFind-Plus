@@ -10,7 +10,9 @@
 			<div class="row">
 				<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">
 					<input type="hidden" name="basicType" id="basicType" value="">
+					{if $displayMode}
 					<input type="hidden" name="view" id="view" value="{$displayMode}">
+					{/if}
 					<input type="hidden" name="genealogyType" id="genealogyType" value="">
 					<fieldset>
 						<div class="input-group input-group-sm">
