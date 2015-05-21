@@ -387,6 +387,7 @@ class UInterface extends Smarty
 				$this->assign('numHours', $numHours);
 			}
 			$this->assign('showDisplayNameInHeader', $library->showDisplayNameInHeader);
+			$this->assign('externalMaterialsRequestUrl', $library->externalMaterialsRequestUrl);
 		}else{
 			$this->assign('showLibraryHoursAndLocationsLink', 1);
 			$this->assign('showRatings', 1);

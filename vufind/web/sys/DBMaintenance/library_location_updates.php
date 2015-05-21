@@ -990,5 +990,14 @@ function getLibraryLocationUpdates(){
 				"ALTER TABLE `library` ADD COLUMN `addSMSIndicatorToPhone` TINYINT(1) NULL DEFAULT '0';",
 			),
 		),
+
+		'external_materials_request' => array(
+			'title' => 'Allow linking to an external materials request system',
+			'description' => 'Allow libraries to link to an external materials request system rather than using the built in system',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `externalMaterialsRequestUrl` VARCHAR(255);",
+			),
+		),
 	);
 }
