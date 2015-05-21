@@ -24,7 +24,8 @@ class ListWidget extends DB_DataObject
 	public $libraryId;
 	public $showRatings;
 	public $coverSize; //'small', 'medium'
-
+	public $showViewMoreLink;
+	public $viewMoreLinkMode;
 
 	/** @var  ListWidgetList[] */
 	private $lists;
@@ -179,6 +180,26 @@ class ListWidget extends DB_DataObject
         'storeDb' => true,
         'hideInLists' => true,
       ),
+			'showViewMoreLink' => array(
+				'property' => 'showViewMoreLink',
+				'type' => 'checkbox',
+				'label' => 'Show the View More link',
+				'storeDb' => true,
+				'hideInLists' => true,
+				'default' => true,
+			),
+			'viewMoreLinkMode' => array(
+				'property'=>'viewMoreLinkMode',
+				'type'=>'enum',
+				'values' => array(
+					'list' => 'List',
+					'covers' => 'Covers'
+				),
+				'label'=>'Show Results as',
+				'description'=>'The mode to show full results as.',
+				'storeDb' => true,
+				'hideInLists' => true,
+			),
       'lists' => array(
         'property' => 'lists',
         'type'=> 'oneToMany',

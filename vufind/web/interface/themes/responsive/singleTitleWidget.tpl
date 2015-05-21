@@ -15,6 +15,8 @@
 			{if $widget->showAuthor}
 				<div id="titleScrollerSelectedAuthor{$scrollerName}" class="titleScrollerSelectedAuthor"></div>
 			{/if}
+			{if $widget->showViewMoreLink}
+			{/if}
 		</div>
 	</div>
 </div>

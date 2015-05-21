@@ -97,5 +97,14 @@ function getListWidgetUpdates(){
 				"ALTER TABLE `list_widgets` ADD COLUMN `showAuthor` TINYINT NOT NULL DEFAULT '1'",
 			),
 		),
+
+		'list_widget_update_4' => array(
+			'title' => 'List Widget Update 4',
+			'description' => 'Additional options for ',
+			'sql' => array(
+				"ALTER TABLE `list_widgets` ADD COLUMN `showViewMoreLink` TINYINT NOT NULL DEFAULT '0'",
+				"ALTER TABLE `list_widgets` ADD COLUMN `viewMoreLinkMode` ENUM('cover', 'list') NOT NULL DEFAULT 'list'",
+			),
+		),
 	);
 }

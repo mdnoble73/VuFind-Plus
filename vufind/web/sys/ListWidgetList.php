@@ -24,7 +24,6 @@ class ListWidgetList extends DB_DataObject
 	}
 
 	static function getObjectStructure(){
-		global $configArray;
 		$structure = array(
       'id' => array(
         'property'=>'id',
