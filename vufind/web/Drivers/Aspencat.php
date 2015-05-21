@@ -1416,7 +1416,7 @@ class Aspencat implements DriverInterface{
 		$holdTypeFields = $marcRecord->getFields('942');
 		foreach ($holdTypeFields as $holdTypeField){
 			if ($holdTypeField->getSubfield('r') != null){
-				if ($holdTypeField->getSubfield('r')->getData() == 'itemtitle'){
+				if ($holdTypeField->getSubfield('r')->getData() == 'itemtitle' || $holdTypeField->getSubfield('r')->getData() == 'item'){
 					$itemLevelHoldAllowed = true;
 				}
 			}
