@@ -65,7 +65,7 @@ class SearchAPI extends Action {
 		}else{
 			$notes = 'Full index has never been run';
 		}
-		$notes .= "\r\n";
+		$notes .= "; ";
 
 		$lastPartialIndexVariable = new Variable();
 		$lastPartialIndexVariable->name= 'lastPartialReindexFinish';
@@ -79,7 +79,7 @@ class SearchAPI extends Action {
 		}else{
 			$notes = 'Partial index has never been run';
 		}
-		$notes .= "\r\n";
+		$notes .= "; ";
 
 
 		$lastOverDriveExtractVariable = new Variable();
@@ -94,7 +94,7 @@ class SearchAPI extends Action {
 		}else{
 			$notes = 'OverDrive Extract has never been run';
 		}
-		$notes .= "\r\n";
+		$notes .= "; ";
 
 		if (!$fullIndexUpToDate || !$partialIndexUpToDate || !$overDriveExtractUpToDate){
 			$result = array(
