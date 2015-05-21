@@ -230,6 +230,10 @@ class GroupedWork_AJAX {
 
 	function getWorkInfo(){
 		global $interface;
+		
+		//Indicate we are showing search results so we don't get hold buttons
+		$interface->assign('displayingSearchResults', true);
+
 		require_once ROOT_DIR . '/RecordDrivers/GroupedWorkDriver.php';
 		$id = $_REQUEST['id'];
 		$recordDriver = new GroupedWorkDriver($id);
