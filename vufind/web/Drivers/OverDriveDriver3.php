@@ -461,6 +461,8 @@ class OverDriveDriver3 {
 				$bookshelfItem['checkoutSource'] = 'OverDrive';
 				$bookshelfItem['overDriveId'] = $curTitle->reserveId;
 				$bookshelfItem['expiresOn'] = $curTitle->expires;
+				$expirationDate = new DateTime($curTitle->expires);
+				$bookshelfItem['dueDate'] = $expirationDate->format('M j, Y g:ha');
 				$bookshelfItem['overdriveRead'] = false;
 				if (isset($curTitle->isFormatLockedIn) && $curTitle->isFormatLockedIn == 1){
 					$bookshelfItem['formatSelected'] = true;
