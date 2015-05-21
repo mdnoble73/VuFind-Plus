@@ -1413,11 +1413,15 @@ class Aspencat implements DriverInterface{
 		//Check to see if the title requires item level holds
 		/** @var File_MARC_Data_Field[] $holdTypeFields */
 		$itemLevelHoldAllowed = false;
+		$itemLevelHoldOnly = false;
 		$holdTypeFields = $marcRecord->getFields('942');
 		foreach ($holdTypeFields as $holdTypeField){
 			if ($holdTypeField->getSubfield('r') != null){
-				if ($holdTypeField->getSubfield('r')->getData() == 'itemtitle' || $holdTypeField->getSubfield('r')->getData() == 'item'){
+				if ($holdTypeField->getSubfield('r')->getData() == 'itemtitle'){
 					$itemLevelHoldAllowed = true;
+				}else if ($holdTypeField->getSubfield('r')->getData() == 'item'){
+					$itemLevelHoldAllowed = true;
+					$itemLevelHoldOnly = true;
 				}
 			}
 		}
@@ -1439,13 +1443,15 @@ class Aspencat implements DriverInterface{
 		if ($itemLevelHoldAllowed){
 			//Need to prompt for an item level hold
 			$items = array();
-			//Add a first title returned
-			$items[-1] = array(
-				'itemNumber' => -1,
-				'location' => 'Next available copy',
-				'callNumber' => '',
-				'status' => '',
-			);
+			if (!$itemLevelHoldOnly){
+				//Add a first title returned
+				$items[-1] = array(
+					'itemNumber' => -1,
+					'location' => 'Next available copy',
+					'callNumber' => '',
+					'status' => '',
+				);
+			}
 
 			//Get the item table from the page
 			if (preg_match('/<table>\\s+<caption>Select a specific copy:<\/caption>\\s+(.*?)<\/table>/s', $placeHoldPage, $matches)) {
@@ -1605,6 +1611,9 @@ class Aspencat implements DriverInterface{
 			}
 		}
 		$campus = strtoupper($campus);
+
+		//Login before placing the hold
+		$this->loginToKoha($user);
 
 		//Post the hold to koha
 		$placeHoldPage = $configArray['Catalog']['url'] . '/cgi-bin/koha/opac-reserve.pl';
