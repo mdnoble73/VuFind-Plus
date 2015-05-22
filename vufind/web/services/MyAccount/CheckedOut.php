@@ -158,7 +158,7 @@ class MyAccount_CheckedOut extends MyAccount{
 
 
 
-		if (isset($_GET['exportToExcel']) && isset($result)) {
+		if (isset($_GET['exportToExcel']) && isset($allCheckedOut)) {
 			$this->exportToExcel($allCheckedOut, $showOut, $showRenewed, $showWaitList);
 		}
 
@@ -238,9 +238,18 @@ class MyAccount_CheckedOut extends MyAccount{
 			if ($showOut){
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', $row['checkoutdate']));
 			}
-			$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', $row['duedate']));
+			if (isset($row['duedate'])){
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', $row['duedate']));
+			}else{
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, '');
+			}
+
 			if ($showRenewed){
-				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, $row['renewCount']);
+				if (isset($row['duedate'])) {
+					$activeSheet->setCellValueByColumnAndRow($curCol++, $a, $row['renewCount']);
+				}else{
+					$activeSheet->setCellValueByColumnAndRow($curCol++, $a, '');
+				}
 			}
 			if ($showWaitList){
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, $row['holdQueueLength']);
