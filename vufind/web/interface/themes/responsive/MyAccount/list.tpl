@@ -125,12 +125,19 @@
 					{literal}
 					$(function(){
 						$('#UserList').sortable({
+							start: function(e,ui){
+								$(ui.item).find('.related-manifestations').fadeOut()
+							},
+							stop: function(e,ui){
+								$(ui.item).find('.related-manifestations').fadeIn()
+							},
 							update: function (e, ui){
-								var updates = [];
+								var updates = [],
+												firstItemOnPage = {/literal}{$recordStart}{literal};
 								$('#UserList>div>div').each(function(currentOrder){
 									var GroupID = this.id.replace('groupedRecord',''),
 													originalOrder = $(this).data('order'),
-													change = currentOrder+1-originalOrder,
+													change = currentOrder+firstItemOnPage-originalOrder,
 													newOrder = originalOrder+change;
 									if (change != 0) updates.push({'id':GroupID, 'newOrder':newOrder});
 								});
@@ -141,7 +148,6 @@
 													,listID:{/literal}{$favList->id}{literal}
 												}
 												, function(response){
-													console.log(response);
 													if (response.success) {
 														updates.forEach(function(e){
 															$('#groupedRecord'+ e.id).data('order', e.newOrder)
@@ -157,7 +163,7 @@
 				</script>
 			{/if}
 
-			{if strlen($pageLinks.all) > 0}<div class="pagination">{$pageLinks.all}</div>{/if}
+			{if strlen($pageLinks.all) > 0}<div class="text-center">{$pageLinks.all}</div>{/if}
 		{else}
 			{translate text='You do not have any saved resources'}
 		{/if}

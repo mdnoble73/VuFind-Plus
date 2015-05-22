@@ -161,7 +161,7 @@ class FavoriteHandler
 		$searchObject->setPage($page);
 
 		if (!$this->isUserListSort) { // is a solr sort
-			$searchObject->setSort($this->sort); // set solr sort
+			$searchObject->setSort($this->sort); // set solr sort. (have to set before retrieving solr sort options below)
 		}
 		$SolrSortList = $searchObject->getSortList(); // get all the search sort options (retrieve after setting solr sort option)
 		$sortOptions = $defaultSortOptions = array();
@@ -187,21 +187,23 @@ class FavoriteHandler
 		if (count($this->favorites) > 0){
 			if ($this->isUserListSort) {
 				$this->favorites = array_slice($this->favorites, $startRecord - 1, $recordsPerPage);
-				$searchObject->setPage(1);
+				$searchObject->setPage(1); // set to the first page for the search only
 			}
 
 			$searchObject->setQueryIDs($this->favorites); // do solr search by Ids
 			$result = $searchObject->processSearch();
-			$pageInfo['resultTotal'] = $result['response']['numFound'];
-			if ($endRecord > $pageInfo['resultTotal']){
-				$endRecord = $pageInfo['resultTotal'];
-				$pageInfo['endRecord'] = $endRecord;
-			}
-
-			if ($this->isUserListSort) {  // puts html in order of favorites
+			if (!$this->isUserListSort) { // adjust paging based on search
+				$pageInfo['resultTotal'] = $result['response']['numFound'];
+				if ($endRecord > $pageInfo['resultTotal']) {
+					$endRecord             = $pageInfo['resultTotal'];
+					$pageInfo['endRecord'] = $endRecord;
+				}
+			$resourceList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
+			} else {
+				$searchObject->setPage($page); // restore the actual sort page
 				$resourceList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit, $this->favorites);
-			} else $resourceList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
-
+				// puts html in order of favorites
+			}
 
 		}else{
 			$resourceList = array();
