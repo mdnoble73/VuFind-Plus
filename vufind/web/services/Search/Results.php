@@ -310,14 +310,21 @@ class Search_Results extends Action {
 			if (!$disallowReplacements && (!isset($facetSet) || count($facetSet) == 0)){
 				require_once ROOT_DIR . '/services/Search/lib/SearchSuggestions.php';
 				$searchSuggestions = new SearchSuggestions();
-				$commonSearches = $searchSuggestions->getCommonSearchesMySql($searchObject->displayQuery(), $searchObject->getSearchIndex());
+				$commonSearches = $searchSuggestions->getAllSuggestions($searchObject->displayQuery(), $searchObject->getSearchIndex());
+
+				//assign here before we start popping stuff off
+				$interface->assign('searchSuggestions', $commonSearches);
+
 				//If the first search in the list is used 10 times more than the next, just show results for that
 				$numSuggestions = count($commonSearches);
 				if ($numSuggestions == 1){
+					$firstSearch = array_pop($commonSearches);
 					$autoSwitchSearch = true;
 				}elseif ($numSuggestions >= 2){
-					$firstTimesSearched = $commonSearches[0]['numSearches'];
-					$secondTimesSearched = $commonSearches[1]['numSearches'];
+					$firstSearch = array_shift($commonSearches);
+					$secondSearch = array_shift($commonSearches);
+					$firstTimesSearched = $firstSearch['numSearches'];
+					$secondTimesSearched = $secondSearch['numSearches'];
 					if ($firstTimesSearched / $secondTimesSearched > 10){
 						$autoSwitchSearch = true;
 					}
@@ -330,12 +337,11 @@ class Search_Results extends Action {
 //					$interface->assign('oldTerm', $searchObject->displayQuery());
 //					$interface->assign('newTerm', $commonSearches[0]['phrase']);
 					// The above assignments probably do nothing when there is a redirect below
-					$thisUrl = $_SERVER['REQUEST_URI'] . "&replacementTerm=" . urlencode($commonSearches[0]['phrase']);
+					$thisUrl = $_SERVER['REQUEST_URI'] . "&replacementTerm=" . urlencode($firstSearch['phrase']);
 					header("Location: " . $thisUrl);
 					exit();
 				}
 
-				$interface->assign('searchSuggestions', $commonSearches);
 			}
 
 			// No record found
