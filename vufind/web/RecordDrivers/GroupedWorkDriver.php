@@ -303,16 +303,16 @@ class GroupedWorkDriver extends RecordInterface{
 		$timer->logTime('Finished Loading Series');
 
 		//Get information from list entry
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
-		$listEntry = new UserListEntry();
-		$listEntry->groupedWorkPermanentId = $this->getUniqueID();
-		$listEntry->listId = $listId;
-		if ($listEntry->find(true)){
-			$interface->assign('listEntryNotes', $listEntry->notes);
+		if ($listId) {
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+			$listEntry                         = new UserListEntry();
+			$listEntry->groupedWorkPermanentId = $this->getUniqueID();
+			$listEntry->listId                 = $listId;
+			if ($listEntry->find(true)) {
+				$interface->assign('listEntryNotes', $listEntry->notes);
+			}
+			$interface->assign('listEditAllowed', $allowEdit);
 		}
-
-		$interface->assign('listEditAllowed', $allowEdit);
-
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
 		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
 
