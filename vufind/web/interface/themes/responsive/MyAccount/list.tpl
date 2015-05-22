@@ -41,7 +41,7 @@
 					</div>
 				{/if}
 				<div class="clearer"></div>
-				<div id="listTopButtons" class="btn-toolbar sticky">
+				<div id="listTopButtons" class="btn-toolbar">
 					{if $allowEdit}
 						<div class="btn-group">
 							<button value="editList" id="FavEdit" class="btn btn-sm btn-info" onclick='return VuFind.Lists.editListAction()'>Edit List</button>
@@ -104,15 +104,58 @@
 				</div>
 			</div>
 
-			<div>
-				<input type="hidden" name="myListActionItem" id="myListActionItem">
-				{foreach from=$resourceList item=resource name="recordLoop"}
+			{if $allowEdit && $userSort}
+				<div class="alert alert-info alert-dismissible" role="alert">
+					<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+					<strong>Drag-and-Drop!</strong> Just drag the list items into the order you like.
+				</div>
+			{/if}
+
+			<input type="hidden" name="myListActionItem" id="myListActionItem">
+			<div id="UserList">{*Keep only list entries in div for custom sorting functions*}
+				{foreach from=$resourceList item=resource name="recordLoop" key=resourceId}
 					<div class="result{if ($smarty.foreach.recordLoop.iteration % 2) == 0} alt{/if}">
 						{* This is raw HTML -- do not escape it: *}
 						{$resource}
 					</div>
 				{/foreach}
 			</div>
+			{if $userSort}
+				<script type="text/javascript">
+					{literal}
+					$(function(){
+						$('#UserList').sortable({
+							update: function (e, ui){
+								var updates = [];
+								$('#UserList>div>div').each(function(currentOrder){
+									var GroupID = this.id.replace('groupedRecord',''),
+													originalOrder = $(this).data('order'),
+													change = currentOrder+1-originalOrder,
+													newOrder = originalOrder+change;
+									if (change != 0) updates.push({'id':GroupID, 'newOrder':newOrder});
+								});
+								$.getJSON(Globals.path + '/MyAccount/AJAX',
+												{
+													method:'setListEntryPositions'
+													,updates:updates
+													,listID:{/literal}{$favList->id}{literal}
+												}
+												, function(response){
+													console.log(response);
+													if (response.success) {
+														updates.forEach(function(e){
+															$('#groupedRecord'+ e.id).data('order', e.newOrder)
+																			.find('span.result-index').text(e.newOrder+')');
+															$('#weight_'+ e.id).val(e.newOrder);
+														})
+													}
+												})
+							}
+						});
+					});
+					{/literal}
+				</script>
+			{/if}
 
 			{if strlen($pageLinks.all) > 0}<div class="pagination">{$pageLinks.all}</div>{/if}
 		{else}

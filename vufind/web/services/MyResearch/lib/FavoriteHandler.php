@@ -160,16 +160,9 @@ class FavoriteHandler
 		$searchObject->setLimit($recordsPerPage); //MDN 3/30 this was set to 200, but should be based off the page size
 		$searchObject->setPage($page);
 
-
-//		$sort = $searchObject->getSort(); // initial Sort Setting
-
-//		if (in_array($this->sort, array_keys($this->solrSortOptions))) {
 		if (!$this->isUserListSort) { // is a solr sort
 			$searchObject->setSort($this->sort); // set solr sort
-		} else {
-
 		}
-
 		$SolrSortList = $searchObject->getSortList(); // get all the search sort options (retrieve after setting solr sort option)
 		$sortOptions = $defaultSortOptions = array();
 		foreach ($this->solrSortOptions as $option) { // extract just the ones we want
@@ -188,6 +181,7 @@ class FavoriteHandler
 		$interface->assign('sortList', $sortOptions);
 		$interface->assign('defaultSortList', $defaultSortOptions);
 		$interface->assign('defaultSort', $this->defaultSort);
+		$interface->assign('userSort', ($this->getSort() == 'custom')); // switch for when users can sort their list
 
 		// Retrieve records from index (currently, only Solr IDs supported):
 		if (count($this->favorites) > 0){
@@ -239,6 +233,8 @@ class FavoriteHandler
 	}
 
 	function getTitles($numListEntries){
+		// Currently only used by AJAX call for emailing lists
+
 		// Initialise from the current search globals
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
@@ -273,6 +269,14 @@ class FavoriteHandler
 		}else{
 			return array();
 		}
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getSort()
+	{
+		return $this->sort;
 	}
 }
 

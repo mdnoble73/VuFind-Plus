@@ -326,6 +326,7 @@ class UserList extends DB_DataObject
 		return $listEntries;
 	}
 
+	//TODO: should getListEntries() & getListTitles() be the same function?
 	/**
 	 * @return UserListEntry[]|null
 	 */

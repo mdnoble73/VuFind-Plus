@@ -21,7 +21,7 @@ class MyAccount_AJAX
 //			'clearUserRating', //no function found.
 			'requestPinReset', //not checked
 			'getCreateListForm', 'getBulkAddToListForm', 'AddList',
-			'getEmailMyListForm', 'sendMyListEmail' ,
+			'getEmailMyListForm', 'sendMyListEmail', 'setListEntryPositions',
 			'removeTag',
 			'saveSearch', 'deleteSavedSearch', // deleteSavedSearch not checked
 			'cancelHold', 'cancelHolds', 'freezeHold', 'thawHold', 'getChangeHoldLocationForm', 'changeHoldLocation',
@@ -771,7 +771,7 @@ class MyAccount_AJAX
 		if ($list->find(true)){
 			// Build Favorites List
 			$titles = $list->getListTitles();
-			$interface->assign('listEntries', $titles);
+			$interface->assign('listEntries', $titles); // TODO: if not used, i would like to remove
 
 			// Load the User object for the owner of the list (if necessary):
 			if ($list->public == true || ($user && $user->id == $list->user_id)) {
@@ -997,4 +997,34 @@ class MyAccount_AJAX
 		return $result;
 	}
 
+	function setListEntryPositions(){
+		$success = false; // assume failure
+		$listId = $_REQUEST['listID'];
+		$updates = $_REQUEST['updates'];
+		if (ctype_digit($listId) && !empty($updates)) {
+			global $user;
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
+			$list = new UserList();
+			$list->id = $listId;
+			if ($list->find(true) && $user->canEditList($list)) { // list exists & user can edit
+				require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+				$success = true; // assume success now
+				foreach ($updates as $update) {
+					$userListEntry                         = new UserListEntry();
+					$userListEntry->listId                 = $listId;
+					$userListEntry->groupedWorkPermanentId = $update['id'];
+					if ($userListEntry->find(true) && ctype_digit($update['newOrder'])) {
+						// check entry exists already and the new weight is a number
+						$userListEntry->weight = $update['newOrder'];
+						if (!$userListEntry->update()) {
+							$success = false;
+						}
+					} else {
+						$success = false;
+					}
+				}
+			}
+		}
+		return array('success' => $success);
+	}
 }

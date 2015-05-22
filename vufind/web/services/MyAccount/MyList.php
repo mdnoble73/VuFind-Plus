@@ -77,20 +77,22 @@ class MyAccount_MyList extends MyAccount {
 		//Perform an action on the list, but verify that the user has permission to do so.
 		$userCanEdit = false;
 		if ($user != false){
-			if ($user->id == $list->user_id){
-				$userCanEdit = true;
-			}elseif ($user->hasRole('opacAdmin')){
-				$userCanEdit = true;
-			}elseif ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
-				$listUser = new User();
-				$listUser->id = $list->user_id;
-				$listUser->find(true);
-				$listLibrary = Library::getLibraryForLocation($listUser->homeLocationId);
-				$userLibrary = Library::getLibraryForLocation($user->homeLocationId);
-				if ($userLibrary->libraryId == $listLibrary->libraryId){
-					$userCanEdit = true;
-				}
-			}
+			$userCanEdit = $user->canEditList($list);
+
+//			if ($user->id == $list->user_id){
+//				$userCanEdit = true;
+//			}elseif ($user->hasRole('opacAdmin')){
+//				$userCanEdit = true;
+//			}elseif ($user->hasRole('libraryAdmin') || $user->hasRole('contentEditor')){
+//				$listUser = new User();
+//				$listUser->id = $list->user_id;
+//				$listUser->find(true);
+//				$listLibrary = Library::getLibraryForLocation($listUser->homeLocationId);
+//				$userLibrary = Library::getLibraryForLocation($user->homeLocationId);
+//				if ($userLibrary->libraryId == $listLibrary->libraryId){
+//					$userCanEdit = true;
+//				}
+//			}
 		}
 
 		if ($userCanEdit && (isset($_REQUEST['myListActionHead']) || isset($_REQUEST['myListActionItem']) || isset($_GET['delete']))){
@@ -164,6 +166,7 @@ class MyAccount_MyList extends MyAccount {
 		// signature change to below
 		$favList = new FavoriteHandler($list, $listUser, $userCanEdit);
 		$favList->assign();
+
 
 		$interface->assign('sidebar', 'MyAccount/account-sidebar.tpl');
 		$interface->setTemplate('list.tpl');
