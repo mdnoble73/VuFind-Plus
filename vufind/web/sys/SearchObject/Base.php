@@ -492,7 +492,12 @@ abstract class SearchObject_Base
 					$params[] = "lookfor=" . urlencode($this->searchTerms[0]['lookfor']);
 				}
 				if (isset($this->searchTerms[0]['index'])) {
-					$params[] = "type="    . urlencode($this->searchTerms[0]['index']);
+					if ($this->searchType == 'basic'){
+						$params[] = "basicType="    . urlencode($this->searchTerms[0]['index']);
+					}else{
+						$params[] = "type="    . urlencode($this->searchTerms[0]['index']);
+					}
+
 				}
 				break;
 		}
@@ -1018,7 +1023,16 @@ abstract class SearchObject_Base
 	 * @return  mixed    various internal variables
 	 */
 	public function getAdvancedTypes()  {return $this->advancedTypes;}
-	public function getBasicTypes()     {return $this->basicTypes;}
+	public function getBasicTypes() {
+		$searchIndex = $this->getSearchIndex();
+		$basicSearchTypes = $this->basicTypes;
+		if ($this->searchType != 'genealogy' && $_REQUEST['searchSource'] != 'genealogy') {
+			if (!array_key_exists($searchIndex, $basicSearchTypes)) {
+				$basicSearchTypes[$searchIndex] = $searchIndex;
+			}
+		}
+		return $basicSearchTypes;
+	}
 	public function getFilters()        {return $this->filterList;}
 	public function getPage()           {return $this->page;}
 	public function getLimit()          {return $this->limit;}
@@ -1635,8 +1649,12 @@ abstract class SearchObject_Base
 		// Single search index does not apply to advanced search:
 		if ($this->searchType == $this->advancedSearchType) {
 			return null;
+		}elseif (isset($this->searchTerms[0]['index'])){
+			return $this->searchTerms[0]['index'];
+		}else{
+			return 'Keyword';
 		}
-		return $this->searchTerms[0]['index'];
+
 	}
 
 	/**

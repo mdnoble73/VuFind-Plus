@@ -1023,7 +1023,7 @@ class Solr implements IndexEngine {
 				$that = $this;
 				if (isset($params['lookfor']) && !$forDisplay){
 					$lookfor = preg_replace_callback(
-						'/(\\w+):([\\w\\d\\s]+?)(\\sAND|OR|AND NOT|OR NOT|\\))/',
+						'/(\\w+):([\\w\\d\\s]+?)(\\sAND|OR|AND NOT|OR NOT|\\)|$)/',
 						function ($matches) use($that){
 							$field = $matches[1];
 							$lookfor = $matches[2];
@@ -1072,7 +1072,15 @@ class Solr implements IndexEngine {
 								$query .= $this->_buildQueryComponent($params['field'], $lookfor);
 							}
 						} else {
-							$query .= $lookfor;
+							/*if ($forDisplay &&
+									isset($params['index']) &&
+									$params['index'] != 'Keyword' &&
+									!strpos($lookfor, $params['index']) === 0) {
+
+								$query = $params['index'] . ':' . $lookfor;
+							} else {*/
+								$query .= $lookfor;
+							//}
 						}
 					}
 				}
@@ -2296,6 +2304,10 @@ class Solr implements IndexEngine {
 			if (in_array($fieldName, $fields)){
 				return true;
 			}
+			/*$searchSpecs = $this->_getSearchSpecs();
+			if (array_key_exists($fieldName, $searchSpecs)){
+				return true;
+			}*/
 		}
 
 		// Check for parentheses and range operators:

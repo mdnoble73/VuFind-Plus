@@ -9,9 +9,12 @@
 		<form method="get" action="{$path}/Union/Search" id="searchForm" class="form-inline" onsubmit="VuFind.Searches.processSearchForm();">
 			<div class="row">
 				<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">
-					<input type="hidden" name="basicType" id="basicType" value="">
+					{if $searchIndex == 'Keyword' || $searchIndex == '' || $searchIndex == 'GenealogyKeyword'}
+						<input type="hidden" name="basicType" id="basicType" value="">
+						<input type="hidden" name="genealogyType" id="genealogyType" value="">
+					{/if}
 					<input type="hidden" name="view" id="view" value="{$displayMode}">
-					<input type="hidden" name="genealogyType" id="genealogyType" value="">
+
 					<fieldset>
 						<div class="input-group input-group-sm">
 							<div class="input-group-sm">
@@ -36,19 +39,22 @@
 								<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
 									<span class="caret"></span>
 								</button>
+
 								<ul id="searchType" class="dropdown-menu text-left">
-									{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
-										<li>
-											<a class="catalogType" href="#" onclick="return VuFind.Searches.updateSearchTypes('catalog', '{$searchVal}', '#searchForm');">{translate text="by"} {translate text=$searchDesc}</a>
-										</li>
-									{/foreach}
-									<li class="divider catalogType"></li>
-									{foreach from=$genealogySearchTypes item=searchDesc key=searchVal}
-										<li>
-											<a class="genealogyType" href="#" onclick="return VuFind.Searches.updateSearchTypes('genealogy', '{$searchVal}', '#searchForm');">{translate text="by"} {translate text=$searchDesc}</a>
-										</li>
-									{/foreach}
-									<li class="divider genealogyType"></li>
+									{if $searchIndex == 'Keyword' || $searchIndex == '' || $searchIndex == 'GenealogyKeyword'}
+										{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
+											<li>
+												<a class="catalogType" href="#" onclick="return VuFind.Searches.updateSearchTypes('catalog', '{$searchVal}', '#searchForm');">{translate text="by"} {translate text=$searchDesc}</a>
+											</li>
+										{/foreach}
+										<li class="divider catalogType"></li>
+										{foreach from=$genealogySearchTypes item=searchDesc key=searchVal}
+											<li>
+												<a class="genealogyType" href="#" onclick="return VuFind.Searches.updateSearchTypes('genealogy', '{$searchVal}', '#searchForm');">{translate text="by"} {translate text=$searchDesc}</a>
+											</li>
+										{/foreach}
+										<li class="divider genealogyType"></li>
+									{/if}
 
 									<li class="catalogType">
 										<a id="advancedSearch" title="{translate text='Advanced Search'}" onclick="VuFind.Account.ajaxLightbox('{$path}/Search/AdvancedPopup', false)">
@@ -65,9 +71,26 @@
 								</ul>
 							</div>
 						</div>
+
 					</fieldset>
 				</div>
 			</div>
+			{if $searchIndex != 'Keyword' && $searchIndex != '' && $searchIndex != 'GenealogyKeyword'}
+				<div class="row text-center">
+					<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">
+						<select name="basicType" class="searchTypeHome form-control catalogType" id="basicSearchTypes" title="Search by Keyword to find subjects, titles, authors, etc. Search by Title or Author for more precise results." {if $searchSource == 'genealogy'}style='display:none'{/if}>
+							{foreach from=$basicSearchTypes item=searchDesc key=searchVal}
+								<option value="{$searchVal}"{if $basicSearchIndex == $searchVal || $searchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
+							{/foreach}
+						</select>
+						<select name="genealogyType" class="searchTypeHome form-control genealogyType" id="genealogySearchTypes" {if $searchSource != 'genealogy'}style='display:none'{/if}>
+							{foreach from=$genealogySearchTypes item=searchDesc key=searchVal}
+								<option value="{$searchVal}"{if $genealogySearchIndex == $searchVal} selected="selected"{/if}>{translate text=$searchDesc}</option>
+							{/foreach}
+						</select>
+					</div>
+				</div>
+			{/if}
 			<div class="row text-center">
 				<div class="col-sm-10 col-md-10 col-sm-push-1 col-md-push-1">
 					{if $searchSources|@count == 1}

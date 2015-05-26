@@ -489,7 +489,8 @@ if ($action == "AJAX" || $action == "JSON"){
 		if (!is_null($savedSearch)){
 			$interface->assign('lookfor',             $savedSearch->displayQuery());
 			$interface->assign('searchType',          $savedSearch->getSearchType());
-			$interface->assign('searchIndex',         $savedSearch->getSearchIndex());
+			$searchIndex = $savedSearch->getSearchIndex();
+			$interface->assign('searchIndex',         $searchIndex);
 			$interface->assign('filterList', $savedSearch->getFilterList());
 			$interface->assign('savedSearch', $savedSearch->isSavedSearch());
 		}

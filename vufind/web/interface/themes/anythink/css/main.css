@@ -7507,8 +7507,15 @@ hr.menu {
   color: #998e85;
   font-size: initial;
 }
+.searchTypeHome {
+  margin: 5px 0px 0px;
+  color: white;
+  background-color: #e1dedb;
+  border: none;
+  width: 90% !important;
+}
 #searchSource {
-  padding: 5px 0;
+  margin: 5px 0px 0px;
   color: white;
   background-color: #e1dedb;
   border: none;
