@@ -1023,7 +1023,7 @@ class Solr implements IndexEngine {
 				$that = $this;
 				if (isset($params['lookfor']) && !$forDisplay){
 					$lookfor = preg_replace_callback(
-						'/(\\w+):([\\w\\d\\s]+?)(\\sAND|OR|AND NOT|OR NOT|\\)|$)/',
+						'/(\\w+):([\\w\\d\\s"]+?)\\s?(AND|OR|AND NOT|OR NOT|\\)|$)/',
 						function ($matches) use($that){
 							$field = $matches[1];
 							$lookfor = $matches[2];
@@ -2164,7 +2164,7 @@ class Solr implements IndexEngine {
 				}
 			} else {
 				//If we are tokenizing, remove any punctuation
-				$tmpWord = preg_replace('/[^\-\w.\'aàáâãåäæeèéêëiìíîïoòóôõöøuùúûü]/', '', $words[$i]);
+				$tmpWord = preg_replace('/[^\s\-\w.\'aàáâãåäæeèéêëiìíîïoòóôõöøuùúûü]/', '', $words[$i]);
 				if (strlen($tmpWord) > 0){
 					$newWords[] = $tmpWord;
 				}
