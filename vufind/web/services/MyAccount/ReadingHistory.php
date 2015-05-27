@@ -140,12 +140,14 @@ class ReadingHistory extends MyAccount
 		//Loop Through The Report Data
 		foreach ($readingHistory as $row) {
 
+			$format = is_array($row['format']) ? implode(',', $row['format']) : $row['format'];
+			$lastCheckout = isset($row['lastCheckout']) ? date('Y-M-d', $row['lastCheckout']) : '';
 			$objPHPExcel->setActiveSheetIndex(0)
 			->setCellValue('A'.$a, $row['title'])
 			->setCellValue('B'.$a, $row['author'])
-			->setCellValue('C'.$a, $row['format'])
-			->setCellValue('D'.$a, $row['checkout'])
-			->setCellValue('E'.$a, $row['lastCheckout']);
+			->setCellValue('C'.$a, $format)
+			->setCellValue('D'.$a, date('Y-M-d', $row['checkout']))
+			->setCellValue('E'.$a, $lastCheckout);
 
 			$a++;
 		}

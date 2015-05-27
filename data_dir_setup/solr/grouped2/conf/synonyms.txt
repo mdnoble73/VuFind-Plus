@@ -56,3 +56,8 @@ WY,Wyoming
 Kesha,Ke ha
 Pink,Pnk,P!nk
 journal,magazine
+dr,doctor
+mr,mister
+mt,mountain
+st,saint,state
+intro,introduction

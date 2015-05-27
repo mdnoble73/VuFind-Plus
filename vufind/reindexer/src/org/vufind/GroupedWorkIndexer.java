@@ -17,6 +17,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
+import java.util.concurrent.ThreadFactory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -134,20 +135,27 @@ public class GroupedWorkIndexer {
 			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 5000, 10);
 			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped2");
 		}else{
+			//Check to make sure that at least a couple of minutes have elapsed since the last index
+			//Periodically in the middle of the night we get indexes every minute or multiple times a minute
+			//which is annoying especially since it generally means nothing is changing.
+			long elapsedTime = indexStartTime - lastReindexTime;
+			long minIndexingInterval = 4 * 60;
+			if (elapsedTime < minIndexingInterval) {
+				try {
+					logger.debug("Pausing between indexes, last index ran " + elapsedTime / 60 + " minutes ago");
+					logger.debug("Pausing for " + (minIndexingInterval - elapsedTime) + " seconds");
+					Thread.sleep((minIndexingInterval - elapsedTime) * 1000);
+				} catch (InterruptedException e) {
+					logger.warn("Pause was interrupted while pausing between indexes");
+				}
+
+			}
+
 			if (partialReindexRunning){
-				//Make sure that it hasn't been a long time since the last index ran (1 hour).
-				//MDN 10/9 don't do this because we do get long periods of inactivity in the middle of the night
-				/*if (new Date().getTime() - (lastReindexTime * 1000) > (6 * 60 * 60 * 1000)){
-					//Oops, a reindex is already running.
-					logger.error("A partial reindex is already running, but it's been an hour or more since the last one started.  Indexing anyway.");
-					GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, but it's been an hour or more since the last one started.  Indexing anyway.");
-				} else{*/
-					//Oops, a reindex is already running.
-					logger.warn("A partial reindex is already running, check to make sure that reindexes don't overlap since that can cause poor performance");
-					GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, check to make sure that reindexes don't overlap since that can cause poor performance");
-					//okToIndex = false;
-					//return;
-				//}
+				//Oops, a reindex is already running.
+				//No longer really care about this since it doesn't happen and there are other ways of finding a stuck process
+				//logger.warn("A partial reindex is already running, check to make sure that reindexes don't overlap since that can cause poor performance");
+				GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, check to make sure that reindexes don't overlap since that can cause poor performance");
 			}else{
 				updatePartialReindexRunning(true);
 			}

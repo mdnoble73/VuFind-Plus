@@ -865,6 +865,36 @@ class IndexRecord extends RecordInterface
 		return $isbn13;
 	}
 
+	public function getCleanISBNs(){
+		require_once ROOT_DIR . '/sys/ISBN.php';
+
+		$cleanIsbns = array();
+		// Get all the ISBNs and initialize the return value:
+		$isbns = $this->getISBNs();
+
+		// Loop through the ISBNs:
+		foreach($isbns as $isbn) {
+			// Strip off any unwanted notes:
+			if ($pos = strpos($isbn, ' ')) {
+				$isbn = substr($isbn, 0, $pos);
+			}
+
+			// If we find an ISBN-10, return it immediately; otherwise, if we find
+			// an ISBN-13, save it if it is the first one encountered.
+			$isbnObj = new ISBN($isbn);
+			if ($isbn10 = $isbnObj->get10()) {
+				if (!array_key_exists($isbn10, $cleanIsbns)){
+					$cleanIsbns[$isbn10] = $isbn10;
+				}
+			}
+			$isbn13 = $isbnObj->get13();
+			if (!array_key_exists($isbn10, $cleanIsbns)){
+				$cleanIsbns[$isbn13] = $isbn13;
+			}
+		}
+		return $cleanIsbns;
+	}
+
 	/**
 	 * Get just the base portion of the first listed ISSN (or false if no ISSNs).
 	 *
@@ -894,6 +924,24 @@ class IndexRecord extends RecordInterface
 			$upc = substr($upc, 0, $pos);
 		}
 		return $upc;
+	}
+
+	public function getCleanUPCs(){
+		$cleanUPCs = array();
+		$upcs = $this->getUPCs();
+		if (empty($upcs)) {
+			return $cleanUPCs;
+		}
+		foreach ($cleanUPCs as $upc){
+			if ($pos = strpos($upc, ' ')) {
+				$upc = substr($upc, 0, $pos);
+			}
+			if (!array_key_exists($upc, $cleanUPCs)){
+				$cleanUPCs[$upc] = $upc;
+			}
+		}
+
+		return $cleanUPCs;
 	}
 
 	/**

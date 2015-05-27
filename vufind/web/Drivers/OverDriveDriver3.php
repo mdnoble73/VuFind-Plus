@@ -48,6 +48,7 @@ class OverDriveDriver3 {
 		'video-wmv-mobile' => 'OverDrive Video (mobile)',
 		'periodicals-nook' => 'NOOK Periodicals',
 		'audiobook-overdrive' => 'OverDrive Listen',
+		'video-streaming' => 'OverDrive Video',
 	);
 
 	/**
@@ -461,6 +462,8 @@ class OverDriveDriver3 {
 				$bookshelfItem['checkoutSource'] = 'OverDrive';
 				$bookshelfItem['overDriveId'] = $curTitle->reserveId;
 				$bookshelfItem['expiresOn'] = $curTitle->expires;
+				$expirationDate = new DateTime($curTitle->expires);
+				$bookshelfItem['dueDate'] = $expirationDate->format('M j, Y g:ha');
 				$bookshelfItem['overdriveRead'] = false;
 				if (isset($curTitle->isFormatLockedIn) && $curTitle->isFormatLockedIn == 1){
 					$bookshelfItem['formatSelected'] = true;

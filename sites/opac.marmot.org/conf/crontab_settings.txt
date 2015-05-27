@@ -70,5 +70,6 @@
 ###################################
 # Library supplied covers
 */10 * * * * /root/cron/copyCovers.sh
+11-51/10 * * * * /root/cron/copyAspencatCovers.sh
 
 #final end of line character needed for crontab to be read

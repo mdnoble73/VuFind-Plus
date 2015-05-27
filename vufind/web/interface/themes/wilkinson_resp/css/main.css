@@ -7497,8 +7497,15 @@ hr.menu {
   text-shadow: none;
   border: 0;
 }
+.searchTypeHome {
+  margin: 5px 0px 0px;
+  color: white;
+  background-color: #c41f1f;
+  border: none;
+  width: 90% !important;
+}
 #searchSource {
-  padding: 5px 0;
+  margin: 5px 0px 0px;
   color: white;
   background-color: #c41f1f;
   border: none;

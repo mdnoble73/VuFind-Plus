@@ -34,7 +34,7 @@
 
 				<div class="row">
 					<div class="result-label col-md-3">{translate text='Expires'}</div>
-					<div class="col-md-9 result-value">{$record.expiresOn|replace:' ':'&nbsp;'}</div>
+					<div class="col-md-9 result-value">{$record.dueDate|replace:' ':'&nbsp;'}</div>
 				</div>
 
 				<div class="row">

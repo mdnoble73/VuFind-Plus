@@ -136,92 +136,9 @@ if ($action == 'SimilarTitles'){
 $interface->assign('module', $module);
 $interface->assign('action', $action);
 
-//Determine the Search Source, need to do this always.
-global $searchSource;
-$searchSource = 'global';
-if (isset($_GET['searchSource'])){
-	$searchSource = $_GET['searchSource'];
-	$_REQUEST['searchSource'] = $searchSource; //Update request since other check for it here
-	$_SESSION['searchSource'] = $searchSource; //Update the session so we can remember what the user was doing last.
-}else{
-	if ( isset($_SESSION['searchSource'])){ //Didn't get a source, use what the user was doing last
-		$searchSource = $_SESSION['searchSource'];
-		$_REQUEST['searchSource'] = $searchSource;
-	}else{
-		//Use a default search source
-		if ($module == 'Person'){
-			$searchSource = 'genealogy';
-		}else{
-			$searchSource = 'local';
-		}
-		$_REQUEST['searchSource'] = $searchSource;
-	}
-}
-
-$searchLibrary = Library::getSearchLibrary(null);
-$searchLocation = Location::getSearchLocation(null);
-
-//Based on the search source, determine the search scope and set a global variable
 global $solrScope;
-$solrScope = false;
-$scopeType = '';
-if ($searchSource == 'local' || $searchSource == 'econtent'){
-	$locationIsScoped = $searchLocation != null &&
-			($searchLocation->restrictSearchByLocation ||
-					$searchLocation->econtentLocationsToInclude != 'all' ||
-					$searchLocation->useScope ||
-					!$searchLocation->enableOverdriveCollection ||
-					strlen($searchLocation->extraLocationCodesToInclude) > 0);
-
-	$libraryIsScoped = $searchLibrary != null &&
-			($searchLibrary->restrictSearchByLibrary ||
-					$searchLibrary->econtentLocationsToInclude != 'all' ||
-					(strlen($searchLibrary->pTypes) > 0 && $searchLibrary->pTypes != -1) ||
-					$searchLibrary->useScope ||
-					!$searchLibrary->enableOverdriveCollection);
-
-	if ($locationIsScoped &&
-			(
-					(
-							$searchLocation->econtentLocationsToInclude != $searchLibrary->econtentLocationsToInclude
-							&& strlen($searchLocation->econtentLocationsToInclude) > 0
-							&& $searchLocation->econtentLocationsToInclude != 'all'
-					) || (
-							$searchLocation->useScope && $searchLibrary->scope != $searchLocation->scope
-					)
-			)){
-		$solrScope = $searchLocation->code;
-		$scopeType = 'Location';
-	}else{
-		$solrScope = $searchLibrary->subdomain;
-		$scopeType = 'Library';
-	}
-}elseif($searchSource != 'marmot' && $searchSource != 'global'){
-	$solrScope = $searchSource;
-	$scopeType = 'Search Source';
-}
-$solrScope = trim($solrScope);
-if (strlen($solrScope) == 0){
-	$solrScope = false;
-	$scopeType = 'Unscoped';
-}
+global $scopeType;
 $interface->assign('solrScope', "$solrScope - $scopeType");
-
-$searchLibrary = Library::getSearchLibrary($searchSource);
-$searchLocation = Location::getSearchLocation($searchSource);
-
-global $millenniumScope;
-if ($library){
-	if ($searchLibrary){
-		$millenniumScope = $searchLibrary->scope;
-	}elseif (isset($searchLocation)){
-		MillenniumDriver::$scopingLocationCode = $searchLocation->code;
-	}else{
-		$millenniumScope = isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
-	}
-}else{
-	$millenniumScope = isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
-}
 $interface->assign('millenniumScope', $millenniumScope);
 
 //Set that the interface is a single column by default
@@ -489,7 +406,8 @@ if ($action == "AJAX" || $action == "JSON"){
 		if (!is_null($savedSearch)){
 			$interface->assign('lookfor',             $savedSearch->displayQuery());
 			$interface->assign('searchType',          $savedSearch->getSearchType());
-			$interface->assign('searchIndex',         $savedSearch->getSearchIndex());
+			$searchIndex = $savedSearch->getSearchIndex();
+			$interface->assign('searchIndex',         $searchIndex);
 			$interface->assign('filterList', $savedSearch->getFilterList());
 			$interface->assign('savedSearch', $savedSearch->isSavedSearch());
 		}
