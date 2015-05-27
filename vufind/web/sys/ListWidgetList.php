@@ -71,13 +71,13 @@ class ListWidgetList extends DB_DataObject
         'sortable' => true,
         'storeDb' => true
       ),
-      'weight' => array(
+      /*'weight' => array(
       	'property' => 'weight',
-      	'type' => 'numeric',
+      	'type' => 'integer',
       	'label' => 'Weight',
       	'weight' => 'Defines how lists are sorted within the widget.  Lower weights are displayed to the left of the screen.',
       	'required'=> true
-      ),
+      ),*/
 
 		);
 		foreach ($structure as $fieldName => $field){
@@ -109,6 +109,15 @@ class ListWidgetList extends DB_DataObject
 		require_once ROOT_DIR . '/services/API/ListAPI.php';
 		$listAPI = new ListAPI();
 		$cacheInfo = $listAPI->getCacheInfoForListId($this->source);
+		$link = $cacheInfo['fullListLink'];
+		//Get the widget for the list
+		$widget = new ListWidget();
+		$widget->id = $this->listWidgetId;
+		if ($widget->find(true)){
+			if ($widget->viewMoreLinkMode == 'covers'){
+				$cacheInfo['fullListLink'] .= '&view=covers';
+			}
+		}
 		return $cacheInfo['fullListLink'];
 	}
 

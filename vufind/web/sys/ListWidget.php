@@ -186,7 +186,7 @@ class ListWidget extends DB_DataObject
 				'label' => 'Show the View More link',
 				'storeDb' => true,
 				'hideInLists' => true,
-				'default' => true,
+				'default' => false,
 			),
 			'viewMoreLinkMode' => array(
 				'property'=>'viewMoreLinkMode',

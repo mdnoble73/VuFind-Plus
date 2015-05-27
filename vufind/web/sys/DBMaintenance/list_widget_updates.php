@@ -103,7 +103,7 @@ function getListWidgetUpdates(){
 			'description' => 'Additional options for ',
 			'sql' => array(
 				"ALTER TABLE `list_widgets` ADD COLUMN `showViewMoreLink` TINYINT NOT NULL DEFAULT '0'",
-				"ALTER TABLE `list_widgets` ADD COLUMN `viewMoreLinkMode` ENUM('cover', 'list') NOT NULL DEFAULT 'list'",
+				"ALTER TABLE `list_widgets` ADD COLUMN `viewMoreLinkMode` ENUM('covers', 'list') NOT NULL DEFAULT 'list'",
 			),
 		),
 	);

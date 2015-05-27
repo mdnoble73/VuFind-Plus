@@ -84,7 +84,7 @@ class ListAPI extends Action {
 		$results = array();
 		if ($list->N > 0){
 			while ($list->fetch()){
-				$query = "SELECT count(resource_id) as numTitles FROM user_resource where list_id = " . $list->id;
+				$query = "SELECT count(groupedWorkPermanentId) as numTitles FROM user_list_entry where listId = " . $list->id;
 				$numTitleResults = mysql_query($query);
 				$numTitles = mysql_fetch_assoc($numTitleResults);
 

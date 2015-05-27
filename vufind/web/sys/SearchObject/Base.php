@@ -854,6 +854,10 @@ abstract class SearchObject_Base
 			$params[] = "searchSource=" . urlencode(strip_tags($_REQUEST['searchSource']));
 		}
 
+		if (isset($_REQUEST['view'])){
+			$params[] = "view=" . urlencode(strip_tags($_REQUEST['view']));
+		}
+
 		// Join all parameters with an escaped ampersand,
 		//   add to the base url and return
 		return $url . join("&", $params);
