@@ -7677,6 +7677,10 @@ hr.menu {
 #descriptionPanelBody > .panel-body {
   white-space: pre-line;
 }
+.dropdown-menu-right {
+  right: 0;
+  left: auto;
+}
 #home-page-browse-header {
   background-color: #d7dce3;
   padding-bottom: 15px;
@@ -7800,7 +7804,7 @@ hr.menu {
 }
 #selected-browse-label {
   background-color: white;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #bbd4e3 45%, #bbd4e3 55%, #ffffff 56%);
+  background: linear-gradient(to bottom, white, white 44%, #bbd4e3 45%, #bbd4e3 55%, white 56%);
   margin-bottom: 5px;
 }
 #selected-browse-label > div.btn-group {
@@ -8524,7 +8528,7 @@ a.browse-thumbnail.active {
   color: #0d8ec6;
 }
 .result-head #selected-browse-label {
-  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #d5d6da 45%, #d5d6da 55%, #ffffff 56%);
+  background: linear-gradient(to bottom, white, white 44%, #d5d6da 45%, #d5d6da 55%, white 56%);
 }
 #replacement-search-info {
   font-size: 16px;

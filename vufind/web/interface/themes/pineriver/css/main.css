@@ -7335,7 +7335,7 @@ hr.menu {
   color: #cccccc;
 }
 #system-message-header {
-  background-color: #ffffff;
+  background-color: white;
   color: black;
   text-align: center;
   padding: 3px;
@@ -7343,8 +7343,8 @@ hr.menu {
 #header-container {
   padding-top: 0px;
   height: 141px;
-  background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 85%, #e0e0e0);
+  background-color: white;
+  background: linear-gradient(to bottom, white, white 85%, #e0e0e0);
   border-bottom: 8px solid #7ab92c;
   margin-bottom: 0px;
   min-height: 110px;
@@ -7667,12 +7667,16 @@ hr.menu {
 #descriptionPanelBody > .panel-body {
   white-space: pre-line;
 }
+.dropdown-menu-right {
+  right: 0;
+  left: auto;
+}
 #home-page-browse-header {
-  background-color: #ffffff;
+  background-color: white;
   padding-bottom: 15px;
 }
 #home-page-browse-content {
-  background-color: #ffffff;
+  background-color: white;
 }
 #browse-label {
   height: 5px;
@@ -7683,7 +7687,7 @@ hr.menu {
   z-index: -1;
 }
 .browse-label-text {
-  background-color: #ffffff;
+  background-color: white;
   font-size: 22px;
   color: #6f4400;
   line-height: 5px;
@@ -7790,7 +7794,7 @@ hr.menu {
 }
 #selected-browse-label {
   background-color: white;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, rgba(111, 68, 0, 0.5) 45%, rgba(111, 68, 0, 0.5) 55%, #ffffff 56%);
+  background: linear-gradient(to bottom, white, white 44%, rgba(111, 68, 0, 0.5) 45%, rgba(111, 68, 0, 0.5) 55%, white 56%);
   margin-bottom: 5px;
 }
 #selected-browse-label > div.btn-group {
@@ -8514,7 +8518,7 @@ a.browse-thumbnail.active {
   color: #0d8ec6;
 }
 .result-head #selected-browse-label {
-  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #d5d6da 45%, #d5d6da 55%, #ffffff 56%);
+  background: linear-gradient(to bottom, white, white 44%, #d5d6da 45%, #d5d6da 55%, white 56%);
 }
 #replacement-search-info {
   font-size: 16px;

@@ -7335,7 +7335,7 @@ hr.menu {
   color: #cccccc;
 }
 #system-message-header {
-  background-color: #ffffff;
+  background-color: white;
   color: black;
   text-align: center;
   padding: 3px;
@@ -7343,8 +7343,8 @@ hr.menu {
 #header-container {
   padding-top: 0px;
   height: 90px;
-  background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 85%, #ffffff);
+  background-color: white;
+  background: linear-gradient(to bottom, white, white 85%, white);
   border-bottom: 8px solid #9e1b32;
   margin-bottom: 0px;
   min-height: 110px;
@@ -7361,7 +7361,7 @@ hr.menu {
 .header-button {
   text-align: center;
   height: 82px !important;
-  border-bottom: 4px solid #ffffff;
+  border-bottom: 4px solid white;
 }
 .header-button > a {
   line-height: 82px !important;
@@ -7378,8 +7378,8 @@ hr.menu {
   border-bottom: 4px solid #2a6496;
 }
 .header-primary {
-  border-left: 2px solid #ffffff;
-  border-right: 2px solid #ffffff;
+  border-left: 2px solid white;
+  border-right: 2px solid white;
 }
 #library-name-header {
   font-size: 30px;
@@ -7677,23 +7677,27 @@ hr.menu {
 #descriptionPanelBody > .panel-body {
   white-space: pre-line;
 }
+.dropdown-menu-right {
+  right: 0;
+  left: auto;
+}
 #home-page-browse-header {
-  background-color: #ffffff;
+  background-color: white;
   padding-bottom: 15px;
 }
 #home-page-browse-content {
-  background-color: #ffffff;
+  background-color: white;
 }
 #browse-label {
   height: 5px;
-  background-color: #ffffff;
+  background-color: white;
   margin-top: 15px;
   margin-bottom: 15px;
   margin-right: -15px;
   z-index: -1;
 }
 .browse-label-text {
-  background-color: #ffffff;
+  background-color: white;
   font-size: 22px;
   color: #998e85;
   line-height: 5px;
@@ -7759,40 +7763,40 @@ hr.menu {
   font-size: 33px;
 }
 .browse-category.category0 {
-  background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
+  background-color: white;
+  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
 }
 .browse-category.category1 {
-  background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
+  background-color: white;
+  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
 }
 .browse-category.category2 {
-  background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
+  background-color: white;
+  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
 }
 .browse-category.category3 {
-  background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
+  background-color: white;
+  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
 }
 .browse-category.category4 {
-  background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
+  background-color: white;
+  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
 }
 .browse-category.category5 {
-  background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
+  background-color: white;
+  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
 }
 .browse-category.category6 {
-  background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
+  background-color: white;
+  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
 }
 .browse-category.category7 {
-  background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
+  background-color: white;
+  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
 }
 .browse-category.category8 {
-  background-color: #ffffff;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 82%, #ffffff 83%, #ffffff 84%, #ffffff 88%, #ffffff 89%, #ffffff 90%, #ffffff);
+  background-color: white;
+  background: linear-gradient(to bottom, white, white 82%, white 83%, white 84%, white 88%, white 89%, white 90%, white);
 }
 #home-page-browse-content {
   padding: 15px;
@@ -7800,7 +7804,7 @@ hr.menu {
 }
 #selected-browse-label {
   background-color: white;
-  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #ffffff 45%, #ffffff 55%, #ffffff 56%);
+  background: linear-gradient(to bottom, white, white 44%, white 45%, white 55%, white 56%);
   margin-bottom: 5px;
 }
 #selected-browse-label > div.btn-group {
@@ -8524,7 +8528,7 @@ a.browse-thumbnail.active {
   color: #0d8ec6;
 }
 .result-head #selected-browse-label {
-  background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #d5d6da 45%, #d5d6da 55%, #ffffff 56%);
+  background: linear-gradient(to bottom, white, white 44%, #d5d6da 45%, #d5d6da 55%, white 56%);
 }
 #replacement-search-info {
   font-size: 16px;
@@ -8977,7 +8981,7 @@ div.bottom-border-line {
   border: none;
   background-color: #a1988c;
   background: #a1988c;
-  background: linear-gradient(to bottom, #a1988c 0%, #a1988c 75%, #ffffff 75%, #ffffff 80%, #e6e3e0 80%, #ffffff 100%);
+  background: linear-gradient(to bottom, #a1988c 0%, #a1988c 75%, white 75%, white 80%, #e6e3e0 80%, white 100%);
 }
 .browse-category.selected div {
   color: white;
