@@ -32,7 +32,6 @@
 								{foreach from=$defaultSortList item=sortValue key=sortLabel}
 									<option value="{$sortLabel}"{if $sortLabel == $defaultSort} selected="selected"{/if}>
 										{translate text=$sortValue}
-										{*{$sortValue}*}
 									</option>
 								{/foreach}
 							</select>
@@ -67,9 +66,9 @@
 						<button value="citeList" id="FavCite" class="btn btn-sm btn-default" onclick='return VuFind.Lists.citeListAction("{$favList->id}");'>Generate Citations</button>
 
 						<div class="btn-group" role="group">
-							<button type="button" class="btn btn-sm btn-default dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Sort &nbsp;<span class="caret"></span></button>
+							<button type="button" class="btn btn-sm btn-default btn-info dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Sort &nbsp;<span class="caret"></span></button>
 							<ul class="dropdown-menu dropdown-menu-right" role="menu">
-								{foreach from=$sortList item=sortData key=sortLabel}
+								{foreach from=$sortList item=sortData}
 									<li>
 										<a{if !$sortData.selected} href="{$sortData.sortUrl|escape}"{/if}> {* only add link on un-selected options *}
 											{translate text=$sortData.desc}
@@ -93,15 +92,31 @@
 
 	{if $favList->deleted == 0}
 		{if $resourceList}
-			<div class="resulthead">
-				<div>
+			<div class="row">
+
+				<form class="form-inline col-xs-6 col-sm-4">
+				<div class="form-group" id="recordsPerPage">
+					<label for="pagesize" class="control-label">Records Per Page</label>&nbsp;
+					<select id="pagesize" class="pagesize form-control input-sm" onchange="VuFind.changePageSize()">
+						<option value="20"{if $recordsPerPage == 20} selected="selected"{/if}>20</option>
+						<option value="40"{if $recordsPerPage == 40} selected="selected"{/if}>40</option>
+						<option value="60"{if $recordsPerPage == 60} selected="selected"{/if}>60</option>
+						<option value="80"{if $recordsPerPage == 80} selected="selected"{/if}>80</option>
+						<option value="100"{if $recordsPerPage == 100} selected="selected"{/if}>100</option>
+					</select>
+				</div>
+			</div>
+			</form>
+
+			<div class="resulthead row">
+				<div class="col-sm-12">
 				{if $recordCount}
 					{translate text="Showing"} <b>{$recordStart}</b> - <b>{$recordEnd}</b> {translate text='of'} <b>{$recordCount}</b>
 					{if $debug}
 						&nbsp;There are {$favList->num_titles()} titles that are valid.
 					{/if}
 				{/if}
-				</div>
+			</div>
 			</div>
 
 			{if $allowEdit && $userSort}
@@ -133,7 +148,7 @@
 							},
 							update: function (e, ui){
 								var updates = [],
-												firstItemOnPage = {/literal}{$recordStart}{literal};
+										firstItemOnPage = {/literal}{$recordStart}{literal};
 								$('#UserList>div>div').each(function(currentOrder){
 									var GroupID = this.id.replace('groupedRecord',''),
 													originalOrder = $(this).data('order'),
