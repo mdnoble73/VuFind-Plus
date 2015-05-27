@@ -1858,6 +1858,14 @@ class DBMaintenance extends Admin_Admin {
 					)
 				),
 
+				'user_list_sorting' => array(
+					'title' => 'Store a default sorting setting for a user list',
+					'description' => 'Allows user to set the way in which their list will be sorted by default.',
+					'sql' => array(
+						"ALTER TABLE `user_list` ADD `defaultSort` VARCHAR(20)",
+					)
+				),
+
 				'browse_categories' => array(
 					'title' => 'Browse Categories',
 					'description' => 'Setup Browse Category Table',

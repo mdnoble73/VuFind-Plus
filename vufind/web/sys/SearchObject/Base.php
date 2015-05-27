@@ -918,7 +918,7 @@ abstract class SearchObject_Base
 		$list = array();
 		foreach ($valid as $sort => $desc) {
 			$list[$sort] = array(
-                'sortUrl'  => $this->renderLinkWithSort($sort),
+                'sortUrl' => $this->renderLinkWithSort($sort),
                 'desc' => $desc,
                 'selected' => ($sort == $this->sort)
 			);

@@ -14,7 +14,9 @@
 						<input type="hidden" name="genealogyType" id="genealogyType" value="">
 					{/if}
 					<input type="hidden" name="view" id="view" value="{$displayMode}">
-
+					{if $displayMode}
+					<input type="hidden" name="view" id="view" value="{$displayMode}">
+					{/if}
 					<fieldset>
 						<div class="input-group input-group-sm">
 							<div class="input-group-sm">

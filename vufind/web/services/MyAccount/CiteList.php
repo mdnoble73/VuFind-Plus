@@ -36,9 +36,10 @@ class CiteList extends Action {
 		$interface->assign('favList', $list);
 
 		// Get all titles on the list
-		$favorites = $list->getListEntries();
-
-		$favList = new FavoriteHandler($favorites, null, $list->id, false);
+//		$favorites = $list->getListEntries();
+//		$favList = new FavoriteHandler($favorites, null, $list->id, false);
+		//TODO: test this
+		$favList = new FavoriteHandler($list, null, false);
 		$citationFormat = $_REQUEST['citationFormat'];
 		$citationFormats = CitationBuilder::getCitationFormats();
 		$interface->assign('citationFormat', $citationFormats[$citationFormat]);

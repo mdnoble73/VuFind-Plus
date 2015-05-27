@@ -71,6 +71,8 @@
 			{if $automaticTimeoutLengthLoggedOut}
 			Globals.automaticTimeoutLengthLoggedOut = {$automaticTimeoutLengthLoggedOut};
 			{/if}
+			{* Set Search Result Display Mode on Searchbox *}
+			{if !$onInternalIP}VuFind.Searches.getPreferredDisplayMode();{/if}
 			{literal}
 		});
 		{/literal}

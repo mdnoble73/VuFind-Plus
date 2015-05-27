@@ -8,7 +8,7 @@
 		</div>
 	{/if}
 	{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
-		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds">You have <span style="font-weight: bold">{$profile.numHoldsAvailableTotal}</span> holds ready for pick up.</a></div>
+		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds" class="alert-link">You have {$profile.numHoldsAvailableTotal} holds ready for pick up.</a></div>
 	{/if}
 
 	<h2>{translate text='My Reading History'} {if $historyActive == true}<small><a id='readingListWhatsThis' href="#" onclick="$('#readingListDisclaimer').toggle();return false;">(What's This?)</a></small>{/if}</h2>
@@ -48,11 +48,11 @@
 						<div class="col-sm-6 form-group" id="recordsPerPage">
 							<label for="pagesize" class="control-label">Records Per Page&nbsp;</label>
 							<select id="pagesize" class="pagesize form-control input-sm" onchange="VuFind.changePageSize()">
-								<option value="10" {if $recordsPerPage == 10}selected="selected"{/if}>10</option>
-								<option value="25" {if $recordsPerPage == 25}selected="selected"{/if}>25</option>
-								<option value="50" {if $recordsPerPage == 50}selected="selected"{/if}>50</option>
-								<option value="75" {if $recordsPerPage == 75}selected="selected"{/if}>75</option>
-								<option value="100" {if $recordsPerPage == 100}selected="selected"{/if}>100</option>
+								<option value="10"{if $recordsPerPage == 10} selected="selected"{/if}>10</option>
+								<option value="25"{if $recordsPerPage == 25} selected="selected"{/if}>25</option>
+								<option value="50"{if $recordsPerPage == 50} selected="selected"{/if}>50</option>
+								<option value="75"{if $recordsPerPage == 75} selected="selected"{/if}>75</option>
+								<option value="100"{if $recordsPerPage == 100} selected="selected"{/if}>100</option>
 							</select>
 						</div>
 						<div class="col-sm-6 col-lg-5 form-group" id="sortOptions">

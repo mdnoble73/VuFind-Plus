@@ -7,7 +7,7 @@
 {strip}
 	<div class="col-xs-12">
 		{if $shortPageTitle || $objectName}
-			<h2>{$shortPageTitle} - {$objectName}</h2>
+			<h2>{if $shortPageTitle}{$shortPageTitle} - {/if}{$objectName}</h2>
 		{/if}
 		<p>
 			{if $showReturnToList}

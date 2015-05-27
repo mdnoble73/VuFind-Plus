@@ -63,8 +63,8 @@
 		{elseif $property.type == 'label'}
 			<div id='{$propName}'>{$propValue}</div>
 
-		{elseif $property.type == 'html'}
-			{include file="DataObjectUtil/htmlField.tpl"}
+		{*{elseif $property.type == 'html'}*}
+			{*{include file="DataObjectUtil/htmlField.tpl"}*}
 
 		{elseif $property.type == 'enum'}
 			{include file="DataObjectUtil/enum.tpl"}

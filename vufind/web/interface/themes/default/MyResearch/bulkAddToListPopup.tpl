@@ -2,7 +2,7 @@
 	<div id="addToListComments" class="help-block">
 	Please enter one or more titles or ISBNs to add to your list.  
 	Each title or ISBN should be on it's own line.
-	We will search the catalog for each title and add the first matching title for each list to your list. 
+	We will search the catalog for each title and add the first matching title for each line to your list.
 	</div>
 	<form method="post" name="bulkAddToList" id="bulkAddToList" action="{$path}/MyAccount/MyList/{$listId}" class="form">
 		<div>

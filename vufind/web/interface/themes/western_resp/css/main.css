@@ -7684,6 +7684,10 @@ hr.menu {
 #descriptionPanelBody > .panel-body {
   white-space: pre-line;
 }
+.dropdown-menu-right {
+  right: 0;
+  left: auto;
+}
 #home-page-browse-header {
   background-color: #d7dce3;
   padding-bottom: 15px;

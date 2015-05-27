@@ -7674,6 +7674,10 @@ hr.menu {
 #descriptionPanelBody > .panel-body {
   white-space: pre-line;
 }
+.dropdown-menu-right {
+  right: 0;
+  left: auto;
+}
 #home-page-browse-header {
   background-color: #d7dce3;
   padding-bottom: 15px;
@@ -8820,7 +8824,7 @@ a.browse-thumbnail.active {
   background-color: rgba(31, 31, 31, 0.7);
   margin-top: 20px;
   height: 60px !important;
-  border: 0px;
+  border: 0;
 }
 .header-button > a {
   color: ghostwhite !important;
@@ -8831,6 +8835,6 @@ a.browse-thumbnail.active {
   color: ghostwhite !important;
 }
 .header-button:hover {
-  border-bottom: 0px;
+  border-bottom: 0;
   box-shadow: 2px 2px 5px #DCE0D7;
 }

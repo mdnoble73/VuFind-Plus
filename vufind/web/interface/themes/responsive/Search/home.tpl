@@ -9,7 +9,8 @@
 					<div class="jcarousel" id="browse-category-carousel">
 						<ul>
 							{foreach from=$browseCategories item=browseCategory name="browseCategoryLoop"}
-								<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9} {if $smarty.foreach.browseCategoryLoop.index == 0}selected{/if}" data-category-id="{$browseCategory->textId}" id="browse-category-{$browseCategory->textId}">
+								{*<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9} {if $smarty.foreach.browseCategoryLoop.index == 0}selected{/if}" data-category-id="{$browseCategory->textId}" id="browse-category-{$browseCategory->textId}">*}
+								<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9} {if (!$selectedBrowseCategory && $smarty.foreach.browseCategoryLoop.index == 0) || $selectedBrowseCategory && $selectedBrowseCategory == $browseCategory->textId}selected{/if}" data-category-id="{$browseCategory->textId}" id="browse-category-{$browseCategory->textId}">
 									{*<a*}{* href="#"  causes the page to bounce to the top, and is very jarring. *}{*>*}{* js now implemented through browse.js. These links can be removed once styling referencing it is adjusted. plb 12-22-2014 *}
 									{* links removed 4-23-2015 *}
 										<div >
@@ -70,24 +71,18 @@
 {/strip}
 <script type="text/javascript">
 	$(function(){ldelim}
-		{*VuFind.Browse.curCategory = '$browseResults.textId';*}
+		{if $selectedBrowseCategory}
+			VuFind.Browse.curCategory = '{$selectedBrowseCategory}';
+		{/if}
 		{if !$onInternalIP}
 		if (!Globals.opac && VuFind.hasLocalStorage()){ldelim}
 			var temp = window.localStorage.getItem('browseMode');
 			if (VuFind.Browse.browseModeClasses.hasOwnProperty(temp)) VuFind.Browse.browseMode = temp; {* if stored value is empty or a bad value, fall back on default setting ("null" returned when not set) *}
 			else VuFind.Browse.browseMode = '{$browseMode}';
-
-			// Get Search Display Mode from Browse Storage
-			temp = window.localStorage.getItem('searchResultsDisplayMode');
-			if (VuFind.Searches.displayModeClasses.hasOwnProperty(temp)) {ldelim}
-				VuFind.Searches.displayMode = temp; {* if stored value is empty or a bad value, fall back on default setting ("null" returned when not set) *}
-				$('input[name="view"]','#searchForm').val(VuFind.Searches.displayMode); // set the user's preferred search view mode on the search box.
-				{rdelim}
-			{rdelim}
+		{rdelim}
 		else VuFind.Browse.browseMode = '{$browseMode}';
 		{else}
 		VuFind.Browse.browseMode = '{$browseMode}';
-		Globals.opac = 1; {* set to true to keep opac browsers from storing browse mode *}
 		{/if}
 		$('#'+VuFind.Browse.browseMode).parent('label').addClass('active'); {* show user which one is selected *}
 		VuFind.Browse.toggleBrowseMode();

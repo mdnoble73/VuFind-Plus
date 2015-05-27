@@ -77,6 +77,7 @@ class MyAccount_Holds extends MyAccount{
 		$interface->assign('defaultSortOption', $selectedSortOption);
 
 		$profile = $this->catalog->getMyProfile($user);
+		// TODO: getMyProfile called for second time. First time on index.php
 
 		$libraryHoursMessage = Location::getLibraryHoursMessage($profile['homeLocationId']);
 		$interface->assign('libraryHoursMessage', $libraryHoursMessage);
@@ -102,6 +103,7 @@ class MyAccount_Holds extends MyAccount{
 				if ($user->cat_username) {
 					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
 					$patronResult = $this->catalog->getMyProfile($patron);
+					// TODO: getMyProfile called above already. Is this call necessary?
 					if (!PEAR_Singleton::isError($patronResult)) {
 						$interface->assign('profile', $patronResult);
 					}
