@@ -91,6 +91,26 @@ public class DatabaseCleanup implements IProcessHandler {
 					logger.debug("Warning did not delete any records for user " + duplicateRecordsRS.getLong("userId"));
 				}*/
 			}
+
+			//Now look for additional duplicates where the check in date is the same
+			duplicateRecordsToPreserveStmt = vufindConn.prepareStatement("SELECT COUNT(id) as numRecords, userId, groupedWorkPermanentId, source, sourceId, checkOutDate, MIN(id) as idToPreserve FROM user_reading_history_work where deleted = 0 GROUP BY userId, source, sourceId, checkOutDate having numRecords > 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			deleteDuplicateRecordStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET deleted = 1 WHERE userId = ? AND groupedWorkPermanentId = ? AND source = ? and sourceId = ? and checkOutDate = ? AND id != ?");
+			duplicateRecordsRS = duplicateRecordsToPreserveStmt.executeQuery();
+			while (duplicateRecordsRS.next()){
+				deleteDuplicateRecordStmt.setLong(1, duplicateRecordsRS.getLong("userId"));
+				deleteDuplicateRecordStmt.setString(2, duplicateRecordsRS.getString("groupedWorkPermanentId"));
+				deleteDuplicateRecordStmt.setString(3, duplicateRecordsRS.getString("source"));
+				deleteDuplicateRecordStmt.setString(4, duplicateRecordsRS.getString("sourceId"));
+				deleteDuplicateRecordStmt.setLong(5, duplicateRecordsRS.getLong("checkoutDate"));
+				deleteDuplicateRecordStmt.setLong(6, duplicateRecordsRS.getLong("idToPreserve"));
+				deleteDuplicateRecordStmt.executeUpdate();
+
+				//int numDeletions = deleteDuplicateRecordStmt.executeUpdate();
+				/*if (numDeletions == 0){
+					//This happens if the items have already been marked as deleted
+					logger.debug("Warning did not delete any records for user " + duplicateRecordsRS.getLong("userId"));
+				}*/
+			}
 		} catch (SQLException e) {
 			processLog.incErrors();
 			processLog.addNote("Unable to delete duplicate reading history entries. " + e.toString());

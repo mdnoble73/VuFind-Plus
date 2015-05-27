@@ -24,6 +24,7 @@
 
 	<form id='readingListForm' action ="{$fullPath}" class="form-inline">
 		<div class="row">
+			<input type="hidden" name="page" value="{$page}" />
 			<input name='readingHistoryAction' id='readingHistoryAction' value='' type='hidden' />
 			<div id="readingListActionsTop" class="col-xs-12">
 				<div class="btn-group btn-group-sm">
@@ -179,13 +180,13 @@
 					<div id="readingListActionsBottom" class="btn-group btn-group-sm">
 						{if $historyActive == true}
 							{if $transList}
-								<a class="btn btn-sm btn-default" onclick="return VuFind.Account.ReadingHistory.deletedMarkedAction()" href="#">Delete Marked</a>
-								<a class="btn btn-sm btn-default" onclick="return VuFind.Account.ReadingHistory.deleteAllAction()" href="#">Delete All</a>
+								<a class="btn btn-sm btn-warning" onclick='return VuFind.Account.ReadingHistory.deletedMarkedAction()' href="#">Delete Marked</a>
+								<a class="btn btn-sm btn-danger" onclick='return VuFind.Account.ReadingHistory.deleteAllAction()' href="#">Delete All</a>
 							{/if}
-							{* <button value="exportList" class="RLexportList" onclick='return exportListAction()'>Export Reading History</button> *}
-							<a class="btn btn-sm btn-default" onclick='return VuFind.Account.ReadingHistory.optOutAction()' href="#">Stop Recording My Reading History</a>
+							<a class="btn btn-sm btn-info" onclick="return VuFind.Account.ReadingHistory.exportListAction();">Export To Excel</a>
+							<a class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.optOutAction()" href="#">Stop Recording My Reading History</a>
 						{else}
-							<a class="btn btn-sm btn-default" onclick='return VuFind.Account.ReadingHistory.optInAction()' href="#">Start Recording My Reading History</a>
+							<a class="btn btn-sm btn-primary" onclick='return VuFind.Account.ReadingHistory.optInAction()' href="#">Start Recording My Reading History</a>
 						{/if}
 					</div>
 				</div>
