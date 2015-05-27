@@ -51,38 +51,6 @@ class FavoriteHandler
 
 	protected $solrSortOptions = array('title', 'author'); // user list sorting options handled by Solr engine.
 
-
-
-
-	/**
-	 * Constructor.
-	 *
-	 * @access  public
-	 * @param   UserListEntry[]   $favorites  Array of grouped work ids.
-	 * @param   User  $user       User object owning tag/note metadata.
-	 * @param   int     $listId     ID of list containing desired tags/notes (or
-	 *                              null to show tags/notes from all user's lists).
-	 * @param   bool    $allowEdit  Should we display edit controls?
-	 */
-//	public function __construct($favorites, $user, $listId = null, $allowEdit = true, $defaultSort='title')
-//	{
-//		$this->favorites = $favorites;
-//		$this->user = $user;
-//		$this->listId = $listId;
-//		$this->allowEdit = $allowEdit;
-//		$this->defaultSort;
-//
-//		// Process the IDs found in the favorites (sort by source):
-//		foreach ($favorites as $favorite){
-//			if (is_object($favorite)){
-//				$this->ids[] = $favorite->groupedWorkPermanentId;
-//			}else{
-//				$this->ids[] = $favorite;
-//			}
-//		}
-//	}
-
-
 	/**
 	 * Constructor.
 	 *
@@ -93,7 +61,6 @@ class FavoriteHandler
 	 *                                  null to show tags/notes from all user's lists).
 	 * @param   bool       $allowEdit   Should we display edit controls?
 	 */
-	//TODO: update references to the constructor
 	public function __construct($list, $user, $allowEdit = true)
 	{
 		$this->list = $list;
@@ -215,6 +182,7 @@ class FavoriteHandler
 		$interface->assign('recordCount', $pageInfo['resultTotal']);
 		$interface->assign('recordStart', $pageInfo['startRecord']);
 		$interface->assign('recordEnd',   $pageInfo['endRecord']);
+		$interface->assign('recordsPerPage', $pageInfo['perPage']);
 
 		$link = $_SERVER['REQUEST_URI'];
 		if (preg_match('/[&?]page=/', $link)){
