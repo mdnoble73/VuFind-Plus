@@ -335,11 +335,11 @@ class CatalogConnection
 				}else if ($sortOption == "returned"){
 					$readingHistoryDB->orderBy('checkInDate DESC, title ASC');
 				}else if ($sortOption == "title"){
-					$readingHistoryDB->orderBy('title ASC');
+					$readingHistoryDB->orderBy('title ASC, checkOutDate DESC');
 				}else if ($sortOption == "author"){
-					$readingHistoryDB->orderBy('author ASC, title ASC');
+					$readingHistoryDB->orderBy('author ASC, title ASC, checkOutDate DESC');
 				}else if ($sortOption == "format"){
-					$readingHistoryDB->orderBy('format ASC, title ASC');
+					$readingHistoryDB->orderBy('format ASC, title ASC, checkOutDate DESC');
 				}
 				if ($recordsPerPage != -1){
 					$readingHistoryDB->limit(($page - 1) * $recordsPerPage, $recordsPerPage);

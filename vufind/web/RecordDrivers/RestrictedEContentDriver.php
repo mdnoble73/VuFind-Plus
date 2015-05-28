@@ -100,7 +100,11 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 		}else{
 			$sharing = 'library';
 			if (count($eContentFieldData) >= 3){
-				$sharing = trim(strtolower($eContentFieldData[2]));
+				if (isset($eContentFieldData['item'])){
+					$sharing = trim(strtolower($eContentFieldData['item'][2]));
+				}else{
+					$sharing = trim(strtolower($eContentFieldData[2]));
+				}
 			}
 			return $sharing;
 		}

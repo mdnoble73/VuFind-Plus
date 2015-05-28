@@ -1828,6 +1828,7 @@ class MarcRecord extends IndexRecord
 				'isLocalItem' => $item['isLocalItem'],
 				'isLibraryItem' => $item['isLibraryItem'],
 				'displayByDefault' => $displayByDefault,
+				'onOrderCopies' => isset($item['onOrderCopies']) ? $item['onOrderCopies'] : 0,
 			);
 			if (isset($itemSummary[$key])){
 				$itemSummary[$key]['totalCopies']++;
@@ -1835,6 +1836,7 @@ class MarcRecord extends IndexRecord
 				if ($itemInfo['displayByDefault']){
 					$itemSummary[$key]['displayByDefault'] = true;
 				}
+				$itemSummary[$key]['onOrderCopies']+=$itemInfo['onOrderCopies'];
 			}else{
 				$itemSummary[$key] = $itemInfo;
 			}
@@ -1964,6 +1966,8 @@ class MarcRecord extends IndexRecord
 							$isOrderItem = true;
 							$onOrderCopies = $itemData['item'][7];
 							$available = false;
+							$shelfLocation = mapValue('shelf_location',$itemData['item'][1]);
+
 						}else{
 							$status = mapValue('item_status', $itemData['item'][6]);
 							$groupedStatus = mapValue('item_grouped_status', $itemData['item'][6]);
