@@ -1836,7 +1836,7 @@ class MarcRecord extends IndexRecord
 				if ($itemInfo['displayByDefault']){
 					$itemSummary[$key]['displayByDefault'] = true;
 				}
-				$itemSummary[$key]['onOrderItems']+=$itemInfo['onOrderItems'];
+				$itemSummary[$key]['onOrderCopies']+=$itemInfo['onOrderCopies'];
 			}else{
 				$itemSummary[$key] = $itemInfo;
 			}
