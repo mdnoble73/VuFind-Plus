@@ -167,7 +167,7 @@
 														updates.forEach(function(e){
 															$('#groupedRecord'+ e.id).data('order', e.newOrder)
 																			.find('span.result-index').text(e.newOrder+')');
-															$('#weight_'+ e.id).val(e.newOrder);
+//															$('#weight_'+ e.id).val(e.newOrder);
 														})
 													}
 												})

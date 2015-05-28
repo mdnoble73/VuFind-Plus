@@ -133,8 +133,10 @@ class FavoriteHandler
 		$SolrSortList = $searchObject->getSortList(); // get all the search sort options (retrieve after setting solr sort option)
 		$sortOptions = $defaultSortOptions = array();
 		foreach ($this->solrSortOptions as $option) { // extract just the ones we want
-			$sortOptions[$option] = $SolrSortList[$option];
-			$defaultSortOptions[$option] = $SolrSortList[$option]['desc'];
+			if (isset ($SolrSortList[$option])) {
+				$sortOptions[$option]        = $SolrSortList[$option];
+				$defaultSortOptions[$option] = $SolrSortList[$option]['desc'];
+			}
 		}
 		foreach ($this->userListSortOptions as $option => $value_ignored) { // Non-Solr options
 			$sortOptions[$option] = array(
