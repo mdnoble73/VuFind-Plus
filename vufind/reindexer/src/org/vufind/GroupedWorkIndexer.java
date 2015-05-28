@@ -881,7 +881,9 @@ public class GroupedWorkIndexer {
 				}else{
 					String concatenatedValue = mapName + ":" + value;
 					if (!unableToTranslateWarnings.contains(concatenatedValue)){
-						logger.warn("Could not translate '" + concatenatedValue + "'");
+						if (fullReindex) {
+							logger.warn("Could not translate '" + concatenatedValue + "'");
+						}
 						unableToTranslateWarnings.add(concatenatedValue);
 					}
 					translatedValue = value;
