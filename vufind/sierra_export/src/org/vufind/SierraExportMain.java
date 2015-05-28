@@ -643,6 +643,8 @@ public class SierraExportMain{
 					}
 				});
 			}
+			conn.setReadTimeout(30000);
+			conn.setConnectTimeout(30000);
 			conn.setRequestMethod("POST");
 			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 			String clientKey = cleanIniValue(configIni.get("Catalog", "clientKey"));
@@ -711,6 +713,8 @@ public class SierraExportMain{
 				}
 				conn.setRequestMethod("GET");
 				conn.setRequestProperty("Authorization", sierraAPITokenType + " " + sierraAPIToken);
+				conn.setReadTimeout(30000);
+				conn.setConnectTimeout(30000);
 
 				StringBuilder response = new StringBuilder();
 				if (conn.getResponseCode() == 200) {
