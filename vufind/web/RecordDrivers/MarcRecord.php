@@ -1828,6 +1828,7 @@ class MarcRecord extends IndexRecord
 				'isLocalItem' => $item['isLocalItem'],
 				'isLibraryItem' => $item['isLibraryItem'],
 				'displayByDefault' => $displayByDefault,
+				'onOrderCopies' => isset($item['onOrderCopies']) ? $item['onOrderCopies'] : 0,
 			);
 			if (isset($itemSummary[$key])){
 				$itemSummary[$key]['totalCopies']++;
@@ -1835,6 +1836,7 @@ class MarcRecord extends IndexRecord
 				if ($itemInfo['displayByDefault']){
 					$itemSummary[$key]['displayByDefault'] = true;
 				}
+				$itemSummary[$key]['onOrderItems']+=$itemInfo['onOrderItems'];
 			}else{
 				$itemSummary[$key] = $itemInfo;
 			}
