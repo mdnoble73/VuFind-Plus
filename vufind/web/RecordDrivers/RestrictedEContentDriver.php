@@ -105,7 +105,6 @@ class RestrictedEContentDriver extends BaseEContentDriver{
 				}else{
 					$sharing = trim(strtolower($eContentFieldData[2]));
 				}
-
 			}
 			return $sharing;
 		}

@@ -1964,6 +1964,8 @@ class MarcRecord extends IndexRecord
 							$isOrderItem = true;
 							$onOrderCopies = $itemData['item'][7];
 							$available = false;
+							$shelfLocation = mapValue('shelf_location',$itemData['item'][1]);
+
 						}else{
 							$status = mapValue('item_status', $itemData['item'][6]);
 							$groupedStatus = mapValue('item_grouped_status', $itemData['item'][6]);
