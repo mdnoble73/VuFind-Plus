@@ -43,6 +43,9 @@ cd /usr/local/vufind-plus/sites/${PIKASERVER}; ./${PIKASERVER}.sh restart
 cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
 #Note, no need to extract from OverDrive since it happens continuously
+cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
+nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
+
 #Note, no need to extract from Lexile for this server since it is the master
 
 #Full Regroup
