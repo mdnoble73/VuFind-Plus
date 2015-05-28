@@ -69,6 +69,49 @@ public class DatabaseCleanup implements IProcessHandler {
 			logger.error("Error deleting expired searches", e);
 			processLog.saveToDatabase(vufindConn, logger);
 		}
+
+		//Remove spammy searches
+		try {
+			PreparedStatement removeSearchStmt = vufindConn.prepareStatement("DELETE from search_stats_new where phrase like '%http:%' or phrase like '%https:%' or phrase like '%mailto:%'");
+
+			int rowsRemoved = removeSearchStmt.executeUpdate();
+
+			processLog.addNote("Removed " + rowsRemoved + " spammy searches");
+			processLog.incUpdated();
+
+			processLog.saveToDatabase(vufindConn, logger);
+
+			PreparedStatement removeSearchStmt2 = vufindConn.prepareStatement("DELETE from analytics_search where lookfor like '%http:%' or lookfor like '%https:%' or lookfor like '%mailto:%' or length(lookfor) > 256");
+
+			int rowsRemoved2 = removeSearchStmt2.executeUpdate();
+
+			processLog.addNote("Removed " + rowsRemoved2 + " spammy searches");
+			processLog.incUpdated();
+
+			processLog.saveToDatabase(vufindConn, logger);
+		} catch (SQLException e) {
+			processLog.incErrors();
+			processLog.addNote("Unable to delete spammy searches. " + e.toString());
+			logger.error("Error deleting spammy searches", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
+
+		//Remove long searches
+		try {
+			PreparedStatement removeSearchStmt = vufindConn.prepareStatement("DELETE from search_stats_new where length(phrase) > 256");
+
+			int rowsRemoved = removeSearchStmt.executeUpdate();
+
+			processLog.addNote("Removed " + rowsRemoved + " long searches");
+			processLog.incUpdated();
+
+			processLog.saveToDatabase(vufindConn, logger);
+		} catch (SQLException e) {
+			processLog.incErrors();
+			processLog.addNote("Unable to delete long searches. " + e.toString());
+			logger.error("Error deleting long searches", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
 		
 		//Remove reading history entries that are duplicate based on being renewed
 		//Get a list of duplicate titles

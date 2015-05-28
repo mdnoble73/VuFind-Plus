@@ -80,6 +80,15 @@ class SearchStatNew extends DB_DataObject
 			return;
 		}
 
+		//Don't save searches that look like spam
+		if (preg_match('/http:|mailto:|https:/i', $phrase)){
+			return;
+		}
+
+		if (strlen($phrase) >= 256){
+			return;
+		}
+
 		$phrase = str_replace("\t", '', $phrase);
 		$searchStat = new SearchStatNew();
 		$searchStat->phrase = trim(strtolower($phrase));
