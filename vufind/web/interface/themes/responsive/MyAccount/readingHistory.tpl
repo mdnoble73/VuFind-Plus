@@ -65,7 +65,7 @@
 							</select>
 						</div>
 						<div class="col-sm-12 col-lg-2 form-group" id="coverOptions">
-							<label for="hideCovers">Hide Covers <input id="hideCovers" type="checkbox" onclick="$('.imageCell').toggle();" /></label>
+							<label for="hideCovers">Hide Covers <input id="hideCovers" type="checkbox" onclick="$('.listResultImage').toggle();" /></label>
 						</div>
 					</div>
 				</div>
