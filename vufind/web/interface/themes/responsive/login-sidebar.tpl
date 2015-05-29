@@ -10,7 +10,7 @@
 		</div>
 		<div class="loginOptions" {if $user} style="display: none;"{/if}>
 			{if $showLoginButton == 1}
-				<a href="{$path}/MyAccount/Home" class='loginLink' title='Login To My Account' onclick="return VuFind.Account.followLinkIfLoggedIn(this);">{translate text="LOGIN TO MY ACCOUNT"}</a>
+				<a href="{$path}/MyAccount/Home" class='loginLink' title='Login To My Account' onclick="return VuFind.Account.followLinkIfLoggedIn(this);" data-login="true">{translate text="LOGIN TO MY ACCOUNT"}</a>
 				<div class="bottom-border-line"></div>
 			{/if}
 		</div>
