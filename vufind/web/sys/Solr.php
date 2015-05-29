@@ -1601,7 +1601,12 @@ class Solr implements IndexEngine {
 		if ($this->scopingDisabled == false){
 			if (isset($searchLibrary)){
 				if ($searchLibrary->restrictSearchByLibrary && $searchLibrary->enableOverdriveCollection){
-					$filter[] = "($institutionFacetName:\"{$owningSystem}\" OR $institutionFacetName:\"Shared Digital Collection\" OR $institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$owningSystem} Online\")";
+					$filter[] = "($institutionFacetName:\"{$owningSystem}\"
+							OR $institutionFacetName:\"Shared Digital Collection\"
+							OR $institutionFacetName:\"Digital Collection\"
+							OR $institutionFacetName:\"{$owningSystem} Online\"
+							OR $institutionFacetName:\"{$owningSystem} On Order\"
+							)";
 				}else if ($searchLibrary->restrictSearchByLibrary){
 					$filter[] = "$institutionFacetName:\"{$owningSystem}\"";
 				}else if (!$searchLibrary->enableOverdriveCollection){
@@ -1612,7 +1617,12 @@ class Solr implements IndexEngine {
 
 			if ($searchLocation != null){
 				if ($searchLocation->restrictSearchByLocation && $searchLocation->enableOverdriveCollection){
-					$filter[] = "($buildingFacetName:\"{$owningLibrary}\" OR $buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$owningLibrary} Online\")";
+					$filter[] = "($buildingFacetName:\"{$owningLibrary}\"
+							OR $buildingFacetName:\"Shared Digital Collection\"
+							OR $buildingFacetName:\"Digital Collection\"
+							OR $buildingFacetName:\"{$owningLibrary} Online\"
+							OR $buildingFacetName:\"{$owningLibrary} On Order\"
+							)";
 				}else if ($searchLocation->restrictSearchByLocation){
 					$filter[] = "($buildingFacetName:\"{$owningLibrary}\")";
 				}else if (!$searchLocation->enableOverdriveCollection){
