@@ -7,6 +7,6 @@
 	</p>
 {elseif $externalMaterialsRequestUrl}
 	<p>
-		Can't find what you are looking for? Try our <a href="{$externalMaterialsRequestUrl}">Materials Request Service</a>.
+		Can't find what you are looking for? Try our <a href="{$externalMaterialsRequestUrl}" onclick="return VuFind.Account.followLinkIfLoggedIn(this);">Materials Request Service</a>.
 	</p>
 {/if}
