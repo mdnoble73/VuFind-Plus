@@ -46,7 +46,15 @@ cd /usr/local/vufind-plus/vufind/cron/; java -jar cron.jar aspencat.test MergeMa
 # No Aspencat libraries use hoopla, no need to copy them
 # cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE}
 
-#Note, no need to extract from OverDrive since it happens continuously
+#Do a full extract from OverDrive just once a week to catch anything that doesn't
+#get caught in the regular extract
+DAYOFWEEK=$(date +"%u")
+if [ "${DAYOFWEEK}" -eq 5 ];
+then
+	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
+	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
+fi
+
 #Note, no need to extract from Lexile for this server since it is the master
 
 #Full Regroup
