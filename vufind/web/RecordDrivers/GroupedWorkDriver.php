@@ -303,16 +303,16 @@ class GroupedWorkDriver extends RecordInterface{
 		$timer->logTime('Finished Loading Series');
 
 		//Get information from list entry
-		require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
-		$listEntry = new UserListEntry();
-		$listEntry->groupedWorkPermanentId = $this->getUniqueID();
-		$listEntry->listId = $listId;
-		if ($listEntry->find(true)){
-			$interface->assign('listEntryNotes', $listEntry->notes);
+		if ($listId) {
+			require_once ROOT_DIR . '/sys/LocalEnrichment/UserListEntry.php';
+			$listEntry                         = new UserListEntry();
+			$listEntry->groupedWorkPermanentId = $this->getUniqueID();
+			$listEntry->listId                 = $listId;
+			if ($listEntry->find(true)) {
+				$interface->assign('listEntryNotes', $listEntry->notes);
+			}
+			$interface->assign('listEditAllowed', $allowEdit);
 		}
-
-		$interface->assign('listEditAllowed', $allowEdit);
-
 		$interface->assign('bookCoverUrl', $this->getBookcoverUrl('small'));
 		$interface->assign('bookCoverUrlMedium', $this->getBookcoverUrl('medium'));
 
@@ -439,6 +439,11 @@ class GroupedWorkDriver extends RecordInterface{
 	 * @return  string              Name of Smarty template file to display.
 	 */
 	public function getSearchResult($view = 'list', $useUnscopedHoldingsSummary = false) {
+		if ($view == 'covers') { // Displaying Results as bookcover tiles
+			return $this->getBrowseResult();
+		}
+
+		// Displaying results as the default list
 		global $configArray;
 		global $interface;
 		global $timer;
@@ -1049,7 +1054,7 @@ class GroupedWorkDriver extends RecordInterface{
 	private $relatedRecords = null;
 	public function getRelatedRecords($realTimeStatusNeeded = true) {
 		global $timer;
-		if ($this->relatedRecords == null){
+		if ($this->relatedRecords == null || isset($_REQUEST['reload'])){
 			$timer->logTime("Starting to load related records for {$this->getUniqueID()}");
 			$relatedRecords = array();
 
@@ -1083,7 +1088,20 @@ class GroupedWorkDriver extends RecordInterface{
 					}
 					foreach ($itemsFromIndexRaw as $tmpItem){
 						if (strpos($tmpItem, '|') !== FALSE){
-							$itemsFromIndex[] = explode('|', $tmpItem);
+							if (strpos($tmpItem, '~~') !== FALSE){
+								$itemData = explode('~~', $tmpItem);
+								//When broken by ~~, the item data has sections for record info, item info, and scope info
+								$itemDataBySection['record'] = explode('|', $itemData[0]);
+								$itemDataBySection['item'] = explode('|', $itemData[1]);
+								if (array_key_exists(2, $itemData)){
+									$itemDataBySection['scope'] = explode('|', $itemData[2]);
+								}else{
+									$itemDataBySection['scope'] = array();
+								}
+								$itemsFromIndex[] = $itemDataBySection;
+							}else{
+								$itemsFromIndex[] = explode('|', $tmpItem);
+							}
 						}else{
 							$itemsFromIndex[] = array($tmpItem);
 						}
@@ -1106,8 +1124,14 @@ class GroupedWorkDriver extends RecordInterface{
 						if ($itemsFromIndex != null){
 							$filteredItemsFromIndex = array();
 							foreach ($itemsFromIndex as $item){
-								if ($item[0] == $relatedRecordId){
-									$filteredItemsFromIndex[] = $item;
+								if (array_key_exists('record', $item)){
+									if ($item['record'][0] == $relatedRecordId){
+										$filteredItemsFromIndex[] = $item;
+									}
+								}else{
+									if ($item[0] == $relatedRecordId){
+										$filteredItemsFromIndex[] = $item;
+									}
 								}
 							}
 							$recordDriver->setItemsFromIndex($filteredItemsFromIndex, $realTimeStatusNeeded);

@@ -36,6 +36,7 @@ initLocale();
 // Sets global error handler for PEAR errors
 PEAR_Singleton::setErrorHandling(PEAR_ERROR_CALLBACK, 'handlePEARError');
 loadLibraryAndLocation();
+loadSearchInformation();
 
 $timer->logTime('Bootstrap');
 
@@ -216,6 +217,101 @@ function loadLibraryAndLocation(){
 	//Update configuration information for scoping now that the database is setup.
 	$configArray = updateConfigForScoping($configArray);
 	$timer->logTime('Updated config for scoping');
+}
+
+function loadSearchInformation(){
+	//Determine the Search Source, need to do this always.
+	global $searchSource;
+	global $library;
+	global $interface;
+
+	$module = (isset($_GET['module'])) ? $_GET['module'] : null;
+	$module = preg_replace('/[^\w]/', '', $module);
+
+	$searchSource = 'global';
+	if (isset($_GET['searchSource'])){
+		$searchSource = $_GET['searchSource'];
+		$_REQUEST['searchSource'] = $searchSource; //Update request since other check for it here
+		$_SESSION['searchSource'] = $searchSource; //Update the session so we can remember what the user was doing last.
+	}else{
+		if ( isset($_SESSION['searchSource'])){ //Didn't get a source, use what the user was doing last
+			$searchSource = $_SESSION['searchSource'];
+			$_REQUEST['searchSource'] = $searchSource;
+		}else{
+			//Use a default search source
+			if ($module == 'Person'){
+				$searchSource = 'genealogy';
+			}else{
+				$searchSource = 'local';
+			}
+			$_REQUEST['searchSource'] = $searchSource;
+		}
+	}
+
+	$searchLibrary = Library::getSearchLibrary(null);
+	$searchLocation = Location::getSearchLocation(null);
+
+	//Based on the search source, determine the search scope and set a global variable
+	global $solrScope;
+	global $scopeType;
+	$solrScope = false;
+	$scopeType = '';
+	if ($searchSource == 'local' || $searchSource == 'econtent'){
+		$locationIsScoped = $searchLocation != null &&
+			($searchLocation->restrictSearchByLocation ||
+				$searchLocation->econtentLocationsToInclude != 'all' ||
+				$searchLocation->useScope ||
+				!$searchLocation->enableOverdriveCollection ||
+				strlen($searchLocation->extraLocationCodesToInclude) > 0);
+
+		$libraryIsScoped = $searchLibrary != null &&
+			($searchLibrary->restrictSearchByLibrary ||
+				$searchLibrary->econtentLocationsToInclude != 'all' ||
+				(strlen($searchLibrary->pTypes) > 0 && $searchLibrary->pTypes != -1) ||
+				$searchLibrary->useScope ||
+				!$searchLibrary->enableOverdriveCollection);
+
+		if ($locationIsScoped &&
+			(
+				(
+					$searchLocation->econtentLocationsToInclude != $searchLibrary->econtentLocationsToInclude
+					&& strlen($searchLocation->econtentLocationsToInclude) > 0
+					&& $searchLocation->econtentLocationsToInclude != 'all'
+				) || (
+					$searchLocation->useScope && $searchLibrary->scope != $searchLocation->scope
+				)
+			)){
+			$solrScope = $searchLocation->code;
+			$scopeType = 'Location';
+		}else{
+			$solrScope = $searchLibrary->subdomain;
+			$scopeType = 'Library';
+		}
+	}elseif($searchSource != 'marmot' && $searchSource != 'global'){
+		$solrScope = $searchSource;
+		$scopeType = 'Search Source';
+	}
+	$solrScope = trim($solrScope);
+	if (strlen($solrScope) == 0){
+		$solrScope = false;
+		$scopeType = 'Unscoped';
+	}
+
+	$searchLibrary = Library::getSearchLibrary($searchSource);
+	$searchLocation = Location::getSearchLocation($searchSource);
+
+	global $millenniumScope;
+	if ($library){
+		if ($searchLibrary){
+			$millenniumScope = $searchLibrary->scope;
+		}elseif (isset($searchLocation)){
+			MillenniumDriver::$scopingLocationCode = $searchLocation->code;
+		}else{
+			$millenniumScope = isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
+		}
+	}else{
+		$millenniumScope = isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
+	}
 }
 
 function disableErrorHandler(){

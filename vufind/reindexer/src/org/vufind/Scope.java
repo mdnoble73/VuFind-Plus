@@ -71,7 +71,7 @@ public class Scope implements Comparable<Scope>{
 
 	public void setEContentLocationCodesToInclude(String[] eContentLocationCodesToInclude) {
 		for (String eContentLocationCodeToInclude : eContentLocationCodesToInclude) {
-			this.eContentLocationCodesToInclude.add(eContentLocationCodeToInclude.trim());
+			this.eContentLocationCodesToInclude.add(eContentLocationCodeToInclude.toLowerCase().trim());
 		}
 		if (eContentLocationCodesToInclude.length > 0){
 			isGlobalScope = false;
@@ -102,14 +102,17 @@ public class Scope implements Comparable<Scope>{
 		this.includeItemsOwnedByTheLocationOnly = includeItemsOwnedByTheLocationOnly;
 	}
 
+	private Pattern libraryCodePattern;
 	/**
 	 * Determine if the item is part of the current scope based on location code and pType
 	 *
+	 *
+	 * @param librarySystemCode
 	 * @param locationCode
 	 * @param compatiblePTypes
 	 * @return
 	 */
-	public boolean isItemPartOfScope(String locationCode, HashSet<String> compatiblePTypes){
+	public boolean isItemPartOfScope(String librarySystemCode, String locationCode, HashSet<String> compatiblePTypes){
 		//If we're in the global scope, always include the record
 		if (isGlobalScope){
 			return true;
@@ -130,7 +133,9 @@ public class Scope implements Comparable<Scope>{
 		}
 
 		//Next look for exclusions if the library is using tight scoping.
-		Pattern libraryCodePattern = Pattern.compile(libraryLocationCodePrefix);
+		if (libraryCodePattern == null) {
+			libraryCodePattern = Pattern.compile(libraryLocationCodePrefix);
+		}
 		if (includeBibsOwnedByTheLibraryOnly && !libraryCodePattern.matcher(locationCode).lookingAt()){
 			return false;
 		}
@@ -170,7 +175,7 @@ public class Scope implements Comparable<Scope>{
 
 	public boolean isEContentLocationPartOfScope(EContentIlsItem ilsRecord) {
 		String sharing = ilsRecord.getSharing();
-		String locationCode = ilsRecord.getLocation();
+		String locationCode = ilsRecord.getLocationCode().toLowerCase();
 		if (ilsRecord.getProtectionType().endsWith("external") && includeOutOfSystemExternalLinks){
 			return true;
 		}else if ((sharing.equals("shared") || sharing.equals("library")) && libraryLocationCodePrefix.length() >0 && locationCode.startsWith(libraryLocationCodePrefix)){
@@ -219,10 +224,13 @@ public class Scope implements Comparable<Scope>{
 		return scopeName.compareTo(o.scopeName);
 	}
 
-	HashMap<String, Boolean> locationCodeIncludedDirectly = new HashMap<String, Boolean>();
-	public boolean isLocationCodeIncludedDirectly(String locationCode) {
+	private Pattern locationCodePattern;
+	private HashMap<String, Boolean> locationCodeIncludedDirectly = new HashMap<String, Boolean>();
+	public boolean isLocationCodeIncludedDirectly(String librarySystemCode, String locationCode) {
 		if (locationCodeIncludedDirectly.containsKey(locationCode)){
 			return locationCodeIncludedDirectly.get(locationCode);
+		}else if (locationCodeIncludedDirectly.containsKey(librarySystemCode)){
+			return locationCodeIncludedDirectly.get(librarySystemCode);
 		}
 		if (locationCode == null){
 			return false;
@@ -234,15 +242,19 @@ public class Scope implements Comparable<Scope>{
 
 		if (isLibraryScope) {
 			if (libraryLocationCodePrefix != null){
-				Pattern libraryCodePattern = Pattern.compile(libraryLocationCodePrefix, Pattern.CASE_INSENSITIVE);
-				if (libraryCodePattern.matcher(locationCode).lookingAt()) {
-					locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
+				if (libraryCodePattern == null) {
+					libraryCodePattern = Pattern.compile(libraryLocationCodePrefix, Pattern.CASE_INSENSITIVE);
+				}
+				if (libraryCodePattern.matcher(librarySystemCode).lookingAt()) {
+					locationCodeIncludedDirectly.put(librarySystemCode, Boolean.TRUE);
 					return true;
 				}
 			}
 		}else{
 			if (locationLocationCodePrefix != null) {
-				Pattern locationCodePattern = Pattern.compile(locationLocationCodePrefix, Pattern.CASE_INSENSITIVE);
+				if (locationCodePattern == null) {
+					locationCodePattern = Pattern.compile(locationLocationCodePrefix, Pattern.CASE_INSENSITIVE);
+				}
 				if (locationCodePattern.matcher(locationCode).lookingAt()) {
 					locationCodeIncludedDirectly.put(locationCode, Boolean.TRUE);
 					return true;
@@ -297,7 +309,7 @@ public class Scope implements Comparable<Scope>{
 
 	public boolean isEContentDirectlyOwned(EContentIlsItem ilsEContentItem) {
 		String sharing = ilsEContentItem.getSharing();
-		String locationCode = ilsEContentItem.getLocation();
+		String locationCode = ilsEContentItem.getLocationCode().toLowerCase();
 
 		if ((sharing.equals("shared") || sharing.equals("library")) && libraryLocationCodePrefix.length() >0 && locationCode.startsWith(libraryLocationCodePrefix)){
 			return true;
@@ -307,5 +319,9 @@ public class Scope implements Comparable<Scope>{
 			return true;
 		}
 		return false;
+	}
+
+	public boolean isGlobalScope() {
+		return isGlobalScope;
 	}
 }

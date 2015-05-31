@@ -34,7 +34,7 @@
 
 				<div class="row">
 					<div class="result-label col-md-3">{translate text='Expires'}</div>
-					<div class="col-md-9 result-value">{$record.expiresOn|replace:' ':'&nbsp;'}</div>
+					<div class="col-md-9 result-value">{$record.dueDate|replace:' ':'&nbsp;'}</div>
 				</div>
 
 				<div class="row">
@@ -64,6 +64,9 @@
 				<div class="btn-group btn-group-vertical btn-block">
 					{if $record.overdriveRead}
 						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.overDriveId}', 'ebook-overdrive')" class="btn btn-sm btn-primary">Read&nbsp;Online</a>
+					{/if}
+					{if $record.overdriveListen}
+						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.overDriveId}', 'audiobook-overdrive')" class="btn btn-sm btn-primary">Listen&nbsp;Online</a>
 					{/if}
 					{if $record.formatSelected}
 						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.overDriveId}', '{$record.selectedFormat.format}')" class="btn btn-sm btn-primary">Download&nbsp;Again</a>

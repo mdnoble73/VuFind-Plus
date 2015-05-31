@@ -34,8 +34,51 @@ public class ScopedWorkDetails {
 		return relatedItems;
 	}
 
-	public void addRelatedItem(String relatedItem) {
-		this.relatedItems.add(relatedItem);
+	public void addRelatedOrderItem(String recordInfo, OnOrderItem orderItem) {
+		String relatedItemDetails = orderItem.getRelatedItemInfo();
+
+		StringBuilder fullItemDetails = new StringBuilder(recordInfo).append("~~").append(relatedItemDetails);
+		//TODO: Determine if we need any additional details based on the scope (holdability, etc).
+		this.relatedItems.add(fullItemDetails.toString());
+	}
+
+	public void addRelatedEContentItem(String recordInfo, EContentIlsItem econtentItem) {
+		String relatedItemDetails = econtentItem.getRelatedItemInfo();
+
+		StringBuilder fullItemDetails = new StringBuilder(recordInfo).append("~~").append(relatedItemDetails);
+		fullItemDetails.append("~~").append(true)
+				.append("|").append(true)
+				.append("|").append(true);
+		this.relatedItems.add(fullItemDetails.toString());
+	}
+
+	public void addRelatedItem(String recordInfo, IlsItem item) {
+		String relatedItemDetails = item.getRelatedItemInfo();
+		//Add additional information based on the scope
+		//Check if the record is holdable
+		boolean isHoldable = true;
+
+		//Check if the record is local
+		boolean isLocalItem = false;
+		boolean isLibraryItem = false;
+		if (scope.isGlobalScope()){
+			isLocalItem = true;
+			isLibraryItem = true;
+		} else {
+			if (scope.isLocationScope() && scope.isLocationCodeIncludedDirectly(item.getLibrarySystemCode(), item.getLocationCode())) {
+				isLocalItem = true;
+			}
+			//Check if the record is owned by the library
+			if (scope.isLibraryScope() && scope.isLocationCodeIncludedDirectly(item.getLibrarySystemCode(), item.getLocationCode())) {
+				isLibraryItem = true;
+			}
+		}
+
+		StringBuilder fullItemDetails = new StringBuilder(recordInfo).append("~~").append(relatedItemDetails);
+		fullItemDetails.append("~~").append(isHoldable)
+				.append("|").append(isLocalItem)
+				.append("|").append(isLibraryItem);
+		this.relatedItems.add(fullItemDetails.toString());
 	}
 
 	public ScopedWorkDetails(Scope curScope) {
@@ -71,8 +114,8 @@ public class ScopedWorkDetails {
 	public void setFormatBoost(Long formatBoost) {
 		if (this.formatBoost == null) {
 			this.formatBoost = formatBoost;
-		} else if (formatBoost > this.formatBoost){
-			this.formatBoost = formatBoost;
+		} else {
+			this.formatBoost += formatBoost;
 		}
 	}
 

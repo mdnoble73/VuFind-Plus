@@ -492,7 +492,12 @@ abstract class SearchObject_Base
 					$params[] = "lookfor=" . urlencode($this->searchTerms[0]['lookfor']);
 				}
 				if (isset($this->searchTerms[0]['index'])) {
-					$params[] = "type="    . urlencode($this->searchTerms[0]['index']);
+					if ($this->searchType == 'basic'){
+						$params[] = "basicType="    . urlencode($this->searchTerms[0]['index']);
+					}else{
+						$params[] = "type="    . urlencode($this->searchTerms[0]['index']);
+					}
+
 				}
 				break;
 		}
@@ -676,26 +681,30 @@ abstract class SearchObject_Base
 	 */
 	protected function initView()
 	{
+		if (!empty($this->view)){ //return view if it has already been set.
+			return $this->view;
+		}
 		// Check for a view parameter in the url.
 		if (isset($_REQUEST['view'])) {
 			if ($_REQUEST['view'] == 'rss') {
 				// we don't want to store rss in the Session variable
 				$this->view = 'rss';
-			}else if ($_REQUEST['view'] == 'excel') {
+			}elseif ($_REQUEST['view'] == 'excel') {
 				// we don't want to store excel in the Session variable
 				$this->view = 'excel';
 			} else {
 				// store non-rss views in Session for persistence
 				$validViews = $this->getViewOptions();
 				// make sure the url parameter is a valid view
-				if (in_array($_REQUEST['view'], array_keys($validViews))) {
+//				if (in_array($_REQUEST['view'], array_keys($validViews))) {
+				if (in_array($_REQUEST['view'], $validViews)) { // currently using a simple array listing the views (not listed in the keys)
 					$this->view = $_REQUEST['view'];
 					$_SESSION['lastView'] = $this->view;
 				} else {
 					$this->view = $this->defaultView;
 				}
 			}
-		} else if (isset($_SESSION['lastView'])) {
+		} elseif (isset($_SESSION['lastView']) && !empty($_SESSION['lastView'])) {
 			// if there is nothing in the URL, check the Session variable
 			$this->view = $_SESSION['lastView'];
 		} else {
@@ -845,6 +854,10 @@ abstract class SearchObject_Base
 			$params[] = "searchSource=" . urlencode(strip_tags($_REQUEST['searchSource']));
 		}
 
+		if (isset($_REQUEST['view'])){
+			$params[] = "view=" . urlencode(strip_tags($_REQUEST['view']));
+		}
+
 		// Join all parameters with an escaped ampersand,
 		//   add to the base url and return
 		return $url . join("&", $params);
@@ -905,7 +918,7 @@ abstract class SearchObject_Base
 		$list = array();
 		foreach ($valid as $sort => $desc) {
 			$list[$sort] = array(
-                'sortUrl'  => $this->renderLinkWithSort($sort),
+                'sortUrl' => $this->renderLinkWithSort($sort),
                 'desc' => $desc,
                 'selected' => ($sort == $this->sort)
 			);
@@ -1014,7 +1027,16 @@ abstract class SearchObject_Base
 	 * @return  mixed    various internal variables
 	 */
 	public function getAdvancedTypes()  {return $this->advancedTypes;}
-	public function getBasicTypes()     {return $this->basicTypes;}
+	public function getBasicTypes() {
+		$searchIndex = $this->getSearchIndex();
+		$basicSearchTypes = $this->basicTypes;
+		if ($this->searchType != 'genealogy' && $_REQUEST['searchSource'] != 'genealogy') {
+			if (!array_key_exists($searchIndex, $basicSearchTypes)) {
+				$basicSearchTypes[$searchIndex] = $searchIndex;
+			}
+		}
+		return $basicSearchTypes;
+	}
 	public function getFilters()        {return $this->filterList;}
 	public function getPage()           {return $this->page;}
 	public function getLimit()          {return $this->limit;}
@@ -1196,10 +1218,10 @@ abstract class SearchObject_Base
 		$summary['startRecord'] = (($this->page - 1) * $this->limit) + 1;
 		// Last record needs more care
 		if ($this->resultsTotal < $this->limit) {
-			// There are less records returned then one page, use total results
+			// There are less records returned than one page, then use total results
 			$summary['endRecord'] = $this->resultsTotal;
-		} else if (($this->page * $this->limit) > $this->resultsTotal) {
-			// The end of the curent page runs past the last record, use total results
+		} elseif (($this->page * $this->limit) > $this->resultsTotal) {
+			// The end of the current page runs past the last record, use total results
 			$summary['endRecord'] = $this->resultsTotal;
 		} else {
 			// Otherwise use the last record on this page
@@ -1631,8 +1653,12 @@ abstract class SearchObject_Base
 		// Single search index does not apply to advanced search:
 		if ($this->searchType == $this->advancedSearchType) {
 			return null;
+		}elseif (isset($this->searchTerms[0]['index'])){
+			return $this->searchTerms[0]['index'];
+		}else{
+			return 'Keyword';
 		}
-		return $this->searchTerms[0]['index'];
+
 	}
 
 	/**

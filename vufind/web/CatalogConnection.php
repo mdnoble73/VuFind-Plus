@@ -329,16 +329,17 @@ class CatalogConnection
 				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->deleted = 0; //Only show titles that have not been deleted
 				if ($sortOption == "checkedOut"){
 					$readingHistoryDB->orderBy('checkOutDate DESC, title ASC');
 				}else if ($sortOption == "returned"){
 					$readingHistoryDB->orderBy('checkInDate DESC, title ASC');
 				}else if ($sortOption == "title"){
-					$readingHistoryDB->orderBy('title ASC');
+					$readingHistoryDB->orderBy('title ASC, checkOutDate DESC');
 				}else if ($sortOption == "author"){
-					$readingHistoryDB->orderBy('author ASC, title ASC');
+					$readingHistoryDB->orderBy('author ASC, title ASC, checkOutDate DESC');
 				}else if ($sortOption == "format"){
-					$readingHistoryDB->orderBy('format ASC, title ASC');
+					$readingHistoryDB->orderBy('format ASC, title ASC, checkOutDate DESC');
 				}
 				if ($recordsPerPage != -1){
 					$readingHistoryDB->limit(($page - 1) * $recordsPerPage, $recordsPerPage);
@@ -354,6 +355,7 @@ class CatalogConnection
 
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->deleted = 0;
 				$numTitles = $readingHistoryDB->count();
 
 				return array('historyActive'=>$user->trackReadingHistory, 'titles'=>$readingHistoryTitles, 'numTitles'=> $numTitles);
@@ -388,13 +390,20 @@ class CatalogConnection
 					$readingHistoryDB = new ReadingHistoryEntry();
 					$readingHistoryDB->userId = $user->id;
 					$readingHistoryDB->id = str_replace('rsh', '', $titleId);
-					$readingHistoryDB->delete();
+					if ($readingHistoryDB->find(true)){
+						$readingHistoryDB->deleted = 1;
+						$readingHistoryDB->update();
+					}
 				}
 			}elseif ($action == 'deleteAll'){
 				//Remove all titles from database (do not remove from ILS)
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $user->id;
-				$readingHistoryDB->delete();
+				$readingHistoryDB->find();
+				while ($readingHistoryDB->fetch()){
+					$readingHistoryDB->deleted = 1;
+					$readingHistoryDB->update();
+				}
 			}elseif ($action == 'exportList'){
 				//Leave this unimplemented for now.
 			}elseif ($action == 'optOut'){
@@ -408,7 +417,7 @@ class CatalogConnection
 					$result = $this->driver->doReadingHistoryAction($action, $selectedTitles);
 				}
 
-				//Delete the reading history
+				//Delete the reading history (permanently this time sine we are opting out)
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $user->id;
 				$readingHistoryDB->delete();
@@ -469,32 +478,42 @@ class CatalogConnection
 	{
 		/** @var Memcache $memCache */
 		global $memCache;
+		global $serverName;
+		$memCacheProfileKey = "patronProfile_{$serverName}_";
 		if (is_object($patron)){
-			$id = $patron->username;
+			$memCacheProfileKey .= $patron->username;
+
 		}else{
-			$id = $patron['username'];
+			$memCacheProfileKey .= $patron['username'];
 		}
 
-		$key = 'patronProfile_' . $id ;
-		$cachedValue = $memCache->get($key);
-		if ($cachedValue == false || isset($_REQUEST['reload'])){
-			$profile = $this->driver->getMyProfile($patron);
+		$forceReload = isset($_REQUEST['reload']);
+		if (!$forceReload && $memCacheProfileKey) {
+			$cachedValue = $memCache->get($memCacheProfileKey);
+			if (!$cachedValue) $forceReload = true;
+			// when not found in memcache turn on reload to short-circuit redundant memcache checks in each of the ILS drivers for getMyProfile()
+		}
+		if ($forceReload){
+			$profile = $this->driver->getMyProfile($patron, $forceReload);
 			if (PEAR_Singleton::isError($profile)){
-				echo("Error loading profile " . print_r($profile, true));
+//				echo("Error loading profile " . print_r($profile, true));
 				return $profile;
 			}
+
 			$profile['readingHistorySize'] = '';
 			global $user;
 			if ($user && $user->trackReadingHistory && $user->initialReadingHistoryLoaded){
 				require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
 				$readingHistoryDB = new ReadingHistoryEntry();
 				$readingHistoryDB->userId = $user->id;
+				$readingHistoryDB->deleted = 0;
 				$profile['readingHistorySize'] = $readingHistoryDB->count();
 			}
 			$cachedValue = $profile;
 
 			global $configArray;
-			$memCache->add($key, $cachedValue, 0, $configArray['Caching']['patron_profile']);
+			$memCacheResult = $memCache->replace($memCacheProfileKey, $cachedValue, 0, $configArray['Caching']['patron_profile']);
+			// Update the existing key
 		}
 
 		return $cachedValue;
@@ -555,7 +574,7 @@ class CatalogConnection
 
 	function updatePatronInfo($canUpdateContactInfo)
 	{
-		return $this->driver->updatePatronInfo($canUpdateContactInfo);
+		return $errors = $this->driver->updatePatronInfo($canUpdateContactInfo);
 	}
 
 	function selfRegister(){
@@ -766,6 +785,7 @@ class CatalogConnection
 		global $user;
 
 		require_once ROOT_DIR . '/sys/ReadingHistoryEntry.php';
+		//Note, include deleted titles here so they are not added multiple times.
 		$readingHistoryDB = new ReadingHistoryEntry();
 		$readingHistoryDB->userId = $user->id;
 		$readingHistoryDB->whereAdd('checkInDate IS NULL');
@@ -821,6 +841,7 @@ class CatalogConnection
 
 		//Anything that was still active is now checked in
 		foreach ($activeHistoryTitles as $historyEntry){
+			//Update even if deleted to make sure code is cleaned up correctly
 			$historyEntryDB = new ReadingHistoryEntry();
 			$historyEntryDB->source = $historyEntry['source'];
 			$historyEntryDB->sourceId = $historyEntry['id'];

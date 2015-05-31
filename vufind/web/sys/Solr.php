@@ -341,9 +341,9 @@ class Solr implements IndexEngine {
 	 */
 	function getRecord($id, $fieldsToReturn = null)
 	{
-		if ($this->debugSolrQuery) {
+		/*if ($this->debugSolrQuery) {
 			echo "<pre>Get Record: $id</pre>\n";
-		}
+		}*/
 		/** @var Memcache $memCache */
 		global $memCache;
 		global $configArray;
@@ -582,6 +582,12 @@ class Solr implements IndexEngine {
 
 		$searchLibrary = Library::getSearchLibrary();
 		$searchLocation = Location::getSearchLocation();
+		if ($searchLibrary && $searchLocation){
+			if ($searchLibrary->ilsCode == $searchLocation->code){
+				$searchLocation = null;
+			}
+		}
+
 		$scopingFilters = $this->getScopingFilters($searchLibrary, $searchLocation);
 		foreach ($scopingFilters as $filter){
 			$options['fq'][] = $filter;
@@ -1017,7 +1023,7 @@ class Solr implements IndexEngine {
 				$that = $this;
 				if (isset($params['lookfor']) && !$forDisplay){
 					$lookfor = preg_replace_callback(
-						'/(\\w+):([\\w\\d\\s]+?)(\\sAND|OR|AND NOT|OR NOT|\\))/',
+						'/(\\w+):([\\w\\d\\s"]+?)\\s?(AND|OR|AND NOT|OR NOT|\\)|$)/',
 						function ($matches) use($that){
 							$field = $matches[1];
 							$lookfor = $matches[2];
@@ -1066,7 +1072,15 @@ class Solr implements IndexEngine {
 								$query .= $this->_buildQueryComponent($params['field'], $lookfor);
 							}
 						} else {
-							$query .= $lookfor;
+							/*if ($forDisplay &&
+									isset($params['index']) &&
+									$params['index'] != 'Keyword' &&
+									!strpos($lookfor, $params['index']) === 0) {
+
+								$query = $params['index'] . ':' . $lookfor;
+							} else {*/
+								$query .= $lookfor;
+							//}
 						}
 					}
 				}
@@ -1450,20 +1464,21 @@ class Solr implements IndexEngine {
 		}
 
 		if ($this->debugSolrQuery) {
-			echo '<pre>Search options: ' . print_r($options, true) . "\n";
+			$solrSearchDebug = print_r($options, true) . "\n";
 
 			if ($filters) {
-				echo "\nFilterQuery: ";
+				$solrSearchDebug .= "\nFilterQuery: ";
 				foreach ($filters as $filterItem) {
-					echo " $filterItem";
+					$solrSearchDebug .= " $filterItem";
 				}
 			}
 
 			if ($sort) {
-				echo "\nSort: " . $options['sort'];
+				$solrSearchDebug .= "\nSort: " . $options['sort'];
 			}
 
-			echo "</pre>\n";
+			global $interface;
+			$interface->assign('solrSearchDebug', $solrSearchDebug);
 		}
 		if ($this->debugSolrQuery || $this->debug){
 			$options['debugQuery'] = 'on';
@@ -1516,10 +1531,18 @@ class Solr implements IndexEngine {
 		}
 
 		if (isset($searchLocation)){
-			$owningLibrary = $searchLocation->facetLabel;
+			if (strlen($searchLocation->facetLabel) == 0){
+				$owningLibrary = $searchLocation->displayName;
+			}else{
+				$owningLibrary = $searchLocation->facetLabel;
+			}
 		}
 		if (isset($searchLibrary)){
-			$owningSystem = $searchLibrary->facetLabel;
+			if (strlen($searchLibrary->facetLabel) == 0){
+				$owningSystem = $searchLibrary->displayName;
+			}else{
+				$owningSystem = $searchLibrary->facetLabel;
+			}
 		}
 		$buildingFacetName = 'owning_location';
 		$institutionFacetName = 'owning_library';
@@ -1578,21 +1601,33 @@ class Solr implements IndexEngine {
 		if ($this->scopingDisabled == false){
 			if (isset($searchLibrary)){
 				if ($searchLibrary->restrictSearchByLibrary && $searchLibrary->enableOverdriveCollection){
-					$filter[] = "($institutionFacetName:\"{$searchLibrary->facetLabel}\" OR $institutionFacetName:\"Shared Digital Collection\" OR $institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
+					$filter[] = "($institutionFacetName:\"{$owningSystem}\"
+							OR $institutionFacetName:\"Shared Digital Collection\"
+							OR $institutionFacetName:\"Digital Collection\"
+							OR $institutionFacetName:\"{$owningSystem} Online\"
+							OR $institutionFacetName:\"{$owningSystem} On Order\"
+							)";
 				}else if ($searchLibrary->restrictSearchByLibrary){
-					$filter[] = "$institutionFacetName:\"{$searchLibrary->facetLabel}\"";
+					$filter[] = "$institutionFacetName:\"{$owningSystem}\"";
 				}else if (!$searchLibrary->enableOverdriveCollection){
-					$filter[] = "!($institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
+					//This doesn't work because it effectively removes anything with both OverDrive and Print titles
+					//$filter[] = "!($institutionFacetName:\"Digital Collection\" OR $institutionFacetName:\"{$searchLibrary->facetLabel} Online\")";
 				}
 			}
 
 			if ($searchLocation != null){
 				if ($searchLocation->restrictSearchByLocation && $searchLocation->enableOverdriveCollection){
-					$filter[] = "($buildingFacetName:\"{$searchLocation->facetLabel}\" OR $buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLocation->facetLabel} Online\")";
+					$filter[] = "($buildingFacetName:\"{$owningLibrary}\"
+							OR $buildingFacetName:\"Shared Digital Collection\"
+							OR $buildingFacetName:\"Digital Collection\"
+							OR $buildingFacetName:\"{$owningLibrary} Online\"
+							OR $buildingFacetName:\"{$owningLibrary} On Order\"
+							)";
 				}else if ($searchLocation->restrictSearchByLocation){
-					$filter[] = "($buildingFacetName:\"{$searchLocation->facetLabel}\")";
+					$filter[] = "($buildingFacetName:\"{$owningLibrary}\")";
 				}else if (!$searchLocation->enableOverdriveCollection){
-					$filter[] = "!($buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLibrary->facetLabel} Online\")";
+					//This doesn't work because it effectively removes anything with both OverDrive and Print titles
+					//$filter[] = "!($buildingFacetName:\"Shared Digital Collection\" OR $buildingFacetName:\"Digital Collection\" OR $buildingFacetName:\"{$searchLibrary->facetLabel} Online\")";
 				}
 			}
 
@@ -1964,16 +1999,20 @@ class Solr implements IndexEngine {
 		$queryString = implode('&', $query);
 
 		if ($this->debug || $this->debugSolrQuery) {
+			$solrQueryDebug = "";
 			if ($this->debugSolrQuery) {
-				echo "<pre>$method: ";
+				$solrQueryDebug .= "$method: ";
 			}
 			$fullSearchUrl = print_r($this->host . "/select/?" . $queryString, true);
 			//Add debug parameter so we can see the explain section at the bottom.
 			$debugSearchUrl = print_r($this->host . "/select/?debugQuery=on&" . $queryString, true);
 
 			if ($this->debugSolrQuery) {
-				echo "<a href='" . $debugSearchUrl . "' target='_blank'>$fullSearchUrl</a>";
-				echo "</pre>\n";
+				$solrQueryDebug .=  "<a href='" . $debugSearchUrl . "' target='_blank'>$fullSearchUrl</a>";
+			}
+			global $interface;
+			if ($interface){
+				$interface->assign('solrLinkDebug', $solrQueryDebug);
 			}
 		}
 
@@ -2135,7 +2174,7 @@ class Solr implements IndexEngine {
 				}
 			} else {
 				//If we are tokenizing, remove any punctuation
-				$tmpWord = preg_replace('/[^\-\w.\'aàáâãåäæeèéêëiìíîïoòóôõöøuùúûü]/', '', $words[$i]);
+				$tmpWord = preg_replace('/[^\s\-\w.\'aàáâãåäæeèéêëiìíîïoòóôõöøuùúûü]/', '', $words[$i]);
 				if (strlen($tmpWord) > 0){
 					$newWords[] = $tmpWord;
 				}
@@ -2275,6 +2314,10 @@ class Solr implements IndexEngine {
 			if (in_array($fieldName, $fields)){
 				return true;
 			}
+			/*$searchSpecs = $this->_getSearchSpecs();
+			if (array_key_exists($fieldName, $searchSpecs)){
+				return true;
+			}*/
 		}
 
 		// Check for parentheses and range operators:

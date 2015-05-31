@@ -595,22 +595,23 @@ class MillenniumDriver implements DriverInterface
 		global $configArray;
 		/** @var Memcache $memCache */
 		global $memCache;
-
+		global $serverName;
+		$memCacheProfileKey = "patronProfile_{$serverName}_";
 		if (is_object($patron)){
 			$patron = get_object_vars($patron);
-			$userId = $patron['id'];
+			$memCacheProfileKey .= $patron['username'];
 			$id2 = $this->_getBarcode($patron);
 		}else{
 			global $user;
-			$userId = $user->id;
+			$memCacheProfileKey .= $user->username;
 			$id2= $patron['cat_password'];
 		}
-
-		$patronProfile = $memCache->get('patronProfile_' . $userId);
-		if ($patronProfile && !isset($_REQUEST['reload']) && !$forceReload){
-			//echo("Using cached profile for patron " . $userId);
-			$timer->logTime('Retrieved Cached Profile for Patron');
-			return $patronProfile;
+		if (!$forceReload && !isset($_REQUEST['reload'])) {
+			$patronProfile = $memCache->get($memCacheProfileKey);
+			if ($patronProfile) {
+				$timer->logTime('Retrieved Cached Profile for Patron');
+				return $patronProfile;
+			}
 		}
 
 		global $user;
@@ -715,13 +716,22 @@ class MillenniumDriver implements DriverInterface
 			}
 
 			//see if expiration date is close
-			list ($monthExp, $dayExp, $yearExp) = explode("-",$patronDump['EXP_DATE']);
-			$timeExpire = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
-			$timeNow = time();
-			$timeToExpire = $timeExpire - $timeNow;
-			if ($timeToExpire <= 30 * 24 * 60 * 60){
-				$expireClose = 1;
+			if (trim($patronDump['EXP_DATE']) != '-  -'){
+				list ($monthExp, $dayExp, $yearExp) = explode("-",$patronDump['EXP_DATE']);
+				$timeExpire = strtotime($monthExp . "/" . $dayExp . "/" . $yearExp);
+				$timeNow = time();
+				$timeToExpire = $timeExpire - $timeNow;
+				$expired = 0;
+				if ($timeToExpire <= 30 * 24 * 60 * 60){
+					if ($timeToExpire <= 0){
+						$expired = 1;
+					}
+					$expireClose = 1;
+				}else{
+					$expireClose = 0;
+				}
 			}else{
+				$expired = 0;
 				$expireClose = 0;
 			}
 
@@ -789,6 +799,7 @@ class MillenniumDriver implements DriverInterface
 				'finesval' => $finesVal,
 				'expires' => isset($patronDump) ? $patronDump['EXP_DATE'] : '',
 				'expireclose' => $expireClose,
+				'expired' => $expired,
 				'homeLocationCode' => isset($homeBranchCode) ? trim($homeBranchCode) : '',
 				'homeLocationId' => isset($location) ? $location->locationId : 0,
 				'homeLocation' => isset($location) ? $location->displayName : '',
@@ -852,7 +863,7 @@ class MillenniumDriver implements DriverInterface
 		}
 
 		$timer->logTime("Got Patron Profile");
-		$memCache->set('patronProfile_' . $patron['id'], $profile, 0, $configArray['Caching']['patron_profile']) ;
+		$memCache->set($memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
 		return $profile;
 	}
 
@@ -1011,11 +1022,12 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($this->curl_connection, CURLOPT_COOKIESESSION, is_null($cookieJar) ? true : false);
 
 		$post_data = $this->_getLoginFormValues();
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+//		$post_items = array();
+//		foreach ($post_data as $key => $value) {
+//			$post_items[] = $key . '=' . urlencode($value);
+//		}
+//		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		curl_setopt($this->curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$sResult = curl_exec($this->curl_connection);
 		//When a library uses Encore, the initial login does a redirect and requires additonal parameters.
@@ -1153,6 +1165,7 @@ class MillenniumDriver implements DriverInterface
 		global $user;
 		global $configArray;
 		global $analytics;
+		$updateErrors = array();
 
 		//Setup the call to Millennium
 		$patronDump = $this->_getPatronDump($this->_getBarcode());
@@ -1185,7 +1198,7 @@ class MillenniumDriver implements DriverInterface
 			}
 
 			if (isset($_REQUEST['mobileNumber'])){
-				$ils = $configArray['Catalog']['ils'];
+//				$ils = $configArray['Catalog']['ils']; // code not used anywhere. plb 4-29-2015
 				$extraPostInfo['mobile'] = preg_replace('/\D/', '', $_REQUEST['mobileNumber']);
 				if (strlen($_REQUEST['mobileNumber']) > 0 && $_REQUEST['smsNotices'] == 'on'){
 					$extraPostInfo['optin'] = 'on';
@@ -1225,13 +1238,12 @@ class MillenniumDriver implements DriverInterface
 			curl_setopt($curl_connection, CURLOPT_COOKIESESSION, false);
 			curl_setopt($curl_connection, CURLOPT_POST, true);
 			$post_data = $this->_getLoginFormValues();
-			$post_items = array();
-			foreach ($post_data as $key => $value) {
-				$post_items[] = $key . '=' . urlencode($value);
-			}
-			$post_string = implode ('&', $post_items);
+			$post_string = http_build_query($post_data);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 			$loginResult = curl_exec($curl_connection);
+
+			//TODO: success check for login? Expired cards will be rejected
+
 			//When a library uses Encore, the initial login does a redirect and requires additional parameters.
 			if (preg_match('/<input type="hidden" name="lt" value="(.*?)" \/>/si', $loginResult, $loginMatches)) {
 				//Get the lt value
@@ -1239,22 +1251,14 @@ class MillenniumDriver implements DriverInterface
 				//Login again
 				$post_data['lt'] = $lt;
 				$post_data['_eventId'] = 'submit';
-				$post_items = array();
-				foreach ($post_data as $key => $value) {
-					$post_items[] = $key . '=' . $value;
-				}
-				$post_string = implode ('&', $post_items);
+				$post_string = http_build_query($post_data);
 				curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 				$loginResult = curl_exec($curl_connection);
 				$curlInfo = curl_getinfo($curl_connection);
 			}
 
 			//Issue a post request to update the patron information
-			$post_items = array();
-			foreach ($extraPostInfo as $key => $value) {
-				$post_items[] = $key . '=' . urlencode($value);
-			}
-			$patronUpdateParams = implode ('&', $post_items);
+			$patronUpdateParams = http_build_query($extraPostInfo);
 			curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $patronUpdateParams);
 			$curl_url = $configArray['Catalog']['url'] . "/patroninfo~S{$scope}/" . $patronDump['RECORD_#'] ."/modpinfo";
 			curl_setopt($curl_connection, CURLOPT_URL, $curl_url);
@@ -1263,32 +1267,35 @@ class MillenniumDriver implements DriverInterface
 			curl_close($curl_connection);
 			unlink($cookieJar);
 
-			//Make sure to clear any cached data
-			/** @var Memcache $memCache */
-			global $memCache;
-			$memCache->delete("patron_dump_{$this->_getBarcode()}");
-			$memCache->delete('patronProfile_' . $user->id);
-		}
 
-		//Should get Patron Information Updated on success
-		if (isset($sresult) && preg_match('/Patron information updated/', $sresult)){
-			if ($canUpdateContactInfo){
-				$user->phone = $_REQUEST['phone'];
-				$user->email = $_REQUEST['email'];
-				$user->update();
-			}
+		// Update Patron Information on success
+		if (isset($sresult) && strpos($sresult, 'Patron information updated') !== false){
+			$user->phone = $_REQUEST['phone'];
+			$user->email = $_REQUEST['email'];
+			$user->update();
+
 			//Update the serialized instance stored in the session
 			$_SESSION['userinfo'] = serialize($user);
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Profile updated successfully');
 			}
-			return true;
 		}else{
+			// Doesn't look like the millennium (actually sierra) server ever provides error messages. plb 4-29-2015
+			$errorMsg = 'There were errors updating your information.'; // generic error message
+			$updateErrors[] = $errorMsg;
 			if ($analytics){
 				$analytics->addEvent('ILS Integration', 'Profile update failed');
 			}
-			return false;
 		}
+
+		//Make sure to clear any cached data
+		/** @var Memcache $memCache */
+		global $memCache;
+		$memCache->delete("patron_dump_{$this->_getBarcode()}");
+		$this->clearPatronProfile();
+
+		} else $updateErrors[] = 'You can not update your information.';
+		return $updateErrors;
 	}
 
 	var $pType;
@@ -1562,11 +1569,12 @@ class MillenniumDriver implements DriverInterface
 		curl_setopt($curl_connection, CURLOPT_UNRESTRICTED_AUTH, true);
 		$post_data['name'] = $configArray['Catalog']['ils_admin_user'];
 		$post_data['code'] = $configArray['Catalog']['ils_admin_pwd'];
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . urlencode($value);
-		}
-		$post_string = implode ('&', $post_items);
+//		$post_items = array();
+//		foreach ($post_data as $key => $value) {
+//			$post_items[] = $key . '=' . urlencode($value);
+//		}
+//		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		curl_exec($curl_connection);
 
@@ -1803,11 +1811,12 @@ class MillenniumDriver implements DriverInterface
 		//Now submit the request
 		$post_data['code'] = $barcode;
 		$post_data['pat_submit'] = 'xxx';
-		$post_items = array();
-		foreach ($post_data as $key => $value) {
-			$post_items[] = $key . '=' . $value;
-		}
-		$post_string = implode ('&', $post_items);
+//		$post_items = array();
+//		foreach ($post_data as $key => $value) {
+//			$post_items[] = $key . '=' . $value;
+//		}
+//		$post_string = implode ('&', $post_items);
+		$post_string = http_build_query($post_data);
 		curl_setopt($curl_connection, CURLOPT_POST, true);
 		curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_string);
 		$pinResetResultPageHtml = curl_exec($curl_connection);
@@ -1874,7 +1883,7 @@ class MillenniumDriver implements DriverInterface
 				if (preg_match('/<table[^>]*?class="patFunc"[^>]*?>(.*?)<\/table>/si', $listDetailsPage, $listsDetailsMatches)) {
 					$listTitlesTable = $listsDetailsMatches[1];
 					//Get the bib numbers for the title
-					preg_match_all('/<input type="checkbox" name="(b\\d{1,7})".*?<td[^>]*class="patFuncTitle">(.*?)<\/td>/si', $listTitlesTable, $bibNumberMatches, PREG_SET_ORDER);
+					preg_match_all('/<input type="checkbox" name="(b\\d{1,7})".*?<span[^>]*class="patFuncTitle(?:Main)?">(.*?)<\/span>/si', $listTitlesTable, $bibNumberMatches, PREG_SET_ORDER);
 					for ($bibCtr = 0; $bibCtr < count($bibNumberMatches); $bibCtr++){
 						$bibNumber = $bibNumberMatches[$bibCtr][1];
 						$bibTitle = strip_tags($bibNumberMatches[$bibCtr][2]);
@@ -1884,7 +1893,7 @@ class MillenniumDriver implements DriverInterface
 						require_once ROOT_DIR . '/sys/Grouping/GroupedWork.php';
 						$primaryIdentifier = new GroupedWorkPrimaryIdentifier();
 						$groupedWork = new GroupedWork();
-						$primaryIdentifier->identifier = '.' + $bibNumber + $this->getCheckDigit($bibNumber);
+						$primaryIdentifier->identifier = '.' . $bibNumber . $this->getCheckDigit($bibNumber);
 						$primaryIdentifier->type = 'ils';
 						$primaryIdentifier->joinAdd($groupedWork);
 						if ($primaryIdentifier->find(true)){
@@ -1950,11 +1959,8 @@ class MillenniumDriver implements DriverInterface
 
 	public function clearPatronProfile() {
 		/** @var Memcache $memCache */
-		global $memCache;
-		global $user;
-
-		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
-
+		global $memCache, $user, $serverName;
+		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
 	}
 
 	public function getSelfRegistrationFields(){

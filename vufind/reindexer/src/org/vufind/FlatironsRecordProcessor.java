@@ -39,7 +39,7 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 
 	protected List<PrintIlsItem> getUnsuppressedPrintItems(String identifier, Record record){
 		String bibFormat = getFirstFieldVal(record, "998e");
-		boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u") || bibFormat.equals("n");
+		boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u");
 		String url = getFirstFieldVal(record, "856u");
 		boolean has856 = url != null;
 
@@ -61,7 +61,7 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 
 	protected List<EContentIlsItem> getUnsuppressedEContentItems(String identifier, Record record){
 		String bibFormat = getFirstFieldVal(record, "998e").trim();
-		boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u") || bibFormat.equals("n");
+		boolean isEContentBibFormat = bibFormat.equals("3") || bibFormat.equals("t") || bibFormat.equals("m") || bibFormat.equals("w") || bibFormat.equals("u");
 		String url = getFirstFieldVal(record, "856u");
 		boolean has856 = url != null;
 
@@ -79,7 +79,7 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 				String eContentLocation = getFirstFieldVal(record, "907b");
 				if (eContentLocation != null) {
 					EContentIlsItem ilsEContentItem = new EContentIlsItem();
-					ilsEContentItem.setLocation(eContentLocation);
+					ilsEContentItem.setLocationCode(eContentLocation);
 					ilsEContentItem.setSource("External eContent");
 					ilsEContentItem.setProtectionType("external");
 					ilsEContentItem.setSharing("library");
@@ -174,7 +174,7 @@ public class FlatironsRecordProcessor extends IlsRecordProcessor{
 	}
 
 	protected void loadEContentFormatInformation(IlsRecord econtentRecord, EContentIlsItem econtentItem) {
-		String collection = "external_ebook";
+		String collection = "online_resource";
 		String translatedFormat = indexer.translateValue("format", collection);
 		String translatedFormatCategory = indexer.translateValue("format_category", collection);
 		String translatedFormatBoost = indexer.translateValue("format_boost", collection);

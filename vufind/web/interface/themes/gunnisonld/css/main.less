@@ -1,6 +1,6 @@
 // Core variables and mixins
-@import "../../responsive/css/variables.less";
-@import "variables.less";
+@import (reference) "../../responsive/css/variables.less";
+@import (reference) "variables.less";
 
 // Always include the base .less file
 @import "../../responsive/css/responsive_base.less";
@@ -21,22 +21,23 @@
     padding: 5px;
   }
 }
-.header-button{
-  border-radius:  0.5em;
-  background-color: rgba(31,31,31,0.7);
+
+.header-button {
+  border-radius: 0.5em;
+  background-color: rgba(31, 31, 31, 0.7);
   margin-top: 20px;
   height: 60px !important;
-  border: 0px;
-}
-.header-button > a{
-  color: ghostwhite !important;
-  line-height: 60px !important;
-  text-shadow: none;
-}
-.header-button > a:visited{
-  color: ghostwhite !important;
-}
-.header-button:hover{
-  border-bottom: 0px;
-  box-shadow: 2px 2px 5px #DCE0D7;
+  border: 0;
+  & > a {
+    color: ghostwhite !important;
+    line-height: 60px !important;
+    text-shadow: none;
+  }
+  & > a:visited {
+    color: ghostwhite !important;
+  }
+  &:hover {
+    border-bottom: 0;
+    box-shadow: 2px 2px 5px #DCE0D7;
+  }
 }

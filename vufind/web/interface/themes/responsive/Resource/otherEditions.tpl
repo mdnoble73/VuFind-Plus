@@ -67,6 +67,10 @@
 {/if}
 {if $enableMaterialsRequest}
 	<p>
-		Need this in another format? You can <a href="{$path}/MaterialsRequest/NewRequest">request it here</a>.
+		Need this in another format? You can <a href="{$path}/MaterialsRequest/NewRequest" onclick="return VuFind.Account.followLinkIfLoggedIn(this);">request it here</a>.
+	</p>
+{elseif $externalMaterialsRequestUrl}
+	<p>
+		Need this in another format? You can <a href="{$externalMaterialsRequestUrl}">request it here</a>.
 	</p>
 {/if}

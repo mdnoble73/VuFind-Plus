@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
+import java.net.SocketTimeoutException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -83,10 +85,9 @@ public class ExtractOverDriveInfo {
 	private boolean hadTimeoutsFromOverDrive;
 	
 	private CRC32 checksumCalculator = new CRC32();
-	private boolean errorOnLastOverDriveCall;
 	private boolean errorsWhileLoadingProducts;
 
-	public void extractOverDriveInfo(Ini configIni, Connection vufindConn, Connection econtentConn, OverDriveExtractLogEntry logEntry, boolean doFullReload) {
+	public void extractOverDriveInfo(Ini configIni, Connection vufindConn, Connection econtentConn, OverDriveExtractLogEntry logEntry, boolean doFullReload, String individualIdToProcess) {
 		this.vufindConn = vufindConn;
 		this.econtentConn = econtentConn;
 		this.results = logEntry;
@@ -123,7 +124,9 @@ public class ExtractOverDriveInfo {
 			markGroupedWorkForBibAsChangedStmt = vufindConn.prepareStatement("UPDATE grouped_work SET date_updated = ? where id = (SELECT grouped_work_id from grouped_work_primary_identifiers WHERE type = 'overdrive' and identifier = ?)") ;
 
 			//Get the last time we extracted data from OverDrive
-			if (!doFullReload){
+			if (individualIdToProcess != null) {
+				logger.info("Updating a single record " + individualIdToProcess);
+			}else if (!doFullReload){
 				//Check to see if a partial extract is running
 				try{
 					PreparedStatement loadPartialExtractRunning = vufindConn.prepareStatement("SELECT * from variables WHERE name = 'partial_overdrive_extract_running'");
@@ -161,6 +164,7 @@ public class ExtractOverDriveInfo {
 			}else{
 				logger.info("Doing a full reload of all records.");
 			}
+
 			//Update the last extract time
 			Long extractStartTime = new Date().getTime();
 			
@@ -198,6 +202,7 @@ public class ExtractOverDriveInfo {
 			overDriveFormatMap.put("Microsoft eBook", 1L);
 			overDriveFormatMap.put("audiobook-wma", 25L);
 			overDriveFormatMap.put("audiobook-mp3", 425L);
+			overDriveFormatMap.put("audiobook-overdrive", 625L);
 			overDriveFormatMap.put("music-wma", 30L);
 			overDriveFormatMap.put("video-wmv", 35L);
 			overDriveFormatMap.put("ebook-pdf-adobe", 50L);
@@ -208,22 +213,29 @@ public class ExtractOverDriveInfo {
 			overDriveFormatMap.put("ebook-epub-open", 810L);
 			overDriveFormatMap.put("ebook-overdrive", 610L);
 			overDriveFormatMap.put("video-streaming", 635L);
-			
-			if (clientSecret == null || clientKey == null || accountId == null || clientSecret.length() == 0 || clientKey.length() == 0 || accountId.length() == 0){
-				logEntry.addNote("Did not find correct configuration in config.ini, not loading overdrive titles");
-			}else{
-				//Load products from database
-				if (!loadProductsFromDatabase()){
-					return;
+			overDriveFormatMap.put("periodicals-nook", 304L);
+
+			try {
+				if (clientSecret == null || clientKey == null || accountId == null || clientSecret.length() == 0 || clientKey.length() == 0 || accountId.length() == 0) {
+					logEntry.addNote("Did not find correct configuration in config.ini, not loading overdrive titles");
+				} else {
+					//Load products from database
+					if (!loadProductsFromDatabase()) {
+						return;
+					}
+
+					//Load products from API
+					if (!loadProductsFromAPI(individualIdToProcess)) {
+						return;
+					}
+
+					//Update products in database
+					updateDatabase();
 				}
-				
-				//Load products from API
-				if (!loadProductsFromAPI()){
-					return;
-				}
-				
-				//Update products in database
-				updateDatabase();
+			}catch (SocketTimeoutException toe){
+				logger.warn("Timeout while loading information from OverDrive, aborting");
+				logEntry.addNote("Timeout while loading information from OverDrive, aborting");
+				errorsWhileLoadingProducts = true;
 			}
 
 			//Mark the new last update time if we did not get errors loading products from the database
@@ -252,7 +264,7 @@ public class ExtractOverDriveInfo {
 		}
 	}
 	
-	private void updateDatabase() {
+	private void updateDatabase() throws SocketTimeoutException {
 		int numProcessed = 0;
 		for (String overDriveId : overDriveTitles.keySet()){
 			OverDriveRecordInfo overDriveInfo = overDriveTitles.get(overDriveId);
@@ -306,7 +318,7 @@ public class ExtractOverDriveInfo {
 	}
 
 	private void updateProductInDB(OverDriveRecordInfo overDriveInfo,
-			OverDriveDBInfo overDriveDBInfo) {
+			OverDriveDBInfo overDriveDBInfo) throws SocketTimeoutException {
 		try {
 			boolean updateMade = false;
 			//Check to see if anything has changed.  If so, perform necessary updates. 
@@ -360,7 +372,7 @@ public class ExtractOverDriveInfo {
 		
 	}
 
-	private void addProductToDB(OverDriveRecordInfo overDriveInfo) {
+	private void addProductToDB(OverDriveRecordInfo overDriveInfo) throws SocketTimeoutException {
 		int curCol = 0;
 		try {
 			long curTime = new Date().getTime() / 1000;
@@ -432,26 +444,26 @@ public class ExtractOverDriveInfo {
 		}
 		
 	}
-	private boolean loadProductsFromAPI() {
+	private boolean loadProductsFromAPI(String individualIdToProcess) throws SocketTimeoutException {
 		WebServiceResponse libraryInfoResponse = callOverDriveURL("http://api.overdrive.com/v1/libraries/" + accountId);
 		if (libraryInfoResponse.getResponseCode() == 200 && libraryInfoResponse.getResponse() != null){
 			JSONObject libraryInfo = libraryInfoResponse.getResponse();
 			try {
 				String libraryName = libraryInfo.getString("name");
 				String mainProductUrl = libraryInfo.getJSONObject("links").getJSONObject("products").getString("href");
-				if (lastUpdateTimeParam.length() > 0){
-					if (mainProductUrl.contains("?")){
+				if (lastUpdateTimeParam.length() > 0) {
+					if (mainProductUrl.contains("?")) {
 						mainProductUrl += "&" + lastUpdateTimeParam;
-					}else{
+					} else {
 						mainProductUrl += "?" + lastUpdateTimeParam;
 					}
 				}
-				loadProductsFromUrl(libraryName, mainProductUrl);
+				loadProductsFromUrl(libraryName, mainProductUrl, individualIdToProcess);
 				logger.info("loaded " + overDriveTitles.size() + " overdrive titles in shared collection");
 				//Get a list of advantage collections
-				if (libraryInfo.getJSONObject("links").has("advantageAccounts")){
+				if (libraryInfo.getJSONObject("links").has("advantageAccounts")) {
 					WebServiceResponse webServiceResponse = callOverDriveURL(libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
-					if (webServiceResponse.getResponseCode() == 200){
+					if (webServiceResponse.getResponseCode() == 200) {
 						JSONObject advantageInfo = webServiceResponse.getResponse();
 						if (advantageInfo.has("advantageAccounts")) {
 							JSONArray advantageAccounts = advantageInfo.getJSONArray("advantageAccounts");
@@ -472,9 +484,9 @@ public class ExtractOverDriveInfo {
 											}
 										}
 
-										loadProductsFromUrl(advantageName, productUrl);
+										loadProductsFromUrl(advantageName, productUrl, individualIdToProcess);
 									}
-								}else{
+								} else {
 									results.addNote("Unable to load advantage information for " + advantageSelfUrl);
 									if (advantageWebServiceResponse.getError() != null) {
 										results.addNote(advantageWebServiceResponse.getError());
@@ -482,7 +494,7 @@ public class ExtractOverDriveInfo {
 								}
 							}
 						}
-					}else{
+					} else {
 						results.addNote("The API indicate that the library has advantage accounts, but none were returned from " + libraryInfo.getJSONObject("links").getJSONObject("advantageAccounts").getString("href"));
 						if (webServiceResponse.getError() != null) {
 							results.addNote(webServiceResponse.getError());
@@ -493,6 +505,8 @@ public class ExtractOverDriveInfo {
 				}
 				results.setNumProducts(overDriveTitles.size());
 				return true;
+			} catch (SocketTimeoutException toe){
+				throw toe;
 			} catch (Exception e) {
 				results.addNote("error loading information from OverDrive API " + e.toString());
 				results.incErrors();
@@ -511,7 +525,7 @@ public class ExtractOverDriveInfo {
 
 	}
 	
-	private void loadProductsFromUrl(String libraryName, String mainProductUrl) throws JSONException {
+	private void loadProductsFromUrl(String libraryName, String mainProductUrl, String individualIdToProcess) throws JSONException, SocketTimeoutException {
 		WebServiceResponse productsResponse = callOverDriveURL(mainProductUrl);
 		if (productsResponse.getResponseCode() == 200) {
 			JSONObject productInfo = productsResponse.getResponse();
@@ -526,18 +540,29 @@ public class ExtractOverDriveInfo {
 			results.saveResults();
 			long batchSize = 300;
 			for (int i = 0; i < numProducts; i += batchSize) {
-				logger.debug("Processing " + libraryName + " batch from " + i + " to " + (i + batchSize));
+				//Just search for the specific product
 				String batchUrl = mainProductUrl;
 				if (mainProductUrl.contains("?")) {
 					batchUrl += "&";
 				} else {
 					batchUrl += "?";
 				}
-				batchUrl += "offset=" + i + "&limit=" + batchSize;
+				if (individualIdToProcess != null){
+					logger.debug("Processing " + libraryName + " single record " + individualIdToProcess);
+					batchUrl += "q=" + URLEncoder.encode(individualIdToProcess);
+				} else{
+					logger.debug("Processing " + libraryName + " batch from " + i + " to " + (i + batchSize));
+					batchUrl += "offset=" + i + "&limit=" + batchSize;
+				}
+
+
 				WebServiceResponse productBatchInfoResponse = callOverDriveURL(batchUrl);
 				if (productBatchInfoResponse.getResponseCode() == 200){
 					JSONObject productBatchInfo = productBatchInfoResponse.getResponse();
 					if (productBatchInfo != null && productBatchInfo.has("products")) {
+						if (individualIdToProcess != null){
+							numProducts = productBatchInfo.getLong("totalItems");
+						}
 						JSONArray products = productBatchInfo.getJSONArray("products");
 						logger.debug(" Found " + products.length() + " products");
 						for (int j = 0; j < products.length(); j++) {
@@ -600,7 +625,7 @@ public class ExtractOverDriveInfo {
 		return -1L;
 	}
 	
-	private boolean updateOverDriveMetaData(OverDriveRecordInfo overDriveInfo, long databaseId, OverDriveDBInfo dbInfo) {
+	private boolean updateOverDriveMetaData(OverDriveRecordInfo overDriveInfo, long databaseId, OverDriveDBInfo dbInfo) throws SocketTimeoutException {
 		//Check to see if we need to load metadata 
 		long curTime = new Date().getTime() / 1000;
 		//Don't need to load metadata if we already have metadata and the metadata was checked within the last 24 hours
@@ -821,7 +846,8 @@ public class ExtractOverDriveInfo {
 										addFormatStmt.setString(10, sample.getString("source"));
 										addFormatStmt.setString(11, sample.getString("url"));
 									}else{
-										logger.warn("Record " + overDriveInfo.getId() + " had more than 2 samples for format " + format.getString("name"));
+										//Reduce logging level since 2 samples is plenty
+										logger.info("Record " + overDriveInfo.getId() + " had more than 2 samples for format " + format.getString("name"));
 									}
 								}
 							}
@@ -887,7 +913,7 @@ public class ExtractOverDriveInfo {
 		return metaData;
 	}
 
-	private boolean updateOverDriveAvailability(OverDriveRecordInfo overDriveInfo, long databaseId, OverDriveDBInfo dbInfo) {
+	private boolean updateOverDriveAvailability(OverDriveRecordInfo overDriveInfo, long databaseId, OverDriveDBInfo dbInfo) throws SocketTimeoutException {
 		//Don't need to load availability if we already have availability and the availability was checked within the last hour
 		long curTime = new Date().getTime() / 1000;
 		if (dbInfo != null && dbInfo.getLastAvailabilityCheck() >= curTime - 1 * 60 * 60){
@@ -1000,9 +1026,9 @@ public class ExtractOverDriveInfo {
 		return availabilityChanged;
 	}
 	
-	private WebServiceResponse callOverDriveURL(String overdriveUrl) {
+	private WebServiceResponse callOverDriveURL(String overdriveUrl) throws SocketTimeoutException {
 		WebServiceResponse webServiceResponse = new WebServiceResponse();
-		errorOnLastOverDriveCall = false;
+		boolean errorOnLastOverDriveCall = false;
 
 		if (connectToOverDriveAPI(false)) {
 			//Connect to the API to get our token
@@ -1024,6 +1050,8 @@ public class ExtractOverDriveInfo {
 				}
 				conn.setRequestMethod("GET");
 				conn.setRequestProperty("Authorization", overDriveAPITokenType + " " + overDriveAPIToken);
+				conn.setReadTimeout(30000);
+				conn.setConnectTimeout(30000);
 				webServiceResponse.setResponseCode(conn.getResponseCode());
 
 				if (conn.getResponseCode() == 200) {
@@ -1056,7 +1084,8 @@ public class ExtractOverDriveInfo {
 					rd.close();
 					hadTimeoutsFromOverDrive = true;
 				}
-
+			} catch (SocketTimeoutException toe){
+				throw toe;
 			} catch (Exception e) {
 				logger.debug("Error loading data from overdrive API ", e);
 				hadTimeoutsFromOverDrive = true;
@@ -1068,7 +1097,7 @@ public class ExtractOverDriveInfo {
 		return webServiceResponse;
 	}
 
-	private boolean connectToOverDriveAPI(boolean getNewToken){
+	private boolean connectToOverDriveAPI(boolean getNewToken) throws SocketTimeoutException {
 		//Check to see if we already have a valid token
 		if (overDriveAPIToken != null && !getNewToken){
 			if (overDriveAPIExpiration - new Date().getTime() > 0){
@@ -1083,10 +1112,10 @@ public class ExtractOverDriveInfo {
 		try {
 			URL emptyIndexURL = new URL("https://oauth.overdrive.com/token");
 			conn = (HttpURLConnection) emptyIndexURL.openConnection();
-			if (conn instanceof HttpsURLConnection){
-				HttpsURLConnection sslConn = (HttpsURLConnection)conn;
+			if (conn instanceof HttpsURLConnection) {
+				HttpsURLConnection sslConn = (HttpsURLConnection) conn;
 				sslConn.setHostnameVerifier(new HostnameVerifier() {
-					
+
 					@Override
 					public boolean verify(String hostname, SSLSession session) {
 						//Do not verify host names
@@ -1098,13 +1127,16 @@ public class ExtractOverDriveInfo {
 			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded;charset=UTF-8");
 			//logger.debug("Client Key is " + clientSecret);
 			String encoded = Base64.encodeBase64String((clientKey + ":" + clientSecret).getBytes());
-			conn.setRequestProperty("Authorization", "Basic "+encoded);
+			conn.setRequestProperty("Authorization", "Basic " + encoded);
+			conn.setReadTimeout(30000);
+			conn.setConnectTimeout(30000);
 			conn.setDoOutput(true);
+
 			OutputStreamWriter wr = new OutputStreamWriter(conn.getOutputStream(), "UTF8");
 			wr.write("grant_type=client_credentials");
 			wr.flush();
 			wr.close();
-			
+
 			StringBuilder response = new StringBuilder();
 			if (conn.getResponseCode() == 200) {
 				// Get the response
@@ -1121,7 +1153,7 @@ public class ExtractOverDriveInfo {
 				overDriveAPIExpiration = new Date().getTime() + (parser.getLong("expires_in") * 1000) - 10000;
 				//logger.debug("OverDrive token is " + overDriveAPIToken);
 			} else {
-				logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive authentication service" );
+				logger.error("Received error " + conn.getResponseCode() + " connecting to overdrive authentication service");
 				// Get any errors
 				BufferedReader rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
 				String line;
@@ -1133,7 +1165,8 @@ public class ExtractOverDriveInfo {
 				rd.close();
 				return false;
 			}
-
+		} catch (SocketTimeoutException toe){
+			throw toe;
 		} catch (Exception e) {
 			logger.error("Error connecting to overdrive API", e );
 			return false;

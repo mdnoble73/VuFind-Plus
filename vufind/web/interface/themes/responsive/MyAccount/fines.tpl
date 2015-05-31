@@ -5,9 +5,8 @@
 		</div>
 	{/if}
 
-	{*{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}*}
-	{if 1}
-		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds">You have <span style="font-weight: bold">{$profile.numHoldsAvailableTotal}</span> holds ready for pick up.</a></div>
+	{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
+		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds" class="alert-link">You have {$profile.numHoldsAvailableTotal} holds ready for pick up.</a></div>
 	{/if}
 
 	<h2>{translate text='Fines'}</h2>

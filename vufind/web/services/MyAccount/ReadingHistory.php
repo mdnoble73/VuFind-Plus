@@ -54,8 +54,23 @@ class ReadingHistory extends MyAccount
 						$selectedTitles = isset($_REQUEST['selected']) ? $_REQUEST['selected'] : array();
 						$readingHistoryAction = $_REQUEST['readingHistoryAction'];
 						$this->catalog->doReadingHistoryAction($readingHistoryAction, $selectedTitles);
+
 						//redirect back to the current location without the action.
-						header("Location: {$configArray['Site']['path']}/MyAccount/ReadingHistory");
+						$newLocation = "{$configArray['Site']['path']}/MyAccount/ReadingHistory";
+						if (isset($_REQUEST['page']) && $readingHistoryAction != 'deleteAll' && $readingHistoryAction != 'optOut'){
+							$params[] = 'page=' . $_REQUEST['page'];
+						}
+						if (isset($_REQUEST['accountSort'])){
+							$params[] = 'accountSort=' . $_REQUEST['accountSort'];
+						}
+						if (isset($_REQUEST['pagesize'])){
+							$params[] = 'pagesize=' . $_REQUEST['pagesize'];
+						}
+						if (count($params) > 0){
+							$additionalParams = implode('&', $params);
+							$newLocation .= '?' . $additionalParams;
+						}
+						header("Location: $newLocation");
 						die();
 					}
 
@@ -70,6 +85,7 @@ class ReadingHistory extends MyAccount
 
 					$interface->assign('defaultSortOption', $selectedSortOption);
 					$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+					$interface->assign('page', $page);
 
 					$recordsPerPage = isset($_REQUEST['pagesize']) && (is_numeric($_REQUEST['pagesize'])) ? $_REQUEST['pagesize'] : 25;
 					$interface->assign('recordsPerPage', $recordsPerPage);
@@ -140,12 +156,14 @@ class ReadingHistory extends MyAccount
 		//Loop Through The Report Data
 		foreach ($readingHistory as $row) {
 
+			$format = is_array($row['format']) ? implode(',', $row['format']) : $row['format'];
+			$lastCheckout = isset($row['lastCheckout']) ? date('Y-M-d', $row['lastCheckout']) : '';
 			$objPHPExcel->setActiveSheetIndex(0)
 			->setCellValue('A'.$a, $row['title'])
 			->setCellValue('B'.$a, $row['author'])
-			->setCellValue('C'.$a, $row['format'])
-			->setCellValue('D'.$a, $row['checkout'])
-			->setCellValue('E'.$a, $row['lastCheckout']);
+			->setCellValue('C'.$a, $format)
+			->setCellValue('D'.$a, date('Y-M-d', $row['checkout']))
+			->setCellValue('E'.$a, $lastCheckout);
 
 			$a++;
 		}

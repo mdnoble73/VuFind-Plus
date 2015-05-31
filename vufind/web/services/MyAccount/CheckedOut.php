@@ -22,14 +22,30 @@ class MyAccount_CheckedOut extends MyAccount{
 		}else{
 			$interface->assign('offline', false);
 
+			//Determine which columns to show
+			$ils = $configArray['Catalog']['ils'];
+			$showOut = ($ils == 'Horizon' );
+			$showRenewed = ($ils == 'Horizon' || $ils == 'Millennium'  || $ils == 'Sierra' || $ils == 'Koha');
+			$showWaitList = $ils == 'Horizon';
+
+			$interface->assign('showOut', $showOut);
+			$interface->assign('showRenewed', $showRenewed);
+			$interface->assign('showWaitList', $showWaitList);
+
 			// Define sorting options
 			$sortOptions = array('title'   => 'Title',
 				'author'  => 'Author',
 				'dueDate' => 'Due Date',
 				'format'  => 'Format',
-				'renewed'  => 'Times Renewed',
-				'holdQueueLength'  => 'Wish List',
 			);
+
+			if ($showWaitList){
+				$sortOptions['holdQueueLength']  = 'Wait List';
+			}
+			if ($showRenewed){
+				$sortOptions['renewed'] = 'Times Renewed';
+			}
+
 			$interface->assign('sortOptions', $sortOptions);
 			$selectedSortOption = isset($_REQUEST['accountSort']) ? $_REQUEST['accountSort'] : 'dueDate';
 			$interface->assign('defaultSortOption', $selectedSortOption);
@@ -77,31 +93,62 @@ class MyAccount_CheckedOut extends MyAccount{
 					if (!PEAR_Singleton::isError($catalogTransactions)) {
 
 						$interface->assign('showNotInterested', false);
-						foreach ($allCheckedOut as $i => $data) {
-							$itemBarcode = isset($data['barcode']) ? $data['barcode'] : null;
-							$itemId = isset($data['itemid']) ? $data['itemid'] : null;
+						foreach ($allCheckedOut as $i => $curTitle) {
+							$sortTitle = isset($curTitle['title_sort']) ? $curTitle['title_sort'] : $curTitle['title'];
+							$sortKey = $sortTitle;
+							if ($selectedSortOption == 'title'){
+								$sortKey = $sortTitle;
+							}elseif ($selectedSortOption == 'author'){
+								$sortKey = (isset($curTitle['author']) ? $curTitle['author'] : "Unknown") . '-' . $sortTitle;
+							}elseif ($selectedSortOption == 'dueDate'){
+								if (isset($curTitle['duedate'])){
+									if (preg_match('/.*?(\\d{1,2})[-\/](\\d{1,2})[-\/](\\d{2,4}).*/', $curTitle['duedate'], $matches)) {
+										$sortKey = $matches[3] . '-' . $matches[1] . '-' . $matches[2] . '-' . $sortTitle;
+									} else {
+										$sortKey = $curTitle['duedate'] . '-' . $sortTitle;
+									}
+								}
+							}elseif ($selectedSortOption == 'format'){
+								$sortKey = (isset($curTitle['format']) ? $curTitle['format'] : "Unknown") . '-' . $sortTitle;
+							}elseif ($selectedSortOption == 'renewed'){
+								$sortKey = str_pad((isset($curTitle['renewCount']) ? $curTitle['renewCount'] : 0), 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
+							}elseif ($selectedSortOption == 'holdQueueLength'){
+								$sortKey = str_pad((isset($curTitle['holdQueueLength']) ? $curTitle['holdQueueLength'] : 0), 3, '0', STR_PAD_LEFT) . '-' . $sortTitle;
+							}
+
+							$itemBarcode = isset($curTitle['barcode']) ? $curTitle['barcode'] : null;
+							$itemId = isset($curTitle['itemid']) ? $curTitle['itemid'] : null;
 							if ($itemBarcode != null && isset($_SESSION['renew_message'][$itemBarcode])){
 								$renewMessage = $_SESSION['renew_message'][$itemBarcode]['message'];
 								$renewResult = $_SESSION['renew_message'][$itemBarcode]['result'];
-								$data['renewMessage'] = $renewMessage;
-								$data['renewResult']  = $renewResult;
-								$allCheckedOut[$i] = $data;
+								$curTitle['renewMessage'] = $renewMessage;
+								$curTitle['renewResult']  = $renewResult;
+								$allCheckedOut[$sortKey] = $curTitle;
 								unset($_SESSION['renew_message'][$itemBarcode]);
 								//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
 							}else if ($itemId != null && isset($_SESSION['renew_message'][$itemId])){
 								$renewMessage = $_SESSION['renew_message'][$itemId]['message'];
 								$renewResult = $_SESSION['renew_message'][$itemId]['result'];
-								$data['renewMessage'] = $renewMessage;
-								$data['renewResult']  = $renewResult;
-								$allCheckedOut[$i] = $data;
+								$curTitle['renewMessage'] = $renewMessage;
+								$curTitle['renewResult']  = $renewResult;
+								$allCheckedOut[$sortKey] = $curTitle;
 								unset($_SESSION['renew_message'][$itemId]);
 								//$logger->log("Found renewal message in session for $itemBarcode", PEAR_LOG_INFO);
 							}else{
+								$allCheckedOut[$sortKey] = $curTitle;
 								$renewMessage = null;
 								$renewResult = null;
 							}
-
+							unset($allCheckedOut[$i]);
 						}
+
+						//Now that we have all the transactions we can sort them
+						if ($selectedSortOption == 'renewed' || $selectedSortOption == 'holdQueueLength'){
+							krsort($allCheckedOut);
+						}else{
+							ksort($allCheckedOut);
+						}
+
 						$interface->assign('transList', $allCheckedOut);
 						unset($_SESSION['renew_message']);
 					}
@@ -109,17 +156,9 @@ class MyAccount_CheckedOut extends MyAccount{
 			}
 		}
 
-		//Determine which columns to show
-		$ils = $configArray['Catalog']['ils'];
-		$showOut = ($ils == 'Horizon' );
-		$showRenewed = ($ils == 'Horizon' || $ils == 'Millennium'  || $ils == 'Sierra' || $ils == 'Koha');
-		$showWaitList = $ils == 'Horizon';
 
-		$interface->assign('showOut', $showOut);
-		$interface->assign('showRenewed', $showRenewed);
-		$interface->assign('showWaitList', $showWaitList);
 
-		if (isset($_GET['exportToExcel']) && isset($result)) {
+		if (isset($_GET['exportToExcel']) && isset($allCheckedOut)) {
 			$this->exportToExcel($allCheckedOut, $showOut, $showRenewed, $showWaitList);
 		}
 
@@ -199,9 +238,18 @@ class MyAccount_CheckedOut extends MyAccount{
 			if ($showOut){
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', $row['checkoutdate']));
 			}
-			$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', $row['duedate']));
+			if (isset($row['duedate'])){
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, date('M d, Y', $row['duedate']));
+			}else{
+				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, '');
+			}
+
 			if ($showRenewed){
-				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, $row['renewCount']);
+				if (isset($row['duedate'])) {
+					$activeSheet->setCellValueByColumnAndRow($curCol++, $a, $row['renewCount']);
+				}else{
+					$activeSheet->setCellValueByColumnAndRow($curCol++, $a, '');
+				}
 			}
 			if ($showWaitList){
 				$activeSheet->setCellValueByColumnAndRow($curCol++, $a, $row['holdQueueLength']);

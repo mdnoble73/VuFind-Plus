@@ -931,29 +931,6 @@ class BookCoverProcessor{
 
 	private function getGroupedWorkCover() {
 		if ($this->loadGroupedWork()){
-			//First check the permanent id
-			/*$this->isn = $this->groupedWork->getCleanISBN();
-			if ($this->getCoverFromProvider()){
-				return true;
-			}
-
-			$this->upc = null;
-			$isbns = $this->groupedWork->getISBNs();
-			foreach ($isbns as $isbn){
-				$this->isn = $isbn;
-				if ($this->getCoverFromProvider()){
-					return true;
-				}
-			}
-			$upcs = $this->groupedWork->getUPCs();
-			$this->isn = null;
-			foreach ($upcs as $upc){
-				$this->upc = $upc;
-				if ($this->getCoverFromProvider()){
-					return true;
-				}
-			}*/
-
 			//Have not found a grouped work based on isbn or upc, check based on related records
 			$relatedRecords = $this->groupedWork->getRelatedRecords(false);
 			foreach ($relatedRecords as $relatedRecord){
@@ -968,11 +945,12 @@ class BookCoverProcessor{
 				}else{
 					/** @var GroupedWorkDriver $driver */
 					$driver = $relatedRecord['driver'];
+					//First check to see if there is a specific record defined in an 856 etc.
 					if (method_exists($driver, 'getMarcRecord') && $this->getCoverFromMarc($driver->getMarcRecord())){
 						return true;
 					}else{
 						//Finally, check the isbns if we don't have an override
-						$isbns = $driver->getISBNs();
+						$isbns = $driver->getCleanISBNs();
 						if ($isbns){
 							foreach ($isbns as $isbn){
 								$this->isn = $isbn;
@@ -981,7 +959,7 @@ class BookCoverProcessor{
 								}
 							}
 						}
-						$upcs = $driver->getUPCs();
+						$upcs = $driver->getCleanUPCs();
 						$this->isn = null;
 						if ($upcs){
 							foreach ($upcs as $upc){

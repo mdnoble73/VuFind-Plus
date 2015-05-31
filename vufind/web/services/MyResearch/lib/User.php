@@ -262,7 +262,8 @@ class User extends DB_DataObject
 		$_SESSION['userinfo'] = serialize($this);
 		/** @var Memcache $memCache */
 		global $memCache;
-		$memCache->delete('patronProfile_' . $this->id);
+		global $serverName;
+		$memCache->delete("patronProfile_{$serverName}_" . $this->username);
 	}
 
 	function updateCatalogOptions(){
@@ -305,6 +306,29 @@ class User extends DB_DataObject
 
 		/** @var Memcache $memCache */
 		global $memCache;
-		$memCache->delete('patronProfile_' . $this->id);
+		global $serverName;
+		$memCache->delete("patronProfile_{$serverName}_" . $this->username);
+	}
+
+	/**
+	 * @param $list UserList           object of the user list to check permission for
+	 * @return  bool       true if this user can edit passed list
+	 */
+	function canEditList($list) {
+		if ($this->id == $list->user_id){
+			return true;
+		}elseif ($this->hasRole('opacAdmin')){
+			return true;
+		}elseif ($this->hasRole('libraryAdmin') || $this->hasRole('contentEditor')){
+			$listUser = new User();
+			$listUser->id = $list->user_id;
+			$listUser->find(true);
+			$listLibrary = Library::getLibraryForLocation($listUser->homeLocationId);
+			$userLibrary = Library::getLibraryForLocation($this->homeLocationId);
+			if ($userLibrary->libraryId == $listLibrary->libraryId){
+				return true;
+			}
+		}
+		return false;
 	}
 }

@@ -90,13 +90,14 @@ class DBMaintenance extends Admin_Admin {
 		require_once ROOT_DIR . '/sys/DBMaintenance/list_widget_updates.php';
 		$list_widget_updates = getListWidgetUpdates();
 		require_once ROOT_DIR . '/sys/DBMaintenance/evoke_updates.php';
-		$list_widget_updates = getEVokeUpdates();
+		$evoke_updates = getEVokeUpdates();
 
 		return array_merge(
 			$library_location_updates,
 			$user_updates,
 			$grouped_work_updates,
 			$list_widget_updates,
+			$evoke_updates,
 			array(
 				'index_search_stats' => array(
 					'title' => 'Index search stats table',
@@ -428,7 +429,14 @@ class DBMaintenance extends Admin_Admin {
 						) ENGINE = INNODB DEFAULT CHARSET=utf8 COMMENT = 'The reading history for patrons';",
 						"DROP TABLE user_reading_history"
 					),
+				),
 
+				'readingHistory_deletion' => array(
+					'title' => 'Update Reading History Deletion so we mark it as deleted rather than permanently deleting',
+					'description' => 'Update Reading History to handle deletions',
+					'sql' => array(
+						"ALTER TABLE user_reading_history_work ADD `deleted` TINYINT NOT NULL DEFAULT '0'"
+					),
 				),
 
 				'coverArt_suppress' => array(
@@ -1847,6 +1855,14 @@ class DBMaintenance extends Admin_Admin {
 						"ALTER TABLE user_list ADD deleted TINYINT(1) DEFAULT 0",
 						"ALTER TABLE user_list DROP created",
 						"ALTER TABLE user_list ADD created INT(11)",
+					)
+				),
+
+				'user_list_sorting' => array(
+					'title' => 'Store a default sorting setting for a user list',
+					'description' => 'Allows user to set the way in which their list will be sorted by default.',
+					'sql' => array(
+						"ALTER TABLE `user_list` ADD `defaultSort` VARCHAR(20)",
 					)
 				),
 

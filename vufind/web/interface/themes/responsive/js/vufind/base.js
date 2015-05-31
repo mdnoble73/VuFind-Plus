@@ -115,8 +115,8 @@ var VuFind = (function(){
 		},
 
 		getQuerystringParameters: function(){
-			var vars = [];
-			var q = document.URL.split('?')[1];
+			var vars = [],
+					q = location.search.substr(1);
 			if(q != undefined){
 				q = q.split('&');
 				for(var i = 0; i < q.length; i++){
@@ -126,6 +126,11 @@ var VuFind = (function(){
 			}
 			return vars;
 		},
+
+		//// Quick Way to get a single URL parameter value (parameterName must be in the url query string)
+		//getQueryParameterValue: function (parameterName) {
+		//	return location.search.split(parameterName + '=')[1].split('&')[0]
+		//},
 
 		getSelectedTitles: function(){
 			var selectedTitles = $("input.titleSelect:checked ").map(function() {
@@ -166,14 +171,34 @@ var VuFind = (function(){
 
 		setupFieldSetToggles: function (){
 			$('legend.collapsible').each(function(){
-				$(this).siblings().hide();
-				$(this).addClass("collapsed");
-				$(this).click(function() {
-					$(this).toggleClass("expanded");
-					$(this).toggleClass("collapsed");
-					$(this).siblings().slideToggle();
+				$(this).siblings().hide()
+				.addClass("collapsed")
+				.click(function() {
+					$(this).toggleClass("expanded collapsed")
+					.siblings().slideToggle();
+				//$(this).siblings().hide();
+				//$(this).addClass("collapsed");
+				//$(this).click(function() {
+				//	$(this).toggleClass("expanded");
+				//	$(this).toggleClass("collapsed");
+				//	$(this).siblings().slideToggle();
 					return false;
 				});
+			});
+
+			$('fieldset.fieldset-collapsible').each(function() {
+				var collapsible = $(this);
+				var legend = collapsible.find('legend:first');
+				legend.addClass('fieldset-collapsible-label').bind('click', {collapsible: collapsible}, function(event) {
+					var collapsible = event.data.collapsible;
+					if (collapsible.hasClass('fieldset-collapsed')) {
+						collapsible.removeClass('fieldset-collapsed');
+					} else {
+						collapsible.addClass('fieldset-collapsed');
+					}
+				});
+				// Init.
+				collapsible.addClass('fieldset-collapsed');
 			});
 		},
 
@@ -263,8 +288,27 @@ var VuFind = (function(){
 			if (event.keyCode == 13){
 				$(formToSubmit).submit();
 			}
-		}
+		},
 
+		hasLocalStorage: function () {
+			// arguments.callee.haslocalStorage is the function's "static" variable for whether or not we have tested the
+			// that the localStorage system is available to us.
+
+			//console.log(typeof arguments.callee.haslocalStorage);
+			if(typeof arguments.callee.haslocalStorage == "undefined") {
+				if ("localStorage" in window) {
+					try {
+						window.localStorage.setItem('_tmptest', 'temp');
+						arguments.callee.haslocalStorage = (window.localStorage.getItem('_tmptest') == 'temp');
+						// if we get the same info back, we are good. Otherwise, we don't have localStorage.
+						window.localStorage.removeItem('_tmptest');
+					} catch(error) { // something failed, so we don't have localStorage available.
+						arguments.callee.haslocalStorage = false;
+					}
+				} else arguments.callee.haslocalStorage = false;
+			}
+			return arguments.callee.haslocalStorage;
+		}
 	}
 
 }(VuFind || {}));
@@ -281,3 +325,47 @@ jQuery.validator.addMethod("multiemail", function (value, element) {
 	}
 	return valid;
 }, "Invalid email format: please use a comma to separate multiple email addresses.");
+
+/**
+ *  Modified from above code, for Pika self registration form.
+ *
+ * Return true, if the value is a valid date, also making this formal check mm-dd-yyyy.
+ *
+ * @example jQuery.validator.methods.date("01-01-1900")
+ * @result true
+ *
+ * @example jQuery.validator.methods.date("01-13-1990")
+ * @result false
+ *
+ * @example jQuery.validator.methods.date("01.01.1900")
+ * @result false
+ *
+ * @example <input name="pippo" class="{datePika:true}" />
+ * @desc Declares an optional input element whose value must be a valid date.
+ *
+ * @name jQuery.validator.methods.datePika
+ * @type Boolean
+ * @cat Plugins/Validate/Methods
+ */
+jQuery.validator.addMethod(
+		"datePika",
+		function(value, element) {
+			var check = false;
+			var re = /^\d{1,2}(-)\d{1,2}(-)\d{4}$/;
+			if( re.test(value)){
+				var adata = value.split('-');
+				var mm = parseInt(adata[0],10);
+				var dd = parseInt(adata[1],10);
+				var aaaa = parseInt(adata[2],10);
+				var xdata = new Date(aaaa,mm-1,dd);
+				if ( ( xdata.getFullYear() == aaaa ) && ( xdata.getMonth () == mm - 1 ) && ( xdata.getDate() == dd ) )
+					check = true;
+				else
+					check = false;
+			} else
+				check = false;
+			return this.optional(element) || check;
+		},
+		"Please enter a correct date"
+);
+

@@ -515,7 +515,14 @@ class Aspencat implements DriverInterface{
 	}
 
 	private $patronProfiles = array();
+	function updatePatronInfo($canUpdateContactInfo){
+		$updateErrors = array();
+		if ($canUpdateContactInfo) {
+			$updateErrors[] = "Profile Information can not be updated.";
+		}
+		return $updateErrors;
 
+	}
 	/**
 	 * @param User $patron
 	 * @param bool $forceReload
@@ -524,6 +531,8 @@ class Aspencat implements DriverInterface{
 	public function getMyProfile($patron, $forceReload = false) {
 		//Update to not use SIP, just screen scrape for performance (sigh)
 		global $timer;
+		/** @var Memcache $memCache */
+		global $memCache;
 
 		if (!is_object($patron)){
 			$tmpPatron = new User();
@@ -537,18 +546,38 @@ class Aspencat implements DriverInterface{
 			$patron = $tmpPatron;
 		}
 
-		if (array_key_exists($patron->username, $this->patronProfiles) && !$forceReload){
-			$timer->logTime('Retrieved Cached Profile for Patron');
-			return $this->patronProfiles[$patron->username];
+		if (!$forceReload && !isset($_REQUEST['reload'])) {
+
+			// Check the Object for profile
+			if (array_key_exists($patron->username, $this->patronProfiles)) {
+				$timer->logTime('Retrieved Cached Profile for Patron');
+				return $this->patronProfiles[$patron->username];
+			}
 		}
 
-		/** @var Memcache $memCache */
-		global $memCache;
-		$patronProfile = $memCache->get('patronProfile_' . $patron->username);
-		if ($patronProfile && !isset($_REQUEST['reload']) && !$forceReload){
-			//echo("Using cached profile for patron " . $userId);
-			$timer->logTime('Retrieved Cached Profile for Patron');
-			return $patronProfile;
+			// Determine memcache key
+		global $serverName;
+		$memCacheProfileKey = "patronProfile_{$serverName}_";
+			if (is_object($patron) && !isset($tmpPatron)) {
+				// exclude the new patron object $tmpPatron created above. It won't have an id or be stored in memcache
+//				$patron         = get_object_vars($patron);
+//			$memCacheProfileKey = $patron['username'];
+				// $patron needs to remain an object for initial loading below
+				$memCacheProfileKey .= $patron->username;
+			} else {
+				global $user;
+//				$memCacheProfileKey = $user->id;
+				$memCacheProfileKey .= $user->username;
+			}
+
+		// Check MemCache for profile
+		if (!$forceReload && !isset($_REQUEST['reload'])) {
+			$patronProfile = $memCache->get($memCacheProfileKey);
+			if ($patronProfile){
+				//echo("Using cached profile for patron " . $userId);
+				$timer->logTime('Retrieved Cached Profile for Patron');
+				return $patronProfile;
+			}
 		}
 
 		$this->initDatabaseConnection();
@@ -558,14 +587,18 @@ class Aspencat implements DriverInterface{
 				$userFromDb = $userFromDbResultSet->fetch_assoc();
 				$userFromDbResultSet->close();
 
-				$city = $userFromDb['city'];
-				$state = "";
-				$commaPos = strpos($city, ',');
-				if ($commaPos !== false){
-					$cityState = $city;
-					$city = substr($cityState, 0, $commaPos);
-					$state = substr($cityState, $commaPos);
-				}
+//				$city = $userFromDb['city'];
+//				$state = "";
+//				$commaPos = strpos($city, ',');
+//				if ($commaPos !== false){ // fix this
+//					$cityState = $city;
+//					$city = substr($cityState, 0, $commaPos);
+//					$state = substr($cityState, $commaPos);
+//				}
+				$city = strtok($userFromDb['city'], ',');
+				$state = strtok(',');
+				$city = trim($city);
+				$state = trim($state);
 
 				//Get fines
 				//Load fines from database
@@ -709,8 +742,10 @@ class Aspencat implements DriverInterface{
 
 		$this->patronProfiles[$patron->username] = $profile;
 		$timer->logTime('Retrieved Profile for Patron from Database');
-		global $configArray;
-		$memCache->set('patronProfile_' . $patron->username, $profile, 0, $configArray['Caching']['patron_profile']) ;
+		global $configArray, $serverName;
+		$memCache->set($memCacheProfileKey, $profile, 0, $configArray['Caching']['patron_profile']) ;
+		// Looks like all drivers but aspencat use id rather than username.
+		// plb 4-16-2014
 		return $profile;
 	}
 
@@ -752,7 +787,7 @@ class Aspencat implements DriverInterface{
 			//Grab the table body
 			preg_match('/<tbody>(.*?)<\/tbody>/si', $transactionTable, $tableBody);
 			$tableBody = $tableBody[1];
-			preg_match_all('/<tr>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
+			preg_match_all('/<tr(?:.*?)>(.*?)<\/tr>/si', $tableBody, $tableData, PREG_PATTERN_ORDER);
 			foreach ($tableData[1] as $tableRow){
 				//Each row represents a transaction
 				$transaction = array();
@@ -1101,38 +1136,49 @@ class Aspencat implements DriverInterface{
 			//Use MySQL connection to load data
 			$this->initDatabaseConnection();
 
-			$this->getUserInfoStmt->bind_param('ss', $username, $username);
-			$encodedPassword = rtrim (base64_encode (pack ('H*', md5 ($password))), '=');
-
-			if ($this->getUserInfoStmt->execute()){
-				if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()){
-					$userFromDb = $userFromDbResultSet->fetch_assoc();
-					if ($userFromDb['password'] == $encodedPassword){
-						$returnVal = array(
-							'username'  => $userFromDb['borrowernumber'], //The unique id of the patron in the ILS
-							'firstname' => $userFromDb['firstname'],
-							'lastname'  => $userFromDb['surname'],
-							'fullname'  => $userFromDb['firstname'] . ' ' . $userFromDb['surname'],     //Added to array for possible display later.
-							'cat_username' => $username,
-							'cat_password' => $password,
-
-							'email' => $userFromDb['email'],
-							'major' => null,
-							'college' => null,
-							'patronType' => $userFromDb['categorycode'],
-							'web_note' => ''
-						);
-						$this->loadedUsers[$username] = $returnVal;
-						$timer->logTime("patron logged in successfully");
-						return $returnVal;
-					}else{
-						return null;
+			$barcodesToTest = array();
+			$barcodesToTest[] = $username;
+			//Special processing to allow users to login with short barcodes
+			global $library;
+			if ($library){
+				if ($library->barcodePrefix){
+					if (strpos($username, $library->barcodePrefix) !== 0){
+						//Add the barcode prefix to the barcode
+						$barcodesToTest[] = $library->barcodePrefix . $username;
 					}
 				}
-				return null;
-			}else{
-				return null;
 			}
+
+			foreach ($barcodesToTest as $i=>$barcode) {
+				$this->getUserInfoStmt->bind_param('ss', $barcode, $barcode);
+				$encodedPassword = rtrim(base64_encode(pack('H*', md5($password))), '=');
+
+				if ($this->getUserInfoStmt->execute()) {
+					if ($userFromDbResultSet = $this->getUserInfoStmt->get_result()) {
+						$userFromDb = $userFromDbResultSet->fetch_assoc();
+						if ($userFromDb['password'] == $encodedPassword) {
+							$returnVal = array(
+								'username' => $userFromDb['borrowernumber'], //The unique id of the patron in the ILS
+								'firstname' => $userFromDb['firstname'],
+								'lastname' => $userFromDb['surname'],
+								'fullname' => $userFromDb['firstname'] . ' ' . $userFromDb['surname'],     //Added to array for possible display later.
+								'cat_username' => $barcode,
+								'cat_password' => $password,
+
+								'email' => $userFromDb['email'],
+								'major' => null,
+								'college' => null,
+								'patronType' => $userFromDb['categorycode'],
+								'web_note' => ''
+							);
+							$this->loadedUsers[$barcode] = $returnVal;
+							$timer->logTime("patron logged in successfully");
+							return $returnVal;
+						}
+					}
+				}
+			}
+			return null;
 		}
 
 	}
@@ -1351,6 +1397,7 @@ class Aspencat implements DriverInterface{
 				$campus = $locationLookup->code;
 			}
 		}
+		$campus = strtoupper($campus);
 
 		//Get a specific item number to place a hold on even though we are placing a title level hold.
 		//because.... Koha
@@ -1366,11 +1413,15 @@ class Aspencat implements DriverInterface{
 		//Check to see if the title requires item level holds
 		/** @var File_MARC_Data_Field[] $holdTypeFields */
 		$itemLevelHoldAllowed = false;
+		$itemLevelHoldOnly = false;
 		$holdTypeFields = $marcRecord->getFields('942');
 		foreach ($holdTypeFields as $holdTypeField){
 			if ($holdTypeField->getSubfield('r') != null){
 				if ($holdTypeField->getSubfield('r')->getData() == 'itemtitle'){
 					$itemLevelHoldAllowed = true;
+				}else if ($holdTypeField->getSubfield('r')->getData() == 'item'){
+					$itemLevelHoldAllowed = true;
+					$itemLevelHoldOnly = true;
 				}
 			}
 		}
@@ -1392,13 +1443,15 @@ class Aspencat implements DriverInterface{
 		if ($itemLevelHoldAllowed){
 			//Need to prompt for an item level hold
 			$items = array();
-			//Add a first title returned
-			$items[-1] = array(
-				'itemNumber' => -1,
-				'location' => 'Next available copy',
-				'callNumber' => '',
-				'status' => '',
-			);
+			if (!$itemLevelHoldOnly){
+				//Add a first title returned
+				$items[-1] = array(
+					'itemNumber' => -1,
+					'location' => 'Next available copy',
+					'callNumber' => '',
+					'status' => '',
+				);
+			}
 
 			//Get the item table from the page
 			if (preg_match('/<table>\\s+<caption>Select a specific copy:<\/caption>\\s+(.*?)<\/table>/s', $placeHoldPage, $matches)) {
@@ -1557,6 +1610,10 @@ class Aspencat implements DriverInterface{
 				$campus = $locationLookup->code;
 			}
 		}
+		$campus = strtoupper($campus);
+
+		//Login before placing the hold
+		$this->loginToKoha($user);
 
 		//Post the hold to koha
 		$placeHoldPage = $configArray['Catalog']['url'] . '/cgi-bin/koha/opac-reserve.pl';
@@ -2253,9 +2310,8 @@ class Aspencat implements DriverInterface{
 
 	public function clearPatronProfile() {
 		/** @var Memcache $memCache */
-		global $memCache;
-		global $user;
-		$memCache->delete('patronProfile_' . $user->id);
+		global $memCache, $user, $serverName;
+		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
 	}
 
 	private $holdsByBib = array();
@@ -2402,5 +2458,23 @@ class Aspencat implements DriverInterface{
 		}
 
 		return $amountOutstanding ;
+	}
+
+	public function isUserStaff(){
+		global $configArray;
+		global $user;
+		if (count($user->getRoles()) > 0){
+			return true;
+		}else if (isset($configArray['Staff P-Types'])){
+			$staffPTypes = $configArray['Staff P-Types'];
+			$pType = $this->getPType();
+			if (array_key_exists($pType, $staffPTypes)){
+				return true;
+			}else{
+				return false;
+			}
+		}else{
+			return false;
+		}
 	}
 }

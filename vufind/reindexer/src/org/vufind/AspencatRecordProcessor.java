@@ -20,8 +20,11 @@ import java.util.Set;
  * Time: 3:00 PM
  */
 public class AspencatRecordProcessor extends IlsRecordProcessor {
+	private char shelfLocationSubfield;
+
 	public AspencatRecordProcessor(GroupedWorkIndexer indexer, Connection vufindConn, Ini configIni, Logger logger) {
 		super(indexer, vufindConn, configIni, logger);
+		shelfLocationSubfield = getSubfieldIndicatorFromConfig(configIni, "shelfLocationSubfield");
 	}
 
 	@Override
@@ -200,7 +203,7 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 	}
 
 	protected String getEContentSharing(EContentIlsItem ilsEContentItem, DataField itemField) {
-		if (ilsEContentItem.getLocation().equals("ONLINE")) {
+		if (ilsEContentItem.getLocationCode().equals("ONLINE")) {
 			return "shared";
 		}else{
 			return "library";
@@ -226,7 +229,7 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 	 */
 	protected void loadEContentSourcesAndProtectionTypes(GroupedWorkSolr groupedWork, List<EContentIlsItem> itemRecords) {
 		for (EContentIlsItem curItem : itemRecords){
-			String locationCode = curItem.getLocation();
+			String locationCode = curItem.getLocationCode();
 			HashSet<String> sources = new HashSet<String>();
 			HashSet<String> protectionTypes = new HashSet<String>();
 
@@ -340,5 +343,55 @@ public class AspencatRecordProcessor extends IlsRecordProcessor {
 			suppressed = curItem.getSubfield(iTypeSubfield).getData().equalsIgnoreCase("ill");
 		}
 		return suppressed;
+	}
+
+	@Override
+	protected String getLocationForItem(DataField itemField){
+		String collection = getItemSubfieldData(collectionSubfield, itemField);
+		String location = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		if (collection != null){
+			return collection.toLowerCase();
+		}else{
+			if (location != null) {
+				return location.toLowerCase();
+			}else{
+				return location;
+			}
+		}
+	}
+
+	@Override
+	protected String getLibrarySystemCodeForItem(DataField itemField){
+		String location = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		if (location != null) {
+			return location.toLowerCase();
+		}else{
+			return location;
+		}
+	}
+
+	@Override
+	protected String getShelfLocationCodeForItem(DataField itemField){
+		String shelfLocation = getItemSubfieldData(shelfLocationSubfield, itemField);
+		if (shelfLocation != null) {
+			return shelfLocation.toLowerCase();
+		}else{
+			return shelfLocation;
+		}
+	}
+
+	protected String getShelfLocationForItem(DataField itemField) {
+		String locationCode = getItemSubfieldData(locationSubfieldIndicator, itemField);
+		String shelfLocation = indexer.translateValue("location", locationCode);
+		String collection = getItemSubfieldData(collectionSubfield, itemField);
+		if (collection != null && !collection.equals(locationCode)){
+			shelfLocation += " - " + indexer.translateValue("ccode", collection);
+		}
+		return shelfLocation;
+	}
+
+	@Override
+	protected String getCollectionForItem(DataField itemField){
+		return null;
 	}
 }

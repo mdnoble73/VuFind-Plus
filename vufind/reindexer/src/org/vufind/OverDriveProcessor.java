@@ -55,8 +55,8 @@ public class OverDriveProcessor {
 
 		//Setup translation maps for system and location
 		try {
-			PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, facetLabel FROM library", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
-			PreparedStatement locationsForLibraryStmt = vufindConn.prepareStatement("SELECT locationId, code, facetLabel FROM location WHERE libraryId = ?", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement libraryInformationStmt = vufindConn.prepareStatement("SELECT libraryId, ilsCode, subdomain, facetLabel FROM library where enableOverdriveCollection = 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement locationsForLibraryStmt = vufindConn.prepareStatement("SELECT locationId, code, facetLabel FROM location WHERE libraryId = ? and enableOverdriveCollection = 1", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 			ResultSet libraryInformationRS = libraryInformationStmt.executeQuery();
 			while (libraryInformationRS.next()){
 				Long libraryId = libraryInformationRS.getLong("libraryId");
@@ -199,13 +199,19 @@ public class OverDriveProcessor {
 							}
 							owningLibraries.add(libraryMap.get(libraryId));
 							owningSubdomainsAndLocations.add(subdomainMap.get(libraryId));
-							owningSubdomainsAndLocations.addAll(locationsForLibrary.get(libraryId));
+							HashSet<String> thisLocationsForLibrary = locationsForLibrary.get(libraryId);
+							if (thisLocationsForLibrary != null) {
+								owningSubdomainsAndLocations.addAll(thisLocationsForLibrary);
+								owningLocations.addAll(thisLocationsForLibrary);
+							}
 							owningSubdomains.add(subdomainMap.get(libraryId));
-							owningLocations.addAll(locationsForLibrary.get(libraryId));
+
 							if (available) {
 								availableLibraries.add(libraryMap.get(libraryId));
 								availableSubdomainsAndLocations.add(subdomainMap.get(libraryId));
-								availableSubdomainsAndLocations.addAll(locationsForLibrary.get(libraryId));
+								if (thisLocationsForLibrary != null) {
+									availableSubdomainsAndLocations.addAll(thisLocationsForLibrary);
+								}
 							}
 						}//End processing availability
 					}

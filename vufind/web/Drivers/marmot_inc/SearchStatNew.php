@@ -36,8 +36,8 @@ class SearchStatNew extends DB_DataObject
 		if ($searchStat->N > 0){
 			while($searchStat->fetch()){
 				$searchStat->phrase = trim(str_replace('"', '', $searchStat->phrase));
-				if ($this->phrase != $phrase && !array_key_exists($searchStat->phrase, $results)){
-					$results[$searchStat->phrase] = array('phrase'=>$searchStat->phrase, 'numSearches'=>$searchStat->numSearches, 'numResults'=>1);
+				if ($searchStat->phrase != $phrase && !array_key_exists($searchStat->phrase, $results)){
+					$results[str_pad($searchStat->numSearches, 10, '0', STR_PAD_LEFT) . $searchStat->phrase] = array('phrase'=>$searchStat->phrase, 'numSearches'=>$searchStat->numSearches, 'numResults'=>1);
 				}
 			}
 		}else{
@@ -53,7 +53,7 @@ class SearchStatNew extends DB_DataObject
 				while($searchStat->fetch()){
 					$searchStat->phrase = trim(str_replace('"', '', $searchStat->phrase));
 					if ($this->phrase != $phrase && !array_key_exists($searchStat->phrase, $results)){
-						$results[$searchStat->phrase] = array('phrase'=>$searchStat->phrase, 'numSearches'=>$searchStat->numSearches, 'numResults'=>1);
+						$results[str_pad($searchStat->numSearches, 10, '0', STR_PAD_LEFT) . $searchStat->phrase] = array('phrase'=>$searchStat->phrase, 'numSearches'=>$searchStat->numSearches, 'numResults'=>1);
 					}
 				}
 			}else{
@@ -61,7 +61,7 @@ class SearchStatNew extends DB_DataObject
 
 			}
 		}
-		return array_values($results);
+		return $results;
 	}
 
 	function saveSearch($phrase, $type = false, $numResults){
@@ -77,6 +77,15 @@ class SearchStatNew extends DB_DataObject
 
 		//Don't save searches that are numeric (if someone has a number they won't need suggestions).
 		if (is_numeric($phrase)){
+			return;
+		}
+
+		//Don't save searches that look like spam
+		if (preg_match('/http:|mailto:|https:/i', $phrase)){
+			return;
+		}
+
+		if (strlen($phrase) >= 256){
 			return;
 		}
 

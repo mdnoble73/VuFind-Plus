@@ -56,7 +56,6 @@ public abstract class MarcRecordProcessor {
 		groupedWork.addGeographic(getFieldList(record, "651avxyz"));
 		groupedWork.addGeographicFacet(getFieldList(record, "600z:610z:611z:630z:648z:650z:651a:651z:655z"));
 		groupedWork.addEra(getFieldList(record, "600d:610y:611y:630y:648a:648y:650y:651y:655y"));
-		groupedWork.addContents(getFieldList(record, "505a:505t"));
 		groupedWork.addIssns(getFieldList(record, "022a"));
 		groupedWork.addOclcNumbers(getFieldList(record, "035a"));
 		loadAwards(groupedWork, record);
@@ -618,6 +617,7 @@ public abstract class MarcRecordProcessor {
 		return variableFieldsReturn;
 	}
 
+	private static Pattern arNumberPattern = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ | Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
 	public String getAcceleratedReaderReadingLevel(Record marcRecord) {
 		String result;
 		// Get a list of all tags that may contain the lexile score.
@@ -635,9 +635,7 @@ public abstract class MarcRecordProcessor {
 					if (field.getSubfield('c') != null){
 						String rawData = field.getSubfield('c').getData();
 						try {
-							Pattern Regex = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ
-									| Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-							Matcher RegexMatcher = Regex.matcher(rawData);
+							Matcher RegexMatcher = arNumberPattern.matcher(rawData);
 							if (RegexMatcher.find()) {
 								result = RegexMatcher.group(1);
 								// System.out.println("AR Reading Level " + result);
@@ -747,9 +745,7 @@ public abstract class MarcRecordProcessor {
 					if (type.matches("(?i)accelerated reader") && field.getSubfield('d') != null) {
 						String rawData = field.getSubfield('d').getData();
 						try {
-							Pattern Regex = Pattern.compile("([\\d.]+)", Pattern.CANON_EQ
-									| Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
-							Matcher RegexMatcher = Regex.matcher(rawData);
+							Matcher RegexMatcher = arNumberPattern.matcher(rawData);
 							if (RegexMatcher.find()) {
 								result = RegexMatcher.group(1);
 								// System.out.println("AR Point Level " + result);

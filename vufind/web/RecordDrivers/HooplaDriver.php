@@ -152,7 +152,7 @@ class HooplaRecordDriver extends MarcRecord {
 	function getActions() {
 		//TODO: If this is added to the related record, pass in the value
 		$actions = array();
-		$title = 'Access Online';
+		$title = translate('hoopla_checkout_action');
 
 		$marcRecord = $this->getMarcRecord();
 		/** @var File_MARC_Data_Field[] $linkFields */

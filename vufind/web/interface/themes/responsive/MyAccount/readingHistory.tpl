@@ -8,7 +8,7 @@
 		</div>
 	{/if}
 	{if $profile.numHoldsAvailableTotal && $profile.numHoldsAvailableTotal > 0}
-		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds">You have <span style="font-weight: bold">{$profile.numHoldsAvailableTotal}</span> holds ready for pick up.</a></div>
+		<div class="text-info text-center alert alert-info"><a href="/MyAccount/Holds" class="alert-link">You have {$profile.numHoldsAvailableTotal} holds ready for pick up.</a></div>
 	{/if}
 
 	<h2>{translate text='My Reading History'} {if $historyActive == true}<small><a id='readingListWhatsThis' href="#" onclick="$('#readingListDisclaimer').toggle();return false;">(What's This?)</a></small>{/if}</h2>
@@ -24,6 +24,7 @@
 
 	<form id='readingListForm' action ="{$fullPath}" class="form-inline">
 		<div class="row">
+			<input type="hidden" name="page" value="{$page}" />
 			<input name='readingHistoryAction' id='readingHistoryAction' value='' type='hidden' />
 			<div id="readingListActionsTop" class="col-xs-12">
 				<div class="btn-group btn-group-sm">
@@ -48,11 +49,11 @@
 						<div class="col-sm-6 form-group" id="recordsPerPage">
 							<label for="pagesize" class="control-label">Records Per Page&nbsp;</label>
 							<select id="pagesize" class="pagesize form-control input-sm" onchange="VuFind.changePageSize()">
-								<option value="10" {if $recordsPerPage == 10}selected="selected"{/if}>10</option>
-								<option value="25" {if $recordsPerPage == 25}selected="selected"{/if}>25</option>
-								<option value="50" {if $recordsPerPage == 50}selected="selected"{/if}>50</option>
-								<option value="75" {if $recordsPerPage == 75}selected="selected"{/if}>75</option>
-								<option value="100" {if $recordsPerPage == 100}selected="selected"{/if}>100</option>
+								<option value="10"{if $recordsPerPage == 10} selected="selected"{/if}>10</option>
+								<option value="25"{if $recordsPerPage == 25} selected="selected"{/if}>25</option>
+								<option value="50"{if $recordsPerPage == 50} selected="selected"{/if}>50</option>
+								<option value="75"{if $recordsPerPage == 75} selected="selected"{/if}>75</option>
+								<option value="100"{if $recordsPerPage == 100} selected="selected"{/if}>100</option>
 							</select>
 						</div>
 						<div class="col-sm-6 col-lg-5 form-group" id="sortOptions">
@@ -64,7 +65,7 @@
 							</select>
 						</div>
 						<div class="col-sm-12 col-lg-2 form-group" id="coverOptions">
-							<label for="hideCovers">Hide Covers <input id="hideCovers" type="checkbox" onclick="$('.imageCell').toggle();" /></label>
+							<label for="hideCovers">Hide Covers <input id="hideCovers" type="checkbox" onclick="$('.listResultImage').toggle();" /></label>
 						</div>
 					</div>
 				</div>
@@ -179,13 +180,13 @@
 					<div id="readingListActionsBottom" class="btn-group btn-group-sm">
 						{if $historyActive == true}
 							{if $transList}
-								<a class="btn btn-sm btn-default" onclick="return VuFind.Account.ReadingHistory.deletedMarkedAction()" href="#">Delete Marked</a>
-								<a class="btn btn-sm btn-default" onclick="return VuFind.Account.ReadingHistory.deleteAllAction()" href="#">Delete All</a>
+								<a class="btn btn-sm btn-warning" onclick='return VuFind.Account.ReadingHistory.deletedMarkedAction()' href="#">Delete Marked</a>
+								<a class="btn btn-sm btn-danger" onclick='return VuFind.Account.ReadingHistory.deleteAllAction()' href="#">Delete All</a>
 							{/if}
-							{* <button value="exportList" class="RLexportList" onclick='return exportListAction()'>Export Reading History</button> *}
-							<a class="btn btn-sm btn-default" onclick='return VuFind.Account.ReadingHistory.optOutAction()' href="#">Stop Recording My Reading History</a>
+							<a class="btn btn-sm btn-info" onclick="return VuFind.Account.ReadingHistory.exportListAction();">Export To Excel</a>
+							<a class="btn btn-sm btn-danger" onclick="return VuFind.Account.ReadingHistory.optOutAction()" href="#">Stop Recording My Reading History</a>
 						{else}
-							<a class="btn btn-sm btn-default" onclick='return VuFind.Account.ReadingHistory.optInAction()' href="#">Start Recording My Reading History</a>
+							<a class="btn btn-sm btn-primary" onclick='return VuFind.Account.ReadingHistory.optInAction()' href="#">Start Recording My Reading History</a>
 						{/if}
 					</div>
 				</div>

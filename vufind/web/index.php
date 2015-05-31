@@ -136,87 +136,9 @@ if ($action == 'SimilarTitles'){
 $interface->assign('module', $module);
 $interface->assign('action', $action);
 
-//Determine the Search Source, need to do this always.
-global $searchSource;
-$searchSource = 'global';
-if (isset($_GET['searchSource'])){
-	$searchSource = $_GET['searchSource'];
-	$_REQUEST['searchSource'] = $searchSource; //Update request since other check for it here
-	$_SESSION['searchSource'] = $searchSource; //Update the session so we can remember what the user was doing last.
-}else{
-	if ( isset($_SESSION['searchSource'])){ //Didn't get a source, use what the user was doing last
-		$searchSource = $_SESSION['searchSource'];
-		$_REQUEST['searchSource'] = $searchSource;
-	}else{
-		//Use a default search source
-		if ($module == 'Person'){
-			$searchSource = 'genealogy';
-		}else{
-			$searchSource = 'local';
-		}
-		$_REQUEST['searchSource'] = $searchSource;
-	}
-}
-
-$searchLibrary = Library::getSearchLibrary(null);
-$searchLocation = Location::getSearchLocation(null);
-
-//Based on the search source, determine the search scope and set a global variable
 global $solrScope;
-$solrScope = false;
-if ($searchSource == 'local' || $searchSource == 'econtent'){
-	$locationIsScoped = $searchLocation != null &&
-			($searchLocation->restrictSearchByLocation ||
-					$searchLocation->econtentLocationsToInclude != 'all' ||
-					$searchLocation->useScope ||
-					!$searchLocation->enableOverdriveCollection ||
-					strlen($searchLocation->extraLocationCodesToInclude) > 0);
-
-	$libraryIsScoped = $searchLibrary != null &&
-			($searchLibrary->restrictSearchByLibrary ||
-					$searchLibrary->econtentLocationsToInclude != 'all' ||
-					(strlen($searchLibrary->pTypes) > 0 && $searchLibrary->pTypes != -1) ||
-					$searchLibrary->useScope ||
-					!$searchLibrary->enableOverdriveCollection);
-
-	if ($locationIsScoped &&
-			(
-					(
-							$searchLocation->econtentLocationsToInclude != $searchLibrary->econtentLocationsToInclude
-							&& strlen($searchLocation->econtentLocationsToInclude) > 0
-							&& $searchLocation->econtentLocationsToInclude != 'all'
-					) || (
-							$searchLocation->useScope && $searchLibrary->scope != $searchLocation->scope
-					)
-			)){
-		$solrScope = $searchLocation->code;
-	}else{
-		$solrScope = $searchLibrary->subdomain;
-	}
-}elseif($searchSource != 'marmot' && $searchSource != 'global'){
-	$solrScope = $searchSource;
-}
-$solrScope = trim($solrScope);
-if (strlen($solrScope) == 0){
-	$solrScope = false;
-}
-$interface->assign('solrScope', $solrScope);
-
-$searchLibrary = Library::getSearchLibrary($searchSource);
-$searchLocation = Location::getSearchLocation($searchSource);
-
-global $millenniumScope;
-if ($library){
-	if ($searchLibrary){
-		$millenniumScope = $searchLibrary->scope;
-	}elseif (isset($searchLocation)){
-		MillenniumDriver::$scopingLocationCode = $searchLocation->code;
-	}else{
-		$millenniumScope = isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
-	}
-}else{
-	$millenniumScope = isset($configArray['OPAC']['defaultScope']) ? $configArray['OPAC']['defaultScope'] : '93';
-}
+global $scopeType;
+$interface->assign('solrScope', "$solrScope - $scopeType");
 $interface->assign('millenniumScope', $millenniumScope);
 
 //Set that the interface is a single column by default
@@ -459,12 +381,15 @@ if ($action == "AJAX" || $action == "JSON"){
 	}
 
 	//Load basic search types for use in the interface.
-	/** @var SearchObject_Base $searchObject */
+	/** @var SearchObject_Solr|SearchObject_Base $searchObject */
 	$searchObject = SearchObjectFactory::initSearchObject();
 	$searchObject->init();
 	$timer->logTime('Create Search Object');
 	$basicSearchTypes = is_object($searchObject) ?    $searchObject->getBasicTypes() : array();
 	$interface->assign('basicSearchTypes', $basicSearchTypes);
+
+	// Set search results display mode in search-box //
+	if ($searchObject->getView()) $interface->assign('displayMode', $searchObject->getView());
 
 	//Load repeat search options
 	require_once(ROOT_DIR . '/Drivers/marmot_inc/SearchSources.php');
@@ -484,14 +409,15 @@ if ($action == "AJAX" || $action == "JSON"){
 		if (!is_null($savedSearch)){
 			$interface->assign('lookfor',             $savedSearch->displayQuery());
 			$interface->assign('searchType',          $savedSearch->getSearchType());
-			$interface->assign('searchIndex',         $savedSearch->getSearchIndex());
+			$searchIndex = $savedSearch->getSearchIndex();
+			$interface->assign('searchIndex',         $searchIndex);
 			$interface->assign('filterList', $savedSearch->getFilterList());
 			$interface->assign('savedSearch', $savedSearch->isSavedSearch());
 		}
 		$timer->logTime('Load last search for redisplay');
 	}
 
-	if ((($module=="Search" || $module=="Summon" || $module=="WorldCat") && $action =="Home") ||
+	if (($action =="Home" && ($module=="Search" || $module=="Summon" || $module=="WorldCat")) ||
 	$action == "AJAX" || $action == "JSON"){
 		$interface->assign('showTopSearchBox', 0);
 		$interface->assign('showBreadcrumbs', 0);
@@ -524,7 +450,7 @@ if ($action == "AJAX" || $action == "JSON"){
 }
 
 //Determine if we should include autoLogout Code
-$ipLocation = $locationSingleton->getIPLocation();
+$ipLocation = $locationSingleton->getPhysicalLocation();
 $ipId = $locationSingleton->getIPid();
 
 $interface->assign('automaticTimeoutLength', 0);
@@ -764,8 +690,8 @@ function getGitBranch(){
 	}else{
 		$stringFromFile = file('../../.git/FETCH_HEAD', FILE_USE_INCLUDE_PATH);
 		$stringFromFile = $stringFromFile[0]; //get the string from the array
-		if (preg_match('/.*branch\s+\'(.*?)\'.*/', $stringFromFile, $matches)){
-			$branchName = $matches[1]; //get the branch name
+		if (preg_match('/(.*?)\s+branch\s+\'(.*?)\'.*/', $stringFromFile, $matches)){
+			$branchName = $matches[2] . ' (' . $matches[1] . ')'; //get the branch name
 		}
 	}
 	$interface->assign('gitBranch', $branchName);

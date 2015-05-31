@@ -103,7 +103,14 @@ cd /usr/local/vufind-plus/vufind/cron;./HOOPLA.sh ${PIKASERVER} >> ${OUTPUT_FILE
 #Extract Lexile Data
 cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexileTitles.txt
 
-#Note: should not need OverDrive call, since it happens in continuous_partial_reindex.sh and a full overdrive pull can take 6 hours or more
+#Do a full extract from OverDrive just once a week to catch anything that doesn't
+#get caught in the regular extract
+DAYOFWEEK=$(date +"%u")
+if [ "${DAYOFWEEK}" -eq 6 ];
+then
+	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/
+	nice -n -10 java -jar overdrive_extract.jar ${PIKASERVER} fullReload >> ${OUTPUT_FILE}
+fi
 
 # should test for new bib extract file
 # should copy old bib extract file

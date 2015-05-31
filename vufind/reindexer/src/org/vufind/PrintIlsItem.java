@@ -85,18 +85,23 @@ public class PrintIlsItem extends IlsItem {
 		return compatiblePTypes;
 	}
 
+	@Override
 	public String getRelatedItemInfo(){
-		String fullLocation = this.location != null ? this.location.toLowerCase() : "";
+		StringBuilder fullLocation = new StringBuilder(this.locationCode != null ? this.locationCode.toLowerCase() : "");
 		if (this.collection != null){
-			fullLocation += ":" + this.collection.toLowerCase();
+			fullLocation.append(":").append(this.collection.toLowerCase());
 		}
-		return this.getItemRecordNumber() +
-				"|" + fullLocation +
-				"|" + this.getFullCallNumber() +
-				"|" + (this.available ? "true" : "false") +
-				"|" + (this.isLibraryUseOnly() ? "true" : "false") +
-				"|" + Util.getCommaSeparatedString(this.compatiblePTypes) +
-				"|" + this.status;
+
+		StringBuilder returnValue = new StringBuilder();
+		returnValue.append(this.getItemRecordNumber())                                //Position 0 - same as parent
+				.append("|").append(fullLocation)                                         //Position 1 - same as parent
+				.append("|").append(this.getFullCallNumber())                             //Position 2 - same as parent
+				.append("|").append((this.available ? "true" : "false"))                  //Position 3
+				.append("|").append((this.isLibraryUseOnly() ? "true" : "false"))         //Position 4
+				.append("|").append(Util.getCommaSeparatedString(this.compatiblePTypes))  //Position 5
+				.append("|").append(this.status)                                          //Position 6
+				.append("|").append(this.getShelfLocation());                             //Position 7
+		return returnValue.toString();
 	}
 
 	private boolean isLibraryUseOnly() {

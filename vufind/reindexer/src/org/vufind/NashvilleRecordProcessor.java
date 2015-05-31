@@ -2,7 +2,9 @@ package org.vufind;
 
 import org.apache.log4j.Logger;
 import org.ini4j.Ini;
+import org.marc4j.marc.DataField;
 import org.marc4j.marc.Record;
+import org.marc4j.marc.Subfield;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -61,5 +63,15 @@ public class NashvilleRecordProcessor extends IlsRecordProcessor {
 			}
 		}
 		return available;
+	}
+
+	protected boolean isItemSuppressed(DataField curItem) {
+		Subfield locationCodeSubfield = curItem.getSubfield(locationSubfieldIndicator);
+		if (locationCodeSubfield == null)                                                 {
+			return false;
+		}
+		String locationCode = locationCodeSubfield.getData().trim();
+
+		return locationCode.matches(".*sup");
 	}
 }

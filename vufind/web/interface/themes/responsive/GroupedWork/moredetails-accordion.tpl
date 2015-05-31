@@ -12,7 +12,8 @@
 				<div id="{$moreDetailsKey}PanelBody" class="panel-collapse collapse {if $moreDetailsOption.openByDefault}in{/if}">
 					<div class="panel-body">
 						{if $moreDetailsKey == 'description'}
-							{$moreDetailsOption.body|replace:"\n":"<br />\n"}
+							{* make text-full items easier to read by placing an empty line where linebreaks exist *}
+							{$moreDetailsOption.body|replace:"\n":"<br>\n"}
 						{else}
 							{$moreDetailsOption.body}
 						{/if}

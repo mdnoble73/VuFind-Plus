@@ -2,6 +2,13 @@ VuFind.Browse = (function(){
 	return {
 		curPage: 1,
 		curCategory: '',
+		browseMode: 'covers',
+		//opac: false, // true prevents browser storage of browse mode // Moved to Globals
+		browseModeClasses: { // browse mode to css class correspondence
+			covers:'home-page-browse-thumbnails',
+			grid:'home-page-browse-grid'
+		},
+
 		addToHomePage: function(searchId){
 			VuFind.Account.ajaxLightbox(Globals.path + '/Browse/AJAX?method=getAddBrowseCategoryForm&searchId=' + searchId, true);
 			return false;
@@ -17,15 +24,13 @@ VuFind.Browse = (function(){
 				var Carousel = $(this), width = Carousel.innerWidth();
 
 				if (width > 700) {
-					width = width / 4;
+					width /= 4;
 				} else if (width > 500) {
-					width = width / 3;
+					width /= 3;
 				} else if (width > 400) {
-					width = width / 2;
+					width /= 2;
 				}
-
-				// Set Width
-				Carousel.jcarousel('items').css('width', Math.floor(width) + 'px');
+				Carousel.jcarousel('items').css('width', Math.floor(width) + 'px');// Set Width
 			});
 
 			// connect the browse catalog functions to the jcarousel controls
@@ -33,7 +38,6 @@ VuFind.Browse = (function(){
 				var categoryId = $(this).data('category-id');
 				VuFind.Browse.changeBrowseCategory(categoryId);
 			});
-
 
 			if ($('#browse-category-picker .jcarousel-control-prev').css('display') != 'none') {
 				// only enable if the carousel features are being used.
@@ -68,28 +72,68 @@ VuFind.Browse = (function(){
 
 		},
 
-		changeBrowseCategory: function(categoryTextId){
-			var url = Globals.path + '/Browse/AJAX?method=getBrowseCategoryInfo&textId=' + categoryTextId,
-					newLabel = $('#browse-category-'+categoryTextId+' div').text(); // get label from corresponding li div
+		toggleBrowseMode : function(selectedMode){
+			var mode = this.browseModeClasses.hasOwnProperty(selectedMode) ? selectedMode : this.browseMode, // check that selected mode is a valid option
+					categoryTextId = this.curCategory || $('#browse-category-carousel .selected').data('category-id');
+			this.browseMode = mode; // set the mode officially
+			if (!Globals.opac && VuFind.hasLocalStorage() ) { // store setting in browser if not an opac computer
+				window.localStorage.setItem('browseMode', this.browseMode);
+			}
+			return this.changeBrowseCategory(categoryTextId); // re-load the browse category
+		},
 
+		changeBrowseCategory: function(categoryTextId){
+			var url = Globals.path + '/Browse/AJAX',
+					params = {
+						method : 'getBrowseCategoryInfo'
+						,textId : categoryTextId || VuFind.Browse.curCategory
+						,browseMode : this.browseMode
+					},
+					classes = (function(){ // return list of all associated css classes (class list can be expanded without changing this code.)
+						var str = '', object = VuFind.Browse.browseModeClasses;
+						for (property in object) { str += object[property]+' ' }
+						return str;
+					})(),
+					selectedClass = this.browseModeClasses[this.browseMode],
+
+					newLabel = $('#browse-category-'+categoryTextId+' div').first().text(); // get label from corresponding li div
+			// the carousel clones these divs sometimes, so grab only the text from the first one.
+
+			// Set selected Carousel
 			$('.browse-category').removeClass('selected');
 			$('#browse-category-' + categoryTextId).addClass('selected');
-			$('.selected-browse-label-search-text').html(newLabel);
-			//$('.selected-browse-label-text, .selected-browse-label-search-text').html(newLabel);
-			// .selected-browse-label-text seems to be a defunct class. plb 1-6-2015
 
-			$.getJSON(url, function(data){
+			// Set the new browse category label (below the carousel)
+			$('.selected-browse-label-search-text').fadeOut(function(){
+				$(this).html(newLabel).attr('href', '').fadeIn()
+			});
+
+			// hide current results while fetching new results
+			$('#home-page-browse-results').children().fadeOut(function(){
+				$('#home-page-browse-results').children().slice(1).remove(); // remove all but the first div, also removes the <hr>s between the thumbnail divs
+				$('#home-page-browse-results div.row').removeClass(classes) // remove all browse mode classes
+						.addClass(selectedClass); // add selected browse mode class
+			});
+
+			//if (VuFind.Browse.reload) params.reload = ''; // Reload browse category
+			$.getJSON(url, params, function(data){
 				if (data.result == false){
 					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
 				}else{
-					//$('.selected-browse-label-text, .selected-browse-label-search-text').html(data.label);
-					$('.selected-browse-label-search-text').html(data.label);
+					//if (data.label != newLabel)
+						$('.selected-browse-label-search-text').html(data.label);
 
 					VuFind.Browse.curPage = 1;
 					VuFind.Browse.curCategory = data.textId;
-					$('#home-page-browse-thumbnails').html(data.records);
+					$('#home-page-browse-results div.row') //.hide() // should be the first div only
+							.html(data.records).fadeIn('slow');
+
 					$('#selected-browse-search-link').attr('href', data.searchUrl);
 				}
+			}).fail(function(){
+				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+				$('#home-page-browse-results div').html('').show(); // should be first div
+				//$('.home-page-browse-thumbnails').html('').show();
 			});
 			return false;
 		},
@@ -108,18 +152,29 @@ VuFind.Browse = (function(){
 			return false;
 		},
 
-
 		getMoreResults: function(){
-			var url = Globals.path + '/Browse/AJAX?method=getMoreBrowseResults&textId=' + this.curCategory + "&pageToLoad=" + (this.curPage + 1);
-			$.getJSON(url, function(data){
+			var url = Globals.path + '/Browse/AJAX',
+					params = {
+						method : 'getMoreBrowseResults'
+						,textId :  this.curCategory
+						,pageToLoad : this.curPage + 1
+						,browseMode : this.browseMode
+					},
+					divClass = this.browseModeClasses[this.browseMode];
+			$.getJSON(url, params, function(data){
 				if (data.result == false){
 					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
 				}else{
-					$('#home-page-browse-thumbnails').append(data.records);
+					var newDiv = $('<div class="'+divClass+' row" />').hide().append(data.records);
+					$('.'+divClass).filter(':last').after(newDiv).after('<hr>');
+					newDiv.fadeIn('slow');
 					VuFind.Browse.curPage++;
 				}
+			}).fail(function(){
+				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 			});
 			return false;
 		}
+
 	}
 }(VuFind.Browse || {}));

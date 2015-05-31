@@ -43,6 +43,74 @@ class SearchAPI extends Action {
 		echo $output;
 	}
 
+	function getIndexStatus(){
+		global $serverName;
+
+		$partialIndexUpToDate = false;
+		$fullIndexUpToDate = false;
+		$overDriveExtractUpToDate = false;
+		$notes = '';
+
+
+		$currentTime = time();
+		$lastFullIndexVariable = new Variable();
+		$lastFullIndexVariable->name= 'lastFullReindexFinish';
+		if ($lastFullIndexVariable->find(true)){
+			//Check to see if the last full index finished more than 36 hours ago
+			if ($lastFullIndexVariable->value >= ($currentTime - 36 * 60 * 60)){
+				$fullIndexUpToDate = true;
+			}else{
+				$notes = 'Full Index last finished ' . date('m-d-Y H:i:s', $lastFullIndexVariable->value) . ' - ' . (($currentTime - $lastFullIndexVariable->value) / 3600) . ' hours ago';
+			}
+		}else{
+			$notes = 'Full index has never been run';
+		}
+		$notes .= "; ";
+
+		$lastPartialIndexVariable = new Variable();
+		$lastPartialIndexVariable->name= 'lastPartialReindexFinish';
+		if ($lastPartialIndexVariable->find(true)){
+			//Check to see if the last partial index finished more than 20 minutes ago
+			if ($lastPartialIndexVariable->value >= ($currentTime - 20 * 60)){
+				$partialIndexUpToDate = true;
+			}else{
+				$notes = 'Partial Index last finished ' . date('m-d-Y H:i:s', $lastPartialIndexVariable->value) . ' - ' . (($currentTime - $lastPartialIndexVariable->value) / 60) . ' minutes ago';
+			}
+		}else{
+			$notes = 'Partial index has never been run';
+		}
+		$notes .= "; ";
+
+
+		$lastOverDriveExtractVariable = new Variable();
+		$lastOverDriveExtractVariable->name= 'last_overdrive_extract_time';
+		if ($lastOverDriveExtractVariable->find(true)){
+			//Check to see if the last partial index finished more than 4 hours ago
+			if ($lastOverDriveExtractVariable->value / 1000 >= ($currentTime - 4 * 60 * 60)){
+				$overDriveExtractUpToDate = true;
+			}else{
+				$notes = 'OverDrive Extract last finished ' . date('m-d-Y H:i:s', $lastOverDriveExtractVariable->value / 1000) . ' - ' . (($currentTime - ($lastOverDriveExtractVariable->value / 1000)) / 3600) . ' hours ago';
+			}
+		}else{
+			$notes = 'OverDrive Extract has never been run';
+		}
+		$notes .= "; ";
+
+		if (!$fullIndexUpToDate || !$partialIndexUpToDate || !$overDriveExtractUpToDate){
+			$result = array(
+				'result' => false,
+				'message' => $notes
+			);
+		}else{
+			$result = array(
+				'result' => true,
+				'message' => "Everything is current"
+			);
+		}
+
+		return $result;
+	}
+
 	/**
 	 * Do a basic search and return results as a JSON array
 	 */

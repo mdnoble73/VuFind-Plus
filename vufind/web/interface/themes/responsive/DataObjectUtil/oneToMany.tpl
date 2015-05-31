@@ -49,11 +49,11 @@
 				<a href="#" onclick="if (confirm('Are you sure you want to delete this?')){literal}{{/literal}$('#{$propName}Deleted_{$subObject->id}').val('true');$('#{$propName}{$subObject->id}').hide(){literal}}{/literal};return false;"><img src="{$path}/images/silk/delete.png" alt="delete" /></a>{* link to delete *}
 				{if $property.editLink neq ''}
 					&nbsp;<a href='{$property.editLink}?objectAction=edit&widgetListId={$subObject->id}&widgetId={$widgetid}' alt='Edit SubLinks' title='Edit SubLinks'>
-						<span class="silk link" title="edit links">&nbsp;</span>
+						<span class="glyphicon glyphicon-link" title="edit links">&nbsp;</span>
 					</a>
 				{elseif $property.canEdit}
 					&nbsp;<a href='{$subObject->getEditLink()}' alt='Edit' title='Edit'>
-						<span class="silk edit" title="edit">&nbsp;</span>
+						<span class="glyphicon glyphicon-edit" title="edit">&nbsp;</span>
 					</a>
 				{/if}
 				</td>

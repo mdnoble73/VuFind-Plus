@@ -64,12 +64,15 @@
 			Globals.path = '{$path}';
 			Globals.url = '{$url}';
 			Globals.loggedIn = {$loggedIn};
+			Globals.opac = {if $onInternalIP}true{else}false{/if};
 			{if $automaticTimeoutLength}
 			Globals.automaticTimeoutLength = {$automaticTimeoutLength};
 			{/if}
 			{if $automaticTimeoutLengthLoggedOut}
 			Globals.automaticTimeoutLengthLoggedOut = {$automaticTimeoutLengthLoggedOut};
 			{/if}
+			{* Set Search Result Display Mode on Searchbox *}
+			{if !$onInternalIP}VuFind.Searches.getPreferredDisplayMode();{/if}
 			{literal}
 		});
 		{/literal}

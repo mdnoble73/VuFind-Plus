@@ -366,6 +366,10 @@ Keyword:
 # Now look within our keywords for more exact titles.
     -
       - [OR, 50]
+      - title_full:
+        - [exact, 800]
+        - [onephrase, 500]
+        - [single_word_removal, 50]
       - title_proper:
         - [exact, 800]
         - [onephrase, 500]

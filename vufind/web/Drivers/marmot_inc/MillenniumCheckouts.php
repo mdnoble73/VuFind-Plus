@@ -65,7 +65,7 @@ class MillenniumCheckouts {
 		$sResult = $this->driver->_fetchPatronInfoPage($patronDump, 'items');
 		$timer->logTime("Loaded checked out titles from Millennium");
 
-		$sResult = preg_replace("/<[^<]+?>\W<[^<]+?>\W\d* ITEM.? CHECKED OUT<[^<]+?>\W<[^<]+?>/i", "", $sResult);
+		$sResult = preg_replace("/<[^<]+?>\\W<[^<]+?>\\W\\d* ITEM.? CHECKED OUT<[^<]+?>\\W<[^<]+?>/i", "", $sResult);
 
 		$s = substr($sResult, stripos($sResult, 'patFunc'));
 
@@ -73,7 +73,7 @@ class MillenniumCheckouts {
 
 		$s = substr($s,0,stripos($s,"</table"));
 
-		$s = preg_replace ("/<br \/>/","", $s);
+		$s = preg_replace ("/<br \\/>/","", $s);
 
 		$sRows = preg_split("/<tr([^>]*)>/",$s);
 		$sCount = 0;

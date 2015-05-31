@@ -35,7 +35,17 @@
 									{/if}
 								{/if}
 
-								{if $showExpirationWarnings && $profile.expireclose}<div class="myAccountLink"><a class ="alignright" title="Please contact your local library to have your library card renewed." style="color:green; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">Your library card will expire on {$profile.expires}.</a></div>{/if}
+								{if $showExpirationWarnings && $profile.expireclose}
+									<div class="myAccountLink">
+										<a class ="alignright" title="Please contact your local library to have your library card renewed." style="color:red; font-weight:bold;" onclick="alert('Please Contact your local library to have your library card renewed.')" href="#">
+											{if $profile.expired}
+												Your library card expired on {$profile.expires}.
+											{else}
+												Your library card will expire on {$profile.expires}.
+											{/if}
+										</a>
+									</div>
+								{/if}
 							</div>
 							<hr class="menu"/>
 						{/if}
@@ -72,7 +82,7 @@
 			</div>
 
 			{* My Lists*}
-			{if $lists}
+			{if $lists || $showConvertListsFromClassic}
 				{if $action == 'MyList'}
 					{assign var="curSection" value=true}
 				{else}
@@ -88,6 +98,10 @@
 					</a>
 					<div id="myListsPanel" class="panel-collapse collapse {if $action == 'MyRatings' || $action == 'Suggested Titles' || $action == 'MyList'}in{/if}">
 						<div class="panel-body">
+							{if $showConvertListsFromClassic}
+								<div class="myAccountLink"><a href="{$path}/MyAccount/ImportListsFromClassic">Import Lists from Classic</a></div>
+								<br/>
+							{/if}
 
 							{foreach from=$lists item=list}
 								{if $list.id != -1}
@@ -224,7 +238,7 @@
 				</div>
 			{/if}
 
-			{if $user && ($user->hasRole('cataloging') || $user->hasRole('library_material_requests'))}
+			{if $user && $enableMaterialsRequest &&($user->hasRole('cataloging') || $user->hasRole('library_material_requests') || $user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
 				{if in_array($action, array('ManageRequests', 'SummaryReport', 'UserReport', 'ManageStatuses'))}
 					{assign var="curSection" value=true}
 				{else}
@@ -338,6 +352,7 @@
 							{if $user && ($user->hasRole('opacAdmin') || $user->hasRole('libraryAdmin'))}
 								<div class="adminMenuLink{if $action == "Dashboard"}active{/if}"><a href="{$path}/Report/Dashboard">Dashboard</a></div>
 								<div class="adminMenuLink{if $action == "Searches"}active{/if}"><a href="{$path}/Report/Searches">Searches</a></div>
+								<div class="adminMenuLink">&nbsp;&nbsp;<a href="{$path}/Report/DetailedReport?source=searchesByScope">Searches by Scope</a></div>
 								<div class="adminMenuLink{if $action == "PageViews"}active{/if}"><a href="{$path}/Report/PageViews">Page Views</a></div>
 								<div class="adminMenuLink">&nbsp;&nbsp;<a href="{$path}/Report/DetailedReport?source=pageViewsByTheme">Page Views by Theme</a></div>
 								<div class="adminMenuLink{if $action == "ILSIntegration"}active{/if}"><a href="{$path}/Report/ILSIntegration">ILS Integration</a></div>

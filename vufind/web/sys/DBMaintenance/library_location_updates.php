@@ -964,6 +964,15 @@ function getLibraryLocationUpdates(){
 			),
 		),
 
+		'browse_category_default_view_mode' => array(
+			'title' => 'Viewing Mode for Browse Categories',
+			'description' => 'Default Setting for the Viewing Mode of Browse Categories',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `defaultBrowseMode` VARCHAR(25);",
+				"ALTER TABLE `location` ADD COLUMN `defaultBrowseMode` VARCHAR(25);",
+			),
+		),
 		'logo_linking' => array(
 			'title' => 'Logo Linking',
 			'description' => 'Allow Linking of Logo to the library home page.',
@@ -979,6 +988,15 @@ function getLibraryLocationUpdates(){
 			'continueOnError' => true,
 			'sql' => array(
 				"ALTER TABLE `library` ADD COLUMN `addSMSIndicatorToPhone` TINYINT(1) NULL DEFAULT '0';",
+			),
+		),
+
+		'external_materials_request' => array(
+			'title' => 'Allow linking to an external materials request system',
+			'description' => 'Allow libraries to link to an external materials request system rather than using the built in system',
+			'continueOnError' => true,
+			'sql' => array(
+				"ALTER TABLE `library` ADD COLUMN `externalMaterialsRequestUrl` VARCHAR(255);",
 			),
 		),
 	);

@@ -17,6 +17,7 @@ import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Date;
+import java.util.concurrent.ThreadFactory;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -36,6 +37,7 @@ public class GroupedWorkIndexer {
 	private String solrPort;
 	private Logger logger;
 	private SolrServer solrServer;
+	private Long indexStartTime;
 	private ConcurrentUpdateSolrServer updateServer;
 	private IlsRecordProcessor ilsRecordProcessor;
 	private OverDriveProcessor overDriveProcessor;
@@ -67,6 +69,7 @@ public class GroupedWorkIndexer {
 	PreparedStatement getGroupedWorkIdentifiers;
 
 	public GroupedWorkIndexer(String serverName, Connection vufindConn, Connection econtentConn, Ini configIni, boolean fullReindex, Logger logger) {
+		indexStartTime = new Date().getTime() / 1000;
 		this.serverName = serverName;
 		this.logger = logger;
 		this.vufindConn = vufindConn;
@@ -132,20 +135,27 @@ public class GroupedWorkIndexer {
 			updateServer = new ConcurrentUpdateSolrServer("http://localhost:" + solrPort + "/solr/grouped2", 5000, 10);
 			solrServer = new HttpSolrServer("http://localhost:" + solrPort + "/solr/grouped2");
 		}else{
+			//Check to make sure that at least a couple of minutes have elapsed since the last index
+			//Periodically in the middle of the night we get indexes every minute or multiple times a minute
+			//which is annoying especially since it generally means nothing is changing.
+			long elapsedTime = indexStartTime - lastReindexTime;
+			long minIndexingInterval = 4 * 60;
+			if (elapsedTime < minIndexingInterval) {
+				try {
+					logger.debug("Pausing between indexes, last index ran " + elapsedTime / 60 + " minutes ago");
+					logger.debug("Pausing for " + (minIndexingInterval - elapsedTime) + " seconds");
+					Thread.sleep((minIndexingInterval - elapsedTime) * 1000);
+				} catch (InterruptedException e) {
+					logger.warn("Pause was interrupted while pausing between indexes");
+				}
+
+			}
+
 			if (partialReindexRunning){
-				//Make sure that it hasn't been a long time since the last index ran (1 hour).
-				//MDN 10/9 don't do this because we do get long periods of inactivity in the middle of the night
-				/*if (new Date().getTime() - (lastReindexTime * 1000) > (6 * 60 * 60 * 1000)){
-					//Oops, a reindex is already running.
-					logger.error("A partial reindex is already running, but it's been an hour or more since the last one started.  Indexing anyway.");
-					GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, but it's been an hour or more since the last one started.  Indexing anyway.");
-				} else{*/
-					//Oops, a reindex is already running.
-					logger.warn("A partial reindex is already running, check to make sure that reindexes don't overlap since that can cause poor performance");
-					GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, check to make sure that reindexes don't overlap since that can cause poor performance");
-					//okToIndex = false;
-					//return;
-				//}
+				//Oops, a reindex is already running.
+				//No longer really care about this since it doesn't happen and there are other ways of finding a stuck process
+				//logger.warn("A partial reindex is already running, check to make sure that reindexes don't overlap since that can cause poor performance");
+				GroupedReindexProcess.addNoteToReindexLog("A partial reindex is already running, check to make sure that reindexes don't overlap since that can cause poor performance");
 			}else{
 				updatePartialReindexRunning(true);
 			}
@@ -354,9 +364,19 @@ public class GroupedWorkIndexer {
 							locationScopeInfo.setIncludeHoopla(includeHoopla);
 							locationScopeInfo.setExtraLocationCodes(extraLocationCodesToInclude);
 
-							scopes.add(locationScopeInfo);
-							scopeNames.add(locationScopeInfo.getScopeName());
-							indexingStats.put(locationScopeInfo.getScopeName(), new ScopedIndexingStats(locationScopeInfo.getScopeName()));
+							if (!scopes.contains(locationScopeInfo)){
+								scopes.add(locationScopeInfo);
+								scopeNames.add(locationScopeInfo.getScopeName());
+								indexingStats.put(locationScopeInfo.getScopeName(), new ScopedIndexingStats(locationScopeInfo.getScopeName()));
+							}else{
+								logger.debug("Not adding location scope because a library scope with the name " + locationScopeInfo.getScopeName() + " exists already.");
+								for (Scope existingLibraryScope : scopes){
+									if (existingLibraryScope.equals(locationScopeInfo)){
+										existingLibraryScope.setIsLocationScope(true);
+										break;
+									}
+								}
+							}
 						}else{
 							logger.debug("No scope needed for " + code + " because the library scope works just fine");
 						}
@@ -602,18 +622,17 @@ public class GroupedWorkIndexer {
 	}
 
 	private void updateLastReindexTime() {
-		//Update the last grouping time in the variables table
+		//Update the last grouping time in the variables table.  This needs to be the time the index started to catch anything that changes during the index
 		try{
-			Long finishTime = new Date().getTime() / 1000;
 			if (lastReindexTimeVariableId != null){
 				PreparedStatement updateVariableStmt  = vufindConn.prepareStatement("UPDATE variables set value = ? WHERE id = ?");
-				updateVariableStmt.setLong(1, finishTime);
+				updateVariableStmt.setLong(1, indexStartTime);
 				updateVariableStmt.setLong(2, lastReindexTimeVariableId);
 				updateVariableStmt.executeUpdate();
 				updateVariableStmt.close();
 			} else{
 				PreparedStatement insertVariableStmt = vufindConn.prepareStatement("INSERT INTO variables (`name`, `value`) VALUES ('last_reindex_time', ?)");
-				insertVariableStmt.setString(1, Long.toString(finishTime));
+				insertVariableStmt.setString(1, Long.toString(indexStartTime));
 				insertVariableStmt.executeUpdate();
 				insertVariableStmt.close();
 			}
@@ -623,10 +642,11 @@ public class GroupedWorkIndexer {
 	}
 
 	public Long processGroupedWorks() {
-		Long numWorksProcessed = 0l;
+		Long numWorksProcessed = 0L;
 		try {
 			PreparedStatement getAllGroupedWorks;
 			PreparedStatement getNumWorksToIndex;
+			PreparedStatement setLastUpdatedTime = vufindConn.prepareStatement("UPDATE grouped_work set date_updated = ? where id = ?");
 			if (fullReindex){
 				getAllGroupedWorks = vufindConn.prepareStatement("SELECT * FROM grouped_work", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
 				getNumWorksToIndex = vufindConn.prepareStatement("SELECT count(id) FROM grouped_work", ResultSet.TYPE_FORWARD_ONLY,  ResultSet.CONCUR_READ_ONLY);
@@ -649,6 +669,10 @@ public class GroupedWorkIndexer {
 				Long id = groupedWorks.getLong("id");
 				String permanentId = groupedWorks.getString("permanent_id");
 				String grouping_category = groupedWorks.getString("grouping_category");
+				Long lastUpdated = groupedWorks.getLong("date_updated");
+				if (groupedWorks.wasNull()){
+					lastUpdated = null;
+				}
 				processGroupedWork(id, permanentId, grouping_category);
 
 				numWorksProcessed++;
@@ -659,6 +683,11 @@ public class GroupedWorkIndexer {
 				if (maxWorksToProcess != -1 && numWorksProcessed >= maxWorksToProcess){
 					logger.warn("Stopping processing now because we've reached the max works to process.");
 					break;
+				}
+				if (lastUpdated == null){
+					setLastUpdatedTime.setLong(1, indexStartTime - 1); //Set just before the index started so we don't index multiple times
+					setLastUpdatedTime.setLong(2, id);
+					setLastUpdatedTime.executeUpdate();
 				}
 			}
 		} catch (SQLException e) {
@@ -834,6 +863,9 @@ public class GroupedWorkIndexer {
 
 	HashSet<String> unableToTranslateWarnings = new HashSet<String>();
 	public String translateValue(String mapName, String value){
+		if (value == null){
+			return value;
+		}
 		HashMap<String, String> translationMap = translationMaps.get(mapName);
 		String translatedValue;
 		if (translationMap == null){
@@ -849,7 +881,9 @@ public class GroupedWorkIndexer {
 				}else{
 					String concatenatedValue = mapName + ":" + value;
 					if (!unableToTranslateWarnings.contains(concatenatedValue)){
-						logger.warn("Could not translate '" + concatenatedValue + "'");
+						if (fullReindex) {
+							logger.warn("Could not translate '" + concatenatedValue + "'");
+						}
 						unableToTranslateWarnings.add(concatenatedValue);
 					}
 					translatedValue = value;

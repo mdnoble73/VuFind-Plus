@@ -60,8 +60,8 @@ class MarcLoader{
 		$marcRecord = false;
 		if (isset($configArray['Reindex']['individualMarcPath'])){
 			if (file_exists($individualName)){
-				//$rawMarc = file_get_contents($individualName);
-				$marc = new File_MARC($individualName, File_MARC::SOURCE_FILE);
+				$rawMarc = file_get_contents($individualName);
+				$marc = new File_MARC($rawMarc, File_MARC::SOURCE_STRING);
 				if (!($marcRecord = $marc->next())) {
 					PEAR_Singleton::raiseError(new PEAR_Error('Could not load marc record for record ' . $shortId));
 				}
@@ -119,8 +119,9 @@ class MarcLoader{
 		$marcRecord = false;
 		if (isset($configArray['Hoopla']['individualMarcPath'])){
 			if (file_exists($individualName)){
-				//$rawMarc = file_get_contents($individualName);
-				$marc = new File_MARC($individualName, File_MARC::SOURCE_FILE);
+				//Load file contents independently to avoid too many files open issue
+				$rawMarc = file_get_contents($individualName);
+				$marc = new File_MARC($rawMarc, File_MARC::SOURCE_STRING);
 				if (!($marcRecord = $marc->next())) {
 					PEAR_Singleton::raiseError(new PEAR_Error('Could not load marc record for hoopla record ' . $id));
 				}
@@ -134,4 +135,3 @@ class MarcLoader{
 		return $marcRecord;
 	}
 }
-?>

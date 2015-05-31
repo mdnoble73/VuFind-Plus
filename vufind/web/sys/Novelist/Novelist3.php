@@ -192,6 +192,7 @@ class Novelist3{
 		$novelistData = new NovelistData();
 		$novelistData->groupedRecordPermanentId = $groupedRecordId;
 		$recordExists = false;
+		$doFullUpdate = true;
 		if ($novelistData->find(true)){
 			$recordExists = true;
 			//We already have data loaded, make sure the data is still "fresh"
@@ -205,9 +206,11 @@ class Novelist3{
 				if ($novelistData->lastUpdate < $now - (30 * 24 * 60 * 60)){
 					$random = rand(1, 100);
 					if ($random <= 80  && !isset($_REQUEST['reload'])){
-						return $novelistData;
-					}else{
-						//$doUpdate = true;
+						//MDN 4/27/2015
+						//Can't return data here because we haven't actually loaded the enrichment.
+						//We are just checking if the data should be reloaded.
+						//return $novelistData;
+						$doFullUpdate = false;
 					}
 				}
 			}//else, no ISBNs, don't update
@@ -217,7 +220,7 @@ class Novelist3{
 		$novelistData->groupedRecordHasISBN = count($isbns) > 0;
 
 		//When loading full data, we always need to load the data since we can't cache due to terms of service
-		if ($recordExists && $novelistData->primaryISBN != null && strlen($novelistData->primaryISBN) > 0 && !isset($_REQUEST['reload'])){
+		if ($recordExists && $novelistData->primaryISBN != null && strlen($novelistData->primaryISBN) > 0 && !isset($_REQUEST['reload']) && !$doFullUpdate){
 			//Just check the primary ISBN since we know that was good.
 			$isbns = array($novelistData->primaryISBN);
 		}

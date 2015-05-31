@@ -69,59 +69,97 @@ public class DatabaseCleanup implements IProcessHandler {
 			logger.error("Error deleting expired searches", e);
 			processLog.saveToDatabase(vufindConn, logger);
 		}
-		
-		//Remove econtent records and related data that was created incorrectly. 
-		/*try {
-			//Anything where the ILS id matches the ID is wrong.   
-			ResultSet eContentToCleanup = econtentConn.prepareStatement("SELECT id from econtent_record WHERE ilsId = id OR ilsId like 'econtentRecord%'", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY).executeQuery();
-			PreparedStatement removeResourceStmt = vufindConn.prepareStatement("DELETE FROM resource where record_id = ? and source = 'eContent'");
-			PreparedStatement removeEContentItemsStmt = econtentConn.prepareStatement("DELETE FROM econtent_item where recordId = ?");
-			PreparedStatement removeEContentRecordStmt = econtentConn.prepareStatement("DELETE FROM econtent_record where id = ?");
-			int recordsRemoved = 0;
-			while (eContentToCleanup.next()){
-				Long curId = eContentToCleanup.getLong("id");
-				//Remove related resources
-				removeResourceStmt.setString(1, curId.toString());
-				removeResourceStmt.executeUpdate();
-				//Remove related econtent items
-				removeEContentItemsStmt.setLong(1, curId);
-				removeEContentItemsStmt.executeUpdate();
-				//Remove the record itself
-				removeEContentRecordStmt.setLong(1, curId);
-				removeEContentRecordStmt.executeUpdate();
-				processLog.incUpdated();
-				recordsRemoved++;
-				if (recordsRemoved % 1000 == 0){
-					processLog.saveToDatabase(vufindConn, logger);
-				}
-			}
-			ResultSet eContentToCleanup2 = econtentConn.prepareStatement("SELECT id from econtent_record WHERE ilsId = '' and externalId is null", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY).executeQuery();
-			while (eContentToCleanup2.next()){
-				Long curId = eContentToCleanup2.getLong("id");
-				//Remove related resources
-				removeResourceStmt.setString(1, curId.toString());
-				removeResourceStmt.executeUpdate();
-				//Remove related econtent items
-				removeEContentItemsStmt.setLong(1, curId);
-				removeEContentItemsStmt.executeUpdate();
-				//Remove the record itself
-				removeEContentRecordStmt.setLong(1, curId);
-				removeEContentRecordStmt.executeUpdate();
-				processLog.incUpdated();
-				recordsRemoved++;
-				if (recordsRemoved % 1000 == 0){
-					processLog.saveToDatabase(vufindConn, logger);
-				}
-			}
-			
-			processLog.addNote("Removed " + recordsRemoved + " incorrectly created eContent");
+
+		//Remove spammy searches
+		try {
+			PreparedStatement removeSearchStmt = vufindConn.prepareStatement("DELETE from search_stats_new where phrase like '%http:%' or phrase like '%https:%' or phrase like '%mailto:%'");
+
+			int rowsRemoved = removeSearchStmt.executeUpdate();
+
+			processLog.addNote("Removed " + rowsRemoved + " spammy searches");
+			processLog.incUpdated();
+
+			processLog.saveToDatabase(vufindConn, logger);
+
+			PreparedStatement removeSearchStmt2 = vufindConn.prepareStatement("DELETE from analytics_search where lookfor like '%http:%' or lookfor like '%https:%' or lookfor like '%mailto:%' or length(lookfor) > 256");
+
+			int rowsRemoved2 = removeSearchStmt2.executeUpdate();
+
+			processLog.addNote("Removed " + rowsRemoved2 + " spammy searches");
+			processLog.incUpdated();
+
 			processLog.saveToDatabase(vufindConn, logger);
 		} catch (SQLException e) {
 			processLog.incErrors();
-			processLog.addNote("Unable to remove incorrectly created econtent. " + e.toString());
-			logger.error("Error removing incorrectly created econtent", e);
+			processLog.addNote("Unable to delete spammy searches. " + e.toString());
+			logger.error("Error deleting spammy searches", e);
 			processLog.saveToDatabase(vufindConn, logger);
-		}*/
+		}
+
+		//Remove long searches
+		try {
+			PreparedStatement removeSearchStmt = vufindConn.prepareStatement("DELETE from search_stats_new where length(phrase) > 256");
+
+			int rowsRemoved = removeSearchStmt.executeUpdate();
+
+			processLog.addNote("Removed " + rowsRemoved + " long searches");
+			processLog.incUpdated();
+
+			processLog.saveToDatabase(vufindConn, logger);
+		} catch (SQLException e) {
+			processLog.incErrors();
+			processLog.addNote("Unable to delete long searches. " + e.toString());
+			logger.error("Error deleting long searches", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
+		
+		//Remove reading history entries that are duplicate based on being renewed
+		//Get a list of duplicate titles
+		try {
+			PreparedStatement duplicateRecordsToPreserveStmt = vufindConn.prepareStatement("SELECT COUNT(id) as numRecords, userId, groupedWorkPermanentId, source, sourceId, checkOutDate, MAX(checkInDate) as lastCheckIn FROM user_reading_history_work where deleted = 0 GROUP BY userId, source, sourceId, checkOutDate having numRecords > 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			PreparedStatement deleteDuplicateRecordStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET deleted = 1 WHERE userId = ? AND groupedWorkPermanentId = ? AND source = ? and sourceId = ? and checkOutDate = ? AND checkInDate != ?");
+			ResultSet duplicateRecordsRS = duplicateRecordsToPreserveStmt.executeQuery();
+			while (duplicateRecordsRS.next()){
+				deleteDuplicateRecordStmt.setLong(1, duplicateRecordsRS.getLong("userId"));
+				deleteDuplicateRecordStmt.setString(2, duplicateRecordsRS.getString("groupedWorkPermanentId"));
+				deleteDuplicateRecordStmt.setString(3, duplicateRecordsRS.getString("source"));
+				deleteDuplicateRecordStmt.setString(4, duplicateRecordsRS.getString("sourceId"));
+				deleteDuplicateRecordStmt.setLong(5, duplicateRecordsRS.getLong("checkoutDate"));
+				deleteDuplicateRecordStmt.setLong(6, duplicateRecordsRS.getLong("lastCheckIn"));
+				deleteDuplicateRecordStmt.executeUpdate();
+
+				//int numDeletions = deleteDuplicateRecordStmt.executeUpdate();
+				/*if (numDeletions == 0){
+					//This happens if the items have already been marked as deleted
+					logger.debug("Warning did not delete any records for user " + duplicateRecordsRS.getLong("userId"));
+				}*/
+			}
+
+			//Now look for additional duplicates where the check in date is the same
+			duplicateRecordsToPreserveStmt = vufindConn.prepareStatement("SELECT COUNT(id) as numRecords, userId, groupedWorkPermanentId, source, sourceId, checkOutDate, MIN(id) as idToPreserve FROM user_reading_history_work where deleted = 0 GROUP BY userId, source, sourceId, checkOutDate having numRecords > 1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			deleteDuplicateRecordStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET deleted = 1 WHERE userId = ? AND groupedWorkPermanentId = ? AND source = ? and sourceId = ? and checkOutDate = ? AND id != ?");
+			duplicateRecordsRS = duplicateRecordsToPreserveStmt.executeQuery();
+			while (duplicateRecordsRS.next()){
+				deleteDuplicateRecordStmt.setLong(1, duplicateRecordsRS.getLong("userId"));
+				deleteDuplicateRecordStmt.setString(2, duplicateRecordsRS.getString("groupedWorkPermanentId"));
+				deleteDuplicateRecordStmt.setString(3, duplicateRecordsRS.getString("source"));
+				deleteDuplicateRecordStmt.setString(4, duplicateRecordsRS.getString("sourceId"));
+				deleteDuplicateRecordStmt.setLong(5, duplicateRecordsRS.getLong("checkoutDate"));
+				deleteDuplicateRecordStmt.setLong(6, duplicateRecordsRS.getLong("idToPreserve"));
+				deleteDuplicateRecordStmt.executeUpdate();
+
+				//int numDeletions = deleteDuplicateRecordStmt.executeUpdate();
+				/*if (numDeletions == 0){
+					//This happens if the items have already been marked as deleted
+					logger.debug("Warning did not delete any records for user " + duplicateRecordsRS.getLong("userId"));
+				}*/
+			}
+		} catch (SQLException e) {
+			processLog.incErrors();
+			processLog.addNote("Unable to delete duplicate reading history entries. " + e.toString());
+			logger.error("Error deleting duplicate reading history entries", e);
+			processLog.saveToDatabase(vufindConn, logger);
+		}
 		processLog.setFinished();
 		processLog.saveToDatabase(vufindConn, logger);
 	}

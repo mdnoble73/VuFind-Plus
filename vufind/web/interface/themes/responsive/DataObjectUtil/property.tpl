@@ -42,18 +42,6 @@
 			<input type='text' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} class='form-control email {if $property.required}required{/if}' />
 		{elseif $property.type == 'multiemail'}
 			<input type='text' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} class='form-control multiemail {if $property.required}required{/if}' />
-{* title attribute on <input> overides the jquery validate() error messages. Keep descriptions in labels only.
-		{elseif $property.type == 'text' || $property.type == 'folder'}
-			<input type='text' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} title='{$property.description}' class='form-control {if $property.required}required{/if}'/>
-		{elseif $property.type == 'integer'}
-			<input type='number' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} title='{$property.description}' class='form-control {if $property.required}required{/if}'/>
-		{elseif $property.type == 'url'}
-			<input type='text' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} title='{$property.description}' class='form-control url {if $property.required}required{/if}' />
-		{elseif $property.type == 'email'}
-			<input type='text' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} title='{$property.description}' class='form-control email {if $property.required}required{/if}' />
-		{elseif $property.type == 'multiemail'}
-			<input type='text' name='{$propName}' id='{$propName}' value='{$propValue|escape}' {if $property.maxLength}maxlength='{$property.maxLength}'{/if} {if $property.size}size='{$property.size}'{/if} title='{$property.description}' class='form-control multiemail {if $property.required}required{/if}' />
-*}
 		{elseif $property.type == 'date'}
 			{*<input type='{$property.type}' name='{$propName}' id='{$propName}' value='{$propValue}' {if $property.maxLength}maxLength='10'{/if}	class='form-control {if $property.required}required{/if} date'/>*}
 			{* disable html5 features until consistly implemented *}
@@ -75,8 +63,8 @@
 		{elseif $property.type == 'label'}
 			<div id='{$propName}'>{$propValue}</div>
 
-		{elseif $property.type == 'html'}
-			{include file="DataObjectUtil/htmlField.tpl"}
+		{*{elseif $property.type == 'html'}*}
+			{*{include file="DataObjectUtil/htmlField.tpl"}*}
 
 		{elseif $property.type == 'enum'}
 			{include file="DataObjectUtil/enum.tpl"}

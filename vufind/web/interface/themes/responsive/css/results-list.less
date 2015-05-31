@@ -1,5 +1,5 @@
-@import "bootstrap/less/variables.less";
-@import "variables.less";
+@import (reference) "bootstrap/less/variables.less";
+@import (reference) "variables.less";
 /**
  * Additional styling specific to the results list.
  *
@@ -27,7 +27,12 @@
 }
 #availabilityControlContainer {
   border-bottom: 3px solid #d5d6da;
-  padding-bottom: 8px;
+  padding-bottom: @padding-base-vertical;
+}
+#wikipedia_placeholder {
+  #availabilityControlContainer();
+  margin-bottom: @padding-large-vertical;
+  display: none;
 }
 .top-facet{
  margin-bottom: 10px;
@@ -85,13 +90,13 @@
 .categoryValue{
   font-size: smaller;
 }
-.formatCategoryLabel{
-  vertical-align: center;
+.formatCategoryLabel {
+  vertical-align: central; // center not valid, set to central. plb 5-11-2015
   color: #8d929a;
   margin-top: 3px;
-}
-.formatCategoryLabel a{
-  color: #8d929a;
+  a {
+    color: #8d929a;
+  }
 }
 .top-facet{
   @media print{
@@ -115,6 +120,10 @@
 .result-head{
   font-size: smaller;
   color: #0d8ec6;
+  #selected-browse-label{
+    .gray-line-mixin;
+  }
+
 }
 #replacement-search-info{
   font-size: 16px;
@@ -142,6 +151,16 @@
   background-color: #909090;
   background: linear-gradient(to bottom, #909090, #686b6c);
   color: white;
+}
+
+.gray-line-mixin() {
+  background: linear-gradient(to bottom, white, white 44%, #d5d6da 45%, #d5d6da 55%, white 56%);
+}
+
+.results-covers{
+  padding-top: @padding-base-vertical;
+  margin-top: @padding-base-vertical;
+  border-bottom: 1px solid #d5d6da;
 }
 .related-manifestations{
   margin-top: 3px;

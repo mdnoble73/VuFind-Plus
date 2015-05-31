@@ -45,7 +45,10 @@ class OverDriveDriver3 {
 		'audiobook-streaming' => 'Streaming Audiobook',
 		'music-wma' => 'OverDrive Music',
 		'video-wmv' => 'OverDrive Video',
-		'video-wmv-mobile' => 'OverDrive Video (mobile)'
+		'video-wmv-mobile' => 'OverDrive Video (mobile)',
+		'periodicals-nook' => 'NOOK Periodicals',
+		'audiobook-overdrive' => 'OverDrive Listen',
+		'video-streaming' => 'OverDrive Video',
 	);
 
 	/**
@@ -459,6 +462,8 @@ class OverDriveDriver3 {
 				$bookshelfItem['checkoutSource'] = 'OverDrive';
 				$bookshelfItem['overDriveId'] = $curTitle->reserveId;
 				$bookshelfItem['expiresOn'] = $curTitle->expires;
+				$expirationDate = new DateTime($curTitle->expires);
+				$bookshelfItem['dueDate'] = $expirationDate->format('M j, Y g:ha');
 				$bookshelfItem['overdriveRead'] = false;
 				if (isset($curTitle->isFormatLockedIn) && $curTitle->isFormatLockedIn == 1){
 					$bookshelfItem['formatSelected'] = true;
@@ -469,8 +474,10 @@ class OverDriveDriver3 {
 				if (!$forSummary){
 					if (isset($curTitle->formats)){
 						foreach ($curTitle->formats as $id => $format){
-							if ($format->formatType == 'ebook-overdrive'){
+							if ($format->formatType == 'ebook-overdrive') {
 								$bookshelfItem['overdriveRead'] = true;
+							}else if ($format->formatType == 'audiobook-overdrive'){
+									$bookshelfItem['overdriveListen'] = true;
 							}else{
 								$bookshelfItem['selectedFormat'] = array(
 									'name' => $this->format_map[$format->formatType],
@@ -484,11 +491,15 @@ class OverDriveDriver3 {
 							if (isset($format->links->self)){
 								$curFormat['downloadUrl'] = $format->links->self->href . '/downloadlink';
 							}
-							if ($format->formatType != 'ebook-overdrive'){
+							if ($format->formatType != 'ebook-overdrive' && $format->formatType != 'audiobook-overdrive'){
 								$bookshelfItem['formats'][] = $curFormat;
 							}else{
 								if (isset($curFormat['downloadUrl'])){
-									$bookshelfItem['overdriveReadUrl'] = $curFormat['downloadUrl'];
+									if ($format->formatType = 'ebook-overdrive') {
+										$bookshelfItem['overdriveReadUrl'] = $curFormat['downloadUrl'];
+									}else{
+										$bookshelfItem['overdriveListenUrl'] = $curFormat['downloadUrl'];
+									}
 								}
 							}
 						}
@@ -787,10 +798,14 @@ class OverDriveDriver3 {
 			$result['message'] = 'Sorry, we could not checkout this title to you.';
 
 			if (isset($response->message)) $result['message'] .= "  {$response->message}";
-			if ($response->errorCode == 'NoCopiesAvailable') {
+			if (isset($response->errorCode) && $response->errorCode == 'NoCopiesAvailable') {
 				$result['noCopies'] = true;
 				$result['message'] .= "\r\n\r\nWould you like to place a hold instead?";
+			}else{
+				//Give more information about why it might gave failed, ie expired card or too much fines
+				$result['message'] = 'Sorry, we could not checkout this title to you.  Please verify that your card has not expired and that you do not have excessive fines.';
 			}
+
 			if ($analytics) $analytics->addEvent('OverDrive', 'Checkout Item', 'failed');
 		}
 
@@ -904,6 +919,8 @@ class OverDriveDriver3 {
 		$url = $configArray['OverDrive']['patronApiUrl'] . "/v1/patrons/me/checkouts/{$overDriveId}/formats/{$format}/downloadlink";
 		$url .= '?errorpageurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveError');
 		if ($format == 'ebook-overdrive'){
+			$url .= '&odreadauthurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveReadError');
+		}elseif ($format == 'audiobook-overdrive'){
 			$url .= '&odreadauthurl=' . urlencode($configArray['Site']['url'] . '/Help/OverDriveReadError');
 		}
 
@@ -1105,10 +1122,8 @@ class OverDriveDriver3 {
 
 	public function clearPatronProfile() {
 		/** @var Memcache $memCache */
-		global $memCache;
-		global $user;
-
-		$patronProfile = $memCache->delete('patronProfile_' . $user->id);
-
+		global $memCache, $user, $serverName;
+		$memCache->delete("patronProfile_{$serverName}_{$user->username}");
+		// TODO: test the functionality of this change
 	}
 }

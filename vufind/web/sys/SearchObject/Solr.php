@@ -70,6 +70,9 @@ class SearchObject_Solr extends SearchObject_Base
 	private $spellSimple   = false;
 	private $spellSkipNumeric = true;
 
+	// Display Modes //
+	public $viewOptions = array('list', 'covers');
+
 	/**
 	 * Constructor. Initialise some details about the server
 	 *
@@ -275,16 +278,18 @@ class SearchObject_Solr extends SearchObject_Base
 
 		//********************
 		// Author screens - handled slightly differently
-		if ($module == 'Author') {
+		$author_ajax_call = (isset($_REQUEST['author']) && $action == 'AJAX' && $module == 'Search');
+		if ($module == 'Author' || $author_ajax_call) {
+			// Author module or ajax call from author results page
 			// *** Things in common to both screens
 			// Log a special type of search
 			$this->searchType = 'author';
 			// We don't spellcheck this screen
-			//   it's not for free user intput anyway
+			//   it's not for free user input anyway
 			$this->spellcheck  = false;
 
 			// *** Author/Home
-			if ($action == 'Home') {
+			if ($action == 'Home' || $author_ajax_call) {
 				$this->searchSubType = 'home';
 				// Remove our empty basic search (default)
 				$this->searchTerms = array();
@@ -325,6 +330,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$this->spellcheck = false;
 			$this->searchType = strtolower($action);
 		} else if ($module == 'MyAccount') {
+			// Users Lists
 			$this->spellcheck = false;
 			$this->searchType = ($action == 'Home') ? 'favorites' : 'list';
 		}
@@ -527,15 +533,28 @@ class SearchObject_Solr extends SearchObject_Base
 	 * @param   int     $listId     ID of list containing desired tags/notes (or
 	 *                              null to show tags/notes from all user's lists).
 	 * @param   bool    $allowEdit  Should we display edit controls?
+	 * @param   array   $IDList     optional list of IDs to re-order the records by (ie User List sorts)
 	 * @return  array   Array of HTML chunks for individual records.
 	 */
-	public function getResultListHTML($user, $listId = null, $allowEdit = true)
+	public function getResultListHTML($user, $listId = null, $allowEdit = true, $IDList = null)
 	{
 		global $interface;
 
 		$html = array();
 		for ($x = 0; $x < count($this->indexResult['response']['docs']); $x++) {
-			$current = & $this->indexResult['response']['docs'][$x];
+			if ($IDList) {
+				// use $IDList as the order guide for the html
+				$current = null; // empty out in case we don't find the matching record
+				$id = $IDList[$x]; // the ID to look for.
+				foreach ($this->indexResult['response']['docs'] as $index => $doc) {
+					if ($doc['id'] == $id) {
+						$current = & $this->indexResult['response']['docs'][$index];
+						break;
+					}
+				}
+				if (empty($current)) continue; // In the case the record wasn't found, move on to the next record
+			} else $current = & $this->indexResult['response']['docs'][$x];
+
 			$interface->assign('recordIndex', $x + 1);
 			$interface->assign('resultIndex', $x + 1 + (($this->page - 1) * $this->limit));
 			if (!$this->debug){
@@ -648,7 +667,7 @@ class SearchObject_Solr extends SearchObject_Base
 	}
 
 	/*
-	 * Get an array of citations for the records within the searc results
+	 * Get an array of citations for the records within the search results
 	 */
 	public function getCitations($citationFormat){
 		global $interface;
@@ -662,7 +681,20 @@ class SearchObject_Solr extends SearchObject_Base
 		}
 		return $html;
 	}
-
+/*
+ *  Get the template to use to display the results returned from getRecordHTML()
+ *  or getSupplementalResultRecordHTML() based on the view mode
+ *
+ * @return string  Template file name
+ */
+	public function getDisplayTemplate() {
+		if ($this->view == 'covers'){
+			$displayTemplate = 'Search/covers-list.tpl'; // structure for bookcover tiles
+		} else { // default
+			$displayTemplate = 'Search/list-list.tpl'; // structure for regular results
+		}
+		return $displayTemplate;
+	}
 	/**
 	 * Use the record driver to build an array of HTML displays from the search
 	 * results.
@@ -686,7 +718,7 @@ class SearchObject_Solr extends SearchObject_Base
 			$record->setScopingEnabled($this->indexEngine->isScopingEnabled());
 			if (!PEAR_Singleton::isError($record)){
 				$interface->assign('recordDriver', $record);
-				$html[] = $interface->fetch($record->getSearchResult());
+				$html[] = $interface->fetch($record->getSearchResult($this->view));
 			}else{
 				$html[] = "Unable to find record";
 			}
@@ -708,15 +740,15 @@ class SearchObject_Solr extends SearchObject_Base
 					break;
 				}
 			}
-			if ($supplementalInMainResults){
+			if ($supplementalInMainResults){ // if record in the original search result, don't add to these results
 				continue;
 			}
-			$interface->assign('recordIndex', $numResultsShown + 1 );
-			$interface->assign('resultIndex', $numResultsShown + 1 + (($this->page - 1) * $this->limit) + $startIndex);
-			/** @var IndexRecord|MarcRecord|EcontentRecordDriver $record */
+			/** @var IndexRecord|MarcRecord|EcontentRecordDriver|GroupedWorkDriver $record */
 			$record = RecordDriverFactory::initRecordDriver($current);
 			$numResultsShown++;
-			$html[] = $interface->fetch($record->getSearchResult('list', true));
+			$interface->assign('recordIndex', $numResultsShown);
+			$interface->assign('resultIndex', $numResultsShown + (($this->page - 1) * $this->limit) + $startIndex);
+			$html[] = $interface->fetch($record->getSearchResult($this->view, true));
 			if ($numResultsShown >= $maxResultsToShow){
 				break;
 			}

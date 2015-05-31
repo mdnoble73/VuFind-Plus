@@ -30,6 +30,7 @@
 	{foreach from=$widget->lists item=list name=listWidgetList}
 		{assign var="active" value=$smarty.foreach.listWidgetList.first}
 		{if $list->displayFor == 'all' || ($list->displayFor == 'loggedIn' && $user && $user->disableRecommendations == 0) || ($list->displayFor == 'notLoggedIn' && !$user)}
+			{assign var="showViewMoreLink" value=$widget->showViewMoreLink}
 			{assign var="listIndex" value=$listIndex+1}
 			{assign var="listName" value=$list->name|regex_replace:'/\W/':''|escape:url}
 			{assign var="scrollerName" value="$listName"}

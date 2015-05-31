@@ -32,7 +32,44 @@ class SearchSuggestions{
 
 	function getSpellingSearches($searchTerm){
 		$spellingWord = new SpellingWord();
-		$suggestions = $spellingWord->getSpellingSuggestions($searchTerm);
+		$words = explode(" ", $searchTerm);
+		$suggestions = array();
+		foreach ($words as $word){
+			//First check to see if the word is spelled properly
+			$wordCheck = new SpellingWord();
+			$wordCheck->word = $word;
+			if (!$wordCheck->find()){
+				//This word is not spelled properly, get suggestions for how it should be spelled
+				$suggestionsSoFar = $suggestions;
+
+				$wordSuggestions = $spellingWord->getSpellingSuggestions($word);
+				foreach ($wordSuggestions as $suggestedWord){
+					$newSearch = str_replace($word, $suggestedWord, $searchTerm);
+					$searchInfo = new SearchStatNew();
+					$searchInfo->phrase = $newSearch;
+					$numSearches = 0;
+					if ($searchInfo->find(true)){
+						$numSearches = $searchInfo->numSearches;
+					}
+					$suggestions[str_pad($numSearches, 10, '0', STR_PAD_LEFT) . $newSearch] = array('phrase'=>$newSearch, 'numSearches'=>$numSearches, 'numResults'=>1);
+
+					//Also try replacements on any suggestions we have so far
+					foreach ($suggestionsSoFar as $tmpSearch){
+						$newSearch = str_replace($word, $suggestedWord, $tmpSearch['phrase']);
+						$searchInfo = new SearchStatNew();
+						$searchInfo->phrase = $newSearch;
+						$numSearches = 0;
+						if ($searchInfo->find(true)){
+							$numSearches = $searchInfo->numSearches;
+						}
+						$suggestions[str_pad($numSearches, 10, '0', STR_PAD_LEFT) . $newSearch] = array('phrase'=>$newSearch, 'numSearches'=>$numSearches, 'numResults'=>1);
+					}
+				}
+			}
+		}
+
+		krsort($suggestions);
+
 		//Return up to 10 results max
 		if (count ($suggestions) > 10){
 			$suggestions = array_slice($suggestions, 0, 10);
@@ -50,12 +87,13 @@ class SearchSuggestions{
 			$spellingSearches = $this->getSpellingSearches($searchTerm);
 			$timer->logTime('Loaded spelling suggestions');
 			//Merge the two arrays together
-			foreach($spellingSearches as $term){
+			foreach($spellingSearches as $key => $term){
 				if (!in_array($term, $searchSuggestions)){
-					$searchSuggestions[] = $term;
+					$searchSuggestions[$key] = $term;
 				}
 			}
 		}
+		krsort($searchSuggestions);
 
 		return $searchSuggestions;
 	}

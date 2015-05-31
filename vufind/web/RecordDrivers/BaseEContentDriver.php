@@ -50,14 +50,36 @@ abstract class BaseEContentDriver  extends MarcRecord {
 			if ($this->itemsFromIndex){
 				$this->fastItems = array();
 				foreach ($this->itemsFromIndex as $itemData){
-					$itemId = $itemData[1];
-					$locationCode = $itemData[2];
-					$sharing = $itemData[4];
-					$source = $itemData[5];
-					$fileOrUrl = '';
-					if (count($itemData) > 6){
-						$fileOrUrl = $itemData[6];
+					$isLocalItem = false;
+					$isLibraryItem = false;
+					if (array_key_exists('item', $itemData)){
+						$itemId = $itemData['item'][0];
+						$locationCode = $itemData['item'][1];
+						$shelfLocation = mapValue('shelf_location', $locationCode);
+						$sharing = $itemData['item'][3];
+						$source = $itemData['item'][4];
+						$fileOrUrl = '';
+						if (count($itemData['item']) > 5){
+							$fileOrUrl = $itemData['item'][5];
+						}
+						if (array_key_exists('scope', $itemData)){
+							$isLocalItem = $itemData['scope'][1] == 'true';
+							$isLibraryItem = $itemData['scope'][2] == 'true';
+						}
+					}else{
+						$itemId = $itemData[1];
+						$locationCode = $itemData[2];
+						$shelfLocation = mapValue('shelf_location', $itemData[2]);
+						$sharing = $itemData[4];
+						$source = $itemData[5];
+						$fileOrUrl = '';
+						if (count($itemData) > 6){
+							$fileOrUrl = $itemData[6];
+						}
+						$isLocalItem = isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && strpos($locationCode, $libraryLocationCode) === 0;
+						$isLibraryItem = isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0;
 					}
+
 					$actions = $this->getActionsForItem($itemId, $fileOrUrl, null);
 					$libraryLabelObj = new Library();
 					$libraryLabelObj->whereAdd("'$locationCode' LIKE CONCAT(ilsCode, '%') and ilsCode <> ''");
@@ -77,11 +99,11 @@ abstract class BaseEContentDriver  extends MarcRecord {
 							'availability' => $this->isItemAvailable($itemId, $totalCopies),
 							'holdable' => $this->isEContentHoldable($locationCode, $itemData),
 							'inLibraryUseOnly' => false,
-							'isLocalItem' => isset($libraryLocationCode) && strlen($libraryLocationCode) > 0 && strpos($locationCode, $libraryLocationCode) === 0,
-							'isLibraryItem' => isset($homeLocationCode) && strlen($homeLocationCode) > 0 && strpos($locationCode, $homeLocationCode) === 0,
+							'isLocalItem' => $isLocalItem,
+							'isLibraryItem' => $isLibraryItem,
 							'locationLabel' => 'Online',
 							'libraryLabel' => $libraryLabel,
-							'shelfLocation' => mapValue('shelf_location', $itemData[2]),
+							'shelfLocation' => $shelfLocation,
 							'source' => 'Online ' . $source,
 							'sharing' => $sharing,
 							'actions' => $actions,

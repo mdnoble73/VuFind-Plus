@@ -77,6 +77,7 @@ class MyAccount_Holds extends MyAccount{
 		$interface->assign('defaultSortOption', $selectedSortOption);
 
 		$profile = $this->catalog->getMyProfile($user);
+		// TODO: getMyProfile called for second time. First time on index.php
 
 		$libraryHoursMessage = Location::getLibraryHoursMessage($profile['homeLocationId']);
 		$interface->assign('libraryHoursMessage', $libraryHoursMessage);
@@ -102,6 +103,7 @@ class MyAccount_Holds extends MyAccount{
 				if ($user->cat_username) {
 					$patron = $this->catalog->patronLogin($user->cat_username, $user->cat_password);
 					$patronResult = $this->catalog->getMyProfile($patron);
+					// TODO: getMyProfile called above already. Is this call necessary?
 					if (!PEAR_Singleton::isError($patronResult)) {
 						$interface->assign('profile', $patronResult);
 					}
@@ -158,7 +160,7 @@ class MyAccount_Holds extends MyAccount{
 						else {
 							$exportType = "unavailable";
 						}
-						$this->exportToExcel($allHolds, $exportType, $showDateWhenSuspending, $showPosition, $showExpireTime);
+						$this->exportToExcel($allHolds['holds'], $exportType, $showDateWhenSuspending, $showPosition, $showExpireTime);
 					}
 				}
 			}
@@ -301,20 +303,34 @@ class MyAccount_Holds extends MyAccount{
 				->setCellValue('F'.$a, isset($row['availableTime']) ? date('M d, Y', strtotime($row['availableTime'])) : 'Now')
 				->setCellValue('G'.$a, date('M d, Y', $row['expire']));
 			} else {
-				$statusCell = $row['status'];
-				if ($row['frozen'] && $showDateWhenSuspending){
+				if (isset($row['status'])){
+					$statusCell = $row['status'];
+				}else{
+					$statusCell = '';
+				}
+
+				if (isset($row['frozen']) && $row['frozen'] && $showDateWhenSuspending){
 					$statusCell .= " until " . date('M d, Y', strtotime($row['reactivateTime']));
 				}
 				$objPHPExcel->getActiveSheet()
 				->setCellValue('A'.$a, $titleCell)
 				->setCellValue('B'.$a, $authorCell)
 				->setCellValue('C'.$a, $formatString)
-				->setCellValue('D'.$a, isset($row['createTime']) ? date('M d, Y', $row['createTime']) : '')
-				->setCellValue('E'.$a, $row['location']);
+				->setCellValue('D'.$a, isset($row['createTime']) ? date('M d, Y', $row['createTime']) : '');
+				if (isset($row['location'])){
+					$objPHPExcel->getActiveSheet()->setCellValue('E'.$a, $row['location']);
+				}else{
+					$objPHPExcel->getActiveSheet()->setCellValue('E'.$a, '');
+				}
+
 				if ($showPosition){
-					$objPHPExcel->getActiveSheet()
-					->setCellValue('F'.$a, $row['position'])
-					->setCellValue('G'.$a, $statusCell);
+					if (isset($row['position'])){
+						$objPHPExcel->getActiveSheet()->setCellValue('F'.$a, $row['position']);
+					}else{
+						$objPHPExcel->getActiveSheet()->setCellValue('F'.$a, '');
+					}
+
+					$objPHPExcel->getActiveSheet()->setCellValue('G'.$a, $statusCell);
 					if ($showExpireTime){
 						$objPHPExcel->getActiveSheet()->setCellValue('H'.$a, date('M d, Y', $row['expireTime']));
 					}

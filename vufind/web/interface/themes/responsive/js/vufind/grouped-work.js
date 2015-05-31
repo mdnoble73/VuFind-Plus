@@ -377,40 +377,21 @@ VuFind.GroupedWork = (function(){
 			return false;
 		},
 
+
 		showGroupedWorkInfo:function(id, browseCategoryId){
-			var modalDialog = $("#modalDialog");
-			//$(".modal-body").html($('#userreview' + id).html());
 			var url = Globals.path + "/GroupedWork/AJAX?method=getWorkInfo&id=" + id;
 			if (browseCategoryId != undefined){
 				url += "&browseCategoryId=" + browseCategoryId;
 			}
+			VuFind.showMessage('Loading', 'Loading, please wait');
 			$.getJSON(url, function(data){
-				$('#myModalLabel').html(data.title);
-				$('.modal-body').html(data.modalBody);
-				$('.modal-buttons').html(data.modalButtons);
+				VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+			}).fail(function(){
+				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 			});
-			modalDialog.load( );
-			modalDialog.modal('show');
 			return false;
 		},
 
-		//// added plb 9-26-2014
-		//showRecordInfo:function(id, browseCategoryId){
-		//	var modalDialog = $("#modalDialog");
-		//	//$(".modal-body").html($('#userreview' + id).html());
-		//	var url = Globals.path + "/GroupedWork/AJAX?method=getWorkInfo&id=" + id;
-		//	if (browseCategoryId != undefined){
-		//		url += "&browseCategoryId=" + browseCategoryId;
-		//	}
-		//	$.getJSON(url, function(data){
-		//		$('#myModalLabel').html(data.title);
-		//		$('.modal-body').html(data.modalBody);
-		//		$('.modal-buttons').html(data.modalButtons);
-		//	});
-		//	modalDialog.load( );
-		//	modalDialog.modal('show');
-		//	return false;
-		//},
 		showReviewForm: function(trigger, id){
 			var $trigger = $(trigger);
 			if (Globals.loggedIn){
@@ -432,14 +413,13 @@ VuFind.GroupedWork = (function(){
 
 		showSaveToListForm: function (trigger, id){
 			if (Globals.loggedIn){
-				var modalDialog = $("#modalDialog");
-				$.getJSON(Globals.path + "/GroupedWork/" + id + "/AJAX?method=getSaveToListForm", function(data){
-					$('#myModalLabel').html(data.title);
-					$('.modal-body').html(data.modalBody);
-					$('.modal-buttons').html(data.modalButtons);
+				VuFind.showMessage('Loading', 'Loading, please wait');
+				var url = Globals.path + "/GroupedWork/" + id + "/AJAX?method=getSaveToListForm";
+				$.getJSON(url, function(data){
+					VuFind.showMessageWithButtons(data.title, data.modalBody, data.modalButtons);
+				}).fail(function(){
+					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 				});
-				modalDialog.load( );
-				modalDialog.modal('show');
 			}else{
 				trigger = $(trigger);
 				VuFind.Account.ajaxLogin(trigger, function (){

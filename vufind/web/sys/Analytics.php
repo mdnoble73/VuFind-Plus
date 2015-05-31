@@ -166,6 +166,13 @@ class Analytics
 
 	function addSearch($scope, $lookfor, $isAdvanced, $searchType, $facetsApplied, $numResults){
 		if ($this->trackingDisabled) return;
+		//Make sure we aren't logging a bunch of spam
+		if (strlen($lookfor) >= 256){
+			return;
+		}
+		if (preg_match('/http:|mailto:|https:/i', $lookfor)){
+			return;
+		}
 		$this->search = new Analytics_Search();
 		$this->search->sessionId = $this->session->id;
 		$this->search->scope = $scope;

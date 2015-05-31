@@ -38,7 +38,7 @@ class Search_Home extends Action {
 		$interface->assign('showBreadcrumbs', 0);
 
 		if ($user){
-			$catalog = CatalogFactory::getCatalogConnectionInstance();;
+			$catalog = CatalogFactory::getCatalogConnectionInstance();
 			$patron = $catalog->patronLogin($user->cat_username, $user->cat_password);
 			$profile = $catalog->getMyProfile($patron);
 			if (!PEAR_Singleton::isError($profile)) {
@@ -51,6 +51,9 @@ class Search_Home extends Action {
 		//Load browse categories
 		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
 		/** @var BrowseCategory[] $browseCategories */
+
+		$specifiedCategory = isset($_REQUEST['browseCategory']); // Do we want to show a specific browse category
+
 		$browseCategories = array();
 		if ($activeLocation != null){
 			$localBrowseCategories = $activeLocation->browseCategories;
@@ -59,6 +62,7 @@ class Search_Home extends Action {
 				$browseCategory->textId = $localBrowseCategory->browseCategoryTextId;
 				if($browseCategory->find(true)){
 					$browseCategories[] = clone($browseCategory);
+					if ($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) $selectedBrowseCategory = $browseCategory->textId;
 				}
 			}
 		}
@@ -69,6 +73,7 @@ class Search_Home extends Action {
 				$browseCategory->textId = $localBrowseCategory->browseCategoryTextId;
 				if($browseCategory->find(true)){
 					$browseCategories[] = clone($browseCategory);
+					if ($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) $selectedBrowseCategory = $browseCategory->textId;
 				}
 			}
 		}
@@ -77,18 +82,21 @@ class Search_Home extends Action {
 			$browseCategory->find();
 			while($browseCategory->fetch()){
 				$browseCategories[] = clone($browseCategory);
+				if ($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) $selectedBrowseCategory = $browseCategory->textId;
 			}
 		}
 
+		if (!empty($selectedBrowseCategory)) $interface->assign('selectedBrowseCategory', $selectedBrowseCategory);
 		$interface->assign('browseCategories', $browseCategories);
 
 		//Get the Browse Results for the first list
 		if (count($browseCategories) > 0){
 			require_once ROOT_DIR . '/services/Browse/AJAX.php';
 			$browseAJAX = new Browse_AJAX();
-			$browseResults = $browseAJAX->getBrowseCategoryInfo(reset($browseCategories)->textId);
-
-			$interface->assign('browseResults', $browseResults);
+			$browseAJAX->setBrowseMode(); // set default browse mode in the case that the user hasn't chosen one.
+			// browse results no longer needed. there is an embedded ajax call in home.tpl. plb 5-4-2015
+//			$browseResults = $browseAJAX->getBrowseCategoryInfo(reset($browseCategories)->textId);
+//			$interface->assign('browseResults', $browseResults);
 		}
 
 		$interface->setPageTitle('Catalog Home');

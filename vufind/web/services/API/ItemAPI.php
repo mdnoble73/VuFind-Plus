@@ -180,9 +180,6 @@ class ItemAPI extends Action {
 		/** @var SearchObject_Solr db */
 		$this->db = new $class($url);
 
-		//Setup the results to return from the API method
-		$results = array();
-
 		//Search the database by title and author
 		if ($recordId){
 			if (preg_match('/^b\d{7}[\dx]$/', $recordId)){
@@ -531,29 +528,40 @@ class ItemAPI extends Action {
 		$this->db = new $class($url);
 
 		// Retrieve Full Marc Record
-		if (!($record = $this->db->getRecord($this->id))) {
-			PEAR_Singleton::raiseError(new PEAR_Error('Record Does Not Exist'));
-		}
-		$this->record = $record;
-		if ($record['recordtype'] == 'econtentRecord'){
-			require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
-			$eContentRecord = new EContentRecord();
-			$eContentRecord->id = substr($record['id'], strlen('econtentRecord'));
-			if (!$eContentRecord->find(true)){
-				$itemData['error'] = 'Cannot load eContent Record for id ' . $record['id'];
+		disableErrorHandler();
+		$record = $this->db->getRecord($this->id);
+		enableErrorHandler();
+		if ($record == false) {
+			$marcRecord = new MarcRecord($this->id);
+			if ($marcRecord->isValid()){
+				$itemData['holdings'] = Record_Holdings::loadHoldings($this->id);
+				$timer->logTime('Loaded Holdings');
 			}else{
-				require_once ROOT_DIR . '/Drivers/EContentDriver.php';
-				$driver = new EContentDriver();
-				$itemData['holdings'] = $driver->getHolding($eContentRecord->id);
+				$itemData['error'] = 'Cannot load Record for id ' . $record['id'];
 			}
 		}else{
-			$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
-			$timer->logTime('Initialized the Record Driver');
+			$this->record = $record;
+			if ($record['recordtype'] == 'econtentRecord'){
+				require_once(ROOT_DIR . '/sys/eContent/EContentRecord.php');
+				$eContentRecord = new EContentRecord();
+				$eContentRecord->id = substr($record['id'], strlen('econtentRecord'));
+				if (!$eContentRecord->find(true)){
+					$itemData['error'] = 'Cannot load eContent Record for id ' . $record['id'];
+				}else{
+					require_once ROOT_DIR . '/Drivers/EContentDriver.php';
+					$driver = new EContentDriver();
+					$itemData['holdings'] = $driver->getHolding($eContentRecord->id);
+				}
+			}else{
+				$this->recordDriver = RecordDriverFactory::initRecordDriver($record);
+				$timer->logTime('Initialized the Record Driver');
 
-			//Load Holdings
-			$itemData['holdings'] = Record_Holdings::loadHoldings($this->id);
-			$timer->logTime('Loaded Holdings');
+				//Load Holdings
+				$itemData['holdings'] = Record_Holdings::loadHoldings($this->id);
+				$timer->logTime('Loaded Holdings');
+			}
 		}
+
 
 		return $itemData;
 	}

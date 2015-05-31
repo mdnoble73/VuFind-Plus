@@ -4,7 +4,7 @@
   color: #00125E;
   font-size: 12px;
   font-weight: bold;
-  height: 15px;
+  height: 20px;
 }
 .titleScrollerHeader .linkTab {
   padding-right: 10px;
@@ -12,6 +12,10 @@
 }
 .titleScrollerHeader .linkTab .first {
   padding-right: 0;
+}
+.titleScrollerViewMore {
+  padding-right: 5px;
+  float: right;
 }
 #listSelection {
   border: none;

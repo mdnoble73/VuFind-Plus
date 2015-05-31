@@ -125,4 +125,11 @@ public class WCPLRecordProcessor extends IlsRecordProcessor {
 		curDate.add(Calendar.DATE, daysSinceAdded);
 		groupedWork.setDateAdded(curDate.getTime(), indexer.getAllScopeNames());
 	}
+
+	protected void loadAdditionalOwnershipInformation(GroupedWorkSolr groupedWork, PrintIlsItem printItem){
+		String collection = printItem.getCollection();
+		if (collection != null && collection.length() > 0){
+			groupedWork.addCollectionGroup(indexer.translateValue("collection_group", collection.toLowerCase()));
+		}
+	}
 }

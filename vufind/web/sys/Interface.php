@@ -135,6 +135,7 @@ class UInterface extends Smarty
 		}else if (isset($configArray['Catalog']['hipUrl'])){
 			$this->assign('classicCatalogUrl', $configArray['Catalog']['hipUrl']);
 		}
+		$this->assign('showConvertListsFromClassic', $configArray['Catalog']['showConvertListsFromClassic']);
 
 		$this->assign('theme', $this->vufindTheme);
 		$this->assign('primaryTheme', reset($themeArray));
@@ -386,6 +387,7 @@ class UInterface extends Smarty
 				$this->assign('numHours', $numHours);
 			}
 			$this->assign('showDisplayNameInHeader', $library->showDisplayNameInHeader);
+			$this->assign('externalMaterialsRequestUrl', $library->externalMaterialsRequestUrl);
 		}else{
 			$this->assign('showLibraryHoursAndLocationsLink', 1);
 			$this->assign('showRatings', 1);

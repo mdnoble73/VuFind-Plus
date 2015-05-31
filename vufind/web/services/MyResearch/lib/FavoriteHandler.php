@@ -17,7 +17,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-require_once ROOT_DIR . '/sys/Pager.php';
 
 /**
  * FavoriteHandler Class
@@ -31,6 +30,8 @@ require_once ROOT_DIR . '/sys/Pager.php';
  */
 class FavoriteHandler
 {
+ /** @var UserList */
+	private $list;
 	/** @var UserListEntry[] */
 	private $favorites;
 	/** @var User */
@@ -38,26 +39,52 @@ class FavoriteHandler
 	private $listId;
 	private $allowEdit;
 	private $ids = array();
+	private $defaultSort = 'title'; // initial setting
+	private $sort;
+	private $isUserListSort; // true for sorting options not done by Solr
+
+	protected $userListSortOptions = array(
+		// URL_value => SQL code for Order BY clause
+		'dateAdded' => 'dateAdded ASC',
+		'custom' => 'weight ASC',
+	);
+
+	protected $solrSortOptions = array('title', 'author'); // user list sorting options handled by Solr engine.
 
 	/**
 	 * Constructor.
 	 *
 	 * @access  public
-	 * @param   UserListEntry[]   $favorites  Array of grouped work ids.
-	 * @param   User  $user       User object owning tag/note metadata.
-	 * @param   int     $listId     ID of list containing desired tags/notes (or
-	 *                              null to show tags/notes from all user's lists).
-	 * @param   bool    $allowEdit  Should we display edit controls?
+	 * @param   UserList   $list        User List Object.
+	 * @param   User       $user        User object owning tag/note metadata.
+	 * @param   int        $listId      ID of list containing desired tags/notes (or
+	 *                                  null to show tags/notes from all user's lists).
+	 * @param   bool       $allowEdit   Should we display edit controls?
 	 */
-	public function __construct($favorites, $user, $listId = null, $allowEdit = true)
+	public function __construct($list, $user, $allowEdit = true)
 	{
-		$this->favorites = $favorites;
+		$this->list = $list;
 		$this->user = $user;
-		$this->listId = $listId;
+		$this->listId = $list->id;
 		$this->allowEdit = $allowEdit;
 
-		// Process the IDs found in the favorites (sort by source):
-		foreach ($favorites as $favorite){
+		// Determine Sorting Option //
+		if (isset($list->defaultSort)) $this->defaultSort = $list->defaultSort; // when list as a sort setting use that
+		if (isset($_REQUEST['sort']) && (in_array($_REQUEST['sort'], $this->solrSortOptions) || in_array($_REQUEST['sort'], array_keys($this->userListSortOptions))) ) {
+			// if URL variable is a valid sort option, set the list's sort setting
+			$this->sort = $_REQUEST['sort'];
+		} else {
+			$this->sort = $this->defaultSort;
+		}
+
+		$this->isUserListSort = in_array($this->sort, array_keys($this->userListSortOptions));
+
+		// Get the Favorites //
+		$userListSort = $this->isUserListSort ? $this->userListSortOptions[$this->sort] : null;
+		$this->favorites = $list->getListEntries($userListSort); // when using a user list sorting, rather than solr sorting, get results in order
+
+		// Process the IDs found in the favorites
+		foreach ($this->favorites as $favorite){
 			if (is_object($favorite)){
 				$this->ids[] = $favorite->groupedWorkPermanentId;
 			}else{
@@ -91,8 +118,6 @@ class FavoriteHandler
 			'endRecord' => $endRecord,
 			'perPage' => $recordsPerPage
 		);
-		//Don't slice here since it is done in the search object
-		//$this->favorites = array_slice($this->favorites, $startRecord -1, $recordsPerPage);
 
 		// Initialise from the current search globals
 		/** @var SearchObject_Solr $searchObject */
@@ -101,20 +126,54 @@ class FavoriteHandler
 		$searchObject->disableScoping();
 		$searchObject->setLimit($recordsPerPage); //MDN 3/30 this was set to 200, but should be based off the page size
 		$searchObject->setPage($page);
-		$searchObject->setSort('title asc');
-		$interface->assign('sortList', $searchObject->getSortList());
+
+		if (!$this->isUserListSort) { // is a solr sort
+			$searchObject->setSort($this->sort); // set solr sort. (have to set before retrieving solr sort options below)
+		}
+		$SolrSortList = $searchObject->getSortList(); // get all the search sort options (retrieve after setting solr sort option)
+		$sortOptions = $defaultSortOptions = array();
+		foreach ($this->solrSortOptions as $option) { // extract just the ones we want
+			if (isset ($SolrSortList[$option])) {
+				$sortOptions[$option]        = $SolrSortList[$option];
+				$defaultSortOptions[$option] = $SolrSortList[$option]['desc'];
+			}
+		}
+		foreach ($this->userListSortOptions as $option => $value_ignored) { // Non-Solr options
+			$sortOptions[$option] = array(
+				'sortUrl' => $searchObject->renderLinkWithSort($option),
+				'desc' => "sort_{$option}_userlist", // description in translation dictionary
+				'selected' => ($option == $this->sort)
+			);
+			$defaultSortOptions[$option] = "sort_{$option}_userlist";
+		}
+
+		$interface->assign('sortList', $sortOptions);
+		$interface->assign('defaultSortList', $defaultSortOptions);
+		$interface->assign('defaultSort', $this->defaultSort);
+		$interface->assign('userSort', ($this->getSort() == 'custom')); // switch for when users can sort their list
 
 		// Retrieve records from index (currently, only Solr IDs supported):
 		if (count($this->favorites) > 0){
-			$searchObject->setQueryIDs($this->favorites);
-			$result = $searchObject->processSearch();
-			$resourceList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
-
-			$pageInfo['resultTotal'] = $result['response']['numFound'];
-			if ($endRecord > $pageInfo['resultTotal']){
-				$endRecord = $pageInfo['resultTotal'];
+			if ($this->isUserListSort) {
+				$this->favorites = array_slice($this->favorites, $startRecord - 1, $recordsPerPage);
+				$searchObject->setPage(1); // set to the first page for the search only
 			}
-			$pageInfo['endRecord'] = $endRecord;
+
+			$searchObject->setQueryIDs($this->favorites); // do solr search by Ids
+			$result = $searchObject->processSearch();
+			if (!$this->isUserListSort) { // adjust paging based on search
+				$pageInfo['resultTotal'] = $result['response']['numFound'];
+				if ($endRecord > $pageInfo['resultTotal']) {
+					$endRecord             = $pageInfo['resultTotal'];
+					$pageInfo['endRecord'] = $endRecord;
+				}
+			$resourceList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit);
+			} else {
+				$searchObject->setPage($page); // restore the actual sort page
+				$resourceList = $searchObject->getResultListHTML($this->user, $this->listId, $this->allowEdit, $this->favorites);
+				// puts html in order of favorites
+			}
+
 		}else{
 			$resourceList = array();
 		}
@@ -125,6 +184,7 @@ class FavoriteHandler
 		$interface->assign('recordCount', $pageInfo['resultTotal']);
 		$interface->assign('recordStart', $pageInfo['startRecord']);
 		$interface->assign('recordEnd',   $pageInfo['endRecord']);
+		$interface->assign('recordsPerPage', $pageInfo['perPage']);
 
 		$link = $_SERVER['REQUEST_URI'];
 		if (preg_match('/[&?]page=/', $link)){
@@ -138,11 +198,15 @@ class FavoriteHandler
 		                 'perPage' => $pageInfo['perPage'],
 		                 'fileName' => $link,
 		                 'append'    => false);
+		require_once ROOT_DIR . '/sys/Pager.php';
 		$pager = new VuFindPager($options);
 		$interface->assign('pageLinks', $pager->getLinks());
+
 	}
 
 	function getTitles($numListEntries){
+		// Currently only used by AJAX call for emailing lists
+
 		// Initialise from the current search globals
 		/** @var SearchObject_Solr $searchObject */
 		$searchObject = SearchObjectFactory::initSearchObject();
@@ -155,7 +219,10 @@ class FavoriteHandler
 		if (count($this->ids) > 0) {
 			$searchObject->setQueryIDs($this->ids);
 			$searchObject->processSearch();
-			return $searchObject->getResultRecordSet();
+			$recordSet = $searchObject->getResultRecordSet();
+			//TODO: user list sorting here
+
+			return $recordSet;
 		}else{
 			return array();
 		}
@@ -174,6 +241,14 @@ class FavoriteHandler
 		}else{
 			return array();
 		}
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getSort()
+	{
+		return $this->sort;
 	}
 }
 
