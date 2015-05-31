@@ -1,11 +1,11 @@
 {strip}
 <div id="overdrive_{$record.recordId|escape}" class="result row">
-	<div class="col-md-3">
+	<div class="col-xs-12 col-sm-3 col-md-3">
 		<div class="row">
-			<div class="selectTitle col-md-2">
+			<div class="selectTitle col-xs-2">
 				&nbsp;{* Can't renew overdrive titles*}
 			</div>
-			<div class="col-md-9 text-center coverColumn">
+			<div class="col-xs-10 text-center coverColumn">
 				{if $user->disableCoverArt != 1}
 					{if $record.recordId}
 						<a href="{$record.recordUrl|escape:"url"}">
@@ -16,7 +16,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="col-md-9">
+	<div class="col-xs-12 col-sm-9">
 		<div class="row">
 			<div class="col-xs-12">
 				<span class="result-index">{$resultIndex})</span>&nbsp;
@@ -24,7 +24,7 @@
 			</div>
 		</div>
 		<div class="row">
-			<div class="resultDetails col-md-9">
+			<div class="resultDetails col-xs-12 col-md-9">
 				{if strlen($record.author) > 0}
 					<div class="row">
 						<div class="result-label col-md-3">{translate text='Author'}</div>
