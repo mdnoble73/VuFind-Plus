@@ -1,5 +1,9 @@
 package org.vufind;
 
+import com.sun.org.apache.xml.internal.utils.XMLString;
+
+import java.awt.font.ImageGraphicAttribute;
+
 /**
  * A title that is checked out to a user for reading history
  * VuFind-Plus
@@ -12,6 +16,7 @@ public class CheckedOutTitle {
 	private String groupedWorkPermanentId;
 	private String source;
 	private String sourceId;
+	private String title;
 
 	public Long getId() {
 		return id;
@@ -43,5 +48,13 @@ public class CheckedOutTitle {
 
 	public void setSourceId(String sourceId) {
 		this.sourceId = sourceId;
+	}
+
+	public String getTitle() {
+		return title;
+	}
+
+	public void setTitle(String title){
+		this.title = title;
 	}
 }
