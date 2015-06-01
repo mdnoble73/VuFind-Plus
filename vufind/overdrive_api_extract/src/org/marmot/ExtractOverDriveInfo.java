@@ -148,12 +148,17 @@ public class ExtractOverDriveInfo {
 				} catch (Exception e){
 					logger.error("Could not load last index time from variables table ", e);
 				}
-				
-				PreparedStatement getVariableStatement = vufindConn.prepareStatement("SELECT * FROM variables where name = 'last_overdrive_extract_time'");
-				ResultSet lastExtractTimeRS = getVariableStatement.executeQuery();
-				if (lastExtractTimeRS.next()){
-					lastExtractTime = lastExtractTimeRS.getLong("value");
-					Date lastExtractDate = new Date(lastExtractTime);
+			}else{
+				logger.info("Doing a full reload of all records.");
+			}
+
+			//Load last extract time regardless of if we are doing full index or partial index
+			PreparedStatement getVariableStatement = vufindConn.prepareStatement("SELECT * FROM variables where name = 'last_overdrive_extract_time'");
+			ResultSet lastExtractTimeRS = getVariableStatement.executeQuery();
+			if (lastExtractTimeRS.next()){
+				lastExtractTime = lastExtractTimeRS.getLong("value");
+				Date lastExtractDate = new Date(lastExtractTime);
+				if (!doFullReload) {
 					SimpleDateFormat lastUpdateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
 					logger.info("Loading all records that have changed since " + lastUpdateFormat.format(lastExtractDate));
 					logEntry.addNote("Loading all records that have changed since " + lastUpdateFormat.format(lastExtractDate));
@@ -161,8 +166,6 @@ public class ExtractOverDriveInfo {
 					//Simple Date Format doesn't give us quite the right timezone format so adjust
 					lastUpdateTimeParam = lastUpdateTimeParam.substring(0, lastUpdateTimeParam.length() - 2) + ":" + lastUpdateTimeParam.substring(lastUpdateTimeParam.length() - 2);
 				}
-			}else{
-				logger.info("Doing a full reload of all records.");
 			}
 
 			//Update the last extract time
@@ -240,7 +243,7 @@ public class ExtractOverDriveInfo {
 
 			//Mark the new last update time if we did not get errors loading products from the database
 			if (errorsWhileLoadingProducts){
-				logger.error("Not setting last extract time since there were problems extracting products from the API");
+				logger.debug("Not setting last extract time since there were problems extracting products from the API");
 			}else{
 				PreparedStatement updateExtractTime;
 				if (lastExtractTime == null){

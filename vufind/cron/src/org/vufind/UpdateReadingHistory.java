@@ -70,7 +70,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 			PreparedStatement getUsersStmt = vufindConn.prepareStatement("SELECT id, cat_username, cat_password, initialReadingHistoryLoaded FROM user where trackReadingHistory=1", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			PreparedStatement updateInitialReadingHistoryLoaded = vufindConn.prepareStatement("UPDATE user SET initialReadingHistoryLoaded = 1 WHERE id = ?");
 
-			getCheckedOutTitlesForUser = vufindConn.prepareStatement("SELECT id, groupedWorkPermanentId, source, sourceId FROM user_reading_history_work WHERE userId=? and checkInDate is null", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			getCheckedOutTitlesForUser = vufindConn.prepareStatement("SELECT id, groupedWorkPermanentId, source, sourceId, title FROM user_reading_history_work WHERE userId=? and checkInDate is null", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			updateReadingHistoryStmt = vufindConn.prepareStatement("UPDATE user_reading_history_work SET checkInDate=? WHERE id = ?");
 			insertReadingHistoryStmt = vufindConn.prepareStatement("INSERT INTO user_reading_history_work (userId, groupedWorkPermanentId, source, sourceId, title, author, format, checkOutDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
 			
@@ -109,6 +109,7 @@ public class UpdateReadingHistory implements IProcessHandler {
 						curCheckout.setGroupedWorkPermanentId(checkedOutTitlesRS.getString("groupedWorkPermanentId"));
 						curCheckout.setSource(checkedOutTitlesRS.getString("source"));
 						curCheckout.setSourceId(checkedOutTitlesRS.getString("sourceId"));
+						curCheckout.setTitle(checkedOutTitlesRS.getString("title"));
 						checkedOutTitles.add(curCheckout);
 					}
 
@@ -322,7 +323,10 @@ public class UpdateReadingHistory implements IProcessHandler {
 		//Check to see if this is an existing checkout.  If it is, skipp inserting
 		if (checkedOutTitles != null) {
 			for (CheckedOutTitle curTitle : checkedOutTitles) {
-				if (curTitle.getSource().equals(source) && curTitle.getSourceId().equals(sourceId)) {
+				if (
+						(curTitle.getSource().equals(source) && curTitle.getSourceId().equals(sourceId)) ||
+						curTitle.getTitle().equals(checkedOutItem.getString("title"))
+					 ) {
 					checkedOutTitles.remove(curTitle);
 					return true;
 				}
