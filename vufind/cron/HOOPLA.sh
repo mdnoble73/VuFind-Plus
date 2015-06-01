@@ -59,4 +59,4 @@ fi
 cd /data/vufind-plus/hoopla/marc
 #wget -N --user=$HooplaFtpUser --password=$HooplaFtpPassword ftp://ftp.midwesttapes.com/*_removed.mrc; # test
 wget -N -q --user=$HooplaFtpUser --password=$HooplaFtpPassword ftp://ftp.midwesttapes.com/USA_*.mrc
-wget -N -q --user=hooplamarc --password=hooplamarc 'ftp://ftp.midwesttapes.com/Only libraries loading All Music/USA_ALL_Music.mrc'
+wget -N -q --user=$HooplaFtpUser --password=$HooplaFtpPassword 'ftp://ftp.midwesttapes.com/Only libraries loading All Music/USA_ALL_Music.mrc'

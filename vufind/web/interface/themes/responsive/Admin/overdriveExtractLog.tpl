@@ -29,5 +29,11 @@
 				</tbody>
 			</table>
 		</div>
+		<div>
+			{if $page >= 1}
+				<a href="{$path}/Admin/OverDriveExtractLog?page={$page-1}" class="btn btn-default">Previous Page</a>
+			{/if}
+			<a href="{$path}/Admin/OverDriveExtractLog?page={$page+1}" class="btn btn-default">Next Page</a>
+		</div>
 	</div>
 {/strip}

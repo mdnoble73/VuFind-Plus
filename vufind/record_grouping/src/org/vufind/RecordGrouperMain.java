@@ -843,6 +843,8 @@ public class RecordGrouperMain {
 		boolean includeAllMusic = cleanIniValue(hooplaSection.get("includeAllMusic")).equalsIgnoreCase("true");
 		boolean includeTV = cleanIniValue(hooplaSection.get("includeTV")).equalsIgnoreCase("true");
 		boolean includeMovies = cleanIniValue(hooplaSection.get("includeMovies")).equalsIgnoreCase("true");
+		boolean includeEBooks = cleanIniValue(hooplaSection.get("includeEBooks")).equalsIgnoreCase("true");
+		boolean includeComics = cleanIniValue(hooplaSection.get("includeComics")).equalsIgnoreCase("true");
 
 		if (includeAudioBooks){
 			File marcFile = new File(marcPath + "/USA_AB.mrc");
@@ -894,6 +896,24 @@ public class RecordGrouperMain {
 				marcRecordFilesToProcess.add(marcFile);
 			}else{
 				logger.warn("Configuration states that Hoopla Movies should be processed, but file was not found. " + marcFile.toString());
+			}
+		}
+
+		if (includeEBooks){
+			File marcFile = new File(marcPath + "/USA_eBook.mrc");
+			if (marcFile.exists()){
+				marcRecordFilesToProcess.add(marcFile);
+			}else{
+				logger.warn("Configuration states that Hoopla eBooks should be processed, but file was not found. " + marcFile.toString());
+			}
+		}
+
+		if (includeComics){
+			File marcFile = new File(marcPath + "/USA_Comic.mrc");
+			if (marcFile.exists()){
+				marcRecordFilesToProcess.add(marcFile);
+			}else{
+				logger.warn("Configuration states that Hoopla Comics should be processed, but file was not found. " + marcFile.toString());
 			}
 		}
 		return marcRecordFilesToProcess;

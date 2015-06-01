@@ -1238,7 +1238,7 @@ public class RecordGroupingProcessor {
 		String groupingFormat = "";
 		for (DataField cur099 : fields099){
 			String format = cur099.getSubfield('a').getData();
-			if (format.equalsIgnoreCase("eAudiobook hoopla")){
+			if (format.equalsIgnoreCase("eAudiobook hoopla") || format.equalsIgnoreCase("eComic hoopla") || format.equalsIgnoreCase("eBook hoopla")){
 				groupingFormat = "book";
 				break;
 			}else if (format.equalsIgnoreCase("eVideo hoopla")){

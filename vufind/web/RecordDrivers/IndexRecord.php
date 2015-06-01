@@ -932,7 +932,7 @@ class IndexRecord extends RecordInterface
 		if (empty($upcs)) {
 			return $cleanUPCs;
 		}
-		foreach ($cleanUPCs as $upc){
+		foreach ($upcs as $upc){
 			if ($pos = strpos($upc, ' ')) {
 				$upc = substr($upc, 0, $pos);
 			}

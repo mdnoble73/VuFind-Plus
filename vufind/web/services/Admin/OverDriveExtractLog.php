@@ -33,7 +33,9 @@ class OverDriveExtractLog extends Admin_Admin
 		$logEntries = array();
 		$logEntry = new OverDriveExtractLogEntry();
 		$logEntry->orderBy('startTime DESC');
-		$logEntry->limit(0, 30);
+		$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+		$interface->assign('page', $page);
+		$logEntry->limit(($page - 1) * 30, 30);
 		$logEntry->find();
 		while ($logEntry->fetch()){
 			$logEntries[] = clone($logEntry);

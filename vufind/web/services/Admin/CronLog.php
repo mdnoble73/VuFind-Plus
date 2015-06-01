@@ -35,7 +35,9 @@ class CronLog extends Admin_Admin
 		$logEntries = array();
 		$cronLogEntry = new CronLogEntry();
 		$cronLogEntry->orderBy('startTime DESC');
-		$cronLogEntry->limit(0, 30);
+		$page = isset($_REQUEST['page']) ? $_REQUEST['page'] : 1;
+		$interface->assign('page', $page);
+		$cronLogEntry->limit(($page - 1) * 30, 30);
 		$cronLogEntry->find();
 		while ($cronLogEntry->fetch()){
 			$logEntries[] = clone($cronLogEntry);
