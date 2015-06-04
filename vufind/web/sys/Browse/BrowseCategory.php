@@ -14,7 +14,6 @@ class BrowseCategory extends DB_DataObject{
 	public $__table = 'browse_category';
 	public $id;
 	public $textId;  //A textual id to make it easier to transfer browse categories between systems
-//	public $subCategoryOf; // The parent browse category id (use only for categories that are intended to be sub-categories)
 
 	public $userId; //The user who created the browse category
 	public $sharing; //Who to share with (Private, Location, Library, Everyone)
