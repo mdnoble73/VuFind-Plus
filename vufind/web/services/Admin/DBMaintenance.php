@@ -1903,6 +1903,20 @@ class DBMaintenance extends Admin_Admin {
 					),
 				),
 
+				'sub-browse_categories' => array(
+					'title' => 'Enable Browse Sub-Categories',
+					'description' => 'Add a the ability to define a browse category from a list',
+					'sql' => array(
+							"CREATE TABLE `browse_category_subcategories` (
+							  `id` int UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+							  `browseCategoryId` int(11) NOT NULL,
+							  `subCategoryId` int(11) NOT NULL,
+							  `weight` SMALLINT(2) UNSIGNED NOT NULL DEFAULT '0',
+							  UNIQUE (`subCategoryId`,`browseCategoryId`)
+							) ENGINE=MyISAM DEFAULT CHARSET=utf8"
+					),
+				),
+
 				'localized_browse_categories' => array(
 					'title' => 'Localized Browse Categories',
 					'description' => 'Setup Localized Browse Category Tables',

@@ -348,7 +348,7 @@ class DataObjectUtil
 			if (isset($_REQUEST[$propertyName.'Id'])){
 				$idsToSave = $_REQUEST[$propertyName.'Id'];
 				$existingValues = $object->$propertyName;
-				$subObjectType = $property['subObjectType'];
+				$subObjectType = $property['subObjectType'];  // the PHP Class name
 				$subStructure = $property['structure'];
 				foreach ($idsToSave as $key => $id){
 					//Create the subObject
