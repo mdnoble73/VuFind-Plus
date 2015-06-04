@@ -553,42 +553,35 @@ VuFind.Account = (function(){
 		},
 
 		freezeSelectedHolds: function (){
+			//TODO: simplified, should be same functionality, double check. plb 5-29-2015
 			var selectedTitles = this.getSelectedTitles();
 			if (selectedTitles.length == 0){
 				return false;
 			}
-			var suspendDate = '';
-			//Check to see whether or not we are using a suspend date.
-			var suspendDateTop = $('#suspendDateTop');
-			var url = '';
-			var queryParams = '';
-			if (suspendDateTop.length){
-				if (suspendDateTop.val().length > 0){
+			var suspendDate = '',
+					suspendDateTop = $('#suspendDateTop'),
+					url = '',
+					queryParams = '';
+			if (suspendDateTop.length) { //Check to see whether or not we are using a suspend date.
+				if (suspendDateTop.val().length > 0) {
 					suspendDate = suspendDateTop.val();
-				}else{
+				} else {
 					suspendDate = $('#suspendDateBottom').val();
 				}
-
-				if (suspendDate.length == 0){
+				if (suspendDate.length == 0) {
 					alert("Please select the date when the hold should be reactivated.");
 					return false;
 				}
-				url = Globals.path + '/MyAccount/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
-				queryParams = VuFind.getQuerystringParameters();
-				if ($.inArray('section', queryParams)){
-					url += '&section=' + queryParams['section'];
-				}
-				window.location = url;
-			}else{
-				url = Globals.path + '/MyAccount/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
-				queryParams = VuFind.getQuerystringParameters();
-				if ($.inArray('section', queryParams)){
-					url += '&section=' + queryParams['section'];
-				}
-				window.location = url;
 			}
+			url = Globals.path + '/MyAccount/Holds?multiAction=freezeSelected&' + selectedTitles + '&suspendDate=' + suspendDate;
+			queryParams = VuFind.getQuerystringParameters();
+			if ($.inArray('section', queryParams)){
+				url += '&section=' + queryParams['section'];
+			}
+			window.location = url;
 			return false;
 		},
+
 
 		getSelectedTitles: function(promptForSelectAll){
 			if (promptForSelectAll == undefined){

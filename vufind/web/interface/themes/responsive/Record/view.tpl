@@ -32,7 +32,7 @@
 						{include file="Record/view-title-details.tpl"}
 					</div>
 
-					<br/>
+					<br>
 
 					<div id="recordTools" class="col-xs-12 col-sm-3">
 						{include file="Record/result-tools.tpl" showMoreInfo=false summShortId=$shortId summId=$id summTitle=$title recordUrl=$recordUrl}

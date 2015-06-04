@@ -946,6 +946,7 @@ jQuery.cookie = function(name, value, options) {
     }
 };
 
+//TODO: Rating JS, move to a VuFind file.
 //copyright 2008 Jarrett Vance
 //http://jvance.com
 $.fn.rater = function(options) {
