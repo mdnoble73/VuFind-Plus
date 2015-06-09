@@ -66,8 +66,7 @@
 ###################################
 # Library supplied covers
 */10 * * * * /root/cron/copyCovers.sh
-11-51/10 * * * * /root/cron/copyCovers.sh
-# Every 10 minutes. fixed 11-14-2014 plb. (previously every hour 10 past the hour)
+1-51/10 * * * * /root/cron/copyCovers-AspencatTest.sh
 
 # Sierra-Training Record Export
 01 6 * * Thu /root/cron/copySierraTrainingExport.sh
