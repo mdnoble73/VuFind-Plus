@@ -43,63 +43,64 @@ class SearchAPI extends Action {
 		echo $output;
 	}
 
+	// The time intervals in seconds beyond which we consider the status as not current
+	const FULL_INDEX_INTERVAL    = 129600, // 36 Hours (in seconds)
+		PARTIAL_INDEX_INTERVAL     = 1500,   // 25 Minutes (in seconds)
+		OVERDRIVE_EXTRACT_INTERVAL = 14400;  // 4 Hours (in seconds)
+
 	function getIndexStatus(){
-		global $serverName;
+//		global $serverName;
 
 		$partialIndexUpToDate = false;
 		$fullIndexUpToDate = false;
 		$overDriveExtractUpToDate = false;
-		$notes = '';
-
+		$notes = array();
 
 		$currentTime = time();
 		$lastFullIndexVariable = new Variable();
 		$lastFullIndexVariable->name= 'lastFullReindexFinish';
 		if ($lastFullIndexVariable->find(true)){
-			//Check to see if the last full index finished more than 36 hours ago
-			if ($lastFullIndexVariable->value >= ($currentTime - 36 * 60 * 60)){
+			//Check to see if the last full index finished more than FULL_INDEX_INTERVAL seconds ago
+			if ($lastFullIndexVariable->value >= ($currentTime - self::FULL_INDEX_INTERVAL)){
 				$fullIndexUpToDate = true;
 			}else{
-				$notes = 'Full Index last finished ' . date('m-d-Y H:i:s', $lastFullIndexVariable->value) . ' - ' . (($currentTime - $lastFullIndexVariable->value) / 3600) . ' hours ago';
+				$notes[] = 'Full Index last finished ' . date('m-d-Y H:i:s', $lastFullIndexVariable->value) . ' - ' . round(($currentTime - $lastFullIndexVariable->value) / 3600, 2) . ' hours ago';
 			}
 		}else{
-			$notes = 'Full index has never been run';
+			$notes[] = 'Full index has never been run';
 		}
-		$notes .= "; ";
 
 		$lastPartialIndexVariable = new Variable();
 		$lastPartialIndexVariable->name= 'lastPartialReindexFinish';
 		if ($lastPartialIndexVariable->find(true)){
-			//Check to see if the last partial index finished more than 20 minutes ago
-			if ($lastPartialIndexVariable->value >= ($currentTime - 20 * 60)){
+			//Check to see if the last partial index finished more than PARTIAL_INDEX_INTERVAL seconds ago
+			if ($lastPartialIndexVariable->value >= ($currentTime - self::PARTIAL_INDEX_INTERVAL)){
 				$partialIndexUpToDate = true;
 			}else{
-				$notes = 'Partial Index last finished ' . date('m-d-Y H:i:s', $lastPartialIndexVariable->value) . ' - ' . (($currentTime - $lastPartialIndexVariable->value) / 60) . ' minutes ago';
+				$notes[] = 'Partial Index last finished ' . date('m-d-Y H:i:s', $lastPartialIndexVariable->value) . ' - ' . round(($currentTime - $lastPartialIndexVariable->value) / 60, 2) . ' minutes ago';
 			}
 		}else{
-			$notes = 'Partial index has never been run';
+			$notes[] = 'Partial index has never been run';
 		}
-		$notes .= "; ";
-
 
 		$lastOverDriveExtractVariable = new Variable();
 		$lastOverDriveExtractVariable->name= 'last_overdrive_extract_time';
 		if ($lastOverDriveExtractVariable->find(true)){
-			//Check to see if the last partial index finished more than 4 hours ago
-			if ($lastOverDriveExtractVariable->value / 1000 >= ($currentTime - 4 * 60 * 60)){
+			//Check to see if the last partial index finished more than OVERDRIVE_EXTRACT_INTERVAL seconds ago
+			$lastOverDriveExtractTime = $lastOverDriveExtractVariable->value / 1000;
+			if ($lastOverDriveExtractTime >= ($currentTime - self::OVERDRIVE_EXTRACT_INTERVAL)){
 				$overDriveExtractUpToDate = true;
 			}else{
-				$notes = 'OverDrive Extract last finished ' . date('m-d-Y H:i:s', $lastOverDriveExtractVariable->value / 1000) . ' - ' . (($currentTime - ($lastOverDriveExtractVariable->value / 1000)) / 3600) . ' hours ago';
+				$notes[] = 'OverDrive Extract last finished ' . date('m-d-Y H:i:s', $lastOverDriveExtractTime) . ' - ' . round(($currentTime - ($lastOverDriveExtractTime)) / 3600, 2) . ' hours ago';
 			}
 		}else{
-			$notes = 'OverDrive Extract has never been run';
+			$notes[] = 'OverDrive Extract has never been run';
 		}
-		$notes .= "; ";
 
 		if (!$fullIndexUpToDate || !$partialIndexUpToDate || !$overDriveExtractUpToDate){
 			$result = array(
 				'result' => false,
-				'message' => $notes
+				'message' => implode('; ',$notes)
 			);
 		}else{
 			$result = array(
