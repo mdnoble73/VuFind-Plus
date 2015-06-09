@@ -70,6 +70,7 @@
 ###################################
 # Library supplied covers
 */10 * * * * /root/cron/copyCovers.sh
-11-51/10 * * * * /root/cron/copyAspencatCovers.sh
+1-51/10 * * * * /root/cron/copyAspencatCovers.sh
+# 10 minute gap was missed for 51-01. plb 6-9-2015
 
 #final end of line character needed for crontab to be read
