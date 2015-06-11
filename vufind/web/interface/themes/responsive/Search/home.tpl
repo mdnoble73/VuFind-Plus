@@ -9,8 +9,7 @@
 					<div class="jcarousel" id="browse-category-carousel">
 						<ul>
 							{foreach from=$browseCategories item=browseCategory name="browseCategoryLoop"}
-								{*<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9} {if $smarty.foreach.browseCategoryLoop.index == 0}selected{/if}" data-category-id="{$browseCategory->textId}" id="browse-category-{$browseCategory->textId}">*}
-								<li class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9} {if (!$selectedBrowseCategory && $smarty.foreach.browseCategoryLoop.index == 0) || $selectedBrowseCategory && $selectedBrowseCategory == $browseCategory->textId}selected{/if}" data-category-id="{$browseCategory->textId}" id="browse-category-{$browseCategory->textId}">
+								<li id="browse-category-{$browseCategory->textId}" class="browse-category category{$smarty.foreach.browseCategoryLoop.index%9}{if (!$selectedBrowseCategory && $smarty.foreach.browseCategoryLoop.index == 0) || $selectedBrowseCategory && $selectedBrowseCategory->textId == $browseCategory->textId} selected{/if}" data-category-id="{$browseCategory->textId}">
 									{*<a*}{* href="#"  causes the page to bounce to the top, and is very jarring. *}{*>*}{* js now implemented through browse.js. These links can be removed once styling referencing it is adjusted. plb 12-22-2014 *}
 									{* links removed 4-23-2015 *}
 										<div >
@@ -30,13 +29,17 @@
 
 					<p class="jcarousel-pagination"></p>
 				</div>
+				<div class="clearfix"></div>
+			</div>
+			<div id="browse-sub-category-menu" class="row text-center">
+				{* Initial load of content done by AJAX call on page load *}
 			</div>
 		</div>
 	</div>
-	<div id="home-page-browse-content" class="row"> {* id renamed *}
+	<div id="home-page-browse-content" class="row">
 		<div class="col-sm-12">
 
-			<div class="row{* text-center //not sure is needed. plb*}" id="selected-browse-label">
+			<div class="row" id="selected-browse-label">
 
 				<div class="btn-group btn-group-sm" data-toggle="buttons">
 					<label for="covers" title="Covers" class="btn btn-sm btn-default"><input onchange="VuFind.Browse.toggleBrowseMode(this.id)" type="radio" id="covers">
@@ -51,6 +54,7 @@
 					<a id="selected-browse-search-link" title="See the search results page for this browse category">
 						<span class="icon-before"></span> {*space needed for good padding between text and icon *}
 						<span class="selected-browse-label-search-text"></span>
+						<span class="selected-browse-sub-category-label-search-text"></span>
 						<span class="icon-after"></span>
 					</a>
 				</div>
@@ -72,7 +76,8 @@
 <script type="text/javascript">
 	$(function(){ldelim}
 		{if $selectedBrowseCategory}
-			VuFind.Browse.curCategory = '{$selectedBrowseCategory}';
+			VuFind.Browse.curCategory = '{$selectedBrowseCategory->textId}';
+		{* TODO: stored selected browse category *}
 		{/if}
 		{if !$onInternalIP}
 		if (!Globals.opac && VuFind.hasLocalStorage()){ldelim}

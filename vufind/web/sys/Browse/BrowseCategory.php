@@ -32,19 +32,27 @@ class BrowseCategory extends DB_DataObject{
 	public $numTimesShown;
 	public $numTitlesClickedOn;
 
+	/* Static get */
+	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('BrowseCategory',$k,$v); }
+// required component for all classes that extend DB_DataObject
+
+	public function getSubCategories(){
+		if (!isset($this->subBrowseCategories) && $this->id) {
+			$this->subBrowseCategories     = array();
+			$subCategory                   = new SubBrowseCategories();
+			$subCategory->browseCategoryId = $this->id;
+			$subCategory->orderBy('weight');
+			$subCategory->find();
+			while ($subCategory->fetch()) {
+				$this->subBrowseCategories[$subCategory->id] = clone($subCategory);
+			}
+		}
+	}
+
 	private $data = array();
 	public function __get($name){
 		if ($name == 'subBrowseCategories') {
-			if (!isset($this->subBrowseCategories) && $this->id) {
-				$this->subBrowseCategories     = array();
-				$subCategory                   = new SubBrowseCategories();
-				$subCategory->browseCategoryId = $this->id;
-				$subCategory->orderBy('weight');
-				$subCategory->find();
-				while ($subCategory->fetch()) {
-					$this->subBrowseCategories[$subCategory->id] = clone($subCategory);
-				}
-			}
+			$this->getSubCategories();
 			return $this->subBrowseCategories;
 		}else{
 			return $this->data[$name];
@@ -58,6 +66,19 @@ class BrowseCategory extends DB_DataObject{
 			$this->data[$name] = $value;
 		}
 	}
+	/**
+	 * Override the fetch functionality to save related objects
+	 *
+	 * @see DB/DB_DataObject::fetch()
+	 */
+//	public function fetch(){
+//		$return = parent::fetch();
+//		if ($return !== FALSE) {
+//			// check for any sub-categories
+//			$this->getSubCategories();
+//		}
+//		return $return;
+//	}
 	/**
 	 * Override the update functionality to save related objects
 	 *

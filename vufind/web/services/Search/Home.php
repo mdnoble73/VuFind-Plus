@@ -46,47 +46,27 @@ class Search_Home extends Action {
 			}
 		}
 
-		$activeLocation = $locationSingleton->getActiveLocation();
-
-		//Load browse categories
+		// Load browse categories
 		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
 		/** @var BrowseCategory[] $browseCategories */
-
-		$specifiedCategory = isset($_REQUEST['browseCategory']); // Do we want to show a specific browse category
-
 		$browseCategories = array();
+
+		// Get Location's Browse Categories if Location is set
+		$activeLocation = $locationSingleton->getActiveLocation();
 		if ($activeLocation != null){
-			$localBrowseCategories = $activeLocation->browseCategories;
-			foreach ($localBrowseCategories as $localBrowseCategory){
-				$browseCategory = new BrowseCategory();
-				$browseCategory->textId = $localBrowseCategory->browseCategoryTextId;
-				if($browseCategory->find(true)){
-					$browseCategories[] = clone($browseCategory);
-					if ($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) $selectedBrowseCategory = $browseCategory->textId;
-				}
-			}
-		}
-		if (isset($library) && count($browseCategories) == 0){
-			$localBrowseCategories = $library->browseCategories;
-			foreach ($localBrowseCategories as $localBrowseCategory){
-				$browseCategory = new BrowseCategory();
-				$browseCategory->textId = $localBrowseCategory->browseCategoryTextId;
-				if($browseCategory->find(true)){
-					$browseCategories[] = clone($browseCategory);
-					if ($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) $selectedBrowseCategory = $browseCategory->textId;
-				}
-			}
-		}
-		if (count($browseCategories) == 0){
-			$browseCategory = new BrowseCategory();
-			$browseCategory->find();
-			while($browseCategory->fetch()){
-				$browseCategories[] = clone($browseCategory);
-				if ($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) $selectedBrowseCategory = $browseCategory->textId;
-			}
+			$browseCategories = $this->getBrowseCategories($activeLocation->browseCategories);
 		}
 
-		if (!empty($selectedBrowseCategory)) $interface->assign('selectedBrowseCategory', $selectedBrowseCategory);
+		// Get Library's Browse Categories if none were set for Location
+		if (isset($library) && empty($browseCategories)){
+			$browseCategories = $this->getBrowseCategories($library->browseCategories);
+		}
+
+		// Get All Browse Categories if Location & Library had none set
+		if (empty($browseCategories)){
+			$browseCategories = $this->getBrowseCategories();
+		}
+
 		$interface->assign('browseCategories', $browseCategories);
 
 		//Get the Browse Results for the first list
@@ -103,6 +83,59 @@ class Search_Home extends Action {
 		$interface->assign('sidebar', 'Search/home-sidebar.tpl');
 		$interface->setTemplate('home.tpl');
 		$interface->display('layout.tpl');
+	}
+
+
+	/**
+	 * @param LocationBrowseCategory|LibraryBrowseCategory|null $localBrowseCategories
+	 * @return SubBrowseCategories[]
+	 */
+	public function getBrowseCategories($localBrowseCategories=null) {
+		global $interface;
+		$browseCategories = array();
+		$specifiedCategory = isset($_REQUEST['browseCategory']);
+		if ($localBrowseCategories) {
+			$first = key($localBrowseCategories); // get key of first category
+			foreach ($localBrowseCategories as $index => $localBrowseCategory) {
+				$browseCategory         = new BrowseCategory();
+				$browseCategory->textId = $localBrowseCategory->browseCategoryTextId;
+				if ($browseCategory->find(true)) {
+					$browseCategories[] = clone($browseCategory);
+					if (
+						($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) // A category has been selected through URL parameter
+						|| (!$specifiedCategory && $index == $first) // Or default to selecting the first browse category
+					) {
+						// Set Selected Browse Category
+//						$selectedBrowseCategory = $browseCategory->textId;
+						$browseCategory->getSubCategories(); // add subcategory information to the selected category
+						/** @var SubBrowseCategories $subCategory */
+						foreach ($browseCategory->subBrowseCategories as &$subCategory) {
+							/** @var BrowseCategory $temp */
+							$temp = BrowseCategory::staticGet('id', $subCategory->subCategoryId);
+							// overwrite with pertinent info for Display
+							$subCategory = array('label' => $temp->label, 'textId' => $temp->textId);
+						}
+
+						$selectedBrowseCategory = clone($browseCategory); //TODO needed?
+						$interface->assign('selectedBrowseCategory', $selectedBrowseCategory);
+					}
+				}
+			}
+		} else { // get All BrowseCategories
+			$browseCategory = new BrowseCategory();
+			$browseCategory->find();
+			while($browseCategory->fetch()){
+				$browseCategory->getSubCategories(); // add subcategory information to the object
+				$browseCategories[] = clone($browseCategory);
+				if ($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) {
+					// Set Selected Browse Category
+					$browseCategory->getSubCategories(); // add subcategory information to the selected category
+					$selectedBrowseCategory = clone($browseCategory);
+					$interface->assign('selectedBrowseCategory', $selectedBrowseCategory);
+				}
+			}
+		}
+		return $browseCategories;
 	}
 
 }

@@ -2,8 +2,8 @@ VuFind.Browse = (function(){
 	return {
 		curPage: 1,
 		curCategory: '',
+		curSubCategory : '',
 		browseMode: 'covers',
-		//opac: false, // true prevents browser storage of browse mode // Moved to Globals
 		browseModeClasses: { // browse mode to css class correspondence
 			covers:'home-page-browse-thumbnails',
 			grid:'home-page-browse-grid'
@@ -74,12 +74,30 @@ VuFind.Browse = (function(){
 
 		toggleBrowseMode : function(selectedMode){
 			var mode = this.browseModeClasses.hasOwnProperty(selectedMode) ? selectedMode : this.browseMode, // check that selected mode is a valid option
-					categoryTextId = this.curCategory || $('#browse-category-carousel .selected').data('category-id');
+					categoryTextId = this.curCategory || $('#browse-category-carousel .selected').data('category-id'),
+					subCategoryTextId = this.curSubCategory || $('#browse-sub-category-menu .selected').data('sub-category-id');
 			this.browseMode = mode; // set the mode officially
 			if (!Globals.opac && VuFind.hasLocalStorage() ) { // store setting in browser if not an opac computer
 				window.localStorage.setItem('browseMode', this.browseMode);
 			}
-			return this.changeBrowseCategory(categoryTextId); // re-load the browse category
+			if (subCategoryTextId) return this.changeBrowseSubCategory(subCategoryTextId);
+			else return this.changeBrowseCategory(categoryTextId); // re-load the browse category
+		},
+
+		resetBrowseResults : function(){
+			var classes = (function(){ // return list of all associated css classes (class list can be expanded without changing this code.)
+						var str = '', object = VuFind.Browse.browseModeClasses;
+						for (property in object) { str += object[property]+' ' }
+						return str;
+					})(),
+					selectedClass = this.browseModeClasses[this.browseMode];
+
+			// hide current results while fetching new results
+			$('#home-page-browse-results').children().fadeOut(function(){
+				$('#home-page-browse-results').children().slice(1).remove(); // remove all but the first div, also removes the <hr>s between the thumbnail divs
+				$('#home-page-browse-results div.row').removeClass(classes) // remove all browse mode classes
+						.addClass(selectedClass); // add selected browse mode class
+			});
 		},
 
 		changeBrowseCategory: function(categoryTextId){
@@ -89,13 +107,6 @@ VuFind.Browse = (function(){
 						,textId : categoryTextId || VuFind.Browse.curCategory
 						,browseMode : this.browseMode
 					},
-					classes = (function(){ // return list of all associated css classes (class list can be expanded without changing this code.)
-						var str = '', object = VuFind.Browse.browseModeClasses;
-						for (property in object) { str += object[property]+' ' }
-						return str;
-					})(),
-					selectedClass = this.browseModeClasses[this.browseMode],
-
 					newLabel = $('#browse-category-'+categoryTextId+' div').first().text(); // get label from corresponding li div
 			// the carousel clones these divs sometimes, so grab only the text from the first one.
 
@@ -103,37 +114,94 @@ VuFind.Browse = (function(){
 			$('.browse-category').removeClass('selected');
 			$('#browse-category-' + categoryTextId).addClass('selected');
 
-			// Set the new browse category label (below the carousel)
-			$('.selected-browse-label-search-text').fadeOut(function(){
-				$(this).html(newLabel).attr('href', '').fadeIn()
+			// Set the new browse category labels (below the carousel)
+			$('.selected-browse-label-search-text,.selected-browse-sub-category-label-search-text').fadeOut(function(){
+				$('.selected-browse-label-search-text').html(newLabel).fadeIn();
+				$('#selected-browse-search-link').attr('href', '')
 			});
 
-			// hide current results while fetching new results
-			$('#home-page-browse-results').children().fadeOut(function(){
-				$('#home-page-browse-results').children().slice(1).remove(); // remove all but the first div, also removes the <hr>s between the thumbnail divs
-				$('#home-page-browse-results div.row').removeClass(classes) // remove all browse mode classes
-						.addClass(selectedClass); // add selected browse mode class
+			// Hide current sub-categories while fetching new ones
+			$('#browse-sub-category-menu').children().fadeOut(function(){
+				$(this).remove() // delete sub-category buttons
 			});
 
-			//if (VuFind.Browse.reload) params.reload = ''; // Reload browse category
+			// Hide current results while fetching new results
+			this.resetBrowseResults();
+
 			$.getJSON(url, params, function(data){
 				if (data.result == false){
 					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
 				}else{
-					//if (data.label != newLabel)
-						$('.selected-browse-label-search-text').html(data.label);
+						$('.selected-browse-label-search-text').html(data.label); // update label
 
 					VuFind.Browse.curPage = 1;
 					VuFind.Browse.curCategory = data.textId;
-					$('#home-page-browse-results div.row') //.hide() // should be the first div only
+					VuFind.Browse.curSubCategory = data.subCategoryTextId || '';
+					$('#home-page-browse-results div.row') // should be the first div only
 							.html(data.records).fadeIn('slow');
 
-					$('#selected-browse-search-link').attr('href', data.searchUrl);
+					$('#selected-browse-search-link').attr('href', data.searchUrl); // set the Label's link
+
+					// Display Sub-Categories
+					if (data.subcategories) {
+						$('#browse-sub-category-menu').html(data.subcategories).fadeIn();
+						if (data.subCategoryTextId) { // selected sub category
+								// Set and Show sub-category label
+							$('.selected-browse-sub-category-label-search-text')
+									.html($('#browse-sub-category-'+data.subCategoryTextId).addClass('selected').text())
+									.fadeIn()
+						}
+					}
 				}
 			}).fail(function(){
 				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
 				$('#home-page-browse-results div').html('').show(); // should be first div
 				//$('.home-page-browse-thumbnails').html('').show();
+			});
+			return false;
+		},
+
+		changeBrowseSubCategory: function (subCategoryTextId) {
+			var url = Globals.path + '/Browse/AJAX',
+					params = {
+						method : 'getBrowseSubCategoryInfo'
+						,textId : VuFind.Browse.curCategory
+						,subCategoryTextId : subCategoryTextId
+						,browseMode : this.browseMode
+					};
+			// Set selected button as active
+			$('#browse-sub-category-menu button').removeClass('selected');
+			$('#browse-sub-category-'+subCategoryTextId).addClass('selected');
+
+			newSubCategoryLabel = $('#browse-sub-category-'+subCategoryTextId).text(); // get label from corresponding button
+			// Set the new browse category label (below the carousel)
+			$('.selected-browse-sub-category-label-search-text').fadeOut(function(){
+				$(this).html(newSubCategoryLabel).fadeIn()
+			});
+
+			// Hide current results while fetching new results
+			this.resetBrowseResults();
+
+			$.getJSON(url, params, function(data){
+				if (data.result == false){
+					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
+				}else{
+					if (data.subCategoryLabel) $('.selected-browse-sub-category-label-search-text').html(data.subCategoryLabel);
+					else $('.selected-browse-sub-category-label-search-text').fadeOut(); // Hide if no sub-category
+
+					VuFind.Browse.curPage = 1;
+					if (data.textId) VuFind.Browse.curCategory = data.textId;
+					if (data.subCategoryTextId) VuFind.Browse.curSubCategory = data.subCategoryTextId || '';
+
+					$('#home-page-browse-results div.row')  // should be the first div only
+							.html(data.records).fadeIn('slow');
+
+					$('#selected-browse-search-link').attr('href', data.searchUrl); // update the search link
+				}
+			}).fail(function(){
+				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+				$('#home-page-browse-results div.row').html('').show(); // should be first div
+				$('.selected-browse-sub-category-label-search-text').fadeOut(); // hide sub-category Label
 			});
 			return false;
 		},
@@ -156,7 +224,8 @@ VuFind.Browse = (function(){
 			var url = Globals.path + '/Browse/AJAX',
 					params = {
 						method : 'getMoreBrowseResults'
-						,textId :  this.curCategory
+						,textId :  this.curSubCategory || this.curCategory
+						  // if sub-category is currently selected fetch that, otherwise fetch the main category
 						,pageToLoad : this.curPage + 1
 						,browseMode : this.browseMode
 					},
@@ -168,7 +237,8 @@ VuFind.Browse = (function(){
 					var newDiv = $('<div class="'+divClass+' row" />').hide().append(data.records);
 					$('.'+divClass).filter(':last').after(newDiv).after('<hr>');
 					newDiv.fadeIn('slow');
-					VuFind.Browse.curPage++;
+					if (data.lastPage) $('#more-browse-results').hide(); // hide the load more results TODO: implement server side
+					else VuFind.Browse.curPage++;
 				}
 			}).fail(function(){
 				VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
