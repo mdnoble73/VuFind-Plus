@@ -7369,7 +7369,7 @@ hr.menu {
   vertical-align: middle;
   padding: 0px;
   color: #8b8b8b !important;
-  text-shadow: 1px 1px white;
+  text-shadow: 1px 1px #fff;
 }
 .header-button > a:visited {
   color: #8b8b8b !important;
@@ -7421,7 +7421,7 @@ hr.menu {
 }
 #navigation-controls {
   border-top: 8px solid #333333;
-  background: white;
+  background: #fff;
 }
 @media print {
   #navigation-controls {
@@ -7461,11 +7461,11 @@ hr.menu {
 }
 #home-page-search-label {
   font-size: 35px;
-  color: white;
+  color: #fff;
   text-shadow: 1px 1px #999999;
 }
 #home-page-advanced-search-link {
-  color: white;
+  color: #fff;
 }
 #lookfor::placeholder {
   font-size: 0;
@@ -7499,43 +7499,43 @@ hr.menu {
 }
 .searchTypeHome {
   margin: 5px 0px 0px;
-  color: white;
+  color: #fff;
   background-color: #147ce2;
   border: none;
   width: 90% !important;
 }
 #searchSource {
   margin: 5px 0px 0px;
-  color: white;
+  color: #fff;
   background-color: #147ce2;
   border: none;
   width: 90%;
 }
 #keepFiltersSwitchLabel {
-  color: white;
+  color: #fff;
   font-weight: normal;
 }
 .sidebar-bold-button {
   text-align: center;
   background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: white;
+  color: #fff;
   padding: 3px 0px;
   margin-bottom: 15px;
 }
 .sidebar-bold-button a {
-  color: white;
+  color: #fff;
 }
 #home-page-login {
   background-color: #AFAFAF;
-  color: white;
+  color: #fff;
   font-size: 18px;
   text-shadow: 1px 1px #999999;
   padding: 5px;
   margin-bottom: 5px;
 }
 #home-page-login a {
-  color: white;
+  color: #fff;
 }
 #home-page-library-section {
   background-color: #eeeeee;
@@ -7546,12 +7546,12 @@ hr.menu {
   text-align: center;
   background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: white;
+  color: #fff;
   padding: 3px 0px;
   margin-bottom: 15px;
 }
 .sidebar-button a {
-  color: white;
+  color: #fff;
 }
 .sidebar-links .panel-group .panel + .panel {
   margin-top: 0px;
@@ -7569,10 +7569,10 @@ hr.menu {
 .sidebar-links .panel-title {
   font-size: 14px;
   color: #333333;
-  text-shadow: 1px 1px white;
+  text-shadow: 1px 1px #fff;
 }
 .sidebar-links .active .panel-title {
-  color: white;
+  color: #fff;
   text-shadow: 1px 1px #555555;
 }
 .sidebar-links .panel-body {
@@ -7731,7 +7731,7 @@ hr.menu {
   outline: none;
 }
 .browse-category {
-  color: white;
+  color: #fff;
   font-size: 20px;
   padding: 10px;
   text-shadow: 1px 1px #555555;
@@ -7745,7 +7745,7 @@ hr.menu {
   color: darkblue;
 }
 .browse-category div {
-  color: white;
+  color: #fff;
   cursor: pointer;
   height: 80px;
 }
@@ -7797,10 +7797,10 @@ hr.menu {
 }
 #home-page-browse-content {
   padding: 15px;
-  background-color: white;
+  background-color: #fff;
 }
 #selected-browse-label {
-  background-color: white;
+  background-color: #fff;
   background: linear-gradient(to bottom, #ffffff, #ffffff 44%, #bbd4e3 45%, #bbd4e3 55%, #ffffff 56%);
   margin-bottom: 5px;
 }
@@ -8027,7 +8027,22 @@ a.browse-thumbnail.active {
   padding: 2px;
   cursor: pointer;
 }
-/** Account Settings formatting */
+#browse-sub-category-menu {
+  margin-top: 10px;
+}
+#browse-sub-category-menu button {
+  margin-right: 5px;
+}
+#browse-sub-category-menu button.selected {
+  color: #ffffff;
+  background-color: #0d8ec7;
+}
+#browse-sub-category-menu button:focus {
+  outline: none;
+}
+.selected-browse-sub-category-label-search-text::before {
+  content: ' \00bb \00a0';
+}
 #account-settings-accordion .panel-group .panel + .panel {
   margin-top: 0px;
 }
@@ -8042,10 +8057,10 @@ a.browse-thumbnail.active {
 #account-settings-accordion .panel-title {
   font-size: 13px;
   color: #333333;
-  text-shadow: 1px 1px white;
+  text-shadow: 1px 1px #fff;
 }
 #account-settings-accordion .active .panel-title {
-  color: white;
+  color: #fff;
   text-shadow: 1px 1px #555555;
 }
 #account-settings-accordion .panel-body {
@@ -8114,7 +8129,7 @@ a.browse-thumbnail.active {
   color: #00125E;
 }
 .titleScrollerBody {
-  background-color: white;
+  background-color: #fff;
   clear: both;
   position: relative;
 }
@@ -8373,7 +8388,7 @@ a.browse-thumbnail.active {
   border-radius: 3px;
   margin-bottom: 10px;
   position: relative;
-  background-color: white;
+  background-color: #fff;
 }
 .eContentHoldingHeader {
   background-color: #EDEDED;
@@ -8474,7 +8489,7 @@ a.browse-thumbnail.active {
   text-align: center;
   background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: white;
+  color: #fff;
   padding: 3px 0px;
   margin-top: 20px;
 }
@@ -8482,7 +8497,7 @@ a.browse-thumbnail.active {
   text-align: center;
   background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: white;
+  color: #fff;
   padding: 3px 0px;
   margin-top: 20px;
 }
@@ -8515,7 +8530,7 @@ a.browse-thumbnail.active {
   text-align: center;
   background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: white;
+  color: #fff;
   padding: 3px 0px;
   margin-top: 20px;
   font-size: 14px;
@@ -8556,7 +8571,7 @@ a.browse-thumbnail.active {
 .result-tools-horizontal .btn {
   background-color: #909090;
   background: linear-gradient(to bottom, #909090, #686b6c);
-  color: white;
+  color: #fff;
 }
 .results-covers {
   padding-top: 6px;
@@ -8570,7 +8585,7 @@ a.browse-thumbnail.active {
   display: inline-block;
   background-color: #777272;
   padding: 3px;
-  color: white;
+  color: #fff;
   font-weight: bold;
   width: 18px;
   height: 18px;
@@ -8599,7 +8614,7 @@ a.browse-thumbnail.active {
 }
 .manifestation-actions .btn {
   background-color: #088ec6;
-  color: white;
+  color: #fff;
 }
 .related-manifestations {
   margin-bottom: 5px;
@@ -8747,10 +8762,10 @@ a.browse-thumbnail.active {
 #more-details-accordion .panel-title {
   font-size: 13px;
   color: #333333;
-  text-shadow: 1px 1px white;
+  text-shadow: 1px 1px #fff;
 }
 #more-details-accordion .active .panel-title {
-  color: white;
+  color: #fff;
   text-shadow: 1px 1px #555555;
 }
 #more-details-accordion .panel-body {
@@ -8819,14 +8834,14 @@ a.browse-thumbnail.active {
   border: 0px;
 }
 .header-button > a {
-  color: white !important;
+  color: #fff !important;
   line-height: 60px !important;
   text-shadow: none;
 }
 .header-button > a:visited {
-  color: white !important;
+  color: #fff !important;
 }
 .header-button:hover {
   border-bottom: 0px;
-  box-shadow: 2px 2px 5px white;
+  box-shadow: 2px 2px 5px #fff;
 }
