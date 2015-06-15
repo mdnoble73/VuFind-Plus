@@ -32,7 +32,10 @@
 				<div class="clearfix"></div>
 			</div>
 			<div id="browse-sub-category-menu" class="row text-center">
-				{* Initial load of content done by AJAX call on page load *}
+				{* Initial load of content done by AJAX call on page load, unless sub-category is specified via URL *}
+				{if $subCategoryTextId}
+					{include file="Search/browse-sub-category-menu.tpl"}
+				{/if}
 			</div>
 		</div>
 	</div>
@@ -77,6 +80,7 @@
 	$(function(){ldelim}
 		{if $selectedBrowseCategory}
 			VuFind.Browse.curCategory = '{$selectedBrowseCategory->textId}';
+		{if $subCategoryTextId}VuFind.Browse.curSubCategory = '{$subCategoryTextId}';{/if}
 		{* TODO: stored selected browse category *}
 		{/if}
 		{if !$onInternalIP}

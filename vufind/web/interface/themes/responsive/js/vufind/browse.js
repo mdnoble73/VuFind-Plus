@@ -186,6 +186,7 @@ VuFind.Browse = (function(){
 				if (data.result == false){
 					VuFind.showMessage("Error loading browse information", "Sorry, we were not able to find titles for that category");
 				}else{
+					if (data.label) $('.selected-browse-label-search-text').html(data.label); // update label // needed when sub-category is specified via URL
 					if (data.subCategoryLabel) $('.selected-browse-sub-category-label-search-text').html(data.subCategoryLabel);
 					else $('.selected-browse-sub-category-label-search-text').fadeOut(); // Hide if no sub-category
 
