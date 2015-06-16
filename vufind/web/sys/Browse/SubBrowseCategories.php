@@ -15,22 +15,15 @@ class SubBrowseCategories extends DB_DataObject {
 	public
 		$id,
 		$weight,
-		$browseCategoryId,
-		$subCategoryId;
+		$browseCategoryId, // ID of the Main or Parent browse category
+		$subCategoryId;    // ID of the browse Category which is the Sub-Category or Child browse category
 
 	/* Static get */
 	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('SubBrowseCategories',$k,$v); }
 // required component for all classes that extend DB_DataObject
 
 	static function getObjectStructure(){
-		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
-		$browseCategories = new BrowseCategory();
-		$browseCategories->orderBy('label');
-		$browseCategories->find();
-		$browseCategoryList = array();
-		while($browseCategories->fetch()){
-			$browseCategoryList[$browseCategories->id] = $browseCategories->label . " ({$browseCategories->textId})";
-		}
+		$browseCategoryList = self::listBrowseCategories();
 		$structure = array(
 			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of the sub-category row within the database'),
 			'browseCategoryId' => array('property'=>'browseCategoryId', 'type'=>'label', 'label'=>'Browse Category', 'description'=>'The parent browse category'),
@@ -45,6 +38,18 @@ class SubBrowseCategories extends DB_DataObject {
 //			$structure[$fieldName] = $field;
 //		}
 		return $structure;
+	}
+
+	static function listBrowseCategories(){
+		$browseCategoryList = array();
+		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
+		$browseCategories = new BrowseCategory();
+		$browseCategories->orderBy('label');
+		$browseCategories->find();
+		while($browseCategories->fetch()){
+			$browseCategoryList[$browseCategories->id] = $browseCategories->label . " ({$browseCategories->textId})";
+		}
+		return $browseCategoryList;
 	}
 
 }

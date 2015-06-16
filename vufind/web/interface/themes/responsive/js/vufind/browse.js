@@ -208,16 +208,22 @@ VuFind.Browse = (function(){
 		},
 
 		createBrowseCategory: function(){
-			var url = Globals.path + "/Browse/AJAX?method=createBrowseCategory" ;
-			url += "&searchId=" + $('#searchId').val();
-			url += "&categoryName=" + $('#categoryName').val();
-			$.getJSON(url, function(data){
-				if (data.result == false){
-					VuFind.showMessage("Unable to create category", data.message);
-				}else{
-					VuFind.showMessage("Successfully added", "This search was added to the homepage successfully.", true);
-				}
-			});
+			var url = Globals.path + "/Browse/AJAX",
+					params = {
+							method:'createBrowseCategory'
+							,searchId:$('#searchId').val()
+							,categoryName:$('#categoryName').val()
+							,addAsSubCategoryOf:$('#addAsSubCategoryOfSelect').val()
+							};
+				$.getJSON(url, params, function (data) {
+					if (data.result == false) {
+						VuFind.showMessage("Unable to create category", data.message);
+					} else {
+						VuFind.showMessage("Successfully added", "This search was added to the homepage successfully.", true);
+					}
+				}).fail(function () {
+					VuFind.showMessage('Request Failed', 'There was an error with this AJAX Request.');
+				});
 			return false;
 		},
 

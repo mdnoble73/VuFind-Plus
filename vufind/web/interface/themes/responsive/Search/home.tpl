@@ -80,8 +80,7 @@
 	$(function(){ldelim}
 		{if $selectedBrowseCategory}
 			VuFind.Browse.curCategory = '{$selectedBrowseCategory->textId}';
-		{if $subCategoryTextId}VuFind.Browse.curSubCategory = '{$subCategoryTextId}';{/if}
-		{* TODO: stored selected browse category *}
+			{if $subCategoryTextId}VuFind.Browse.curSubCategory = '{$subCategoryTextId}';{/if}
 		{/if}
 		{if !$onInternalIP}
 		if (!Globals.opac && VuFind.hasLocalStorage()){ldelim}

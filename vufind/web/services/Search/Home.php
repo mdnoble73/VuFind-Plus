@@ -140,6 +140,26 @@ class Search_Home extends Action {
 				if ($specifiedCategory && $_REQUEST['browseCategory'] == $browseCategory->textId) {
 					$selectedBrowseCategory = clone($browseCategory);
 					$interface->assign('selectedBrowseCategory', $selectedBrowseCategory);
+					if ($specifiedSubCategory) {
+						$selectedBrowseCategory->getSubCategories();
+
+						$validSubCategory = false;
+						$subCategories = array();
+						/** @var SubBrowseCategories $subCategory */
+						foreach ($selectedBrowseCategory->subBrowseCategories as $subCategory) {
+							// Get Needed Info about sub-category
+							/** @var BrowseCategory $temp */
+							$temp = BrowseCategory::staticGet('id', $subCategory->subCategoryId);
+							if ($temp) {
+								if ($temp->textId == $_REQUEST['subCategory']) $validSubCategory = true;
+								$subCategories[] = array('label' => $temp->label, 'textId' => $temp->textId);
+							}
+						}
+						if ($validSubCategory) {
+							$interface->assign('subCategoryTextId', $_REQUEST['subCategory']);
+							$interface->assign('subCategories', $subCategories);
+						}
+					}
 				}
 			}
 		}

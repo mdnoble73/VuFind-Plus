@@ -46,12 +46,23 @@ class Browse_AJAX extends Action {
 
 	function getAddBrowseCategoryForm(){
 		global $interface;
+
+		// Select List Creation using Object Editor functions
+		require_once ROOT_DIR . '/sys/Browse/SubBrowseCategories.php';
+		$temp = SubBrowseCategories::getObjectStructure();
+		$temp['subCategoryId']['values'] = array(0 => 'Select One') + $temp['subCategoryId']['values'];
+			// add default option that denotes nothing has been selected to the options list
+			// (this preserves the keys' numeric values (which is essential as they are the Id values) as well as the array's order)
+			// btw addition of arrays is kinda a cool trick.
+		$interface->assign('propName', 'addAsSubCategoryOf');
+		$interface->assign('property', $temp['subCategoryId']);
+
 		// Display Page
 		$interface->assign('searchId', strip_tags($_REQUEST['searchId']));
 		$results = array(
 			'title' => 'Add to Home Page',
 			'modalBody' => $interface->fetch('Browse/addBrowseCategoryForm.tpl'),
-			'modalButtons' => "<span class='tool btn btn-primary' onclick='return VuFind.Browse.createBrowseCategory();'>Create Category</span>"
+			'modalButtons' => "<span class='tool btn btn-primary' onclick='$(\"#createBrowseCategory\").submit();'>Create Category</span>"
 		);
 		return $results;
 	}
@@ -62,6 +73,9 @@ class Browse_AJAX extends Action {
 		global $user;
 		$searchLocation = $locationSingleton->getSearchLocation();
 		$categoryName = isset($_REQUEST['categoryName']) ? $_REQUEST['categoryName'] : '';
+		$addAsSubCategoryOf = isset($_REQUEST['addAsSubCategoryOf']) && !empty($_REQUEST['addAsSubCategoryOf']) ? $_REQUEST['addAsSubCategoryOf'] : null;
+			// value of zero means nothing was selected.
+
 
 		//Get the text id for the category
 		$textId = str_replace(' ', '_', strtolower(trim($categoryName)));
@@ -108,12 +122,26 @@ class Browse_AJAX extends Action {
 			$browseCategory->catalogScoping = 'unscoped';
 			$browseCategory->description = '';
 
+
 			//setup and add the category
 			if (!$browseCategory->insert()){
 				return array(
 					'result' => false,
-					'message' => "There was an unknown error saving the category.  Please contact Marmot."
+					'message' => "There was an error saving the category.  Please contact Marmot."
 				);
+			}
+			elseif ($addAsSubCategoryOf) {
+				$id = $browseCategory->id; // get from above insertion operation
+				$subCategory = new SubBrowseCategories();
+				$subCategory->browseCategoryId = $addAsSubCategoryOf;
+				$subCategory->subCategoryId = $id;
+				if (!$subCategory->insert()){
+					return array(
+						'result' => false,
+						'message' => "There was an error saving the category as a sub-category.  Please contact Marmot."
+					);
+				}
+
 			}
 
 			//Now add to the library/location
@@ -124,7 +152,7 @@ class Browse_AJAX extends Action {
 				$locationBrowseCategory->browseCategoryTextId = $textId;
 				$locationBrowseCategory->insert();
 			}else*/
-			if ($library){
+			if ($library && !$addAsSubCategoryOf){ // Only add main browse categories to the library carousel
 				require_once ROOT_DIR . '/sys/Browse/LibraryBrowseCategory.php';
 				$libraryBrowseCategory = new LibraryBrowseCategory();
 				$libraryBrowseCategory->libraryId = $library->libraryId;
