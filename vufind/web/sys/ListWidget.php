@@ -27,6 +27,15 @@ class ListWidget extends DB_DataObject
 	public $showViewMoreLink;
 	public $viewMoreLinkMode;
 
+	// List Widget Styles and their labels
+	public $styles = array('horizontal' => 'Horizontal', 'vertical'=> 'Vertical', 'single'=>'Single Title', 'single-with-next' => 'Single Title with a Next Button', 'text-list' => 'Text Only List');
+
+	// List Widget Display Types and their labels
+	public $displayTypes = array(
+		'tabs' => 'Tabbed Display',
+		'dropdown' => 'Drop Down List'
+	);
+
 	/** @var  ListWidgetList[] */
 	private $lists;
 	/* Static get */
@@ -128,7 +137,8 @@ class ListWidget extends DB_DataObject
 				'property' => 'style',
 				'type' => 'enum',
 				'label' => 'The style to use when displaying the list widget',
-				'values' => array('horizontal' => 'Horizontal', 'vertical'=> 'Vertical', 'single'=>'Single Title', 'single-with-next' => 'Single Title with a Next Button'),
+//				'values' => array('horizontal' => 'Horizontal', 'vertical'=> 'Vertical', 'single'=>'Single Title', 'single-with-next' => 'Single Title with a Next Button', 'text-list' => 'Text Only List'),
+				'values' => $this->styles,
 				'storeDb' => true,
 				'default' => 'horizontal',
 				'hideInLists' => true,
@@ -171,10 +181,11 @@ class ListWidget extends DB_DataObject
       'listDisplayType' => array(
         'property'=>'listDisplayType',
         'type'=>'enum',
-        'values' => array(
-          'tabs' => 'Tabbed Display',
-          'dropdown' => 'Drop Down List'
-        ),
+        'values' => $this->displayTypes,
+//      'values' => array(
+//          'tabs' => 'Tabbed Display',
+//          'dropdown' => 'Drop Down List'
+//        ),
         'label'=>'Display lists as',
         'description'=>'The URL to an external css file to be included wen rendering as an iFrame.',
         'storeDb' => true,

@@ -83,7 +83,7 @@ class ListWidgets extends ObjectEditor {
 		global $user;
 		return $user->hasRole('opacAdmin');
 	}
-	function launch() 	{
+	function launch() {
 		global $interface;
 		global $user;
 
@@ -119,7 +119,7 @@ class ListWidgets extends ObjectEditor {
 		$interface->assign('availableWidgets', $availableWidgets);
 
 		//Get the selected widget
-		if (isset($_REQUEST['id'])  && is_numeric($_REQUEST['id'])){
+		if (isset($_REQUEST['id']) && is_numeric($_REQUEST['id'])){
 			$widget = $availableWidgets[$_REQUEST['id']];
 			$interface->assign('object', $widget);
 		}
