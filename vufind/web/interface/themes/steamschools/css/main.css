@@ -8133,7 +8133,8 @@ a.browse-thumbnail.active {
   clear: both;
   position: relative;
 }
-.leftScrollerButton {
+.leftScrollerButton,
+.rightScrollerButton {
   display: inline-block;
   height: 135px;
   line-height: 135px;
@@ -8146,19 +8147,14 @@ a.browse-thumbnail.active {
   zoom: 1;
   *display: inline;
 }
+.leftScrollerButton {
+  float: left;
+  margin-left: 5px;
+}
 .rightScrollerButton {
-  display: inline-block;
-  height: 135px;
-  line-height: 135px;
-  vertical-align: middle;
-  width: 25px;
   float: right;
-  cursor: pointer;
   margin-right: 5px;
-  margin-top: 5px;
   z-index: 100;
-  zoom: 1;
-  *display: inline;
 }
 .titleScrollerSelectedTitle {
   width: 100%;
@@ -8200,11 +8196,6 @@ a.browse-thumbnail.active {
   zoom: 1;
   *display: inline;
 }
-.scrollerTitleCover {
-  max-width: 125px;
-  max-height: 125px;
-  padding: 3px;
-}
 .scrollerTitle img {
   opacity: .6;
 }
@@ -8218,6 +8209,11 @@ a.browse-thumbnail.active {
 }
 .scrollerTitle.selected img {
   opacity: 1;
+}
+.scrollerTitleCover {
+  max-width: 125px;
+  max-height: 125px;
+  padding: 3px;
 }
 .listWidgetSelector {
   width: 100%;
@@ -8258,25 +8254,22 @@ a.browse-thumbnail.active {
   margin: 5px;
   text-align: center;
 }
-.scrollerButtonUp {
+.scrollerButtonUp,
+.scrollerButtonDown {
   z-index: 100;
   position: absolute;
-  top: 0;
-  left: 0;
   height: 25px;
   width: 148px;
   cursor: pointer;
   text-align: center;
 }
+.scrollerButtonUp {
+  top: 0;
+  left: 0;
+}
 .scrollerButtonDown {
-  position: absolute;
   bottom: 0;
   left: 0;
-  height: 25px;
-  width: 148px;
-  cursor: pointer;
-  z-index: 100;
-  text-align: center;
 }
 .singleTitleWithNextWidget {
   width: 200px;

@@ -26,18 +26,18 @@
 		</div>
 	</div>
 </div>
-<script type="text/javascript">
+{*<script type="text/javascript">*}
 	{* touch swiping controls *}
-	$(document).ready(function(){ldelim}
-		$('#titleScroller{$scrollerName} .scrollerBodyContainer')
-			.touchwipe({ldelim}
-				wipeLeft : function(dx){ldelim}
-					{$scrollerVariable}.swipeToLeft(1); {*// scroll single item*}
-				{rdelim},
-				wipeRight: function(dx) {ldelim}
-					{$scrollerVariable}.swipeToRight(1); {*// scroll single item*}
-				{rdelim}
-			{rdelim});
-	{rdelim});
-</script>
+	{*$(document).ready(function(){ldelim}*}
+		{*$('#titleScroller{$scrollerName} .scrollerBodyContainer')*}
+			{*.touchwipe({ldelim}*}
+				{*wipeLeft : function(dx){ldelim}*}
+					{*{$scrollerVariable}.swipeToLeft(1); *}{*// scroll single item*}
+				{*{rdelim},*}
+				{*wipeRight: function(dx) {ldelim}*}
+					{*{$scrollerVariable}.swipeToRight(1); *}{*// scroll single item*}
+				{*{rdelim}*}
+			{*{rdelim});*}
+	{*{rdelim});*}
+{*</script>*}
 {/strip}

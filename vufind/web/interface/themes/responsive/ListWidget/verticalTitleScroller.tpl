@@ -1,5 +1,5 @@
 {strip}
-<div id="list-{$wrapperId}" {if $display == 'false'}style="display:none"{/if} class="verticalTitleScroller {if $widget->coverSize == 'medium'}mediumScroller{/if}">
+<div id="list-{$wrapperId}"{if $display == 'false'} style="display:none"{/if} class="verticalTitleScroller{if $widget->coverSize == 'medium'} mediumScroller{/if}">
 	<div id="{$wrapperId}" class="titleScrollerWrapper">
 		{if $scrollerTitle || $showViewMoreLink}
 		<div id="list-{$wrapperId}Header" class="titleScrollerHeader">
@@ -24,21 +24,21 @@
 		</div>
 	</div>
 </div>
-<script type="text/javascript">
+{*<script type="text/javascript">*}
 	{* touch swiping controls *}
-	$(document).ready(function(){ldelim}
-		var scrollFactor = 10; {*// swipe size per item to scroll.*}
-		$('#titleScroller{$scrollerName} .scrollerBodyContainer')
-			.touchwipe({ldelim}
-				wipeUp : function(dy){ldelim}
-					var scrollInterval = Math.round(dy / scrollFactor);
-					{$scrollerVariable}.swipeUp(scrollInterval);
-					{rdelim},
-				wipeDown: function(dy) {ldelim}
-					var scrollInterval = Math.round(dy / scrollFactor);
-					{$scrollerVariable}.swipeDown(scrollInterval);
-					{rdelim}
-			{rdelim});
-	{rdelim});
-</script>
+	{*$(document).ready(function(){ldelim}*}
+		{*var scrollFactor = 10; *}{*// swipe size per item to scroll.*}
+		{*$('#titleScroller{$scrollerName} .scrollerBodyContainer')*}
+			{*.touchwipe({ldelim}*}
+				{*wipeUp : function(dy){ldelim}*}
+					{*var scrollInterval = Math.round(dy / scrollFactor);*}
+					{*{$scrollerVariable}.swipeUp(scrollInterval);*}
+					{*{rdelim},*}
+				{*wipeDown: function(dy) {ldelim}*}
+					{*var scrollInterval = Math.round(dy / scrollFactor);*}
+					{*{$scrollerVariable}.swipeDown(scrollInterval);*}
+					{*{rdelim}*}
+			{*{rdelim});*}
+	{*{rdelim});*}
+{*</script>*}
 {/strip}

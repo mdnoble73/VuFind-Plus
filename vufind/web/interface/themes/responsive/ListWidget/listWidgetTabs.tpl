@@ -1,4 +1,4 @@
-{strip}
+{*{strip} TODO uncomment *}
 <div id="listWidget{$widget->id}" class="ui-tabs listWidget {$widget->style}">
 	{if count($widget->lists) > 1}
 		{if !isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs'}
@@ -55,13 +55,15 @@
 				{/if}
 			{/if}
 			{if $widget->style == 'horizontal'}
-				{include file='titleScroller.tpl'}
+				{include file='ListWidget/titleScroller.tpl'}
 			{elseif $widget->style == 'vertical'}
-				{include file='verticalTitleScroller.tpl'}
+				{include file='ListWidget/verticalTitleScroller.tpl'}
 			{elseif $widget->style == 'single-with-next'}
-				{include file='singleWithNextTitleWidget.tpl'}
+				{include file='ListWidget/singleWithNextTitleWidget.tpl'}
+			{elseif $widget->style == 'text-list'}
+				{include file='ListWidget/textListWidget.tpl'}
 			{else}
-				{include file='singleTitleWidget.tpl'}
+				{include file='ListWidget/singleTitleWidget.tpl'}
 			{/if}
 		{/if}
 	{/foreach}
@@ -97,7 +99,51 @@
 				{/if}
 			{/foreach}
 
-		{rdelim});
+		{* Swipe Integration *}
+			{if $widget->style == 'horizontal'}
+			var scrollFactor = 10; {*// swipe size per item to scroll.*}
+			$('#titleScroller{$scrollerName} .scrollerBodyContainer')
+							.touchwipe({ldelim}
+								wipeLeft : function(dx){ldelim}
+									var scrollInterval = Math.round(dx / scrollFactor); {*// vary scroll interval based on wipe length *}
+									{$scrollerVariable}.swipeToLeft(scrollInterval);
+									{rdelim},
+								wipeRight: function(dx) {ldelim}
+									var scrollInterval = Math.round(dx / scrollFactor); {*// vary scroll interval based on wipe length *}
+									{$scrollerVariable}.swipeToRight(scrollInterval);
+									{rdelim}
+								{rdelim});
+
+			{elseif $widget->style == 'vertical' || $widget->style == 'text-list'}
+
+			var scrollFactor = 10; {*// swipe size per item to scroll.*}
+			$('#titleScroller{$scrollerName} .scrollerBodyContainer')
+							.touchwipe({ldelim}
+								wipeUp : function(dy){ldelim}
+									var scrollInterval = Math.round(dy / scrollFactor);
+									{$scrollerVariable}.swipeUp(scrollInterval);
+									{rdelim},
+								wipeDown: function(dy) {ldelim}
+									var scrollInterval = Math.round(dy / scrollFactor);
+									{$scrollerVariable}.swipeDown(scrollInterval);
+									{rdelim}
+								{rdelim});
+			{else}
+			{* Single Title, Single Ti le with Next *}
+			$('#titleScroller{$scrollerName} .scrollerBodyContainer')
+							.touchwipe({ldelim}
+								wipeLeft : function(dx){ldelim}
+									{$scrollerVariable}.swipeToLeft(1); {*// scroll single item*}
+									{rdelim},
+								wipeRight: function(dx) {ldelim}
+									{$scrollerVariable}.swipeToRight(1); {*// scroll single item*}
+									{rdelim}
+								{rdelim});
+			{/if}
+
+
+
+			{rdelim});
 
 		$(window).bind('beforeunload', function(e) {ldelim}
 			{if !isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs'}
@@ -149,4 +195,4 @@
 		{rdelim}
 	</script>
 </div>
-{/strip}
+{*{/strip}*}
