@@ -154,6 +154,28 @@ class ListWidgets extends ObjectEditor {
 				$interface->assign('editForm', $editForm);
 				$interface->setTemplate('listWidgetEdit.tpl');
 			}else{
+				// Set some default sizes for the iframe we embed on the view page
+				switch ($widget->style){
+					case 'horizontal':
+						$width = 650;
+						$height = 275;
+						break;
+					case 'vertical' :
+						$width = 175;
+						$height = 400;
+						break;
+					case 'text-list' :
+						$width = 400;
+						$height = 200;
+						break;
+					case 'single' :
+					case 'single-with-next' :
+						$width = 225;
+						$height = 275;
+						break;
+				}
+				$interface->assign('width', $width);
+				$interface->assign('height', $height);
 				$interface->setTemplate('listWidget.tpl');
 			}
 		}

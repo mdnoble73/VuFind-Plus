@@ -1,19 +1,19 @@
-.titleScrollerHeader{
-  background:url(/interface/themes/default/images/breadcrumb-gradient.png) repeat-x top left;
+.titleScrollerHeader {
+  background: url(/interface/themes/default/images/breadcrumb-gradient.png) repeat-x top left;
   padding: 2px;
   color: #00125E;
   font-size: 12px;
   font-weight: bold;
   height: 20px;
-}
-.titleScrollerHeader .linkTab
-{
-  padding-right: 10px;
-  float: left;
-}
-.titleScrollerHeader .linkTab .first
-{
-  padding-right: 0;
+
+  .titleScrollerHeader .linkTab {
+    padding-right: 10px;
+    float: left;
+  }
+
+  .linkTab .first {
+    padding-right: 0;
+  }
 }
 .titleScrollerViewMore{
   padding-right: 5px;
@@ -31,7 +31,7 @@
   clear: both;
   position: relative;
 }
-
+// combined rules
 .leftScrollerButton,.rightScrollerButton{
   display: inline-block;
   height: 135px;
@@ -49,12 +49,30 @@
   float: left;
   margin-left: 5px;
 }
-
 .rightScrollerButton{
   float: right;
   margin-right: 5px;
   z-index: 100;
 }
+// combined rules
+.scrollerButtonUp, .scrollerButtonDown{
+  z-index: 100;
+  position: absolute;
+  height: 25px;
+  width: 148px;
+  cursor: pointer;
+  text-align: center;
+}
+// specific rules
+.scrollerButtonUp{
+  top: 0;
+  left: 0;
+}
+.scrollerButtonDown{
+  bottom: 0;
+  left: 0;
+}
+
 .titleScrollerSelectedTitle{
   width: 100%;
   text-align: center;
@@ -86,6 +104,18 @@
   padding-top: 40px;
   text-align: center;
 }
+.scrollerTitleCover{
+  max-width: 125px;
+  max-height: 125px;
+  padding: 3px;
+}
+
+.listWidgetSelector{
+  width: 100%;
+  text-align: right;
+}
+
+// Horizontal Widgets
 .scrollerTitle{
   display: inline-block;
   margin: 2px;
@@ -110,18 +140,22 @@
     }
   }
 }
+.verticalTitleScroller {
+  width: 150px;
+  height: 100%;
 
-.scrollerTitleCover{
-  max-width: 125px;
-  max-height: 125px;
-  padding: 3px;
+  .titleScrollerBody {
+    position: relative;
+    overflow: hidden;
+  }
+  .scrollerTitle {
+    display: block;
+  }
+  .scrollerBodyContainer {
+    margin: 5px;
+    text-align: center;
+  }
 }
-
-.listWidgetSelector{
-  width: 100%;
-  text-align: right;
-}
-
 .singleTitleWidget {
   width: 200px;
 
@@ -143,42 +177,6 @@
     width: 100%;
   }
 }
-
-.verticalTitleScroller {
-  width: 150px;
-  height: 100%;
-
-  .titleScrollerBody {
-    position: relative;
-    overflow: hidden;
-  }
-  .scrollerTitle {
-    display: block;
-  }
-  .scrollerBodyContainer {
-    margin: 5px;
-    text-align: center;
-  }
-}
-.scrollerButtonUp, .scrollerButtonDown{
-  z-index: 100;
-  position: absolute;
-  height: 25px;
-  width: 148px;
-  cursor: pointer;
-  text-align: center;
-}
-
-.scrollerButtonUp{
-  top: 0;
-  left: 0;
-}
-
-.scrollerButtonDown{
-  bottom: 0;
-  left: 0;
-}
-
 .singleTitleWithNextWidget {
   width: 200px;
 
@@ -204,6 +202,19 @@
     position: absolute;
     right: 5px;
   }
+}
+.textListScroller{
+  width: 100%
+  height: 100%;
+  
+  .scrollerBodyContainer {
+    margin: 5px;
+  }
+  .scrollerTitle{
+    max-width: none;
+    display: block;
+  }
+
 }
 .mediumScroller{
   &.singleTitleWithNextWidget, &.singleTitleWidget {

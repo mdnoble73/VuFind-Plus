@@ -8112,7 +8112,7 @@ a.browse-thumbnail.active {
   font-weight: bold;
   height: 20px;
 }
-.titleScrollerHeader .linkTab {
+.titleScrollerHeader .titleScrollerHeader .linkTab {
   padding-right: 10px;
   float: left;
 }
@@ -8156,6 +8156,23 @@ a.browse-thumbnail.active {
   margin-right: 5px;
   z-index: 100;
 }
+.scrollerButtonUp,
+.scrollerButtonDown {
+  z-index: 100;
+  position: absolute;
+  height: 25px;
+  width: 148px;
+  cursor: pointer;
+  text-align: center;
+}
+.scrollerButtonUp {
+  top: 0;
+  left: 0;
+}
+.scrollerButtonDown {
+  bottom: 0;
+  left: 0;
+}
 .titleScrollerSelectedTitle {
   width: 100%;
   text-align: center;
@@ -8187,6 +8204,15 @@ a.browse-thumbnail.active {
   padding-top: 40px;
   text-align: center;
 }
+.scrollerTitleCover {
+  max-width: 125px;
+  max-height: 125px;
+  padding: 3px;
+}
+.listWidgetSelector {
+  width: 100%;
+  text-align: right;
+}
 .scrollerTitle {
   display: inline-block;
   margin: 2px;
@@ -8210,14 +8236,20 @@ a.browse-thumbnail.active {
 .scrollerTitle.selected img {
   opacity: 1;
 }
-.scrollerTitleCover {
-  max-width: 125px;
-  max-height: 125px;
-  padding: 3px;
+.verticalTitleScroller {
+  width: 150px;
+  height: 100%;
 }
-.listWidgetSelector {
-  width: 100%;
-  text-align: right;
+.verticalTitleScroller .titleScrollerBody {
+  position: relative;
+  overflow: hidden;
+}
+.verticalTitleScroller .scrollerTitle {
+  display: block;
+}
+.verticalTitleScroller .scrollerBodyContainer {
+  margin: 5px;
+  text-align: center;
 }
 .singleTitleWidget {
   width: 200px;
@@ -8238,38 +8270,6 @@ a.browse-thumbnail.active {
   margin: 5px 0;
   text-align: center;
   width: 100%;
-}
-.verticalTitleScroller {
-  width: 150px;
-  height: 100%;
-}
-.verticalTitleScroller .titleScrollerBody {
-  position: relative;
-  overflow: hidden;
-}
-.verticalTitleScroller .scrollerTitle {
-  display: block;
-}
-.verticalTitleScroller .scrollerBodyContainer {
-  margin: 5px;
-  text-align: center;
-}
-.scrollerButtonUp,
-.scrollerButtonDown {
-  z-index: 100;
-  position: absolute;
-  height: 25px;
-  width: 148px;
-  cursor: pointer;
-  text-align: center;
-}
-.scrollerButtonUp {
-  top: 0;
-  left: 0;
-}
-.scrollerButtonDown {
-  bottom: 0;
-  left: 0;
 }
 .singleTitleWithNextWidget {
   width: 200px;
@@ -8295,6 +8295,17 @@ a.browse-thumbnail.active {
   float: none;
   position: absolute;
   right: 5px;
+}
+.textListScroller {
+  width: 100%
+  height: 100%;
+}
+.textListScroller .scrollerBodyContainer {
+  margin: 5px;
+}
+.textListScroller .scrollerTitle {
+  max-width: none;
+  display: block;
 }
 .mediumScroller.singleTitleWithNextWidget,
 .mediumScroller.singleTitleWidget {
