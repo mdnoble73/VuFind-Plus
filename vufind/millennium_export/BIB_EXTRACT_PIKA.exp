@@ -7,6 +7,14 @@ log_user 0 ; # do NOT send screens to stdout
 # James Staub
 # Nashville Public Library
 
+# 20150619 :
+# + rewrite of order record rules for new workflow. Exclude bibs with no order records whose CODE3 != s [SUPPRESSED]
+# + fix mistake in rule 4 for online titles
+
+# 20150616 :
+# + exclude bibs with no obtainable items and order records with cdate = "  -  -  " AND status != z [cancelled] AND code3 != s [suppressed]
+# + eliminate the following cdate criteria for order records in extract 3. ORDER CDATE between TODAY MINUS THREE WEEKS and "12-31-2037"
+ 
 # 20150311 :
 # + exclude bibs with no obtainable items and order records with cdate = "  -  -  " AND status = z [cancelled]
 
@@ -254,51 +262,22 @@ send "t"
 #expect "Enter action ( A for AND, O for OR, S to START search )"
 send "O"
 
-# 2. ORDER  CDATE  equal to  "  -  -  " IS NOT POSSIBLE IN INNOPAC - see #TX-60714412.
-# In lieu of searching a blank value, we change INNOPAC System Options > Database 
-# Maintenance > Date prompt: Format of year prompt = year AND search for 
-# ORDER CDATE < 01-01-1901
-# AND ORDER STATUS != Z [CANCELLED]
+# 2. ORDER CODE3 != S [SUPPRESSED]
 
 expect "? Other Types"
 send "?"
 expect "O > ORDER"
 send "O"
-#expect "03 CDATE:"
-send "03"
-#expect "Enter boolean condition"
-send "<"
-#expect "CDATE = mo-dy-year"
-send "01011901"
-#expect "CDATE < 01-01-01"
-#expect "Enter action ( A for AND, O for OR, S to START search )"
-send "A"
-#expect "20 STATUS:"
-send "20"
+#expect "08 CODE3:"
+send "08"
 #expect "Enter boolean condition"
 send "~"
-#expect "STATUS" ; #[JAMES should see what the response is... ~ or does not equal or...
-send "z"
+#expect "CODE3" ; #[JAMES should see what the response is... ~ or does not equal or...
+send "s"
 #expect "Enter action ( A for AND, O for OR, S to START search )"
 send "O"
 
-# 3. ORDER CDATE between TODAY MINUS THREE WEEKS and "12-31-2037"
-# NB: format is determined by INNOPAC System Options > Database maintenance >
-# Date prompt: Format of year prompt 
-#expect "Enter code in front of desired field"
-#expect "03 CDATE:"
-send "03"
-#expect "Enter boolean condition"
-send "W"
-set start [clock format [clock add [clock seconds] -3 weeks] -format %m%d%Y]
-#expect "CDATE between mo-dy-year"
-send $start
-#expect "& mo-dy-year"
-send "12312037"
-#expect "Enter action ( A for AND, O for OR, S to START search )"
-send "O"
-
-# 4. BIBLIOGRAPHIC  MARC Tag 856|u  not equal to  "" AND BCODE3 not equal to "h" [HOOPLA]
+# 4. BIBLIOGRAPHIC  MARC Tag 856|u  not equal to  "" AND BCODE3 not equal to "h" [HOOPLA] or "n" [SUPPRESSED]
 expect "? Other Types"
 send "?"
 expect "B > BIBLIOGRAPHIC"
@@ -318,8 +297,15 @@ send "A"
 #expect "07 BCODE3:"
 send "07"
 #expect "Enter boolean condition"
-send "="
+send "~"
 send "h"
+#expect "Enter action ( A for AND, O for OR, S to START search )"
+send "A"
+#expect "07 BCODE3:"
+send "07"
+#expect "Enter boolean condition"
+send "~"
+send "n"
 #expect "Enter action ( A for AND, O for OR, S to START search )"
 send "O"
 
