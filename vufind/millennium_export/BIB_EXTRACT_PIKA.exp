@@ -9,7 +9,7 @@ log_user 0 ; # do NOT send screens to stdout
 
 # 20150619 :
 # + rewrite of order record rules for new workflow. Exclude bibs with no order records whose CODE3 != s [SUPPRESSED]
-# + fix mistake in rule 4 for online titles
+# + fix mistake in rule 4 for online titles; before fix, few if any online titles were being extracted
 
 # 20150616 :
 # + exclude bibs with no obtainable items and order records with cdate = "  -  -  " AND status != z [cancelled] AND code3 != s [suppressed]
