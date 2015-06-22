@@ -23,8 +23,17 @@ class SearchStatNew extends DB_DataObject
 	function getSearchSuggestions($phrase, $type){
 		$searchStat = new SearchStatNew();
 		$phrase = trim($phrase);
-		//Don't bother getting suggestions for numeric phrases
+		//Don't bother getting suggestions for numeric, spammy, or long searches
 		if (is_numeric($phrase)){
+			return array();
+		}
+		if (strpos($phrase, '(') !== FALSE || strpos($phrase, ')') !== FALSE){
+			return array();
+		}
+		if (preg_match('/http:|mailto:|https:/i', $phrase)){
+			return array();
+		}
+		if (strlen($phrase) >= 256){
 			return array();
 		}
 		//Don't suggest things to users that will result in them not getting any results
@@ -85,6 +94,7 @@ class SearchStatNew extends DB_DataObject
 			return;
 		}
 
+		//Don't save really long searches
 		if (strlen($phrase) >= 256){
 			return;
 		}
