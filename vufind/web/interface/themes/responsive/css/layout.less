@@ -1,5 +1,5 @@
-@import "bootstrap/less/variables.less";
-@import "variables.less";
+@import (reference) "bootstrap/less/variables.less";
+@import (reference) "variables.less";
 ///
 //Functionality related to the overall layout
 //Headers, Footer, columns, etc.
@@ -78,7 +78,7 @@ hr.menu{
   vertical-align: middle;
   padding:0px;
   color: @header-link-color !important;
-  text-shadow: 1px 1px white;
+  text-shadow: 1px 1px #fff;
 }
 .header-button > a:visited{
   color: @header-link-color !important;
@@ -133,7 +133,7 @@ hr.menu{
 //Fixed navigation in footer
 #navigation-controls{
   border-top: 8px solid @footer-top-border-color;
-  background: white;
+  background: #fff;
   @media print {
     display: none !important;
   }

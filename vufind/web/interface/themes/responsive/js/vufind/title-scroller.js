@@ -5,7 +5,7 @@
  * @param scrollerShortName
  * @param container - a container to display if any titles are found
  * @param autoScroll - whether or not the selected title should change automatically
- * @param style - The style of the scroller vertical, horizontal, or single
+ * @param style - The style of the scroller vertical, horizontal, single or text-list
  * @return
  */
 function TitleScroller(scrollerId, scrollerShortName, container,
@@ -18,40 +18,32 @@ function TitleScroller(scrollerId, scrollerShortName, container,
 	this.container = container;
 	this.scrollInterval = 0;
 	this.swipeInterval = 5;
-
-	if (typeof autoScroll == "undefined") {
-		this.autoScroll = false;
-	} else {
-		this.autoScroll = autoScroll;
-	}
-	if (typeof style == "undefined") {
-		this.style = 'horizontal';
-	} else {
-		this.style = style;
-	}
+	this.autoScroll = (typeof autoScroll == "undefined") ? false : autoScroll;
+	this.style = (typeof style == "undefined") ? 'horizontal' : style;
 }
 
 TitleScroller.prototype.loadTitlesFrom = function(jsonUrl) {
 	jsonUrl = decodeURIComponent(jsonUrl);
-	var scroller = this;
-	var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
+	var scroller = this,
+			scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
 	scrollerBody.hide();
-	$("#titleScrollerSelectedTitle" + this.scrollerShortName).html("");
-	$("#titleScrollerSelectedAuthor" + this.scrollerShortName).html("");
+	$("#titleScrollerSelectedTitle" + this.scrollerShortName+",#titleScrollerSelectedAuthor" + this.scrollerShortName).html("");
+	//$("#titleScrollerSelectedTitle" + this.scrollerShortName).html("");
+	//$("#titleScrollerSelectedAuthor" + this.scrollerShortName).html("");
 	$(".scrollerLoadingContainer").show();
 	$.getJSON(jsonUrl, function(data) {
 		scroller.loadTitlesFromJsonData(data);
 	}).error(function(){
-		scrollerBody.html("Unable to load titles. Please try again later.");
-		scrollerBody.show();
+		scrollerBody.html("Unable to load titles. Please try again later.").show();
 		$(".scrollerLoadingContainer").hide();
 	});
 };
 
 TitleScroller.prototype.loadTitlesFromJsonData = function(data) {
-	var scroller = this;
-	var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
+	var scroller = this,
+			scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
 	try {
+		if (data.error) throw {description:data.error}; // throw exceptions for server error messages.
 		if (data.titles.length == 0){
 			scrollerBody.html("No titles were found for this list. Please try again later.");
 			$('#' + this.scrollerId + " .scrollerBodyContainer .scrollerLoadingContainer").hide();
@@ -59,6 +51,7 @@ TitleScroller.prototype.loadTitlesFromJsonData = function(data) {
 		}else{
 			scroller.scrollerTitles = [];
 			var i = 0;
+			// TODO: try direct assignment instead of loop. don't see the need to loop, other than resetting key. plb
 			$.each(data.titles, function(key, val) {
 				scroller.scrollerTitles[i++] = val;
 			});
@@ -78,40 +71,60 @@ TitleScroller.prototype.loadTitlesFromJsonData = function(data) {
 	} catch (err) {
 		//alert("error loading titles from data " + err.description);
 		if (scrollerBody != null){
-			scrollerBody.html("error loading titles from data " + err.description + ". Please try again later.");
-			scrollerBody.show();
+			scrollerBody.html("error loading titles from data " + err.description + ". Please try again later.").show();
 			$(".scrollerLoadingContainer").hide();
-		}else{
-			//alert("Could not find scroller body for " + this.scrollerId);
 		}
+		//else{
+		//	//alert("Could not find scroller body for " + this.scrollerId);
+		//}
 	}
 };
 
 TitleScroller.prototype.updateScroller = function() {
 	var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
 	try {
-		var scrollerBodyContents = "";
-		var curScroller = this;
+		var scrollerBodyContents = "",
+				curScroller = this;
 		if (this.style == 'horizontal'){
 			for ( var i in this.scrollerTitles) {
 				scrollerBodyContents += this.scrollerTitles[i]['formattedTitle'];
 			}
-			scrollerBody.html(scrollerBodyContents);
-			scrollerBody.width(this.scrollerTitles.length * 131);
-	
-			scrollerBody.waitForImages(function() {
-				TitleScroller.prototype.finishLoadingScroller.call(curScroller);
-			});
+			scrollerBody.html(scrollerBodyContents)
+					.width(this.scrollerTitles.length * 131)
+					.waitForImages(function() {
+						TitleScroller.prototype.finishLoadingScroller.call(curScroller);
+					});
 		}else if (this.style == 'vertical'){
 			for ( var j in this.scrollerTitles) {
 				scrollerBodyContents += this.scrollerTitles[j]['formattedTitle'];
 			}
-			scrollerBody.html(scrollerBodyContents);
-			scrollerBody.height(this.scrollerTitles.length * 131);
-
-			scrollerBody.waitForImages(function() {
-				TitleScroller.prototype.finishLoadingScroller.call(curScroller);
+			scrollerBody.html(scrollerBodyContents)
+					.height(this.scrollerTitles.length * 131)
+					.waitForImages(function() {
+						TitleScroller.prototype.finishLoadingScroller.call(curScroller);
+					});
+		}else if (this.style == 'text-list'){
+			$.each(this.scrollerTitles, function(j, val){
+				//var idname = curScroller.scrollerId+ j.toString();
+				scrollerBodyContents = $('<div>').attr({ // create containing dev
+					id:curScroller.scrollerId+ j.toString()
+					,class:'scrollerTitle'
+				}).html( // create link tag
+						$('<a><b>'+val['title']+'</b> by <b>'+val['author']+'</b></a>').attr({
+							href: val['titleURL']
+							,onclick:"trackEvent('ListWidget', 'Title Click', '"+this.scrollerShortName+"')"
+							,id:'descriptionTrigger'+val['shortId']
+						}).prepend((j+1)+') ')
+				);
+				scrollerBodyContents.appendTo(scrollerBody);
+				//console.log(scrollerBodyContents);
+				//console.log(scrollerBodyContents.height());
+				//console.log(idname+' Height:'+ $('#'+idname).height());
 			});
+			scrollerBody.height(this.scrollerTitles.length * 40); //TODO re-calibrate
+
+			TitleScroller.prototype.finishLoadingScroller.call(curScroller);
+
 		}else{
 			this.currentScrollerIndex = 0;
 			scrollerBody.html(this.scrollerTitles[this.currentScrollerIndex]['formattedTitle']);
@@ -120,8 +133,7 @@ TitleScroller.prototype.updateScroller = function() {
 		
 	} catch (err) {
 		alert("error in updateScroller for scroller " + this.scrollerId + " " + err.description);
-		scrollerBody.html("error loading titles from data " + err + ". Please try again later.");
-		scrollerBody.show();
+		scrollerBody.html("error loading titles from data " + err + ". Please try again later.").show();
 		$(".scrollerLoadingContainer").hide();
 	}
 
@@ -129,8 +141,9 @@ TitleScroller.prototype.updateScroller = function() {
 
 TitleScroller.prototype.finishLoadingScroller = function() {
 	$(".scrollerLoadingContainer").hide();
-	var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
-	scrollerBody.show();
+	//var scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody");
+	//scrollerBody.show();
+	$('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody").show();
 	TitleScroller.prototype.activateCurrentTitle.call(this);
 	var curScroller = this;
 
@@ -206,25 +219,25 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 	if (this.numScrollerTitles == 0) {
 		return;
 	}
-	var scrollerTitles = this.scrollerTitles;
-	var scrollerShortName = this.scrollerShortName;
-	var currentScrollerIndex = this.currentScrollerIndex;
-	$("#titleScrollerSelectedTitle" + scrollerShortName).html(scrollerTitles[currentScrollerIndex]['title']);
-	$("#titleScrollerSelectedAuthor" + scrollerShortName).html(scrollerTitles[currentScrollerIndex]['author']);
-	var scrollerBody = $('#' + this.scrollerId
-			+ " .scrollerBodyContainer .scrollerBody");
-	//Make sure to clear the current tooltip if any
-	$("#tooltip").hide();
-	//Update the actual display
-	var scrollerTitleId = "#scrollerTitle" + this.scrollerShortName + currentScrollerIndex;
+	var scrollerTitles = this.scrollerTitles,
+			scrollerShortName = this.scrollerShortName,
+			currentScrollerIndex = this.currentScrollerIndex,
+			scrollerBody = $('#' + this.scrollerId + " .scrollerBodyContainer .scrollerBody"),
+			scrollerTitleId = "#scrollerTitle" + this.scrollerShortName + currentScrollerIndex;
+
+	$("#tooltip").hide(); 	//Make sure to clear the current tooltip if any
+
+	// Update the actual display
 	if (this.style == 'horizontal'){
+		$("#titleScrollerSelectedTitle" + scrollerShortName).html(scrollerTitles[currentScrollerIndex]['title']);
+		$("#titleScrollerSelectedAuthor" + scrollerShortName).html(scrollerTitles[currentScrollerIndex]['author']);
+
 		if ($(scrollerTitleId).length != 0) {
-				var widthItemsLeft = $(scrollerTitleId).position().left;
-				var widthCurrent = $(scrollerTitleId).width();
-				var containerWidth = $('#' + this.scrollerId + " .scrollerBodyContainer")
-						.width();
-				// center the book in the container
-				var leftPosition = -((widthItemsLeft + widthCurrent / 2) - (containerWidth / 2));
+				var widthItemsLeft = $(scrollerTitleId).position().left,
+						widthCurrent = $(scrollerTitleId).width(),
+						containerWidth = $('#' + this.scrollerId + " .scrollerBodyContainer").width(),
+						// center the book in the container
+						leftPosition = -((widthItemsLeft + widthCurrent / 2) - (containerWidth / 2));
 				scrollerBody.animate( {
 					left : leftPosition + "px"
 				}, 400, function() {
@@ -236,12 +249,15 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 				});
 		}
 	}else if (this.style == 'vertical'){
+		$("#titleScrollerSelectedTitle" + scrollerShortName).html(scrollerTitles[currentScrollerIndex]['title']);
+		$("#titleScrollerSelectedAuthor" + scrollerShortName).html(scrollerTitles[currentScrollerIndex]['author']);
+
 		// Scroll Upwards/Downwards
 		if ($(scrollerTitleId).length != 0) {
 			//Move top of the current title to the top of the scroller.
-			var relativeTopOfElement = $(scrollerTitleId).position().top;
-			// center the book in the container
-			var topPosition = 25 - relativeTopOfElement;
+			var relativeTopOfElement = $(scrollerTitleId).position().top,
+					// center the book in the container
+					topPosition = 25 - relativeTopOfElement;
 			scrollerBody.animate( {
 				top : topPosition + "px"
 			}, 400, function() {
@@ -252,7 +268,12 @@ TitleScroller.prototype.activateCurrentTitle = function() {
 				$(scrollerTitleId).addClass('selected');
 			});
 		}
+	}else if (this.style == 'text-list'){
+		// No Action Needed
 	}else{
+		$("#titleScrollerSelectedTitle" + scrollerShortName).html(scrollerTitles[currentScrollerIndex]['title']);
+		$("#titleScrollerSelectedAuthor" + scrollerShortName).html(scrollerTitles[currentScrollerIndex]['author']);
+
 		scrollerBody.left = "0px";
 		scrollerBody.html(this.scrollerTitles[currentScrollerIndex]['formattedTitle']);
 	}

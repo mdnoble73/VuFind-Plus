@@ -392,7 +392,7 @@ class Library extends DB_DataObject
 				'showWikipediaContent' => array('property'=>'showWikipediaContent', 'type'=>'checkbox', 'label'=>'Show Wikipedia Content', 'description'=>'Whether or not Wikipedia content should be shown on author page', 'default'=>'1', 'hideInLists' => true,),
 			)),
 
-			// FUll Record Display //
+			// Full Record Display //
 			array('property'=>'fullRecordSection', 'type' => 'section', 'label' =>'Full Record Display', 'hideInLists' => true, 'properties' => array(
 				'showTextThis'  => array('property'=>'showTextThis', 'type'=>'checkbox', 'label'=>'Show Text This', 'description'=>'Whether or not the Text This link is shown', 'hideInLists' => true, 'default' => 1),
 				'showEmailThis'  => array('property'=>'showEmailThis', 'type'=>'checkbox', 'label'=>'Show Email This', 'description'=>'Whether or not the Email This link is shown', 'hideInLists' => true, 'default' => 1),
@@ -834,9 +834,7 @@ class Library extends DB_DataObject
 			$this->showInMainDetails = serialize($this->showInMainDetails);
 		}
 		$ret = parent::update();
-		if ($ret === FALSE ){
-			return $ret;
-		}else{
+		if ($ret !== FALSE ){
 			$this->saveHolidays();
 			$this->saveNearbyBookStores();
 			$this->saveFacets();
@@ -845,8 +843,8 @@ class Library extends DB_DataObject
 			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
 			$this->saveMoreDetailsOptions();
-			return $ret;
 		}
+		return $ret;
 	}
 
 	/**
@@ -860,9 +858,7 @@ class Library extends DB_DataObject
 			$this->showInMainDetails = serialize($this->showInMainDetails);
 		}
 		$ret = parent::insert();
-		if ($ret === FALSE ){
-			return $ret;
-		}else{
+		if ($ret !== FALSE ){
 			$this->saveHolidays();
 			$this->saveNearbyBookStores();
 			$this->saveFacets();
@@ -871,8 +867,8 @@ class Library extends DB_DataObject
 			$this->saveLibraryTopLinks();
 			$this->saveBrowseCategories();
 			$this->saveMoreDetailsOptions();
-			return $ret;
 		}
+		return $ret;
 	}
 
 	public function saveBrowseCategories(){
@@ -883,7 +879,7 @@ class Library extends DB_DataObject
 					$libraryBrowseCategory->delete();
 				}else{
 					if (isset($libraryBrowseCategory->id) && is_numeric($libraryBrowseCategory->id)){
-						$ret = $libraryBrowseCategory->update();
+						$libraryBrowseCategory->update();
 					}else{
 						$libraryBrowseCategory->libraryId = $this->libraryId;
 						$libraryBrowseCategory->insert();
@@ -909,7 +905,7 @@ class Library extends DB_DataObject
 					$libraryLink->delete();
 				}else{
 					if (isset($libraryLink->id) && is_numeric($libraryLink->id)){
-						$ret = $libraryLink->update();
+						$libraryLink->update();
 					}else{
 						$libraryLink->libraryId = $this->libraryId;
 						$libraryLink->insert();
@@ -935,7 +931,7 @@ class Library extends DB_DataObject
 					$libraryLink->delete();
 				}else{
 					if (isset($libraryLink->id) && is_numeric($libraryLink->id)){
-						$ret = $libraryLink->update();
+						$libraryLink->update();
 					}else{
 						$libraryLink->libraryId = $this->libraryId;
 						$libraryLink->insert();
@@ -961,7 +957,7 @@ class Library extends DB_DataObject
 					$searchSource->delete();
 				}else{
 					if (isset($searchSource->id) && is_numeric($searchSource->id)){
-						$ret = $searchSource->update();
+						$searchSource->update();
 					}else{
 						$searchSource->libraryId = $this->libraryId;
 						$searchSource->insert();
@@ -987,7 +983,7 @@ class Library extends DB_DataObject
 					$options->delete();
 				}else{
 					if (isset($options->id) && is_numeric($options->id)){
-						$ret = $options->update();
+						$options->update();
 					}else{
 						$options->libraryId = $this->libraryId;
 						$options->insert();
@@ -1013,7 +1009,7 @@ class Library extends DB_DataObject
 					$facet->delete();
 				}else{
 					if (isset($facet->id) && is_numeric($facet->id)){
-						$ret = $facet->update();
+						$facet->update();
 					}else{
 						$facet->libraryId = $this->libraryId;
 						$facet->insert();

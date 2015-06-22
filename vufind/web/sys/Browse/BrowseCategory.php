@@ -8,8 +8,9 @@
  * Date: 1/25/14
  * Time: 10:04 AM
  */
+require_once ROOT_DIR . '/sys/Browse/SubBrowseCategories.php';
 
-class BrowseCategory extends  DB_DataObject{
+class BrowseCategory extends DB_DataObject{
 	public $__table = 'browse_category';
 	public $id;
 	public $textId;  //A textual id to make it easier to transfer browse categories between systems
@@ -31,12 +32,102 @@ class BrowseCategory extends  DB_DataObject{
 	public $numTimesShown;
 	public $numTitlesClickedOn;
 
-	function __construct(){
+	/* Static get */
+	function staticGet($k,$v=NULL) { return DB_DataObject::staticGet('BrowseCategory',$k,$v); }
+// required component for all classes that extend DB_DataObject
 
+	public function getSubCategories(){
+		if (!isset($this->subBrowseCategories) && $this->id) {
+			$this->subBrowseCategories     = array();
+			$subCategory                   = new SubBrowseCategories();
+			$subCategory->browseCategoryId = $this->id;
+			$subCategory->orderBy('weight');
+			$subCategory->find();
+			while ($subCategory->fetch()) {
+				$this->subBrowseCategories[$subCategory->id] = clone($subCategory);
+			}
+		}
 	}
+
+	private $data = array();
+	public function __get($name){
+		if ($name == 'subBrowseCategories') {
+			$this->getSubCategories();
+			return $this->subBrowseCategories;
+		}else{
+			return $this->data[$name];
+		}
+	}
+
+	public function __set($name, $value){
+		if ($name == 'subBrowseCategories') {
+			$this->subBrowseCategories = $value;
+		}else{
+			$this->data[$name] = $value;
+		}
+	}
+	/**
+	 * Override the fetch functionality to save related objects
+	 *
+	 * @see DB/DB_DataObject::fetch()
+	 */
+//	public function fetch(){
+//		$return = parent::fetch();
+//		if ($return !== FALSE) {
+//			// check for any sub-categories
+//			$this->getSubCategories();
+//		}
+//		return $return;
+//	}
+	/**
+	 * Override the update functionality to save related objects
+	 *
+	 * @see DB/DB_DataObject::update()
+	 */
+	public function update(){
+		$ret = parent::update();
+		if ($ret !== FALSE ){
+			$this->saveSubBrowseCategories();
+		}
+		return $ret;
+	}
+
+	/**
+	 * Override the update functionality to save the related objects
+	 *
+	 * @see DB/DB_DataObject::insert()
+	 */
+	public function insert(){
+		$ret = parent::insert();
+		if ($ret !== FALSE ){
+			$this->saveSubBrowseCategories();
+		}
+		return $ret;
+	}
+
+	public function saveSubBrowseCategories(){
+		if (isset ($this->subBrowseCategories) && is_array($this->subBrowseCategories)) {
+			/** @var SubBrowseCategory[] $subBrowseCategories */
+			foreach ($this->subBrowseCategories as $subCategory) {
+				if (isset($subCategory->deleteOnSave) && $subCategory->deleteOnSave == true) {
+					$subCategory->delete();
+				} else {
+					if (isset($subCategory->id) && is_numeric($subCategory->id)) {
+						$subCategory->update();
+					} else {
+						$subCategory->browseCategoryId = $this->id;
+						$subCategory->insert();
+					}
+				}
+			}
+			unset($this->subBrowseCategories);
+		}
+	}
+
 	static function getObjectStructure(){
 		global $user;
 
+		// Get All User Lists
 		require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
 		$userLists = new UserList();
 		$userLists->public = 1;
@@ -49,6 +140,12 @@ class BrowseCategory extends  DB_DataObject{
 				$sourceLists[$userLists->id] = "($userLists->id) $userLists->title - {$userLists->num_titles()} titles";
 			}
 		}
+
+		// Get Structure for Sub-categories
+		$browseSubCategoryStructure = SubBrowseCategories::getObjectStructure();
+		unset($browseSubCategoryStructure['weight']);
+		unset($browseSubCategoryStructure['browseCategoryId']);
+
 		$structure = array(
 			'id' => array('property'=>'id', 'type'=>'label', 'label'=>'Id', 'description'=>'The unique id of this association'),
 			'label' => array('property'=>'label', 'type'=>'text', 'label'=>'Label', 'description'=>'The label to show to the user', 'maxLength'=>50, 'required' => true),
@@ -56,6 +153,23 @@ class BrowseCategory extends  DB_DataObject{
 			'userId' => array('property'=>'userId', 'type'=>'label', 'label'=>'userId', 'description'=>'The User Id who created this category', 'default'=> $user->id),
 			'sharing' => array('property'=>'sharing', 'type'=>'enum', 'values' => array('private' => 'Just Me', 'location' => 'My Home Branch', 'library' => 'My Home Library', 'everyone' => 'Everyone'), 'label'=>'Share With', 'description'=>'Who the category should be shared with', 'default' =>'everyone'),
 			'description' => array('property'=>'description', 'type'=>'html', 'label'=>'Description', 'description'=>'A description of the category.', 'hideInLists' => true),
+
+			// Define oneToMany interface for choosing and arranging sub-categories
+			'subBrowseCategories' => array(
+				'property'=>'subBrowseCategories',
+				'type'=>'oneToMany',
+				'label'=>'Browse Sub-Categories',
+				'description'=>'Browse Categories that will be displayed as sub-categories of this Browse Category',
+				'keyThis' => 'id',
+				'keyOther' => 'browseCategoryId',
+				'subObjectType' => 'SubBrowseCategories',
+				'structure' => $browseSubCategoryStructure,
+				'sortable' => true,
+				'storeDb' => true,
+				'allowEdit' => false,
+				'canEdit' => false,
+			),
+
 			'catalogScoping' => array('property'=>'catalogScoping', 'type'=>'enum', 'label'=>'Catalog Scoping', 'values' => array('unscoped' => 'Unscoped', 'library' => 'Current Library', 'location' => 'Current Location'), 'description'=>'What scoping should be used for this search scope?.', 'default'=>'unscoped'),
 			'searchTerm' => array('property'=>'searchTerm', 'type'=>'text', 'label'=>'Search Term', 'description'=>'A default search term to apply to the category', 'default'=>'', 'hideInLists' => true),
 			'defaultFilter' => array('property'=>'defaultFilter', 'type'=>'textarea', 'label'=>'Default Filter(s)', 'description'=>'Filters to apply to the search by default.', 'hideInLists' => true, 'rows' => 3, 'cols'=>80),
@@ -65,6 +179,7 @@ class BrowseCategory extends  DB_DataObject{
 			'numTitlesClickedOn' => array('property'=>'numTitlesClickedOn', 'type'=>'label', 'label'=>'Titles Clicked', 'description'=>'The number of times users have clicked on titles within this category'),
 		);
 
+		// used by Object Editor to make a list of Browse Categories for Admin interface
 		foreach ($structure as $fieldName => $field){
 			if (isset($field['property'])){
 				$field['propertyOld'] = $field['property'] . 'Old';
@@ -97,15 +212,13 @@ class BrowseCategory extends  DB_DataObject{
 		//First convert the text id to all lower case
 		$this->textId = strtolower($this->textId);
 
-		//Next convert any non word characters to _
+		//Next convert any non word characters to an underscore
 		$this->textId = preg_replace('/\W/', '_', $this->textId);
 
 		//Make sure the length is less than 50 characters
 		if (strlen($this->textId) > 50){
 			$this->textId = substr($this->textId, 0, 50);
 		}
-
-		//Now check if it is unique
 
 		return $validationResults;
 	}

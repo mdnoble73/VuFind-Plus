@@ -1,10 +1,9 @@
 {strip}
-<div id="list-{$wrapperId}" {if $display == 'false'}style="display:none"{/if} class="titleScroller tab-pane {if $active}active{/if} {if $widget->coverSize == 'medium'}mediumScroller{/if} {if $widget->showRatings}scrollerWithRatings{/if}">
+<div id="list-{$wrapperId}"{if $display == 'false'} style="display:none"{/if} class="titleScroller tab-pane{if $active} active{/if}{if $widget->coverSize == 'medium'} mediumScroller{/if}{if $widget->showRatings} scrollerWithRatings{/if}">
 	<div id="{$wrapperId}" class="titleScrollerWrapper">
 		{if $scrollerTitle || $Links}
 		<div id="list-{$wrapperId}Header" class="titleScrollerHeader">
 			<span class="listTitle resultInformationLabel">{if $scrollerTitle}{$scrollerTitle|escape:"html"}{/if}</span>
-
 
 			{if $Links}
 				{foreach from=$Links item=link}
@@ -40,7 +39,7 @@
 	</div>
 </div>
 <script type="text/javascript">
-	{* touch swiping controls *}
+{*//	 touch swiping controls *}
 	$(document).ready(function(){ldelim}
 		var scrollFactor = 10; {*// swipe size per item to scroll.*}
 		$('#titleScroller{$scrollerName} .scrollerBodyContainer')

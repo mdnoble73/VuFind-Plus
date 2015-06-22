@@ -6,11 +6,11 @@
 }
 #home-page-search-label {
   font-size: 35px;
-  color: white;
+  color: #fff;
   text-shadow: 1px 1px #999999;
 }
 #home-page-advanced-search-link {
-  color: white;
+  color: #fff;
 }
 #lookfor::placeholder {
   font-size: 0;
@@ -44,43 +44,43 @@
 }
 .searchTypeHome {
   margin: 5px 0px 0px;
-  color: white;
+  color: #fff;
   background-color: #147ce2;
   border: none;
   width: 90% !important;
 }
 #searchSource {
   margin: 5px 0px 0px;
-  color: white;
+  color: #fff;
   background-color: #147ce2;
   border: none;
   width: 90%;
 }
 #keepFiltersSwitchLabel {
-  color: white;
+  color: #fff;
   font-weight: normal;
 }
 .sidebar-bold-button {
   text-align: center;
   background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: white;
+  color: #fff;
   padding: 3px 0px;
   margin-bottom: 15px;
 }
 .sidebar-bold-button a {
-  color: white;
+  color: #fff;
 }
 #home-page-login {
   background-color: #AFAFAF;
-  color: white;
+  color: #fff;
   font-size: 18px;
   text-shadow: 1px 1px #999999;
   padding: 5px;
   margin-bottom: 5px;
 }
 #home-page-login a {
-  color: white;
+  color: #fff;
 }
 #home-page-library-section {
   background-color: #eeeeee;
@@ -91,12 +91,12 @@
   text-align: center;
   background-color: #7c7c7d;
   background: linear-gradient(to bottom, #7c7c7d, #3d4244);
-  color: white;
+  color: #fff;
   padding: 3px 0px;
   margin-bottom: 15px;
 }
 .sidebar-button a {
-  color: white;
+  color: #fff;
 }
 .sidebar-links .panel-group .panel + .panel {
   margin-top: 0px;
@@ -114,10 +114,10 @@
 .sidebar-links .panel-title {
   font-size: 14px;
   color: #333333;
-  text-shadow: 1px 1px white;
+  text-shadow: 1px 1px #fff;
 }
 .sidebar-links .active .panel-title {
-  color: white;
+  color: #fff;
   text-shadow: 1px 1px #555555;
 }
 .sidebar-links .panel-body {

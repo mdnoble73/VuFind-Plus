@@ -75,10 +75,10 @@
 #more-details-accordion .panel-title {
   font-size: 13px;
   color: #333333;
-  text-shadow: 1px 1px white;
+  text-shadow: 1px 1px #fff;
 }
 #more-details-accordion .active .panel-title {
-  color: white;
+  color: #fff;
   text-shadow: 1px 1px #555555;
 }
 #more-details-accordion .panel-body {

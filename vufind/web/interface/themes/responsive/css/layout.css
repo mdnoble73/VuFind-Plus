@@ -71,7 +71,7 @@ hr.menu {
   vertical-align: middle;
   padding: 0px;
   color: #8b8b8b !important;
-  text-shadow: 1px 1px white;
+  text-shadow: 1px 1px #fff;
 }
 .header-button > a:visited {
   color: #8b8b8b !important;
@@ -123,7 +123,7 @@ hr.menu {
 }
 #navigation-controls {
   border-top: 8px solid #088ec6;
-  background: white;
+  background: #fff;
 }
 @media print {
   #navigation-controls {

@@ -296,7 +296,7 @@ class SearchAPI extends Action {
 		if ($widget->find(true)){
 			$interface->assign('widget', $widget);
 			//return the widget
-			return $interface->fetch('API/listWidget.tpl');
+			return $interface->fetch('ListWidget/listWidget.tpl');
 		}
 	}
 

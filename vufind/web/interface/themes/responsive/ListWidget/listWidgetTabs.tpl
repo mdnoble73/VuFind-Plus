@@ -55,13 +55,15 @@
 				{/if}
 			{/if}
 			{if $widget->style == 'horizontal'}
-				{include file='titleScroller.tpl'}
+				{include file='ListWidget/titleScroller.tpl'}
 			{elseif $widget->style == 'vertical'}
-				{include file='verticalTitleScroller.tpl'}
+				{include file='ListWidget/verticalTitleScroller.tpl'}
 			{elseif $widget->style == 'single-with-next'}
-				{include file='singleWithNextTitleWidget.tpl'}
+				{include file='ListWidget/singleWithNextTitleWidget.tpl'}
+			{elseif $widget->style == 'text-list'}
+				{include file='ListWidget/textListWidget.tpl'}
 			{else}
-				{include file='singleTitleWidget.tpl'}
+				{include file='ListWidget/singleTitleWidget.tpl'}
 			{/if}
 		{/if}
 	{/foreach}
@@ -97,7 +99,7 @@
 				{/if}
 			{/foreach}
 
-		{rdelim});
+			{rdelim});
 
 		$(window).bind('beforeunload', function(e) {ldelim}
 			{if !isset($widget->listDisplayType) || $widget->listDisplayType == 'tabs'}

@@ -31,19 +31,38 @@ class Browse_AJAX extends Action {
 	{
 		header ('Content-type: application/json');
 		$method = $_REQUEST['method'];
-		$response = $this->$method();
-
+		$allowed_methods = array(
+			'getAddBrowseCategoryForm',
+			'createBrowseCategory',
+			'getMoreBrowseResults',
+			'getBrowseCategoryInfo',
+			'getBrowseSubCategoryInfo',
+			);
+		if (in_array($method, $allowed_methods)) {
+			$response = $this->$method();
+		} else $response = array('result'=> false);
 		echo json_encode($response);
 	}
 
 	function getAddBrowseCategoryForm(){
 		global $interface;
+
+		// Select List Creation using Object Editor functions
+		require_once ROOT_DIR . '/sys/Browse/SubBrowseCategories.php';
+		$temp = SubBrowseCategories::getObjectStructure();
+		$temp['subCategoryId']['values'] = array(0 => 'Select One') + $temp['subCategoryId']['values'];
+			// add default option that denotes nothing has been selected to the options list
+			// (this preserves the keys' numeric values (which is essential as they are the Id values) as well as the array's order)
+			// btw addition of arrays is kinda a cool trick.
+		$interface->assign('propName', 'addAsSubCategoryOf');
+		$interface->assign('property', $temp['subCategoryId']);
+
 		// Display Page
 		$interface->assign('searchId', strip_tags($_REQUEST['searchId']));
 		$results = array(
 			'title' => 'Add to Home Page',
 			'modalBody' => $interface->fetch('Browse/addBrowseCategoryForm.tpl'),
-			'modalButtons' => "<span class='tool btn btn-primary' onclick='return VuFind.Browse.createBrowseCategory();'>Create Category</span>"
+			'modalButtons' => "<span class='tool btn btn-primary' onclick='$(\"#createBrowseCategory\").submit();'>Create Category</span>"
 		);
 		return $results;
 	}
@@ -54,6 +73,9 @@ class Browse_AJAX extends Action {
 		global $user;
 		$searchLocation = $locationSingleton->getSearchLocation();
 		$categoryName = isset($_REQUEST['categoryName']) ? $_REQUEST['categoryName'] : '';
+		$addAsSubCategoryOf = isset($_REQUEST['addAsSubCategoryOf']) && !empty($_REQUEST['addAsSubCategoryOf']) ? $_REQUEST['addAsSubCategoryOf'] : null;
+			// value of zero means nothing was selected.
+
 
 		//Get the text id for the category
 		$textId = str_replace(' ', '_', strtolower(trim($categoryName)));
@@ -100,12 +122,26 @@ class Browse_AJAX extends Action {
 			$browseCategory->catalogScoping = 'unscoped';
 			$browseCategory->description = '';
 
+
 			//setup and add the category
 			if (!$browseCategory->insert()){
 				return array(
 					'result' => false,
-					'message' => "There was an unknown error saving the category.  Please contact Marmot."
+					'message' => "There was an error saving the category.  Please contact Marmot."
 				);
+			}
+			elseif ($addAsSubCategoryOf) {
+				$id = $browseCategory->id; // get from above insertion operation
+				$subCategory = new SubBrowseCategories();
+				$subCategory->browseCategoryId = $addAsSubCategoryOf;
+				$subCategory->subCategoryId = $id;
+				if (!$subCategory->insert()){
+					return array(
+						'result' => false,
+						'message' => "There was an error saving the category as a sub-category.  Please contact Marmot."
+					);
+				}
+
 			}
 
 			//Now add to the library/location
@@ -116,7 +152,7 @@ class Browse_AJAX extends Action {
 				$locationBrowseCategory->browseCategoryTextId = $textId;
 				$locationBrowseCategory->insert();
 			}else*/
-			if ($library){
+			if ($library && !$addAsSubCategoryOf){ // Only add main browse categories to the library carousel
 				require_once ROOT_DIR . '/sys/Browse/LibraryBrowseCategory.php';
 				$libraryBrowseCategory = new LibraryBrowseCategory();
 				$libraryBrowseCategory->libraryId = $library->libraryId;
@@ -130,29 +166,44 @@ class Browse_AJAX extends Action {
 		}
 	}
 
+/** @var  BrowseCategory $browseCategory */
+	private $browseCategory;
 
-	private function getBrowseCategoryResults($textId, $pageToLoad = 1){
+
+	/**
+	 * @param bool $reload  Reload object's BrowseCategory
+	 * @return BrowseCategory
+	 */
+	private function getBrowseCategory($reload = false) {
+		if ($this->browseCategory && !$reload) return $this->browseCategory;
+
+		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
+		$browseCategory = new BrowseCategory();
+		$browseCategory->textId = $this->textId;
+		$result = $browseCategory->find(true);
+		if ($result) $this->browseCategory = $browseCategory;
+		return $this->browseCategory;
+	}
+
+
+	private function getBrowseCategoryResults($pageToLoad = 1){
 		$browseMode = $this->setBrowseMode();
 
 		if ($pageToLoad == 1 && !isset($_REQUEST['reload'])) {
 			// only first page is cached
 			global $memCache, $solrScope;
-			$key = 'browse_category_' . $textId . '_' . $solrScope . '_' . $browseMode;
+			$key = 'browse_category_' . $this->textId . '_' . $solrScope . '_' . $browseMode;
 			$browseCategoryInfo = $memCache->get($key);
 			if ($browseCategoryInfo != false){
-				//TODO update viewing stats when grabbing from memcache?
 				return $browseCategoryInfo;
 			}
 		}
 
 		$result = array('result' => false);
-		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
-		$browseCategory = new BrowseCategory();
-		$browseCategory->textId = $textId;
-
-		if ($browseCategory->find(true)){
+		$browseCategory = $this->getBrowseCategory();
+		if ($browseCategory){
 			global $interface;
-			$interface->assign('browseCategoryId', $textId);
+			$interface->assign('browseCategoryId', $this->textId);
 			$result['result'] = true;
 			$result['textId'] = $browseCategory->textId;
 			$result['label'] = $browseCategory->label;
@@ -196,6 +247,8 @@ class Browse_AJAX extends Action {
 
 				$result['searchUrl'] = $this->searchObject->renderSearchUrl();
 
+				//TODO: Check if last page
+
 				// Shutdown the search object
 				$this->searchObject->close();
 			}
@@ -205,14 +258,12 @@ class Browse_AJAX extends Action {
 
 			$result['records'] = implode('',$records);
 			$result['numRecords'] = count($records);
-
-			$browseCategory->numTimesShown += 1;
-			$browseCategory->update();
 		}
 
+		// Store first page of browse category in the MemCache
 		if ($pageToLoad == 1) {
 			global $memCache, $configArray, $solrScope;
-			$key = 'browse_category_' . $textId . '_' . $solrScope . '_' . $browseMode;
+			$key = 'browse_category_' . $this->textId . '_' . $solrScope . '_' . $browseMode;
 			$memCache->add($key, $result, 0, $configArray['Caching']['browse_category_info']);
 		}
 		return $result;
@@ -251,180 +302,149 @@ class Browse_AJAX extends Action {
 		return $browseMode;
 	}
 
-	function getBrowseCategoryInfo($textId = null){
-		// New Version //
-		if ($textId == null){
-			$textId = isset($_REQUEST['textId']) ? $_REQUEST['textId'] : null;
-			if ($textId == null){
-				return array('result' => false);
-			}
+	private $textId;
+
+	/**
+	 * @param null $textId  Optional Id to set the object's textId to
+	 * @return null         Return the object's textId value
+	 */
+	function setTextId($textId = null){
+		if ($textId) $this->textId = $textId;
+		elseif ($this->textId == null) { // set Id only once
+			$this->textId = isset($_REQUEST['textId']) ? $_REQUEST['textId'] : null;
 		}
-		$result = $this->getBrowseCategoryResults($textId);
+		return $this->textId;
+	}
+
+	function getBrowseCategoryInfo($textId = null){
+		$textId = $this->setTextId($textId);
+		if ($textId == null){
+			return array('result' => false);
+		}
+		$response['textId'] = $textId;
+
+		// Get Any Subcategories for the subcategory menu
+		$response['subcategories'] = $this->getSubCategories();
+
+		// If this category has subcategories, get the results of a sub-category instead.
+		if (!empty($this->subCategories)) {
+			// passed URL variable, or first sub-category
+			if (!empty($_REQUEST['subCategoryTextId'])) {
+				$test = array_search($_REQUEST['subCategoryTextId'], $this->subCategories);
+				$subCategoryTextId = $_REQUEST['subCategoryTextId'];
+			} else {
+				$subCategoryTextId = $this->subCategories[0]->textId;
+			}
+			$response['subCategoryTextId'] = $subCategoryTextId;
+
+			// Set the main category label before we fetch the sub-categories main results
+			$response['label']  = $this->browseCategory->label;
+
+			// Reset Main Category with SubCategory to fetch main results
+			$this->setTextId($subCategoryTextId);
+			$this->getBrowseCategory(true); // load sub-category
+		}
+
+		// Get the Browse Results for the Selected Category
+		$result = $this->getBrowseCategoryResults();
+
+		// Update Stats
+		$this->upBrowseCategoryCounter();
+
+		return array_merge($result, $response);
+	}
+
+	/**
+	 *  Updates the displayed Browse Category's Shown Stats. Use near the end of
+	 *  your actions.
+	 */
+	private function upBrowseCategoryCounter(){
+		if ($this->browseCategory){
+			$this->browseCategory->numTimesShown += 1;
+			if ($this->subCategories){ // Avoid unneeded sql update calls of subBrowseCategories
+				unset ($this->browseCategory->subBrowseCategories);
+			}
+		$this->browseCategory->update();
+		}
+	}
+
+	function getBrowseSubCategoryInfo(){
+		$subCategoryTextId = isset($_REQUEST['subCategoryTextId']) ? $_REQUEST['subCategoryTextId'] : null;
+		if ($subCategoryTextId == null){
+			return array('result' => false);
+		}
+
+		// Get Main Category Info
+		$this->setTextId();
+		$this->getBrowseCategory();
+		if ($this->browseCategory) {
+			$result['textId'] = $this->browseCategory->textId;
+			$result['label']  = $this->browseCategory->label;
+		}
+
+		// Reload with sub-category
+		$this->setTextId($subCategoryTextId); // Override to fetch sub-category results
+		$this->getBrowseCategory(true); // Fetch Selected Sub-Category
+		$subCategoryResult = $this->getBrowseCategoryResults(); // Get the Browse Results for the Selected Sub Category
+
+		if (isset($subCategoryResult['label'])) {
+			$subCategoryResult['subCategoryLabel'] = $subCategoryResult['label'];
+//			unset($subCategoryResult['label']);
+		}
+		if (isset($subCategoryResult['textId'])) {
+			$subCategoryResult['subCategoryTextId'] = $subCategoryResult['textId'];
+//			unset($subCategoryResult['textId']);
+		}
+
+		// Update Stats
+		$this->upBrowseCategoryCounter();
+
+		$result = (isset($result)) ? array_merge($subCategoryResult, $result) : $subCategoryResult;
 		return $result;
 	}
-//	function getBrowseCategoryInfo($textId = null){
-//  // Old Version //
-//		global $interface;
-//		/** @var Memcache $memCache */
-//		global $memCache;
-//		global $solrScope;
-//
-//		$this->searchObject = SearchObjectFactory::initSearchObject();
-//		$result = array('result' => false);
-//		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
-//		$browseCategory = new BrowseCategory();
-//		if ($textId == null){
-//			$textId = isset($_REQUEST['textId']) ? $_REQUEST['textId'] : null;
-//			if ($textId == null){
-//				return $result;
-//			}
-//		}
-//
-//		$key = 'browse_category_' . $textId . '_' . $solrScope;
-//		$browseCategoryInfo = $memCache->get($key);
-//		if ($browseCategoryInfo != false && !isset($_REQUEST['reload'])){
-//			return $browseCategoryInfo;
-//		}
-//
-//		$browseCategory->textId = $textId;
-//		if ($browseCategory->find(true)){
-//			$interface->assign('browseCategoryId', $textId);
-//			$result['result'] = true;
-//			$result['textId'] = $browseCategory->textId;
-//			$result['label'] = $browseCategory->label;
-//			//$result['description'] = $browseCategory->description;
-//			// believe the description is not used anywhere on front end. plb 1-2-2015
-//
-//			if ($browseCategory->sourceListId != null && $browseCategory->sourceListId > 0){
-//				require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
-//				$sourceList = new UserList();
-//				$sourceList->id = $browseCategory->sourceListId;
-//				if ($sourceList->find(true)){
-//					$records = $sourceList->getBrowseRecords(0, self::ITEMS_PER_PAGE);
-//				}else{
-//					$records = array();
-//				}
-//				$result['searchUrl'] = '/MyAccount/MyList/' . $browseCategory->sourceListId;
-//			}else{
-//				$defaultFilterInfo = $browseCategory->defaultFilter;
-//				$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
-//				foreach ($defaultFilters as $filter){
-//					$this->searchObject->addFilter(trim($filter));
-//				}
-//				//Set Sorting, this is actually slightly mangled from the category to Solr
-//				$this->searchObject->setSort($browseCategory->getSolrSort());
-//				if ($browseCategory->searchTerm != ''){
-//					$this->searchObject->setSearchTerm($browseCategory->searchTerm);
-//				}
-//
-//				//Get titles for the list
-//				$this->searchObject->clearFacets();
-//				$this->searchObject->disableSpelling();
-//				$this->searchObject->disableLogging();
-//				$this->searchObject->setLimit(self::ITEMS_PER_PAGE);
-//				//Get titles for the list
-//				$this->searchObject->processSearch();
-//
-//				$records = $this->searchObject->getBrowseRecordHTML();
-//
-//				$result['searchUrl'] = $this->searchObject->renderSearchUrl();
-//			}
-//			if (count($records) == 0){
-//				$records[] = $interface->fetch('Browse/noResults.tpl');
-//			}
-//
-//			$result['records'] = implode('',$records);
-//			$result['numRecords'] = count($records);
-//
-//			$browseCategory->numTimesShown += 1;
-//			$browseCategory->update();
-//		}
-//		// Shutdown the search object
-//		$this->searchObject->close();
-//
-//		global $configArray;
-//		$memCache->add($key, $result, 0, $configArray['Caching']['browse_category_info']);
-//		return $result;
-//	}
 
-	function getMoreBrowseResults($textId = null, $pageToLoad = null)
-	{
-		// New Version //
-		if ($textId == null) {
-			$textId = isset($_REQUEST['textId']) ? $_REQUEST['textId'] : null;
-			if ($textId == null) {
-				return array('result' => false);
-			}
+	function getMoreBrowseResults($textId = null, $pageToLoad = null) {
+		$textId = $this->setTextId($textId);
+		if ($textId == null){
+			return array('result' => false);
 		}
+
 		// Get More Results requires a defined page to load
 		if ($pageToLoad == null) {
 			$pageToLoad = (int) $_REQUEST['pageToLoad'];
 			if (!is_int($pageToLoad)) return array('result' => false);
 		}
-		$result = $this->getBrowseCategoryResults($textId, $pageToLoad);
+		$result = $this->getBrowseCategoryResults($pageToLoad);
 		return $result;
 	}
 
-//	function getMoreBrowseResults($textId = null, $pageToLoad = null){
-// // Old Version //
-//		global $interface;
-//		$this->searchObject = SearchObjectFactory::initSearchObject();
-//		$result = array('result' => false);
-//		require_once ROOT_DIR . '/sys/Browse/BrowseCategory.php';
-//		$browseCategory = new BrowseCategory();
-//		if ($textId == null){
-//			$textId = $_REQUEST['textId'];
-//		}
-//		if ($pageToLoad == null){
-//			$pageToLoad = $_REQUEST['pageToLoad'];
-//		}
-//		$browseCategory->textId = $textId;
-//		if ($browseCategory->find(true)){
-//			$interface->assign('browseCategoryId', $textId);
-//			$result['result'] = true;
-//			$result['textId'] = $browseCategory->textId;
-//			$result['label'] = $browseCategory->label;
-//			//$result['description'] = $browseCategory->description; // not being used client-side at this time.
-//			if ($browseCategory->sourceListId != null && $browseCategory->sourceListId > 0){
-//				require_once ROOT_DIR . '/sys/LocalEnrichment/UserList.php';
-//				$sourceList = new UserList();
-//				$sourceList->id = $browseCategory->sourceListId;
-//				if ($sourceList->find(true)){
-//					$records = $sourceList->getBrowseRecords(($pageToLoad -1) * self::ITEMS_PER_PAGE, self::ITEMS_PER_PAGE);
-//				}else{
-//					$records = array();
-//				}
-//			}else{
-//				$defaultFilterInfo = $browseCategory->defaultFilter;
-//				$defaultFilters = preg_split('/[\r\n,;]+/', $defaultFilterInfo);
-//				foreach ($defaultFilters as $filter){
-//					$this->searchObject->addFilter(trim($filter));
-//				}
-//				//Set Sorting, this is actually slightly mangled from the category to Solr
-//				$this->searchObject->setSort($browseCategory->getSolrSort());
-//				if ($browseCategory->searchTerm != ''){
-//					$this->searchObject->setSearchTerm($browseCategory->searchTerm);
-//				}
-//
-//				//Get titles for the list
-//				$this->searchObject->clearFacets();
-//				$this->searchObject->disableSpelling();
-//				$this->searchObject->disableLogging();
-//				$this->searchObject->setLimit(self::ITEMS_PER_PAGE);
-//				$this->searchObject->setPage($pageToLoad);
-//				$this->searchObject->processSearch();
-//				$records = $this->searchObject->getBrowseRecordHTML();
-//			}
-//			if (count($records) == 0){
-//				$records[] = $interface->fetch('Browse/noResults.tpl');
-//			}
-//
-////			$result['records'] = implode('',$records); //don't implode so js can parse out on results page
-//			$result['records'] = $records;
-//
-//		}
-//		// Shutdown the search object
-//		$this->searchObject->close();
-//		return $result;
-//	}
+	/** @var  BrowseCategory $subCategories[]   Browse category info for each sub-category */
+	private $subCategories;
+
+	function getSubCategories() {
+		$this->getBrowseCategory();
+		if ($this->browseCategory){
+			// Set Selected Browse Category
+			$this->browseCategory->getSubCategories(); // add subcategory information to the selected category
+
+			$subCategories = array();
+			/** @var SubBrowseCategories $subCategory */
+			foreach ($this->browseCategory->subBrowseCategories as $subCategory) {
+
+				// Get Needed Info about sub-category
+				/** @var BrowseCategory $temp */
+				$temp = BrowseCategory::staticGet('id', $subCategory->subCategoryId);
+				if ($temp) {
+					$this->subCategories[] = $temp;
+					$subCategories[] = array('label' => $temp->label, 'textId' => $temp->textId);
+				}
+			}
+			if ($subCategories) {
+				global $interface;
+				$interface->assign('subCategories', $subCategories);
+				$result = $interface->fetch('Search/browse-sub-category-menu.tpl');
+				return $result;
+			}
+		}
+	}
 }
