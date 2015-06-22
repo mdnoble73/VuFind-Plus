@@ -900,7 +900,7 @@ public class RecordGrouperMain {
 		}
 
 		if (includeEBooks){
-			File marcFile = new File(marcPath + "/USA_eBook.mrc");
+			File marcFile = new File(marcPath + "/USA_ALL_eBook.mrc");
 			if (marcFile.exists()){
 				marcRecordFilesToProcess.add(marcFile);
 			}else{
@@ -909,7 +909,7 @@ public class RecordGrouperMain {
 		}
 
 		if (includeComics){
-			File marcFile = new File(marcPath + "/USA_Comic.mrc");
+			File marcFile = new File(marcPath + "/USA_ALL_Comic.mrc");
 			if (marcFile.exists()){
 				marcRecordFilesToProcess.add(marcFile);
 			}else{
