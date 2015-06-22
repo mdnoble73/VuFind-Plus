@@ -48,7 +48,7 @@
 				<p style="font-weight: bold;">{$url}/API/SearchAPI?method=getListWidget&amp;id={$object->id}</p>
 				<p><code style="white-space: normal">&lt;iframe src=&quot;{$url}/API/SearchAPI?method=getListWidget&amp;id={$object->id}&quot;
 						width=&quot;{$width}&quot; height=&quot;{$height}&quot;
-						scrolling=&quot;{if $selectedstyle == "text-list"}yes{else}no{/if}&quot;&gt;&lt;/iframe&gt;
+						scrolling=&quot;{if $selectedStyle == "text-list"}yes{else}no{/if}&quot;&gt;&lt;/iframe&gt;
 					</code></p>
 				<p>Width and height can be adjusted as needed to fit within your site.</p>
 				<br>
@@ -57,7 +57,7 @@
 			</div>
 		</div>
 		<h4>Live Preview</h4>
-		<iframe src="{$url}/API/SearchAPI?method=getListWidget&id={$object->id}" width="{$width}" height="{$height}" scrolling="{if $selectedstyle == "text-list"}yes{else}no{/if}">
+		<iframe src="{$url}/API/SearchAPI?method=getListWidget&id={$object->id}" width="{$width}" height="{$height}" scrolling="{if $selectedStyle == "text-list"}yes{else}no{/if}">
 			<p>Your browser does not support iframes. :( </p>
 		</iframe>
 	</div>
