@@ -46,7 +46,9 @@ class SearchAPI extends Action {
 	// The time intervals in seconds beyond which we consider the status as not current
 	const FULL_INDEX_INTERVAL    = 129600, // 36 Hours (in seconds)
 		PARTIAL_INDEX_INTERVAL     = 1500,   // 25 Minutes (in seconds)
-		OVERDRIVE_EXTRACT_INTERVAL = 14400;  // 4 Hours (in seconds)
+		OVERDRIVE_EXTRACT_INTERVAL = 14400,  // 4 Hours (in seconds)
+		SOLR_RESTART_INTERVAL      = 86400;  // 24 Hours (in seconds)
+
 
 	function getIndexStatus(){
 //		global $serverName;
@@ -54,9 +56,12 @@ class SearchAPI extends Action {
 		$partialIndexUpToDate = false;
 		$fullIndexUpToDate = false;
 		$overDriveExtractUpToDate = false;
+		$solrRestartUpToDate = false;
 		$notes = array();
 
 		$currentTime = time();
+
+		// Full Index //
 		$lastFullIndexVariable = new Variable();
 		$lastFullIndexVariable->name= 'lastFullReindexFinish';
 		if ($lastFullIndexVariable->find(true)){
@@ -70,6 +75,7 @@ class SearchAPI extends Action {
 			$notes[] = 'Full index has never been run';
 		}
 
+		// Partial Index //
 		$lastPartialIndexVariable = new Variable();
 		$lastPartialIndexVariable->name= 'lastPartialReindexFinish';
 		if ($lastPartialIndexVariable->find(true)){
@@ -83,6 +89,7 @@ class SearchAPI extends Action {
 			$notes[] = 'Partial index has never been run';
 		}
 
+		// OverDrive Extract //
 		$lastOverDriveExtractVariable = new Variable();
 		$lastOverDriveExtractVariable->name= 'last_overdrive_extract_time';
 		if ($lastOverDriveExtractVariable->find(true)){
@@ -97,7 +104,40 @@ class SearchAPI extends Action {
 			$notes[] = 'OverDrive Extract has never been run';
 		}
 
-		if (!$fullIndexUpToDate || !$partialIndexUpToDate || !$overDriveExtractUpToDate){
+
+		// Solr Restart //
+		global $configArray;
+		if ($configArray['Index']['engine'] == 'Solr') {
+			$xml = @file_get_contents($configArray['Index']['url'] . '/admin/cores');
+			if ($xml) {
+				$options = array('parseAttributes' => 'true',
+				                 'keyAttribute' => 'name');
+				$unxml = new XML_Unserializer($options);
+				$unxml->unserialize($xml);
+				$data = $unxml->getUnserializedData();
+				$uptime = $data['status']['grouped']['uptime']['_content']/1000;  // Grouped Index, puts uptime into seconds.
+				$uptime2 = $data['status']['grouped2']['uptime']['_content']/1000;  // Grouped 2 Index, puts uptime into seconds.
+				$solrStartTime = strtotime($data['status']['grouped']['startTime']['_content']);
+				$solrStartTime2 = strtotime($data['status']['grouped2']['startTime']['_content']);
+
+
+				if ($uptime < self::SOLR_RESTART_INTERVAL){ // Grouped Index
+					if ($uptime2 < self::SOLR_RESTART_INTERVAL){ // Grouped 2 Index
+						$solrRestartUpToDate = true;
+					} else {
+						$notes[] = 'Solr Index (Grouped2) last restarted ' . date('m-d-Y H:i:s', $solrStartTime) . ' - '. round($uptime / 3600, 2) . ' hours ago';
+					}
+				} else {
+					$notes[] = 'Solr Index (Grouped) last restarted ' . date('m-d-Y H:i:s', $solrStartTime2) . ' - '. round($uptime / 3600, 2) . ' hours ago';
+				}
+
+			}
+//			else {
+				// Notice if XML wasn't readable? eg Solr not responding
+//			}
+		}
+
+		if (!$fullIndexUpToDate || !$partialIndexUpToDate || !$overDriveExtractUpToDate || !$solrRestartUpToDate){
 			$result = array(
 				'result' => false,
 				'message' => implode('; ',$notes)
