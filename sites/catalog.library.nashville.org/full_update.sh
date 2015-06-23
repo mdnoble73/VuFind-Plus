@@ -13,6 +13,7 @@ EMAIL=james.staub@nashville.gov,mark@marmot.org,pascal@marmot.org
 ILSSERVER=waldo.library.nashville.org
 PIKASERVER=catalog.library.nashville.org
 OUTPUT_FILE="/var/log/vufind-plus/${PIKASERVER}/full_update_output.log"
+DAYOFWEEK=$(date +"%u")
 
 # Check for conflicting processes currently running
 function checkConflictingProcesses() {
@@ -105,7 +106,6 @@ cd /data/vufind-plus/; rm lexileTitles.txt*; wget http://venus.marmot.org/lexile
 
 #Do a full extract from OverDrive just once a week to catch anything that doesn't
 #get caught in the regular extract
-DAYOFWEEK=$(date +"%u")
 if [ "${DAYOFWEEK}" -eq 6 ];
 then
 	cd /usr/local/vufind-plus/vufind/overdrive_api_extract/

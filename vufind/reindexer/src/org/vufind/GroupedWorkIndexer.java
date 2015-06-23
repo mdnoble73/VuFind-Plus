@@ -142,13 +142,16 @@ public class GroupedWorkIndexer {
 			long minIndexingInterval = 4 * 60;
 			if (elapsedTime < minIndexingInterval) {
 				try {
-					logger.debug("Pausing between indexes, last index ran " + elapsedTime / 60 + " minutes ago");
+					logger.debug("Pausing between indexes, last index ran " + Math.ceil(elapsedTime / 60) + " minutes ago");
 					logger.debug("Pausing for " + (minIndexingInterval - elapsedTime) + " seconds");
+					GroupedReindexProcess.addNoteToReindexLog("Pausing between indexes, last index ran " + Math.ceil(elapsedTime / 60) + " minutes ago");
+					GroupedReindexProcess.addNoteToReindexLog("Pausing for " + (minIndexingInterval - elapsedTime) + " seconds");
 					Thread.sleep((minIndexingInterval - elapsedTime) * 1000);
 				} catch (InterruptedException e) {
 					logger.warn("Pause was interrupted while pausing between indexes");
 				}
-
+			}else{
+				GroupedReindexProcess.addNoteToReindexLog("Index last ran " + (elapsedTime) + " seconds ago");
 			}
 
 			if (partialReindexRunning){
