@@ -7,7 +7,7 @@
 			{assign var="scrollerVariable" value="seriesScroller"}
 			{assign var="permanentId" value=$recordDriver->getPermanentId()}
 			{assign var="fullListLink" value= "$path/GroupedWork/$permanentId/Series"}
-			{include file='ListWidget/titleScroller.tpl' PikaEmbedded=true}
+			{include file='ListWidget/titleScroller.tpl'}
 		</div>
 	</div>
 {/strip}

@@ -116,7 +116,7 @@
 			{assign var="wrapperId" value="series"}
 			{assign var="scrollerVariable" value="seriesScroller"}
 			{assign var="fullListLink" value="$path/EcontentRecord/$id/Series"}
-			{include file="titleScroller.tpl"}
+			{include file="ListWidget/titleScroller.tpl"}
 		</div>
 
 		<hr/>
