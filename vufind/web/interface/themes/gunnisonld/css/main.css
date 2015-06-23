@@ -8321,6 +8321,9 @@ a.browse-thumbnail.active {
 .mediumScroller .scrollerTitle {
   max-width: 204px;
 }
+.mediumScroller.textListScroller .scrollerTitle {
+  max-width: none;
+}
 .mediumScroller .scrollerBody {
   height: 215px;
 }
@@ -8825,12 +8828,6 @@ a.browse-thumbnail.active {
   #header-container {
     background-image: url('/interface/themes/gunnisonld/images/header_background.png');
   }
-}
-#header-logo {
-  background-color: rgba(255, 255, 255, 0.6);
-  border-radius: 0.5em;
-  margin-top: 12px;
-  padding: 4px 0;
 }
 @media (max-width: 767px) {
   #header-logo {

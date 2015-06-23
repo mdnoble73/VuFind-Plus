@@ -7583,7 +7583,7 @@ hr.menu {
 .sidebar-links .panel-body a,
 .sidebar-links .panel-body a:visited,
 .sidebar-links .panel-body a:hover {
-  color: #000000;
+  color: black;
 }
 .ui-helper-hidden {
   display: none;
@@ -8320,6 +8320,9 @@ a.browse-thumbnail.active {
 }
 .mediumScroller .scrollerTitle {
   max-width: 204px;
+}
+.mediumScroller.textListScroller .scrollerTitle {
+  max-width: none;
 }
 .mediumScroller .scrollerBody {
   height: 215px;

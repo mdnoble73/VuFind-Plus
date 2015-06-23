@@ -206,7 +206,7 @@
 .textListScroller{
   width: 100%
   height: 100%;
-  
+
   .scrollerBodyContainer {
     margin: 5px;
   }
@@ -230,7 +230,11 @@
   .scrollerTitle{
     max-width: 204px;
   }
-  .scrollerBody{
+  &.textListScroller {
+    .scrollerTitle{ // override the max-width rule above
+      max-width: none;
+    }
+  }  .scrollerBody{
     height: 215px;
   }
   &.scrollerWithRatings .scrollerBody{
