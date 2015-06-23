@@ -32,7 +32,7 @@ export JETTY_RUN
 export JETTY_PID=$JETTY_RUN/$SERVERNAME.pid
 
 #Max memory should be at least the size of all solr indexes combined. 
-export JAVA_OPTIONS="-server -Xms1024m -Xmx6g -XX:+UseParallelGC -XX:NewRatio=5"
+export JAVA_OPTIONS="-server -Xms1024m -Xmx6g -XX:+UseG1GC"
 export JETTY_LOG=/var/log/vufind-plus/$SERVERNAME/jetty
 
 exec /usr/local/vufind-plus/sites/default/vufind.sh $1 $2

@@ -27,7 +27,7 @@ JETTY_RUN=`findDirectory -w /var/run /usr/var/run /tmp`
 export JETTY_RUN
 export JETTY_PID=$JETTY_RUN/aspencat.pid
 #Max memory should be at least the size of all solr indexes combined. 
-export JAVA_OPTIONS="-server -Xms1024m -Xmx6g -XX:+UseParallelGC -XX:NewRatio=5"
+export JAVA_OPTIONS="-server -Xms1024m -Xmx6g -XX:+UseG1GC"
 export JETTY_LOG=/var/log/vufind-plus/aspencat.test/jetty
 
 exec /usr/local/vufind-plus/sites/default/vufind.sh $1 $2

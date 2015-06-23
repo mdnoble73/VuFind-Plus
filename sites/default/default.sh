@@ -34,7 +34,7 @@ export JETTY_RUN
 export JETTY_PID=$JETTY_RUN/$SERVERNAME.pid
 
 #Max memory should be at least the size of all solr indexes combined. 
-export JAVA_OPTIONS="-server -Xms1024m -Xmx6144m -XX:+UseParallelGC -XX:NewRatio=5"
+export JAVA_OPTIONS="-server -Xms1024m -Xmx6144m -XX:+UseG1GC"
 #export JETTY_LOG=/usr/local/VuFind-Plus/sites/$SERVERNAME/logs/jetty
 export JETTY_LOG=/var/log/VuFind-Plus/$SERVERNAME/logs/jetty
 # this is the usual directory for log files. plb 12-10-2014
