@@ -34,7 +34,7 @@ export JETTY_RUN
 export JETTY_PID=$JETTY_RUN/marmot.test.pid
 
 #Max memory should be at least the size of all solr indexes combined.
-export JAVA_OPTIONS="-server -Xms2g -Xmx22g -XX:+UseParallelGC -XX:NewRatio=5"
+export JAVA_OPTIONS="-server -Xms2g -Xmx22g -XX:+UseG1GC"
 export JETTY_LOG=/var/log/vufind-plus/marmot.test/jetty
 
 exec /usr/local/vufind-plus/sites/default/vufind.sh $1 $2

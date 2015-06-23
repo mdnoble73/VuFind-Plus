@@ -33,7 +33,7 @@ export JETTY_RUN
 export JETTY_PID=$JETTY_RUN/flatirons.production.pid
 
 #Max memory should be at least the size of all solr indexes combined. 
-export JAVA_OPTIONS="-server -Xms1024m -Xmx6144m -XX:+UseParallelGC -XX:NewRatio=5"
+export JAVA_OPTIONS="-server -Xms1024m -Xmx6144m -XX:+UseG1GC"
 export JETTY_LOG=/var/log/flatirons.production/logs/jetty
 
 exec /usr/local/vufind-plus/sites/default/vufind.sh $1 $2
