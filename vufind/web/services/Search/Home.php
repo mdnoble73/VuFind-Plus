@@ -69,16 +69,19 @@ class Search_Home extends Action {
 
 		$interface->assign('browseCategories', $browseCategories);
 
-		//Get the Browse Results for the first list
-		// browse results no longer needed. there is an embedded ajax call in home.tpl. plb 5-4-2015
-//		if (count($browseCategories) > 0){
-//			require_once ROOT_DIR . '/services/Browse/AJAX.php';
-//			$browseAJAX = new Browse_AJAX();
-//			$browseAJAX->setBrowseMode(); // set default browse mode in the case that the user hasn't chosen one.
+		//Set a Default Browse Mode
+		if (count($browseCategories) > 0){
+			require_once ROOT_DIR . '/services/Browse/AJAX.php';
+			$browseAJAX = new Browse_AJAX();
+			$browseAJAX->setBrowseMode(); // set default browse mode in the case that the user hasn't chosen one.
+
+			// browse results no longer needed. there is an embedded ajax call in home.tpl. plb 5-4-2015
 ////			$browseResults = $browseAJAX->getBrowseCategoryInfo(reset($browseCategories)->textId);
 ////			$interface->assign('browseResults', $browseResults);
-//		}
-
+		}
+		if (!$interface->get_template_vars('browseMode')) {
+			$interface->assign('browseMode', 'covers'); // fail safe: if no browseMode is set at all, go with covers
+		}
 		$interface->setPageTitle('Catalog Home');
 		$interface->assign('sidebar', 'Search/home-sidebar.tpl');
 		$interface->setTemplate('home.tpl');
