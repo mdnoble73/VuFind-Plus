@@ -1,6 +1,6 @@
 {strip}
 	<div id="record{$record.source}_{$record.id|escape}" class="result row">
-		<div class="col-xs-12 col-sm-3 col-md-3">
+		<div class="col-xs-12 col-sm-3">
 			<div class="row">
 				<div class="selectTitle col-xs-2">
 					{if !isset($record.renewable) || $record.renewable == true}
@@ -116,7 +116,7 @@
 					{/if}
 				</div>
 
-				<div class="col-md-3">
+				<div class="col-xs-12 col-md-3">
 					<div class="btn-group btn-group-vertical btn-block">
 						{if !isset($record.renewable) || $record.renewable == true}
 							{*<a href="#" onclick="$('#selected{$record.itemid}').attr('checked', 'checked');return VuFind.Account.renewSelectedTitles();" class="btn btn-sm btn-primary">Renew</a>*}
