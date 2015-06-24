@@ -53,12 +53,12 @@ class Search_Home extends Action {
 
 		// Get Location's Browse Categories if Location is set
 		$activeLocation = $locationSingleton->getActiveLocation();
-		if ($activeLocation != null){
+		if ($activeLocation != null && $activeLocation->browseCategories){
 			$browseCategories = $this->getBrowseCategories($activeLocation->browseCategories);
 		}
 
 		// Get Library's Browse Categories if none were set for Location
-		if (isset($library) && empty($browseCategories)){
+		if (isset($library) && empty($browseCategories) && $library->browseCategories){
 			$browseCategories = $this->getBrowseCategories($library->browseCategories);
 		}
 
@@ -88,7 +88,7 @@ class Search_Home extends Action {
 
 	/**
 	 * @param LocationBrowseCategory|LibraryBrowseCategory|null $localBrowseCategories
-	 * @return BrowseCategories[]
+	 * @return BrowseCategory[]
 	 */
 	public function getBrowseCategories($localBrowseCategories=null) {
 		global $interface;
