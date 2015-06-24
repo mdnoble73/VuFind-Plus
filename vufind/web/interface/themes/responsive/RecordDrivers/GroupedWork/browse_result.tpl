@@ -2,9 +2,7 @@
 	{if $browseMode == 'grid'}
 		<div class="{*browse-title *}browse-list">
 			<a onclick="return VuFind.GroupedWork.showGroupedWorkInfo('{$summId}', '{$browseCategoryId}')" href="{$summUrl}">
-				{*<div>*}
 					<img class="img-responsive" src="{$bookCoverUrl}" alt="{$summTitle} by {$summAuthor}" title="{$summTitle} by {$summAuthor}">
-				{*</div>*}
 				<div><strong>{$summTitle}</strong><br> by {$summAuthor}</div>
 			</a>
 		</div>
@@ -18,7 +16,7 @@
 				</div>
 			</a>
 			{if $showComments}
-				<div class="browse-rating" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}');">
+				<div class="browse-rating" onclick="return VuFind.GroupedWork.showReviewForm(this, '{$summId}');"> {* TODO change for separation *}
 				<span class="ui-rater-starsOff" style="width:90px">
 					{if $ratingData.user}
 						<span class="ui-rater-starsOn userRated" style="width:{math equation="90*rating/5" rating=$ratingData.user}px"></span>

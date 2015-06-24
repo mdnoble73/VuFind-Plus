@@ -1,5 +1,6 @@
 {strip}
 	<form class="form-horizontal" role="form">
+		{if $showRatings}
 		<div class="rateTitle form-group">
 			<label for="rating" class="col-sm-3">Rate the Title</label>
 			<div class="col-sm-9">
@@ -13,11 +14,14 @@
 				</select>
 			</div>
 		</div>
+		{/if}
+		{if $showComments}
 		<div class="form-group">
 			<label for="comment{$id}" class="col-sm-3">Write a Review</label>
 			<div class="col-sm-9">
 				<textarea name="comment" id="comment{$id}" rows="4" cols="60" class="form-control"></textarea>
 			</div>
 		</div>
+		{/if}
 	</form>
 {/strip}

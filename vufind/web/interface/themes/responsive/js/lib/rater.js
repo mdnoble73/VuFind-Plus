@@ -21,7 +21,7 @@ $.fn.rater = function(options) {
 			$off.mousemove(function(e) {
 				var left = e.clientX - $off.offset().left;
 				var width = $off.width() - ($off.width() - left);
-				width = Math.min(Math.ceil(width / (opts.size / opts.step)) * opts.size / opts.step, opts.size * opts.ratings.length)
+				width = Math.min(Math.ceil(width / (opts.size / opts.step)) * opts.size / opts.step, opts.size * opts.ratings.length);
 				$on.width(width);
 				var r = Math.round($on.width() / $off.width() * (opts.ratings.length * opts.step)) / opts.step;
 				$this.attr('title', 'Click to Rate "' + (opts.ratings[r - 1] == undefined ? r : opts.ratings[r - 1]) + '"') ;

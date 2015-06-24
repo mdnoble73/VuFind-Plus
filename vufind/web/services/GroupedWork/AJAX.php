@@ -230,7 +230,7 @@ class GroupedWork_AJAX {
 
 	function getWorkInfo(){
 		global $interface;
-		
+
 		//Indicate we are showing search results so we don't get hold buttons
 		$interface->assign('displayingSearchResults', true);
 
@@ -264,11 +264,17 @@ class GroupedWork_AJAX {
 		$escapedId = htmlentities($recordDriver->getPermanentId()); // escape for html
 		$buttonLabel = translate('Add to favorites');
 
+		// button template
+		$interface->assign('escapeId', $escapedId);
+		$interface->assign('buttonLabel', $buttonLabel);
+		$interface->assign('url', $url);
+
 		$results = array(
 				'title' => "<a href='$url'>{$recordDriver->getTitle()}</a>",
-				'modalBody' => $interface->fetch("GroupedWork/work-details.tpl"),
-				'modalButtons' => "<span onclick=\"return VuFind.GroupedWork.showSaveToListForm(this, '$escapedId');\" class=\"modal-buttons btn btn-primary\" style='float: left'>$buttonLabel</span>"
-					."<a href='$url'><span class='modal-buttons btn btn-primary'>More Info</span></a>"
+				'modalBody' => $interface->fetch('GroupedWork/work-details.tpl'),
+				'modalButtons' => $interface->fetch('GroupedWork/work-details-modalButtons.tpl')
+//		'modalButtons' => "<span onclick=\"return VuFind.GroupedWork.showSaveToListForm(this, '$escapedId');\" class=\"modal-buttons btn btn-primary\" style='float: left'>$buttonLabel</span>"
+//					."<a href='$url'><span class='modal-buttons btn btn-primary'>More Info</span></a>"
 		);
 		return json_encode($results);
 
@@ -353,13 +359,25 @@ class GroupedWork_AJAX {
 	}
 
 	function getReviewForm(){
-		global $interface;
+		global $interface, $library, $user;
 		$id = $_REQUEST['id'];
 		$interface->assign('id', $id);
+
+		// check if rating/review exists for user and work
+		require_once ROOT_DIR . '/sys/LocalEnrichment/UserWorkReview.php';
+		$groupedWorkReview = new UserWorkReview();
+		$groupedWorkReview->userId = $user->id;
+		$groupedWorkReview->groupedRecordPermanentId = $id;
+		if ($groupedWorkReview->find(true)){
+			$interface->assign('userRating', $groupedWorkReview->rating);
+			$interface->assign('userReview', $groupedWorkReview->review);
+		}
+
+		$title = ($library->showFavorites && !$library->showComments) ? 'Rating' : 'Review';
 		$results = array(
-			'title' => 'Review',
+			'title' => $title,
 			'modalBody' => $interface->fetch("GroupedWork/review-form-body.tpl"),
-			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveReview(\"{$id}\"); return false;'>Submit Review</span>"
+			'modalButtons' => "<span class='tool btn btn-primary' onclick='VuFind.GroupedWork.saveReview(\"{$id}\"); return false;'>Submit $title</span>"
 		);
 		return json_encode($results);
 	}
@@ -376,7 +394,7 @@ class GroupedWork_AJAX {
 			$result['result'] = true;
 			$id = $_REQUEST['id'];
 			$rating = $_REQUEST['rating'];
-			$comment = $_REQUEST['comment'];
+			$comment = trim($_REQUEST['comment']);
 
 			$groupedWorkReview = new UserWorkReview();
 			$groupedWorkReview->userId = $user->id;
@@ -386,8 +404,8 @@ class GroupedWork_AJAX {
 				$newReview = false;
 			}
 			$result['newReview'] = $newReview;
-			$groupedWorkReview->rating = $rating;
-			$groupedWorkReview->review = $comment;
+			if (!empty($rating) && is_numeric($rating)) $groupedWorkReview->rating = $rating;
+			if (!empty($comment)) $groupedWorkReview->review = $comment;
 			if ($newReview){
 				$groupedWorkReview->dateRated = time();
 				$groupedWorkReview->insert();
