@@ -14,6 +14,10 @@ set testing false
 # TO DO
 # + Provide details on INNOPAC user privileges necessary
 
+# 20150624
+# + insert logic for handling unsaved RSA key
+# + insert logic for handling an unexpected empty review file
+
 # 20150302
 # + removed conflictingProcesses because continuous_partial_reindex.sh includes a similar function
 
@@ -117,21 +121,28 @@ puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> Read 
 # During testing, use an IF FALSE block to NOT run the INNOPAC commands - and thus save a couple minutes
 if {$testing == false} { 
 
-# CONNECT TO INNOPAC
+# INNOPAC : CONNECT
 spawn ssh $INNOPACuser@$host
-#expect "Are you sure you want to continue connecting (yes/no)?" ; # if RSA key for host is not yet set
-#send "yes\r"
-#expect "login as:"
-#send "$INNOPACuser\r"
-expect "Password:"
-send "$INNOPACuserPassword\r"
+expect {
+	# if RSA key for host is not yet set
+	"Are you sure you want to continue connecting (yes/no)?" {
+		send "yes\r"
+		#expect "login as:"
+		send "$INNOPACuser\r"
+		expect "Password:"
+		send "$INNOPACuserPassword\r"
+	}
+	"Password:" {
+		send "$INNOPACuserPassword\r"
+	}
+}
 expect "What kind of Terminal are you using?"
 send "v"
 expect "Please confirm: are you using a VT100 or compatible terminal?"
 send "y"
 puts $logFile "[clock format [clock seconds] -format "%y%m%d %H:%M:%S"] >> Connected to INNOPAC"
 
-# CREATE LIST
+# INNOPAC : CREATE LIST
 expect "M > MANAGEMENT information"
 send "M"
 expect "L > Create LISTS of records"
@@ -140,12 +151,18 @@ expect "Please key your initials :"
 send "$INNOPACinitials\r"
 expect "Please key your password :"
 send "$INNOPACinitialsPassword\r"
-expect "$INNOPACreviewFile > $name"
+expect "Select review file to work on :"
 send $INNOPACreviewFile
-expect "N > NEW BOOLEAN search, delete the review file"
-send "N"
-expect "Are you sure you want to delete the current review file?"
-send "Y"
+expect {
+	"2 > Create a new file" { 
+		send "2" 
+	}
+	"N > NEW BOOLEAN search, delete the review file" {
+		send "N"
+		expect "Are you sure you want to delete the current review file?"
+		send "Y"
+	}
+}
 expect "I > ITEM list"
 send "I"
 expect "33 UPDATED"
