@@ -8321,6 +8321,9 @@ a.browse-thumbnail.active {
 .mediumScroller .scrollerTitle {
   max-width: 204px;
 }
+.mediumScroller.textListScroller .scrollerTitle {
+  max-width: none;
+}
 .mediumScroller .scrollerBody {
   height: 215px;
 }

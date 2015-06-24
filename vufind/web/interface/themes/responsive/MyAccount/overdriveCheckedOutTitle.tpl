@@ -60,7 +60,7 @@
 				</div>
 			</div>
 
-			<div class="col-md-3">
+			<div class="col-xs-12 col-md-3">
 				<div class="btn-group btn-group-vertical btn-block">
 					{if $record.overdriveRead}
 						<a href="#" onclick="return VuFind.OverDrive.followOverDriveDownloadLink('{$record.overDriveId}', 'ebook-overdrive')" class="btn btn-sm btn-primary">Read&nbsp;Online</a>

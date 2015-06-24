@@ -1,7 +1,7 @@
 {strip}
 	<div id="list-{$wrapperId}"{if $display == 'false'} style="display:none"{/if} class="textListScroller{if $widget->coverSize == 'medium'} mediumScroller{/if}">
 		<div id="{$wrapperId}" class="titleScrollerWrapper">
-			{if $scrollerTitle || $showViewMoreLink}
+			{if $showListWidgetTitle || $showViewMoreLink}
 				<div id="list-{$wrapperId}Header" class="titleScrollerHeader">
 					{if $scrollerTitle}
 						<span class="listTitle resultInformationLabel">{if $scrollerTitle}{$scrollerTitle|escape:"html"}{/if}</span>

@@ -230,6 +230,21 @@ $timer->logTime('Check if user is logged in');
 $deviceName = get_device_name();
 $interface->assign('deviceName', $deviceName);
 
+//Look for spammy searches
+if (isset($_REQUEST['lookfor'])){
+	$searchTerm = $_REQUEST['lookfor'];
+	if (preg_match('/http:|mailto:|https:/i', $searchTerm)){
+		PEAR_Singleton::raiseError("Sorry it looks like you are searching for a website, please rephrase your query.");
+		$_REQUEST['lookfor'] = '';
+		$_GET['lookfor'] = '';
+	}
+	if (strlen($searchTerm) >= 256){
+		PEAR_Singleton::raiseError("Sorry your query is too long, please rephrase your query.");
+		$_REQUEST['lookfor'] = '';
+		$_GET['lookfor'] = '';
+	}
+}
+
 if (!$analytics->isTrackingDisabled()){
 	$analytics->setModule($module);
 	$analytics->setAction($action);

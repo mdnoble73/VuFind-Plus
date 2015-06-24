@@ -115,5 +115,14 @@ function getListWidgetUpdates(){
 				"ALTER TABLE `list_widgets` COMMENT = 'A widget that can be displayed within Pika or within other sites'",
 			),
 		),
+
+		'list_widget_update_5' => array(
+			'title' => 'List Widget Update 5',
+			'description' => 'Switch for displaying or not displaying a widget\'s title bar.',
+			'sql' => array(
+				"ALTER TABLE `list_widgets` ADD COLUMN `showListWidgetTitle` TINYINT NOT NULL DEFAULT '1'",
+			),
+		),
+
 	);
 }

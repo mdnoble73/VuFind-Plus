@@ -60,7 +60,7 @@ set ACTION=%1
 shift
 
 rem Set Performance options for JETTY
-set JAVA_OPTIONS= -server -Xms1024m -Xmx2024m -XX:+UseParallelGC -XX:NewRatio=5
+set JAVA_OPTIONS= -server -Xms1024m -Xmx2024m -XX:+UseG1GC
 
 rem Set VUFIND_HOME (if not already set)
 if not "!%VUFIND_HOME%!"=="!!" goto vufindhomeset
